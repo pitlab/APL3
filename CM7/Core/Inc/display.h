@@ -56,10 +56,10 @@
 //rozmiar ekranu
 #define DISP_X_SIZE		480
 #define DISP_Y_SIZE		320
-#define DISP_HX_SIZE	320
-#define DISP_HY_SIZE	480
-#define DISP_VX_SIZE	480
-#define DISP_VY_SIZE	320
+#define DISP_HX_SIZE	480		//horyzontalnie
+#define DISP_HY_SIZE	320
+#define DISP_VX_SIZE	320		//wertykalnie
+#define DISP_VY_SIZE	480
 
 
 

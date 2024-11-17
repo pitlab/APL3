@@ -12,7 +12,7 @@
 #include "display.h"
 #include <stdio.h>
 #include <math.h>
-
+#include "dotyk.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -21,7 +21,7 @@ const char *build_date = __DATE__;
 const char *build_time = __TIME__;
 
 //definicje zmiennych
-char chNapis[40];
+char chNapis[50];
 float fZoom, fX, fY;
 float fReal, fImag;
 unsigned char chMnozPalety;
@@ -29,6 +29,7 @@ unsigned char chDemoMode;
 unsigned char chLiczIter;		//licznik iteracji fraktala
 //unsigned short sFractalBuf[DISP_X_SIZE*DISP_Y_SIZE] ;
 extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
+extern struct _statusDotyku statusDotyku;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran główny odświeżany w głównej pętli programu
@@ -38,33 +39,38 @@ extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 ////////////////////////////////////////////////////////////////////////////////
 void RysujEkran(void)
 {
+	//extern struct _statusDotyku statusDotyku;
 	/*LCD_clear();
 	//LCD_rect(0, 0, DISP_X_SIZE, DISP_Y_SIZE, GRAY60);
 	setColor(BLUE);
 	drawHLine(10, 10, 470);
 	setColor(RED);
-	drawVLine(10, 10, 310);
+	drawVLine(10, 10, 310);*/
 
-	fillRect(200, 100, 400, 200);
+	//fillRect(200, 100, 400, 200);
 
 	setColor(BLUE);
 	drawCircle(100, 250, 50);
 
 	setFont(MidFont);
-	setColor(GREEN);
-	sprintf(chNapis, "APL3  SysCLK = %lu MHz", HAL_RCC_GetSysClockFreq()/1000000);
+	setColor(GRAY60);
+	//sprintf(chNapis, "APL3  SysCLK = %lu MHz", HAL_RCC_GetSysClockFreq()/1000000);
+	sprintf(chNapis, "APL3 v%d.%d.%d @ %s %s SysCLK = %lu MHz", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time,  HAL_RCC_GetSysClockFreq()/1000000);	//numer wersji w repozytorium i czas kompilacji
 	print(chNapis, 10, 0);
-	sprintf(chNapis, "v%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);	//numer wersji w repozytorium i czas kompilacji
-	print(chNapis, 10, 20);*/
+	//sprintf(chNapis, "v%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);	//numer wersji w repozytorium i czas kompilacji
+	//print(chNapis, 10, 20);
 
+	/*setColor(GREEN);
+	sprintf(chNapis, "Dotyk: X=%d Y=%d F1=%d F2=%d ", statusDotyku.sAdc[0], statusDotyku.sAdc[1], statusDotyku.sAdc[2], statusDotyku.sAdc[3]);
+	print(chNapis, 10, 50);*/
 
-	FraktalDemo();
-	/*for(uint8_t x=0; x<100; x++)
-		sBuforLCD[x] = x;
+	if (!(statusDotyku.chFlagi & DOTYK_ZAPISANO))
+		KalibrujDotyk();
+	else
+		TestDotyku();
 
-	drawBitmap(0, 0, 100, 1, sBuforLCD);
+	//FraktalDemo();
 
-	drawBitmap2(0, 1, 100, 1, sBuforLCD);*/
 }
 
 

@@ -2,7 +2,7 @@
 //
 // Moduł obsługi wyświetlacza TFT 320x480 RPI 3,5" B https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(B)
 //
-// Opracowano na podstawie analizy działania "RPi LCD Bookworm_32bit only for pi5&pi4"
+// Opracowano na podstawie analizy działania systemu z obrazu "RPi LCD Bookworm_32bit only for pi5&pi4"
 //
 // (c) PitLab 2024
 // http://www.pitlab.pl
@@ -576,6 +576,18 @@ void setColor(uint16_t color)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// pobiera aktywny kolor
+// Parametry: nic
+// Zwraca: kolor
+////////////////////////////////////////////////////////////////////////////////
+uint16_t getColor(void)
+{
+	return (fch<<8) | fcl;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Ustawia kolor tła jako RGB
 // Parametry: r, g, b - składowe RGB koloru
 // Zwraca: nic
@@ -603,6 +615,18 @@ void setBackColor(uint16_t color)
 		bcl = (uint8_t)(color & 0xFF);
 		_transparent = 0;
 	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// pobiera aktywny kolor tła
+// Parametry: nic
+// Zwraca: kolor
+////////////////////////////////////////////////////////////////////////////////
+uint16_t getBackColor(void)
+{
+	return (bch<<8) | bcl;
 }
 
 
@@ -867,19 +891,19 @@ void print(char *st, uint16_t x, uint16_t y)
 
 	stl = strlen((char*)st);
 
-	if (chOrient == PIONOWO)
+	if (chOrient == POZIOMO)
 	{
 	if (x == RIGHT)
-		x = (DISP_X_SIZE+1)-(stl*cfont.x_size);
+		x = (DISP_HX_SIZE+1)-(stl*cfont.x_size);
 	if (x == CENTER)
-		x = ((DISP_X_SIZE+1)-(stl*cfont.x_size))/2;
+		x = ((DISP_HX_SIZE+1)-(stl*cfont.x_size))/2;
 	}
-	else
+	else	//wersja dla pionowego układu ekranu
 	{
 	if (x == RIGHT)
-		x = (DISP_Y_SIZE+1)-(stl*cfont.x_size);
+		x = (DISP_VX_SIZE+1)-(stl*cfont.x_size);
 	if (x == CENTER)
-		x = ((DISP_Y_SIZE+1)-(stl*cfont.x_size))/2;
+		x = ((DISP_VX_SIZE+1)-(stl*cfont.x_size))/2;
 	}
 
 	for (i=0; i<stl; i++)

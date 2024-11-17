@@ -25,6 +25,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "LCD.h"
+#include "dotyk.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -91,7 +92,7 @@ int main(void)
   /* USER CODE END 1 */
 /* USER CODE BEGIN Boot_Mode_Sequence_0 */
   int32_t timeout;
-  //uint8_t init_delay = 10;
+
 /* USER CODE END Boot_Mode_Sequence_0 */
 
   /* MPU Configuration--------------------------------------------------------*/
@@ -168,12 +169,8 @@ Error_Handler();
     /* USER CODE BEGIN 3 */
 	  WymienDaneExpanderow();
 	  //HAL_Delay(100);
-
-	  //if (!init_delay--)
-	  {
-		  RysujEkran();
-		//  init_delay = 10;
-	  }
+	  RysujEkran();
+	  CzytajDotyk();
   }
   /* USER CODE END 3 */
 }
