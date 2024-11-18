@@ -84,7 +84,7 @@ void CzytajDotyk(void)
 	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_64;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/64
 
 	//domyslnie używam innej orientacji, więc zaimeń osie X i Y
-	statusDotyku.sAdc[0] = CzytajKanalDotyku(TPCHY);	//najlepiej się zmienia dla osi X
+	statusDotyku.sAdc[0] = 4096 - CzytajKanalDotyku(TPCHY);	//najlepiej się zmienia dla osi X. Ponieważ wartość maleje dla większych X, więc używam odwrotności
 	statusDotyku.sAdc[1] = CzytajKanalDotyku(TPCHX);	//najlepiej się zmienia dla osi Y
 	statusDotyku.sAdc[2] = CzytajKanalDotyku(TPCHZ1);
 	statusDotyku.sAdc[3] = CzytajKanalDotyku(TPCHZ2);
@@ -130,7 +130,7 @@ void CzytajDotyk(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibrujDotyk(void)
 {
-	uint8_t chErr;
+	uint8_t chErr = ERR_OK;	//domyślny kod błedu;
 	uint16_t sKolor;
 
 	switch(chEtapKalibr)
@@ -138,7 +138,7 @@ uint8_t KalibrujDotyk(void)
 	case 0:	//inicjalizacja zmiennych
 		//LCD_Orient(POZIOMO);
 		LCD_clear();
-		TestObliczenKalibracji();		//testowo sprawdzenie poprawności obliczeń
+		//TestObliczenKalibracji();		//testowo sprawdzenie poprawności obliczeń
 		setColor(WHITE);
 		setFont(MidFont);
 		sprintf(chNapis, "Dotknij krzyzyk aby");
@@ -174,9 +174,6 @@ uint8_t KalibrujDotyk(void)
 		break;
 	}
 
-
-	chErr = ERR_OK;	//domyślny kod błedu
-
 	//czekaj na naciśnięcie
 	if (statusDotyku.sAdc[2] > MIN_Z)		//czy siła nacisku jest wystarczająca
 	{
@@ -198,7 +195,8 @@ uint8_t KalibrujDotyk(void)
 			chEtapKalibr++;
 			if (chEtapKalibr == PKT_KAL+1)
 			{
-				ObliczKalibracjeDotyku();
+				ObliczKalibracjeDotyku3Punktowa();		//OK
+				//ObliczKalibracjeDotykuWielopunktowa();	//Źle
 				//ZapiszPaczke(chPaczka);
 				statusDotyku.chFlagi |= DOTYK_ZAPISANO;
 				chEtapKalibr = 0;
@@ -241,8 +239,8 @@ uint8_t KalibrujDotyk(void)
 // Kalibracja ekranu dotykowego na podstawie dokumentu: Calibration in touch-screen systems https://www.ti.com/lit/pdf/slyt277
 // Xe1, Xe2, Xe3 oraz Ye1, Ye2, Ye3 - współrzędne X i Y punktów kalibracyjnych wyświetlanych na ekranie
 // Xd1, Xd2, Xd3 oraz Yd1, Yd2, Yd3 - wartości X i Y odczytane z panelu dotykowego
-// ax, ay, bx, by - wspólczynniki kalibracyjne
-// deltaX, deltaY - przesunięcie między punktami?
+// ax, ay, bx, by - wspólczynniki kalibracyjne równania uwzględniającego skalowania i rotację
+// deltaX, deltaY - przesunięcie między punktami
 //     |Xd1  Yd1  1|
 // A = |Xd2  Yd2  1|  macierz A
 //     |Xd3  Yd3  1|
@@ -259,7 +257,7 @@ uint8_t KalibrujDotyk(void)
 // Parametry: nic
 // Zwraca: nic
 /////////////////////////
-void ObliczKalibracjeDotyku(void)
+void ObliczKalibracjeDotykuWielopunktowa(void)
 {
 	uint8_t n;
 	uint32_t nX1, nX2, nX3;
@@ -334,6 +332,62 @@ void ObliczKalibracjeDotyku(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Kalibracja ekranu dotykowego na podstawie dokumentu: Calibration in touch-screen systems https://www.ti.com/lit/pdf/slyt277
+// kalibracja dla tylko 3 punktów. Przetestowana, działa poprawnie
+// Genialny kalkulator macierzy do testów: https://matrixcalc.org/pl/#%7B%7B678,2169,1%7D,%7B2807,1327,1%7D,%7B2629,3367,1%7D%7D%5E%28-1%29
+void ObliczKalibracjeDotyku3Punktowa(void)
+{
+	float fWyznacznik;
+	int32_t a11, a12, a13, a21, a22, a23, a31, a32, a33;
+	//     |Xd1  Yd1  1|
+	// A = |Xd2  Yd2  1|  macierz A
+	//     |Xd3  Yd3  1|
+	//
+	// gdzie A^-1 oznacza macierz odwrotną
+
+	//Aby ją wyznaczyć najpierw liczę wyznacznik macierzy metodą Sarrusa (https://www.naukowiec.org/wzory/matematyka/wyznacznik-macierzy-3x3--metoda-sarrusa_618.html):
+	//          |a11  a12  a13|
+	// det(A) = |a21  a22  a23|  = a11 a22 a33 + a12 a23 a31 + a13 a21 a32 − (a13 a22 a31 + a11 a23 a32 + a12 a21 a33)
+	//          |a31  a32  a33|
+	//
+	fWyznacznik = sXd[0] * sYd[1] * 1 + sYd[0] * 1 * sXd[2] + 1 * sXd[1] * sYd[2] - (1 * sYd[1] * sXd[2] + sXd[0] * 1 * sYd[2] + sYd[0] * sXd[1] * 1);	//OK
+
+	//Aby wyznaczyć macierz odwrotną korzystam z metody dopełnień algebraicznych: https://www.naukowiec.org/wiedza/matematyka/macierz-odwrotna_607.html
+	a11 = sYd[1] - sYd[2];							// a11 = +1 *(a22 * a33 - a23 * a32)
+	a12 = -1 * (sXd[1] - sXd[2]);					// a12 = -1 * (a21 * a33 - a23 * a31)
+	a13 = sXd[1] * sYd[2] - sYd[1] * sXd[2];		// a13 = +1 * (a21 * a32 - a22 * a31)
+	a21 = -1 * (sYd[0] - sYd[2]);					// a21 = -1 * (a12 * a33 - a13 * a32)
+	a22 = sXd[0] - sXd[2];							// a22 = +1 * (a11 * a33 - a13 * a31)
+	a23 = -1 * (sXd[0] * sYd[2] - sYd[0] * sXd[2]);	// a23 = -1 * (a11 * a32 - a12 * a31)	- tutaj jest błąd na naukowiec.org
+	a31 = sYd[0] - sYd[1];							// a31 = +1 * (a12 * a23 - a13 * a22)
+	a32 = -1 * (sXd[0] - sXd[1]);					// a32 = -1 * (a11 * a23 - a13 * a21)
+	a33 = sXd[0] * sYd[1] - sYd[0] * sXd[1];		// a33 = +1 * (a11 * a22 - a12 * a21)
+
+	//teraz trzeba transponować macierz, czyli zamienić wiersze z kolumnami, ma to wygladać tak
+	//       |a11 a21 a31|
+	// A^T = |a12 a22 a32|
+	//       |a13 a23 a33|
+
+	//Finalnym krokiem uzyskania macierzy odwrotnej jest podzielenie transponowanej macierzy odwrotnej przez wyznacznik a nastepnie pomnożenie przez wektor współrzędnych ekranowych
+	// |ax|              |sXe1|
+	// |bx|     = A^-1 x |sXe2|
+	// |deltaX|          |sXe3|
+	//
+	// |ay|              |sYe1|
+	// |by|     = A^-1 x |sYe2|
+	// |deltay|          |sYe3|
+
+	kalibDotyku.fAx = (a11 * sXe[0] + a21 * sXe[1] + a31 * sXe[2]) / fWyznacznik;
+	kalibDotyku.fBx = (a12 * sXe[0] + a22 * sXe[1] + a32 * sXe[2]) / fWyznacznik;
+	kalibDotyku.fDeltaX = (a13 * sXe[0] + a23 * sXe[1] + a33 * sXe[2]) / fWyznacznik;
+
+	kalibDotyku.fAy = (a11 * sYe[0] + a21 * sYe[1] + a31 * sYe[2]) / fWyznacznik;
+	kalibDotyku.fBy = (a12 * sYe[0] + a22 * sYe[1] + a32 * sYe[2]) / fWyznacznik;
+	kalibDotyku.fDeltaY = (a13 * sYe[0] + a23 * sYe[1] + a33 * sYe[2]) / fWyznacznik;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Przykład obliczeń z 3 strony dokumentu slyt277.pdf
 // Parametry: nic
 // Zwraca: kod błędu
@@ -355,7 +409,8 @@ uint8_t TestObliczenKalibracji(void)
 	sXd[2] = 2629;
 	sYd[2] = 3367;
 
-	ObliczKalibracjeDotyku();
+	//ObliczKalibracjeDotykuWielopunktowa();	//wszystko jest złe
+	ObliczKalibracjeDotyku3Punktowa();			//zwraca dobre wartości
 
 	if ((kalibDotyku.fAx == 0.0623) && (kalibDotyku.fBx == 0.0054) && (kalibDotyku.fDeltaX == 9.9951) && (kalibDotyku.fAy == -0.0163) && (kalibDotyku.fBy == 0.01868) && (kalibDotyku.fDeltaY == -10.1458))
 		return ERR_OK;
@@ -372,6 +427,8 @@ uint8_t TestObliczenKalibracji(void)
 ////////////////////////////////////////////////////////////////////////////////
 void TestDotyku(void)
 {
+	uint16_t sKolor;
+
 	sprintf(chNapis, "Test kalibracji ");
 	print(chNapis, CENTER, 60);
 
@@ -379,6 +436,16 @@ void TestDotyku(void)
 	{
 		drawHLine(statusDotyku.sX - KRZYZ/2, statusDotyku.sY, KRZYZ);
 		drawVLine(statusDotyku.sX, statusDotyku.sY - KRZYZ/2, KRZYZ);
+
+		sKolor = getColor();	//zapamiętaj kolor
+		//setColor(RED);
+		setColor(YELLOW);
+		sprintf(chNapis, "Dotyk ADC = (%d, %d) ", statusDotyku.sAdc[0], statusDotyku.sAdc[1]);
+		print(chNapis, 80, 140);
+		sprintf(chNapis, "Dotyk Ekran = (%d, %d) ", statusDotyku.sX, statusDotyku.sY);
+		print(chNapis, 80, 160);
+
+		setColor(sKolor);	//przywróć kolor
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 	}
 }

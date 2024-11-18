@@ -57,7 +57,8 @@ struct _kalibracjaDotyku
 uint16_t CzytajKanalDotyku(uint8_t  chKanal);
 void CzytajDotyk(void);
 uint8_t KalibrujDotyk(void);
-void ObliczKalibracjeDotyku(void);
+void ObliczKalibracjeDotykuWielopunktowa(void);
+void ObliczKalibracjeDotyku3Punktowa(void);
 void TestDotyku(void);
 uint8_t TestObliczenKalibracji(void);
 
