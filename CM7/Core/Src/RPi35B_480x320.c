@@ -21,6 +21,7 @@
 
 //deklaracje zmiennych
 extern SPI_HandleTypeDef hspi5;
+extern uint8_t chRysujRaz;
 uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 uint8_t chOrient;
 uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
@@ -73,7 +74,7 @@ uint8_t LCD_WrData(uint8_t* chDane, uint8_t chIlosc)
 }
 
 
-////////////////////////////////////////////////////////////////////////////////
+/*///////////////////////////////////////////////////////////////////////////////
 // Wysyła do wyświetlacza LCD przez DMA bufor danych w jednej ramce ograniczonej CS. Steruje liniami RS i CS
 // Parametry: *chDane - wskaźnika na bufor z danymi wysłane
 // sIlosc - ilość wysyłanych danych
@@ -88,7 +89,7 @@ uint8_t LCD_WrDataDMA(uint8_t* chDane, uint16_t sIlosc)
 	Err = HAL_SPI_Transmit_DMA(&hspi5, chDane, sIlosc);
 	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 	return Err;
-}
+} */
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -117,13 +118,17 @@ uint8_t LCD_write_data16(uint8_t chDane1, uint8_t chDane2)
 // Parametry: chDane
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t LCD_write_dat_pie(uint8_t chDane)
+uint8_t LCD_write_dat_pie16(uint8_t chDane1, uint8_t chDane2)
 {
 	HAL_StatusTypeDef Err;
+	uint8_t dane_nadawane[2];
+
+	dane_nadawane[0] = chDane1;
+	dane_nadawane[1] = chDane2;
 
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-	Err = HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
+	Err = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
 	return Err;
 }
 
@@ -134,9 +139,14 @@ uint8_t LCD_write_dat_pie(uint8_t chDane)
 // Parametry: chDane
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_write_dat_sro(uint8_t chDane)
+void LCD_write_dat_sro16(uint8_t chDane1, uint8_t chDane2)
 {
-	HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
+	uint8_t dane_nadawane[2];
+
+	dane_nadawane[0] = chDane1;
+	dane_nadawane[1] = chDane2;
+
+	HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
 }
 
 
@@ -146,24 +156,14 @@ void LCD_write_dat_sro(uint8_t chDane)
 // Parametry: chDane
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_write_dat_ost(uint8_t chDane)
+void LCD_write_dat_ost16(uint8_t chDane1, uint8_t chDane2)
 {
-	HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
-	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-}
+	uint8_t dane_nadawane[2];
 
+	dane_nadawane[0] = chDane1;
+	dane_nadawane[1] = chDane2;
 
-
-////////////////////////////////////////////////////////////////////////////////
-// Wysyła dane do wy�wietlacza LCD - kompletna ustawia linie steruj�ce na początku i na końcu
-// Parametry: chDane
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void LCD_write_dat_wsz(uint8_t chDane)
-{
-	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-	HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
+	HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
 	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 }
 
@@ -174,11 +174,11 @@ void LCD_write_dat_wsz(uint8_t chDane)
 // Parametry: *chDane - wskaźnik na zwracane dane
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_data_read(uint8_t *chDane)
+void LCD_data_read(uint8_t *chDane, uint8_t chIlosc)
 {
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-	HAL_SPI_Receive(&hspi5, chDane, 1, HAL_MAX_DELAY);
+	HAL_SPI_Receive(&hspi5, chDane, chIlosc, HAL_MAX_DELAY);
 	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 }
 
@@ -221,12 +221,9 @@ void LCD_init(void)
 	LCD_write_data16(0x00, 0x33);
 
 	LCD_write_command16(0x00, 0xC5);
-	LCD_write_dat_pie(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x1E);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_ost(0x80);
+	LCD_write_dat_pie16(0x00, 0x00);
+	LCD_write_dat_sro16(0x00, 0x1E);
+	LCD_write_dat_ost16(0x00, 0x80);
 
 	LCD_write_command16(0x00, 0x36);
 	LCD_write_data16(0x00, 0x28);
@@ -235,96 +232,58 @@ void LCD_init(void)
 	LCD_write_data16(0x00, 0xB0);
 
 	LCD_write_command16(0x00, 0xE0);	//Positive Gamma Correction
-	LCD_write_dat_pie(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x13);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x18);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x04);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x0F);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x06);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x3A);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x56);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x4D);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x03);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x0A);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x06);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x30);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x3E);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_ost(0x0F);
+	LCD_write_dat_pie16(0x00, 0x00);
+	LCD_write_dat_sro16(0x00, 0x13);
+	LCD_write_dat_sro16(0x00, 0x18);
+	LCD_write_dat_sro16(0x00, 0x04);
+	LCD_write_dat_sro16(0x00, 0x0F);
+	LCD_write_dat_sro16(0x00, 0x06);
+	LCD_write_dat_sro16(0x00, 0x3A);
+	LCD_write_dat_sro16(0x00, 0x56);
+	LCD_write_dat_sro16(0x00, 0x4D);
+	LCD_write_dat_sro16(0x00, 0x03);
+	LCD_write_dat_sro16(0x00, 0x0A);
+	LCD_write_dat_sro16(0x00, 0x06);
+	LCD_write_dat_sro16(0x00, 0x30);
+	LCD_write_dat_sro16(0x00, 0x3E);
+	LCD_write_dat_ost16(0x00, 0x0F);
 
 	LCD_write_command16(0x00, 0xE1);	//Negative Gamma Correction
-	LCD_write_dat_pie(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x13);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x18);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x01);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x11);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x06);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x38);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x34);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x4D);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x06);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x0D);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x0B);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x31);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x37);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_ost(0x0F);
+	LCD_write_dat_pie16(0x00, 0x00);
+	LCD_write_dat_sro16(0x00, 0x13);
+	LCD_write_dat_sro16(0x00, 0x18);
+	LCD_write_dat_sro16(0x00, 0x01);
+	LCD_write_dat_sro16(0x00, 0x11);
+	LCD_write_dat_sro16(0x00, 0x06);
+	LCD_write_dat_sro16(0x00, 0x38);
+	LCD_write_dat_sro16(0x00, 0x34);
+	LCD_write_dat_sro16(0x00, 0x4D);
+	LCD_write_dat_sro16(0x00, 0x06);
+	LCD_write_dat_sro16(0x00, 0x0D);
+	LCD_write_dat_sro16(0x00, 0x0B);
+	LCD_write_dat_sro16(0x00, 0x31);
+	LCD_write_dat_sro16(0x00, 0x37);
+	LCD_write_dat_ost16(0x00, 0x0F);
 
 	LCD_write_command16(0x00, 0x11);
 
 	HAL_Delay(302); 		//302ms
 
 	LCD_write_command16(0x00, 0x29);
-	LCD_write_command16(0x00, 0x36);
-	LCD_write_data16(0x00, 0x28);
+	LCD_write_command16(0x00, 0x36);	//orientacja ekranu
+	LCD_write_data16(0x00, 0xE8);
 
 	LCD_write_command16(0x00, 0x2A);	//Column Address Set
-	LCD_write_dat_pie(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x01);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_ost(0xDF);
+	LCD_write_dat_pie16(0x00, 0x00);
+	LCD_write_dat_sro16(0x00, 0x00);
+	LCD_write_dat_sro16(0x00, 0x01);
+	LCD_write_dat_ost16(0x00, 0xDF);
 
 	LCD_write_command16(0x00, 0x2B);	//Page Address Set
-	LCD_write_dat_pie(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_sro(0x01);
-	LCD_write_dat_sro(0x00);
-	LCD_write_dat_ost(0x3F);
+	LCD_write_dat_pie16(0x00, 0x00);
+	LCD_write_dat_sro16(0x00, 0x00);
+	LCD_write_dat_sro16(0x00, 0x01);
+	LCD_write_dat_ost16(0x00, 0x3F);
 
 	//czszczenie ekranu
 	LCD_clear();
@@ -339,24 +298,32 @@ void LCD_init(void)
 ////////////////////////////////////////////////////////////////////////////////
 void LCD_Orient(uint8_t orient)
 {
+	/*uint8_t chDane[8];
+
+	LCD_write_command16(0x00, 0x04);
+	LCD_data_read(chDane, 8);*/
+
+
 	LCD_write_command16(0x00, 0x36); // Memory Access Control
-	if (orient)	//POZIOMO
+	if (orient)	//PIONOWO
 	{
-		LCD_write_dat_wsz((0<<2)|	//MH Horizontal Refresh ORDER
-					  	  (1<<3)|	//BGR RGB-BGR Order: 0: RGB=RGB; 1:RGB=BGR
-						  (0<<4)|	//ML Vertical Refresh Order
-						  (0<<5)|	//MV Row / Column Exchange
-						  (1<<6)|	//MX Column Address Order
-						  (0<<7));	//MY Row Address Order
+		LCD_write_data16(0x00,
+			(0<<2)|	//MH Horizontal Refresh ORDER
+			(1<<3)|	//BGR RGB-BGR Order: 0: RGB=RGB; 1:RGB=BGR
+			(0<<4)|	//ML Vertical Refresh Order
+			(0<<5)|	//MV Row / Column Exchange
+			(1<<6)|	//MX Column Address Order
+			(0<<7));	//MY Row Address Order
 	}
-	else	//PIONOWO
+	else	//POZIOMO
 	{
-		LCD_write_dat_wsz((0<<2)|	//MH Horizontal Refresh ORDER
-					  	  (1<<3)|	//BGR RGB-BGR Order: 0: RGB=RGB; 1:RGB=BGR
-						  (0<<4)|	//ML Vertical Refresh Order
-						  (0<<5)|	//MV Row / Column Exchange
-						  (1<<6)|	//MX Column Address Order
-						  (0<<7));	//MY Row Address Order
+		LCD_write_data16(0x00,
+			(0<<2)|	//MH Horizontal Refresh ORDER
+			(1<<3)|	//BGR RGB-BGR Order: 0: RGB=RGB; 1:RGB=BGR
+			(0<<4)|	//ML Vertical Refresh Order
+			(1<<5)|	//MV Row / Column Exchange
+			(1<<6)|	//MX Column Address Order
+			(1<<7));	//MY Row Address Order
 	}
 	chOrient = orient;
 }
@@ -377,7 +344,7 @@ void LCD_clear(void)
 	for(y=0; y<DISP_X_SIZE * DISP_Y_SIZE; y++)
 		sBuforLCD[y] = GRAY20;
 
-	//chRysujRaz = 1;
+	chRysujRaz = 1;
 	setColor(BLACK);
 	setBackColor(BLACK);
 
@@ -639,8 +606,8 @@ uint16_t getBackColor(void)
 void drawPixel(uint16_t x, uint16_t y)
 {
 	setXY(x, y, x, y);
-	LCD_write_dat_pie(fch);
-	LCD_write_dat_ost(fcl);
+	LCD_write_dat_pie16(0x00, fch);
+	LCD_write_dat_ost16(0x00, fcl);
 	//clrXY();
 }
 
@@ -671,8 +638,11 @@ void drawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 			while (1)
 			{
 				setXY (col, row, col, row);
-				LCD_write_dat_pie(fch);
-				LCD_write_dat_ost(fcl);
+				//LCD_write_dat_pie(fch);
+				//LCD_write_dat_ost(fcl);
+				//LCD_write_data16(fch, fcl);
+				LCD_write_dat_pie16(0x00, fch);
+				LCD_write_dat_ost16(0x00, fcl);
 				if (row == y2)
 					return;
 				row += ystep;
@@ -690,8 +660,11 @@ void drawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 			while (1)
 			{
 				setXY (col, row, col, row);
-				LCD_write_dat_pie(fch);
-				LCD_write_dat_ost(fcl);
+				//LCD_write_dat_pie(fch);
+				//LCD_write_dat_ost(fcl);
+				//LCD_write_data16(fch, fcl);
+				LCD_write_dat_pie16(0x00, fch);
+				LCD_write_dat_ost16(0x00, fcl);
 				if (col == x2)
 					return;
 				col += xstep;
@@ -778,6 +751,42 @@ void fillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 		}
 	}
 
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// rysuj zaokrąglony prostokąt o współprzędnych x1,y1, x2,y2 we wcześniej zdefiniowanym kolorze
+// Parametry: x, y - współrzędne
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void drawRoundRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
+{
+	uint16_t nTemp;
+
+	if (x1>x2)
+	{
+		nTemp = x1;
+		x1 = x2;
+		x2 = nTemp;
+	}
+	if (y1>y2)
+	{
+		nTemp = y1;
+		y1 = y2;
+		y2 = nTemp;
+	}
+	if ((x2-x1)>4 && (y2-y1)>4)
+	{
+		drawPixel(x1+1,y1+1);
+		drawPixel(x2-1,y1+1);
+		drawPixel(x1+1,y2-1);
+		drawPixel(x2-1,y2-1);
+		drawHLine(x1+2, y1, x2-x1-4);
+		drawHLine(x1+2, y2, x2-x1-4);
+		drawVLine(x1, y1+2, y2-y1-4);
+		drawVLine(x2, y1+2, y2-y1-4);
+	}
 }
 
 
@@ -929,20 +938,32 @@ void drawCircle(uint16_t x, uint16_t y, uint16_t radius)
 
 	//cbi(P_CS, B_CS);
 	setXY(x, y + radius, x, y + radius);
-	LCD_write_dat_pie(fch);
-	LCD_write_dat_ost(fcl);
+	//LCD_write_dat_pie(fch);
+	//LCD_write_dat_ost(fcl);
+	//LCD_write_data16(fch, fcl);
+	LCD_write_dat_pie16(0x00, fch);
+	LCD_write_dat_ost16(0x00, fcl);
 
 	setXY(x, y - radius, x, y - radius);
-	LCD_write_dat_pie(fch);
-	LCD_write_dat_ost(fcl);
+	//LCD_write_dat_pie(fch);
+	//LCD_write_dat_ost(fcl);
+//	LCD_write_data16(fch, fcl);
+	LCD_write_dat_pie16(0x00, fch);
+	LCD_write_dat_ost16(0x00, fcl);
 
 	setXY(x + radius, y, x + radius, y);
-	LCD_write_dat_pie(fch);
-	LCD_write_dat_ost(fcl);
+	//LCD_write_dat_pie(fch);
+	//LCD_write_dat_ost(fcl);
+	//LCD_write_data16(fch, fcl);
+	LCD_write_dat_pie16(0x00, fch);
+	LCD_write_dat_ost16(0x00, fcl);
 
 	setXY(x - radius, y, x - radius, y);
-	LCD_write_dat_pie(fch);
-	LCD_write_dat_ost(fcl);
+	//LCD_write_dat_pie(fch);
+	//LCD_write_dat_ost(fcl);
+	//LCD_write_data16(fch, fcl);
+	LCD_write_dat_pie16(0x00, fch);
+	LCD_write_dat_ost16(0x00, fcl);
 
 	while(x1 < y1)
 	{
@@ -956,36 +977,60 @@ void drawCircle(uint16_t x, uint16_t y, uint16_t radius)
 		ddF_x += 2;
 		f += ddF_x;
 		setXY(x + x1, y + y1, x + x1, y + y1);
-		LCD_write_dat_pie(fch);
-		LCD_write_dat_ost(fcl);
+		//LCD_write_dat_pie(fch);
+		//LCD_write_dat_ost(fcl);
+		//LCD_write_data16(fch, fcl);
+		LCD_write_dat_pie16(0x00, fch);
+		LCD_write_dat_ost16(0x00, fcl);
 
 		setXY(x - x1, y + y1, x - x1, y + y1);
-		LCD_write_dat_pie(fch);
-		LCD_write_dat_ost(fcl);
+		//LCD_write_dat_pie(fch);
+		//LCD_write_dat_ost(fcl);
+		//LCD_write_data16(fch, fcl);
+		LCD_write_dat_pie16(0x00, fch);
+		LCD_write_dat_ost16(0x00, fcl);
 
 		setXY(x + x1, y - y1, x + x1, y - y1);
-		LCD_write_dat_pie(fch);
-		LCD_write_dat_ost(fcl);
+		//LCD_write_dat_pie(fch);
+		//LCD_write_dat_ost(fcl);
+		//LCD_write_data16(fch, fcl);
+		LCD_write_dat_pie16(0x00, fch);
+		LCD_write_dat_ost16(0x00, fcl);
 
 		setXY(x - x1, y - y1, x - x1, y - y1);
-		LCD_write_dat_pie(fch);
-		LCD_write_dat_ost(fcl);
+		//LCD_write_dat_pie(fch);
+		//LCD_write_dat_ost(fcl);
+		//LCD_write_data16(fch, fcl);
+		LCD_write_dat_pie16(0x00, fch);
+		LCD_write_dat_ost16(0x00, fcl);
 
 		setXY(x + y1, y + x1, x + y1, y + x1);
-		LCD_write_dat_pie(fch);
-		LCD_write_dat_ost(fcl);
+		//LCD_write_dat_pie(fch);
+		//LCD_write_dat_ost(fcl);
+		//LCD_write_data16(fch, fcl);
+		LCD_write_dat_pie16(0x00, fch);
+		LCD_write_dat_ost16(0x00, fcl);
 
 		setXY(x - y1, y + x1, x - y1, y + x1);
-		LCD_write_dat_pie(fch);
-		LCD_write_dat_ost(fcl);
+		//LCD_write_dat_pie(fch);
+		//LCD_write_dat_ost(fcl);
+		//LCD_write_data16(fch, fcl);
+		LCD_write_dat_pie16(0x00, fch);
+		LCD_write_dat_ost16(0x00, fcl);
 
 		setXY(x + y1, y - x1, x + y1, y - x1);
-		LCD_write_dat_pie(fch);
-		LCD_write_dat_ost(fcl);
+		//LCD_write_dat_pie(fch);
+		//LCD_write_dat_ost(fcl);
+		//LCD_write_data16(fch, fcl);
+		LCD_write_dat_pie16(0x00, fch);
+		LCD_write_dat_ost16(0x00, fcl);
 
 		setXY(x - y1, y - x1, x - y1, y - x1);
-		LCD_write_dat_pie(fch);
-		LCD_write_dat_ost(fcl);
+		//LCD_write_dat_pie(fch);
+		//LCD_write_dat_ost(fcl);
+		//LCD_write_data16(fch, fcl);
+		LCD_write_dat_pie16(0x00, fch);
+		LCD_write_dat_ost16(0x00, fcl);
 	}
 	//sbi(P_CS, B_CS);
 	//clrXY();

@@ -40,4 +40,19 @@
 #define EXP26_LED_G			0x40	//LED zielony
 #define EXP27_LED_R			0x80	//LED czerwony
 
+
+
+//tryby pracy
+#define TP_MENU_GLOWNE		0	//wyświetla ekran menu głównego
+#define TP_KAMERA			1
+#define TP_FRAKTALE			2	//wyświetla benchmark fraktalowy
+#define TP_KALIB_DOTYK		3	//kalibracja panelu dotykowego
+#define TP_MULTITOOL		4
+#define TP_OSCYL			5
+#define TP_TESTY			6
+#define TP_VIBR_ADCIO		7
+#define TP_USTAWIENIA		8
+
+
+
 #endif /* INC_SYS_DEF_CM7_H_ */

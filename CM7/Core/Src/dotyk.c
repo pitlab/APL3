@@ -25,6 +25,7 @@ uint16_t sXd[PKT_KAL];	//surowy pomiar panelu rezystancyjnego dla danego punktu 
 uint16_t sYd[PKT_KAL];	//surowy pomiar panelu rezystancyjnego dla danego punktu kalibracyjnego Y
 uint16_t sXe[PKT_KAL];	//współrzędne ekranowe dla danego punktu kalibracyjnego X
 uint16_t sYe[PKT_KAL];	//współrzędne ekranowe dla danego punktu kalibracyjnego Z
+uint8_t chLicznikDotkniec;
 //deklaracje zmiennych
 extern uint8_t MidFont[];
 extern char chNapis[50];
@@ -73,7 +74,7 @@ void CzytajDotyk(void)
 
 	//sprawdź czy upłyneło wystarczająco czasu od ostatniego odczytu
 	nCzasDotyku = MinalCzas(statusDotyku.nOstCzasPomiaru);
-	if (nCzasDotyku < 500)	//50ms -> 20Hz
+	if (nCzasDotyku < 50)	//50ms -> 20Hz
 		return;
 	statusDotyku.nOstCzasPomiaru = HAL_GetTick();
 
@@ -84,8 +85,8 @@ void CzytajDotyk(void)
 	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_64;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/64
 
 	//domyslnie używam innej orientacji, więc zaimeń osie X i Y
-	statusDotyku.sAdc[0] = 4096 - CzytajKanalDotyku(TPCHY);	//najlepiej się zmienia dla osi X. Ponieważ wartość maleje dla większych X, więc używam odwrotności
-	statusDotyku.sAdc[1] = CzytajKanalDotyku(TPCHX);	//najlepiej się zmienia dla osi Y
+	statusDotyku.sAdc[0] = CzytajKanalDotyku(TPCHY);	//najlepiej się zmienia dla osi X. Ponieważ wartość maleje dla większych X, więc używam odwrotności
+	statusDotyku.sAdc[1] = 4096 - CzytajKanalDotyku(TPCHX);	//najlepiej się zmienia dla osi Y
 	statusDotyku.sAdc[2] = CzytajKanalDotyku(TPCHZ1);
 	statusDotyku.sAdc[3] = CzytajKanalDotyku(TPCHZ2);
 
@@ -98,12 +99,15 @@ void CzytajDotyk(void)
 			{
 				statusDotyku.chFlagi |= DOTYK_DOTKNIETO;
 
-				//oblicz współrzędne ekranowe
-				float fTemp;
-				fTemp = kalibDotyku.fAx * statusDotyku.sAdc[0] + kalibDotyku.fBx * statusDotyku.sAdc[1] + kalibDotyku.fDeltaX;
-				statusDotyku.sX = (uint16_t)fTemp;
-				fTemp = kalibDotyku.fAy * statusDotyku.sAdc[0] + kalibDotyku.fBy * statusDotyku.sAdc[1] + kalibDotyku.fDeltaY;
-				statusDotyku.sY = (uint16_t)fTemp;
+				if (statusDotyku.chFlagi & DOTYK_SKALIBROWANY)
+				{
+					//oblicz współrzędne ekranowe
+					float fTemp;
+					fTemp = kalibDotyku.fAx * statusDotyku.sAdc[0] + kalibDotyku.fBx * statusDotyku.sAdc[1] + kalibDotyku.fDeltaX;
+					statusDotyku.sX = (uint16_t)fTemp;
+					fTemp = kalibDotyku.fAy * statusDotyku.sAdc[0] + kalibDotyku.fBy * statusDotyku.sAdc[1] + kalibDotyku.fDeltaY;
+					statusDotyku.sY = (uint16_t)fTemp;
+				}
 			}
 		}
 	}
@@ -198,7 +202,7 @@ uint8_t KalibrujDotyk(void)
 				ObliczKalibracjeDotyku3Punktowa();		//OK
 				//ObliczKalibracjeDotykuWielopunktowa();	//Źle
 				//ZapiszPaczke(chPaczka);
-				statusDotyku.chFlagi |= DOTYK_ZAPISANO;
+				statusDotyku.chFlagi |= DOTYK_ZAPISANO | DOTYK_SKALIBROWANY;
 				chEtapKalibr = 0;
 				LCD_clear();
 				return ERR_DONE;	//kod wyjścia z procedury kalibracji
@@ -425,19 +429,22 @@ uint8_t TestObliczenKalibracji(void)
 // Parametry: nic
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-void TestDotyku(void)
+uint8_t TestDotyku(void)
 {
 	uint16_t sKolor;
 
+	sKolor = getColor();	//zapamiętaj kolor
+	setColor(GRAY40);
 	sprintf(chNapis, "Test kalibracji ");
 	print(chNapis, CENTER, 60);
 
 	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)		//jeżeli był dotknięty
 	{
+		setColor(WHITE);
 		drawHLine(statusDotyku.sX - KRZYZ/2, statusDotyku.sY, KRZYZ);
 		drawVLine(statusDotyku.sX, statusDotyku.sY - KRZYZ/2, KRZYZ);
 
-		sKolor = getColor();	//zapamiętaj kolor
+
 		//setColor(RED);
 		setColor(YELLOW);
 		sprintf(chNapis, "Dotyk ADC = (%d, %d) ", statusDotyku.sAdc[0], statusDotyku.sAdc[1]);
@@ -447,5 +454,12 @@ void TestDotyku(void)
 
 		setColor(sKolor);	//przywróć kolor
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
+		if (chLicznikDotkniec++ == 6)		//gdy licznik dotknięć doliczy do zadanej wartosci wtedy zakończ test
+		{
+			LCD_clear();
+			chLicznikDotkniec = 0;
+			return ERR_DONE;
+		}
 	}
+	return ERR_OK;
 }

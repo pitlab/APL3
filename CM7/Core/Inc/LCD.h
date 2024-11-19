@@ -8,8 +8,8 @@
 #ifndef INC_LCD_H_
 #define INC_LCD_H_
 #include "stm32h7xx_hal.h"
-
-
+#include "sys_def_CM7.h"
+#include "display.h"
 
 void RysujEkran(void);
 void FraktalTest(unsigned char chTyp);
@@ -19,5 +19,9 @@ void GenerateMandelbrot(float centre_X, float centre_Y, float Zoom, unsigned sho
 void HSV2RGB(float hue, float sat, float val, float *red, float *grn, float *blu);
 unsigned int MinalCzas(unsigned int nStart);
 void InitFraktal(unsigned char chTyp);
+void MenuGlowne(unsigned char *tryb);
+void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
+void BelkaTytulu(char* chTytul);
+
 
 #endif /* INC_LCD_H_ */

@@ -9,10 +9,12 @@
 
 #include "LCD.h"
 #include "RPi35B_480x320.h"
-#include "display.h"
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "dotyk.h"
+#include "errcode.h"
+#include "napisy.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -20,7 +22,21 @@ extern uint8_t BigFont[];
 const char *build_date = __DATE__;
 const char *build_time = __TIME__;
 
+extern const unsigned short obr_ppm[];
+extern const unsigned short obr_sbus[];
+extern const unsigned short obr_multimetr[];
+extern const unsigned short obr_multitool[];
+extern const unsigned short obr_oscyloskop[];
+extern const unsigned short obr_mtest[];
+extern const unsigned short obr_calibration[];
+extern const unsigned short pitlab_logo18[];
+
 //definicje zmiennych
+uint8_t chTrybPracy;
+uint8_t chNowyTrybPracy;
+uint8_t chWrocDoTrybu;
+uint8_t chRysujRaz;
+uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
 char chNapis[50];
 float fZoom, fX, fY;
 float fReal, fImag;
@@ -31,6 +47,19 @@ unsigned char chLiczIter;		//licznik iteracji fraktala
 extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern struct _statusDotyku statusDotyku;
 
+
+struct tmenu stMenuGlowne[8]  = {
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy		Ikona
+	{"Kamera",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 	obr_ppm},
+	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,	obr_sbus},
+	{"--nic--",		"Podstawowe instrumentu pomiarowe",			TP_KALIB_DOTYK, obr_multimetr},
+	{"--nic--", 	"Narzedzia uniwersalne",					TP_MULTITOOL,	obr_multitool},
+	{"--nic--", 	"Podglad sygnalow elektrycznych",			TP_OSCYL,		obr_oscyloskop},
+	{"--nic--",		"Pomiary drgan czujn. zewn. (zl. JST A)",	TP_VIBR_ADCIO,	obr_mtest},
+	{"Testy",		"Testy",									TP_TESTY,		obr_calibration},
+	{"Ustawienia", 	"Ustawienia i kalibracja czujnikow",		TP_USTAWIENIA,	obr_calibration}};
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran główny odświeżany w głównej pętli programu
 // Parametry:
@@ -39,6 +68,49 @@ extern struct _statusDotyku statusDotyku;
 ////////////////////////////////////////////////////////////////////////////////
 void RysujEkran(void)
 {
+	if ((statusDotyku.chFlagi & DOTYK_SKALIBROWANY) != DOTYK_SKALIBROWANY)		//sprawdź czy ekran dotykowy jest skalibrowany
+		chTrybPracy = TP_KALIB_DOTYK;
+
+	switch (chTrybPracy)
+	{
+	case TP_MENU_GLOWNE:	MenuGlowne(&chNowyTrybPracy);	break;
+
+	case TP_KAMERA:	break;
+	case TP_FRAKTALE:	FraktalDemo();	break;
+	case TP_KALIB_DOTYK:
+		if (KalibrujDotyk() == ERR_DONE)
+			chTrybPracy = TP_TESTY;
+		break;
+
+	case TP_MULTITOOL:	break;
+	case TP_OSCYL:	break;
+	case TP_VIBR_ADCIO:	break;
+	case TP_TESTY:
+		if (TestDotyku() == ERR_DONE)
+			chTrybPracy = TP_MENU_GLOWNE;
+		break;
+
+	case TP_USTAWIENIA:	break;
+
+	}
+
+	if (chNowyTrybPracy)
+	{
+		chTrybPracy = chNowyTrybPracy;
+		chNowyTrybPracy = 0;
+
+		//startuje procesy zwiazane z obsługą nowego trybu pracy
+		switch(chTrybPracy)
+		{
+		case TP_MENU_GLOWNE:	break;
+		case TP_FRAKTALE:		InitFraktal(0);	break;
+		}
+
+		LCD_clear();
+	}
+
+
+
 	//extern struct _statusDotyku statusDotyku;
 	/*LCD_clear();
 	//LCD_rect(0, 0, DISP_X_SIZE, DISP_Y_SIZE, GRAY60);
@@ -49,14 +121,16 @@ void RysujEkran(void)
 
 	//fillRect(200, 100, 400, 200);
 
-	setColor(BLUE);
-	drawCircle(100, 250, 50);
+	//LCD_Orient(POZIOMO);
 
-	setFont(MidFont);
-	setColor(GRAY60);
+	//setColor(BLUE);
+	//drawCircle(300, 200, 50);
+
+	//setFont(MidFont);
+	//setColor(GRAY60);
 	//sprintf(chNapis, "APL3  SysCLK = %lu MHz", HAL_RCC_GetSysClockFreq()/1000000);
-	sprintf(chNapis, "APL3 v%d.%d.%d @ %s %s SysCLK = %lu MHz", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time,  HAL_RCC_GetSysClockFreq()/1000000);	//numer wersji w repozytorium i czas kompilacji
-	print(chNapis, 10, 0);
+	//sprintf(chNapis, "APL3 v%d.%d.%d @ %s %s SysCLK = %lu MHz", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time,  HAL_RCC_GetSysClockFreq()/1000000);	//numer wersji w repozytorium i czas kompilacji
+	//print(chNapis, 10, 0);
 	//sprintf(chNapis, "v%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);	//numer wersji w repozytorium i czas kompilacji
 	//print(chNapis, 10, 20);
 
@@ -64,12 +138,7 @@ void RysujEkran(void)
 	sprintf(chNapis, "Dotyk: X=%d Y=%d F1=%d F2=%d ", statusDotyku.sAdc[0], statusDotyku.sAdc[1], statusDotyku.sAdc[2], statusDotyku.sAdc[3]);
 	print(chNapis, 10, 50);*/
 
-	if (!(statusDotyku.chFlagi & DOTYK_ZAPISANO))
-		KalibrujDotyk();
-	else
-		TestDotyku();
-
-	//FraktalDemo();
+	//
 
 }
 
@@ -359,3 +428,175 @@ unsigned int MinalCzas(unsigned int nStart)
 	return nCzas;
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje ekran menu głównego
+// Parametry:
+// *tryb - wskaźnik na numer pozycji menu
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void MenuGlowne(unsigned char *tryb)
+{
+	Menu((char*)chNapisLcd[STR_MENU_MAIN], stMenuGlowne, tryb);	//"Main menu"
+	chWrocDoTrybu = TP_MENU_GLOWNE;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje ekran parametryzowalnego menu
+// Parametry:
+// [i] *tytul - napis z nazwą menu wyświetlaną w górnym pasku
+// [i] *menu - wskaźnik na strukturę menu
+// [i] *napisy - wskaźnik na zmienną zawierajacą napisy
+// [o] *tryb - wskaźnik na zwracany numer pozycji menu
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
+{
+	unsigned char chStarySelPos;
+	unsigned char n, m;			//zapętlacze
+	int x, x2, y;	//pomocnicze współrzędne ekranowe
+
+	if (chRysujRaz)
+	{
+		BelkaTytulu(tytul);		//rysuje belkę tytułu ekranu
+
+		//rysuje pasek podpowiedzi na dole ekranu
+		setColor(GRAY20);
+		fillRect(0, DISP_HY_SIZE-MM_HLP_WYS, DISP_HX_SIZE, DISP_HY_SIZE);
+		setBackColor(BLACK);
+
+		//rysuj ikony poleceń
+		setFont(MidFont);
+		for (m=0; m<MM_ROWS; m++)
+		{
+			for (n=0; n<MM_COLS; n++)
+			{
+				//licz współrzedne środka ikony
+				x = (DISP_HX_SIZE/(2*MM_COLS)) + n * (DISP_HX_SIZE/MM_COLS);
+				y = ((DISP_HY_SIZE-MM_NAG_WYS-MM_HLP_WYS)/(2*MM_ROWS)) + m * ((DISP_HY_SIZE-MM_NAG_WYS-MM_HLP_WYS)/MM_ROWS) - MM_OPI_WYS + MM_NAG_WYS;
+
+				setColor(MENU_TLO_NAK);
+				drawBitmap(x-MM_ICO_WYS/2, y-MM_ICO_DLG/2, MM_ICO_DLG, MM_ICO_WYS, menu[m*MM_COLS+n].sIkona);
+
+				setColor(GRAY60);
+				x2 = FONT_SLEN * strlen(menu[m*MM_COLS+n].chOpis);
+				strcpy(chNapis, menu[m*MM_COLS+n].chOpis);
+				print(chNapis, x-x2/2, y+MM_ICO_WYS/2+MM_OPI_WYS);
+			}
+		}
+	}
+
+	//sprawdź czy jest naciskany ekran
+	if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) || chRysujRaz)
+	{
+		chStarySelPos = chMenuSelPos;
+
+		if (statusDotyku.sY < (DISP_HY_SIZE-MM_NAG_WYS)/2)	//czy naciśniety górny rząd
+			m = 0;
+		else	//czy naciśniety dolny rząd
+			m = 1;
+
+		for (n=0; n<MM_COLS; n++)
+		{
+			if ((statusDotyku.sX > n*(DISP_HX_SIZE/MM_COLS)) && (statusDotyku.sX < (n+1)*(DISP_HX_SIZE/MM_COLS)))
+				chMenuSelPos = m * MM_COLS + n;
+		}
+
+
+		if (chStarySelPos != chMenuSelPos)	//zamaż tylko gdy stara ramka jest inna od wybranej
+		{
+			//zamaż starą ramkę kolorem nieaktywnym
+			for (m=0; m<MM_ROWS; m++)
+			{
+				for (n=0; n<MM_COLS; n++)
+				{
+					if (chStarySelPos == m*MM_COLS+n)
+					{
+						//licz współrzedne środka ikony
+						x = (DISP_HX_SIZE/(2*MM_COLS)) + n * (DISP_HX_SIZE/MM_COLS);
+						y = ((DISP_HY_SIZE-MM_NAG_WYS-MM_HLP_WYS)/(2*MM_ROWS)) + m * ((DISP_HY_SIZE-MM_NAG_WYS-MM_HLP_WYS)/MM_ROWS) - MM_OPI_WYS + MM_NAG_WYS;
+						setColor(BLACK);
+						drawRoundRect(x-MM_ICO_DLG/2, y-MM_ICO_WYS/2-2, x+MM_ICO_DLG/2+2, y+MM_ICO_WYS/2);
+						setColor(GRAY60);
+						x2 = FONT_SLEN * strlen(menu[m*MM_COLS+n].chOpis);
+						strcpy(chNapis, menu[m*MM_COLS+n].chOpis);
+						print(chNapis, x-x2/2, y+MM_ICO_WYS/2+MM_OPI_WYS);
+					}
+				}
+			}
+			setColor(GRAY20);
+			//fillRect(0, DISP_X_SIZE-MM_HLP_WYS, DISP_Y_SIZE, DISP_X_SIZE);		//zamaż pasek podpowiedzi
+			fillRect(0, DISP_HY_SIZE-MM_HLP_WYS, DISP_HX_SIZE, DISP_HY_SIZE);		//zamaż pasek podpowiedzi
+
+		}
+
+		//rysuj nową zaznaczoną ramkę
+		for (m=0; m<MM_ROWS; m++)
+		{
+			for (n=0; n<MM_COLS; n++)
+			{
+				if (chMenuSelPos == m*MM_COLS+n)
+				{
+					//licz współrzedne środka ikony
+					x = (DISP_HX_SIZE/(2*MM_COLS)) + n * (DISP_HX_SIZE/MM_COLS);
+					y = ((DISP_HY_SIZE-MM_NAG_WYS-MM_HLP_WYS)/(2*MM_ROWS)) + m * ((DISP_HY_SIZE-MM_NAG_WYS-MM_HLP_WYS)/MM_ROWS) - MM_OPI_WYS + MM_NAG_WYS;
+					if  (statusDotyku.chFlagi == DOTYK_DOTKNIETO)	//czy naciśnięty ekran
+						setColor(MENU_RAM_WYB);
+					else
+						setColor(MENU_RAM_AKT);
+					drawRoundRect(x-MM_ICO_DLG/2, y-MM_ICO_WYS/2-2, x+MM_ICO_DLG/2+2, y+MM_ICO_WYS/2);
+					setColor(GRAY80);
+					x2 = FONT_SLEN * strlen(menu[m*MM_COLS+n].chOpis);
+					strcpy(chNapis, menu[m*MM_COLS+n].chOpis);
+					print(chNapis, x-x2/2, y+MM_ICO_WYS/2+MM_OPI_WYS);
+				}
+			}
+		}
+		//rysuj pasek podpowiedzi
+		if ((chStarySelPos != chMenuSelPos) || chRysujRaz)
+		{
+			setColor(MENU_RAM_AKT);
+			setBackColor(GRAY20);
+			strcpy(chNapis, menu[chMenuSelPos].chPomoc);
+			print(chNapis, DW_SPACE, DISP_HY_SIZE-DW_SPACE-FONT_SH);
+			setBackColor(BLACK);
+		}
+		chRysujRaz = 0;
+	}
+
+	//czy był naciśniety enkoder lub ekran
+	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+	{
+		*tryb = menu[chMenuSelPos].chMode;
+		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;	//kasuj flagę naciśnięcia ekranu
+		return;
+	}
+	*tryb = 0;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje belkę menu z logo i tytułem w poziomej orientacji ekranu
+// Wychodzi z ustawionym czarnym tłem, białym kolorem i średnia czcionką
+// Parametry: wskaźnik na zmienną z tytułem okna
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void BelkaTytulu(char* chTytul)
+{
+	LCD_Orient(POZIOMO);
+	setColor(MENU_TLO_BAR);
+	fillRect(18, 0, DISP_HX_SIZE, MM_NAG_WYS);
+	drawBitmap(0, 0, 18, 18, pitlab_logo18);	//logo producenta
+	setColor(YELLOW);
+	setBackColor(MENU_TLO_BAR);
+	setFont(BigFont);
+	print(chTytul, CENTER, UP_SPACE);
+	//IkonaBaterii(chChargeLevel, chBatStat);	//rysuj ikonę baterii
+	setBackColor(BLACK);
+	setColor(WHITE);
+	setFont(MidFont);
+	//chOdswiez = 0;
+}

@@ -157,7 +157,6 @@ Error_Handler();
   /* USER CODE BEGIN 2 */
   InicjujSPIModZewn();
   LCD_init();
-  InitFraktal(0);
   /* USER CODE END 2 */
 
   /* Infinite loop */

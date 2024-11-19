@@ -31,6 +31,7 @@
 #define DOTYK_DOTKNIETO		0x01	//nacisnięto przycisk ekranowy
 #define DOTYK_ZWOLNONO		0x02	//puszczono przycisk ekranowy
 #define DOTYK_ZAPISANO		0x04	//zapisano dane konfiguracyjne
+#define DOTYK_SKALIBROWANY	0x08	//została wykonana kalibracja
 
 
 struct _statusDotyku
@@ -59,7 +60,7 @@ void CzytajDotyk(void);
 uint8_t KalibrujDotyk(void);
 void ObliczKalibracjeDotykuWielopunktowa(void);
 void ObliczKalibracjeDotyku3Punktowa(void);
-void TestDotyku(void);
+uint8_t TestDotyku(void);
 uint8_t TestObliczenKalibracji(void);
 
 #endif /* INC_DOTYK_H_ */

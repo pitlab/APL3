@@ -63,25 +63,34 @@
 
 
 
-#define FONT_SH		12	//wysoko�c ma�ej czcionki
-#define FONT_BH		16	//wysoko�c du�ej czcionki
-#define FONT_SL		8	//szeroko�� ma�ej czcionki
-#define FONT_BL		16	//szeroko�� du�ej czcionki
-#define FONT_SLEN	8	//szeroko�� ma�ej czcionki
-#define FONT_BLEN	16	//szeroko�� du�ej czcionki
-#define UP_SPACE	2	//wolna przestrze� nad tekstem
-#define DW_SPACE	4	//wolna przestrze� pod tekstem
+#define FONT_SH		12	//wysokośc małej czcionki
+#define FONT_BH		16	//wysokośc dużej czcionki
+#define FONT_SL		8	//szerokość małej czcionki
+#define FONT_BL		16	//szerokość dużej czcionki
+#define FONT_SLEN	8	//szerokość małej czcionki
+#define FONT_BLEN	16	//szerokość dużej czcionki
+#define UP_SPACE	2	//wolna przestrzeń nad tekstem
+#define DW_SPACE	4	//wolna przestrzeń pod tekstem
+
+//definicje menu głównego
+#define MM_ROWS		2										//liczba rzędów menu
+#define MM_COLS		4										//liczba kolumn
+#define MM_ICO_WYS	62										//wysokość ikonki
+#define MM_ICO_DLG	66										//szerokość ikonki
+#define MM_NAG_WYS	18										//wyskość nagłówka
+#define MM_OPI_WYS	8										//wyskość opisu ikon
+#define MM_HLP_WYS	(FONT_SH+2*UP_SPACE)					// wysokość paska opisu funkcji
 
 
 
 
-//menu obrazkowe na �rodku ekranu
+//menu obrazkowe na środku ekranu
 typedef struct tmenu
 {
-	const char* chOpis;				//wska�nik na opis pod menu
-	const char* chPomoc;			//wska�nika na tekst pomocy wy�wietlan� w pasku statusu
-	unsigned char chMode;			//numer trybu pracy obs�uguj�cy funkcj�
-	const unsigned short* sIkona;	//wska�nika na ikon� menu
+	const char* chOpis;				//wskaźnik na opis pod menu
+	const char* chPomoc;			//wskaźnik na tekst pomocy wyświetlany w pasku statusu
+	unsigned char chMode;			//numer trybu pracy obsługujący funkcję
+	const unsigned short* sIkona;	//wskaźnika na ikonę menu
 } tmenu;
 
 
