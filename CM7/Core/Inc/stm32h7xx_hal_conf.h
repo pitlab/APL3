@@ -48,7 +48,7 @@
 /* #define HAL_ETH_MODULE_ENABLED   */
 /* #define HAL_ETH_LEGACY_MODULE_ENABLED   */
 /* #define HAL_NAND_MODULE_ENABLED   */
-/* #define HAL_NOR_MODULE_ENABLED   */
+#define HAL_NOR_MODULE_ENABLED
 /* #define HAL_OTFDEC_MODULE_ENABLED   */
 /* #define HAL_SRAM_MODULE_ENABLED   */
 /* #define HAL_SDRAM_MODULE_ENABLED   */

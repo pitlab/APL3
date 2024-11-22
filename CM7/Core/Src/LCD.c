@@ -15,6 +15,7 @@
 #include "dotyk.h"
 #include "errcode.h"
 #include "napisy.h"
+#include "flash_nor.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -37,6 +38,7 @@ uint8_t chNowyTrybPracy;
 uint8_t chWrocDoTrybu;
 uint8_t chRysujRaz;
 uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
+uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 char chNapis[50];
 float fZoom, fX, fY;
 float fReal, fImag;
@@ -142,6 +144,103 @@ void RysujEkran(void)
 
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje ekran inicjalizacji sprzętu i wyświetla numer wersji
+// Parametry: nic
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void Ekran_Powitalny(void)
+{
+	uint8_t n, chErr;
+	uint16_t x, y;
+
+	extern const unsigned short plogo165x80[];
+
+	if (chRysujRaz)
+	{
+		//LCD_Orient(POZIOMO);
+		setColor(WHITE);
+		fillRect(0, 0, DISP_HX_SIZE, DISP_HY_SIZE);	//czas 581,1ms
+		drawBitmap((DISP_HX_SIZE-165)/2, 10, 165, 80, plogo165x80);
+
+		setColor(GRAY20);
+		setBackColor(WHITE);
+		setFont(BigFont);
+		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_TYTUL]);	//"Tester modelarski"
+		print(chNapis, CENTER, 100);
+
+		setColor(GRAY30);
+		setFont(MidFont);
+		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_KASZANA]);	//"z technologia \"--Kaszana_OFF\""
+		print(chNapis, CENTER, 120);
+
+		//sprintf(chNapis, "(c) PitLab.%s 2024 hv%d sv%d.%d.%d", chNapisLcd[STR_WITAJ_DOMENA], HardVer(), WER_GLOWNA, WER_PODRZ, WER_REPO);
+		sprintf(chNapis, "(c) PitLab.%s 2024 v%d.%d.%d", chNapisLcd[STR_WITAJ_DOMENA], WER_GLOWNA, WER_PODRZ, WER_REPO);
+		print(chNapis, CENTER, 140);
+
+		chRysujRaz = 0;
+	}
+
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_NOR]);	//"pamięć Flash NOR"
+	y = 180;
+	x = 10;
+	print(chNapis, x, y);
+	x += n * GetFontX();
+	chErr  = SprawdzObecnoscFlashNOR();
+	if (chErr == ERR_OK)
+		nZainicjowano[0] |= INIT_FLASH_NOR;		//wykryto pamięć Flash
+	Wykrycie(x, y, chErr == ERR_OK);
+
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_NOR]);	//"Magnetometr "
+	y = 200;
+	x = 10;
+	print(chNapis, x, y);
+	x += n * GetFontX();
+	chErr  = SprawdzObecnoscFlashNOR();
+	if (chErr == ERR_OK)
+		nZainicjowano[0] |= INIT_FLASH_NOR;		//wykryto magnetometr
+	Wykrycie(x, y, chErr == ERR_OK);
+
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_NOR]);	//"Termometr IR"
+	y = 220;
+	x = 10;
+	print(chNapis, x, y);
+	x += n * GetFontX();
+	chErr  = 5;
+	if (chErr == ERR_OK)
+		nZainicjowano[0] |= INIT_FLASH_NOR;		//wykryto termometr IR
+	Wykrycie(x, y, chErr == ERR_OK);
+
+	HAL_Delay(3000);	//czekaj 1 sekundę
+	LCD_clear();
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje animację wykrywania zasobu testera
+// Parametry: x,y współrzędne tekstu
+// wynik - zasób wykryty lub nie wykryty
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void Wykrycie(int x, int y, uint8_t wynik)
+{
+	uint8_t n;			//zapętlacz
+
+	chNapis[0] = '.';
+	for (n=0; n<5; n++)
+	{
+		printChar(chNapis[0], x+n*GetFontX(), y);
+		HAL_Delay(50);
+	}
+	if (wynik)
+		sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_WYKR]);	//"wykryto"
+	else
+		sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_BRAK]);		//"brak"
+	print(chNapis, x+6*GetFontX(), y);
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////

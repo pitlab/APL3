@@ -54,5 +54,8 @@
 #define TP_USTAWIENIA		8
 
 
+//flagi inicjalizacj sprzetu
+#define INIT_FLASH_NOR		1
+
 
 #endif /* INC_SYS_DEF_CM7_H_ */

@@ -12,6 +12,8 @@
 #include "display.h"
 
 void RysujEkran(void);
+void Ekran_Powitalny(void);
+void Wykrycie(int x, int y, uint8_t wynik);
 void FraktalTest(unsigned char chTyp);
 void FraktalDemo(void);
 void GenerateJulia(unsigned short size_x, unsigned short size_y, unsigned short offset_x, unsigned short offset_y, unsigned short zoom, unsigned short * buffer);

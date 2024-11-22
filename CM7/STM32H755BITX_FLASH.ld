@@ -50,9 +50,10 @@ MEMORY
   SRAM_AXI_D1	(xrw)  : ORIGIN = 0x24000000, LENGTH = 512K  	/* AXI-SRAM D1: dane i bufory, stos, sterta, rozmiar=0x80000 */
   SRAM_AHB1_D2	(xrw)  : ORIGIN = 0x30000000, LENGTH = 128K  	/* AHB-SRAM D2: bufory DMA, kod dla M4 */
   SRAM_AHB2_D2 	(xrw)  : ORIGIN = 0x30020000, LENGTH = 128K		/* AHB-SRAM D2: bufory DMA, dane dla M4 */
-  SRAM_AHB3_D2	(xrw)  : ORIGIN = 0x30040000, LENGTH = 32K		/* AHB-SRAM D2: bufory ethernet, USB, wsp?dzielenie danych*/
-  SRAM_AHB4_D3	(xrw)  : ORIGIN = 0x38000000, LENGTH = 64K		/* AHB-SRAM D3: backup w czasie stabdby, wsp?dzielenie danych mi?dzy rdzeniami, rozmiar=0x10000 */
-  BACKUP  (rw)   : ORIGIN = 0x38800000, LENGTH = 4K
+  SRAM_AHB3_D2	(xrw)  : ORIGIN = 0x30040000, LENGTH = 32K		/* AHB-SRAM D2: bufory ethernet, USB, współdzielenie danych*/
+  SRAM_AHB4_D3	(xrw)  : ORIGIN = 0x38000000, LENGTH = 64K		/* AHB-SRAM D3: backup w czasie stabdby, współdzielenie danych między rdzeniami, rozmiar=0x10000 */
+  BACKUP  		(rw)   : ORIGIN = 0x38800000, LENGTH = 4K
+  FLASH_NOR		(rxw)  : ORIGIN = 0x68000000, LENGTH = 32M		/* zewnętrzny flash 256Mb  bank1 CS3*/
 }
 
 /* Sections */
@@ -228,7 +229,14 @@ SECTIONS
   {
     *(.Backup)  
   } >BACKUP
-     
+ 
+ /* Sekcja w zewn?trznej pamieci flash 512Mb na miagistrali 16-bit */  
+ .flash_nor (NOLOAD) :
+  {
+    *(.FlashNorSection)  
+  } >FLASH_NOR
+  
+    
   /* Remove information from the compiler libraries */
   /DISCARD/ :
   {

@@ -9,14 +9,14 @@
 #define INC_NAPISY_H_
 
 
-#define STR_INVITE_TITE		0
-#define STR_INVITE_KASZANA	1
-#define STR_INVITE_DOMAIN	2
-#define STR_INVITE_ACCEL	3
-#define STR_INVITE_MAGNET	4
-#define STR_INVITE_IRTHER	5
-#define STR_INVITE_PRESENT	6
-#define STR_INVITE_ABSENT	7
+#define STR_WITAJ_TYTUL		0
+#define STR_WITAJ_KASZANA	1
+#define STR_WITAJ_DOMENA	2
+#define STR_SPRAWDZ_WYKR	3
+#define STR_SPRAWDZ_BRAK	4
+#define STR_SPRAWDZ_NOR		5
+
+
 #define STR_TEST_ENCODER	8
 #define STR_TEST_TOUCH		9
 #define STR_LIBEL_TITLE		10
@@ -32,17 +32,18 @@
 
 #define MAX_LCD_STR			20
 
-#define LANG_POL
-#ifdef LANG_POL
+#define JEZYK_POLSKI
+#ifdef JEZYK_POLSKI
 const char *chNapisLcd[MAX_LCD_STR]  = {
-"Tester modelarski",				//STR_INVITE_TITE		max 17 znaków
-"z technologia \"--Kaszana_OFF\"",	//STR_INVITE_KASZANA
-"pl",								//STR_INVITE_DOMAIN		max 3 znaki
-"Akcelerometr",						//STR_INVITE_ACCEL
+"AutoPitLot v.3.0",					//STR_WITAJ_TYTUL		max 17 znaków
+"z technologia \"--Kaszana_OFF\"",	//STR_WITAJ_KASZANA
+"pl",								//STR_WITAJ_DOMENA		max 3 znaki
+"wykryto",							//STR_SPRAWDZ_WYKR
+"brakuje",							//STR_SPRAWDZ_BRAK
+"Pamiec Flash NOR 32MB",			//STR_SPRAWDZ_NOR
 "Magnetometr ",						//STR_INVITE_MAGNET
 "Termometr IR",						//STR_INVITE_IRTHER
-"wykryto",							//STR_INVITE_PRESENT
-"brak",								//STR_INVITE_ABSENT
+
 "Enkoder",							//STR_TEST_ENCODER
 "Dotyk:",							//STR_TEST_TOUCH
 

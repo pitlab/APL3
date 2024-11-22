@@ -39,6 +39,8 @@ void fillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 void drawRoundRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 void printChar(uint8_t c, uint16_t x, uint16_t y);
 void setFont(uint8_t* font);
+uint8_t GetFontX(void);
+uint8_t GetFontY(void);
 void print(char *st, uint16_t x, uint16_t y);
 void drawCircle(uint16_t x, uint16_t y, uint16_t radius);
 void fillCircle(uint16_t x, uint16_t y, uint16_t radius);

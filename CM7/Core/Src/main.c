@@ -26,6 +26,7 @@
 /* USER CODE BEGIN Includes */
 #include "LCD.h"
 #include "dotyk.h"
+#include "flash_nor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,11 +51,10 @@
 /* Private variables ---------------------------------------------------------*/
 
 RTC_HandleTypeDef hrtc;
-
 SPI_HandleTypeDef hspi5;
 DMA_HandleTypeDef hdma_spi5_tx;
-
 UART_HandleTypeDef huart7;
+NOR_HandleTypeDef hnor3;
 
 /* USER CODE BEGIN PV */
 
@@ -68,6 +68,7 @@ static void MX_DMA_Init(void);
 static void MX_SPI5_Init(void);
 static void MX_RTC_Init(void);
 static void MX_UART7_Init(void);
+static void MX_FMC_Init(void);
 /* USER CODE BEGIN PFP */
 extern uint8_t InicjujSPIModZewn(void);
 extern uint8_t WymienDaneExpanderow(void);
@@ -154,9 +155,13 @@ Error_Handler();
   MX_SPI5_Init();
   MX_RTC_Init();
   MX_UART7_Init();
+  MX_FMC_Init();
   /* USER CODE BEGIN 2 */
   InicjujSPIModZewn();
   LCD_init();
+
+  Ekran_Powitalny();	//przywitaj użytkonika i wykryj sprzęt
+  Test_Flash();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -168,6 +173,7 @@ Error_Handler();
     /* USER CODE BEGIN 3 */
 	  WymienDaneExpanderow();
 	  //HAL_Delay(100);
+
 	  RysujEkran();
 	  CzytajDotyk();
   }
@@ -410,6 +416,60 @@ static void MX_DMA_Init(void)
 
 }
 
+/* FMC initialization function */
+void MX_FMC_Init(void)
+{
+
+  /* USER CODE BEGIN FMC_Init 0 */
+
+  /* USER CODE END FMC_Init 0 */
+
+  FMC_NORSRAM_TimingTypeDef Timing = {0};
+
+  /* USER CODE BEGIN FMC_Init 1 */
+
+  /* USER CODE END FMC_Init 1 */
+
+  /** Perform the NOR3 memory initialization sequence
+  */
+  hnor3.Instance = FMC_NORSRAM_DEVICE;
+  hnor3.Extended = FMC_NORSRAM_EXTENDED_DEVICE;
+  /* hnor3.Init */
+  hnor3.Init.NSBank = FMC_NORSRAM_BANK3;
+  hnor3.Init.DataAddressMux = FMC_DATA_ADDRESS_MUX_DISABLE;
+  hnor3.Init.MemoryType = FMC_MEMORY_TYPE_NOR;
+  hnor3.Init.MemoryDataWidth = FMC_NORSRAM_MEM_BUS_WIDTH_16;
+  hnor3.Init.BurstAccessMode = FMC_BURST_ACCESS_MODE_DISABLE;
+  hnor3.Init.WaitSignalPolarity = FMC_WAIT_SIGNAL_POLARITY_LOW;
+  hnor3.Init.WaitSignalActive = FMC_WAIT_TIMING_BEFORE_WS;
+  hnor3.Init.WriteOperation = FMC_WRITE_OPERATION_ENABLE;
+  hnor3.Init.WaitSignal = FMC_WAIT_SIGNAL_DISABLE;
+  hnor3.Init.ExtendedMode = FMC_EXTENDED_MODE_DISABLE;
+  hnor3.Init.AsynchronousWait = FMC_ASYNCHRONOUS_WAIT_ENABLE;
+  hnor3.Init.WriteBurst = FMC_WRITE_BURST_DISABLE;
+  hnor3.Init.ContinuousClock = FMC_CONTINUOUS_CLOCK_SYNC_ONLY;
+  hnor3.Init.WriteFifo = FMC_WRITE_FIFO_DISABLE;
+  hnor3.Init.PageSize = FMC_PAGE_SIZE_NONE;
+  /* Timing */
+  Timing.AddressSetupTime = 15;
+  Timing.AddressHoldTime = 15;
+  Timing.DataSetupTime = 255;
+  Timing.BusTurnAroundDuration = 15;
+  Timing.CLKDivision = 16;
+  Timing.DataLatency = 17;
+  Timing.AccessMode = FMC_ACCESS_MODE_A;
+  /* ExtTiming */
+
+  if (HAL_NOR_Init(&hnor3, &Timing, NULL) != HAL_OK)
+  {
+    Error_Handler( );
+  }
+
+  /* USER CODE BEGIN FMC_Init 2 */
+
+  /* USER CODE END FMC_Init 2 */
+}
+
 /**
   * @brief GPIO Initialization Function
   * @param None
@@ -422,7 +482,12 @@ static void MX_GPIO_Init(void)
 /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOI_CLK_ENABLE();
+  __HAL_RCC_GPIOG_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOJ_CLK_ENABLE();
   __HAL_RCC_GPIOK_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -501,6 +566,17 @@ void MPU_Config(void)
   MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
   MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
   MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Number = MPU_REGION_NUMBER3;
+  MPU_InitStruct.BaseAddress = 0x68000000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_32MB;
+  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
   /* Enables the MPU */
