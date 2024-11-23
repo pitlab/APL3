@@ -40,7 +40,7 @@ const char *chNapisLcd[MAX_LCD_STR]  = {
 "pl",								//STR_WITAJ_DOMENA		max 3 znaki
 "wykryto",							//STR_SPRAWDZ_WYKR
 "brakuje",							//STR_SPRAWDZ_BRAK
-"Pamiec Flash NOR 32MB",			//STR_SPRAWDZ_NOR
+"Flash NOR 32MB",					//STR_SPRAWDZ_NOR
 "Magnetometr ",						//STR_INVITE_MAGNET
 "Termometr IR",						//STR_INVITE_IRTHER
 

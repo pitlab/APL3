@@ -51,9 +51,12 @@
 /* Private variables ---------------------------------------------------------*/
 
 RTC_HandleTypeDef hrtc;
+
 SPI_HandleTypeDef hspi5;
 DMA_HandleTypeDef hdma_spi5_tx;
+
 UART_HandleTypeDef huart7;
+
 NOR_HandleTypeDef hnor3;
 
 /* USER CODE BEGIN PV */
@@ -451,12 +454,12 @@ void MX_FMC_Init(void)
   hnor3.Init.WriteFifo = FMC_WRITE_FIFO_DISABLE;
   hnor3.Init.PageSize = FMC_PAGE_SIZE_NONE;
   /* Timing */
-  Timing.AddressSetupTime = 15;
-  Timing.AddressHoldTime = 15;
-  Timing.DataSetupTime = 255;
-  Timing.BusTurnAroundDuration = 15;
-  Timing.CLKDivision = 16;
-  Timing.DataLatency = 17;
+  Timing.AddressSetupTime = 0;
+  Timing.AddressHoldTime = 9;
+  Timing.DataSetupTime = 24;
+  Timing.BusTurnAroundDuration = 4;
+  Timing.CLKDivision = 2;
+  Timing.DataLatency = 2;
   Timing.AccessMode = FMC_ACCESS_MODE_A;
   /* ExtTiming */
 

@@ -10,10 +10,19 @@
 
 #include "stm32h7xx_hal.h"
 
-#define ADRES_NOR		0x68000000
+#define ADRES_NOR			0x68000000
+#define LICZBA_SEKTOROW		256
+#define ROZMIAR8_SEKTORA	(128*1024)
+#define ROZMIAR16_SEKTORA	(64*1024)
+#define ROZMIAR8_BUFORA		512
+#define ROZMIAR16_BUFORA	256
+#define ROZMIAR8_STRONY		32
+#define ROZMIAR16_STRONY	16
+
+
 
 
 uint8_t SprawdzObecnoscFlashNOR(void);
-void Test_Flash(void);
+uint8_t Test_Flash(void);
 
 #endif /* SRC_FLASH_NOR_H_ */

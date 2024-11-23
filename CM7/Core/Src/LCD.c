@@ -213,7 +213,7 @@ void Ekran_Powitalny(void)
 		nZainicjowano[0] |= INIT_FLASH_NOR;		//wykryto termometr IR
 	Wykrycie(x, y, chErr == ERR_OK);
 
-	HAL_Delay(3000);	//czekaj 1 sekundę
+	HAL_Delay(3000);	//czekaj
 	LCD_clear();
 }
 
