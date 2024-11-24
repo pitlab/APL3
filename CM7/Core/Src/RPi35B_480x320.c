@@ -22,6 +22,8 @@
 //deklaracje zmiennych
 extern SPI_HandleTypeDef hspi5;
 extern uint8_t chRysujRaz;
+extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
+
 uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 uint8_t chOrient;
 uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
@@ -287,6 +289,8 @@ void LCD_init(void)
 
 	//czszczenie ekranu
 	LCD_clear();
+
+	nZainicjowano[0] |= INIT_LCD;
 }
 
 

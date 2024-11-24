@@ -56,6 +56,7 @@
 
 //flagi inicjalizacj sprzetu
 #define INIT_FLASH_NOR		1
+#define INIT_LCD			2
 
 
 #endif /* INC_SYS_DEF_CM7_H_ */

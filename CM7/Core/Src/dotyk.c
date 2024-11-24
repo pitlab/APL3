@@ -14,6 +14,7 @@
 #include "sys_def_CM7.h"
 #include <stdio.h>
 #include <string.h>
+#include "flash_konfig.h"
 
 
 //deklaracje zmiennych
@@ -201,14 +202,29 @@ uint8_t KalibrujDotyk(void)
 			{
 				ObliczKalibracjeDotyku3Punktowa();		//OK
 				//ObliczKalibracjeDotykuWielopunktowa();	//Źle
-				//ZapiszPaczke(chPaczka);
-				statusDotyku.chFlagi |= DOTYK_ZAPISANO | DOTYK_SKALIBROWANY;
+				statusDotyku.chFlagi |= DOTYK_SKALIBROWANY;
+
+				uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
+
+				for (uint8_t n=0; n<ROZMIAR_PACZKI_KONFIGU; n++)
+					chPaczka[n] = 0;
+
+				chPaczka[0] = FKON_KALIBRACJA_DOTYKU;
+				KonwFloat2Char(kalibDotyku.fAx, &chPaczka[2]);
+				KonwFloat2Char(kalibDotyku.fAy, &chPaczka[6]);
+				KonwFloat2Char(kalibDotyku.fDeltaX, &chPaczka[10]);
+
+				KonwFloat2Char(kalibDotyku.fBx, &chPaczka[14]);
+				KonwFloat2Char(kalibDotyku.fBy, &chPaczka[18]);
+				KonwFloat2Char(kalibDotyku.fDeltaY, &chPaczka[22]);
+				chErr = ZapiszPaczkeKonfigu(chPaczka);
+				if (chErr == ERR_OK)
+					statusDotyku.chFlagi |= DOTYK_ZAPISANO;
 				chEtapKalibr = 0;
 				LCD_clear();
 				return ERR_DONE;	//kod wyjścia z procedury kalibracji
 			}
 			statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
-			//statusDotyku.chFlagi &= ~DOTYK_ZWOLNONO;
 		}
 	}
 
@@ -463,3 +479,33 @@ uint8_t TestDotyku(void)
 	}
 	return ERR_OK;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Odczytaj współczynniki kalibracji ekranu z EEPROM
+// Parametry: nic
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t InicjujDotyk(void)
+{
+	uint8_t n, chPaczka[ROZMIAR_PACZKI_KONFIGU];
+
+	n = CzytajPaczkeKonfigu(chPaczka, FKON_KALIBRACJA_DOTYKU);
+	if (n == ROZMIAR_PACZKI_KONFIGU)
+	{
+		kalibDotyku.fAx = KonwChar2Float(&chPaczka[2]);
+		kalibDotyku.fAy = KonwChar2Float(&chPaczka[6]);
+		kalibDotyku.fDeltaX = KonwChar2Float(&chPaczka[10]);
+		kalibDotyku.fBx = KonwChar2Float(&chPaczka[14]);
+		kalibDotyku.fBy = KonwChar2Float(&chPaczka[18]);
+		kalibDotyku.fDeltaY = KonwChar2Float(&chPaczka[22]);
+
+		statusDotyku.chFlagi |= DOTYK_SKALIBROWANY;
+	}
+	//chCzasDotkn = 1;	//potrzebne do uruchomienia pierwszej kalibracji przez trzymanie ekranu podczas włączania
+	//normalnie potrzeba trzymać ekran przez kilka cykli aby zostało to uznane za dotknięcie, natomiast podcza uruchomienia jest tylko jedna próba stąd licznik musi być =1
+	return (n == ROZMIAR_PACZKI_KONFIGU);
+}
+
+

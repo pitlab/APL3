@@ -16,14 +16,15 @@
 #include "LCD.h"
 #include "RPi35B_480x320.h"
 
-/*
-  Timing.AddressSetupTime = 0;					0ns
+/*Timing.AddressSetupTime = 0;					0ns
   Timing.AddressHoldTime = 9;					45ns
   Timing.DataSetupTime = 18;
   Timing.BusTurnAroundDuration = 4;				20ns
   Timing.CLKDivision = 2;		400/2=200MHz -> 5ns
   Timing.DataLatency = 2;
-  Timing.AccessMode = FMC_ACCESS_MODE_A;*/
+  Timing.AccessMode = FMC_ACCESS_MODE_A;
+
+  Dla tych parametrów zapis bufor 512B ma przepustowość 258kB/s, odczyt danych 44MB/s   */
 
 
 uint16_t sFlashMem[100] __attribute__((section(".FlashNorSection")));
@@ -33,23 +34,79 @@ extern char chNapis[50];
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja sprawdza czy została wykryta pamięć NOR Flash S29GL256S90
+// Funkcja sprawdza czy została wykryta pamięć NOR Flash serii S29GL
 // Parametry: nic
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t SprawdzObecnoscFlashNOR(void)
 {
 	NOR_IDTypeDef norID;
-	HAL_StatusTypeDef Err = ERR_OK;
+	HAL_StatusTypeDef Err = ERR_BRAK_FLASH_NOR;
 
 	Err = HAL_NOR_Read_ID(&hnor3, &norID);
 	if (Err == HAL_OK)
 	{
-		if ((norID.Device_Code1 != 0x227E) || (norID.Device_Code2 != 0x2222) || (norID.Device_Code3 != 0x2201) || (norID.Manufacturer_Code != 0x0001))
-			Err = ERR_BRAK_FLASH_NOR;
+		if ((norID.Device_Code1 == 0x227E) ||  (norID.Device_Code3 == 0x2201) || (norID.Manufacturer_Code == 0x0001))
+		{
+			//jeżeli będzie trzeba to można rozwóżnić wielkości pamięci
+			if ((norID.Device_Code2 != 0x2228) ||		//1Gb
+					(norID.Device_Code2 != 0x2223) ||	//512Mb
+					(norID.Device_Code2 != 0x2222) ||	//256Mb		S29GL256S90
+					(norID.Device_Code2 != 0x2222))		//128Mb
+				Err = ERR_OK;
+		}
 	}
 	return Err;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Kasuj sektor flash
+// Parametry: nAdres sektora do skasowania
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t KasujSektorFlashNOR(uint32_t nAdres)
+{
+	uint8_t chErr;
+
+	nAdres &= 0x00FFFFFF;		//potrzebny jest adres względny
+	chErr = HAL_NOR_Erase_Block(&hnor3, 0, nAdres);
+	HAL_NOR_ReturnToReadMode(&hnor3);
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Kasuj całą pamięć flash
+// Parametry: nic
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t KasujFlashNOR(void)
+{
+	return HAL_NOR_Erase_Chip(&hnor3, 0);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Zapisz dane do flash
+// Parametry: nAdres do zapisu
+// * sDane - wskaźnik na 16-bitoer dane do zapisu
+//  nIlosc - ilość słów do zapisu
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ZapiszDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc)
+{
+	uint8_t chErr;
+
+	nAdres &= 0x00FFFFFF;		//potrzebny jest adres względny
+	chErr = HAL_NOR_ProgramBuffer(&hnor3, nAdres, sDane, nIlosc);
+	HAL_NOR_ReturnToReadMode(&hnor3);
+	return chErr;
+}
+
 
 
 uint8_t Test_Flash(void)

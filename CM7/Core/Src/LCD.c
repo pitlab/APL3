@@ -38,7 +38,7 @@ uint8_t chNowyTrybPracy;
 uint8_t chWrocDoTrybu;
 uint8_t chRysujRaz;
 uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
-uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
+extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 char chNapis[50];
 float fZoom, fX, fY;
 float fReal, fImag;
@@ -105,7 +105,8 @@ void RysujEkran(void)
 		switch(chTrybPracy)
 		{
 		case TP_MENU_GLOWNE:	break;
-		case TP_FRAKTALE:		InitFraktal(0);	break;
+		case TP_FRAKTALE:		InitFraktal(0);		break;
+		case TP_USTAWIENIA:		chTrybPracy = TP_KALIB_DOTYK;	break;
 		}
 
 		LCD_clear();
@@ -193,24 +194,20 @@ void Ekran_Powitalny(void)
 		nZainicjowano[0] |= INIT_FLASH_NOR;		//wykryto pamięć Flash
 	Wykrycie(x, y, chErr == ERR_OK);
 
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_NOR]);	//"Magnetometr "
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KAMERA_OV5642]);	//"kamera "
 	y = 200;
 	x = 10;
 	print(chNapis, x, y);
 	x += n * GetFontX();
-	chErr  = SprawdzObecnoscFlashNOR();
-	if (chErr == ERR_OK)
-		nZainicjowano[0] |= INIT_FLASH_NOR;		//wykryto magnetometr
+	chErr = 5;
 	Wykrycie(x, y, chErr == ERR_OK);
 
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_NOR]);	//"Termometr IR"
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_MODUL_IMU]);	//moduł IMU
 	y = 220;
 	x = 10;
 	print(chNapis, x, y);
 	x += n * GetFontX();
-	chErr  = 5;
-	if (chErr == ERR_OK)
-		nZainicjowano[0] |= INIT_FLASH_NOR;		//wykryto termometr IR
+	chErr = 5;
 	Wykrycie(x, y, chErr == ERR_OK);
 
 	HAL_Delay(3000);	//czekaj

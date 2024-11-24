@@ -62,5 +62,6 @@ void ObliczKalibracjeDotykuWielopunktowa(void);
 void ObliczKalibracjeDotyku3Punktowa(void);
 uint8_t TestDotyku(void);
 uint8_t TestObliczenKalibracji(void);
+uint8_t InicjujDotyk(void);
 
 #endif /* INC_DOTYK_H_ */

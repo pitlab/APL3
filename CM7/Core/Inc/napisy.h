@@ -9,12 +9,14 @@
 #define INC_NAPISY_H_
 
 
-#define STR_WITAJ_TYTUL		0
-#define STR_WITAJ_KASZANA	1
-#define STR_WITAJ_DOMENA	2
-#define STR_SPRAWDZ_WYKR	3
-#define STR_SPRAWDZ_BRAK	4
-#define STR_SPRAWDZ_NOR		5
+#define STR_WITAJ_TYTUL				0
+#define STR_WITAJ_KASZANA			1
+#define STR_WITAJ_DOMENA			2
+#define STR_SPRAWDZ_WYKR			3
+#define STR_SPRAWDZ_BRAK			4
+#define STR_SPRAWDZ_NOR				5
+#define STR_SPRAWDZ_KAMERA_OV5642	6
+#define STR_SPRAWDZ_MODUL_IMU		7
 
 
 #define STR_TEST_ENCODER	8
@@ -41,6 +43,9 @@ const char *chNapisLcd[MAX_LCD_STR]  = {
 "wykryto",							//STR_SPRAWDZ_WYKR
 "brakuje",							//STR_SPRAWDZ_BRAK
 "Flash NOR 32MB",					//STR_SPRAWDZ_NOR
+"Kamera OV5642", 					//STR_SPRAWDZ_KAMERA_OV5642
+"Moduł IMU",					 	//STR_SPRAWDZ_MOD_IMU	7
+
 "Magnetometr ",						//STR_INVITE_MAGNET
 "Termometr IR",						//STR_INVITE_IRTHER
 

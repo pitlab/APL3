@@ -12,7 +12,7 @@
  * 0x30040000..0x30040200 - 512  (0x200) deskryptory DMA ETH
  * 0x30040200..0x38000000 - 130k (0x7FBEFE00) wolne
  *
- *
+ * 0x68000000..0x68FFFFFF = 32MB pamięć Flash NOR
  *
  *
  *Zrobć:
@@ -27,6 +27,7 @@
 #include "LCD.h"
 #include "dotyk.h"
 #include "flash_nor.h"
+#include "flash_konfig.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -81,6 +82,10 @@ extern void LCD_init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
+
+
 
 /* USER CODE END 0 */
 
@@ -162,9 +167,11 @@ Error_Handler();
   /* USER CODE BEGIN 2 */
   InicjujSPIModZewn();
   LCD_init();
+  //KasujSektorFlashNOR(0);
+  IncjujKonfigFlash();
+  InicjujDotyk();
+  Ekran_Powitalny();	//przywitaj użytkownika i wykryj sprzęt
 
-  Ekran_Powitalny();	//przywitaj użytkonika i wykryj sprzęt
-  Test_Flash();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -456,7 +463,7 @@ void MX_FMC_Init(void)
   /* Timing */
   Timing.AddressSetupTime = 0;
   Timing.AddressHoldTime = 9;
-  Timing.DataSetupTime = 24;
+  Timing.DataSetupTime = 18;
   Timing.BusTurnAroundDuration = 4;
   Timing.CLKDivision = 2;
   Timing.DataLatency = 2;
