@@ -46,9 +46,6 @@ const char *chNapisLcd[MAX_LCD_STR]  = {
 "Kamera OV5642", 					//STR_SPRAWDZ_KAMERA_OV5642
 "Moduł IMU",					 	//STR_SPRAWDZ_MOD_IMU	7
 
-"Magnetometr ",						//STR_INVITE_MAGNET
-"Termometr IR",						//STR_INVITE_IRTHER
-
 "Enkoder",							//STR_TEST_ENCODER
 "Dotyk:",							//STR_TEST_TOUCH
 

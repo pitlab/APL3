@@ -39,7 +39,7 @@ uint8_t chWrocDoTrybu;
 uint8_t chRysujRaz;
 uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
 extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
-char chNapis[50];
+char chNapis[60];
 float fZoom, fX, fY;
 float fReal, fImag;
 unsigned char chMnozPalety;
@@ -56,7 +56,7 @@ struct tmenu stMenuGlowne[8]  = {
 	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,	obr_sbus},
 	{"--nic--",		"Podstawowe instrumentu pomiarowe",			TP_KALIB_DOTYK, obr_multimetr},
 	{"--nic--", 	"Narzedzia uniwersalne",					TP_MULTITOOL,	obr_multitool},
-	{"--nic--", 	"Podglad sygnalow elektrycznych",			TP_OSCYL,		obr_oscyloskop},
+	{"Pomiary", 	"Pomiar predkosci odczytu flash",			TP_POMIARY,		obr_oscyloskop},
 	{"--nic--",		"Pomiary drgan czujn. zewn. (zl. JST A)",	TP_VIBR_ADCIO,	obr_mtest},
 	{"Testy",		"Testy",									TP_TESTY,		obr_calibration},
 	{"Ustawienia", 	"Ustawienia i kalibracja czujnikow",		TP_USTAWIENIA,	obr_calibration}};
@@ -85,7 +85,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_MULTITOOL:	break;
-	case TP_OSCYL:	break;
+	case TP_POMIARY:	break;
 	case TP_VIBR_ADCIO:	break;
 	case TP_TESTY:
 		if (TestDotyku() == ERR_DONE)
@@ -100,6 +100,7 @@ void RysujEkran(void)
 	{
 		chTrybPracy = chNowyTrybPracy;
 		chNowyTrybPracy = 0;
+		LCD_clear();
 
 		//startuje procesy zwiazane z obsługą nowego trybu pracy
 		switch(chTrybPracy)
@@ -107,6 +108,7 @@ void RysujEkran(void)
 		case TP_MENU_GLOWNE:	break;
 		case TP_FRAKTALE:		InitFraktal(0);		break;
 		case TP_USTAWIENIA:		chTrybPracy = TP_KALIB_DOTYK;	break;
+		case TP_POMIARY:		TestPredkosciOdczytu();		break;
 		}
 
 		LCD_clear();

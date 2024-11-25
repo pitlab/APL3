@@ -27,5 +27,6 @@ uint8_t KasujSektorFlashNOR(uint32_t nAdres);
 uint8_t KasujFlashNOR(void);
 uint8_t ZapiszDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc);
 uint8_t Test_Flash(void);
+void TestPredkosciOdczytu(void);
 
 #endif /* SRC_FLASH_NOR_H_ */

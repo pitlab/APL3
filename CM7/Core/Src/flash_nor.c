@@ -27,9 +27,9 @@
   Dla tych parametrów zapis bufor 512B ma przepustowość 258kB/s, odczyt danych 44MB/s   */
 
 
-uint16_t sFlashMem[100] __attribute__((section(".FlashNorSection")));
+uint16_t sFlashMem[256] __attribute__((section(".FlashNorSection")));
 extern NOR_HandleTypeDef hnor3;
-extern char chNapis[50];
+extern char chNapis[];
 
 
 
@@ -250,4 +250,75 @@ uint8_t Test_Flash(void)
 }
 
 
+void TestPredkosciOdczytu(void)
+{
+	HAL_StatusTypeDef Err;
+	uint16_t sBufor[ROZMIAR16_BUFORA];
+	uint32_t x, y, nAdres;
+	uint32_t nCzas;
+	uint16_t sStatus;
 
+	Err = HAL_NOR_ReturnToReadMode(&hnor3);
+	setColor(YELLOW);
+	sprintf(chNapis, "Pomiar predkosci odczytu bufora 512B Flash NOR");
+	print(chNapis, CENTER, 20);
+	setColor(WHITE);
+	for(;;)
+	{
+		nAdres = 0;
+		nCzas = HAL_GetTick();
+		for (y=0; y<1000; y++)
+		{
+			Err = HAL_NOR_ReadBuffer(&hnor3, nAdres, sBufor, ROZMIAR16_BUFORA);
+			if (Err != ERR_OK)
+			{
+				sprintf(chNapis, "Blad odczytu");
+				print(chNapis, 10, 20);
+				return;
+			}
+		}
+		nCzas = MinalCzas(nCzas);
+		if (nCzas)
+			sprintf(chNapis, "HAL_NOR_ReadBuffer() Tr = %ldms, transfer = %.2f MB/s", nCzas, (float)(1000 * 1000 * ROZMIAR8_BUFORA / (nCzas * 1024 * 1024)));
+		print(chNapis, 10, 80);
+
+
+
+		nAdres = 0;
+		nCzas = HAL_GetTick();
+		for (y=0; y<1000; y++)
+		{
+			for (x=0; x<ROZMIAR16_BUFORA; x++)
+			{
+				sBufor[x] = sFlashMem[x];
+			}
+
+		}
+		nCzas = MinalCzas(nCzas);
+		if (nCzas)
+			sprintf(chNapis, "Odczyt adresu Tr = %ldms, transfer = %.2f MB/s", nCzas, (float)(1000 * 1000 * ROZMIAR8_BUFORA / (nCzas * 1024 * 1024)));
+		print(chNapis, 10, 100);
+
+
+		//sprawdzenie zajętości sektorów
+
+
+		for (x=0; x<6; x++)
+		{
+			nAdres = ADRES_NOR + x * ROZMIAR16_SEKTORA;
+			*( (uint16_t *)nAdres + 0x555 ) = 0x0033;	//polecenie: Blank check
+
+
+			nAdres = ADRES_NOR;
+			*( (uint16_t *)nAdres + 0x555 ) = 0x70;	//polecenie: status read enter
+			sStatus = *( (uint16_t *)nAdres);
+
+			*( (uint16_t *)nAdres + 0x555 ) = 0x71;	//polecenie: status register clear
+
+
+			sprintf(chNapis, "Sektor %ld: %x ", x, sStatus);
+			print(chNapis, 10, 120 + x*20);
+		}
+
+	}
+}

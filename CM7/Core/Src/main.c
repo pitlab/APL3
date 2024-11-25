@@ -462,11 +462,11 @@ void MX_FMC_Init(void)
   hnor3.Init.PageSize = FMC_PAGE_SIZE_NONE;
   /* Timing */
   Timing.AddressSetupTime = 0;
-  Timing.AddressHoldTime = 9;
+  Timing.AddressHoldTime = 15;
   Timing.DataSetupTime = 18;
-  Timing.BusTurnAroundDuration = 4;
-  Timing.CLKDivision = 2;
-  Timing.DataLatency = 2;
+  Timing.BusTurnAroundDuration = 2;
+  Timing.CLKDivision = 16;
+  Timing.DataLatency = 17;
   Timing.AccessMode = FMC_ACCESS_MODE_A;
   /* ExtTiming */
 

@@ -142,7 +142,7 @@ uint8_t KalibrujDotyk(void)
 	{
 	case 0:	//inicjalizacja zmiennych
 		//LCD_Orient(POZIOMO);
-		LCD_clear();
+		//LCD_clear();
 		//TestObliczenKalibracji();		//testowo sprawdzenie poprawności obliczeń
 		setColor(WHITE);
 		setFont(MidFont);
