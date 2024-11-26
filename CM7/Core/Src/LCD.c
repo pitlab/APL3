@@ -212,7 +212,7 @@ void Ekran_Powitalny(void)
 	chErr = 5;
 	Wykrycie(x, y, chErr == ERR_OK);
 
-	HAL_Delay(3000);	//czekaj
+	HAL_Delay(1000);	//czekaj
 	LCD_clear();
 }
 
@@ -232,7 +232,7 @@ void Wykrycie(int x, int y, uint8_t wynik)
 	for (n=0; n<5; n++)
 	{
 		printChar(chNapis[0], x+n*GetFontX(), y);
-		HAL_Delay(50);
+		HAL_Delay(80);
 	}
 	if (wynik)
 		sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_WYKR]);	//"wykryto"

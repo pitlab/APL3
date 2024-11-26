@@ -458,17 +458,18 @@ void MX_FMC_Init(void)
   hnor3.Init.AsynchronousWait = FMC_ASYNCHRONOUS_WAIT_ENABLE;
   hnor3.Init.WriteBurst = FMC_WRITE_BURST_DISABLE;
   hnor3.Init.ContinuousClock = FMC_CONTINUOUS_CLOCK_SYNC_ONLY;
-  hnor3.Init.WriteFifo = FMC_WRITE_FIFO_DISABLE;
+  hnor3.Init.WriteFifo = FMC_WRITE_FIFO_ENABLE;
   hnor3.Init.PageSize = FMC_PAGE_SIZE_NONE;
   /* Timing */
   Timing.AddressSetupTime = 0;
-  Timing.AddressHoldTime = 15;
+  Timing.AddressHoldTime = 6;
   Timing.DataSetupTime = 18;
-  Timing.BusTurnAroundDuration = 2;
-  Timing.CLKDivision = 16;
-  Timing.DataLatency = 17;
+  Timing.BusTurnAroundDuration = 3;
+  Timing.CLKDivision = 2;
+  Timing.DataLatency = 2;
   Timing.AccessMode = FMC_ACCESS_MODE_A;
   /* ExtTiming */
+
 
   if (HAL_NOR_Init(&hnor3, &Timing, NULL) != HAL_OK)
   {
@@ -585,8 +586,7 @@ void MPU_Config(void)
   MPU_InitStruct.BaseAddress = 0x68000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_32MB;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
   /* Enables the MPU */

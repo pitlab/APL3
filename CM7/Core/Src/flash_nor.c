@@ -16,18 +16,23 @@
 #include "LCD.h"
 #include "RPi35B_480x320.h"
 
-/*Timing.AddressSetupTime = 0;					0ns
-  Timing.AddressHoldTime = 9;					45ns
+/* Pamięć jest taktowana zegarem 200 MHz (max 240MHz), daje to okres 5ns (4,1ns)
+ * Włączenie FIFO, właczenie wszystkich uprawnień na MPU Cortexa nic nie daje
+ *
+ * Timing.AddressSetupTime = 0;					0ns
+  Timing.AddressHoldTime = 9;					45ns	45/8,3 => 6
   Timing.DataSetupTime = 18;
-  Timing.BusTurnAroundDuration = 4;				20ns
-  Timing.CLKDivision = 2;		400/2=200MHz -> 5ns
+  Timing.BusTurnAroundDuration = 4;				20ns	20/8,3 => 3
+  Timing.CLKDivision = 2;		240/2=120MHz -> 8,3ns
   Timing.DataLatency = 2;
   Timing.AccessMode = FMC_ACCESS_MODE_A;
-
   Dla tych parametrów zapis bufor 512B ma przepustowość 258kB/s, odczyt danych 44MB/s   */
 
 
-uint16_t sFlashMem[256] __attribute__((section(".FlashNorSection")));
+
+
+uint16_t sMPUFlash[ROZMIAR16_BUFORA] __attribute__((section(".text")));
+uint16_t sFlashMem[ROZMIAR16_BUFORA] __attribute__((section(".FlashNorSection")));
 extern NOR_HandleTypeDef hnor3;
 extern char chNapis[];
 
@@ -256,18 +261,18 @@ void TestPredkosciOdczytu(void)
 	uint16_t sBufor[ROZMIAR16_BUFORA];
 	uint32_t x, y, nAdres;
 	uint32_t nCzas;
-	uint16_t sStatus;
 
 	Err = HAL_NOR_ReturnToReadMode(&hnor3);
 	setColor(YELLOW);
-	sprintf(chNapis, "Pomiar predkosci odczytu bufora 512B Flash NOR");
+	sprintf(chNapis, "Pomiar predkosci 4k odczytow bufora 512B Flash NOR");
 	print(chNapis, CENTER, 20);
 	setColor(WHITE);
 	for(;;)
 	{
+		//odczyt z NOR metodą odczytu bufora
 		nAdres = 0;
 		nCzas = HAL_GetTick();
-		for (y=0; y<1000; y++)
+		for (y=0; y<4096; y++)
 		{
 			Err = HAL_NOR_ReadBuffer(&hnor3, nAdres, sBufor, ROZMIAR16_BUFORA);
 			if (Err != ERR_OK)
@@ -279,31 +284,61 @@ void TestPredkosciOdczytu(void)
 		}
 		nCzas = MinalCzas(nCzas);
 		if (nCzas)
-			sprintf(chNapis, "HAL_NOR_ReadBuffer() Tr = %ldms, transfer = %.2f MB/s", nCzas, (float)(1000 * 1000 * ROZMIAR8_BUFORA / (nCzas * 1024 * 1024)));
+			sprintf(chNapis, "HAL_NOR_ReadBuffer() Tr = %ldms, transfer = %.2f MB/s", nCzas, (float)(4000 * ROZMIAR8_BUFORA / (nCzas * 1024)));
 		print(chNapis, 10, 80);
 
 
+		//odczyt z NOR metodą widzianego jako zmienna
 
 		nAdres = 0;
 		nCzas = HAL_GetTick();
-		for (y=0; y<1000; y++)
+		for (y=0; y<4096; y++)
 		{
 			for (x=0; x<ROZMIAR16_BUFORA; x++)
 			{
 				sBufor[x] = sFlashMem[x];
 			}
-
 		}
 		nCzas = MinalCzas(nCzas);
 		if (nCzas)
-			sprintf(chNapis, "Odczyt adresu Tr = %ldms, transfer = %.2f MB/s", nCzas, (float)(1000 * 1000 * ROZMIAR8_BUFORA / (nCzas * 1024 * 1024)));
+			sprintf(chNapis, "Odczyt sekwencyjny Tr = %ldms, transfer = %.2f MB/s", nCzas, (float)(4000 * ROZMIAR8_BUFORA / (nCzas * 1024)));
 		print(chNapis, 10, 100);
 
 
+		//odczyt z Flash kontrolera
+
+		nCzas = HAL_GetTick();
+		for (y=0; y<4096; y++)
+		{
+			for (x=0; x<ROZMIAR16_BUFORA; x++)
+			{
+				sBufor[x] = sMPUFlash[x];
+			}
+		}
+		nCzas = MinalCzas(nCzas);
+		if (nCzas)
+			sprintf(chNapis, "Flash kontrolera Tr = %ldms, transfer = %.2f MB/s", nCzas, (float)(4000 * ROZMIAR8_BUFORA / (nCzas * 1024)));
+		print(chNapis, 10, 120);
+
+		//Odczyt z RAM do RAM
+		uint16_t sBufor2[ROZMIAR16_BUFORA];
+		nCzas = HAL_GetTick();
+		for (y=0; y<4096; y++)
+		{
+			for (x=0; x<ROZMIAR16_BUFORA; x++)
+			{
+				sBufor[x] = sBufor2[x];
+			}
+		}
+		nCzas = MinalCzas(nCzas);
+		if (nCzas)
+			sprintf(chNapis, "RAM kontrolera Tr = %ldms, transfer = %.2f MB/s", nCzas, (float)(4000 * ROZMIAR8_BUFORA / (nCzas * 1024)));
+		print(chNapis, 10, 140);
+
+
+
 		//sprawdzenie zajętości sektorów
-
-
-		for (x=0; x<6; x++)
+		/*for (x=0; x<6; x++)
 		{
 			nAdres = ADRES_NOR + x * ROZMIAR16_SEKTORA;
 			*( (uint16_t *)nAdres + 0x555 ) = 0x0033;	//polecenie: Blank check
@@ -318,7 +353,7 @@ void TestPredkosciOdczytu(void)
 
 			sprintf(chNapis, "Sektor %ld: %x ", x, sStatus);
 			print(chNapis, 10, 120 + x*20);
-		}
+		}*/
 
 	}
 }
