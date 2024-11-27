@@ -49,15 +49,16 @@ unsigned char chLiczIter;		//licznik iteracji fraktala
 extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern struct _statusDotyku statusDotyku;
 
-
-struct tmenu stMenuGlowne[8]  = {
+struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy		Ikona
 	{"Kamera",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 	obr_ppm},
 	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,	obr_sbus},
 	{"--nic--",		"Podstawowe instrumentu pomiarowe",			TP_KALIB_DOTYK, obr_multimetr},
 	{"--nic--", 	"Narzedzia uniwersalne",					TP_MULTITOOL,	obr_multitool},
-	{"Pomiary", 	"Pomiar predkosci odczytu flash",			TP_POMIARY,		obr_oscyloskop},
+	{"Benchmark", 	"Pomiar predkosci odczytu flash",			TP_POMIARY,		obr_oscyloskop},
 	{"--nic--",		"Pomiary drgan czujn. zewn. (zl. JST A)",	TP_VIBR_ADCIO,	obr_mtest},
+	{"--nic--",		"Nic",										TP_TESTY,		obr_calibration},
+	{"--nic--",		"Nic",										TP_TESTY,		obr_calibration},
 	{"Testy",		"Testy",									TP_TESTY,		obr_calibration},
 	{"Ustawienia", 	"Ustawienia i kalibracja czujnikow",		TP_USTAWIENIA,	obr_calibration}};
 
@@ -563,26 +564,26 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 
 		//rysuje pasek podpowiedzi na dole ekranu
 		setColor(GRAY20);
-		fillRect(0, DISP_HY_SIZE-MM_HLP_WYS, DISP_HX_SIZE, DISP_HY_SIZE);
+		fillRect(0, DISP_HY_SIZE-MENU_PASOP_WYS, DISP_HX_SIZE, DISP_HY_SIZE);
 		setBackColor(BLACK);
 
 		//rysuj ikony poleceń
 		setFont(MidFont);
-		for (m=0; m<MM_ROWS; m++)
+		for (m=0; m<MENU_WIERSZE; m++)
 		{
-			for (n=0; n<MM_COLS; n++)
+			for (n=0; n<MENU_KOLUMNY; n++)
 			{
 				//licz współrzedne środka ikony
-				x = (DISP_HX_SIZE/(2*MM_COLS)) + n * (DISP_HX_SIZE/MM_COLS);
-				y = ((DISP_HY_SIZE-MM_NAG_WYS-MM_HLP_WYS)/(2*MM_ROWS)) + m * ((DISP_HY_SIZE-MM_NAG_WYS-MM_HLP_WYS)/MM_ROWS) - MM_OPI_WYS + MM_NAG_WYS;
+				x = (DISP_HX_SIZE/(2*MENU_KOLUMNY)) + n * (DISP_HX_SIZE/MENU_KOLUMNY);
+				y = ((DISP_HY_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/(2*MENU_WIERSZE)) + m * ((DISP_HY_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
 
 				setColor(MENU_TLO_NAK);
-				drawBitmap(x-MM_ICO_WYS/2, y-MM_ICO_DLG/2, MM_ICO_DLG, MM_ICO_WYS, menu[m*MM_COLS+n].sIkona);
+				drawBitmap(x-MENU_ICO_WYS/2, y-MENU_ICO_DLG/2, MENU_ICO_DLG, MENU_ICO_WYS, menu[m*MENU_KOLUMNY+n].sIkona);
 
 				setColor(GRAY60);
-				x2 = FONT_SLEN * strlen(menu[m*MM_COLS+n].chOpis);
-				strcpy(chNapis, menu[m*MM_COLS+n].chOpis);
-				print(chNapis, x-x2/2, y+MM_ICO_WYS/2+MM_OPI_WYS);
+				x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
+				strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
+				print(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 			}
 		}
 	}
@@ -592,64 +593,64 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	{
 		chStarySelPos = chMenuSelPos;
 
-		if (statusDotyku.sY < (DISP_HY_SIZE-MM_NAG_WYS)/2)	//czy naciśniety górny rząd
+		if (statusDotyku.sY < (DISP_HY_SIZE-MENU_NAG_WYS)/2)	//czy naciśniety górny rząd
 			m = 0;
 		else	//czy naciśniety dolny rząd
 			m = 1;
 
-		for (n=0; n<MM_COLS; n++)
+		for (n=0; n<MENU_KOLUMNY; n++)
 		{
-			if ((statusDotyku.sX > n*(DISP_HX_SIZE/MM_COLS)) && (statusDotyku.sX < (n+1)*(DISP_HX_SIZE/MM_COLS)))
-				chMenuSelPos = m * MM_COLS + n;
+			if ((statusDotyku.sX > n*(DISP_HX_SIZE/MENU_KOLUMNY)) && (statusDotyku.sX < (n+1)*(DISP_HX_SIZE/MENU_KOLUMNY)))
+				chMenuSelPos = m * MENU_KOLUMNY + n;
 		}
 
 
 		if (chStarySelPos != chMenuSelPos)	//zamaż tylko gdy stara ramka jest inna od wybranej
 		{
 			//zamaż starą ramkę kolorem nieaktywnym
-			for (m=0; m<MM_ROWS; m++)
+			for (m=0; m<MENU_WIERSZE; m++)
 			{
-				for (n=0; n<MM_COLS; n++)
+				for (n=0; n<MENU_KOLUMNY; n++)
 				{
-					if (chStarySelPos == m*MM_COLS+n)
+					if (chStarySelPos == m*MENU_KOLUMNY+n)
 					{
 						//licz współrzedne środka ikony
-						x = (DISP_HX_SIZE/(2*MM_COLS)) + n * (DISP_HX_SIZE/MM_COLS);
-						y = ((DISP_HY_SIZE-MM_NAG_WYS-MM_HLP_WYS)/(2*MM_ROWS)) + m * ((DISP_HY_SIZE-MM_NAG_WYS-MM_HLP_WYS)/MM_ROWS) - MM_OPI_WYS + MM_NAG_WYS;
+						x = (DISP_HX_SIZE/(2*MENU_KOLUMNY)) + n * (DISP_HX_SIZE/MENU_KOLUMNY);
+						y = ((DISP_HY_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/(2*MENU_WIERSZE)) + m * ((DISP_HY_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
 						setColor(BLACK);
-						drawRoundRect(x-MM_ICO_DLG/2, y-MM_ICO_WYS/2-2, x+MM_ICO_DLG/2+2, y+MM_ICO_WYS/2);
+						drawRoundRect(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
 						setColor(GRAY60);
-						x2 = FONT_SLEN * strlen(menu[m*MM_COLS+n].chOpis);
-						strcpy(chNapis, menu[m*MM_COLS+n].chOpis);
-						print(chNapis, x-x2/2, y+MM_ICO_WYS/2+MM_OPI_WYS);
+						x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
+						strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
+						print(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 					}
 				}
 			}
 			setColor(GRAY20);
-			//fillRect(0, DISP_X_SIZE-MM_HLP_WYS, DISP_Y_SIZE, DISP_X_SIZE);		//zamaż pasek podpowiedzi
-			fillRect(0, DISP_HY_SIZE-MM_HLP_WYS, DISP_HX_SIZE, DISP_HY_SIZE);		//zamaż pasek podpowiedzi
+			//fillRect(0, DISP_X_SIZE-MENU_PASOP_WYS, DISP_Y_SIZE, DISP_X_SIZE);		//zamaż pasek podpowiedzi
+			fillRect(0, DISP_HY_SIZE-MENU_PASOP_WYS, DISP_HX_SIZE, DISP_HY_SIZE);		//zamaż pasek podpowiedzi
 
 		}
 
 		//rysuj nową zaznaczoną ramkę
-		for (m=0; m<MM_ROWS; m++)
+		for (m=0; m<MENU_WIERSZE; m++)
 		{
-			for (n=0; n<MM_COLS; n++)
+			for (n=0; n<MENU_KOLUMNY; n++)
 			{
-				if (chMenuSelPos == m*MM_COLS+n)
+				if (chMenuSelPos == m*MENU_KOLUMNY+n)
 				{
 					//licz współrzedne środka ikony
-					x = (DISP_HX_SIZE/(2*MM_COLS)) + n * (DISP_HX_SIZE/MM_COLS);
-					y = ((DISP_HY_SIZE-MM_NAG_WYS-MM_HLP_WYS)/(2*MM_ROWS)) + m * ((DISP_HY_SIZE-MM_NAG_WYS-MM_HLP_WYS)/MM_ROWS) - MM_OPI_WYS + MM_NAG_WYS;
+					x = (DISP_HX_SIZE/(2*MENU_KOLUMNY)) + n * (DISP_HX_SIZE/MENU_KOLUMNY);
+					y = ((DISP_HY_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/(2*MENU_WIERSZE)) + m * ((DISP_HY_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
 					if  (statusDotyku.chFlagi == DOTYK_DOTKNIETO)	//czy naciśnięty ekran
 						setColor(MENU_RAM_WYB);
 					else
 						setColor(MENU_RAM_AKT);
-					drawRoundRect(x-MM_ICO_DLG/2, y-MM_ICO_WYS/2-2, x+MM_ICO_DLG/2+2, y+MM_ICO_WYS/2);
+					drawRoundRect(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
 					setColor(GRAY80);
-					x2 = FONT_SLEN * strlen(menu[m*MM_COLS+n].chOpis);
-					strcpy(chNapis, menu[m*MM_COLS+n].chOpis);
-					print(chNapis, x-x2/2, y+MM_ICO_WYS/2+MM_OPI_WYS);
+					x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
+					strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
+					print(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 				}
 			}
 		}
@@ -686,7 +687,7 @@ void BelkaTytulu(char* chTytul)
 {
 	LCD_Orient(POZIOMO);
 	setColor(MENU_TLO_BAR);
-	fillRect(18, 0, DISP_HX_SIZE, MM_NAG_WYS);
+	fillRect(18, 0, DISP_HX_SIZE, MENU_NAG_WYS);
 	drawBitmap(0, 0, 18, 18, pitlab_logo18);	//logo producenta
 	setColor(YELLOW);
 	setBackColor(MENU_TLO_BAR);

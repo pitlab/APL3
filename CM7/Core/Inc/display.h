@@ -73,13 +73,13 @@
 #define DW_SPACE	4	//wolna przestrzeń pod tekstem
 
 //definicje menu głównego
-#define MM_ROWS		2										//liczba rzędów menu
-#define MM_COLS		4										//liczba kolumn
-#define MM_ICO_WYS	62										//wysokość ikonki
-#define MM_ICO_DLG	66										//szerokość ikonki
-#define MM_NAG_WYS	18										//wyskość nagłówka
-#define MM_OPI_WYS	8										//wyskość opisu ikon
-#define MM_HLP_WYS	(FONT_SH+2*UP_SPACE)					// wysokość paska opisu funkcji
+#define MENU_WIERSZE	2								//liczba rzędów menu
+#define MENU_KOLUMNY	5								//liczba kolumn
+#define MENU_ICO_WYS	62										//wysokość ikonki
+#define MENU_ICO_DLG	66										//szerokość ikonki
+#define MENU_NAG_WYS	18										//wyskość nagłówka
+#define MENU_OPIS_WYS	8										//wyskość opisu ikon
+#define MENU_PASOP_WYS	(FONT_SH+2*UP_SPACE)					// wysokość paska opisu funkcji
 
 
 

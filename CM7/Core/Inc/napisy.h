@@ -44,7 +44,7 @@ const char *chNapisLcd[MAX_LCD_STR]  = {
 "brakuje",							//STR_SPRAWDZ_BRAK
 "Flash NOR 32MB",					//STR_SPRAWDZ_NOR
 "Kamera OV5642", 					//STR_SPRAWDZ_KAMERA_OV5642
-"Moduł IMU",					 	//STR_SPRAWDZ_MOD_IMU	7
+"Modul IMU",						//STR_SPRAWDZ_MOD_IMU	7
 
 "Enkoder",							//STR_TEST_ENCODER
 "Dotyk:",							//STR_TEST_TOUCH

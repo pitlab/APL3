@@ -34,8 +34,9 @@
 uint16_t sMPUFlash[ROZMIAR16_BUFORA] __attribute__((section(".text")));
 uint16_t sFlashMem[ROZMIAR16_BUFORA] __attribute__((section(".FlashNorSection")));
 extern NOR_HandleTypeDef hnor3;
+extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 extern char chNapis[];
-
+HAL_StatusTypeDef hsErr;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -251,10 +252,38 @@ uint8_t Test_Flash(void)
 		bufor[x] = sFlashMem[x];
 
 	bufor[99] = 0;*/
+
+	//sprawdzenie zajętości sektorów
+			/*for (x=0; x<6; x++)
+			{
+				nAdres = ADRES_NOR + x * ROZMIAR16_SEKTORA;
+				*( (uint16_t *)nAdres + 0x555 ) = 0x0033;	//polecenie: Blank check
+
+
+				nAdres = ADRES_NOR;
+				*( (uint16_t *)nAdres + 0x555 ) = 0x70;	//polecenie: status read enter
+				sStatus = *( (uint16_t *)nAdres);
+
+				*( (uint16_t *)nAdres + 0x555 ) = 0x71;	//polecenie: status register clear
+
+
+				sprintf(chNapis, "Sektor %ld: %x ", x, sStatus);
+				print(chNapis, 10, 120 + x*20);
+			}*/
+
+
+
 	return Err;
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Wykonuje serię transferów z pamięci w celu określenia przepustowości
+// Wyniki są wyświetlane na ekranie
+// Parametry: nic
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
 void TestPredkosciOdczytu(void)
 {
 	HAL_StatusTypeDef Err;
@@ -284,40 +313,34 @@ void TestPredkosciOdczytu(void)
 		}
 		nCzas = MinalCzas(nCzas);
 		if (nCzas)
-			sprintf(chNapis, "HAL_NOR_ReadBuffer() Tr = %ldms, transfer = %.2f MB/s", nCzas, (float)(4000 * ROZMIAR8_BUFORA / (nCzas * 1024)));
+			sprintf(chNapis, "HAL_NOR_ReadBuffer() t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 80);
 
 
 		//odczyt z NOR metodą widzianego jako zmienna
-
 		nAdres = 0;
 		nCzas = HAL_GetTick();
 		for (y=0; y<4096; y++)
 		{
 			for (x=0; x<ROZMIAR16_BUFORA; x++)
-			{
 				sBufor[x] = sFlashMem[x];
-			}
 		}
 		nCzas = MinalCzas(nCzas);
 		if (nCzas)
-			sprintf(chNapis, "Odczyt sekwencyjny Tr = %ldms, transfer = %.2f MB/s", nCzas, (float)(4000 * ROZMIAR8_BUFORA / (nCzas * 1024)));
+			sprintf(chNapis, "NOR petla for()      t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 100);
 
 
 		//odczyt z Flash kontrolera
-
 		nCzas = HAL_GetTick();
 		for (y=0; y<4096; y++)
 		{
 			for (x=0; x<ROZMIAR16_BUFORA; x++)
-			{
 				sBufor[x] = sMPUFlash[x];
-			}
 		}
 		nCzas = MinalCzas(nCzas);
 		if (nCzas)
-			sprintf(chNapis, "Flash kontrolera Tr = %ldms, transfer = %.2f MB/s", nCzas, (float)(4000 * ROZMIAR8_BUFORA / (nCzas * 1024)));
+			sprintf(chNapis, "Flash kontrolera     t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 120);
 
 		//Odczyt z RAM do RAM
@@ -326,34 +349,53 @@ void TestPredkosciOdczytu(void)
 		for (y=0; y<4096; y++)
 		{
 			for (x=0; x<ROZMIAR16_BUFORA; x++)
-			{
 				sBufor[x] = sBufor2[x];
-			}
 		}
 		nCzas = MinalCzas(nCzas);
 		if (nCzas)
-			sprintf(chNapis, "RAM kontrolera Tr = %ldms, transfer = %.2f MB/s", nCzas, (float)(4000 * ROZMIAR8_BUFORA / (nCzas * 1024)));
+			sprintf(chNapis, "RAM kontrolera       t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 140);
 
 
-
-		//sprawdzenie zajętości sektorów
-		/*for (x=0; x<6; x++)
+		//odczyt z NOR przez DMA
+		nCzas = HAL_GetTick();
+		for (y=0; y<4096; y++)
 		{
-			nAdres = ADRES_NOR + x * ROZMIAR16_SEKTORA;
-			*( (uint16_t *)nAdres + 0x555 ) = 0x0033;	//polecenie: Blank check
+			HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sFlashMem, (uint32_t)sBufor, ROZMIAR16_BUFORA);
+			while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
+				HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+		}
+		nCzas = MinalCzas(nCzas);
+		if (nCzas)
+			sprintf(chNapis, "DMA: NOR->RAM        t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 180);
 
 
-			nAdres = ADRES_NOR;
-			*( (uint16_t *)nAdres + 0x555 ) = 0x70;	//polecenie: status read enter
-			sStatus = *( (uint16_t *)nAdres);
+		//odczyt z Flash przez DMA
+		nCzas = HAL_GetTick();
+		for (y=0; y<4096; y++)
+		{
+			HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sMPUFlash, (uint32_t)sBufor, ROZMIAR16_BUFORA);
+			while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
+				HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+		}
+		nCzas = MinalCzas(nCzas);
+		if (nCzas)
+			sprintf(chNapis, "DMA: Flash->RAM      t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 200);
 
-			*( (uint16_t *)nAdres + 0x555 ) = 0x71;	//polecenie: status register clear
 
-
-			sprintf(chNapis, "Sektor %ld: %x ", x, sStatus);
-			print(chNapis, 10, 120 + x*20);
-		}*/
-
+		//odczyt z RAM przez DMA
+		nCzas = HAL_GetTick();
+		for (y=0; y<4096; y++)
+		{
+			HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBufor2, (uint32_t)sBufor, ROZMIAR16_BUFORA);
+			while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
+				HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+		}
+		nCzas = MinalCzas(nCzas);
+		if (nCzas)
+			sprintf(chNapis, "DMA: RAM->RAM        t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 220);
 	}
 }

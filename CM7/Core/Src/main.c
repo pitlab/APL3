@@ -58,6 +58,7 @@ DMA_HandleTypeDef hdma_spi5_tx;
 
 UART_HandleTypeDef huart7;
 
+DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 NOR_HandleTypeDef hnor3;
 
 /* USER CODE BEGIN PV */
@@ -412,12 +413,33 @@ static void MX_UART7_Init(void)
 
 /**
   * Enable DMA controller clock
+  * Configure DMA for memory to memory transfers
+  *   hdma_memtomem_dma1_stream1
   */
 static void MX_DMA_Init(void)
 {
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* Configure DMA request hdma_memtomem_dma1_stream1 on DMA1_Stream1 */
+  hdma_memtomem_dma1_stream1.Instance = DMA1_Stream1;
+  hdma_memtomem_dma1_stream1.Init.Request = DMA_REQUEST_MEM2MEM;
+  hdma_memtomem_dma1_stream1.Init.Direction = DMA_MEMORY_TO_MEMORY;
+  hdma_memtomem_dma1_stream1.Init.PeriphInc = DMA_PINC_ENABLE;
+  hdma_memtomem_dma1_stream1.Init.MemInc = DMA_MINC_ENABLE;
+  hdma_memtomem_dma1_stream1.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+  hdma_memtomem_dma1_stream1.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+  hdma_memtomem_dma1_stream1.Init.Mode = DMA_NORMAL;
+  hdma_memtomem_dma1_stream1.Init.Priority = DMA_PRIORITY_HIGH;
+  hdma_memtomem_dma1_stream1.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+  hdma_memtomem_dma1_stream1.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+  hdma_memtomem_dma1_stream1.Init.MemBurst = DMA_MBURST_SINGLE;
+  hdma_memtomem_dma1_stream1.Init.PeriphBurst = DMA_MBURST_INC16;
+  if (HAL_DMA_Init(&hdma_memtomem_dma1_stream1) != HAL_OK)
+  {
+    Error_Handler( );
+  }
 
   /* DMA interrupt init */
   /* DMA1_Stream0_IRQn interrupt configuration */
@@ -464,12 +486,11 @@ void MX_FMC_Init(void)
   Timing.AddressSetupTime = 0;
   Timing.AddressHoldTime = 6;
   Timing.DataSetupTime = 18;
-  Timing.BusTurnAroundDuration = 3;
+  Timing.BusTurnAroundDuration = 2;
   Timing.CLKDivision = 2;
   Timing.DataLatency = 2;
   Timing.AccessMode = FMC_ACCESS_MODE_A;
   /* ExtTiming */
-
 
   if (HAL_NOR_Init(&hnor3, &Timing, NULL) != HAL_OK)
   {
