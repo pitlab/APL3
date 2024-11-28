@@ -51,6 +51,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 
+QSPI_HandleTypeDef hqspi;
+
 RTC_HandleTypeDef hrtc;
 
 SPI_HandleTypeDef hspi5;
@@ -74,6 +76,7 @@ static void MX_SPI5_Init(void);
 static void MX_RTC_Init(void);
 static void MX_UART7_Init(void);
 static void MX_FMC_Init(void);
+static void MX_QUADSPI_Init(void);
 /* USER CODE BEGIN PFP */
 extern uint8_t InicjujSPIModZewn(void);
 extern uint8_t WymienDaneExpanderow(void);
@@ -165,6 +168,7 @@ Error_Handler();
   MX_RTC_Init();
   MX_UART7_Init();
   MX_FMC_Init();
+  MX_QUADSPI_Init();
   /* USER CODE BEGIN 2 */
   InicjujSPIModZewn();
   LCD_init();
@@ -249,6 +253,41 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief QUADSPI Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_QUADSPI_Init(void)
+{
+
+  /* USER CODE BEGIN QUADSPI_Init 0 */
+
+  /* USER CODE END QUADSPI_Init 0 */
+
+  /* USER CODE BEGIN QUADSPI_Init 1 */
+
+  /* USER CODE END QUADSPI_Init 1 */
+  /* QUADSPI parameter configuration*/
+  hqspi.Instance = QUADSPI;
+  hqspi.Init.ClockPrescaler = 1;
+  hqspi.Init.FifoThreshold = 1;
+  hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_NONE;
+  hqspi.Init.FlashSize = 24;
+  hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_1_CYCLE;
+  hqspi.Init.ClockMode = QSPI_CLOCK_MODE_0;
+  hqspi.Init.FlashID = QSPI_FLASH_ID_1;
+  hqspi.Init.DualFlash = QSPI_DUALFLASH_DISABLE;
+  if (HAL_QSPI_Init(&hqspi) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN QUADSPI_Init 2 */
+
+  /* USER CODE END QUADSPI_Init 2 */
+
 }
 
 /**
@@ -431,11 +470,11 @@ static void MX_DMA_Init(void)
   hdma_memtomem_dma1_stream1.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
   hdma_memtomem_dma1_stream1.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
   hdma_memtomem_dma1_stream1.Init.Mode = DMA_NORMAL;
-  hdma_memtomem_dma1_stream1.Init.Priority = DMA_PRIORITY_HIGH;
+  hdma_memtomem_dma1_stream1.Init.Priority = DMA_PRIORITY_LOW;
   hdma_memtomem_dma1_stream1.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
   hdma_memtomem_dma1_stream1.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
   hdma_memtomem_dma1_stream1.Init.MemBurst = DMA_MBURST_SINGLE;
-  hdma_memtomem_dma1_stream1.Init.PeriphBurst = DMA_MBURST_INC16;
+  hdma_memtomem_dma1_stream1.Init.PeriphBurst = DMA_PBURST_SINGLE;
   if (HAL_DMA_Init(&hdma_memtomem_dma1_stream1) != HAL_OK)
   {
     Error_Handler( );
@@ -484,11 +523,11 @@ void MX_FMC_Init(void)
   hnor3.Init.PageSize = FMC_PAGE_SIZE_NONE;
   /* Timing */
   Timing.AddressSetupTime = 0;
-  Timing.AddressHoldTime = 6;
+  Timing.AddressHoldTime = 15;
   Timing.DataSetupTime = 18;
   Timing.BusTurnAroundDuration = 2;
-  Timing.CLKDivision = 2;
-  Timing.DataLatency = 2;
+  Timing.CLKDivision = 16;
+  Timing.DataLatency = 17;
   Timing.AccessMode = FMC_ACCESS_MODE_A;
   /* ExtTiming */
 
@@ -517,13 +556,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOI_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOJ_CLK_ENABLE();
   __HAL_RCC_GPIOK_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);
