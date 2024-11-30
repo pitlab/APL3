@@ -24,7 +24,7 @@ uint32_t nAdresZapisuKonfigu;	//adres ostatnio zapisanej paczki danych
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void IncjujKonfigFlash(void)
+void InicjujKonfigFlash(void)
 {
 	uint8_t chIdentyfikatorPaczki;
 	uint16_t n;

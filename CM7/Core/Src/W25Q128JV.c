@@ -7,12 +7,14 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "W25Q128JV.h"
-//#include <stdio.h>
-//#include "LCD.h"
-//#include "RPi35B_480x320.h"
+#include <stdio.h>
+#include "LCD.h"
+#include "RPi35B_480x320.h"
 
 
 extern QSPI_HandleTypeDef hqspi;
+extern char chNapis[];
+extern struct _statusDotyku statusDotyku;
 
 
 /* Each command can include five phases: instruction, address, alternate byte, dummy, data. Any of these phases
@@ -183,6 +185,95 @@ uint8_t W25_CzytajStatus(uint8_t chTypStatusu, uint8_t* chStatus)
 
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Czyta zawartość pamięci od podanego adresu magistralą 1 przewodową
+// Parametry: nAdres - adres początku danych do doczytu
+// dane* - wskaźnik na odczytane dane
+// ilosc - liczba danych do odczytu
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t W25_CzytajDane1A1D(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
+{
+	HAL_StatusTypeDef chErr;
+	QSPI_CommandTypeDef cmd;
+
+	//faza instrukcji - obecna
+	cmd.Instruction = CMD_W25Q_Read_Data;
+	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+
+	//faza adresu - obecna 3B
+	cmd.Address = nAdres;
+	cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+	cmd.AddressSize = QSPI_ADDRESS_24_BITS;
+
+	//faza alternate byte - nieobecna
+	cmd.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
+	cmd.AlternateBytes = 0;
+
+	//faza dummy - nieobecna
+	cmd.DummyCycles = 0;
+
+	//faza data - obecna 2B
+	cmd.DataMode = QSPI_DATA_1_LINE;	//Data on a single line
+	cmd.NbData = ilosc;
+
+	//inne niezbędne parametry
+	cmd.SIOOMode = QSPI_SIOO_INST_EVERY_CMD;
+	cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
+	cmd.DdrHoldHalfCycle = 0;
+
+	chErr = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	if (chErr == HAL_OK)
+		chErr = HAL_QSPI_Receive(&hqspi, dane, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Czyta zawartość pamięci od podanego adresu magistralą 4 przewodową
+// Parametry: nAdres - adres początku danych do doczytu
+// dane* - wskaźnik na odczytane dane
+// ilosc - liczba danych do odczytu
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t W25_CzytajDane4A4D(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
+{
+	HAL_StatusTypeDef chErr;
+	QSPI_CommandTypeDef cmd;
+
+	//faza instrukcji - obecna
+	cmd.Instruction = CMD_W25Q_Fast_Read_Quad;
+	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+
+	//faza adresu - obecna 3B
+	cmd.Address = nAdres;
+	cmd.AddressMode = QSPI_ADDRESS_4_LINES;
+	cmd.AddressSize = QSPI_ADDRESS_24_BITS;
+
+	//faza alternate byte - nieobecna
+	cmd.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
+	cmd.AlternateBytes = 0;
+
+	//faza dummy 4 cykle zegara po podaniu adresu
+	cmd.DummyCycles = 4;
+
+	//faza data - odczytaj "ilosc" danych po 4 liniach
+	cmd.DataMode = QSPI_DATA_4_LINES;
+	cmd.NbData = ilosc;
+
+	//inne niezbędne parametry
+	cmd.SIOOMode = QSPI_SIOO_INST_EVERY_CMD;
+	cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
+	cmd.DdrHoldHalfCycle = 0;
+
+	chErr = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	if (chErr == HAL_OK)
+		chErr = HAL_QSPI_Receive(&hqspi, dane, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	return chErr;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja bezparametrowa do wygodnego wywoływania poleceń z zewnatrz
 // Parametry:  brak
@@ -190,12 +281,66 @@ uint8_t W25_CzytajStatus(uint8_t chTypStatusu, uint8_t* chStatus)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t W25_Test(void)
 {
-	uint8_t chStatus, chErr;
+#define BUFOR_W25_ROZM	512
+	uint8_t chErr;
+	uint16_t y;
+	//uint8_t chStatus;
+	uint8_t chBufor[BUFOR_W25_ROZM];
+	uint32_t nCzas;
+	extern uint8_t chRysujRaz;
 
-	chErr = W25_SprawdzObecnoscFlashQSPI();
-	chErr = W25_CzytajStatus(1, &chStatus);
-	chErr = W25_CzytajStatus(2, &chStatus);
-	chErr = W25_CzytajStatus(3, &chStatus);
+	//chErr = W25_SprawdzObecnoscFlashQSPI();
+	//chErr = W25_CzytajStatus(1, &chStatus);
+	//chErr = W25_CzytajStatus(2, &chStatus);
+	//chErr = W25_CzytajStatus(3, &chStatus);
+
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Pomiar odczytu z Flash QSPI");
+		/*setColor(YELLOW);
+		sprintf(chNapis, "Pomiar predkosci 4k odczytow bufora 512B Flash QSPI");
+		print(chNapis, CENTER, 20);*/
+		setColor(GRAY60);
+		sprintf(chNapis, "Wdus ekran aby zakonczyc pomiar");
+		print(chNapis, CENTER, 40);
+		setColor(WHITE);
+	}
+
+	//odczyt danych przez SPI po 1 linii
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		chErr = W25_CzytajDane1A1D(0x5555, chBufor, BUFOR_W25_ROZM);
+		if (chErr != ERR_OK)
+		{
+			sprintf(chNapis, "Blad odczytu");
+			print(chNapis, 10, 20);
+			return chErr;
+		}
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+		sprintf(chNapis, "CzytajDane1A1D() t = %ldms, transfer = %.2f MB/s", nCzas, (float)(BUFOR_W25_ROZM * 4000) / (nCzas * 1024));
+	print(chNapis, 10, 80);
+
+
+	//odczyt danych przez SPI po 4 liniach
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		chErr = W25_CzytajDane4A4D(0x5555, chBufor, BUFOR_W25_ROZM);
+		if (chErr != ERR_OK)
+		{
+			sprintf(chNapis, "Blad odczytu");
+			print(chNapis, 10, 20);
+			return chErr;
+		}
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+		sprintf(chNapis, "CzytajDane4A4D() t = %ldms, transfer = %.2f MB/s", nCzas, (float)(BUFOR_W25_ROZM * 4000) / (nCzas * 1024));
+	print(chNapis, 10, 100);
 
 	return chErr;
 }

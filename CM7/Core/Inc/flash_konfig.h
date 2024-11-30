@@ -25,7 +25,7 @@
 
 
 
-void IncjujKonfigFlash(void);
+void InicjujKonfigFlash(void);
 uint8_t ZapiszPaczkeKonfigu(uint8_t* chDane);
 uint8_t ZapiszPaczkeAdr(uint32_t nAdrZapisu,  uint8_t* chDane);
 uint8_t CzytajPaczkeKonfigu(uint8_t* chDane, uint8_t chIdent);

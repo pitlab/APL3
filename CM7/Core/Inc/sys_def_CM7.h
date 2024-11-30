@@ -47,7 +47,7 @@
 
 //tryby pracy
 #define TP_MENU_GLOWNE		0	//wyświetla ekran menu głównego
-#define TP_KAMERA			1
+#define TP_WROC_DO_MENU		1
 #define TP_FRAKTALE			2	//wyświetla benchmark fraktalowy
 #define TP_KALIB_DOTYK		3	//kalibracja panelu dotykowego
 #define TP_MULTITOOL		4
@@ -55,6 +55,7 @@
 #define TP_TESTY			6
 #define TP_VIBR_ADCIO		7
 #define TP_USTAWIENIA		8
+#define TP_KAMERA			9
 
 
 //flagi inicjalizacj sprzetu na płytce

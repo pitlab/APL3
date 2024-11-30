@@ -37,6 +37,26 @@ extern char chNapis[];
 HAL_StatusTypeDef hsErr;
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Inicjuj Flash NOR
+// Parametry: nic
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t InicjujFlashNOR(void)
+{
+	uint8_t chErr;
+
+	extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
+
+	chErr = SprawdzObecnoscFlashNOR();
+	if (chErr == ERR_OK)
+		nZainicjowano[0] |= INIT0_FLASH_NOR;
+	HAL_NOR_ReturnToReadMode(&hnor3);		//ustaw pamięć w trub odczytu
+	return chErr;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja sprawdza czy została wykryta pamięć NOR Flash serii S29GL
 // Parametry: nic
@@ -45,26 +65,26 @@ HAL_StatusTypeDef hsErr;
 uint8_t SprawdzObecnoscFlashNOR(void)
 {
 	NOR_IDTypeDef norID;
-	HAL_StatusTypeDef Err = ERR_BRAK_FLASH_NOR;
-	extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
+	HAL_StatusTypeDef chErr;
 
-	Err = HAL_NOR_Read_ID(&hnor3, &norID);
-	if (Err == HAL_OK)
+	chErr = HAL_NOR_Read_ID(&hnor3, &norID);
+	if (chErr == HAL_OK)
 	{
-		if ((norID.Device_Code1 == 0x227E) ||  (norID.Device_Code3 == 0x2201) || (norID.Manufacturer_Code == 0x0001))
+		if ((norID.Device_Code1 == 0x227E) &&  (norID.Device_Code3 == 0x2201) && (norID.Manufacturer_Code == 0x0001))
 		{
 			//jeżeli będzie trzeba to można rozróżnić wielkości pamięci
-			if ((norID.Device_Code2 != 0x2228) ||		//1Gb
-				(norID.Device_Code2 != 0x2223) ||	//512Mb
-				(norID.Device_Code2 != 0x2222) ||	//256Mb		S29GL256S90
+			if ((norID.Device_Code2 != 0x2228) &&	//1Gb
+				(norID.Device_Code2 != 0x2223) &&	//512Mb
+				(norID.Device_Code2 != 0x2222) &&	//256Mb		S29GL256S90
 				(norID.Device_Code2 != 0x2222))		//128Mb
 			{
-				nZainicjowano[0] |= INIT0_FLASH_NOR;
-				Err = ERR_OK;
+				chErr = ERR_BRAK_FLASH_NOR;
 			}
 		}
+		else
+			chErr = ERR_BRAK_FLASH_NOR;
 	}
-	return Err;
+	return chErr;
 }
 
 
@@ -288,25 +308,38 @@ uint8_t Test_Flash(void)
 ////////////////////////////////////////////////////////////////////////////////
 void TestPredkosciOdczytu(void)
 {
-	HAL_StatusTypeDef Err;
+	HAL_StatusTypeDef chErr;
 	uint16_t sBufor[ROZMIAR16_BUFORA];
 	uint32_t x, y, nAdres;
 	uint32_t nCzas;
+	extern uint8_t chRysujRaz;
 
-	Err = HAL_NOR_ReturnToReadMode(&hnor3);
-	setColor(YELLOW);
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Pomiar odczytu z Flash NOR");
+		setColor(GRAY60);
+		sprintf(chNapis, "Wdus ekran aby zakonczyc pomiar");
+		print(chNapis, CENTER, 40);
+		setColor(WHITE);
+		chErr = HAL_NOR_ReturnToReadMode(&hnor3);
+	}
+
+
+
+	/*setColor(YELLOW);
 	sprintf(chNapis, "Pomiar predkosci 4k odczytow bufora 512B Flash NOR");
 	print(chNapis, CENTER, 20);
 	setColor(WHITE);
 	for(;;)
-	{
+	{*/
 		//odczyt z NOR metodą odczytu bufora
 		nAdres = 0;
 		nCzas = HAL_GetTick();
 		for (y=0; y<4096; y++)
 		{
-			Err = HAL_NOR_ReadBuffer(&hnor3, nAdres, sBufor, ROZMIAR16_BUFORA);
-			if (Err != ERR_OK)
+			chErr = HAL_NOR_ReadBuffer(&hnor3, nAdres, sBufor, ROZMIAR16_BUFORA);
+			if (chErr != ERR_OK)
 			{
 				sprintf(chNapis, "Blad odczytu");
 				print(chNapis, 10, 20);
@@ -399,5 +432,5 @@ void TestPredkosciOdczytu(void)
 		if (nCzas)
 			sprintf(chNapis, "DMA: RAM->RAM        t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 220);
-	}
+	//}
 }

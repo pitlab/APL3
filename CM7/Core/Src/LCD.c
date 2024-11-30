@@ -88,28 +88,44 @@ void RysujEkran(void)
 		break;
 
 	case TP_MULTITOOL:	break;
-	case TP_POMIARY:		TestPredkosciOdczytu();		break;
-	case TP_VIBR_ADCIO:		W25_Test();	break;
+	case TP_POMIARY:		TestPredkosciOdczytu();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_MENU;
+		}
+		break;
+
+	case TP_VIBR_ADCIO:		W25_Test();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_MENU;
+		}
+		break;
 
 	case TP_TESTY:
 		if (TestDotyku() == ERR_DONE)
-			chTrybPracy = TP_MENU_GLOWNE;
+			chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
 	case TP_USTAWIENIA:	break;
 
 	}
 
+	//rzeczy do zrobienia podczas uruchamiania nowego trybu pracy
 	if (chNowyTrybPracy)
 	{
 		chWrocDoTrybu = chTrybPracy;
 		chTrybPracy = chNowyTrybPracy;
 		chNowyTrybPracy = 0;
+		statusDotyku.chFlagi &= ~(DOTYK_DOTKNIETO | DOTYK_ZWOLNONO);	//czyść flagi ekranu dotykowego aby móc reagować na nie w trakie pracy danego trybu
+		chRysujRaz = 1;
 
 		//startuje procesy zwiazane z obsługą nowego trybu pracy
 		switch(chTrybPracy)
 		{
-		case TP_MENU_GLOWNE:	break;
+		case TP_WROC_DO_MENU:	chTrybPracy = TP_MENU_GLOWNE;	break;
 		case TP_FRAKTALE:		InitFraktal(0);		break;
 		case TP_USTAWIENIA:		chTrybPracy = TP_KALIB_DOTYK;	break;
 		}
@@ -174,7 +190,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 		setColor(GRAY20);
 		setBackColor(WHITE);
 		setFont(BigFont);
-		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_TYTUL]);	//"Tester modelarski"
+		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_TYTUL]);
 		print(chNapis, CENTER, 100);
 
 		setColor(GRAY30);
@@ -189,36 +205,31 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 		chRysujRaz = 0;
 	}
 
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_NOR]);	//"pamięć Flash NOR"
-	y = 180;
+	//pierwsza kolumna sprzętu wewnętrznego
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_NOR]);		//"pamięć Flash NOR"
 	x = 0;
+	y = 170;
 	print(chNapis, x, y);
-	x += n * GetFontX();
-	Wykrycie(x, y, *(zainicjowano+0) && INIT0_FLASH_NOR);
-
+	Wykrycie(x, y, n, *(zainicjowano+0) && INIT0_FLASH_NOR);
 
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_QSPI]);	//"pamięć Flash QSPI"
 	y += 20;
-	x = 0;
 	print(chNapis, x, y);
-	x += n * GetFontX();
-	Wykrycie(x, y, *(zainicjowano+0) && INIT0_FLASH_NOR);
+	Wykrycie(x, y, n, *(zainicjowano+0) && INIT0_FLASH_NOR);
 
+	//druga kolumna sprzętu zewnętrznego
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KAMERA_OV5642]);	//"kamera "
-	y += 20;
-	x = 0;
+	x = DISP_X_SIZE / 2;
+	y = 170;
 	print(chNapis, x, y);
-	x += n * GetFontX();
-	Wykrycie(x, y, *(zainicjowano+1) && INIT1_KAMERA);
+	Wykrycie(x, y, n, *(zainicjowano+1) && INIT1_KAMERA);
 
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_MODUL_IMU]);	//moduł IMU
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_MODUL_IMU]);		//moduł IMU
 	y += 20;
-	x = 0;
 	print(chNapis, x, y);
-	x += n * GetFontX();
-	Wykrycie(x, y, *(zainicjowano+1) && INIT1_MOD_IMU);
+	Wykrycie(x, y, n, *(zainicjowano+1) && INIT1_MOD_IMU);
 
-	HAL_Delay(1000);	//czekaj
+	HAL_Delay(2000);	//czekaj
 	LCD_clear();
 }
 
@@ -226,25 +237,29 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje animację wykrywania zasobu testera
-// Parametry: x,y współrzędne tekstu
-// wynik - zasób wykryty lub nie wykryty
+// Parametry: x,y - współrzędne początku tekstu
+// znakow - liczba znaków napisu
+// wykryto - zasób wykryty lub nie wykryty
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void Wykrycie(int x, int y, uint8_t wynik)
+void Wykrycie(uint16_t x, uint16_t y, uint8_t znakow, uint8_t wykryto)
 {
-	uint8_t n;			//zapętlacz
+	uint8_t n, kropek, szer_fontu;
 
-	chNapis[0] = '.';
-	for (n=0; n<5; n++)
+	szer_fontu = GetFontX();
+	x += znakow * szer_fontu;	//współrzędne końca tekstu i początku kropek
+	kropek = MAX_LCD_STR - znakow - 2;	//liczba kropek dopełnienia
+	for (n=0; n<kropek; n++)
 	{
-		printChar(chNapis[0], x+n*GetFontX(), y);
-		HAL_Delay(80);
+		printChar('.', x+n*szer_fontu, y);
+		HAL_Delay(50);
 	}
-	if (wynik)
+	if (wykryto)
 		sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_WYKR]);	//"wykryto"
 	else
-		sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_BRAK]);		//"brak"
-	print(chNapis, x+6*GetFontX(), y);
+		sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_BRAK]);	//"brakuje"
+	x += kropek * szer_fontu;
+	print(chNapis, x , y);
 }
 
 
@@ -690,7 +705,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 ////////////////////////////////////////////////////////////////////////////////
 void BelkaTytulu(char* chTytul)
 {
-	LCD_Orient(POZIOMO);
+	//LCD_Orient(POZIOMO);
 	setColor(MENU_TLO_BAR);
 	fillRect(18, 0, DISP_HX_SIZE, MENU_NAG_WYS);
 	drawBitmap(0, 0, 18, 18, pitlab_logo18);	//logo producenta

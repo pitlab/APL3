@@ -174,9 +174,9 @@ Error_Handler();
   /* USER CODE BEGIN 2 */
   InicjujSPIModZewn();
   LCD_init();
-  SprawdzObecnoscFlashNOR();
+  InicjujFlashNOR();
   InicjujFlashQSPI();
-  IncjujKonfigFlash();
+  InicjujKonfigFlash();
 
   InicjujDotyk();
   Ekran_Powitalny(nZainicjowano);	//przywitaj użytkownika i prezentuj wykryty sprzęt

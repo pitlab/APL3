@@ -38,7 +38,7 @@
 #define JEZYK_POLSKI
 #ifdef JEZYK_POLSKI
 const char *chNapisLcd[MAX_LCD_STR]  = {
-"AutoPitLot v.3.0",					//STR_WITAJ_TYTUL		max 17 znaków
+"AutoPitLot v3.0",					//STR_WITAJ_TYTUL		max 17 znaków
 "z technologia \"--Kaszana_OFF\"",	//STR_WITAJ_KASZANA
 "pl",								//STR_WITAJ_DOMENA		max 3 znaki
 "wykryto",							//STR_SPRAWDZ_WYKR

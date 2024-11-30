@@ -64,6 +64,8 @@ uint8_t InicjujFlashQSPI(void);
 uint8_t W25_Test(void);
 uint8_t W25_SprawdzObecnoscFlashQSPI(void);
 uint8_t W25_CzytajStatus(uint8_t chTypStatusu, uint8_t* chStatus);
+uint8_t W25_CzytajDane1A1D(uint32_t nAdres, uint8_t* dane, uint16_t ilosc);
+uint8_t W25_CzytajDane4A4D(uint32_t nAdres, uint8_t* dane, uint16_t ilosc);
 
 
 #endif /* SRC_W25Q128JV_H_ */

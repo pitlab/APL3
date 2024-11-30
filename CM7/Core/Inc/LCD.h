@@ -12,7 +12,7 @@
 
 void RysujEkran(void);
 void Ekran_Powitalny(uint32_t * zainicjowano);
-void Wykrycie(int x, int y, uint8_t wynik);
+void Wykrycie(uint16_t x, uint16_t y, uint8_t dopelnij_znakow, uint8_t wynik);
 void FraktalTest(unsigned char chTyp);
 void FraktalDemo(void);
 void GenerateJulia(unsigned short size_x, unsigned short size_y, unsigned short offset_x, unsigned short offset_y, unsigned short zoom, unsigned short * buffer);

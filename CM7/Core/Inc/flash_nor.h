@@ -21,7 +21,7 @@
 
 
 
-
+uint8_t InicjujFlashNOR(void);
 uint8_t SprawdzObecnoscFlashNOR(void);
 uint8_t KasujSektorFlashNOR(uint32_t nAdres);
 uint8_t KasujFlashNOR(void);
