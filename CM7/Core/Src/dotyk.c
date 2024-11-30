@@ -451,8 +451,11 @@ uint8_t TestDotyku(void)
 
 	sKolor = getColor();	//zapamiętaj kolor
 	setColor(GRAY40);
-	sprintf(chNapis, "Test kalibracji ");
+	sprintf(chNapis, "Test kalibracji");
 	print(chNapis, CENTER, 60);
+	setColor(GRAY50);
+	sprintf(chNapis, "Nacisnij ekran 6 razy aby zakonczyc");
+	print(chNapis, CENTER, 80);
 
 	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)		//jeżeli był dotknięty
 	{

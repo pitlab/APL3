@@ -8,7 +8,7 @@
 #ifndef SRC_FLASH_NOR_H_
 #define SRC_FLASH_NOR_H_
 
-#include "stm32h7xx_hal.h"
+#include "sys_def_CM7.h"
 
 #define ADRES_NOR			0x68000000
 #define LICZBA_SEKTOROW		256

@@ -290,7 +290,7 @@ void LCD_init(void)
 	//czszczenie ekranu
 	LCD_clear();
 
-	nZainicjowano[0] |= INIT_LCD;
+	nZainicjowano[0] |= INIT0_LCD480x320;
 }
 
 

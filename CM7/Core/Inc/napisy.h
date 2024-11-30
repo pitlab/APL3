@@ -14,12 +14,13 @@
 #define STR_WITAJ_DOMENA			2
 #define STR_SPRAWDZ_WYKR			3
 #define STR_SPRAWDZ_BRAK			4
-#define STR_SPRAWDZ_NOR				5
-#define STR_SPRAWDZ_KAMERA_OV5642	6
-#define STR_SPRAWDZ_MODUL_IMU		7
+#define STR_SPRAWDZ_FLASH_NOR		5
+#define STR_SPRAWDZ_FLASH_QSPI		6
+
+#define STR_SPRAWDZ_KAMERA_OV5642	7
+#define STR_SPRAWDZ_MODUL_IMU		8
 
 
-#define STR_TEST_ENCODER	8
 #define STR_TEST_TOUCH		9
 #define STR_LIBEL_TITLE		10
 
@@ -42,11 +43,11 @@ const char *chNapisLcd[MAX_LCD_STR]  = {
 "pl",								//STR_WITAJ_DOMENA		max 3 znaki
 "wykryto",							//STR_SPRAWDZ_WYKR
 "brakuje",							//STR_SPRAWDZ_BRAK
-"Flash NOR 32MB",					//STR_SPRAWDZ_NOR
+"Flash NOR 32MB",					//STR_SPRAWDZ_FLASH_NOR
+"Flash QSPI 16MB",					//STR_SPRAWDZ_FLASH_QSPI
 "Kamera OV5642", 					//STR_SPRAWDZ_KAMERA_OV5642
 "Modul IMU",						//STR_SPRAWDZ_MOD_IMU	7
 
-"Enkoder",							//STR_TEST_ENCODER
 "Dotyk:",							//STR_TEST_TOUCH
 
 "Zapisana kalib.",					//STR_COMPS_STORED
@@ -61,5 +62,5 @@ const char *chNapisLcd[MAX_LCD_STR]  = {
 "Menu Ustawien"						//STR_MENU_SETINGS
 };
 
-#endif //LANG_POL
+#endif //JEZYK_POLSKI
 #endif /* INC_NAPISY_H_ */

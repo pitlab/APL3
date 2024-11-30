@@ -7,10 +7,13 @@
 
 #ifndef INC_SYS_DEF_CM7_H_
 #define INC_SYS_DEF_CM7_H_
+#include "stm32h755xx.h"
+#include "errcode.h"
+#include "stm32h7xx_hal.h"
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	6	//numer wersji w repozytorium
+#define WER_REPO	14	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -54,9 +57,13 @@
 #define TP_USTAWIENIA		8
 
 
-//flagi inicjalizacj sprzetu
-#define INIT_FLASH_NOR		1
-#define INIT_LCD			2
+//flagi inicjalizacj sprzetu na płytce
+#define INIT0_FLASH_NOR		0x00000001
+#define INIT0_LCD480x320	0x00000002
+#define INIT0_FLASH_QSPI	0x00000004
 
+//flagi inicjalizacj sprzetu poza płytką
+#define INIT1_MOD_IMU		0x00000001
+#define INIT1_KAMERA		0x00000002
 
 #endif /* INC_SYS_DEF_CM7_H_ */

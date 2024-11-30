@@ -7,12 +7,11 @@
 
 #ifndef INC_LCD_H_
 #define INC_LCD_H_
-#include "stm32h7xx_hal.h"
 #include "sys_def_CM7.h"
 #include "display.h"
 
 void RysujEkran(void);
-void Ekran_Powitalny(void);
+void Ekran_Powitalny(uint32_t * zainicjowano);
 void Wykrycie(int x, int y, uint8_t wynik);
 void FraktalTest(unsigned char chTyp);
 void FraktalDemo(void);

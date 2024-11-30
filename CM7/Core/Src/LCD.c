@@ -13,7 +13,6 @@
 #include <math.h>
 #include <string.h>
 #include "dotyk.h"
-#include "errcode.h"
 #include "napisy.h"
 #include "flash_nor.h"
 #include "W25Q128JV.h"
@@ -90,7 +89,7 @@ void RysujEkran(void)
 
 	case TP_MULTITOOL:	break;
 	case TP_POMIARY:		TestPredkosciOdczytu();		break;
-	case TP_VIBR_ADCIO:		SprawdzObecnoscFlashQSPI();	break;
+	case TP_VIBR_ADCIO:		W25_Test();	break;
 
 	case TP_TESTY:
 		if (TestDotyku() == ERR_DONE)
@@ -155,12 +154,12 @@ void RysujEkran(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran inicjalizacji sprzętu i wyświetla numer wersji
-// Parametry: nic
+// Parametry: zainicjowano - wskaźnik na tablicę bitów z flagami zainicjowanego sprzętu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void Ekran_Powitalny(void)
+void Ekran_Powitalny(uint32_t* zainicjowano)
 {
-	uint8_t n, chErr;
+	uint8_t n;
 	uint16_t x, y;
 
 	extern const unsigned short plogo165x80[];
@@ -190,31 +189,34 @@ void Ekran_Powitalny(void)
 		chRysujRaz = 0;
 	}
 
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_NOR]);	//"pamięć Flash NOR"
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_NOR]);	//"pamięć Flash NOR"
 	y = 180;
-	x = 10;
+	x = 0;
 	print(chNapis, x, y);
 	x += n * GetFontX();
-	chErr  = SprawdzObecnoscFlashNOR();
-	if (chErr == ERR_OK)
-		nZainicjowano[0] |= INIT_FLASH_NOR;		//wykryto pamięć Flash
-	Wykrycie(x, y, chErr == ERR_OK);
+	Wykrycie(x, y, *(zainicjowano+0) && INIT0_FLASH_NOR);
+
+
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_QSPI]);	//"pamięć Flash QSPI"
+	y += 20;
+	x = 0;
+	print(chNapis, x, y);
+	x += n * GetFontX();
+	Wykrycie(x, y, *(zainicjowano+0) && INIT0_FLASH_NOR);
 
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KAMERA_OV5642]);	//"kamera "
-	y = 200;
-	x = 10;
+	y += 20;
+	x = 0;
 	print(chNapis, x, y);
 	x += n * GetFontX();
-	chErr = 5;
-	Wykrycie(x, y, chErr == ERR_OK);
+	Wykrycie(x, y, *(zainicjowano+1) && INIT1_KAMERA);
 
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_MODUL_IMU]);	//moduł IMU
-	y = 220;
-	x = 10;
+	y += 20;
+	x = 0;
 	print(chNapis, x, y);
 	x += n * GetFontX();
-	chErr = 5;
-	Wykrycie(x, y, chErr == ERR_OK);
+	Wykrycie(x, y, *(zainicjowano+1) && INIT1_MOD_IMU);
 
 	HAL_Delay(1000);	//czekaj
 	LCD_clear();

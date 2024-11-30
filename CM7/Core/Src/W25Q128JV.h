@@ -9,7 +9,7 @@
 #define SRC_W25Q128JV_H_
 
 
-#include "stm32h7xx_hal.h"
+#include "sys_def_CM7.h"
 
 
 
@@ -60,8 +60,10 @@
 #define CMD_W25Q_Set_Burst_with_Wrap 	0x77 	//Dummy Dummy Dummy W8-W0
 
 
-
-uint8_t SprawdzObecnoscFlashQSPI(void);
+uint8_t InicjujFlashQSPI(void);
+uint8_t W25_Test(void);
+uint8_t W25_SprawdzObecnoscFlashQSPI(void);
+uint8_t W25_CzytajStatus(uint8_t chTypStatusu, uint8_t* chStatus);
 
 
 #endif /* SRC_W25Q128JV_H_ */

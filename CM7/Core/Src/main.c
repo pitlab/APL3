@@ -24,9 +24,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "sys_def_CM7.h"
 #include "LCD.h"
 #include "dotyk.h"
 #include "flash_nor.h"
+#include "W25Q128JV.h"
 #include "flash_konfig.h"
 /* USER CODE END Includes */
 
@@ -172,10 +174,12 @@ Error_Handler();
   /* USER CODE BEGIN 2 */
   InicjujSPIModZewn();
   LCD_init();
-  //KasujSektorFlashNOR(0);
+  SprawdzObecnoscFlashNOR();
+  InicjujFlashQSPI();
   IncjujKonfigFlash();
+
   InicjujDotyk();
-  Ekran_Powitalny();	//przywitaj użytkownika i wykryj sprzęt
+  Ekran_Powitalny(nZainicjowano);	//przywitaj użytkownika i prezentuj wykryty sprzęt
 
   /* USER CODE END 2 */
 

@@ -10,8 +10,6 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "flash_nor.h"
-#include "errcode.h"
-#include "sys_def_CM7.h"
 #include <stdio.h>
 #include "LCD.h"
 #include "RPi35B_480x320.h"
@@ -48,18 +46,22 @@ uint8_t SprawdzObecnoscFlashNOR(void)
 {
 	NOR_IDTypeDef norID;
 	HAL_StatusTypeDef Err = ERR_BRAK_FLASH_NOR;
+	extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 
 	Err = HAL_NOR_Read_ID(&hnor3, &norID);
 	if (Err == HAL_OK)
 	{
 		if ((norID.Device_Code1 == 0x227E) ||  (norID.Device_Code3 == 0x2201) || (norID.Manufacturer_Code == 0x0001))
 		{
-			//jeżeli będzie trzeba to można rozwóżnić wielkości pamięci
+			//jeżeli będzie trzeba to można rozróżnić wielkości pamięci
 			if ((norID.Device_Code2 != 0x2228) ||		//1Gb
-					(norID.Device_Code2 != 0x2223) ||	//512Mb
-					(norID.Device_Code2 != 0x2222) ||	//256Mb		S29GL256S90
-					(norID.Device_Code2 != 0x2222))		//128Mb
+				(norID.Device_Code2 != 0x2223) ||	//512Mb
+				(norID.Device_Code2 != 0x2222) ||	//256Mb		S29GL256S90
+				(norID.Device_Code2 != 0x2222))		//128Mb
+			{
+				nZainicjowano[0] |= INIT0_FLASH_NOR;
 				Err = ERR_OK;
+			}
 		}
 	}
 	return Err;
