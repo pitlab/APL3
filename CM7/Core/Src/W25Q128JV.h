@@ -60,12 +60,30 @@
 #define CMD_W25Q_Set_Burst_with_Wrap 	0x77 	//Dummy Dummy Dummy W8-W0
 
 
+//czasy timeoutu programowania
+#define TOUT_PAGE_PROGRAM				3	//timeout programowania strony 3ms
+#define TOUT_STATUS_REG_PROGRAM			15	//timeout programowania rejestru statusu 15ms
+#define TOUT_SECTOR4K_ERASE				400	//timeout kasowania sektora 4kB 400ms
+
+//bity rejestru statusu 1
+#define STATUS1_BUSY					0x01
+#define STATUS1_WEL						0x02
+#define STATUS1_BLOCK_PROTECT			0x1C
+#define STATUS1_TOP_BOT_PROTECT			0x20
+#define STATUS1_SECTOR_PROTECT			0x40
+#define STATUS1_STATUS_REGISTER_PROTECT	0x80
+
+
+
 uint8_t InicjujFlashQSPI(void);
-uint8_t W25_Test(void);
+uint8_t W25_TestTransferu(void);
 uint8_t W25_SprawdzObecnoscFlashQSPI(void);
 uint8_t W25_CzytajStatus(uint8_t chTypStatusu, uint8_t* chStatus);
 uint8_t W25_CzytajDane1A1D(uint32_t nAdres, uint8_t* dane, uint16_t ilosc);
 uint8_t W25_CzytajDane4A4D(uint32_t nAdres, uint8_t* dane, uint16_t ilosc);
+uint8_t W25_UstawWriteEnable(void);
+uint8_t W25_ProgramujStrone256B(uint32_t nAdres, uint8_t* dane, uint16_t ilosc);
+uint8_t W25_KasujSektor4kB(uint32_t nAdres);
 
 
 #endif /* SRC_W25Q128JV_H_ */

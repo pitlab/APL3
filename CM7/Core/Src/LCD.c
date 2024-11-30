@@ -50,17 +50,17 @@ extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern struct _statusDotyku statusDotyku;
 
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
-	//1234567890     1234567890123456789012345678901234567890   TrybPracy		Ikona
-	{"Kamera",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 	obr_ppm},
-	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,	obr_sbus},
-	{"--nic--",		"Podstawowe instrumentu pomiarowe",			TP_KALIB_DOTYK, obr_multimetr},
-	{"--nic--", 	"Narzedzia uniwersalne",					TP_MULTITOOL,	obr_multitool},
-	{"Benchmark", 	"Pomiar predkosci odczytu flash",			TP_POMIARY,		obr_oscyloskop},
-	{"--nic--",		"Pomiary drgan czujn. zewn. (zl. JST A)",	TP_VIBR_ADCIO,	obr_mtest},
-	{"--nic--",		"Nic",										TP_TESTY,		obr_calibration},
-	{"--nic--",		"Nic",										TP_TESTY,		obr_calibration},
-	{"Testy",		"Testy",									TP_TESTY,		obr_calibration},
-	{"Ustawienia", 	"Ustawienia i kalibracja czujnikow",		TP_USTAWIENIA,	obr_calibration}};
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Ikona
+	{"Kamera",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 		obr_ppm},
+	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,		obr_sbus},
+	{"--nic--",		"Podstawowe instrumentu pomiarowe",			TP_KALIB_DOTYK, 	obr_multimetr},
+	{"--nic--", 	"Narzedzia uniwersalne",					TP_MULTITOOL,		obr_multitool},
+	{"Flash NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_oscyloskop},
+	{"Flash QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_mtest},
+	{"--nic--",		"Nic",										TP_TESTY,			obr_calibration},
+	{"--nic--",		"Nic",										TP_TESTY,			obr_calibration},
+	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_calibration},
+	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_calibration}};
 
 
 
@@ -88,7 +88,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_MULTITOOL:	break;
-	case TP_POMIARY:		TestPredkosciOdczytu();
+	case TP_POMIAR_FNOR:		TestPredkosciOdczytu();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -96,7 +96,7 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TP_VIBR_ADCIO:		W25_Test();
+	case TP_POMIAR_FQSPI:		W25_TestTransferu();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;

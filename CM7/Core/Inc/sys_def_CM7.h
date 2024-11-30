@@ -51,9 +51,9 @@
 #define TP_FRAKTALE			2	//wyświetla benchmark fraktalowy
 #define TP_KALIB_DOTYK		3	//kalibracja panelu dotykowego
 #define TP_MULTITOOL		4
-#define TP_POMIARY			5
+#define TP_POMIAR_FNOR		5
 #define TP_TESTY			6
-#define TP_VIBR_ADCIO		7
+#define TP_POMIAR_FQSPI		7
 #define TP_USTAWIENIA		8
 #define TP_KAMERA			9
 

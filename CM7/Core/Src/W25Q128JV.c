@@ -274,12 +274,195 @@ uint8_t W25_CzytajDane4A4D(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 	return chErr;
 }
 
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Ustawia bit Write Enable Latch WEL w rejestrze ststusu
+// wymaga wcześniejszego ustawienia Write Enable
+// Parametry: nAdres - adres początku pamięci do zapisu
+// dane* - wskaźnik na dane do zapisu
+// ilosc - liczba danych do zapisu max 256 bajtów
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t W25_UstawWriteEnable(void)
+{
+	HAL_StatusTypeDef chErr;
+	QSPI_CommandTypeDef cmd;
+
+	//faza instrukcji - obecna
+	cmd.Instruction = CMD_W25Q_Write_Enable;
+	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+
+	//faza adresu - nieobecna
+	cmd.Address = 0;
+	cmd.AddressMode = QSPI_ADDRESS_NONE;
+	cmd.AddressSize = QSPI_ADDRESS_24_BITS;
+
+	//faza alternate byte - nieobecna
+	cmd.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
+	cmd.AlternateBytes = 0;
+
+	//faza dummy - nieobecna
+	cmd.DummyCycles = 0;
+
+	//faza data - nieobecna
+	cmd.DataMode = QSPI_DATA_NONE;
+	cmd.NbData = 0;
+
+	//inne niezbędne parametry
+	cmd.SIOOMode = QSPI_SIOO_INST_EVERY_CMD;
+	cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
+	cmd.DdrHoldHalfCycle = 0;
+
+	chErr = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Zapisuje zawartość strony pamięci od 1 d0 256 bajtów od podanego adresu magistralą 1 przewodową
+// wymaga wcześniejszego ustawienia Write Enable
+// Parametry: nAdres - adres początku pamięci do zapisu
+// dane* - wskaźnik na dane do zapisu
+// ilosc - liczba danych do zapisu max 256 bajtów
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t W25_ProgramujStrone256B(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
+{
+	HAL_StatusTypeDef chErr;
+	QSPI_CommandTypeDef cmd;
+	uint8_t chStatus;
+	uint32_t nCzas;
+
+	//włacz pozwolenie na zapis. Po zaprogramowaniu strony pozwolenie samo sie wyłączy
+	W25_UstawWriteEnable();
+	W25_CzytajStatus(1, &chStatus);
+	if (!(chStatus & STATUS1_WEL))
+		return ERR_BRAK_POZW_ZAPISU;
+
+	//faza instrukcji - obecna
+	cmd.Instruction = CMD_W25Q_Page_Program;
+	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+
+	//faza adresu - obecna 3B
+	cmd.Address = nAdres;
+	cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+	cmd.AddressSize = QSPI_ADDRESS_24_BITS;
+
+	//faza alternate byte - nieobecna
+	cmd.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
+	cmd.AlternateBytes = 0;
+
+	//faza dummy - nieobecna
+	cmd.DummyCycles = 0;
+
+	//faza data - obecna 2B
+	cmd.DataMode = QSPI_DATA_1_LINE;	//Data on a single line
+	cmd.NbData = ilosc;
+
+	//inne niezbędne parametry
+	cmd.SIOOMode = QSPI_SIOO_INST_EVERY_CMD;
+	cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
+	cmd.DdrHoldHalfCycle = 0;
+
+	chErr = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	if (chErr == HAL_OK)
+	{
+		chErr = HAL_QSPI_Transmit(&hqspi, dane, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+		if (chErr != HAL_OK)
+			return chErr;
+	}
+
+	//po zapisaniu czytaj status dopuki jest ustawiony bit Busy lub wystąpi timeout max 3ms
+	nCzas = HAL_GetTick();
+	do
+	{
+		W25_CzytajStatus(1, &chStatus);
+		if (MinalCzas(nCzas) > TOUT_PAGE_PROGRAM)
+			chErr = ERR_TIMEOUT;
+	}
+	while ((chStatus & STATUS1_BUSY) && (!chErr));
+
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Kasuje sektor 4kB pamięci
+// wymaga wcześniejszego ustawienia Write Enable
+// Parametry: nAdres - adres początku pamięci do skasowania
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t W25_KasujSektor4kB(uint32_t nAdres)
+{
+	HAL_StatusTypeDef chErr;
+	QSPI_CommandTypeDef cmd;
+	uint8_t chStatus;
+	uint32_t nCzas;
+
+	//włącz pozwolenie na zapis. Po skasowaniu sektora pozwolenie samo sie wyłączy
+	W25_UstawWriteEnable();
+	W25_CzytajStatus(1, &chStatus);
+	if (!(chStatus & STATUS1_WEL))
+		return ERR_BRAK_POZW_ZAPISU;
+
+	//faza instrukcji - obecna
+	cmd.Instruction = CMD_W25Q_Sector_Erase_4KB;
+	cmd.InstructionMode = QSPI_INSTRUCTION_1_LINE;
+
+	//faza adresu - obecna 3B
+	cmd.Address = nAdres;
+	cmd.AddressMode = QSPI_ADDRESS_1_LINE;
+	cmd.AddressSize = QSPI_ADDRESS_24_BITS;
+
+	//faza alternate byte - nieobecna
+	cmd.AlternateByteMode = QSPI_ALTERNATE_BYTES_NONE;
+	cmd.AlternateBytes = 0;
+
+	//faza dummy - nieobecna
+	cmd.DummyCycles = 0;
+
+	//faza data - nieobecna
+	cmd.DataMode = QSPI_DATA_NONE;
+	cmd.NbData = 0;
+
+	//inne niezbędne parametry
+	cmd.SIOOMode = QSPI_SIOO_INST_EVERY_CMD;
+	cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
+	cmd.DdrHoldHalfCycle = 0;
+
+	chErr = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	//if (chErr == HAL_OK)
+	//{
+		//chErr = HAL_QSPI_Transmit(&hqspi, dane, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+		//if (chErr != HAL_OK)
+			//return chErr;
+	//}
+
+	//po zapisaniu czytaj status dopuki jest ustawiony bit Busy lub wystąpi timeout max 400ms
+	nCzas = HAL_GetTick();
+	do
+	{
+		W25_CzytajStatus(1, &chStatus);
+		if (MinalCzas(nCzas) > TOUT_SECTOR4K_ERASE)
+			chErr = ERR_TIMEOUT;
+	}
+	while ((chStatus & STATUS1_BUSY) && (!chErr));
+
+	return chErr;
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja bezparametrowa do wygodnego wywoływania poleceń z zewnatrz
 // Parametry:  brak
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t W25_Test(void)
+uint8_t W25_TestTransferu(void)
 {
 #define BUFOR_W25_ROZM	512
 	uint8_t chErr;
@@ -298,49 +481,86 @@ uint8_t W25_Test(void)
 	{
 		chRysujRaz = 0;
 		BelkaTytulu("Pomiar odczytu z Flash QSPI");
-		/*setColor(YELLOW);
-		sprintf(chNapis, "Pomiar predkosci 4k odczytow bufora 512B Flash QSPI");
-		print(chNapis, CENTER, 20);*/
 		setColor(GRAY60);
 		sprintf(chNapis, "Wdus ekran aby zakonczyc pomiar");
 		print(chNapis, CENTER, 40);
 		setColor(WHITE);
 	}
 
-	//odczyt danych przez SPI po 1 linii
+	//zapisz stronę 256 Bajtów
+	for (y=0; y<256; y++)
+		chBufor[y] = y;
+
 	nCzas = HAL_GetTick();
-	for (y=0; y<4096; y++)
+	for (y=0; y<16; y++)
 	{
-		chErr = W25_CzytajDane1A1D(0x5555, chBufor, BUFOR_W25_ROZM);
+		chErr = W25_ProgramujStrone256B(0x5000 + y*0x100, chBufor, 256);
 		if (chErr != ERR_OK)
 		{
-			sprintf(chNapis, "Blad odczytu");
-			print(chNapis, 10, 20);
+			sprintf(chNapis, "Blad programowaia");
+			print(chNapis, 10, 80);
 			return chErr;
 		}
 	}
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
-		sprintf(chNapis, "CzytajDane1A1D() t = %ldms, transfer = %.2f MB/s", nCzas, (float)(BUFOR_W25_ROZM * 4000) / (nCzas * 1024));
+		sprintf(chNapis, "ZapiszStrone256B() t = %ldms, transfer = %.2f MB/s ", nCzas, (float)(16 * 256 * 1000) / (nCzas * 1024 * 1024));
 	print(chNapis, 10, 80);
+
+
+
+	//odczyt danych przez SPI po 1 linii
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		chErr = W25_CzytajDane1A1D(0x5000, chBufor, BUFOR_W25_ROZM);
+		if (chErr != ERR_OK)
+		{
+			sprintf(chNapis, "Blad odczytu");
+			print(chNapis, 10, 100);
+			return chErr;
+		}
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+		sprintf(chNapis, "CzytajDane1A1D() t = %ldms, transfer = %.2f MB/s ", nCzas, (float)(BUFOR_W25_ROZM * 4000) / (nCzas * 1024));
+	print(chNapis, 10, 100);
 
 
 	//odczyt danych przez SPI po 4 liniach
 	nCzas = HAL_GetTick();
 	for (y=0; y<4096; y++)
 	{
-		chErr = W25_CzytajDane4A4D(0x5555, chBufor, BUFOR_W25_ROZM);
+		chErr = W25_CzytajDane4A4D(0x5000, chBufor, BUFOR_W25_ROZM);
 		if (chErr != ERR_OK)
 		{
 			sprintf(chNapis, "Blad odczytu");
-			print(chNapis, 10, 20);
+			print(chNapis, 10, 120);
 			return chErr;
 		}
 	}
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
-		sprintf(chNapis, "CzytajDane4A4D() t = %ldms, transfer = %.2f MB/s", nCzas, (float)(BUFOR_W25_ROZM * 4000) / (nCzas * 1024));
-	print(chNapis, 10, 100);
+		sprintf(chNapis, "CzytajDane4A4D() t = %ldms, transfer = %.2f MB/s ", nCzas, (float)(BUFOR_W25_ROZM * 4000) / (nCzas * 1024));
+	print(chNapis, 10, 120);
+
+
+	//kasuj sektor 4kB
+	nCzas = HAL_GetTick();
+	for (y=0; y<1; y++)
+	{
+		chErr = W25_KasujSektor4kB(0x5000);
+		if (chErr != ERR_OK)
+		{
+			sprintf(chNapis, "Blad kasowania");
+			print(chNapis, 10, 140);
+			return chErr;
+		}
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+		sprintf(chNapis, "KasujSektor4kB() t = %ldms, transfer = %.2f MB/s ", nCzas, (float)(4096 * 1000) / (nCzas * 1024 * 1024));
+	print(chNapis, 10, 140);
 
 	return chErr;
 }

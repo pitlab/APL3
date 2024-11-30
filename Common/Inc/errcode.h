@@ -45,6 +45,8 @@
 #define ERR_I2C_SCL_LOCK		44
 #define ERR_I2C_TIMEOUT			45
 
+#define ERR_BRAK_POZW_ZAPISU	50	//brak pozwolenia zapisu dla obszaru pamieci Flash
+
 #define ERR_NIE_ZAINICJOWANY	0xFF
 
 
