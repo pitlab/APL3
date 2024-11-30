@@ -33,6 +33,7 @@ uint16_t sMPUFlash[ROZMIAR16_BUFORA] __attribute__((section(".text")));
 uint16_t sFlashMem[ROZMIAR16_BUFORA] __attribute__((section(".FlashNorSection")));
 extern NOR_HandleTypeDef hnor3;
 extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
+extern MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
 extern char chNapis[];
 HAL_StatusTypeDef hsErr;
 
@@ -321,116 +322,203 @@ void TestPredkosciOdczytu(void)
 		setColor(GRAY60);
 		sprintf(chNapis, "Wdus ekran aby zakonczyc pomiar");
 		print(chNapis, CENTER, 40);
-		setColor(WHITE);
 		chErr = HAL_NOR_ReturnToReadMode(&hnor3);
+	}
+	setColor(WHITE);
+
+	//odczyt z NOR metodą odczytu bufora
+	nAdres = 0;
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		chErr = HAL_NOR_ReadBuffer(&hnor3, nAdres, sBufor, ROZMIAR16_BUFORA);
+		if (chErr != ERR_OK)
+		{
+			setColor(RED);
+			sprintf(chNapis, "Blad odczytu ");
+			print(chNapis, 10, 80);
+			return;
+		}
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "HAL_NOR_ReadBuffer() t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 80);
 	}
 
 
-
-	/*setColor(YELLOW);
-	sprintf(chNapis, "Pomiar predkosci 4k odczytow bufora 512B Flash NOR");
-	print(chNapis, CENTER, 20);
-	setColor(WHITE);
-	for(;;)
-	{*/
-		//odczyt z NOR metodą odczytu bufora
-		nAdres = 0;
-		nCzas = HAL_GetTick();
-		for (y=0; y<4096; y++)
-		{
-			chErr = HAL_NOR_ReadBuffer(&hnor3, nAdres, sBufor, ROZMIAR16_BUFORA);
-			if (chErr != ERR_OK)
-			{
-				sprintf(chNapis, "Blad odczytu");
-				print(chNapis, 10, 20);
-				return;
-			}
-		}
-		nCzas = MinalCzas(nCzas);
-		if (nCzas)
-			sprintf(chNapis, "HAL_NOR_ReadBuffer() t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
-		print(chNapis, 10, 80);
-
-
-		//odczyt z NOR metodą widzianego jako zmienna
-		nAdres = 0;
-		nCzas = HAL_GetTick();
-		for (y=0; y<4096; y++)
-		{
-			for (x=0; x<ROZMIAR16_BUFORA; x++)
-				sBufor[x] = sFlashMem[x];
-		}
-		nCzas = MinalCzas(nCzas);
-		if (nCzas)
-			sprintf(chNapis, "NOR petla for()      t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+	//odczyt z NOR metodą widzianego jako zmienna
+	nAdres = 0;
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		for (x=0; x<ROZMIAR16_BUFORA; x++)
+			sBufor[x] = sFlashMem[x];
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "NOR petla for()      t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 100);
+	}
 
 
-		//odczyt z Flash kontrolera
-		nCzas = HAL_GetTick();
-		for (y=0; y<4096; y++)
-		{
-			for (x=0; x<ROZMIAR16_BUFORA; x++)
-				sBufor[x] = sMPUFlash[x];
-		}
-		nCzas = MinalCzas(nCzas);
-		if (nCzas)
-			sprintf(chNapis, "Flash kontrolera     t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+	//odczyt z Flash kontrolera
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		for (x=0; x<ROZMIAR16_BUFORA; x++)
+			sBufor[x] = sMPUFlash[x];
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "Flash kontrolera     t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 120);
+	}
 
-		//Odczyt z RAM do RAM
-		uint16_t sBufor2[ROZMIAR16_BUFORA];
-		nCzas = HAL_GetTick();
-		for (y=0; y<4096; y++)
-		{
-			for (x=0; x<ROZMIAR16_BUFORA; x++)
-				sBufor[x] = sBufor2[x];
-		}
-		nCzas = MinalCzas(nCzas);
-		if (nCzas)
-			sprintf(chNapis, "RAM kontrolera       t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+	//Odczyt z RAM do RAM
+	uint16_t sBufor2[ROZMIAR16_BUFORA];
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		for (x=0; x<ROZMIAR16_BUFORA; x++)
+			sBufor[x] = sBufor2[x];
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "RAM kontrolera       t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 140);
+	}
 
 
-		//odczyt z NOR przez DMA
-		nCzas = HAL_GetTick();
-		for (y=0; y<4096; y++)
-		{
-			HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sFlashMem, (uint32_t)sBufor, ROZMIAR16_BUFORA);
-			while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
-				HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
-		}
-		nCzas = MinalCzas(nCzas);
-		if (nCzas)
-			sprintf(chNapis, "DMA: NOR->RAM        t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+	//odczyt z NOR przez DMA
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sFlashMem, (uint32_t)sBufor, ROZMIAR16_BUFORA);
+		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
+			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "DMA: NOR->RAM        t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 180);
+	}
 
 
-		//odczyt z Flash przez DMA
-		nCzas = HAL_GetTick();
-		for (y=0; y<4096; y++)
+	//odczyt z Flash przez DMA
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sMPUFlash, (uint32_t)sBufor, ROZMIAR16_BUFORA);
+		if (chErr != ERR_OK)
 		{
-			HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sMPUFlash, (uint32_t)sBufor, ROZMIAR16_BUFORA);
-			while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
-				HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+			setColor(RED);
+			sprintf(chNapis, "Blad odczytu przez DMA");
+			print(chNapis, 10, 200);
+			return;
 		}
-		nCzas = MinalCzas(nCzas);
-		if (nCzas)
-			sprintf(chNapis, "DMA: Flash->RAM      t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
+			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "DMA: Flash->RAM      t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 200);
+	}
 
 
-		//odczyt z RAM przez DMA
-		nCzas = HAL_GetTick();
-		for (y=0; y<4096; y++)
+	//odczyt z RAM przez DMA
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBufor2, (uint32_t)sBufor, ROZMIAR16_BUFORA);
+		if (chErr != ERR_OK)
 		{
-			HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBufor2, (uint32_t)sBufor, ROZMIAR16_BUFORA);
-			while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
-				HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+			setColor(RED);
+			sprintf(chNapis, "Blad odczytu przez DMA");
+			print(chNapis, 10, 220);
+			return;
 		}
-		nCzas = MinalCzas(nCzas);
-		if (nCzas)
-			sprintf(chNapis, "DMA: RAM->RAM        t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+
+		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
+			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "DMA: RAM->RAM        t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 220);
-	//}
+	}
+
+
+	//odczyt z NOR przez MDMA
+	nCzas = HAL_GetTick();
+	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sFlashMem, (uint32_t)sBufor, ROZMIAR16_BUFORA, 4096);
+	if (chErr != ERR_OK)
+	{
+		setColor(RED);
+		sprintf(chNapis, "Blad odczytu przez DMA");
+		print(chNapis, 10, 260);
+		return;
+	}
+
+	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
+		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
+
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "MDMA: NOR->RAM      t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 260);
+	}
+
+
+	//odczyt z Flash przez MDMA
+	nCzas = HAL_GetTick();
+	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sMPUFlash, (uint32_t)sBufor, ROZMIAR16_BUFORA, 4096);
+	if (chErr != ERR_OK)
+	{
+		setColor(RED);
+		sprintf(chNapis, "Blad odczytu przez DMA");
+		print(chNapis, 10, 280);
+		return;
+	}
+
+	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
+		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
+
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "MDMA: Flash->RAM     t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 280);
+	}
+
+
+	//odczyt z RAM przez MDMA
+	nCzas = HAL_GetTick();
+	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBufor2, (uint32_t)sBufor, ROZMIAR16_BUFORA, 4096);
+	if (chErr != ERR_OK)
+	{
+		setColor(RED);
+		sprintf(chNapis, "Blad odczytu przez DMA");
+		print(chNapis, 10, 300);
+		return;
+	}
+
+	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
+		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
+
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "MDMA: RAM->RAM       t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 300);
+	}
 }
