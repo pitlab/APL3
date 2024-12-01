@@ -18,19 +18,22 @@
  * Włączenie FIFO, właczenie wszystkich uprawnień na MPU Cortexa nic nie daje
  *
  * Timing.AddressSetupTime = 0;					0ns
-  Timing.AddressHoldTime = 9;					45ns	45/8,3 => 6
+  Timing.AddressHoldTime = 6;					45ns	45/8,3 => 6
   Timing.DataSetupTime = 18;
-  Timing.BusTurnAroundDuration = 4;				20ns	20/8,3 => 3
+  Timing.BusTurnAroundDuration = 3;				20ns	20/8,3 => 3
   Timing.CLKDivision = 2;		240/2=120MHz -> 8,3ns
   Timing.DataLatency = 2;
   Timing.AccessMode = FMC_ACCESS_MODE_A;
-  Dla tych parametrów zapis bufor 512B ma przepustowość 258kB/s, odczyt danych 44MB/s   */
+  Dla tych parametrów zapis bufor 512B ma przepustowość 258kB/s, odczyt danych 45,5MB/s   */
 
 
 
 
 uint16_t sMPUFlash[ROZMIAR16_BUFORA] __attribute__((section(".text")));
 uint16_t sFlashMem[ROZMIAR16_BUFORA] __attribute__((section(".FlashNorSection")));
+uint16_t sBuforD1[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_D1")));
+
+
 extern NOR_HandleTypeDef hnor3;
 extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 extern MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
@@ -47,8 +50,21 @@ HAL_StatusTypeDef hsErr;
 uint8_t InicjujFlashNOR(void)
 {
 	uint8_t chErr;
+	FMC_NORSRAM_TimingTypeDef Timing = {0};
 
 	extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
+	extern void Error_Handler(void);
+
+	//ponieważ timing generowany przez Cube nie ustawia właściwych parametrów więc nadpisuję je tutaj
+	Timing.AddressSetupTime = 0;
+	Timing.AddressHoldTime = 6;
+	Timing.DataSetupTime = 18;
+	Timing.BusTurnAroundDuration = 3;
+	Timing.CLKDivision = 2;
+	Timing.DataLatency = 2;
+	Timing.AccessMode = FMC_ACCESS_MODE_A;
+	if (HAL_NOR_Init(&hnor3, &Timing, NULL) != HAL_OK)
+		Error_Handler( );
 
 	chErr = SprawdzObecnoscFlashNOR();
 	if (chErr == ERR_OK)
@@ -100,8 +116,9 @@ uint8_t KasujSektorFlashNOR(uint32_t nAdres)
 	uint8_t chErr;
 
 	nAdres &= 0x00FFFFFF;		//potrzebny jest adres względny
-	chErr = HAL_NOR_Erase_Block(&hnor3, 0, nAdres);
-	HAL_NOR_ReturnToReadMode(&hnor3);
+	chErr = HAL_NOR_Erase_Block(&hnor3, ADRES_NOR, nAdres);
+	HAL_NOR_MspWait(&hnor3, 100);	//czekaj z timeoutem na niektywny sygnał RY/BY, czyli na niezajętą pamięć
+	//HAL_NOR_ReturnToReadMode(&hnor3);
 	return chErr;
 }
 
@@ -120,10 +137,30 @@ uint8_t KasujFlashNOR(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Czytaj bufor daych z flash NOR
+// Parametry: nAdres do odczytu
+// * sDane - wskaźnik na 16-bitowe dane do odczytu
+//  nIlosc - ilość słów do odczytu
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t CzytajDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc)
+{
+	uint8_t chErr;
+
+	HAL_NOR_MspWait(&hnor3, 100);	//czekaj z timeoutem na niektywny sygnał RY/BY, czyli na niezajątą pamięć
+	//nAdres &= 0x00FFFFFF;		//potrzebny jest adres względny
+	chErr = HAL_NOR_ReadBuffer(&hnor3, nAdres, sDane, nIlosc);
+	return chErr;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Zapisz dane do flash
 // Parametry: nAdres do zapisu
 // * sDane - wskaźnik na 16-bitoer dane do zapisu
-//  nIlosc - ilość słów do zapisu
+//  nIlosc - ilość słów (nie bajtów) do zapisu
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZapiszDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc)
@@ -132,171 +169,149 @@ uint8_t ZapiszDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc)
 
 	nAdres &= 0x00FFFFFF;		//potrzebny jest adres względny
 	chErr = HAL_NOR_ProgramBuffer(&hnor3, nAdres, sDane, nIlosc);
-	HAL_NOR_ReturnToReadMode(&hnor3);
+	HAL_NOR_MspWait(&hnor3, 100);	//czekaj z timeoutem na niektywny sygnał RY/BY, czyli na niezajętą pamięć
 	return chErr;
 }
 
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja testowa do wywołania z zewnątrz. Wykonuje pomiary kasowania programowania i odczytu
+// Parametry: brak
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
 uint8_t Test_Flash(void)
 {
-	HAL_StatusTypeDef Err;
+	HAL_StatusTypeDef chErr;
 	HAL_NOR_StateTypeDef Stan;
 	uint16_t x, sBufor[ROZMIAR16_BUFORA];
-	//uint16_t sStrona[ROZMIAR16_STRONY];
 	uint32_t y, nAdres;
 	uint32_t nCzas;
 
-	//*( (uint16_t *)ADR_NOR + 0x55 ) = 0x0098; 	// write CFI entry command
-	Err = HAL_NOR_ReturnToReadMode(&hnor3);
+	chErr = HAL_NOR_ReturnToReadMode(&hnor3);
 	setColor(WHITE);
 
 	Stan = HAL_NOR_GetState(&hnor3);
 	if (Stan == HAL_NOR_STATE_PROTECTED)
 	{
-		Err = HAL_NOR_WriteOperation_Enable(&hnor3);
-		if (Err != ERR_OK)
+		chErr = HAL_NOR_WriteOperation_Enable(&hnor3);
+		if (chErr != ERR_OK)
 		{
 			sprintf(chNapis, "Blad właczenia zapisu");
 			print(chNapis, 10, 20);
-			return Err;
+			return chErr;
 		}
 	}
 
-	/*nAdres = 0;
-	Err = HAL_NOR_Erase_Chip(&hnor3, nAdres);
-	if (Err != ERR_OK)
-	{
-		sprintf(chNapis, "Blad kasowania");
-		print(chNapis, 10, 40);
-		return Err;
-	}
-	Err = HAL_NOR_ReturnToReadMode(&hnor3);*/
-
 	//zmierz czas kasowania sektora
-	/*nCzas = HAL_GetTick();
-	nAdres = 2 * ROZMIAR8_SEKTORA;	//sektor 2
-	Err = HAL_NOR_Erase_Block(&hnor3, 0, nAdres);
-	if (Err != ERR_OK)
+	nCzas = HAL_GetTick();
+	for (y=0; y<4; y++)
 	{
-		sprintf(chNapis, "Blad kasowania sektora");
-		print(chNapis, 10, 40);
-		return Err;
+		nAdres = ADRES_NOR + ((26 + y) * ROZMIAR16_SEKTORA);
+		chErr = KasujSektorFlashNOR(nAdres);
+		if (chErr != ERR_OK)
+		{
+			sprintf(chNapis, "Blad kasowania sektora");
+			print(chNapis, 10, 40);
+			return chErr;
+		}
+	}
+	nCzas = MinalCzas(nCzas);
+	sprintf(chNapis, "Kasowanie sektora = %ldms, transfer = %.2f MB/s", nCzas, (float)(4000 * ROZMIAR8_SEKTORA) / (nCzas * 1024 * 1024));
+	print(chNapis, 10, 40);
+
+
+	//odczyt jako test skasowania
+	chErr = HAL_NOR_ReturnToReadMode(&hnor3);
+	for (y=0; y<64; y++)
+	{
+		chErr = CzytajDaneFlashNOR(nAdres + y * ROZMIAR16_BUFORA, sBufor, ROZMIAR16_BUFORA);
+		if (chErr != ERR_OK)
+		{
+			sprintf(chNapis, "Blad odczytu");
+			print(chNapis, 10, 80);
+			return chErr;
+		}
 	}
 
-	nCzas = MinalCzas(nCzas);
-	sprintf(chNapis, "Czas kasowania sektora =%ldms", nCzas);
-	print(chNapis, 10, 20);*/
+	//włacz zapis
+	Stan = HAL_NOR_GetState(&hnor3);
+	if (Stan == HAL_NOR_STATE_PROTECTED)
+	{
+		chErr = HAL_NOR_WriteOperation_Enable(&hnor3);
+		if (chErr != ERR_OK)
+		{
+			sprintf(chNapis, "Blad właczenia zapisu");
+			print(chNapis, 10, 20);
+			return chErr;
+		}
+	}
 
 
-	//zmierz czas programowania sektora po jednej stronie
+	//zmierz czas programowania połowy sektora
 	nCzas = HAL_GetTick();
-	nAdres = 26 * ROZMIAR16_SEKTORA;	//sektor
-	//for (y=0; y<(ROZMIAR16_SEKTORA/ROZMIAR16_STRONY); y++)
+	nAdres = ADRES_NOR + 26 * ROZMIAR16_SEKTORA;	//sektor
 	for (y=0; y<16; y++)
 	{
 		for (x=0; x<ROZMIAR16_BUFORA; x++)
 			sBufor[x] = x + (y<<8);
 
-		Err = HAL_NOR_ProgramBuffer(&hnor3, nAdres, sBufor, ROZMIAR16_BUFORA);
-		if (Err != ERR_OK)
+		chErr = ZapiszDaneFlashNOR(nAdres, sBufor, ROZMIAR16_BUFORA);
+		if (chErr != ERR_OK)
 		{
 			sprintf(chNapis, "Blad na stronie =%ld", y);
-			print(chNapis, 10, 20);
-			return Err;
+			print(chNapis, 10, 60);
+			return chErr;
 		}
-		nAdres += ROZMIAR8_BUFORA;
+		nAdres += ROZMIAR8_BUFORA;	//adres musi wyrażać bajty a nie słowa bo w funkcji programowania jest mnożony x2
 	}
 	nCzas = MinalCzas(nCzas);
-	sprintf(chNapis, "Tp bufora = %ldms, transfer = %.2f kB/s", nCzas, (float)(16 * 1000 * ROZMIAR8_BUFORA / (nCzas * 1024)));
+	sprintf(chNapis, "Zapis 16 buforow  = %ldms, transfer = %.2f kB/s", nCzas, (float)(16 * 1000 * ROZMIAR8_BUFORA) / (nCzas * 1024));
 	print(chNapis, 10, 60);
-	Err = HAL_NOR_ReturnToReadMode(&hnor3);
 
 
-	for(;;)
+	//zmierz czas odczytu
+	chErr = HAL_NOR_ReturnToReadMode(&hnor3);
+	nAdres = ADRES_NOR + 26 * ROZMIAR16_SEKTORA;
+	nCzas = HAL_GetTick();
+	for (y=0; y<1000; y++)
 	{
-		nAdres = 0;
-		nCzas = HAL_GetTick();
-		for (y=0; y<1000; y++)
+		chErr = CzytajDaneFlashNOR(nAdres, sBufor, ROZMIAR16_BUFORA);
+		if (chErr != ERR_OK)
 		{
-			Err = HAL_NOR_ReadBuffer(&hnor3, nAdres, sBufor, ROZMIAR16_BUFORA);
-			if (Err != ERR_OK)
-			{
-				sprintf(chNapis, "Blad odczytu");
-				print(chNapis, 10, 20);
-				return Err;
-			}
+			sprintf(chNapis, "Blad odczytu");
+			print(chNapis, 10, 80);
+			return chErr;
 		}
-		nCzas = MinalCzas(nCzas);
-		if (nCzas)
-			sprintf(chNapis, "Tr bufora = %ldms, transfer = %.2f MB/s", nCzas, (float)(1000 * 1000 * ROZMIAR8_BUFORA / (nCzas * 1024 * 1024)));
-		else
-			sprintf(chNapis, "za szybko! ");
-		print(chNapis, 10, 80);
 	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+		sprintf(chNapis, "Odczyt 1k buforow = %ldms, transfer = %.2f MB/s", nCzas, (float)(1000 * 1000 * ROZMIAR8_BUFORA) / (nCzas * 1024 * 1024));
+	else
+		sprintf(chNapis, "za szybko! ");
+	print(chNapis, 10, 80);
 
-	/*nAdres = 20;
-	Err = HAL_NOR_Read(&hnor3, &nAdres, bufor);
-
-	nAdres = 20;
-	bufor[0] = 0x55;
-	Err = HAL_NOR_Program(&hnor3, &nAdres, bufor);
-	Err = HAL_NOR_ReturnToReadMode(&hnor3);
-
-	nAdres = 20;
-	Err = HAL_NOR_Read(&hnor3, &nAdres, bufor);
-
-	for (x=0; x<100; x++)
-		bufor[x] = sFlashMem[x];
-
-	nAdres = 0;
-	Err = HAL_NOR_ReadBuffer(&hnor3, nAdres, bufor, 256);
-
-	Err = HAL_NOR_Erase_Block(&hnor3, 0, 0);
-	Err = HAL_NOR_ReturnToReadMode(&hnor3);
-
-	nAdres = 0;
-	Err = HAL_NOR_ReadBuffer(&hnor3, nAdres, bufor, 256);
-
-	for (x=0; x<100; x++)
-		bufor[x] = x;
-
-	nAdres = 200;
-	Err = HAL_NOR_ProgramBuffer(&hnor3, nAdres, bufor, 25);
-
-	nAdres = 200;
-	Err = HAL_NOR_ReadBuffer(&hnor3, nAdres, bufor, 256);
-
-	HAL_NOR_Erase_Block(&hnor3, 0, 0);
-	Err = HAL_NOR_ReturnToReadMode(&hnor3);
-
-
-	for (x=0; x<100; x++)
-		bufor[x] = sFlashMem[x];
-
-	bufor[99] = 0;*/
 
 	//sprawdzenie zajętości sektorów
-			/*for (x=0; x<6; x++)
-			{
-				nAdres = ADRES_NOR + x * ROZMIAR16_SEKTORA;
-				*( (uint16_t *)nAdres + 0x555 ) = 0x0033;	//polecenie: Blank check
+	/*for (x=0; x<6; x++)
+	{
+		nAdres = ADRES_NOR + x * ROZMIAR16_SEKTORA;
+		*( (uint16_t *)nAdres + 0x555 ) = 0x0033;	//polecenie: Blank check
 
 
-				nAdres = ADRES_NOR;
-				*( (uint16_t *)nAdres + 0x555 ) = 0x70;	//polecenie: status read enter
-				sStatus = *( (uint16_t *)nAdres);
+		nAdres = ADRES_NOR;
+		*( (uint16_t *)nAdres + 0x555 ) = 0x70;	//polecenie: status read enter
+		sStatus = *( (uint16_t *)nAdres);
 
-				*( (uint16_t *)nAdres + 0x555 ) = 0x71;	//polecenie: status register clear
-
-
-				sprintf(chNapis, "Sektor %ld: %x ", x, sStatus);
-				print(chNapis, 10, 120 + x*20);
-			}*/
+		*( (uint16_t *)nAdres + 0x555 ) = 0x71;	//polecenie: status register clear
 
 
+		sprintf(chNapis, "Sektor %ld: %x ", x, sStatus);
+		print(chNapis, 10, 120 + x*20);
+	}*/
 
-	return Err;
+	return chErr;
 }
 
 
@@ -327,7 +342,7 @@ void TestPredkosciOdczytu(void)
 	setColor(WHITE);
 
 	//odczyt z NOR metodą odczytu bufora
-	nAdres = 0;
+	nAdres = ADRES_NOR;
 	nCzas = HAL_GetTick();
 	for (y=0; y<4096; y++)
 	{
@@ -349,7 +364,7 @@ void TestPredkosciOdczytu(void)
 
 
 	//odczyt z NOR metodą widzianego jako zmienna
-	nAdres = 0;
+	nAdres = ADRES_NOR;
 	nCzas = HAL_GetTick();
 	for (y=0; y<4096; y++)
 	{
@@ -359,7 +374,7 @@ void TestPredkosciOdczytu(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "NOR petla for()      t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		sprintf(chNapis, "for(): NOR->ASRAM    t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 100);
 	}
 
@@ -374,7 +389,7 @@ void TestPredkosciOdczytu(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "Flash kontrolera     t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		sprintf(chNapis, "for(): Flash->ASRAM  t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 120);
 	}
 
@@ -389,7 +404,7 @@ void TestPredkosciOdczytu(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "RAM kontrolera       t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		sprintf(chNapis, "for(): ASRAM->ASRAM  t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 140);
 	}
 
@@ -405,7 +420,7 @@ void TestPredkosciOdczytu(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "DMA: NOR->RAM        t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		sprintf(chNapis, "DMA: NOR->ASRAM      t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 180);
 	}
 
@@ -428,7 +443,7 @@ void TestPredkosciOdczytu(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "DMA: Flash->RAM      t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		sprintf(chNapis, "DMA: Flash->ASRAM    t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 200);
 	}
 
@@ -452,9 +467,35 @@ void TestPredkosciOdczytu(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "DMA: RAM->RAM        t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		sprintf(chNapis, "DMA: ASRAM->ASRAM    t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 220);
 	}
+
+
+
+	//odczyt z RAM D2 przez DMA
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBuforD1, (uint32_t)sBufor, ROZMIAR16_BUFORA);
+		if (chErr != ERR_OK)
+		{
+			setColor(RED);
+			sprintf(chNapis, "Blad odczytu przez DMA");
+			print(chNapis, 10, 240);
+			return;
+		}
+
+		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
+			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "DMA: SRAM1->ASRAM    t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 240);
+	}
+
 
 
 	//odczyt z NOR przez MDMA
@@ -474,7 +515,7 @@ void TestPredkosciOdczytu(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "MDMA: NOR->RAM      t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		sprintf(chNapis, "MDMA: NOR->ASRAM     t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 260);
 	}
 
@@ -496,14 +537,14 @@ void TestPredkosciOdczytu(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "MDMA: Flash->RAM     t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		sprintf(chNapis, "MDMA: Flash->ASRAM   t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 280);
 	}
 
 
 	//odczyt z RAM przez MDMA
 	nCzas = HAL_GetTick();
-	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBufor2, (uint32_t)sBufor, ROZMIAR16_BUFORA, 4096);
+	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBuforD1, (uint32_t)sBufor, ROZMIAR16_BUFORA, 4096);
 	if (chErr != ERR_OK)
 	{
 		setColor(RED);
@@ -518,7 +559,7 @@ void TestPredkosciOdczytu(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "MDMA: RAM->RAM       t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		sprintf(chNapis, "MDMA: SRAM1->ASRAM   t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 300);
 	}
 }

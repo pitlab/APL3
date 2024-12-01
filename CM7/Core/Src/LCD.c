@@ -38,25 +38,24 @@ uint8_t chNowyTrybPracy;
 uint8_t chWrocDoTrybu;
 uint8_t chRysujRaz;
 uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
-extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 char chNapis[60];
 float fZoom, fX, fY;
 float fReal, fImag;
 unsigned char chMnozPalety;
 unsigned char chDemoMode;
 unsigned char chLiczIter;		//licznik iteracji fraktala
-//unsigned short sFractalBuf[DISP_X_SIZE*DISP_Y_SIZE] ;
 extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern struct _statusDotyku statusDotyku;
+extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Ikona
 	{"Kamera",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 		obr_ppm},
 	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,		obr_sbus},
 	{"--nic--",		"Podstawowe instrumentu pomiarowe",			TP_KALIB_DOTYK, 	obr_multimetr},
-	{"--nic--", 	"Narzedzia uniwersalne",					TP_MULTITOOL,		obr_multitool},
-	{"Flash NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_oscyloskop},
-	{"Flash QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_mtest},
+	{"Zapis NOR", 	"Test zapisu do flash NOR",					TP_MULTITOOL,		obr_multitool},
+	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_oscyloskop},
+	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_mtest},
 	{"--nic--",		"Nic",										TP_TESTY,			obr_calibration},
 	{"--nic--",		"Nic",										TP_TESTY,			obr_calibration},
 	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_calibration},
@@ -87,8 +86,7 @@ void RysujEkran(void)
 			chTrybPracy = TP_TESTY;
 		break;
 
-	case TP_MULTITOOL:	break;
-	case TP_POMIAR_FNOR:		TestPredkosciOdczytu();
+	case TP_MULTITOOL:		Test_Flash();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -96,7 +94,15 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TP_POMIAR_FQSPI:		W25_TestTransferu();
+	case TP_POMIAR_FNOR:	TestPredkosciOdczytu();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_MENU;
+		}
+		break;
+
+	case TP_POMIAR_FQSPI:	W25_TestTransferu();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -119,7 +125,7 @@ void RysujEkran(void)
 		chWrocDoTrybu = chTrybPracy;
 		chTrybPracy = chNowyTrybPracy;
 		chNowyTrybPracy = 0;
-		statusDotyku.chFlagi &= ~(DOTYK_DOTKNIETO | DOTYK_ZWOLNONO);	//czyść flagi ekranu dotykowego aby móc reagować na nie w trakie pracy danego trybu
+		statusDotyku.chFlagi &= ~(DOTYK_DOTKNIETO | DOTYK_ZWOLNONO);	//czyść flagi ekranu dotykowego aby móc reagować na nie w trakcie pracy danego trybu
 		chRysujRaz = 1;
 
 		//startuje procesy zwiazane z obsługą nowego trybu pracy
@@ -533,11 +539,11 @@ void HSV2RGB(float hue, float sat, float val, float *red, float *grn, float *blu
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy upływ czasu
 // Parametry: nStart - licznik czasu na na początku pomiaru
-// Zwraca: ilość czasu w setkach us jaki upłynął do podanego czasu startu
+// Zwraca: ilość czasu w milisekundach jaki upłynął do podanego czasu startu
 ////////////////////////////////////////////////////////////////////////////////
-unsigned int MinalCzas(unsigned int nStart)
+uint32_t MinalCzas(uint32_t nStart)
 {
-	unsigned int nCzas, nCzasAkt;
+	uint32_t nCzas, nCzasAkt;
 
 	nCzasAkt = HAL_GetTick();
 	if (nCzasAkt >= nStart)
