@@ -11,7 +11,6 @@
 #include "display.h"
 #include "main.h"
 #include "moduly_SPI.h"
-//#include "sys_def_CM7.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>

@@ -53,7 +53,8 @@ MEMORY
   SRAM_AHB3_D2	(xrw)  : ORIGIN = 0x30040000, LENGTH = 32K		/* AHB-SRAM D2: bufory ethernet, USB, wsp?dzielenie danych*/
   SRAM_AHB4_D3	(xrw)  : ORIGIN = 0x38000000, LENGTH = 64K		/* AHB-SRAM D3: backup w czasie stabdby, wsp?dzielenie danych mi?dzy rdzeniami, rozmiar=0x10000 */
   BACKUP  		(rw)   : ORIGIN = 0x38800000, LENGTH = 4K
-  FLASH_NOR		(rxw)  : ORIGIN = 0x68000000, LENGTH = 32M		/* zewn?trzny flash 256Mb  bank1 CS3*/
+  EXT_SRAM		(rw)   : ORIGIN = 0x60000000, LENGTH = 4M		/* zewnętrzny SRAM 2Mbx16  bank1 CS1*/
+  FLASH_NOR		(rxw)  : ORIGIN = 0x68000000, LENGTH = 32M		/* zewnętrzny flash 256Mb  bank1 CS3*/
 }
 
 /* Sections */
@@ -230,7 +231,13 @@ SECTIONS
     *(.Backup)  
   } >BACKUP
  
- /* Sekcja w zewn?trznej pamieci flash 512Mb na miagistrali 16-bit */  
+ /* Sekcja w zewnętrznej pamieci SRAM 32Mb na miagistrali 16-bit */
+ .ext_sram (NOLOAD) :
+  {
+    *(.ExtSramSection)  
+  } >EXT_SRAM
+ 
+ /* Sekcja w zewnętrznej pamieci flash 512Mb na miagistrali 16-bit */  
  .flash_nor (NOLOAD) :
   {
     *(.FlashNorSection)  

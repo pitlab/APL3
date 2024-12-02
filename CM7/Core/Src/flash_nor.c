@@ -14,17 +14,7 @@
 #include "LCD.h"
 #include "RPi35B_480x320.h"
 
-/* Pamięć jest taktowana zegarem 200 MHz (max 240MHz), daje to okres 5ns (4,1ns)
- * Włączenie FIFO, właczenie wszystkich uprawnień na MPU Cortexa nic nie daje
- *
- * Timing.AddressSetupTime = 0;					0ns
-  Timing.AddressHoldTime = 6;					45ns	45/8,3 => 6
-  Timing.DataSetupTime = 18;
-  Timing.BusTurnAroundDuration = 3;				20ns	20/8,3 => 3
-  Timing.CLKDivision = 2;		240/2=120MHz -> 8,3ns
-  Timing.DataLatency = 2;
-  Timing.AccessMode = FMC_ACCESS_MODE_A;
-  Dla tych parametrów zapis bufor 512B ma przepustowość 258kB/s, odczyt danych 45,5MB/s   */
+
 
 
 
@@ -32,8 +22,8 @@
 uint16_t sMPUFlash[ROZMIAR16_BUFORA] __attribute__((section(".text")));
 uint16_t sFlashMem[ROZMIAR16_BUFORA] __attribute__((section(".FlashNorSection")));
 uint16_t sBuforD1[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_D1")));
-
-
+uint16_t sExtSramBuf[ROZMIAR16_EXT_SRAM] __attribute__((section(".ExtSramSection")));
+extern SRAM_HandleTypeDef hsram1;
 extern NOR_HandleTypeDef hnor3;
 extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 extern MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
@@ -55,13 +45,18 @@ uint8_t InicjujFlashNOR(void)
 	extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 	extern void Error_Handler(void);
 
+	/* Pamięć jest taktowana zegarem 200 MHz (max 240MHz), daje to okres 5ns (4,1ns)
+	 * Włączenie FIFO, właczenie wszystkich uprawnień na MPU Cortexa nic nie daje
+	  Dla tych parametrów zapis bufor 512B ma przepustowość 258kB/s, odczyt danych 45,5MB/s   */
+
+
 	//ponieważ timing generowany przez Cube nie ustawia właściwych parametrów więc nadpisuję je tutaj
-	Timing.AddressSetupTime = 0;
-	Timing.AddressHoldTime = 6;
-	Timing.DataSetupTime = 18;
-	Timing.BusTurnAroundDuration = 3;
-	Timing.CLKDivision = 2;
-	Timing.DataLatency = 2;
+	Timing.AddressSetupTime = 0;		//0ns
+	Timing.AddressHoldTime = 6;			//45ns	45/8,3 => 6
+	Timing.DataSetupTime = 18;			//18*5 = 90ns
+	Timing.BusTurnAroundDuration = 0;	//tyko dla multipleksowanego NOR
+	Timing.CLKDivision = 2;				//240/2=120MHz -> 8,3ns
+	Timing.DataLatency = 0;
 	Timing.AccessMode = FMC_ACCESS_MODE_A;
 	if (HAL_NOR_Init(&hnor3, &Timing, NULL) != HAL_OK)
 		Error_Handler( );
@@ -69,7 +64,21 @@ uint8_t InicjujFlashNOR(void)
 	chErr = SprawdzObecnoscFlashNOR();
 	if (chErr == ERR_OK)
 		nZainicjowano[0] |= INIT0_FLASH_NOR;
-	HAL_NOR_ReturnToReadMode(&hnor3);		//ustaw pamięć w trub odczytu
+	HAL_NOR_ReturnToReadMode(&hnor3);		//ustaw pamięć w tryb odczytu
+
+	//Analogicznie zrób tak dla SRAM
+	Timing.AddressSetupTime = 0;		//Address Setup Time to Write End = 8ns
+	Timing.AddressHoldTime = 1;			//Address Hold from Write End = 0
+	Timing.DataSetupTime = 2;			//Read/Write Cycle Time = 10ns
+	Timing.BusTurnAroundDuration = 0;	//tyko dla multipleksowanego NOR
+	Timing.CLKDivision = 2;
+	Timing.DataLatency = 0;				//Data Hold from Write End = 0
+	Timing.AccessMode = FMC_ACCESS_MODE_A;
+	/* ExtTiming */
+
+	if (HAL_SRAM_Init(&hsram1, &Timing, NULL) != HAL_OK)
+	  Error_Handler( );
+
 	return chErr;
 }
 
@@ -322,7 +331,7 @@ uint8_t Test_Flash(void)
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void TestPredkosciOdczytu(void)
+void TestPredkosciOdczytuNOR(void)
 {
 	HAL_StatusTypeDef chErr;
 	uint16_t sBufor[ROZMIAR16_BUFORA];
@@ -562,4 +571,192 @@ void TestPredkosciOdczytu(void)
 		sprintf(chNapis, "MDMA: SRAM1->ASRAM   t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
 		print(chNapis, 10, 300);
 	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wykonuje serię transferów z pamięci RAM w celu określenia przepustowości
+// Wyniki są wyświetlane na ekranie
+// Parametry: nic
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void TestPredkosciOdczytuRAM(void)
+{
+	HAL_StatusTypeDef chErr;
+	uint16_t sBufor[ROZMIAR16_BUFORA];
+	uint32_t x, y;
+	uint32_t nCzas;
+	extern uint8_t chRysujRaz;
+
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Pomiary odczytu/zapisu SRAM");
+		setColor(GRAY60);
+		sprintf(chNapis, "Wdus ekran aby zakonczyc pomiar");
+		print(chNapis, CENTER, 40);
+		chErr = HAL_NOR_ReturnToReadMode(&hnor3);
+	}
+	setColor(WHITE);
+
+/*0x00,0x00,0x00,0x00,0x00,0x3C,0x06,0x06,0x3E,0x66,0x66,0x3E,0x04,0x06,0x00,0x00,	//100, "ą"
+0x00,0x00,0x0C,0x18,0x00,0x3C,0x66,0x60,0x60,0x60,0x66,0x3C,0x00,0x00,0x00,0x00,	//101, "ć"
+0x00,0x00,0x00,0x00,0x00,0x3C,0x66,0x66,0x7E,0x60,0x60,0x3C,0x08,0x0C,0x00,0x00,	//102, "ę"
+0x00,0x00,0x00,0x78,0x18,0x1A,0x1C,0x18,0x38,0x58,0x18,0x7E,0x00,0x00,0x00,0x00,	//103, "ł"
+0x00,0x00,0x08,0x10,0x00,0x7C,0x66,0x66,0x66,0x66,0x66,0x66,0x00,0x00,0x00,0x00,	//104, "ń"
+0x00,0x00,0x0C,0x18,0x00,0x3C,0x66,0x66,0x66,0x66,0x66,0x3C,0x00,0x00,0x00,0x00,	//105, "ó"
+0x00,0x00,0x0C,0x18,0x00,0x3E,0x60,0x60,0x3C,0x06,0x06,0x7C,0x00,0x00,0x00,0x00,	//106, "ś"
+0x00,0x00,0x18,0x18,0x00,0x7E,0x06,0x0C,0x18,0x30,0x60,0x7E,0x00,0x00,0x00,0x00,	//107, "ż"
+0x00,0x00,0x0C,0x18,0x00,0x7E,0x06,0x0C,0x18,0x30,0x60,0x7E,0x00,0x00,0x00,0x00,	//108, "ź"*/
+	//Odczyt z zewnętrznego SRAM do RAM w pętli
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		for (x=0; x<ROZMIAR16_BUFORA; x++)
+			 sBufor[x] = sExtSramBuf[x];
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "for(): ExtSRAM->AxiSRAM  t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 80);
+	}
+
+	//Zapis do zewnętrznego SRAM w pętli
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		for (x=0; x<ROZMIAR16_BUFORA; x++)
+			sExtSramBuf[x] = sBufor[x];
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "for(): AxiSRAM->ExtSRAM  t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 100);
+		}
+
+
+	//odczyt z zewnętrznego SRAM przez DMA
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sExtSramBuf, (uint32_t)sBufor, ROZMIAR16_BUFORA);
+		if (chErr != ERR_OK)
+		{
+			setColor(RED);
+			sprintf(chNapis, "Blad odczytu przez DMA");
+			print(chNapis, 10, 120);
+			return;
+		}
+
+		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
+			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "DMA: ExtSRAM->AxiSRAM    t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 120);
+	}
+
+
+	//zapis do zewnętrznego SRAM przez DMA
+	nCzas = HAL_GetTick();
+	for (y=0; y<4096; y++)
+	{
+		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBufor, (uint32_t)sExtSramBuf, ROZMIAR16_BUFORA);
+		if (chErr != ERR_OK)
+		{
+			setColor(RED);
+			sprintf(chNapis, "Blad odczytu przez DMA");
+			print(chNapis, 10, 140);
+			return;
+		}
+
+		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
+			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "DMA: AxiSRAM->ExtSRAM    t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 140);
+	}
+
+
+	//odczyt z zewnętrznego SRAM przez MDMA
+	nCzas = HAL_GetTick();
+	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sExtSramBuf, (uint32_t)sBufor, ROZMIAR16_BUFORA, 4096);
+	if (chErr != ERR_OK)
+	{
+		setColor(RED);
+		sprintf(chNapis, "Blad odczytu przez DMA");
+		print(chNapis, 10, 160);
+		return;
+	}
+
+	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
+		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "MDMA: ExtSRAM->AxiSRAM   t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 160);
+	}
+
+
+	//zapis zewnętrznego SRAM przez MDMA
+	nCzas = HAL_GetTick();
+	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBufor, (uint32_t)sExtSramBuf, ROZMIAR16_BUFORA, 4096);
+	if (chErr != ERR_OK)
+	{
+		setColor(RED);
+		sprintf(chNapis, "Blad odczytu przez DMA");
+		print(chNapis, 10, 180);
+		return;
+	}
+
+	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
+		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "MDMA: AxiSRAM->ExtSRAM   t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4000) / (nCzas * 1024));
+		print(chNapis, 10, 180);
+	}
+
+
+	//zapis całego zewnętrznego SRAM w pętli
+	nCzas = HAL_GetTick();
+	for (y=0; y<ROZMIAR16_EXT_SRAM; y++)
+		 sExtSramBuf[y] = y & 0xFFFF;
+
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "for(): var->ExtSRAM  t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR16_EXT_SRAM * 1000) / (nCzas * 1024 * 1024));
+		print(chNapis, 10, 200);
+	}
+
+
+	//odczyt całego zewnętrznego SRAM w pętli
+	nCzas = HAL_GetTick();
+	for (y=0; y<ROZMIAR16_EXT_SRAM; y++)
+		x = sExtSramBuf[y];
+
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "for(): ExtSRAM->var  t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR16_EXT_SRAM * 1000) / (nCzas * 1024 * 1024));
+		print(chNapis, 10, 220);
+	}
+
+
+	sprintf(chNapis, "ąćęłńóśżź");
+	for (x=0; x<20; x++)
+		chNapis[x] = 'z'+x;
+	chNapis[21] = 0;
+	print(chNapis, 10, 260);
 }

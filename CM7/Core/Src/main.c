@@ -7,12 +7,14 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-/*Pamięć:
+/* Pamięć (adresowanie bajtami):
  * 0x30020000..0x30040000 - 128k (0x20000)stos lwIP
  * 0x30040000..0x30040200 - 512  (0x200) deskryptory DMA ETH
  * 0x30040200..0x38000000 - 130k (0x7FBEFE00) wolne
  *
- * 0x68000000..0x68FFFFFF = 32MB pamięć Flash NOR
+ * Dostępne przez FMC
+ * 0x60000000..0x603FFFFF - 4MB pamięć SRAM
+ * 0x68000000..0x68FFFFFF - 32MB pamięć Flash NOR
  *
  *
  *Zrobć:
@@ -64,6 +66,7 @@ UART_HandleTypeDef huart7;
 
 DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
+SRAM_HandleTypeDef hsram1;
 NOR_HandleTypeDef hnor3;
 
 /* USER CODE BEGIN PV */
@@ -555,6 +558,41 @@ void MX_FMC_Init(void)
 
   /* USER CODE END FMC_Init 1 */
 
+  /** Perform the SRAM1 memory initialization sequence
+  */
+  hsram1.Instance = FMC_NORSRAM_DEVICE;
+  hsram1.Extended = FMC_NORSRAM_EXTENDED_DEVICE;
+  /* hsram1.Init */
+  hsram1.Init.NSBank = FMC_NORSRAM_BANK1;
+  hsram1.Init.DataAddressMux = FMC_DATA_ADDRESS_MUX_DISABLE;
+  hsram1.Init.MemoryType = FMC_MEMORY_TYPE_SRAM;
+  hsram1.Init.MemoryDataWidth = FMC_NORSRAM_MEM_BUS_WIDTH_16;
+  hsram1.Init.BurstAccessMode = FMC_BURST_ACCESS_MODE_DISABLE;
+  hsram1.Init.WaitSignalPolarity = FMC_WAIT_SIGNAL_POLARITY_LOW;
+  hsram1.Init.WaitSignalActive = FMC_WAIT_TIMING_BEFORE_WS;
+  hsram1.Init.WriteOperation = FMC_WRITE_OPERATION_ENABLE;
+  hsram1.Init.WaitSignal = FMC_WAIT_SIGNAL_DISABLE;
+  hsram1.Init.ExtendedMode = FMC_EXTENDED_MODE_DISABLE;
+  hsram1.Init.AsynchronousWait = FMC_ASYNCHRONOUS_WAIT_DISABLE;
+  hsram1.Init.WriteBurst = FMC_WRITE_BURST_DISABLE;
+  hsram1.Init.ContinuousClock = FMC_CONTINUOUS_CLOCK_SYNC_ONLY;
+  hsram1.Init.WriteFifo = FMC_WRITE_FIFO_ENABLE;
+  hsram1.Init.PageSize = FMC_PAGE_SIZE_NONE;
+  /* Timing */
+  Timing.AddressSetupTime = 1;
+  Timing.AddressHoldTime = 15;
+  Timing.DataSetupTime = 10;
+  Timing.BusTurnAroundDuration = 2;
+  Timing.CLKDivision = 1;
+  Timing.DataLatency = 17;
+  Timing.AccessMode = FMC_ACCESS_MODE_A;
+  /* ExtTiming */
+
+  if (HAL_SRAM_Init(&hsram1, &Timing, NULL) != HAL_OK)
+  {
+    Error_Handler( );
+  }
+
   /** Perform the NOR3 memory initialization sequence
   */
   hnor3.Instance = FMC_NORSRAM_DEVICE;
@@ -703,6 +741,14 @@ void MPU_Config(void)
   MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Number = MPU_REGION_NUMBER4;
+  MPU_InitStruct.BaseAddress = 0x60000000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_4MB;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
   /* Enables the MPU */
   HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 
@@ -717,6 +763,7 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
+
   while (1)
   {
   }

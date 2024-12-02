@@ -53,13 +53,13 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Kamera",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 		obr_ppm},
 	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,		obr_sbus},
 	{"--nic--",		"Podstawowe instrumentu pomiarowe",			TP_KALIB_DOTYK, 	obr_multimetr},
-	{"Zapis NOR", 	"Test zapisu do flash NOR",					TP_MULTITOOL,		obr_multitool},
-	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_oscyloskop},
-	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_mtest},
-	{"--nic--",		"Nic",										TP_TESTY,			obr_calibration},
-	{"--nic--",		"Nic",										TP_TESTY,			obr_calibration},
-	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_calibration},
-	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_calibration}};
+	{"Zapis NOR", 	"Test zapisu do flash NOR",					TP_MULTITOOL,		obr_calibration},
+	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_calibration},
+	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_calibration},
+	{"Trans SRAM",	"Pomiar predkosci Static RAM 16-bit",		TP_POMIAR_SRAM,		obr_calibration},
+	{"--nic--",		"Nic",										TP_TESTY,			obr_multitool},
+	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_oscyloskop},
+	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_mtest}};
 
 
 
@@ -94,7 +94,7 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TP_POMIAR_FNOR:	TestPredkosciOdczytu();
+	case TP_POMIAR_FNOR:	TestPredkosciOdczytuNOR();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -104,6 +104,14 @@ void RysujEkran(void)
 
 	case TP_POMIAR_FQSPI:	W25_TestTransferu();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_MENU;
+		}
+		break;
+
+	case TP_POMIAR_SRAM:	TestPredkosciOdczytuRAM();
+	if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_MENU;
@@ -204,8 +212,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_KASZANA]);	//"z technologia \"--Kaszana_OFF\""
 		print(chNapis, CENTER, 120);
 
-		//sprintf(chNapis, "(c) PitLab.%s 2024 hv%d sv%d.%d.%d", chNapisLcd[STR_WITAJ_DOMENA], HardVer(), WER_GLOWNA, WER_PODRZ, WER_REPO);
-		sprintf(chNapis, "(c) PitLab.%s 2024 v%d.%d.%d", chNapisLcd[STR_WITAJ_DOMENA], WER_GLOWNA, WER_PODRZ, WER_REPO);
+		sprintf(chNapis, "(c) PitLab.%s 2024 sv%d.%d.%d", chNapisLcd[STR_WITAJ_DOMENA], WER_GLOWNA, WER_PODRZ, WER_REPO);
 		print(chNapis, CENTER, 140);
 
 		chRysujRaz = 0;
