@@ -60,7 +60,12 @@ void MX_PWR_Init(void);
 /* Private defines -----------------------------------------------------------*/
 
 /* USER CODE BEGIN Private defines */
-
+#define MODW_ADR0_Pin GPIO_PIN_2
+#define MODW_ADR0_GPIO_Port GPIOK
+#define MODW_ADR1_Pin GPIO_PIN_1
+#define MODW_ADR1_GPIO_Port GPIOK
+#define MODW_ADR2_Pin GPIO_PIN_8
+#define MODW_ADR2_GPIO_Port GPIOI
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
