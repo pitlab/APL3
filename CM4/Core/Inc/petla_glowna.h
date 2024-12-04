@@ -11,7 +11,7 @@
 
 #include "sys_def_CM4.h"
 
-uint8_t UstawDekoderModulow(uint8_t modul);
+
 void PetlaGlowna(void);
 uint32_t MinalCzas(uint32_t nStart);
 

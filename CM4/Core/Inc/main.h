@@ -58,14 +58,29 @@ void MX_PWR_Init(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-
-/* USER CODE BEGIN Private defines */
-#define MODW_ADR0_Pin GPIO_PIN_2
-#define MODW_ADR0_GPIO_Port GPIOK
-#define MODW_ADR1_Pin GPIO_PIN_1
-#define MODW_ADR1_GPIO_Port GPIOK
 #define MODW_ADR2_Pin GPIO_PIN_8
 #define MODW_ADR2_GPIO_Port GPIOI
+#define ADR_SER2_Pin GPIO_PIN_13
+#define ADR_SER2_GPIO_Port GPIOC
+#define ADR_SER0_Pin GPIO_PIN_9
+#define ADR_SER0_GPIO_Port GPIOI
+#define ADR_SER1_Pin GPIO_PIN_11
+#define ADR_SER1_GPIO_Port GPIOI
+#define MODW_ADR1_Pin GPIO_PIN_1
+#define MODW_ADR1_GPIO_Port GPIOK
+#define MODW_ADR0_Pin GPIO_PIN_2
+#define MODW_ADR0_GPIO_Port GPIOK
+#define IO_INT_Pin GPIO_PIN_7
+#define IO_INT_GPIO_Port GPIOG
+#define MOD_SPI_NCS_Pin GPIO_PIN_13
+#define MOD_SPI_NCS_GPIO_Port GPIOH
+#define SUB_MOD_ADR0_Pin GPIO_PIN_3
+#define SUB_MOD_ADR0_GPIO_Port GPIOD
+#define SUB_MOD_ADR1_Pin GPIO_PIN_6
+#define SUB_MOD_ADR1_GPIO_Port GPIOD
+
+/* USER CODE BEGIN Private defines */
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

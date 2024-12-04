@@ -1,7 +1,8 @@
 # APL3
-Projekt eksperymentalnego autopilota z obsługą kamery do samolotów RC.
+Projekt eksperymentalnego autopilota dla samolotów RC z obsługą kamery cyfrowej.
 
 To są początki projektu. Obecnie jest zaimplementowana następująca funkcjonalność:
+Rdzeń CM7:
 - Sterowanie wyświetlaczem od Raspbery Pi 480x320 po SPI.
 - Odczyt i 3-punktowa kalibracja ekranu dotykowego. Do uruchomienia jest jeszcza kalibracja wielopunktowa.
 - Menu graficzne do obsługi wielu funkcjonalności, ekran powitalny z prezentacją wykrytego sprzętu.
@@ -11,9 +12,11 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Testy pomiaru transferu dla wszystkich pamięci
 - System zapisu konfiguracji do pamięci Flash w paczkach po 30 bajtów + 2 bajty ID i sumy kontrolnej
 
+Rdzeń CM4:
+- Obsługa pamięci FRAM
+- Rozpoczęta obsługa expandera IO
 
 Do zrobienia:
- - Uruchomić rdzeń CM4
  - Dodać obsługę pamięci SDRAM, kupić właściwy układ
  - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarc na inny, dobrać inne pojemności bo nie działa z 12pF i 0pF
  - Uruchomić i oprogramować obsługę czujników modułu inercyjnego

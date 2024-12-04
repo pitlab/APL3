@@ -63,6 +63,8 @@ void Error_Handler(void);
 #define MODZ_ADR0_GPIO_Port GPIOJ
 #define MODZ_ADR1_Pin GPIO_PIN_7
 #define MODZ_ADR1_GPIO_Port GPIOJ
+#define TP_INT_Pin GPIO_PIN_12
+#define TP_INT_GPIO_Port GPIOG
 
 /* USER CODE BEGIN Private defines */
 

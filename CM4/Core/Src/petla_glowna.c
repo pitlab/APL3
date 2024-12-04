@@ -11,66 +11,6 @@
 #include "main.h"
 #include "fram.h"
 
-////////////////////////////////////////////////////////////////////////////////
-// Ustawia sygnału ChipSelect dla modułów i układów pamięci FRAM i Expandera IO
-// Adres jesyt ustawiony na portach PK2, PK1 i PI8
-// Parametry: modul - adres modułu
-// Zwraca: kod błędu
-////////////////////////////////////////////////////////////////////////////////
-uint8_t UstawDekoderModulow(uint8_t modul)
-{
-	uint8_t chErr = ERR_OK;
-
-	switch (modul)
-	{
-	case ADR_MOD1:	//0
-		HAL_GPIO_WritePin(MODW_ADR0_GPIO_Port, MODW_ADR0_Pin, GPIO_PIN_RESET);	//ADR0
-		HAL_GPIO_WritePin(MODW_ADR1_GPIO_Port, MODW_ADR1_Pin, GPIO_PIN_RESET);	//ADR1
-		HAL_GPIO_WritePin(MODW_ADR2_GPIO_Port, MODW_ADR2_Pin, GPIO_PIN_RESET);	//ADR2
-		break;
-
-	case ADR_MOD2:	//1
-		HAL_GPIO_WritePin(MODW_ADR0_GPIO_Port, MODW_ADR0_Pin, GPIO_PIN_SET);	//ADR0
-		HAL_GPIO_WritePin(MODW_ADR1_GPIO_Port, MODW_ADR1_Pin, GPIO_PIN_RESET);	//ADR1
-		HAL_GPIO_WritePin(MODW_ADR2_GPIO_Port, MODW_ADR2_Pin, GPIO_PIN_RESET);	//ADR2
-		break;
-
-	case ADR_MOD3:	//2
-		HAL_GPIO_WritePin(MODW_ADR0_GPIO_Port, MODW_ADR0_Pin, GPIO_PIN_RESET);	//ADR0
-		HAL_GPIO_WritePin(MODW_ADR1_GPIO_Port, MODW_ADR1_Pin, GPIO_PIN_SET);	//ADR1
-		HAL_GPIO_WritePin(MODW_ADR2_GPIO_Port, MODW_ADR2_Pin, GPIO_PIN_RESET);	//ADR2
-		break;
-
-	case ADR_MOD4:	//3
-		HAL_GPIO_WritePin(MODW_ADR0_GPIO_Port, MODW_ADR0_Pin, GPIO_PIN_SET);	//ADR0
-		HAL_GPIO_WritePin(MODW_ADR1_GPIO_Port, MODW_ADR1_Pin, GPIO_PIN_SET);	//ADR1
-		HAL_GPIO_WritePin(MODW_ADR2_GPIO_Port, MODW_ADR2_Pin, GPIO_PIN_RESET);	//ADR2
-		break;
-
-	case ADR_NIC:	//4
-		HAL_GPIO_WritePin(MODW_ADR0_GPIO_Port, MODW_ADR0_Pin, GPIO_PIN_RESET);	//ADR0
-		HAL_GPIO_WritePin(MODW_ADR1_GPIO_Port, MODW_ADR1_Pin, GPIO_PIN_RESET);	//ADR1
-		HAL_GPIO_WritePin(MODW_ADR2_GPIO_Port, MODW_ADR2_Pin, GPIO_PIN_SET);	//ADR2
-		break;
-
-	case ADR_EXPIO:	//5
-		HAL_GPIO_WritePin(MODW_ADR0_GPIO_Port, MODW_ADR0_Pin, GPIO_PIN_SET);	//ADR0
-		HAL_GPIO_WritePin(MODW_ADR1_GPIO_Port, MODW_ADR1_Pin, GPIO_PIN_RESET);	//ADR1
-		HAL_GPIO_WritePin(MODW_ADR2_GPIO_Port, MODW_ADR2_Pin, GPIO_PIN_SET);	//ADR2
-		break;
-
-	case ADR_FRAM:	//6
-		HAL_GPIO_WritePin(MODW_ADR0_GPIO_Port, MODW_ADR0_Pin, GPIO_PIN_RESET);	//ADR0
-		HAL_GPIO_WritePin(MODW_ADR1_GPIO_Port, MODW_ADR1_Pin, GPIO_PIN_SET);	//ADR1
-		HAL_GPIO_WritePin(MODW_ADR2_GPIO_Port, MODW_ADR2_Pin, GPIO_PIN_SET);	//ADR2
-		break;
-
-	default:	chErr = ERR_ZLY_ADRES;	break;
-	}
-
-	return chErr;
-}
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,12 +30,16 @@ void PetlaGlowna(void)
 	CzytajBuforFRAM(0x1000, chDane, 1024);
 	nCzas = MinalCzas(nCzas);
 
+	WyslijDaneExpandera(0xAA);
+
 	for (n=0; n<1024; n++)
 		chDane[n] = (uint16_t)(n & 0xFF);
 
 	nCzas = HAL_GetTick();
 	ZapiszBuforFRAM(0x1000, chDane, 1024);
 	nCzas = MinalCzas(nCzas);
+
+	WyslijDaneExpandera(0x55);
 }
 
 

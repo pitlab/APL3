@@ -7,11 +7,11 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "fram.h"
-#include "petla_glowna.h"
+#include "moduly_wew.h"
+#include "main.h"
 
 extern SPI_HandleTypeDef hspi2;
-
-
+extern uint8_t chAdresModulu;	//bieżący adres ustawiony na dekoderze
 
 ////////////////////////////////////////////////////////////////////////////////
 // Odczytuje rejestr statusu
@@ -24,11 +24,13 @@ uint8_t CzytajStatusFRAM(void)
 
     //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
     //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
+	if (chAdresModulu != ADR_FRAM)
+		UstawDekoderModulow(ADR_FRAM);			//Ustaw dekoder adresów /CS.
 
-    UstawDekoderModulow(ADR_FRAM);			//Ustaw dekoder adresów /CS.
-    HAL_SPI_Transmit(&hspi2, &chStatus, 1, HAL_MAX_DELAY);		//zapisz opcode
-    HAL_SPI_Receive(&hspi2, &chStatus, 1, HAL_MAX_DELAY);		//czytaj dane
-	UstawDekoderModulow(ADR_NIC);			//CS=1
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+    HAL_SPI_Transmit(&hspi2, &chStatus, 1, HAL_MAX_DELAY);					//zapisz opcode
+    HAL_SPI_Receive(&hspi2, &chStatus, 1, HAL_MAX_DELAY);					//czytaj dane
+    HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
     return chStatus;
 }
 
@@ -45,12 +47,14 @@ void ZapiszStatusFRAM(uint8_t chStatus)
 
     //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
     //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
+	if (chAdresModulu != ADR_FRAM)
+		UstawDekoderModulow(ADR_FRAM);			//Ustaw dekoder adresów /CS.
 
 	chDaneWew[0] = FRAM_WRSR;				//opcode
 	chDaneWew[1] = chStatus;				//dane
-    UstawDekoderModulow(ADR_FRAM);			//Ustaw dekoder adresów /CS.
-    HAL_SPI_Transmit(&hspi2, chDaneWew, 2, HAL_MAX_DELAY);		//zapisz opcode i dane
-	UstawDekoderModulow(ADR_NIC);			//CS=1
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+    HAL_SPI_Transmit(&hspi2, chDaneWew, 2, HAL_MAX_DELAY);					//zapisz opcode i dane
+    HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
 }
 
 
@@ -67,15 +71,17 @@ uint8_t CzytajDaneFRAM(uint16_t sAdres)
 
     //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
     //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
+	if (chAdresModulu != ADR_FRAM)
+		UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
 
 	chDaneWew[0] = FRAM_READ;					//opcode
 	chDaneWew[1] = (uint8_t)(sAdres >>8);		//adres H
 	chDaneWew[2] = (uint8_t)(sAdres & 0x00FF);	//adres L
 
-    UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
     HAL_SPI_Transmit(&hspi2, chDaneWew, 3, HAL_MAX_DELAY);
-    HAL_SPI_Receive(&hspi2, chDaneWew, 1, HAL_MAX_DELAY);		//czytaj dane
-	UstawDekoderModulow(ADR_NIC);				//CS=1
+    HAL_SPI_Receive(&hspi2, chDaneWew, 1, HAL_MAX_DELAY);					//czytaj dane
+    HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
     return chDaneWew[0];
 }
 
@@ -96,15 +102,17 @@ void CzytajBuforFRAM(uint16_t sAdres, uint8_t* chDaneWyj, uint16_t sIlosc)
 
     //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
     //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
+	if (chAdresModulu != ADR_FRAM)
+		UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
 
 	chDaneWew[0] = FRAM_READ;					//opcode
 	chDaneWew[1] = (uint8_t)(sAdres >>8);		//adres H
 	chDaneWew[2] = (uint8_t)(sAdres & 0x00FF);	//adres L
 
-    UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
-    HAL_SPI_Transmit(&hspi2, chDaneWew, 3, HAL_MAX_DELAY);		//zapisz opcode i adres
-    HAL_SPI_Receive(&hspi2, chDaneWyj, sIlosc, HAL_MAX_DELAY);	//czytaj dane
-	UstawDekoderModulow(ADR_NIC);				//CS=1
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+    HAL_SPI_Transmit(&hspi2, chDaneWew, 3, HAL_MAX_DELAY);					//zapisz opcode i adres
+    HAL_SPI_Receive(&hspi2, chDaneWyj, sIlosc, HAL_MAX_DELAY);				//czytaj dane
+    HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
 }
 
 
@@ -122,19 +130,21 @@ void ZapiszDaneFRAM(unsigned short sAdres, unsigned char chDane)
 
     //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
     //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
+	if (chAdresModulu != ADR_FRAM)
+		UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
 
 	chDaneWew[0] = FRAM_WREN;
-	UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
-	HAL_SPI_Transmit(&hspi2, chDaneWew, 1, HAL_MAX_DELAY);		//zapisz opcode
-	UstawDekoderModulow(ADR_NIC);				//CS=1
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+	HAL_SPI_Transmit(&hspi2, chDaneWew, 1, HAL_MAX_DELAY);					//zapisz opcode
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
 
 	chDaneWew[0] = FRAM_WRITE;					//opcode
 	chDaneWew[1] = (uint8_t)(sAdres >>8);		//adres H
 	chDaneWew[2] = (uint8_t)(sAdres & 0x00FF);	//adres L
 	chDaneWew[3] = chDane;
-	UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
-	HAL_SPI_Transmit(&hspi2, chDaneWew, 4, HAL_MAX_DELAY);		//zapisz opcode i dane
-	UstawDekoderModulow(ADR_NIC);				//CS=1
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+	HAL_SPI_Transmit(&hspi2, chDaneWew, 4, HAL_MAX_DELAY);					//zapisz opcode i dane
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
 }
 
 
@@ -154,19 +164,21 @@ void ZapiszBuforFRAM(uint16_t sAdres, uint8_t* chDane, uint16_t sIlosc)
 
     //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
     //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
+	if (chAdresModulu != ADR_FRAM)
+		UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
 
 	chDaneWew[0] = FRAM_WREN;
-	UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
-	HAL_SPI_Transmit(&hspi2, chDaneWew, 1, HAL_MAX_DELAY);		//zapisz opcode
-	UstawDekoderModulow(ADR_NIC);				//CS=1
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+	HAL_SPI_Transmit(&hspi2, chDaneWew, 1, HAL_MAX_DELAY);					//zapisz opcode
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
 
 	chDaneWew[0] = FRAM_WRITE;					//opcode
 	chDaneWew[1] = (uint8_t)(sAdres >>8);		//adres H
 	chDaneWew[2] = (uint8_t)(sAdres & 0x00FF);	//adres L
-	UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
-	HAL_SPI_Transmit(&hspi2, chDaneWew, 3, HAL_MAX_DELAY);		//zapisz opcode i adres
-	HAL_SPI_Transmit(&hspi2, chDane, sIlosc, HAL_MAX_DELAY);	//zapisz dane
-	UstawDekoderModulow(ADR_NIC);				//CS=1
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+	HAL_SPI_Transmit(&hspi2, chDaneWew, 3, HAL_MAX_DELAY);					//zapisz opcode i adres
+	HAL_SPI_Transmit(&hspi2, chDane, sIlosc, HAL_MAX_DELAY);				//zapisz dane
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
 }
 
 
@@ -183,11 +195,13 @@ void CzytajIdFRAM(uint8_t* chDaneID)
 
     //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
     //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
+	if (chAdresModulu != ADR_FRAM)
+		UstawDekoderModulow(ADR_FRAM);			//Ustaw dekoder adresów /CS.
 
-    UstawDekoderModulow(ADR_FRAM);			//Ustaw dekoder adresów /CS.
-    HAL_SPI_Transmit(&hspi2, &chID, 1, HAL_MAX_DELAY);		//zapisz opcode
-    HAL_SPI_Receive(&hspi2, chDaneID, 9, HAL_MAX_DELAY);	//czytaj dane
-	UstawDekoderModulow(ADR_NIC);			//CS=1
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+    HAL_SPI_Transmit(&hspi2, &chID, 1, HAL_MAX_DELAY);						//zapisz opcode
+    HAL_SPI_Receive(&hspi2, chDaneID, 9, HAL_MAX_DELAY);					//czytaj dane
+    HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
 }
 
 
@@ -206,12 +220,8 @@ float FramDataReadFloat(unsigned short sAddress)
 	float fuData;
     } fUnion;
     fUnion temp;
-    //unsigned short x;
 
 	CzytajBuforFRAM(sAddress, temp.array, 4);
-    //for (x=0; x<4; x++)
-      //  temp.array[x] = FramDataRead(sAddress+x);
-
     if ((float)temp.fuData)
         return (float)temp.fuData;
     else
