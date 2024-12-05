@@ -29,9 +29,9 @@
 uint8_t CzytajStatusFRAM(void);
 void ZapiszStatusFRAM(uint8_t chStatus);
 void CzytajIdFRAM(uint8_t* chDaneID);
-uint8_t CzytajDaneFRAM(uint16_t sAdres);
+void ZapiszFRAM(unsigned short sAdres, uint8_t chDane);
+uint8_t CzytajFRAM(uint16_t sAdres);
 void CzytajBuforFRAM(uint16_t sAdres, uint8_t* chDane, uint16_t sIlosc);
-void ZapiszDaneFRAM(unsigned short sAdres, unsigned char chDane);
 void ZapiszBuforFRAM(uint16_t sAdres, uint8_t* chDane, uint16_t sIlosc);
 
 

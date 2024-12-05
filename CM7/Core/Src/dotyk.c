@@ -70,8 +70,8 @@ uint16_t CzytajKanalDotyku(uint8_t  chKanal)
 ////////////////////////////////////////////////////////////////////////////////
 void CzytajDotyk(void)
 {
-	uint32_t nOld_SPI_CFG1;
 	uint32_t nCzasDotyku;
+	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
 	//sprawdź czy upłyneło wystarczająco czasu od ostatniego odczytu
 	nCzasDotyku = MinalCzas(statusDotyku.nOstCzasPomiaru);
@@ -79,9 +79,8 @@ void CzytajDotyk(void)
 		return;
 	statusDotyku.nOstCzasPomiaru = HAL_GetTick();
 
-	nOld_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
-
 	//Ponieważ zegar SPI = 100MHz a układ może pracować z prędkością max 2,5MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 64
+	nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
 	hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
 	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_64;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/64
 
@@ -123,7 +122,7 @@ void CzytajDotyk(void)
 		sDotykAdc[4] = (200 * sDotykAdc[0]/4096) * ((sDotykAdc[3]/sDotykAdc[2])-1);
 	else
 		sDotykAdc[4] = 0; */
-	hspi5.Instance->CFG1 = nOld_SPI_CFG1;	//przywróc poprzednie nastawy
+	hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 }
 
 

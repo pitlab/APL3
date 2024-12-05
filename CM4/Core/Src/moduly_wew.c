@@ -23,6 +23,12 @@ uint8_t InicjujModulyWew(void)
 {
 	uint8_t dane_wysylane[3];
 	HAL_StatusTypeDef chErr;
+	uint32_t nZastanaKonfiguracja_SPI_CFG1;
+
+	//Ponieważ zegar SPI = 40MHz a układ może pracować z prędkością max 10MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara na 4
+	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
+	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/4
 
 	if (chAdresModulu != ADR_EXPIO)
 		UstawDekoderModulow(ADR_EXPIO);			//Ustaw dekoder adresów /CS.
@@ -41,17 +47,18 @@ uint8_t InicjujModulyWew(void)
 
 	//ustaw rejestr kierunku portów układu exandera
 	dane_wysylane[1] = MCP23S08_IODIR;	//I/O DIRECTION (IODIR) REGISTER: 1=input, 0=output
-	dane_wysylane[2] = (0 << 7) |	//MOD_IO11
-					   (1 << 6) |	//MOD_IO12
-					   (0 << 5) |	//MOD_IO21
-					   (1 << 4) |	//MOD_IO22
-					   (0 << 3) |	//MOD_IO31
-					   (1 << 2) |	//MOD_IO32
-					   (0 << 1) |	//MOD_IO41
-					   (1 << 0);	//MOD_IO42
+	dane_wysylane[2] = (0 << 0) |	//MOD_IO11
+					   (1 << 1) |	//MOD_IO12
+					   (0 << 2) |	//MOD_IO21
+					   (1 << 3) |	//MOD_IO22
+					   (0 << 4) |	//MOD_IO31
+					   (1 << 5) |	//MOD_IO32
+					   (0 << 6) |	//MOD_IO41
+					   (1 << 7);	//MOD_IO42
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 	chErr |= HAL_SPI_Transmit(&hspi2, dane_wysylane, 3, HAL_MAX_DELAY);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
+	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 	return chErr;
 }
 
@@ -69,6 +76,12 @@ uint8_t WyslijDaneExpandera(uint8_t daneWy)
 {
 	HAL_StatusTypeDef chErr;
 	uint8_t dane_wysylane[3];
+	uint32_t nZastanaKonfiguracja_SPI_CFG1;
+
+	//Ponieważ zegar SPI = 40MHz a układ może pracować z prędkością max 10MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara na 4
+	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
+	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/4
 
 	if (chAdresModulu != ADR_EXPIO)
 		UstawDekoderModulow(ADR_EXPIO);			//Ustaw dekoder adresów /CS.
@@ -80,6 +93,7 @@ uint8_t WyslijDaneExpandera(uint8_t daneWy)
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 	chErr = HAL_SPI_Transmit(&hspi2, dane_wysylane, 3, HAL_MAX_DELAY);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
+	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 	return chErr;
 }
 
@@ -98,6 +112,12 @@ uint8_t PobierzDaneExpandera(uint8_t* daneWe)
 	HAL_StatusTypeDef chErr;
 	uint8_t dane_wysylane[3];
 	uint8_t dane_odbierane[3];
+	uint32_t nZastanaKonfiguracja_SPI_CFG1;
+
+	//Ponieważ zegar SPI = 40MHz a układ może pracować z prędkością max 10MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara na 4
+	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
+	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/4
 
 	if (chAdresModulu != ADR_EXPIO)
 		UstawDekoderModulow(ADR_EXPIO);			//Ustaw dekoder adresów /CS.
@@ -110,6 +130,7 @@ uint8_t PobierzDaneExpandera(uint8_t* daneWe)
 	chErr = HAL_SPI_TransmitReceive(&hspi2, dane_wysylane, dane_odbierane, 3, HAL_MAX_DELAY);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	*daneWe = dane_odbierane[2];
+	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 	return chErr;
 }
 

@@ -10,24 +10,32 @@
 #include "petla_glowna.h"
 #include "main.h"
 #include "fram.h"
+#include "moduly_wew.h"
+#include "wymiana_CM4.h"
+
+extern unia_wymianyCM4 uDaneCM4;
+uint16_t sGenerator;
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
 // Parametry: brak
-// Zwraca: nic, program nigdy z niej nie wychodzi
+// Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 void PetlaGlowna(void)
 {
 	uint8_t chDane[1024];
 	uint16_t n;
 	uint32_t nCzas;
+	float fTemp;
 
 	CzytajIdFRAM(chDane);
+	ZapiszFRAM(0x2000, 0x55);
+	chDane[0] = CzytajFRAM(0x2000);
 
 	nCzas = HAL_GetTick();
-	CzytajBuforFRAM(0x1000, chDane, 1024);
+	CzytajBuforFRAM(0x1000, chDane, 16);
 	nCzas = MinalCzas(nCzas);
 
 	WyslijDaneExpandera(0xAA);
@@ -36,10 +44,27 @@ void PetlaGlowna(void)
 		chDane[n] = (uint16_t)(n & 0xFF);
 
 	nCzas = HAL_GetTick();
-	ZapiszBuforFRAM(0x1000, chDane, 1024);
+	ZapiszBuforFRAM(0x1000, chDane, 16);
 	nCzas = MinalCzas(nCzas);
 
 	WyslijDaneExpandera(0x55);
+
+	//generuj testowe dane
+	fTemp = (float)sGenerator/100;
+	for (n=0; n<3; n++)
+	{
+		uDaneCM4.dane.fAkcel1[n] = 1 + n + fTemp;
+		uDaneCM4.dane.fAkcel2[n] = 2 + n + fTemp;
+		uDaneCM4.dane.fZyro1[n] = 3 + n + fTemp;
+		uDaneCM4.dane.fZyro2[n] = 4 + n + fTemp;
+		uDaneCM4.dane.fMagnet1[n] = 5 + n + fTemp;
+		uDaneCM4.dane.fMagnet1[n] = 6 + n + fTemp;
+	}
+	sGenerator++;
+
+	//wymień dane między rdzeniami
+	PobierzDaneWymiany_CM7();
+	UstawDaneWymiany_CM4();
 }
 
 

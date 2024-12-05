@@ -28,6 +28,12 @@ uint8_t InicjujSPIModZewn(void)
 	uint8_t dane_wysylane[3];
 	uint8_t dane_odbierane[3];
 	HAL_StatusTypeDef Err;
+	uint32_t nZastanaKonfiguracja_SPI_CFG1;
+
+	//Ponieważ zegar SPI = 100MHz a układ może pracować z prędkością max 10MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 16 => 6,25MHz
+	nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
+	hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
+	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_16;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/16
 
 	dane_wysylane[0] = SPI_EXTIO_0;	//teraz komunikacja z U41
 
@@ -110,6 +116,7 @@ uint8_t InicjujSPIModZewn(void)
 	UstawDekoderZewn(CS_IO);
 	Err |= HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_MAX_DELAY);
 	Err |= UstawDekoderZewn(CS_NIC);
+	hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróć wcześniejszą konfigurację
 	return Err;
 }
 
@@ -179,6 +186,8 @@ uint8_t WyslijDaneExpandera(uint8_t adres, uint8_t daneWy)
 	return Err;
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Ustawia i pobiera zawartość portu na układzie rozszerzeń podłaczonym do magistrali SPI5 modułów wyjsciowych rdzenia CM7
 // Parametry: adres - adres układu rozszerzeń
@@ -204,6 +213,8 @@ uint8_t PobierzDaneExpandera(uint8_t adres, uint8_t* daneWe)
 	return Err;
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Ustawia i pobiera zawartość portu na układach rozszerzeń podłaczonych do magistrali SPI5 modułów wyjsciowych rdzenia CM7
 // Funkcja najwyższego poziomu do uruchamiania z pętli głównej, pracuje na zmiennych globalnych
@@ -213,6 +224,13 @@ uint8_t PobierzDaneExpandera(uint8_t adres, uint8_t* daneWe)
 uint8_t WymienDaneExpanderow(void)
 {
 	HAL_StatusTypeDef Err;
+	uint32_t nZastanaKonfiguracja_SPI_CFG1;
+
+	//Ponieważ zegar SPI = 100MHz a układ może pracować z prędkością max 10MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 16 => 6,25MHz
+	nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
+	hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
+	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_16;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/16
+
 	for (uint8_t x=0; x<LICZBA_EXP_SPI_ZEWN; x++)
 	{
 		Err = WyslijDaneExpandera(chAdresy_expanderow[x], chPorty_exp_wysylane[x]);
@@ -227,6 +245,7 @@ uint8_t WymienDaneExpanderow(void)
 	//chPorty_exp_wysylane[2] ^= EXP27_LED_R;	//LED_R
 	//chPorty_exp_wysylane[2] ^= EXP26_LED_G;	//LED_G
 	chPorty_exp_wysylane[2] ^= EXP25_LED_B;	//LED_B
+	hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróć wcześniejszą konfigurację
 	return Err;
 }
 

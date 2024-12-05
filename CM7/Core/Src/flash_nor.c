@@ -21,7 +21,7 @@
 
 uint16_t sMPUFlash[ROZMIAR16_BUFORA] __attribute__((section(".text")));
 uint16_t sFlashMem[ROZMIAR16_BUFORA] __attribute__((section(".FlashNorSection")));
-uint16_t sBuforD1[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_D1")));
+uint16_t sBuforD1[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_SRAM1")));
 uint16_t sExtSramBuf[ROZMIAR16_EXT_SRAM] __attribute__((section(".ExtSramSection")));
 extern SRAM_HandleTypeDef hsram1;
 extern NOR_HandleTypeDef hnor3;

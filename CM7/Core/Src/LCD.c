@@ -12,10 +12,10 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <W25Q128JV.h>
 #include "dotyk.h"
 #include "napisy.h"
 #include "flash_nor.h"
-#include "W25Q128JV.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];

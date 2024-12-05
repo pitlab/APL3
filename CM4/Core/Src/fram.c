@@ -13,6 +13,8 @@
 extern SPI_HandleTypeDef hspi2;
 extern uint8_t chAdresModulu;	//bieżący adres ustawiony na dekoderze
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Odczytuje rejestr statusu
 // Parametry: brak
@@ -22,8 +24,6 @@ uint8_t CzytajStatusFRAM(void)
 {
 	uint8_t chStatus = FRAM_RDSR;
 
-    //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
-    //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
 	if (chAdresModulu != ADR_FRAM)
 		UstawDekoderModulow(ADR_FRAM);			//Ustaw dekoder adresów /CS.
 
@@ -45,8 +45,6 @@ void ZapiszStatusFRAM(uint8_t chStatus)
 {
 	uint8_t chDaneWew[2];
 
-    //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
-    //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
 	if (chAdresModulu != ADR_FRAM)
 		UstawDekoderModulow(ADR_FRAM);			//Ustaw dekoder adresów /CS.
 
@@ -60,17 +58,21 @@ void ZapiszStatusFRAM(uint8_t chStatus)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Odczytuje 1 bajt zawartości pamięci
+// Odczytuje 1 bajt z pamięci FRAM
 // Parametry: sAdress - adres pamięci
 // Zwraca: odczytany bajt danych
-// Czas wykonania ok. 12,1us
+// Czas wykonania: 8,1us @40MHz
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t CzytajDaneFRAM(uint16_t sAdres)
+uint8_t CzytajFRAM(uint16_t sAdres)
 {
 	uint8_t chDaneWew[3];
+	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
-    //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
-    //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
+	//Ponieważ zegar SPI = 80MHz a układ może pracować z prędkością max 40MHz, przy każdym dostępie przestaw dzielnik zegara na 2
+	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
+	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_2;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/2
+
 	if (chAdresModulu != ADR_FRAM)
 		UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
 
@@ -80,8 +82,9 @@ uint8_t CzytajDaneFRAM(uint16_t sAdres)
 
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
     HAL_SPI_Transmit(&hspi2, chDaneWew, 3, HAL_MAX_DELAY);
-    HAL_SPI_Receive(&hspi2, chDaneWew, 1, HAL_MAX_DELAY);					//czytaj dane
-    HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
+    HAL_SPI_Receive(&hspi2, chDaneWew, 1, HAL_MAX_DELAY);						//czytaj dane
+    HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
+    hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
     return chDaneWew[0];
 }
 
@@ -99,9 +102,13 @@ uint8_t CzytajDaneFRAM(uint16_t sAdres)
 void CzytajBuforFRAM(uint16_t sAdres, uint8_t* chDaneWyj, uint16_t sIlosc)
 {
 	uint8_t chDaneWew[3];
+	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
-    //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
-    //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
+	//Ponieważ zegar SPI = 80MHz a układ może pracować z prędkością max 40MHz, przy każdym dostępie przestaw dzielnik zegara na 2
+	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
+	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_2;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/2
+
 	if (chAdresModulu != ADR_FRAM)
 		UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
 
@@ -110,26 +117,31 @@ void CzytajBuforFRAM(uint16_t sAdres, uint8_t* chDaneWyj, uint16_t sIlosc)
 	chDaneWew[2] = (uint8_t)(sAdres & 0x00FF);	//adres L
 
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-    HAL_SPI_Transmit(&hspi2, chDaneWew, 3, HAL_MAX_DELAY);					//zapisz opcode i adres
-    HAL_SPI_Receive(&hspi2, chDaneWyj, sIlosc, HAL_MAX_DELAY);				//czytaj dane
-    HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
+    HAL_SPI_Transmit(&hspi2, chDaneWew, 3, HAL_MAX_DELAY);						//zapisz opcode i adres
+    HAL_SPI_Receive(&hspi2, chDaneWyj, sIlosc, HAL_MAX_DELAY);					//czytaj dane
+    HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
+    hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Zapisuje 1 bajt zawartości pamięci
+// Zapisuje 1 bajt do pamięci FRAM
 // Parametry: sAdress - adres pamięci
 //	      chData - dana do zapisu
 // Zwraca: nic
-// Czas wykonania ok. 14,7us
+// Czas wykonania: 9,7us @40MHz
 ////////////////////////////////////////////////////////////////////////////////
-void ZapiszDaneFRAM(unsigned short sAdres, unsigned char chDane)
+void ZapiszFRAM(unsigned short sAdres, uint8_t chDane)
 {
 	uint8_t chDaneWew[4];
+	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
-    //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
-    //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
+	//Ponieważ zegar SPI = 80MHz a układ może pracować z prędkością max 40MHz, przy każdym dostępie przestaw dzielnik zegara na 2
+	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
+	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_2;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/2
+
 	if (chAdresModulu != ADR_FRAM)
 		UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
 
@@ -143,8 +155,9 @@ void ZapiszDaneFRAM(unsigned short sAdres, unsigned char chDane)
 	chDaneWew[2] = (uint8_t)(sAdres & 0x00FF);	//adres L
 	chDaneWew[3] = chDane;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_Transmit(&hspi2, chDaneWew, 4, HAL_MAX_DELAY);					//zapisz opcode i dane
-	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
+	HAL_SPI_Transmit(&hspi2, chDaneWew, 4, HAL_MAX_DELAY);						//zapisz opcode i dane
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
+	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 }
 
 
@@ -156,29 +169,34 @@ void ZapiszDaneFRAM(unsigned short sAdres, unsigned char chDane)
 // [i] *chData - wskaźnik na dane do zapisu
 // [i] chCount - ilość danych do zapisu
 // Zwraca: nic
-// Czas wykonania:
+// Czas wykonania: 20,1us dla 16bjatów @40MHz
 ////////////////////////////////////////////////////////////////////////////////
 void ZapiszBuforFRAM(uint16_t sAdres, uint8_t* chDane, uint16_t sIlosc)
 {
 	uint8_t chDaneWew[3];
+	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
-    //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
-    //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
+	//Ponieważ zegar SPI = 80MHz a układ może pracować z prędkością max 40MHz, przy każdym dostępie przestaw dzielnik zegara na 2
+	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
+	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_2;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/2
+
 	if (chAdresModulu != ADR_FRAM)
 		UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
 
 	chDaneWew[0] = FRAM_WREN;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_Transmit(&hspi2, chDaneWew, 1, HAL_MAX_DELAY);					//zapisz opcode
-	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
+	HAL_SPI_Transmit(&hspi2, chDaneWew, 1, HAL_MAX_DELAY);						//zapisz opcode
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 
 	chDaneWew[0] = FRAM_WRITE;					//opcode
 	chDaneWew[1] = (uint8_t)(sAdres >>8);		//adres H
 	chDaneWew[2] = (uint8_t)(sAdres & 0x00FF);	//adres L
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_Transmit(&hspi2, chDaneWew, 3, HAL_MAX_DELAY);					//zapisz opcode i adres
-	HAL_SPI_Transmit(&hspi2, chDane, sIlosc, HAL_MAX_DELAY);				//zapisz dane
-	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
+	HAL_SPI_Transmit(&hspi2, chDaneWew, 3, HAL_MAX_DELAY);						//zapisz opcode i adres
+	HAL_SPI_Transmit(&hspi2, chDane, sIlosc, HAL_MAX_DELAY);					//zapisz dane
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
+	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 }
 
 
@@ -188,20 +206,19 @@ void ZapiszBuforFRAM(uint16_t sAdres, uint8_t* chDane, uint16_t sIlosc)
 // Parametry:
 // [o] *chDaneWyj - wskaźnik na strukturę 9 bajtów z ID
 // Zwraca: odczytane ID
+// Czas wykonania: 15,5us @10MHz
 ////////////////////////////////////////////////////////////////////////////////
 void CzytajIdFRAM(uint8_t* chDaneID)
 {
 	uint8_t chID = FRAM_RDID;
 
-    //Konfiguruj kontroler magistrali SPI do współpracy z FT25L16
-    //ConfigSPI1(8, 0, PCLK2/12000000L);	//8 bitów transmisji, 12MHz
 	if (chAdresModulu != ADR_FRAM)
 		UstawDekoderModulow(ADR_FRAM);			//Ustaw dekoder adresów /CS.
 
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-    HAL_SPI_Transmit(&hspi2, &chID, 1, HAL_MAX_DELAY);						//zapisz opcode
-    HAL_SPI_Receive(&hspi2, chDaneID, 9, HAL_MAX_DELAY);					//czytaj dane
-    HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
+    HAL_SPI_Transmit(&hspi2, &chID, 1, HAL_MAX_DELAY);							//zapisz opcode
+    HAL_SPI_Receive(&hspi2, chDaneID, 9, HAL_MAX_DELAY);						//czytaj dane
+    HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 }
 
 

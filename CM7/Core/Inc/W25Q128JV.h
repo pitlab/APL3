@@ -5,8 +5,8 @@
  *      Author: PitLab
  */
 
-#ifndef SRC_W25Q128JV_H_
-#define SRC_W25Q128JV_H_
+#ifndef INC_W25Q128JV_H_
+#define INC_W25Q128JV_H_
 
 
 #include "sys_def_CM7.h"
@@ -86,4 +86,4 @@ uint8_t W25_ProgramujStrone256B(uint32_t nAdres, uint8_t* dane, uint16_t ilosc);
 uint8_t W25_KasujSektor4kB(uint32_t nAdres);
 
 
-#endif /* SRC_W25Q128JV_H_ */
+#endif /* INC_W25Q128JV_H_ */

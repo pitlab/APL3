@@ -2,7 +2,7 @@
 //
 // Moduł obsługi wyświetlacza TFT 320x480 RPI 3,5" B https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(B)
 //
-// Opracowano na podstawie analizy działania systemu z obrazu "RPi LCD Bookworm_32bit only for pi5&pi4"
+// Opracowano na podstawie analizy działania systemu z obrazu "RPi LCD Bookworm_32bit only for pi5&pi4" pobranego ze strony waveshare
 //
 // (c) PitLab 2024
 // http://www.pitlab.pl
@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 
-
+// Wyświetlacz pracował na 25MHz ale później zaczął śmiecić na ekranie. Próbuję na 22,2MHz - jest OK
 
 
 //deklaracje zmiennych
