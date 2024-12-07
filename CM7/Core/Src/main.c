@@ -29,6 +29,7 @@
 #include "sys_def_CM7.h"
 #include "LCD.h"
 #include "dotyk.h"
+#include "W25Q128JV.h"
 #include "flash_nor.h"
 #include "flash_konfig.h"
 #include "wymiana_CM7.h"
@@ -62,6 +63,8 @@ RTC_HandleTypeDef hrtc;
 SPI_HandleTypeDef hspi5;
 DMA_HandleTypeDef hdma_spi5_tx;
 
+TIM_HandleTypeDef htim6;
+
 UART_HandleTypeDef huart7;
 
 DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
@@ -70,7 +73,8 @@ SRAM_HandleTypeDef hsram1;
 NOR_HandleTypeDef hnor3;
 
 /* USER CODE BEGIN PV */
-
+uint8_t chErr;
+extern uint8_t chPorty_exp_wysylane[];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -85,6 +89,7 @@ static void MX_RTC_Init(void);
 static void MX_UART7_Init(void);
 static void MX_QUADSPI_Init(void);
 static void MX_FMC_Init(void);
+static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 extern uint8_t InicjujSPIModZewn(void);
 extern uint8_t WymienDaneExpanderow(void);
@@ -181,6 +186,7 @@ Error_Handler();
   MX_UART7_Init();
   MX_QUADSPI_Init();
   MX_FMC_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   InicjujSPIModZewn();
   LCD_init();
@@ -207,8 +213,18 @@ Error_Handler();
 	  CzytajDotyk();
 
 	  //obsłuż międzyprocesorowwą wymianę danych
-	  PobierzDaneWymiany_CM4();
-	  UstawDaneWymiany_CM7();
+	  chErr += PobierzDaneWymiany_CM4();
+	  chErr += UstawDaneWymiany_CM7();
+
+	  if (chErr)
+	  {
+		  chPorty_exp_wysylane[2] &= ~EXP27_LED_R;	//włącz LED_R
+		  chErr = ERR_OK;
+	  }
+	  else
+	  {
+		  chPorty_exp_wysylane[2] |= EXP27_LED_R;	//wyłącz LED_R
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -449,6 +465,44 @@ static void MX_SPI5_Init(void)
   /* USER CODE BEGIN SPI5_Init 2 */
 
   /* USER CODE END SPI5_Init 2 */
+
+}
+
+/**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 200;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 65535;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM6_Init 2 */
+  htim6.Instance->CR1 |= TIM_CR1_CEN;	//włącz timer
+  /* USER CODE END TIM6_Init 2 */
 
 }
 

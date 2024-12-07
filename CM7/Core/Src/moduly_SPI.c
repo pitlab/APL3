@@ -43,7 +43,7 @@ uint8_t InicjujSPIModZewn(void)
 					   (0 << 4)	|	//bit 4 DISSLW: Slew Rate control bit for SDA output:  1 = Slew rate disabled,  0 = Slew rate enabled.
 					   (1 << 3)	|	//bit 3 HAEN: Hardware Address Enable bit (MCP23S08 only): 1 = Enables the MCP23S08 address pins, 0 = Disables the MCP23S08 address pins.
 					   (1 << 2)	|	//bit 2 ODR: This bit configures the INT pin as an open-drain output:  1 = Open-drain output (overrides the INTPOL bit), 0 = Active driver output (INTPOL bit sets the polarity).
-					   (1 << 1);	//bit 1 INTPOL: This bit sets the polarity of the INT output pin: 1 = Active-high, 0 = Active-low.
+					   (0 << 1);	//bit 1 INTPOL: This bit sets the polarity of the INT output pin: 1 = Active-high, 0 = Active-low.
 	UstawDekoderZewn(CS_IO);
 	Err = HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_MAX_DELAY);
 	Err |= UstawDekoderZewn(CS_NIC);

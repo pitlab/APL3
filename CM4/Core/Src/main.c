@@ -42,6 +42,8 @@
 
 SPI_HandleTypeDef hspi2;
 
+TIM_HandleTypeDef htim7;
+
 DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
 /* USER CODE BEGIN PV */
@@ -53,6 +55,7 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_MDMA_Init(void);
 static void MX_SPI2_Init(void);
+static void MX_TIM7_Init(void);
 /* USER CODE BEGIN PFP */
 
 
@@ -107,6 +110,7 @@ int main(void)
   MX_DMA_Init();
   MX_MDMA_Init();
   MX_SPI2_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
   InicjujModulyWew();
 
@@ -196,6 +200,44 @@ static void MX_SPI2_Init(void)
   /* USER CODE BEGIN SPI2_Init 2 */
 
   /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
+  * @brief TIM7 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM7_Init(void)
+{
+
+  /* USER CODE BEGIN TIM7_Init 0 */
+
+  /* USER CODE END TIM7_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM7_Init 1 */
+
+  /* USER CODE END TIM7_Init 1 */
+  htim7.Instance = TIM7;
+  htim7.Init.Prescaler = 200;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim7.Init.Period = 65535;
+  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM7_Init 2 */
+  htim7.Instance->CR1 |= TIM_CR1_CEN;	//włącz timer
+  /* USER CODE END TIM7_Init 2 */
 
 }
 

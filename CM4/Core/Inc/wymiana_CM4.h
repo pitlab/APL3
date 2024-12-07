@@ -10,7 +10,7 @@
 
 #include "wymiana.h"
 
-void PobierzDaneWymiany_CM7(void);
-void UstawDaneWymiany_CM4(void);
+uint8_t PobierzDaneWymiany_CM7(void);
+uint8_t UstawDaneWymiany_CM4(void);
 
 #endif /* INC_WYMIANA_CM4_H_ */

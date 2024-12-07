@@ -16,13 +16,14 @@
 #include "dotyk.h"
 #include "napisy.h"
 #include "flash_nor.h"
+#include "wymiana.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
 extern uint8_t BigFont[];
 const char *build_date = __DATE__;
 const char *build_time = __TIME__;
-
+extern TIM_HandleTypeDef htim6;
 extern const unsigned short obr_ppm[];
 extern const unsigned short obr_sbus[];
 extern const unsigned short obr_multimetr[];
@@ -49,10 +50,10 @@ extern struct _statusDotyku statusDotyku;
 extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
-	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Ikona
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Kamera",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 		obr_ppm},
 	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,		obr_sbus},
-	{"--nic--",		"Podstawowe instrumentu pomiarowe",			TP_KALIB_DOTYK, 	obr_multimetr},
+	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
 	{"Zapis NOR", 	"Test zapisu do flash NOR",					TP_MULTITOOL,		obr_calibration},
 	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_calibration},
 	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_calibration},
@@ -124,6 +125,14 @@ void RysujEkran(void)
 		break;
 
 	case TP_USTAWIENIA:	break;
+
+	case TP_POMIARY_IMU:	PomiaryIMU();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_MENU;
+		}
+		break;
 
 	}
 
@@ -204,7 +213,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 		setColor(GRAY20);
 		setBackColor(WHITE);
 		setFont(BigFont);
-		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_TYTUL]);
+		sprintf(chNapis, "%s @ %lu MHz", (char*)chNapisLcd[STR_WITAJ_TYTUL], HAL_RCC_GetSysClockFreq()/1000000);
 		print(chNapis, CENTER, 100);
 
 		setColor(GRAY30);
@@ -281,39 +290,39 @@ void Wykrycie(uint16_t x, uint16_t y, uint8_t znakow, uint8_t wykryto)
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void FraktalTest(unsigned char chTyp)
+void FraktalTest(uint8_t chTyp)
 {
-	unsigned int nCzas;
+	uint16_t sCzas;
 
-	nCzas = HAL_GetTick();
+	sCzas = PobierzCzasT6();
 	switch (chTyp)
 	{
 	case 0:	GenerateJulia(DISP_X_SIZE, DISP_Y_SIZE, DISP_X_SIZE/2, DISP_Y_SIZE/2, 135, sBuforLCD);
-			nCzas = MinalCzas(nCzas);
-			sprintf(chNapis, "Julia: t=%dms, c=%.3f ", nCzas, fImag);
-			fImag -= 0.002;
-			break;
+		sCzas = MinalCzas(sCzas);
+		sprintf(chNapis, "Julia: t=%dus, c=%.3f ", sCzas, fImag);
+		fImag -= 0.002;
+		break;
 
 			//ca�y fraktal - rotacja palety
 	case 1: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
-			nCzas = MinalCzas(nCzas);
-			sprintf(chNapis, "Mandelbrot: t=%dms z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
-			chMnozPalety += 1;
-			break;
+		sCzas = MinalCzas(sCzas);
+		sprintf(chNapis, "Mandelbrot: t=%dus z=%.1f, p=%d", sCzas, fZoom, chMnozPalety);
+		chMnozPalety += 1;
+		break;
 
 			//dolina konika x=-0,75, y=0,1
 	case 2: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
-			nCzas = MinalCzas(nCzas);
-			sprintf(chNapis, "Mandelbrot: t=%dms z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
-			fZoom /= 0.9;
-			break;
+		sCzas = MinalCzas(sCzas);
+		sprintf(chNapis, "Mandelbrot: t=%dus z=%.1f, p=%d", sCzas, fZoom, chMnozPalety);
+		fZoom /= 0.9;
+		break;
 
 			//dolina s�onia x=0,25-0,35, y=0,05, zoom=-0,6..-40
 	case 3: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
-			nCzas = MinalCzas(nCzas);
-			sprintf(chNapis, "Mandelbrot: t=%dms z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
-			fZoom /= 0.9;
-			break;
+		sCzas = MinalCzas(sCzas);
+		sprintf(chNapis, "Mandelbrot: t=%dus z=%.1f, p=%d", sCzas, fZoom, chMnozPalety);
+		fZoom /= 0.9;
+		break;
 	}
 
 	//drawBitmap2(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wywyła większymi paczkami - zła kolejność ale szybciej
@@ -542,22 +551,32 @@ void HSV2RGB(float hue, float sat, float val, float *red, float *grn, float *blu
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Pobiera stan licznika pracującego na 200MHz/200
+// Parametry: brak
+// Zwraca: stan licznika w mikrosekundach
+////////////////////////////////////////////////////////////////////////////////
+uint16_t PobierzCzasT6(void)
+{
+	return htim6.Instance->CNT;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy upływ czasu
 // Parametry: nStart - licznik czasu na na początku pomiaru
 // Zwraca: ilość czasu w milisekundach jaki upłynął do podanego czasu startu
 ////////////////////////////////////////////////////////////////////////////////
-uint32_t MinalCzas(uint32_t nStart)
+uint16_t MinalCzas(uint16_t sPoczatek)
 {
-	uint32_t nCzas, nCzasAkt;
+	uint16_t sCzas, sCzasAkt;
 
-	nCzasAkt = HAL_GetTick();
-	if (nCzasAkt >= nStart)
-		nCzas = nCzasAkt - nStart;
+	sCzasAkt = PobierzCzasT6();
+	if (sCzasAkt >= sPoczatek)
+		sCzas = sCzasAkt - sPoczatek;
 	else
-		nCzas = 0xFFFFFFFF - nStart + nCzasAkt;
-	return nCzas;
+		sCzas = 0xFFFF - sPoczatek + sCzasAkt;
+	return sCzas;
 }
 
 
@@ -718,17 +737,65 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 ////////////////////////////////////////////////////////////////////////////////
 void BelkaTytulu(char* chTytul)
 {
-	//LCD_Orient(POZIOMO);
 	setColor(MENU_TLO_BAR);
 	fillRect(18, 0, DISP_HX_SIZE, MENU_NAG_WYS);
-	drawBitmap(0, 0, 18, 18, pitlab_logo18);	//logo producenta
+	drawBitmap(0, 0, 18, 18, pitlab_logo18);	//logo PitLab
 	setColor(YELLOW);
 	setBackColor(MENU_TLO_BAR);
 	setFont(BigFont);
 	print(chTytul, CENTER, UP_SPACE);
-	//IkonaBaterii(chChargeLevel, chBatStat);	//rysuj ikonę baterii
 	setBackColor(BLACK);
 	setColor(WHITE);
 	setFont(MidFont);
-	//chOdswiez = 0;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje okno z damymi pomiarowymi IMU
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void PomiaryIMU(void)
+{
+	extern volatile unia_wymianyCM4 uDaneCM4;
+
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Dane pomiarowe IMU");
+		setColor(GRAY60);
+		sprintf(chNapis, "Wdus ekran aby zakonczyc");
+		print(chNapis, CENTER, 30);
+		setColor(WHITE);
+	}
+	sprintf(chNapis, "Wysokosc: baro 1 = %.2f, baro 2 = %.2f", uDaneCM4.dane.fWysokosc[0], uDaneCM4.dane.fWysokosc[1]);
+	print(chNapis, 10, 60);
+	sprintf(chNapis, "Akcelerometr 1: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);
+	print(chNapis, 10, 80);
+	sprintf(chNapis, "Akcelerometr 2: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fAkcel2[0], uDaneCM4.dane.fAkcel2[1], uDaneCM4.dane.fAkcel2[2]);
+	print(chNapis, 10, 100);
+	sprintf(chNapis, "Zyroskop 1:     X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fZyro1[0], uDaneCM4.dane.fZyro1[1], uDaneCM4.dane.fZyro1[2]);
+	print(chNapis, 10, 120);
+	sprintf(chNapis, "Zyroskop 2:     X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fZyro2[0], uDaneCM4.dane.fZyro2[1], uDaneCM4.dane.fZyro2[2]);
+	print(chNapis, 10, 140);
+	sprintf(chNapis, "Magnetometr 1:  X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fMagn1[0], uDaneCM4.dane.fMagn1[1], uDaneCM4.dane.fMagn1[2]);
+	print(chNapis, 10, 160);
+	sprintf(chNapis, "Magnetometr 2:  X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fMagn2[0], uDaneCM4.dane.fMagn2[1], uDaneCM4.dane.fMagn2[2]);
+	print(chNapis, 10, 180);
+	sprintf(chNapis, "Wysokosc: baro 1 = %.2f, baro 2 = %.2f", uDaneCM4.dane.fWysokosc[0], uDaneCM4.dane.fWysokosc[1]);
+	print(chNapis, 10, 200);
+
+	sprintf(chNapis, "Pochyl = %.3f, Przechyl = %.3f, Odchyl = %.3f", uDaneCM4.dane.fKatyIMU[0], uDaneCM4.dane.fKatyIMU[1], uDaneCM4.dane.fKatyIMU[2]);
+	print(chNapis, 10, 220);
+
+	//sprintf(chNapis, "Serwa: 1 = %d, 2 = %d, 3 = %d, 4 = %d, 5 = %d, 6 = %d, 7 = %d, 8 = %d", uDaneCM4.dane.sSerwa[0], uDaneCM4.dane.sSerwa[1], uDaneCM4.dane.sSerwa[2], uDaneCM4.dane.sSerwa[3], uDaneCM4.dane.sSerwa[4], uDaneCM4.dane.sSerwa[5], uDaneCM4.dane.sSerwa[6], uDaneCM4.dane.sSerwa[7]);
+	sprintf(chNapis, "Serwa:  1 = %d,  2 = %d,  3 = %d,  4 = %d", uDaneCM4.dane.sSerwa[0], uDaneCM4.dane.sSerwa[1], uDaneCM4.dane.sSerwa[2], uDaneCM4.dane.sSerwa[3]);
+	print(chNapis, 10, 240);
+	sprintf(chNapis, "Serwa:  5 = %d,  6 = %d,  7 = %d,  8 = %d", uDaneCM4.dane.sSerwa[4], uDaneCM4.dane.sSerwa[5], uDaneCM4.dane.sSerwa[6], uDaneCM4.dane.sSerwa[7]);
+	print(chNapis, 10, 260);
+	sprintf(chNapis, "Serwa:  9 = %d, 10 = %d, 11 = %d, 12 = %d", uDaneCM4.dane.sSerwa[8], uDaneCM4.dane.sSerwa[9], uDaneCM4.dane.sSerwa[10], uDaneCM4.dane.sSerwa[11]);
+	print(chNapis, 10, 280);
+	sprintf(chNapis, "Serwa: 13 = %d, 14 = %d, 15 = %d, 16 = %d", uDaneCM4.dane.sSerwa[12], uDaneCM4.dane.sSerwa[13], uDaneCM4.dane.sSerwa[14], uDaneCM4.dane.sSerwa[15]);
+	print(chNapis, 10, 300);
 }

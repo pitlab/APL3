@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include <stdio.h>
-#include <W25Q128JV.h>
+#include "W25Q128JV.h"
 #include "LCD.h"
 #include "RPi35B_480x320.h"
 
@@ -334,7 +334,7 @@ uint8_t W25_ProgramujStrone256B(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 	HAL_StatusTypeDef chErr;
 	QSPI_CommandTypeDef cmd;
 	uint8_t chStatus;
-	uint32_t nCzas;
+	uint16_t sCzas;
 
 	//włacz pozwolenie na zapis. Po zaprogramowaniu strony pozwolenie samo sie wyłączy
 	W25_UstawWriteEnable();
@@ -376,11 +376,11 @@ uint8_t W25_ProgramujStrone256B(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 	}
 
 	//po zapisaniu czytaj status dopuki jest ustawiony bit Busy lub wystąpi timeout max 3ms
-	nCzas = HAL_GetTick();
+	sCzas = PobierzCzasT6();
 	do
 	{
 		W25_CzytajStatus(1, &chStatus);
-		if (MinalCzas(nCzas) > TOUT_PAGE_PROGRAM)
+		if (MinalCzas(sCzas) > TOUT_PAGE_PROGRAM)
 			chErr = ERR_TIMEOUT;
 	}
 	while ((chStatus & STATUS1_BUSY) && (!chErr));
@@ -401,7 +401,7 @@ uint8_t W25_KasujSektor4kB(uint32_t nAdres)
 	HAL_StatusTypeDef chErr;
 	QSPI_CommandTypeDef cmd;
 	uint8_t chStatus;
-	uint32_t nCzas;
+	uint16_t sCzas;
 
 	//włącz pozwolenie na zapis. Po skasowaniu sektora pozwolenie samo sie wyłączy
 	W25_UstawWriteEnable();
@@ -443,11 +443,11 @@ uint8_t W25_KasujSektor4kB(uint32_t nAdres)
 	//}
 
 	//po zapisaniu czytaj status dopuki jest ustawiony bit Busy lub wystąpi timeout max 400ms
-	nCzas = HAL_GetTick();
+	sCzas = PobierzCzasT6();
 	do
 	{
 		W25_CzytajStatus(1, &chStatus);
-		if (MinalCzas(nCzas) > TOUT_SECTOR4K_ERASE)
+		if (MinalCzas(sCzas) > TOUT_SECTOR4K_ERASE)
 			chErr = ERR_TIMEOUT;
 	}
 	while ((chStatus & STATUS1_BUSY) && (!chErr));
@@ -469,20 +469,16 @@ uint8_t W25_TestTransferu(void)
 	uint16_t y;
 	//uint8_t chStatus;
 	uint8_t chBufor[BUFOR_W25_ROZM];
-	uint32_t nCzas;
+	uint16_t sCzas;
 	extern uint8_t chRysujRaz;
 
-	//chErr = W25_SprawdzObecnoscFlashQSPI();
-	//chErr = W25_CzytajStatus(1, &chStatus);
-	//chErr = W25_CzytajStatus(2, &chStatus);
-	//chErr = W25_CzytajStatus(3, &chStatus);
 
 	if (chRysujRaz)
 	{
 		chRysujRaz = 0;
 		BelkaTytulu("Pomiar odczytu z Flash QSPI");
 		setColor(GRAY60);
-		sprintf(chNapis, "Wdus ekran aby zakonczyc pomiar");
+		sprintf(chNapis, "Dus ekran aby zakonczyc pomiar");
 		print(chNapis, CENTER, 40);
 		setColor(WHITE);
 	}
@@ -491,7 +487,7 @@ uint8_t W25_TestTransferu(void)
 	for (y=0; y<256; y++)
 		chBufor[y] = y;
 
-	nCzas = HAL_GetTick();
+	sCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
 		chErr = W25_ProgramujStrone256B(0x5000 + y*0x100, chBufor, 256);
@@ -502,16 +498,17 @@ uint8_t W25_TestTransferu(void)
 			return chErr;
 		}
 	}
-	nCzas = MinalCzas(nCzas);
-	if (nCzas)
-		sprintf(chNapis, "ZapiszStrone256B() t = %ldms, transfer = %.2f MB/s ", nCzas, (float)(16 * 256 * 1000) / (nCzas * 1024 * 1024));
+	sCzas = MinalCzas(sCzas);
+	if (sCzas)
+		//sprintf(chNapis, "ZapiszStrone256B() t = %dus, transfer = %.2f MB/s ", sCzas, (float)(16 * 256 * 1000000) / (sCzas * 1024 * 1024));
+		sprintf(chNapis, "ZapiszStrone256B() t = %d us => %.2f MB/s ", sCzas, (float)(16 * 256) / (sCzas * 1.048576f));
 	print(chNapis, 10, 80);
 
 
 
 	//odczyt danych przez SPI po 1 linii
-	nCzas = HAL_GetTick();
-	for (y=0; y<4096; y++)
+	sCzas = PobierzCzasT6();
+	for (y=0; y<512; y++)
 	{
 		chErr = W25_CzytajDane1A1D(0x5000, chBufor, BUFOR_W25_ROZM);
 		if (chErr != ERR_OK)
@@ -521,15 +518,15 @@ uint8_t W25_TestTransferu(void)
 			return chErr;
 		}
 	}
-	nCzas = MinalCzas(nCzas);
-	if (nCzas)
-		sprintf(chNapis, "CzytajDane1A1D() t = %ldms, transfer = %.2f MB/s ", nCzas, (float)(BUFOR_W25_ROZM * 4000) / (nCzas * 1024));
+	sCzas = MinalCzas(sCzas);
+	if (sCzas)
+		sprintf(chNapis, "CzytajDane1A1D() t = %d us => %.2f MB/s ", sCzas, (float)(BUFOR_W25_ROZM * 512) / (sCzas * 1.048576f));
 	print(chNapis, 10, 100);
 
 
 	//odczyt danych przez SPI po 4 liniach
-	nCzas = HAL_GetTick();
-	for (y=0; y<4096; y++)
+	sCzas = PobierzCzasT6();
+	for (y=0; y<512; y++)
 	{
 		chErr = W25_CzytajDane4A4D(0x5000, chBufor, BUFOR_W25_ROZM);
 		if (chErr != ERR_OK)
@@ -539,14 +536,14 @@ uint8_t W25_TestTransferu(void)
 			return chErr;
 		}
 	}
-	nCzas = MinalCzas(nCzas);
-	if (nCzas)
-		sprintf(chNapis, "CzytajDane4A4D() t = %ldms, transfer = %.2f MB/s ", nCzas, (float)(BUFOR_W25_ROZM * 4000) / (nCzas * 1024));
+	sCzas = MinalCzas(sCzas);
+	if (sCzas)
+		sprintf(chNapis, "CzytajDane4A4D() t = %d us => %.2f MB/s ", sCzas, (float)(BUFOR_W25_ROZM * 512) / (sCzas * 1.048576f));
 	print(chNapis, 10, 120);
 
 
 	//kasuj sektor 4kB
-	nCzas = HAL_GetTick();
+	sCzas = PobierzCzasT6();
 	for (y=0; y<1; y++)
 	{
 		chErr = W25_KasujSektor4kB(0x5000);
@@ -557,9 +554,9 @@ uint8_t W25_TestTransferu(void)
 			return chErr;
 		}
 	}
-	nCzas = MinalCzas(nCzas);
-	if (nCzas)
-		sprintf(chNapis, "KasujSektor4kB() t = %ldms, transfer = %.2f MB/s ", nCzas, (float)(4096 * 1000) / (nCzas * 1024 * 1024));
+	sCzas = MinalCzas(sCzas);
+	if (sCzas)
+		sprintf(chNapis, "KasujSektor4kB() t = %d us => %.2f MB/s ", sCzas, (float)(4096) /  (float)(sCzas * 1.048576f));
 	print(chNapis, 10, 140);
 
 	return chErr;

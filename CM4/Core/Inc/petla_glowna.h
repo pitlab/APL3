@@ -13,6 +13,7 @@
 
 
 void PetlaGlowna(void);
-uint32_t MinalCzas(uint32_t nStart);
+uint16_t PobierzCzasT7(void);
+uint16_t MinalCzas(uint16_t sPoczatek);
 
 #endif /* SRC_PETLA_GLOWNA_H_ */

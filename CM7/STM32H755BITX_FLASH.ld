@@ -220,13 +220,16 @@ SECTIONS
     *(.Bufory_SRAM3)  
   } >SRAM_AHB3_D2
 
-/* Sekcja bufor?w w pami?ci SRAM_D4 aktywnych r?wnie? w standby, 64k*/
+/* Sekcja buforów w pamięci SRAM_D4 aktywnych również w standby, 64k */
 .bufory_AHB4_D2 (NOLOAD) :
   {
     *(.Bufory_SRAM4)  
+    
+    . = ABSOLUTE(0x3800F800);		/* Ostatni 2 kB przeznaczone na międzyrdzeniowy bufor wymiany danych */
+    *(.BuforyWymianyCM7CM4_SRAM4)
   } >SRAM_AHB4_D3  
   
- /* Sekcja backup podtrzymywana bateri?, 4k*/
+ /* Sekcja backup podtrzymywana baterią, 4k*/
 .backup (NOLOAD) :
   {
     *(.Backup)  

@@ -12,13 +12,14 @@
  *
  * */
 
-#include "wymiana.h"
+
 #include "wymiana_CM7.h"
+#include "errcode.h"
 
-
-uint32_t nBuforWymianyCM4[ROZMIAR_BUF32_WYMIANY_CM4]  __attribute__((section(".Bufory_SRAM4")));
-uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7]  __attribute__((section(".Bufory_SRAM4")));
-
+//uint32_t nBuforWymianyCM4[ROZMIAR_BUF32_WYMIANY_CM4]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
+//uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
+volatile uint32_t* nBuforWymianyCM4 = (void*) ADRES_BUF_WYMIANY_CM4;
+volatile uint32_t* nBuforWymianyCM7 = (void*) ADRES_BUF_WYMIANY_CM7;
 unia_wymianyCM4 uDaneCM4;
 unia_wymianyCM7 uDaneCM7;
 
@@ -27,42 +28,54 @@ unia_wymianyCM7 uDaneCM7;
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void PobierzDaneWymiany_CM4(void)
+uint8_t PobierzDaneWymiany_CM4(void)
 {
 	uint32_t nStanSemafora;
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef chErr = ERR_SEMAFOR_ZAJETY;
 
 	nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM4_TO_CM7);
 	if (!nStanSemafora)
 	{
-		chErr = HAL_HSEM_FastTake(HSEM_CM4_TO_CM7);
-		for (uint8_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
+		//chErr = HAL_HSEM_FastTake(HSEM_CM4_TO_CM7);
+		chErr = HAL_HSEM_Take(HSEM_CM4_TO_CM7, 0);
+
+		if (chErr == ERR_OK)
 		{
-			uDaneCM4.nSlowa[n] = nBuforWymianyCM4[n];
+			for (uint8_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
+			{
+				uDaneCM4.nSlowa[n] = nBuforWymianyCM4[n];
+			}
+			HAL_HSEM_Release(HSEM_CM4_TO_CM7, 0);
 		}
-		HAL_HSEM_Release(HSEM_CM4_TO_CM7, 0);
 	}
+	return chErr;
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Pobiera dane z rdzenia CM4
+// Ustaw dane z rdzenia CM7
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void UstawDaneWymiany_CM7(void)
+uint8_t UstawDaneWymiany_CM7(void)
 {
 	uint32_t nStanSemafora;
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef chErr = ERR_SEMAFOR_ZAJETY;
 
+	uDaneCM7.dane.sTest++;
 	nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM7_TO_CM4);
 	if (!nStanSemafora)
 	{
-		chErr = HAL_HSEM_FastTake(HSEM_CM7_TO_CM4);
-		for (uint8_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM7; n++)
+		//chErr = HAL_HSEM_FastTake(HSEM_CM7_TO_CM4);
+		chErr = HAL_HSEM_Take(HSEM_CM7_TO_CM4, 0);
+		if (chErr == ERR_OK)
 		{
-			nBuforWymianyCM7[n] = uDaneCM7.nSlowa[n];
+			for (uint8_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM7; n++)
+			{
+				nBuforWymianyCM7[n] = uDaneCM7.nSlowa[n];
+			}
+			HAL_HSEM_Release(HSEM_CM7_TO_CM4, 0);
 		}
-		HAL_HSEM_Release(HSEM_CM7_TO_CM4, 0);
 	}
+	return chErr;
 }

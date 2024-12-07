@@ -61,9 +61,9 @@
 
 
 //czasy timeoutu programowania
-#define TOUT_PAGE_PROGRAM				3	//timeout programowania strony 3ms
-#define TOUT_STATUS_REG_PROGRAM			15	//timeout programowania rejestru statusu 15ms
-#define TOUT_SECTOR4K_ERASE				400	//timeout kasowania sektora 4kB 400ms
+#define TOUT_PAGE_PROGRAM				3000	//timeout programowania strony 3ms
+#define TOUT_STATUS_REG_PROGRAM			15000	//timeout programowania rejestru statusu 15ms
+#define TOUT_SECTOR4K_ERASE				400000	//timeout kasowania sektora 4kB 400ms
 
 //bity rejestru statusu 1
 #define STATUS1_BUSY					0x01

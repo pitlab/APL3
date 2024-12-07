@@ -8,7 +8,9 @@
 #ifndef INC_WYMIANA_CM7_H_
 #define INC_WYMIANA_CM7_H_
 
-void PobierzDaneWymiany_CM4(void);
-void UstawDaneWymiany_CM7(void);
+#include "wymiana.h"
+
+uint8_t PobierzDaneWymiany_CM4(void);
+uint8_t UstawDaneWymiany_CM7(void);
 
 #endif /* INC_WYMIANA_CM7_H_ */
