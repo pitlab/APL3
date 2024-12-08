@@ -47,11 +47,10 @@ MEMORY
   ITCMRAM		(xrw)  : ORIGIN = 0x00000000, LENGTH = 64K
   FLASH			(rx)   : ORIGIN = 0x08000000, LENGTH = 1024K    /* Memory is divided. Actual start is 0x08000000 and actual length is 2048K */
   DTCMRAM		(xrw)  : ORIGIN = 0x20000000, LENGTH = 128K		/* DTCM D1: zmienne krytyczne, rozmiar=0x20000 */
-  SRAM_AXI_D1	(xrw)  : ORIGIN = 0x24000000, LENGTH = 512K  	/* AXI-SRAM D1: dane i bufory, stos, sterta, rozmiar=0x80000 */
-  SRAM_AHB1_D2	(xrw)  : ORIGIN = 0x30000000, LENGTH = 128K  	/* AHB-SRAM D2: bufory DMA, kod dla M4 */
-  SRAM_AHB2_D2 	(xrw)  : ORIGIN = 0x30020000, LENGTH = 128K		/* AHB-SRAM D2: bufory DMA, dane dla M4 */
-  SRAM_AHB3_D2	(xrw)  : ORIGIN = 0x30040000, LENGTH = 32K		/* AHB-SRAM D2: bufory ethernet, USB, wspłdzielenie danych*/
-  SRAM_AHB4_D3	(xrw)  : ORIGIN = 0x38000000, LENGTH = 64K		/* AHB-SRAM D3: backup w czasie standby, wspłdzielenie danych między rdzeniami, rozmiar=0x10000 */
+  SRAM_AXI_D1	(xrw)  : ORIGIN = 0x24000000, LENGTH = 512K  	/* AXI-SRAM D1: stos, sterta i dane dla CM7, bufory,  rozmiar=0x80000 */
+  SRAM2_AHB_D2 	(xrw)  : ORIGIN = 0x30020000, LENGTH = 128K 	/* AHB-SRAM2 D2: bufory DMA */
+  SRAM3_AHB_D2	(xrw)  : ORIGIN = 0x30040000, LENGTH = 32K		/* AHB-SRAM3 D2: bufory ethernet, USB */
+  SRAM4_AHB_D3	(xrw)  : ORIGIN = 0x38000000, LENGTH = 64K		/* AHB-SRAM4 D3: współdzielenie danych między rdzeniami, rozmiar=0x10000 */
   BACKUP  		(rw)   : ORIGIN = 0x38800000, LENGTH = 4K
   EXT_SRAM		(rw)   : ORIGIN = 0x60000000, LENGTH = 4M		/* zewnętrzny SRAM 2Mbx16  bank1 CS1*/
   FLASH_NOR		(rxw)  : ORIGIN = 0x68000000, LENGTH = 32M		/* zewnętrzny flash 256Mb  bank1 CS3*/
@@ -182,32 +181,27 @@ SECTIONS
     . = ALIGN(8);
   } >SRAM_AXI_D1
 
-/* Sekcja zmiennych krytycznych w pami?ci DTCM 128K*/
+/* Sekcja zmiennych krytycznych w pamięci DTCM 128K*/
 .zmienneDTCM (NOLOAD) :
   {
     *(.Zmienne_DTCM)  
   } >DTCMRAM
 
-/* Sekcja bufor?w w pami?ci z dost?pem do magistrali AXI 512K*/
+/* Sekcja buforów w pamięci z dostępem do magistrali AXI 512K*/
 .bufory_AXI (NOLOAD) :
   {
     *(.BuforyObrazu_AXI)  
   } >SRAM_AXI_D1
 
-/* Sekcja bufor?w w pami?ci SRAM_AHB1_D2 128K*/
-.bufory_AHB1_D2 (NOLOAD) :
-  {
-    *(.Bufory_SRAM1)  
-  } >SRAM_AHB1_D2
 
-/* Sekcja bufor?w w pami?ci SRAM_AHB2_D2 128K*/
-.bufory_AHB2_D2 (NOLOAD) :
+/* Sekcja buforów w pamięci SRAM2_AHB_D2 128K*/
+.bufory_SRAM2_AHB_D2 (NOLOAD) :
   {
     *(.Bufory_SRAM2)  
-  } >SRAM_AHB2_D2
+  } >SRAM2_AHB_D2
   
-/* Sekcja bufor?w ethernetu SRAM_AHB3_D2 32kB */
-.bufory_AHB3_D2 (NOLOAD) :
+/* Sekcja buforów ethernetu SRAM3_AHB_D2 32kB */
+.bufory_SRAM3_AHB_D2 (NOLOAD) :
   {
     . = ABSOLUTE(0x30040000);
     *(.RxDecripSection) 
@@ -218,16 +212,16 @@ SECTIONS
     . = ABSOLUTE(0x30040200);
     *(.Rx_PoolSection)  
     *(.Bufory_SRAM3)  
-  } >SRAM_AHB3_D2
+  } >SRAM3_AHB_D2
 
-/* Sekcja buforów w pamięci SRAM_D4 aktywnych również w standby, 64k */
-.bufory_AHB4_D2 (NOLOAD) :
+/* Sekcja buforów w pamięci SRAM4_AHB_D3 aktywnych również w standby, 64k */
+.bufory_SRAM4_AHB_D3 (NOLOAD) :
   {
     *(.Bufory_SRAM4)  
     
     . = ABSOLUTE(0x3800F800);		/* Ostatni 2 kB przeznaczone na międzyrdzeniowy bufor wymiany danych */
     *(.BuforyWymianyCM7CM4_SRAM4)
-  } >SRAM_AHB4_D3  
+  } >SRAM4_AHB_D3  
   
  /* Sekcja backup podtrzymywana baterią, 4k*/
 .backup (NOLOAD) :

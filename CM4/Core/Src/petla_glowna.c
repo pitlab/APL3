@@ -115,11 +115,11 @@ void PetlaGlowna(void)
 		chBledyPetliGlownej  = PobierzDaneWymiany_CM7();
 		chErr = UstawDaneWymiany_CM4();
 		if (chErr == ERR_SEMAFOR_ZAJETY)
-			chStanIOwy &= ~0x80;
+			chStanIOwy &= ~0x40;	//zaświeć czerwoną LED
 		else
-			chStanIOwy |= 0x80;
+			chStanIOwy |= 0x40;		//zgaś czerwoną LED
 		chBledyPetliGlownej |= chErr;
-		chStanIOwy ^= 0x40;
+		chStanIOwy ^= 0x80;		//Zielona LED
 		break;
 
 	default:	break;
