@@ -22,10 +22,7 @@ uint16_t sCzasOdcinka[LICZBA_ODCINKOW_CZASU];		//zmierzony czas obsługo odcinka
 uint16_t sMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
 uint16_t sCzasJalowy;
 uint8_t chBledyPetliGlownej = ERR_OK;
-/*float fAkcel1[3], fAkcel2[3];
-float fZyro1[3], fZyro2[3];
-float fMagn1[3], fMagn2[3];
-uint16_t sSerwa[16];*/
+uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 
 
 
@@ -36,7 +33,7 @@ uint16_t sSerwa[16];*/
 ////////////////////////////////////////////////////////////////////////////////
 void PetlaGlowna(void)
 {
-	uint8_t chDane[16];
+	uint8_t chErr, chDane[16];
 	uint16_t n;
 	uint32_t nCzas;
 	float fTemp;
@@ -82,11 +79,12 @@ void PetlaGlowna(void)
 		break;
 
 	case 8:
-		chBledyPetliGlownej |= WyslijDaneExpandera(0x55);
+
+		chBledyPetliGlownej |= WyslijDaneExpandera(chStanIOwy);
 		break;
 
 	case 9:
-		chBledyPetliGlownej |= WyslijDaneExpandera(0xAA);
+		//chBledyPetliGlownej |= WyslijDaneExpandera(chStanIOwy);
 		break;
 
 	case 10:
@@ -115,7 +113,13 @@ void PetlaGlowna(void)
 	case 15:	//wymień dane między rdzeniami
 		uDaneCM4.dane.chBledyPetliGlownej = chBledyPetliGlownej;
 		chBledyPetliGlownej  = PobierzDaneWymiany_CM7();
-		chBledyPetliGlownej |= UstawDaneWymiany_CM4();
+		chErr = UstawDaneWymiany_CM4();
+		if (chErr == ERR_SEMAFOR_ZAJETY)
+			chStanIOwy &= ~0x80;
+		else
+			chStanIOwy |= 0x80;
+		chBledyPetliGlownej |= chErr;
+		chStanIOwy ^= 0x40;
 		break;
 
 	default:	break;

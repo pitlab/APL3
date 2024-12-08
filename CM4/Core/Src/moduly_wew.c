@@ -37,7 +37,7 @@ uint8_t InicjujModulyWew(void)
 	dane_wysylane[1] = MCP23S08_IOCON;
 	dane_wysylane[2] = (1 << 5) |	//bit 5 SEQOP: Sequential Operation mode bit: 1 = Sequential operation disabled, address pointer does not increment, 0 = Sequential operation enabled, address pointer increments.
 					   (0 << 4)	|	//bit 4 DISSLW: Slew Rate control bit for SDA output:  1 = Slew rate disabled,  0 = Slew rate enabled.
-					   (1 << 3)	|	//bit 3 HAEN: Hardware Address Enable bit (MCP23S08 only): 1 = Enables the MCP23S08 address pins, 0 = Disables the MCP23S08 address pins.
+					   (0 << 3)	|	//bit 3 HAEN: Hardware Address Enable bit (MCP23S08 only): 1 = Enables the MCP23S08 address pins, 0 = Disables the MCP23S08 address pins.
 					   (0 << 2)	|	//bit 2 ODR: This bit configures the INT pin as an open-drain output:  1 = Open-drain output (overrides the INTPOL bit), 0 = Active driver output (INTPOL bit sets the polarity).
 					   (0 << 1);	//bit 1 INTPOL: This bit sets the polarity of the INT output pin: 1 = Active-high, 0 = Active-low.
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
@@ -75,6 +75,7 @@ uint8_t WyslijDaneExpandera(uint8_t daneWy)
 {
 	HAL_StatusTypeDef chErr;
 	uint8_t dane_wysylane[3];
+	//uint8_t dane_odbierane[3];
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
 	//Ponieważ zegar SPI = 80MHz a układ może pracować z prędkością max 10MHz, przy każdym dostępie przestaw dzielnik zegara na 8
@@ -88,6 +89,9 @@ uint8_t WyslijDaneExpandera(uint8_t daneWy)
 	dane_wysylane[2] = daneWy;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 	chErr = HAL_SPI_Transmit(&hspi2, dane_wysylane, 3, HAL_MAX_DELAY);
+	//chErr = HAL_SPI_TransmitReceive(&hspi2, dane_wysylane, dane_odbierane, 3, HAL_MAX_DELAY);
+
+
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 	return chErr;
