@@ -72,6 +72,8 @@ void HAL_MspInit(void)
   __HAL_RCC_SYSCFG_CLK_ENABLE();
 
   /* System interrupt init*/
+  /* PendSV_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(PendSV_IRQn, 15, 0);
 
   /** PVD Configuration
   */
@@ -293,7 +295,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi)
     __HAL_LINKDMA(hspi,hdmatx,hdma_spi5_tx);
 
     /* SPI5 interrupt Init */
-    HAL_NVIC_SetPriority(SPI5_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(SPI5_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(SPI5_IRQn);
   /* USER CODE BEGIN SPI5_MspInit 1 */
 

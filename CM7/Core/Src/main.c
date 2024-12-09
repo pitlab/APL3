@@ -11,18 +11,29 @@
  * 0x30020000..0x30040000 - 128k (0x20000)stos lwIP
  * 0x30040000..0x30040200 - 512  (0x200) deskryptory DMA ETH
  * 0x30040200..0x38000000 - 130k (0x7FBEFE00) wolne
- *
- * Dostępne przez FMC
- * 0x60000000..0x603FFFFF - 4MB pamięć SRAM
- * 0x68000000..0x68FFFFFF - 32MB pamięć Flash NOR
- *
- *
- *Zrobć:
 
+
+ * 								Pozwolenia dla MPU
+Adres		Rozm	CPU		Instr	Share	Cache	Buffer		Nazwa			Zastosowanie
+0x00000000	64K		CM7				 				 			ITCMRAM
+0x08000000	1024K	CM7		+		-		+		-			FLASH			kod programu dla CM7
+0x08100000	1024K	CM4		+		-		+		-			FLASH			kod programu dla CM4
+0x20000000	128K	CM7											DTCMRAM
+0x24000000	512K	CM7		-		-		-		+			SRAM_AXI_D1		stos i dane dla CM7
+0x30000000  128K	CM4		-		+		-		+			SRAM1_AHB_D2	stos i dane dla CM4
+0x30020000	128K	CM7		-		-		-		-   		SRAM2_AHB_D2	bufory ethernet
+0x30040000	32K		CM7		-		+		+		+  			SRAM3_AHB_D2
+0x38000000	64K		CM4+7	-		+		-		-			SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2
+0x38800000	4K		CM7											BACKUP
+0x60000000	4M		CM7		-		+		-		+			EXT_SRAM		bufor obrazu z kamery
+0x68000000	32M		CM7		+		+		+		-			FLASH_NOR
+
+ *Zrobć:
  * */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -72,6 +83,7 @@ MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
 SRAM_HandleTypeDef hsram1;
 NOR_HandleTypeDef hnor3;
 
+osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 uint8_t chErr;
 extern uint8_t chPorty_exp_wysylane[];
@@ -90,6 +102,8 @@ static void MX_UART7_Init(void);
 static void MX_QUADSPI_Init(void);
 static void MX_FMC_Init(void);
 static void MX_TIM6_Init(void);
+void StartDefaultTask(void const * argument);
+
 /* USER CODE BEGIN PFP */
 extern uint8_t InicjujSPIModZewn(void);
 extern uint8_t WymienDaneExpanderow(void);
@@ -199,6 +213,36 @@ Error_Handler();
 
   /* USER CODE END 2 */
 
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* definition and creation of defaultTask */
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 512);
+  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -206,25 +250,6 @@ Error_Handler();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  WymienDaneExpanderow();
-	  //HAL_Delay(100);
-
-	  RysujEkran();
-	  CzytajDotyk();
-
-	  //obsłuż międzyprocesorowwą wymianę danych
-	  chErr += PobierzDaneWymiany_CM4();
-	  chErr += UstawDaneWymiany_CM7();
-
-	  if (chErr)
-	  {
-		  chPorty_exp_wysylane[2] &= ~EXP27_LED_R;	//włącz LED_R
-		  chErr = ERR_OK;
-	  }
-	  else
-	  {
-		  chPorty_exp_wysylane[2] |= EXP27_LED_R;	//wyłącz LED_R
-	  }
   }
   /* USER CODE END 3 */
 }
@@ -265,7 +290,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = 4;
   RCC_OscInitStruct.PLL.PLLN = 50;
   RCC_OscInitStruct.PLL.PLLP = 2;
-  RCC_OscInitStruct.PLL.PLLQ = 2;
+  RCC_OscInitStruct.PLL.PLLQ = 8;
   RCC_OscInitStruct.PLL.PLLR = 4;
   RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_3;
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
@@ -292,6 +317,8 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+  __HAL_RCC_PLLCLKOUT_ENABLE(RCC_PLL1_DIVQ);
+  HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_PLL1QCLK, RCC_MCODIV_4);
 }
 
 /**
@@ -586,7 +613,7 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA1_Stream0_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
 
 }
@@ -633,7 +660,7 @@ static void MX_MDMA_Init(void)
 
   /* MDMA interrupt initialization */
   /* MDMA_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(MDMA_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(MDMA_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(MDMA_IRQn);
 
 }
@@ -784,6 +811,39 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE END 4 */
 
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+  * @brief  Function implementing the defaultTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void const * argument)
+{
+  /* USER CODE BEGIN 5 */
+  /* Infinite loop */
+  for(;;)
+  {
+	  WymienDaneExpanderow();
+	  RysujEkran();
+	  CzytajDotyk();
+
+	  //obsłuż międzyprocesorową wymianę danych
+	  chErr += PobierzDaneWymiany_CM4();
+	  chErr += UstawDaneWymiany_CM7();
+
+	  //sygnalizacja błędów wymiany
+	  if (chErr)
+	  {
+		  chPorty_exp_wysylane[2] &= ~EXP27_LED_R;	//włącz LED_R
+		  chErr = ERR_OK;
+	  }
+	  else
+		  chPorty_exp_wysylane[2] |= EXP27_LED_R;	//wyłącz LED_R
+  }
+  /* USER CODE END 5 */
+}
+
  /* MPU Configuration */
 
 void MPU_Config(void)
@@ -874,6 +934,27 @@ void MPU_Config(void)
   /* Enables the MPU */
   HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 
+}
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM17 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM17) {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
 }
 
 /**

@@ -17,7 +17,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Obsługa pamięci FRAM
 - Rozpoczęta obsługa expandera IO
 - Wymiana komunikatów z rdzeniem CM7
-- Sterowanie pętla główną programu, podział czasu procesora na odcinki czasowe
+- Sterowanie pętla główną programu, podział czasu procesora na odcinki czasowe 20x250us
 
 #### Do zrobienia:
  - Dodać obsługę pamięci SDRAM, kupić właściwy układ
@@ -33,22 +33,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
  - Uruchomić układ ethernet
  
  
- 
- ## Zarządzanie pamiecią
- 								Pozwolenia dla MPU
-Adres		Rozm	CPU		Instr	Share	Cache	Buffer		Nazwa			Zastosowanie
-0x00000000	64K		CM7				 				 			ITCMRAM			
-0x08000000	1024K	CM7		+		-		+		-			FLASH			kod programu dla CM7
-0x08100000	1024K	CM4		+		-		+		-			FLASH			kod programu dla CM4
-0x20000000	128K	CM7											DTCMRAM			
-0x24000000	512K	CM7		-		-		-		+			SRAM_AXI_D1		stos i dane dla CM7
-0x30000000  128K	CM4		-		+		-		+			SRAM1_AHB_D2	stos i dane dla CM4
-0x30020000	128K	CM7		-		-		-		-   		SRAM2_AHB_D2	bufory ethernet
-0x30040000	32K		CM7		-		+		+		+  			SRAM3_AHB_D2
-0x38000000	64K		CM4+7	-		+		-		-			SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2
-0x38800000	4K		CM7											BACKUP
-0x60000000	4M		CM7		-		+		-		+			EXT_SRAM		bufor obrazu z kamery
-0x68000000	32M		CM7		+		+		+		-			FLASH_NOR		
+
   
     		
   		
