@@ -204,10 +204,9 @@ SECTIONS
 .bufory_SRAM3_AHB_D2 (NOLOAD) :
   {
     . = ABSOLUTE(0x30040000);
-    *(.RxDecripSection) 
-    
+    *(.RxDescripSection) 
     . = ABSOLUTE(0x30040100);
-    *(.TxDecripSection)
+    *(.TxDescripSection)
     
     . = ABSOLUTE(0x30040200);
     *(.Rx_PoolSection)  

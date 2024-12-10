@@ -12,6 +12,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Testy pomiaru transferu dla wszystkich pamięci
 - System zapisu konfiguracji do pamięci Flash w paczkach po 30 bajtów + 2 bajty ID i sumy kontrolnej
 - Wymiana komunikatów z rdzeniem CM4 i prezentacja ich na LCD
+- Ururchomiony FreeRTOS
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM

@@ -25,4 +25,10 @@
 #define LICZBA_ODCINKOW_CZASU	20			//liczba odcinków czasu na jakie jest dzielony czas pełnego obiegu pętli głównej
 #define CZESTOTLIWOSC_PETLI		200			//częstotliwość pętli głównj [Hz]
 #define CZAS_ODCINKA			1000000/(CZESTOTLIWOSC_PETLI * LICZBA_ODCINKOW_CZASU)	//czas na jeden odcinek [us]
+
+
+#define OKRES_PWM		2500	//okres kanału PWM w mikrosekundach
+#define PRZERWA_PPM		3000	//przerwa między paczkami impulsów PPM odbiornika RC
+#define KANALY_SERW		16		//liczba sterowanych kanałów serw
+#define KANALY_ODB		16		//liczba odbieranych kanałów na każdym z dwu wejść odbiorników RC
 #endif /* INC_SYS_DEF_CM4_H_ */

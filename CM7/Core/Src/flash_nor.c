@@ -19,7 +19,7 @@
 
 
 
-uint16_t sMPUFlash[ROZMIAR16_BUFORA] __attribute__((section(".text")));
+//uint16_t sMPUFlash[ROZMIAR16_BUFORA] __attribute__((section(".text")));
 uint16_t sFlashMem[ROZMIAR16_BUFORA] __attribute__((section(".FlashNorSection")));
 uint16_t sBuforD1[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_SRAM1")));
 uint16_t sExtSramBuf[ROZMIAR16_EXT_SRAM] __attribute__((section(".ExtSramSection")));
@@ -389,7 +389,7 @@ void TestPredkosciOdczytuNOR(void)
 
 
 	//odczyt z Flash kontrolera
-	sCzas = PobierzCzasT6();
+/*	sCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
 		for (x=0; x<ROZMIAR16_BUFORA; x++)
@@ -400,7 +400,7 @@ void TestPredkosciOdczytuNOR(void)
 	{
 		sprintf(chNapis, "for(): Flash->ASRAM  t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
 		print(chNapis, 10, 120);
-	}
+	}*/
 
 	//Odczyt z RAM do RAM
 	uint16_t sBufor2[ROZMIAR16_BUFORA];
@@ -435,7 +435,7 @@ void TestPredkosciOdczytuNOR(void)
 
 
 	//odczyt z Flash przez DMA
-	sCzas = PobierzCzasT6();
+/*	sCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sMPUFlash, (uint32_t)sBufor, ROZMIAR16_BUFORA);
@@ -454,7 +454,7 @@ void TestPredkosciOdczytuNOR(void)
 	{
 		sprintf(chNapis, "DMA: Flash->ASRAM    t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
 		print(chNapis, 10, 200);
-	}
+	}*/
 
 
 	//odczyt z RAM przez DMA
@@ -530,7 +530,7 @@ void TestPredkosciOdczytuNOR(void)
 
 
 	//odczyt z Flash przez MDMA
-	sCzas = PobierzCzasT6();
+/*	sCzas = PobierzCzasT6();
 	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sMPUFlash, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
 	if (chErr != ERR_OK)
 	{
@@ -548,7 +548,7 @@ void TestPredkosciOdczytuNOR(void)
 	{
 		sprintf(chNapis, "MDMA: Flash->ASRAM   t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
 		print(chNapis, 10, 280);
-	}
+	} */
 
 
 	//odczyt z RAM przez MDMA
@@ -629,7 +629,7 @@ void TestPredkosciOdczytuRAM(void)
 	{
 		sprintf(chNapis, "for(): AxiSRAM->ExtSRAM  t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 1000) / (sCzas * 1.048576f));
 		print(chNapis, 10, 100);
-		}
+	}
 
 
 	//odczyt z zewnętrznego SRAM przez DMA

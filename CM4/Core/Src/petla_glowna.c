@@ -125,7 +125,7 @@ void PetlaGlowna(void)
 	default:	break;
 	}
 
-	//pomiar czasu zajetego w każdym odcinku
+	//pomiar czasu zajętego w każdym odcinku
 	sCzasOdcinka[chNrOdcinkaCzasu] = MinalCzas(sCzasOstatniegoOdcinka);
 	if (sCzasOdcinka[chNrOdcinkaCzasu] > sMaxCzasOdcinka[chNrOdcinkaCzasu])   //przechwyć wartość maksymalną
 		sMaxCzasOdcinka[chNrOdcinkaCzasu] = sCzasOdcinka[chNrOdcinkaCzasu];
