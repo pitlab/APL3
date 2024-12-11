@@ -51,7 +51,7 @@ TIM_HandleTypeDef htim8;
 DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
 /* USER CODE BEGIN PV */
-
+extern uint16_t sSerwo[KANALY_SERW];	//sterowane kanałów serw
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -129,11 +129,19 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   InicjujModulyWew();
-  //HAL_TIM_Base_Start_IT(&htim2);
-  HAL_TIM_OC_Start_IT(&htim2, TIM_CHANNEL_1);
-  HAL_TIM_OC_Start_IT(&htim3, TIM_CHANNEL_3 + TIM_CHANNEL_4);
-  HAL_TIM_OC_Start_IT(&htim4, TIM_CHANNEL_4);
 
+  //włącz odbługę timerów do generowania sygnałów serw i dekodowania PPM z odbiorników RC
+  HAL_TIM_OC_Start_IT(&htim2, TIM_CHANNEL_1);	//generowanie impulsów dla serwo[2]
+  HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_4);	//odczyt wejscia RC2
+  HAL_TIM_OC_Start_IT(&htim3, TIM_CHANNEL_3);	//generowanie impulsów dla serwo[3]
+  HAL_TIM_OC_Start_IT(&htim3, TIM_CHANNEL_4);	//generowanie impulsów dla serwo[4]
+  HAL_TIM_OC_Start_IT(&htim4, TIM_CHANNEL_4);	//generowanie impulsów dla serwo[0]
+  HAL_TIM_IC_Start_IT(&htim4, TIM_CHANNEL_3);	//odczyt wejscia RC1
+  HAL_TIM_OC_Start_IT(&htim8, TIM_CHANNEL_1);	//generowanie impulsów dla serwo[5]
+  HAL_TIM_OC_Start_IT(&htim8, TIM_CHANNEL_3);	//generowanie impulsów dla serwo[6]
+
+  for (uint8_t n=0; n<KANALY_SERW; n++)
+	  sSerwo[n] = 1000 + 50*n;	//sterowane kanałów serw
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -244,7 +252,7 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 200;
+  htim2.Init.Prescaler = 199;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 4294967295;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -315,7 +323,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 0;
+  htim3.Init.Prescaler = 199;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -379,7 +387,7 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 200;
+  htim4.Init.Prescaler = 199;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 65535;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -417,7 +425,7 @@ static void MX_TIM4_Init(void)
   }
   sConfigOC.OCMode = TIM_OCMODE_ACTIVE;
   sConfigOC.Pulse = 0;
-  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_OC_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
@@ -489,7 +497,7 @@ static void MX_TIM8_Init(void)
 
   /* USER CODE END TIM8_Init 1 */
   htim8.Instance = TIM8;
-  htim8.Init.Prescaler = 0;
+  htim8.Init.Prescaler = 199;
   htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim8.Init.Period = 65535;
   htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -728,7 +736,7 @@ void MPU_Config(void)
   MPU_InitStruct.Size = MPU_REGION_SIZE_1MB;
   MPU_InitStruct.SubRegionDisable = 0x0;
   MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
-  MPU_InitStruct.AccessPermission = MPU_REGION_PRIV_RO;
+  MPU_InitStruct.AccessPermission = MPU_REGION_PRIV_RO_URO;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
   MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
   MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;

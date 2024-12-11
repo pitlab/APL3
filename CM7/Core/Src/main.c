@@ -13,22 +13,26 @@
  * 0x30040200..0x38000000 - 130k (0x7FBEFE00) wolne
 
 
- * 								Pozwolenia dla MPU
-Adres		Rozm	CPU		Instr	Share	Cache	Buffer		Nazwa			Zastosowanie
-0x00000000	64K		CM7				 				 			ITCMRAM
-0x08000000	1024K	CM7		+		-		+		-			FLASH			kod programu dla CM7
-0x08100000	1024K	CM4		+		-		+		-			FLASH			kod programu dla CM4
-0x20000000	128K	CM7											DTCMRAM
-0x24000000	512K	CM7		-		-		-		+			SRAM_AXI_D1		stos i dane dla CM7
-0x30000000  128K	CM4		-		+		-		+			SRAM1_AHB_D2	stos i dane dla CM4
-0x30020000	128K	CM7		-		-		-		-   		SRAM2_AHB_D2	sterta LwIP
-0x30040000	32K		CM7		-		+		-		+  			SRAM3_AHB_D2    deskryptory ethernet (nie mogą być cache'owalne) i bufor [12*MTU]
-0x38000000	64K		CM4+7	-		+		-		-			SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2
-0x38800000	4K		CM7											BACKUP
-0x60000000	4M		CM7		-		+		-		+			EXT_SRAM		bufor obrazu z kamery
-0x68000000	32M		CM7		+		+		+		-			FLASH_NOR
+ * 								Pozwolenia dla MPU			Prawa dostępu
+Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
+0x00000000	64K		CM7				 				 						ITCMRAM
+0x08000000	1024K	CM7		+		-		+		-		RO		RO		FLASH			kod programu dla CM7
+0x08100000	1024K	CM4		+		-		+		-		RO		RO		FLASH			kod programu dla CM4
+0x20000000	128K	CM7														DTCMRAM
+0x24000000	512K	CM7		-		-		-		+		RW		RW		SRAM_AXI_D1		stos i dane dla CM7
+0x30000000  128K	CM4		-		+		-		+		RW		RW		SRAM1_AHB_D2	stos i dane dla CM4
+0x30020000	128K	CM7		-		-		-		-   	RW		RW		SRAM2_AHB_D2	sterta LwIP
+0x30040000	32K		CM7		-		+		-		+  		RW		RW		SRAM3_AHB_D2    deskryptory ethernet (nie mogą być cache'owalne) i bufor [12*MTU]
+0x38000000	64K		CM4+7	-		+		-		-		RW		RW		SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2
+0x38800000	4K		CM7														BACKUP
+0x60000000	4M		CM7		-		+		-		+		RW		RW		EXT_SRAM		bufor obrazu z kamery
+0x68000000	32M		CM7		+		+		+		-		RW		RW		FLASH_NOR
 
  *Zrobć:
+ - sprawdzić czy da się przyspieszyć pierwsze po starcie wypełnienie pamieci ekranu
+
+
+
  * */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -933,7 +937,7 @@ void MPU_Config(void)
   MPU_InitStruct.Size = MPU_REGION_SIZE_1MB;
   MPU_InitStruct.SubRegionDisable = 0x87;
   MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
-  MPU_InitStruct.AccessPermission = MPU_REGION_PRIV_RO;
+  MPU_InitStruct.AccessPermission = MPU_REGION_PRIV_RO_URO;
   MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
   MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
   MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;

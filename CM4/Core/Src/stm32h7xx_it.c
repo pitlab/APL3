@@ -43,7 +43,8 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 volatile uint8_t chZbocze[8];	//flaga określająca na które zbocze mamy reagować dla wszystkich kanałow wyjściowych serw
-volatile uint16_t sPoprzedniStanTimera2, sPoprzedniStanTimera4;
+volatile uint32_t nPoprzedniStanTimera2;	//timer 32 bitowy
+volatile uint16_t sPoprzedniStanTimera3, sPoprzedniStanTimera4;
 uint16_t sSerwo[KANALY_SERW];	//sterowane kanałów serw
 uint16_t sOdbRC1[KANALY_ODB];	//odbierane kanały na odbiorniku 1 RC
 uint16_t sOdbRC2[KANALY_ODB];	//odbierane kanały na odbiorniku 2 RC
@@ -214,48 +215,49 @@ void SysTick_Handler(void)
 void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
-	uint16_t sTemp;
-	uint16_t sBiezacyStanTimera = htim2.Instance->CNT;
+	//Licznik 32-bitowy
+	uint32_t nTemp;
 
 	//obsługa wyjścia TIM2_CH1
 	if (htim2.Instance->SR & TIM_FLAG_CC1)
 	{
 		if (chZbocze[2])	//zbocze narastajace, odmierz długość impulsu
 		{
-			htim2.Instance->CCR1 = sBiezacyStanTimera + sSerwo[2];
-			htim2.Instance->CCMR1 &= ~TIM_CCMR1_OC2M_Msk;
+			htim2.Instance->CCR1 += sSerwo[2];
+			htim2.Instance->CCMR1 &= ~TIM_CCMR1_OC1M_Msk;
 			htim2.Instance->CCMR1 |= TIM_CCMR1_OC1M_1;		//Set channel to inactive level on match
 			chZbocze[2] = 0;
 		}
 		else	//zbocze opadające
 		{
-			htim2.Instance->CCR1 = sBiezacyStanTimera + OKRES_PWM - sSerwo[2];
-			htim2.Instance->CCMR1 &= ~TIM_CCMR1_OC2M_Msk;
+			htim2.Instance->CCR1 += OKRES_PWM - sSerwo[2];
+			htim2.Instance->CCMR1 &= ~TIM_CCMR1_OC1M_Msk;
 			htim2.Instance->CCMR1 |= TIM_CCMR1_OC1M_0;		//Set channel to active level on match
 			chZbocze[2] = 1;
 		}
+		htim2.Instance->SR &= ~TIM_FLAG_CC1;	//kasuj przerwanie przez zapis zera
 	}
 
 	//obsługa wejścia TIM2_CH4 szeregowego sygnału PPM2. Sygnał aktywny niski. Kolejne impulsy zą pomiędzy zboczami narastającymi
 	if (htim2.Instance->SR & TIM_FLAG_CC4)
 	{
-		if (sBiezacyStanTimera > sPoprzedniStanTimera2)
-			sTemp = sBiezacyStanTimera - sPoprzedniStanTimera2;  //długość impulsu
+		if (htim2.Instance->CCR4 > nPoprzedniStanTimera2)
+			nTemp = htim2.Instance->CCR4 - nPoprzedniStanTimera2;  //długość impulsu
 		else
-			sTemp = 0xFFFF - sPoprzedniStanTimera2 + sBiezacyStanTimera;  //długość impulsu
+			nTemp = 0xFFFFFFFF - nPoprzedniStanTimera2 + htim2.Instance->CCR4;  //długość impulsu
 
 		//impuls o długości większej niż 3ms traktowany jest jako przerwa między paczkami impulsów
-		if (sTemp > PRZERWA_PPM)
+		if (nTemp > PRZERWA_PPM)
 		{
 			chNumerKanWejRC2 = 0;
 			//nPPMStartTime[0] = nCurrServoTim;   //potrzebne do detekcji braku sygnału
 		}
 		else
 		{
-			sOdbRC2[chNumerKanWejRC2] = sTemp;
+			sOdbRC2[chNumerKanWejRC2] = nTemp;
 			chNumerKanWejRC2++;
 		}
-		sPoprzedniStanTimera2 = sBiezacyStanTimera;
+		nPoprzedniStanTimera2 = htim2.Instance->CCR4;
 	}
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
@@ -270,6 +272,47 @@ void TIM2_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM3_IRQn 0 */
+	//Licznik 16-bitowy
+
+	//obsługa wyjścia TIM3_CH3: Serwo kanał 3
+	if (htim3.Instance->SR & TIM_FLAG_CC3)
+	{
+		if (chZbocze[3])	//zbocze narastajace, odmierz długość impulsu
+		{
+			htim3.Instance->CCR3 += sSerwo[3];
+			htim3.Instance->CCMR2 &= ~TIM_CCMR2_OC3M_Msk;
+			htim3.Instance->CCMR2 |= TIM_CCMR2_OC3M_1;		//Set channel to inactive level on match
+			chZbocze[3] = 0;
+		}
+		else	//zbocze opadające
+		{
+			htim3.Instance->CCR3 += OKRES_PWM - sSerwo[3];
+			htim3.Instance->CCMR2 &= ~TIM_CCMR2_OC3M_Msk;
+			htim3.Instance->CCMR2 |= TIM_CCMR2_OC3M_0;		//Set channel to active level on match
+			chZbocze[3] = 1;
+		}
+		htim3.Instance->SR &= ~TIM_FLAG_CC3;	//kasuj przerwanie przez zapis zera
+	}
+
+	//obsługa wyjścia TIM3_CH4: Serwo kanał 4
+	if (htim3.Instance->SR & TIM_FLAG_CC4)
+	{
+		if (chZbocze[4])	//zbocze narastajace, odmierz długość impulsu
+		{
+			htim3.Instance->CCR4 += sSerwo[4];
+			htim3.Instance->CCMR2 &= ~TIM_CCMR2_OC4M_Msk;
+			htim3.Instance->CCMR2 |= TIM_CCMR2_OC4M_1;		//Set channel to inactive level on match
+			chZbocze[4] = 0;
+		}
+		else	//zbocze opadające
+		{
+			htim3.Instance->CCR4 += OKRES_PWM - sSerwo[4];
+			htim3.Instance->CCMR2 &= ~TIM_CCMR2_OC4M_Msk;
+			htim3.Instance->CCMR2 |= TIM_CCMR2_OC4M_0;		//Set channel to active level on match
+			chZbocze[4] = 1;
+		}
+		htim3.Instance->SR &= ~TIM_FLAG_CC4;	//kasuj przerwanie przez zapis zera
+	}
 
   /* USER CODE END TIM3_IRQn 0 */
   HAL_TIM_IRQHandler(&htim3);
@@ -284,35 +327,39 @@ void TIM3_IRQHandler(void)
 void TIM4_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM4_IRQn 0 */
+	//Licznik 16-bitowy
 	uint16_t sTemp;
-	uint16_t sBiezacyStanTimera = htim4.Instance->CNT;
+	//uint16_t sBiezacyStanTimera = htim4.Instance->CNT;
 
-	//obsługa wyjścia TIM4_CH4
+	//obsługa wyjścia TIM4_CH4: Serwo kanał 0, zanegowane na inwerterze
 	if (htim4.Instance->SR & TIM_FLAG_CC4)
 	{
 		if (chZbocze[0])	//zbocze narastajace, odmierz długość impulsu
 		{
-			htim4.Instance->CCR4 = sBiezacyStanTimera + sSerwo[0];
+			htim4.Instance->CCR4 += sSerwo[0];
 			htim4.Instance->CCMR2 &= ~TIM_CCMR2_OC4M_Msk;
+			//htim4.Instance->CCMR2 |= TIM_CCMR2_OC4M_0;		//Set channel to active level on match - sygnał idzie przez inwerter, więc potrzebna jest odwrotna logika
 			htim4.Instance->CCMR2 |= TIM_CCMR2_OC4M_1;		//Set channel to inactive level on match
 			chZbocze[0] = 0;
 		}
 		else	//zbocze opadające
 		{
-			htim4.Instance->CCR4 = sBiezacyStanTimera + OKRES_PWM - sSerwo[0];
+			htim4.Instance->CCR4 +=  OKRES_PWM - sSerwo[0];
 			htim4.Instance->CCMR2 &= ~TIM_CCMR2_OC4M_Msk;
+			//htim4.Instance->CCMR2 |= TIM_CCMR2_OC4M_1;		//Set channel to inactive level on match - sygnał idzie przez inwerter, więc potrzebna jest odwrotna logika
 			htim4.Instance->CCMR2 |= TIM_CCMR2_OC4M_0;		//Set channel to active level on match
 			chZbocze[0] = 1;
 		}
+		htim4.Instance->SR &= ~TIM_FLAG_CC4;	//kasuj przerwanie przez zapis zera
 	}
 
 	//obsługa wejścia TIM4_CH3 szeregowego sygnału PPM1. Sygnał aktywny niski. Kolejne impulsy zą pomiędzy zboczami narastającymi
 	if (htim4.Instance->SR & TIM_FLAG_CC3)
 	{
-		if (sBiezacyStanTimera > sPoprzedniStanTimera4)
-			sTemp = sBiezacyStanTimera - sPoprzedniStanTimera4;  //długość impulsu
+		if (htim4.Instance->CCR3 > sPoprzedniStanTimera4)
+			sTemp = htim4.Instance->CCR3 - sPoprzedniStanTimera4;  //długość impulsu
 		else
-			sTemp = 0xFFFF - sPoprzedniStanTimera4 + sBiezacyStanTimera;  //długość impulsu
+			sTemp = 0xFFFF - sPoprzedniStanTimera4 + htim4.Instance->CCR3;  //długość impulsu
 
 		//impuls o długości większej niż 3ms traktowany jest jako przerwa między paczkami impulsów
 		if (sTemp > PRZERWA_PPM)
@@ -325,7 +372,7 @@ void TIM4_IRQHandler(void)
 			sOdbRC1[chNumerKanWejRC1] = sTemp;
 			chNumerKanWejRC1++;
 		}
-		sPoprzedniStanTimera4 = sBiezacyStanTimera;
+		sPoprzedniStanTimera4 = htim4.Instance->CCR3;	//odczyt CCRx kasuje przerwanie
 	}
   /* USER CODE END TIM4_IRQn 0 */
   HAL_TIM_IRQHandler(&htim4);
@@ -335,17 +382,55 @@ void TIM4_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles TIM8 break interrupt and TIM12 global interrupt.
+  * @brief This function handles TIM8 capture compare interrupt.
   */
-void TIM8_BRK_TIM12_IRQHandler(void)
+void TIM8_CC_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM8_BRK_TIM12_IRQn 0 */
+  /* USER CODE BEGIN TIM8_CC_IRQn 0 */
+	//obsługa wyjścia TIM8_CH1: Serwo kanał 5
+	if (htim8.Instance->SR & TIM_FLAG_CC1)
+	{
+		if (chZbocze[5])	//zbocze narastajace, odmierz długość impulsu
+		{
+			htim8.Instance->CCR1 += sSerwo[5];
+			htim8.Instance->CCMR1 &= ~TIM_CCMR1_OC1M_Msk;
+			htim8.Instance->CCMR1 |= TIM_CCMR1_OC1M_1;		//Set channel to inactive level on match
+			chZbocze[5] = 0;
+		}
+		else	//zbocze opadające
+		{
+			htim8.Instance->CCR1 += OKRES_PWM - sSerwo[5];
+			htim8.Instance->CCMR1 &= ~TIM_CCMR1_OC1M_Msk;
+			htim8.Instance->CCMR1 |= TIM_CCMR1_OC1M_0;		//Set channel to active level on match
+			chZbocze[5] = 1;
+		}
+		htim8.Instance->SR &= ~TIM_FLAG_CC1;	//kasuj przerwanie przez zapis zera
+	}
 
-  /* USER CODE END TIM8_BRK_TIM12_IRQn 0 */
+	//obsługa wyjścia TIM8_CH3N: Serwo kanał 7
+	if (htim8.Instance->SR & TIM_FLAG_CC3)
+	{
+		if (chZbocze[7])	//zbocze narastajace, odmierz długość impulsu
+		{
+			htim8.Instance->CCR3 += sSerwo[7];
+			htim8.Instance->CCMR2 &= ~TIM_CCMR2_OC3M_Msk;
+			htim8.Instance->CCMR2 |= TIM_CCMR2_OC3M_1;		//Set channel to inactive level on match
+			chZbocze[7] = 0;
+		}
+		else	//zbocze opadające
+		{
+			htim8.Instance->CCR3 += OKRES_PWM - sSerwo[7];
+			htim8.Instance->CCMR2 &= ~TIM_CCMR2_OC3M_Msk;
+			htim8.Instance->CCMR2 |= TIM_CCMR2_OC3M_0;		//Set channel to active level on match
+			chZbocze[7] = 1;
+		}
+		htim8.Instance->SR &= ~TIM_FLAG_CC3;	//kasuj przerwanie przez zapis zera
+	}
+  /* USER CODE END TIM8_CC_IRQn 0 */
   HAL_TIM_IRQHandler(&htim8);
-  /* USER CODE BEGIN TIM8_BRK_TIM12_IRQn 1 */
+  /* USER CODE BEGIN TIM8_CC_IRQn 1 */
 
-  /* USER CODE END TIM8_BRK_TIM12_IRQn 1 */
+  /* USER CODE END TIM8_CC_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
