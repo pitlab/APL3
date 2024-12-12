@@ -19,6 +19,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Rozpoczęta obsługa expandera IO
 - Wymiana komunikatów z rdzeniem CM7
 - Sterowanie pętla główną programu, podział czasu procesora na odcinki czasowe 20x250us
+- Obsługa wyjść dla regulatorów 400Hz
 
 #### Do zrobienia:
  - Dodać obsługę pamięci SDRAM, kupić właściwy układ

@@ -177,4 +177,3 @@ uint16_t MinalCzas(uint16_t sPoczatek)
 }
 
 
-
