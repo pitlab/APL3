@@ -1,6 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // Moduł rysowania na ekranie
+// Abstrahuje od sprzętu, może przynajmniej teoretycznie pracować z różnymi wyświetlaczami
 //
 //
 // (c) PitLab 2024
@@ -49,6 +50,7 @@ extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern struct _statusDotyku statusDotyku;
 extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 
+//Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Kamera",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 		obr_ppm},
@@ -218,7 +220,8 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 
 		setColor(GRAY30);
 		setFont(MidFont);
-		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_KASZANA]);	//"z technologia \"--Kaszana_OFF\""
+		//sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_KASZANA]);	//"z technologia \"--Kaszana_OFF\""
+		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO], ó, ć, ó, ó, ż);	//"By móc mieć w rój Wronów na pohybel wrażym hordom""
 		print(chNapis, CENTER, 120);
 
 		sprintf(chNapis, "(c) PitLab.%s 2024 sv%d.%d.%d", chNapisLcd[STR_WITAJ_DOMENA], WER_GLOWNA, WER_PODRZ, WER_REPO);
@@ -270,7 +273,7 @@ void Wykrycie(uint16_t x, uint16_t y, uint8_t znakow, uint8_t wykryto)
 
 	szer_fontu = GetFontX();
 	x += znakow * szer_fontu;	//współrzędne końca tekstu i początku kropek
-	kropek = MAX_LCD_STR - znakow - 2;	//liczba kropek dopełnienia
+	kropek = MAX_NAPISU_WYKRYCIE - znakow - 2;	//liczba kropek dopełnienia
 	for (n=0; n<kropek; n++)
 	{
 		printChar('.', x+n*szer_fontu, y);
@@ -589,7 +592,7 @@ uint16_t MinalCzas(uint16_t sPoczatek)
 ////////////////////////////////////////////////////////////////////////////////
 void MenuGlowne(unsigned char *tryb)
 {
-	Menu((char*)chNapisLcd[STR_MENU_MAIN], stMenuGlowne, tryb);	//"Main menu"
+	Menu((char*)chNapisLcd[STR_MENU_MAIN], stMenuGlowne, tryb);
 	chWrocDoTrybu = TP_MENU_GLOWNE;
 }
 

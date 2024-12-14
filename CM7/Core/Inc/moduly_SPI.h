@@ -5,7 +5,7 @@
  *      Author: PitLab
  */
 
-#include "stm32h7xx_hal.h"
+#include "sys_def_CM7.h"
 
 
 #ifndef INC_MODULY_SPI_H_

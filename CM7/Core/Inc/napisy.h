@@ -8,38 +8,39 @@
 #ifndef INC_NAPISY_H_
 #define INC_NAPISY_H_
 
+#define MAX_NAPISU_WYKRYCIE			20		//do formatowania napisów przy przezentacji wykrywanego sprzętu
 
+//definicje napisów
 #define STR_WITAJ_TYTUL				0
-#define STR_WITAJ_KASZANA			1
+#define STR_WITAJ_MOTTO				1
 #define STR_WITAJ_DOMENA			2
 #define STR_SPRAWDZ_WYKR			3
 #define STR_SPRAWDZ_BRAK			4
 #define STR_SPRAWDZ_FLASH_NOR		5
 #define STR_SPRAWDZ_FLASH_QSPI		6
-
 #define STR_SPRAWDZ_KAMERA_OV5642	7
 #define STR_SPRAWDZ_MODUL_IMU		8
+#define STR_TEST_TOUCH				9
+#define STR_LIBEL_TITLE				10
+#define STR_MENU_MAIN				11
+#define STR_MENU_PROTOCOLS			12
+#define STR_MENU_SBUS				13
+#define STR_MENU_MULMETR			14
+#define STR_MENU_MULTOOL			15
+#define STR_MENU_VIBR				16
+#define STR_MENU_TEST				17
+#define STR_MENU_SETINGS			18
 
+#define MAX_NAPISOW					22	//liczba napisów
 
-#define STR_TEST_TOUCH		9
-#define STR_LIBEL_TITLE		10
-
-#define STR_MENU_MAIN		11
-#define STR_MENU_PROTOCOLS	12
-#define STR_MENU_SBUS		13
-#define STR_MENU_MULMETR	14
-#define STR_MENU_MULTOOL	15
-#define STR_MENU_VIBR		16
-#define STR_MENU_TEST		17
-#define STR_MENU_SETINGS	18
-
-#define MAX_LCD_STR			20
 
 #define JEZYK_POLSKI
 #ifdef JEZYK_POLSKI
-const char *chNapisLcd[MAX_LCD_STR]  = {
+
+
+const char *chNapisLcd[MAX_NAPISOW]  = {
 "AutoPitLot hv3.0",					//STR_WITAJ_TYTUL		max 17 znaków
-"z technologia \"--Kaszana_OFF\"",	//STR_WITAJ_KASZANA
+"By m%cc mie%c w r%cj Wron%cw na pohybel wra%cym hordom",		//STR_WITAJ_MOTTO: %c pozmieniane na polskie znaki
 "pl",								//STR_WITAJ_DOMENA		max 3 znaki
 "wykryto",							//STR_SPRAWDZ_WYKR
 "brakuje",							//STR_SPRAWDZ_BRAK
@@ -58,9 +59,11 @@ const char *chNapisLcd[MAX_LCD_STR]  = {
 "Menu Multimetr",					//STR_MENU_MULMETR		max 17 znaków
 "Menu Niezbednik",					//STR_MENU_MULTOOL		max 17 znaków
 "Menu Drgan i ADC",					//STR_MENU_VIBR			max 17 znaków
-"Menu Testow",						//STR_MENU_TEST			max 17 znaków
-"Menu Ustawien"						//STR_MENU_SETINGS
+"Menu Testów",						//STR_MENU_TEST			max 17 znaków
+"Menu Ustawień"						//STR_MENU_SETINGS
 };
+
+
 
 #endif //JEZYK_POLSKI
 #endif /* INC_NAPISY_H_ */

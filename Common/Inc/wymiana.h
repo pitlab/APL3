@@ -19,17 +19,15 @@
 
 #define ROWNAJ_DO32B(adres)				((adres + 3) & 0xFFFFFFFC)
 
-#define ROZMIAR_BUF8_WYMIANY_CM4		ROWNAJ_DO32B(sizeof(strWymianyCM4))
-#define ROZMIAR_BUF8_WYMIANY_CM7		ROWNAJ_DO32B(sizeof(strWymianyCM7))
+#define ROZMIAR_BUF8_WYMIANY_CM4		ROWNAJ_DO32B(sizeof(stWymianyCM4))
+#define ROZMIAR_BUF8_WYMIANY_CM7		ROWNAJ_DO32B(sizeof(stWymianyCM7))
 #define ROZMIAR_BUF32_WYMIANY_CM4		ROZMIAR_BUF8_WYMIANY_CM4 / 4
 #define ROZMIAR_BUF32_WYMIANY_CM7		ROZMIAR_BUF8_WYMIANY_CM7 / 4
-#define ADRES_BUF_WYMIANY_CM4			0x3800FC00
-#define ADRES_BUF_WYMIANY_CM7			ADRES_BUF_WYMIANY_CM4 + ROZMIAR_BUF8_WYMIANY_CM4
 
 
 
 //definicja struktury wymiany danych wychodzących z rdzenia CM4
-typedef struct _strWymianyCM4
+typedef struct _stWymianyCM4
 {
 	float fAkcel1[3];
 	float fAkcel2[3];
@@ -41,25 +39,25 @@ typedef struct _strWymianyCM4
 	float fWysokosc[2];
 	uint16_t sSerwa[16];
 	uint8_t chBledyPetliGlownej;
-} strWymianyCM4;
+} stWymianyCM4;
 
 //definicja struktury wymiany danych wychodzących z rdzenia CM7
 typedef struct
 {
 	uint8_t chTrybPracy;
 	uint16_t sTest;
-} strWymianyCM7;
+} stWymianyCM7;
 
 //unie do konwersji struktur na słowa 32-bitowe
 typedef union
 {
-	strWymianyCM4 dane;
+	stWymianyCM4 dane;
 	uint32_t nSlowa[ROZMIAR_BUF32_WYMIANY_CM4];
 } unia_wymianyCM4;
 
 typedef union
 {
-	strWymianyCM7 dane;
+	stWymianyCM7 dane;
 	uint32_t nSlowa[ROZMIAR_BUF32_WYMIANY_CM7];
 } unia_wymianyCM7;
 

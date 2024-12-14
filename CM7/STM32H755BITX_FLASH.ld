@@ -206,8 +206,7 @@ SECTIONS
     . = ABSOLUTE(0x30040000);
     *(.RxDescripSection) 
     . = ABSOLUTE(0x30040100);
-    *(.TxDescripSection)
-    
+    *(.TxDescripSection)    
     . = ABSOLUTE(0x30040200);
     *(.Rx_PoolSection)  
     *(.Bufory_SRAM3)  
@@ -216,10 +215,8 @@ SECTIONS
 /* Sekcja buforów w pamięci SRAM4_AHB_D3 aktywnych również w standby, 64k */
 .bufory_SRAM4_AHB_D3 (NOLOAD) :
   {
-    *(.Bufory_SRAM4)  
-    
-    . = ABSOLUTE(0x3800F800);		/* Ostatni 2 kB przeznaczone na międzyrdzeniowy bufor wymiany danych */
     *(.BuforyWymianyCM7CM4_SRAM4)
+    *(.Bufory_SRAM4)      
   } >SRAM4_AHB_D3  
   
  /* Sekcja backup podtrzymywana baterią, 4k*/

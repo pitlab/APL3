@@ -9,7 +9,7 @@
 #include "moduly_SPI.h"
 #include "errcode.h"
 #include "main.h"
-#include "sys_def_CM7.h"
+
 
 //deklaracje zmiennych
 uint8_t chPorty_exp_wysylane[LICZBA_EXP_SPI_ZEWN] = {0x00, 0x00, 0xE0};

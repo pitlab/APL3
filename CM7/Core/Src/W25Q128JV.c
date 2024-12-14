@@ -467,7 +467,6 @@ uint8_t W25_TestTransferu(void)
 #define BUFOR_W25_ROZM	512
 	uint8_t chErr;
 	uint16_t y;
-	//uint8_t chStatus;
 	uint8_t chBufor[BUFOR_W25_ROZM];
 	uint16_t sCzas;
 	extern uint8_t chRysujRaz;
@@ -478,7 +477,7 @@ uint8_t W25_TestTransferu(void)
 		chRysujRaz = 0;
 		BelkaTytulu("Pomiar odczytu z Flash QSPI");
 		setColor(GRAY60);
-		sprintf(chNapis, "Dus ekran aby zakonczyc pomiar");
+		sprintf(chNapis, "Du%c ekran aby zako%cczy%c pomiar", ś, ń, ć);
 		print(chNapis, CENTER, 40);
 		setColor(WHITE);
 	}
@@ -493,17 +492,15 @@ uint8_t W25_TestTransferu(void)
 		chErr = W25_ProgramujStrone256B(0x5000 + y*0x100, chBufor, 256);
 		if (chErr != ERR_OK)
 		{
-			sprintf(chNapis, "Blad programowaia");
+			sprintf(chNapis, "B%c%cd programowania", ł, ą);
 			print(chNapis, 10, 80);
 			return chErr;
 		}
 	}
 	sCzas = MinalCzas(sCzas);
 	if (sCzas)
-		//sprintf(chNapis, "ZapiszStrone256B() t = %dus, transfer = %.2f MB/s ", sCzas, (float)(16 * 256 * 1000000) / (sCzas * 1024 * 1024));
 		sprintf(chNapis, "ZapiszStrone256B() t = %d us => %.2f MB/s ", sCzas, (float)(16 * 256) / (sCzas * 1.048576f));
 	print(chNapis, 10, 80);
-
 
 
 	//odczyt danych przez SPI po 1 linii
@@ -513,7 +510,7 @@ uint8_t W25_TestTransferu(void)
 		chErr = W25_CzytajDane1A1D(0x5000, chBufor, BUFOR_W25_ROZM);
 		if (chErr != ERR_OK)
 		{
-			sprintf(chNapis, "Blad odczytu");
+			sprintf(chNapis, "B%c%cd odczytu", ł, ą);
 			print(chNapis, 10, 100);
 			return chErr;
 		}
@@ -531,7 +528,7 @@ uint8_t W25_TestTransferu(void)
 		chErr = W25_CzytajDane4A4D(0x5000, chBufor, BUFOR_W25_ROZM);
 		if (chErr != ERR_OK)
 		{
-			sprintf(chNapis, "Blad odczytu");
+			sprintf(chNapis, "B%c%cd odczytu", ł, ą);
 			print(chNapis, 10, 120);
 			return chErr;
 		}
@@ -549,7 +546,7 @@ uint8_t W25_TestTransferu(void)
 		chErr = W25_KasujSektor4kB(0x5000);
 		if (chErr != ERR_OK)
 		{
-			sprintf(chNapis, "Blad kasowania");
+			sprintf(chNapis, "B%c%cd kasowania", ł, ą);
 			print(chNapis, 10, 140);
 			return chErr;
 		}

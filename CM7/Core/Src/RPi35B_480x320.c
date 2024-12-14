@@ -287,8 +287,8 @@ void LCD_init(void)
 	LCD_write_dat_ost16(0x00, 0x3F);
 
 	//czszczenie ekranu
-	LCD_clear();
-
+	//LCD_clear();
+	chRysujRaz = 1;
 	nZainicjowano[0] |= INIT0_LCD480x320;
 }
 

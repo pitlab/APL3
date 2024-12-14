@@ -61,6 +61,7 @@ static void MPU_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_MDMA_Init(void);
+static void MX_BDMA_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_TIM2_Init(void);
@@ -124,6 +125,7 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_MDMA_Init();
+  MX_BDMA_Init();
   MX_SPI2_Init();
   MX_TIM7_Init();
   MX_TIM2_Init();
@@ -632,6 +634,17 @@ static void MX_TIM8_Init(void)
 
   /* USER CODE END TIM8_Init 2 */
   HAL_TIM_MspPostInit(&htim8);
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_BDMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_BDMA_CLK_ENABLE();
 
 }
 

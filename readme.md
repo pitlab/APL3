@@ -13,13 +13,14 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - System zapisu konfiguracji do pamięci Flash w paczkach po 30 bajtów + 2 bajty ID i sumy kontrolnej
 - Wymiana komunikatów z rdzeniem CM4 i prezentacja ich na LCD
 - Ururchomiony FreeRTOS
+- Uruchomiona komunikacja po LPUART przez BDMA
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM
-- Rozpoczęta obsługa expandera IO
+- Obsługa expandera IO
 - Wymiana komunikatów z rdzeniem CM7
 - Sterowanie pętla główną programu, podział czasu procesora na odcinki czasowe 20x250us
-- Obsługa wyjść dla regulatorów 400Hz
+- Obsługa wyjść dla serw i ESC
 
 #### Do zrobienia:
  - Dodać obsługę pamięci SDRAM, kupić właściwy układ
@@ -28,7 +29,6 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
  - Oprogramować wgrywanie próbek głosu i obrazów do zewnętrznej pamięci flash
  - Oprogramować generowanie komunikatów głosowych
  - Podłączyć i uruchomić kamerę
- - uruchomoć komunikację po porcie LPUART
  - wlutować i uruchomić komunikację po ethernet
  - Przenieść z APL2 obsługę pętli głównej, serw, mikserów, zapisu konfiguracji do FRAM, telemetrii do rdzenia CM4
  - Oprogramować obsługę karty SD po pełnym interfejsie pod kątem zapisu obrazu

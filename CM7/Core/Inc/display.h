@@ -82,6 +82,16 @@
 #define MENU_PASOP_WYS	(FONT_SH+2*UP_SPACE)					// wysokość paska opisu funkcji
 
 
+//definicje polskich znaków dla MidFont
+#define ą	127
+#define ć	128
+#define ę	129
+#define ł	130
+#define ń	131
+#define ó	132
+#define ś	133
+#define ż	134
+#define ź	135
 
 
 //menu obrazkowe na środku ekranu

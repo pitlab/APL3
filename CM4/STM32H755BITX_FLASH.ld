@@ -162,7 +162,12 @@ SECTIONS
     . = ALIGN(8);
   } >SRAM1_AHB_D2
 
-
+/* Sekcja buforów w pamięci SRAM4_AHB_D3 aktywnych również w standby, 64k */
+.bufory_SRAM4_AHB_D3 (NOLOAD) :
+  {
+    *(.BuforyWymianyCM7CM4_SRAM4)
+	*(.Bufory_SRAM4)  
+  } > SRAM4_AHB_D3
 
   /* Remove information from the standard libraries */
   /DISCARD/ :
