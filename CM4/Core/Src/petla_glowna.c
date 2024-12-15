@@ -11,6 +11,8 @@
 #include "fram.h"
 #include "moduly_wew.h"
 #include "wymiana_CM4.h"
+#include "GNSS.h"
+#include "nmea.h"
 
 extern TIM_HandleTypeDef htim7;
 extern volatile unia_wymianyCM4 uDaneCM4;
@@ -23,8 +25,9 @@ uint16_t sMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu od
 uint16_t sCzasJalowy;
 uint8_t chBledyPetliGlownej = ERR_OK;
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
-
-
+extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANALIZY_GNSS];
+extern volatile uint8_t chWskNapBoGNSS, chWskOprBoGNSS;
+uint32_t nZainicjowanoCM4[2] = {0, 0};		//flagi inicjalizacji sprzętu
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -76,6 +79,16 @@ void PetlaGlowna(void)
 
 	case 3:		//obsługa modułu w gnieździe 4
 		chBledyPetliGlownej |= UstawDekoderModulow(ADR_MOD4);
+		break;
+
+	case 4:		//obsługa GNSS na UART8
+		if (nZainicjowanoCM4[0] & INIT1_GNSS)
+		{
+			while (chWskNapBoGNSS != chWskOprBoGNSS)
+			  chErr = DekodujNMEA(chBuforAnalizyGNSS[chWskOprBoGNSS++]);	//analizuj dane z GNSS
+		}
+		else
+			InicjujGNSS();		//gdy nie jest zainicjowany to przeprowadź odbiornik przez kolejne etapy inicjalizacji
 		break;
 
 	case 8:

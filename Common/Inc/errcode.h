@@ -48,6 +48,10 @@
 #define ERR_BRAK_POZW_ZAPISU	50	//brak pozwolenia zapisu dla obszaru pamieci Flash
 #define ERR_SEMAFOR_ZAJETY		51
 
+#define ERR_BRAK_DANYCH			60
+#define ERR_DLUGOSC_LONLAT		61	//niewłaściwa długość znaków do zdekodowania długosci i szerokości geogragicznej w sygnale NMEA
+#define ERR_ZLY_STAN_NMEA		62	//zły stan dekodera protokołu NMEA
+
 #define ERR_NIE_ZAINICJOWANY	0xFF
 
 

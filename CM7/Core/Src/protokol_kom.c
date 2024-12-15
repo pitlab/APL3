@@ -42,16 +42,16 @@ uint8_t chLicznikDanych[ILOSC_INTERF_KOM];
 uint8_t chZnakCzasu[ILOSC_INTERF_KOM];
 uint16_t sCrc16We;
 uint8_t chRamkaWyj[ROZMIAR_RAMKI_UART];
-uint8_t chBufKom[ROZM_BUF_KOL];	//bufor kołowy
 volatile uint8_t chWskNap, chWskOpr;		//wskaźniki napełniania i opróżniania bufora kołowego
 volatile uint32_t nCzasSystemowy;
 int16_t sSzerZdjecia, sWysZdjecia;
 uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
-uint8_t chBuforKomNad[64]  __attribute__((section(".Bufory_SRAM4")));
-uint8_t chBuforKomOdb[64]  __attribute__((section(".Bufory_SRAM4")));
+uint8_t chBuforNadDMA[64]  __attribute__((section(".Bufory_SRAM4")));
+uint8_t chBuforOdbDMA[16]  __attribute__((section(".Bufory_SRAM4")));
 uint8_t chWyslaneOK = 1;
+uint8_t chBuforKomOdb[16];
 
 //deklaracje zmiennych zewnętrznych
 extern uint32_t nBuforKamery[ROZM_BUF32_KAM];
@@ -76,71 +76,28 @@ uint8_t InitProtokol(void)
 
 
 
-/*///////////////////////////////////////////////////////////////////////////////
-// Przerwanie UART3 podpięte pod interfejs debugujący
-// Odbiera po jednym znaku i wstawia do bufora kołowego
-// Parametry:
-// huart - wskaźnik na uchwyt portu
-// Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void USART3_IRQHandler(void)
-{
-	if (USART3->ISR & USART_ISR_RXNE_RXFNE )	//RX not empty
-	{
-		chBufKom[chWskNap] = USART3->RDR;
-		chWskNap++;
-		chWskNap &= ROZM_BUF_KOL-1;
-		//BSP_LED_Toggle(LED_RED);
-	}
-
-	if (USART3->ISR & USART_ISR_ORE )		//overrun
-		USART3->ICR = USART_ICR_ORECF;		//overrun clear flag
-
-	if (USART3->ISR & USART_ISR_TC )		//transmission Complete
-		USART3->ICR = USART_ICR_TCCF;
-
-	//if (USART3->ISR & USART_ISR_TXE_TXFNF )		//
-}*/
-
-void LPUART1_IRQHandler(void)
-{
-  /* USER CODE BEGIN LPUART1_IRQn 0 */
-
-  /* USER CODE END LPUART1_IRQn 0 */
-  HAL_UART_IRQHandler(&hlpuart1);
-  /* USER CODE BEGIN LPUART1_IRQn 1 */
-
-  /* USER CODE END LPUART1_IRQn 1 */
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Wątek odbiorczy danych komunikacyjnych po hlpuart1
-// Opróżnia napełniany w przerwaniu bufor kołowy
+// Wątek odbiorczy danych komunikacyjnych po LPUART1
+// Odbiera dane przez DMA i analizuje je
 // Parametry:
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 void WatekOdbiorczyLPUART1(void const * argument)
 {
 	chWskNap = chWskOpr = 0;
-	uint8_t chTimeout, chErr;
-	//uint8_t chBuforOdb;
+	uint8_t chTimeout;
+	HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 9);
 
-	//HAL_NVIC_EnableIRQ(LPUART1_IRQn);	//włącz obsługę przerwań
-	//USART3->CR1 = USART_CR1_UE | USART_CR1_RE | USART_CR1_TE | USART_CR1_RXNEIE_RXFNEIE;	//włacz przerwanie odbiorcze
-
-	//HAL_UART_Receive_DMA (&hlpuart1, chBufKom, 1);	//odbieraj do bufora
-	//HAL_UART_Receive_IT(&hlpuart1, chBufKom, 1);
 	while(1)
 	{
-		chErr = HAL_UART_Receive_DMA (&hlpuart1, &chBuforKomOdb[0], 1);	//odbieraj do bufora
-		if (chErr == ERR_OK)
-		//while (chWskNap != chWskOpr)
+		//chErr = HAL_UARTEx_ReceiveToIdle_DMA (&hlpuart1, &chBuforKomOdb, 9);
+		//chErr = HAL_UART_Receive_DMA (&hlpuart1, &chBuforKomOdb, 1);	//odbieraj do bufora
+
+		if (chWskNap != chWskOpr)
 		{
-			AnalizujDaneKom(chBuforKomOdb[0], INTERF_UART);
-			//chWskOpr++;
-			//chWskOpr &= ROZM_BUF_KOL-1;
+			AnalizujDaneKom(chBuforKomOdb[chWskOpr], INTERF_UART);
+			chWskOpr++;
+			chWskOpr &= 0xF;	//zapętlenie wskaźnika bufora kołowego
 			chTimeout = 50;
 		}
 
@@ -154,12 +111,31 @@ void WatekOdbiorczyLPUART1(void const * argument)
 	}
 }
 
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+	//uint8_t chErr;
+	uint16_t n;
+
+	if (huart->Instance == LPUART1)
+	{
+		for (n=0; n<Size; n++)
+		{
+			chBuforKomOdb[chWskNap] = chBuforOdbDMA[n];
+			chWskNap++;
+			chWskNap &= 0xF;	//zapętlenie wskaźnika bufora kołowego
+		}
+
+		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 9);	//ponownie włącz odbiór
+		//chErr = HAL_UART_Receive_DMA (&hlpuart1, &chBuforKomOdb, 1);	//odbieraj do bufora
+	}
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Odbiera dane przychodzące z interfejsów kmunikacyjnych w trybie: pytanie - odpowiedź
+// Analizuje dane przychodzące z interfejsów kmunikacyjnych w trybie: pytanie - odpowiedź
 // Parametry:
-// chIn - odbierany bajt
+// chWe - odbierany bajt
 // chInterfejs - identyfikator interfejsu odbierająceg znak
 //Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
@@ -510,21 +486,17 @@ uint8_t Wyslij_ERR(uint8_t chKodBledu, uint8_t chParametr, uint8_t chInterfejs)
 
 uint8_t TestKomunikacji(void)
 {
-	//extern char chNapis[60];
 	uint16_t sRozmDanych;
 	uint8_t chErr;
 
-	while (chWyslaneOK == 0);
-	sRozmDanych = sprintf((char*)chBuforKomNad, "Test komunikacji UART\n\r");
-	//chErr = HAL_UART_Transmit(&hlpuart1, (uint8_t*)chNapis, sRozmDanych, 100);
-	chErr = HAL_UART_Transmit_DMA(&hlpuart1, (uint8_t*)chBuforKomNad, sRozmDanych);
-	chWyslaneOK = 0;
+	//while (chWyslaneOK == 0);
+	sRozmDanych = sprintf((char*)chBuforNadDMA, "Test komunikacji UART\n\r");
+	chErr = HAL_UART_Transmit_DMA(&hlpuart1, (uint8_t*)chBuforNadDMA, sRozmDanych);
+	//chWyslaneOK = 0;
+	osDelay(1);
 	return chErr;
 }
 
 
 
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-	chWyslaneOK = 1;
-}
+

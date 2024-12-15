@@ -18,6 +18,7 @@
 #include "petla_glowna.h"
 #include "moduly_wew.h"
 #include "serwa.h"
+#include "GNSS.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,6 +51,10 @@ TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim7;
 TIM_HandleTypeDef htim8;
 
+UART_HandleTypeDef huart8;
+DMA_HandleTypeDef hdma_uart8_rx;
+DMA_HandleTypeDef hdma_uart8_tx;
+
 DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
 /* USER CODE BEGIN PV */
@@ -69,6 +74,7 @@ static void MX_TIM3_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_UART8_Init(void);
 /* USER CODE BEGIN PFP */
 
 
@@ -133,6 +139,7 @@ int main(void)
   MX_TIM8_Init();
   MX_TIM4_Init();
   MX_TIM1_Init();
+  MX_UART8_Init();
   /* USER CODE BEGIN 2 */
   InicjujModulyWew();
   InicjujSerwa();
@@ -638,6 +645,54 @@ static void MX_TIM8_Init(void)
 }
 
 /**
+  * @brief UART8 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART8_Init(void)
+{
+
+  /* USER CODE BEGIN UART8_Init 0 */
+
+  /* USER CODE END UART8_Init 0 */
+
+  /* USER CODE BEGIN UART8_Init 1 */
+
+  /* USER CODE END UART8_Init 1 */
+  huart8.Instance = UART8;
+  huart8.Init.BaudRate = 115200;
+  huart8.Init.WordLength = UART_WORDLENGTH_8B;
+  huart8.Init.StopBits = UART_STOPBITS_1;
+  huart8.Init.Parity = UART_PARITY_NONE;
+  huart8.Init.Mode = UART_MODE_TX_RX;
+  huart8.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart8.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart8.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart8.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart8.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetTxFifoThreshold(&huart8, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetRxFifoThreshold(&huart8, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_DisableFifoMode(&huart8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART8_Init 2 */
+
+  /* USER CODE END UART8_Init 2 */
+
+}
+
+/**
   * Enable DMA controller clock
   */
 static void MX_BDMA_Init(void)
@@ -677,6 +732,14 @@ static void MX_DMA_Init(void)
   {
     Error_Handler( );
   }
+
+  /* DMA interrupt init */
+  /* DMA1_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+  /* DMA1_Stream3_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream3_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream3_IRQn);
 
 }
 
@@ -738,6 +801,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOJ_CLK_ENABLE();
   __HAL_RCC_GPIOK_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();

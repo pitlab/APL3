@@ -31,4 +31,12 @@
 #define PRZERWA_PPM		3000	//przerwa między paczkami impulsów PPM odbiornika RC
 #define KANALY_SERW		16		//liczba sterowanych kanałów serw
 #define KANALY_ODB		16		//liczba odbieranych kanałów na każdym z dwu wejść odbiorników RC
+
+
+//flagi inicjalizacji sprzętu
+#define INIT1_GNSS			0x00000001
+#define INIT1_KAMERA		0x00000002
+
+
+
 #endif /* INC_SYS_DEF_CM4_H_ */
