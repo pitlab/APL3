@@ -174,6 +174,7 @@ void DMA1_Stream0_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Stream0_IRQn 0 */
 	extern volatile uint8_t chDMAgotowe;
   /* USER CODE END DMA1_Stream0_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_spi5_tx);
   /* USER CODE BEGIN DMA1_Stream0_IRQn 1 */
 
   //hdma_spi5_tx.Instance->
@@ -203,6 +204,7 @@ void SPI5_IRQHandler(void)
   /* USER CODE BEGIN SPI5_IRQn 0 */
 
   /* USER CODE END SPI5_IRQn 0 */
+  HAL_SPI_IRQHandler(&hspi5);
   /* USER CODE BEGIN SPI5_IRQn 1 */
 
   /* USER CODE END SPI5_IRQn 1 */
@@ -216,6 +218,7 @@ void TIM17_IRQHandler(void)
   /* USER CODE BEGIN TIM17_IRQn 0 */
 
   /* USER CODE END TIM17_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim17);
   /* USER CODE BEGIN TIM17_IRQn 1 */
 
   /* USER CODE END TIM17_IRQn 1 */
@@ -229,6 +232,7 @@ void MDMA_IRQHandler(void)
   /* USER CODE BEGIN MDMA_IRQn 0 */
 
   /* USER CODE END MDMA_IRQn 0 */
+  HAL_MDMA_IRQHandler(&hmdma_mdma_channel0_dma1_stream1_tc_0);
   /* USER CODE BEGIN MDMA_IRQn 1 */
 
   /* USER CODE END MDMA_IRQn 1 */
@@ -242,6 +246,7 @@ void BDMA_Channel0_IRQHandler(void)
   /* USER CODE BEGIN BDMA_Channel0_IRQn 0 */
 
   /* USER CODE END BDMA_Channel0_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_lpuart1_tx);
   /* USER CODE BEGIN BDMA_Channel0_IRQn 1 */
 
   /* USER CODE END BDMA_Channel0_IRQn 1 */
@@ -255,6 +260,7 @@ void BDMA_Channel1_IRQHandler(void)
   /* USER CODE BEGIN BDMA_Channel1_IRQn 0 */
 
   /* USER CODE END BDMA_Channel1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_lpuart1_rx);
   /* USER CODE BEGIN BDMA_Channel1_IRQn 1 */
 
   /* USER CODE END BDMA_Channel1_IRQn 1 */
