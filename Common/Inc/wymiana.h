@@ -19,11 +19,24 @@
 
 #define ROWNAJ_DO32B(adres)				((adres + 3) & 0xFFFFFFFC)
 
-#define ROZMIAR_BUF8_WYMIANY_CM4		ROWNAJ_DO32B(sizeof(stWymianyCM4))
-#define ROZMIAR_BUF8_WYMIANY_CM7		ROWNAJ_DO32B(sizeof(stWymianyCM7))
+#define ROZMIAR_BUF8_WYMIANY_CM4		ROWNAJ_DO32B(sizeof(stWymianyCM4_t))
+#define ROZMIAR_BUF8_WYMIANY_CM7		ROWNAJ_DO32B(sizeof(stWymianyCM7_t))
 #define ROZMIAR_BUF32_WYMIANY_CM4		ROZMIAR_BUF8_WYMIANY_CM4 / 4
 #define ROZMIAR_BUF32_WYMIANY_CM7		ROZMIAR_BUF8_WYMIANY_CM7 / 4
 
+typedef struct _GNSS
+{
+	float fDlugoscGeo;
+	float fSzerokoscGeo;
+	float fHdop;
+	float fPredkoscWzglZiemi;
+	float fKurs;
+	float fWysokoscMSL;
+	uint8_t chLiczbaSatelit;
+	uint8_t chFix;
+	uint8_t chGodz, chMin, chSek;
+	uint8_t chDzien, chMies, sRok;
+} stGnss_t;
 
 
 //definicja struktury wymiany danych wychodzących z rdzenia CM4
@@ -39,27 +52,28 @@ typedef struct _stWymianyCM4
 	float fWysokosc[2];
 	uint16_t sSerwa[16];
 	uint8_t chBledyPetliGlownej;
-} stWymianyCM4;
+	stGnss_t stGnss1;
+} stWymianyCM4_t;
 
 //definicja struktury wymiany danych wychodzących z rdzenia CM7
 typedef struct
 {
 	uint8_t chTrybPracy;
 	uint16_t sTest;
-} stWymianyCM7;
+} stWymianyCM7_t;
 
 //unie do konwersji struktur na słowa 32-bitowe
 typedef union
 {
-	stWymianyCM4 dane;
+	stWymianyCM4_t dane;
 	uint32_t nSlowa[ROZMIAR_BUF32_WYMIANY_CM4];
-} unia_wymianyCM4;
+} unia_wymianyCM4_t;
 
 typedef union
 {
-	stWymianyCM7 dane;
+	stWymianyCM7_t dane;
 	uint32_t nSlowa[ROZMIAR_BUF32_WYMIANY_CM7];
-} unia_wymianyCM7;
+} unia_wymianyCM7_t;
 
 
 #endif /* INC_WYMIANA_H_ */

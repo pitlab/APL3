@@ -334,22 +334,24 @@ void LCD_Orient(uint8_t orient)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Zapełnij cały ekran kolorem BLACK
+// Zapełnij cały ekran kolorem
 // Parametry: nic
 // Zwraca: nic
 // Czas czyszczenia ekranu: 378ms @25MHz
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_clear(void)
+void LCD_clear(uint16_t kolor)
 {
 	uint32_t y;
 	uint8_t x, dane[8];
 
-	for(y=0; y<DISP_X_SIZE * DISP_Y_SIZE; y++)
-		sBuforLCD[y] = GRAY20;
+	//for(y=0; y<DISP_X_SIZE * DISP_Y_SIZE; y++)
+		//sBuforLCD[y] = GRAY20;
+	if (!kolor)
+		kolor = BLACK;
 
 	chRysujRaz = 1;
-	setColor(BLACK);
-	setBackColor(BLACK);
+	setColor(kolor);
+	setBackColor(kolor);
 
 	LCD_write_command16(0x00, 0x2A);	//Column Address Set
 	for (x=0; x<8; x++)
@@ -385,7 +387,7 @@ void LCD_clear(void)
 // Zwraca: nic
 // Czas rysowania pełnego ekranu: 372ms @25MHz
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_rect(uint16_t col, uint16_t row, uint16_t width, uint16_t height, uint16_t color)
+void LCD_rect(uint16_t col, uint16_t row, uint16_t width, uint16_t height, uint16_t kolor)
 {
 	uint16_t i,j;
 	uint8_t x, dane[8];
@@ -410,8 +412,8 @@ void LCD_rect(uint16_t col, uint16_t row, uint16_t width, uint16_t height, uint1
 	LCD_write_command16(0x00, 0x2C);	//Memory Write
 	for(x=0; x<4; x++)
 	{
-		dane[2*x+0] = color>>8;
-		dane[2*x+1] = color;
+		dane[2*x+0] = kolor>>8;
+		dane[2*x+1] = kolor;
 	}
 
 	for(i=0; i<width; i++)

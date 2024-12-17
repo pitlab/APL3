@@ -220,7 +220,7 @@ uint8_t KalibrujDotyk(void)
 				if (chErr == ERR_OK)
 					statusDotyku.chFlagi |= DOTYK_ZAPISANO;
 				chEtapKalibr = 0;
-				LCD_clear();
+				LCD_clear(BLACK);
 				return ERR_DONE;	//kod wyjścia z procedury kalibracji
 			}
 			statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
@@ -474,7 +474,7 @@ uint8_t TestDotyku(void)
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 		if (chLicznikDotkniec++ == 6)		//gdy licznik dotknięć doliczy do zadanej wartosci wtedy zakończ test
 		{
-			LCD_clear();
+			LCD_clear(BLACK);
 			chLicznikDotkniec = 0;
 			return ERR_DONE;
 		}

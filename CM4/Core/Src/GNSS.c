@@ -14,11 +14,15 @@ uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANALIZY_GNSS];
 uint8_t chBuforOdbioruGNSS[ROZMIAR_BUF_ODBIORU_GNSS];
 extern UART_HandleTypeDef huart8;
 extern uint32_t nZainicjowanoCM4[2];		//flagi inicjalizacji sprzętu
-volatile uint8_t chWskNapBoGNSS, chWskOprBoGNSS;		//wskaźniki napełniania i opróżniania bufora kołowego analizy danych GNSS
+volatile uint8_t chWskNapBoGNSS, chWskOprBoGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
 uint16_t sCzasInicjalizacjiGNSS = 0;	//licznik czasu	inicjalizacji wyrażony w obiegach pętli 1/200Hz = 5ms
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjuje pracę odbiornika GNSS do pracy na 5Hz z ograniczoną liczbą komunikatów
+// Każde kolejne uruchomienie realizuje fragment procesu rociągniętego w czasie .Trzeba uruchamiać go dotąd, aż zwróci ERR_DONE
 // Parametry: brak
 // Zwraca: kod zakończenia inicjalizacji: ERR_DONE = zakończono, ERR_OK - w trakcie
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,7 +34,9 @@ uint8_t InicjujGNSS(void)
 
     switch (sCzasInicjalizacjiGNSS++)	//zlicza kolejne uruchomienia co 1 obieg pętli głównej
     {
-    case 0:	chWskNapBoGNSS = chWskOprBoGNSS = 0;	break;
+    case 0:	HAL_UARTEx_ReceiveToIdle_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODBIORU_GNSS);		//włącz odbiór przez DMA z detekcją stanu idle
+    	chWskNapBoGNSS = chWskOprBoGNSS = 0;	break;
+
     case 1:	//ustaw domyślną prędkość
     	huart8.Init.BaudRate = 9600;
     	chErr = UART_SetConfig(&huart8);
@@ -123,6 +129,10 @@ uint8_t InicjujGNSS(void)
 			nZainicjowanoCM4[0] |= INIT1_GNSS;   //ustaw flagę inicjalizacji GNSS
 			sCzasInicjalizacjiGNSS = 0;   //jest później używany do indeksowania bufora
 			chErr = ERR_DONE;
+
+			//testowo ustaw dekodowanie niezainicjowanego GPS
+			huart8.Init.BaudRate = 9600;
+			chErr = UART_SetConfig(&huart8);
 			break;
         }
     }
@@ -153,7 +163,6 @@ uint8_t InicjujGNSS(void)
 
 
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // Callback odbiorczy UART
 // Parametry: brak
@@ -174,5 +183,27 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 		//wznów odbiór
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODBIORU_GNSS);
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Callback przerwania UARTA. PRzepisuje odebrane dane z małego bufora do większego bufora kołowego analizy protokołu
+// Parametry:
+// *huart - uchwyt uarta
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if (huart->Instance == UART8)
+	{
+		for (uint8_t n=0; n<ROZMIAR_BUF_ODBIORU_GNSS; n++)
+		{
+			chBuforAnalizyGNSS[chWskNapBoGNSS] = chBuforOdbioruGNSS[n];
+			chWskNapBoGNSS++;
+			chWskNapBoGNSS &= MASKA_ROZM_BUF_ODB_GNSS;	//zapętlenie wskaźnika bufora kołowego
+		}
+		HAL_UART_Receive_IT(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODBIORU_GNSS);	//odbieraj do bufora
 	}
 }

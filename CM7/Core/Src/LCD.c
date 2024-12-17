@@ -60,7 +60,7 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_calibration},
 	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_calibration},
 	{"Trans SRAM",	"Pomiar predkosci Static RAM 16-bit",		TP_POMIAR_SRAM,		obr_calibration},
-	{"--nic--",		"Nic",										TP_TESTY,			obr_multitool},
+	{"Startowy",	"Ekran startowy",							TP_ZDJECIE,			obr_multitool},
 	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_oscyloskop},
 	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_mtest}};
 
@@ -121,6 +121,11 @@ void RysujEkran(void)
 		}
 		break;
 
+	case TP_ZDJECIE:
+		Ekran_Powitalny(nZainicjowano);	//przywitaj użytkownika i prezentuj wykryty sprzęt
+		chNowyTrybPracy = TP_WROC_DO_MENU;
+		break;
+
 	case TP_TESTY:
 		if (TestDotyku() == ERR_DONE)
 			chNowyTrybPracy = TP_WROC_DO_MENU;
@@ -155,13 +160,13 @@ void RysujEkran(void)
 		case TP_USTAWIENIA:		chTrybPracy = TP_KALIB_DOTYK;	break;
 		}
 
-		LCD_clear();
+		LCD_clear(BLACK);
 	}
 
 
 
 	//extern struct _statusDotyku statusDotyku;
-	/*LCD_clear();
+	/*LCD_clear(BLACK);
 	//LCD_rect(0, 0, DISP_X_SIZE, DISP_Y_SIZE, GRAY60);
 	setColor(BLUE);
 	drawHLine(10, 10, 470);
@@ -207,9 +212,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 
 	if (chRysujRaz)
 	{
-		//LCD_Orient(POZIOMO);
-		setColor(WHITE);
-		fillRect(0, 0, DISP_HX_SIZE, DISP_HY_SIZE);	//czas 581,1ms
+		LCD_clear(WHITE);
 		drawBitmap((DISP_HX_SIZE-165)/2, 10, 165, 80, plogo165x80);
 
 		setColor(GRAY20);
@@ -224,9 +227,8 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO], ó, ć, ó, ó, ż);	//"By móc mieć w rój Wronów na pohybel wrażym hordom""
 		print(chNapis, CENTER, 120);
 
-		sprintf(chNapis, "(c) PitLab.%s 2024 sv%d.%d.%d", chNapisLcd[STR_WITAJ_DOMENA], WER_GLOWNA, WER_PODRZ, WER_REPO);
+		sprintf(chNapis, "(c) PitLab 2024 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
 		print(chNapis, CENTER, 140);
-
 		chRysujRaz = 0;
 	}
 
@@ -255,7 +257,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 	Wykrycie(x, y, n, *(zainicjowano+1) && INIT1_MOD_IMU);
 
 	HAL_Delay(2000);	//czekaj
-	LCD_clear();
+	LCD_clear(BLACK);
 }
 
 
@@ -761,44 +763,44 @@ void BelkaTytulu(char* chTytul)
 ////////////////////////////////////////////////////////////////////////////////
 void PomiaryIMU(void)
 {
-	extern volatile unia_wymianyCM4 uDaneCM4;
+	extern volatile unia_wymianyCM4_t uDaneCM4;
 
 	if (chRysujRaz)
 	{
 		chRysujRaz = 0;
-		BelkaTytulu("Dane pomiarowe IMU");
+		BelkaTytulu("Dane pomiarowe");
 		setColor(GRAY60);
-		sprintf(chNapis, "Wdus ekran aby zakonczyc");
+		sprintf(chNapis, "Wdu%c ekran aby zako%cczy%c", ś, ń, ć);
 		print(chNapis, CENTER, 30);
 		setColor(WHITE);
 	}
-	sprintf(chNapis, "Wysokosc: baro 1 = %.2f, baro 2 = %.2f", uDaneCM4.dane.fWysokosc[0], uDaneCM4.dane.fWysokosc[1]);
+	sprintf(chNapis, "Wysokosc: baro1 = %.2f, baro2 = %.2f", uDaneCM4.dane.fWysokosc[0], uDaneCM4.dane.fWysokosc[1]);
 	print(chNapis, 10, 60);
-	sprintf(chNapis, "Akcelerometr 1: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);
+	sprintf(chNapis, "Akcel1: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);
 	print(chNapis, 10, 80);
-	sprintf(chNapis, "Akcelerometr 2: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fAkcel2[0], uDaneCM4.dane.fAkcel2[1], uDaneCM4.dane.fAkcel2[2]);
+	sprintf(chNapis, "Akcel2: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fAkcel2[0], uDaneCM4.dane.fAkcel2[1], uDaneCM4.dane.fAkcel2[2]);
 	print(chNapis, 10, 100);
-	sprintf(chNapis, "Zyroskop 1:     X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fZyro1[0], uDaneCM4.dane.fZyro1[1], uDaneCM4.dane.fZyro1[2]);
+	sprintf(chNapis, "Zyro 1: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fZyro1[0], uDaneCM4.dane.fZyro1[1], uDaneCM4.dane.fZyro1[2]);
 	print(chNapis, 10, 120);
-	sprintf(chNapis, "Zyroskop 2:     X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fZyro2[0], uDaneCM4.dane.fZyro2[1], uDaneCM4.dane.fZyro2[2]);
+	sprintf(chNapis, "Zyro 2: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fZyro2[0], uDaneCM4.dane.fZyro2[1], uDaneCM4.dane.fZyro2[2]);
 	print(chNapis, 10, 140);
-	sprintf(chNapis, "Magnetometr 1:  X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fMagn1[0], uDaneCM4.dane.fMagn1[1], uDaneCM4.dane.fMagn1[2]);
+	sprintf(chNapis, "Magn 1: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fMagn1[0], uDaneCM4.dane.fMagn1[1], uDaneCM4.dane.fMagn1[2]);
 	print(chNapis, 10, 160);
-	sprintf(chNapis, "Magnetometr 2:  X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fMagn2[0], uDaneCM4.dane.fMagn2[1], uDaneCM4.dane.fMagn2[2]);
+	sprintf(chNapis, "Magn 2: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fMagn2[0], uDaneCM4.dane.fMagn2[1], uDaneCM4.dane.fMagn2[2]);
 	print(chNapis, 10, 180);
-	sprintf(chNapis, "Wysokosc: baro 1 = %.2f, baro 2 = %.2f", uDaneCM4.dane.fWysokosc[0], uDaneCM4.dane.fWysokosc[1]);
+	sprintf(chNapis, "Pochyl = %.3f, Przechyl = %.3f, Odchyl = %.3f", uDaneCM4.dane.fKatyIMU[0], uDaneCM4.dane.fKatyIMU[1], uDaneCM4.dane.fKatyIMU[2]);
 	print(chNapis, 10, 200);
 
-	sprintf(chNapis, "Pochyl = %.3f, Przechyl = %.3f, Odchyl = %.3f", uDaneCM4.dane.fKatyIMU[0], uDaneCM4.dane.fKatyIMU[1], uDaneCM4.dane.fKatyIMU[2]);
-	print(chNapis, 10, 220);
-
-	//sprintf(chNapis, "Serwa: 1 = %d, 2 = %d, 3 = %d, 4 = %d, 5 = %d, 6 = %d, 7 = %d, 8 = %d", uDaneCM4.dane.sSerwa[0], uDaneCM4.dane.sSerwa[1], uDaneCM4.dane.sSerwa[2], uDaneCM4.dane.sSerwa[3], uDaneCM4.dane.sSerwa[4], uDaneCM4.dane.sSerwa[5], uDaneCM4.dane.sSerwa[6], uDaneCM4.dane.sSerwa[7]);
-	sprintf(chNapis, "Serwa:  1 = %d,  2 = %d,  3 = %d,  4 = %d", uDaneCM4.dane.sSerwa[0], uDaneCM4.dane.sSerwa[1], uDaneCM4.dane.sSerwa[2], uDaneCM4.dane.sSerwa[3]);
+	//print(chNapis, 10, 220);
+	sprintf(chNapis, "GNSS: Dlug = %.6f, Szer = %.6f, Kurs = %.3f", uDaneCM4.dane.stGnss1.fDlugoscGeo, uDaneCM4.dane.stGnss1.fSzerokoscGeo, uDaneCM4.dane.stGnss1.fKurs);
 	print(chNapis, 10, 240);
-	sprintf(chNapis, "Serwa:  5 = %d,  6 = %d,  7 = %d,  8 = %d", uDaneCM4.dane.sSerwa[4], uDaneCM4.dane.sSerwa[5], uDaneCM4.dane.sSerwa[6], uDaneCM4.dane.sSerwa[7]);
+	sprintf(chNapis, "GNSS: WysMSL = %.2f, Predk = %.2f, Satel = %d",  uDaneCM4.dane.stGnss1.fWysokoscMSL,  uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi,  uDaneCM4.dane.stGnss1.chLiczbaSatelit);
 	print(chNapis, 10, 260);
-	sprintf(chNapis, "Serwa:  9 = %d, 10 = %d, 11 = %d, 12 = %d", uDaneCM4.dane.sSerwa[8], uDaneCM4.dane.sSerwa[9], uDaneCM4.dane.sSerwa[10], uDaneCM4.dane.sSerwa[11]);
+	//sprintf(chNapis, "Serwa:  9 = %d, 10 = %d, 11 = %d, 12 = %d", uDaneCM4.dane.sSerwa[8], uDaneCM4.dane.sSerwa[9], uDaneCM4.dane.sSerwa[10], uDaneCM4.dane.sSerwa[11]);
+	//sprintf(chNapis, "Serwa:  1 = %d,  2 = %d,  3 = %d,  4 = %d", uDaneCM4.dane.sSerwa[0], uDaneCM4.dane.sSerwa[1], uDaneCM4.dane.sSerwa[2], uDaneCM4.dane.sSerwa[3]);
+	sprintf(chNapis, "GNSS: Czas %02d:%02d:%02d, Data %02d-%02d-%02d",  uDaneCM4.dane.stGnss1.chGodz,  uDaneCM4.dane.stGnss1.chMin,  uDaneCM4.dane.stGnss1.chSek,  uDaneCM4.dane.stGnss1.chDzien,  uDaneCM4.dane.stGnss1.chMies,  uDaneCM4.dane.stGnss1.sRok);
 	print(chNapis, 10, 280);
-	sprintf(chNapis, "Serwa: 13 = %d, 14 = %d, 15 = %d, 16 = %d", uDaneCM4.dane.sSerwa[12], uDaneCM4.dane.sSerwa[13], uDaneCM4.dane.sSerwa[14], uDaneCM4.dane.sSerwa[15]);
-	print(chNapis, 10, 300);
+	//sprintf(chNapis, "Serwa: 13 = %d, 14 = %d, 15 = %d, 16 = %d", uDaneCM4.dane.sSerwa[12], uDaneCM4.dane.sSerwa[13], uDaneCM4.dane.sSerwa[14], uDaneCM4.dane.sSerwa[15]);
+	//sprintf(chNapis, "Serwa:  5 = %d,  6 = %d,  7 = %d,  8 = %d", uDaneCM4.dane.sSerwa[4], uDaneCM4.dane.sSerwa[5], uDaneCM4.dane.sSerwa[6], uDaneCM4.dane.sSerwa[7]);
+	//print(chNapis, 10, 300);
 }

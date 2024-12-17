@@ -18,8 +18,8 @@
 
 volatile uint32_t nBuforWymianyCM4[ROZMIAR_BUF32_WYMIANY_CM4]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 volatile uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
-unia_wymianyCM4 uDaneCM4;
-unia_wymianyCM7 uDaneCM7;
+unia_wymianyCM4_t uDaneCM4;
+unia_wymianyCM7_t uDaneCM7;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pobiera dane z rdzenia CM4

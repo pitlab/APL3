@@ -15,8 +15,8 @@
 #include "nmea.h"
 
 extern TIM_HandleTypeDef htim7;
-extern volatile unia_wymianyCM4 uDaneCM4;
-extern volatile unia_wymianyCM7 uDaneCM7;
+extern volatile unia_wymianyCM4_t uDaneCM4;
+extern volatile unia_wymianyCM7_t uDaneCM7;
 uint16_t sGenerator;
 uint16_t sCzasOstatniegoOdcinka;	//przechowuje czas uruchomienia ostatniego odcinka
 uint8_t chNrOdcinkaCzasu;

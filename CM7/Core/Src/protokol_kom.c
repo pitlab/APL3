@@ -86,8 +86,8 @@ void WatekOdbiorczyLPUART1(void const * argument)
 {
 	chWskNap = chWskOpr = 0;
 	uint8_t chTimeout;
-	HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 9);
-
+	//HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 9);
+	HAL_UART_Receive_IT (&hlpuart1, chBuforOdbDMA, 1);	//odbieraj do bufora
 	while(1)
 	{
 		//chErr = HAL_UARTEx_ReceiveToIdle_DMA (&hlpuart1, &chBuforKomOdb, 9);
@@ -111,7 +111,7 @@ void WatekOdbiorczyLPUART1(void const * argument)
 	}
 }
 
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+/*void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
 	//uint8_t chErr;
 	uint16_t n;
@@ -126,14 +126,33 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		}
 
 		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 9);	//ponownie włącz odbiór
-		//chErr = HAL_UART_Receive_DMA (&hlpuart1, &chBuforKomOdb, 1);	//odbieraj do bufora
+		chErr = HAL_UART_Receive_DMA (&hlpuart1, &chBuforKomOdb, 1);	//odbieraj do bufora
+	}
+}*/
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Callback przerwania UARTA. PRzepisuje odebrane dane z małego bufora do większego bufora kołowego analizy protokołu
+// Parametry:
+// *huart - uchwyt uarta
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if (huart->Instance == LPUART1)
+	{
+		chBuforKomOdb[chWskNap] = chBuforOdbDMA[0];
+		chWskNap++;
+		chWskNap &= 0xF;	//zapętlenie wskaźnika bufora kołowego
+		HAL_UART_Receive_IT (&hlpuart1, chBuforOdbDMA, 1);	//odbieraj do bufora
 	}
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Analizuje dane przychodzące z interfejsów kmunikacyjnych w trybie: pytanie - odpowiedź
+// Analizuje dane przychodzące z interfejsów komunikacyjnych w trybie: pytanie - odpowiedź
 // Parametry:
 // chWe - odbierany bajt
 // chInterfejs - identyfikator interfejsu odbierająceg znak
