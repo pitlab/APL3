@@ -521,14 +521,17 @@ static void MX_TIM7_Init(void)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
   /* USER CODE BEGIN TIM7_Init 2 */
-  htim7.Instance->CR1 |= TIM_CR1_CEN;	//włącz timer
+  if (HAL_TIM_Base_Start_IT(&htim7) != HAL_OK)		//włącz timer
+  {
+      Error_Handler();
+  }
   /* USER CODE END TIM7_Init 2 */
 
 }

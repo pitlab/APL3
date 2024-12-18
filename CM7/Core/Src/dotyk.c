@@ -75,9 +75,9 @@ void CzytajDotyk(void)
 
 	//sprawdź czy upłyneło wystarczająco czasu od ostatniego odczytu
 	nCzasDotyku = MinalCzas(statusDotyku.nOstCzasPomiaru);
-	if (nCzasDotyku < 50)	//50ms -> 20Hz
+	if (nCzasDotyku < 50000)	//50ms -> 20Hz
 		return;
-	statusDotyku.nOstCzasPomiaru = HAL_GetTick();
+	statusDotyku.nOstCzasPomiaru = PobierzCzasT6();;
 
 	//Ponieważ zegar SPI = 100MHz a układ może pracować z prędkością max 2,5MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 64
 	nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI

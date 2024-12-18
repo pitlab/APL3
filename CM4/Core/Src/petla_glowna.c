@@ -18,11 +18,11 @@ extern TIM_HandleTypeDef htim7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 extern volatile unia_wymianyCM7_t uDaneCM7;
 uint16_t sGenerator;
-uint16_t sCzasOstatniegoOdcinka;	//przechowuje czas uruchomienia ostatniego odcinka
+uint32_t nCzasOstatniegoOdcinka;	//przechowuje czas uruchomienia ostatniego odcinka
 uint8_t chNrOdcinkaCzasu;
-uint16_t sCzasOdcinka[LICZBA_ODCINKOW_CZASU];		//zmierzony czas obsługo odcinka
-uint16_t sMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
-uint16_t sCzasJalowy;
+uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU];		//zmierzony czas obsługo odcinka
+uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
+uint32_t nCzasJalowy;
 uint8_t chBledyPetliGlownej = ERR_OK;
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANALIZY_GNSS];
@@ -139,9 +139,9 @@ void PetlaGlowna(void)
 	}
 
 	//pomiar czasu zajętego w każdym odcinku
-	sCzasOdcinka[chNrOdcinkaCzasu] = MinalCzas(sCzasOstatniegoOdcinka);
-	if (sCzasOdcinka[chNrOdcinkaCzasu] > sMaxCzasOdcinka[chNrOdcinkaCzasu])   //przechwyć wartość maksymalną
-		sMaxCzasOdcinka[chNrOdcinkaCzasu] = sCzasOdcinka[chNrOdcinkaCzasu];
+	nCzasOdcinka[chNrOdcinkaCzasu] = MinalCzas(nCzasOstatniegoOdcinka);
+	if (nCzasOdcinka[chNrOdcinkaCzasu] > nMaxCzasOdcinka[chNrOdcinkaCzasu])   //przechwyć wartość maksymalną
+		nMaxCzasOdcinka[chNrOdcinkaCzasu] = nCzasOdcinka[chNrOdcinkaCzasu];
 
 	chNrOdcinkaCzasu++;
 	if (chNrOdcinkaCzasu == LICZBA_ODCINKOW_CZASU)
@@ -153,11 +153,11 @@ void PetlaGlowna(void)
 	//nadwyżkę czasu odcinka wytrać w jałowej petli
 	do
 	{
-		sCzasJalowy = PobierzCzasT7() - sCzasOstatniegoOdcinka;
+		nCzasJalowy = PobierzCzasT7() - nCzasOstatniegoOdcinka;
 	}
-	while (sCzasJalowy < CZAS_ODCINKA);
+	while (nCzasJalowy < CZAS_ODCINKA);
 
-	sCzasOstatniegoOdcinka = PobierzCzasT7();
+	nCzasOstatniegoOdcinka = PobierzCzasT7();
 }
 
 
@@ -167,26 +167,29 @@ void PetlaGlowna(void)
 // Parametry: brak
 // Zwraca: stan licznika w mikrosekundach
 ////////////////////////////////////////////////////////////////////////////////
-uint16_t PobierzCzasT7(void)
+uint32_t PobierzCzasT7(void)
 {
-	return htim7.Instance->CNT;
+	extern volatile uint16_t sCzasH;
+	return htim7.Instance->CNT + ((uint32_t)sCzasH<<16);
 }
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy upływ czasu mierzony timerem T7 z rozdzieczością 1us
 // Parametry: sPoczatek - licznik czasu na na początku pomiaru
 // Zwraca: ilość czasu w mikrosekundach jaki upłynął do podanego czasu początkowego
 ////////////////////////////////////////////////////////////////////////////////
-uint16_t MinalCzas(uint16_t sPoczatek)
+uint32_t MinalCzas(uint32_t nPoczatek)
 {
-	uint16_t sCzas, sCzasAkt;
+	uint32_t nCzas, nCzasAkt;
 
-	sCzasAkt = PobierzCzasT7();
-	if (sCzasAkt >= sPoczatek)
-		sCzas = sCzasAkt - sPoczatek;
+	nCzasAkt = PobierzCzasT7();
+	if (nCzasAkt >= nPoczatek)
+		nCzas = nCzasAkt - nPoczatek;
 	else
-		sCzas = 0xFFFF - sPoczatek + sCzasAkt;
-	return sCzas;
+		nCzas = 0xFFFFFFFF - nPoczatek + nCzasAkt;
+	return nCzas;
 }
 
 

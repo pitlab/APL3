@@ -50,6 +50,7 @@ volatile uint16_t sOdbRC1[KANALY_ODB];	//odbierane kanały na odbiorniku 1 RC
 volatile uint16_t sOdbRC2[KANALY_ODB];	//odbierane kanały na odbiorniku 2 RC
 uint8_t chNumerKanWejRC1, chNumerKanWejRC2;	//liczniki kanałów w odbieranym sygnale PPM
 volatile uint8_t chNumerKanSerw;
+volatile uint16_t sCzasH;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -68,6 +69,7 @@ extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim7;
 extern TIM_HandleTypeDef htim8;
 extern DMA_HandleTypeDef hdma_uart8_rx;
 extern DMA_HandleTypeDef hdma_uart8_tx;
@@ -539,6 +541,21 @@ void TIM8_CC_IRQHandler(void)
   /* USER CODE BEGIN TIM8_CC_IRQn 1 */
 
   /* USER CODE END TIM8_CC_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM7 global interrupt.
+  */
+void TIM7_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM7_IRQn 0 */
+
+  /* USER CODE END TIM7_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim7);
+  /* USER CODE BEGIN TIM7_IRQn 1 */
+  //Aby liczenie czasu było dokładne w dłuższych okresach, przy przekręceniu się 16-bitowego sprzętowego licznika inkrementuj drugi 16-bitowy licznik programowy
+  sCzasH++;
+  /* USER CODE END TIM7_IRQn 1 */
 }
 
 /**

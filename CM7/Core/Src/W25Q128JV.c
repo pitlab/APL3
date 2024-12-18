@@ -334,7 +334,7 @@ uint8_t W25_ProgramujStrone256B(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 	HAL_StatusTypeDef chErr;
 	QSPI_CommandTypeDef cmd;
 	uint8_t chStatus;
-	uint16_t sCzas;
+	uint32_t nCzas;
 
 	//włacz pozwolenie na zapis. Po zaprogramowaniu strony pozwolenie samo sie wyłączy
 	W25_UstawWriteEnable();
@@ -376,11 +376,11 @@ uint8_t W25_ProgramujStrone256B(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 	}
 
 	//po zapisaniu czytaj status dopuki jest ustawiony bit Busy lub wystąpi timeout max 3ms
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	do
 	{
 		W25_CzytajStatus(1, &chStatus);
-		if (MinalCzas(sCzas) > TOUT_PAGE_PROGRAM)
+		if (MinalCzas(nCzas) > TOUT_PAGE_PROGRAM)
 			chErr = ERR_TIMEOUT;
 	}
 	while ((chStatus & STATUS1_BUSY) && (!chErr));
@@ -401,7 +401,7 @@ uint8_t W25_KasujSektor4kB(uint32_t nAdres)
 	HAL_StatusTypeDef chErr;
 	QSPI_CommandTypeDef cmd;
 	uint8_t chStatus;
-	uint16_t sCzas;
+	uint32_t nCzas;
 
 	//włącz pozwolenie na zapis. Po skasowaniu sektora pozwolenie samo sie wyłączy
 	W25_UstawWriteEnable();
@@ -443,11 +443,11 @@ uint8_t W25_KasujSektor4kB(uint32_t nAdres)
 	//}
 
 	//po zapisaniu czytaj status dopuki jest ustawiony bit Busy lub wystąpi timeout max 400ms
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	do
 	{
 		W25_CzytajStatus(1, &chStatus);
-		if (MinalCzas(sCzas) > TOUT_SECTOR4K_ERASE)
+		if (MinalCzas(nCzas) > TOUT_SECTOR4K_ERASE)
 			chErr = ERR_TIMEOUT;
 	}
 	while ((chStatus & STATUS1_BUSY) && (!chErr));
@@ -468,7 +468,7 @@ uint8_t W25_TestTransferu(void)
 	uint8_t chErr;
 	uint16_t y;
 	uint8_t chBufor[BUFOR_W25_ROZM];
-	uint16_t sCzas;
+	uint32_t nCzas;
 	extern uint8_t chRysujRaz;
 
 
@@ -486,7 +486,7 @@ uint8_t W25_TestTransferu(void)
 	for (y=0; y<256; y++)
 		chBufor[y] = y;
 
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
 		chErr = W25_ProgramujStrone256B(0x5000 + y*0x100, chBufor, 256);
@@ -497,14 +497,14 @@ uint8_t W25_TestTransferu(void)
 			return chErr;
 		}
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
-		sprintf(chNapis, "ZapiszStrone256B() t = %d us => %.2f MB/s ", sCzas, (float)(16 * 256) / (sCzas * 1.048576f));
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+		sprintf(chNapis, "ZapiszStrone256B() t = %ld us => %.2f MB/s ", nCzas, (float)(16 * 256) / (nCzas * 1.048576f));
 	print(chNapis, 10, 80);
 
 
 	//odczyt danych przez SPI po 1 linii
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<512; y++)
 	{
 		chErr = W25_CzytajDane1A1D(0x5000, chBufor, BUFOR_W25_ROZM);
@@ -515,14 +515,14 @@ uint8_t W25_TestTransferu(void)
 			return chErr;
 		}
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
-		sprintf(chNapis, "CzytajDane1A1D() t = %d us => %.2f MB/s ", sCzas, (float)(BUFOR_W25_ROZM * 512) / (sCzas * 1.048576f));
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+		sprintf(chNapis, "CzytajDane1A1D() t = %ld us => %.2f MB/s ", nCzas, (float)(BUFOR_W25_ROZM * 512) / (nCzas * 1.048576f));
 	print(chNapis, 10, 100);
 
 
 	//odczyt danych przez SPI po 4 liniach
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<512; y++)
 	{
 		chErr = W25_CzytajDane4A4D(0x5000, chBufor, BUFOR_W25_ROZM);
@@ -533,14 +533,14 @@ uint8_t W25_TestTransferu(void)
 			return chErr;
 		}
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
-		sprintf(chNapis, "CzytajDane4A4D() t = %d us => %.2f MB/s ", sCzas, (float)(BUFOR_W25_ROZM * 512) / (sCzas * 1.048576f));
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+		sprintf(chNapis, "CzytajDane4A4D() t = %ld us => %.2f MB/s ", nCzas, (float)(BUFOR_W25_ROZM * 512) / (nCzas * 1.048576f));
 	print(chNapis, 10, 120);
 
 
 	//kasuj sektor 4kB
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<1; y++)
 	{
 		chErr = W25_KasujSektor4kB(0x5000);
@@ -551,9 +551,9 @@ uint8_t W25_TestTransferu(void)
 			return chErr;
 		}
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
-		sprintf(chNapis, "KasujSektor4kB() t = %d us => %.2f MB/s ", sCzas, (float)(4096) /  (float)(sCzas * 1.048576f));
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+		sprintf(chNapis, "KasujSektor4kB() t = %ld us => %.2f MB/s ", nCzas, (float)(4096) /  (float)(nCzas * 1.048576f));
 	print(chNapis, 10, 140);
 
 	return chErr;

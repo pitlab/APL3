@@ -108,9 +108,9 @@ static void MX_BDMA_Init(void);
 static void MX_SPI5_Init(void);
 static void MX_QUADSPI_Init(void);
 static void MX_FMC_Init(void);
-static void MX_TIM6_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_UART7_Init(void);
+static void MX_TIM6_Init(void);
 void StartDefaultTask(void const * argument);
 void WatekOdbiorczyLPUART1(void const * argument);
 void WatekOdbioruKonsoliUART7(void const * argument);
@@ -208,9 +208,9 @@ Error_Handler();
   MX_SPI5_Init();
   MX_QUADSPI_Init();
   MX_FMC_Init();
-  MX_TIM6_Init();
   MX_LPUART1_UART_Init();
   MX_UART7_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
   InicjujSPIModZewn();
   LCD_init();
@@ -541,14 +541,17 @@ static void MX_TIM6_Init(void)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
   /* USER CODE BEGIN TIM6_Init 2 */
-  htim6.Instance->CR1 |= TIM_CR1_CEN;	//włącz timer
+  if (HAL_TIM_Base_Start_IT(&htim6) != HAL_OK)
+  {
+      Error_Handler();
+  }
   /* USER CODE END TIM6_Init 2 */
 
 }
@@ -877,6 +880,7 @@ void StartDefaultTask(void const * argument)
   }
   /* USER CODE END 5 */
 }
+
 
 
 /* USER CODE BEGIN Header_WatekOdbioruKonsoliUART7 */

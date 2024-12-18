@@ -65,7 +65,7 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_mtest}};
 
 
-
+uint32_t MinalCzas2(uint32_t nPoczatek);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran główny odświeżany w głównej pętli programu
@@ -218,7 +218,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 		setColor(GRAY20);
 		setBackColor(WHITE);
 		setFont(BigFont);
-		sprintf(chNapis, "%s @ %lu MHz", (char*)chNapisLcd[STR_WITAJ_TYTUL], HAL_RCC_GetSysClockFreq()/1000000);
+		sprintf(chNapis, "%s @%luMHz", (char*)chNapisLcd[STR_WITAJ_TYTUL], HAL_RCC_GetSysClockFreq()/1000000);
 		print(chNapis, CENTER, 100);
 
 		setColor(GRAY30);
@@ -297,35 +297,39 @@ void Wykrycie(uint16_t x, uint16_t y, uint8_t znakow, uint8_t wykryto)
 ////////////////////////////////////////////////////////////////////////////////
 void FraktalTest(uint8_t chTyp)
 {
-	uint16_t sCzas;
+	uint32_t nCzas;
+	uint32_t nCzas2;
 
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
+	nCzas2 = HAL_GetTick();
 	switch (chTyp)
 	{
 	case 0:	GenerateJulia(DISP_X_SIZE, DISP_Y_SIZE, DISP_X_SIZE/2, DISP_Y_SIZE/2, 135, sBuforLCD);
-		sCzas = MinalCzas(sCzas);
-		sprintf(chNapis, "Julia: t=%dus, c=%.3f ", sCzas, fImag);
+		nCzas = MinalCzas(nCzas);
+		nCzas2 = MinalCzas2(nCzas2);
+		sprintf(chNapis, "Julia: t=%ldus, c=%.3f ", nCzas, fImag);
 		fImag -= 0.002;
 		break;
 
 			//ca�y fraktal - rotacja palety
 	case 1: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
-		sCzas = MinalCzas(sCzas);
-		sprintf(chNapis, "Mandelbrot: t=%dus z=%.1f, p=%d", sCzas, fZoom, chMnozPalety);
+		nCzas = MinalCzas(nCzas);
+		nCzas2 = MinalCzas2(nCzas2);
+		sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
 		chMnozPalety += 1;
 		break;
 
 			//dolina konika x=-0,75, y=0,1
 	case 2: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
-		sCzas = MinalCzas(sCzas);
-		sprintf(chNapis, "Mandelbrot: t=%dus z=%.1f, p=%d", sCzas, fZoom, chMnozPalety);
+		nCzas = MinalCzas(nCzas);
+		sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
 		fZoom /= 0.9;
 		break;
 
 			//dolina s�onia x=0,25-0,35, y=0,05, zoom=-0,6..-40
 	case 3: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
-		sCzas = MinalCzas(sCzas);
-		sprintf(chNapis, "Mandelbrot: t=%dus z=%.1f, p=%d", sCzas, fZoom, chMnozPalety);
+		nCzas = MinalCzas(nCzas);
+		sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
 		fZoom /= 0.9;
 		break;
 	}
@@ -337,6 +341,9 @@ void FraktalTest(uint8_t chTyp)
 	setFont(MidFont);
 	setColor(GREEN);
 	print(chNapis, 0, 304);
+
+	sprintf(chNapis, "t=%ldms", nCzas2);
+	print(chNapis, 0, 284);
 }
 
 
@@ -561,9 +568,10 @@ void HSV2RGB(float hue, float sat, float val, float *red, float *grn, float *blu
 // Parametry: brak
 // Zwraca: stan licznika w mikrosekundach
 ////////////////////////////////////////////////////////////////////////////////
-uint16_t PobierzCzasT6(void)
+uint32_t PobierzCzasT6(void)
 {
-	return htim6.Instance->CNT;
+	extern volatile uint16_t sCzasH;
+	return htim6.Instance->CNT + ((uint32_t)sCzasH <<16);
 }
 
 
@@ -572,19 +580,29 @@ uint16_t PobierzCzasT6(void)
 // Parametry: nStart - licznik czasu na na początku pomiaru
 // Zwraca: ilość czasu w milisekundach jaki upłynął do podanego czasu startu
 ////////////////////////////////////////////////////////////////////////////////
-uint16_t MinalCzas(uint16_t sPoczatek)
+uint32_t MinalCzas(uint32_t nPoczatek)
 {
-	uint16_t sCzas, sCzasAkt;
+	uint32_t nCzas, nCzasAkt;
 
-	sCzasAkt = PobierzCzasT6();
-	if (sCzasAkt >= sPoczatek)
-		sCzas = sCzasAkt - sPoczatek;
+	nCzasAkt = PobierzCzasT6();
+	if (nCzasAkt >= nPoczatek)
+		nCzas = nCzasAkt - nPoczatek;
 	else
-		sCzas = 0xFFFF - sPoczatek + sCzasAkt;
-	return sCzas;
+		nCzas = 0xFFFFFFFF - nPoczatek + nCzasAkt;
+	return nCzas;
 }
 
+uint32_t MinalCzas2(uint32_t nPoczatek)
+{
+	uint32_t nCzas, nCzasAkt;
 
+	nCzasAkt = HAL_GetTick();
+	if (nCzasAkt >= nPoczatek)
+		nCzas = nCzasAkt - nPoczatek;
+	else
+		nCzas = 0xFFFFFFFF - nPoczatek + nCzasAkt;
+	return nCzas;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran menu głównego

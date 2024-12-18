@@ -195,7 +195,7 @@ uint8_t Test_Flash(void)
 	HAL_NOR_StateTypeDef Stan;
 	uint16_t x, sBufor[ROZMIAR16_BUFORA];
 	uint32_t y, nAdres;
-	uint16_t sCzas;
+	uint32_t nCzas;
 
 	chErr = HAL_NOR_ReturnToReadMode(&hnor3);
 	setColor(WHITE);
@@ -213,7 +213,7 @@ uint8_t Test_Flash(void)
 	}
 
 	//zmierz czas kasowania sektora
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<4; y++)
 	{
 		nAdres = ADRES_NOR + ((26 + y) * ROZMIAR16_SEKTORA);
@@ -225,8 +225,8 @@ uint8_t Test_Flash(void)
 			return chErr;
 		}
 	}
-	sCzas = MinalCzas(sCzas);
-	sprintf(chNapis, "Kasowanie sektora = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_SEKTORA * 4) / (sCzas * 1.048576f));
+	nCzas = MinalCzas(nCzas);
+	sprintf(chNapis, "Kasowanie sektora = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_SEKTORA * 4) / (nCzas * 1.048576f));
 	print(chNapis, 10, 40);
 
 
@@ -258,7 +258,7 @@ uint8_t Test_Flash(void)
 
 
 	//zmierz czas programowania połowy sektora
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	nAdres = ADRES_NOR + 26 * ROZMIAR16_SEKTORA;	//sektor
 	for (y=0; y<16; y++)
 	{
@@ -274,15 +274,15 @@ uint8_t Test_Flash(void)
 		}
 		nAdres += ROZMIAR8_BUFORA;	//adres musi wyrażać bajty a nie słowa bo w funkcji programowania jest mnożony x2
 	}
-	sCzas = MinalCzas(sCzas);
-	sprintf(chNapis, "Zapis 16 buforow  = %d us => %.2f kB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.024f));
+	nCzas = MinalCzas(nCzas);
+	sprintf(chNapis, "Zapis 16 buforow  = %ld us => %.2f kB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.024f));
 	print(chNapis, 10, 60);
 
 
 	//zmierz czas odczytu
 	chErr = HAL_NOR_ReturnToReadMode(&hnor3);
 	nAdres = ADRES_NOR + 26 * ROZMIAR16_SEKTORA;
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<1000; y++)
 	{
 		chErr = CzytajDaneFlashNOR(nAdres, sBufor, ROZMIAR16_BUFORA);
@@ -293,11 +293,9 @@ uint8_t Test_Flash(void)
 			return chErr;
 		}
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
-		sprintf(chNapis, "Odczyt 1k buforow = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 1000) / (sCzas * 1.048576f));
-	else
-		sprintf(chNapis, "za szybko! ");
+	nCzas = MinalCzas(nCzas);
+	sprintf(chNapis, "Odczyt 1k buforow = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+
 	print(chNapis, 10, 80);
 	return chErr;
 }
@@ -315,7 +313,7 @@ void TestPredkosciOdczytuNOR(void)
 	HAL_StatusTypeDef chErr;
 	uint16_t sBufor[ROZMIAR16_BUFORA];
 	uint32_t x, y, nAdres;
-	uint16_t sCzas;
+	uint32_t nCzas;
 	extern uint8_t chRysujRaz;
 
 	if (chRysujRaz)
@@ -331,7 +329,7 @@ void TestPredkosciOdczytuNOR(void)
 
 	//odczyt z NOR metodą odczytu bufora
 	nAdres = ADRES_NOR;
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
 		chErr = HAL_NOR_ReadBuffer(&hnor3, nAdres, sBufor, ROZMIAR16_BUFORA);
@@ -343,78 +341,78 @@ void TestPredkosciOdczytuNOR(void)
 			return;
 		}
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "HAL_NOR_ReadBuffer() t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
+		sprintf(chNapis, "HAL_NOR_ReadBuffer() t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		print(chNapis, 10, 80);
 	}
 
 
 	//odczyt z NOR metodą widzianego jako zmienna
 	nAdres = ADRES_NOR;
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
 		for (x=0; x<ROZMIAR16_BUFORA; x++)
 			sBufor[x] = sFlashMem[x];
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "for(): NOR->ASRAM    t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
+		sprintf(chNapis, "for(): NOR->ASRAM    t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		print(chNapis, 10, 100);
 	}
 
 
 	//odczyt z Flash kontrolera
-/*	sCzas = PobierzCzasT6();
+/*	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
 		for (x=0; x<ROZMIAR16_BUFORA; x++)
 			sBufor[x] = sMPUFlash[x];
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "for(): Flash->ASRAM  t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
+		sprintf(chNapis, "for(): Flash->ASRAM  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		print(chNapis, 10, 120);
 	}*/
 
 	//Odczyt z RAM do RAM
 	uint16_t sBufor2[ROZMIAR16_BUFORA];
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
 		for (x=0; x<ROZMIAR16_BUFORA; x++)
 			sBufor[x] = sBufor2[x];
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "for(): ASRAM->ASRAM  t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
+		sprintf(chNapis, "for(): ASRAM->ASRAM  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		print(chNapis, 10, 140);
 	}
 
 
 	//odczyt z NOR przez DMA
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
 		HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sFlashMem, (uint32_t)sBufor, ROZMIAR16_BUFORA);
 		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
 			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "DMA: NOR->ASRAM      t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
+		sprintf(chNapis, "DMA: NOR->ASRAM      t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		print(chNapis, 10, 180);
 	}
 
 
 	//odczyt z Flash przez DMA
-/*	sCzas = PobierzCzasT6();
+/*	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sMPUFlash, (uint32_t)sBufor, ROZMIAR16_BUFORA);
@@ -428,16 +426,16 @@ void TestPredkosciOdczytuNOR(void)
 		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
 			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "DMA: Flash->ASRAM    t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
+		sprintf(chNapis, "DMA: Flash->ASRAM    t = %d us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		print(chNapis, 10, 200);
 	}*/
 
 
 	//odczyt z RAM przez DMA
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBufor2, (uint32_t)sBufor, ROZMIAR16_BUFORA);
@@ -452,15 +450,15 @@ void TestPredkosciOdczytuNOR(void)
 		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
 			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "DMA: ASRAM->ASRAM    t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
+		sprintf(chNapis, "DMA: ASRAM->ASRAM    t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		print(chNapis, 10, 220);
 	}
 
 	//odczyt z RAM D2 przez DMA
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBuforD1, (uint32_t)sBufor, ROZMIAR16_BUFORA);
@@ -475,15 +473,15 @@ void TestPredkosciOdczytuNOR(void)
 		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
 			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "DMA: SRAM1->ASRAM    t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
+		sprintf(chNapis, "DMA: SRAM1->ASRAM    t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		print(chNapis, 10, 240);
 	}
 
 	//odczyt z NOR przez MDMA
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sFlashMem, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
 	if (chErr != ERR_OK)
 	{
@@ -496,16 +494,16 @@ void TestPredkosciOdczytuNOR(void)
 	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
 		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
 
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "MDMA: NOR->ASRAM     t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
+		sprintf(chNapis, "MDMA: NOR->ASRAM     t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		print(chNapis, 10, 260);
 	}
 
 
 	//odczyt z Flash przez MDMA
-/*	sCzas = PobierzCzasT6();
+/*	nCzas = PobierzCzasT6();
 	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sMPUFlash, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
 	if (chErr != ERR_OK)
 	{
@@ -518,16 +516,16 @@ void TestPredkosciOdczytuNOR(void)
 	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
 		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
 
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "MDMA: Flash->ASRAM   t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
+		sprintf(chNapis, "MDMA: Flash->ASRAM   t = %d us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		print(chNapis, 10, 280);
 	} */
 
 
 	//odczyt z RAM przez MDMA
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBuforD1, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
 	if (chErr != ERR_OK)
 	{
@@ -540,10 +538,10 @@ void TestPredkosciOdczytuNOR(void)
 	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
 		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
 
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "MDMA: SRAM1->ASRAM   t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 16) / (sCzas * 1.048576f));
+		sprintf(chNapis, "MDMA: SRAM1->ASRAM   t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		print(chNapis, 10, 300);
 	}
 }
@@ -561,7 +559,7 @@ void TestPredkosciOdczytuRAM(void)
 	HAL_StatusTypeDef chErr;
 	uint16_t sBufor[ROZMIAR16_BUFORA];
 	uint32_t x, y;
-	uint16_t sCzas;
+	uint32_t nCzas;
 	extern uint8_t chRysujRaz;
 
 	if (chRysujRaz)
@@ -576,38 +574,38 @@ void TestPredkosciOdczytuRAM(void)
 	setColor(WHITE);
 
 	//Odczyt z zewnętrznego SRAM do RAM w pętli
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<1000; y++)
 	{
 		for (x=0; x<ROZMIAR16_BUFORA; x++)
 			 sBufor[x] = sExtSramBuf[x];
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		//sprintf(chNapis, "for(): ExtSRAM->AxiSRAM  t = %ldms, transfer = %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 4096 * 1000000) / (sCzas * 1024 * 1024));
-		//sprintf(chNapis, "for(): ExtSRAM->AxiSRAM  t = %ldms, transfer = %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 4096) / (sCzas * 1024 * 1024));
-		//sprintf(chNapis, "for(): ExtSRAM->AxiSRAM  t = %ldms, transfer = %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 4096) / (sCzas * 1.024f * 1.024f));
-		sprintf(chNapis, "for(): ExtSRAM->AxiSRAM  t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 1000) / (sCzas * 1.048576f));
+		//sprintf(chNapis, "for(): ExtSRAM->AxiSRAM  t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4096 * 1000000) / (nCzas * 1024 * 1024));
+		//sprintf(chNapis, "for(): ExtSRAM->AxiSRAM  t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4096) / (nCzas * 1024 * 1024));
+		//sprintf(chNapis, "for(): ExtSRAM->AxiSRAM  t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4096) / (nCzas * 1.024f * 1.024f));
+		sprintf(chNapis, "for(): ExtSRAM->AxiSRAM  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		print(chNapis, 10, 80);
 	}
 
 	//Zapis do zewnętrznego SRAM w pętli
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<1000; y++)
 	{
 		for (x=0; x<ROZMIAR16_BUFORA; x++)
 			sExtSramBuf[x] = sBufor[x];
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "for(): AxiSRAM->ExtSRAM  t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 1000) / (sCzas * 1.048576f));
+		sprintf(chNapis, "for(): AxiSRAM->ExtSRAM  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		print(chNapis, 10, 100);
 	}
 
 	//odczyt z zewnętrznego SRAM przez DMA
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<1000; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sExtSramBuf, (uint32_t)sBufor, ROZMIAR16_BUFORA);
@@ -622,16 +620,16 @@ void TestPredkosciOdczytuRAM(void)
 		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
 			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "DMA: ExtSRAM->AxiSRAM    t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 1000) / (sCzas * 1.048576f));
+		sprintf(chNapis, "DMA: ExtSRAM->AxiSRAM    t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		print(chNapis, 10, 120);
 	}
 
 
 	//zapis do zewnętrznego SRAM przez DMA
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<1000; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBufor, (uint32_t)sExtSramBuf, ROZMIAR16_BUFORA);
@@ -646,16 +644,16 @@ void TestPredkosciOdczytuRAM(void)
 		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
 			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
 	}
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "DMA: AxiSRAM->ExtSRAM    t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 1000) / (sCzas * 1.048576f));
+		sprintf(chNapis, "DMA: AxiSRAM->ExtSRAM    t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		print(chNapis, 10, 140);
 	}
 
 
 	//odczyt z zewnętrznego SRAM przez MDMA
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sExtSramBuf, (uint32_t)sBufor, ROZMIAR16_BUFORA, 1000);
 	if (chErr != ERR_OK)
 	{
@@ -667,16 +665,16 @@ void TestPredkosciOdczytuRAM(void)
 
 	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
 		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "MDMA: ExtSRAM->AxiSRAM   t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 1000) / (sCzas * 1.048576f));
+		sprintf(chNapis, "MDMA: ExtSRAM->AxiSRAM   t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		print(chNapis, 10, 160);
 	}
 
 
 	//zapis zewnętrznego SRAM przez MDMA
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBufor, (uint32_t)sExtSramBuf, ROZMIAR16_BUFORA, 1000);
 	if (chErr != ERR_OK)
 	{
@@ -688,36 +686,36 @@ void TestPredkosciOdczytuRAM(void)
 
 	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
 		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "MDMA: AxiSRAM->ExtSRAM   t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_BUFORA * 1000) / (sCzas * 1.048576f));
+		sprintf(chNapis, "MDMA: AxiSRAM->ExtSRAM   t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		print(chNapis, 10, 180);
 	}
 
 
 	//zapis całego zewnętrznego SRAM w pętli
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<ROZMIAR16_EXT_SRAM; y++)
 		 sExtSramBuf[y] = y & 0xFFFF;
 
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "for(): var->ExtSRAM  t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_EXT_SRAM) / (sCzas * 1.048576f));
+		sprintf(chNapis, "for(): var->ExtSRAM  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_EXT_SRAM) / (nCzas * 1.048576f));
 		print(chNapis, 10, 200);
 	}
 
 
 	//odczyt całego zewnętrznego SRAM w pętli
-	sCzas = PobierzCzasT6();
+	nCzas = PobierzCzasT6();
 	for (y=0; y<ROZMIAR16_EXT_SRAM; y++)
 		x = sExtSramBuf[y];
 
-	sCzas = MinalCzas(sCzas);
-	if (sCzas)
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
 	{
-		sprintf(chNapis, "for(): ExtSRAM->var  t = %d us => %.2f MB/s", sCzas, (float)(ROZMIAR8_EXT_SRAM) / (sCzas * 1.048576f));
+		sprintf(chNapis, "for(): ExtSRAM->var  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_EXT_SRAM) / (nCzas * 1.048576f));
 		print(chNapis, 10, 220);
 	}
 

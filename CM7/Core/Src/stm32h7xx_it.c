@@ -42,6 +42,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
 extern volatile uint32_t nCzasSystemowy;
+volatile uint16_t sCzasH;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -192,7 +193,8 @@ void TIM6_DAC_IRQHandler(void)
   /* USER CODE END TIM6_DAC_IRQn 0 */
   HAL_TIM_IRQHandler(&htim6);
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
-    nCzasSystemowy++;		//odmierza znacznik czasu ramek komunikacyjnych
+  sCzasH++;	//inkrementuj starszą, programową część licznika czasu aby móc odmierzać odcinki czasu dłuższe niż 65,536ms
+
   /* USER CODE END TIM6_DAC_IRQn 1 */
 }
 
