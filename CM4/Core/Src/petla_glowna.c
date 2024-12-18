@@ -26,7 +26,7 @@ uint32_t nCzasJalowy;
 uint8_t chBledyPetliGlownej = ERR_OK;
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANALIZY_GNSS];
-extern volatile uint8_t chWskNapBoGNSS, chWskOprBoGNSS;
+extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;
 uint32_t nZainicjowanoCM4[2] = {0, 0};		//flagi inicjalizacji sprzętu
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -84,8 +84,13 @@ void PetlaGlowna(void)
 	case 4:		//obsługa GNSS na UART8
 		if (nZainicjowanoCM4[0] & INIT1_GNSS)
 		{
-			while (chWskNapBoGNSS != chWskOprBoGNSS)
-			  chErr = DekodujNMEA(chBuforAnalizyGNSS[chWskOprBoGNSS++]);	//analizuj dane z GNSS
+			while (chWskNapBaGNSS != chWskOprBaGNSS)
+			{
+				chErr = DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
+				chWskOprBaGNSS++;
+				chWskOprBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
+				chStanIOwy ^= 0x80;		//Zielona LED
+			}
 		}
 		else
 			InicjujGNSS();		//gdy nie jest zainicjowany to przeprowadź odbiornik przez kolejne etapy inicjalizacji
@@ -132,7 +137,7 @@ void PetlaGlowna(void)
 		else
 			chStanIOwy |= 0x40;		//zgaś czerwoną LED
 		chBledyPetliGlownej |= chErr;
-		chStanIOwy ^= 0x80;		//Zielona LED
+		//chStanIOwy ^= 0x80;		//Zielona LED
 		break;
 
 	default:	break;

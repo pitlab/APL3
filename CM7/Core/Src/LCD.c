@@ -298,15 +298,12 @@ void Wykrycie(uint16_t x, uint16_t y, uint8_t znakow, uint8_t wykryto)
 void FraktalTest(uint8_t chTyp)
 {
 	uint32_t nCzas;
-	uint32_t nCzas2;
 
 	nCzas = PobierzCzasT6();
-	nCzas2 = HAL_GetTick();
 	switch (chTyp)
 	{
 	case 0:	GenerateJulia(DISP_X_SIZE, DISP_Y_SIZE, DISP_X_SIZE/2, DISP_Y_SIZE/2, 135, sBuforLCD);
 		nCzas = MinalCzas(nCzas);
-		nCzas2 = MinalCzas2(nCzas2);
 		sprintf(chNapis, "Julia: t=%ldus, c=%.3f ", nCzas, fImag);
 		fImag -= 0.002;
 		break;
@@ -314,7 +311,6 @@ void FraktalTest(uint8_t chTyp)
 			//ca�y fraktal - rotacja palety
 	case 1: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
 		nCzas = MinalCzas(nCzas);
-		nCzas2 = MinalCzas2(nCzas2);
 		sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
 		chMnozPalety += 1;
 		break;
@@ -341,9 +337,6 @@ void FraktalTest(uint8_t chTyp)
 	setFont(MidFont);
 	setColor(GREEN);
 	print(chNapis, 0, 304);
-
-	sprintf(chNapis, "t=%ldms", nCzas2);
-	print(chNapis, 0, 284);
 }
 
 
