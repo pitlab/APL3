@@ -780,37 +780,135 @@ void PomiaryIMU(void)
 	{
 		chRysujRaz = 0;
 		BelkaTytulu("Dane pomiarowe");
-		setColor(GRAY60);
-		sprintf(chNapis, "Wdu%c ekran aby zako%cczy%c", ś, ń, ć);
-		print(chNapis, CENTER, 30);
-		setColor(WHITE);
-	}
-	sprintf(chNapis, "Wysokosc: baro1 = %.2f, baro2 = %.2f", uDaneCM4.dane.fWysokosc[0], uDaneCM4.dane.fWysokosc[1]);
-	print(chNapis, 10, 60);
-	sprintf(chNapis, "Akcel1: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);
-	print(chNapis, 10, 80);
-	sprintf(chNapis, "Akcel2: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fAkcel2[0], uDaneCM4.dane.fAkcel2[1], uDaneCM4.dane.fAkcel2[2]);
-	print(chNapis, 10, 100);
-	sprintf(chNapis, "Zyro 1: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fZyro1[0], uDaneCM4.dane.fZyro1[1], uDaneCM4.dane.fZyro1[2]);
-	print(chNapis, 10, 120);
-	sprintf(chNapis, "Zyro 2: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fZyro2[0], uDaneCM4.dane.fZyro2[1], uDaneCM4.dane.fZyro2[2]);
-	print(chNapis, 10, 140);
-	sprintf(chNapis, "Magn 1: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fMagn1[0], uDaneCM4.dane.fMagn1[1], uDaneCM4.dane.fMagn1[2]);
-	print(chNapis, 10, 160);
-	sprintf(chNapis, "Magn 2: X = %.3f, Y = %.3f, Z = %.3f ", uDaneCM4.dane.fMagn2[0], uDaneCM4.dane.fMagn2[1], uDaneCM4.dane.fMagn2[2]);
-	print(chNapis, 10, 180);
-	sprintf(chNapis, "Pochyl = %.3f, Przechyl = %.3f, Odchyl = %.3f", uDaneCM4.dane.fKatyIMU[0], uDaneCM4.dane.fKatyIMU[1], uDaneCM4.dane.fKatyIMU[2]);
-	print(chNapis, 10, 200);
 
-	//print(chNapis, 10, 220);
-	sprintf(chNapis, "GNSS: Dlug = %.6f, Szer = %.6f, Kurs = %.3f", uDaneCM4.dane.stGnss1.fDlugoscGeo, uDaneCM4.dane.stGnss1.fSzerokoscGeo, uDaneCM4.dane.stGnss1.fKurs);
-	print(chNapis, 10, 240);
-	sprintf(chNapis, "GNSS: WysMSL = %.2f, Predk = %.2f, Satel = %d",  uDaneCM4.dane.stGnss1.fWysokoscMSL,  uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi,  uDaneCM4.dane.stGnss1.chLiczbaSatelit);
-	print(chNapis, 10, 260);
+		setColor(GRAY80);
+		sprintf(chNapis, "Wysoko%c%c baro1:           baro2:", ś, ć);
+		print(chNapis, 10, 30);
+		sprintf(chNapis, "Akcel1:");
+		print(chNapis, 10, 50);
+		sprintf(chNapis, "Akcel2:");
+		print(chNapis, 10, 70);
+		sprintf(chNapis, "Zyro 1:");
+		print(chNapis, 10, 90);
+		sprintf(chNapis, "Zyro 2:");
+		print(chNapis, 10, 110);
+		sprintf(chNapis, "Magn 1:");
+		print(chNapis, 10, 130);
+		sprintf(chNapis, "Magn 2:");
+		print(chNapis, 10, 150);
+		sprintf(chNapis, "Przechyl:           Pochyl:          Odchyl:");
+		print(chNapis, 10, 170);
+
+		sprintf(chNapis, "GNSS D%cug:             Szer:             Sat:", ł);
+		print(chNapis, 10, 240);
+		sprintf(chNapis, "GNSS WysMSL:           Pred:           Kurs:");
+		print(chNapis, 10, 260);
+		sprintf(chNapis, "GNSS Czas:             Data:");
+		print(chNapis, 10, 280);
+
+		setColor(GRAY50);
+		sprintf(chNapis, "Wdu%c ekran i przytrzymaj aby zako%cczy%c", ś, ń, ć);
+		print(chNapis, CENTER, 300);
+	}
+
+	setColor(WHITE);
+	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fWysokosc[0]);
+	print(chNapis, 10+16*FONT_SL, 30);
+	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fWysokosc[1]);
+	print(chNapis, 10+33*FONT_SL, 30);
+
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.3fg ", uDaneCM4.dane.fAkcel1[0]);
+	print(chNapis, 10+8*FONT_SL, 50);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.3fg ", uDaneCM4.dane.fAkcel1[1]);
+	print(chNapis, 10+20*FONT_SL, 50);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.3fg ", uDaneCM4.dane.fAkcel1[2]);
+	print(chNapis, 10+32*FONT_SL, 50);
+
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.3fg ", uDaneCM4.dane.fAkcel2[0]);
+	print(chNapis, 10+8*FONT_SL, 70);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.3fg ", uDaneCM4.dane.fAkcel2[1]);
+	print(chNapis, 10+20*FONT_SL, 70);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.3fg ", uDaneCM4.dane.fAkcel2[2]);
+	print(chNapis, 10+32*FONT_SL, 70);
+
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyro1[0]);
+	print(chNapis, 10+8*FONT_SL, 90);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyro1[1]);
+	print(chNapis, 10+20*FONT_SL, 90);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyro1[2]);
+	print(chNapis, 10+32*FONT_SL, 90);
+
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyro2[0]);
+	print(chNapis, 10+8*FONT_SL, 110);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyro2[1]);
+	print(chNapis, 10+20*FONT_SL, 110);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyro2[2]);
+	print(chNapis, 10+32*FONT_SL, 110);
+
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn1[0]);
+	print(chNapis, 10+8*FONT_SL, 130);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn1[1]);
+	print(chNapis, 10+20*FONT_SL, 130);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn1[2]);
+	print(chNapis, 10+32*FONT_SL, 130);
+
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn2[0]);
+	print(chNapis, 10+8*FONT_SL, 150);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn2[1]);
+	print(chNapis, 10+20*FONT_SL, 150);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn2[2]);
+	print(chNapis, 10+32*FONT_SL, 150);
+
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.3f%c ", uDaneCM4.dane.fKatyIMU[0], ZNAK_STOPIEN);
+	print(chNapis, 10+10*FONT_SL, 170);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.3f%c ", uDaneCM4.dane.fKatyIMU[1], ZNAK_STOPIEN);
+	print(chNapis, 10+28*FONT_SL, 170);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.3f%c ", uDaneCM4.dane.fKatyIMU[2], ZNAK_STOPIEN);
+	print(chNapis, 10+45*FONT_SL, 170);
+
+	setColor(WHITE);
+	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dDlugoscGeo);
+	print(chNapis, 10+11*FONT_SL, 240);
+	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
+	print(chNapis, 10+29*FONT_SL, 240);
+	sprintf(chNapis, "%d ", uDaneCM4.dane.stGnss1.chLiczbaSatelit);
+	print(chNapis, 10+46*FONT_SL, 240);
+
+	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
+	print(chNapis, 10+13*FONT_SL, 260);
+	sprintf(chNapis, "%.3fm/s ", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
+	print(chNapis, 10+29*FONT_SL, 260);
+	sprintf(chNapis, "%.1f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
+	print(chNapis, 10+45*FONT_SL, 260);
+
+	sprintf(chNapis, "%02d:%02d:%02d ", uDaneCM4.dane.stGnss1.chGodz, uDaneCM4.dane.stGnss1.chMin, uDaneCM4.dane.stGnss1.chSek);
+	print(chNapis, 10+12*FONT_SL, 280);
+	sprintf(chNapis, "%02d-%02d-%04d ", uDaneCM4.dane.stGnss1.chDzien, uDaneCM4.dane.stGnss1.chMies, uDaneCM4.dane.stGnss1.chRok + 2000);
+	print(chNapis, 10+29*FONT_SL, 280);
+
 	//sprintf(chNapis, "Serwa:  9 = %d, 10 = %d, 11 = %d, 12 = %d", uDaneCM4.dane.sSerwa[8], uDaneCM4.dane.sSerwa[9], uDaneCM4.dane.sSerwa[10], uDaneCM4.dane.sSerwa[11]);
 	//sprintf(chNapis, "Serwa:  1 = %d,  2 = %d,  3 = %d,  4 = %d", uDaneCM4.dane.sSerwa[0], uDaneCM4.dane.sSerwa[1], uDaneCM4.dane.sSerwa[2], uDaneCM4.dane.sSerwa[3]);
-	sprintf(chNapis, "GNSS: Czas %02d:%02d:%02d, Data %02d-%02d-%02d",  uDaneCM4.dane.stGnss1.chGodz,  uDaneCM4.dane.stGnss1.chMin,  uDaneCM4.dane.stGnss1.chSek,  uDaneCM4.dane.stGnss1.chDzien,  uDaneCM4.dane.stGnss1.chMies,  uDaneCM4.dane.stGnss1.sRok);
-	print(chNapis, 10, 280);
 	//sprintf(chNapis, "Serwa: 13 = %d, 14 = %d, 15 = %d, 16 = %d", uDaneCM4.dane.sSerwa[12], uDaneCM4.dane.sSerwa[13], uDaneCM4.dane.sSerwa[14], uDaneCM4.dane.sSerwa[15]);
 	//sprintf(chNapis, "Serwa:  5 = %d,  6 = %d,  7 = %d,  8 = %d", uDaneCM4.dane.sSerwa[4], uDaneCM4.dane.sSerwa[5], uDaneCM4.dane.sSerwa[6], uDaneCM4.dane.sSerwa[7]);
 	//print(chNapis, 10, 300);

@@ -26,8 +26,8 @@
 
 typedef struct _GNSS
 {
-	float fDlugoscGeo;
-	float fSzerokoscGeo;
+	double dDlugoscGeo;
+	double dSzerokoscGeo;
 	float fHdop;
 	float fPredkoscWzglZiemi;
 	float fKurs;
@@ -35,7 +35,7 @@ typedef struct _GNSS
 	uint8_t chLiczbaSatelit;
 	uint8_t chFix;
 	uint8_t chGodz, chMin, chSek;
-	uint8_t chDzien, chMies, sRok;
+	uint8_t chDzien, chMies, chRok;
 } stGnss_t;
 
 

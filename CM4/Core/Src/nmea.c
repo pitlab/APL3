@@ -45,7 +45,7 @@ float fGCourseGS = 0, fGSpeedGS = 0;
 //uint8_t chGDay, chGMon, chGRok;
 //uint8_t chGDayGS, chGMonGS, chGRokGS;
 //float fGAlti, fGAltiGS;
-double dLongitudeRAW, dLatitudeRAW, dLatitudeGS, dLongitudeGS;
+double dLongitudeRAW, dLatitudeRAW;	//, dLatitudeGS, dLongitudeGS;
 
 extern uint32_t nZainicjowanoCM4[2];		//flagi inicjalizacji sprzętu
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -173,7 +173,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     case ST_GGA_TIME:		//czas
         if (chDaneIn == '.')
 		{
-			uDaneCM4.dane.stGnss1.chGodz = Asci2UChar(chBufStanu+0, 2) + chStrefaCzas;
+			uDaneCM4.dane.stGnss1.chGodz = Asci2UChar(chBufStanu+0, 2) - chStrefaCzas;
 			uDaneCM4.dane.stGnss1.chMin  = Asci2UChar(chBufStanu+2, 2);
 			uDaneCM4.dane.stGnss1.chSek  = Asci2UChar(chBufStanu+4, 2);
 		}
@@ -425,7 +425,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     case ST_RMC_UTC_GS:
     	if (chDaneIn == '.')
     	{
-        	  uDaneCM4.dane.stGnss1.chGodz = Asci2UChar(chBufStanu+0, 2) + chStrefaCzas;
+        	  uDaneCM4.dane.stGnss1.chGodz = Asci2UChar(chBufStanu+0, 2) - chStrefaCzas;
         	  uDaneCM4.dane.stGnss1.chMin  = Asci2UChar(chBufStanu+2, 2);
         	  uDaneCM4.dane.stGnss1.chSek  = Asci2UChar(chBufStanu+4, 2);
     	}
@@ -482,7 +482,9 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
 			if (chBajtStanu == 2)
 			{
 				if (chBufStanu[0] == 'S')
-					dLatitudeRAW *= -1;
+					uDaneCM4.dane.stGnss1.dSzerokoscGeo = dLatitudeRAW * -1;
+				else
+					uDaneCM4.dane.stGnss1.dSzerokoscGeo = dLatitudeRAW;
 				chStan = ST_RMC_LONGITUD_GS;
 			}
             else
@@ -520,7 +522,9 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
 			if (chBajtStanu == 2)
 			{
 				if (chBufStanu[0] == 'W')
-					dLongitudeRAW *= -1;
+					uDaneCM4.dane.stGnss1.dDlugoscGeo = dLongitudeRAW * -1;
+				else
+					uDaneCM4.dane.stGnss1.dDlugoscGeo = dLongitudeRAW;
 				chStan = ST_RMC_SPEED_GS;
 			}
 			else
@@ -574,7 +578,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
 		{
         	uDaneCM4.dane.stGnss1.chDzien = Asci2UChar(chBufStanu+0, 2);
         	uDaneCM4.dane.stGnss1.chMies  = Asci2UChar(chBufStanu+2, 2);
-        	uDaneCM4.dane.stGnss1.sRok    = Asci2UChar(chBufStanu+4, 2);
+        	uDaneCM4.dane.stGnss1.chRok    = Asci2UChar(chBufStanu+4, 2);
 			chStan = ST_RMC_MAG_VAR_GS;
 			chBajtStanu = 0;
 		}
@@ -591,7 +595,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     case ST_RMC_UTC:
     	if (chDaneIn == '.')
 		{
-    		uDaneCM4.dane.stGnss1.chGodz = Asci2UChar(chBufStanu+0, 2) + chStrefaCzas;
+    		uDaneCM4.dane.stGnss1.chGodz = Asci2UChar(chBufStanu+0, 2) - chStrefaCzas;
     		uDaneCM4.dane.stGnss1.chMin  = Asci2UChar(chBufStanu+2, 2);
     		uDaneCM4.dane.stGnss1.chSek  = Asci2UChar(chBufStanu+4, 2);
 		}
@@ -648,7 +652,9 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
         	if (chBajtStanu == 2)
         	{
         		if (chBufStanu[0] == 'S')
-        			dLatitudeRAW *= -1;
+        			uDaneCM4.dane.stGnss1.dSzerokoscGeo = dLatitudeRAW * -1;
+        		else
+        			uDaneCM4.dane.stGnss1.dSzerokoscGeo = dLatitudeRAW;
         		chStan = ST_RMC_LONGITUD;
         	}
             else
@@ -686,7 +692,9 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
         	if (chBajtStanu == 2)
         	{
         		if (chBufStanu[0] == 'W')
-        				dLongitudeRAW *= -1;
+        			uDaneCM4.dane.stGnss1.dDlugoscGeo = dLongitudeRAW * -1;
+        		else
+        			uDaneCM4.dane.stGnss1.dDlugoscGeo = dLongitudeRAW;
                 chStan = ST_RMC_SPEED;                
         	}
         	else
@@ -745,7 +753,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
 		{
     		uDaneCM4.dane.stGnss1.chDzien = Asci2UChar(chBufStanu+0, 2);
     		uDaneCM4.dane.stGnss1.chMies  = Asci2UChar(chBufStanu+2, 2);
-    		uDaneCM4.dane.stGnss1.sRok    = Asci2UChar(chBufStanu+4, 2);
+    		uDaneCM4.dane.stGnss1.chRok    = Asci2UChar(chBufStanu+4, 2);
             chStan = ST_RMC_MAG_VAR;
             chBajtStanu = 0;
 		}

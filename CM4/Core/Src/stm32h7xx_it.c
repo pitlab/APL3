@@ -554,7 +554,7 @@ void TIM7_IRQHandler(void)
   HAL_TIM_IRQHandler(&htim7);
   /* USER CODE BEGIN TIM7_IRQn 1 */
   //Aby liczenie czasu było dokładne w dłuższych okresach, przy przekręceniu się 16-bitowego sprzętowego licznika inkrementuj drugi 16-bitowy licznik programowy
- // sCzasH++;
+  sCzasH++;
   /* USER CODE END TIM7_IRQn 1 */
 }
 

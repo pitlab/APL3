@@ -16,9 +16,9 @@
 #define MAGENTA 	0xF81F
 #define YELLOW  	0xFFE0
 #define WHITE 		0xFFFF
-#define LIBELLA1	0xAEAA	//p�yn
-#define LIBELLA2	0x95EA	//obw�dka b�belka
-#define LIBELLA3	0xCFAA	//b�belek
+#define LIBELLA1	0xAEAA	//płyn
+#define LIBELLA2	0x95EA	//obwódka bąbelka
+#define LIBELLA3	0xCFAA	//bąbelek
 #define GRAY10 		0x18C3	//najciemniejszy
 #define GRAY20 		0x3186
 #define GRAY30 		0x4A69
@@ -29,20 +29,25 @@
 #define GRAY80 		0xCE79
 #define SILVER		0xC618
 #define MAROON		0x8000	//czerwono-br�zowy
-#define OLIVE		0x8400	//jasny zgni�ozielony
-#define TEAL		0x0410	//ciemny zgni�ozielony
+#define OLIVE		0x8400	//jasny zgniłozielony
+#define TEAL		0x0410	//ciemny zgniłozielony
 #define NAVY		0x0010	//granatowy
 #define PURPLE		0x8010	//fioletowy
 
-#define MENU_TLO_BAR	GRAY40	//kolor belki menu g�rnego
+
+#define	KOLOR_X    	0xFA8A	//FF5151
+#define	KOLOR_Y	   	0x07E0
+#define	KOLOR_Z   	0x7C7F	//7E8EFE
+
+#define MENU_TLO_BAR	GRAY40	//kolor belki menu górnego
 #define MENU_TLO_WYB	GRAY70	//pozycja menu edytowana lub uruchamiana
-#define MENU_TLO_AKT	GRAY50	//pozycja menu pod�wietlona
+#define MENU_TLO_AKT	GRAY50	//pozycja menu podświetlona
 #define MENU_TLO_NAK	GRAY30	//pozycja nieaktywna
 
 #define MENU_RAM_WYB	GREEN
 #define MENU_RAM_AKT	WHITE
 #define MENU_RAM_NAK	GRAY50
-#define TRANSPARENT	0xFFFE	//specjalny kolor t�a
+#define TRANSPARENT	0xFFFE	//specjalny kolor tła
 
 
 
@@ -92,6 +97,7 @@
 #define ś	133
 #define ż	134
 #define ź	135
+#define ZNAK_STOPIEN	139
 
 
 //menu obrazkowe na środku ekranu
