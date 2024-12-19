@@ -207,7 +207,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 {
 	uint8_t n;
 	uint16_t x, y;
-
+	extern volatile unia_wymianyCM4_t uDaneCM4;
 	extern const unsigned short plogo165x80[];
 
 	if (chRysujRaz)
@@ -251,10 +251,16 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, *(zainicjowano+1) && INIT1_KAMERA);
 
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_MODUL_IMU]);		//moduł IMU
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1]);		//moduł IMU
 	y += 20;
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, *(zainicjowano+1) && INIT1_MOD_IMU);
+
+	//dane z CM4
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_GNSS]);		//moduł GPS
+	y += 20;
+	print(chNapis, x, y);
+	Wykrycie(x, y, n, uDaneCM4.dane.nZainicjowano && INITCM4_GNSS);
 
 	HAL_Delay(2000);	//czekaj
 	LCD_clear(BLACK);
@@ -895,11 +901,11 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%d ", uDaneCM4.dane.stGnss1.chLiczbaSatelit);
 	print(chNapis, 10+46*FONT_SL, 240);
 
-	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
+	sprintf(chNapis, "%.1fm ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
 	print(chNapis, 10+13*FONT_SL, 260);
 	sprintf(chNapis, "%.3fm/s ", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
 	print(chNapis, 10+29*FONT_SL, 260);
-	sprintf(chNapis, "%.1f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
 	print(chNapis, 10+45*FONT_SL, 260);
 
 	sprintf(chNapis, "%02d:%02d:%02d ", uDaneCM4.dane.stGnss1.chGodz, uDaneCM4.dane.stGnss1.chMin, uDaneCM4.dane.stGnss1.chSek);

@@ -9,14 +9,15 @@
 #include "GNSS.h"
 #include "uBlox.h"
 #include <stdio.h>
+#include "wymiana.h"
 
 uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANALIZY_GNSS];
 uint8_t chBuforOdbioruGNSS[ROZMIAR_BUF_ODBIORU_GNSS];
 extern UART_HandleTypeDef huart8;
-extern uint32_t nZainicjowanoCM4[2];		//flagi inicjalizacji sprzętu
+//extern uint32_t nZainicjowanoCM4[2];		//flagi inicjalizacji sprzętu
 volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
 uint16_t sCzasInicjalizacjiGNSS = 0;	//licznik czasu	inicjalizacji wyrażony w obiegach pętli 1/200Hz = 5ms
-
+extern volatile unia_wymianyCM4_t uDaneCM4;
 
 
 
@@ -125,7 +126,7 @@ uint8_t InicjujGNSS(void)
         //if (sCzasInicjalizacjiGNSS > 4*CFG_PRT_COMMANDS+120)
     	if (sCzasInicjalizacjiGNSS > 200)
         {
-			nZainicjowanoCM4[0] |= INIT1_GNSS;   //ustaw flagę inicjalizacji GNSS
+    		uDaneCM4.dane.nZainicjowano |= INIT1_GNSS;   //ustaw flagę inicjalizacji GNSS
 			sCzasInicjalizacjiGNSS = 0;   //jest później używany do indeksowania bufora
 			chErr = ERR_DONE;
 

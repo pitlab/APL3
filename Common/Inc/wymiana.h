@@ -52,6 +52,7 @@ typedef struct _stWymianyCM4
 	float fWysokosc[2];
 	uint16_t sSerwa[16];
 	uint8_t chBledyPetliGlownej;
+	uint32_t nZainicjowano;
 	stGnss_t stGnss1;
 } stWymianyCM4_t;
 

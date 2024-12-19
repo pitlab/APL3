@@ -19,19 +19,29 @@
 #define STR_SPRAWDZ_FLASH_NOR		5
 #define STR_SPRAWDZ_FLASH_QSPI		6
 #define STR_SPRAWDZ_KAMERA_OV5642	7
-#define STR_SPRAWDZ_MODUL_IMU		8
-#define STR_TEST_TOUCH				9
-#define STR_LIBEL_TITLE				10
-#define STR_MENU_MAIN				11
-#define STR_MENU_PROTOCOLS			12
-#define STR_MENU_SBUS				13
-#define STR_MENU_MULMETR			14
-#define STR_MENU_MULTOOL			15
-#define STR_MENU_VIBR				16
-#define STR_MENU_TEST				17
-#define STR_MENU_SETINGS			18
+#define STR_SPRAWDZ_IMU1			8
+#define STR_SPRAWDZ_GNSS			9
+#define STR_SPRAWDZ_0				10
+#define STR_SPRAWDZ_1				11
+#define STR_SPRAWDZ_2				12
+#define STR_SPRAWDZ_3				13
+#define STR_SPRAWDZ_4				14
+#define STR_SPRAWDZ_5				15
+#define STR_SPRAWDZ_6				16
+#define STR_SPRAWDZ_7				17
+#define STR_SPRAWDZ_8				18
+#define STR_TEST_TOUCH				19
+#define STR_LIBEL_TITLE				20
+#define STR_MENU_MAIN				21
+#define STR_MENU_PROTOCOLS			22
+#define STR_MENU_SBUS				23
+#define STR_MENU_MULMETR			24
+#define STR_MENU_MULTOOL			25
+#define STR_MENU_VIBR				26
+#define STR_MENU_TEST				27
+#define STR_MENU_SETINGS			28
 
-#define MAX_NAPISOW					22	//liczba napisów
+#define MAX_NAPISOW					29	//liczba napisów
 
 
 #define JEZYK_POLSKI
@@ -47,8 +57,17 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Flash NOR 32MB",					//STR_SPRAWDZ_FLASH_NOR
 "Flash QSPI 16MB",					//STR_SPRAWDZ_FLASH_QSPI
 "Kamera OV5642", 					//STR_SPRAWDZ_KAMERA_OV5642
-"Modul IMU",						//STR_SPRAWDZ_MOD_IMU	7
-
+"Modul IMU",						//STR_SPRAWDZ_IMU1
+"Modul GNSS",						//STR_SPRAWDZ_GNSS
+"Modul ", 							//STR_SPRAWDZ_0
+"Modul ",  							//STR_SPRAWDZ_1
+"Modul ",  							//STR_SPRAWDZ_2
+"Modul ",							//STR_SPRAWDZ_3
+"Modul ",							//STR_SPRAWDZ_4
+"Modul ",							//STR_SPRAWDZ_5
+"Modul ",							//STR_SPRAWDZ_6
+"Modul ",							//STR_SPRAWDZ_7
+"Modul ",							//STR_SPRAWDZ_8
 "Dotyk:",							//STR_TEST_TOUCH
 
 "Zapisana kalib.",					//STR_COMPS_STORED

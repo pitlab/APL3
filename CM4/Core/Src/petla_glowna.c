@@ -27,7 +27,7 @@ uint8_t chBledyPetliGlownej = ERR_OK;
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANALIZY_GNSS];
 extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;
-uint32_t nZainicjowanoCM4[2] = {0, 0};		//flagi inicjalizacji sprzętu
+//uint32_t nZainicjowanoCM4[2] = {0, 0};		//flagi inicjalizacji sprzętu
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -82,7 +82,7 @@ void PetlaGlowna(void)
 		break;
 
 	case 4:		//obsługa GNSS na UART8
-		if (nZainicjowanoCM4[0] & INIT1_GNSS)
+		if (uDaneCM4.dane.nZainicjowano & INIT1_GNSS)
 		{
 			while (chWskNapBaGNSS != chWskOprBaGNSS)
 			{
