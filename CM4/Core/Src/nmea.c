@@ -85,18 +85,16 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
 	if (chBajtStanu == 2)
 	{
 	    if ((chBufStanu[0] == 'G') && (chBufStanu[1] == 'P'))
-            {
-		chStan = ST_MSGID_GP;
-            }
+	    	chStan = ST_MSGID_GP;
 	    else
-            if ((chBufStanu[0] == 'G') && (chBufStanu[1] == 'N'))
-            {
-		chStan = ST_MSGID_GN;
-            }
+	    if ((chBufStanu[0] == 'G') && (chBufStanu[1] == 'N'))
+	    	chStan = ST_MSGID_GN;
 	    else
-            {
-		chStan = ST_ERR;    //błąd
-            }
+	    if ((chBufStanu[0] == 'P') && (chBufStanu[1] == 'M'))
+	    	chStan = ST_MSGID_MTK;
+	    else
+	    	chStan = ST_ERR;    //błąd
+
 	    chBajtStanu = 0;
 	}
 	break;
@@ -420,6 +418,58 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
         }
         break;
 
+    //dekodowanie komunikatów MTK
+    case ST_MSGID_MTK:
+    	if (chDaneIn == ',')
+    	{
+    		 if ((chBufStanu[0] == 'T') && (chBufStanu[1] == 'K') && (chBufStanu[2] == '0') && (chBufStanu[3] == '1'))
+    		 {
+    			 if (chBufStanu[4] == '1')
+    				 chStan = ST_PMTK011;
+    			 else
+    			 if (chBufStanu[4] == '0')
+    			     chStan = ST_PMTK010;
+    			 else
+    				 chStan = ST_ERR;
+    		 }
+    		 else
+    			 chStan = ST_ERR;
+    		 chBajtStanu = 0;
+    	}
+    	break;
+
+    //dekodowanie komunikatu startowego chipsetu MTK: $PMTK011,MTKGPS*08<CR><LF>
+    case ST_PMTK011:
+    	if (chDaneIn == 0x0A)	//<LF>
+    	{
+    		 if ((chBufStanu[0] == 'M') && (chBufStanu[1] == 'T') && (chBufStanu[2] == 'K') && (chBufStanu[3] == 'G') && (chBufStanu[4] == 'P') && (chBufStanu[5] == 'S'))
+    			 chStan = ST_PMTK010;
+    		 else
+    			 chStan = ST_ERR;
+    		 chBajtStanu = 0;
+    	}
+    	break;
+
+    //Dekodowanie komunikatu kończącego inicjalizację modułu: $PMTK010,001*2E<CR><LF>
+    case ST_PMTK010:
+    	const uint8_t chWzorzec[] =  "001*2E";
+    	if (chDaneIn == 0x0A)	//<LF>
+    	{
+			for (uint8_t n=0; n<6; n++)
+			{
+				if (chBufStanu[n] != chWzorzec[n])
+				{
+					chStan = ST_ERR;
+					chBajtStanu = 0;
+					break;
+				}
+			}
+
+    		uDaneCM4.dane.nZainicjowano |= INIT_WYKR_MTK;
+    		chStan = ST_NAGLOWEK1;
+    		chBajtStanu = 0;
+    	}
+    	break;
 
     //dekodowanie komunikatu RMC Recommended Minimum GLONASS
     case ST_RMC_UTC_GS:

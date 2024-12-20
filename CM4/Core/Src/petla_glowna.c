@@ -25,7 +25,7 @@ uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu od
 uint32_t nCzasJalowy;
 uint8_t chBledyPetliGlownej = ERR_OK;
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
-extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANALIZY_GNSS];
+extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;
 //uint32_t nZainicjowanoCM4[2] = {0, 0};		//flagi inicjalizacji sprzętu
 
@@ -82,7 +82,7 @@ void PetlaGlowna(void)
 		break;
 
 	case 4:		//obsługa GNSS na UART8
-		if (uDaneCM4.dane.nZainicjowano & INIT1_GNSS)
+		if (uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY)
 		{
 			while (chWskNapBaGNSS != chWskOprBaGNSS)
 			{

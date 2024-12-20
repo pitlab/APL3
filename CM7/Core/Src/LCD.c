@@ -227,7 +227,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO], ó, ć, ó, ó, ż);	//"By móc mieć w rój Wronów na pohybel wrażym hordom""
 		print(chNapis, CENTER, 120);
 
-		sprintf(chNapis, "(c) PitLab 2024 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
+		sprintf(chNapis, "(c) PitLab 2024 sv %d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
 		print(chNapis, CENTER, 140);
 		chRysujRaz = 0;
 	}

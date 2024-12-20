@@ -5,19 +5,21 @@
 
 #include "sys_def_CM4.h"
 
-#define ST_ERR		0   //błąd w dekodowaniu, szukaj dalej
-#define ST_NAGLOWEK1	0   //wykryto znak $
-#define ST_NAGLOWEK2	1   //wykryto znaki GP
-#define ST_MSGID_GP	2
-#define ST_MSGID_GN	3
-#define ST_GGA_TIME	10
+#define ST_ERR			0   //błąd w dekodowaniu, szukaj dalej
+#define ST_NAGLOWEK1	0   //wykryj znak $
+#define ST_NAGLOWEK2	1   //wykryj znaki GP
+#define ST_MSGID_GP		2
+#define ST_MSGID_GN		3
+#define ST_MSGID_MTK	4
+
+#define ST_GGA_TIME		10
 #define ST_GGA_LATITUDE	11
 #define ST_GGA_LAT_NS	12
 #define ST_GGA_LONGITUD	13
 #define ST_GGA_LON_WE	14
 #define ST_GGA_FIX_IND	15
 #define ST_GGA_SAT_USE	16
-#define ST_GGA_HDOP	17
+#define ST_GGA_HDOP		17
 #define ST_GGA_ALTITUDE 18
 
 #define ST_GLL_LAT	20
@@ -39,6 +41,10 @@
 #define ST_GSA_VDOP_GS  46
 
 #define ST_MSS_SIGSTR	50
+
+#define ST_PMTK011		58
+#define ST_PMTK010		59
+
 
 #define ST_RMC_UTC	60
 #define ST_RMC_STATUS	61
@@ -64,6 +70,7 @@
 
 #define ST_VTG_COURSE	80
 #define ST_ZDA_UTC	90
+
 
 #define BUF_STAN_SIZE   16
 

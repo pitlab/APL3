@@ -34,8 +34,10 @@
 
 
 //flagi inicjalizacji sprzętu
-#define INIT1_GNSS			0x00000001
-#define INIT1_KAMERA		0x00000002
+#define INIT_WYKR_MTK		0x00000001
+#define INIT_WYKR_UBLOX		0x00000002
+#define INIT_GNSS_GOTOWY	0x00000004
+#define INIT_				0x00000008
 
 
 
