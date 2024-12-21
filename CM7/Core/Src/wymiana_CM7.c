@@ -18,6 +18,9 @@
 
 volatile uint32_t nBuforWymianyCM4[ROZMIAR_BUF32_WYMIANY_CM4]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 volatile uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
+char chBuforNapisowCM4[ROZMIAR_BUF_NAPISOW_CM4];
+uint8_t chWskNapBufNapisowCM4 = 0;
+uint8_t chWskOprBufNapisowCM4 = 0;
 unia_wymianyCM4_t uDaneCM4;
 unia_wymianyCM7_t uDaneCM7;
 
@@ -43,6 +46,25 @@ uint8_t PobierzDaneWymiany_CM4(void)
 			{
 				uDaneCM4.nSlowa[n] = nBuforWymianyCM4[n];
 			}
+
+			//przepisz napis z CM4 do bufora napisów
+			for (uint8_t n=0; n<ROZMIAR_BUF_NAPISU_WYMIANY; n++)
+			{
+				if (uDaneCM4.dane.chNapis[n] != 0)
+				{
+					chBuforNapisowCM4[chWskNapBufNapisowCM4] = uDaneCM4.dane.chNapis[n];
+					chWskNapBufNapisowCM4++;
+					if (chWskNapBufNapisowCM4 == ROZMIAR_BUF_NAPISOW_CM4)
+						chWskNapBufNapisowCM4 = 0;
+				}
+				else
+					break;
+			}
+
+			//wyzeruj pierwszy znak napisu w buforze wymiany żeby zaznaczyć że został odczytany
+			uint32_t* nAdresNapisu = (uint32_t*)uDaneCM4.dane.chNapis;
+			uint32_t* nAdresBufora =  (uint32_t*)&uDaneCM4.dane.fAkcel1[0];
+			nBuforWymianyCM4[nAdresNapisu - nAdresBufora] = 0;
 			HAL_HSEM_Release(HSEM_CM4_TO_CM7, 0);
 		}
 	}

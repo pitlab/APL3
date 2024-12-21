@@ -15,6 +15,8 @@
 #define ROZMIAR_BUF_ANA_GNSS	32
 #define MASKA_ROZM_BUF_ANA_GNSS		0x1F
 
+#define CYKL_STARTU_INI_MTK		400
+#define CYKL_STARTU_INI_UBLOX	600
 
 uint8_t InicjujGNSS(void);
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size);

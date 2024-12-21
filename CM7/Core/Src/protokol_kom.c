@@ -21,6 +21,7 @@
 #include "protokol_kom.h"
 #include "kamera.h"
 #include <stdio.h>
+#include "wymiana_CM7.h"
 
 union _un8_16		//unia do konwersji między danymi 16 i 8 bit
 {
@@ -48,8 +49,8 @@ int16_t sSzerZdjecia, sWysZdjecia;
 uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
-uint8_t chBuforNadDMA[64]  __attribute__((section(".Bufory_SRAM4")));
-uint8_t chBuforOdbDMA[16]  __attribute__((section(".Bufory_SRAM4")));
+uint8_t chBuforNadDMA[ROZMIAR_BUF_NAD_DMA]  __attribute__((section(".Bufory_SRAM4")));
+uint8_t chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA]  __attribute__((section(".Bufory_SRAM4")));
 uint8_t chWyslaneOK = 1;
 uint8_t chBuforKomOdb[16];
 
@@ -507,11 +508,28 @@ uint8_t TestKomunikacji(void)
 {
 	uint16_t sRozmDanych;
 	uint8_t chErr;
+	extern char chBuforNapisowCM4[ROZMIAR_BUF_NAPISOW_CM4];
+	extern uint8_t chWskNapBufNapisowCM4;
+	extern uint8_t chWskOprBufNapisowCM4;
 
-	//while (chWyslaneOK == 0);
-	sRozmDanych = sprintf((char*)chBuforNadDMA, "Test komunikacji UART\n\r");
-	chErr = HAL_UART_Transmit_DMA(&hlpuart1, (uint8_t*)chBuforNadDMA, sRozmDanych);
-	//chWyslaneOK = 0;
+	//jeżeli z rdzenia CM4 przyszły jakieś napisy dla konsoli to wyświetl je
+	for (uint8_t n=0; n<ROZMIAR_BUF_NAD_DMA; n++)
+	{
+		sRozmDanych = n;
+		if (chWskNapBufNapisowCM4 != chWskOprBufNapisowCM4)
+		{
+			chBuforNadDMA[n] = chBuforNapisowCM4[chWskOprBufNapisowCM4];
+			chWskOprBufNapisowCM4++;
+			if (chWskOprBufNapisowCM4 == ROZMIAR_BUF_NAPISOW_CM4)
+				chWskOprBufNapisowCM4 = 0;
+		}
+		else
+			break;
+	}
+
+	//sRozmDanych = sprintf((char*)chBuforNadDMA, "Test komunikacji UART\n\r");
+	if (sRozmDanych)
+		chErr = HAL_UART_Transmit_DMA(&hlpuart1, (uint8_t*)chBuforNadDMA, sRozmDanych);
 	osDelay(1);
 	return chErr;
 }

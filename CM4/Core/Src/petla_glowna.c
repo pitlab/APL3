@@ -36,9 +36,9 @@ extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;
 ////////////////////////////////////////////////////////////////////////////////
 void PetlaGlowna(void)
 {
-	uint8_t chErr, chDane[16];
+	uint8_t chErr;//, chDane[16];
 	uint16_t n;
-	uint32_t nCzas;
+	//uint32_t nCzas;
 	float fTemp;
 
 
@@ -82,17 +82,14 @@ void PetlaGlowna(void)
 		break;
 
 	case 4:		//obsługa GNSS na UART8
-		if (uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY)
+		while (chWskNapBaGNSS != chWskOprBaGNSS)
 		{
-			while (chWskNapBaGNSS != chWskOprBaGNSS)
-			{
-				chErr = DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
-				chWskOprBaGNSS++;
-				chWskOprBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
-				chStanIOwy ^= 0x80;		//Zielona LED
-			}
+			chErr = DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
+			chWskOprBaGNSS++;
+			chWskOprBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
+			chStanIOwy ^= 0x80;		//Zielona LED
 		}
-		else
+		if ((uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY) == 0)
 			InicjujGNSS();		//gdy nie jest zainicjowany to przeprowadź odbiornik przez kolejne etapy inicjalizacji
 		break;
 
@@ -105,7 +102,7 @@ void PetlaGlowna(void)
 		//chBledyPetliGlownej |= WyslijDaneExpandera(chStanIOwy);
 		break;
 
-	case 10:
+	/*case 10:
 		CzytajIdFRAM(chDane);
 		ZapiszFRAM(0x2000, 0x55);
 		chDane[0] = CzytajFRAM(0x2000);
@@ -120,7 +117,7 @@ void PetlaGlowna(void)
 		nCzas = PobierzCzasT7();
 		ZapiszBuforFRAM(0x1000, chDane, 16);
 		nCzas = MinalCzas(nCzas);
-		break;
+		break;*/
 
 	case 11:
 		chBledyPetliGlownej |= UstawDekoderModulow(ADR_NIC);

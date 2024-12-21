@@ -12,7 +12,8 @@
 
 
 #define ROZM_BUF_KOL	32	//rozmiar musi być potęgą 2 aby zapętlić bufor operacją AND
-
+#define ROZMIAR_BUF_NAD_DMA		64
+#define ROZMIAR_BUF_ODB_DMA		16
 
 
 

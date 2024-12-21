@@ -73,6 +73,7 @@ uint8_t UstawDaneWymiany_CM4(void)
 				nBuforWymianyCM4[n] = uDaneCM4.nSlowa[n];
 			}
 			HAL_HSEM_Release(HSEM_CM4_TO_CM7, 0);
+			uDaneCM4.dane.chNapis[0] = 0;	//po wysłaniu czyść napis
 		}
 	}
 	return chErr;

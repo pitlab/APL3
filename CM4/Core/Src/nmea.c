@@ -47,7 +47,6 @@ float fGCourseGS = 0, fGSpeedGS = 0;
 //float fGAlti, fGAltiGS;
 double dLongitudeRAW, dLatitudeRAW;	//, dLatitudeGS, dLongitudeGS;
 
-extern uint32_t nZainicjowanoCM4[2];		//flagi inicjalizacji sprzętu
 extern volatile unia_wymianyCM4_t uDaneCM4;
 
 
@@ -77,7 +76,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
 	if (chDaneIn == '$')
 	{
 	    chStan = ST_NAGLOWEK2;    
-            chBajtStanu = 0;
+        chBajtStanu = 0;
 	}
 	break;
 
@@ -104,37 +103,38 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
 	{
 	    if (chBufStanu[0]== 'G')    //GGA, GLL, GSA, GSV
 	    {
-		if (chBufStanu[1]== 'G')	//GGx
-		{
-		    if (chBufStanu[2]== 'A')    //GGA +
-			chStan = ST_GGA_TIME;
-		    else
-			chStan = ST_ERR;
-		}
-		else
-                if (chBufStanu[1]== 'S')	//GSx
-		{
-		    if (chBufStanu[2]== 'A')    //GSA +
-			chStan = ST_GSA_MODE1;
-		    else
-			chStan = ST_ERR;
-		}
+			if (chBufStanu[1]== 'G')	//GGx
+			{
+				if (chBufStanu[2]== 'A')    //GGA +
+					chStan = ST_GGA_TIME;
+				else
+					chStan = ST_ERR;
+			}
+			else
+					if (chBufStanu[1]== 'S')	//GSx
+			{
+				if (chBufStanu[2]== 'A')    //GSA +
+					chStan = ST_GSA_MODE1;
+				else
+					chStan = ST_ERR;
+			}
 	    }
 	    else
-           
-            if (chBufStanu[0]== 'R')    //RMC +
-            {
-		if (chBufStanu[1]== 'M')	//RMx
-		{
-		    if (chBufStanu[2]== 'C')    //RMC
-			chStan = ST_RMC_UTC;
-		    else
-			chStan = ST_ERR;
-		}
-                else
-		    chStan = ST_ERR;
+        if (chBufStanu[0]== 'R')    //RMC +
+        {
+			if (chBufStanu[1]== 'M')	//RMx
+			{
+				if (chBufStanu[2]== 'C')    //RMC
+					chStan = ST_RMC_UTC;
+				else
+					chStan = ST_ERR;
+			}
+            else
+            	chStan = ST_ERR;
 	    }
-            chBajtStanu = 0;
+        else
+        	chStan = ST_ERR;
+        chBajtStanu = 0;
 	}
 	break;
 
@@ -143,28 +143,45 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
 	{
 	    if (chBufStanu[0]== 'G')    //GGA, GLL, GSA, GSV
 	    {
-                if (chBufStanu[1]== 'S')	//GSx
-		{
-		    if (chBufStanu[2]== 'A')    //GSA +
-			chStan = ST_GSA_MODE1_GS;
-		    else
-			chStan = ST_ERR;
-		}
+	    	if (chBufStanu[1]== 'S')	//GSx
+			{
+				if (chBufStanu[2]== 'A')    //GSA +
+					chStan = ST_GSA_MODE1_GS;
+				else
+					chStan = ST_ERR;
+			}
+	    	else
+	    		chStan = ST_ERR;
 	    }
 	    else
-            if (chBufStanu[0]== 'R')    //RMC +
-            {
-		if (chBufStanu[1]== 'M')	//RMx
-		{
-		    if (chBufStanu[2]== 'C')    //RMC
-			chStan = ST_RMC_UTC_GS;  
-		    else
-			chStan = ST_ERR;
-		}
-                else
-		    chStan = ST_ERR;
+	    if (chBufStanu[0]== 'R')    //RMC +
+        {
+	    	if (chBufStanu[1]== 'M')	//RMx
+			{
+				if (chBufStanu[2]== 'C')    //RMC
+					chStan = ST_RMC_UTC_GS;
+				else
+					chStan = ST_ERR;
+			}
+	    	else
+	    		chStan = ST_ERR;
 	    }
-            chBajtStanu = 0;
+	    else
+	    if (chBufStanu[0]== 'T')    //TXT
+	    {
+	    	if (chBufStanu[1]== 'X')	//TXx
+			{
+				if (chBufStanu[2]== 'T')    //TXT
+					chStan = ST_TXT;
+				else
+					chStan = ST_ERR;
+			}
+			else
+				chStan = ST_ERR;
+	    }
+	    else
+	    	chStan = ST_ERR;
+	    chBajtStanu = 0;
 	}
 	break;
     //dekoduj komunikat GGA
@@ -299,11 +316,12 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
         if (chDaneIn == ',')
         {
             chSatNumber++;
-            if (chSatNumber == 12)
+            if (chSatNumber >= 12)
             {
                 chStan = ST_GSA_PDOP;
                 chBajtStanu = 0;
             }
+
         }
         break;
 
@@ -374,7 +392,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
         if (chDaneIn == ',')
         {
             chSatNumberGS++;
-            if (chSatNumberGS == 12)
+            if (chSatNumberGS >= 12)
             {
                 chStan = ST_GSA_PDOP_GS;
                 chBajtStanu = 0;
@@ -464,7 +482,6 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
 					break;
 				}
 			}
-
     		uDaneCM4.dane.nZainicjowano |= INIT_WYKR_MTK;
     		chStan = ST_NAGLOWEK1;
     		chBajtStanu = 0;
@@ -511,7 +528,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     case ST_RMC_LATITUDE_GS:   //długość geograficzna
         if (chDaneIn == ',')
         {
-            //if (chRMC_Status == 'A')
+            if (chRMC_Status == 'A')
             {
                 chErr = DecodeLonLat(chBufStanu, chBajtStanu, &dLatitudeRAW);
                 if (chErr)
@@ -535,10 +552,8 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
 					uDaneCM4.dane.stGnss1.dSzerokoscGeo = dLatitudeRAW * -1;
 				else
 					uDaneCM4.dane.stGnss1.dSzerokoscGeo = dLatitudeRAW;
-				chStan = ST_RMC_LONGITUD_GS;
 			}
-            else
-            	chStan = ST_ERR;
+			chStan = ST_RMC_LONGITUD_GS;
             chBajtStanu = 0;
 		}
         break;
@@ -546,7 +561,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     case ST_RMC_LONGITUD_GS:   //szerokość geograficzna
         if (chDaneIn == ',')
         {
-            //if (chRMC_Status == 'A')
+            if (chRMC_Status == 'A')
             {
                 chErr = DecodeLonLat(chBufStanu, chBajtStanu, &dLongitudeRAW);
                 if (chErr)
@@ -575,10 +590,8 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
 					uDaneCM4.dane.stGnss1.dDlugoscGeo = dLongitudeRAW * -1;
 				else
 					uDaneCM4.dane.stGnss1.dDlugoscGeo = dLongitudeRAW;
-				chStan = ST_RMC_SPEED_GS;
 			}
-			else
-				chStan = ST_ERR;
+			chStan = ST_RMC_SPEED_GS;
 			chBajtStanu = 0;
 		}
 		break;
@@ -595,14 +608,15 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
 				sGSpeed100k += Asci2UShort(chBufStanu+chBajtStanu-3, 2);
 			else
 				sGSpeed100k = 0;
-			chStan = ST_RMC_COURSE_GS;
 			//zamień jednostke z węzłów = [mila/h] na [m/s]
 			uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi = (float)sGSpeed100k *(float)0.00514444;
+			//chStan = ST_RMC_COURSE_GS;
+			chStan = ST_RMC_COURSE;
 			chBajtStanu = 0;
 		}
 		break;
 
-    case ST_RMC_COURSE_GS:
+    /*case ST_RMC_COURSE_GS:
         if (chDaneIn == '.')
         {
         	sGCourse100k = 100 * Asci2UShort(chBufStanu+0, chBajtStanu-1);
@@ -620,27 +634,8 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
             //wykonaj pomiar czasu od pojawienia się ostatniego kompletu danych
             chNoweDane = 2;     //mamy komplet nowych danych
             //nGpsTime = CountTime(&nLastGpsTime);
-	}
-	break;
-
-    case ST_RMC_DATE_GS:
-        if (chDaneIn == ',')
-		{
-        	uDaneCM4.dane.stGnss1.chDzien = Asci2UChar(chBufStanu+0, 2);
-        	uDaneCM4.dane.stGnss1.chMies  = Asci2UChar(chBufStanu+2, 2);
-        	uDaneCM4.dane.stGnss1.chRok    = Asci2UChar(chBufStanu+4, 2);
-			chStan = ST_RMC_MAG_VAR_GS;
-			chBajtStanu = 0;
-		}
-        break;
-
-    case ST_RMC_MAG_VAR_GS:
-        if (chDaneIn == ',')
-        {
-            chStan = ST_NAGLOWEK1;
-            chBajtStanu = 0;
         }
-        break;
+        break; */
 
     case ST_RMC_UTC:
     	if (chDaneIn == '.')
@@ -778,8 +773,10 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     case ST_RMC_COURSE:
         if (chDaneIn == '.')
 		{
-				//if (chRMC_Status == 'A')
-					sGCourse100k = 100 * Asci2UShort(chBufStanu+0, chBajtStanu-1);
+			if (chRMC_Status == 'A')
+				sGCourse100k = 100 * Asci2UShort(chBufStanu+0, chBajtStanu-1);
+			else
+				sGCourse100k = 0;
 		}
 		else
 		if (chDaneIn == ',')
@@ -801,9 +798,12 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     case ST_RMC_DATE:
     	if (chDaneIn == ',')
 		{
-    		uDaneCM4.dane.stGnss1.chDzien = Asci2UChar(chBufStanu+0, 2);
-    		uDaneCM4.dane.stGnss1.chMies  = Asci2UChar(chBufStanu+2, 2);
-    		uDaneCM4.dane.stGnss1.chRok    = Asci2UChar(chBufStanu+4, 2);
+    		if (chBajtStanu >= 4)
+    		{
+				uDaneCM4.dane.stGnss1.chDzien = Asci2UChar(chBufStanu+0, 2);
+				uDaneCM4.dane.stGnss1.chMies  = Asci2UChar(chBufStanu+2, 2);
+				uDaneCM4.dane.stGnss1.chRok    = Asci2UChar(chBufStanu+4, 2);
+    		}
             chStan = ST_RMC_MAG_VAR;
             chBajtStanu = 0;
 		}
@@ -816,6 +816,30 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
             chBajtStanu = 0;
         }
         break;
+
+    case ST_TXT:
+    	if (chBajtStanu == 10)	//odbiór nieistotnych danych przed komunikatem
+    	{
+    		chStan = ST_TXT_OPIS;
+    		chBajtStanu = 0;
+    	}
+    	break;
+
+    case ST_TXT_OPIS:
+    	if (chDaneIn == '*')	//czekaj na koniec napisu i kopiuj go do napisu w buforze wymiany z terminującym zerem
+    	{
+    		if (chBajtStanu < (ROZMIAR_BUF_NAPISU_WYMIANY-1))
+    		{
+    			uDaneCM4.dane.chNapis[chBajtStanu] = chDaneIn;
+    			uDaneCM4.dane.chNapis[chBajtStanu+1] = 0;	//koniec stringu
+    		}
+    		if ((chBufStanu[0] == 'u') && (chBufStanu[1] == '-') && (chBufStanu[2] == 'b') && (chBufStanu[3] == 'l') && (chBufStanu[4] == 'o') && (chBufStanu[5] == 'x'))
+    			uDaneCM4.dane.nZainicjowano |= INIT_WYKR_UBLOX;
+    		chStan = ST_NAGLOWEK1;
+    		chBajtStanu = 0;
+    	}
+    	break;
+
 
     default:
     	chStan = ST_ERR;    //błąd

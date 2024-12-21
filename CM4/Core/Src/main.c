@@ -19,6 +19,7 @@
 #include "moduly_wew.h"
 #include "serwa.h"
 #include "GNSS.h"
+#include "wymiana_CM4.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -144,8 +145,10 @@ int main(void)
   InicjujModulyWew();
   InicjujSerwa();
 
-
-
+  extern volatile unia_wymianyCM4_t uDaneCM4;
+  const uint8_t chNapis[] = "Start CM4";
+  for (uint8_t n=0; n<10; n++)
+	  uDaneCM4.dane.chNapis[n] = chNapis[n];
   /* USER CODE END 2 */
 
   /* Infinite loop */

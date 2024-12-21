@@ -23,7 +23,7 @@
 #define ROZMIAR_BUF8_WYMIANY_CM7		ROWNAJ_DO32B(sizeof(stWymianyCM7_t))
 #define ROZMIAR_BUF32_WYMIANY_CM4		ROZMIAR_BUF8_WYMIANY_CM4 / 4
 #define ROZMIAR_BUF32_WYMIANY_CM7		ROZMIAR_BUF8_WYMIANY_CM7 / 4
-
+#define ROZMIAR_BUF_NAPISU_WYMIANY		32
 typedef struct _GNSS
 {
 	double dDlugoscGeo;
@@ -54,6 +54,7 @@ typedef struct _stWymianyCM4
 	uint8_t chBledyPetliGlownej;
 	uint32_t nZainicjowano;
 	stGnss_t stGnss1;
+	char chNapis[ROZMIAR_BUF_NAPISU_WYMIANY];
 } stWymianyCM4_t;
 
 //definicja struktury wymiany danych wychodzących z rdzenia CM7
