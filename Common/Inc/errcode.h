@@ -10,7 +10,7 @@
 
 #define ERR_OK					0	//wszystko w porządku
 #define ERR_HAL					1	//błąd HAL
-#define ERR_NOT_READY			2	// to samo co HAL BUSY
+#define ERR_HAL_BUSY			2	//
 #define ERR_TIMEOUT				3
 #define ERR_ZLA_ILOSC_DANYCH	4
 #define ERR_DONE				5	//zadanie wykonane

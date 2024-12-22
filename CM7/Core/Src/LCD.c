@@ -803,8 +803,10 @@ void PomiaryIMU(void)
 		print(chNapis, 10, 130);
 		sprintf(chNapis, "Magn 2:");
 		print(chNapis, 10, 150);
-		sprintf(chNapis, "Przechyl:           Pochyl:          Odchyl:");
+		sprintf(chNapis, "Magn 3:");
 		print(chNapis, 10, 170);
+		sprintf(chNapis, "Przechyl:           Pochyl:          Odchyl:");
+		print(chNapis, 10, 190);
 
 		sprintf(chNapis, "GNSS D%cug:             Szer:             HDOP:", ł);
 		print(chNapis, 10, 240);
@@ -885,14 +887,24 @@ void PomiaryIMU(void)
 	print(chNapis, 10+32*FONT_SL, 150);
 
 	setColor(KOLOR_X);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn3[0]);
+	print(chNapis, 10+8*FONT_SL, 170);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn3[1]);
+	print(chNapis, 10+20*FONT_SL, 170);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn3[2]);
+	print(chNapis, 10+32*FONT_SL, 170);
+
+	setColor(KOLOR_X);
 	sprintf(chNapis, "%.3f%c ", uDaneCM4.dane.fKatyIMU[0], ZNAK_STOPIEN);
-	print(chNapis, 10+10*FONT_SL, 170);
+	print(chNapis, 10+10*FONT_SL, 190);
 	setColor(KOLOR_Y);
 	sprintf(chNapis, "%.3f%c ", uDaneCM4.dane.fKatyIMU[1], ZNAK_STOPIEN);
-	print(chNapis, 10+28*FONT_SL, 170);
+	print(chNapis, 10+28*FONT_SL, 190);
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%.3f%c ", uDaneCM4.dane.fKatyIMU[2], ZNAK_STOPIEN);
-	print(chNapis, 10+45*FONT_SL, 170);
+	print(chNapis, 10+45*FONT_SL, 190);
 
 	if (uDaneCM4.dane.stGnss1.chFix)
 		setColor(WHITE);	//jest fix

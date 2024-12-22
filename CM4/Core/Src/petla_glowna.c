@@ -253,7 +253,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	case 3:	chErr = CzytajMagnetometrHMC();		break;
 	}
 	chEtapOperacjiI2C++;
-	chEtapOperacjiI2C &= 0x07;
+	chEtapOperacjiI2C &= 0x03;
 	return chErr;
 }
 
@@ -283,9 +283,9 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 	{
 		if ((chDaneMagHMC[0] || chDaneMagHMC[1]) && (chDaneMagHMC[2] || chDaneMagHMC[3]) && (chDaneMagHMC[4] || chDaneMagHMC[5]))
 		{
-			uDaneCM4.dane.fMagn3[0] = 0x100 * chDaneMagHMC[0] + chDaneMagHMC[1];
-			uDaneCM4.dane.fMagn3[1] = 0x100 * chDaneMagHMC[2] + chDaneMagHMC[3];
-			uDaneCM4.dane.fMagn3[2] = 0x100 * chDaneMagHMC[4] + chDaneMagHMC[5];
+			uDaneCM4.dane.fMagn3[0] = (int16_t)(0x100 * chDaneMagHMC[0] + chDaneMagHMC[1]);
+			uDaneCM4.dane.fMagn3[1] = (int16_t)(0x100 * (int16_t)chDaneMagHMC[2] + chDaneMagHMC[3]);
+			uDaneCM4.dane.fMagn3[2] = (int16_t)(0x100 * (int16_t)chDaneMagHMC[4] + chDaneMagHMC[5]);
 		}
 	}
 }

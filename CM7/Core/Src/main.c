@@ -882,6 +882,7 @@ void StartDefaultTask(void const * argument)
 }
 
 
+
 /* USER CODE BEGIN Header_WatekOdbioruKonsoliUART7 */
 /**
 * @brief Function implementing the tsOdbiorKonsola thread.
