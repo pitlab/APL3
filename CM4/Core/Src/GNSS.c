@@ -11,6 +11,22 @@
 #include <stdio.h>
 #include "wymiana.h"
 
+// Potrzebne informacje znajdują się w następujaących ramkach. Na początek wysarczymi GGA i RMC
+//Ramka	[GGA]	GLL	GSA	GSV	[RMC]	VTG	GRS	GST	ZDA	GBS	PUBX00	PUBX03 PuBX04
+//Lon	+		+			+							+
+//Lat	+		+			+							+
+//Alt	+
+//CoG						+		+					+
+//SoG						+		+					+
+//SvN	+												+		+
+//Time	+		+			+			+	+	+	+	+				+
+//Date						+					+						+
+//HDOP	+			+									+
+//VDOP				+									+
+//PDOP				+
+//TDOP												+
+
+
 uint8_t chBuforNadawczyGNSS[ROZMIAR_BUF_NAD_GNSS];
 uint8_t chBuforOdbioruGNSS[ROZMIAR_BUF_ODB_GNSS];
 uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
@@ -322,4 +338,28 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		//HAL_UART_Receive_IT(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//odbieraj do bufora
 		HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
 	}
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Liczy sumę kontrolną ramki UBX
+// Parametry:
+// *chCK_A - wskaźnik na pierwszy bajt sumy
+// *chCK_B - wskaźnik na drugi bajt sumy
+// *chRamka - wskaźnik na ramkę
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void SumaKontrolnaUBX(uint8_t *chRamka)
+{
+	uint16_t rozmiar = *(chRamka+5) * 0x100 + *(chRamka+4);
+	uint8_t chCK_A = 0;
+	uint8_t chCK_B = 0;
+
+	for (uint16_t n=0; n<rozmiar+4; n++)
+	{
+		chCK_A += chRamka[n+2];
+		chCK_B += chCK_A;
+	}
+	*(chRamka + rozmiar + 6) = chCK_A;
+	*(chRamka + rozmiar + 7) = chCK_B;
 }

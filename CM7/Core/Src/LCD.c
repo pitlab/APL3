@@ -33,6 +33,7 @@ extern const unsigned short obr_oscyloskop[];
 extern const unsigned short obr_mtest[];
 extern const unsigned short obr_calibration[];
 extern const unsigned short pitlab_logo18[];
+extern const char *chNazwyMies3Lit[] ;
 
 //definicje zmiennych
 uint8_t chTrybPracy;
@@ -805,11 +806,11 @@ void PomiaryIMU(void)
 		sprintf(chNapis, "Przechyl:           Pochyl:          Odchyl:");
 		print(chNapis, 10, 170);
 
-		sprintf(chNapis, "GNSS D%cug:             Szer:             Sat:", ł);
+		sprintf(chNapis, "GNSS D%cug:             Szer:             HDOP:", ł);
 		print(chNapis, 10, 240);
-		sprintf(chNapis, "GNSS WysMSL:           Pred:           Kurs:");
+		sprintf(chNapis, "GNSS WysMSL:           Pred:             Kurs:");
 		print(chNapis, 10, 260);
-		sprintf(chNapis, "GNSS Czas:             Data:");
+		sprintf(chNapis, "GNSS Czas:             Data:              Sat:");
 		print(chNapis, 10, 280);
 
 		setColor(GRAY50);
@@ -893,25 +894,33 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.3f%c ", uDaneCM4.dane.fKatyIMU[2], ZNAK_STOPIEN);
 	print(chNapis, 10+45*FONT_SL, 170);
 
-	setColor(WHITE);
+	if (uDaneCM4.dane.stGnss1.chFix)
+		setColor(WHITE);	//jest fix
+	else
+		setColor(GRAY70);	//nie ma fixa
+
 	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dDlugoscGeo);
 	print(chNapis, 10+11*FONT_SL, 240);
 	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
 	print(chNapis, 10+29*FONT_SL, 240);
-	sprintf(chNapis, "%d ", uDaneCM4.dane.stGnss1.chLiczbaSatelit);
-	print(chNapis, 10+46*FONT_SL, 240);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.stGnss1.fHdop);
+	print(chNapis, 10+47*FONT_SL, 240);
 
 	sprintf(chNapis, "%.1fm ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
 	print(chNapis, 10+13*FONT_SL, 260);
 	sprintf(chNapis, "%.3fm/s ", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
 	print(chNapis, 10+29*FONT_SL, 260);
-	sprintf(chNapis, "%.2f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
-	print(chNapis, 10+45*FONT_SL, 260);
+	sprintf(chNapis, "%3.2f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
+	print(chNapis, 10+47*FONT_SL, 260);
 
 	sprintf(chNapis, "%02d:%02d:%02d ", uDaneCM4.dane.stGnss1.chGodz, uDaneCM4.dane.stGnss1.chMin, uDaneCM4.dane.stGnss1.chSek);
 	print(chNapis, 10+12*FONT_SL, 280);
-	sprintf(chNapis, "%02d-%02d-%04d ", uDaneCM4.dane.stGnss1.chDzien, uDaneCM4.dane.stGnss1.chMies, uDaneCM4.dane.stGnss1.chRok + 2000);
+	if  (uDaneCM4.dane.stGnss1.chMies > 12)	//ograniczenie aby nie pobierało nazwy miesiaca spoza tablicy chNazwyMies3Lit[]
+		uDaneCM4.dane.stGnss1.chMies = 0;	//zerowy indeks jest pustą nazwą "---"
+	sprintf(chNapis, "%02d %s %04d ", uDaneCM4.dane.stGnss1.chDzien, chNazwyMies3Lit[uDaneCM4.dane.stGnss1.chMies], uDaneCM4.dane.stGnss1.chRok + 2000);
 	print(chNapis, 10+29*FONT_SL, 280);
+	sprintf(chNapis, "%d ", uDaneCM4.dane.stGnss1.chLiczbaSatelit);
+	print(chNapis, 10+47*FONT_SL, 280);
 
 	//sprintf(chNapis, "Serwa:  9 = %d, 10 = %d, 11 = %d, 12 = %d", uDaneCM4.dane.sSerwa[8], uDaneCM4.dane.sSerwa[9], uDaneCM4.dane.sSerwa[10], uDaneCM4.dane.sSerwa[11]);
 	//sprintf(chNapis, "Serwa:  1 = %d,  2 = %d,  3 = %d,  4 = %d", uDaneCM4.dane.sSerwa[0], uDaneCM4.dane.sSerwa[1], uDaneCM4.dane.sSerwa[2], uDaneCM4.dane.sSerwa[3]);

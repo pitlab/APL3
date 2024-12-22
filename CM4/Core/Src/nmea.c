@@ -151,6 +151,14 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
 					chStan = ST_ERR;
 			}
 	    	else
+	    	if (chBufStanu[1]== 'G')	//GGx
+			{
+				if (chBufStanu[2]== 'A')    //GGA +
+					chStan = ST_GGA_TIME;
+				else
+					chStan = ST_ERR;
+			}
+			else
 	    		chStan = ST_ERR;
 	    }
 	    else
@@ -245,7 +253,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     case ST_GGA_FIX_IND:
        if (chDaneIn == ',')
        {
-    	   uDaneCM4.dane.stGnss1.chFix = chBufStanu[0];
+    	   uDaneCM4.dane.stGnss1.chFix = chBufStanu[0] - '0';	//fix przechowuj jako liczbę a nie znak
            chStan = ST_GGA_SAT_USE;
            chBajtStanu = 0;
        }
@@ -263,6 +271,8 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     case ST_GGA_HDOP:	//GPS zwraca puste pole
     	if (chDaneIn == ',')
     	{
+    		 if (chBajtStanu > 3)
+    			 chErr = DecodeFloat(chBufStanu, chBajtStanu-1, (float*)&uDaneCM4.dane.stGnss1.fHdop);
             chStan = ST_GGA_ALTITUDE;
             chBajtStanu = 0;
     	}
@@ -299,14 +309,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     case ST_GSA_MODE2:
         if (chDaneIn == ',')
         {
-        	 uDaneCM4.dane.stGnss1.chFix = chBufStanu[0]-'0';
-             if ((uDaneCM4.dane.stGnss1.chFix < 1) || (uDaneCM4.dane.stGnss1.chFix > 3))   //sprawdź czy to liczba
-             {
-            	 uDaneCM4.dane.stGnss1.chFix = 1; //jeżeli błąd błąd to przyjmij najgorszy możliwy
-            	 chStan = ST_ERR;
-             }
-             else
-                chStan = ST_GSA_SAT_USED;
+            chStan = ST_GSA_SAT_USED;
             chSatNumber = 0;
             chBajtStanu = 0;
         }
@@ -391,8 +394,8 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     case ST_GSA_SAT_USED_GS:
         if (chDaneIn == ',')
         {
-            chSatNumberGS++;
-            if (chSatNumberGS >= 12)
+        	uDaneCM4.dane.stGnss1.chLiczbaSatelit++;
+            if (uDaneCM4.dane.stGnss1.chLiczbaSatelit >= 12)
             {
                 chStan = ST_GSA_PDOP_GS;
                 chBajtStanu = 0;

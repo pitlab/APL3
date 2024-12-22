@@ -82,7 +82,7 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Menu Ustawień"						//STR_MENU_SETINGS
 };
 
-
+const char *chNazwyMies3Lit[13]  = {"---", "Sty","Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paz", "Lis", "Gru"};
 
 #endif //JEZYK_POLSKI
 #endif /* INC_NAPISY_H_ */

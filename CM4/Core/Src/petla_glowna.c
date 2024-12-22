@@ -27,7 +27,7 @@ uint8_t chBledyPetliGlownej = ERR_OK;
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;
-//uint32_t nZainicjowanoCM4[2] = {0, 0};		//flagi inicjalizacji sprzętu
+uint16_t chTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po timeoucie inicjalizuje moduł.
 
 uint8_t chGeneratorNapisow;
 
@@ -90,9 +90,20 @@ void PetlaGlowna(void)
 			chWskOprBaGNSS++;
 			chWskOprBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
 			chStanIOwy ^= 0x80;		//Zielona LED
+			chTimeoutGNSS = TIMEOUT_GNSS;
 		}
 		if ((uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY) == 0)
+		{
 			InicjujGNSS();		//gdy nie jest zainicjowany to przeprowadź odbiornik przez kolejne etapy inicjalizacji
+		}
+		if (chTimeoutGNSS)
+			chTimeoutGNSS--;
+		else
+		{
+			chTimeoutGNSS = TIMEOUT_GNSS;
+			uDaneCM4.dane.nZainicjowano &= ~MASKA_INIT_GNSS;	//wyczyść wszystkie bity użuwane przez GNSS
+			uDaneCM4.dane.stGnss1.chFix = 0;
+		}
 		break;
 
 	case 8:
@@ -147,7 +158,20 @@ void PetlaGlowna(void)
 		//chStanIOwy ^= 0x80;		//Zielona LED
 		break;
 
-
+	case 16:
+		uint8_t chVTG1[16] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x05, 0x00, 0x0A, 0x00, 0x00, 0x00, 0x01, 0x0F, 0x79 }; // NMEA GxVTG /10
+		uint8_t chVTG2[16] = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x05, 0x47 }; // NMEA GxVTG
+		uint8_t chGSA[16]  = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x32 }; // NMEA GxGSA /0
+		uint8_t chGST[16]  = {0xB5, 0x62, 0x06, 0x01, 0x08, 0x00, 0xF0, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x54 }; // NMEA GxGST /0
+		uint8_t chRATE[14] = {0xB5, 0x62, 0x06, 0x08, 0x06, 0x00, 0x64, 0x00, 0x01, 0x00, 0x00, 0x00, 0x79, 0x10};	//pomiar 10 Hz wzgl. UTC
+		uint8_t chDAT[10] =  {0xB5, 0x62, 0x06, 0x06, 0x02, 0x00, 0x00, 0x00, 0x0E, 0x4A};
+		SumaKontrolnaUBX(chVTG1);
+		SumaKontrolnaUBX(chVTG2);
+		SumaKontrolnaUBX(chGSA);
+		SumaKontrolnaUBX(chGST);
+		SumaKontrolnaUBX(chRATE);
+		SumaKontrolnaUBX(chDAT);
+		break;
 
 	default:	break;
 	}

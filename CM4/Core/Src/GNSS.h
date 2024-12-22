@@ -19,7 +19,10 @@
 #define CYKL_STARTU_INI_MTK		500		//po tym czasie rozpocznij inicjalizację GPS
 #define CYKL_STARTU_INI_UBLOX	600		//po tym czasie rozpocznia inicjalizację u-Blox
 
+#define TIMEOUT_GNSS			600		//timeout braku odbierania danych z GNSS
+
 uint8_t InicjujGNSS(void);
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size);
+void SumaKontrolnaUBX(uint8_t *chRamka);
 
 #endif /* SRC_GNSS_H_ */
