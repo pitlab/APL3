@@ -48,10 +48,11 @@ typedef struct _stWymianyCM4
 	float fZyro2[3];
 	float fMagn1[3];
 	float fMagn2[3];
+	float fMagn3[3];
 	float fKatyIMU[3];
 	float fWysokosc[2];
 	uint16_t sSerwa[16];
-	uint8_t chBledyPetliGlownej;
+	uint8_t chErrPetliGlownej;
 	uint32_t nZainicjowano;
 	stGnss_t stGnss1;
 	char chNapis[ROZMIAR_BUF_NAPISU_WYMIANY];

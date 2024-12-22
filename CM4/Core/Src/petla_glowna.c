@@ -13,6 +13,7 @@
 #include "wymiana_CM4.h"
 #include "GNSS.h"
 #include "nmea.h"
+#include "HMC5883.h"
 
 extern TIM_HandleTypeDef htim7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -23,13 +24,14 @@ uint8_t chNrOdcinkaCzasu;
 uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU];		//zmierzony czas obsługo odcinka
 uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
 uint32_t nCzasJalowy;
-uint8_t chBledyPetliGlownej = ERR_OK;
+uint8_t chErrPetliGlownej = ERR_OK;
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;
 uint16_t chTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po timeoucie inicjalizuje moduł.
-
+uint8_t chEtapOperacjiI2C;
 uint8_t chGeneratorNapisow;
+extern I2C_HandleTypeDef hi2c3;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -59,7 +61,7 @@ void PetlaGlowna(void)
 			uDaneCM4.dane.fMagn1[n] = 5 + n + fTemp;
 			uDaneCM4.dane.fMagn2[n] = 6 + n + fTemp;
 		}
-		chBledyPetliGlownej |= UstawDekoderModulow(ADR_MOD1);
+		chErrPetliGlownej |= UstawDekoderModulow(ADR_MOD1);
 		break;
 
 	case 1:		//obsługa modułu w gnieździe 2
@@ -69,18 +71,18 @@ void PetlaGlowna(void)
 			if (uDaneCM4.dane.sSerwa[n] > 2000)
 				uDaneCM4.dane.sSerwa[n] = 0;
 		}
-		chBledyPetliGlownej |= UstawDekoderModulow(ADR_MOD2);
+		chErrPetliGlownej |= UstawDekoderModulow(ADR_MOD2);
 		break;
 
 	case 2:		//obsługa modułu w gnieździe 3
 		fTemp = (float)sGenerator/100;
 		uDaneCM4.dane.fWysokosc[0] = 20 + fTemp;
 		uDaneCM4.dane.fWysokosc[1] = 10 + fTemp;
-		chBledyPetliGlownej |= UstawDekoderModulow(ADR_MOD3);
+		chErrPetliGlownej |= UstawDekoderModulow(ADR_MOD3);
 		break;
 
 	case 3:		//obsługa modułu w gnieździe 4
-		chBledyPetliGlownej |= UstawDekoderModulow(ADR_MOD4);
+		chErrPetliGlownej |= UstawDekoderModulow(ADR_MOD4);
 		break;
 
 	case 4:		//obsługa GNSS na UART8
@@ -106,13 +108,15 @@ void PetlaGlowna(void)
 		}
 		break;
 
+	case 5: chErrPetliGlownej |= RozdzielniaOperacjiI2C();	break;
+
 	case 8:
 
-		chBledyPetliGlownej |= WyslijDaneExpandera(chStanIOwy);
+		chErrPetliGlownej |= WyslijDaneExpandera(chStanIOwy);
 		break;
 
 	case 9:
-		//chBledyPetliGlownej |= WyslijDaneExpandera(chStanIOwy);
+		//chErrPetliGlownej |= WyslijDaneExpandera(chStanIOwy);
 		break;
 
 	/*case 10:
@@ -133,7 +137,7 @@ void PetlaGlowna(void)
 		break;*/
 
 	case 11:
-		chBledyPetliGlownej |= UstawDekoderModulow(ADR_NIC);
+		chErrPetliGlownej |= UstawDekoderModulow(ADR_NIC);
 		break;
 
 	case 12:	//test przekazywania napisów
@@ -147,14 +151,14 @@ void PetlaGlowna(void)
 		break;
 
 	case 15:	//wymień dane między rdzeniami
-		uDaneCM4.dane.chBledyPetliGlownej = chBledyPetliGlownej;
-		chBledyPetliGlownej  = PobierzDaneWymiany_CM7();
+		uDaneCM4.dane.chErrPetliGlownej = chErrPetliGlownej;
+		chErrPetliGlownej  = PobierzDaneWymiany_CM7();
 		chErr = UstawDaneWymiany_CM4();
 		if (chErr == ERR_SEMAFOR_ZAJETY)
 			chStanIOwy &= ~0x40;	//zaświeć czerwoną LED
 		else
 			chStanIOwy |= 0x40;		//zgaś czerwoną LED
-		chBledyPetliGlownej |= chErr;
+		chErrPetliGlownej |= chErr;
 		//chStanIOwy ^= 0x80;		//Zielona LED
 		break;
 
@@ -231,3 +235,57 @@ uint32_t MinalCzas(uint32_t nPoczatek)
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja dzieli złożone operacje I2C na sekwencje dające sie realizować w tle, dzięki czemu nie blokuje czasu procesora oczekując na zakończenie
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+uint8_t RozdzielniaOperacjiI2C(void)
+{
+	uint8_t chErr = ERR_OK;
+
+	switch(chEtapOperacjiI2C)
+	{
+	case 0:	chErr = StartujPomiarMagHMC();	break;
+	case 1:	break;
+	case 2:	chErr = StartujOdczytMagHMC();		break;
+	case 3:	chErr = CzytajMagnetometrHMC();		break;
+	}
+	chEtapOperacjiI2C++;
+	chEtapOperacjiI2C &= 0x07;
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Callback nadawania I2C
+// Parametry: hi2c - wskaźnik na interfejs I2C
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Callback odbioru I2C
+// Parametry: hi2c - wskaźnik na interfejs I2C
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
+{
+	extern uint8_t chDaneMagHMC[6];
+	if (hi2c->Instance == I2C3)
+	{
+		if ((chDaneMagHMC[0] || chDaneMagHMC[1]) && (chDaneMagHMC[2] || chDaneMagHMC[3]) && (chDaneMagHMC[4] || chDaneMagHMC[5]))
+		{
+			uDaneCM4.dane.fMagn3[0] = 0x100 * chDaneMagHMC[0] + chDaneMagHMC[1];
+			uDaneCM4.dane.fMagn3[1] = 0x100 * chDaneMagHMC[2] + chDaneMagHMC[3];
+			uDaneCM4.dane.fMagn3[2] = 0x100 * chDaneMagHMC[4] + chDaneMagHMC[5];
+		}
+	}
+}
