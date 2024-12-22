@@ -40,23 +40,91 @@ uint8_t InicjujGNSS(void)
     switch (sCzasInicjalizacjiGNSS)	//zlicza kolejne uruchomienia co 1 obieg pętli głównej
     {
     case 1:
-    	chWskNapBaGNSS = chWskOprBaGNSS = 0;
-		huart8.Init.BaudRate = 9600;		//ustaw domyślną prędkość
-		chErr = UART_SetConfig(&huart8);
-		HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
+    	chWskNapBaGNSS = chWskOprBaGNSS = 0;	//inicjuj wskaźniki napełniania i opróżniania buforma kołowego analizy danych z GNSS
 		break;
 
-    case CYKL_STARTU_INI_MTK:	//konfiguracja dla nowego modułu ustawionego domyślnie na 9600. Trwa ok. 20ms
-		//chRozmiar  = sprintf((char*)hDane, "$PMTK251,9600*17\r\n");  //baudrate 9600
+	//od tego czasu co 50ms wykonaj serię zapisów zmian prędkości  transmitowanych na 9600, 19200, 38400, 75600 i 115200
+    case CYKL_STARTU_ZMIAN_PREDK + 0:	//ustaw 9600bps
+    	huart8.Init.BaudRate = 9600;
+    	chErr = UART_SetConfig(&huart8);
+    	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
+    	break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 1:	//wyślij polecenie zmiany prędkości dla GPS
+    	//chRozmiar  = sprintf((char*)hDane, "$PMTK251,9600*17\r\n");  //baudrate 9600
 		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, " $PMTK251,19200*22\r\n");  //baudrate 19200
-		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,38400*27\r\n");  //baudrate 38400
-		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
+		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,38400*27\r\n");  //baudrate 38400
+		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
 		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,115200*1F\r\n");  //baudrate 115200
+    	break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 10:	//wyślij polecenie zmiany prędkości dla u-Blox
+		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,19200,0*20\r\n");  //baudrate 19200
+		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,38400,0*25\r\n");  //baudrate 38400
+		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
 		break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 20:	//ustaw 19200bps
+       	huart8.Init.BaudRate = 19200;
+       	chErr = UART_SetConfig(&huart8);
+       	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
+       	break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 21:	//wyślij polecenie zmiany prędkości dla GPS
+       	chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
+       	break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 30:
+		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
+		break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 40:
+       	huart8.Init.BaudRate = 38400;
+       	chErr = UART_SetConfig(&huart8);
+       	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
+       	break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 41:
+       	chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
+       	break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 50:
+		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
+		break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 60:
+       	huart8.Init.BaudRate = 57600;
+       	chErr = UART_SetConfig(&huart8);
+       	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
+       	break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 61:
+       	chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
+       	break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 70:
+		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
+		break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 80:
+       	huart8.Init.BaudRate = 115200;
+       	chErr = UART_SetConfig(&huart8);
+       	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
+       	break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 81:
+       	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
+       	chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
+       	break;
+
+    case CYKL_STARTU_ZMIAN_PREDK + 90:
+		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
+		break;
+
 
     case 950:							//po konfguracji uBlox
-    case CYKL_STARTU_INI_MTK + 10:		//po konfiguracji MTK
-    	huart8.Init.BaudRate = 38400;
+    case CYKL_STARTU_INI_MTK + 0:		//po konfiguracji MTK
+    	huart8.Init.BaudRate = 57600;
     	chErr = UART_SetConfig(&huart8);
     	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
     	chRozmiar=0;

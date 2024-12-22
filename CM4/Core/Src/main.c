@@ -145,10 +145,7 @@ int main(void)
   InicjujModulyWew();
   InicjujSerwa();
 
-  extern volatile unia_wymianyCM4_t uDaneCM4;
-  const uint8_t chNapis[] = "Start CM4";
-  for (uint8_t n=0; n<10; n++)
-	  uDaneCM4.dane.chNapis[n] = chNapis[n];
+
   /* USER CODE END 2 */
 
   /* Infinite loop */

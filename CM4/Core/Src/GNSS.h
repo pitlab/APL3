@@ -15,8 +15,9 @@
 #define ROZMIAR_BUF_ANA_GNSS	32
 #define MASKA_ROZM_BUF_ANA_GNSS		0x1F
 
-#define CYKL_STARTU_INI_MTK		400
-#define CYKL_STARTU_INI_UBLOX	600
+#define CYKL_STARTU_ZMIAN_PREDK	400		//od tego czasu wykonaj serię zapisów zmian prędkości transmitowanych na 9600, 19200, 38400, 75600 i 115200
+#define CYKL_STARTU_INI_MTK		500		//po tym czasie rozpocznij inicjalizację GPS
+#define CYKL_STARTU_INI_UBLOX	600		//po tym czasie rozpocznia inicjalizację u-Blox
 
 uint8_t InicjujGNSS(void);
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size);

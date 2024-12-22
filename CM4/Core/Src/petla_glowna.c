@@ -29,6 +29,8 @@ extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;
 //uint32_t nZainicjowanoCM4[2] = {0, 0};		//flagi inicjalizacji sprzętu
 
+uint8_t chGeneratorNapisow;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
 // Parametry: brak
@@ -123,7 +125,15 @@ void PetlaGlowna(void)
 		chBledyPetliGlownej |= UstawDekoderModulow(ADR_NIC);
 		break;
 
-	case 12:		break;
+	case 12:	//test przekazywania napisów
+		chGeneratorNapisow++;
+		if (!chGeneratorNapisow)
+		{
+			const uint8_t chNapis[] = "CM4 pracuje\n\r";
+			for (uint8_t n=0; n<sizeof(chNapis); n++)
+			  uDaneCM4.dane.chNapis[n] = chNapis[n];
+		}
+		break;
 
 	case 15:	//wymień dane między rdzeniami
 		uDaneCM4.dane.chBledyPetliGlownej = chBledyPetliGlownej;
@@ -136,6 +146,8 @@ void PetlaGlowna(void)
 		chBledyPetliGlownej |= chErr;
 		//chStanIOwy ^= 0x80;		//Zielona LED
 		break;
+
+
 
 	default:	break;
 	}

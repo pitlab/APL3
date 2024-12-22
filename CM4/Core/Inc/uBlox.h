@@ -1,6 +1,19 @@
 #ifndef SRC_UBLOX_H_
 #define SRC_UBLOX_H_
 
+//Struktura ramki UBX
+//0xB5 - preambuła 1
+//0x62 - preambuła 2
+//Klasa
+//ID
+//Długość L
+//Długość H
+//Payload
+//CK_A - suma kontrolna L liczona od Klasy do końca payloadu
+//CK_B - suma kontrolna H
+
+
+
 //Definicje poleceń konfiguracyjnych dla odbiorników uBlox
 
 // --- CFG-DAT --- - ustawienie formatu daty
