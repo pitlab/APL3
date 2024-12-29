@@ -16,7 +16,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Uruchomiona komunikacja po LPUART przez BDMA
 - Wyświetlacz pracuje w osobnym wątku o niskim priorytecie nie blokując głównego wątku. Dostęp do SPI sterowny semaforem.
 - Zaobserwowałem dziwne zachowanie i padło podejrzenie o przepełnianie się stosu jednego z wątków, więc została zrobiona  analiza i  porządki ze stosami. Obecnie wygląda to tak:
-![Procesy](obr/procesy.jpg)
+![Procesy](obrazki/procesy.jpg)
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM
