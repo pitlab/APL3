@@ -49,7 +49,7 @@
 
 
 const char *chNapisLcd[MAX_NAPISOW]  = {
-"AutoPitLot hv 3.0",				//STR_WITAJ_TYTUL		max 17 znaków
+"AutoPitLot hv3.0",				//STR_WITAJ_TYTUL		max 17 znaków
 "By m%cc mie%c w r%cj Wron%cw na pohybel wra%cym hordom",		//STR_WITAJ_MOTTO: %c będą podmieniane na polskie znaki
 "pl",								//STR_WITAJ_DOMENA		max 3 znaki
 "wykryto",							//STR_SPRAWDZ_WYKR

@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// Międzyprocesorowa wymiana danych CM4-CM7
+// Międzyprocesorowa wymiana danych na rdzeniu CM4
 //
 //
 // (c) PitLab 2024

@@ -22,6 +22,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Sterowanie pętla główną programu, podział czasu procesora na odcinki czasowe 20x250us
 - Obsługa wyjść dla serw i ESC
 - Odbiór danych z GNSS i parsowanie protokołu NMEA. Konfiguracja układów uBlox i MTK
+- Odczyt danych z magnetometru HMC5883 na module GNSS
 
 #### Do zrobienia:
  - Dodać obsługę pamięci SDRAM

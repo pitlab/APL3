@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// Międzyprocesorowa wymiana danych CM4-CM7
+// Międzyprocesorowa wymiana danych na rdzeniu CM7
 //
 //
 // (c) PitLab 2024
@@ -12,7 +12,7 @@
  *
  * */
 
-
+#include "sys_def_CM7.h"
 #include "wymiana_CM7.h"
 #include "errcode.h"
 
@@ -33,11 +33,11 @@ uint8_t PobierzDaneWymiany_CM4(void)
 {
 	uint32_t nStanSemafora;
 	HAL_StatusTypeDef chErr = ERR_SEMAFOR_ZAJETY;
+	extern uint8_t chCzasSwieceniaLED[3];
 
 	nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM4_TO_CM7);
 	if (!nStanSemafora)
 	{
-		//chErr = HAL_HSEM_FastTake(HSEM_CM4_TO_CM7);
 		chErr = HAL_HSEM_Take(HSEM_CM4_TO_CM7, 0);
 
 		if (chErr == ERR_OK)
@@ -56,6 +56,8 @@ uint8_t PobierzDaneWymiany_CM4(void)
 					chWskNapBufNapisowCM4++;
 					if (chWskNapBufNapisowCM4 == ROZMIAR_BUF_NAPISOW_CM4)
 						chWskNapBufNapisowCM4 = 0;
+					//mignij niebieskim LEDem że coś przyszło
+					chCzasSwieceniaLED[LED_NIEB] = 2;	//x0,1s
 				}
 				else
 					break;

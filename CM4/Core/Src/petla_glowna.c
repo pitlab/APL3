@@ -14,6 +14,7 @@
 #include "GNSS.h"
 #include "nmea.h"
 #include "HMC5883.h"
+#include "jedn_inercyjna.h"
 
 extern TIM_HandleTypeDef htim7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -115,9 +116,7 @@ void PetlaGlowna(void)
 		chErrPetliGlownej |= WyslijDaneExpandera(chStanIOwy);
 		break;
 
-	case 9:
-		//chErrPetliGlownej |= WyslijDaneExpandera(chStanIOwy);
-		break;
+	case 9:	chErrPetliGlownej |= ObliczeniaJednostkiInercujnej();	break;
 
 	/*case 10:
 		CzytajIdFRAM(chDane);

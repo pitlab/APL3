@@ -10,10 +10,11 @@
 #include "stm32h755xx.h"
 #include "errcode.h"
 #include "stm32h7xx_hal.h"
+#include <math.h>
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	44	//numer commitu w repozytorium
+#define WER_REPO	45	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -39,11 +40,15 @@
 #define EXP22_ZASIL_USB		0x04	//ZASIL_WL_USB - wyjście
 #define EXP23_ZASIL_LED		0x08	//ZASIL_LED - wyjście
 #define EXP24_WL_WYL		0x10	//WL/WYL - wejście
-#define EXP25_LED_B			0x20	//LED niebieski
-#define EXP26_LED_G			0x40	//LED zielony
-#define EXP27_LED_R			0x80	//LED czerwony
+#define EXP25_LED_NIEB		0x20	//LED niebieski
+#define EXP26_LED_ZIEL		0x40	//LED zielony
+#define EXP27_LED_CZER		0x80	//LED czerwony
 
-
+//programowy identyfikator LEDów
+#define LED_CZER			0
+#define LED_ZIEL			1
+#define LED_NIEB			2
+#define LICZBA_LED			3
 
 //tryby pracy
 #define TP_MENU_GLOWNE		0	//wyświetla ekran menu głównego
@@ -82,4 +87,6 @@
 #define ROZM_BUF16_LCD		320*480
 #define ROZM_BUF32_KAM		320*480/ 2
 
+#define RAD2DEG				(180/M_PI)
+#define DEG2RAD				(M_PI/180)
 #endif /* INC_SYS_DEF_CM7_H_ */

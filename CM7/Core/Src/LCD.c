@@ -228,7 +228,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO], ó, ć, ó, ó, ż);	//"By móc mieć w rój Wronów na pohybel wrażym hordom""
 		print(chNapis, CENTER, 120);
 
-		sprintf(chNapis, "(c) PitLab 2024 sv %d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
+		sprintf(chNapis, "(c) PitLab 2024 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
 		print(chNapis, CENTER, 140);
 		chRysujRaz = 0;
 	}
@@ -887,23 +887,23 @@ void PomiaryIMU(void)
 	print(chNapis, 10+32*FONT_SL, 150);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn3[0]);
+	sprintf(chNapis, "%.0f ", uDaneCM4.dane.fMagn3[0]);
 	print(chNapis, 10+8*FONT_SL, 170);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn3[1]);
+	sprintf(chNapis, "%.0f ", uDaneCM4.dane.fMagn3[1]);
 	print(chNapis, 10+20*FONT_SL, 170);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn3[2]);
+	sprintf(chNapis, "%.0f ", uDaneCM4.dane.fMagn3[2]);
 	print(chNapis, 10+32*FONT_SL, 170);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f%c ", uDaneCM4.dane.fKatyIMU[0], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.3f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[0], ZNAK_STOPIEN);
 	print(chNapis, 10+10*FONT_SL, 190);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f%c ", uDaneCM4.dane.fKatyIMU[1], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.3f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[1], ZNAK_STOPIEN);
 	print(chNapis, 10+28*FONT_SL, 190);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f%c ", uDaneCM4.dane.fKatyIMU[2], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.3f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[2], ZNAK_STOPIEN);
 	print(chNapis, 10+45*FONT_SL, 190);
 
 	if (uDaneCM4.dane.stGnss1.chFix)

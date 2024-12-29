@@ -14,6 +14,7 @@
 //deklaracje zmiennych
 uint8_t chPorty_exp_wysylane[LICZBA_EXP_SPI_ZEWN] = {0x00, 0x00, 0xE0};
 uint8_t chPorty_exp_odbierane[LICZBA_EXP_SPI_ZEWN];
+volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 extern SPI_HandleTypeDef hspi5;
 const uint8_t chAdresy_expanderow[LICZBA_EXP_SPI_ZEWN] = {SPI_EXTIO_0, SPI_EXTIO_1, SPI_EXTIO_2};
 
@@ -231,6 +232,23 @@ uint8_t WymienDaneExpanderow(void)
 	hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
 	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_16;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/16
 
+	//ustaw bieżący stan LED-ów
+	if (chCzasSwieceniaLED[LED_CZER])
+		chPorty_exp_wysylane[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
+	else
+		chPorty_exp_wysylane[2] |= EXP27_LED_CZER;		//wyłącz LED_CZER
+
+	if (chCzasSwieceniaLED[LED_ZIEL])
+		chPorty_exp_wysylane[2] &= ~EXP26_LED_ZIEL;		//włącz LED_ZIEL
+	else
+		chPorty_exp_wysylane[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
+
+	if (chCzasSwieceniaLED[LED_NIEB])
+		chPorty_exp_wysylane[2] &= ~EXP25_LED_NIEB;		//włącz LED_NIEB
+	else
+		chPorty_exp_wysylane[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
+
+	//wyślij dane do expanderów I/O
 	for (uint8_t x=0; x<LICZBA_EXP_SPI_ZEWN; x++)
 	{
 		Err = WyslijDaneExpandera(chAdresy_expanderow[x], chPorty_exp_wysylane[x]);
@@ -241,10 +259,6 @@ uint8_t WymienDaneExpanderow(void)
 			return Err;
 	}
 
-
-	//chPorty_exp_wysylane[2] ^= EXP27_LED_R;	//LED_R
-	//chPorty_exp_wysylane[2] ^= EXP26_LED_G;	//LED_G
-	chPorty_exp_wysylane[2] ^= EXP25_LED_B;	//LED_B
 	hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróć wcześniejszą konfigurację
 	return Err;
 }

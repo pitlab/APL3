@@ -22,6 +22,7 @@
 #include "stm32h7xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "sys_def_CM7.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,6 +44,7 @@
 /* USER CODE BEGIN PV */
 extern volatile uint32_t nCzasSystemowy;
 volatile uint16_t sCzasH;
+volatile uint8_t chDzielnikDziesietnychSekundy;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -222,6 +224,22 @@ void TIM17_IRQHandler(void)
   /* USER CODE END TIM17_IRQn 0 */
   HAL_TIM_IRQHandler(&htim17);
   /* USER CODE BEGIN TIM17_IRQn 1 */
+
+  //odmierzej czas obsługi interfek=jsu użytkownika w dziesiętnych sekundy aby można było przechowywać rosądny czas (25,5s) w 8 bitach
+  if (chDzielnikDziesietnychSekundy)
+	  chDzielnikDziesietnychSekundy--;
+  else
+  {
+	  chDzielnikDziesietnychSekundy = 100;		//0,1s = 100ms
+	  extern volatile uint8_t chCzasSwieceniaLED[3];
+	  for (uint8_t n=0; n<LICZBA_LED; n++)
+	  {
+		  if(chCzasSwieceniaLED[n])
+		  {
+			chCzasSwieceniaLED[n]--;
+		  }
+	  }
+  }
 
   /* USER CODE END TIM17_IRQn 1 */
 }
