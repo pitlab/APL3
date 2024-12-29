@@ -12,8 +12,11 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Testy pomiaru transferu dla wszystkich pamięci
 - System zapisu konfiguracji do pamięci Flash w paczkach po 30 bajtów + 2 bajty ID i sumy kontrolnej
 - Wymiana danych z rdzeniem CM4 i prezentacja ich na LCD
-- Ururchomiony FreeRTOS
+- Uruchomiony FreeRTOS
 - Uruchomiona komunikacja po LPUART przez BDMA
+- Wyświetlacz pracuje w osobnym wątku o niskim priorytecie nie blokując głównego wątku. Dostęp do SPI sterowny semaforem.
+- Zaobserwowałem dziwne zachowanie i padło podejrzenie o przepełnianie się stosu jednego z wątków, więc została zrobiona  analiza i  porządki ze stosami. Obecnie wygląda to tak:
+![Procesy](obr/procesy.jpg)
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM
@@ -35,7 +38,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
  - Przenieść z APL2 obsługę pętli głównej, serw, mikserów, zapisu konfiguracji do FRAM, telemetrii do rdzenia CM4
  - Oprogramować obsługę karty SD po pełnym interfejsie pod kątem zapisu obrazu
  - Uruchomić układ ethernet
- - Przenieść obsługę wyświetlacza do osobnego wątku, tak aby nie blokowała głównej pętli. Konflikt dostępu do SPI rozwiazać semaforem sprzętowym, najlepiej na poziomie pojedynczego polecenia LCD.
+ 
  
  
 

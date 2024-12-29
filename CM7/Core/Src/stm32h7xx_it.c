@@ -45,6 +45,7 @@
 extern volatile uint32_t nCzasSystemowy;
 volatile uint16_t sCzasH;
 volatile uint8_t chDzielnikDziesietnychSekundy;
+volatile unsigned long ulHighFrequencyTimerTicks = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -225,21 +226,21 @@ void TIM17_IRQHandler(void)
   HAL_TIM_IRQHandler(&htim17);
   /* USER CODE BEGIN TIM17_IRQn 1 */
 
-  //odmierzej czas obsługi interfek=jsu użytkownika w dziesiętnych sekundy aby można było przechowywać rosądny czas (25,5s) w 8 bitach
-  if (chDzielnikDziesietnychSekundy)
+	ulHighFrequencyTimerTicks++;
+
+	//odmierzej czas obsługi interfek=jsu użytkownika w dziesiętnych sekundy aby można było przechowywać rosądny czas (25,5s) w 8 bitach
+	if (chDzielnikDziesietnychSekundy)
 	  chDzielnikDziesietnychSekundy--;
-  else
-  {
-	  chDzielnikDziesietnychSekundy = 100;		//0,1s = 100ms
-	  extern volatile uint8_t chCzasSwieceniaLED[3];
-	  for (uint8_t n=0; n<LICZBA_LED; n++)
-	  {
-		  if(chCzasSwieceniaLED[n])
-		  {
-			chCzasSwieceniaLED[n]--;
-		  }
-	  }
-  }
+	else
+	{
+		chDzielnikDziesietnychSekundy = 100;		//0,1s = 100ms
+		extern volatile uint8_t chCzasSwieceniaLED[3];
+		for (uint8_t n=0; n<LICZBA_LED; n++)
+		{
+			if (chCzasSwieceniaLED[n])
+				chCzasSwieceniaLED[n]--;
+		}
+	}
 
   /* USER CODE END TIM17_IRQn 1 */
 }

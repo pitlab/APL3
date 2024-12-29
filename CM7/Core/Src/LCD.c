@@ -904,13 +904,13 @@ void PomiaryIMU(void)
 	print(chNapis, 10+32*FONT_SL, 170);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[0], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[0], ZNAK_STOPIEN);
 	print(chNapis, 10+10*FONT_SL, 190);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[1], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[1], ZNAK_STOPIEN);
 	print(chNapis, 10+28*FONT_SL, 190);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[2], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[2], ZNAK_STOPIEN);
 	print(chNapis, 10+45*FONT_SL, 190);
 
 	if (uDaneCM4.dane.stGnss1.chFix)

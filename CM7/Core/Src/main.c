@@ -74,6 +74,8 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 
 /* Private variables ---------------------------------------------------------*/
 
+CRC_HandleTypeDef hcrc;
+
 UART_HandleTypeDef hlpuart1;
 UART_HandleTypeDef huart7;
 DMA_HandleTypeDef hdma_lpuart1_tx;
@@ -113,6 +115,7 @@ static void MX_FMC_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_UART7_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_CRC_Init(void);
 void StartDefaultTask(void const * argument);
 void WatekOdbiorczyLPUART1(void const * argument);
 void WatekOdbioruKonsoliUART7(void const * argument);
@@ -213,6 +216,7 @@ Error_Handler();
   MX_LPUART1_UART_Init();
   MX_UART7_Init();
   MX_TIM6_Init();
+  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
   InicjujSPIModZewn();
   LCD_init();
@@ -244,19 +248,19 @@ Error_Handler();
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 512);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of tsOdbiorLPUART1 */
-  osThreadDef(tsOdbiorLPUART1, WatekOdbiorczyLPUART1, osPriorityBelowNormal, 0, 128);
+  osThreadDef(tsOdbiorLPUART1, WatekOdbiorczyLPUART1, osPriorityBelowNormal, 0, 96);
   tsOdbiorLPUART1Handle = osThreadCreate(osThread(tsOdbiorLPUART1), NULL);
 
   /* definition and creation of tsOdbiorKonsola */
-  osThreadDef(tsOdbiorKonsola, WatekOdbioruKonsoliUART7, osPriorityBelowNormal, 0, 128);
+  osThreadDef(tsOdbiorKonsola, WatekOdbioruKonsoliUART7, osPriorityBelowNormal, 0, 64);
   tsOdbiorKonsolaHandle = osThreadCreate(osThread(tsOdbiorKonsola), NULL);
 
   /* definition and creation of tsObslugaWyswie */
-  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 256);
+  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 320);
   tsObslugaWyswieHandle = osThreadCreate(osThread(tsObslugaWyswie), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -336,6 +340,37 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief CRC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CRC_Init(void)
+{
+
+  /* USER CODE BEGIN CRC_Init 0 */
+
+  /* USER CODE END CRC_Init 0 */
+
+  /* USER CODE BEGIN CRC_Init 1 */
+
+  /* USER CODE END CRC_Init 1 */
+  hcrc.Instance = CRC;
+  hcrc.Init.DefaultPolynomialUse = DEFAULT_POLYNOMIAL_ENABLE;
+  hcrc.Init.DefaultInitValueUse = DEFAULT_INIT_VALUE_ENABLE;
+  hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_NONE;
+  hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
+  hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
+  if (HAL_CRC_Init(&hcrc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CRC_Init 2 */
+
+  /* USER CODE END CRC_Init 2 */
+
 }
 
 /**
@@ -859,7 +894,7 @@ void StartDefaultTask(void const * argument)
 		}
 
 
-		TestKomunikacji();
+		//TestKomunikacji();
 		osDelay(5);		//ustaw okres taki pracuje CM4 (200MHz -> 5ms)
 	}
   /* USER CODE END 5 */

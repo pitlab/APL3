@@ -538,7 +538,7 @@ uint8_t TestKomunikacji(void)
 	//sRozmDanych = sprintf((char*)chBuforNadDMA, "Test komunikacji UART\n\r");
 	if (sRozmDanych)
 		chErr = HAL_UART_Transmit_DMA(&hlpuart1, (uint8_t*)chBuforNadDMA, sRozmDanych);
-	osDelay(1);
+	//osDelay(1);
 	return chErr;
 }
 

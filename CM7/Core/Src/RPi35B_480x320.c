@@ -80,7 +80,6 @@ uint8_t LCD_WrData(uint8_t* chDane, uint8_t chIlosc)
 
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-	//if (!HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW))
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW) != ERR_OK)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
@@ -127,7 +126,6 @@ uint8_t LCD_write_data16(uint8_t chDane1, uint8_t chDane2)
 	dane_nadawane[1] = chDane2;
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-	//if (!HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW))
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW) != ERR_OK)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
@@ -158,7 +156,6 @@ uint8_t LCD_write_dat_pie16(uint8_t chDane1, uint8_t chDane2)
 
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-	//if (!HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW))
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW) != ERR_OK)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
@@ -186,7 +183,6 @@ void LCD_write_dat_sro16(uint8_t chDane1, uint8_t chDane2)
 	dane_nadawane[0] = chDane1;
 	dane_nadawane[1] = chDane2;
 
-	//if (!HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW))
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW) != ERR_OK)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
@@ -213,7 +209,6 @@ void LCD_write_dat_ost16(uint8_t chDane1, uint8_t chDane2)
 	dane_nadawane[0] = chDane1;
 	dane_nadawane[1] = chDane2;
 
-	//if (!HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW))
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW) != ERR_OK)
 		osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
@@ -239,7 +234,6 @@ void LCD_data_read(uint8_t *chDane, uint8_t chIlosc)
 
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-	//if (!HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW))
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW) != ERR_OK)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
