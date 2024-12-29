@@ -321,7 +321,7 @@ void TestPredkosciOdczytuNOR(void)
 		chRysujRaz = 0;
 		BelkaTytulu("Pomiar odczytu z Flash NOR");
 		setColor(GRAY60);
-		sprintf(chNapis, "Du%c ekran aby zako%cczy%c pomiar", ś, ń, ć);
+		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 		print(chNapis, CENTER, 40);
 		chErr = HAL_NOR_ReturnToReadMode(&hnor3);
 	}
@@ -567,7 +567,7 @@ void TestPredkosciOdczytuRAM(void)
 		chRysujRaz = 0;
 		BelkaTytulu("Pomiary odczytu/zapisu SRAM");
 		setColor(GRAY60);
-		sprintf(chNapis, "Du%c ekran aby zako%cczy%c pomiar", ś, ń, ć);
+		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 		print(chNapis, CENTER, 40);
 		chErr = HAL_NOR_ReturnToReadMode(&hnor3);
 	}

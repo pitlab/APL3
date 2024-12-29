@@ -53,6 +53,7 @@ uint8_t chBuforNadDMA[ROZMIAR_BUF_NAD_DMA]  __attribute__((section(".Bufory_SRAM
 uint8_t chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA]  __attribute__((section(".Bufory_SRAM4")));
 uint8_t chWyslaneOK = 1;
 uint8_t chBuforKomOdb[16];
+uint8_t chTimeoutOdbioru;
 
 //deklaracje zmiennych zewnętrznych
 extern uint32_t nBuforKamery[ROZM_BUF32_KAM];
@@ -77,40 +78,47 @@ uint8_t InitProtokol(void)
 
 
 
+
 ////////////////////////////////////////////////////////////////////////////////
-// Wątek odbiorczy danych komunikacyjnych po LPUART1
-// Odbiera dane przez DMA i analizuje je
-// Parametry:
+// Funkcja inicjalizuje zmienne w wątku odbiorczym danych komunikacyjnych po LPUART1
+// Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void WatekOdbiorczyLPUART1(void const * argument)
+void InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 {
 	chWskNap = chWskOpr = 0;
-	uint8_t chTimeout;
+	//HAL_UARTEx_ReceiveToIdle_DMA (&hlpuart1, &chBuforKomOdb, 9);
+	//HAL_UART_Receive_DMA (&hlpuart1, &chBuforKomOdb, 1);	//odbieraj do bufora
 	//HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 9);
 	HAL_UART_Receive_IT (&hlpuart1, chBuforOdbDMA, 1);	//odbieraj do bufora
-	while(1)
-	{
-		//chErr = HAL_UARTEx_ReceiveToIdle_DMA (&hlpuart1, &chBuforKomOdb, 9);
-		//chErr = HAL_UART_Receive_DMA (&hlpuart1, &chBuforKomOdb, 1);	//odbieraj do bufora
-
-		if (chWskNap != chWskOpr)
-		{
-			AnalizujDaneKom(chBuforKomOdb[chWskOpr], INTERF_UART);
-			chWskOpr++;
-			chWskOpr &= 0xF;	//zapętlenie wskaźnika bufora kołowego
-			chTimeout = 50;
-		}
-
-		//po upływie timeoutu resetuj stan protokołu aby następną ramkę zaczął dekodować od nagłówka
-		if (chTimeout)
-			chTimeout--;
-		else
-			chStanProtokolu[INTERF_UART] = PR_ODBIOR_NAGL;
-
-		osDelay(1);
-	}
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja uruchamiana w wątku odbiorczym danych komunikacyjnych po LPUART1
+// Analizuje dane z bufora odebranych komunikatów napełnianego w callbacku przychodzących danych
+// Parametry: nic
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void ObslugaWatkuOdbiorczegoLPUART1(void)
+{
+	if (chWskNap != chWskOpr)
+	{
+		AnalizujDaneKom(chBuforKomOdb[chWskOpr], INTERF_UART);
+		chWskOpr++;
+		chWskOpr &= 0xF;	//zapętlenie wskaźnika bufora kołowego
+		chTimeoutOdbioru = 50;
+	}
+
+	//po upływie timeoutu resetuj stan protokołu aby następną ramkę zaczął dekodować od nagłówka
+	if (chTimeoutOdbioru)
+		chTimeoutOdbioru--;
+	else
+		chStanProtokolu[INTERF_UART] = PR_ODBIOR_NAGL;
+}
+
+
 
 /*void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
@@ -134,7 +142,7 @@ void WatekOdbiorczyLPUART1(void const * argument)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Callback przerwania UARTA. PRzepisuje odebrane dane z małego bufora do większego bufora kołowego analizy protokołu
+// Callback przerwania UARTA. Przepisuje odebrane dane z małego bufora do większego bufora kołowego analizy protokołu
 // Parametry:
 // *huart - uchwyt uarta
 // Zwraca: nic

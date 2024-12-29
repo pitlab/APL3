@@ -41,6 +41,7 @@
 
 uint8_t InicjujSPIModZewn(void);
 uint8_t UstawDekoderZewn(uint8_t uklad);
+uint8_t PobierzStanDekoderaZewn(void);
 uint8_t WyslijDaneExpandera(uint8_t adres, uint8_t daneWy);
 uint8_t PobierzDaneExpandera(uint8_t adres, uint8_t* daneWe);
 uint8_t WymienDaneExpanderow(void);

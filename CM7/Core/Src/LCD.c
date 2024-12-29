@@ -84,7 +84,14 @@ void RysujEkran(void)
 	case TP_MENU_GLOWNE:	MenuGlowne(&chNowyTrybPracy);	break;
 
 	case TP_KAMERA:	break;
-	case TP_FRAKTALE:		FraktalDemo();	break;
+	case TP_FRAKTALE:		FraktalDemo();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_MENU;
+		}
+		break;
+
 	case TP_KALIB_DOTYK:
 		if (KalibrujDotyk() == ERR_DONE)
 			chTrybPracy = TP_TESTY;
@@ -816,7 +823,7 @@ void PomiaryIMU(void)
 		print(chNapis, 10, 280);
 
 		setColor(GRAY50);
-		sprintf(chNapis, "Wdu%c ekran i przytrzymaj aby zako%cczy%c", ś, ń, ć);
+		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 		print(chNapis, CENTER, 300);
 	}
 

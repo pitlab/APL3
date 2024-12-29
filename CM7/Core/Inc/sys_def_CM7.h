@@ -14,7 +14,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	45	//numer commitu w repozytorium
+#define WER_REPO	46	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -77,6 +77,8 @@
 //flagi sprzetu wykrytego przez CM4
 #define INITCM4_GNSS		0x00000001
 
+
+//semafory sprzętowe
 
 //interfejsy komunikacyjne
 #define INTERF_UART			1

@@ -8,14 +8,8 @@
 #ifndef INC_WYMIANA_H_
 #define INC_WYMIANA_H_
 #include "stm32h7xx_hal.h"
+#include "semafory.h"
 
-#ifndef HSEM_CM4_TO_CM7
-#define HSEM_CM4_TO_CM7 (1U)
-#endif
-
-#ifndef HSEM_CM7_TO_CM4
-#define HSEM_CM7_TO_CM4 (2U)
-#endif
 
 #define ROWNAJ_DO32B(adres)				((adres + 3) & 0xFFFFFFFC)
 

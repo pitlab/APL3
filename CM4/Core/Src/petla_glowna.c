@@ -15,6 +15,7 @@
 #include "nmea.h"
 #include "HMC5883.h"
 #include "jedn_inercyjna.h"
+#include <stdio.h>
 
 extern TIM_HandleTypeDef htim7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -31,7 +32,7 @@ extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;
 uint16_t chTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po timeoucie inicjalizuje moduł.
 uint8_t chEtapOperacjiI2C;
-uint8_t chGeneratorNapisow;
+uint8_t chGeneratorNapisow, chLicznikKomunikatow;
 extern I2C_HandleTypeDef hi2c3;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -143,9 +144,11 @@ void PetlaGlowna(void)
 		chGeneratorNapisow++;
 		if (!chGeneratorNapisow)
 		{
-			const uint8_t chNapis[] = "CM4 pracuje\n\r";
+			char chNapis[20];
+			sprintf(chNapis, "CM4 pracuje %d\n\r", chLicznikKomunikatow);
 			for (uint8_t n=0; n<sizeof(chNapis); n++)
 			  uDaneCM4.dane.chNapis[n] = chNapis[n];
+			chLicznikKomunikatow++;
 		}
 		break;
 

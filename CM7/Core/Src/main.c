@@ -50,6 +50,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "flash_konfig.h"
 #include "wymiana_CM7.h"
 #include "protokol_kom.h"
+#include "moduly_SPI.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -93,7 +94,7 @@ NOR_HandleTypeDef hnor3;
 osThreadId defaultTaskHandle;
 osThreadId tsOdbiorLPUART1Handle;
 osThreadId tsOdbiorKonsolaHandle;
-osThreadId tsOdbiorGPS_UARHandle;
+osThreadId tsObslugaWyswieHandle;
 /* USER CODE BEGIN PV */
 uint8_t chErr;
 extern uint8_t chPorty_exp_wysylane[];
@@ -115,7 +116,7 @@ static void MX_TIM6_Init(void);
 void StartDefaultTask(void const * argument);
 void WatekOdbiorczyLPUART1(void const * argument);
 void WatekOdbioruKonsoliUART7(void const * argument);
-void WatekOdbioruGPS_UART8(void const * argument);
+void WatekWyswietlacza(void const * argument);
 
 /* USER CODE BEGIN PFP */
 extern uint8_t InicjujSPIModZewn(void);
@@ -254,9 +255,9 @@ Error_Handler();
   osThreadDef(tsOdbiorKonsola, WatekOdbioruKonsoliUART7, osPriorityBelowNormal, 0, 128);
   tsOdbiorKonsolaHandle = osThreadCreate(osThread(tsOdbiorKonsola), NULL);
 
-  /* definition and creation of tsOdbiorGPS_UAR */
-  osThreadDef(tsOdbiorGPS_UAR, WatekOdbioruGPS_UART8, osPriorityBelowNormal, 0, 128);
-  tsOdbiorGPS_UARHandle = osThreadCreate(osThread(tsOdbiorGPS_UAR), NULL);
+  /* definition and creation of tsObslugaWyswie */
+  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 256);
+  tsObslugaWyswieHandle = osThreadCreate(osThread(tsObslugaWyswie), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -819,12 +820,32 @@ void StartDefaultTask(void const * argument)
   //MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
 	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+	uint32_t nStanSemaforaSPI;
+	uint8_t chStanDekodera;
 	/* Infinite loop */
 	for(;;)
 	{
-		WymienDaneExpanderow();
-		RysujEkran();
-		CzytajDotyk();
+		//użyj sprzętowego semafora HSEM_SPI6_WYSW do określenia dostępu do SPI6
+		nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW);
+		if (!nStanSemaforaSPI)
+		{
+			chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
+			if (chErr == ERR_OK)
+			{
+				chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
+				WymienDaneExpanderow();
+				CzytajDotyk();
+				UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
+				HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
+			}
+			chCzasSwieceniaLED[LED_ZIEL] = 5;
+			chCzasSwieceniaLED[LED_NIEB] = 0;
+		}
+		else
+		{
+			chCzasSwieceniaLED[LED_ZIEL] = 0;
+			chCzasSwieceniaLED[LED_NIEB] = 5;
+		}
 
 		//obsłuż międzyprocesorową wymianę danych
 		chErr += PobierzDaneWymiany_CM4();
@@ -844,6 +865,25 @@ void StartDefaultTask(void const * argument)
   /* USER CODE END 5 */
 }
 
+/* USER CODE BEGIN Header_WatekOdbiorczyLPUART1 */
+////////////////////////////////////////////////////////////////////////////////
+// Wątek odbiorczy danych komunikacyjnych po LPUART1
+// Odbiera dane przez DMA i analizuje je
+// Parametry:
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+/* USER CODE END Header_WatekOdbiorczyLPUART1 */
+void WatekOdbiorczyLPUART1(void const * argument)
+{
+  /* USER CODE BEGIN WatekOdbiorczyLPUART1 */
+	InicjalizacjaWatkuOdbiorczegoLPUART1();
+	while(1)
+	{
+		ObslugaWatkuOdbiorczegoLPUART1();
+		osDelay(5);
+	}
+  /* USER CODE END WatekOdbiorczyLPUART1 */
+}
 
 /* USER CODE BEGIN Header_WatekOdbioruKonsoliUART7 */
 /**
@@ -863,22 +903,23 @@ void WatekOdbioruKonsoliUART7(void const * argument)
   /* USER CODE END WatekOdbioruKonsoliUART7 */
 }
 
-/* USER CODE BEGIN Header_WatekOdbioruGPS_UART8 */
+/* USER CODE BEGIN Header_WatekWyswietlacza */
 /**
-* @brief Function implementing the tsOdbiorGPS_UAR thread.
+* @brief Function implementing the tsObslugaWyswie thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_WatekOdbioruGPS_UART8 */
-void WatekOdbioruGPS_UART8(void const * argument)
+/* USER CODE END Header_WatekWyswietlacza */
+void WatekWyswietlacza(void const * argument)
 {
-  /* USER CODE BEGIN WatekOdbioruGPS_UART8 */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END WatekOdbioruGPS_UART8 */
+  /* USER CODE BEGIN WatekWyswietlacza */
+	/* Infinite loop */
+	for(;;)
+	{
+		RysujEkran();
+		osDelay(1);
+	}
+  /* USER CODE END WatekWyswietlacza */
 }
 
  /* MPU Configuration */

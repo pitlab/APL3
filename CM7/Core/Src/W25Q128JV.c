@@ -477,7 +477,7 @@ uint8_t W25_TestTransferu(void)
 		chRysujRaz = 0;
 		BelkaTytulu("Pomiar odczytu z Flash QSPI");
 		setColor(GRAY60);
-		sprintf(chNapis, "Du%c ekran aby zako%cczy%c pomiar", ś, ń, ć);
+		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 		print(chNapis, CENTER, 40);
 		setColor(WHITE);
 	}

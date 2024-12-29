@@ -14,6 +14,7 @@
 //deklaracje zmiennych
 uint8_t chPorty_exp_wysylane[LICZBA_EXP_SPI_ZEWN] = {0x00, 0x00, 0xE0};
 uint8_t chPorty_exp_odbierane[LICZBA_EXP_SPI_ZEWN];
+uint8_t chStanDekoderaSPI;
 volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 extern SPI_HandleTypeDef hspi5;
 const uint8_t chAdresy_expanderow[LICZBA_EXP_SPI_ZEWN] = {SPI_EXTIO_0, SPI_EXTIO_1, SPI_EXTIO_2};
@@ -132,7 +133,7 @@ uint8_t InicjujSPIModZewn(void)
 uint8_t UstawDekoderZewn(uint8_t uklad)
 {
 	uint8_t Err = ERR_OK;
-
+	chStanDekoderaSPI = uklad;
 	switch (uklad)
 	{
 		case CS_TP: 	//Panel dotykowy,
@@ -162,6 +163,16 @@ uint8_t UstawDekoderZewn(uint8_t uklad)
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Zwraca ostatnio ustawiony stan dekodera
+// Parametry: nic
+// Zwraca: stan dekodera
+////////////////////////////////////////////////////////////////////////////////
+uint8_t PobierzStanDekoderaZewn(void)
+{
+	return chStanDekoderaSPI;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ustawia i pobiera zawartość portu na układzie rozszerzeń podłaczonym do magistrali SPI5 modułów wyjsciowych rdzenia CM7
