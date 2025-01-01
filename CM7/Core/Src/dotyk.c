@@ -203,9 +203,9 @@ uint8_t KalibrujDotyk(void)
 				//ObliczKalibracjeDotykuWielopunktowa();	//Źle
 				statusDotyku.chFlagi |= DOTYK_SKALIBROWANY;
 
-				uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
+				uint8_t chPaczka[ROZMIAR_PACZKI_KONF8];
 
-				for (uint8_t n=0; n<ROZMIAR_PACZKI_KONFIGU; n++)
+				for (uint8_t n=0; n<ROZMIAR_PACZKI_KONF8; n++)
 					chPaczka[n] = 0;
 
 				chPaczka[0] = FKON_KALIBRACJA_DOTYKU;
@@ -491,10 +491,11 @@ uint8_t TestDotyku(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujDotyk(void)
 {
-	uint8_t n, chPaczka[ROZMIAR_PACZKI_KONFIGU];
+	uint8_t n, chPaczka[ROZMIAR_PACZKI_KONF8];
+	uint8_t chErr = ERR_BRAK_KONFIG;
 
 	n = CzytajPaczkeKonfigu(chPaczka, FKON_KALIBRACJA_DOTYKU);
-	if (n == ROZMIAR_PACZKI_KONFIGU)
+	if (n == ROZMIAR_PACZKI_KONF8)
 	{
 		kalibDotyku.fAx = KonwChar2Float(&chPaczka[2]);
 		kalibDotyku.fAy = KonwChar2Float(&chPaczka[6]);
@@ -504,10 +505,11 @@ uint8_t InicjujDotyk(void)
 		kalibDotyku.fDeltaY = KonwChar2Float(&chPaczka[22]);
 
 		statusDotyku.chFlagi |= DOTYK_SKALIBROWANY;
+		chErr = ERR_OK;
 	}
 	//chCzasDotkn = 1;	//potrzebne do uruchomienia pierwszej kalibracji przez trzymanie ekranu podczas włączania
 	//normalnie potrzeba trzymać ekran przez kilka cykli aby zostało to uznane za dotknięcie, natomiast podcza uruchomienia jest tylko jedna próba stąd licznik musi być =1
-	return (n == ROZMIAR_PACZKI_KONFIGU);
+	return chErr;
 }
 
 

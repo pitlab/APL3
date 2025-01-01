@@ -260,13 +260,13 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 			for (uint8_t n=0; n<4; n++)
 				un8_32.dane8[n] = chDane[n];
 			//przepisz dane 8-bitowe  i zapisz po konwersji w buforze 16-bitowym
-			for (uint8_t n=0; n<((chDane[4]-5)>>1); n++)
+			for (uint8_t n=0; n<chDane[4]; n++)	//chDane[4] - rozmiar wyrażony w słowach
 			{
-				un8_16.dane8[0] = chDane[n+5];
-				un8_16.dane8[1] = chDane[n+6];
+				un8_16.dane8[0] = chDane[2*n+5];
+				un8_16.dane8[1] = chDane[2*n+6];
 				sBuforD1[n] = un8_16.dane16;
 			}
-			chErr = ZapiszDaneFlashNOR(un8_32.dane32, sBuforD1, (chDane[4]-5)>>1);
+			chErr = ZapiszDaneFlashNOR(un8_32.dane32, sBuforD1, chDane[4]);
 			if (chErr == ERR_OK)
 				chErr = Wyslij_OK(PK_ZAPISZ_FLASH, 0, chInterfejs);
 			else

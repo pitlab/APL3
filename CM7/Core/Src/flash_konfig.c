@@ -32,24 +32,24 @@ void InicjujKonfigFlash(void)
 	nAdresZapisuKonfigu = ADRES_SEKTORA0;		//jeżeli nie znajdzie danych to ten adres będzie domyślny
 
 	//Czyta oba sektory od końca aby stwierdzić gdzie jest koniec danych
-	for (n=(ROZMIAR8_SEKTORA/ROZMIAR_PACZKI_KONFIGU)-1; n>0; n--)
+	for (n=(ROZMIAR16_SEKTORA/ROZMIAR_PACZKI_KONF16)-1; n>0; n--)
 	{
-		chIdentyfikatorPaczki = *(__IO unsigned char*)(ADRES_SEKTORA0 + (n-1)*ROZMIAR_PACZKI_KONFIGU);
+		chIdentyfikatorPaczki = *(__IO unsigned char*)(ADRES_SEKTORA0 + (n-1)*ROZMIAR_PACZKI_KONF16);
 		if (chIdentyfikatorPaczki != 0xFF)	//testowany jest pierwszy bajt paczki zawierajacy identyfikator
 		{
 			//sprawdź czy zgadza się suma kontrolna paczki
-			if (SprawdzPaczke(ADRES_SEKTORA0 + (n-1)*ROZMIAR_PACZKI_KONFIGU))
+			if (SprawdzPaczke(ADRES_SEKTORA0 + (n-1)*ROZMIAR_PACZKI_KONF16))
 			{
-				nAdresZapisuKonfigu = ADRES_SEKTORA0 + n*ROZMIAR_PACZKI_KONFIGU;
+				nAdresZapisuKonfigu = ADRES_SEKTORA0 + n*ROZMIAR_PACZKI_KONF16;
 				break;
 			}
 		}
-		chIdentyfikatorPaczki = *(__IO unsigned char*)(ADRES_SEKTORA1 + (n-1)*ROZMIAR_PACZKI_KONFIGU);
+		chIdentyfikatorPaczki = *(__IO unsigned char*)(ADRES_SEKTORA1 + (n-1)*ROZMIAR_PACZKI_KONF16);
 		if (chIdentyfikatorPaczki != 0xFF)
 		{
-			if (SprawdzPaczke(ADRES_SEKTORA1 + (n-1)*ROZMIAR_PACZKI_KONFIGU))
+			if (SprawdzPaczke(ADRES_SEKTORA1 + (n-1)*ROZMIAR_PACZKI_KONF16))
 			{
-				nAdresZapisuKonfigu = ADRES_SEKTORA1 + n*ROZMIAR_PACZKI_KONFIGU;
+				nAdresZapisuKonfigu = ADRES_SEKTORA1 + n*ROZMIAR_PACZKI_KONF16;
 				break;
 			}
 		}
@@ -68,7 +68,7 @@ unsigned char SprawdzPaczke(unsigned int nAdres)
 	unsigned char n, chSuma;
 
 	chSuma = *(__IO unsigned char*)nAdres;
-	for (n=2; n<ROZMIAR_PACZKI_KONFIGU; n++)
+	for (n=2; n<ROZMIAR_PACZKI_KONF8; n++)
 		chSuma += *(__IO unsigned char*)(nAdres + n);
 
 	n = *(__IO unsigned char*)(nAdres + 1);
@@ -94,11 +94,11 @@ uint8_t ZapiszPaczkeKonfigu(uint8_t* chDane)
 	else
 		nRozmiar = ADRES_SEKTORA0 - nAdresZapisuKonfigu + ROZMIAR8_SEKTORA;
 
-	if (nRozmiar < ROZMIAR_PACZKI_KONFIGU)
+	if (nRozmiar < ROZMIAR_PACZKI_KONF8)
 		PrzepiszDane();
 
 	chErr = ZapiszPaczkeAdr(nAdresZapisuKonfigu, chDane);
-	nAdresZapisuKonfigu += ROZMIAR_PACZKI_KONFIGU;
+	nAdresZapisuKonfigu += ROZMIAR_PACZKI_KONF16;
 	return chErr;
 }
 
@@ -117,11 +117,11 @@ uint8_t ZapiszPaczkeAdr(uint32_t nAdres, uint8_t* chDane)
 
 	//policz sumę kontrolną z danych
 	chSuma = *chDane;	//załaduj pierwszy składnik sumy: ID
-	for (n=2; n<ROZMIAR_PACZKI_KONFIGU; n++)
+	for (n=2; n<ROZMIAR_PACZKI_KONF8; n++)
 		chSuma += *(chDane+n);
 	*(chDane+1) = chSuma;		//zapisz sumę zaraz za ID
 
-	return ZapiszDaneFlashNOR(nAdres, (uint16_t*)chDane, ROZMIAR_PACZKI_KONFIGU/2);	//rzutuj 8-bitową paczke na 16-bitową
+	return ZapiszDaneFlashNOR(nAdres, (uint16_t*)chDane, ROZMIAR_PACZKI_KONF16);	//rzutuj 8-bitową paczke na 16-bitową
 }
 
 
@@ -136,6 +136,7 @@ uint8_t ZapiszPaczkeAdr(uint32_t nAdres, uint8_t* chDane)
 uint8_t CzytajPaczkeKonfigu(uint8_t* chDane, uint8_t chIdent)
 {
 	uint8_t n, m, chID;
+	//uint8_t m = 0; //liczba odczytanych danych
 	uint32_t nAdresOdczytu;
 
 	//określ adres początku sektora w którym są zapisane dane
@@ -144,20 +145,18 @@ uint8_t CzytajPaczkeKonfigu(uint8_t* chDane, uint8_t chIdent)
 	else
 		nAdresOdczytu = ADRES_SEKTORA0;
 
-	m = 0;	//liczba odczytanych danych
-
 	//określ ile paczek trzeba odczytać
-	n = (nAdresZapisuKonfigu - nAdresOdczytu) / ROZMIAR_PACZKI_KONFIGU;
+	n = (nAdresZapisuKonfigu - nAdresOdczytu) / ROZMIAR_PACZKI_KONF16;
 	//Czyta bieżący sektor od końca aby stwierdzić gdzie jest ostatnia poprawna paczka o tym identyfikatorze
 	for (; n>0; n--)
 	{
-		chID = *(__IO unsigned char*)(nAdresOdczytu + (n-1)*ROZMIAR_PACZKI_KONFIGU);
+		chID = *(__IO unsigned char*)(nAdresOdczytu + (n-1)*ROZMIAR_PACZKI_KONF16);
 		if (chID == chIdent)	//testowany jest pierwszy bajt paczki zawierajacy identyfikator
 		{
-			if (SprawdzPaczke(nAdresOdczytu + (n-1)*ROZMIAR_PACZKI_KONFIGU))
+			if (SprawdzPaczke(nAdresOdczytu + (n-1)*ROZMIAR_PACZKI_KONF16))
 			{
-				for (; m<ROZMIAR_PACZKI_KONFIGU; m++)
-					*(chDane++) = *(__IO unsigned char*)(m + nAdresOdczytu + (n-1)*ROZMIAR_PACZKI_KONFIGU);
+				for (m=0; m<ROZMIAR_PACZKI_KONF8; m++)
+					*(chDane++) = *(__IO unsigned char*)(m + nAdresOdczytu + (n-1)*ROZMIAR_PACZKI_KONF16);
 				break;
 			}
 		}
@@ -174,7 +173,7 @@ uint8_t CzytajPaczkeKonfigu(uint8_t* chDane, uint8_t chIdent)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PrzepiszDane(void)
 {
-	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
+	uint8_t chPaczka[ROZMIAR_PACZKI_KONF8];
 	uint8_t n, m;
 	unsigned int nNowyAdresZapisu, nAdresKasowanegoSektora;
 	uint8_t Err;
@@ -194,11 +193,11 @@ uint8_t PrzepiszDane(void)
 	//szukaj wszystkich typów paczek i przepisz ich najnowszą wersję do drugiego sektora
 	for (n=0; n<LICZBA_TYPOW_PACZEK; n++)
 	{
-		m = CzytajPaczkeKonfigu(chPaczka, n+1);
-		if (m == ROZMIAR_PACZKI_KONFIGU)		//czy odczytało poprawną paczkę
+		m = CzytajPaczkeKonfigu(chPaczka, n);
+		if (m == ROZMIAR_PACZKI_KONF8)		//czy odczytało poprawną paczkę
 		{
 			ZapiszPaczkeAdr(nNowyAdresZapisu, chPaczka);
-			nNowyAdresZapisu += ROZMIAR_PACZKI_KONFIGU;
+			nNowyAdresZapisu += ROZMIAR_PACZKI_KONF16;
 		}
 	}
 
