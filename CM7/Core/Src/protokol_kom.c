@@ -44,7 +44,7 @@ uint8_t chLicznikDanych[ILOSC_INTERF_KOM];
 uint8_t chZnakCzasu[ILOSC_INTERF_KOM];
 uint16_t sCrc16We;
 uint8_t chRamkaWyj[ROZMIAR_RAMKI_UART];
-volatile uint8_t chWskNap, chWskOpr;		//wskaźniki napełniania i opróżniania bufora kołowego
+volatile uint8_t sWskNap, sWskOpr;		//wskaźniki napełniania i opróżniania bufora kołowego
 volatile uint32_t nCzasSystemowy;
 int16_t sSzerZdjecia, sWysZdjecia;
 uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
@@ -53,7 +53,7 @@ uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
 uint8_t chBuforNadDMA[ROZMIAR_BUF_NAD_DMA]  __attribute__((section(".Bufory_SRAM4")));
 uint8_t chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA]  __attribute__((section(".Bufory_SRAM4")));
 uint8_t chWyslaneOK = 1;
-uint8_t chBuforKomOdb[256];
+uint8_t chBuforKomOdb[ROZMIAR_BUF_ANALIZY_ODB];
 uint8_t chTimeoutOdbioru;
 
 //deklaracje zmiennych zewnętrznych
@@ -62,6 +62,8 @@ extern uint8_t chTrybPracy;
 extern UART_HandleTypeDef hlpuart1;
 extern DMA_HandleTypeDef hdma_lpuart1_tx;
 extern uint16_t sBuforD1[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_SRAM1")));
+extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+
 //extern struct st_KonfKam KonfKam;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -80,7 +82,6 @@ uint8_t InitProtokol(void)
 
 
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja inicjalizuje zmienne w wątku odbiorczym danych komunikacyjnych po LPUART1
 // Parametry: nic
@@ -88,11 +89,11 @@ uint8_t InitProtokol(void)
 ////////////////////////////////////////////////////////////////////////////////
 void InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 {
-	chWskNap = chWskOpr = 0;
+	sWskNap = sWskOpr = 0;
 	//HAL_UARTEx_ReceiveToIdle_DMA (&hlpuart1, &chBuforKomOdb, 9);
 	//HAL_UART_Receive_DMA (&hlpuart1, &chBuforKomOdb, 1);	//odbieraj do bufora
-	//HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 9);
-	HAL_UART_Receive_IT (&hlpuart1, chBuforOdbDMA, 1);	//odbieraj do bufora
+	HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
+	//HAL_UART_Receive_IT (&hlpuart1, chBuforOdbDMA, 1);	//odbieraj do bufora
 }
 
 
@@ -105,13 +106,14 @@ void InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 ////////////////////////////////////////////////////////////////////////////////
 void ObslugaWatkuOdbiorczegoLPUART1(void)
 {
-	//if (chWskNap != chWskOpr)
-	while (chWskNap != chWskOpr)
+	while (sWskNap != sWskOpr)
 	{
-		AnalizujDaneKom(chBuforKomOdb[chWskOpr], INTERF_UART);
-		chWskOpr++;
-		chWskOpr &= 0xFF;	//zapętlenie wskaźnika bufora kołowego
-		chTimeoutOdbioru = 50;	//x osDelay(5); [ms] w głównym wątku
+		AnalizujDaneKom(chBuforKomOdb[sWskOpr], INTERF_UART);
+		sWskOpr++;
+		//zapętlenie wskaźnika bufora kołowego
+		if (sWskOpr >= ROZMIAR_BUF_ANALIZY_ODB)
+			sWskOpr = 0;
+		chTimeoutOdbioru = 5;	//x osDelay(2); [ms] w głównym wątku
 	}
 
 	//po upływie timeoutu resetuj stan protokołu aby następną ramkę zaczął dekodować od nagłówka
@@ -119,46 +121,66 @@ void ObslugaWatkuOdbiorczegoLPUART1(void)
 	{
 		chTimeoutOdbioru--;
 		if (!chTimeoutOdbioru)
+		{
 			chStanProtokolu[INTERF_UART] = PR_ODBIOR_NAGL;
+			//HAL_UART_Receive_IT (&hlpuart1, chBuforOdbDMA, 1);	//włącz odbiór gdyby coś się urwało
+			//HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
+			chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s
+		}
+	}
+
+	//ponownie włącz odbiór
+	//if ((hlpuart1.Instance->CR1 & USART_CR1_IDLEIE) != USART_CR1_IDLEIE)
+		//hlpuart1.Instance->CR1 |= USART_CR1_IDLEIE;
+	//HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Callback przerwania UARTA pracujacego w trybie DMA z obsługą detekcji IDLE.
+// Przepisuje odebrane dane z małego bufora odbiorczego DMA do większego bufora kołowego analizy protokołu
+// Parametry:
+// *huart - uchwyt uarta
+// sOdebrano - liczba odebranych znaków
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *hUart, uint16_t sOdebrano)
+{
+	if (hUart->Instance == LPUART1)
+	{
+		for (uint16_t n=0; n<sOdebrano; n++)
+		{
+			chBuforKomOdb[sWskNap] = chBuforOdbDMA[n];
+			sWskNap++;
+			//zapętlenie wskaźnika bufora kołowego
+			if (sWskNap >= ROZMIAR_BUF_ANALIZY_ODB)
+				sWskNap = 0;
+		}
+		//ponownie włącz odbiór
+		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
+		//sprawdź czy właczony jest bit IDLE w CR1
+		//if ((hUart->Instance->CR1 & USART_CR1_IDLEIE) != USART_CR1_IDLEIE)
+			//hUart->Instance->CR1 |= USART_CR1_IDLEIE;
 	}
 }
 
 
 
-/*void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
-{
-	//uint8_t chErr;
-	uint16_t n;
-
-	if (huart->Instance == LPUART1)
-	{
-		for (n=0; n<Size; n++)
-		{
-			chBuforKomOdb[chWskNap] = chBuforOdbDMA[n];
-			chWskNap++;
-			chWskNap &= 0xF;	//zapętlenie wskaźnika bufora kołowego
-		}
-
-		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 9);	//ponownie włącz odbiór
-		chErr = HAL_UART_Receive_DMA (&hlpuart1, &chBuforKomOdb, 1);	//odbieraj do bufora
-	}
-}*/
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
-// Callback przerwania UARTA. Przepisuje odebrane dane z małego bufora do większego bufora kołowego analizy protokołu
+// Callback przerwania UARTA pracującego w trybie przerwań.
+// Przepisuje odebrane dane z małego bufora do większego bufora kołowego analizy protokołu
 // Parametry:
 // *huart - uchwyt uarta
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *hUart)
 {
-	if (huart->Instance == LPUART1)
+	if (hUart->Instance == LPUART1)
 	{
-		chBuforKomOdb[chWskNap] = chBuforOdbDMA[0];
-		chWskNap++;
-		chWskNap &= 0xFF;	//zapętlenie wskaźnika bufora kołowego
+		chBuforKomOdb[sWskNap] = chBuforOdbDMA[0];
+		sWskNap++;
+		//sWskNap &= 0xFF;	//zapętlenie wskaźnika bufora kołowego
 		HAL_UART_Receive_IT (&hlpuart1, chBuforOdbDMA, 1);	//odbieraj do bufora
 	}
 }
@@ -182,7 +204,6 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
     static uint8_t chDane[ROZM_DANYCH_UART];
     extern struct st_KonfKam strKonfKam;
 
-
     chErr = DekodujRamke(chWe, &chAdresZdalny[chInterfejs], &chZnakCzasu[chInterfejs], &chPolecenie, &chRozmDanych, chDane, chInterfejs);
     if (chErr == ERR_RAMKA_GOTOWA)
     {
@@ -197,11 +218,8 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 			sWysZdjecia  = (uint16_t)chDane[3] * 0x100 + chDane[2];
 			chTrybPracy = TP_ZDJECIE;
 			//chStatusZdjecia = SGZ_CZEKA;	//oczekiwania na wykonanie zdjęcia
-			chStatusZdjecia = SGZ_BLAD;		//dopóki nie ma kamery niech zgłasza bład
-			chErr = Wyslij_OK(PK_ZROB_ZDJECIE, 0, chInterfejs);
-			break;
-
-		case PK_POB_STAT_ZDJECIA:	//pobierz status gotowości zdjęcia
+			//chStatusZdjecia = SGZ_BLAD;		//dopóki nie ma kamery niech zgłasza bład
+			chStatusZdjecia = SGZ_GOTOWE;
 			//generuj testową strukturę obrazu
 			if (chStatusZdjecia == SGZ_GOTOWE)
 			{
@@ -211,6 +229,10 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 					nBuforKamery[x] = (sPix+1)*0x10000 + sPix;
 				}
 			}
+			chErr = Wyslij_OK(PK_ZROB_ZDJECIE, 0, chInterfejs);
+			break;
+
+		case PK_POB_STAT_ZDJECIA:	//pobierz status gotowości zdjęcia
 			chDane[0] = chStatusZdjecia;
 			chErr = WyslijRamke(chAdresZdalny[chInterfejs], PK_POB_STAT_ZDJECIA, 1, chDane, chInterfejs);
 			break;
@@ -308,26 +330,15 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
 {
 	uint8_t n, chErr = ERR_OK;
 	uint16_t sCrc16Obl;
-    //jeżeli minał czas odbioru danych ustalony podczas odbioru nagłówka to resetuj stan protokołu
-    //zmienna chProtoTimeout jest dekrementowana co 1ms w procedurze obsługi przerwania timera RIT
-    //if (chProtoTimeout[chInterfejs] == 0)
-   // {
-     //   chProtoState[chInterfejs] = PR_ODB_NAGL;
-    //}
 
     switch (chStanProtokolu[chInterfejs])
     {
     case PR_ODBIOR_NAGL:	//testuj czy odebrano nagłówek
-	if (chWe == NAGLOWEK)
-	{
-		chStanProtokolu[chInterfejs] = PR_ADRES_ODB;
-            //NVIC_ICER0 =  (1 << ((unsigned int)(RIT_IRQn) & 0x1F));     //wyłącz przerwanie RIT
-            //chProtoTimeout[chInterfejs] = 30; //30ms
-            //NVIC_ISER0 =  (1 << ((unsigned int)(RIT_IRQn) & 0x1F));     //włącz przerwanie RIT
-	}
-	else
-	    chErr = ERR_ZLY_NAGL;
-	break;
+		if (chWe == NAGLOWEK)
+			chStanProtokolu[chInterfejs] = PR_ADRES_ODB;
+		else
+			chErr = ERR_ZLY_NAGL;
+		break;
 
     case PR_ADRES_ODB:
     	if (chWe == chAdresLokalny)				//czy odebraliśmy własny adres sieciowy

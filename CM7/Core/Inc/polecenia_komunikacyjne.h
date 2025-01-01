@@ -37,7 +37,7 @@
 #define ADRES_BROADCAST		0xFF
 #define WIELOMIAN_CRC		0x1021
 
-//nazwy poleceń protokołu
+//nazwy poleceń Protokołu Komunikacyjnego
 #define PK_OK				0	//akceptacja
 #define PK_BLAD				1
 #define PK_ZROB_ZDJECIE		2	//polecenie wykonania zdjęcia. We: [0..1] - sSzerokosc zdjecia, [2..3] - wysokość zdjecia

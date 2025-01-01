@@ -12,7 +12,7 @@
  * 0x30040000..0x30040200 - 512  (0x200) deskryptory DMA ETH
  * 0x30040200..0x38000000 - 130k (0x7FBEFE00) wolne
  * 0x68000000..0x6801FFFF - 2*128k pamięć konfiguracji
- * 0x68020000..0x6808FFFF - 6*128k pamięć komunikatów słownych 16-bit, 16kHz
+ * 0x68020000..0x6807FFFF - 6*128k pamięć komunikatów słownych 16-bit, 16kHz
 
 
  * 								Pozwolenia dla MPU			Prawa dostępu
@@ -891,7 +891,7 @@ void StartDefaultTask(void const * argument)
 		//sygnalizacja błędów wymiany
 		if (chErr)
 		{
-			chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s
+			//chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s
 			chErr = ERR_OK;
 		}
 
@@ -917,7 +917,7 @@ void WatekOdbiorczyLPUART1(void const * argument)
 	while(1)
 	{
 		ObslugaWatkuOdbiorczegoLPUART1();
-		osDelay(5);
+		osDelay(2);
 	}
   /* USER CODE END WatekOdbiorczyLPUART1 */
 }
