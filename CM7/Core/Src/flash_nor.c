@@ -115,7 +115,7 @@ uint8_t SprawdzObecnoscFlashNOR(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Kasuj sektor flash
+// Kasuj sektor flash o rozmiarze 128kB (0xFFFF słów)
 // Parametry: nAdres sektora do skasowania
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
@@ -165,9 +165,9 @@ uint8_t CzytajDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Zapisz dane do flash
+// Zapisz dane do flash. Optymalnie jest zapisywać całą stronę 16 słów (32 bajtów)
 // Parametry: nAdres do zapisu
-// * sDane - wskaźnik na 16-bitoer dane do zapisu
+// * sDane - wskaźnik na 16-bitowe dane do zapisu
 //  nIlosc - ilość słów (nie bajtów) do zapisu
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////

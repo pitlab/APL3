@@ -22,6 +22,7 @@
 #include "kamera.h"
 #include <stdio.h>
 #include "wymiana_CM7.h"
+#include "flash_nor.h"
 
 union _un8_16		//unia do konwersji między danymi 16 i 8 bit
 {
@@ -52,7 +53,7 @@ uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
 uint8_t chBuforNadDMA[ROZMIAR_BUF_NAD_DMA]  __attribute__((section(".Bufory_SRAM4")));
 uint8_t chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA]  __attribute__((section(".Bufory_SRAM4")));
 uint8_t chWyslaneOK = 1;
-uint8_t chBuforKomOdb[16];
+uint8_t chBuforKomOdb[256];
 uint8_t chTimeoutOdbioru;
 
 //deklaracje zmiennych zewnętrznych
@@ -60,6 +61,7 @@ extern uint32_t nBuforKamery[ROZM_BUF32_KAM];
 extern uint8_t chTrybPracy;
 extern UART_HandleTypeDef hlpuart1;
 extern DMA_HandleTypeDef hdma_lpuart1_tx;
+extern uint16_t sBuforD1[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_SRAM1")));
 //extern struct st_KonfKam KonfKam;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -103,19 +105,22 @@ void InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 ////////////////////////////////////////////////////////////////////////////////
 void ObslugaWatkuOdbiorczegoLPUART1(void)
 {
-	if (chWskNap != chWskOpr)
+	//if (chWskNap != chWskOpr)
+	while (chWskNap != chWskOpr)
 	{
 		AnalizujDaneKom(chBuforKomOdb[chWskOpr], INTERF_UART);
 		chWskOpr++;
-		chWskOpr &= 0xF;	//zapętlenie wskaźnika bufora kołowego
-		chTimeoutOdbioru = 50;
+		chWskOpr &= 0xFF;	//zapętlenie wskaźnika bufora kołowego
+		chTimeoutOdbioru = 50;	//x osDelay(5); [ms] w głównym wątku
 	}
 
 	//po upływie timeoutu resetuj stan protokołu aby następną ramkę zaczął dekodować od nagłówka
 	if (chTimeoutOdbioru)
+	{
 		chTimeoutOdbioru--;
-	else
-		chStanProtokolu[INTERF_UART] = PR_ODBIOR_NAGL;
+		if (!chTimeoutOdbioru)
+			chStanProtokolu[INTERF_UART] = PR_ODBIOR_NAGL;
+	}
 }
 
 
@@ -153,7 +158,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	{
 		chBuforKomOdb[chWskNap] = chBuforOdbDMA[0];
 		chWskNap++;
-		chWskNap &= 0xF;	//zapętlenie wskaźnika bufora kołowego
+		chWskNap &= 0xFF;	//zapętlenie wskaźnika bufora kołowego
 		HAL_UART_Receive_IT (&hlpuart1, chBuforOdbDMA, 1);	//odbieraj do bufora
 	}
 }
@@ -170,12 +175,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 {
     uint8_t n, chErr;
-    //uint16_t sPix;
+    uint16_t sPix;
     uint32_t nOffsetDanych;
     static uint8_t chPolecenie;
     static uint8_t chRozmDanych;
     static uint8_t chDane[ROZM_DANYCH_UART];
     extern struct st_KonfKam strKonfKam;
+
 
     chErr = DekodujRamke(chWe, &chAdresZdalny[chInterfejs], &chZnakCzasu[chInterfejs], &chPolecenie, &chRozmDanych, chDane, chInterfejs);
     if (chErr == ERR_RAMKA_GOTOWA)
@@ -183,19 +189,20 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 		switch (chPolecenie)
 		{
 		case PK_OK:	//odeslij polecenie OK
-			chErr = Wyslij_OK(chInterfejs);
+			chErr = Wyslij_OK(PK_OK, 0, chInterfejs);
 			break;
 
 		case PK_ZROB_ZDJECIE:		//polecenie wykonania zdjęcia. We: [0..1] - sSzerokosc zdjecia, [2..3] - wysokość zdjecia
 			sSzerZdjecia = (uint16_t)chDane[1] * 0x100 + chDane[0];
 			sWysZdjecia  = (uint16_t)chDane[3] * 0x100 + chDane[2];
 			chTrybPracy = TP_ZDJECIE;
-			chStatusZdjecia = SGZ_CZEKA;	//oczekiwania na wykonanie zdjęcia
-			chErr = Wyslij_OK(chInterfejs);
+			//chStatusZdjecia = SGZ_CZEKA;	//oczekiwania na wykonanie zdjęcia
+			chStatusZdjecia = SGZ_BLAD;		//dopóki nie ma kamery niech zgłasza bład
+			chErr = Wyslij_OK(PK_ZROB_ZDJECIE, 0, chInterfejs);
 			break;
 
 		case PK_POB_STAT_ZDJECIA:	//pobierz status gotowości zdjęcia
-			/*/test
+			//generuj testową strukturę obrazu
 			if (chStatusZdjecia == SGZ_GOTOWE)
 			{
 				for (int x=0; x<ROZM_BUF32_KAM; x++)
@@ -203,7 +210,7 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 					sPix = (x*2) & 0xFFFF;
 					nBuforKamery[x] = (sPix+1)*0x10000 + sPix;
 				}
-			}*/
+			}
 			chDane[0] = chStatusZdjecia;
 			chErr = WyslijRamke(chAdresZdalny[chInterfejs], PK_POB_STAT_ZDJECIA, 1, chDane, chInterfejs);
 			break;
@@ -226,7 +233,7 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 
 		case PK_UST_TR_PRACY:	//ustaw tryb pracy
 			chTrybPracy = chDane[0];
-			chErr = Wyslij_OK(chInterfejs);
+			chErr = Wyslij_OK(PK_UST_TR_PRACY, 0, chInterfejs);
 			break;
 
 		case PK_POB_PAR_KAMERY:	//pobierz parametry pracy kamery
@@ -246,8 +253,38 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 			strKonfKam.sWysWe = chDane[3] * SKALA_ROZDZ_KAM;
 			strKonfKam.chTrybDiagn = chDane[4];
 			strKonfKam.chFlagi = chDane[5];
-			chErr = Wyslij_OK(chInterfejs);
+			chErr = Wyslij_OK(PK_UST_PAR_KAMERY, 0, chInterfejs);
 			break;
+
+		case PK_ZAPISZ_FLASH: 	//zapisz stronę 32 bajtów flash
+			for (uint8_t n=0; n<4; n++)
+				un8_32.dane8[n] = chDane[n];
+			//przepisz dane 8-bitowe  i zapisz po konwersji w buforze 16-bitowym
+			for (uint8_t n=0; n<((chDane[4]-5)>>1); n++)
+			{
+				un8_16.dane8[0] = chDane[n+5];
+				un8_16.dane8[1] = chDane[n+6];
+				sBuforD1[n] = un8_16.dane16;
+			}
+			chErr = ZapiszDaneFlashNOR(un8_32.dane32, sBuforD1, (chDane[4]-5)>>1);
+			if (chErr == ERR_OK)
+				chErr = Wyslij_OK(PK_ZAPISZ_FLASH, 0, chInterfejs);
+			else
+				chErr = Wyslij_ERR(chErr, 0, chInterfejs);
+			break;
+
+		case PK_KASUJ_FLASH:	//kasuj sektor 128kB flash
+			for (uint8_t n=0; n<4; n++)
+				un8_32.dane8[n] = chDane[n];
+			chErr = KasujSektorFlashNOR(un8_32.dane32);
+
+			//na potwierdzenie wyślij ramkę OK lub ramkę z kodem błędu
+			if (chErr == ERR_OK)
+				chErr = Wyslij_OK(PK_KASUJ_FLASH, 0, chInterfejs);
+			else
+				chErr = Wyslij_ERR(chErr, 0, chInterfejs);
+			break;
+
 		}
     }
     return chErr;
@@ -469,8 +506,8 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
     {
     	switch (chInterfejs)
     	{
-    	case INTERF_UART:	//HAL_UART_Transmit(&hlpuart1,  chRamkaWyj, chRozmDanych + ROZM_CIALA_RAMKI, COM_POLL_TIMEOUT);	break;
-    						HAL_UART_Transmit_DMA(&hlpuart1, chRamkaWyj, (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI);
+    	case INTERF_UART:	HAL_UART_Transmit(&hlpuart1,  chRamkaWyj, chRozmDanych + ROZM_CIALA_RAMKI, 100);	break;
+    						//HAL_UART_Transmit_DMA(&hlpuart1, chRamkaWyj, (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI);
     	case INTERF_ETH:	break;
     	case INTERF_USB:	break;
     	default: chErr = ERR_ZLY_INTERFEJS;	break;
@@ -487,9 +524,13 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
 // [i] chInterfejs - interfejs komunikacyjny przez który ma być przesłana ramka
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t Wyslij_OK(uint8_t chInterfejs)
+uint8_t Wyslij_OK(uint8_t chParametr1, uint8_t chParametr2, uint8_t chInterfejs)
 {
-    return WyslijRamke(chAdresZdalny[chInterfejs], PK_OK, 0, 0, chInterfejs);
+	uint8_t chDane[2];
+    chDane[0] = chParametr1;
+    chDane[1] = chParametr2;
+
+    return WyslijRamke(chAdresZdalny[chInterfejs], PK_OK, 2, chDane, chInterfejs);
 }
 
 

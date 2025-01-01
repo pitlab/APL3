@@ -29,7 +29,7 @@ void InicjujCRC16(uint16_t sInit, uint16_t sWielomian);
 uint16_t LiczCRC16(uint8_t chDane);
 uint8_t PrzygotujRamke(uint8_t chAdrZdalny, uint8_t chAdrLokalny,  uint8_t chZnakCzasu, uint8_t chPolecenie, uint8_t chRozmDanych, uint8_t *chDane, uint8_t *chRamka);
 uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDanych, uint8_t *chDane, uint8_t chInterfejs);
-uint8_t Wyslij_OK(uint8_t chInterfejs);
+uint8_t Wyslij_OK(uint8_t chParametr1, uint8_t chParametr2, uint8_t chInterfejs);
 uint8_t Wyslij_ERR(uint8_t chKodBledu, uint8_t chParametr, uint8_t chInterfejs);
 void StartKomUart(void const * argument);
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);

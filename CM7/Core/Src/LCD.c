@@ -61,7 +61,7 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_calibration},
 	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_calibration},
 	{"Trans SRAM",	"Pomiar predkosci Static RAM 16-bit",		TP_POMIAR_SRAM,		obr_calibration},
-	{"Startowy",	"Ekran startowy",							TP_ZDJECIE,			obr_multitool},
+	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_multitool},
 	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_oscyloskop},
 	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_mtest}};
 
@@ -130,6 +130,10 @@ void RysujEkran(void)
 		break;
 
 	case TP_ZDJECIE:
+		chNowyTrybPracy = TP_WROC_DO_MENU;
+		break;
+
+	case TP_WITAJ:
 		Ekran_Powitalny(nZainicjowano);	//przywitaj użytkownika i prezentuj wykryty sprzęt
 		chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;

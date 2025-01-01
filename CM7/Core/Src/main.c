@@ -11,6 +11,8 @@
  * 0x30020000..0x30040000 - 128k (0x20000)stos lwIP
  * 0x30040000..0x30040200 - 512  (0x200) deskryptory DMA ETH
  * 0x30040200..0x38000000 - 130k (0x7FBEFE00) wolne
+ * 0x68000000..0x6801FFFF - 2*128k pamięć konfiguracji
+ * 0x68020000..0x6808FFFF - 6*128k pamięć komunikatów słownych 16-bit, 16kHz
 
 
  * 								Pozwolenia dla MPU			Prawa dostępu

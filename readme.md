@@ -1,5 +1,6 @@
 # APL3
 ### Projekt eksperymentalnego autopilota dla samolotów RC z obsługą kamery cyfrowej.
+![APL3](obrazki/pomiary_mag_gnss_757.jpg)
 
 To są początki projektu. Obecnie jest zaimplementowana następująca funkcjonalność:
 ### Rdzeń CM7:
@@ -14,9 +15,9 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Wymiana danych z rdzeniem CM4 i prezentacja ich na LCD
 - Uruchomiony FreeRTOS
 - Uruchomiona komunikacja po LPUART przez BDMA
-- Wyświetlacz pracuje w osobnym wątku o niskim priorytecie nie blokując głównego wątku. Dostęp do SPI sterowny semaforem.
-- Zaobserwowałem dziwne zachowanie i padło podejrzenie o przepełnianie się stosu jednego z wątków, więc została zrobiona  analiza i  porządki ze stosami. Obecnie wygląda to tak:
-![Procesy](obr/procesy.jpg)
+- Wyświetlacz pracuje w osobnym wątku o niskim priorytecie nie blokując głównego wątku. Dostęp do SPI sterowany jest sprzętowym semaforem.
+- Zaobserwowałem dziwne zachowanie i padło podejrzenie o przepełnianie się stosu jednego z wątków, więc została zrobiona  analiza i porządki ze stosami. Obecnie wygląda to tak:
+![Procesy](obrazki/procesy.jpg)
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM
@@ -29,7 +30,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 
 #### Do zrobienia:
  - Dodać obsługę pamięci SDRAM
- - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarc na inny
+ - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarce na inne z mniejszym ESR
  - Uruchomić i oprogramować obsługę czujników modułu inercyjnego
  - Oprogramować wgrywanie próbek głosu i obrazów do zewnętrznej pamięci flash
  - Oprogramować generowanie komunikatów głosowych
