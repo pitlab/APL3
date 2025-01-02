@@ -44,16 +44,18 @@ uint8_t chLicznikDanych[ILOSC_INTERF_KOM];
 uint8_t chZnakCzasu[ILOSC_INTERF_KOM];
 uint16_t sCrc16We;
 uint8_t chRamkaWyj[ROZMIAR_RAMKI_UART];
-volatile uint8_t sWskNap, sWskOpr;		//wskaźniki napełniania i opróżniania bufora kołowego
 volatile uint32_t nCzasSystemowy;
 int16_t sSzerZdjecia, sWysZdjecia;
 uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
-uint8_t chBuforNadDMA[ROZMIAR_BUF_NAD_DMA]  __attribute__((section(".Bufory_SRAM4")));
+//uint8_t chBuforNadDMA[ROZMIAR_RAMKI_UART]  __attribute__((section(".Bufory_SRAM4")));
 uint8_t chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA]  __attribute__((section(".Bufory_SRAM4")));
+
 uint8_t chWyslaneOK = 1;
 uint8_t chBuforKomOdb[ROZMIAR_BUF_ANALIZY_ODB];
+volatile uint16_t sWskNap; 		//wskaźnik napełniania bufora kołowego chBuforKomOdb[]
+volatile uint16_t sWskOpr;		//wskaźnik opróżniania bufora kołowego chBuforKomOdb[]
 uint8_t chTimeoutOdbioru;
 
 //deklaracje zmiennych zewnętrznych
@@ -61,9 +63,11 @@ extern uint32_t nBuforKamery[ROZM_BUF32_KAM];
 extern uint8_t chTrybPracy;
 extern UART_HandleTypeDef hlpuart1;
 extern DMA_HandleTypeDef hdma_lpuart1_tx;
-extern uint16_t sBuforD1[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_SRAM1")));
+//extern uint16_t sBuforD2[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_SRAM2")));
+extern uint16_t sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
+extern uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
-
+extern uint16_t sBuforLCD[];
 //extern struct st_KonfKam KonfKam;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,10 +94,7 @@ uint8_t InitProtokol(void)
 void InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 {
 	sWskNap = sWskOpr = 0;
-	//HAL_UARTEx_ReceiveToIdle_DMA (&hlpuart1, &chBuforKomOdb, 9);
-	//HAL_UART_Receive_DMA (&hlpuart1, &chBuforKomOdb, 1);	//odbieraj do bufora
-	HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
-	//HAL_UART_Receive_IT (&hlpuart1, chBuforOdbDMA, 1);	//odbieraj do bufora
+	HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 2*ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
 }
 
 
@@ -123,16 +124,9 @@ void ObslugaWatkuOdbiorczegoLPUART1(void)
 		if (!chTimeoutOdbioru)
 		{
 			chStanProtokolu[INTERF_UART] = PR_ODBIOR_NAGL;
-			//HAL_UART_Receive_IT (&hlpuart1, chBuforOdbDMA, 1);	//włącz odbiór gdyby coś się urwało
-			//HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
 			chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s
 		}
 	}
-
-	//ponownie włącz odbiór
-	//if ((hlpuart1.Instance->CR1 & USART_CR1_IDLEIE) != USART_CR1_IDLEIE)
-		//hlpuart1.Instance->CR1 |= USART_CR1_IDLEIE;
-	//HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
 }
 
 
@@ -145,11 +139,11 @@ void ObslugaWatkuOdbiorczegoLPUART1(void)
 // sOdebrano - liczba odebranych znaków
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *hUart, uint16_t sOdebrano)
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *hUart, uint16_t Size)
 {
 	if (hUart->Instance == LPUART1)
 	{
-		for (uint16_t n=0; n<sOdebrano; n++)
+		for (uint16_t n=0; n<Size; n++)
 		{
 			chBuforKomOdb[sWskNap] = chBuforOdbDMA[n];
 			sWskNap++;
@@ -157,31 +151,13 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *hUart, uint16_t sOdebrano)
 			if (sWskNap >= ROZMIAR_BUF_ANALIZY_ODB)
 				sWskNap = 0;
 		}
+
+#ifdef DEBUG
+		if (Size > ROZMIAR_BUF_ODB_DMA)	//czy bufor nie jest za mały
+			for (;;);	//pułapka na Spinka
+#endif
 		//ponownie włącz odbiór
-		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
-		//sprawdź czy właczony jest bit IDLE w CR1
-		//if ((hUart->Instance->CR1 & USART_CR1_IDLEIE) != USART_CR1_IDLEIE)
-			//hUart->Instance->CR1 |= USART_CR1_IDLEIE;
-	}
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Callback przerwania UARTA pracującego w trybie przerwań.
-// Przepisuje odebrane dane z małego bufora do większego bufora kołowego analizy protokołu
-// Parametry:
-// *huart - uchwyt uarta
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *hUart)
-{
-	if (hUart->Instance == LPUART1)
-	{
-		chBuforKomOdb[sWskNap] = chBuforOdbDMA[0];
-		sWskNap++;
-		//sWskNap &= 0xFF;	//zapętlenie wskaźnika bufora kołowego
-		HAL_UART_Receive_IT (&hlpuart1, chBuforOdbDMA, 1);	//odbieraj do bufora
+		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 2*ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
 	}
 }
 
@@ -197,7 +173,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *hUart)
 uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 {
     uint8_t n, chErr;
-    uint16_t sPix;
+    //uint16_t sPix;
     uint32_t nOffsetDanych;
     static uint8_t chPolecenie;
     static uint8_t chRozmDanych;
@@ -221,14 +197,14 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 			//chStatusZdjecia = SGZ_BLAD;		//dopóki nie ma kamery niech zgłasza bład
 			chStatusZdjecia = SGZ_GOTOWE;
 			//generuj testową strukturę obrazu
-			if (chStatusZdjecia == SGZ_GOTOWE)
+			/*if (chStatusZdjecia == SGZ_GOTOWE)
 			{
 				for (int x=0; x<ROZM_BUF32_KAM; x++)
 				{
 					sPix = (x*2) & 0xFFFF;
 					nBuforKamery[x] = (sPix+1)*0x10000 + sPix;
 				}
-			}
+			}*/
 			chErr = Wyslij_OK(PK_ZROB_ZDJECIE, 0, chInterfejs);
 			break;
 
@@ -241,7 +217,8 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 			for (n=0; n<4; n++)
 				un8_32.dane8[n] = chDane[n];
 			nOffsetDanych = un8_32.dane32;
-			WyslijRamke(chAdresZdalny[chInterfejs], PK_POBIERZ_ZDJECIE, chDane[4], (uint8_t*)(nBuforKamery + nOffsetDanych),  chInterfejs);
+			//WyslijRamke(chAdresZdalny[chInterfejs], PK_POBIERZ_ZDJECIE, chDane[4], (uint8_t*)(nBuforKamery + nOffsetDanych),  chInterfejs);
+			WyslijRamke(chAdresZdalny[chInterfejs], PK_POBIERZ_ZDJECIE, chDane[4], (uint8_t*)(sBuforLCD + nOffsetDanych),  chInterfejs);
 			break;
 
 		case PK_USTAW_ID:		//ustawia identyfikator/adres urządzenia
@@ -275,24 +252,32 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 			strKonfKam.sWysWe = chDane[3] * SKALA_ROZDZ_KAM;
 			strKonfKam.chTrybDiagn = chDane[4];
 			strKonfKam.chFlagi = chDane[5];
-			chErr = Wyslij_OK(PK_UST_PAR_KAMERY, 0, chInterfejs);
+			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 			break;
 
-		case PK_ZAPISZ_FLASH: 	//zapisz stronę 32 bajtów flash
-			for (uint8_t n=0; n<4; n++)
-				un8_32.dane8[n] = chDane[n];
+		case PK_ZAPISZ_BUFOR:
+			un8_16.dane8[0] = chDane[0];
+			un8_16.dane8[1] = chDane[1];
+			sWskBufSektora = un8_16.dane16;	//adres bezwzględny bufora
 			//przepisz dane 8-bitowe  i zapisz po konwersji w buforze 16-bitowym
-			for (uint8_t n=0; n<chDane[4]; n++)	//chDane[4] - rozmiar wyrażony w słowach
+			for (uint8_t n=0; n<chDane[2]; n++)	//chDane[2] - rozmiar wyrażony w słowach
 			{
-				un8_16.dane8[0] = chDane[2*n+5];
-				un8_16.dane8[1] = chDane[2*n+6];
-				sBuforD1[n] = un8_16.dane16;
+				un8_16.dane8[0] = chDane[2*n+3];
+				un8_16.dane8[1] = chDane[2*n+4];
+				sBuforSektoraFlash[sWskBufSektora + n] = un8_16.dane16;
 			}
-			chErr = ZapiszDaneFlashNOR(un8_32.dane32, sBuforD1, chDane[4]);
+			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
+			break;
+
+		case PK_ZAPISZ_FLASH: 	//zapisz bufor 256 słów do sektora flash NOR o przekazanym adresie
+			for (uint8_t n=0; n<4; n++)
+				un8_32.dane8[n] = chDane[n];	//adres sektora
+			chErr = ZapiszDaneFlashNOR(un8_32.dane32, sBuforSektoraFlash, ROZMIAR16_BUF_SEKT);
 			if (chErr == ERR_OK)
-				chErr = Wyslij_OK(PK_ZAPISZ_FLASH, 0, chInterfejs);
+				chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 			else
 				chErr = Wyslij_ERR(chErr, 0, chInterfejs);
+			sWskBufSektora = 0;
 			break;
 
 		case PK_KASUJ_FLASH:	//kasuj sektor 128kB flash
@@ -302,7 +287,7 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 
 			//na potwierdzenie wyślij ramkę OK lub ramkę z kodem błędu
 			if (chErr == ERR_OK)
-				chErr = Wyslij_OK(PK_KASUJ_FLASH, 0, chInterfejs);
+				chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 			else
 				chErr = Wyslij_ERR(chErr, 0, chInterfejs);
 			break;
@@ -566,8 +551,9 @@ uint8_t Wyslij_ERR(uint8_t chKodBledu, uint8_t chParametr, uint8_t chInterfejs)
 
 uint8_t TestKomunikacji(void)
 {
+	uint8_t chErr = 0;
+	/*
 	uint16_t sRozmDanych;
-	uint8_t chErr;
 	extern char chBuforNapisowCM4[ROZMIAR_BUF_NAPISOW_CM4];
 	extern uint8_t chWskNapBufNapisowCM4;
 	extern uint8_t chWskOprBufNapisowCM4;
@@ -590,7 +576,7 @@ uint8_t TestKomunikacji(void)
 	//sRozmDanych = sprintf((char*)chBuforNadDMA, "Test komunikacji UART\n\r");
 	if (sRozmDanych)
 		chErr = HAL_UART_Transmit_DMA(&hlpuart1, (uint8_t*)chBuforNadDMA, sRozmDanych);
-	//osDelay(1);
+	//osDelay(1);*/
 	return chErr;
 }
 

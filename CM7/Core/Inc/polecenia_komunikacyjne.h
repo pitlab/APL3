@@ -50,9 +50,11 @@
 #define PK_POB_PAR_KAMERY	8	//pobierz parametry pracy kamery
 #define PK_UST_PAR_KAMERY	9	//ustaw parametry pracy kamery
 
-#define PK_ZAPISZ_FLASH		10	//zapisz stronę 32 bajtów flash
-#define PK_KASUJ_FLASH		11	//kasuj sektor 128kB flash
-#define PK_ILOSC_POLECEN	12	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
+#define PK_ZAPISZ_BUFOR		10	//zapisz dane do bufora 128kB w pamięci RAM
+#define PK_ZAPISZ_FLASH		11	//zapisz stronę 32 bajtów flash
+#define PK_KASUJ_FLASH		12	//kasuj sektor 128kB flash
+
+#define PK_ILOSC_POLECEN	13	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
 
 

@@ -130,7 +130,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_ZDJECIE:
-		chNowyTrybPracy = TP_WROC_DO_MENU;
+		//chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
 	case TP_WITAJ:

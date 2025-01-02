@@ -20,6 +20,7 @@
 #define ROZMIAR16_STRONY	16
 #define ROZMIAR8_EXT_SRAM	(4096*1024)
 #define ROZMIAR16_EXT_SRAM	(2048*1024)
+#define ROZMIAR16_BUF_SEKT	256
 
 
 uint8_t InicjujFlashNOR(void);

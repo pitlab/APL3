@@ -30,9 +30,9 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 0x60000000	4M		CM7		-		+		-		+		RW		RW		EXT_SRAM		bufor obrazu z kamery
 0x68000000	32M		CM7		+		+		+		-		RW		RW		FLASH_NOR
 
- *Zrobć:
- - sprawdzić czy da się przyspieszyć pierwsze po starcie wypełnienie pamieci ekranu
-
+ *Zrobić:
+ - Flash NOR write buffer programing , czyli zapisać do wewnętrznegp bufora 512 bajtów i to zaprogramować bez użycia zewnetrznego bufora
+ - Dodać polecenie Blank check oraz damkę komunikacyjną do tego
 
 
  * */
@@ -399,7 +399,9 @@ static void MX_LPUART1_UART_Init(void)
   hlpuart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   hlpuart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   hlpuart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  hlpuart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  hlpuart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
+  hlpuart1.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
+  hlpuart1.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
   hlpuart1.FifoMode = UART_FIFOMODE_DISABLE;
   if (HAL_UART_Init(&hlpuart1) != HAL_OK)
   {
@@ -894,9 +896,6 @@ void StartDefaultTask(void const * argument)
 			//chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s
 			chErr = ERR_OK;
 		}
-
-
-		//TestKomunikacji();
 		osDelay(5);		//ustaw okres taki pracuje CM4 (200MHz -> 5ms)
 	}
   /* USER CODE END 5 */

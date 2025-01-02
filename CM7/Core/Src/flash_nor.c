@@ -20,8 +20,10 @@
 
 //uint16_t sMPUFlash[ROZMIAR16_BUFORA] __attribute__((section(".text")));
 uint16_t sFlashMem[ROZMIAR16_BUFORA] __attribute__((section(".FlashNorSection")));
-uint16_t sBuforD1[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_SRAM1")));
+uint16_t sBuforD2[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_SRAM2")));
 uint16_t sExtSramBuf[ROZMIAR16_BUFORA] __attribute__((section(".ExtSramSection")));
+uint16_t sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
+uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern SRAM_HandleTypeDef hsram1;
 extern NOR_HandleTypeDef hnor3;
 extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
@@ -165,10 +167,10 @@ uint8_t CzytajDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Zapisz dane do flash. Optymalnie jest zapisywać całą stronę 16 słów (32 bajtów)
+// Zapisz dane do flash. Optymalnie jest zapisywać cały bufor 256 słów
 // Parametry: nAdres do zapisu
 // * sDane - wskaźnik na 16-bitowe dane do zapisu
-//  nIlosc - ilość słów (nie bajtów) do zapisu
+//  nIlosc - ilość słów (nie bajtów) do zapisu max 256 słów
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZapiszDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc)
@@ -177,11 +179,18 @@ uint8_t ZapiszDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc)
 
 	nAdres &= 0x00FFFFFF;		//potrzebny jest adres względny
 	chErr = HAL_NOR_ProgramBuffer(&hnor3, nAdres, sDane, nIlosc);
-	HAL_NOR_MspWait(&hnor3, 100);	//czekaj z timeoutem na niektywny sygnał RY/BY, czyli na niezajętą pamięć
+	//HAL_NOR_MspWait(&hnor3, 100);	//czekaj z timeoutem na niektywny sygnał RY/BY, czyli na niezajętą pamięć
 	return chErr;
 }
 
 
+
+
+void HAL_NOR_MspWait(NOR_HandleTypeDef *hnor, uint32_t Timeout)
+{
+	//if (*hnor ==)
+	return;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -461,7 +470,7 @@ void TestPredkosciOdczytuNOR(void)
 	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
-		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBuforD1, (uint32_t)sBufor, ROZMIAR16_BUFORA);
+		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBuforD2, (uint32_t)sBufor, ROZMIAR16_BUFORA);
 		if (chErr != ERR_OK)
 		{
 			setColor(RED);
@@ -526,7 +535,7 @@ void TestPredkosciOdczytuNOR(void)
 
 	//odczyt z RAM przez MDMA
 	nCzas = PobierzCzasT6();
-	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBuforD1, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
+	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBuforD2, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
 	if (chErr != ERR_OK)
 	{
 		setColor(RED);
