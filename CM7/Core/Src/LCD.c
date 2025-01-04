@@ -57,7 +57,7 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Kamera",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 		obr_ppm},
 	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,		obr_sbus},
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
-	{"Zapis NOR", 	"Test zapisu do flash NOR",					TP_MULTITOOL,		obr_calibration},
+	{"Zapis NOR", 	"Test zapisu do flash NOR",					TP_POM_ZAPISU_NOR,	obr_calibration},
 	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_calibration},
 	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_calibration},
 	{"Trans SRAM",	"Pomiar predkosci Static RAM 16-bit",		TP_POMIAR_SRAM,		obr_calibration},
@@ -66,7 +66,9 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_mtest}};
 
 
-uint32_t MinalCzas2(uint32_t nPoczatek);
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran główny odświeżany w głównej pętli programu
@@ -97,7 +99,7 @@ void RysujEkran(void)
 			chTrybPracy = TP_TESTY;
 		break;
 
-	case TP_MULTITOOL:		Test_Flash();
+	case TP_POM_ZAPISU_NOR:		TestPredkosciZapisuNOR();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -586,6 +588,7 @@ uint32_t PobierzCzasT6(void)
 }
 
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy upływ czasu
 // Parametry: nStart - licznik czasu na na początku pomiaru
@@ -603,17 +606,7 @@ uint32_t MinalCzas(uint32_t nPoczatek)
 	return nCzas;
 }
 
-uint32_t MinalCzas2(uint32_t nPoczatek)
-{
-	uint32_t nCzas, nCzasAkt;
 
-	nCzasAkt = HAL_GetTick();
-	if (nCzasAkt >= nPoczatek)
-		nCzas = nCzasAkt - nPoczatek;
-	else
-		nCzas = 0xFFFFFFFF - nPoczatek + nCzasAkt;
-	return nCzas;
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran menu głównego

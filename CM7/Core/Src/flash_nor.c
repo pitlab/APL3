@@ -27,6 +27,8 @@
 uint16_t sFlashMem[ROZMIAR16_BUFORA] __attribute__((section(".FlashNorSection")));
 uint16_t sBuforD2[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_SRAM2")));
 uint16_t sExtSramBuf[ROZMIAR16_BUFORA] __attribute__((section(".ExtSramSection")));
+uint16_t sBufor[ROZMIAR16_BUFORA];
+uint16_t sBufor2[ROZMIAR16_BUFORA];
 uint16_t sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
 uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern SRAM_HandleTypeDef hsram1;
@@ -371,13 +373,24 @@ void HAL_NOR_MspWait(NOR_HandleTypeDef *hnor, uint32_t Timeout)
 // Parametry: brak
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t Test_Flash(void)
+uint8_t TestPredkosciZapisuNOR(void)
 {
 	HAL_StatusTypeDef chErr;
 	HAL_NOR_StateTypeDef Stan;
-	uint16_t x, sBufor[ROZMIAR16_BUFORA];
+	uint16_t x;
 	uint32_t y, nAdres;
 	uint32_t nCzas;
+	extern uint8_t chRysujRaz;
+
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Pomiar zapisu do Flash NOR");
+		setColor(GRAY60);
+		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
+		print(chNapis, CENTER, 300);
+	}
+	setColor(WHITE);
 
 	chErr = HAL_NOR_ReturnToReadMode(&hnor3);
 	setColor(WHITE);
@@ -493,7 +506,6 @@ uint8_t Test_Flash(void)
 void TestPredkosciOdczytuNOR(void)
 {
 	HAL_StatusTypeDef chErr;
-	uint16_t sBufor[ROZMIAR16_BUFORA];
 	uint32_t x, y, nAdres;
 	uint32_t nCzas;
 	extern uint8_t chRysujRaz;
@@ -504,7 +516,7 @@ void TestPredkosciOdczytuNOR(void)
 		BelkaTytulu("Pomiar odczytu z Flash NOR");
 		setColor(GRAY60);
 		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
-		print(chNapis, CENTER, 40);
+		print(chNapis, CENTER, 300);
 		chErr = HAL_NOR_ReturnToReadMode(&hnor3);
 	}
 	setColor(WHITE);
@@ -562,7 +574,7 @@ void TestPredkosciOdczytuNOR(void)
 	}*/
 
 	//Odczyt z RAM do RAM
-	uint16_t sBufor2[ROZMIAR16_BUFORA];
+
 	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
@@ -713,7 +725,7 @@ void TestPredkosciOdczytuNOR(void)
 	{
 		setColor(RED);
 		sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
-		print(chNapis, 10, 300);
+		print(chNapis, 10, 280);
 		return;
 	}
 
@@ -724,7 +736,7 @@ void TestPredkosciOdczytuNOR(void)
 	if (nCzas)
 	{
 		sprintf(chNapis, "MDMA: SRAM1->ASRAM   t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
-		print(chNapis, 10, 300);
+		print(chNapis, 10, 280);
 	}
 }
 
@@ -739,7 +751,7 @@ void TestPredkosciOdczytuNOR(void)
 void TestPredkosciOdczytuRAM(void)
 {
 	HAL_StatusTypeDef chErr;
-	uint16_t sBufor[ROZMIAR16_BUFORA];
+
 	uint32_t x, y;
 	uint32_t nCzas;
 	extern uint8_t chRysujRaz;
@@ -750,7 +762,7 @@ void TestPredkosciOdczytuRAM(void)
 		BelkaTytulu("Pomiary odczytu/zapisu SRAM");
 		setColor(GRAY60);
 		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
-		print(chNapis, CENTER, 40);
+		print(chNapis, CENTER, 300);
 		chErr = HAL_NOR_ReturnToReadMode(&hnor3);
 	}
 	setColor(WHITE);

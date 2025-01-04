@@ -10,6 +10,7 @@
 #include "W25Q128JV.h"
 #include "LCD.h"
 #include "RPi35B_480x320.h"
+#include "flash_nor.h"
 
 
 extern QSPI_HandleTypeDef hqspi;
@@ -464,10 +465,9 @@ uint8_t W25_KasujSektor4kB(uint32_t nAdres)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t W25_TestTransferu(void)
 {
-#define BUFOR_W25_ROZM	512
 	uint8_t chErr;
 	uint16_t y;
-	uint8_t chBufor[BUFOR_W25_ROZM];
+	extern uint16_t sBufor[ROZMIAR16_BUFORA];
 	uint32_t nCzas;
 	extern uint8_t chRysujRaz;
 
@@ -478,18 +478,18 @@ uint8_t W25_TestTransferu(void)
 		BelkaTytulu("Pomiar odczytu z Flash QSPI");
 		setColor(GRAY60);
 		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
-		print(chNapis, CENTER, 40);
+		print(chNapis, CENTER, 300);
 		setColor(WHITE);
 	}
 
 	//zapisz stronę 256 Bajtów
-	for (y=0; y<256; y++)
-		chBufor[y] = y;
+	for (y=0; y<ROZMIAR16_BUFORA/2; y++)
+		sBufor[y] = y;
 
 	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
-		chErr = W25_ProgramujStrone256B(0x5000 + y*0x100, chBufor, 256);
+		chErr = W25_ProgramujStrone256B(0x5000 + y*0x100, (uint8_t*)sBufor, ROZMIAR16_BUFORA/2);
 		if (chErr != ERR_OK)
 		{
 			sprintf(chNapis, "B%c%cd programowania", ł, ą);
@@ -499,7 +499,7 @@ uint8_t W25_TestTransferu(void)
 	}
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
-		sprintf(chNapis, "ZapiszStrone256B() t = %ld us => %.2f MB/s ", nCzas, (float)(16 * 256) / (nCzas * 1.048576f));
+		sprintf(chNapis, "ZapiszStrone256B() t = %ld us => %.2f MB/s ", nCzas, (float)(16 * ROZMIAR16_BUFORA) / (nCzas * 1.048576f));
 	print(chNapis, 10, 80);
 
 
@@ -507,7 +507,7 @@ uint8_t W25_TestTransferu(void)
 	nCzas = PobierzCzasT6();
 	for (y=0; y<512; y++)
 	{
-		chErr = W25_CzytajDane1A1D(0x5000, chBufor, BUFOR_W25_ROZM);
+		chErr = W25_CzytajDane1A1D(0x5000, (uint8_t*)sBufor, ROZMIAR16_BUFORA/2);
 		if (chErr != ERR_OK)
 		{
 			sprintf(chNapis, "B%c%cd odczytu", ł, ą);
@@ -517,7 +517,7 @@ uint8_t W25_TestTransferu(void)
 	}
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
-		sprintf(chNapis, "CzytajDane1A1D() t = %ld us => %.2f MB/s ", nCzas, (float)(BUFOR_W25_ROZM * 512) / (nCzas * 1.048576f));
+		sprintf(chNapis, "CzytajDane1A1D() t = %ld us => %.2f MB/s ", nCzas, (float)(512 * ROZMIAR16_BUFORA) / (nCzas * 1.048576f));
 	print(chNapis, 10, 100);
 
 
@@ -525,7 +525,7 @@ uint8_t W25_TestTransferu(void)
 	nCzas = PobierzCzasT6();
 	for (y=0; y<512; y++)
 	{
-		chErr = W25_CzytajDane4A4D(0x5000, chBufor, BUFOR_W25_ROZM);
+		chErr = W25_CzytajDane4A4D(0x5000, (uint8_t*)sBufor, ROZMIAR16_BUFORA/2);
 		if (chErr != ERR_OK)
 		{
 			sprintf(chNapis, "B%c%cd odczytu", ł, ą);
@@ -535,7 +535,7 @@ uint8_t W25_TestTransferu(void)
 	}
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
-		sprintf(chNapis, "CzytajDane4A4D() t = %ld us => %.2f MB/s ", nCzas, (float)(BUFOR_W25_ROZM * 512) / (nCzas * 1.048576f));
+		sprintf(chNapis, "CzytajDane4A4D() t = %ld us => %.2f MB/s ", nCzas, (float)(512 * ROZMIAR16_BUFORA) / (nCzas * 1.048576f));
 	print(chNapis, 10, 120);
 
 

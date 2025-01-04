@@ -14,7 +14,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	54	//numer commitu w repozytorium
+#define WER_REPO	55	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -55,7 +55,7 @@
 #define TP_WROC_DO_MENU		1
 #define TP_FRAKTALE			2	//wyświetla benchmark fraktalowy
 #define TP_KALIB_DOTYK		3	//kalibracja panelu dotykowego
-#define TP_MULTITOOL		4
+#define TP_POM_ZAPISU_NOR	4
 #define TP_POMIAR_FNOR		5
 #define TP_POMIAR_SRAM		6
 #define TP_POMIAR_FQSPI		7

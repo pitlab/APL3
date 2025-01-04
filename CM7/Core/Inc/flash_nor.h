@@ -86,7 +86,6 @@ uint8_t SprawdzObecnoscFlashNOR(void);
 uint8_t KasujSektorFlashNOR(uint32_t nAdres);
 uint8_t KasujFlashNOR(void);
 uint8_t ZapiszDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc);
-uint8_t Test_Flash(void);
 uint8_t CzytajDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc);
 uint8_t CzytajStatusNOR(uint32_t nAdres);
 uint8_t CzytajIdNOR(uint16_t *sId);
@@ -95,6 +94,6 @@ void HAL_NOR_MspWait(NOR_HandleTypeDef *hnor, uint32_t Timeout);
 
 void TestPredkosciOdczytuNOR(void);
 void TestPredkosciOdczytuRAM(void);
-
+uint8_t TestPredkosciZapisuNOR(void);
 
 #endif /* SRC_FLASH_NOR_H_ */

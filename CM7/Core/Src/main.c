@@ -261,7 +261,7 @@ Error_Handler();
   tsOdbiorKonsolaHandle = osThreadCreate(osThread(tsOdbiorKonsola), NULL);
 
   /* definition and creation of tsObslugaWyswie */
-  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 320);
+  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 512);
   tsObslugaWyswieHandle = osThreadCreate(osThread(tsObslugaWyswie), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
