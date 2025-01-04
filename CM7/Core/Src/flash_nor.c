@@ -16,6 +16,11 @@
 
 
 
+/* Wstawić opóźnienie 2ms po każdym programowaniu
+ * Dodać polecnie pooling status bit
+ * Sprawdzić jak działa przełaczanie między zapisem (HAL_NOR_WriteOperation_Enable) i odczytem (HAL_NOR_ReturnToReadMode)
+ * */
+
 
 
 //uint16_t sMPUFlash[ROZMIAR16_BUFORA] __attribute__((section(".text")));
@@ -46,18 +51,27 @@ uint8_t InicjujFlashNOR(void)
 	extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 	extern void Error_Handler(void);
 
+
+
 	/* Pamięć jest taktowana zegarem 200 MHz (max 240MHz), daje to okres 5ns (4,1ns)
 	 * Włączenie FIFO, właczenie wszystkich uprawnień na MPU Cortexa nic nie daje
 	  Dla tych parametrów zapis bufor 512B ma przepustowość 258kB/s, odczyt danych 45,5MB/s   */
 
 
 	//ponieważ timing generowany przez Cube nie ustawia właściwych parametrów więc nadpisuję je tutaj
+	/*Timing.AddressSetupTime = 15;		//0ns
+	Timing.AddressHoldTime = 15;			//45ns	45/8,3 => 6
+	Timing.DataSetupTime = 255;			//18*5 = 90ns
+	Timing.BusTurnAroundDuration = 0;	//tyko dla multipleksowanego NOR
+	Timing.CLKDivision = 16;				//240/2=120MHz -> 8,3ns
+	Timing.DataLatency = 17;*/
+
 	Timing.AddressSetupTime = 0;		//0ns
 	Timing.AddressHoldTime = 6;			//45ns	45/8,3 => 6
 	Timing.DataSetupTime = 18;			//18*5 = 90ns
-	Timing.BusTurnAroundDuration = 0;	//tyko dla multipleksowanego NOR
+	Timing.BusTurnAroundDuration = 3;	//tyko dla multipleksowanego NOR
 	Timing.CLKDivision = 2;				//240/2=120MHz -> 8,3ns
-	Timing.DataLatency = 0;
+	Timing.DataLatency = 2;
 	Timing.AccessMode = FMC_ACCESS_MODE_A;
 	if (HAL_NOR_Init(&hnor3, &Timing, NULL) != HAL_OK)
 		Error_Handler( );
@@ -67,6 +81,11 @@ uint8_t InicjujFlashNOR(void)
 		nZainicjowano[0] |= INIT0_FLASH_NOR;
 	HAL_NOR_ReturnToReadMode(&hnor3);		//ustaw pamięć w tryb odczytu
 
+	//ręcznie włącz Bit 13 WAITEN: Wait enable bit oraz Bit 11 WAITCFG: Wait timing configuration,ponieważ sterownik HAL go nie włącza
+	//indeksy struktury BTCR są wspólne dla rejestrów BCRx i RTRx, więc BCR3 ma indeks 4
+	hnor3.Instance->BTCR[4] |= FMC_WAIT_SIGNAL_ENABLE | FMC_WAIT_TIMING_DURING_WS;
+
+
 	//Analogicznie zrób tak dla SRAM
 	Timing.AddressSetupTime = 0;		//Address Setup Time to Write End = 8ns
 	Timing.AddressHoldTime = 1;			//Address Hold from Write End = 0
@@ -75,11 +94,15 @@ uint8_t InicjujFlashNOR(void)
 	Timing.CLKDivision = 2;
 	Timing.DataLatency = 0;				//Data Hold from Write End = 0
 	Timing.AccessMode = FMC_ACCESS_MODE_A;
-	/* ExtTiming */
-
 	if (HAL_SRAM_Init(&hsram1, &Timing, NULL) != HAL_OK)
 	  Error_Handler( );
 
+	/* Testy dostępu do CFI
+	 * uint16_t sId[16];
+	CzytajIdNOR(sId);
+
+	for (uint8_t n=0; n<16; n++)
+		chErr = CzyPustySektorFNOR(n);*/
 	return chErr;
 }
 
@@ -125,10 +148,9 @@ uint8_t KasujSektorFlashNOR(uint32_t nAdres)
 {
 	uint8_t chErr;
 
-	nAdres &= 0x00FFFFFF;		//potrzebny jest adres względny
-	chErr = HAL_NOR_Erase_Block(&hnor3, ADRES_NOR, nAdres);
-	HAL_NOR_MspWait(&hnor3, 100);	//czekaj z timeoutem na niektywny sygnał RY/BY, czyli na niezajętą pamięć
-	//HAL_NOR_ReturnToReadMode(&hnor3);
+	chErr = HAL_NOR_Erase_Block(&hnor3, ADRES_NOR, nAdres & 0x00FFFFFF);	//potrzebny jest adres względny
+	if (chErr == ERR_OK)
+		chErr = HAL_NOR_GetStatus(&hnor3, nAdres, 1100);	//Sector Erase time 128 kbyte (typ/max) = 275/1100ms (pdf str.46)
 	return chErr;
 }
 
@@ -155,12 +177,7 @@ uint8_t KasujFlashNOR(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t CzytajDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc)
 {
-	uint8_t chErr;
-
-	HAL_NOR_MspWait(&hnor3, 100);	//czekaj z timeoutem na niektywny sygnał RY/BY, czyli na niezajątą pamięć
-	//nAdres &= 0x00FFFFFF;		//potrzebny jest adres względny
-	chErr = HAL_NOR_ReadBuffer(&hnor3, nAdres, sDane, nIlosc);
-	return chErr;
+	return HAL_NOR_ReadBuffer(&hnor3, nAdres, sDane, nIlosc);
 }
 
 
@@ -177,21 +194,177 @@ uint8_t ZapiszDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc)
 {
 	uint8_t chErr;
 
-	nAdres &= 0x00FFFFFF;		//potrzebny jest adres względny
-	chErr = HAL_NOR_ProgramBuffer(&hnor3, nAdres, sDane, nIlosc);
-	//HAL_NOR_MspWait(&hnor3, 100);	//czekaj z timeoutem na niektywny sygnał RY/BY, czyli na niezajętą pamięć
+	HAL_NOR_WriteOperation_Enable(&hnor3);	//nie sprawdzam kodu błędu bo zwraca błąd jeżeli nie jest zabezpieczony przed zapisem
+	chErr = HAL_NOR_GetState(&hnor3);
+	if (chErr == HAL_NOR_STATE_READY)
+	{
+		chErr = HAL_NOR_ProgramBuffer(&hnor3, nAdres & 0x00FFFFFF, sDane, nIlosc);	//potrzebny jest adres względny
+		if (chErr == ERR_OK)
+			chErr = HAL_NOR_GetStatus(&hnor3, nAdres, 2);	//Buffer Programming time (Typ/max) = 340/750us  (pdf str.46)
+	}
+	HAL_NOR_ReturnToReadMode(&hnor3);
 	return chErr;
 }
 
 
-
-
-void HAL_NOR_MspWait(NOR_HandleTypeDef *hnor, uint32_t Timeout)
+/*
+ * //-------------------------------------------------------------------------------------------------
+/// Write data to Parallel Flash
+/// @param  u32Addr \b IN: start address (4-B aligned)
+/// @param  pu8Data \b IN: data to be written (2-B aligned)
+/// @param  u32Size \b IN: size in Bytes (4-B aligned)
+/// @return TRUE : succeed
+/// @return FALSE : fail before timeout or illegal parameters
+/// @note   Not allowed in interrupt context
+//-------------------------------------------------------------------------------------------------
+MS_BOOL MDrv_PARFLASH_Write(MS_U32 u32Addr, MS_U8 *pu8Data, MS_U32 u32Size)
 {
-	//if (*hnor ==)
-	return;
+    MS_BOOL bRet = FALSE;
+    MS_U32 u32ii, u32Satrt;
+    MS_U16 u16temp;
+    MS_U8* pu8tr = pu8Data;
+
+    MS_ASSERT(u32Addr+u32Size <= _ParFlashInfo.u32TotBytes);
+    MS_ASSERT(u32Addr%4 == 0);
+    MS_ASSERT(u32Size%4 == 0);
+    MS_ASSERT(u32Size >= 4);
+    MS_ASSERT((MS_U32)pu8Data%2 == 0);
+
+    MS_ASSERT(MsOS_In_Interrupt() == FALSE);
+
+    DEBUG_PAR_FLASH(PARFLASH_DBGLV_DEBUG, printf("%s(0x%08x,%p,%d)\n", __FUNCTION__, (unsigned int)u32Addr, (void*)pu8Data,(int)u32Size));
+
+    if (MsOS_ObtainMutex(_s32ParFlash_Mutex, PARFLASH_MUTEX_WAIT_TIME) == FALSE)
+    {
+        DEBUG_PAR_FLASH(PARFLASH_DBGLV_ERR, printf("ObtainMutex in MDrv_PARFLASH_Write fails!\n"));
+        return FALSE;
+    }
+
+    _u32pfsh_CmdAddAry[2] = _pfsh_cmdaddr_list.u16CmdAdd0;
+    _u16pfsh_CmdDataAry[2] = PFSH_CMD_PA;
+
+    if(!HAL_PARFLASH_PrepareCmdWrite(3, _u32pfsh_CmdAddAry, _u16pfsh_CmdDataAry))
+        goto END;
+
+    u32Satrt = u32Addr;
+    if(!_ParFlashInfo.bbytemode)
+        u32Satrt >>= 1;
+    for(u32ii = 0; u32ii < u32Size; u32ii++)
+    {
+        u16temp = (MS_U16)(*pu8tr & 0xFF);
+        if(!_ParFlashInfo.bbytemode)
+        {
+            u32ii++;
+            pu8tr++;
+            u16temp |= ((MS_U16)(*pu8tr & 0xFF) << 8);
+        }
+        //printf("write data (%d): %04x\n", (unsigned int)u32Satrt, u16temp);
+        if(!HAL_PARFLASH_LastCmdTrig(4, u32Satrt, u16temp))
+            goto END;
+
+        if(!_Drv_PARFLASH_Toggle(u32Satrt))
+            goto END;
+
+        pu8tr++;
+        u32Satrt++;
+    }
+
+    bRet = TRUE;
+
+END:
+    MsOS_ReleaseMutex(_s32ParFlash_Mutex);
+
+    return bRet;
+}*/
+
+
+
+/*Blank Check
+The Blank Check command will confirm if the selected main flash array sector is erased. The Blank Check
+command does not allow for reads to the array during the Blank Check. Reads to the array while this command
+is executing will return unknown data.
+To initiate a Blank Check on a sector, write 33h to address 555h in the sector, while the EAC is in the standby state
+The Blank Check command may not be written while the device is actively programming or erasing or suspended.
+Use the status register read to confirm if the device is still busy and when complete if the sector is blank or not.
+Bit 7 of the status register will show if the device is performing a Blank Check (similar to an erase operation).
+Bit 5 of the status register will be cleared to ‘0’ if the sector is erased and set to ‘1’ if not erased.
+As soon as any bit is found to not be erased, the device will halt the operation and report the results.
+Once the Blank Check is completed, the EAC will return to the Standby State.*/
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Sprawdza czy sektor jest skasowany pdf.str29
+// Parametry: sSektor - numer sektora (0..1023)
+// Zwraca: kod błędu: 0 - skasowany, 1 - zajęty
+////////////////////////////////////////////////////////////////////////////////
+uint8_t CzyPustySektorFNOR(uint16_t sSektor)
+{
+	uint32_t nAdres = ADRES_NOR + sSektor * 0x10000 + 2*0x555;
+	uint8_t chStatus;
+
+	*(volatile uint16_t*)nAdres = 0x33;	//polecenie sprawdzenia zajętości sektora
+
+	do
+		chStatus = CzytajStatusNOR(ADRES_NOR + sSektor * 0x10000);
+	while (chStatus & FNOR_STATUS_DRB);
+	return chStatus & FNOR_STATUS_ESB;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Odczytuje rejestr statusu. Patrz pdf. str.48
+// Znaczenie bitów statusu:
+// 7 - DRB: Device Ready Bit
+// 6 = ESSB: Erase Suspend Status Bit
+// 5 - ESB: Erase Status Bit
+// 4 - PSB: Program Ststus Bit
+// 3 - WBASB: Write Buffer Abort Status Bit
+// 2 - PSSB: Program Suspend Status Bit
+// 1 - SLSB: Sector Lock Status Bit
+// Parametry: nAdres - adres z jakiego chcemy uzyskać status (ostatnie słowo zapisu, adres sektora)
+// Zwraca: młodsze 8 bitów statusu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t CzytajStatusNOR(uint32_t nAdres)
+{
+	uint16_t sStatus;
+
+	*(volatile uint16_t*)((nAdres + 0x555) | ADRES_NOR) = 0x70;
+	sStatus = *(__IO uint16_t *)nAdres;
+	return (uint8_t)(sStatus & 0xFF);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Czytaj ID
+////////////////////////////////////////////////////////////////////////////////
+uint8_t CzytajIdNOR(uint16_t *sId)
+{
+
+
+	*(volatile uint16_t*)(ADRES_NOR + NOR_CMD_ADDRESS_FIRST) = NOR_CMD_DATA_FIRST;
+	*(volatile uint16_t*)(ADRES_NOR + NOR_CMD_ADDRESS_SECOND) = NOR_CMD_DATA_SECOND;
+	*(volatile uint16_t*)(ADRES_NOR + NOR_CMD_ADDRESS_THIRD) = NOR_CMD_DATA_AUTO_SELECT;
+
+	for (uint8_t n=0; n<16; n++)
+		sId[n] = *(__IO uint16_t *)(ADRES_NOR + n);
+	return ERR_OK;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Nadpisuje pustą funkcję _weak majacą sprawdzać zajętość pamięci przez spawdzenie stanu linii PC6/FMC_NWAIT (RY/BY we flash NOR)
+// Parametry: brak
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+void HAL_NOR_MspWait(NOR_HandleTypeDef *hnor, uint32_t Timeout)
+{
+  /* Prevent unused argument(s) compilation warning */
+	//hnor->Instance->
+  UNUSED(hnor);
+  //UNUSED(Timeout);
+  HAL_Delay(Timeout);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja testowa do wywołania z zewnątrz. Wykonuje pomiary kasowania programowania i odczytu
@@ -705,8 +878,8 @@ void TestPredkosciOdczytuRAM(void)
 
 	//zapis całego zewnętrznego SRAM w pętli
 	nCzas = PobierzCzasT6();
-	for (y=0; y<ROZMIAR16_EXT_SRAM; y++)
-		 sExtSramBuf[y] = y & 0xFFFF;
+	for (y=0; y<ROZMIAR16_BUFORA; y++)
+		 sExtSramBuf[y] = y;
 
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
@@ -718,7 +891,7 @@ void TestPredkosciOdczytuRAM(void)
 
 	//odczyt całego zewnętrznego SRAM w pętli
 	nCzas = PobierzCzasT6();
-	for (y=0; y<ROZMIAR16_EXT_SRAM; y++)
+	for (y=0; y<ROZMIAR16_BUFORA; y++)
 		x = sExtSramBuf[y];
 
 	nCzas = MinalCzas(nCzas);

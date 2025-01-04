@@ -31,8 +31,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 0x68000000	32M		CM7		+		+		+		-		RW		RW		FLASH_NOR
 
  *Zrobić:
- - Flash NOR write buffer programing , czyli zapisać do wewnętrznegp bufora 512 bajtów i to zaprogramować bez użycia zewnetrznego bufora
- - Dodać polecenie Blank check oraz damkę komunikacyjną do tego
+ - Dodać polecenie Blank check oraz ramkę komunikacyjną do tego
 
 
  * */
@@ -770,7 +769,7 @@ void MX_FMC_Init(void)
   hnor3.Init.WriteFifo = FMC_WRITE_FIFO_ENABLE;
   hnor3.Init.PageSize = FMC_PAGE_SIZE_NONE;
   /* Timing */
-  Timing.AddressSetupTime = 0;
+  Timing.AddressSetupTime = 2;
   Timing.AddressHoldTime = 15;
   Timing.DataSetupTime = 18;
   Timing.BusTurnAroundDuration = 2;

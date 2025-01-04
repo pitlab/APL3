@@ -292,6 +292,26 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 				chErr = Wyslij_ERR(chErr, 0, chInterfejs);
 			break;
 
+		case PK_CZYTAJ_FLASH:	//odczytaj zawartość Flash
+			for (uint8_t n=0; n<4; n++)
+				un8_32.dane8[n] = chDane[n];	//adres sektora
+
+			if (chDane[4] > ROZMIAR16_BUF_SEKT)	//jeżeli zażądano odczytu więcej niż pomieści bufor sektora to zwróc błąd
+				chErr = Wyslij_ERR(ERR_ZLA_ILOSC_DANYCH, 0, chInterfejs);
+			if (2* chDane[4] > ROZM_DANYCH_UART)	//jeżeli zażądano odczytu więcej niż pomieści ramka komunikacyjna to zwróc błąd
+				chErr = Wyslij_ERR(ERR_ZLA_ILOSC_DANYCH, 0, chInterfejs);
+
+			CzytajDaneFlashNOR(un8_32.dane32, sBuforSektoraFlash, chDane[4]);
+			/*for (uint8_t n=0; n<chDane[4]; n++)	//chDane[4] - rozmiar wyrażony w słowach
+			{
+				un8_16.dane16 = sBuforSektoraFlash[sWskBufSektora + n];
+				chDane[2*n+3] = un8_16.dane8[0];
+				chDane[2*n+4] = un8_16.dane8[1];
+			}
+			chDane[ROZM_DANYCH_UART];*/
+			chErr = WyslijRamke(chAdresZdalny[chInterfejs], PK_CZYTAJ_FLASH, 2*chDane[4], (uint8_t*)sBuforSektoraFlash, chInterfejs);
+			break;
+
 		}
     }
     return chErr;
