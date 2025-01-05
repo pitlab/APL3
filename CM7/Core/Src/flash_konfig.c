@@ -32,24 +32,24 @@ void InicjujKonfigFlash(void)
 	nAdresZapisuKonfigu = ADRES_SEKTORA0;		//jeżeli nie znajdzie danych to ten adres będzie domyślny
 
 	//Czyta oba sektory od końca aby stwierdzić gdzie jest koniec danych
-	for (n=(ROZMIAR16_SEKTORA/ROZMIAR_PACZKI_KONF16)-1; n>0; n--)
+	for (n=(ROZMIAR_SEKTORA / ROZMIAR_PACZKI_KONF)-1; n>0; n--)
 	{
-		chIdentyfikatorPaczki = *(__IO unsigned char*)(ADRES_SEKTORA0 + (n-1)*ROZMIAR_PACZKI_KONF16);
+		chIdentyfikatorPaczki = *(__IO unsigned char*)(ADRES_SEKTORA0 + (n-1)*ROZMIAR_PACZKI_KONF);
 		if (chIdentyfikatorPaczki != 0xFF)	//testowany jest pierwszy bajt paczki zawierajacy identyfikator
 		{
 			//sprawdź czy zgadza się suma kontrolna paczki
-			if (SprawdzPaczke(ADRES_SEKTORA0 + (n-1)*ROZMIAR_PACZKI_KONF16))
+			//if (SprawdzPaczke(ADRES_SEKTORA0 + (n-1)*ROZMIAR_PACZKI_KONF))
 			{
-				nAdresZapisuKonfigu = ADRES_SEKTORA0 + n*ROZMIAR_PACZKI_KONF16;
+				nAdresZapisuKonfigu = ADRES_SEKTORA0 + n*ROZMIAR_PACZKI_KONF;
 				break;
 			}
 		}
-		chIdentyfikatorPaczki = *(__IO unsigned char*)(ADRES_SEKTORA1 + (n-1)*ROZMIAR_PACZKI_KONF16);
+		chIdentyfikatorPaczki = *(__IO unsigned char*)(ADRES_SEKTORA1 + (n-1)*ROZMIAR_PACZKI_KONF);
 		if (chIdentyfikatorPaczki != 0xFF)
 		{
-			if (SprawdzPaczke(ADRES_SEKTORA1 + (n-1)*ROZMIAR_PACZKI_KONF16))
+			//if (SprawdzPaczke(ADRES_SEKTORA1 + (n-1)*ROZMIAR_PACZKI_KONF))
 			{
-				nAdresZapisuKonfigu = ADRES_SEKTORA1 + n*ROZMIAR_PACZKI_KONF16;
+				nAdresZapisuKonfigu = ADRES_SEKTORA1 + n*ROZMIAR_PACZKI_KONF;
 				break;
 			}
 		}
@@ -98,7 +98,7 @@ uint8_t ZapiszPaczkeKonfigu(uint8_t* chDane)
 		PrzepiszDane();
 
 	chErr = ZapiszPaczkeAdr(nAdresZapisuKonfigu, chDane);
-	nAdresZapisuKonfigu += ROZMIAR_PACZKI_KONF16;
+	nAdresZapisuKonfigu += ROZMIAR_PACZKI_KONF;
 	return chErr;
 }
 
@@ -117,7 +117,7 @@ uint8_t ZapiszPaczkeAdr(uint32_t nAdres, uint8_t* chDane)
 
 	//policz sumę kontrolną z danych
 	chSuma = *chDane;	//załaduj pierwszy składnik sumy: ID
-	for (n=2; n<ROZMIAR_PACZKI_KONF8; n++)
+	for (n=2; n<ROZMIAR_PACZKI_KONF; n++)
 		chSuma += *(chDane+n);
 	*(chDane+1) = chSuma;		//zapisz sumę zaraz za ID
 

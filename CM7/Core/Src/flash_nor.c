@@ -194,11 +194,19 @@ uint8_t CzytajDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZapiszDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc)
 {
-	uint8_t chErr;
+	uint8_t chErr, chStan;
 
-	HAL_NOR_WriteOperation_Enable(&hnor3);	//nie sprawdzam kodu błędu bo zwraca błąd jeżeli nie jest zabezpieczony przed zapisem
-	chErr = HAL_NOR_GetState(&hnor3);
-	if (chErr == HAL_NOR_STATE_READY)
+	chStan = HAL_NOR_GetState(&hnor3);
+	if (chStan == HAL_NOR_STATE_PROTECTED)
+	{
+		chErr = HAL_NOR_WriteOperation_Enable(&hnor3);
+		if (chErr)
+			return chErr;
+	}
+
+	//HAL_NOR_WriteOperation_Enable(&hnor3);	//nie sprawdzam kodu błędu bo zwraca błąd jeżeli nie jest zabezpieczony przed zapisem
+	//chErr = HAL_NOR_GetState(&hnor3);
+	//if (chErr == HAL_NOR_STATE_READY)
 	{
 		chErr = HAL_NOR_ProgramBuffer(&hnor3, nAdres & 0x00FFFFFF, sDane, nIlosc);	//potrzebny jest adres względny
 		if (chErr == ERR_OK)
@@ -368,6 +376,8 @@ void HAL_NOR_MspWait(NOR_HandleTypeDef *hnor, uint32_t Timeout)
   HAL_Delay(Timeout);
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja testowa do wywołania z zewnątrz. Wykonuje pomiary kasowania programowania i odczytu
 // Parametry: brak
@@ -376,7 +386,7 @@ void HAL_NOR_MspWait(NOR_HandleTypeDef *hnor, uint32_t Timeout)
 uint8_t TestPredkosciZapisuNOR(void)
 {
 	HAL_StatusTypeDef chErr;
-	HAL_NOR_StateTypeDef Stan;
+	//HAL_NOR_StateTypeDef Stan;
 	uint16_t x;
 	uint32_t y, nAdres;
 	uint32_t nCzas;
@@ -395,7 +405,7 @@ uint8_t TestPredkosciZapisuNOR(void)
 	chErr = HAL_NOR_ReturnToReadMode(&hnor3);
 	setColor(WHITE);
 
-	Stan = HAL_NOR_GetState(&hnor3);
+/*	Stan = HAL_NOR_GetState(&hnor3);
 	if (Stan == HAL_NOR_STATE_PROTECTED)
 	{
 		chErr = HAL_NOR_WriteOperation_Enable(&hnor3);
@@ -405,13 +415,13 @@ uint8_t TestPredkosciZapisuNOR(void)
 			print(chNapis, 10, 20);
 			return chErr;
 		}
-	}
+	}*/
 
 	//zmierz czas kasowania sektora
 	nCzas = PobierzCzasT6();
 	for (y=0; y<4; y++)
 	{
-		nAdres = ADRES_NOR + ((26 + y) * ROZMIAR16_SEKTORA);
+		nAdres = ADRES_NOR + ((SEKTOR_TESTOW_PROG + y) * ROZMIAR16_SEKTORA);
 		chErr = KasujSektorFlashNOR(nAdres);
 		if (chErr != ERR_OK)
 		{
@@ -438,23 +448,10 @@ uint8_t TestPredkosciZapisuNOR(void)
 		}
 	}
 
-	//włacz zapis
-	Stan = HAL_NOR_GetState(&hnor3);
-	if (Stan == HAL_NOR_STATE_PROTECTED)
-	{
-		chErr = HAL_NOR_WriteOperation_Enable(&hnor3);
-		if (chErr != ERR_OK)
-		{
-			sprintf(chNapis, "B%c%cd w%c%cczenia zapisu", ł, ą, ł, ą);
-			print(chNapis, 10, 20);
-			return chErr;
-		}
-	}
-
 
 	//zmierz czas programowania połowy sektora
 	nCzas = PobierzCzasT6();
-	nAdres = ADRES_NOR + 26 * ROZMIAR16_SEKTORA;	//sektor
+	nAdres = ADRES_NOR + SEKTOR_TESTOW_PROG * ROZMIAR16_SEKTORA;	//sektor
 	for (y=0; y<16; y++)
 	{
 		for (x=0; x<ROZMIAR16_BUFORA; x++)
