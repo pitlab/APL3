@@ -77,7 +77,7 @@ extern uint16_t sBuforLCD[];
 // chInterfejs - identyfikator interfejsu odbierająceg znak
 //Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InitProtokol(void)
+uint8_t InicjujProtokol(void)
 {
 	//odczytaj z konfiguracji i ustaw własny adres sieciowy
 	chAdresLokalny = 2;

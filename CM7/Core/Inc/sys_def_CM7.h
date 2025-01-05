@@ -14,7 +14,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	55	//numer commitu w repozytorium
+#define WER_REPO	57	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -65,6 +65,17 @@
 #define TP_POMIARY_IMU		11	//wyświetlaj wyniki pomiarów IMU pobrane z CM4
 #define TP_ZDJECIE			12
 #define TP_WITAJ			13
+#define TP_MULTIMEDIA		14	//menu multimediow
+#define TP_WROC_DO_MMEDIA	15
+#define TP_MM1				16
+#define TP_MM2				17
+#define TP_MM3				18
+#define TP_MM_AUDIO_FFT		19	//FFT sygnału z mikrofonu
+#define TP_MM_KOM1			20	//komunikat audio 1
+#define TP_MM_KOM2			21	//komunikat audio 2
+#define TP_MM_KOM3			22	//komunikat audio 3
+#define TP_MM_KOM4			23	//komunikat audio 4
+
 
 
 //flagi inicjalizacj sprzetu na płytce
@@ -93,4 +104,13 @@
 
 #define RAD2DEG				(180/M_PI)
 #define DEG2RAD				(M_PI/180)
+
+//pamięc flash NOR
+#define ADRES_NOR			0x68000000
+#define LICZBA_SEKTOROW		256
+#define ROZMIAR_SEKTORA		(128*1024)	//128kB
+#define SEKTOR_KOM_AUDIO	2
+#define ROZM_WPISU_AUDIO	8
+#define ADR_SPISU_KOM_AUDIO	ADRES_NOR + SEKTOR_KOM_AUDIO * ROZMIAR_SEKTORA
+
 #endif /* INC_SYS_DEF_CM7_H_ */

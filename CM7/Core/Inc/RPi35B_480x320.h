@@ -19,7 +19,7 @@ void LCD_write_dat_sro16(uint8_t chDane1, uint8_t chDane2);
 void LCD_write_dat_ost16(uint8_t chDane1, uint8_t chDane2);
 //void LCD_write_dat_wsz(uint8_t chDane);
 void LCD_data_read(uint8_t *chDane, uint8_t chIlosc);
-void LCD_init(void);
+void InicjujLCD(void);
 void LCD_Orient(uint8_t orient);
 //void LCD_clear(void);
 void LCD_clear(uint16_t kolor);

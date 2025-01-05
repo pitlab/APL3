@@ -44,6 +44,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "sys_def_CM7.h"
+#include "RPi35B_480x320.h"
 #include "LCD.h"
 #include "dotyk.h"
 #include "W25Q128JV.h"
@@ -52,6 +53,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "wymiana_CM7.h"
 #include "protokol_kom.h"
 #include "moduly_SPI.h"
+#include "audio.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -81,14 +83,11 @@ UART_HandleTypeDef hlpuart1;
 UART_HandleTypeDef huart7;
 DMA_HandleTypeDef hdma_lpuart1_tx;
 DMA_HandleTypeDef hdma_lpuart1_rx;
-
 QSPI_HandleTypeDef hqspi;
-
+SAI_HandleTypeDef hsai_BlockB2;
 SPI_HandleTypeDef hspi5;
 DMA_HandleTypeDef hdma_spi5_tx;
-
 TIM_HandleTypeDef htim6;
-
 DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
 SRAM_HandleTypeDef hsram1;
@@ -117,16 +116,14 @@ static void MX_LPUART1_UART_Init(void);
 static void MX_UART7_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_CRC_Init(void);
+static void MX_SAI2_Init(void);
 void StartDefaultTask(void const * argument);
 void WatekOdbiorczyLPUART1(void const * argument);
 void WatekOdbioruKonsoliUART7(void const * argument);
 void WatekWyswietlacza(void const * argument);
 
 /* USER CODE BEGIN PFP */
-extern uint8_t InicjujSPIModZewn(void);
-extern uint8_t WymienDaneExpanderow(void);
-extern void LCD_init(void);
-//extern
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -218,13 +215,15 @@ Error_Handler();
   MX_UART7_Init();
   MX_TIM6_Init();
   MX_CRC_Init();
+  MX_SAI2_Init();
   /* USER CODE BEGIN 2 */
   InicjujSPIModZewn();
-  LCD_init();
+  InicjujLCD();
   InicjujFlashNOR();
   InicjujFlashQSPI();
   InicjujKonfigFlash();
-  InitProtokol();
+  InicjujProtokol();
+  InicjujAudio();
 
   InicjujDotyk();
   Ekran_Powitalny(nZainicjowano);	//przywitaj użytkownika i prezentuj wykryty sprzęt
@@ -261,7 +260,7 @@ Error_Handler();
   tsOdbiorKonsolaHandle = osThreadCreate(osThread(tsOdbiorKonsola), NULL);
 
   /* definition and creation of tsObslugaWyswie */
-  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 512);
+  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 320);
   tsObslugaWyswieHandle = osThreadCreate(osThread(tsObslugaWyswie), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -504,6 +503,42 @@ static void MX_QUADSPI_Init(void)
   /* USER CODE BEGIN QUADSPI_Init 2 */
 
   /* USER CODE END QUADSPI_Init 2 */
+
+}
+
+/**
+  * @brief SAI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SAI2_Init(void)
+{
+
+  /* USER CODE BEGIN SAI2_Init 0 */
+
+  /* USER CODE END SAI2_Init 0 */
+
+  /* USER CODE BEGIN SAI2_Init 1 */
+
+  /* USER CODE END SAI2_Init 1 */
+  hsai_BlockB2.Instance = SAI2_Block_B;
+  hsai_BlockB2.Init.AudioMode = SAI_MODEMASTER_TX;
+  hsai_BlockB2.Init.Synchro = SAI_ASYNCHRONOUS;
+  hsai_BlockB2.Init.OutputDrive = SAI_OUTPUTDRIVE_ENABLE;
+  hsai_BlockB2.Init.NoDivider = SAI_MASTERDIVIDER_ENABLE;
+  hsai_BlockB2.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_EMPTY;
+  hsai_BlockB2.Init.AudioFrequency = SAI_AUDIO_FREQUENCY_16K;
+  hsai_BlockB2.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
+  hsai_BlockB2.Init.MonoStereoMode = SAI_MONOMODE;
+  hsai_BlockB2.Init.CompandingMode = SAI_NOCOMPANDING;
+  hsai_BlockB2.Init.TriState = SAI_OUTPUT_NOTRELEASED;
+  if (HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BIT, 2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SAI2_Init 2 */
+
+  /* USER CODE END SAI2_Init 2 */
 
 }
 
@@ -804,6 +839,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOI_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();

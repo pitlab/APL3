@@ -40,8 +40,10 @@
 #define STR_MENU_VIBR				26
 #define STR_MENU_TEST				27
 #define STR_MENU_SETINGS			28
+#define STR_MENU_MULTI_MEDIA		29
 
-#define MAX_NAPISOW					29	//liczba napisów
+#define STR_KONIEC					30
+#define MAX_NAPISOW					31	//liczba napisów
 
 
 #define JEZYK_POLSKI
@@ -72,7 +74,7 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 
 "Zapisana kalib.",					//STR_COMPS_STORED
 "Menu Glowne",						//STR_MENU_MAIN			max 17 znaków
-
+"nic",
 "Menu Protokoly",					//STR_MENU_PROTOCOLS	max 17 znaków
 "Menu S-Bus",						//STR_MENU_SBUS			max 17 znaków
 "Menu Multimetr",					//STR_MENU_MULMETR		max 17 znaków
@@ -80,6 +82,9 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Menu Drgan i ADC",					//STR_MENU_VIBR			max 17 znaków
 "Menu Testów",						//STR_MENU_TEST			max 17 znaków
 "Menu Ustawień"						//STR_MENU_SETINGS
+"Menu MultiMedia",					//STR_MENU_MULTI_MEDIA
+
+"Koniec"							//STR_KONIEC
 };
 
 const char *chNazwyMies3Lit[13]  = {"---", "Sty","Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paz", "Lis", "Gru"};

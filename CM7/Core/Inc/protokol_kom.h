@@ -20,7 +20,7 @@
 
 
 //definicje funkcji lokalnych
-uint8_t InitProtokol(void);
+uint8_t InicjujProtokol(void);
 void InicjalizacjaWatkuOdbiorczegoLPUART1(void);
 void ObslugaWatkuOdbiorczegoLPUART1(void);
 uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs);

@@ -252,7 +252,7 @@ void LCD_data_read(uint8_t *chDane, uint8_t chIlosc)
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_init(void)
+void InicjujLCD(void)
 {
 	extern uint8_t chPorty_exp_wysylane[LICZBA_EXP_SPI_ZEWN];
 

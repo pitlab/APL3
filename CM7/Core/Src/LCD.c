@@ -18,6 +18,7 @@
 #include "napisy.h"
 #include "flash_nor.h"
 #include "wymiana.h"
+#include "audio.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -25,15 +26,23 @@ extern uint8_t BigFont[];
 const char *build_date = __DATE__;
 const char *build_time = __TIME__;
 extern TIM_HandleTypeDef htim6;
-extern const unsigned short obr_ppm[];
-extern const unsigned short obr_sbus[];
 extern const unsigned short obr_multimetr[];
 extern const unsigned short obr_multitool[];
-extern const unsigned short obr_oscyloskop[];
-extern const unsigned short obr_mtest[];
-extern const unsigned short obr_calibration[];
 extern const unsigned short pitlab_logo18[];
 extern const char *chNazwyMies3Lit[] ;
+extern const unsigned short obr_mmedia[];
+extern const unsigned short obr_fraktal[];
+extern const unsigned short obr_RAM[];
+extern const unsigned short obr_NOR[];
+extern const unsigned short obr_QSPI[];
+extern const unsigned short obr_fraktak[];
+extern const unsigned short obr_dotyk[];
+extern const unsigned short obr_fft[];
+extern const unsigned short obr_glosnik1[];
+extern const unsigned short obr_glosnik2[];
+extern const unsigned short obr_glosnik_neg[];
+extern const unsigned short obr_wroc[];
+extern const unsigned short obr_foto[];
 
 //definicje zmiennych
 uint8_t chTrybPracy;
@@ -54,18 +63,30 @@ extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Kamera",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 		obr_ppm},
-	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,		obr_sbus},
+	{"Multimedia",  "Obsluga multimediow: dzwiek i obraz",		TP_MULTIMEDIA, 		obr_mmedia},
+	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,		obr_fraktal},
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
-	{"Zapis NOR", 	"Test zapisu do flash NOR",					TP_POM_ZAPISU_NOR,	obr_calibration},
-	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_calibration},
-	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_calibration},
-	{"Trans SRAM",	"Pomiar predkosci Static RAM 16-bit",		TP_POMIAR_SRAM,		obr_calibration},
+	{"Zapis NOR", 	"Test zapisu do flash NOR",					TP_POM_ZAPISU_NOR,	obr_NOR},
+	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_NOR},
+	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_QSPI},
+	{"Trans SRAM",	"Pomiar predkosci Static RAM 16-bit",		TP_POMIAR_SRAM,		obr_RAM},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_multitool},
-	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_oscyloskop},
-	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_mtest}};
+	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_dotyk},
+	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_dotyk}};
 
 
+struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
+	{"Kamera",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 		obr_foto},
+	{"M1",			"nic",										TP_MM1,				obr_glosnik2},
+	{"M1",			"nic",										TP_MM1,				obr_glosnik2},
+	{"M1",			"nic",										TP_MM1,				obr_glosnik2},
+	{"FFT Audio",	"FFT sygnału z mikrofonu",					TP_MM_AUDIO_FFT,	obr_fft},
+	{"Komunikat1",	"Komunikat glosowy",						TP_MM_KOM1,			obr_glosnik2},
+	{"Komunikat2",	"Komunikat glosowy",						TP_MM_KOM2,			obr_glosnik1},
+	{"Komunikat3",	"Komunikat glosowy",						TP_MM_KOM3,			obr_glosnik2},
+	{"Komunikat4",	"Komunikat glosowy",						TP_MM_KOM4,			obr_glosnik_neg},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_wroc}};
 
 
 
@@ -83,9 +104,11 @@ void RysujEkran(void)
 
 	switch (chTrybPracy)
 	{
-	case TP_MENU_GLOWNE:	MenuGlowne(&chNowyTrybPracy);	break;
+	case TP_MENU_GLOWNE:	// wyświetla menu główne	MenuGlowne(&chNowyTrybPracy);
+		Menu((char*)chNapisLcd[STR_MENU_MAIN], stMenuGlowne, &chNowyTrybPracy);
+		chWrocDoTrybu = TP_MENU_GLOWNE;
+		break;
 
-	case TP_KAMERA:	break;
 	case TP_FRAKTALE:		FraktalDemo();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
@@ -155,6 +178,38 @@ void RysujEkran(void)
 		}
 		break;
 
+
+	case TP_MULTIMEDIA:			//menu multimediow
+		Menu((char*)chNapisLcd[STR_MENU_MULTI_MEDIA], stMenuMultiMedia, &chNowyTrybPracy);
+		chWrocDoTrybu = TP_MENU_GLOWNE;
+		break;
+
+	case TP_KAMERA:		break;
+	case TP_MM1:		break;
+	case TP_MM2:		break;
+	case TP_MM3:		break;
+	case TP_MM_AUDIO_FFT:			//FFT sygnału z mikrofonu
+		break;
+
+	case TP_MM_KOM1:	//komunikat audio 1
+		GenerujAudio(0);
+		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		break;
+
+	case TP_MM_KOM2:	//komunikat audio 2
+		GenerujAudio(1);
+		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		break;
+
+	case TP_MM_KOM3:	//komunikat audio 3
+		GenerujAudio(2);
+		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		break;
+
+	case TP_MM_KOM4:	//komunikat audio 4
+		GenerujAudio(3);
+		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		break;
 	}
 
 	//rzeczy do zrobienia podczas uruchamiania nowego trybu pracy
@@ -169,7 +224,8 @@ void RysujEkran(void)
 		//startuje procesy zwiazane z obsługą nowego trybu pracy
 		switch(chTrybPracy)
 		{
-		case TP_WROC_DO_MENU:	chTrybPracy = TP_MENU_GLOWNE;	break;
+		case TP_WROC_DO_MENU:	chTrybPracy = TP_MENU_GLOWNE;	break;	//powrót do menu głównego
+		case TP_WROC_DO_MMEDIA:	chTrybPracy = TP_MULTIMEDIA;	break;	//powrót do menu MultiMedia
 		case TP_FRAKTALE:		InitFraktal(0);		break;
 		case TP_USTAWIENIA:		chTrybPracy = TP_KALIB_DOTYK;	break;
 		}

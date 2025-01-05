@@ -37,21 +37,14 @@ void InicjujKonfigFlash(void)
 		chIdentyfikatorPaczki = *(__IO unsigned char*)(ADRES_SEKTORA0 + (n-1)*ROZMIAR_PACZKI_KONF);
 		if (chIdentyfikatorPaczki != 0xFF)	//testowany jest pierwszy bajt paczki zawierajacy identyfikator
 		{
-			//sprawdź czy zgadza się suma kontrolna paczki
-			//if (SprawdzPaczke(ADRES_SEKTORA0 + (n-1)*ROZMIAR_PACZKI_KONF))
-			{
-				nAdresZapisuKonfigu = ADRES_SEKTORA0 + n*ROZMIAR_PACZKI_KONF;
-				break;
-			}
+			nAdresZapisuKonfigu = ADRES_SEKTORA0 + n*ROZMIAR_PACZKI_KONF;
+			break;
 		}
 		chIdentyfikatorPaczki = *(__IO unsigned char*)(ADRES_SEKTORA1 + (n-1)*ROZMIAR_PACZKI_KONF);
 		if (chIdentyfikatorPaczki != 0xFF)
 		{
-			//if (SprawdzPaczke(ADRES_SEKTORA1 + (n-1)*ROZMIAR_PACZKI_KONF))
-			{
-				nAdresZapisuKonfigu = ADRES_SEKTORA1 + n*ROZMIAR_PACZKI_KONF;
-				break;
-			}
+			nAdresZapisuKonfigu = ADRES_SEKTORA1 + n*ROZMIAR_PACZKI_KONF;
+			break;
 		}
 	}
 }
