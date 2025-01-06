@@ -659,7 +659,9 @@ static void HAL_FMC_MspInit(void){
   PG2   ------> FMC_A12
   PG3   ------> FMC_A13
   PG4   ------> FMC_A14
+  PG4   ------> FMC_BA0
   PG5   ------> FMC_A15
+  PG5   ------> FMC_BA1
   PG6   ------> FMC_NE3
   PG8   ------> FMC_SDCLK
   PC6   ------> FMC_NWAIT
@@ -749,6 +751,16 @@ void HAL_NOR_MspInit(NOR_HandleTypeDef* hnor){
   /* USER CODE END NOR_MspInit 1 */
 }
 
+void HAL_SDRAM_MspInit(SDRAM_HandleTypeDef* hsdram){
+  /* USER CODE BEGIN SDRAM_MspInit 0 */
+
+  /* USER CODE END SDRAM_MspInit 0 */
+  HAL_FMC_MspInit();
+  /* USER CODE BEGIN SDRAM_MspInit 1 */
+
+  /* USER CODE END SDRAM_MspInit 1 */
+}
+
 static uint32_t FMC_DeInitialized = 0;
 
 static void HAL_FMC_MspDeInit(void){
@@ -804,7 +816,9 @@ static void HAL_FMC_MspDeInit(void){
   PG2   ------> FMC_A12
   PG3   ------> FMC_A13
   PG4   ------> FMC_A14
+  PG4   ------> FMC_BA0
   PG5   ------> FMC_A15
+  PG5   ------> FMC_BA1
   PG6   ------> FMC_NE3
   PG8   ------> FMC_SDCLK
   PC6   ------> FMC_NWAIT
@@ -860,6 +874,16 @@ void HAL_NOR_MspDeInit(NOR_HandleTypeDef* hnor){
   /* USER CODE BEGIN NOR_MspDeInit 1 */
 
   /* USER CODE END NOR_MspDeInit 1 */
+}
+
+void HAL_SDRAM_MspDeInit(SDRAM_HandleTypeDef* hsdram){
+  /* USER CODE BEGIN SDRAM_MspDeInit 0 */
+
+  /* USER CODE END SDRAM_MspDeInit 0 */
+  HAL_FMC_MspDeInit();
+  /* USER CODE BEGIN SDRAM_MspDeInit 1 */
+
+  /* USER CODE END SDRAM_MspDeInit 1 */
 }
 
 static uint32_t SAI2_client =0;

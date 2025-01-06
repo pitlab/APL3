@@ -59,6 +59,7 @@ unsigned char chLiczIter;		//licznik iteracji fraktala
 extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern struct _statusDotyku statusDotyku;
 extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
+extern uint8_t chPorty_exp_wysylane[];
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -78,9 +79,9 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Kamera",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 		obr_foto},
-	{"M1",			"nic",										TP_MM1,				obr_glosnik2},
-	{"M1",			"nic",										TP_MM1,				obr_glosnik2},
-	{"M1",			"nic",										TP_MM1,				obr_glosnik2},
+	{"Mikrofon",	"Wlacza mikrofon wylacza wzmacniacz",		TP_MM1,				obr_glosnik2},
+	{"Wzmacniacz",	"Wlacza wzmacniacz, wylacza mikrofon",		TP_MM2,				obr_glosnik2},
+	{"M1",			"nic",										TP_MM3,				obr_glosnik2},
 	{"FFT Audio",	"FFT sygnału z mikrofonu",					TP_MM_AUDIO_FFT,	obr_fft},
 	{"Komunikat1",	"Komunikat glosowy",						TP_MM_KOM1,			obr_glosnik2},
 	{"Komunikat2",	"Komunikat glosowy",						TP_MM_KOM2,			obr_glosnik1},
@@ -184,11 +185,29 @@ void RysujEkran(void)
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
-	case TP_KAMERA:		break;
-	case TP_MM1:		break;
-	case TP_MM2:		break;
-	case TP_MM3:		break;
+	case TP_KAMERA:
+		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		break;
+
+	case TP_MM1:		//"Wlacza mikrofon wylacza wzmacniacz
+		chPorty_exp_wysylane[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
+		chPorty_exp_wysylane[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
+		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		break;
+
+	case TP_MM2:	//Wlacza wzmacniacz, wylacza mikrofon
+		chPorty_exp_wysylane[1] &= ~EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
+		chPorty_exp_wysylane[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
+		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		break;
+
+	case TP_MM3:
+		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		break;
+
 	case TP_MM_AUDIO_FFT:			//FFT sygnału z mikrofonu
+		RejestrujAudio();
+		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KOM1:	//komunikat audio 1

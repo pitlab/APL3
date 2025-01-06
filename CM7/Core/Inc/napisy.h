@@ -75,12 +75,12 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Zapisana kalib.",					//STR_COMPS_STORED
 "Menu Glowne",						//STR_MENU_MAIN			max 17 znaków
 "nic",
-"Menu Protokoly",					//STR_MENU_PROTOCOLS	max 17 znaków
-"Menu S-Bus",						//STR_MENU_SBUS			max 17 znaków
-"Menu Multimetr",					//STR_MENU_MULMETR		max 17 znaków
-"Menu Niezbednik",					//STR_MENU_MULTOOL		max 17 znaków
-"Menu Drgan i ADC",					//STR_MENU_VIBR			max 17 znaków
-"Menu Testów",						//STR_MENU_TEST			max 17 znaków
+"nic",								//STR_MENU_PROTOCOLS	max 17 znaków
+"nic",								//STR_MENU_SBUS			max 17 znaków
+"nic",								//STR_MENU_MULMETR		max 17 znaków
+"nic",								//STR_MENU_MULTOOL		max 17 znaków
+"nic",								//STR_MENU_VIBR			max 17 znaków
+"nic",								//STR_MENU_TEST			max 17 znaków
 "Menu Ustawień"						//STR_MENU_SETINGS
 "Menu MultiMedia",					//STR_MENU_MULTI_MEDIA
 

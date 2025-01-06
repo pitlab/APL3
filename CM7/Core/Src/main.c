@@ -8,11 +8,12 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 /* Pamięć (adresowanie bajtami):
- * 0x30020000..0x30040000 - 128k (0x20000)stos lwIP
- * 0x30040000..0x30040200 - 512  (0x200) deskryptory DMA ETH
- * 0x30040200..0x38000000 - 130k (0x7FBEFE00) wolne
- * 0x68000000..0x6803FFFF - 2*128k pamięć konfiguracji
- * 0x68040000..0x680FFFFF - 6*128k pamięć komunikatów słownych 16-bit, 16kHz
+ 0x30020000..0x30040000 - 128k (0x20000)stos lwIP
+ 0x30040000..0x30040200 - 512  (0x200) deskryptory DMA ETH
+ 0x30040200..0x38000000 - 130k (0x7FBEFE00) wolne
+ 0x68000000..0x6803FFFF - 2*128k pamięć konfiguracji
+ 0x68040000..0x680FFFFF - 30*128k pamięć komunikatów słownych 16-bit, 16kHz
+ 0xC0000000..0xC3FFFFFF
 
 
  * 								Pozwolenia dla MPU			Prawa dostępu
@@ -29,10 +30,11 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 0x38800000	4K		CM7														BACKUP
 0x60000000	4M		CM7		-		+		-		+		RW		RW		EXT_SRAM		bufor obrazu z kamery
 0x68000000	32M		CM7		+		+		+		-		RW		RW		FLASH_NOR
+0xC0000000	64M		CM7		-		+		-		+		RW		RW		EXT_DRAM
+
 
  *Zrobić:
  - Dodać polecenie Blank check oraz ramkę komunikacyjną do tego
-- Sprawdzić czy koljena ramka konfiguracji zapisuje się pod właściwym adresem +0x10 słów a nie bajtów
 
  * */
 /* USER CODE END Header */
@@ -83,15 +85,21 @@ UART_HandleTypeDef hlpuart1;
 UART_HandleTypeDef huart7;
 DMA_HandleTypeDef hdma_lpuart1_tx;
 DMA_HandleTypeDef hdma_lpuart1_rx;
+
 QSPI_HandleTypeDef hqspi;
+
 SAI_HandleTypeDef hsai_BlockB2;
+
 SPI_HandleTypeDef hspi5;
 DMA_HandleTypeDef hdma_spi5_tx;
+
 TIM_HandleTypeDef htim6;
+
 DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
 SRAM_HandleTypeDef hsram1;
 NOR_HandleTypeDef hnor3;
+SDRAM_HandleTypeDef hsdram1;
 
 osThreadId defaultTaskHandle;
 osThreadId tsOdbiorLPUART1Handle;
@@ -743,6 +751,7 @@ void MX_FMC_Init(void)
   /* USER CODE END FMC_Init 0 */
 
   FMC_NORSRAM_TimingTypeDef Timing = {0};
+  FMC_SDRAM_TimingTypeDef SdramTiming = {0};
 
   /* USER CODE BEGIN FMC_Init 1 */
 
@@ -814,6 +823,34 @@ void MX_FMC_Init(void)
   /* ExtTiming */
 
   if (HAL_NOR_Init(&hnor3, &Timing, NULL) != HAL_OK)
+  {
+    Error_Handler( );
+  }
+
+  /** Perform the SDRAM1 memory initialization sequence
+  */
+  hsdram1.Instance = FMC_SDRAM_DEVICE;
+  /* hsdram1.Init */
+  hsdram1.Init.SDBank = FMC_SDRAM_BANK1;
+  hsdram1.Init.ColumnBitsNumber = FMC_SDRAM_COLUMN_BITS_NUM_8;
+  hsdram1.Init.RowBitsNumber = FMC_SDRAM_ROW_BITS_NUM_12;
+  hsdram1.Init.MemoryDataWidth = FMC_SDRAM_MEM_BUS_WIDTH_16;
+  hsdram1.Init.InternalBankNumber = FMC_SDRAM_INTERN_BANKS_NUM_4;
+  hsdram1.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_3;
+  hsdram1.Init.WriteProtection = FMC_SDRAM_WRITE_PROTECTION_DISABLE;
+  hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_PERIOD_2;
+  hsdram1.Init.ReadBurst = FMC_SDRAM_RBURST_ENABLE;
+  hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_2;
+  /* SdramTiming */
+  SdramTiming.LoadToActiveDelay = 16;
+  SdramTiming.ExitSelfRefreshDelay = 16;
+  SdramTiming.SelfRefreshTime = 16;
+  SdramTiming.RowCycleDelay = 16;
+  SdramTiming.WriteRecoveryTime = 16;
+  SdramTiming.RPDelay = 16;
+  SdramTiming.RCDDelay = 16;
+
+  if (HAL_SDRAM_Init(&hsdram1, &SdramTiming) != HAL_OK)
   {
     Error_Handler( );
   }
@@ -1078,6 +1115,15 @@ void MPU_Config(void)
   MPU_InitStruct.BaseAddress = 0x24000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_512KB;
   MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Number = MPU_REGION_NUMBER7;
+  MPU_InitStruct.BaseAddress = 0xC0000000;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_64MB;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
   /* Enables the MPU */

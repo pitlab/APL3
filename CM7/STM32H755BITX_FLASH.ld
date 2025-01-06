@@ -54,6 +54,7 @@ MEMORY
   BACKUP  		(rw)   : ORIGIN = 0x38800000, LENGTH = 4K
   EXT_SRAM		(rw)   : ORIGIN = 0x60000000, LENGTH = 4M		/* zewnętrzny SRAM 2Mbx16  bank1 CS1*/
   FLASH_NOR		(rxw)  : ORIGIN = 0x68000000, LENGTH = 32M		/* zewnętrzny flash 256Mb  bank1 CS3*/
+  DRAM			(rxw)  : ORIGIN = 0xC0000000, LENGTH = 64M		/* zewnętrzny SDRAM 512Mb  bank SDNE0 */
 }
 
 /* Sections */
@@ -183,21 +184,22 @@ SECTIONS
 
 /* Sekcja zmiennych krytycznych w pamięci DTCM 128K*/
 .zmienneDTCM (NOLOAD) :
-  {
-    *(.Zmienne_DTCM)  
+  {  
+    *(.SekcjaDTCM)      
+    
   } >DTCMRAM
 
 /* Sekcja buforów w pamięci z dostępem do magistrali AXI 512K*/
 .bufory_AXI (NOLOAD) :
   {
-    *(.BuforyObrazu_AXI)  
+    *(.SekcjaAxiSRAM)      
   } >SRAM_AXI_D1
 
 
 /* Sekcja buforów w pamięci SRAM2_AHB_D2 128K*/
 .bufory_SRAM2_AHB_D2 (NOLOAD) :
   {
-    *(.Bufory_SRAM2)  
+   	*(.SekcjaSRAM2)     
   } >SRAM2_AHB_D2
   
 /* Sekcja buforów ethernetu SRAM3_AHB_D2 32kB */
@@ -209,34 +211,40 @@ SECTIONS
     *(.TxDescripSection)    
     . = ABSOLUTE(0x30040200);
     *(.Rx_PoolSection)  
-    *(.Bufory_SRAM3)  
+    *(.Bufory_SRAM3) 
+    *(.Sram3Section) 
   } >SRAM3_AHB_D2
 
 /* Sekcja buforów w pamięci SRAM4_AHB_D3 aktywnych również w standby, 64k */
 .bufory_SRAM4_AHB_D3 (NOLOAD) :
   {
     *(.BuforyWymianyCM7CM4_SRAM4)
-    *(.Bufory_SRAM4)      
+    *(.SekcjaSRAM4)        
   } >SRAM4_AHB_D3  
   
  /* Sekcja backup podtrzymywana baterią, 4k*/
 .backup (NOLOAD) :
-  {
-    *(.Backup)  
+  {  
+    *(.SekcjaBackup)
   } >BACKUP
  
- /* Sekcja w zewnętrznej pamieci SRAM 32Mb na miagistrali 16-bit */
+ /* Sekcja w zewnętrznej pamieci SRAM 256Mb (32MB) na miagistrali 16-bit */
  .ext_sram (NOLOAD) :
   {
-    *(.ExtSramSection)  
+    *(.SekcjaZewnSRAM)
   } >EXT_SRAM
  
- /* Sekcja w zewnętrznej pamieci flash 512Mb na miagistrali 16-bit */  
+ /* Sekcja w zewnętrznej pamieci flash 512Mb (4MB) na miagistrali 16-bit */  
  .flash_nor (NOLOAD) :
-  {
-    *(.FlashNorSection)  
+  {  
+    *(.SekcjaFlashNOR)
   } >FLASH_NOR
   
+  /* Sekcja w zewnętrznej pamieci SDRAM 512Mb (64MB) na miagistrali 16-bit */
+ .ext_dram (NOLOAD) :
+  {
+    *(.SekcjaDRAM)    
+  } >DRAM
     
   /* Remove information from the compiler libraries */
   /DISCARD/ :
