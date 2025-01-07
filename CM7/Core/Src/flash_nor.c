@@ -95,29 +95,117 @@ uint8_t InicjujFlashNOR(void)
 	/* hsdram1.Init */
 	hsdram1.Init.SDBank = FMC_SDRAM_BANK1;
 	hsdram1.Init.ColumnBitsNumber = FMC_SDRAM_COLUMN_BITS_NUM_9;
-	hsdram1.Init.RowBitsNumber = FMC_SDRAM_ROW_BITS_NUM_13;
+	hsdram1.Init.RowBitsNumber = FMC_SDRAM_ROW_BITS_NUM_12;
 	hsdram1.Init.MemoryDataWidth = FMC_SDRAM_MEM_BUS_WIDTH_16;
 	hsdram1.Init.InternalBankNumber = FMC_SDRAM_INTERN_BANKS_NUM_4;
-	hsdram1.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_2;
+	//hsdram1.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_2;
+	hsdram1.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_3;
 	hsdram1.Init.WriteProtection = FMC_SDRAM_WRITE_PROTECTION_DISABLE;
 	hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_PERIOD_2;	//clock period: fmc_ker_ck/2 or fmc_ker_ck/3
-	hsdram1.Init.ReadBurst = FMC_SDRAM_RBURST_DISABLE;
-	hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_2;
+	//hsdram1.Init.ReadBurst = FMC_SDRAM_RBURST_DISABLE;
+	hsdram1.Init.ReadBurst = FMC_SDRAM_RBURST_ENABLE;
+	//hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_2;
+	hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_0;
+
+
 	/* SdramTiming */
-	SdramTiming.LoadToActiveDelay = 16;
-	SdramTiming.ExitSelfRefreshDelay = 16;
-	SdramTiming.SelfRefreshTime = 16;
-	SdramTiming.RowCycleDelay = 16;
-	SdramTiming.WriteRecoveryTime = 16;
-	SdramTiming.RPDelay = 16;
-	SdramTiming.RCDDelay = 16;
+	SdramTiming.LoadToActiveDelay = 2;
+	SdramTiming.ExitSelfRefreshDelay = 6;
+	SdramTiming.SelfRefreshTime = 4;
+	SdramTiming.RowCycleDelay = 6;
+	SdramTiming.WriteRecoveryTime = 2;
+	SdramTiming.RPDelay = 2;
+	SdramTiming.RCDDelay = 2;
 
 	if (HAL_SDRAM_Init(&hsdram1, &SdramTiming) != HAL_OK)
 	{
 	Error_Handler( );
 	}
+
+	FMC_SDRAM_CommandTypeDef Command;
+
+
+	SDRAM_Initialization_Sequence(&hsdram1, &Command);
+
 	return chErr;
 }
+
+
+/*(##) Program the SDRAM external device by applying its initialization sequence
+            according to the device plugged in your hardware. This step is mandatory
+            for accessing the SDRAM device
+
+PDF:
+The default power on state of the mode register is supplier specific and may be undefined. The following power
+on and initialization sequence guarantees the device is preconditioned to each users specific needs. Like a
+conventional DRAM, the Synchronous DRAM must be powered up and initialized in a predefined manner. During
+power on, all VDD and VDDQ pins must be built up simultaneously to the specified voltage when the input
+signals are held in the “NOP” state. The power on voltage must not exceed VDD + 0.3 V on any of the input pins
+or VDD supplies. The CLK signal must be started at the same time.
+After power on, an initial pause of 200 μs is required followed by a precharge of all banks using the precharge command.
+To prevent data contention on the DQ bus during power on, it is required that the DQM and CKE pins be held high during the initial pause period.
+Once all banks have been precharged, the Mode Register Set Command must be issued to initialize the Mode Register.
+A minimum of eight Auto Refresh cycles (CBR) are also required. These may be done before or after programming the Mode Register.
+Failure to follow these steps may lead to unpredictable start-up modes.*/
+
+static void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_CommandTypeDef *Command)
+{
+     __IO uint32_t tmpmrd =0;
+     //* Step 3:  Configure a clock configuration enable command
+     Command->CommandMode     = FMC_SDRAM_CMD_CLK_ENABLE;
+     Command->CommandTarget    = FMC_SDRAM_CMD_TARGET_BANK1;
+     Command->AutoRefreshNumber   = 1;
+     Command->ModeRegisterDefinition = 0;
+
+     // Send the command
+     HAL_SDRAM_SendCommand(hsdram, Command, 0x1000);
+
+     // Step 4: Insert 100 ms delay
+     HAL_Delay(100);
+
+     // Step 5: Configure a PALL (precharge all) command
+     Command->CommandMode     = FMC_SDRAM_CMD_PALL;
+     Command->CommandTarget       = FMC_SDRAM_CMD_TARGET_BANK1;
+     Command->AutoRefreshNumber   = 1;
+     Command->ModeRegisterDefinition = 0;
+
+     //Send the command
+     HAL_SDRAM_SendCommand(hsdram, Command, 0x1000);
+
+     // Step 6 : Configure a Auto-Refresh command
+     Command->CommandMode     = FMC_SDRAM_CMD_AUTOREFRESH_MODE;
+     Command->CommandTarget    = FMC_SDRAM_CMD_TARGET_BANK1;
+     Command->AutoRefreshNumber   = 4;
+     Command->ModeRegisterDefinition = 0;
+
+     // Send the command
+     HAL_SDRAM_SendCommand(hsdram, Command, 0x1000);
+
+     // Step 7: Program the external memory mode register
+     tmpmrd = (uint32_t)0;
+
+    				 /*SDRAM_MODEREG_BURST_LENGTH_2          |
+         SDRAM_MODEREG_BURST_TYPE_SEQUENTIAL   |
+         SDRAM_MODEREG_CAS_LATENCY_3           |
+         SDRAM_MODEREG_OPERATING_MODE_STANDARD |
+         SDRAM_MODEREG_WRITEBURST_MODE_SINGLE;*/
+
+     Command->CommandMode = FMC_SDRAM_CMD_LOAD_MODE;
+     Command->CommandTarget    = FMC_SDRAM_CMD_TARGET_BANK1;
+     Command->AutoRefreshNumber   = 1;
+     Command->ModeRegisterDefinition = tmpmrd;
+
+     // Send the command
+     HAL_SDRAM_SendCommand(hsdram, Command, 0x1000);
+
+     // Step 8: Set the refresh rate counter
+     // (15.62 us x Freq) - 20
+     // Set the device refresh counter
+     HAL_SDRAM_ProgramRefreshRate(hsdram, 0x056A);
+   }
+
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -697,7 +785,7 @@ void TestPredkosciOdczytuRAM(void)
 		//sprintf(chNapis, "for(): ExtSRAM->AxiSRAM  t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4096) / (nCzas * 1024 * 1024));
 		//sprintf(chNapis, "for(): ExtSRAM->AxiSRAM  t = %ldms, transfer = %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 4096) / (nCzas * 1.024f * 1.024f));
 		sprintf(chNapis, "for(): ExtSRAM->AxiSRAM  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
-		print(chNapis, 10, 80);
+		print(chNapis, 10, 40);
 	}
 
 	//Zapis do zewnętrznego SRAM w pętli
@@ -711,7 +799,7 @@ void TestPredkosciOdczytuRAM(void)
 	if (nCzas)
 	{
 		sprintf(chNapis, "for(): AxiSRAM->ExtSRAM  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
-		print(chNapis, 10, 100);
+		print(chNapis, 10, 60);
 	}
 
 	//odczyt z zewnętrznego SRAM przez DMA
@@ -723,7 +811,7 @@ void TestPredkosciOdczytuRAM(void)
 		{
 			setColor(RED);
 			sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
-			print(chNapis, 10, 120);
+			print(chNapis, 10, 80);
 			return;
 		}
 
@@ -734,7 +822,7 @@ void TestPredkosciOdczytuRAM(void)
 	if (nCzas)
 	{
 		sprintf(chNapis, "DMA: ExtSRAM->AxiSRAM    t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
-		print(chNapis, 10, 120);
+		print(chNapis, 10, 80);
 	}
 
 
@@ -747,7 +835,7 @@ void TestPredkosciOdczytuRAM(void)
 		{
 			setColor(RED);
 			sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
-			print(chNapis, 10, 140);
+			print(chNapis, 10, 100);
 			return;
 		}
 
@@ -758,7 +846,7 @@ void TestPredkosciOdczytuRAM(void)
 	if (nCzas)
 	{
 		sprintf(chNapis, "DMA: AxiSRAM->ExtSRAM    t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
-		print(chNapis, 10, 140);
+		print(chNapis, 10, 100);
 	}
 
 
@@ -769,7 +857,7 @@ void TestPredkosciOdczytuRAM(void)
 	{
 		setColor(RED);
 		sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
-		print(chNapis, 10, 160);
+		print(chNapis, 10, 120);
 		return;
 	}
 
@@ -779,7 +867,7 @@ void TestPredkosciOdczytuRAM(void)
 	if (nCzas)
 	{
 		sprintf(chNapis, "MDMA: ExtSRAM->AxiSRAM   t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
-		print(chNapis, 10, 160);
+		print(chNapis, 10, 120);
 	}
 
 
@@ -790,7 +878,7 @@ void TestPredkosciOdczytuRAM(void)
 	{
 		setColor(RED);
 		sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
-		print(chNapis, 10, 180);
+		print(chNapis, 10, 140);
 		return;
 	}
 
@@ -800,34 +888,40 @@ void TestPredkosciOdczytuRAM(void)
 	if (nCzas)
 	{
 		sprintf(chNapis, "MDMA: AxiSRAM->ExtSRAM   t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
-		print(chNapis, 10, 180);
+		print(chNapis, 10, 140);
 	}
 
 
-	//zapis zewnętrznego SRAM w pętli
+	/*/zapis zewnętrznego SRAM w pętli
 	nCzas = PobierzCzasT6();
-	for (y=0; y<ROZMIAR16_BUFORA; y++)
-		 sExtSramBuf[y] = y;
+	for (x=0; x<1000; x++)
+	{
 
+		for (y=0; y<ROZMIAR16_BUFORA; y++)
+			sExtSramBuf[y] = y;
+	}
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "for(): var->ExtSRAM  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA) / (nCzas * 1.048576f));
+		sprintf(chNapis, "for(): var->ExtSRAM      t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		print(chNapis, 10, 200);
 	}
 
 
 	//odczyt zewnętrznego SRAM w pętli
 	nCzas = PobierzCzasT6();
-	for (y=0; y<ROZMIAR16_BUFORA; y++)
-		x = sExtSramBuf[y];
+	for (x=0; x<1000; x++)
+	{
+		for (y=0; y<ROZMIAR16_BUFORA; y++)
+			z = sExtSramBuf[y];
+	}
 
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "for(): ExtSRAM->var  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA) / (nCzas * 1.048576f));
+		sprintf(chNapis, "for(): ExtSRAM->var      t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		print(chNapis, 10, 220);
-	}
+	}*/
 
 
 	//uint32_t nAdres = ADRES_DRAM;
@@ -836,24 +930,119 @@ void TestPredkosciOdczytuRAM(void)
 
 	//zapis DRAM
 	nCzas = PobierzCzasT6();
-	chErr = HAL_SDRAM_Write_16b(&hsdram1, (uint32_t *)ADRES_DRAM, sBufor, ROZMIAR16_BUFORA);
+	for (x=0; x<1000; x++)
+		chErr = HAL_SDRAM_Write_16b(&hsdram1, (uint32_t *)ADRES_DRAM, sBufor, ROZMIAR16_BUFORA);
+
 	nCzas = MinalCzas(nCzas);
 	if (chErr == ERR_OK)
 	{
-		sprintf(chNapis, "buf AxiRAM->SDRAM  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA) / (nCzas * 1.048576f));
-		print(chNapis, 10, 240);
+		sprintf(chNapis, "HAL_SDRAM_Write_16b()    t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+		print(chNapis, 10, 160);
 	}
 
+	for (y=0; y<ROZMIAR16_BUFORA; y++)
+			sBufor[y] = 0;
 
 	//odczyt DRAM
 	nCzas = PobierzCzasT6();
-	chErr = HAL_SDRAM_Read_16b(&hsdram1, (uint32_t *)ADRES_DRAM, sBufor, ROZMIAR16_BUFORA);
+	for (x=0; x<1000; x++)
+		chErr = HAL_SDRAM_Read_16b(&hsdram1, (uint32_t *)ADRES_DRAM, sBufor, ROZMIAR16_BUFORA);
 	nCzas = MinalCzas(nCzas);
 	if (chErr == ERR_OK)
 	{
-		sprintf(chNapis, "buf SDRAM->AxiRAM  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA) / (nCzas * 1.048576f));
-		print(chNapis, 10, 260);
+		sprintf(chNapis, "HAL_SDRAM_Read_16b()     t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+		print(chNapis, 10, 180);
 	}
 
 
+	//Zapis do DRAM w pętli
+	nCzas = PobierzCzasT6();
+	for (y=0; y<1000; y++)
+	{
+		for (x=0; x<ROZMIAR16_BUFORA; x++)
+			sBuforDram[x] = sBufor[x];
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "for(): AxiSRAM->DRAM     t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+		print(chNapis, 10, 200);
+	}
+
+
+	//Odczyt z DRAM w pętli
+	nCzas = PobierzCzasT6();
+	for (y=0; y<1000; y++)
+	{
+		for (x=0; x<ROZMIAR16_BUFORA; x++)
+			sBufor[x] = sBuforDram[x];
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "for(): DRAM->AxiSRAM     t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+		print(chNapis, 10, 220);
+	}
+
+	/*HAL_Delay(100);
+	for (y=0; y<ROZMIAR16_BUFORA; y++)
+				sBufor[y] = 0;
+
+	//odczyt z DRAM przez DMA
+	nCzas = PobierzCzasT6();
+	for (y=0; y<1000; y++)
+	{
+		//chErr = HAL_SDRAM_Read_DMA(&hsdram1, (uint32_t *)ADRES_DRAM, (uint32_t*)sBufor, 1);
+		chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBuforDram, (uint32_t)sBufor, ROZMIAR16_BUFORA, 1000);
+		if (chErr != ERR_OK)
+		{
+			setColor(RED);
+			sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
+			print(chNapis, 10, 200);
+			return;
+		}
+
+		//while(hsdram1.hmdma->State != HAL_MDMA_STATE_READY)
+			//HAL_MDMA_PollForTransfer(hsdram1.hmdma, HAL_DMA_FULL_TRANSFER, 100);
+			//HAL_DMA_PollForTransfer(&hsdram1.hmdma, HAL_DMA_FULL_TRANSFER, 100);
+		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
+			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		//sprintf(chNapis, "HAL_SDRAM_Read_DMA()     t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1) / (nCzas * 1.048576f));
+		sprintf(chNapis, "MDMA: SDRAM->AxiSRAM     t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+		print(chNapis, 10, 200);
+	}
+
+	HAL_Delay(100);
+
+	//zapis z DRAM przez DMA
+	nCzas = PobierzCzasT6();
+	for (y=0; y<1000; y++)
+	{
+		chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBufor, (uint32_t)sBuforDram, ROZMIAR16_BUFORA, 1000);
+		//chErr = HAL_SDRAM_Write_DMA(&hsdram1, (uint32_t *)ADRES_DRAM, (uint32_t*)sBufor, 1);
+		if (chErr != ERR_OK)
+		{
+			setColor(RED);
+			sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
+			print(chNapis, 10, 220);
+			return;
+		}
+
+	//	while(hsdram1.hmdma->State != HAL_MDMA_STATE_READY)
+		//	HAL_MDMA_PollForTransfer(hsdram1.hmdma, HAL_DMA_FULL_TRANSFER, 100);
+		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
+			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		//sprintf(chNapis, "HAL_SDRAM_Write_DMA()    t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1) / (nCzas * 1.048576f));
+		sprintf(chNapis, "MDMA: AxiSRAM->SDRAM     t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+		print(chNapis, 10, 220);
+	}
+	HAL_Delay(100); */
 }
