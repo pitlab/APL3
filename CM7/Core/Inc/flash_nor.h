@@ -91,7 +91,7 @@ uint8_t CzytajIdNOR(uint16_t *sId);
 uint8_t CzyPustySektorFNOR(uint16_t sSektor);
 void HAL_NOR_MspWait(NOR_HandleTypeDef *hnor, uint32_t Timeout);
 
-static void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_CommandTypeDef *Command);
+void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_CommandTypeDef *Command);
 
 void TestPredkosciOdczytuNOR(void);
 void TestPredkosciOdczytuRAM(void);

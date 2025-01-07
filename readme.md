@@ -10,6 +10,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Obsługa pamieci Flash NOR S29GL256S90 na magistrali równoległej 16-bit
 - Obsługa pamięci Flash W25Q128JV na magistrali QSPI
 - Obsługa zewnętrznej pamięci statycznej IS61WV204816BLL na magistrali równoległej 16-bit
+- Obsługa zewnętrznej pamieci dynamicznej AS4C32M16SC-7TIN na magistrali równoległej 16-bit
 - Testy pomiaru transferu dla wszystkich pamięci
 - System zapisu konfiguracji do pamięci Flash w paczkach po 30 bajtów + 2 bajty ID i sumy kontrolnej
 - Wymiana danych z rdzeniem CM4 i prezentacja ich na LCD
@@ -18,6 +19,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Wyświetlacz pracuje w osobnym wątku o niskim priorytecie nie blokując głównego wątku. Dostęp do SPI sterowany jest sprzętowym semaforem.
 - Zaobserwowałem dziwne zachowanie i padło podejrzenie o przepełnianie się stosu jednego z wątków, więc została zrobiona  analiza i porządki ze stosami. Obecnie wygląda to tak:
 ![Procesy](obrazki/procesy.jpg)
+- Komunikaty głosowe (16bit, 16kHz) są już wgrywane do pamięci flash. Poprzedza je tablica[128] zawierająca adresy i rozmiary komunikatów
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM
@@ -29,7 +31,6 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Odczyt danych z magnetometru HMC5883 na module GNSS
 
 #### Do zrobienia:
- - Dodać obsługę pamięci SDRAM
  - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarce na inne z mniejszym ESR
  - Uruchomić i oprogramować obsługę czujników modułu inercyjnego
  - Oprogramować wgrywanie próbek głosu i obrazów do zewnętrznej pamięci flash
