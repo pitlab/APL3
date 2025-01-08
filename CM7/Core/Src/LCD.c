@@ -251,38 +251,6 @@ void RysujEkran(void)
 
 		LCD_clear(BLACK);
 	}
-
-
-
-	//extern struct _statusDotyku statusDotyku;
-	/*LCD_clear(BLACK);
-	//LCD_rect(0, 0, DISP_X_SIZE, DISP_Y_SIZE, GRAY60);
-	setColor(BLUE);
-	drawHLine(10, 10, 470);
-	setColor(RED);
-	drawVLine(10, 10, 310);*/
-
-	//fillRect(200, 100, 400, 200);
-
-	//LCD_Orient(POZIOMO);
-
-	//setColor(BLUE);
-	//drawCircle(300, 200, 50);
-
-	//setFont(MidFont);
-	//setColor(GRAY60);
-	//sprintf(chNapis, "APL3  SysCLK = %lu MHz", HAL_RCC_GetSysClockFreq()/1000000);
-	//sprintf(chNapis, "APL3 v%d.%d.%d @ %s %s SysCLK = %lu MHz", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time,  HAL_RCC_GetSysClockFreq()/1000000);	//numer wersji w repozytorium i czas kompilacji
-	//print(chNapis, 10, 0);
-	//sprintf(chNapis, "v%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);	//numer wersji w repozytorium i czas kompilacji
-	//print(chNapis, 10, 20);
-
-	/*setColor(GREEN);
-	sprintf(chNapis, "Dotyk: X=%d Y=%d F1=%d F2=%d ", statusDotyku.sAdc[0], statusDotyku.sAdc[1], statusDotyku.sAdc[2], statusDotyku.sAdc[3]);
-	print(chNapis, 10, 50);*/
-
-	//
-
 }
 
 
