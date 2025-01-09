@@ -54,6 +54,7 @@ MEMORY
   BACKUP  		(rw)   : ORIGIN = 0x38800000, LENGTH = 4K
   EXT_SRAM		(rw)   : ORIGIN = 0x60000000, LENGTH = 4M		/* zewnętrzny SRAM 2Mbx16  bank1 CS1*/
   FLASH_NOR		(rxw)  : ORIGIN = 0x68000000, LENGTH = 32M		/* zewnętrzny flash 256Mb  bank1 CS3*/
+  DRAM			(rxw)  : ORIGIN = 0xC0000000, LENGTH = 64M		/* zewnętrzny SDRAM 512Mb  bank SDNE0 */
 }
 
 /* Sections */
@@ -235,9 +236,14 @@ SECTIONS
  .flash_nor (NOLOAD) :
   {
     *(.FlashNorSection)  
-  } >FLASH_NOR
-  
+  } >FLASH_NOR 
     
+ /* Sekcja w zewnętrznej pamieci SDRAM 512Mb (64MB) na miagistrali 16-bit */
+ .ext_dram (NOLOAD) :
+  {
+    *(.SekcjaDRAM)    
+  } >DRAM
+  
   /* Remove information from the compiler libraries */
   /DISCARD/ :
   {

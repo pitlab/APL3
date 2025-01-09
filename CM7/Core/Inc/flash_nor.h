@@ -90,9 +90,11 @@ uint8_t CzytajStatusNOR(uint32_t nAdres);
 uint8_t CzytajIdNOR(uint16_t *sId);
 uint8_t CzyPustySektorFNOR(uint16_t sSektor);
 void HAL_NOR_MspWait(NOR_HandleTypeDef *hnor, uint32_t Timeout);
+void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_CommandTypeDef *Command);
 
 void TestPredkosciOdczytuNOR(void);
 void TestPredkosciOdczytuRAM(void);
 uint8_t TestPredkosciZapisuNOR(void);
+
 
 #endif /* SRC_FLASH_NOR_H_ */
