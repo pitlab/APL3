@@ -14,7 +14,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	57	//numer commitu w repozytorium
+#define WER_REPO	60	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -109,8 +109,8 @@
 #define ADRES_NOR			0x68000000
 #define LICZBA_SEKTOROW		256
 #define ROZMIAR_SEKTORA		(128*1024)	//128kB
-#define SEKTOR_KOM_AUDIO	2
-#define ROZM_WPISU_AUDIO	8
+#define SEKTOR_KOM_AUDIO	2		//od tego sektora zaczyna się spis treści komunikatów audio i następujące po nim komunikaty
+#define ROZM_WPISU_AUDIO	8		//liczba bajtów zajęta przez wpis spisu komunikatów (4 bajty adres i 4 bajty długości)
 #define ADR_SPISU_KOM_AUDIO	ADRES_NOR + SEKTOR_KOM_AUDIO * ROZMIAR_SEKTORA
 
 #define ADRES_DRAM			0xC0000000
