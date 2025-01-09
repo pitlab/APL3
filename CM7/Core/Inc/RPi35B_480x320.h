@@ -9,6 +9,9 @@
 #define RPI35B_480X320_H_
 #include "stm32h7xx_hal.h"
 
+#define TIMEOUT_ODCZYTU		2	//dla zegara 25MHz okres wynosi 40ns. Odczyt bajtu to 320ns, odczyt 256 bajtów to 81us
+#define TIMEOUT_ZAPISU		2
+
 uint8_t LCD_write_command16(uint8_t chDane1, uint8_t chDane2);
 uint8_t LCD_WrData(uint8_t* chDane, uint8_t chIlosc);
 uint8_t LCD_WrDataDMA(uint8_t* chDane, uint16_t sIlosc);
@@ -49,6 +52,8 @@ void drawBitmap(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t
 void drawBitmap2(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint16_t* data);
 void drawBitmap3(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* data);
 void drawBitmap4(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* data);
+void CzytajPamiecObrazu(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t* bufor);
+
 
 #endif /* RPI35B_480X320_H_ */
 

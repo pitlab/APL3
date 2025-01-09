@@ -58,10 +58,8 @@ uint8_t LCD_write_command16(uint8_t chDane1, uint8_t chDane2)
 		osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
 	if (chErr == ERR_OK)
-	{
-		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
-		HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
-	}
+		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, TIMEOUT_ZAPISU);
+	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
 	UstawDekoderZewn(CS_NIC);											//LCD_CS=1
 	return chErr;
 }
@@ -84,10 +82,8 @@ uint8_t LCD_WrData(uint8_t* chDane, uint8_t chIlosc)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
 	if (chErr == ERR_OK)
-	{
-		chErr = HAL_SPI_Transmit(&hspi5, chDane, chIlosc, HAL_MAX_DELAY);
-		HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
-	}
+		chErr = HAL_SPI_Transmit(&hspi5, chDane, chIlosc, TIMEOUT_ZAPISU);
+	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
 	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 	return chErr;
 }
@@ -130,10 +126,8 @@ uint8_t LCD_write_data16(uint8_t chDane1, uint8_t chDane2)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
 	if (chErr == ERR_OK)
-	{
-		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
-		HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
-	}
+		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, TIMEOUT_ZAPISU);
+	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
 	UstawDekoderZewn(CS_NIC);
 	return chErr;
 }
@@ -160,10 +154,8 @@ uint8_t LCD_write_dat_pie16(uint8_t chDane1, uint8_t chDane2)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
 	if (chErr == ERR_OK)
-	{
-		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
-		HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
-	}
+		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, TIMEOUT_ZAPISU);
+	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
 	return chErr;
 }
 
@@ -187,10 +179,8 @@ void LCD_write_dat_sro16(uint8_t chDane1, uint8_t chDane2)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
 	if (chErr == ERR_OK)
-	{
-		HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
-		HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
-	}
+		HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, TIMEOUT_ZAPISU);
+	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
 }
 
 
@@ -213,10 +203,8 @@ void LCD_write_dat_ost16(uint8_t chDane1, uint8_t chDane2)
 		osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
 	if (chErr == ERR_OK)
-	{
-		HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
-		HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
-	}
+		HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, TIMEOUT_ZAPISU);
+	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
 	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 }
 
@@ -238,10 +226,8 @@ void LCD_data_read(uint8_t *chDane, uint8_t chIlosc)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
 	if (chErr == ERR_OK)
-	{
-		HAL_SPI_Receive(&hspi5, chDane, chIlosc, HAL_MAX_DELAY);
-		HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
-	}
+		chErr = HAL_SPI_Receive(&hspi5, chDane, chIlosc, TIMEOUT_ODCZYTU);
+	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
 	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 }
 
@@ -537,8 +523,9 @@ void drawVLine(uint16_t x, uint16_t y, uint16_t len)
 
 ////////////////////////////////////////////////////////////////////////////////
 // ustawia parametry pamięci do rysowania linii
-// Parametry: x, y współrzędne początku
-// len - długość linii
+// Parametry:
+// x1, y1 współrzędne początku obszaru
+// x2, y2 współrzędne końca obszaru
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
@@ -1283,3 +1270,33 @@ void drawBitmap4(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_
 
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Odczytuje pamięć obrazu wyświetlacza
+// Parametry:
+// x1, y1 współrzędne początku obszaru
+// x2, y2 współrzędne końca obszaru
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void CzytajPamiecObrazu(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t* bufor)
+{
+	uint8_t dane[8];
+	LCD_write_command16(0x00, 0x2A);	//Column Address Set
+	dane[1] = x1>>8;
+	dane[3] = x1;
+	dane[5] = x2>>8;
+	dane[7] = x2;
+	LCD_WrData(dane, 8);
+	LCD_write_command16(0x00, 0x2B);	//Page Address Set
+	dane[1] = y1>>8;
+	dane[3] = y1;
+	dane[5] = y2>>8;
+	dane[7] = y2;
+	LCD_WrData(dane, 8);
+	LCD_write_command16(0x00, 0x2E);	//Memory Read
+	for (uint16_t n=y1; n<y2; n++)
+	{
+		LCD_data_read(bufor+n*(x2-x1), x2-x1);
+	}
+}
