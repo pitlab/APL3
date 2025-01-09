@@ -236,16 +236,16 @@ SECTIONS
  
  /* Sekcja w zewnętrznej pamieci flash 512Mb (4MB) na miagistrali 16-bit */  
  .flash_nor (NOLOAD) :
-  {  
-    *(.SekcjaFlashNOR)
-  } >FLASH_NOR
-  
-  /* Sekcja w zewnętrznej pamieci SDRAM 512Mb (64MB) na miagistrali 16-bit */
+  {
+    *(.FlashNorSection)  
+  } >FLASH_NOR 
+
+ /* Sekcja w zewnętrznej pamieci SDRAM 512Mb (64MB) na miagistrali 16-bit */
  .ext_dram (NOLOAD) :
   {
     *(.SekcjaDRAM)    
   } >DRAM
-    
+  
   /* Remove information from the compiler libraries */
   /DISCARD/ :
   {

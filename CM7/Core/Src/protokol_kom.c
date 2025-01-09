@@ -200,9 +200,9 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 			sSzerZdjecia = (uint16_t)chDane[1] * 0x100 + chDane[0];
 			sWysZdjecia  = (uint16_t)chDane[3] * 0x100 + chDane[2];
 			chTrybPracy = TP_ZDJECIE;
-			//chStatusZdjecia = SGZ_CZEKA;	//oczekiwania na wykonanie zdjęcia
+			chStatusZdjecia = SGZ_CZEKA;	//oczekiwania na wykonanie zdjęcia
 			//chStatusZdjecia = SGZ_BLAD;		//dopóki nie ma kamery niech zgłasza bład
-			chStatusZdjecia = SGZ_GOTOWE;
+			//chStatusZdjecia = SGZ_GOTOWE;
 			//generuj testową strukturę obrazu
 			/*if (chStatusZdjecia == SGZ_GOTOWE)
 			{
@@ -215,6 +215,8 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 
 			CzytajPamiecObrazu(0, 0, 200, 320, (uint8_t*)sBuforLCD);	//odczytaj pamięć obrazu do bufora LCD
 			chErr = Wyslij_OK(PK_ZROB_ZDJECIE, 0, chInterfejs);
+			CzytajPamiecObrazu(0, 0, 200, 320, (uint8_t*)sBuforLCD);	//odczytaj pamięć obrazu do bufora LCD
+			chStatusZdjecia = SGZ_GOTOWE;
 			break;
 
 		case PK_POB_STAT_ZDJECIA:	//pobierz status gotowości zdjęcia

@@ -20,17 +20,16 @@
  * Sprawdzić jak działa przełaczanie między zapisem (HAL_NOR_WriteOperation_Enable) i odczytem (HAL_NOR_ReturnToReadMode)
  * */
 
-
-uint16_t sFlashMem[ROZMIAR16_BUFORA] 	__attribute__((section(".SekcjaFlashNOR")));
-uint16_t sBuforD2[ROZMIAR16_BUFORA]  	__attribute__((section(".SekcjaSRAM2")));
-uint16_t sExtSramBuf[ROZMIAR16_BUFORA] 	__attribute__((section(".SekcjaZewnSRAM")));
+uint16_t sFlashMem[ROZMIAR16_BUFORA] __attribute__((section(".FlashNorSection")));
+uint16_t sBuforD2[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_SRAM2")));
+uint16_t sExtSramBuf[ROZMIAR16_BUFORA] __attribute__((section(".ExtSramSection")));
 uint16_t sBuforDram[ROZMIAR16_BUFORA]  	__attribute__((section(".SekcjaDRAM")));
-uint16_t sBuforDTCM[ROZMIAR16_BUFORA]  	__attribute__((section(".SekcjaDTCM")));
 uint16_t sBufor[ROZMIAR16_BUFORA];
 uint16_t sBufor2[ROZMIAR16_BUFORA];
 uint16_t sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
 uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern SRAM_HandleTypeDef hsram1;
+extern SDRAM_HandleTypeDef hsdram1;
 extern NOR_HandleTypeDef hnor3;
 extern SDRAM_HandleTypeDef hsdram1;
 extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
@@ -88,7 +87,6 @@ uint8_t InicjujFlashNOR(void)
 	if (HAL_SRAM_Init(&hsram1, &Timing, NULL) != HAL_OK)
 	  Error_Handler( );
 
-
 	//zegar jest 200 -> 5ns. Pamięć dla CL*=1 -> 20ns, [[[CL*=2 -> 10ns]]], CL*=3 -> 7,5ns
 	//ustawiam 2 cykle zegara -> 10ns i CL =2
 	hsdram1.Instance = FMC_SDRAM_DEVICE;
@@ -103,7 +101,6 @@ uint8_t InicjujFlashNOR(void)
 	hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_PERIOD_2;	//clock period: fmc_ker_ck/2 or fmc_ker_ck/3
 	hsdram1.Init.ReadBurst = FMC_SDRAM_RBURST_ENABLE;
 	hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_0;
-
 
 	/* SdramTiming */
 	SdramTiming.LoadToActiveDelay = 2;
@@ -120,10 +117,7 @@ uint8_t InicjujFlashNOR(void)
 	}
 
 	FMC_SDRAM_CommandTypeDef Command;
-
-
 	SDRAM_Initialization_Sequence(&hsdram1, &Command);
-
 	return chErr;
 }
 
@@ -935,6 +929,7 @@ void TestPredkosciOdczytuRAM(void)
 	for (y=0; y<ROZMIAR16_BUFORA; y++)
 				sBufor[y] = 0;
 
+
 	//odczyt z DRAM przez DMA
 	nCzas = PobierzCzasT6();
 	for (y=0; y<1000; y++)
@@ -962,7 +957,6 @@ void TestPredkosciOdczytuRAM(void)
 		sprintf(chNapis, "MDMA: SDRAM->AxiSRAM     t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		print(chNapis, 10, 200);
 	}*/
-
 
 	/*/zapis z DRAM przez MDMA
 	nCzas = PobierzCzasT6();
@@ -1006,6 +1000,14 @@ void TestPredkosciOdczytuRAM(void)
 		}
 		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
 			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
+
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "DMA1: AxiSRAM->DRAM      t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+		print(chNapis, 10, 240);
+
 	}
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
