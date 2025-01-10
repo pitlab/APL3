@@ -61,6 +61,7 @@ uint8_t LCD_write_command16(uint8_t chDane1, uint8_t chDane2)
 	if (chErr == ERR_OK)
 		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, TIMEOUT_ZAPISU);
 	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+
 	UstawDekoderZewn(CS_NIC);											//LCD_CS=1
 	return chErr;
 }
@@ -1310,6 +1311,7 @@ void CzytajPamiecObrazu(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint
 	dane[5] = x2>>8;
 	dane[7] = x2;
 	LCD_WrData(dane, 8);
+
 	LCD_write_command16(0x00, 0x2B);	//Page Address Set
 	dane[1] = y1>>8;
 	dane[3] = y1;

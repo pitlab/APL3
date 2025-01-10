@@ -94,6 +94,7 @@ uint8_t InicjujProtokol(void)
 ////////////////////////////////////////////////////////////////////////////////
 void InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 {
+	CzytajPamiecObrazu(0, 0, 200, 320, (uint8_t*)sBuforLCD);	//odczytaj pamięć obrazu do bufora LCD
 	sWskNap = sWskOpr = 0;
 	HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 2*ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
 }
@@ -125,8 +126,13 @@ void ObslugaWatkuOdbiorczegoLPUART1(void)
 		if (!chTimeoutOdbioru)
 		{
 			chStanProtokolu[INTERF_UART] = PR_ODBIOR_NAGL;
-			chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s
 		}
+	}
+	//sprawdź czy jest właczony bit zezwolenia na przerwanie Idle, bo po wystąpienie błędów potrafi się wyłączyć co uniemożliwia odbiór
+	if ((hlpuart1.Instance->CR1 & USART_CR1_IDLEIE) == 0)
+	{
+		InicjalizacjaWatkuOdbiorczegoLPUART1();
+		chCzasSwieceniaLED[LED_CZER] = 5;
 	}
 }
 
@@ -206,6 +212,8 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 					nBuforKamery[x] = (sPix+1)*0x10000 + sPix;
 				}
 			}*/
+
+			CzytajPamiecObrazu(0, 0, 200, 320, (uint8_t*)sBuforLCD);	//odczytaj pamięć obrazu do bufora LCD
 			chErr = Wyslij_OK(PK_ZROB_ZDJECIE, 0, chInterfejs);
 			CzytajPamiecObrazu(0, 0, 200, 320, (uint8_t*)sBuforLCD);	//odczytaj pamięć obrazu do bufora LCD
 			chStatusZdjecia = SGZ_GOTOWE;

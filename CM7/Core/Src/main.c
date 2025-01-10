@@ -8,11 +8,12 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 /* Pamięć (adresowanie bajtami):
- * 0x30020000..0x30040000 - 128k (0x20000)stos lwIP
- * 0x30040000..0x30040200 - 512  (0x200) deskryptory DMA ETH
- * 0x30040200..0x38000000 - 130k (0x7FBEFE00) wolne
- * 0x68000000..0x6803FFFF - 2*128k pamięć konfiguracji
- * 0x68040000..0x680FFFFF - 6*128k pamięć komunikatów słownych 16-bit, 16kHz
+ 0x30020000..0x30040000 - 128k (0x20000)stos lwIP
+ 0x30040000..0x30040200 - 512  (0x200) deskryptory DMA ETH
+ 0x30040200..0x38000000 - 130k (0x7FBEFE00) wolne
+ 0x68000000..0x6803FFFF - 2*128k pamięć konfiguracji
+ 0x68040000..0x680FFFFF - 30*128k pamięć komunikatów słownych 16-bit, 16kHz
+ 0xC0000000..0xC3FFFFFF
 
 
  * 								Pozwolenia dla MPU			Prawa dostępu
@@ -29,10 +30,11 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 0x38800000	4K		CM7														BACKUP
 0x60000000	4M		CM7		-		+		-		+		RW		RW		EXT_SRAM		bufor obrazu z kamery
 0x68000000	32M		CM7		+		+		+		-		RW		RW		FLASH_NOR
+0xC0000000	64M		CM7		-		+		-		+		RW		RW		EXT_DRAM
+
 
  *Zrobić:
  - Dodać polecenie Blank check oraz ramkę komunikacyjną do tego
-- Sprawdzić czy koljena ramka konfiguracji zapisuje się pod właściwym adresem +0x10 słów a nie bajtów
 
  * */
 /* USER CODE END Header */
@@ -873,6 +875,7 @@ void MX_FMC_Init(void)
   SdramTiming.WriteRecoveryTime = 2;
   SdramTiming.RPDelay = 2;
   SdramTiming.RCDDelay = 2;
+
 
   if (HAL_SDRAM_Init(&hsdram1, &SdramTiming) != HAL_OK)
   {
