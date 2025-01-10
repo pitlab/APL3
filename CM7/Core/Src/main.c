@@ -83,16 +83,12 @@ UART_HandleTypeDef hlpuart1;
 UART_HandleTypeDef huart7;
 DMA_HandleTypeDef hdma_lpuart1_tx;
 DMA_HandleTypeDef hdma_lpuart1_rx;
-
 QSPI_HandleTypeDef hqspi;
-
+RNG_HandleTypeDef hrng;
 SAI_HandleTypeDef hsai_BlockB2;
-
 SPI_HandleTypeDef hspi5;
 DMA_HandleTypeDef hdma_spi5_tx;
-
 TIM_HandleTypeDef htim6;
-
 DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
 SRAM_HandleTypeDef hsram1;
@@ -123,6 +119,7 @@ static void MX_UART7_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_CRC_Init(void);
 static void MX_SAI2_Init(void);
+static void MX_RNG_Init(void);
 void StartDefaultTask(void const * argument);
 void WatekOdbiorczyLPUART1(void const * argument);
 void WatekOdbioruKonsoliUART7(void const * argument);
@@ -222,6 +219,7 @@ Error_Handler();
   MX_TIM6_Init();
   MX_CRC_Init();
   MX_SAI2_Init();
+  MX_RNG_Init();
   /* USER CODE BEGIN 2 */
   InicjujSPIModZewn();
   InicjujLCD();
@@ -311,9 +309,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_DIV1;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 4;
@@ -509,6 +508,33 @@ static void MX_QUADSPI_Init(void)
   /* USER CODE BEGIN QUADSPI_Init 2 */
 
   /* USER CODE END QUADSPI_Init 2 */
+
+}
+
+/**
+  * @brief RNG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RNG_Init(void)
+{
+
+  /* USER CODE BEGIN RNG_Init 0 */
+
+  /* USER CODE END RNG_Init 0 */
+
+  /* USER CODE BEGIN RNG_Init 1 */
+
+  /* USER CODE END RNG_Init 1 */
+  hrng.Instance = RNG;
+  hrng.Init.ClockErrorDetection = RNG_CED_ENABLE;
+  if (HAL_RNG_Init(&hrng) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RNG_Init 2 */
+
+  /* USER CODE END RNG_Init 2 */
 
 }
 
@@ -934,18 +960,18 @@ void StartDefaultTask(void const * argument)
 	/* Infinite loop */
 	for(;;)
 	{
-		//użyj sprzętowego semafora HSEM_SPI6_WYSW do określenia dostępu do SPI6
-		nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW);
+		//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI6
+		nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
 		if (!nStanSemaforaSPI)
 		{
-			chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
+			chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 			if (chErr == ERR_OK)
 			{
 				chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
 				WymienDaneExpanderow();
 				CzytajDotyk();
 				UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
-				HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
+				HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 			}
 			chCzasSwieceniaLED[LED_ZIEL] = 5;
 			chCzasSwieceniaLED[LED_NIEB] = 0;

@@ -2,6 +2,7 @@
 //
 // Moduł obsługi wyświetlacza TFT 320x480 RPI 3,5" B https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(B)
 //
+// Wyświetlacz pracuje na 25MHz
 // Opracowano na podstawie analizy działania systemu z obrazu "RPi LCD Bookworm_32bit only for pi5&pi4" pobranego ze strony waveshare
 //
 // (c) PitLab 2024
@@ -17,7 +18,7 @@
 #include "semafory.h"
 #include "cmsis_os.h"
 
-// Wyświetlacz pracował na 25MHz ale później zaczął śmiecić na ekranie. Próbuję na 22,2MHz - jest OK
+
 
 
 //deklaracje zmiennych
@@ -54,12 +55,12 @@ uint8_t LCD_write_command16(uint8_t chDane1, uint8_t chDane2)
 	dane_nadawane[1] = chDane2;
 	UstawDekoderZewn(CS_LCD);											//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW) != ERR_OK)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 		osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
 		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, TIMEOUT_ZAPISU);
-	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	UstawDekoderZewn(CS_NIC);											//LCD_CS=1
 	return chErr;
 }
@@ -78,12 +79,12 @@ uint8_t LCD_WrData(uint8_t* chDane, uint8_t chIlosc)
 
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW) != ERR_OK)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 			osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
 		chErr = HAL_SPI_Transmit(&hspi5, chDane, chIlosc, TIMEOUT_ZAPISU);
-	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 	return chErr;
 }
@@ -122,12 +123,12 @@ uint8_t LCD_write_data16(uint8_t chDane1, uint8_t chDane2)
 	dane_nadawane[1] = chDane2;
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW) != ERR_OK)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 			osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
 		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, TIMEOUT_ZAPISU);
-	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	UstawDekoderZewn(CS_NIC);
 	return chErr;
 }
@@ -150,12 +151,12 @@ uint8_t LCD_write_dat_pie16(uint8_t chDane1, uint8_t chDane2)
 
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW) != ERR_OK)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 			osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
 		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, TIMEOUT_ZAPISU);
-	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	return chErr;
 }
 
@@ -175,12 +176,12 @@ void LCD_write_dat_sro16(uint8_t chDane1, uint8_t chDane2)
 	dane_nadawane[0] = chDane1;
 	dane_nadawane[1] = chDane2;
 
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW) != ERR_OK)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 			osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
 		HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, TIMEOUT_ZAPISU);
-	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 }
 
 
@@ -199,12 +200,12 @@ void LCD_write_dat_ost16(uint8_t chDane1, uint8_t chDane2)
 	dane_nadawane[0] = chDane1;
 	dane_nadawane[1] = chDane2;
 
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW) != ERR_OK)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 		osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
 		HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, TIMEOUT_ZAPISU);
-	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 }
 
@@ -222,12 +223,12 @@ void LCD_data_read(uint8_t *chDane, uint8_t chIlosc)
 
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW) != ERR_OK)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 			osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
 		chErr = HAL_SPI_Receive(&hspi5, chDane, chIlosc, TIMEOUT_ODCZYTU);
-	HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 }
 
@@ -1273,7 +1274,7 @@ void drawBitmap4(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Odczytuje pamięć obrazu wyświetlacza
+// Odczytuje pamięć obrazu wyświetlacza - na razie nie działa
 // Parametry:
 // x1, y1 współrzędne początku obszaru
 // x2, y2 współrzędne końca obszaru
@@ -1282,6 +1283,27 @@ void drawBitmap4(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_
 void CzytajPamiecObrazu(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t* bufor)
 {
 	uint8_t dane[8];
+	HAL_StatusTypeDef chErr;
+
+	dane[0] = 0x00;
+	dane[1] = 0xD3;		//Read ID4
+	UstawDekoderZewn(CS_LCD);											//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
+	for (uint8_t i = 0; i < 5; i++) __asm__("NOP");
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+		osDelay(1);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+	if (chErr == ERR_OK)
+	{
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
+		for (uint8_t i = 0; i < 5; i++) __asm__("NOP");
+		chErr = HAL_SPI_Transmit(&hspi5, dane, 2, TIMEOUT_ZAPISU);
+		chErr = HAL_SPI_Receive(&hspi5, dane, 4, TIMEOUT_ODCZYTU);				//dummy
+	}
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	UstawDekoderZewn(CS_NIC);											//LCD_CS=1
+
+
 	LCD_write_command16(0x00, 0x2A);	//Column Address Set
 	dane[1] = x1>>8;
 	dane[3] = x1;
@@ -1294,9 +1316,56 @@ void CzytajPamiecObrazu(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint
 	dane[5] = y2>>8;
 	dane[7] = y2;
 	LCD_WrData(dane, 8);
-	LCD_write_command16(0x00, 0x2E);	//Memory Read
-	for (uint16_t n=y1; n<y2; n++)
+
+	//wyślij polecenie i odczytaj dane w jednym cyklu CS
+	dane[0] = 0x00;
+	dane[1] = 0x2E;		//Memory Read
+	UstawDekoderZewn(CS_LCD);											//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
+	for (uint8_t i = 0; i < 5; i++) __asm__("NOP");
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+		osDelay(1);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+	if (chErr == ERR_OK)
 	{
-		LCD_data_read(bufor+n*(x2-x1), x2-x1);
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
+		for (uint8_t i = 0; i < 5; i++) __asm__("NOP");
+		chErr = HAL_SPI_Transmit(&hspi5, dane, 2, TIMEOUT_ZAPISU);
+		chErr = HAL_SPI_Receive(&hspi5, dane, 1, TIMEOUT_ODCZYTU);				//dummy
+		for (uint16_t n=y1; n<y2; n++)
+			chErr = HAL_SPI_Receive(&hspi5, bufor+n*(x2-x1), x2-x1, TIMEOUT_ODCZYTU);
 	}
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	UstawDekoderZewn(CS_NIC);											//LCD_CS=1
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Odczytuje rejestr ID wyświetlacza. Powinien zwrócić {0x00, 0x93, 0x41} - na razie nie działa
+// Parametry: *bufor - wskaźnik na byfor z 4 znakami ID. Pierwszy znak jest nieistotny (dummy)
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void CzytajIdWyswietlacza(uint8_t* bufor)
+{
+	uint8_t dane[8];
+	HAL_StatusTypeDef chErr;
+
+	dane[0] = 0x00;
+	dane[1] = 0xD3;		//Read ID4
+	UstawDekoderZewn(CS_LCD);											//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+		osDelay(1);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+	if (chErr == ERR_OK)
+	{
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
+		chErr = HAL_SPI_Transmit(&hspi5, dane, 2, TIMEOUT_ZAPISU);
+		//chErr = HAL_SPI_Receive(&hspi5, bufor, 4, TIMEOUT_ODCZYTU);
+		chErr = HAL_SPI_Receive(&hspi5, dane, 4, TIMEOUT_ODCZYTU);	//tymczasowo odczytaj do dane[]
+	}
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	UstawDekoderZewn(CS_NIC);
+}
+
