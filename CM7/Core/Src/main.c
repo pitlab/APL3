@@ -56,6 +56,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "protokol_kom.h"
 #include "moduly_SPI.h"
 #include "audio.h"
+#include "semafory.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -108,7 +109,7 @@ osThreadId tsObslugaWyswieHandle;
 /* USER CODE BEGIN PV */
 uint8_t chErr;
 extern uint8_t chPorty_exp_wysylane[];
-extern uint8_t chNowyTrybPracy;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -152,7 +153,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	extern uint8_t chTrybPracy;
+	extern uint8_t chNowyTrybPracy;
   /* USER CODE END 1 */
 /* USER CODE BEGIN Boot_Mode_Sequence_0 */
   int32_t timeout;
@@ -237,6 +239,7 @@ Error_Handler();
   InicjujDotyk();
   Ekran_Powitalny(nZainicjowano);		//przywitaj użytkownika i prezentuj wykryty sprzęt
   chNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
+  chTrybPracy = TP_WITAJ;				//jest w trybie powitalnym, ważne aby tryb buł inny od TP_MENU_GLOWNE bo on nadpisuje chNowyTrybPracy
 
   /* USER CODE END 2 */
 
@@ -930,7 +933,7 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void const * argument)
 {
   /* init code for LWIP */
-  MX_LWIP_Init();
+  //MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
 	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 	uint32_t nStanSemaforaSPI;
@@ -938,18 +941,18 @@ void StartDefaultTask(void const * argument)
 	/* Infinite loop */
 	for(;;)
 	{
-		//użyj sprzętowego semafora HSEM_SPI6_WYSW do określenia dostępu do SPI6
-		nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI6_WYSW);
+		//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI6
+		nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
 		if (!nStanSemaforaSPI)
 		{
-			chErr = HAL_HSEM_Take(HSEM_SPI6_WYSW, 0);
+			chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 			if (chErr == ERR_OK)
 			{
 				chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
 				WymienDaneExpanderow();
 				CzytajDotyk();
 				UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
-				HAL_HSEM_Release(HSEM_SPI6_WYSW, 0);
+				HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 			}
 			chCzasSwieceniaLED[LED_ZIEL] = 5;
 			chCzasSwieceniaLED[LED_NIEB] = 0;
@@ -1160,8 +1163,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   */
 void Error_Handler(void)
 {
-	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
   /* USER CODE BEGIN Error_Handler_Debug */
+	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 	//włącz czerwoną LED sygnalizując bład
 	chCzasSwieceniaLED[LED_CZER] = 1;	//włącz czerwoną
 	chCzasSwieceniaLED[LED_ZIEL] = 0;	//wyłącz zieloną

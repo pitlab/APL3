@@ -33,7 +33,6 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 #### Do zrobienia:
  - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarce na inne z mniejszym ESR
  - Uruchomić i oprogramować obsługę czujników modułu inercyjnego
- - Oprogramować wgrywanie próbek głosu i obrazów do zewnętrznej pamięci flash
  - Oprogramować generowanie komunikatów głosowych
  - Podłączyć i uruchomić kamerę
  - uruchomić komunikację po ethernet

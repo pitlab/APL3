@@ -913,8 +913,6 @@ HAL_StatusTypeDef FMC_SDRAM_DeInit(FMC_SDRAM_TypeDef *Device, uint32_t Bank)
   Device->SDRTR      = 0x00000000U;
   Device->SDSR       = 0x00000000U;
 
-
-
   return HAL_OK;
 }
 

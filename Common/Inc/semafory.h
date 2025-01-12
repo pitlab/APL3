@@ -18,8 +18,8 @@
 #endif
 
 //semafor do współdzielenia SPI5 między wyświetlacz działajacy w wątku wyświetlacza i resztę działajacą w pętli głównej
-#ifndef HSEM_SPI6_WYSW
-#define HSEM_SPI6_WYSW (3U)
+#ifndef HSEM_SPI5_WYSW
+#define HSEM_SPI5_WYSW (3U)
 #endif
 
 

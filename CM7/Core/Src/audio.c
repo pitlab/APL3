@@ -30,7 +30,8 @@ uint8_t InicjujAudio(void)
 uint8_t GenerujAudio(uint8_t chNrKomunikatu)
 {
 	uint32_t nAdres, nRozmiar, nOdczytano = 0;
-	uint8_t chErr, chBufor[256];
+	uint8_t chErr, chBufor[512];
+	uint16_t sTemp, sBufor[256] ;
 
 	hsai_BlockB2.Instance = SAI2_Block_B;
 	hsai_BlockB2.Init.AudioMode = SAI_MODEMASTER_TX;
@@ -43,19 +44,35 @@ uint8_t GenerujAudio(uint8_t chNrKomunikatu)
 	hsai_BlockB2.Init.MonoStereoMode = SAI_MONOMODE;
 	hsai_BlockB2.Init.CompandingMode = SAI_NOCOMPANDING;
 	hsai_BlockB2.Init.TriState = SAI_OUTPUT_NOTRELEASED;
-	if (HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BIT, 2) != HAL_OK)
+	//if (HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BIT, 2) != HAL_OK)
+	if (HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_LSBJUSTIFIED, SAI_PROTOCOL_DATASIZE_16BIT, 2) != HAL_OK)
 	{
 		Error_Handler();
 	}
+//#define SAI_I2S_STANDARD         0U
+//#define SAI_I2S_MSBJUSTIFIED     1U
+//#define SAI_I2S_LSBJUSTIFIED     2U
+
+	for (uint16_t n=0; n<256; n++)
+	{
+		sTemp = (uint16_t)(0xFFF * (sin(2 * M_PI * 500 * ((float)n / 16000)) + 1.0) / 2.0);
+		sBufor[n] = sTemp;
+		chBufor[2*n+1] = sTemp & 0xFF;
+		chBufor[2*n+0] = sTemp>>8;
+
+	}
+
 
 	nAdres   = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO);
 	nRozmiar = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO + 4);
 	do
 	{
-		for (uint16_t n=0; n<256; n++)
-			chBufor[n] = *(uint8_t*)nAdres++;
-		chErr = HAL_SAI_Transmit(&hsai_BlockB2, chBufor, 256, 10);
-		nOdczytano += 256;
+		//for (uint16_t n=0; n<512; n++)
+			//chBufor[n] = *(uint8_t*)nAdres++;
+
+		chErr = HAL_SAI_Transmit(&hsai_BlockB2, chBufor, 512, 100);
+		//nOdczytano += 256;
+		nOdczytano += 2048;
 	}
 	while (nOdczytano < nRozmiar);
 	return chErr;
