@@ -318,9 +318,6 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 	y += 20;
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, uDaneCM4.dane.nZainicjowano && INITCM4_GNSS);
-
-	HAL_Delay(2000);	//czekaj
-	LCD_clear(BLACK);
 }
 
 

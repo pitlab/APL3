@@ -108,6 +108,7 @@ osThreadId tsObslugaWyswieHandle;
 /* USER CODE BEGIN PV */
 uint8_t chErr;
 extern uint8_t chPorty_exp_wysylane[];
+extern uint8_t chNowyTrybPracy;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -234,7 +235,8 @@ Error_Handler();
   InicjujAudio();
 
   InicjujDotyk();
-  Ekran_Powitalny(nZainicjowano);	//przywitaj użytkownika i prezentuj wykryty sprzęt
+  Ekran_Powitalny(nZainicjowano);		//przywitaj użytkownika i prezentuj wykryty sprzęt
+  chNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
 
   /* USER CODE END 2 */
 
@@ -928,7 +930,7 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void const * argument)
 {
   /* init code for LWIP */
-  //MX_LWIP_Init();
+  MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
 	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 	uint32_t nStanSemaforaSPI;
@@ -1158,10 +1160,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   */
 void Error_Handler(void)
 {
+	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
+	//włącz czerwoną LED sygnalizując bład
+	chCzasSwieceniaLED[LED_CZER] = 1;	//włącz czerwoną
+	chCzasSwieceniaLED[LED_ZIEL] = 0;	//wyłącz zieloną
+	chCzasSwieceniaLED[LED_NIEB] = 0;	//wyłącz niebieską
+	WymienDaneExpanderow();
   __disable_irq();
-
   while (1)
   {
   }

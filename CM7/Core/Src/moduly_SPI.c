@@ -118,6 +118,12 @@ uint8_t InicjujSPIModZewn(void)
 	UstawDekoderZewn(CS_IO);
 	Err |= HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_MAX_DELAY);
 	Err |= UstawDekoderZewn(CS_NIC);
+
+	//włącz niebieskiego LEDa sygnalizujacego konfigurację lub kalibracje
+	chPorty_exp_wysylane[2] |= EXP27_LED_CZER | EXP26_LED_ZIEL;		//wyłącz LED_CZER, wyłącz LED_ZIEL
+	chPorty_exp_wysylane[2] &= ~EXP25_LED_NIEB;		//włącz LED_NIEB
+	Err |= WyslijDaneExpandera(SPI_EXTIO_2, chPorty_exp_wysylane[2]);
+
 	hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróć wcześniejszą konfigurację
 	return Err;
 }
@@ -186,14 +192,15 @@ uint8_t WyslijDaneExpandera(uint8_t adres, uint8_t daneWy)
 {
 	HAL_StatusTypeDef Err;
 	uint8_t dane_wysylane[3];
-	uint8_t dane_odbierane[3];
+	//uint8_t dane_odbierane[3];
 
 	//ustaw rejestr kierunku portów układu exandera U43
 	dane_wysylane[0] = adres;
 	dane_wysylane[1] = MCP23S08_GPIO;
 	dane_wysylane[2] = daneWy;
 	UstawDekoderZewn(CS_IO);
-	Err = HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_MAX_DELAY);
+	//Err = HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_MAX_DELAY);
+	Err = HAL_SPI_Transmit(&hspi5, dane_wysylane, 3, HAL_MAX_DELAY);
 	UstawDekoderZewn(CS_NIC);
 	return Err;
 }
