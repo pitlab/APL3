@@ -86,7 +86,7 @@ struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Komunikat1",	"Komunikat glosowy",						TP_MM_KOM1,			obr_glosnik2},
 	{"Komunikat2",	"Komunikat glosowy",						TP_MM_KOM2,			obr_glosnik1},
 	{"Komunikat3",	"Komunikat glosowy",						TP_MM_KOM3,			obr_glosnik2},
-	{"Komunikat4",	"Komunikat glosowy",						TP_MM_KOM4,			obr_glosnik_neg},
+	{"Sinus",		"Ton dzwiekowy",							TP_MM_KOM4,			obr_glosnik_neg},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_wroc}};
 
 
@@ -216,17 +216,18 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM_KOM2:	//komunikat audio 2
-		GenerujAudio(1);
+		//GenerujAudio(1);
+		GenerujAudio2(2);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KOM3:	//komunikat audio 3
-		GenerujAudio(2);
+		GenerujTonAudio(506, 5000);	//próbka sinusa(częstotliwość, głośność)
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KOM4:	//komunikat audio 4
-		GenerujAudio(3);
+		GenerujTonAudio2(506, 5000);	//próbka sinusa(częstotliwość, głośność)
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 	}
