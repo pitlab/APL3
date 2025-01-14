@@ -202,6 +202,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM3:
+		GenerujAudio(2);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
@@ -211,23 +212,28 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM_KOM1:	//komunikat audio 1
-		GenerujAudio(0);
+		//
+		GenerujAudio1(2);
+		//GenerujTonAudio(506, 5000);	//próbka sinusa(częstotliwość, głośność)
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KOM2:	//komunikat audio 2
 		//GenerujAudio(1);
 		GenerujAudio2(2);
+		//GenerujTonAudio2(506, 5000);	//próbka sinusa(częstotliwość, głośność)
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KOM3:	//komunikat audio 3
-		GenerujTonAudio(506, 5000);	//próbka sinusa(częstotliwość, głośność)
+		//GenerujAudio3(2);
+		GenerujTonAudio3(506, 5000);	//próbka sinusa(częstotliwość, głośność)
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KOM4:	//komunikat audio 4
-		GenerujTonAudio2(506, 5000);	//próbka sinusa(częstotliwość, głośność)
+		//GenerujAudio4(2);
+		GenerujTonAudio4(506, 5000);	//próbka sinusa(częstotliwość, głośność)
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 	}

@@ -81,10 +81,9 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "nic",								//STR_MENU_MULTOOL		max 17 znaków
 "nic",								//STR_MENU_VIBR			max 17 znaków
 "nic",								//STR_MENU_TEST			max 17 znaków
-"Menu Ustawień"						//STR_MENU_SETINGS
+"Menu Ustawień",					//STR_MENU_SETINGS
 "Menu MultiMedia",					//STR_MENU_MULTI_MEDIA
 
-"Koniec"							//STR_KONIEC
 };
 
 const char *chNazwyMies3Lit[13]  = {"---", "Sty","Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paz", "Lis", "Gru"};
