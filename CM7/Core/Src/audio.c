@@ -7,10 +7,11 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "audio.h"
 
+//#define ROZMIAR_BUF2	86*1024
 
-
-static volatile int16_t sBuforAudioWy[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów wychodzących
-//static int16_t sBuforTonu[ROZMIAR_BUFORA_AUDIO/2];				//przechowuje wygenerowany ton
+static volatile uint16_t sBuforAudioWy[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów wychodzących
+static volatile uint16_t sBuforAudioWe[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów przychodzących
+//static uint16_t sBuforTonu[ROZMIAR_BUF2];				//przechowuje wygenerowany ton
 static uint32_t nAdresKomunikatu;		//adres w pamieci flash skąd pobierany jest kolejny fragment komunikatu
 static int32_t nRozmiarKomunikatu;		//pozostały do pobrania rozmiar komunikatu
 static uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
@@ -25,7 +26,7 @@ uint8_t InicjujAudio(void)
 {
 	//chPorty_exp_wysylane[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
 	chPorty_exp_wysylane[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
-	chGlosnosc = 50;
+	chGlosnosc = 100;
 	return ERR_OK;
 }
 
@@ -41,11 +42,26 @@ uint8_t GenerujAudio(uint8_t chNrKomunikatu)
 	uint32_t nRozmiar;
 	uint8_t chErr;
 
+	//Włącza wzmacniacz, włącza mikrofon
+	chPorty_exp_wysylane[1] &= ~EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu, aktywny niski
+	chPorty_exp_wysylane[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio, aktywny niski
+
+	hsai_BlockB2.Instance = SAI2_Block_B;
+	hsai_BlockB2.Init.AudioMode = SAI_MODEMASTER_TX;
+	hsai_BlockB2.Init.Synchro = SAI_ASYNCHRONOUS;
+	hsai_BlockB2.Init.OutputDrive = SAI_OUTPUTDRIVE_DISABLE;
+	hsai_BlockB2.Init.NoDivider = SAI_MASTERDIVIDER_ENABLE;
+	hsai_BlockB2.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_EMPTY;
+	hsai_BlockB2.Init.AudioFrequency = SAI_AUDIO_FREQUENCY_16K;
+	hsai_BlockB2.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
+	hsai_BlockB2.Init.MonoStereoMode = SAI_MONOMODE;
+	hsai_BlockB2.Init.CompandingMode = SAI_NOCOMPANDING;
+	hsai_BlockB2.Init.TriState = SAI_OUTPUT_RELEASED;
 	if (HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BIT, 2) != HAL_OK)
 		Error_Handler();
 
 	nAdresKomunikatu   = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO + 0);
-	nRozmiarKomunikatu = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO + 4);
+	nRozmiarKomunikatu = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO + 4) / 2;
 
 	if (nRozmiarKomunikatu > ROZMIAR_BUFORA_AUDIO)
 		nRozmiar = ROZMIAR_BUFORA_AUDIO;
@@ -59,7 +75,7 @@ uint8_t GenerujAudio(uint8_t chNrKomunikatu)
 		nAdresKomunikatu++;
 	}
 	nRozmiarKomunikatu -= nRozmiar;
-	chErr = HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, 2*ROZMIAR_BUFORA_AUDIO);
+	chErr = HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)nAdresKomunikatu, (uint16_t)nRozmiarKomunikatu);
 	return chErr;
 }
 
@@ -71,50 +87,74 @@ uint8_t GenerujAudio(uint8_t chNrKomunikatu)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t GenerujAudio1(uint8_t chNrKomunikatu)
 {
-	uint32_t nAdres, nRozmiar;
+	extern const short sWszystkiegoNajlepszegoAda[65126];
+	return HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)sWszystkiegoNajlepszegoAda, (uint16_t)65126, 10000);
+	//return HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)wszustkiego_najlepszego_Ada, (uint16_t)65126);
+	/*uint32_t nAdres, nRozmiar;
 
 	nAdres   = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO);
-	nRozmiar = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO + 4);
-	if (nRozmiar > 0xFFFF)
-		nRozmiar = 0xFFFF;
-	//return HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)nAdres, (uint16_t)nRozmiar, 10000);
-	return HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)nAdres, 6);
+	nRozmiar = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO + 4) / 2;
+	if (nRozmiar > ROZMIAR_BUF2)
+		nRozmiar = ROZMIAR_BUF2;
+
+	for (uint32_t n=0; n<nRozmiar; n++)
+	{
+		sBuforTonu[n] =  *(int16_t*)nAdres / 4;
+		nAdres += 2;
+	}
+
+	return HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforTonu, (uint16_t)nRozmiar);*/
 }
 
 
 uint8_t GenerujAudio2(uint8_t chNrKomunikatu)
 {
-	uint32_t nAdres, nRozmiar;
+	extern const short cnowym_rokom_AdaUA[37516];
+	return HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)cnowym_rokom_AdaUA, (uint16_t)37516, 10000);
+	/*uint32_t nAdres, nRozmiar;
 
 	nAdres   = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO);
-	nRozmiar = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO + 4);
-	if (nRozmiar > 0xFFFF)
-		nRozmiar = 0xFFFF;
-	return HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)nAdres, 6, 10000);
+	nRozmiar = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO + 4) / 2;
+	if (nRozmiar > ROZMIAR_BUF2)
+		nRozmiar = ROZMIAR_BUF2;
+
+	for (uint32_t n=0; n<nRozmiar; n++)
+	{
+		sBuforTonu[n] =  *(int16_t*)nAdres / 8;
+		nAdres += 2;
+	}
+
+	return HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)sBuforTonu, (uint16_t)nRozmiar, 10000);*/
 }
 
 
 uint8_t GenerujAudio3(uint8_t chNrKomunikatu)
 {
-	uint32_t nAdres, nRozmiar;
+	//uint32_t nAdres, nRozmiar;
+	extern short proba_mikrofonu[30714] ;
 
-	nAdres   = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO);
+	return HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)proba_mikrofonu, (uint16_t)30714, 10000);
+
+
+	/*nAdres   = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO);
 	nRozmiar = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO + 4);
 	if (nRozmiar > 0xFFFF)
 		nRozmiar = 0xFFFF;
-	return HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)nAdres, (uint16_t)nRozmiar, 10000);
+	return HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)nAdres, (uint16_t)nRozmiar, 10000);*/
 }
 
 
 uint8_t GenerujAudio4(uint8_t chNrKomunikatu)
 {
-	uint32_t nAdres, nRozmiar;
+	extern const short PWM_detected[33050];
+	return HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)PWM_detected, (uint16_t)33050, 10000);
+	/*uint32_t nAdres, nRozmiar;
 
 	nAdres   = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO);
 	nRozmiar = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO + 4);
 	if (nRozmiar > 0xFFFF)
 		nRozmiar = 0xFFFF;
-	return HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)nAdres, (uint16_t)nRozmiar, 10000);
+	return HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)nAdres, (uint16_t)nRozmiar, 10000);*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -122,71 +162,25 @@ uint8_t GenerujAudio4(uint8_t chNrKomunikatu)
 // Parametry: chNrKomunikatu - numer komunikatu okreslający pozycję w spisie komunikatów
 // Zwraca: kod błedu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t GenerujTonAudio(float fCzestotliwosc, uint16_t sGlosnosc)
+uint8_t GenerujAudio5(uint8_t chNrKomunikatu)
 {
-	uint8_t chErr;
+	extern const short sNiechajNarodowie[129808];
 
-	for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO; n++)
-		//sBuforAudioWy[n] = (int16_t)(sGlosnosc * sin(2 * M_PI * fCzestotliwosc * (float)n / SAI_AUDIO_FREQUENCY_16K));
-		sBuforAudioWy[n] = 0x0f;
+	nAdresKomunikatu   = (uint32_t)&sNiechajNarodowie[0];
+	nRozmiarKomunikatu = 129808;
 
-	nRozmiarKomunikatu = ROZMIAR_BUFORA_AUDIO;
-	//for (uint8_t n=0; n<100; n++)
-		chErr = HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, ROZMIAR_BUFORA_AUDIO, 1000);
-	return chErr;
+	for (uint32_t n=0; n<ROZMIAR_BUFORA_AUDIO; n++)
+	{
+		sBuforAudioWy[n] =  *(int16_t*)nAdresKomunikatu;
+		nAdresKomunikatu += 2;
+	}
+	nRozmiarKomunikatu -= ROZMIAR_BUFORA_AUDIO;
+
+	return HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, (uint16_t)ROZMIAR_BUFORA_AUDIO);
 }
 
 
-uint8_t GenerujTonAudio2(float fCzestotliwosc, uint16_t sGlosnosc)
-{
-	uint8_t chErr;
 
-	for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO; n++)
-		//sBuforAudioWy[n] = (int16_t)(sGlosnosc * sin(2 * M_PI * fCzestotliwosc * (float)n / SAI_AUDIO_FREQUENCY_16K));
-		sBuforAudioWy[n] = 0xFFF;
-
-	nRozmiarKomunikatu = ROZMIAR_BUFORA_AUDIO;
-	//for (uint8_t n=0; n<100; n++)
-		chErr = HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, ROZMIAR_BUFORA_AUDIO, 1000);
-	return chErr;
-}
-
-
-uint8_t GenerujTonAudio3(float fCzestotliwosc, uint16_t sGlosnosc)
-{
-	uint8_t chErr;
-
-	sBuforAudioWy[0] = 0x000F;
-	sBuforAudioWy[1] = 0x00F0;
-	sBuforAudioWy[2] = 0x0F00;
-	sBuforAudioWy[3] = 0xF000;
-	sBuforAudioWy[4] = 0xFF00;
-	sBuforAudioWy[5] = 0x00FF;
-	sBuforAudioWy[6] = 0xFFFF;
-
-	nRozmiarKomunikatu = ROZMIAR_BUFORA_AUDIO;
-	//for (uint8_t n=0; n<100; n++)
-		//chErr = HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, 7, 1000);
-		chErr = HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, 6);
-	return chErr;
-}
-
-
-uint8_t GenerujTonAudio4(float fCzestotliwosc, uint16_t sGlosnosc)
-{
-	uint8_t chErr;
-
-	for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO; n++)
-		sBuforAudioWy[n] = (int16_t)n;
-
-	//for (uint8_t n=0; n<100; n++)
-		//chErr = HAL_SAI_Transmit(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, 4, 1000);
-		chErr = HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, 6);
-	return chErr;
-}
-
-
-/*
 ////////////////////////////////////////////////////////////////////////////////
 // Callback opróżnienia połowy bufora
 ////////////////////////////////////////////////////////////////////////////////
@@ -202,8 +196,9 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 	//napełnij pierwszą połowę bufora
 	for (uint32_t n=0; n<nRozmiar; n++)
 	{
-		sBuforAudioWy[n] = (*(uint16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI;
-		nAdresKomunikatu++;
+		//sBuforAudioWy[n] = (*(uint16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI;
+		sBuforAudioWy[n] = *(uint16_t*)nAdresKomunikatu;
+		nAdresKomunikatu += 2;
 	}
 	nRozmiarKomunikatu -= nRozmiar;
 	if (nRozmiarKomunikatu <= 0)
@@ -227,8 +222,9 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 	//napełnij drugą połowę bufora
 	for (uint32_t n=0; n<nRozmiar; n++)
 	{
-		sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = (*(uint16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI;
-		nAdresKomunikatu++;
+		//sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = (*(uint16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI;
+		sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = *(uint16_t*)nAdresKomunikatu;
+		nAdresKomunikatu += 2;
 	}
 	nRozmiarKomunikatu -= nRozmiar;
 	if (nRozmiarKomunikatu <= 0)
@@ -236,7 +232,7 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 }
 
 
-*/
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pobiera dane z mokrofonu
@@ -245,7 +241,12 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t RejestrujAudio(void)
 {
-	uint8_t chErr, chIlosc, chBufor[512];
+	uint8_t chErr;
+
+	//Włącza mikrofon wyłącza wzmacniacz
+	chPorty_exp_wysylane[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu, aktywny niski
+	chPorty_exp_wysylane[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio, aktywny niski
+
 
 	hsai_BlockB2.Instance = SAI2_Block_B;
 	hsai_BlockB2.Init.AudioMode = SAI_MODEMASTER_RX;
@@ -257,20 +258,14 @@ uint8_t RejestrujAudio(void)
 	hsai_BlockB2.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
 	hsai_BlockB2.Init.MonoStereoMode = SAI_MONOMODE;
 	hsai_BlockB2.Init.CompandingMode = SAI_NOCOMPANDING;
-	hsai_BlockB2.Init.TriState = SAI_OUTPUT_NOTRELEASED;
+	hsai_BlockB2.Init.TriState = SAI_OUTPUT_RELEASED;
 	if (HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BIT, 2) != HAL_OK)
 	{
 		Error_Handler();
 	}
-	for (uint16_t n=0; n<512; n++)
-		chBufor[n] = n;
+	for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO; n++)
+		sBuforAudioWe[n] = n;
 
-	chIlosc = 0;
-	do
-	{
-		chErr = HAL_SAI_Receive(&hsai_BlockB2, chBufor, 256, 100);
-		chIlosc++;
-	}
-	while (chIlosc < 50);
+	chErr = HAL_SAI_Receive(&hsai_BlockB2, (uint8_t*)sBuforAudioWe, ROZMIAR_BUFORA_AUDIO, 1000);
 	return chErr;
 }

@@ -19,6 +19,7 @@
 #include "flash_nor.h"
 #include "wymiana.h"
 #include "audio.h"
+#include "protokol_kom.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -43,6 +44,7 @@ extern const unsigned short obr_glosnik2[];
 extern const unsigned short obr_glosnik_neg[];
 extern const unsigned short obr_wroc[];
 extern const unsigned short obr_foto[];
+extern const unsigned short obr_Mikołaj_Rey[];
 
 //definicje zmiennych
 uint8_t chTrybPracy;
@@ -78,7 +80,7 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 
 struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Kamera",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 		obr_foto},
+	{"M.Rey",  	    "Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 		obr_Mikołaj_Rey},
 	{"Mikrofon",	"Wlacza mikrofon wylacza wzmacniacz",		TP_MM1,				obr_glosnik2},
 	{"Wzmacniacz",	"Wlacza wzmacniacz, wylacza mikrofon",		TP_MM2,				obr_glosnik2},
 	{"M1",			"nic",										TP_MM3,				obr_glosnik2},
@@ -86,7 +88,7 @@ struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Komunikat1",	"Komunikat glosowy",						TP_MM_KOM1,			obr_glosnik2},
 	{"Komunikat2",	"Komunikat glosowy",						TP_MM_KOM2,			obr_glosnik1},
 	{"Komunikat3",	"Komunikat glosowy",						TP_MM_KOM3,			obr_glosnik2},
-	{"Sinus",		"Ton dzwiekowy",							TP_MM_KOM4,			obr_glosnik_neg},
+	{"Komunikat4",	"Ton dzwiekowy",							TP_MM_KOM4,			obr_glosnik_neg},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_wroc}};
 
 
@@ -186,23 +188,25 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAMERA:
+		//TestKomunikacji();	//wyślij komunikat tesktowy przez LPUART
+		GenerujAudio5(0);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
-	case TP_MM1:		//"Wlacza mikrofon wylacza wzmacniacz
-		chPorty_exp_wysylane[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
-		chPorty_exp_wysylane[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
+	case TP_MM1:		//"Włącza mikrofon, włącza wzmacniacz
+		chPorty_exp_wysylane[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu, aktywny niski
+		chPorty_exp_wysylane[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio, aktywny niski
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
-	case TP_MM2:	//Wlacza wzmacniacz, wylacza mikrofon
-		chPorty_exp_wysylane[1] &= ~EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
-		chPorty_exp_wysylane[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
+	case TP_MM2:	//Włącza wzmacniacz, włącza mikrofon
+		chPorty_exp_wysylane[1] &= ~EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu, aktywny niski
+		chPorty_exp_wysylane[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio, aktywny niski
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM3:
-		GenerujAudio(2);
+		GenerujAudio(0);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
@@ -213,27 +217,27 @@ void RysujEkran(void)
 
 	case TP_MM_KOM1:	//komunikat audio 1
 		//
-		GenerujAudio1(2);
+		GenerujAudio1(0);
 		//GenerujTonAudio(506, 5000);	//próbka sinusa(częstotliwość, głośność)
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KOM2:	//komunikat audio 2
 		//GenerujAudio(1);
-		GenerujAudio2(2);
+		GenerujAudio2(0);
 		//GenerujTonAudio2(506, 5000);	//próbka sinusa(częstotliwość, głośność)
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KOM3:	//komunikat audio 3
-		//GenerujAudio3(2);
-		GenerujTonAudio3(506, 5000);	//próbka sinusa(częstotliwość, głośność)
+		GenerujAudio3(0);
+		//GenerujTonAudio3(506, 5000);	//próbka sinusa(częstotliwość, głośność)
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KOM4:	//komunikat audio 4
-		//GenerujAudio4(2);
-		GenerujTonAudio4(506, 5000);	//próbka sinusa(częstotliwość, głośność)
+		GenerujAudio4(0);
+		//GenerujTonAudio4(506, 5000);	//próbka sinusa(częstotliwość, głośność)
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 	}

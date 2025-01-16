@@ -49,7 +49,7 @@ int16_t sSzerZdjecia, sWysZdjecia;
 uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
-//uint8_t chBuforNadDMA[ROZMIAR_RAMKI_UART]  __attribute__((section(".Bufory_SRAM4")));
+uint8_t chBuforNadDMA[ROZMIAR_RAMKI_UART]  __attribute__((section(".Bufory_SRAM4")));
 uint8_t chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA]  __attribute__((section(".Bufory_SRAM4")));
 
 uint8_t chWyslaneOK = 1;
@@ -94,7 +94,6 @@ uint8_t InicjujProtokol(void)
 ////////////////////////////////////////////////////////////////////////////////
 void InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 {
-	CzytajPamiecObrazu(0, 0, 200, 320, (uint8_t*)sBuforLCD);	//odczytaj pamięć obrazu do bufora LCD
 	sWskNap = sWskOpr = 0;
 	HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 2*ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
 }
@@ -169,6 +168,15 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *hUart, uint16_t Size)
 }
 
 
+void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *hUart)
+{
+	if (hUart->Instance == LPUART1);
+}
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *hUart)
+{
+	if (hUart->Instance == LPUART1);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Analizuje dane przychodzące z interfejsów komunikacyjnych w trybie: pytanie - odpowiedź
@@ -581,9 +589,8 @@ uint8_t Wyslij_ERR(uint8_t chKodBledu, uint8_t chParametr, uint8_t chInterfejs)
 uint8_t TestKomunikacji(void)
 {
 	uint8_t chErr = 0;
-	/*
 	uint16_t sRozmDanych;
-	extern char chBuforNapisowCM4[ROZMIAR_BUF_NAPISOW_CM4];
+	/*extern char chBuforNapisowCM4[ROZMIAR_BUF_NAPISOW_CM4];
 	extern uint8_t chWskNapBufNapisowCM4;
 	extern uint8_t chWskOprBufNapisowCM4;
 
@@ -600,12 +607,12 @@ uint8_t TestKomunikacji(void)
 		}
 		else
 			break;
-	}
+	}*/
 
-	//sRozmDanych = sprintf((char*)chBuforNadDMA, "Test komunikacji UART\n\r");
+	sRozmDanych = sprintf((char*)chBuforNadDMA, "Test komunikacji UART\n\r");
 	if (sRozmDanych)
 		chErr = HAL_UART_Transmit_DMA(&hlpuart1, (uint8_t*)chBuforNadDMA, sRozmDanych);
-	//osDelay(1);*/
+		//chErr = HAL_UART_Transmit(&hlpuart1,  chBuforNadDMA, sRozmDanych, 100);
 	return chErr;
 }
 
