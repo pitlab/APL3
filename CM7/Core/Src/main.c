@@ -164,7 +164,7 @@ int main(void)
 /* USER CODE END Boot_Mode_Sequence_0 */
 
   /* MPU Configuration--------------------------------------------------------*/
-  MPU_Config();
+    MPU_Config();
 
   /* Enable the CPU Cache */
 

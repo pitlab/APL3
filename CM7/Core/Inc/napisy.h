@@ -44,8 +44,9 @@
 #define STR_MENU_SETINGS			28
 #define STR_MENU_MULTI_MEDIA		29
 
-#define STR_KONIEC					30
-#define MAX_NAPISOW					31	//liczba napisów
+#define STR_MENU_WYDAJNOSC			30
+#define STR_KONIEC					31
+#define MAX_NAPISOW					32	//liczba napisów
 
 
 #define JEZYK_POLSKI
@@ -86,6 +87,7 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Menu Ustawien",					//STR_MENU_SETINGS
 "Menu MultiMedia",					//STR_MENU_MULTI_MEDIA
 
+"Menu Wydajnosc"					//STR_MENU_WYDAJNOSC
 "koniec"							//STR_KONIEC
 };
 

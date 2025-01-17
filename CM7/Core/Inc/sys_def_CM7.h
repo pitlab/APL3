@@ -14,7 +14,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	67	//numer commitu w repozytorium
+#define WER_REPO	68	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -53,29 +53,42 @@
 //tryby pracy
 #define TP_MENU_GLOWNE		0	//wyświetla ekran menu głównego
 #define TP_WROC_DO_MENU		1
-#define TP_FRAKTALE			2	//wyświetla benchmark fraktalowy
+#define TP_MG1				2
 #define TP_KALIB_DOTYK		3	//kalibracja panelu dotykowego
-#define TP_POM_ZAPISU_NOR	4
-#define TP_POMIAR_FNOR		5
-#define TP_POMIAR_SRAM		6
-#define TP_POMIAR_FQSPI		7
+
 #define TP_USTAWIENIA		8
 #define TP_KAMERA			9
 #define TP_TESTY			10
 #define TP_POMIARY_IMU		11	//wyświetlaj wyniki pomiarów IMU pobrane z CM4
 #define TP_ZDJECIE			12
 #define TP_WITAJ			13
-#define TP_MULTIMEDIA		14	//menu multimediow
-#define TP_WROC_DO_MMEDIA	15
-#define TP_MM1				16
-#define TP_MM2				17
-#define TP_MM3				18
-#define TP_MM_AUDIO_FFT		19	//FFT sygnału z mikrofonu
-#define TP_MM_KOM1			20	//komunikat audio 1
-#define TP_MM_KOM2			21	//komunikat audio 2
-#define TP_MM_KOM3			22	//komunikat audio 3
-#define TP_MM_KOM4			23	//komunikat audio 4
 
+#define TP_MULTIMEDIA		14	//menu multimediow
+#define TP_WYDAJNOSC		15	//menu pomiarów wydajności
+
+
+#define TP_MMREJ			40	//M.Rey
+#define TP_MM1				41
+#define TP_MM2				42
+#define TP_MM3				43
+#define TP_MM_AUDIO_FFT		44	//FFT sygnału z mikrofonu
+#define TP_MM_KOM1			45	//komunikat audio 1
+#define TP_MM_KOM2			46	//komunikat audio 2
+#define TP_MM_KOM3			47	//komunikat audio 3
+#define TP_MM_KOM4			48	//komunikat audio 4
+#define TP_WROC_DO_MMEDIA	49
+
+
+#define TP_FRAKTALE			30	//wyświetla benchmark fraktalowy
+#define TP_POM_ZAPISU_NOR	31
+#define TP_POMIAR_FNOR		32
+#define TP_POMIAR_SRAM		33
+#define TP_POMIAR_FQSPI		34
+#define TP_W1				35
+#define TP_W2				36
+#define TP_W3				37
+#define TP_W4				38
+#define TP_WROC_DO_WYDAJN	39
 
 
 //flagi inicjalizacj sprzetu na płytce

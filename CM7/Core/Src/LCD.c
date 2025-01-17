@@ -45,6 +45,8 @@ extern const unsigned short obr_glosnik_neg[];
 extern const unsigned short obr_wroc[];
 extern const unsigned short obr_foto[];
 extern const unsigned short obr_Mikołaj_Rey[];
+extern const unsigned short obr_Wydajnosc[];
+extern const unsigned short obr_mtest[];
 
 extern const short sNiechajNarodowie[129808];
 extern const short PWM_detected[33050];
@@ -76,20 +78,35 @@ extern uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w 
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Multimedia",  "Obsluga multimediow: dzwiek i obraz",		TP_MULTIMEDIA, 		obr_mmedia},
-	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,		obr_fraktal},
+	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
-	{"Zapis NOR", 	"Test zapisu do flash NOR",					TP_POM_ZAPISU_NOR,	obr_NOR},
-	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_NOR},
-	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_QSPI},
-	{"Trans SRAM",	"Pomiar predkosci Static RAM 16-bit",		TP_POMIAR_SRAM,		obr_RAM},
+	{"nic", 		"nic",										TP_MG1,				obr_mtest},
+	{"nic", 		"nic",										TP_MG1,				obr_mtest},
+	{"nic", 		"nic",										TP_MG1,				obr_mtest},
+	{"nic", 		"nic",										TP_MG1,				obr_mtest},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_multitool},
 	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_dotyk},
 	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_dotyk}};
 
 
+struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
+	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,		obr_fraktal},
+	{"Zapis NOR", 	"Test zapisu do flash NOR",					TP_POM_ZAPISU_NOR,	obr_NOR},
+	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_NOR},
+	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_QSPI},
+	{"Trans SRAM",	"Pomiar predkosci Static RAM 16-bit",		TP_POMIAR_SRAM,		obr_RAM},
+	{"W1",			"nic",										TP_W1,				obr_Wydajnosc},
+	{"W2",			"nic",										TP_W2,				obr_Wydajnosc},
+	{"W3",			"nic",										TP_W3,				obr_Wydajnosc},
+	{"W4",			"nic",										TP_W4,				obr_Wydajnosc},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_wroc}};
+
+
+
 struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"M.Rey",  	    "Obsluga kamery, aparatu i obrobka obrazu",	TP_KAMERA,	 		obr_Mikołaj_Rey},
+	{"M.Rey",  	    "Obsluga kamery, aparatu i obrobka obrazu",	TP_MMREJ,	 		obr_Mikołaj_Rey},
 	{"Mikrofon",	"Wlacza mikrofon wylacza wzmacniacz",		TP_MM1,				obr_glosnik2},
 	{"Wzmacniacz",	"Wlacza wzmacniacz, wylacza mikrofon",		TP_MM2,				obr_glosnik2},
 	{"M1",			"nic",										TP_MM3,				obr_glosnik2},
@@ -134,29 +151,7 @@ void RysujEkran(void)
 			chTrybPracy = TP_TESTY;
 		break;
 
-	case TP_POM_ZAPISU_NOR:		TestPredkosciZapisuNOR();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MENU;
-		}
-		break;
 
-	case TP_POMIAR_FNOR:	TestPredkosciOdczytuNOR();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MENU;
-		}
-		break;
-
-	case TP_POMIAR_FQSPI:	W25_TestTransferu();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MENU;
-		}
-		break;
 
 	case TP_POMIAR_SRAM:	TestPredkosciOdczytuRAM();
 	if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
@@ -190,13 +185,13 @@ void RysujEkran(void)
 		}
 		break;
 
-
+//***************************************************
 	case TP_MULTIMEDIA:			//menu multimediow
 		Menu((char*)chNapisLcd[STR_MENU_MULTI_MEDIA], stMenuMultiMedia, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
-	case TP_KAMERA:
+	case TP_MMREJ:
 		//TestKomunikacji();	//wyślij komunikat tesktowy przez LPUART
 		OdtworzProbkeAudio((uint32_t)&sNiechajNarodowie[0], 129808);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
@@ -244,6 +239,41 @@ void RysujEkran(void)
 		OdtworzProbkeAudio((uint32_t)&PWM_detected[0], 33050);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
+
+//***************************************************
+	case TP_WYDAJNOSC:			///menu pomiarów wydajności
+		Menu((char*)chNapisLcd[STR_MENU_WYDAJNOSC], stMenuWydajnosc, &chNowyTrybPracy);
+		chWrocDoTrybu = TP_MENU_GLOWNE;
+		break;
+
+	case TP_POM_ZAPISU_NOR:		TestPredkosciZapisuNOR();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+		}
+		break;
+
+	case TP_POMIAR_FNOR:	TestPredkosciOdczytuNOR();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+		}
+		break;
+
+	case TP_POMIAR_FQSPI:	W25_TestTransferu();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+		}
+		break;
+
+	case TP_W1:		UstawTon(0, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
+	case TP_W2:		UstawTon(1, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
+	case TP_W3:		UstawTon(65, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
+	case TP_W4:		UstawTon(127, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
 	}
 
 	//rzeczy do zrobienia podczas uruchamiania nowego trybu pracy
@@ -260,6 +290,7 @@ void RysujEkran(void)
 		{
 		case TP_WROC_DO_MENU:	chTrybPracy = TP_MENU_GLOWNE;	break;	//powrót do menu głównego
 		case TP_WROC_DO_MMEDIA:	chTrybPracy = TP_MULTIMEDIA;	break;	//powrót do menu MultiMedia
+		case TP_WROC_DO_WYDAJN:	chTrybPracy = TP_WYDAJNOSC;		break;	//powrót do menu
 		case TP_FRAKTALE:		InitFraktal(0);		break;
 		case TP_USTAWIENIA:		chTrybPracy = TP_KALIB_DOTYK;	break;
 		}

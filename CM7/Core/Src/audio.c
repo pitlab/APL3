@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// Moduł obsługi generowania i rejestracji dźwiękóww
+// Moduł obsługi generowania i rejestracji dźwięków
 //
 // (c) PitLab 2025
 // http://www.pitlab.pl
@@ -8,21 +8,28 @@
 #include "audio.h"
 
 
-static volatile uint16_t sBuforAudioWy[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów wychodzących
-static volatile uint16_t sBuforAudioWe[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów przychodzących
+static volatile int16_t sBuforAudioWy[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów wychodzących
+static volatile int16_t sBuforAudioWe[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów przychodzących
+static volatile int16_t sBuforTonuWario[ROZMIAR_BUFORA_TONU];	//bufor do przechowywania tonu wario
+static uint16_t sWskTonu;				//wskazuje na bieżącą próbkę w tablicy tonu
+static uint16_t sRozmiarTonu;			//długość tablicy pełnego sinusa
+//uint8_t chGenerujTonWario = 0;			//flaga właczajaca generowanie tonu
+static uint8_t chNumerTonu;
 static uint32_t nAdresKomunikatu;		//adres w pamieci flash skąd pobierany jest kolejny fragment komunikatu
 static int32_t nRozmiarKomunikatu;		//pozostały do pobrania rozmiar komunikatu
-uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
+uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI_AUDIO
 
 extern SAI_HandleTypeDef hsai_BlockB2;
 extern uint8_t chPorty_exp_wysylane[];
 extern void Error_Handler(void);
 
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonuje inicjalizację zasobów dotwarzania dźwięku. Uruchamiane przy starcie
 // Parametry: nic
-// Zwraca: kod błedu
+// Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujAudio(void)
 {
@@ -38,7 +45,7 @@ uint8_t InicjujAudio(void)
 ////////////////////////////////////////////////////////////////////////////////
 // Odtwarza komunikat głosowy obecny w spisie komunikatów
 // Parametry: chNrKomunikatu - numer komunikatu okreslający pozycję w spisie
-// Zwraca: kod błedu
+// Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t OdtworzProbkeAudioZeSpisu(uint8_t chNrKomunikatu)
 {
@@ -52,7 +59,7 @@ uint8_t OdtworzProbkeAudioZeSpisu(uint8_t chNrKomunikatu)
 // Parametry:
 // 	nAdres - adres początku komunikatu
 //	nRozmiar - rozmiar komunikat w bajtach
-// Zwraca: kod błedu
+// Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 {
@@ -63,7 +70,7 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 	for (uint32_t n=0; n<ROZMIAR_BUFORA_AUDIO; n++)
 	{
 		//sBuforAudioWy[n] =  *(int16_t*)nAdresKomunikatu;
-		sBuforAudioWy[n] = (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI;
+		sBuforAudioWy[n] = (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
 		nAdresKomunikatu += 2;
 	}
 	nRozmiarKomunikatu -= ROZMIAR_BUFORA_AUDIO;
@@ -81,8 +88,6 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 {
 	uint32_t nRozmiar;
-	//int32_t nGlosnosc = chGlosnosc;
-	//int32_t nTemp;
 
 	if (nRozmiarKomunikatu > ROZMIAR_BUFORA_AUDIO/2)
 		nRozmiar = ROZMIAR_BUFORA_AUDIO/2;
@@ -92,20 +97,15 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 	//napełnij pierwszą połowę bufora
 	for (uint32_t n=0; n<nRozmiar; n++)
 	{
-		/*/poniższy kod działa poprawnie, zajmuje 20 cykli maszynowych
-		nTemp = *(int16_t*)nAdresKomunikatu;
-		nTemp *= nGlosnosc;
-		nTemp /= SKALA_GLOSNOSCI;
-		sBuforAudioWy[n] = nTemp;*/
-
-		//też działa dobrze,  zajmuje 15 cykli maszynowych
-		//sBuforAudioWy[n] = (int16_t)((*(int16_t*)nAdresKomunikatu * nGlosnosc) / SKALA_GLOSNOSCI);	//OK
-		//sBuforAudioWy[n] = (int16_t)((*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI);	//OK
-		sBuforAudioWy[n] = (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI;	//OK
+		//sBuforAudioWy[n] = (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;	//OK
+		sBuforAudioWy[n] = sBuforTonuWario[sWskTonu];
+		sWskTonu++;
+		if (sWskTonu >= sRozmiarTonu)
+			sWskTonu = 0;
 		nAdresKomunikatu += 2;
 	}
 	nRozmiarKomunikatu -= nRozmiar;
-	if (nRozmiarKomunikatu <= 0)
+	if ((nRozmiarKomunikatu <= 0) && (chNumerTonu == 0))
 		HAL_SAI_DMAStop(&hsai_BlockB2);
 }
 
@@ -119,23 +119,27 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 {
 	uint32_t nRozmiar;
-	//int32_t nGlosnosc = chGlosnosc;
 
 	if (nRozmiarKomunikatu > ROZMIAR_BUFORA_AUDIO/2)
 		nRozmiar = ROZMIAR_BUFORA_AUDIO/2;
 	else
 		nRozmiar = nRozmiarKomunikatu;
 
+	static volatile int16_t sBuforTonuWario[ROZMIAR_BUFORA_TONU];	//bufor do przechowywania tonu wario
+	static uint16_t sWskTonu;
+
 	//napełnij drugą połowę bufora
 	for (uint32_t n=0; n<nRozmiar; n++)
 	{
-		//sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = (int16_t)((*(int16_t*)nAdresKomunikatu * nGlosnosc) / SKALA_GLOSNOSCI);
-		//sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = (int16_t)((*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI);
-		sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI;
+		//sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
+		sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = sBuforTonuWario[sWskTonu];
+		sWskTonu++;
+		if (sWskTonu >= sRozmiarTonu)
+			sWskTonu = 0;
 		nAdresKomunikatu += 2;
 	}
 	nRozmiarKomunikatu -= nRozmiar;
-	if (nRozmiarKomunikatu <= 0)
+	if ((nRozmiarKomunikatu <= 0) && (chNumerTonu == 0))
 		HAL_SAI_DMAStop(&hsai_BlockB2);
 }
 
@@ -145,7 +149,7 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 ////////////////////////////////////////////////////////////////////////////////
 // Pobiera dane z mikrofonu
 // Parametry: nic
-// Zwraca: kod błedu
+// Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t RejestrujAudio(void)
 {
@@ -176,4 +180,42 @@ uint8_t RejestrujAudio(void)
 
 	chErr = HAL_SAI_Receive(&hsai_BlockB2, (uint8_t*)sBuforAudioWe, ROZMIAR_BUFORA_AUDIO, 1000);
 	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja generuje tablicę próbek tonu akustycznego, które będą miksowane z ewentualnymi komunikatami audio i wypuszczane na wzmacniacz
+// Prędkość odtwarzania jest stała i wynosi 16kHz, wiec aby zmienić ton, należy zmieniać długość tablicy z jednym okresem sinusa
+// Ton jest jednym okresem sinusa o podstawowej częstotliwości naniesionym na nośną o częstotliwości 3 krotnie wyjższej
+// Parametry:
+// 	chNrTonu - numer kolejnego tonu jaki jest generowany w zakresie 0..MAX_TON_WARIO
+//	chGlosnosc - amplituda sygnału w zakresie 0..255
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+void UstawTon(uint8_t chNrTonu, uint8_t chGlosnosc)
+{
+	uint16_t sWskBufora = 0;
+	//ustaw zmienne globalne
+	sRozmiarTonu = MIN_OKRES_TONU + SKOK_TONU * chNrTonu;
+	chNumerTonu = chNrTonu;
+
+
+	for (uint16_t n=0; n<sRozmiarTonu; n++)
+	{
+		//amplituda sinusa to +-1. Są dwa sinusy: częstotliwości podstawowej i harmonicznej
+		sBuforTonuWario[n] = (int16_t)((chGlosnosc * (AMPLITUDA_1HARM * sinf(2 * M_PI * n / sRozmiarTonu) + AMPLITUDA_3HARM * (sinf(6 * M_PI * n / sRozmiarTonu))))/ SKALA_GLOSNOSCI_TONU);
+		//sBuforTonuWario[n] = (int16_t)(chGlosnosc * (AMPLITUDA_3HARM * sinf(6 * M_PI * n / sRozmiarTonu) / SKALA_GLOSNOSCI_TONU));
+		//sBuforTonuWario[n] = (int16_t)(chGlosnosc * (AMPLITUDA_1HARM * sinf(2 * M_PI * n / sRozmiarTonu) / SKALA_GLOSNOSCI_TONU));
+	}
+
+	//napełnij obie połowy bufora audio, bo nie wiemy od której zacznie się odtwarzanie
+	for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO/2; n++)
+	{
+		sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = sBuforAudioWy[n] = sBuforTonuWario[sWskBufora];
+		sWskBufora++;
+		if (sWskBufora >= sRozmiarTonu)
+			sWskBufora = 0;
+	}
+	HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, (uint16_t)ROZMIAR_BUFORA_AUDIO);
 }
