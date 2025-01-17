@@ -46,6 +46,13 @@ extern const unsigned short obr_wroc[];
 extern const unsigned short obr_foto[];
 extern const unsigned short obr_Mikołaj_Rey[];
 
+extern const short sNiechajNarodowie[129808];
+extern const short PWM_detected[33050];
+extern short proba_mikrofonu[30714] ;
+extern const short cnowym_rokom_AdaUA[37516];
+extern const short sWszystkiegoNajlepszegoAda[65126];
+
+
 //definicje zmiennych
 uint8_t chTrybPracy;
 uint8_t chNowyTrybPracy;
@@ -62,6 +69,8 @@ extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern struct _statusDotyku statusDotyku;
 extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 extern uint8_t chPorty_exp_wysylane[];
+extern uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
+
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -189,7 +198,7 @@ void RysujEkran(void)
 
 	case TP_KAMERA:
 		//TestKomunikacji();	//wyślij komunikat tesktowy przez LPUART
-		GenerujAudio5(0);
+		OdtworzProbkeAudio((uint32_t)&sNiechajNarodowie[0], 129808);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
@@ -206,7 +215,8 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM3:
-		GenerujAudio(0);
+		//OdtworzProbkeAudioZeSpisu(0);
+		chGlosnosc--;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
@@ -216,28 +226,22 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM_KOM1:	//komunikat audio 1
-		//
-		GenerujAudio1(0);
-		//GenerujTonAudio(506, 5000);	//próbka sinusa(częstotliwość, głośność)
+		OdtworzProbkeAudio((uint32_t)&sWszystkiegoNajlepszegoAda[0], 65126);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KOM2:	//komunikat audio 2
-		//GenerujAudio(1);
-		GenerujAudio2(0);
-		//GenerujTonAudio2(506, 5000);	//próbka sinusa(częstotliwość, głośność)
+		OdtworzProbkeAudio((uint32_t)&cnowym_rokom_AdaUA[0], 37516);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KOM3:	//komunikat audio 3
-		GenerujAudio3(0);
-		//GenerujTonAudio3(506, 5000);	//próbka sinusa(częstotliwość, głośność)
+		OdtworzProbkeAudio((uint32_t)&proba_mikrofonu[0], 30714);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KOM4:	//komunikat audio 4
-		GenerujAudio4(0);
-		//GenerujTonAudio4(506, 5000);	//próbka sinusa(częstotliwość, głośność)
+		OdtworzProbkeAudio((uint32_t)&PWM_detected[0], 33050);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 	}

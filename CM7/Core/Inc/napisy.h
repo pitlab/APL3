@@ -21,6 +21,7 @@
 #define STR_SPRAWDZ_KAMERA_OV5642	7
 #define STR_SPRAWDZ_IMU1			8
 #define STR_SPRAWDZ_GNSS			9
+
 #define STR_SPRAWDZ_0				10
 #define STR_SPRAWDZ_1				11
 #define STR_SPRAWDZ_2				12
@@ -31,6 +32,7 @@
 #define STR_SPRAWDZ_7				17
 #define STR_SPRAWDZ_8				18
 #define STR_TEST_TOUCH				19
+
 #define STR_LIBEL_TITLE				20
 #define STR_MENU_MAIN				21
 #define STR_MENU_PROTOCOLS			22
@@ -61,6 +63,7 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Kamera OV5642", 					//STR_SPRAWDZ_KAMERA_OV5642
 "Modul IMU",						//STR_SPRAWDZ_IMU1
 "Modul GNSS",						//STR_SPRAWDZ_GNSS
+
 "Modul ", 							//STR_SPRAWDZ_0
 "Modul ",  							//STR_SPRAWDZ_1
 "Modul ",  							//STR_SPRAWDZ_2
@@ -72,18 +75,18 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Modul ",							//STR_SPRAWDZ_8
 "Dotyk:",							//STR_TEST_TOUCH
 
-"Zapisana kalib.",					//STR_COMPS_STORED
+"nic",								//STR_LIBEL_TITLE
 "Menu Glowne",						//STR_MENU_MAIN			max 17 znaków
-"nic",
 "nic",								//STR_MENU_PROTOCOLS	max 17 znaków
 "nic",								//STR_MENU_SBUS			max 17 znaków
 "nic",								//STR_MENU_MULMETR		max 17 znaków
 "nic",								//STR_MENU_MULTOOL		max 17 znaków
 "nic",								//STR_MENU_VIBR			max 17 znaków
 "nic",								//STR_MENU_TEST			max 17 znaków
-"Menu Ustawień",					//STR_MENU_SETINGS
+"Menu Ustawien",					//STR_MENU_SETINGS
 "Menu MultiMedia",					//STR_MENU_MULTI_MEDIA
 
+"koniec"							//STR_KONIEC
 };
 
 const char *chNazwyMies3Lit[13]  = {"---", "Sty","Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paz", "Lis", "Gru"};

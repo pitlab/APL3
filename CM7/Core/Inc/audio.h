@@ -14,13 +14,8 @@
 #define SKALA_GLOSNOSCI			100		//rozpiętość głosnośco od zera do tej wartosci
 
 uint8_t InicjujAudio(void);
-
-uint8_t GenerujAudio(uint8_t chNrKomunikatu);
-uint8_t GenerujAudio1(uint8_t chNrKomunikatu);
-uint8_t GenerujAudio2(uint8_t chNrKomunikatu);
-uint8_t GenerujAudio3(uint8_t chNrKomunikatu);
-uint8_t GenerujAudio4(uint8_t chNrKomunikatu);
-uint8_t GenerujAudio5(uint8_t chNrKomunikatu);
+uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar);
+uint8_t OdtworzProbkeAudioZeSpisu(uint8_t chNrKomunikatu);
 
 uint8_t RejestrujAudio(void);
 #endif /* INC_AUDIO_H_ */
