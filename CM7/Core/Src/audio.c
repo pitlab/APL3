@@ -15,7 +15,7 @@ static uint8_t chJestNowyTon;			//flaga informująca o tym że pojawił się now
 static uint16_t sWskTonu;				//wskazuje na bieżącą próbkę w tablicy tonu
 static uint16_t sRozmiarTonu;			//długość tablicy pełnego sinusa
 static uint16_t sRozmiarNowegoTonu;		//długość tablicy nowego tonu do zsynchronizowania się z sRozmiarTonu w chwili przejscia przez zero
-
+static uint32_t nPrzerywaczTonu;		//robi przerwy w dźwięku sygnalizacji wznoszenia
 static uint16_t sAmpl1Harm = AMPLITUDA_1HARM;			//amplituda pierwszej harmonicznej sygnału
 static uint16_t sAmpl3Harm = AMPLITUDA_3HARM;			//amplituda trzeciej harmonicznej sygnału
 
@@ -95,6 +95,7 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 {
 	uint32_t nRozmiar;
+	int16_t sProbka;
 
 	if (chNumerTonu < LICZBA_TONOW_WARIO)		//jeżeli generuje ton
 		nRozmiar = ROZMIAR_BUFORA_AUDIO/2;		//to zawsze pracuj na pełnym buforze
@@ -109,16 +110,48 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 	//napełnij pierwszą połowę bufora
 	for (uint16_t n=0; n<nRozmiar; n++)
 	{
-		//sBuforAudioWy[n] = (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;	//OK
-		sBuforAudioWy[n] = sBuforTonuWario[sWskTonu];
-		sWskTonu++;
-		if (sWskTonu >= sRozmiarTonu)
-			sWskTonu = 0;
-		nAdresKomunikatu += 2;
-	}
-	if (nRozmiarKomunikatu > 0)
-		nRozmiarKomunikatu -= nRozmiar;
+		sProbka = 0;
+		if (nRozmiarKomunikatu > 0)					//czy jest komunikat
+		{
+			sProbka += (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
+			nAdresKomunikatu += 2;
+			nRozmiarKomunikatu--;
+		}
 
+		if (chNumerTonu < LICZBA_TONOW_WARIO)		//czy jest ton
+		{
+			if (chNumerTonu < LICZBA_TONOW_WARIO/2)	//przerywanie dźwięku dla wyższych tonów
+				nPrzerywaczTonu += LICZBA_TONOW_WARIO - chNumerTonu;
+			else
+				nPrzerywaczTonu = 0;
+
+			if (nPrzerywaczTonu > PRZERWA_TONU_WZNOSZ)				//czy ma być przerwa
+			{
+				if (nPrzerywaczTonu > 2 * PRZERWA_TONU_WZNOSZ)		//warunek wyjścia z przerwy
+					nPrzerywaczTonu = 0;
+			}
+			else
+			{
+				sProbka += sBuforTonuWario[sWskTonu];
+				sWskTonu++;
+				if (sWskTonu >= sRozmiarTonu)
+				{
+					sWskTonu = 0;
+					if (chJestNowyTon)	//jeżeli pojawił się nowy ton, to przepisz go synchronicznie do bufora tonu teraz kiedy jesteśmy w zerze na początku okresu
+					{
+						chJestNowyTon = 0;
+						for (uint16_t x=0; x<sRozmiarNowegoTonu; x++)
+							sBuforTonuWario[x] = sBuforNowegoTonuWario[x];
+
+						sRozmiarTonu = sRozmiarNowegoTonu;
+					}
+				}
+			}
+		}
+		sBuforAudioWy[n] = sProbka;		//suma komunikatu i tonu do bufora
+	}
+
+	//gdy nie ma nic do roboty to wyłącz
 	if ((nRozmiarKomunikatu <= 0) && (chNumerTonu >= LICZBA_TONOW_WARIO))
 		HAL_SAI_DMAStop(&hsai_BlockB2);
 }
@@ -133,6 +166,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 {
 	uint32_t nRozmiar;
+	int16_t sProbka;
 
 	if (chNumerTonu < LICZBA_TONOW_WARIO)		//jeżeli generuje ton
 		nRozmiar = ROZMIAR_BUFORA_AUDIO/2;		//to zawsze pracuj na pełnym buforze
@@ -147,26 +181,48 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 	//napełnij drugą połowę bufora
 	for (uint16_t n=0; n<nRozmiar; n++)
 	{
-		//sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
-		sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = sBuforTonuWario[sWskTonu];
-		sWskTonu++;
-		if (sWskTonu >= sRozmiarTonu)
+		sProbka = 0;
+		if (nRozmiarKomunikatu > 0)					//czy jest komunikat
 		{
-			sWskTonu = 0;
-			if (chJestNowyTon)	//jeżeli pojawił się nowy ton, to przepisz go synchronicznie do bufora tonu teraz kiedy jesteśmy w zerze na początku okresu
-			{
-				chJestNowyTon = 0;
-				for (uint16_t x=0; x<sRozmiarNowegoTonu; x++)
-					sBuforTonuWario[x] = sBuforNowegoTonuWario[x];
+			sProbka += (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
+			nAdresKomunikatu += 2;
+			nRozmiarKomunikatu--;
+		}
 
-				sRozmiarTonu = sRozmiarNowegoTonu;
+		if (chNumerTonu < LICZBA_TONOW_WARIO)		//czy jest ton
+		{
+			if (chNumerTonu < LICZBA_TONOW_WARIO/2)	//przerywanie dźwięku dla wyższych tonów
+				nPrzerywaczTonu += LICZBA_TONOW_WARIO - chNumerTonu;
+			else
+				nPrzerywaczTonu = 0;
+
+			if (nPrzerywaczTonu > PRZERWA_TONU_WZNOSZ)
+			{
+				if (nPrzerywaczTonu > 2 * PRZERWA_TONU_WZNOSZ)
+					nPrzerywaczTonu = 0;
+			}
+			else
+			{
+				sProbka += sBuforTonuWario[sWskTonu];
+				sWskTonu++;
+				if (sWskTonu >= sRozmiarTonu)
+				{
+					sWskTonu = 0;
+					if (chJestNowyTon)	//jeżeli pojawił się nowy ton, to przepisz go synchronicznie do bufora tonu teraz kiedy jesteśmy w zerze na początku okresu
+					{
+						chJestNowyTon = 0;
+						for (uint16_t x=0; x<sRozmiarNowegoTonu; x++)
+							sBuforTonuWario[x] = sBuforNowegoTonuWario[x];
+
+						sRozmiarTonu = sRozmiarNowegoTonu;
+					}
+				}
 			}
 		}
-		nAdresKomunikatu += 2;
+		sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = sProbka;		//suma komunikatu i tonu do bufora
 	}
-	if (nRozmiarKomunikatu > 0)
-		nRozmiarKomunikatu -= nRozmiar;
 
+	//gdy nie ma nic do roboty to wyłącz
 	if ((nRozmiarKomunikatu <= 0) && (chNumerTonu >= LICZBA_TONOW_WARIO))
 		HAL_SAI_DMAStop(&hsai_BlockB2);
 }

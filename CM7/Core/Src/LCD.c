@@ -106,7 +106,7 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 
 struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Miko.Rey",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_MMREJ,	 		obr_Mikołaj_Rey},
+	{"Miki Rey",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_MMREJ,	 		obr_Mikołaj_Rey},
 	{"Mikrofon",	"Wlacza mikrofon wylacza wzmacniacz",		TP_MM1,				obr_glosnik2},
 	{"Wzmacniacz",	"Wlacza wzmacniacz, wylacza mikrofon",		TP_MM2,				obr_glosnik2},
 	{"Test Tonu",	"Test tonu wario",							TP_MM_TEST_TONU,	obr_glosnik2},
@@ -182,6 +182,7 @@ void RysujEkran(void)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_MENU;
+			ZatrzymajTon();
 		}
 		break;
 
@@ -876,6 +877,7 @@ void BelkaTytulu(char* chTytul)
 void PomiaryIMU(void)
 {
 	extern volatile unia_wymianyCM4_t uDaneCM4;
+	int8_t chTon;
 
 	if (chRysujRaz)
 	{
@@ -990,6 +992,15 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.0f ", uDaneCM4.dane.fMagn3[2]);
 	print(chNapis, 10+32*FONT_SL, 170);
 
+	//sygnalizacja tonem wartości osi Z magnetometru
+#define MAX_MAG3 600
+	chTon = LICZBA_TONOW_WARIO/2 - (uDaneCM4.dane.fMagn3[2] / (MAX_MAG3 / (LICZBA_TONOW_WARIO/2)));
+	if (chTon > LICZBA_TONOW_WARIO)
+		chTon = LICZBA_TONOW_WARIO;
+	if (chTon < 0)
+		chTon = 0;
+	UstawTon(chTon, 80);
+
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[0], ZNAK_STOPIEN);
 	print(chNapis, 10+10*FONT_SL, 190);
@@ -1045,8 +1056,6 @@ void PomiaryIMU(void)
 void TestTonuAudio(void)
 {
 	extern uint8_t chNumerTonu;
-	extern int32_t nRozmiarKomunikatu;
-	nRozmiarKomunikatu = ROZMIAR_BUFORA_AUDIO;
 	static uint16_t sLicznikTonu;
 	if (chRysujRaz)
 	{
@@ -1063,7 +1072,7 @@ void TestTonuAudio(void)
 	}
 
 	sLicznikTonu++;
-	if (sLicznikTonu > 200)
+	if (sLicznikTonu > 900)
 	{
 		sLicznikTonu = 0;
 		chNumerTonu++;
