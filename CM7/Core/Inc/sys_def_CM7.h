@@ -14,7 +14,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	68	//numer commitu w repozytorium
+#define WER_REPO	69	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -70,7 +70,7 @@
 #define TP_MMREJ			40	//M.Rey
 #define TP_MM1				41
 #define TP_MM2				42
-#define TP_MM3				43
+#define TP_MM_TEST_TONU		43
 #define TP_MM_AUDIO_FFT		44	//FFT sygnału z mikrofonu
 #define TP_MM_KOM1			45	//komunikat audio 1
 #define TP_MM_KOM2			46	//komunikat audio 2

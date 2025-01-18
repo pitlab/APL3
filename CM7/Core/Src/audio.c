@@ -7,16 +7,23 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "audio.h"
 
-
 static volatile int16_t sBuforAudioWy[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów wychodzących
 static volatile int16_t sBuforAudioWe[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów przychodzących
-static volatile int16_t sBuforTonuWario[ROZMIAR_BUFORA_TONU];	//bufor do przechowywania tonu wario
+static volatile int16_t sBuforTonuWario[ROZMIAR_BUFORA_TONU];	//bufor do przechowywania podstawowego tonu wario
+static volatile int16_t sBuforNowegoTonuWario[ROZMIAR_BUFORA_TONU];	//bufor nowego tonu wario, który ma się zsynchronizować z podstawowym buforem w chwili przejścia przez zero aby uniknąć zakłóceń
+static uint8_t chJestNowyTon;			//flaga informująca o tym że pojawił się nowy ton i trzeba go synchronicznie przepisać to podstawowego bufora tonu
 static uint16_t sWskTonu;				//wskazuje na bieżącą próbkę w tablicy tonu
 static uint16_t sRozmiarTonu;			//długość tablicy pełnego sinusa
+static uint16_t sRozmiarNowegoTonu;		//długość tablicy nowego tonu do zsynchronizowania się z sRozmiarTonu w chwili przejscia przez zero
+
+static uint16_t sAmpl1Harm = AMPLITUDA_1HARM;			//amplituda pierwszej harmonicznej sygnału
+static uint16_t sAmpl3Harm = AMPLITUDA_3HARM;			//amplituda trzeciej harmonicznej sygnału
+
+
 //uint8_t chGenerujTonWario = 0;			//flaga właczajaca generowanie tonu
-static uint8_t chNumerTonu;
+uint8_t chNumerTonu;
 static uint32_t nAdresKomunikatu;		//adres w pamieci flash skąd pobierany jest kolejny fragment komunikatu
-static int32_t nRozmiarKomunikatu;		//pozostały do pobrania rozmiar komunikatu
+int32_t nRozmiarKomunikatu;		//pozostały do pobrania rozmiar komunikatu
 uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI_AUDIO
 
 extern SAI_HandleTypeDef hsai_BlockB2;
@@ -89,13 +96,18 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 {
 	uint32_t nRozmiar;
 
-	if (nRozmiarKomunikatu > ROZMIAR_BUFORA_AUDIO/2)
-		nRozmiar = ROZMIAR_BUFORA_AUDIO/2;
+	if (chNumerTonu < LICZBA_TONOW_WARIO)		//jeżeli generuje ton
+		nRozmiar = ROZMIAR_BUFORA_AUDIO/2;		//to zawsze pracuj na pełnym buforze
 	else
-		nRozmiar = nRozmiarKomunikatu;
+	{
+		if (nRozmiarKomunikatu > ROZMIAR_BUFORA_AUDIO/2)
+			nRozmiar = ROZMIAR_BUFORA_AUDIO/2;
+		else
+			nRozmiar = nRozmiarKomunikatu;
+	}
 
 	//napełnij pierwszą połowę bufora
-	for (uint32_t n=0; n<nRozmiar; n++)
+	for (uint16_t n=0; n<nRozmiar; n++)
 	{
 		//sBuforAudioWy[n] = (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;	//OK
 		sBuforAudioWy[n] = sBuforTonuWario[sWskTonu];
@@ -104,8 +116,10 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 			sWskTonu = 0;
 		nAdresKomunikatu += 2;
 	}
-	nRozmiarKomunikatu -= nRozmiar;
-	if ((nRozmiarKomunikatu <= 0) && (chNumerTonu == 0))
+	if (nRozmiarKomunikatu > 0)
+		nRozmiarKomunikatu -= nRozmiar;
+
+	if ((nRozmiarKomunikatu <= 0) && (chNumerTonu >= LICZBA_TONOW_WARIO))
 		HAL_SAI_DMAStop(&hsai_BlockB2);
 }
 
@@ -120,29 +134,42 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 {
 	uint32_t nRozmiar;
 
-	if (nRozmiarKomunikatu > ROZMIAR_BUFORA_AUDIO/2)
-		nRozmiar = ROZMIAR_BUFORA_AUDIO/2;
+	if (chNumerTonu < LICZBA_TONOW_WARIO)		//jeżeli generuje ton
+		nRozmiar = ROZMIAR_BUFORA_AUDIO/2;		//to zawsze pracuj na pełnym buforze
 	else
-		nRozmiar = nRozmiarKomunikatu;
-
-	static volatile int16_t sBuforTonuWario[ROZMIAR_BUFORA_TONU];	//bufor do przechowywania tonu wario
-	static uint16_t sWskTonu;
+	{
+		if (nRozmiarKomunikatu > ROZMIAR_BUFORA_AUDIO/2)
+			nRozmiar = ROZMIAR_BUFORA_AUDIO/2;
+		else
+			nRozmiar = nRozmiarKomunikatu;
+	}
 
 	//napełnij drugą połowę bufora
-	for (uint32_t n=0; n<nRozmiar; n++)
+	for (uint16_t n=0; n<nRozmiar; n++)
 	{
 		//sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
 		sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = sBuforTonuWario[sWskTonu];
 		sWskTonu++;
 		if (sWskTonu >= sRozmiarTonu)
+		{
 			sWskTonu = 0;
+			if (chJestNowyTon)	//jeżeli pojawił się nowy ton, to przepisz go synchronicznie do bufora tonu teraz kiedy jesteśmy w zerze na początku okresu
+			{
+				chJestNowyTon = 0;
+				for (uint16_t x=0; x<sRozmiarNowegoTonu; x++)
+					sBuforTonuWario[x] = sBuforNowegoTonuWario[x];
+
+				sRozmiarTonu = sRozmiarNowegoTonu;
+			}
+		}
 		nAdresKomunikatu += 2;
 	}
-	nRozmiarKomunikatu -= nRozmiar;
-	if ((nRozmiarKomunikatu <= 0) && (chNumerTonu == 0))
+	if (nRozmiarKomunikatu > 0)
+		nRozmiarKomunikatu -= nRozmiar;
+
+	if ((nRozmiarKomunikatu <= 0) && (chNumerTonu >= LICZBA_TONOW_WARIO))
 		HAL_SAI_DMAStop(&hsai_BlockB2);
 }
-
 
 
 
@@ -189,7 +216,7 @@ uint8_t RejestrujAudio(void)
 // Prędkość odtwarzania jest stała i wynosi 16kHz, wiec aby zmienić ton, należy zmieniać długość tablicy z jednym okresem sinusa
 // Ton jest jednym okresem sinusa o podstawowej częstotliwości naniesionym na nośną o częstotliwości 3 krotnie wyjższej
 // Parametry:
-// 	chNrTonu - numer kolejnego tonu jaki jest generowany w zakresie 0..MAX_TON_WARIO
+// 	chNrTonu - numer kolejnego tonu jaki jest generowany w zakresie 0..LICZBA_TONOW_WARIO
 //	chGlosnosc - amplituda sygnału w zakresie 0..255
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
@@ -197,25 +224,42 @@ void UstawTon(uint8_t chNrTonu, uint8_t chGlosnosc)
 {
 	uint16_t sWskBufora = 0;
 	//ustaw zmienne globalne
-	sRozmiarTonu = MIN_OKRES_TONU + SKOK_TONU * chNrTonu;
+	sRozmiarNowegoTonu = MIN_OKRES_TONU + SKOK_TONU * chNrTonu;
+	chJestNowyTon = 1;
+
+	for (uint16_t n=0; n<sRozmiarNowegoTonu; n++)
+	{
+		//Są dwa sinusy: częstotliwości podstawowej i trzeciej harmonicznej. Mają niezależnie ustawianą amplitudę
+		//sBuforNowegoTonuWario[n] = (int16_t)((chGlosnosc * (AMPLITUDA_1HARM * sinf(2 * M_PI * n / sRozmiarNowegoTonu) + AMPLITUDA_3HARM * (sinf(6 * M_PI * n / sRozmiarNowegoTonu))))/ SKALA_GLOSNOSCI_TONU);
+		sBuforNowegoTonuWario[n] = (int16_t)((chGlosnosc * (sAmpl1Harm * sinf(2 * M_PI * n / sRozmiarNowegoTonu) + sAmpl3Harm * (sinf(6 * M_PI * n / sRozmiarNowegoTonu))))/ SKALA_GLOSNOSCI_TONU);
+	}
+
+	if (chNumerTonu >= LICZBA_TONOW_WARIO)		//jeżeli wcześniej nie generował tonu to napełnij obie połowy bufora audio, bo nie wiemy od której zacznie się odtwarzanie
+	{
+		for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO/2; n++)
+		{
+			sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = sBuforAudioWy[n] = sBuforNowegoTonuWario[sWskBufora];
+			sWskBufora++;
+			if (sWskBufora >= sRozmiarTonu)
+				sWskBufora = 0;
+		}
+		//wypełnij też podstawowy bufor tonu
+		for (uint16_t n=0; n<sRozmiarNowegoTonu; n++)
+			sBuforTonuWario[n] = sBuforNowegoTonuWario[n];
+
+	}
 	chNumerTonu = chNrTonu;
-
-
-	for (uint16_t n=0; n<sRozmiarTonu; n++)
-	{
-		//amplituda sinusa to +-1. Są dwa sinusy: częstotliwości podstawowej i harmonicznej
-		sBuforTonuWario[n] = (int16_t)((chGlosnosc * (AMPLITUDA_1HARM * sinf(2 * M_PI * n / sRozmiarTonu) + AMPLITUDA_3HARM * (sinf(6 * M_PI * n / sRozmiarTonu))))/ SKALA_GLOSNOSCI_TONU);
-		//sBuforTonuWario[n] = (int16_t)(chGlosnosc * (AMPLITUDA_3HARM * sinf(6 * M_PI * n / sRozmiarTonu) / SKALA_GLOSNOSCI_TONU));
-		//sBuforTonuWario[n] = (int16_t)(chGlosnosc * (AMPLITUDA_1HARM * sinf(2 * M_PI * n / sRozmiarTonu) / SKALA_GLOSNOSCI_TONU));
-	}
-
-	//napełnij obie połowy bufora audio, bo nie wiemy od której zacznie się odtwarzanie
-	for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO/2; n++)
-	{
-		sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = sBuforAudioWy[n] = sBuforTonuWario[sWskBufora];
-		sWskBufora++;
-		if (sWskBufora >= sRozmiarTonu)
-			sWskBufora = 0;
-	}
 	HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, (uint16_t)ROZMIAR_BUFORA_AUDIO);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Zatrzymuje generowanie tonu
+// Parametry: nic
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void ZatrzymajTon(void)
+{
+	chNumerTonu = 255;
 }

@@ -106,10 +106,10 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 
 struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"M.Rey",  	    "Obsluga kamery, aparatu i obrobka obrazu",	TP_MMREJ,	 		obr_Mikołaj_Rey},
+	{"Miko.Rey",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_MMREJ,	 		obr_Mikołaj_Rey},
 	{"Mikrofon",	"Wlacza mikrofon wylacza wzmacniacz",		TP_MM1,				obr_glosnik2},
 	{"Wzmacniacz",	"Wlacza wzmacniacz, wylacza mikrofon",		TP_MM2,				obr_glosnik2},
-	{"M1",			"nic",										TP_MM3,				obr_glosnik2},
+	{"Test Tonu",	"Test tonu wario",							TP_MM_TEST_TONU,	obr_glosnik2},
 	{"FFT Audio",	"FFT sygnału z mikrofonu",					TP_MM_AUDIO_FFT,	obr_fft},
 	{"Komunikat1",	"Komunikat glosowy",						TP_MM_KOM1,			obr_glosnik2},
 	{"Komunikat2",	"Komunikat glosowy",						TP_MM_KOM2,			obr_glosnik1},
@@ -209,10 +209,14 @@ void RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
-	case TP_MM3:
-		//OdtworzProbkeAudioZeSpisu(0);
-		chGlosnosc--;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
-		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+	case TP_MM_TEST_TONU:
+		TestTonuAudio();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			ZatrzymajTon();
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		}
 		break;
 
 	case TP_MM_AUDIO_FFT:			//FFT sygnału z mikrofonu
@@ -271,7 +275,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_W1:		UstawTon(0, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
-	case TP_W2:		UstawTon(1, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
+	case TP_W2:		UstawTon(32, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
 	case TP_W3:		UstawTon(65, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
 	case TP_W4:		UstawTon(127, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
 	}
@@ -1029,4 +1033,51 @@ void PomiaryIMU(void)
 	//sprintf(chNapis, "Serwa: 13 = %d, 14 = %d, 15 = %d, 16 = %d", uDaneCM4.dane.sSerwa[12], uDaneCM4.dane.sSerwa[13], uDaneCM4.dane.sSerwa[14], uDaneCM4.dane.sSerwa[15]);
 	//sprintf(chNapis, "Serwa:  5 = %d,  6 = %d,  7 = %d,  8 = %d", uDaneCM4.dane.sSerwa[4], uDaneCM4.dane.sSerwa[5], uDaneCM4.dane.sSerwa[6], uDaneCM4.dane.sSerwa[7]);
 	//print(chNapis, 10, 300);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje okno z testem generowania tonu
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void TestTonuAudio(void)
+{
+	extern uint8_t chNumerTonu;
+	extern int32_t nRozmiarKomunikatu;
+	nRozmiarKomunikatu = ROZMIAR_BUFORA_AUDIO;
+	static uint16_t sLicznikTonu;
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Test tonu wario");
+
+		setColor(GRAY80);
+		sprintf(chNapis, "Numer tonu:");
+		print(chNapis, 10, 30);
+		sprintf(chNapis, "Czest. 1 harm.:");
+		print(chNapis, 10, 50);
+		sprintf(chNapis, "Czest. 3 harm.:");
+		print(chNapis, 10, 70);
+	}
+
+	sLicznikTonu++;
+	if (sLicznikTonu > 200)
+	{
+		sLicznikTonu = 0;
+		chNumerTonu++;
+		if (chNumerTonu >= LICZBA_TONOW_WARIO)
+			chNumerTonu = 0;
+
+		setColor(WHITE);
+		sprintf(chNapis, "%d ", chNumerTonu);
+		print(chNapis, 10+16*FONT_SL, 30);
+		sprintf(chNapis, "%.1f Hz ", 1.0f * CZESTOTLIWOSC_AUDIO / (MIN_OKRES_TONU + chNumerTonu * SKOK_TONU));
+		print(chNapis, 10+16*FONT_SL, 50);
+		sprintf(chNapis, "%.1f Hz ", 3.0f * CZESTOTLIWOSC_AUDIO / (MIN_OKRES_TONU + chNumerTonu * SKOK_TONU));
+		print(chNapis, 10+16*FONT_SL, 70);
+		UstawTon(chNumerTonu, 80);
+	}
+
 }

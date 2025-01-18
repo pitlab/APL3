@@ -25,4 +25,5 @@ void MenuGlowne(unsigned char *tryb);
 void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
 void BelkaTytulu(char* chTytul);
 void PomiaryIMU(void);
+void TestTonuAudio(void);
 #endif /* INC_LCD_H_ */
