@@ -80,8 +80,8 @@ static void MX_TIM3_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM1_Init(void);
-static void MX_UART8_Init(void);
 static void MX_I2C3_Init(void);
+static void MX_UART8_Init(void);
 /* USER CODE BEGIN PFP */
 
 
@@ -146,8 +146,8 @@ int main(void)
   MX_TIM8_Init();
   MX_TIM4_Init();
   MX_TIM1_Init();
-  MX_UART8_Init();
   MX_I2C3_Init();
+  MX_UART8_Init();
   /* USER CODE BEGIN 2 */
   InicjujModulyWew();
   InicjujSerwa();

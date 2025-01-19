@@ -127,8 +127,8 @@ static void MX_FMC_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_UART7_Init(void);
 static void MX_TIM6_Init(void);
-static void MX_CRC_Init(void);
 static void MX_SAI2_Init(void);
+static void MX_CRC_Init(void);
 void StartDefaultTask(void const * argument);
 void WatekOdbiorczyLPUART1(void const * argument);
 void WatekOdbioruKonsoliUART7(void const * argument);
@@ -164,7 +164,7 @@ int main(void)
 /* USER CODE END Boot_Mode_Sequence_0 */
 
   /* MPU Configuration--------------------------------------------------------*/
-    MPU_Config();
+  MPU_Config();
 
   /* Enable the CPU Cache */
 
@@ -230,8 +230,8 @@ Error_Handler();
   MX_LPUART1_UART_Init();
   MX_UART7_Init();
   MX_TIM6_Init();
-  MX_CRC_Init();
   MX_SAI2_Init();
+  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
   InicjujSPIModZewn();
   InicjujLCD();
@@ -449,20 +449,20 @@ static void MX_LPUART1_UART_Init(void)
   hlpuart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
   hlpuart1.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
   hlpuart1.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
-  hlpuart1.FifoMode = UART_FIFOMODE_DISABLE;
+  hlpuart1.FifoMode = UART_FIFOMODE_ENABLE;
   if (HAL_UART_Init(&hlpuart1) != HAL_OK)
   {
     Error_Handler();
   }
-  if (HAL_UARTEx_SetTxFifoThreshold(&hlpuart1, UART_TXFIFO_THRESHOLD_1_2) != HAL_OK)
+  if (HAL_UARTEx_SetTxFifoThreshold(&hlpuart1, UART_TXFIFO_THRESHOLD_8_8) != HAL_OK)
   {
     Error_Handler();
   }
-  if (HAL_UARTEx_SetRxFifoThreshold(&hlpuart1, UART_RXFIFO_THRESHOLD_1_2) != HAL_OK)
+  if (HAL_UARTEx_SetRxFifoThreshold(&hlpuart1, UART_RXFIFO_THRESHOLD_8_8) != HAL_OK)
   {
     Error_Handler();
   }
-  if (HAL_UARTEx_DisableFifoMode(&hlpuart1) != HAL_OK)
+  if (HAL_UARTEx_EnableFifoMode(&hlpuart1) != HAL_OK)
   {
     Error_Handler();
   }
@@ -1148,8 +1148,9 @@ void MPU_Config(void)
   /** Initializes and configures the Region and the memory to be protected
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER5;
-  MPU_InitStruct.BaseAddress = 0x038000000;
+  MPU_InitStruct.BaseAddress = 0x38000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_64KB;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
@@ -1159,6 +1160,7 @@ void MPU_Config(void)
   MPU_InitStruct.BaseAddress = 0x24000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_512KB;
   MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 

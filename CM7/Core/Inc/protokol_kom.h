@@ -11,11 +11,9 @@
 #include "polecenia_komunikacyjne.h"
 
 
-#define ROZM_BUF_KOL	32	//rozmiar musi być potęgą 2 aby zapętlić bufor operacją AND
-//#define ROZMIAR_BUF_NAD_DMA		64
 #define ROZMIAR_BUF_ODB_DMA		256
 #define ROZMIAR_BUF_ANALIZY_ODB	2*ROZMIAR_BUF_ODB_DMA
-
+#define ILOSC_ODBIORU_DMA		9
 
 
 
@@ -35,7 +33,8 @@ void StartKomUart(void const * argument);
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 
 uint8_t TestKomunikacji(void);
-
+uint8_t TestKomunikacjiSTD(void);
+uint8_t TestKomunikacjiDMA(void);
 //deklaracje funkcji zdalnych
 
 

@@ -47,6 +47,9 @@ extern const unsigned short obr_foto[];
 extern const unsigned short obr_Mikołaj_Rey[];
 extern const unsigned short obr_Wydajnosc[];
 extern const unsigned short obr_mtest[];
+extern const unsigned short obr_back[];
+extern const unsigned short obr_volume[];
+extern const unsigned short obr_touch[0xFFC];
 
 extern const short sNiechajNarodowie[129808];
 extern const short PWM_detected[33050];
@@ -77,16 +80,16 @@ extern uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Multimedia",  "Obsluga multimediow: dzwiek i obraz",		TP_MULTIMEDIA, 		obr_mmedia},
+	{"Multimedia",  "Obsluga multimediow: dzwiek i obraz",		TP_MULTIMEDIA, 		obr_volume},
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
 	{"nic", 		"nic",										TP_MG1,				obr_mtest},
-	{"nic", 		"nic",										TP_MG1,				obr_mtest},
-	{"nic", 		"nic",										TP_MG1,				obr_mtest},
-	{"nic", 		"nic",										TP_MG1,				obr_mtest},
+	{"nic", 		"nic",										TP_MG2,				obr_mtest},
+	{"nic", 		"nic",										TP_MG3,				obr_mtest},
+	{"nic", 		"nic",										TP_MG4,				obr_mtest},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_multitool},
-	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_dotyk},
-	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_dotyk}};
+	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_touch},
+	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_touch}};
 
 
 struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -95,12 +98,12 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Zapis NOR", 	"Test zapisu do flash NOR",					TP_POM_ZAPISU_NOR,	obr_NOR},
 	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_NOR},
 	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_QSPI},
-	{"Trans SRAM",	"Pomiar predkosci Static RAM 16-bit",		TP_POMIAR_SRAM,		obr_RAM},
+	{"Trans RAM",	"Pomiar predkosci SRAM i DRAM 16-bit",		TP_POMIAR_SRAM,		obr_RAM},
 	{"W1",			"nic",										TP_W1,				obr_Wydajnosc},
 	{"W2",			"nic",										TP_W2,				obr_Wydajnosc},
 	{"W3",			"nic",										TP_W3,				obr_Wydajnosc},
 	{"W4",			"nic",										TP_W4,				obr_Wydajnosc},
-	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_wroc}};
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
 
@@ -111,11 +114,11 @@ struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wzmacniacz",	"Wlacza wzmacniacz, wylacza mikrofon",		TP_MM2,				obr_glosnik2},
 	{"Test Tonu",	"Test tonu wario",							TP_MM_TEST_TONU,	obr_glosnik2},
 	{"FFT Audio",	"FFT sygnału z mikrofonu",					TP_MM_AUDIO_FFT,	obr_fft},
-	{"Komunikat1",	"Komunikat glosowy",						TP_MM_KOM1,			obr_glosnik2},
-	{"Komunikat2",	"Komunikat glosowy",						TP_MM_KOM2,			obr_glosnik1},
-	{"Komunikat3",	"Komunikat glosowy",						TP_MM_KOM3,			obr_glosnik2},
-	{"Komunikat4",	"Ton dzwiekowy",							TP_MM_KOM4,			obr_glosnik_neg},
-	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_wroc}};
+	{"Komunikat1",	"Komunikat glosowy",						TP_MM_KOM1,			obr_volume},
+	{"Komunikat2",	"Komunikat glosowy",						TP_MM_KOM2,			obr_volume},
+	{"Komunikat3",	"Komunikat glosowy",						TP_MM_KOM3,			obr_volume},
+	{"Komunikat4",	"Ton dzwiekowy",							TP_MM_KOM4,			obr_volume},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
 
@@ -151,7 +154,15 @@ void RysujEkran(void)
 			chTrybPracy = TP_TESTY;
 		break;
 
+	case TP_MG3:
+		TestKomunikacjiSTD();	//wyślij komunikat tesktowy przez LPUART
+		chNowyTrybPracy = TP_WROC_DO_MENU;
+		break;
 
+	case TP_MG4:
+		TestKomunikacjiDMA();	//wyślij komunikat tesktowy przez LPUART
+		chNowyTrybPracy = TP_WROC_DO_MENU;
+		break;
 
 	case TP_POMIAR_SRAM:	TestPredkosciOdczytuRAM();
 	if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
@@ -193,7 +204,6 @@ void RysujEkran(void)
 		break;
 
 	case TP_MMREJ:
-		//TestKomunikacji();	//wyślij komunikat tesktowy przez LPUART
 		OdtworzProbkeAudio((uint32_t)&sNiechajNarodowie[0], 129808);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
