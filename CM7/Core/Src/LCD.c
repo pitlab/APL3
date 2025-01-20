@@ -241,7 +241,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM_KOM2:	//komunikat audio 2
-		OdtworzProbkeAudio((uint32_t)&cnowym_rokom_AdaUA[0], 37516);
+		OdtworzProbkeAudioZeSpisu(0);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 

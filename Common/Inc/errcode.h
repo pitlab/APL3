@@ -37,6 +37,7 @@
 #define ERR_BRAK_KAMERY			31	//nie wykryto obecności kamery
 #define ERR_BRAK_MAGN			32	//nie wykryto obecności magnetometru
 #define ERR_BRAK_FLASH_NOR		33
+#define ERR_BRAK_KOM_AUDIO		34
 
 #define ERR_I2C_BERR			40
 #define ERR_I2C_ARB_LOST		41

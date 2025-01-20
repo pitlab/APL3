@@ -96,9 +96,9 @@ uint8_t InicjujProtokol(void)
 void InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 {
 	sWskNap = sWskOpr = 0;
-	for (uint16_t n=0; n<2*ROZMIAR_BUF_ODB_DMA; n++)
+	for (uint16_t n=0; n<2*ROZMIAR_BUF_ODB_DMA+8; n++)
 		chBuforOdbDMA[n] = 0x55;
-	HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 2*ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
+	HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
 	//HAL_UART_Receive_DMA(&hlpuart1, chBuforOdbDMA, ILOSC_ODBIORU_DMA);
 	//HAL_UART_Receive_IT(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
 }
@@ -154,21 +154,24 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
 	if (huart->Instance == LPUART1)
 	{
-		for (uint16_t n=0; n<Size; n++)
+		if ((huart->RxEventType == HAL_UART_RXEVENT_TC) || (huart->RxEventType == HAL_UART_RXEVENT_IDLE))
 		{
-			chBuforKomOdb[sWskNap] = chBuforOdbDMA[n];
-			sWskNap++;
-			//zapętlenie wskaźnika bufora kołowego
-			if (sWskNap >= ROZMIAR_BUF_ANALIZY_ODB)
-				sWskNap = 0;
-		}
+			for (uint16_t n=0; n<Size; n++)
+			{
+				chBuforKomOdb[sWskNap] = chBuforOdbDMA[n];
+				sWskNap++;
+				//zapętlenie wskaźnika bufora kołowego
+				if (sWskNap >= ROZMIAR_BUF_ANALIZY_ODB)
+					sWskNap = 0;
+			}
 
-#ifdef DEBUG
-		if (Size > ROZMIAR_BUF_ODB_DMA)	//czy bufor nie jest za mały
-			Error_Handler();
-#endif
-		//ponownie włącz odbiór
-		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 2*ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
+	#ifdef DEBUG
+			if (Size > ROZMIAR_BUF_ODB_DMA)	//czy bufor nie jest za mały
+				Error_Handler();
+	#endif
+			//ponownie włącz odbiór
+			HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
+		}
 	}
 }
 
@@ -226,7 +229,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
 	if (huart->Instance == LPUART1)
 	{
-		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, 2*ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
+		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
 		//HAL_UART_Receive_DMA(&hlpuart1, chBuforOdbDMA, ILOSC_ODBIORU_DMA);
 	}
 	chCzasSwieceniaLED[LED_CZER] = 5;

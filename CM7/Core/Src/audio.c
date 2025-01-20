@@ -70,6 +70,14 @@ uint8_t OdtworzProbkeAudioZeSpisu(uint8_t chNrKomunikatu)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 {
+	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+
+	if (nAdres == 0xFFFFFFFF)
+	{
+		chCzasSwieceniaLED[LED_CZER] = 20;	//włącz czerwoną
+		return ERR_BRAK_KOM_AUDIO;
+	}
+
 	nAdresKomunikatu   = nAdres;	//przepisz do zmiennych globalnych
 	nRozmiarKomunikatu = nRozmiar;
 
