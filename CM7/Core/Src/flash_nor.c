@@ -1037,3 +1037,4 @@ void TestPredkosciOdczytuRAM(void)
 		print(chNapis, 10, 260);
 	}
 }
+

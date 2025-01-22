@@ -72,9 +72,9 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 {
 	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 
-	if (nAdres == 0xFFFFFFFF)
+	if ((nAdres < ADR_POCZATKU_KOM_AUDIO) || (nAdres > ADR_KONCA_KOM_AUDIO))
 	{
-		chCzasSwieceniaLED[LED_CZER] = 20;	//włącz czerwoną
+		chCzasSwieceniaLED[LED_CZER] = 20;	//włącz czerwoną na 2 sekundy
 		return ERR_BRAK_KOM_AUDIO;
 	}
 

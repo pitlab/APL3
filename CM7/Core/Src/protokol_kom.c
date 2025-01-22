@@ -33,6 +33,7 @@ union _un8_16		//unia do konwersji między danymi 16 i 8 bit
 union _un8_32		//unia do konwersji między danymi 32 i 8 bit
 {
 	uint32_t dane32;
+	uint16_t dane16[2];
 	uint8_t dane8[4];
 } un8_32;
 
@@ -47,6 +48,10 @@ uint8_t chRamkaWyj[ROZMIAR_RAMKI_UART];
 volatile uint32_t nCzasSystemowy;
 int16_t sSzerZdjecia, sWysZdjecia;
 uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
+#define ROZMIAR_LOGU_KOMUNIKACJI	1024
+uint16_t sLogKomunikacji[ROZMIAR_LOGU_KOMUNIKACJI];
+//uint32_t nLogKomunikacji[ROZMIAR_LOGU_KOMUNIKACJI];
+uint16_t sWskLogu = 0;	//wskaźnik logu
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
 uint8_t chBuforNadDMA[ROZMIAR_RAMKI_UART]  __attribute__((section(".SekcjaSRAM4")));
@@ -334,6 +339,9 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 			un8_16.dane8[0] = chDane[0];
 			un8_16.dane8[1] = chDane[1];
 			sWskBufSektora = un8_16.dane16;	//adres bezwzględny bufora
+//debug
+			//sLogKomunikacji[sWskLogu++] = sWskBufSektora;
+//debug
 			//przepisz dane 8-bitowe  i zapisz po konwersji w buforze 16-bitowym
 			for (uint8_t n=0; n<chDane[2]; n++)	//chDane[2] - rozmiar wyrażony w słowach
 			{

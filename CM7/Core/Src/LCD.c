@@ -50,9 +50,12 @@ extern const unsigned short obr_mtest[];
 extern const unsigned short obr_back[];
 extern const unsigned short obr_volume[];
 extern const unsigned short obr_touch[0xFFC];
+extern const unsigned short obr_dotyk[0xFFC];
+extern const unsigned short obr_dotyk_zolty[0xFFC];
 
 extern const short sNiechajNarodowie[129808];
 extern const short PWM_detected[33050];
+extern const short PWM_detected1[34192];
 extern short proba_mikrofonu[30714] ;
 extern const short cnowym_rokom_AdaUA[37516];
 extern const short sWszystkiegoNajlepszegoAda[65126];
@@ -83,13 +86,13 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Multimedia",  "Obsluga multimediow: dzwiek i obraz",		TP_MULTIMEDIA, 		obr_volume},
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
-	{"nic", 		"nic",										TP_MG1,				obr_mtest},
+	{"Flash", 		"nic",										TP_MG1,				obr_mtest},
 	{"nic", 		"nic",										TP_MG2,				obr_mtest},
 	{"nic", 		"nic",										TP_MG3,				obr_mtest},
 	{"nic", 		"nic",										TP_MG4,				obr_mtest},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_multitool},
-	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_touch},
-	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_touch}};
+	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_dotyk},
+	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_dotyk_zolty}};
 
 
 struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -152,6 +155,10 @@ void RysujEkran(void)
 	case TP_KALIB_DOTYK:
 		if (KalibrujDotyk() == ERR_DONE)
 			chTrybPracy = TP_TESTY;
+		break;
+
+	case TP_MG1:
+		chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
 	case TP_MG3:
@@ -236,22 +243,25 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM_KOM1:	//komunikat audio 1
-		OdtworzProbkeAudio((uint32_t)&sWszystkiegoNajlepszegoAda[0], 65126);
-		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
-		break;
-
-	case TP_MM_KOM2:	//komunikat audio 2
+		//OdtworzProbkeAudio((uint32_t)&sWszystkiegoNajlepszegoAda[0], 65126);
 		OdtworzProbkeAudioZeSpisu(0);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
+	case TP_MM_KOM2:	//komunikat audio 2
+		OdtworzProbkeAudioZeSpisu(1);
+		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		break;
+
 	case TP_MM_KOM3:	//komunikat audio 3
-		OdtworzProbkeAudio((uint32_t)&proba_mikrofonu[0], 30714);
+		//OdtworzProbkeAudio((uint32_t)&proba_mikrofonu[0], 30714);
+		OdtworzProbkeAudioZeSpisu(2);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KOM4:	//komunikat audio 4
-		OdtworzProbkeAudio((uint32_t)&PWM_detected[0], 33050);
+		//OdtworzProbkeAudio((uint32_t)&PWM_detected1[0], 34192);
+		OdtworzProbkeAudioZeSpisu(3);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
