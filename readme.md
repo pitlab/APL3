@@ -20,6 +20,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Zaobserwowałem dziwne zachowanie i padło podejrzenie o przepełnianie się stosu jednego z wątków, więc została zrobiona  analiza i porządki ze stosami. Obecnie wygląda to tak:
 ![Procesy](obrazki/procesy.jpg)
 - Komunikaty głosowe (16bit, 16kHz) są już wgrywane do pamięci flash. Poprzedza je tablica[128] zawierająca adresy i rozmiary komunikatów
+- Wymawia komunikaty głosowe
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM

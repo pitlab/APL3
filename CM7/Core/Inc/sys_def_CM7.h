@@ -14,7 +14,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	73	//numer commitu w repozytorium
+#define WER_REPO	74	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -134,5 +134,12 @@
 #define ADR_POCZATKU_KOM_AUDIO	(ADR_SPISU_KOM_AUDIO + ROZM_SPISU_KOM * ROZM_WPISU_AUDIO)
 #define ADR_KONCA_KOM_AUDIO	(ADR_POCZATKU_KOM_AUDIO + LICZBA_SEKT_AUDIO * ROZMIAR_SEKTORA)
 #define ADRES_DRAM			0xC0000000
+
+
+//typy komunikatów głosowych
+#define KOMG_WYSOKOSC		1
+#define KOMG_NAPIECIE		2
+#define KOMG_TEMPERATURA	3
+#define KOMG_PREDKOSC		4
 
 #endif /* INC_SYS_DEF_CM7_H_ */

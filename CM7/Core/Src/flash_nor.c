@@ -35,6 +35,7 @@ extern NOR_HandleTypeDef hnor3;
 extern SDRAM_HandleTypeDef hsdram1;
 extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 extern MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
+extern RNG_HandleTypeDef hrng;
 extern char chNapis[];
 HAL_StatusTypeDef hsErr;
 
@@ -735,7 +736,7 @@ void TestPredkosciOdczytuNOR(void)
 void TestPredkosciOdczytuRAM(void)
 {
 	HAL_StatusTypeDef chErr;
-
+	uint32_t nRrandom32;
 	uint32_t x, y;
 	uint32_t nCzas;
 	extern uint8_t chRysujRaz;
@@ -1035,6 +1036,44 @@ void TestPredkosciOdczytuRAM(void)
 	{
 		sprintf(chNapis, "DMA1: DRAM->AxiSRAM      t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		print(chNapis, 10, 260);
+	}
+
+
+	//przygotuj zestaw liczb losowych aby nie generować go w czasie testu
+	uint8_t chRandom[ROZMIAR16_BUFORA];
+	for (x=0; x<ROZMIAR16_BUFORA; x++)
+	{
+		HAL_RNG_GenerateRandomNumber(&hrng, &nRrandom32);
+		chRandom[x] = (uint8_t)(nRrandom32 & 0xFF);
+	}
+
+	//sekwencyjny odczyt z DRAM
+	nCzas = PobierzCzasT6();
+	for (y=0; y<1000; y++)
+	{
+		for (x=0; x<ROZMIAR16_BUFORA; x++)
+			sBufor[x] = sBuforDram[chRandom[x]];
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "random DRAM->AxiSRAM     t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+		print(chNapis, 10, 280);
+	}
+
+
+	//sekwencyjny odczyt z external SRAM
+	nCzas = PobierzCzasT6();
+	for (y=0; y<1000; y++)
+	{
+		for (x=0; x<ROZMIAR16_BUFORA; x++)
+			sBufor[x] = sExtSramBuf[chRandom[x]];
+	}
+	nCzas = MinalCzas(nCzas);
+	if (nCzas)
+	{
+		sprintf(chNapis, "random ExtSRAM->AxiSRAM  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+		print(chNapis, 10, 300);
 	}
 }
 

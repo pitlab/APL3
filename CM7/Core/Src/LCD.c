@@ -120,7 +120,7 @@ struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Komunikat1",	"Komunikat glosowy",						TP_MM_KOM1,			obr_volume},
 	{"Komunikat2",	"Komunikat glosowy",						TP_MM_KOM2,			obr_volume},
 	{"Komunikat3",	"Komunikat glosowy",						TP_MM_KOM3,			obr_volume},
-	{"Komunikat4",	"Ton dzwiekowy",							TP_MM_KOM4,			obr_volume},
+	{"Test kom.",	"Test komunikatów audio",					TP_MM_KOM4,			obr_glosnik2},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
@@ -261,7 +261,8 @@ void RysujEkran(void)
 
 	case TP_MM_KOM4:	//komunikat audio 4
 		//OdtworzProbkeAudio((uint32_t)&PWM_detected1[0], 34192);
-		OdtworzProbkeAudioZeSpisu(3);
+		//OdtworzProbkeAudioZeSpisu(3);
+		TestKomunikatow();
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 

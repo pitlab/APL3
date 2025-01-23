@@ -7,24 +7,29 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "audio.h"
 
+//Słowniczek:
+//próbka audio - pojedynczy plik wave zapisany we flash
+//komunikat - grupa próbek składająca się w zdanie do wypowiedzenia
+//ton - dźwięk generowany przez odtwarzanie przebiegu sinusiudy
+
 static volatile int16_t sBuforAudioWy[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów wychodzących
 static volatile int16_t sBuforAudioWe[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów przychodzących
 static volatile int16_t sBuforTonuWario[ROZMIAR_BUFORA_TONU];	//bufor do przechowywania podstawowego tonu wario
 static volatile int16_t sBuforNowegoTonuWario[ROZMIAR_BUFORA_TONU];	//bufor nowego tonu wario, który ma się zsynchronizować z podstawowym buforem w chwili przejścia przez zero aby uniknąć zakłóceń
 static uint8_t chJestNowyTon;			//flaga informująca o tym że pojawił się nowy ton i trzeba go synchronicznie przepisać to podstawowego bufora tonu
+static uint8_t chGlosnikJestZajęty;		//flaga informująca że zasób "głośnika" jest zajety odtwarzaniem próbki
 static uint16_t sWskTonu;				//wskazuje na bieżącą próbkę w tablicy tonu
 static uint16_t sRozmiarTonu;			//długość tablicy pełnego sinusa
 static uint16_t sRozmiarNowegoTonu;		//długość tablicy nowego tonu do zsynchronizowania się z sRozmiarTonu w chwili przejscia przez zero
 static uint32_t nPrzerywaczTonu;		//robi przerwy w dźwięku sygnalizacji wznoszenia
 static uint16_t sAmpl1Harm = AMPLITUDA_1HARM;			//amplituda pierwszej harmonicznej sygnału
 static uint16_t sAmpl3Harm = AMPLITUDA_3HARM;			//amplituda trzeciej harmonicznej sygnału
-
-
-//uint8_t chGenerujTonWario = 0;			//flaga właczajaca generowanie tonu
-uint8_t chNumerTonu;
-static uint32_t nAdresKomunikatu;		//adres w pamieci flash skąd pobierany jest kolejny fragment komunikatu
-int32_t nRozmiarKomunikatu;		//pozostały do pobrania rozmiar komunikatu
-uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI_AUDIO
+uint8_t chKolejkaKomunkatow[ROZM_KOLEJKI_KOMUNIKATOW];	//bufor kołowy do przechowywania próbek głosu do wymówienia
+static uint8_t chWskNapKolKom, chWskOprKolKom;		//wskaźniki napełniania i opróżniania kolejki komunikatów audio
+uint8_t chNumerTonu = 0xFF;		//ton domyślnie wyłączony
+static uint32_t nAdresProbki;	//adres w pamieci flash skąd pobierany jest kolejny fragment próbki audio
+int32_t nRozmiarProbki;			//pozostały do pobrania rozmiar próbki audio
+uint8_t chGlosnosc;				//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI_AUDIO
 
 extern SAI_HandleTypeDef hsai_BlockB2;
 extern uint8_t chPorty_exp_wysylane[];
@@ -44,19 +49,42 @@ uint8_t InicjujAudio(void)
 	//chPorty_exp_wysylane[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
 	chPorty_exp_wysylane[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
 	chGlosnosc = 45;
+	chWskNapKolKom = chWskOprKolKom = 0;
 	return ERR_OK;
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Odtwarza komunikat głosowy obecny w spisie komunikatów
+// Funkcja procesowana w pętli głównej. Sprawdza czy jest coś do wymówienia i gdy przetwornik jest wolny to umiejszcza w nim kolejną próbkę
+// Parametry: brak
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ObslugaWymowyKomunikatu(void)
+{
+	uint8_t chErr;
+
+	if ((chWskNapKolKom == chWskOprKolKom) || chGlosnikJestZajęty)
+		return ERR_OK;		//nie ma nic do wymówienia
+
+	//pobierz kolejną próbkę do wymówienia i zacznij wymowę
+	chErr = OdtworzProbkeAudioZeSpisu(chKolejkaKomunkatow[chWskOprKolKom++]);
+	if (chWskOprKolKom >= ROZM_KOLEJKI_KOMUNIKATOW)
+		chWskOprKolKom = 0;
+
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Odtwarza próbkę głosową obecną w spisie próbek
 // Parametry: chNrKomunikatu - numer komunikatu okreslający pozycję w spisie
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t OdtworzProbkeAudioZeSpisu(uint8_t chNrKomunikatu)
+uint8_t OdtworzProbkeAudioZeSpisu(uint8_t chNrProbki)
 {
-	return OdtworzProbkeAudio( *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO + 0), *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrKomunikatu * ROZM_WPISU_AUDIO + 4) / 2);
+	return OdtworzProbkeAudio( *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 0), *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 4) / 2);
 }
 
 
@@ -75,20 +103,23 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 	if ((nAdres < ADR_POCZATKU_KOM_AUDIO) || (nAdres > ADR_KONCA_KOM_AUDIO))
 	{
 		chCzasSwieceniaLED[LED_CZER] = 20;	//włącz czerwoną na 2 sekundy
-		return ERR_BRAK_KOM_AUDIO;
+		if (nAdres > 0x081FFFFF)	//jeżeli we flash programu to tylko sygnalizuj
+			return ERR_BRAK_KOM_AUDIO;
 	}
 
-	nAdresKomunikatu   = nAdres;	//przepisz do zmiennych globalnych
-	nRozmiarKomunikatu = nRozmiar;
+	chGlosnikJestZajęty = 1;		//zajęcie zasobu "głośnika"
+	nAdresProbki   = nAdres;	//przepisz do zmiennych globalnych
+	nRozmiarProbki = nRozmiar;
+
 
 	//napełnij pierwszy cały bufor, reszta będzie dopełniana połówkami w callbackach od opróżnienia połowy i całego bufora
 	for (uint32_t n=0; n<ROZMIAR_BUFORA_AUDIO; n++)
 	{
-		//sBuforAudioWy[n] =  *(int16_t*)nAdresKomunikatu;
-		sBuforAudioWy[n] = (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
-		nAdresKomunikatu += 2;
+		//sBuforAudioWy[n] =  *(int16_t*)nAdresProbki;
+		sBuforAudioWy[n] = (*(int16_t*)nAdresProbki * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
+		nAdresProbki += 2;
 	}
-	nRozmiarKomunikatu -= ROZMIAR_BUFORA_AUDIO;
+	nRozmiarProbki -= ROZMIAR_BUFORA_AUDIO;
 
 	return HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, (uint16_t)ROZMIAR_BUFORA_AUDIO);
 }
@@ -109,21 +140,21 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 		nRozmiar = ROZMIAR_BUFORA_AUDIO/2;		//to zawsze pracuj na pełnym buforze
 	else
 	{
-		if (nRozmiarKomunikatu > ROZMIAR_BUFORA_AUDIO/2)
+		if (nRozmiarProbki > ROZMIAR_BUFORA_AUDIO/2)
 			nRozmiar = ROZMIAR_BUFORA_AUDIO/2;
 		else
-			nRozmiar = nRozmiarKomunikatu;
+			nRozmiar = nRozmiarProbki;
 	}
 
 	//napełnij pierwszą połowę bufora
 	for (uint16_t n=0; n<nRozmiar; n++)
 	{
 		sProbka = 0;
-		if (nRozmiarKomunikatu > 0)					//czy jest komunikat
+		if (nRozmiarProbki > 0)					//czy jest komunikat
 		{
-			sProbka += (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
-			nAdresKomunikatu += 2;
-			nRozmiarKomunikatu--;
+			sProbka += (*(int16_t*)nAdresProbki * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
+			nAdresProbki += 2;
+			nRozmiarProbki--;
 		}
 
 		if (chNumerTonu < LICZBA_TONOW_WARIO)		//czy jest ton
@@ -160,8 +191,12 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 	}
 
 	//gdy nie ma nic do roboty to wyłącz
-	if ((nRozmiarKomunikatu <= 0) && (chNumerTonu >= LICZBA_TONOW_WARIO))
-		HAL_SAI_DMAStop(&hsai_BlockB2);
+	if (nRozmiarProbki <= 0)
+	{
+		chGlosnikJestZajęty = 0;		//zwolnienie zasobu
+		if (chNumerTonu >= LICZBA_TONOW_WARIO)
+			HAL_SAI_DMAStop(&hsai_BlockB2);
+	}
 }
 
 
@@ -180,21 +215,21 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 		nRozmiar = ROZMIAR_BUFORA_AUDIO/2;		//to zawsze pracuj na pełnym buforze
 	else
 	{
-		if (nRozmiarKomunikatu > ROZMIAR_BUFORA_AUDIO/2)
+		if (nRozmiarProbki > ROZMIAR_BUFORA_AUDIO/2)
 			nRozmiar = ROZMIAR_BUFORA_AUDIO/2;
 		else
-			nRozmiar = nRozmiarKomunikatu;
+			nRozmiar = nRozmiarProbki;
 	}
 
 	//napełnij drugą połowę bufora
 	for (uint16_t n=0; n<nRozmiar; n++)
 	{
 		sProbka = 0;
-		if (nRozmiarKomunikatu > 0)					//czy jest komunikat
+		if (nRozmiarProbki > 0)					//czy jest komunikat
 		{
-			sProbka += (*(int16_t*)nAdresKomunikatu * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
-			nAdresKomunikatu += 2;
-			nRozmiarKomunikatu--;
+			sProbka += (*(int16_t*)nAdresProbki * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
+			nAdresProbki += 2;
+			nRozmiarProbki--;
 		}
 
 		if (chNumerTonu < LICZBA_TONOW_WARIO)		//czy jest ton
@@ -231,8 +266,12 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 	}
 
 	//gdy nie ma nic do roboty to wyłącz
-	if ((nRozmiarKomunikatu <= 0) && (chNumerTonu >= LICZBA_TONOW_WARIO))
-		HAL_SAI_DMAStop(&hsai_BlockB2);
+	if (nRozmiarProbki <= 0)
+	{
+		chGlosnikJestZajęty = 0;		//zwolnienie zasobu
+		if (chNumerTonu >= LICZBA_TONOW_WARIO)
+			HAL_SAI_DMAStop(&hsai_BlockB2);
+	}
 }
 
 
@@ -326,4 +365,214 @@ void UstawTon(uint8_t chNrTonu, uint8_t chGlosnosc)
 void ZatrzymajTon(void)
 {
 	chNumerTonu = 255;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wymawia komunikat słowny dotyczący jednego z predefiniowanych parametrów
+// Parametry: chTypKomunikatu - predefiniowany typ: 1=wysokość, 2=napięcie, 3=temperatura, 4=prędkość
+// fWartosc - liczba do wymówienia
+// chPrezyzja - okresla ile miejsc po przecinku należy wymówić. Obecnie 0 lub 1
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
+{
+	uint8_t chErr;
+	float fLiczba;
+	uint8_t chCyfra;
+	uint8_t chFormaGramatyczna = 0;
+
+	if (fWartosc > 900000)
+			return ERR_ZLE_DANE;	//nie obsługuję wymowy większych liczb
+
+	//dodaj nagłówek komunikatu
+	switch(chTypKomunikatu)
+	{
+	case KOMG_WYSOKOSC:		chErr = DodajProbkeDoKolejki(PRGA_WYSOKOSC);	break;
+	case KOMG_NAPIECIE:		chErr = DodajProbkeDoKolejki(PRGA_NAPIECIE);	break;
+	case KOMG_TEMPERATURA:	chErr = DodajProbkeDoKolejki(PRGA_TEMPERATURA);	break;
+	case KOMG_PREDKOSC:		chErr = DodajProbkeDoKolejki(PRGA_PREDKOSC);	break;
+	default:	break;
+	}
+
+	//dodaj znak jeżeli liczba ujemna
+	if (fWartosc < 0.0)
+	{
+		fWartosc *= -1.0f;		//zamień na liczbę dodatnią
+		DodajProbkeDoKolejki(PRGA_MINUS);
+	}
+
+	//dodaj kolejne cyfry składajace się na liczbę
+	if (fWartosc >= 100000)		//setki tysięcy
+	{
+		fLiczba = floorf(fWartosc / 100000);
+		chCyfra = (uint8_t)fLiczba;
+		chErr = DodajProbkeDoKolejki(PRGA_100 + chCyfra - 1);
+		fWartosc -= chCyfra * 100000;
+		chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
+	}
+
+	if (fWartosc >= 20000)		//dziesiątki tysięcy >=20k
+	{
+		fLiczba = floorf(fWartosc / 10000);
+		chCyfra = (uint8_t)fLiczba;
+		chErr = DodajProbkeDoKolejki(PRGA_20 + chCyfra - 2);
+		fWartosc -= chCyfra * 10000;
+		chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
+	}
+
+	if (fWartosc >= 10000)		//kilkanaście tysięcy
+	{
+		fLiczba = floorf(fWartosc / 10000);
+		chCyfra = (uint8_t)fLiczba;
+		chErr = DodajProbkeDoKolejki(PRGA_10 + chCyfra - 1);
+		fWartosc -= chCyfra * 10000;
+		chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
+	}
+
+	if (fWartosc >= 1000)		//jednostki tysięcy
+	{
+		fLiczba = floorf(fWartosc / 1000);
+		chCyfra = (uint8_t)fLiczba;
+		chErr = DodajProbkeDoKolejki(PRGA_01 + chCyfra - 1);
+		fWartosc -= chCyfra * 1000;
+		if (chCyfra >= 5)
+			chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
+		else
+		if (chCyfra > 1)
+			chFormaGramatyczna = 2;		//użyj drugiej formy: tysiące
+		else
+			chFormaGramatyczna = 1;		//użyj pierwszej formy: tysiąc
+	}
+
+	if (chFormaGramatyczna)
+	{
+		chErr = DodajProbkeDoKolejki(PRGA_TYSIAC + chCyfra - 1);	//dodaj słowo tysiąc w odpowiedniej formie
+		chFormaGramatyczna = 0;
+	}
+
+	if (fWartosc >= 100)		//setki
+	{
+		fLiczba = floorf(fWartosc / 100);
+		chCyfra = (uint8_t)fLiczba;
+		chErr = DodajProbkeDoKolejki(PRGA_100 + chCyfra - 1);
+		fWartosc -= chCyfra * 100;
+		chFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
+	}
+
+	if (fWartosc >= 20)		//dziesiątki >=20
+	{
+		fLiczba = floorf(fWartosc / 10);
+		chCyfra = (uint8_t)fLiczba;
+		chErr = DodajProbkeDoKolejki(PRGA_20 + chCyfra - 2);
+		fWartosc -= chCyfra * 10;
+		chFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
+	}
+
+	if (fWartosc >= 10)		//kilkanascie
+	{
+		chCyfra = (uint8_t)fWartosc;
+		chErr = DodajProbkeDoKolejki(PRGA_10 + chCyfra - 10);
+		fWartosc -= chCyfra;
+		chFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
+	}
+
+	if (fWartosc >= 1.0f)		//jednostki
+	{
+		chCyfra = (uint8_t)fWartosc;
+		chErr = DodajProbkeDoKolejki(PRGA_01 + chCyfra - 1);
+		fWartosc -= chCyfra;
+		if (chCyfra >= 5)
+			chFormaGramatyczna = 4;		//jednostka w liczbie >=5 woltów, metrów
+		else
+			if (chCyfra > 1)
+				chFormaGramatyczna = 3;		//jednostka w liczbie >=5: wolty, metry
+			else
+				chFormaGramatyczna = 2;		//jednostka w liczbie >=5: wolt, metr
+	}
+
+	if (fWartosc >= 0.1f)		//dziesiąte części
+	{
+		uint8_t chFormaDziesiatych;
+
+		chErr = DodajProbkeDoKolejki(PRGA_I);
+		fLiczba = floorf(fWartosc * 10);
+		chCyfra = (uint8_t)fLiczba;
+		chErr = DodajProbkeDoKolejki(PRGA_01 + chCyfra - 1);
+		if (chCyfra >= 5)
+			chFormaDziesiatych = 2;		//jednostka w liczbie >=5: dziesiatych
+		else
+			if (chCyfra > 1)
+				chFormaDziesiatych = 1;		//jednostka w liczbie >1: dziesiąte
+			else
+				chFormaDziesiatych = 0;		//jednostka w liczbie == 1: dziesiąta
+
+		chErr = DodajProbkeDoKolejki(PRGA_DZIESIATA + chFormaDziesiatych);
+		chFormaGramatyczna = 1;		//jednostka w liczbie <1: wolta, metra
+	}
+
+	//dodaj jednostkę
+	switch(chTypKomunikatu)
+	{
+	case KOMG_WYSOKOSC:		chErr = DodajProbkeDoKolejki(PRGA_METRA + chFormaGramatyczna - 1);	break;
+	case KOMG_NAPIECIE:		chErr = DodajProbkeDoKolejki(PRGA_WOLTA + chFormaGramatyczna - 1);	break;
+	case KOMG_TEMPERATURA:	chErr = DodajProbkeDoKolejki(PRGA_STOPNIA + chFormaGramatyczna - 1);	break;
+	case KOMG_PREDKOSC:		//chErr = DodajProbkeDoKolejki(PRGA_METRA);
+			chErr += DodajProbkeDoKolejki(PRGA_NA_SEKUNDE + chFormaGramatyczna - 1);	break;
+	default:	break;
+	}
+
+
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Dodaje kolejną próbkę do kolejki komunikatów
+// Parametry: chTypKomunikatu - predefiniowany typ: 1=wysokość, 2=napięcie, 3=temperatura, 4=prędkość
+// fWartosc - liczba do wymówienia
+// chPrezyzja - okresla ile miejsc po przecinku należy wymówić. Obecnie 0 lub 1
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+uint8_t DodajProbkeDoKolejki(uint8_t chNumerProbki)
+{
+	uint8_t chNapelnianie = chWskNapKolKom;
+
+	//sprawdź czy jest miejsce w kolejce
+	chNapelnianie++;
+	if (chNapelnianie >= ROZM_KOLEJKI_KOMUNIKATOW)
+		chNapelnianie = 0;
+	if (chNapelnianie == chWskOprKolKom)
+		return ERR_PELEN_BUF_KOM;
+
+	chKolejkaKomunkatow[chWskNapKolKom++] = chNumerProbki;
+	if (chWskNapKolKom >= ROZM_KOLEJKI_KOMUNIKATOW)
+			chWskNapKolKom = 0;
+
+	return ERR_OK;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Tworzy losowy komunikat do wymówienia
+// Parametry: nic
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void TestKomunikatow(void)
+{
+	extern RNG_HandleTypeDef hrng;
+	uint32_t nRrandom32;
+	uint8_t chTypKomunikatu;
+	float fWartosc;
+
+	HAL_RNG_GenerateRandomNumber(&hrng, &nRrandom32);
+	chTypKomunikatu = KOMG_WYSOKOSC + (nRrandom32 & 0x03);
+
+	HAL_RNG_GenerateRandomNumber(&hrng, &nRrandom32);
+	fWartosc = (float)(nRrandom32 & 0x8FFFFF) / 10.0;
+
+	PrzygotujKomunikat(chTypKomunikatu, fWartosc);
 }
