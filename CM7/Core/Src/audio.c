@@ -6,6 +6,9 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "audio.h"
+#include "LCD.h"
+#include "RPi35B_480x320.h"
+#include <stdio.h>
 
 //Słowniczek:
 //próbka audio - pojedynczy plik wave zapisany we flash
@@ -84,6 +87,8 @@ uint8_t ObslugaWymowyKomunikatu(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t OdtworzProbkeAudioZeSpisu(uint8_t chNrProbki)
 {
+	if (chNrProbki >= PRGA_MAX_PROBEK)
+		return ERR_BRAK_PROBKI_AUDIO;
 	return OdtworzProbkeAudio( *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 0), *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 4) / 2);
 }
 
@@ -104,7 +109,7 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 	{
 		chCzasSwieceniaLED[LED_CZER] = 20;	//włącz czerwoną na 2 sekundy
 		if (nAdres > 0x081FFFFF)	//jeżeli we flash programu to tylko sygnalizuj
-			return ERR_BRAK_KOM_AUDIO;
+			return ERR_BRAK_PROBKI_AUDIO;
 	}
 
 	chGlosnikJestZajęty = 1;		//zajęcie zasobu "głośnika"
@@ -383,7 +388,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	uint8_t chCyfra;
 	uint8_t chFormaGramatyczna = 0;
 
-	if (fWartosc > 900000)
+	if (fWartosc > 999999)
 			return ERR_ZLE_DANE;	//nie obsługuję wymowy większych liczb
 
 	//dodaj nagłówek komunikatu
@@ -393,6 +398,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	case KOMG_NAPIECIE:		chErr = DodajProbkeDoKolejki(PRGA_NAPIECIE);	break;
 	case KOMG_TEMPERATURA:	chErr = DodajProbkeDoKolejki(PRGA_TEMPERATURA);	break;
 	case KOMG_PREDKOSC:		chErr = DodajProbkeDoKolejki(PRGA_PREDKOSC);	break;
+	case KOMG_KIERUNEK:		chErr = DodajProbkeDoKolejki(PRGA_KIERUNEK);	break;
 	default:	break;
 	}
 
@@ -424,10 +430,10 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 
 	if (fWartosc >= 10000)		//kilkanaście tysięcy
 	{
-		fLiczba = floorf(fWartosc / 10000);
+		fLiczba = floorf(fWartosc / 1000);
 		chCyfra = (uint8_t)fLiczba;
-		chErr = DodajProbkeDoKolejki(PRGA_10 + chCyfra - 1);
-		fWartosc -= chCyfra * 10000;
+		chErr = DodajProbkeDoKolejki(PRGA_10 + chCyfra - 10);
+ 		fWartosc -= chCyfra * 1000;
 		chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
 	}
 
@@ -435,7 +441,8 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 		fLiczba = floorf(fWartosc / 1000);
 		chCyfra = (uint8_t)fLiczba;
-		chErr = DodajProbkeDoKolejki(PRGA_01 + chCyfra - 1);
+		if ((chFormaGramatyczna) || (chCyfra > 1))	//nie dodawaj "jeden" przed "tysiąc", ale tylko gdy nie ma starszych cyfr
+			chErr = DodajProbkeDoKolejki(PRGA_01 + chCyfra - 1);
 		fWartosc -= chCyfra * 1000;
 		if (chCyfra >= 5)
 			chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
@@ -443,12 +450,13 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 		if (chCyfra > 1)
 			chFormaGramatyczna = 2;		//użyj drugiej formy: tysiące
 		else
-			chFormaGramatyczna = 1;		//użyj pierwszej formy: tysiąc
+			if (!chFormaGramatyczna)		//jezeli są starsze cyfry to forma odnosi się do nich, jeżeli nie to jest specyficzna dla jednego tysiaca
+				chFormaGramatyczna = 1;		//użyj pierwszej formy: tysiąc
 	}
 
-	if (chFormaGramatyczna)
+	if (chFormaGramatyczna)		//jeżeli chFormaGramatyczna jest niezerowa to wystąpiły tysiace i trzeba je wymówić w odpowiedniej formie
 	{
-		chErr = DodajProbkeDoKolejki(PRGA_TYSIAC + chCyfra - 1);	//dodaj słowo tysiąc w odpowiedniej formie
+		chErr = DodajProbkeDoKolejki(PRGA_TYSIAC + chFormaGramatyczna - 1);	//dodaj słowo tysiąc w odpowiedniej formie
 		chFormaGramatyczna = 0;
 	}
 
@@ -489,7 +497,8 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 			if (chCyfra > 1)
 				chFormaGramatyczna = 3;		//jednostka w liczbie >=5: wolty, metry
 			else
-				chFormaGramatyczna = 2;		//jednostka w liczbie >=5: wolt, metr
+				if (!chFormaGramatyczna)	//jeżeli nie było starszych cyfr dla których okreslono formę to użyj formy dla jedynki
+					chFormaGramatyczna = 2;		//jednostka w liczbie >=5: wolt, metr
 	}
 
 	if (fWartosc >= 0.1f)		//dziesiąte części
@@ -497,9 +506,13 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 		uint8_t chFormaDziesiatych;
 
 		chErr = DodajProbkeDoKolejki(PRGA_I);
-		fLiczba = floorf(fWartosc * 10);
+		fLiczba = roundf(fWartosc * 10);	//ponieważ to ostatnia znacząca cyfra więc potrzebne zaokrąglenie a nie obcięcie
 		chCyfra = (uint8_t)fLiczba;
-		chErr = DodajProbkeDoKolejki(PRGA_01 + chCyfra - 1);
+		if (chCyfra > 2)
+			chErr = DodajProbkeDoKolejki(PRGA_01 + chCyfra - 1);
+		else
+			chErr = DodajProbkeDoKolejki(PRGA_JEDNA + chCyfra - 1);	//specyficzna wymowa dla jedna i dwie dziesiate
+
 		if (chCyfra >= 5)
 			chFormaDziesiatych = 2;		//jednostka w liczbie >=5: dziesiatych
 		else
@@ -517,13 +530,12 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 	case KOMG_WYSOKOSC:		chErr = DodajProbkeDoKolejki(PRGA_METRA + chFormaGramatyczna - 1);	break;
 	case KOMG_NAPIECIE:		chErr = DodajProbkeDoKolejki(PRGA_WOLTA + chFormaGramatyczna - 1);	break;
+	case KOMG_KIERUNEK:
 	case KOMG_TEMPERATURA:	chErr = DodajProbkeDoKolejki(PRGA_STOPNIA + chFormaGramatyczna - 1);	break;
-	case KOMG_PREDKOSC:		//chErr = DodajProbkeDoKolejki(PRGA_METRA);
-			chErr += DodajProbkeDoKolejki(PRGA_NA_SEKUNDE + chFormaGramatyczna - 1);	break;
+	case KOMG_PREDKOSC:		chErr = DodajProbkeDoKolejki(PRGA_METRA + chFormaGramatyczna - 1);
+							chErr += DodajProbkeDoKolejki(PRGA_NA_SEKUNDE);	break;
 	default:	break;
 	}
-
-
 	return chErr;
 }
 
@@ -566,13 +578,79 @@ void TestKomunikatow(void)
 	extern RNG_HandleTypeDef hrng;
 	uint32_t nRrandom32;
 	uint8_t chTypKomunikatu;
+	uint8_t chDlugosc;
 	float fWartosc;
+	extern uint8_t chRysujRaz;
+	extern char chNapis[60];
+	char chKomunikat[13];
+	char chJednostka[4];
+	uint16_t n;
 
-	HAL_RNG_GenerateRandomNumber(&hrng, &nRrandom32);
-	chTypKomunikatu = KOMG_WYSOKOSC + (nRrandom32 & 0x03);
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Generator komunikatow");
 
-	HAL_RNG_GenerateRandomNumber(&hrng, &nRrandom32);
-	fWartosc = (float)(nRrandom32 & 0x8FFFFF) / 10.0;
+		setColor(GRAY80);
+		sprintf(chNapis, "Rozmiar kolejki komunikat%cw:", ó);
+		print(chNapis, 10, 60);
+		sprintf(chNapis, "Wymawiam:");
+		print(chNapis, 10, 40);
 
-	PrzygotujKomunikat(chTypKomunikatu, fWartosc);
+		setColor(GRAY60);
+		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
+		print(chNapis, CENTER, 300);
+	}
+
+	setColor(WHITE);
+	chDlugosc = DlugoscKolejkiKomunikatow();
+	sprintf(chNapis, "%d/%d  ",chDlugosc, ROZM_KOLEJKI_KOMUNIKATOW);
+	print(chNapis, 10+29*FONT_SL, 60);
+	if (!chDlugosc)	//gdy kolejka komunikatów się opróżni
+	{
+
+		do		//losuj typ komunikatu -1, bo indeksy zaczynają się od 1 a nie od zera
+		{
+			HAL_RNG_GenerateRandomNumber(&hrng, &nRrandom32);
+			chTypKomunikatu = KOMG_WYSOKOSC + (nRrandom32 & 0x07);
+		} while (chTypKomunikatu > KOMG_MAX_KOMUNIKAT - 1);
+		chTypKomunikatu++;	//konwersja z 0..KOMG_MAX_KOMUNIKAT-1 na 1..KOMG_MAX_KOMUNIKAT
+
+		switch (chTypKomunikatu)
+		{
+		case KOMG_WYSOKOSC:		sprintf(chKomunikat, "Wysoko%c%c", ś, ć);		sprintf(chJednostka, "m");		break;
+		case KOMG_NAPIECIE:		sprintf(chKomunikat, "Napi%ccie", ę);			sprintf(chJednostka, "V");		break;
+		case KOMG_TEMPERATURA:	sprintf(chKomunikat, "Temperatura");			sprintf(chJednostka, "%cC", ZNAK_STOPIEN);	break;
+		case KOMG_PREDKOSC:		sprintf(chKomunikat, "Pr%cdko%c%c", ę, ś, ć);	sprintf(chJednostka, "m/s");	break;
+		case KOMG_KIERUNEK:		sprintf(chKomunikat, "Kierunek");				sprintf(chJednostka, "%c", ZNAK_STOPIEN);	break;
+		}
+
+		HAL_RNG_GenerateRandomNumber(&hrng, &nRrandom32);
+		fWartosc = (float)(nRrandom32 & 0x7FFFFF) / 10.0;
+		if (!(nRrandom32 & 0x1800000))	//te 2 bity będzie wylosowanym znakiem z prawdopodobieństwem 1/4 dla minusa
+			fWartosc *= -1.0;
+
+		chDlugosc = sprintf(chNapis, "%s %.1f%s", chKomunikat, fWartosc, chJednostka);
+		for (n=chDlugosc; n<50; n++)
+			chNapis[n] = ' ';	//dopełnij spacjami aby zamazać wczesniejsze napisy
+		chNapis[n] = 0;
+		print(chNapis, 10+10*FONT_SL, 40);
+
+		PrzygotujKomunikat(chTypKomunikatu, fWartosc);
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Liczy długość kolejki komunikatów
+// Parametry: nic
+// Zwraca: długość kolejki
+////////////////////////////////////////////////////////////////////////////////
+uint8_t DlugoscKolejkiKomunikatow(void)
+{
+	if (chWskNapKolKom >= chWskOprKolKom)
+		return chWskNapKolKom - chWskOprKolKom;
+	else
+		return ROZM_KOLEJKI_KOMUNIKATOW + chWskNapKolKom - chWskOprKolKom;
 }

@@ -53,12 +53,6 @@ extern const unsigned short obr_touch[0xFFC];
 extern const unsigned short obr_dotyk[0xFFC];
 extern const unsigned short obr_dotyk_zolty[0xFFC];
 
-extern const short sNiechajNarodowie[129808];
-extern const short PWM_detected[33050];
-extern const short PWM_detected1[34192];
-extern short proba_mikrofonu[30714] ;
-extern const short cnowym_rokom_AdaUA[37516];
-extern const short sWszystkiegoNajlepszegoAda[65126];
 
 
 //definicje zmiennych
@@ -211,7 +205,8 @@ void RysujEkran(void)
 		break;
 
 	case TP_MMREJ:
-		OdtworzProbkeAudio((uint32_t)&sNiechajNarodowie[0], 129808);
+		//OdtworzProbkeAudio((uint32_t)&sNiechajNarodowie[0], 129808);
+		OdtworzProbkeAudioZeSpisu(PRGA_NIECHAJ_NARODO);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
@@ -260,10 +255,12 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM_KOM4:	//komunikat audio 4
-		//OdtworzProbkeAudio((uint32_t)&PWM_detected1[0], 34192);
-		//OdtworzProbkeAudioZeSpisu(3);
 		TestKomunikatow();
-		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		}
 		break;
 
 //***************************************************

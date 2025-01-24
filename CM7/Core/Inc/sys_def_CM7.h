@@ -14,7 +14,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	74	//numer commitu w repozytorium
+#define WER_REPO	75	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -141,5 +141,7 @@
 #define KOMG_NAPIECIE		2
 #define KOMG_TEMPERATURA	3
 #define KOMG_PREDKOSC		4
+#define KOMG_KIERUNEK		5
+#define KOMG_MAX_KOMUNIKAT	5
 
 #endif /* INC_SYS_DEF_CM7_H_ */

@@ -89,9 +89,11 @@
 #define	PRGA_METROW			61	//metrow.wav
 #define	PRGA_PREDKOSC		62	//predkosc.wav
 #define	PRGA_NA_SEKUNDE		63	//na_sekunde.wav
-#define	PRGA_ALLELUJA		64	// Alleluja_i_do_gory.wav
+#define	PRGA_KIERUNEK		64	//kierunek.wav
+#define	PRGA_ALLELUJA		66	//Alleluja_i_do_gory.wav
+#define	PRGA_NIECHAJ_NARODO	67	//niechaj_narodowie.wav
 
-#define PRGA_PAUZA			255	//
+#define PRGA_MAX_PROBEK		68	//maksymalna liczba dostępnych próbek
 
 
 
@@ -110,4 +112,5 @@ uint8_t RejestrujAudio(void);
 uint8_t DodajProbkeDoKolejki(uint8_t chNumerProbki);
 uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc);
 void TestKomunikatow(void);
+uint8_t DlugoscKolejkiKomunikatow(void);
 #endif /* INC_AUDIO_H_ */
