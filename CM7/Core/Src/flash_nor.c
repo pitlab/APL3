@@ -795,7 +795,6 @@ void TestPredkosciOdczytuRAM(void)
 			print(chNapis, 10, 80);
 			return;
 		}
-
 		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
 			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
 	}

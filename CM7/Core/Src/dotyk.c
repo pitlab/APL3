@@ -141,7 +141,7 @@ uint8_t KalibrujDotyk(void)
 	{
 	case 0:	//inicjalizacja zmiennych
 		//LCD_Orient(POZIOMO);
-		//LCD_clear();
+		LCD_clear(BLACK);
 		//TestObliczenKalibracji();		//testowo sprawdzenie poprawności obliczeń
 		setColor(WHITE);
 		setFont(MidFont);
@@ -149,6 +149,7 @@ uint8_t KalibrujDotyk(void)
 		print(chNapis, CENTER, 60);
 		sprintf(chNapis, "skalibrowac ekran dotykowy");
 		print(chNapis, CENTER, 80);
+		statusDotyku.chFlagi = 0;
 		chEtapKalibr++;
 		break;
 
@@ -494,6 +495,14 @@ uint8_t InicjujDotyk(void)
 	uint8_t n, chPaczka[ROZMIAR_PACZKI_KONF8];
 	uint8_t chErr = ERR_BRAK_KONFIG;
 
+	for (n=0; n<4; n++)
+		statusDotyku.sAdc[n] = 0;
+	statusDotyku.chFlagi = 0;
+	statusDotyku.sX = 0;
+	statusDotyku.sY = 0;
+	statusDotyku.chCzasDotkniecia = 0;
+	statusDotyku.nOstCzasPomiaru = 0;
+
 	n = CzytajPaczkeKonfigu(chPaczka, FKON_KALIBRACJA_DOTYKU);
 	if (n == ROZMIAR_PACZKI_KONF8)
 	{
@@ -507,7 +516,7 @@ uint8_t InicjujDotyk(void)
 		statusDotyku.chFlagi |= DOTYK_SKALIBROWANY;
 		chErr = ERR_OK;
 	}
-	//chCzasDotkn = 1;	//potrzebne do uruchomienia pierwszej kalibracji przez trzymanie ekranu podczas włączania
+	statusDotyku.chCzasDotkniecia = 1;	//potrzebne do uruchomienia pierwszej kalibracji przez trzymanie ekranu podczas włączania
 	//normalnie potrzeba trzymać ekran przez kilka cykli aby zostało to uznane za dotknięcie, natomiast podcza uruchomienia jest tylko jedna próba stąd licznik musi być =1
 	return chErr;
 }

@@ -20,7 +20,7 @@
 #define ROZMIAR8_EXT_SRAM	(4096*1024)
 #define ROZMIAR16_EXT_SRAM	(2048*1024)
 #define ROZMIAR16_BUF_SEKT	256
-#define SEKTOR_TESTOW_PROG	30		//sektor i 4 nastepne do wykonywania testów prędkosci zapisu. Zmieniać okresowo aby nie nadwyręzać struktury
+#define SEKTOR_TESTOW_PROG	100		//sektor i 4 nastepne do wykonywania testów prędkosci zapisu. Zmieniać okresowo aby nie nadwyręzać struktury
 //znaczenie bitów statusu
 #define FNOR_STATUS_DRB		0x80	// 7 - DRB: Device Ready Bit
 #define FNOR_STATUS_ESSB	0x40	// 6 - ESSB: Erase Suspend Ststus Bit

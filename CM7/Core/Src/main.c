@@ -87,13 +87,19 @@ UART_HandleTypeDef hlpuart1;
 UART_HandleTypeDef huart7;
 DMA_HandleTypeDef hdma_lpuart1_tx;
 DMA_HandleTypeDef hdma_lpuart1_rx;
+
 QSPI_HandleTypeDef hqspi;
+
 RNG_HandleTypeDef hrng;
+
 SAI_HandleTypeDef hsai_BlockB2;
 DMA_HandleTypeDef hdma_sai2_b;
+
 SPI_HandleTypeDef hspi5;
 DMA_HandleTypeDef hdma_spi5_tx;
+
 TIM_HandleTypeDef htim6;
+
 DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
 SRAM_HandleTypeDef hsram1;
@@ -107,7 +113,7 @@ osThreadId tsObslugaWyswieHandle;
 /* USER CODE BEGIN PV */
 uint8_t chErr;
 extern uint8_t chPorty_exp_wysylane[];
-
+extern struct _statusDotyku statusDotyku;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -239,11 +245,20 @@ Error_Handler();
   InicjujKonfigFlash();
   InicjujProtokol();
   InicjujAudio();
-
   InicjujDotyk();
-  Ekran_Powitalny(nZainicjowano);		//przywitaj użytkownika i prezentuj wykryty sprzęt
-  chNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
-  chTrybPracy = TP_WITAJ;				//jest w trybie powitalnym, ważne aby tryb buł inny od TP_MENU_GLOWNE bo on nadpisuje chNowyTrybPracy
+
+  CzytajDotyk();
+  if (statusDotyku.sAdc[2] > MIN_Z)						//jeżeli ekran jest dotknięty w czasie uruchamiania
+  {
+	  statusDotyku.chFlagi &= ~DOTYK_SKALIBROWANY;		//wymuś ponowną kalibrację przez odjęcie statusu skalibrowania
+  }
+  else
+  {
+	  Ekran_Powitalny(nZainicjowano);		//przywitaj użytkownika i prezentuj wykryty sprzęt
+	  chNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
+	  chTrybPracy = TP_WITAJ;				//jest w trybie powitalnym, ważne aby tryb był inny od TP_MENU_GLOWNE bo on nadpisuje chNowyTrybPracy
+  }
+
 
   /* USER CODE END 2 */
 
@@ -377,7 +392,7 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL2.PLL2N = 64;
   PeriphClkInitStruct.PLL2.PLL2P = 50;
   PeriphClkInitStruct.PLL2.PLL2Q = 32;
-  PeriphClkInitStruct.PLL2.PLL2R = 13;
+  PeriphClkInitStruct.PLL2.PLL2R = 8;
   PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_3;
   PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
   PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
