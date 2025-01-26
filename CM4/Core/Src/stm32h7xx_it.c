@@ -65,6 +65,10 @@ volatile uint16_t sCzasH;
 
 /* External variables --------------------------------------------------------*/
 extern MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel1_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel2_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel3_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel4_dma1_stream1_tc_0;
 extern DMA_HandleTypeDef hdma_i2c3_rx;
 extern DMA_HandleTypeDef hdma_i2c3_tx;
 extern I2C_HandleTypeDef hi2c3;

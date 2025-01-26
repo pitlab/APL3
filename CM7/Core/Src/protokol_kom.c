@@ -54,8 +54,8 @@ uint16_t sLogKomunikacji[ROZMIAR_LOGU_KOMUNIKACJI];
 uint16_t sWskLogu = 0;	//wskaźnik logu
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
-uint8_t chBuforNadDMA[ROZMIAR_RAMKI_UART]  __attribute__((section(".SekcjaSRAM4")));
-uint8_t chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA+8]  __attribute__((section(".SekcjaSRAM4")));
+ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chBuforNadDMA[ROZMIAR_RAMKI_UART]);
+ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA+8]);
 
 uint8_t chWyslaneOK = 1;
 uint8_t chBuforKomOdb[ROZMIAR_BUF_ANALIZY_ODB];

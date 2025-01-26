@@ -91,6 +91,7 @@ SECTIONS
     . = ALIGN(4);
     *(.rodata)         /* .rodata sections (constants, strings, etc.) */
     *(.rodata*)        /* .rodata* sections (constants, strings, etc.) */
+    *(.SekcjaFlashCPU)
     . = ALIGN(4);
   } >FLASH
 

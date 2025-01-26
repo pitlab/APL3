@@ -59,10 +59,15 @@ volatile unsigned long ulHighFrequencyTimerTicks = 0;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 extern DMA_HandleTypeDef hdma_lpuart1_tx;
 extern DMA_HandleTypeDef hdma_lpuart1_rx;
 extern UART_HandleTypeDef hlpuart1;
 extern MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel1_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel2_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel3_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel4_dma1_stream1_tc_0;
 extern DMA_HandleTypeDef hdma_sai2_b;
 extern DMA_HandleTypeDef hdma_spi5_tx;
 extern SPI_HandleTypeDef hspi5;
@@ -217,6 +222,48 @@ void TIM6_DAC_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles USB On The Go HS End Point 1 Out global interrupt.
+  */
+void OTG_HS_EP1_OUT_IRQHandler(void)
+{
+  /* USER CODE BEGIN OTG_HS_EP1_OUT_IRQn 0 */
+
+  /* USER CODE END OTG_HS_EP1_OUT_IRQn 0 */
+  HAL_PCD_IRQHandler(&hpcd_USB_OTG_HS);
+  /* USER CODE BEGIN OTG_HS_EP1_OUT_IRQn 1 */
+
+  /* USER CODE END OTG_HS_EP1_OUT_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USB On The Go HS End Point 1 In global interrupt.
+  */
+void OTG_HS_EP1_IN_IRQHandler(void)
+{
+  /* USER CODE BEGIN OTG_HS_EP1_IN_IRQn 0 */
+
+  /* USER CODE END OTG_HS_EP1_IN_IRQn 0 */
+  HAL_PCD_IRQHandler(&hpcd_USB_OTG_HS);
+  /* USER CODE BEGIN OTG_HS_EP1_IN_IRQn 1 */
+
+  /* USER CODE END OTG_HS_EP1_IN_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USB On The Go HS global interrupt.
+  */
+void OTG_HS_IRQHandler(void)
+{
+  /* USER CODE BEGIN OTG_HS_IRQn 0 */
+
+  /* USER CODE END OTG_HS_IRQn 0 */
+  HAL_PCD_IRQHandler(&hpcd_USB_OTG_HS);
+  /* USER CODE BEGIN OTG_HS_IRQn 1 */
+
+  /* USER CODE END OTG_HS_IRQn 1 */
+}
+
+/**
   * @brief This function handles SPI5 global interrupt.
   */
 void SPI5_IRQHandler(void)
@@ -269,6 +316,10 @@ void MDMA_IRQHandler(void)
 
   /* USER CODE END MDMA_IRQn 0 */
   HAL_MDMA_IRQHandler(&hmdma_mdma_channel0_dma1_stream1_tc_0);
+  HAL_MDMA_IRQHandler(&hmdma_mdma_channel1_dma1_stream1_tc_0);
+  HAL_MDMA_IRQHandler(&hmdma_mdma_channel2_dma1_stream1_tc_0);
+  HAL_MDMA_IRQHandler(&hmdma_mdma_channel3_dma1_stream1_tc_0);
+  HAL_MDMA_IRQHandler(&hmdma_mdma_channel4_dma1_stream1_tc_0);
   /* USER CODE BEGIN MDMA_IRQn 1 */
 
   /* USER CODE END MDMA_IRQn 1 */

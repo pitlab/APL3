@@ -21,20 +21,26 @@
  * */
 
 
-uint16_t sFlashMem[ROZMIAR16_BUFORA] 	__attribute__((section(".SekcjaFlashNOR")));
-uint16_t sBuforD2[ROZMIAR16_BUFORA]  	__attribute__((section(".SekcjaSRAM2")));
-uint16_t sExtSramBuf[ROZMIAR16_BUFORA] 	__attribute__((section(".SekcjaZewnSRAM")));
-uint16_t sBuforDram[ROZMIAR16_BUFORA]  	__attribute__((section(".SekcjaDRAM")));
-uint16_t sBuforDTCM[ROZMIAR16_BUFORA]  	__attribute__((section(".SekcjaDTCM")));
-uint16_t sBufor[ROZMIAR16_BUFORA];
-uint16_t sBufor2[ROZMIAR16_BUFORA];
-uint16_t sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
+ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaFlashNOR"))) 	sFlashNOR[ROZMIAR16_BUFORA]);	//bufor do odczytu z Flash NOR
+ALIGN_32BYTES(const uint16_t __attribute__((section(".SekcjaFlashCPU"))) 		sFlashMem[ROZMIAR16_BUFORA]);	//bufor do odczytu z wewnętrznego flash
+ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaSRAM2"))) 	sBuforD2[ROZMIAR16_BUFORA]);
+ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaZewnSRAM")))	sExtSramBuf[ROZMIAR16_BUFORA]);
+ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaDRAM")))		sBuforDram[ROZMIAR16_BUFORA]);
+ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaDTCM")))		sBuforDTCM[ROZMIAR16_BUFORA]);
+ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaAxiSRAM")))	sBufor[ROZMIAR16_BUFORA]);
+ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaAxiSRAM")))	sBufor2[ROZMIAR16_BUFORA]);
+ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaAxiSRAM"))) 	sBuforSektoraFlash[ROZMIAR16_BUF_SEKT]);	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
+
 uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern SRAM_HandleTypeDef hsram1;
 extern NOR_HandleTypeDef hnor3;
 extern SDRAM_HandleTypeDef hsdram1;
 extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 extern MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel1_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel2_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel3_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel4_dma1_stream1_tc_0;
 extern RNG_HandleTypeDef hrng;
 extern char chNapis[];
 HAL_StatusTypeDef hsErr;
@@ -535,7 +541,7 @@ void TestPredkosciOdczytuNOR(void)
 	for (y=0; y<16; y++)
 	{
 		for (x=0; x<ROZMIAR16_BUFORA; x++)
-			sBufor[x] = sFlashMem[x];
+			sBufor[x] = sFlashNOR[x];
 	}
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
@@ -579,7 +585,7 @@ void TestPredkosciOdczytuNOR(void)
 	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
-		HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sFlashMem, (uint32_t)sBufor, ROZMIAR16_BUFORA);
+		HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sFlashNOR, (uint32_t)sBufor, ROZMIAR16_BUFORA);
 		while(hdma_memtomem_dma1_stream1.State != HAL_DMA_STATE_READY)
 			HAL_DMA_PollForTransfer(&hdma_memtomem_dma1_stream1, HAL_DMA_FULL_TRANSFER, 100);
 	}
@@ -661,7 +667,7 @@ void TestPredkosciOdczytuNOR(void)
 
 	//odczyt z NOR przez MDMA
 	nCzas = PobierzCzasT6();
-	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sFlashMem, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
+	chErr = HAL_MDMA_Start(&hmdma_mdma_channel2_dma1_stream1_tc_0, (uint32_t)sFlashNOR, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
 	if (chErr != ERR_OK)
 	{
 		setColor(RED);
@@ -670,20 +676,21 @@ void TestPredkosciOdczytuNOR(void)
 		return;
 	}
 
-	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
-		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
-
+	while(hmdma_mdma_channel2_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
+		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel2_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "MDMA: NOR->AxiRAM     t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
+		if (chErr == ERR_OK)
+			sprintf(chNapis, "MDMA: NOR->AxiRAM     t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
+		else
+			sprintf(chNapis, "MDMA: NOR->AxiRAM     B%c%cd", ł, ą);
 		print(chNapis, 10, 240);
 	}
 
-
 	//odczyt z Flash przez MDMA
 	nCzas = PobierzCzasT6();
-	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, ADRES_NOR, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
+	chErr = HAL_MDMA_Start(&hmdma_mdma_channel3_dma1_stream1_tc_0, (uint32_t)sFlashMem, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
 	if (chErr != ERR_OK)
 	{
 		setColor(RED);
@@ -692,20 +699,22 @@ void TestPredkosciOdczytuNOR(void)
 		return;
 	}
 
-	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
-		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
-
+	while(hmdma_mdma_channel3_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
+		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel3_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "MDMA: Flash->AxiRAM  t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
+		if (chErr == ERR_OK)
+			sprintf(chNapis, "MDMA: Flash->AxiRAM   t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
+		else
+			sprintf(chNapis, "MDMA: Flash->AxiRAM   B%c%cd", ł, ą);
 		print(chNapis, 10, 260);
 	}
 
 
 	//odczyt z RAM przez MDMA
 	nCzas = PobierzCzasT6();
-	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBuforD2, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
+	chErr = HAL_MDMA_Start(&hmdma_mdma_channel4_dma1_stream1_tc_0, (uint32_t)sBuforD2, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
 	if (chErr != ERR_OK)
 	{
 		setColor(RED);
@@ -713,14 +722,16 @@ void TestPredkosciOdczytuNOR(void)
 		print(chNapis, 10, 280);
 		return;
 	}
-
-	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
-		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
+	while(hmdma_mdma_channel4_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
+		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel4_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
 
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "MDMA: SRAM1->AxiRAM   t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
+		if (chErr == ERR_OK)
+			sprintf(chNapis, "MDMA: SRAM1->AxiRAM   t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
+		else
+			sprintf(chNapis, "MDMA: SRAM1->AxiRAM   B%c%cd", ł, ą);
 		print(chNapis, 10, 280);
 	}
 }
@@ -846,14 +857,17 @@ void TestPredkosciOdczytuRAM(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "MDMA: ExtSRAM->AxiSRAM   t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+		if (chErr == ERR_OK)
+			sprintf(chNapis, "MDMA: ExtSRAM->AxiSRAM   t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+		else
+			sprintf(chNapis, "MDMA: ExtSRAM->AxiSRAM   B%c%cd", ł, ą);
 		print(chNapis, 10, 120);
 	}
 
 
 	//zapis zewnętrznego SRAM przez MDMA
 	nCzas = PobierzCzasT6();
-	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBufor, (uint32_t)sExtSramBuf, ROZMIAR16_BUFORA, 1000);
+	chErr = HAL_MDMA_Start(&hmdma_mdma_channel1_dma1_stream1_tc_0, (uint32_t)sBufor, (uint32_t)sExtSramBuf, ROZMIAR16_BUFORA, 1000);
 	if (chErr != ERR_OK)
 	{
 		setColor(RED);
@@ -862,12 +876,15 @@ void TestPredkosciOdczytuRAM(void)
 		return;
 	}
 
-	while(hmdma_mdma_channel0_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
-		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
+	while(hmdma_mdma_channel1_dma1_stream1_tc_0.State != HAL_MDMA_STATE_READY)
+		chErr = HAL_MDMA_PollForTransfer(&hmdma_mdma_channel1_dma1_stream1_tc_0, HAL_MDMA_FULL_TRANSFER, 200);
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		sprintf(chNapis, "MDMA: AxiSRAM->ExtSRAM   t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+		if (chErr == ERR_OK)
+			sprintf(chNapis, "MDMA: AxiSRAM->ExtSRAM   t = %ld us => %.2f MB/s", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
+		else
+			sprintf(chNapis, "MDMA: ExtSRAM->AxiSRAM   B%c%cd", ł, ą);
 		print(chNapis, 10, 140);
 	}
 
