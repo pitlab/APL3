@@ -20,6 +20,7 @@
 #include "wymiana.h"
 #include "audio.h"
 #include "protokol_kom.h"
+#include "ff.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -52,8 +53,8 @@ extern const unsigned short obr_volume[];
 extern const unsigned short obr_touch[0xFFC];
 extern const unsigned short obr_dotyk[0xFFC];
 extern const unsigned short obr_dotyk_zolty[0xFFC];
-
-
+extern const unsigned short obr_kartaSD[0xFFC];
+extern const unsigned short obr_kartaSDneg[0xFFC];
 
 //definicje zmiennych
 uint8_t chTrybPracy;
@@ -80,10 +81,10 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Multimedia",  "Obsluga multimediow: dzwiek i obraz",		TP_MULTIMEDIA, 		obr_volume},
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
-	{"Flash", 		"nic",										TP_MG1,				obr_mtest},
+	{"Karta SD",	"Parametry karty SD",						TP_INFO_KARTA,				obr_kartaSD},
 	{"nic", 		"nic",										TP_MG2,				obr_mtest},
-	{"nic", 		"nic",										TP_MG3,				obr_mtest},
-	{"nic", 		"nic",										TP_MG4,				obr_mtest},
+	{"UART blok", 	"nic",										TP_MG3,				obr_mtest},
+	{"UART DMA", 	"nic",										TP_MG4,				obr_mtest},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_multitool},
 	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_dotyk},
 	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_dotyk_zolty}};
@@ -138,7 +139,15 @@ void RysujEkran(void)
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
-	case TP_FRAKTALE:		FraktalDemo();
+
+
+	case TP_KALIB_DOTYK:
+		if (KalibrujDotyk() == ERR_DONE)
+			chTrybPracy = TP_TESTY;
+		break;
+
+	case TP_INFO_KARTA:
+		WyswietlParametryKartySD();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -146,12 +155,7 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TP_KALIB_DOTYK:
-		if (KalibrujDotyk() == ERR_DONE)
-			chTrybPracy = TP_TESTY;
-		break;
-
-	case TP_MG1:
+	case TP_MG2:
 		chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
@@ -163,14 +167,6 @@ void RysujEkran(void)
 	case TP_MG4:
 		TestKomunikacjiDMA();	//wyślij komunikat tesktowy przez LPUART
 		chNowyTrybPracy = TP_WROC_DO_MENU;
-		break;
-
-	case TP_POMIAR_SRAM:	TestPredkosciOdczytuRAM();
-	if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MENU;
-		}
 		break;
 
 	case TP_ZDJECIE:
@@ -269,6 +265,22 @@ void RysujEkran(void)
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
+	case TP_FRAKTALE:		FraktalDemo();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+		}
+		break;
+
+	case TP_POMIAR_SRAM:	TestPredkosciOdczytuRAM();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+		}
+		break;
+
 	case TP_POM_ZAPISU_NOR:		TestPredkosciZapisuNOR();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
@@ -335,6 +347,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 	uint16_t x, y;
 	extern volatile unia_wymianyCM4_t uDaneCM4;
 	extern const unsigned short plogo165x80[];
+	extern uint8_t BSP_SD_IsDetected(void);
 
 	if (chRysujRaz)
 	{
@@ -349,11 +362,10 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 
 		setColor(GRAY30);
 		setFont(MidFont);
-		//sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_KASZANA]);	//"z technologia \"--Kaszana_OFF\""
 		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO], ó, ć, ó, ó, ż);	//"By móc mieć w rój Wronów na pohybel wrażym hordom""
 		print(chNapis, CENTER, 120);
 
-		sprintf(chNapis, "(c) PitLab 2024 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
+		sprintf(chNapis, "(c) PitLab 2025 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
 		print(chNapis, CENTER, 140);
 		chRysujRaz = 0;
 	}
@@ -369,6 +381,11 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 	y += 20;
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, *(zainicjowano+0) && INIT0_FLASH_NOR);
+
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KARTA_SD]);		//"Karta SD"
+	y += 20;
+	print(chNapis, x, y);
+	Wykrycie(x, y, n, BSP_SD_IsDetected());
 
 	//druga kolumna sprzętu zewnętrznego
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KAMERA_OV5642]);	//"kamera "
@@ -543,12 +560,10 @@ void InitFraktal(unsigned char chTyp)
 	switch (chTyp)
 	{
 	case 0:	fReal = 0.38; 	fImag = -0.1;	break;	//Julia
-	case 1:	fX=-0.70; 	fY=0.60;	fZoom = -0.6;	chMnozPalety = 2;	break;		//ca�y fraktal - rotacja palety -0.7, 0.6, -0.6,
+	case 1:	fX=-0.70; 	fY=0.60;	fZoom = -0.6;	chMnozPalety = 2;	break;		//cały fraktal - rotacja palety -0.7, 0.6, -0.6,
 	case 2:	fX=-0.75; 	fY=0.18;	fZoom = -0.6;	chMnozPalety = 15;	break;		//dolina konika x=-0,75, y=0,1
-	case 3:	fX= 0.30; 	fY=0.05;	fZoom = -0.6;	chMnozPalety = 43;	break;		//dolina s�onia x=0,25-0,35, y=0,05, zoom=-0,6..-40
+	case 3:	fX= 0.30; 	fY=0.05;	fZoom = -0.6;	chMnozPalety = 43;	break;		//dolina słonia x=0,25-0,35, y=0,05, zoom=-0,6..-40
 	}
-
-
 	//chMnozPalety = 43;		//8, 13, 21, 30, 34, 43, 48, 56, 61
 }
 
@@ -612,10 +627,8 @@ void GenerateMandelbrot(float centre_X, float centre_Y, float Zoom, unsigned sho
 	double y = Y_Min;
 	unsigned short j, i;
 	int n;
-	//double c;
 	double x, Zx, Zy, Zx2, Zy2, Zxy;
 
-	//for (j = 0; j < (DISP_Y_SIZE-CONTROL_SIZE_Y); j++)
 	for (j=0; j<DISP_Y_SIZE; j++)
 	{
 		x = X_Min;
@@ -644,6 +657,7 @@ void GenerateMandelbrot(float centre_X, float centre_Y, float Zoom, unsigned sho
 		y += dy;
 	}
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1107,4 +1121,56 @@ void TestTonuAudio(void)
 		UstawTon(chNumerTonu, 80);
 	}
 
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje okno z danymi karty SD
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void WyswietlParametryKartySD(void)
+{
+	HAL_SD_CardInfoTypeDef CardInfo;
+	extern  void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypeDef *CardInfo);
+
+	extern char SDPath[4];   /* SD logical drive path */
+	extern FATFS SDFatFS;    /* File system object for SD logical drive */
+	//extern FIL SDFile;       /* File object for SD */
+
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Parametry karty SD");
+	}
+
+	BSP_SD_GetCardInfo(&CardInfo);
+	setColor(GRAY80);
+	sprintf(chNapis, "Typ: %ld ", CardInfo.CardType);
+	print(chNapis, 10, 30);
+	sprintf(chNapis, "Wersja: %ld ", CardInfo.CardVersion);
+	print(chNapis, 10, 50);
+	sprintf(chNapis, "Klasa: %ld ", CardInfo.Class);
+	print(chNapis, 10, 70);
+	sprintf(chNapis, "Pr%cdko%c%c: %ld ", ę, ś, ć, CardInfo.CardSpeed);
+	print(chNapis, 10, 90);
+	sprintf(chNapis, "Liczba blok%cw: %ld ", ó, CardInfo.BlockNbr);
+	print(chNapis, 10, 110);
+	sprintf(chNapis, "Rozmiar bloku: %ld ", CardInfo.BlockSize);
+	print(chNapis, 10, 130);
+
+
+	//druga kolumna
+	sprintf(chNapis, "Scie%cka: %s ", ż, SDPath);
+	print(chNapis, 240, 30);
+	sprintf(chNapis, "Typ FAT: %d ", SDFatFS.fs_type);
+	print(chNapis, 240, 50);
+	sprintf(chNapis, "Rozmiar: %ld ", SDFatFS.fsize);;
+	print(chNapis, 240, 70);
+	sprintf(chNapis, "FAT ID: %d ", SDFatFS.id);
+	print(chNapis, 240, 90);
+	sprintf(chNapis, "FAT drv: %d ", SDFatFS.drv);
+	print(chNapis, 240, 110);
+	sprintf(chNapis, "Wolnych kluster%cw: %ld ", ó, SDFatFS.free_clst);
+	print(chNapis, 240, 130);
 }

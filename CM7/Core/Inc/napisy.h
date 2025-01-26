@@ -21,8 +21,7 @@
 #define STR_SPRAWDZ_KAMERA_OV5642	7
 #define STR_SPRAWDZ_IMU1			8
 #define STR_SPRAWDZ_GNSS			9
-
-#define STR_SPRAWDZ_0				10
+#define STR_SPRAWDZ_KARTA_SD		10
 #define STR_SPRAWDZ_1				11
 #define STR_SPRAWDZ_2				12
 #define STR_SPRAWDZ_3				13
@@ -65,7 +64,7 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Modul IMU",						//STR_SPRAWDZ_IMU1
 "Modul GNSS",						//STR_SPRAWDZ_GNSS
 
-"Modul ", 							//STR_SPRAWDZ_0
+"Karta SD", 						//STR_SPRAWDZ_KARTA_SD
 "Modul ",  							//STR_SPRAWDZ_1
 "Modul ",  							//STR_SPRAWDZ_2
 "Modul ",							//STR_SPRAWDZ_3

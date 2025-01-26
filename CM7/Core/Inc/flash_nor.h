@@ -96,5 +96,6 @@ void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_Comman
 void TestPredkosciOdczytuNOR(void);
 void TestPredkosciOdczytuRAM(void);
 uint8_t TestPredkosciZapisuNOR(void);
+void InicjujMDMA(void);
 
 #endif /* SRC_FLASH_NOR_H_ */
