@@ -270,6 +270,8 @@ Error_Handler();
 	  chTrybPracy = TP_WITAJ;				//jest w trybie powitalnym, ważne aby tryb był inny od TP_MENU_GLOWNE bo on nadpisuje chNowyTrybPracy
   }
 
+  BSP_SD_Init();
+
 
   /* USER CODE END 2 */
 

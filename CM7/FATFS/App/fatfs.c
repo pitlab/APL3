@@ -15,6 +15,7 @@
   *
   ******************************************************************************
   */
+#include <string.h>
 /* USER CODE END Header */
 #include "fatfs.h"
 
@@ -23,18 +24,19 @@ char SDPath[4];   /* SD logical drive path */
 FATFS SDFatFS;    /* File system object for SD logical drive */
 FIL SDFile;       /* File object for SD */
 
+
 /* USER CODE BEGIN Variables */
 
 /* USER CODE END Variables */
 
 void MX_FATFS_Init(void)
 {
-  /*## FatFS: Link the SD driver ###########################*/
-  retSD = FATFS_LinkDriver(&SD_Driver, SDPath);
+	/*## FatFS: Link the SD driver ###########################*/
+	retSD = FATFS_LinkDriver(&SD_Driver, SDPath);
 
-  /* USER CODE BEGIN Init */
-  /* additional user code for init */
-  /* USER CODE END Init */
+	/* USER CODE BEGIN Init */
+
+	/* USER CODE END Init */
 }
 
 /**

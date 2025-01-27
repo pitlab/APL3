@@ -72,6 +72,7 @@ extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern struct _statusDotyku statusDotyku;
 extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 extern uint8_t chPorty_exp_wysylane[];
+extern uint8_t chPorty_exp_odbierane[];
 extern uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
 
 
@@ -1132,16 +1133,34 @@ void TestTonuAudio(void)
 void WyswietlParametryKartySD(void)
 {
 	HAL_SD_CardInfoTypeDef CardInfo;
-	extern  void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypeDef *CardInfo);
-
+	extern uint8_t BSP_SD_IsDetected(void);
+	extern void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypeDef *CardInfo);
+	FRESULT fres; 		//Result after operations
+	BYTE readBuf[30];
 	extern char SDPath[4];   /* SD logical drive path */
 	extern FATFS SDFatFS;    /* File system object for SD logical drive */
-	//extern FIL SDFile;       /* File object for SD */
+	extern FIL SDFile;       /* File object for SD */
 
 	if (chRysujRaz)
 	{
 		chRysujRaz = 0;
 		BelkaTytulu("Parametry karty SD");
+
+		if (BSP_SD_IsDetected())
+		{
+			fres = f_mount(&SDFatFS, "", 1); //1=mount now
+			if (fres == FR_OK)
+			{
+				fres = f_open(&SDFile, "write.txt", FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
+				if (fres == FR_OK)
+				{
+					strncpy((char*)readBuf, "a new file is made!", 20);
+					UINT bytesWrote;
+					fres = f_write(&SDFile, readBuf, 19, &bytesWrote);
+					f_close(&SDFile);
+				}
+			}
+		}
 	}
 
 	BSP_SD_GetCardInfo(&CardInfo);
@@ -1158,6 +1177,8 @@ void WyswietlParametryKartySD(void)
 	print(chNapis, 10, 110);
 	sprintf(chNapis, "Rozmiar bloku: %ld ", CardInfo.BlockSize);
 	print(chNapis, 10, 130);
+	sprintf(chNapis, "Obecno%c%c karty: %d ", ś, ć, BSP_SD_IsDetected());	//LOG_SD1_CDETECT - wejscie detekcji obecności karty
+	print(chNapis, 10, 150);
 
 
 	//druga kolumna
@@ -1171,6 +1192,8 @@ void WyswietlParametryKartySD(void)
 	print(chNapis, 240, 90);
 	sprintf(chNapis, "FAT drv: %d ", SDFatFS.drv);
 	print(chNapis, 240, 110);
-	sprintf(chNapis, "Wolnych kluster%cw: %ld ", ó, SDFatFS.free_clst);
+	sprintf(chNapis, "Ilo%c%c sektor%cw: %ld ", ś, ć, ó, (SDFatFS.n_fatent - 2) * SDFatFS.csize);
 	print(chNapis, 240, 130);
+	sprintf(chNapis, "Wolnych sektor%cw: %ld ", ó, SDFatFS.free_clst * SDFatFS.csize);
+	print(chNapis, 240, 150);
 }

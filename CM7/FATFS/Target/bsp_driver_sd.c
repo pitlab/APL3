@@ -20,6 +20,7 @@
   *
  ******************************************************************************
  */
+#include "sys_def_CM7.h"
 /* USER CODE END Header */
 
 /* USER CODE BEGIN FirstSection */
@@ -290,7 +291,7 @@ __weak void BSP_SD_ReadCpltCallback(void)
  * @param  None
  * @retval Returns if SD is detected or not
  */
-__weak uint8_t BSP_SD_IsDetected(void)
+/*__weak uint8_t BSP_SD_IsDetected(void)
 {
   __IO uint8_t status = SD_PRESENT;
 
@@ -300,8 +301,21 @@ __weak uint8_t BSP_SD_IsDetected(void)
   }
 
   return status;
-}
+}*/
+
 
 /* USER CODE BEGIN AdditionalCode */
 /* user code can be inserted here */
+uint8_t BSP_SD_IsDetected(void)
+{
+	uint8_t status = SD_PRESENT;
+	extern uint8_t chPorty_exp_odbierane[];
+
+	if (chPorty_exp_odbierane[0] & EXP04_LOG_CARD_DET)		//styk detekcji karty zwiera do masy gdy karta jest obecna a pulllup wystawia 1 gdy jest nieobecna w gnieździe
+	{
+	status = SD_NOT_PRESENT;
+	}
+
+	return status;
+}
 /* USER CODE END AdditionalCode */
