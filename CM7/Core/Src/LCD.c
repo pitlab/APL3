@@ -1209,7 +1209,7 @@ void WyswietlParametryKartySD(void)
 	print(chNapis, 10, 190);
 	sprintf(chNapis, "Numer seryjny: %ld ", pCID.ProdSN);
 	print(chNapis, 10, 210);
-	sprintf(chNapis, "Data produkcji rrm: %X %d-%d-%d ", pCID.ManufactDate, (pCID.ManufactDate>>8) & 0xF, (pCID.ManufactDate>>4) & 0xF, (pCID.ManufactDate & 0xF));
+	sprintf(chNapis, "Data produkcji rr-m: %d-%d ", pCID.ManufactDate, (pCID.ManufactDate>>4) & 0xFF, (pCID.ManufactDate & 0xF));
 	print(chNapis, 10, 230);
 	sprintf(chNapis, "CardComdClasses: %X ", pCSD.CardComdClasses);
 	print(chNapis, 10, 250);
@@ -1236,7 +1236,7 @@ void WyswietlParametryKartySD(void)
 	sprintf(chNapis, "Wolnych sektor%cw: %ld ", ó, SDFatFS.free_clst * SDFatFS.csize);
 	print(chNapis, 240, 150);
 
-	sprintf(chNapis, "MaxBusClkFrec: %d ", pCSD.SysSpecVersion);
+	sprintf(chNapis, "SysSpecVersion: %d ", pCSD.SysSpecVersion);
 	print(chNapis, 240, 170);
 }
 

@@ -13,7 +13,7 @@
 
 
 void PetlaGlowna(void);
-uint32_t PobierzCzasT7(void);
+uint32_t PobierzCzas(void);
 uint32_t MinalCzas(uint32_t nPoczatek);
 uint8_t RozdzielniaOperacjiI2C(void);
 

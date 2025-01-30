@@ -3,7 +3,7 @@
 // AutoPitLot v3.0
 // Obsługa modułów wewnętrznych
 //
-// (c) Pit Lab 2004
+// (c) Pit Lab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "moduly_wew.h"

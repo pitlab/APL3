@@ -16,6 +16,7 @@
 #include "HMC5883.h"
 #include "jedn_inercyjna.h"
 #include <stdio.h>
+#include "MS5611.h"
 
 extern TIM_HandleTypeDef htim7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -26,7 +27,7 @@ uint8_t chNrOdcinkaCzasu;
 uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU];		//zmierzony czas obsługo odcinka
 uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
 uint32_t nCzasJalowy;
-uint8_t chErrPetliGlownej = ERR_OK;
+uint8_t chErrPG = ERR_OK;		//błąd petli głównej
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;
@@ -63,28 +64,33 @@ void PetlaGlowna(void)
 			uDaneCM4.dane.fMagn1[n] = 5 + n + fTemp;
 			uDaneCM4.dane.fMagn2[n] = 6 + n + fTemp;
 		}
-		chErrPetliGlownej |= UstawDekoderModulow(ADR_MOD1);
+		chErrPG |= UstawDekoderModulow(ADR_MOD1);
 		break;
 
 	case 1:		//obsługa modułu w gnieździe 2
-		for (n=0; n<16; n++)
-		{
-			uDaneCM4.dane.sSerwa[n] += n;
-			if (uDaneCM4.dane.sSerwa[n] > 2000)
-				uDaneCM4.dane.sSerwa[n] = 0;
-		}
-		chErrPetliGlownej |= UstawDekoderModulow(ADR_MOD2);
+		chErrPG |= UstawDekoderModulow(ADR_MOD2);
+
+		chErrPG |= WyslijDaneExpandera(chStanIOwy & ~MIO22);	//ustaw adres A2 = 0
+		ObslugaMS5611();
+
+		chErrPG |= WyslijDaneExpandera(chStanIOwy | MIO22);		//ustaw adres A2 = 1
 		break;
 
 	case 2:		//obsługa modułu w gnieździe 3
 		fTemp = (float)sGenerator/100;
 		uDaneCM4.dane.fWysokosc[0] = 20 + fTemp;
 		uDaneCM4.dane.fWysokosc[1] = 10 + fTemp;
-		chErrPetliGlownej |= UstawDekoderModulow(ADR_MOD3);
+		chErrPG |= UstawDekoderModulow(ADR_MOD3);
 		break;
 
 	case 3:		//obsługa modułu w gnieździe 4
-		chErrPetliGlownej |= UstawDekoderModulow(ADR_MOD4);
+		for (n=0; n<16; n++)
+		{
+			uDaneCM4.dane.sSerwa[n] += n;
+			if (uDaneCM4.dane.sSerwa[n] > 2000)
+				uDaneCM4.dane.sSerwa[n] = 0;
+		}
+		chErrPG |= UstawDekoderModulow(ADR_MOD4);
 		break;
 
 	case 4:		//obsługa GNSS na UART8
@@ -110,34 +116,34 @@ void PetlaGlowna(void)
 		}
 		break;
 
-	case 5: chErrPetliGlownej |= RozdzielniaOperacjiI2C();	break;
+	case 5: chErrPG |= RozdzielniaOperacjiI2C();	break;
 
 	case 8:
 
-		chErrPetliGlownej |= WyslijDaneExpandera(chStanIOwy);
+		chErrPG |= WyslijDaneExpandera(chStanIOwy);
 		break;
 
-	case 9:	chErrPetliGlownej |= ObliczeniaJednostkiInercujnej();	break;
+	case 9:	chErrPG |= ObliczeniaJednostkiInercujnej();	break;
 
 	/*case 10:
 		CzytajIdFRAM(chDane);
 		ZapiszFRAM(0x2000, 0x55);
 		chDane[0] = CzytajFRAM(0x2000);
 
-		nCzas = PobierzCzasT7();
+		nCzas = PobierzCzas();
 		CzytajBuforFRAM(0x1000, chDane, 16);
 		nCzas = MinalCzas(nCzas);
 
 		for (n=0; n<16; n++)
 			chDane[n] = (uint16_t)(n & 0xFF);
 
-		nCzas = PobierzCzasT7();
+		nCzas = PobierzCzas();
 		ZapiszBuforFRAM(0x1000, chDane, 16);
 		nCzas = MinalCzas(nCzas);
 		break;*/
 
 	case 11:
-		chErrPetliGlownej |= UstawDekoderModulow(ADR_NIC);
+		chErrPG |= UstawDekoderModulow(ADR_NIC);
 		break;
 
 	case 12:	//test przekazywania napisów
@@ -153,14 +159,14 @@ void PetlaGlowna(void)
 		break;
 
 	case 15:	//wymień dane między rdzeniami
-		uDaneCM4.dane.chErrPetliGlownej = chErrPetliGlownej;
-		chErrPetliGlownej  = PobierzDaneWymiany_CM7();
+		uDaneCM4.dane.chErrPetliGlownej = chErrPG;
+		chErrPG  = PobierzDaneWymiany_CM7();
 		chErr = UstawDaneWymiany_CM4();
 		if (chErr == ERR_SEMAFOR_ZAJETY)
 			chStanIOwy &= ~0x40;	//zaświeć czerwoną LED
 		else
 			chStanIOwy |= 0x40;		//zgaś czerwoną LED
-		chErrPetliGlownej |= chErr;
+		chErrPG |= chErr;
 		//chStanIOwy ^= 0x80;		//Zielona LED
 		break;
 
@@ -197,11 +203,11 @@ void PetlaGlowna(void)
 	//nadwyżkę czasu odcinka wytrać w jałowej petli
 	do
 	{
-		nCzasJalowy = PobierzCzasT7() - nCzasOstatniegoOdcinka;
+		nCzasJalowy = PobierzCzas() - nCzasOstatniegoOdcinka;
 	}
 	while (nCzasJalowy < CZAS_ODCINKA);
 
-	nCzasOstatniegoOdcinka = PobierzCzasT7();
+	nCzasOstatniegoOdcinka = PobierzCzas();
 }
 
 
@@ -211,7 +217,7 @@ void PetlaGlowna(void)
 // Parametry: brak
 // Zwraca: stan licznika w mikrosekundach
 ////////////////////////////////////////////////////////////////////////////////
-uint32_t PobierzCzasT7(void)
+uint32_t PobierzCzas(void)
 {
 	extern volatile uint16_t sCzasH;
 	return htim7.Instance->CNT + ((uint32_t)sCzasH<<16);
@@ -228,7 +234,7 @@ uint32_t MinalCzas(uint32_t nPoczatek)
 {
 	uint32_t nCzas, nCzasAkt;
 
-	nCzasAkt = PobierzCzasT7();
+	nCzasAkt = PobierzCzas();
 	if (nCzasAkt >= nPoczatek)
 		nCzas = nCzasAkt - nPoczatek;
 	else
