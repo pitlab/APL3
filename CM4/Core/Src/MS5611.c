@@ -9,12 +9,12 @@
 #include "MS5611.h"
 #include "wymiana_CM4.h"
 #include "petla_glowna.h"
+#include "main.h"
 
 extern SPI_HandleTypeDef hspi2;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 static uint16_t sKonfig[5];  //współczynniki kalibracyjne
 static uint8_t chBuf5611[4];
-uint8_t chErr;
 int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia
 float fTemperatura;
 uint8_t chProporcjaPomiarow;
@@ -28,12 +28,16 @@ uint8_t chProporcjaPomiarow;
 uint8_t InicjujMS5611(void)
 {
 	uint32_t nCzasStart;
+	uint8_t chErr;
 
     nCzasStart = PobierzCzas();
     do
     {
     	chBuf5611[0] = PMS_RESET;
+    	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
     	chErr = HAL_SPI_Transmit(&hspi2, chBuf5611, 1, 5);	//typowy czas wykonania operacji to 2,8ms
+    	HAL_Delay(3);
+    	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
     	if (chErr)
     		return chErr;
 
@@ -43,9 +47,9 @@ uint8_t InicjujMS5611(void)
         if (MinalCzas(nCzasStart) > 2400)   //czekaj maksymalnie 1200us
             return ERR_TIMEOUT;
     }
-    while (!sKonfig[0] | !sKonfig[1] | !sKonfig[2] | !sKonfig[3] | !sKonfig[4] | !sKonfig[5]);
+    while (!sKonfig[0] | !sKonfig[1] | !sKonfig[2] | !sKonfig[3] | !sKonfig[4] | !sKonfig[5] | (sKonfig[0] == 0xFFFF) | (sKonfig[1] == 0xFFFF));
     uDaneCM4.dane.nZainicjowano |= INIT_MS5611;
-    return ERR_OK;
+    return chErr;
 }
 
 
@@ -61,7 +65,9 @@ uint16_t CzytajKonfiguracjeMS5611(uint8_t chAdres)
 	uint16_t sWspolczynnik;
 
 	chBuf5611[0] = chAdres;
-	chErr |= HAL_SPI_TransmitReceive(&hspi2, chBuf5611, chBuf5611, 3, 5);
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+	HAL_SPI_TransmitReceive(&hspi2, chBuf5611, chBuf5611, 3, 5);
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	sWspolczynnik = ((uint16_t)chBuf5611[1] <<8) + chBuf5611[2];
 	return sWspolczynnik;
 }
@@ -76,8 +82,13 @@ uint16_t CzytajKonfiguracjeMS5611(uint8_t chAdres)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t StartKonwersjiMS5611(uint8_t chTyp)
 {
+	uint8_t chErr;
+
 	chBuf5611[0] = chTyp;
-	return HAL_SPI_Transmit(&hspi2, chBuf5611, 1, 5);
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+	chErr = HAL_SPI_Transmit(&hspi2, chBuf5611, 1, 5);
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
+	return chErr;
 }
 
 
@@ -93,7 +104,9 @@ uint32_t CzytajWynikKonwersjiMS5611(void)
 	uint32_t nWynik;
 
 	chBuf5611[0] = PMS_ADC_READ;
-	chErr |= HAL_SPI_TransmitReceive(&hspi2, chBuf5611, chBuf5611, 4, 5);
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+	HAL_SPI_TransmitReceive(&hspi2, chBuf5611, chBuf5611, 4, 5);
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	nWynik = ((uint32_t)chBuf5611[1] <<16) + ((uint32_t)chBuf5611[2] <<8) + chBuf5611[3];
 	return nWynik;
 }
@@ -158,12 +171,15 @@ float MS5611_LiczCisnienie(uint32_t nKonwersja)
 uint8_t ObslugaMS5611(void)
 {
 	uint32_t nKonwersja;
+	uint8_t chErr;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_MS5611) != INIT_MS5611)	//jeżeli czujnik nie jest zainicjowany
 	{
 		chErr = InicjujMS5611();
-		if (!chErr)
-			StartKonwersjiMS5611(PMS_CONV_D2_OSR1024);	//uruchom konwersję temperatury nie trwajacą dłużej niż obieg pętli
+		if (chErr)
+			return chErr;
+		else
+			StartKonwersjiMS5611(PMS_CONV_D2_OSR1024);	//uruchom konwersję temperatury nie trwajacą dłużej niż obieg pętli, czymi max 2048
 	}
 	else
 	{
@@ -172,19 +188,19 @@ uint8_t ObslugaMS5611(void)
 		case 0:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
 			fTemperatura = MS5611_LiczTemperature(nKonwersja);
-			StartKonwersjiMS5611(PMS_CONV_D1_OSR1024);		//uruchom konwersję ciśnienia
+			chErr = StartKonwersjiMS5611(PMS_CONV_D1_OSR256);		//uruchom konwersję ciśnienia
 			break;
 
 		case 7:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
 			uDaneCM4.dane.fWysokosc[0] = MS5611_LiczCisnienie(nKonwersja);	//!!!!! potrzebna konwersja z ciśnienia na wysokość
-			StartKonwersjiMS5611(PMS_CONV_D2_OSR1024);		//uruchom konwersję temperatury
+			chErr = StartKonwersjiMS5611(PMS_CONV_D2_OSR256);		//uruchom konwersję temperatury
 			break;
 
 		default:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
 			uDaneCM4.dane.fWysokosc[0] = MS5611_LiczCisnienie(nKonwersja);	//!!!!! potrzebna konwersja z ciśnienia na wysokość
-			StartKonwersjiMS5611(PMS_CONV_D1_OSR1024);		//uruchom konwersję ciśnienia
+			chErr = StartKonwersjiMS5611(PMS_CONV_D1_OSR256);		//uruchom konwersję ciśnienia
 			break;
 		}
 		chProporcjaPomiarow++;

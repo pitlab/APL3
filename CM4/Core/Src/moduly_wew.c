@@ -89,9 +89,6 @@ uint8_t WyslijDaneExpandera(uint8_t daneWy)
 	dane_wysylane[2] = daneWy;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 	chErr = HAL_SPI_Transmit(&hspi2, dane_wysylane, 3, HAL_MAX_DELAY);
-	//chErr = HAL_SPI_TransmitReceive(&hspi2, dane_wysylane, dane_odbierane, 3, HAL_MAX_DELAY);
-
-
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 	return chErr;
@@ -197,3 +194,42 @@ uint8_t UstawDekoderModulow(uint8_t modul)
 	return chErr;
 }
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Ustawia adres na liniach SUB_MOD_ASR0..1 idących do modułu aby móć zaadresować układy na module
+// Adres jesyt ustawiony na portach PD3 i PD6
+// Parametry: modul - adres modułu
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t UstawAdresNaModule(uint8_t chAdres)
+{
+	uint8_t chErr = ERR_OK;
+
+	chAdres &= 0x03;	//ustawiamy tylko najmłodsze 2 bity
+
+	switch (chAdres)
+	{
+	case 0:
+		HAL_GPIO_WritePin(SUB_MOD_ADR0_GPIO_Port, SUB_MOD_ADR0_Pin, GPIO_PIN_RESET);	//SUB_ADR0
+		HAL_GPIO_WritePin(SUB_MOD_ADR1_GPIO_Port, SUB_MOD_ADR1_Pin, GPIO_PIN_RESET);	//SUB_ADR1
+		break;
+
+	case 1:
+		HAL_GPIO_WritePin(SUB_MOD_ADR0_GPIO_Port, SUB_MOD_ADR0_Pin, GPIO_PIN_SET);		//SUB_ADR0
+		HAL_GPIO_WritePin(SUB_MOD_ADR1_GPIO_Port, SUB_MOD_ADR1_Pin, GPIO_PIN_RESET);	//SUB_ADR1
+		break;
+
+	case 2:
+		HAL_GPIO_WritePin(SUB_MOD_ADR0_GPIO_Port, SUB_MOD_ADR0_Pin, GPIO_PIN_RESET);	//SUB_ADR0
+		HAL_GPIO_WritePin(SUB_MOD_ADR1_GPIO_Port, SUB_MOD_ADR1_Pin, GPIO_PIN_SET);		//SUB_ADR1
+		break;
+
+	case 3:
+		HAL_GPIO_WritePin(SUB_MOD_ADR0_GPIO_Port, SUB_MOD_ADR0_Pin, GPIO_PIN_SET);		//SUB_ADR0
+		HAL_GPIO_WritePin(SUB_MOD_ADR1_GPIO_Port, SUB_MOD_ADR1_Pin, GPIO_PIN_SET);		//SUB_ADR1
+		break;
+
+		default:	chErr = ERR_ZLY_ADRES;	break;
+	}
+	return chErr;
+}

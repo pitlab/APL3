@@ -1,24 +1,24 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// AutoPitLot v2.0
-// Obs�uga czujnika ci�nienia BMP085 formu Bosch
+// AutoPitLot v3.0
+// Obsługa czujnika ciśnienia BMP581 na magistrali SPI
 //
-// (c) Pit Lab
+// (c) Pit Lab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "bmp085.h"
+#include "BMP581.h"
+#include "wymiana_CM4.h"
+#include "petla_glowna.h"
+#include "main.h"
+
 #include "petla_glowna.h"
 
-// Czujnik ma adres 0xEE
-// Dopuszczalna pr�dko�� magistrali 3,4MHz
-static unsigned char chRdWrBuf[3];
-unsigned char chOSS;    //oversampling
-static short sAC1, sAC2, sAC3, sB1, sB2, sMB, sMC, sMD; //parametry konfiguracyjne w EEPROM
-static unsigned short sAC4, sAC5, sAC6;
-static long lB5;
-
-
-extern unsigned char chI2C0End;     //flagi ko�ca operacji na magistrali
+// Dopuszczalna prędkość magistrali 3,4MHz
+static uint8_t chRdWrBufBMP[3];
+uint8_t chOSS;    //oversampling
+static int16_t sAC1, sAC2, sAC3, sB1, sB2, sMB, sMC, sMD; //parametry konfiguracyjne w EEPROM
+static uint16_t sAC4, sAC5, sAC6;
+static int32_t lB5;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ float BMP085_ReadTemperature(void)
 // [i] chOversampling - liczba 0..3 definiuj�ca ilo�� pomiar�w wykonywanych w czujniku
 // Zwraca: kod b��du
 ////////////////////////////////////////////////////////////////////////////////
-unsigned char BMP085_StartPresConversion(unsigned char chOversampling)
+uint8_t BMP085_StartPresConversion(unsigned char chOversampling)
 {
     chOSS = chOversampling;
     chRdWrBuf[0] = 0x34+(chOversampling<<6);
@@ -131,28 +131,32 @@ float BMP085_ReadPressure(void)
 // Zwraca: odczytana warto��
 // Czas wykonania: 
 ////////////////////////////////////////////////////////////////////////////////
-unsigned short BMP085_Read16bit(unsigned char chAddress)
+uint8_t BMP581_Read8bit(unsigned char chAdres)
 {
-    unsigned short sResult;
-
-
-    sResult = chRdWrBuf[0];
-    sResult *= 0x100;
-    sResult += chRdWrBuf[1];
-    return sResult;
+	chRdWrBufBMP[0] = chAdres;
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+	HAL_SPI_TransmitReceive(&hspi2, chRdWrBufBMP, chRdWrBufBMP, 2, 5);
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
+	return chRdWrBufBMP[1];
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wykonaj inicjalizacj� czujnika. Odczytaj wszystkie parametry konfiguracyjne z EEPROMu
+// Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z EEPROMu
 // Parametry: nic
-// Zwraca: kod b��du
+// Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-unsigned char InitBMP085(void)
+uint8_t InicjujBMP581(void)
 {
-    unsigned short sCnt = 100;
+	uint8_t chDane;
+
+	chDane = BMP581_Read8bit(PBMP5_CHIP_ID);		//sprawdź obecność układu
+	if (chDane != 0x50)
+		return ERR_BRAK_BMP581;
+
+    /*unsigned short sCnt = 100;
     do
     {
     sAC1 = (short)BMP085_Read16bit(0xAA);
@@ -173,5 +177,42 @@ unsigned char InitBMP085(void)
     if (sCnt)
         return ERR_OK;
     else
-        return ERR_TIMEOUT;
+        return ERR_TIMEOUT;*/
+
+	uDaneCM4.dane.nZainicjowano |= INIT_BMP581;
+	return ERR_OK;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Realizuje sekwencję obsługową czujnika do wywołania w wyższej warstwie
+// Wykonuje w pętli 1 pomiar temepratury i 7 pomiarów ciśnienia
+// Parametry: nic
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ObslugaBMP581(void)
+{
+	uint32_t nKonwersja;
+	uint8_t chErr;
+
+	if ((uDaneCM4.dane.nZainicjowano & INIT_BMP581) != INIT_BMP581)	//jeżeli czujnik nie jest zainicjowany
+	{
+		chErr = InicjujBMP581();
+		if (chErr)
+			return chErr;
+		//else
+			//StartKonwersjiMS5611(PMS_CONV_D2_OSR1024);	//uruchom konwersję temperatury nie trwajacą dłużej niż obieg pętli, czymi max 2048
+	}
+	else
+	{
+		switch (chProporcjaPomiarow)
+		{
+		case 0:
+			break;
+		default:
+			break;
+		}
+	}
 }

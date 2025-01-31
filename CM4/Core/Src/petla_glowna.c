@@ -16,7 +16,7 @@
 #include "HMC5883.h"
 #include "jedn_inercyjna.h"
 #include <stdio.h>
-#include "MS5611.h"
+#include "modul_IiP.h"
 
 extern TIM_HandleTypeDef htim7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -46,14 +46,15 @@ void PetlaGlowna(void)
 	uint8_t chErr;//, chDane[16];
 	uint16_t n;
 	//uint32_t nCzas;
-	float fTemp;
+	//float fTemp;
 
 
 	switch (chNrOdcinkaCzasu)
 	{
 	case 0:		//obsługa modułu w gnieździe 1
+		chErrPG |= UstawDekoderModulow(ADR_MOD1);
 		//generuj testowe dane
-		fTemp = (float)sGenerator/100;
+		/*fTemp = (float)sGenerator/100;
 		sGenerator++;
 		for (n=0; n<3; n++)
 		{
@@ -63,23 +64,14 @@ void PetlaGlowna(void)
 			uDaneCM4.dane.fZyro2[n] = 4 + n + fTemp;
 			uDaneCM4.dane.fMagn1[n] = 5 + n + fTemp;
 			uDaneCM4.dane.fMagn2[n] = 6 + n + fTemp;
-		}
-		chErrPG |= UstawDekoderModulow(ADR_MOD1);
+		}*/
 		break;
 
 	case 1:		//obsługa modułu w gnieździe 2
-		chErrPG |= UstawDekoderModulow(ADR_MOD2);
-
-		chErrPG |= WyslijDaneExpandera(chStanIOwy & ~MIO22);	//ustaw adres A2 = 0
-		ObslugaMS5611();
-
-		chErrPG |= WyslijDaneExpandera(chStanIOwy | MIO22);		//ustaw adres A2 = 1
+		chErrPG |= ObslugaModuluIiP(ADR_MOD2);
 		break;
 
 	case 2:		//obsługa modułu w gnieździe 3
-		fTemp = (float)sGenerator/100;
-		uDaneCM4.dane.fWysokosc[0] = 20 + fTemp;
-		uDaneCM4.dane.fWysokosc[1] = 10 + fTemp;
 		chErrPG |= UstawDekoderModulow(ADR_MOD3);
 		break;
 
@@ -119,7 +111,6 @@ void PetlaGlowna(void)
 	case 5: chErrPG |= RozdzielniaOperacjiI2C();	break;
 
 	case 8:
-
 		chErrPG |= WyslijDaneExpandera(chStanIOwy);
 		break;
 

@@ -31,7 +31,9 @@
 
 uint8_t InicjujModulyWew(void);
 uint8_t UstawDekoderModulow(uint8_t modul);
+uint8_t UstawAdresNaModule(uint8_t chAdres);
 uint8_t WyslijDaneExpandera(uint8_t daneWy);
 uint8_t PobierzDaneExpandera(uint8_t* daneWe);
+
 
 #endif /* INC_MODULY_WEW_H_ */

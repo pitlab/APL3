@@ -39,6 +39,7 @@
 #define INIT_GNSS_GOTOWY	0x00000004
 #define INIT_MAG3			0x00000008
 #define INIT_MS5611			0x00000010
+#define INIT_BMP581			0x00000020
 
 
 //definije kanałów IO

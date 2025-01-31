@@ -1037,7 +1037,7 @@ void PomiaryIMU(void)
 		chTon = LICZBA_TONOW_WARIO;
 	if (chTon < 0)
 		chTon = 0;
-	UstawTon(chTon, 80);
+	//UstawTon(chTon, 80);
 
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[0], ZNAK_STOPIEN);
