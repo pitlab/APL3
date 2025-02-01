@@ -32,7 +32,7 @@ uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;
 uint16_t chTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po timeoucie inicjalizuje moduł.
-uint8_t chEtapOperacjiI2C;
+static uint8_t chEtapOperacjiI2C;
 uint8_t chGeneratorNapisow, chLicznikKomunikatow;
 extern I2C_HandleTypeDef hi2c3;
 
@@ -240,21 +240,34 @@ uint32_t MinalCzas(uint32_t nPoczatek)
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja dzieli złożone operacje I2C na sekwencje dające sie realizować w tle, dzięki czemu nie blokuje czasu procesora oczekując na zakończenie
 // Parametry: brak
-// Zwraca: nic
+// Zwraca: kod błędu operacji I2C
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t RozdzielniaOperacjiI2C(void)
 {
 	uint8_t chErr = ERR_OK;
 
+	//operacje na zewnętrznej magistrali I2C3
 	switch(chEtapOperacjiI2C)
 	{
 	case 0:	chErr = StartujPomiarMagHMC();	break;
 	case 1:	break;
 	case 2:	chErr = StartujOdczytMagHMC();		break;
 	case 3:	chErr = CzytajMagnetometrHMC();		break;
+	default: break;
 	}
+
+	//operacje na wewnętrznej magistrali I2C4
+	switch(chEtapOperacjiI2C)
+	{
+	case 0:	chErr = StartujOdczytMMC3416x();	break;
+	case 2:	chErr = CzytajMMC3416x();			break;
+	//case 2:	break;
+	case 3:	break;
+	default: break;
+	}
+
 	chEtapOperacjiI2C++;
-	chEtapOperacjiI2C &= 0x03;
+	chEtapOperacjiI2C &= 0x07;
 	return chErr;
 }
 
@@ -280,13 +293,24 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
 	extern uint8_t chDaneMagHMC[6];
+	extern uint8_t chBuforMMC3416x[6];
 	if (hi2c->Instance == I2C3)
 	{
 		if ((chDaneMagHMC[0] || chDaneMagHMC[1]) && (chDaneMagHMC[2] || chDaneMagHMC[3]) && (chDaneMagHMC[4] || chDaneMagHMC[5]))
 		{
-			uDaneCM4.dane.fMagn3[0] = (int16_t)(0x100 * chDaneMagHMC[0] + chDaneMagHMC[1]);
-			uDaneCM4.dane.fMagn3[1] = (int16_t)(0x100 * (int16_t)chDaneMagHMC[2] + chDaneMagHMC[3]);
-			uDaneCM4.dane.fMagn3[2] = (int16_t)(0x100 * (int16_t)chDaneMagHMC[4] + chDaneMagHMC[5]);
+			uDaneCM4.dane.fMagne3[0] = (int16_t)(0x100 * chDaneMagHMC[0] + chDaneMagHMC[1]);
+			uDaneCM4.dane.fMagne3[1] = (int16_t)(0x100 * (int16_t)chDaneMagHMC[2] + chDaneMagHMC[3]);
+			uDaneCM4.dane.fMagne3[2] = (int16_t)(0x100 * (int16_t)chDaneMagHMC[4] + chDaneMagHMC[5]);
+		}
+	}
+
+	if (hi2c->Instance == I2C4)
+	{
+		if ((chBuforMMC3416x[0] || chBuforMMC3416x[1]) && (chBuforMMC3416x[2] || chBuforMMC3416x[3]) && (chBuforMMC3416x[4] || chBuforMMC3416x[5]))
+		{
+			uDaneCM4.dane.fMagne1[0] = (int16_t)(0x100 * chBuforMMC3416x[0] + chBuforMMC3416x[1]);
+			uDaneCM4.dane.fMagne1[1] = (int16_t)(0x100 * chBuforMMC3416x[2] + chBuforMMC3416x[3]);
+			uDaneCM4.dane.fMagne1[2] = (int16_t)(0x100 * chBuforMMC3416x[4] + chBuforMMC3416x[5]);
 		}
 	}
 }

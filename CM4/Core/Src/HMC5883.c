@@ -1,9 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// AutoPitLot v2.0
-// Obs�uga magnetometru HMC5883 na magistrali I2C
+// AutoPitLot v3.0
+// Obsługa magnetometru HMC5883 na magistrali I2C
 //
-// (c) Pit Lab
+// (c) Pit Lab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "HMC5883.h"
@@ -16,9 +16,9 @@ extern I2C_HandleTypeDef hi2c3;
 uint8_t chDaneMagHMC[6];
 
 // Obsługa magnetometru wymaga wykonania kilku czynności rozłożonych w czasie
-// 1) Wystartowanie konwersji trwającej 6ms (slot czasowy 0)
+// 1) Wystartowanie konwersji trwającej 6ms
 // 2) Wystartowanie odczytu wykonanego pomiaru. Odczyt wykonuje się w tle w procedurze przerwania I2C i
-//    trwa ok. 4ms (slot 11)
+//    trwa ok. 4ms
 // 3) Przepisania odczytanych w przerwaniu danych do zmiennych pomiarowych
 
 //Czas od rozpoczęcia pomiaru do gotowych danych 6ms
@@ -122,7 +122,7 @@ uint8_t SprawdzObecnoscHMC5883(void)
         }
         uDaneCM4.dane.nZainicjowano &= ~INIT_MAG3;
     }
-    return ERR_BRAK_MAGN;
+    return ERR_BRAK_MAG_ZEW;
 }
 
 

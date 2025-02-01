@@ -303,7 +303,6 @@ __weak void BSP_SD_ReadCpltCallback(void)
   return status;
 }*/
 
-
 /* USER CODE BEGIN AdditionalCode */
 /* user code can be inserted here */
 uint8_t BSP_SD_IsDetected(void)

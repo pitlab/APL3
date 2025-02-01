@@ -9,14 +9,14 @@
 #include "modul_IiP.h"
 #include "main.h"
 #include "moduly_wew.h"
-#include "BMP581.h"
-#include "MS5611.h"
-#include "ICM42688.h"
+
 
 
 extern SPI_HandleTypeDef hspi2;
 extern uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
-uint8_t chRdWrBufIIP[5];	//bufor transmisji SPI układów
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // wykonuje czynności pomiarowe dla ukłądów znajdujących się na module
@@ -40,21 +40,22 @@ uint8_t ObslugaModuluIiP(uint8_t modul)
 	UstawAdresNaModule(ADR_MIIP_MS5611);				//ustaw adres A0..1
 //	chErr |= ObslugaMS5611();
 
-
 	UstawAdresNaModule(ADR_MIIP_BMP581);				//ustaw adres A0..1
 	chErr |= ObslugaBMP581();
 
 	UstawAdresNaModule(ADR_MIIP_ICM42688);				//ustaw adres A0..1
 	chErr |= ObslugaICM42688();
 
+	UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres A0..1
+	chErr |= ObslugaLSM6DSV();
 
-	//UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres A0..1
+
 	chStanIOwy |= MIO22;								//ustaw adres A2 = 1
 	chErr |= WyslijDaneExpandera(chStanIOwy);
 	chErr |= UstawDekoderModulow(modul);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
 	UstawAdresNaModule(ADR_MIIP_GRZALKA);				//ustaw adres A0..1
 
-	//grzałkę włacza się przez CS=0
+	//grzałkę włącza się przez CS=0
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 
 	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy

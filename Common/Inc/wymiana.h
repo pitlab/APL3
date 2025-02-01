@@ -38,20 +38,21 @@ typedef struct _stWymianyCM4
 {
 	float fAkcel1[3];
 	float fAkcel2[3];
-	float fZyro1[3];
-	float fZyro2[3];
-	float fMagn1[3];
-	float fMagn2[3];
-	float fMagn3[3];
-	float fKatyIMU[3];
-	float fWysokosc[2];
-	float fTemperatura[2];
+	float fZyros1[3];
+	float fZyros2[3];
+	float fMagne1[3];
+	float fMagne2[3];
+	float fMagne3[3];
+	float fKatIMU[3];
+	float fCisnie[2];
+	float fTemper[4];	//0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV
 	uint16_t sSerwa[16];
 	uint8_t chErrPetliGlownej;
 	uint32_t nZainicjowano;
 	stGnss_t stGnss1;
 	char chNapis[ROZMIAR_BUF_NAPISU_WYMIANY];
 } stWymianyCM4_t;
+
 
 //definicja struktury wymiany danych wychodzących z rdzenia CM7
 typedef struct

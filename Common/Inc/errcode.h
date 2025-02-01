@@ -35,12 +35,12 @@
 
 #define ERR_SRAM_TEST			30 //błąd pamięci SRAM
 #define ERR_BRAK_KAMERY			31	//nie wykryto obecności kamery
-#define ERR_BRAK_MAGN			32	//nie wykryto obecności magnetometru
+#define ERR_BRAK_MAG_ZEW		32	//nie wykryto obecności magnetometru zewnętrznego
 #define ERR_BRAK_FLASH_NOR		33
-#define ERR_BRAK_PROBKI_AUDIO	34
-#define ERR_PELEN_BUF_KOM		35	//bufor próbek głosowych do wypowiedzenie jest pełen
-#define ERR_BRAK_BMP581			36
-#define ERR_BRAK_ICM42688		37
+#define ERR_BRAK_BMP581			34
+#define ERR_BRAK_ICM42688		35
+#define ERR_BRAK_LSM6DSV		36
+#define ERR_BRAK_MMC34160		37
 
 #define ERR_I2C_BERR			40
 #define ERR_I2C_ARB_LOST		41
@@ -49,8 +49,11 @@
 #define ERR_I2C_SCL_LOCK		44
 #define ERR_I2C_TIMEOUT			45
 
+
 #define ERR_BRAK_POZW_ZAPISU	50	//brak pozwolenia zapisu dla obszaru pamieci Flash
 #define ERR_SEMAFOR_ZAJETY		51
+#define ERR_BRAK_PROBKI_AUDIO	52
+#define ERR_PELEN_BUF_KOM		53	//bufor próbek głosowych do wypowiedzenie jest pełen
 
 #define ERR_BRAK_DANYCH			60
 #define ERR_DLUGOSC_LONLAT		61	//niewłaściwa długość znaków do zdekodowania długosci i szerokości geogragicznej w sygnale NMEA

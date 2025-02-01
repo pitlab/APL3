@@ -23,6 +23,6 @@ uint8_t ObliczeniaJednostkiInercujnej(void)
 
 
 	//oblicz kąt odchylenia w radianach z danych magnetometru
-	uDaneCM4.dane.fKatyIMU[2] = atan2f(uDaneCM4.dane.fMagn3[1], uDaneCM4.dane.fMagn3[0]);
+	uDaneCM4.dane.fKatIMU[2] = atan2f(uDaneCM4.dane.fMagne3[1], uDaneCM4.dane.fMagne3[0]);
 	return chErr;
 }

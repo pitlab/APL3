@@ -71,6 +71,8 @@ extern MDMA_HandleTypeDef hmdma_mdma_channel3_dma1_stream1_tc_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel4_dma1_stream1_tc_0;
 extern DMA_HandleTypeDef hdma_i2c3_rx;
 extern DMA_HandleTypeDef hdma_i2c3_tx;
+extern DMA_HandleTypeDef hdma_i2c4_rx;
+extern DMA_HandleTypeDef hdma_i2c4_tx;
 extern I2C_HandleTypeDef hi2c3;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
@@ -619,6 +621,34 @@ void UART8_IRQHandler(void)
   /* USER CODE BEGIN UART8_IRQn 1 */
 
   /* USER CODE END UART8_IRQn 1 */
+}
+
+/**
+  * @brief This function handles BDMA channel2 global interrupt.
+  */
+void BDMA_Channel2_IRQHandler(void)
+{
+  /* USER CODE BEGIN BDMA_Channel2_IRQn 0 */
+
+  /* USER CODE END BDMA_Channel2_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_i2c4_rx);
+  /* USER CODE BEGIN BDMA_Channel2_IRQn 1 */
+
+  /* USER CODE END BDMA_Channel2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles BDMA channel3 global interrupt.
+  */
+void BDMA_Channel3_IRQHandler(void)
+{
+  /* USER CODE BEGIN BDMA_Channel3_IRQn 0 */
+
+  /* USER CODE END BDMA_Channel3_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_i2c4_tx);
+  /* USER CODE BEGIN BDMA_Channel3_IRQn 1 */
+
+  /* USER CODE END BDMA_Channel3_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

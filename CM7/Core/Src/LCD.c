@@ -923,7 +923,7 @@ void PomiaryIMU(void)
 		BelkaTytulu("Dane pomiarowe");
 
 		setColor(GRAY80);
-		sprintf(chNapis, "Wysoko%c%c baro1:           baro2:", ś, ć);
+		sprintf(chNapis, "Ci%cnienie baro1:           baro2:", ś);
 		print(chNapis, 10, 30);
 		sprintf(chNapis, "Akcel1:");
 		print(chNapis, 10, 50);
@@ -955,9 +955,9 @@ void PomiaryIMU(void)
 	}
 
 	setColor(WHITE);
-	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fWysokosc[0]);
+	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fCisnie[0]);
 	print(chNapis, 10+16*FONT_SL, 30);
-	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fWysokosc[1]);
+	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fCisnie[1]);
 	print(chNapis, 10+33*FONT_SL, 30);
 
 	setColor(KOLOR_X);
@@ -981,58 +981,58 @@ void PomiaryIMU(void)
 	print(chNapis, 10+32*FONT_SL, 70);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyro1[0]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros1[0]);
 	print(chNapis, 10+8*FONT_SL, 90);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyro1[1]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros1[1]);
 	print(chNapis, 10+20*FONT_SL, 90);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyro1[2]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros1[2]);
 	print(chNapis, 10+32*FONT_SL, 90);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyro2[0]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros2[0]);
 	print(chNapis, 10+8*FONT_SL, 110);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyro2[1]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros2[1]);
 	print(chNapis, 10+20*FONT_SL, 110);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyro2[2]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros2[2]);
 	print(chNapis, 10+32*FONT_SL, 110);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn1[0]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[0]);
 	print(chNapis, 10+8*FONT_SL, 130);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn1[1]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[1]);
 	print(chNapis, 10+20*FONT_SL, 130);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn1[2]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[2]);
 	print(chNapis, 10+32*FONT_SL, 130);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn2[0]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne2[0]);
 	print(chNapis, 10+8*FONT_SL, 150);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn2[1]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne2[1]);
 	print(chNapis, 10+20*FONT_SL, 150);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagn2[2]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne2[2]);
 	print(chNapis, 10+32*FONT_SL, 150);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.0f ", uDaneCM4.dane.fMagn3[0]);
+	sprintf(chNapis, "%.0f ", uDaneCM4.dane.fMagne3[0]);
 	print(chNapis, 10+8*FONT_SL, 170);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.0f ", uDaneCM4.dane.fMagn3[1]);
+	sprintf(chNapis, "%.0f ", uDaneCM4.dane.fMagne3[1]);
 	print(chNapis, 10+20*FONT_SL, 170);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.0f ", uDaneCM4.dane.fMagn3[2]);
+	sprintf(chNapis, "%.0f ", uDaneCM4.dane.fMagne3[2]);
 	print(chNapis, 10+32*FONT_SL, 170);
 
 	//sygnalizacja tonem wartości osi Z magnetometru
 #define MAX_MAG3 600
-	chTon = LICZBA_TONOW_WARIO/2 - (uDaneCM4.dane.fMagn3[2] / (MAX_MAG3 / (LICZBA_TONOW_WARIO/2)));
+	chTon = LICZBA_TONOW_WARIO/2 - (uDaneCM4.dane.fMagne3[2] / (MAX_MAG3 / (LICZBA_TONOW_WARIO/2)));
 	if (chTon > LICZBA_TONOW_WARIO)
 		chTon = LICZBA_TONOW_WARIO;
 	if (chTon < 0)
@@ -1040,13 +1040,13 @@ void PomiaryIMU(void)
 	//UstawTon(chTon, 80);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[0], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU[0], ZNAK_STOPIEN);
 	print(chNapis, 10+10*FONT_SL, 190);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[1], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU[1], ZNAK_STOPIEN);
 	print(chNapis, 10+28*FONT_SL, 190);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatyIMU[2], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU[2], ZNAK_STOPIEN);
 	print(chNapis, 10+45*FONT_SL, 190);
 
 	if (uDaneCM4.dane.stGnss1.chFix)
@@ -1209,7 +1209,7 @@ void WyswietlParametryKartySD(void)
 	print(chNapis, 10, 190);
 	sprintf(chNapis, "Numer seryjny: %ld ", pCID.ProdSN);
 	print(chNapis, 10, 210);
-	sprintf(chNapis, "Data produkcji rr-m: %d-%d ", pCID.ManufactDate, (pCID.ManufactDate>>4) & 0xFF, (pCID.ManufactDate & 0xF));
+	sprintf(chNapis, "Data produkcji rr-m: %d-%d ",(pCID.ManufactDate>>4) & 0xFF, (pCID.ManufactDate & 0xF));
 	print(chNapis, 10, 230);
 	sprintf(chNapis, "CardComdClasses: %X ", pCSD.CardComdClasses);
 	print(chNapis, 10, 250);
@@ -1435,7 +1435,7 @@ void TestKartySD(void)
 
 
 
-static uint8_t Wait_SDCARD_Ready(void)
+uint8_t Wait_SDCARD_Ready(void)
 {
   uint32_t loop = SD_TIMEOUT;
 
