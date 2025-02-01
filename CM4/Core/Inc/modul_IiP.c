@@ -7,12 +7,17 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "modul_IiP.h"
-#include "MS5611.h"
+#include "main.h"
 #include "moduly_wew.h"
+#include "BMP581.h"
+#include "MS5611.h"
+#include "ICM42688.h"
 
 
-
+extern SPI_HandleTypeDef hspi2;
 extern uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
+uint8_t chRdWrBufIIP[5];	//bufor transmisji SPI układów
+
 ////////////////////////////////////////////////////////////////////////////////
 // wykonuje czynności pomiarowe dla ukłądów znajdujących się na module
 // Parametry: nic
@@ -22,13 +27,36 @@ extern uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 uint8_t ObslugaModuluIiP(uint8_t modul)
 {
 	uint8_t chErr;
+	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
-	chErr = WyslijDaneExpandera(chStanIOwy & ~MIO22);	//ustaw adres A2 = 0 zrobiony z linii IO2 modułu
+	//Ponieważ zegar SPI = 80MHz a układ może pracować z prędkością max 10MHz, przy każdym dostępie przestaw dzielnik zegara na 8
+	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
+	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_32;
+
+	chStanIOwy &= ~MIO22;								//ustaw adres A2 = 0 zrobiony z linii IO2 modułu
+	chErr = WyslijDaneExpandera(chStanIOwy);
 	chErr |= UstawDekoderModulow(modul);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
 	UstawAdresNaModule(ADR_MIIP_MS5611);				//ustaw adres A0..1
-	ObslugaMS5611();
+//	chErr |= ObslugaMS5611();
+
+
+	UstawAdresNaModule(ADR_MIIP_BMP581);				//ustaw adres A0..1
+	chErr |= ObslugaBMP581();
+
+	UstawAdresNaModule(ADR_MIIP_ICM42688);				//ustaw adres A0..1
+	chErr |= ObslugaICM42688();
+
 
 	//UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres A0..1
-	//chErr |= WyslijDaneExpandera(chStanIOwy | MIO22);	//ustaw adres A2 = 1
+	chStanIOwy |= MIO22;								//ustaw adres A2 = 1
+	chErr |= WyslijDaneExpandera(chStanIOwy);
+	chErr |= UstawDekoderModulow(modul);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
+	UstawAdresNaModule(ADR_MIIP_GRZALKA);				//ustaw adres A0..1
+
+	//grzałkę włacza się przez CS=0
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+
+	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 	return chErr;
 }

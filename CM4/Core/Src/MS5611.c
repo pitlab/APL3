@@ -16,8 +16,8 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 static uint16_t sKonfig[5];  //współczynniki kalibracyjne
 static uint8_t chBuf5611[4];
 int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia
-float fTemperatura;
-uint8_t chProporcjaPomiarow;
+//float fTemperatura;
+static uint8_t chProporcjaPomiarow;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z PROMu
@@ -187,7 +187,8 @@ uint8_t ObslugaMS5611(void)
 		{
 		case 0:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
-			fTemperatura = MS5611_LiczTemperature(nKonwersja);
+			uDaneCM4.dane.fTemperatura[0] = MS5611_LiczTemperature(nKonwersja);
+
 			chErr = StartKonwersjiMS5611(PMS_CONV_D1_OSR256);		//uruchom konwersję ciśnienia
 			break;
 

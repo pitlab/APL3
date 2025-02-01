@@ -45,6 +45,7 @@ typedef struct _stWymianyCM4
 	float fMagn3[3];
 	float fKatyIMU[3];
 	float fWysokosc[2];
+	float fTemperatura[2];
 	uint16_t sSerwa[16];
 	uint8_t chErrPetliGlownej;
 	uint32_t nZainicjowano;

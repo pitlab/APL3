@@ -40,17 +40,18 @@
 #define INIT_MAG3			0x00000008
 #define INIT_MS5611			0x00000010
 #define INIT_BMP581			0x00000020
+#define INIT_ICM42688		0x00000040
 
 
 //definije kanałów IO
-#define MIO11	(0 << 0) 	//MOD_IO11
-#define MIO12	(0 << 1) 	//MOD_IO12
-#define MIO21	(0 << 2)	//MOD_IO21
-#define MIO22	(0 << 3) 	//MOD_IO22
-#define MIO31	(0 << 4) 	//MOD_IO31
-#define MIO32	(0 << 5) 	//MOD_IO32
-#define MIO41   (0 << 6) 	//MOD_IO41
-#define MIO42	(0 << 7)	//MOD_IO42
+#define MIO11	(1 << 0) 	//MOD_IO11
+#define MIO12	(1 << 1) 	//MOD_IO12
+#define MIO21	(1 << 2)	//MOD_IO21
+#define MIO22	(1 << 3) 	//MOD_IO22
+#define MIO31	(1 << 4) 	//MOD_IO31
+#define MIO32	(1 << 5) 	//MOD_IO32
+#define MIO41   (1 << 6) 	//MOD_IO41
+#define MIO42	(1 << 7)	//MOD_IO42
 
 #define MASKA_INIT_GNSS		0x07
 

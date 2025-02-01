@@ -69,6 +69,7 @@ void PetlaGlowna(void)
 
 	case 1:		//obsługa modułu w gnieździe 2
 		chErrPG |= ObslugaModuluIiP(ADR_MOD2);
+		chErrPG |= PobierzDaneExpandera(&chStanIOwe);
 		break;
 
 	case 2:		//obsługa modułu w gnieździe 3
@@ -91,7 +92,7 @@ void PetlaGlowna(void)
 			chErr = DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
 			chWskOprBaGNSS++;
 			chWskOprBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
-			chStanIOwy ^= 0x80;		//Zielona LED
+			chStanIOwy ^= MIO42;		//Zielona LED
 			chTimeoutGNSS = TIMEOUT_GNSS;
 		}
 		if ((uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY) == 0)
@@ -112,6 +113,7 @@ void PetlaGlowna(void)
 
 	case 8:
 		chErrPG |= WyslijDaneExpandera(chStanIOwy);
+
 		break;
 
 	case 9:	chErrPG |= ObliczeniaJednostkiInercujnej();	break;
@@ -154,9 +156,9 @@ void PetlaGlowna(void)
 		chErrPG  = PobierzDaneWymiany_CM7();
 		chErr = UstawDaneWymiany_CM4();
 		if (chErr == ERR_SEMAFOR_ZAJETY)
-			chStanIOwy &= ~0x40;	//zaświeć czerwoną LED
+			chStanIOwy &= ~MIO41;	//zaświeć czerwoną LED
 		else
-			chStanIOwy |= 0x40;		//zgaś czerwoną LED
+			chStanIOwy |= MIO41;		//zgaś czerwoną LED
 		chErrPG |= chErr;
 		//chStanIOwy ^= 0x80;		//Zielona LED
 		break;

@@ -40,6 +40,7 @@
 #define ERR_BRAK_PROBKI_AUDIO	34
 #define ERR_PELEN_BUF_KOM		35	//bufor próbek głosowych do wypowiedzenie jest pełen
 #define ERR_BRAK_BMP581			36
+#define ERR_BRAK_ICM42688		37
 
 #define ERR_I2C_BERR			40
 #define ERR_I2C_ARB_LOST		41
