@@ -74,6 +74,7 @@ extern DMA_HandleTypeDef hdma_i2c3_tx;
 extern DMA_HandleTypeDef hdma_i2c4_rx;
 extern DMA_HandleTypeDef hdma_i2c4_tx;
 extern I2C_HandleTypeDef hi2c3;
+extern I2C_HandleTypeDef hi2c4;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
@@ -349,6 +350,7 @@ void TIM1_CC_IRQHandler(void)
 				HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_SET);
 				HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_SET);
 				break;
+			default:	break;
 			}
 		}
 		htim1.Instance->SR &= ~TIM_FLAG_CC1;	//kasuj przerwanie przez zapis zera
@@ -621,6 +623,34 @@ void UART8_IRQHandler(void)
   /* USER CODE BEGIN UART8_IRQn 1 */
 
   /* USER CODE END UART8_IRQn 1 */
+}
+
+/**
+  * @brief This function handles I2C4 event interrupt.
+  */
+void I2C4_EV_IRQHandler(void)
+{
+  /* USER CODE BEGIN I2C4_EV_IRQn 0 */
+
+  /* USER CODE END I2C4_EV_IRQn 0 */
+  HAL_I2C_EV_IRQHandler(&hi2c4);
+  /* USER CODE BEGIN I2C4_EV_IRQn 1 */
+
+  /* USER CODE END I2C4_EV_IRQn 1 */
+}
+
+/**
+  * @brief This function handles I2C4 error interrupt.
+  */
+void I2C4_ER_IRQHandler(void)
+{
+  /* USER CODE BEGIN I2C4_ER_IRQn 0 */
+
+  /* USER CODE END I2C4_ER_IRQn 0 */
+  HAL_I2C_ER_IRQHandler(&hi2c4);
+  /* USER CODE BEGIN I2C4_ER_IRQn 1 */
+
+  /* USER CODE END I2C4_ER_IRQn 1 */
 }
 
 /**

@@ -67,6 +67,8 @@ void TIM8_CC_IRQHandler(void);
 void TIM7_IRQHandler(void);
 void I2C3_EV_IRQHandler(void);
 void UART8_IRQHandler(void);
+void I2C4_EV_IRQHandler(void);
+void I2C4_ER_IRQHandler(void);
 void BDMA_Channel2_IRQHandler(void);
 void BDMA_Channel3_IRQHandler(void);
 /* USER CODE BEGIN EFP */

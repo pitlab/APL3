@@ -29,9 +29,22 @@
 #define PMMC3416_PRODUCT_ID 0x20 //Product ID = 0x06
 
 
+struct I2C_Module
+{
+  I2C_HandleTypeDef   instance;
+  uint16_t            sdaPin;
+  GPIO_TypeDef*       sdaPort;
+  uint16_t            sclPin;
+  GPIO_TypeDef*       sclPort;
+};
+
+
 uint8_t InicjujMMC3416x(void);
 uint8_t StartujPomiarMMC3416x(void);
 uint8_t StartujOdczytMMC3416x(void);
 uint8_t CzytajMMC3416x(void);
+void I2C_ClearBusyFlagErratum(struct I2C_Module* i2c);
+//uint8_t wait_for_gpio_state_timeout(GPIO_TypeDef *port, uint16_t pin, GPIO_PinState state, uint32_t timeout);
+//void I2C_ClearBusyFlagErratum(I2C_HandleTypeDef* handle, uint32_t timeout);
 
 #endif /* INC_MMC3416X_H_ */

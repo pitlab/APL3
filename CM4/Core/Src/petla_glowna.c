@@ -249,7 +249,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	//operacje na zewnętrznej magistrali I2C3
 	switch(chEtapOperacjiI2C)
 	{
-	case 0:	chErr = StartujPomiarMagHMC();	break;
+	case 0:	chErr = StartujPomiarMagHMC();		break;
 	case 1:	break;
 	case 2:	chErr = StartujOdczytMagHMC();		break;
 	case 3:	chErr = CzytajMagnetometrHMC();		break;
@@ -259,10 +259,11 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	//operacje na wewnętrznej magistrali I2C4
 	switch(chEtapOperacjiI2C)
 	{
-	case 0:	chErr = StartujOdczytMMC3416x();	break;
-	case 2:	chErr = CzytajMMC3416x();			break;
-	//case 2:	break;
-	case 3:	break;
+	case 0:	chErr = StartujPomiarMMC3416x();	break;
+	case 2:	chErr = StartujOdczytMMC3416x();	break;
+	case 3:	chErr = CzytajMMC3416x();			break;
+
+
 	default: break;
 	}
 

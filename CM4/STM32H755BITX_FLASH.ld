@@ -166,7 +166,7 @@ SECTIONS
 .bufory_SRAM4_AHB_D3 (NOLOAD) :
   {
     *(.BuforyWymianyCM7CM4_SRAM4)
-	*(.Bufory_SRAM4)  
+	*(.SekcjaSRAM4)	
   } > SRAM4_AHB_D3
 
   /* Remove information from the standard libraries */
