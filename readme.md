@@ -30,14 +30,14 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Obsługa wyjść dla serw i ESC
 - Odbiór danych z GNSS i parsowanie protokołu NMEA. Konfiguracja układów uBlox i MTK
 - Odczyt danych z magnetometru HMC5883 na module GNSS
-- Są już pierwsze elementy obsługi czujników modułu inercyjnego
+- Odczyt danych z magnetometrów MMC34160 i IIS2MDC na wewnętrznym module IiP
 
 #### Do zrobienia:
  - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarce na inne z mniejszym ESR
  - Podłączyć i uruchomić kamerę
  - uruchomić komunikację po ethernet
  - Przenieść z APL2 obsługę pętli głównej, serw, mikserów, zapisu konfiguracji do FRAM, telemetrii do rdzenia CM4
- - Oprogramować obsługę karty SD po pełnym interfejsie pod kątem zapisu obrazu
+ - Oprogramować obsługę karty SD po pełnym interfejsie pod kątem możliwości zapisu obrazu
  - Uruchomić układ ethernet
  - Urochomić USB w trybie CDC
  

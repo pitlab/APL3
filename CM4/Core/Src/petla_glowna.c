@@ -247,7 +247,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	uint8_t chErr = ERR_OK;
 
 	//operacje na zewnętrznej magistrali I2C3
-	switch(chEtapOperacjiI2C)
+	switch(chEtapOperacjiI2C & 0x03)
 	{
 	case 0:	chErr = StartujPomiarMagHMC();		break;
 	case 1:	break;
@@ -259,16 +259,28 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	//operacje na wewnętrznej magistrali I2C4
 	switch(chEtapOperacjiI2C)
 	{
-	case 0:	chErr = StartujPomiarMMC3416x();	break;
-	case 2:	chErr = StartujOdczytMMC3416x();	break;
+	case 0:	chErr = StartujOdczytIIS2MDC();		break;
+	case 1:	chErr = CzytajIIS2MDC();			break;
+	case 2: chErr = StartujOdczytMMC3416x();	break;
 	case 3:	chErr = CzytajMMC3416x();			break;
-
-
-	default: break;
 	}
 
+	/*switch(chEtapOperacjiI2C)
+	{
+	case 0:	chErr = StartujPomiarMMC3416x();	break;
+	case 1:	chErr = StartujOdczytIIS2MDC();		break;
+	case 2: chErr = CzytajIIS2MDC();			break;
+	case 3:	chErr = StartujOdczytMMC3416x();	break;
+
+	case 4:	chErr = CzytajMMC3416x();			break;
+	case 5:	chErr = StartujOdczytIIS2MDC();		break;
+	case 6: chErr = CzytajIIS2MDC();			break;
+	case 7:
+	default: break;
+	}*/
+
 	chEtapOperacjiI2C++;
-	chEtapOperacjiI2C &= 0x07;
+	chEtapOperacjiI2C &= 0x03;
 	return chErr;
 }
 
@@ -294,10 +306,12 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
 	extern uint8_t chDaneMagHMC[6];
-	extern uint8_t chBuforMMC3416x[6];
+	extern uint8_t chDaneMagMMC[6];
+	extern uint8_t chDaneMagIIS[8];
+	extern uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
 	if (hi2c->Instance == I2C3)
 	{
-		if ((chDaneMagHMC[0] || chDaneMagHMC[1]) && (chDaneMagHMC[2] || chDaneMagHMC[3]) && (chDaneMagHMC[4] || chDaneMagHMC[5]))
+		//if ((chDaneMagHMC[0] || chDaneMagHMC[1]) && (chDaneMagHMC[2] || chDaneMagHMC[3]) && (chDaneMagHMC[4] || chDaneMagHMC[5]))
 		{
 			uDaneCM4.dane.sMagne3[0] = (int16_t)(0x100 * chDaneMagHMC[0] + chDaneMagHMC[1]);
 			uDaneCM4.dane.sMagne3[1] = (int16_t)(0x100 * chDaneMagHMC[2] + chDaneMagHMC[3]);
@@ -307,11 +321,25 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 
 	if (hi2c->Instance == I2C4)
 	{
-		if ((chBuforMMC3416x[0] || chBuforMMC3416x[1]) && (chBuforMMC3416x[2] || chBuforMMC3416x[3]) && (chBuforMMC3416x[4] || chBuforMMC3416x[5]))
+		if (chOdczytywanyMagnetometr == MAG_MMC)
 		{
-			uDaneCM4.dane.sMagne1[0] = 32768 - (int16_t)(0x100 * chBuforMMC3416x[1] + chBuforMMC3416x[0]);
-			uDaneCM4.dane.sMagne1[1] = 32768 - (int16_t)(0x100 * chBuforMMC3416x[3] + chBuforMMC3416x[2]);
-			uDaneCM4.dane.sMagne1[2] = 32768 - (int16_t)(0x100 * chBuforMMC3416x[5] + chBuforMMC3416x[4]);
+			//if ((chDaneMagMMC[0] || chDaneMagMMC[1]) && (chDaneMagMMC[2] || chDaneMagMMC[3]) && (chDaneMagMMC[4] || chDaneMagMMC[5]))
+			{
+				uDaneCM4.dane.sMagne1[0] = 32768 - (int16_t)(0x100 * chDaneMagMMC[1] + chDaneMagMMC[0]);
+				uDaneCM4.dane.sMagne1[1] = 32768 - (int16_t)(0x100 * chDaneMagMMC[3] + chDaneMagMMC[2]);
+				uDaneCM4.dane.sMagne1[2] = 32768 - (int16_t)(0x100 * chDaneMagMMC[5] + chDaneMagMMC[4]);
+			}
+		}
+		else
+		if (chOdczytywanyMagnetometr == MAG_IIS)
+		{
+			//if ((chDaneMagIIS[0] || chDaneMagIIS[1]) && (chDaneMagIIS[2] || chDaneMagIIS[3]) && (chDaneMagIIS[4] || chDaneMagIIS[5]))
+			{
+				uDaneCM4.dane.sMagne2[0] = (int16_t)(0x100 * chDaneMagIIS[0] + chDaneMagIIS[1]);
+				uDaneCM4.dane.sMagne2[1] = (int16_t)(0x100 * chDaneMagIIS[2] + chDaneMagIIS[3]);
+				uDaneCM4.dane.sMagne2[2] = (int16_t)(0x100 * chDaneMagIIS[4] + chDaneMagIIS[5]);
+				uDaneCM4.dane.fTemper[4] = (int16_t)(0x100 * chDaneMagIIS[6] + chDaneMagIIS[7]) / 8.0f;	//The nominal sensitivity is 8 LSB/°C.
+			}
 		}
 	}
 }

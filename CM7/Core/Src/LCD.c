@@ -941,6 +941,8 @@ void PomiaryIMU(void)
 		print(chNapis, 10, 170);
 		sprintf(chNapis, "Przechyl:           Pochyl:          Odchyl:");
 		print(chNapis, 10, 190);
+		sprintf(chNapis, "Temp:");
+		print(chNapis, 10, 210);
 
 		sprintf(chNapis, "GNSS D%cug:             Szer:             HDOP:", ł);
 		print(chNapis, 10, 240);
@@ -1048,6 +1050,12 @@ void PomiaryIMU(void)
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU[2], ZNAK_STOPIEN);
 	print(chNapis, 10+45*FONT_SL, 190);
+
+	//temepratury
+	setColor(WHITE);
+	sprintf(chNapis, "%.1f%cC ", uDaneCM4.dane.fTemper[4], ZNAK_STOPIEN);
+	print(chNapis, 10+8*FONT_SL, 210);
+
 
 	if (uDaneCM4.dane.stGnss1.chFix)
 		setColor(WHITE);	//jest fix

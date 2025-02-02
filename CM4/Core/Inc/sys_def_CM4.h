@@ -43,6 +43,11 @@
 #define INIT_ICM42688		0x00000040
 #define INIT_LSM6DSV		0x00000080
 #define INIT_MMC34160		0x00000100
+#define INIT_IIS2MDC		0x00000200
+
+//definicje magnetometrów na magistrali I2C4
+#define MAG_MMC				1
+#define MAG_IIS				2
 
 //definije kanałów IO
 #define MIO11	(1 << 0) 	//MOD_IO11

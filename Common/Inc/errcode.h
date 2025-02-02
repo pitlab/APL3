@@ -41,6 +41,7 @@
 #define ERR_BRAK_ICM42688		35
 #define ERR_BRAK_LSM6DSV		36
 #define ERR_BRAK_MMC34160		37
+#define ERR_BRAK_IIS2MDS		38
 
 #define ERR_I2C_BERR			40
 #define ERR_I2C_ARB_LOST		41

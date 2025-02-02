@@ -13,6 +13,7 @@
 #include "MS5611.h"
 #include "ICM42688.h"
 #include "LSM6DSV.h"
+#include "iis2mdc.h"
 
 //definicje adresów na module
 #define ADR_MIIP_ICM42688	0
