@@ -1001,38 +1001,38 @@ void PomiaryIMU(void)
 	print(chNapis, 10+32*FONT_SL, 110);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[0]);
+	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[0]);
 	print(chNapis, 10+8*FONT_SL, 130);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[1]);
+	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[1]);
 	print(chNapis, 10+20*FONT_SL, 130);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[2]);
+	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[2]);
 	print(chNapis, 10+32*FONT_SL, 130);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne2[0]);
+	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[0]);
 	print(chNapis, 10+8*FONT_SL, 150);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne2[1]);
+	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[1]);
 	print(chNapis, 10+20*FONT_SL, 150);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne2[2]);
+	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[2]);
 	print(chNapis, 10+32*FONT_SL, 150);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.0f ", uDaneCM4.dane.fMagne3[0]);
+	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[0]);
 	print(chNapis, 10+8*FONT_SL, 170);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.0f ", uDaneCM4.dane.fMagne3[1]);
+	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[1]);
 	print(chNapis, 10+20*FONT_SL, 170);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.0f ", uDaneCM4.dane.fMagne3[2]);
+	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[2]);
 	print(chNapis, 10+32*FONT_SL, 170);
 
 	//sygnalizacja tonem wartości osi Z magnetometru
 #define MAX_MAG3 600
-	chTon = LICZBA_TONOW_WARIO/2 - (uDaneCM4.dane.fMagne3[2] / (MAX_MAG3 / (LICZBA_TONOW_WARIO/2)));
+	chTon = LICZBA_TONOW_WARIO/2 - (uDaneCM4.dane.sMagne3[2] / (MAX_MAG3 / (LICZBA_TONOW_WARIO/2)));
 	if (chTon > LICZBA_TONOW_WARIO)
 		chTon = LICZBA_TONOW_WARIO;
 	if (chTon < 0)

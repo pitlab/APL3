@@ -40,9 +40,9 @@ typedef struct _stWymianyCM4
 	float fAkcel2[3];
 	float fZyros1[3];
 	float fZyros2[3];
-	float fMagne1[3];
-	float fMagne2[3];
-	float fMagne3[3];
+	int16_t sMagne1[3];
+	int16_t sMagne2[3];
+	int16_t sMagne3[3];
 	float fKatIMU[3];
 	float fCisnie[2];
 	float fTemper[4];	//0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV

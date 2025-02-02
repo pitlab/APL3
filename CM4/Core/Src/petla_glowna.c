@@ -299,9 +299,9 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 	{
 		if ((chDaneMagHMC[0] || chDaneMagHMC[1]) && (chDaneMagHMC[2] || chDaneMagHMC[3]) && (chDaneMagHMC[4] || chDaneMagHMC[5]))
 		{
-			uDaneCM4.dane.fMagne3[0] = (int16_t)(0x100 * chDaneMagHMC[0] + chDaneMagHMC[1]);
-			uDaneCM4.dane.fMagne3[1] = (int16_t)(0x100 * (int16_t)chDaneMagHMC[2] + chDaneMagHMC[3]);
-			uDaneCM4.dane.fMagne3[2] = (int16_t)(0x100 * (int16_t)chDaneMagHMC[4] + chDaneMagHMC[5]);
+			uDaneCM4.dane.sMagne3[0] = (int16_t)(0x100 * chDaneMagHMC[0] + chDaneMagHMC[1]);
+			uDaneCM4.dane.sMagne3[1] = (int16_t)(0x100 * chDaneMagHMC[2] + chDaneMagHMC[3]);
+			uDaneCM4.dane.sMagne3[2] = (int16_t)(0x100 * chDaneMagHMC[4] + chDaneMagHMC[5]);
 		}
 	}
 
@@ -309,9 +309,9 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 	{
 		if ((chBuforMMC3416x[0] || chBuforMMC3416x[1]) && (chBuforMMC3416x[2] || chBuforMMC3416x[3]) && (chBuforMMC3416x[4] || chBuforMMC3416x[5]))
 		{
-			uDaneCM4.dane.fMagne1[0] = (int16_t)(0x100 * chBuforMMC3416x[0] + chBuforMMC3416x[1]);
-			uDaneCM4.dane.fMagne1[1] = (int16_t)(0x100 * chBuforMMC3416x[2] + chBuforMMC3416x[3]);
-			uDaneCM4.dane.fMagne1[2] = (int16_t)(0x100 * chBuforMMC3416x[4] + chBuforMMC3416x[5]);
+			uDaneCM4.dane.sMagne1[0] = 32768 - (int16_t)(0x100 * chBuforMMC3416x[1] + chBuforMMC3416x[0]);
+			uDaneCM4.dane.sMagne1[1] = 32768 - (int16_t)(0x100 * chBuforMMC3416x[3] + chBuforMMC3416x[2]);
+			uDaneCM4.dane.sMagne1[2] = 32768 - (int16_t)(0x100 * chBuforMMC3416x[5] + chBuforMMC3416x[4]);
 		}
 	}
 }
