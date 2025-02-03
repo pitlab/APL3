@@ -61,7 +61,7 @@ uint8_t InicjujMMC3416x(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Startuje cykliczny pomiar magnetometru MMC3416xPJ. Wykonuje się tylko raz w czasie inicjalizacji
+// Startuje cykliczny pomiar magnetometru MMC3416xPJ w trybie wyzwalanym ręcznie
 // Parametry: brak
 // Zwraca: kod błędu HAL
 // Czas zajęcia magistrali I2C: 420us przy zegarze 100kHz

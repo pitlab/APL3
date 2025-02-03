@@ -21,6 +21,8 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 ![Procesy](obrazki/procesy.jpg)
 - Komunikaty głosowe (16bit, 16kHz) są już wgrywane do pamięci flash. Poprzedza je tablica[128] zawierająca adresy i rozmiary komunikatów
 - Wymawia komunikaty głosowe
+- Jest elementarny zapis / odczyt karty SD o transferze sięgającym zawrotnych wartości 0,59 / 0,57 MB/s
+![Transfer](obrazki/transfer_karty_SD.jpg)
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM
@@ -31,6 +33,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Odbiór danych z GNSS i parsowanie protokołu NMEA. Konfiguracja układów uBlox i MTK
 - Odczyt danych z magnetometru HMC5883 na module GNSS
 - Odczyt danych z magnetometrów MMC34160 i IIS2MDC na wewnętrznym module IiP
+![Magnetometry](obrazki/pomiar_magnetometrów.jpg) 
 
 #### Do zrobienia:
  - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarce na inne z mniejszym ESR

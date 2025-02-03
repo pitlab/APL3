@@ -122,6 +122,7 @@ osThreadId tsObslugaWyswieHandle;
 uint8_t chErr;
 extern uint8_t chPorty_exp_wysylane[];
 extern struct _statusDotyku statusDotyku;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -229,7 +230,7 @@ Error_Handler();
 /* USER CODE END Boot_Mode_Sequence_2 */
 
   /* USER CODE BEGIN SysInit */
-
+  printf("****** CM7 zaczyna pracę ****** \n");
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -271,7 +272,6 @@ Error_Handler();
   }
 
   BSP_SD_Init();
-
 
   /* USER CODE END 2 */
 
@@ -359,7 +359,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = 4;
   RCC_OscInitStruct.PLL.PLLN = 50;
   RCC_OscInitStruct.PLL.PLLP = 2;
-  RCC_OscInitStruct.PLL.PLLQ = 64;
+  RCC_OscInitStruct.PLL.PLLQ = 16;
   RCC_OscInitStruct.PLL.PLLR = 4;
   RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_3;
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;

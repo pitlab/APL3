@@ -35,6 +35,7 @@ extern SD_HandleTypeDef hsd1;
 
 /* USER CODE BEGIN BeforeInitSection */
 /* can be used to modify / undefine following code or add code */
+extern __IO uint8_t RxCplt, TxCplt;
 /* USER CODE END BeforeInitSection */
 /**
   * @brief  Initializes the SD card device.
@@ -241,7 +242,8 @@ void HAL_SD_AbortCallback(SD_HandleTypeDef *hsd)
   */
 void HAL_SD_TxCpltCallback(SD_HandleTypeDef *hsd)
 {
-  BSP_SD_WriteCpltCallback();
+  //BSP_SD_WriteCpltCallback();
+	TxCplt = 1;
 }
 
 /**
@@ -251,7 +253,8 @@ void HAL_SD_TxCpltCallback(SD_HandleTypeDef *hsd)
   */
 void HAL_SD_RxCpltCallback(SD_HandleTypeDef *hsd)
 {
-  BSP_SD_ReadCpltCallback();
+  //BSP_SD_ReadCpltCallback();
+	 RxCplt = 1;
 }
 
 /* USER CODE BEGIN CallBacksSection_C */

@@ -1251,25 +1251,22 @@ void WyswietlParametryKartySD(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Rysuje okno z danymi karty SD
+// Rysuje okno z testem transferu karty SD
 // Parametry: brak
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-#define DATA_SIZE              ((uint32_t)0x06400000U) /* Data Size 100Mo */
+#define DATA_SIZE              ((uint32_t)0x0640000U)
 #define BUFFER_SIZE            ((uint32_t)0x0004000U)
-
 #define NB_BUFFER              DATA_SIZE / BUFFER_SIZE
 #define NB_BLOCK_BUFFER        BUFFER_SIZE / BLOCKSIZE /* Number of Block (512o) by Buffer */
-#define BUFFER_WORD_SIZE       (BUFFER_SIZE>>2)        /* Buffer size in Word */
 #define SD_TIMEOUT             ((uint32_t)0x00100000U)
 #define ADDRESS                ((uint32_t)0x00000400U) /* SD Address to write/read data */
 #define DATA_PATTERN           ((uint32_t)0xB5F3A5F3U) /* Data pattern to write */
 
-uint8_t aTxBuffer[BUFFER_WORD_SIZE*4];
-uint8_t aRxBuffer[BUFFER_WORD_SIZE*4];
-
-
+uint8_t aTxBuffer[BUFFER_SIZE];
+uint8_t aRxBuffer[BUFFER_SIZE];
 __IO uint8_t RxCplt, TxCplt;
+
 
 void TestKartySD(void)
 {
@@ -1279,6 +1276,17 @@ void TestKartySD(void)
 	uint32_t stop_time = 0;
 	HAL_SD_CardCIDTypedef pCID;
 	HAL_SD_CardCSDTypedef pCSD;
+
+	if (chRysujRaz)
+	{
+		setColor(GRAY80);
+		chRysujRaz = 0;
+		BelkaTytulu("Test tranferu karty SD");
+
+		setColor(GRAY40);
+		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
+		print(chNapis, CENTER, 300);
+	}
 
 	hsd1.Instance = SDMMC1;
 	HAL_SD_DeInit(&hsd1);
@@ -1303,160 +1311,131 @@ void TestKartySD(void)
 	HAL_SD_GetCardCSD(&hsd1, &pCSD);
 
 	while(1)
-	  {
-	    switch(step)
+	{
+		switch(step)
 	    {
-	      case 0:
-	      {
-	        /*##- 4 - Initialize Transmission buffer #####################*/
-	        for (index = 0; index < BUFFER_SIZE; index++)
-	        {
-	          aTxBuffer[index] = DATA_PATTERN + index;
-	        }
-	        SCB_CleanDCache_by_Addr((uint32_t*)aTxBuffer, BUFFER_WORD_SIZE*4);
-	        printf(" ****************** Start Write test ******************* \n");
-	        printf(" - Buffer size to write: %lu MB   \n", (DATA_SIZE>>20));
-	        index = 0;
-	        start_time = HAL_GetTick();
-	        step++;
-	      }
-	      break;
-	      case 1:
-	      {
-	        TxCplt = 0;
+	    	case 0:	// Initialize Transmission buffer
+	    		for (index = 0; index < BUFFER_SIZE; index++)
+	    			aTxBuffer[index] = DATA_PATTERN + index;
 
-	        if(Wait_SDCARD_Ready() != HAL_OK)
-	        {
-	          Error_Handler();
-	        }
-	        /*##- 5 - Start Transmission buffer #####################*/
-	        if(HAL_SD_WriteBlocks_DMA(&hsd1, aTxBuffer, ADDRESS, NB_BLOCK_BUFFER) != HAL_OK)
-	        {
-	          Error_Handler();
-	        }
-	        step++;
-	      }
-	      break;
-	      case 2:
-	      {
-	        if(TxCplt != 0)
-	        {
-	          /* Toggle Led Orange, Transfer of Buffer OK */
-	         // BSP_LED_Toggle(LED_ORANGE);
+	    		SCB_CleanDCache_by_Addr((uint32_t*)aTxBuffer, BUFFER_SIZE);
+	    		index = 0;
+	    		start_time = HAL_GetTick();
+	    		step++;
+	    		break;
 
-	          /* Transfer of Buffer completed */
-	          index++;
-	          if(index<NB_BUFFER)
-	          {
-	            /* More data need to be trasnfered */
-	            step--;
-	          }
-	          else
-	          {
-	            stop_time = HAL_GetTick();
-	            printf(" - Write Time(ms): %lu  -  Write Speed: %02.2f MB/s  \n", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
-	            /* All data are transferred */
-	            step++;
-	          }
-	        }
-	      }
-	      break;
-	      case 3:
-	      {
-	        /*##- 6 - Initialize Reception buffer #####################*/
-	        for (index = 0; index < BUFFER_SIZE; index++)
-	        {
-	          aRxBuffer[index] = 0;
-	        }
-	        SCB_CleanDCache_by_Addr((uint32_t*)aRxBuffer, BUFFER_WORD_SIZE*4);
-	        printf(" ******************* Start Read test ******************* \n");
-	        printf(" - Buffer size to read: %lu MB   \n", (DATA_SIZE>>20));
-	        start_time = HAL_GetTick();
-	        index = 0;
-	        step++;
-	      }
-	      break;
-	      case 4:
-	      {
-	        if(Wait_SDCARD_Ready() != HAL_OK)
-	        {
-	          Error_Handler();
-	        }
-	        /*##- 7 - Initialize Reception buffer #####################*/
-	        RxCplt = 0;
-	        if(HAL_SD_ReadBlocks_DMA(&hsd1, aRxBuffer, ADDRESS, NB_BLOCK_BUFFER) != HAL_OK)
-	        {
-	          Error_Handler();
-	        }
-	        step++;
-	      }
-	      break;
-	      case 5:
-	      {
-	        if(RxCplt != 0)
-	        {
-	          /* Toggle Led Orange, Transfer of Buffer OK */
-	          ///BSP_LED_Toggle(LED_ORANGE);
-	          /* Transfer of Buffer completed */
-	          index++;
-	          if(index<NB_BUFFER)
-	          {
-	            /* More data need to be trasnfered */
-	            step--;
-	          }
-	          else
-	          {
-	            stop_time = HAL_GetTick();
-	            printf(" - Read Time(ms): %lu  -  Read Speed: %02.2f MB/s  \n", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
-	            /* All data are transferred */
-	            step++;
-	          }
-	        }
-	      }
-	      break;
-	      case 6:
-	      {
-	        /*##- 8 - Check Reception buffer #####################*/
-	        index=0;
-	        printf(" ********************* Check data ********************** \n");
-	        while((index<BUFFER_SIZE) && (aRxBuffer[index] == aTxBuffer[index]))
-	        {
-	          index++;
-	        }
+	    	case 1:
+	    		TxCplt = 0;
+	    		if(Wait_SDCARD_Ready() != HAL_OK)
+	    			Error_Handler();
+	    		if(HAL_SD_WriteBlocks_DMA(&hsd1, aTxBuffer, ADDRESS, NB_BLOCK_BUFFER) != HAL_OK)
+	    			Error_Handler();
+	    		step++;
+	    		break;
 
-	        if(index != BUFFER_SIZE)
-	        {
-	          printf(" - Check data Error !!!!   \n");
-	          Error_Handler();
-	        }
-	        printf(" - Check data OK  \n");
-	        /* Toggle Green LED, Check Transfer OK */
-	        //BSP_LED_Toggle(LED_GREEN);
-	        step = 0;
-	      }
-	      break;
-	      default :
-	        Error_Handler();
+	    	case 2:
+	    		if(TxCplt != 0)
+	    		{
+	    			setColor(GRAY80);
+	    			sprintf(chNapis, "Zapisano: %ld/%ld ", index, NB_BUFFER);
+	    			print(chNapis, 10, 30);
+
+	    			index++;
+	    			if(index < NB_BUFFER)
+	    				step--;
+	    			else
+					{
+						stop_time = HAL_GetTick();
+						sprintf(chNapis, "Czas zapisu: %lums, transfer %02.2f MB/s  ", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
+						print(chNapis, 10, 50);
+						step++;
+					}
+				}
+	    		break;
+
+	    	case 3:	//Initialize Reception buffer
+	    		for (index = 0; index < BUFFER_SIZE; index++)
+	    			aRxBuffer[index] = 0;
+	    		SCB_CleanDCache_by_Addr((uint32_t*)aRxBuffer, BUFFER_SIZE);
+	    		start_time = HAL_GetTick();
+	    		index = 0;
+	    		step++;
+	    		break;
+
+	    	case 4:
+	    		if(Wait_SDCARD_Ready() != HAL_OK)
+	    			Error_Handler();
+
+	    		RxCplt = 0;
+	    		if(HAL_SD_ReadBlocks_DMA(&hsd1, aRxBuffer, ADDRESS, NB_BLOCK_BUFFER) != HAL_OK)
+	    			Error_Handler();
+	    		step++;
+	    		break;
+
+	    	case 5:
+	    		if(RxCplt != 0)
+	    		{
+	    			setColor(GRAY80);
+	    			sprintf(chNapis, "Odczytano: %ld/%ld ", index, NB_BUFFER);
+	    			print(chNapis, 10, 70);
+	    			index++;
+	    			if(index<NB_BUFFER)
+	    				step--;
+	    			else
+	    			{
+	    				stop_time = HAL_GetTick();
+	    				sprintf(chNapis, "Czas odczytu: %lums, transfer %02.2f MB/s  ", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
+	    				print(chNapis, 10, 90);
+	    				step++;
+	    			}
+	    		}
+	    		break;
+
+	    	case 6:	//Check Reception buffer
+	    		index=0;
+	    		while((index<BUFFER_SIZE) && (aRxBuffer[index] == aTxBuffer[index]))
+	    			index++;
+
+	    		if (index != BUFFER_SIZE)
+	    		{
+	    			setColor(RED);
+	    			sprintf(chNapis, "B%c%cd weryfikacji!", ł, ą);
+	    			print(chNapis, 10, 110);
+	    			Error_Handler();
+	    		}
+
+	    		setColor(GREEN);
+	    		sprintf(chNapis, "Weryfikacja OK");
+	    		print(chNapis, 10, 110);
+	    		step = 0;
+	    		break;
+
+	    	default :
+	    		Error_Handler();
 	    }
+
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)	//warunek wyjścia z testu
+			return;
 	}
 }
 
 
 
+/* Wait for the Erasing process is completed */
+/* Verify that SD card is ready to use after the Erase */
 uint8_t Wait_SDCARD_Ready(void)
 {
-  uint32_t loop = SD_TIMEOUT;
+	uint32_t loop = SD_TIMEOUT;
 
-  /* Wait for the Erasing process is completed */
-  /* Verify that SD card is ready to use after the Erase */
-  while(loop > 0)
-  {
-    loop--;
-    if(HAL_SD_GetCardState(&hsd1) == HAL_SD_CARD_TRANSFER)
-    {
-        return HAL_OK;
-    }
-  }
-  return HAL_ERROR;
+	while(loop > 0)
+	{
+		loop--;
+		if(HAL_SD_GetCardState(&hsd1) == HAL_SD_CARD_TRANSFER)
+			return HAL_OK;
+	}
+	return HAL_ERROR;
 }
+
+
+
 
