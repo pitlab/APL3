@@ -236,9 +236,9 @@ void LCD_data_read(uint8_t *chDane, uint8_t chIlosc)
 ////////////////////////////////////////////////////////////////////////////////
 // Konfiguracja wyświetlacza 3.5inch RPi LCD (B) https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(B)
 // Parametry: nic
-// Zwraca: nic
+// Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-void InicjujLCD(void)
+uint8_t InicjujLCD(void)
 {
 	extern uint8_t chPorty_exp_wysylane[LICZBA_EXP_SPI_ZEWN];
 
@@ -334,10 +334,9 @@ void InicjujLCD(void)
 	LCD_write_dat_sro16(0x00, 0x01);
 	LCD_write_dat_ost16(0x00, 0x3F);
 
-	//czszczenie ekranu
-	//LCD_clear();
 	chRysujRaz = 1;
 	nZainicjowano[0] |= INIT0_LCD480x320;
+	return ERR_OK;
 }
 
 

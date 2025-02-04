@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "flash_konfig.h"
-
+#include "semafory.h"
 
 //deklaracje zmiennych
 extern SPI_HandleTypeDef hspi5;
@@ -68,27 +68,40 @@ uint16_t CzytajKanalDotyku(uint8_t  chKanal)
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void CzytajDotyk(void)
+uint8_t CzytajDotyk(void)
 {
 	uint32_t nCzasDotyku;
+	uint32_t nStanSemaforaSPI;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
 	//sprawdź czy upłyneło wystarczająco czasu od ostatniego odczytu
 	nCzasDotyku = MinalCzas(statusDotyku.nOstCzasPomiaru);
 	if (nCzasDotyku < 50000)	//50ms -> 20Hz
-		return;
-	statusDotyku.nOstCzasPomiaru = PobierzCzasT6();;
+		return ERR_OK;
+	statusDotyku.nOstCzasPomiaru = PobierzCzasT6();
 
-	//Ponieważ zegar SPI = 100MHz a układ może pracować z prędkością max 2,5MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 64
-	nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
-	hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
-	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_64;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/64
+	//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI6
+	nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
+	if (!nStanSemaforaSPI)
+	{
+		if (HAL_HSEM_Take(HSEM_SPI5_WYSW, 0) == ERR_OK)
+		{
+				//Ponieważ zegar SPI = 100MHz a układ może pracować z prędkością max 2,5MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 64
+				nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
+				hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
+				hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_64;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/64
 
-	//domyslnie używam innej orientacji, więc zaimeń osie X i Y
-	statusDotyku.sAdc[0] = CzytajKanalDotyku(TPCHY);	//najlepiej się zmienia dla osi X. Ponieważ wartość maleje dla większych X, więc używam odwrotności
-	statusDotyku.sAdc[1] = 4096 - CzytajKanalDotyku(TPCHX);	//najlepiej się zmienia dla osi Y
-	statusDotyku.sAdc[2] = CzytajKanalDotyku(TPCHZ1);
-	statusDotyku.sAdc[3] = CzytajKanalDotyku(TPCHZ2);
+				//domyslnie używam innej orientacji, więc zaimeń osie X i Y
+				statusDotyku.sAdc[0] = CzytajKanalDotyku(TPCHY);	//najlepiej się zmienia dla osi X. Ponieważ wartość maleje dla większych X, więc używam odwrotności
+				statusDotyku.sAdc[1] = 4096 - CzytajKanalDotyku(TPCHX);	//najlepiej się zmienia dla osi Y
+				statusDotyku.sAdc[2] = CzytajKanalDotyku(TPCHZ1);
+				statusDotyku.sAdc[3] = CzytajKanalDotyku(TPCHZ2);
+				HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+				hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
+		}
+	}
+	else
+		return ERR_ZAJETY_SEMAFOR;
 
 	if (statusDotyku.sAdc[2] > MIN_Z)		//czy siła nacisku jest wystarczająca
 	{
@@ -122,7 +135,8 @@ void CzytajDotyk(void)
 		sDotykAdc[4] = (200 * sDotykAdc[0]/4096) * ((sDotykAdc[3]/sDotykAdc[2])-1);
 	else
 		sDotykAdc[4] = 0; */
-	hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
+
+	return ERR_OK;
 }
 
 

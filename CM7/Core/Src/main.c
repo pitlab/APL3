@@ -58,7 +58,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "protokol_kom.h"
 #include "moduly_SPI.h"
 #include "audio.h"
-#include "semafory.h"
+//#include "semafory.h"
 #include "lwip/apps/lwiperf.h"
 /* USER CODE END Includes */
 
@@ -110,6 +110,7 @@ MDMA_HandleTypeDef hmdma_mdma_channel1_dma1_stream1_tc_0;
 MDMA_HandleTypeDef hmdma_mdma_channel2_dma1_stream1_tc_0;
 MDMA_HandleTypeDef hmdma_mdma_channel3_dma1_stream1_tc_0;
 MDMA_HandleTypeDef hmdma_mdma_channel4_dma1_stream1_tc_0;
+MDMA_HandleTypeDef hmdma_mdma_channel5_sdmmc1_end_data_0;
 SRAM_HandleTypeDef hsram1;
 NOR_HandleTypeDef hnor3;
 SDRAM_HandleTypeDef hsdram1;
@@ -119,10 +120,10 @@ osThreadId tsOdbiorLPUART1Handle;
 osThreadId tsOdbiorKonsolaHandle;
 osThreadId tsObslugaWyswieHandle;
 /* USER CODE BEGIN PV */
-uint8_t chErr;
+uint8_t chErr = ERR_OK;
 extern uint8_t chPorty_exp_wysylane[];
 extern struct _statusDotyku statusDotyku;
-
+extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -250,14 +251,14 @@ Error_Handler();
   MX_SDMMC1_SD_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
-  InicjujSPIModZewn();
-  InicjujLCD();
-  InicjujFlashNOR();
-  InicjujFlashQSPI();
+  chErr |= InicjujSPIModZewn();
+  chErr |= InicjujLCD();
+  chErr |= InicjujFlashNOR();
+  chErr |= InicjujFlashQSPI();
   InicjujKonfigFlash();
-  InicjujProtokol();
-  InicjujAudio();
-  InicjujDotyk();
+  chErr |= InicjujProtokol();
+  chErr |= InicjujAudio();
+  chErr |= InicjujDotyk();
   InicjujMDMA();
   CzytajDotyk();
   if (statusDotyku.sAdc[2] > MIN_Z)						//jeżeli ekran jest dotknięty w czasie uruchamiania
@@ -271,7 +272,9 @@ Error_Handler();
 	  chTrybPracy = TP_WITAJ;				//jest w trybie powitalnym, ważne aby tryb był inny od TP_MENU_GLOWNE bo on nadpisuje chNowyTrybPracy
   }
 
-  BSP_SD_Init();
+  chErr |= BSP_SD_Init();
+  if (chErr != ERR_OK)
+	  chCzasSwieceniaLED[LED_CZER] = 200;	//świeć 20s
 
   /* USER CODE END 2 */
 
@@ -293,7 +296,7 @@ Error_Handler();
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 512);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of tsOdbiorLPUART1 */
@@ -679,6 +682,7 @@ static void MX_SDMMC1_SD_Init(void)
   hsd1.Init.BusWide = SDMMC_BUS_WIDE_4B;
   hsd1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
   hsd1.Init.ClockDiv = 0;
+  hsd1.Init.TranceiverPresent = SDMMC_TRANSCEIVER_PRESENT;
   if (HAL_SD_Init(&hsd1) != HAL_OK)
   {
     Error_Handler();
@@ -845,6 +849,7 @@ static void MX_DMA_Init(void)
   *   hmdma_mdma_channel2_dma1_stream1_tc_0
   *   hmdma_mdma_channel3_dma1_stream1_tc_0
   *   hmdma_mdma_channel4_dma1_stream1_tc_0
+  *   hmdma_mdma_channel5_sdmmc1_end_data_0
   */
 static void MX_MDMA_Init(void)
 {
@@ -989,6 +994,34 @@ static void MX_MDMA_Init(void)
 
   /* Configure post request address and data masks */
   if (HAL_MDMA_ConfigPostRequestMask(&hmdma_mdma_channel4_dma1_stream1_tc_0, 0, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* Configure MDMA channel MDMA_Channel5 */
+  /* Configure MDMA request hmdma_mdma_channel5_sdmmc1_end_data_0 on MDMA_Channel5 */
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Instance = MDMA_Channel5;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.Request = MDMA_REQUEST_SDMMC1_END_DATA;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.TransferTriggerMode = MDMA_BLOCK_TRANSFER;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.Priority = MDMA_PRIORITY_LOW;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.Endianness = MDMA_LITTLE_ENDIANNESS_PRESERVE;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.SourceInc = MDMA_SRC_INC_BYTE;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.DestinationInc = MDMA_DEST_INC_BYTE;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.SourceDataSize = MDMA_SRC_DATASIZE_BYTE;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.DestDataSize = MDMA_DEST_DATASIZE_BYTE;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.DataAlignment = MDMA_DATAALIGN_PACKENABLE;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.BufferTransferLength = 512;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.SourceBurst = MDMA_SOURCE_BURST_SINGLE;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.DestBurst = MDMA_DEST_BURST_SINGLE;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.SourceBlockAddressOffset = 0;
+  hmdma_mdma_channel5_sdmmc1_end_data_0.Init.DestBlockAddressOffset = 0;
+  if (HAL_MDMA_Init(&hmdma_mdma_channel5_sdmmc1_end_data_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /* Configure post request address and data masks */
+  if (HAL_MDMA_ConfigPostRequestMask(&hmdma_mdma_channel5_sdmmc1_end_data_0, 0, 0) != HAL_OK)
   {
     Error_Handler();
   }
@@ -1197,33 +1230,33 @@ void StartDefaultTask(void const * argument)
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
-	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
-	uint32_t nStanSemaforaSPI;
+
+	//uint32_t nStanSemaforaSPI;
 	uint8_t chStanDekodera;
 	/* Infinite loop */
 	for(;;)
 	{
 		//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI6
-		nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
-		if (!nStanSemaforaSPI)
-		{
-			chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-			if (chErr == ERR_OK)
+		//nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
+		//if (!nStanSemaforaSPI)
+		//{
+			//chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+			//if (chErr == ERR_OK)
 			{
 				chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
 				WymienDaneExpanderow();
 				CzytajDotyk();
 				UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
-				HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+				//HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 			}
-			chCzasSwieceniaLED[LED_ZIEL] = 5;
-			chCzasSwieceniaLED[LED_NIEB] = 0;
-		}
-		else
-		{
-			chCzasSwieceniaLED[LED_ZIEL] = 0;
-			chCzasSwieceniaLED[LED_NIEB] = 5;
-		}
+			//chCzasSwieceniaLED[LED_ZIEL] = 5;
+			//chCzasSwieceniaLED[LED_NIEB] = 0;
+		//}
+		//else
+		//{
+//			chCzasSwieceniaLED[LED_ZIEL] = 0;
+			//chCzasSwieceniaLED[LED_NIEB] = 5;
+		//}
 
 		//obsłuż międzyprocesorową wymianę danych
 		chErr += PobierzDaneWymiany_CM4();

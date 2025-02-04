@@ -100,8 +100,8 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Trans RAM",	"Pomiar predkosci SRAM i DRAM 16-bit",		TP_POMIAR_SRAM,		obr_RAM},
 	{"W1",			"nic",										TP_W1,				obr_Wydajnosc},
 	{"W2",			"nic",										TP_W2,				obr_Wydajnosc},
-	{"W3",			"nic",										TP_W3,				obr_Wydajnosc},
-	{"W4",			"nic",										TP_W4,				obr_Wydajnosc},
+	{"SD33",		"nic",										TP_W3,				obr_Wydajnosc},
+	{"SD18",		"nic",										TP_W4,				obr_Wydajnosc},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
@@ -313,8 +313,10 @@ void RysujEkran(void)
 
 	case TP_W1:		UstawTon(0, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
 	case TP_W2:		UstawTon(32, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
-	case TP_W3:		UstawTon(65, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
-	case TP_W4:		UstawTon(127, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
+
+	///LOG_SD1_VSEL - H=3,3V L=1,8V
+	case TP_W3:		chPorty_exp_wysylane[0] |=  EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - H=3,3V
+	case TP_W4:		chPorty_exp_wysylane[0] &= ~EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - L=1,8V
 	}
 
 	//rzeczy do zrobienia podczas uruchamiania nowego trybu pracy
@@ -1150,9 +1152,11 @@ void WyswietlParametryKartySD(void)
 	extern void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypeDef *CardInfo);
 	extern char SDPath[4];   /* SD logical drive path */
 	extern FATFS SDFatFS;    /* File system object for SD logical drive */
+	extern FIL SDFile;       // File object for SD
 	HAL_SD_CardCIDTypedef pCID;
 	HAL_SD_CardCSDTypedef pCSD;
 	char chOEM[2];
+	FRESULT fres; 		//Result after operations
 
 	if (chRysujRaz)
 	{
@@ -1161,16 +1165,12 @@ void WyswietlParametryKartySD(void)
 
 		if (BSP_SD_IsDetected())
 		{
-			/*FRESULT fres; 		//Result after operations
-			BYTE readBuf[30];
-			extern FIL SDFile;       // File object for SD
-			uint8_t workBuffer[_MAX_SS];
-
-			//utwórz FAT
-			 fres = f_mkfs(SDPath, FM_ANY, 0, workBuffer, sizeof(workBuffer));
-			 if (fres == FR_OK)
-			 {
-				fres = f_mount(&SDFatFS, "", 1); //1=mount now
+			fres = f_mount(&SDFatFS, "", 1); //1=mount now
+			if (fres == FR_OK)
+			{
+				BYTE readBuf[30];
+				uint8_t workBuffer[_MAX_SS];
+				fres = f_mkfs(SDPath, FM_ANY, 0, workBuffer, sizeof(workBuffer));	////utwórz FAT
 				if (fres == FR_OK)
 				{
 					fres = f_open(&SDFile, "write.txt", FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
@@ -1182,70 +1182,77 @@ void WyswietlParametryKartySD(void)
 						f_close(&SDFile);
 					}
 				}
-			}*/
+			}
 		}
 	}
 
-	BSP_SD_GetCardInfo(&CardInfo);
-	HAL_SD_GetCardCID(&hsd1, &pCID);
-	HAL_SD_GetCardCSD(&hsd1, &pCSD);
+	if (BSP_SD_IsDetected())
+	{
+		BSP_SD_GetCardInfo(&CardInfo);
+		HAL_SD_GetCardCID(&hsd1, &pCID);
+		HAL_SD_GetCardCSD(&hsd1, &pCSD);
 
-	setColor(GRAY80);
-	sprintf(chNapis, "Typ: %ld ", CardInfo.CardType);
-	print(chNapis, 10, 30);
-	sprintf(chNapis, "Wersja: %ld ", CardInfo.CardVersion);
-	print(chNapis, 10, 50);
-	sprintf(chNapis, "Klasa: %ld ", CardInfo.Class);
-	print(chNapis, 10, 70);
-	sprintf(chNapis, "Pr%cdko%c%c: %ld ", ę, ś, ć, CardInfo.CardSpeed);
-	print(chNapis, 10, 90);
-	sprintf(chNapis, "Liczba blok%cw: %ld ", ó, CardInfo.BlockNbr);
-	print(chNapis, 10, 110);
-	sprintf(chNapis, "Rozmiar bloku: %ld ", CardInfo.BlockSize);
-	print(chNapis, 10, 130);
-	sprintf(chNapis, "Obecno%c%c karty: %d ", ś, ć, BSP_SD_IsDetected());	//LOG_SD1_CDETECT - wejscie detekcji obecności karty
-	print(chNapis, 10, 150);
+		setColor(GRAY80);
+		sprintf(chNapis, "Typ: %ld ", CardInfo.CardType);
+		print(chNapis, 10, 30);
+		sprintf(chNapis, "Wersja: %ld ", CardInfo.CardVersion);
+		print(chNapis, 10, 50);
+		sprintf(chNapis, "Klasa: %ld ", CardInfo.Class);
+		print(chNapis, 10, 70);
+		sprintf(chNapis, "Pr%cdko%c%c: %ld ", ę, ś, ć, CardInfo.CardSpeed);
+		print(chNapis, 10, 90);
+		sprintf(chNapis, "Liczba blok%cw: %ld ", ó, CardInfo.BlockNbr);
+		print(chNapis, 10, 110);
+		sprintf(chNapis, "Rozmiar bloku: %ld ", CardInfo.BlockSize);
+		print(chNapis, 10, 130);
+		sprintf(chNapis, "Obecno%c%c karty: %d ", ś, ć, BSP_SD_IsDetected());	//LOG_SD1_CDETECT - wejscie detekcji obecności karty
+		print(chNapis, 10, 150);
 
-	sprintf(chNapis, "Manufacturer ID: %X ", pCID.ManufacturerID);
-	print(chNapis, 10, 170);
+		sprintf(chNapis, "Manufacturer ID: %X ", pCID.ManufacturerID);
+		print(chNapis, 10, 170);
 
-	chOEM[0] = (pCID.OEM_AppliID & 0xFF00)>>8;
-	chOEM[1] = pCID.OEM_AppliID & 0x00FF;
-	//sprintf(chNapis, "OEM_AppliID: %c%c ", (uint8_t)((pCID.OEM_AppliID & 0xFF00)>>8), (uint8_t)(pCID.OEM_AppliID & 0x00FF));
-	sprintf(chNapis, "OEM_AppliID: %c%c ", chOEM[0], chOEM[1]);
+		chOEM[0] = (pCID.OEM_AppliID & 0xFF00)>>8;
+		chOEM[1] = pCID.OEM_AppliID & 0x00FF;
+		//sprintf(chNapis, "OEM_AppliID: %c%c ", (uint8_t)((pCID.OEM_AppliID & 0xFF00)>>8), (uint8_t)(pCID.OEM_AppliID & 0x00FF));
+		sprintf(chNapis, "OEM_AppliID: %c%c ", chOEM[0], chOEM[1]);
 
-	print(chNapis, 10, 190);
-	sprintf(chNapis, "Numer seryjny: %ld ", pCID.ProdSN);
-	print(chNapis, 10, 210);
-	sprintf(chNapis, "Data produkcji rr-m: %d-%d ",(pCID.ManufactDate>>4) & 0xFF, (pCID.ManufactDate & 0xF));
-	print(chNapis, 10, 230);
-	sprintf(chNapis, "CardComdClasses: %X ", pCSD.CardComdClasses);
-	print(chNapis, 10, 250);
-	sprintf(chNapis, "DeviceSize: %ld ", pCSD.DeviceSize * pCSD.DeviceSizeMul);
-	print(chNapis, 10, 270);
-	sprintf(chNapis, "MaxBusClkFrec: %d ", pCSD.MaxBusClkFrec);
-	print(chNapis, 10, 290);
+		print(chNapis, 10, 190);
+		sprintf(chNapis, "Numer seryjny: %ld ", pCID.ProdSN);
+		print(chNapis, 10, 210);
+		sprintf(chNapis, "Data produkcji rr-m: %d-%d ",(pCID.ManufactDate>>4) & 0xFF, (pCID.ManufactDate & 0xF));
+		print(chNapis, 10, 230);
+		sprintf(chNapis, "CardComdClasses: %X ", pCSD.CardComdClasses);
+		print(chNapis, 10, 250);
+		sprintf(chNapis, "DeviceSize: %ld ", pCSD.DeviceSize * pCSD.DeviceSizeMul);
+		print(chNapis, 10, 270);
+		sprintf(chNapis, "MaxBusClkFrec: %d ", pCSD.MaxBusClkFrec);
+		print(chNapis, 10, 290);
 
+		//druga kolumna
+		sprintf(chNapis, "Scie%cka: %s ", ż, SDPath);
+		print(chNapis, 240, 30);
+		sprintf(chNapis, "Typ FAT: %d ", SDFatFS.fs_type);
+		print(chNapis, 240, 50);
+		sprintf(chNapis, "Rozmiar: %ld ", SDFatFS.fsize);;
+		print(chNapis, 240, 70);
+		sprintf(chNapis, "FAT ID: %d ", SDFatFS.id);
+		print(chNapis, 240, 90);
+		sprintf(chNapis, "FAT drv: %d ", SDFatFS.drv);
+		print(chNapis, 240, 110);
+		sprintf(chNapis, "Ilo%c%c sektor%cw: %ld ", ś, ć, ó, (SDFatFS.n_fatent - 2) * SDFatFS.csize);
+		print(chNapis, 240, 130);
+		sprintf(chNapis, "Wolnych sektor%cw: %ld ", ó, SDFatFS.free_clst * SDFatFS.csize);
+		print(chNapis, 240, 150);
 
-
-	//druga kolumna
-	sprintf(chNapis, "Scie%cka: %s ", ż, SDPath);
-	print(chNapis, 240, 30);
-	sprintf(chNapis, "Typ FAT: %d ", SDFatFS.fs_type);
-	print(chNapis, 240, 50);
-	sprintf(chNapis, "Rozmiar: %ld ", SDFatFS.fsize);;
-	print(chNapis, 240, 70);
-	sprintf(chNapis, "FAT ID: %d ", SDFatFS.id);
-	print(chNapis, 240, 90);
-	sprintf(chNapis, "FAT drv: %d ", SDFatFS.drv);
-	print(chNapis, 240, 110);
-	sprintf(chNapis, "Ilo%c%c sektor%cw: %ld ", ś, ć, ó, (SDFatFS.n_fatent - 2) * SDFatFS.csize);
-	print(chNapis, 240, 130);
-	sprintf(chNapis, "Wolnych sektor%cw: %ld ", ó, SDFatFS.free_clst * SDFatFS.csize);
-	print(chNapis, 240, 150);
-
-	sprintf(chNapis, "SysSpecVersion: %d ", pCSD.SysSpecVersion);
-	print(chNapis, 240, 170);
+		sprintf(chNapis, "SysSpecVersion: %d ", pCSD.SysSpecVersion);
+		print(chNapis, 240, 170);
+	}
+	else
+	{
+		setColor(RED);
+		sprintf(chNapis, "Wolne %carty, tu brak karty! ", ż);
+		print(chNapis, CENTER, 50);
+	}
 }
 
 
@@ -1435,7 +1442,6 @@ uint8_t Wait_SDCARD_Ready(void)
 	}
 	return HAL_ERROR;
 }
-
 
 
 

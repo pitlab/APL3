@@ -9,10 +9,10 @@
 #include "moduly_SPI.h"
 #include "errcode.h"
 #include "main.h"
-
+#include "semafory.h"
 
 //deklaracje zmiennych
-uint8_t chPorty_exp_wysylane[LICZBA_EXP_SPI_ZEWN] = {0x00, 0x00, 0xE0};
+uint8_t chPorty_exp_wysylane[LICZBA_EXP_SPI_ZEWN] = {0x04, 0x00, 0xE0};
 uint8_t chPorty_exp_odbierane[LICZBA_EXP_SPI_ZEWN];
 uint8_t chStanDekoderaSPI;
 volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
@@ -180,6 +180,8 @@ uint8_t PobierzStanDekoderaZewn(void)
 	return chStanDekoderaSPI;
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Ustawia i pobiera zawartość portu na układzie rozszerzeń podłaczonym do magistrali SPI5 modułów wyjsciowych rdzenia CM7
 // Parametry: adres - adres układu rozszerzeń
@@ -190,17 +192,32 @@ uint8_t PobierzStanDekoderaZewn(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t WyslijDaneExpandera(uint8_t adres, uint8_t daneWy)
 {
-	HAL_StatusTypeDef Err;
+	HAL_StatusTypeDef chErr;
 	uint8_t dane_wysylane[3];
+	uint32_t nStanSemaforaSPI;
 
 	dane_wysylane[0] = adres;
 	dane_wysylane[1] = MCP23S08_GPIO;
 	dane_wysylane[2] = daneWy;
-	UstawDekoderZewn(CS_IO);
-	Err = HAL_SPI_Transmit(&hspi5, dane_wysylane, 3, HAL_MAX_DELAY);
-	UstawDekoderZewn(CS_NIC);
-	return Err;
+
+	//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI6
+	nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
+	if (!nStanSemaforaSPI)
+	{
+		chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+		if (chErr == ERR_OK)
+		{
+			UstawDekoderZewn(CS_IO);
+			chErr = HAL_SPI_Transmit(&hspi5, dane_wysylane, 3, HAL_MAX_DELAY);
+			UstawDekoderZewn(CS_NIC);
+			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+		}
+	}
+	else
+		chErr = ERR_ZAJETY_SEMAFOR;
+	return chErr;
 }
+
 
 
 
@@ -214,18 +231,31 @@ uint8_t WyslijDaneExpandera(uint8_t adres, uint8_t daneWy)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PobierzDaneExpandera(uint8_t adres, uint8_t* daneWe)
 {
-	HAL_StatusTypeDef Err;
+	HAL_StatusTypeDef chErr;
 	uint8_t dane_wysylane[3];
 	uint8_t dane_odbierane[3];
+	uint32_t nStanSemaforaSPI;
 
 	dane_wysylane[0] = adres + SPI_EXTIO_RD;
 	dane_wysylane[1] = MCP23S08_GPIO;
 	dane_wysylane[2] = 0;
-	UstawDekoderZewn(CS_IO);
-	Err = HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_MAX_DELAY);
-	UstawDekoderZewn(CS_NIC);
+	//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI6
+	nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
+	if (!nStanSemaforaSPI)
+	{
+		chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+		if (chErr == ERR_OK)
+		{
+			UstawDekoderZewn(CS_IO);
+			chErr = HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_MAX_DELAY);
+			UstawDekoderZewn(CS_NIC);
+			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+		}
+	}
+	else
+		chErr = ERR_ZAJETY_SEMAFOR;
 	*daneWe = dane_odbierane[2];
-	return Err;
+	return chErr;
 }
 
 

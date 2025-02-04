@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2024 STMicroelectronics.
+  * Copyright (c) 2025 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -42,10 +42,10 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-extern volatile uint32_t nCzasSystemowy;
 volatile uint16_t sCzasH;
 volatile uint8_t chDzielnikDziesietnychSekundy;
 volatile unsigned long ulHighFrequencyTimerTicks = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -68,6 +68,7 @@ extern MDMA_HandleTypeDef hmdma_mdma_channel1_dma1_stream1_tc_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel2_dma1_stream1_tc_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel3_dma1_stream1_tc_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel4_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel5_sdmmc1_end_data_0;
 extern DMA_HandleTypeDef hdma_sai2_b;
 extern SD_HandleTypeDef hsd1;
 extern DMA_HandleTypeDef hdma_spi5_tx;
@@ -183,13 +184,11 @@ void DebugMon_Handler(void)
 void DMA1_Stream0_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Stream0_IRQn 0 */
-	extern volatile uint8_t chDMAgotowe;
+
   /* USER CODE END DMA1_Stream0_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_spi5_tx);
   /* USER CODE BEGIN DMA1_Stream0_IRQn 1 */
 
-  //hdma_spi5_tx.Instance->
-  chDMAgotowe = 1;
   /* USER CODE END DMA1_Stream0_IRQn 1 */
 }
 
@@ -232,7 +231,6 @@ void TIM6_DAC_IRQHandler(void)
   HAL_TIM_IRQHandler(&htim6);
   /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
   sCzasH++;	//inkrementuj starszą, programową część licznika czasu aby móc odmierzać odcinki czasu dłuższe niż 65,536ms
-
   /* USER CODE END TIM6_DAC_IRQn 1 */
 }
 
@@ -302,23 +300,21 @@ void TIM17_IRQHandler(void)
   /* USER CODE END TIM17_IRQn 0 */
   HAL_TIM_IRQHandler(&htim17);
   /* USER CODE BEGIN TIM17_IRQn 1 */
+  ulHighFrequencyTimerTicks++;
 
-	ulHighFrequencyTimerTicks++;
-
-	//odmierzej czas obsługi interfek=jsu użytkownika w dziesiętnych sekundy aby można było przechowywać rosądny czas (25,5s) w 8 bitach
-	if (chDzielnikDziesietnychSekundy)
-	  chDzielnikDziesietnychSekundy--;
-	else
-	{
-		chDzielnikDziesietnychSekundy = 100;		//0,1s = 100ms
-		extern volatile uint8_t chCzasSwieceniaLED[3];
-		for (uint8_t n=0; n<LICZBA_LED; n++)
-		{
-			if (chCzasSwieceniaLED[n])
-				chCzasSwieceniaLED[n]--;
-		}
-	}
-
+  	//odmierzej czas obsługi interfejsu użytkownika w dziesiętnych sekundy aby można było przechowywać rosądny czas (25,5s) w 8 bitach
+  	if (chDzielnikDziesietnychSekundy)
+  	  chDzielnikDziesietnychSekundy--;
+  	else
+  	{
+  		chDzielnikDziesietnychSekundy = 100;		//0,1s = 100ms
+  		extern volatile uint8_t chCzasSwieceniaLED[3];
+  		for (uint8_t n=0; n<LICZBA_LED; n++)
+  		{
+  			if (chCzasSwieceniaLED[n])
+  				chCzasSwieceniaLED[n]--;
+  		}
+  	}
   /* USER CODE END TIM17_IRQn 1 */
 }
 
@@ -335,6 +331,7 @@ void MDMA_IRQHandler(void)
   HAL_MDMA_IRQHandler(&hmdma_mdma_channel2_dma1_stream1_tc_0);
   HAL_MDMA_IRQHandler(&hmdma_mdma_channel3_dma1_stream1_tc_0);
   HAL_MDMA_IRQHandler(&hmdma_mdma_channel4_dma1_stream1_tc_0);
+  HAL_MDMA_IRQHandler(&hmdma_mdma_channel5_sdmmc1_end_data_0);
   /* USER CODE BEGIN MDMA_IRQn 1 */
 
   /* USER CODE END MDMA_IRQn 1 */
