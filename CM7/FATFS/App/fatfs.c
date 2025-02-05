@@ -15,6 +15,7 @@
   *
   ******************************************************************************
   */
+#include <string.h>
 /* USER CODE END Header */
 #include "fatfs.h"
 
@@ -24,7 +25,10 @@ FATFS SDFatFS;    /* File system object for SD logical drive */
 FIL SDFile;       /* File object for SD */
 
 /* USER CODE BEGIN Variables */
-
+FRESULT fres; 		//Result after operations
+BYTE readBuf[30];
+//uint8_t workBuffer[_MAX_SS];
+ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM2")))	workBuffer[_MAX_SS]);
 /* USER CODE END Variables */
 
 void MX_FATFS_Init(void)
@@ -34,6 +38,29 @@ void MX_FATFS_Init(void)
 
   /* USER CODE BEGIN Init */
   /* additional user code for init */
+  if (BSP_SD_IsDetected())		//czy karta jest w gnieździe?
+  {
+	  //fres = f_mkfs(SDPath, FM_ANY, 0, workBuffer, sizeof(workBuffer));	////utwórz FAT
+
+
+	 // fres = f_mount(&SDFatFS, "", 1); //1=mount now
+		/*if (fres == FR_OK)
+		{
+
+			fres = f_mkfs(SDPath, FM_ANY, 0, workBuffer, sizeof(workBuffer));	////utwórz FAT
+			if (fres == FR_OK)
+			{
+				fres = f_open(&SDFile, "write.txt", FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
+				if (fres == FR_OK)
+				{
+					strncpy((char*)readBuf, "a new file is made!", 20);
+					UINT bytesWrote;
+					fres = f_write(&SDFile, readBuf, 19, &bytesWrote);
+					f_close(&SDFile);
+				}
+			}
+		}*/
+	}
   /* USER CODE END Init */
 }
 

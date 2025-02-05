@@ -255,10 +255,13 @@ Error_Handler();
   chErr |= InicjujLCD();
   chErr |= InicjujFlashNOR();
   chErr |= InicjujFlashQSPI();
-  InicjujKonfigFlash();
+  chErr |= InicjujKonfigFlash();
   chErr |= InicjujProtokol();
   chErr |= InicjujAudio();
   chErr |= InicjujDotyk();
+  if (chErr != ERR_OK)
+  	  chCzasSwieceniaLED[LED_CZER] = 50;	//świeć 5s
+
   InicjujMDMA();
   CzytajDotyk();
   if (statusDotyku.sAdc[2] > MIN_Z)						//jeżeli ekran jest dotknięty w czasie uruchamiania
@@ -271,11 +274,6 @@ Error_Handler();
 	  chNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
 	  chTrybPracy = TP_WITAJ;				//jest w trybie powitalnym, ważne aby tryb był inny od TP_MENU_GLOWNE bo on nadpisuje chNowyTrybPracy
   }
-
-  chErr |= BSP_SD_Init();
-  if (chErr != ERR_OK)
-	  chCzasSwieceniaLED[LED_CZER] = 200;	//świeć 20s
-
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */

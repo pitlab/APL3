@@ -34,6 +34,7 @@ extern SD_HandleTypeDef hsd1;
 
 /* USER CODE BEGIN BeforeInitSection */
 /* can be used to modify / undefine following code or add code */
+extern uint8_t RxCplt, TxCplt;
 /* USER CODE END BeforeInitSection */
 /**
   * @brief  Initializes the SD card device.

@@ -52,15 +52,17 @@ uint8_t LCD_write_command16(uint8_t chDane1, uint8_t chDane2)
 
 	dane_nadawane[0] = chDane1;
 	dane_nadawane[1] = chDane2;
-	UstawDekoderZewn(CS_LCD);											//LCD_CS=0
-	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 		osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
+	{
+		UstawDekoderZewn(CS_LCD);											//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
 		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
+		UstawDekoderZewn(CS_NIC);											//LCD_CS=1
+	}
 	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	UstawDekoderZewn(CS_NIC);											//LCD_CS=1
 	return chErr;
 }
 
@@ -76,15 +78,17 @@ uint8_t LCD_WrData(uint8_t* chDane, uint8_t chIlosc)
 {
 	HAL_StatusTypeDef chErr;
 
-	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
-			osDelay(1);
+		osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
+	{
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 		chErr = HAL_SPI_Transmit(&hspi5, chDane, chIlosc, HAL_MAX_DELAY);
+		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+	}
 	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 	return chErr;
 }
 
@@ -120,15 +124,17 @@ uint8_t LCD_write_data16(uint8_t chDane1, uint8_t chDane2)
 
 	dane_nadawane[0] = chDane1;
 	dane_nadawane[1] = chDane2;
-	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
+	{
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
+		UstawDekoderZewn(CS_NIC);
+	}
 	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	UstawDekoderZewn(CS_NIC);
 	return chErr;
 }
 
@@ -148,13 +154,16 @@ uint8_t LCD_write_dat_pie16(uint8_t chDane1, uint8_t chDane2)
 	dane_nadawane[0] = chDane1;
 	dane_nadawane[1] = chDane2;
 
-	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
+	{
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
+	}
 	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	return chErr;
 }
@@ -203,9 +212,11 @@ void LCD_write_dat_ost16(uint8_t chDane1, uint8_t chDane2)
 		osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
+	{
 		HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
+		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+	}
 	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 }
 
 
@@ -220,15 +231,17 @@ void LCD_data_read(uint8_t *chDane, uint8_t chIlosc)
 {
 	HAL_StatusTypeDef chErr;
 
-	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
+	{
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 		HAL_SPI_Receive(&hspi5, chDane, chIlosc, 2);
+		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+	}
 	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 }
 
 
@@ -248,13 +261,14 @@ uint8_t InicjujLCD(void)
 	chPorty_exp_wysylane[0] |= EXP01_LCD_RESET;	//RES=1
 	WyslijDaneExpandera(SPI_EXTIO_0, chPorty_exp_wysylane[0]);
 	HAL_Delay(10);
+
 	chPorty_exp_wysylane[0] &= ~EXP01_LCD_RESET;	//RES=0
 	WyslijDaneExpandera(SPI_EXTIO_0, chPorty_exp_wysylane[0]);
 	HAL_Delay(20);
+
 	chPorty_exp_wysylane[0] |= EXP01_LCD_RESET;	//RES=1
 	WyslijDaneExpandera(SPI_EXTIO_0, chPorty_exp_wysylane[0]);
 	HAL_Delay(20);
-
 
 	LCD_write_command16(0x00, 0xB0);
 	LCD_write_data16(0x00, 0x00);
@@ -315,7 +329,6 @@ uint8_t InicjujLCD(void)
 	LCD_write_dat_ost16(0x00, 0x0F);
 
 	LCD_write_command16(0x00, 0x11);
-
 	HAL_Delay(302); 		//302ms
 
 	LCD_write_command16(0x00, 0x29);

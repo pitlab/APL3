@@ -21,7 +21,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 ![Procesy](obrazki/procesy.jpg)
 - Komunikaty głosowe (16bit, 16kHz) są już wgrywane do pamięci flash. Poprzedza je tablica[128] zawierająca adresy i rozmiary komunikatów
 - Wymawia komunikaty głosowe
-- Jest elementarny zapis / odczyt karty SD o zawrotnym transferze sięgającym  0,59 / 0,57 MB/s dla karty 2GB bez klasy prędkosci i 0,63 / 0,60 MB/s dla karty klasy V30
+- Jest elementarny zapis / odczyt karty SD o transferze 7 / 16 MB/s dla karty high speed klasy C10 ( min. zapis 10MB/s)
 ![Transfer](obrazki/transfer_karty_SD.jpg)
 
 ### Rdzeń CM4:

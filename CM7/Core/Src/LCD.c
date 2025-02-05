@@ -1150,44 +1150,25 @@ void WyswietlParametryKartySD(void)
 	HAL_SD_CardInfoTypeDef CardInfo;
 	extern uint8_t BSP_SD_IsDetected(void);
 	extern void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypeDef *CardInfo);
-	extern char SDPath[4];   /* SD logical drive path */
-	extern FATFS SDFatFS;    /* File system object for SD logical drive */
-	extern FIL SDFile;       // File object for SD
 	HAL_SD_CardCIDTypedef pCID;
 	HAL_SD_CardCSDTypedef pCSD;
 	char chOEM[2];
-	FRESULT fres; 		//Result after operations
+	extern uint8_t chPorty_exp_wysylane[];
+	float fNapiecie;
 
 	if (chRysujRaz)
 	{
 		chRysujRaz = 0;
 		BelkaTytulu("Parametry karty SD");
-
-		if (BSP_SD_IsDetected())
-		{
-			fres = f_mount(&SDFatFS, "", 1); //1=mount now
-			if (fres == FR_OK)
-			{
-				BYTE readBuf[30];
-				uint8_t workBuffer[_MAX_SS];
-				fres = f_mkfs(SDPath, FM_ANY, 0, workBuffer, sizeof(workBuffer));	////utwórz FAT
-				if (fres == FR_OK)
-				{
-					fres = f_open(&SDFile, "write.txt", FA_WRITE | FA_OPEN_ALWAYS | FA_CREATE_ALWAYS);
-					if (fres == FR_OK)
-					{
-						strncpy((char*)readBuf, "a new file is made!", 20);
-						UINT bytesWrote;
-						fres = f_write(&SDFile, readBuf, 19, &bytesWrote);
-						f_close(&SDFile);
-					}
-				}
-			}
-		}
 	}
 
 	if (BSP_SD_IsDetected())
 	{
+		//zamaż ewentualną pozostałość napisu o braku karty
+		setColor(BLACK);
+		sprintf(chNapis, "                             ");
+		print(chNapis, CENTER, 50);
+
 		BSP_SD_GetCardInfo(&CardInfo);
 		HAL_SD_GetCardCID(&hsd1, &pCID);
 		HAL_SD_GetCardCSD(&hsd1, &pCSD);
@@ -1229,7 +1210,15 @@ void WyswietlParametryKartySD(void)
 		print(chNapis, 10, 290);
 
 		//druga kolumna
-		sprintf(chNapis, "Scie%cka: %s ", ż, SDPath);
+		if (chPorty_exp_wysylane[0] & EXP02_LOG_VSELECT)	//LOG_SD1_VSEL: H=3,3V
+			fNapiecie = 3.3;
+		else
+			fNapiecie = 1.8;
+		sprintf(chNapis, "Napi%ccie I/O: %.1fV ", ę, fNapiecie);
+		print(chNapis, 240, 30);
+
+
+		/*sprintf(chNapis, "Scie%cka: %s ", ż, SDPath);
 		print(chNapis, 240, 30);
 		sprintf(chNapis, "Typ FAT: %d ", SDFatFS.fs_type);
 		print(chNapis, 240, 50);
@@ -1242,7 +1231,7 @@ void WyswietlParametryKartySD(void)
 		sprintf(chNapis, "Ilo%c%c sektor%cw: %ld ", ś, ć, ó, (SDFatFS.n_fatent - 2) * SDFatFS.csize);
 		print(chNapis, 240, 130);
 		sprintf(chNapis, "Wolnych sektor%cw: %ld ", ó, SDFatFS.free_clst * SDFatFS.csize);
-		print(chNapis, 240, 150);
+		print(chNapis, 240, 150); */
 
 		sprintf(chNapis, "SysSpecVersion: %d ", pCSD.SysSpecVersion);
 		print(chNapis, 240, 170);
@@ -1267,7 +1256,7 @@ void WyswietlParametryKartySD(void)
 #define NB_BUFFER              DATA_SIZE / BUFFER_SIZE
 #define NB_BLOCK_BUFFER        BUFFER_SIZE / BLOCKSIZE /* Number of Block (512o) by Buffer */
 #define SD_TIMEOUT             ((uint32_t)0x00100000U)
-#define ADDRESS                ((uint32_t)0x00000400U) /* SD Address to write/read data */
+#define ADDRESS                ((uint32_t)0x00004000U) /* SD Address to write/read data */
 #define DATA_PATTERN           ((uint32_t)0xB5F3A5F3U) /* Data pattern to write */
 
 uint8_t aTxBuffer[BUFFER_SIZE];
@@ -1281,8 +1270,8 @@ void TestKartySD(void)
 	__IO uint8_t step = 0;
 	uint32_t start_time = 0;
 	uint32_t stop_time = 0;
-	HAL_SD_CardCIDTypedef pCID;
-	HAL_SD_CardCSDTypedef pCSD;
+	extern uint8_t chPorty_exp_wysylane[];
+	float fNapiecie;
 
 	if (chRysujRaz)
 	{
@@ -1290,32 +1279,25 @@ void TestKartySD(void)
 		chRysujRaz = 0;
 		BelkaTytulu("Test tranferu karty SD");
 
+		if (chPorty_exp_wysylane[0] & EXP02_LOG_VSELECT)	//LOG_SD1_VSEL: H=3,3V
+			fNapiecie = 3.3;
+		else
+			fNapiecie = 1.8;
+		setColor(YELLOW);
+		sprintf(chNapis, "Karta pracuje z napi%cciem: %.1fV ", ę, fNapiecie);
+		print(chNapis, 10, 30);
+
 		setColor(GRAY40);
 		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 		print(chNapis, CENTER, 300);
 	}
 
-	hsd1.Instance = SDMMC1;
-	HAL_SD_DeInit(&hsd1);
-
-	hsd1.Init.ClockEdge           = SDMMC_CLOCK_EDGE_FALLING;
-	hsd1.Init.ClockPowerSave      = SDMMC_CLOCK_POWER_SAVE_DISABLE;
-	hsd1.Init.BusWide             = SDMMC_BUS_WIDE_4B;
-	hsd1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-	hsd1.Init.ClockDiv            = 2;
-
-	if(HAL_SD_Init(&hsd1) != HAL_OK)
-		Error_Handler();
 
 	if(HAL_SD_Erase(&hsd1, ADDRESS, ADDRESS + BUFFER_SIZE) != HAL_OK)
 		Error_Handler();
 
 	if(Wait_SDCARD_Ready() != HAL_OK)
 		Error_Handler();
-
-
-	HAL_SD_GetCardCID(&hsd1, &pCID);
-	HAL_SD_GetCardCSD(&hsd1, &pCSD);
 
 	while(1)
 	{
@@ -1324,7 +1306,6 @@ void TestKartySD(void)
 	    	case 0:	// Initialize Transmission buffer
 	    		for (index = 0; index < BUFFER_SIZE; index++)
 	    			aTxBuffer[index] = DATA_PATTERN + index;
-
 	    		SCB_CleanDCache_by_Addr((uint32_t*)aTxBuffer, BUFFER_SIZE);
 	    		index = 0;
 	    		start_time = HAL_GetTick();
@@ -1343,16 +1324,13 @@ void TestKartySD(void)
 	    	case 2:
 	    		if(TxCplt != 0)
 	    		{
-	    			setColor(GRAY80);
-	    			sprintf(chNapis, "Zapisano: %ld/%ld ", index, NB_BUFFER);
-	    			print(chNapis, 10, 30);
-
 	    			index++;
 	    			if(index < NB_BUFFER)
 	    				step--;
 	    			else
 					{
 						stop_time = HAL_GetTick();
+						setColor(GRAY80);
 						sprintf(chNapis, "Czas zapisu: %lums, transfer %02.2f MB/s  ", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
 						print(chNapis, 10, 50);
 						step++;
@@ -1382,17 +1360,15 @@ void TestKartySD(void)
 	    	case 5:
 	    		if(RxCplt != 0)
 	    		{
-	    			setColor(GRAY80);
-	    			sprintf(chNapis, "Odczytano: %ld/%ld ", index, NB_BUFFER);
-	    			print(chNapis, 10, 70);
 	    			index++;
 	    			if(index<NB_BUFFER)
 	    				step--;
 	    			else
 	    			{
 	    				stop_time = HAL_GetTick();
+	    				setColor(GRAY80);
 	    				sprintf(chNapis, "Czas odczytu: %lums, transfer %02.2f MB/s  ", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
-	    				print(chNapis, 10, 90);
+	    				print(chNapis, 10, 70);
 	    				step++;
 	    			}
 	    		}
@@ -1407,13 +1383,13 @@ void TestKartySD(void)
 	    		{
 	    			setColor(RED);
 	    			sprintf(chNapis, "B%c%cd weryfikacji!", ł, ą);
-	    			print(chNapis, 10, 110);
+	    			print(chNapis, 10, 90);
 	    			Error_Handler();
 	    		}
 
 	    		setColor(GREEN);
 	    		sprintf(chNapis, "Weryfikacja OK");
-	    		print(chNapis, 10, 110);
+	    		print(chNapis, 10, 90);
 	    		step = 0;
 	    		break;
 
