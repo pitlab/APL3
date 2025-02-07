@@ -14,9 +14,8 @@
 
 extern SPI_HandleTypeDef hspi2;
 extern volatile unia_wymianyCM4_t uDaneCM4;
-static uint16_t sKonfig[5];  //współczynniki kalibracyjne
+static uint16_t sKonfig[6];  //współczynniki kalibracyjne
 static uint8_t chBuf5611[4];
-int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia
 static uint8_t chProporcjaPomiarow;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,10 +43,17 @@ uint8_t InicjujMS5611(void)
     	for (uint16_t n=0; n<6; n++)
     		sKonfig[n] = CzytajSPIu16mp(PMS_PROM_READ_C1 + 2*n);
 
-        if (MinalCzas(nCzasStart) > 2400)   //czekaj maksymalnie 1200us
+        if (MinalCzas(nCzasStart) > 5000)   //czekaj maksymalnie 5000us
             return ERR_TIMEOUT;
+
+        //sprawdź czy odczytana konfiguracja nie jest samymi zdrami ani jedynkami
+        for (uint16_t n=0; n<6; n++)
+        {
+        	if ((sKonfig[n] == 0) || (sKonfig[n] == 0xFFFF))
+        		chErr = ERR_ZLE_DANE;
+        }
     }
-    while (!sKonfig[0] | !sKonfig[1] | !sKonfig[2] | !sKonfig[3] | !sKonfig[4] | !sKonfig[5] | (sKonfig[0] == 0xFFFF) | (sKonfig[1] == 0xFFFF));
+    while (chErr);
     uDaneCM4.dane.nZainicjowano |= INIT_MS5611;
     return chErr;
 }
@@ -81,15 +87,18 @@ uint32_t CzytajWynikKonwersjiMS5611(void)
 // Zwraca: temepratura
 // Czas wykonania: 
 ////////////////////////////////////////////////////////////////////////////////
-float MS5611_LiczTemperature(uint32_t nKonwersja)
+float MS5611_LiczTemperature(uint32_t nKonwersja, int32_t* ndTemp)
 {
-    float fTemp;
+    int32_t nTemp;
+    int64_t lTemp2 = 0;
 
+    *ndTemp = nKonwersja - (int32_t)sKonfig[4] * 0x100;
+    nTemp = 2000.0 + ((float)*ndTemp * sKonfig[5]) / 8388608;
 
-    //fdT = nKonwersja - ((float)sC5 * 0x100);
-    ndT = nKonwersja - (int32_t)sKonfig[4] * 0x100;
-    fTemp = 2000.0 + (ndT * sKonfig[5])/8388608;
-    return fTemp/100;
+    if (nTemp < 2000)	//jeżeli temepratura < 20°C
+    	lTemp2 = (*ndTemp * *ndTemp) / 32768;
+
+    return (float)(nTemp - lTemp2) / 100;
 }
 
 
@@ -100,23 +109,38 @@ float MS5611_LiczTemperature(uint32_t nKonwersja)
 // SENS = SENST1 + TCS * dT = C1 * 2^15 + (C3 * dT ) / 2^8
 // P = D1 * SENS - OFF = (D1 * SENS / 2^21 - OFF) / 2^15
 // Parametry: nic
-// Zwraca: ci�nienie w kPa
+// Zwraca: ciśnienie w kPa
 // Czas wykonania: 
 ////////////////////////////////////////////////////////////////////////////////
-float MS5611_LiczCisnienie(uint32_t nKonwersja)
+float MS5611_LiczCisnienie(uint32_t nKonwersja, int32_t ndTemp)
 {
-    int64_t llOffset, llSens;
+    int64_t llOffset, llOffset2 = 0;
+    int64_t llSens, llSens2 = 0;
+    int32_t nTemp;
 	int32_t nCisnienie;
-    //double dTemp, dOffset, dSens;
+	uint64_t lTempKwadrat;
 
-    llOffset = ((int64_t)sKonfig[1] * 65536) + (((int64_t)sKonfig[3] * ndT) / 128);
-    llSens =   ((int64_t)sKonfig[0] * 32768) + (((int64_t)sKonfig[2] * ndT) / 256);
+    llOffset = ((int64_t)sKonfig[1] * 65536) + (((int64_t)sKonfig[3] * ndTemp) / 128);
+    llSens =   ((int64_t)sKonfig[0] * 32768) + (((int64_t)sKonfig[2] * ndTemp) / 256);
+    nTemp = 2000.0 + ((float)ndTemp * sKonfig[5]) / 8388608;
 
+    if (nTemp < 2000)	//jeżeli temepratura < 20°C
+	{
+    	lTempKwadrat = (nTemp - 2000) * (nTemp - 2000);		//kwadrat temperatury
+    	llOffset2 = 5 * lTempKwadrat / 2;
+    	llSens2 = 5 * lTempKwadrat / 4;
+	}
+
+    if (nTemp < -1500)		//jeżeli temepratura < -15°C
+	{
+    	lTempKwadrat = (nTemp + 1500) * (nTemp + 1500);		//kwadrat temperatury
+		llOffset2 += 7 * lTempKwadrat;
+		llSens2 += 11 * lTempKwadrat / 2;
+	}
+
+    llOffset -= llOffset2;
+    llSens -= llSens2;
     nCisnienie = ((((int64_t)nKonwersja * llSens / 2097152) - llOffset) / 32768);
-
-    //dOffset = (fdT * sC4)/128 + ((double)sC2*65536);
-    //dSens = (fdT * sC3)/256 + (double)sC1*32768;
-    //dTemp = ((lD1 * dSens)/2097152 - dOffset)/32768;
     return (float)nCisnienie/1000; //wynik w kPa
 }
 
@@ -133,6 +157,7 @@ uint8_t ObslugaMS5611(void)
 {
 	uint32_t nKonwersja;
 	uint8_t chErr;
+	static int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia. Zmienna statyczna aby istniała poza czasem życia funkcji
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_MS5611) != INIT_MS5611)	//jeżeli czujnik nie jest zainicjowany
 	{
@@ -140,7 +165,10 @@ uint8_t ObslugaMS5611(void)
 		if (chErr)
 			return chErr;
 		else
-			ZapiszSPIu8(PMS_CONV_D2_OSR1024);	//uruchom konwersję temperatury nie trwajacą dłużej niż obieg pętli, czymi max 2048
+		{
+			chBuf5611[0] = PMS_CONV_D2_OSR2048;
+			ZapiszSPIu8(chBuf5611, 1);	//uruchom konwersję temperatury nie trwajacą dłużej niż obieg pętli, czymi max 2048
+		}
 	}
 	else
 	{
@@ -148,21 +176,23 @@ uint8_t ObslugaMS5611(void)
 		{
 		case 0:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
-			uDaneCM4.dane.fTemper[0] = MS5611_LiczTemperature(nKonwersja);
-
-			ZapiszSPIu8(PMS_CONV_D1_OSR256);		//uruchom konwersję ciśnienia
+			uDaneCM4.dane.fTemper[0] = MS5611_LiczTemperature(nKonwersja, &ndT);
+			chBuf5611[0] = PMS_CONV_D1_OSR2048;
+			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję ciśnienia
 			break;
 
 		case 7:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
-			uDaneCM4.dane.fCisnie[0] = MS5611_LiczCisnienie(nKonwersja);	//!!!!! potrzebna konwersja z ciśnienia na wysokość
-			ZapiszSPIu8(PMS_CONV_D2_OSR256);		//uruchom konwersję temperatury
+			uDaneCM4.dane.fCisnie[0] = MS5611_LiczCisnienie(nKonwersja, ndT);	//!!!!! potrzebna konwersja z ciśnienia na wysokość
+			chBuf5611[0] = PMS_CONV_D2_OSR256;
+			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję temperatury
 			break;
 
 		default:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
-			uDaneCM4.dane.fCisnie[0] = MS5611_LiczCisnienie(nKonwersja);	//!!!!! potrzebna konwersja z ciśnienia na wysokość
-			ZapiszSPIu8(PMS_CONV_D1_OSR256);		//uruchom konwersję ciśnienia
+			uDaneCM4.dane.fCisnie[0] = MS5611_LiczCisnienie(nKonwersja, ndT);	//!!!!! potrzebna konwersja z ciśnienia na wysokość
+			chBuf5611[0] = PMS_CONV_D1_OSR2048;
+			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję ciśnienia
 			break;
 		}
 		chProporcjaPomiarow++;

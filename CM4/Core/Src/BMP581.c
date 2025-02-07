@@ -30,7 +30,7 @@ uint8_t InicjujBMP581(void)
 {
 	uint8_t chDane;
 
-	chDane = CzytajSPIu8(PBMP5_CHIP_ID);		//sprawdź obecność układu
+	chDane = CzytajSPIu8(PBMP5_CHIP_ID);	//sprawdź obecność układu
 	if (chDane != 0x50)
 		return ERR_BRAK_BMP581;
 

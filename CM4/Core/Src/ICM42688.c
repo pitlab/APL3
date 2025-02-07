@@ -24,11 +24,58 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujICM42688(void)
 {
-	uint8_t chDane;
+	uint8_t chDane[2];
 
-	chDane = CzytajSPIu8(PICM4268_WHO_I_AM);		//sprawdź obecność układu
-	if (chDane != 0xDB)
+	chDane[0] = CzytajSPIu8(PICM4268_WHO_I_AM);		//sprawdź obecność układu
+	if (chDane[0] != 0xDB)
 		return ERR_BRAK_ICM42688;
+
+
+	chDane[0] = PICM4268_GYRO_CONFIG0;
+	chDane[1] = (1 << 5) |	//GYRO_FS_SEL: 000: ±2000 dps (default), 001: ±1000 dps, 010: ±500 dps, 011: ±250 dps, 100: ±125 dps, 101: ±62.5 dps, 110: ±31.25 dps, 111: ±15.625 dps
+				(7 << 0);	//GYRO_ODR: 0000: Reserved, 0001: 32 kHz, 0010: 16 kHz, 0011: 8 kHz, 0100: 4 kHz, 0101: 2 kHz, 0110: 1 kHz (default), 0111: 200 Hz, 1000: 100 Hz, 1001: 50 Hz, 1010: 25 Hz, 1011: 12.5 Hz, 1100: Reserved, 1101: Reserved, 1110: Reserved, 1111: 500 Hz
+	ZapiszSPIu8(chDane, 2);
+
+
+
+	chDane[0] = PICM4268_GYRO_CONFIG0;
+	chDane[1] = (1 << 5) |	//GYRO_FS_SEL: 000: ±2000 dps (default), 001: ±1000 dps, 010: ±500 dps, 011: ±250 dps, 100: ±125 dps, 101: ±62.5 dps, 110: ±31.25 dps, 111: ±15.625 dps
+				(7 << 0);	//GYRO_ODR: 0000: Reserved, 0001: 32 kHz, 0010: 16 kHz, 0011: 8 kHz, 0100: 4 kHz, 0101: 2 kHz, 0110: 1 kHz (default), 0111: 200 Hz, 1000: 100 Hz, 1001: 50 Hz, 1010: 25 Hz, 1011: 12.5 Hz, 1100: Reserved, 1101: Reserved, 1110: Reserved, 1111: 500 Hz
+	ZapiszSPIu8(chDane, 2);
+	chDane[0] = CzytajSPIu8(PICM4268_GYRO_CONFIG0);
+
+	chDane[0] = PICM4268_ACCEL_CONGIG0;
+	chDane[1] = (2 << 5) |	//ACCEL_FS_SEL: 000: ±16g (default), 001: ±8g, 010: ±4g, 011: ±2g, 100: Reserved, 101: Reserved, 110: Reserved, 111: Reserved
+				(7 << 0);	//ACCEL_ODR: 0000: Reserved, 0001: 32 kHz (LN mode), 0010: 16 kHz (LN mode), 0011: 8 kHz (LN mode), 0100: 4 kHz (LN mode), 0101: 2 kHz (LN mode), 0110: 1 kHz (LN mode) (default), 0111: 200 Hz (LP or LN mode)
+							//			 1000: 100 Hz (LP or LN mode), 1001: 50 Hz (LP or LN mode), 1010: 25 Hz (LP or LN mode), 1011: 12.5 Hz (LP or LN mode), 1100: 6.25 Hz (LP mode), 1101: 3.125 Hz (LP mode), 1110: 1.5625 Hz (LP mode), 1111: 500 Hz (LP or LN mode
+	ZapiszSPIu8(chDane, 2);
+	chDane[0] = CzytajSPIu8(PICM4268_ACCEL_CONGIG0);
+
+	//przełącz na bank 1
+	chDane[0] = PICM4268_BANK_SEL;
+	chDane[0] = 1;
+	ZapiszSPIu8(chDane, 2);
+
+	//wyłącz filtry: nothch i AAF na ścieżce żyroskopów
+	chDane[0] = PICM4268_GYRO_CONFIG_STATIC2;
+	chDane[1] = (1 << 1) |	//GYRO_AAF_DIS: 0: Enable gyroscope anti-aliasing filter (default), 1: Disable gyroscope anti-aliasing filter
+				(1 << 0);	//GYRO_NF_DIS: 0: Enable Notch Filter (default), 1: Disable Notch Filter
+	ZapiszSPIu8(chDane, 2);
+	chDane[0] = CzytajSPIu8(PICM4268_GYRO_CONFIG_STATIC2);
+
+	//przełącz na bank 0
+	chDane[0] = PICM4268_BANK_SEL;
+	chDane[0] = 0;
+	ZapiszSPIu8(chDane, 2);
+
+	//finalnie włącz żyroskopu i akcelerometry
+	chDane[0] = PICM4268_PWR_MGMT0;
+	chDane[1] = (0 << 5) |	//TEMP_DIS. 0: Temperature sensor is enabled (default), 1: Temperature sensor is disabled
+				(0 << 4) |	//IDLE: If this bit is set to 1, the RC oscillator is powered on even if Accel and Gyro are powered off. Nominally this bit is set to 0, so when Accel and Gyro are powered off, the chip will go to OFF state, since the RC oscillator will also be powered off
+				(3 << 2) |	//GYRO_MODE: 00: Turns gyroscope off (default), 01: Places gyroscope in Standby Mode, 10: Reserved, 11: Places gyroscope in Low Noise (LN) Mode
+				(3 << 0);	//ACCEL_MODE: 00: Turns accelerometer off (default), 01: Turns accelerometer off, 10: Places accelerometer in Low Power (LP) Mode, 11: Places accelerometer in Low Noise (LN) Mode
+	ZapiszSPIu8(chDane, 2);
+	chDane[0] = CzytajSPIu8(PICM4268_PWR_MGMT0);
 
 	uDaneCM4.dane.nZainicjowano |= INIT_ICM42688;
 	return ERR_OK;

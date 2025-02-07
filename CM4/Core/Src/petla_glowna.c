@@ -68,11 +68,12 @@ void PetlaGlowna(void)
 		break;
 
 	case 1:		//obsługa modułu w gnieździe 2
-		chErrPG |= ObslugaModuluIiP(ADR_MOD2);
+		//chErrPG |= ObslugaModuluIiP(ADR_MOD2);
 		chErrPG |= PobierzDaneExpandera(&chStanIOwe);
 		break;
 
 	case 2:		//obsługa modułu w gnieździe 3
+		chErrPG |= ObslugaModuluIiP(ADR_MOD3);
 		chErrPG |= UstawDekoderModulow(ADR_MOD3);
 		break;
 
@@ -321,24 +322,24 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 
 	if (hi2c->Instance == I2C4)
 	{
-		if (chOdczytywanyMagnetometr == MAG_MMC)
-		{
-			//if ((chDaneMagMMC[0] || chDaneMagMMC[1]) && (chDaneMagMMC[2] || chDaneMagMMC[3]) && (chDaneMagMMC[4] || chDaneMagMMC[5]))
-			{
-				uDaneCM4.dane.sMagne1[0] = 32768 - (int16_t)(0x100 * chDaneMagMMC[1] + chDaneMagMMC[0]);
-				uDaneCM4.dane.sMagne1[1] = 32768 - (int16_t)(0x100 * chDaneMagMMC[3] + chDaneMagMMC[2]);
-				uDaneCM4.dane.sMagne1[2] = 32768 - (int16_t)(0x100 * chDaneMagMMC[5] + chDaneMagMMC[4]);
-			}
-		}
-		else
 		if (chOdczytywanyMagnetometr == MAG_IIS)
 		{
 			//if ((chDaneMagIIS[0] || chDaneMagIIS[1]) && (chDaneMagIIS[2] || chDaneMagIIS[3]) && (chDaneMagIIS[4] || chDaneMagIIS[5]))
 			{
-				uDaneCM4.dane.sMagne2[0] = (int16_t)(0x100 * chDaneMagIIS[0] + chDaneMagIIS[1]);
-				uDaneCM4.dane.sMagne2[1] = (int16_t)(0x100 * chDaneMagIIS[2] + chDaneMagIIS[3]);
-				uDaneCM4.dane.sMagne2[2] = (int16_t)(0x100 * chDaneMagIIS[4] + chDaneMagIIS[5]);
+				uDaneCM4.dane.sMagne1[0] = (int16_t)(0x100 * chDaneMagIIS[0] + chDaneMagIIS[1]);
+				uDaneCM4.dane.sMagne1[1] = (int16_t)(0x100 * chDaneMagIIS[2] + chDaneMagIIS[3]);
+				uDaneCM4.dane.sMagne1[2] = (int16_t)(0x100 * chDaneMagIIS[4] + chDaneMagIIS[5]);
 				uDaneCM4.dane.fTemper[4] = (int16_t)(0x100 * chDaneMagIIS[6] + chDaneMagIIS[7]) / 8.0f;	//The nominal sensitivity is 8 LSB/°C.
+			}
+		}
+		else
+		if (chOdczytywanyMagnetometr == MAG_MMC)
+		{
+			//if ((chDaneMagMMC[0] || chDaneMagMMC[1]) && (chDaneMagMMC[2] || chDaneMagMMC[3]) && (chDaneMagMMC[4] || chDaneMagMMC[5]))
+			{
+				uDaneCM4.dane.sMagne2[0] = 32768 - (int16_t)(0x100 * chDaneMagMMC[1] + chDaneMagMMC[0]);
+				uDaneCM4.dane.sMagne2[1] = 32768 - (int16_t)(0x100 * chDaneMagMMC[3] + chDaneMagMMC[2]);
+				uDaneCM4.dane.sMagne2[2] = 32768 - (int16_t)(0x100 * chDaneMagMMC[5] + chDaneMagMMC[4]);
 			}
 		}
 	}

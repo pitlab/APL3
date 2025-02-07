@@ -29,6 +29,6 @@ uint8_t InicjujMS5611(void);
 uint16_t CzytajKonfiguracjeMS5611(uint8_t chAdres);
 uint8_t StartKonwersjiMS5611(uint8_t chTyp);
 uint32_t CzytajWynikKonwersjiMS5611(void);
-float MS5611_LiczTemperature(uint32_t nKonwersja);
-float MS5611_LiczCisnienie(uint32_t nKonwersja);
+float MS5611_LiczTemperature(uint32_t nKonwersja, int32_t* ndTemp);
+float MS5611_LiczCisnienie(uint32_t nKonwersja, int32_t ndTemp);
 uint8_t ObslugaMS5611(void);

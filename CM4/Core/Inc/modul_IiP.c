@@ -34,11 +34,19 @@ uint8_t ObslugaModuluIiP(uint8_t modul)
 	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
 	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_32;
 
-	chStanIOwy &= ~MIO22;								//ustaw adres A2 = 0 zrobiony z linii IO2 modułu
+	//ustaw adres A2 = 0 zrobiony z linii Ix2 modułu
+	switch (modul)
+	{
+	case ADR_MOD1: 	chStanIOwy &= ~MIO12;	break;
+	case ADR_MOD2:	chStanIOwy &= ~MIO22;	break;
+	case ADR_MOD3:	chStanIOwy &= ~MIO32;	break;
+	case ADR_MOD4:	chStanIOwy &= ~MIO42;	break;
+	}
+
 	chErr = WyslijDaneExpandera(chStanIOwy);
 	chErr |= UstawDekoderModulow(modul);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
 	UstawAdresNaModule(ADR_MIIP_MS5611);				//ustaw adres A0..1
-//	chErr |= ObslugaMS5611();
+	chErr |= ObslugaMS5611();
 
 	UstawAdresNaModule(ADR_MIIP_BMP581);				//ustaw adres A0..1
 	chErr |= ObslugaBMP581();
@@ -49,8 +57,14 @@ uint8_t ObslugaModuluIiP(uint8_t modul)
 	UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres A0..1
 	chErr |= ObslugaLSM6DSV();
 
-
-	chStanIOwy |= MIO22;								//ustaw adres A2 = 1
+	//ustaw adres A2 = 1 zrobiony z linii Ix2 modułu
+	switch (modul)
+	{
+	case ADR_MOD1: 	chStanIOwy |= MIO12;	break;
+	case ADR_MOD2:	chStanIOwy |= MIO22;	break;
+	case ADR_MOD3:	chStanIOwy |= MIO32;	break;
+	case ADR_MOD4:	chStanIOwy |= MIO42;	break;
+	}
 	chErr |= WyslijDaneExpandera(chStanIOwy);
 	chErr |= UstawDekoderModulow(modul);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
 	UstawAdresNaModule(ADR_MIIP_GRZALKA);				//ustaw adres A0..1
@@ -60,4 +74,21 @@ uint8_t ObslugaModuluIiP(uint8_t modul)
 
 	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Liczy wysokość baromatryczną na podstawie ciśnienia i temperatury
+// Parametry:
+//  fP0 - ciśnienie na poziome odniesienia [kPa]
+//  fP1 - ciśnienie na mierzonej wysokości [kPa]
+//  fTemp - temperatura [°C)
+// Zwraca: obliczoną wysokość
+////////////////////////////////////////////////////////////////////////////////
+float LiczWysokoscBaro(float fP0, float fP1, float fTemp)
+{
+
+
+	return 0.0;
 }

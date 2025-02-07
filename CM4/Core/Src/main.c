@@ -135,7 +135,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  printf("****** CM4 zaczyna pracę ****** \n");
   /* USER CODE END Init */
 
   /* USER CODE BEGIN SysInit */

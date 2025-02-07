@@ -10,11 +10,9 @@
 #include "sys_def_CM4.h"
 
 
-//definicje Poleceń czujnikaBMP581
-
 
 //definicje rejestrów czujnika
-#define PICM4268_DEVICE_CONFIG	0c11
+#define PICM4268_DEVICE_CONFIG	0x11
 #define PICM4268_DRIVE_CONFIG	0x13
 #define PICM4268_INT_CONFIG		0x14
 #define PICM4268_FIFO_CONFIG	0x16
@@ -72,6 +70,8 @@
 #define PICM4268_SELF_TEST_CFG	0x70
 #define PICM4268_WHO_I_AM		0x75
 #define PICM4268_BANK_SEL		0x76
+
+#define PICM4268_GYRO_CONFIG_STATIC2	0x0B
 
 
 #define ICM4_READ				0x80

@@ -925,7 +925,7 @@ void PomiaryIMU(void)
 		BelkaTytulu("Dane pomiarowe");
 
 		setColor(GRAY80);
-		sprintf(chNapis, "Ci%cnienie baro1:           baro2:", ś);
+		sprintf(chNapis, "Ci%cnienie baro1:              baro2:", ś);
 		print(chNapis, 10, 30);
 		sprintf(chNapis, "Akcel1:");
 		print(chNapis, 10, 50);
@@ -959,10 +959,10 @@ void PomiaryIMU(void)
 	}
 
 	setColor(WHITE);
-	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fCisnie[0]);
-	print(chNapis, 10+16*FONT_SL, 30);
-	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fCisnie[1]);
-	print(chNapis, 10+33*FONT_SL, 30);
+	sprintf(chNapis, "%.2fkPa ", uDaneCM4.dane.fCisnie[0]);
+	print(chNapis, 10+17*FONT_SL, 30);
+	sprintf(chNapis, "%.2fkPa ", uDaneCM4.dane.fCisnie[1]);
+	print(chNapis, 10+37*FONT_SL, 30);
 
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%.3fg ", uDaneCM4.dane.fAkcel1[0]);
@@ -1053,9 +1053,9 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU[2], ZNAK_STOPIEN);
 	print(chNapis, 10+45*FONT_SL, 190);
 
-	//temepratury
+	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
 	setColor(WHITE);
-	sprintf(chNapis, "%.1f%cC ", uDaneCM4.dane.fTemper[4], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.1f%cC, %.1f%cC ", uDaneCM4.dane.fTemper[0], ZNAK_STOPIEN, uDaneCM4.dane.fTemper[4], ZNAK_STOPIEN);
 	print(chNapis, 10+8*FONT_SL, 210);
 
 

@@ -19,7 +19,7 @@ extern SPI_HandleTypeDef hspi2;
 // Zwraca: odczytana wartość
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t CzytajSPIu8(unsigned char chAdres)
+uint8_t CzytajSPIu8(uint8_t chAdres)
 {
 	chBufSPI[0] = chAdres | READ_SPI;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
@@ -36,11 +36,10 @@ uint8_t CzytajSPIu8(unsigned char chAdres)
 // Zwraca: kod  błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-void ZapiszSPIu8(unsigned char chAdres)
+void ZapiszSPIu8(uint8_t *chDane, uint8_t chIlosc)
 {
-	chBufSPI[0] = chAdres;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_Transmit(&hspi2, chBufSPI, 1, 5);
+	HAL_SPI_Transmit(&hspi2, chDane, chIlosc, 5);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 }
 
