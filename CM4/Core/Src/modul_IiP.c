@@ -14,7 +14,6 @@
 
 extern SPI_HandleTypeDef hspi2;
 extern uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
-
 volatile uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
 
 
@@ -29,10 +28,10 @@ uint8_t ObslugaModuluIiP(uint8_t modul)
 	uint8_t chErr;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
-	//Ponieważ zegar SPI = 80MHz a układ może pracować z prędkością max 10MHz, przy każdym dostępie przestaw dzielnik zegara na 8
+	//Ponieważ zegar SPI = 80MHz a układy mogą pracować z prędkością max 10MHz, przy każdym dostępie przestaw dzielnik zegara na 8
 	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
 	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
-	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_32;
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_8;
 
 	//ustaw adres A2 = 0 zrobiony z linii Ix2 modułu
 	switch (modul)

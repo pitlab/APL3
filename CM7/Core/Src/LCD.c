@@ -925,25 +925,25 @@ void PomiaryIMU(void)
 		BelkaTytulu("Dane pomiarowe");
 
 		setColor(GRAY80);
-		sprintf(chNapis, "Ci%cnienie baro1:              baro2:", ś);
-		print(chNapis, 10, 30);
 		sprintf(chNapis, "Akcel1:");
-		print(chNapis, 10, 50);
+		print(chNapis, 10, 30);
 		sprintf(chNapis, "Akcel2:");
-		print(chNapis, 10, 70);
+		print(chNapis, 10, 50);
 		sprintf(chNapis, "Zyro 1:");
-		print(chNapis, 10, 90);
+		print(chNapis, 10, 70);
 		sprintf(chNapis, "Zyro 2:");
-		print(chNapis, 10, 110);
+		print(chNapis, 10, 90);
 		sprintf(chNapis, "Magn 1:");
-		print(chNapis, 10, 130);
+		print(chNapis, 10, 110);
 		sprintf(chNapis, "Magn 2:");
-		print(chNapis, 10, 150);
+		print(chNapis, 10, 130);
 		sprintf(chNapis, "Magn 3:");
+		print(chNapis, 10, 150);
+		sprintf(chNapis, "Przech:             Pochyl:          Odchyl:");
 		print(chNapis, 10, 170);
-		sprintf(chNapis, "Przechyl:           Pochyl:          Odchyl:");
+		sprintf(chNapis, "Ci%cn 1:             Wysoko:          Temper:", ś);
 		print(chNapis, 10, 190);
-		sprintf(chNapis, "Temp:");
+		sprintf(chNapis, "Ci%cn 2:             Wysoko:          Temper:", ś);
 		print(chNapis, 10, 210);
 
 		sprintf(chNapis, "GNSS D%cug:             Szer:             HDOP:", ł);
@@ -958,81 +958,91 @@ void PomiaryIMU(void)
 		print(chNapis, CENTER, 300);
 	}
 
-	setColor(WHITE);
-	sprintf(chNapis, "%.2fkPa ", uDaneCM4.dane.fCisnie[0]);
-	print(chNapis, 10+17*FONT_SL, 30);
-	sprintf(chNapis, "%.2fkPa ", uDaneCM4.dane.fCisnie[1]);
-	print(chNapis, 10+37*FONT_SL, 30);
-
+	//ICM42688
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%.3fg ", uDaneCM4.dane.fAkcel1[0]);
-	print(chNapis, 10+8*FONT_SL, 50);
+	print(chNapis, 10+8*FONT_SL, 30);
 	setColor(KOLOR_Y);
 	sprintf(chNapis, "%.3fg ", uDaneCM4.dane.fAkcel1[1]);
-	print(chNapis, 10+20*FONT_SL, 50);
+	print(chNapis, 10+20*FONT_SL, 30);
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%.3fg ", uDaneCM4.dane.fAkcel1[2]);
-	print(chNapis, 10+32*FONT_SL, 50);
+	print(chNapis, 10+32*FONT_SL, 30);
 
+	//LSM6DSV
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%.3fg ", uDaneCM4.dane.fAkcel2[0]);
-	print(chNapis, 10+8*FONT_SL, 70);
+	print(chNapis, 10+8*FONT_SL, 50);
 	setColor(KOLOR_Y);
 	sprintf(chNapis, "%.3fg ", uDaneCM4.dane.fAkcel2[1]);
-	print(chNapis, 10+20*FONT_SL, 70);
+	print(chNapis, 10+20*FONT_SL, 50);
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%.3fg ", uDaneCM4.dane.fAkcel2[2]);
-	print(chNapis, 10+32*FONT_SL, 70);
+	print(chNapis, 10+32*FONT_SL, 50);
 
+	//ICM42688
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros1[0]);
-	print(chNapis, 10+8*FONT_SL, 90);
+	print(chNapis, 10+8*FONT_SL, 70);
 	setColor(KOLOR_Y);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros1[1]);
-	print(chNapis, 10+20*FONT_SL, 90);
+	print(chNapis, 10+20*FONT_SL, 70);
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros1[2]);
-	print(chNapis, 10+32*FONT_SL, 90);
+	print(chNapis, 10+32*FONT_SL, 70);
+	setColor(YELLOW);
+	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[2], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
+	print(chNapis, 10+45*FONT_SL, 70);
 
+	//LSM6DSV
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros2[0]);
-	print(chNapis, 10+8*FONT_SL, 110);
+	print(chNapis, 10+8*FONT_SL, 90);
 	setColor(KOLOR_Y);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros2[1]);
-	print(chNapis, 10+20*FONT_SL, 110);
+	print(chNapis, 10+20*FONT_SL, 90);
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros2[2]);
-	print(chNapis, 10+32*FONT_SL, 110);
+	print(chNapis, 10+32*FONT_SL, 90);
+	setColor(YELLOW);
+	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[3], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
+	print(chNapis, 10+45*FONT_SL, 90);
 
+	//MMC34160
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[0]);
-	print(chNapis, 10+8*FONT_SL, 130);
+	print(chNapis, 10+8*FONT_SL, 110);
 	setColor(KOLOR_Y);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[1]);
-	print(chNapis, 10+20*FONT_SL, 130);
+	print(chNapis, 10+20*FONT_SL, 110);
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[2]);
-	print(chNapis, 10+32*FONT_SL, 130);
+	print(chNapis, 10+32*FONT_SL, 110);
 
+	//IIS2MDC
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[0]);
-	print(chNapis, 10+8*FONT_SL, 150);
+	print(chNapis, 10+8*FONT_SL, 130);
 	setColor(KOLOR_Y);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[1]);
-	print(chNapis, 10+20*FONT_SL, 150);
+	print(chNapis, 10+20*FONT_SL, 130);
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[2]);
-	print(chNapis, 10+32*FONT_SL, 150);
+	print(chNapis, 10+32*FONT_SL, 130);
+	setColor(YELLOW);
+	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[4], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
+	print(chNapis, 10+45*FONT_SL, 130);
 
+	//HMC5883
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[0]);
-	print(chNapis, 10+8*FONT_SL, 170);
+	print(chNapis, 10+8*FONT_SL, 150);
 	setColor(KOLOR_Y);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[1]);
-	print(chNapis, 10+20*FONT_SL, 170);
+	print(chNapis, 10+20*FONT_SL, 150);
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[2]);
-	print(chNapis, 10+32*FONT_SL, 170);
+	print(chNapis, 10+32*FONT_SL, 150);
 
 	//sygnalizacja tonem wartości osi Z magnetometru
 #define MAX_MAG3 600
@@ -1045,18 +1055,36 @@ void PomiaryIMU(void)
 
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU[0], ZNAK_STOPIEN);
-	print(chNapis, 10+10*FONT_SL, 190);
+	print(chNapis, 10+8*FONT_SL, 170);
 	setColor(KOLOR_Y);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU[1], ZNAK_STOPIEN);
-	print(chNapis, 10+28*FONT_SL, 190);
+	print(chNapis, 10+28*FONT_SL, 170);
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU[2], ZNAK_STOPIEN);
+	print(chNapis, 10+45*FONT_SL, 170);
+
+
+	//MS5611
+	setColor(WHITE);
+	sprintf(chNapis, "%.2fkPa ", uDaneCM4.dane.fCisnie[0]);
+	print(chNapis, 10+8*FONT_SL, 190);
+	setColor(CYAN);
+	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fWysoko[0]);
+	print(chNapis, 10+28*FONT_SL, 190);
+	setColor(YELLOW);
+	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[0], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
 	print(chNapis, 10+45*FONT_SL, 190);
 
-	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
+	//BMP581
 	setColor(WHITE);
-	sprintf(chNapis, "%.1f%cC, %.1f%cC ", uDaneCM4.dane.fTemper[0], ZNAK_STOPIEN, uDaneCM4.dane.fTemper[4], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2fkPa ", uDaneCM4.dane.fCisnie[1]);
 	print(chNapis, 10+8*FONT_SL, 210);
+	setColor(CYAN);
+	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fWysoko[1]);
+	print(chNapis, 10+28*FONT_SL, 210);
+	setColor(YELLOW);
+	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
+	print(chNapis, 10+45*FONT_SL, 210);
 
 
 	if (uDaneCM4.dane.stGnss1.chFix)

@@ -45,6 +45,7 @@ typedef struct _stWymianyCM4
 	int16_t sMagne3[3];
 	float fKatIMU[3];
 	float fCisnie[2];
+	float fWysoko[2];
 	float fTemper[5];	//0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
 	uint16_t sSerwa[16];
 	uint8_t chErrPetliGlownej;
