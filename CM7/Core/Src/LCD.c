@@ -1063,10 +1063,9 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU[2], ZNAK_STOPIEN);
 	print(chNapis, 10+45*FONT_SL, 170);
 
-
 	//MS5611
 	setColor(WHITE);
-	sprintf(chNapis, "%.2fkPa ", uDaneCM4.dane.fCisnie[0]);
+	sprintf(chNapis, "%.0fPa ", uDaneCM4.dane.fCisnie[0]);
 	print(chNapis, 10+8*FONT_SL, 190);
 	setColor(CYAN);
 	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fWysoko[0]);
@@ -1077,7 +1076,7 @@ void PomiaryIMU(void)
 
 	//BMP581
 	setColor(WHITE);
-	sprintf(chNapis, "%.2fkPa ", uDaneCM4.dane.fCisnie[1]);
+	sprintf(chNapis, "%.0fPa ", uDaneCM4.dane.fCisnie[1]);
 	print(chNapis, 10+8*FONT_SL, 210);
 	setColor(CYAN);
 	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fWysoko[1]);
@@ -1085,7 +1084,6 @@ void PomiaryIMU(void)
 	setColor(YELLOW);
 	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
 	print(chNapis, 10+45*FONT_SL, 210);
-
 
 	if (uDaneCM4.dane.stGnss1.chFix)
 		setColor(WHITE);	//jest fix

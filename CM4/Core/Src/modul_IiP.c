@@ -80,14 +80,19 @@ uint8_t ObslugaModuluIiP(uint8_t modul)
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy wysokość baromatryczną na podstawie ciśnienia i temperatury
 // Parametry:
-//  fP0 - ciśnienie na poziome odniesienia [kPa]
-//  fP1 - ciśnienie na mierzonej wysokości [kPa]
+//  fP - ciśnienie na mierzonej wysokości [Pa]	jednostka ciśnienia jest dowolna, byle taka sama dla obu ciśnień
+//  fP0 - ciśnienie na poziome odniesienia [Pa]
 //  fTemp - temperatura [°C)
 // Zwraca: obliczoną wysokość
 ////////////////////////////////////////////////////////////////////////////////
-float LiczWysokoscBaro(float fP0, float fP1, float fTemp)
+float WysokoscBaro(float fP, float fP0, float fTemp)
 {
+	//funkcja bazuje na wzorze barometrycznym: https://pl.wikipedia.org/wiki/Wz%C3%B3r_barometryczny
+	//P = P0 * e^(-(u*g*h)/(R*T))	/:P0
+	//P/P0 = e^(-(u*g*h)/(R*T))		/ln
+	//ln(P/P0) = -(u*g*h)/(R*T)		/*R*T
+	//ln(P/P0) * R*T = -u*g*h		/:-u*g
+	//h = ln(P/P0) * R*T / (-u*g)
 
-
-	return 0.0;
+	return logf(fP/fP0) * STALA_GAZOWA_R * (fTemp + KELWIN) / (-1 * MASA_MOLOWA_POWIETRZA * PRZYSPIESZENIE_ZIEMSKIE);
 }

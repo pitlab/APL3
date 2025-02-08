@@ -11,12 +11,14 @@
 #include "petla_glowna.h"
 #include "main.h"
 #include "spi.h"
+#include "modul_IiP.h"
 
 extern SPI_HandleTypeDef hspi2;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 static uint16_t sKonfig[6];  //współczynniki kalibracyjne
 static uint8_t chBuf5611[4];
 static uint8_t chProporcjaPomiarow;
+float fP0_MS5611 = 101325;	//ciśnienie zerowe do obliczeń wysokości [Pa]
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z PROMu
@@ -84,7 +86,7 @@ uint32_t CzytajWynikKonwersjiMS5611(void)
 // dT = D2 - TREF = D2 - C5 * 2^8
 // TEMP = 20°C + dT * TEMPSENS = 2000 + dT * C6 / 2^23
 // Parametry: nKonwersja - wynik konwersji
-// Zwraca: temepratura
+// Zwraca: temepratura [°C]
 // Czas wykonania: 
 ////////////////////////////////////////////////////////////////////////////////
 float MS5611_LiczTemperature(uint32_t nKonwersja, int32_t* ndTemp)
@@ -109,7 +111,7 @@ float MS5611_LiczTemperature(uint32_t nKonwersja, int32_t* ndTemp)
 // SENS = SENST1 + TCS * dT = C1 * 2^15 + (C3 * dT ) / 2^8
 // P = D1 * SENS - OFF = (D1 * SENS / 2^21 - OFF) / 2^15
 // Parametry: nic
-// Zwraca: ciśnienie w kPa
+// Zwraca: ciśnienie w Pa
 // Czas wykonania: 
 ////////////////////////////////////////////////////////////////////////////////
 float MS5611_LiczCisnienie(uint32_t nKonwersja, int32_t ndTemp)
@@ -117,7 +119,7 @@ float MS5611_LiczCisnienie(uint32_t nKonwersja, int32_t ndTemp)
     int64_t llOffset, llOffset2 = 0;
     int64_t llSens, llSens2 = 0;
     int32_t nTemp;
-	int32_t nCisnienie;
+	float fCisnienie;
 	uint64_t lTempKwadrat;
 
     llOffset = ((int64_t)sKonfig[1] * 65536) + (((int64_t)sKonfig[3] * ndTemp) / 128);
@@ -140,8 +142,8 @@ float MS5611_LiczCisnienie(uint32_t nKonwersja, int32_t ndTemp)
 
     llOffset -= llOffset2;
     llSens -= llSens2;
-    nCisnienie = ((((int64_t)nKonwersja * llSens / 2097152) - llOffset) / 32768);
-    return (float)nCisnienie/1000; //wynik w kPa
+    fCisnienie = (float)(((int64_t)nKonwersja * llSens / 2097152) - llOffset) / 32768.0f;
+    return fCisnienie; //wynik w Pa
 }
 
 
@@ -183,14 +185,16 @@ uint8_t ObslugaMS5611(void)
 
 		case 7:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
-			uDaneCM4.dane.fCisnie[0] = MS5611_LiczCisnienie(nKonwersja, ndT);	//!!!!! potrzebna konwersja z ciśnienia na wysokość
+			uDaneCM4.dane.fCisnie[0] = MS5611_LiczCisnienie(nKonwersja, ndT);
+			uDaneCM4.dane.fWysoko[0] = WysokoscBaro(uDaneCM4.dane.fCisnie[0], fP0_MS5611, uDaneCM4.dane.fTemper[0]);
 			chBuf5611[0] = PMS_CONV_D2_OSR256;
 			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję temperatury
 			break;
 
 		default:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
-			uDaneCM4.dane.fCisnie[0] = MS5611_LiczCisnienie(nKonwersja, ndT);	//!!!!! potrzebna konwersja z ciśnienia na wysokość
+			uDaneCM4.dane.fCisnie[0] = MS5611_LiczCisnienie(nKonwersja, ndT);
+			uDaneCM4.dane.fWysoko[0] = WysokoscBaro(uDaneCM4.dane.fCisnie[0], fP0_MS5611, uDaneCM4.dane.fTemper[0]);
 			chBuf5611[0] = PMS_CONV_D1_OSR2048;
 			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję ciśnienia
 			break;

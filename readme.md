@@ -21,6 +21,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 ![Procesy](obrazki/procesy.jpg)
 - Komunikaty głosowe (16bit, 16kHz) są już wgrywane do pamięci flash. Poprzedza je tablica[128] zawierająca adresy i rozmiary komunikatów
 - Wymawia komunikaty głosowe
+- Interfejs karty SD ma poprawnie przełaczane przez bibliotekę napiecie dla IO między 3,3V a 1,8V, po to aby móc obsługiwać szybsze karty
 - Jest elementarny zapis / odczyt karty SD o transferze 7 / 16 MB/s dla karty high speed klasy C10 ( min. zapis 10MB/s)
 ![Transfer](obrazki/transfer_karty_SD.jpg)
 
@@ -33,6 +34,8 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Odbiór danych z GNSS i parsowanie protokołu NMEA. Konfiguracja układów uBlox i MTK
 - Odczyt danych z magnetometru HMC5883 na module GNSS
 - Odczyt danych z magnetometrów MMC34160 i IIS2MDC na wewnętrznym module IiP
+- Odczyt danych z żyroskopów i akcelerometrów w ICM42688
+- Odczyt danych z żyroskopów i akcelerometrów w LSM6DSV
 ![Magnetometry](obrazki/pomiar_magnetometrow.jpg) 
 
 #### Do zrobienia:
@@ -40,7 +43,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
  - Podłączyć i uruchomić kamerę
  - uruchomić komunikację po ethernet
  - Przenieść z APL2 obsługę pętli głównej, serw, mikserów, zapisu konfiguracji do FRAM, telemetrii do rdzenia CM4
- - Oprogramować obsługę karty SD po pełnym interfejsie pod kątem możliwości zapisu obrazu
+ - Oprogramować obsługę FAT dla karty SD
  - Uruchomić układ ethernet
  - Urochomić USB w trybie CDC
  

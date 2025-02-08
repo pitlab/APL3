@@ -83,7 +83,6 @@
 #define PICM4268_B2_ZA_ST_DATA				0x3D
 
 
-#define ICM4_READ							0x80
 
 
 

@@ -22,6 +22,7 @@ extern SPI_HandleTypeDef hspi2;
 uint8_t CzytajSPIu8(uint8_t chAdres)
 {
 	chBufSPI[0] = chAdres | READ_SPI;
+	chBufSPI[1] = 0;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 	HAL_SPI_TransmitReceive(&hspi2, chBufSPI, chBufSPI, 2, 5);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
@@ -55,7 +56,7 @@ uint16_t CzytajSPIu16mp(uint8_t chAdres)
 {
 	uint16_t sWartosc;
 
-	chBufSPI[0] = chAdres;
+	chBufSPI[0] = chAdres | READ_SPI;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 	HAL_SPI_TransmitReceive(&hspi2, chBufSPI, chBufSPI, 3, 5);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
@@ -76,7 +77,7 @@ int32_t CzytajSPIs24sp(uint8_t chAdres)
 {
 	int32_t nWartosc;
 
-	chBufSPI[0] = chAdres;
+	chBufSPI[0] = chAdres | READ_SPI;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 	HAL_SPI_TransmitReceive(&hspi2, chBufSPI, chBufSPI, 4, 5);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
@@ -96,7 +97,7 @@ int32_t CzytajSPIs24sp(uint8_t chAdres)
 int32_t CzytajSPIs24mp(uint8_t chAdres)
 {
 	int32_t nWartosc;
-	chBufSPI[0] = chAdres;
+	chBufSPI[0] = chAdres | READ_SPI;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 	HAL_SPI_TransmitReceive(&hspi2, chBufSPI, chBufSPI, 4, 5);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
