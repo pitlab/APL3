@@ -33,7 +33,6 @@ uint8_t PobierzDaneWymiany_CM4(void)
 {
 	uint32_t nStanSemafora;
 	HAL_StatusTypeDef chErr = ERR_SEMAFOR_ZAJETY;
-	//extern uint8_t chCzasSwieceniaLED[3];
 
 	nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM4_TO_CM7);
 	if (!nStanSemafora)
@@ -56,7 +55,6 @@ uint8_t PobierzDaneWymiany_CM4(void)
 					chWskNapBufNapisowCM4++;
 					if (chWskNapBufNapisowCM4 == ROZMIAR_BUF_NAPISOW_CM4)
 						chWskNapBufNapisowCM4 = 0;
-					//chCzasSwieceniaLED[LED_NIEB] = 2;	//mignij niebieskim LEDem że coś przyszło x0,1s
 				}
 				else
 					break;

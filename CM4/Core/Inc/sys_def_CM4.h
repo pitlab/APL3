@@ -11,7 +11,7 @@
 #include "stm32h755xx.h"
 #include "errcode.h"
 #include "stm32h7xx_hal.h"
-
+#include "sys_def_wspolny.h"
 //definicje adresów modułów i układów na maistrali SPI
 #define ADR_MOD1	0
 #define ADR_MOD2	1
@@ -33,17 +33,6 @@
 #define KANALY_ODB		16		//liczba odbieranych kanałów na każdym z dwu wejść odbiorników RC
 
 
-//flagi inicjalizacji sprzętu
-#define INIT_WYKR_MTK		0x00000001
-#define INIT_WYKR_UBLOX		0x00000002
-#define INIT_GNSS_GOTOWY	0x00000004
-#define INIT_MAG3			0x00000008
-#define INIT_MS5611			0x00000010
-#define INIT_BMP581			0x00000020
-#define INIT_ICM42688		0x00000040
-#define INIT_LSM6DSV		0x00000080
-#define INIT_MMC34160		0x00000100
-#define INIT_IIS2MDC		0x00000200
 
 //definicje magnetometrów na magistrali I2C4
 #define MAG_MMC				1

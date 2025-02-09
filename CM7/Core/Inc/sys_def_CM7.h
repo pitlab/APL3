@@ -11,6 +11,7 @@
 #include "errcode.h"
 #include "stm32h7xx_hal.h"
 #include <math.h>
+#include "sys_def_wspolny.h"
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
@@ -103,8 +104,6 @@
 #define INIT1_MOD_IMU		0x00000001
 #define INIT1_KAMERA		0x00000002
 
-//flagi sprzetu wykrytego przez CM4
-#define INITCM4_GNSS		0x00000001
 
 
 //semafory sprzętowe

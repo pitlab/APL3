@@ -71,7 +71,7 @@ MDMA_HandleTypeDef hmdma_mdma_channel2_dma1_stream1_tc_0;
 MDMA_HandleTypeDef hmdma_mdma_channel3_dma1_stream1_tc_0;
 MDMA_HandleTypeDef hmdma_mdma_channel4_dma1_stream1_tc_0;
 /* USER CODE BEGIN PV */
-
+extern volatile unia_wymianyCM4_t uDaneCM4;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -157,6 +157,7 @@ int main(void)
   MX_UART8_Init();
   MX_I2C4_Init();
   /* USER CODE BEGIN 2 */
+  uDaneCM4.dane.nZainicjowano = 0;	//za każdym uruchomieniem detekcja i inicjalizacja sprzętu zaczyna się od początku
   InicjujModulyWew();
   InicjujSerwa();
   InicjujMagnetometrHMC();

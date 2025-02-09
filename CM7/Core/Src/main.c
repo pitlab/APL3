@@ -269,9 +269,8 @@ Error_Handler();
   }
   else
   {
-	  Ekran_Powitalny(nZainicjowano);		//przywitaj użytkownika i prezentuj wykryty sprzęt
+	  chTrybPracy = TP_WITAJ;				//w wątku wyświetlającym zacznij od trybu powitalnego. Ważne aby tryb był inny od TP_MENU_GLOWNE bo on nadpisuje chNowyTrybPracy
 	  chNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
-	  chTrybPracy = TP_WITAJ;				//jest w trybie powitalnym, ważne aby tryb był inny od TP_MENU_GLOWNE bo on nadpisuje chNowyTrybPracy
   }
   /* USER CODE END 2 */
 
@@ -1227,33 +1226,14 @@ void StartDefaultTask(void const * argument)
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
-	//uint32_t nStanSemaforaSPI;
 	uint8_t chStanDekodera;
-	MontujFAT();
-	/* Infinite loop */
+	//MontujFAT();
 	for(;;)
 	{
-		//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI6
-		//nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
-		//if (!nStanSemaforaSPI)
-		//{
-			//chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-			//if (chErr == ERR_OK)
-			{
-				chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
-				WymienDaneExpanderow();
-				CzytajDotyk();
-				UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
-				//HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-			}
-			//chCzasSwieceniaLED[LED_ZIEL] = 5;
-			//chCzasSwieceniaLED[LED_NIEB] = 0;
-		//}
-		//else
-		//{
-//			chCzasSwieceniaLED[LED_ZIEL] = 0;
-			//chCzasSwieceniaLED[LED_NIEB] = 5;
-		//}
+		chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
+		WymienDaneExpanderow();
+		CzytajDotyk();
+		UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
 
 		//obsłuż międzyprocesorową wymianę danych
 		chErr += PobierzDaneWymiany_CM4();

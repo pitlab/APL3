@@ -35,7 +35,6 @@ uint8_t PobierzDaneWymiany_CM7(void)
 	nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM7_TO_CM4);
 	if (!nStanSemafora)
 	{
-		//chErr = HAL_HSEM_FastTake(HSEM_CM7_TO_CM4);
 		chErr = HAL_HSEM_Take(HSEM_CM7_TO_CM4, 0);
 		if (chErr == ERR_OK)
 		{
@@ -64,7 +63,6 @@ uint8_t UstawDaneWymiany_CM4(void)
 	nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM4_TO_CM7);
 	if (!nStanSemafora)
 	{
-		//chErr = HAL_HSEM_FastTake(HSEM_CM4_TO_CM7);
 		chErr = HAL_HSEM_Take(HSEM_CM4_TO_CM7, 0);
 		if (chErr == ERR_OK)
 		{

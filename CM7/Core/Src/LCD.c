@@ -360,58 +360,99 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 	if (chRysujRaz)
 	{
 		LCD_clear(WHITE);
-		drawBitmap((DISP_HX_SIZE-165)/2, 10, 165, 80, plogo165x80);
+		drawBitmap((DISP_HX_SIZE-165)/2, 5, 165, 80, plogo165x80);
 
 		setColor(GRAY20);
 		setBackColor(WHITE);
 		setFont(BigFont);
 		sprintf(chNapis, "%s @%luMHz", (char*)chNapisLcd[STR_WITAJ_TYTUL], HAL_RCC_GetSysClockFreq()/1000000);
-		print(chNapis, CENTER, 100);
+		print(chNapis, CENTER, 95);
 
 		setColor(GRAY30);
 		setFont(MidFont);
 		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO], ó, ć, ó, ó, ż);	//"By móc mieć w rój Wronów na pohybel wrażym hordom""
-		print(chNapis, CENTER, 120);
+		print(chNapis, CENTER, 118);
 
 		sprintf(chNapis, "(c) PitLab 2025 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
-		print(chNapis, CENTER, 140);
+		print(chNapis, CENTER, 135);
 		chRysujRaz = 0;
 	}
 
 	//pierwsza kolumna sprzętu wewnętrznego
+	x = 5;
+	y = 160;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_NOR]);		//"pamięć Flash NOR"
-	x = 0;
-	y = 170;
 	print(chNapis, x, y);
-	Wykrycie(x, y, n, *(zainicjowano+0) && INIT0_FLASH_NOR);
+	Wykrycie(x, y, n, (*(zainicjowano+0) & INIT0_FLASH_NOR) == INIT0_FLASH_NOR);
 
+	y += 20;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_QSPI]);	//"pamięć Flash QSPI"
-	y += 20;
 	print(chNapis, x, y);
-	Wykrycie(x, y, n, *(zainicjowano+0) && INIT0_FLASH_NOR);
+	Wykrycie(x, y, n, (*(zainicjowano+0) & INIT0_FLASH_NOR) == INIT0_FLASH_NOR);
 
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KARTA_SD]);		//"Karta SD"
 	y += 20;
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KARTA_SD]);		//"Karta SD"
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, BSP_SD_IsDetected());
 
-	//druga kolumna sprzętu zewnętrznego
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KAMERA_OV5642]);	//"kamera "
-	x = DISP_X_SIZE / 2;
-	y = 170;
-	print(chNapis, x, y);
-	Wykrycie(x, y, n, *(zainicjowano+1) && INIT1_KAMERA);
-
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1]);		//moduł IMU
 	y += 20;
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KAMERA_OV5642]);	//"kamera "
 	print(chNapis, x, y);
-	Wykrycie(x, y, n, *(zainicjowano+1) && INIT1_MOD_IMU);
+	Wykrycie(x, y, n, (*(zainicjowano+1) & INIT1_KAMERA) == INIT1_KAMERA);
 
 	//dane z CM4
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_GNSS]);		//moduł GPS
 	y += 20;
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_GNSS]);		//GNSS
+	if (uDaneCM4.dane.nZainicjowano & INIT_WYKR_UBLOX)
+		n = sprintf(chNapis, "%s -> %s", (char*)chNapisLcd[STR_SPRAWDZ_GNSS], (char*)chNapisLcd[STR_SPRAWDZ_UBLOX]);	//GNSS -> uBlox
+	if (uDaneCM4.dane.nZainicjowano & INIT_WYKR_MTK)
+		n = sprintf(chNapis, "%s -> %s", (char*)chNapisLcd[STR_SPRAWDZ_GNSS], (char*)chNapisLcd[STR_SPRAWDZ_MTK]);		//GNSS -> MTK
 	print(chNapis, x, y);
-	Wykrycie(x, y, n, uDaneCM4.dane.nZainicjowano && INITCM4_GNSS);
+	Wykrycie(x, y, n,  (uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY) == INIT_GNSS_GOTOWY);
+
+	y += 20;
+	n = sprintf(chNapis, "%s -> %s", (char*)chNapisLcd[STR_SPRAWDZ_GNSS], (char*)chNapisLcd[STR_SPRAWDZ_HMC5883]);	//GNSS -> HMC5883
+	print(chNapis, x, y);
+	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_HMC5883) == INIT_HMC5883);
+
+	//druga kolumna sprzętu zewnętrznego
+	x = 5 + DISP_X_SIZE / 2;
+	y = 160;
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_MS5611]);		//moduł IMU -> MS5611
+	print(chNapis, x, y);
+	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_MS5611) == INIT_MS5611);
+
+	y += 20;
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_BMP581]);		//moduł IMU -> BMP581
+	print(chNapis, x, y);
+	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_BMP581) == INIT_BMP581);
+
+	y += 20;
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_ICM42688]);		//moduł IMU -> ICM42688
+	print(chNapis, x, y);
+	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_ICM42688) == INIT_ICM42688);
+
+	y += 20;
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_LSM6DSV]);		//moduł IMU -> LSM6DSV
+	print(chNapis, x, y);
+	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV) == INIT_LSM6DSV);
+
+	y += 20;
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_MMC34160]);		//moduł IMU -> MMC34160
+	print(chNapis, x, y);
+	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_MMC34160) == INIT_MMC34160);
+
+	y += 20;
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_IIS2MDC]);		//moduł IMU -> IIS2MDC
+	print(chNapis, x, y);
+	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC) == INIT_IIS2MDC);
+
+	y += 20;
+	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_ND130]);		//moduł IMU -> ND130
+	print(chNapis, x, y);
+	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_ND130) == INIT_ND130);
+
+	osDelay(2000);
 }
 
 
@@ -433,7 +474,7 @@ void Wykrycie(uint16_t x, uint16_t y, uint8_t znakow, uint8_t wykryto)
 	for (n=0; n<kropek; n++)
 	{
 		printChar('.', x+n*szer_fontu, y);
-		HAL_Delay(50);
+		//HAL_Delay(50);
 	}
 	if (wykryto)
 		sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_WYKR]);	//"wykryto"

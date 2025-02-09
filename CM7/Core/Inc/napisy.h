@@ -8,7 +8,7 @@
 #ifndef INC_NAPISY_H_
 #define INC_NAPISY_H_
 
-#define MAX_NAPISU_WYKRYCIE			20		//do formatowania napisów przy przezentacji wykrywanego sprzętu
+#define MAX_NAPISU_WYKRYCIE			21		//do formatowania napisów przy przezentacji wykrywanego sprzętu
 
 //definicje napisów
 #define STR_WITAJ_TYTUL				0
@@ -19,26 +19,28 @@
 #define STR_SPRAWDZ_FLASH_NOR		5
 #define STR_SPRAWDZ_FLASH_QSPI		6
 #define STR_SPRAWDZ_KAMERA_OV5642	7
-#define STR_SPRAWDZ_IMU1			8
-#define STR_SPRAWDZ_GNSS			9
-#define STR_SPRAWDZ_KARTA_SD		10
-#define STR_SPRAWDZ_1				11
-#define STR_SPRAWDZ_2				12
-#define STR_SPRAWDZ_3				13
-#define STR_SPRAWDZ_4				14
-#define STR_SPRAWDZ_5				15
-#define STR_SPRAWDZ_6				16
-#define STR_SPRAWDZ_7				17
-#define STR_SPRAWDZ_8				18
-#define STR_TEST_TOUCH				19
+#define STR_SPRAWDZ_8				8
+#define STR_SPRAWDZ_9				9
 
-#define STR_LIBEL_TITLE				20
-#define STR_MENU_MAIN				21
-#define STR_MENU_PROTOCOLS			22
-#define STR_MENU_SBUS				23
-#define STR_MENU_MULMETR			24
-#define STR_MENU_MULTOOL			25
-#define STR_MENU_VIBR				26
+#define STR_SPRAWDZ_IMU1_MS5611		10
+#define STR_SPRAWDZ_IMU1_BMP581		11
+#define STR_SPRAWDZ_IMU1_ICM42688	12
+#define STR_SPRAWDZ_IMU1_LSM6DSV	13
+#define STR_SPRAWDZ_IMU1_MMC34160	14
+#define STR_SPRAWDZ_IMU1_IIS2MDC	15
+#define STR_SPRAWDZ_IMU1_ND130		16
+#define STR_SPRAWDZ_HMC5883			17
+#define STR_SPRAWDZ_KARTA_SD		18
+#define STR_SPRAWDZ_GNSS			19
+
+
+#define STR_SPRAWDZ_UBLOX			20
+#define STR_SPRAWDZ_MTK				21
+#define STR_SPRAWDZ_				22
+#define STR_TEST_TOUCH				23
+#define STR_MENU_MAIN				24
+#define STR_MENU_PROTOCOLS			25
+#define STR_MENU_MULMETR			26
 #define STR_MENU_TEST				27
 #define STR_MENU_SETINGS			28
 #define STR_MENU_MULTI_MEDIA		29
@@ -54,34 +56,34 @@
 
 const char *chNapisLcd[MAX_NAPISOW]  = {
 "AutoPitLot hv3.0",				//STR_WITAJ_TYTUL		max 17 znaków
-"By m%cc mie%c w r%cj Wron%cw na pohybel wra%cym hordom",		//STR_WITAJ_MOTTO: %c będą podmieniane na polskie znaki
+"By m%cc mie%c w r%cj Wron%cw na pohybel wra%cym hordom",		//STR_WITAJ_MOTTO: %c będą podmieniane na polskie znaki diakrytyczne
 "pl",								//STR_WITAJ_DOMENA		max 3 znaki
 "wykryto",							//STR_SPRAWDZ_WYKR
 "brakuje",							//STR_SPRAWDZ_BRAK
 "Flash NOR 32MB",					//STR_SPRAWDZ_FLASH_NOR
 "Flash QSPI 16MB",					//STR_SPRAWDZ_FLASH_QSPI
 "Kamera OV5642", 					//STR_SPRAWDZ_KAMERA_OV5642
-"Modul IMU",						//STR_SPRAWDZ_IMU1
-"Modul GNSS",						//STR_SPRAWDZ_GNSS
+"nic",								//STR_SPRAWDZ_8
+"nic",								//STR_SPRAWDZ_9
 
+"IMU -> MS5611",					//STR_SPRAWDZ_IMU1_MS5611
+"IMU -> BMP581",					//STR_SPRAWDZ_IMU1_BMP581
+"IMU -> ICM42688",					//STR_SPRAWDZ_IMU1_ICM42688
+"IMU -> LSM6DSV", 					//STR_SPRAWDZ_IMU1_LSM6DSV
+"IMU -> MMC34160",					//STR_SPRAWDZ_IMU1_MMC34160
+"IMU -> IIS2MDC",					//STR_SPRAWDZ_IMU1_IIS2MDC
+"IMU -> ND130",						//STR_SPRAWDZ_IMU1_ND130
+"HMC5883",							//STR_SPRAWDZ_HMC5883
 "Karta SD", 						//STR_SPRAWDZ_KARTA_SD
-"Modul ",  							//STR_SPRAWDZ_1
-"Modul ",  							//STR_SPRAWDZ_2
-"Modul ",							//STR_SPRAWDZ_3
-"Modul ",							//STR_SPRAWDZ_4
-"Modul ",							//STR_SPRAWDZ_5
-"Modul ",							//STR_SPRAWDZ_6
-"Modul ",							//STR_SPRAWDZ_7
-"Modul ",							//STR_SPRAWDZ_8
-"Dotyk:",							//STR_TEST_TOUCH
+"GNSS",								//STR_SPRAWDZ_GNSS
 
-"nic",								//STR_LIBEL_TITLE
+"MTK",								//STR_SPRAWDZ_MTK
+"Ublox",							//STR_SPRAWDZ_UBLOX
+"nic",								//STR_SPRAWDZ_
+"Dotyk:",							//STR_TEST_TOUCH
 "Menu Glowne",						//STR_MENU_MAIN			max 17 znaków
 "nic",								//STR_MENU_PROTOCOLS	max 17 znaków
-"nic",								//STR_MENU_SBUS			max 17 znaków
 "nic",								//STR_MENU_MULMETR		max 17 znaków
-"nic",								//STR_MENU_MULTOOL		max 17 znaków
-"nic",								//STR_MENU_VIBR			max 17 znaków
 "nic",								//STR_MENU_TEST			max 17 znaków
 "Menu Ustawien",					//STR_MENU_SETINGS
 "Menu MultiMedia",					//STR_MENU_MULTI_MEDIA
@@ -89,6 +91,18 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Menu Wydajnosc"					//STR_MENU_WYDAJNOSC
 "koniec"							//STR_KONIEC
 };
+
+#define STR_SPRAWDZ_UBLOX			20
+#define STR_SPRAWDZ_MTK				21
+#define STR_SPRAWDZ_				22
+#define STR_TEST_TOUCH				23
+#define STR_MENU_MAIN				24
+#define STR_MENU_PROTOCOLS			25
+#define STR_MENU_MULMETR			26
+#define STR_MENU_TEST				27
+#define STR_MENU_SETINGS			28
+#define STR_MENU_MULTI_MEDIA		29
+
 
 const char *chNazwyMies3Lit[13]  = {"---", "Sty","Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paz", "Lis", "Gru"};
 

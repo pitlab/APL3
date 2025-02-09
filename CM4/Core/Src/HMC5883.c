@@ -116,11 +116,11 @@ uint8_t SprawdzObecnoscHMC5883(void)
         {
         	if ((chDaneMagHMC[0] == 'H') && (chDaneMagHMC[1] == '4') && (chDaneMagHMC[2] == '3'))
         	{
-        		uDaneCM4.dane.nZainicjowano |= INIT_MAG3;
+        		uDaneCM4.dane.nZainicjowano |= INIT_HMC5883;
         		return ERR_OK;
         	}
         }
-        uDaneCM4.dane.nZainicjowano &= ~INIT_MAG3;
+        uDaneCM4.dane.nZainicjowano &= ~INIT_HMC5883;
     }
     return ERR_BRAK_MAG_ZEW;
 }

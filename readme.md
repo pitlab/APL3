@@ -1,6 +1,6 @@
 # APL3
 ### Projekt eksperymentalnego autopilota dla samolotów RC z obsługą kamery cyfrowej.
-![APL3](obrazki/pomiary_mag_gnss_757.jpg)
+![APL3](obrazki/ekran_startowy.jpg)
 
 To są początki projektu. Obecnie jest zaimplementowana następująca funkcjonalność:
 ### Rdzeń CM7:
@@ -24,6 +24,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Interfejs karty SD ma poprawnie przełaczane przez bibliotekę napiecie dla IO między 3,3V a 1,8V, po to aby móc obsługiwać szybsze karty
 - Jest elementarny zapis / odczyt karty SD o transferze 7 / 16 MB/s dla karty high speed klasy C10 ( min. zapis 10MB/s)
 ![Transfer](obrazki/transfer_karty_SD.jpg)
+- Prezentacja układów IMU na ekranie powitalnym
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM
@@ -36,7 +37,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Odczyt danych z magnetometrów MMC34160 i IIS2MDC na wewnętrznym module IiP
 - Odczyt danych z żyroskopów i akcelerometrów w ICM42688
 - Odczyt danych z żyroskopów i akcelerometrów w LSM6DSV
-![Magnetometry](obrazki/pomiar_magnetometrow.jpg) 
+![Magnetometry](obrazki/pomiary.jpg) 
 
 #### Do zrobienia:
  - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarce na inne z mniejszym ESR
@@ -47,7 +48,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
  - Uruchomić układ ethernet
  - Uruchomić USB w trybie CDC
  - Uruchomić lokalny zegar aby FAT mógł pracować w funkcji czasu
- - Prezentacja układów IMU na ekranie powitalnym
+ 
  
  
 

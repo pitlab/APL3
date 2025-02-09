@@ -30,6 +30,7 @@ ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM2")))	chBufforFAT_SD1[_
 ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM2")))	chBufforFAT_DRAM[_MAX_SS]);
 
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // Zwraca obecność karty w gnieździe. Wymaga wcześniejszego odczytania stanu expanderów I/O, ktore czytane są w każdym obiegu pętli StartDefaultTask()
 // Parametry: brak
@@ -41,9 +42,7 @@ uint8_t BSP_SD_IsDetected(void)
 	extern uint8_t chPorty_exp_odbierane[3];
 
 	if (chPorty_exp_odbierane[0] & EXP04_LOG_CARD_DET)		//styk detekcji karty zwiera do masy gdy karta jest obecna a pulllup wystawia 1 gdy jest nieobecna w gnieździe
-	{
 		status = SD_NOT_PRESENT;
-	}
 	return status;
 }
 
@@ -112,20 +111,23 @@ uint8_t MontujFAT(void)
 
 	//SDRAM
 	fres = f_mkfs(SDRAMDISKPath, FM_FAT32, au, chBufforFAT_DRAM, sizeof(chBufforFAT_DRAM));
-	status = SDRAMDISK_initialize(0);
 	if (status == RES_OK)
 	{
-		fres = f_mount(&SDRAMDISKFatFS, SDRAMDISKPath, 1);
-		if (fres == FR_OK)
+		status = SDRAMDISK_initialize(0);
+		if (status == RES_OK)
 		{
-			fres = f_open(&SDRAMDISKFile, "first_file.txt", FA_OPEN_ALWAYS | FA_READ | FA_WRITE);
+			fres = f_mount(&SDRAMDISKFatFS, SDRAMDISKPath, 1);
 			if (fres == FR_OK)
 			{
-				sprintf(workBuffer, "Total card size: lu kBytes\n");
-				f_puts(workBuffer, &SDRAMDISKFile);
-				f_close(&SDRAMDISKFile);
+				fres = f_open(&SDRAMDISKFile, "first_file.txt", FA_OPEN_ALWAYS | FA_READ | FA_WRITE);
+				if (fres == FR_OK)
+				{
+					sprintf(workBuffer, "Total card size: lu kBytes\n");
+					f_puts(workBuffer, &SDRAMDISKFile);
+					f_close(&SDRAMDISKFile);
+				}
+				f_mount(NULL, "", 1);
 			}
-			f_mount(NULL, "", 1);
 		}
 	}
 	return fres;

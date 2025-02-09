@@ -105,7 +105,7 @@ void PetlaGlowna(void)
 		else
 		{
 			chTimeoutGNSS = TIMEOUT_GNSS;
-			uDaneCM4.dane.nZainicjowano &= ~MASKA_INIT_GNSS;	//wyczyść wszystkie bity użuwane przez GNSS
+			uDaneCM4.dane.nZainicjowano &= ~MASKA_INIT_GNSS;	//wyczyść wszystkie bity używane przez GNSS
 			uDaneCM4.dane.stGnss1.chFix = 0;
 		}
 		break;
