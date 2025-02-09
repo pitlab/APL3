@@ -58,7 +58,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "protokol_kom.h"
 #include "moduly_SPI.h"
 #include "audio.h"
-//#include "semafory.h"
+#include "rejestrator.h"
 #include "lwip/apps/lwiperf.h"
 /* USER CODE END Includes */
 
@@ -231,7 +231,6 @@ Error_Handler();
 /* USER CODE END Boot_Mode_Sequence_2 */
 
   /* USER CODE BEGIN SysInit */
-  printf("****** CM7 zaczyna pracę ****** \n");
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -1228,9 +1227,9 @@ void StartDefaultTask(void const * argument)
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
-
 	//uint32_t nStanSemaforaSPI;
 	uint8_t chStanDekodera;
+	MontujFAT();
 	/* Infinite loop */
 	for(;;)
 	{

@@ -45,7 +45,9 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
  - Przenieść z APL2 obsługę pętli głównej, serw, mikserów, zapisu konfiguracji do FRAM, telemetrii do rdzenia CM4
  - Oprogramować obsługę FAT dla karty SD
  - Uruchomić układ ethernet
- - Urochomić USB w trybie CDC
+ - Uruchomić USB w trybie CDC
+ - Uruchomić lokalny zegar aby FAT mógł pracować w funkcji czasu
+ - Prezentacja układów IMU na ekranie powitalnym
  
  
 

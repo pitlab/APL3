@@ -1206,21 +1206,20 @@ void WyswietlParametryKartySD(void)
 		print(chNapis, 10, 50);
 		sprintf(chNapis, "Klasa: %ld ", CardInfo.Class);
 		print(chNapis, 10, 70);
-		sprintf(chNapis, "Pr%cdko%c%c: %ld ", ę, ś, ć, CardInfo.CardSpeed);
+		sprintf(chNapis, "Pr%cdko%c%c: %#lX ", ę, ś, ć, CardInfo.CardSpeed);
 		print(chNapis, 10, 90);
 		sprintf(chNapis, "Liczba blok%cw: %ld ", ó, CardInfo.BlockNbr);
 		print(chNapis, 10, 110);
 		sprintf(chNapis, "Rozmiar bloku: %ld ", CardInfo.BlockSize);
 		print(chNapis, 10, 130);
-		sprintf(chNapis, "Obecno%c%c karty: %d ", ś, ć, BSP_SD_IsDetected());	//LOG_SD1_CDETECT - wejscie detekcji obecności karty
-		print(chNapis, 10, 150);
+		//sprintf(chNapis, "Obecno%c%c karty: %d ", ś, ć, BSP_SD_IsDetected());	//LOG_SD1_CDETECT - wejscie detekcji obecności karty
+		//print(chNapis, 10, 150);
 
 		sprintf(chNapis, "Manufacturer ID: %X ", pCID.ManufacturerID);
 		print(chNapis, 10, 170);
 
 		chOEM[0] = (pCID.OEM_AppliID & 0xFF00)>>8;
 		chOEM[1] = pCID.OEM_AppliID & 0x00FF;
-		//sprintf(chNapis, "OEM_AppliID: %c%c ", (uint8_t)((pCID.OEM_AppliID & 0xFF00)>>8), (uint8_t)(pCID.OEM_AppliID & 0x00FF));
 		sprintf(chNapis, "OEM_AppliID: %c%c ", chOEM[0], chOEM[1]);
 
 		print(chNapis, 10, 190);

@@ -48,7 +48,7 @@ MEMORY
   FLASH			(rx)   : ORIGIN = 0x08000000, LENGTH = 1024K    /* Memory is divided. Actual start is 0x08000000 and actual length is 2048K */
   DTCMRAM		(xrw)  : ORIGIN = 0x20000000, LENGTH = 128K		/* DTCM D1: zmienne krytyczne, rozmiar=0x20000 */
   SRAM_AXI_D1	(xrw)  : ORIGIN = 0x24000000, LENGTH = 512K  	/* AXI-SRAM D1: stos, sterta i dane dla CM7, bufory,  rozmiar=0x80000 */
-  SRAM2_AHB_D2 	(xrw)  : ORIGIN = 0x30020000, LENGTH = 128K 	/* AHB-SRAM2 D2: bufory DMA */
+  SRAM2_AHB_D2 	(xrw)  : ORIGIN = 0x30020000, LENGTH = 128K 	/* AHB-SRAM2 D2: bufory DMA, FAT */
   SRAM3_AHB_D2	(xrw)  : ORIGIN = 0x30040000, LENGTH = 32K		/* AHB-SRAM3 D2: bufory ethernet, USB */
   SRAM4_AHB_D3	(xrw)  : ORIGIN = 0x38000000, LENGTH = 64K		/* AHB-SRAM4 D3: współdzielenie danych między rdzeniami, rozmiar=0x10000 */
   BACKUP  		(rw)   : ORIGIN = 0x38800000, LENGTH = 4K
