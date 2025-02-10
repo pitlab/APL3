@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "sys_def_CM7.h"
+#include "moduly_SPI.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -77,7 +78,7 @@ extern TIM_HandleTypeDef htim6;
 extern TIM_HandleTypeDef htim17;
 
 /* USER CODE BEGIN EV */
-
+extern uint8_t chPorty_exp_wysylane[LICZBA_EXP_SPI_ZEWN];
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -104,7 +105,10 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+	chPorty_exp_wysylane[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
+	chPorty_exp_wysylane[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
+	chPorty_exp_wysylane[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
+	WyslijDaneExpandera(SPI_EXTIO_2, chPorty_exp_wysylane[2]);
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {

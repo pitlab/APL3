@@ -18,20 +18,17 @@
 #include <string.h>
 #include <stdio.h>
 #include "ff_gen_drv.h"
-#include "sdram_diskio.h"
+//#include "sdram_diskio.h"
 #include "sd_diskio.h"
 
 /* USER CODE END Header */
 #include "fatfs.h"
 
-uint8_t retSDRAMDISK;    /* Return value for SDRAMDISK */
-char SDRAMDISKPath[4];   /* SDRAMDISK logical drive path */
-FATFS SDRAMDISKFatFS;    /* File system object for SDRAMDISK logical drive */
-FIL SDRAMDISKFile;       /* File object for SDRAMDISK */
 uint8_t retSD;    /* Return value for SD */
 char SDPath[4];   /* SD logical drive path */
 FATFS SDFatFS;    /* File system object for SD logical drive */
 FIL SDFile;       /* File object for SD */
+
 /* USER CODE BEGIN Variables */
 
 
@@ -39,8 +36,6 @@ FIL SDFile;       /* File object for SD */
 
 void MX_FATFS_Init(void)
 {
-  /*## FatFS: Link the SDRAMDISK driver ###########################*/
-  retSDRAMDISK = FATFS_LinkDriver(&SDRAMDISK_Driver, SDRAMDISKPath);
   /*## FatFS: Link the SD driver ###########################*/
   retSD = FATFS_LinkDriver(&SD_Driver, SDPath);
 

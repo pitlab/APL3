@@ -1227,7 +1227,7 @@ void StartDefaultTask(void const * argument)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
 	uint8_t chStanDekodera;
-	//MontujFAT();
+	MontujFAT();
 	for(;;)
 	{
 		chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
