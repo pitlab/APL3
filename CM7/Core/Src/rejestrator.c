@@ -8,30 +8,27 @@
 #include "rejestrator.h"
 #include "bsp_driver_sd.h"
 #include "moduly_SPI.h"
-
+#include "wymiana.h"
 #include "ff_gen_drv.h"
-//#include "sdram_diskio.h"
 #include "sd_diskio.h"
+#include <string.h>
 #include <stdio.h>
-//#include "bsp_driver_sdram.h"
+
 
 extern SD_HandleTypeDef hsd1;
-//extern SDRAM_HandleTypeDef hsdram1;
-
-//extern uint8_t retSDRAMDISK;    /* Return value for SDRAMDISK */
-//extern char SDRAMDISKPath[4];   /* SDRAMDISK logical drive path */
-//extern FATFS SDRAMDISKFatFS;    /* File system object for SDRAMDISK logical drive */
-//extern FIL SDRAMDISKFile;       /* File object for SDRAMDISK */
 extern uint8_t retSD;    /* Return value for SD */
 extern char SDPath[4];   /* SD logical drive path */
 extern FATFS SDFatFS;    /* File system object for SD logical drive */
 extern FIL SDFile;       /* File object for SD */
-//ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM2")))	chBufforFAT_SD1[_MAX_SS]);
-//ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM2")))	chBufforFAT_DRAM[_MAX_SS]);
+extern uint8_t chPorty_exp_odbierane[LICZBA_EXP_SPI_ZEWN];
+extern volatile unia_wymianyCM4_t uDaneCM4;
 ALIGN_32BYTES(uint8_t aTxBuffer[_MAX_SS]);
 ALIGN_32BYTES(uint8_t aRxBuffer[_MAX_SS]);
 __IO uint8_t RxCplt, TxCplt;
-
+uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+static char chBufforZapisuKarty[ROZMIAR_BUFORA_KARTY];	//bufor na jedną linijkę logu
+static char chBufPodreczny[25];
+UINT nDoZapisuNaKarte, nZapisanoNaKarte;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Zwraca obecność karty w gnieździe. Wymaga wcześniejszego odczytania stanu expanderów I/O, ktore czytane są w każdym obiegu pętli StartDefaultTask()
@@ -78,15 +75,16 @@ void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 // Parametry: brak
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t MontujFAT(void)
+uint8_t InicjalizacjaRejestratora(void)
 {
 	DSTATUS status;
 	FRESULT fres;
-	char workBuffer[30];
-	//DWORD au = _MAX_SS;			/* Size of allocation unit (cluster) [byte] */
+
+	chStatusRejestratora = 0;
 
 	if (BSP_SD_IsDetected())		//czy karta jest w gnieździe?
 	{
+
 		hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
 		status = SD_initialize(1);
 		if (status == RES_OK)
@@ -97,61 +95,115 @@ uint8_t MontujFAT(void)
 				//http://stm32f4-discovery.net/2015/08/hal-library-20-fatfs-for-stm32fxxx/
 				fres = f_mount(&SDFatFS, SDPath, 1);
 				if (fres == FR_OK)
-				{
-					fres = f_open(&SDFile, "first.txt", FA_OPEN_ALWAYS | FA_WRITE);
-					if (fres == FR_OK)
-					{
-						sprintf(workBuffer, "Total card size: lu kBytes\n");
-						f_puts(workBuffer, &SDFile);
-						f_close(&SDFile);
-					}
-					f_mount(NULL, "", 1);		//Unmount SDCARD
-				}
+					chStatusRejestratora |= STATREJ_FAT_GOTOWY | STATREJ_ZAPISZ_NAGLOWEK;
 			}
 		}
 	}
-
-	//SDRAM
-/*	fres = f_mkfs(SDRAMDISKPath, FM_FAT32, au, aRxBuffer, sizeof(aRxBuffer));
-	if (fres == FR_OK)
-	{
-		status = SDRAMDISK_initialize(0);
-		if (status == RES_OK)
-		{
-			fres = f_mount(&SDRAMDISKFatFS, SDRAMDISKPath, 1);
-			if (fres == FR_OK)
-			{
-				fres = f_open(&SDRAMDISKFile, "first_file.txt", FA_OPEN_ALWAYS | FA_READ | FA_WRITE);
-				if (fres == FR_OK)
-				{
-					sprintf(workBuffer, "Total card size: lu kBytes\n");
-					f_puts(workBuffer, &SDRAMDISKFile);
-					f_close(&SDRAMDISKFile);
-				}
-				f_mount(NULL, "", 1);
-			}
-		}
-	}*/
 	return fres;
 }
 
 
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
-// Nadpisana funkcja weak do odczytu SDRAM. Zamieniono dostęp 32-bitowy na 16-bitowy
+// Obsługa zapisu danych w rejestratorze. Funkcja jest wywoływana cyklicznie w dedykowanym wątku
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-/*uint8_t BSP_SDRAM_ReadData(uint32_t uwStartAddress, uint32_t *pData, uint32_t uwDataSize)
+uint8_t ObslugaPetliRejestratora(void)
 {
-  uint8_t sdramstatus = SDRAM_OK;
 
-  if(HAL_SDRAM_Read_16b(&hsdram1, (uint32_t *)uwStartAddress, pData, uwDataSize*2) != HAL_OK)
-  {
-    sdramstatus = SDRAM_ERROR;
-  }
+	if ((chPorty_exp_odbierane[0] & EXP04_LOG_CARD_DET)	== 0)//LOG_SD1_CDETECT - wejscie detekcji obecności karty
+	{
 
-  return sdramstatus;
-}*/
+		if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
+		{
+
+			//czas
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strcat(chBufforZapisuKarty, "Czas [g:m:s.ss],");
+			else
+			{
+				sprintf(chBufPodreczny, "%2d_%2d:%2d, ", uDaneCM4.dane.stGnss1.chGodz,  uDaneCM4.dane.stGnss1.chMin,  uDaneCM4.dane.stGnss1.chSek);
+				strcat(chBufforZapisuKarty, chBufPodreczny);
+			}
+
+			//Wysokość czujnika 1
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strcat(chBufforZapisuKarty, "Wysokość1 [m],");
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f ", uDaneCM4.dane.fWysoko[0]);
+				strcat(chBufforZapisuKarty, chBufPodreczny);
+			}
+
+			//akcelerometr1 X
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strcat(chBufforZapisuKarty, "Akcel1 X [g],");
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f ", uDaneCM4.dane.fAkcel1[0]);
+				strcat(chBufforZapisuKarty, chBufPodreczny);
+			}
+
+			//akcelerometr1 Y
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strcat(chBufforZapisuKarty, "Akcel1 Y [g],");
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f ", uDaneCM4.dane.fAkcel1[1]);
+				strcat(chBufforZapisuKarty, chBufPodreczny);
+			}
+			//akcelerometr1 XZ
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strcat(chBufforZapisuKarty, "Akcel1 Z [g],");
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f ", uDaneCM4.dane.fAkcel1[2]);
+				strcat(chBufforZapisuKarty, chBufPodreczny);
+			}
+
+			//jeżeli był zapisywany nagłówek to przejdź do zapisu danych
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				chStatusRejestratora &= ~ STATREJ_ZAPISZ_NAGLOWEK;
+			f_puts(chBufforZapisuKarty, &SDFile);
+		}
+		else	//jeżeli FAT nie jest gotowy to go zamontuj
+		{
+			DSTATUS status;
+			FRESULT fres;
+
+			hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
+			status = SD_initialize(1);
+			if (status == RES_OK)
+			{
+				fres = f_mount(&SDFatFS, SDPath, 1);
+				if (fres == FR_OK)
+				{
+					sprintf(chBufPodreczny, "%4d-%2d-%2d_APL3.csv", uDaneCM4.dane.stGnss1.chRok+2000, uDaneCM4.dane.stGnss1.chMies, uDaneCM4.dane.stGnss1.chDzien);
+					fres = f_open(&SDFile, chBufPodreczny, FA_OPEN_ALWAYS | FA_WRITE);
+					if (fres == FR_OK)
+						chStatusRejestratora |= STATREJ_FAT_GOTOWY | STATREJ_ZAPISZ_NAGLOWEK;
+				}
+				else	//jeżeli nie udało sie zamontować FAT to utwórz go ponownie
+				{
+					//fres = f_mkfs(SDPath, FM_FAT32, au, aTxBuffer, sizeof(aTxBuffer));	//sprawdzić czy tak może być
+				}
+			}
+		}
+	}
+	else	//jeżeli nie ma karty
+	{
+		if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
+		{
+			f_close(&SDFile);
+			f_mount(NULL, "", 1);		//zdemontuj system plików
+			chStatusRejestratora = 0;
+		}
+	}
+
+  return ERR_OK;
+}
 
 
 

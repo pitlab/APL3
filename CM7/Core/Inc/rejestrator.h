@@ -20,9 +20,21 @@
 #define DATA_PATTERN           ((uint32_t)0xB5F3A5F3U) /* Data pattern to write */
 
 
+//definicja znaczenia bitów rejestrtora
+#define STATREJ_FAT_GOTOWY		1
+#define STATREJ_ZAPISZ_NAGLOWEK	2
+
+#define STATREJ_4				4
+#define STATREJ_8				8
+#define STATREJ_16				8
+
+
+#define ROZMIAR_BUFORA_KARTY	256
+
 uint8_t BSP_SD_IsDetected(void);
 void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status);
-uint8_t MontujFAT(void);
+uint8_t InicjalizacjaRejestratora(void);
+uint8_t ObslugaPetliRejestratora(void);
 uint8_t Wait_SDCARD_Ready(void);
 
 #endif /* INC_REJESTRATOR_H_ */

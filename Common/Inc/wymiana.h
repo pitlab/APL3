@@ -34,7 +34,8 @@ typedef struct _GNSS
 
 
 //definicja struktury wymiany danych wychodzących z rdzenia CM4
-typedef struct _stWymianyCM4
+//typedef struct _stWymianyCM4
+typedef struct
 {
 	float fAkcel1[3];
 	float fAkcel2[3];

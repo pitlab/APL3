@@ -117,7 +117,9 @@ SDRAM_HandleTypeDef hsdram1;
 
 osThreadId defaultTaskHandle;
 osThreadId tsOdbiorLPUART1Handle;
-osThreadId tsOdbiorKonsolaHandle;
+osThreadId tsRejestratorHandle;
+uint32_t tsRejestratorBuffer[ 512 ];
+osStaticThreadDef_t tsRejestratorControlBlock;
 osThreadId tsObslugaWyswieHandle;
 /* USER CODE BEGIN PV */
 uint8_t chErr = ERR_OK;
@@ -146,7 +148,7 @@ static void MX_RNG_Init(void);
 static void MX_SDMMC1_SD_Init(void);
 void StartDefaultTask(void const * argument);
 void WatekOdbiorczyLPUART1(void const * argument);
-void WatekOdbioruKonsoliUART7(void const * argument);
+void WatekRejestratora(void const * argument);
 void WatekWyswietlacza(void const * argument);
 
 /* USER CODE BEGIN PFP */
@@ -299,9 +301,9 @@ Error_Handler();
   osThreadDef(tsOdbiorLPUART1, WatekOdbiorczyLPUART1, osPriorityBelowNormal, 0, 96);
   tsOdbiorLPUART1Handle = osThreadCreate(osThread(tsOdbiorLPUART1), NULL);
 
-  /* definition and creation of tsOdbiorKonsola */
-  osThreadDef(tsOdbiorKonsola, WatekOdbioruKonsoliUART7, osPriorityBelowNormal, 0, 64);
-  tsOdbiorKonsolaHandle = osThreadCreate(osThread(tsOdbiorKonsola), NULL);
+  /* definition and creation of tsRejestrator */
+  osThreadStaticDef(tsRejestrator, WatekRejestratora, osPriorityBelowNormal, 0, 512, tsRejestratorBuffer, &tsRejestratorControlBlock);
+  tsRejestratorHandle = osThreadCreate(osThread(tsRejestrator), NULL);
 
   /* definition and creation of tsObslugaWyswie */
   osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 320);
@@ -1227,7 +1229,6 @@ void StartDefaultTask(void const * argument)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
 	uint8_t chStanDekodera;
-	MontujFAT();
 	for(;;)
 	{
 		chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
@@ -1273,22 +1274,24 @@ void WatekOdbiorczyLPUART1(void const * argument)
   /* USER CODE END WatekOdbiorczyLPUART1 */
 }
 
-/* USER CODE BEGIN Header_WatekOdbioruKonsoliUART7 */
+/* USER CODE BEGIN Header_WatekRejestratora */
 /**
-* @brief Function implementing the tsOdbiorKonsola thread.
+* @brief Function implementing the tsRejestrator thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_WatekOdbioruKonsoliUART7 */
-void WatekOdbioruKonsoliUART7(void const * argument)
+/* USER CODE END Header_WatekRejestratora */
+void WatekRejestratora(void const * argument)
 {
-  /* USER CODE BEGIN WatekOdbioruKonsoliUART7 */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END WatekOdbioruKonsoliUART7 */
+  /* USER CODE BEGIN WatekRejestratora */
+
+	InicjalizacjaRejestratora();
+	for(;;)
+	{
+		ObslugaPetliRejestratora();
+		osDelay(1);
+	}
+  /* USER CODE END WatekRejestratora */
 }
 
 /* USER CODE BEGIN Header_WatekWyswietlacza */
