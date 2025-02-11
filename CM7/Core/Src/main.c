@@ -23,6 +23,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 0x08100000	1024K	CM4		+		-		+		-		RO		RO		FLASH			kod programu dla CM4
 0x20000000	128K	CM7														DTCMRAM
 0x24000000	512K	CM7		-		-		-		+		RW		RW		SRAM_AXI_D1		stos i dane dla CM7
+0x24000000	512K	CM7		-		+		+		+		RW		RW		SRAM_AXI_D1		stos i dane dla CM7 - obecnie przestawione
 0x30000000  128K	CM4		-		+		-		+		RW		RW		SRAM1_AHB_D2	stos i dane dla CM4
 0x30020000	128K	CM7		-		-		-		-   	RW		RW		SRAM2_AHB_D2	sterta LwIP
 0x30040000	32K		CM7		-		+		-		+  		RW		RW		SRAM3_AHB_D2    deskryptory ethernet (nie mogą być cache'owalne) i bufor [12*MTU]
@@ -1284,12 +1285,13 @@ void WatekOdbiorczyLPUART1(void const * argument)
 void WatekRejestratora(void const * argument)
 {
   /* USER CODE BEGIN WatekRejestratora */
+	extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 
-	InicjalizacjaRejestratora();
 	for(;;)
 	{
-		ObslugaPetliRejestratora();
-		osDelay(1);
+		if (chStatusRejestratora & STATREJ_WLACZONY)
+			ObslugaPetliRejestratora();
+		osDelay(200);
 	}
   /* USER CODE END WatekRejestratora */
 }
@@ -1398,7 +1400,7 @@ void MPU_Config(void)
   MPU_InitStruct.Number = MPU_REGION_NUMBER6;
   MPU_InitStruct.BaseAddress = 0x24000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_512KB;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
   MPU_InitStruct.IsBufferable = MPU_ACCESS_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
@@ -1408,7 +1410,7 @@ void MPU_Config(void)
   MPU_InitStruct.Number = MPU_REGION_NUMBER7;
   MPU_InitStruct.BaseAddress = 0xC0000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_64MB;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
   /* Enables the MPU */

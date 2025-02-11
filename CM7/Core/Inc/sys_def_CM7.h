@@ -15,7 +15,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	97	//numer commitu w repozytorium
+#define WER_REPO	98	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -54,7 +54,7 @@
 //tryby pracy
 #define TP_MENU_GLOWNE		0	//wyświetla ekran menu głównego
 #define TP_WROC_DO_MENU		1
-#define TP_INFO_KARTA		2
+#define TP_MG1				2
 #define TP_MG2				3
 #define TP_MG3				4
 #define TP_MG4				5
@@ -66,12 +66,12 @@
 #define TP_POMIARY_IMU		11	//wyświetlaj wyniki pomiarów IMU pobrane z CM4
 #define TP_ZDJECIE			12
 #define TP_WITAJ			13
-
 #define TP_MULTIMEDIA		14	//menu multimediow
 #define TP_WYDAJNOSC		15	//menu pomiarów wydajności
+#define TP_KARTA_SD			16	//menu obsługi karty SD
 
-
-#define TP_MMREJ			40	//M.Rey
+//polecenia menu Multimedia
+#define TP_MMREJ			40	//M.Rej
 #define TP_MM1				41
 #define TP_MM2				42
 #define TP_MM_TEST_TONU		43
@@ -82,7 +82,7 @@
 #define TP_MM_KOM4			48	//komunikat audio 4
 #define TP_WROC_DO_MMEDIA	49
 
-
+//polecenia menu Wydajność
 #define TP_FRAKTALE			30	//wyświetla benchmark fraktalowy
 #define TP_POM_ZAPISU_NOR	31
 #define TP_POMIAR_FNOR		32
@@ -93,6 +93,18 @@
 #define TP_W3				37
 #define TP_W4				38
 #define TP_WROC_DO_WYDAJN	39
+
+//polecenia menu TP_KARTA_SD
+#define TPKS_WLACZ_REJ		50
+#define TPKS_WYLACZ_REJ		51
+#define TPKS_PARAMETRY		52
+#define TPKS_POMIAR  		53
+#define TPKS_4				54
+#define TPKS_5				55
+#define TPKS_6				56
+#define TPKS_7				57
+#define TPKS_8				58
+#define TPKS_WROC			59
 
 
 //flagi inicjalizacj sprzetu na płytce

@@ -28,4 +28,5 @@ void PomiaryIMU(void);
 void TestTonuAudio(void);
 void WyswietlParametryKartySD(void);
 void TestKartySD(void);
+void WyswietlRejestratorKartySD(void);
 #endif /* INC_LCD_H_ */

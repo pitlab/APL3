@@ -26,8 +26,8 @@ ALIGN_32BYTES(uint8_t aTxBuffer[_MAX_SS]);
 ALIGN_32BYTES(uint8_t aRxBuffer[_MAX_SS]);
 __IO uint8_t RxCplt, TxCplt;
 uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-static char chBufforZapisuKarty[ROZMIAR_BUFORA_KARTY];	//bufor na jedną linijkę logu
-static char chBufPodreczny[25];
+ALIGN_32BYTES(static char chBufZapisuKarty[ROZMIAR_BUFORA_KARTY]);	//bufor na jedną linijkę logu
+ALIGN_32BYTES(static char chBufPodreczny[25]);
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -70,41 +70,6 @@ void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-// Montuje FAT dla definiowanych napędów
-// Parametry: brak
-// Zwraca: kod błędu
-////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjalizacjaRejestratora(void)
-{
-	DSTATUS status;
-	FRESULT fres;
-
-	chStatusRejestratora = 0;
-
-	if (BSP_SD_IsDetected())		//czy karta jest w gnieździe?
-	{
-
-		hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
-		status = SD_initialize(1);
-		if (status == RES_OK)
-		{
-			//fres = f_mkfs(SDPath, FM_FAT32, au, aTxBuffer, sizeof(aTxBuffer));
-			//if (fres == FR_OK)
-			{
-				//http://stm32f4-discovery.net/2015/08/hal-library-20-fatfs-for-stm32fxxx/
-				fres = f_mount(&SDFatFS, SDPath, 1);
-				if (fres == FR_OK)
-					chStatusRejestratora |= STATREJ_FAT_GOTOWY | STATREJ_ZAPISZ_NAGLOWEK;
-			}
-		}
-	}
-	return fres;
-}
-
-
-
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Obsługa zapisu danych w rejestratorze. Funkcja jest wywoływana cyklicznie w dedykowanym wątku
@@ -113,7 +78,7 @@ uint8_t InicjalizacjaRejestratora(void)
 uint8_t ObslugaPetliRejestratora(void)
 {
 
-	if ((chPorty_exp_odbierane[0] & EXP04_LOG_CARD_DET)	== 0)//LOG_SD1_CDETECT - wejscie detekcji obecności karty
+	if ((chPorty_exp_odbierane[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty
 	{
 
 		if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
@@ -121,52 +86,54 @@ uint8_t ObslugaPetliRejestratora(void)
 
 			//czas
 			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strcat(chBufforZapisuKarty, "Czas [g:m:s.ss],");
+				strncat(chBufZapisuKarty, "Czas [g:m:s.ss];", MAX_ROZMIAR_WPISU);
 			else
 			{
-				sprintf(chBufPodreczny, "%2d_%2d:%2d, ", uDaneCM4.dane.stGnss1.chGodz,  uDaneCM4.dane.stGnss1.chMin,  uDaneCM4.dane.stGnss1.chSek);
-				strcat(chBufforZapisuKarty, chBufPodreczny);
+				sprintf(chBufPodreczny, "%02d:%02d:%02d;", uDaneCM4.dane.stGnss1.chGodz,  uDaneCM4.dane.stGnss1.chMin,  uDaneCM4.dane.stGnss1.chSek);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 			}
 
 			//Wysokość czujnika 1
 			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strcat(chBufforZapisuKarty, "Wysokość1 [m],");
+				strncat(chBufZapisuKarty, "Wysokość1 [m];", MAX_ROZMIAR_WPISU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.2f ", uDaneCM4.dane.fWysoko[0]);
-				strcat(chBufforZapisuKarty, chBufPodreczny);
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fWysoko[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 			}
 
 			//akcelerometr1 X
 			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strcat(chBufforZapisuKarty, "Akcel1 X [g],");
+				strncat(chBufZapisuKarty, "Akcel1 X [g];", MAX_ROZMIAR_WPISU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.2f ", uDaneCM4.dane.fAkcel1[0]);
-				strcat(chBufforZapisuKarty, chBufPodreczny);
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fAkcel1[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 			}
 
 			//akcelerometr1 Y
 			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strcat(chBufforZapisuKarty, "Akcel1 Y [g],");
+				strncat(chBufZapisuKarty, "Akcel1 Y [g];", MAX_ROZMIAR_WPISU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.2f ", uDaneCM4.dane.fAkcel1[1]);
-				strcat(chBufforZapisuKarty, chBufPodreczny);
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fAkcel1[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 			}
 			//akcelerometr1 XZ
 			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strcat(chBufforZapisuKarty, "Akcel1 Z [g],");
+				strncat(chBufZapisuKarty, "Akcel1 Z [g];", MAX_ROZMIAR_WPISU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.2f ", uDaneCM4.dane.fAkcel1[2]);
-				strcat(chBufforZapisuKarty, chBufPodreczny);
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fAkcel1[2]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 			}
 
 			//jeżeli był zapisywany nagłówek to przejdź do zapisu danych
 			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				chStatusRejestratora &= ~ STATREJ_ZAPISZ_NAGLOWEK;
-			f_puts(chBufforZapisuKarty, &SDFile);
+			strncat(chBufZapisuKarty, "\n\r", 3);	//znak końca linii
+			f_puts(chBufZapisuKarty, &SDFile);	//zapis do pliku
+			chBufZapisuKarty[0] = 0;	//ustaw 0 na początku bufora
 		}
 		else	//jeżeli FAT nie jest gotowy to go zamontuj
 		{
@@ -174,19 +141,20 @@ uint8_t ObslugaPetliRejestratora(void)
 			FRESULT fres;
 
 			hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
-			status = SD_initialize(1);
+			status = SD_initialize(0);
 			if (status == RES_OK)
 			{
 				fres = f_mount(&SDFatFS, SDPath, 1);
 				if (fres == FR_OK)
 				{
-					sprintf(chBufPodreczny, "%4d-%2d-%2d_APL3.csv", uDaneCM4.dane.stGnss1.chRok+2000, uDaneCM4.dane.stGnss1.chMies, uDaneCM4.dane.stGnss1.chDzien);
+					sprintf(chBufPodreczny, "%04d-%02d-%02d_APL3.csv", uDaneCM4.dane.stGnss1.chRok+2000, uDaneCM4.dane.stGnss1.chMies, uDaneCM4.dane.stGnss1.chDzien);
 					fres = f_open(&SDFile, chBufPodreczny, FA_OPEN_ALWAYS | FA_WRITE);
 					if (fres == FR_OK)
 						chStatusRejestratora |= STATREJ_FAT_GOTOWY | STATREJ_ZAPISZ_NAGLOWEK;
 				}
 				else	//jeżeli nie udało sie zamontować FAT to utwórz go ponownie
 				{
+					//DWORD au = _MAX_SS;
 					//fres = f_mkfs(SDPath, FM_FAT32, au, aTxBuffer, sizeof(aTxBuffer));	//sprawdzić czy tak może być
 				}
 			}
@@ -202,26 +170,16 @@ uint8_t ObslugaPetliRejestratora(void)
 		}
 	}
 
+	//sprawdź czy nie wyłączono rejestratoraw czasie pracy
+	if ((chStatusRejestratora & STATREJ_WLACZONY) == 0)
+	{
+		f_close(&SDFile);
+		f_mount(NULL, "", 1);		//zdemontuj system plików
+	}
+
   return ERR_OK;
 }
 
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Nadpisana funkcja weak do zapisu SDRAM. Zamieniono dostęp 32-bitowy na 16-bitowy
-// Zwraca: kod błędu
-////////////////////////////////////////////////////////////////////////////////
-/*uint8_t BSP_SDRAM_WriteData(uint32_t uwStartAddress, uint32_t *pData, uint32_t uwDataSize)
-{
-  uint8_t sdramstatus = SDRAM_OK;
-
-  if(HAL_SDRAM_Write_16b(&hsdram1, (uint32_t *)uwStartAddress, pData, uwDataSize*2) != HAL_OK)
-  {
-    sdramstatus = SDRAM_ERROR;
-  }
-
-  return sdramstatus;
-}*/
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -240,6 +198,7 @@ uint8_t Wait_SDCARD_Ready(void)
 	}
 	return HAL_ERROR;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

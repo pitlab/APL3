@@ -5684,12 +5684,17 @@ FRESULT f_mkfs (
 			} else {
 				st_dword(buf + 0, (fmt == FS_FAT12) ? 0xFFFFF8 : 0xFFFFFFF8);	/* Entry 0 and 1 */
 			}
+
+			uint32_t licz = 0;
 			nsect = sz_fat;		/* Number of FAT sectors */
 			do {	/* Fill FAT sectors */
 				n = (nsect > sz_buf) ? sz_buf : nsect;
-				if (disk_write(pdrv, buf, sect, (UINT)n) != RES_OK) return FR_DISK_ERR;
+				if (disk_write(pdrv, buf, sect, (UINT)n) != RES_OK)
+					return FR_DISK_ERR;
 				mem_set(buf, 0, ss);
 				sect += n; nsect -= n;
+				if (licz++ > 100)
+					licz = 0;
 			} while (nsect);
 		}
 

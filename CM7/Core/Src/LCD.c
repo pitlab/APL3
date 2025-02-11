@@ -76,6 +76,7 @@ extern uint8_t chPorty_exp_wysylane[];
 extern uint8_t chPorty_exp_odbierane[];
 extern uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
 extern SD_HandleTypeDef hsd1;
+extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -83,8 +84,8 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Multimedia",  "Obsluga multimediow: dzwiek i obraz",		TP_MULTIMEDIA, 		obr_volume},
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
-	{"Karta SD",	"Parametry karty SD",						TP_INFO_KARTA,		obr_kartaSD},
-	{"Test SD", 	"nic",										TP_MG2,				obr_kartaSD},
+	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_kartaSD},
+	{"MG2", 		"nic",										TP_MG2,				obr_mtest},
 	{"UART blok", 	"nic",										TP_MG3,				obr_mtest},
 	{"UART DMA", 	"nic",										TP_MG4,				obr_mtest},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_multitool},
@@ -121,6 +122,18 @@ struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
+struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
+	{"Wlacz Rej",   "Wlacza rejestrator",   					TPKS_WLACZ_REJ,		obr_kartaSD},
+	{"Wylacz Rej",  "Wylacza rejestrator",   					TPKS_WYLACZ_REJ,	obr_kartaSD},
+	{"Parametry",	"Parametry karty SD",						TPKS_PARAMETRY,		obr_kartaSD},
+	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TPKS_POMIAR, 		obr_multimetr},
+	{"TPKS_4",		"nic  ",									TPKS_4,				obr_dotyk},
+	{"TPKS_5",		"nic  ",									TPKS_5,				obr_dotyk},
+	{"TPKS_6",		"nic  ",									TPKS_6,				obr_dotyk},
+	{"TPKS_7",		"nic  ",									TPKS_7,				obr_dotyk},
+	{"TPKS_8",		"nic  ",									TPKS_8,				obr_dotyk},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -148,23 +161,7 @@ void RysujEkran(void)
 			chTrybPracy = TP_TESTY;
 		break;
 
-	case TP_INFO_KARTA:
-		WyswietlParametryKartySD();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MENU;
-		}
-		break;
 
-	case TP_MG2:
-		TestKartySD();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MENU;
-		}
-		break;
 
 	case TP_MG3:
 		TestKomunikacjiSTD();	//wyślij komunikat tesktowy przez LPUART
@@ -318,6 +315,56 @@ void RysujEkran(void)
 	///LOG_SD1_VSEL - H=3,3V L=1,8V
 	case TP_W3:		chPorty_exp_wysylane[0] |=  EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - H=3,3V
 	case TP_W4:		chPorty_exp_wysylane[0] &= ~EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - L=1,8V
+
+	//***************************************************
+	case TP_KARTA_SD:			///menu Karta SD
+		Menu((char*)chNapisLcd[STR_MENU_KARTA_SD], stMenuKartaSD, &chNowyTrybPracy);
+		chWrocDoTrybu = TP_MENU_GLOWNE;
+		break;
+
+	case TPKS_WLACZ_REJ:
+		chStatusRejestratora |= STATREJ_WLACZONY;
+		WyswietlRejestratorKartySD();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TPKS_WROC;
+		}
+		break;
+
+	case TPKS_WYLACZ_REJ:
+		chStatusRejestratora &= ~STATREJ_WLACZONY;
+		WyswietlRejestratorKartySD();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TPKS_WROC;
+		}
+		break;
+
+	case TPKS_PARAMETRY:
+		WyswietlParametryKartySD();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TPKS_WROC;
+		}
+		break;
+
+	case TPKS_POMIAR:
+		TestKartySD();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TPKS_WROC;
+		}
+		break;
+
+	case TPKS_4:
+	case TPKS_5:
+	case TPKS_6:
+	case TPKS_7:
+	case TPKS_8:	break;
 	}
 
 	//rzeczy do zrobienia podczas uruchamiania nowego trybu pracy
@@ -334,7 +381,8 @@ void RysujEkran(void)
 		{
 		case TP_WROC_DO_MENU:	chTrybPracy = TP_MENU_GLOWNE;	break;	//powrót do menu głównego
 		case TP_WROC_DO_MMEDIA:	chTrybPracy = TP_MULTIMEDIA;	break;	//powrót do menu MultiMedia
-		case TP_WROC_DO_WYDAJN:	chTrybPracy = TP_WYDAJNOSC;		break;	//powrót do menu
+		case TP_WROC_DO_WYDAJN:	chTrybPracy = TP_WYDAJNOSC;		break;	//powrót do menu Wydajność
+		case TPKS_WROC:			chTrybPracy = TP_KARTA_SD;		break;	//powrót do menu Karta SD
 		case TP_FRAKTALE:		InitFraktal(0);		break;
 		case TP_USTAWIENIA:		chTrybPracy = TP_KALIB_DOTYK;	break;
 		}
@@ -1313,8 +1361,30 @@ void WyswietlParametryKartySD(void)
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje okno z parametrami rejestratora na karcie SD
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void WyswietlRejestratorKartySD(void)
+{
+	char chOpis[10];
 
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Rejestrator na karcie SD");
+	}
 
+	if (chStatusRejestratora & STATREJ_WLACZONY)
+		sprintf(chOpis, "W%c%cczony", ł, ą);
+	else
+		sprintf(chOpis, "Wy%c%cczony", ł, ą);
+
+	setColor(GRAY80);
+	sprintf(chNapis, "Rejestrator: %s ", chOpis);
+	print(chNapis, 10, 30);
+}
 
 
 
