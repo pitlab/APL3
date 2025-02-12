@@ -111,6 +111,7 @@
 #define INIT0_FLASH_NOR		0x00000001
 #define INIT0_LCD480x320	0x00000002
 #define INIT0_FLASH_QSPI	0x00000004
+#define INIT0_EXPANDER_IO	0x00000008
 
 //flagi inicjalizacj sprzetu poza płytką
 #define INIT1_MOD_IMU		0x00000001

@@ -24,7 +24,7 @@
 #define STATREJ_FAT_GOTOWY		1
 #define STATREJ_ZAPISZ_NAGLOWEK	2
 #define STATREJ_WLACZONY		4
-#define STATREJ_8				8
+#define STATREJ_OTWARTY_PLIK	8
 #define STATREJ_16				8
 
 

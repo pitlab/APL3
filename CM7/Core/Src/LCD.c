@@ -1271,91 +1271,128 @@ void WyswietlParametryKartySD(void)
 	char chOEM[2];
 	extern uint8_t chPorty_exp_wysylane[];
 	float fNapiecie;
+	uint16_t sPozY;
 
 	if (chRysujRaz)
 	{
 		chRysujRaz = 0;
 		BelkaTytulu("Parametry karty SD");
+
+		//zamaż ewentualną pozostałość napisu o braku karty
+		setFont(BigFont);
+		setColor(BLACK);
+		sprintf(chNapis, "                             ");
+		print(chNapis, CENTER, 50);
+		setFont(MidFont);
 	}
 
 	if (BSP_SD_IsDetected())
 	{
-		//zamaż ewentualną pozostałość napisu o braku karty
-		setColor(BLACK);
-		sprintf(chNapis, "                             ");
-		print(chNapis, CENTER, 50);
+
 
 		BSP_SD_GetCardInfo(&CardInfo);
 		HAL_SD_GetCardCID(&hsd1, &pCID);
 		HAL_SD_GetCardCSD(&hsd1, &pCSD);
+		sPozY = 30;
 
 		setColor(GRAY80);
 		sprintf(chNapis, "Typ: %ld ", CardInfo.CardType);
-		print(chNapis, 10, 30);
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
 		sprintf(chNapis, "Wersja: %ld ", CardInfo.CardVersion);
-		print(chNapis, 10, 50);
-		sprintf(chNapis, "Klasa: %ld ", CardInfo.Class);
-		print(chNapis, 10, 70);
-		sprintf(chNapis, "Pr%cdko%c%c: %#lX ", ę, ś, ć, CardInfo.CardSpeed);
-		print(chNapis, 10, 90);
-		sprintf(chNapis, "Liczba blok%cw: %ld ", ó, CardInfo.BlockNbr);
-		print(chNapis, 10, 110);
-		sprintf(chNapis, "Rozmiar bloku: %ld ", CardInfo.BlockSize);
-		print(chNapis, 10, 130);
-		//sprintf(chNapis, "Obecno%c%c karty: %d ", ś, ć, BSP_SD_IsDetected());	//LOG_SD1_CDETECT - wejscie detekcji obecności karty
-		//print(chNapis, 10, 150);
-
-		sprintf(chNapis, "Manufacturer ID: %X ", pCID.ManufacturerID);
-		print(chNapis, 10, 170);
-
-		chOEM[0] = (pCID.OEM_AppliID & 0xFF00)>>8;
-		chOEM[1] = pCID.OEM_AppliID & 0x00FF;
-		sprintf(chNapis, "OEM_AppliID: %c%c ", chOEM[0], chOEM[1]);
-
-		print(chNapis, 10, 190);
-		sprintf(chNapis, "Numer seryjny: %ld ", pCID.ProdSN);
-		print(chNapis, 10, 210);
-		sprintf(chNapis, "Data produkcji rr-m: %d-%d ",(pCID.ManufactDate>>4) & 0xFF, (pCID.ManufactDate & 0xF));
-		print(chNapis, 10, 230);
-		sprintf(chNapis, "CardComdClasses: %X ", pCSD.CardComdClasses);
-		print(chNapis, 10, 250);
-		sprintf(chNapis, "DeviceSize: %ld ", pCSD.DeviceSize * pCSD.DeviceSizeMul);
-		print(chNapis, 10, 270);
-		sprintf(chNapis, "MaxBusClkFrec: %d ", pCSD.MaxBusClkFrec);
-		print(chNapis, 10, 290);
-
-		//druga kolumna
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
+		sprintf(chNapis, "Klasa: %ld (0x%X) ", CardInfo.Class);
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
+		sprintf(chNapis, "Pr%cdko%c%c: 0x%lX ", ę, ś, ć, CardInfo.CardSpeed);
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
+		sprintf(chNapis, "CardComdClasses: 0x%X ", pCSD.CardComdClasses);
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
 		if (chPorty_exp_wysylane[0] & EXP02_LOG_VSELECT)	//LOG_SD1_VSEL: H=3,3V
 			fNapiecie = 3.3;
 		else
 			fNapiecie = 1.8;
 		sprintf(chNapis, "Napi%ccie I/O: %.1fV ", ę, fNapiecie);
-		print(chNapis, 240, 30);
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
 
 
-		/*sprintf(chNapis, "Scie%cka: %s ", ż, SDPath);
-		print(chNapis, 240, 30);
-		sprintf(chNapis, "Typ FAT: %d ", SDFatFS.fs_type);
-		print(chNapis, 240, 50);
-		sprintf(chNapis, "Rozmiar: %ld ", SDFatFS.fsize);;
-		print(chNapis, 240, 70);
-		sprintf(chNapis, "FAT ID: %d ", SDFatFS.id);
-		print(chNapis, 240, 90);
-		sprintf(chNapis, "FAT drv: %d ", SDFatFS.drv);
-		print(chNapis, 240, 110);
-		sprintf(chNapis, "Ilo%c%c sektor%cw: %ld ", ś, ć, ó, (SDFatFS.n_fatent - 2) * SDFatFS.csize);
-		print(chNapis, 240, 130);
-		sprintf(chNapis, "Wolnych sektor%cw: %ld ", ó, SDFatFS.free_clst * SDFatFS.csize);
-		print(chNapis, 240, 150); */
+		//sprintf(chNapis, "DeviceSize: %ld ", pCSD.DeviceSize * pCSD.DeviceSizeMul);
+		//print(chNapis, 10, sPozY);
+		//sPozY += 20;
+		sprintf(chNapis, "MaxBusClkFrec: %d ", pCSD.MaxBusClkFrec);
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
+		//sprintf(chNapis, "SysSpecVersion: %d ", pCSD.SysSpecVersion);
+		//print(chNapis, 10, sPozY);
+		//sPozY += 20;
 
-		sprintf(chNapis, "SysSpecVersion: %d ", pCSD.SysSpecVersion);
-		print(chNapis, 240, 170);
+
+		sprintf(chNapis, "MaxRdCurrentVDDMin: %d ", pCSD.MaxRdCurrentVDDMin);
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
+		sprintf(chNapis, "MaxRdCurrentVDDMax: %d ", pCSD.MaxRdCurrentVDDMax);
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
+		sprintf(chNapis, "MaxWrCurrentVDDMin: %d ", pCSD.MaxWrCurrentVDDMin);
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
+		sprintf(chNapis, "MaxWrCurrentVDDMax: %d ", pCSD.MaxWrCurrentVDDMax);
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
+
+		//druga kolumna
+		sPozY = 30;
+		sprintf(chNapis, "Liczba sektor%cw: %ld ", ó, CardInfo.BlockNbr);		//Specifies the Card Capacity in blocks
+		print(chNapis, 240, sPozY);
+		sPozY += 20;
+		sprintf(chNapis, "Rozmiar sektora: %ld B ", CardInfo.BlockSize);		//Specifies one block size in bytes
+		print(chNapis, 240, sPozY);
+		sPozY += 20;
+		sprintf(chNapis, "Pojemno%c%c karty: %ld MB ", ś, ć, CardInfo.BlockNbr * (CardInfo.BlockSize / 512) / 2048);		//Specifies one block size in bytes
+		print(chNapis, 240, sPozY);
+		sPozY += 20;
+		sPozY += 20;
+		//sprintf(chNapis, "Liczba blok%cw log.: %ld ", ó, CardInfo.LogBlockNbr);		//Specifies the Card logical Capacity in blocks
+		//print(chNapis, 240, sPozY);
+		//sPozY += 20;
+		sprintf(chNapis, "Rozmiar bloku log.: %ld ", CardInfo.LogBlockSize);		//Specifies logical block size in bytes
+		print(chNapis, 240, sPozY);
+		sPozY += 20;
+		//sprintf(chNapis, "Rozmiar karty log: %ld MB ", CardInfo.LogBlockNbr * (CardInfo.LogBlockSize / 512) / 2048);		//Specifies one block size in bytes
+		//print(chNapis, 240, sPozY);
+		//sPozY += 20;
+		sprintf(chNapis, "File format: %d ", pCSD.FileFormat);
+		print(chNapis, 240, sPozY);
+		sPozY += 20;
+		sprintf(chNapis, "Manufacturer ID: %X ", pCID.ManufacturerID);
+		print(chNapis, 240, sPozY);
+		sPozY += 20;
+
+		chOEM[0] = (pCID.OEM_AppliID & 0xFF00)>>8;
+		chOEM[1] = pCID.OEM_AppliID & 0x00FF;
+		sprintf(chNapis, "OEM_AppliID: %c%c ", chOEM[0], chOEM[1]);
+		print(chNapis, 240, sPozY);
+		sPozY += 20;
+
+		sprintf(chNapis, "Nr seryjny: %ld ", pCID.ProdSN);
+		print(chNapis, 240, sPozY);
+		sPozY += 20;
+		sprintf(chNapis, "Data produkcji rr-m: %d-%d ",(pCID.ManufactDate>>4) & 0xFF, (pCID.ManufactDate & 0xF));
+		print(chNapis, 240, sPozY);
+		sPozY += 20;
+
 	}
 	else
 	{
+		setFont(BigFont);
 		setColor(RED);
 		sprintf(chNapis, "Wolne %carty, tu brak karty! ", ż);
 		print(chNapis, CENTER, 50);
+		chRysujRaz = 1;
 	}
 }
 

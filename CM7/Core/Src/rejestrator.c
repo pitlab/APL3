@@ -55,7 +55,12 @@ uint8_t BSP_SD_IsDetected(void)
 void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 {
 	extern uint8_t chPorty_exp_wysylane[];
+	extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 	uint8_t chErr;
+
+	//Może być wywoływany przez inicjalizacją Expanderów, więc sprawdź czy expandery są zainicjowane a jeżeli nie to najpierw je inicjalizuj
+	if ((nZainicjowano[0] & INIT0_EXPANDER_IO) == 0)
+		InicjujSPIModZewn();
 
 	if (status == SET)
 		chPorty_exp_wysylane[0] &= ~EXP02_LOG_VSELECT;	//LOG_SD1_VSEL: L=1,8V
@@ -64,7 +69,7 @@ void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 
 	//wysyłaj aż dane do ekspandera do skutku
 	do
-	chErr = WyslijDaneExpandera(SPI_EXTIO_0, chPorty_exp_wysylane[0]);
+		chErr = WyslijDaneExpandera(SPI_EXTIO_0, chPorty_exp_wysylane[0]);
 	while (chErr != ERR_OK);
 }
 
@@ -154,8 +159,8 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 				else	//jeżeli nie udało sie zamontować FAT to utwórz go ponownie
 				{
-					//DWORD au = _MAX_SS;
-					//fres = f_mkfs(SDPath, FM_FAT32, au, aTxBuffer, sizeof(aTxBuffer));	//sprawdzić czy tak może być
+					DWORD au = _MAX_SS;
+					fres = f_mkfs(SDPath, FM_FAT32, au, aTxBuffer, sizeof(aTxBuffer));	//sprawdzić czy tak może być
 				}
 			}
 		}
@@ -173,8 +178,8 @@ uint8_t ObslugaPetliRejestratora(void)
 	//sprawdź czy nie wyłączono rejestratoraw czasie pracy
 	if ((chStatusRejestratora & STATREJ_WLACZONY) == 0)
 	{
-		f_close(&SDFile);
-		f_mount(NULL, "", 1);		//zdemontuj system plików
+		if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
+			f_close(&SDFile);
 	}
 
   return ERR_OK;

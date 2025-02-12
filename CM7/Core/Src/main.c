@@ -1448,10 +1448,12 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
 	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 	//włącz czerwoną LED sygnalizując bład
-	chCzasSwieceniaLED[LED_CZER] = 1;	//włącz czerwoną
-	chCzasSwieceniaLED[LED_ZIEL] = 0;	//wyłącz zieloną
-	chCzasSwieceniaLED[LED_NIEB] = 0;	//wyłącz niebieską
-	WymienDaneExpanderow();
+	if ((nZainicjowano[0] & INIT0_EXPANDER_IO) == 0)
+		InicjujSPIModZewn();
+	chPorty_exp_wysylane[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
+	chPorty_exp_wysylane[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
+	chPorty_exp_wysylane[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
+	WyslijDaneExpandera(SPI_EXTIO_2, chPorty_exp_wysylane[2]);
   __disable_irq();
   while (1)
   {
