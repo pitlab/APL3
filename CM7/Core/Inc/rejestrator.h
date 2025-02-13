@@ -28,7 +28,7 @@
 #define STATREJ_ZAMKNIJ_PLIK	0x10
 
 
-#define ROZMIAR_BUFORA_KARTY	256
+#define ROZMIAR_BUFORA_KARTY	512
 #define MAX_ROZMIAR_WPISU		20
 
 uint8_t BSP_SD_IsDetected(void);

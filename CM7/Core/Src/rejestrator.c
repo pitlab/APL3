@@ -112,12 +112,13 @@ uint8_t ObslugaPetliRejestratora(void)
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
+
 				//akcelerometr1 X
 				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 					strncat(chBufZapisuKarty, "Akcel1 X [g];", MAX_ROZMIAR_WPISU);
 				else
 				{
-					sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fAkcel1[0]);
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fAkcel1[0]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
@@ -126,19 +127,47 @@ uint8_t ObslugaPetliRejestratora(void)
 					strncat(chBufZapisuKarty, "Akcel1 Y [g];", MAX_ROZMIAR_WPISU);
 				else
 				{
-					sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fAkcel1[1]);
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fAkcel1[1]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
-				//akcelerometr1 XZ
+				//akcelerometr1 Z
 				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 					strncat(chBufZapisuKarty, "Akcel1 Z [g];", MAX_ROZMIAR_WPISU);
 				else
 				{
-					sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fAkcel1[2]);
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fAkcel1[2]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
-				//żyroskop X
+
+				//akcelerometr2 X
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Akcel2 X [g];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fAkcel2[0]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//akcelerometr2 Y
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Akcel2 Y [g];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fAkcel2[1]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+				//akcelerometr2 Z
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Akcel2 Z [g];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fAkcel2[2]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+
+				//żyroskop1 X
 				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 					strncat(chBufZapisuKarty, "Zyro1 X [°/s];", MAX_ROZMIAR_WPISU);
 				else
@@ -147,7 +176,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
-				//akcelerometr1 Y
+				//żyroskop1 Y
 				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 					strncat(chBufZapisuKarty, "Zyro1 Y [°/s];", MAX_ROZMIAR_WPISU);
 				else
@@ -155,7 +184,8 @@ uint8_t ObslugaPetliRejestratora(void)
 					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros1[1]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
-				//akcelerometr1 XZ
+
+				//żyroskop1 Z
 				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 					strncat(chBufZapisuKarty, "Zyro1 Z [°/s];", MAX_ROZMIAR_WPISU);
 				else
@@ -163,6 +193,119 @@ uint8_t ObslugaPetliRejestratora(void)
 					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros1[2]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
+
+
+				//żyroskop2 X
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Zyro2 X [°/s];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros2[0]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//żyroskop2 Y
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Zyro2 Y [°/s];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros2[1]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//żyroskop2 Z
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Zyro2 Z [°/s];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros2[2]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+
+				//Magnetometr1 X
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Magn1 X [gaus];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne1[0]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//Magnetometr1 Y
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Magn1 Y [gaus];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne1[1]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//Magnetometr1 Z
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Magn1 Z [gaus];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne1[2]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+
+				//Magnetometr2 X
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Magn2 X [gaus];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne2[0]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//Magnetometr1 Y
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Magn2 Y [gaus];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne2[1]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//Magnetometr1 Z
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Magn2 Z [gaus];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne2[2]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+
+				//Magnetometr3 X
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Magn3 X [gaus];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne3[0]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//Magnetometr3 Y
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Magn3 Y [gaus];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne3[1]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//Magnetometr3 Z
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Magn3 Z [gaus];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne3[2]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
 
 				//jeżeli był zapisywany nagłówek to przejdź do zapisu danych
 				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
@@ -191,7 +334,15 @@ uint8_t ObslugaPetliRejestratora(void)
 			{
 				fres = f_mount(&SDFatFS, SDPath, 1);
 				if (fres == FR_OK)
+				{
 					chStatusRejestratora |= STATREJ_FAT_GOTOWY;
+					fres = f_open(&SDFile, "abc.txt", FA_OPEN_EXISTING | FA_READ | FA_WRITE);
+					if (fres == FR_OK)
+					{
+						f_gets(chBufZapisuKarty, ROZMIAR_BUFORA_KARTY, &SDFile);
+						f_close(&SDFile);
+					}
+				}
 				//else
 				{
 					//jeżeli nie udało sie zamontować FAT to utwórz go ponownie
@@ -402,3 +553,39 @@ void TestKartySD(void)
 }
 
 
+/*
+ *
+ * Program testowy pinów karty
+uint8_t chExpander = 0;
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  chErr |= InicjujSPIModZewn();
+  GPIO_InitStruct.Pin = GPIO_PIN_8 | GPIO_PIN_9 | GPIO_PIN_10 | GPIO_PIN_11 | GPIO_PIN_12;
+  	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  	GPIO_InitStruct.Pull = GPIO_NOPULL;
+  	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  	GPIO_InitStruct.Pin = GPIO_PIN_2;
+  	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  	GPIO_InitStruct.Pull = GPIO_NOPULL;
+  	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+    for (;;)
+    {
+    	chExpander ^= EXP02_LOG_VSELECT;
+    	WyslijDaneExpandera(SPI_EXTIO_0, chExpander);
+    	HAL_Delay(1);
+
+    	for (uint8_t n=0; n<8; n++)
+		{
+		  //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8);
+		  //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_9);
+		  HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_10);
+		  //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_11);
+		  //HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_12);
+		  //HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_2);
+		}
+    }
+  }*/

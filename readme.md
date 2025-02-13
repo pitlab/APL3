@@ -25,6 +25,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Jest elementarny zapis / odczyt karty SD o transferze 7 / 16 MB/s dla karty high speed klasy C10 ( min. zapis 10MB/s)
 ![Transfer](obrazki/transfer_karty_SD.jpg)
 - Prezentacja układów IMU na ekranie powitalnym
+- Uruchomiony system FAT na karcie, uruchomiony loger
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM

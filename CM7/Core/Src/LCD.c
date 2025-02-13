@@ -1445,9 +1445,12 @@ void WyswietlRejestratorKartySD(void)
 	//sprintf(chNapis, "Stan FAT: %s ", chOpis);
 	sprintf(chNapis, "Stan FATu: ");
 	print(chNapis, 10, sPozY);
-	setColor(YELLOW);
+
 	if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
+	{
+		setColor(KOLOR_Y);
 		sprintf(chNapis, "Gotowy");
+	}
 	else
 	{
 		setColor(KOLOR_X);
@@ -1481,11 +1484,17 @@ void WyswietlRejestratorKartySD(void)
 	//sprintf(chNapis, "Plik logu: %s ", chOpis);
 	sprintf(chNapis, "Plik logu: ");
 	print(chNapis, 10, sPozY);
-	setColor(YELLOW);
+
 	if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
+	{
+		setColor(KOLOR_Y);
 		sprintf(chNapis, "Otwarty");
+	}
 	else
+	{
+		setColor(YELLOW);
 		sprintf(chNapis, "Brak");
+	}
 	print(chNapis, 10 + 11*FONT_SL, sPozY);
 	sPozY += 20;
 
