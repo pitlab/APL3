@@ -63,7 +63,7 @@ uint8_t chNowyTrybPracy;
 uint8_t chWrocDoTrybu;
 uint8_t chRysujRaz;
 uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
-char chNapis[60];
+char chNapis[70];
 float fZoom, fX, fY;
 float fReal, fImag;
 unsigned char chMnozPalety;
@@ -332,8 +332,8 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TPKS_WYLACZ_REJ:
-		chStatusRejestratora &= ~STATREJ_WLACZONY;
+	case TPKS_WYLACZ_REJ:	//najpierw zakmnij plik a potem wyłacz rejestrator
+		chStatusRejestratora |= STATREJ_ZAMKNIJ_PLIK;
 		WyswietlRejestratorKartySD();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
@@ -526,12 +526,20 @@ void Wykrycie(uint16_t x, uint16_t y, uint8_t znakow, uint8_t wykryto)
 		//HAL_Delay(50);
 	}
 	if (wykryto)
+	{
+		setColor(TEAL);
 		sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_WYKR]);	//"wykryto"
+	}
 	else
+	{
+		setColor(KOLOR_X);	//czerwony
 		sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_BRAK]);	//"brakuje"
+	}
 	x += kropek * szer_fontu;
 	print(chNapis, x , y);
+	setColor(GRAY30);
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1302,7 +1310,7 @@ void WyswietlParametryKartySD(void)
 		sprintf(chNapis, "Wersja: %ld ", CardInfo.CardVersion);
 		print(chNapis, 10, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "Klasa: %ld (0x%X) ", CardInfo.Class);
+		sprintf(chNapis, "Klasa: %ld (0x%lX) ", CardInfo.Class, CardInfo.Class);
 		print(chNapis, 10, sPozY);
 		sPozY += 20;
 		sprintf(chNapis, "Pr%cdko%c%c: 0x%lX ", ę, ś, ć, CardInfo.CardSpeed);
@@ -1405,7 +1413,8 @@ void WyswietlParametryKartySD(void)
 ////////////////////////////////////////////////////////////////////////////////
 void WyswietlRejestratorKartySD(void)
 {
-	char chOpis[10];
+	extern uint8_t chKodBleduMontowaniaFAT;
+	uint16_t sPozY;
 
 	if (chRysujRaz)
 	{
@@ -1413,14 +1422,73 @@ void WyswietlRejestratorKartySD(void)
 		BelkaTytulu("Rejestrator na karcie SD");
 	}
 
+	sPozY = 30;
+	setColor(GRAY80);
+	//sprintf(chNapis, "Rejestrator: %s ", chOpis);
+	sprintf(chNapis, "Rejestrator: ");
+	print(chNapis, 10, sPozY);
+	setColor(YELLOW);
 	if (chStatusRejestratora & STATREJ_WLACZONY)
-		sprintf(chOpis, "W%c%cczony", ł, ą);
+	{
+		setColor(KOLOR_Y);
+		sprintf(chNapis, "W%c%cczony", ł, ą);
+	}
 	else
-		sprintf(chOpis, "Wy%c%cczony", ł, ą);
+	{
+		setColor(KOLOR_X);
+		sprintf(chNapis, "Zatrzymany");
+	}
+	print(chNapis, 10 + 13*FONT_SL, sPozY);
+	sPozY += 20;
 
 	setColor(GRAY80);
-	sprintf(chNapis, "Rejestrator: %s ", chOpis);
-	print(chNapis, 10, 30);
+	//sprintf(chNapis, "Stan FAT: %s ", chOpis);
+	sprintf(chNapis, "Stan FATu: ");
+	print(chNapis, 10, sPozY);
+	setColor(YELLOW);
+	if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
+		sprintf(chNapis, "Gotowy");
+	else
+	{
+		setColor(KOLOR_X);
+		switch (chKodBleduMontowaniaFAT)
+		{
+		case FR_DISK_ERR: 			sprintf(chNapis, "A hard error in low level disk I/O layer");	break;
+		case FR_INT_ERR:			sprintf(chNapis, "Assertion failed");							break;
+		case FR_NOT_READY: 			sprintf(chNapis, "The physical drive cannot work");				break;
+		case FR_NO_FILE:			sprintf(chNapis, "Could not find the file");					break;
+		case FR_NO_PATH:			sprintf(chNapis, "Could not find the path");					break;
+		case FR_INVALID_NAME:		sprintf(chNapis, "The path name format is invalid");			break;
+		case FR_DENIED:				sprintf(chNapis, "Access denied or directory full");			break;
+		case FR_EXIST:				sprintf(chNapis, "Access denied due to prohibited access");		break;
+		case FR_INVALID_OBJECT:		sprintf(chNapis, "The file/directory object is invalid");		break;
+		case FR_WRITE_PROTECTED:	sprintf(chNapis, "The physical drive is write protected");		break;
+		case FR_INVALID_DRIVE:		sprintf(chNapis, "The logical drive number is invalid");		break;
+		case FR_NOT_ENABLED:		sprintf(chNapis, "The volume has no work area");				break;
+		case FR_NO_FILESYSTEM:		sprintf(chNapis, "There is no valid FAT volume");				break;
+		case FR_MKFS_ABORTED:		sprintf(chNapis, "The f_mkfs() aborted due to any problem");	break;
+		case FR_TIMEOUT:			sprintf(chNapis, "Could not get a grant to access the volume");	break;
+		case FR_LOCKED:				sprintf(chNapis, "Operation rejected due file sharing policy");	break;
+		case FR_NOT_ENOUGH_CORE:	sprintf(chNapis, "LFN working buffer could not be allocated");	break;
+		case FR_TOO_MANY_OPEN_FILES:sprintf(chNapis, "Number of open files > _FS_LOCK");			break;
+		case FR_INVALID_PARAMETER:	sprintf(chNapis, "Given parameter is invalid");					break;
+		}
+	}
+	print(chNapis, 10 + 11*FONT_SL, sPozY);
+	sPozY += 20;
+
+	setColor(GRAY80);
+	//sprintf(chNapis, "Plik logu: %s ", chOpis);
+	sprintf(chNapis, "Plik logu: ");
+	print(chNapis, 10, sPozY);
+	setColor(YELLOW);
+	if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
+		sprintf(chNapis, "Otwarty");
+	else
+		sprintf(chNapis, "Brak");
+	print(chNapis, 10 + 11*FONT_SL, sPozY);
+	sPozY += 20;
+
 }
 
 

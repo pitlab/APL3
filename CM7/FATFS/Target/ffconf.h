@@ -111,7 +111,7 @@
 */
 
 #define _USE_LFN     2    /* 0 to 3 */
-#define _MAX_LFN     25  /* Maximum LFN length to handle (12 to 255) */
+#define _MAX_LFN     30  /* Maximum LFN length to handle (12 to 255) */
 /* The _USE_LFN switches the support of long file name (LFN).
 /
 /   0: Disable support of LFN. _MAX_LFN has no effect.

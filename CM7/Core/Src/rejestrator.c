@@ -29,6 +29,7 @@ uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 ALIGN_32BYTES(static char chBufZapisuKarty[ROZMIAR_BUFORA_KARTY]);	//bufor na jedną linijkę logu
 ALIGN_32BYTES(static char chBufPodreczny[25]);
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;
+uint8_t chKodBleduMontowaniaFAT;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Zwraca obecność karty w gnieździe. Wymaga wcześniejszego odczytania stanu expanderów I/O, ktore czytane są w każdym obiegu pętli StartDefaultTask()
@@ -83,62 +84,101 @@ void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 uint8_t ObslugaPetliRejestratora(void)
 {
 
+
 	if ((chPorty_exp_odbierane[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty
 	{
 
 		if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
 		{
-
-			//czas
-			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strncat(chBufZapisuKarty, "Czas [g:m:s.ss];", MAX_ROZMIAR_WPISU);
-			else
+			if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
 			{
-				sprintf(chBufPodreczny, "%02d:%02d:%02d;", uDaneCM4.dane.stGnss1.chGodz,  uDaneCM4.dane.stGnss1.chMin,  uDaneCM4.dane.stGnss1.chSek);
-				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
-			}
+				//czas
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Czas [g:m:s.ss];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					//uint32_t nSetneSekundy;
+					//nSetneSekundy =
+					sprintf(chBufPodreczny, "%02d:%02d:%02d.03d;", uDaneCM4.dane.stGnss1.chGodz,  uDaneCM4.dane.stGnss1.chMin,  uDaneCM4.dane.stGnss1.chSek);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
 
-			//Wysokość czujnika 1
-			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strncat(chBufZapisuKarty, "Wysokość1 [m];", MAX_ROZMIAR_WPISU);
-			else
-			{
-				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fWysoko[0]);
-				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
-			}
+				//Wysokość czujnika 1
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Wysokość1 [m];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fWysoko[0]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
 
-			//akcelerometr1 X
-			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strncat(chBufZapisuKarty, "Akcel1 X [g];", MAX_ROZMIAR_WPISU);
-			else
-			{
-				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fAkcel1[0]);
-				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
-			}
+				//akcelerometr1 X
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Akcel1 X [g];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fAkcel1[0]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
 
-			//akcelerometr1 Y
-			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strncat(chBufZapisuKarty, "Akcel1 Y [g];", MAX_ROZMIAR_WPISU);
-			else
-			{
-				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fAkcel1[1]);
-				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
-			}
-			//akcelerometr1 XZ
-			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strncat(chBufZapisuKarty, "Akcel1 Z [g];", MAX_ROZMIAR_WPISU);
-			else
-			{
-				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fAkcel1[2]);
-				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
-			}
+				//akcelerometr1 Y
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Akcel1 Y [g];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fAkcel1[1]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+				//akcelerometr1 XZ
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Akcel1 Z [g];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fAkcel1[2]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
 
-			//jeżeli był zapisywany nagłówek to przejdź do zapisu danych
-			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				chStatusRejestratora &= ~ STATREJ_ZAPISZ_NAGLOWEK;
-			strncat(chBufZapisuKarty, "\n\r", 3);	//znak końca linii
-			f_puts(chBufZapisuKarty, &SDFile);	//zapis do pliku
-			chBufZapisuKarty[0] = 0;	//ustaw 0 na początku bufora
+				//żyroskop X
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Zyro1 X [°/s];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros1[0]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//akcelerometr1 Y
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Zyro1 Y [°/s];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros1[1]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+				//akcelerometr1 XZ
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "Zyro1 Z [°/s];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros1[2]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//jeżeli był zapisywany nagłówek to przejdź do zapisu danych
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					chStatusRejestratora &= ~ STATREJ_ZAPISZ_NAGLOWEK;
+				strncat(chBufZapisuKarty, "\n", 2);	//znak końca linii
+				f_puts(chBufZapisuKarty, &SDFile);	//zapis do pliku
+				chBufZapisuKarty[0] = 0;	//ustaw 0 na początku bufora
+			}
+			else	//jeżei plik nie jest otwarty to go otwórz
+			{
+				FRESULT fres;
+				sprintf(chBufPodreczny, "%04d-%02d-%02d_APL3.csv", uDaneCM4.dane.stGnss1.chRok+2000, uDaneCM4.dane.stGnss1.chMies, uDaneCM4.dane.stGnss1.chDzien);
+				fres = f_open(&SDFile, chBufPodreczny, FA_OPEN_ALWAYS | FA_WRITE);
+				if (fres == FR_OK)
+					chStatusRejestratora |= STATREJ_OTWARTY_PLIK | STATREJ_ZAPISZ_NAGLOWEK;
+			}
 		}
 		else	//jeżeli FAT nie jest gotowy to go zamontuj
 		{
@@ -151,17 +191,14 @@ uint8_t ObslugaPetliRejestratora(void)
 			{
 				fres = f_mount(&SDFatFS, SDPath, 1);
 				if (fres == FR_OK)
+					chStatusRejestratora |= STATREJ_FAT_GOTOWY;
+				//else
 				{
-					sprintf(chBufPodreczny, "%04d-%02d-%02d_APL3.csv", uDaneCM4.dane.stGnss1.chRok+2000, uDaneCM4.dane.stGnss1.chMies, uDaneCM4.dane.stGnss1.chDzien);
-					fres = f_open(&SDFile, chBufPodreczny, FA_OPEN_ALWAYS | FA_WRITE);
-					if (fres == FR_OK)
-						chStatusRejestratora |= STATREJ_FAT_GOTOWY | STATREJ_ZAPISZ_NAGLOWEK;
+					//jeżeli nie udało sie zamontować FAT to utwórz go ponownie
+					//DWORD au = _MAX_SS;
+					//fres = f_mkfs(SDPath, FM_FAT32, au, aTxBuffer, sizeof(aTxBuffer));	//sprawdzić czy tak może być
 				}
-				else	//jeżeli nie udało sie zamontować FAT to utwórz go ponownie
-				{
-					DWORD au = _MAX_SS;
-					fres = f_mkfs(SDPath, FM_FAT32, au, aTxBuffer, sizeof(aTxBuffer));	//sprawdzić czy tak może być
-				}
+				chKodBleduMontowaniaFAT = fres;
 			}
 		}
 	}
@@ -169,7 +206,8 @@ uint8_t ObslugaPetliRejestratora(void)
 	{
 		if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
 		{
-			f_close(&SDFile);
+			if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
+				f_close(&SDFile);
 			f_mount(NULL, "", 1);		//zdemontuj system plików
 			chStatusRejestratora = 0;
 		}
@@ -179,10 +217,21 @@ uint8_t ObslugaPetliRejestratora(void)
 	if ((chStatusRejestratora & STATREJ_WLACZONY) == 0)
 	{
 		if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
+		{
 			f_close(&SDFile);
+			f_mount(NULL, "", 1);		//zdemontuj system plików
+			chStatusRejestratora = 0;
+		}
 	}
 
-  return ERR_OK;
+	//wydano polecenie zamknięcia pliku
+	if (chStatusRejestratora & STATREJ_ZAMKNIJ_PLIK)
+	{
+		f_close(&SDFile);
+		chStatusRejestratora &= ~(STATREJ_ZAMKNIJ_PLIK | STATREJ_OTWARTY_PLIK | STATREJ_WLACZONY);
+	}
+
+	return ERR_OK;
 }
 
 

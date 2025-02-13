@@ -47,7 +47,7 @@
 #define MENU_RAM_WYB	GREEN
 #define MENU_RAM_AKT	WHITE
 #define MENU_RAM_NAK	GRAY50
-#define TRANSPARENT	0xFFFE	//specjalny kolor tła
+#define TRANSPARENT		0xFFFE	//specjalny kolor tła
 
 
 
