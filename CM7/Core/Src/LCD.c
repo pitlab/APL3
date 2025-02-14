@@ -77,6 +77,10 @@ extern uint8_t chPorty_exp_odbierane[];
 extern uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
 extern SD_HandleTypeDef hsd1;
 extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+extern RTC_TimeTypeDef sTime;
+extern RTC_HandleTypeDef hrtc;
+static uint8_t chOstatniCzas;
+
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -970,8 +974,8 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 			strcpy(chNapis, menu[chMenuSelPos].chPomoc);
 			print(chNapis, DW_SPACE, DISP_HY_SIZE-DW_SPACE-FONT_SH);
 			setBackColor(BLACK);
+			chRysujRaz = 0;
 		}
-		chRysujRaz = 0;
 	}
 
 	//czy był naciśniety enkoder lub ekran
@@ -982,6 +986,17 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		return;
 	}
 	*tryb = 0;
+
+	//rysuj czas
+	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+	if (sTime.Seconds != chOstatniCzas)
+	{
+		setColor(GRAY50);
+		setColor(MENU_RAM_AKT);
+		sprintf(chNapis, "%02d:%02d:%02d", sTime.Hours,  sTime.Minutes,  sTime.Seconds);
+		print(chNapis, DISP_HX_SIZE-9*FONT_SL, DISP_HY_SIZE-DW_SPACE-FONT_SH);
+		chOstatniCzas = sTime.Seconds;
+	}
 }
 
 
@@ -1413,7 +1428,7 @@ void WyswietlParametryKartySD(void)
 ////////////////////////////////////////////////////////////////////////////////
 void WyswietlRejestratorKartySD(void)
 {
-	extern uint8_t chKodBleduMontowaniaFAT;
+	extern uint8_t chKodBleduFAT;
 	uint16_t sPozY;
 
 	if (chRysujRaz)
@@ -1424,64 +1439,43 @@ void WyswietlRejestratorKartySD(void)
 
 	sPozY = 30;
 	setColor(GRAY80);
-	//sprintf(chNapis, "Rejestrator: %s ", chOpis);
-	sprintf(chNapis, "Rejestrator: ");
+
+	sprintf(chNapis, "Karta SD: ");
 	print(chNapis, 10, sPozY);
 	setColor(YELLOW);
-	if (chStatusRejestratora & STATREJ_WLACZONY)
+	if ((chPorty_exp_odbierane[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty
 	{
 		setColor(KOLOR_Y);
-		sprintf(chNapis, "W%c%cczony", ł, ą);
+		sprintf(chNapis, "Obecna");
 	}
 	else
 	{
 		setColor(KOLOR_X);
-		sprintf(chNapis, "Zatrzymany");
+		sprintf(chNapis, "Brak! ");
 	}
-	print(chNapis, 10 + 13*FONT_SL, sPozY);
+	print(chNapis, 10 + 11*FONT_SL, sPozY);
 	sPozY += 20;
 
+
 	setColor(GRAY80);
-	//sprintf(chNapis, "Stan FAT: %s ", chOpis);
 	sprintf(chNapis, "Stan FATu: ");
 	print(chNapis, 10, sPozY);
 
 	if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
 	{
 		setColor(KOLOR_Y);
-		sprintf(chNapis, "Gotowy");
+		sprintf(chNapis, "Gotowy                ");	//długością ma przykryć nadłuższy komunikat o błędzie
 	}
 	else
 	{
 		setColor(KOLOR_X);
-		switch (chKodBleduMontowaniaFAT)
-		{
-		case FR_DISK_ERR: 			sprintf(chNapis, "A hard error in low level disk I/O layer");	break;
-		case FR_INT_ERR:			sprintf(chNapis, "Assertion failed");							break;
-		case FR_NOT_READY: 			sprintf(chNapis, "The physical drive cannot work");				break;
-		case FR_NO_FILE:			sprintf(chNapis, "Could not find the file");					break;
-		case FR_NO_PATH:			sprintf(chNapis, "Could not find the path");					break;
-		case FR_INVALID_NAME:		sprintf(chNapis, "The path name format is invalid");			break;
-		case FR_DENIED:				sprintf(chNapis, "Access denied or directory full");			break;
-		case FR_EXIST:				sprintf(chNapis, "Access denied due to prohibited access");		break;
-		case FR_INVALID_OBJECT:		sprintf(chNapis, "The file/directory object is invalid");		break;
-		case FR_WRITE_PROTECTED:	sprintf(chNapis, "The physical drive is write protected");		break;
-		case FR_INVALID_DRIVE:		sprintf(chNapis, "The logical drive number is invalid");		break;
-		case FR_NOT_ENABLED:		sprintf(chNapis, "The volume has no work area");				break;
-		case FR_NO_FILESYSTEM:		sprintf(chNapis, "There is no valid FAT volume");				break;
-		case FR_MKFS_ABORTED:		sprintf(chNapis, "The f_mkfs() aborted due to any problem");	break;
-		case FR_TIMEOUT:			sprintf(chNapis, "Could not get a grant to access the volume");	break;
-		case FR_LOCKED:				sprintf(chNapis, "Operation rejected due file sharing policy");	break;
-		case FR_NOT_ENOUGH_CORE:	sprintf(chNapis, "LFN working buffer could not be allocated");	break;
-		case FR_TOO_MANY_OPEN_FILES:sprintf(chNapis, "Number of open files > _FS_LOCK");			break;
-		case FR_INVALID_PARAMETER:	sprintf(chNapis, "Given parameter is invalid");					break;
-		}
+		PobierzKodBleduFAT(chKodBleduFAT, chNapis);
+
 	}
 	print(chNapis, 10 + 11*FONT_SL, sPozY);
 	sPozY += 20;
 
 	setColor(GRAY80);
-	//sprintf(chNapis, "Plik logu: %s ", chOpis);
 	sprintf(chNapis, "Plik logu: ");
 	print(chNapis, 10, sPozY);
 
@@ -1493,13 +1487,81 @@ void WyswietlRejestratorKartySD(void)
 	else
 	{
 		setColor(YELLOW);
-		sprintf(chNapis, "Brak");
+		sprintf(chNapis, "Brak lub zatrzymany");
 	}
 	print(chNapis, 10 + 11*FONT_SL, sPozY);
 	sPozY += 20;
 
+	setColor(GRAY80);
+	sprintf(chNapis, "Rejestrator: ");
+	print(chNapis, 10, sPozY);
+	setColor(YELLOW);
+	if (chStatusRejestratora & STATREJ_WLACZONY)
+	{
+		setColor(KOLOR_Y);
+		sprintf(chNapis, "W%c%cczony  ", ł, ą);
+	}
+	else
+	{
+		setColor(YELLOW);
+		sprintf(chNapis, "Zatrzymany");
+	}
+	print(chNapis, 10 + 13*FONT_SL, sPozY);
+	sPozY += 20;
 }
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+//
+// Parametry: chKodBleduFAT - numer kodu błędu typu FRESULT
+// Zwraca: wskaźnik na string z kodem błędu FAT
+////////////////////////////////////////////////////////////////////////////////
+void PobierzKodBleduFAT(uint8_t chKodBledu, char* chNapis)
+{
+	switch (chKodBledu)
+	{
+	case FR_DISK_ERR: 			sprintf(chNapis, "FR_DISK_ERR");			break;
+	case FR_INT_ERR:			sprintf(chNapis, "FR_INT_ERR");				break;
+	case FR_NOT_READY: 			sprintf(chNapis, "FR_NOT_READY");			break;
+	case FR_NO_FILE:			sprintf(chNapis, "FR_NO_FILE");				break;
+	case FR_NO_PATH:			sprintf(chNapis, "FR_NO_PATH");				break;
+	case FR_INVALID_NAME:		sprintf(chNapis, "FR_INVALID_NAME");		break;
+	case FR_DENIED:				sprintf(chNapis, "FR_DENIED");				break;
+	case FR_EXIST:				sprintf(chNapis, "FR_EXIST");				break;
+	case FR_INVALID_OBJECT:		sprintf(chNapis, "FR_INVALID_OBJECT");		break;
+	case FR_WRITE_PROTECTED:	sprintf(chNapis, "FR_WRITE_PROTECTED");		break;
+	case FR_INVALID_DRIVE:		sprintf(chNapis, "FR_INVALID_DRIVE");		break;
+	case FR_NOT_ENABLED:		sprintf(chNapis, "FR_NOT_ENABLED");			break;
+	case FR_NO_FILESYSTEM:		sprintf(chNapis, "FR_NO_FILESYSTEM");		break;
+	case FR_MKFS_ABORTED:		sprintf(chNapis, "FR_MKFS_ABORTED");		break;
+	case FR_TIMEOUT:			sprintf(chNapis, "FR_TIMEOUT");				break;
+	case FR_LOCKED:				sprintf(chNapis, "FR_LOCKED");				break;
+	case FR_NOT_ENOUGH_CORE:	sprintf(chNapis, "FR_NOT_ENOUGH_CORE");		break;
+	case FR_TOO_MANY_OPEN_FILES:sprintf(chNapis, "FR_TOO_MANY_OPEN_FILES");	break;
+	case FR_INVALID_PARAMETER:	sprintf(chNapis, "FR_INVALID_PARAMETER");	break;
+	}
+	/*switch (chKodBleduFAT)
+	{
+	case FR_DISK_ERR: 			sprintf(chNapis, "A hard error in low level disk I/O layer");	break;
+	case FR_INT_ERR:			sprintf(chNapis, "Assertion failed");							break;
+	case FR_NOT_READY: 			sprintf(chNapis, "The physical drive cannot work");				break;
+	case FR_NO_FILE:			sprintf(chNapis, "Could not find the file");					break;
+	case FR_NO_PATH:			sprintf(chNapis, "Could not find the path");					break;
+	case FR_INVALID_NAME:		sprintf(chNapis, "The path name format is invalid");			break;
+	case FR_DENIED:				sprintf(chNapis, "Access denied or directory full");			break;
+	case FR_EXIST:				sprintf(chNapis, "Access denied due to prohibited access");		break;
+	case FR_INVALID_OBJECT:		sprintf(chNapis, "The file/directory object is invalid");		break;
+	case FR_WRITE_PROTECTED:	sprintf(chNapis, "The physical drive is write protected");		break;
+	case FR_INVALID_DRIVE:		sprintf(chNapis, "The logical drive number is invalid");		break;
+	case FR_NOT_ENABLED:		sprintf(chNapis, "The volume has no work area");				break;
+	case FR_NO_FILESYSTEM:		sprintf(chNapis, "There is no valid FAT volume");				break;
+	case FR_MKFS_ABORTED:		sprintf(chNapis, "The f_mkfs() aborted due to any problem");	break;
+	case FR_TIMEOUT:			sprintf(chNapis, "Could not get a grant to access the volume");	break;
+	case FR_LOCKED:				sprintf(chNapis, "Operation rejected due file sharing policy");	break;
+	case FR_NOT_ENOUGH_CORE:	sprintf(chNapis, "LFN working buffer could not be allocated");	break;
+	case FR_TOO_MANY_OPEN_FILES:sprintf(chNapis, "Number of open files > _FS_LOCK");			break;
+	case FR_INVALID_PARAMETER:	sprintf(chNapis, "Given parameter is invalid");					break;
+	}*/
 
+}

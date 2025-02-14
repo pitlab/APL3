@@ -70,6 +70,7 @@ extern MDMA_HandleTypeDef hmdma_mdma_channel2_dma1_stream1_tc_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel3_dma1_stream1_tc_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel4_dma1_stream1_tc_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel5_sdmmc1_end_data_0;
+extern RTC_HandleTypeDef hrtc;
 extern DMA_HandleTypeDef hdma_sai2_b;
 extern SD_HandleTypeDef hsd1;
 extern DMA_HandleTypeDef hdma_spi5_tx;
@@ -208,6 +209,20 @@ void DMA1_Stream6_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Stream6_IRQn 1 */
 
   /* USER CODE END DMA1_Stream6_IRQn 1 */
+}
+
+/**
+  * @brief This function handles RTC alarms (A and B) interrupt through EXTI line 17.
+  */
+void RTC_Alarm_IRQHandler(void)
+{
+  /* USER CODE BEGIN RTC_Alarm_IRQn 0 */
+
+  /* USER CODE END RTC_Alarm_IRQn 0 */
+  HAL_RTC_AlarmIRQHandler(&hrtc);
+  /* USER CODE BEGIN RTC_Alarm_IRQn 1 */
+
+  /* USER CODE END RTC_Alarm_IRQn 1 */
 }
 
 /**

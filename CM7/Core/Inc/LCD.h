@@ -29,4 +29,5 @@ void TestTonuAudio(void);
 void WyswietlParametryKartySD(void);
 void TestKartySD(void);
 void WyswietlRejestratorKartySD(void);
+void PobierzKodBleduFAT(uint8_t chKodBleduFAT, char* chNapis);
 #endif /* INC_LCD_H_ */
