@@ -131,6 +131,8 @@ uint8_t chErr = ERR_OK;
 extern uint8_t chPorty_exp_wysylane[];
 extern struct _statusDotyku statusDotyku;
 extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+extern uint8_t chStanSynchronizacjiCzasu;
+extern unia_wymianyCM4_t uDaneCM4;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -1320,9 +1322,6 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
 {
-	extern uint8_t chStanSynchronizacjiCzasu;	//pole bitowe określające potrzebę i stan synchronizacji lokalnego zegara z GNSS
-	extern unia_wymianyCM4_t uDaneCM4;
-
   /* init code for LWIP */
   //MX_LWIP_Init();
 
@@ -1559,7 +1558,7 @@ void Error_Handler(void)
 	chPorty_exp_wysylane[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
 	WyslijDaneExpandera(SPI_EXTIO_2, chPorty_exp_wysylane[2]);
   __disable_irq();
-  while (1)
+  //while (1)
   {
   }
   /* USER CODE END Error_Handler_Debug */

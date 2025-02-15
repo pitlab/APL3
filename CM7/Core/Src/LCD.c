@@ -63,7 +63,7 @@ uint8_t chNowyTrybPracy;
 uint8_t chWrocDoTrybu;
 uint8_t chRysujRaz;
 uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
-char chNapis[70];
+char chNapis[70], chNapisPodreczny[30];
 float fZoom, fX, fY;
 float fReal, fImag;
 unsigned char chMnozPalety;
@@ -85,7 +85,7 @@ static uint8_t chOstatniCzas;
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Multimedia",  "Obsluga multimediow: dzwiek i obraz",		TP_MULTIMEDIA, 		obr_volume},
+	{"Multimedia",  "Obsluga multimediow: dzwiek i obraz",		TP_MULTIMEDIA, 		obr_glosnik2},
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
 	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_kartaSD},
@@ -114,7 +114,7 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 
 struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Miki Rey",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_MMREJ,	 		obr_Mikołaj_Rey},
+	{"Miki Rej",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_MMREJ,	 		obr_Mikołaj_Rey},
 	{"Mikrofon",	"Wlacza mikrofon wylacza wzmacniacz",		TP_MM1,				obr_glosnik2},
 	{"Wzmacniacz",	"Wlacza wzmacniacz, wylacza mikrofon",		TP_MM2,				obr_glosnik2},
 	{"Test Tonu",	"Test tonu wario",							TP_MM_TEST_TONU,	obr_glosnik2},
@@ -327,7 +327,7 @@ void RysujEkran(void)
 		break;
 
 	case TPKS_WLACZ_REJ:
-		chStatusRejestratora |= STATREJ_WLACZONY;
+		chStatusRejestratora|= STATREJ_WLACZONY;
 		WyswietlRejestratorKartySD();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
@@ -337,7 +337,7 @@ void RysujEkran(void)
 		break;
 
 	case TPKS_WYLACZ_REJ:	//najpierw zakmnij plik a potem wyłacz rejestrator
-		chStatusRejestratora |= STATREJ_ZAMKNIJ_PLIK;
+		chStatusRejestratora|= STATREJ_ZAMKNIJ_PLIK | STATREJ_BYL_OTWARTY;
 		WyswietlRejestratorKartySD();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
@@ -1291,6 +1291,7 @@ void WyswietlParametryKartySD(void)
 	extern void BSP_SD_GetCardInfo(HAL_SD_CardInfoTypeDef *CardInfo);
 	HAL_SD_CardCIDTypedef pCID;
 	HAL_SD_CardCSDTypedef pCSD;
+	HAL_SD_CardStatusTypeDef pStatus;
 	char chOEM[2];
 	extern uint8_t chPorty_exp_wysylane[];
 	float fNapiecie;
@@ -1316,24 +1317,56 @@ void WyswietlParametryKartySD(void)
 		BSP_SD_GetCardInfo(&CardInfo);
 		HAL_SD_GetCardCID(&hsd1, &pCID);
 		HAL_SD_GetCardCSD(&hsd1, &pCSD);
+		HAL_SD_GetCardStatus(&hsd1, &pStatus);
 		sPozY = 30;
 
-		setColor(GRAY80);
+		setColor(GRAY70);
 		sprintf(chNapis, "Typ: %ld ", CardInfo.CardType);
 		print(chNapis, 10, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "Wersja: %ld ", CardInfo.CardVersion);
+		sprintf(chNapis, "Pojemnosc: ");
+		print(chNapis, 10, sPozY);
+		switch(pCSD.CSDStruct)
+		{
+		case 0:	sprintf(chNapis, "Standard");	break;
+		case 1:	sprintf(chNapis, "Wysoka  ");	break;
+		default:sprintf(chNapis, "Nieznana");	break;
+		}
+		print(chNapis, 10 + 11*FONT_SL, sPozY);
+
+		sPozY += 20;
+		//sprintf(chNapis, "Klasy: %ld (0x%lX) ", CardInfo.Class, CardInfo.Class);
+		sprintf(chNapis, "CCC: ");
+		print(chNapis, 10, sPozY);
+		for (uint16_t n=0; n<12; n++)
+		{
+			if (CardInfo.Class & (1<<n))
+				setColor(GRAY80);
+			else
+				setColor(GRAY40);
+			sprintf(chNapis, "%X", n);
+			print(chNapis, 10 + ((5+n)*FONT_SL), sPozY);
+		}
+		sPozY += 20;
+
+		setColor(GRAY70);
+		sprintf(chNapis, "Klasa predk: %d ", pStatus.SpeedClass);
 		print(chNapis, 10, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "Klasa: %ld (0x%lX) ", CardInfo.Class, CardInfo.Class);
+		sprintf(chNapis, "Klasa UHS: %d ", pStatus.UhsSpeedGrade);
 		print(chNapis, 10, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "Pr%cdko%c%c: 0x%lX ", ę, ś, ć, CardInfo.CardSpeed);
+		sprintf(chNapis, "Klasa Video: %d ", pStatus.VideoSpeedClass);
 		print(chNapis, 10, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "CardComdClasses: 0x%X ", pCSD.CardComdClasses);
+		sprintf(chNapis, "PerformanceMove: %d MB/s", pStatus.PerformanceMove);
 		print(chNapis, 10, sPozY);
 		sPozY += 20;
+
+		sprintf(chNapis, "Wsp pred. O/Z: %d ", pCSD.WrSpeedFact);
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
+
 		if (chPorty_exp_wysylane[0] & EXP02_LOG_VSELECT)	//LOG_SD1_VSEL: H=3,3V
 			fNapiecie = 3.3;
 		else
@@ -1342,30 +1375,41 @@ void WyswietlParametryKartySD(void)
 		print(chNapis, 10, sPozY);
 		sPozY += 20;
 
+		float fPodstawaCzasu, fMnoznik;
+		fPodstawaCzasu = 1e-9;	//1ns
+		for (uint8_t n=0; n<(pCSD.TAAC & 0x07); n++)
+			fPodstawaCzasu *= 10;
+		switch ((pCSD.TAAC & 0x78)>>3)
+		{
+		case 1: fMnoznik = 1.0f;	break;
+		case 2: fMnoznik = 1.2f;	break;
+		case 3: fMnoznik = 1.3f;	break;
+		case 4: fMnoznik = 1.5f;	break;
+		case 5: fMnoznik = 2.0f;	break;
+		case 6: fMnoznik = 2.5f;	break;
+		case 7: fMnoznik = 3.0f;	break;
+		case 8: fMnoznik = 3.5f;	break;
+		case 9: fMnoznik = 4.0f;	break;
+		case 10: fMnoznik = 4.5f;	break;
+		case 11: fMnoznik = 5.0f;	break;
+		case 12: fMnoznik = 5.5f;	break;
+		case 13: fMnoznik = 6.0f;	break;
+		case 14: fMnoznik = 7.0f;	break;
+		case 15: fMnoznik = 8.0f;	break;
+		default: fMnoznik = 0.0f;
+		}
+		sprintf(chNapis, "Czas dost. async: %.1e s ", fPodstawaCzasu*fMnoznik);
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
 
-		//sprintf(chNapis, "DeviceSize: %ld ", pCSD.DeviceSize * pCSD.DeviceSizeMul);
-		//print(chNapis, 10, sPozY);
-		//sPozY += 20;
-		sprintf(chNapis, "MaxBusClkFrec: %d ", pCSD.MaxBusClkFrec);
+		sprintf(chNapis, "Czas dost. sync: %d cyk.zeg ", pCSD.NSAC);
 		print(chNapis, 10, sPozY);
 		sPozY += 20;
-		//sprintf(chNapis, "SysSpecVersion: %d ", pCSD.SysSpecVersion);
-		//print(chNapis, 10, sPozY);
-		//sPozY += 20;
 
+		sprintf(chNapis, "MaxBusClkFrec: %d", pCSD.MaxBusClkFrec);
+		print(chNapis, 10, sPozY);
+		sPozY += 20;
 
-		sprintf(chNapis, "MaxRdCurrentVDDMin: %d ", pCSD.MaxRdCurrentVDDMin);
-		print(chNapis, 10, sPozY);
-		sPozY += 20;
-		sprintf(chNapis, "MaxRdCurrentVDDMax: %d ", pCSD.MaxRdCurrentVDDMax);
-		print(chNapis, 10, sPozY);
-		sPozY += 20;
-		sprintf(chNapis, "MaxWrCurrentVDDMin: %d ", pCSD.MaxWrCurrentVDDMin);
-		print(chNapis, 10, sPozY);
-		sPozY += 20;
-		sprintf(chNapis, "MaxWrCurrentVDDMax: %d ", pCSD.MaxWrCurrentVDDMax);
-		print(chNapis, 10, sPozY);
-		sPozY += 20;
 
 		//druga kolumna
 		sPozY = 30;
@@ -1378,23 +1422,57 @@ void WyswietlParametryKartySD(void)
 		sprintf(chNapis, "Pojemno%c%c karty: %ld MB ", ś, ć, CardInfo.BlockNbr * (CardInfo.BlockSize / 512) / 2048);		//Specifies one block size in bytes
 		print(chNapis, 240, sPozY);
 		sPozY += 20;
+		sprintf(chNapis, "Rozm Jedn Alok: %d kB", (8<<pStatus.AllocationUnitSize));		//Specifies one block size in bytes
+		print(chNapis, 240, sPozY);
 		sPozY += 20;
 		//sprintf(chNapis, "Liczba blok%cw log.: %ld ", ó, CardInfo.LogBlockNbr);		//Specifies the Card logical Capacity in blocks
 		//print(chNapis, 240, sPozY);
 		//sPozY += 20;
-		sprintf(chNapis, "Rozmiar bloku log.: %ld ", CardInfo.LogBlockSize);		//Specifies logical block size in bytes
+		sprintf(chNapis, "RdBlockLen: %d ", (2<<pCSD.RdBlockLen));
 		print(chNapis, 240, sPozY);
 		sPozY += 20;
 		//sprintf(chNapis, "Rozmiar karty log: %ld MB ", CardInfo.LogBlockNbr * (CardInfo.LogBlockSize / 512) / 2048);		//Specifies one block size in bytes
 		//print(chNapis, 240, sPozY);
 		//sPozY += 20;
-		sprintf(chNapis, "File format: %d ", pCSD.FileFormat);
+
+		setColor(GRAY70);
+		sprintf(chNapis, "Format: ");
 		print(chNapis, 240, sPozY);
-		sPozY += 20;
-		sprintf(chNapis, "Manufacturer ID: %X ", pCID.ManufacturerID);
-		print(chNapis, 240, sPozY);
+		switch (pCSD.FileFormat)
+		{
+		case 0: sprintf(chNapis, "HDD z partycja ");	break;
+		case 1: sprintf(chNapis, "DOS FAT ");			break;
+		case 2: sprintf(chNapis, "UnivFileFormat ");	break;
+		default: sprintf(chNapis, "Nieznany ");			break;
+		}
+		setColor(GRAY80);
+		print(chNapis, 240+8*FONT_SL, sPozY);
 		sPozY += 20;
 
+		setColor(GRAY70);
+		sprintf(chNapis, "Manuf ID: ");
+		print(chNapis, 240, sPozY);
+		switch (pCID.ManufacturerID)
+		{
+		case 0x02:	sprintf(chNapis, "Goodram/Toshiba ");	break;
+		case 0x03:	sprintf(chNapis, "SandDisk ");	break;
+		case 0xdF:
+		case 0x05:	sprintf(chNapis, "Lenovo ");	break;
+		case 0x09:	sprintf(chNapis, "APT ");	break;
+		case 0x1B:	sprintf(chNapis, "Samsung ");	break;
+		case 0x1D:	sprintf(chNapis, "ADATA ");	break;
+		case 0x1F:
+		case 0x41:	sprintf(chNapis, "Kingstone ");	break;
+		case 0x6F:	sprintf(chNapis, "Kodak ");	break;
+		case 0x74:	sprintf(chNapis, "Trnasced ");	break;
+		case 0x82:	sprintf(chNapis, "Sony ");	break;
+		default:	sprintf(chNapis, "%X ", pCID.ManufacturerID);
+		}
+		setColor(GRAY80);
+		print(chNapis, 240+10*FONT_SL, sPozY);
+		sPozY += 20;
+
+		setColor(GRAY70);
 		chOEM[0] = (pCID.OEM_AppliID & 0xFF00)>>8;
 		chOEM[1] = pCID.OEM_AppliID & 0x00FF;
 		sprintf(chNapis, "OEM_AppliID: %c%c ", chOEM[0], chOEM[1]);
@@ -1404,7 +1482,7 @@ void WyswietlParametryKartySD(void)
 		sprintf(chNapis, "Nr seryjny: %ld ", pCID.ProdSN);
 		print(chNapis, 240, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "Data produkcji rr-m: %d-%d ",(pCID.ManufactDate>>4) & 0xFF, (pCID.ManufactDate & 0xF));
+		sprintf(chNapis, "Data prod: %s %d ", chNazwyMies3Lit[(pCID.ManufactDate & 0xF)], ((pCID.ManufactDate>>4) & 0xFF) + 2000);
 		print(chNapis, 240, sPozY);
 		sPozY += 20;
 
@@ -1482,12 +1560,15 @@ void WyswietlRejestratorKartySD(void)
 	if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
 	{
 		setColor(KOLOR_Y);
-		sprintf(chNapis, "Otwarty");
+		sprintf(chNapis, "Otwarty   ");
 	}
 	else
 	{
 		setColor(YELLOW);
-		sprintf(chNapis, "Brak lub zatrzymany");
+		if (chStatusRejestratora & STATREJ_BYL_OTWARTY)
+			sprintf(chNapis, "Zatrzymany");
+		else
+			sprintf(chNapis, "Brak ");
 	}
 	print(chNapis, 10 + 11*FONT_SL, sPozY);
 	sPozY += 20;
