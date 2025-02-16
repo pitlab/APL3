@@ -1058,17 +1058,19 @@ void PomiaryIMU(void)
 		print(chNapis, 10, 190);
 		sprintf(chNapis, "Ci%cn 2:             Wysoko:          Temper:", ś);
 		print(chNapis, 10, 210);
+		sprintf(chNapis, "Ci%cnR%c%cn:           Pr%cdko:          Temper:", ś, ó, ż, ę);
+		print(chNapis, 10, 230);
 
 		sprintf(chNapis, "GNSS D%cug:             Szer:             HDOP:", ł);
-		print(chNapis, 10, 240);
-		sprintf(chNapis, "GNSS WysMSL:           Pred:             Kurs:");
 		print(chNapis, 10, 260);
-		sprintf(chNapis, "GNSS Czas:             Data:              Sat:");
+		sprintf(chNapis, "GNSS WysMSL:           Pred:             Kurs:");
 		print(chNapis, 10, 280);
+		sprintf(chNapis, "GNSS Czas:             Data:              Sat:");
+		print(chNapis, 10, 300);
 
-		setColor(GRAY50);
-		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
-		print(chNapis, CENTER, 300);
+		//setColor(GRAY50);
+		//sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
+		//print(chNapis, CENTER, 300);
 	}
 
 	//ICM42688
@@ -1104,7 +1106,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros1[2]);
 	print(chNapis, 10+32*FONT_SL, 70);
 	setColor(YELLOW);
-	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[2], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
+	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[2], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130
 	print(chNapis, 10+45*FONT_SL, 70);
 
 	//LSM6DSV
@@ -1118,7 +1120,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros2[2]);
 	print(chNapis, 10+32*FONT_SL, 90);
 	setColor(YELLOW);
-	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[3], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
+	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[3], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130
 	print(chNapis, 10+45*FONT_SL, 90);
 
 	//MMC34160
@@ -1143,7 +1145,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[2]);
 	print(chNapis, 10+32*FONT_SL, 130);
 	setColor(YELLOW);
-	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[4], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
+	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[4], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130
 	print(chNapis, 10+45*FONT_SL, 130);
 
 	//HMC5883
@@ -1184,7 +1186,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fWysoko[0]);
 	print(chNapis, 10+28*FONT_SL, 190);
 	setColor(YELLOW);
-	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[0], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
+	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[0], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130
 	print(chNapis, 10+45*FONT_SL, 190);
 
 	//BMP581
@@ -1195,8 +1197,19 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fWysoko[1]);
 	print(chNapis, 10+28*FONT_SL, 210);
 	setColor(YELLOW);
-	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
+	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130
 	print(chNapis, 10+45*FONT_SL, 210);
+
+	//ND130
+	setColor(WHITE);
+	sprintf(chNapis, "%.0fPa ", uDaneCM4.dane.fCisnRozn);
+	print(chNapis, 10+10*FONT_SL, 230);
+	setColor(CYAN);
+	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fPredkosc);
+	print(chNapis, 10+28*FONT_SL, 230);
+	setColor(YELLOW);
+	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[5], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130
+	print(chNapis, 10+45*FONT_SL, 230);
 
 	if (uDaneCM4.dane.stGnss1.chFix)
 		setColor(WHITE);	//jest fix
@@ -1204,27 +1217,27 @@ void PomiaryIMU(void)
 		setColor(GRAY70);	//nie ma fixa
 
 	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dDlugoscGeo);
-	print(chNapis, 10+11*FONT_SL, 240);
+	print(chNapis, 10+11*FONT_SL, 260);
 	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
-	print(chNapis, 10+29*FONT_SL, 240);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.stGnss1.fHdop);
-	print(chNapis, 10+47*FONT_SL, 240);
-
-	sprintf(chNapis, "%.1fm ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
-	print(chNapis, 10+13*FONT_SL, 260);
-	sprintf(chNapis, "%.3fm/s ", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
 	print(chNapis, 10+29*FONT_SL, 260);
-	sprintf(chNapis, "%3.2f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.stGnss1.fHdop);
 	print(chNapis, 10+47*FONT_SL, 260);
 
+	sprintf(chNapis, "%.1fm ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
+	print(chNapis, 10+13*FONT_SL, 280);
+	sprintf(chNapis, "%.3fm/s ", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
+	print(chNapis, 10+29*FONT_SL, 280);
+	sprintf(chNapis, "%3.2f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
+	print(chNapis, 10+47*FONT_SL, 280);
+
 	sprintf(chNapis, "%02d:%02d:%02d ", uDaneCM4.dane.stGnss1.chGodz, uDaneCM4.dane.stGnss1.chMin, uDaneCM4.dane.stGnss1.chSek);
-	print(chNapis, 10+12*FONT_SL, 280);
+	print(chNapis, 10+12*FONT_SL, 300);
 	if  (uDaneCM4.dane.stGnss1.chMies > 12)	//ograniczenie aby nie pobierało nazwy miesiaca spoza tablicy chNazwyMies3Lit[]
 		uDaneCM4.dane.stGnss1.chMies = 0;	//zerowy indeks jest pustą nazwą "---"
 	sprintf(chNapis, "%02d %s %04d ", uDaneCM4.dane.stGnss1.chDzien, chNazwyMies3Lit[uDaneCM4.dane.stGnss1.chMies], uDaneCM4.dane.stGnss1.chRok + 2000);
-	print(chNapis, 10+29*FONT_SL, 280);
+	print(chNapis, 10+29*FONT_SL, 300);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.stGnss1.chLiczbaSatelit);
-	print(chNapis, 10+47*FONT_SL, 280);
+	print(chNapis, 10+47*FONT_SL, 300);
 
 	//sprintf(chNapis, "Serwa:  9 = %d, 10 = %d, 11 = %d, 12 = %d", uDaneCM4.dane.sSerwa[8], uDaneCM4.dane.sSerwa[9], uDaneCM4.dane.sSerwa[10], uDaneCM4.dane.sSerwa[11]);
 	//sprintf(chNapis, "Serwa:  1 = %d,  2 = %d,  3 = %d,  4 = %d", uDaneCM4.dane.sSerwa[0], uDaneCM4.dane.sSerwa[1], uDaneCM4.dane.sSerwa[2], uDaneCM4.dane.sSerwa[3]);

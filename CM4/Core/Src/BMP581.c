@@ -11,13 +11,14 @@
 #include "petla_glowna.h"
 #include "spi.h"
 #include "petla_glowna.h"
+#include "main.h"
 
 // Dopuszczalna prędkość magistrali 1..12MHz
-
+extern SPI_HandleTypeDef hspi2;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 static uint8_t chProporcjaPomiarow;
 
-
+static uint8_t chBufBMP581[4];
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,32 +31,18 @@ uint8_t InicjujBMP581(void)
 {
 	uint8_t chDane;
 
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+	chBufBMP581[0] = PBMP5_CHIP_ID | READ_SPI;
+	//chBufBMP581[0] = PBMP5_REV_ID | READ_SPI;
+	chBufBMP581[1] = 0;
+	HAL_SPI_TransmitReceive(&hspi2, chBufBMP581, chBufBMP581, 2, 5);
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
+	chDane = chBufBMP581[1];
+
 	chDane = CzytajSPIu8(PBMP5_CHIP_ID);	//sprawdź obecność układu
 	if (chDane != 0x50)
 		return ERR_BRAK_BMP581;
 
-    /*unsigned short sCnt = 100;
-    do
-    {
-    sAC1 = (short)BMP085_Read16bit(0xAA);
-    sAC2 = (short)BMP085_Read16bit(0xAC);
-    sAC3 = (short)BMP085_Read16bit(0xAE);
-    sAC4 = BMP085_Read16bit(0xB0);
-    sAC5 = BMP085_Read16bit(0xB2);
-    sAC6 = BMP085_Read16bit(0xB4);
-    sB1 = (short)BMP085_Read16bit(0xB6);
-    sB2 = (short)BMP085_Read16bit(0xB8);
-    sMB = (short)BMP085_Read16bit(0xBA);
-    sMC = (short)BMP085_Read16bit(0xBC);
-    sMD = (short)BMP085_Read16bit(0xBE);
-    sCnt--;
-    }
-    while ((!sAC1 | !sAC2 | !sAC3 | !sAC4 | !sAC5 | !sAC6 | !sB1 | !sB2 | !sMB | !sMC | !sMD) & sCnt);
-    
-    if (sCnt)
-        return ERR_OK;
-    else
-        return ERR_TIMEOUT;*/
 
 	uDaneCM4.dane.nZainicjowano |= INIT_BMP581;
 	return ERR_OK;
@@ -72,7 +59,6 @@ uint8_t InicjujBMP581(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaBMP581(void)
 {
-	//uint32_t nKonwersja;
 	uint8_t chErr;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_BMP581) != INIT_BMP581)	//jeżeli czujnik nie jest zainicjowany

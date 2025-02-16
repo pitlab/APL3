@@ -1,5 +1,10 @@
 
+
+#ifndef INC_BMP581_H_
+#define INC_BMP581_H_
 #include "sys_def_CM4.h"
+
+
 
 
 //definicje Poleceń czujnikaBMP581
@@ -13,6 +18,9 @@
 #define PBMP5_PRESS_DATA_XLSB	0x20
 #define PBMP5_PRESS_DATA_LSB	0x21
 #define PBMP5_PRESS_DATA_MSB	0x22
+#define PBMP5_INT_STATUS		0x27
+#define PBMP5_STATUS			0x28
+
 #define PBMP5_CMD				0x7E
 
 
@@ -22,3 +30,4 @@
 uint8_t InicjujBMP581(void);
 uint8_t ObslugaBMP581(void);
 
+#endif /* INC_BMP581_H_ */

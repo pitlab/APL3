@@ -66,6 +66,7 @@ uint16_t CzytajSPIu16mp(uint8_t chAdres)
 
 
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // Odczytuje 24 bity ze znakiem, starszy przodem
 // Parametry:

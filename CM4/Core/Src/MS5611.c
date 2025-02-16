@@ -48,7 +48,7 @@ uint8_t InicjujMS5611(void)
         if (MinalCzas(nCzasStart) > 5000)   //czekaj maksymalnie 5000us
             return ERR_TIMEOUT;
 
-        //sprawdź czy odczytana konfiguracja nie jest samymi zdrami ani jedynkami
+        //sprawdź czy odczytana konfiguracja nie jest samymi zerami ani jedynkami
         for (uint16_t n=0; n<6; n++)
         {
         	if ((sKonfig[n] == 0) || (sKonfig[n] == 0xFFFF))

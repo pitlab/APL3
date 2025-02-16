@@ -9,7 +9,11 @@
 #include "modul_IiP.h"
 #include "main.h"
 #include "moduly_wew.h"
-
+#include "BMP581.h"
+#include "MS5611.h"
+#include "ICM42688.h"
+#include "LSM6DSV.h"
+#include "ND130.h"
 
 
 extern SPI_HandleTypeDef hspi2;
@@ -28,10 +32,11 @@ uint8_t ObslugaModuluIiP(uint8_t modul)
 	uint8_t chErr;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
-	//Ponieważ zegar SPI = 80MHz a układy mogą pracować z prędkością max 10MHz, przy każdym dostępie przestaw dzielnik zegara na 8
+	//Ponieważ zegar SPI = 40MHz a układy mogą pracować z prędkością max 10MHz, przy każdym dostępie przestaw dzielnik zegara na 4
 	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
 	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
 	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_8;
+	//hspi2.Instance->CFG2 |= SPI_POLARITY_HIGH | SPI_PHASE_2EDGE;	//testowo ustaw mode 3
 
 	//ustaw adres A2 = 0 zrobiony z linii Ix2 modułu
 	switch (modul)
@@ -69,8 +74,20 @@ uint8_t ObslugaModuluIiP(uint8_t modul)
 	UstawAdresNaModule(ADR_MIIP_GRZALKA);				//ustaw adres A0..1
 
 	//grzałkę włącza się przez CS=0
-	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+	//HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 
+
+	// Układ ND130 pracujacy na magistrali SPI ma okres zegara 6us co odpowiada częstotliwości 166kHz
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_256;	//przestaw zegar na 40MHz / 256 = 156kHz
+	UstawAdresNaModule(ADR_MIIP_ND130);				//ustaw adres A0..1
+	chErr |= ObslugaND130();
+	if (chErr == ERR_TIMEOUT)
+	{
+		UstawAdresNaModule(ADR_MIIP_RES_ND130);
+		HAL_Delay(1);	//resetuj układ
+	}
+
+	//hspi2.Instance->CFG2 &= ~(SPI_POLARITY_HIGH | SPI_PHASE_2EDGE);
 	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 	return chErr;
 }

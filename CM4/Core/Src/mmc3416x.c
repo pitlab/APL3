@@ -6,7 +6,7 @@
 // (c) Pit Lab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "mmc3416x.h"
+#include <MMC3416x.h>
 #include "wymiana_CM4.h"
 #include "petla_glowna.h"
 #include "main.h"

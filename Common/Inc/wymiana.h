@@ -47,7 +47,9 @@ typedef struct
 	float fKatIMU[3];
 	float fCisnie[2];
 	float fWysoko[2];
-	float fTemper[5];	//0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC
+	float fCisnRozn;
+	float fPredkosc;
+	float fTemper[6];	//0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130
 	uint16_t sSerwa[16];
 	uint8_t chErrPetliGlownej;
 	uint32_t nZainicjowano;
