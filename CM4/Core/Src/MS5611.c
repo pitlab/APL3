@@ -18,7 +18,8 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 static uint16_t sKonfig[6];  //współczynniki kalibracyjne
 static uint8_t chBuf5611[4];
 static uint8_t chProporcjaPomiarow;
-float fP0_MS5611 = 101325;	//ciśnienie zerowe do obliczeń wysokości [Pa]
+float fP0_MS5611 = 0.0f;	//ciśnienie zerowe do obliczeń wysokości [Pa]
+static uint16_t sLicznikUsrednianiaP0 = 0;			//licznik uśredniania ciśnienia zerowego do obliczeń wysokości
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z PROMu
@@ -159,6 +160,7 @@ uint8_t ObslugaMS5611(void)
 {
 	uint32_t nKonwersja;
 	uint8_t chErr;
+	float fCisnienie = 0;
 	static int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia. Zmienna statyczna aby istniała poza czasem życia funkcji
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_MS5611) != INIT_MS5611)	//jeżeli czujnik nie jest zainicjowany
@@ -178,29 +180,49 @@ uint8_t ObslugaMS5611(void)
 		{
 		case 0:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
-			uDaneCM4.dane.fTemper[0] = MS5611_LiczTemperature(nKonwersja, &ndT);
+			uDaneCM4.dane.fTemper[0] = (7 * uDaneCM4.dane.fTemper[0] + MS5611_LiczTemperature(nKonwersja, &ndT)) / 8;	//filtruj temepraturę
 			chBuf5611[0] = PMS_CONV_D1_OSR2048;
 			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję ciśnienia
 			break;
 
 		case 7:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
-			uDaneCM4.dane.fCisnie[0] = MS5611_LiczCisnienie(nKonwersja, ndT);
-			uDaneCM4.dane.fWysoko[0] = WysokoscBaro(uDaneCM4.dane.fCisnie[0], fP0_MS5611, uDaneCM4.dane.fTemper[0]);
+			fCisnienie = MS5611_LiczCisnienie(nKonwersja, ndT);
+			uDaneCM4.dane.fCisnie[0] = (7 * uDaneCM4.dane.fCisnie[0] + fCisnienie) / 8;
+
 			chBuf5611[0] = PMS_CONV_D2_OSR256;
 			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję temperatury
 			break;
 
 		default:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
-			uDaneCM4.dane.fCisnie[0] = MS5611_LiczCisnienie(nKonwersja, ndT);
-			uDaneCM4.dane.fWysoko[0] = WysokoscBaro(uDaneCM4.dane.fCisnie[0], fP0_MS5611, uDaneCM4.dane.fTemper[0]);
+			fCisnienie = MS5611_LiczCisnienie(nKonwersja, ndT);
+			uDaneCM4.dane.fCisnie[0] = (7 * uDaneCM4.dane.fCisnie[0] + fCisnienie) / 8;
 			chBuf5611[0] = PMS_CONV_D1_OSR2048;
 			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję ciśnienia
 			break;
 		}
 		chProporcjaPomiarow++;
 		chProporcjaPomiarow &= 0x07;
+
+		//czy ustawiono ciśnienie P0
+		if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)
+			uDaneCM4.dane.fWysoko[0] = WysokoscBarometryczna(uDaneCM4.dane.fCisnie[0], fP0_MS5611, uDaneCM4.dane.fTemper[0]);	//tak, więc oblicz wysokość
+		else	//nie, więc uśredniaj kolejne pomiary
+		{
+			if (fCisnienie > 0)
+			{
+				fP0_MS5611 += fCisnienie;
+				sLicznikUsrednianiaP0++;
+				if (sLicznikUsrednianiaP0 >= USREDNIONO_POMIAROW)
+				{
+					fP0_MS5611 /= USREDNIONO_POMIAROW;
+					uDaneCM4.dane.nZainicjowano |= INIT_P0_MS5611;
+					sLicznikUsrednianiaP0 = 0;
+				}
+			}
+			uDaneCM4.dane.fWysoko[0] = 0.0f;
+		}
 	}
 	return chErr;
 }

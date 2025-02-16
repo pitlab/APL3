@@ -12,14 +12,15 @@
 #include "spi.h"
 #include "petla_glowna.h"
 #include "main.h"
+#include "modul_IiP.h"
 
 // Dopuszczalna prędkość magistrali 1..12MHz
 extern SPI_HandleTypeDef hspi2;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 static uint8_t chProporcjaPomiarow;
-
+static float fP0_BMP581 = 0.0f;	//ciśnienie P0 do obliczeń wysokości [Pa]
 static uint8_t chBufBMP581[4];
-
+static uint16_t sLicznikUsrednianiaP0 = 0;			//licznik uśredniania ciśnienia zerowego do obliczeń wysokości
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z EEPROMu
@@ -60,6 +61,7 @@ uint8_t InicjujBMP581(void)
 uint8_t ObslugaBMP581(void)
 {
 	uint8_t chErr;
+	float fCisnienie = 0;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_BMP581) != INIT_BMP581)	//jeżeli czujnik nie jest zainicjowany
 	{
@@ -67,20 +69,37 @@ uint8_t ObslugaBMP581(void)
 		if (chErr)
 			return chErr;
 	}
-	else
+	else	//czujnik jest zainicjowany
 	{
 		switch (chProporcjaPomiarow)
 		{
-		case 0:
-			uDaneCM4.dane.fTemper[1] = (float)(CzytajSPIs24mp(PBMP5_TEMP_DATA_XLSB) / 65536);
-			break;
-
+		case 0:	uDaneCM4.dane.fTemper[1] = (7 * uDaneCM4.dane.fTemper[1] + (float)(CzytajSPIs24mp(PBMP5_TEMP_DATA_XLSB) / 65536)) / 8;	break;
 		default:
-			uDaneCM4.dane.fCisnie[1] = (float)(CzytajSPIs24mp(PBMP5_PRESS_DATA_XLSB) / 64);
+			fCisnienie = (float)(CzytajSPIs24mp(PBMP5_PRESS_DATA_XLSB) / 64);
+			uDaneCM4.dane.fCisnie[1] = (7 * uDaneCM4.dane.fCisnie[1] + fCisnienie) / 8;
 			break;
 		}
 		chProporcjaPomiarow++;
 		chProporcjaPomiarow &= 0x07;
+
+		//czy ustawiono ciśnienie P0
+		if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)
+			uDaneCM4.dane.fWysoko[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnie[1], fP0_BMP581, uDaneCM4.dane.fTemper[1]);	//tak, więc oblicz wysokość
+		else	//nie, więc uśredniaj kolejne pomiary
+		{
+			if (fCisnienie > 0)		//wykonaj tylko dla cykli pomiaru ciśnienia, pomiń pomiary tempertury
+			{
+				fP0_BMP581 += fCisnienie;
+				sLicznikUsrednianiaP0++;
+				if (sLicznikUsrednianiaP0 >= USREDNIONO_POMIAROW)
+				{
+					fP0_BMP581 /= USREDNIONO_POMIAROW;
+					uDaneCM4.dane.nZainicjowano |= INIT_P0_BMP851;
+					sLicznikUsrednianiaP0 = 0;
+				}
+			}
+			uDaneCM4.dane.fWysoko[1] = 0.0f;
+		}
 	}
 	return chErr;
 }

@@ -1205,7 +1205,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.0fPa ", uDaneCM4.dane.fCisnRozn);
 	print(chNapis, 10+10*FONT_SL, 230);
 	setColor(CYAN);
-	sprintf(chNapis, "%.2fm ", uDaneCM4.dane.fPredkosc);
+	sprintf(chNapis, "%.2fm/s ", uDaneCM4.dane.fPredkosc);
 	print(chNapis, 10+28*FONT_SL, 230);
 	setColor(YELLOW);
 	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[5], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130

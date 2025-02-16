@@ -26,7 +26,9 @@
 #define PRZYSPIESZENIE_ZIEMSKIE	9.80665f			//m/s^2
 #define KELWIN					273.15f
 
-uint8_t ObslugaModuluIiP(uint8_t modul);
-float WysokoscBaro(float fP, float fP0, float fTemp);
+#define USREDNIONO_POMIAROW	128	//z tylu pomiarow jest uśredniana wartośc cinienie P0 (wartośc 256 i wyżej powoduje utratę wartości liczonej sumy na liczbach float)
+
+uint8_t ObslugaModuluIiP(uint8_t gniazdo);
+float WysokoscBarometryczna(float fP, float fP0, float fTemp);
 
 #endif /* INC_MODUL_IIP_H_ */

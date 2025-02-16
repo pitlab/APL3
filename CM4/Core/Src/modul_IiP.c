@@ -20,14 +20,13 @@ extern SPI_HandleTypeDef hspi2;
 extern uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 volatile uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // wykonuje czynności pomiarowe dla ukłądów znajdujących się na module
 // Parametry: nic
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ObslugaModuluIiP(uint8_t modul)
+uint8_t ObslugaModuluIiP(uint8_t gniazdo)
 {
 	uint8_t chErr;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
@@ -39,7 +38,7 @@ uint8_t ObslugaModuluIiP(uint8_t modul)
 	//hspi2.Instance->CFG2 |= SPI_POLARITY_HIGH | SPI_PHASE_2EDGE;	//testowo ustaw mode 3
 
 	//ustaw adres A2 = 0 zrobiony z linii Ix2 modułu
-	switch (modul)
+	switch (gniazdo)
 	{
 	case ADR_MOD1: 	chStanIOwy &= ~MIO12;	break;
 	case ADR_MOD2:	chStanIOwy &= ~MIO22;	break;
@@ -48,7 +47,7 @@ uint8_t ObslugaModuluIiP(uint8_t modul)
 	}
 
 	chErr = WyslijDaneExpandera(chStanIOwy);
-	chErr |= UstawDekoderModulow(modul);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
+	chErr |= UstawDekoderModulow(gniazdo);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
 	UstawAdresNaModule(ADR_MIIP_MS5611);				//ustaw adres A0..1
 	chErr |= ObslugaMS5611();
 
@@ -62,7 +61,7 @@ uint8_t ObslugaModuluIiP(uint8_t modul)
 	chErr |= ObslugaLSM6DSV();
 
 	//ustaw adres A2 = 1 zrobiony z linii Ix2 modułu
-	switch (modul)
+	switch (gniazdo)
 	{
 	case ADR_MOD1: 	chStanIOwy |= MIO12;	break;
 	case ADR_MOD2:	chStanIOwy |= MIO22;	break;
@@ -70,7 +69,7 @@ uint8_t ObslugaModuluIiP(uint8_t modul)
 	case ADR_MOD4:	chStanIOwy |= MIO42;	break;
 	}
 	chErr |= WyslijDaneExpandera(chStanIOwy);
-	chErr |= UstawDekoderModulow(modul);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
+	chErr |= UstawDekoderModulow(gniazdo);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
 	UstawAdresNaModule(ADR_MIIP_GRZALKA);				//ustaw adres A0..1
 
 	//grzałkę włącza się przez CS=0
@@ -102,7 +101,7 @@ uint8_t ObslugaModuluIiP(uint8_t modul)
 //  fTemp - temperatura [°C)
 // Zwraca: obliczoną wysokość
 ////////////////////////////////////////////////////////////////////////////////
-float WysokoscBaro(float fP, float fP0, float fTemp)
+float WysokoscBarometryczna(float fP, float fP0, float fTemp)
 {
 	//funkcja bazuje na wzorze barometrycznym: https://pl.wikipedia.org/wiki/Wz%C3%B3r_barometryczny
 	//P = P0 * e^(-(u*g*h)/(R*T))	/:P0

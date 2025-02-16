@@ -87,7 +87,7 @@ uint8_t ObslugaND130(void)
 
 		uDaneCM4.dane.fCisnRozn = (float)(((int16_t)chBufND130[0] <<8) + chBufND130[1]  * 30 * 249.082f) / (0.9f * 32768);		//wynik (In H2O) -> Pa
 		uDaneCM4.dane.fTemper[5] = (float)chBufND130[2] + (float)chBufND130[3] / 2550;	//starszy bajt to stopnie, młodszy to ułamek będący częścią po przecinku
-		uDaneCM4.dane.fPredkosc = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn, 101315.f);	//dla ciśnienia standardowego
+		uDaneCM4.dane.fPredkosc = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn, 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 	}
 	return chErr;
 }
@@ -113,5 +113,8 @@ float PredkoscRurkiPrantla(float fCisnRozn, float fCisnStatP2)
 
 	fPredkosc = sqrt(CZESC_PIERWSZA * (fCisnCalkP1 / GESTOSC_POWIETRZA) * (1.0f - powf((fCisnStatP2 / fCisnCalkP1), WYKLADNIK_POTEGI)));
 
+	//jednostka: kappa czyli wykładnik adiabaty jest bezwymiarowa, iloraz ciśnienia jest bezwymiarowy, wykłądnik potęgi też jest bezwymiarowy
+	//pozostaje P1 / GESTOSC_POWIETRZA gdzie P1 jest w Paskalach czyli N/m^2 a gęstość jest w jednostce kg/m^3
+	//jeżeli przyjmiemy że N = kg*m/s^2 to jednostka uprości się do m^2/s^2 a że jest pod pierwiastkiem to finalnie otrzymujemy [m/s]
 	return fPredkosc;
 }

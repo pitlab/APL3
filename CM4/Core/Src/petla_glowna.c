@@ -68,12 +68,16 @@ void PetlaGlowna(void)
 		break;
 
 	case 1:		//obsługa modułu w gnieździe 2
-		chErrPG |= ObslugaModuluIiP(ADR_MOD2);
+		chErr = ObslugaModuluIiP(ADR_MOD2);
+		if (chErr)
+			chStanIOwy &= ~MIO41;	//zaświeć czerwoną LED
+		else
+			chStanIOwy |= MIO41;	//zgaś czerwoną LED
 		chErrPG |= PobierzDaneExpandera(&chStanIOwe);
 		break;
 
 	case 2:		//obsługa modułu w gnieździe 3
-		chErrPG |= ObslugaModuluIiP(ADR_MOD3);
+		//chErrPG |= ObslugaModuluIiP(ADR_MOD3);
 		//chErrPG |= UstawDekoderModulow(ADR_MOD3);
 		break;
 
@@ -156,10 +160,10 @@ void PetlaGlowna(void)
 		uDaneCM4.dane.chErrPetliGlownej = chErrPG;
 		chErrPG  = PobierzDaneWymiany_CM7();
 		chErr = UstawDaneWymiany_CM4();
-		if (chErr == ERR_SEMAFOR_ZAJETY)
+		/*if (chErr == ERR_SEMAFOR_ZAJETY)
 			chStanIOwy &= ~MIO41;	//zaświeć czerwoną LED
 		else
-			chStanIOwy |= MIO41;		//zgaś czerwoną LED
+			chStanIOwy |= MIO41;		//zgaś czerwoną LED */
 		chErrPG |= chErr;
 		//chStanIOwy ^= 0x80;		//Zielona LED
 		break;
