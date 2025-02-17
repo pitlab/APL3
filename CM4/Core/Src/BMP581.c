@@ -53,7 +53,7 @@ uint8_t InicjujBMP581(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Realizuje sekwencję obsługową czujnika do wywołania w wyższej warstwie
-// Wykonuje w pętli 1 pomiar temepratury i 7 pomiarów ciśnienia
+// Wykonuje w pętli 1 pomiar temepratury i 15 pomiarów ciśnienia
 // Parametry: nic
 // Zwraca: kod błędu
 // Czas wykonania:
@@ -80,7 +80,7 @@ uint8_t ObslugaBMP581(void)
 			break;
 		}
 		chProporcjaPomiarow++;
-		chProporcjaPomiarow &= 0x07;
+		chProporcjaPomiarow &= 0x0F;
 
 		//czy ustawiono ciśnienie P0
 		if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)

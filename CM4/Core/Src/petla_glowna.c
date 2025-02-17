@@ -17,6 +17,7 @@
 #include "jedn_inercyjna.h"
 #include <stdio.h>
 #include "modul_IiP.h"
+#include "MS4525.h"
 
 extern TIM_HandleTypeDef htim7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -35,6 +36,7 @@ uint16_t chTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po
 static uint8_t chEtapOperacjiI2C;
 uint8_t chGeneratorNapisow, chLicznikKomunikatow;
 extern I2C_HandleTypeDef hi2c3;
+uint8_t chCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -252,12 +254,12 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	uint8_t chErr = ERR_OK;
 
 	//operacje na zewnętrznej magistrali I2C3
-	switch(chEtapOperacjiI2C & 0x03)
+	switch(chEtapOperacjiI2C)
 	{
-	case 0:	chErr = StartujPomiarMagHMC();		break;
-	case 1:	break;
-	case 2:	chErr = StartujOdczytMagHMC();		break;
-	case 3:	chErr = CzytajMagnetometrHMC();		break;
+	//case 0:	chErr = StartujPomiarMagHMC();		break;
+	case 1: chErr = ObslugaMS4525();			break;
+	//case 2:	chErr = StartujOdczytMagHMC();		break;
+	//case 3:	chErr = CzytajMagnetometrHMC();		break;
 	default: break;
 	}
 
@@ -313,14 +315,27 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 	extern uint8_t chDaneMagHMC[6];
 	extern uint8_t chDaneMagMMC[6];
 	extern uint8_t chDaneMagIIS[8];
+	extern uint8_t chDaneMS4525[5];
 	extern uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
 	if (hi2c->Instance == I2C3)
 	{
+		if (chCzujnikOdczytywanyNaI2CExt == MAG_HMC)	//magnetometr HMC5883
 		//if ((chDaneMagHMC[0] || chDaneMagHMC[1]) && (chDaneMagHMC[2] || chDaneMagHMC[3]) && (chDaneMagHMC[4] || chDaneMagHMC[5]))
 		{
 			uDaneCM4.dane.sMagne3[0] = (int16_t)(0x100 * chDaneMagHMC[0] + chDaneMagHMC[1]);
 			uDaneCM4.dane.sMagne3[1] = (int16_t)(0x100 * chDaneMagHMC[2] + chDaneMagHMC[3]);
 			uDaneCM4.dane.sMagne3[2] = (int16_t)(0x100 * chDaneMagHMC[4] + chDaneMagHMC[5]);
+		}
+		else
+		if (chCzujnikOdczytywanyNaI2CExt == CISN_ROZN_MS2545)	//ciśnienie różnicowe czujnika MS2545DO
+		{
+			uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(chDaneMS4525);
+		}
+		else
+		if (chCzujnikOdczytywanyNaI2CExt == CISN_TEMP_MS2545)	//ciśnienie różnicowe i temperatura czujnika MS2545DO
+		{
+			uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(chDaneMS4525);
+			uDaneCM4.dane.fTemper[6] = TemperaturaMS2545(chDaneMS4525);
 		}
 	}
 

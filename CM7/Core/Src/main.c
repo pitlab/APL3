@@ -1323,7 +1323,7 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void const * argument)
 {
   /* init code for LWIP */
- // MX_LWIP_Init();
+  //MX_LWIP_Init();
 
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();

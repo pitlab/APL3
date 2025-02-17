@@ -85,9 +85,9 @@ uint8_t ObslugaND130(void)
 		if ((chBufND130[0] == 0xFF) && (chBufND130[1] == 0xFF) && (chBufND130[2] == 0xFF) && (chBufND130[3] == 0xFF))
 			return ERR_ZLE_DANE;
 
-		uDaneCM4.dane.fCisnRozn = (float)(((int16_t)chBufND130[0] <<8) + chBufND130[1]  * 30 * 249.082f) / (0.9f * 32768);		//wynik (In H2O) -> Pa
+		uDaneCM4.dane.fCisnRozn[0] = (float)(((int16_t)chBufND130[0] <<8) + chBufND130[1]  * 30 * 249.082f) / (0.9f * 32768);		//wynik (In H2O) -> Pa
 		uDaneCM4.dane.fTemper[5] = (float)chBufND130[2] + (float)chBufND130[3] / 2550;	//starszy bajt to stopnie, młodszy to ułamek będący częścią po przecinku
-		uDaneCM4.dane.fPredkosc = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn, 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
+		uDaneCM4.dane.fPredkosc[0] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[0], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 	}
 	return chErr;
 }

@@ -26,6 +26,7 @@
 #define CZESTOTLIWOSC_PETLI		200			//częstotliwość pętli głównj [Hz]
 #define CZAS_ODCINKA			1000000/(CZESTOTLIWOSC_PETLI * LICZBA_ODCINKOW_CZASU)	//czas na jeden odcinek [us]
 
+#define I2C_TIMOUT		2	//czas w ms timoutu operacji I2C
 
 #define OKRES_PWM		2500	//okres kanału PWM w mikrosekundach
 #define PRZERWA_PPM		3000	//przerwa między paczkami impulsów PPM odbiornika RC
@@ -37,6 +38,12 @@
 //definicje magnetometrów na magistrali I2C4
 #define MAG_MMC				1
 #define MAG_IIS				2
+
+//definicje układów na magistrali I2C3
+#define MAG_HMC				1
+#define CISN_ROZN_MS2545	2	//ciśnienie różnicowe
+#define CISN_TEMP_MS2545	3	//ciśnieenie różnicowe i temepratura
+
 
 //definije kanałów IO
 #define MIO11	(1 << 0) 	//MOD_IO11

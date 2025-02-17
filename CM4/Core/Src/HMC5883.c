@@ -35,7 +35,7 @@ uint8_t StartujPomiarMagHMC(void)
 	chDaneMagHMC[0] = MODE;
 	chDaneMagHMC[1] = (1 << 0);   //Mode Select:0=Continuous-Measurement Mode, 1=Single-Measurement Mode, 2-3=Idle Mode.
 
-    return HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 2);		//rozpocznij pomiar na I2C1
+    return HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, I2C_TIMOUT);		//rozpocznij pomiar na I2C1
 }
 
 
