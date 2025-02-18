@@ -13,5 +13,6 @@
 uint8_t InicjujND130(void);
 uint8_t ObslugaND130(void);
 float PredkoscRurkiPrantla(float fCisnRozn, float fCisnStat);
+float PredkoscRurkiPrantla1(float fCisnRozn);
 
 #endif /* INC_ND130_H_ */

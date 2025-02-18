@@ -13,7 +13,7 @@
 //Adres I2C czujnika jest okreslony w nazwie symbolu 4525DO 5Ax gdzie x może być literą: I=0x28, J=0x36, K=0x46
 #define MS2545_I2C_ADR	0x51	//0x28 + RD
 #define PASKALI_NA_PSI	6894.7572932f		//1PSI to tyle Paskali
-#define ZAKRES_POMIAROWY_CISNIENIA	20	//[psi]
+#define ZAKRES_POMIAROWY_CISNIENIA	1	//[psi]
 
 
 uint8_t InicjujMS4525(void);

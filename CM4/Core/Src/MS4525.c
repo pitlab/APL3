@@ -90,9 +90,18 @@ float CisnienieMS2545(uint8_t * dane)
 {
 	float fPsi;
 	int16_t sCisnienie;
+	//uint8_t chStatus;
 
-	sCisnienie = (int16_t)(0x100 * *(dane+0) + *(dane+1));
-	fPsi =  ((float)sCisnienie - 1638.3f) * (-2*ZAKRES_POMIAROWY_CISNIENIA) / (0.8*16383) - ZAKRES_POMIAROWY_CISNIENIA;
+	//chStatus = *(dane+0) & 0xC0;	//jeżeli status == 0x80 to znaczy że trzeba próbkowac wolniej
+	sCisnienie = (uint16_t)(0x100 * *(dane+0) + *(dane+1));
+
+	//skopiuj najstarszy bit 13 liczby na pozycje 14 i 15 statusu.
+	if (sCisnienie & 0x2000)
+		sCisnienie |= 0xC000;
+	else
+		sCisnienie &= ~0xC000;
+
+	fPsi =  ((float)sCisnienie - 1638.3f) * (2*ZAKRES_POMIAROWY_CISNIENIA) / (0.8f * 16383) - ZAKRES_POMIAROWY_CISNIENIA;
 	return fPsi * PASKALI_NA_PSI;
 }
 

@@ -1205,10 +1205,10 @@ void PomiaryIMU(void)
 	//ND130
 	setColor(WHITE);
 	sprintf(chNapis, "%.0fPa ", uDaneCM4.dane.fCisnRozn[0]);
-	print(chNapis, 10+12*FONT_SL, 230);
-	setColor(CYAN);
+	print(chNapis, 10+11*FONT_SL, 230);
+	setColor(MAGENTA);
 	sprintf(chNapis, "%.2fm/s ", uDaneCM4.dane.fPredkosc[0]);
-	print(chNapis, 10+30*FONT_SL, 230);
+	print(chNapis, 10+28*FONT_SL, 230);
 	setColor(YELLOW);
 	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[5], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 230);
@@ -1216,26 +1216,26 @@ void PomiaryIMU(void)
 	//MS4525
 	setColor(WHITE);
 	sprintf(chNapis, "%.0fPa ", uDaneCM4.dane.fCisnRozn[1]);
-	print(chNapis, 10+12*FONT_SL, 250);
-	setColor(CYAN);
+	print(chNapis, 10+11*FONT_SL, 250);
+	setColor(MAGENTA);
 	sprintf(chNapis, "%.2fm/s ", uDaneCM4.dane.fPredkosc[1]);
-	print(chNapis, 10+30*FONT_SL, 250);
+	print(chNapis, 10+28*FONT_SL, 250);
 	setColor(YELLOW);
 	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[6], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 250);
 
 
-	if (uDaneCM4.dane.stGnss1.chFix)
+	/*if (uDaneCM4.dane.stGnss1.chFix)
 		setColor(WHITE);	//jest fix
 	else
 		setColor(GRAY70);	//nie ma fixa
 
-	/*sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dDlugoscGeo);
+	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dDlugoscGeo);
 	print(chNapis, 10+11*FONT_SL, 260);
 	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
 	print(chNapis, 10+29*FONT_SL, 260);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.stGnss1.fHdop);
-	print(chNapis, 10+47*FONT_SL, 260); */
+	print(chNapis, 10+47*FONT_SL, 260);
 
 	sprintf(chNapis, "%.1fm ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
 	print(chNapis, 10+13*FONT_SL, 280);
@@ -1251,7 +1251,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%02d %s %04d ", uDaneCM4.dane.stGnss1.chDzien, chNazwyMies3Lit[uDaneCM4.dane.stGnss1.chMies], uDaneCM4.dane.stGnss1.chRok + 2000);
 	print(chNapis, 10+29*FONT_SL, 300);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.stGnss1.chLiczbaSatelit);
-	print(chNapis, 10+47*FONT_SL, 300);
+	print(chNapis, 10+47*FONT_SL, 300); */
 
 	//sprintf(chNapis, "Serwa:  9 = %d, 10 = %d, 11 = %d, 12 = %d", uDaneCM4.dane.sSerwa[8], uDaneCM4.dane.sSerwa[9], uDaneCM4.dane.sSerwa[10], uDaneCM4.dane.sSerwa[11]);
 	//sprintf(chNapis, "Serwa:  1 = %d,  2 = %d,  3 = %d,  4 = %d", uDaneCM4.dane.sSerwa[0], uDaneCM4.dane.sSerwa[1], uDaneCM4.dane.sSerwa[2], uDaneCM4.dane.sSerwa[3]);

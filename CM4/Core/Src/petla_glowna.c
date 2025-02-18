@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include "modul_IiP.h"
 #include "MS4525.h"
+#include "ND130.h"
 
 extern TIM_HandleTypeDef htim7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -330,12 +331,16 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 		if (chCzujnikOdczytywanyNaI2CExt == CISN_ROZN_MS2545)	//ciśnienie różnicowe czujnika MS2545DO
 		{
 			uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(chDaneMS4525);
+			uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
+			//uDaneCM4.dane.fTemper[6] = PredkoscRurkiPrantla1(uDaneCM4.dane.fCisnRozn[1]);
 		}
 		else
 		if (chCzujnikOdczytywanyNaI2CExt == CISN_TEMP_MS2545)	//ciśnienie różnicowe i temperatura czujnika MS2545DO
 		{
-			uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(chDaneMS4525);
 			uDaneCM4.dane.fTemper[6] = TemperaturaMS2545(chDaneMS4525);
+			uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(chDaneMS4525);
+			uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
+			//uDaneCM4.dane.fTemper[6] = PredkoscRurkiPrantla1(uDaneCM4.dane.fCisnRozn[1]);
 		}
 	}
 

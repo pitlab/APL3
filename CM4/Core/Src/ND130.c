@@ -87,6 +87,7 @@ uint8_t ObslugaND130(void)
 
 		uDaneCM4.dane.fCisnRozn[0] = (float)(((int16_t)chBufND130[0] <<8) + chBufND130[1]  * 30 * 249.082f) / (0.9f * 32768);		//wynik (In H2O) -> Pa
 		uDaneCM4.dane.fTemper[5] = (float)chBufND130[2] + (float)chBufND130[3] / 2550;	//starszy bajt to stopnie, młodszy to ułamek będący częścią po przecinku
+		//uDaneCM4.dane.fTemper[5] = PredkoscRurkiPrantla1(uDaneCM4.dane.fCisnRozn[0]);
 		uDaneCM4.dane.fPredkosc[0] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[0], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 	}
 	return chErr;
@@ -109,12 +110,44 @@ float PredkoscRurkiPrantla(float fCisnRozn, float fCisnStatP2)
 	#define CZESC_PIERWSZA	((2.0f * WYKLADNIK_ADIABATY) / (WYKLADNIK_ADIABATY - 1.0f))
 	#define WYKLADNIK_POTEGI ((WYKLADNIK_ADIABATY - 1.0f) / WYKLADNIK_ADIABATY)
 	float fPredkosc;
-	float fCisnCalkP1 = fCisnRozn + fCisnStatP2;	//cisnienie całkowite
+	float fCisnCalkP1;
+	float fZnak;
 
-	fPredkosc = sqrt(CZESC_PIERWSZA * (fCisnCalkP1 / GESTOSC_POWIETRZA) * (1.0f - powf((fCisnStatP2 / fCisnCalkP1), WYKLADNIK_POTEGI)));
+	if (fCisnRozn >= 0)
+	{
+		fCisnCalkP1 = fCisnRozn + fCisnStatP2;	//cisnienie całkowite
+		fZnak = 1.0f;
+	}
+	else
+	{
+		fCisnCalkP1 = -1 * fCisnRozn + fCisnStatP2;	//cisnienie całkowite
+		fZnak = -1.0f;
+	}
+
+	fPredkosc = sqrtf(CZESC_PIERWSZA * (fCisnCalkP1 / GESTOSC_POWIETRZA) * (1.0f - powf((fCisnStatP2 / fCisnCalkP1), WYKLADNIK_POTEGI)));
 
 	//jednostka: kappa czyli wykładnik adiabaty jest bezwymiarowa, iloraz ciśnienia jest bezwymiarowy, wykłądnik potęgi też jest bezwymiarowy
 	//pozostaje P1 / GESTOSC_POWIETRZA gdzie P1 jest w Paskalach czyli N/m^2 a gęstość jest w jednostce kg/m^3
 	//jeżeli przyjmiemy że N = kg*m/s^2 to jednostka uprości się do m^2/s^2 a że jest pod pierwiastkiem to finalnie otrzymujemy [m/s]
+	return fPredkosc * fZnak;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Oblicza prędkość dla różnicy cisnienia w rurce Prandtla
+// Na podstawie wzoru pierwiastek (2*deltaP / gęstość)
+// Parametry:
+//  fCisnRozn - ciśnienie różnicowe w Pa
+// Zwraca: prędkość w m/s
+////////////////////////////////////////////////////////////////////////////////
+float PredkoscRurkiPrantla1(float fCisnRozn)
+{
+	float fPredkosc;
+
+	if (fCisnRozn >= 0)
+		fPredkosc = sqrtf(2 * fCisnRozn / GESTOSC_POWIETRZA);
+	else
+		fPredkosc = sqrtf(-2 * fCisnRozn / GESTOSC_POWIETRZA) * -1;
 	return fPredkosc;
 }
