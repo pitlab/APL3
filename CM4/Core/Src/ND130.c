@@ -12,12 +12,16 @@
 #include "petla_glowna.h"
 #include "wymiana_CM4.h"
 
-uint8_t chBufND130[13];
-
 extern SPI_HandleTypeDef hspi2;
 extern volatile unia_wymianyCM4_t uDaneCM4;
+uint8_t chBufND130[13];
+float fCiśnienieZerowaniaND130;		//ciśnienie zmierzone podczas kalibracji czujnika. Należy odjać je od bieżących wskazań
+uint16_t sLicznikZerowaniaND130;	//odlicza czas uśredniania danych z czujnika
+
+
 
 // Układ ND130 pracujacy na magistrali SPI ma okres zegara 6us co odpowiada częstotliwości 166kHz
+//Zakres pomairowy to +-30 cali H2O co odpowiada +-7472,46 [Pa] co odpowiada prędkosci 113m/s (406km/h)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z PROMu
@@ -33,6 +37,7 @@ uint8_t InicjujND130(void)
     nCzasStart = PobierzCzas();
     do
     {
+    	//chBufND130[0] = 0xF7;	//mode byte: 30 in H2O, BW=200Hz, Notch enabled
     	chBufND130[0] = 0xF7;	//mode byte: 30 in H2O, BW=200Hz, Notch enabled
     	chBufND130[1] = 0x02;	//rate = 222Hz
     	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
@@ -50,6 +55,7 @@ uint8_t InicjujND130(void)
     }
     while (chErr);
     uDaneCM4.dane.nZainicjowano |= INIT_ND130;
+    sLicznikZerowaniaND130 = LICZBA_PROBEK_USREDNIANIA_ND130;
     return chErr;
 }
 
@@ -64,6 +70,8 @@ uint8_t InicjujND130(void)
 uint8_t ObslugaND130(void)
 {
 	uint8_t chErr;
+	int16_t sCisnienie;
+	float fCisnienie;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_ND130) != INIT_ND130)	//jeżeli czujnik nie jest zainicjowany
 	{
@@ -85,10 +93,31 @@ uint8_t ObslugaND130(void)
 		if ((chBufND130[0] == 0xFF) && (chBufND130[1] == 0xFF) && (chBufND130[2] == 0xFF) && (chBufND130[3] == 0xFF))
 			return ERR_ZLE_DANE;
 
-		uDaneCM4.dane.fCisnRozn[0] = (float)(((int16_t)chBufND130[0] <<8) + chBufND130[1]  * 30 * 249.082f) / (0.9f * 32768);		//wynik (In H2O) -> Pa
-		uDaneCM4.dane.fTemper[5] = (float)chBufND130[2] + (float)chBufND130[3] / 2550;	//starszy bajt to stopnie, młodszy to ułamek będący częścią po przecinku
-		//uDaneCM4.dane.fTemper[5] = PredkoscRurkiPrantla1(uDaneCM4.dane.fCisnRozn[0]);
-		uDaneCM4.dane.fPredkosc[0] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[0], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
+		//przeliczenie według wzoru: PinH2O = Output / (90% * 2^15) * ZAKRES;
+		sCisnienie = chBufND130[0] * 0x100 + chBufND130[1];
+		fCisnienie = (float)sCisnienie * 2 * ZAKRES_POMIAROWY_CISNIENIA_ND130 / (0.9f * 32768);
+		fCisnienie *= PASKALI_NA_INH2O;					//wynik [Pa]
+
+		if (sLicznikZerowaniaND130)
+		{
+			sLicznikZerowaniaND130--;
+			fCiśnienieZerowaniaND130 = (127 * fCiśnienieZerowaniaND130 + fCisnienie) / 128;
+			if (sLicznikZerowaniaND130 == 0)
+				uDaneCM4.dane.nZainicjowano |= INIT_P0_ND140;
+		}
+		else
+			fCisnienie -= fCiśnienieZerowaniaND130;
+
+		uDaneCM4.dane.fCisnRozn[0] = fCisnienie;
+
+		//najstarszy bit temperatury zachowuje się dziwnie. Ponieważ czujnik pracuje do 80° i na dwóch najstarszych bitach jest tylko znak, więc przenieś bit 6 na 7
+		if (chBufND130[2] & 0x40)
+			chBufND130[2] |= 0x80;
+		else
+			chBufND130[2] &= ~0x80;
+
+		uDaneCM4.dane.fTemper[5] = (float)((int8_t)chBufND130[2]) + (float)chBufND130[3] / 2550;	//starszy bajt to stopnie, młodszy to ułamek będący częścią po przecinku
+		uDaneCM4.dane.fPredkosc[0] = PredkoscRurkiPrantla(fCisnienie, 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 	}
 	return chErr;
 }

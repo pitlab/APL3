@@ -13,13 +13,16 @@
 #include "spi.h"
 #include "modul_IiP.h"
 
+//Zakres pomairowy to +-1psi co odpowiada +-6894.76 [Pa] co odpowiada prędkosci 108,5 m/s (390,6 km/h)
+
+
 extern I2C_HandleTypeDef hi2c3;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 static uint8_t chProporcjaPomiarow;
 extern uint8_t chCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
 uint8_t chDaneMS4525[5];
-
-
+float fCiśnienieZerowaniaMS4525;	//ciśnienie zmierzone podczas kalibracji czujnika. Należy odjać je od bieżących wskazań
+uint16_t sLicznikZerowaniaMS4525;	//odlicza czas uśredniania danych z czujnika
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika.
@@ -34,7 +37,10 @@ uint8_t InicjujMS4525(void)
 	//wyślij adres i sprawdź czy odpowie ACK-iem
 	chErr = HAL_I2C_Master_Transmit(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 2, I2C_TIMOUT);
 	if (chErr == ERR_OK)
+	{
 		uDaneCM4.dane.nZainicjowano |= INIT_MS4525;
+		KalibrujZeroMS4525();
+	}
 	return chErr;
 }
 
@@ -88,21 +94,25 @@ uint8_t ObslugaMS4525(void)
 ////////////////////////////////////////////////////////////////////////////////
 float CisnienieMS2545(uint8_t * dane)
 {
-	float fPsi;
+	float fCisnienie;
 	int16_t sCisnienie;
-	//uint8_t chStatus;
 
-	//chStatus = *(dane+0) & 0xC0;	//jeżeli status == 0x80 to znaczy że trzeba próbkowac wolniej
 	sCisnienie = (uint16_t)(0x100 * *(dane+0) + *(dane+1));
+	fCisnienie =  ((float)sCisnienie - 1638.3f) * (2*ZAKRES_POMIAROWY_CISNIENIA) / (0.8f * 16383) - ZAKRES_POMIAROWY_CISNIENIA;	//wynik w [psi]
+	fCisnienie *= PASKALI_NA_PSI;	//wynik w [Pa]
 
-	//skopiuj najstarszy bit 13 liczby na pozycje 14 i 15 statusu.
-	if (sCisnienie & 0x2000)
-		sCisnienie |= 0xC000;
+	//zerowanie wskazań czujnika
+	if (sLicznikZerowaniaMS4525)
+	{
+		sLicznikZerowaniaMS4525--;
+		fCiśnienieZerowaniaMS4525 = (127 * fCiśnienieZerowaniaMS4525 + fCisnienie) / 128;
+		if (sLicznikZerowaniaMS4525 == 0)
+			uDaneCM4.dane.nZainicjowano |= INIT_P0_MS4525;
+	}
 	else
-		sCisnienie &= ~0xC000;
+		fCisnienie -= fCiśnienieZerowaniaMS4525;
 
-	fPsi =  ((float)sCisnienie - 1638.3f) * (2*ZAKRES_POMIAROWY_CISNIENIA) / (0.8f * 16383) - ZAKRES_POMIAROWY_CISNIENIA;
-	return fPsi * PASKALI_NA_PSI;
+	return fCisnienie;
 }
 
 
@@ -121,6 +131,17 @@ float TemperaturaMS2545(uint8_t * dane)
 	return (float)(sTemperatura>>5) * 200.f / 2047.f - 50.f;
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Włącza uśrednianie wartości zwracanego ciśnienia aby uznać je za zerowe i móc odejmować od kolejnych pomiarów
+// Parametry: *fZCisnienieZero - wskaźnik na zmienną z cśnieniem zerowym
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+void KalibrujZeroMS4525(void)
+{
+	sLicznikZerowaniaMS4525 = LICZBA_PROBEK_USREDNIANIA_MS4525;
+}
 
 
 

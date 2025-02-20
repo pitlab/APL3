@@ -20,12 +20,14 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Zaobserwowałem dziwne zachowanie i padło podejrzenie o przepełnianie się stosu jednego z wątków, więc została zrobiona  analiza i porządki ze stosami. Obecnie wygląda to tak:
 ![Procesy](obrazki/procesy.jpg)
 - Komunikaty głosowe (16bit, 16kHz) są już wgrywane do pamięci flash. Poprzedza je tablica[128] zawierająca adresy i rozmiary komunikatów
-- Wymawia komunikaty głosowe
+- Wymawia komunikaty głosowe zawierajace liczby z zakresu 0,1..999k 
 - Interfejs karty SD ma poprawnie przełaczane przez bibliotekę napiecie dla IO między 3,3V a 1,8V, po to aby móc obsługiwać szybsze karty
 - Jest elementarny zapis / odczyt karty SD o transferze 7 / 16 MB/s dla karty high speed klasy C10 ( min. zapis 10MB/s)
 ![Transfer](obrazki/transfer_karty_SD.jpg)
 - Prezentacja układów IMU na ekranie powitalnym
-- Uruchomiony system FAT na karcie, uruchomiony loger
+- Uruchomiony system FAT na karcie, uruchomiony loger danych pomairowych
+- Dodane automatyczne rpzygotowanie ciśnienia zerowego z czujników ciśnienia bezwzglednego i licznenie wysokosci barometrycznej uwzgledniającej temperaturę
+- Uruchomione czujniki ciśnienia różnicowego ND130 i MS4525
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM
@@ -49,6 +51,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
  - Uruchomić układ ethernet
  - Uruchomić USB w trybie CDC
  - Uruchomić lokalny zegar aby FAT mógł pracować w funkcji czasu
+ - Zmodyfikować test transferu karty SD, tak aby działał z systemową obsługą FAT (obecnie działa poza FAT-em i systemem operacyjnym)
  
  
  

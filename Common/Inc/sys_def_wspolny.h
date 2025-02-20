@@ -13,3 +13,5 @@
 #define INIT_MS4525			0x00000800
 #define INIT_P0_MS5611		0x00001000	//ustawiono ciśnienie P0 dla czujnika 1
 #define INIT_P0_BMP851		0x00002000	//ustawiono ciśnienie P0 dla czujnika 2
+#define INIT_P0_ND140		0x00004000	//wyzerowano prędkość dla ND130
+#define INIT_P0_MS4525		0x00008000	//wyzerowano prędkość dla MS4525

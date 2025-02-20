@@ -129,6 +129,43 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 
 
+				//Ciśnienie różnicowe czujnika 1
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "CisnRozn1 [Pa];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCisnRozn[0]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//Ciśnienie różnicowe czujnika 2
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "CisnRozn2 [Pa];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCisnRozn[1]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//Prędkość wzgledem powietrza czujnika różnicowego 1
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "IAS1 [m/s];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fPredkosc[0]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				//Prędkość wzgledem powietrza czujnika różnicowego 2
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "IAS2 [m/s];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fPredkosc[1]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+
 				//akcelerometr1 X
 				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 					strncat(chBufZapisuKarty, "Akcel1 X [g];", MAX_ROZMIAR_WPISU);

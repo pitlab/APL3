@@ -44,7 +44,7 @@ uint8_t InicjujBMP581(void)
 	if (chDane != 0x50)
 		return ERR_BRAK_BMP581;
 
-
+	sLicznikUsrednianiaP0 = LICZBA_PROBEK_USREDNIANIA;	//rozpocznij filtrowanie P0
 	uDaneCM4.dane.nZainicjowano |= INIT_BMP581;
 	return ERR_OK;
 }
@@ -82,23 +82,19 @@ uint8_t ObslugaBMP581(void)
 		chProporcjaPomiarow++;
 		chProporcjaPomiarow &= 0x0F;
 
-		//czy ustawiono ciśnienie P0
-		if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)
-			uDaneCM4.dane.fWysoko[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnie[1], fP0_BMP581, uDaneCM4.dane.fTemper[1]);	//tak, więc oblicz wysokość
-		else	//nie, więc uśredniaj kolejne pomiary
+		//przygotuj P0
+		if (fCisnienie > 0)		//wykonaj tylko dla cykli pomiaru ciśnienia, pomiń cykle pomiary tempertury
 		{
-			if (fCisnienie > 0)		//wykonaj tylko dla cykli pomiaru ciśnienia, pomiń pomiary tempertury
+			if (sLicznikUsrednianiaP0)	//czy przygotowanie ciśnienia P0 jeszcze trwa
 			{
-				fP0_BMP581 += fCisnienie;
-				sLicznikUsrednianiaP0++;
-				if (sLicznikUsrednianiaP0 >= USREDNIONO_POMIAROW)
-				{
-					fP0_BMP581 /= USREDNIONO_POMIAROW;
+				uDaneCM4.dane.fWysoko[1] = 0.0f;
+				fP0_BMP581 = (127 * fP0_BMP581 + fCisnienie) / 128;
+				sLicznikUsrednianiaP0--;
+				if (sLicznikUsrednianiaP0 == 0)
 					uDaneCM4.dane.nZainicjowano |= INIT_P0_BMP851;
-					sLicznikUsrednianiaP0 = 0;
-				}
 			}
-			uDaneCM4.dane.fWysoko[1] = 0.0f;
+			else
+				uDaneCM4.dane.fWysoko[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnie[1], fP0_BMP581, uDaneCM4.dane.fTemper[1]);	//P0 gotowe więc oblicz wysokość
 		}
 	}
 	return chErr;
