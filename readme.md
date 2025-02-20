@@ -25,9 +25,8 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Jest elementarny zapis / odczyt karty SD o transferze 7 / 16 MB/s dla karty high speed klasy C10 ( min. zapis 10MB/s)
 ![Transfer](obrazki/transfer_karty_SD.jpg)
 - Prezentacja układów IMU na ekranie powitalnym
-- Uruchomiony system FAT na karcie, uruchomiony loger danych pomairowych
-- Dodane automatyczne rpzygotowanie ciśnienia zerowego z czujników ciśnienia bezwzglednego i licznenie wysokosci barometrycznej uwzgledniającej temperaturę
-- Uruchomione czujniki ciśnienia różnicowego ND130 i MS4525
+- Uruchomiony system FAT na karcie, uruchomiony loger danych pomiarowych
+- Dodana obsługa zegara czasu rzeczywistego jednak jeszcze nie działa z powodu niewłaściwego kwarca.
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM
@@ -40,17 +39,17 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Odczyt danych z magnetometrów MMC34160 i IIS2MDC na wewnętrznym module IiP
 - Odczyt danych z żyroskopów i akcelerometrów w ICM42688
 - Odczyt danych z żyroskopów i akcelerometrów w LSM6DSV
-![Magnetometry](obrazki/pomiary.jpg) 
+![Magnetometry](obrazki/pomiary.jpg)
+- Dodane automatyczne wyliczanie ciśnienia zerowego z czujników ciśnienia bezwzględnego i liczenie wysokości barometrycznej uwzględniającej wpływ temperatury
+- Uruchomione czujniki ciśnienia różnicowego ND130 i MS4525. Już pokazują takie samo ciśnienie
 
 #### Do zrobienia:
  - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarce na inne z mniejszym ESR
  - Podłączyć i uruchomić kamerę
  - uruchomić komunikację po ethernet
  - Przenieść z APL2 obsługę pętli głównej, serw, mikserów, zapisu konfiguracji do FRAM, telemetrii do rdzenia CM4
- - Oprogramować obsługę FAT dla karty SD
- - Uruchomić układ ethernet
+  - Uruchomić układ ethernet
  - Uruchomić USB w trybie CDC
- - Uruchomić lokalny zegar aby FAT mógł pracować w funkcji czasu
  - Zmodyfikować test transferu karty SD, tak aby działał z systemową obsługą FAT (obecnie działa poza FAT-em i systemem operacyjnym)
  
  

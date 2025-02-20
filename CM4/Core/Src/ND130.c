@@ -95,7 +95,7 @@ uint8_t ObslugaND130(void)
 
 		//przeliczenie według wzoru: PinH2O = Output / (90% * 2^15) * ZAKRES;
 		sCisnienie = chBufND130[0] * 0x100 + chBufND130[1];
-		fCisnienie = (float)sCisnienie * 2 * ZAKRES_POMIAROWY_CISNIENIA_ND130 / (0.9f * 32768);
+		fCisnienie = (float)sCisnienie * 2 * ZAKRES_POMIAROWY_CISNIENIA_ND130 / (0.9f * 32768);	//wynik w calach H2O
 		fCisnienie *= PASKALI_NA_INH2O;					//wynik [Pa]
 
 		if (sLicznikZerowaniaND130)

@@ -215,7 +215,7 @@ uint8_t ObslugaMS5611(void)
 				fP0_MS5611 = (127 * fP0_MS5611 + fCisnienie) / 128;
 				sLicznikUsrednianiaP0--;
 				if (sLicznikUsrednianiaP0 == 0)
-					uDaneCM4.dane.nZainicjowano |= INIT_P0_MS4525;
+					uDaneCM4.dane.nZainicjowano |= INIT_P0_MS5611;
 			}
 			else
 				uDaneCM4.dane.fWysoko[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnie[0], fP0_MS5611, uDaneCM4.dane.fTemper[0]);	//P0 gotowe więc oblicz wysokość
