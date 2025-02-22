@@ -22,6 +22,8 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Komunikaty głosowe (16bit, 16kHz) są już wgrywane do pamięci flash. Poprzedza je tablica[128] zawierająca adresy i rozmiary komunikatów
 - Wymawia komunikaty głosowe zawierajace liczby z zakresu 0,1..999k 
 - Interfejs karty SD ma poprawnie przełaczane przez bibliotekę napiecie dla IO między 3,3V a 1,8V, po to aby móc obsługiwać szybsze karty
+- Dodane narzędzie do sprawdzenia parametrów karty deklarowanych przez producenta
+![Prametry karty](obrazki/prametry_karty_SD.jpg)
 - Jest elementarny zapis / odczyt karty SD o transferze 7 / 16 MB/s dla karty high speed klasy C10 ( min. zapis 10MB/s)
 ![Transfer](obrazki/transfer_karty_SD.jpg)
 - Prezentacja układów IMU na ekranie powitalnym

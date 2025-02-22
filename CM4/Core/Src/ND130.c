@@ -93,8 +93,12 @@ uint8_t ObslugaND130(void)
 		if ((chBufND130[0] == 0xFF) && (chBufND130[1] == 0xFF) && (chBufND130[2] == 0xFF) && (chBufND130[3] == 0xFF))
 			return ERR_ZLE_DANE;
 
+		//czujnik zwraca liczbę 15-bitową, najstarszy bit jest zawsze zerem, więc aby uzyskac liczby ujemne kopiuję bit 14 na pozycję 15
+		if (chBufND130[0] & 0x40)
+			chBufND130[0] |= 0x80;
+
 		//przeliczenie według wzoru: PinH2O = Output / (90% * 2^15) * ZAKRES;
-		sCisnienie = chBufND130[0] * 0x100 + chBufND130[1];
+		sCisnienie = (int16_t)chBufND130[0] * 0x100 + chBufND130[1];
 		fCisnienie = (float)sCisnienie * 2 * ZAKRES_POMIAROWY_CISNIENIA_ND130 / (0.9f * 32768);	//wynik w calach H2O
 		fCisnienie *= PASKALI_NA_INH2O;					//wynik [Pa]
 
