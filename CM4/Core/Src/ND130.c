@@ -112,7 +112,8 @@ uint8_t ObslugaND130(void)
 		else
 			fCisnienie -= fCiśnienieZerowaniaND130;
 
-		uDaneCM4.dane.fCisnRozn[0] = fCisnienie;
+		//uDaneCM4.dane.fCisnRozn[0] = fCisnienie;
+		uDaneCM4.dane.fCisnRozn[0] = (7 * uDaneCM4.dane.fCisnRozn[0] + fCisnienie) / 8;
 
 		//najstarszy bit temperatury zachowuje się dziwnie. Ponieważ czujnik pracuje do 80° i na dwóch najstarszych bitach jest tylko znak, więc przenieś bit 6 na 7
 		if (chBufND130[2] & 0x40)

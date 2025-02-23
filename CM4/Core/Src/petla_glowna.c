@@ -257,10 +257,10 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	//operacje na zewnętrznej magistrali I2C3
 	switch(chEtapOperacjiI2C)
 	{
-	//case 0:	chErr = StartujPomiarMagHMC();		break;
+	case 0:	chErr = StartujPomiarMagHMC();		break;
 	case 1: chErr = ObslugaMS4525();			break;
-	//case 2:	chErr = StartujOdczytMagHMC();		break;
-	//case 3:	chErr = CzytajMagnetometrHMC();		break;
+	case 2:	chErr = StartujOdczytMagHMC();		break;
+	case 3:	chErr = CzytajMagnetometrHMC();		break;
 	default: break;
 	}
 
@@ -338,7 +338,8 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 		if (chCzujnikOdczytywanyNaI2CExt == CISN_TEMP_MS2545)	//ciśnienie różnicowe i temperatura czujnika MS2545DO
 		{
 			uDaneCM4.dane.fTemper[6] = TemperaturaMS2545(chDaneMS4525);
-			uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(chDaneMS4525);
+			//uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(chDaneMS4525);
+			uDaneCM4.dane.fCisnRozn[1] = (15 * uDaneCM4.dane.fCisnRozn[1] + CisnienieMS2545(chDaneMS4525)) / 16;
 			uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 			//uDaneCM4.dane.fTemper[6] = PredkoscRurkiPrantla1(uDaneCM4.dane.fCisnRozn[1]);
 		}

@@ -1054,13 +1054,13 @@ void PomiaryIMU(void)
 		print(chNapis, 10, 150);
 		sprintf(chNapis, "Przech:             Pochyl:          Odchyl:");
 		print(chNapis, 10, 170);
-		sprintf(chNapis, "Ci%cn 1:             Wysoko:          Temper:", ś);
+		sprintf(chNapis, "Ci%cn 1:             AGL1:            Temper:", ś);
 		print(chNapis, 10, 190);
-		sprintf(chNapis, "Ci%cn 2:             Wysoko:          Temper:", ś);
+		sprintf(chNapis, "Ci%cn 2:             AGL2:            Temper:", ś);
 		print(chNapis, 10, 210);
-		sprintf(chNapis, "Ci%cR%c%cn 1:          Pr%cdko:          Temper:", ś, ó, ż, ę);
+		sprintf(chNapis, "Ci%cR%c%cn 1:          IAS1:             Temper:", ś, ó, ż);
 		print(chNapis, 10, 230);
-		sprintf(chNapis, "Ci%cR%c%cn 2:          Pr%cdko:          Temper:", ś, ó, ż, ę);
+		sprintf(chNapis, "Ci%cR%c%cn 2:          IAS2:             Temper:", ś, ó, ż);
 		print(chNapis, 10, 250);
 
 		//sprintf(chNapis, "GNSS D%cug:             Szer:             HDOP:", ł);

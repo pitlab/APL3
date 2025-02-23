@@ -16,13 +16,11 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Wymiana danych z rdzeniem CM4 i prezentacja ich na LCD
 - Uruchomiony FreeRTOS
 - Uruchomiona komunikacja po LPUART przez BDMA
-- Wyświetlacz pracuje w osobnym wątku o niskim priorytecie nie blokując głównego wątku. Dostęp do SPI sterowany jest sprzętowym semaforem.
-- Zaobserwowałem dziwne zachowanie i padło podejrzenie o przepełnianie się stosu jednego z wątków, więc została zrobiona  analiza i porządki ze stosami. Obecnie wygląda to tak:
-![Procesy](obrazki/procesy.jpg)
+- Wyświetlacz pracuje w osobnym wątku o niskim priorytecie nie blokując głównego wątku. Dostęp do SPI sterowany jest sprzętowym semaforem z proprytetem dla pozostałych układów na magistrali.
 - Komunikaty głosowe (16bit, 16kHz) są już wgrywane do pamięci flash. Poprzedza je tablica[128] zawierająca adresy i rozmiary komunikatów
 - Wymawia komunikaty głosowe zawierajace liczby z zakresu 0,1..999k 
 - Interfejs karty SD ma poprawnie przełaczane przez bibliotekę napiecie dla IO między 3,3V a 1,8V, po to aby móc obsługiwać szybsze karty
-- Dodane narzędzie do sprawdzenia parametrów karty deklarowanych przez producenta
+- Dodano narzędzie do oczytania parametrów karty deklarowanych przez producenta
 ![Prametry karty](obrazki/prametry_karty_SD.jpg)
 - Jest elementarny zapis / odczyt karty SD o transferze 7 / 16 MB/s dla karty high speed klasy C10 ( min. zapis 10MB/s)
 ![Transfer](obrazki/transfer_karty_SD.jpg)
@@ -50,9 +48,10 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
  - Podłączyć i uruchomić kamerę
  - uruchomić komunikację po ethernet
  - Przenieść z APL2 obsługę pętli głównej, serw, mikserów, zapisu konfiguracji do FRAM, telemetrii do rdzenia CM4
-  - Uruchomić układ ethernet
+ - Uruchomić układ ethernet
  - Uruchomić USB w trybie CDC
  - Zmodyfikować test transferu karty SD, tak aby działał z systemową obsługą FAT (obecnie działa poza FAT-em i systemem operacyjnym)
+ - Zrobić ocenę wydajności grzałki na module IMU IIP1
  
  
  
