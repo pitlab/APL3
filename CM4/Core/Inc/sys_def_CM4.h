@@ -42,7 +42,7 @@
 //definicje układów na magistrali I2C3
 #define MAG_HMC				1
 #define CISN_ROZN_MS2545	2	//ciśnienie różnicowe
-#define CISN_TEMP_MS2545	3	//ciśnieenie różnicowe i temepratura
+#define CISN_TEMP_MS2545	3	//ciśnienie różnicowe i temepratura
 
 
 //definije kanałów IO

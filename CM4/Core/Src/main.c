@@ -20,7 +20,6 @@
 #include "serwa.h"
 #include "GNSS.h"
 #include "wymiana_CM4.h"
-#include "HMC5883.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -160,7 +159,7 @@ int main(void)
   uDaneCM4.dane.nZainicjowano = 0;	//za każdym uruchomieniem detekcja i inicjalizacja sprzętu zaczyna się od początku
   InicjujModulyWew();
   InicjujSerwa();
-  InicjujMagnetometrHMC();
+
 
 
   /* USER CODE END 2 */

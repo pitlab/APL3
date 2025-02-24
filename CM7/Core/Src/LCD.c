@@ -1058,9 +1058,9 @@ void PomiaryIMU(void)
 		print(chNapis, 10, 190);
 		sprintf(chNapis, "Ci%cn 2:             AGL2:            Temper:", ś);
 		print(chNapis, 10, 210);
-		sprintf(chNapis, "Ci%cR%c%cn 1:          IAS1:             Temper:", ś, ó, ż);
+		sprintf(chNapis, "Ci%cR%c%cn 1:          IAS1:            Temper:", ś, ó, ż);
 		print(chNapis, 10, 230);
-		sprintf(chNapis, "Ci%cR%c%cn 2:          IAS2:             Temper:", ś, ó, ż);
+		sprintf(chNapis, "Ci%cR%c%cn 2:          IAS2:            Temper:", ś, ó, ż);
 		print(chNapis, 10, 250);
 
 		//sprintf(chNapis, "GNSS D%cug:             Szer:             HDOP:", ł);
@@ -1186,7 +1186,7 @@ void PomiaryIMU(void)
 	print(chNapis, 10+8*FONT_SL, 190);
 	setColor(CYAN);
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[0]);
-	print(chNapis, 10+28*FONT_SL, 190);
+	print(chNapis, 10+26*FONT_SL, 190);
 	setColor(YELLOW);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[0], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 190);
@@ -1197,7 +1197,7 @@ void PomiaryIMU(void)
 	print(chNapis, 10+8*FONT_SL, 210);
 	setColor(CYAN);
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[1]);
-	print(chNapis, 10+28*FONT_SL, 210);
+	print(chNapis, 10+26*FONT_SL, 210);
 	setColor(YELLOW);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 210);
@@ -1211,7 +1211,7 @@ void PomiaryIMU(void)
 	print(chNapis, 10+11*FONT_SL, 230);
 	setColor(MAGENTA);
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[0]);
-	print(chNapis, 10+28*FONT_SL, 230);
+	print(chNapis, 10+26*FONT_SL, 230);
 	setColor(YELLOW);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[5], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 230);
@@ -1225,7 +1225,7 @@ void PomiaryIMU(void)
 	print(chNapis, 10+11*FONT_SL, 250);
 	setColor(MAGENTA);
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[1]);
-	print(chNapis, 10+28*FONT_SL, 250);
+	print(chNapis, 10+26*FONT_SL, 250);
 	setColor(YELLOW);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[6], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 250);
@@ -1631,29 +1631,30 @@ void WyswietlRejestratorKartySD(void)
 // Parametry: chKodBleduFAT - numer kodu błędu typu FRESULT
 // Zwraca: wskaźnik na string z kodem błędu FAT
 ////////////////////////////////////////////////////////////////////////////////
-void PobierzKodBleduFAT(uint8_t chKodBledu, char* chNapis)
+void PobierzKodBleduFAT(uint8_t chKodBledu, char* napis)
 {
 	switch (chKodBledu)
 	{
-	case FR_DISK_ERR: 			sprintf(chNapis, "FR_DISK_ERR");			break;
-	case FR_INT_ERR:			sprintf(chNapis, "FR_INT_ERR");				break;
-	case FR_NOT_READY: 			sprintf(chNapis, "FR_NOT_READY");			break;
-	case FR_NO_FILE:			sprintf(chNapis, "FR_NO_FILE");				break;
-	case FR_NO_PATH:			sprintf(chNapis, "FR_NO_PATH");				break;
-	case FR_INVALID_NAME:		sprintf(chNapis, "FR_INVALID_NAME");		break;
-	case FR_DENIED:				sprintf(chNapis, "FR_DENIED");				break;
-	case FR_EXIST:				sprintf(chNapis, "FR_EXIST");				break;
-	case FR_INVALID_OBJECT:		sprintf(chNapis, "FR_INVALID_OBJECT");		break;
-	case FR_WRITE_PROTECTED:	sprintf(chNapis, "FR_WRITE_PROTECTED");		break;
-	case FR_INVALID_DRIVE:		sprintf(chNapis, "FR_INVALID_DRIVE");		break;
-	case FR_NOT_ENABLED:		sprintf(chNapis, "FR_NOT_ENABLED");			break;
-	case FR_NO_FILESYSTEM:		sprintf(chNapis, "FR_NO_FILESYSTEM");		break;
-	case FR_MKFS_ABORTED:		sprintf(chNapis, "FR_MKFS_ABORTED");		break;
-	case FR_TIMEOUT:			sprintf(chNapis, "FR_TIMEOUT");				break;
-	case FR_LOCKED:				sprintf(chNapis, "FR_LOCKED");				break;
-	case FR_NOT_ENOUGH_CORE:	sprintf(chNapis, "FR_NOT_ENOUGH_CORE");		break;
-	case FR_TOO_MANY_OPEN_FILES:sprintf(chNapis, "FR_TOO_MANY_OPEN_FILES");	break;
-	case FR_INVALID_PARAMETER:	sprintf(chNapis, "FR_INVALID_PARAMETER");	break;
+	case FR_DISK_ERR: 			sprintf(napis, "FR_DISK_ERR");			break;
+	case FR_INT_ERR:			sprintf(napis, "FR_INT_ERR");				break;
+	case FR_NOT_READY: 			sprintf(napis, "FR_NOT_READY");			break;
+	case FR_NO_FILE:			sprintf(napis, "FR_NO_FILE");				break;
+	case FR_NO_PATH:			sprintf(napis, "FR_NO_PATH");				break;
+	case FR_INVALID_NAME:		sprintf(napis, "FR_INVALID_NAME");		break;
+	case FR_DENIED:				sprintf(napis, "FR_DENIED");				break;
+	case FR_EXIST:				sprintf(napis, "FR_EXIST");				break;
+	case FR_INVALID_OBJECT:		sprintf(napis, "FR_INVALID_OBJECT");		break;
+	case FR_WRITE_PROTECTED:	sprintf(napis, "FR_WRITE_PROTECTED");		break;
+	case FR_INVALID_DRIVE:		sprintf(napis, "FR_INVALID_DRIVE");		break;
+	case FR_NOT_ENABLED:		sprintf(napis, "FR_NOT_ENABLED");			break;
+	case FR_NO_FILESYSTEM:		sprintf(napis, "FR_NO_FILESYSTEM");		break;
+	case FR_MKFS_ABORTED:		sprintf(napis, "FR_MKFS_ABORTED");		break;
+	case FR_TIMEOUT:			sprintf(napis, "FR_TIMEOUT");				break;
+	case FR_LOCKED:				sprintf(napis, "FR_LOCKED");				break;
+	case FR_NOT_ENOUGH_CORE:	sprintf(napis, "FR_NOT_ENOUGH_CORE");		break;
+	case FR_TOO_MANY_OPEN_FILES:sprintf(napis, "FR_TOO_MANY_OPEN_FILES");	break;
+	case FR_INVALID_PARAMETER:	sprintf(napis, "FR_INVALID_PARAMETER");	break;
+	default: sprintf(napis, "Blad nieznany");
 	}
 	/*switch (chKodBleduFAT)
 	{

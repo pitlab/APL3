@@ -18,6 +18,8 @@ extern I2C_HandleTypeDef hi2c4;
 extern DMA_HandleTypeDef hdma_i2c4_rx;
 extern DMA_HandleTypeDef hdma_i2c4_tx;
 extern volatile unia_wymianyCM4_t uDaneCM4;
+static uint8_t chSekwencjaPomiaru;
+extern uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika MMC34160PJ
@@ -36,7 +38,7 @@ uint8_t InicjujMMC3416x(void)
 		chErr =  HAL_I2C_Master_Receive(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 1, 2);		//odczytaj dane
 		if (!chErr)
 		{
-			if (chDaneMagMMC[0] == 0x06)
+			if (chDaneMagMMC[0] == 0x06)	//czy zgadza się ID
 			{
 				chDaneMagMMC[0] = PMMC3416_INT_CTRL0;
 				chDaneMagMMC[1] = (0 << 0) |	//TM Take measurement, set ‘1’ will initiate measurement
@@ -46,6 +48,18 @@ uint8_t InicjujMMC3416x(void)
 								  (0 << 5) |	//SET
 								  (0 << 6) |	//RESET
 								  (0 << 7);		//Refill Cap Writing “1” will recharge the capacitor at CAP pin, it is requested to be issued before SET/RESET command.
+				chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 2, 2);	//wyślij polecenie wykonania pomiaru
+				if (chErr)
+					return chErr;
+
+				chDaneMagMMC[0] = PMMC3416_INT_CTRL1;
+				chDaneMagMMC[1] = (0 << 0) |	//BW0..1 Output resolution:	0=16 bits, 7.92 mS; 1=16 bits, 4.08 mS; 2=14 bits, 2.16 mS; 3= 12 bits, 1.20 mS
+								  (0 << 2) |	//X-inhibit - Factory-use Register
+								  (0 << 3) |	//Y-inhibit - Factory-use Register
+								  (0 << 4) |	//Z-inhibit - Factory-use Register
+								  (0 << 5) |	//ST_XYZ Selftest check, write “1” to this bit and execute a TM command, after TM is completed the result can be read as bit ST_XYZ_OK.
+								  (0 << 6) |	//Temp_tst - Factory-use Register
+								  (0 << 7);		//SW_RST Writing “1”will cause the part to reset, similar to power-up. It will clear all registers and also re-read OTP as part of its startup routine.
 				chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 2, 2);	//wyślij polecenie wykonania pomiaru
 				if (!chErr)
 				{
@@ -61,28 +75,61 @@ uint8_t InicjujMMC3416x(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Startuje cykliczny pomiar magnetometru MMC3416xPJ w trybie wyzwalanym ręcznie
-// Parametry: brak
-// Zwraca: kod błędu HAL
-// Czas zajęcia magistrali I2C: 420us przy zegarze 100kHz
+// Wykonaj jeden element sekwencji potrzebnych do uzyskania pomiaru
+// Najlepszy wynik wedlug dokumentacji uzyskuje się wykonując sekwencję: SET, MEASUREMENT, RESET, MEASUREMENT
+// Cząstkowe wyniki oprocz natężenia pola zawierają offset. Następnie cząstkowe pomiary należy odjąć od siebie i podzielić przez 2
+// Parametry: nic
+// Zwraca: kod błędu
+// Czas wykonania: pełna pętla zajmuje 170ms -> 5,88Hz
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t StartujPomiarMMC3416x(void)
+uint8_t ObslugaMMC3416x(void)
 {
-	uint8_t chErr = ERR_BRAK_MMC34160;
-
-	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)
+	switch (chSekwencjaPomiaru)
 	{
-		chDaneMagMMC[0] = PMMC3416_INT_CTRL0;
-		chDaneMagMMC[1] = (1 << 0) |	//TM Take measurement, set ‘1’ will initiate measurement
-						 (0 << 1) |	//Continuous Measurement Mode On
-						 (0 << 2) |	//CM Freq0..1 How often the chip will take measurements in Continuous Measurement Mode: 0=1,5Hz, 1=13Hz, 2=25Hz, 3=50Hz
-						 (0 << 4) |	//No Boost. Setting this bit high will disable the charge pump and cause the storage capacitor to be charged off VDD.
-						 (0 << 5) |	//SET
-						 (0 << 6) |	//RESET
-						 (0 << 7);	//Refill Cap Writing “1” will recharge the capacitor at CAP pin, it is requested to be issued before SET/RESET command.
-		chErr = HAL_I2C_Master_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 2);	//wyślij polecenie wykonania pomiaru
+	case SPMMC3416_REFIL_SET:		//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia SET
+	case SPMMC3416_REFIL_RESET:		//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia RESET
+		PolecenieMMC3416x(POL_REFILL);
+		break;
+
+	case SPMMC3416_CZEKAJ_REFSET:	//czekaj 50ms na naładowanie
+	case SPMMC3416_CZEKAJ_REFRES:	//czekaj 50ms na naładowanie
+		break;
+
+	case SPMMC3416_SET:				//wyślij polecenie SET
+		PolecenieMMC3416x(POL_SET);
+		break;
+
+	case SPMMC3416_START_POM_HP:	//wyślij polecenie wykonania pomiaru H+
+	case SPMMC3416_START_POM_HM:	//wyślij polecenie wykonania pomiaru H-
+		PolecenieMMC3416x(POL_TM);
+		break;
+
+	case SPMMC3416_START_STAT_P:	//wyślij polecenie odczytania statusu
+	case SPMMC3416_START_STAT_M:	//wyślij polecenie odczytania statusu
+		StartujOdczytRejestruMMC3416x(PMMC3416_STATUS);
+		break;
+
+	case SPMMC3416_CZYT_STAT_P:		//odczytaj status i sprawdź gotowość pomiaru
+	case SPMMC3416_CZYT_STAT_M:		//odczytaj status i sprawdź gotowość pomiaru
+		break;
+
+	case SPMMC3416_START_CZYT_HP:	//wyślij polecenie odczytu pomiaru H+
+	case SPMMC3416_START_CZYT_HM:	//wyślij polecenie odczytu pomiaru H-
+		StartujOdczytRejestruMMC3416x(PMMC3416_XOUT_L);
+		break;
+
+	case SPMMC3416_CZYTAJ_HP:		//odczytaj pomiar H+
+	case SPMMC3416_CZYTAJ_HM:		//odczytaj pomiar H-
+		CzytajMMC3416x();
+		break;
+
+	case SPMMC3416_RESET:			//wyślij polecenie RESET
+		PolecenieMMC3416x(POL_RESET);
+		break;
+
+	default:
 	}
-	return chErr;
+	chOdczytywanyMagnetometr = MAG_MMC;	//identyfikuje układ w callbacku odczytu danych
 }
 
 
@@ -93,7 +140,7 @@ uint8_t StartujPomiarMMC3416x(void)
 // Zwraca: kod błędu HAL
 // Czas zajęcia magistrali I2C: 620us przy zegarze 100kHz
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t StartujOdczytMMC3416x(void)
+uint8_t StartujOdczytRejestruMMC3416x(uint8_t chRejestr)
 {
 	uint8_t chErr = ERR_BRAK_MMC34160;
 	extern uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
@@ -101,7 +148,7 @@ uint8_t StartujOdczytMMC3416x(void)
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)
 	{
 		chOdczytywanyMagnetometr = MAG_MMC;
-		chDaneMagMMC[0] = PMMC3416_XOUT_L;
+		chDaneMagMMC[0] = chRejestr;	PMMC3416_XOUT_L;
 		chErr = HAL_I2C_Master_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 1);	//wyślij polecenie odczytu wszystkich pomiarów
 	}
 	return chErr;
@@ -127,3 +174,42 @@ uint8_t CzytajMMC3416x(void)
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Inicjuje odczyt statusu z magnetometru HMC5883
+// Parametry: brak
+// Zwraca: kod błędu HAL
+// Czas zajęcia magistrali I2C: 620us przy zegarze 100kHz
+////////////////////////////////////////////////////////////////////////////////
+uint8_t CzytajStatusMMC3416x(void)
+{
+	uint8_t chErr = ERR_BRAK_MMC34160;
+
+	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)
+		chErr = HAL_I2C_Master_Receive_DMA(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 1);
+	return chErr;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wysyła polecenie REFIL napełnienia kondensatora dla wykonania polecen SET i RESET
+// Parametry: brak
+// Zwraca: kod błędu HAL
+// Czas zajęcia magistrali I2C: 420us przy zegarze 100kHz
+////////////////////////////////////////////////////////////////////////////////
+uint8_t PolecenieMMC3416x(uint8_t chPolecenie)
+{
+	uint8_t chErr = ERR_BRAK_MMC34160;
+
+	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)
+	{
+		chDaneMagMMC[0] = PMMC3416_INT_CTRL0;
+		chDaneMagMMC[1] = chPolecenie |	//bit zdefiniowany w pliku h
+						 (0 << 1) |	//Continuous Measurement Mode On
+						 (3 << 2);	//CM Freq0..1 How often the chip will take measurements in Continuous Measurement Mode: 0=1,5Hz, 1=13Hz, 2=25Hz, 3=50Hz
+		chErr = HAL_I2C_Master_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 2);	//wyślij polecenie wykonania pomiaru
+	}
+	return chErr;
+}

@@ -268,9 +268,9 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	switch(chEtapOperacjiI2C)
 	{
 	case 0:	chErr = StartujOdczytIIS2MDC();		break;
-	case 1:	chErr = CzytajIIS2MDC();			break;
-	case 2: chErr = StartujOdczytMMC3416x();	break;
-	case 3:	chErr = CzytajMMC3416x();			break;
+	case 1:	chErr = ObslugaMMC3416x();			break;
+	case 2: chErr = CzytajIIS2MDC();			break;
+	case 3:	chErr = ObslugaMMC3416x();			break;
 	}
 
 	/*switch(chEtapOperacjiI2C)

@@ -1,4 +1,4 @@
-//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////extern
 //
 // AutoPitLot v3.0
 // Obsługa magnetometru HMC5883 na magistrali I2C
@@ -14,6 +14,7 @@
 extern volatile unia_wymianyCM4_t uDaneCM4;
 extern I2C_HandleTypeDef hi2c3;
 uint8_t chDaneMagHMC[6];
+extern uint8_t chCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
 
 // Obsługa magnetometru wymaga wykonania kilku czynności rozłożonych w czasie
 // 1) Wystartowanie konwersji trwającej 6ms
@@ -48,6 +49,7 @@ uint8_t StartujPomiarMagHMC(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t StartujOdczytMagHMC(void)
 {
+	chCzujnikOdczytywanyNaI2CExt = MAG_HMC;		//informacja o tym jak mają być interpretowane dane odebrane w HAL_I2C_MasterRxCpltCallback()
 	chDaneMagHMC[0] = DATA_XH;
 	return HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 1);	//wyślij polecenie odczytu wszystkich pomiarów
 }
@@ -60,7 +62,13 @@ uint8_t StartujOdczytMagHMC(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t CzytajMagnetometrHMC(void)
 {
-    return HAL_I2C_Master_Receive_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 6);		//odczytaj dane
+	uint8_t chErr;
+
+	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)
+		chErr = HAL_I2C_Master_Receive_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 6);		//odczytaj dane
+	else
+		chErr = InicjujMagnetometrHMC();
+	return chErr;
 }
 
 
