@@ -267,10 +267,11 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	//operacje na wewnętrznej magistrali I2C4
 	switch(chEtapOperacjiI2C)
 	{
-	case 0:	chErr = StartujOdczytIIS2MDC();		break;
+	case 0:	chErr = ObslugaIIS2MDC();			break;
 	case 1:	chErr = ObslugaMMC3416x();			break;
-	case 2: chErr = CzytajIIS2MDC();			break;
+	case 2: chErr = ObslugaIIS2MDC();			break;
 	case 3:	chErr = ObslugaMMC3416x();			break;
+	default: break;
 	}
 
 	/*switch(chEtapOperacjiI2C)
@@ -318,53 +319,65 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 	extern uint8_t chDaneMagIIS[8];
 	extern uint8_t chDaneMS4525[5];
 	extern uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
-	if (hi2c->Instance == I2C3)
+	extern int16_t sPomiarMMCH[3], sPomiarMMCL[3];	//wyniki pomiarów dla dodatniego i ujemnego namagnesowania czujnika
+	extern uint8_t chSekwencjaPomiaruMMC;
+	if (hi2c->Instance == I2C3)	//magistrala I2C modułów zewnętrznych
 	{
 		if (chCzujnikOdczytywanyNaI2CExt == MAG_HMC)	//magnetometr HMC5883
 		//if ((chDaneMagHMC[0] || chDaneMagHMC[1]) && (chDaneMagHMC[2] || chDaneMagHMC[3]) && (chDaneMagHMC[4] || chDaneMagHMC[5]))
 		{
-			uDaneCM4.dane.sMagne3[0] = (int16_t)(0x100 * chDaneMagHMC[0] + chDaneMagHMC[1]);
-			uDaneCM4.dane.sMagne3[1] = (int16_t)(0x100 * chDaneMagHMC[2] + chDaneMagHMC[3]);
-			uDaneCM4.dane.sMagne3[2] = (int16_t)(0x100 * chDaneMagHMC[4] + chDaneMagHMC[5]);
+			uDaneCM4.dane.sMagne3[0] = (int16_t)(chDaneMagHMC[0] * 0x100 + chDaneMagHMC[1]);
+			uDaneCM4.dane.sMagne3[1] = (int16_t)(chDaneMagHMC[2] * 0x100 + chDaneMagHMC[3]);
+			uDaneCM4.dane.sMagne3[2] = (int16_t)(chDaneMagHMC[4] * 0x100 + chDaneMagHMC[5]);
 		}
 		else
 		if (chCzujnikOdczytywanyNaI2CExt == CISN_ROZN_MS2545)	//ciśnienie różnicowe czujnika MS2545DO
 		{
 			uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(chDaneMS4525);
 			uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
-			//uDaneCM4.dane.fTemper[6] = PredkoscRurkiPrantla1(uDaneCM4.dane.fCisnRozn[1]);
 		}
 		else
 		if (chCzujnikOdczytywanyNaI2CExt == CISN_TEMP_MS2545)	//ciśnienie różnicowe i temperatura czujnika MS2545DO
 		{
 			uDaneCM4.dane.fTemper[6] = TemperaturaMS2545(chDaneMS4525);
-			//uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(chDaneMS4525);
 			uDaneCM4.dane.fCisnRozn[1] = (15 * uDaneCM4.dane.fCisnRozn[1] + CisnienieMS2545(chDaneMS4525)) / 16;
 			uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
-			//uDaneCM4.dane.fTemper[6] = PredkoscRurkiPrantla1(uDaneCM4.dane.fCisnRozn[1]);
 		}
 	}
 
-	if (hi2c->Instance == I2C4)
+	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych
 	{
 		if (chOdczytywanyMagnetometr == MAG_IIS)
 		{
-			//if ((chDaneMagIIS[0] || chDaneMagIIS[1]) && (chDaneMagIIS[2] || chDaneMagIIS[3]) && (chDaneMagIIS[4] || chDaneMagIIS[5]))
+			if ((chDaneMagIIS[0] || chDaneMagIIS[1]) && (chDaneMagIIS[2] || chDaneMagIIS[3]) && (chDaneMagIIS[4] || chDaneMagIIS[5]))
 			{
-				uDaneCM4.dane.sMagne1[0] = (int16_t)(0x100 * chDaneMagIIS[0] + chDaneMagIIS[1]);
-				uDaneCM4.dane.sMagne1[1] = (int16_t)(0x100 * chDaneMagIIS[2] + chDaneMagIIS[3]);
-				uDaneCM4.dane.sMagne1[2] = (int16_t)(0x100 * chDaneMagIIS[4] + chDaneMagIIS[5]);
-				uDaneCM4.dane.fTemper[4] = (int16_t)(0x100 * chDaneMagIIS[6] + chDaneMagIIS[7]) / 8.0f;	//The nominal sensitivity is 8 LSB/°C.
+				//	sCisnienie = (int16_t)chBufND130[0] * 0x100 + chBufND130[1];
+
+				uDaneCM4.dane.sMagne1[0] = (int16_t)chDaneMagIIS[1] * 0x100 + chDaneMagIIS[0];
+				uDaneCM4.dane.sMagne1[1] = (int16_t)chDaneMagIIS[3] * 0x100 + chDaneMagIIS[2];
+				uDaneCM4.dane.sMagne1[2] = (int16_t)chDaneMagIIS[5] * 0x100 + chDaneMagIIS[4];
+				uDaneCM4.dane.fTemper[4] = ((int16_t)chDaneMagIIS[7] * 0x100 + chDaneMagIIS[6]) / 8;	//The nominal sensitivity is 8 LSB/°C.
 			}
 		}
 		else
 		if (chOdczytywanyMagnetometr == MAG_MMC)
 		{
-			//if ((chDaneMagMMC[0] || chDaneMagMMC[1]) && (chDaneMagMMC[2] || chDaneMagMMC[3]) && (chDaneMagMMC[4] || chDaneMagMMC[5]))
+			if ((chDaneMagMMC[0] || chDaneMagMMC[1]) && (chDaneMagMMC[2] || chDaneMagMMC[3]) && (chDaneMagMMC[4] || chDaneMagMMC[5]))
 			{
-				uDaneCM4.dane.sMagne2[0] = 32768 - (int16_t)(0x100 * chDaneMagMMC[1] + chDaneMagMMC[0]);
-				uDaneCM4.dane.sMagne2[1] = 32768 - (int16_t)(0x100 * chDaneMagMMC[3] + chDaneMagMMC[2]);
-				uDaneCM4.dane.sMagne2[2] = 32768 - (int16_t)(0x100 * chDaneMagMMC[5] + chDaneMagMMC[4]);
+				if (chSekwencjaPomiaruMMC < SPMMC3416_REFIL_RESET)	//poniżej SPMMC3416_REFIL_RESET będzie obsługa dla SET, powyżej dla RESET
+				{
+					sPomiarMMCH[0] = (chDaneMagMMC[1] * 0x100 + chDaneMagMMC[0]) - 32768;	//czujnik zwraca liczby unsigned z 32768 dla zera
+					sPomiarMMCH[1] = (chDaneMagMMC[3] * 0x100 + chDaneMagMMC[2]) - 32768;
+					sPomiarMMCH[2] = (chDaneMagMMC[5] * 0x100 + chDaneMagMMC[4]) - 32768;
+				}
+				else
+				{
+					sPomiarMMCL[0] = (chDaneMagMMC[1] * 0x100 + chDaneMagMMC[0]) - 32768;
+					sPomiarMMCL[1] = (chDaneMagMMC[3] * 0x100 + chDaneMagMMC[2]) - 32768;
+					sPomiarMMCL[2] = (chDaneMagMMC[5] * 0x100 + chDaneMagMMC[4]) - 32768;
+				}
+				for (uint8_t n=0; n<3; n++)
+					uDaneCM4.dane.sMagne2[n] = (sPomiarMMCH[n] - sPomiarMMCL[n]) / 2;
 			}
 		}
 	}

@@ -35,9 +35,10 @@
 #define PIIS2MDS_INT_THS_L_REG 	0x65
 #define PIIS2MDS_INT_THS_H_REG 	0x66
 #define PIIS2MDS_STATUS_REG 	0x67
-#define PIIS2MDS_OUTX_L_REG 	0x68
+
 
 //Output registers
+#define PIIS2MDS_OUTX_L_REG 	0x68
 #define PIIS2MDS_OUTX_H_REG 	0x69
 #define PIIS2MDS_OUTY_L_REG 	0x6A
 #define PIIS2MDS_OUTY_H_REG 	0x6B
@@ -48,7 +49,8 @@
 
 
 uint8_t InicjujIIS2MDC(void);
-uint8_t StartujOdczytIIS2MDC(void);
+uint8_t ObslugaIIS2MDC(void);
+uint8_t StartujOdczytIIS2MDC(uint8_t chRejestr);
 uint8_t CzytajIIS2MDC(void);
 
 #endif /* INC_IIS2MDC_H_ */

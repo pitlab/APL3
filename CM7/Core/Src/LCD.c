@@ -1125,7 +1125,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[3], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 90);
 
-	//MMC34160
+	//IIS2MDC
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[0]);
 	print(chNapis, 10+8*FONT_SL, 110);
@@ -1135,8 +1135,11 @@ void PomiaryIMU(void)
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[2]);
 	print(chNapis, 10+32*FONT_SL, 110);
+	setColor(YELLOW);
+	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[4], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	print(chNapis, 10+45*FONT_SL, 110);
 
-	//IIS2MDC
+	//MMC34160
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[0]);
 	print(chNapis, 10+8*FONT_SL, 130);
@@ -1146,9 +1149,6 @@ void PomiaryIMU(void)
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[2]);
 	print(chNapis, 10+32*FONT_SL, 130);
-	setColor(YELLOW);
-	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[4], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+45*FONT_SL, 130);
 
 	//HMC5883
 	setColor(KOLOR_X);
@@ -1223,10 +1223,16 @@ void PomiaryIMU(void)
 		setColor(GRAY50);
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[1]);
 	print(chNapis, 10+11*FONT_SL, 250);
-	setColor(MAGENTA);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	//stan wyzerowania sygnalizuj kolorem
+		setColor(MAGENTA);
+	else
+		setColor(GRAY50);
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[1]);
 	print(chNapis, 10+26*FONT_SL, 250);
-	setColor(YELLOW);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	//stan wyzerowania sygnalizuj kolorem
+		setColor(YELLOW);
+	else
+		setColor(GRAY50);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[6], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 250);
 

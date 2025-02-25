@@ -68,6 +68,7 @@ uint8_t InicjujMMC3416x(void);
 uint8_t ObslugaMMC3416x(void);
 uint8_t StartujPomiarMMC3416x(void);
 uint8_t StartujOdczytMMC3416x(void);
+uint8_t StartujOdczytRejestruMMC3416x(uint8_t chRejestr);
 uint8_t PolecenieMMC3416x(uint8_t chPolecenie);
 uint8_t CzytajMMC3416x(void);
 void I2C_ClearBusyFlagErratum(struct I2C_Module* i2c);

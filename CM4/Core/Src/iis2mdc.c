@@ -18,8 +18,8 @@ extern I2C_HandleTypeDef hi2c4;
 extern DMA_HandleTypeDef hdma_i2c4_rx;
 extern DMA_HandleTypeDef hdma_i2c4_tx;
 extern volatile unia_wymianyCM4_t uDaneCM4;
-
-
+uint8_t chSekwencjaPomiaruIIS;
+extern uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika IIS2MDC
@@ -42,7 +42,7 @@ uint8_t InicjujIIS2MDC(void)
 			{
 				chDaneMagIIS[0] = PIIS2MDS_CFG_REG_A;
 				chDaneMagIIS[1] = (0 << 0) |	//MD: Mode of operation of the device: 0=Continuous mode, 1=Single mode, 2 i 3 = Idle mode.
-								  (2 << 2) |	//ODR: Output data rate: 0=10Hz, 1=20Hz, 2=50Hz, 3=100Hz
+								  (3 << 2) |	//ODR: Output data rate: 0=10Hz, 1=20Hz, 2=50Hz, 3=100Hz
 								  (0 << 4) |	//LP: Enables low-power mode: 0=high-resolution mode, 1=low-power mode enabled
 								  (0 << 5) |	//SOFT_RST: When this bit is set, the configuration registers and user registers are reset. Flash registers keep their values.
 								  (0 << 6) |	//REBOOT: Reboot magnetometer memory content.
@@ -59,7 +59,7 @@ uint8_t InicjujIIS2MDC(void)
 				if (!chErr)
 				{
 					uDaneCM4.dane.nZainicjowano |= INIT_IIS2MDC;
-					chErr = StartujOdczytIIS2MDC();
+					//chErr = StartujOdczytIIS2MDC();
 				}
 			}
 		}
@@ -70,20 +70,66 @@ uint8_t InicjujIIS2MDC(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Inicjuje odczyt danych z magnetometru IIS2MDC
-// Parametry: brak
+// Wykonaj jeden element sekwencji potrzebnych do uzyskania pomiaru
+// Najlepszy wynik wedlug dokumentacji uzyskuje się wykonując sekwencję: SET, MEASUREMENT, RESET, MEASUREMENT
+// Cząstkowe wyniki oprocz natężenia pola zawierają offset. Następnie cząstkowe pomiary należy odjąć od siebie i podzielić przez 2
+// Parametry: nic
+// Zwraca: kod błędu
+// Czas wykonania: pełna pętla zajmuje 170ms -> 5,88Hz
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ObslugaIIS2MDC(void)
+{
+	uint8_t chErr = ERR_OK;
+
+	switch (chSekwencjaPomiaruIIS)
+	{
+	case 0:
+		chErr = StartujOdczytIIS2MDC(PIIS2MDS_STATUS_REG);	//polecenie odczytu statusu
+		chOdczytywanyMagnetometr = 0;	//nie interpretuj odczytanych danych jako wyniku pomiaru
+		break;
+
+	case 1:
+		chErr = HAL_I2C_Master_Receive_DMA(&hi2c4, IIS2MDC_I2C_ADR + READ, chDaneMagIIS, 1);		//odczytaj status
+		break;
+
+	case 2:
+		if ((chDaneMagIIS[0] & 0x03) == 0x03)	//3 najmłodsze bity statusu to: new data available
+			chErr = StartujOdczytIIS2MDC(PIIS2MDS_OUTX_H_REG);	//polecenie odczytu danych
+		else
+			chSekwencjaPomiaruIIS -= 3;	//wróć do odczytu statusu
+		break;
+
+	case 3:
+		chErr = HAL_I2C_Master_Receive_DMA(&hi2c4, IIS2MDC_I2C_ADR + READ, chDaneMagIIS, 8);		//odczytaj dane
+		chOdczytywanyMagnetometr = MAG_IIS;	//interpretuj odczytane dane jako pomiar tego magnetometru
+		break;
+
+	default: break;
+	}
+	chSekwencjaPomiaruIIS++;
+	chSekwencjaPomiaruIIS &= 0x03;
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Inicjuje odczyt rejestru z magnetometru IIS2MDC
+// Parametry: chRejestr - adres rejestru do odczytu
 // Zwraca: kod błędu HAL
 // Czas zajęcia magistrali I2C: 760us przy zegarze 100kHz
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t StartujOdczytIIS2MDC(void)
+uint8_t StartujOdczytIIS2MDC(uint8_t chRejestr)
 {
 	uint8_t chErr = ERR_BRAK_IIS2MDS;
 
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)
 	{
-		chDaneMagIIS[0] = PIIS2MDS_OUTX_H_REG;
+		chDaneMagIIS[0] = chRejestr;	//;
 		chErr = HAL_I2C_Master_Transmit_DMA(&hi2c4, IIS2MDC_I2C_ADR, chDaneMagIIS, 1);	//wyślij polecenie odczytu wszystkich pomiarów
 	}
+	else
+		chErr = InicjujIIS2MDC();	//wykonaj inicjalizację
 	return chErr;
 }
 
@@ -98,14 +144,13 @@ uint8_t StartujOdczytIIS2MDC(void)
 uint8_t CzytajIIS2MDC(void)
 {
 	uint8_t chErr = ERR_BRAK_IIS2MDS;
-	extern uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
+
 
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)
 	{
 		chOdczytywanyMagnetometr = MAG_IIS;
 		chErr = HAL_I2C_Master_Receive_DMA(&hi2c4, IIS2MDC_I2C_ADR + READ, chDaneMagIIS, 8);		//odczytaj dane
 	}
-	else
-		chErr = InicjujIIS2MDC();	//wykonaj inicjalizację
+
 	return chErr;
 }
