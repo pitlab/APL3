@@ -14,11 +14,16 @@
 #include "ICM42688.h"
 #include "LSM6DSV.h"
 #include "ND130.h"
-
+#include "fram.h"
+#include "wymiana_CM4.h"
 
 extern SPI_HandleTypeDef hspi2;
 extern uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 volatile uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
+uint16_t sLicznikCzasuKalibracjiZyro;
+extern volatile unia_wymianyCM4_t uDaneCM4;
+static float fOffsetZyro1[3], fOffsetZyro2[3];
+static double dOffsetZyro1[3], dOffsetZyro2[3];
 
 ////////////////////////////////////////////////////////////////////////////////
 // wykonuje czynności pomiarowe dla ukłądów znajdujących się na module
@@ -59,6 +64,9 @@ uint8_t ObslugaModuluIiP(uint8_t gniazdo)
 
 	UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres A0..1
 	chErr |= ObslugaLSM6DSV();
+
+	if ((uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO1) || (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO2))
+		KalibrujZyroskopy();
 
 	//ustaw adres A2 = 1 zrobiony z linii Ix2 modułu
 	switch (gniazdo)
@@ -111,4 +119,68 @@ float WysokoscBarometryczna(float fP, float fP0, float fTemp)
 	//h = ln(P/P0) * R*T / (-u*g)
 
 	return logf(fP/fP0) * STALA_GAZOWA_R * (fTemp + KELWIN) / (-1 * MASA_MOLOWA_POWIETRZA * PRZYSPIESZENIE_ZIEMSKIE);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rozpoczyna kalibrację żyroskopów
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RozpocznijKalibracjeZyro(void)
+{
+
+	uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_ZYRO1 | INIT_TRWA_KAL_ZYRO2;	//włącz kalibrację
+	sLicznikCzasuKalibracjiZyro = CZAS_KALIBRACJI_ZYROSKOPU;
+	for (uint8_t n=0; n<3; n++)
+	{
+		dOffsetZyro1[n] = 0.0;
+		dOffsetZyro2[n] = 0.0;
+		fOffsetZyro1[n] = 0.0;
+		fOffsetZyro2[n] = 0.0;
+	}
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wykonuje kalibrację żyroskopów i zapisuje wynik we FRAM
+// Parametry: sCzasKalibracji - czas liczny w kwantach obiegu pętli głównej
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t KalibrujZyroskopy(void)
+{
+	if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO1)
+	{
+		for (uint8_t n=0; n<3; n++)
+		{
+			dOffsetZyro1[n] += uDaneCM4.dane.fZyroSur1[n];
+			fOffsetZyro1[n] += uDaneCM4.dane.fZyroSur1[n];
+		}
+	}
+	if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO2)
+	{
+		for (uint8_t n=0; n<3; n++)
+		{
+			dOffsetZyro2[n] += uDaneCM4.dane.fZyroSur2[n];
+			fOffsetZyro2[n] += uDaneCM4.dane.fZyroSur2[n];
+		}
+	}
+
+
+	{
+		sLicznikCzasuKalibracjiZyro--;
+		if (sLicznikCzasuKalibracjiZyro == 0)
+		{
+			uDaneCM4.dane.nZainicjowano &= ~(INIT_TRWA_KAL_ZYRO1 | INIT_TRWA_KAL_ZYRO2);	//wyłącz kalibrację
+			for (uint8_t n=0; n<3; n++)
+			{
+				dOffsetZyro1[n] /= CZAS_KALIBRACJI_ZYROSKOPU;
+				dOffsetZyro2[n] /= CZAS_KALIBRACJI_ZYROSKOPU;
+				fOffsetZyro1[n] /= CZAS_KALIBRACJI_ZYROSKOPU;
+				fOffsetZyro2[n] /= CZAS_KALIBRACJI_ZYROSKOPU;
+			}
+		}
+	}
+	return ERR_OK;
 }

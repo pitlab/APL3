@@ -1099,13 +1099,13 @@ void PomiaryIMU(void)
 
 	//ICM42688
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros1[0]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroSur1[0]);
 	print(chNapis, 10+8*FONT_SL, 70);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros1[1]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroSur1[1]);
 	print(chNapis, 10+20*FONT_SL, 70);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros1[2]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroSur1[2]);
 	print(chNapis, 10+32*FONT_SL, 70);
 	setColor(YELLOW);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[2], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
@@ -1113,13 +1113,13 @@ void PomiaryIMU(void)
 
 	//LSM6DSV
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros2[0]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroSur2[0]);
 	print(chNapis, 10+8*FONT_SL, 90);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros2[1]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroSur2[1]);
 	print(chNapis, 10+20*FONT_SL, 90);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyros2[2]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroSur2[2]);
 	print(chNapis, 10+32*FONT_SL, 90);
 	setColor(YELLOW);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[3], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525

@@ -102,8 +102,8 @@ uint8_t ObslugaICM42688(void)
 	if ((uDaneCM4.dane.nZainicjowano & INIT_ICM42688) != INIT_ICM42688)	//jeżeli czujnik nie jest zainicjowany
 	{
 		chErr = InicjujICM42688();
-		if (chErr)
-			return chErr;
+		//if (chErr)
+			//return chErr;
 	}
 	else	//odczytaj hurtem wszystkie 7 16-bitowych rejestrów
 	{
@@ -116,7 +116,7 @@ uint8_t ObslugaICM42688(void)
 		for (uint16_t n=0; n<3; n++)
 		{
 			uDaneCM4.dane.fAkcel1[n] = (float)((int16_t)(chDane[2*n+3] <<8) + chDane[2*n+4]) * (8.0 / 32768.0);			//+-8g
-			uDaneCM4.dane.fZyros1[n] = (float)((int16_t)(chDane[2*n+9] <<8) + chDane[2*n+10]) * (10000.0 / 32768.0) ;	//+-1000°/s
+			uDaneCM4.dane.fZyroSur1[n] = (float)((int16_t)(chDane[2*n+9] <<8) + chDane[2*n+10]) * (10000.0 / 32768.0) ;	//+-1000°/s
 		}
 	}
 	return chErr;

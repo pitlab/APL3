@@ -229,7 +229,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 				else
 				{
-					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros1[0]);
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyroSur1[0]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
@@ -242,7 +242,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 				else
 				{
-					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros1[1]);
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyroSur1[1]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
@@ -255,7 +255,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 				else
 				{
-					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros1[2]);
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyroSur1[2]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
@@ -269,7 +269,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 				else
 				{
-					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros2[0]);
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyroSur2[0]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
@@ -282,7 +282,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 				else
 				{
-					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros2[1]);
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyroSur2[1]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
@@ -295,7 +295,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 				else
 				{
-					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyros2[2]);
+					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyroSur2[2]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 

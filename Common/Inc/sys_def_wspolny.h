@@ -15,3 +15,5 @@
 #define INIT_P0_BMP851		0x00002000	//ustawiono ciśnienie P0 dla czujnika 2
 #define INIT_P0_ND140		0x00004000	//wyzerowano prędkość dla ND130
 #define INIT_P0_MS4525		0x00008000	//wyzerowano prędkość dla MS4525
+#define INIT_TRWA_KAL_ZYRO1	0x00010000	//trwa kalibracj żyroskopu 1
+#define INIT_TRWA_KAL_ZYRO2	0x00020000	//trwa kalibracj żyroskopu 2

@@ -103,7 +103,7 @@ uint8_t ObslugaLSM6DSV(void)
 		uDaneCM4.dane.fTemper[3] = (float)(((int16_t)chDane[2] <<8) + chDane[1]) / 256 + 25.0f;
 		for (uint16_t n=0; n<3; n++)
 		{
-			uDaneCM4.dane.fZyros2[n] = (float)((int16_t)(chDane[2*n+4] <<8)  + chDane[2*n+3]) * (10000.0 / 32768.0);	//+-1000°/s
+			uDaneCM4.dane.fZyroSur2[n] = (float)((int16_t)(chDane[2*n+4] <<8)  + chDane[2*n+3]) * (10000.0 / 32768.0);	//+-1000°/s
 			uDaneCM4.dane.fAkcel2[n] = (float)((int16_t)(chDane[2*n+10] <<8) + chDane[2*n+9]) * (8.0 / 32768.0);		//+-8g
 		}
 	}
