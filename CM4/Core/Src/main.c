@@ -159,7 +159,7 @@ int main(void)
   uDaneCM4.dane.nZainicjowano = 0;	//za każdym uruchomieniem detekcja i inicjalizacja sprzętu zaczyna się od początku
   InicjujModulyWew();
   InicjujSerwa();
-
+  InicjujModulI2P();
 
 
   /* USER CODE END 2 */

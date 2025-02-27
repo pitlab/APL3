@@ -28,11 +28,13 @@
 
 #define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących
 
-#define CZAS_KALIBRACJI_ZYROSKOPU		1000	//obiegów pętli głównej
+#define CZAS_KALIBRACJI_ZYROSKOPU		2000	//obiegów pętli głównej
 
-uint8_t ObslugaModuluIiP(uint8_t gniazdo);
+
+uint8_t InicjujModulI2P(void);
+uint8_t ObslugaModuluI2P(uint8_t gniazdo);
 float WysokoscBarometryczna(float fP, float fP0, float fTemp);
-void RozpocznijKalibracjeZyro(void);
+void RozpocznijKalibracjeZyro(uint8_t chBityZyro);
 uint8_t KalibrujZyroskopy(void);
 
 #endif /* INC_MODUL_IIP_H_ */

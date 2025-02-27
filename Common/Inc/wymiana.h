@@ -18,6 +18,19 @@
 #define ROZMIAR_BUF32_WYMIANY_CM4		ROZMIAR_BUF8_WYMIANY_CM4 / 4
 #define ROZMIAR_BUF32_WYMIANY_CM7		ROZMIAR_BUF8_WYMIANY_CM7 / 4
 #define ROZMIAR_BUF_NAPISU_WYMIANY		32
+
+
+//definicje poleceń przekazywanych z CM7 do CM4
+#define POL_NIC					0	//nic nie rób
+#define POL_KALIBRUJ_ZYRO1		1	//uruchom kalibrację żyroskopu 1
+#define POL_KALIBRUJ_ZYRO2		2	//uruchom kalibrację żyroskopu 2
+#define POL_KALIBRUJ_ZYRO12		3	//uruchom kalibrację obu żyroskopów
+
+#define POL_KALIBRUJ_MAGN1		8	//uruchom kalibrację magnetometru 1
+#define POL_KALIBRUJ_MAGN2		9	//uruchom kalibrację magnetometru 2
+#define POL_KALIBRUJ_MAGN3		10	//uruchom kalibrację magnetometru 3
+
+
 typedef struct _GNSS
 {
 	double dDlugoscGeo;
@@ -55,6 +68,7 @@ typedef struct
 	uint16_t sSerwa[16];
 	uint8_t chErrPetliGlownej;
 	uint32_t nZainicjowano;
+	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
 	stGnss_t stGnss1;
 	char chNapis[ROZMIAR_BUF_NAPISU_WYMIANY];
 } stWymianyCM4_t;
@@ -63,7 +77,7 @@ typedef struct
 //definicja struktury wymiany danych wychodzących z rdzenia CM7
 typedef struct
 {
-	uint8_t chTrybPracy;
+	uint8_t chWykonajPolecenie;
 	uint16_t sTest;
 } stWymianyCM7_t;
 

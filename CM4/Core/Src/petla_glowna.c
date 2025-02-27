@@ -71,7 +71,7 @@ void PetlaGlowna(void)
 		break;
 
 	case 1:		//obsługa modułu w gnieździe 2
-		chErr = ObslugaModuluIiP(ADR_MOD2);
+		chErr = ObslugaModuluI2P(ADR_MOD2);
 		if (chErr)
 			chStanIOwy &= ~MIO41;	//zaświeć czerwoną LED
 		else
@@ -126,22 +126,9 @@ void PetlaGlowna(void)
 
 	case 9:	chErrPG |= ObliczeniaJednostkiInercujnej();	break;
 
-	/*case 10:
-		CzytajIdFRAM(chDane);
-		ZapiszFRAM(0x2000, 0x55);
-		chDane[0] = CzytajFRAM(0x2000);
-
-		nCzas = PobierzCzas();
-		CzytajBuforFRAM(0x1000, chDane, 16);
-		nCzas = MinalCzas(nCzas);
-
-		for (n=0; n<16; n++)
-			chDane[n] = (uint16_t)(n & 0xFF);
-
-		nCzas = PobierzCzas();
-		ZapiszBuforFRAM(0x1000, chDane, 16);
-		nCzas = MinalCzas(nCzas);
-		break;*/
+	case 10:
+		InicjujModulI2P();
+		break;
 
 	case 11:
 		chErrPG |= UstawDekoderModulow(ADR_NIC);
@@ -163,6 +150,20 @@ void PetlaGlowna(void)
 		uDaneCM4.dane.chErrPetliGlownej = chErrPG;
 		chErrPG  = PobierzDaneWymiany_CM7();
 		chErr = UstawDaneWymiany_CM4();
+
+		//wykonaj polecenie przekazane z CM7
+		switch(uDaneCM7.dane.chWykonajPolecenie)
+		{
+		case POL_NIC:	break;		//polecenie neutralne
+		case POL_KALIBRUJ_ZYRO1:	RozpocznijKalibracjeZyro(1);		break;	//uruchom kalibrację żyroskopu 1
+		case POL_KALIBRUJ_ZYRO2:	RozpocznijKalibracjeZyro(2);		break;	//uruchom kalibrację żyroskopu 2
+		case POL_KALIBRUJ_ZYRO12:	RozpocznijKalibracjeZyro(3);		break;	//uruchom kalibrację obu żyroskopów
+		case POL_KALIBRUJ_MAGN1:	//uruchom kalibrację magnetometru 1
+		case POL_KALIBRUJ_MAGN2:	//uruchom kalibrację magnetometru 2
+		case POL_KALIBRUJ_MAGN3:	//uruchom kalibrację magnetometru 3
+    	}
+		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;
+
 		/*if (chErr == ERR_SEMAFOR_ZAJETY)
 			chStanIOwy &= ~MIO41;	//zaświeć czerwoną LED
 		else

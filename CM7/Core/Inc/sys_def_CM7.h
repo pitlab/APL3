@@ -15,7 +15,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	114	//numer commitu w repozytorium
+#define WER_REPO	115	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -69,6 +69,8 @@
 #define TP_MULTIMEDIA		14	//menu multimediow
 #define TP_WYDAJNOSC		15	//menu pomiarów wydajności
 #define TP_KARTA_SD			16	//menu obsługi karty SD
+#define TP_KALIBRACJE		17	//kalibracja sprzętu
+#define TP_PODGLAD_IMU		18	//podgląd parametrów IMU podczas kalibracji
 
 //polecenia menu Multimedia
 #define TP_MMREJ			40	//M.Rej
@@ -104,7 +106,20 @@
 #define TPKS_6				56
 #define TPKS_7				57
 #define TPKS_8				58
-#define TPKS_WROC			59
+#define TPKSD_WROC			59
+
+//polecenia menu TP_KALIBRACJE
+#define TPKAL_ZYRO1			60
+#define TPKAL_ZYRO2			61
+#define TPKAL_AKCEL1_2D		62
+#define TPKAL_AKCEL2_2D		63
+#define TPKAL_MAG1			64
+#define TPKAL_MAG2			65
+#define TPKAL_MAG3			66
+#define TPKAL_1				67
+#define TPKAL_DOTYK			68
+#define TPKAL_WROC			69
+
 
 
 //flagi inicjalizacj sprzetu na płytce

@@ -56,6 +56,9 @@ extern const unsigned short obr_dotyk[0xFFC];
 extern const unsigned short obr_dotyk_zolty[0xFFC];
 extern const unsigned short obr_kartaSD[0xFFC];
 extern const unsigned short obr_kartaSDneg[0xFFC];
+extern const unsigned short obr_baczek[0xF80];
+extern const unsigned short obr_kal_mag_n1[0xFFC];
+extern const unsigned short obr_kontrolny[0xFFC];
 
 //definicje zmiennych
 uint8_t chTrybPracy;
@@ -80,7 +83,7 @@ extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejes
 extern RTC_TimeTypeDef sTime;
 extern RTC_HandleTypeDef hrtc;
 static uint8_t chOstatniCzas;
-
+extern unia_wymianyCM7_t uDaneCM7;
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -89,12 +92,12 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
 	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_kartaSD},
-	{"MG2", 		"nic",										TP_MG2,				obr_mtest},
-	{"UART blok", 	"nic",										TP_MG3,				obr_mtest},
-	{"UART DMA", 	"nic",										TP_MG4,				obr_mtest},
+	{"Kalibracje", 	"Kalibracje sprzetu pokladowego",			TP_KALIBRACJE,		obr_kontrolny},
+	{"nic 1", 		"nic",										TP_MG1,				obr_multitool},
+	{"nic 2", 		"nic",										TP_MG2,				obr_multitool},
+	{"nic 3", 		"nic",										TP_MG3,				obr_multitool},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_multitool},
-	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_dotyk},
-	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_USTAWIENIA,		obr_dotyk_zolty}};
+	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_dotyk}};
 
 
 struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -140,6 +143,20 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
+struct tmenu stMenuKalibracja[MENU_WIERSZE * MENU_KOLUMNY]  = {
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
+	{"Kal Zyro1", 	"Kalibracja zyroskopu 1",					TPKAL_ZYRO1,		obr_baczek},
+	{"Kal Zyro2", 	"Kalibracja zyroskopu 2",					TPKAL_ZYRO2,		obr_baczek},
+	{"Akcel1 2D",	"Kalibracja 2D akcelerometru 1",			TPKAL_AKCEL1_2D,	obr_kontrolny},
+	{"Akcel2 2D",	"Kalibracja 2D akcelerometru 2",			TPKAL_AKCEL2_2D,	obr_kontrolny},
+	{"Kal Magn1", 	"Kalibracja magnetometru 1",				TPKAL_MAG1,			obr_kal_mag_n1},
+	{"Kal Magn2", 	"Kalibracja magnetometru 2",				TPKAL_MAG2,			obr_kal_mag_n1},
+	{"Kal Magn3", 	"Kalibracja magnetometru 3",				TPKAL_MAG3,			obr_kal_mag_n1},
+	{"TPKAL_1",		"nic  ",									TPKAL_1,			obr_kontrolny},
+	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TPKAL_DOTYK,		obr_dotyk_zolty},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran główny odświeżany w głównej pętli programu
 // Parametry:
@@ -158,14 +175,9 @@ void RysujEkran(void)
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
-
-
-	case TP_KALIB_DOTYK:
-		if (KalibrujDotyk() == ERR_DONE)
-			chTrybPracy = TP_TESTY;
+	case TP_MG2:
+		chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
-
-
 
 	case TP_MG3:
 		TestKomunikacjiSTD();	//wyślij komunikat tesktowy przez LPUART
@@ -332,7 +344,7 @@ void RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TPKS_WROC;
+			chNowyTrybPracy = TPKSD_WROC;
 		}
 		break;
 
@@ -342,7 +354,7 @@ void RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TPKS_WROC;
+			chNowyTrybPracy = TPKSD_WROC;
 		}
 		break;
 
@@ -351,7 +363,7 @@ void RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TPKS_WROC;
+			chNowyTrybPracy = TPKSD_WROC;
 		}
 		break;
 
@@ -360,7 +372,7 @@ void RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TPKS_WROC;
+			chNowyTrybPracy = TPKSD_WROC;
 		}
 		break;
 
@@ -369,7 +381,47 @@ void RysujEkran(void)
 	case TPKS_6:
 	case TPKS_7:
 	case TPKS_8:	break;
+
+	//***************************************************
+	case TP_KALIBRACJE:			//menu Kalibracje
+		Menu((char*)chNapisLcd[STR_MENU_KALIBRACJE], stMenuKalibracja, &chNowyTrybPracy);
+		chWrocDoTrybu = TP_MENU_GLOWNE;
+		break;
+
+	case TPKAL_ZYRO1:
+		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO1;
+		chTrybPracy = TP_PODGLAD_IMU;
+		break;
+
+	case TPKAL_ZYRO2:
+		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO2;
+		chTrybPracy = TP_PODGLAD_IMU;
+		break;
+
+	case TP_PODGLAD_IMU: PomiaryIMU();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TPKAL_WROC;
+		}
+		break;
+
+	case TPKAL_AKCEL1_2D:
+	case TPKAL_AKCEL2_2D:
+	case TPKAL_MAG1:
+	case TPKAL_MAG2:
+	case TPKAL_MAG3:
+		chTrybPracy = TP_PODGLAD_IMU;
+		break;
+
+	case TPKAL_1:	break;
+	case TPKAL_DOTYK:
+		if (KalibrujDotyk() == ERR_DONE)
+			chTrybPracy = TP_TESTY;
+		break;
+
 	}
+
 
 	//rzeczy do zrobienia podczas uruchamiania nowego trybu pracy
 	if (chNowyTrybPracy)
@@ -386,7 +438,8 @@ void RysujEkran(void)
 		case TP_WROC_DO_MENU:	chTrybPracy = TP_MENU_GLOWNE;	break;	//powrót do menu głównego
 		case TP_WROC_DO_MMEDIA:	chTrybPracy = TP_MULTIMEDIA;	break;	//powrót do menu MultiMedia
 		case TP_WROC_DO_WYDAJN:	chTrybPracy = TP_WYDAJNOSC;		break;	//powrót do menu Wydajność
-		case TPKS_WROC:			chTrybPracy = TP_KARTA_SD;		break;	//powrót do menu Karta SD
+		case TPKSD_WROC:		chTrybPracy = TP_KARTA_SD;		break;	//powrót do menu Karta SD
+		case TPKAL_WROC:		chTrybPracy = TP_KALIBRACJE;	break;	//powrót do menu Kalibracje
 		case TP_FRAKTALE:		InitFraktal(0);		break;
 		case TP_USTAWIENIA:		chTrybPracy = TP_KALIB_DOTYK;	break;
 		}
@@ -1031,6 +1084,8 @@ void PomiaryIMU(void)
 {
 	extern volatile unia_wymianyCM4_t uDaneCM4;
 	int8_t chTon;
+	static uint16_t sMaxPostepu;
+	//static float fSkalaPostepu;
 
 	if (chRysujRaz)
 	{
@@ -1099,13 +1154,13 @@ void PomiaryIMU(void)
 
 	//ICM42688
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroSur1[0]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[0]);
 	print(chNapis, 10+8*FONT_SL, 70);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroSur1[1]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[1]);
 	print(chNapis, 10+20*FONT_SL, 70);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroSur1[2]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[2]);
 	print(chNapis, 10+32*FONT_SL, 70);
 	setColor(YELLOW);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[2], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
@@ -1113,13 +1168,13 @@ void PomiaryIMU(void)
 
 	//LSM6DSV
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroSur2[0]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[0]);
 	print(chNapis, 10+8*FONT_SL, 90);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroSur2[1]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[1]);
 	print(chNapis, 10+20*FONT_SL, 90);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroSur2[2]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[2]);
 	print(chNapis, 10+32*FONT_SL, 90);
 	setColor(YELLOW);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[3], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
@@ -1270,6 +1325,23 @@ void PomiaryIMU(void)
 	//sprintf(chNapis, "Serwa: 13 = %d, 14 = %d, 15 = %d, 16 = %d", uDaneCM4.dane.sSerwa[12], uDaneCM4.dane.sSerwa[13], uDaneCM4.dane.sSerwa[14], uDaneCM4.dane.sSerwa[15]);
 	//sprintf(chNapis, "Serwa:  5 = %d,  6 = %d,  7 = %d,  8 = %d", uDaneCM4.dane.sSerwa[4], uDaneCM4.dane.sSerwa[5], uDaneCM4.dane.sSerwa[6], uDaneCM4.dane.sSerwa[7]);
 	//print(chNapis, 10, 300);
+
+	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszny do zera
+	if (uDaneCM4.dane.sPostepProcesu)
+	{
+		if (uDaneCM4.dane.sPostepProcesu > sMaxPostepu)
+		{
+			sMaxPostepu = uDaneCM4.dane.sPostepProcesu;
+			//fSkalaPostepu = DISP_X_SIZE / sMaxPostepu;
+		}
+		uint16_t x = (uDaneCM4.dane.sPostepProcesu * DISP_X_SIZE) / sMaxPostepu;
+		setColor(BLUE);
+		fillRect(0, DISP_Y_SIZE - 5, x , DISP_Y_SIZE);
+		setColor(BLACK);
+		fillRect(x, DISP_Y_SIZE - 5, DISP_X_SIZE , DISP_Y_SIZE);
+	}
+	else
+		sMaxPostepu = 0;
 }
 
 

@@ -36,7 +36,7 @@ void ZapiszBuforFRAM(uint16_t sAdres, uint8_t* chDane, uint16_t sIlosc);
 
 
 //definicje funkcji wtórnych
-
+float FramDataReadFloat(unsigned short sAddress);
 void FramDataWriteFloat(unsigned short sAddress, float fData);
 unsigned char FramDataReadFloatValid(unsigned short sAddress, float *fValue, float fValMin, float fValMax, float fValDef, unsigned char chErrCode);
 

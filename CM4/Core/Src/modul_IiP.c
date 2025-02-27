@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // AutoPitLot v3.0
-// Obsługa modułu IiP (Inercyjny i Pneumatyczny)
+// Obsługa modułu I2P (IiP - Inercyjny i Pneumatyczny)
 //
 // (c) Pit Lab 2025
 // http://www.pitlab.pl
@@ -16,14 +16,16 @@
 #include "ND130.h"
 #include "fram.h"
 #include "wymiana_CM4.h"
+#include "konfig_fram.h"
 
 extern SPI_HandleTypeDef hspi2;
 extern uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 volatile uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
 uint16_t sLicznikCzasuKalibracjiZyro;
 extern volatile unia_wymianyCM4_t uDaneCM4;
-static float fOffsetZyro1[3], fOffsetZyro2[3];
-static double dOffsetZyro1[3], dOffsetZyro2[3];
+float fOffsetZyro1[3], fOffsetZyro2[3];
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // wykonuje czynności pomiarowe dla ukłądów znajdujących się na module
@@ -31,7 +33,28 @@ static double dOffsetZyro1[3], dOffsetZyro2[3];
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ObslugaModuluIiP(uint8_t gniazdo)
+uint8_t InicjujModulI2P(void)
+{
+	uint8_t chErr = ERR_OK;
+
+	//odczytaj kalibrację żyroskopów
+	for (uint16_t n=0; n<3; n++)
+	{
+		fOffsetZyro1[n] = FramDataReadFloat(FAH_ZYRO1_X_PRZES+(4*n));	//zapisz przesunięcie do FRAM jako liczbę float zajmującą 4 bajty
+		fOffsetZyro2[n] = FramDataReadFloat(FAH_ZYRO2_X_PRZES+(4*n));	//zapisz przesunięcie do FRAM
+	}
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// wykonuje czynności pomiarowe dla ukłądów znajdujących się na module
+// Parametry: nic
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ObslugaModuluI2P(uint8_t gniazdo)
 {
 	uint8_t chErr;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
@@ -125,21 +148,26 @@ float WysokoscBarometryczna(float fP, float fP0, float fTemp)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rozpoczyna kalibrację żyroskopów
-// Parametry: brak
+// Parametry: chBityZyro - pole bitowe określające który z żyroskopów ma być kalibrowany
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RozpocznijKalibracjeZyro(void)
+void RozpocznijKalibracjeZyro(uint8_t chBityZyro)
 {
-
-	uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_ZYRO1 | INIT_TRWA_KAL_ZYRO2;	//włącz kalibrację
-	sLicznikCzasuKalibracjiZyro = CZAS_KALIBRACJI_ZYROSKOPU;
-	for (uint8_t n=0; n<3; n++)
+	if (chBityZyro & 0x01)
 	{
-		dOffsetZyro1[n] = 0.0;
-		dOffsetZyro2[n] = 0.0;
-		fOffsetZyro1[n] = 0.0;
-		fOffsetZyro2[n] = 0.0;
+		uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_ZYRO1;	//włącz kalibrację
+		for (uint8_t n=0; n<3; n++)
+			fOffsetZyro1[n] = uDaneCM4.dane.fZyroSur1[n];
 	}
+
+	if (chBityZyro & 0x02)
+	{
+		uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_ZYRO2;	//włącz kalibrację
+		for (uint8_t n=0; n<3; n++)
+			fOffsetZyro2[n] = uDaneCM4.dane.fZyroSur2[n];
+	}
+
+	uDaneCM4.dane.sPostepProcesu = CZAS_KALIBRACJI_ZYROSKOPU;
 }
 
 
@@ -150,36 +178,31 @@ void RozpocznijKalibracjeZyro(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibrujZyroskopy(void)
 {
+	if (uDaneCM4.dane.sPostepProcesu)
+		uDaneCM4.dane.sPostepProcesu--;
+
 	if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO1)
 	{
 		for (uint8_t n=0; n<3; n++)
+			fOffsetZyro1[n] = (127 * fOffsetZyro1[n] + uDaneCM4.dane.fZyroSur1[n]) / 128;
+
+		if (uDaneCM4.dane.sPostepProcesu == 0)
 		{
-			dOffsetZyro1[n] += uDaneCM4.dane.fZyroSur1[n];
-			fOffsetZyro1[n] += uDaneCM4.dane.fZyroSur1[n];
+			uDaneCM4.dane.nZainicjowano &= ~INIT_TRWA_KAL_ZYRO1;	//wyłącz kalibrację
+			for (uint8_t n=0; n<3; n++)
+				FramDataWriteFloat(FAH_ZYRO1_X_PRZES+(4*n), fOffsetZyro1[n]);	//zapisz przesunięcie do FRAM jako liczbę float zajmującą 4 bajty
 		}
 	}
+
 	if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO2)
 	{
 		for (uint8_t n=0; n<3; n++)
+			fOffsetZyro2[n] = (127 * fOffsetZyro2[n] + uDaneCM4.dane.fZyroSur2[n]) / 128;
+		if (uDaneCM4.dane.sPostepProcesu == 0)
 		{
-			dOffsetZyro2[n] += uDaneCM4.dane.fZyroSur2[n];
-			fOffsetZyro2[n] += uDaneCM4.dane.fZyroSur2[n];
-		}
-	}
-
-
-	{
-		sLicznikCzasuKalibracjiZyro--;
-		if (sLicznikCzasuKalibracjiZyro == 0)
-		{
-			uDaneCM4.dane.nZainicjowano &= ~(INIT_TRWA_KAL_ZYRO1 | INIT_TRWA_KAL_ZYRO2);	//wyłącz kalibrację
+			uDaneCM4.dane.nZainicjowano &= ~INIT_TRWA_KAL_ZYRO2;	//wyłącz kalibrację
 			for (uint8_t n=0; n<3; n++)
-			{
-				dOffsetZyro1[n] /= CZAS_KALIBRACJI_ZYROSKOPU;
-				dOffsetZyro2[n] /= CZAS_KALIBRACJI_ZYROSKOPU;
-				fOffsetZyro1[n] /= CZAS_KALIBRACJI_ZYROSKOPU;
-				fOffsetZyro2[n] /= CZAS_KALIBRACJI_ZYROSKOPU;
-			}
+				FramDataWriteFloat(FAH_ZYRO2_X_PRZES+(4*n), fOffsetZyro2[n]);	//zapisz przesunięcie do FRAM
 		}
 	}
 	return ERR_OK;

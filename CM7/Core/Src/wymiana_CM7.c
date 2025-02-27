@@ -96,5 +96,6 @@ uint8_t UstawDaneWymiany_CM7(void)
 			HAL_HSEM_Release(HSEM_CM7_TO_CM4, 0);
 		}
 	}
+	uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//po wysłaniu polecenia ustaw polecenie neutralne
 	return chErr;
 }

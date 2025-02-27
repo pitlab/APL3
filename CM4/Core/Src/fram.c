@@ -239,10 +239,7 @@ float FramDataReadFloat(unsigned short sAddress)
     fUnion temp;
 
 	CzytajBuforFRAM(sAddress, temp.array, 4);
-    if ((float)temp.fuData)
-        return (float)temp.fuData;
-    else
-        return (float)0.0;
+    return temp.fuData;
 }
 
 
