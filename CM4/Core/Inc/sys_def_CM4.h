@@ -7,11 +7,14 @@
 
 #ifndef INC_SYS_DEF_CM4_H_
 #define INC_SYS_DEF_CM4_H_
-
 #include "stm32h755xx.h"
-#include "errcode.h"
 #include "stm32h7xx_hal.h"
 #include "sys_def_wspolny.h"
+#include <math.h>
+#include "errcode.h"
+#include "stdio.h"
+
+
 //definicje adresów modułów i układów na maistrali SPI
 #define ADR_MOD1	0
 #define ADR_MOD2	1

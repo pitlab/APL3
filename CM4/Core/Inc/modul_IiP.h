@@ -30,7 +30,6 @@
 
 #define CZAS_KALIBRACJI_ZYROSKOPU		2000	//obiegów pętli głównej
 
-
 uint8_t InicjujModulI2P(void);
 uint8_t ObslugaModuluI2P(uint8_t gniazdo);
 float WysokoscBarometryczna(float fP, float fP0, float fTemp);

@@ -8,14 +8,16 @@
 #ifndef INC_SYS_DEF_CM7_H_
 #define INC_SYS_DEF_CM7_H_
 #include "stm32h755xx.h"
-#include "errcode.h"
 #include "stm32h7xx_hal.h"
-#include <math.h>
 #include "sys_def_wspolny.h"
+#include <math.h>
+#include "errcode.h"
+#include "stdio.h"
+
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	115	//numer commitu w repozytorium
+#define WER_REPO	116	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
