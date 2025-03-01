@@ -166,7 +166,25 @@ void WatekWyswietlacza(void const * argument);
 
 uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 
-
+////////////////////////////////////////////////////////////////////////////////
+// Wersja oczekiwania wykorzystująca usypianie kontrolera
+// Parametry: Delay - czas oczekiwania
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void HAL_Delay(uint32_t Delay)
+{
+  uint32_t tickstart = HAL_GetTick();
+  uint32_t wait = Delay;
+  /* Add a period to guaranty minimum wait */
+  if (wait < HAL_MAX_DELAY)
+  {
+    wait += (uint32_t)uwTickFreq;
+  }
+  while ((HAL_GetTick() - tickstart) < wait)
+  {
+	  __WFI();
+  }
+}
 /* USER CODE END 0 */
 
 /**

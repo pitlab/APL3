@@ -145,14 +145,14 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 
 struct tmenu stMenuKalibracja[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Kal Zyro1", 	"Kalibracja zyroskopu 1",					TPKAL_ZYRO1,		obr_baczek},
-	{"Kal Zyro2", 	"Kalibracja zyroskopu 2",					TPKAL_ZYRO2,		obr_baczek},
-	{"Akcel1 2D",	"Kalibracja 2D akcelerometru 1",			TPKAL_AKCEL1_2D,	obr_kontrolny},
-	{"Akcel2 2D",	"Kalibracja 2D akcelerometru 2",			TPKAL_AKCEL2_2D,	obr_kontrolny},
+	{"Kal Zyro Z", 	"Kalibracja zyroskopów w 10C",				TPKAL_ZYRO_ZIM,		obr_baczek},
+	{"Kal Zyro P", 	"Kalibracja zyroskopów w 25C",				TPKAL_ZYRO_POK,		obr_baczek},
+	{"Kal Zyro P", 	"Kalibracja zyroskopów w 40C",				TPKAL_ZYRO_GOR,		obr_baczek},
+	{"Akcel 2D",	"Kalibracja akcelerometrów 2D",				TPKAL_AKCEL_2D,		obr_kontrolny},
+	{"Akcel 3D",	"Kalibracja akcelerometrów 3D",				TPKAL_AKCEL_3D,		obr_kontrolny},
 	{"Kal Magn1", 	"Kalibracja magnetometru 1",				TPKAL_MAG1,			obr_kal_mag_n1},
 	{"Kal Magn2", 	"Kalibracja magnetometru 2",				TPKAL_MAG2,			obr_kal_mag_n1},
 	{"Kal Magn3", 	"Kalibracja magnetometru 3",				TPKAL_MAG3,			obr_kal_mag_n1},
-	{"TPKAL_1",		"nic  ",									TPKAL_1,			obr_kontrolny},
 	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TPKAL_DOTYK,		obr_dotyk_zolty},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
@@ -388,13 +388,18 @@ void RysujEkran(void)
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
-	case TPKAL_ZYRO1:
-		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO1;
+	case TPKAL_ZYRO_ZIM:
+		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_ZIM;	//uruchom kalibrację żyroskopów na zimno 10°C
 		chTrybPracy = TP_PODGLAD_IMU;
 		break;
 
-	case TPKAL_ZYRO2:
-		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO2;
+	case TPKAL_ZYRO_POK:
+		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_POK;	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
+		chTrybPracy = TP_PODGLAD_IMU;
+		break;
+
+	case TPKAL_ZYRO_GOR:
+		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_GOR;	//uruchom kalibrację żyroskopów na gorąco 40°C
 		chTrybPracy = TP_PODGLAD_IMU;
 		break;
 
@@ -406,15 +411,14 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TPKAL_AKCEL1_2D:
-	case TPKAL_AKCEL2_2D:
+	case TPKAL_AKCEL_2D:
+	case TPKAL_AKCEL_3D:
 	case TPKAL_MAG1:
 	case TPKAL_MAG2:
 	case TPKAL_MAG3:
 		chTrybPracy = TP_PODGLAD_IMU;
 		break;
 
-	case TPKAL_1:	break;
 	case TPKAL_DOTYK:
 		if (KalibrujDotyk() == ERR_DONE)
 			chTrybPracy = TP_TESTY;

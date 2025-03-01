@@ -2,27 +2,67 @@
 //
 // AutoPitLot v3.0
 // Obliczenia jednostki inercyjnej (IMU)
-//
+
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "jedn_inercyjna.h"
 #include "wymiana.h"
 
+// Definicje użytej konwencji
+// prawoskrętny układ współrzędnych samolotu
+// oś X od środka ciężkości w stronę dziobu samolotu
+// oś Y od środka ciężkości w kierunku prawego skrzydła
+// oś Z od środka ciężkości w kierunku ziemi
+//
+// Układ współrzędnych związany z Ziemią: (PWD - Północ Wschód Dół, lub NED - North East Down)
+// oś X skierowana na północ
+// oś Y skierowana nz wschód
+// oś Z skierowana w dół
+//
+// Prędkości kątowe (układ prawoskrętny)
+// prędkość P wokół osi X dodatnia gdy prawe skrzydło się opuszcza
+// prędkość Q wokół osi Y dodatnia gdy dziób się podnosi
+// prędkość R wokół osi Z odatnia gdy dziób obraca sie w prawo
+//
+// Kąty
+// phi   = kąt przechylenia, obrót wokół osi X, index 0, dodatni gdy pochylony na prawe skrzydło, ujemny na lewe
+// theta = kąt pochylenia,   obrót wokół osi Y, index 1, dodatni gdy dziób skierowany w górę, ujemny w dół
+// psi   = kąt odchylenia,   obrót wokół osi Z, index 2, patrząc z ziemi na lecący od nas model: dodatni na prawo, ujemny na lewo
+//
+// Orientacja geograficzna
+// oś X jest po szerokości geograficznej. Wschód jest dodatni, zachód ujemny
+// oś Y jest po długości geograficznej. Północ jest dodatnia, południe ujemne
+//
+extern uint32_t ndT[4];						//czas jaki upłynął od poprzeniego obiegu pętli dla 4 modułów wewnetrznych
 extern volatile unia_wymianyCM4_t uDaneCM4;
+float fKatZyroskopu1[3], fKatZyroskopu2[3];				//całka z prędkosci kątowej żyroskopów
+float fKatAkcel1[3], fKatAkcel2[3];						//kąty pochylenia i przechylenia policzone z akcelerometru
+float fKatMagnetometru1, fKatMagnetometru2, fKatMagnetometru3;	//kąt odchylenia z magnetometru
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonuje obliczenia jednostki inercyjnej
-// Parametry: nic
+// Parametry: chGniazdo - numer gniazda w którym jest moduł IMU
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ObliczeniaJednostkiInercujnej(void)
+void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
 {
-	uint8_t chErr = ERR_OK;
+	//licz całkę z prędkosci kątowych żyroskopów
+	for (uint16_t n=0; n<3; n++)
+	{
+		fKatZyroskopu1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[°/s] * [us / 1000000] = [°]
+		fKatZyroskopu2[n] += uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
+	}
 
+	//kąt przechylenia z akcelerometru: tan(Z/Y)
+	fKatAkcel1[0] = atan2f(uDaneCM4.dane.fAkcel1[2], uDaneCM4.dane.fAkcel1[1]);
+	fKatAkcel2[0] = atan2f(uDaneCM4.dane.fAkcel2[2], uDaneCM4.dane.fAkcel2[1]);
 
-	//oblicz kąt odchylenia w radianach z danych magnetometru
+	//kąt pochylenia z akcelerometru: tan(Z/X)
+	fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[2], uDaneCM4.dane.fAkcel1[0]);
+	fKatAkcel2[1] = atan2f(uDaneCM4.dane.fAkcel2[2], uDaneCM4.dane.fAkcel2[0]);
+
+	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(y/x)
 	uDaneCM4.dane.fKatIMU[2] = atan2f((float)uDaneCM4.dane.sMagne3[1], (float)uDaneCM4.dane.sMagne3[0]);
-	return chErr;
 }

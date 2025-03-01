@@ -16,7 +16,7 @@
 extern volatile unia_wymianyCM4_t uDaneCM4;
 extern SPI_HandleTypeDef hspi2;
 extern float fOffsetZyro2[3];
-
+const int8_t chZnakZyro2[3] = {-1, 1, -1};	//korekcja znaku prędkości żyroskopów
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z EEPROMu
@@ -34,14 +34,14 @@ uint8_t InicjujLSM6DSV(void)
 
 
 	chDane[0] = PLSC6DSV_CTRL1;
-	chDane[1] = (0 << 4) |	//OP_MODE_XL_[2:0]: Accelerometer operating mode selection: (000: high-performance mode (default); 001: high-accuracy ODR mode; 010: reserved; 	011: ODR-triggered mode; 100: low-power mode 1 (2 mean); 101: low-power mode 2 (4 mean); 110: low-power mode 3 (8 mean); 111: normal mode)
+	chDane[1] = (1 << 4) |	//OP_MODE_XL_[2:0]: Accelerometer operating mode selection: (000: high-performance mode (default); 001: high-accuracy ODR mode; 010: reserved; 	011: ODR-triggered mode; 100: low-power mode 1 (2 mean); 101: low-power mode 2 (4 mean); 110: low-power mode 3 (8 mean); 111: normal mode)
 				(7 << 0);	//ODR_XL_[3:0]: 0=Power-down (default); 1=1.875 Hz (low-power mode); 2=7.5 Hz (high-performance, normal mode), 3=15 Hz (low-power, high-performance, normal mode), 4=30 Hz (low-power, high-performance, normal mode)
 							//5=60 Hz (low-power, high-performance, normal mode); 6=120 Hz (low-power, high-performance, normal mode), 7=240 Hz (low-power, high-performance, normal mode), 8=480 Hz (high-performance, normal mode)
 							//9=960 Hz (high-performance, normal mode), 10=1.92 kHz (high-performance, normal mode), 11=3.84 kHz (high-performance mode, 12=7.68 kHz (high-performance mode)
 	ZapiszSPIu8(chDane, 2);
 
 	chDane[0] = PLSC6DSV_CTRL2;
-	chDane[1] = (0 << 4) |	//OP_MODE_G_[2:0]: Gyroscope operating mode selection: (000: high-performance mode (default); 001: high-accuracy ODR mode; 010: reserved; 	011: ODR-triggered mode; 100: sleep mode; 101: low-power mode; 110-111: reserved)
+	chDane[1] = (1 << 4) |	//OP_MODE_G_[2:0]: Gyroscope operating mode selection: (000: high-performance mode (default); 001: high-accuracy ODR mode; 010: reserved; 	011: ODR-triggered mode; 100: sleep mode; 101: low-power mode; 110-111: reserved)
 				(7 << 0);	//ODR_G_[3:0]: 0=Power-down (default); 2=7.5 Hz (low-power, high-performance mode), 3=15 Hz (low-power, high-performance mode), 4=30 Hz (low-power, high-performance mode), 5=60 Hz (low-power, high-performance mode)
 							//6=120 Hz (low-power, high-performance mode); 7=240 Hz (low-power, high-performance mode); 8=480 Hz (high-performance mode), 9=960 Hz (high-performance mode)
 							//9=1.92 kHz (high-performance mode), 10=1.92 kHz (high-performance mode), 11=3.84 kHz (high-performance mode); 12=7.68 kHz (high-performance mode)
@@ -105,7 +105,7 @@ uint8_t ObslugaLSM6DSV(void)
 		for (uint16_t n=0; n<3; n++)
 		{
 			uDaneCM4.dane.fAkcel2[n] = (float)((int16_t)(chDane[2*n+10] <<8) + chDane[2*n+9]) * (8.0 / 32768.0);		//+-8g
-			uDaneCM4.dane.fZyroSur2[n] = (float)((int16_t)(chDane[2*n+4] <<8)  + chDane[2*n+3]) * (10000.0 / 32768.0);	//+-1000°/s
+			uDaneCM4.dane.fZyroSur2[n] = (float)((int16_t)(chDane[2*n+4] <<8)  + chDane[2*n+3]) * (10000.0 / 32768.0) * chZnakZyro2[n];	//+-1000°/s
 			uDaneCM4.dane.fZyroKal2[n] = uDaneCM4.dane.fZyroSur2[n] - fOffsetZyro2[n];	//żyro po kalibracji offsetu
 		}
 	}

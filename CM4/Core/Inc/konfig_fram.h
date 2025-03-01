@@ -122,19 +122,41 @@
 #define	FAH_AKCEL2_Y_WZMOC     	FAH_MOD_AKCEL+40  	//4F korekcja wzmocnienia w osi Y akcelerometru 2
 #define	FAH_AKCEL2_Z_WZMOC		FAH_MOD_AKCEL+44  	//4F korekcja wzmocnienia w osi Z akcelerometru 2
 
-#define	FAH_MOD_ZYRO       		FA_HARD_VAR+48     	//moduł inercyjny dowolnego typu (wspólna konfiguracja)
-#define	FAH_ZYRO1_X_PRZES  		FAH_MOD_ZYRO+0  	//4H korekcja przesuniecia w osi X żyroskopu 1
-#define	FAH_ZYRO1_Y_PRZES  		FAH_MOD_ZYRO+4  	//4H korekcja przesuniecia w osi Y żyroskopu 1
-#define	FAH_ZYRO1_Z_PRZES  		FAH_MOD_ZYRO+8  	//4H korekcja przesuniecia w osi Z żyroskopu 1
-#define	FAH_ZYRO1_X_WZMOC     	FAH_MOD_ZYRO+12  	//4H korekcja wzmocnienia w osi X żyroskopu 1
-#define	FAH_ZYRO1_Y_WZMOC     	FAH_MOD_ZYRO+16  	//4H korekcja wzmocnienia w osi Y żyroskopu 1
-#define	FAH_ZYRO1_Z_WZMOC     	FAH_MOD_ZYRO+20  	//4H korekcja wzmocnienia w osi Z żyroskopu 1
-#define	FAH_ZYRO2_X_PRZES  		FAH_MOD_ZYRO+24  	//4H korekcja przesuniecia w osi X żyroskopu 2
-#define	FAH_ZYRO2_Y_PRZES  		FAH_MOD_ZYRO+28  	//4H korekcja przesuniecia w osi Y żyroskopu 2
-#define	FAH_ZYRO2_Z_PRZES  		FAH_MOD_ZYRO+32  	//4H korekcja przesuniecia w osi Z żyroskopu 2
-#define	FAH_ZYRO2_X_WZMOC     	FAH_MOD_ZYRO+36  	//4H korekcja wzmocnienia w osi X żyroskopu 2
-#define	FAH_ZYRO2_Y_WZMOC     	FAH_MOD_ZYRO+40  	//4H korekcja wzmocnienia w osi Y żyroskopu 2
-#define	FAH_ZYRO2_Z_WZMOC     	FAH_MOD_ZYRO+44  	//4H korekcja wzmocnienia w osi Z żyroskopu 2
+#define	FAH_MOD_ZYRO1      		FAH_MOD_AKCEL+48    //moduł inercyjny dowolnego typu (wspólna konfiguracja)
+#define	FAH_ZYRO1_X_PRZ_ZIM 	FAH_MOD_ZYRO1+0  	//4F korekcja przesuniecia w osi X żyroskopu 1 na zimno
+#define	FAH_ZYRO1_Y_PRZ_ZIM 	FAH_MOD_ZYRO1+4  	//4F korekcja przesuniecia w osi Y żyroskopu 1 na zimno
+#define	FAH_ZYRO1_Z_PRZ_ZIM 	FAH_MOD_ZYRO1+8  	//4F korekcja przesuniecia w osi Z żyroskopu 1 na zimno
+#define	FAH_ZYRO1_X_PRZ_POK 	FAH_MOD_ZYRO1+12  	//4F korekcja przesuniecia w osi X żyroskopu 1 w 25°C
+#define	FAH_ZYRO1_Y_PRZ_POK 	FAH_MOD_ZYRO1+16  	//4F korekcja przesuniecia w osi Y żyroskopu 1 w 25°C
+#define	FAH_ZYRO1_Z_PRZ_POK 	FAH_MOD_ZYRO1+20  	//4F korekcja przesuniecia w osi Z żyroskopu 1 w 25°C
+#define	FAH_ZYRO1_X_PRZ_GOR 	FAH_MOD_ZYRO1+24  	//4F korekcja przesuniecia w osi X żyroskopu 1 na gorąco
+#define	FAH_ZYRO1_Y_PRZ_GOR 	FAH_MOD_ZYRO1+28  	//4F korekcja przesuniecia w osi Y żyroskopu 1 na gorąco
+#define	FAH_ZYRO1_Z_PRZ_GOR 	FAH_MOD_ZYRO1+32  	//4F korekcja przesuniecia w osi Z żyroskopu 1 na gorąco
+#define	FAH_ZYRO1_X_WZMOC     	FAH_MOD_ZYRO1+36  	//4F korekcja wzmocnienia w osi X żyroskopu 1
+#define	FAH_ZYRO1_Y_WZMOC     	FAH_MOD_ZYRO1+40  	//4F korekcja wzmocnienia w osi Y żyroskopu 1
+#define	FAH_ZYRO1_Z_WZMOC     	FAH_MOD_ZYRO1+44  	//4F korekcja wzmocnienia w osi Z żyroskopu 1
+
+#define	FAH_MOD_ZYRO2      		FAH_MOD_ZYRO1+48    //moduł inercyjny dowolnego typu (wspólna konfiguracja)
+#define	FAH_ZYRO2_X_PRZ_ZIM 	FAH_MOD_ZYRO2+0  	//4F korekcja przesuniecia w osi X żyroskopu 2 na zimno
+#define	FAH_ZYRO2_Y_PRZ_ZIM 	FAH_MOD_ZYRO2+4  	//4F korekcja przesuniecia w osi Y żyroskopu 2 na zimno
+#define	FAH_ZYRO2_Z_PRZ_ZIM 	FAH_MOD_ZYRO2+8  	//4F korekcja przesuniecia w osi Z żyroskopu 2 na zimno
+#define	FAH_ZYRO2_X_PRZ_POK 	FAH_MOD_ZYRO2+12  	//4F korekcja przesuniecia w osi X żyroskopu 2 w 25°C
+#define	FAH_ZYRO2_Y_PRZ_POK 	FAH_MOD_ZYRO2+16  	//4F korekcja przesuniecia w osi Y żyroskopu 2 w 25°C
+#define	FAH_ZYRO2_Z_PRZ_POK 	FAH_MOD_ZYRO2+20  	//4F korekcja przesuniecia w osi Z żyroskopu 2 w 25°C
+#define	FAH_ZYRO2_X_PRZ_GOR 	FAH_MOD_ZYRO2+24  	//4F korekcja przesuniecia w osi X żyroskopu 2 na gorąco
+#define	FAH_ZYRO2_Y_PRZ_GOR 	FAH_MOD_ZYRO2+28  	//4F korekcja przesuniecia w osi Y żyroskopu 2 na gorąco
+#define	FAH_ZYRO2_Z_PRZ_GOR 	FAH_MOD_ZYRO2+32  	//4F korekcja przesuniecia w osi Z żyroskopu 2 na gorąco
+#define	FAH_ZYRO2_X_WZMOC     	FAH_MOD_ZYRO2+36  	//4F korekcja wzmocnienia w osi X żyroskopu 2
+#define	FAH_ZYRO2_Y_WZMOC     	FAH_MOD_ZYRO2+40  	//4F korekcja wzmocnienia w osi Y żyroskopu 2
+#define	FAH_ZYRO2_Z_WZMOC     	FAH_MOD_ZYRO2+44  	//4F korekcja wzmocnienia w osi Z żyroskopu 2
+
+#define	FAH_ZYRO_TEMP 			FAH_MOD_ZYRO2+48
+#define	FAH_ZYRO1_TEMP_ZIM     	FAH_ZYRO_TEMP+0		//4F temperatura kalibracji na zimno żyroskopu 1
+#define	FAH_ZYRO1_TEMP_POK     	FAH_ZYRO_TEMP+4		//4F temperatura kalibracji w temperaturze pokojowej żyroskopu 1
+#define	FAH_ZYRO1_TEMP_GOR     	FAH_ZYRO_TEMP+8		//4F temperatura kalibracji na gotąco żyroskopu 1
+#define	FAH_ZYRO2_TEMP_ZIM     	FAH_ZYRO_TEMP+12	//4F temperatura kalibracji na zimno żyroskopu 2
+#define	FAH_ZYRO2_TEMP_POK     	FAH_ZYRO_TEMP+16	//4F temperatura kalibracji w temperaturze pokojowej żyroskopu 2
+#define	FAH_ZYRO2_TEMP_GOR     	FAH_ZYRO_TEMP+20	//4F temperatura kalibracji na gotąco żyroskopu 2
 
 
 #define	FAH_TIMU_OFFSET     FAH_MOD_IMU+48  //4H korekcja offsetu temperatury przetwornika A/C modułu IMU

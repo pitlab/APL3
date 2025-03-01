@@ -25,10 +25,14 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 extern volatile unia_wymianyCM7_t uDaneCM7;
 uint16_t sGenerator;
 uint32_t nCzasOstatniegoOdcinka;	//przechowuje czas uruchomienia ostatniego odcinka
+uint32_t nCzasPoprzedniegoObiegu[4];	//czas poprzedniego obiegu pętli głównej dla 4 modułów wewnetrznych
+uint32_t ndT[4];						//czas jaki upłynął od poprzeniego obiegu pętli dla 4 modułów wewnetrznych
+uint32_t nCzasBiezacy;
 uint8_t chNrOdcinkaCzasu;
 uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU];		//zmierzony czas obsługo odcinka
 uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
 uint32_t nCzasJalowy;
+
 uint8_t chErrPG = ERR_OK;		//błąd petli głównej
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
@@ -46,28 +50,21 @@ uint8_t chCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na 
 ////////////////////////////////////////////////////////////////////////////////
 void PetlaGlowna(void)
 {
-	uint8_t chErr;//, chDane[16];
-	uint16_t n;
-	//uint32_t nCzas;
-	//float fTemp;
+	uint8_t chErr;
 
+	//licz czas obiegu petli dla modułów wewnętrznych które mogą wymagać czasu do całkowania swoich wartosci
+	if (chNrOdcinkaCzasu < 4)
+	{
+		nCzasBiezacy = PobierzCzas();
+		ndT[chNrOdcinkaCzasu] = MinalCzas2(nCzasPoprzedniegoObiegu[chNrOdcinkaCzasu], nCzasBiezacy);	//licz czas od ostatniego obiegu pętli
+		nCzasPoprzedniegoObiegu[chNrOdcinkaCzasu] = nCzasBiezacy;
+	}
 
 	switch (chNrOdcinkaCzasu)
 	{
 	case 0:		//obsługa modułu w gnieździe 1
 		chErrPG |= UstawDekoderModulow(ADR_MOD1);
-		//generuj testowe dane
-		/*fTemp = (float)sGenerator/100;
-		sGenerator++;
-		for (n=0; n<3; n++)
-		{
-			uDaneCM4.dane.fAkcel1[n] = 1 + n + fTemp;
-			uDaneCM4.dane.fAkcel2[n] = 2 + n + fTemp;
-			uDaneCM4.dane.fZyro1[n] = 3 + n + fTemp;
-			uDaneCM4.dane.fZyro2[n] = 4 + n + fTemp;
-			uDaneCM4.dane.fMagn1[n] = 5 + n + fTemp;
-			uDaneCM4.dane.fMagn2[n] = 6 + n + fTemp;
-		}*/
+
 		break;
 
 	case 1:		//obsługa modułu w gnieździe 2
@@ -85,7 +82,7 @@ void PetlaGlowna(void)
 		break;
 
 	case 3:		//obsługa modułu w gnieździe 4
-		for (n=0; n<16; n++)
+		for (uint16_t n=0; n<16; n++)
 		{
 			uDaneCM4.dane.sSerwa[n] += n;
 			if (uDaneCM4.dane.sSerwa[n] > 2000)
@@ -97,7 +94,7 @@ void PetlaGlowna(void)
 	case 4:		//obsługa GNSS na UART8
 		while (chWskNapBaGNSS != chWskOprBaGNSS)
 		{
-			chErr = DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
+			chErrPG |= DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
 			chWskOprBaGNSS++;
 			chWskOprBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
 			chStanIOwy ^= MIO42;		//Zielona LED
@@ -117,14 +114,9 @@ void PetlaGlowna(void)
 		}
 		break;
 
-	case 5: chErrPG |= RozdzielniaOperacjiI2C();	break;
-
-	case 8:
-		chErrPG |= WyslijDaneExpandera(chStanIOwy);
-
-		break;
-
-	case 9:	chErrPG |= ObliczeniaJednostkiInercujnej();	break;
+	case 5: chErrPG |= RozdzielniaOperacjiI2C();			break;
+	case 6:	ObliczeniaJednostkiInercujnej(2);	break;
+	case 8: chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;
 
 	case 10:
 		InicjujModulI2P();
@@ -149,27 +141,21 @@ void PetlaGlowna(void)
 	case 15:	//wymień dane między rdzeniami
 		uDaneCM4.dane.chErrPetliGlownej = chErrPG;
 		chErrPG  = PobierzDaneWymiany_CM7();
-		chErr = UstawDaneWymiany_CM4();
+		chErrPG |= UstawDaneWymiany_CM4();
 
 		//wykonaj polecenie przekazane z CM7
 		switch(uDaneCM7.dane.chWykonajPolecenie)
 		{
 		case POL_NIC:	break;		//polecenie neutralne
-		case POL_KALIBRUJ_ZYRO1:	RozpocznijKalibracjeZyro(1);		break;	//uruchom kalibrację żyroskopu 1
-		case POL_KALIBRUJ_ZYRO2:	RozpocznijKalibracjeZyro(2);		break;	//uruchom kalibrację żyroskopu 2
-		case POL_KALIBRUJ_ZYRO12:	RozpocznijKalibracjeZyro(3);		break;	//uruchom kalibrację obu żyroskopów
+		case POL_KALIBRUJ_ZYRO_ZIM:	RozpocznijKalibracjeZyro(POL_KALIBRUJ_ZYRO_ZIM);		break;	//uruchom kalibrację żyroskopów na zimno 10°C
+		case POL_KALIBRUJ_ZYRO_POK:	RozpocznijKalibracjeZyro(POL_KALIBRUJ_ZYRO_POK);		break;	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
+		case POL_KALIBRUJ_ZYRO_GOR:	RozpocznijKalibracjeZyro(POL_KALIBRUJ_ZYRO_GOR);		break;	//uruchom kalibrację żyroskopów na gorąco 40°C
+
 		case POL_KALIBRUJ_MAGN1:	//uruchom kalibrację magnetometru 1
 		case POL_KALIBRUJ_MAGN2:	//uruchom kalibrację magnetometru 2
 		case POL_KALIBRUJ_MAGN3:	//uruchom kalibrację magnetometru 3
     	}
 		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;
-
-		/*if (chErr == ERR_SEMAFOR_ZAJETY)
-			chStanIOwy &= ~MIO41;	//zaświeć czerwoną LED
-		else
-			chStanIOwy |= MIO41;		//zgaś czerwoną LED */
-		chErrPG |= chErr;
-		//chStanIOwy ^= 0x80;		//Zielona LED
 		break;
 
 	case 16:
@@ -190,6 +176,7 @@ void PetlaGlowna(void)
 	default:	break;
 	}
 
+
 	//pomiar czasu zajętego w każdym odcinku
 	nCzasOdcinka[chNrOdcinkaCzasu] = MinalCzas(nCzasOstatniegoOdcinka);
 	if (nCzasOdcinka[chNrOdcinkaCzasu] > nMaxCzasOdcinka[chNrOdcinkaCzasu])   //przechwyć wartość maksymalną
@@ -205,6 +192,7 @@ void PetlaGlowna(void)
 	//nadwyżkę czasu odcinka wytrać w jałowej petli
 	do
 	{
+		__WFI();	//uśpij kontroler w oczekwianiu na przerwanie od czegokolwiek np timera 7 mierzącego czas
 		nCzasJalowy = PobierzCzas() - nCzasOstatniegoOdcinka;
 	}
 	while (nCzasJalowy < CZAS_ODCINKA);
@@ -229,21 +217,34 @@ uint32_t PobierzCzas(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy upływ czasu mierzony timerem T7 z rozdzieczością 1us
+// Wersja z wewnetrznym czasem bieżącym
 // Parametry: sPoczatek - licznik czasu na na początku pomiaru
 // Zwraca: ilość czasu w mikrosekundach jaki upłynął do podanego czasu początkowego
 ////////////////////////////////////////////////////////////////////////////////
 uint32_t MinalCzas(uint32_t nPoczatek)
 {
-	uint32_t nCzas, nCzasAkt;
+	uint32_t nCzasAkt;
 
 	nCzasAkt = PobierzCzas();
+	return MinalCzas2(nPoczatek, nCzasAkt);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Liczy upływ czasu mierzony timerem T7 z rozdzieczością 1us
+// Wersja z zewnetrznym czasem bieżącym
+// Parametry: sPoczatek - licznik czasu na na początku pomiaru
+// Zwraca: ilość czasu w mikrosekundach jaki upłynął do podanego czasu początkowego
+////////////////////////////////////////////////////////////////////////////////
+uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nCzasAkt)
+{
+	uint32_t nCzas;
+
 	if (nCzasAkt >= nPoczatek)
 		nCzas = nCzasAkt - nPoczatek;
 	else
 		nCzas = 0xFFFFFFFF - nPoczatek + nCzasAkt;
 	return nCzas;
 }
-
 
 
 ////////////////////////////////////////////////////////////////////////////////

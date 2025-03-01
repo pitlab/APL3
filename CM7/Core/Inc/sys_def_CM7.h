@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	116	//numer commitu w repozytorium
+#define WER_REPO	117	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -111,14 +111,14 @@
 #define TPKSD_WROC			59
 
 //polecenia menu TP_KALIBRACJE
-#define TPKAL_ZYRO1			60
-#define TPKAL_ZYRO2			61
-#define TPKAL_AKCEL1_2D		62
-#define TPKAL_AKCEL2_2D		63
-#define TPKAL_MAG1			64
-#define TPKAL_MAG2			65
-#define TPKAL_MAG3			66
-#define TPKAL_1				67
+#define TPKAL_ZYRO_ZIM		60
+#define TPKAL_ZYRO_POK		61
+#define TPKAL_ZYRO_GOR		62
+#define TPKAL_AKCEL_2D		63
+#define TPKAL_AKCEL_3D		64
+#define TPKAL_MAG1			65
+#define TPKAL_MAG2			66
+#define TPKAL_MAG3			67
 #define TPKAL_DOTYK			68
 #define TPKAL_WROC			69
 

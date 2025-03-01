@@ -11,6 +11,6 @@
 #include "sys_def_CM4.h"
 
 
-uint8_t ObliczeniaJednostkiInercujnej(void);
+void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo);
 
 #endif /* INC_JEDN_INERCYJNA_H_ */
