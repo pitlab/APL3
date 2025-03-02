@@ -112,7 +112,7 @@ uint8_t ObslugaICM42688(void)
 		HAL_SPI_TransmitReceive(&hspi2, chDane, chDane, 15, 5);
 		HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 
-		uDaneCM4.dane.fTemper[2] = (float)(((int16_t)chDane[1] <<8) + chDane[2]) / 132.48 + 25.0;
+		uDaneCM4.dane.fTemper[TEMP_IMU1] = (float)(((int16_t)chDane[1] <<8) + chDane[2]) / 132.48 + 25.0;
 		for (uint16_t n=0; n<3; n++)
 		{
 			uDaneCM4.dane.fAkcel1[n] = (float)((int16_t)(chDane[2*n+3] <<8) + chDane[2*n+4]) * (8.0 / 32768.0);			//+-8g

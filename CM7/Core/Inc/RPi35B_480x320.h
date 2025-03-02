@@ -43,6 +43,7 @@ void setFont(uint8_t* font);
 uint8_t GetFontX(void);
 uint8_t GetFontY(void);
 void print(char *st, uint16_t x, uint16_t y);
+void printRamka(char *str, uint16_t x, uint16_t y, uint16_t sx, uint16_t sy);
 void drawCircle(uint16_t x, uint16_t y, uint16_t radius);
 void fillCircle(uint16_t x, uint16_t y, uint16_t radius);
 void drawBitmap(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* data);

@@ -142,18 +142,20 @@ void PetlaGlowna(void)
 		uDaneCM4.dane.chErrPetliGlownej = chErrPG;
 		chErrPG  = PobierzDaneWymiany_CM7();
 		chErrPG |= UstawDaneWymiany_CM4();
+		//
 
 		//wykonaj polecenie przekazane z CM7
 		switch(uDaneCM7.dane.chWykonajPolecenie)
 		{
 		case POL_NIC:	break;		//polecenie neutralne
-		case POL_KALIBRUJ_ZYRO_ZIM:	RozpocznijKalibracjeZyro(POL_KALIBRUJ_ZYRO_ZIM);		break;	//uruchom kalibrację żyroskopów na zimno 10°C
-		case POL_KALIBRUJ_ZYRO_POK:	RozpocznijKalibracjeZyro(POL_KALIBRUJ_ZYRO_POK);		break;	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
-		case POL_KALIBRUJ_ZYRO_GOR:	RozpocznijKalibracjeZyro(POL_KALIBRUJ_ZYRO_GOR);		break;	//uruchom kalibrację żyroskopów na gorąco 40°C
+		case POL_KALIBRUJ_ZYRO_ZIM:	RozpocznijKalibracje(POL_KALIBRUJ_ZYRO_ZIM);	break;	//uruchom kalibrację żyroskopów na zimno 10°C
+		case POL_KALIBRUJ_ZYRO_POK:	RozpocznijKalibracje(POL_KALIBRUJ_ZYRO_POK);	break;	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
+		case POL_KALIBRUJ_ZYRO_GOR:	RozpocznijKalibracje(POL_KALIBRUJ_ZYRO_GOR);	break;	//uruchom kalibrację żyroskopów na gorąco 40°C
 
 		case POL_KALIBRUJ_MAGN1:	//uruchom kalibrację magnetometru 1
 		case POL_KALIBRUJ_MAGN2:	//uruchom kalibrację magnetometru 2
 		case POL_KALIBRUJ_MAGN3:	//uruchom kalibrację magnetometru 3
+		case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;	break;	//nadpisz poprzednio zwrócony błąd
     	}
 		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;
 		break;

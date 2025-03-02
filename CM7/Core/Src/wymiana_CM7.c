@@ -27,7 +27,7 @@ unia_wymianyCM7_t uDaneCM7;
 ////////////////////////////////////////////////////////////////////////////////
 // Pobiera dane z rdzenia CM4
 // Parametry: nic
-// Zwraca: nic
+// Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PobierzDaneWymiany_CM4(void)
 {
@@ -38,12 +38,17 @@ uint8_t PobierzDaneWymiany_CM4(void)
 	if (!nStanSemafora)
 	{
 		chErr = HAL_HSEM_Take(HSEM_CM4_TO_CM7, 0);
-
 		if (chErr == ERR_OK)
 		{
 			for (uint8_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
 			{
 				uDaneCM4.nSlowa[n] = nBuforWymianyCM4[n];
+			}
+
+			//jeżeli było wysłane polecenie to sprawdź odpowiedź
+			if (uDaneCM4.dane.chOdpowiedzNaPolecenie > ERR_OK)	//ERR_OK jest poleceniem neutralnym, ERR_DONE  - potwierdzenie wykonania, inna odpowiedź to kod błędu
+			{
+				//uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//po skutecznym wysłaniu polecenia ustaw polecenie wychodzące jako neutralne
 			}
 
 			//przepisz napis z CM4 do bufora napisów
@@ -80,12 +85,9 @@ uint8_t UstawDaneWymiany_CM7(void)
 {
 	uint32_t nStanSemafora;
 	HAL_StatusTypeDef chErr = ERR_SEMAFOR_ZAJETY;
-
-	uDaneCM7.dane.sTest++;
 	nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM7_TO_CM4);
 	if (!nStanSemafora)
 	{
-		//chErr = HAL_HSEM_FastTake(HSEM_CM7_TO_CM4);
 		chErr = HAL_HSEM_Take(HSEM_CM7_TO_CM4, 0);
 		if (chErr == ERR_OK)
 		{
@@ -93,9 +95,9 @@ uint8_t UstawDaneWymiany_CM7(void)
 			{
 				nBuforWymianyCM7[n] = uDaneCM7.nSlowa[n];
 			}
+
 			HAL_HSEM_Release(HSEM_CM7_TO_CM4, 0);
 		}
 	}
-	uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//po wysłaniu polecenia ustaw polecenie neutralne
 	return chErr;
 }

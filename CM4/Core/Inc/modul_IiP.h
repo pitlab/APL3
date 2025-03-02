@@ -28,19 +28,20 @@
 
 #define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących
 
-#define CZAS_KALIBRACJI_ZYROSKOPU		1000	//obiegów pętli głównej po 5ms
 
 
-struct _RownanieProstej
+struct _WspRownProstej
 {
-	float fA;
-	float fB;
+	float fAzim;
+	float fBzim;
+	float fAgor;
+	float fBgor;
 };
 
 uint8_t InicjujModulI2P(void);
 uint8_t ObslugaModuluI2P(uint8_t gniazdo);
 float WysokoscBarometryczna(float fP, float fP0, float fTemp);
-uint8_t RozpocznijKalibracjeZyro(uint8_t chRodzajKalib);
+uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib);
 uint8_t KalibrujZyroskopy(void);
 void ObliczRownanieFunkcjiTemperaturowyZyro(float fOffset1, float fOffset2, float fTemp1, float fTemp2, float *fA, float *fB);
 

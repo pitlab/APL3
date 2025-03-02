@@ -66,7 +66,8 @@ uint8_t chNowyTrybPracy;
 uint8_t chWrocDoTrybu;
 uint8_t chRysujRaz;
 uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
-char chNapis[70], chNapisPodreczny[30];
+int8_t chTemperaturaKalibracji;
+char chNapis[100], chNapisPodreczny[30];
 float fZoom, fX, fY;
 float fReal, fImag;
 unsigned char chMnozPalety;
@@ -84,6 +85,7 @@ extern RTC_TimeTypeDef sTime;
 extern RTC_HandleTypeDef hrtc;
 static uint8_t chOstatniCzas;
 extern unia_wymianyCM7_t uDaneCM7;
+extern volatile unia_wymianyCM4_t uDaneCM4;
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -145,11 +147,11 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 
 struct tmenu stMenuKalibracja[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Kal Zyro Z", 	"Kalibracja zyroskopów w 10C",				TPKAL_ZYRO_ZIM,		obr_baczek},
-	{"Kal Zyro P", 	"Kalibracja zyroskopów w 25C",				TPKAL_ZYRO_POK,		obr_baczek},
-	{"Kal Zyro P", 	"Kalibracja zyroskopów w 40C",				TPKAL_ZYRO_GOR,		obr_baczek},
-	{"Akcel 2D",	"Kalibracja akcelerometrów 2D",				TPKAL_AKCEL_2D,		obr_kontrolny},
-	{"Akcel 3D",	"Kalibracja akcelerometrów 3D",				TPKAL_AKCEL_3D,		obr_kontrolny},
+	{"Zyro Zimno", 	"Kalibracja zyroskopow w 10C",				TPKAL_ZYRO_ZIM,		obr_baczek},
+	{"Zyro Pokoj", 	"Kalibracja zyroskopow w 25C",				TPKAL_ZYRO_POK,		obr_baczek},
+	{"Zyro Gorac", 	"Kalibracja zyroskopow w 40C",				TPKAL_ZYRO_GOR,		obr_baczek},
+	{"Akcel 2D",	"Kalibracja akcelerometrow 2D",				TPKAL_AKCEL_2D,		obr_kontrolny},
+	{"Akcel 3D",	"Kalibracja akcelerometrow 3D",				TPKAL_AKCEL_3D,		obr_kontrolny},
 	{"Kal Magn1", 	"Kalibracja magnetometru 1",				TPKAL_MAG1,			obr_kal_mag_n1},
 	{"Kal Magn2", 	"Kalibracja magnetometru 2",				TPKAL_MAG2,			obr_kal_mag_n1},
 	{"Kal Magn3", 	"Kalibracja magnetometru 3",				TPKAL_MAG3,			obr_kal_mag_n1},
@@ -390,26 +392,92 @@ void RysujEkran(void)
 
 	case TPKAL_ZYRO_ZIM:
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_ZIM;	//uruchom kalibrację żyroskopów na zimno 10°C
-		chTrybPracy = TP_PODGLAD_IMU;
+		chTemperaturaKalibracji = TEMP_KAL_ZIMNO;
+		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI_ZYROSKOPU))
+			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
+
+		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_ZIMNO) || (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_CIEPLO))
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WYSWIETL_BLAD;
+		}
 		break;
 
 	case TPKAL_ZYRO_POK:
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_POK;	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
-		chTrybPracy = TP_PODGLAD_IMU;
+		chTemperaturaKalibracji = TEMP_KAL_POKOJ;
+		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI_ZYROSKOPU))
+			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
+
+		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_ZIMNO) || (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_CIEPLO))
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WYSWIETL_BLAD;
+		}
 		break;
 
 	case TPKAL_ZYRO_GOR:
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_GOR;	//uruchom kalibrację żyroskopów na gorąco 40°C
-		chTrybPracy = TP_PODGLAD_IMU;
-		break;
+		chTemperaturaKalibracji = TEMP_KAL_GORAC;
+		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI_ZYROSKOPU))
+			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
-	case TP_PODGLAD_IMU: PomiaryIMU();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
+
+		/*if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_ZIMNO)
+			WyswietlKomunikatBledu(KOMUNIKAT_ZA_ZIMNO, TEMP_KAL_GORAC, TEMP_KAL_ODCHYLKA);	//Wyświetl komunikat  o tym że jest za zimno i nominalna temperatura kalibracji to TEMP_KAL_GORAC z odchyłką TEMP_KAL_ODCHYLKA
+		else
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_CIEPLO)
+			WyswietlKomunikatBledu(KOMUNIKAT_ZA_CIEPLO, TEMP_KAL_GORAC, TEMP_KAL_ODCHYLKA);	//Wyświetl komunikat  o tym że jest za ciepło i nominalna temperatura kalibracji to TEMP_KAL_GORAC z odchyłką TEMP_KAL_ODCHYLKA*/
+
+		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_ZIMNO) || (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_CIEPLO))
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WYSWIETL_BLAD;
+		}
+	/*	else
+			PomiaryIMU();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
+
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TPKAL_WROC;
+			uDaneCM7.dane.chWykonajPolecenie = POL_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
+		}*/
+		break;
+
+	case TP_PODGLAD_IMU:
+		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;		//gdy proces się rozpoczął wyłącz dalsze wysyłanie polecenia kalibracji
+		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_ZIMNO) || (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_CIEPLO))
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WYSWIETL_BLAD;
+		}
+		else
+			PomiaryIMU();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
+
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TPKAL_WROC;
+			uDaneCM7.dane.chWykonajPolecenie = POL_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
 		}
 		break;
+
+	case TP_WYSWIETL_BLAD:
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_ZIMNO)
+			WyswietlKomunikatBledu(KOMUNIKAT_ZA_ZIMNO, (int8_t)((uDaneCM4.dane.fTemper[TEMP_IMU1] + uDaneCM4.dane.fTemper[TEMP_IMU2])/2), chTemperaturaKalibracji, TEMP_KAL_ODCHYLKA);	//Wyświetl komunikat  o tym że jest za zimno i nominalna temperatura kalibracji to TEMP_KAL_POKOJ z odchyłką TEMP_KAL_ODCHYLKA
+		else
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_CIEPLO)
+			WyswietlKomunikatBledu(KOMUNIKAT_ZA_CIEPLO, (int8_t)((uDaneCM4.dane.fTemper[TEMP_IMU1] + uDaneCM4.dane.fTemper[TEMP_IMU2])/2), chTemperaturaKalibracji, TEMP_KAL_ODCHYLKA);	//Wyświetl komunikat  o tym że jest za ciepło i nominalna temperatura kalibracji to TEMP_KAL_POKOJ z odchyłką TEMP_KAL_ODCHYLKA
+
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TPKAL_WROC;
+			uDaneCM7.dane.chWykonajPolecenie = POL_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
+		}
+		break;
+
 
 	case TPKAL_AKCEL_2D:
 	case TPKAL_AKCEL_3D:
@@ -423,7 +491,6 @@ void RysujEkran(void)
 		if (KalibrujDotyk() == ERR_DONE)
 			chTrybPracy = TP_TESTY;
 		break;
-
 	}
 
 
@@ -463,7 +530,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 {
 	uint8_t n;
 	uint16_t x, y;
-	extern volatile unia_wymianyCM4_t uDaneCM4;
+
 	extern const unsigned short plogo165x80[];
 	extern uint8_t BSP_SD_IsDetected(void);
 
@@ -599,6 +666,47 @@ void Wykrycie(uint16_t x, uint16_t y, uint8_t znakow, uint8_t wykryto)
 	x += kropek * szer_fontu;
 	print(chNapis, x , y);
 	setColor(GRAY30);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje okno z treścią kodu błędu
+// Parametry:
+// chKomunikatBledu - treść wyświetlanego komunikato o błędzie
+// fParametr1, fParametr2 - opcjonalne parametry komunikatu
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, int8_t chParametr1, int8_t chParametr2, int8_t chParametr3)
+{
+	if (chRysujRaz)
+	{
+		LCD_clear(BLACK);
+		chRysujRaz = 0;
+	}
+//		setBackColor(BLACK);
+
+	//nagłówek komunikatu
+	setColor(RED);
+	setFont(BigFont);
+	sprintf(chNapis, (char*)chOpisBledow[KOMUNIKAT_NAGLOWEK]);	//"Blad wykonania polecenia!",
+	print(chNapis, CENTER, 70);
+
+	//stopka komunikatu
+	setFont(MidFont);
+	setColor(GRAY50);
+	sprintf(chNapis, (char*)chOpisBledow[KOMUNIKAT_STOPKA]);	//"Wdus ekran i trzymaj aby zakonczyc"
+	print(chNapis, CENTER, 250);
+
+	//treść komunikatu
+	setColor(YELLOW);
+	switch(chKomunikatBledu)
+	{
+	case KOMUNIKAT_ZA_ZIMNO:	//sposób formatowania komunikatu taki sam jak dla BLAD_ZA_CIEPLO
+	case KOMUNIKAT_ZA_CIEPLO:	//parametr1 to bieżąca temperatura, parametr 2 to nominalna temperatura kalibracji, parametr 3 to zakres tolerancji odchyłki temperatury
+		sprintf(chNapis, (const char*)chOpisBledow[chKomunikatBledu], chParametr1, ZNAK_STOPIEN, chParametr2-chParametr3, ZNAK_STOPIEN, chParametr2+chParametr3, ZNAK_STOPIEN);	break;	//"Zbyt niska temeratura zyroskopow wynoszaca %d%cC. Musi miescic sie w granicach od %d%cC do %d%cC",
+	}
+	printRamka(chNapis, 20, 90, 440, 200);
 }
 
 
@@ -1086,10 +1194,7 @@ void BelkaTytulu(char* chTytul)
 ////////////////////////////////////////////////////////////////////////////////
 void PomiaryIMU(void)
 {
-	extern volatile unia_wymianyCM4_t uDaneCM4;
 	int8_t chTon;
-	static uint16_t sMaxPostepu;
-	//static float fSkalaPostepu;
 
 	if (chRysujRaz)
 	{
@@ -1167,7 +1272,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[2]);
 	print(chNapis, 10+32*FONT_SL, 70);
 	setColor(YELLOW);
-	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[2], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 70);
 
 	//LSM6DSV
@@ -1181,7 +1286,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[2]);
 	print(chNapis, 10+32*FONT_SL, 90);
 	setColor(YELLOW);
-	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[3], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU2], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 90);
 
 	//IIS2MDC
@@ -1195,7 +1300,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[2]);
 	print(chNapis, 10+32*FONT_SL, 110);
 	setColor(YELLOW);
-	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[4], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[TEMP_MAG1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 110);
 
 	//MMC34160
@@ -1247,7 +1352,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[0]);
 	print(chNapis, 10+26*FONT_SL, 190);
 	setColor(YELLOW);
-	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[0], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 190);
 
 	//BMP581
@@ -1258,7 +1363,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[1]);
 	print(chNapis, 10+26*FONT_SL, 210);
 	setColor(YELLOW);
-	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 210);
 
 	//ND130
@@ -1272,7 +1377,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[0]);
 	print(chNapis, 10+26*FONT_SL, 230);
 	setColor(YELLOW);
-	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[5], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 230);
 
 	//MS4525
@@ -1292,7 +1397,7 @@ void PomiaryIMU(void)
 		setColor(YELLOW);
 	else
 		setColor(GRAY50);
-	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[6], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 250);
 
 
@@ -1331,21 +1436,14 @@ void PomiaryIMU(void)
 	//print(chNapis, 10, 300);
 
 	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszny do zera
-	if (uDaneCM4.dane.sPostepProcesu)
+	uint16_t x = (uDaneCM4.dane.sPostepProcesu * DISP_X_SIZE) / CZAS_KALIBRACJI_ZYROSKOPU;
+	if (x)	//nie rysuj paska jeżeli ma zerową długość
 	{
-		if (uDaneCM4.dane.sPostepProcesu > sMaxPostepu)
-		{
-			sMaxPostepu = uDaneCM4.dane.sPostepProcesu;
-			//fSkalaPostepu = DISP_X_SIZE / sMaxPostepu;
-		}
-		uint16_t x = (uDaneCM4.dane.sPostepProcesu * DISP_X_SIZE) / sMaxPostepu;
 		setColor(BLUE);
 		fillRect(0, DISP_Y_SIZE - 5, x , DISP_Y_SIZE);
-		setColor(BLACK);
-		fillRect(x, DISP_Y_SIZE - 5, DISP_X_SIZE , DISP_Y_SIZE);
 	}
-	else
-		sMaxPostepu = 0;
+	setColor(BLACK);
+	fillRect(x, DISP_Y_SIZE - 5, DISP_X_SIZE , DISP_Y_SIZE);
 }
 
 

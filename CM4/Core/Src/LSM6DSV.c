@@ -101,7 +101,7 @@ uint8_t ObslugaLSM6DSV(void)
 		HAL_SPI_TransmitReceive(&hspi2, chDane, chDane, 15, 5);
 		HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 
-		uDaneCM4.dane.fTemper[3] = (float)(((int16_t)chDane[2] <<8) + chDane[1]) / 256 + 25.0f;
+		uDaneCM4.dane.fTemper[TEMP_IMU2] = (float)(((int16_t)chDane[2] <<8) + chDane[1]) / 256 + 25.0f;
 		for (uint16_t n=0; n<3; n++)
 		{
 			uDaneCM4.dane.fAkcel2[n] = (float)((int16_t)(chDane[2*n+10] <<8) + chDane[2*n+9]) * (8.0 / 32768.0);		//+-8g

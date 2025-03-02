@@ -96,16 +96,21 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "koniec",							//STR_KONIEC
 };
 
-#define STR_SPRAWDZ_UBLOX			20
-#define STR_SPRAWDZ_MTK				21
-#define STR_SPRAWDZ_				22
-#define STR_TEST_TOUCH				23
-#define STR_MENU_MAIN				24
-#define STR_MENU_PROTOCOLS			25
-#define STR_MENU_MULMETR			26
-#define STR_MENU_TEST				27
-#define STR_MENU_SETINGS			28
-#define STR_MENU_MULTI_MEDIA		29
+
+
+//definicje komunikatów o błędach
+#define KOMUNIKAT_NAGLOWEK		0
+#define KOMUNIKAT_STOPKA		1
+#define KOMUNIKAT_ZA_ZIMNO		2
+#define KOMUNIKAT_ZA_CIEPLO		3
+#define MAX_KOMUNIKATOW			4
+
+const char *chOpisBledow[MAX_KOMUNIKATOW] = {
+"Blad wykonania polecenia!",
+"Wdus ekran i trzymaj aby zakonczyc",
+"Zbyt niska temeratura zyroskopow wynoszaca %d%cC. Musi miescic sie w granicach od %d%cC do %d%cC",
+"Zbyt wysoka temeratura zyroskopow wynoszaca %d%cC. Musi miescic sie w granicach od %d%cC do %d%cC",
+};
 
 
 const char *chNazwyMies3Lit[13]  = {"---", "Sty","Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paz", "Lis", "Gru"};

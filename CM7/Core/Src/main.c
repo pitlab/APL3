@@ -1327,7 +1327,6 @@ void StartDefaultTask(void const * argument)
 		//obsłuż wymowę komuniatów głosowych
 		ObslugaWymowyKomunikatu();
 
-
 		osDelay(5);		//ustaw okres taki pracuje CM4 (200MHz -> 5ms)
 	}
   /* USER CODE END 5 */

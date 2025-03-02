@@ -983,12 +983,11 @@ uint8_t GetFontY(void)
 //  x, y - współrzędne
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void print(char *st, uint16_t x, uint16_t y)
+void print(char *str, uint16_t x, uint16_t y)
 {
-	uint16_t i;
 	int stl;
 
-	stl = strlen((char*)st);
+	stl = strlen((char*)str);
 
 	if (chOrient == POZIOMO)
 	{
@@ -1005,8 +1004,56 @@ void print(char *st, uint16_t x, uint16_t y)
 		x = ((DISP_VX_SIZE+1)-(stl*cfont.x_size))/2;
 	}
 
-	for (i=0; i<stl; i++)
-		printChar(*st++, x + (i*(cfont.x_size)), y);
+	for (uint16_t i=0; i<stl; i++)
+		printChar(*str++, x + (i*(cfont.x_size)), y);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// pisze zawijający się napis w ramce o podanych współrzędnych
+// Parametry:
+// *st - ciąg do wypisania
+//  x, y - współrzędne
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void printRamka(char *str, uint16_t x, uint16_t y, uint16_t sx, uint16_t sy)
+{
+	int dlugoscNapisu, dlugoscWiersza;
+
+	dlugoscNapisu = strlen((char*)str);
+
+	do
+	{
+		if ((dlugoscNapisu * cfont.x_size) > sx)	//czy napis dłuższy niż szerokość ramki
+		{
+			//znajdź spację czyli miejsce do złamania napisu zaczynając od ostatniego znaku mieszcząceogo się w ramce
+			for (uint16_t n = sx / cfont.x_size; n > 0; n--)
+			{
+				if (*(str+n) == ' ')
+				{
+					dlugoscWiersza = n;
+					break;
+				}
+			}
+		}
+		else
+			dlugoscWiersza = dlugoscNapisu;
+
+
+		//if (chOrient == POZIOMO)		//na razie obsługuję tylko poziomo
+		{
+			if (x == RIGHT)
+				x = (DISP_HX_SIZE - sx + 1) - (dlugoscWiersza * cfont.x_size);
+			if (x == CENTER)
+				x = ((DISP_HX_SIZE - sx) / 2)  + (sx - (dlugoscWiersza * cfont.x_size)) / 2;
+		}
+		for (uint16_t i=0; i<dlugoscWiersza; i++)
+			printChar(*str++, x + (i*(cfont.x_size)), y);
+
+		dlugoscNapisu -= dlugoscWiersza;
+		y += cfont.y_size;
+	} 	while  (dlugoscNapisu && (y < (y + sy)));
 }
 
 

@@ -30,7 +30,7 @@
 #define POL_KALIBRUJ_MAGN1		8	//uruchom kalibrację magnetometru 1
 #define POL_KALIBRUJ_MAGN2		9	//uruchom kalibrację magnetometru 2
 #define POL_KALIBRUJ_MAGN3		10	//uruchom kalibrację magnetometru 3
-
+#define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
 
 typedef struct _GNSS
 {
@@ -68,6 +68,7 @@ typedef struct
 	float fTemper[7];	//0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS2545
 	uint16_t sSerwa[16];
 	uint8_t chErrPetliGlownej;
+	uint8_t chOdpowiedzNaPolecenie;
 	uint32_t nZainicjowano;
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
 	stGnss_t stGnss1;
@@ -79,7 +80,6 @@ typedef struct
 typedef struct
 {
 	uint8_t chWykonajPolecenie;
-	uint16_t sTest;
 } stWymianyCM7_t;
 
 //unie do konwersji struktur na słowa 32-bitowe

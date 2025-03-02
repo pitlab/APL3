@@ -121,7 +121,7 @@ uint8_t ObslugaND130(void)
 		else
 			chBufND130[2] &= ~0x80;
 
-		uDaneCM4.dane.fTemper[5] = (float)((int8_t)chBufND130[2]) + (float)chBufND130[3] / 2550;	//starszy bajt to stopnie, młodszy to ułamek będący częścią po przecinku
+		uDaneCM4.dane.fTemper[TEMP_CISR1] = (float)((int8_t)chBufND130[2]) + (float)chBufND130[3] / 2550;	//starszy bajt to stopnie, młodszy to ułamek będący częścią po przecinku
 		uDaneCM4.dane.fPredkosc[0] = PredkoscRurkiPrantla(fCisnienie, 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 	}
 	return chErr;

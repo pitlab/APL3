@@ -181,7 +181,7 @@ uint8_t ObslugaMS5611(void)
 		{
 		case 0:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
-			uDaneCM4.dane.fTemper[0] = (7 * uDaneCM4.dane.fTemper[0] + MS5611_LiczTemperature(nKonwersja, &ndT)) / 8;	//filtruj temepraturę
+			uDaneCM4.dane.fTemper[TEMP_BARO1] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO1] + MS5611_LiczTemperature(nKonwersja, &ndT)) / 8;	//filtruj temepraturę
 			chBuf5611[0] = PMS_CONV_D1_OSR2048;
 			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję ciśnienia
 			break;
@@ -218,7 +218,7 @@ uint8_t ObslugaMS5611(void)
 					uDaneCM4.dane.nZainicjowano |= INIT_P0_MS5611;
 			}
 			else
-				uDaneCM4.dane.fWysoko[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnie[0], fP0_MS5611, uDaneCM4.dane.fTemper[0]);	//P0 gotowe więc oblicz wysokość
+				uDaneCM4.dane.fWysoko[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnie[0], fP0_MS5611, uDaneCM4.dane.fTemper[TEMP_BARO1]);	//P0 gotowe więc oblicz wysokość
 		}
 	}
 	return chErr;

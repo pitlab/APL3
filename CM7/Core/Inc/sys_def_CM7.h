@@ -73,6 +73,7 @@
 #define TP_KARTA_SD			16	//menu obsługi karty SD
 #define TP_KALIBRACJE		17	//kalibracja sprzętu
 #define TP_PODGLAD_IMU		18	//podgląd parametrów IMU podczas kalibracji
+#define TP_WYSWIETL_BLAD	19	//wyświetl kod błędu
 
 //polecenia menu Multimedia
 #define TP_MMREJ			40	//M.Rej
