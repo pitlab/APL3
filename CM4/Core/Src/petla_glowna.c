@@ -19,6 +19,7 @@
 #include "modul_IiP.h"
 #include "MS4525.h"
 #include "ND130.h"
+#include "konfig_fram.h"
 
 extern TIM_HandleTypeDef htim7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -118,12 +119,32 @@ void PetlaGlowna(void)
 	case 6:	ObliczeniaJednostkiInercujnej(2);	break;
 	case 8: chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;
 
+	case 9:
+		/*FramDataWriteFloat(FAH_ZYRO1_TEMP_ZIM, 10.11);
+		FramDataWriteFloat(FAH_ZYRO2_TEMP_ZIM, 10.12);
+		FramDataWriteFloat(FAH_ZYRO1_TEMP_POK, 25.13);
+		FramDataWriteFloat(FAH_ZYRO2_TEMP_POK, 25.14);
+		FramDataWriteFloat(FAH_ZYRO1_TEMP_GOR, 40.15);
+		FramDataWriteFloat(FAH_ZYRO2_TEMP_GOR, 40.16);*/
+		break;
+
 	case 10:
 		InicjujModulI2P();
+		//static uint8_t chFramBuf1[24];
+		//CzytajBuforFRAM(FAH_ZYRO_TEMP, chFramBuf1, 24);
+		/*static uint8_t chFramBuf2[36];
+		CzytajBuforFRAM(FAH_MOD_ZYRO1, chFramBuf2, 36);
+		static uint8_t chFramBuf3[36];
+		CzytajBuforFRAM(FAH_MOD_ZYRO2, chFramBuf3, 36);*/
 		break;
 
 	case 11:
-		chErrPG |= UstawDekoderModulow(ADR_NIC);
+		/*static float fTemp1[3], fTemp2[3];
+		for (uint16_t n=0; n<3; n++)
+		{
+			fTemp1[n] = FramDataReadFloat(FAH_ZYRO1_TEMP_ZIM+(4*n));	//temepratury żyroskopu 1
+			fTemp2[n] = FramDataReadFloat(FAH_ZYRO2_TEMP_ZIM+(4*n));	//temepratury żyroskopu 2
+		}*/
 		break;
 
 	case 12:	//test przekazywania napisów

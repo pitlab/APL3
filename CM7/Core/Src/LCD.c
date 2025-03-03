@@ -1240,88 +1240,88 @@ void PomiaryIMU(void)
 	}
 
 	//ICM42688
-	setColor(KOLOR_X);
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.3f g ", uDaneCM4.dane.fAkcel1[0]);
 	print(chNapis, 10+8*FONT_SL, 30);
-	setColor(KOLOR_Y);
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.3f g ", uDaneCM4.dane.fAkcel1[1]);
 	print(chNapis, 10+20*FONT_SL, 30);
-	setColor(KOLOR_Z);
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.3f g ", uDaneCM4.dane.fAkcel1[2]);
 	print(chNapis, 10+32*FONT_SL, 30);
 
 	//LSM6DSV
-	setColor(KOLOR_X);
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.3f g ", uDaneCM4.dane.fAkcel2[0]);
 	print(chNapis, 10+8*FONT_SL, 50);
-	setColor(KOLOR_Y);
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.3f g ", uDaneCM4.dane.fAkcel2[1]);
 	print(chNapis, 10+20*FONT_SL, 50);
-	setColor(KOLOR_Z);
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.3f g ", uDaneCM4.dane.fAkcel2[2]);
 	print(chNapis, 10+32*FONT_SL, 50);
 
 	//ICM42688
-	setColor(KOLOR_X);
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[0]);
 	print(chNapis, 10+8*FONT_SL, 70);
-	setColor(KOLOR_Y);
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[1]);
 	print(chNapis, 10+20*FONT_SL, 70);
-	setColor(KOLOR_Z);
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[2]);
 	print(chNapis, 10+32*FONT_SL, 70);
-	setColor(YELLOW);
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 70);
 
 	//LSM6DSV
-	setColor(KOLOR_X);
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[0]);
 	print(chNapis, 10+8*FONT_SL, 90);
-	setColor(KOLOR_Y);
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[1]);
 	print(chNapis, 10+20*FONT_SL, 90);
-	setColor(KOLOR_Z);
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[2]);
 	print(chNapis, 10+32*FONT_SL, 90);
-	setColor(YELLOW);
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU2], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 90);
 
 	//IIS2MDC
-	setColor(KOLOR_X);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[0]);
 	print(chNapis, 10+8*FONT_SL, 110);
-	setColor(KOLOR_Y);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[1]);
 	print(chNapis, 10+20*FONT_SL, 110);
-	setColor(KOLOR_Z);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[2]);
 	print(chNapis, 10+32*FONT_SL, 110);
-	setColor(YELLOW);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f%cC ", uDaneCM4.dane.fTemper[TEMP_MAG1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 110);
 
 	//MMC34160
-	setColor(KOLOR_X);
+	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[0]);
 	print(chNapis, 10+8*FONT_SL, 130);
-	setColor(KOLOR_Y);
+	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[1]);
 	print(chNapis, 10+20*FONT_SL, 130);
-	setColor(KOLOR_Z);
+	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[2]);
 	print(chNapis, 10+32*FONT_SL, 130);
 
 	//HMC5883
-	setColor(KOLOR_X);
+	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[0]);
 	print(chNapis, 10+8*FONT_SL, 150);
-	setColor(KOLOR_Y);
+	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[1]);
 	print(chNapis, 10+20*FONT_SL, 150);
-	setColor(KOLOR_Z);
+	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[2]);
 	print(chNapis, 10+32*FONT_SL, 150);
 
@@ -1345,58 +1345,46 @@ void PomiaryIMU(void)
 	print(chNapis, 10+45*FONT_SL, 170);
 
 	//MS5611
-	setColor(WHITE);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnie[0]);
 	print(chNapis, 10+8*FONT_SL, 190);
-	setColor(CYAN);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(CYAN); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[0]);
 	print(chNapis, 10+26*FONT_SL, 190);
-	setColor(YELLOW);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 190);
 
 	//BMP581
-	setColor(WHITE);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnie[1]);
 	print(chNapis, 10+8*FONT_SL, 210);
-	setColor(CYAN);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(CYAN); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[1]);
 	print(chNapis, 10+26*FONT_SL, 210);
-	setColor(YELLOW);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 210);
 
 	//ND130
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	//stan wyzerowania sygnalizuj kolorem
-		setColor(WHITE);
-	else
-		setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[0]);
 	print(chNapis, 10+11*FONT_SL, 230);
-	setColor(MAGENTA);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(MAGENTA); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[0]);
 	print(chNapis, 10+26*FONT_SL, 230);
-	setColor(YELLOW);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 230);
 
 	//MS4525
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	//stan wyzerowania sygnalizuj kolorem
-		setColor(WHITE);
-	else
-		setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[1]);
 	print(chNapis, 10+11*FONT_SL, 250);
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	//stan wyzerowania sygnalizuj kolorem
-		setColor(MAGENTA);
-	else
-		setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(MAGENTA); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[1]);
 	print(chNapis, 10+26*FONT_SL, 250);
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	//stan wyzerowania sygnalizuj kolorem
-		setColor(YELLOW);
-	else
-		setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+45*FONT_SL, 250);
 

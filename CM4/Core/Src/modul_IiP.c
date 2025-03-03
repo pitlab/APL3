@@ -26,8 +26,11 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 float fOffsetZyro1[3], fOffsetZyro2[3];
 double dSumaZyro1[3], dSumaZyro2[3];
 
-struct _WspRownProstej stWspKalOffsetuZyro1[3];		//współczynniki równania prostych do estymacji offsetu
-struct _WspRownProstej stWspKalOffsetuZyro2[3];		//współczynniki równania prostych do estymacji offsetu
+//WspRownProstej_t stWspKalOffsetuZyro1[3];		//współczynniki równania prostych do estymacji offsetu
+//WspRownProstej_t stWspKalOffsetuZyro2[3];		//współczynniki równania prostych do estymacji offsetu
+WspRownProstej_t stWspKalOffsetuZyro1;		//współczynniki równania prostych do estymacji offsetu
+WspRownProstej_t stWspKalOffsetuZyro2;		//współczynniki równania prostych do estymacji offsetu
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -44,10 +47,18 @@ uint8_t InicjujModulI2P(void)
 	float fOffsetZyro1P, fOffsetZyro2P;		//offsety w temp pokojowej
 	float fOffsetZyro1G, fOffsetZyro2G;		//offsety na gorąco
 
+	//odczytaj tempertury kalibracji: 0=zimna, 1=pokojowa, 2=gorąca
+	for (uint16_t n=0; n<3; n++)
+	{
+		fTemp1[n] = FramDataReadFloat(FAH_ZYRO1_TEMP_ZIM+(4*n));	//temepratury żyroskopu 1
+		fTemp2[n] = FramDataReadFloat(FAH_ZYRO2_TEMP_ZIM+(4*n));	//temepratury żyroskopu 2
+	}
+	stWspKalOffsetuZyro1.fTempPok = fTemp1[1];
+	stWspKalOffsetuZyro2.fTempPok = fTemp2[1];
+
 	//odczytaj kalibrację żyroskopów
 	for (uint16_t n=0; n<3; n++)
 	{
-
 		fOffsetZyro1Z = FramDataReadFloat(FAH_ZYRO1_X_PRZ_ZIM+(4*n));	//offset żyroskopu1 na zimno
 		fOffsetZyro2Z = FramDataReadFloat(FAH_ZYRO2_X_PRZ_ZIM+(4*n));	//offset żyroskopu2 na zimno
 
@@ -57,13 +68,17 @@ uint8_t InicjujModulI2P(void)
 		fOffsetZyro1G = FramDataReadFloat(FAH_ZYRO1_X_PRZ_GOR+(4*n));	//offset żyroskopu1 na gorąco
 		fOffsetZyro2G = FramDataReadFloat(FAH_ZYRO2_X_PRZ_GOR+(4*n));	//offset żyroskopu2 na gorąco
 
-		fTemp1[n] = FramDataReadFloat(FAH_ZYRO1_TEMP_ZIM+(4*n));	//temepratury żyroskopu 1
-		fTemp2[n] = FramDataReadFloat(FAH_ZYRO2_TEMP_ZIM+(4*n));	//temepratury żyroskopu 2
-
-		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro1Z, fOffsetZyro1P, fTemp1[0], fTemp1[1], &stWspKalOffsetuZyro1[n].fAzim, &stWspKalOffsetuZyro1[n].fBzim);	//Żyro 1 na zimno
+		/*ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro1Z, fOffsetZyro1P, fTemp1[0], fTemp1[1], &stWspKalOffsetuZyro1[n].fAzim, &stWspKalOffsetuZyro1[n].fBzim);	//Żyro 1 na zimno
 		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro1P, fOffsetZyro1G, fTemp1[1], fTemp1[2], &stWspKalOffsetuZyro1[n].fAgor, &stWspKalOffsetuZyro1[n].fBgor);	//Żyro 1 na gorąco
+
 		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro2Z, fOffsetZyro2P, fTemp2[0], fTemp2[1], &stWspKalOffsetuZyro2[n].fAzim, &stWspKalOffsetuZyro2[n].fBzim);	//Żyro 2 na zimno
-		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro2P, fOffsetZyro2G, fTemp2[1], fTemp2[2], &stWspKalOffsetuZyro2[n].fAgor, &stWspKalOffsetuZyro2[n].fBgor);	//Żyro 2 na gorąco
+		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro2P, fOffsetZyro2G, fTemp2[1], fTemp2[2], &stWspKalOffsetuZyro2[n].fAgor, &stWspKalOffsetuZyro2[n].fBgor);	//Żyro 2 na gorąco*/
+
+		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro1Z, fOffsetZyro1P, fTemp1[0], fTemp1[1], &stWspKalOffsetuZyro1.fAzim[n], &stWspKalOffsetuZyro1.fBzim[n]);	//Żyro 1 na zimno
+		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro1P, fOffsetZyro1G, fTemp1[1], fTemp1[2], &stWspKalOffsetuZyro1.fAgor[n], &stWspKalOffsetuZyro1.fBgor[n]);	//Żyro 1 na gorąco
+
+		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro2Z, fOffsetZyro2P, fTemp2[0], fTemp2[1], &stWspKalOffsetuZyro2.fAzim[n], &stWspKalOffsetuZyro2.fBzim[n]);	//Żyro 2 na zimno
+		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro2P, fOffsetZyro2G, fTemp2[1], fTemp2[2], &stWspKalOffsetuZyro2.fAgor[n], &stWspKalOffsetuZyro2.fBgor[n]);	//Żyro 2 na gorąco
 	}
 	return chErr;
 }
@@ -71,7 +86,7 @@ uint8_t InicjujModulI2P(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// wykonuje czynności pomiarowe dla ukłądów znajdujących się na module
+// wykonuje czynności pomiarowe dla układów znajdujących się na module
 // Parametry: nic
 // Zwraca: kod błędu
 // Czas wykonania:
@@ -84,7 +99,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo)
 	//Ponieważ zegar SPI = 40MHz a układy mogą pracować z prędkością max 10MHz, przy każdym dostępie przestaw dzielnik zegara na 4
 	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
 	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
-	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_8;
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;
 	//hspi2.Instance->CFG2 |= SPI_POLARITY_HIGH | SPI_PHASE_2EDGE;	//testowo ustaw mode 3
 
 	//ustaw adres A2 = 0 zrobiony z linii Ix2 modułu
@@ -135,7 +150,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo)
 	chErr |= ObslugaND130();
 	if (chErr == ERR_TIMEOUT)
 	{
-		UstawAdresNaModule(ADR_MIIP_RES_ND130);
+		UstawAdresNaModule(ADR_MIIP_RES_ND130);	//wejście resetujące ND130
 		HAL_Delay(1);	//resetuj układ
 	}
 
@@ -165,6 +180,30 @@ void ObliczRownanieFunkcjiTemperaturowyZyro(float fOffset1, float fOffset2, floa
 
 	//B wyznaczamy z pierwszego równania: B = offset1 - A * temperatura1
 	*fB = fOffset1 - (*fA * fTemp1);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Oblicza wartość offsetu żyroskopu dla danej temperatury na podstawie równania prostej linearyzującej zmianę offsetu żyroskopu w funkcji temperatury
+// Parametry:
+// [we] stWsp struktura z wartościami współczynników równania prostych
+// [we] fTemp - temperatura żyroskopu
+// [wy] *fOffset[3] - obliczone wartości offsetu dla wszystkich osi
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void ObliczOffsetTemperaturowyZyro(WspRownProstej_t stWsp, float fTemp, float *fOffset)
+{
+	if (fTemp > stWsp.fTempPok)
+	{
+		for (uint8_t n=0; n<3; n++)
+			*(fOffset + n) = stWsp.fAgor[n] * fTemp + stWsp.fBgor[n];
+	}
+	else
+	{
+		for (uint8_t n=0; n<3; n++)
+			*(fOffset + n) = stWsp.fAzim[n] * fTemp + stWsp.fBzim[n];
+	}
 }
 
 
@@ -331,16 +370,17 @@ uint8_t KalibrujZyroskopy(void)
 			else
 			if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KALP_ZYRO)
 			{
-				FramDataWriteFloat(FAH_ZYRO2_TEMP_POK, uDaneCM4.dane.fTemper[TEMP_IMU1]);
+				FramDataWriteFloat(FAH_ZYRO1_TEMP_POK, uDaneCM4.dane.fTemper[TEMP_IMU1]);
 				FramDataWriteFloat(FAH_ZYRO2_TEMP_POK, uDaneCM4.dane.fTemper[TEMP_IMU2]);
 			}
 			else
 			if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KALG_ZYRO)
 			{
-				FramDataWriteFloat(FAH_ZYRO2_TEMP_GOR, uDaneCM4.dane.fTemper[TEMP_IMU1]);
+				FramDataWriteFloat(FAH_ZYRO1_TEMP_GOR, uDaneCM4.dane.fTemper[TEMP_IMU1]);
 				FramDataWriteFloat(FAH_ZYRO2_TEMP_GOR, uDaneCM4.dane.fTemper[TEMP_IMU2]);
 			}
 			uDaneCM4.dane.nZainicjowano &= ~(INIT_TRWA_KALZ_ZYRO | INIT_TRWA_KALP_ZYRO | INIT_TRWA_KALG_ZYRO);	//wyłącz kalibrację
+			InicjujModulI2P();	//przelicz współczynniki
 		}
 	}
 	return ERR_OK;

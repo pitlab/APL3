@@ -68,10 +68,10 @@ uint8_t CzytajFRAM(uint16_t sAdres)
 	uint8_t chDaneWew[3];
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
-	//Ponieważ zegar SPI = 80MHz a układ może pracować z prędkością max 40MHz, przy każdym dostępie przestaw dzielnik zegara na 2
+	//Ponieważ zegar SPI = 40MHz a układ może pracować z prędkością max 40MHz, przy każdym dostępie przestaw dzielnik zegara na 2
 	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
 	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
-	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_2;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/2
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/2
 
 	if (chAdresModulu != ADR_FRAM)
 		UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
@@ -104,10 +104,10 @@ void CzytajBuforFRAM(uint16_t sAdres, uint8_t* chDaneWyj, uint16_t sIlosc)
 	uint8_t chDaneWew[3];
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
-	//Ponieważ zegar SPI = 80MHz a układ może pracować z prędkością max 40MHz, przy każdym dostępie przestaw dzielnik zegara na 2
+	//Ponieważ zegar SPI = 40MHz a układ może pracować z prędkością max 40MHz, przy każdym dostępie przestaw dzielnik zegara na 2
 	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
 	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
-	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_2;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/2
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/2
 
 	if (chAdresModulu != ADR_FRAM)
 		UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
@@ -137,10 +137,10 @@ void ZapiszFRAM(unsigned short sAdres, uint8_t chDane)
 	uint8_t chDaneWew[4];
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
-	//Ponieważ zegar SPI = 80MHz a układ może pracować z prędkością max 40MHz, przy każdym dostępie przestaw dzielnik zegara na 2
+	//Ponieważ zegar SPI = 40MHz a układ może pracować z prędkością max 40MHz, przy każdym dostępie przestaw dzielnik zegara na 2
 	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
 	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
-	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_2;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/2
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/2
 
 	if (chAdresModulu != ADR_FRAM)
 		UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
@@ -176,10 +176,10 @@ void ZapiszBuforFRAM(uint16_t sAdres, uint8_t* chDane, uint16_t sIlosc)
 	uint8_t chDaneWew[3];
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
-	//Ponieważ zegar SPI = 80MHz a układ może pracować z prędkością max 40MHz, przy każdym dostępie przestaw dzielnik zegara na 2
+	//Ponieważ zegar SPI = 40MHz a układ może pracować z prędkością max 40MHz, przy każdym dostępie przestaw dzielnik zegara na 2
 	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
 	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
-	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_2;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/2
+	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;		//Bits 30:28 MBR[2:0]: master baud rate: SPI master clock/2
 
 	if (chAdresModulu != ADR_FRAM)
 		UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
