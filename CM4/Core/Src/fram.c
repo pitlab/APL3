@@ -278,7 +278,7 @@ unsigned char FramDataReadFloatValid(unsigned short sAddress, float *fValue, flo
     *fValue = FramDataReadFloat(sAddress);
     if ((*fValue < fValMin) || (*fValue > fValMax))
     {
-      *fValue = fValDef;    //gdy poza zakresem, to zwróć wartość średnią
+      *fValue = fValDef;    //gdy poza zakresem, to zwróć przekazaną wartość domyślną
       return chErrCode;
     }
      

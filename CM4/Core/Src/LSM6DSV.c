@@ -92,8 +92,6 @@ uint8_t ObslugaLSM6DSV(void)
 	if ((uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV) != INIT_LSM6DSV)	//jeżeli czujnik nie jest zainicjowany
 	{
 		chErr = InicjujLSM6DSV();
-		if (chErr)
-			return chErr;
 	}
 	else
 	{
@@ -102,7 +100,7 @@ uint8_t ObslugaLSM6DSV(void)
 		HAL_SPI_TransmitReceive(&hspi2, chDane, chDane, 15, 5);
 		HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 
-		uDaneCM4.dane.fTemper[TEMP_IMU2] = (float)(((int16_t)chDane[2] <<8) + chDane[1]) / 256 + 25.0f;
+		uDaneCM4.dane.fTemper[TEMP_IMU2] = (int16_t)((chDane[2] <<8) + chDane[1]) / 256.0f + 25.0f;
 		ObliczOffsetTemperaturowyZyro(stWspKalOffsetuZyro2, uDaneCM4.dane.fTemper[TEMP_IMU2], fOffsetZyro2);		//oblicz offset dla bieżącej temperatury
 
 		for (uint16_t n=0; n<3; n++)

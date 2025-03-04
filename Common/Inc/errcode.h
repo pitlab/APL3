@@ -63,6 +63,7 @@
 
 #define ERR_ZA_ZIMNO			63
 #define ERR_ZA_CIEPLO			64
+#define ERR_ZLA_KONFIG			64	//zła konfiguracja, została nadpisana dwartoscią domyślną
 
 #define ERR_NIE_ZAINICJOWANY	0xFF
 

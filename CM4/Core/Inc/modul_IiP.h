@@ -28,6 +28,9 @@
 
 #define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących
 
+#define MIN_OFFSET	-20.0f
+#define MAX_OFFSET	20.0f
+#define DEF_OFFSET	0.0f
 /*typedef struct
 {
 	float fAzim;	//współczynnik A równania dla "zimnej" temperatury

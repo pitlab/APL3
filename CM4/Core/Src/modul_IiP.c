@@ -59,20 +59,20 @@ uint8_t InicjujModulI2P(void)
 	//odczytaj kalibrację żyroskopów
 	for (uint16_t n=0; n<3; n++)
 	{
-		fOffsetZyro1Z = FramDataReadFloat(FAH_ZYRO1_X_PRZ_ZIM+(4*n));	//offset żyroskopu1 na zimno
-		fOffsetZyro2Z = FramDataReadFloat(FAH_ZYRO2_X_PRZ_ZIM+(4*n));	//offset żyroskopu2 na zimno
+		chErr += FramDataReadFloatValid(FAH_ZYRO1_X_PRZ_ZIM+(4*n), &fOffsetZyro1Z, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu1 na zimno
+		chErr += FramDataReadFloatValid(FAH_ZYRO2_X_PRZ_ZIM+(4*n), &fOffsetZyro2Z, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu2 na zimno
+		//fOffsetZyro1Z = FramDataReadFloat(FAH_ZYRO1_X_PRZ_ZIM+(4*n));
+		//fOffsetZyro2Z = FramDataReadFloat(FAH_ZYRO2_X_PRZ_ZIM+(4*n));
 
-		fOffsetZyro1P = FramDataReadFloat(FAH_ZYRO1_X_PRZ_POK+(4*n));	//offset żyroskopu1 w temp pokojowej
-		fOffsetZyro2P = FramDataReadFloat(FAH_ZYRO2_X_PRZ_POK+(4*n));	//offset żyroskopu2 w temp pokojowej
+		//fOffsetZyro1P = FramDataReadFloat(FAH_ZYRO1_X_PRZ_POK+(4*n));	//offset żyroskopu1 w temp pokojowej
+		//fOffsetZyro2P = FramDataReadFloat(FAH_ZYRO2_X_PRZ_POK+(4*n));	//offset żyroskopu2 w temp pokojowej
+		chErr += FramDataReadFloatValid(FAH_ZYRO1_X_PRZ_POK+(4*n), &fOffsetZyro1P, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu1 w temp pokojowej
+		chErr += FramDataReadFloatValid(FAH_ZYRO2_X_PRZ_POK+(4*n), &fOffsetZyro2P, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu1 w temp pokojowej
 
-		fOffsetZyro1G = FramDataReadFloat(FAH_ZYRO1_X_PRZ_GOR+(4*n));	//offset żyroskopu1 na gorąco
-		fOffsetZyro2G = FramDataReadFloat(FAH_ZYRO2_X_PRZ_GOR+(4*n));	//offset żyroskopu2 na gorąco
-
-		/*ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro1Z, fOffsetZyro1P, fTemp1[0], fTemp1[1], &stWspKalOffsetuZyro1[n].fAzim, &stWspKalOffsetuZyro1[n].fBzim);	//Żyro 1 na zimno
-		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro1P, fOffsetZyro1G, fTemp1[1], fTemp1[2], &stWspKalOffsetuZyro1[n].fAgor, &stWspKalOffsetuZyro1[n].fBgor);	//Żyro 1 na gorąco
-
-		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro2Z, fOffsetZyro2P, fTemp2[0], fTemp2[1], &stWspKalOffsetuZyro2[n].fAzim, &stWspKalOffsetuZyro2[n].fBzim);	//Żyro 2 na zimno
-		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro2P, fOffsetZyro2G, fTemp2[1], fTemp2[2], &stWspKalOffsetuZyro2[n].fAgor, &stWspKalOffsetuZyro2[n].fBgor);	//Żyro 2 na gorąco*/
+		//fOffsetZyro1G = FramDataReadFloat(FAH_ZYRO1_X_PRZ_GOR+(4*n));	//offset żyroskopu1 na gorąco
+		//fOffsetZyro2G = FramDataReadFloat(FAH_ZYRO2_X_PRZ_GOR+(4*n));	//offset żyroskopu2 na gorąco
+		chErr += FramDataReadFloatValid(FAH_ZYRO1_X_PRZ_GOR+(4*n), &fOffsetZyro1G, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu1 na gorąco
+		chErr += FramDataReadFloatValid(FAH_ZYRO2_X_PRZ_GOR+(4*n), &fOffsetZyro2G, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu2 na gorąco
 
 		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro1Z, fOffsetZyro1P, fTemp1[0], fTemp1[1], &stWspKalOffsetuZyro1.fAzim[n], &stWspKalOffsetuZyro1.fBzim[n]);	//Żyro 1 na zimno
 		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro1P, fOffsetZyro1G, fTemp1[1], fTemp1[2], &stWspKalOffsetuZyro1.fAgor[n], &stWspKalOffsetuZyro1.fBgor[n]);	//Żyro 1 na gorąco

@@ -20,6 +20,7 @@
 #include "MS4525.h"
 #include "ND130.h"
 #include "konfig_fram.h"
+#include "MS5611.h"	//testowo
 
 extern TIM_HandleTypeDef htim7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -44,6 +45,9 @@ uint8_t chGeneratorNapisow, chLicznikKomunikatow;
 extern I2C_HandleTypeDef hi2c3;
 uint8_t chCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
 
+float fTempTest;
+uint32_t TestWej;
+uint16_t sLicznik;
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
 // Parametry: brak
@@ -80,6 +84,10 @@ void PetlaGlowna(void)
 	case 2:		//obsługa modułu w gnieździe 3
 		//chErrPG |= ObslugaModuluIiP(ADR_MOD3);
 		//chErrPG |= UstawDekoderModulow(ADR_MOD3);
+		int32_t ndT;
+		sLicznik++;
+		TestWej = sLicznik * 0x100;
+		fTempTest = MS5611_LiczTemperature(TestWej, &ndT);
 		break;
 
 	case 3:		//obsługa modułu w gnieździe 4

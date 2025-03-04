@@ -94,13 +94,18 @@ uint32_t CzytajWynikKonwersjiMS5611(void)
 float MS5611_LiczTemperature(uint32_t nKonwersja, int32_t* ndTemp)
 {
     int32_t nTemp;
-    int64_t lTemp2 = 0;
+    int64_t lTemp, lTemp2 = 0;
 
     *ndTemp = nKonwersja - (int32_t)sKonfig[4] * 0x100;
-    nTemp = 2000.0 + ((float)*ndTemp * sKonfig[5]) / 8388608;
+    //nTemp = 2000.0 + ((float)*ndTemp * sKonfig[5]) / 8388608;
+    nTemp = 2000 + (*ndTemp * sKonfig[5]) / 0x800000;
+    lTemp = (int64_t)*ndTemp * sKonfig[5];
+    lTemp /= 0x800000;
+    nTemp = 2000 + (int32_t)lTemp;
 
     if (nTemp < 2000)	//jeżeli temepratura < 20°C
-    	lTemp2 = (*ndTemp * *ndTemp) / 32768;
+    	//lTemp2 = (*ndTemp * *ndTemp) / 32768;
+    	lTemp2 = ((int64_t)*ndTemp * *ndTemp) / 0x8000;
 
     return (float)(nTemp - lTemp2) / 100;
 }

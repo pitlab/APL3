@@ -1263,13 +1263,13 @@ void PomiaryIMU(void)
 
 	//ICM42688
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[0]);
+	sprintf(chNapis, "%.1f ", uDaneCM4.dane.fZyroKal1[0]);
 	print(chNapis, 10+8*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[1]);
+	sprintf(chNapis, "%.1f ", uDaneCM4.dane.fZyroKal1[1]);
 	print(chNapis, 10+20*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[2]);
+	sprintf(chNapis, "%.1f ", uDaneCM4.dane.fZyroKal1[2]);
 	print(chNapis, 10+32*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU1], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
@@ -1277,13 +1277,13 @@ void PomiaryIMU(void)
 
 	//LSM6DSV
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[0]);
+	sprintf(chNapis, "%.1f ", uDaneCM4.dane.fZyroKal2[0]);
 	print(chNapis, 10+8*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[1]);
+	sprintf(chNapis, "%.1f ", uDaneCM4.dane.fZyroKal2[1]);
 	print(chNapis, 10+20*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[2]);
+	sprintf(chNapis, "%.1f ", uDaneCM4.dane.fZyroKal2[2]);
 	print(chNapis, 10+32*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU2], ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
