@@ -57,6 +57,8 @@ typedef struct
 	float fZyroSur2[3];
 	float fZyroKal1[3];
 	float fZyroKal2[3];	//żyroskop skalibrowany
+	float fCalkaZyro1[3];
+	float fCalkaZyro2[3];
 	int16_t sMagne1[3];
 	int16_t sMagne2[3];
 	int16_t sMagne3[3];

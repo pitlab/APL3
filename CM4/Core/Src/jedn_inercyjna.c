@@ -36,7 +36,7 @@
 //
 extern uint32_t ndT[4];						//czas jaki upłynął od poprzeniego obiegu pętli dla 4 modułów wewnetrznych
 extern volatile unia_wymianyCM4_t uDaneCM4;
-float fKatZyroskopu1[3], fKatZyroskopu2[3];				//całka z prędkosci kątowej żyroskopów
+//float fKatZyroskopu1[3], fKatZyroskopu2[3];				//całka z prędkosci kątowej żyroskopów
 float fKatAkcel1[3], fKatAkcel2[3];						//kąty pochylenia i przechylenia policzone z akcelerometru
 float fKatMagnetometru1, fKatMagnetometru2, fKatMagnetometru3;	//kąt odchylenia z magnetometru
 
@@ -51,8 +51,8 @@ void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
 	//licz całkę z prędkosci kątowych żyroskopów
 	for (uint16_t n=0; n<3; n++)
 	{
-		fKatZyroskopu1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[°/s] * [us / 1000000] = [°]
-		fKatZyroskopu2[n] += uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
+		uDaneCM4.dane.fCalkaZyro1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[°/s] * [us / 1000000] = [°]
+		uDaneCM4.dane.fCalkaZyro2[n] += uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
 	}
 
 	//kąt przechylenia z akcelerometru: tan(Z/Y)

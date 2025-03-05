@@ -33,7 +33,7 @@ uint8_t chKodBleduFAT;
 extern RTC_HandleTypeDef hrtc;
 extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
-
+extern double dSumaZyro1[3], dSumaZyro2[3];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Zwraca obecność karty w gnieździe. Wymaga wcześniejszego odczytania stanu expanderów I/O, ktore czytane są w każdym obiegu pętli StartDefaultTask()
@@ -229,7 +229,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 				else
 				{
-					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyroSur1[0]);
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[0]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
@@ -242,7 +242,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 				else
 				{
-					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyroSur1[1]);
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[1]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
@@ -255,7 +255,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 				else
 				{
-					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyroSur1[2]);
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[2]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
@@ -269,7 +269,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 				else
 				{
-					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyroSur2[0]);
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[0]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
@@ -282,7 +282,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 				else
 				{
-					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyroSur2[1]);
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[1]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 
@@ -295,7 +295,58 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 				else
 				{
-					sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fZyroSur2[2]);
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[2]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+//---------------------------
+
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "CalkaZyro1 X [°];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCalkaZyro1[0]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "CalkaZyro1 Y [°];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCalkaZyro1[1]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "CalkaZyro1 Z [°];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCalkaZyro1[2]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "CalkaZyro2 X [°];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCalkaZyro2[0]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "CalkaZyro2 Y [°];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCalkaZyro2[1]);
+					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
+				}
+
+				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					strncat(chBufZapisuKarty, "CalkaZyro2 Z [°];", MAX_ROZMIAR_WPISU);
+				else
+				{
+					sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCalkaZyro2[2]);
 					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU);
 				}
 

@@ -103,11 +103,10 @@ float MS5611_LiczTemperature(uint32_t nKonwersja, int32_t* ndTemp)
     lTemp /= 0x800000;
     nTemp = 2000 + (int32_t)lTemp;
 
-    if (nTemp < 2000)	//jeżeli temepratura < 20°C
-    	//lTemp2 = (*ndTemp * *ndTemp) / 32768;
-    	lTemp2 = ((int64_t)*ndTemp * *ndTemp) / 0x8000;
+	if (nTemp < 2000)	//jeżeli temepratura < 20°C
+    	lTemp2 = (*ndTemp * *ndTemp) / 0x80000000;
 
-    return (float)(nTemp - lTemp2) / 100;
+	return (float)(nTemp - lTemp2) / 100;
 }
 
 
