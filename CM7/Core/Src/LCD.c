@@ -1708,6 +1708,7 @@ void WyswietlParametryKartySD(void)
 void WyswietlRejestratorKartySD(void)
 {
 	extern uint8_t chKodBleduFAT;
+	extern uint16_t sMaxDlugoscWierszaLogu;
 	uint16_t sPozY;
 
 	if (chRysujRaz)
@@ -1789,6 +1790,21 @@ void WyswietlRejestratorKartySD(void)
 		sprintf(chNapis, "Zatrzymany");
 	}
 	print(chNapis, 10 + 13*FONT_SL, sPozY);
+	sPozY += 20;
+
+	setColor(GRAY80);
+	sprintf(chNapis, "Zapelnienie: ");
+	print(chNapis, 10, sPozY);
+	float fZapelnienie = (float)sMaxDlugoscWierszaLogu / ROZMIAR_BUFORA_LOGU;
+	if (fZapelnienie < 0.75)
+		setColor(KOLOR_Y);	//zielony
+	else
+	if (fZapelnienie < 0.95)
+		setColor(YELLOW);
+	else
+		setColor(KOLOR_X);	//czerwony
+	sprintf(chNapis, "%d/%d ", sMaxDlugoscWierszaLogu, ROZMIAR_BUFORA_LOGU);
+	print(chNapis, 10, sPozY);
 	sPozY += 20;
 }
 
