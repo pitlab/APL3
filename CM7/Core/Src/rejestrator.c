@@ -222,7 +222,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					}
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[0]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroKal1[0]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}
@@ -238,7 +238,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					}
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[1]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroKal1[1]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}
@@ -254,7 +254,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					}
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[2]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroKal1[2]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}
@@ -270,7 +270,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					}
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[0]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroKal2[0]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}
@@ -286,7 +286,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					}
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[1]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroKal2[1]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}
@@ -302,7 +302,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					}
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[2]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroKal2[2]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}
@@ -668,7 +668,7 @@ uint8_t ObslugaPetliRejestratora(void)
 						strncat(chBufZapisuKarty, "PhiZyro1P [°];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCalkaZyro1[0]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro1[0]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 
@@ -676,7 +676,7 @@ uint8_t ObslugaPetliRejestratora(void)
 						strncat(chBufZapisuKarty, "PhiZyro2P [°];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCalkaZyro2[0]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro2[0]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}
@@ -688,7 +688,7 @@ uint8_t ObslugaPetliRejestratora(void)
 						strncat(chBufZapisuKarty, "ThetaZyro1Q [°];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCalkaZyro1[1]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro1[1]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 
@@ -696,7 +696,7 @@ uint8_t ObslugaPetliRejestratora(void)
 						strncat(chBufZapisuKarty, "ThetaZyro2Q [°];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCalkaZyro2[1]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro2[1]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}
@@ -708,7 +708,7 @@ uint8_t ObslugaPetliRejestratora(void)
 						strncat(chBufZapisuKarty, "ThetaZyro1Q [°];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCalkaZyro1[2]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro1[2]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 
@@ -716,7 +716,7 @@ uint8_t ObslugaPetliRejestratora(void)
 						strncat(chBufZapisuKarty, "ThetaZyro2Q [°];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCalkaZyro2[2]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro2[2]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}

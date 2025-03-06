@@ -25,11 +25,12 @@ uint16_t sLicznikCzasuKalibracjiZyro;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 float fOffsetZyro1[3], fOffsetZyro2[3];
 double dSumaZyro1[3], dSumaZyro2[3];
-
 //WspRownProstej_t stWspKalOffsetuZyro1[3];		//współczynniki równania prostych do estymacji offsetu
 //WspRownProstej_t stWspKalOffsetuZyro2[3];		//współczynniki równania prostych do estymacji offsetu
 WspRownProstej_t stWspKalOffsetuZyro1;		//współczynniki równania prostych do estymacji offsetu
 WspRownProstej_t stWspKalOffsetuZyro2;		//współczynniki równania prostych do estymacji offsetu
+extern float fZyroSur1[3];		//surowe nieskalibrowane prędkosci odczytane z żyroskopu 1
+extern float fZyroSur2[3];		//surowe nieskalibrowane prędkosci odczytane z żyroskopu 2
 
 
 
@@ -332,8 +333,10 @@ uint8_t KalibrujZyroskopy(void)
 	{
 		for (uint8_t n=0; n<3; n++)
 		{
-			dSumaZyro1[n] += uDaneCM4.dane.fZyroSur1[n];
-			dSumaZyro2[n] += uDaneCM4.dane.fZyroSur2[n];
+			//dSumaZyro1[n] += uDaneCM4.dane.fZyroSur1[n];
+			//dSumaZyro2[n] += uDaneCM4.dane.fZyroSur2[n];
+			dSumaZyro1[n] += fZyroSur1[n];
+			dSumaZyro2[n] += fZyroSur2[n];
 		}
 
 		if (uDaneCM4.dane.sPostepProcesu == 0)

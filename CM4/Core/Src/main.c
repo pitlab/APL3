@@ -185,7 +185,7 @@ int main(void)
   InicjujModulyWew();
   InicjujSerwa();
   InicjujModulI2P();
-
+  InicjujJednostkeInercyjna();
 
   /* USER CODE END 2 */
 

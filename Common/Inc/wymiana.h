@@ -53,16 +53,21 @@ typedef struct
 {
 	float fAkcel1[3];
 	float fAkcel2[3];
-	float fZyroSur1[3];	//żyrskop surowy
-	float fZyroSur2[3];
+	//float fZyroSur1[3];	//żyroskop surowy
+	//float fZyroSur2[3];
 	float fZyroKal1[3];
 	float fZyroKal2[3];	//żyroskop skalibrowany
-	float fCalkaZyro1[3];
-	float fCalkaZyro2[3];
+	//float fCalkaZyro1[3];
+	//float fCalkaZyro2[3];
 	int16_t sMagne1[3];
 	int16_t sMagne2[3];
 	int16_t sMagne3[3];
-	float fKatIMU[3];
+	float fKatIMU1[3];
+	float fKatIMU2[3];
+	float fKatIMUZyro1[3];
+	float fKatIMUZyro2[3];
+	float fKatIMUAkcel1[3];
+	float fKatIMUAkcel2[3];
 	float fCisnie[2];
 	float fWysoko[2];
 	float fCisnRozn[2];	//0=ND130, 1=MS2545

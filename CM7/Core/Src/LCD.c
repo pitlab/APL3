@@ -1335,13 +1335,13 @@ void PomiaryIMU(void)
 	//UstawTon(chTon, 80);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU[0], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[0], ZNAK_STOPIEN);
 	print(chNapis, 10+8*FONT_SL, 170);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU[1], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[1], ZNAK_STOPIEN);
 	print(chNapis, 10+28*FONT_SL, 170);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU[2], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[2], ZNAK_STOPIEN);
 	print(chNapis, 10+45*FONT_SL, 170);
 
 	//MS5611
@@ -1804,7 +1804,7 @@ void WyswietlRejestratorKartySD(void)
 	else
 		setColor(KOLOR_X);	//czerwony
 	sprintf(chNapis, "%d/%d ", sMaxDlugoscWierszaLogu, ROZMIAR_BUFORA_LOGU);
-	print(chNapis, 10, sPozY);
+	print(chNapis, 10 + 13*FONT_SL, sPozY);
 	sPozY += 20;
 }
 

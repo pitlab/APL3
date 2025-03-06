@@ -10,7 +10,7 @@
 
 #include "sys_def_CM4.h"
 
-
+void InicjujJednostkeInercyjna(void);
 void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo);
 
 #endif /* INC_JEDN_INERCYJNA_H_ */

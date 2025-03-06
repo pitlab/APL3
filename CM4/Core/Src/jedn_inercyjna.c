@@ -41,6 +41,16 @@ float fKatAkcel1[3], fKatAkcel2[3];						//kąty pochylenia i przechylenia polic
 float fKatMagnetometru1, fKatMagnetometru2, fKatMagnetometru3;	//kąt odchylenia z magnetometru
 
 
+
+void InicjujJednostkeInercyjna(void)
+{
+	for (uint16_t n=0; n<3; n++)
+	{
+		uDaneCM4.dane.fKatIMUZyro1[n] = 0;
+		uDaneCM4.dane.fKatIMUZyro2[n] = 0;
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonuje obliczenia jednostki inercyjnej
 // Parametry: chGniazdo - numer gniazda w którym jest moduł IMU
@@ -51,8 +61,8 @@ void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
 	//licz całkę z prędkosci kątowych żyroskopów
 	for (uint16_t n=0; n<3; n++)
 	{
-		uDaneCM4.dane.fCalkaZyro1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[°/s] * [us / 1000000] = [°]
-		uDaneCM4.dane.fCalkaZyro2[n] += uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
+		uDaneCM4.dane.fKatIMUZyro1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[°/s] * [us / 1000000] = [°]
+		uDaneCM4.dane.fKatIMUZyro2[n] += uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
 	}
 
 	//kąt przechylenia z akcelerometru: tan(Z/Y)
@@ -64,5 +74,5 @@ void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
 	fKatAkcel2[1] = atan2f(uDaneCM4.dane.fAkcel2[2], uDaneCM4.dane.fAkcel2[0]);
 
 	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(y/x)
-	uDaneCM4.dane.fKatIMU[2] = atan2f((float)uDaneCM4.dane.sMagne3[1], (float)uDaneCM4.dane.sMagne3[0]);
+	uDaneCM4.dane.fKatIMUAkcel1[2] = atan2f((float)uDaneCM4.dane.sMagne3[1], (float)uDaneCM4.dane.sMagne3[0]);
 }
