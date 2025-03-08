@@ -55,7 +55,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo);
 float WysokoscBarometryczna(float fP, float fP0, float fTemp);
 uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib);
 uint8_t KalibrujZyroskopy(void);
-void ObliczRownanieFunkcjiTemperaturowyZyro(float fOffset1, float fOffset2, float fTemp1, float fTemp2, float *fA, float *fB);
+void ObliczRownanieFunkcjiTemperaturyZyro(float fOffset1, float fOffset2, float fTemp1, float fTemp2, float *fA, float *fB);
 void ObliczOffsetTemperaturowyZyro(WspRownProstej_t stWsp, float fTemp, float *fOffset);
 
 #endif /* INC_MODUL_IIP_H_ */

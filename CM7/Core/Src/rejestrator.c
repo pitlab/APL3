@@ -218,7 +218,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					{
 						//sprintf(chBufPodreczny, "Zyro1 X [%c/s];", '°');
 						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "Zyro1P [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ZyroKal1P [°/s];", MAX_ROZMIAR_WPISU_LOGU);
 					}
 					else
 					{
@@ -234,7 +234,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					{
 						//sprintf(chBufPodreczny, "Zyro1 Y [%c/s];", '°');
 						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "Zyro1Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ZyroKal1Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
 					}
 					else
 					{
@@ -250,7 +250,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					{
 						//sprintf(chBufPodreczny, "Zyro1 Z [%c/s];", '°');
 						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "Zyro1R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ZyroKal1R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
 					}
 					else
 					{
@@ -266,7 +266,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					{
 						//sprintf(chBufPodreczny, "Zyro2 X [%c/s];", '°');
 						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "Zyro2P [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ZyroKal2P [°/s];", MAX_ROZMIAR_WPISU_LOGU);
 					}
 					else
 					{
@@ -282,7 +282,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					{
 						//sprintf(chBufPodreczny, "Zyro2 Y [%c/s];", '°');
 						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "Zyro2Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ZyroKal2Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
 					}
 					else
 					{
@@ -298,7 +298,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					{
 						//sprintf(chBufPodreczny, "Zyro2 Z [%c/s];", '°');
 						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "Zyro2R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ZyroKal2R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
 					}
 					else
 					{
@@ -627,7 +627,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (nKonfLogera[0] & KLOG2_ZYROSUR1P)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Zyro1Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ZyroSur1P [°/s];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
 						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[0]);
@@ -639,7 +639,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (nKonfLogera[0] & KLOG2_ZYROSUR1Q)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Zyro1Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ZyroSur1Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
 						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[1]);
@@ -651,7 +651,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (nKonfLogera[0] & KLOG2_ZYROSUR1R)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Zyro1R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ZyroSur1R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
 						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[2]);
@@ -663,7 +663,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (nKonfLogera[0] & KLOG2_ZYROSUR2P)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Zyro2P [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ZyroSur2P [°/s];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
 						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[0]);
@@ -675,7 +675,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (nKonfLogera[0] & KLOG2_ZYROSUR2Q)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Zyro2Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ZyroSur2Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
 						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[1]);
@@ -687,7 +687,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (nKonfLogera[0] & KLOG2_ZYROSUR2R)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Zyro2R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ZyroSur2R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
 						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[2]);

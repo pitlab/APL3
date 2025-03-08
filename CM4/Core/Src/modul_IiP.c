@@ -75,11 +75,11 @@ uint8_t InicjujModulI2P(void)
 		chErr += FramDataReadFloatValid(FAH_ZYRO1_X_PRZ_GOR+(4*n), &fOffsetZyro1G, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu1 na gorąco
 		chErr += FramDataReadFloatValid(FAH_ZYRO2_X_PRZ_GOR+(4*n), &fOffsetZyro2G, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu2 na gorąco
 
-		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro1Z, fOffsetZyro1P, fTemp1[0], fTemp1[1], &stWspKalOffsetuZyro1.fAzim[n], &stWspKalOffsetuZyro1.fBzim[n]);	//Żyro 1 na zimno
-		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro1P, fOffsetZyro1G, fTemp1[1], fTemp1[2], &stWspKalOffsetuZyro1.fAgor[n], &stWspKalOffsetuZyro1.fBgor[n]);	//Żyro 1 na gorąco
+		ObliczRownanieFunkcjiTemperaturyZyro(fOffsetZyro1Z, fOffsetZyro1P, fTemp1[0], fTemp1[1], &stWspKalOffsetuZyro1.fAzim[n], &stWspKalOffsetuZyro1.fBzim[n]);	//Żyro 1 na zimno
+		ObliczRownanieFunkcjiTemperaturyZyro(fOffsetZyro1P, fOffsetZyro1G, fTemp1[1], fTemp1[2], &stWspKalOffsetuZyro1.fAgor[n], &stWspKalOffsetuZyro1.fBgor[n]);	//Żyro 1 na gorąco
 
-		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro2Z, fOffsetZyro2P, fTemp2[0], fTemp2[1], &stWspKalOffsetuZyro2.fAzim[n], &stWspKalOffsetuZyro2.fBzim[n]);	//Żyro 2 na zimno
-		ObliczRownanieFunkcjiTemperaturowyZyro(fOffsetZyro2P, fOffsetZyro2G, fTemp2[1], fTemp2[2], &stWspKalOffsetuZyro2.fAgor[n], &stWspKalOffsetuZyro2.fBgor[n]);	//Żyro 2 na gorąco
+		ObliczRownanieFunkcjiTemperaturyZyro(fOffsetZyro2Z, fOffsetZyro2P, fTemp2[0], fTemp2[1], &stWspKalOffsetuZyro2.fAzim[n], &stWspKalOffsetuZyro2.fBzim[n]);	//Żyro 2 na zimno
+		ObliczRownanieFunkcjiTemperaturyZyro(fOffsetZyro2P, fOffsetZyro2G, fTemp2[1], fTemp2[2], &stWspKalOffsetuZyro2.fAgor[n], &stWspKalOffsetuZyro2.fBgor[n]);	//Żyro 2 na gorąco
 	}
 	return chErr;
 }
@@ -166,12 +166,18 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo)
 // Oblicza równanie prostej linearyzującej zmianę offsetu żyroskopu w funkcji tempertury
 // Parametry:
 // [we] fOffset1, fOffset2 - wartości offsetu żyroskopów
-// [we] fTemp1, fTemp1 - temperatury dla offsetów
+// [we] fTemp1, fTemp1 - temperatury dla offsetów [°C]
 // [wy] *fA, *fB - wspóczynniki równania prostej offsetu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void ObliczRownanieFunkcjiTemperaturowyZyro(float fOffset1, float fOffset2, float fTemp1, float fTemp2, float *fA, float *fB)
+void ObliczRownanieFunkcjiTemperaturyZyro(float fOffset1, float fOffset2, float fTemp1, float fTemp2, float *fA, float *fB)
 {
+	//Uwaga! We wzorze liczenia dryftu temperatura jest w mianowniku, więc skala nie może być w stopniach Celsjusza gdyż wystąpi dzielenie przez zero,
+	//a wcześniej dzielenie przez bardzo małą wartość, co powoduje że charakterystyka strzela do nieskończonosci.
+	//Temperaturę trzeba przeliczyć na Kelviny
+	fTemp1 += KELWIN;
+	fTemp2 += KELWIN;
+
 	//układ równań prostych w postaci kierunkowej:
 	//offset1 = A * temperatura1 + B
 	//offset2 = A * temperatura2 + B
@@ -189,7 +195,7 @@ void ObliczRownanieFunkcjiTemperaturowyZyro(float fOffset1, float fOffset2, floa
 // Oblicza wartość offsetu żyroskopu dla danej temperatury na podstawie równania prostej linearyzującej zmianę offsetu żyroskopu w funkcji temperatury
 // Parametry:
 // [we] stWsp struktura z wartościami współczynników równania prostych
-// [we] fTemp - temperatura żyroskopu
+// [we] fTemp - temperatura żyroskopu [°C]
 // [wy] *fOffset[3] - obliczone wartości offsetu dla wszystkich osi
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -198,12 +204,12 @@ void ObliczOffsetTemperaturowyZyro(WspRownProstej_t stWsp, float fTemp, float *f
 	if (fTemp > stWsp.fTempPok)
 	{
 		for (uint8_t n=0; n<3; n++)
-			*(fOffset + n) = stWsp.fAgor[n] * fTemp + stWsp.fBgor[n];
+			*(fOffset + n) = stWsp.fAgor[n] * (fTemp + KELWIN) + stWsp.fBgor[n];
 	}
 	else
 	{
 		for (uint8_t n=0; n<3; n++)
-			*(fOffset + n) = stWsp.fAzim[n] * fTemp + stWsp.fBzim[n];
+			*(fOffset + n) = stWsp.fAzim[n] * (fTemp + KELWIN) + stWsp.fBzim[n];
 	}
 }
 
