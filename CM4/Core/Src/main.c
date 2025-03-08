@@ -21,6 +21,7 @@
 #include "GNSS.h"
 #include "wymiana_CM4.h"
 #include "modul_IiP.h"
+#include "jedn_inercyjna.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

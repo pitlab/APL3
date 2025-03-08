@@ -42,6 +42,12 @@ float fKatMagnetometru1, fKatMagnetometru2, fKatMagnetometru3;	//kąt odchylenia
 
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// inicjalizacja zmiennych potrzebanych do obliczeń kątów
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
 void InicjujJednostkeInercyjna(void)
 {
 	for (uint16_t n=0; n<3; n++)
@@ -50,6 +56,8 @@ void InicjujJednostkeInercyjna(void)
 		uDaneCM4.dane.fKatIMUZyro2[n] = 0;
 	}
 }
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonuje obliczenia jednostki inercyjnej

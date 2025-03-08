@@ -42,27 +42,31 @@
 #define KLOG1_IAS2      0x00000040	    //prędkość wzgledem powietrza z czujnika różnicowego 2
 #define KLOG1_VARIO     0x00000080	    //wskazania wariometru
 
-#define KLOG1_ZYRO1P    0x00000100	    //prędkość obrotowa P żyroskopu 1
-#define KLOG1_ZYRO1Q    0x00000200	    //prędkość obrotowa Q żyroskopu 1
-#define KLOG1_ZYRO1R    0x00000400	    //prędkość obrotowa R żyroskopu 1
-#define KLOG1_ZYRO2P    0x00000800	    //prędkość obrotowa P żyroskopu 2
-#define KLOG1_ZYRO2Q    0x00001000	    //prędkość obrotowa Q żyroskopu 2
-#define KLOG1_ZYRO2R    0x00002000	    //prędkość obrotowa R żyroskopu 2
+#define KLOG1_ZYRO1P    0x00000100	    //skaliborwana prędkość obrotowa P żyroskopu 1
+#define KLOG1_ZYRO1Q    0x00000200	    //skaliborwana prędkość obrotowa Q żyroskopu 1
+#define KLOG1_ZYRO1R    0x00000400	    //skaliborwana prędkość obrotowa R żyroskopu 1
+#define KLOG1_ZYRO2P    0x00000800	    //skaliborwana prędkość obrotowa P żyroskopu 2
+#define KLOG1_ZYRO2Q    0x00001000	    //skaliborwana prędkość obrotowa Q żyroskopu 2
+#define KLOG1_ZYRO2R    0x00002000	    //skaliborwana prędkość obrotowa R żyroskopu 2
 
 #define KLOG1_AKCEL1X   0x00004000	    //przyspieszenie w osi X akcelerometru 1
 #define KLOG1_AKCEL1Y   0x00008000	    //przyspieszenie w osi Y akcelerometru 1
-#define KLOG1_AKCEL1Z   0x00100000	    //przyspieszenie w osi Z akcelerometru 1
-#define KLOG1_AKCEL2X   0x00200000	    //przyspieszenie w osi X akcelerometru 2
-#define KLOG1_AKCEL2Y   0x00400000	    //przyspieszenie w osi Y akcelerometru 2
-#define KLOG1_AKCEL2Z   0x00800000	    //przyspieszenie w osi Z akcelerometru 2
+#define KLOG1_AKCEL1Z   0x00010000	    //przyspieszenie w osi Z akcelerometru 1
+#define KLOG1_AKCEL2X   0x00020000	    //przyspieszenie w osi X akcelerometru 2
+#define KLOG1_AKCEL2Y   0x00040000	    //przyspieszenie w osi Y akcelerometru 2
+#define KLOG1_AKCEL2Z   0x00080000	    //przyspieszenie w osi Z akcelerometru 2
 
-#define KLOG1_MAG1X     0x01000000	    //składowa magnetyczna w osi X magnetometru 1
-#define KLOG1_MAG1Y     0x02000000	    //składowa magnetyczna w osi Y magnetometru 1
-#define KLOG1_MAG1Z     0x04000000	    //składowa magnetyczna w osi Z magnetometru 1
-#define KLOG1_MAG2X     0x08000000	    //składowa magnetyczna w osi X magnetometru 2
-#define KLOG1_MAG2Y     0x10000000	    //składowa magnetyczna w osi Y magnetometru 2
-#define KLOG1_MAG2Z     0x20000000	    //składowa magnetyczna w osi Z magnetometru 2
+#define KLOG1_MAG1X     0x00100000	    //składowa magnetyczna w osi X magnetometru 1
+#define KLOG1_MAG1Y     0x00200000	    //składowa magnetyczna w osi Y magnetometru 1
+#define KLOG1_MAG1Z     0x00400000	    //składowa magnetyczna w osi Z magnetometru 1
+#define KLOG1_MAG2X     0x00800000	    //składowa magnetyczna w osi X magnetometru 2
+#define KLOG1_MAG2Y     0x01000000	    //składowa magnetyczna w osi Y magnetometru 2
+#define KLOG1_MAG2Z     0x02000000	    //składowa magnetyczna w osi Z magnetometru 2
+#define KLOG1_MAG3X     0x04000000	    //składowa magnetyczna w osi X magnetometru 3
+#define KLOG1_MAG3Y     0x08000000	    //składowa magnetyczna w osi Y magnetometru 3
+#define KLOG1_MAG3Z     0x10000000	    //składowa magnetyczna w osi Z magnetometru 3
 
+#define KLOG1_TEMPCISN	0x20000000	    //temperatura czujnika ciśnienia
 #define KLOG1_TEMPIMU1	0x40000000	    //temperatura IMU1
 #define KLOG1_TEMPIMU2	0x80000000	    //temperatura IMU2
 
@@ -80,15 +84,22 @@
 #define KLOG2_GY_SPD    0x00000200	    //niefiltrowana prędkość w osi Y z GPS
 
 
-#define KLOG1_CISROZ1	0x00001000		//ciśnienie czujnika różnicowego 1
-#define KLOG1_CISROZ2	0x00002000		//ciśnienie czujnika różnicowego 2
+#define KLOG2_ZYROSUR1P 0x01000000	    //surowa prędkość obrotowa P żyroskopu 1
+#define KLOG2_ZYROSUR1Q 0x02000000	    //surowa prędkość obrotowa Q żyroskopu 1
+#define KLOG2_ZYROSUR1R 0x04000000	    //surowa prędkość obrotowa R żyroskopu 1
+#define KLOG2_ZYROSUR2P 0x08000000	    //surowa prędkość obrotowa P żyroskopu 2
+#define KLOG2_ZYROSUR2Q 0x10000000	    //surowa prędkość obrotowa Q żyroskopu 2
+#define KLOG2_ZYROSUR2R 0x20000000	    //surowa prędkość obrotowa R żyroskopu 2
+
+#define KLOG2_CISROZ1	0x40000000		//ciśnienie czujnika różnicowego 1
+#define KLOG2_CISROZ2	0x80000000		//ciśnienie czujnika różnicowego 2
 
 
 //trzecie słowo konfiguracji logera
 #define KLOG3_KATPHI    0x00000001	    //kąt phi wektora inercji
 #define KLOG3_KATTHE    0x00000002	    //kąt theta wektora inercji
 #define KLOG3_KATPSI    0x00000004	    //kąt psi wektora inercji
-#define KLOG3_KATPHIA   0x00000008     //kąt phi obliczony na podstawie danych z akcelerometru
+#define KLOG3_KATPHIA   0x00000008      //kąt phi obliczony na podstawie danych z akcelerometru
 #define KLOG3_KATTHEA   0x00000010	    //kąt theta obliczony na podstawie danych z akcelerometru
 #define KLOG3_KATPSIM   0x00000020	    //kąt psi obliczony na podstawie danych z magnetometru
 #define KLOG3_KATPHIZ   0x00000040	    //kąt phi obliczony jako całka prędkości P z żyroskopu

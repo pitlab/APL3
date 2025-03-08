@@ -53,12 +53,10 @@ typedef struct
 {
 	float fAkcel1[3];
 	float fAkcel2[3];
-	//float fZyroSur1[3];	//żyroskop surowy
-	//float fZyroSur2[3];
+	float fZyroSur1[3];	//żyroskop surowy - potrzebne do kalibracji i wyznaczania charakterystyki dryftu
+	float fZyroSur2[3];
 	float fZyroKal1[3];
 	float fZyroKal2[3];	//żyroskop skalibrowany
-	//float fCalkaZyro1[3];
-	//float fCalkaZyro2[3];
 	int16_t sMagne1[3];
 	int16_t sMagne2[3];
 	int16_t sMagne3[3];

@@ -26,7 +26,7 @@ ALIGN_32BYTES(uint8_t aTxBuffer[_MAX_SS]);
 ALIGN_32BYTES(uint8_t aRxBuffer[_MAX_SS]);
 __IO uint8_t RxCplt, TxCplt;
 uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-uint32_t nKonfLogera[3] = {0xFFFFFF1F, 0x0, 0x1C0};	//zestaw flag włączajacych dane do rejestracji
+uint32_t nKonfLogera[3] = {0xFFFFFF2B, 0xFF000000, 0x000001F8};	//zestaw flag włączajacych dane do rejestracji
 ALIGN_32BYTES(static char chBufZapisuKarty[ROZMIAR_BUFORA_LOGU]);	//bufor na jedną linijkę logu
 ALIGN_32BYTES(static char chBufPodreczny[30]);
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;
@@ -163,7 +163,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 
 				//Ciśnienie różnicowe czujnika 1
-				if (nKonfLogera[0] & KLOG1_CISROZ1)
+				if (nKonfLogera[0] & KLOG2_CISROZ1)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 						strncat(chBufZapisuKarty, "CisnRozn1 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
@@ -175,7 +175,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 
 				//Ciśnienie różnicowe czujnika 2
-				if (nKonfLogera[0] & KLOG1_CISROZ2)
+				if (nKonfLogera[0] & KLOG2_CISROZ2)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 						strncat(chBufZapisuKarty, "CisnRozn2 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
@@ -623,6 +623,78 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 
 
+				//surowa prędkość obrotowa P żyroskopu 1
+				if (nKonfLogera[0] & KLOG2_ZYROSUR1P)
+				{
+					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+						strncat(chBufZapisuKarty, "Zyro1Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+					else
+					{
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[0]);
+						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+					}
+				}
+
+				//surowa prędkość obrotowa Q żyroskopu 1
+				if (nKonfLogera[0] & KLOG2_ZYROSUR1Q)
+				{
+					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+						strncat(chBufZapisuKarty, "Zyro1Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+					else
+					{
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[1]);
+						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+					}
+				}
+
+				//surowa prędkość obrotowa R żyroskopu 1
+				if (nKonfLogera[0] & KLOG2_ZYROSUR1R)
+				{
+					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+						strncat(chBufZapisuKarty, "Zyro1R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+					else
+					{
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[2]);
+						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+					}
+				}
+
+				//surowa prędkość obrotowa P żyroskopu 2
+				if (nKonfLogera[0] & KLOG2_ZYROSUR2P)
+				{
+					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+						strncat(chBufZapisuKarty, "Zyro2P [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+					else
+					{
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[0]);
+						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+					}
+				}
+
+				//surowa prędkość obrotowa Q żyroskopu 2
+				if (nKonfLogera[0] & KLOG2_ZYROSUR2Q)
+				{
+					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+						strncat(chBufZapisuKarty, "Zyro2Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+					else
+					{
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[1]);
+						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+					}
+				}
+
+				//surowa prędkość obrotowa R żyroskopu 2
+				if (nKonfLogera[0] & KLOG2_ZYROSUR2R)
+				{
+					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+						strncat(chBufZapisuKarty, "Zyro2R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
+					else
+					{
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[2]);
+						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+					}
+				}
+
 
 //----------------- IMU --------------------------------
 				//kąt phi wektora inercji
@@ -665,7 +737,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (nKonfLogera[2] & KLOG3_KATPHIZ)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "PhiZyro1P [°];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "PhiZyro1 [°];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
 						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro1[0]);
@@ -673,7 +745,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					}
 
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "PhiZyro2P [°];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "PhiZyro2 [°];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
 						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro2[0]);
@@ -685,7 +757,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (nKonfLogera[2] & KLOG3_KATTHEZ)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "ThetaZyro1Q [°];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ThetaZyro1 [°];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
 						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro1[1]);
@@ -693,7 +765,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					}
 
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "ThetaZyro2Q [°];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "ThetaZyro2 [°];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
 						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro2[1]);
@@ -705,7 +777,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (nKonfLogera[2] & KLOG3_KATPSIZ)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "ThetaZyro1Q [°];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "PsiZyro1 [°];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
 						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro1[2]);
@@ -713,7 +785,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					}
 
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "ThetaZyro2Q [°];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "PsiZyro2 [°];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
 						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro2[2]);

@@ -18,7 +18,7 @@ extern SPI_HandleTypeDef hspi2;
 extern float fOffsetZyro2[3];
 const int8_t chZnakZyro2[3] = {-1, 1, -1};	//korekcja znaku prędkości żyroskopów
 extern WspRownProstej_t stWspKalOffsetuZyro2;		//współczynniki równania prostych do estymacji offsetu
-float fZyroSur2[3];		//surowe nieskalibrowane prędkosci odczytane z żyroskopu 2
+//float fZyroSur2[3];		//surowe nieskalibrowane prędkosci odczytane z żyroskopu 2
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z EEPROMu
@@ -107,8 +107,8 @@ uint8_t ObslugaLSM6DSV(void)
 		for (uint16_t n=0; n<3; n++)
 		{
 			uDaneCM4.dane.fAkcel2[n] = (float)((int16_t)(chDane[2*n+10] <<8) + chDane[2*n+9]) * (8.0 / 32768.0);		//+-8g
-			fZyroSur2[n] = (float)((int16_t)(chDane[2*n+4] <<8)  + chDane[2*n+3]) * (10000.0 / 32768.0) * chZnakZyro2[n];	//+-1000°/s
-			uDaneCM4.dane.fZyroKal2[n] = fZyroSur2[n] - fOffsetZyro2[n];	//żyro po kalibracji offsetu
+			uDaneCM4.dane.fZyroSur2[n] = (float)((int16_t)(chDane[2*n+4] <<8)  + chDane[2*n+3]) * (10000.0 / 32768.0) * chZnakZyro2[n];	//+-1000°/s
+			uDaneCM4.dane.fZyroKal2[n] = uDaneCM4.dane.fZyroSur2[n] - fOffsetZyro2[n];	//żyro po kalibracji offsetu
 		}
 	}
 	return chErr;
