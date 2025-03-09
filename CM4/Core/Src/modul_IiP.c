@@ -166,7 +166,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo)
 // Oblicza równanie prostej linearyzującej zmianę offsetu żyroskopu w funkcji tempertury
 // Parametry:
 // [we] fOffset1, fOffset2 - wartości offsetu żyroskopów
-// [we] fTemp1, fTemp1 - temperatury dla offsetów [°C]
+// [we] fTemp1, fTemp1 - temperatury dla offsetów [K]
 // [wy] *fA, *fB - wspóczynniki równania prostej offsetu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -175,8 +175,8 @@ void ObliczRownanieFunkcjiTemperaturyZyro(float fOffset1, float fOffset2, float 
 	//Uwaga! We wzorze liczenia dryftu temperatura jest w mianowniku, więc skala nie może być w stopniach Celsjusza gdyż wystąpi dzielenie przez zero,
 	//a wcześniej dzielenie przez bardzo małą wartość, co powoduje że charakterystyka strzela do nieskończonosci.
 	//Temperaturę trzeba przeliczyć na Kelviny
-	fTemp1 += KELWIN;
-	fTemp2 += KELWIN;
+	//fTemp1 += KELVIN;
+	//fTemp2 += KELVIN;
 
 	//układ równań prostych w postaci kierunkowej:
 	//offset1 = A * temperatura1 + B
@@ -195,7 +195,7 @@ void ObliczRownanieFunkcjiTemperaturyZyro(float fOffset1, float fOffset2, float 
 // Oblicza wartość offsetu żyroskopu dla danej temperatury na podstawie równania prostej linearyzującej zmianę offsetu żyroskopu w funkcji temperatury
 // Parametry:
 // [we] stWsp struktura z wartościami współczynników równania prostych
-// [we] fTemp - temperatura żyroskopu [°C]
+// [we] fTemp - temperatura żyroskopu [K]
 // [wy] *fOffset[3] - obliczone wartości offsetu dla wszystkich osi
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -204,23 +204,25 @@ void ObliczOffsetTemperaturowyZyro(WspRownProstej_t stWsp, float fTemp, float *f
 	if (fTemp > stWsp.fTempPok)
 	{
 		for (uint8_t n=0; n<3; n++)
-			*(fOffset + n) = stWsp.fAgor[n] * (fTemp + KELWIN) + stWsp.fBgor[n];
+			//*(fOffset + n) = stWsp.fAgor[n] * (fTemp + KELVIN) + stWsp.fBgor[n];
+			*(fOffset + n) = stWsp.fAgor[n] * fTemp + stWsp.fBgor[n];
 	}
 	else
 	{
 		for (uint8_t n=0; n<3; n++)
-			*(fOffset + n) = stWsp.fAzim[n] * (fTemp + KELWIN) + stWsp.fBzim[n];
+			//*(fOffset + n) = stWsp.fAzim[n] * (fTemp + KELVIN) + stWsp.fBzim[n];
+			*(fOffset + n) = stWsp.fAzim[n] * fTemp + stWsp.fBzim[n];
 	}
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Liczy wysokość baromatryczną na podstawie ciśnienia i temperatury
+// Liczy wysokość barometryczną na podstawie ciśnienia i temperatury
 // Parametry:
 //  fP - ciśnienie na mierzonej wysokości [Pa]	jednostka ciśnienia jest dowolna, byle taka sama dla obu ciśnień
 //  fP0 - ciśnienie na poziome odniesienia [Pa]
-//  fTemp - temperatura [°C)
+//  fTemp - temperatura [K)
 // Zwraca: obliczoną wysokość
 ////////////////////////////////////////////////////////////////////////////////
 float WysokoscBarometryczna(float fP, float fP0, float fTemp)
@@ -232,7 +234,7 @@ float WysokoscBarometryczna(float fP, float fP0, float fTemp)
 	//ln(P/P0) * R*T = -u*g*h		/:-u*g
 	//h = ln(P/P0) * R*T / (-u*g)
 
-	return logf(fP/fP0) * STALA_GAZOWA_R * (fTemp + KELWIN) / (-1 * MASA_MOLOWA_POWIETRZA * PRZYSPIESZENIE_ZIEMSKIE);
+	return logf(fP/fP0) * STALA_GAZOWA_R * fTemp / (-1 * MASA_MOLOWA_POWIETRZA * PRZYSPIESZENIE_ZIEMSKIE);
 }
 
 

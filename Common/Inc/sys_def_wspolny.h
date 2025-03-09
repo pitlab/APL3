@@ -20,11 +20,13 @@
 #define INIT_TRWA_KALG_ZYRO	0x00040000	//trwa kalibracj żyroskopu na gorąco
 
 
+#define KELVIN		273.15f
+
 //definicje temperatur kalibracji żyroskopów
-#define TEMP_KAL_ZIMNO		10
-#define TEMP_KAL_POKOJ		25
-#define TEMP_KAL_GORAC		40
-#define TEMP_KAL_ODCHYLKA	5
+#define TEMP_KAL_ZIMNO		(10.f + KELVIN)
+#define TEMP_KAL_POKOJ		(25.f + KELVIN)
+#define TEMP_KAL_GORAC		(40.f + KELVIN)
+#define TEMP_KAL_ODCHYLKA	5.f
 
 //indeksy pola temperatura w uni wymiany CM4
 //temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
@@ -37,3 +39,6 @@
 #define TEMP_CISR2	6	//czujnik ciśnienia różnicowego
 
 #define CZAS_KALIBRACJI_ZYROSKOPU		1000	//obiegów pętli głównej po 5ms
+
+
+

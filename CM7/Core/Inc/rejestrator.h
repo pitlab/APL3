@@ -83,6 +83,8 @@
 #define KLOG2_GX_SPD    0x00000100	    //niefiltrowana prędkość w osi X z GPS
 #define KLOG2_GY_SPD    0x00000200	    //niefiltrowana prędkość w osi Y z GPS
 
+#define KLOG2_TEMPCISR1	0x00400000	    //temperatura czujnika ciśnienia różnicowego 1
+#define KLOG2_TEMPCISR2	0x00800000	    //temperatura czujnika ciśnienia różnicowego 2
 
 #define KLOG2_ZYROSUR1P 0x01000000	    //surowa prędkość obrotowa P żyroskopu 1
 #define KLOG2_ZYROSUR1Q 0x02000000	    //surowa prędkość obrotowa Q żyroskopu 1

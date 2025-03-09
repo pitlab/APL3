@@ -24,7 +24,7 @@
 #define STALA_GAZOWA_R		 	8.31446261815324f	//J·mol−1·K−1.
 #define MASA_MOLOWA_POWIETRZA	0.0289644f			//kg/mol
 #define PRZYSPIESZENIE_ZIEMSKIE	9.80665f			//m/s^2
-#define KELWIN					273.15f
+//#define KELWIN					273.15f
 
 #define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących
 

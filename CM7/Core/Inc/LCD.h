@@ -13,7 +13,7 @@
 void RysujEkran(void);
 void Ekran_Powitalny(uint32_t * zainicjowano);
 void Wykrycie(uint16_t x, uint16_t y, uint8_t dopelnij_znakow, uint8_t wynik);
-void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, int8_t chParametr1, int8_t chParametr2, int8_t chParametr3);
+void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fParametr2, float fParametr3);
 void FraktalTest(unsigned char chTyp);
 void FraktalDemo(void);
 void GenerateJulia(unsigned short size_x, unsigned short size_y, unsigned short offset_x, unsigned short offset_y, unsigned short zoom, unsigned short * buffer);

@@ -26,7 +26,7 @@ ALIGN_32BYTES(uint8_t aTxBuffer[_MAX_SS]);
 ALIGN_32BYTES(uint8_t aRxBuffer[_MAX_SS]);
 __IO uint8_t RxCplt, TxCplt;
 uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-uint32_t nKonfLogera[3] = {0xFFFFFF2B, 0xFF000000, 0x000001F8};	//zestaw flag włączajacych dane do rejestracji
+uint32_t nKonfLogera[3] = {0xFFFFFF2B, 0xFFC00000, 0x000001F8};	//zestaw flag włączajacych dane do rejestracji
 ALIGN_32BYTES(static char chBufZapisuKarty[ROZMIAR_BUFORA_LOGU]);	//bufor na jedną linijkę logu
 ALIGN_32BYTES(static char chBufPodreczny[30]);
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;
@@ -163,28 +163,54 @@ uint8_t ObslugaPetliRejestratora(void)
 				}
 
 				//Ciśnienie różnicowe czujnika 1
-				if (nKonfLogera[0] & KLOG2_CISROZ1)
+				if (nKonfLogera[1] & KLOG2_CISROZ1)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 						strncat(chBufZapisuKarty, "CisnRozn1 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCisnRozn[0]);
+						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fCisnRozn[0]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}
 
 				//Ciśnienie różnicowe czujnika 2
-				if (nKonfLogera[0] & KLOG2_CISROZ2)
+				if (nKonfLogera[1] & KLOG2_CISROZ2)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 						strncat(chBufZapisuKarty, "CisnRozn2 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCisnRozn[1]);
+						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fCisnRozn[1]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}
+
+				//temperatura czujnika ciśnienia różnicowego 1
+				if (nKonfLogera[1] & KLOG2_TEMPCISR1)
+				{
+					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+						strncat(chBufZapisuKarty, "TempCisnRozn1 [K];", MAX_ROZMIAR_WPISU_LOGU);
+					else
+					{
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_CISR1]);
+						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+					}
+				}
+
+				//temperatura czujnika ciśnienia różnicowego 2
+				if (nKonfLogera[1] & KLOG2_TEMPCISR2)
+				{
+					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+						strncat(chBufZapisuKarty, "TempCisnRozn2 [K];", MAX_ROZMIAR_WPISU_LOGU);
+					else
+					{
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_CISR2]);
+						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+					}
+				}
+
+
 
 				//Prędkość wzgledem powietrza czujnika różnicowego 1
 				if (nKonfLogera[0] & KLOG1_IAS1)
@@ -193,7 +219,7 @@ uint8_t ObslugaPetliRejestratora(void)
 						strncat(chBufZapisuKarty, "IAS1 [m/s];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
-						sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fPredkosc[0]);
+						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fPredkosc[0]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}
@@ -205,7 +231,7 @@ uint8_t ObslugaPetliRejestratora(void)
 						strncat(chBufZapisuKarty, "IAS2 [m/s];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
-						sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fPredkosc[1]);
+						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fPredkosc[1]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}

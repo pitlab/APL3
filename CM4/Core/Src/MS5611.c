@@ -88,7 +88,7 @@ uint32_t CzytajWynikKonwersjiMS5611(void)
 // dT = D2 - TREF = D2 - C5 * 2^8
 // TEMP = 20°C + dT * TEMPSENS = 2000 + dT * C6 / 2^23
 // Parametry: nKonwersja - wynik konwersji
-// Zwraca: temepratura [°C]
+// Zwraca: temepratura [K]
 // Czas wykonania: 
 ////////////////////////////////////////////////////////////////////////////////
 float MS5611_LiczTemperature(uint32_t nKonwersja, int32_t* ndTemp)
@@ -104,7 +104,7 @@ float MS5611_LiczTemperature(uint32_t nKonwersja, int32_t* ndTemp)
 
 	if (nTemp < 2000)	//jeżeli temepratura < 20°C
 		lTemp2 = (*ndTemp * *ndTemp) / 0x80000000;
-	return (float)(nTemp - lTemp2) / 100;
+	return (float)((nTemp - lTemp2) / 100) + KELVIN;
 }
 
 
@@ -114,7 +114,9 @@ float MS5611_LiczTemperature(uint32_t nKonwersja, int32_t* ndTemp)
 // OFF = OFFT1 + TCO * dT = C2 * 2^16 + (C4 * dT ) / 2^7
 // SENS = SENST1 + TCS * dT = C1 * 2^15 + (C3 * dT ) / 2^8
 // P = D1 * SENS - OFF = (D1 * SENS / 2^21 - OFF) / 2^15
-// Parametry: nic
+// Parametry:
+//  nKonwersja - surowy odczyt ciśnienia z czujnika
+//  ndTemp - różnica temperatury od 25°C * 100
 // Zwraca: ciśnienie w Pa
 // Czas wykonania: 
 ////////////////////////////////////////////////////////////////////////////////
@@ -220,7 +222,7 @@ uint8_t ObslugaMS5611(void)
 					uDaneCM4.dane.nZainicjowano |= INIT_P0_MS5611;
 			}
 			else
-				uDaneCM4.dane.fWysoko[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnie[0], fP0_MS5611, uDaneCM4.dane.fTemper[TEMP_BARO1]);	//P0 gotowe więc oblicz wysokość
+				uDaneCM4.dane.fWysoko[0] = WysokoscBarometryczna(uDaneCM4.dane.fCisnie[0], fP0_MS5611, uDaneCM4.dane.fTemper[TEMP_BARO1]);	//P0 gotowe więc oblicz wysokość
 		}
 	}
 	return chErr;

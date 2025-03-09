@@ -73,7 +73,7 @@ uint8_t ObslugaBMP581(void)
 	{
 		switch (chProporcjaPomiarow)
 		{
-		case 0:	uDaneCM4.dane.fTemper[TEMP_BARO2] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO2] + (float)(CzytajSPIs24mp(PBMP5_TEMP_DATA_XLSB) / 65536)) / 8;	break;
+		case 0:	uDaneCM4.dane.fTemper[TEMP_BARO2] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO2] + (float)(CzytajSPIs24mp(PBMP5_TEMP_DATA_XLSB) / 65536) + KELVIN) / 8;	break;
 		default:
 			fCisnienie = (float)(CzytajSPIs24mp(PBMP5_PRESS_DATA_XLSB) / 64);
 			uDaneCM4.dane.fCisnie[1] = (7 * uDaneCM4.dane.fCisnie[1] + fCisnienie) / 8;

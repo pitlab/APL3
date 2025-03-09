@@ -62,7 +62,7 @@ uint8_t InicjujND130(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Realizuje sekwencję obsługową czujnika do wywołania w wyższej warstwie
-// Wykonuje w pętli 1 pomiar temepratury i 7 pomiarów ciśnienia
+// Wykonuje w pętli 1 pomiar temperatury i 7 pomiarów ciśnienia
 // Parametry: nic
 // Zwraca: kod błędu
 // Czas wykonania:
@@ -112,6 +112,10 @@ uint8_t ObslugaND130(void)
 		else
 			fCisnienie -= fCiśnienieZerowaniaND130;
 
+		//kompensuj wpływ temperaturowy ze wzpółczynnikiem wynoszącym 0,2 Pa/°C
+		fCisnienie -= 0.2 * (uDaneCM4.dane.fTemper[TEMP_CISR1] - KELVIN);
+
+
 		//uDaneCM4.dane.fCisnRozn[0] = fCisnienie;
 		uDaneCM4.dane.fCisnRozn[0] = (7 * uDaneCM4.dane.fCisnRozn[0] + fCisnienie) / 8;
 
@@ -121,7 +125,7 @@ uint8_t ObslugaND130(void)
 		else
 			chBufND130[2] &= ~0x80;
 
-		uDaneCM4.dane.fTemper[TEMP_CISR1] = (float)((int8_t)chBufND130[2]) + (float)chBufND130[3] / 2550;	//starszy bajt to stopnie, młodszy to ułamek będący częścią po przecinku
+		uDaneCM4.dane.fTemper[TEMP_CISR1] = (float)((int8_t)chBufND130[2]) + ((float)chBufND130[3] / 2550) + KELVIN;	//starszy bajt to stopnie, młodszy to ułamek będący częścią po przecinku
 		uDaneCM4.dane.fPredkosc[0] = PredkoscRurkiPrantla(fCisnienie, 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 	}
 	return chErr;
