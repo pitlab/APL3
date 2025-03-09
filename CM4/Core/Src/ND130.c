@@ -112,8 +112,11 @@ uint8_t ObslugaND130(void)
 		else
 			fCisnienie -= fCiśnienieZerowaniaND130;
 
-		//kompensuj wpływ temperaturowy ze wzpółczynnikiem wynoszącym 0,2 Pa/°C
-		fCisnienie -= 0.2 * (uDaneCM4.dane.fTemper[TEMP_CISR1] - KELVIN);
+		//kompensuj wpływ temperaturowy ze wzpółczynnikiem wynoszącym 0,2 Pa/°C, ale wzgledem temepratury IMU a nie swojej własnej
+		//fCisnienie -= 0.2 * (uDaneCM4.dane.fTemper[TEMP_IMU1] - KELVIN);
+
+		//dla temepratur powyzej 298K kompensuj prostą o współczynniki 0,02Pa/K
+		fCisnienie -= 0.02 * uDaneCM4.dane.fTemper[TEMP_IMU1];
 
 
 		//uDaneCM4.dane.fCisnRozn[0] = fCisnienie;

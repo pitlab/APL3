@@ -28,17 +28,15 @@
 
 #define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących
 
+//definicje rodzajów temepratur
+#define ZIM		0
+#define POK		1
+#define GOR		2
+
+
 #define MIN_OFFSET	-20.0f
 #define MAX_OFFSET	20.0f
 #define DEF_OFFSET	0.0f
-/*typedef struct
-{
-	float fAzim;	//współczynnik A równania dla "zimnej" temperatury
-	float fBzim;
-	float fAgor;
-	float fBgor;	//Współczynnik B równanie dla "gorącej" temperatury
-	float fTempPok;	//temperatura pokojowa jako punkt przecięcia prostych
-} WspRownProstej_t; */
 
 typedef struct
 {
@@ -47,7 +45,16 @@ typedef struct
 	float fAgor[3];
 	float fBgor[3];		//Współczynnik B równanie dla "gorącej" temperatury
 	float fTempPok;		//temperatura pokojowa jako punkt przecięcia prostych
-} WspRownProstej_t;
+} WspRownProstej3_t;
+
+typedef struct
+{
+	float fAzim;		//współczynnik A równania dla "zimnej" temperatury
+	float fBzim;
+	float fAgor;
+	float fBgor;		//Współczynnik B równanie dla "gorącej" temperatury
+	float fTempPok;		//temperatura pokojowa jako punkt przecięcia prostych
+} WspRownProstej1_t;
 
 
 uint8_t InicjujModulI2P(void);
@@ -55,7 +62,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo);
 float WysokoscBarometryczna(float fP, float fP0, float fTemp);
 uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib);
 uint8_t KalibrujZyroskopy(void);
-void ObliczRownanieFunkcjiTemperaturyZyro(float fOffset1, float fOffset2, float fTemp1, float fTemp2, float *fA, float *fB);
-void ObliczOffsetTemperaturowyZyro(WspRownProstej_t stWsp, float fTemp, float *fOffset);
+void ObliczRownanieFunkcjiTemperatury(float fOffset1, float fOffset2, float fTemp1, float fTemp2, float *fA, float *fB);
+void ObliczOffsetTemperaturowy(WspRownProstej3_t stWsp, float fTemp, float *fOffset);
 
 #endif /* INC_MODUL_IIP_H_ */

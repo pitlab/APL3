@@ -41,18 +41,19 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Odczyt danych z żyroskopów i akcelerometrów w LSM6DSV
 ![Magnetometry](obrazki/pomiary.jpg)
 - Dodane automatyczne wyliczanie ciśnienia zerowego z czujników ciśnienia bezwzględnego i liczenie wysokości barometrycznej uwzględniającej wpływ temperatury
+- Zapis konfiguracji do FRAM przeniesiony z APL2 i zaimplementowany w APL3
 - Uruchomione czujniki ciśnienia różnicowego ND130 i MS4525. Już pokazują takie samo ciśnienie
+- Zrobiona kalibracja temepraturowa żyroskopów
 
 #### Do zrobienia:
  - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarce na inne z mniejszym ESR
  - Podłączyć i uruchomić kamerę
  - uruchomić komunikację po ethernet
- - Przenieść z APL2 obsługę pętli głównej, serw, mikserów, zapisu konfiguracji do FRAM, telemetrii do rdzenia CM4
+ - Przenieść z APL2 obsługę mikserów, telemetrii do rdzenia CM4
  - Uruchomić układ ethernet
  - Uruchomić USB w trybie CDC
  - Zmodyfikować test transferu karty SD, tak aby działał z systemową obsługą FAT (obecnie działa poza FAT-em i systemem operacyjnym)
- - Zrobić ocenę wydajności grzałki na module IMU IIP1
- 
+ - Uruchomoć czujniki zbliżeniowe VL53L1CX i VL53L5CX
  
  
 

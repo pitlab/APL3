@@ -20,7 +20,7 @@
 
 #define ROZMIAR_BUFORA_LOGU		(2*512)
 #define MAX_ROZMIAR_WPISU_LOGU	20
-
+#define WPISOW_NA_SYNC			100		//po tylu zapisach linii robiony jest SYNC na karcie
 
 //definicja znaczenia bitów rejestratora
 #define STATREJ_FAT_GOTOWY		0x01
@@ -66,7 +66,7 @@
 #define KLOG1_MAG3Y     0x08000000	    //składowa magnetyczna w osi Y magnetometru 3
 #define KLOG1_MAG3Z     0x10000000	    //składowa magnetyczna w osi Z magnetometru 3
 
-#define KLOG1_TEMPCISN	0x20000000	    //temperatura czujnika ciśnienia
+#define KLOG1_TEMPBARO1	0x20000000	    //temperatura czujnika ciśnienia 1
 #define KLOG1_TEMPIMU1	0x40000000	    //temperatura IMU1
 #define KLOG1_TEMPIMU2	0x80000000	    //temperatura IMU2
 

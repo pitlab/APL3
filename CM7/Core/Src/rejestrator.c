@@ -31,6 +31,7 @@ ALIGN_32BYTES(static char chBufZapisuKarty[ROZMIAR_BUFORA_LOGU]);	//bufor na jed
 ALIGN_32BYTES(static char chBufPodreczny[30]);
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;
 uint8_t chKodBleduFAT;
+uint8_t chTimerSync;	//odlicza czas w jednostce zapisu na dysk do wykonania sync
 uint16_t sDlugoscWierszaLogu, sMaxDlugoscWierszaLogu;
 extern RTC_HandleTypeDef hrtc;
 extern RTC_TimeTypeDef sTime;
@@ -406,14 +407,28 @@ uint8_t ObslugaPetliRejestratora(void)
 					}
 				}
 
+
+				//temperatura czujnika ciśnienia 1
+				if (nKonfLogera[0] & KLOG1_TEMPBARO1)
+				{
+					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+						strncat(chBufZapisuKarty, "TempBaro1 [K];", MAX_ROZMIAR_WPISU_LOGU);
+					else
+					{
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_BARO1]);
+						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+					}
+				}
+
+
 				//temperatura IMU1
 				if (nKonfLogera[0] & KLOG1_TEMPIMU1)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "TempIMU1 [°];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "TempIMU1 [K];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
-						sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fTemper[TEMP_IMU1]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_IMU1]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}
@@ -422,10 +437,10 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (nKonfLogera[0] & KLOG1_TEMPIMU2)
 				{
 					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "TempIMU2 [°];", MAX_ROZMIAR_WPISU_LOGU);
+						strncat(chBufZapisuKarty, "TempIMU2 [K];", MAX_ROZMIAR_WPISU_LOGU);
 					else
 					{
-						sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fTemper[TEMP_IMU2]);
+						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_IMU2]);
 						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 					}
 				}
@@ -834,7 +849,15 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "\n", 2);	//znak końca wiersza
 
 				f_puts(chBufZapisuKarty, &SDFile);	//zapis do pliku
-				chBufZapisuKarty[0] = 0;	//ustaw 0 na początku bufora
+
+				//co określoną liczbę zapisów zrób sync aby nie utracić danych w przypadku braku formalnego zakończenia logowania
+				if (chTimerSync)
+					chTimerSync--;
+				else
+				{
+					chTimerSync = WPISOW_NA_SYNC;
+					f_sync(&SDFile);				//Flush cached data of the writing file
+				}
 			}
 			else	//jeżei plik nie jest otwarty to go otwórz
 			{
@@ -846,6 +869,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (fres == FR_OK)
 					chStatusRejestratora |= STATREJ_OTWARTY_PLIK | STATREJ_ZAPISZ_NAGLOWEK;
 				sMaxDlugoscWierszaLogu = 0;
+				chTimerSync = WPISOW_NA_SYNC;
 			}
 		}
 		else	//jeżeli FAT nie jest gotowy to go zamontuj

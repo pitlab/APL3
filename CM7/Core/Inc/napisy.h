@@ -108,8 +108,8 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 const char *chOpisBledow[MAX_KOMUNIKATOW] = {
 "Blad wykonania polecenia!",
 "Wdus ekran i trzymaj aby zakonczyc",
-"Zbyt niska temeratura zyroskopow wynoszaca %f%cC. Musi miescic sie w granicach od %f%cC do %f%cC",
-"Zbyt wysoka temeratura zyroskopow wynoszaca %f%cC. Musi miescic sie w granicach od %f%cC do %f%cC",
+"Zbyt niska temeratura zyroskopow wynoszaca %.0f%cC. Musi miescic sie w granicach od %.0f%cC do %.0f%cC",
+"Zbyt wysoka temeratura zyroskopow wynoszaca %.0f%cC. Musi miescic sie w granicach od %.0f%cC do %.0f%cC",
 };
 
 

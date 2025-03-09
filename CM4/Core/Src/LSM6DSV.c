@@ -17,7 +17,7 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 extern SPI_HandleTypeDef hspi2;
 extern float fOffsetZyro2[3];
 const int8_t chZnakZyro2[3] = {-1, 1, -1};	//korekcja znaku prędkości żyroskopów
-extern WspRownProstej_t stWspKalOffsetuZyro2;		//współczynniki równania prostych do estymacji offsetu
+extern WspRownProstej3_t stWspKalOffsetuZyro2;		//współczynniki równania prostych do estymacji offsetu
 //float fZyroSur2[3];		//surowe nieskalibrowane prędkosci odczytane z żyroskopu 2
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -102,7 +102,7 @@ uint8_t ObslugaLSM6DSV(void)
 		HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 
 		uDaneCM4.dane.fTemper[TEMP_IMU2] = (int16_t)((chDane[2] <<8) + chDane[1]) / 256.0f + 25.0f + KELVIN;		//temperatura w K
-		ObliczOffsetTemperaturowyZyro(stWspKalOffsetuZyro2, uDaneCM4.dane.fTemper[TEMP_IMU2], fOffsetZyro2);		//oblicz offset dla bieżącej temperatury
+		ObliczOffsetTemperaturowy(stWspKalOffsetuZyro2, uDaneCM4.dane.fTemper[TEMP_IMU2], fOffsetZyro2);		//oblicz offset dla bieżącej temperatury
 
 		for (uint16_t n=0; n<3; n++)
 		{
