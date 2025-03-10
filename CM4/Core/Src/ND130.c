@@ -11,13 +11,14 @@
 #include "spi.h"
 #include "petla_glowna.h"
 #include "wymiana_CM4.h"
+#include "modul_IiP.h"
 
 extern SPI_HandleTypeDef hspi2;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t chBufND130[13];
 float fCiśnienieZerowaniaND130;		//ciśnienie zmierzone podczas kalibracji czujnika. Należy odjać je od bieżących wskazań
 uint16_t sLicznikZerowaniaND130;	//odlicza czas uśredniania danych z czujnika
-
+extern WspRownProstej1_t stWspKalOffsetuCzujnRozn1;
 
 
 // Układ ND130 pracujacy na magistrali SPI ma okres zegara 6us co odpowiada częstotliwości 166kHz
@@ -72,6 +73,7 @@ uint8_t ObslugaND130(void)
 	uint8_t chErr;
 	int16_t sCisnienie;
 	float fCisnienie;
+	float fOffset;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_ND130) != INIT_ND130)	//jeżeli czujnik nie jest zainicjowany
 	{
@@ -116,11 +118,12 @@ uint8_t ObslugaND130(void)
 		//fCisnienie -= 0.2 * (uDaneCM4.dane.fTemper[TEMP_IMU1] - KELVIN);
 
 		//dla temepratur powyzej 298K kompensuj prostą o współczynniki 0,02Pa/K
-		fCisnienie -= 0.02 * uDaneCM4.dane.fTemper[TEMP_IMU1];
+		//fCisnienie -= 0.02 * uDaneCM4.dane.fTemper[TEMP_IMU1];
 
+		fOffset = ObliczOffsetTemperaturowy1(stWspKalOffsetuCzujnRozn1, uDaneCM4.dane.fTemper[TEMP_IMU1]);			//oblicz offset dla bieżącej temperatury
 
 		//uDaneCM4.dane.fCisnRozn[0] = fCisnienie;
-		uDaneCM4.dane.fCisnRozn[0] = (7 * uDaneCM4.dane.fCisnRozn[0] + fCisnienie) / 8;
+		uDaneCM4.dane.fCisnRozn[0] = (7 * uDaneCM4.dane.fCisnRozn[0] + fCisnienie - fOffset) / 8;
 
 		//najstarszy bit temperatury zachowuje się dziwnie. Ponieważ czujnik pracuje do 80° i na dwóch najstarszych bitach jest tylko znak, więc przenieś bit 6 na 7
 		if (chBufND130[2] & 0x40)

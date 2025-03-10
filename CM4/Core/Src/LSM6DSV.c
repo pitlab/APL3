@@ -102,7 +102,7 @@ uint8_t ObslugaLSM6DSV(void)
 		HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 
 		uDaneCM4.dane.fTemper[TEMP_IMU2] = (int16_t)((chDane[2] <<8) + chDane[1]) / 256.0f + 25.0f + KELVIN;		//temperatura w K
-		ObliczOffsetTemperaturowy(stWspKalOffsetuZyro2, uDaneCM4.dane.fTemper[TEMP_IMU2], fOffsetZyro2);		//oblicz offset dla bieżącej temperatury
+		ObliczOffsetTemperaturowy3(stWspKalOffsetuZyro2, uDaneCM4.dane.fTemper[TEMP_IMU2], fOffsetZyro2);		//oblicz offset dla bieżącej temperatury
 
 		for (uint16_t n=0; n<3; n++)
 		{

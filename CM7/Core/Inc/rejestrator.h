@@ -80,8 +80,8 @@
 #define KLOG2_GVDOP     0x00000040	    //Vertical Dilution of Precision
 #define KLOG2_GHDOP     0x00000080	    //Horizontal Dilution of Precision
 
-#define KLOG2_GX_SPD    0x00000100	    //niefiltrowana prędkość w osi X z GPS
-#define KLOG2_GY_SPD    0x00000200	    //niefiltrowana prędkość w osi Y z GPS
+#define KLOG2_GSPD_E    0x00000100	    //niefiltrowana prędkość z GPS w kierunku wschodnim
+#define KLOG2_GSPD_N    0x00000200	    //niefiltrowana prędkość z GPS w kierunku północnym
 
 #define KLOG2_TEMPCISR1	0x00400000	    //temperatura czujnika ciśnienia różnicowego 1
 #define KLOG2_TEMPCISR2	0x00800000	    //temperatura czujnika ciśnienia różnicowego 2

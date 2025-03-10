@@ -63,6 +63,7 @@ float WysokoscBarometryczna(float fP, float fP0, float fTemp);
 uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib);
 uint8_t KalibrujZyroskopy(void);
 void ObliczRownanieFunkcjiTemperatury(float fOffset1, float fOffset2, float fTemp1, float fTemp2, float *fA, float *fB);
-void ObliczOffsetTemperaturowy(WspRownProstej3_t stWsp, float fTemp, float *fOffset);
+void ObliczOffsetTemperaturowy3(WspRownProstej3_t stWsp, float fTemp, float *fOffset);
+float ObliczOffsetTemperaturowy1(WspRownProstej1_t stWsp, float fTemp);
 
 #endif /* INC_MODUL_IIP_H_ */

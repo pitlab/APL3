@@ -642,27 +642,50 @@ uint8_t ObslugaPetliRejestratora(void)
 				//Vertical Dilution of Precision
 				if (nKonfLogera[1] & KLOG2_GVDOP)
 				{
-
+					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+						strncat(chBufZapisuKarty, "VDOP [m];", MAX_ROZMIAR_WPISU_LOGU);
+					else
+					{
+						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fVdop);
+						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+					}
 				}
 
 				//Horizontal Dilution of Precision
 				if (nKonfLogera[1] & KLOG2_GHDOP)
 				{
-
+					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+						strncat(chBufZapisuKarty, "HDOP [m];", MAX_ROZMIAR_WPISU_LOGU);
+					else
+					{
+						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fHdop);
+						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+					}
 				}
 
-				//prędkość w osi X z GPS
-				if (nKonfLogera[1] & KLOG2_GX_SPD)
+				//niefiltrowana prędkość z GPS w kierunku północnym
+				if (nKonfLogera[1] & KLOG2_GSPD_N)
 				{
-
+					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+						strncat(chBufZapisuKarty, "PredGPS_N [m/s];", MAX_ROZMIAR_WPISU_LOGU);
+					else
+					{
+						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi * cosf(uDaneCM4.dane.stGnss1.fKurs * DEG2RAD));		//sprawdzić!
+						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+					}
 				}
 
-				//prędkość w osi Y z GPS
-				if (nKonfLogera[1] & KLOG2_GY_SPD)
+				//niefiltrowana prędkość z GPS w kierunku wschodnim
+				if (nKonfLogera[1] & KLOG2_GSPD_E)
 				{
-
+					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+						strncat(chBufZapisuKarty, "PredGPS_E [m/s];", MAX_ROZMIAR_WPISU_LOGU);
+					else
+					{
+						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi * sinf(uDaneCM4.dane.stGnss1.fKurs * DEG2RAD));		//sprawdzić!
+						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+					}
 				}
-
 
 				//surowa prędkość obrotowa P żyroskopu 1
 				if (nKonfLogera[0] & KLOG2_ZYROSUR1P)

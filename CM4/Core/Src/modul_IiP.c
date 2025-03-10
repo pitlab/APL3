@@ -199,14 +199,14 @@ void ObliczRownanieFunkcjiTemperatury(float fOffset1, float fOffset2, float fTem
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Oblicza wartość offsetu żyroskopu dla danej temperatury na podstawie równania prostej linearyzującej zmianę offsetu żyroskopu w funkcji temperatury
+// Oblicza wartość offsetu dla czujnika 3-osiowego dla danej temperatury na podstawie równania prostej linearyzującej zmianę offsetu żyroskopu w funkcji temperatury
 // Parametry:
 // [we] stWsp struktura z wartościami współczynników równania prostych
 // [we] fTemp - temperatura żyroskopu [K]
 // [wy] *fOffset[3] - obliczone wartości offsetu dla wszystkich osi
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void ObliczOffsetTemperaturowy(WspRownProstej3_t stWsp, float fTemp, float *fOffset)
+void ObliczOffsetTemperaturowy3(WspRownProstej3_t stWsp, float fTemp, float *fOffset)
 {
 	if (fTemp > stWsp.fTempPok)
 	{
@@ -223,6 +223,24 @@ void ObliczOffsetTemperaturowy(WspRownProstej3_t stWsp, float fTemp, float *fOff
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Oblicza wartość offsetu dla czujnika 1 wymiarowego dla danej temperatury na podstawie równania prostej linearyzującej zmianę offsetu żyroskopu w funkcji temperatury
+// Parametry:
+// [we] stWsp struktura z wartościami współczynników równania prostych
+// [we] fTemp - temperatura żyroskopu [K]
+// Zwraca: obliczone wartości offsetu
+////////////////////////////////////////////////////////////////////////////////
+float ObliczOffsetTemperaturowy1(WspRownProstej1_t stWsp, float fTemp)
+{
+	float fOffset;
+
+	if (fTemp > stWsp.fTempPok)
+		fOffset = stWsp.fAgor * fTemp + stWsp.fBgor;
+	else
+		fOffset = stWsp.fAzim * fTemp + stWsp.fBzim;
+	return fOffset;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy wysokość barometryczną na podstawie ciśnienia i temperatury
@@ -247,7 +265,7 @@ float WysokoscBarometryczna(float fP, float fP0, float fTemp)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Rozpoczyna kalibrację żyroskopów
+// Rozpoczyna kalibrację żyroskopów i czujników ciśnienia różnicowego
 // Parametry: chRodzajKalib - rodzaj kalibracji
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
