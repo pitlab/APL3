@@ -706,9 +706,9 @@ void drawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 				setXY (col, row, col, row);
 				//LCD_write_dat_pie(fch);
 				//LCD_write_dat_ost(fcl);
-				//LCD_write_data16(fch, fcl);
-				LCD_write_dat_pie16(0x00, fch);
-				LCD_write_dat_ost16(0x00, fcl);
+				LCD_write_data16(fch, fcl);
+				//LCD_write_dat_pie16(0x00, fch);
+				//LCD_write_dat_ost16(0x00, fcl);
 				if (row == y2)
 					return;
 				row += ystep;
@@ -728,9 +728,9 @@ void drawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 				setXY (col, row, col, row);
 				//LCD_write_dat_pie(fch);
 				//LCD_write_dat_ost(fcl);
-				//LCD_write_data16(fch, fcl);
-				LCD_write_dat_pie16(0x00, fch);
-				LCD_write_dat_ost16(0x00, fcl);
+				LCD_write_data16(fch, fcl);
+				//LCD_write_dat_pie16(0x00, fch);
+				//LCD_write_dat_ost16(0x00, fcl);
 				if (col == x2)
 					return;
 				col += xstep;

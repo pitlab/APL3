@@ -22,6 +22,7 @@
 #include "protokol_kom.h"
 #include "ff.h"
 #include "rejestrator.h"
+#include "wspolne.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -87,6 +88,17 @@ extern RTC_HandleTypeDef hrtc;
 static uint8_t chOstatniCzas;
 extern unia_wymianyCM7_t uDaneCM7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
+float fKostka[8][3] = {		//załóżmy wstępnie że kostka będzie miała rozmiar połowy wyświetlacza i umieszczona centralnie na wyswietlaczu. Dla kątów zerowych będzie widzana z góry
+			{-DISP_X_SIZE/4, -DISP_Y_SIZE/4,  DISP_Y_SIZE/4},
+			{ DISP_X_SIZE/4, -DISP_Y_SIZE/4,  DISP_Y_SIZE/4},
+			{ DISP_X_SIZE/4,  DISP_Y_SIZE/4,  DISP_Y_SIZE/4},
+			{-DISP_X_SIZE/4,  DISP_Y_SIZE/4,  DISP_Y_SIZE/4},
+			{-DISP_X_SIZE/4, -DISP_Y_SIZE/4, -DISP_Y_SIZE/4},
+			{ DISP_X_SIZE/4, -DISP_Y_SIZE/4, -DISP_Y_SIZE/4},
+			{ DISP_X_SIZE/4,  DISP_Y_SIZE/4, -DISP_Y_SIZE/4},
+			{-DISP_X_SIZE/4,  DISP_Y_SIZE/4, -DISP_Y_SIZE/4}};
+
+int16_t nKostkaPoprzednia[8][2];	//poprzednia pozycja kostki 3D: [wierzchołki][x,y]
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -96,7 +108,7 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
 	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_kartaSD},
 	{"Kalibracje", 	"Kalibracje sprzetu pokladowego",			TP_KALIBRACJE,		obr_kontrolny},
-	{"nic 1", 		"nic",										TP_MG1,				obr_multitool},
+	{"Kostka 3D", 	"Rysujekostkę 3D w funkcji kątów IMU",		TP_KOSTKA,			obr_multitool},
 	{"nic 2", 		"nic",										TP_MG2,				obr_multitool},
 	{"nic 3", 		"nic",										TP_MG3,				obr_multitool},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_multitool},
@@ -177,6 +189,15 @@ void RysujEkran(void)
 	case TP_MENU_GLOWNE:	// wyświetla menu główne	MenuGlowne(&chNowyTrybPracy);
 		Menu((char*)chNapisLcd[STR_MENU_MAIN], stMenuGlowne, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
+		break;
+
+	case TP_KOSTKA:	//rysuj kostkę 3D
+		RysujKostkeObrotu((float*)uDaneCM4.dane.fKatIMUZyro2);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_MENU;
+		}
 		break;
 
 	case TP_MG2:
@@ -1220,14 +1241,16 @@ void PomiaryIMU(void)
 		print(chNapis, 10, 150);
 		sprintf(chNapis, "Przech:             Pochyl:          Odchyl:");
 		print(chNapis, 10, 170);
-		sprintf(chNapis, "Ci%cn 1:             AGL1:            Temper:", ś);
+		sprintf(chNapis, "Przech:             Pochyl:          Odchyl:");
 		print(chNapis, 10, 190);
-		sprintf(chNapis, "Ci%cn 2:             AGL2:            Temper:", ś);
+		sprintf(chNapis, "Ci%cn 1:             AGL1:            Temper:", ś);
 		print(chNapis, 10, 210);
-		sprintf(chNapis, "Ci%cR%c%cn 1:          IAS1:            Temper:", ś, ó, ż);
+		sprintf(chNapis, "Ci%cn 2:             AGL2:            Temper:", ś);
 		print(chNapis, 10, 230);
-		sprintf(chNapis, "Ci%cR%c%cn 2:          IAS2:            Temper:", ś, ó, ż);
+		sprintf(chNapis, "Ci%cR%c%cn 1:          IAS1:            Temper:", ś, ó, ż);
 		print(chNapis, 10, 250);
+		sprintf(chNapis, "Ci%cR%c%cn 2:          IAS2:            Temper:", ś, ó, ż);
+		print(chNapis, 10, 270);
 
 		//sprintf(chNapis, "GNSS D%cug:             Szer:             HDOP:", ł);
 		//print(chNapis, 10, 260);
@@ -1337,58 +1360,68 @@ void PomiaryIMU(void)
 	//UstawTon(chTon, 80);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[0], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[0], ZNAK_STOPIEN);
 	print(chNapis, 10+8*FONT_SL, 170);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[1], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[1], ZNAK_STOPIEN);
 	print(chNapis, 10+28*FONT_SL, 170);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[2], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[2], ZNAK_STOPIEN);
 	print(chNapis, 10+45*FONT_SL, 170);
+
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[0], ZNAK_STOPIEN);
+	print(chNapis, 10+8*FONT_SL, 190);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[1], ZNAK_STOPIEN);
+	print(chNapis, 10+28*FONT_SL, 190);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[2], ZNAK_STOPIEN);
+	print(chNapis, 10+45*FONT_SL, 190);
 
 	//MS5611
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnie[0]);
-	print(chNapis, 10+8*FONT_SL, 190);
+	print(chNapis, 10+8*FONT_SL, 210);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(CYAN); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[0]);
-	print(chNapis, 10+26*FONT_SL, 190);
+	print(chNapis, 10+26*FONT_SL, 210);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+45*FONT_SL, 190);
+	print(chNapis, 10+45*FONT_SL, 210);
 
 	//BMP581
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnie[1]);
-	print(chNapis, 10+8*FONT_SL, 210);
+	print(chNapis, 10+8*FONT_SL, 230);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(CYAN); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[1]);
-	print(chNapis, 10+26*FONT_SL, 210);
+	print(chNapis, 10+26*FONT_SL, 230);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+45*FONT_SL, 210);
+	print(chNapis, 10+45*FONT_SL, 230);
 
 	//ND130
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[0]);
-	print(chNapis, 10+11*FONT_SL, 230);
+	print(chNapis, 10+11*FONT_SL, 250);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(MAGENTA); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[0]);
-	print(chNapis, 10+26*FONT_SL, 230);
+	print(chNapis, 10+26*FONT_SL, 250);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+45*FONT_SL, 230);
+	print(chNapis, 10+45*FONT_SL, 250);
 
 	//MS4525
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[1]);
-	print(chNapis, 10+11*FONT_SL, 250);
+	print(chNapis, 10+11*FONT_SL, 270);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(MAGENTA); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[1]);
-	print(chNapis, 10+26*FONT_SL, 250);
+	print(chNapis, 10+26*FONT_SL, 270);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2] - KELVIN , ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+45*FONT_SL, 250);
+	print(chNapis, 10+45*FONT_SL, 270);
 
 
 	/*if (uDaneCM4.dane.stGnss1.chFix)
@@ -1425,7 +1458,7 @@ void PomiaryIMU(void)
 	//sprintf(chNapis, "Serwa:  5 = %d,  6 = %d,  7 = %d,  8 = %d", uDaneCM4.dane.sSerwa[4], uDaneCM4.dane.sSerwa[5], uDaneCM4.dane.sSerwa[6], uDaneCM4.dane.sSerwa[7]);
 	//print(chNapis, 10, 300);
 
-	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszny do zera
+	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI_ZYROSKOPU do zera
 	uint16_t x = (uDaneCM4.dane.sPostepProcesu * DISP_X_SIZE) / CZAS_KALIBRACJI_ZYROSKOPU;
 	if (x)	//nie rysuj paska jeżeli ma zerową długość
 	{
@@ -1813,12 +1846,12 @@ void WyswietlRejestratorKartySD(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//
 // Parametry: chKodBleduFAT - numer kodu błędu typu FRESULT
 // Zwraca: wskaźnik na string z kodem błędu FAT
 ////////////////////////////////////////////////////////////////////////////////
 void PobierzKodBleduFAT(uint8_t chKodBledu, char* napis)
 {
+	//wersja krótsza z nazwą błędu
 	switch (chKodBledu)
 	{
 	case FR_DISK_ERR: 			sprintf(napis, "FR_DISK_ERR");			break;
@@ -1842,6 +1875,8 @@ void PobierzKodBleduFAT(uint8_t chKodBledu, char* napis)
 	case FR_INVALID_PARAMETER:	sprintf(napis, "FR_INVALID_PARAMETER");	break;
 	default: sprintf(napis, "Blad nieznany");
 	}
+
+	//wersja dłuższa  opisem błędu
 	/*switch (chKodBleduFAT)
 	{
 	case FR_DISK_ERR: 			sprintf(chNapis, "A hard error in low level disk I/O layer");	break;
@@ -1864,5 +1899,89 @@ void PobierzKodBleduFAT(uint8_t chKodBledu, char* napis)
 	case FR_TOO_MANY_OPEN_FILES:sprintf(chNapis, "Number of open files > _FS_LOCK");			break;
 	case FR_INVALID_PARAMETER:	sprintf(chNapis, "Given parameter is invalid");					break;
 	}*/
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje kostkę obracajacą się o podany kąt
+// Parametry: *fKat - wskaźnik na tablicę float[3] katów obrotu
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujKostkeObrotu(float *fKat)
+{
+	float fKostkaRob[8][3];
+	int16_t nKostka[8][3];
+	static uint16_t sCzyszczonaLinia;
+
+	for (uint16_t n=0; n<8; n++)
+		ObrocWektor(&fKostka[n][0], &fKostkaRob[n][0], fKat);
+
+	//konwersja z float na int16_t
+	for (uint16_t n=0; n<8; n++)
+	{
+		for (uint16_t m=0; m<2; m++)
+			nKostka[n][m] = (int16_t)fKostkaRob[n][m];
+	}
+
+	//zamaż poprzednią kostkę kolorem tła
+	setColor(BLACK);
+	drawLine(nKostkaPoprzednia[0][0] + DISP_X_SIZE/2, nKostkaPoprzednia[0][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[1][0] + DISP_X_SIZE/2, nKostkaPoprzednia[1][1] + DISP_Y_SIZE/2);
+	drawLine(nKostkaPoprzednia[1][0] + DISP_X_SIZE/2, nKostkaPoprzednia[1][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[2][0] + DISP_X_SIZE/2, nKostkaPoprzednia[2][1] + DISP_Y_SIZE/2);
+	drawLine(nKostkaPoprzednia[2][0] + DISP_X_SIZE/2, nKostkaPoprzednia[2][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[3][0] + DISP_X_SIZE/2, nKostkaPoprzednia[3][1] + DISP_Y_SIZE/2);
+	drawLine(nKostkaPoprzednia[3][0] + DISP_X_SIZE/2, nKostkaPoprzednia[3][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[0][0] + DISP_X_SIZE/2, nKostkaPoprzednia[0][1] + DISP_Y_SIZE/2);
+
+	//rysuj obrys kostki z dołu
+	drawLine(nKostkaPoprzednia[4][0] + DISP_X_SIZE/2, nKostkaPoprzednia[4][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[5][0] + DISP_X_SIZE/2, nKostkaPoprzednia[5][1] + DISP_Y_SIZE/2);
+	drawLine(nKostkaPoprzednia[5][0] + DISP_X_SIZE/2, nKostkaPoprzednia[5][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[6][0] + DISP_X_SIZE/2, nKostkaPoprzednia[6][1] + DISP_Y_SIZE/2);
+	drawLine(nKostkaPoprzednia[6][0] + DISP_X_SIZE/2, nKostkaPoprzednia[6][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[7][0] + DISP_X_SIZE/2, nKostkaPoprzednia[7][1] + DISP_Y_SIZE/2);
+	drawLine(nKostkaPoprzednia[7][0] + DISP_X_SIZE/2, nKostkaPoprzednia[7][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[4][0] + DISP_X_SIZE/2, nKostkaPoprzednia[4][1] + DISP_Y_SIZE/2);
+
+	//rysuj linie pionowych ścianek
+	drawLine(nKostkaPoprzednia[0][0] + DISP_X_SIZE/2, nKostkaPoprzednia[0][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[4][0] + DISP_X_SIZE/2, nKostkaPoprzednia[4][1] + DISP_Y_SIZE/2);
+	drawLine(nKostkaPoprzednia[1][0] + DISP_X_SIZE/2, nKostkaPoprzednia[1][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[5][0] + DISP_X_SIZE/2, nKostkaPoprzednia[5][1] + DISP_Y_SIZE/2);
+	drawLine(nKostkaPoprzednia[2][0] + DISP_X_SIZE/2, nKostkaPoprzednia[2][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[6][0] + DISP_X_SIZE/2, nKostkaPoprzednia[6][1] + DISP_Y_SIZE/2);
+	drawLine(nKostkaPoprzednia[3][0] + DISP_X_SIZE/2, nKostkaPoprzednia[3][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[7][0] + DISP_X_SIZE/2, nKostkaPoprzednia[7][1] + DISP_Y_SIZE/2);
+
+	//przemiataj cały ekran w poziomie aby wyczyścić pozostałe artefakty
+	if (sCzyszczonaLinia < DISP_X_SIZE)
+	{
+		setColor(BLUE);
+		//drawHLine(0, sCzyszczonaLinia, DISP_X_SIZE);
+		drawVLine(sCzyszczonaLinia, 0, DISP_Y_SIZE);
+		sCzyszczonaLinia++;
+	}
+	else
+		sCzyszczonaLinia = 0;
+
+	setColor(RED);
+	//rysuj obrys kostki z góry
+	drawLine(nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2, nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2);
+	drawLine(nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2, nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2);
+	drawLine(nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2, nKostka[3][0] + DISP_X_SIZE/2, nKostka[3][1] + DISP_Y_SIZE/2);
+	drawLine(nKostka[3][0] + DISP_X_SIZE/2, nKostka[3][1] + DISP_Y_SIZE/2, nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2);
+
+	setColor(GREEN);
+	//rysuj obrys kostki z dołu
+	drawLine(nKostka[4][0] + DISP_X_SIZE/2, nKostka[4][1] + DISP_Y_SIZE/2, nKostka[5][0] + DISP_X_SIZE/2, nKostka[5][1] + DISP_Y_SIZE/2);
+	drawLine(nKostka[5][0] + DISP_X_SIZE/2, nKostka[5][1] + DISP_Y_SIZE/2, nKostka[6][0] + DISP_X_SIZE/2, nKostka[6][1] + DISP_Y_SIZE/2);
+	drawLine(nKostka[6][0] + DISP_X_SIZE/2, nKostka[6][1] + DISP_Y_SIZE/2, nKostka[7][0] + DISP_X_SIZE/2, nKostka[7][1] + DISP_Y_SIZE/2);
+	drawLine(nKostka[7][0] + DISP_X_SIZE/2, nKostka[7][1] + DISP_Y_SIZE/2, nKostka[4][0] + DISP_X_SIZE/2, nKostka[4][1] + DISP_Y_SIZE/2);
+
+	setColor(YELLOW);
+	//rysuj linie pionowych ścianek
+	drawLine(nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2, nKostka[4][0] + DISP_X_SIZE/2, nKostka[4][1] + DISP_Y_SIZE/2);
+	drawLine(nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2, nKostka[5][0] + DISP_X_SIZE/2, nKostka[5][1] + DISP_Y_SIZE/2);
+	drawLine(nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2, nKostka[6][0] + DISP_X_SIZE/2, nKostka[6][1] + DISP_Y_SIZE/2);
+	drawLine(nKostka[3][0] + DISP_X_SIZE/2, nKostka[3][1] + DISP_Y_SIZE/2, nKostka[7][0] + DISP_X_SIZE/2, nKostka[7][1] + DISP_Y_SIZE/2);
+
+	//zapamietaj współrzędne kostki aby w nastepnym cyklu ją wymazać
+	for (uint16_t n=0; n<8; n++)
+	{
+		for (uint16_t m=0; m<2; m++)
+			nKostkaPoprzednia[n][m] = nKostka[n][m];
+	}
+
 
 }

@@ -19,7 +19,8 @@
 #define INIT_TRWA_KALP_ZYRO	0x00020000	//trwa kalibracj żyroskopu w temp. pokojowej
 #define INIT_TRWA_KALG_ZYRO	0x00040000	//trwa kalibracj żyroskopu na gorąco
 
-
+#define RAD2DEG				(180/M_PI)
+#define DEG2RAD				(M_PI/180)
 #define KELVIN		273.15f
 
 //definicje temperatur kalibracji żyroskopów

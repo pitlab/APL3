@@ -71,16 +71,31 @@ void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
 	{
 		uDaneCM4.dane.fKatIMUZyro1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[°/s] * [us / 1000000] = [°]
 		uDaneCM4.dane.fKatIMUZyro2[n] += uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
+
+		//ogranicz przyrost kąta do +-Pi
+		if (uDaneCM4.dane.fKatIMUZyro1[n] > M_PI)
+			uDaneCM4.dane.fKatIMUZyro1[n] = -M_PI;
+		if (uDaneCM4.dane.fKatIMUZyro1[n] < -M_PI)
+			uDaneCM4.dane.fKatIMUZyro1[n] = M_PI;
+		if (uDaneCM4.dane.fKatIMUZyro2[n] > M_PI)
+			uDaneCM4.dane.fKatIMUZyro2[n] = -M_PI;
+		if (uDaneCM4.dane.fKatIMUZyro2[n] < -M_PI)
+			uDaneCM4.dane.fKatIMUZyro2[n] = M_PI;
 	}
 
 	//kąt przechylenia z akcelerometru: tan(Z/Y)
-	fKatAkcel1[0] = atan2f(uDaneCM4.dane.fAkcel1[2], uDaneCM4.dane.fAkcel1[1]);
-	fKatAkcel2[0] = atan2f(uDaneCM4.dane.fAkcel2[2], uDaneCM4.dane.fAkcel2[1]);
+	uDaneCM4.dane.fKatIMUAkcel1[0] = atan2f(uDaneCM4.dane.fAkcel1[2], uDaneCM4.dane.fAkcel1[1]) - 90 * DEG2RAD;
+	uDaneCM4.dane.fKatIMUAkcel2[0] = atan2f(uDaneCM4.dane.fAkcel2[2], uDaneCM4.dane.fAkcel2[1]) - 90 * DEG2RAD;
 
 	//kąt pochylenia z akcelerometru: tan(Z/X)
-	fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[2], uDaneCM4.dane.fAkcel1[0]);
-	fKatAkcel2[1] = atan2f(uDaneCM4.dane.fAkcel2[2], uDaneCM4.dane.fAkcel2[0]);
+	uDaneCM4.dane.fKatIMUAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[2], uDaneCM4.dane.fAkcel1[0]) - 90 * DEG2RAD;
+	uDaneCM4.dane.fKatIMUAkcel2[1] = atan2f(uDaneCM4.dane.fAkcel2[2], uDaneCM4.dane.fAkcel2[0]) - 90 * DEG2RAD;
 
 	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(y/x)
 	uDaneCM4.dane.fKatIMUAkcel1[2] = atan2f((float)uDaneCM4.dane.sMagne3[1], (float)uDaneCM4.dane.sMagne3[0]);
 }
+
+
+
+
+

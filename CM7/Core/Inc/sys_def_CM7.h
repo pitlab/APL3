@@ -56,7 +56,7 @@
 //tryby pracy
 #define TP_MENU_GLOWNE		0	//wyświetla ekran menu głównego
 #define TP_WROC_DO_MENU		1
-#define TP_MG1				2
+#define TP_KOSTKA			2
 #define TP_MG2				3
 #define TP_MG3				4
 #define TP_MG4				5
@@ -147,9 +147,6 @@
 
 #define ROZM_BUF16_LCD		320*480
 #define ROZM_BUF32_KAM		320*480/ 2
-
-#define RAD2DEG				(180/M_PI)
-#define DEG2RAD				(M_PI/180)
 
 //pamięc flash NOR
 #define ADRES_NOR			0x68000000
