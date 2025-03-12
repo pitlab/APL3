@@ -107,8 +107,8 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
 	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_kartaSD},
-	{"Kalibracje", 	"Kalibracje sprzetu pokladowego",			TP_KALIBRACJE,		obr_kontrolny},
-	{"Kostka 3D", 	"Rysujekostkę 3D w funkcji kątów IMU",		TP_KOSTKA,			obr_multitool},
+	{"IMU", 		"Obsługa i kalibracja IMU",					TP_IMU,				obr_kontrolny},
+	{"Magneto 1",	"Obsługa i kalibracja magnetometru",		TP_MAGNETOMETR,		obr_kal_mag_n1},
 	{"nic 2", 		"nic",										TP_MG2,				obr_multitool},
 	{"nic 3", 		"nic",										TP_MG3,				obr_multitool},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_multitool},
@@ -159,17 +159,31 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
-struct tmenu stMenuKalibracja[MENU_WIERSZE * MENU_KOLUMNY]  = {
+struct tmenu stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Zyro Zimno", 	"Kalibracja zyroskopow w 10C",				TPKAL_ZYRO_ZIM,		obr_baczek},
 	{"Zyro Pokoj", 	"Kalibracja zyroskopow w 25C",				TPKAL_ZYRO_POK,		obr_baczek},
 	{"Zyro Gorac", 	"Kalibracja zyroskopow w 40C",				TPKAL_ZYRO_GOR,		obr_baczek},
 	{"Akcel 2D",	"Kalibracja akcelerometrow 2D",				TPKAL_AKCEL_2D,		obr_kontrolny},
 	{"Akcel 3D",	"Kalibracja akcelerometrow 3D",				TPKAL_AKCEL_3D,		obr_kontrolny},
-	{"Kal Magn1", 	"Kalibracja magnetometru 1",				TPKAL_MAG1,			obr_kal_mag_n1},
-	{"Kal Magn2", 	"Kalibracja magnetometru 2",				TPKAL_MAG2,			obr_kal_mag_n1},
-	{"Kal Magn3", 	"Kalibracja magnetometru 3",				TPKAL_MAG3,			obr_kal_mag_n1},
-	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TPKAL_DOTYK,		obr_dotyk_zolty},
+	{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katów IMU",		TP_IMU_KOSTKA,		obr_multitool},
+	{"IMU7",	 	"nic",										TP_IMU7,			obr_kontrolny},
+	{"IMU8",	 	"nic",										TP_IMU8,			obr_kontrolny},
+	{"IMU9",	 	"nic",										TP_IMU9,			obr_kontrolny},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+
+
+struct tmenu stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY]  = {
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
+	{"Kal Magn1", 	"Kalibracja magnetometru 1",				TP_MAG_KAL1,		obr_kal_mag_n1},
+	{"Kal Magn2", 	"Kalibracja magnetometru 2",				TP_MAG_KAL2,		obr_kal_mag_n1},
+	{"Kal Magn3", 	"Kalibracja magnetometru 3",				TP_MAG_KAL3,		obr_kal_mag_n1},
+	{"MAG4",		"nic  ",									TP_MAG4,			obr_dotyk},
+	{"MAG5",		"nic  ",									TP_MAG5,			obr_dotyk},
+	{"MAG6",		"nic  ",									TP_MAG6,			obr_dotyk},
+	{"MAG7",		"nic  ",									TP_MAG7,			obr_dotyk},
+	{"MAG8",		"nic  ",									TP_MAG8,			obr_dotyk},
+	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_KAL_DOTYK,		obr_dotyk_zolty},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
@@ -189,15 +203,6 @@ void RysujEkran(void)
 	case TP_MENU_GLOWNE:	// wyświetla menu główne	MenuGlowne(&chNowyTrybPracy);
 		Menu((char*)chNapisLcd[STR_MENU_MAIN], stMenuGlowne, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
-		break;
-
-	case TP_KOSTKA:	//rysuj kostkę 3D
-		RysujKostkeObrotu((float*)uDaneCM4.dane.fKatIMUZyro2);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MENU;
-		}
 		break;
 
 	case TP_MG2:
@@ -407,9 +412,9 @@ void RysujEkran(void)
 	case TPKS_7:
 	case TPKS_8:	break;
 
-	//***************************************************
-	case TP_KALIBRACJE:			//menu Kalibracje
-		Menu((char*)chNapisLcd[STR_MENU_KALIBRACJE], stMenuKalibracja, &chNowyTrybPracy);
+//*** IMU ************************************************
+	case TP_IMU:			//menu IMU
+		Menu((char*)chNapisLcd[STR_MENU_IMU], stMenuIMU, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -445,27 +450,11 @@ void RysujEkran(void)
 		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI_ZYROSKOPU))
 			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
-
-		/*if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_ZIMNO)
-			WyswietlKomunikatBledu(KOMUNIKAT_ZA_ZIMNO, TEMP_KAL_GORAC, TEMP_KAL_ODCHYLKA);	//Wyświetl komunikat  o tym że jest za zimno i nominalna temperatura kalibracji to TEMP_KAL_GORAC z odchyłką TEMP_KAL_ODCHYLKA
-		else
-		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_CIEPLO)
-			WyswietlKomunikatBledu(KOMUNIKAT_ZA_CIEPLO, TEMP_KAL_GORAC, TEMP_KAL_ODCHYLKA);	//Wyświetl komunikat  o tym że jest za ciepło i nominalna temperatura kalibracji to TEMP_KAL_GORAC z odchyłką TEMP_KAL_ODCHYLKA*/
-
 		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_ZIMNO) || (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_CIEPLO))
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WYSWIETL_BLAD;
 		}
-	/*	else
-			PomiaryIMU();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
-
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TPKAL_WROC;
-			uDaneCM7.dane.chWykonajPolecenie = POL_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
-		}*/
 		break;
 
 	case TP_PODGLAD_IMU:
@@ -481,7 +470,7 @@ void RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TPKAL_WROC;
+			chNowyTrybPracy = TP_IMU_WROC;
 			uDaneCM7.dane.chWykonajPolecenie = POL_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
 		}
 		break;
@@ -496,7 +485,7 @@ void RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TPKAL_WROC;
+			chNowyTrybPracy = TP_IMU_WROC;
 			uDaneCM7.dane.chWykonajPolecenie = POL_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
 		}
 		break;
@@ -504,17 +493,47 @@ void RysujEkran(void)
 
 	case TPKAL_AKCEL_2D:
 	case TPKAL_AKCEL_3D:
-	case TPKAL_MAG1:
-	case TPKAL_MAG2:
-	case TPKAL_MAG3:
+		chTrybPracy = TP_PODGLAD_IMU;
+				break;
+
+	case TP_IMU_KOSTKA:	//rysuj kostkę 3D
+		RysujKostkeObrotu((float*)uDaneCM4.dane.fKatIMUZyro2);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_MENU;
+		}
+		break;
+
+	case TP_IMU7:
+	case TP_IMU8:
+	case TP_IMU9:
 		chTrybPracy = TP_PODGLAD_IMU;
 		break;
 
-	case TPKAL_DOTYK:
+//*** Magnetometr ************************************************
+	case TP_MAGNETOMETR:	//menu obsługi magnetometru
+		Menu((char*)chNapisLcd[STR_MENU_MAGNETOMETR], stMenuMagnetometr, &chNowyTrybPracy);
+		chWrocDoTrybu = TP_MENU_GLOWNE;
+		break;
+
+	case TP_MAG_KAL1:
+	case TP_MAG_KAL2:
+	case TP_MAG_KAL3:
+	case TP_MAG4:
+	case TP_MAG5:
+	case TP_MAG6:
+	case TP_MAG7:
+	case TP_MAG8:
+	case TP_KAL_DOTYK:
 		if (KalibrujDotyk() == ERR_DONE)
 			chTrybPracy = TP_TESTY;
 		break;
+
+	case TP_MAG_WROC:
+
 	}
+
 
 
 	//rzeczy do zrobienia podczas uruchamiania nowego trybu pracy
@@ -533,7 +552,8 @@ void RysujEkran(void)
 		case TP_WROC_DO_MMEDIA:	chTrybPracy = TP_MULTIMEDIA;	break;	//powrót do menu MultiMedia
 		case TP_WROC_DO_WYDAJN:	chTrybPracy = TP_WYDAJNOSC;		break;	//powrót do menu Wydajność
 		case TPKSD_WROC:		chTrybPracy = TP_KARTA_SD;		break;	//powrót do menu Karta SD
-		case TPKAL_WROC:		chTrybPracy = TP_KALIBRACJE;	break;	//powrót do menu Kalibracje
+		case TP_IMU_WROC:		chTrybPracy = TP_IMU;			break;	//powrót do menu IMU
+		case TP_MAG_WROC:		chTrybPracy = TP_MAGNETOMETR;	break;	//powrót do menu Magnetometr
 		case TP_FRAKTALE:		InitFraktal(0);		break;
 		case TP_USTAWIENIA:		chTrybPracy = TP_KALIB_DOTYK;	break;
 		}
@@ -1912,8 +1932,13 @@ void PobierzKodBleduFAT(uint8_t chKodBledu, char* napis)
 void RysujKostkeObrotu(float *fKat)
 {
 	float fKostkaRob[8][3];
-	int16_t nKostka[8][3];
+	int16_t nKostka[8][2];
 	static uint16_t sCzyszczonaLinia;
+
+	//wyłącz obroty
+	//*(fKat+0) = 0;
+	*(fKat+1) = 0;
+	//*(fKat+2) = 0;
 
 	for (uint16_t n=0; n<8; n++)
 		ObrocWektor(&fKostka[n][0], &fKostkaRob[n][0], fKat);
@@ -1944,12 +1969,15 @@ void RysujKostkeObrotu(float *fKat)
 	drawLine(nKostkaPoprzednia[2][0] + DISP_X_SIZE/2, nKostkaPoprzednia[2][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[6][0] + DISP_X_SIZE/2, nKostkaPoprzednia[6][1] + DISP_Y_SIZE/2);
 	drawLine(nKostkaPoprzednia[3][0] + DISP_X_SIZE/2, nKostkaPoprzednia[3][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[7][0] + DISP_X_SIZE/2, nKostkaPoprzednia[7][1] + DISP_Y_SIZE/2);
 
-	//przemiataj cały ekran w poziomie aby wyczyścić pozostałe artefakty
-	if (sCzyszczonaLinia < DISP_X_SIZE)
+	//przemiataj cały ekran w pionie aby wyczyścić pozostałe artefakty
+	if (sCzyszczonaLinia < DISP_X_SIZE/4)
 	{
-		setColor(BLUE);
-		//drawHLine(0, sCzyszczonaLinia, DISP_X_SIZE);
+		//setColor(BLUE);
+		//drawHLine(0, sCzyszczonaLinia, DISP_X_SIZE);	//nie działa
 		drawVLine(sCzyszczonaLinia, 0, DISP_Y_SIZE);
+		drawVLine(sCzyszczonaLinia + DISP_X_SIZE/4, 0, DISP_Y_SIZE);	//druga linia
+		drawVLine(sCzyszczonaLinia + DISP_X_SIZE/2, 0, DISP_Y_SIZE);	//trzecia linia
+		drawVLine(sCzyszczonaLinia + 3*DISP_X_SIZE/4, 0, DISP_Y_SIZE);	//czwarta linia
 		sCzyszczonaLinia++;
 	}
 	else

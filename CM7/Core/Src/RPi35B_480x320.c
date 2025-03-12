@@ -504,7 +504,7 @@ void drawHLine(uint16_t x, uint16_t y, uint16_t len)
 
 	for (i=0; i<len+1; i++)
 		LCD_write_data16(fch, fcl);
-	//clrXY();
+	clrXY();
 }
 
 
@@ -528,7 +528,7 @@ void drawVLine(uint16_t x, uint16_t y, uint16_t len)
 
 	for (i=0; i<len+1; i++)
 		LCD_write_data16(fch, fcl);
-	//clrXY();
+	clrXY();
 }
 
 
@@ -578,6 +578,21 @@ void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 	LCD_WrData(dane, 8);
 
 	LCD_write_command16(0x00, 0x2C);	//Memory Write
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// zeruje parametry pamięci do rysowania linii
+// Parametry:nic
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void clrXY(void)
+{
+	if (chOrient == PIONOWO)
+		setXY(0, 0, DISP_X_SIZE, DISP_Y_SIZE);
+	else
+		setXY(0, 0, DISP_Y_SIZE, DISP_X_SIZE);
 }
 
 

@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	128	//numer commitu w repozytorium
+#define WER_REPO	130		//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -56,7 +56,7 @@
 //tryby pracy
 #define TP_MENU_GLOWNE		0	//wyświetla ekran menu głównego
 #define TP_WROC_DO_MENU		1
-#define TP_KOSTKA			2
+#define TP_MG1				2
 #define TP_MG2				3
 #define TP_MG3				4
 #define TP_MG4				5
@@ -71,9 +71,10 @@
 #define TP_MULTIMEDIA		14	//menu multimediow
 #define TP_WYDAJNOSC		15	//menu pomiarów wydajności
 #define TP_KARTA_SD			16	//menu obsługi karty SD
-#define TP_KALIBRACJE		17	//kalibracja sprzętu
+#define TP_IMU				17	//kalibracja sprzętu
 #define TP_PODGLAD_IMU		18	//podgląd parametrów IMU podczas kalibracji
 #define TP_WYSWIETL_BLAD	19	//wyświetl kod błędu
+#define TP_MAGNETOMETR		20	//menu obsługi magnetometru
 
 //polecenia menu Multimedia
 #define TP_MMREJ			40	//M.Rej
@@ -117,13 +118,22 @@
 #define TPKAL_ZYRO_GOR		62
 #define TPKAL_AKCEL_2D		63
 #define TPKAL_AKCEL_3D		64
-#define TPKAL_MAG1			65
-#define TPKAL_MAG2			66
-#define TPKAL_MAG3			67
-#define TPKAL_DOTYK			68
-#define TPKAL_WROC			69
+#define TP_IMU_KOSTKA		65
+#define TP_IMU7				66
+#define TP_IMU8				67
+#define TP_IMU9				68
+#define TP_IMU_WROC			69
 
-
+#define TP_MAG_KAL1			70
+#define TP_MAG_KAL2			71
+#define TP_MAG_KAL3			72
+#define TP_MAG4				73
+#define TP_MAG5				74
+#define TP_MAG6				75
+#define TP_MAG7				76
+#define TP_MAG8				77
+#define TP_KAL_DOTYK		78	//kalibracja panelu dotykowego
+#define TP_MAG_WROC			79
 
 //flagi inicjalizacj sprzetu na płytce
 #define INIT0_FLASH_NOR		0x00000001
