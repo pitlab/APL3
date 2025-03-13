@@ -491,7 +491,7 @@ void LCD_rect(uint16_t col, uint16_t row, uint16_t width, uint16_t height, uint1
 // len - długośc linii
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void drawHLine(uint16_t x, uint16_t y, uint16_t len)
+void drawHLine(int16_t x, int16_t y, int16_t len)
 {
 	int i;
 
@@ -515,7 +515,7 @@ void drawHLine(uint16_t x, uint16_t y, uint16_t len)
 // len - długość linii
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void drawVLine(uint16_t x, uint16_t y, uint16_t len)
+void drawVLine(int16_t x, int16_t y, int16_t len)
 {
 	int i;
 
@@ -699,7 +699,7 @@ void drawPixel(uint16_t x, uint16_t y)
 // Parametry: x, y - współrzędne
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void drawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
+void drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 {
 	if (y1==y2)
 		drawHLine(x1, y1, x2-x1);
@@ -711,7 +711,7 @@ void drawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 		int16_t		xstep =  x2 > x1 ? 1 : -1;
 		uint16_t	dy = (y2 > y1 ? y2 - y1 : y1 - y2);
 		int16_t		ystep =  y2 > y1 ? 1 : -1;
-		uint16_t	col = x1, row = y1;
+		int16_t	col = x1, row = y1;
 
 		if (dx < dy)
 		{

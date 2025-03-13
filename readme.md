@@ -27,6 +27,8 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Prezentacja układów IMU na ekranie powitalnym
 - Uruchomiony system FAT na karcie, uruchomiony loger danych pomiarowych
 - Dodana obsługa zegara czasu rzeczywistego jednak jeszcze nie działa z powodu niewłaściwego kwarca.
+- Początki rysowania kostki 3D wizualizującej działanie IMU
+![Kostka](obrazki/kostka.jpg)
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM

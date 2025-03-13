@@ -60,6 +60,7 @@ extern const unsigned short obr_kartaSDneg[0xFFC];
 extern const unsigned short obr_baczek[0xF80];
 extern const unsigned short obr_kal_mag_n1[0xFFC];
 extern const unsigned short obr_kontrolny[0xFFC];
+extern const unsigned short obr_kostka3D[0xFFC];
 
 //definicje zmiennych
 uint8_t chTrybPracy;
@@ -97,6 +98,8 @@ float fKostka[8][3] = {		//załóżmy wstępnie że kostka będzie miała rozmia
 			{ DISP_X_SIZE/4, -DISP_Y_SIZE/4, -DISP_Y_SIZE/4},
 			{ DISP_X_SIZE/4,  DISP_Y_SIZE/4, -DISP_Y_SIZE/4},
 			{-DISP_X_SIZE/4,  DISP_Y_SIZE/4, -DISP_Y_SIZE/4}};
+
+float fSymKatKostki[3];	//zmienna do przechowywania wyników symulacji ruchu kostki
 
 int16_t nKostkaPoprzednia[8][2];	//poprzednia pozycja kostki 3D: [wierzchołki][x,y]
 
@@ -166,8 +169,8 @@ struct tmenu stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Zyro Gorac", 	"Kalibracja zyroskopow w 40C",				TPKAL_ZYRO_GOR,		obr_baczek},
 	{"Akcel 2D",	"Kalibracja akcelerometrow 2D",				TPKAL_AKCEL_2D,		obr_kontrolny},
 	{"Akcel 3D",	"Kalibracja akcelerometrow 3D",				TPKAL_AKCEL_3D,		obr_kontrolny},
-	{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katów IMU",		TP_IMU_KOSTKA,		obr_multitool},
-	{"IMU7",	 	"nic",										TP_IMU7,			obr_kontrolny},
+	{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katów IMU",		TP_IMU_KOSTKA,		obr_kostka3D},
+	{"Kostka Sym", 	"Symulacja ruchu kostki",					TP_IMU_KOSTKA_SYM,	obr_kostka3D},
 	{"IMU8",	 	"nic",										TP_IMU8,			obr_kontrolny},
 	{"IMU9",	 	"nic",										TP_IMU9,			obr_kontrolny},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
@@ -497,15 +500,31 @@ void RysujEkran(void)
 				break;
 
 	case TP_IMU_KOSTKA:	//rysuj kostkę 3D
-		RysujKostkeObrotu((float*)uDaneCM4.dane.fKatIMUZyro2);
+		RysujKostkeObrotu((float*)uDaneCM4.dane.fKatIMUZyro1);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MENU;
+			chNowyTrybPracy = TP_IMU_WROC;
 		}
 		break;
 
-	case TP_IMU7:
+	case TP_IMU_KOSTKA_SYM:
+		fSymKatKostki[0] += 5 * DEG2RAD;
+		fSymKatKostki[1] += 3 * DEG2RAD;
+		fSymKatKostki[2] += 1 * DEG2RAD;
+		for (uint8_t n=0; n<3; n++)
+		{
+			if (fSymKatKostki[n] > M_PI)
+				fSymKatKostki[n] = -M_PI;
+		}
+		RysujKostkeObrotu(fSymKatKostki);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_IMU_WROC;
+		}
+		break;
+
 	case TP_IMU8:
 	case TP_IMU9:
 		chTrybPracy = TP_PODGLAD_IMU;
@@ -1927,18 +1946,29 @@ void PobierzKodBleduFAT(uint8_t chKodBledu, char* napis)
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje kostkę obracajacą się o podany kąt
 // Parametry: *fKat - wskaźnik na tablicę float[3] katów obrotu
-// Zwraca: nic
+// Zwraca: czas obliczeń (bez rysowania) w us
 ////////////////////////////////////////////////////////////////////////////////
-void RysujKostkeObrotu(float *fKat)
+uint32_t RysujKostkeObrotu(float *fKat)
 {
 	float fKostkaRob[8][3];
-	int16_t nKostka[8][2];
-	static uint16_t sCzyszczonaLinia;
+	int16_t nKostka[8][3];
+	int16_t sIlorazSkalarny[8];
+	int16_t sWek12[3], sWek13[3], sIloczynWekt[3];
+	//static uint16_t sCzyszczonaLinia;
+	uint32_t nCzas = PobierzCzasT6();
+	uint8_t chIndexG, chIndexD;
+	typedef struct
+	{
+	int16_t A;
+	int16_t B;
+	int16_t C;
+	int16_t D;
+	} Plas_t;	//Współczynniki równania płaszczyzny
 
-	//wyłącz obroty
-	//*(fKat+0) = 0;
-	*(fKat+1) = 0;
-	//*(fKat+2) = 0;
+	Plas_t stPla1;
+	Plas_t stPla2;
+
+
 
 	for (uint16_t n=0; n<8; n++)
 		ObrocWektor(&fKostka[n][0], &fKostkaRob[n][0], fKat);
@@ -1946,10 +1976,10 @@ void RysujKostkeObrotu(float *fKat)
 	//konwersja z float na int16_t
 	for (uint16_t n=0; n<8; n++)
 	{
-		for (uint16_t m=0; m<2; m++)
+		for (uint16_t m=0; m<3; m++)
 			nKostka[n][m] = (int16_t)fKostkaRob[n][m];
 	}
-
+	nCzas = MinalCzas(nCzas);
 	//zamaż poprzednią kostkę kolorem tła
 	setColor(BLACK);
 	drawLine(nKostkaPoprzednia[0][0] + DISP_X_SIZE/2, nKostkaPoprzednia[0][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[1][0] + DISP_X_SIZE/2, nKostkaPoprzednia[1][1] + DISP_Y_SIZE/2);
@@ -1970,7 +2000,7 @@ void RysujKostkeObrotu(float *fKat)
 	drawLine(nKostkaPoprzednia[3][0] + DISP_X_SIZE/2, nKostkaPoprzednia[3][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[7][0] + DISP_X_SIZE/2, nKostkaPoprzednia[7][1] + DISP_Y_SIZE/2);
 
 	//przemiataj cały ekran w pionie aby wyczyścić pozostałe artefakty
-	if (sCzyszczonaLinia < DISP_X_SIZE/4)
+	/*if (sCzyszczonaLinia < DISP_X_SIZE/4)
 	{
 		//setColor(BLUE);
 		//drawHLine(0, sCzyszczonaLinia, DISP_X_SIZE);	//nie działa
@@ -1981,24 +2011,91 @@ void RysujKostkeObrotu(float *fKat)
 		sCzyszczonaLinia++;
 	}
 	else
-		sCzyszczonaLinia = 0;
+		sCzyszczonaLinia = 0;*/
 
-	setColor(RED);
+	//sprawdzenie na wektorach przykładowych
+	/*nKostka[0][0] = -1;
+	nKostka[0][1] = 5;
+	nKostka[0][2] = 3;
+
+	nKostka[1][0] = 1;
+	nKostka[1][1] = 3;
+	nKostka[1][2] = 1;
+
+	nKostka[2][0] = 0;
+	nKostka[2][1] = 1;
+	nKostka[2][2] = 5; */
+
+	//Aby obliczyć równanie płaszczyzny przechodzącej przez 3 punkty P1, P2 i P3 liczę współrzędne wektorów P1P2 i P1P3
+	for (uint16_t n=0; n<3; n++)
+	{
+		//ścianka górna, czerwona
+		sWek12[n] = nKostka[1][n] - nKostka[0][n];		//P2 - P1
+		sWek13[n] = nKostka[2][n] - nKostka[0][n];		//P3 - P1
+	}
+
+	//liczę iloczyn wektorowy P1P2 x P1P3. Wzór: a x b = (a2b3-a3b2, a3b1-a1b3, a1b2-a2b1)
+	stPla1.A = sWek12[1]*sWek13[2] - sWek12[2]*sWek13[1];
+	stPla1.B = sWek12[2]*sWek13[0] - sWek12[0]*sWek13[2];
+	stPla1.C = sWek12[0]*sWek13[1] - sWek12[1]*sWek13[0];
+
+	//aby obliczyć D podstawiam punkt C pod równanie płaszczyzny Ax+By+Cz+D = 0 => D = -(Ax+By+Cz)
+	stPla1.D = -1*(stPla1.A * nKostka[2][0] + stPla1.B * nKostka[2][1] + stPla1.C * nKostka[2][2]);
+
+	//licz iloraz skalarny płaszczyzny z wektorem normalnym do ekranu (0, 0, 1) czyli stPla1.C * 1
+	//for (uint8_t x=0; x<3; x++)
+		//sWek12[x] = nKostka[0][x] - nKostka[4][x];	//wektor ścianki bocznej
+
+	//sIlorazSkalarny[0] = stPla1.A * sWek12[0] + stPla1.B * sWek12[1] + stPla1.C * sWek12[2];
+
+	/*for (uint8_t n=0; n<4; n++)
+	{
+		chIndexG = (n + 1) & 0x03;
+		chIndexD = (n + 5) & 0x07;
+		for (uint8_t x=0; x<3; x++)
+		{
+			sWek1[x] = (int16_t)(fKostkaRob[n][x] - fKostkaRob[chIndexG][x]);
+			sWek2[x] = (int16_t)(fKostkaRob[n][x] - fKostkaRob[chIndexD][x]);
+		}
+		sIlorazSkalarny[n+0] = sWek1[0] * sWek2[0] +  sWek1[1] * sWek2[1] +  sWek1[2] * sWek2[2];
+		sIlorazSkalarny[n+4] = sWek1[0] * sWek2[0] +  sWek1[1] * sWek2[1] +  sWek1[2] * sWek2[2];
+	}*/
+
 	//rysuj obrys kostki z góry
-	drawLine(nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2, nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2);
-	drawLine(nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2, nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2);
-	drawLine(nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2, nKostka[3][0] + DISP_X_SIZE/2, nKostka[3][1] + DISP_Y_SIZE/2);
-	drawLine(nKostka[3][0] + DISP_X_SIZE/2, nKostka[3][1] + DISP_Y_SIZE/2, nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2);
+	setColor(RED);
+	if (stPla1.C > 0)
+	{
+		drawLine(nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2, nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2);
+	//if (sIlorazSkalarny[0] <= 0)
+		drawLine(nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2, nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2);
+	//if (sIlorazSkalarny[0] <= 0)
+		drawLine(nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2, nKostka[3][0] + DISP_X_SIZE/2, nKostka[3][1] + DISP_Y_SIZE/2);
+	//if (sIlorazSkalarny[0] <= 0)
+		drawLine(nKostka[3][0] + DISP_X_SIZE/2, nKostka[3][1] + DISP_Y_SIZE/2, nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2);
+	}
 
-	setColor(GREEN);
+	/*if ((fKostkaRob[0][2] > 0) || (fKostkaRob[1][2] > 0))
+		drawLine(nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2, nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2);
+	if ((fKostkaRob[1][2] > 0) || (fKostkaRob[2][2] > 0))
+		drawLine(nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2, nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2);
+	if ((fKostkaRob[2][2] > 0) || (fKostkaRob[3][2] > 0))
+		drawLine(nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2, nKostka[3][0] + DISP_X_SIZE/2, nKostka[3][1] + DISP_Y_SIZE/2);
+	if ((fKostkaRob[3][2] > 0) || (fKostkaRob[0][2] > 0))
+		drawLine(nKostka[3][0] + DISP_X_SIZE/2, nKostka[3][1] + DISP_Y_SIZE/2, nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2); */
+
 	//rysuj obrys kostki z dołu
-	drawLine(nKostka[4][0] + DISP_X_SIZE/2, nKostka[4][1] + DISP_Y_SIZE/2, nKostka[5][0] + DISP_X_SIZE/2, nKostka[5][1] + DISP_Y_SIZE/2);
-	drawLine(nKostka[5][0] + DISP_X_SIZE/2, nKostka[5][1] + DISP_Y_SIZE/2, nKostka[6][0] + DISP_X_SIZE/2, nKostka[6][1] + DISP_Y_SIZE/2);
-	drawLine(nKostka[6][0] + DISP_X_SIZE/2, nKostka[6][1] + DISP_Y_SIZE/2, nKostka[7][0] + DISP_X_SIZE/2, nKostka[7][1] + DISP_Y_SIZE/2);
-	drawLine(nKostka[7][0] + DISP_X_SIZE/2, nKostka[7][1] + DISP_Y_SIZE/2, nKostka[4][0] + DISP_X_SIZE/2, nKostka[4][1] + DISP_Y_SIZE/2);
+	setColor(GREEN);
+	//if ((fKostkaRob[4][2] > 0) || (fKostkaRob[5][2] > 0))
+		drawLine(nKostka[4][0] + DISP_X_SIZE/2, nKostka[4][1] + DISP_Y_SIZE/2, nKostka[5][0] + DISP_X_SIZE/2, nKostka[5][1] + DISP_Y_SIZE/2);
+	//if ((fKostkaRob[5][2] > 0) || (fKostkaRob[6][2] > 0))
+		drawLine(nKostka[5][0] + DISP_X_SIZE/2, nKostka[5][1] + DISP_Y_SIZE/2, nKostka[6][0] + DISP_X_SIZE/2, nKostka[6][1] + DISP_Y_SIZE/2);
+	//if ((fKostkaRob[6][2] > 0) || (fKostkaRob[7][2] > 0))
+		drawLine(nKostka[6][0] + DISP_X_SIZE/2, nKostka[6][1] + DISP_Y_SIZE/2, nKostka[7][0] + DISP_X_SIZE/2, nKostka[7][1] + DISP_Y_SIZE/2);
+	//if ((fKostkaRob[7][2] > 0) || (fKostkaRob[4][2] > 0))
+		drawLine(nKostka[7][0] + DISP_X_SIZE/2, nKostka[7][1] + DISP_Y_SIZE/2, nKostka[4][0] + DISP_X_SIZE/2, nKostka[4][1] + DISP_Y_SIZE/2);
 
-	setColor(YELLOW);
 	//rysuj linie pionowych ścianek
+	setColor(YELLOW);
 	drawLine(nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2, nKostka[4][0] + DISP_X_SIZE/2, nKostka[4][1] + DISP_Y_SIZE/2);
 	drawLine(nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2, nKostka[5][0] + DISP_X_SIZE/2, nKostka[5][1] + DISP_Y_SIZE/2);
 	drawLine(nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2, nKostka[6][0] + DISP_X_SIZE/2, nKostka[6][1] + DISP_Y_SIZE/2);
@@ -2010,6 +2107,8 @@ void RysujKostkeObrotu(float *fKat)
 		for (uint16_t m=0; m<2; m++)
 			nKostkaPoprzednia[n][m] = nKostka[n][m];
 	}
-
-
+	setColor(GRAY50);
+	sprintf(chNapis, "t=%ldus, phi=%.1f, theta=%.1f, psi=%.1f ", nCzas, fKat[0]*RAD2DEG, fKat[1]*RAD2DEG, fKat[2]*RAD2DEG);
+	print(chNapis, 0, 0);
+	return nCzas;
 }
