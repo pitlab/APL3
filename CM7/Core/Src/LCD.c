@@ -500,7 +500,10 @@ void RysujEkran(void)
 				break;
 
 	case TP_IMU_KOSTKA:	//rysuj kostkę 3D
-		RysujKostkeObrotu((float*)uDaneCM4.dane.fKatIMUZyro1);
+		float fKat[3];
+		for (uint8_t n=0; n<3; n++)
+			fKat[n] = -1 *uDaneCM4.dane.fKatIMUZyro1[n];	//do rysowania przyjmij kąty z przeciwnym znakiem
+		RysujKostkeObrotu(fKat);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -1952,22 +1955,22 @@ uint32_t RysujKostkeObrotu(float *fKat)
 {
 	float fKostkaRob[8][3];
 	int16_t nKostka[8][3];
-	int16_t sIlorazSkalarny[8];
-	int16_t sWek12[3], sWek13[3], sIloczynWekt[3];
+	//int16_t sIlorazSkalarny[8];
+	int16_t sWektA[3], sWektB[3];
 	//static uint16_t sCzyszczonaLinia;
 	uint32_t nCzas = PobierzCzasT6();
-	uint8_t chIndexG, chIndexD;
+	//uint8_t chIndexG, chIndexD;
 	typedef struct
 	{
-	int16_t A;
-	int16_t B;
-	int16_t C;
-	int16_t D;
+	int32_t A;
+	int32_t B;
+	int32_t C;
+	int32_t D;
 	} Plas_t;	//Współczynniki równania płaszczyzny
 
-	Plas_t stPla1;
-	Plas_t stPla2;
-
+	Plas_t stPla[6];
+	int16_t sOdlWierzPla[2][8];	//Odległość wierchołków płaszczyzn górnej i dolnej od kranu
+	int16_t sSumaOdlPla[6];		//suma odległosci wierzchłków płaszczyzny od ekranu
 
 
 	for (uint16_t n=0; n<8; n++)
@@ -1999,20 +2002,6 @@ uint32_t RysujKostkeObrotu(float *fKat)
 	drawLine(nKostkaPoprzednia[2][0] + DISP_X_SIZE/2, nKostkaPoprzednia[2][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[6][0] + DISP_X_SIZE/2, nKostkaPoprzednia[6][1] + DISP_Y_SIZE/2);
 	drawLine(nKostkaPoprzednia[3][0] + DISP_X_SIZE/2, nKostkaPoprzednia[3][1] + DISP_Y_SIZE/2, nKostkaPoprzednia[7][0] + DISP_X_SIZE/2, nKostkaPoprzednia[7][1] + DISP_Y_SIZE/2);
 
-	//przemiataj cały ekran w pionie aby wyczyścić pozostałe artefakty
-	/*if (sCzyszczonaLinia < DISP_X_SIZE/4)
-	{
-		//setColor(BLUE);
-		//drawHLine(0, sCzyszczonaLinia, DISP_X_SIZE);	//nie działa
-		drawVLine(sCzyszczonaLinia, 0, DISP_Y_SIZE);
-		drawVLine(sCzyszczonaLinia + DISP_X_SIZE/4, 0, DISP_Y_SIZE);	//druga linia
-		drawVLine(sCzyszczonaLinia + DISP_X_SIZE/2, 0, DISP_Y_SIZE);	//trzecia linia
-		drawVLine(sCzyszczonaLinia + 3*DISP_X_SIZE/4, 0, DISP_Y_SIZE);	//czwarta linia
-		sCzyszczonaLinia++;
-	}
-	else
-		sCzyszczonaLinia = 0;*/
-
 	//sprawdzenie na wektorach przykładowych
 	/*nKostka[0][0] = -1;
 	nKostka[0][1] = 5;
@@ -2026,73 +2015,76 @@ uint32_t RysujKostkeObrotu(float *fKat)
 	nKostka[2][1] = 1;
 	nKostka[2][2] = 5; */
 
-	//Aby obliczyć równanie płaszczyzny przechodzącej przez 3 punkty P1, P2 i P3 liczę współrzędne wektorów P1P2 i P1P3
+	//Aby obliczyć równanie płaszczyzny przechodzącej przez 3 punkty P1, P2 i P4 liczę współrzędne wektorów sWektA i sWektB
+	//ścianka górna, czerwona
 	for (uint16_t n=0; n<3; n++)
 	{
-		//ścianka górna, czerwona
-		sWek12[n] = nKostka[1][n] - nKostka[0][n];		//P2 - P1
-		sWek13[n] = nKostka[2][n] - nKostka[0][n];		//P3 - P1
+		sWektA[n] = nKostka[1][n] - nKostka[0][n];		//wektor dłuższego boku
+		sWektB[n] = nKostka[3][n] - nKostka[0][n];		//wektor krótszego boku
 	}
 
 	//liczę iloczyn wektorowy P1P2 x P1P3. Wzór: a x b = (a2b3-a3b2, a3b1-a1b3, a1b2-a2b1)
-	stPla1.A = sWek12[1]*sWek13[2] - sWek12[2]*sWek13[1];
-	stPla1.B = sWek12[2]*sWek13[0] - sWek12[0]*sWek13[2];
-	stPla1.C = sWek12[0]*sWek13[1] - sWek12[1]*sWek13[0];
+	stPla[0].A = sWektA[1]*sWektB[2] - sWektA[2]*sWektB[1];
+	stPla[0].B = sWektA[2]*sWektB[0] - sWektA[0]*sWektB[2];
+	stPla[0].C = sWektA[0]*sWektB[1] - sWektA[1]*sWektB[0];
 
 	//aby obliczyć D podstawiam punkt C pod równanie płaszczyzny Ax+By+Cz+D = 0 => D = -(Ax+By+Cz)
-	stPla1.D = -1*(stPla1.A * nKostka[2][0] + stPla1.B * nKostka[2][1] + stPla1.C * nKostka[2][2]);
+	stPla[0].D = -1*(stPla[0].A * nKostka[2][0] + stPla[0].B * nKostka[2][1] + stPla[0].C * nKostka[2][2]);
 
-	//licz iloraz skalarny płaszczyzny z wektorem normalnym do ekranu (0, 0, 1) czyli stPla1.C * 1
-	//for (uint8_t x=0; x<3; x++)
-		//sWek12[x] = nKostka[0][x] - nKostka[4][x];	//wektor ścianki bocznej
-
-	//sIlorazSkalarny[0] = stPla1.A * sWek12[0] + stPla1.B * sWek12[1] + stPla1.C * sWek12[2];
-
-	/*for (uint8_t n=0; n<4; n++)
+	//ścianka dolna, zielona
+	for (uint16_t n=0; n<3; n++)
 	{
-		chIndexG = (n + 1) & 0x03;
-		chIndexD = (n + 5) & 0x07;
-		for (uint8_t x=0; x<3; x++)
-		{
-			sWek1[x] = (int16_t)(fKostkaRob[n][x] - fKostkaRob[chIndexG][x]);
-			sWek2[x] = (int16_t)(fKostkaRob[n][x] - fKostkaRob[chIndexD][x]);
-		}
-		sIlorazSkalarny[n+0] = sWek1[0] * sWek2[0] +  sWek1[1] * sWek2[1] +  sWek1[2] * sWek2[2];
-		sIlorazSkalarny[n+4] = sWek1[0] * sWek2[0] +  sWek1[1] * sWek2[1] +  sWek1[2] * sWek2[2];
-	}*/
+		sWektA[n] = nKostka[5][n] - nKostka[4][n];		//wektor dłuższego boku
+		sWektB[n] = nKostka[7][n] - nKostka[4][n];		//wektor krótszego boku
+	}
+	stPla[1].A = sWektA[1]*sWektB[2] - sWektA[2]*sWektB[1];
+	stPla[1].B = sWektA[2]*sWektB[0] - sWektA[0]*sWektB[2];
+	stPla[1].C = sWektA[0]*sWektB[1] - sWektA[1]*sWektB[0];
+	stPla[1].D = -1*(stPla[1].A * nKostka[6][0] + stPla[1].B * nKostka[6][1] + stPla[1].C * nKostka[6][2]);
+
+	//oblicz odległość wierzchołków płaszczyzn od powierzchni rzutowania równoległego na płaszczyznę ekranu czyli Z = 0
+	for (uint16_t n=0; n<8; n++)	//dla każdego z wierzchołków
+	{
+		//sOdlWierzPla[0][n] = stPla[0].A * nKostka[n][0] + stPla[0].B * nKostka[n][1] + stPla[0].C * nKostka[n][2] + stPla[0].D;	//płaszczyzna  górna, czerwona
+		//sOdlWierzPla[1][n] = stPla[1].A * nKostka[n][0] + stPla[1].B * nKostka[n][1] + stPla[1].C * nKostka[n][2] + stPla[1].D;	//płaszczyzna  dolna, zielona
+		sOdlWierzPla[0][n] = stPla[0].A * nKostka[n][0] + stPla[0].B * nKostka[n][1] + stPla[0].D;	//płaszczyzna  górna, czerwona
+		sOdlWierzPla[1][n] = stPla[1].A * nKostka[n][0] + stPla[1].B * nKostka[n][1] + stPla[1].D;	//płaszczyzna  dolna, zielona
+	}
+
+	//licz sumę odlegegłości wierzchołków od ekranu dla każdej płaszczyzny
+	sSumaOdlPla[0] = sOdlWierzPla[0][0] + sOdlWierzPla[0][1] + sOdlWierzPla[0][2] + sOdlWierzPla[0][3];
+	sSumaOdlPla[1] = sOdlWierzPla[1][4] + sOdlWierzPla[1][5] + sOdlWierzPla[1][6] + sOdlWierzPla[1][7];
+
 
 	//rysuj obrys kostki z góry
 	setColor(RED);
-	if (stPla1.C > 0)
+	if (sSumaOdlPla[0] > sSumaOdlPla[1])	//jeżeli suma odległości 4 wierzchołków górnej płaszczyzny od ekrany jest większa niż analogiczna suma dolnej płaszcyzny
 	{
+	//if ((sOdlWierzPla[0][0] > 0) && (sOdlWierzPla[0][1] > 0))
 		drawLine(nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2, nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2);
-	//if (sIlorazSkalarny[0] <= 0)
+	//if ((sOdlWierzPla[0][1] > 0) && (sOdlWierzPla[0][2] > 0))
 		drawLine(nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2, nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2);
-	//if (sIlorazSkalarny[0] <= 0)
+	//if ((sOdlWierzPla[0][2] > 0) && (sOdlWierzPla[0][3] > 0))
 		drawLine(nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2, nKostka[3][0] + DISP_X_SIZE/2, nKostka[3][1] + DISP_Y_SIZE/2);
-	//if (sIlorazSkalarny[0] <= 0)
+	//if ((sOdlWierzPla[0][3] > 0) && (sOdlWierzPla[0][0] > 0))
 		drawLine(nKostka[3][0] + DISP_X_SIZE/2, nKostka[3][1] + DISP_Y_SIZE/2, nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2);
 	}
 
-	/*if ((fKostkaRob[0][2] > 0) || (fKostkaRob[1][2] > 0))
-		drawLine(nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2, nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2);
-	if ((fKostkaRob[1][2] > 0) || (fKostkaRob[2][2] > 0))
-		drawLine(nKostka[1][0] + DISP_X_SIZE/2, nKostka[1][1] + DISP_Y_SIZE/2, nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2);
-	if ((fKostkaRob[2][2] > 0) || (fKostkaRob[3][2] > 0))
-		drawLine(nKostka[2][0] + DISP_X_SIZE/2, nKostka[2][1] + DISP_Y_SIZE/2, nKostka[3][0] + DISP_X_SIZE/2, nKostka[3][1] + DISP_Y_SIZE/2);
-	if ((fKostkaRob[3][2] > 0) || (fKostkaRob[0][2] > 0))
-		drawLine(nKostka[3][0] + DISP_X_SIZE/2, nKostka[3][1] + DISP_Y_SIZE/2, nKostka[0][0] + DISP_X_SIZE/2, nKostka[0][1] + DISP_Y_SIZE/2); */
 
 	//rysuj obrys kostki z dołu
 	setColor(GREEN);
-	//if ((fKostkaRob[4][2] > 0) || (fKostkaRob[5][2] > 0))
+	//if (stPla[1].C > 0)
+	if (sSumaOdlPla[1] > sSumaOdlPla[0])	//jeżeli suma odległości 4 wierzchołków dolnej płaszczyzny od ekrany jest większa niż analogiczna suma górnaj płaszcyzny
+	{
+	//if ((sOdlWierzPla[1][4] > 0) && (sOdlWierzPla[1][5] > 0))
 		drawLine(nKostka[4][0] + DISP_X_SIZE/2, nKostka[4][1] + DISP_Y_SIZE/2, nKostka[5][0] + DISP_X_SIZE/2, nKostka[5][1] + DISP_Y_SIZE/2);
-	//if ((fKostkaRob[5][2] > 0) || (fKostkaRob[6][2] > 0))
+	//if ((sOdlWierzPla[1][5] > 0) && (sOdlWierzPla[1][6] > 0))
 		drawLine(nKostka[5][0] + DISP_X_SIZE/2, nKostka[5][1] + DISP_Y_SIZE/2, nKostka[6][0] + DISP_X_SIZE/2, nKostka[6][1] + DISP_Y_SIZE/2);
-	//if ((fKostkaRob[6][2] > 0) || (fKostkaRob[7][2] > 0))
+	//if ((sOdlWierzPla[1][6] > 0) && (sOdlWierzPla[1][7] > 0))
 		drawLine(nKostka[6][0] + DISP_X_SIZE/2, nKostka[6][1] + DISP_Y_SIZE/2, nKostka[7][0] + DISP_X_SIZE/2, nKostka[7][1] + DISP_Y_SIZE/2);
-	//if ((fKostkaRob[7][2] > 0) || (fKostkaRob[4][2] > 0))
+	//if ((sOdlWierzPla[1][7] > 0) && (sOdlWierzPla[1][4] > 0))
 		drawLine(nKostka[7][0] + DISP_X_SIZE/2, nKostka[7][1] + DISP_Y_SIZE/2, nKostka[4][0] + DISP_X_SIZE/2, nKostka[4][1] + DISP_Y_SIZE/2);
+	}
 
 	//rysuj linie pionowych ścianek
 	setColor(YELLOW);

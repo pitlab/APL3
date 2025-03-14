@@ -69,8 +69,8 @@ void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
 	//licz całkę z prędkosci kątowych żyroskopów
 	for (uint16_t n=0; n<3; n++)
 	{
-		uDaneCM4.dane.fKatIMUZyro1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[°/s] * [us / 1000000] = [°]
-		uDaneCM4.dane.fKatIMUZyro2[n] += uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
+		uDaneCM4.dane.fKatIMUZyro1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000 * DEG2RAD;		//[°/s] * [us / 1000000] = [°]
+		uDaneCM4.dane.fKatIMUZyro2[n] += uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000 * DEG2RAD;
 
 		//ogranicz przyrost kąta do +-Pi
 		if (uDaneCM4.dane.fKatIMUZyro1[n] > M_PI)

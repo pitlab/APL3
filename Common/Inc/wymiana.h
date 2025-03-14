@@ -61,16 +61,16 @@ typedef struct
 	int16_t sMagne1[3];
 	int16_t sMagne2[3];
 	int16_t sMagne3[3];
-	float fKatIMU1[3];
+	float fKatIMU1[3];		//[rad]
 	float fKatIMU2[3];
-	float fKatIMUZyro1[3];
+	float fKatIMUZyro1[3];	//[rad]
 	float fKatIMUZyro2[3];
-	float fKatIMUAkcel1[3];
+	float fKatIMUAkcel1[3];	//[rad]
 	float fKatIMUAkcel2[3];
-	float fCisnie[2];
-	float fWysoko[2];
+	float fCisnie[2];		//[Pa]
+	float fWysoko[2];		//[m]
 	float fCisnRozn[2];	//0=ND130, 1=MS2545
-	float fPredkosc[2];
+	float fPredkosc[2];		//[m/s]
 	float fTemper[7];	//0=MS5611, 1=BMP851, 2=ICM42688 [K], 3=LSM6DSV [K], 4=IIS2MDC, 5=ND130, 6=MS2545
 	uint16_t sSerwa[16];
 	uint8_t chErrPetliGlownej;
