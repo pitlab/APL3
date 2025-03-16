@@ -506,7 +506,7 @@ void RysujEkran(void)
 	case TP_IMU_KOSTKA:	//rysuj kostkę 3D
 		float fKat[3];
 		for (uint8_t n=0; n<3; n++)
-			fKat[n] = -1 *uDaneCM4.dane.fKatIMUZyro1[n];	//do rysowania przyjmij kąty z przeciwnym znakiem
+			fKat[n] = -1 *uDaneCM4.dane.fKatIMUZyro2[n];	//do rysowania przyjmij kąty z przeciwnym znakiem
 		RysujKostkeObrotu(fKat);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
@@ -1959,21 +1959,18 @@ uint32_t RysujKostkeObrotu(float *fKat)
 {
 	float fKostkaRob[8][3];
 	int16_t sKostka[8][3];
-	//int16_t sWektA[3], sWektB[3];
 	uint32_t nCzas = PobierzCzasT6();
-	int16_t sOdlWierzch[8];	//odległość wierzchołka od punktu obserwatora
-	/*typedef struct
-	{
-	int32_t A;
-	int32_t B;
-	int32_t C;
-	int32_t D;
-	int32_t nDlug;	//pierwiastek z sumy kwadratów ABC
-	} Plas_t;	//Współczynniki równania płaszczyzny
-
-	Plas_t stPla[6];
-	int16_t sOdlPla[6];		//odległość płaszczyzny od punktu */
-
+	//int16_t sOdlWierzch[8];	//odległość wierzchołka od punktu obserwatora
+	//int16_t sSrodek[6][3];	//środki ścianek kostki
+	//int16_t sMin[3], sMax[3];	//minimalne i maksymalne współrzędne ściany kostki
+	stPlas_t stPla[6];
+	int16_t sWektA[3], sWektB[3];
+	//int16_t sOdlPla[6];		//odległość płaszczyzny od punktu
+	int16_t sWektor[6][3];
+	//int16_t sPunktRzutowania[3] = {DISP_X_SIZE/2, DISP_Y_SIZE/2, 500};
+	int16_t sPunktRzutowania[3] = {0, 0, -500};
+	int16_t sWektorRzutowania[6][3];
+	int32_t nIloczynSkalarny[6];	//iloczyn skalarny wektora normalnego płaszczyzny i wektora rzutowania
 
 	for (uint16_t n=0; n<8; n++)
 	{
@@ -2002,7 +1999,6 @@ uint32_t RysujKostkeObrotu(float *fKat)
 	drawLine(sKostkaPoprzednia[3][0] + DISP_X_SIZE/2, sKostkaPoprzednia[3][1] + DISP_Y_SIZE/2, sKostkaPoprzednia[7][0] + DISP_X_SIZE/2, sKostkaPoprzednia[7][1] + DISP_Y_SIZE/2);
 
 
-/*
 	//Aby obliczyć równanie płaszczyzny przechodzącej przez 3 punkty P1, P2 i P4 liczę współrzędne wektorów sWektA i sWektB
 	//ścianka górna, czerwona
 	for (uint16_t n=0; n<3; n++)
@@ -2012,13 +2008,13 @@ uint32_t RysujKostkeObrotu(float *fKat)
 	}
 
 	//liczę iloczyn wektorowy P1P2 x P1P3. Wzór: a x b = (a2b3-a3b2, a3b1-a1b3, a1b2-a2b1)
-	stPla[0].A = sWektA[1]*sWektB[2] - sWektA[2]*sWektB[1];
-	stPla[0].B = sWektA[2]*sWektB[0] - sWektA[0]*sWektB[2];
-	stPla[0].C = sWektA[0]*sWektB[1] - sWektA[1]*sWektB[0];
+	stPla[0].nA = sWektA[1]*sWektB[2] - sWektA[2]*sWektB[1];
+	stPla[0].nB = sWektA[2]*sWektB[0] - sWektA[0]*sWektB[2];
+	stPla[0].nC = sWektA[0]*sWektB[1] - sWektA[1]*sWektB[0];
 
 	//aby obliczyć D podstawiam punkt C pod równanie płaszczyzny Ax+By+Cz+D = 0 => D = -(Ax+By+Cz)
-	stPla[0].D = -1*(stPla[0].A * sKostka[3][0] + stPla[0].B * sKostka[3][1] + stPla[0].C * sKostka[3][2]);
-	stPla[0].nDlug = sqrtf(stPla[0].A * stPla[0].A + stPla[0].B * stPla[0].B + stPla[0].C * stPla[0].C);
+	stPla[0].nD = -1*(stPla[0].nA * sKostka[3][0] + stPla[0].nB * sKostka[3][1] + stPla[0].nC * sKostka[3][2]);
+	stPla[0].nDlug = sqrtf(stPla[0].nA * stPla[0].nA + stPla[0].nB * stPla[0].nB + stPla[0].nC * stPla[0].nC);
 
 	//ścianka dolna, zielona
 	for (uint16_t n=0; n<3; n++)	//dla xyz
@@ -2026,27 +2022,117 @@ uint32_t RysujKostkeObrotu(float *fKat)
 		sWektA[n] = sKostka[5][n] - sKostka[4][n];		//wektor dłuższego boku
 		sWektB[n] = sKostka[7][n] - sKostka[4][n];		//wektor krótszego boku
 	}
-	stPla[1].A = sWektA[1]*sWektB[2] - sWektA[2]*sWektB[1];
-	stPla[1].B = sWektA[2]*sWektB[0] - sWektA[0]*sWektB[2];
-	stPla[1].C = sWektA[0]*sWektB[1] - sWektA[1]*sWektB[0];
-	stPla[1].D = -1*(stPla[1].A * sKostka[7][0] + stPla[1].B * sKostka[7][1] + stPla[1].C * sKostka[7][2]);
-	stPla[1].nDlug = sqrtf(stPla[1].A * stPla[1].A + stPla[1].B * stPla[1].B + stPla[1].C * stPla[1].C);
+	stPla[1].nA = sWektA[1]*sWektB[2] - sWektA[2]*sWektB[1];
+	stPla[1].nB = sWektA[2]*sWektB[0] - sWektA[0]*sWektB[2];
+	stPla[1].nC = sWektA[0]*sWektB[1] - sWektA[1]*sWektB[0];
+	stPla[1].nD = -1*(stPla[1].nA * sKostka[7][0] + stPla[1].nB * sKostka[7][1] + stPla[1].nC * sKostka[7][2]);
+	stPla[1].nDlug = sqrtf(stPla[1].nA * stPla[1].nA + stPla[1].nB * stPla[1].nB + stPla[1].nC * stPla[1].nC);
+
+	/*/for (uint16_t n=0; n<2; n++)	//dla każdej ściany
+	{
+		//znajdź środek ściany górnej
+		for (uint16_t m=0; m<3; m++)	//dla xyz
+		{
+			sMin[m] = 0; 	//inicjalizacja ekstremów
+			sMax[m] = 0;
+
+			//znajdź ekstremalne współrzędne XYZ dla ściany
+			for (uint16_t x=0; x<4; x++)	//dla wszystkich wierzchołków
+			{
+				if (sMin[m] > sKostka[x][m])
+					sMin[m] = sKostka[x][m];
+
+				if (sMax[m] < sKostka[x][m])
+					sMax[m] = sKostka[x][m];
+			}
+		}
+		//wyznacz współrzędne środka ściany
+		for (uint16_t m=0; m<3; m++)	//dla xyz
+		{
+			sSrodek[0][m] = sMin[m] + (sMax[m] - sMin[m]) / 2;
+			//sWektor[0][m] = sPunktRzutowania[m] - sSrodek[0][m];		//licz wektor od środka ściany do punktu zbieżności
+		}
+		sWektor[0][0] = stPla[0].nA;
+		sWektor[0][1] = stPla[0].nB;
+		sWektor[0][2] = stPla[0].nC;
+
+		//znajdź środek ściany dolnej
+		for (uint16_t m=0; m<3; m++)	//dla xyz
+		{
+			sMin[m] = 0; 	//inicjalizacja ekstremów
+			sMax[m] = 0;
+
+			//znajdź ekstremalne współrzędne XYZ dla ściany
+			for (uint16_t x=0; x<4; x++)	//dla wszystkich wierzchołków
+			{
+				if (sMin[m] > sKostka[x+4][m])
+					sMin[m] = sKostka[x+4][m];
+
+				if (sMax[m] < sKostka[x+4][m])
+					sMax[m] = sKostka[x+4][m];
+			}
+		}
+		//wyznacz współrzędne środka ściany
+		for (uint16_t m=0; m<3; m++)	//dla xyz
+		{
+			sSrodek[1][m] = sMin[m] + (sMax[m] - sMin[m]) / 2;
+			//sWektor[1][m] =  sPunktRzutowania[m] - sSrodek[1][m];		//licz wektor od środka ściany do punktu zbieżności
+
+		}
+		sWektor[1][0] = stPla[1].nA;
+		sWektor[1][1] = stPla[1].nB;
+		sWektor[1][2] = stPla[1].nC;
+	}
+
+
+	//wyznacz równanie normalnej do płaszczyzny: https://pl.wikipedia.org/wiki/Normalna
+	// y = - (x - x0)/ (f'(x0)) + y0		gdzie x0, y0 to wspólrzędne środka plaszczyzny */
+
+
+	//obróć o ten sam kat co kostka i rysuj wektory normalne
+/*	setColor(BLUE);
+	float fWektWe[3], fWektWy[3];
+
+	for (uint16_t n=0; n<2; n++)
+	{
+		for (uint16_t m=0; m<3; m++)
+			fWektWe[m] = sWektor[n][m];
+		ObrocWektor(fWektWe, fWektWy, fKat);
+		for (uint16_t m=0; m<3; m++)
+			sWektA[m] = (int16_t)fWektWy[m];	//konwersja z float na int16_t
+
+		drawLine(sSrodek[n][0] + DISP_X_SIZE/2, sSrodek[n][1] + DISP_Y_SIZE/2, sWektA[0], sWektA[1]);
+	} */
+
+
+
+
+
+	//We współrzędnych oka tylny wielokąt może być zidentyfikowany przez nieujemny iloczyn skalarny normalnej powierzchni i wektora od punktu zbieżności do dowolnego punktu wielokąta.
+	//Iloczyn skalarny jest: dodatni dla tylnego wielokąta, zerowy dla wielokąta widzianego jako krawędź
+
+	//za wektor normalny do ściany przyjmuję krawędź prostopadłą wychodzącą z narożnika w stronę środka
+	for (uint16_t m=0; m<3; m++)	//dla xyz
+	{
+		sWektor[0][m] = sKostka[0][m] - sKostka[4][m];
+		sWektorRzutowania[0][m] = sKostka[0][m] - sPunktRzutowania[m];
+		sWektor[1][m] = sKostka[4][m] - sKostka[0][m];
+		sWektorRzutowania[1][m] = sKostka[4][m] - sPunktRzutowania[m];
+	}
+
+
+	//liczę iloczyn skalarny między wektorem normalnym płaszczyzny a [DISP_X_SIZE/2, DISP_Y_SIZE/2, 1000]
+	for (uint16_t n=0; n<2; n++)	//dla każdej ściany
+		nIloczynSkalarny[n] = sWektor[n][0] * sWektorRzutowania[n][0] + sWektor[n][1] * sWektorRzutowania[n][1] + sWektor[n][2] * sWektorRzutowania[n][2];
 
 	//oblicz odległość płaszczyzny od punktu na środku ekranu (DISP_X_SIZE/2, DISP_Y_SIZE/2, 1000)
-	for (uint16_t n=0; n<2; n++)	//dla każdej płaszczyzny
-		sOdlPla[n] = (stPla[n].A * DISP_X_SIZE/2 + stPla[n].B * DISP_Y_SIZE/2 + stPla[n].C * 1000 + stPla[n].D) / stPla[n].nDlug;
-
-	//płaszczyzna  górna, czerwona
-	//sOdlPla[0] = (stPla[0].A * DISP_X_SIZE/2 + stPla[0].B * DISP_Y_SIZE/2 + stPla[0].C * 1000 + stPla[0].D) / stPla[0].nDlug;
-
-	//płaszczyzna  dolna, zielona
-	//sOdlPla[1] = (stPla[1].A * DISP_X_SIZE/2 + stPla[1].B * DISP_Y_SIZE/2 + stPla[0].C * 1000 + stPla[1].D) / stPla[1].nDlug;
-
+	//for (uint16_t n=0; n<2; n++)	//dla każdej płaszczyzny
+		//sOdlPla[n] = (stPla[n].nA * DISP_X_SIZE/2 + stPla[n].nB * DISP_Y_SIZE/2 + stPla[n].nC * 1000 + stPla[n].nD) / stPla[n].nDlug;
 
 
 	//rysuj obrys kostki z góry
 	setColor(RED);
-	if (sOdlPla[0] > 0)	//jeżeli odległość górnej płaszczyzny od ekrany jest większa niż dolnej płaszcyzny
+	if (nIloczynSkalarny[0] <= 0)	//jeżeli odległość górnej płaszczyzny od ekrany jest większa niż dolnej płaszcyzny
 	{
 		drawLine(sKostka[0][0] + DISP_X_SIZE/2, sKostka[0][1] + DISP_Y_SIZE/2, sKostka[1][0] + DISP_X_SIZE/2, sKostka[1][1] + DISP_Y_SIZE/2);
 		drawLine(sKostka[1][0] + DISP_X_SIZE/2, sKostka[1][1] + DISP_Y_SIZE/2, sKostka[2][0] + DISP_X_SIZE/2, sKostka[2][1] + DISP_Y_SIZE/2);
@@ -2056,7 +2142,7 @@ uint32_t RysujKostkeObrotu(float *fKat)
 
 	//rysuj obrys kostki z dołu
 	setColor(GREEN);
-	if (sOdlPla[1] < 0)	//jeżeli odległość dolnej płaszczyzny od ekranu jest większa niż górnej płaszczyzny
+	if (nIloczynSkalarny[1] <= 0)	//jeżeli odległość dolnej płaszczyzny od ekranu jest większa niż górnej płaszczyzny
 	{
 		drawLine(sKostka[4][0] + DISP_X_SIZE/2, sKostka[4][1] + DISP_Y_SIZE/2, sKostka[5][0] + DISP_X_SIZE/2, sKostka[5][1] + DISP_Y_SIZE/2);
 		drawLine(sKostka[5][0] + DISP_X_SIZE/2, sKostka[5][1] + DISP_Y_SIZE/2, sKostka[6][0] + DISP_X_SIZE/2, sKostka[6][1] + DISP_Y_SIZE/2);
@@ -2065,45 +2151,6 @@ uint32_t RysujKostkeObrotu(float *fKat)
 	}
 
 	//rysuj linie pionowych ścianek
-	setColor(YELLOW);
-	drawLine(sKostka[0][0] + DISP_X_SIZE/2, sKostka[0][1] + DISP_Y_SIZE/2, sKostka[4][0] + DISP_X_SIZE/2, sKostka[4][1] + DISP_Y_SIZE/2);
-	drawLine(sKostka[1][0] + DISP_X_SIZE/2, sKostka[1][1] + DISP_Y_SIZE/2, sKostka[5][0] + DISP_X_SIZE/2, sKostka[5][1] + DISP_Y_SIZE/2);
-	drawLine(sKostka[2][0] + DISP_X_SIZE/2, sKostka[2][1] + DISP_Y_SIZE/2, sKostka[6][0] + DISP_X_SIZE/2, sKostka[6][1] + DISP_Y_SIZE/2);
-	drawLine(sKostka[3][0] + DISP_X_SIZE/2, sKostka[3][1] + DISP_Y_SIZE/2, sKostka[7][0] + DISP_X_SIZE/2, sKostka[7][1] + DISP_Y_SIZE/2); */
-
-	//oblicz odległość z punktu obserwatora do wierzchołków kostki
-	for (uint16_t n=0; n<8; n++)	//dla każdego wierzchołka
-		sOdlWierzch[n] = sqrtf(powf(sKostka[n][0] - DISP_X_SIZE/2, 2) + powf(sKostka[n][1] - DISP_Y_SIZE/2, 2) + powf(sKostka[n][2] + 1000, 2));
-
-	setColor(RED);
-	//if ((sOdlWierzch[0] < sOdlWierzch[6]) && (sOdlWierzch[1] < sOdlWierzch[7]))
-	if (sOdlWierzch[0] < sOdlWierzch[6])
-		drawLine(sKostka[0][0] + DISP_X_SIZE/2, sKostka[0][1] + DISP_Y_SIZE/2, sKostka[1][0] + DISP_X_SIZE/2, sKostka[1][1] + DISP_Y_SIZE/2);
-	//if ((sOdlWierzch[1] < sOdlWierzch[7]) && (sOdlWierzch[2] < sOdlWierzch[4]))
-	if (sOdlWierzch[1] < sOdlWierzch[7])
-		drawLine(sKostka[1][0] + DISP_X_SIZE/2, sKostka[1][1] + DISP_Y_SIZE/2, sKostka[2][0] + DISP_X_SIZE/2, sKostka[2][1] + DISP_Y_SIZE/2);
-	//if ((sOdlWierzch[2] < sOdlWierzch[4]) && (sOdlWierzch[3] < sOdlWierzch[5]))
-	if (sOdlWierzch[2] < sOdlWierzch[4])
-		drawLine(sKostka[2][0] + DISP_X_SIZE/2, sKostka[2][1] + DISP_Y_SIZE/2, sKostka[3][0] + DISP_X_SIZE/2, sKostka[3][1] + DISP_Y_SIZE/2);
-	//if ((sOdlWierzch[3] < sOdlWierzch[5]) && (sOdlWierzch[0] < sOdlWierzch[6]))
-	if (sOdlWierzch[3] < sOdlWierzch[5])
-		drawLine(sKostka[3][0] + DISP_X_SIZE/2, sKostka[3][1] + DISP_Y_SIZE/2, sKostka[0][0] + DISP_X_SIZE/2, sKostka[0][1] + DISP_Y_SIZE/2);
-
-	setColor(GREEN);
-	//if ((sOdlWierzch[4] < sOdlWierzch[2]) && (sOdlWierzch[5] < sOdlWierzch[3]))
-	if (sOdlWierzch[4] < sOdlWierzch[2])
-		drawLine(sKostka[4][0] + DISP_X_SIZE/2, sKostka[4][1] + DISP_Y_SIZE/2, sKostka[5][0] + DISP_X_SIZE/2, sKostka[5][1] + DISP_Y_SIZE/2);
-	//if ((sOdlWierzch[5] < sOdlWierzch[3]) && (sOdlWierzch[6] < sOdlWierzch[0]))
-	if (sOdlWierzch[5] < sOdlWierzch[3])
-		drawLine(sKostka[5][0] + DISP_X_SIZE/2, sKostka[5][1] + DISP_Y_SIZE/2, sKostka[6][0] + DISP_X_SIZE/2, sKostka[6][1] + DISP_Y_SIZE/2);
-	//if ((sOdlWierzch[6] < sOdlWierzch[0]) && (sOdlWierzch[7] < sOdlWierzch[1]))
-	if (sOdlWierzch[6] < sOdlWierzch[0])
-		drawLine(sKostka[6][0] + DISP_X_SIZE/2, sKostka[6][1] + DISP_Y_SIZE/2, sKostka[7][0] + DISP_X_SIZE/2, sKostka[7][1] + DISP_Y_SIZE/2);
-	//if ((sOdlWierzch[7] < sOdlWierzch[1]) && (sOdlWierzch[4] < sOdlWierzch[2]))
-	if (sOdlWierzch[7] < sOdlWierzch[1])
-		drawLine(sKostka[7][0] + DISP_X_SIZE/2, sKostka[7][1] + DISP_Y_SIZE/2, sKostka[4][0] + DISP_X_SIZE/2, sKostka[4][1] + DISP_Y_SIZE/2);
-
-
 	setColor(YELLOW);
 	drawLine(sKostka[0][0] + DISP_X_SIZE/2, sKostka[0][1] + DISP_Y_SIZE/2, sKostka[4][0] + DISP_X_SIZE/2, sKostka[4][1] + DISP_Y_SIZE/2);
 	drawLine(sKostka[1][0] + DISP_X_SIZE/2, sKostka[1][1] + DISP_Y_SIZE/2, sKostka[5][0] + DISP_X_SIZE/2, sKostka[5][1] + DISP_Y_SIZE/2);
