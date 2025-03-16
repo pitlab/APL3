@@ -242,14 +242,6 @@ void RysujEkran(void)
 
 	case TP_USTAWIENIA:	break;
 
-	case TP_POMIARY_IMU:	PomiaryIMU();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MENU;
-			ZatrzymajTon();
-		}
-		break;
 
 //***************************************************
 	case TP_MULTIMEDIA:			//menu multimediow
@@ -529,6 +521,15 @@ void RysujEkran(void)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_IMU_WROC;
+		}
+		break;
+
+	case TP_POMIARY_IMU:	PomiaryIMU();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_IMU_WROC;
+			ZatrzymajTon();
 		}
 		break;
 
@@ -1334,13 +1335,13 @@ void PomiaryIMU(void)
 
 	//ICM42688
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.1f ", uDaneCM4.dane.fZyroKal1[0]);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fZyroKal1[0]);
 	print(chNapis, 10+8*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f ", uDaneCM4.dane.fZyroKal1[1]);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fZyroKal1[1]);
 	print(chNapis, 10+20*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f ", uDaneCM4.dane.fZyroKal1[2]);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fZyroKal1[2]);
 	print(chNapis, 10+32*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
@@ -1348,13 +1349,13 @@ void PomiaryIMU(void)
 
 	//LSM6DSV
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.1f ", uDaneCM4.dane.fZyroKal2[0]);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fZyroKal2[0]);
 	print(chNapis, 10+8*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f ", uDaneCM4.dane.fZyroKal2[1]);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fZyroKal2[1]);
 	print(chNapis, 10+20*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f ", uDaneCM4.dane.fZyroKal2[2]);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fZyroKal2[2]);
 	print(chNapis, 10+32*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU2] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
@@ -1960,17 +1961,13 @@ uint32_t RysujKostkeObrotu(float *fKat)
 	float fKostkaRob[8][3];
 	int16_t sKostka[8][3];
 	uint32_t nCzas = PobierzCzasT6();
-	//int16_t sOdlWierzch[8];	//odległość wierzchołka od punktu obserwatora
-	//int16_t sSrodek[6][3];	//środki ścianek kostki
-	//int16_t sMin[3], sMax[3];	//minimalne i maksymalne współrzędne ściany kostki
 	stPlas_t stPla[6];
 	int16_t sWektA[3], sWektB[3];
-	//int16_t sOdlPla[6];		//odległość płaszczyzny od punktu
-	int16_t sWektor[6][3];
-	//int16_t sPunktRzutowania[3] = {DISP_X_SIZE/2, DISP_Y_SIZE/2, 500};
-	int16_t sPunktRzutowania[3] = {0, 0, -500};
-	int16_t sWektorRzutowania[6][3];
-	int32_t nIloczynSkalarny[6];	//iloczyn skalarny wektora normalnego płaszczyzny i wektora rzutowania
+	//int16_t sWektor[6][3];
+
+	//int16_t sPunktRzutowania[3] = {0, 0, -500};
+	//int16_t sWektorRzutowania[6][3];
+	//int32_t nIloczynSkalarny[6];	//iloczyn skalarny wektora normalnego płaszczyzny i wektora rzutowania
 
 	for (uint16_t n=0; n<8; n++)
 	{
@@ -2028,91 +2025,12 @@ uint32_t RysujKostkeObrotu(float *fKat)
 	stPla[1].nD = -1*(stPla[1].nA * sKostka[7][0] + stPla[1].nB * sKostka[7][1] + stPla[1].nC * sKostka[7][2]);
 	stPla[1].nDlug = sqrtf(stPla[1].nA * stPla[1].nA + stPla[1].nB * stPla[1].nB + stPla[1].nC * stPla[1].nC);
 
-	/*/for (uint16_t n=0; n<2; n++)	//dla każdej ściany
-	{
-		//znajdź środek ściany górnej
-		for (uint16_t m=0; m<3; m++)	//dla xyz
-		{
-			sMin[m] = 0; 	//inicjalizacja ekstremów
-			sMax[m] = 0;
-
-			//znajdź ekstremalne współrzędne XYZ dla ściany
-			for (uint16_t x=0; x<4; x++)	//dla wszystkich wierzchołków
-			{
-				if (sMin[m] > sKostka[x][m])
-					sMin[m] = sKostka[x][m];
-
-				if (sMax[m] < sKostka[x][m])
-					sMax[m] = sKostka[x][m];
-			}
-		}
-		//wyznacz współrzędne środka ściany
-		for (uint16_t m=0; m<3; m++)	//dla xyz
-		{
-			sSrodek[0][m] = sMin[m] + (sMax[m] - sMin[m]) / 2;
-			//sWektor[0][m] = sPunktRzutowania[m] - sSrodek[0][m];		//licz wektor od środka ściany do punktu zbieżności
-		}
-		sWektor[0][0] = stPla[0].nA;
-		sWektor[0][1] = stPla[0].nB;
-		sWektor[0][2] = stPla[0].nC;
-
-		//znajdź środek ściany dolnej
-		for (uint16_t m=0; m<3; m++)	//dla xyz
-		{
-			sMin[m] = 0; 	//inicjalizacja ekstremów
-			sMax[m] = 0;
-
-			//znajdź ekstremalne współrzędne XYZ dla ściany
-			for (uint16_t x=0; x<4; x++)	//dla wszystkich wierzchołków
-			{
-				if (sMin[m] > sKostka[x+4][m])
-					sMin[m] = sKostka[x+4][m];
-
-				if (sMax[m] < sKostka[x+4][m])
-					sMax[m] = sKostka[x+4][m];
-			}
-		}
-		//wyznacz współrzędne środka ściany
-		for (uint16_t m=0; m<3; m++)	//dla xyz
-		{
-			sSrodek[1][m] = sMin[m] + (sMax[m] - sMin[m]) / 2;
-			//sWektor[1][m] =  sPunktRzutowania[m] - sSrodek[1][m];		//licz wektor od środka ściany do punktu zbieżności
-
-		}
-		sWektor[1][0] = stPla[1].nA;
-		sWektor[1][1] = stPla[1].nB;
-		sWektor[1][2] = stPla[1].nC;
-	}
-
-
-	//wyznacz równanie normalnej do płaszczyzny: https://pl.wikipedia.org/wiki/Normalna
-	// y = - (x - x0)/ (f'(x0)) + y0		gdzie x0, y0 to wspólrzędne środka plaszczyzny */
-
-
-	//obróć o ten sam kat co kostka i rysuj wektory normalne
-/*	setColor(BLUE);
-	float fWektWe[3], fWektWy[3];
-
-	for (uint16_t n=0; n<2; n++)
-	{
-		for (uint16_t m=0; m<3; m++)
-			fWektWe[m] = sWektor[n][m];
-		ObrocWektor(fWektWe, fWektWy, fKat);
-		for (uint16_t m=0; m<3; m++)
-			sWektA[m] = (int16_t)fWektWy[m];	//konwersja z float na int16_t
-
-		drawLine(sSrodek[n][0] + DISP_X_SIZE/2, sSrodek[n][1] + DISP_Y_SIZE/2, sWektA[0], sWektA[1]);
-	} */
-
-
-
-
 
 	//We współrzędnych oka tylny wielokąt może być zidentyfikowany przez nieujemny iloczyn skalarny normalnej powierzchni i wektora od punktu zbieżności do dowolnego punktu wielokąta.
 	//Iloczyn skalarny jest: dodatni dla tylnego wielokąta, zerowy dla wielokąta widzianego jako krawędź
 
 	//za wektor normalny do ściany przyjmuję krawędź prostopadłą wychodzącą z narożnika w stronę środka
-	for (uint16_t m=0; m<3; m++)	//dla xyz
+	/*for (uint16_t m=0; m<3; m++)	//dla xyz
 	{
 		sWektor[0][m] = sKostka[0][m] - sKostka[4][m];
 		sWektorRzutowania[0][m] = sKostka[0][m] - sPunktRzutowania[m];
@@ -2120,19 +2038,13 @@ uint32_t RysujKostkeObrotu(float *fKat)
 		sWektorRzutowania[1][m] = sKostka[4][m] - sPunktRzutowania[m];
 	}
 
-
 	//liczę iloczyn skalarny między wektorem normalnym płaszczyzny a [DISP_X_SIZE/2, DISP_Y_SIZE/2, 1000]
 	for (uint16_t n=0; n<2; n++)	//dla każdej ściany
-		nIloczynSkalarny[n] = sWektor[n][0] * sWektorRzutowania[n][0] + sWektor[n][1] * sWektorRzutowania[n][1] + sWektor[n][2] * sWektorRzutowania[n][2];
-
-	//oblicz odległość płaszczyzny od punktu na środku ekranu (DISP_X_SIZE/2, DISP_Y_SIZE/2, 1000)
-	//for (uint16_t n=0; n<2; n++)	//dla każdej płaszczyzny
-		//sOdlPla[n] = (stPla[n].nA * DISP_X_SIZE/2 + stPla[n].nB * DISP_Y_SIZE/2 + stPla[n].nC * 1000 + stPla[n].nD) / stPla[n].nDlug;
-
+		nIloczynSkalarny[n] = sWektor[n][0] * sWektorRzutowania[n][0] + sWektor[n][1] * sWektorRzutowania[n][1] + sWektor[n][2] * sWektorRzutowania[n][2]; */
 
 	//rysuj obrys kostki z góry
 	setColor(RED);
-	if (nIloczynSkalarny[0] <= 0)	//jeżeli odległość górnej płaszczyzny od ekrany jest większa niż dolnej płaszcyzny
+	//if (nIloczynSkalarny[0] <= 0)	//jeżeli odległość górnej płaszczyzny od ekrany jest większa niż dolnej płaszcyzny
 	{
 		drawLine(sKostka[0][0] + DISP_X_SIZE/2, sKostka[0][1] + DISP_Y_SIZE/2, sKostka[1][0] + DISP_X_SIZE/2, sKostka[1][1] + DISP_Y_SIZE/2);
 		drawLine(sKostka[1][0] + DISP_X_SIZE/2, sKostka[1][1] + DISP_Y_SIZE/2, sKostka[2][0] + DISP_X_SIZE/2, sKostka[2][1] + DISP_Y_SIZE/2);
@@ -2142,7 +2054,7 @@ uint32_t RysujKostkeObrotu(float *fKat)
 
 	//rysuj obrys kostki z dołu
 	setColor(GREEN);
-	if (nIloczynSkalarny[1] <= 0)	//jeżeli odległość dolnej płaszczyzny od ekranu jest większa niż górnej płaszczyzny
+	//if (nIloczynSkalarny[1] <= 0)	//jeżeli odległość dolnej płaszczyzny od ekranu jest większa niż górnej płaszczyzny
 	{
 		drawLine(sKostka[4][0] + DISP_X_SIZE/2, sKostka[4][1] + DISP_Y_SIZE/2, sKostka[5][0] + DISP_X_SIZE/2, sKostka[5][1] + DISP_Y_SIZE/2);
 		drawLine(sKostka[5][0] + DISP_X_SIZE/2, sKostka[5][1] + DISP_Y_SIZE/2, sKostka[6][0] + DISP_X_SIZE/2, sKostka[6][1] + DISP_Y_SIZE/2);
