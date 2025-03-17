@@ -338,6 +338,11 @@ uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib)
 		}
 		break;
 
+	case POL_KALIBRUJ_ZYRO_WZM:
+		uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KALW_ZYRO;		//uruchom kalibrację wzmocnienia żyroskopów
+		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;
+		break;
+
 	default: return ERR_ZLE_POLECENIE;
 	}
 

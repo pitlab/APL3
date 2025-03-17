@@ -22,9 +22,10 @@
 
 //definicje poleceń przekazywanych z CM7 do CM4
 #define POL_NIC					0	//nic nie rób
-#define POL_KALIBRUJ_ZYRO_ZIM	1	//uruchom kalibrację żyroskopów na zimno 10°C
-#define POL_KALIBRUJ_ZYRO_POK	2	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
-#define POL_KALIBRUJ_ZYRO_GOR	3	//uruchom kalibrację żyroskopów na gorąco 40°C
+#define POL_KALIBRUJ_ZYRO_ZIM	1	//uruchom kalibrację zera żyroskopów na zimno 10°C
+#define POL_KALIBRUJ_ZYRO_POK	2	//uruchom kalibrację zera żyroskopów w temperaturze pokojowej 25°C
+#define POL_KALIBRUJ_ZYRO_GOR	3	//uruchom kalibrację zera żyroskopów na gorąco 40°C
+#define POL_KALIBRUJ_ZYRO_WZM	4	//uruchom kalibrację wzmocnienia żyroskopów
 
 #define POL_KALIBRUJ_MAGN1		8	//uruchom kalibrację magnetometru 1
 #define POL_KALIBRUJ_MAGN2		9	//uruchom kalibrację magnetometru 2

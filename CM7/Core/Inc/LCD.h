@@ -31,5 +31,7 @@ void WyswietlParametryKartySD(void);
 void TestKartySD(void);
 void WyswietlRejestratorKartySD(void);
 void PobierzKodBleduFAT(uint8_t chKodBleduFAT, char* chNapis);
+void RysujPasekPostepu(void);
 uint32_t RysujKostkeObrotu(float *fKat);
+void KalibracjaWzmocnieniaZyroskopow(void);
 #endif /* INC_LCD_H_ */

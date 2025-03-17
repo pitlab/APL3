@@ -164,15 +164,15 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 
 struct tmenu stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Zyro Zimno", 	"Kalibracja zyroskopow w 10C",				TPKAL_ZYRO_ZIM,		obr_baczek},
-	{"Zyro Pokoj", 	"Kalibracja zyroskopow w 25C",				TPKAL_ZYRO_POK,		obr_baczek},
-	{"Zyro Gorac", 	"Kalibracja zyroskopow w 40C",				TPKAL_ZYRO_GOR,		obr_baczek},
-	{"Akcel 2D",	"Kalibracja akcelerometrow 2D",				TPKAL_AKCEL_2D,		obr_kontrolny},
-	{"Akcel 3D",	"Kalibracja akcelerometrow 3D",				TPKAL_AKCEL_3D,		obr_kontrolny},
+	{"Zyro Zimno", 	"Kalibracja zera zyroskopow w 10C",			TP_KAL_ZYRO_ZIM,	obr_baczek},
+	{"Zyro Pokoj", 	"Kalibracja zera zyroskopow w 25C",			TP_KAL_ZYRO_POK,	obr_baczek},
+	{"Zyro Gorac", 	"Kalibracja zera zyroskopow w 40C",			TP_KAL_ZYRO_GOR,	obr_baczek},
+	{"Zyro Wzm", 	"Kalibracja wzmocnienia zyroskopow",		TP_KAL_ZYRO_WZM,	obr_baczek},
+	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
+	{"Akcel 2D",	"Kalibracja akcelerometrow 2D",				TP_KAL_AKCEL_2D,	obr_kontrolny},
+	{"Akcel 3D",	"Kalibracja akcelerometrow 3D",				TP_KAL_AKCEL_3D,	obr_kontrolny},
 	{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katów IMU",		TP_IMU_KOSTKA,		obr_kostka3D},
 	{"Kostka Sym", 	"Symulacja ruchu kostki",					TP_IMU_KOSTKA_SYM,	obr_kostka3D},
-	{"IMU8",	 	"nic",										TP_IMU8,			obr_kontrolny},
-	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
@@ -417,7 +417,7 @@ void RysujEkran(void)
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
-	case TPKAL_ZYRO_ZIM:
+	case TP_KAL_ZYRO_ZIM:
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_ZIM;	//uruchom kalibrację żyroskopów na zimno 10°C
 		fTemperaturaKalibracji = TEMP_KAL_ZIMNO;
 		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI_ZYROSKOPU))
@@ -430,7 +430,7 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TPKAL_ZYRO_POK:
+	case TP_KAL_ZYRO_POK:
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_POK;	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
 		fTemperaturaKalibracji = TEMP_KAL_POKOJ;
 		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI_ZYROSKOPU))
@@ -443,7 +443,7 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TPKAL_ZYRO_GOR:
+	case TP_KAL_ZYRO_GOR:
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_GOR;	//uruchom kalibrację żyroskopów na gorąco 40°C
 		fTemperaturaKalibracji = TEMP_KAL_GORAC;
 		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI_ZYROSKOPU))
@@ -490,8 +490,8 @@ void RysujEkran(void)
 		break;
 
 
-	case TPKAL_AKCEL_2D:
-	case TPKAL_AKCEL_3D:
+	case TP_KAL_AKCEL_2D:
+	case TP_KAL_AKCEL_3D:
 		chTrybPracy = TP_PODGLAD_IMU;
 				break;
 
@@ -533,7 +533,15 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TP_IMU8:
+	case TP_KAL_ZYRO_WZM:
+		KalibracjaWzmocnieniaZyroskopow();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_IMU_WROC;
+		}
+		break;
+
 	case TP_IMU9:
 		chTrybPracy = TP_PODGLAD_IMU;
 		break;
@@ -1506,6 +1514,18 @@ void PomiaryIMU(void)
 	//print(chNapis, 10, 300);
 
 	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI_ZYROSKOPU do zera
+	RysujPasekPostepu();
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje pasek postepu procesu rdzenia CM4 na dole ekranu
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujPasekPostepu(void)
+{
 	uint16_t x = (uDaneCM4.dane.sPostepProcesu * DISP_X_SIZE) / CZAS_KALIBRACJI_ZYROSKOPU;
 	if (x)	//nie rysuj paska jeżeli ma zerową długość
 	{
@@ -2080,4 +2100,39 @@ uint32_t RysujKostkeObrotu(float *fKat)
 	sprintf(chNapis, "t=%ldus, phi=%.1f, theta=%.1f, psi=%.1f ", nCzas, fKat[0]*RAD2DEG, fKat[1]*RAD2DEG, fKat[2]*RAD2DEG);
 	print(chNapis, 0, 0);
 	return nCzas;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje ekran dla kalibracji wzmocnienia żyroskopów
+// Parametry:
+// Zwraca:
+////////////////////////////////////////////////////////////////////////////////
+void KalibracjaWzmocnieniaZyroskopow(void)
+{
+	static uint8_t chSekwencerKalWzmZyro;
+	char chNazwaOsi;
+
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Kalibr. wzmocnienia zyro");
+	}
+
+
+	//sekwencer kalibracji
+	//wyświetl libelkę dla każdej osi
+	switch (chSekwencerKalWzmZyro)
+	{
+	case SEKW_KAL_WZM_ZYRO_X:	chNazwaOsi = 'X';	break;
+	case SEKW_KAL_WZM_ZYRO_Y:	chNazwaOsi = 'Y';	break;
+	case SEKW_KAL_WZM_ZYRO_Z:	chNazwaOsi = 'Z';	break;
+
+	}
+	setColor(YELLOW);
+	sprintf(chNapis, "Wykonaj 5 obrot%cw dooko%ca osi %c", ó, ł, chNazwaOsi);
+	print(chNapis, CENTER, 20);
+
+	RysujPasekPostepu();
 }

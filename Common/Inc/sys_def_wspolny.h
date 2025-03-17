@@ -15,9 +15,10 @@
 #define INIT_P0_BMP851		0x00002000	//ustawiono ciśnienie P0 dla czujnika 2
 #define INIT_P0_ND140		0x00004000	//wyzerowano prędkość dla ND130
 #define INIT_P0_MS4525		0x00008000	//wyzerowano prędkość dla MS4525
-#define INIT_TRWA_KALZ_ZYRO	0x00010000	//trwa kalibracj żyroskopu na zimno
-#define INIT_TRWA_KALP_ZYRO	0x00020000	//trwa kalibracj żyroskopu w temp. pokojowej
-#define INIT_TRWA_KALG_ZYRO	0x00040000	//trwa kalibracj żyroskopu na gorąco
+#define INIT_TRWA_KALZ_ZYRO	0x00010000	//trwa kalibracj zera żyroskopu na zimno
+#define INIT_TRWA_KALP_ZYRO	0x00020000	//trwa kalibracj zera żyroskopu w temp. pokojowej
+#define INIT_TRWA_KALG_ZYRO	0x00040000	//trwa kalibracj zera żyroskopu na gorąco
+#define INIT_TRWA_KALW_ZYRO	0x00080000	//trwa kalibracj wzmocnienia żyroskopu
 
 #define RAD2DEG				(180/M_PI)
 #define DEG2RAD				(M_PI/180)
@@ -42,5 +43,8 @@
 
 #define CZAS_KALIBRACJI_ZYROSKOPU		1000	//obiegów pętli głównej po 5ms
 
-
+//definicje sekwencera kalibracji wzmocnienia żyro
+#define SEKW_KAL_WZM_ZYRO_X		0
+#define SEKW_KAL_WZM_ZYRO_Y		1
+#define SEKW_KAL_WZM_ZYRO_Z		2
 

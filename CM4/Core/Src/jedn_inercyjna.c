@@ -72,15 +72,18 @@ void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
 		uDaneCM4.dane.fKatIMUZyro1[n] +=  uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[rad/s] * [us / 1000000] => [rad]
 		uDaneCM4.dane.fKatIMUZyro2[n] +=  uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
 
-		//ogranicz przyrost kąta do +-Pi
-		if (uDaneCM4.dane.fKatIMUZyro1[n] > M_PI)
-			uDaneCM4.dane.fKatIMUZyro1[n] = -M_PI;
-		if (uDaneCM4.dane.fKatIMUZyro1[n] < -M_PI)
-			uDaneCM4.dane.fKatIMUZyro1[n] = M_PI;
-		if (uDaneCM4.dane.fKatIMUZyro2[n] > M_PI)
-			uDaneCM4.dane.fKatIMUZyro2[n] = -M_PI;
-		if (uDaneCM4.dane.fKatIMUZyro2[n] < -M_PI)
-			uDaneCM4.dane.fKatIMUZyro2[n] = M_PI;
+		if ((uDaneCM4.dane.nZainicjowano & INIT_TRWA_KALW_ZYRO) != INIT_TRWA_KALW_ZYRO)		//w czasie kalibracji wzmocnienia nie ograniczaj przyrostu kąta
+		{
+			//ogranicz przyrost kąta do +-Pi
+			if (uDaneCM4.dane.fKatIMUZyro1[n] > M_PI)
+				uDaneCM4.dane.fKatIMUZyro1[n] = -M_PI;
+			if (uDaneCM4.dane.fKatIMUZyro1[n] < -M_PI)
+				uDaneCM4.dane.fKatIMUZyro1[n] = M_PI;
+			if (uDaneCM4.dane.fKatIMUZyro2[n] > M_PI)
+				uDaneCM4.dane.fKatIMUZyro2[n] = -M_PI;
+			if (uDaneCM4.dane.fKatIMUZyro2[n] < -M_PI)
+				uDaneCM4.dane.fKatIMUZyro2[n] = M_PI;
+		}
 	}
 
 	//kąt przechylenia z akcelerometru: tan(Z/Y)
