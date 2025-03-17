@@ -34,6 +34,6 @@ typedef struct
 // Dla funkcji f(x) = Ax + B funkcja minimalizacyjna to Suma(od i=1 do n) (yi - Axi - B)^2 / (delta i)^2
 void MNK(stPunkt16_t* punkty, uint16_t sLiczbaPunktow)
 {
-	int32_t nSumX, nSumY, nSumX2, nSumY2, nSum;
+	//int32_t nSumX, nSumY, nSumX2, nSumY2, nSum;
 
 }

@@ -26,7 +26,6 @@
 #define POL_KALIBRUJ_ZYRO_POK	2	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
 #define POL_KALIBRUJ_ZYRO_GOR	3	//uruchom kalibrację żyroskopów na gorąco 40°C
 
-
 #define POL_KALIBRUJ_MAGN1		8	//uruchom kalibrację magnetometru 1
 #define POL_KALIBRUJ_MAGN2		9	//uruchom kalibrację magnetometru 2
 #define POL_KALIBRUJ_MAGN3		10	//uruchom kalibrację magnetometru 3
@@ -52,12 +51,12 @@ typedef struct _GNSS
 //typedef struct _stWymianyCM4
 typedef struct
 {
-	float fAkcel1[3];
-	float fAkcel2[3];
-	float fZyroSur1[3];	//żyroskop surowy - potrzebne do kalibracji i wyznaczania charakterystyki dryftu
-	float fZyroSur2[3];
-	float fZyroKal1[3];
-	float fZyroKal2[3];	//żyroskop skalibrowany
+	float fAkcel1[3];		//[m/s^2]
+	float fAkcel2[3];		//[m/s^2]
+	float fZyroSur1[3];		//[rad/s]
+	float fZyroSur2[3];		//żyroskop surowy - potrzebne do kalibracji i wyznaczania charakterystyki dryftu
+	float fZyroKal1[3];		//[rad/s]
+	float fZyroKal2[3];		//żyroskop skalibrowany
 	int16_t sMagne1[3];
 	int16_t sMagne2[3];
 	int16_t sMagne3[3];
@@ -69,9 +68,9 @@ typedef struct
 	float fKatIMUAkcel2[3];
 	float fCisnie[2];		//[Pa]
 	float fWysoko[2];		//[m]
-	float fCisnRozn[2];	//0=ND130, 1=MS2545
+	float fCisnRozn[2];		//0=ND130, 1=MS2545
 	float fPredkosc[2];		//[m/s]
-	float fTemper[7];	//0=MS5611, 1=BMP851, 2=ICM42688 [K], 3=LSM6DSV [K], 4=IIS2MDC, 5=ND130, 6=MS2545
+	float fTemper[7];		//0=MS5611, 1=BMP851, 2=ICM42688 [K], 3=LSM6DSV [K], 4=IIS2MDC, 5=ND130, 6=MS2545
 	uint16_t sSerwa[16];
 	uint8_t chErrPetliGlownej;
 	uint8_t chOdpowiedzNaPolecenie;

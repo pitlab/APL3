@@ -20,7 +20,7 @@ extern uint8_t retSD;    /* Return value for SD */
 extern char SDPath[4];   /* SD logical drive path */
 extern FATFS SDFatFS;    /* File system object for SD logical drive */
 extern FIL SDFile;       /* File object for SD */
-extern uint8_t chPorty_exp_odbierane[LICZBA_EXP_SPI_ZEWN];
+
 extern volatile unia_wymianyCM4_t uDaneCM4;
 ALIGN_32BYTES(uint8_t aTxBuffer[_MAX_SS]);
 ALIGN_32BYTES(uint8_t aRxBuffer[_MAX_SS]);
@@ -92,849 +92,807 @@ uint8_t ObslugaPetliRejestratora(void)
 {
 	chBufZapisuKarty[0] = 0;	//ustaw pusty bufor
 
-	if ((chPorty_exp_odbierane[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty
+	if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
 	{
-		if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
+
+		//czas
+		if (nKonfLogera[0] & KLOG1_CZAS)
 		{
-			if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Czas [g:m:s.ss];", MAX_ROZMIAR_WPISU_LOGU);
+			else
 			{
-				//czas
-				if (nKonfLogera[0] & KLOG1_CZAS)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Czas [g:m:s.ss];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-						HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-
-						uint32_t nSetneSekundy;
-						nSetneSekundy = 100 * sTime.SubSeconds / sTime.SecondFraction;
-						sprintf(chBufPodreczny, "%02d:%02d:%02d.%02ld;", sTime.Hours,  sTime.Minutes,  sTime.Seconds, nSetneSekundy);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//Ciśnienie czujnika 1
-				if (nKonfLogera[0] & KLOG1_PRES1)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Cisnienie1 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCisnie[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//Ciśnienie czujnika 2
-				if (nKonfLogera[0] & KLOG1_PRES2)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Cisnienie2 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCisnie[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//Wysokość czujnika ciśnienia 1
-				if (nKonfLogera[0] & KLOG1_AMSL1)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Wysokosc1 [m];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fWysoko[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//Wysokość czujnika ciśnienia 2
-				if (nKonfLogera[0] & KLOG1_AMSL2)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Wysokosc2 [m];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fWysoko[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//Ciśnienie różnicowe czujnika 1
-				if (nKonfLogera[1] & KLOG2_CISROZ1)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "CisnRozn1 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fCisnRozn[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//Ciśnienie różnicowe czujnika 2
-				if (nKonfLogera[1] & KLOG2_CISROZ2)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "CisnRozn2 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fCisnRozn[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//temperatura czujnika ciśnienia różnicowego 1
-				if (nKonfLogera[1] & KLOG2_TEMPCISR1)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "TempCisnRozn1 [K];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_CISR1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//temperatura czujnika ciśnienia różnicowego 2
-				if (nKonfLogera[1] & KLOG2_TEMPCISR2)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "TempCisnRozn2 [K];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_CISR2]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-
-
-				//Prędkość wzgledem powietrza czujnika różnicowego 1
-				if (nKonfLogera[0] & KLOG1_IAS1)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "IAS1 [m/s];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fPredkosc[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//Prędkość wzgledem powietrza czujnika różnicowego 2
-				if (nKonfLogera[0] & KLOG1_IAS2)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "IAS2 [m/s];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fPredkosc[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-//---------------------------------------------
-
-				//prędkość obrotowa P żyroskopu 1
-				if (nKonfLogera[0] & KLOG1_ZYRO1P)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					{
-						//sprintf(chBufPodreczny, "Zyro1 X [%c/s];", '°');
-						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "ZyroKal1P [°/s];", MAX_ROZMIAR_WPISU_LOGU);
-					}
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroKal1[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//prędkość obrotowa Q żyroskopu 1
-				if (nKonfLogera[0] & KLOG1_ZYRO1Q)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					{
-						//sprintf(chBufPodreczny, "Zyro1 Y [%c/s];", '°');
-						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "ZyroKal1Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
-					}
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroKal1[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//prędkość obrotowa R żyroskopu 1
-				if (nKonfLogera[0] & KLOG1_ZYRO1R)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					{
-						//sprintf(chBufPodreczny, "Zyro1 Z [%c/s];", '°');
-						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "ZyroKal1R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
-					}
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroKal1[2]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//prędkość obrotowa P żyroskopu 2
-				if (nKonfLogera[0] & KLOG1_ZYRO2P)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					{
-						//sprintf(chBufPodreczny, "Zyro2 X [%c/s];", '°');
-						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "ZyroKal2P [°/s];", MAX_ROZMIAR_WPISU_LOGU);
-					}
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroKal2[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//prędkość obrotowa Q żyroskopu 2
-				if (nKonfLogera[0] & KLOG1_ZYRO2Q)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					{
-						//sprintf(chBufPodreczny, "Zyro2 Y [%c/s];", '°');
-						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "ZyroKal2Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
-					}
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroKal2[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//prędkość obrotowa R żyroskopu 2
-				if (nKonfLogera[0] & KLOG1_ZYRO2R)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					{
-						//sprintf(chBufPodreczny, "Zyro2 Z [%c/s];", '°');
-						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "ZyroKal2R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
-					}
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroKal2[2]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-//---------------------------
-				//przyspieszenie w osi X akcelerometru 1
-				if (nKonfLogera[0] & KLOG1_AKCEL1X)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Akcel1X [g];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fAkcel1[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//przyspieszenie w osi Y akcelerometru 1
-				if (nKonfLogera[0] & KLOG1_AKCEL1Y)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Akcel1Y [g];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fAkcel1[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//przyspieszenie w osi Z akcelerometru 1
-				if (nKonfLogera[0] & KLOG1_AKCEL1Z)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Akcel1Z [g];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fAkcel1[2]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//przyspieszenie w osi X akcelerometru 2
-				if (nKonfLogera[0] & KLOG1_AKCEL2X)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Akcel2X [g];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fAkcel2[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//przyspieszenie w osi Y akcelerometru 2
-				if (nKonfLogera[0] & KLOG1_AKCEL2Y)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Akcel2Y [g];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fAkcel2[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//przyspieszenie w osi Z akcelerometru 2
-				if (nKonfLogera[0] & KLOG1_AKCEL2Z)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Akcel2Z [g];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.3f;", uDaneCM4.dane.fAkcel2[2]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-
-				//temperatura czujnika ciśnienia 1
-				if (nKonfLogera[0] & KLOG1_TEMPBARO1)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "TempBaro1 [K];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_BARO1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-
-				//temperatura IMU1
-				if (nKonfLogera[0] & KLOG1_TEMPIMU1)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "TempIMU1 [K];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_IMU1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//temperatura IMU2
-				if (nKonfLogera[0] & KLOG1_TEMPIMU2)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "TempIMU2 [K];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_IMU2]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-//---------------------------
-
-				//składowa magnetyczna w osi X magnetometru 1
-				if (nKonfLogera[0] & KLOG1_MAG1X)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Magn1X [-];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne1[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//składowa magnetyczna w osi Y magnetometru 1
-				if (nKonfLogera[0] & KLOG1_MAG1Y)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Magn1Y [-];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne1[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//składowa magnetyczna w osi Z magnetometru 1
-				if (nKonfLogera[0] & KLOG1_MAG1Z)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Magn1Z [-];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne1[2]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//składowa magnetyczna w osi X magnetometru 2
-				if (nKonfLogera[0] & KLOG1_MAG2X)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Magn2X [-];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne2[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//składowa magnetyczna w osi Y magnetometru 2
-				if (nKonfLogera[0] & KLOG1_MAG2Y)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Magn2Y [-];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne2[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//składowa magnetyczna w osi Z magnetometru 2
-				if (nKonfLogera[0] & KLOG1_MAG2Z)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "Magn2- [-];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne2[2]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-
-
-
-				//Magnetometr3 X
-				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					strncat(chBufZapisuKarty, "Magn3X [-];", MAX_ROZMIAR_WPISU_LOGU);
-				else
-				{
-					sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne3[0]);
-					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-				}
-
-				//Magnetometr3 Y
-				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					strncat(chBufZapisuKarty, "Magn3Y [-];", MAX_ROZMIAR_WPISU_LOGU);
-				else
-				{
-					sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne3[1]);
-					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-				}
-
-				//Magnetometr3 Z
-				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					strncat(chBufZapisuKarty, "Magn3Z [-];", MAX_ROZMIAR_WPISU_LOGU);
-				else
-				{
-					sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne3[2]);
-					strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-				}
-
-
-//---------------------------
-
-
-
-//----------------- GNSS --------------------------------
-				//Szerokość geograficzna z GPS
-				if (nKonfLogera[1] & KLOG2_GLONG)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					{
-						//sprintf(chBufPodreczny, "SzerokoscGeo [%c];", '°');
-						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "SzerokoscGeo [°];", MAX_ROZMIAR_WPISU_LOGU);
-					}
-					else
-					{
-						sprintf(chBufPodreczny, "%.6f;", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//Długość geograficzna z GPS
-				if (nKonfLogera[1] & KLOG2_GLATI)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					{
-						//sprintf(chBufPodreczny, "DlugoscGeo [%c];", '°');
-						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty,  "DlugoscGeo [°];", MAX_ROZMIAR_WPISU_LOGU);
-					}
-					else
-					{
-						sprintf(chBufPodreczny, "%.6f;", uDaneCM4.dane.stGnss1.dDlugoscGeo);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//wysokość n.p.m. z GPS
-				if (nKonfLogera[1] & KLOG2_GALTI)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "WysokoscGPS [mnpm];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.stGnss1.fWysokoscMSL);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//prędkość wzgledem ziemi z GPS
-				if (nKonfLogera[1] & KLOG2_GSPED)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "PredWzgZiemi [m/s];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//kurs względem ziemi z GPS
-				if (nKonfLogera[1] & KLOG2_GCURS)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					{
-						//sprintf(chBufPodreczny, "Kurs [%c];", '°');
-						//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-						strncat(chBufZapisuKarty, "KursGeo [°];", MAX_ROZMIAR_WPISU_LOGU);
-					}
-					else
-					{
-						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fKurs);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//liczba widocznych satelitów / Fix
-				if (nKonfLogera[1] & KLOG2_GSATS)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "LiczbaSat/Fix;", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%d/%d;", uDaneCM4.dane.stGnss1.chLiczbaSatelit, uDaneCM4.dane.stGnss1.chFix);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//Vertical Dilution of Precision
-				if (nKonfLogera[1] & KLOG2_GVDOP)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "VDOP [m];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fVdop);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//Horizontal Dilution of Precision
-				if (nKonfLogera[1] & KLOG2_GHDOP)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "HDOP [m];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fHdop);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//niefiltrowana prędkość z GPS w kierunku północnym
-				if (nKonfLogera[1] & KLOG2_GSPD_N)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "PredGPS_N [m/s];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi * cosf(uDaneCM4.dane.stGnss1.fKurs * DEG2RAD));		//sprawdzić!
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//niefiltrowana prędkość z GPS w kierunku wschodnim
-				if (nKonfLogera[1] & KLOG2_GSPD_E)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "PredGPS_E [m/s];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi * sinf(uDaneCM4.dane.stGnss1.fKurs * DEG2RAD));		//sprawdzić!
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//surowa prędkość obrotowa P żyroskopu 1
-				if (nKonfLogera[0] & KLOG2_ZYROSUR1P)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "ZyroSur1P [°/s];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//surowa prędkość obrotowa Q żyroskopu 1
-				if (nKonfLogera[0] & KLOG2_ZYROSUR1Q)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "ZyroSur1Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//surowa prędkość obrotowa R żyroskopu 1
-				if (nKonfLogera[0] & KLOG2_ZYROSUR1R)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "ZyroSur1R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur1[2]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//surowa prędkość obrotowa P żyroskopu 2
-				if (nKonfLogera[0] & KLOG2_ZYROSUR2P)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "ZyroSur2P [°/s];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//surowa prędkość obrotowa Q żyroskopu 2
-				if (nKonfLogera[0] & KLOG2_ZYROSUR2Q)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "ZyroSur2Q [°/s];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//surowa prędkość obrotowa R żyroskopu 2
-				if (nKonfLogera[0] & KLOG2_ZYROSUR2R)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "ZyroSur2R [°/s];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fZyroSur2[2]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-
-//----------------- IMU --------------------------------
-				//kąt phi wektora inercji
-				if (nKonfLogera[2] & KLOG3_KATPHI)
-				{
-
-				}
-
-				//kąt theta wektora inercji
-				if (nKonfLogera[2] & KLOG3_KATTHE)
-				{
-
-				}
-
-				//kąt psi wektora inercji
-				if (nKonfLogera[2] & KLOG3_KATPSI)
-				{
-
-				}
-
-				//kąt phi obliczony na podstawie danych z akcelerometru
-				if (nKonfLogera[2] & KLOG3_KATPHIA)
-				{
-
-				}
-
-				//kąt theta obliczony na podstawie danych z akcelerometru
-				if (nKonfLogera[2] & KLOG3_KATTHEA)
-				{
-
-				}
-
-				//kąt psi obliczony na podstawie danych z magnetometru
-				if (nKonfLogera[2] & KLOG3_KATPSIM)
-				{
-
-				}
-
-				//kąt phi obliczony jako całka prędkości P z żyroskopu
-				if (nKonfLogera[2] & KLOG3_KATPHIZ)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "PhiZyro1 [°];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro1[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "PhiZyro2 [°];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro2[0]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//kąt theta obliczony jako całka prędkości Q z żyroskopu
-				if (nKonfLogera[2] & KLOG3_KATTHEZ)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "ThetaZyro1 [°];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro1[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "ThetaZyro2 [°];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro2[1]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-				//kąt psi obliczony jako całka prędkości R z żyroskopu
-				if (nKonfLogera[2] & KLOG3_KATPSIZ)
-				{
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "PsiZyro1 [°];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro1[2]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-
-					if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-						strncat(chBufZapisuKarty, "PsiZyro2 [°];", MAX_ROZMIAR_WPISU_LOGU);
-					else
-					{
-						sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fKatIMUZyro2[2]);
-						strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-					}
-				}
-
-
-				//jeżeli był zapisywany nagłówek to przejdź do zapisu danych
-				if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					chStatusRejestratora &= ~ STATREJ_ZAPISZ_NAGLOWEK;
-
-
-				//sprawdź poziom zapełnienia bufora logu
-				sDlugoscWierszaLogu = strlen(chBufZapisuKarty);
-				if (sDlugoscWierszaLogu > sMaxDlugoscWierszaLogu)
-					sMaxDlugoscWierszaLogu = sDlugoscWierszaLogu;
-				if (sDlugoscWierszaLogu > ROZMIAR_BUFORA_LOGU)
-					Error_Handler();
-				strncat(chBufZapisuKarty, "\n", 2);	//znak końca wiersza
-
-				f_puts(chBufZapisuKarty, &SDFile);	//zapis do pliku
-
-				//co określoną liczbę zapisów zrób sync aby nie utracić danych w przypadku braku formalnego zakończenia logowania
-				if (chTimerSync)
-					chTimerSync--;
-				else
-				{
-					chTimerSync = WPISOW_NA_SYNC;
-					f_sync(&SDFile);				//Flush cached data of the writing file
-				}
-			}
-			else	//jeżei plik nie jest otwarty to go otwórz
-			{
-				FRESULT fres;
 				HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 				HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-				sprintf(chBufPodreczny, "%04d%02d%02d_%02d%02d%02d_APL3.csv",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
-				fres = f_open(&SDFile, chBufPodreczny, FA_OPEN_ALWAYS | FA_WRITE);
-				if (fres == FR_OK)
-					chStatusRejestratora |= STATREJ_OTWARTY_PLIK | STATREJ_ZAPISZ_NAGLOWEK;
-				sMaxDlugoscWierszaLogu = 0;
-				chTimerSync = WPISOW_NA_SYNC;
-			}
-		}
-		else	//jeżeli FAT nie jest gotowy to go zamontuj
-		{
-			DSTATUS status;
-			FRESULT fres;
 
-			hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
-			status = SD_initialize(0);
-			if (status == RES_OK)
-			{
-				fres = f_mount(&SDFatFS, SDPath, 1);
-				if (fres == FR_OK)
-				{
-					chStatusRejestratora |= STATREJ_FAT_GOTOWY;
-					//fres = f_open(&SDFile, "abc.txt", FA_OPEN_EXISTING | FA_READ | FA_WRITE);
-					//if (fres == FR_OK)
-					//{
-						//f_gets(chBufZapisuKarty, ROZMIAR_BUFORA_LOGU, &SDFile);
-						//f_close(&SDFile);
-					//}
-				}
-				else
-				{
-					//jeżeli nie udało sie zamontować FAT to utwórz go ponownie
-					DWORD au = _MAX_SS;
-					fres = f_mkfs(SDPath, FM_FAT32, au, aTxBuffer, sizeof(aTxBuffer));	//sprawdzić czy tak może być
-				}
-				chKodBleduFAT = fres;
+				uint32_t nSetneSekundy;
+				nSetneSekundy = 100 * sTime.SubSeconds / sTime.SecondFraction;
+				sprintf(chBufPodreczny, "%02d:%02d:%02d.%02ld;", sTime.Hours,  sTime.Minutes,  sTime.Seconds, nSetneSekundy);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
-	}
-	else	//jeżeli nie ma karty
-	{
-		if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
+
+		//Ciśnienie czujnika 1
+		if (nKonfLogera[0] & KLOG1_PRES1)
 		{
-			if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
-				f_close(&SDFile);
-			f_mount(NULL, "", 1);		//zdemontuj system plików
-			chStatusRejestratora = 0;
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Cisnienie1 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCisnie[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//Ciśnienie czujnika 2
+		if (nKonfLogera[0] & KLOG1_PRES2)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Cisnienie2 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCisnie[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//Wysokość czujnika ciśnienia 1
+		if (nKonfLogera[0] & KLOG1_AMSL1)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Wysokosc1 [m];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fWysoko[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//Wysokość czujnika ciśnienia 2
+		if (nKonfLogera[0] & KLOG1_AMSL2)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Wysokosc2 [m];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fWysoko[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//Ciśnienie różnicowe czujnika 1
+		if (nKonfLogera[1] & KLOG2_CISROZ1)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "CisnRozn1 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fCisnRozn[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//Ciśnienie różnicowe czujnika 2
+		if (nKonfLogera[1] & KLOG2_CISROZ2)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "CisnRozn2 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fCisnRozn[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//temperatura czujnika ciśnienia różnicowego 1
+		if (nKonfLogera[1] & KLOG2_TEMPCISR1)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "TempCisnRozn1 [K];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_CISR1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//temperatura czujnika ciśnienia różnicowego 2
+		if (nKonfLogera[1] & KLOG2_TEMPCISR2)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "TempCisnRozn2 [K];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_CISR2]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+
+
+		//Prędkość wzgledem powietrza czujnika różnicowego 1
+		if (nKonfLogera[0] & KLOG1_IAS1)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "IAS1 [m/s];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fPredkosc[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//Prędkość wzgledem powietrza czujnika różnicowego 2
+		if (nKonfLogera[0] & KLOG1_IAS2)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "IAS2 [m/s];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fPredkosc[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+	//---------------------------------------------
+
+		//prędkość obrotowa P żyroskopu 1
+		if (nKonfLogera[0] & KLOG1_ZYRO1P)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			{
+				//sprintf(chBufPodreczny, "Zyro1 X [%c/s];", '°');
+				//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				strncat(chBufZapisuKarty, "ZyroKal1P [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
+			}
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroKal1[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//prędkość obrotowa Q żyroskopu 1
+		if (nKonfLogera[0] & KLOG1_ZYRO1Q)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			{
+				//sprintf(chBufPodreczny, "Zyro1 Y [%c/s];", '°');
+				//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				strncat(chBufZapisuKarty, "ZyroKal1Q [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
+			}
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroKal1[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//prędkość obrotowa R żyroskopu 1
+		if (nKonfLogera[0] & KLOG1_ZYRO1R)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			{
+				//sprintf(chBufPodreczny, "Zyro1 Z [%c/s];", '°');
+				//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				strncat(chBufZapisuKarty, "ZyroKal1R [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
+			}
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroKal1[2]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//prędkość obrotowa P żyroskopu 2
+		if (nKonfLogera[0] & KLOG1_ZYRO2P)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			{
+				//sprintf(chBufPodreczny, "Zyro2 X [%c/s];", '°');
+				//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				strncat(chBufZapisuKarty, "ZyroKal2P [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
+			}
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroKal2[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//prędkość obrotowa Q żyroskopu 2
+		if (nKonfLogera[0] & KLOG1_ZYRO2Q)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			{
+				//sprintf(chBufPodreczny, "Zyro2 Y [%c/s];", '°');
+				//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				strncat(chBufZapisuKarty, "ZyroKal2Q [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
+			}
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroKal2[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//prędkość obrotowa R żyroskopu 2
+		if (nKonfLogera[0] & KLOG1_ZYRO2R)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			{
+				//sprintf(chBufPodreczny, "Zyro2 Z [%c/s];", '°');
+				//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				strncat(chBufZapisuKarty, "ZyroKal2R [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
+			}
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroKal2[2]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+	//---------------------------
+		//przyspieszenie w osi X akcelerometru 1
+		if (nKonfLogera[0] & KLOG1_AKCEL1X)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Akcel1X [m/s^2];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fAkcel1[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przyspieszenie w osi Y akcelerometru 1
+		if (nKonfLogera[0] & KLOG1_AKCEL1Y)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Akcel1Y [m/s^2];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fAkcel1[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przyspieszenie w osi Z akcelerometru 1
+		if (nKonfLogera[0] & KLOG1_AKCEL1Z)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Akcel1Z [m/s^2];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fAkcel1[2]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przyspieszenie w osi X akcelerometru 2
+		if (nKonfLogera[0] & KLOG1_AKCEL2X)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Akcel2X [m/s^2];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fAkcel2[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przyspieszenie w osi Y akcelerometru 2
+		if (nKonfLogera[0] & KLOG1_AKCEL2Y)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Akcel2Y [m/s^2];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fAkcel2[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przyspieszenie w osi Z akcelerometru 2
+		if (nKonfLogera[0] & KLOG1_AKCEL2Z)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Akcel2Z [m/s^2];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fAkcel2[2]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+
+		//temperatura czujnika ciśnienia 1
+		if (nKonfLogera[0] & KLOG1_TEMPBARO1)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "TempBaro1 [K];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_BARO1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+
+		//temperatura IMU1
+		if (nKonfLogera[0] & KLOG1_TEMPIMU1)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "TempIMU1 [K];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_IMU1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//temperatura IMU2
+		if (nKonfLogera[0] & KLOG1_TEMPIMU2)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "TempIMU2 [K];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_IMU2]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+	//---------------------------
+
+		//składowa magnetyczna w osi X magnetometru 1
+		if (nKonfLogera[0] & KLOG1_MAG1X)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Magn1X [-];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne1[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//składowa magnetyczna w osi Y magnetometru 1
+		if (nKonfLogera[0] & KLOG1_MAG1Y)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Magn1Y [-];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne1[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//składowa magnetyczna w osi Z magnetometru 1
+		if (nKonfLogera[0] & KLOG1_MAG1Z)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Magn1Z [-];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne1[2]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//składowa magnetyczna w osi X magnetometru 2
+		if (nKonfLogera[0] & KLOG1_MAG2X)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Magn2X [-];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne2[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//składowa magnetyczna w osi Y magnetometru 2
+		if (nKonfLogera[0] & KLOG1_MAG2Y)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Magn2Y [-];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne2[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//składowa magnetyczna w osi Z magnetometru 2
+		if (nKonfLogera[0] & KLOG1_MAG2Z)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "Magn2- [-];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne2[2]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+
+
+
+		//Magnetometr3 X
+		if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			strncat(chBufZapisuKarty, "Magn3X [-];", MAX_ROZMIAR_WPISU_LOGU);
+		else
+		{
+			sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne3[0]);
+			strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+		}
+
+		//Magnetometr3 Y
+		if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			strncat(chBufZapisuKarty, "Magn3Y [-];", MAX_ROZMIAR_WPISU_LOGU);
+		else
+		{
+			sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne3[1]);
+			strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+		}
+
+		//Magnetometr3 Z
+		if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			strncat(chBufZapisuKarty, "Magn3Z [-];", MAX_ROZMIAR_WPISU_LOGU);
+		else
+		{
+			sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne3[2]);
+			strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+		}
+
+
+	//---------------------------
+
+
+
+	//----------------- GNSS --------------------------------
+		//Szerokość geograficzna z GPS
+		if (nKonfLogera[1] & KLOG2_GLONG)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			{
+				//sprintf(chBufPodreczny, "SzerokoscGeo [%c];", '°');
+				//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				strncat(chBufZapisuKarty, "SzerokoscGeo [°];", MAX_ROZMIAR_WPISU_LOGU);
+			}
+			else
+			{
+				sprintf(chBufPodreczny, "%.6f;", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//Długość geograficzna z GPS
+		if (nKonfLogera[1] & KLOG2_GLATI)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			{
+				//sprintf(chBufPodreczny, "DlugoscGeo [%c];", '°');
+				//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				strncat(chBufZapisuKarty,  "DlugoscGeo [°];", MAX_ROZMIAR_WPISU_LOGU);
+			}
+			else
+			{
+				sprintf(chBufPodreczny, "%.6f;", uDaneCM4.dane.stGnss1.dDlugoscGeo);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wysokość n.p.m. z GPS
+		if (nKonfLogera[1] & KLOG2_GALTI)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "WysokoscGPS [mnpm];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.stGnss1.fWysokoscMSL);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//prędkość wzgledem ziemi z GPS
+		if (nKonfLogera[1] & KLOG2_GSPED)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "PredWzgZiemi [m/s];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//kurs względem ziemi z GPS
+		if (nKonfLogera[1] & KLOG2_GCURS)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			{
+				//sprintf(chBufPodreczny, "Kurs [%c];", '°');
+				//strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				strncat(chBufZapisuKarty, "KursGeo [°];", MAX_ROZMIAR_WPISU_LOGU);
+			}
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fKurs);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//liczba widocznych satelitów / Fix
+		if (nKonfLogera[1] & KLOG2_GSATS)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "LiczbaSat/Fix;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%d/%d;", uDaneCM4.dane.stGnss1.chLiczbaSatelit, uDaneCM4.dane.stGnss1.chFix);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//Vertical Dilution of Precision
+		if (nKonfLogera[1] & KLOG2_GVDOP)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "VDOP [m];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fVdop);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//Horizontal Dilution of Precision
+		if (nKonfLogera[1] & KLOG2_GHDOP)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "HDOP [m];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fHdop);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//niefiltrowana prędkość z GPS w kierunku północnym
+		if (nKonfLogera[1] & KLOG2_GSPD_N)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "PredGPS_N [m/s];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi * cosf(uDaneCM4.dane.stGnss1.fKurs * DEG2RAD));		//sprawdzić!
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//niefiltrowana prędkość z GPS w kierunku wschodnim
+		if (nKonfLogera[1] & KLOG2_GSPD_E)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "PredGPS_E [m/s];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi * sinf(uDaneCM4.dane.stGnss1.fKurs * DEG2RAD));		//sprawdzić!
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//surowa prędkość obrotowa P żyroskopu 1
+		if (nKonfLogera[0] & KLOG2_ZYROSUR1P)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "ZyroSur1P [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroSur1[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//surowa prędkość obrotowa Q żyroskopu 1
+		if (nKonfLogera[0] & KLOG2_ZYROSUR1Q)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "ZyroSur1Q [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroSur1[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//surowa prędkość obrotowa R żyroskopu 1
+		if (nKonfLogera[0] & KLOG2_ZYROSUR1R)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "ZyroSur1R [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroSur1[2]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//surowa prędkość obrotowa P żyroskopu 2
+		if (nKonfLogera[0] & KLOG2_ZYROSUR2P)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "ZyroSur2P [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroSur2[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//surowa prędkość obrotowa Q żyroskopu 2
+		if (nKonfLogera[0] & KLOG2_ZYROSUR2Q)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "ZyroSur2Q [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroSur2[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//surowa prędkość obrotowa R żyroskopu 2
+		if (nKonfLogera[0] & KLOG2_ZYROSUR2R)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "ZyroSur2R [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroSur2[2]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+
+	//----------------- IMU --------------------------------
+		//kąt phi wektora inercji
+		if (nKonfLogera[2] & KLOG3_KATPHI)
+		{
+
+		}
+
+		//kąt theta wektora inercji
+		if (nKonfLogera[2] & KLOG3_KATTHE)
+		{
+
+		}
+
+		//kąt psi wektora inercji
+		if (nKonfLogera[2] & KLOG3_KATPSI)
+		{
+
+		}
+
+		//kąt phi obliczony na podstawie danych z akcelerometru
+		if (nKonfLogera[2] & KLOG3_KATPHIA)
+		{
+
+		}
+
+		//kąt theta obliczony na podstawie danych z akcelerometru
+		if (nKonfLogera[2] & KLOG3_KATTHEA)
+		{
+
+		}
+
+		//kąt psi obliczony na podstawie danych z magnetometru
+		if (nKonfLogera[2] & KLOG3_KATPSIM)
+		{
+
+		}
+
+		//kąt phi obliczony jako całka prędkości P z żyroskopu
+		if (nKonfLogera[2] & KLOG3_KATPHIZ)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "PhiZyro1 [rad];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatIMUZyro1[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "PhiZyro2 [rad];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatIMUZyro2[0]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//kąt theta obliczony jako całka prędkości Q z żyroskopu
+		if (nKonfLogera[2] & KLOG3_KATTHEZ)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "ThetaZyro1 [rad];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatIMUZyro1[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "ThetaZyro2 [rad];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatIMUZyro2[1]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//kąt psi obliczony jako całka prędkości R z żyroskopu
+		if (nKonfLogera[2] & KLOG3_KATPSIZ)
+		{
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "PsiZyro1 [rad];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatIMUZyro1[2]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+
+			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(chBufZapisuKarty, "PsiZyro2 [rad];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatIMUZyro2[2]);
+				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+
+
+		//jeżeli był zapisywany nagłówek to przejdź do zapisu danych
+		if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			chStatusRejestratora &= ~ STATREJ_ZAPISZ_NAGLOWEK;
+
+
+		//sprawdź poziom zapełnienia bufora logu
+		sDlugoscWierszaLogu = strlen(chBufZapisuKarty);
+		if (sDlugoscWierszaLogu > sMaxDlugoscWierszaLogu)
+			sMaxDlugoscWierszaLogu = sDlugoscWierszaLogu;
+		if (sDlugoscWierszaLogu > ROZMIAR_BUFORA_LOGU)
+			Error_Handler();
+		strncat(chBufZapisuKarty, "\n", 2);	//znak końca wiersza
+
+		f_puts(chBufZapisuKarty, &SDFile);	//zapis do pliku
+
+		//co określoną liczbę zapisów zrób sync aby nie utracić danych w przypadku braku formalnego zakończenia logowania
+		if (chTimerSync)
+			chTimerSync--;
+		else
+		{
+			chTimerSync = WPISOW_NA_SYNC;
+			f_sync(&SDFile);				//Flush cached data of the writing file
 		}
 	}
+	else	//jeżei plik nie jest otwarty to go otwórz
+	{
+		FRESULT fres;
+		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+		sprintf(chBufPodreczny, "%04d%02d%02d_%02d%02d%02d_APL3.csv",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+		fres = f_open(&SDFile, chBufPodreczny, FA_OPEN_ALWAYS | FA_WRITE);
+		if (fres == FR_OK)
+			chStatusRejestratora |= STATREJ_OTWARTY_PLIK | STATREJ_ZAPISZ_NAGLOWEK;
+		sMaxDlugoscWierszaLogu = 0;
+		chTimerSync = WPISOW_NA_SYNC;
+	}
+
 
 	//sprawdź czy nie wyłączono rejestratoraw czasie pracy
 	if ((chStatusRejestratora & STATREJ_WLACZONY) == 0)

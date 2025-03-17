@@ -1363,11 +1363,63 @@ void WatekRejestratora(void const * argument)
 {
   /* USER CODE BEGIN WatekRejestratora */
 	extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+	extern uint8_t chPorty_exp_odbierane[LICZBA_EXP_SPI_ZEWN];
+	extern uint8_t chKodBleduFAT;
 
 	for(;;)
 	{
-		if (chStatusRejestratora & STATREJ_WLACZONY)
-			ObslugaPetliRejestratora();
+		if ((chPorty_exp_odbierane[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty				{
+		{
+			if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
+			{
+				if (chStatusRejestratora & STATREJ_WLACZONY)
+					ObslugaPetliRejestratora();
+			}
+			else	//jeżeli FAT nie jest gotowy to go zamontuj
+			{
+				DSTATUS status;
+				FRESULT fres;
+
+				hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
+				status = SD_initialize(0);
+				if (status == RES_OK)
+				{
+					fres = BSP_SD_Init();
+					if (fres == FR_OK)
+					{
+
+						fres = f_mount(&SDFatFS, SDPath, 1);
+						if (fres == FR_OK)
+						{
+							chStatusRejestratora |= STATREJ_FAT_GOTOWY;
+							//fres = f_open(&SDFile, "abc.txt", FA_OPEN_EXISTING | FA_READ | FA_WRITE);
+							//if (fres == FR_OK)
+							//{
+								//f_gets(chBufZapisuKarty, ROZMIAR_BUFORA_LOGU, &SDFile);
+								//f_close(&SDFile);
+							//}
+						}
+						else
+						{
+							//jeżeli nie udało sie zamontować FAT to utwórz go ponownie
+							DWORD au = _MAX_SS;
+							fres = f_mkfs(SDPath, FM_FAT32, au, NULL, _MAX_SS);	//sprawdzić czy tak może być
+						}
+						chKodBleduFAT = fres;
+					}
+				}
+			}
+		}
+		else	//jeżeli nie ma karty
+		{
+			if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
+			{
+				if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
+					f_close(&SDFile);
+				f_mount(NULL, "", 1);		//zdemontuj system plików
+				chStatusRejestratora = 0;
+			}
+		}
 		osDelay(200);
 	}
   /* USER CODE END WatekRejestratora */
