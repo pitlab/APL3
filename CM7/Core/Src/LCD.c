@@ -109,8 +109,8 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Multimedia",  "Obsluga multimediow: dzwiek i obraz",		TP_MULTIMEDIA, 		obr_glosnik2},
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
 	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_kartaSD},
-	{"IMU", 		"Obsługa i kalibracja IMU",					TP_IMU,				obr_kontrolny},
-	{"Magneto 1",	"Obsługa i kalibracja magnetometru",		TP_MAGNETOMETR,		obr_kal_mag_n1},
+	{"IMU", 		"Obsługa i kalibracja IMU",					TP_IMU,				obr_baczek},
+	{"Kalib Magn",	"Obsługa i kalibracja magnetometru",		TP_MAGNETOMETR,		obr_kal_mag_n1},
 	{"nic 1", 		"nic",										TP_MG1,				obr_multitool},
 	{"nic 2", 		"nic",										TP_MG2,				obr_multitool},
 	{"nic 3", 		"nic",										TP_MG3,				obr_multitool},
@@ -1514,7 +1514,7 @@ void PomiaryIMU(void)
 	//print(chNapis, 10, 300);
 
 	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI_ZYROSKOPU do zera
-	RysujPasekPostepu();
+	RysujPasekPostepu(CZAS_KALIBRACJI_ZYROSKOPU);
 }
 
 
@@ -1524,9 +1524,9 @@ void PomiaryIMU(void)
 // Parametry: brak
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujPasekPostepu(void)
+void RysujPasekPostepu(uint16_t sPelenZakres)
 {
-	uint16_t x = (uDaneCM4.dane.sPostepProcesu * DISP_X_SIZE) / CZAS_KALIBRACJI_ZYROSKOPU;
+	uint16_t x = (uDaneCM4.dane.sPostepProcesu * DISP_X_SIZE) / sPelenZakres;
 	if (x)	//nie rysuj paska jeżeli ma zerową długość
 	{
 		setColor(BLUE);
@@ -2116,23 +2116,136 @@ void KalibracjaWzmocnieniaZyroskopow(void)
 
 	if (chRysujRaz)
 	{
-		chRysujRaz = 0;
+		//chRysujRaz = 0;	będzie wuzerowane w funkcji rysowania poziomicy
 		BelkaTytulu("Kalibr. wzmocnienia zyro");
-	}
 
+		/*sprintf(chNapis, "Przech:           Pochyl:           Odchyl:");
+		print(chNapis, 10, 50);
+		sprintf(chNapis, "Przech:           Pochyl:           Odchyl:");
+		print(chNapis, 10, 70); */
+
+		sprintf(chNapis, "Calka zyro 1:");
+		print(chNapis, 10 + LIBELLA_BOK, 100);
+		sprintf(chNapis, "Calka zyro 2:");
+		print(chNapis, 10 + LIBELLA_BOK, 120);
+		chSekwencerKalWzmZyro = 0;
+	}
 
 	//sekwencer kalibracji
 	//wyświetl libelkę dla każdej osi
+
 	switch (chSekwencerKalWzmZyro)
 	{
-	case SEKW_KAL_WZM_ZYRO_X:	chNazwaOsi = 'X';	break;
-	case SEKW_KAL_WZM_ZYRO_Y:	chNazwaOsi = 'Y';	break;
-	case SEKW_KAL_WZM_ZYRO_Z:	chNazwaOsi = 'Z';	break;
+	case SEKW_KAL_WZM_ZYRO_R:
+		chNazwaOsi = 'Z';
+		Poziomica(-uDaneCM4.dane.fKatIMUAkcel1[0], uDaneCM4.dane.fKatIMUAkcel1[1]);
+		setColor(KOLOR_Z);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[2], ZNAK_STOPIEN);
+		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 100);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[2], ZNAK_STOPIEN);
+		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 120);
+		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMR;	//uruchom kalibrację wzmocnienia żyroskopów prędkości R
+		break;
 
+	case SEKW_KAL_WZM_ZYRO_Q:
+		chNazwaOsi = 'Y';
+		Poziomica(uDaneCM4.dane.fKatIMUAkcel1[0], uDaneCM4.dane.fKatIMUAkcel1[1]);
+		setColor(KOLOR_Y);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[1], ZNAK_STOPIEN);
+		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 100);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[1], ZNAK_STOPIEN);
+		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 120);
+		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMQ;	//uruchom kalibrację wzmocnienia żyroskopów prędkości Q
+		break;
+
+	case SEKW_KAL_WZM_ZYRO_P:
+		chNazwaOsi = 'X';
+		Poziomica(uDaneCM4.dane.fKatIMUAkcel1[0], uDaneCM4.dane.fKatIMUAkcel1[1]);
+		setColor(KOLOR_X);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[0], ZNAK_STOPIEN);
+		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 100);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[0], ZNAK_STOPIEN);
+		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 120);
+		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMP;	//uruchom kalibrację wzmocnienia żyroskopów prędkości P
+		break;
 	}
-	setColor(YELLOW);
-	sprintf(chNapis, "Wykonaj 5 obrot%cw dooko%ca osi %c", ó, ł, chNazwaOsi);
-	print(chNapis, CENTER, 20);
 
-	RysujPasekPostepu();
+	setColor(YELLOW);
+	sprintf(chNapis, "Skieruj APL3 osia %c do dolu i wykonaj 5 obrot%cw", chNazwaOsi, ó);
+	print(chNapis, CENTER, 30);
+	sprintf(chNapis, "B%cbelek powinien by%c w %crodku poziomicy", ą, ć, ś);
+	print(chNapis, CENTER, 50);
+
+	RysujPasekPostepu(CZAS_KALIBRACJI_ZYROSKOPU);		//czas na wykonanie obrotów
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje ekran poziomicy
+// Parametry: nic
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void Poziomica(float fKatAkcelX, float fKatAkcelY)
+{
+	static uint16_t x2, y2;
+	uint16_t x, y;
+
+	if (chRysujRaz)
+	{
+		setColor(LIBELLA1);
+		fillRect(0, DISP_Y_SIZE - LIBELLA_BOK, LIBELLA_BOK, DISP_Y_SIZE);	//wypełnienie płynem
+		chRysujRaz = 0;
+		x2 = (DISP_HY_SIZE - MENU_NAG_WYS)/2;					//współrzędne "starego" bąbelka do zamazania
+		y2 = MENU_NAG_WYS + (DISP_HY_SIZE - MENU_NAG_WYS)/2;
+	}
+
+	//oblicz współrzędne bąbelka
+	x = LIBELLA_BOK / 2 - 5 * RAD2DEG * fKatAkcelY;
+	y = (DISP_Y_SIZE - LIBELLA_BOK) + LIBELLA_BOK / 2 - 5 * RAD2DEG * fKatAkcelX;
+
+	//ogranicz ruch poza skalę
+	if (x > LIBELLA_BOK - BABEL)
+		x = LIBELLA_BOK - BABEL;
+	if (y > DISP_Y_SIZE - BABEL)
+		y = DISP_Y_SIZE - BABEL;
+	if (x < BABEL)
+		x = BABEL;
+	if (y < DISP_Y_SIZE - LIBELLA_BOK + BABEL)
+		y = DISP_Y_SIZE - LIBELLA_BOK + BABEL;
+
+	if ((x != x2) || (y != y2))
+	{
+		//zamaż stary bąbelek kolorem tła
+		setColor(LIBELLA1);
+		fillCircle(x2, y2, BABEL);
+
+		//rysuj bąbelek
+		setColor(LIBELLA3);
+		fillCircle(x, y, BABEL-2);
+		setColor(LIBELLA2);
+		drawCircle(x, y, BABEL-1);	//obwódka bąbelka
+
+		x2 = x;
+		y2 = y;
+
+		//skala 5°
+		setColor(BLACK);
+		drawCircle(LIBELLA_BOK / 2, DISP_Y_SIZE - LIBELLA_BOK / 2, 50);
+
+		//skala 10°
+		setColor(BLACK);
+		//drawCircle(LIBELLA_BOK / 2, MENU_NAG_WYS + (DISP_HY_SIZE - MENU_NAG_WYS)/2, 75);
+		drawCircle(LIBELLA_BOK / 2, DISP_Y_SIZE - LIBELLA_BOK / 2, 75);
+
+		//skala 15°
+		setColor(BLACK);
+		//drawCircle(LIBELLA_BOK  / 2, MENU_NAG_WYS+(DISP_HY_SIZE - MENU_NAG_WYS)/2, 100);
+		drawCircle(LIBELLA_BOK / 2, DISP_Y_SIZE - LIBELLA_BOK / 2, 100);
+
+		drawHLine(0, DISP_Y_SIZE - LIBELLA_BOK/2, LIBELLA_BOK);
+		drawVLine(LIBELLA_BOK / 2, DISP_Y_SIZE - LIBELLA_BOK, LIBELLA_BOK);
+	}
+}
+
+

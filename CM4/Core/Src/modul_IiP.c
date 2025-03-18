@@ -274,7 +274,7 @@ uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib)
 	float fTemperatura;
 
 	//sprawdź czy kalibracja już trwa jeżeli tak, to nie zaczynaj kolejnej przed zakończeniem obecnej
-	if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KALP_ZYRO)
+	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KALZ_ZYRO | INIT_TRWA_KALP_ZYRO | INIT_TRWA_KALG_ZYRO))
 		return ERR_OK;
 
 	fTemperatura = (uDaneCM4.dane.fTemper[TEMP_IMU1] + uDaneCM4.dane.fTemper[TEMP_IMU2]) / 2;
@@ -338,9 +338,16 @@ uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib)
 		}
 		break;
 
-	case POL_KALIBRUJ_ZYRO_WZM:
+	case POL_KALIBRUJ_ZYRO_WZMP:	//uruchom kalibrację wzmocnienia żyroskopów P
+	case POL_KALIBRUJ_ZYRO_WZMQ:	//uruchom kalibrację wzmocnienia żyroskopów Q
+	case POL_KALIBRUJ_ZYRO_WZMR:	//uruchom kalibrację wzmocnienia żyroskopów R
 		uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KALW_ZYRO;		//uruchom kalibrację wzmocnienia żyroskopów
 		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;
+		for (uint8_t n=0; n<3; n++)
+		{
+			uDaneCM4.dane.fKatIMUZyro1[n] = 0.0f;	//wyczyść całkę aby móc liczyć od początku
+			uDaneCM4.dane.fKatIMUZyro2[n] = 0.0f;
+		}
 		break;
 
 	default: return ERR_ZLE_POLECENIE;

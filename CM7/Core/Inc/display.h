@@ -110,4 +110,8 @@ typedef struct tmenu
 } tmenu;
 
 
+#define BABEL			24		//promień bąbelka powietrza w libelli
+#define LIBELLA_BOK		230		//szerokość i wysokość libelli
+
+
 #endif /* Display_H_ */

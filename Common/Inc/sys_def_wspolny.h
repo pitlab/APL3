@@ -44,7 +44,7 @@
 #define CZAS_KALIBRACJI_ZYROSKOPU		1000	//obiegów pętli głównej po 5ms
 
 //definicje sekwencera kalibracji wzmocnienia żyro
-#define SEKW_KAL_WZM_ZYRO_X		0
-#define SEKW_KAL_WZM_ZYRO_Y		1
-#define SEKW_KAL_WZM_ZYRO_Z		2
+#define SEKW_KAL_WZM_ZYRO_R		0
+#define SEKW_KAL_WZM_ZYRO_Q		1
+#define SEKW_KAL_WZM_ZYRO_P		2
 

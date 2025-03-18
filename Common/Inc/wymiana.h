@@ -25,7 +25,9 @@
 #define POL_KALIBRUJ_ZYRO_ZIM	1	//uruchom kalibrację zera żyroskopów na zimno 10°C
 #define POL_KALIBRUJ_ZYRO_POK	2	//uruchom kalibrację zera żyroskopów w temperaturze pokojowej 25°C
 #define POL_KALIBRUJ_ZYRO_GOR	3	//uruchom kalibrację zera żyroskopów na gorąco 40°C
-#define POL_KALIBRUJ_ZYRO_WZM	4	//uruchom kalibrację wzmocnienia żyroskopów
+#define POL_KALIBRUJ_ZYRO_WZMP	4	//uruchom kalibrację wzmocnienia żyroskopów P
+#define POL_KALIBRUJ_ZYRO_WZMQ	5	//uruchom kalibrację wzmocnienia żyroskopów Q
+#define POL_KALIBRUJ_ZYRO_WZMR	6	//uruchom kalibrację wzmocnienia żyroskopów R
 
 #define POL_KALIBRUJ_MAGN1		8	//uruchom kalibrację magnetometru 1
 #define POL_KALIBRUJ_MAGN2		9	//uruchom kalibrację magnetometru 2
