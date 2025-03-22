@@ -36,6 +36,8 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 
  *Zrobić:
  - Dodać polecenie Blank check oraz ramkę komunikacyjną do tego
+ - Dodać obliczenie kątów z magnetometru
+ - dodać jakości kąta dla Acc i Mag w zakresie 0-90 na podstawie wartosci składowych wejściowych. Obie zerowe wejściowe dają słabą jakość kąta. Tam gdzie jest 1 tam jakość jest najlepsza
 
  * */
 /* USER CODE END Header */

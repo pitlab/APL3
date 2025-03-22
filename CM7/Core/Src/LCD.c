@@ -100,8 +100,8 @@ float fKostka[8][3] = {		//załóżmy wstępnie że kostka będzie miała rozmia
 			{-DISP_X_SIZE/4,  DISP_Y_SIZE/4, -DISP_Y_SIZE/4}};
 
 float fSymKatKostki[3];	//zmienna do przechowywania wyników symulacji ruchu kostki
-
 int16_t sKostkaPoprzednia[8][2];	//poprzednia pozycja kostki 3D: [wierzchołki][x,y]
+uint8_t chSekwencerKalibracji;		//wskazuje na daną oś jako kolejny etap kalibracji
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -489,12 +489,6 @@ void RysujEkran(void)
 		}
 		break;
 
-
-	case TP_KAL_AKCEL_2D:
-	case TP_KAL_AKCEL_3D:
-		chTrybPracy = TP_PODGLAD_IMU;
-				break;
-
 	case TP_IMU_KOSTKA:	//rysuj kostkę 3D
 		float fKat[3];
 		for (uint8_t n=0; n<3; n++)
@@ -534,7 +528,28 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAL_ZYRO_WZM:
-		KalibracjaWzmocnieniaZyroskopow();
+		chSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_R;
+		KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_IMU_WROC;
+		}
+		break;
+
+	case TP_KAL_AKCEL_2D:
+		chSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_Q;
+		KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_IMU_WROC;
+		}
+		break;
+
+	case TP_KAL_AKCEL_3D:
+		chSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_P;
+		KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -2106,12 +2121,11 @@ uint32_t RysujKostkeObrotu(float *fKat)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran dla kalibracji wzmocnienia żyroskopów
-// Parametry:
+// Parametry: *chSekwencer	- zmiennaWskazująca na kalibracje konktretnej osi
 // Zwraca:
 ////////////////////////////////////////////////////////////////////////////////
-void KalibracjaWzmocnieniaZyroskopow(void)
+void KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 {
-	static uint8_t chSekwencerKalWzmZyro;
 	char chNazwaOsi;
 
 	if (chRysujRaz)
@@ -2124,17 +2138,22 @@ void KalibracjaWzmocnieniaZyroskopow(void)
 		sprintf(chNapis, "Przech:           Pochyl:           Odchyl:");
 		print(chNapis, 10, 70); */
 
-		sprintf(chNapis, "Calka zyro 1:");
+		sprintf(chNapis, "Ca%cka %cyro 1:", ł, ż);
 		print(chNapis, 10 + LIBELLA_BOK, 100);
-		sprintf(chNapis, "Calka zyro 2:");
+		sprintf(chNapis, "Ca%cka %cyro 2:", ł, ż);
 		print(chNapis, 10 + LIBELLA_BOK, 120);
-		chSekwencerKalWzmZyro = 0;
+		sprintf(chNapis, "K%cty w p%caszczy%cnie kalibracji", ą, ł, ź);
+		print(chNapis, 10 + LIBELLA_BOK, 140);
+		sprintf(chNapis, "Pochylenie:");
+		print(chNapis, 10 + LIBELLA_BOK, 160);
+		sprintf(chNapis, "Przechylenie:");
+		print(chNapis, 10 + LIBELLA_BOK, 180);
 	}
 
 	//sekwencer kalibracji
 	//wyświetl libelkę dla każdej osi
 
-	switch (chSekwencerKalWzmZyro)
+	switch (*chSekwencer)
 	{
 	case SEKW_KAL_WZM_ZYRO_R:
 		chNazwaOsi = 'Z';
@@ -2144,28 +2163,41 @@ void KalibracjaWzmocnieniaZyroskopow(void)
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 100);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[2], ZNAK_STOPIEN);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 120);
+
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel1[1], ZNAK_STOPIEN);	//pochylenie
+		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 160);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel1[0], ZNAK_STOPIEN);
+		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 180);
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMR;	//uruchom kalibrację wzmocnienia żyroskopów prędkości R
 		break;
 
 	case SEKW_KAL_WZM_ZYRO_Q:
 		chNazwaOsi = 'Y';
-		Poziomica(uDaneCM4.dane.fKatIMUAkcel1[0], uDaneCM4.dane.fKatIMUAkcel1[1]);
+		Poziomica(-90*DEG2RAD + uDaneCM4.dane.fKatIMUAkcel1[0], 90*DEG2RAD + uDaneCM4.dane.fKatIMUAkcel1[2]);
 		setColor(KOLOR_Y);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[1], ZNAK_STOPIEN);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 100);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[1], ZNAK_STOPIEN);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 120);
+		sprintf(chNapis, "%.2f %c ", 90 + RAD2DEG * uDaneCM4.dane.fKatIMUAkcel1[2], ZNAK_STOPIEN);	//pochylenie
+		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 160);
+		sprintf(chNapis, "%.2f %c ", -90 + RAD2DEG * uDaneCM4.dane.fKatIMUAkcel1[0], ZNAK_STOPIEN);
+		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 180);
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMQ;	//uruchom kalibrację wzmocnienia żyroskopów prędkości Q
 		break;
 
 	case SEKW_KAL_WZM_ZYRO_P:
 		chNazwaOsi = 'X';
-		Poziomica(uDaneCM4.dane.fKatIMUAkcel1[0], uDaneCM4.dane.fKatIMUAkcel1[1]);
+		Poziomica(uDaneCM4.dane.fKatIMUAkcel1[2], uDaneCM4.dane.fKatIMUAkcel1[1]);
 		setColor(KOLOR_X);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[0], ZNAK_STOPIEN);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 100);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[0], ZNAK_STOPIEN);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 120);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel1[1], ZNAK_STOPIEN);	//pochylenie
+		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 160);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel1[2], ZNAK_STOPIEN);
+		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 180);
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMP;	//uruchom kalibrację wzmocnienia żyroskopów prędkości P
 		break;
 	}
