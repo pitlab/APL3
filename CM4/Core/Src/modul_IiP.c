@@ -24,6 +24,7 @@ volatile uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr
 uint16_t sLicznikCzasuKalibracjiZyro;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 float fOffsetZyro1[3], fOffsetZyro2[3];
+float fWzmocnZyro1[3], fWzmocnZyro2[3];
 double dSumaZyro1[3], dSumaZyro2[3];
 float fSumaCisnRozn[2];	//do kalibracji czujników ciśnienia różnicowego
 WspRownProstej3_t stWspKalOffsetuZyro1;		//współczynniki równania prostych do estymacji offsetu
@@ -278,6 +279,7 @@ uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib)
 		return ERR_OK;
 
 	fTemperatura = (uDaneCM4.dane.fTemper[TEMP_IMU1] + uDaneCM4.dane.fTemper[TEMP_IMU2]) / 2;
+	uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;
 
 	switch (chRodzajKalib)
 	{
@@ -294,10 +296,7 @@ uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib)
 			return ERR_ZA_CIEPLO;
 		}
 		else
-		{
 			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KALZ_ZYRO ;	//uruchom kalibrację żyroskopów na zimno w +10°C
-			uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;
-		}
 		break;
 
 	case POL_KALIBRUJ_ZYRO_POK:
@@ -313,10 +312,7 @@ uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib)
 			return ERR_ZA_CIEPLO;
 		}
 		else
-		{
 			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KALP_ZYRO;		//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
-			uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;
-		}
 		break;
 
 	case POL_KALIBRUJ_ZYRO_GOR:
@@ -332,20 +328,32 @@ uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib)
 			return ERR_ZA_CIEPLO;
 		}
 		else
-		{
 			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KALG_ZYRO;		//uruchom kalibrację żyroskopów na gorąco 40°C
-			uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;
-		}
 		break;
 
 	case POL_KALIBRUJ_ZYRO_WZMP:	//uruchom kalibrację wzmocnienia żyroskopów P
+		fWzmocnZyro1[0] = 10 * M_PI  / uDaneCM4.dane.fKatIMUZyro1[0];
+		fWzmocnZyro2[0] = 10 * M_PI  / uDaneCM4.dane.fKatIMUZyro2[0];
+		break;
+
 	case POL_KALIBRUJ_ZYRO_WZMQ:	//uruchom kalibrację wzmocnienia żyroskopów Q
+		fWzmocnZyro1[0] = 10 * M_PI  / uDaneCM4.dane.fKatIMUZyro1[0];
+		fWzmocnZyro2[0] = 10 * M_PI  / uDaneCM4.dane.fKatIMUZyro2[0];
+		break;
+
 	case POL_KALIBRUJ_ZYRO_WZMR:	//uruchom kalibrację wzmocnienia żyroskopów R
-		uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KALW_ZYRO;		//uruchom kalibrację wzmocnienia żyroskopów
-		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;
-		for (uint8_t n=0; n<3; n++)
+		fWzmocnZyro1[0] = 10 * M_PI  / uDaneCM4.dane.fKatIMUZyro1[0];
+		fWzmocnZyro2[0] = 10 * M_PI  / uDaneCM4.dane.fKatIMUZyro2[0];
+		break;
+
+
+		break;
+
+	case POL_ZERUJ_CALKE_ZYRO:		//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
+		uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KALW_ZYRO;		//rozpocznij kalibrację wzmocnienia żyroskopów
+		for (uint16_t n=0; n<3; n++)
 		{
-			uDaneCM4.dane.fKatIMUZyro1[n] = 0.0f;	//wyczyść całkę aby móc liczyć od początku
+			uDaneCM4.dane.fKatIMUZyro1[n] = 0.0f;
 			uDaneCM4.dane.fKatIMUZyro2[n] = 0.0f;
 		}
 		break;

@@ -10,6 +10,14 @@
 #include "sys_def_CM7.h"
 #include "display.h"
 
+typedef struct
+{
+	uint16_t sX1;
+	uint16_t sY1;
+	uint16_t sX2;
+	uint16_t sY2;
+} prostokat_t;
+
 void RysujEkran(void);
 void Ekran_Powitalny(uint32_t * zainicjowano);
 void Wykrycie(uint16_t x, uint16_t y, uint8_t dopelnij_znakow, uint8_t wynik);
@@ -33,6 +41,6 @@ void WyswietlRejestratorKartySD(void);
 void PobierzKodBleduFAT(uint8_t chKodBleduFAT, char* chNapis);
 void RysujPasekPostepu(uint16_t sPelenZakres);
 uint32_t RysujKostkeObrotu(float *fKat);
-void KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer);
+uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer);
 void Poziomica(float fKatAkcelX, float fKatAkcelY);
 #endif /* INC_LCD_H_ */
