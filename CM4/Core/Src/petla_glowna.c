@@ -177,14 +177,14 @@ void PetlaGlowna(void)
 		switch(uDaneCM7.dane.chWykonajPolecenie)
 		{
 		case POL_NIC:	break;		//polecenie neutralne
-		case POL_KALIBRUJ_ZYRO_ZIM:	RozpocznijKalibracje(POL_KALIBRUJ_ZYRO_ZIM);	break;		//uruchom kalibrację żyroskopów na zimno 10°C
-		case POL_KALIBRUJ_ZYRO_POK:	RozpocznijKalibracje(POL_KALIBRUJ_ZYRO_POK);	break;		//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
-		case POL_KALIBRUJ_ZYRO_GOR:	RozpocznijKalibracje(POL_KALIBRUJ_ZYRO_GOR);	break;		//uruchom kalibrację żyroskopów na gorąco 40°C
+		case POL_KALIBRUJ_ZYRO_ZIM:	RozpocznijKalibracjeZeraZyroskopu(POL_KALIBRUJ_ZYRO_ZIM);	break;		//uruchom kalibrację żyroskopów na zimno 10°C
+		case POL_KALIBRUJ_ZYRO_POK:	RozpocznijKalibracjeZeraZyroskopu(POL_KALIBRUJ_ZYRO_POK);	break;		//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
+		case POL_KALIBRUJ_ZYRO_GOR:	RozpocznijKalibracjeZeraZyroskopu(POL_KALIBRUJ_ZYRO_GOR);	break;		//uruchom kalibrację żyroskopów na gorąco 40°C
 
 		case POL_KALIBRUJ_ZYRO_WZMP:		//uruchom kalibrację wzmocnienia żyroskopów P
 		case POL_KALIBRUJ_ZYRO_WZMQ:		//uruchom kalibrację wzmocnienia żyroskopów Q
 		case POL_KALIBRUJ_ZYRO_WZMR:		//uruchom kalibrację wzmocnienia żyroskopów R
-		case POL_ZERUJ_CALKE_ZYRO:	RozpocznijKalibracje(uDaneCM7.dane.chWykonajPolecenie);	break;	//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
+		case POL_ZERUJ_CALKE_ZYRO:	KalibracjaWzmocnieniaZyro(uDaneCM7.dane.chWykonajPolecenie);	break;	//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
 
 		case POL_KALIBRUJ_MAGN1:	//uruchom kalibrację magnetometru 1
 		case POL_KALIBRUJ_MAGN2:	//uruchom kalibrację magnetometru 2
@@ -194,10 +194,7 @@ void PetlaGlowna(void)
 		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;
 		break;
 
-	case 16:
-
-		break;
-
+	case 16:	break;
 	default:	break;
 	}
 

@@ -134,8 +134,8 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo)
 	UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres A0..1
 	chErr |= ObslugaLSM6DSV();
 
-	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KALZ_ZYRO | INIT_TRWA_KALP_ZYRO | INIT_TRWA_KALG_ZYRO))
-		KalibrujZyroskopy();
+	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))
+		KalibrujZeroZyroskopu();
 
 	//ustaw adres A2 = 1 zrobiony z linii Ix2 modułu
 	switch (gniazdo)
@@ -270,12 +270,12 @@ float WysokoscBarometryczna(float fP, float fP0, float fTemp)
 // Parametry: chRodzajKalib - rodzaj kalibracji
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib)
+uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib)
 {
 	float fTemperatura;
 
 	//sprawdź czy kalibracja już trwa jeżeli tak, to nie zaczynaj kolejnej przed zakończeniem obecnej
-	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KALZ_ZYRO | INIT_TRWA_KALP_ZYRO | INIT_TRWA_KALG_ZYRO))
+	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))
 		return ERR_OK;
 
 	fTemperatura = (uDaneCM4.dane.fTemper[TEMP_IMU1] + uDaneCM4.dane.fTemper[TEMP_IMU2]) / 2;
@@ -296,7 +296,7 @@ uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib)
 			return ERR_ZA_CIEPLO;
 		}
 		else
-			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KALZ_ZYRO ;	//uruchom kalibrację żyroskopów na zimno w +10°C
+			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_ZYRO_ZIM ;	//uruchom kalibrację żyroskopów na zimno w +10°C
 		break;
 
 	case POL_KALIBRUJ_ZYRO_POK:
@@ -312,7 +312,7 @@ uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib)
 			return ERR_ZA_CIEPLO;
 		}
 		else
-			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KALP_ZYRO;		//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
+			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_ZYRO_POK;		//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
 		break;
 
 	case POL_KALIBRUJ_ZYRO_GOR:
@@ -328,34 +328,7 @@ uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib)
 			return ERR_ZA_CIEPLO;
 		}
 		else
-			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KALG_ZYRO;		//uruchom kalibrację żyroskopów na gorąco 40°C
-		break;
-
-	case POL_KALIBRUJ_ZYRO_WZMP:	//uruchom kalibrację wzmocnienia żyroskopów P
-		fWzmocnZyro1[0] = 10 * M_PI  / uDaneCM4.dane.fKatIMUZyro1[0];
-		fWzmocnZyro2[0] = 10 * M_PI  / uDaneCM4.dane.fKatIMUZyro2[0];
-		break;
-
-	case POL_KALIBRUJ_ZYRO_WZMQ:	//uruchom kalibrację wzmocnienia żyroskopów Q
-		fWzmocnZyro1[0] = 10 * M_PI  / uDaneCM4.dane.fKatIMUZyro1[0];
-		fWzmocnZyro2[0] = 10 * M_PI  / uDaneCM4.dane.fKatIMUZyro2[0];
-		break;
-
-	case POL_KALIBRUJ_ZYRO_WZMR:	//uruchom kalibrację wzmocnienia żyroskopów R
-		fWzmocnZyro1[0] = 10 * M_PI  / uDaneCM4.dane.fKatIMUZyro1[0];
-		fWzmocnZyro2[0] = 10 * M_PI  / uDaneCM4.dane.fKatIMUZyro2[0];
-		break;
-
-
-		break;
-
-	case POL_ZERUJ_CALKE_ZYRO:		//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
-		uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KALW_ZYRO;		//rozpocznij kalibrację wzmocnienia żyroskopów
-		for (uint16_t n=0; n<3; n++)
-		{
-			uDaneCM4.dane.fKatIMUZyro1[n] = 0.0f;
-			uDaneCM4.dane.fKatIMUZyro2[n] = 0.0f;
-		}
+			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_ZYRO_GOR;		//uruchom kalibrację żyroskopów na gorąco 40°C
 		break;
 
 	default: return ERR_ZLE_POLECENIE;
@@ -374,16 +347,91 @@ uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Wykonaj kalibrację wzmocnienia żyroskopów  i zapisz współczynnik kalibracji
+// Parametry: chRodzajKalib - rodzaj kalibracji
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
+{
+	uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_WZM_ZYRO;	//trwa kalibracja, w tym czasie wyłącz zawijanie katów do +-Pi
+	switch (chRodzajKalib)
+	{
+	case POL_KALIBRUJ_ZYRO_WZMP:	//kalibruj wzmocnienia żyroskopów P
+		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
+		{
+			fWzmocnZyro1[0] = OBR_KAL_WZM * 2 * M_PI  / uDaneCM4.dane.fKatIMUZyro1[0];
+			fWzmocnZyro2[0] = OBR_KAL_WZM * 2 * M_PI  / uDaneCM4.dane.fKatIMUZyro2[0];
+			FramDataWriteFloat(FAH_ZYRO1P_WZMOC, fWzmocnZyro1[0]);
+			FramDataWriteFloat(FAH_ZYRO2P_WZMOC, fWzmocnZyro2[0]);
+			uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
+			uDaneCM4.dane.nZainicjowano &= ~INIT_TRWA_KAL_WZM_ZYRO;
+			uDaneCM4.dane.fRozne[0] = fWzmocnZyro1[0];	//przekaż wartości kalibracji
+			uDaneCM4.dane.fRozne[1] = fWzmocnZyro2[0];
+		}
+		uDaneCM4.dane.fRozne[2] = FramDataReadFloat(FAH_ZYRO1P_WZMOC);	//przekaż wartości bieżącej kalibracji
+		uDaneCM4.dane.fRozne[3] = FramDataReadFloat(FAH_ZYRO2P_WZMOC);
+		break;
+
+	case POL_KALIBRUJ_ZYRO_WZMQ:	//kalibruj wzmocnienia żyroskopów Q
+		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
+		{
+			fWzmocnZyro1[1] = OBR_KAL_WZM * 2 * M_PI  / uDaneCM4.dane.fKatIMUZyro1[1];
+			fWzmocnZyro2[1] = OBR_KAL_WZM * 2 * M_PI  / uDaneCM4.dane.fKatIMUZyro2[1];
+			FramDataWriteFloat(FAH_ZYRO1Q_WZMOC, fWzmocnZyro1[1]);
+			FramDataWriteFloat(FAH_ZYRO2Q_WZMOC, fWzmocnZyro2[1]);
+			uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
+			uDaneCM4.dane.nZainicjowano &= ~INIT_TRWA_KAL_WZM_ZYRO;
+			uDaneCM4.dane.fRozne[0] = fWzmocnZyro1[1];	//przekaż wartości kalibracji
+			uDaneCM4.dane.fRozne[1] = fWzmocnZyro2[1];
+		}
+		uDaneCM4.dane.fRozne[2] = FramDataReadFloat(FAH_ZYRO1Q_WZMOC);	//przekaż wartości bieżącej kalibracji
+		uDaneCM4.dane.fRozne[3] = FramDataReadFloat(FAH_ZYRO2Q_WZMOC);
+		break;
+
+	case POL_KALIBRUJ_ZYRO_WZMR:	//kalibruj wzmocnienia żyroskopów R
+		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
+		{
+			fWzmocnZyro1[2] = OBR_KAL_WZM * 2 * M_PI  / uDaneCM4.dane.fKatIMUZyro1[2];
+			fWzmocnZyro2[2] = OBR_KAL_WZM * 2 * M_PI  / uDaneCM4.dane.fKatIMUZyro2[2];
+			FramDataWriteFloat(FAH_ZYRO1R_WZMOC, fWzmocnZyro1[2]);
+			FramDataWriteFloat(FAH_ZYRO2R_WZMOC, fWzmocnZyro2[2]);
+			uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
+			uDaneCM4.dane.nZainicjowano &= ~INIT_TRWA_KAL_WZM_ZYRO;
+			uDaneCM4.dane.fRozne[0] = fWzmocnZyro1[2];	//przekaż wartości kalibracji
+			uDaneCM4.dane.fRozne[1] = fWzmocnZyro2[2];
+		}
+		uDaneCM4.dane.fRozne[2] = FramDataReadFloat(FAH_ZYRO1R_WZMOC);	//przekaż wartości bieżącej kalibracji
+		uDaneCM4.dane.fRozne[3] = FramDataReadFloat(FAH_ZYRO2R_WZMOC);
+		break;
+
+	case POL_ZERUJ_CALKE_ZYRO:		//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
+		for (uint16_t n=0; n<3; n++)
+		{
+			uDaneCM4.dane.fKatIMUZyro1[n] = 0.0f;
+			uDaneCM4.dane.fKatIMUZyro2[n] = 0.0f;
+		}
+		uDaneCM4.dane.fRozne[0] = 0.0f;
+		uDaneCM4.dane.fRozne[1] = 0.0f;
+		uDaneCM4.dane.nZainicjowano &= ~INIT_WYK_KAL_WZM_ZYRO;	//nie jest zainicjowane
+		break;
+
+	default: return ERR_ZLE_POLECENIE;
+	}
+	return ERR_OK;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Wykonuje kalibrację żyroskopów i zapisuje wynik we FRAM
 // Parametry: sCzasKalibracji - czas liczny w kwantach obiegu pętli głównej
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KalibrujZyroskopy(void)
+uint8_t KalibrujZeroZyroskopu(void)
 {
 	if (uDaneCM4.dane.sPostepProcesu)
 		uDaneCM4.dane.sPostepProcesu--;
 
-	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KALZ_ZYRO | INIT_TRWA_KALP_ZYRO | INIT_TRWA_KALG_ZYRO))	//jeżeli trwa którakolwiek z kalibracji
+	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))	//jeżeli trwa którakolwiek z kalibracji
 	{
 		for (uint8_t n=0; n<3; n++)
 		{
@@ -399,19 +447,19 @@ uint8_t KalibrujZyroskopy(void)
 				fOffsetZyro1[n] = dSumaZyro1[n] / CZAS_KALIBRACJI_ZYROSKOPU;
 				fOffsetZyro2[n] = dSumaZyro2[n] / CZAS_KALIBRACJI_ZYROSKOPU;
 
-				if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KALZ_ZYRO)
+				if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO_ZIM)
 				{
 					FramDataWriteFloat(FAH_ZYRO1_X_PRZ_ZIM+(4*n), fOffsetZyro1[n]);	//zapisz do FRAM jako liczbę float zajmującą 4 bajty
 					FramDataWriteFloat(FAH_ZYRO2_X_PRZ_ZIM+(4*n), fOffsetZyro2[n]);
 				}
 				else
-				if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KALP_ZYRO)
+				if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO_POK)
 				{
 					FramDataWriteFloat(FAH_ZYRO1_X_PRZ_POK+(4*n), fOffsetZyro1[n]);	//zapisz do FRAM jako liczbę float zajmującą 4 bajty
 					FramDataWriteFloat(FAH_ZYRO2_X_PRZ_POK+(4*n), fOffsetZyro2[n]);
 				}
 				else
-				if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KALG_ZYRO)
+				if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO_GOR)
 				{
 					FramDataWriteFloat(FAH_ZYRO1_X_PRZ_GOR+(4*n), fOffsetZyro1[n]);	//zapisz do FRAM jako liczbę float zajmującą 4 bajty
 					FramDataWriteFloat(FAH_ZYRO2_X_PRZ_GOR+(4*n), fOffsetZyro2[n]);
@@ -419,27 +467,27 @@ uint8_t KalibrujZyroskopy(void)
 			}
 
 			//zapisz temperatury i dane czujnika różnicowego
-			if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KALZ_ZYRO)
+			if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO_ZIM)
 			{
 				FramDataWriteFloat(FAH_ZYRO1_TEMP_ZIM, uDaneCM4.dane.fTemper[TEMP_IMU1]);
 				FramDataWriteFloat(FAH_ZYRO2_TEMP_ZIM, uDaneCM4.dane.fTemper[TEMP_IMU2]);
 				FramDataWriteFloat(FAH_CISN_ROZN1_ZIM, fSumaCisnRozn[0] / CZAS_KALIBRACJI_ZYROSKOPU);		//4F korekcja czujnika ciśnienia różnicowego 1 na zimno
 			}
 			else
-			if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KALP_ZYRO)
+			if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO_POK)
 			{
 				FramDataWriteFloat(FAH_ZYRO1_TEMP_POK, uDaneCM4.dane.fTemper[TEMP_IMU1]);
 				FramDataWriteFloat(FAH_ZYRO2_TEMP_POK, uDaneCM4.dane.fTemper[TEMP_IMU2]);
 				FramDataWriteFloat(FAH_CISN_ROZN1_POK, fSumaCisnRozn[0] / CZAS_KALIBRACJI_ZYROSKOPU);	//4F korekcja czujnika ciśnienia różnicowego 1 w 25°C
 			}
 			else
-			if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KALG_ZYRO)
+			if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO_GOR)
 			{
 				FramDataWriteFloat(FAH_ZYRO1_TEMP_GOR, uDaneCM4.dane.fTemper[TEMP_IMU1]);
 				FramDataWriteFloat(FAH_ZYRO2_TEMP_GOR, uDaneCM4.dane.fTemper[TEMP_IMU2]);
 				FramDataWriteFloat(FAH_CISN_ROZN1_GOR, fSumaCisnRozn[0] / CZAS_KALIBRACJI_ZYROSKOPU);	//4F korekcja czujnika ciśnienia różnicowego 1 na gorąco
 			}
-			uDaneCM4.dane.nZainicjowano &= ~(INIT_TRWA_KALZ_ZYRO | INIT_TRWA_KALP_ZYRO | INIT_TRWA_KALG_ZYRO);	//wyłącz kalibrację
+			uDaneCM4.dane.nZainicjowano &= ~(INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR);	//wyłącz kalibrację
 			InicjujModulI2P();	//przelicz współczynniki
 		}
 	}

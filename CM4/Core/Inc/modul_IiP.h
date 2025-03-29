@@ -60,8 +60,9 @@ typedef struct
 uint8_t InicjujModulI2P(void);
 uint8_t ObslugaModuluI2P(uint8_t gniazdo);
 float WysokoscBarometryczna(float fP, float fP0, float fTemp);
-uint8_t RozpocznijKalibracje(uint8_t chRodzajKalib);
-uint8_t KalibrujZyroskopy(void);
+uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib);
+uint8_t KalibrujZeroZyroskopu(void);
+uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib);
 void ObliczRownanieFunkcjiTemperatury(float fOffset1, float fOffset2, float fTemp1, float fTemp2, float *fA, float *fB);
 void ObliczOffsetTemperaturowy3(WspRownProstej3_t stWsp, float fTemp, float *fOffset);
 float ObliczOffsetTemperaturowy1(WspRownProstej1_t stWsp, float fTemp);

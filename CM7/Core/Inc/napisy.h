@@ -93,7 +93,7 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 
 "Menu Wydajnosc",					//STR_MENU_WYDAJNOSC
 "Menu Karta SD",					//STR_MENU_KARTA_SD
-"Menu IMU",							//STR_MENU_IMU
+"Menu kalibracji IMU",				//STR_MENU_IMU
 "Menu Magnetometr",					//STR_MENU_MAGNETOMETR
 "koniec",							//STR_KONIEC
 };

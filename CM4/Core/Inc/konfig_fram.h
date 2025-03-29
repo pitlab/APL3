@@ -132,9 +132,9 @@
 #define	FAH_ZYRO1_X_PRZ_GOR 	FAH_MOD_ZYRO1+24  	//4F korekcja przesuniecia w osi X żyroskopu 1 na gorąco
 #define	FAH_ZYRO1_Y_PRZ_GOR 	FAH_MOD_ZYRO1+28  	//4F korekcja przesuniecia w osi Y żyroskopu 1 na gorąco
 #define	FAH_ZYRO1_Z_PRZ_GOR 	FAH_MOD_ZYRO1+32  	//4F korekcja przesuniecia w osi Z żyroskopu 1 na gorąco
-#define	FAH_ZYRO1_X_WZMOC     	FAH_MOD_ZYRO1+36  	//4F korekcja wzmocnienia w osi X żyroskopu 1
-#define	FAH_ZYRO1_Y_WZMOC     	FAH_MOD_ZYRO1+40  	//4F korekcja wzmocnienia w osi Y żyroskopu 1
-#define	FAH_ZYRO1_Z_WZMOC     	FAH_MOD_ZYRO1+44  	//4F korekcja wzmocnienia w osi Z żyroskopu 1
+#define	FAH_ZYRO1P_WZMOC     	FAH_MOD_ZYRO1+36  	//4F korekcja wzmocnienia żyroskopu 1P
+#define	FAH_ZYRO1Q_WZMOC     	FAH_MOD_ZYRO1+40  	//4F korekcja wzmocnienia żyroskopu 1Q
+#define	FAH_ZYRO1R_WZMOC     	FAH_MOD_ZYRO1+44  	//4F korekcja wzmocnienia żyroskopu 1R
 
 #define	FAH_MOD_ZYRO2      		FAH_MOD_ZYRO1+48    //moduł inercyjny dowolnego typu (wspólna konfiguracja)
 #define	FAH_ZYRO2_X_PRZ_ZIM 	FAH_MOD_ZYRO2+0  	//4F korekcja przesuniecia w osi X żyroskopu 2 na zimno
@@ -146,9 +146,9 @@
 #define	FAH_ZYRO2_X_PRZ_GOR 	FAH_MOD_ZYRO2+24  	//4F korekcja przesuniecia w osi X żyroskopu 2 na gorąco
 #define	FAH_ZYRO2_Y_PRZ_GOR 	FAH_MOD_ZYRO2+28  	//4F korekcja przesuniecia w osi Y żyroskopu 2 na gorąco
 #define	FAH_ZYRO2_Z_PRZ_GOR 	FAH_MOD_ZYRO2+32  	//4F korekcja przesuniecia w osi Z żyroskopu 2 na gorąco
-#define	FAH_ZYRO2_X_WZMOC     	FAH_MOD_ZYRO2+36  	//4F korekcja wzmocnienia w osi X żyroskopu 2
-#define	FAH_ZYRO2_Y_WZMOC     	FAH_MOD_ZYRO2+40  	//4F korekcja wzmocnienia w osi Y żyroskopu 2
-#define	FAH_ZYRO2_Z_WZMOC     	FAH_MOD_ZYRO2+44  	//4F korekcja wzmocnienia w osi Z żyroskopu 2
+#define	FAH_ZYRO2P_WZMOC     	FAH_MOD_ZYRO2+36  	//4F korekcja wzmocnienia żyroskopu 2P
+#define	FAH_ZYRO2Q_WZMOC     	FAH_MOD_ZYRO2+40  	//4F korekcja wzmocnienia żyroskopu 2Q
+#define	FAH_ZYRO2R_WZMOC     	FAH_MOD_ZYRO2+44  	//4F korekcja wzmocnienia żyroskopu 2R
 
 #define	FAH_ZYRO_TEMP 			FAH_MOD_ZYRO2+48
 #define	FAH_ZYRO1_TEMP_ZIM     	FAH_ZYRO_TEMP+0		//4F temperatura kalibracji na zimno żyroskopu 1

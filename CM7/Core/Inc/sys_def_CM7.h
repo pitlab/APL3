@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	141	//numer commitu w repozytorium
+#define WER_REPO	142	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -61,6 +61,7 @@
 #define TP_MG3				4
 #define TP_MG4				5
 #define TP_KALIB_DOTYK		6	//kalibracja panelu dotykowego
+#define TP_IMU_KOSTKA_SYM	7
 
 #define TP_USTAWIENIA		8
 #define TP_KAMERA			9
@@ -76,18 +77,6 @@
 #define TP_WYSWIETL_BLAD	19	//wyświetl kod błędu
 #define TP_MAGNETOMETR		20	//menu obsługi magnetometru
 
-//polecenia menu Multimedia
-#define TP_MMREJ			40	//M.Rej
-#define TP_MM1				41
-#define TP_MM2				42
-#define TP_MM_TEST_TONU		43
-#define TP_MM_AUDIO_FFT		44	//FFT sygnału z mikrofonu
-#define TP_MM_KOM1			45	//komunikat audio 1
-#define TP_MM_KOM2			46	//komunikat audio 2
-#define TP_MM_KOM3			47	//komunikat audio 3
-#define TP_MM_KOM4			48	//komunikat audio 4
-#define TP_WROC_DO_MMEDIA	49
-
 //polecenia menu Wydajność
 #define TP_FRAKTALE			30	//wyświetla benchmark fraktalowy
 #define TP_POM_ZAPISU_NOR	31
@@ -99,6 +88,18 @@
 #define TP_W3				37
 #define TP_W4				38
 #define TP_WROC_DO_WYDAJN	39
+
+//polecenia menu Multimedia
+#define TP_MMREJ			40	//M.Rej
+#define TP_MM1				41
+#define TP_MM2				42
+#define TP_MM_TEST_TONU		43
+#define TP_MM_AUDIO_FFT		44	//FFT sygnału z mikrofonu
+#define TP_MM_KOM1			45	//komunikat audio 1
+#define TP_MM_KOM2			46	//komunikat audio 2
+#define TP_MM_KOM3			47	//komunikat audio 3
+#define TP_MM_KOM4			48	//komunikat audio 4
+#define TP_WROC_DO_MMEDIA	49
 
 //polecenia menu TP_KARTA_SD
 #define TPKS_WLACZ_REJ		50
@@ -116,12 +117,12 @@
 #define TP_KAL_ZYRO_ZIM		60
 #define TP_KAL_ZYRO_POK		61
 #define TP_KAL_ZYRO_GOR		62
-#define TP_KAL_ZYRO_WZM		63
-#define TP_KAL_AKCEL_2D		64
-#define TP_KAL_AKCEL_3D		65
-#define TP_IMU_KOSTKA		66
-#define TP_IMU_KOSTKA_SYM	67
-#define TP_IMU9				68
+#define TP_KAL_WZM_ZYROP	63
+#define TP_KAL_WZM_ZYROQ	64
+#define TP_KAL_WZM_ZYROR	65
+#define TP_KAL_AKCEL_2D		66
+#define TP_KAL_AKCEL_3D		67
+#define TP_IMU_KOSTKA		68
 #define TP_IMU_WROC			69
 
 #define TP_MAG_KAL1			70
