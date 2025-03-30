@@ -18,8 +18,8 @@
 #define INIT_TRWA_KAL_ZYRO_ZIM	0x00010000	//trwa kalibracja zera żyroskopu na zimno
 #define INIT_TRWA_KAL_ZYRO_POK	0x00020000	//trwa kalibracja zera żyroskopu w temp. pokojowej
 #define INIT_TRWA_KAL_ZYRO_GOR	0x00040000	//trwa kalibracja zera żyroskopu na gorąco
-#define INIT_WYK_KAL_WZM_ZYRO	0x00080000	//wykonano kalibrację wzmocnienia żyroskopu
-#define INIT_TRWA_KAL_WZM_ZYRO	0x00100000	//trwa kalibracja wzmocnienia żyroskopu
+#define INIT_WYK_KAL_WZM_ZYRO	0x00080000	//wykonano kalibrację wzmocnienia żyroskopu w danej osi
+
 
 #define RAD2DEG				(180/M_PI)
 #define DEG2RAD				(M_PI/180)

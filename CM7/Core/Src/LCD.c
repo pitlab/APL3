@@ -104,6 +104,7 @@ int16_t sKostkaPoprzednia[8][2];	//poprzednia pozycja kostki 3D: [wierzchołki][
 uint8_t chSekwencerKalibracji;		//wskazuje na daną oś jako kolejny etap kalibracji
 prostokat_t stPrzycisk;
 uint8_t chStanPrzycisku;
+uint8_t chEtapKalibracji;
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -174,7 +175,7 @@ struct tmenu stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wzm ZyroP", 	"Kalibracja wzmocnienia zyroskopow P",		TP_KAL_WZM_ZYROP,	obr_baczek},
 	{"Wzm ZyroQ", 	"Kalibracja wzmocnienia zyroskopow Q",		TP_KAL_WZM_ZYROQ,	obr_baczek},
 	{"Wzm ZyroR", 	"Kalibracja wzmocnienia zyroskopow R",		TP_KAL_WZM_ZYROR,	obr_baczek},
-	{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katów IMU",		TP_IMU_KOSTKA,		obr_kostka3D},
+	{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katow IMU",		TP_IMU_KOSTKA,		obr_kostka3D},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
@@ -2148,32 +2149,24 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		sprintf(chNapis, "WspKal %cyro2:", ż);
 		print(chNapis, 10 + LIBELLA_BOK, 220);
 
-		//rysuj przycisk
 		setColor(GRAY40);
-
 		stPrzycisk.sX1 = 10 + LIBELLA_BOK;
-		stPrzycisk.sY1 = 250;
-		stPrzycisk.sX2 = stPrzycisk.sX1 + 3*MENU_ICO_DLG;
-		stPrzycisk.sY2 = stPrzycisk.sY1 + 62;
-		fillRect(stPrzycisk.sX1, stPrzycisk.sY1 ,stPrzycisk.sX2, stPrzycisk.sY2);
-
-		setBackColor(GRAY40);	//kolor tła napisu kolorem przycisku
-		setColor(YELLOW);
-		setFont(BigFont);
-		print("Start", stPrzycisk.sX1 + (stPrzycisk.sX2 - stPrzycisk.sX1)/2 - 5*FONT_BL/2 , stPrzycisk.sY1 + (stPrzycisk.sY2 - stPrzycisk.sY1)/2 - FONT_BH/2);
-		setBackColor(BLACK);
-		setFont(MidFont);
+		stPrzycisk.sY1 = 240;
+		stPrzycisk.sX2 = stPrzycisk.sX1 + 210;
+		stPrzycisk.sY2 = stPrzycisk.sY1 + 75;
+		fillRect(stPrzycisk.sX1, stPrzycisk.sY1 ,stPrzycisk.sX2, stPrzycisk.sY2);	//rysuj przycisk
+		chEtapKalibracji = 0;
 		chStanPrzycisku = 0;
-
+		setColor(YELLOW);
 		sprintf(chNapis, "B%cbelek powinien by%c w %crodku poziomicy", ą, ć, ś);
 		print(chNapis, CENTER, 50);
 		setColor(GRAY60);
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
 		print(chNapis, CENTER, 70);
+		statusDotyku.chFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
 	}
 
 	//sekwencer kalibracji
-	//wyświetl libelkę dla każdej osi
 	switch (*chSekwencer)
 	{
 	case SEKW_KAL_WZM_ZYRO_R:
@@ -2190,7 +2183,6 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 160);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * fPrzechylenie, ZNAK_STOPIEN);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 180);
-		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMR;	//uruchom kalibrację wzmocnienia żyroskopów prędkości R
 		break;
 
 	case SEKW_KAL_WZM_ZYRO_Q:
@@ -2207,7 +2199,6 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 160);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * fPrzechylenie, ZNAK_STOPIEN);	//przechylenie
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 180);
-		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMQ;	//uruchom kalibrację wzmocnienia żyroskopów prędkości Q
 		break;
 
 	case SEKW_KAL_WZM_ZYRO_P:
@@ -2224,16 +2215,15 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 160);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * fPrzechylenie, ZNAK_STOPIEN);	//przechylenie:
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 180);
-		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMP;	//uruchom kalibrację wzmocnienia żyroskopów prędkości P
 		break;
 	}
 
 	setColor(YELLOW);
-	sprintf(chNapis, "Skieruj APL3 osia %c do dolu i wykonaj %d obroty", chNazwaOsi, OBR_KAL_WZM);
+	sprintf(chNapis, "Skieruj osia %c do dolu i wykonaj %d obroty w dowolna strone", chNazwaOsi, OBR_KAL_WZM);
 	print(chNapis, CENTER, 30);
 
 	//wyświetl współczynnik kalibracji
-	if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) && (chStanPrzycisku > 1))
+	if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) && (chEtapKalibracji >= 2))
 	{
 		setColor(WHITE);										//nowy współczynnik
 		sprintf(chNapis, "%.2f", uDaneCM4.dane.fRozne[0]);
@@ -2250,51 +2240,77 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 220);
 	}
 
+	//napis dla przycisku
+	setColor(YELLOW);
+	switch (chEtapKalibracji)
+	{
+	case 0:	//odczyt wartości bieżącej wzmocnienia
+		uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_WZM_ZYROP + *chSekwencer;
+		chRozmiar = sprintf(chNapis, "Odczyt");
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_CZYTAJ_WZM_ZYROP + *chSekwencer)	//jeżeli nastapił odczyt to przejdź do nastepnego etapu
+			chEtapKalibracji = 1;
+		break;
+
+	case 1:	//zerowanie całki
+		uDaneCM7.dane.chWykonajPolecenie = POL_ZERUJ_CALKE_ZYRO;	//zeruje całkę żyroskopów przed kalibracją
+		chRozmiar = sprintf(chNapis, "Start");
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_ZERUJ_CALKE_ZYRO)	//jeżeli nastapiło wyzerowanie to nie czekaj na przycisk tylko od razu zacznij całkować
+		{
+			chEtapKalibracji = 2;
+			uDaneCM7.dane.chWykonajPolecenie = POL_CALKUJ_PRED_KAT;		//wykonaj całkowanie kąta podczas obrotu
+		}
+		break;
+
+	case 2:	//całkowanie
+		uDaneCM7.dane.chWykonajPolecenie = POL_CALKUJ_PRED_KAT;		//wykonaj całkowanie kąta podczas obrotu
+		chRozmiar = sprintf(chNapis, "Oblicz");
+		break;
+
+	case 3:	//obliczenie kalibracji
+		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMR + *chSekwencer;	//uruchom kalibrację dla scałkowanego kąta R, Q lub P
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZLE_WZMOC_ZYRO)
+			chRozmiar = sprintf(chNapis, "Blad! ");
+		else
+			chRozmiar = sprintf(chNapis, "Gotowe");
+		break;
+
+	default:	//wyjście lub przejscie do kalibracji kolejnej osi
+		chRozmiar = sprintf(chNapis, "Wyjdz ");
+		chErr = ERR_DONE;	//zakończ kalibrację
+		break;
+	}
+
+	setBackColor(GRAY40);	//kolor tła napisu kolorem przycisku
+	setFont(BigFont);
+	print(chNapis, stPrzycisk.sX1 + (stPrzycisk.sX2 - stPrzycisk.sX1)/2 - chRozmiar*FONT_BL/2 , stPrzycisk.sY1 + (stPrzycisk.sY2 - stPrzycisk.sY1)/2 - FONT_BH/2);
+	setBackColor(BLACK);
+	setFont(MidFont);
+
+
 	//sprawdź czy jest naciskany przycisk
 	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 	{
 		//czy naciśnięto na przycisk?
 		if ((statusDotyku.sY > stPrzycisk.sY1) && (statusDotyku.sY < stPrzycisk.sY2) && (statusDotyku.sX > stPrzycisk.sX1) && (statusDotyku.sX < stPrzycisk.sX2))
 		{
-			switch (chStanPrzycisku)
-			{
-			case 0:
-				uDaneCM7.dane.chWykonajPolecenie = POL_ZERUJ_CALKE_ZYRO;	//zeruje całkę żyroskopów przed kalibracją
-				chRozmiar = sprintf(chNapis, "Oblicz");
-				break;
-
-			case 1:
-				uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMR + *chSekwencer;	//uruchom kalibrację dla scałkowanego kąta R, Q lub P
-				chRozmiar = sprintf(chNapis, "Gotowe");
-				break;
-
-			case 2:
-				chRozmiar = sprintf(chNapis, "Wyjdz");
-				break;
-
-			default:
-				chRozmiar = sprintf(chNapis, "Pa-pa");
-				chErr = ERR_DONE;
-				break;
-			}
+			chStanPrzycisku = 1;
 			setColor(GRAY40);
-			fillRect(stPrzycisk.sX1, stPrzycisk.sY1 ,stPrzycisk.sX2, stPrzycisk.sY2);
-			setBackColor(GRAY40);	//kolor tła napisu kolorem przycisku
-			setColor(YELLOW);
-			setFont(BigFont);
-			print(chNapis, stPrzycisk.sX1 + (stPrzycisk.sX2 - stPrzycisk.sX1)/2 - chRozmiar*FONT_BL/2 , stPrzycisk.sY1 + (stPrzycisk.sY2 - stPrzycisk.sY1)/2 - FONT_BH/2);
-			setBackColor(BLACK);
-			setFont(MidFont);
-
-			chStanPrzycisku++;
-			chStanPrzycisku &= 0x03;
+			fillRect(stPrzycisk.sX1, stPrzycisk.sY1 ,stPrzycisk.sX2, stPrzycisk.sY2);	//rysuj przycisk
 		}
 		else
-			chErr = ERR_DONE;
+			chErr = ERR_DONE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
+
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 	}
-
-	//RysujPasekPostepu(CZAS_KALIBRACJI_ZYROSKOPU);		//czas na wykonanie obrotów
+	else	//DOTYK_DOTKNIETO
+	{
+		if (chStanPrzycisku)
+		{
+			chEtapKalibracji++;
+			chEtapKalibracji &= 0x07;
+			chStanPrzycisku = 0;
+		}
+	}
 	return chErr;
 }
 

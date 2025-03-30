@@ -75,6 +75,9 @@ uint8_t InicjujModulI2P(void)
 		ObliczRownanieFunkcjiTemperatury(fOffsetZyro1P, fOffsetZyro1G, fTemp1[POK], fTemp1[GOR], &stWspKalOffsetuZyro1.fAgor[n], &stWspKalOffsetuZyro1.fBgor[n]);	//Żyro 1 na gorąco
 		ObliczRownanieFunkcjiTemperatury(fOffsetZyro2Z, fOffsetZyro2P, fTemp2[ZIM], fTemp2[POK], &stWspKalOffsetuZyro2.fAzim[n], &stWspKalOffsetuZyro2.fBzim[n]);	//Żyro 2 na zimno
 		ObliczRownanieFunkcjiTemperatury(fOffsetZyro2P, fOffsetZyro2G, fTemp2[POK], fTemp2[GOR], &stWspKalOffsetuZyro2.fAgor[n], &stWspKalOffsetuZyro2.fBgor[n]);	//Żyro 2 na gorąco
+
+		chErr += FramDataReadFloatValid(FAH_ZYRO1P_WZMOC+(4*n), &fWzmocnZyro1[n], MIN_WZM_ZYRO, MAX_WZM_ZYRO, DEF_WZM_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 1
+		chErr += FramDataReadFloatValid(FAH_ZYRO2P_WZMOC+(4*n), &fWzmocnZyro2[n], MIN_WZM_ZYRO, MAX_WZM_ZYRO, DEF_WZM_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 2
 	}
 
 	//odczytaj kalibrację czujników ciśnienia różnicowego i licz charakterystykę. Używana jest temperatura żyroskopu 1
@@ -353,36 +356,68 @@ uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 {
-	uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_WZM_ZYRO;	//trwa kalibracja, w tym czasie wyłącz zawijanie katów do +-Pi
+	//uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_WZM_ZYRO;	//trwa kalibracja, w tym czasie wyłącz zawijanie katów do +-Pi
 	switch (chRodzajKalib)
 	{
 	case POL_KALIBRUJ_ZYRO_WZMP:	//kalibruj wzmocnienia żyroskopów P
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
-			fWzmocnZyro1[0] = OBR_KAL_WZM * 2 * M_PI  / uDaneCM4.dane.fKatIMUZyro1[0];
-			fWzmocnZyro2[0] = OBR_KAL_WZM * 2 * M_PI  / uDaneCM4.dane.fKatIMUZyro2[0];
-			FramDataWriteFloat(FAH_ZYRO1P_WZMOC, fWzmocnZyro1[0]);
-			FramDataWriteFloat(FAH_ZYRO2P_WZMOC, fWzmocnZyro2[0]);
-			uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
-			uDaneCM4.dane.nZainicjowano &= ~INIT_TRWA_KAL_WZM_ZYRO;
-			uDaneCM4.dane.fRozne[0] = fWzmocnZyro1[0];	//przekaż wartości kalibracji
-			uDaneCM4.dane.fRozne[1] = fWzmocnZyro2[0];
+			fWzmocnZyro1[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro1[0]);
+			if ((fWzmocnZyro1[0] > MIN_WZM_ZYRO) && (fWzmocnZyro1[0] < MAX_WZM_ZYRO))
+			{
+				FramDataWriteFloat(FAH_ZYRO1P_WZMOC, fWzmocnZyro1[0]);
+				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
+				uDaneCM4.dane.fRozne[0] = fWzmocnZyro1[0];	//przekaż wartości kalibracji
+			}
+			else
+			{
+				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_WZMOC_ZYRO;
+				return ERR_OK;
+			}
+
+			fWzmocnZyro2[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro2[0]);
+			if ((fWzmocnZyro2[0] > MIN_WZM_ZYRO) && (fWzmocnZyro2[0] < MAX_WZM_ZYRO))
+			{
+				FramDataWriteFloat(FAH_ZYRO2P_WZMOC, fWzmocnZyro2[0]);
+				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
+				uDaneCM4.dane.fRozne[1] = fWzmocnZyro2[0];
+			}
+			else
+			{
+				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_WZMOC_ZYRO;
+				return ERR_OK;
+			}
 		}
-		uDaneCM4.dane.fRozne[2] = FramDataReadFloat(FAH_ZYRO1P_WZMOC);	//przekaż wartości bieżącej kalibracji
-		uDaneCM4.dane.fRozne[3] = FramDataReadFloat(FAH_ZYRO2P_WZMOC);
 		break;
 
 	case POL_KALIBRUJ_ZYRO_WZMQ:	//kalibruj wzmocnienia żyroskopów Q
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
-			fWzmocnZyro1[1] = OBR_KAL_WZM * 2 * M_PI  / uDaneCM4.dane.fKatIMUZyro1[1];
-			fWzmocnZyro2[1] = OBR_KAL_WZM * 2 * M_PI  / uDaneCM4.dane.fKatIMUZyro2[1];
-			FramDataWriteFloat(FAH_ZYRO1Q_WZMOC, fWzmocnZyro1[1]);
-			FramDataWriteFloat(FAH_ZYRO2Q_WZMOC, fWzmocnZyro2[1]);
-			uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
-			uDaneCM4.dane.nZainicjowano &= ~INIT_TRWA_KAL_WZM_ZYRO;
-			uDaneCM4.dane.fRozne[0] = fWzmocnZyro1[1];	//przekaż wartości kalibracji
-			uDaneCM4.dane.fRozne[1] = fWzmocnZyro2[1];
+			fWzmocnZyro1[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro1[1]);
+			if ((fWzmocnZyro1[1] > MIN_WZM_ZYRO) && (fWzmocnZyro1[1] < MAX_WZM_ZYRO))
+			{
+				FramDataWriteFloat(FAH_ZYRO1Q_WZMOC, fWzmocnZyro1[1]);
+				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
+				uDaneCM4.dane.fRozne[0] = fWzmocnZyro1[1];	//przekaż wartości kalibracji
+			}
+			else
+			{
+				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_WZMOC_ZYRO;
+				return ERR_OK;
+			}
+
+			fWzmocnZyro2[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro2[1]);
+			if ((fWzmocnZyro2[1] > MIN_WZM_ZYRO) && (fWzmocnZyro2[1] < MAX_WZM_ZYRO))
+			{
+				FramDataWriteFloat(FAH_ZYRO2Q_WZMOC, fWzmocnZyro2[1]);
+				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
+				uDaneCM4.dane.fRozne[1] = fWzmocnZyro2[1];
+			}
+			else
+			{
+				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_WZMOC_ZYRO;
+				return ERR_OK;
+			}
 		}
 		uDaneCM4.dane.fRozne[2] = FramDataReadFloat(FAH_ZYRO1Q_WZMOC);	//przekaż wartości bieżącej kalibracji
 		uDaneCM4.dane.fRozne[3] = FramDataReadFloat(FAH_ZYRO2Q_WZMOC);
@@ -391,14 +426,31 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 	case POL_KALIBRUJ_ZYRO_WZMR:	//kalibruj wzmocnienia żyroskopów R
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
-			fWzmocnZyro1[2] = OBR_KAL_WZM * 2 * M_PI  / uDaneCM4.dane.fKatIMUZyro1[2];
-			fWzmocnZyro2[2] = OBR_KAL_WZM * 2 * M_PI  / uDaneCM4.dane.fKatIMUZyro2[2];
-			FramDataWriteFloat(FAH_ZYRO1R_WZMOC, fWzmocnZyro1[2]);
-			FramDataWriteFloat(FAH_ZYRO2R_WZMOC, fWzmocnZyro2[2]);
-			uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
-			uDaneCM4.dane.nZainicjowano &= ~INIT_TRWA_KAL_WZM_ZYRO;
-			uDaneCM4.dane.fRozne[0] = fWzmocnZyro1[2];	//przekaż wartości kalibracji
-			uDaneCM4.dane.fRozne[1] = fWzmocnZyro2[2];
+			fWzmocnZyro1[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro1[2]);
+			if ((fWzmocnZyro1[2] > MIN_WZM_ZYRO) && (fWzmocnZyro1[2] < MAX_WZM_ZYRO))
+			{
+				FramDataWriteFloat(FAH_ZYRO1R_WZMOC, fWzmocnZyro1[2]);
+				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
+				uDaneCM4.dane.fRozne[0] = fWzmocnZyro1[2];	//przekaż wartości kalibracji
+			}
+			else
+			{
+				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_WZMOC_ZYRO;
+				return ERR_OK;
+			}
+
+			fWzmocnZyro2[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro2[2]);
+			if ((fWzmocnZyro2[2] > MIN_WZM_ZYRO) && (fWzmocnZyro2[2] < MAX_WZM_ZYRO))
+			{
+				FramDataWriteFloat(FAH_ZYRO2R_WZMOC, fWzmocnZyro2[2]);
+				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
+				uDaneCM4.dane.fRozne[1] = fWzmocnZyro2[2];
+			}
+			else
+			{
+				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_WZMOC_ZYRO;
+				return ERR_OK;
+			}
 		}
 		uDaneCM4.dane.fRozne[2] = FramDataReadFloat(FAH_ZYRO1R_WZMOC);	//przekaż wartości bieżącej kalibracji
 		uDaneCM4.dane.fRozne[3] = FramDataReadFloat(FAH_ZYRO2R_WZMOC);
@@ -417,6 +469,8 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 
 	default: return ERR_ZLE_POLECENIE;
 	}
+
+	uDaneCM4.dane.chOdpowiedzNaPolecenie = chRodzajKalib;	//zwróć potwierdzenie że znajduje się w danym etapie
 	return ERR_OK;
 }
 

@@ -25,14 +25,18 @@
 #define POL_KALIBRUJ_ZYRO_ZIM	1	//uruchom kalibrację zera żyroskopów na zimno 10°C
 #define POL_KALIBRUJ_ZYRO_POK	2	//uruchom kalibrację zera żyroskopów w temperaturze pokojowej 25°C
 #define POL_KALIBRUJ_ZYRO_GOR	3	//uruchom kalibrację zera żyroskopów na gorąco 40°C
-#define POL_KALIBRUJ_ZYRO_WZMR	4	//uruchom kalibrację wzmocnienia żyroskopów R
-#define POL_KALIBRUJ_ZYRO_WZMQ	5	//uruchom kalibrację wzmocnienia żyroskopów Q
-#define POL_KALIBRUJ_ZYRO_WZMP	6	//uruchom kalibrację wzmocnienia żyroskopów P
-#define POL_ZERUJ_CALKE_ZYRO	7	//zeruje całkę żyroskopów przed kalibracją
+#define POL_ZERUJ_CALKE_ZYRO	4	//zeruje całkę żyroskopów przed kalibracją
+#define POL_CALKUJ_PRED_KAT		5	//całkuje prędkość kątową z żyroskopów
+#define POL_KALIBRUJ_ZYRO_WZMR	6	//uruchom kalibrację wzmocnienia żyroskopów R
+#define POL_KALIBRUJ_ZYRO_WZMQ	7	//uruchom kalibrację wzmocnienia żyroskopów Q
+#define POL_KALIBRUJ_ZYRO_WZMP	8	//uruchom kalibrację wzmocnienia żyroskopów P
+#define POL_CZYTAJ_WZM_ZYROP	9	//odczytaj wzmocnienia żyroskopów P
+#define POL_CZYTAJ_WZM_ZYROQ	10	//odczytaj wzmocnienia żyroskopów Q
+#define POL_CZYTAJ_WZM_ZYROR	11	//odczytaj wzmocnienia żyroskopów R
 
-#define POL_KALIBRUJ_MAGN1		8	//uruchom kalibrację magnetometru 1
-#define POL_KALIBRUJ_MAGN2		9	//uruchom kalibrację magnetometru 2
-#define POL_KALIBRUJ_MAGN3		10	//uruchom kalibrację magnetometru 3
+#define POL_KALIBRUJ_MAGN1		12	//uruchom kalibrację magnetometru 1
+#define POL_KALIBRUJ_MAGN2		13	//uruchom kalibrację magnetometru 2
+#define POL_KALIBRUJ_MAGN3		14	//uruchom kalibrację magnetometru 3
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
 
 typedef struct _GNSS

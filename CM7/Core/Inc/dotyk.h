@@ -24,7 +24,7 @@
 //definicje parametrów dotknięcia ekranu
 
 #define MIN_Z	50		//minimalna siła nacisku na ekran
-#define MIN_T	2		//minimalny czas trwania dotknięcia
+#define MIN_T	2		//minimalny czas trwania dotknięcia [cykli]
 #define PKT_KAL	3		//punktów kalibracji
 
 //flagi statusu

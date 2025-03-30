@@ -186,6 +186,24 @@ void PetlaGlowna(void)
 		case POL_KALIBRUJ_ZYRO_WZMR:		//uruchom kalibrację wzmocnienia żyroskopów R
 		case POL_ZERUJ_CALKE_ZYRO:	KalibracjaWzmocnieniaZyro(uDaneCM7.dane.chWykonajPolecenie);	break;	//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
 
+		case POL_CZYTAJ_WZM_ZYROP:	//odczytaj wzmocnienia żyroskopów P
+			uDaneCM4.dane.fRozne[2] = FramDataReadFloat(FAH_ZYRO1P_WZMOC);
+			uDaneCM4.dane.fRozne[3] = FramDataReadFloat(FAH_ZYRO2P_WZMOC);
+			uDaneCM4.dane.chOdpowiedzNaPolecenie = POL_CZYTAJ_WZM_ZYROP;
+			break;
+
+		case POL_CZYTAJ_WZM_ZYROQ:	//odczytaj wzmocnienia żyroskopów Q
+			uDaneCM4.dane.fRozne[2] = FramDataReadFloat(FAH_ZYRO1Q_WZMOC);
+			uDaneCM4.dane.fRozne[3] = FramDataReadFloat(FAH_ZYRO2Q_WZMOC);
+			uDaneCM4.dane.chOdpowiedzNaPolecenie = POL_CZYTAJ_WZM_ZYROQ;
+			break;
+
+		case POL_CZYTAJ_WZM_ZYROR:	//odczytaj wzmocnienia żyroskopów R
+			uDaneCM4.dane.fRozne[2] = FramDataReadFloat(FAH_ZYRO1R_WZMOC);
+			uDaneCM4.dane.fRozne[3] = FramDataReadFloat(FAH_ZYRO2R_WZMOC);
+			uDaneCM4.dane.chOdpowiedzNaPolecenie = POL_CZYTAJ_WZM_ZYROR;
+			break;
+
 		case POL_KALIBRUJ_MAGN1:	//uruchom kalibrację magnetometru 1
 		case POL_KALIBRUJ_MAGN2:	//uruchom kalibrację magnetometru 2
 		case POL_KALIBRUJ_MAGN3:	//uruchom kalibrację magnetometru 3

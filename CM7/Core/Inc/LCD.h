@@ -10,6 +10,7 @@
 #include "sys_def_CM7.h"
 #include "display.h"
 
+
 typedef struct
 {
 	uint16_t sX1;

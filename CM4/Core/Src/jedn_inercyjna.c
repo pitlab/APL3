@@ -36,6 +36,7 @@
 //
 extern uint32_t ndT[4];						//czas jaki upłynął od poprzeniego obiegu pętli dla 4 modułów wewnetrznych
 extern volatile unia_wymianyCM4_t uDaneCM4;
+extern volatile unia_wymianyCM7_t uDaneCM7;
 //float fKatZyroskopu1[3], fKatZyroskopu2[3];				//całka z prędkosci kątowej żyroskopów
 float fKatAkcel1[3], fKatAkcel2[3];						//kąty pochylenia i przechylenia policzone z akcelerometru
 float fKatMagnetometru1, fKatMagnetometru2, fKatMagnetometru3;	//kąt odchylenia z magnetometru
@@ -71,8 +72,7 @@ void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
 	{
 		uDaneCM4.dane.fKatIMUZyro1[n] +=  uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[rad/s] * [us / 1000000] => [rad]
 		uDaneCM4.dane.fKatIMUZyro2[n] +=  uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
-
-		if ((uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_WZM_ZYRO) != INIT_TRWA_KAL_WZM_ZYRO)		//w czasie kalibracji wzmocnienia nie ograniczaj przyrostu kąta
+		if ((uDaneCM7.dane.chWykonajPolecenie >= POL_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.chWykonajPolecenie <= POL_KALIBRUJ_ZYRO_WZMP))		//w czasie kalibracji wzmocnienia nie ograniczaj przyrostu kąta
 		{
 			//ogranicz przyrost kąta do +-Pi
 			if (uDaneCM4.dane.fKatIMUZyro1[n] > M_PI)
