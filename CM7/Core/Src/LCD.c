@@ -499,7 +499,7 @@ void RysujEkran(void)
 	case TP_IMU_KOSTKA:	//rysuj kostkę 3D
 		float fKat[3];
 		for (uint8_t n=0; n<3; n++)
-			fKat[n] = -1 *uDaneCM4.dane.fKatIMUZyro2[n];	//do rysowania przyjmij kąty z przeciwnym znakiem
+			fKat[n] = -1 *uDaneCM4.dane.fKatIMUZyro2[n];	//do rysowania przyjmij kąty z przeciwnym znakiem - jest OK
 		RysujKostkeObrotu(fKat);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
@@ -565,8 +565,32 @@ void RysujEkran(void)
 		break;
 
 	case TP_MAG_KAL1:
+		chSekwencerKalibracji = 0x00;
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_MAG_WROC;
+		}
+		break;
+
 	case TP_MAG_KAL2:
+		chSekwencerKalibracji = 0x10;
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_MAG_WROC;
+		}
+		break;
+
 	case TP_MAG_KAL3:
+		chSekwencerKalibracji = 0x20;
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_MAG_WROC;
+		}
+		break;
+
 	case TP_MAG4:
 	case TP_MAG5:
 	case TP_MAG6:
@@ -577,7 +601,7 @@ void RysujEkran(void)
 			chTrybPracy = TP_TESTY;
 		break;
 
-	case TP_MAG_WROC:
+	//case TP_MAG_WROC:
 
 	}
 
@@ -2126,7 +2150,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	char chNazwaOsi;
 	float fPochylenie, fPrzechylenie;
 	uint8_t chErr = ERR_OK;
-	uint8_t chRozmiar;
+	//uint8_t chRozmiar;
 
 	if (chRysujRaz)
 	{
@@ -2154,7 +2178,9 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		stPrzycisk.sY1 = 240;
 		stPrzycisk.sX2 = stPrzycisk.sX1 + 210;
 		stPrzycisk.sY2 = stPrzycisk.sY1 + 75;
-		fillRect(stPrzycisk.sX1, stPrzycisk.sY1 ,stPrzycisk.sX2, stPrzycisk.sY2);	//rysuj przycisk
+		RysujPrzycisk(stPrzycisk, "Odczyt");
+
+		//fillRect(stPrzycisk.sX1, stPrzycisk.sY1 ,stPrzycisk.sX2, stPrzycisk.sY2);	//rysuj przycisk
 		chEtapKalibracji = 0;
 		chStanPrzycisku = 0;
 		setColor(YELLOW);
@@ -2226,17 +2252,17 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) && (chEtapKalibracji >= 2))
 	{
 		setColor(WHITE);										//nowy współczynnik
-		sprintf(chNapis, "%.2f", uDaneCM4.dane.fRozne[0]);
+		sprintf(chNapis, "%.3f", uDaneCM4.dane.fRozne[0]);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 200);
-		sprintf(chNapis, "%.2f", uDaneCM4.dane.fRozne[1]);
+		sprintf(chNapis, "%.3f", uDaneCM4.dane.fRozne[1]);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 220);
 	}
 	else
 	{
 		setColor(GRAY80);										//stary współczynnik
-		sprintf(chNapis, "%.2f", uDaneCM4.dane.fRozne[2]);
+		sprintf(chNapis, "%.3f", uDaneCM4.dane.fRozne[2]);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 200);
-		sprintf(chNapis, "%.2f", uDaneCM4.dane.fRozne[3]);
+		sprintf(chNapis, "%.3f", uDaneCM4.dane.fRozne[3]);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 220);
 	}
 
@@ -2246,14 +2272,14 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	{
 	case 0:	//odczyt wartości bieżącej wzmocnienia
 		uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_WZM_ZYROP + *chSekwencer;
-		chRozmiar = sprintf(chNapis, "Odczyt");
+		sprintf(chNapis, "Odczyt");
 		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_CZYTAJ_WZM_ZYROP + *chSekwencer)	//jeżeli nastapił odczyt to przejdź do nastepnego etapu
 			chEtapKalibracji = 1;
 		break;
 
 	case 1:	//zerowanie całki
 		uDaneCM7.dane.chWykonajPolecenie = POL_ZERUJ_CALKE_ZYRO;	//zeruje całkę żyroskopów przed kalibracją
-		chRozmiar = sprintf(chNapis, "Start");
+		sprintf(chNapis, "Start");
 		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_ZERUJ_CALKE_ZYRO)	//jeżeli nastapiło wyzerowanie to nie czekaj na przycisk tylko od razu zacznij całkować
 		{
 			chEtapKalibracji = 2;
@@ -2263,28 +2289,28 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 
 	case 2:	//całkowanie
 		uDaneCM7.dane.chWykonajPolecenie = POL_CALKUJ_PRED_KAT;		//wykonaj całkowanie kąta podczas obrotu
-		chRozmiar = sprintf(chNapis, "Oblicz");
+		sprintf(chNapis, "Oblicz");
 		break;
 
 	case 3:	//obliczenie kalibracji
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMR + *chSekwencer;	//uruchom kalibrację dla scałkowanego kąta R, Q lub P
 		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZLE_WZMOC_ZYRO)
-			chRozmiar = sprintf(chNapis, "Blad! ");
+			sprintf(chNapis, "Blad! ");
 		else
-			chRozmiar = sprintf(chNapis, "Gotowe");
+			sprintf(chNapis, "Gotowe");
 		break;
 
 	default:	//wyjście lub przejscie do kalibracji kolejnej osi
-		chRozmiar = sprintf(chNapis, "Wyjdz ");
+		sprintf(chNapis, "Wyjdz ");
 		chErr = ERR_DONE;	//zakończ kalibrację
 		break;
 	}
 
-	setBackColor(GRAY40);	//kolor tła napisu kolorem przycisku
+	/*setBackColor(GRAY40);	//kolor tła napisu kolorem przycisku
 	setFont(BigFont);
 	print(chNapis, stPrzycisk.sX1 + (stPrzycisk.sX2 - stPrzycisk.sX1)/2 - chRozmiar*FONT_BL/2 , stPrzycisk.sY1 + (stPrzycisk.sY2 - stPrzycisk.sY1)/2 - FONT_BH/2);
 	setBackColor(BLACK);
-	setFont(MidFont);
+	setFont(MidFont);*/
 
 
 	//sprawdź czy jest naciskany przycisk
@@ -2294,8 +2320,9 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		if ((statusDotyku.sY > stPrzycisk.sY1) && (statusDotyku.sY < stPrzycisk.sY2) && (statusDotyku.sX > stPrzycisk.sX1) && (statusDotyku.sX < stPrzycisk.sX2))
 		{
 			chStanPrzycisku = 1;
-			setColor(GRAY40);
-			fillRect(stPrzycisk.sX1, stPrzycisk.sY1 ,stPrzycisk.sX2, stPrzycisk.sY2);	//rysuj przycisk
+			RysujPrzycisk(stPrzycisk, chNapis);
+			//setColor(GRAY40);
+			//fillRect(stPrzycisk.sX1, stPrzycisk.sY1 ,stPrzycisk.sX2, stPrzycisk.sY2);	//rysuj przycisk
 		}
 		else
 			chErr = ERR_DONE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
@@ -2384,3 +2411,204 @@ void Poziomica(float fKatAkcelX, float fKatAkcelY)
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje przycisk ekranowy z napisem
+// Parametry: prost - współrzędne przycisku
+// chNapis - tekst do wymisania na środku
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujPrzycisk(prostokat_t prost, char *chNapis)
+{
+	uint8_t chRozmiar;
+
+	chRozmiar = strlen(chNapis);
+	setColor(GRAY40);
+	fillRect(prost.sX1, prost.sY1 ,prost.sX2, prost.sY2);	//rysuj przycisk
+
+	setColor(YELLOW);
+	setBackColor(GRAY40);	//kolor tła napisu kolorem przycisku
+	setFont(BigFont);
+	print(chNapis, prost.sX1 + (prost.sX2 - prost.sX1)/2 - chRozmiar*FONT_BL/2 , prost.sY1 + (prost.sY2 - prost.sY1)/2 - FONT_BH/2);
+	setBackColor(BLACK);
+	setFont(MidFont);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje ekran dla kalibracji zera (offsetu) magnetometru
+// Parametry: *chEtap	- wskaźnik na zmienną wskazującą na kalibracje konktretnej osi w konkretnym magnetometrze. Starszy półbajt koduje numer magnetometru, młodszy rodzaj kalibracji
+// Zwraca: ERR_DONE / ERR_OK - informację o tym czy wyjść z trybu kalibracji czy nie
+////////////////////////////////////////////////////////////////////////////////
+uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
+{
+	char chNazwaOsi;
+	uint8_t chErr = ERR_OK;
+	static float fPoprzednieMin, fPoprzednieMax;
+
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Kalibr. zera magnetometru");
+		setColor(GRAY80);
+
+		sprintf(chNapis, "Magnetometr X:");
+		print(chNapis, 10, 100);
+		sprintf(chNapis, "Magnetometr Y:");
+		print(chNapis, 10, 120);
+		sprintf(chNapis, "Magnetometr Z:");
+		print(chNapis, 10, 140);
+		sprintf(chNapis, "Pochylenie:");
+		print(chNapis, 10, 160);
+		sprintf(chNapis, "Przechylenie:");
+		print(chNapis, 10, 180);
+		sprintf(chNapis, "Ekstr X:");
+		print(chNapis, 10, 200);
+		sprintf(chNapis, "Ekstr Y:");
+		print(chNapis, 10, 220);
+		sprintf(chNapis, "Ekstr Z:");
+		print(chNapis, 10, 240);
+
+
+		setColor(GRAY60);
+		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
+		print(chNapis, CENTER, 70);
+
+		setColor(GRAY40);
+		stPrzycisk.sX1 = 10 + LIBELLA_BOK;
+		stPrzycisk.sY1 = 260;
+		stPrzycisk.sX2 = stPrzycisk.sX1 + 210;
+		stPrzycisk.sY2 = stPrzycisk.sY1 + 55;
+		RysujPrzycisk(stPrzycisk, "Nastepna Os");
+		//chEtap = 0;
+		chStanPrzycisku = 0;
+		fPoprzednieMin = fPoprzednieMax = 0.0f;
+
+		statusDotyku.chFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
+	}
+	setColor(WHITE);
+
+	switch (*chEtap & 0xF0)
+	{
+	case 0x00:
+		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_MAGN1;
+		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[0]);
+		print(chNapis, 10 + 15*FONT_SL, 100);
+		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[1]);
+		print(chNapis, 10 + 15*FONT_SL, 120);
+		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[2]);
+		print(chNapis, 10 + 15*FONT_SL, 140);
+		break;
+
+	case 0x10:
+		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_MAGN2;
+		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[0]);
+		print(chNapis, 10 + 15*FONT_SL, 100);
+		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[1]);
+		print(chNapis, 10 + 15*FONT_SL, 120);
+		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[2]);
+		print(chNapis, 10 + 15*FONT_SL, 140);
+		break;
+
+	case 0x20:
+		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_MAGN3;
+		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[0]);
+		print(chNapis, 10 + 15*FONT_SL, 100);
+		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[1]);
+		print(chNapis, 10 + 15*FONT_SL, 120);
+		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[2]);
+		print(chNapis, 10 + 15*FONT_SL, 140);
+		break;
+	}
+
+	switch (*chEtap & 0x0F)
+	{
+	case 0:	chNazwaOsi = 'X';
+		if (uDaneCM4.dane.fRozne[0] < fPoprzednieMin)
+		{
+			fPoprzednieMin = uDaneCM4.dane.fRozne[0];
+			OdtworzProbkeAudioZeSpisu(PRGA_JEDNA);
+		}
+		else
+		if (uDaneCM4.dane.fRozne[1] > fPoprzednieMax)
+		{
+			fPoprzednieMax = uDaneCM4.dane.fRozne[1];
+			OdtworzProbkeAudioZeSpisu(PRGA_DWIE);
+		}
+		break;
+
+	case 1: chNazwaOsi = 'Y';
+		if (uDaneCM4.dane.fRozne[2] < fPoprzednieMin)
+		{
+			fPoprzednieMin = uDaneCM4.dane.fRozne[2];
+			OdtworzProbkeAudioZeSpisu(PRGA_JEDNA);
+		}
+		else
+		if (uDaneCM4.dane.fRozne[3] > fPoprzednieMax)
+		{
+			fPoprzednieMax = uDaneCM4.dane.fRozne[3];
+			OdtworzProbkeAudioZeSpisu(PRGA_DWIE);
+		}
+		break;
+
+	case 2: chNazwaOsi = 'Z';
+		if (uDaneCM4.dane.fRozne[4] < fPoprzednieMin)
+		{
+			fPoprzednieMin = uDaneCM4.dane.fRozne[4];
+			OdtworzProbkeAudioZeSpisu(PRGA_JEDNA);
+		}
+		else
+		if (uDaneCM4.dane.fRozne[5] > fPoprzednieMax)
+		{
+			fPoprzednieMax = uDaneCM4.dane.fRozne[5];
+			OdtworzProbkeAudioZeSpisu(PRGA_DWIE);
+		}
+		break;
+	}
+
+	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[0], ZNAK_STOPIEN);
+	print(chNapis, 10 + 12*FONT_SL, 160);
+	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[1], ZNAK_STOPIEN);
+	print(chNapis, 10 + 14*FONT_SL, 180);
+
+	sprintf(chNapis, "%.0f, %.0f ", uDaneCM4.dane.fRozne[0], uDaneCM4.dane.fRozne[1]);
+	print(chNapis, 10 + 10*FONT_SL, 200);
+	sprintf(chNapis, "%.0f, %.0f ", uDaneCM4.dane.fRozne[2], uDaneCM4.dane.fRozne[3]);
+	print(chNapis, 10 + 10*FONT_SL, 220);
+	sprintf(chNapis, "%.0f, %.0f ", uDaneCM4.dane.fRozne[4], uDaneCM4.dane.fRozne[5]);
+	print(chNapis, 10 + 10*FONT_SL, 240);
+
+	//sprawdź czy jest naciskany przycisk
+	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+	{
+		//czy naciśnięto na przycisk?
+		if ((statusDotyku.sY > stPrzycisk.sY1) && (statusDotyku.sY < stPrzycisk.sY2) && (statusDotyku.sX > stPrzycisk.sX1) && (statusDotyku.sX < stPrzycisk.sX2))
+		{
+			chStanPrzycisku = 1;
+		}
+		else
+			chErr = ERR_DONE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
+
+		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
+	}
+	else	//DOTYK_DOTKNIETO
+	{
+		if (chStanPrzycisku)
+		{
+			(*chEtap)++;
+			chStanPrzycisku = 0;
+			fPoprzednieMin = fPoprzednieMax = 0.0f;
+			if ((*chEtap & 0x0F) == 3)
+			{
+				chErr = ERR_DONE;
+				uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_ZERO_MAGN1 + (*chEtap & 0xF0)>>4;	//zapisz offset zera magnetometru 1
+			}
+		}
+	}
+
+	setColor(YELLOW);
+	sprintf(chNapis, "Znajd%c minimum i maksimum wskaza%c dla osi %c", ź, ń, chNazwaOsi);
+	print(chNapis, CENTER, 30);
+	return chErr;
+}

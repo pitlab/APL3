@@ -167,6 +167,32 @@
 #define	FAH_CISN_ROZN2_POK 		FAH_MOD_CIS_ROZ+16	//4F korekcja czujnika ciśnienia różnicowego 2 w 25°C
 #define	FAH_CISN_ROZN2_GOR 		FAH_MOD_CIS_ROZ+20	//4F korekcja czujnika ciśnienia różnicowego 2 na gorąco
 
+//współczynniki kalibracji magnetometru 1 na module inercyjnym
+#define	FAH_MAGN1        		FAH_CISN_ROZN2_GOR+24
+#define	FAH_MAGN1_OFSTX  		FAH_MAGN1+0 //4H offset magnetometru w osi X
+#define	FAH_MAGN1_OFSTY  		FAH_MAGN1+4 //4H offset magnetometru w osi Y
+#define	FAH_MAGN1_OFSTZ  		FAH_MAGN1+8 //4H offset magnetometru w osi Z
+#define	FAH_MAGN1_GAINX  		FAH_MAGN1+12 //4H wzmocnienie w osi X
+#define	FAH_MAGN1_GAINY  		FAH_MAGN1+16 //4H wzmocnienie w osi Y
+#define	FAH_MAGN1_GAINZ  		FAH_MAGN1+20 //4H wzmocnienie w osi Z
+
+//współczynniki kalibracji magnetometru 2 na module inercyjnym
+#define	FAH_MAGN2        		FAH_MAGN1_GAINZ+24
+#define	FAH_MAGN2_OFSTX  		FAH_MAGN2+0 //4H offset magnetometru w osi X
+#define	FAH_MAGN2_OFSTY  		FAH_MAGN2+4 //4H offset magnetometru w osi Y
+#define	FAH_MAGN2_OFSTZ  		FAH_MAGN2+8 //4H offset magnetometru w osi Z
+#define	FAH_MAGN2_GAINX  		FAH_MAGN2+12 //4H wzmocnienie w osi X
+#define	FAH_MAGN2_GAINY  		FAH_MAGN2+16 //4H wzmocnienie w osi Y
+#define	FAH_MAGN2_GAINZ  		FAH_MAGN2+20 //4H wzmocnienie w osi Z
+
+//współczynniki kalibracji magnetometru 3 na module GNSS
+#define	FAH_MAGN3        		FAH_MAGN2_GAINZ+24
+#define	FAH_MAGN3_OFSTX  		FAH_MAGN3+0 //4H offset magnetometru w osi X
+#define	FAH_MAGN3_OFSTY  		FAH_MAGN3+4 //4H offset magnetometru w osi Y
+#define	FAH_MAGN3_OFSTZ  		FAH_MAGN3+8 //4H offset magnetometru w osi Z
+#define	FAH_MAGN3_GAINX  		FAH_MAGN3+12 //4H wzmocnienie w osi X
+#define	FAH_MAGN3_GAINY  		FAH_MAGN3+16 //4H wzmocnienie w osi Y
+#define	FAH_MAGN3_GAINZ  		FAH_MAGN3+20 //4H wzmocnienie w osi Z
 
 
 
@@ -174,45 +200,6 @@
 
 
 
-#define	FAH_TIMU_OFFSET     FAH_MOD_IMU+48  //4H korekcja offsetu temperatury przetwornika A/C modułu IMU
-#define	FAH_TGYRO_PQ_OFST   FAH_MOD_IMU+52   //4H korekcja offsetu temperatury żyroskopów PQ
-#define	FAH_TGYRO_R_OFST    FAH_MOD_IMU+56  //4H korekcja offsetu temperatury żyroskopu R
-#define	FAH_ACEL_XM_TCOEF   FAH_MOD_IMU+60  //4H wsp. korekcji temperaturowej osi X akcelerometru dla temperatur < 25°C
-#define	FAH_ACEL_XP_TCOEF   FAH_MOD_IMU+64  //4H wsp. korekcji temperaturowej osi X akcelerometru dla temperatur > 25°C
-#define	FAH_ACEL_YM_TCOEF   FAH_MOD_IMU+68  //4H wsp. korekcji temperaturowej osi Y akcelerometru dla temperatur < 25°C
-#define	FAH_ACEL_YP_TCOEF   FAH_MOD_IMU+72  //4H wsp. korekcji temperaturowej osi Y akcelerometru dla temperatur > 25°C
-#define	FAH_ACEL_ZM_TCOEF   FAH_MOD_IMU+76  //4H wsp. korekcji temperaturowej osi Z akcelerometru dla temperatur < 25°C
-#define	FAH_ACEL_ZP_TCOEF   FAH_MOD_IMU+80  //4H wsp. korekcji temperaturowej osi Z akcelerometru dla temperatur > 25°C
-#define	FAH_GYRO_PM_TCOEF   FAH_MOD_IMU+84  //4H wsp. korekcji temperaturowej żyroskopu P dla temperatur < 25°C
-#define	FAH_GYRO_PP_TCOEF   FAH_MOD_IMU+88  //4H wsp. korekcji temperaturowej żyroskopu P dla temperatur > 25°C
-#define	FAH_GYRO_QM_TCOEF   FAH_MOD_IMU+92  //4H wsp. korekcji temperaturowej żyroskopu Q dla temperatur < 25°C
-#define	FAH_GYRO_QP_TCOEF   FAH_MOD_IMU+96  //4H wsp. korekcji temperaturowej żyroskopu Q dla temperatur > 25°C
-#define	FAH_GYRO_RM_TCOEF   FAH_MOD_IMU+100 //4H wsp. korekcji temperaturowej żyroskopu R dla temperatur < 25°C
-#define	FAH_GYRO_RP_TCOEF   FAH_MOD_IMU+104 //4H wsp. korekcji temperaturowej żyroskopu R dla temperatur > 25°C
-#define FAH_MOD_IMU_RES1    FAH_MOD_IMU+108 //4H zarezerwowano
-#define FAH_MOD_IMU_RES2    FAH_MOD_IMU+112 //4H zarezerwowano
-#define FAH_MOD_IMU_RES3    FAH_MOD_IMU+116 //4H zarezerwowano
-#define FAH_MOD_IMU_RES4    FAH_MOD_IMU+120 //4H zarezerwowano
-#define FAH_MOD_IMU_RES5    FAH_MOD_IMU+124 //4H zarezerwowano
-
-
-#define	FAH_MOD_ADCIO       0x0580              //modu� ADCIO
-#define	FAH_ADCIO0_OFFSET   FAH_MOD_ADCIO+0     //4H korekcja offsetu pomiaru na kanale 0
-#define	FAH_ADCIO1_OFFSET   FAH_MOD_ADCIO+4     //4H korekcja offsetu pomiaru na kanale 1
-#define	FAH_ADCIO2_OFFSET   FAH_MOD_ADCIO+8     //4H korekcja offsetu pomiaru na kanale 2
-#define	FAH_ADCIO3_OFFSET   FAH_MOD_ADCIO+12    //4H korekcja offsetu pomiaru na kanale 3
-#define	FAH_ADCIO4_OFFSET   FAH_MOD_ADCIO+16    //4H korekcja offsetu pomiaru na kanale 4
-#define	FAH_ADCIO5_OFFSET   FAH_MOD_ADCIO+20    //4H korekcja offsetu pomiaru na kanale 5
-#define	FAH_ADCIO6_OFFSET   FAH_MOD_ADCIO+24    //4H korekcja offsetu pomiaru na kanale 6
-#define	FAH_ADCIO7_OFFSET   FAH_MOD_ADCIO+28    //4H korekcja offsetu pomiaru na kanale 7
-#define	FAH_ADCIO0_GAIN     FAH_MOD_ADCIO+32    //4H korekcja wzmocnienia pomiaru na kanale 0
-#define	FAH_ADCIO1_GAIN     FAH_MOD_ADCIO+36    //4H korekcja wzmocnienia pomiaru na kanale 1
-#define	FAH_ADCIO2_GAIN     FAH_MOD_ADCIO+40    //4H korekcja wzmocnienia pomiaru na kanale 2
-#define	FAH_ADCIO3_GAIN     FAH_MOD_ADCIO+44    //4H korekcja wzmocnienia pomiaru na kanale 3
-#define	FAH_ADCIO4_GAIN     FAH_MOD_ADCIO+48    //4H korekcja wzmocnienia pomiaru na kanale 4
-#define	FAH_ADCIO5_GAIN     FAH_MOD_ADCIO+52    //4H korekcja wzmocnienia pomiaru na kanale 5
-#define	FAH_ADCIO6_GAIN     FAH_MOD_ADCIO+56    //4H korekcja wzmocnienia pomiaru na kanale 6
-#define	FAH_ADCIO7_GAIN     FAH_MOD_ADCIO+60    //4H korekcja wzmocnienia pomiaru na kanale 7
 
 #define	FAH_PDVARIO         FAH_ADCIO7_GAIN+4
 #define	FAH_PDIF_OFFSET	    FAH_PDVARIO+0   //4H offset napięcia czujnika ciśnienia różnicowego
@@ -234,81 +221,8 @@
 #define	FAH_TALTI_AIO_OFST  FAH_TEMPER+24   //4H korekcja offsetu temperatury wysoko�ciomierza na module All-In-One
 
 
-//wsp�czyniki korekcji temperaturowej
-#define	FAH_TCOEF           FAH_TALTI_AIO_OFST+4
-#define	FAH_ALTIM_TCOEF     FAH_TCOEF+0     //4H współczynnik korekcji temperaturowej wysoko�ciomierza 1
-#define	FAH_ALTIP_TCOEF     FAH_TCOEF+4     //4H współczynnik korekcji temperaturowej wysoko�ciomierza 2
-#define	FAH_SPEDM_TCOEF     FAH_TCOEF+8     //4H współczynnik korekcji temperaturowej prędkościomierza
-#define	FAH_SPEDP_TCOEF     FAH_TCOEF+12    //4H współczynnik korekcji temperaturowej akcelerometru
-#define	FAH_GYROX_TCOEF     FAH_TCOEF+16    //4H wolne
-#define	FAH_GYROY_TCOEF     FAH_TCOEF+20    //4H wolne
-#define	FAH_GYROZ_TCOEF     FAH_TCOEF+24    //4H wolne
 
 
-//współczynniki kalibracji magnetometru MMC na magistrali I2C0
-#define	FAH_MAG_MMC0        FAH_GYROZ_TCOEF+4
-#define	FAH_MAG_MMC0_CORRX  FAH_MAG_MMC0+0  //4H korekcja zera mostka magnetometru w osi X
-#define	FAH_MAG_MMC0_CORRY  FAH_MAG_MMC0+4  //4H korekcja zera mostka magnetometru w osi Y
-#define	FAH_MAG_MMC0_CORRZ  FAH_MAG_MMC0+8  //4H korekcja zera mostka magnetometru w osi Z
-#define	FAH_MAG_MMC0_GAINX  FAH_MAG_MMC0+12 //4H wzmocnienie w osi X
-#define	FAH_MAG_MMC0_GAINY  FAH_MAG_MMC0+16 //4H wzmocnienie w osi Y
-#define	FAH_MAG_MMC0_GAINZ  FAH_MAG_MMC0+20 //4H wzmocnienie w osi Z
-#define	FAH_MAG_MMC0_OFSTX  FAH_MAG_MMC0+24 //4H offset magnetometru w osi X
-#define	FAH_MAG_MMC0_OFSTY  FAH_MAG_MMC0+28 //4H offset magnetometru w osi Y
-#define	FAH_MAG_MMC0_OFSTZ  FAH_MAG_MMC0+32 //4H offset magnetometru w osi Z
-
-
-//współczynniki kalibracji magnetometru MMC na magistrali I2C1
-#define	FAH_MAG_MMC1        FAH_MAG_MMC0_OFSTZ+4
-#define	FAH_MAG_MMC1_CORRX  FAH_MAG_MMC1+0  //4H korekcja zera mostka magnetometru w osi X
-#define	FAH_MAG_MMC1_CORRY  FAH_MAG_MMC1+4  //4H korekcja zera mostka magnetometru w osi Y
-#define	FAH_MAG_MMC1_CORRZ  FAH_MAG_MMC1+8  //4H korekcja zera mostka magnetometru w osi Z
-#define	FAH_MAG_MMC1_GAINX  FAH_MAG_MMC1+12 //4H wzmocnienie w osi X
-#define	FAH_MAG_MMC1_GAINY  FAH_MAG_MMC1+16 //4H wzmocnienie w osi Y
-#define	FAH_MAG_MMC1_GAINZ  FAH_MAG_MMC1+20 //4H wzmocnienie w osi Z
-#define	FAH_MAG_MMC1_OFSTX  FAH_MAG_MMC1+24 //4H offset magnetometru w osi X
-#define	FAH_MAG_MMC1_OFSTY  FAH_MAG_MMC1+28 //4H offset magnetometru w osi Y
-#define	FAH_MAG_MMC1_OFSTZ  FAH_MAG_MMC1+32 //4H offset magnetometru w osi Z
-
-//współczynniki kalibracji magnetometru MMC na magistrali I2C2
-#define	FAH_MAG_MMC2        FAH_MAG_MMC1_OFSTZ+4
-#define	FAH_MAG_MMC2_CORRX  FAH_MAG_MMC2+0  //4H korekcja zera mostka magnetometru w osi X
-#define	FAH_MAG_MMC2_CORRY  FAH_MAG_MMC2+4  //4H korekcja zera mostka magnetometru w osi Y
-#define	FAH_MAG_MMC2_CORRZ  FAH_MAG_MMC2+8  //4H korekcja zera mostka magnetometru w osi Z
-#define	FAH_MAG_MMC2_GAINX  FAH_MAG_MMC2+12 //4H wzmocnienie w osi X
-#define	FAH_MAG_MMC2_GAINY  FAH_MAG_MMC2+16 //4H wzmocnienie w osi Y
-#define	FAH_MAG_MMC2_GAINZ  FAH_MAG_MMC2+20 //4H wzmocnienie w osi Z
-#define	FAH_MAG_MMC2_OFSTX  FAH_MAG_MMC2+24 //4H offset magnetometru w osi X
-#define	FAH_MAG_MMC2_OFSTY  FAH_MAG_MMC2+28 //4H offset magnetometru w osi Y
-#define	FAH_MAG_MMC2_OFSTZ  FAH_MAG_MMC2+32 //4H offset magnetometru w osi Z
-//obecnie adresy ko�cz� si� na 0x500+236
-
-#define FAH_TCMAG           FAH_MAG_MMC2_OFSTZ+4
-#define	FAH_MAG_XM_TCOEF    FAH_TCMAG+0    //4H współczynnik korekcji temperaturowej magnetometru
-#define	FAH_MAG_XP_TCOEF    FAH_TCMAG+4    //4H o� X T>25�
-#define	FAH_MAG_YM_TCOEF    FAH_TCMAG+8    //4H o� Y T<25�
-#define	FAH_MAG_YP_TCOEF    FAH_TCMAG+12   //4H o� Y T>25�
-#define	FAH_MAG_ZM_TCOEF    FAH_TCMAG+16   //4H o� Z T<25�
-#define	FAH_MAG_ZP_TCOEF    FAH_TCMAG+20   //4H o� Z T>25�
-
-#define FAH_TSENS_OFST      FAH_MAG_ZP_TCOEF+4
-#define FAH_TMP1_OFFSET     FAH_TSENS_OFST+0
-#define FAH_TMP2_OFFSET     FAH_TSENS_OFST+4
-#define FAH_TMP3_OFFSET     FAH_TSENS_OFST+8
-#define FAH_TMP4_OFFSET     FAH_TSENS_OFST+12
-//obecnie adresy ko�cz� si� na 0x500+276
-
-//współczynniki kalibrcyjne magnetometru MAG3110
-#define FAH_MAG_MAG         FAH_TMP4_OFFSET+4
-#define FAH_MAG_MAG_CORRX   FAH_MAG_MAG+0
-#define FAH_MAG_MAG_GAINX   FAH_MAG_MAG+12
-#define FAH_MAG_MAG_OFSTX   FAH_MAG_MAG+24
-
-//współczynniki kalibrcyjne magnetometru HMC5883
-#define FAH_MAG_HMC         FAH_MAG_MAG+32
-#define FAH_MAG_HMC_CORRX   FAH_MAG_HMC+0
-#define FAH_MAG_HMC_GAINX   FAH_MAG_HMC+12
-#define FAH_MAG_HMC_OFSTX   FAH_MAG_HMC+24
 
 //
 #define FAH_VARIO_OFFSET_CPL FAH_MAG_HMC+32

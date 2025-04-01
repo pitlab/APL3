@@ -44,4 +44,6 @@ void RysujPasekPostepu(uint16_t sPelenZakres);
 uint32_t RysujKostkeObrotu(float *fKat);
 uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer);
 void Poziomica(float fKatAkcelX, float fKatAkcelY);
+void RysujPrzycisk(prostokat_t prost, char *chNapis);
+uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap);
 #endif /* INC_LCD_H_ */

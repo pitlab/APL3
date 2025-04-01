@@ -204,9 +204,10 @@ void PetlaGlowna(void)
 			uDaneCM4.dane.chOdpowiedzNaPolecenie = POL_CZYTAJ_WZM_ZYROR;
 			break;
 
-		case POL_KALIBRUJ_MAGN1:	//uruchom kalibrację magnetometru 1
-		case POL_KALIBRUJ_MAGN2:	//uruchom kalibrację magnetometru 2
-		case POL_KALIBRUJ_MAGN3:	//uruchom kalibrację magnetometru 3
+		case POL_KAL_ZERO_MAGN1:	KalibracjaZeraMagnetometru((int16_t*)uDaneCM4.dane.sMagne1);	break;	//uruchom kalibrację zera magnetometru 1
+		case POL_KAL_ZERO_MAGN2:	KalibracjaZeraMagnetometru((int16_t*)uDaneCM4.dane.sMagne2);	break;	//uruchom kalibrację zera magnetometru 2
+		case POL_KAL_ZERO_MAGN3:	KalibracjaZeraMagnetometru((int16_t*)uDaneCM4.dane.sMagne3);	break;	//uruchom kalibrację zera magnetometru 3
+
 		case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;	break;	//nadpisz poprzednio zwrócony błąd
     	}
 		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;

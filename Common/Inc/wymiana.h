@@ -34,9 +34,12 @@
 #define POL_CZYTAJ_WZM_ZYROQ	10	//odczytaj wzmocnienia żyroskopów Q
 #define POL_CZYTAJ_WZM_ZYROR	11	//odczytaj wzmocnienia żyroskopów R
 
-#define POL_KALIBRUJ_MAGN1		12	//uruchom kalibrację magnetometru 1
-#define POL_KALIBRUJ_MAGN2		13	//uruchom kalibrację magnetometru 2
-#define POL_KALIBRUJ_MAGN3		14	//uruchom kalibrację magnetometru 3
+#define POL_KAL_ZERO_MAGN1		12	//uruchom kalibrację zera magnetometru 1
+#define POL_KAL_ZERO_MAGN2		13	//uruchom kalibrację zera magnetometru 2
+#define POL_KAL_ZERO_MAGN3		14	//uruchom kalibrację zera magnetometru 3
+#define POL_ZAPISZ_ZERO_MAGN1	15	//zapisz offset zera magnetometru 1
+#define POL_ZAPISZ_ZERO_MAGN2	16	//zapisz offset zera magnetometru 2
+#define POL_ZAPISZ_ZERO_MAGN3	17	//zapisz offset zera magnetometru 3
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
 
 typedef struct _GNSS
