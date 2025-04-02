@@ -168,7 +168,7 @@ uint8_t KalibrujDotyk(void)
 		break;
 
 	case 1:	//wyświetl krzyżyk w prawym górnym rogu
-		sXe[0] = DISP_HX_SIZE - BRZEG;
+		sXe[0] = DISP_X_SIZE - BRZEG;
 		sYe[0] = BRZEG;
 		break;
 
@@ -179,17 +179,17 @@ uint8_t KalibrujDotyk(void)
 
 	case 3:	//wyświetl krzyżyk w lewym dolnym rogu
 		sXe[2] = BRZEG;
-		sYe[2] = DISP_HY_SIZE - BRZEG;
+		sYe[2] = DISP_Y_SIZE - BRZEG;
 		break;
 
 	case 4:	//wyświetl krzyżyk w prawym dolnym rogu
-		sXe[3] = DISP_HX_SIZE - BRZEG;
-		sYe[3] = DISP_HY_SIZE - BRZEG;
+		sXe[3] = DISP_X_SIZE - BRZEG;
+		sYe[3] = DISP_Y_SIZE - BRZEG;
 		break;
 
 	case 5:	//wyświetl krzyżyk na środku
-		sXe[4] = DISP_HX_SIZE/2;
-		sYe[4] = DISP_HY_SIZE/2;
+		sXe[4] = DISP_X_SIZE/2;
+		sYe[4] = DISP_Y_SIZE/2;
 		break;
 	}
 

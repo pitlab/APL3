@@ -182,4 +182,5 @@
 #define KOMG_KIERUNEK		5
 #define KOMG_MAX_KOMUNIKAT	5
 
+
 #endif /* INC_SYS_DEF_CM7_H_ */

@@ -208,6 +208,9 @@ void PetlaGlowna(void)
 		case POL_KAL_ZERO_MAGN2:	KalibracjaZeraMagnetometru((int16_t*)uDaneCM4.dane.sMagne2);	break;	//uruchom kalibrację zera magnetometru 2
 		case POL_KAL_ZERO_MAGN3:	KalibracjaZeraMagnetometru((int16_t*)uDaneCM4.dane.sMagne3);	break;	//uruchom kalibrację zera magnetometru 3
 
+		case POL_ZAPISZ_ZERO_MAGN1:	ZapiszOffsetMagnetometru(KAL_MAG1);
+		case POL_ZAPISZ_ZERO_MAGN2:	ZapiszOffsetMagnetometru(KAL_MAG2);
+		case POL_ZAPISZ_ZERO_MAGN3:	ZapiszOffsetMagnetometru(KAL_MAG3);
 		case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;	break;	//nadpisz poprzednio zwrócony błąd
     	}
 		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;

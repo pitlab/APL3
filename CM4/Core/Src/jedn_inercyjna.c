@@ -155,17 +155,17 @@ void ZapiszOffsetMagnetometru(uint8_t chMagn)
 	{
 		switch (chMagn)
 		{
-		case 0:
+		case KAL_MAG1:
 			fOffsetMagn1[n] = stMagn.sMax[n] + stMagn.sMin[n];
 			FramDataWriteFloat(FAH_MAGN1_OFSTX + 4*n, fOffsetMagn1[n]);
 			break;
 
-		case 1:
+		case KAL_MAG2:
 			fOffsetMagn2[n] = stMagn.sMax[n] + stMagn.sMin[n];
 			FramDataWriteFloat(FAH_MAGN2_OFSTX + 4*n, fOffsetMagn2[n]);
 			break;
 
-		case 2:
+		case KAL_MAG3:
 			fOffsetMagn3[n] = stMagn.sMax[n] + stMagn.sMin[n];
 			FramDataWriteFloat(FAH_MAGN3_OFSTX + 4*n, fOffsetMagn3[n]);
 			break;

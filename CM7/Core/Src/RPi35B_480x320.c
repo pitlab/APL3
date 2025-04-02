@@ -1007,9 +1007,9 @@ void print(char *str, uint16_t x, uint16_t y)
 	if (chOrient == POZIOMO)
 	{
 	if (x == RIGHT)
-		x = (DISP_HX_SIZE+1)-(stl*cfont.x_size);
+		x = (DISP_X_SIZE+1)-(stl*cfont.x_size);
 	if (x == CENTER)
-		x = ((DISP_HX_SIZE+1)-(stl*cfont.x_size))/2;
+		x = ((DISP_X_SIZE+1)-(stl*cfont.x_size))/2;
 	}
 	else	//wersja dla pionowego układu ekranu
 	{
@@ -1059,9 +1059,9 @@ void printRamka(char *str, uint16_t x, uint16_t y, uint16_t sx, uint16_t sy)
 		//if (chOrient == POZIOMO)		//na razie obsługuję tylko poziomo
 		{
 			if (x == RIGHT)
-				x = (DISP_HX_SIZE - sx + 1) - (dlugoscWiersza * cfont.x_size);
+				x = (DISP_X_SIZE - sx + 1) - (dlugoscWiersza * cfont.x_size);
 			if (x == CENTER)
-				x = ((DISP_HX_SIZE - sx) / 2)  + (sx - (dlugoscWiersza * cfont.x_size)) / 2;
+				x = ((DISP_X_SIZE - sx) / 2)  + (sx - (dlugoscWiersza * cfont.x_size)) / 2;
 		}
 		for (uint16_t i=0; i<dlugoscWiersza; i++)
 			printChar(*str++, x + (i*(cfont.x_size)), y);

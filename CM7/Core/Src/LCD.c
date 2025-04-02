@@ -105,6 +105,7 @@ uint8_t chSekwencerKalibracji;		//wskazuje na daną oś jako kolejny etap kalibr
 prostokat_t stPrzycisk;
 uint8_t chStanPrzycisku;
 uint8_t chEtapKalibracji;
+prostokat_t stWykr;	//wykres biegunowy magnetometru
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -562,10 +563,11 @@ void RysujEkran(void)
 	case TP_MAGNETOMETR:	//menu obsługi magnetometru
 		Menu((char*)chNapisLcd[STR_MENU_MAGNETOMETR], stMenuMagnetometr, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
+		chSekwencerKalibracji = 0;
 		break;
 
 	case TP_MAG_KAL1:
-		chSekwencerKalibracji = 0x00;
+		chSekwencerKalibracji |= KAL_MAG1;
 		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -574,7 +576,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_MAG_KAL2:
-		chSekwencerKalibracji = 0x10;
+		chSekwencerKalibracji |= KAL_MAG2;
 		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -583,7 +585,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_MAG_KAL3:
-		chSekwencerKalibracji = 0x20;
+		chSekwencerKalibracji |= KAL_MAG3;
 		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -651,7 +653,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 	if (chRysujRaz)
 	{
 		LCD_clear(WHITE);
-		drawBitmap((DISP_HX_SIZE-165)/2, 5, 165, 80, plogo165x80);
+		drawBitmap((DISP_X_SIZE-165)/2, 5, 165, 80, plogo165x80);
 
 		setColor(GRAY20);
 		setBackColor(WHITE);
@@ -1155,7 +1157,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 
 		//rysuje pasek podpowiedzi na dole ekranu
 		setColor(GRAY20);
-		fillRect(0, DISP_HY_SIZE-MENU_PASOP_WYS, DISP_HX_SIZE, DISP_HY_SIZE);
+		fillRect(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, DISP_Y_SIZE);
 		setBackColor(BLACK);
 
 		//rysuj ikony poleceń
@@ -1165,8 +1167,8 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 			for (n=0; n<MENU_KOLUMNY; n++)
 			{
 				//licz współrzedne środka ikony
-				x = (DISP_HX_SIZE/(2*MENU_KOLUMNY)) + n * (DISP_HX_SIZE/MENU_KOLUMNY);
-				y = ((DISP_HY_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/(2*MENU_WIERSZE)) + m * ((DISP_HY_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
+				x = (DISP_X_SIZE/(2*MENU_KOLUMNY)) + n * (DISP_X_SIZE/MENU_KOLUMNY);
+				y = ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / (2*MENU_WIERSZE)) + m * ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
 
 				setColor(MENU_TLO_NAK);
 				drawBitmap(x-MENU_ICO_WYS/2, y-MENU_ICO_DLG/2, MENU_ICO_DLG, MENU_ICO_WYS, menu[m*MENU_KOLUMNY+n].sIkona);
@@ -1184,14 +1186,14 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	{
 		chStarySelPos = chMenuSelPos;
 
-		if (statusDotyku.sY < (DISP_HY_SIZE-MENU_NAG_WYS)/2)	//czy naciśniety górny rząd
+		if (statusDotyku.sY < (DISP_Y_SIZE - MENU_NAG_WYS)/2)	//czy naciśniety górny rząd
 			m = 0;
 		else	//czy naciśniety dolny rząd
 			m = 1;
 
 		for (n=0; n<MENU_KOLUMNY; n++)
 		{
-			if ((statusDotyku.sX > n*(DISP_HX_SIZE/MENU_KOLUMNY)) && (statusDotyku.sX < (n+1)*(DISP_HX_SIZE/MENU_KOLUMNY)))
+			if ((statusDotyku.sX > n*(DISP_X_SIZE / MENU_KOLUMNY)) && (statusDotyku.sX < (n+1)*(DISP_X_SIZE / MENU_KOLUMNY)))
 				chMenuSelPos = m * MENU_KOLUMNY + n;
 		}
 
@@ -1206,8 +1208,8 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 					if (chStarySelPos == m*MENU_KOLUMNY+n)
 					{
 						//licz współrzedne środka ikony
-						x = (DISP_HX_SIZE/(2*MENU_KOLUMNY)) + n * (DISP_HX_SIZE/MENU_KOLUMNY);
-						y = ((DISP_HY_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/(2*MENU_WIERSZE)) + m * ((DISP_HY_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
+						x = (DISP_X_SIZE /(2*MENU_KOLUMNY)) + n * (DISP_X_SIZE / MENU_KOLUMNY);
+						y = ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / (2*MENU_WIERSZE)) + m * ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
 						setColor(BLACK);
 						drawRoundRect(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
 						setColor(GRAY60);
@@ -1219,7 +1221,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 			}
 			setColor(GRAY20);
 			//fillRect(0, DISP_X_SIZE-MENU_PASOP_WYS, DISP_Y_SIZE, DISP_X_SIZE);		//zamaż pasek podpowiedzi
-			fillRect(0, DISP_HY_SIZE-MENU_PASOP_WYS, DISP_HX_SIZE, DISP_HY_SIZE);		//zamaż pasek podpowiedzi
+			fillRect(0, DISP_Y_SIZE-MENU_PASOP_WYS, DISP_X_SIZE, DISP_Y_SIZE);		//zamaż pasek podpowiedzi
 
 		}
 
@@ -1231,8 +1233,8 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 				if (chMenuSelPos == m*MENU_KOLUMNY+n)
 				{
 					//licz współrzedne środka ikony
-					x = (DISP_HX_SIZE/(2*MENU_KOLUMNY)) + n * (DISP_HX_SIZE/MENU_KOLUMNY);
-					y = ((DISP_HY_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/(2*MENU_WIERSZE)) + m * ((DISP_HY_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
+					x = (DISP_X_SIZE/(2*MENU_KOLUMNY)) + n * (DISP_X_SIZE/MENU_KOLUMNY);
+					y = ((DISP_Y_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/(2*MENU_WIERSZE)) + m * ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS)/MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
 					if  (statusDotyku.chFlagi == DOTYK_DOTKNIETO)	//czy naciśnięty ekran
 						setColor(MENU_RAM_WYB);
 					else
@@ -1251,7 +1253,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 			setColor(MENU_RAM_AKT);
 			setBackColor(GRAY20);
 			strcpy(chNapis, menu[chMenuSelPos].chPomoc);
-			print(chNapis, DW_SPACE, DISP_HY_SIZE-DW_SPACE-FONT_SH);
+			print(chNapis, DW_SPACE, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 			setBackColor(BLACK);
 			chRysujRaz = 0;
 		}
@@ -1273,7 +1275,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		setColor(GRAY50);
 		setColor(MENU_RAM_AKT);
 		sprintf(chNapis, "%02d:%02d:%02d", sTime.Hours,  sTime.Minutes,  sTime.Seconds);
-		print(chNapis, DISP_HX_SIZE-9*FONT_SL, DISP_HY_SIZE-DW_SPACE-FONT_SH);
+		print(chNapis, DISP_X_SIZE - 9*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		chOstatniCzas = sTime.Seconds;
 	}
 }
@@ -1288,7 +1290,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 void BelkaTytulu(char* chTytul)
 {
 	setColor(MENU_TLO_BAR);
-	fillRect(18, 0, DISP_HX_SIZE, MENU_NAG_WYS);
+	fillRect(18, 0, DISP_X_SIZE, MENU_NAG_WYS);
 	drawBitmap(0, 0, 18, 18, pitlab_logo18);	//logo PitLab
 	setColor(YELLOW);
 	setBackColor(MENU_TLO_BAR);
@@ -2358,8 +2360,8 @@ void Poziomica(float fKatAkcelX, float fKatAkcelY)
 		setColor(LIBELLA1);
 		fillRect(0, DISP_Y_SIZE - LIBELLA_BOK, LIBELLA_BOK, DISP_Y_SIZE);	//wypełnienie płynem
 		chRysujRaz = 0;
-		x2 = (DISP_HY_SIZE - MENU_NAG_WYS)/2;					//współrzędne "starego" bąbelka do zamazania
-		y2 = MENU_NAG_WYS + (DISP_HY_SIZE - MENU_NAG_WYS)/2;
+		x2 = (DISP_Y_SIZE - MENU_NAG_WYS)/2;					//współrzędne "starego" bąbelka do zamazania
+		y2 = MENU_NAG_WYS + (DISP_Y_SIZE - MENU_NAG_WYS)/2;
 	}
 
 	//oblicz współrzędne bąbelka
@@ -2397,12 +2399,12 @@ void Poziomica(float fKatAkcelX, float fKatAkcelY)
 
 		//skala 10°
 		setColor(BLACK);
-		//drawCircle(LIBELLA_BOK / 2, MENU_NAG_WYS + (DISP_HY_SIZE - MENU_NAG_WYS)/2, 75);
+		//drawCircle(LIBELLA_BOK / 2, MENU_NAG_WYS + (DISP_Y_SIZE - MENU_NAG_WYS)/2, 75);
 		drawCircle(LIBELLA_BOK / 2, DISP_Y_SIZE - LIBELLA_BOK / 2, 75);
 
 		//skala 15°
 		setColor(BLACK);
-		//drawCircle(LIBELLA_BOK  / 2, MENU_NAG_WYS+(DISP_HY_SIZE - MENU_NAG_WYS)/2, 100);
+		//drawCircle(LIBELLA_BOK  / 2, MENU_NAG_WYS+(DISP_Y_SIZE - MENU_NAG_WYS)/2, 100);
 		drawCircle(LIBELLA_BOK / 2, DISP_Y_SIZE - LIBELLA_BOK / 2, 100);
 
 		drawHLine(0, DISP_Y_SIZE - LIBELLA_BOK/2, LIBELLA_BOK);
@@ -2445,7 +2447,9 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 {
 	char chNazwaOsi;
 	uint8_t chErr = ERR_OK;
-	static float fPoprzednieMin, fPoprzednieMax;
+	static float fPoprzednieMin, fPoprzednieMax, fWspSkalX, fWspSkalY;
+	int16_t sMag[3];	//dane bieżącego magnetometru
+	uint16_t sX, sY, sPopX, sPopY;	//współrzędne na wykresie bieżace i poprzednie
 
 	if (chRysujRaz)
 	{
@@ -2473,56 +2477,54 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 
 		setColor(GRAY60);
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
-		print(chNapis, CENTER, 70);
+		print(chNapis, CENTER, 50);
 
 		setColor(GRAY40);
-		stPrzycisk.sX1 = 10 + LIBELLA_BOK;
+		stPrzycisk.sX1 = 10;
 		stPrzycisk.sY1 = 260;
 		stPrzycisk.sX2 = stPrzycisk.sX1 + 210;
 		stPrzycisk.sY2 = stPrzycisk.sY1 + 55;
 		RysujPrzycisk(stPrzycisk, "Nastepna Os");
+
+		setColor(GRAY40);
+		stWykr.sX1 = DISP_X_SIZE - SZER_WYKR_MAG;
+		stWykr.sY1 = DISP_Y_SIZE - SZER_WYKR_MAG;
+		stWykr.sX2 = DISP_X_SIZE;
+		stWykr.sY2 = DISP_Y_SIZE;
+		drawRect(stWykr.sX1, stWykr.sY1, stWykr.sX2, stWykr.sY2);	//rysuj ramkę wykresu
+		sPopX = stWykr.sX1 + SZER_WYKR_MAG/2;
+		sPopY = stWykr.sX1 + SZER_WYKR_MAG/2;
 		//chEtap = 0;
 		chStanPrzycisku = 0;
 		fPoprzednieMin = fPoprzednieMax = 0.0f;
 
 		statusDotyku.chFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
 	}
-	setColor(WHITE);
 
-	switch (*chEtap & 0xF0)
+
+	//pobierz dane z konkretnego magnetometru
+	switch (*chEtap & 0xF0)		//rodzaj magnetometru
 	{
-	case 0x00:
-		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_MAGN1;
-		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[0]);
-		print(chNapis, 10 + 15*FONT_SL, 100);
-		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[1]);
-		print(chNapis, 10 + 15*FONT_SL, 120);
-		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne1[2]);
-		print(chNapis, 10 + 15*FONT_SL, 140);
+	case KAL_MAG1:
+		uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN1;
+		for (uint16_t n=0; n<3; n++)
+			sMag[n] = uDaneCM4.dane.sMagne1[n];
 		break;
 
-	case 0x10:
-		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_MAGN2;
-		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[0]);
-		print(chNapis, 10 + 15*FONT_SL, 100);
-		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[1]);
-		print(chNapis, 10 + 15*FONT_SL, 120);
-		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne2[2]);
-		print(chNapis, 10 + 15*FONT_SL, 140);
+	case KAL_MAG2:
+		uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN2;
+		for (uint16_t n=0; n<3; n++)
+			sMag[n] = uDaneCM4.dane.sMagne2[n];
 		break;
 
-	case 0x20:
-		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_MAGN3;
-		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[0]);
-		print(chNapis, 10 + 15*FONT_SL, 100);
-		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[1]);
-		print(chNapis, 10 + 15*FONT_SL, 120);
-		sprintf(chNapis, "%d ", uDaneCM4.dane.sMagne3[2]);
-		print(chNapis, 10 + 15*FONT_SL, 140);
+	case KAL_MAG3:
+		uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN3;
+		for (uint16_t n=0; n<3; n++)
+			sMag[n] = uDaneCM4.dane.sMagne3[n];
 		break;
 	}
 
-	switch (*chEtap & 0x0F)
+	switch (*chEtap & 0x0F)		//rodzaj osi
 	{
 	case 0:	chNazwaOsi = 'X';
 		if (uDaneCM4.dane.fRozne[0] < fPoprzednieMin)
@@ -2536,6 +2538,17 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			fPoprzednieMax = uDaneCM4.dane.fRozne[1];
 			OdtworzProbkeAudioZeSpisu(PRGA_DWIE);
 		}
+
+		//rysuj wykres biegunowy Y-Z
+		setColor(KOLOR_X);
+		fWspSkalX = SZER_WYKR_MAG / (uDaneCM4.dane.fRozne[3] - uDaneCM4.dane.fRozne[2]);	//Y
+		fWspSkalY = SZER_WYKR_MAG / (uDaneCM4.dane.fRozne[5] - uDaneCM4.dane.fRozne[4]);	//Z
+		sX = (int16_t)(sMag[1] * fWspSkalX) + stWykr.sX1 + SZER_WYKR_MAG/2;
+		sY = (int16_t)(sMag[2] * fWspSkalY) + stWykr.sY1 + SZER_WYKR_MAG/2;
+		//drawPixel(sX, sY);
+		drawLine(sX, sY, sPopX, sPopY);
+		sPopX = sX;
+		sPopY = sY;
 		break;
 
 	case 1: chNazwaOsi = 'Y';
@@ -2550,6 +2563,17 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			fPoprzednieMax = uDaneCM4.dane.fRozne[3];
 			OdtworzProbkeAudioZeSpisu(PRGA_DWIE);
 		}
+
+		//rysuj wykres biegunowy X-Z
+		setColor(KOLOR_Y);
+		fWspSkalX = SZER_WYKR_MAG / (uDaneCM4.dane.fRozne[1] - uDaneCM4.dane.fRozne[0]);
+		fWspSkalY = SZER_WYKR_MAG / (uDaneCM4.dane.fRozne[5] - uDaneCM4.dane.fRozne[4]);
+		sX = (int16_t)(sMag[0] * fWspSkalX) + stWykr.sX1 + SZER_WYKR_MAG/2;
+		sY = (int16_t)(sMag[2] * fWspSkalY) + stWykr.sY1 + SZER_WYKR_MAG/2;
+		//drawPixel(sX, sY);
+		drawLine(sX, sY, sPopX, sPopY);
+		sPopX = sX;
+		sPopY = sY;
 		break;
 
 	case 2: chNazwaOsi = 'Z';
@@ -2564,8 +2588,29 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			fPoprzednieMax = uDaneCM4.dane.fRozne[5];
 			OdtworzProbkeAudioZeSpisu(PRGA_DWIE);
 		}
+
+		//rysuj wykres biegunowy X-Y
+		setColor(KOLOR_Z);
+		fWspSkalX = SZER_WYKR_MAG / (uDaneCM4.dane.fRozne[1] - uDaneCM4.dane.fRozne[0]);
+		fWspSkalY = SZER_WYKR_MAG / (uDaneCM4.dane.fRozne[3] - uDaneCM4.dane.fRozne[2]);
+		sX = (int16_t)(sMag[0] * fWspSkalX) + stWykr.sX1 + SZER_WYKR_MAG/2;
+		sY = (int16_t)(sMag[1] * fWspSkalY) + stWykr.sY1 + SZER_WYKR_MAG/2;
+		//drawPixel(sX, sY);
+		drawLine(sX, sY, sPopX, sPopY);
+		sPopX = sX;
+		sPopY = sY;
 		break;
 	}
+
+	setColor(WHITE);
+
+	sprintf(chNapis, "%d ", sMag[0]);
+	print(chNapis, 10 + 15*FONT_SL, 100);
+	sprintf(chNapis, "%d ", sMag[1]);
+	print(chNapis, 10 + 15*FONT_SL, 120);
+	sprintf(chNapis, "%d ", sMag[2]);
+	print(chNapis, 10 + 15*FONT_SL, 140);
+
 
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[0], ZNAK_STOPIEN);
 	print(chNapis, 10 + 12*FONT_SL, 160);
@@ -2602,13 +2647,19 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			if ((*chEtap & 0x0F) == 3)
 			{
 				chErr = ERR_DONE;
-				uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_ZERO_MAGN1 + (*chEtap & 0xF0)>>4;	//zapisz offset zera magnetometru 1
+				uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_ZERO_MAGN1 + ((*chEtap & 0xF0) >> 4);	//zapisz offset zera magnetometru 1
 			}
+			OdtworzProbkeAudioZeSpisu(PRGA_WOLT);	//komunikat audio naciśnięcia przycisku
 		}
 	}
 
 	setColor(YELLOW);
 	sprintf(chNapis, "Znajd%c minimum i maksimum wskaza%c dla osi %c", ź, ń, chNazwaOsi);
 	print(chNapis, CENTER, 30);
+
+	//rysuj wykres
+
+
+
 	return chErr;
 }

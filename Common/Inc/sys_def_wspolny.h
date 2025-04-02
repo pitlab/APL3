@@ -51,3 +51,7 @@
 #define SEKW_KAL_WZM_ZYRO_P		2
 
 
+//identyfikatory kalibrowanych magnetometrów
+#define KAL_MAG1			0x10
+#define KAL_MAG2			0x20
+#define KAL_MAG3			0x40
