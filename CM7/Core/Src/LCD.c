@@ -23,6 +23,7 @@
 #include "ff.h"
 #include "rejestrator.h"
 #include "wspolne.h"
+#include <stdlib.h>
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -187,9 +188,9 @@ struct tmenu stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Kal Magn3", 	"Kalibracja magnetometru 3",				TP_MAG_KAL3,		obr_kal_mag_n1},
 	{"MAG4",		"nic  ",									TP_MAG4,			obr_dotyk},
 	{"MAG5",		"nic  ",									TP_MAG5,			obr_dotyk},
-	{"MAG6",		"nic  ",									TP_MAG6,			obr_dotyk},
-	{"MAG7",		"nic  ",									TP_MAG7,			obr_dotyk},
-	{"MAG8",		"nic  ",									TP_MAG8,			obr_dotyk},
+	{"Spr Magn1",	"Sprawdź kalibrację magnetometru 1",		TP_SPR_MAG1,		obr_kal_mag_n1},
+	{"Spr Magn2",	"Sprawdź kalibrację magnetometru 2",		TP_SPR_MAG2,		obr_kal_mag_n1},
+	{"Spr Magn3",	"Sprawdź kalibrację magnetometru 3",		TP_SPR_MAG3,		obr_kal_mag_n1},
 	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_KAL_DOTYK,		obr_dotyk_zolty},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
@@ -567,7 +568,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_MAG_KAL1:
-		chSekwencerKalibracji |= KAL_MAG1;
+		chSekwencerKalibracji |= MAG1 + KALIBRUJ;
 		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -576,7 +577,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_MAG_KAL2:
-		chSekwencerKalibracji |= KAL_MAG2;
+		chSekwencerKalibracji |= MAG2 + KALIBRUJ;
 		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -585,7 +586,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_MAG_KAL3:
-		chSekwencerKalibracji |= KAL_MAG3;
+		chSekwencerKalibracji |= MAG3 + KALIBRUJ;
 		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -595,9 +596,33 @@ void RysujEkran(void)
 
 	case TP_MAG4:
 	case TP_MAG5:
-	case TP_MAG6:
-	case TP_MAG7:
-	case TP_MAG8:
+	case TP_SPR_MAG1:
+		chSekwencerKalibracji |= MAG1;	//sprawdzenie, bez kalibracji
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_MAG_WROC;
+		}
+		break;
+
+	case TP_SPR_MAG2:
+		chSekwencerKalibracji |= MAG2;	//sprawdzenie, bez kalibracji
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_MAG_WROC;
+		}
+		break;
+
+	case TP_SPR_MAG3:
+		chSekwencerKalibracji |= MAG3;	//sprawdzenie, bez kalibracji
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_MAG_WROC;
+		}
+		break;
+
 	case TP_KAL_DOTYK:
 		if (KalibrujDotyk() == ERR_DONE)
 			chTrybPracy = TP_TESTY;
@@ -2447,10 +2472,12 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 {
 	char chNazwaOsi;
 	uint8_t chErr = ERR_OK;
-	static float fPoprzednieMin, fPoprzednieMax, fWspSkalX, fWspSkalY;
+	static float fPoprzednieMin, fPoprzednieMax;
+	float fWspSkal;		//współczynnik skalowania wykresu
 	int16_t sMag[3];	//dane bieżącego magnetometru
-	uint16_t sX, sY, sPopX, sPopY;	//współrzędne na wykresie bieżace i poprzednie
-
+	uint16_t sX, sY;	//bieżace współrzędne na wykresie
+	static uint16_t sPopX, sPopY;	//poprzednie współrzędne na wykresie
+	static uint16_t sMax[3];	//wartość bezwzględna maksimum wskazań
 	if (chRysujRaz)
 	{
 		chRysujRaz = 0;
@@ -2483,7 +2510,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		stPrzycisk.sX1 = 10;
 		stPrzycisk.sY1 = 260;
 		stPrzycisk.sX2 = stPrzycisk.sX1 + 210;
-		stPrzycisk.sY2 = stPrzycisk.sY1 + 55;
+		stPrzycisk.sY2 = DISP_Y_SIZE;
 		RysujPrzycisk(stPrzycisk, "Nastepna Os");
 
 		setColor(GRAY40);
@@ -2492,12 +2519,17 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		stWykr.sX2 = DISP_X_SIZE;
 		stWykr.sY2 = DISP_Y_SIZE;
 		drawRect(stWykr.sX1, stWykr.sY1, stWykr.sX2, stWykr.sY2);	//rysuj ramkę wykresu
-		sPopX = stWykr.sX1 + SZER_WYKR_MAG/2;
-		sPopY = stWykr.sX1 + SZER_WYKR_MAG/2;
-		//chEtap = 0;
+		sPopX = stWykr.sX1 + SZER_WYKR_MAG/2;	//środek wykresu
+		sPopY = stWykr.sY1 + SZER_WYKR_MAG/2;
 		chStanPrzycisku = 0;
 		fPoprzednieMin = fPoprzednieMax = 0.0f;
-
+		for (uint16_t n=0; n<3; n++)
+		{
+			if (*chEtap & KALIBRUJ)
+				sMax[n] = 0;		//podczas kalibracji zbieraj wartosci maksimów
+			else
+				sMax[n] = 700;		//podczas sprawdzenia pracuj na stałym współczynniku
+		}
 		statusDotyku.chFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
 	}
 
@@ -2505,26 +2537,29 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	//pobierz dane z konkretnego magnetometru
 	switch (*chEtap & 0xF0)		//rodzaj magnetometru
 	{
-	case KAL_MAG1:
-		uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN1;
+	case MAG1:
+		if (*chEtap & KALIBRUJ)
+			uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN1;
 		for (uint16_t n=0; n<3; n++)
 			sMag[n] = uDaneCM4.dane.sMagne1[n];
 		break;
 
-	case KAL_MAG2:
-		uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN2;
+	case MAG2:
+		if (*chEtap & KALIBRUJ)
+			uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN2;
 		for (uint16_t n=0; n<3; n++)
 			sMag[n] = uDaneCM4.dane.sMagne2[n];
 		break;
 
-	case KAL_MAG3:
-		uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN3;
+	case MAG3:
+		if (*chEtap & KALIBRUJ)
+			uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN3;
 		for (uint16_t n=0; n<3; n++)
 			sMag[n] = uDaneCM4.dane.sMagne3[n];
 		break;
 	}
 
-	switch (*chEtap & 0x0F)		//rodzaj osi
+	switch (*chEtap & MASKA_OSI)		//rodzaj osi
 	{
 	case 0:	chNazwaOsi = 'X';
 		if (uDaneCM4.dane.fRozne[0] < fPoprzednieMin)
@@ -2539,16 +2574,36 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			OdtworzProbkeAudioZeSpisu(PRGA_DWIE);
 		}
 
+		//znajdź wartości bezwzględne z maksimów
+		if (sMax[0] < uDaneCM4.dane.fRozne[1])
+			sMax[0] = uDaneCM4.dane.fRozne[1];
+		if (sMax[0] < abs(uDaneCM4.dane.fRozne[0]))
+			sMax[0] = abs(uDaneCM4.dane.fRozne[0]);
+
+		if (sMax[1] < uDaneCM4.dane.fRozne[3])
+			sMax[1] = uDaneCM4.dane.fRozne[3];
+		if (sMax[1] < abs(uDaneCM4.dane.fRozne[2]))
+			sMax[1] = abs(uDaneCM4.dane.fRozne[2]);
+
+		if (sMax[2] < uDaneCM4.dane.fRozne[5])
+			sMax[2] = uDaneCM4.dane.fRozne[5];
+		if (sMax[2] < abs(uDaneCM4.dane.fRozne[4]))
+			sMax[2] = abs(uDaneCM4.dane.fRozne[4]);
+
 		//rysuj wykres biegunowy Y-Z
-		setColor(KOLOR_X);
-		fWspSkalX = SZER_WYKR_MAG / (uDaneCM4.dane.fRozne[3] - uDaneCM4.dane.fRozne[2]);	//Y
-		fWspSkalY = SZER_WYKR_MAG / (uDaneCM4.dane.fRozne[5] - uDaneCM4.dane.fRozne[4]);	//Z
-		sX = (int16_t)(sMag[1] * fWspSkalX) + stWykr.sX1 + SZER_WYKR_MAG/2;
-		sY = (int16_t)(sMag[2] * fWspSkalY) + stWykr.sY1 + SZER_WYKR_MAG/2;
-		//drawPixel(sX, sY);
-		drawLine(sX, sY, sPopX, sPopY);
-		sPopX = sX;
-		sPopY = sY;
+		if ((sMax[1] > MIN_MAG_WYKR) && (sMax[2] > MIN_MAG_WYKR))
+		{
+			setColor(KOLOR_X);
+			if (sMax[1] > sMax[2])
+				fWspSkal = (float)(SZER_WYKR_MAG / 2) / sMax[1];	//Y
+			else
+				fWspSkal = (float)(SZER_WYKR_MAG / 2) / sMax[2];	//Z
+			sX = (int16_t)(sMag[1] * fWspSkal) + stWykr.sX1 + SZER_WYKR_MAG/2;
+			sY = (int16_t)(sMag[2] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
+			drawLine(sX, sY, sPopX, sPopY);
+			sPopX = sX;
+			sPopY = sY;
+		}
 		break;
 
 	case 1: chNazwaOsi = 'Y';
@@ -2565,15 +2620,19 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		}
 
 		//rysuj wykres biegunowy X-Z
-		setColor(KOLOR_Y);
-		fWspSkalX = SZER_WYKR_MAG / (uDaneCM4.dane.fRozne[1] - uDaneCM4.dane.fRozne[0]);
-		fWspSkalY = SZER_WYKR_MAG / (uDaneCM4.dane.fRozne[5] - uDaneCM4.dane.fRozne[4]);
-		sX = (int16_t)(sMag[0] * fWspSkalX) + stWykr.sX1 + SZER_WYKR_MAG/2;
-		sY = (int16_t)(sMag[2] * fWspSkalY) + stWykr.sY1 + SZER_WYKR_MAG/2;
-		//drawPixel(sX, sY);
-		drawLine(sX, sY, sPopX, sPopY);
-		sPopX = sX;
-		sPopY = sY;
+		if ((sMax[0] > MIN_MAG_WYKR) && (sMax[2] > MIN_MAG_WYKR))
+		{
+   			setColor(KOLOR_Y);
+   			if (sMax[0] > sMax[2])
+   				fWspSkal = (float)(SZER_WYKR_MAG / 2) / sMax[0];	//X
+   			else
+   				fWspSkal = (float)(SZER_WYKR_MAG / 2) / sMax[2];	//Z
+			sX = (int16_t)(sMag[0] * fWspSkal) + stWykr.sX1 + SZER_WYKR_MAG/2;
+			sY = (int16_t)(sMag[2] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
+			drawLine(sX, sY, sPopX, sPopY);
+			sPopX = sX;
+			sPopY = sY;
+		}
 		break;
 
 	case 2: chNazwaOsi = 'Z';
@@ -2590,15 +2649,19 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		}
 
 		//rysuj wykres biegunowy X-Y
-		setColor(KOLOR_Z);
-		fWspSkalX = SZER_WYKR_MAG / (uDaneCM4.dane.fRozne[1] - uDaneCM4.dane.fRozne[0]);
-		fWspSkalY = SZER_WYKR_MAG / (uDaneCM4.dane.fRozne[3] - uDaneCM4.dane.fRozne[2]);
-		sX = (int16_t)(sMag[0] * fWspSkalX) + stWykr.sX1 + SZER_WYKR_MAG/2;
-		sY = (int16_t)(sMag[1] * fWspSkalY) + stWykr.sY1 + SZER_WYKR_MAG/2;
-		//drawPixel(sX, sY);
-		drawLine(sX, sY, sPopX, sPopY);
-		sPopX = sX;
-		sPopY = sY;
+		if ((sMax[1] > MIN_MAG_WYKR) && (sMax[0] > MIN_MAG_WYKR))
+		{
+			setColor(KOLOR_Z);
+			if (sMax[0] > sMax[1])
+				fWspSkal = (float)(SZER_WYKR_MAG / 2) / sMax[0];	//X
+			else
+				fWspSkal = (float)(SZER_WYKR_MAG / 2) / sMax[1];	//Y
+			sX = (int16_t)(sMag[0] * fWspSkal) + stWykr.sX1 + SZER_WYKR_MAG/2;
+			sY = (int16_t)(sMag[1] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
+			drawLine(sX, sY, sPopX, sPopY);
+			sPopX = sX;
+			sPopY = sY;
+		}
 		break;
 	}
 
@@ -2644,10 +2707,14 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			(*chEtap)++;
 			chStanPrzycisku = 0;
 			fPoprzednieMin = fPoprzednieMax = 0.0f;
-			if ((*chEtap & 0x0F) == 3)
+			sPopX = stWykr.sX1 + SZER_WYKR_MAG/2;	//środek wykresu
+			sPopY = stWykr.sY1 + SZER_WYKR_MAG/2;
+			for (uint16_t n=0; n<3; n++)
+				sMax[3] = 0;
+			if ((*chEtap & MASKA_OSI) == 3)
 			{
 				chErr = ERR_DONE;
-				uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_ZERO_MAGN1 + ((*chEtap & 0xF0) >> 4);	//zapisz offset zera magnetometru 1
+				uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_ZERO_MAGN1 + ((*chEtap & MASKA_OSI) >> 4);	//zapisz offset zera magnetometru 1
 			}
 			OdtworzProbkeAudioZeSpisu(PRGA_WOLT);	//komunikat audio naciśnięcia przycisku
 		}

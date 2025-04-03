@@ -62,34 +62,34 @@ uint8_t InicjujModulI2P(void)
 	//odczytaj kalibrację żyroskopów i licz charakterystykę
 	for (uint16_t n=0; n<3; n++)
 	{
-		chErr += FramDataReadFloatValid(FAH_ZYRO1_X_PRZ_ZIM+(4*n), &fOffsetZyro1Z, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu1 na zimno
-		chErr += FramDataReadFloatValid(FAH_ZYRO2_X_PRZ_ZIM+(4*n), &fOffsetZyro2Z, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu2 na zimno
+		chErr += FramDataReadFloatValid(FAH_ZYRO1_X_PRZ_ZIM+(4*n), &fOffsetZyro1Z, VMIN_OFST_ZYRO, VMAX_OFST_ZYRO, VMIN_OFST_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu1 na zimno
+		chErr += FramDataReadFloatValid(FAH_ZYRO2_X_PRZ_ZIM+(4*n), &fOffsetZyro2Z, VMIN_OFST_ZYRO, VMAX_OFST_ZYRO, VMIN_OFST_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu2 na zimno
 
-		chErr += FramDataReadFloatValid(FAH_ZYRO1_X_PRZ_POK+(4*n), &fOffsetZyro1P, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu1 w temp pokojowej
-		chErr += FramDataReadFloatValid(FAH_ZYRO2_X_PRZ_POK+(4*n), &fOffsetZyro2P, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu1 w temp pokojowej
+		chErr += FramDataReadFloatValid(FAH_ZYRO1_X_PRZ_POK+(4*n), &fOffsetZyro1P, VMIN_OFST_ZYRO, VMAX_OFST_ZYRO, VMIN_OFST_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu1 w temp pokojowej
+		chErr += FramDataReadFloatValid(FAH_ZYRO2_X_PRZ_POK+(4*n), &fOffsetZyro2P, VMIN_OFST_ZYRO, VMAX_OFST_ZYRO, VMIN_OFST_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu1 w temp pokojowej
 
-		chErr += FramDataReadFloatValid(FAH_ZYRO1_X_PRZ_GOR+(4*n), &fOffsetZyro1G, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu1 na gorąco
-		chErr += FramDataReadFloatValid(FAH_ZYRO2_X_PRZ_GOR+(4*n), &fOffsetZyro2G, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset żyroskopu2 na gorąco
+		chErr += FramDataReadFloatValid(FAH_ZYRO1_X_PRZ_GOR+(4*n), &fOffsetZyro1G, VMIN_OFST_ZYRO, VMAX_OFST_ZYRO, VMIN_OFST_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu1 na gorąco
+		chErr += FramDataReadFloatValid(FAH_ZYRO2_X_PRZ_GOR+(4*n), &fOffsetZyro2G, VMIN_OFST_ZYRO, VMAX_OFST_ZYRO, VMIN_OFST_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu2 na gorąco
 
 		ObliczRownanieFunkcjiTemperatury(fOffsetZyro1Z, fOffsetZyro1P, fTemp1[ZIM], fTemp1[POK], &stWspKalOffsetuZyro1.fAzim[n], &stWspKalOffsetuZyro1.fBzim[n]);	//Żyro 1 na zimno
 		ObliczRownanieFunkcjiTemperatury(fOffsetZyro1P, fOffsetZyro1G, fTemp1[POK], fTemp1[GOR], &stWspKalOffsetuZyro1.fAgor[n], &stWspKalOffsetuZyro1.fBgor[n]);	//Żyro 1 na gorąco
 		ObliczRownanieFunkcjiTemperatury(fOffsetZyro2Z, fOffsetZyro2P, fTemp2[ZIM], fTemp2[POK], &stWspKalOffsetuZyro2.fAzim[n], &stWspKalOffsetuZyro2.fBzim[n]);	//Żyro 2 na zimno
 		ObliczRownanieFunkcjiTemperatury(fOffsetZyro2P, fOffsetZyro2G, fTemp2[POK], fTemp2[GOR], &stWspKalOffsetuZyro2.fAgor[n], &stWspKalOffsetuZyro2.fBgor[n]);	//Żyro 2 na gorąco
 
-		chErr += FramDataReadFloatValid(FAH_ZYRO1P_WZMOC+(4*n), &fWzmocnZyro1[n], MIN_WZM_ZYRO, MAX_WZM_ZYRO, DEF_WZM_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 1
-		chErr += FramDataReadFloatValid(FAH_ZYRO2P_WZMOC+(4*n), &fWzmocnZyro2[n], MIN_WZM_ZYRO, MAX_WZM_ZYRO, DEF_WZM_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 2
+		chErr += FramDataReadFloatValid(FAH_ZYRO1P_WZMOC+(4*n), &fWzmocnZyro1[n], VMIN_WZM_ZYRO, VMAX_WZM_ZYRO, VDEF_WZM_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 1
+		chErr += FramDataReadFloatValid(FAH_ZYRO2P_WZMOC+(4*n), &fWzmocnZyro2[n], VMIN_WZM_ZYRO, VMAX_WZM_ZYRO, VDEF_WZM_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 2
 	}
 
 	//odczytaj kalibrację czujników ciśnienia różnicowego i licz charakterystykę. Używana jest temperatura żyroskopu 1
-	chErr += FramDataReadFloatValid(FAH_CISN_ROZN1_ZIM, &fOffsetCisnRoz1Z, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 1 na zimno
-	chErr += FramDataReadFloatValid(FAH_CISN_ROZN1_POK, &fOffsetCisnRoz1P, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 1 w temp pokojowej
-	chErr += FramDataReadFloatValid(FAH_CISN_ROZN1_GOR, &fOffsetCisnRoz1G, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 1 na gorąco
+	chErr += FramDataReadFloatValid(FAH_CISN_ROZN1_ZIM, &fOffsetCisnRoz1Z, VMIN_OFST_PDIF, VMAX_OFST_PDIF, VDEF_OFST_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 1 na zimno
+	chErr += FramDataReadFloatValid(FAH_CISN_ROZN1_POK, &fOffsetCisnRoz1P, VMIN_OFST_PDIF, VMAX_OFST_PDIF, VDEF_OFST_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 1 w temp pokojowej
+	chErr += FramDataReadFloatValid(FAH_CISN_ROZN1_GOR, &fOffsetCisnRoz1G, VMIN_OFST_PDIF, VMAX_OFST_PDIF, VDEF_OFST_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 1 na gorąco
 	ObliczRownanieFunkcjiTemperatury(fOffsetCisnRoz1Z, fOffsetCisnRoz1P, fTemp1[ZIM], fTemp1[POK], &stWspKalOffsetuCzujnRozn1.fAzim, &stWspKalOffsetuCzujnRozn1.fBzim);	//czujnik cisnienia różnicowego 1 na zimno
 	ObliczRownanieFunkcjiTemperatury(fOffsetCisnRoz1P, fOffsetCisnRoz1G, fTemp1[POK], fTemp1[GOR], &stWspKalOffsetuCzujnRozn1.fAgor, &stWspKalOffsetuCzujnRozn1.fBgor);	//czujnik cisnienia różnicowego 1 na gorąco
 
-	chErr += FramDataReadFloatValid(FAH_CISN_ROZN2_ZIM, &fOffsetCisnRoz2Z, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 2 na zimno
-	chErr += FramDataReadFloatValid(FAH_CISN_ROZN2_POK, &fOffsetCisnRoz2P, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 2 w temp pokojowej
-	chErr += FramDataReadFloatValid(FAH_CISN_ROZN2_GOR, &fOffsetCisnRoz2G, MIN_OFFSET, MAX_OFFSET, DEF_OFFSET, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 2 na gorąco
+	chErr += FramDataReadFloatValid(FAH_CISN_ROZN2_ZIM, &fOffsetCisnRoz2Z, VMIN_OFST_PDIF, VMAX_OFST_PDIF, VDEF_OFST_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 2 na zimno
+	chErr += FramDataReadFloatValid(FAH_CISN_ROZN2_POK, &fOffsetCisnRoz2P, VMIN_OFST_PDIF, VMAX_OFST_PDIF, VDEF_OFST_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 2 w temp pokojowej
+	chErr += FramDataReadFloatValid(FAH_CISN_ROZN2_GOR, &fOffsetCisnRoz2G, VMIN_OFST_PDIF, VMAX_OFST_PDIF, VDEF_OFST_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 2 na gorąco
 	ObliczRownanieFunkcjiTemperatury(fOffsetCisnRoz2Z, fOffsetCisnRoz2P, fTemp1[ZIM], fTemp1[POK], &stWspKalOffsetuCzujnRozn1.fAzim, &stWspKalOffsetuCzujnRozn1.fBzim);	//czujnik cisnienia różnicowego 2 na zimno
 	ObliczRownanieFunkcjiTemperatury(fOffsetCisnRoz2P, fOffsetCisnRoz2G, fTemp1[POK], fTemp1[GOR], &stWspKalOffsetuCzujnRozn1.fAgor, &stWspKalOffsetuCzujnRozn1.fBgor);	//czujnik cisnienia różnicowego 2 na gorąco
 	return chErr;
@@ -246,6 +246,8 @@ float ObliczOffsetTemperaturowy1(WspRownProstej1_t stWsp, float fTemp)
 	return fOffset;
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy wysokość barometryczną na podstawie ciśnienia i temperatury
 // Parametry:
@@ -363,7 +365,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
 			fWzmocnZyro1[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro1[0]);
-			if ((fWzmocnZyro1[0] > MIN_WZM_ZYRO) && (fWzmocnZyro1[0] < MAX_WZM_ZYRO))
+			if ((fWzmocnZyro1[0] > VMIN_WZM_ZYRO) && (fWzmocnZyro1[0] < VMAX_WZM_ZYRO))
 			{
 				FramDataWriteFloat(FAH_ZYRO1P_WZMOC, fWzmocnZyro1[0]);
 				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
@@ -376,7 +378,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 
 			fWzmocnZyro2[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro2[0]);
-			if ((fWzmocnZyro2[0] > MIN_WZM_ZYRO) && (fWzmocnZyro2[0] < MAX_WZM_ZYRO))
+			if ((fWzmocnZyro2[0] > VMIN_WZM_ZYRO) && (fWzmocnZyro2[0] < VMAX_WZM_ZYRO))
 			{
 				FramDataWriteFloat(FAH_ZYRO2P_WZMOC, fWzmocnZyro2[0]);
 				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
@@ -394,7 +396,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
 			fWzmocnZyro1[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro1[1]);
-			if ((fWzmocnZyro1[1] > MIN_WZM_ZYRO) && (fWzmocnZyro1[1] < MAX_WZM_ZYRO))
+			if ((fWzmocnZyro1[1] > VMIN_WZM_ZYRO) && (fWzmocnZyro1[1] < VMAX_WZM_ZYRO))
 			{
 				FramDataWriteFloat(FAH_ZYRO1Q_WZMOC, fWzmocnZyro1[1]);
 				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
@@ -407,7 +409,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 
 			fWzmocnZyro2[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro2[1]);
-			if ((fWzmocnZyro2[1] > MIN_WZM_ZYRO) && (fWzmocnZyro2[1] < MAX_WZM_ZYRO))
+			if ((fWzmocnZyro2[1] > VMIN_WZM_ZYRO) && (fWzmocnZyro2[1] < VMAX_WZM_ZYRO))
 			{
 				FramDataWriteFloat(FAH_ZYRO2Q_WZMOC, fWzmocnZyro2[1]);
 				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
@@ -427,7 +429,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
 			fWzmocnZyro1[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro1[2]);
-			if ((fWzmocnZyro1[2] > MIN_WZM_ZYRO) && (fWzmocnZyro1[2] < MAX_WZM_ZYRO))
+			if ((fWzmocnZyro1[2] > VMIN_WZM_ZYRO) && (fWzmocnZyro1[2] < VMAX_WZM_ZYRO))
 			{
 				FramDataWriteFloat(FAH_ZYRO1R_WZMOC, fWzmocnZyro1[2]);
 				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
@@ -440,7 +442,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 
 			fWzmocnZyro2[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro2[2]);
-			if ((fWzmocnZyro2[2] > MIN_WZM_ZYRO) && (fWzmocnZyro2[2] < MAX_WZM_ZYRO))
+			if ((fWzmocnZyro2[2] > VMIN_WZM_ZYRO) && (fWzmocnZyro2[2] < VMAX_WZM_ZYRO))
 			{
 				FramDataWriteFloat(FAH_ZYRO2R_WZMOC, fWzmocnZyro2[2]);
 				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
@@ -473,6 +475,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 	uDaneCM4.dane.chOdpowiedzNaPolecenie = chRodzajKalib;	//zwróć potwierdzenie że znajduje się w danym etapie
 	return ERR_OK;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

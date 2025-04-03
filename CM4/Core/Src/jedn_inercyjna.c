@@ -53,13 +53,21 @@ float fOffsetMagn3[3], fGainMagn3[3];
 // Parametry: brak
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void InicjujJednostkeInercyjna(void)
+uint8_t InicjujJednostkeInercyjna(void)
 {
+	uint8_t chErr = ERR_OK;
+
 	for (uint16_t n=0; n<3; n++)
 	{
 		uDaneCM4.dane.fKatIMUZyro1[n] = 0;
 		uDaneCM4.dane.fKatIMUZyro2[n] = 0;
+
+		chErr |= FramDataReadFloatValid(FAH_MAGN1_OFSTX + 4*n, &fOffsetMagn1[n], VMIN_OFST_MAGN, VMAX_OFST_MAGN, VDEF_OFST_MAGN, ERR_ZLA_KONFIG);
+		chErr |= FramDataReadFloatValid(FAH_MAGN2_OFSTX + 4*n, &fOffsetMagn2[n], VMIN_OFST_MAGN, VMAX_OFST_MAGN, VDEF_OFST_MAGN, ERR_ZLA_KONFIG);
+		chErr |= FramDataReadFloatValid(FAH_MAGN3_OFSTX + 4*n, &fOffsetMagn3[n], VMIN_OFST_MAGN, VMAX_OFST_MAGN, VDEF_OFST_MAGN, ERR_ZLA_KONFIG);
+		//fOffsetMagn3[n] = 0.0f;
 	}
+	return chErr;
 }
 
 
@@ -155,17 +163,17 @@ void ZapiszOffsetMagnetometru(uint8_t chMagn)
 	{
 		switch (chMagn)
 		{
-		case KAL_MAG1:
+		case MAG1:
 			fOffsetMagn1[n] = stMagn.sMax[n] + stMagn.sMin[n];
 			FramDataWriteFloat(FAH_MAGN1_OFSTX + 4*n, fOffsetMagn1[n]);
 			break;
 
-		case KAL_MAG2:
+		case MAG2:
 			fOffsetMagn2[n] = stMagn.sMax[n] + stMagn.sMin[n];
 			FramDataWriteFloat(FAH_MAGN2_OFSTX + 4*n, fOffsetMagn2[n]);
 			break;
 
-		case KAL_MAG3:
+		case MAG3:
 			fOffsetMagn3[n] = stMagn.sMax[n] + stMagn.sMin[n];
 			FramDataWriteFloat(FAH_MAGN3_OFSTX + 4*n, fOffsetMagn3[n]);
 			break;

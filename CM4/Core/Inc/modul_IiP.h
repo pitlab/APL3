@@ -34,15 +34,6 @@
 #define GOR		2
 
 
-#define MIN_OFFSET		-20.0f
-#define MAX_OFFSET		20.0f
-#define DEF_OFFSET		0.0f
-
-#define MIN_WZM_ZYRO 	0.87f	//maksymalna dopuszczalna wartość wzmocnienia wyroskopu podczas kalirbacji
-#define MAX_WZM_ZYRO 	1.3f	//jw. minimalna
-#define DEF_WZM_ZYRO	1.0f
-
-
 typedef struct
 {
 	float fAzim[3];		//współczynnik A równania dla "zimnej" temperatury

@@ -10,7 +10,7 @@
 #include "sys_def_CM7.h"
 #include "display.h"
 
-
+#define MIN_MAG_WYKR	50		//minimanla wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru
 typedef struct
 {
 	uint16_t sX1;

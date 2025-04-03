@@ -276,11 +276,10 @@ void FramDataWriteFloat(unsigned short sAddress, float fData)
 unsigned char FramDataReadFloatValid(unsigned short sAddress, float *fValue, float fValMin, float fValMax, float fValDef, unsigned char chErrCode)
 {
     *fValue = FramDataReadFloat(sAddress);
-    if ((*fValue < fValMin) || (*fValue > fValMax))
+    if ((*fValue < fValMin) || (*fValue > fValMax) || (*fValue == NAN))
     {
-      *fValue = fValDef;    //gdy poza zakresem, to zwróć przekazaną wartość domyślną
-      return chErrCode;
+    	*fValue = fValDef;    //gdy poza zakresem, to zwróć przekazaną wartość domyślną
+    	return chErrCode;
     }
-     
     return ERR_OK;
 }

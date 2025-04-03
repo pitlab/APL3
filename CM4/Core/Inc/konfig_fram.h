@@ -254,12 +254,13 @@
 #define VALM_OFST_GYRA    (float)-15    //max wartość odchyłki ujemnej offsetu żyroskopu ADXRS610
 #define VALP_OFST_GYRA    (float)15     //j.w. dodatniej (katalogowo +-0,15V -> +-12�/s)
 #define VALD_OFST_GYRA    (float)0      //default*/
-#define VALM_OFST_ACEL  (float)-0.5     //max wartość odchyłki ujemnej offsetu akcelerometrów
-#define VALP_OFST_ACEL  (float)0.5      //j.w. dodatniej
-#define VALD_OFST_ACEL  (float)0        //wartość domyślna
-#define VALM_OFST_GYRO  (float)-300     //max wartość odchyłki ujemnej offsetu żyroskopów
-#define VALP_OFST_GYRO  (float)300      //j.w. dodatniej 
-#define VALD_OFST_GYRO  (float)0         //wartość domyślna
+#define VMIN_OFST_ACEL	-0.5f	//max wartość odchyłki ujemnej offsetu akcelerometrów
+#define VMAX_OFST_ACEL  0.5f    //j.w. dodatniej
+#define VDEF_OFST_ACEL  0.0f    //wartość domyślna
+#define VMIN_OFST_ZYRO  -20.f   //max wartość odchyłki ujemnej offsetu żyroskopów
+#define VMAX_OFST_ZYRO  20.f    //j.w. dodatniej
+#define VDEF_OFST_ZYRO  0.0f    //wartość domyślna
+
 
 /*#define VALM_GAIN_ACCA    (float)0.8    //limity wartości odchyłki wzmocnienia akcelerometru ADXL330
 #define VALP_GAIN_ACCA    (float)1.2    //
@@ -267,12 +268,12 @@
 #define VALM_GAIN_GYRA    (float)0.8    //limity wartości odchyłki wzmocnienia żyroskopu ADXRS610
 #define VALP_GAIN_GYRA    (float)1.2    //
 #define VALD_GAIN_GYRA    (float)1.0*/
-#define VALM_GAIN_ACEL  (float)0.8      //limity wartości odchyłki ujemnej wzmocnienia akcelerometrów
-#define VALP_GAIN_ACEL  (float)1.4      //limity wartości odchyłki dodatniej
-#define VALD_GAIN_ACEL  (float)1.0      //wartość domyślna
-#define VALM_GAIN_GYRO  (float)0.6      //limity wartości odchyłki ujemnej wzmocnienia żyroskopów ISZ i IDG
-#define VALP_GAIN_GYRO  (float)2.0      //limity wartości odchyłki dodatniej
-#define VALD_GAIN_GYRO  (float)1.0      //wartość domyślna
+#define VMIN_WZM_ACEL  	0.8f    //limity wartości odchyłki ujemnej wzmocnienia akcelerometrów
+#define VMAX_WZM_ACEL  	1.4f    //limity wartości odchyłki dodatniej
+#define VDEF_WZM_ACEL  	1.0f    //wartość domyślna
+#define VMIN_WZM_ZYRO  	0.7f    //limity wartości odchyłki ujemnej wzmocnienia żyroskopów ISZ i IDG
+#define VMAX_WZM_ZYRO  	1.3f    //limity wartości odchyłki dodatniej
+#define VDEF_WZM_ZYRO  	1.0f    //wartość domyślna
 
 #define VALM_TCOEF_ACEL   (float)-5.0   //minimalna wartość  współczynnika temperaturowego akcelerometru
 #define VALP_TCOEF_ACEL   (float)5.0    //wartość maksymalna
@@ -287,9 +288,9 @@
 #define VALD_TCOEF_MAG   (float)1.0     //wartość domyślna
 
 
-#define VALM_OFST_PDIF    (float)0.5    //limity wartości odchyłki offsetu różnicowego czujnika ciśnienia
-#define VALP_OFST_PDIF    (float)1.5    //
-#define VALD_OFST_PDIF    (float)0.0
+#define VMIN_OFST_PDIF    0.5f    //limity wartości odchyłki offsetu różnicowego czujnika ciśnienia
+#define VMAX_OFST_PDIF    1.5f    //
+#define VDEF_OFST_PDIF    0.0f
 #define VALM_OFST_VARI    (float)-0.8   //limity wartości odchyłki offsetu wariometru
 #define VALP_OFST_VARI    (float)0.8    //
 #define VALD_OFST_VARI    (float)0.0
@@ -324,9 +325,9 @@
 #define VALP_GAIN_MAGN    (float)10.0    //
 #define VALD_GAIN_MAGN    (float)1.0
 
-#define VALM_OFST_MAGN    (float)-20000.0    //limity wartości offsetu pomiaru magnetometru
-#define VALP_OFST_MAGN    (float)20000.0     //
-#define VALD_OFST_MAGN    (float)0.0
+#define VMIN_OFST_MAGN    -1000.0    //limity wartości offsetu pomiaru magnetometru
+#define VMAX_OFST_MAGN    1000.0     //
+#define VDEF_OFST_MAGN    0.0
 
 #define VALM_PID_PGAIN    (float)0.0     //limity wartości wzmocnienienia członu P regulatora
 #define VALP_PID_PGAIN    (float)1000

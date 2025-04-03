@@ -27,7 +27,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Prezentacja układów IMU na ekranie powitalnym
 - Uruchomiony system FAT na karcie, uruchomiony loger danych pomiarowych
 - Dodana obsługa zegara czasu rzeczywistego jednak jeszcze nie działa z powodu niewłaściwego kwarca.
-- Początki rysowania kostki 3D wizualizującej działanie IMU
+- Rysowanie kostki 3D wizualizującej działanie IMU
 ![Kostka](obrazki/kostka.jpg)
 
 ### Rdzeń CM4:
@@ -45,7 +45,9 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Dodane automatyczne wyliczanie ciśnienia zerowego z czujników ciśnienia bezwzględnego i liczenie wysokości barometrycznej uwzględniającej wpływ temperatury
 - Zapis konfiguracji do FRAM przeniesiony z APL2 i zaimplementowany w APL3
 - Uruchomione czujniki ciśnienia różnicowego ND130 i MS4525. Już pokazują takie samo ciśnienie
-- Zrobiona kalibracja temepraturowa żyroskopów
+- Zrobiona kalibracja tempraturowa żyroskopów
+- Zrobiona kalibracja wzmocnienia żyroskopówyliczanie
+- Zrobiona kalibracja offsetu magnetometrów
 
 #### Do zrobienia:
  - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarce na inne z mniejszym ESR
@@ -56,7 +58,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
  - Uruchomić USB w trybie CDC
  - Zmodyfikować test transferu karty SD, tak aby działał z systemową obsługą FAT (obecnie działa poza FAT-em i systemem operacyjnym)
  - Uruchomoć czujniki zbliżeniowe VL53L1CX i VL53L5CX
- - Zrobić kalibrację wzmocnienia żyroskopów
+ 
  
  
 

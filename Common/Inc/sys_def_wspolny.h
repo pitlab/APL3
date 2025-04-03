@@ -52,6 +52,8 @@
 
 
 //identyfikatory kalibrowanych magnetometrów
-#define KAL_MAG1			0x10
-#define KAL_MAG2			0x20
-#define KAL_MAG3			0x40
+#define MAG1			0x10
+#define MAG2			0x20
+#define MAG3			0x40
+#define KALIBRUJ		0x08
+#define MASKA_OSI		0x03
