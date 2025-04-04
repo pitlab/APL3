@@ -15,13 +15,13 @@
 //struktura danych do przechowywania parametrów do kalibracji magnetometru
 typedef struct
 {
-	int16_t sMin[3];
-	int16_t sMax[3];
+	float fMin[3];
+	float fMax[3];
 } magn_t;
 
 uint8_t InicjujJednostkeInercyjna(void);
 void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo);
 void ObrocWektor(float *fWektor);
-void KalibracjaZeraMagnetometru(int16_t *sMag);
-
+void ZapiszOffsetMagnetometru(uint8_t chMagn);
+void KalibracjaZeraMagnetometru(float *fMag);
 #endif /* INC_JEDN_INERCYJNA_H_ */

@@ -451,7 +451,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "Magn1X [-];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne1[0]);
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fMagne1[0]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -463,7 +463,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "Magn1Y [-];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne1[1]);
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fMagne1[1]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -475,7 +475,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "Magn1Z [-];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne1[2]);
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fMagne1[2]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -487,7 +487,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "Magn2X [-];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne2[0]);
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fMagne2[0]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -499,7 +499,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "Magn2Y [-];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne2[1]);
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fMagne2[1]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -511,7 +511,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "Magn2- [-];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne2[2]);
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fMagne2[2]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -524,7 +524,7 @@ uint8_t ObslugaPetliRejestratora(void)
 			strncat(chBufZapisuKarty, "Magn3X [-];", MAX_ROZMIAR_WPISU_LOGU);
 		else
 		{
-			sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne3[0]);
+			sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fMagne3[0]);
 			strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 		}
 
@@ -533,7 +533,7 @@ uint8_t ObslugaPetliRejestratora(void)
 			strncat(chBufZapisuKarty, "Magn3Y [-];", MAX_ROZMIAR_WPISU_LOGU);
 		else
 		{
-			sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne3[1]);
+			sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fMagne3[1]);
 			strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 		}
 
@@ -542,7 +542,7 @@ uint8_t ObslugaPetliRejestratora(void)
 			strncat(chBufZapisuKarty, "Magn3Z [-];", MAX_ROZMIAR_WPISU_LOGU);
 		else
 		{
-			sprintf(chBufPodreczny, "%d;", uDaneCM4.dane.sMagne3[2]);
+			sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fMagne3[2]);
 			strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 		}
 

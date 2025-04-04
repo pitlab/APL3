@@ -40,6 +40,9 @@
 #define POL_ZAPISZ_ZERO_MAGN1	15	//zapisz offset zera magnetometru 1
 #define POL_ZAPISZ_ZERO_MAGN2	16	//zapisz offset zera magnetometru 2
 #define POL_ZAPISZ_ZERO_MAGN3	17	//zapisz offset zera magnetometru 3
+#define POL_SPRAWDZ_MAGN1		18	//sprawdź kalibrację magnetometru 1
+#define POL_SPRAWDZ_MAGN2		19	//sprawdź kalibrację magnetometru 2
+#define POL_SPRAWDZ_MAGN3		20	//sprawdź kalibrację magnetometru 3
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
 
 typedef struct _GNSS
@@ -68,9 +71,9 @@ typedef struct
 	float fZyroSur2[3];		//żyroskop surowy - potrzebne do kalibracji i wyznaczania charakterystyki dryftu
 	float fZyroKal1[3];		//[rad/s]
 	float fZyroKal2[3];		//żyroskop skalibrowany
-	int16_t sMagne1[3];
-	int16_t sMagne2[3];
-	int16_t sMagne3[3];
+	float fMagne1[3];
+	float fMagne2[3];
+	float fMagne3[3];
 	float fKatIMU1[3];		//[rad]
 	float fKatIMU2[3];
 	float fKatIMUZyro1[3];	//[rad]

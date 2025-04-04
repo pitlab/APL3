@@ -169,30 +169,30 @@
 
 //współczynniki kalibracji magnetometru 1 na module inercyjnym
 #define	FAH_MAGN1        		FAH_CISN_ROZN2_GOR+24
-#define	FAH_MAGN1_OFSTX  		FAH_MAGN1+0 //4H offset magnetometru w osi X
-#define	FAH_MAGN1_OFSTY  		FAH_MAGN1+4 //4H offset magnetometru w osi Y
-#define	FAH_MAGN1_OFSTZ  		FAH_MAGN1+8 //4H offset magnetometru w osi Z
-#define	FAH_MAGN1_GAINX  		FAH_MAGN1+12 //4H wzmocnienie w osi X
-#define	FAH_MAGN1_GAINY  		FAH_MAGN1+16 //4H wzmocnienie w osi Y
-#define	FAH_MAGN1_GAINZ  		FAH_MAGN1+20 //4H wzmocnienie w osi Z
+#define	FAH_MAGN1_PRZESX  		FAH_MAGN1+0 //4H przesunięcie magnetometru w osi X
+#define	FAH_MAGN1_PRZESY  		FAH_MAGN1+4 //4H przesunięcie magnetometru w osi Y
+#define	FAH_MAGN1_PRZESZ  		FAH_MAGN1+8 //4H przesunięcie magnetometru w osi Z
+#define	FAH_MAGN1_SKALOX  		FAH_MAGN1+12 //4H wzmocnienie w osi X
+#define	FAH_MAGN1_SKALOY  		FAH_MAGN1+16 //4H wzmocnienie w osi Y
+#define	FAH_MAGN1_SKALOZ  		FAH_MAGN1+20 //4H wzmocnienie w osi Z
 
 //współczynniki kalibracji magnetometru 2 na module inercyjnym
-#define	FAH_MAGN2        		FAH_MAGN1_GAINZ+24
-#define	FAH_MAGN2_OFSTX  		FAH_MAGN2+0 //4H offset magnetometru w osi X
-#define	FAH_MAGN2_OFSTY  		FAH_MAGN2+4 //4H offset magnetometru w osi Y
-#define	FAH_MAGN2_OFSTZ  		FAH_MAGN2+8 //4H offset magnetometru w osi Z
-#define	FAH_MAGN2_GAINX  		FAH_MAGN2+12 //4H wzmocnienie w osi X
-#define	FAH_MAGN2_GAINY  		FAH_MAGN2+16 //4H wzmocnienie w osi Y
-#define	FAH_MAGN2_GAINZ  		FAH_MAGN2+20 //4H wzmocnienie w osi Z
+#define	FAH_MAGN2        		FAH_MAGN1_SKALOZ+24
+#define	FAH_MAGN2_PRZESX  		FAH_MAGN2+0 //4H przesunięcie magnetometru w osi X
+#define	FAH_MAGN2_PRZESY  		FAH_MAGN2+4 //4H przesunięcie magnetometru w osi Y
+#define	FAH_MAGN2_PRZESZ  		FAH_MAGN2+8 //4H przesunięcie magnetometru w osi Z
+#define	FAH_MAGN2_SKALOX  		FAH_MAGN2+12 //4H wzmocnienie w osi X
+#define	FAH_MAGN2_SKALOY  		FAH_MAGN2+16 //4H wzmocnienie w osi Y
+#define	FAH_MAGN2_SKALOZ  		FAH_MAGN2+20 //4H wzmocnienie w osi Z
 
 //współczynniki kalibracji magnetometru 3 na module GNSS
-#define	FAH_MAGN3        		FAH_MAGN2_GAINZ+24
-#define	FAH_MAGN3_OFSTX  		FAH_MAGN3+0 //4H offset magnetometru w osi X
-#define	FAH_MAGN3_OFSTY  		FAH_MAGN3+4 //4H offset magnetometru w osi Y
-#define	FAH_MAGN3_OFSTZ  		FAH_MAGN3+8 //4H offset magnetometru w osi Z
-#define	FAH_MAGN3_GAINX  		FAH_MAGN3+12 //4H wzmocnienie w osi X
-#define	FAH_MAGN3_GAINY  		FAH_MAGN3+16 //4H wzmocnienie w osi Y
-#define	FAH_MAGN3_GAINZ  		FAH_MAGN3+20 //4H wzmocnienie w osi Z
+#define	FAH_MAGN3        		FAH_MAGN2_SKALOZ+24
+#define	FAH_MAGN3_PRZESX  		FAH_MAGN3+0 //4H przesunięcie magnetometru w osi X
+#define	FAH_MAGN3_PRZESY  		FAH_MAGN3+4 //4H przesunięcie magnetometru w osi Y
+#define	FAH_MAGN3_PRZESZ  		FAH_MAGN3+8 //4H przesunięcie magnetometru w osi Z
+#define	FAH_MAGN3_SKALOX  		FAH_MAGN3+12 //4H wzmocnienie w osi X
+#define	FAH_MAGN3_SKALOY  		FAH_MAGN3+16 //4H wzmocnienie w osi Y
+#define	FAH_MAGN3_SKALOZ  		FAH_MAGN3+20 //4H wzmocnienie w osi Z
 
 
 
@@ -321,13 +321,13 @@
 #define VALP_CORR_MAGN    (float)100.0     //
 #define VALD_CORR_MAGN    (float)0.0
 
-#define VALM_GAIN_MAGN    (float)0.10    //limity wartości wzmocnienia pomiaru magnetometru
-#define VALP_GAIN_MAGN    (float)10.0    //
-#define VALD_GAIN_MAGN    (float)1.0
+#define VMIN_SKALO_MAGN    0.10f		//limity wartości skalowania pomiaru magnetometru
+#define VMAX_SKALO_MAGN    10.0f
+#define VDEF_SKALO_MAGN    1.0f
 
-#define VMIN_OFST_MAGN    -1000.0    //limity wartości offsetu pomiaru magnetometru
-#define VMAX_OFST_MAGN    1000.0     //
-#define VDEF_OFST_MAGN    0.0
+#define VMIN_PRZES_MAGN    -1000.0f		//limity wartości przesunięcia pomiaru magnetometru
+#define VMAX_PRZES_MAGN    1000.0f
+#define VDEF_PRZES_MAGN    0.0f
 
 #define VALM_PID_PGAIN    (float)0.0     //limity wartości wzmocnienienia członu P regulatora
 #define VALP_PID_PGAIN    (float)1000

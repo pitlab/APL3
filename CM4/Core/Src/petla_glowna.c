@@ -204,9 +204,12 @@ void PetlaGlowna(void)
 			uDaneCM4.dane.chOdpowiedzNaPolecenie = POL_CZYTAJ_WZM_ZYROR;
 			break;
 
-		case POL_KAL_ZERO_MAGN1:	KalibracjaZeraMagnetometru((int16_t*)uDaneCM4.dane.sMagne1);	break;	//uruchom kalibrację zera magnetometru 1
-		case POL_KAL_ZERO_MAGN2:	KalibracjaZeraMagnetometru((int16_t*)uDaneCM4.dane.sMagne2);	break;	//uruchom kalibrację zera magnetometru 2
-		case POL_KAL_ZERO_MAGN3:	KalibracjaZeraMagnetometru((int16_t*)uDaneCM4.dane.sMagne3);	break;	//uruchom kalibrację zera magnetometru 3
+		case POL_SPRAWDZ_MAGN1:
+		case POL_KAL_ZERO_MAGN1:	KalibracjaZeraMagnetometru((float*)uDaneCM4.dane.fMagne1);	break;	//uruchom kalibrację zera magnetometru 1
+		case POL_SPRAWDZ_MAGN2:
+		case POL_KAL_ZERO_MAGN2:	KalibracjaZeraMagnetometru((float*)uDaneCM4.dane.fMagne2);	break;	//uruchom kalibrację zera magnetometru 2
+		case POL_SPRAWDZ_MAGN3:
+		case POL_KAL_ZERO_MAGN3:	KalibracjaZeraMagnetometru((float*)uDaneCM4.dane.fMagne3);	break;	//uruchom kalibrację zera magnetometru 3
 
 		case POL_ZAPISZ_ZERO_MAGN1:	ZapiszOffsetMagnetometru(MAG1);
 		case POL_ZAPISZ_ZERO_MAGN2:	ZapiszOffsetMagnetometru(MAG2);
@@ -368,9 +371,9 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 	extern uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
 	extern int16_t sPomiarMMCH[3], sPomiarMMCL[3];	//wyniki pomiarów dla dodatniego i ujemnego namagnesowania czujnika
 	extern uint8_t chSekwencjaPomiaruMMC;
-	extern float fOffsetMagn1[3], fGainMagn1[3];
-	extern float fOffsetMagn2[3], fGainMagn2[3];
-	extern float fOffsetMagn3[3], fGainMagn3[3];
+	extern float fPrzesMagn1[3], fSkaloMagn1[3];
+	extern float fPrzesMagn2[3], fSkaloMagn2[3];
+	extern float fPrzesMagn3[3], fSkaloMagn3[3];
 
 	if (hi2c->Instance == I2C3)	//magistrala I2C modułów zewnętrznych
 	{
@@ -379,15 +382,17 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 		{
 			if (uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN3)
 			{
-				uDaneCM4.dane.sMagne3[0] = (int16_t)(chDaneMagHMC[0] * 0x100 + chDaneMagHMC[1]);	//dane surowe podczas kalibracji magnetometru
-				uDaneCM4.dane.sMagne3[1] = (int16_t)(chDaneMagHMC[2] * 0x100 + chDaneMagHMC[3]);
-				uDaneCM4.dane.sMagne3[2] = (int16_t)(chDaneMagHMC[4] * 0x100 + chDaneMagHMC[5]);
+				for (uint8_t n=0; n<3; n++)
+					uDaneCM4.dane.fMagne3[n] = (float)(chDaneMagHMC[2*n] * 0x100 + chDaneMagHMC[2*n+1]);	//dane surowe podczas kalibracji magnetometru
+				//uDaneCM4.dane.sMagne3[1] = (int16_t)(chDaneMagHMC[2] * 0x100 + chDaneMagHMC[3]);
+				//uDaneCM4.dane.sMagne3[2] = (int16_t)(chDaneMagHMC[4] * 0x100 + chDaneMagHMC[5]);
 			}
 			else
 			{
-				uDaneCM4.dane.sMagne3[0] = (int16_t)(chDaneMagHMC[0] * 0x100 + chDaneMagHMC[1]) + (int16_t)fOffsetMagn3[0];	//dane skalibrowane
-				uDaneCM4.dane.sMagne3[1] = (int16_t)(chDaneMagHMC[2] * 0x100 + chDaneMagHMC[3]) + (int16_t)fOffsetMagn3[1];
-				uDaneCM4.dane.sMagne3[2] = (int16_t)(chDaneMagHMC[4] * 0x100 + chDaneMagHMC[5]) + (int16_t)fOffsetMagn3[2];
+				for (uint8_t n=0; n<3; n++)
+					uDaneCM4.dane.fMagne3[n] = (float)((int16_t)(chDaneMagHMC[2*n] * 0x100 + chDaneMagHMC[2*n+1]) - fPrzesMagn3[n]) * fSkaloMagn3[n];	//dane skalibrowane
+				//uDaneCM4.dane.sMagne3[1] = ((int16_t)(chDaneMagHMC[2] * 0x100 + chDaneMagHMC[3]) - (int16_t)fPrzesMagn3[1]) * fSkaloMagn3[1];
+				//uDaneCM4.dane.sMagne3[2] = ((int16_t)(chDaneMagHMC[4] * 0x100 + chDaneMagHMC[5]) - (int16_t)fPrzesMagn3[2]) * fSkaloMagn3[2];
 			}
 		}
 		else
@@ -414,18 +419,15 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 				//	sCisnienie = (int16_t)chBufND130[0] * 0x100 + chBufND130[1];
 				if (uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN1)
 				{
-					uDaneCM4.dane.sMagne1[0] = (int16_t)chDaneMagIIS[1] * 0x100 + chDaneMagIIS[0];
-					uDaneCM4.dane.sMagne1[1] = (int16_t)chDaneMagIIS[3] * 0x100 + chDaneMagIIS[2];
-					uDaneCM4.dane.sMagne1[2] = (int16_t)chDaneMagIIS[5] * 0x100 + chDaneMagIIS[4];
-					uDaneCM4.dane.fTemper[4] = ((int16_t)chDaneMagIIS[7] * 0x100 + chDaneMagIIS[6]) / 8;	//The nominal sensitivity is 8 LSB/°C.
+					for (uint8_t n=0; n<3; n++)
+						uDaneCM4.dane.fMagne1[n] = (float)((int16_t)chDaneMagIIS[2*n+1] * 0x100 + chDaneMagIIS[2*n]);
 				}
 				else
 				{
-					uDaneCM4.dane.sMagne1[0] = (int16_t)chDaneMagIIS[1] * 0x100 + chDaneMagIIS[0] + (int16_t)fOffsetMagn1[0];
-					uDaneCM4.dane.sMagne1[1] = (int16_t)chDaneMagIIS[3] * 0x100 + chDaneMagIIS[2] + (int16_t)fOffsetMagn1[1];
-					uDaneCM4.dane.sMagne1[2] = (int16_t)chDaneMagIIS[5] * 0x100 + chDaneMagIIS[4] + (int16_t)fOffsetMagn1[2];
-					uDaneCM4.dane.fTemper[4] = ((int16_t)chDaneMagIIS[7] * 0x100 + chDaneMagIIS[6]) / 8;	//The nominal sensitivity is 8 LSB/°C.
+					for (uint8_t n=0; n<3; n++)
+						uDaneCM4.dane.fMagne1[n] = ((float)((int16_t)chDaneMagIIS[2*n+1] * 0x100 + chDaneMagIIS[2*n]) - fPrzesMagn1[n]) * fSkaloMagn1[n];
 				}
+				uDaneCM4.dane.fTemper[4] = ((int16_t)chDaneMagIIS[7] * 0x100 + chDaneMagIIS[6]) / 8;	//The nominal sensitivity is 8 LSB/°C.
 			}
 		}
 		else
@@ -435,23 +437,25 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 			{
 				if (chSekwencjaPomiaruMMC < SPMMC3416_REFIL_RESET)	//poniżej SPMMC3416_REFIL_RESET będzie obsługa dla SET, powyżej dla RESET
 				{
-					sPomiarMMCH[0] = (chDaneMagMMC[1] * 0x100 + chDaneMagMMC[0]) - 32768;	//czujnik zwraca liczby unsigned z 32768 dla zera
-					sPomiarMMCH[1] = (chDaneMagMMC[3] * 0x100 + chDaneMagMMC[2]) - 32768;
-					sPomiarMMCH[2] = (chDaneMagMMC[5] * 0x100 + chDaneMagMMC[4]) - 32768;
+					for (uint8_t n=0; n<3; n++)
+						sPomiarMMCH[n] = (chDaneMagMMC[2*n+1] * 0x100 + chDaneMagMMC[2*n]) - 32768;	//czujnik zwraca liczby unsigned z 32768 dla zera
+					//sPomiarMMCH[1] = (chDaneMagMMC[3] * 0x100 + chDaneMagMMC[2]) - 32768;
+					//sPomiarMMCH[2] = (chDaneMagMMC[5] * 0x100 + chDaneMagMMC[4]) - 32768;
 				}
 				else
 				{
-					sPomiarMMCL[0] = (chDaneMagMMC[1] * 0x100 + chDaneMagMMC[0]) - 32768;
-					sPomiarMMCL[1] = (chDaneMagMMC[3] * 0x100 + chDaneMagMMC[2]) - 32768;
-					sPomiarMMCL[2] = (chDaneMagMMC[5] * 0x100 + chDaneMagMMC[4]) - 32768;
+					for (uint8_t n=0; n<3; n++)
+						sPomiarMMCL[n] = (chDaneMagMMC[2*n+1] * 0x100 + chDaneMagMMC[2*n]) - 32768;
+					//sPomiarMMCL[1] = (chDaneMagMMC[3] * 0x100 + chDaneMagMMC[2]) - 32768;
+					//sPomiarMMCL[2] = (chDaneMagMMC[5] * 0x100 + chDaneMagMMC[4]) - 32768;
 				}
 
 				for (uint8_t n=0; n<3; n++)
 				{
 					if (uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN2)
-						uDaneCM4.dane.sMagne2[n] = (sPomiarMMCH[n] - sPomiarMMCL[n]) / 2;	//dane surowe podczas kalibracji magnetometru
+						uDaneCM4.dane.fMagne2[n] = (float)(sPomiarMMCH[n] - sPomiarMMCL[n]) / 2;	//dane surowe podczas kalibracji magnetometru
 					else
-						uDaneCM4.dane.sMagne2[n] = (sPomiarMMCH[n] - sPomiarMMCL[n]) / 2 + (int16_t)fOffsetMagn2[n];	//dane skalibrowane;
+						uDaneCM4.dane.fMagne2[n] = ((float)(sPomiarMMCH[n] - sPomiarMMCL[n]) / 2 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
 				}
 			}
 		}

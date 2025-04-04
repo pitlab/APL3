@@ -46,4 +46,5 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer);
 void Poziomica(float fKatAkcelX, float fKatAkcelY);
 void RysujPrzycisk(prostokat_t prost, char *chNapis);
 uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap);
+uint16_t MaximumGlobalne(int16_t* sMin, int16_t* sMax);
 #endif /* INC_LCD_H_ */

@@ -44,9 +44,11 @@ float fKatAkcel1[3], fKatAkcel2[3];						//kąty pochylenia i przechylenia polic
 float fKatMagnetometru1, fKatMagnetometru2, fKatMagnetometru3;	//kąt odchylenia z magnetometru
 extern float fOffsetZyro1[3], fOffsetZyro2[3];
 magn_t stMagn;
-float fOffsetMagn1[3], fGainMagn1[3];
-float fOffsetMagn2[3], fGainMagn2[3];
-float fOffsetMagn3[3], fGainMagn3[3];
+float fPrzesMagn1[3], fSkaloMagn1[3];
+float fPrzesMagn2[3], fSkaloMagn2[3];
+float fPrzesMagn3[3], fSkaloMagn3[3];
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // inicjalizacja zmiennych potrzebanych do obliczeń kątów
@@ -62,10 +64,12 @@ uint8_t InicjujJednostkeInercyjna(void)
 		uDaneCM4.dane.fKatIMUZyro1[n] = 0;
 		uDaneCM4.dane.fKatIMUZyro2[n] = 0;
 
-		chErr |= FramDataReadFloatValid(FAH_MAGN1_OFSTX + 4*n, &fOffsetMagn1[n], VMIN_OFST_MAGN, VMAX_OFST_MAGN, VDEF_OFST_MAGN, ERR_ZLA_KONFIG);
-		chErr |= FramDataReadFloatValid(FAH_MAGN2_OFSTX + 4*n, &fOffsetMagn2[n], VMIN_OFST_MAGN, VMAX_OFST_MAGN, VDEF_OFST_MAGN, ERR_ZLA_KONFIG);
-		chErr |= FramDataReadFloatValid(FAH_MAGN3_OFSTX + 4*n, &fOffsetMagn3[n], VMIN_OFST_MAGN, VMAX_OFST_MAGN, VDEF_OFST_MAGN, ERR_ZLA_KONFIG);
-		//fOffsetMagn3[n] = 0.0f;
+		chErr |= FramDataReadFloatValid(FAH_MAGN1_PRZESX + 4*n, &fPrzesMagn1[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
+		chErr |= FramDataReadFloatValid(FAH_MAGN2_PRZESX + 4*n, &fPrzesMagn2[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
+		chErr |= FramDataReadFloatValid(FAH_MAGN3_PRZESX + 4*n, &fPrzesMagn3[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
+		chErr |= FramDataReadFloatValid(FAH_MAGN1_SKALOX + 4*n, &fSkaloMagn1[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
+		chErr |= FramDataReadFloatValid(FAH_MAGN2_SKALOX + 4*n, &fSkaloMagn2[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
+		chErr |= FramDataReadFloatValid(FAH_MAGN3_SKALOX + 4*n, &fSkaloMagn3[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
 	}
 	return chErr;
 }
@@ -135,25 +139,26 @@ void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
 // Parametry: *sMag - wskaźnik na dane z 3 osi magnetometru
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void KalibracjaZeraMagnetometru(int16_t *sMag)
+void KalibracjaZeraMagnetometru(float *fMag)
 {
 	for (uint16_t n=0; n<3; n++)
 	{
-		if (*(sMag+n) < stMagn.sMin[n])
-			stMagn.sMin[n] = *(sMag+n);
+		if (*(fMag+n) < stMagn.fMin[n])
+			stMagn.fMin[n] = *(fMag+n);
 
-		if (*(sMag+n) > stMagn.sMax[n])
-			stMagn.sMax[n] = *(sMag+n);
+		if (*(fMag+n) > stMagn.fMax[n])
+			stMagn.fMax[n] = *(fMag+n);
 
-		uDaneCM4.dane.fRozne[2*n+0] = (float)stMagn.sMin[n];
-		uDaneCM4.dane.fRozne[2*n+1] = (float)stMagn.sMax[n];
+		uDaneCM4.dane.fRozne[2*n+0] = stMagn.fMin[n];
+		uDaneCM4.dane.fRozne[2*n+1] = stMagn.fMax[n];
 	}
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Liczy i zapisuje offset zera magnetometru
+// Liczy i zapisuje offset zera magnetometru wg wzoru: (max + min) / 2
+// Tak uzyskany offset należy odejmować od bieżących wskazań magnetometru
 // Parametry: chMagn - indeks układu magnetometru
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -164,18 +169,20 @@ void ZapiszOffsetMagnetometru(uint8_t chMagn)
 		switch (chMagn)
 		{
 		case MAG1:
-			fOffsetMagn1[n] = stMagn.sMax[n] + stMagn.sMin[n];
-			FramDataWriteFloat(FAH_MAGN1_OFSTX + 4*n, fOffsetMagn1[n]);
+			fPrzesMagn1[n] = (stMagn.fMax[n] + stMagn.fMin[n]) / 2;
+			FramDataWriteFloat(FAH_MAGN1_PRZESX + 4*n, fPrzesMagn1[n]);
 			break;
 
 		case MAG2:
-			fOffsetMagn2[n] = stMagn.sMax[n] + stMagn.sMin[n];
-			FramDataWriteFloat(FAH_MAGN2_OFSTX + 4*n, fOffsetMagn2[n]);
+			fPrzesMagn2[n] = (stMagn.fMax[n] + stMagn.fMin[n]) / 2;
+			FramDataWriteFloat(FAH_MAGN1_PRZESX + 4*n, fPrzesMagn2[n]);
 			break;
 
 		case MAG3:
-			fOffsetMagn3[n] = stMagn.sMax[n] + stMagn.sMin[n];
-			FramDataWriteFloat(FAH_MAGN3_OFSTX + 4*n, fOffsetMagn3[n]);
+			fPrzesMagn3[n] = (stMagn.fMax[n] + stMagn.fMin[n]) / 2;
+			FramDataWriteFloat(FAH_MAGN3_PRZESX + 4*n, fPrzesMagn3[n]);
+			fSkaloMagn3[n] = (float)NORM_AMPL_MAG / (stMagn.fMax[n] - stMagn.fMin[n]);
+			FramDataWriteFloat(FAH_MAGN3_SKALOX + 4*n, fSkaloMagn3[n]);
 			break;
 		}
 	}

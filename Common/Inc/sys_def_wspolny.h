@@ -57,3 +57,4 @@
 #define MAG3			0x40
 #define KALIBRUJ		0x08
 #define MASKA_OSI		0x03
+#define NORM_AMPL_MAG	100		//znormalizowana długość wektora magnetometru
