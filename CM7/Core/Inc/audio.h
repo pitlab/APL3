@@ -22,6 +22,7 @@
 #define LICZBA_PROBEK_PRZERWY	(CZESTOTLIWOSC_AUDIO / PRZERW_TONU_NA_SEK)		//tyle próbek trzeba odczekać aby przerwać dżwięk
 #define PRZERWA_TONU_WZNOSZ		(LICZBA_PROBEK_PRZERWY * (LICZBA_TONOW_WARIO/2))	//ponieważ zwiększamy o (LICZBA_TONOW_WARIO/2) to pomnóż o tyle
 #define ROZM_KOLEJKI_KOMUNIKATOW	16
+#define ROZM_MALEJ_KOLEJKI_KOMUNIK	4
 
 
 //definicje próbek głosowych audio odpowiadająca kolejności w pliku komunikaty*.txt
@@ -92,9 +93,17 @@
 #define	PRGA_KIERUNEK		64	//kierunek.wav
 #define	PRGA_ALLELUJA		65	//Alleluja_i_do_gory.wav
 #define	PRGA_NIECHAJ_NARODO	66	//niechaj_narodowie.wav
-
-#define PRGA_MAX_PROBEK		67	//maksymalna liczba dostępnych próbek
-
+#define PRGA_OS				67
+#define PRGA_X				68
+#define PRGA_Y				69
+#define PRGA_Z				70
+#define PRGA_MIN			71
+#define PRGA_MAX			72
+#define PRGA_GOTOWE			73
+#define PRGA_PRZYCISK		74
+#define PRGA_PRZYCISK1		75
+#define PRGA_MAX_PROBEK		76	//maksymalna liczba dostępnych próbek
+#define PRGA_PUSTE_MIEJSCE	255	//poste miejsce bez żadnej próbki
 
 
 //obliczenia: Maksymalna finalna amplituda to: (sin(1harm) * AMPLITUDA_1HARM + sin(3harm) * AMPLITUDA_3HARM) * SKALA_GLOSNOSCI_TONU
@@ -110,6 +119,7 @@ void UstawTon(uint8_t chNrTonu, uint8_t chGlosnosc);
 void ZatrzymajTon(void);
 uint8_t RejestrujAudio(void);
 uint8_t DodajProbkeDoKolejki(uint8_t chNumerProbki);
+uint8_t DodajProbkeDoMalejKolejki(uint8_t chNumerProbki, uint8_t chRozmiarKolejki);
 uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc);
 void TestKomunikatow(void);
 uint8_t DlugoscKolejkiKomunikatow(void);

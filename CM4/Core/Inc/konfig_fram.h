@@ -168,7 +168,7 @@
 #define	FAH_CISN_ROZN2_GOR 		FAH_MOD_CIS_ROZ+20	//4F korekcja czujnika ciśnienia różnicowego 2 na gorąco
 
 //współczynniki kalibracji magnetometru 1 na module inercyjnym
-#define	FAH_MAGN1        		FAH_CISN_ROZN2_GOR+24
+#define	FAH_MAGN1        		FAH_MOD_CIS_ROZ+24
 #define	FAH_MAGN1_PRZESX  		FAH_MAGN1+0 //4H przesunięcie magnetometru w osi X
 #define	FAH_MAGN1_PRZESY  		FAH_MAGN1+4 //4H przesunięcie magnetometru w osi Y
 #define	FAH_MAGN1_PRZESZ  		FAH_MAGN1+8 //4H przesunięcie magnetometru w osi Z
@@ -177,7 +177,7 @@
 #define	FAH_MAGN1_SKALOZ  		FAH_MAGN1+20 //4H wzmocnienie w osi Z
 
 //współczynniki kalibracji magnetometru 2 na module inercyjnym
-#define	FAH_MAGN2        		FAH_MAGN1_SKALOZ+24
+#define	FAH_MAGN2        		FAH_MAGN1+24
 #define	FAH_MAGN2_PRZESX  		FAH_MAGN2+0 //4H przesunięcie magnetometru w osi X
 #define	FAH_MAGN2_PRZESY  		FAH_MAGN2+4 //4H przesunięcie magnetometru w osi Y
 #define	FAH_MAGN2_PRZESZ  		FAH_MAGN2+8 //4H przesunięcie magnetometru w osi Z
@@ -186,7 +186,7 @@
 #define	FAH_MAGN2_SKALOZ  		FAH_MAGN2+20 //4H wzmocnienie w osi Z
 
 //współczynniki kalibracji magnetometru 3 na module GNSS
-#define	FAH_MAGN3        		FAH_MAGN2_SKALOZ+24
+#define	FAH_MAGN3        		FAH_MAGN2+24
 #define	FAH_MAGN3_PRZESX  		FAH_MAGN3+0 //4H przesunięcie magnetometru w osi X
 #define	FAH_MAGN3_PRZESY  		FAH_MAGN3+4 //4H przesunięcie magnetometru w osi Y
 #define	FAH_MAGN3_PRZESZ  		FAH_MAGN3+8 //4H przesunięcie magnetometru w osi Z
@@ -200,7 +200,7 @@
 
 
 
-
+/*
 #define	FAH_PDVARIO         FAH_ADCIO7_GAIN+4
 #define	FAH_PDIF_OFFSET	    FAH_PDVARIO+0   //4H offset napięcia czujnika ciśnienia różnicowego
 #define	FAH_VARIO_OFFSET    FAH_PDVARIO+4   //4H offset napięcia członu różniczkującego
@@ -219,7 +219,7 @@
 #define	FAH_ADCIO_TEMP_OFST FAH_TEMPER+8    //4H korekcja offsetu temperatury przetwornika A/C modułu ADCIO
 #define	FAH_TCOUP_REF_OFST  FAH_TEMPER+12   //4H korekcja offsetu czujnika temperatury odniesienia termopar
 #define	FAH_TALTI_AIO_OFST  FAH_TEMPER+24   //4H korekcja offsetu temperatury wysoko�ciomierza na module All-In-One
-
+*/
 
 
 
@@ -237,7 +237,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Definicje validator�w danych konfiguracyjnych
 //////////////////////////////////////////////////////////////////////////////
-#define VALM_OFST_UNI    (float)-0.3    //max wartość unwersalnej odchyłki ujemnej offsetu
+/*#define VALM_OFST_UNI    (float)-0.3    //max wartość unwersalnej odchyłki ujemnej offsetu
 #define VALP_OFST_UNI    (float)0.3     //
 #define VALD_OFST_UNI    (float)0.0 
 #define VALM_GAIN0_UNI   (float)-0.3    //max wartość unwersalnej odchyłki ujemnej wzmocnienia dla średniej 0
@@ -245,15 +245,8 @@
 #define VALD_GAIN0_UNI   (float)1.0
 #define VALM_GAIN1_UNI   (float)0.8     //max wartość unwersalnej odchyłki ujemnej wzmocnienia dla średniej 1
 #define VALP_GAIN1_UNI   (float)1.2     //
-#define VALD_GAIN1_UNI   (float)1.0
+#define VALD_GAIN1_UNI   (float)1.0*/
 
-
-/*#define VALM_OFST_ACCA    (float)-1.4   //max wartość odchyłki ujemnej offsetu akcelerometru ADXL330
-#define VALP_OFST_ACCA    (float)1.4    //max wartość odchyłki dodatniej
-#define VALD_OFST_ACCA    (float)0      //wartość domyślna
-#define VALM_OFST_GYRA    (float)-15    //max wartość odchyłki ujemnej offsetu żyroskopu ADXRS610
-#define VALP_OFST_GYRA    (float)15     //j.w. dodatniej (katalogowo +-0,15V -> +-12�/s)
-#define VALD_OFST_GYRA    (float)0      //default*/
 #define VMIN_OFST_ACEL	-0.5f	//max wartość odchyłki ujemnej offsetu akcelerometrów
 #define VMAX_OFST_ACEL  0.5f    //j.w. dodatniej
 #define VDEF_OFST_ACEL  0.0f    //wartość domyślna
@@ -261,13 +254,6 @@
 #define VMAX_OFST_ZYRO  20.f    //j.w. dodatniej
 #define VDEF_OFST_ZYRO  0.0f    //wartość domyślna
 
-
-/*#define VALM_GAIN_ACCA    (float)0.8    //limity wartości odchyłki wzmocnienia akcelerometru ADXL330
-#define VALP_GAIN_ACCA    (float)1.2    //
-#define VALD_GAIN_ACCA    (float)1.0
-#define VALM_GAIN_GYRA    (float)0.8    //limity wartości odchyłki wzmocnienia żyroskopu ADXRS610
-#define VALP_GAIN_GYRA    (float)1.2    //
-#define VALD_GAIN_GYRA    (float)1.0*/
 #define VMIN_WZM_ACEL  	0.8f    //limity wartości odchyłki ujemnej wzmocnienia akcelerometrów
 #define VMAX_WZM_ACEL  	1.4f    //limity wartości odchyłki dodatniej
 #define VDEF_WZM_ACEL  	1.0f    //wartość domyślna
@@ -275,7 +261,7 @@
 #define VMAX_WZM_ZYRO  	1.3f    //limity wartości odchyłki dodatniej
 #define VDEF_WZM_ZYRO  	1.0f    //wartość domyślna
 
-#define VALM_TCOEF_ACEL   (float)-5.0   //minimalna wartość  współczynnika temperaturowego akcelerometru
+/*#define VALM_TCOEF_ACEL   (float)-5.0   //minimalna wartość  współczynnika temperaturowego akcelerometru
 #define VALP_TCOEF_ACEL   (float)5.0    //wartość maksymalna
 #define VALD_TCOEF_ACEL   (float)1.0    //wartość domyślna
 
@@ -285,13 +271,13 @@
 
 #define VALM_TCOEF_MAG   (float)-5.0    //minimalna wartość  współczynnika temperaturowego megnetometru
 #define VALP_TCOEF_MAG   (float)5.0     //wartość maksymalna
-#define VALD_TCOEF_MAG   (float)1.0     //wartość domyślna
+#define VALD_TCOEF_MAG   (float)1.0     //wartość domyślna*/
 
 
 #define VMIN_OFST_PDIF    0.5f    //limity wartości odchyłki offsetu różnicowego czujnika ciśnienia
 #define VMAX_OFST_PDIF    1.5f    //
 #define VDEF_OFST_PDIF    0.0f
-#define VALM_OFST_VARI    (float)-0.8   //limity wartości odchyłki offsetu wariometru
+/*#define VALM_OFST_VARI    (float)-0.8   //limity wartości odchyłki offsetu wariometru
 #define VALP_OFST_VARI    (float)0.8    //
 #define VALD_OFST_VARI    (float)0.0
 
@@ -312,14 +298,7 @@
 
 #define VALM_TCOM_ALTI    (float)-1.2    //limity wartości odchyłki kompensacji temperaturowej wysoko�ciomierzy
 #define VALP_TCOM_ALTI    (float)1.2     //
-#define VALD_TCOM_ALTI    (float)1.0
-
-#define VALM_MIN_MAGN     (float)0.09     //limity wartości minimalnej i maksymalnej magnetometru
-#define VALM_MAX_MAGN     (float)4.09     //
-
-#define VALM_CORR_MAGN    (float)-100.0    //limity wartości korekcji offsetu mostka magnetometru
-#define VALP_CORR_MAGN    (float)100.0     //
-#define VALD_CORR_MAGN    (float)0.0
+#define VALD_TCOM_ALTI    (float)1.0 */
 
 #define VMIN_SKALO_MAGN    0.10f		//limity wartości skalowania pomiaru magnetometru
 #define VMAX_SKALO_MAGN    10.0f
@@ -329,7 +308,7 @@
 #define VMAX_PRZES_MAGN    1000.0f
 #define VDEF_PRZES_MAGN    0.0f
 
-#define VALM_PID_PGAIN    (float)0.0     //limity wartości wzmocnienienia członu P regulatora
+/*#define VALM_PID_PGAIN    (float)0.0     //limity wartości wzmocnienienia członu P regulatora
 #define VALP_PID_PGAIN    (float)1000
 #define VALD_PID_PGAIN    (float)1.0
 
@@ -371,4 +350,4 @@
 
 #define VALM_SPGAIN       (float)0.0001  //limity wartości  współczynnika wzmocnienia sygnału zadanego z aparatury
 #define VALP_SPGAIN       (float)100.0
-#define VALD_SPGAIN       (float)1.0    //wartość domyślna
+#define VALD_SPGAIN       (float)1.0    //wartość domyślna*/

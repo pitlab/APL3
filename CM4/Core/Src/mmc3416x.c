@@ -19,9 +19,11 @@ extern DMA_HandleTypeDef hdma_i2c4_rx;
 extern DMA_HandleTypeDef hdma_i2c4_tx;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t chSekwencjaPomiaruMMC;
-extern uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
+extern volatile uint8_t chCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
 uint8_t chLicznikOczekiwania;
 int16_t sPomiarMMCH[3], sPomiarMMCL[3];	//wyniki pomiarów dla dodatniego i ujemnego namagnesowania czujnika
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika MMC34160PJ
@@ -123,7 +125,7 @@ uint8_t ObslugaMMC3416x(void)
 	case SPMMC3416_CZYT_STAT_P:		//odczytaj status i sprawdź gotowość pomiaru
 	case SPMMC3416_CZYT_STAT_M:		//odczytaj status i sprawdź gotowość pomiaru
 		chErr = HAL_I2C_Master_Receive_DMA(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 1);		//odczytaj dane
-		chOdczytywanyMagnetometr = 0;	//nie interpretuj odczytanych danych jako wyniku pomiaru
+		chCzujnikOdczytywanyNaI2CInt = 0;	//nie interpretuj odczytanych danych jako wyniku pomiaru
 		break;
 
 	case SPMMC3416_START_CZYT_HP:	//wyślij polecenie odczytu pomiaru H+
@@ -137,7 +139,7 @@ uint8_t ObslugaMMC3416x(void)
 	case SPMMC3416_CZYTAJ_HP:		//odczytaj pomiar H+
 	case SPMMC3416_CZYTAJ_HM:		//odczytaj pomiar H-
 		chErr = HAL_I2C_Master_Receive_DMA(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 6);		//odczytaj dane
-		chOdczytywanyMagnetometr = MAG_MMC;	//identyfikuje układ w callbacku odczytu danych
+		chCzujnikOdczytywanyNaI2CInt = MAG_MMC;	//identyfikuje układ w callbacku odczytu danych
 		break;
 
 	case SPMMC3416_RESET:			//wyślij polecenie RESET
@@ -163,11 +165,11 @@ uint8_t ObslugaMMC3416x(void)
 uint8_t StartujOdczytRejestruMMC3416x(uint8_t chRejestr)
 {
 	uint8_t chErr = ERR_BRAK_MMC34160;
-	extern uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
+
 
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)
 	{
-		chOdczytywanyMagnetometr = MAG_MMC;
+		chCzujnikOdczytywanyNaI2CInt = MAG_MMC;
 		chDaneMagMMC[0] = chRejestr;	//PMMC3416_XOUT_L;
 		chErr = HAL_I2C_Master_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 1);	//wyślij polecenie odczytu wszystkich pomiarów
 	}

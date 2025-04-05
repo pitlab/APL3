@@ -65,3 +65,12 @@ na_sekunde.wav
 kierunek.wav
 Alleluja_i_do_gory.wav
 niechaj_narodowie.wav
+os.wav
+x.wav
+y.wav
+z.wav
+min.wav
+max.wav
+gotowe.wav
+przycisk.wav
+przycisk1.wav

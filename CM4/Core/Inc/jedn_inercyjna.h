@@ -22,6 +22,7 @@ typedef struct
 uint8_t InicjujJednostkeInercyjna(void);
 void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo);
 void ObrocWektor(float *fWektor);
-void ZapiszOffsetMagnetometru(uint8_t chMagn);
-void KalibracjaZeraMagnetometru(float *fMag);
+void ZapiszKonfiguracjeMagnetometru(uint8_t chMagn);
+void ZnajdzEkstremaMagnetometru(float *fMag);
+void ZerujEkstremaMagnetometru(void);
 #endif /* INC_JEDN_INERCYJNA_H_ */

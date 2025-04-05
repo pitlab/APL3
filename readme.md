@@ -28,6 +28,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Uruchomiony system FAT na karcie, uruchomiony loger danych pomiarowych
 - Dodana obsługa zegara czasu rzeczywistego jednak jeszcze nie działa z powodu niewłaściwego kwarca.
 - Rysowanie kostki 3D wizualizującej działanie IMU
+- Rysowanie wykresów biegunowych przy kalibracji magnetometru i sterowanie całym procesem
 ![Kostka](obrazki/kostka.jpg)
 
 ### Rdzeń CM4:
@@ -46,8 +47,9 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Zapis konfiguracji do FRAM przeniesiony z APL2 i zaimplementowany w APL3
 - Uruchomione czujniki ciśnienia różnicowego ND130 i MS4525. Już pokazują takie samo ciśnienie
 - Zrobiona kalibracja tempraturowa żyroskopów
-- Zrobiona kalibracja wzmocnienia żyroskopówyliczanie
-- Zrobiona kalibracja offsetu magnetometrów
+- Zrobiona kalibracja przesunięcia zera w funkcji temepratury i skalowania prędkosci kątowej żyroskopów
+- Zrobiona kalibracja przesunięcia zera magnetometrów i normalizacja długości wektora magnetycznego
+![magetometry](obrazki/kalibracja_magnetometrow.jpg) 
 
 #### Do zrobienia:
  - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarce na inne z mniejszym ESR

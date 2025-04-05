@@ -54,7 +54,9 @@
 //identyfikatory kalibrowanych magnetometrów
 #define MAG1			0x10
 #define MAG2			0x20
-#define MAG3			0x40
-#define KALIBRUJ		0x08
+#define MAG3			0x30
+#define KALIBRUJ		0x08	//sygnalizuje trwanie kalibracji w przeciwieństwie do etapu sprawdzenia
+#define ZERUJ			0x04	//sygnalizuje potrzebę wyzerowania ekstremów wskazań magnetometru przed pomiarem
 #define MASKA_OSI		0x03
-#define NORM_AMPL_MAG	100		//znormalizowana długość wektora magnetometru
+#define MASKA_CZUJNIKA	0xF0
+#define NORM_AMPL_MAG	1000		//znormalizowana długość wektora magnetometru

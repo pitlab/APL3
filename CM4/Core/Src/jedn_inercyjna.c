@@ -135,11 +135,11 @@ void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wykonuje obliczenia kalibracji magnetometru
+// Znajduje o odsyła do CM7  ekstrema wskazań magnetometru na potrzeby kalibracji przesunięcia
 // Parametry: *sMag - wskaźnik na dane z 3 osi magnetometru
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void KalibracjaZeraMagnetometru(float *fMag)
+void ZnajdzEkstremaMagnetometru(float *fMag)
 {
 	for (uint16_t n=0; n<3; n++)
 	{
@@ -157,12 +157,28 @@ void KalibracjaZeraMagnetometru(float *fMag)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Zeruje znalezione wcześniej ekstrema magnetometru tak aby nowy pomiar rozpoczął się od czytej sytuacji
+// Parametry: nic
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void ZerujEkstremaMagnetometru(void)
+{
+	for (uint16_t n=0; n<3; n++)
+	{
+		stMagn.fMin[n] = 0.0f;
+		stMagn.fMax[n] = 0.0f;
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Liczy i zapisuje offset zera magnetometru wg wzoru: (max + min) / 2
 // Tak uzyskany offset należy odejmować od bieżących wskazań magnetometru
 // Parametry: chMagn - indeks układu magnetometru
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void ZapiszOffsetMagnetometru(uint8_t chMagn)
+void ZapiszKonfiguracjeMagnetometru(uint8_t chMagn)
 {
 	for (uint16_t n=0; n<3; n++)
 	{

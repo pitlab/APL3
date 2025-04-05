@@ -19,7 +19,9 @@ extern DMA_HandleTypeDef hdma_i2c4_rx;
 extern DMA_HandleTypeDef hdma_i2c4_tx;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t chSekwencjaPomiaruIIS;
-extern uint8_t chOdczytywanyMagnetometr;	//zmienna wskazuje który magnetometr jest odczytywany: MAG_MMC lub MAG_IIS
+extern volatile uint8_t chCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika IIS2MDC
@@ -85,7 +87,7 @@ uint8_t ObslugaIIS2MDC(void)
 	{
 	case 0:
 		chErr = StartujOdczytIIS2MDC(PIIS2MDS_STATUS_REG);	//polecenie odczytu statusu
-		chOdczytywanyMagnetometr = 0;	//nie interpretuj odczytanych danych jako wyniku pomiaru
+		chCzujnikOdczytywanyNaI2CInt = 0;	//nie interpretuj odczytanych danych jako wyniku pomiaru
 		break;
 
 	case 1:
@@ -101,7 +103,7 @@ uint8_t ObslugaIIS2MDC(void)
 
 	case 3:
 		chErr = HAL_I2C_Master_Receive_DMA(&hi2c4, IIS2MDC_I2C_ADR + READ, chDaneMagIIS, 8);		//odczytaj dane
-		chOdczytywanyMagnetometr = MAG_IIS;	//interpretuj odczytane dane jako pomiar tego magnetometru
+		chCzujnikOdczytywanyNaI2CInt = MAG_IIS;	//interpretuj odczytane dane jako pomiar tego magnetometru
 		break;
 
 	default: break;
@@ -148,7 +150,7 @@ uint8_t CzytajIIS2MDC(void)
 
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)
 	{
-		chOdczytywanyMagnetometr = MAG_IIS;
+		chCzujnikOdczytywanyNaI2CInt = MAG_IIS;
 		chErr = HAL_I2C_Master_Receive_DMA(&hi2c4, IIS2MDC_I2C_ADR + READ, chDaneMagIIS, 8);		//odczytaj dane
 	}
 

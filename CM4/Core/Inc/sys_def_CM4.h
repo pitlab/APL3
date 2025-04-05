@@ -38,14 +38,12 @@
 
 
 
-//definicje magnetometrów na magistrali I2C4
+//definicje układów na magistralach I2C3 i I2C4
 #define MAG_MMC				1
 #define MAG_IIS				2
-
-//definicje układów na magistrali I2C3
-#define MAG_HMC				1
-#define CISN_ROZN_MS2545	2	//ciśnienie różnicowe
-#define CISN_TEMP_MS2545	3	//ciśnienie różnicowe i temepratura
+#define MAG_HMC				3
+#define CISN_ROZN_MS2545	4	//ciśnienie różnicowe
+#define CISN_TEMP_MS2545	5	//ciśnienie różnicowe i temepratura
 
 
 //definije kanałów IO
@@ -60,6 +58,8 @@
 
 #define MASKA_INIT_GNSS		0x07
 
+//znaczenie bitów zmiennej chNoweDaneI2C
+#define DANE_I2C_HMC	0x01	//Dane z czujnika HMC
 
 
 #endif /* INC_SYS_DEF_CM4_H_ */

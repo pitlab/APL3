@@ -37,12 +37,13 @@
 #define POL_KAL_ZERO_MAGN1		12	//uruchom kalibrację zera magnetometru 1
 #define POL_KAL_ZERO_MAGN2		13	//uruchom kalibrację zera magnetometru 2
 #define POL_KAL_ZERO_MAGN3		14	//uruchom kalibrację zera magnetometru 3
-#define POL_ZAPISZ_ZERO_MAGN1	15	//zapisz offset zera magnetometru 1
-#define POL_ZAPISZ_ZERO_MAGN2	16	//zapisz offset zera magnetometru 2
-#define POL_ZAPISZ_ZERO_MAGN3	17	//zapisz offset zera magnetometru 3
+#define POL_ZAPISZ_KONF_MAGN1	15	//zapisz konfigurację magnetometru 1
+#define POL_ZAPISZ_KONF_MAGN2	16	//zapisz konfigurację magnetometru 2
+#define POL_ZAPISZ_KONF_MAGN3	17	//zapisz konfigurację magnetometru 3
 #define POL_SPRAWDZ_MAGN1		18	//sprawdź kalibrację magnetometru 1
 #define POL_SPRAWDZ_MAGN2		19	//sprawdź kalibrację magnetometru 2
 #define POL_SPRAWDZ_MAGN3		20	//sprawdź kalibrację magnetometru 3
+#define POL_ZERUJ_EKSTREMA		21	//zeruje wartosci zebranych ekstremów magnetometru
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
 
 typedef struct _GNSS

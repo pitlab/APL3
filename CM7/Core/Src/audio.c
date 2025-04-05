@@ -542,10 +542,8 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Dodaje kolejną próbkę do kolejki komunikatów
-// Parametry: chTypKomunikatu - predefiniowany typ: 1=wysokość, 2=napięcie, 3=temperatura, 4=prędkość
-// fWartosc - liczba do wymówienia
-// chPrezyzja - okresla ile miejsc po przecinku należy wymówić. Obecnie 0 lub 1
+// Dodaje kolejną próbkę do dużej kolejki komunikatów o rozmiarze ROZM_KOLEJKI_KOMUNIKATOW
+// Parametry: chNumerProbki - identyfikator próbki w spisie treści
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t DodajProbkeDoKolejki(uint8_t chNumerProbki)
@@ -566,6 +564,33 @@ uint8_t DodajProbkeDoKolejki(uint8_t chNumerProbki)
 	return ERR_OK;
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Dodaje kolejną próbkę do małej kolejki komunikatów o definiowanym
+// Chodzi o to aby generujac dużą liczbę komunikatów do wymówienia nie zapychać kolejki na długi czas. Nadmiarowe komunikaty nie będą wypowiedziane
+// Parametry: chNumerProbki - identyfikator próbki w spisie treści
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+uint8_t DodajProbkeDoMalejKolejki(uint8_t chNumerProbki, uint8_t chRozmiarKolejki)
+{
+	uint8_t chNapelnianie = chWskNapKolKom;
+
+	//sprawdź czy jest miejsce w kolejce
+	chNapelnianie++;
+	if (chNapelnianie >= chRozmiarKolejki)
+		chNapelnianie = 0;
+	if (chNapelnianie == chWskOprKolKom)
+		return ERR_PELEN_BUF_KOM;
+
+	chKolejkaKomunkatow[chWskNapKolKom++] = chNumerProbki;
+	if (chWskNapKolKom >= chRozmiarKolejki)
+			chWskNapKolKom = 0;
+	for (uint16_t n=chRozmiarKolejki; n<ROZM_KOLEJKI_KOMUNIKATOW; n++)	//pozostałą część kolejki wypełnij komunikatami nie do wymówienia
+		chKolejkaKomunkatow[n] = PRGA_PUSTE_MIEJSCE;
+
+	return ERR_OK;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
