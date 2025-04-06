@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	148	//numer commitu w repozytorium
+#define WER_REPO	149	//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -56,7 +56,7 @@
 //tryby pracy
 #define TP_MENU_GLOWNE		0	//wyświetla ekran menu głównego
 #define TP_WROC_DO_MENU		1
-#define TP_MG1				2
+#define TP_KAL_BARO			2	//kalibruj barometry wedlug wzorcowej zmiany ciśnienia
 #define TP_MG2				3
 #define TP_MG3				4
 #define TP_MG4				5

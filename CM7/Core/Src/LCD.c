@@ -62,6 +62,7 @@ extern const unsigned short obr_baczek[0xF80];
 extern const unsigned short obr_kal_mag_n1[0xFFC];
 extern const unsigned short obr_kontrolny[0xFFC];
 extern const unsigned short obr_kostka3D[0xFFC];
+extern const unsigned short obr_cisnienie[0xFFC];
 
 //definicje zmiennych
 uint8_t chTrybPracy;
@@ -118,7 +119,7 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Kalib IMU", 	"Kalibracja zyroskopow i akclerometrow",	TP_IMU,				obr_baczek},
 	{"Kalib Magn",	"Obsluga i kalibracja magnetometru",		TP_MAGNETOMETR,		obr_kal_mag_n1},
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
-	{"nic 1", 		"nic",										TP_MG1,				obr_multitool},
+	{"Kal Baro", 	"Kalibracja cisnienia wg wzorca 10 pieter",	TP_KAL_BARO,		obr_cisnienie},
 	{"nic 2", 		"nic",										TP_MG2,				obr_multitool},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
 	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_dotyk}};
@@ -222,7 +223,14 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TP_MG1:
+	case TP_KAL_BARO:	//kalibracja ciśnienia według wzorca
+		if (KalibrujBaro(&chSekwencerKalibracji) == ERR_DONE)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_MAG_WROC;
+		}
+		break;
+
 		chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
@@ -430,7 +438,7 @@ void RysujEkran(void)
 	case TP_KAL_ZYRO_ZIM:
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_ZIM;	//uruchom kalibrację żyroskopów na zimno 10°C
 		fTemperaturaKalibracji = TEMP_KAL_ZIMNO;
-		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI_ZYROSKOPU))
+		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
 			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
 		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_ZIMNO) || (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_CIEPLO))
@@ -443,7 +451,7 @@ void RysujEkran(void)
 	case TP_KAL_ZYRO_POK:
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_POK;	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
 		fTemperaturaKalibracji = TEMP_KAL_POKOJ;
-		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI_ZYROSKOPU))
+		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
 			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
 		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_ZIMNO) || (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_CIEPLO))
@@ -456,7 +464,7 @@ void RysujEkran(void)
 	case TP_KAL_ZYRO_GOR:
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_GOR;	//uruchom kalibrację żyroskopów na gorąco 40°C
 		fTemperaturaKalibracji = TEMP_KAL_GORAC;
-		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI_ZYROSKOPU))
+		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
 			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
 		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_ZIMNO) || (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_CIEPLO))
@@ -1578,8 +1586,8 @@ void PomiaryIMU(void)
 	//sprintf(chNapis, "Serwa:  5 = %d,  6 = %d,  7 = %d,  8 = %d", uDaneCM4.dane.sSerwa[4], uDaneCM4.dane.sSerwa[5], uDaneCM4.dane.sSerwa[6], uDaneCM4.dane.sSerwa[7]);
 	//print(chNapis, 10, 300);
 
-	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI_ZYROSKOPU do zera
-	RysujPasekPostepu(CZAS_KALIBRACJI_ZYROSKOPU);
+	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI do zera
+	RysujPasekPostepu(CZAS_KALIBRACJI);
 }
 
 
@@ -2813,4 +2821,79 @@ uint16_t MaximumGlobalne(int16_t* sMin, int16_t* sMax)
 			sMaxGlob = abs(*(sMin + n));
 	}
 	return sMaxGlob;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje ekran kalibracji barometru
+// Parametry: fWzorzecCisnienia - wartość wzorcowej zmiany ciśnienia
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t KalibrujBaro(uint8_t *chEtap)
+{
+	uint8_t chErr = ERR_OK;
+
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Kalibr. pomiaru cisnienia");
+
+		setColor(YELLOW);
+		sprintf(chNapis, "U%crednij ci%cn. pocz%ctkowe, pokonaj wys=27m i ponownie u%crednij", ś, ś, ą, ś);
+		print(chNapis, CENTER, 30);
+
+		setColor(GRAY60);
+		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
+		print(chNapis, CENTER, 50);
+
+		setColor(GRAY40);
+		stPrzycisk.sX1 = 10;
+		stPrzycisk.sY1 = 250;
+		stPrzycisk.sX2 = stPrzycisk.sX1 + 210;
+		stPrzycisk.sY2 = DISP_Y_SIZE;
+		RysujPrzycisk(stPrzycisk, "Start");
+		chStanPrzycisku = 0;
+		*chEtap = 0;
+	}
+
+	switch (*chEtap)
+	{
+	case 0:
+		uDaneCM7.dane.chWykonajPolecenie = POL_INICJUJ_USREDN;	//zeruj licznik uśredniania
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_INICJUJ_USREDN)
+		{
+			uDaneCM7.dane.chWykonajPolecenie = POL_INICJUJ_USREDN;	//
+			(*chEtap)++;	//wyzerowało się wiec przejdź do nastepnego etapu
+		}
+		break;
+
+	case 1:	break;
+
+	}
+
+	//sprawdź czy jest naciskany przycisk
+	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+	{
+		//czy naciśnięto na przycisk?
+		if ((statusDotyku.sY > stPrzycisk.sY1) && (statusDotyku.sY < stPrzycisk.sY2) && (statusDotyku.sX > stPrzycisk.sX1) && (statusDotyku.sX < stPrzycisk.sX2))
+			chStanPrzycisku = 1;
+		else
+		{
+			chErr = ERR_DONE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
+			uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//neutralne polecenie
+		}
+		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
+	}
+	else	//DOTYK_DOTKNIETO
+	{
+		if (chStanPrzycisku)
+		{
+			chStanPrzycisku = 0;
+			DodajProbkeDoMalejKolejki(PRGA_PRZYCISK1, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
+			uDaneCM7.dane.chWykonajPolecenie = POL_USREDNIJ_CISN1;
+		}
+	}
+	RysujPasekPostepu(CZAS_KALIBRACJI);
+	return chErr;
 }

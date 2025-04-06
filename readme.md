@@ -28,8 +28,8 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Uruchomiony system FAT na karcie, uruchomiony loger danych pomiarowych
 - Dodana obsługa zegara czasu rzeczywistego jednak jeszcze nie działa z powodu niewłaściwego kwarca.
 - Rysowanie kostki 3D wizualizującej działanie IMU
-- Rysowanie wykresów biegunowych przy kalibracji magnetometru i sterowanie całym procesem
 ![Kostka](obrazki/kostka.jpg)
+- Rysowanie wykresów biegunowych przy kalibracji magnetometru i sterowanie całym procesem
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM

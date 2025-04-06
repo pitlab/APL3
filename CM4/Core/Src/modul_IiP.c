@@ -20,12 +20,12 @@
 
 extern SPI_HandleTypeDef hspi2;
 extern uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
-uint16_t sLicznikCzasuKalibracjiZyro;
+uint16_t sLicznikCzasuKalibracji;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 float fOffsetZyro1[3], fOffsetZyro2[3];
 float fWzmocnZyro1[3], fWzmocnZyro2[3];
-double dSumaZyro1[3], dSumaZyro2[3];
-float fSumaCisnRozn[2];	//do kalibracji czujników ciśnienia różnicowego
+double dSuma1[3], dSuma2[3];		//do uśredniania pomiarów podczas kalibracji czujników
+float fSumaCisn[2];	//do kalibracji czujników ciśnienia
 WspRownProstej3_t stWspKalOffsetuZyro1;		//współczynniki równania prostych do estymacji offsetu
 WspRownProstej3_t stWspKalOffsetuZyro2;		//współczynniki równania prostych do estymacji offsetu
 WspRownProstej1_t stWspKalOffsetuCzujnRozn1;
@@ -270,6 +270,22 @@ float WysokoscBarometryczna(float fP, float fP0, float fTemp)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Liczy ciśnienie barometryczne na podstawie wysokości i temperatury: wzór barometryczny: https://pl.wikipedia.org/wiki/Wz%C3%B3r_barometryczny
+// Parametry:
+//  fWysokosc - wysokość [m]
+//  fP0 - ciśnienie na poziome odniesienia [Pa]
+//  fTemp - temperatura [K)
+// Zwraca: obliczoną wysokość
+////////////////////////////////////////////////////////////////////////////////
+float CisnienieBarometryczne(float fWysokosc, float fP0, float fTemp)
+{
+	//P = P0 * e^(-(u*g*h)/(R*T))
+	return fP0 * expf(-1 * MASA_MOLOWA_POWIETRZA * PRZYSPIESZENIE_ZIEMSKIE * fWysokosc / (STALA_GAZOWA_R * fTemp));
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Rozpoczyna kalibrację żyroskopów i czujników ciśnienia różnicowego
 // Parametry: chRodzajKalib - rodzaj kalibracji
 // Zwraca: nic
@@ -340,11 +356,11 @@ uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib)
 
 	for (uint8_t n=0; n<3; n++)
 	{
-		dSumaZyro1[n] = 0.0;
-		dSumaZyro2[n] = 0.0;
+		dSuma1[n] = 0.0;
+		dSuma2[n] = 0.0;
 	}
-	fSumaCisnRozn[0] = 0.0;
-	uDaneCM4.dane.sPostepProcesu = CZAS_KALIBRACJI_ZYROSKOPU;
+	fSumaCisn[0] = 0.0;
+	uDaneCM4.dane.sPostepProcesu = CZAS_KALIBRACJI;
 	return ERR_OK;
 }
 
@@ -478,7 +494,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wykonuje kalibrację żyroskopów i zapisuje wynik we FRAM
+// Wykonuje kalibrację przesunięcia zera żyroskopów i czujnika różnicowego, nastepnie zapisuje wynik we FRAM
 // Parametry: sCzasKalibracji - czas liczny w kwantach obiegu pętli głównej
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
@@ -491,17 +507,17 @@ uint8_t KalibrujZeroZyroskopu(void)
 	{
 		for (uint8_t n=0; n<3; n++)
 		{
-			dSumaZyro1[n] += uDaneCM4.dane.fZyroSur1[n];
-			dSumaZyro2[n] += uDaneCM4.dane.fZyroSur2[n];
+			dSuma1[n] += uDaneCM4.dane.fZyroSur1[n];
+			dSuma2[n] += uDaneCM4.dane.fZyroSur2[n];
 		}
-		fSumaCisnRozn[0] += uDaneCM4.dane.fCisnRozn[0];
+		fSumaCisn[0] += uDaneCM4.dane.fCisnRozn[0];
 
 		if (uDaneCM4.dane.sPostepProcesu == 0)
 		{
 			for (uint8_t n=0; n<3; n++)
 			{
-				fOffsetZyro1[n] = dSumaZyro1[n] / CZAS_KALIBRACJI_ZYROSKOPU;
-				fOffsetZyro2[n] = dSumaZyro2[n] / CZAS_KALIBRACJI_ZYROSKOPU;
+				fOffsetZyro1[n] = dSuma1[n] / CZAS_KALIBRACJI;
+				fOffsetZyro2[n] = dSuma2[n] / CZAS_KALIBRACJI;
 
 				if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO_ZIM)
 				{
@@ -527,25 +543,95 @@ uint8_t KalibrujZeroZyroskopu(void)
 			{
 				FramDataWriteFloat(FAH_ZYRO1_TEMP_ZIM, uDaneCM4.dane.fTemper[TEMP_IMU1]);
 				FramDataWriteFloat(FAH_ZYRO2_TEMP_ZIM, uDaneCM4.dane.fTemper[TEMP_IMU2]);
-				FramDataWriteFloat(FAH_CISN_ROZN1_ZIM, fSumaCisnRozn[0] / CZAS_KALIBRACJI_ZYROSKOPU);		//4F korekcja czujnika ciśnienia różnicowego 1 na zimno
+				FramDataWriteFloat(FAH_CISN_ROZN1_ZIM, fSumaCisn[0] / CZAS_KALIBRACJI);		//4F korekcja czujnika ciśnienia różnicowego 1 na zimno
 			}
 			else
 			if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO_POK)
 			{
 				FramDataWriteFloat(FAH_ZYRO1_TEMP_POK, uDaneCM4.dane.fTemper[TEMP_IMU1]);
 				FramDataWriteFloat(FAH_ZYRO2_TEMP_POK, uDaneCM4.dane.fTemper[TEMP_IMU2]);
-				FramDataWriteFloat(FAH_CISN_ROZN1_POK, fSumaCisnRozn[0] / CZAS_KALIBRACJI_ZYROSKOPU);	//4F korekcja czujnika ciśnienia różnicowego 1 w 25°C
+				FramDataWriteFloat(FAH_CISN_ROZN1_POK, fSumaCisn[0] / CZAS_KALIBRACJI);	//4F korekcja czujnika ciśnienia różnicowego 1 w 25°C
 			}
 			else
 			if (uDaneCM4.dane.nZainicjowano & INIT_TRWA_KAL_ZYRO_GOR)
 			{
 				FramDataWriteFloat(FAH_ZYRO1_TEMP_GOR, uDaneCM4.dane.fTemper[TEMP_IMU1]);
 				FramDataWriteFloat(FAH_ZYRO2_TEMP_GOR, uDaneCM4.dane.fTemper[TEMP_IMU2]);
-				FramDataWriteFloat(FAH_CISN_ROZN1_GOR, fSumaCisnRozn[0] / CZAS_KALIBRACJI_ZYROSKOPU);	//4F korekcja czujnika ciśnienia różnicowego 1 na gorąco
+				FramDataWriteFloat(FAH_CISN_ROZN1_GOR, fSumaCisn[0] / CZAS_KALIBRACJI);	//4F korekcja czujnika ciśnienia różnicowego 1 na gorąco
 			}
 			uDaneCM4.dane.nZainicjowano &= ~(INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR);	//wyłącz kalibrację
 			InicjujModulI2P();	//przelicz współczynniki
 		}
 	}
 	return ERR_OK;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wykonuje kalibrację skalowania ciśnienia czujników ciśnienia bezwzglednego odniesionych do wzorca wysokości.
+// Uśrednia początkowe i końcowe ciśnienie oraz temperaturę  w 2etapowym procesie kalibracji
+// Po zsumowaniu n=CZAS_KALIBRACJI pomiarów w zmiennych dSuma1[3] i dSuma2[3]
+// Kolejność pomiaru ciśnień jest dowolna: jako P0 biorę ciśnienie większe a różnica jest liczbą bezwzgledną
+// Parametry:
+// fCisnienie1, fCisnienie2 - ciśnienia do uśredniania
+// fTemp - temperatura do uśredniania
+// chPrzebieg - wskazuje czy uśredniamy ciśnienie początku (0) czy końca (1) kalibracji
+// sLicznik - czas liczny w kwantach obiegu pętli głównej
+// Zwraca: kod błędu ERR_DONE gdy gotowe, ERR_OK w trakcie pracy
+////////////////////////////////////////////////////////////////////////////////
+uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uint16_t sLicznik, uint8_t chPrzebieg)
+{
+	uint8_t chErr = ERR_OK;
+
+	//w pierwszym cyklu pierwszego przebiegu inicjuj zmienne do przechowywania sumy ciśnień i temperatury
+	if ((sLicznik == 0) && (chPrzebieg == 0))
+	{
+		for (uint8_t n=0; n<3; n++)
+		{
+			dSuma1[n] = 0.0;
+			dSuma2[n] = 0.0;
+		}
+	}
+
+	//dopóki proces nie jest skończony to sumuj pomiary w zmiennej po podwójnej precyzji
+	if (sLicznik < CZAS_KALIBRACJI)
+	{
+		if (chPrzebieg)
+		{
+			dSuma2[0] += (double)fCisnienie1;
+			dSuma2[1] += (double)fCisnienie2;
+			dSuma2[2] += (double)fTemp;
+		}
+		else
+		{
+			dSuma1[0] += (double)fCisnienie1;
+			dSuma1[1] += (double)fCisnienie2;
+			dSuma1[2] += (double)fTemp;
+		}
+	}
+	else
+		chErr = ERR_DONE;		//jeżeli zebrano tyle co trzeba to przestań sumować i zwróć kod zakończenia
+
+	//za drugim przebiegiem gdy są już uśrednione oba ciśnienia można policzyć finalne współczynniki skalowania kalibracji
+	if ((sLicznik == CZAS_KALIBRACJI - 1) && chPrzebieg)
+	{
+		float fCisnWzorcowe[2], fSredCisn0[2], fSredCisn1[2], fWspKalib;
+		fTemp = (float)((dSuma1[2] + dSuma2[2]) / ( 2 *CZAS_KALIBRACJI));		//średnia temperatura z obu pomiarów
+
+		for (uint8_t n=0; n<2; n++)
+		{
+			fSredCisn0[n] = (float)(dSuma1[n] / CZAS_KALIBRACJI);
+			fSredCisn1[n] = (float)(dSuma2[n] / CZAS_KALIBRACJI);
+			//jako ciśnienie P0 weź to które jest wyższe
+			if (fSredCisn0[n] > fSredCisn1[n])
+				fCisnWzorcowe[n] = CisnienieBarometryczne(WYSOKOSC10PIETER, fSredCisn0[n], fTemp);
+			else
+				fCisnWzorcowe[n] = CisnienieBarometryczne(WYSOKOSC10PIETER, fSredCisn1[n], fTemp);
+
+			fWspKalib = fCisnWzorcowe[n] / fabs(fSredCisn1[n] - fSredCisn0[n]);
+			FramDataWriteFloat(FAH_SKALO_CISN_BEZWZGL1 + n*4, fWspKalib);
+		}
+	}
+	return chErr;
 }

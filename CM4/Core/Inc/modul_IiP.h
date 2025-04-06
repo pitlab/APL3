@@ -62,5 +62,6 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib);
 void ObliczRownanieFunkcjiTemperatury(float fOffset1, float fOffset2, float fTemp1, float fTemp2, float *fA, float *fB);
 void ObliczOffsetTemperaturowy3(WspRownProstej3_t stWsp, float fTemp, float *fOffset);
 float ObliczOffsetTemperaturowy1(WspRownProstej1_t stWsp, float fTemp);
+uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uint16_t sLicznik, uint8_t chPrzebieg);
 
 #endif /* INC_MODUL_IIP_H_ */

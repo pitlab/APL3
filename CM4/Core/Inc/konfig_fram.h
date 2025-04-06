@@ -194,7 +194,8 @@
 #define	FAH_MAGN3_SKALOY  		FAH_MAGN3+16 //4H wzmocnienie w osi Y
 #define	FAH_MAGN3_SKALOZ  		FAH_MAGN3+20 //4H wzmocnienie w osi Z
 
-
+#define	FAH_SKALO_CISN_BEZWZGL1	FAH_MAGN3+24    //współczynnik skalowania ciśnienia bezwzględnego czujnika 1
+#define	FAH_SKALO_CISN_BEZWZGL2	FAH_MAGN3+28    //współczynnik skalowania ciśnienia bezwzględnego czujnika 2
 
 
 

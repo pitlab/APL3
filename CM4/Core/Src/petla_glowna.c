@@ -46,9 +46,8 @@ extern I2C_HandleTypeDef hi2c3;
 volatile uint8_t chCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika obsługiwanego na zewntrznej magistrali I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
 volatile uint8_t chCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
 uint8_t chNoweDaneI2C;	//zestaw flag informujący o pojawieniu sie nowych danych odebranych na magistrali I2C
-float fTempTest;
-uint32_t TestWej;
-uint16_t sLicznik;
+extern uint16_t sLicznikCzasuKalibracji;
+
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
 // Parametry: brak
@@ -85,10 +84,6 @@ void PetlaGlowna(void)
 	case 2:		//obsługa modułu w gnieździe 3
 		//chErrPG |= ObslugaModuluIiP(ADR_MOD3);
 		//chErrPG |= UstawDekoderModulow(ADR_MOD3);
-		int32_t ndT;
-		sLicznik++;
-		TestWej = sLicznik * 0x100;
-		fTempTest = MS5611_LiczTemperature(TestWej, &ndT);
 		break;
 
 	case 3:		//obsługa modułu w gnieździe 4
@@ -217,6 +212,15 @@ void PetlaGlowna(void)
 		case POL_ZAPISZ_KONF_MAGN2:	ZapiszKonfiguracjeMagnetometru(MAG2);	break;
 		case POL_ZAPISZ_KONF_MAGN3:	ZapiszKonfiguracjeMagnetometru(MAG3);	break;
 		case POL_ZERUJ_EKSTREMA:	ZerujEkstremaMagnetometru();	break;
+		case POL_INICJUJ_USREDN:	sLicznikCzasuKalibracji = 0;	break;
+		case POL_USREDNIJ_CISN1:
+			uDaneCM4.dane.chOdpowiedzNaPolecenie =  KalibrujCisnienie(uDaneCM4.dane.fCisnie[0], uDaneCM4.dane.fCisnie[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
+			uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
+			break;
+		case POL_USREDNIJ_CISN2:
+			uDaneCM4.dane.chOdpowiedzNaPolecenie =  KalibrujCisnienie(uDaneCM4.dane.fCisnie[0], uDaneCM4.dane.fCisnie[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
+			uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
+			break;
 		case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;	break;	//nadpisz poprzednio zwrócony błąd
     	}
 		break;
