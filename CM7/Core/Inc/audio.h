@@ -101,7 +101,7 @@
 #define PRGA_MAX			72
 #define PRGA_GOTOWE			73
 #define PRGA_PRZYCISK		74
-#define PRGA_PRZYCISK1		75
+
 #define PRGA_MAX_PROBEK		76	//maksymalna liczba dostępnych próbek
 #define PRGA_PUSTE_MIEJSCE	255	//poste miejsce bez żadnej próbki
 

@@ -28,6 +28,8 @@
 
 #define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących
 
+#define LICZBA_CZUJ_CISN	2
+
 //definicje rodzajów temepratur
 #define ZIM		0
 #define POK		1

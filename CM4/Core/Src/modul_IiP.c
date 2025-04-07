@@ -24,8 +24,9 @@ uint16_t sLicznikCzasuKalibracji;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 float fOffsetZyro1[3], fOffsetZyro2[3];
 float fWzmocnZyro1[3], fWzmocnZyro2[3];
+float fSkaloCisn[LICZBA_CZUJ_CISN];	//skalowanie odpowiedzi czujników ciśnienia
 double dSuma1[3], dSuma2[3];		//do uśredniania pomiarów podczas kalibracji czujników
-float fSumaCisn[2];	//do kalibracji czujników ciśnienia
+float fSumaCisn[LICZBA_CZUJ_CISN];	//do kalibracji czujników ciśnienia
 WspRownProstej3_t stWspKalOffsetuZyro1;		//współczynniki równania prostych do estymacji offsetu
 WspRownProstej3_t stWspKalOffsetuZyro2;		//współczynniki równania prostych do estymacji offsetu
 WspRownProstej1_t stWspKalOffsetuCzujnRozn1;
@@ -91,9 +92,12 @@ uint8_t InicjujModulI2P(void)
 	chErr += FramDataReadFloatValid(FAH_CISN_ROZN2_GOR, &fOffsetCisnRoz2G, VMIN_OFST_PDIF, VMAX_OFST_PDIF, VDEF_OFST_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 2 na gorąco
 	ObliczRownanieFunkcjiTemperatury(fOffsetCisnRoz2Z, fOffsetCisnRoz2P, fTemp1[ZIM], fTemp1[POK], &stWspKalOffsetuCzujnRozn1.fAzim, &stWspKalOffsetuCzujnRozn1.fBzim);	//czujnik cisnienia różnicowego 2 na zimno
 	ObliczRownanieFunkcjiTemperatury(fOffsetCisnRoz2P, fOffsetCisnRoz2G, fTemp1[POK], fTemp1[GOR], &stWspKalOffsetuCzujnRozn1.fAgor, &stWspKalOffsetuCzujnRozn1.fBgor);	//czujnik cisnienia różnicowego 2 na gorąco
+
+
+	chErr += FramDataReadFloatValid(FAH_SKALO_CISN_BEZWZGL1, &fSkaloCisn[0], VMIN_SKALO_PABS, VMAX_SKALO_PABS, VDEF_SKALO_PAB, ERR_ZLA_KONFIG);		//skalowanie wartości  czujnika ciśnienia bezwzględnego
+	chErr += FramDataReadFloatValid(FAH_SKALO_CISN_BEZWZGL2, &fSkaloCisn[1], VMIN_SKALO_PABS, VMAX_SKALO_PABS, VDEF_SKALO_PAB, ERR_ZLA_KONFIG);		//skalowanie wartości  czujnika ciśnienia bezwzględnego
 	return chErr;
 }
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -578,11 +582,18 @@ uint8_t KalibrujZeroZyroskopu(void)
 // fTemp - temperatura do uśredniania
 // chPrzebieg - wskazuje czy uśredniamy ciśnienie początku (0) czy końca (1) kalibracji
 // sLicznik - czas liczny w kwantach obiegu pętli głównej
+// uDaneCM4.dane.fRozne[0] - pierwsze uśrednione ciśnienie czujnika 1
+// uDaneCM4.dane.fRozne[1] - pierwsze uśrednione ciśnienie czujnika 2
+// uDaneCM4.dane.fRozne[2] - drugie uśrednione ciśnienie czujnika 1
+// uDaneCM4.dane.fRozne[3] - drugie uśrednione ciśnienie czujnika 2
+// uDaneCM4.dane.fRozne[4] - współczynnik skalowania czujnika 1
+// uDaneCM4.dane.fRozne[5] - współczynnik skalowania czujnika 2
 // Zwraca: kod błędu ERR_DONE gdy gotowe, ERR_OK w trakcie pracy
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uint16_t sLicznik, uint8_t chPrzebieg)
 {
 	uint8_t chErr = ERR_OK;
+	float fSredCisn1[LICZBA_CZUJ_CISN], fSredCisn2[LICZBA_CZUJ_CISN];
 
 	//w pierwszym cyklu pierwszego przebiegu inicjuj zmienne do przechowywania sumy ciśnień i temperatury
 	if ((sLicznik == 0) && (chPrzebieg == 0))
@@ -592,6 +603,9 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 			dSuma1[n] = 0.0;
 			dSuma2[n] = 0.0;
 		}
+
+		for (uint8_t n=0; n<LICZBA_CZUJ_CISN; n++)
+			uDaneCM4.dane.fRozne[n+4] = fSkaloCisn[n];	//ustaw bieżący współczynnik skalowania
 	}
 
 	//dopóki proces nie jest skończony to sumuj pomiary w zmiennej po podwójnej precyzji
@@ -602,12 +616,16 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 			dSuma2[0] += (double)fCisnienie1;
 			dSuma2[1] += (double)fCisnienie2;
 			dSuma2[2] += (double)fTemp;
+			for (uint8_t n=0; n<LICZBA_CZUJ_CISN; n++)
+				uDaneCM4.dane.fRozne[n+2] = (float)(dSuma2[n] / (sLicznik + 1));
 		}
 		else
 		{
 			dSuma1[0] += (double)fCisnienie1;
 			dSuma1[1] += (double)fCisnienie2;
 			dSuma1[2] += (double)fTemp;
+			for (uint8_t n=0; n<LICZBA_CZUJ_CISN; n++)
+				uDaneCM4.dane.fRozne[n+0] = (float)(dSuma1[n] / (sLicznik + 1));
 		}
 	}
 	else
@@ -616,22 +634,28 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 	//za drugim przebiegiem gdy są już uśrednione oba ciśnienia można policzyć finalne współczynniki skalowania kalibracji
 	if ((sLicznik == CZAS_KALIBRACJI - 1) && chPrzebieg)
 	{
-		float fCisnWzorcowe[2], fSredCisn0[2], fSredCisn1[2], fWspKalib;
+		float fCisnWzorcowe[LICZBA_CZUJ_CISN];
 		fTemp = (float)((dSuma1[2] + dSuma2[2]) / ( 2 *CZAS_KALIBRACJI));		//średnia temperatura z obu pomiarów
 
-		for (uint8_t n=0; n<2; n++)
+		for (uint8_t n=0; n<LICZBA_CZUJ_CISN; n++)
 		{
-			fSredCisn0[n] = (float)(dSuma1[n] / CZAS_KALIBRACJI);
-			fSredCisn1[n] = (float)(dSuma2[n] / CZAS_KALIBRACJI);
-			//jako ciśnienie P0 weź to które jest wyższe
-			if (fSredCisn0[n] > fSredCisn1[n])
-				fCisnWzorcowe[n] = CisnienieBarometryczne(WYSOKOSC10PIETER, fSredCisn0[n], fTemp);
-			else
-				fCisnWzorcowe[n] = CisnienieBarometryczne(WYSOKOSC10PIETER, fSredCisn1[n], fTemp);
+			fSredCisn1[n] = (float)(dSuma1[n] / CZAS_KALIBRACJI);
+			fSredCisn2[n] = (float)(dSuma2[n] / CZAS_KALIBRACJI);
 
-			fWspKalib = fCisnWzorcowe[n] / fabs(fSredCisn1[n] - fSredCisn0[n]);
-			FramDataWriteFloat(FAH_SKALO_CISN_BEZWZGL1 + n*4, fWspKalib);
+			//jako ciśnienie P0 weź to które jest wyższe
+			if (fSredCisn1[n] > fSredCisn2[n])
+				fCisnWzorcowe[n] = CisnienieBarometryczne(WYSOKOSC10PIETER, fSredCisn1[n], fTemp);
+			else
+				fCisnWzorcowe[n] = CisnienieBarometryczne(WYSOKOSC10PIETER, fSredCisn2[n], fTemp);
+
+			fSkaloCisn[n] = fCisnWzorcowe[n] / fabs(fSredCisn2[n] - fSredCisn1[n]);
+			uDaneCM4.dane.fRozne[n+4] = fSkaloCisn[n];
+			if ((fSkaloCisn[n] > VMIN_SKALO_PABS) && (fSkaloCisn[n] < VMAX_SKALO_PABS))		//jeżeli współczynnik mieści się w dopuszczlnych widełkach
+				FramDataWriteFloat(FAH_SKALO_CISN_BEZWZGL1 + n*4, fSkaloCisn[n]);			//to go zapisz
 		}
 	}
 	return chErr;
 }
+
+
+

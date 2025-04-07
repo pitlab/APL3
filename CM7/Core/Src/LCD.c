@@ -227,7 +227,7 @@ void RysujEkran(void)
 		if (KalibrujBaro(&chSekwencerKalibracji) == ERR_DONE)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_MAG_WROC;
+			chNowyTrybPracy = TP_WROC_DO_MENU;
 		}
 		break;
 
@@ -1603,10 +1603,10 @@ void RysujPasekPostepu(uint16_t sPelenZakres)
 	if (x)	//nie rysuj paska jeżeli ma zerową długość
 	{
 		setColor(BLUE);
-		fillRect(0, DISP_Y_SIZE - 5, x , DISP_Y_SIZE);
+		fillRect(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, x , DISP_Y_SIZE);
 	}
 	setColor(BLACK);
-	fillRect(x, DISP_Y_SIZE - 5, DISP_X_SIZE , DISP_Y_SIZE);
+	fillRect(x, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE , DISP_Y_SIZE);
 }
 
 
@@ -2781,7 +2781,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			chStanPrzycisku = 0;
 			sPopX = stWykr.sX1 + SZER_WYKR_MAG/2;	//środek wykresu
 			sPopY = stWykr.sY1 + SZER_WYKR_MAG/2;
-			DodajProbkeDoMalejKolejki(PRGA_PRZYCISK1, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
+			DodajProbkeDoMalejKolejki(PRGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
 		}
 	}
 
@@ -2827,7 +2827,13 @@ uint16_t MaximumGlobalne(int16_t* sMin, int16_t* sMax)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran kalibracji barometru
-// Parametry: fWzorzecCisnienia - wartość wzorcowej zmiany ciśnienia
+// Parametry: *chEtap - wskaźnik na zmienną zawierającą bieżący etap procesu kalibracji
+// uDaneCM4.dane.fRozne[0] - pierwsze uśrednione ciśnienie czujnika 1
+// uDaneCM4.dane.fRozne[1] - pierwsze uśrednione ciśnienie czujnika 2
+// uDaneCM4.dane.fRozne[2] - drugie uśrednione ciśnienie czujnika 1
+// uDaneCM4.dane.fRozne[3] - drugie uśrednione ciśnienie czujnika 2
+// uDaneCM4.dane.fRozne[4] - współczynnik skalowania czujnika 1
+// uDaneCM4.dane.fRozne[5] - współczynnik skalowania czujnika 2
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibrujBaro(uint8_t *chEtap)
@@ -2840,36 +2846,91 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		BelkaTytulu("Kalibr. pomiaru cisnienia");
 
 		setColor(YELLOW);
-		sprintf(chNapis, "U%crednij ci%cn. pocz%ctkowe, pokonaj wys=27m i ponownie u%crednij", ś, ś, ą, ś);
+		sprintf(chNapis, "U%crednij ci%cn. pocz. Pokonaj wys=27m i ponownie u%crednij", ś, ś, ś);
 		print(chNapis, CENTER, 30);
 
 		setColor(GRAY60);
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
 		print(chNapis, CENTER, 50);
 
+		setColor(GRAY80);
+		sprintf(chNapis, "Czujnik 1");
+		print(chNapis, 10 + 15*FONT_SL, 80);
+		sprintf(chNapis, "Czujnik 2");
+		print(chNapis, 10 + 30*FONT_SL, 80);
+
+		sprintf(chNapis, "Biezace cisn:");
+		print(chNapis, 10, 100);
+		sprintf(chNapis, "Sredn cisn 1:");
+		print(chNapis, 10, 120);
+		sprintf(chNapis, "Sredn.cisn 2:");
+		print(chNapis, 10, 140);
+		sprintf(chNapis, "Skalowanie:");
+		print(chNapis, 10, 160);
+
+
 		setColor(GRAY40);
 		stPrzycisk.sX1 = 10;
-		stPrzycisk.sY1 = 250;
+		stPrzycisk.sY1 = 210;
 		stPrzycisk.sX2 = stPrzycisk.sX1 + 210;
-		stPrzycisk.sY2 = DISP_Y_SIZE;
+		stPrzycisk.sY2 = DISP_Y_SIZE - WYS_PASKA_POSTEPU - 1;
 		RysujPrzycisk(stPrzycisk, "Start");
 		chStanPrzycisku = 0;
 		*chEtap = 0;
 	}
 
+	// Zwraca: kod błędu
+	setColor(WHITE);
+	sprintf(chNapis, "%.0f Pa", uDaneCM4.dane.fCisnie[0]);
+	print(chNapis, 10 + 14*FONT_SL, 100);
+	sprintf(chNapis, "%.0f Pa", uDaneCM4.dane.fCisnie[1]);
+	print(chNapis, 10 + 30*FONT_SL, 100);
+	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.fRozne[0]);	//pierwsze uśrednione ciśnienie czujnika 1
+	print(chNapis, 10 + 14*FONT_SL, 120);
+	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.fRozne[1]);	//pierwsze uśrednione ciśnienie czujnika 2
+	print(chNapis, 10 + 30*FONT_SL, 120);
+	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.fRozne[2]);	//drugie uśrednione ciśnienie czujnika 1
+	print(chNapis, 10 + 14*FONT_SL, 140);
+	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.fRozne[3]);	//drugie uśrednione ciśnienie czujnika 2
+	print(chNapis, 10 + 30*FONT_SL, 140);
+	sprintf(chNapis, "%.6f ", uDaneCM4.dane.fRozne[4]);	//współczynnik skalowania czujnika 1
+	print(chNapis, 10 + 14*FONT_SL, 160);
+	sprintf(chNapis, "%.6f ", uDaneCM4.dane.fRozne[5]);	//współczynnik skalowania czujnika 2
+	print(chNapis, 10 + 30*FONT_SL, 160);
+
 	switch (*chEtap)
 	{
 	case 0:
+	case 2:
 		uDaneCM7.dane.chWykonajPolecenie = POL_INICJUJ_USREDN;	//zeruj licznik uśredniania
 		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_INICJUJ_USREDN)
 		{
 			uDaneCM7.dane.chWykonajPolecenie = POL_INICJUJ_USREDN;	//
-			(*chEtap)++;	//wyzerowało się wiec przejdź do nastepnego etapu
+			sprintf(chNapis, "Usrednij %d", (*chEtap) / 2 + 1);
+			RysujPrzycisk(stPrzycisk, chNapis);
+			if (chStanPrzycisku == 1)
+				(*chEtap)++;	//wyzerowało się wiec przejdź do nastepnego etapu
 		}
 		break;
 
-	case 1:	break;
+	case 1:
+		uDaneCM7.dane.chWykonajPolecenie = POL_USREDNIJ_CISN1;	//trwa uśrednianie ciśnienia 1
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_DONE)
+			(*chEtap)++;
+		break;
 
+	case 3:
+		uDaneCM7.dane.chWykonajPolecenie = POL_USREDNIJ_CISN2;	//trwa uśrednianie ciśnienia 2
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_DONE)
+			(*chEtap)++;
+		break;
+
+	case 4:
+		RysujPrzycisk(stPrzycisk, "Gotowe");
+		uDaneCM4.dane.sPostepProcesu = 0;	//nadpisz aby wyczyścić pasek
+		if (chStanPrzycisku == 1)
+			chErr = ERR_DONE;	//zakończ
+		break;
 	}
 
 	//sprawdź czy jest naciskany przycisk
@@ -2890,10 +2951,11 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		if (chStanPrzycisku)
 		{
 			chStanPrzycisku = 0;
-			DodajProbkeDoMalejKolejki(PRGA_PRZYCISK1, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
+			DodajProbkeDoMalejKolejki(PRGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
 			uDaneCM7.dane.chWykonajPolecenie = POL_USREDNIJ_CISN1;
 		}
 	}
+
 	RysujPasekPostepu(CZAS_KALIBRACJI);
 	return chErr;
 }

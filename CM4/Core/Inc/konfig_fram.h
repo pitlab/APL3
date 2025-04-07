@@ -275,6 +275,11 @@
 #define VALD_TCOEF_MAG   (float)1.0     //wartość domyślna*/
 
 
+#define VMIN_SKALO_PABS   0.75f    //dolny limit wartosci skalowania czujnika ciśnienia bezwzględnego
+#define VMAX_SKALO_PABS   1.25f    //
+#define VDEF_SKALO_PAB    1.00f
+
+
 #define VMIN_OFST_PDIF    0.5f    //limity wartości odchyłki offsetu różnicowego czujnika ciśnienia
 #define VMAX_OFST_PDIF    1.5f    //
 #define VDEF_OFST_PDIF    0.0f

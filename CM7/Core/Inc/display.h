@@ -86,6 +86,8 @@
 #define MENU_PASOP_WYS	(FONT_SH+2*UP_SPACE)					// wysokość paska opisu funkcji
 
 
+#define WYS_PASKA_POSTEPU	5
+
 //definicje polskich znaków dla MidFont
 #define ą	127
 #define ć	128
