@@ -392,7 +392,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 			else
 			{
-				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_WZMOC_ZYRO;
+				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_OBLICZENIA;
 				return ERR_OK;
 			}
 
@@ -405,7 +405,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 			else
 			{
-				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_WZMOC_ZYRO;
+				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_OBLICZENIA;
 				return ERR_OK;
 			}
 		}
@@ -423,7 +423,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 			else
 			{
-				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_WZMOC_ZYRO;
+				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_OBLICZENIA;
 				return ERR_OK;
 			}
 
@@ -436,7 +436,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 			else
 			{
-				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_WZMOC_ZYRO;
+				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_OBLICZENIA;
 				return ERR_OK;
 			}
 		}
@@ -456,7 +456,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 			else
 			{
-				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_WZMOC_ZYRO;
+				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_OBLICZENIA;
 				return ERR_OK;
 			}
 
@@ -469,7 +469,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 			else
 			{
-				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_WZMOC_ZYRO;
+				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_OBLICZENIA;
 				return ERR_OK;
 			}
 		}
@@ -604,6 +604,9 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 			dSuma2[n] = 0.0;
 		}
 
+		for (uint8_t n=0; n<4; n++)
+			uDaneCM4.dane.fRozne[n] = 0;	//wyczyść ewentualne wcześniejsze dane
+
 		for (uint8_t n=0; n<LICZBA_CZUJ_CISN; n++)
 			uDaneCM4.dane.fRozne[n+4] = fSkaloCisn[n];	//ustaw bieżący współczynnik skalowania
 	}
@@ -615,7 +618,7 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 		{
 			dSuma2[0] += (double)fCisnienie1;
 			dSuma2[1] += (double)fCisnienie2;
-			dSuma2[2] += (double)fTemp;
+			dSuma2[2] += (double)fTemp;			//temperatura [K]
 			for (uint8_t n=0; n<LICZBA_CZUJ_CISN; n++)
 				uDaneCM4.dane.fRozne[n+2] = (float)(dSuma2[n] / (sLicznik + 1));
 		}
@@ -634,7 +637,10 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 	//za drugim przebiegiem gdy są już uśrednione oba ciśnienia można policzyć finalne współczynniki skalowania kalibracji
 	if ((sLicznik == CZAS_KALIBRACJI - 1) && chPrzebieg)
 	{
-		float fCisnWzorcowe[LICZBA_CZUJ_CISN];
+		float fCisnWzorcowe[LICZBA_CZUJ_CISN];	//teoretyczne ciśnienie P1 na wysokości 27m względem obecnego P0
+		float fdCisn, fdWzorc;	//różnica ciśnień rzeczywistych i wzorcowych
+		float fRoboczySkaloCisn[LICZBA_CZUJ_CISN];
+
 		fTemp = (float)((dSuma1[2] + dSuma2[2]) / ( 2 *CZAS_KALIBRACJI));		//średnia temperatura z obu pomiarów
 
 		for (uint8_t n=0; n<LICZBA_CZUJ_CISN; n++)
@@ -644,14 +650,28 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 
 			//jako ciśnienie P0 weź to które jest wyższe
 			if (fSredCisn1[n] > fSredCisn2[n])
+			{
 				fCisnWzorcowe[n] = CisnienieBarometryczne(WYSOKOSC10PIETER, fSredCisn1[n], fTemp);
+				fRoboczySkaloCisn[n] = fCisnWzorcowe[n] / fSredCisn2[n];
+			}
 			else
+			{
 				fCisnWzorcowe[n] = CisnienieBarometryczne(WYSOKOSC10PIETER, fSredCisn2[n], fTemp);
+				fRoboczySkaloCisn[n] = fCisnWzorcowe[n] / fSredCisn1[n];
+			}
 
-			fSkaloCisn[n] = fCisnWzorcowe[n] / fabs(fSredCisn2[n] - fSredCisn1[n]);
-			uDaneCM4.dane.fRozne[n+4] = fSkaloCisn[n];
-			if ((fSkaloCisn[n] > VMIN_SKALO_PABS) && (fSkaloCisn[n] < VMAX_SKALO_PABS))		//jeżeli współczynnik mieści się w dopuszczlnych widełkach
-				FramDataWriteFloat(FAH_SKALO_CISN_BEZWZGL1 + n*4, fSkaloCisn[n]);			//to go zapisz
+			//sprawdź poprawność współczynnika aby nie zapisywać nieprawdziwych danych
+			fdCisn = fabs(fSredCisn2[n] - fSredCisn1[n]);	//bezwzględna różnica ciśnień rzeczywistych
+			fdWzorc = CisnienieBarometryczne(WYSOKOSC10PIETER, 100000, fTemp) - CisnienieBarometryczne(WYSOKOSC10PIETER, 100000 - fdCisn, fTemp);//Wzorcowa różnica ciśnień dla 27m i P0=1000 hPa
+
+			if ((fdCisn > (0.75f * fdWzorc)) && (fdCisn < (1.25f * fdWzorc)))	//kryteruim poprawnosci to +/- 25%
+			{
+				 fSkaloCisn[n] = fRoboczySkaloCisn[n];										//przepisz roboczy współczynnik do globalnego tylko gdy jest poprawny
+				 FramDataWriteFloat(FAH_SKALO_CISN_BEZWZGL1 + n*4, fSkaloCisn[n]);			//zapisz do FRAM
+			}
+			else
+				chErr = ERR_ZLE_OBLICZENIA;
+			uDaneCM4.dane.fRozne[n+4] = fSkaloCisn[n];	//odeślij ewentualnie zmodyfikowany współczynnik globalny
 		}
 	}
 	return chErr;

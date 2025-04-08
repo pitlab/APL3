@@ -64,7 +64,7 @@
 #define ERR_ZA_ZIMNO			63
 #define ERR_ZA_CIEPLO			64
 #define ERR_ZLA_KONFIG			65	//zła konfiguracja, została nadpisana dwartoscią domyślną
-#define ERR_ZLE_WZMOC_ZYRO		66	//zła wartość kalibracji wzmocnienia żyroskopu
+#define ERR_ZLE_OBLICZENIA		66	//zła wartość kalibracji, zbytnio obdiega od tego co ma zostać wyliczone
 
 #define ERR_NIE_ZAINICJOWANY	0xFF
 

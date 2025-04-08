@@ -2331,7 +2331,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 
 	case 3:	//obliczenie kalibracji
 		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMR + *chSekwencer;	//uruchom kalibrację dla scałkowanego kąta R, Q lub P
-		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZLE_WZMOC_ZYRO)
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZLE_OBLICZENIA)
 			sprintf(chNapis, "Blad! ");
 		else
 			sprintf(chNapis, "Gotowe");
@@ -2905,7 +2905,6 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		uDaneCM7.dane.chWykonajPolecenie = POL_INICJUJ_USREDN;	//zeruj licznik uśredniania
 		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_INICJUJ_USREDN)
 		{
-			uDaneCM7.dane.chWykonajPolecenie = POL_INICJUJ_USREDN;	//
 			sprintf(chNapis, "Usrednij %d", (*chEtap) / 2 + 1);
 			RysujPrzycisk(stPrzycisk, chNapis);
 			if (chStanPrzycisku == 1)
@@ -2926,8 +2925,15 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		break;
 
 	case 4:
-		RysujPrzycisk(stPrzycisk, "Gotowe");
-		uDaneCM4.dane.sPostepProcesu = 0;	//nadpisz aby wyczyścić pasek
+		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//Zakończ wykonywanie poleceń kalibracyjnych
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZLE_OBLICZENIA)
+			RysujPrzycisk(stPrzycisk, "Blad!");
+		else
+			RysujPrzycisk(stPrzycisk, "Gotowe");
+		sprintf(chNapis, "dP1 = %.2f Pa", fabs(uDaneCM4.dane.fRozne[0] - uDaneCM4.dane.fRozne[2]));	//Rożnica ciśnień czujnika 1
+		print(chNapis, 10 + stPrzycisk.sX2, 240);
+		sprintf(chNapis, "dP2 = %.2f Pa", fabs(uDaneCM4.dane.fRozne[1] - uDaneCM4.dane.fRozne[3]));	//Rożnica ciśnień czujnika 2
+		print(chNapis, 10 + stPrzycisk.sX2, 260);
 		if (chStanPrzycisku == 1)
 			chErr = ERR_DONE;	//zakończ
 		break;
@@ -2938,7 +2944,10 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 	{
 		//czy naciśnięto na przycisk?
 		if ((statusDotyku.sY > stPrzycisk.sY1) && (statusDotyku.sY < stPrzycisk.sY2) && (statusDotyku.sX > stPrzycisk.sX1) && (statusDotyku.sX < stPrzycisk.sX2))
+		{
 			chStanPrzycisku = 1;
+			DodajProbkeDoMalejKolejki(PRGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
+		}
 		else
 		{
 			chErr = ERR_DONE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
@@ -2949,11 +2958,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 	else	//DOTYK_DOTKNIETO
 	{
 		if (chStanPrzycisku)
-		{
 			chStanPrzycisku = 0;
-			DodajProbkeDoMalejKolejki(PRGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
-			uDaneCM7.dane.chWykonajPolecenie = POL_USREDNIJ_CISN1;
-		}
 	}
 
 	RysujPasekPostepu(CZAS_KALIBRACJI);
