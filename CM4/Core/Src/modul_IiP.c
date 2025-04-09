@@ -31,7 +31,11 @@ WspRownProstej3_t stWspKalOffsetuZyro1;		//współczynniki równania prostych do
 WspRownProstej3_t stWspKalOffsetuZyro2;		//współczynniki równania prostych do estymacji offsetu
 WspRownProstej1_t stWspKalOffsetuCzujnRozn1;
 WspRownProstej1_t stWspKalOffsetuCzujnRozn2;
-
+float fKatMagnetometru1, fKatMagnetometru2, fKatMagnetometru3;	//kąt odchylenia z magnetometru
+magn_t stMagn;
+float fPrzesMagn1[3], fSkaloMagn1[3];
+float fPrzesMagn2[3], fSkaloMagn2[3];
+float fPrzesMagn3[3], fSkaloMagn3[3];
 
 ////////////////////////////////////////////////////////////////////////////////
 // wykonuje czynności pomiarowe dla ukłądów znajdujących się na module
@@ -78,6 +82,13 @@ uint8_t InicjujModulI2P(void)
 
 		chErr += FramDataReadFloatValid(FAH_ZYRO1P_WZMOC+(4*n), &fWzmocnZyro1[n], VMIN_WZM_ZYRO, VMAX_WZM_ZYRO, VDEF_WZM_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 1
 		chErr += FramDataReadFloatValid(FAH_ZYRO2P_WZMOC+(4*n), &fWzmocnZyro2[n], VMIN_WZM_ZYRO, VMAX_WZM_ZYRO, VDEF_WZM_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 2
+
+		chErr |= FramDataReadFloatValid(FAH_MAGN1_PRZESX + 4*n, &fPrzesMagn1[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
+		chErr |= FramDataReadFloatValid(FAH_MAGN2_PRZESX + 4*n, &fPrzesMagn2[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
+		chErr |= FramDataReadFloatValid(FAH_MAGN3_PRZESX + 4*n, &fPrzesMagn3[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
+		chErr |= FramDataReadFloatValid(FAH_MAGN1_SKALOX + 4*n, &fSkaloMagn1[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
+		chErr |= FramDataReadFloatValid(FAH_MAGN2_SKALOX + 4*n, &fSkaloMagn2[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
+		chErr |= FramDataReadFloatValid(FAH_MAGN3_SKALOX + 4*n, &fSkaloMagn3[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
 	}
 
 	//odczytaj kalibrację czujników ciśnienia różnicowego i licz charakterystykę. Używana jest temperatura żyroskopu 1
@@ -96,6 +107,7 @@ uint8_t InicjujModulI2P(void)
 
 	chErr += FramDataReadFloatValid(FAH_SKALO_CISN_BEZWZGL1, &fSkaloCisn[0], VMIN_SKALO_PABS, VMAX_SKALO_PABS, VDEF_SKALO_PAB, ERR_ZLA_KONFIG);		//skalowanie wartości  czujnika ciśnienia bezwzględnego
 	chErr += FramDataReadFloatValid(FAH_SKALO_CISN_BEZWZGL2, &fSkaloCisn[1], VMIN_SKALO_PABS, VMAX_SKALO_PABS, VDEF_SKALO_PAB, ERR_ZLA_KONFIG);		//skalowanie wartości  czujnika ciśnienia bezwzględnego
+
 	return chErr;
 }
 
@@ -677,5 +689,76 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 	return chErr;
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Znajduje o odsyła do CM7  ekstrema wskazań magnetometru na potrzeby kalibracji przesunięcia
+// Parametry: *sMag - wskaźnik na dane z 3 osi magnetometru
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void ZnajdzEkstremaMagnetometru(float *fMag)
+{
+	for (uint16_t n=0; n<3; n++)
+	{
+		if (*(fMag+n) < stMagn.fMin[n])
+			stMagn.fMin[n] = *(fMag+n);
+
+		if (*(fMag+n) > stMagn.fMax[n])
+			stMagn.fMax[n] = *(fMag+n);
+
+		uDaneCM4.dane.fRozne[2*n+0] = stMagn.fMin[n];
+		uDaneCM4.dane.fRozne[2*n+1] = stMagn.fMax[n];
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Zeruje znalezione wcześniej ekstrema magnetometru tak aby nowy pomiar rozpoczął się od czytej sytuacji
+// Parametry: nic
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void ZerujEkstremaMagnetometru(void)
+{
+	for (uint16_t n=0; n<3; n++)
+	{
+		stMagn.fMin[n] = 0.0f;
+		stMagn.fMax[n] = 0.0f;
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Liczy i zapisuje offset zera magnetometru wg wzoru: (max + min) / 2
+// Tak uzyskany offset należy odejmować od bieżących wskazań magnetometru
+// Parametry: chMagn - indeks układu magnetometru
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void ZapiszKonfiguracjeMagnetometru(uint8_t chMagn)
+{
+	for (uint16_t n=0; n<3; n++)
+	{
+		switch (chMagn)
+		{
+		case MAG1:
+			fPrzesMagn1[n] = (stMagn.fMax[n] + stMagn.fMin[n]) / 2;
+			FramDataWriteFloat(FAH_MAGN1_PRZESX + 4*n, fPrzesMagn1[n]);
+			break;
+
+		case MAG2:
+			fPrzesMagn2[n] = (stMagn.fMax[n] + stMagn.fMin[n]) / 2;
+			FramDataWriteFloat(FAH_MAGN1_PRZESX + 4*n, fPrzesMagn2[n]);
+			break;
+
+		case MAG3:
+			fPrzesMagn3[n] = (stMagn.fMax[n] + stMagn.fMin[n]) / 2;
+			FramDataWriteFloat(FAH_MAGN3_PRZESX + 4*n, fPrzesMagn3[n]);
+			fSkaloMagn3[n] = (float)NORM_AMPL_MAG / (stMagn.fMax[n] - stMagn.fMin[n]);
+			FramDataWriteFloat(FAH_MAGN3_SKALOX + 4*n, fSkaloMagn3[n]);
+			break;
+		}
+	}
+}
 
 

@@ -55,6 +55,13 @@ typedef struct
 } WspRownProstej1_t;
 
 
+//struktura danych do przechowywania parametrów do kalibracji magnetometru
+typedef struct
+{
+	float fMin[3];
+	float fMax[3];
+} magn_t;
+
 uint8_t InicjujModulI2P(void);
 uint8_t ObslugaModuluI2P(uint8_t gniazdo);
 float WysokoscBarometryczna(float fP, float fP0, float fTemp);
@@ -65,5 +72,8 @@ void ObliczRownanieFunkcjiTemperatury(float fOffset1, float fOffset2, float fTem
 void ObliczOffsetTemperaturowy3(WspRownProstej3_t stWsp, float fTemp, float *fOffset);
 float ObliczOffsetTemperaturowy1(WspRownProstej1_t stWsp, float fTemp);
 uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uint16_t sLicznik, uint8_t chPrzebieg);
+void ZapiszKonfiguracjeMagnetometru(uint8_t chMagn);
+void ZnajdzEkstremaMagnetometru(float *fMag);
+void ZerujEkstremaMagnetometru(void);
 
 #endif /* INC_MODUL_IIP_H_ */

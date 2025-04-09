@@ -35,8 +35,4 @@ void ObrocWektor(float *fWektorWe, float *fWektorWy, float *fKat)
 	*(fWektorWy + 0) = fWektB[0];
 	*(fWektorWy + 1) = fWektB[1] * cosf(*(fKat+0)) - fWektB[2] * sinf(*(fKat+0));
 	*(fWektorWy + 2) = fWektB[1] * sinf(*(fKat+0)) + fWektB[2] * cosf(*(fKat+0));
-
-	/*(fWektorWy + 0) = fWektA[0];
-	*(fWektorWy + 1) = fWektA[1];
-	*(fWektorWy + 2) = fWektA[2]; */
 }

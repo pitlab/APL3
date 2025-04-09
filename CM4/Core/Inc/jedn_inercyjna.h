@@ -12,17 +12,9 @@
 
 
 
-//struktura danych do przechowywania parametrów do kalibracji magnetometru
-typedef struct
-{
-	float fMin[3];
-	float fMax[3];
-} magn_t;
-
 uint8_t InicjujJednostkeInercyjna(void);
 void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo);
-void ObrocWektor(float *fWektor);
-void ZapiszKonfiguracjeMagnetometru(uint8_t chMagn);
-void ZnajdzEkstremaMagnetometru(float *fMag);
-void ZerujEkstremaMagnetometru(void);
+uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo);
+uint8_t JednostkaInercyjnaMadgwick(void);
+
 #endif /* INC_JEDN_INERCYJNA_H_ */

@@ -27,8 +27,8 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 extern volatile unia_wymianyCM7_t uDaneCM7;
 uint16_t sGenerator;
 uint32_t nCzasOstatniegoOdcinka;	//przechowuje czas uruchomienia ostatniego odcinka
-uint32_t nCzasPoprzedniegoObiegu[4];	//czas poprzedniego obiegu pętli głównej dla 4 modułów wewnetrznych
-uint32_t ndT[4];						//czas jaki upłynął od poprzeniego obiegu pętli dla 4 modułów wewnetrznych
+uint32_t nCzasPoprzedniegoObiegu[4];	//czas [us] poprzedniego obiegu pętli głównej dla 4 modułów wewnetrznych
+uint32_t ndT[4];						//czas [us] jaki upłynął od poprzeniego obiegu pętli dla 4 modułów wewnetrznych
 uint32_t nCzasBiezacy;
 uint8_t chNrOdcinkaCzasu;
 uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU];		//zmierzony czas obsługo odcinka
@@ -124,6 +124,9 @@ void PetlaGlowna(void)
 			ObslugaCzujnikowI2C(&chNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C to je obrób
 		chErrPG |= RozdzielniaOperacjiI2C();			break;
 	case 6:	ObliczeniaJednostkiInercujnej(2);	break;
+	//case 7:	JednostkaInercyjnaKwaterniony(2);	break;
+	case 7:	JednostkaInercyjnaMadgwick();		break;
+
 	case 8: chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;
 
 	case 9:
@@ -288,10 +291,13 @@ uint32_t MinalCzas(uint32_t nPoczatek)
 	return MinalCzas2(nPoczatek, nCzasAkt);
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy upływ czasu mierzony timerem T7 z rozdzieczością 1us
 // Wersja z zewnetrznym czasem bieżącym
 // Parametry: sPoczatek - licznik czasu na na początku pomiaru
+// nCzasAkt - czas aktualny jako zmienna
 // Zwraca: ilość czasu w mikrosekundach jaki upłynął do podanego czasu początkowego
 ////////////////////////////////////////////////////////////////////////////////
 uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nCzasAkt)
@@ -304,6 +310,7 @@ uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nCzasAkt)
 		nCzas = 0xFFFFFFFF - nPoczatek + nCzasAkt;
 	return nCzas;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
