@@ -44,9 +44,10 @@
 #define POL_SPRAWDZ_MAGN2		19	//sprawdź kalibrację magnetometru 2
 #define POL_SPRAWDZ_MAGN3		20	//sprawdź kalibrację magnetometru 3
 #define POL_ZERUJ_EKSTREMA		21	//zeruje wartosci zebranych ekstremów magnetometru
-#define POL_INICJUJ_USREDN		22	//inicjuje licznik uśredniania
-#define POL_USREDNIJ_CISN1		23	//uśredniania ciśnienia 1 czujników ciśnienia bezwzględnego
-#define POL_USREDNIJ_CISN2		24	//uśredniania ciśnienia 2 czujników ciśnienia bezwzględnego
+#define POL_INICJUJ_USREDN		22	//inicjuje prametry przed startem
+#define POL_ZERUJ_LICZNIK		23	//zeruje licznik uśredniana przed kolejnym cyklem
+#define POL_USREDNIJ_CISN1		24	//uśredniania ciśnienia 1 czujników ciśnienia bezwzględnego
+#define POL_USREDNIJ_CISN2		25	//uśredniania ciśnienia 2 czujników ciśnienia bezwzględnego
 
 
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie

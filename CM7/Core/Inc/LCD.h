@@ -11,6 +11,12 @@
 #include "display.h"
 
 #define MIN_MAG_WYKR	300		//minimanla wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru
+
+//czynności związane z obsługą przycisku graficznego
+#define RYSUJ		0
+#define ODSWIEZ		1
+
+
 typedef struct
 {
 	uint16_t sX1;
@@ -44,7 +50,7 @@ void RysujPasekPostepu(uint16_t sPelenZakres);
 uint32_t RysujKostkeObrotu(float *fKat);
 uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer);
 void Poziomica(float fKatAkcelX, float fKatAkcelY);
-void RysujPrzycisk(prostokat_t prost, char *chNapis);
+void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc);
 uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap);
 uint16_t MaximumGlobalne(int16_t* sMin, int16_t* sMax);
 uint8_t KalibrujBaro(uint8_t *chEtap);

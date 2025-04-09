@@ -212,9 +212,10 @@ void PetlaGlowna(void)
 		case POL_ZAPISZ_KONF_MAGN2:	ZapiszKonfiguracjeMagnetometru(MAG2);	break;
 		case POL_ZAPISZ_KONF_MAGN3:	ZapiszKonfiguracjeMagnetometru(MAG3);	break;
 		case POL_ZERUJ_EKSTREMA:	ZerujEkstremaMagnetometru();	break;
-		case POL_INICJUJ_USREDN:
-			sLicznikCzasuKalibracji = 0;
 
+		case POL_INICJUJ_USREDN:	KalibrujCisnienie(0, 0, 0, CZAS_KALIBRACJI, 0xFF);	break;	//inicjalizacja
+		case POL_ZERUJ_LICZNIK:
+			sLicznikCzasuKalibracji = 0;
 			break;
 		case POL_USREDNIJ_CISN1:
 			uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnie[0], uDaneCM4.dane.fCisnie[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);

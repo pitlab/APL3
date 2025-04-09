@@ -30,6 +30,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Rysowanie kostki 3D wizualizującej działanie IMU
 ![Kostka](obrazki/kostka.jpg)
 - Rysowanie wykresów biegunowych przy kalibracji magnetometru i sterowanie całym procesem
+- Rysowanie okna kalibracji skalowania czujników ciśnienia
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM
@@ -50,6 +51,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Zrobiona kalibracja przesunięcia zera w funkcji temepratury i skalowania prędkosci kątowej żyroskopów
 - Zrobiona kalibracja przesunięcia zera magnetometrów i normalizacja długości wektora magnetycznego
 ![magetometry](obrazki/kalibracja_magnetometrow.jpg) 
+- Skalowanie czujników ciśnienia na podstawie wzorca 27m (10 pięter)
 
 #### Do zrobienia:
  - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarce na inne z mniejszym ESR
@@ -59,7 +61,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
  - Uruchomić układ ethernet
  - Uruchomić USB w trybie CDC
  - Zmodyfikować test transferu karty SD, tak aby działał z systemową obsługą FAT (obecnie działa poza FAT-em i systemem operacyjnym)
- - Uruchomoć czujniki zbliżeniowe VL53L1CX i VL53L5CX
+ - Uruchomić czujniki zbliżeniowe VL53L1CX i VL53L5CX
  
  
  

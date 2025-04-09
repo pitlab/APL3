@@ -2215,7 +2215,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		stPrzycisk.sY1 = 240;
 		stPrzycisk.sX2 = stPrzycisk.sX1 + 210;
 		stPrzycisk.sY2 = stPrzycisk.sY1 + 75;
-		RysujPrzycisk(stPrzycisk, "Odczyt");
+		RysujPrzycisk(stPrzycisk, "Odczyt", RYSUJ);
 
 		//fillRect(stPrzycisk.sX1, stPrzycisk.sY1 ,stPrzycisk.sX2, stPrzycisk.sY2);	//rysuj przycisk
 		chEtapKalibracji = 0;
@@ -2357,7 +2357,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		if ((statusDotyku.sY > stPrzycisk.sY1) && (statusDotyku.sY < stPrzycisk.sY2) && (statusDotyku.sX > stPrzycisk.sX1) && (statusDotyku.sX < stPrzycisk.sX2))
 		{
 			chStanPrzycisku = 1;
-			RysujPrzycisk(stPrzycisk, chNapis);
+			RysujPrzycisk(stPrzycisk, chNapis, ODSWIEZ);
 			//setColor(GRAY40);
 			//fillRect(stPrzycisk.sX1, stPrzycisk.sY1 ,stPrzycisk.sX2, stPrzycisk.sY2);	//rysuj przycisk
 		}
@@ -2453,15 +2453,19 @@ void Poziomica(float fKatAkcelX, float fKatAkcelY)
 // Rysuje przycisk ekranowy z napisem
 // Parametry: prost - współrzędne przycisku
 // chNapis - tekst do wymisania na środku
+// chCzynnosc - definiuje operacje: RYSUJ - pełne narysowanie przycisku, lub ODSWIEZ - podmianę samego napisu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujPrzycisk(prostokat_t prost, char *chNapis)
+void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc)
 {
 	uint8_t chRozmiar;
 
 	chRozmiar = strlen(chNapis);
-	setColor(GRAY40);
-	fillRect(prost.sX1, prost.sY1 ,prost.sX2, prost.sY2);	//rysuj przycisk
+	if (chCzynnosc == RYSUJ)
+	{
+		setColor(GRAY40);
+		fillRect(prost.sX1, prost.sY1 ,prost.sX2, prost.sY2);	//rysuj przycisk
+	}
 
 	setColor(YELLOW);
 	setBackColor(GRAY40);	//kolor tła napisu kolorem przycisku
@@ -2530,7 +2534,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		stPrzycisk.sY1 = 250;
 		stPrzycisk.sX2 = stPrzycisk.sX1 + 210;
 		stPrzycisk.sY2 = DISP_Y_SIZE;
-		RysujPrzycisk(stPrzycisk, "Nastepna Os");
+		RysujPrzycisk(stPrzycisk, "Nastepna Os", RYSUJ);
 
 		setColor(GRAY40);
 		stWykr.sX1 = DISP_X_SIZE - SZER_WYKR_MAG;
@@ -2872,9 +2876,9 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		setColor(GRAY40);
 		stPrzycisk.sX1 = 10;
 		stPrzycisk.sY1 = 210;
-		stPrzycisk.sX2 = stPrzycisk.sX1 + 210;
+		stPrzycisk.sX2 = stPrzycisk.sX1 + 250;
 		stPrzycisk.sY2 = DISP_Y_SIZE - WYS_PASKA_POSTEPU - 1;
-		RysujPrzycisk(stPrzycisk, "Start");
+		RysujPrzycisk(stPrzycisk, "Start", RYSUJ);
 		chStanPrzycisku = 0;
 		*chEtap = 0;
 	}
@@ -2900,36 +2904,42 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 
 	switch (*chEtap)
 	{
-	case 0:
-	case 2:
+	case 0:	//czyść zmienne robocze, załaduj bieżacy współczynnik
 		uDaneCM7.dane.chWykonajPolecenie = POL_INICJUJ_USREDN;	//zeruj licznik uśredniania
 		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_INICJUJ_USREDN)
+			(*chEtap)++;
+		break;
+
+	case 1:
+	case 3:
+		uDaneCM7.dane.chWykonajPolecenie = POL_ZERUJ_LICZNIK;	//zeruj licznik uśredniania
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_ZERUJ_LICZNIK)
 		{
 			sprintf(chNapis, "Usrednij %d", (*chEtap) / 2 + 1);
-			RysujPrzycisk(stPrzycisk, chNapis);
+			RysujPrzycisk(stPrzycisk, chNapis, ODSWIEZ);
 			if (chStanPrzycisku == 1)
 				(*chEtap)++;	//wyzerowało się wiec przejdź do nastepnego etapu
 		}
 		break;
 
-	case 1:
+	case 2:
 		uDaneCM7.dane.chWykonajPolecenie = POL_USREDNIJ_CISN1;	//trwa uśrednianie ciśnienia 1
 		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_DONE)
 			(*chEtap)++;
 		break;
 
-	case 3:
+	case 4:
 		uDaneCM7.dane.chWykonajPolecenie = POL_USREDNIJ_CISN2;	//trwa uśrednianie ciśnienia 2
 		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_DONE)
 			(*chEtap)++;
 		break;
 
-	case 4:
+	case 5:
 		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//Zakończ wykonywanie poleceń kalibracyjnych
 		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZLE_OBLICZENIA)
-			RysujPrzycisk(stPrzycisk, "Blad!");
+			RysujPrzycisk(stPrzycisk, "Blad!", ODSWIEZ);
 		else
-			RysujPrzycisk(stPrzycisk, "Gotowe");
+			RysujPrzycisk(stPrzycisk, "Gotowe", ODSWIEZ);
 		sprintf(chNapis, "dP1 = %.2f Pa", fabs(uDaneCM4.dane.fRozne[0] - uDaneCM4.dane.fRozne[2]));	//Rożnica ciśnień czujnika 1
 		print(chNapis, 10 + stPrzycisk.sX2, 240);
 		sprintf(chNapis, "dP2 = %.2f Pa", fabs(uDaneCM4.dane.fRozne[1] - uDaneCM4.dane.fRozne[3]));	//Rożnica ciśnień czujnika 2

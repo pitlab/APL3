@@ -595,20 +595,20 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 	uint8_t chErr = ERR_OK;
 	float fSredCisn1[LICZBA_CZUJ_CISN], fSredCisn2[LICZBA_CZUJ_CISN];
 
-	//w pierwszym cyklu pierwszego przebiegu inicjuj zmienne do przechowywania sumy ciśnień i temperatury
-	if ((sLicznik == 0) && (chPrzebieg == 0))
+	//wstępne inicjowanie procesu
+	if (chPrzebieg == 0xFF)
 	{
-		for (uint8_t n=0; n<3; n++)
-		{
-			dSuma1[n] = 0.0;
-			dSuma2[n] = 0.0;
-		}
-
 		for (uint8_t n=0; n<4; n++)
 			uDaneCM4.dane.fRozne[n] = 0;	//wyczyść ewentualne wcześniejsze dane
 
 		for (uint8_t n=0; n<LICZBA_CZUJ_CISN; n++)
 			uDaneCM4.dane.fRozne[n+4] = fSkaloCisn[n];	//ustaw bieżący współczynnik skalowania
+
+		for (uint8_t n=0; n<3; n++)
+		{
+			dSuma1[n] = 0.0;		//inicjuj zmienne do przechowywania sumy ciśnień i temperatury
+			dSuma2[n] = 0.0;
+		}
 	}
 
 	//dopóki proces nie jest skończony to sumuj pomiary w zmiennej po podwójnej precyzji
