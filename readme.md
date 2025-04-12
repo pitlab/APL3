@@ -62,6 +62,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
  - Uruchomić USB w trybie CDC
  - Zmodyfikować test transferu karty SD, tak aby działał z systemową obsługą FAT (obecnie działa poza FAT-em i systemem operacyjnym)
  - Uruchomić czujniki zbliżeniowe VL53L1CX i VL53L5CX
+ - Pozbyć się zmiennych fZyroSur i fZyroKal zastępując je jedną zmienną ustawianą w zależnosci od kontekstu (obecności polecenia kalibracyjnego żyroskopów)
  
  
  

@@ -84,6 +84,7 @@ void PetlaGlowna(void)
 	case 2:		//obsługa modułu w gnieździe 3
 		//chErrPG |= ObslugaModuluIiP(ADR_MOD3);
 		//chErrPG |= UstawDekoderModulow(ADR_MOD3);
+		ObrotWektora(ADR_MOD3);
 		break;
 
 	case 3:		//obsługa modułu w gnieździe 4
@@ -124,8 +125,8 @@ void PetlaGlowna(void)
 			ObslugaCzujnikowI2C(&chNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C to je obrób
 		chErrPG |= RozdzielniaOperacjiI2C();			break;
 	case 6:	ObliczeniaJednostkiInercujnej(2);	break;
-	//case 7:	JednostkaInercyjnaKwaterniony(2);	break;
-	case 7:	JednostkaInercyjnaMadgwick();		break;
+	case 7:	JednostkaInercyjnaKwaterniony(2);	break;
+	//case 7:	JednostkaInercyjnaMadgwick();		break;
 
 	case 8: chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;
 
