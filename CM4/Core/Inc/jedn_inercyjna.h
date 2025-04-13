@@ -20,7 +20,4 @@ void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo);
 uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo);
 void JednostkaInercyjnaMadgwick(void);
 void ObrotWektora(uint8_t chGniazdo);
-void MnozenieKwaternionow(float a1, float b1, float c1, float d1, float a2, float b2, float c2, float d2, float *wynik);
-void MnozenieKwaternionow2(float *q, float *p, float *wynik);
-
 #endif /* INC_JEDN_INERCYJNA_H_ */

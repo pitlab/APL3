@@ -10,6 +10,8 @@
 #include "wymiana.h"
 #include "konfig_fram.h"
 #include "fram.h"
+#include "kwaterniony.h"
+#include "petla_glowna.h"
 
 // Definicje użytej konwencji
 // prawoskrętny układ współrzędnych samolotu
@@ -44,7 +46,8 @@ float fKatAkcel1[3], fKatAkcel2[3];					//kąty pochylenia i przechylenia policz
 extern float fOffsetZyro1[3], fOffsetZyro2[3];
 float q0 = 1.0, q1 = 0.0, q2 = 0.0, q3 = 0.0;   	//kwaterniony
 float exInt = 0, eyInt = 0, ezInt = 0;				// scaled integral error
-float v[4], q[4], qs[4];	//kwaterniony wektora, obrotu i sprzężony obrotu
+//float q[4], qs[4], v[4];	//kwaterniony obrotu i sprzężony obrotu
+
 
 
 
@@ -62,10 +65,7 @@ uint8_t InicjujJednostkeInercyjna(void)
 	{
 		uDaneCM4.dane.fKatIMUZyro1[n] = 0;
 		uDaneCM4.dane.fKatIMUZyro2[n] = 0;
-		v[n+1] = uDaneCM4.dane.fAkcel1[n];		//obracany wektor jest odczytem z akcelerometru
-
 	}
-	v[0] = 0;	//część rzeczywista kwaternionu wektora
 	return chErr;
 }
 
@@ -358,11 +358,14 @@ void ObrotWektora(uint8_t chGniazdo)
 {
 	//float fS0, fX0, fY0, fZ0;
 	float fdPhi2, fdTheta2, fdPsi2;	//połowy przyrostu kąta obrotu
-	float fModul_v0x, fModul_v0y, fModul_v0z;	//długości osi obracajacej wektor
-	float qv[4], vq[4];	//pośrednie etapy mnożenia
+	//float fModul;	//długości osi obracajacej wektor
+	float qx[4], qy[4], qz[4];	//kwaterniony obortów wokół osi XYZ
+	float v[4], qv[4], vq[4];	//pośrednie etapy mnożenia
 	float qs[4];	//sprzężone q
-	float p[3];		//punkt obracany
-
+	float p[3], r[3], s[3], t[3];		//punkt obracany i po obrocie
+	//float fOsObr[3];			//oś obrotu
+	uint32_t nCzas;
+	float A[4][4], B[4][4], C[4][4];	//kwaterniony w postaci macierzowej
 
 	//Moduł kwaternionu q to pierwiastek q i kwaterniony sprzężonego q*: |q| = sqrt(q * q*)
 	//Po wykonaniu mmnożenia q * q* część urojona się zeruje pozostawiając część wektorową: sqrt(s^2 + x^2 + y^2 + z^2) = 1
@@ -376,50 +379,83 @@ void ObrotWektora(uint8_t chGniazdo)
 	//qx = cos (phi/2) + (1 / sqrt(x^2 + y^2 + z^2)*i) * sin (phi/2)
 
 	//punkt obracany
-	p[0] = 1.0f;
+	p[0] = 3.0f;
 	p[1] = 0.0f;
 	p[2] = 0.0f;
 
-	//oś obrotu
-	v[0] = 0;
-	v[1] = 1.0f;
-	v[2] = 1.0f;
-	v[3] = 1.0f;
+
+
+	//W pierwszej kolejnosci obracam punkt przez oś obrotu Z
+	//fOsObr[0] = 0.0f;
+	//fOsObr[1] = 0.0f;
+	//fOsObr[2] = 1.0f;
+
+	//analogicznie dla obrotu przez os Z [0, 0, 1] o kąt psi będący całką po ndT z prędkości R
+	//qz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
+//	fdPsi2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000;
+	fdPsi2 = 90 * DEG2RAD / 2;
+	nCzas = PobierzCzas();
+
+	//Wyznaczam kwaternion obrotu w formie algebraicznej korzystając z danych wejściowych wprowadzonych do formy trygonometrycznej
+	//1. wyznaczyć część rzeczywistą kwaternionu s0 = cos(theta) gdzie kąt oborotu to 2*theta, więc s0 = cos(kąt_obrotu/2)
+	qz[0] = cosf(fdPsi2);
+
+	//2. Obliczyć długość osi obrotu |v0| = sqrt(vx^2 + vy^2 + vz^2).
+	//Dla osi X będzie wektor kierunkowy to [1, 0, 0], więc |v0x| = sqrt(1^2 + 0^2 + 0^2)
+	//fModul_v0x = sqrtf(fOsObr[0]*fOsObr[0] + fOsObr[1]*fOsObr[1] + fOsObr[2]*fOsObr[2]);
+	//fModul = sqrtf(fOsObr[2]*fOsObr[2]);
+
+	//3. Obliczyć x0 = vx / |v0| * sin(theta)
+	//qz[1] = fOsObr[0] / fModul * sin(fdPsi2);;		//dzielenie zera przez coś zawsze da zero
+	qz[1] = 0;
+
+	//4. Obliczyć y0 = vy / |v0| * sin(theta)
+	//qz[2] = fOsObr[1] / fModul * sin(fdPsi2);;		//dzielenie zera przez coś zawsze da zero
+	qz[2] = 0;
+
+	//5. Obliczyć z0 = vz / |v0| * sin(theta)
+	//qz[3] = fOsObr[2] / fModul * sin(fdPsi2);
+	qz[3] = sin(fdPsi2);	//oś obrotu to 1, więc moduł też będzie 1 więc można to pominąć
+
+
+	//teraz obrót przez oś Y
+	//fOsObr[0] = 0.0f;
+	//fOsObr[1] = 1.0f;
+	//fOsObr[2] = 0.0f;
+
+	//analogicznie dla obrotu przez os Y [0, 1, 0] o kąt theta będący całką po ndT z prędkości Q
+	//qy = cos (theta/2) + (1 / sqrt(x^2 + y^2 + z^2)*j) * sin (theta/2)
+//	fdTheta2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000;
+	fdTheta2 = 90 * DEG2RAD / 2;
+	//fModul = sqrtf(fOsObr[1]*fOsObr[1]);
+	qy[0] = cosf(fdTheta2);
+	//qy[1] = fOsObr[0] / fModul * sinf(fdTheta2);;
+	qy[1] = 0;
+	//qy[2] = fOsObr[1] / fModul * sinf(fdTheta2);;
+	qy[2] = sinf(fdTheta2);
+	//qy[3] = fOsObr[2] / fModul * sinf(fdTheta2);;
+	qy[3] = 0;
+
+
+	//Na koniec obrót przez oś X
+	//fOsObr[0] = 1.0f;
+	//fOsObr[1] = 0.0f;
+	//fOsObr[2] = 0.0f;
 
 	//całka z predkosci kątowej P to kąt Phi a przyrost kąta w czasie ndT to dPhi
 	//fdPhi = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 1000000;	//[rad/s] * ndT [us] / 1000000 = [rad]
 	//Ponieważ we wzorze występuje połwa kąta, więc aby nie wykonywać dzielenia wielokrotnie, od razu liczę połowę kata
 //	fdPhi2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000;
 	fdPhi2 = 90 * DEG2RAD / 2;	//testowo obróć o taki kąt
+	//fModul = sqrtf(fOsObr[0]*fOsObr[0]);
+	qx[0] = cosf(fdPhi2);
+	//qx[1] = fOsObr[0] / fModul * sinf(fdPhi2);
+	qx[1] = sinf(fdPhi2);
+	//qx[2] = fOsObr[1] / fModul * sinf(fdPhi2);
+	qx[2] = 0;
+	//qx[3] = fOsObr[2] / fModul * sinf(fdPhi2);
+	qx[3] = 0;
 
-	//analogicznie dla obrotu przez os Y [0, 1, 0] o kąt theta będący całką po ndT z prędkości Q
-	//qy = cos (theta/2) + (1 / sqrt(x^2 + y^2 + z^2)*j) * sin (theta/2)
-//	fdTheta2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000;
-	fdTheta2 = 0;
-
-	//analogicznie dla obrotu przez os Z [0, 0, 1] o kąt psi będący całką po ndT z prędkości R
-	//qz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
-//	fdPsi2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000;
-	fdPsi2 = 0;
-
-	//procedura obrotu wektora grawitacji wokół osi X
-	//Wyznaczam kwaternion obrotu w formie algebraicznej korzystając z danych wejściowych wprowadzonych do formy trygonometrycznej
-	//1. wyznaczyć część rzeczywistą kwaternionu s0 = cos(theta) gdzie kąt oborotu to 2*theta, więc s0 = cos(kąt_obrotu/2)
-	q[0] = cosf(fdPhi2);
-
-	//2. Obliczyć długość osi obrotu |v0| = sqrt(vx^2 + vy^2 + vz^2).
-	//Dla osi X będzie wektor kierunkowy to [1, 0, 0], więc |v0x| = sqrt(1^2 + 0^2 + 0^2)
-	fModul_v0x = sqrtf(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-
-
-	//3. Obliczyć x0 = vx / |v0| * sin(theta)
-	q[1] = v[1] / fModul_v0x * sinf(fdPhi2);
-
-	//4. Obliczyć y0 = vy / |v0| * sin(theta)
-	q[2] = v[2] / fModul_v0x * sinf(fdPhi2);
-
-	//5. Obliczyć z0 = vz / |v0| * sin(theta)
-	q[3] = v[3] / fModul_v0x * sinf(fdPhi2);
 
 	//aby zoptymalizowac obliczenia rotacji przez 3 osie stusuję złożenie obrotów dla osi jako kwaterion w postaci macierzowej a następnie przemnażam przez siebie te macierze
 	//[s1	x1	y1	z1]			[s2	x2	y2	z2]			[s3	x3	y3	z3]
@@ -427,78 +463,62 @@ void ObrotWektora(uint8_t chGniazdo)
 	//[-y1	z1	s1	-x1]		[-y2 z2	s2	-x2]		[-y3 z3	s3	-x3]
 	//[-z1	-y1	x1	s1]			[-z2 -y2 x2	s2]			[-z3 -y3 x3	s3]
 
+	//Aby nie wykonywać 3 osobnych obrotów dla każdej osi, można obroty zlożyć w jeden monożąc przez siebie kwaterniony obrotu
+	//Metoda 1 - rzeci obrót działa źle
+	MnozenieKwaternionow2(qy, qz, qv);	//obrót najpierw wokół Z * Y = qv
+	ObrotWektoraKwaternionem(p, qv, r);
 
+	MnozenieKwaternionow2(qx, qv, vq);	//potem obrót ZY * X
 
-	//6. Macierz obrotu należy pomnożyć przez obracany punkt zapisany jako wektor [Px, Py, Pz] w kolumnie
+	//6. Macierz obrotu należy pomnożyć przez obracany punkt zapisany jako wektor p=[Px, Py, Pz] w kolumnie
 	//https://youtu.be/ZgOmCYfw6os?si=W9FL7V7r92M1e8Zf
-	//[2*(s0^2 + x0^2) - 1		2*(x0*y0 - s0*z0)		2*(s0*y0 + x0*z0)]		[Px]
-	//[2*(s0*z0 + x0*y0)		2*(s0^2 + y0^2) - 1		2*(y0*z0 - s0*x0)]	* 	[Py]
-	//[2*(x0*z0 - s0*y0)		2*(s0*x0 + y0*z0)		2*(s0^2 + z0^2) - 1]	[Pz]
-
-	//mnożemie macierzy przez wektor odpowiada mnożeniu kolumn macierzy przez składowe wektora
-
-	qv[0] = 0;
-	qv[1] = p[0] * (2*(q[0]*q[0] + q[1]*q[1]) - 1) 	+ p[1] * 2*(q[1]*q[2] - q[0]*q[3]) 			+ p[2] * 2*(q[0]*q[2] + q[1]*q[3]);
-	qv[2] = p[0] * 2*(q[0]*q[3] + q[1]*q[2]) 		+ p[1] * (2*(q[0]*q[0] + q[2]*q[2]) - 1) 	+ p[2] * 2*(q[2]*q[3] - q[0]*q[1]);
-	qv[3] = p[0] * 2*(q[1]*q[3] - q[0]*q[2]) 		+ p[1] * 2*(q[0]*q[1] + q[2]*q[3]) 			+ p[2] * (2*(q[0]*q[0] + q[3]*q[3]) - 1);
+	ObrotWektoraKwaternionem(p, vq, r);
+	nCzas = MinalCzas(nCzas);		//18us
 
 
+	//metoda 2 - niezależne obroty - działa poprawnie
+	ObrotWektoraKwaternionem(p, qz, r);
+	ObrotWektoraKwaternionem(r, qy, s);
+	ObrotWektoraKwaternionem(s, qx, t);
 
+
+	//metoda 3
+	nCzas = PobierzCzas();
+	//obrót wokół Z
+	WektorNaKwaternion(p, v);
 
 	// Wykonuję pierwsze mnożenie q * v
-	MnozenieKwaternionow(q[0], q[1], q[2], q[3], v[0], v[1], v[2], v[3], qv);
-	MnozenieKwaternionow2(q, v, qv);
-	//qv[0] = q[0]*v[]
+	MnozenieKwaternionow2(v, qz, qv);
 
 	//kwaternion sprzężony q* ma taką samą część rzeczywistą i ujemne części urojone
-	qs[0] = q[0];
-	for (uint8_t n=1; n<4; n++)
-		qs[n] = q[n] * -1.0f;
+	KwaternionSprzezony(qz, qs);
 
 	//wykonuję drugie mnożenie (qv) * q*
-	MnozenieKwaternionow(qv[0], qv[1], qv[2], qv[3], qs[0], qs[1], qs[2], qs[3], vq);
-	MnozenieKwaternionow2(qv, qs, vq);
+	MnozenieKwaternionow2(qs, qv, vq);
+
+
+	//obrót wokół Y
+	MnozenieKwaternionow2(vq, qy, qv);
+	KwaternionSprzezony(qy, qs);
+	MnozenieKwaternionow2(qs, qv, vq);
+
+	//obrót wokól X
+	MnozenieKwaternionow2(vq, qx, qv);
+	KwaternionSprzezony(qx, qs);
+	MnozenieKwaternionow2(qs, qv, vq);
+	nCzas = MinalCzas(nCzas);		//12us
+
+
+	//metoda 4 skłądanie obrotów z mnożeniem macierzy
+	KwaternionNaMacierz(qz, &A);
+	KwaternionNaMacierz(qy, &B);
+	MnozenieMacierzy4x4(A, B, &C);
+	MacierzNaKwaternion(C, vq);
+	KwaternionNaMacierz(qx, &A);
+	MnozenieMacierzy4x4(A, C, &B);
+	MacierzNaKwaternion(B, vq);
+	return;
 }
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-// Wzór na mnożenie kwaternionów (a1 + ib1 + jc1 + kd1) * (a2 + ib2 + jc2 + kd2) =
-// = (a1a2 - b1b2 - c1c2 -d1d2)
-// +i(a1b2 + b1a2 + c1d2 - d1c2)
-// +j(a1c2 + c1a2 + d1b2 - b1d2)
-// +k(a1d2 + d1a2 + b1c2 - c1b2)
-// Parametry: (abcd)1 i (abcd)2 - elementy mnożonych kwaternionó
-// *wynik - wskaźnik na kwaternion będący wynikiem mnożenia
-// Zwraca: nic
-// Czas trwania: 1,05us
-////////////////////////////////////////////////////////////////////////////////
-void MnozenieKwaternionow(float a1, float b1, float c1, float d1, float a2, float b2, float c2, float d2, float *wynik)
-{
-	*(wynik + 0) = a1*a2 - b1*b2 - c1*c2 - d1*d2;
-	*(wynik + 1) = a1*b2 + b1*a2 + c1*d2 - d1*c2;
-	*(wynik + 2) = a1*c2 + c1*a2 + d1*b2 - b1*d2;
-	*(wynik + 3) = a1*c2 + c1*a2 + d1*b2 - b1*d2;
-}
-
-
-
-// Dla porównania bardziej czytelny wzór, łatwiejszy do implemntacji na wskaźnikach. Mnożenie q*p =
-////////////////////////////////////////////////////////////////////////////////
-// Wzór na mnożenie kwaternionów (q0 + iq1 + jq2 + kq3) * (p0 + ip1 + jp2 + kp3)
-// (q0p0 - q1p1 - q2p2 + q3p3)
-// (q1p0 + q0p1 - q3p2 + q2p3)
-// (q2p0 + q3p1 + q0p2 - q1p3)
-// (q3p0 - q2p1 + q1p2 + q0p3)
-// Parametry: *q i *p - wskaźniki na mnożone kwaterniony
-// *wynik - wskaźnik na kwaternion będący wynikiem mnożenia
-// Zwraca: nic
-// Czas trwania: 1,05us
-////////////////////////////////////////////////////////////////////////////////
-void MnozenieKwaternionow2(float *q, float *p, float *wynik)
-{
-	*(wynik + 0) = *(q+0) * *(p+0) - *(q+1) * *(p+1) - *(q+2) * *(p+2) - *(q+3) * *(p+3);
-	*(wynik + 1) = *(q+1) * *(p+0) + *(q+0) * *(p+1) + *(q+3) * *(p+2) - *(q+2) * *(p+3);
-	*(wynik + 2) = *(q+2) * *(p+0) + *(q+3) * *(p+1) + *(q+0) * *(p+2) - *(q+1) * *(p+3);
-	*(wynik + 3) = *(q+3) * *(p+0) + *(q+2) * *(p+1) + *(q+1) * *(p+2) - *(q+0) * *(p+3);
-}
