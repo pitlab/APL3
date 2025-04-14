@@ -477,9 +477,11 @@ void ObrotWektora(uint8_t chGniazdo)
 
 
 	//metoda 2 - niezależne obroty - działa poprawnie
+	nCzas = PobierzCzas();
 	ObrotWektoraKwaternionem(p, qz, r);
 	ObrotWektoraKwaternionem(r, qy, s);
 	ObrotWektoraKwaternionem(s, qx, t);
+	nCzas = MinalCzas(nCzas);
 
 
 	//metoda 3
@@ -509,14 +511,19 @@ void ObrotWektora(uint8_t chGniazdo)
 	nCzas = MinalCzas(nCzas);		//12us
 
 
-	//metoda 4 skłądanie obrotów z mnożeniem macierzy
-	KwaternionNaMacierz(qz, &A);
-	KwaternionNaMacierz(qy, &B);
-	MnozenieMacierzy4x4(A, B, &C);
-	MacierzNaKwaternion(C, vq);
-	KwaternionNaMacierz(qx, &A);
-	MnozenieMacierzy4x4(A, C, &B);
-	MacierzNaKwaternion(B, vq);
+	//metoda 4 składanie obrotów z mnożeniem macierzy
+	nCzas = PobierzCzas();
+	KwaternionNaMacierz(qy, &A[0][0]);
+	KwaternionNaMacierz(qz, &B[0][0]);
+	MnozenieMacierzy4x4(&A[0][0], &B[0][0], &C[0][0]);
+	MacierzNaKwaternion(&C[0][0], vq);
+	ObrotWektoraKwaternionem(p, vq, r);
+
+	KwaternionNaMacierz(qx, &A[0][0]);
+	MnozenieMacierzy4x4(&A[0][0], &C[0][0], &B[0][0]);
+	MacierzNaKwaternion(&B[0][0], vq);
+	ObrotWektoraKwaternionem(p, vq, s);
+	nCzas = MinalCzas(nCzas);	//21us
 	return;
 }
 

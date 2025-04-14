@@ -66,25 +66,24 @@ void MnozenieKwaternionow2(float *q, float *p, float *wynik)
 // Zwraca: nic
 // Czas trwania: ?us na 200MHz
 ////////////////////////////////////////////////////////////////////////////////
-void KwaternionNaMacierz(float *q, float (* m)[4][4])
+void KwaternionNaMacierz(float *q, float *m)
 {
-	//*(m+0*4+0) = *(q+0);		//wiersz 1, kol 1 = s
-	*m[0][0] = *(q+0);		//wiersz 1, kol 1 = s
-	*m[1][0] = *(q+1);		//wiersz 1, kol 2 = x
-	*m[2][0] = *(q+2);		//wiersz 1, kol 3 = y
-	*m[3][0] = *(q+3);		//wiersz 1, kol 4 = z
-	*m[0][1] = *(q+1) * -1;	//wiersz 2, kol 1 = -x
-	*m[1][1] = *(q+0);		//wiersz 2, kol 2 = s
-	*m[2][1] = *(q+3) * -1;	//wiersz 2, kol 3 = -z
-	*m[3][1] = *(q+4);		//wiersz 2, kol 4 = y
-	*m[0][2] = *(q+4) * -1;	//wiersz 3, kol 1 = -y
-	*m[1][2] = *(q+3);		//wiersz 3, kol 2 = z
-	*m[2][2] = *(q+0);		//wiersz 3, kol 3 = s
-	*m[3][2] = *(q+1) * -1;	//wiersz 3, kol 4 = -x
-	*m[0][3] = *(q+3) * -1;	//wiersz 4, kol 1 = -z
-	*m[1][3] = *(q+4) * -1;	//wiersz 3, kol 2 = -y
-	*m[2][3] = *(q+1);		//wiersz 1, kol 3 = x
-	*m[3][3] = *(q+0);		//wiersz 3, kol 4 = s
+	*(m+0*4+0) = *(q+0);		//wiersz 1, kol 1 = s
+	*(m+0*4+1) = *(q+1);		//wiersz 1, kol 2 = x
+	*(m+0*4+2) = *(q+2);		//wiersz 1, kol 3 = y
+	*(m+0*4+3) = *(q+3);		//wiersz 1, kol 4 = z
+	*(m+1*4+0) = *(q+1) * -1;	//wiersz 2, kol 1 = -x
+	*(m+1*4+1) = *(q+0);		//wiersz 2, kol 2 = s
+	*(m+1*4+2) = *(q+3) * -1;	//wiersz 2, kol 3 = -z
+	*(m+1*4+3) = *(q+2);		//wiersz 2, kol 4 = y
+	*(m+2*4+0) = *(q+2) * -1;	//wiersz 3, kol 1 = -y
+	*(m+2*4+1) = *(q+3);		//wiersz 3, kol 2 = z
+	*(m+2*4+2) = *(q+0);		//wiersz 3, kol 3 = s
+	*(m+2*4+3) = *(q+1) * -1;	//wiersz 3, kol 4 = -x
+	*(m+3*4+0) = *(q+3) * -1;	//wiersz 4, kol 1 = -z
+	*(m+3*4+1) = *(q+2) * -1;	//wiersz 3, kol 2 = -y
+	*(m+3*4+2) = *(q+1);		//wiersz 1, kol 3 = x
+	*(m+3*4+3) = *(q+0);		//wiersz 3, kol 4 = s
 }
 
 
@@ -97,12 +96,12 @@ void KwaternionNaMacierz(float *q, float (* m)[4][4])
 // Zwraca: nic
 // Czas trwania: ?us na 200MHz
 ////////////////////////////////////////////////////////////////////////////////
-void MacierzNaKwaternion(float  m[4][4], float *q)
+void MacierzNaKwaternion(float  *m, float *q)
 {
-	*(q+0) = m[0][0];		//wiersz 1, kol 1 = s
-	*(q+1) = m[0][1];		//wiersz 1, kol 2 = x
-	*(q+2) = m[0][2];		//wiersz 1, kol 3 = y
-	*(q+3) = m[0][3];		//wiersz 1, kol 4 = z
+	*(q+0) = *(m+0*4+0);		//wiersz 1, kol 1 = s
+	*(q+1) = *(m+0*4+1);		//wiersz 1, kol 2 = x
+	*(q+2) = *(m+0*4+2);		//wiersz 1, kol 3 = y
+	*(q+3) = *(m+0*4+3);		//wiersz 1, kol 4 = z
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -114,7 +113,7 @@ void MacierzNaKwaternion(float  m[4][4], float *q)
 // Zwraca: nic
 // Czas trwania: ?us na 200MHz
 ////////////////////////////////////////////////////////////////////////////////
-/*void MnozenieMacierzy4x4(float *a, float *b, float *m)
+void MnozenieMacierzy4x4(float *a, float *b, float *m)
 {
 	*(m+0*4+0) = *(a+0*4+0) * *(b+0*4+0) + *(a+0*4+1) * *(b+1*4+0) + *(a+0*4+2) * *(b+2*4+0) + *(a+0*4+3) * *(b+3*4+0);	//wiersz 1, kol 1 = 1 wiersz A * 1 kolumna B
 	*(m+0*4+1) = *(a+0*4+0) * *(b+0*4+1) + *(a+0*4+1) * *(b+1*4+1) + *(a+0*4+2) * *(b+2*4+1) + *(a+0*4+3) * *(b+3*4+1);	//wiersz 1, kol 2
@@ -132,10 +131,10 @@ void MacierzNaKwaternion(float  m[4][4], float *q)
 	*(m+3*4+1) = *(a+3*4+0) * *(b+0*4+0) + *(a+3*4+1) * *(b+1*4+0) + *(a+3*4+2) * *(b+2*4+0) + *(a+3*4+3) * *(b+3*4+0);	//wiersz 3, kol 2
 	*(m+3*4+2) = *(a+3*4+0) * *(b+0*4+0) + *(a+3*4+1) * *(b+1*4+0) + *(a+3*4+2) * *(b+2*4+0) + *(a+3*4+3) * *(b+3*4+0);	//wiersz 1, kol 3
 	*(m+3*4+3) = *(a+3*4+0) * *(b+0*4+0) + *(a+3*4+1) * *(b+1*4+0) + *(a+3*4+2) * *(b+2*4+0) + *(a+3*4+3) * *(b+3*4+0);	//wiersz 3, kol 4
-}*/
+}
 
 //[wiersz][kolumna]
-void MnozenieMacierzy4x4(float a[4][4], float b[4][4], float (*m)[4][4])
+/*void MnozenieMacierzy4x4(float a[4][4], float b[4][4], float (*m)[4][4])
 {
 	*m[0][0] = a[0][0] * b[0][0] + a[0][1] * b[1][0] + a[0][2] * b[2][0] + a[0][3] * b[3][0];	//wiersz 1, kol 1 = wiersz 1A * kolumna 1B
 	*m[0][1] = a[0][0] * b[0][1] + a[0][1] * b[1][1] + a[0][2] * b[2][1] + a[0][3] * b[3][1];	//wiersz 1, kol 2
@@ -156,7 +155,7 @@ void MnozenieMacierzy4x4(float a[4][4], float b[4][4], float (*m)[4][4])
 	*m[3][1] = a[3][0] * b[0][1] + a[3][1] * b[1][1] + a[3][2] * b[2][1] + a[3][3] * b[3][1];	//wiersz 4, kol 2
 	*m[3][2] = a[3][0] * b[0][2] + a[3][1] * b[1][2] + a[3][2] * b[2][2] + a[3][3] * b[3][2];	//wiersz 4, kol 3
 	*m[3][3] = a[3][0] * b[0][3] + a[3][1] * b[1][3] + a[3][2] * b[2][3] + a[3][3] * b[3][3];	//wiersz 4, kol 4
-}
+}*/
 
 
 ////////////////////////////////////////////////////////////////////////////////
