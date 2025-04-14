@@ -52,6 +52,14 @@
 
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
 
+
+//definicje pól zmiennej chNowyPomiar
+#define NP_MAG1		0x01
+#define NP_MAG2		0x02
+#define NP_MAG3		0x04
+#define NP_EXT_IAS	0x08
+
+
 typedef struct _GNSS
 {
 	double dDlugoscGeo;
@@ -94,6 +102,7 @@ typedef struct
 	float fTemper[7];		//0=MS5611, 1=BMP851, 2=ICM42688 [K], 3=LSM6DSV [K], 4=IIS2MDC, 5=ND130, 6=MS2545
 	float fRozne[6];		//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji
 	uint16_t sSerwa[16];
+	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
 	uint8_t chErrPetliGlownej;
 	uint8_t chOdpowiedzNaPolecenie;
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu

@@ -139,7 +139,7 @@ void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
 // Zwraca: kod błędu
 // Czas trwania: ?
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo)
+uint8_t JednostkaInercyjnaKwaterniony2(uint8_t chGniazdo)
 {
     float fdTime;
     float fNormal;
@@ -324,6 +324,75 @@ void JednostkaInercyjnaMadgwick(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Funkcja obraca wektory przyspieszenia i magnetyczny o kąty uzyskane z całkowania prędkosci katowej, nastepnie synchronizuje je z rzeczywistymi pomiarami
+// Parametry: chGniazdo - numer gniazda w którym jest moduł IMU
+// Zwraca: nic
+// Czas trwania: ?
+////////////////////////////////////////////////////////////////////////////////
+uint8_t JednostkaInercyjnaKwaterniony3(uint8_t chGniazdo)
+{
+	float fdPhi2, fdTheta2, fdPsi2;	//połowy przyrostu kąta obrotu
+	float fQx[4], fQy[4], fQz[4];	//kwaterniony obortów wokół osi XYZ
+	static float fModelAcc[3];	//modelowany wektor przyspieszenia ziemskiego, obracany żyroskopami synchronizowany z akcelerometrem
+	static float fModelMag[3];	//modelowany wektor magnetyczny, obracany żyroskopami synchronizowany z magnetometrem
+	float r[3], s[3];	//zmienne robocze
+
+	//Wyznaczam kwaterniony obrotów w formie algebraicznej korzystając z danych wejściowych wprowadzonych do formy trygonometrycznej
+	//qz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
+	fdPsi2 = uDaneCM4.dane.fZyroKal1[2] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fQz[0] = cosf(fdPsi2);		//część rzeczywista kwaternionu: s0 = cos(theta) gdzie kąt oborotu to 2*theta, więc s0 = cos(kąt_obrotu/2)
+	fQz[1] = 0;
+	fQz[2] = 0;
+	fQz[3] = sin(fdPsi2);	//z0 = vz / |v0| * sin(theta)  Oś obrotu to 1, więc moduł też będzie 1 więc można to pominąć
+
+
+	//fQy = cos (theta/2) + (1 / sqrt(x^2 + y^2 + z^2)*j) * sin (theta/2)
+	fdTheta2 = uDaneCM4.dane.fZyroKal1[1] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fQy[0] = cosf(fdTheta2);
+	fQy[1] = 0;
+	fQy[2] = sinf(fdTheta2);
+	fQy[3] = 0;
+
+	//całka z predkosci kątowej P to kąt Phi a przyrost kąta w czasie ndT to dPhi
+	//fdPhi = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 1000000;
+	//Ponieważ we wzorze występuje połwa kąta, więc aby nie wykonywać dzielenia wielokrotnie, od razu liczę połowę kata
+	fdPhi2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fQx[0] = cosf(fdPhi2);
+	fQx[1] = sinf(fdPhi2);
+	fQx[2] = 0;
+	fQx[3] = 0;
+
+	//obróć model przyspieszenia
+	ObrotWektoraKwaternionem(fModelAcc, fQz, r);
+	ObrotWektoraKwaternionem(r, fQy, s);
+	ObrotWektoraKwaternionem(s, fQx, fModelAcc);
+
+	//synchronizuj ze zmierzonym przyspieszeniem za pomocą filtra komplementarnego
+	for (uint8_t n=0; n<3; n++)
+		fModelAcc[n] = (14 * fModelAcc[n] + uDaneCM4.dane.fAkcel1[n] + uDaneCM4.dane.fAkcel2[n])/16;
+
+	//obroć model pola magnetycznego
+	ObrotWektoraKwaternionem(fModelMag, fQz, r);
+	ObrotWektoraKwaternionem(r, fQy, s);
+	ObrotWektoraKwaternionem(s, fQx, fModelMag);
+
+	//synchronizuj ze zmierzonym polem magnetycznym za pomocą filtra komplementarnego
+	if (uDaneCM4.dane.chNowyPomiar & NP_MAG3)	//synchronizuj tylko gdy pojawił sie nowy pomiar, gdyż nie pojawia się w każdym cyklu
+	{
+		for (uint8_t n=0; n<3; n++)
+			fModelMag[n] = (15 * fModelMag[n] + uDaneCM4.dane.fMagne3[n])/16;
+	}
+
+	//oblicz finalne kąty wzraone w radianach
+	uDaneCM4.dane.fKatIMU2[0] = atan2f(fModelAcc[2], fModelAcc[1]) - 90 * DEG2RAD;		//kąt przechylenia z akcelerometru: tan(Z/Y)
+	uDaneCM4.dane.fKatIMU2[1] = atan2f(fModelAcc[2], fModelAcc[0]) - 90 * DEG2RAD;		//kąt pochylenia z akcelerometru: tan(Z/X)
+	uDaneCM4.dane.fKatIMU2[2] = atan2f(fModelMag[1], fModelMag[0]);						//kąt odchylenia z magnetometru: tan(y/x)
+	return ERR_OK;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Obliczenia obrotu znormalizowanego wektora grawitacji o kąt z żyroskopów na podstawie instrukcji Mateusza Kowalskiego: https://youtu.be/XjFq3Slo2wo?si=5JBCD7lqXvaLayjN
 // Trzeba utworzyć kwaterniony q i v gdzie v będzie zawierał współrzędne obracanego wektora a q będzie definiował obrót i jest kwaternionem jednostkowym
 // Następnie trzeba wykonać mnożenie q * v * q* gdzie q* jest kwaternionem sprzężonym.
@@ -481,7 +550,7 @@ void ObrotWektora(uint8_t chGniazdo)
 	ObrotWektoraKwaternionem(p, qz, r);
 	ObrotWektoraKwaternionem(r, qy, s);
 	ObrotWektoraKwaternionem(s, qx, t);
-	nCzas = MinalCzas(nCzas);
+	nCzas = MinalCzas(nCzas);	//7us
 
 
 	//metoda 3
@@ -511,19 +580,19 @@ void ObrotWektora(uint8_t chGniazdo)
 	nCzas = MinalCzas(nCzas);		//12us
 
 
-	//metoda 4 składanie obrotów z mnożeniem macierzy
+	//metoda 4 składanie obrotów z mnożeniem macierzy - działa dobrze
 	nCzas = PobierzCzas();
 	KwaternionNaMacierz(qy, &A[0][0]);
 	KwaternionNaMacierz(qz, &B[0][0]);
 	MnozenieMacierzy4x4(&A[0][0], &B[0][0], &C[0][0]);
-	MacierzNaKwaternion(&C[0][0], vq);
-	ObrotWektoraKwaternionem(p, vq, r);
+	//MacierzNaKwaternion(&C[0][0], vq);
+	//ObrotWektoraKwaternionem(p, vq, r);
 
 	KwaternionNaMacierz(qx, &A[0][0]);
 	MnozenieMacierzy4x4(&A[0][0], &C[0][0], &B[0][0]);
 	MacierzNaKwaternion(&B[0][0], vq);
 	ObrotWektoraKwaternionem(p, vq, s);
-	nCzas = MinalCzas(nCzas);	//21us
+	nCzas = MinalCzas(nCzas);	//18us
 	return;
 }
 

@@ -121,11 +121,14 @@ void PetlaGlowna(void)
 		break;
 
 	case 5:
+		uDaneCM4.dane.chNowyPomiar = 0;	//unieważnij wszystkie poprzednie pomiary. Flagi nowych pomiarów zostaną ustawnine w funkcji ObslugaCzujnikowI2C()
 		if (chNoweDaneI2C)
 			ObslugaCzujnikowI2C(&chNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C to je obrób
-		chErrPG |= RozdzielniaOperacjiI2C();			break;
-	case 6:	ObliczeniaJednostkiInercujnej(2);	break;
-	case 7:	JednostkaInercyjnaKwaterniony(2);	break;
+		chErrPG |= RozdzielniaOperacjiI2C();
+		break;
+
+	case 6:	ObliczeniaJednostkiInercujnej(ADR_MOD2);	break;
+	case 7:	JednostkaInercyjnaKwaterniony3(ADR_MOD2);	break;
 	//case 7:	JednostkaInercyjnaMadgwick();		break;
 
 	case 8: chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;
@@ -446,6 +449,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 		else
 			uDaneCM4.dane.fMagne3[2] = ((float)sZeZnakiem - fPrzesMagn3[2]) * fSkaloMagn3[2];	//dane skalibrowane
 		*chCzujniki &= ~MAG_HMC;	//dane obsłużone
+		uDaneCM4.dane.chNowyPomiar |= NP_MAG3;	//jest nowy pomiar
 	}
 
 	if (*chCzujniki & CISN_ROZN_MS2545)
@@ -453,6 +457,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 		uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(chDaneMS4525);
 		uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 		*chCzujniki &= ~CISN_ROZN_MS2545;	//dane obsłużone
+		uDaneCM4.dane.chNowyPomiar |= NP_EXT_IAS;	//jest nowy pomiar
 	}
 
 	if (*chCzujniki & CISN_TEMP_MS2545)
@@ -476,6 +481,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 		uDaneCM4.dane.fTemper[4] = ((int16_t)chDaneMagIIS[7] * 0x100 + chDaneMagIIS[6]) / 8;	//The nominal sensitivity is 8 LSB/°C.
 		//if ((chDaneMagIIS[0] || chDaneMagIIS[1]) && (chDaneMagIIS[2] || chDaneMagIIS[3]) && (chDaneMagIIS[4] || chDaneMagIIS[5]))
 		*chCzujniki &= ~MAG_IIS;	//dane obsłużone
+		uDaneCM4.dane.chNowyPomiar |= NP_MAG1;	//jest nowy pomiar
 	}
 
 	if (*chCzujniki & MAG_MMC)
@@ -494,6 +500,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 				uDaneCM4.dane.fMagne2[n] = ((float)(sPomiarMMCH[n] - sPomiarMMCL[n]) / 2 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
 		}
 		*chCzujniki &= ~MAG_MMC;	//dane obsłużone
+		uDaneCM4.dane.chNowyPomiar |= NP_MAG2;	//jest nowy pomiar
 	}
 	return chErr;
 }

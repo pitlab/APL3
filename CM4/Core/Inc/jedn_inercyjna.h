@@ -17,7 +17,8 @@
 
 uint8_t InicjujJednostkeInercyjna(void);
 void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo);
-uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo);
+uint8_t JednostkaInercyjnaKwaterniony2(uint8_t chGniazdo);
+uint8_t JednostkaInercyjnaKwaterniony3(uint8_t chGniazdo);
 void JednostkaInercyjnaMadgwick(void);
 void ObrotWektora(uint8_t chGniazdo);
 #endif /* INC_JEDN_INERCYJNA_H_ */
