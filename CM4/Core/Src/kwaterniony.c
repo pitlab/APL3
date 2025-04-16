@@ -1,62 +1,69 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // AutoPitLot v3.0
-// Biblioteka bbliczeń na kwaternionach
+// Biblioteka obliczeń na kwaternionach
 //
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "kwaterniony.h"
 //Lektura obowiązkowa:
-//https://youtu.be/HMDb9zJ2BdA?si=NFm44BkfRmKqpYiF
-//https://youtu.be/ZgOmCYfw6os?si=fDKRwn95x-n1le50
-
-
-//Ten i poniższy wzór daja takie same wyniki i zajmują tyle samo czasu procesora. Różnią się formatem podawanych danych
-////////////////////////////////////////////////////////////////////////////////
-// Wzór na mnożenie kwaternionów (a1 + ib1 + jc1 + kd1) * (a2 + ib2 + jc2 + kd2) =
-// = (a1a2 - b1b2 - c1c2 -d1d2)
-// +i(a1b2 + b1a2 + c1d2 - d1c2)
-// +j(a1c2 + c1a2 + d1b2 - b1d2)
-// +k(a1d2 + d1a2 + b1c2 - c1b2)
-// Na podstawie: https://www.youtube.com/watch?v=HMDb9zJ2BdA&ab_channel=Copernicus
-// Parametry: (abcd)1 i (abcd)2 - elementy mnożonych kwaternionów
-// *wynik - wskaźnik na kwaternion będący wynikiem mnożenia
-// Zwraca: nic
-// Czas trwania: 1,05us na 200MHz
-////////////////////////////////////////////////////////////////////////////////
-void MnozenieKwaternionow1(float a1, float b1, float c1, float d1, float a2, float b2, float c2, float d2, float *wynik)
-{
-	*(wynik + 0) = a1*a2 - b1*b2 - c1*c2 - d1*d2;
-	*(wynik + 1) = a1*b2 + b1*a2 + c1*d2 - d1*c2;
-	*(wynik + 2) = a1*c2 + c1*a2 + d1*b2 - b1*d2;
-	*(wynik + 3) = a1*c2 + c1*a2 + d1*b2 - b1*d2;
-}
+//https://youtu.be/HMDb9zJ2BdA?si=NFm44BkfRmKqpYiF - dr. Tomasz Miller Historia i wyjaśnienie właściwości kwaternionów
+//https://youtu.be/ZgOmCYfw6os?si=fDKRwn95x-n1le50 - Mateusz Kowalski - Algortym obrotu w przestrzeni 3D przy użyciu kwaternionów
+//https://youtu.be/j5m71_TaQwE?si=XlQSB3M4NHd1mqvY - Mateusz Kowalski - Macierz obrotu wokół dowolnej osi o dowolny kąt
 
 
 
-// Dla porównania bardziej czytelny wzór, łatwiejszy do implemntacji na wskaźnikach. Mnożenie q*p =
+// Obliczenia obrotu wektora grawitacji o kąt z żyroskopów na podstawie instrukcji Mateusza Kowalskiego: https://youtu.be/XjFq3Slo2wo?si=5JBCD7lqXvaLayjN
+// Trzeba utworzyć kwaterniony q i v gdzie v będzie zawierał współrzędne obracanego wektora a q będzie definiował obrót i jest kwaternionem jednostkowym
+// Następnie trzeba wykonać mnożenie q * v * q* gdzie q* jest kwaternionem sprzężonym.
+// Kwaternion sprzeżony ma części urojone ze znakiem minus. Jeżeli q = s + xi + yj + zk to q* = s - xi - yj - zk
+// Mnożenie przez kwaternion sprzężony wykonuje się po to aby pozbyć się części rzeczywistej, której nie potrafimy zinterpretować gdyż nasz wektor siedzi w części urojonej.
+// mnożenie przez q i następnie przez sprzezone q* spowoduje wyzerowanie części rzeczywistej. Skutkiem ubocznym jest obrót o podwójny kąt, dlatego obracamy o połowę kąta
+// Wektorem obracamym jest wektor przyspieszenie ziemskiego, będący odczytem początkowym z akcelerometru. Wektor nie musi być znormalizowany więc jest to po prostu uDaneCM4.dane.fAkcel1 lub uDaneCM4.dane.fAkcel2
+// Mnożenie kwaternionów wykonujemy w postaci algebraicznej a podstawianie danych w postaci trygonometrycznej, więc potrzebne jest przejscie miedzy tymi dwiema formami
+// Przejscie z formy trygonometrycznej na algebraiczną:
+//	q = |q| * (cos fi + (uxi + uyj + uzk) * sin fi)  ->  q = s + xi + yj + zk
+//	s = |q| * cos fi
+//	x = |q| * ux * sin fi
+//	y = |q| * uy * sin fi
+//	z = |q| * uz * sin fi
+// Przejście z formy algebraicznej na trygonometryczną:
+//	q = s + xi + yj + zk  ->  q = |q| * (cos fi + (uxi + uyj + uzk) * sin fi)
+//	|q| = sqrt(s^2 + x^2 + y^2 + z^2)
+//	ux = x / sqrt(x^2 + y^2 + z^2)		//bez s^2
+//	uy = y / sqrt(x^2 + y^2 + z^2)
+//	uz = z / sqrt(x^2 + y^2 + z^2)
+//	cos fi = s / sqrt(s^2 + x^2 + y^2 + z^2)
+//	sin fi = sqrt(x^2 + y^2 + z^2) / sqrt(s^2 + x^2 + y^2 + z^2)
+//	fi = arcos(s / sqrt(s^2 + x^2 + y^2 + z^2))
+//	Jeżeli przyjmiemy że moduł z q: |q| = 1 to mamy uproszczenie:
+//	cos fi = s
+//	sin fi = sqrt(x^2 + y^2 + z^2)
+//	fi = arcos(s)
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Wzór na mnożenie kwaternionów (q0 + iq1 + jq2 + kq3) * (p0 + ip1 + jp2 + kp3)
 // (q0p0 - q1p1 - q2p2 + q3p3)
 // (q1p0 + q0p1 - q3p2 + q2p3)
 // (q2p0 + q3p1 + q0p2 - q1p3)
 // (q3p0 - q2p1 + q1p2 + q0p3)
-// Źródło: https://www.youtube.com/watch?v=VNIszCO4azs&ab_channel=ngoduong
+// Źródło: https://ahrs.readthedocs.io/en/latest/filters/aqua.html
 // Parametry: *q i *p - wskaźniki na mnożone kwaterniony
 // *wynik - wskaźnik na kwaternion będący wynikiem mnożenia
 // Zwraca: nic
 // Czas trwania: 1,05us na 200MHz
 ////////////////////////////////////////////////////////////////////////////////
-void MnozenieKwaternionow2(float *q, float *p, float *wynik)
+void MnozenieKwaternionow(float *q, float *p, float *wynik)
 {
 	*(wynik + 0) = *(q+0) * *(p+0) - *(q+1) * *(p+1) - *(q+2) * *(p+2) - *(q+3) * *(p+3);
-	*(wynik + 1) = *(q+1) * *(p+0) + *(q+0) * *(p+1) + *(q+3) * *(p+2) - *(q+2) * *(p+3);
-	*(wynik + 2) = *(q+2) * *(p+0) + *(q+3) * *(p+1) + *(q+0) * *(p+2) - *(q+1) * *(p+3);
-	*(wynik + 3) = *(q+3) * *(p+0) + *(q+2) * *(p+1) + *(q+1) * *(p+2) - *(q+0) * *(p+3);
+	*(wynik + 1) = *(q+0) * *(p+1) + *(q+1) * *(p+0) + *(q+2) * *(p+3) - *(q+3) * *(p+2);
+	*(wynik + 2) = *(q+0) * *(p+2) - *(q+1) * *(p+3) + *(q+2) * *(p+0) + *(q+3) * *(p+1);
+	*(wynik + 3) = *(q+0) * *(p+3) + *(q+1) * *(p+2) - *(q+2) * *(p+1) + *(q+3) * *(p+0);
 }
-
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Przepisanie kwaternionu z postaci algebraicznaj do macierzowej na podstawie: https://www.youtube.com/watch?v=ZgOmCYfw6os&t=1621s&ab_channel=MateuszKowalski
@@ -64,7 +71,7 @@ void MnozenieKwaternionow2(float *q, float *p, float *wynik)
 // [we] *q - wskaźnik na kwaternion q = (q0 + iq1 + jq2 + kq3)
 // [wy] *m - wskaźnik na macierz m[4 wiersze]x[4 kolumny]
 // Zwraca: nic
-// Czas trwania: ?us na 200MHz
+// Czas trwania: 1,065us na 200MHz
 ////////////////////////////////////////////////////////////////////////////////
 void KwaternionNaMacierz(float *q, float *m)
 {
@@ -94,7 +101,7 @@ void KwaternionNaMacierz(float *q, float *m)
 // [we] *m - wskaźnik na macierz m[4 wiersze]x[4 kolumny]
 // [wy] *q - wskaźnik na kwaternion q = (q0 + iq1 + jq2 + kq3)
 // Zwraca: nic
-// Czas trwania: ?us na 200MHz
+// Czas trwania: 0,379us na 200MHz
 ////////////////////////////////////////////////////////////////////////////////
 void MacierzNaKwaternion(float  *m, float *q)
 {
@@ -104,6 +111,8 @@ void MacierzNaKwaternion(float  *m, float *q)
 	*(q+3) = *(m+0*4+3);		//wiersz 1, kol 4 = z
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Mnożenie macierzy 4x4. Wiersz pierwszej mnożymy razy kolumnę drugiej
 // Parametry:
@@ -111,7 +120,7 @@ void MacierzNaKwaternion(float  *m, float *q)
 // [we] *b - wskaźnik na macierz B
 // [wy] *m - wskaźnik na macierz m[4 wiersze]x[4 kolumny]
 // Zwraca: nic
-// Czas trwania: ?us na 200MHz
+// Czas trwania: 5,8us na 200MHz
 ////////////////////////////////////////////////////////////////////////////////
 void MnozenieMacierzy4x4(float *a, float *b, float *m)
 {
@@ -143,7 +152,7 @@ void MnozenieMacierzy4x4(float *a, float *b, float *m)
 // [we] *v - wskaźnik na kwaternion obrotu v = (v0 + ivx + jvy + kvz)
 // [wy] *wektor_we - wskaźnik na wektor po obrocie [x', y', z'],
 // Zwraca: nic
-// Czas trwania: ?us na 200MHz
+// Czas trwania: 2,135us na 200MHz
 ////////////////////////////////////////////////////////////////////////////////
 void ObrotWektoraKwaternionem(float *wektor_we, float *v, float *wektor_wy)
 {
@@ -166,7 +175,7 @@ void ObrotWektoraKwaternionem(float *wektor_we, float *v, float *wektor_wy)
 // [we] *wektor - wskaźnik na wektor wejsciowy [x, y, z],
 // [wy] *q - wskaźnik na kwaternion w = (q0 + iqx + jqy + kqz)
 // Zwraca: nic
-// Czas trwania: ?us na 200MHz
+// Czas trwania: 0,364us na 200MHz
 ////////////////////////////////////////////////////////////////////////////////
 void WektorNaKwaternion(float *wektor, float *q)
 {
@@ -184,7 +193,7 @@ void WektorNaKwaternion(float *wektor, float *q)
 // [we] *q - wskaźnik na kwaternion w = (q0 + iqx + jqy + kqz)
 // [wy] *wektor - wskaźnik na wektor wejsciowy [x, y, z],
 // Zwraca: nic
-// Czas trwania: ?us na 200MHz
+// Czas trwania: 0,329us na 200MHz
 ////////////////////////////////////////////////////////////////////////////////
 void KwaternionNaWektor(float *q, float *wektor)
 {
@@ -199,9 +208,9 @@ void KwaternionNaWektor(float *q, float *wektor)
 // Oblicza kwaternion sprzężony
 // Parametry:
 // [we] *q - wskaźnik na kwaternion w = (q0 + iqx + jqy + kqz)
-// [wy] *sprzezony - wskaźnik na kwaternion sprzęzony z wejsciowym
+// [wy] *sprzezony - wskaźnik na kwaternion sprzężony z wejściowym
 // Zwraca: nic
-// Czas trwania: ?us na 200MHz
+// Czas trwania: 0,790us na 200MHz
 ////////////////////////////////////////////////////////////////////////////////
 void KwaternionSprzezony(float *q, float *sprzezony)
 {

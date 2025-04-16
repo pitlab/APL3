@@ -36,8 +36,9 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 
  *Zrobić:
  - Dodać polecenie Blank check oraz ramkę komunikacyjną do tego
- - Dodać obliczenie kątów z magnetometru
- - dodać jakości kąta dla Acc i Mag w zakresie 0-90 na podstawie wartosci składowych wejściowych. Obie zerowe wejściowe dają słabą jakość kąta. Tam gdzie jest 1 tam jakość jest najlepsza
+  - dodać jakości kąta dla Acc i Mag w zakresie 0-90 na podstawie wartosci składowych wejściowych. Obie zerowe wejściowe dają słabą jakość kąta. Tam gdzie jest 1 tam jakość jest najlepsza
+  - dodać funkcję liczącą długość wektora Acc i Mag i na tej podstawie określić progi dla których sygna jest pewny, częściowo poprawny i próg za którym sygnał jest niewiarygodny.
+    Dla sygnału częściowo poprawnego wyliczyć współczynnik dla filtra komplementarnego
 
  * */
 /* USER CODE END Header */
