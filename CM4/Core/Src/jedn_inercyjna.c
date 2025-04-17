@@ -48,7 +48,8 @@ float q0 = 1.0, q1 = 0.0, q2 = 0.0, q3 = 0.0;   	//kwaterniony
 float exInt = 0, eyInt = 0, ezInt = 0;				// scaled integral error
 //float q[4], qs[4], v[4];	//kwaterniony obrotu i sprzężony obrotu
 
-
+static float fQa[4];	//kwaternion wektora przyspieszenia
+static float fQm[4];	//kwaternion wektora magnetycznego
 
 
 
@@ -60,12 +61,15 @@ float exInt = 0, eyInt = 0, ezInt = 0;				// scaled integral error
 uint8_t InicjujJednostkeInercyjna(void)
 {
 	uint8_t chErr = ERR_OK;
+	float fVect[3] = {0.0f, 0.0f, 1.0f};
 
 	for (uint16_t n=0; n<3; n++)
 	{
 		uDaneCM4.dane.fKatIMUZyro1[n] = 0;
 		uDaneCM4.dane.fKatIMUZyro2[n] = 0;
 	}
+	WektorNaKwaternion(fVect, fQa);
+	WektorNaKwaternion(fVect, fQm);
 	return chErr;
 }
 
@@ -388,10 +392,12 @@ uint8_t JednostkaInercyjnaKwaterniony3(uint8_t chGniazdo)
 			fModelMag[n] = (15 * fModelMag[n] + uDaneCM4.dane.fMagne3[n])/16;
 	}
 
-	//oblicz finalne kąty wzraone w radianach
+	//oblicz finalne kąty wyrażone w radianach
 	uDaneCM4.dane.fKatIMU2[0] = atan2f(fModelAcc[2], fModelAcc[1]) - 90 * DEG2RAD;		//kąt przechylenia z akcelerometru: tan(Z/Y)
 	uDaneCM4.dane.fKatIMU2[1] = atan2f(fModelAcc[2], fModelAcc[0]) - 90 * DEG2RAD;		//kąt pochylenia z akcelerometru: tan(Z/X)
-	uDaneCM4.dane.fKatIMU2[2] = atan2f(fModelMag[1], fModelMag[0]) + 90 * DEG2RAD;		//kąt odchylenia z magnetometru: tan(y/x)
+	//uDaneCM4.dane.fKatIMU2[2] = atan2f(fModelMag[1], fModelMag[0]) + 90 * DEG2RAD;		//kąt odchylenia z magnetometru: tan(y/x)
+	uDaneCM4.dane.fKatIMU2[2] = atan2f(fModelMag[0], fModelMag[1]) + 0 * DEG2RAD;		//kąt odchylenia z magnetometru: tan(x/y)
+
 	return ERR_OK;
 }
 
@@ -421,6 +427,86 @@ float FiltrAdaptacyjnyAcc(void)
 	else								//poziom zakłóceń pośredni, liniowo skaluj między 0 a 1
 		fWspFiltra = WSP_FILTRA_ADAPT * (PROG_ACC_ZLY - fPrzyspRuchu) / (PROG_ACC_ZLY - PROG_ACC_DOBRY);
 	return fWspFiltra;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja przechowuje wektory przyspieszenia i magnetyczny w kwaternionach qA i qM, obraca je o kąty uzyskane z całkowania prędkosci katowej
+// Parametry: chGniazdo - numer gniazda w którym jest moduł IMU
+// Zwraca: nic
+// Czas trwania: ?
+////////////////////////////////////////////////////////////////////////////////
+uint8_t JednostkaInercyjnaKwaterniony4(uint8_t chGniazdo)
+{
+	float fdPhi2, fdTheta2, fdPsi2;	//połowy przyrostu kąta obrotu
+	float fQx[4], fQy[4], fQz[4];	//kwaterniony obortów wokół osi XYZ
+	float fQzy[4], fQzyx[4], fQs[4], fQ[4];
+	float fWspFiltraAcc;
+	float fAccNorm[3], fNorm;
+
+	//Wyznaczam kwaterniony obrotów w formie algebraicznej korzystając z danych wejściowych wprowadzonych do formy trygonometrycznej
+	//qz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
+	fdPsi2 = uDaneCM4.dane.fZyroKal1[2] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fQz[0] = cosf(fdPsi2);		//część rzeczywista kwaternionu: s0 = cos(theta) gdzie kąt oborotu to 2*theta, więc s0 = cos(kąt_obrotu/2)
+	fQz[1] = 0;
+	fQz[2] = 0;
+	fQz[3] = sin(fdPsi2);	//z0 = vz / |v0| * sin(theta)  Oś obrotu to 1, więc moduł też będzie 1 więc można to pominąć
+
+
+	//fQy = cos (theta/2) + (1 / sqrt(x^2 + y^2 + z^2)*j) * sin (theta/2)
+	fdTheta2 = uDaneCM4.dane.fZyroKal1[1] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fQy[0] = cosf(fdTheta2);
+	fQy[1] = 0;
+	fQy[2] = sinf(fdTheta2);
+	fQy[3] = 0;
+
+	//całka z predkosci kątowej P to kąt Phi a przyrost kąta w czasie ndT to dPhi
+	//fdPhi = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 1000000;
+	//Ponieważ we wzorze występuje połwa kąta, więc aby nie wykonywać dzielenia wielokrotnie, od razu liczę połowę kata
+	fdPhi2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fQx[0] = cosf(fdPhi2);
+	fQx[1] = sinf(fdPhi2);
+	fQx[2] = 0;
+	fQx[3] = 0;
+
+	//składanie 3 obrotów w jeden
+	MnozenieKwaternionow(fQy, fQz, fQzy);	//obrót najpierw wokół Z * Y
+	MnozenieKwaternionow(fQx, fQzy, fQzyx);	//potem obrót ZY * X
+
+	//obroty wektorów przyspieszenia i magnetycznego
+	KwaternionSprzezony(fQzyx, fQs);	//kwaternion sprzężony z kwaternionem obrotu o wszystkie osie
+
+	MnozenieKwaternionow(fQa, fQzyx, fQ);
+	MnozenieKwaternionow(fQ, fQs, fQa);
+
+	MnozenieKwaternionow(fQm, fQzyx, fQ);
+	MnozenieKwaternionow(fQ, fQs, fQm);
+
+	//normalizuj wektor przyspieszenia, bo wymaga tego acosf() w funkcji liczenia kątów
+	fNorm = 0.0f;
+	for (uint8_t n=0; n<3; n++)
+		fNorm += powf((uDaneCM4.dane.fAkcel1[n] + uDaneCM4.dane.fAkcel2[n]) / 2, 2);
+	fNorm = sqrtf(fNorm);
+
+	for (uint8_t n=0; n<3; n++)
+		fAccNorm[n] = (uDaneCM4.dane.fAkcel1[n] + uDaneCM4.dane.fAkcel2[n]) / (2 * fNorm);
+
+	//synchronizuj modelowy wektor przyspieszenia  ze zmierzonym przyspieszeniem za pomocą filtra komplementarnego o wspólczynniku okreslonym przez filtr adaptacyjny
+	fWspFiltraAcc = FiltrAdaptacyjnyAcc();
+	for (uint8_t n=0; n<3; n++)
+	{
+		fQa[n+1] = (1.0f - fWspFiltraAcc) * fQa[n+1] + fWspFiltraAcc * fAccNorm[n];
+		fQm[n+1] = (1.0f - fWspFiltraAcc) * fQm[n+1] + fWspFiltraAcc * uDaneCM4.dane.fMagne3[n];	//obliczyć współczynnik dla filtra magnetycznego
+	}
+
+	//wyodrębnij bieżące kąty Eulera
+	KatyKwaterniona2(fQa, fQm, (float*)uDaneCM4.dane.fKatIMU2);
+
+	uint8_t x = 5;
+	if (x == 1)
+		InicjujJednostkeInercyjna();
+	return ERR_OK;
 }
 
 
@@ -611,35 +697,12 @@ void ObrotWektora(uint8_t chGniazdo)
 		KwaternionNaMacierz(qy, &A[0][0]);
 	nCzas = MinalCzas(nCzas);
 
-	nCzas = PobierzCzas();
-	for (uint16_t n=0; n<1000; n++)
-		MacierzNaKwaternion(&B[0][0], vq);
-	nCzas = MinalCzas(nCzas);
 
-	nCzas = PobierzCzas();
-	for (uint16_t n=0; n<1000; n++)
-		MnozenieMacierzy4x4(&A[0][0], &C[0][0], &B[0][0]);
-	nCzas = MinalCzas(nCzas);
 
-	nCzas = PobierzCzas();
+	/*nCzas = PobierzCzas();
 	for (uint16_t n=0; n<1000; n++)
-		ObrotWektoraKwaternionem(p, vq, s);
-	nCzas = MinalCzas(nCzas);
-
-	nCzas = PobierzCzas();
-	for (uint16_t n=0; n<1000; n++)
-		WektorNaKwaternion(p, qp);
-	nCzas = MinalCzas(nCzas);
-
-	nCzas = PobierzCzas();
-	for (uint16_t n=0; n<1000; n++)
-		KwaternionNaWektor(qp, p);
-	nCzas = MinalCzas(nCzas);
-
-	nCzas = PobierzCzas();
-	for (uint16_t n=0; n<1000; n++)
-		KwaternionSprzezony(qz, qs);
-	nCzas = MinalCzas(nCzas);
+		KatyKwaterniona2(qp, vq, (float*)uDaneCM4.dane.fKatIMU2);
+	nCzas = MinalCzas(nCzas);*/
 	return;
 }
 

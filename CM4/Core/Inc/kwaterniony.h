@@ -20,5 +20,7 @@ void ObrotWektoraKwaternionem(float *wektor_we, float *v, float *wektor_wy);
 void WektorNaKwaternion(float *wektor, float *q);
 void KwaternionNaWektor(float *q, float *wektor);
 void KwaternionSprzezony(float *q, float *sprzezony);
+void KatyKwaterniona1(float *qA, float *qM, float *fKaty);
+void KatyKwaterniona2(float *qA, float *qM, float *fKaty);
 
 #endif /* INC_KWATERNIONY_H_ */

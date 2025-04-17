@@ -27,6 +27,7 @@ uint8_t InicjujJednostkeInercyjna(void);
 void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo);
 uint8_t JednostkaInercyjnaKwaterniony2(uint8_t chGniazdo);
 uint8_t JednostkaInercyjnaKwaterniony3(uint8_t chGniazdo);
+uint8_t JednostkaInercyjnaKwaterniony4(uint8_t chGniazdo);
 float FiltrAdaptacyjnyAcc(void);
 void JednostkaInercyjnaMadgwick(void);
 void ObrotWektora(uint8_t chGniazdo);

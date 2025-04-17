@@ -128,7 +128,7 @@ void PetlaGlowna(void)
 		break;
 
 	case 6:	ObliczeniaJednostkiInercujnej(ADR_MOD2);	break;
-	case 7:	JednostkaInercyjnaKwaterniony3(ADR_MOD2);	break;
+	case 7:	JednostkaInercyjnaKwaterniony4(ADR_MOD2);	break;
 	//case 7:	JednostkaInercyjnaMadgwick();		break;
 
 	case 8: chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;

@@ -218,3 +218,47 @@ void KwaternionSprzezony(float *q, float *sprzezony)
 	for (uint8_t n=1; n<4; n++)
 		*(sprzezony+n) = *(q+n) * -1.0f;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Oblicza kąty z wektora podanego jako kwaternion: https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions - Quaternion → Euler angles (z-x-z extrinsic)
+// phi   = atan2((qi*qk + qj*qr), -(qj*qk - qi*qr))
+// theta = arccos(-qi^2 -qj^2 + qk^2 + qr^2)
+// psi   = atan2((qi*qk - qj*qr), (qj*qk + qi*qr))
+// Parametry:
+// [we] *qA - wskaźnik na kwaternion wektora przyspieszenia A = (q0 + iqx + jqy + kqz)
+// [we] *qM - wskaźnik na kwaternion wektora magnetycznego M = (q0 + iqx + jqy + kqz)
+// [wy] *katy - wskaźnik na zmienną z 3 kątami [Phi, Theta, Psi]
+// Zwraca: nic
+// Czas trwania: 2,33us na 200MHz
+////////////////////////////////////////////////////////////////////////////////
+void KatyKwaterniona1(float *qA, float *qM, float *fKaty)
+{
+	*(fKaty+0) = atan2f((*(qA+1) * *(qA+3) + *(qA+2) * *(qA+0)), -1*(*(qA+2) * *(qA+3) - *(qA+1) * *(qA+0)));
+	*(fKaty+1) = acosf((*(qA+0) * *(qA+0)) - (*(qA+1) * *(qA+1)) - (*(qA+2) * *(qA+2)) + (*(qA+3) * *(qA+3)));
+	*(fKaty+2) = atan2f((*(qM+1) * *(qM+3) - *(qM+2) * *(qM+0)), (*(qM+2) * *(qM+3) + *(qM+1) * *(qM+0)));
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Oblicza kąty z wektora podanego jako kwaternion [qr, qi, qj, qk]: https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions - Quaternion → Euler angles (z-y′-x″ intrinsic)
+// Wymaga aby wektory były znormalizowane, bo acosf() przyjmuje tylko liczby z zakresu -1..1
+// phi   = atan2(2*(qr*qi + qj*qk), 1-2*(qi^2 + qj^2))
+// theta = arccos(2*(qr * qj - qk * qi)
+// psi   = atan2(2*(qr*qk + qi*qj), 1-2*(qj^2 + qk^2))
+// Parametry:
+// [we] *qA - wskaźnik na kwaternion wektora przyspieszenia A = (q0 + iqx + jqy + kqz)
+// [we] *qM - wskaźnik na kwaternion wektora magnetycznego M = (q0 + iqx + jqy + kqz)
+// [wy] *katy - wskaźnik na zmienną z 3 kątami [Phi, Theta, Psi]
+// Zwraca: nic
+// Czas trwania: us na 200MHz
+////////////////////////////////////////////////////////////////////////////////
+void KatyKwaterniona2(float *qA, float *qM, float *fKaty)
+{
+	*(fKaty+0) = atan2f(2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2)));
+	*(fKaty+1) = acosf (2 * (*(qA+0) * *(qA+2) - *(qA+3) * *(qA+1)));
+	*(fKaty+2) = atan2f(2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));
+}
