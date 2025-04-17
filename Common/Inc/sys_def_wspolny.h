@@ -24,7 +24,7 @@
 #define RAD2DEG				(180/M_PI)
 #define DEG2RAD				(M_PI/180)
 #define KELVIN				273.15f
-#define AKCEL1G				9.80665		//przelicznik z [g] na [m/s^2]
+#define AKCEL1G				9.80665f		//przelicznik z [g] na [m/s^2]
 
 //definicje temperatur kalibracji żyroskopów
 #define TEMP_KAL_ZIMNO		(10.f + KELVIN)

@@ -39,6 +39,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
   - dodać jakości kąta dla Acc i Mag w zakresie 0-90 na podstawie wartosci składowych wejściowych. Obie zerowe wejściowe dają słabą jakość kąta. Tam gdzie jest 1 tam jakość jest najlepsza
   - dodać funkcję liczącą długość wektora Acc i Mag i na tej podstawie określić progi dla których sygna jest pewny, częściowo poprawny i próg za którym sygnał jest niewiarygodny.
     Dla sygnału częściowo poprawnego wyliczyć współczynnik dla filtra komplementarnego
+  - Pozbyć się zmiennych fZyroSur i fZyroKal zastępując jejedną zmienną o wartości zależnej od kontekstu
 
  * */
 /* USER CODE END Header */

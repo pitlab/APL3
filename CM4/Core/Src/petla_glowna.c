@@ -428,7 +428,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 	extern float fPrzesMagn2[3], fSkaloMagn2[3];
 	extern float fPrzesMagn3[3], fSkaloMagn3[3];
 	uint8_t chErr = ERR_OK;
-	int16_t sZeZnakiem;
+	int16_t sZeZnakiem;	//zmiena robocza do konwersji dnych 8-bitowych bez zanku na liczbę 16-bitową ze znakiem
 
 	if (*chCzujniki & MAG_HMC)
 	{
@@ -438,11 +438,13 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 			uDaneCM4.dane.fMagne3[0] = (float)sZeZnakiem;			//dane surowe podczas kalibracji magnetometru
 		else
 			uDaneCM4.dane.fMagne3[0] = ((float)sZeZnakiem - fPrzesMagn3[0]) * fSkaloMagn3[0];	//dane skalibrowane
+
 		sZeZnakiem = (int16_t)chDaneMagHMC[4] * 0x100 + chDaneMagHMC[5];	//oś Y
 		if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
 			uDaneCM4.dane.fMagne3[1] = (float)sZeZnakiem;			//dane surowe podczas kalibracji magnetometru
 		else
 			uDaneCM4.dane.fMagne3[1] = ((float)sZeZnakiem - fPrzesMagn3[1]) * fSkaloMagn3[1];	//dane skalibrowane
+
 		sZeZnakiem = (int16_t)chDaneMagHMC[2] * 0x100 + chDaneMagHMC[3];	//oś Z
 		if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
 			uDaneCM4.dane.fMagne3[2] = (float)sZeZnakiem;			//dane surowe podczas kalibracji magnetometru

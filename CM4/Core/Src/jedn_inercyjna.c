@@ -131,7 +131,7 @@ void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-// Obliczenia metoda kwaternionow bazujace na samym IMU
+// Obliczenia metoda kwaternionow bazujace na samym IMU - funkcja z APL2
 // zrodlo przeksztalcenia ze strony en.wikipedia.org/wiki/Rotation_representation_(mathematics)
 // Parametry: chGniazdo - numer gniazda w którym jest moduł IMU
 // ax, ay, az - wartości przyspieszenia z akcelerometru
@@ -336,7 +336,7 @@ uint8_t JednostkaInercyjnaKwaterniony3(uint8_t chGniazdo)
 	static float fModelAcc[3];	//modelowany wektor przyspieszenia ziemskiego, obracany żyroskopami synchronizowany z akcelerometrem
 	static float fModelMag[3];	//modelowany wektor magnetyczny, obracany żyroskopami synchronizowany z magnetometrem
 	float r[3], s[3];	//zmienne robocze
-	float fPrzyspRuchu;	//przyspieszenie wynikające ze zmiany predkości
+	float fWspFiltraAcc;	//współczynnik filtra adaptacyjnego, przyjmuje wartości z zakresu 0..1
 
 	//Wyznaczam kwaterniony obrotów w formie algebraicznej korzystając z danych wejściowych wprowadzonych do formy trygonometrycznej
 	//qz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
@@ -369,16 +369,12 @@ uint8_t JednostkaInercyjnaKwaterniony3(uint8_t chGniazdo)
 	ObrotWektoraKwaternionem(s, fQx, fModelAcc);
 
 	//Filtr adaptacyjny: określa wartość przyspieszeń wynikających z ruchu i od nich uzależnia sposób synchronizacji
-	fPrzyspRuchu = 0.0f;
-	for (uint8_t n=0; n<3; n++)
-		fPrzyspRuchu += uDaneCM4.dane.fAkcel1[n] * uDaneCM4.dane.fAkcel1[n] + uDaneCM4.dane.fAkcel2[n] * uDaneCM4.dane.fAkcel2[n];	//suma kwadratów obu akcelerometrów
-	fPrzyspRuchu = sqrtf(fPrzyspRuchu / 2);	//średnia bezwzgledna wartość przyspieszenia
-	fPrzyspRuchu = (fPrzyspRuchu - AKCEL1G) / AKCEL1G;	//wartość przyspieszenia wynikającego ze zmiany prędkości
+	fWspFiltraAcc = FiltrAdaptacyjnyAcc();
 	//okreslić funkcję dobierajacą wspólczynnik filtracji na podstawie wartosci przyspieszenia wynikajacego z ruchu i użyć jej zamiast stałych w ponizszym równaniu
 
-	//synchronizuj ze zmierzonym przyspieszeniem za pomocą filtra komplementarnego
+	//synchronizuj modelowy wektor przyspieszenia  ze zmierzonym przyspieszeniem za pomocą filtra komplementarnego o wspólczynniku okreslonym przez filtr adaptacyjny
 	for (uint8_t n=0; n<3; n++)
-		fModelAcc[n] = (14 * fModelAcc[n] + uDaneCM4.dane.fAkcel1[n] + uDaneCM4.dane.fAkcel2[n])/16;
+		fModelAcc[n] = (1.0f - fWspFiltraAcc) * fModelAcc[n] + fWspFiltraAcc * (uDaneCM4.dane.fAkcel1[n] + uDaneCM4.dane.fAkcel2[n]) / 2;
 
 	//obroć model pola magnetycznego
 	ObrotWektoraKwaternionem(fModelMag, fQz, r);
@@ -395,14 +391,42 @@ uint8_t JednostkaInercyjnaKwaterniony3(uint8_t chGniazdo)
 	//oblicz finalne kąty wzraone w radianach
 	uDaneCM4.dane.fKatIMU2[0] = atan2f(fModelAcc[2], fModelAcc[1]) - 90 * DEG2RAD;		//kąt przechylenia z akcelerometru: tan(Z/Y)
 	uDaneCM4.dane.fKatIMU2[1] = atan2f(fModelAcc[2], fModelAcc[0]) - 90 * DEG2RAD;		//kąt pochylenia z akcelerometru: tan(Z/X)
-	uDaneCM4.dane.fKatIMU2[2] = atan2f(fModelMag[1], fModelMag[0]);						//kąt odchylenia z magnetometru: tan(y/x)
+	uDaneCM4.dane.fKatIMU2[2] = atan2f(fModelMag[1], fModelMag[0]) + 90 * DEG2RAD;		//kąt odchylenia z magnetometru: tan(y/x)
 	return ERR_OK;
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Funkcja liczy na ile pomiar akcelerometrów jest zaburzony przyspieszeniami wynikającymi z ruchu (przypsieszenia liniowe i odśrodkowe) i
+// na tej podstawie wylicza wartość współczynnika dla filtra komplementarnego
+// Zwraca: wartość filtra komplementarnego
+// Czas trwania: ?
+////////////////////////////////////////////////////////////////////////////////
+float FiltrAdaptacyjnyAcc(void)
+{
+	float fPrzyspRuchu;	//przyspieszenie wynikające ze zmiany predkości
+	float fWspFiltra;	//współczynnik filtra komplementarnego
+	fPrzyspRuchu = 0.0f;
+	for (uint8_t n=0; n<3; n++)
+		fPrzyspRuchu += uDaneCM4.dane.fAkcel1[n] * uDaneCM4.dane.fAkcel1[n] + uDaneCM4.dane.fAkcel2[n] * uDaneCM4.dane.fAkcel2[n];	//suma kwadratów obu akcelerometrów
+	fPrzyspRuchu = sqrtf(fPrzyspRuchu / 2);	//średnia bezwzględna długość wektora przyspieszenia
+	fPrzyspRuchu = (fPrzyspRuchu - AKCEL1G) / AKCEL1G;	//wartość przyspieszenia wynikającego ze zmiany prędkości
 
+	if (fPrzyspRuchu < PROG_ACC_DOBRY)	//poziom zakłóceń akceptowalny, można w pełni kompensować dryft kątów akcelerometrem
+		fWspFiltra = WSP_FILTRA_ADAPT;
+	else
+	if (fPrzyspRuchu > PROG_ACC_ZLY)	//poziom zakłóceń nieakceptowalny, filtr komplementarny powinien polegać na samych żyroskopach
+		fWspFiltra = 0.0f;
+	else								//poziom zakłóceń pośredni, liniowo skaluj między 0 a 1
+		fWspFiltra = WSP_FILTRA_ADAPT * (PROG_ACC_ZLY - fPrzyspRuchu) / (PROG_ACC_ZLY - PROG_ACC_DOBRY);
+	return fWspFiltra;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja do testowania i pomiaru parametrów algorytmów
 // Zwraca: nic
 // Czas trwania: ?
 ////////////////////////////////////////////////////////////////////////////////
