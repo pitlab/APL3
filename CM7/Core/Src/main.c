@@ -4,7 +4,7 @@
 // AutoPitLot v3.0
 // Moduł pętli głównej obługi multimediów na rdzeniu Cortex-M7
 //
-// (c) PitLab 2024
+// (c) PitLab 2024-25
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 /* Pamięć (adresowanie bajtami):

@@ -16,7 +16,8 @@
 extern volatile unia_wymianyCM4_t uDaneCM4;
 extern SPI_HandleTypeDef hspi2;
 extern float fOffsetZyro2[3];
-const int8_t chZnakZyro2[3] = {-1, 1, -1};	//korekcja znaku prędkości żyroskopów
+extern int8_t chZnakZyro[3];	//korekcja znaku prędkości żyroskopów
+extern int8_t chZnakAkcel[3];	//korekcja znaku akcelerometrów
 extern WspRownProstej3_t stWspKalOffsetuZyro2;		//współczynniki równania prostych do estymacji offsetu
 //float fZyroSur2[3];		//surowe nieskalibrowane prędkosci odczytane z żyroskopu 2
 extern float fWzmocnZyro2[3];
@@ -107,8 +108,8 @@ uint8_t ObslugaLSM6DSV(void)
 
 		for (uint16_t n=0; n<3; n++)
 		{
-			uDaneCM4.dane.fAkcel2[n] = (float)((int16_t)(chDane[2*n+10] <<8) + chDane[2*n+9]) * (8.0 * AKCEL1G / 32768.0);		//+-8g -> [m/s^2]
-			uDaneCM4.dane.fZyroSur2[n] = (float)((int16_t)(chDane[2*n+4] <<8)  + chDane[2*n+3]) * (1000.0 * DEG2RAD / 32768.0) * chZnakZyro2[n];	//+-1000°/s -> [rad/s]
+			uDaneCM4.dane.fAkcel2[n] = (float)((int16_t)(chDane[2*n+10] <<8) + chDane[2*n+9]) * (8.0 * AKCEL1G / 32768.0) * chZnakAkcel[n];		//+-8g -> [m/s^2]
+			uDaneCM4.dane.fZyroSur2[n] = (float)((int16_t)(chDane[2*n+4] <<8)  + chDane[2*n+3]) * (1000.0 * DEG2RAD / 32768.0) * chZnakZyro[n];	//+-1000°/s -> [rad/s]
 			uDaneCM4.dane.fZyroKal2[n] = uDaneCM4.dane.fZyroSur2[n] * fWzmocnZyro2[n] - fOffsetZyro2[n];	//żyro po kalibracji offsetu i wzmocnienia
 		}
 	}

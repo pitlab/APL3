@@ -222,7 +222,7 @@ void KwaternionSprzezony(float *q, float *sprzezony)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Oblicza kąty z wektora podanego jako kwaternion: https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions - Quaternion → Euler angles (z-x-z extrinsic)
+// Oblicza kąty z wektora podanego jako kwaternion: https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions - Quaternion → Euler angles (z-x-z extrinsic - czyli zewnętrzny ukłąd odniesienia)
 // phi   = atan2((qi*qk + qj*qr), -(qj*qk - qi*qr))
 // theta = arccos(-qi^2 -qj^2 + qk^2 + qr^2)
 // psi   = atan2((qi*qk - qj*qr), (qj*qk + qi*qr))
@@ -244,7 +244,7 @@ void KatyKwaterniona1(float *qA, float *qM, float *fKaty)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Oblicza kąty z wektora podanego jako kwaternion [qr, qi, qj, qk]: https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions - Quaternion → Euler angles (z-y′-x″ intrinsic)
+// Oblicza kąty z wektora podanego jako kwaternion [qr, qi, qj, qk]: https://en.wikipedia.org/wiki/Rotation_formalisms_in_three_dimensions - Quaternion → Euler angles (z-y′-x″ intrinsic - czyli lokalny układ odniesienia)
 // Wymaga aby wektory były znormalizowane, bo acosf() przyjmuje tylko liczby z zakresu -1..1
 // phi   = atan2(2*(qr*qi + qj*qk), 1-2*(qi^2 + qj^2))
 // theta = arccos(2*(qr * qj - qk * qi)

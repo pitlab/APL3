@@ -127,39 +127,13 @@ void PetlaGlowna(void)
 		chErrPG |= RozdzielniaOperacjiI2C();
 		break;
 
-	case 6:	ObliczeniaJednostkiInercujnej(ADR_MOD2);	break;
-	case 7:	JednostkaInercyjnaKwaterniony4(ADR_MOD2);	break;
-	//case 7:	JednostkaInercyjnaMadgwick();		break;
+	case 6:	ObliczeniaJednostkiInercujnej(ADR_MOD2);	break;	//dane do IMU1
+	case 7:	JednostkaInercyjnaKwaterniony4(ADR_MOD2);	break;	//dane do IMU2
+	case 8:		break;
+	case 9:		break;
+	case 10:	break;
+	case 11: chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;
 
-	case 8: chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;
-
-	case 9:
-		/*FramDataWriteFloat(FAH_ZYRO1_TEMP_ZIM, 10.11);
-		FramDataWriteFloat(FAH_ZYRO2_TEMP_ZIM, 10.12);
-		FramDataWriteFloat(FAH_ZYRO1_TEMP_POK, 25.13);
-		FramDataWriteFloat(FAH_ZYRO2_TEMP_POK, 25.14);
-		FramDataWriteFloat(FAH_ZYRO1_TEMP_GOR, 40.15);
-		FramDataWriteFloat(FAH_ZYRO2_TEMP_GOR, 40.16);*/
-		break;
-
-	case 10:
-		//InicjujModulI2P();
-		//static uint8_t chFramBuf1[24];
-		//CzytajBuforFRAM(FAH_ZYRO_TEMP, chFramBuf1, 24);
-		/*static uint8_t chFramBuf2[36];
-		CzytajBuforFRAM(FAH_MOD_ZYRO1, chFramBuf2, 36);
-		static uint8_t chFramBuf3[36];
-		CzytajBuforFRAM(FAH_MOD_ZYRO2, chFramBuf3, 36);*/
-		break;
-
-	case 11:
-		/*static float fTemp1[3], fTemp2[3];
-		for (uint16_t n=0; n<3; n++)
-		{
-			fTemp1[n] = FramDataReadFloat(FAH_ZYRO1_TEMP_ZIM+(4*n));	//temepratury żyroskopu 1
-			fTemp2[n] = FramDataReadFloat(FAH_ZYRO2_TEMP_ZIM+(4*n));	//temepratury żyroskopu 2
-		}*/
-		break;
 
 	case 12:	//test przekazywania napisów
 		chGeneratorNapisow++;
