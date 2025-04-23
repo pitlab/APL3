@@ -444,7 +444,8 @@ uint8_t JednostkaInercyjnaKwaterniony4(uint8_t chGniazdo)
 {
 	float fdPhi2, fdTheta2, fdPsi2;	//połowy przyrostu kąta obrotu
 	float fQx[4], fQy[4], fQz[4];	//kwaterniony obortów wokół osi XYZ
-	float fQzy[4], fQzyx[4], fQs[4], fQ[4];
+	//float fQzy[4], fQzyx[4],
+	float fQs[4], fQ[4];
 	//float fWspFiltraAcc;
 	//float fAccNorm[3], fNorm;
 
@@ -459,7 +460,7 @@ uint8_t JednostkaInercyjnaKwaterniony4(uint8_t chGniazdo)
 
 	//fQy = cos (theta/2) + (1 / sqrt(x^2 + y^2 + z^2)*j) * sin (theta/2)
 	fdTheta2 = uDaneCM4.dane.fZyroKal1[1] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
-	fdTheta2 = 1.0f * DEG2RAD / 2;
+	fdTheta2 = 0.2f * DEG2RAD / 2;
 	fQy[0] = cosf(fdTheta2);
 	fQy[1] = 0;
 	fQy[2] = sinf(fdTheta2);
@@ -475,8 +476,8 @@ uint8_t JednostkaInercyjnaKwaterniony4(uint8_t chGniazdo)
 	fQx[2] = 0;
 	fQx[3] = 0;
 
-	//składanie 3 obrotów w jeden
-	MnozenieKwaternionow(fQy, fQz, fQzy);	//obrót najpierw wokół Z * Y
+	//składanie 3 obrotów w jeden - to nie działa
+	/*MnozenieKwaternionow(fQy, fQz, fQzy);	//obrót najpierw wokół Z * Y
 	MnozenieKwaternionow(fQx, fQzy, fQzyx);	//potem obrót ZY * X
 
 	//obroty wektorów przyspieszenia i magnetycznego
@@ -486,6 +487,33 @@ uint8_t JednostkaInercyjnaKwaterniony4(uint8_t chGniazdo)
 	MnozenieKwaternionow(fQ, fQs, fQa);
 
 	MnozenieKwaternionow(fQm, fQzyx, fQ);
+	MnozenieKwaternionow(fQ, fQs, fQm);*/
+
+	//obrót wokół Z
+	KwaternionSprzezony(fQz, fQs);		//kwaternion sprzężony ma taką samą część rzeczywistą i ujemne części urojone
+	MnozenieKwaternionow(fQz, fQa, fQ);	// Wykonuję pierwsze mnożenie q * v
+	//MnozenieKwaternionow(fQs, fQ, fQa);	//wykonuję drugie mnożenie (qv) * q*
+	//MnozenieKwaternionow(fQa, fQz, fQ);	// Wykonuję pierwsze mnożenie q * v
+	MnozenieKwaternionow(fQ, fQs, fQa);	//wykonuję drugie mnożenie (qv) * q*
+	MnozenieKwaternionow(fQz, fQm, fQ);
+	MnozenieKwaternionow(fQ, fQs, fQm);
+
+	//obrót wokół Y
+	KwaternionSprzezony(fQy, fQs);
+	MnozenieKwaternionow(fQy, fQa, fQ);
+	//MnozenieKwaternionow(fQs, fQ, fQa);
+	//MnozenieKwaternionow(fQa, fQy, fQ);
+	MnozenieKwaternionow(fQ, fQs, fQa);
+	MnozenieKwaternionow(fQy, fQm, fQ);
+	MnozenieKwaternionow(fQ, fQs, fQm);
+
+	//obrót wokól X
+	KwaternionSprzezony(fQx, fQs);
+	MnozenieKwaternionow(fQx, fQa, fQ);
+	//MnozenieKwaternionow(fQs, fQ, fQa);
+	//MnozenieKwaternionow(fQa, fQx, fQ);
+	MnozenieKwaternionow(fQ, fQs, fQa);
+	MnozenieKwaternionow(fQx, fQm, fQ);
 	MnozenieKwaternionow(fQ, fQs, fQm);
 
 	//normalizuj wektor przyspieszenia, bo wymaga tego acosf() w funkcji liczenia kątów
@@ -506,7 +534,27 @@ uint8_t JednostkaInercyjnaKwaterniony4(uint8_t chGniazdo)
 	} */
 
 	//wyodrębnij bieżące kąty Eulera
-	KatyKwaterniona2(fQa, fQm, (float*)uDaneCM4.dane.fKatIMU2);
+	//KatyKwaterniona2(fQa, fQm, (float*)uDaneCM4.dane.fKatIMU2);
+
+	/*uDaneCM4.dane.fKatIMU2[0] = asinf(fQa[1]);
+	uDaneCM4.dane.fKatIMU2[1] = asinf(fQa[2]);
+	uDaneCM4.dane.fKatIMU2[2] = asinf(fQa[3]);*/
+
+	//Oblicz katy Eulera: Phi, Theta, Psi - https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+	//obrót wokół X jest OK, ale odchylenie zmienia się w -pi i w 0
+	//obrót wokół Z nie działa
+	//obrót wokół Y
+	uDaneCM4.dane.fKatIMU2[0] = atan2f(2 * (fQa[0]*fQa[1] + fQa[2]*fQa[3]), 1 - 2 *(fQa[1]*fQa[1] + fQa[2]*fQa[2]));
+	uDaneCM4.dane.fKatIMU2[1] = asinf( 2 * (fQa[0]*fQa[2] - fQa[1]*fQa[3]));
+	uDaneCM4.dane.fKatIMU2[2] = atan2f(2 * (fQa[0]*fQa[3] + fQa[1]*fQa[2]), 1 - 2 *(fQa[2]*fQa[2] + fQa[3]*fQa[3]));
+
+
+	//Konwersja z kwaternionu na kąty Eulera: Phi, Theta, Psi ze strony: http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
+	//dla obrotu wokół Y zmienia się odchylenie (źle!) i to nierowną sinusoidą (źle)
+	//dla obrotu wokół X zmienia się przechylenie (OK) nierowną sinusoidą (źle)
+	/*uDaneCM4.dane.fKatIMU2[0] = atan2f(2 * (fQa[1]*fQa[0] + fQa[2]*fQa[3]), 1 - 2 *(fQa[1]*fQa[1] - fQa[3]*fQa[3]));	//bank
+	uDaneCM4.dane.fKatIMU2[1] = asinf( 2 * (fQa[1]*fQa[2] + fQa[3]*fQa[0]));											//attitude
+	uDaneCM4.dane.fKatIMU2[2] = atan2f(2 * (fQa[2]*fQa[0] - fQa[1]*fQa[3]), 1 - 2 *(fQa[2]*fQa[2] - fQa[3]*fQa[3]));	//heading*/
 
 	uint8_t x = 5;
 	if (x == 1)
