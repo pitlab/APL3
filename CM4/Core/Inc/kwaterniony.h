@@ -10,8 +10,6 @@
 
 #include "sys_def_CM4.h"
 
-//void MnozenieKwaternionow1(float a1, float b1, float c1, float d1, float a2, float b2, float c2, float d2, float *wynik);
-//void MnozenieKwaternionow2(float *q, float *p, float *wynik);
 void MnozenieKwaternionow(float *q, float *p, float *wynik);
 void KwaternionNaMacierz(float *q, float *m);
 void MacierzNaKwaternion(float  *m, float *q);
@@ -20,7 +18,9 @@ void ObrotWektoraKwaternionem(float *wektor_we, float *v, float *wektor_wy);
 void WektorNaKwaternion(float *wektor, float *q);
 void KwaternionNaWektor(float *q, float *wektor);
 void KwaternionSprzezony(float *q, float *sprzezony);
-void KatyKwaterniona1(float *qA, float *qM, float *fKaty);
-void KatyKwaterniona2(float *qA, float *qM, float *fKaty);
+//void KatyKwaterniona1(float *qA, float *qM, float *fKaty);
+//void KatyKwaterniona2(float *qA, float *qM, float *fKaty);
+void KatyKwaterniona(float *qA, float *qM, float *fKaty);
+void Normalizuj(float * fWe, float *fWy, uint8_t chRozmiar);
 
 #endif /* INC_KWATERNIONY_H_ */

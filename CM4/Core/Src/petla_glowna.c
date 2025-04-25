@@ -127,8 +127,8 @@ void PetlaGlowna(void)
 		chErrPG |= RozdzielniaOperacjiI2C();
 		break;
 
-	case 6:	ObliczeniaJednostkiInercujnej(ADR_MOD2);	break;	//dane do IMU1
-	case 7:	JednostkaInercyjnaKwaterniony4(ADR_MOD2);	break;	//dane do IMU2
+	case 6:	JednostkaInercyjna1Trygonometria(ADR_MOD2);	break;	//dane do IMU1
+	case 7:	JednostkaInercyjna4Kwaterniony(ADR_MOD2);	break;	//dane do IMU2
 	case 8:		break;
 	case 9:		break;
 	case 10:	break;
@@ -232,7 +232,7 @@ void PetlaGlowna(void)
 	//nadwyżkę czasu odcinka wytrać w jałowej petli
 	do
 	{
-		__WFI();	//uśpij kontroler w oczekwianiu na przerwanie od czegokolwiek np timera 7 mierzącego czas
+		__WFI();	//uśpij kontroler w oczekwianiu na przerwanie od czegokolwiek np. timera 7 mierzącego czas
 		nCzasJalowy = PobierzCzas() - nCzasOstatniegoOdcinka;
 	}
 	while (nCzasJalowy < CZAS_ODCINKA);
@@ -402,28 +402,28 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 	extern float fPrzesMagn2[3], fSkaloMagn2[3];
 	extern float fPrzesMagn3[3], fSkaloMagn3[3];
 	uint8_t chErr = ERR_OK;
-	int16_t sZeZnakiem;	//zmiena robocza do konwersji dnych 8-bitowych bez zanku na liczbę 16-bitową ze znakiem
+	int16_t sZeZnakiem;	//zmiena robocza do konwersji dnych 8-bitowych bez znaku na liczbę 16-bitową ze znakiem
 
 	if (*chCzujniki & MAG_HMC)
 	{
 		//Uwaga! Czujnik HMS5883L ma osie w nietypowej kolejności XZY, więc konwersję trzeba zrobić ręcznie poza pętlą
 		sZeZnakiem = (int16_t)chDaneMagHMC[0] * 0x100 + chDaneMagHMC[1];	//oś X
 		if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
-			uDaneCM4.dane.fMagne3[0] = (float)sZeZnakiem;			//dane surowe podczas kalibracji magnetometru
+			uDaneCM4.dane.fMagne3[0] = (float)sZeZnakiem * CZULOSC_HMC5883;			//dane surowe podczas kalibracji magnetometru wyrażone w Teslach
 		else
-			uDaneCM4.dane.fMagne3[0] = ((float)sZeZnakiem - fPrzesMagn3[0]) * fSkaloMagn3[0];	//dane skalibrowane
+			uDaneCM4.dane.fMagne3[0] = ((float)sZeZnakiem * CZULOSC_HMC5883 - fPrzesMagn3[0]) * fSkaloMagn3[0];	//dane skalibrowane
 
 		sZeZnakiem = (int16_t)chDaneMagHMC[4] * 0x100 + chDaneMagHMC[5];	//oś Y
 		if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
-			uDaneCM4.dane.fMagne3[1] = (float)sZeZnakiem;			//dane surowe podczas kalibracji magnetometru
+			uDaneCM4.dane.fMagne3[1] = (float)sZeZnakiem * CZULOSC_HMC5883;			//dane surowe podczas kalibracji magnetometru
 		else
-			uDaneCM4.dane.fMagne3[1] = ((float)sZeZnakiem - fPrzesMagn3[1]) * fSkaloMagn3[1];	//dane skalibrowane
+			uDaneCM4.dane.fMagne3[1] = ((float)sZeZnakiem * CZULOSC_HMC5883 - fPrzesMagn3[1]) * fSkaloMagn3[1];	//dane skalibrowane
 
 		sZeZnakiem = (int16_t)chDaneMagHMC[2] * 0x100 + chDaneMagHMC[3];	//oś Z
 		if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
-			uDaneCM4.dane.fMagne3[2] = (float)sZeZnakiem;			//dane surowe podczas kalibracji magnetometru
+			uDaneCM4.dane.fMagne3[2] = (float)sZeZnakiem * CZULOSC_HMC5883;			//dane surowe podczas kalibracji magnetometru
 		else
-			uDaneCM4.dane.fMagne3[2] = ((float)sZeZnakiem - fPrzesMagn3[2]) * fSkaloMagn3[2];	//dane skalibrowane
+			uDaneCM4.dane.fMagne3[2] = ((float)sZeZnakiem * CZULOSC_HMC5883 - fPrzesMagn3[2]) * fSkaloMagn3[2];	//dane skalibrowane
 		*chCzujniki &= ~MAG_HMC;	//dane obsłużone
 		uDaneCM4.dane.chNowyPomiar |= NP_MAG3;	//jest nowy pomiar
 	}

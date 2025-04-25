@@ -44,14 +44,10 @@ extern volatile unia_wymianyCM7_t uDaneCM7;
 //float fKatZyroskopu1[3], fKatZyroskopu2[3];		//całka z prędkosci kątowej żyroskopów
 float fKatAkcel1[3], fKatAkcel2[3];					//kąty pochylenia i przechylenia policzone z akcelerometru
 extern float fOffsetZyro1[3], fOffsetZyro2[3];
-float q0 = 1.0, q1 = 0.0, q2 = 0.0, q3 = 0.0;   	//kwaterniony
-float exInt = 0, eyInt = 0, ezInt = 0;				// scaled integral error
 
-static float fModelAcc[3] = {0.0f, 0.0f, 9.8f};	//modelowany wektor przyspieszenia ziemskiego, obracany żyroskopami synchronizowany z akcelerometrem
-static float fModelMag[3] = {0.0f, 1.0f, 0.0f};	//modelowany wektor magnetyczny, obracany żyroskopami synchronizowany z magnetometrem
 
-static float fQa[4] = {0.0f, 0.0f, 0.0f, 1.0f};	//kwaternion wektora przyspieszenia
-static float fQm[4] = {0.0f, 0.0f, 1.0f, 0.0f};	//kwaternion wektora magnetycznego
+static float fQAcc[4] = {0.0f, 0.0f, 0.0f, 1.0f};	//kwaternion wektora przyspieszenia
+static float fQMag[4] = {0.0f, 0.0f, NOMINALNE_MAGN, 0.0f};	//kwaternion wektora magnetycznego
 
 
 
@@ -81,9 +77,9 @@ uint8_t InicjujJednostkeInercyjna(void)
 // Wykonuje obliczenia jednostki inercyjnej metodą filtra komplementarnego łaczącego całkę z prędkosci kątowych i kąty obliczone na podstawie równań trygonometrycznych z akcelerometrów
 // Parametry: chGniazdo - numer gniazda w którym jest moduł IMU
 // Zwraca: kod błędu
-// Czas trwania: ?
+// Czas trwania: 24us @200Hz
 ////////////////////////////////////////////////////////////////////////////////
-void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
+uint8_t JednostkaInercyjna1Trygonometria(uint8_t chGniazdo)
 {
 	//licz całkę z prędkosci kątowych żyroskopów
 	for (uint16_t n=0; n<3; n++)
@@ -132,122 +128,7 @@ void ObliczeniaJednostkiInercujnej(uint8_t chGniazdo)
 		uDaneCM4.dane.fKatIMU1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;
 		uDaneCM4.dane.fKatIMU1[n] = 0.05 * uDaneCM4.dane.fKatIMUAkcel1[n] + 0.95 * uDaneCM4.dane.fKatIMU1[n];
 	}
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////
-// Obliczenia metoda kwaternionow bazujace na samym IMU - funkcja z APL2
-// zrodlo przeksztalcenia ze strony en.wikipedia.org/wiki/Rotation_representation_(mathematics)
-// Parametry: chGniazdo - numer gniazda w którym jest moduł IMU
-// ax, ay, az - wartości przyspieszenia z akcelerometru
-// gx, gy, gz - prędkosci kątowe z żyroskopu [rad/s]
-// Zwraca: kod błędu
-// Czas trwania: ?
-////////////////////////////////////////////////////////////////////////////////
-uint8_t JednostkaInercyjnaKwaterniony2(uint8_t chGniazdo)
-{
-    float fdTime;
-    float fNormal;
-    float s0, s1, s2, s3;
-    float ax,ay,az,gx,gy,gz;
-    float beta = 0.1f;
-    float qDot1, qDot2, qDot3, qDot4;
-    float _2q0, _2q1, _2q2, _2q3, _4q0, _4q1, _4q2 ,_8q1, _8q2, q0q0, q1q1, q2q2, q3q3;
-
-    //sprawdź czas aby wyeliminować sytuacje początkowe lub długie przestoje
-    if (ndT[chGniazdo] > 2*1000000/CZESTOTLIWOSC_PETLI) //czas [us] nie powinien być większy niż 2 obiegi petli
-        return ERR_ZA_DLUGO;
-
-    //czas od poprzedniego pomiaru w sekundach
-    fdTime = ndT[chGniazdo] * 1.0e-6;
-
-    //przypisz wartości do zmiennych roboczych
-    ax = uDaneCM4.dane.fAkcel1[0];
-    ay = uDaneCM4.dane.fAkcel1[1];
-    az = uDaneCM4.dane.fAkcel1[2];
-    gx = uDaneCM4.dane.fZyroKal1[0];
-    gy = uDaneCM4.dane.fZyroKal1[1];
-    gz = uDaneCM4.dane.fZyroKal1[2];
-
-    //kwaternion prędkosci katowej
-    qDot1 = 0.5f * (-q1 * gx - q2 * gy - q3 * gz);
-    qDot2 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
-    qDot3 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
-    qDot4 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
-
-    //licz tylko gdy składowe przyspieszenia ziemskiego sa niezerowe aby uniknąć dzielenia przez zero przy normalizacji
-    if(!((ax == 0.0f) && (ay == 0.0f) && (az == 0.0f)))
-    {
-        //normalizuj dugość wektora przyspieszenia
-    	fNormal = sqrt(ax * ax + ay * ay + az * az);
-        ax /= fNormal;
-        ay /= fNormal;
-        az /= fNormal;
-
-        //zmienne pomocnicze aby uniknąć wielokrotnych obliczeń tego smego
-        _2q0 = 2.0f * q0;
-        _2q1 = 2.0f * q1;
-        _2q2 = 2.0f * q2;
-        _2q3 = 2.0f * q3;
-        _4q0 = 4.0f * q0;
-        _4q1 = 4.0f * q1;
-        _4q2 = 4.0f * q2;
-        _8q1 = 8.0f * q1;
-        _8q2 = 8.0f * q2;
-        q0q0 = q0 * q0;
-        q1q1 = q1 * q1;
-        q2q2 = q2 * q2;
-        q3q3 = q3 * q3;
-
-        // Gradient decent algorithm corrective step
-        s0 = _4q0 * q2q2 + _2q2 * ax + _4q0 * q1q1 - _2q1 * ay;
-        s1 = _4q1 * q3q3 - _2q3 * ax + 4.0f * q0q0 * q1 - _2q0 * ay - _4q1 + _8q1 * q1q1 + _8q1 * q2q2 + _4q1 * az;
-        s2 = 4.0f * q0q0 * q2 + _2q0 * ax + _4q2 * q3q3 - _2q3 * ay - _4q2 + _8q2 * q1q1 + _8q2 * q2q2 + _4q2 * az;
-        s3 = 4.0f * q1q1 * q3 - _2q1 * ax + 4.0f * q2q2 * q3 - _2q2 * ay;
-
-        //normalizuj odpowiedź
-        fNormal = sqrt(s0 * s0 + s1 * s1 + s2 * s2 + s3 * s3);
-        s0 /= fNormal;
-        s1 /= fNormal;
-        s2 /= fNormal;
-        s3 /= fNormal;
-
-        // Apply feedback step
-        qDot1 -= beta * s0;
-        qDot2 -= beta * s1;
-        qDot3 -= beta * s2;
-        qDot4 -= beta * s3;
-    }
-
-    //całkuj kwaternion z prędkosciami katowymi
-    q0 += qDot1 * fdTime;
-    q1 += qDot2 * fdTime;
-    q2 += qDot3 * fdTime;
-    q3 += qDot4 * fdTime;
-
-    //normalizuj kwaternion z kątami
-    fNormal = sqrtf(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
-    q0 /= fNormal;
-    q1 /= fNormal;
-    q2 /= fNormal;
-    q3 /= fNormal;
-
-    //Oblicz katy Eulera: Phi, Theta, Psi
-    uDaneCM4.dane.fKatIMU2[0] = atan2f(2 * (q0*q1 + q2*q3), 1 - 2 *(q1*q1 + q2*q2));
-    uDaneCM4.dane.fKatIMU2[1] = asinf( 2 * (q0*q2 - q1*q3));
-    uDaneCM4.dane.fKatIMU2[2] = atan2f(2 * (q0*q3 + q1*q2), 1 - 2 *(q2*q2 + q3*q3));
-
-    //ogranicz wartość kątów w zakresie -Pi..Pi
-    for(uint8_t x=0; x<3; x++)
-    {
-        if (uDaneCM4.dane.fKatIMU2[x] > M_PI)
-        	uDaneCM4.dane.fKatIMU2[x] -= M_PI;
-        else
-        if (uDaneCM4.dane.fKatIMU2[x] < -M_PI)
-        	uDaneCM4.dane.fKatIMU2[x] += M_PI;
-    }
-    return ERR_OK;
+	return ERR_OK;
 }
 
 
@@ -257,6 +138,8 @@ uint8_t JednostkaInercyjnaKwaterniony2(uint8_t chGniazdo)
 // Zwraca: kod błędu
 // Czas trwania: ?
 ////////////////////////////////////////////////////////////////////////////////
+float q0 = 1.0, q1 = 0.0, q2 = 0.0, q3 = 0.0;   	//kwaterniony
+float exInt = 0, eyInt = 0, ezInt = 0;				// scaled integral error
 void JednostkaInercyjnaMadgwick(void)
 {
 	float norm;
@@ -329,34 +212,37 @@ void JednostkaInercyjnaMadgwick(void)
 
 
 
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja obraca wektory przyspieszenia i magnetyczny o kąty uzyskane z całkowania prędkosci katowej, nastepnie synchronizuje je z rzeczywistymi pomiarami
+// Funkcja przechowuje wektory przyspieszenia i magnetyczny w kwaternionach qAcc i qMag, obraca je o kąty uzyskane z całkowania prędkosci katowej
 // Parametry: chGniazdo - numer gniazda w którym jest moduł IMU
 // Zwraca: nic
-// Czas trwania: ?
-// Uwagi: Użycie funkcji trygonometrycznych do określania kąta pododuje że podczas obrotu wokół X zmienia się nie tylko kąt phi, ale katy theta i psi przeskakują z -Pi/2 do Pi/2
-//  a podczas obrotu wokół Y zmienia się nie tylko theta, ale też psi przeskakuje z -Pi/2 do Pi/2
+// Czas trwania: 39us @200Hz
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t JednostkaInercyjnaKwaterniony3(uint8_t chGniazdo)
+uint8_t JednostkaInercyjna4Kwaterniony(uint8_t chGniazdo)
 {
 	float fdPhi2, fdTheta2, fdPsi2;	//połowy przyrostu kąta obrotu
 	float fQx[4], fQy[4], fQz[4];	//kwaterniony obortów wokół osi XYZ
-	float r[3], s[3];	//zmienne robocze
-	//float fWspFiltraAcc;	//współczynnik filtra adaptacyjnego, przyjmuje wartości z zakresu 0..1
+	float fQzy[4], fQzyx[4];
+	float fQs[4], fQ[4];
+	float fWspFiltraAkc, fWspFiltraMag;
+	float fAccNorm[3];
 
 	//Wyznaczam kwaterniony obrotów w formie algebraicznej korzystając z danych wejściowych wprowadzonych do formy trygonometrycznej
-	//qz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
+	//fQz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
 	fdPsi2 = uDaneCM4.dane.fZyroKal1[2] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
-	fdPsi2 = 0.0f * DEG2RAD / 2;
+	//fdPsi2 = 0.0f * DEG2RAD / 2;
 	fQz[0] = cosf(fdPsi2);		//część rzeczywista kwaternionu: s0 = cos(theta) gdzie kąt oborotu to 2*theta, więc s0 = cos(kąt_obrotu/2)
 	fQz[1] = 0;
 	fQz[2] = 0;
 	fQz[3] = sin(fdPsi2);	//z0 = vz / |v0| * sin(theta)  Oś obrotu to 1, więc moduł też będzie 1 więc można to pominąć
 
-
 	//fQy = cos (theta/2) + (1 / sqrt(x^2 + y^2 + z^2)*j) * sin (theta/2)
 	fdTheta2 = uDaneCM4.dane.fZyroKal1[1] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
-	fdTheta2 = 0.0f * DEG2RAD / 2;
+	//fdTheta2 = 0.2f * DEG2RAD / 2;
 	fQy[0] = cosf(fdTheta2);
 	fQy[1] = 0;
 	fQy[2] = sinf(fdTheta2);
@@ -365,62 +251,68 @@ uint8_t JednostkaInercyjnaKwaterniony3(uint8_t chGniazdo)
 	//całka z predkosci kątowej P to kąt Phi a przyrost kąta w czasie ndT to dPhi
 	//fdPhi = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 1000000;
 	//Ponieważ we wzorze występuje połwa kąta, więc aby nie wykonywać dzielenia wielokrotnie, od razu liczę połowę kata
+	//fQx = cos (phi/2) + (1 / sqrt(x^2 + y^2 + z^2)*i) * sin (phi/2)
 	fdPhi2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
-	fdPhi2 = 1.0f * DEG2RAD / 2;
+	//fdPhi2 = 0.0f * DEG2RAD / 2;
 	fQx[0] = cosf(fdPhi2);
 	fQx[1] = sinf(fdPhi2);
 	fQx[2] = 0;
 	fQx[3] = 0;
 
-	//obróć model przyspieszenia
-	ObrotWektoraKwaternionem(fModelAcc, fQz, r);
-	ObrotWektoraKwaternionem(r, fQy, s);
-	ObrotWektoraKwaternionem(s, fQx, fModelAcc);
+	//składanie 3 obrotów w jeden
+	MnozenieKwaternionow(fQy, fQz, fQzy);	//obrót najpierw wokół Z * Y
+	MnozenieKwaternionow(fQx, fQzy, fQzyx);	//potem obrót ZY * X
 
-	/*/Filtr adaptacyjny: określa wartość przyspieszeń wynikających z ruchu i od nich uzależnia sposób synchronizacji
-	fWspFiltraAcc = FiltrAdaptacyjnyAcc();
-	//okreslić funkcję dobierajacą wspólczynnik filtracji na podstawie wartosci przyspieszenia wynikajacego z ruchu i użyć jej zamiast stałych w ponizszym równaniu
+	//obroty wektorów przyspieszenia i magnetycznego
+	KwaternionSprzezony(fQzyx, fQs);	//kwaternion sprzężony z kwaternionem obrotu o wszystkie osie
 
-	//synchronizuj modelowy wektor przyspieszenia  ze zmierzonym przyspieszeniem za pomocą filtra komplementarnego o wspólczynniku okreslonym przez filtr adaptacyjny
+	MnozenieKwaternionow(fQzyx, fQAcc, fQ);		//przyspieszenie
+	MnozenieKwaternionow(fQ, fQs, fQAcc);
+
+	MnozenieKwaternionow(fQzyx, fQMag, fQ);		//pole magnetyczne
+	MnozenieKwaternionow(fQ, fQs, fQMag);
+
+	//normalizuj wektor przyspieszenia, bo wymaga tego asinf() w funkcji liczenia kątów. Magnetometr może być nienormalizowany bo używa atan2f()
+	Normalizuj((float*)uDaneCM4.dane.fAkcel1, fAccNorm, 3);
+
+	//synchronizuj modelowy wektor przyspieszenia  ze zmierzonym przyspieszeniem za pomocą filtra komplementarnego o wspólczynniku określonym przez filtr adaptacyjny
+	fWspFiltraAkc = FiltrAdaptacyjnyAkc((float*)uDaneCM4.dane.fAkcel1);
+	fWspFiltraMag = FiltrAdaptacyjnyMag((float*)uDaneCM4.dane.fMagne3);
+
+	//zastosuj filtr komplementarny do korekty wektorów obracanych żyroskopami
 	for (uint8_t n=0; n<3; n++)
-		fModelAcc[n] = (1.0f - fWspFiltraAcc) * fModelAcc[n] + fWspFiltraAcc * (uDaneCM4.dane.fAkcel1[n] + uDaneCM4.dane.fAkcel2[n]) / 2; */
-
-	//obroć model pola magnetycznego
-	ObrotWektoraKwaternionem(fModelMag, fQz, r);
-	ObrotWektoraKwaternionem(r, fQy, s);
-	ObrotWektoraKwaternionem(s, fQx, fModelMag);
-
-	/*/synchronizuj ze zmierzonym polem magnetycznym za pomocą filtra komplementarnego
-	if (uDaneCM4.dane.chNowyPomiar & NP_MAG3)	//synchronizuj tylko gdy pojawił sie nowy pomiar, gdyż nie pojawia się w każdym cyklu
 	{
-		for (uint8_t n=0; n<3; n++)
-			fModelMag[n] = (15 * fModelMag[n] + uDaneCM4.dane.fMagne3[n])/16;
-	}*/
+		fQAcc[n+1] = (1.0f - fWspFiltraAkc) * fQAcc[n+1] + fWspFiltraAkc * fAccNorm[n];
+		fQMag[n+1] = (1.0f - fWspFiltraMag) * fQMag[n+1] + fWspFiltraMag * uDaneCM4.dane.fMagne3[n];
+	}
 
-	//oblicz finalne kąty wyrażone w radianach
-	uDaneCM4.dane.fKatIMU2[0] = atan2f( fModelAcc[2], fModelAcc[1]);	//kąt przechylenia z akcelerometru: tan(z/y)
-	uDaneCM4.dane.fKatIMU2[1] = atan2f(-fModelAcc[2], fModelAcc[0]);	//kąt pochylenia z akcelerometru: tan(-z/x)
-	uDaneCM4.dane.fKatIMU2[2] = atan2f( fModelMag[1], fModelMag[0]);	//kąt odchylenia z magnetometru: tan(y/x)
+	//Normalizuj(fQAcc, fQAcc, 4);	//normalizuj kwaternion przyspieszenia po przejściu filtra komplementarnego
+
+
+	//Oblicz katy Eulera: Phi, Theta, Psi - https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+	KatyKwaterniona(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);
 	return ERR_OK;
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja liczy na ile pomiar akcelerometrów jest zaburzony przyspieszeniami wynikającymi z ruchu (przypsieszenia liniowe i odśrodkowe) i
+// Funkcja liczy na ile pomiar akcelerometrów jest zaburzony przyspieszeniami wynikającymi z ruchu (przyspieszenia liniowe i odśrodkowe) i
 // na tej podstawie wylicza wartość współczynnika dla filtra komplementarnego
-// Zwraca: wartość filtra komplementarnego
-// Czas trwania: ?
+// Przyjęte są 2 progi: PROG_ACC_DOBRY do którego wskazanie uznajemy za wiarygodne, PROG_ACC_ZLY - powyżej którego jest brak korekcji żyroskopów akcelerometrem
+// Przyjeta jest wartość filtra dla progu PROG_ACC_DOBRY wynosząca WSP_FILTRA_ADAPT mówiaca ile ma być korekcji akcelerometru dla dobrego sygnału
+// Zwraca: wartość filtra komplementarnego między 0.0 a 1.0
+// Czas trwania: 1,38us @200MHz
 ////////////////////////////////////////////////////////////////////////////////
-float FiltrAdaptacyjnyAcc(void)
+float FiltrAdaptacyjnyAkc(float *fAkcel)
 {
-	float fPrzyspRuchu;	//przyspieszenie wynikające ze zmiany predkości
-	float fWspFiltra;	//współczynnik filtra komplementarnego
-	fPrzyspRuchu = 0.0f;
+	float fPrzyspRuchu = 0.0f;	//przyspieszenie wynikające ze zmiany predkości
+	float fWspFiltra;			//współczynnik filtra komplementarnego
+
 	for (uint8_t n=0; n<3; n++)
-		fPrzyspRuchu += uDaneCM4.dane.fAkcel1[n] * uDaneCM4.dane.fAkcel1[n] + uDaneCM4.dane.fAkcel2[n] * uDaneCM4.dane.fAkcel2[n];	//suma kwadratów obu akcelerometrów
-	fPrzyspRuchu = sqrtf(fPrzyspRuchu / 2);	//średnia bezwzględna długość wektora przyspieszenia
-	fPrzyspRuchu = (fPrzyspRuchu - AKCEL1G) / AKCEL1G;	//wartość przyspieszenia wynikającego ze zmiany prędkości
+		fPrzyspRuchu += *(fAkcel+n) * *(fAkcel+n);			//suma kwadratów 3 osi akcelerometru
+	fPrzyspRuchu = sqrtf(fPrzyspRuchu);						//bezwzględna długość wektora przyspieszenia
+	fPrzyspRuchu = fabs(fPrzyspRuchu - AKCEL1G) / AKCEL1G;	//wartość przyspieszenia wynikającego ze zmiany prędkości [m/s^2]
 
 	if (fPrzyspRuchu < PROG_ACC_DOBRY)	//poziom zakłóceń akceptowalny, można w pełni kompensować dryft kątów akcelerometrem
 		fWspFiltra = WSP_FILTRA_ADAPT;
@@ -432,136 +324,31 @@ float FiltrAdaptacyjnyAcc(void)
 	return fWspFiltra;
 }
 
-
-
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja przechowuje wektory przyspieszenia i magnetyczny w kwaternionach qA i qM, obraca je o kąty uzyskane z całkowania prędkosci katowej
-// Parametry: chGniazdo - numer gniazda w którym jest moduł IMU
-// Zwraca: nic
-// Czas trwania: ?
+// Funkcja liczy na ile zaburzony jest pomiar magnetometru, alanlogicznie jak akcelerometr powyżej
+// na tej podstawie wylicza wartość współczynnika dla filtra komplementarnego
+// Zwraca: wartość filtra komplementarnego między 0.0 a 1.0
+// Czas trwania: 1,38us @200MHz
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t JednostkaInercyjnaKwaterniony4(uint8_t chGniazdo)
+float FiltrAdaptacyjnyMag(float *fMag)
 {
-	float fdPhi2, fdTheta2, fdPsi2;	//połowy przyrostu kąta obrotu
-	float fQx[4], fQy[4], fQz[4];	//kwaterniony obortów wokół osi XYZ
-	//float fQzy[4], fQzyx[4],
-	float fQs[4], fQ[4];
-	//float fWspFiltraAcc;
-	//float fAccNorm[3], fNorm;
-
-	//Wyznaczam kwaterniony obrotów w formie algebraicznej korzystając z danych wejściowych wprowadzonych do formy trygonometrycznej
-	//qz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
-	fdPsi2 = uDaneCM4.dane.fZyroKal1[2] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
-	fdPsi2 = 0.0f * DEG2RAD / 2;
-	fQz[0] = cosf(fdPsi2);		//część rzeczywista kwaternionu: s0 = cos(theta) gdzie kąt oborotu to 2*theta, więc s0 = cos(kąt_obrotu/2)
-	fQz[1] = 0;
-	fQz[2] = 0;
-	fQz[3] = sin(fdPsi2);	//z0 = vz / |v0| * sin(theta)  Oś obrotu to 1, więc moduł też będzie 1 więc można to pominąć
-
-	//fQy = cos (theta/2) + (1 / sqrt(x^2 + y^2 + z^2)*j) * sin (theta/2)
-	fdTheta2 = uDaneCM4.dane.fZyroKal1[1] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
-	fdTheta2 = 0.2f * DEG2RAD / 2;
-	fQy[0] = cosf(fdTheta2);
-	fQy[1] = 0;
-	fQy[2] = sinf(fdTheta2);
-	fQy[3] = 0;
-
-	//całka z predkosci kątowej P to kąt Phi a przyrost kąta w czasie ndT to dPhi
-	//fdPhi = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 1000000;
-	//Ponieważ we wzorze występuje połwa kąta, więc aby nie wykonywać dzielenia wielokrotnie, od razu liczę połowę kata
-	fdPhi2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
-	fdPhi2 = 0.0f * DEG2RAD / 2;
-	fQx[0] = cosf(fdPhi2);
-	fQx[1] = sinf(fdPhi2);
-	fQx[2] = 0;
-	fQx[3] = 0;
-
-	//składanie 3 obrotów w jeden - to nie działa
-	/*MnozenieKwaternionow(fQy, fQz, fQzy);	//obrót najpierw wokół Z * Y
-	MnozenieKwaternionow(fQx, fQzy, fQzyx);	//potem obrót ZY * X
-
-	//obroty wektorów przyspieszenia i magnetycznego
-	KwaternionSprzezony(fQzyx, fQs);	//kwaternion sprzężony z kwaternionem obrotu o wszystkie osie
-
-	MnozenieKwaternionow(fQa, fQzyx, fQ);
-	MnozenieKwaternionow(fQ, fQs, fQa);
-
-	MnozenieKwaternionow(fQm, fQzyx, fQ);
-	MnozenieKwaternionow(fQ, fQs, fQm);*/
-
-	//obrót wokół Z
-	KwaternionSprzezony(fQz, fQs);		//kwaternion sprzężony ma taką samą część rzeczywistą i ujemne części urojone
-	MnozenieKwaternionow(fQz, fQa, fQ);	// Wykonuję pierwsze mnożenie q * v
-	//MnozenieKwaternionow(fQs, fQ, fQa);	//wykonuję drugie mnożenie (qv) * q*
-	//MnozenieKwaternionow(fQa, fQz, fQ);	// Wykonuję pierwsze mnożenie q * v
-	MnozenieKwaternionow(fQ, fQs, fQa);	//wykonuję drugie mnożenie (qv) * q*
-	MnozenieKwaternionow(fQz, fQm, fQ);
-	MnozenieKwaternionow(fQ, fQs, fQm);
-
-	//obrót wokół Y
-	KwaternionSprzezony(fQy, fQs);
-	MnozenieKwaternionow(fQy, fQa, fQ);
-	//MnozenieKwaternionow(fQs, fQ, fQa);
-	//MnozenieKwaternionow(fQa, fQy, fQ);
-	MnozenieKwaternionow(fQ, fQs, fQa);
-	MnozenieKwaternionow(fQy, fQm, fQ);
-	MnozenieKwaternionow(fQ, fQs, fQm);
-
-	//obrót wokól X
-	KwaternionSprzezony(fQx, fQs);
-	MnozenieKwaternionow(fQx, fQa, fQ);
-	//MnozenieKwaternionow(fQs, fQ, fQa);
-	//MnozenieKwaternionow(fQa, fQx, fQ);
-	MnozenieKwaternionow(fQ, fQs, fQa);
-	MnozenieKwaternionow(fQx, fQm, fQ);
-	MnozenieKwaternionow(fQ, fQs, fQm);
-
-	//normalizuj wektor przyspieszenia, bo wymaga tego acosf() w funkcji liczenia kątów
-	/*fNorm = 0.0f;
-	for (uint8_t n=0; n<3; n++)
-		fNorm += powf((uDaneCM4.dane.fAkcel1[n] + uDaneCM4.dane.fAkcel2[n]) / 2, 2);
-	fNorm = sqrtf(fNorm);
+	float fZaklocenieMag = 0.0f;	//wartość zakłóceniazmieniająca długość wektora magnetycznego
+	float fWspFiltra;		//współczynnik filtra komplementarnego
 
 	for (uint8_t n=0; n<3; n++)
-		fAccNorm[n] = (uDaneCM4.dane.fAkcel1[n] + uDaneCM4.dane.fAkcel2[n]) / (2 * fNorm);
+		fZaklocenieMag += *(fMag+n) * *(fMag+n);	//suma kwadratów 3 osi magnetometru
+	fZaklocenieMag = sqrtf(fZaklocenieMag);			//bezwzględna długość wektora magnetycznego
+	fZaklocenieMag = fabs(fZaklocenieMag - NOMINALNE_MAGN) / NOMINALNE_MAGN;				//wartość przyspieszenia wynikającego ze zmiany prędkości [m/s^2]
 
-	//synchronizuj modelowy wektor przyspieszenia  ze zmierzonym przyspieszeniem za pomocą filtra komplementarnego o wspólczynniku okreslonym przez filtr adaptacyjny
-	fWspFiltraAcc = FiltrAdaptacyjnyAcc();
-	for (uint8_t n=0; n<3; n++)
-	{
-		fQa[n+1] = (1.0f - fWspFiltraAcc) * fQa[n+1] + fWspFiltraAcc * fAccNorm[n];
-		fQm[n+1] = (1.0f - fWspFiltraAcc) * fQm[n+1] + fWspFiltraAcc * uDaneCM4.dane.fMagne3[n];	//obliczyć współczynnik dla filtra magnetycznego
-	} */
-
-	//wyodrębnij bieżące kąty Eulera
-	//KatyKwaterniona2(fQa, fQm, (float*)uDaneCM4.dane.fKatIMU2);
-
-	/*uDaneCM4.dane.fKatIMU2[0] = asinf(fQa[1]);
-	uDaneCM4.dane.fKatIMU2[1] = asinf(fQa[2]);
-	uDaneCM4.dane.fKatIMU2[2] = asinf(fQa[3]);*/
-
-	//Oblicz katy Eulera: Phi, Theta, Psi - https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-	//obrót wokół X jest OK, ale odchylenie zmienia się w -pi i w 0
-	//obrót wokół Z nie działa
-	//obrót wokół Y
-	uDaneCM4.dane.fKatIMU2[0] = atan2f(2 * (fQa[0]*fQa[1] + fQa[2]*fQa[3]), 1 - 2 *(fQa[1]*fQa[1] + fQa[2]*fQa[2]));
-	uDaneCM4.dane.fKatIMU2[1] = asinf( 2 * (fQa[0]*fQa[2] - fQa[1]*fQa[3]));
-	uDaneCM4.dane.fKatIMU2[2] = atan2f(2 * (fQa[0]*fQa[3] + fQa[1]*fQa[2]), 1 - 2 *(fQa[2]*fQa[2] + fQa[3]*fQa[3]));
-
-
-	//Konwersja z kwaternionu na kąty Eulera: Phi, Theta, Psi ze strony: http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/
-	//dla obrotu wokół Y zmienia się odchylenie (źle!) i to nierowną sinusoidą (źle)
-	//dla obrotu wokół X zmienia się przechylenie (OK) nierowną sinusoidą (źle)
-	/*uDaneCM4.dane.fKatIMU2[0] = atan2f(2 * (fQa[1]*fQa[0] + fQa[2]*fQa[3]), 1 - 2 *(fQa[1]*fQa[1] - fQa[3]*fQa[3]));	//bank
-	uDaneCM4.dane.fKatIMU2[1] = asinf( 2 * (fQa[1]*fQa[2] + fQa[3]*fQa[0]));											//attitude
-	uDaneCM4.dane.fKatIMU2[2] = atan2f(2 * (fQa[2]*fQa[0] - fQa[1]*fQa[3]), 1 - 2 *(fQa[2]*fQa[2] - fQa[3]*fQa[3]));	//heading*/
-
-	uint8_t x = 5;
-	if (x == 1)
-		InicjujJednostkeInercyjna();
-	return ERR_OK;
+	if (fZaklocenieMag < PROG_MAG_DOBRY)	//poziom zakłóceń akceptowalny, można w pełni kompensować dryft kątów akcelerometrem
+		fWspFiltra = WSP_FILTRA_ADAPT;
+	else
+	if (fZaklocenieMag > PROG_MAG_ZLY)	//poziom zakłóceń nieakceptowalny, filtr komplementarny powinien polegać na samych żyroskopach
+		fWspFiltra = 0.0f;
+	else								//poziom zakłóceń pośredni, liniowo skaluj między 0 a 1
+		fWspFiltra = WSP_FILTRA_ADAPT * (PROG_MAG_ZLY - fZaklocenieMag) / (PROG_MAG_ZLY - PROG_MAG_DOBRY);
+	return fWspFiltra;
 }
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -746,15 +533,14 @@ void ObrotWektora(uint8_t chGniazdo)
 
 	//pomiary czasu
 	nCzas = PobierzCzas();
-	for (uint16_t n=0; n<1000; n++)
-		KwaternionNaMacierz(qy, &A[0][0]);
+	JednostkaInercyjna4Kwaterniony(ADR_MOD2);
 	nCzas = MinalCzas(nCzas);
 
+/*	float fAccNorm[3];
 
-
-	/*nCzas = PobierzCzas();
-	for (uint16_t n=0; n<1000; n++)
-		KatyKwaterniona2(qp, vq, (float*)uDaneCM4.dane.fKatIMU2);
+	nCzas = PobierzCzas();
+	for (uint16_t n=0; n<100; n++)
+		Normalizuj((float*)uDaneCM4.dane.fAkcel1, fAccNorm, 3);
 	nCzas = MinalCzas(nCzas);*/
 	return;
 }

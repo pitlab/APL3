@@ -20,7 +20,7 @@
 #define HMC_I2C_ADR	0x3C
 #define MAG_TIMEOUT	2	//czas w milisekundach na odczyt danych z magnetometru. Nominalnie jest to ok xx0us na adres i 3 bajty danych
 
-
+#define CZULOSC_HMC5883	5e-7	//1 bit odpowiada 5 mGauss a 1 mGauss to 100nT
 
 
 

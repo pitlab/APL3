@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "kwaterniony.h"
 //Lektura obowiązkowa:
-//https://youtu.be/HMDb9zJ2BdA?si=NFm44BkfRmKqpYiF - dr. Tomasz Miller Historia i wyjaśnienie właściwości kwaternionów
+//https://youtu.be/HMDb9zJ2BdA?si=NFm44BkfRmKqpYiF - dr. Tomasz Miller - Historia i wyjaśnienie właściwości kwaternionów
 //https://youtu.be/ZgOmCYfw6os?si=fDKRwn95x-n1le50 - Mateusz Kowalski - Algortym obrotu w przestrzeni 3D przy użyciu kwaternionów
 //https://youtu.be/j5m71_TaQwE?si=XlQSB3M4NHd1mqvY - Mateusz Kowalski - Macierz obrotu wokół dowolnej osi o dowolny kąt
 
@@ -233,12 +233,12 @@ void KwaternionSprzezony(float *q, float *sprzezony)
 // Zwraca: nic
 // Czas trwania: 2,33us na 200MHz
 ////////////////////////////////////////////////////////////////////////////////
-void KatyKwaterniona1(float *qA, float *qM, float *fKaty)
+/*void KatyKwaterniona1(float *qA, float *qM, float *fKaty)
 {
 	*(fKaty+0) = atan2f((*(qA+1) * *(qA+3) + *(qA+2) * *(qA+0)), -1*(*(qA+2) * *(qA+3) - *(qA+1) * *(qA+0)));
 	*(fKaty+1) = acosf((*(qA+0) * *(qA+0)) - (*(qA+1) * *(qA+1)) - (*(qA+2) * *(qA+2)) + (*(qA+3) * *(qA+3)));
 	*(fKaty+2) = atan2f((*(qM+1) * *(qM+3) - *(qM+2) * *(qM+0)), (*(qM+2) * *(qM+3) + *(qM+1) * *(qM+0)));
-}
+}*/
 
 
 
@@ -256,9 +256,56 @@ void KatyKwaterniona1(float *qA, float *qM, float *fKaty)
 // Zwraca: nic
 // Czas trwania: us na 200MHz
 ////////////////////////////////////////////////////////////////////////////////
-void KatyKwaterniona2(float *qA, float *qM, float *fKaty)
+/*void KatyKwaterniona2(float *qA, float *qM, float *fKaty)
 {
 	*(fKaty+0) = atan2f(2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2)));
 	*(fKaty+1) = acosf (2 * (*(qA+0) * *(qA+2) - *(qA+3) * *(qA+1)));
 	*(fKaty+2) = atan2f(2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));
+}*/
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Oblicza kąty Eulera: Phi, Theta, Psi z wektora podanego jako kwaternion [qr, qi, qj, qk]: https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+// Wymaga aby wektory były znormalizowane, bo asinf() przyjmuje tylko liczby z zakresu -1..1
+// Parametry:
+// [we] *qA - wskaźnik na kwaternion wektora przyspieszenia A = (q0 + iqx + jqy + kqz)
+// [we] *qM - wskaźnik na kwaternion wektora magnetycznego M = (q0 + iqx + jqy + kqz)
+// [wy] *katy - wskaźnik na zmienną z 3 kątami [Phi, Theta, Psi]
+// Zwraca: nic
+// Czas trwania: 3,2us na 200MHz
+////////////////////////////////////////////////////////////////////////////////
+void KatyKwaterniona(float *qA, float *qM, float *fKaty)
+{
+	*(fKaty+0) = atan2f(2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2)));
+	*(fKaty+1) = asinf (2 * (*(qA+0) * *(qA+2) - *(qA+1) * *(qA+3)));
+	*(fKaty+2) = atan2f(2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Normalizacja wektora o podanym rozmiarze, w tym również kwaternionu
+// Parametry:
+// [we] *fWe - wskaźnik na wektor wejściowy
+// [wy] *fWy - wskaźnik na wektor znormalizowany
+// [we] chRozmiar - rozmiar wektora
+// Zwraca: nic
+// Czas trwania: 2,06us @200MHz dla 3 elementów
+////////////////////////////////////////////////////////////////////////////////
+void Normalizuj(float * fWe, float *fWy, uint8_t chRozmiar)
+{
+	float fNorm = 0.0f;
+
+	for (uint8_t n=0; n<chRozmiar; n++)
+		fNorm += *(fWe + n) * *(fWe + n);
+	fNorm = sqrtf(fNorm);
+
+	for (uint8_t n=0; n<chRozmiar; n++)
+	{
+		if (fNorm > 0.0f)
+			*(fWy + n) = *(fWe + n) / fNorm;
+		else
+			*(fWy + n) = 0.0f;
+	}
 }
