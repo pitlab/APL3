@@ -1356,29 +1356,50 @@ void PomiaryIMU(void)
 		setColor(GRAY80);
 		sprintf(chNapis, "Akcel1:");
 		print(chNapis, 10, 30);
+		sprintf(chNapis, "[m/s^2]");
+		print(chNapis, 10+40*FONT_SL, 30);
+
 		sprintf(chNapis, "Akcel2:");
 		print(chNapis, 10, 50);
+		sprintf(chNapis, "[m/s^2]");
+		print(chNapis, 10+40*FONT_SL, 50);
+
 		sprintf(chNapis, "Zyro 1:");
 		print(chNapis, 10, 70);
+		sprintf(chNapis, "[rad/s]");
+		print(chNapis, 10+40*FONT_SL, 70);
+
 		sprintf(chNapis, "Zyro 2:");
 		print(chNapis, 10, 90);
+		sprintf(chNapis, "[rad/s]");
+		print(chNapis, 10+40*FONT_SL, 90);
+
 		sprintf(chNapis, "Magn 1:");
 		print(chNapis, 10, 110);
+		sprintf(chNapis, "[mT]");
+		print(chNapis, 10+40*FONT_SL, 110);
+
 		sprintf(chNapis, "Magn 2:");
 		print(chNapis, 10, 130);
+		sprintf(chNapis, "[mT]");
+		print(chNapis, 10+40*FONT_SL, 130);
+
 		sprintf(chNapis, "Magn 3:");
 		print(chNapis, 10, 150);
-		sprintf(chNapis, "Przech:             Pochyl:          Odchyl:");
+		sprintf(chNapis, "[mT]");
+		print(chNapis, 10+40*FONT_SL, 150);
+
+		sprintf(chNapis, "K%cty 1:", ą);
 		print(chNapis, 10, 170);
-		sprintf(chNapis, "Przech:             Pochyl:          Odchyl:");
+		sprintf(chNapis, "K%cty 2:", ą);
 		print(chNapis, 10, 190);
-		sprintf(chNapis, "Ci%cn 1:             AGL1:            Temper:", ś);
+		sprintf(chNapis, "Ci%cn 1:             AGL1:", ś);
 		print(chNapis, 10, 210);
-		sprintf(chNapis, "Ci%cn 2:             AGL2:            Temper:", ś);
+		sprintf(chNapis, "Ci%cn 2:             AGL2:", ś);
 		print(chNapis, 10, 230);
-		sprintf(chNapis, "Ci%cR%c%cn 1:          IAS1:            Temper:", ś, ó, ż);
+		sprintf(chNapis, "Ci%cR%c%cn 1:          IAS1:", ś, ó, ż);
 		print(chNapis, 10, 250);
-		sprintf(chNapis, "Ci%cR%c%cn 2:          IAS2:            Temper:", ś, ó, ż);
+		sprintf(chNapis, "Ci%cR%c%cn 2:          IAS2:", ś, ó, ż);
 		print(chNapis, 10, 270);
 
 		//sprintf(chNapis, "GNSS D%cug:             Szer:             HDOP:", ł);
@@ -1427,7 +1448,7 @@ void PomiaryIMU(void)
 	print(chNapis, 10+32*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+45*FONT_SL, 70);
+	print(chNapis, 10+50*FONT_SL, 70);
 
 	//LSM6DSV
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
@@ -1441,46 +1462,46 @@ void PomiaryIMU(void)
 	print(chNapis, 10+32*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU2] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+45*FONT_SL, 90);
+	print(chNapis, 10+50*FONT_SL, 90);
 
 	//IIS2MDC
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[0]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[0]*1000);
 	print(chNapis, 10+8*FONT_SL, 110);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[1]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[1]*1000);
 	print(chNapis, 10+20*FONT_SL, 110);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[2]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[2]*1000);
 	print(chNapis, 10+32*FONT_SL, 110);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f%cC ", uDaneCM4.dane.fTemper[TEMP_MAG1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+45*FONT_SL, 110);
+	print(chNapis, 10+50*FONT_SL, 110);
 
 	//MMC34160
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[0]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne2[0]*1000);
 	print(chNapis, 10+8*FONT_SL, 130);
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[1]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne2[1]*1000);
 	print(chNapis, 10+20*FONT_SL, 130);
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[2]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne2[2]*1000);
 	print(chNapis, 10+32*FONT_SL, 130);
 
 	//HMC5883
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[0]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne3[0]*1000);
 	print(chNapis, 10+8*FONT_SL, 150);
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[1]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne3[1]*1000);
 	print(chNapis, 10+20*FONT_SL, 150);
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[2]);
+	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne3[2]*1000);
 	print(chNapis, 10+32*FONT_SL, 150);
 
 	//sygnalizacja tonem wartości osi Z magnetometru
-	chTon = LICZBA_TONOW_WARIO/2 - (uDaneCM4.dane.fMagne3[2] / (NORM_AMPL_MAG / (LICZBA_TONOW_WARIO/2)));
+	chTon = LICZBA_TONOW_WARIO/2 - (uDaneCM4.dane.fMagne3[2] / (NOMINALNE_MAGN / (LICZBA_TONOW_WARIO/2)));
 	if (chTon > LICZBA_TONOW_WARIO)
 		chTon = LICZBA_TONOW_WARIO;
 	if (chTon < 0)
@@ -1492,20 +1513,20 @@ void PomiaryIMU(void)
 	print(chNapis, 10+8*FONT_SL, 170);
 	setColor(KOLOR_Y);
 	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[1], ZNAK_STOPIEN);
-	print(chNapis, 10+28*FONT_SL, 170);
+	print(chNapis, 10+20*FONT_SL, 170);
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[2], ZNAK_STOPIEN);
-	print(chNapis, 10+45*FONT_SL, 170);
+	print(chNapis, 10+32*FONT_SL, 170);
 
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0], ZNAK_STOPIEN);
 	print(chNapis, 10+8*FONT_SL, 190);
 	setColor(KOLOR_Y);
 	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
-	print(chNapis, 10+28*FONT_SL, 190);
+	print(chNapis, 10+20*FONT_SL, 190);
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[2], ZNAK_STOPIEN);
-	print(chNapis, 10+45*FONT_SL, 190);
+	print(chNapis, 10+32*FONT_SL, 190);
 
 	//MS5611
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
@@ -1516,7 +1537,7 @@ void PomiaryIMU(void)
 	print(chNapis, 10+26*FONT_SL, 210);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+45*FONT_SL, 210);
+	print(chNapis, 10+50*FONT_SL, 210);
 
 	//BMP581
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
@@ -1527,7 +1548,7 @@ void PomiaryIMU(void)
 	print(chNapis, 10+26*FONT_SL, 230);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+45*FONT_SL, 230);
+	print(chNapis, 10+50*FONT_SL, 230);
 
 	//ND130
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
@@ -1538,7 +1559,7 @@ void PomiaryIMU(void)
 	print(chNapis, 10+26*FONT_SL, 250);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+45*FONT_SL, 250);
+	print(chNapis, 10+50*FONT_SL, 250);
 
 	//MS4525
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
@@ -1549,7 +1570,7 @@ void PomiaryIMU(void)
 	print(chNapis, 10+26*FONT_SL, 270);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2] - KELVIN , ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+45*FONT_SL, 270);
+	print(chNapis, 10+50*FONT_SL, 270);
 
 
 	/*if (uDaneCM4.dane.stGnss1.chFix)
@@ -2493,8 +2514,8 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	float fMag[3];	//dane bieżącego magnetometru
 	uint16_t sX, sY;	//bieżace współrzędne na wykresie
 	static uint16_t sPopX, sPopY;	//poprzednie współrzędne na wykresie
-	static int16_t sMin[3], sMax[3];	//minimum i  maksimum wskazań
-	uint16_t sAbsMax;		//maksimum z wartości bezwzględnej minimum i maksimum
+	static float fMin[3], fMax[3];	//minimum i  maksimum wskazań
+	float fAbsMax;		//maksimum z wartości bezwzględnej minimum i maksimum
 	uint8_t chCzujnik;
 
 	if (chRysujRaz)
@@ -2548,11 +2569,11 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		for (uint16_t n=0; n<3; n++)
 		{
 			if (*chEtap & KALIBRUJ)
-				sMin[n] = sMax[n] = 0;		//podczas kalibracji zbieraj wartosci minimów i maksimów
+				fMin[n] = fMax[n] = 0;		//podczas kalibracji zbieraj wartosci minimów i maksimów
 			else
 			{
-				sMin[n] = -NORM_AMPL_MAG;
-				sMax[n] =  NORM_AMPL_MAG;		//podczas sprawdzenia pracuj na stałym współczynniku
+				fMin[n] = -NOMINALNE_MAGN;
+				fMax[n] =  NOMINALNE_MAGN;		//podczas sprawdzenia pracuj na stałym współczynniku
 			}
 		}
 		*chEtap |= ZERUJ;	//przed pomiarem  wystaw potrzebę wyzerowania wskazań magnetometru
@@ -2568,8 +2589,8 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			*chEtap &= ~ZERUJ;
 			for (uint16_t n=0; n<3; n++)
 			{
-				sMin[n] = 0;
-				sMax[n] = 0;
+				fMin[n] = 0.0f;
+				fMax[n] = 0.0f;
 			}
 		}
 		else
@@ -2613,40 +2634,40 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	switch (*chEtap & MASKA_OSI)		//rodzaj osi
 	{
 	case 0:	chNazwaOsi = 'X';
-		if ((int16_t)uDaneCM4.dane.fRozne[2] < sMin[1])	//minimum Y
+		if (uDaneCM4.dane.fRozne[2] < fMin[1])	//minimum Y
 		{
-			sMin[1] = (int16_t)uDaneCM4.dane.fRozne[2];
+			fMin[1] = uDaneCM4.dane.fRozne[2];
 			DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 			DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 		}
 		else
-		if ((int16_t)uDaneCM4.dane.fRozne[3] > sMax[1])	//maksimum Y
+		if (uDaneCM4.dane.fRozne[3] > fMax[1])	//maksimum Y
 		{
-			sMax[1] = (int16_t)uDaneCM4.dane.fRozne[3];
+			fMax[1] = uDaneCM4.dane.fRozne[3];
 			DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 			DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 		}
 		else
-		if ((int16_t)uDaneCM4.dane.fRozne[4] < sMin[2])	//minimum Z
+		if (uDaneCM4.dane.fRozne[4] < fMin[2])	//minimum Z
 		{
-			sMin[2] = (int16_t)uDaneCM4.dane.fRozne[4];
+			fMin[2] = uDaneCM4.dane.fRozne[4];
 			DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
 			DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 		}
 		else
-		if ((int16_t)uDaneCM4.dane.fRozne[5] > sMax[2])	//maksimum Z
+		if (uDaneCM4.dane.fRozne[5] > fMax[2])	//maksimum Z
 		{
-			sMax[2] = (int16_t)uDaneCM4.dane.fRozne[5];
+			fMax[2] = uDaneCM4.dane.fRozne[5];
 			DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
 			DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 		}
 
 		//rysuj wykres biegunowy Y-Z
-		sAbsMax = MaximumGlobalne(sMin, sMax);	//znajdź maksimum globalne wszystkich osi
-		if (sAbsMax > MIN_MAG_WYKR)
+		fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi
+		if (fAbsMax > MIN_MAG_WYKR)
 		{
 			setColor(KOLOR_X);
-			fWspSkal = (float)(SZER_WYKR_MAG / 2) / sAbsMax;
+			fWspSkal = (float)(SZER_WYKR_MAG / 2) / fAbsMax;
 			sX = (int16_t)(fMag[1] * fWspSkal) + stWykr.sX1 + SZER_WYKR_MAG/2;
 			sY = (int16_t)(fMag[2] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
 			drawLine(sX, sY, sPopX, sPopY);
@@ -2656,40 +2677,40 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		break;
 
 	case 1: chNazwaOsi = 'Y';
-		if ((int16_t)uDaneCM4.dane.fRozne[0] < sMin[0])	//minimum X
+		if (uDaneCM4.dane.fRozne[0] < fMin[0])	//minimum X
 		{
-			sMin[0] = (int16_t)uDaneCM4.dane.fRozne[0];
+			fMin[0] = uDaneCM4.dane.fRozne[0];
 			DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
 			DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 		}
 		else
-		if ((int16_t)uDaneCM4.dane.fRozne[1] > sMax[0])	//maksimum X
+		if (uDaneCM4.dane.fRozne[1] > fMax[0])	//maksimum X
 		{
-			sMax[0] = (int16_t)uDaneCM4.dane.fRozne[1];
+			fMax[0] = uDaneCM4.dane.fRozne[1];
 			DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
 			DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 		}
 		else
-		if ((int16_t)uDaneCM4.dane.fRozne[4] < sMin[2])	//minimum Z
+		if (uDaneCM4.dane.fRozne[4] < fMin[2])	//minimum Z
 		{
-			sMin[2] = (int16_t)uDaneCM4.dane.fRozne[4];
+			fMin[2] = uDaneCM4.dane.fRozne[4];
 			DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
 			DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 		}
 		else
-		if ((int16_t)uDaneCM4.dane.fRozne[5] > sMax[2])	//maksimum Z
+		if (uDaneCM4.dane.fRozne[5] > fMax[2])	//maksimum Z
 		{
-			sMax[2] = (int16_t)uDaneCM4.dane.fRozne[5];
+			fMax[2] = uDaneCM4.dane.fRozne[5];
 			DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
 			DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 		}
 
 		//rysuj wykres biegunowy X-Z
-		sAbsMax = MaximumGlobalne(sMin, sMax);	//znajdź maksimum globalne wszystkich osi
-		if (sAbsMax > MIN_MAG_WYKR)
+		fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi
+		if (fAbsMax > MIN_MAG_WYKR)
 		{
    			setColor(KOLOR_Y);
-			fWspSkal = (float)(SZER_WYKR_MAG / 2) / sAbsMax;
+			fWspSkal = (float)(SZER_WYKR_MAG / 2) / fAbsMax;
 			sX = (int16_t)(fMag[0] * fWspSkal) + stWykr.sX1 + SZER_WYKR_MAG/2;
 			sY = (int16_t)(fMag[2] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
 			drawLine(sX, sY, sPopX, sPopY);
@@ -2699,40 +2720,40 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		break;
 
 	case 2: chNazwaOsi = 'Z';
-		if ((int16_t)uDaneCM4.dane.fRozne[0] < sMin[0])	//minimum X
+		if (uDaneCM4.dane.fRozne[0] < fMin[0])	//minimum X
 		{
-			sMin[0] = (int16_t)uDaneCM4.dane.fRozne[0];
+			fMin[0] = uDaneCM4.dane.fRozne[0];
 			DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
 			DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 		}
 		else
-		if ((int16_t)uDaneCM4.dane.fRozne[1] > sMax[0])	//maksimum X
+		if (uDaneCM4.dane.fRozne[1] > fMax[0])	//maksimum X
 		{
-			sMax[0] = (int16_t)uDaneCM4.dane.fRozne[1];
+			fMax[0] = uDaneCM4.dane.fRozne[1];
 			DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
 			DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 		}
 		else
-		if ((int16_t)uDaneCM4.dane.fRozne[2] < sMin[1])	//minimum Y
+		if (uDaneCM4.dane.fRozne[2] < fMin[1])	//minimum Y
 		{
-			sMin[1] = (int16_t)uDaneCM4.dane.fRozne[2];
+			fMin[1] = uDaneCM4.dane.fRozne[2];
 			DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 			DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 		}
 		else
-		if ((int16_t)uDaneCM4.dane.fRozne[3] > sMax[1])	//maksimum Y
+		if (uDaneCM4.dane.fRozne[3] > fMax[1])	//maksimum Y
 		{
-			sMax[1] = (int16_t)uDaneCM4.dane.fRozne[3];
+			fMax[1] = uDaneCM4.dane.fRozne[3];
 			DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 			DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 		}
 
 		//rysuj wykres biegunowy X-Y
-		sAbsMax = MaximumGlobalne(sMin, sMax);	//znajdź maksimum globalne wszystkich osi
-		if (sAbsMax > MIN_MAG_WYKR)
+		fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi
+		if (fAbsMax > MIN_MAG_WYKR)
 		{
 			setColor(KOLOR_Z);
-			fWspSkal = (float)(SZER_WYKR_MAG / 2) / sAbsMax;
+			fWspSkal = (float)(SZER_WYKR_MAG / 2) / fAbsMax;
 			sX = (int16_t)(fMag[0] * fWspSkal) + stWykr.sX1 + SZER_WYKR_MAG/2;
 			sY = (int16_t)(fMag[1] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
 			drawLine(sX, sY, sPopX, sPopY);
@@ -2743,25 +2764,25 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	}
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.1f ", fMag[0]);
+	sprintf(chNapis, "%.3f [mT]", fMag[0]*1000);
 	print(chNapis, 10 + 15*FONT_SL, 80);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[0], ZNAK_STOPIEN);
 	print(chNapis, 10 + 12*FONT_SL, 140);
-	sprintf(chNapis, "%.0f, %.0f ", uDaneCM4.dane.fRozne[0], uDaneCM4.dane.fRozne[1]);
+	sprintf(chNapis, "%.3f, %.3f ", uDaneCM4.dane.fRozne[0]*1000, uDaneCM4.dane.fRozne[1]*1000);
 	print(chNapis, 10 + 13*FONT_SL, 180);
 
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.1f ", fMag[1]);
+	sprintf(chNapis, "%.3f [mT]", fMag[1]*1000);
 	print(chNapis, 10 + 15*FONT_SL, 100);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[1], ZNAK_STOPIEN);
 	print(chNapis, 10 + 14*FONT_SL, 160);
-	sprintf(chNapis, "%.0f, %.0f ", uDaneCM4.dane.fRozne[2], uDaneCM4.dane.fRozne[3]);
+	sprintf(chNapis, "%.3f, %.3f ", uDaneCM4.dane.fRozne[2]*1000, uDaneCM4.dane.fRozne[3]*1000);
 	print(chNapis, 10 + 13*FONT_SL, 200);
 
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.1f ", fMag[2]);
+	sprintf(chNapis, "%.3f [mT]", fMag[2]*1000);
 	print(chNapis, 10 + 15*FONT_SL, 120);
-	sprintf(chNapis, "%.0f, %.0f ", uDaneCM4.dane.fRozne[4], uDaneCM4.dane.fRozne[5]);
+	sprintf(chNapis, "%.3f, %.3f ", uDaneCM4.dane.fRozne[4]*1000, uDaneCM4.dane.fRozne[5]*1000);
 	print(chNapis, 10 + 13*FONT_SL, 220);
 
 	//sprawdź czy jest naciskany przycisk
@@ -2813,18 +2834,18 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 // Parametry: *sMin, *sMax - wskaźniki na minima i maksima wszystkich 3 osi
 // Zwraca: globalne maksimum będące wartoscią bezwzgledną wszyskich danych wejściowych
 ////////////////////////////////////////////////////////////////////////////////
-uint16_t MaximumGlobalne(int16_t* sMin, int16_t* sMax)
+float MaximumGlobalne(float* fMin, float* fMax)
 {
-	uint16_t sMaxGlob = 0;
+	float fMaxGlob = 0;
 
 	for (uint16_t n=0; n<3; n++)
 	{
-		if (sMaxGlob < *(sMax + n))
-			sMaxGlob = *(sMax + n);
-		if (sMaxGlob < abs(*(sMin + n)))
-			sMaxGlob = abs(*(sMin + n));
+		if (fMaxGlob < *(fMax + n))
+			fMaxGlob = *(fMax + n);
+		if (fMaxGlob < abs(*(fMin + n)))
+			fMaxGlob = abs(*(fMin + n));
 	}
-	return sMaxGlob;
+	return fMaxGlob;
 }
 
 

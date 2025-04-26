@@ -10,7 +10,7 @@
 #include "sys_def_CM7.h"
 #include "display.h"
 
-#define MIN_MAG_WYKR	300		//minimanla wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru
+#define MIN_MAG_WYKR	3/5*NOMINALNE_MAGN		//minimalna wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru
 
 //czynności związane z obsługą przycisku graficznego
 #define RYSUJ		0
@@ -52,6 +52,6 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer);
 void Poziomica(float fKatAkcelX, float fKatAkcelY);
 void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc);
 uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap);
-uint16_t MaximumGlobalne(int16_t* sMin, int16_t* sMax);
+float MaximumGlobalne(float* fMin, float* fMax);
 uint8_t KalibrujBaro(uint8_t *chEtap);
 #endif /* INC_LCD_H_ */

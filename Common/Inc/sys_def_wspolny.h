@@ -61,7 +61,7 @@
 #define ZERUJ			0x04	//sygnalizuje potrzebę wyzerowania ekstremów wskazań magnetometru przed pomiarem
 #define MASKA_OSI		0x03
 #define MASKA_CZUJNIKA	0xF0
-#define NORM_AMPL_MAG	1000		//znormalizowana długość wektora magnetometru
+//#define NORM_AMPL_MAG	1000		//znormalizowana długość wektora magnetometru
 
 
 #define WYSOKOSC10PIETER	27.0f	//wysokość w metrach 10 pięter

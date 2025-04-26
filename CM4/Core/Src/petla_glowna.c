@@ -450,9 +450,9 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 		{
 			sZeZnakiem = (int16_t)chDaneMagIIS[2*n+1] * 0x100 + chDaneMagIIS[2*n];
 			if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN1) || (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
-				uDaneCM4.dane.fMagne1[n] = (float)sZeZnakiem;			//dane surowe podczas kalibracji magnetometru
+				uDaneCM4.dane.fMagne1[n] = (float)sZeZnakiem * CZULOSC_IIS2MDC;			//dane surowe podczas kalibracji magnetometru
 			else
-				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
+				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
 		}
 		uDaneCM4.dane.fTemper[4] = ((int16_t)chDaneMagIIS[7] * 0x100 + chDaneMagIIS[6]) / 8;	//The nominal sensitivity is 8 LSB/°C.
 		//if ((chDaneMagIIS[0] || chDaneMagIIS[1]) && (chDaneMagIIS[2] || chDaneMagIIS[3]) && (chDaneMagIIS[4] || chDaneMagIIS[5]))
@@ -471,9 +471,9 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 					sPomiarMMCL[n] = ((int16_t)chDaneMagMMC[2*n+1] * 0x100 + chDaneMagMMC[2*n]) - 32768;
 
 			if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN2) || (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
-				uDaneCM4.dane.fMagne2[n] = (float)(sPomiarMMCH[n] - sPomiarMMCL[n]) / 2;	//dane surowe podczas kalibracji magnetometru
+				uDaneCM4.dane.fMagne2[n] = (float)(sPomiarMMCH[n] - sPomiarMMCL[n]) * CZULOSC_MMC34160 / 2;	//dane surowe podczas kalibracji magnetometru
 			else
-				uDaneCM4.dane.fMagne2[n] = ((float)(sPomiarMMCH[n] - sPomiarMMCL[n]) / 2 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
+				uDaneCM4.dane.fMagne2[n] = ((float)(sPomiarMMCH[n] - sPomiarMMCL[n]) * CZULOSC_MMC34160 / 2 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
 		}
 		*chCzujniki &= ~MAG_MMC;	//dane obsłużone
 		uDaneCM4.dane.chNowyPomiar |= NP_MAG2;	//jest nowy pomiar
