@@ -41,6 +41,7 @@ void MenuGlowne(unsigned char *tryb);
 void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
 void BelkaTytulu(char* chTytul);
 void PomiaryIMU(void);
+void PomiaryCisnieniowe(void);
 void TestTonuAudio(void);
 void WyswietlParametryKartySD(void);
 void TestKartySD(void);

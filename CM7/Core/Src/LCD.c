@@ -119,8 +119,8 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Kalib IMU", 	"Kalibracja zyroskopow i akclerometrow",	TP_IMU,				obr_baczek},
 	{"Kalib Magn",	"Obsluga i kalibracja magnetometru",		TP_MAGNETOMETR,		obr_kal_mag_n1},
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
+	{"Dane cisn",	"Wyniki pomiarow czujnikow cisnienia",		TP_POMIARY_CISN, 	obr_multimetr},
 	{"Kal Baro", 	"Kalibracja cisnienia wg wzorca 10 pieter",	TP_KAL_BARO,		obr_cisnienie},
-	{"nic 2", 		"nic",										TP_MG2,				obr_multitool},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
 	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_dotyk}};
 
@@ -223,6 +223,13 @@ void RysujEkran(void)
 		}
 		break;
 
+	case TP_POMIARY_CISN:	PomiaryCisnieniowe();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chNowyTrybPracy = TP_WROC_DO_MENU;
+		}
+		break;
+
 	case TP_KAL_BARO:	//kalibracja ciśnienia według wzorca
 		if (KalibrujBaro(&chSekwencerKalibracji) == ERR_DONE)
 		{
@@ -234,19 +241,6 @@ void RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
-	case TP_MG2:
-		TestKomunikacjiSTD();	//wyślij komunikat tesktowy przez LPUART
-		chNowyTrybPracy = TP_WROC_DO_MENU;
-		break;
-
-	case TP_MG4:
-		TestKomunikacjiDMA();	//wyślij komunikat tesktowy przez LPUART
-		chNowyTrybPracy = TP_WROC_DO_MENU;
-		break;
-
-	case TP_ZDJECIE:
-		//chNowyTrybPracy = TP_WROC_DO_MENU;
-		break;
 
 	case TP_WITAJ:
 		Ekran_Powitalny(nZainicjowano);	//przywitaj użytkownika i prezentuj wykryty sprzęt
@@ -1351,7 +1345,7 @@ void PomiaryIMU(void)
 	if (chRysujRaz)
 	{
 		chRysujRaz = 0;
-		BelkaTytulu("Dane pomiarowe");
+		BelkaTytulu("Dane pomiarowe AHRS");
 
 		setColor(GRAY80);
 		sprintf(chNapis, "Akcel1:");
@@ -1393,21 +1387,14 @@ void PomiaryIMU(void)
 		print(chNapis, 10, 170);
 		sprintf(chNapis, "K%cty 2:", ą);
 		print(chNapis, 10, 190);
-		sprintf(chNapis, "Ci%cn 1:             AGL1:", ś);
+		sprintf(chNapis, "K%cty Akcel1:", ą);
 		print(chNapis, 10, 210);
-		sprintf(chNapis, "Ci%cn 2:             AGL2:", ś);
+		sprintf(chNapis, "K%cty Akcel2:", ą);
 		print(chNapis, 10, 230);
-		sprintf(chNapis, "Ci%cR%c%cn 1:          IAS1:", ś, ó, ż);
+		sprintf(chNapis, "K%cty %cyro 1:", ą, ż);
 		print(chNapis, 10, 250);
-		sprintf(chNapis, "Ci%cR%c%cn 2:          IAS2:", ś, ó, ż);
+		sprintf(chNapis, "K%cty %cyro 2:", ą, ż);
 		print(chNapis, 10, 270);
-
-		//sprintf(chNapis, "GNSS D%cug:             Szer:             HDOP:", ł);
-		//print(chNapis, 10, 260);
-		//sprintf(chNapis, "GNSS WysMSL:           Pred:             Kurs:");
-		//print(chNapis, 10, 280);
-		//sprintf(chNapis, "GNSS Czas:             Data:              Sat:");
-		//print(chNapis, 10, 300);
 
 		setColor(GRAY50);
 		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
@@ -1448,7 +1435,7 @@ void PomiaryIMU(void)
 	print(chNapis, 10+32*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+50*FONT_SL, 70);
+	print(chNapis, 10+49*FONT_SL, 70);
 
 	//LSM6DSV
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
@@ -1462,7 +1449,7 @@ void PomiaryIMU(void)
 	print(chNapis, 10+32*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU2] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+50*FONT_SL, 90);
+	print(chNapis, 10+49*FONT_SL, 90);
 
 	//IIS2MDC
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
@@ -1476,7 +1463,7 @@ void PomiaryIMU(void)
 	print(chNapis, 10+32*FONT_SL, 110);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f%cC ", uDaneCM4.dane.fTemper[TEMP_MAG1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+50*FONT_SL, 110);
+	print(chNapis, 10+48*FONT_SL, 110);
 
 	//MMC34160
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
@@ -1528,84 +1515,162 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[2], ZNAK_STOPIEN);
 	print(chNapis, 10+32*FONT_SL, 190);
 
+	//kąty z akcelrometru 1
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel1[0], ZNAK_STOPIEN);
+	print(chNapis, 10+13*FONT_SL, 210);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel1[1], ZNAK_STOPIEN);
+	print(chNapis, 10+25*FONT_SL, 210);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel1[2], ZNAK_STOPIEN);
+	print(chNapis, 10+37*FONT_SL, 210);
+
+	//kąty z akcelrometru 2
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel2[0], ZNAK_STOPIEN);
+	print(chNapis, 10+13*FONT_SL, 230);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel2[1], ZNAK_STOPIEN);
+	print(chNapis, 10+25*FONT_SL, 230);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel2[2], ZNAK_STOPIEN);
+	print(chNapis, 10+37*FONT_SL, 230);
+
+	//kąty z żyroskopu 1
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[0], ZNAK_STOPIEN);
+	print(chNapis, 10+13*FONT_SL, 250);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[1], ZNAK_STOPIEN);
+	print(chNapis, 10+25*FONT_SL, 250);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[2], ZNAK_STOPIEN);
+	print(chNapis, 10+37*FONT_SL, 250);
+
+	//kąty z żyroskopu 2
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[0], ZNAK_STOPIEN);
+	print(chNapis, 10+13*FONT_SL, 270);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[1], ZNAK_STOPIEN);
+	print(chNapis, 10+25*FONT_SL, 270);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[2], ZNAK_STOPIEN);
+	print(chNapis, 10+37*FONT_SL, 270);
+
+	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI do zera
+	RysujPasekPostepu(CZAS_KALIBRACJI);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje okno z damymi pomiarowymi czujników ciśnienia i GPS
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void PomiaryCisnieniowe(void)
+{
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Dane czujnikow cisnienia");
+
+		setColor(GRAY80);
+		sprintf(chNapis, "Ci%cn 1:             AGL1:", ś);
+		print(chNapis, 10, 30);
+		sprintf(chNapis, "Ci%cn 2:             AGL2:", ś);
+		print(chNapis, 10, 50);
+		sprintf(chNapis, "Ci%cR%c%cn 1:          IAS1:", ś, ó, ż);
+		print(chNapis, 10, 70);
+		sprintf(chNapis, "Ci%cR%c%cn 2:          IAS2:", ś, ó, ż);
+		print(chNapis, 10, 90);
+
+		sprintf(chNapis, "GNSS D%cug:             Szer:             HDOP:", ł);
+		print(chNapis, 10, 140);
+		sprintf(chNapis, "GNSS WysMSL:           Pred:             Kurs:");
+		print(chNapis, 10, 160);
+		sprintf(chNapis, "GNSS Czas:             Data:              Sat:");
+		print(chNapis, 10, 180);
+
+		setColor(GRAY50);
+		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
+		print(chNapis, CENTER, 300);
+	}
+
 	//MS5611
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnie[0]);
-	print(chNapis, 10+8*FONT_SL, 210);
+	print(chNapis, 10+8*FONT_SL, 30);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(CYAN); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[0]);
-	print(chNapis, 10+26*FONT_SL, 210);
+	print(chNapis, 10+26*FONT_SL, 30);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+50*FONT_SL, 210);
+	print(chNapis, 10+40*FONT_SL, 30);
 
 	//BMP581
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnie[1]);
-	print(chNapis, 10+8*FONT_SL, 230);
+	print(chNapis, 10+8*FONT_SL, 50);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(CYAN); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[1]);
-	print(chNapis, 10+26*FONT_SL, 230);
+	print(chNapis, 10+26*FONT_SL, 50);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+50*FONT_SL, 230);
+	print(chNapis, 10+40*FONT_SL, 50);
 
 	//ND130
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[0]);
-	print(chNapis, 10+11*FONT_SL, 250);
+	print(chNapis, 10+11*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(MAGENTA); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[0]);
-	print(chNapis, 10+26*FONT_SL, 250);
+	print(chNapis, 10+26*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+50*FONT_SL, 250);
+	print(chNapis, 10+40*FONT_SL, 70);
 
 	//MS4525
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[1]);
-	print(chNapis, 10+11*FONT_SL, 270);
+	print(chNapis, 10+11*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(MAGENTA); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[1]);
-	print(chNapis, 10+26*FONT_SL, 270);
+	print(chNapis, 10+26*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2] - KELVIN , ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+50*FONT_SL, 270);
+	print(chNapis, 10+40*FONT_SL, 90);
 
 
-	/*if (uDaneCM4.dane.stGnss1.chFix)
+	if (uDaneCM4.dane.stGnss1.chFix)
 		setColor(WHITE);	//jest fix
 	else
 		setColor(GRAY70);	//nie ma fixa
 
 	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dDlugoscGeo);
-	print(chNapis, 10+11*FONT_SL, 260);
+	print(chNapis, 10+11*FONT_SL, 140);
 	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
-	print(chNapis, 10+29*FONT_SL, 260);
+	print(chNapis, 10+29*FONT_SL, 140);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.stGnss1.fHdop);
-	print(chNapis, 10+47*FONT_SL, 260);
+	print(chNapis, 10+47*FONT_SL, 140);
 
 	sprintf(chNapis, "%.1fm ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
-	print(chNapis, 10+13*FONT_SL, 280);
+	print(chNapis, 10+13*FONT_SL, 160);
 	sprintf(chNapis, "%.3fm/s ", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
-	print(chNapis, 10+29*FONT_SL, 280);
+	print(chNapis, 10+29*FONT_SL, 160);
 	sprintf(chNapis, "%3.2f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
-	print(chNapis, 10+47*FONT_SL, 280);
+	print(chNapis, 10+47*FONT_SL, 160);
 
 	sprintf(chNapis, "%02d:%02d:%02d ", uDaneCM4.dane.stGnss1.chGodz, uDaneCM4.dane.stGnss1.chMin, uDaneCM4.dane.stGnss1.chSek);
-	print(chNapis, 10+12*FONT_SL, 300);
+	print(chNapis, 10+12*FONT_SL, 180);
 	if  (uDaneCM4.dane.stGnss1.chMies > 12)	//ograniczenie aby nie pobierało nazwy miesiaca spoza tablicy chNazwyMies3Lit[]
 		uDaneCM4.dane.stGnss1.chMies = 0;	//zerowy indeks jest pustą nazwą "---"
 	sprintf(chNapis, "%02d %s %04d ", uDaneCM4.dane.stGnss1.chDzien, chNazwyMies3Lit[uDaneCM4.dane.stGnss1.chMies], uDaneCM4.dane.stGnss1.chRok + 2000);
-	print(chNapis, 10+29*FONT_SL, 300);
+	print(chNapis, 10+29*FONT_SL, 180);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.stGnss1.chLiczbaSatelit);
-	print(chNapis, 10+47*FONT_SL, 300); */
-
-	//sprintf(chNapis, "Serwa:  9 = %d, 10 = %d, 11 = %d, 12 = %d", uDaneCM4.dane.sSerwa[8], uDaneCM4.dane.sSerwa[9], uDaneCM4.dane.sSerwa[10], uDaneCM4.dane.sSerwa[11]);
-	//sprintf(chNapis, "Serwa:  1 = %d,  2 = %d,  3 = %d,  4 = %d", uDaneCM4.dane.sSerwa[0], uDaneCM4.dane.sSerwa[1], uDaneCM4.dane.sSerwa[2], uDaneCM4.dane.sSerwa[3]);
-	//sprintf(chNapis, "Serwa: 13 = %d, 14 = %d, 15 = %d, 16 = %d", uDaneCM4.dane.sSerwa[12], uDaneCM4.dane.sSerwa[13], uDaneCM4.dane.sSerwa[14], uDaneCM4.dane.sSerwa[15]);
-	//sprintf(chNapis, "Serwa:  5 = %d,  6 = %d,  7 = %d,  8 = %d", uDaneCM4.dane.sSerwa[4], uDaneCM4.dane.sSerwa[5], uDaneCM4.dane.sSerwa[6], uDaneCM4.dane.sSerwa[7]);
-	//print(chNapis, 10, 300);
+	print(chNapis, 10+47*FONT_SL, 180);
 
 	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI do zera
 	RysujPasekPostepu(CZAS_KALIBRACJI);
@@ -2255,8 +2320,10 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	{
 	case SEKW_KAL_WZM_ZYRO_R:
 		chNazwaOsi = 'Z';
-		fPochylenie = uDaneCM4.dane.fKatIMU2[1];
-		fPrzechylenie = uDaneCM4.dane.fKatIMU2[0];
+		//fPochylenie = uDaneCM4.dane.fKatIMU2[1];
+		//fPrzechylenie = uDaneCM4.dane.fKatIMU2[0];
+		fPochylenie = uDaneCM4.dane.fKatIMUAkcel1[1];
+		fPrzechylenie = uDaneCM4.dane.fKatIMUAkcel1[0];
 		Poziomica(-fPrzechylenie, fPochylenie);	//przechylenie, pochylenie
 		setColor(KOLOR_Z);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[2], ZNAK_STOPIEN);
@@ -2271,10 +2338,8 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 
 	case SEKW_KAL_WZM_ZYRO_Q:
 		chNazwaOsi = 'Y';
-		//fPochylenie = atan2f(uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[0]) + 90 * DEG2RAD;	//atan(y/x)
-		//fPrzechylenie = atan2f(uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]) + 90 * DEG2RAD;	//atan(y/z)
-		fPochylenie = uDaneCM4.dane.fKatIMU2[1];
-		fPrzechylenie = uDaneCM4.dane.fKatIMU2[0];
+		fPochylenie = atan2f(uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[0]) + 90 * DEG2RAD;	//atan(y/x)
+		fPrzechylenie = atan2f(uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]) + 90 * DEG2RAD;	//atan(y/z)
 		Poziomica(fPrzechylenie, -fPochylenie);	//przechylenie, pochylenie
 		setColor(KOLOR_Y);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[1], ZNAK_STOPIEN);
@@ -2289,10 +2354,8 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 
 	case SEKW_KAL_WZM_ZYRO_P:
 		chNazwaOsi = 'X';
-		//fPochylenie = atan2f(uDaneCM4.dane.fAkcel1[2], uDaneCM4.dane.fAkcel1[0]);	//atan(z/x)
-		//fPrzechylenie = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[1]) - 90 * DEG2RAD;	//atan(x/y)
-		fPochylenie = uDaneCM4.dane.fKatIMU2[1];
-		fPrzechylenie = uDaneCM4.dane.fKatIMU2[0];
+		fPochylenie = atan2f(uDaneCM4.dane.fAkcel1[2], uDaneCM4.dane.fAkcel1[0]);	//atan(z/x)
+		fPrzechylenie = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[1]) - 90 * DEG2RAD;	//atan(x/y)
 		Poziomica(-fPrzechylenie, fPochylenie);	//przechylenie, pochylenie
 		setColor(KOLOR_X);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[0], ZNAK_STOPIEN);

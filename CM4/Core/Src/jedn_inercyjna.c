@@ -107,20 +107,21 @@ uint8_t JednostkaInercyjna1Trygonometria(uint8_t chGniazdo)
 		}
 	}
 
+
 	//kąt przechylenia z akcelerometru: tan(Z/Y) = atan2(Y, Z)
 	uDaneCM4.dane.fKatIMUAkcel1[0] = atan2f(uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);
-	uDaneCM4.dane.fKatIMUAkcel2[0] = atan2f(uDaneCM4.dane.fAkcel2[1], uDaneCM4.dane.fAkcel2[2]);
+	//uDaneCM4.dane.fKatIMUAkcel2[0] = atan2f(uDaneCM4.dane.fAkcel2[1], uDaneCM4.dane.fAkcel2[2]);
 
 	//kąt pochylenia z akcelerometru: tan(-Z/X) = atan2(X, -Z)
 	uDaneCM4.dane.fKatIMUAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[0], -uDaneCM4.dane.fAkcel1[2]);
-	uDaneCM4.dane.fKatIMUAkcel2[1] = atan2f(uDaneCM4.dane.fAkcel2[0], -uDaneCM4.dane.fAkcel2[2]);
+	//uDaneCM4.dane.fKatIMUAkcel2[1] = atan2f(uDaneCM4.dane.fAkcel2[0], -uDaneCM4.dane.fAkcel2[2]);
 
 	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(y/x)
 	//uDaneCM4.dane.fKatIMUAkcel1[2] = atan2f((float)uDaneCM4.dane.sMagne3[1], (float)uDaneCM4.dane.sMagne3[0]);
 
 	//kąt odchylenia z akcelerometru: tan(Y/X) = atan2(X, Y)
 	uDaneCM4.dane.fKatIMUAkcel1[2] = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[1]);
-	uDaneCM4.dane.fKatIMUAkcel2[2] = atan2f(uDaneCM4.dane.fAkcel2[0], uDaneCM4.dane.fAkcel2[1]);
+	//uDaneCM4.dane.fKatIMUAkcel2[2] = atan2f(uDaneCM4.dane.fAkcel2[0], uDaneCM4.dane.fAkcel2[1]);
 
 	//filtr komplementarny IMU
 	for (uint16_t n=0; n<3; n++)
@@ -128,91 +129,18 @@ uint8_t JednostkaInercyjna1Trygonometria(uint8_t chGniazdo)
 		uDaneCM4.dane.fKatIMU1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;
 		uDaneCM4.dane.fKatIMU1[n] = 0.05 * uDaneCM4.dane.fKatIMUAkcel1[n] + 0.95 * uDaneCM4.dane.fKatIMU1[n];
 	}
+
+
+	float fQA[4];	//kwaternion wektora przyspieszenia
+	float fQM[4];
+	//float fAccNorm[3];
+
+	WektorNaKwaternion((float*)uDaneCM4.dane.fAkcel2, fQA);
+	WektorNaKwaternion((float*)uDaneCM4.dane.fMagne3, fQM);
+	Normalizuj(fQA, fQA, 4);
+	KatyKwaterniona(fQA, fQM, (float*)uDaneCM4.dane.fKatIMUAkcel2);
 	return ERR_OK;
 }
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Obliczenia IMU metodą publikowaną przez Sebastiana Madgwicka w jego pracy doktorskiej: //https://x-io.co.uk/downloads/madgwick-phd-thesis.pdf
-// Zwraca: kod błędu
-// Czas trwania: ?
-////////////////////////////////////////////////////////////////////////////////
-float q0 = 1.0, q1 = 0.0, q2 = 0.0, q3 = 0.0;   	//kwaterniony
-float exInt = 0, eyInt = 0, ezInt = 0;				// scaled integral error
-void JednostkaInercyjnaMadgwick(void)
-{
-	float norm;
-	float vx, vy, vz;
-	float ex, ey, ez;
-	float ax,ay,az,gx,gy,gz;
-
-    //przypisz wartości do zmiennych roboczych
-    ax = uDaneCM4.dane.fAkcel1[0];
-    ay = uDaneCM4.dane.fAkcel1[1];
-    az = uDaneCM4.dane.fAkcel1[2];
-    gx = uDaneCM4.dane.fZyroKal1[0];
-    gy = uDaneCM4.dane.fZyroKal1[1];
-    gz = uDaneCM4.dane.fZyroKal1[2];
-
-	// normalise the measurements
-	norm = sqrt(ax*ax + ay*ay + az*az);
-	ax = ax / norm;
-	ay = ay / norm;
-	az = az / norm;
-
-	// estimated direction of gravity
-	vx = 2*(q1*q3 - q0*q2);
-	vy = 2*(q0*q1 + q2*q3);
-	vz = q0*q0 - q1*q1 - q2*q2 + q3*q3;
-
-	// error is sum of cross product between reference direction of field and direction measured by sensor
-	ex = (ay*vz - az*vy);
-	ey = (az*vx - ax*vz);
-	ez = (ax*vy - ay*vx);
-
-	// integral error scaled integral gain
-	exInt = exInt + ex*Ki;
-	eyInt = eyInt + ey*Ki;
-	ezInt = ezInt + ez*Ki;
-
-	// adjusted gyroscope measurements
-	gx = gx + Kp*ex + exInt;
-	gy = gy + Kp*ey + eyInt;
-	gz = gz + Kp*ez + ezInt;
-
-	// integrate quaternion rate and normalise
-	q0 = q0 + (-q1*gx - q2*gy - q3*gz)*halfT;
-	q1 = q1 + (q0*gx + q2*gz - q3*gy)*halfT;
-	q2 = q2 + (q0*gy - q1*gz + q3*gx)*halfT;
-	q3 = q3 + (q0*gz + q1*gy - q2*gx)*halfT;
-
-	// normalise quaternion
-	norm = sqrt(q0*q0 + q1*q1 + q2*q2 + q3*q3);
-	q0 = q0 / norm;
-	q1 = q1 / norm;
-	q2 = q2 / norm;
-	q3 = q3 / norm;
-
-	//Oblicz katy Eulera: Phi, Theta, Psi
-	uDaneCM4.dane.fKatIMU2[0] = atan2f(2 * (q0*q1 + q2*q3), 1 - 2 *(q1*q1 + q2*q2));
-	uDaneCM4.dane.fKatIMU2[1] = asinf( 2 * (q0*q2 - q1*q3));
-	uDaneCM4.dane.fKatIMU2[2] = atan2f(2 * (q0*q3 + q1*q2), 1 - 2 *(q2*q2 + q3*q3));
-
-	//ogranicz wartość kątów w zakresie -Pi..Pi
-	for(uint8_t x=0; x<3; x++)
-	{
-		if (uDaneCM4.dane.fKatIMU2[x] > M_PI)
-			uDaneCM4.dane.fKatIMU2[x] -= M_PI;
-		else
-		if (uDaneCM4.dane.fKatIMU2[x] < -M_PI)
-			uDaneCM4.dane.fKatIMU2[x] += M_PI;
-	}
-}
-
-
-
-
 
 
 
@@ -233,7 +161,7 @@ uint8_t JednostkaInercyjna4Kwaterniony(uint8_t chGniazdo)
 
 	//Wyznaczam kwaterniony obrotów w formie algebraicznej korzystając z danych wejściowych wprowadzonych do formy trygonometrycznej
 	//fQz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
-	fdPsi2 = uDaneCM4.dane.fZyroKal1[2] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fdPsi2 = uDaneCM4.dane.fZyroKal1[2] * ndT[chGniazdo] / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
 	//fdPsi2 = 0.0f * DEG2RAD / 2;
 	fQz[0] = cosf(fdPsi2);		//część rzeczywista kwaternionu: s0 = cos(theta) gdzie kąt oborotu to 2*theta, więc s0 = cos(kąt_obrotu/2)
 	fQz[1] = 0;
@@ -241,7 +169,7 @@ uint8_t JednostkaInercyjna4Kwaterniony(uint8_t chGniazdo)
 	fQz[3] = sin(fdPsi2);	//z0 = vz / |v0| * sin(theta)  Oś obrotu to 1, więc moduł też będzie 1 więc można to pominąć
 
 	//fQy = cos (theta/2) + (1 / sqrt(x^2 + y^2 + z^2)*j) * sin (theta/2)
-	fdTheta2 = uDaneCM4.dane.fZyroKal1[1] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fdTheta2 = uDaneCM4.dane.fZyroKal1[1] * ndT[chGniazdo] / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
 	//fdTheta2 = 0.2f * DEG2RAD / 2;
 	fQy[0] = cosf(fdTheta2);
 	fQy[1] = 0;
@@ -252,7 +180,7 @@ uint8_t JednostkaInercyjna4Kwaterniony(uint8_t chGniazdo)
 	//fdPhi = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 1000000;
 	//Ponieważ we wzorze występuje połwa kąta, więc aby nie wykonywać dzielenia wielokrotnie, od razu liczę połowę kata
 	//fQx = cos (phi/2) + (1 / sqrt(x^2 + y^2 + z^2)*i) * sin (phi/2)
-	fdPhi2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fdPhi2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
 	//fdPhi2 = 0.0f * DEG2RAD / 2;
 	fQx[0] = cosf(fdPhi2);
 	fQx[1] = sinf(fdPhi2);

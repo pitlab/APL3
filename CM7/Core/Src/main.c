@@ -39,6 +39,9 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
   - dodać jakości kąta dla Acc i Mag w zakresie 0-90 na podstawie wartosci składowych wejściowych. Obie zerowe wejściowe dają słabą jakość kąta. Tam gdzie jest 1 tam jakość jest najlepsza
   - Pozbyć się zmiennych fZyroSur i fZyroKal zastępując jejedną zmienną o wartości zależnej od kontekstu
   - sprawdzić dlaczego kompas pokazuje zły kierunek (ujemną wartość dla wschodu, dodatnią dla zachodu)
+  - znaleźć dlaczego czasami w trakcie kalibracji magnetometru gaśnie wyświetlacz
+  - ustawić odpowiednie kąty w poziomicy podczas kalibracji skalowania żyroskopów
+  - poprawić podwójny kąt liczony IMU4
 
  * */
 /* USER CODE END Header */
@@ -59,7 +62,6 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "flash_nor.h"
 #include "flash_konfig.h"
 #include "wymiana_CM7.h"
-//#include "wymiana.h"
 #include "protokol_kom.h"
 #include "moduly_SPI.h"
 #include "audio.h"
