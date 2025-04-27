@@ -10,7 +10,7 @@
 #include "sys_def_CM7.h"
 #include "display.h"
 
-#define MIN_MAG_WYKR	3/5*NOMINALNE_MAGN		//minimalna wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru
+#define MIN_MAG_WYKR	NOMINALNE_MAGN / 600		//minimalna wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru
 
 //czynności związane z obsługą przycisku graficznego
 #define RYSUJ		0

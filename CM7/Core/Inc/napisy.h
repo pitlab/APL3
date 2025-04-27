@@ -49,8 +49,14 @@
 #define STR_MENU_KARTA_SD			31
 #define STR_MENU_IMU				32
 #define STR_MENU_MAGNETOMETR		33
-#define STR_KONIEC					34
-#define MAX_NAPISOW					35	//liczba napisów
+#define STR_KALIBRACJA				34
+#define STR_WERYFIKACJA				35
+#define STR_MAGNETOMETRU			36
+#define STR_MAGNETOMETR				37
+#define STR_EKSTREMA				38
+#define STR_KONIEC					39
+
+#define MAX_NAPISOW					40	//liczba napisów
 
 
 #define JEZYK_POLSKI
@@ -95,6 +101,11 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Menu Karta SD",					//STR_MENU_KARTA_SD
 "Menu kalibracji IMU",				//STR_MENU_IMU
 "Menu Magnetometr",					//STR_MENU_MAGNETOMETR
+"Kalibracja",						//STR_KALIBRACJA
+"Weryfikacja",						//STR_WERYFIKACJA
+"magnetometru",						//STR_MAGNETOMETRU
+"Magnetometr",						//STR_MAGNETOMETR
+"Ekstrema",							//STR_EKSTREMA
 "koniec",							//STR_KONIEC
 };
 

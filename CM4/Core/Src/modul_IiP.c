@@ -754,7 +754,7 @@ void ZapiszKonfiguracjeMagnetometru(uint8_t chMagn)
 		case MAG3:
 			fPrzesMagn3[n] = (stMagn.fMax[n] + stMagn.fMin[n]) / 2;
 			FramDataWriteFloat(FAH_MAGN3_PRZESX + 4*n, fPrzesMagn3[n]);
-			fSkaloMagn3[n] = (float)NORM_AMPL_MAG / (stMagn.fMax[n] - stMagn.fMin[n]);
+			fSkaloMagn3[n] = (float)NOMINALNE_MAGN / (stMagn.fMax[n] - stMagn.fMin[n]);
 			FramDataWriteFloat(FAH_MAGN3_SKALOX + 4*n, fSkaloMagn3[n]);
 			break;
 		}
