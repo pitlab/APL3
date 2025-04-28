@@ -41,13 +41,10 @@
 extern uint32_t ndT[4];								//czas [us] jaki upłynął od poprzeniego obiegu pętli dla 4 modułów wewnetrznych
 extern volatile unia_wymianyCM4_t uDaneCM4;
 extern volatile unia_wymianyCM7_t uDaneCM7;
-//float fKatZyroskopu1[3], fKatZyroskopu2[3];		//całka z prędkosci kątowej żyroskopów
-float fKatAkcel1[3], fKatAkcel2[3];					//kąty pochylenia i przechylenia policzone z akcelerometru
 extern float fOffsetZyro1[3], fOffsetZyro2[3];
 
-
-static float fQAcc[4] = {0.0f, 0.0f, 0.0f, 1.0f};	//kwaternion wektora przyspieszenia
-static float fQMag[4] = {0.0f, 0.0f, NOMINALNE_MAGN, 0.0f};	//kwaternion wektora magnetycznego
+static float fQAcc[4] = {0.0f, 0.0f, 0.0f, 1.0};	//kwaternion znormalizowanego wektora przyspieszenia
+static float fQMag[4] = {0.0f, 0.0f, -NOMINALNE_MAGN, 0.0f};	//kwaternion wektora magnetycznego
 
 
 
@@ -58,17 +55,13 @@ static float fQMag[4] = {0.0f, 0.0f, NOMINALNE_MAGN, 0.0f};	//kwaternion wektora
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujJednostkeInercyjna(void)
 {
-	uint8_t chErr = ERR_OK;
-	//float fVect[3] = {0.0f, 0.0f, 1.0f};
 
 	for (uint16_t n=0; n<3; n++)
 	{
-		uDaneCM4.dane.fKatIMUZyro1[n] = 0;
-		uDaneCM4.dane.fKatIMUZyro2[n] = 0;
+		uDaneCM4.dane.fKatZyro1[n] = 0;
+		uDaneCM4.dane.fKatZyro2[n] = 0;
 	}
-	//WektorNaKwaternion(fVect, fQa);
-	//WektorNaKwaternion(fVect, fQm);
-	return chErr;
+	return ERR_OK;
 }
 
 
@@ -87,47 +80,51 @@ uint8_t JednostkaInercyjna1Trygonometria(uint8_t chGniazdo)
 		if ((uDaneCM7.dane.chWykonajPolecenie >= POL_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.chWykonajPolecenie <= POL_KALIBRUJ_ZYRO_WZMP))
 		{
 			//w czasie kalibracji wzmocnienia nie uwzgledniej wzmocnienia, jedynie offset i nie ograniczaj przyrostu kąta
-			uDaneCM4.dane.fKatIMUZyro1[n] +=  (uDaneCM4.dane.fZyroSur1[n] - fOffsetZyro1[n]) * ndT[chGniazdo] / 1000000;		//[rad/s] * [us / 1000000] => [rad]
-			uDaneCM4.dane.fKatIMUZyro2[n] +=  (uDaneCM4.dane.fZyroSur1[n] - fOffsetZyro2[n]) * ndT[chGniazdo] / 1000000;
+			uDaneCM4.dane.fKatZyro1[n] +=  (uDaneCM4.dane.fZyroSur1[n] - fOffsetZyro1[n]) * ndT[chGniazdo] / 1000000;		//[rad/s] * [us / 1000000] => [rad]
+			uDaneCM4.dane.fKatZyro2[n] +=  (uDaneCM4.dane.fZyroSur1[n] - fOffsetZyro2[n]) * ndT[chGniazdo] / 1000000;
 		}
 		else	//normalna praca
 		{
-			uDaneCM4.dane.fKatIMUZyro1[n] +=  uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[rad/s] * [us / 1000000] => [rad]
-			uDaneCM4.dane.fKatIMUZyro2[n] +=  uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
+			uDaneCM4.dane.fKatZyro1[n] +=  uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[rad/s] * [us / 1000000] => [rad]
+			uDaneCM4.dane.fKatZyro2[n] +=  uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
 
 			//ogranicz przyrost kąta do +-Pi
-			if (uDaneCM4.dane.fKatIMUZyro1[n] > M_PI)
-				uDaneCM4.dane.fKatIMUZyro1[n] = -M_PI;
-			if (uDaneCM4.dane.fKatIMUZyro1[n] < -M_PI)
-				uDaneCM4.dane.fKatIMUZyro1[n] = M_PI;
-			if (uDaneCM4.dane.fKatIMUZyro2[n] > M_PI)
-				uDaneCM4.dane.fKatIMUZyro2[n] = -M_PI;
-			if (uDaneCM4.dane.fKatIMUZyro2[n] < -M_PI)
-				uDaneCM4.dane.fKatIMUZyro2[n] = M_PI;
+			if (uDaneCM4.dane.fKatZyro1[n] > M_PI)
+				uDaneCM4.dane.fKatZyro1[n] = -M_PI;
+			if (uDaneCM4.dane.fKatZyro1[n] < -M_PI)
+				uDaneCM4.dane.fKatZyro1[n] = M_PI;
+			if (uDaneCM4.dane.fKatZyro2[n] > M_PI)
+				uDaneCM4.dane.fKatZyro2[n] = -M_PI;
+			if (uDaneCM4.dane.fKatZyro2[n] < -M_PI)
+				uDaneCM4.dane.fKatZyro2[n] = M_PI;
 		}
 	}
 
 
 	//kąt przechylenia z akcelerometru: tan(Z/Y) = atan2(Y, Z)
-	uDaneCM4.dane.fKatIMUAkcel1[0] = atan2f(uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);
-	//uDaneCM4.dane.fKatIMUAkcel2[0] = atan2f(uDaneCM4.dane.fAkcel2[1], uDaneCM4.dane.fAkcel2[2]);
+	//uDaneCM4.dane.fKatAkcel1[0] = atan2f(uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);	// zły znak
 
-	//kąt pochylenia z akcelerometru: tan(-Z/X) = atan2(X, -Z)
-	uDaneCM4.dane.fKatIMUAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[0], -uDaneCM4.dane.fAkcel1[2]);
-	//uDaneCM4.dane.fKatIMUAkcel2[1] = atan2f(uDaneCM4.dane.fAkcel2[0], -uDaneCM4.dane.fAkcel2[2]);
+	//kąt przechylenia z akcelerometru: tan(-Y/Z) = atan2(Z, Y)
+	uDaneCM4.dane.fKatAkcel1[0] = atan2f(-uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);	//
 
-	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(y/x)
-	//uDaneCM4.dane.fKatIMUAkcel1[2] = atan2f((float)uDaneCM4.dane.sMagne3[1], (float)uDaneCM4.dane.sMagne3[0]);
+	//uDaneCM4.dane.fKatAkcel1[0] = atan2f(uDaneCM4.dane.fAkcel2[1], uDaneCM4.dane.fAkcel2[2]);
+
+	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(X, Z)
+	uDaneCM4.dane.fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[2]);	//OK
+	//uDaneCM4.dane.fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel2[0], uDaneCM4.dane.fAkcel2[2]);
+
+	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(Y/X) dla X=N, Y=E => atan2(X, Y)
+	uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fMagne3[1], uDaneCM4.dane.fMagne3[0]);
 
 	//kąt odchylenia z akcelerometru: tan(Y/X) = atan2(X, Y)
-	uDaneCM4.dane.fKatIMUAkcel1[2] = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[1]);
-	//uDaneCM4.dane.fKatIMUAkcel2[2] = atan2f(uDaneCM4.dane.fAkcel2[0], uDaneCM4.dane.fAkcel2[1]);
+	//uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[1]);
+	//uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fAkcel2[0], uDaneCM4.dane.fAkcel2[1]);
 
 	//filtr komplementarny IMU
 	for (uint16_t n=0; n<3; n++)
 	{
 		uDaneCM4.dane.fKatIMU1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;
-		uDaneCM4.dane.fKatIMU1[n] = 0.05 * uDaneCM4.dane.fKatIMUAkcel1[n] + 0.95 * uDaneCM4.dane.fKatIMU1[n];
+		uDaneCM4.dane.fKatIMU1[n] = 0.05 * uDaneCM4.dane.fKatAkcel1[n] + 0.95 * uDaneCM4.dane.fKatIMU1[n];
 	}
 
 
@@ -138,7 +135,7 @@ uint8_t JednostkaInercyjna1Trygonometria(uint8_t chGniazdo)
 	WektorNaKwaternion((float*)uDaneCM4.dane.fAkcel2, fQA);
 	WektorNaKwaternion((float*)uDaneCM4.dane.fMagne3, fQM);
 	Normalizuj(fQA, fQA, 4);
-	KatyKwaterniona(fQA, fQM, (float*)uDaneCM4.dane.fKatIMUAkcel2);
+	KatyKwaterniona(fQA, fQM, (float*)uDaneCM4.dane.fKatAkcel2);
 	return ERR_OK;
 }
 
@@ -218,7 +215,8 @@ uint8_t JednostkaInercyjna4Kwaterniony(uint8_t chGniazdo)
 
 
 	//Oblicz katy Eulera: Phi, Theta, Psi - https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-	KatyKwaterniona(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);
+	//KatyKwaterniona(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);	//wersja z asinf
+	KatyKwaterniona2(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);		//wersja z atan2
 	return ERR_OK;
 }
 
@@ -460,16 +458,19 @@ void ObrotWektora(uint8_t chGniazdo)
 
 
 	//pomiary czasu
-	nCzas = PobierzCzas();
+	/*nCzas = PobierzCzas();
 	JednostkaInercyjna4Kwaterniony(ADR_MOD2);
 	nCzas = MinalCzas(nCzas);
 
-/*	float fAccNorm[3];
+	nCzas = PobierzCzas();
+	for (uint16_t n=0; n<100; n++)
+		KatyKwaterniona(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);
+	nCzas = MinalCzas(nCzas);
 
 	nCzas = PobierzCzas();
 	for (uint16_t n=0; n<100; n++)
-		Normalizuj((float*)uDaneCM4.dane.fAkcel1, fAccNorm, 3);
-	nCzas = MinalCzas(nCzas);*/
+		KatyKwaterniona2(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);
+	nCzas = MinalCzas(nCzas); */
 	return;
 }
 

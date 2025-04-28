@@ -801,7 +801,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "PhiZyro1 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatIMUZyro1[0]);
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatZyro1[0]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 
@@ -809,7 +809,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "PhiZyro2 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatIMUZyro2[0]);
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatZyro2[0]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -821,7 +821,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "ThetaZyro1 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatIMUZyro1[1]);
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatZyro1[1]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 
@@ -829,7 +829,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "ThetaZyro2 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatIMUZyro2[1]);
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatZyro2[1]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -841,7 +841,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "PsiZyro1 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatIMUZyro1[2]);
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatZyro1[2]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 
@@ -849,7 +849,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "PsiZyro2 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatIMUZyro2[2]);
+				sprintf(chBufPodreczny, "%.4f;", uDaneCM4.dane.fKatZyro2[2]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}

@@ -395,7 +395,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 	case POL_KALIBRUJ_ZYRO_WZMP:	//kalibruj wzmocnienia żyroskopów P
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
-			fWzmocnZyro1[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro1[0]);
+			fWzmocnZyro1[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro1[0]);
 			if ((fWzmocnZyro1[0] > VMIN_WZM_ZYRO) && (fWzmocnZyro1[0] < VMAX_WZM_ZYRO))
 			{
 				FramDataWriteFloat(FAH_ZYRO1P_WZMOC, fWzmocnZyro1[0]);
@@ -408,7 +408,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 				return ERR_OK;
 			}
 
-			fWzmocnZyro2[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro2[0]);
+			fWzmocnZyro2[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro2[0]);
 			if ((fWzmocnZyro2[0] > VMIN_WZM_ZYRO) && (fWzmocnZyro2[0] < VMAX_WZM_ZYRO))
 			{
 				FramDataWriteFloat(FAH_ZYRO2P_WZMOC, fWzmocnZyro2[0]);
@@ -426,7 +426,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 	case POL_KALIBRUJ_ZYRO_WZMQ:	//kalibruj wzmocnienia żyroskopów Q
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
-			fWzmocnZyro1[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro1[1]);
+			fWzmocnZyro1[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro1[1]);
 			if ((fWzmocnZyro1[1] > VMIN_WZM_ZYRO) && (fWzmocnZyro1[1] < VMAX_WZM_ZYRO))
 			{
 				FramDataWriteFloat(FAH_ZYRO1Q_WZMOC, fWzmocnZyro1[1]);
@@ -439,7 +439,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 				return ERR_OK;
 			}
 
-			fWzmocnZyro2[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro2[1]);
+			fWzmocnZyro2[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro2[1]);
 			if ((fWzmocnZyro2[1] > VMIN_WZM_ZYRO) && (fWzmocnZyro2[1] < VMAX_WZM_ZYRO))
 			{
 				FramDataWriteFloat(FAH_ZYRO2Q_WZMOC, fWzmocnZyro2[1]);
@@ -459,7 +459,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 	case POL_KALIBRUJ_ZYRO_WZMR:	//kalibruj wzmocnienia żyroskopów R
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
-			fWzmocnZyro1[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro1[2]);
+			fWzmocnZyro1[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro1[2]);
 			if ((fWzmocnZyro1[2] > VMIN_WZM_ZYRO) && (fWzmocnZyro1[2] < VMAX_WZM_ZYRO))
 			{
 				FramDataWriteFloat(FAH_ZYRO1R_WZMOC, fWzmocnZyro1[2]);
@@ -472,7 +472,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 				return ERR_OK;
 			}
 
-			fWzmocnZyro2[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatIMUZyro2[2]);
+			fWzmocnZyro2[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro2[2]);
 			if ((fWzmocnZyro2[2] > VMIN_WZM_ZYRO) && (fWzmocnZyro2[2] < VMAX_WZM_ZYRO))
 			{
 				FramDataWriteFloat(FAH_ZYRO2R_WZMOC, fWzmocnZyro2[2]);
@@ -492,8 +492,8 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 	case POL_ZERUJ_CALKE_ZYRO:		//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
 		for (uint16_t n=0; n<3; n++)
 		{
-			uDaneCM4.dane.fKatIMUZyro1[n] = 0.0f;
-			uDaneCM4.dane.fKatIMUZyro2[n] = 0.0f;
+			uDaneCM4.dane.fKatZyro1[n] = 0.0f;
+			uDaneCM4.dane.fKatZyro2[n] = 0.0f;
 		}
 		uDaneCM4.dane.fRozne[0] = 0.0f;
 		uDaneCM4.dane.fRozne[1] = 0.0f;

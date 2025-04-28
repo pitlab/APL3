@@ -19,7 +19,7 @@ void WektorNaKwaternion(float *wektor, float *q);
 void KwaternionNaWektor(float *q, float *wektor);
 void KwaternionSprzezony(float *q, float *sprzezony);
 //void KatyKwaterniona1(float *qA, float *qM, float *fKaty);
-//void KatyKwaterniona2(float *qA, float *qM, float *fKaty);
+void KatyKwaterniona2(float *qA, float *qM, float *fKaty);
 void KatyKwaterniona(float *qA, float *qM, float *fKaty);
 void Normalizuj(float * fWe, float *fWy, uint8_t chRozmiar);
 

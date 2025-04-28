@@ -504,7 +504,7 @@ void RysujEkran(void)
 	case TP_IMU_KOSTKA:	//rysuj kostkę 3D
 		float fKat[3];
 		for (uint8_t n=0; n<3; n++)
-			fKat[n] = -1 *uDaneCM4.dane.fKatIMUZyro2[n];	//do rysowania przyjmij kąty z przeciwnym znakiem - jest OK
+			fKat[n] = -1 *uDaneCM4.dane.fKatZyro2[n];	//do rysowania przyjmij kąty z przeciwnym znakiem - jest OK
 		RysujKostkeObrotu(fKat);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
@@ -1517,46 +1517,46 @@ void PomiaryIMU(void)
 
 	//kąty z akcelrometru 1
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel1[0], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[0], ZNAK_STOPIEN);
 	print(chNapis, 10+13*FONT_SL, 210);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel1[1], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[1], ZNAK_STOPIEN);
 	print(chNapis, 10+25*FONT_SL, 210);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel1[2], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[2], ZNAK_STOPIEN);
 	print(chNapis, 10+37*FONT_SL, 210);
 
 	//kąty z akcelrometru 2
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel2[0], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[0], ZNAK_STOPIEN);
 	print(chNapis, 10+13*FONT_SL, 230);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel2[1], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[1], ZNAK_STOPIEN);
 	print(chNapis, 10+25*FONT_SL, 230);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUAkcel2[2], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[2], ZNAK_STOPIEN);
 	print(chNapis, 10+37*FONT_SL, 230);
 
 	//kąty z żyroskopu 1
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[0], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[0], ZNAK_STOPIEN);
 	print(chNapis, 10+13*FONT_SL, 250);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[1], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[1], ZNAK_STOPIEN);
 	print(chNapis, 10+25*FONT_SL, 250);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[2], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[2], ZNAK_STOPIEN);
 	print(chNapis, 10+37*FONT_SL, 250);
 
 	//kąty z żyroskopu 2
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[0], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[0], ZNAK_STOPIEN);
 	print(chNapis, 10+13*FONT_SL, 270);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[1], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[1], ZNAK_STOPIEN);
 	print(chNapis, 10+25*FONT_SL, 270);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[2], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[2], ZNAK_STOPIEN);
 	print(chNapis, 10+37*FONT_SL, 270);
 
 	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI do zera
@@ -2322,13 +2322,13 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		chNazwaOsi = 'Z';
 		//fPochylenie = uDaneCM4.dane.fKatIMU2[1];
 		//fPrzechylenie = uDaneCM4.dane.fKatIMU2[0];
-		fPochylenie = uDaneCM4.dane.fKatIMUAkcel1[1];
-		fPrzechylenie = uDaneCM4.dane.fKatIMUAkcel1[0];
+		fPochylenie = uDaneCM4.dane.fKatAkcel1[1];
+		fPrzechylenie = uDaneCM4.dane.fKatAkcel1[0];
 		Poziomica(-fPrzechylenie, fPochylenie);	//przechylenie, pochylenie
 		setColor(KOLOR_Z);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[2], ZNAK_STOPIEN);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[2], ZNAK_STOPIEN);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 100);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[2], ZNAK_STOPIEN);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[2], ZNAK_STOPIEN);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 120);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * fPochylenie, ZNAK_STOPIEN);	//pochylenie
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 160);
@@ -2342,9 +2342,9 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		fPrzechylenie = atan2f(uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]) + 90 * DEG2RAD;	//atan(y/z)
 		Poziomica(fPrzechylenie, -fPochylenie);	//przechylenie, pochylenie
 		setColor(KOLOR_Y);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[1], ZNAK_STOPIEN);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[1], ZNAK_STOPIEN);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 100);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[1], ZNAK_STOPIEN);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[1], ZNAK_STOPIEN);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 120);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * fPochylenie, ZNAK_STOPIEN);	//pochylenie
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 160);
@@ -2358,9 +2358,9 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		fPrzechylenie = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[1]) - 90 * DEG2RAD;	//atan(x/y)
 		Poziomica(-fPrzechylenie, fPochylenie);	//przechylenie, pochylenie
 		setColor(KOLOR_X);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro1[0], ZNAK_STOPIEN);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[0], ZNAK_STOPIEN);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 100);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMUZyro2[0], ZNAK_STOPIEN);
+		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[0], ZNAK_STOPIEN);
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 120);
 		sprintf(chNapis, "%.2f %c ", RAD2DEG * fPochylenie, ZNAK_STOPIEN);	//pochylenie
 		print(chNapis, 10 + LIBELLA_BOK + 14*FONT_SL, 160);

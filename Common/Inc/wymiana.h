@@ -91,10 +91,10 @@ typedef struct
 	float fMagne3[3];
 	float fKatIMU1[3];		//[rad]
 	float fKatIMU2[3];
-	float fKatIMUZyro1[3];	//[rad]
-	float fKatIMUZyro2[3];
-	float fKatIMUAkcel1[3];	//[rad]
-	float fKatIMUAkcel2[3];
+	float fKatZyro1[3];	//[rad]
+	float fKatZyro2[3];
+	float fKatAkcel1[3];	//[rad]
+	float fKatAkcel2[3];
 	float fCisnie[2];		//[Pa]
 	float fWysoko[2];		//[m]
 	float fCisnRozn[2];		//0=ND130, 1=MS2545
