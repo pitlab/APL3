@@ -38,13 +38,16 @@
 
 
 
-//definicje układów na magistralach I2C3 i I2C4
-#define MAG_MMC				1
-#define MAG_IIS				2
-#define MAG_HMC				3
-#define CISN_ROZN_MS2545	4	//ciśnienie różnicowe
-#define CISN_TEMP_MS2545	5	//ciśnienie różnicowe i temepratura
+//definicje układów na magistralach I2C3 i I2C4 kodowane na osobnych bitach. Oznaczają że dane z tych czujników są dostępne do obróbki
+#define MAG_MMC				0x01	//magnetometr na IMU
+#define MAG_IIS				0x02	//magnetometr na IMU
+#define MAG_HMC				0x04	//magnetometr na GNSS
+#define CISN_ROZN_MS2545	0x08	//ciśnienie różnicowe zewnętrzne
+#define CISN_TEMP_MS2545	0x10	//ciśnienie różnicowe i temepratura
 
+//timeouty w milisekundach dla magistrali I2C zależące od ilości przesyłanych danych. Dla 100kHz czas przesłania 1 bajtu to 0,1ms, dla 25kHz to 0,4ms
+#define TOUT_I2C4_2B		1
+#define TOUT_I2C4_7B		2
 
 //definije kanałów IO
 #define MIO11	(1 << 0) 	//MOD_IO11

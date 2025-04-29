@@ -442,6 +442,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 		uDaneCM4.dane.fCisnRozn[1] = (15 * uDaneCM4.dane.fCisnRozn[1] + CisnienieMS2545(chDaneMS4525)) / 16;
 		uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 		*chCzujniki &= ~CISN_TEMP_MS2545;	//dane obsłużone
+		uDaneCM4.dane.chNowyPomiar |= NP_EXT_IAS;	//jest nowy pomiar
 	}
 
 	if (*chCzujniki & MAG_IIS)
@@ -454,8 +455,8 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 			else
 				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
 		}
-		uDaneCM4.dane.fTemper[4] = ((int16_t)chDaneMagIIS[7] * 0x100 + chDaneMagIIS[6]) / 8;	//The nominal sensitivity is 8 LSB/°C.
-		//if ((chDaneMagIIS[0] || chDaneMagIIS[1]) && (chDaneMagIIS[2] || chDaneMagIIS[3]) && (chDaneMagIIS[4] || chDaneMagIIS[5]))
+		float fTemp = (float)((int16_t)chDaneMagIIS[7] * 0x100 + chDaneMagIIS[6]) / 8;	//The nominal sensitivity is 8 LSB/°C.
+		uDaneCM4.dane.fTemper[TEMP_MAG1] = (7 * uDaneCM4.dane.fTemper[TEMP_MAG1] + fTemp) / 8;	//filtr IIR temperatury
 		*chCzujniki &= ~MAG_IIS;	//dane obsłużone
 		uDaneCM4.dane.chNowyPomiar |= NP_MAG1;	//jest nowy pomiar
 	}

@@ -1434,7 +1434,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[2]);
 	print(chNapis, 10+32*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(YELLOW); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+49*FONT_SL, 70);
 
 	//LSM6DSV
@@ -1448,7 +1448,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[2]);
 	print(chNapis, 10+32*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(YELLOW); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU2] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU2] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+49*FONT_SL, 90);
 
 	//IIS2MDC
@@ -1462,8 +1462,8 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[2]*1000);
 	print(chNapis, 10+32*FONT_SL, 110);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(YELLOW); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f%cC ", uDaneCM4.dane.fTemper[TEMP_MAG1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+48*FONT_SL, 110);
+	sprintf(chNapis, "%.1f%cC ", uDaneCM4.dane.fTemper[TEMP_MAG1], ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	print(chNapis, 10+49*FONT_SL, 110);
 
 	//MMC34160
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
@@ -1607,7 +1607,7 @@ void PomiaryCisnieniowe(void)
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[0]);
 	print(chNapis, 10+26*FONT_SL, 30);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(YELLOW); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+40*FONT_SL, 30);
 
 	//BMP581
@@ -1618,7 +1618,7 @@ void PomiaryCisnieniowe(void)
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[1]);
 	print(chNapis, 10+26*FONT_SL, 50);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(YELLOW); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+40*FONT_SL, 50);
 
 	//ND130
@@ -1629,7 +1629,7 @@ void PomiaryCisnieniowe(void)
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[0]);
 	print(chNapis, 10+26*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(YELLOW); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR1] - KELVIN, ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+40*FONT_SL, 70);
 
 	//MS4525
@@ -1640,7 +1640,7 @@ void PomiaryCisnieniowe(void)
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[1]);
 	print(chNapis, 10+26*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(YELLOW); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2] - KELVIN , ZNAK_STOPIEN);	//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2] - KELVIN , ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	print(chNapis, 10+40*FONT_SL, 90);
 
 

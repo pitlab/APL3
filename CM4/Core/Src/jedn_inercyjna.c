@@ -105,7 +105,7 @@ uint8_t JednostkaInercyjna1Trygonometria(uint8_t chGniazdo)
 	//uDaneCM4.dane.fKatAkcel1[0] = atan2f(uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);	// zły znak
 
 	//kąt przechylenia z akcelerometru: tan(-Y/Z) = atan2(Z, Y)
-	uDaneCM4.dane.fKatAkcel1[0] = atan2f(-uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);	//
+	uDaneCM4.dane.fKatAkcel1[0] = atan2f(-uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);	//OK, dobry znak
 
 	//uDaneCM4.dane.fKatAkcel1[0] = atan2f(uDaneCM4.dane.fAkcel2[1], uDaneCM4.dane.fAkcel2[2]);
 

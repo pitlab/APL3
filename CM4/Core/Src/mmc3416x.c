@@ -36,10 +36,10 @@ uint8_t InicjujMMC3416x(void)
 	uint8_t chErr = ERR_BRAK_MMC34160;
 
 	chDaneMagMMC[0] = PMMC3416_PRODUCT_ID;
-	chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 1, 2);	//wyślij polecenie odczytu rejestru identyfikacyjnego
+	chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 1, TOUT_I2C4_2B);	//wyślij polecenie odczytu rejestru identyfikacyjnego
 	if (!chErr)
 	{
-		chErr =  HAL_I2C_Master_Receive(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 1, 2);		//odczytaj dane
+		chErr =  HAL_I2C_Master_Receive(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 1, TOUT_I2C4_2B);		//odczytaj dane
 		if (!chErr)
 		{
 			if (chDaneMagMMC[0] == 0x06)	//czy zgadza się ID
@@ -52,7 +52,7 @@ uint8_t InicjujMMC3416x(void)
 								  (0 << 5) |	//SET
 								  (0 << 6) |	//RESET
 								  (0 << 7);		//Refill Cap Writing “1” will recharge the capacitor at CAP pin, it is requested to be issued before SET/RESET command.
-				chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 2, 2);	//wyślij polecenie wykonania pomiaru
+				chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 2, TOUT_I2C4_2B);	//wyślij polecenie wykonania pomiaru
 				if (chErr)
 					return chErr;
 
@@ -64,7 +64,7 @@ uint8_t InicjujMMC3416x(void)
 								  (0 << 5) |	//ST_XYZ Selftest check, write “1” to this bit and execute a TM command, after TM is completed the result can be read as bit ST_XYZ_OK.
 								  (0 << 6) |	//Temp_tst - Factory-use Register
 								  (0 << 7);		//SW_RST Writing “1”will cause the part to reset, similar to power-up. It will clear all registers and also re-read OTP as part of its startup routine.
-				chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 2, 2);	//wyślij polecenie wykonania pomiaru
+				chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 2, TOUT_I2C4_2B);	//wyślij polecenie wykonania pomiaru
 				if (!chErr)
 					uDaneCM4.dane.nZainicjowano |= INIT_MMC34160;
 			}
@@ -87,15 +87,15 @@ uint8_t ObslugaMMC3416x(void)
 {
 	uint8_t chErr = ERR_OK;
 
+	if ((uDaneCM4.dane.nZainicjowano & INIT_MMC34160) != INIT_MMC34160)
+	{
+		chErr = InicjujMMC3416x();
+		return chErr;
+	}
+
 	switch (chSekwencjaPomiaruMMC)
 	{
 	case SPMMC3416_REFIL_SET:		//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia SET
-		if ((uDaneCM4.dane.nZainicjowano & INIT_MMC34160) != INIT_MMC34160)
-		{
-			chErr = InicjujMMC3416x();
-			chSekwencjaPomiaruMMC--;
-		}
-		//tutaj nie ma break, tylko jeżeli magnetometr jest zainicjowany to wykonaj dalsze polecenia
 	case SPMMC3416_REFIL_RESET:		//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia RESET
 		chErr = PolecenieMMC3416x(POL_REFILL);
 		chLicznikOczekiwania = 10;
