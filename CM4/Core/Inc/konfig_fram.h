@@ -248,19 +248,19 @@
 #define VALP_GAIN1_UNI   (float)1.2     //
 #define VALD_GAIN1_UNI   (float)1.0*/
 
-#define VMIN_OFST_ACEL	-0.5f	//max wartość odchyłki ujemnej offsetu akcelerometrów
+#define VMIN_OFST_ACEL	-0.5f	//max wartość odchyłki ujemnej przesunięcia akcelerometrów
 #define VMAX_OFST_ACEL  0.5f    //j.w. dodatniej
 #define VDEF_OFST_ACEL  0.0f    //wartość domyślna
-#define VMIN_OFST_ZYRO  -20.f   //max wartość odchyłki ujemnej offsetu żyroskopów
-#define VMAX_OFST_ZYRO  20.f    //j.w. dodatniej
-#define VDEF_OFST_ZYRO  0.0f    //wartość domyślna
+#define VMIN_PRZES_ZYRO  -2.0f   //max wartość odchyłki ujemnej przesunięcia żyroskopów
+#define VMAX_PRZES_ZYRO  2.0f    //j.w. dodatniej
+#define VDEF_PRZES_ZYRO  0.0f    //wartość domyślna
 
-#define VMIN_WZM_ACEL  	0.8f    //limity wartości odchyłki ujemnej wzmocnienia akcelerometrów
-#define VMAX_WZM_ACEL  	1.4f    //limity wartości odchyłki dodatniej
-#define VDEF_WZM_ACEL  	1.0f    //wartość domyślna
-#define VMIN_WZM_ZYRO  	0.7f    //limity wartości odchyłki ujemnej wzmocnienia żyroskopów ISZ i IDG
-#define VMAX_WZM_ZYRO  	1.3f    //limity wartości odchyłki dodatniej
-#define VDEF_WZM_ZYRO  	1.0f    //wartość domyślna
+#define VMIN_SKALO_ACEL  	0.8f    //limity wartości odchyłki ujemnej wzmocnienia akcelerometrów
+#define VMAX_SKALO_ACEL  	1.4f    //limity wartości odchyłki dodatniej
+#define VDEF_SKALO_ACEL  	1.0f    //wartość domyślna
+#define VMIN_SKALO_ZYRO  	0.7f    //limity wartości odchyłki ujemnej wzmocnienia żyroskopów ISZ i IDG
+#define VMAX_SKALO_ZYRO  	1.3f    //limity wartości odchyłki dodatniej
+#define VDEF_SKALO_ZYRO  	1.0f    //wartość domyślna
 
 /*#define VALM_TCOEF_ACEL   (float)-5.0   //minimalna wartość  współczynnika temperaturowego akcelerometru
 #define VALP_TCOEF_ACEL   (float)5.0    //wartość maksymalna
@@ -280,9 +280,9 @@
 #define VDEF_SKALO_PAB    1.00f
 
 
-#define VMIN_OFST_PDIF    0.5f    //limity wartości odchyłki offsetu różnicowego czujnika ciśnienia
-#define VMAX_OFST_PDIF    1.5f    //
-#define VDEF_OFST_PDIF    0.0f
+#define VMIN_PRZES_PDIF    -500.0f    //limity wartości odchyłki offsetu różnicowego czujnika ciśnienia w [Pa]
+#define VMAX_PRZES_PDIF    500.0f    //
+#define VDEF_PRZES_PDIF    0.0f
 /*#define VALM_OFST_VARI    (float)-0.8   //limity wartości odchyłki offsetu wariometru
 #define VALP_OFST_VARI    (float)0.8    //
 #define VALD_OFST_VARI    (float)0.0
@@ -302,16 +302,16 @@
 #define VALP_OFST_TMPM    (float)25.0   //
 #define VALD_OFST_TMPM    (float)0.0
 
-#define VALM_TCOM_ALTI    (float)-1.2    //limity wartości odchyłki kompensacji temperaturowej wysoko�ciomierzy
+#define VALM_TCOM_ALTI    (float)-1.2    //limity wartości odchyłki kompensacji temperaturowej wysokościomierzy
 #define VALP_TCOM_ALTI    (float)1.2     //
 #define VALD_TCOM_ALTI    (float)1.0 */
 
-#define VMIN_SKALO_MAGN    0.10f		//limity wartości skalowania pomiaru magnetometru
-#define VMAX_SKALO_MAGN    10.0f
+#define VMIN_SKALO_MAGN    0.010f		//limity wartości skalowania pomiaru magnetometru
+#define VMAX_SKALO_MAGN    100.0f
 #define VDEF_SKALO_MAGN    1.0f
 
-#define VMIN_PRZES_MAGN    -1000.0f		//limity wartości przesunięcia pomiaru magnetometru
-#define VMAX_PRZES_MAGN    1000.0f
+#define VMIN_PRZES_MAGN    -0.01f		//limity wartości przesunięcia pomiaru magnetometru +/- 10 mT
+#define VMAX_PRZES_MAGN    0.01f
 #define VDEF_PRZES_MAGN    0.0f
 
 /*#define VALM_PID_PGAIN    (float)0.0     //limity wartości wzmocnienienia członu P regulatora

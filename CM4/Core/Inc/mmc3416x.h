@@ -10,7 +10,7 @@
 #include "sys_def_CM4.h"
 
 
-#define CZULOSC_MMC34160	4.88e-7	//1Gauss odpowiada 2048 bitów , więc 1 bit to 4,88 mGauss a 1 mGauss to 100nT
+#define CZULOSC_MMC34160	4.88e-7	//1 Gauss odpowiada 2048 bitów , więc 1 bit to 4,88 mGauss a 1 mGauss to 100nT
 
 #define MMC34160_I2C_ADR	0x60
 #define READ				0x01
@@ -34,23 +34,6 @@
 
 
 //definicje Sekwencji Pomiarowej
-/*#define SPMMC3416_REFIL_SET		0	//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia SET
-#define SPMMC3416_CZEKAJ_REFSET	1	//czekaj 50ms na naładowanie
-#define SPMMC3416_SET			2	//wyślij polecenie SET
-#define SPMMC3416_START_POM_HP	3	//wyślij polecenie wykonania pomiaru H+
-#define SPMMC3416_START_STAT_P	4	//wyślij polecenie odczytania statusu
-#define SPMMC3416_CZYT_STAT_P	5	//odczytaj status i sprawdź gotowość pomiaru
-#define SPMMC3416_START_CZYT_HP	6	//wyślij polecenie odczytu pomiaru H+
-#define SPMMC3416_CZYTAJ_HP		7	//odczytaj pomiar H+
-#define SPMMC3416_REFIL_RESET	8	//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia RESET
-#define SPMMC3416_CZEKAJ_REFRES	9	//czekaj 50ms na naładowanie
-#define SPMMC3416_RESET			10	//wyślij polecenie RESET
-#define SPMMC3416_START_POM_HM	11	//wyślij polecenie wykonania pomiaru H-
-#define SPMMC3416_START_STAT_M	12	//wyślij polecenie odczytania statusu
-#define SPMMC3416_CZYT_STAT_M	13	//odczytaj status i sprawdź gotowość pomiaru
-#define SPMMC3416_START_CZYT_HM	14	//wyślij polecenie odczytu pomiaru H-
-#define SPMMC3416_CZYTAJ_HM		15	//odczytaj pomiar H- */
-
 #define SPMMC3416_REFIL_SET		0	//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia SET
 #define SPMMC3416_CZEKAJ_REFSET	1	//czekaj 50ms na naładowanie
 #define SPMMC3416_SET			2	//wyślij polecenie SET

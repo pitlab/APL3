@@ -225,20 +225,20 @@ void CzytajIdFRAM(uint8_t* chDaneID)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Czyta z pamięci 4-bajtową zmienną typu float
-// Parametry: sAdress - adres pamięci
+// Parametry: sAdres - adres pamięci
 // Zwraca: zmienna float
 // Czas wykonania ok. 
 ////////////////////////////////////////////////////////////////////////////////
-float FramDataReadFloat(unsigned short sAddress)
+float CzytajFramFloat(uint16_t sAdres)
 {
      typedef union 
     {
-	unsigned char array[sizeof(float)];
+    uint8_t array[sizeof(float)];
 	float fuData;
     } fUnion;
     fUnion temp;
 
-	CzytajBuforFRAM(sAddress, temp.array, 4);
+	CzytajBuforFRAM(sAdres, temp.array, 4);
     return temp.fuData;
 }
 
@@ -250,36 +250,48 @@ float FramDataReadFloat(unsigned short sAddress)
 // [i] fData - dana do zapisu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void FramDataWriteFloat(unsigned short sAddress, float fData)
+//void FramDataWriteFloat(unsigned short sAddress, float fData)
+void ZapiszFramFloat(uint16_t sAdres, float fWartosc)
 {
     typedef union 
     {
-	unsigned char array[sizeof(float)];
+    uint8_t array[sizeof(float)];
 	float fuData;
     } fUnion;
     fUnion temp;
 
-    temp.fuData = fData;
-    ZapiszBuforFRAM(sAddress, temp.array, 4);
+    temp.fuData = fWartosc;
+    ZapiszBuforFRAM(sAdres, temp.array, 4);
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Czyta z pamięci 4-bajtową zmienną typu float i przeprowadza validację
 // Parametry: 
-// [o] *fValue - wskaźnik na zmienną do odczytu
-// [i] sAdress - adres pamięci
-// [i] fValMin - wartość minimalna zmiennej
-// [i] fValMax - wartość maksymalna zmiennej
+// [o] *fWartosc - wskaźnik na zmienną do odczytu
+// [i] sAdres - adres pamięci
+// [i] fWartMin - wartość minimalna zmiennej
+// [i] fWartMax - wartość maksymalna zmiennej
+// [i] fWartDomyslna - gdy odczytana wartość nie spełnia warunków walidacji to przyjmuje tą wartość domyślną
+// [i] chKodBledu - kod błedu jaki ma zwrócić funkcja w przypadku niespełnienia warunków walidacji
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-unsigned char FramDataReadFloatValid(unsigned short sAddress, float *fValue, float fValMin, float fValMax, float fValDef, unsigned char chErrCode)
+uint8_t CzytajFramZWalidacja(uint16_t sAdres, float *fWartosc, float fWartMin, float fWartMax, float fWartDomyslna, uint8_t chKodBledu)
 {
-    *fValue = FramDataReadFloat(sAddress);
-    if ((*fValue < fValMin) || (*fValue > fValMax) || isnan(*fValue))
-    {
-    	*fValue = fValDef;    //gdy poza zakresem, to zwróć przekazaną wartość domyślną
-    	return chErrCode;
-    }
-    return ERR_OK;
+	uint8_t chLiczbaPowtorzen = 3;
+	uint8_t chErr;
+
+	do
+	{
+		*fWartosc = CzytajFramFloat(sAdres);
+		if ((*fWartosc < fWartMin) || (*fWartosc > fWartMax) || isnan(*fWartosc))
+		{
+			*fWartosc = fWartDomyslna;    //gdy poza zakresem, to zwróć przekazaną wartość domyślną
+			chErr = chKodBledu;
+		}
+		else
+			chErr = ERR_OK;
+	}
+	while (chErr && --chLiczbaPowtorzen);	//w przypadku jakiegokolwiek błędu powtórz całość
+    return chErr;
 }

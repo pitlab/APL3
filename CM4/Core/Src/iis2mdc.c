@@ -99,11 +99,6 @@ uint8_t ObslugaIIS2MDC(void)
 		break;
 
 	case 1:
-		/*chErr = HAL_I2C_Master_Seq_Receive_DMA(&hi2c4, IIS2MDC_I2C_ADR + READ, &chStatusIIS, 1, I2C_LAST_FRAME);		//odczytaj status i zakończ STOP
-		chCzujnikOdczytywanyNaI2CInt = 0;	//nie interpretuj odczytanych danych jako wyniku pomiaru
-		break;
-
-	case 2:*/
 		if (chStatusIIS & 0x08)	//3 najmłodsze bity statusu to: new data available dla każdej osi, bit 4 to komplet nowych danych - sprawdzamy komplet
 		{
 			chPolWychMagIIS[0] = PIIS2MDS_OUTX_L_REG;	//;
@@ -111,14 +106,8 @@ uint8_t ObslugaIIS2MDC(void)
 			chCzujnikZapisywanyNaI2CInt = MAG_IIS;	//po zapisie wykonaj operację odczytu
 		}
 		else
-			//chSekwencjaPomiaruIIS -= 3;	//wróć do odczytu statusu
 			chSekwencjaPomiaruIIS -= 2;	//wróć do odczytu statusu
 		break;
-
-	/*case 3:
-		chErr = HAL_I2C_Master_Seq_Receive_DMA(&hi2c4, IIS2MDC_I2C_ADR + READ, chDaneMagIIS, 6, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
-		chCzujnikOdczytywanyNaI2CInt = MAG_IIS;		//w callbacku interpretuj odczytane dane jako pomiar magnetometru IIS
-		break;*/
 
 	default: break;
 	}

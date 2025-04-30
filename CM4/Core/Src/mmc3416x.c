@@ -127,12 +127,6 @@ uint8_t ObslugaMMC3416x(void)
 		chCzujnikZapisywanyNaI2CInt = MAG_MMC_STATUS;	//po zakończeniu uruchom drugą część transmisji dzielonej
 		break;
 
-	/*case SPMMC3416_CZYT_STAT_P:		//odczytaj status i sprawdź gotowość pomiaru
-	case SPMMC3416_CZYT_STAT_M:		//odczytaj status i sprawdź gotowość pomiaru
-		chErr = HAL_I2C_Master_Seq_Receive_DMA(&hi2c4, MMC34160_I2C_ADR + READ, &chStatusMagMMC, 1, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
-		chCzujnikOdczytywanyNaI2CInt = 0;	//nie interpretuj odczytanych danych jako wyniku pomiaru
-		break;*/
-
 	case SPMMC3416_START_CZYT_HP:	//wyślij polecenie odczytu pomiaru H+
 	case SPMMC3416_START_CZYT_HM:	//wyślij polecenie odczytu pomiaru H-
 		if (chStatusMagMMC & 0x01)	//sprawdź odczytany status czy ustawiony jest bit "Meas Done"
@@ -145,12 +139,6 @@ uint8_t ObslugaMMC3416x(void)
 			chSekwencjaPomiaruMMC -= 3;	//jeżeli niegotowy to wróć do odczytu statusu
 		break;
 
-	/*case SPMMC3416_CZYTAJ_HP:		//odczytaj pomiar H+
-	case SPMMC3416_CZYTAJ_HM:		//odczytaj pomiar H-
-		chErr = HAL_I2C_Master_Seq_Receive_DMA(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 6, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
-		chCzujnikOdczytywanyNaI2CInt = MAG_MMC;		//w callbacku interpretuj odczytane dane jako pomiar magnetometru MMC
-		break; */
-
 	case SPMMC3416_RESET:			//wyślij polecenie RESET
 		PolecenieMMC3416x(POL_RESET);
 		break;
@@ -158,7 +146,6 @@ uint8_t ObslugaMMC3416x(void)
 	default:
 	}
 	chSekwencjaPomiaruMMC++;
-	//chSekwencjaPomiaruMMC &= 0x0F;
 	if (chSekwencjaPomiaruMMC >= SPMMC3416_LICZ_OPERACJI)
 		chSekwencjaPomiaruMMC = 0;
 

@@ -77,17 +77,12 @@ uint8_t JednostkaInercyjna1Trygonometria(uint8_t chGniazdo)
 	//licz całkę z prędkosci kątowych żyroskopów
 	for (uint16_t n=0; n<3; n++)
 	{
-		if ((uDaneCM7.dane.chWykonajPolecenie >= POL_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.chWykonajPolecenie <= POL_KALIBRUJ_ZYRO_WZMP))
-		{
-			//w czasie kalibracji wzmocnienia nie uwzgledniej wzmocnienia, jedynie offset i nie ograniczaj przyrostu kąta
-			uDaneCM4.dane.fKatZyro1[n] +=  (uDaneCM4.dane.fZyroSur1[n] - fOffsetZyro1[n]) * ndT[chGniazdo] / 1000000;		//[rad/s] * [us / 1000000] => [rad]
-			uDaneCM4.dane.fKatZyro2[n] +=  (uDaneCM4.dane.fZyroSur1[n] - fOffsetZyro2[n]) * ndT[chGniazdo] / 1000000;
-		}
-		else	//normalna praca
-		{
-			uDaneCM4.dane.fKatZyro1[n] +=  uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[rad/s] * [us / 1000000] => [rad]
-			uDaneCM4.dane.fKatZyro2[n] +=  uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
+		uDaneCM4.dane.fKatZyro1[n] +=  uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[rad/s] * [us / 1000000] => [rad]
+		uDaneCM4.dane.fKatZyro2[n] +=  uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
 
+		//w czasie kalibracji wzmocnienia nie ograniczaj przyrostu kąta
+		if ((uDaneCM7.dane.chWykonajPolecenie < POL_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.chWykonajPolecenie > POL_KALIBRUJ_ZYRO_WZMP))
+		{
 			//ogranicz przyrost kąta do +-Pi
 			if (uDaneCM4.dane.fKatZyro1[n] > M_PI)
 				uDaneCM4.dane.fKatZyro1[n] = -M_PI;
@@ -227,7 +222,7 @@ uint8_t JednostkaInercyjna4Kwaterniony(uint8_t chGniazdo)
 // na tej podstawie wylicza wartość współczynnika dla filtra komplementarnego
 // Przyjęte są 2 progi: PROG_ACC_DOBRY do którego wskazanie uznajemy za wiarygodne, PROG_ACC_ZLY - powyżej którego jest brak korekcji żyroskopów akcelerometrem
 // Przyjeta jest wartość filtra dla progu PROG_ACC_DOBRY wynosząca WSP_FILTRA_ADAPT mówiaca ile ma być korekcji akcelerometru dla dobrego sygnału
-// Zwraca: wartość filtra komplementarnego między 0.0 a 1.0
+// Zwraca: wartość filtra komplementarnego między 0.0 a WSP_FILTRA_ADAPT
 // Czas trwania: 1,38us @200MHz
 ////////////////////////////////////////////////////////////////////////////////
 float FiltrAdaptacyjnyAkc(float *fAkcel)
@@ -238,7 +233,8 @@ float FiltrAdaptacyjnyAkc(float *fAkcel)
 	for (uint8_t n=0; n<3; n++)
 		fPrzyspRuchu += *(fAkcel+n) * *(fAkcel+n);			//suma kwadratów 3 osi akcelerometru
 	fPrzyspRuchu = sqrtf(fPrzyspRuchu);						//bezwzględna długość wektora przyspieszenia
-	fPrzyspRuchu = fabs(fPrzyspRuchu - AKCEL1G) / AKCEL1G;	//wartość przyspieszenia wynikającego ze zmiany prędkości [m/s^2]
+	//fPrzyspRuchu = fabs(fPrzyspRuchu - AKCEL1G) / AKCEL1G;	//wartość przyspieszenia wynikającego ze zmiany prędkości [m/s^2]
+	fPrzyspRuchu = fabs(fPrzyspRuchu - AKCEL1G);	//wartość przyspieszenia wynikającego ze zmiany prędkości [m/s^2]
 
 	if (fPrzyspRuchu < PROG_ACC_DOBRY)	//poziom zakłóceń akceptowalny, można w pełni kompensować dryft kątów akcelerometrem
 		fWspFiltra = WSP_FILTRA_ADAPT;
@@ -251,9 +247,9 @@ float FiltrAdaptacyjnyAkc(float *fAkcel)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja liczy na ile zaburzony jest pomiar magnetometru, alanlogicznie jak akcelerometr powyżej
+// Funkcja liczy na ile zaburzony jest pomiar magnetometru, analogicznie jak akcelerometr powyżej
 // na tej podstawie wylicza wartość współczynnika dla filtra komplementarnego
-// Zwraca: wartość filtra komplementarnego między 0.0 a 1.0
+// Zwraca: wartość filtra komplementarnego między 0.0 a WSP_FILTRA_ADAPT
 // Czas trwania: 1,38us @200MHz
 ////////////////////////////////////////////////////////////////////////////////
 float FiltrAdaptacyjnyMag(float *fMag)
@@ -264,7 +260,8 @@ float FiltrAdaptacyjnyMag(float *fMag)
 	for (uint8_t n=0; n<3; n++)
 		fZaklocenieMag += *(fMag+n) * *(fMag+n);	//suma kwadratów 3 osi magnetometru
 	fZaklocenieMag = sqrtf(fZaklocenieMag);			//bezwzględna długość wektora magnetycznego
-	fZaklocenieMag = fabs(fZaklocenieMag - NOMINALNE_MAGN) / NOMINALNE_MAGN;				//wartość przyspieszenia wynikającego ze zmiany prędkości [m/s^2]
+	//fZaklocenieMag = fabs(fZaklocenieMag - NOMINALNE_MAGN) / NOMINALNE_MAGN;				//wartość przyspieszenia wynikającego ze zmiany prędkości [m/s^2]
+	fZaklocenieMag = fabs(fZaklocenieMag - NOMINALNE_MAGN);				//wartość przyspieszenia wynikającego ze zmiany prędkości [m/s^2]
 
 	if (fZaklocenieMag < PROG_MAG_DOBRY)	//poziom zakłóceń akceptowalny, można w pełni kompensować dryft kątów akcelerometrem
 		fWspFiltra = WSP_FILTRA_ADAPT;

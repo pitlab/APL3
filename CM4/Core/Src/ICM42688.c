@@ -15,13 +15,12 @@
 #include "spi.h"
 
 extern volatile unia_wymianyCM4_t uDaneCM4;
+extern volatile unia_wymianyCM7_t uDaneCM7;
 extern SPI_HandleTypeDef hspi2;
-extern float fOffsetZyro1[3];
 const int8_t chZnakZyro[3] = {-1, 1, -1};	//korekcja znaku prędkości żyroskopów
 const int8_t chZnakAkcel[3] = {-1, 1, 1};	//korekcja znaku akcelerometrów
-extern WspRownProstej3_t stWspKalOffsetuZyro1;		//współczynniki równania prostych do estymacji offsetu
-//float fZyroSur1[3];		//surowe nieskalibrowane prędkosci odczytane z żyroskopu 1
-extern float fWzmocnZyro1[3];
+extern WspRownProstej3_t stWspKalTempZyro1;		//współczynniki równania prostych do estymacji przesunęcia zera w funkcji temperatury
+extern float fSkaloZyro1[3];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z EEPROMu
@@ -101,6 +100,7 @@ uint8_t ObslugaICM42688(void)
 {
 	uint8_t chErr = ERR_OK;
 	uint8_t chDane[15];
+	float fPrzesuniecieZyro[3];
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_ICM42688) != INIT_ICM42688)	//jeżeli czujnik nie jest zainicjowany
 	{
@@ -114,13 +114,18 @@ uint8_t ObslugaICM42688(void)
 		HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 
 		uDaneCM4.dane.fTemper[TEMP_IMU1] = (float)((int16_t)((chDane[1] <<8) + chDane[2]) / 132.48) + 25.0 + KELVIN;	//temperatura w K
-		ObliczOffsetTemperaturowy3(stWspKalOffsetuZyro1, uDaneCM4.dane.fTemper[TEMP_IMU1], fOffsetZyro1);			//oblicz offset dla bieżącej temperatury
+		ObliczWspTemperaturowy3(stWspKalTempZyro1, uDaneCM4.dane.fTemper[TEMP_IMU1], fPrzesuniecieZyro);			//oblicz przesuniecie zera dla bieżącej temperatury
 
 		for (uint16_t n=0; n<3; n++)
 		{
 			uDaneCM4.dane.fAkcel1[n] = (float)((int16_t)(chDane[2*n+3] <<8) + chDane[2*n+4]) * (8.0 * AKCEL1G / 32768.0) * chZnakAkcel[n];			//+-8g -> [m/s^2]
 			uDaneCM4.dane.fZyroSur1[n] = (float)((int16_t)(chDane[2*n+9] <<8) + chDane[2*n+10]) * (1000.0 * DEG2RAD / 32768.0) * chZnakZyro[n];	//+-1000°/s -> [rad/s]
-			uDaneCM4.dane.fZyroKal1[n] = uDaneCM4.dane.fZyroSur1[n] * fWzmocnZyro1[n] - fOffsetZyro1[n];		//żyro po kalibracji offsetu i wzmocnienia
+
+			//w czasie kalibracji wzmocnienia nie uwzgledniej wzmocnienia, jedynie przesunięcie
+			if ((uDaneCM7.dane.chWykonajPolecenie >= POL_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.chWykonajPolecenie <= POL_KALIBRUJ_ZYRO_WZMP))
+				uDaneCM4.dane.fZyroKal1[n] = uDaneCM4.dane.fZyroSur1[n] - fPrzesuniecieZyro[n];		//żyro po kalibracji przesuniecia
+			else
+				uDaneCM4.dane.fZyroKal1[n] = uDaneCM4.dane.fZyroSur1[n] * fSkaloZyro1[n] - fPrzesuniecieZyro[n];		//żyro po kalibracji przesuniecia i skalowania
 		}
 	}
 	return chErr;
