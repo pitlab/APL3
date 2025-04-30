@@ -45,6 +45,7 @@ uint8_t chGeneratorNapisow, chLicznikKomunikatow;
 extern I2C_HandleTypeDef hi2c3;
 volatile uint8_t chCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika obsługiwanego na zewntrznej magistrali I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
 volatile uint8_t chCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
+volatile uint8_t chCzujnikZapisywanyNaI2CInt;
 uint8_t chNoweDaneI2C;	//zestaw flag informujący o pojawieniu sie nowych danych odebranych na magistrali I2C
 extern uint16_t sLicznikCzasuKalibracji;
 
@@ -311,41 +312,27 @@ uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nCzasAkt)
 uint8_t RozdzielniaOperacjiI2C(void)
 {
 	uint8_t chErr = ERR_OK;
-	printf("I2C");
+	//printf("I2C");
 
 	//operacje na zewnętrznej magistrali I2C3
 	switch(chEtapOperacjiI2C)
 	{
-	case 0:	chErr = StartujPomiarMagHMC();		break;
-	case 1: chErr = ObslugaMS4525();			break;
-	case 2:	chErr = StartujOdczytMagHMC();		break;
-	case 3:	chErr = CzytajMagnetometrHMC();		break;
+	case 0:
+	case 2: chErr = ObslugaMS4525();		break;
+	case 1:
+	case 3:	chErr = ObslugaHMC5883();		break;
 	default: break;
 	}
 
 	//operacje na wewnętrznej magistrali I2C4
 	switch(chEtapOperacjiI2C)
 	{
-	case 0:	chErr = ObslugaIIS2MDC();			break;
-	case 1:	chErr = ObslugaMMC3416x();			break;
-	case 2: chErr = ObslugaIIS2MDC();			break;
-	case 3:	chErr = ObslugaMMC3416x();			break;
+	case 0:
+	case 2:	chErr = ObslugaIIS2MDC();		break;
+	case 1:
+	case 3:	chErr = ObslugaMMC3416x();		break;
 	default: break;
 	}
-
-	/*switch(chEtapOperacjiI2C)
-	{
-	case 0:	chErr = StartujPomiarMMC3416x();	break;
-	case 1:	chErr = StartujOdczytIIS2MDC();		break;
-	case 2: chErr = CzytajIIS2MDC();			break;
-	case 3:	chErr = StartujOdczytMMC3416x();	break;
-
-	case 4:	chErr = CzytajMMC3416x();			break;
-	case 5:	chErr = StartujOdczytIIS2MDC();		break;
-	case 6: chErr = CzytajIIS2MDC();			break;
-	case 7:
-	default: break;
-	}*/
 
 	chEtapOperacjiI2C++;
 	chEtapOperacjiI2C &= 0x03;
@@ -355,12 +342,30 @@ uint8_t RozdzielniaOperacjiI2C(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Callback nadawania I2C
+// Callback nadawania I2C. Automatycznie uruchamia drugą część operacji dzielonych
 // Parametry: hi2c - wskaźnik na interfejs I2C
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
+	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych
+	{
+		if (chCzujnikZapisywanyNaI2CInt == MAG_IIS_STATUS)	//po zapisie wykonaj operację odczytu
+			MagIIS_CzytajStatus();
+
+		if (chCzujnikZapisywanyNaI2CInt == MAG_IIS)	//po zapisie wykonaj operację odczytu
+			MagIIS_CzytajDane();
+
+		if (chCzujnikZapisywanyNaI2CInt == MAG_MMC_STATUS)	//po zapisie wykonaj operację odczytu
+			MagMMC_CzytajStatus();
+
+		if (chCzujnikZapisywanyNaI2CInt == MAG_MMC)	//po zapisie wykonaj operację odczytu
+			MagMMC_CzytajDane();
+
+
+		chCzujnikZapisywanyNaI2CInt = 0;
+	}
+
 
 }
 
@@ -383,6 +388,8 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 		else
 		if (chCzujnikOdczytywanyNaI2CExt == CISN_TEMP_MS2545)	//ciśnienie różnicowe i temperatura czujnika MS2545DO
 			chNoweDaneI2C |= CISN_TEMP_MS2545;
+
+		chCzujnikOdczytywanyNaI2CExt = 0;
 	}
 
 	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych
@@ -392,6 +399,8 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 		else
 		if (chCzujnikOdczytywanyNaI2CInt == MAG_MMC)
 			chNoweDaneI2C |= MAG_MMC;
+
+		chCzujnikOdczytywanyNaI2CInt = 0;
 	}
 }
 
@@ -467,8 +476,9 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 			else
 				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
 		}
-		float fTemp = (float)((int16_t)chDaneMagIIS[7] * 0x100 + chDaneMagIIS[6]) / 8;	//The nominal sensitivity is 8 LSB/°C.
-		uDaneCM4.dane.fTemper[TEMP_MAG1] = (7 * uDaneCM4.dane.fTemper[TEMP_MAG1] + fTemp) / 8;	//filtr IIR temperatury
+		//zamiast temperatury do pomiaru wskakują wyniki z osi X
+		//float fTemp = (float)((int16_t)chDaneMagIIS[7] * 0x100 + chDaneMagIIS[6]) / 8;	//The nominal sensitivity is 8 LSB/°C.
+		//uDaneCM4.dane.fTemper[TEMP_MAG1] = (7 * uDaneCM4.dane.fTemper[TEMP_MAG1] + fTemp) / 8;	//filtr IIR temperatury
 		*chCzujniki &= ~MAG_IIS;	//dane obsłużone
 		uDaneCM4.dane.chNowyPomiar |= NP_MAG1;	//jest nowy pomiar
 	}

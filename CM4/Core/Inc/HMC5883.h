@@ -26,12 +26,12 @@
 
 
 //definicje funkcji
-uint8_t StartujPomiarMagHMC(void);
-uint8_t StartujOdczytMagHMC(void);
-uint8_t CzytajMagnetometrHMC(void);
+//uint8_t StartujPomiarMagHMC(void);
+//uint8_t StartujOdczytMagHMC(void);
+//uint8_t CzytajMagnetometrHMC(void);
 uint8_t SprawdzObecnoscHMC5883(void);
 uint8_t InicjujMagnetometrHMC(void);
-
+uint8_t ObslugaHMC5883(void);
 
 //deklaracje funkcji
 

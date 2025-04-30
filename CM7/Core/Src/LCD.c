@@ -188,12 +188,12 @@ struct tmenu stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Kal Magn1", 	"Kalibracja magnetometru 1",				TP_MAG_KAL1,		obr_kal_mag_n1},
 	{"Kal Magn2", 	"Kalibracja magnetometru 2",				TP_MAG_KAL2,		obr_kal_mag_n1},
 	{"Kal Magn3", 	"Kalibracja magnetometru 3",				TP_MAG_KAL3,		obr_kal_mag_n1},
+	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_KAL_DOTYK,		obr_dotyk_zolty},
 	{"MAG4",		"nic  ",									TP_MAG4,			obr_dotyk},
-	{"MAG5",		"nic  ",									TP_MAG5,			obr_dotyk},
 	{"Spr Magn1",	"Sprawdz kalibracje magnetometru 1",		TP_SPR_MAG1,		obr_kal_mag_n1},
 	{"Spr Magn2",	"Sprawdz kalibracje magnetometru 2",		TP_SPR_MAG2,		obr_kal_mag_n1},
 	{"Spr Magn3",	"Sprawdz kalibracje magnetometru 3",		TP_SPR_MAG3,		obr_kal_mag_n1},
-	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_KAL_DOTYK,		obr_dotyk_zolty},
+	{"Spr Mag 2D",	"Sprawdz płaski obrotu dla 3 magnetom.",	TP_SPR_PLASKI,		obr_dotyk},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
@@ -597,8 +597,15 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TP_MAG4:
-	case TP_MAG5:
+	case TP_MAG4:	break;
+	case TP_SPR_PLASKI:	PlaskiObrotMagnetometrow();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_MAG_WROC;
+		}
+		break;
+
 	case TP_SPR_MAG1:
 		chSekwencerKalibracji |= MAG1;	//sprawdzenie, bez kalibracji
 		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
@@ -1461,9 +1468,9 @@ void PomiaryIMU(void)
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[2]*1000);
 	print(chNapis, 10+32*FONT_SL, 110);
-	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(YELLOW); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f%cC ", uDaneCM4.dane.fTemper[TEMP_MAG1], ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	print(chNapis, 10+49*FONT_SL, 110);
+	//if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(YELLOW); 	else	setColor(GRAY50);
+	//sprintf(chNapis, "%.1f%cC ", uDaneCM4.dane.fTemper[TEMP_MAG1], ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	//print(chNapis, 10+49*FONT_SL, 110);
 
 	//MMC34160
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
@@ -3117,4 +3124,109 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 
 	RysujPasekPostepu(CZAS_KALIBRACJI);
 	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje ekran płaskiego obrotu wszystkich dostępnych magnetometrów
+// Parametry:
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void PlaskiObrotMagnetometrow(void)
+{
+	static uint16_t sPoprzed1X, sPoprzed1Y;	//poprzednie współrzędne magnetometru 1
+	static uint16_t sPoprzed2X, sPoprzed2Y;	//poprzednie współrzędne magnetometru 2
+	static uint16_t sPoprzed3X, sPoprzed3Y;	//poprzednie współrzędne magnetometru 3
+	uint16_t sX, sY;
+	float fWspSkal;
+
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		sprintf(chNapis, "%s 2D %s", chNapisLcd[STR_WERYFIKACJA], chNapisLcd[STR_MAGNETOMETRU]);
+		BelkaTytulu(chNapis);
+
+		setColor(GRAY80);
+		sprintf(chNapis, "Pochylenie:");
+		print(chNapis, 10, 80);
+		sprintf(chNapis, "Przechylenie:");
+		print(chNapis, 10, 100);
+
+		sprintf(chNapis, "%s 1:", chNapisLcd[STR_MAGN]);
+		print(chNapis, 10, 120);
+		sprintf(chNapis, "%s 2:", chNapisLcd[STR_MAGN]);
+		print(chNapis, 10, 140);
+		sprintf(chNapis, "%s 3:", chNapisLcd[STR_MAGN]);
+		print(chNapis, 10, 160);
+
+
+		setColor(GRAY60);
+		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
+		print(chNapis, CENTER, 50);
+
+		setColor(GRAY40);
+		stWykr.sX1 = DISP_X_SIZE - SZER_WYKR_MAG;
+		stWykr.sY1 = DISP_Y_SIZE - SZER_WYKR_MAG;
+		stWykr.sX2 = DISP_X_SIZE;
+		stWykr.sY2 = DISP_Y_SIZE;
+		drawRect(stWykr.sX1, stWykr.sY1, stWykr.sX2, stWykr.sY2);	//rysuj ramkę wykresu
+		sPoprzed1X = sPoprzed2X = sPoprzed3X = stWykr.sX1 + SZER_WYKR_MAG/2;	//środek wykresu
+		sPoprzed1Y = sPoprzed2Y = sPoprzed3Y = stWykr.sY1 + SZER_WYKR_MAG/2;
+
+		drawCircle(stWykr.sX1 + SZER_WYKR_MAG/2, stWykr.sY1 + SZER_WYKR_MAG/2, SZER_WYKR_MAG/4);
+	}
+
+	fWspSkal = (float)(SZER_WYKR_MAG / 2) / NOMINALNE_MAGN;
+
+	//rysuj wykres X-Y magnetometru 1
+	sX = (int16_t)(uDaneCM4.dane.fMagne1[0] * fWspSkal) + stWykr.sX1 + SZER_WYKR_MAG/2;
+	sY = (int16_t)(uDaneCM4.dane.fMagne1[1] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
+	if ((sX > stWykr.sX1) && (sX < stWykr.sX2) && (sY > stWykr.sY1) && (sY < stWykr.sY2) && ((sX != sPoprzed1X) && (sY != sPoprzed1Y)))
+	{
+		setColor(KOLOR_X);
+		drawLine(sX, sY, sPoprzed1X, sPoprzed1Y);
+		sPoprzed1X = sX;
+		sPoprzed1Y = sY;
+	}
+
+	//rysuj wykres X-Y magnetometru 2
+	sX = (int16_t)(uDaneCM4.dane.fMagne2[0] * fWspSkal) + stWykr.sX1 + SZER_WYKR_MAG/2;
+	sY = (int16_t)(uDaneCM4.dane.fMagne2[1] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
+	if ((sX > stWykr.sX1) && (sX < stWykr.sX2) && (sY > stWykr.sY1) && (sY < stWykr.sY2) && ((sX != sPoprzed2X) && (sY != sPoprzed2Y)))
+	{
+		setColor(KOLOR_Y);
+		drawLine(sX, sY, sPoprzed2X, sPoprzed2Y);
+		sPoprzed2X = sX;
+		sPoprzed2Y = sY;
+	}
+
+	//rysuj wykres X-Y magnetometru 2
+	sX = (int16_t)(uDaneCM4.dane.fMagne3[0] * fWspSkal) + stWykr.sX1 + SZER_WYKR_MAG/2;
+	sY = (int16_t)(uDaneCM4.dane.fMagne3[1] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
+	if ((sX > stWykr.sX1) && (sX < stWykr.sX2) && (sY > stWykr.sY1) && (sY < stWykr.sY2) && ((sX != sPoprzed3X) && (sY != sPoprzed3Y)))
+	{
+		setColor(KOLOR_Z);
+		drawLine(sX, sY, sPoprzed3X, sPoprzed3Y);
+		sPoprzed3X = sX;
+		sPoprzed3Y = sY;
+	}
+
+
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0], ZNAK_STOPIEN);
+	print(chNapis, 10 + 14*FONT_SL, 80);
+	sprintf(chNapis, "%.3f, %.3f [mT]", uDaneCM4.dane.fMagne1[0]*1000, uDaneCM4.dane.fMagne1[1]*1000);
+	print(chNapis, 10 + 8*FONT_SL, 120);
+
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
+	print(chNapis, 10 + 15*FONT_SL, 100);
+	sprintf(chNapis, "%.3f, %.3f [mT]", uDaneCM4.dane.fMagne2[0]*1000, uDaneCM4.dane.fMagne2[1]*1000);
+	print(chNapis, 10 + 8*FONT_SL, 140);
+
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.3f, %.3f [mT]", uDaneCM4.dane.fMagne3[0]*1000, uDaneCM4.dane.fMagne3[1]*1000);
+	print(chNapis, 10 + 8*FONT_SL, 160);
+
 }

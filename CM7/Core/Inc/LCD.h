@@ -55,4 +55,5 @@ void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc);
 uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap);
 float MaximumGlobalne(float* fMin, float* fMax);
 uint8_t KalibrujBaro(uint8_t *chEtap);
+void PlaskiObrotMagnetometrow(void);
 #endif /* INC_LCD_H_ */

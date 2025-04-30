@@ -34,12 +34,12 @@
 
 
 //definicje Sekwencji Pomiarowej
-#define SPMMC3416_REFIL_SET		0	//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia SET
+/*#define SPMMC3416_REFIL_SET		0	//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia SET
 #define SPMMC3416_CZEKAJ_REFSET	1	//czekaj 50ms na naładowanie
 #define SPMMC3416_SET			2	//wyślij polecenie SET
 #define SPMMC3416_START_POM_HP	3	//wyślij polecenie wykonania pomiaru H+
 #define SPMMC3416_START_STAT_P	4	//wyślij polecenie odczytania statusu
-#define SPMMC3416_CZYT_STAT_P	5	//odczytaj status i sprawdź gotowość pomairu
+#define SPMMC3416_CZYT_STAT_P	5	//odczytaj status i sprawdź gotowość pomiaru
 #define SPMMC3416_START_CZYT_HP	6	//wyślij polecenie odczytu pomiaru H+
 #define SPMMC3416_CZYTAJ_HP		7	//odczytaj pomiar H+
 #define SPMMC3416_REFIL_RESET	8	//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia RESET
@@ -47,35 +47,39 @@
 #define SPMMC3416_RESET			10	//wyślij polecenie RESET
 #define SPMMC3416_START_POM_HM	11	//wyślij polecenie wykonania pomiaru H-
 #define SPMMC3416_START_STAT_M	12	//wyślij polecenie odczytania statusu
-#define SPMMC3416_CZYT_STAT_M	13	//odczytaj status i sprawdź gotowość pomairu
+#define SPMMC3416_CZYT_STAT_M	13	//odczytaj status i sprawdź gotowość pomiaru
 #define SPMMC3416_START_CZYT_HM	14	//wyślij polecenie odczytu pomiaru H-
-#define SPMMC3416_CZYTAJ_HM		15	//odczytaj pomiar H-
+#define SPMMC3416_CZYTAJ_HM		15	//odczytaj pomiar H- */
 
-//definicje poleceń
+#define SPMMC3416_REFIL_SET		0	//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia SET
+#define SPMMC3416_CZEKAJ_REFSET	1	//czekaj 50ms na naładowanie
+#define SPMMC3416_SET			2	//wyślij polecenie SET
+#define SPMMC3416_START_POM_HP	3	//wyślij polecenie wykonania pomiaru H+
+#define SPMMC3416_START_STAT_P	4	//wyślij polecenie odczytania statusu
+#define SPMMC3416_START_CZYT_HP	5	//wyślij polecenie odczytu pomiaru H+
+#define SPMMC3416_REFIL_RESET	6	//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia RESET
+#define SPMMC3416_CZEKAJ_REFRES	7	//czekaj 50ms na naładowanie
+#define SPMMC3416_RESET			8	//wyślij polecenie RESET
+#define SPMMC3416_START_POM_HM	9	//wyślij polecenie wykonania pomiaru H-
+#define SPMMC3416_START_STAT_M	10	//wyślij polecenie odczytania statusu
+#define SPMMC3416_START_CZYT_HM	11	//wyślij polecenie odczytu pomiaru H-
+#define SPMMC3416_LICZ_OPERACJI	12	//liczba operacji
+
+
+
+//definicje poleceń magnetometru MMC3416x
 #define POL_TM			(1 << 0)	//TM Take measurement, set ‘1’ will initiate measurement
 #define POL_SET			(1 << 5) 	//SET
 #define POL_RESET		(1 << 6) 	//RESET
 #define POL_REFILL		(1 << 7)	//Refill Cap Writing “1” will recharge the capacitor at CAP pin, it is requested to be issued before SET/RESET command.
-
-struct I2C_Module
-{
-  I2C_HandleTypeDef   instance;
-  uint16_t            sdaPin;
-  GPIO_TypeDef*       sdaPort;
-  uint16_t            sclPin;
-  GPIO_TypeDef*       sclPort;
-};
 
 
 uint8_t InicjujMMC3416x(void);
 uint8_t ObslugaMMC3416x(void);
 uint8_t StartujPomiarMMC3416x(void);
 uint8_t StartujOdczytMMC3416x(void);
-uint8_t StartujOdczytRejestruMMC3416x(uint8_t chRejestr);
 uint8_t PolecenieMMC3416x(uint8_t chPolecenie);
-uint8_t CzytajMMC3416x(void);
-void I2C_ClearBusyFlagErratum(struct I2C_Module* i2c);
-//uint8_t wait_for_gpio_state_timeout(GPIO_TypeDef *port, uint16_t pin, GPIO_PinState state, uint32_t timeout);
-//void I2C_ClearBusyFlagErratum(I2C_HandleTypeDef* handle, uint32_t timeout);
+uint8_t MagMMC_CzytajStatus(void);
+uint8_t MagMMC_CzytajDane(void);
 
 #endif /* INC_MMC3416X_H_ */

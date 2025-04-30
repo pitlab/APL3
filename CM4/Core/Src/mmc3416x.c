@@ -13,6 +13,7 @@
 
 
 ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chDaneMagMMC[6]);	//I2C4 współpracuje z BDMA a on ogarnia tylko SRAM4
+ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chStatusMagMMC);	//I2C4 współpracuje z BDMA a on ogarnia tylko SRAM4
 ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chPolWychMagMMC[3]);	//polecenia i dane wysyłane do czujnika w sobnej zmiennej aby nie kolidowały z danymi przychodzącymi
 
 
@@ -22,6 +23,7 @@ extern DMA_HandleTypeDef hdma_i2c4_tx;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t chSekwencjaPomiaruMMC;
 extern volatile uint8_t chCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
+extern volatile uint8_t chCzujnikZapisywanyNaI2CInt;
 uint8_t chLicznikOczekiwania;
 int16_t sPomiarMMCH[3], sPomiarMMCL[3];	//wyniki pomiarów dla dodatniego i ujemnego namagnesowania czujnika
 
@@ -120,28 +122,34 @@ uint8_t ObslugaMMC3416x(void)
 
 	case SPMMC3416_START_STAT_P:	//wyślij polecenie odczytania statusu
 	case SPMMC3416_START_STAT_M:	//wyślij polecenie odczytania statusu
-		StartujOdczytRejestruMMC3416x(PMMC3416_STATUS);
+		chPolWychMagMMC[0] = PMMC3416_STATUS;
+		chErr = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu statusu nie kończąc transferu STOP-em
+		chCzujnikZapisywanyNaI2CInt = MAG_MMC_STATUS;	//po zakończeniu uruchom drugą część transmisji dzielonej
 		break;
 
-	case SPMMC3416_CZYT_STAT_P:		//odczytaj status i sprawdź gotowość pomiaru
+	/*case SPMMC3416_CZYT_STAT_P:		//odczytaj status i sprawdź gotowość pomiaru
 	case SPMMC3416_CZYT_STAT_M:		//odczytaj status i sprawdź gotowość pomiaru
-		chErr = HAL_I2C_Master_Receive_DMA(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 1);		//odczytaj dane
+		chErr = HAL_I2C_Master_Seq_Receive_DMA(&hi2c4, MMC34160_I2C_ADR + READ, &chStatusMagMMC, 1, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
 		chCzujnikOdczytywanyNaI2CInt = 0;	//nie interpretuj odczytanych danych jako wyniku pomiaru
-		break;
+		break;*/
 
 	case SPMMC3416_START_CZYT_HP:	//wyślij polecenie odczytu pomiaru H+
 	case SPMMC3416_START_CZYT_HM:	//wyślij polecenie odczytu pomiaru H-
-		if (chDaneMagMMC[0] & 0x01)	//sprawdź odczytany status czy ustawiony jest bit "Meas Done"
-			chErr = StartujOdczytRejestruMMC3416x(PMMC3416_XOUT_L);
+		if (chStatusMagMMC & 0x01)	//sprawdź odczytany status czy ustawiony jest bit "Meas Done"
+		{
+			chPolWychMagMMC[0] = PMMC3416_XOUT_L;
+			chErr = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu danych nie kończąc transferu STOP-em
+			chCzujnikZapisywanyNaI2CInt = MAG_MMC;	//po zakończeniu uruchom drugą część transmisji dzielonej
+		}
 		else
 			chSekwencjaPomiaruMMC -= 3;	//jeżeli niegotowy to wróć do odczytu statusu
 		break;
 
-	case SPMMC3416_CZYTAJ_HP:		//odczytaj pomiar H+
+	/*case SPMMC3416_CZYTAJ_HP:		//odczytaj pomiar H+
 	case SPMMC3416_CZYTAJ_HM:		//odczytaj pomiar H-
-		chErr = HAL_I2C_Master_Receive_DMA(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 6);		//odczytaj dane
-		chCzujnikOdczytywanyNaI2CInt = MAG_MMC;	//identyfikuje układ w callbacku odczytu danych
-		break;
+		chErr = HAL_I2C_Master_Seq_Receive_DMA(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 6, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
+		chCzujnikOdczytywanyNaI2CInt = MAG_MMC;		//w callbacku interpretuj odczytane dane jako pomiar magnetometru MMC
+		break; */
 
 	case SPMMC3416_RESET:			//wyślij polecenie RESET
 		PolecenieMMC3416x(POL_RESET);
@@ -150,69 +158,12 @@ uint8_t ObslugaMMC3416x(void)
 	default:
 	}
 	chSekwencjaPomiaruMMC++;
-	chSekwencjaPomiaruMMC &= 0x0F;
+	//chSekwencjaPomiaruMMC &= 0x0F;
+	if (chSekwencjaPomiaruMMC >= SPMMC3416_LICZ_OPERACJI)
+		chSekwencjaPomiaruMMC = 0;
 
 	return chErr;
 }
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Inicjuje odczyt danych z magnetometru HMC5883
-// Parametry: brak
-// Zwraca: kod błędu HAL
-// Czas zajęcia magistrali I2C: 620us przy zegarze 100kHz
-////////////////////////////////////////////////////////////////////////////////
-uint8_t StartujOdczytRejestruMMC3416x(uint8_t chRejestr)
-{
-	uint8_t chErr = ERR_BRAK_MMC34160;
-
-
-	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)
-	{
-		chCzujnikOdczytywanyNaI2CInt = MAG_MMC;
-		chPolWychMagMMC[0] = chRejestr;	//PMMC3416_XOUT_L;
-		chErr = HAL_I2C_Master_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 1);	//wyślij polecenie odczytu wszystkich pomiarów
-	}
-	return chErr;
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Rozpoczyna odczyt danych pomiarowych
-// Parametry: brak
-// Zwraca: kod błędu HAL
-// Czas zajęcia magistrali I2C: 1,4ms przy zegarze 100kHz
-////////////////////////////////////////////////////////////////////////////////
-uint8_t CzytajMMC3416x(void)
-{
-	uint8_t chErr = ERR_BRAK_MMC34160;
-
-	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)
-		chErr = HAL_I2C_Master_Receive_DMA(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 6);		//odczytaj dane
-	else
-		chErr = InicjujMMC3416x();	//wykonaj inicjalizację
-	return chErr;
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Inicjuje odczyt statusu z magnetometru HMC5883
-// Parametry: brak
-// Zwraca: kod błędu HAL
-// Czas zajęcia magistrali I2C: 620us przy zegarze 100kHz
-////////////////////////////////////////////////////////////////////////////////
-uint8_t CzytajStatusMMC3416x(void)
-{
-	uint8_t chErr = ERR_BRAK_MMC34160;
-
-	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)
-		chErr = HAL_I2C_Master_Receive_DMA(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 1);
-	return chErr;
-}
-
 
 
 
@@ -236,3 +187,34 @@ uint8_t PolecenieMMC3416x(uint8_t chPolecenie)
 	}
 	return chErr;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Polecenie będące drugą częścią sekwencji podzielonej operacji odczytu statusu.
+// Będzie uruchomione w callbacku zakończenia operacji wysłania polecenia odczytu statusu
+// Parametry: nic
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t MagMMC_CzytajStatus(void)
+{
+	chCzujnikOdczytywanyNaI2CInt = 0;	//nie interpretuj odczytanych danych jako wyniku pomiaru
+	return HAL_I2C_Master_Seq_Receive_DMA(&hi2c4, MMC34160_I2C_ADR + READ, &chStatusMagMMC, 1, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Polecenie będące drugą częścią sekwencji podzielonej operacji odczytu dnych.
+// Będzie uruchomione w callbacku zakończenia operacji wysłania polecenia odczytu danych
+// Parametry: nic
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t MagMMC_CzytajDane(void)
+{
+	chCzujnikOdczytywanyNaI2CInt = MAG_MMC;		//w callbacku interpretuj odczytane dane jako pomiar magnetometru MMC
+	return HAL_I2C_Master_Seq_Receive_DMA(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 6, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
+}
+

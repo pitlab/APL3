@@ -38,10 +38,11 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Dodać polecenie Blank check oraz ramkę komunikacyjną do tego
   - Pozbyć się zmiennych fZyroSur i fZyroKal zastępując jejedną zmienną o wartości zależnej od kontekstu
   - sprawdzić dlaczego kompas pokazuje zły kierunek (ujemną wartość dla wschodu, dodatnią dla zachodu)
-  - znaleźć dlaczego czasami w trakcie kalibracji magnetometru gaśnie wyświetlacz
+  - znaleźć dlaczego czasami w trakcie kalibracji magnetometru gaśnie wyświetlacz - po oberwaniu się i naprawie CS przestał gasnąć
   - ustawić odpowiednie kąty w poziomicy podczas kalibracji skalowania żyroskopów
   - poprawić podwójny kąt liczony IMU4
- - sprawdzić dlaczego w magnetometrze 2 źle rysują się wykresy dla obracania wokół osi Z i Y - zła kalibracja, braz zerowania ekstremów
+  - sprawdzić dlaczego w magnetometrze 2 źle rysują się wykresy dla obracania wokół osi Z i Y - zła kalibracja, braz zerowania ekstremów
+  - sprawdzić dlaczego czasami nie startują żyroskopy a działają akcelerometry
  * */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/

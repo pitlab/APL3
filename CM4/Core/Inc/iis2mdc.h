@@ -50,7 +50,8 @@
 
 uint8_t InicjujIIS2MDC(void);
 uint8_t ObslugaIIS2MDC(void);
-uint8_t StartujOdczytIIS2MDC(uint8_t chRejestr);
-uint8_t CzytajIIS2MDC(void);
+uint8_t MagIIS_CzytajStatus(void);
+uint8_t MagIIS_CzytajDane(void);
+
 
 #endif /* INC_IIS2MDC_H_ */

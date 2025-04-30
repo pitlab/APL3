@@ -54,7 +54,7 @@
 #define STR_MAGNETOMETRU			36
 #define STR_MAGNETOMETR				37
 #define STR_EKSTREMA				38
-#define STR_KONIEC					39
+#define STR_MAGN					39
 
 #define MAX_NAPISOW					40	//liczba napisów
 
@@ -106,7 +106,7 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "magnetometru",						//STR_MAGNETOMETRU
 "Magnetometr",						//STR_MAGNETOMETR
 "Ekstrema",							//STR_EKSTREMA
-"koniec",							//STR_KONIEC
+"Magn",								//STR_MAGN - skrótowa nazwa magnetometru
 };
 
 

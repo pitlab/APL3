@@ -14,6 +14,8 @@
 extern volatile unia_wymianyCM4_t uDaneCM4;
 extern I2C_HandleTypeDef hi2c3;
 uint8_t chDaneMagHMC[6];
+uint8_t chPoleceniaHMC[2];
+uint8_t chSekwencjaPomiaruHMC;
 extern uint8_t chCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
 
 // Obsługa magnetometru wymaga wykonania kilku czynności rozłożonych w czasie
@@ -24,7 +26,7 @@ extern uint8_t chCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywan
 
 //Czas od rozpoczęcia pomiaru do gotowych danych 6ms
 
-////////////////////////////////////////////////////////////////////////////////
+/*///////////////////////////////////////////////////////////////////////////////
 // Budzi układ i startuje konwersję magnetometru HMC5883
 // Dane powinny pojawią się 6ms po starcie konwersji
 // Parametry: brak
@@ -36,7 +38,7 @@ uint8_t StartujPomiarMagHMC(void)
 	chDaneMagHMC[0] = MODE;
 	chDaneMagHMC[1] = (1 << 0);   //Mode Select:0=Continuous-Measurement Mode, 1=Single-Measurement Mode, 2-3=Idle Mode.
 
-    return HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, I2C_TIMOUT);		//rozpocznij pomiar na I2C1
+    return HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, I2C_TIMOUT);		//rozpocznij pomiar na I2C3
 }
 
 
@@ -49,7 +51,6 @@ uint8_t StartujPomiarMagHMC(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t StartujOdczytMagHMC(void)
 {
-	chCzujnikOdczytywanyNaI2CExt = MAG_HMC;		//informacja o tym jak mają być interpretowane dane odebrane w HAL_I2C_MasterRxCpltCallback()
 	chDaneMagHMC[0] = DATA_XH;
 	return HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 1);	//wyślij polecenie odczytu wszystkich pomiarów
 }
@@ -64,12 +65,10 @@ uint8_t CzytajMagnetometrHMC(void)
 {
 	uint8_t chErr;
 
-	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)
-		chErr = HAL_I2C_Master_Receive_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 6);		//odczytaj dane
-	else
-		chErr = InicjujMagnetometrHMC();
+	chErr = HAL_I2C_Master_Receive_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 6);		//odczytaj dane
+	chCzujnikOdczytywanyNaI2CExt = MAG_HMC;		//informacja o tym jak mają być interpretowane dane odebrane w HAL_I2C_MasterRxCpltCallback()
 	return chErr;
-}
+} */
 
 
 
@@ -133,4 +132,46 @@ uint8_t SprawdzObecnoscHMC5883(void)
     return ERR_BRAK_MAG_ZEW;
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wykonaj jeden element sekwencji potrzebnych do uzyskania pomiaru
+// Parametry: nic
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ObslugaHMC5883(void)
+{
+	uint8_t chErr = ERR_OK;
+
+	if ((uDaneCM4.dane.nZainicjowano & INIT_HMC5883) != INIT_HMC5883)
+	{
+		chErr = InicjujMagnetometrHMC();
+		return chErr;
+	}
+
+	switch (chSekwencjaPomiaruHMC)
+	{
+	case 0:		//startuj pomiar
+		chPoleceniaHMC[0] = MODE;
+		chPoleceniaHMC[1] = (1 << 0);   //Mode Select:0=Continuous-Measurement Mode, 1=Single-Measurement Mode, 2-3=Idle Mode.
+	    HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chPoleceniaHMC, 2);
+	    break;
+
+	case 1:	//startuj odczyt
+		chPoleceniaHMC[0] = DATA_XH;
+		chErr = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chPoleceniaHMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
+		break;
+
+	case 2:
+		chErr = HAL_I2C_Master_Seq_Receive_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 6, I2C_LAST_FRAME);		//odczytaj status i zakończ STOP
+		chCzujnikOdczytywanyNaI2CExt = MAG_HMC;		//informacja o tym jak mają być interpretowane dane odebrane w HAL_I2C_MasterRxCpltCallback()
+		break;
+
+	default: break;
+	}
+	chSekwencjaPomiaruHMC++;
+	chSekwencjaPomiaruHMC &= 0x03;
+	return chErr;
+}
 
