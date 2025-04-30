@@ -164,7 +164,7 @@ float MS5611_LiczCisnienie(uint32_t nKonwersja, int32_t ndTemp)
 uint8_t ObslugaMS5611(void)
 {
 	uint32_t nKonwersja;
-	uint8_t chErr;
+	uint8_t chErr = ERR_OK;
 	float fCisnienie = 0;
 	static int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia. Zmienna statyczna aby istniała poza czasem życia funkcji
 

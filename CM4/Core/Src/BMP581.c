@@ -32,17 +32,37 @@ uint8_t InicjujBMP581(void)
 {
 	uint8_t chDane;
 
-	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+	/*HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 	chBufBMP581[0] = PBMP5_CHIP_ID | READ_SPI;
 	//chBufBMP581[0] = PBMP5_REV_ID | READ_SPI;
 	chBufBMP581[1] = 0;
 	HAL_SPI_TransmitReceive(&hspi2, chBufBMP581, chBufBMP581, 2, 5);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
-	chDane = chBufBMP581[1];
+	chDane = chBufBMP581[1];*/
 
 	chDane = CzytajSPIu8(PBMP5_CHIP_ID);	//sprawdź obecność układu
 	if (chDane != 0x50)
 		return ERR_BRAK_BMP581;
+
+	chBufBMP581[0] = PBMP5_DRIVE_CONFIG;
+	chBufBMP581[1] = 0x00;
+	ZapiszSPIu8(chBufBMP581, 2);
+
+	chDane = CzytajSPIu8(PBMP5_CHIP_STATUS);	//sprawdź status konfiguracji magistrali
+	if (chDane != 0x03)							//SPI MODE0 lub MODE3
+		return ERR_BRAK_BMP581;
+
+	chBufBMP581[0] = PBMP5_OVERSAMLING_RATE;
+	chBufBMP581[1] = (6 << 0)|	//oversampling temperatury: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
+					 (6 << 3)|	//oversampling ciśnienia: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
+					 (1 << 6);	//enable pressure sensor measurements
+	ZapiszSPIu8(chBufBMP581, 2);
+
+	chBufBMP581[0] = PBMP5_OUTPUT_DATA_RATE;
+	chBufBMP581[1] = (1 << 0)|	//pwr_mode: 0=standby, 1=normal mode in fonfigured ODR grid, 2=forced one time mode mrasurement, 3=non stop mode, measurement wothout further duty cycling
+					 (1 << 2)|	//ODR: 0=240Hz, 1=218,5Hz, 2=199,11Hz, 3=179,2Hz, 4=160Hz,, A=100,3Hz
+					 (1 << 7);	//deep_dis - disable deep standby
+	ZapiszSPIu8(chBufBMP581, 2);
 
 	sLicznikUsrednianiaP0 = LICZBA_PROBEK_USREDNIANIA;	//rozpocznij filtrowanie P0
 	uDaneCM4.dane.nZainicjowano |= INIT_BMP581;
@@ -60,7 +80,7 @@ uint8_t InicjujBMP581(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaBMP581(void)
 {
-	uint8_t chErr;
+	uint8_t chErr = ERR_OK;
 	float fCisnienie = 0;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_BMP581) != INIT_BMP581)	//jeżeli czujnik nie jest zainicjowany

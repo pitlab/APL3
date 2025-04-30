@@ -716,15 +716,20 @@ void ZnajdzEkstremaMagnetometru(float *fMag)
 ////////////////////////////////////////////////////////////////////////////////
 // Zeruje znalezione wcześniej ekstrema magnetometru tak aby nowy pomiar rozpoczął się od czytej sytuacji
 // Parametry: nic
-// Zwraca: nic
+// Zwraca: stan ekstremów przez derowaniem. ERR_OK - były wyzerowane, ERR_DIV0 nie były wyzerowane
 ////////////////////////////////////////////////////////////////////////////////
-void ZerujEkstremaMagnetometru(void)
+uint8_t ZerujEkstremaMagnetometru(void)
 {
+	uint8_t chErr = ERR_OK;
+
 	for (uint16_t n=0; n<3; n++)
 	{
+		if ((stMagn.fMin[n] != 0.0f) || (stMagn.fMax[n] != 0.0f))
+			chErr = ERR_DIV0;
 		stMagn.fMin[n] = 0.0f;
 		stMagn.fMax[n] = 0.0f;
 	}
+	return chErr;
 }
 
 
@@ -735,8 +740,10 @@ void ZerujEkstremaMagnetometru(void)
 // Parametry: chMagn - indeks układu magnetometru
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void ZapiszKonfiguracjeMagnetometru(uint8_t chMagn)
+uint8_t ZapiszKonfiguracjeMagnetometru(uint8_t chMagn)
 {
+	uint8_t chErr = ERR_OK;
+
 	for (uint16_t n=0; n<3; n++)
 	{
 		switch (chMagn)
@@ -744,11 +751,15 @@ void ZapiszKonfiguracjeMagnetometru(uint8_t chMagn)
 		case MAG1:
 			fPrzesMagn1[n] = (stMagn.fMax[n] + stMagn.fMin[n]) / 2;
 			FramDataWriteFloat(FAH_MAGN1_PRZESX + 4*n, fPrzesMagn1[n]);
+			fSkaloMagn1[n] = (float)NOMINALNE_MAGN / (stMagn.fMax[n] - stMagn.fMin[n]);
+			FramDataWriteFloat(FAH_MAGN1_SKALOX + 4*n, fSkaloMagn1[n]);
 			break;
 
 		case MAG2:
 			fPrzesMagn2[n] = (stMagn.fMax[n] + stMagn.fMin[n]) / 2;
-			FramDataWriteFloat(FAH_MAGN1_PRZESX + 4*n, fPrzesMagn2[n]);
+			FramDataWriteFloat(FAH_MAGN2_PRZESX + 4*n, fPrzesMagn2[n]);
+			fSkaloMagn2[n] = (float)NOMINALNE_MAGN / (stMagn.fMax[n] - stMagn.fMin[n]);
+			FramDataWriteFloat(FAH_MAGN2_SKALOX + 4*n, fSkaloMagn2[n]);
 			break;
 
 		case MAG3:
@@ -757,8 +768,11 @@ void ZapiszKonfiguracjeMagnetometru(uint8_t chMagn)
 			fSkaloMagn3[n] = (float)NOMINALNE_MAGN / (stMagn.fMax[n] - stMagn.fMin[n]);
 			FramDataWriteFloat(FAH_MAGN3_SKALOX + 4*n, fSkaloMagn3[n]);
 			break;
+
+		default: chErr = ERR_ZLE_DANE; 	break;
 		}
 	}
+	return chErr;
 }
 
 

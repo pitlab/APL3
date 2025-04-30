@@ -13,6 +13,8 @@
 
 
 ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chDaneMagMMC[6]);	//I2C4 współpracuje z BDMA a on ogarnia tylko SRAM4
+ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chPolWychMagMMC[3]);	//polecenia i dane wysyłane do czujnika w sobnej zmiennej aby nie kolidowały z danymi przychodzącymi
+
 
 extern I2C_HandleTypeDef hi2c4;
 extern DMA_HandleTypeDef hdma_i2c4_rx;
@@ -22,7 +24,6 @@ uint8_t chSekwencjaPomiaruMMC;
 extern volatile uint8_t chCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
 uint8_t chLicznikOczekiwania;
 int16_t sPomiarMMCH[3], sPomiarMMCL[3];	//wyniki pomiarów dla dodatniego i ujemnego namagnesowania czujnika
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -35,8 +36,8 @@ uint8_t InicjujMMC3416x(void)
 {
 	uint8_t chErr = ERR_BRAK_MMC34160;
 
-	chDaneMagMMC[0] = PMMC3416_PRODUCT_ID;
-	chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 1, TOUT_I2C4_2B);	//wyślij polecenie odczytu rejestru identyfikacyjnego
+	chPolWychMagMMC[0] = PMMC3416_PRODUCT_ID;
+	chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 1, TOUT_I2C4_2B);	//wyślij polecenie odczytu rejestru identyfikacyjnego
 	if (!chErr)
 	{
 		chErr =  HAL_I2C_Master_Receive(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 1, TOUT_I2C4_2B);		//odczytaj dane
@@ -44,27 +45,27 @@ uint8_t InicjujMMC3416x(void)
 		{
 			if (chDaneMagMMC[0] == 0x06)	//czy zgadza się ID
 			{
-				chDaneMagMMC[0] = PMMC3416_INT_CTRL0;
-				chDaneMagMMC[1] = (0 << 0) |	//TM Take measurement, set ‘1’ will initiate measurement
+				chPolWychMagMMC[0] = PMMC3416_INT_CTRL0;
+				chPolWychMagMMC[1] = (0 << 0) |	//TM Take measurement, set ‘1’ will initiate measurement
 								  (1 << 1) |	//Continuous Measurement Mode On
 								  (3 << 2) |	//CM Freq0..1 How often the chip will take measurements in Continuous Measurement Mode: 0=1,5Hz, 1=13Hz, 2=25Hz, 3=50Hz
 								  (0 << 4) |	//No Boost. Setting this bit high will disable the charge pump and cause the storage capacitor to be charged off VDD.
 								  (0 << 5) |	//SET
 								  (0 << 6) |	//RESET
 								  (0 << 7);		//Refill Cap Writing “1” will recharge the capacitor at CAP pin, it is requested to be issued before SET/RESET command.
-				chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 2, TOUT_I2C4_2B);	//wyślij polecenie wykonania pomiaru
+				chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 2, TOUT_I2C4_2B);	//wyślij polecenie wykonania pomiaru
 				if (chErr)
 					return chErr;
 
-				chDaneMagMMC[0] = PMMC3416_INT_CTRL1;
-				chDaneMagMMC[1] = (0 << 0) |	//BW0..1 Output resolution:	0=16 bits, 7.92 mS; 1=16 bits, 4.08 mS; 2=14 bits, 2.16 mS; 3= 12 bits, 1.20 mS
+				chPolWychMagMMC[0] = PMMC3416_INT_CTRL1;
+				chPolWychMagMMC[1] = (0 << 0) |	//BW0..1 Output resolution:	0=16 bits, 7.92 mS; 1=16 bits, 4.08 mS; 2=14 bits, 2.16 mS; 3= 12 bits, 1.20 mS
 								  (0 << 2) |	//X-inhibit - Factory-use Register
 								  (0 << 3) |	//Y-inhibit - Factory-use Register
 								  (0 << 4) |	//Z-inhibit - Factory-use Register
 								  (0 << 5) |	//ST_XYZ Selftest check, write “1” to this bit and execute a TM command, after TM is completed the result can be read as bit ST_XYZ_OK.
 								  (0 << 6) |	//Temp_tst - Factory-use Register
 								  (0 << 7);		//SW_RST Writing “1”will cause the part to reset, similar to power-up. It will clear all registers and also re-read OTP as part of its startup routine.
-				chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 2, TOUT_I2C4_2B);	//wyślij polecenie wykonania pomiaru
+				chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 2, TOUT_I2C4_2B);	//wyślij polecenie wykonania pomiaru
 				if (!chErr)
 					uDaneCM4.dane.nZainicjowano |= INIT_MMC34160;
 			}
@@ -170,8 +171,8 @@ uint8_t StartujOdczytRejestruMMC3416x(uint8_t chRejestr)
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)
 	{
 		chCzujnikOdczytywanyNaI2CInt = MAG_MMC;
-		chDaneMagMMC[0] = chRejestr;	//PMMC3416_XOUT_L;
-		chErr = HAL_I2C_Master_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 1);	//wyślij polecenie odczytu wszystkich pomiarów
+		chPolWychMagMMC[0] = chRejestr;	//PMMC3416_XOUT_L;
+		chErr = HAL_I2C_Master_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 1);	//wyślij polecenie odczytu wszystkich pomiarów
 	}
 	return chErr;
 }
@@ -227,11 +228,11 @@ uint8_t PolecenieMMC3416x(uint8_t chPolecenie)
 
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)
 	{
-		chDaneMagMMC[0] = PMMC3416_INT_CTRL0;
-		chDaneMagMMC[1] = chPolecenie |	//bit zdefiniowany w pliku h
+		chPolWychMagMMC[0] = PMMC3416_INT_CTRL0;
+		chPolWychMagMMC[1] = chPolecenie |	//bit zdefiniowany w pliku h
 						 (0 << 1) |	//Continuous Measurement Mode On
 						 (3 << 2);	//CM Freq0..1 How often the chip will take measurements in Continuous Measurement Mode: 0=1,5Hz, 1=13Hz, 2=25Hz, 3=50Hz
-		chErr = HAL_I2C_Master_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chDaneMagMMC, 2);	//wyślij polecenie wykonania pomiaru
+		chErr = HAL_I2C_Master_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 2);	//wyślij polecenie wykonania pomiaru
 	}
 	return chErr;
 }

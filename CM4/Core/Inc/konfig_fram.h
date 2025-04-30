@@ -112,15 +112,15 @@
 #define	FAH_AKCEL1_X_PRZES   	FAH_MOD_AKCEL+0   	//4F korekcja przesuniecia w osi X akcelerometru 1
 #define	FAH_AKCEL1_Y_PRZES   	FAH_MOD_AKCEL+4   	//4F korekcja przesuniecia w osi Y akcelerometru 1
 #define	FAH_AKCEL1_Z_PRZES  	FAH_MOD_AKCEL+8   	//4F korekcja przesuniecia w osi Z akcelerometru 1
-#define	FAH_AKCEL1_X_WZMOC     	FAH_MOD_AKCEL+12  	//4F korekcja wzmocnienia w osi X akcelerometru 1
-#define	FAH_AKCEL1_Y_WZMOC     	FAH_MOD_AKCEL+16  	//4F korekcja wzmocnienia w osi Y akcelerometru 1
-#define	FAH_AKCEL1_Z_WZMOC		FAH_MOD_AKCEL+20  	//4F korekcja wzmocnienia w osi Z akcelerometru 1
+#define	FAH_AKCEL1_X_WZMOC     	FAH_MOD_AKCEL+12  	//4F korekcja skalowanie w osi X akcelerometru 1
+#define	FAH_AKCEL1_Y_WZMOC     	FAH_MOD_AKCEL+16  	//4F korekcja skalowanie w osi Y akcelerometru 1
+#define	FAH_AKCEL1_Z_WZMOC		FAH_MOD_AKCEL+20  	//4F korekcja skalowanie w osi Z akcelerometru 1
 #define	FAH_AKCEL2_X_PRZES   	FAH_MOD_AKCEL+24   	//4F korekcja przesuniecia w osi X akcelerometru 2
 #define	FAH_AKCEL2_Y_PRZES   	FAH_MOD_AKCEL+28   	//4F korekcja przesuniecia w osi Y akcelerometru 2
 #define	FAH_AKCEL2_Z_PRZES  	FAH_MOD_AKCEL+32   	//4F korekcja przesuniecia w osi Z akcelerometru 2
-#define	FAH_AKCEL2_X_WZMOC     	FAH_MOD_AKCEL+36  	//4F korekcja wzmocnienia w osi X akcelerometru 2
-#define	FAH_AKCEL2_Y_WZMOC     	FAH_MOD_AKCEL+40  	//4F korekcja wzmocnienia w osi Y akcelerometru 2
-#define	FAH_AKCEL2_Z_WZMOC		FAH_MOD_AKCEL+44  	//4F korekcja wzmocnienia w osi Z akcelerometru 2
+#define	FAH_AKCEL2_X_WZMOC     	FAH_MOD_AKCEL+36  	//4F korekcja skalowanie w osi X akcelerometru 2
+#define	FAH_AKCEL2_Y_WZMOC     	FAH_MOD_AKCEL+40  	//4F korekcja skalowanie w osi Y akcelerometru 2
+#define	FAH_AKCEL2_Z_WZMOC		FAH_MOD_AKCEL+44  	//4F korekcja skalowanie w osi Z akcelerometru 2
 
 #define	FAH_MOD_ZYRO1      		FAH_MOD_AKCEL+48    //moduł inercyjny dowolnego typu (wspólna konfiguracja)
 #define	FAH_ZYRO1_X_PRZ_ZIM 	FAH_MOD_ZYRO1+0  	//4F korekcja przesuniecia w osi X żyroskopu 1 na zimno
@@ -132,9 +132,9 @@
 #define	FAH_ZYRO1_X_PRZ_GOR 	FAH_MOD_ZYRO1+24  	//4F korekcja przesuniecia w osi X żyroskopu 1 na gorąco
 #define	FAH_ZYRO1_Y_PRZ_GOR 	FAH_MOD_ZYRO1+28  	//4F korekcja przesuniecia w osi Y żyroskopu 1 na gorąco
 #define	FAH_ZYRO1_Z_PRZ_GOR 	FAH_MOD_ZYRO1+32  	//4F korekcja przesuniecia w osi Z żyroskopu 1 na gorąco
-#define	FAH_ZYRO1P_WZMOC     	FAH_MOD_ZYRO1+36  	//4F korekcja wzmocnienia żyroskopu 1P
-#define	FAH_ZYRO1Q_WZMOC     	FAH_MOD_ZYRO1+40  	//4F korekcja wzmocnienia żyroskopu 1Q
-#define	FAH_ZYRO1R_WZMOC     	FAH_MOD_ZYRO1+44  	//4F korekcja wzmocnienia żyroskopu 1R
+#define	FAH_ZYRO1P_WZMOC     	FAH_MOD_ZYRO1+36  	//4F korekcja skalowanie żyroskopu 1P
+#define	FAH_ZYRO1Q_WZMOC     	FAH_MOD_ZYRO1+40  	//4F korekcja skalowanie żyroskopu 1Q
+#define	FAH_ZYRO1R_WZMOC     	FAH_MOD_ZYRO1+44  	//4F korekcja skalowanie żyroskopu 1R
 
 #define	FAH_MOD_ZYRO2      		FAH_MOD_ZYRO1+48    //moduł inercyjny dowolnego typu (wspólna konfiguracja)
 #define	FAH_ZYRO2_X_PRZ_ZIM 	FAH_MOD_ZYRO2+0  	//4F korekcja przesuniecia w osi X żyroskopu 2 na zimno
@@ -146,9 +146,9 @@
 #define	FAH_ZYRO2_X_PRZ_GOR 	FAH_MOD_ZYRO2+24  	//4F korekcja przesuniecia w osi X żyroskopu 2 na gorąco
 #define	FAH_ZYRO2_Y_PRZ_GOR 	FAH_MOD_ZYRO2+28  	//4F korekcja przesuniecia w osi Y żyroskopu 2 na gorąco
 #define	FAH_ZYRO2_Z_PRZ_GOR 	FAH_MOD_ZYRO2+32  	//4F korekcja przesuniecia w osi Z żyroskopu 2 na gorąco
-#define	FAH_ZYRO2P_WZMOC     	FAH_MOD_ZYRO2+36  	//4F korekcja wzmocnienia żyroskopu 2P
-#define	FAH_ZYRO2Q_WZMOC     	FAH_MOD_ZYRO2+40  	//4F korekcja wzmocnienia żyroskopu 2Q
-#define	FAH_ZYRO2R_WZMOC     	FAH_MOD_ZYRO2+44  	//4F korekcja wzmocnienia żyroskopu 2R
+#define	FAH_ZYRO2P_WZMOC     	FAH_MOD_ZYRO2+36  	//4F korekcja skalowanie żyroskopu 2P
+#define	FAH_ZYRO2Q_WZMOC     	FAH_MOD_ZYRO2+40  	//4F korekcja skalowanie żyroskopu 2Q
+#define	FAH_ZYRO2R_WZMOC     	FAH_MOD_ZYRO2+44  	//4F korekcja skalowanie żyroskopu 2R
 
 #define	FAH_ZYRO_TEMP 			FAH_MOD_ZYRO2+48
 #define	FAH_ZYRO1_TEMP_ZIM     	FAH_ZYRO_TEMP+0		//4F temperatura kalibracji na zimno żyroskopu 1
@@ -172,27 +172,27 @@
 #define	FAH_MAGN1_PRZESX  		FAH_MAGN1+0 //4H przesunięcie magnetometru w osi X
 #define	FAH_MAGN1_PRZESY  		FAH_MAGN1+4 //4H przesunięcie magnetometru w osi Y
 #define	FAH_MAGN1_PRZESZ  		FAH_MAGN1+8 //4H przesunięcie magnetometru w osi Z
-#define	FAH_MAGN1_SKALOX  		FAH_MAGN1+12 //4H wzmocnienie w osi X
-#define	FAH_MAGN1_SKALOY  		FAH_MAGN1+16 //4H wzmocnienie w osi Y
-#define	FAH_MAGN1_SKALOZ  		FAH_MAGN1+20 //4H wzmocnienie w osi Z
+#define	FAH_MAGN1_SKALOX  		FAH_MAGN1+12 //4H skalowanie w osi X
+#define	FAH_MAGN1_SKALOY  		FAH_MAGN1+16 //4H skalowanie w osi Y
+#define	FAH_MAGN1_SKALOZ  		FAH_MAGN1+20 //4H skalowanie w osi Z
 
 //współczynniki kalibracji magnetometru 2 na module inercyjnym
 #define	FAH_MAGN2        		FAH_MAGN1+24
 #define	FAH_MAGN2_PRZESX  		FAH_MAGN2+0 //4H przesunięcie magnetometru w osi X
 #define	FAH_MAGN2_PRZESY  		FAH_MAGN2+4 //4H przesunięcie magnetometru w osi Y
 #define	FAH_MAGN2_PRZESZ  		FAH_MAGN2+8 //4H przesunięcie magnetometru w osi Z
-#define	FAH_MAGN2_SKALOX  		FAH_MAGN2+12 //4H wzmocnienie w osi X
-#define	FAH_MAGN2_SKALOY  		FAH_MAGN2+16 //4H wzmocnienie w osi Y
-#define	FAH_MAGN2_SKALOZ  		FAH_MAGN2+20 //4H wzmocnienie w osi Z
+#define	FAH_MAGN2_SKALOX  		FAH_MAGN2+12 //4H skalowanie w osi X
+#define	FAH_MAGN2_SKALOY  		FAH_MAGN2+16 //4H skalowanie w osi Y
+#define	FAH_MAGN2_SKALOZ  		FAH_MAGN2+20 //4H skalowanie w osi Z
 
 //współczynniki kalibracji magnetometru 3 na module GNSS
 #define	FAH_MAGN3        		FAH_MAGN2+24
 #define	FAH_MAGN3_PRZESX  		FAH_MAGN3+0 //4H przesunięcie magnetometru w osi X
 #define	FAH_MAGN3_PRZESY  		FAH_MAGN3+4 //4H przesunięcie magnetometru w osi Y
 #define	FAH_MAGN3_PRZESZ  		FAH_MAGN3+8 //4H przesunięcie magnetometru w osi Z
-#define	FAH_MAGN3_SKALOX  		FAH_MAGN3+12 //4H wzmocnienie w osi X
-#define	FAH_MAGN3_SKALOY  		FAH_MAGN3+16 //4H wzmocnienie w osi Y
-#define	FAH_MAGN3_SKALOZ  		FAH_MAGN3+20 //4H wzmocnienie w osi Z
+#define	FAH_MAGN3_SKALOX  		FAH_MAGN3+12 //4H skalowanie w osi X
+#define	FAH_MAGN3_SKALOY  		FAH_MAGN3+16 //4H skalowanie w osi Y
+#define	FAH_MAGN3_SKALOZ  		FAH_MAGN3+20 //4H skalowanie w osi Z
 
 #define	FAH_SKALO_CISN_BEZWZGL1	FAH_MAGN3+24    //współczynnik skalowania ciśnienia bezwzględnego czujnika 1
 #define	FAH_SKALO_CISN_BEZWZGL2	FAH_MAGN3+28    //współczynnik skalowania ciśnienia bezwzględnego czujnika 2

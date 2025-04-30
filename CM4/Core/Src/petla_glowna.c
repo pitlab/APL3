@@ -48,6 +48,7 @@ volatile uint8_t chCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługi
 uint8_t chNoweDaneI2C;	//zestaw flag informujący o pojawieniu sie nowych danych odebranych na magistrali I2C
 extern uint16_t sLicznikCzasuKalibracji;
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
 // Parametry: brak
@@ -55,8 +56,6 @@ extern uint16_t sLicznikCzasuKalibracji;
 ////////////////////////////////////////////////////////////////////////////////
 void PetlaGlowna(void)
 {
-	uint8_t chErr;
-
 	//licz czas obiegu petli dla modułów wewnętrznych które mogą wymagać czasu do całkowania swoich wartosci
 	if (chNrOdcinkaCzasu < 4)
 	{
@@ -73,11 +72,12 @@ void PetlaGlowna(void)
 		break;
 
 	case 1:		//obsługa modułu w gnieździe 2
-		chErr = ObslugaModuluI2P(ADR_MOD2);
+		ObslugaModuluI2P(ADR_MOD2);
+		/*uint8_t chErr = ObslugaModuluI2P(ADR_MOD2);
 		if (chErr)
 			chStanIOwy &= ~MIO41;	//zaświeć czerwoną LED
 		else
-			chStanIOwy |= MIO41;	//zgaś czerwoną LED
+			chStanIOwy |= MIO41;	//zgaś czerwoną LED */
 		chErrPG |= PobierzDaneExpandera(&chStanIOwe);
 		break;
 
@@ -103,7 +103,7 @@ void PetlaGlowna(void)
 			chErrPG |= DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
 			chWskOprBaGNSS++;
 			chWskOprBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
-			chStanIOwy ^= MIO42;		//Zielona LED
+			//chStanIOwy ^= MIO42;		//Zielona LED
 			chTimeoutGNSS = TIMEOUT_GNSS;
 		}
 		if ((uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY) == 0)
@@ -192,7 +192,19 @@ void PetlaGlowna(void)
 		case POL_ZAPISZ_KONF_MAGN1:	ZapiszKonfiguracjeMagnetometru(MAG1);	break;
 		case POL_ZAPISZ_KONF_MAGN2:	ZapiszKonfiguracjeMagnetometru(MAG2);	break;
 		case POL_ZAPISZ_KONF_MAGN3:	ZapiszKonfiguracjeMagnetometru(MAG3);	break;
-		case POL_ZERUJ_EKSTREMA:	ZerujEkstremaMagnetometru();	break;
+		case POL_ZERUJ_EKSTREMA:
+			if (ZerujEkstremaMagnetometru())
+			{
+				uDaneCM4.dane.chOdpowiedzNaPolecenie = POL_NIC;	//jeżeli dane nie są jeszcze wyzerowane to zwróć inną odpowiedź niż numer polecenia
+				chStanIOwy &= ~MIO41;	//zaświeć czerwoną LED
+				chStanIOwy |= MIO42;	//zgaś zieloną LED
+			}
+			else
+			{
+				chStanIOwy |= MIO41;	//zgaś czerwoną LED
+				chStanIOwy &= ~MIO42;	//zaświeć zieloną LED
+			}
+			break;
 
 		case POL_INICJUJ_USREDN:	KalibrujCisnienie(0, 0, 0, CZAS_KALIBRACJI, 0xFF);	break;	//inicjalizacja
 		case POL_ZERUJ_LICZNIK:
@@ -463,7 +475,6 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 
 	if (*chCzujniki & MAG_MMC)
 	{
-		//if ((chDaneMagMMC[0] || chDaneMagMMC[1]) && (chDaneMagMMC[2] || chDaneMagMMC[3]) && (chDaneMagMMC[4] || chDaneMagMMC[5]))
 		for (uint8_t n=0; n<3; n++)
 		{
 			if (chSekwencjaPomiaruMMC < SPMMC3416_REFIL_RESET)	//poniżej SPMMC3416_REFIL_RESET będzie obsługa dla SET, powyżej dla RESET
@@ -471,10 +482,11 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 			else
 					sPomiarMMCL[n] = ((int16_t)chDaneMagMMC[2*n+1] * 0x100 + chDaneMagMMC[2*n]) - 32768;
 
+			sZeZnakiem = (sPomiarMMCH[n] - sPomiarMMCL[n]) / 2;
 			if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN2) || (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
-				uDaneCM4.dane.fMagne2[n] = (float)(sPomiarMMCH[n] - sPomiarMMCL[n]) * CZULOSC_MMC34160 / 2;	//dane surowe podczas kalibracji magnetometru
+				uDaneCM4.dane.fMagne2[n] = (float)sZeZnakiem * CZULOSC_MMC34160;	//dane surowe podczas kalibracji magnetometru
 			else
-				uDaneCM4.dane.fMagne2[n] = ((float)(sPomiarMMCH[n] - sPomiarMMCL[n]) * CZULOSC_MMC34160 / 2 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
+				uDaneCM4.dane.fMagne2[n] = ((float)sZeZnakiem * CZULOSC_MMC34160 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
 		}
 		*chCzujniki &= ~MAG_MMC;	//dane obsłużone
 		uDaneCM4.dane.chNowyPomiar |= NP_MAG2;	//jest nowy pomiar

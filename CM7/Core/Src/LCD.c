@@ -2645,14 +2645,14 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 				fMax[n] =  NOMINALNE_MAGN;		//podczas sprawdzenia pracuj na stałym współczynniku
 			}
 		}
-		*chEtap |= ZERUJ;	//przed pomiarem  wystaw potrzebę wyzerowania wskazań magnetometru
+		*chEtap |= ZERUJ;	//przed pomiarem wystaw potrzebę wyzerowania znalezionych ekstemów magnetometru
 		statusDotyku.chFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
 	}
 
 	if (*chEtap & ZERUJ)
 	{
 		uDaneCM7.dane.chWykonajPolecenie = POL_ZERUJ_EKSTREMA;
-		DodajProbkeDoMalejKolejki(PRGA_00, ROZM_MALEJ_KOLEJKI_KOMUNIK);
+		DodajProbkeDoMalejKolejki(PRGA_00, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat "zero"
 		if ( uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_ZERUJ_EKSTREMA)
 		{
 			*chEtap &= ~ZERUJ;
@@ -2743,6 +2743,12 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
 		}
+
+		//obsłuż ekstrema w osi X ale bez komunkatów o ekstremach
+		if (uDaneCM4.dane.fRozne[0] < fMin[0])	//minimum X
+			fMin[0] = uDaneCM4.dane.fRozne[0];
+		if (uDaneCM4.dane.fRozne[1] > fMax[0])	//maksimum X
+			fMax[0] = uDaneCM4.dane.fRozne[1];
 
 		//rysuj wykres biegunowy Y-Z
 		fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi

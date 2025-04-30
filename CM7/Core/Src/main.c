@@ -41,7 +41,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
   - znaleźć dlaczego czasami w trakcie kalibracji magnetometru gaśnie wyświetlacz
   - ustawić odpowiednie kąty w poziomicy podczas kalibracji skalowania żyroskopów
   - poprawić podwójny kąt liczony IMU4
-
+ - sprawdzić dlaczego w magnetometrze 2 źle rysują się wykresy dla obracania wokół osi Z i Y - zła kalibracja, braz zerowania ekstremów
  * */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
