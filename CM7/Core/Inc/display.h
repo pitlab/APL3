@@ -64,7 +64,8 @@
 #define DISP_VX_SIZE	320		//wertykalnie
 #define DISP_VY_SIZE	480
 
-#define SZER_WYKR_MAG	240
+#define SZER_WYKR_MAG	260
+#define PROMIEN_RZUTU_MAGN	90
 
 
 #define FONT_SH		12	//wysokośc małej czcionki

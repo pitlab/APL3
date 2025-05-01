@@ -421,7 +421,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 {
 	extern uint8_t chDaneMagHMC[6];
 	extern uint8_t chDaneMagMMC[6];
-	extern uint8_t chDaneMagIIS[8];
+	extern uint8_t chDaneMagIIS[6];
 	extern uint8_t chDaneMS4525[5];
 	extern int16_t sPomiarMMCH[3], sPomiarMMCL[3];	//wyniki pomiarów dla dodatniego i ujemnego namagnesowania czujnika
 	extern uint8_t chSekwencjaPomiaruMMC;
@@ -430,23 +430,27 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 	extern float fPrzesMagn3[3], fSkaloMagn3[3];
 	uint8_t chErr = ERR_OK;
 	int16_t sZeZnakiem;	//zmiena robocza do konwersji dnych 8-bitowych bez znaku na liczbę 16-bitową ze znakiem
+	const int8_t chZnakIIS[3] = {1, -1, -1};	//magnetometr 1: odwrotnie jest oś Z, ale żeby ją odwrócić, trzeba zmienić też znak w osi X lub Y. Zmieniam w Y: OK
+	//const int8_t chZnakMMC[3] = {-1, 1, -1};	//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z - zle
+	const int8_t chZnakMMC[3] = {1, 1, 1};		//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z
+	const int8_t chZnakHMC[3] = {1, -1, -1};	//magnetometr 3: jest OK
 
 	if (*chCzujniki & MAG_HMC)
 	{
 		//Uwaga! Czujnik HMS5883L ma osie w nietypowej kolejności XZY, więc konwersję trzeba zrobić ręcznie poza pętlą
-		sZeZnakiem = (int16_t)chDaneMagHMC[0] * 0x100 + chDaneMagHMC[1];	//oś X
+		sZeZnakiem = ((int16_t)chDaneMagHMC[0] * 0x100 + chDaneMagHMC[1]) * chZnakHMC[0];	//oś X
 		if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
 			uDaneCM4.dane.fMagne3[0] = (float)sZeZnakiem * CZULOSC_HMC5883;			//dane surowe podczas kalibracji magnetometru wyrażone w Teslach
 		else
 			uDaneCM4.dane.fMagne3[0] = ((float)sZeZnakiem * CZULOSC_HMC5883 - fPrzesMagn3[0]) * fSkaloMagn3[0];	//dane skalibrowane
 
-		sZeZnakiem = (int16_t)chDaneMagHMC[4] * 0x100 + chDaneMagHMC[5];	//oś Y
+		sZeZnakiem = ((int16_t)chDaneMagHMC[4] * 0x100 + chDaneMagHMC[5]) * chZnakHMC[1];	//oś Y
 		if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
 			uDaneCM4.dane.fMagne3[1] = (float)sZeZnakiem * CZULOSC_HMC5883;			//dane surowe podczas kalibracji magnetometru
 		else
 			uDaneCM4.dane.fMagne3[1] = ((float)sZeZnakiem * CZULOSC_HMC5883 - fPrzesMagn3[1]) * fSkaloMagn3[1];	//dane skalibrowane
 
-		sZeZnakiem = (int16_t)chDaneMagHMC[2] * 0x100 + chDaneMagHMC[3];	//oś Z
+		sZeZnakiem = ((int16_t)chDaneMagHMC[2] * 0x100 + chDaneMagHMC[3]) * chZnakHMC[2];	//oś Z
 		if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
 			uDaneCM4.dane.fMagne3[2] = (float)sZeZnakiem * CZULOSC_HMC5883;			//dane surowe podczas kalibracji magnetometru
 		else
@@ -476,15 +480,12 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 	{
 		for (uint8_t n=0; n<3; n++)
 		{
-			sZeZnakiem = (int16_t)chDaneMagIIS[2*n+1] * 0x100 + chDaneMagIIS[2*n];
+			sZeZnakiem = ((int16_t)chDaneMagIIS[2*n+1] * 0x100 + chDaneMagIIS[2*n]) * chZnakIIS[n];
 			if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN1) || (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
 				uDaneCM4.dane.fMagne1[n] = (float)sZeZnakiem * CZULOSC_IIS2MDC;			//dane surowe podczas kalibracji magnetometru
 			else
 				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
 		}
-		//zamiast temperatury do pomiaru wskakują wyniki z osi X
-		//float fTemp = (float)((int16_t)chDaneMagIIS[7] * 0x100 + chDaneMagIIS[6]) / 8;	//The nominal sensitivity is 8 LSB/°C.
-		//uDaneCM4.dane.fTemper[TEMP_MAG1] = (7 * uDaneCM4.dane.fTemper[TEMP_MAG1] + fTemp) / 8;	//filtr IIR temperatury
 		*chCzujniki &= ~MAG_IIS;	//dane obsłużone
 		uDaneCM4.dane.chNowyPomiar |= NP_MAG1;	//jest nowy pomiar
 	}
@@ -494,9 +495,9 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 		for (uint8_t n=0; n<3; n++)
 		{
 			if (chSekwencjaPomiaruMMC < SPMMC3416_REFIL_RESET)	//poniżej SPMMC3416_REFIL_RESET będzie obsługa dla SET, powyżej dla RESET
-					sPomiarMMCH[n] = ((int16_t)chDaneMagMMC[2*n+1] * 0x100 + chDaneMagMMC[2*n]) - 32768;	//czujnik zwraca liczby unsigned z 32768 dla zera
+					sPomiarMMCH[n] = (((int16_t)chDaneMagMMC[2*n+1] * 0x100 + chDaneMagMMC[2*n]) - 32768) * chZnakMMC[n];	//czujnik zwraca liczby unsigned z 32768 dla zera
 			else
-					sPomiarMMCL[n] = ((int16_t)chDaneMagMMC[2*n+1] * 0x100 + chDaneMagMMC[2*n]) - 32768;
+					sPomiarMMCL[n] = (((int16_t)chDaneMagMMC[2*n+1] * 0x100 + chDaneMagMMC[2*n]) - 32768) * chZnakMMC[n];
 
 			sZeZnakiem = (sPomiarMMCH[n] - sPomiarMMCL[n]) / 2;
 			if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN2) || (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))

@@ -25,7 +25,9 @@
 #define DEG2RAD				(M_PI/180)
 #define KELVIN				273.15f
 #define AKCEL1G				9.80665f		//przelicznik z [g] na [m/s^2]
-#define NOMINALNE_MAGN		46e-6			//nominalna wartość natężenia pola magnetycznego w Teslach dla Polski ok. 46[uT]
+#define NOMINALNE_MAGN		46.0e-6f			//nominalna wartość natężenia pola magnetycznego w Teslach dla Polski ok. 46[uT]
+#define INKLINACJA_MAG		(68.f * DEG2RAD)	//inklinacja magnetyczna w radianach: https://www.magnetic-declination.com/
+#define DEKLINACJA_MAG		(6.5f * DEG2RAD)	//deklinacja magnetyczna w radianach: https://www.magnetic-declination.com/
 
 //definicje temperatur kalibracji żyroskopów
 #define TEMP_KAL_ZIMNO		(10.f + KELVIN)

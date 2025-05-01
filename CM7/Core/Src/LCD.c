@@ -63,6 +63,7 @@ extern const unsigned short obr_kal_mag_n1[0xFFC];
 extern const unsigned short obr_kontrolny[0xFFC];
 extern const unsigned short obr_kostka3D[0xFFC];
 extern const unsigned short obr_cisnienie[0xFFC];
+extern const unsigned short obr_okregi[0xFFC];
 
 //definicje zmiennych
 uint8_t chTrybPracy;
@@ -193,7 +194,7 @@ struct tmenu stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Spr Magn1",	"Sprawdz kalibracje magnetometru 1",		TP_SPR_MAG1,		obr_kal_mag_n1},
 	{"Spr Magn2",	"Sprawdz kalibracje magnetometru 2",		TP_SPR_MAG2,		obr_kal_mag_n1},
 	{"Spr Magn3",	"Sprawdz kalibracje magnetometru 3",		TP_SPR_MAG3,		obr_kal_mag_n1},
-	{"Spr Mag 2D",	"Sprawdz płaski obrotu dla 3 magnetom.",	TP_SPR_PLASKI,		obr_dotyk},
+	{"Spr Mag 2D",	"Sprawdz płaski obrotu dla 3 magnetom.",	TP_SPR_PLASKI,		obr_okregi},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
@@ -1377,17 +1378,17 @@ void PomiaryIMU(void)
 
 		sprintf(chNapis, "Magn 1:");
 		print(chNapis, 10, 110);
-		sprintf(chNapis, "[mT]");
+		sprintf(chNapis, "[uT]");
 		print(chNapis, 10+40*FONT_SL, 110);
 
 		sprintf(chNapis, "Magn 2:");
 		print(chNapis, 10, 130);
-		sprintf(chNapis, "[mT]");
+		sprintf(chNapis, "[uT]");
 		print(chNapis, 10+40*FONT_SL, 130);
 
 		sprintf(chNapis, "Magn 3:");
 		print(chNapis, 10, 150);
-		sprintf(chNapis, "[mT]");
+		sprintf(chNapis, "[uT]");
 		print(chNapis, 10+40*FONT_SL, 150);
 
 		sprintf(chNapis, "K%cty 1:", ą);
@@ -1460,13 +1461,13 @@ void PomiaryIMU(void)
 
 	//IIS2MDC
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[0]*1000);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[0]*1e6);
 	print(chNapis, 10+8*FONT_SL, 110);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[1]*1000);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[1]*1e6);
 	print(chNapis, 10+20*FONT_SL, 110);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne1[2]*1000);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[2]*1e6);
 	print(chNapis, 10+32*FONT_SL, 110);
 	//if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(YELLOW); 	else	setColor(GRAY50);
 	//sprintf(chNapis, "%.1f%cC ", uDaneCM4.dane.fTemper[TEMP_MAG1], ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
@@ -1474,24 +1475,24 @@ void PomiaryIMU(void)
 
 	//MMC34160
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne2[0]*1000);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[0]*1e6);
 	print(chNapis, 10+8*FONT_SL, 130);
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne2[1]*1000);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[1]*1e6);
 	print(chNapis, 10+20*FONT_SL, 130);
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne2[2]*1000);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[2]*1e6);
 	print(chNapis, 10+32*FONT_SL, 130);
 
 	//HMC5883
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne3[0]*1000);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[0]*1e6);
 	print(chNapis, 10+8*FONT_SL, 150);
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne3[1]*1000);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[1]*1e6);
 	print(chNapis, 10+20*FONT_SL, 150);
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fMagne3[2]*1000);
+	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[2]*1e6);
 	print(chNapis, 10+32*FONT_SL, 150);
 
 	//sygnalizacja tonem wartości osi Z magnetometru
@@ -2602,11 +2603,11 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		BelkaTytulu(chNapis);
 
 		setColor(GRAY80);
-		sprintf(chNapis, "%s X:", chNapisLcd[STR_MAGNETOMETR]);
+		sprintf(chNapis, "%s X:", chNapisLcd[STR_MAGN]);
 		print(chNapis, 10, 80);
-		sprintf(chNapis, "%s Y:", chNapisLcd[STR_MAGNETOMETR]);
+		sprintf(chNapis, "%s Y:", chNapisLcd[STR_MAGN]);
 		print(chNapis, 10, 100);
-		sprintf(chNapis, "%s Z:", chNapisLcd[STR_MAGNETOMETR]);
+		sprintf(chNapis, "%s Z:", chNapisLcd[STR_MAGN]);
 		print(chNapis, 10, 120);
 		sprintf(chNapis, "Pochylenie:");
 		print(chNapis, 10, 140);
@@ -2624,7 +2625,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 
 		setColor(GRAY60);
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
-		print(chNapis, CENTER, 50);
+		print(chNapis, CENTER, 45);
 
 		setColor(GRAY40);
 		stPrzycisk.sX1 = 10;
@@ -2894,25 +2895,25 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	}
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.3f [mT] ", fMag[0]*1000);
-	print(chNapis, 10 + 15*FONT_SL, 80);
+	sprintf(chNapis, "%.2f [uT] ", fMag[0]*1e6);
+	print(chNapis, 10 + 8*FONT_SL, 80);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0], ZNAK_STOPIEN);
 	print(chNapis, 10 + 12*FONT_SL, 140);
-	sprintf(chNapis, "%.3f, %.3f ", uDaneCM4.dane.fRozne[0]*1000, uDaneCM4.dane.fRozne[1]*1000);
+	sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.fRozne[0]*1e6, uDaneCM4.dane.fRozne[1]*1e6);
 	print(chNapis, 10 + 12*FONT_SL, 180);
 
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.3f [mT] ", fMag[1]*1000);
-	print(chNapis, 10 + 15*FONT_SL, 100);
+	sprintf(chNapis, "%.2f [uT] ", fMag[1]*1e6);
+	print(chNapis, 10 + 8*FONT_SL, 100);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
 	print(chNapis, 10 + 14*FONT_SL, 160);
-	sprintf(chNapis, "%.3f, %.3f ", uDaneCM4.dane.fRozne[2]*1000, uDaneCM4.dane.fRozne[3]*1000);
+	sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.fRozne[2]*1e6, uDaneCM4.dane.fRozne[3]*1e6);
 	print(chNapis, 10 + 12*FONT_SL, 200);
 
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f [mT] ", fMag[2]*1000);
-	print(chNapis, 10 + 15*FONT_SL, 120);
-	sprintf(chNapis, "%.3f, %.3f ", uDaneCM4.dane.fRozne[4]*1000, uDaneCM4.dane.fRozne[5]*1000);
+	sprintf(chNapis, "%.2f [uT] ", fMag[2]*1e6);
+	print(chNapis, 10 + 8*FONT_SL, 120);
+	sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.fRozne[4]*1e6, uDaneCM4.dane.fRozne[5]*1e6);
 	print(chNapis, 10 + 12*FONT_SL, 220);
 
 	//sprawdź czy jest naciskany przycisk
@@ -2954,7 +2955,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 
 	setColor(YELLOW);
 	sprintf(chNapis, "Ustaw UAV osi%c %c w kier. Wsch%cd-Zach%cd i obracaj wok%c%c %c", ą, chNazwaOsi, ó, ó, ó, ł, chNazwaOsi);
-	print(chNapis, CENTER, 30);
+	print(chNapis, CENTER, 25);
 	return chErr;
 }
 
@@ -3148,9 +3149,9 @@ void PlaskiObrotMagnetometrow(void)
 		BelkaTytulu(chNapis);
 
 		setColor(GRAY80);
-		sprintf(chNapis, "Pochylenie:");
-		print(chNapis, 10, 80);
 		sprintf(chNapis, "Przechylenie:");
+		print(chNapis, 10, 80);
+		sprintf(chNapis, "Pochylenie:");
 		print(chNapis, 10, 100);
 
 		sprintf(chNapis, "%s 1:", chNapisLcd[STR_MAGN]);
@@ -3160,10 +3161,14 @@ void PlaskiObrotMagnetometrow(void)
 		sprintf(chNapis, "%s 3:", chNapisLcd[STR_MAGN]);
 		print(chNapis, 10, 160);
 
+		sprintf(chNapis, "Inklinacja: %.2f %c", INKLINACJA_MAG * RAD2DEG, ZNAK_STOPIEN);
+		print(chNapis, 10, 180);
+		sprintf(chNapis, "Deklinacja: %.2f %c", DEKLINACJA_MAG * RAD2DEG, ZNAK_STOPIEN);
+		print(chNapis, 10, 200);
 
 		setColor(GRAY60);
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
-		print(chNapis, CENTER, 50);
+		print(chNapis, CENTER, 30);
 
 		setColor(GRAY40);
 		stWykr.sX1 = DISP_X_SIZE - SZER_WYKR_MAG;
@@ -3173,18 +3178,30 @@ void PlaskiObrotMagnetometrow(void)
 		drawRect(stWykr.sX1, stWykr.sY1, stWykr.sX2, stWykr.sY2);	//rysuj ramkę wykresu
 		sPoprzed1X = sPoprzed2X = sPoprzed3X = stWykr.sX1 + SZER_WYKR_MAG/2;	//środek wykresu
 		sPoprzed1Y = sPoprzed2Y = sPoprzed3Y = stWykr.sY1 + SZER_WYKR_MAG/2;
+		//drawCircle(stWykr.sX1 + SZER_WYKR_MAG/2, stWykr.sY1 + SZER_WYKR_MAG/2, 2*SZER_WYKR_MAG/2 * cosf(INKLINACJA_MAG));	//promień okręgu jest rzutem wektora magnetycznego pochylonego pod kątem inklinacji
+		drawCircle(stWykr.sX1 + SZER_WYKR_MAG/2, stWykr.sY1 + SZER_WYKR_MAG/2, PROMIEN_RZUTU_MAGN);
 
-		drawCircle(stWykr.sX1 + SZER_WYKR_MAG/2, stWykr.sY1 + SZER_WYKR_MAG/2, SZER_WYKR_MAG/4);
+		//legenda kierunków  magnetycznych
+		setColor(GRAY80);
+		printChar('N', stWykr.sX1 + SZER_WYKR_MAG - 20, stWykr.sY1 + SZER_WYKR_MAG/2);
+		printChar('E', stWykr.sX1 + SZER_WYKR_MAG/2, stWykr.sY1 + SZER_WYKR_MAG - 20);
+		printChar('S', stWykr.sX1 + 20, stWykr.sY1 + SZER_WYKR_MAG/2);
+		printChar('W', stWykr.sX1 + SZER_WYKR_MAG/2, stWykr.sY1 + 20 - FONT_SH);
 	}
 
-	fWspSkal = (float)(SZER_WYKR_MAG / 2) / NOMINALNE_MAGN;
+	//Promień okregu czyli SZER_WYKR_MAG/2 * cosf(INKLINACJA_MAG) ma odpowiadać płaskiemu rzutowi długosci wektora czyli NOMINALNE_MAGN * cosf(INKLINACJA_MAG)
+	//Ponieważ to jest dosyć małe, więc powiększam dwukrotnie i po skróceniu wyglada tak:
+	//fWspSkal = (float)(2*SZER_WYKR_MAG * cosf(INKLINACJA_MAG)) / (NOMINALNE_MAGN * cosf(INKLINACJA_MAG));	//za duże
+	//fWspSkal = (float)SZER_WYKR_MAG / NOMINALNE_MAGN;	//za małe
+	fWspSkal = (float)PROMIEN_RZUTU_MAGN / (NOMINALNE_MAGN * cosf(INKLINACJA_MAG));
 
 	//rysuj wykres X-Y magnetometru 1
 	sX = (int16_t)(uDaneCM4.dane.fMagne1[0] * fWspSkal) + stWykr.sX1 + SZER_WYKR_MAG/2;
 	sY = (int16_t)(uDaneCM4.dane.fMagne1[1] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
 	if ((sX > stWykr.sX1) && (sX < stWykr.sX2) && (sY > stWykr.sY1) && (sY < stWykr.sY2) && ((sX != sPoprzed1X) && (sY != sPoprzed1Y)))
 	{
-		setColor(KOLOR_X);
+		//setColor(KOLOR_X);
+		setColor(CYAN);
 		drawLine(sX, sY, sPoprzed1X, sPoprzed1Y);
 		sPoprzed1X = sX;
 		sPoprzed1Y = sY;
@@ -3195,38 +3212,43 @@ void PlaskiObrotMagnetometrow(void)
 	sY = (int16_t)(uDaneCM4.dane.fMagne2[1] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
 	if ((sX > stWykr.sX1) && (sX < stWykr.sX2) && (sY > stWykr.sY1) && (sY < stWykr.sY2) && ((sX != sPoprzed2X) && (sY != sPoprzed2Y)))
 	{
-		setColor(KOLOR_Y);
+		//setColor(KOLOR_Y);
+		setColor(MAGENTA);
 		drawLine(sX, sY, sPoprzed2X, sPoprzed2Y);
 		sPoprzed2X = sX;
 		sPoprzed2Y = sY;
 	}
 
-	//rysuj wykres X-Y magnetometru 2
+	//rysuj wykres X-Y magnetometru 3
 	sX = (int16_t)(uDaneCM4.dane.fMagne3[0] * fWspSkal) + stWykr.sX1 + SZER_WYKR_MAG/2;
 	sY = (int16_t)(uDaneCM4.dane.fMagne3[1] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
 	if ((sX > stWykr.sX1) && (sX < stWykr.sX2) && (sY > stWykr.sY1) && (sY < stWykr.sY2) && ((sX != sPoprzed3X) && (sY != sPoprzed3Y)))
 	{
-		setColor(KOLOR_Z);
+		//setColor(KOLOR_Z);
+		setColor(YELLOW);
 		drawLine(sX, sY, sPoprzed3X, sPoprzed3Y);
 		sPoprzed3X = sX;
 		sPoprzed3Y = sY;
 	}
 
-
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0], ZNAK_STOPIEN);
 	print(chNapis, 10 + 14*FONT_SL, 80);
-	sprintf(chNapis, "%.3f, %.3f [mT]", uDaneCM4.dane.fMagne1[0]*1000, uDaneCM4.dane.fMagne1[1]*1000);
-	print(chNapis, 10 + 8*FONT_SL, 120);
 
 	setColor(KOLOR_Y);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
-	print(chNapis, 10 + 15*FONT_SL, 100);
-	sprintf(chNapis, "%.3f, %.3f [mT]", uDaneCM4.dane.fMagne2[0]*1000, uDaneCM4.dane.fMagne2[1]*1000);
+	print(chNapis, 10 + 12*FONT_SL, 100);
+
+
+	setColor(CYAN);
+	sprintf(chNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne1[0]*1000, uDaneCM4.dane.fMagne1[1]*1e6f);
+	print(chNapis, 10 + 8*FONT_SL, 120);
+
+	setColor(MAGENTA);
+	sprintf(chNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne2[0]*1000, uDaneCM4.dane.fMagne2[1]*1e6f);
 	print(chNapis, 10 + 8*FONT_SL, 140);
 
-	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.3f, %.3f [mT]", uDaneCM4.dane.fMagne3[0]*1000, uDaneCM4.dane.fMagne3[1]*1000);
+	setColor(YELLOW);
+	sprintf(chNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne3[0]*1000, uDaneCM4.dane.fMagne3[1]*1e6f);
 	print(chNapis, 10 + 8*FONT_SL, 160);
-
 }

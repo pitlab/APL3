@@ -24,6 +24,8 @@ uint8_t chWskOprBufNapisowCM4 = 0;
 unia_wymianyCM4_t uDaneCM4;
 unia_wymianyCM7_t uDaneCM7;
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Pobiera dane z rdzenia CM4
 // Parametry: nic
@@ -74,6 +76,7 @@ uint8_t PobierzDaneWymiany_CM4(void)
 	}
 	return chErr;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -1090,32 +1090,16 @@ void drawCircle(uint16_t x, uint16_t y, uint16_t radius)
 
 	//cbi(P_CS, B_CS);
 	setXY(x, y + radius, x, y + radius);
-	//LCD_write_dat_pie(fch);
-	//LCD_write_dat_ost(fcl);
-	//LCD_write_data16(fch, fcl);
-	LCD_write_dat_pie16(0x00, fch);
-	LCD_write_dat_ost16(0x00, fcl);
+	LCD_write_data16(fch, fcl);
 
 	setXY(x, y - radius, x, y - radius);
-	//LCD_write_dat_pie(fch);
-	//LCD_write_dat_ost(fcl);
-//	LCD_write_data16(fch, fcl);
-	LCD_write_dat_pie16(0x00, fch);
-	LCD_write_dat_ost16(0x00, fcl);
+	LCD_write_data16(fch, fcl);
 
 	setXY(x + radius, y, x + radius, y);
-	//LCD_write_dat_pie(fch);
-	//LCD_write_dat_ost(fcl);
-	//LCD_write_data16(fch, fcl);
-	LCD_write_dat_pie16(0x00, fch);
-	LCD_write_dat_ost16(0x00, fcl);
+	LCD_write_data16(fch, fcl);
 
 	setXY(x - radius, y, x - radius, y);
-	//LCD_write_dat_pie(fch);
-	//LCD_write_dat_ost(fcl);
-	//LCD_write_data16(fch, fcl);
-	LCD_write_dat_pie16(0x00, fch);
-	LCD_write_dat_ost16(0x00, fcl);
+	LCD_write_data16(fch, fcl);
 
 	while(x1 < y1)
 	{
@@ -1129,66 +1113,32 @@ void drawCircle(uint16_t x, uint16_t y, uint16_t radius)
 		ddF_x += 2;
 		f += ddF_x;
 		setXY(x + x1, y + y1, x + x1, y + y1);
-		//LCD_write_dat_pie(fch);
-		//LCD_write_dat_ost(fcl);
-		//LCD_write_data16(fch, fcl);
-		LCD_write_dat_pie16(0x00, fch);
-		LCD_write_dat_ost16(0x00, fcl);
+		LCD_write_data16(fch, fcl);
 
 		setXY(x - x1, y + y1, x - x1, y + y1);
-		//LCD_write_dat_pie(fch);
-		//LCD_write_dat_ost(fcl);
-		//LCD_write_data16(fch, fcl);
-		LCD_write_dat_pie16(0x00, fch);
-		LCD_write_dat_ost16(0x00, fcl);
+		LCD_write_data16(fch, fcl);
 
 		setXY(x + x1, y - y1, x + x1, y - y1);
-		//LCD_write_dat_pie(fch);
-		//LCD_write_dat_ost(fcl);
-		//LCD_write_data16(fch, fcl);
-		LCD_write_dat_pie16(0x00, fch);
-		LCD_write_dat_ost16(0x00, fcl);
+		LCD_write_data16(fch, fcl);
 
 		setXY(x - x1, y - y1, x - x1, y - y1);
-		//LCD_write_dat_pie(fch);
-		//LCD_write_dat_ost(fcl);
-		//LCD_write_data16(fch, fcl);
-		LCD_write_dat_pie16(0x00, fch);
-		LCD_write_dat_ost16(0x00, fcl);
+		LCD_write_data16(fch, fcl);
 
 		setXY(x + y1, y + x1, x + y1, y + x1);
-		//LCD_write_dat_pie(fch);
-		//LCD_write_dat_ost(fcl);
-		//LCD_write_data16(fch, fcl);
-		LCD_write_dat_pie16(0x00, fch);
-		LCD_write_dat_ost16(0x00, fcl);
+		LCD_write_data16(fch, fcl);
 
 		setXY(x - y1, y + x1, x - y1, y + x1);
-		//LCD_write_dat_pie(fch);
-		//LCD_write_dat_ost(fcl);
-		//LCD_write_data16(fch, fcl);
-		LCD_write_dat_pie16(0x00, fch);
-		LCD_write_dat_ost16(0x00, fcl);
+		LCD_write_data16(fch, fcl);
 
 		setXY(x + y1, y - x1, x + y1, y - x1);
-		//LCD_write_dat_pie(fch);
-		//LCD_write_dat_ost(fcl);
-		//LCD_write_data16(fch, fcl);
-		LCD_write_dat_pie16(0x00, fch);
-		LCD_write_dat_ost16(0x00, fcl);
+		LCD_write_data16(fch, fcl);
 
 		setXY(x - y1, y - x1, x - y1, y - x1);
-		//LCD_write_dat_pie(fch);
-		//LCD_write_dat_ost(fcl);
-		//LCD_write_data16(fch, fcl);
-		LCD_write_dat_pie16(0x00, fch);
-		LCD_write_dat_ost16(0x00, fcl);
+		LCD_write_data16(fch, fcl);
 	}
 	//sbi(P_CS, B_CS);
 	//clrXY();
 }
-
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // rysuje koło

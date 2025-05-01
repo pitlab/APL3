@@ -10,11 +10,13 @@
 #include "wymiana_CM4.h"
 #include "petla_glowna.h"
 #include "main.h"
+#include "fram.h"
+#include "konfig_fram.h"
 
-
-ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chDaneMagMMC[6]);	//I2C4 współpracuje z BDMA a on ogarnia tylko SRAM4
-ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chStatusMagMMC);	//I2C4 współpracuje z BDMA a on ogarnia tylko SRAM4
-ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chPolWychMagMMC[3]);	//polecenia i dane wysyłane do czujnika w sobnej zmiennej aby nie kolidowały z danymi przychodzącymi
+//Zmienne przesyłane przez I2C4 we współpracy z BDMA a on ma dostęp tylko SRAM4
+ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chDaneMagMMC[6]);		//dane pomiarowe magnetometru MMC
+ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chStatusMagMMC);		//ststus magnetometru MMC
+ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chPolWychMagMMC[3]);	//polecenia i dane wysyłane do magnetometru MMC w osobnej zmiennej aby nie kolidowały z danymi przychodzącymi
 
 
 extern I2C_HandleTypeDef hi2c4;
@@ -26,7 +28,7 @@ extern volatile uint8_t chCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika o
 extern volatile uint8_t chCzujnikZapisywanyNaI2CInt;
 uint8_t chLicznikOczekiwania;
 int16_t sPomiarMMCH[3], sPomiarMMCL[3];	//wyniki pomiarów dla dodatniego i ujemnego namagnesowania czujnika
-
+float fPrzesMagn2[3], fSkaloMagn2[3];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika MMC34160PJ
@@ -36,7 +38,7 @@ int16_t sPomiarMMCH[3], sPomiarMMCL[3];	//wyniki pomiarów dla dodatniego i ujem
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujMMC3416x(void)
 {
-	uint8_t chErr = ERR_BRAK_MMC34160;
+	uint8_t chErr;
 
 	chPolWychMagMMC[0] = PMMC3416_PRODUCT_ID;
 	chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 1, TOUT_I2C4_2B);	//wyślij polecenie odczytu rejestru identyfikacyjnego
@@ -68,9 +70,17 @@ uint8_t InicjujMMC3416x(void)
 								  (0 << 6) |	//Temp_tst - Factory-use Register
 								  (0 << 7);		//SW_RST Writing “1”will cause the part to reset, similar to power-up. It will clear all registers and also re-read OTP as part of its startup routine.
 				chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 2, TOUT_I2C4_2B);	//wyślij polecenie wykonania pomiaru
+
+				for (uint16_t n=0; n<3; n++)
+				{
+					chErr |= CzytajFramZWalidacja(FAH_MAGN2_PRZESX + 4*n, &fPrzesMagn2[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
+					chErr |= CzytajFramZWalidacja(FAH_MAGN2_SKALOX + 4*n, &fSkaloMagn2[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
+				}
 				if (!chErr)
 					uDaneCM4.dane.nZainicjowano |= INIT_MMC34160;
 			}
+			else
+				chErr = ERR_BRAK_MMC34160;
 		}
 	}
 	return chErr;

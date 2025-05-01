@@ -32,9 +32,9 @@ WspRownProstej1_t stWspKalTempCzujnRozn1;
 WspRownProstej1_t stWspKalTempCzujnRozn2;
 float fKatMagnetometru1, fKatMagnetometru2, fKatMagnetometru3;	//kąt odchylenia z magnetometru
 magn_t stMagn;
-float fPrzesMagn1[3], fSkaloMagn1[3];
-float fPrzesMagn2[3], fSkaloMagn2[3];
-float fPrzesMagn3[3], fSkaloMagn3[3];
+extern float fPrzesMagn1[3], fSkaloMagn1[3];
+extern float fPrzesMagn2[3], fSkaloMagn2[3];
+extern float fPrzesMagn3[3], fSkaloMagn3[3];
 
 ////////////////////////////////////////////////////////////////////////////////
 // wykonuje czynności pomiarowe dla ukłądów znajdujących się na module
@@ -85,12 +85,13 @@ uint8_t InicjujModulI2P(void)
 			chErr |= CzytajFramZWalidacja(FAH_ZYRO1P_WZMOC+(4*n), &fSkaloZyro1[n], VMIN_SKALO_ZYRO, VMAX_SKALO_ZYRO, VDEF_SKALO_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 1
 			chErr |= CzytajFramZWalidacja(FAH_ZYRO2P_WZMOC+(4*n), &fSkaloZyro2[n], VMIN_SKALO_ZYRO, VMAX_SKALO_ZYRO, VDEF_SKALO_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 2
 
-			chErr |= CzytajFramZWalidacja(FAH_MAGN1_PRZESX + 4*n, &fPrzesMagn1[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
+			//konfiguracja magnetometrów przesunieta do czujników
+			/*chErr |= CzytajFramZWalidacja(FAH_MAGN1_PRZESX + 4*n, &fPrzesMagn1[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
 			chErr |= CzytajFramZWalidacja(FAH_MAGN2_PRZESX + 4*n, &fPrzesMagn2[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
-			chErr |= CzytajFramZWalidacja(FAH_MAGN3_PRZESX + 4*n, &fPrzesMagn3[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
+			//chErr |= CzytajFramZWalidacja(FAH_MAGN3_PRZESX + 4*n, &fPrzesMagn3[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
 			chErr |= CzytajFramZWalidacja(FAH_MAGN1_SKALOX + 4*n, &fSkaloMagn1[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
 			chErr |= CzytajFramZWalidacja(FAH_MAGN2_SKALOX + 4*n, &fSkaloMagn2[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
-			chErr |= CzytajFramZWalidacja(FAH_MAGN3_SKALOX + 4*n, &fSkaloMagn3[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
+			//chErr |= CzytajFramZWalidacja(FAH_MAGN3_SKALOX + 4*n, &fSkaloMagn3[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);*/
 		}
 
 		//odczytaj kalibrację czujników ciśnienia różnicowego i licz charakterystykę. Używana jest temperatura żyroskopu 1
@@ -771,21 +772,21 @@ uint8_t ZapiszKonfiguracjeMagnetometru(uint8_t chMagn)
 		case MAG1:
 			fPrzesMagn1[n] = (stMagn.fMax[n] + stMagn.fMin[n]) / 2;
 			ZapiszFramFloat(FAH_MAGN1_PRZESX + 4*n, fPrzesMagn1[n]);
-			fSkaloMagn1[n] = (float)NOMINALNE_MAGN / (stMagn.fMax[n] - stMagn.fMin[n]);
+			fSkaloMagn1[n] = (2 * NOMINALNE_MAGN) / (stMagn.fMax[n] - stMagn.fMin[n]);
 			ZapiszFramFloat(FAH_MAGN1_SKALOX + 4*n, fSkaloMagn1[n]);
 			break;
 
 		case MAG2:
 			fPrzesMagn2[n] = (stMagn.fMax[n] + stMagn.fMin[n]) / 2;
 			ZapiszFramFloat(FAH_MAGN2_PRZESX + 4*n, fPrzesMagn2[n]);
-			fSkaloMagn2[n] = (float)NOMINALNE_MAGN / (stMagn.fMax[n] - stMagn.fMin[n]);
+			fSkaloMagn2[n] = (2 * NOMINALNE_MAGN) / (stMagn.fMax[n] - stMagn.fMin[n]);
 			ZapiszFramFloat(FAH_MAGN2_SKALOX + 4*n, fSkaloMagn2[n]);
 			break;
 
 		case MAG3:
 			fPrzesMagn3[n] = (stMagn.fMax[n] + stMagn.fMin[n]) / 2;
 			ZapiszFramFloat(FAH_MAGN3_PRZESX + 4*n, fPrzesMagn3[n]);
-			fSkaloMagn3[n] = (float)NOMINALNE_MAGN / (stMagn.fMax[n] - stMagn.fMin[n]);
+			fSkaloMagn3[n] = (2 * NOMINALNE_MAGN) / (stMagn.fMax[n] - stMagn.fMin[n]);
 			ZapiszFramFloat(FAH_MAGN3_SKALOX + 4*n, fSkaloMagn3[n]);
 			break;
 

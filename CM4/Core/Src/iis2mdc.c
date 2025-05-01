@@ -10,10 +10,12 @@
 #include "wymiana_CM4.h"
 #include "petla_glowna.h"
 #include "main.h"
+#include "fram.h"
+#include "konfig_fram.h"
 
-
-ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chDaneMagIIS[8]);	//I2C4 współpracuje z BDMA a on ogarnia tylko SRAM4
-ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chStatusIIS);	//I2C4 współpracuje z BDMA a on ogarnia tylko SRAM4
+//Zmienne przesyłane przez I2C4 we współpracy z BDMA a on ma dostęp tylko SRAM4
+ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chDaneMagIIS[6]);		//dane pomiarowe magnetometru IIS
+ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chStatusIIS);			//ststus magnetometru IIS
 ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chPolWychMagIIS[2]);	//dane wychodzące aby nie kolidowały z przychodzącymi
 
 extern I2C_HandleTypeDef hi2c4;
@@ -23,7 +25,7 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t chSekwencjaPomiaruIIS;
 extern volatile uint8_t chCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
 extern volatile uint8_t chCzujnikZapisywanyNaI2CInt;
-
+float fPrzesMagn1[3], fSkaloMagn1[3];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika IIS2MDC
@@ -33,7 +35,7 @@ extern volatile uint8_t chCzujnikZapisywanyNaI2CInt;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujIIS2MDC(void)
 {
-	uint8_t chErr = ERR_BRAK_IIS2MDS;
+	uint8_t chErr;
 
 	chPolWychMagIIS[0] = PIIS2MDS_WHO_AM_I;
 	chErr = HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 1, TOUT_I2C4_2B);	//wyślij polecenie odczytu rejestru identyfikacyjnego
@@ -60,11 +62,18 @@ uint8_t InicjujIIS2MDC(void)
 								  (0 << 3) |	//INT_on_DataOFF If ‘1’, the interrupt block recognition checks data after the hard-iron correction to discover the interrupt
 								  (0 << 4);		//OFF_CANC_ONE_SHOT Enables offset cancellation in single measurement mode. The OFF_CANC bit must be set to 1 when enabling offset cancellation in single measurement mode.
 				chErr |= HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 2, TOUT_I2C4_2B);	//wyślij polecenie zapisu konfiguracji
-				if (!chErr)
+
+				for (uint16_t n=0; n<3; n++)
 				{
-					uDaneCM4.dane.nZainicjowano |= INIT_IIS2MDC;
+					chErr |= CzytajFramZWalidacja(FAH_MAGN1_PRZESX + 4*n, &fPrzesMagn1[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
+					chErr |= CzytajFramZWalidacja(FAH_MAGN1_SKALOX + 4*n, &fSkaloMagn1[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
 				}
+
+				if (!chErr)
+					uDaneCM4.dane.nZainicjowano |= INIT_IIS2MDC;
 			}
+			else
+				chErr = ERR_BRAK_IIS2MDS;
 		}
 	}
 	return chErr;
