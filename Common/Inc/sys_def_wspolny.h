@@ -28,6 +28,7 @@
 #define NOMINALNE_MAGN		46.0e-6f			//nominalna wartość natężenia pola magnetycznego w Teslach dla Polski ok. 46[uT]
 #define INKLINACJA_MAG		(68.f * DEG2RAD)	//inklinacja magnetyczna w radianach: https://www.magnetic-declination.com/
 #define DEKLINACJA_MAG		(6.5f * DEG2RAD)	//deklinacja magnetyczna w radianach: https://www.magnetic-declination.com/
+#define PROMIEN_ZIEMI		6371008.77f			//promień Zimi w metrach
 
 //definicje temperatur kalibracji żyroskopów
 #define TEMP_KAL_ZIMNO		(10.f + KELVIN)

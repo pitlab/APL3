@@ -55,8 +55,9 @@
 #define STR_MAGNETOMETR				37
 #define STR_EKSTREMA				38
 #define STR_MAGN					39
+#define STR_KAL						40
 
-#define MAX_NAPISOW					40	//liczba napisów
+#define MAX_NAPISOW					41	//liczba napisów
 
 
 #define JEZYK_POLSKI
@@ -107,6 +108,7 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Magnetometr",						//STR_MAGNETOMETR
 "Ekstrema",							//STR_EKSTREMA
 "Magn",								//STR_MAGN - skrótowa nazwa magnetometru
+"Kal",								//STR_KAL - skrótowa nazwa kalibracji
 };
 
 

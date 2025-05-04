@@ -756,12 +756,14 @@ uint8_t ZerujEkstremaMagnetometru(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Liczy i zapisuje offset zera magnetometru wg wzoru: (max + min) / 2
-// Tak uzyskany offset należy odejmować od bieżących wskazań magnetometru
+// Liczy i zapisuje przesunięcie zera magnetometru wg wzoru: (max + min) / 2
+// Tak uzyskane przesuniecie należy odejmować od bieżących wskazań magnetometru.
+// Oraz liczy skalowanie  długości wektora wg  wzoru (2 * DLUGOSC_WEKTORA) / (max - min)
+// skalowanie należy mnożyć przez surowy odczyt po przesunięciu zera.
 // Parametry: chMagn - indeks układu magnetometru
-// Zwraca: nic
+// Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ZapiszKonfiguracjeMagnetometru(uint8_t chMagn)
+uint8_t ZapiszKalibracjeMagnetometru(uint8_t chMagn)
 {
 	uint8_t chErr = ERR_OK;
 
@@ -797,3 +799,38 @@ uint8_t ZapiszKonfiguracjeMagnetometru(uint8_t chMagn)
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Znajduje o odsyła do CM7  wyniki kalibracji magnetometru
+// Parametry: chMagn - indeks układu magnetometru
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void PobierzKalibracjeMagnetometru(uint8_t chMagn)
+{
+	switch (chMagn)
+	{
+	case MAG1:
+		for (uint16_t n=0; n<3; n++)
+		{
+			uDaneCM4.dane.fRozne[2*n+0] = fPrzesMagn1[n];
+			uDaneCM4.dane.fRozne[2*n+1] = fSkaloMagn1[n];
+		}
+		break;
+
+	case MAG2:
+		for (uint16_t n=0; n<3; n++)
+		{
+			uDaneCM4.dane.fRozne[2*n+0] = fPrzesMagn2[n];
+			uDaneCM4.dane.fRozne[2*n+1] = fSkaloMagn2[n];
+		}
+		break;
+
+	case MAG3:
+		for (uint16_t n=0; n<3; n++)
+		{
+			uDaneCM4.dane.fRozne[2*n+0] = fPrzesMagn3[n];
+			uDaneCM4.dane.fRozne[2*n+1] = fSkaloMagn3[n];
+		}
+		break;
+	}
+}

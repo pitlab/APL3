@@ -56,7 +56,7 @@ uint8_t InicjujIIS2MDC(void)
 				chErr = HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 2, TOUT_I2C4_2B);	//wyślij polecenie zapisu konfiguracji
 
 				chPolWychMagIIS[0] = PIIS2MDS_CFG_REG_B;
-				chPolWychMagIIS[1] = (0 << 0) |	//LPF Enables low-pass filter: 0=ODR/2, 1=ODR/4
+				chPolWychMagIIS[1] = (1 << 0) |	//LPF Enables low-pass filter: 0=ODR/2, 1=ODR/4
 								  (0 << 1) |	//OFF_CANC Enables offset cancellation - nie używam rejestrów offsetu
 								  (1 << 2) |	//Set_FREQ Selects the frequency of the set pulse: 0=0: set pulse is released every 63 ODR, 1: set pulse is released only at power-on after PD condition)
 								  (0 << 3) |	//INT_on_DataOFF If ‘1’, the interrupt block recognition checks data after the hard-iron correction to discover the interrupt

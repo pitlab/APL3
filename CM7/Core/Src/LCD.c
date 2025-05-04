@@ -2613,7 +2613,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		print(chNapis, 10, 140);
 		sprintf(chNapis, "Przechylenie:");
 		print(chNapis, 10, 160);
-		//if (*chEtap & KALIBRUJ)
+		if (*chEtap & KALIBRUJ)
 		{
 			sprintf(chNapis, "%s X:", chNapisLcd[STR_EKSTREMA]);
 			print(chNapis, 10, 180);
@@ -2622,6 +2622,16 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			sprintf(chNapis, "%s Z:", chNapisLcd[STR_EKSTREMA]);
 			print(chNapis, 10, 220);
 		}
+		else
+		{
+			sprintf(chNapis, "%s X:", chNapisLcd[STR_KAL]);
+			print(chNapis, 10, 180);
+			sprintf(chNapis, "%s Y:", chNapisLcd[STR_KAL]);
+			print(chNapis, 10, 200);
+			sprintf(chNapis, "%s Z:", chNapisLcd[STR_KAL]);
+			print(chNapis, 10, 220);
+		}
+
 
 		setColor(GRAY60);
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
@@ -2683,7 +2693,8 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			if (*chEtap & KALIBRUJ)
 				uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN1;
 			else
-				uDaneCM7.dane.chWykonajPolecenie = POL_SPRAWDZ_MAGN1;
+				uDaneCM7.dane.chWykonajPolecenie = POL_POBIERZ_KONF_MAGN1;
+
 			for (uint16_t n=0; n<3; n++)
 				fMag[n] = uDaneCM4.dane.fMagne1[n];
 			break;
@@ -2692,7 +2703,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			if (*chEtap & KALIBRUJ)
 				uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN2;
 			else
-				uDaneCM7.dane.chWykonajPolecenie = POL_SPRAWDZ_MAGN2;
+				uDaneCM7.dane.chWykonajPolecenie = POL_POBIERZ_KONF_MAGN2;
 			for (uint16_t n=0; n<3; n++)
 				fMag[n] = uDaneCM4.dane.fMagne2[n];
 			break;
@@ -2701,7 +2712,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			if (*chEtap & KALIBRUJ)
 				uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN3;
 			else
-				uDaneCM7.dane.chWykonajPolecenie = POL_SPRAWDZ_MAGN3;
+				uDaneCM7.dane.chWykonajPolecenie = POL_POBIERZ_KONF_MAGN3;
 			for (uint16_t n=0; n<3; n++)
 				fMag[n] = uDaneCM4.dane.fMagne3[n];
 			break;
@@ -2712,54 +2723,48 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	switch (*chEtap & MASKA_OSI)		//rodzaj osi
 	{
 	case 0:	chNazwaOsi = 'X';
-		if (uDaneCM4.dane.fRozne[2] < fMin[1])	//minimum Y
+		if (*chEtap & KALIBRUJ)
 		{
-			fMin[1] = uDaneCM4.dane.fRozne[2];
-			if (*chEtap & KALIBRUJ)
+			if (uDaneCM4.dane.fRozne[2] < fMin[1])	//minimum Y
 			{
+				fMin[1] = uDaneCM4.dane.fRozne[2];
 				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
-		}
-		else
-		if (uDaneCM4.dane.fRozne[3] > fMax[1])	//maksimum Y
-		{
-			fMax[1] = uDaneCM4.dane.fRozne[3];
-			if (*chEtap & KALIBRUJ)
+			else
+			if (uDaneCM4.dane.fRozne[3] > fMax[1])	//maksimum Y
 			{
+				fMax[1] = uDaneCM4.dane.fRozne[3];
 				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
-		}
-		else
-		if (uDaneCM4.dane.fRozne[4] < fMin[2])	//minimum Z
-		{
-			fMin[2] = uDaneCM4.dane.fRozne[4];
-			if (*chEtap & KALIBRUJ)
+			else
+			if (uDaneCM4.dane.fRozne[4] < fMin[2])	//minimum Z
 			{
+				fMin[2] = uDaneCM4.dane.fRozne[4];
 				DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
 				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
-		}
-		else
-		if (uDaneCM4.dane.fRozne[5] > fMax[2])	//maksimum Z
-		{
-			fMax[2] = uDaneCM4.dane.fRozne[5];
-			if (*chEtap & KALIBRUJ)
+			else
+			if (uDaneCM4.dane.fRozne[5] > fMax[2])	//maksimum Z
 			{
+				fMax[2] = uDaneCM4.dane.fRozne[5];
 				DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
 				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
-		}
 
-		//obsłuż ekstrema w osi X ale bez komunkatów o ekstremach
-		if (uDaneCM4.dane.fRozne[0] < fMin[0])	//minimum X
-			fMin[0] = uDaneCM4.dane.fRozne[0];
-		if (uDaneCM4.dane.fRozne[1] > fMax[0])	//maksimum X
-			fMax[0] = uDaneCM4.dane.fRozne[1];
+			//obsłuż ekstrema w osi X ale bez komunkatów o ekstremach
+			if (uDaneCM4.dane.fRozne[0] < fMin[0])	//minimum X
+				fMin[0] = uDaneCM4.dane.fRozne[0];
+			if (uDaneCM4.dane.fRozne[1] > fMax[0])	//maksimum X
+				fMax[0] = uDaneCM4.dane.fRozne[1];
+
+			fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi
+		}
+		else
+			fAbsMax = NOMINALNE_MAGN;
 
 		//rysuj wykres biegunowy Y-Z
-		fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi
 		if (fAbsMax > MIN_MAG_WYKR)
 		{
 			fWspSkal = (float)(SZER_WYKR_MAG / 2.0f) / fAbsMax;
@@ -2769,127 +2774,109 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			{
 				setColor(KOLOR_X);
 				drawLine(sX, sY, sPoprzedX, sPoprzedY);
+				sPoprzedX = sX;
+				sPoprzedY = sY;
 			}
-			sPoprzedX = sX;
-			sPoprzedY = sY;
 		}
 		break;
 
 	case 1: chNazwaOsi = 'Y';
-		if (uDaneCM4.dane.fRozne[0] < fMin[0])	//minimum X
+		if (*chEtap & KALIBRUJ)
 		{
-			fMin[0] = uDaneCM4.dane.fRozne[0];
-			if (*chEtap & KALIBRUJ)
+			if (uDaneCM4.dane.fRozne[0] < fMin[0])	//minimum X
 			{
+				fMin[0] = uDaneCM4.dane.fRozne[0];
 				DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
 				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
-		}
-		else
-		if (uDaneCM4.dane.fRozne[1] > fMax[0])	//maksimum X
-		{
-			fMax[0] = uDaneCM4.dane.fRozne[1];
-			if (*chEtap & KALIBRUJ)
+			else
+			if (uDaneCM4.dane.fRozne[1] > fMax[0])	//maksimum X
 			{
+				fMax[0] = uDaneCM4.dane.fRozne[1];
 				DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
 				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
-		}
-		else
-		if (uDaneCM4.dane.fRozne[4] < fMin[2])	//minimum Z
-		{
-			fMin[2] = uDaneCM4.dane.fRozne[4];
-			if (*chEtap & KALIBRUJ)
+			else
+			if (uDaneCM4.dane.fRozne[4] < fMin[2])	//minimum Z
 			{
+				fMin[2] = uDaneCM4.dane.fRozne[4];
 				DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
 				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
-		}
-		else
-		if (uDaneCM4.dane.fRozne[5] > fMax[2])	//maksimum Z
-		{
-			fMax[2] = uDaneCM4.dane.fRozne[5];
-			if (*chEtap & KALIBRUJ)
+			else
+			if (uDaneCM4.dane.fRozne[5] > fMax[2])	//maksimum Z
 			{
+				fMax[2] = uDaneCM4.dane.fRozne[5];
 				DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
 				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
+			fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi
 		}
+		else
+			fAbsMax = NOMINALNE_MAGN;
 
 		//rysuj wykres biegunowy X-Z
-		fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi
 		if (fAbsMax > MIN_MAG_WYKR)
 		{
 			fWspSkal = (float)(SZER_WYKR_MAG / 2.0f) / fAbsMax;
 			sX = (int16_t)(fMag[0] * fWspSkal) + stWykr.sX1 + SZER_WYKR_MAG/2;
 			sY = (int16_t)(fMag[2] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
-			//if ((sX > stWykr.sX1) && (sX < stWykr.sX2) && (sY > stWykr.sY1) && (sY < stWykr.sY2))
 			if ((sX > stWykr.sX1) && (sX < stWykr.sX2) && (sY > stWykr.sY1) && (sY < stWykr.sY2) && ((sX != sPoprzedX) && (sY != sPoprzedY)))
 			{
 				setColor(KOLOR_Y);
 				drawLine(sX, sY, sPoprzedX, sPoprzedY);
+				sPoprzedX = sX;
+				sPoprzedY = sY;
 			}
-			sPoprzedX = sX;
-			sPoprzedY = sY;
 		}
 		break;
 
 	case 2: chNazwaOsi = 'Z';
-		if (uDaneCM4.dane.fRozne[0] < fMin[0])	//minimum X
+		if (*chEtap & KALIBRUJ)
 		{
-			fMin[0] = uDaneCM4.dane.fRozne[0];
-			if (*chEtap & KALIBRUJ)
+			if (uDaneCM4.dane.fRozne[0] < fMin[0])	//minimum X
 			{
+				fMin[0] = uDaneCM4.dane.fRozne[0];
 				DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
 				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
-		}
-		else
-		if (uDaneCM4.dane.fRozne[1] > fMax[0])	//maksimum X
-		{
-			fMax[0] = uDaneCM4.dane.fRozne[1];
-			if (*chEtap & KALIBRUJ)
+			else
+			if (uDaneCM4.dane.fRozne[1] > fMax[0])	//maksimum X
 			{
+				fMax[0] = uDaneCM4.dane.fRozne[1];
 				DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
 				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
-		}
-		else
-		if (uDaneCM4.dane.fRozne[2] < fMin[1])	//minimum Y
-		{
-			fMin[1] = uDaneCM4.dane.fRozne[2];
-			if (*chEtap & KALIBRUJ)
+			else
+			if (uDaneCM4.dane.fRozne[2] < fMin[1])	//minimum Y
 			{
 				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
-		}
-		else
-		if (uDaneCM4.dane.fRozne[3] > fMax[1])	//maksimum Y
-		{
-			fMax[1] = uDaneCM4.dane.fRozne[3];
-			if (*chEtap & KALIBRUJ)
+			else
+			if (uDaneCM4.dane.fRozne[3] > fMax[1])	//maksimum Y
 			{
 				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
+			fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi
 		}
+		else
+			fAbsMax = MIN_MAG_WYKR +1;	//podczas weryfikacji rysuj od razu
 
 		//rysuj wykres biegunowy X-Y
-		fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi
 		if (fAbsMax > MIN_MAG_WYKR)
 		{
 			fWspSkal = (float)(SZER_WYKR_MAG / 2.0f) / fAbsMax;
 			sX = (int16_t)(fMag[0] * fWspSkal) + stWykr.sX1 + SZER_WYKR_MAG/2;
 			sY = (int16_t)(fMag[1] * fWspSkal) + stWykr.sY1 + SZER_WYKR_MAG/2;
-			//if ((sX > stWykr.sX1) && (sX < stWykr.sX2) && (sY > stWykr.sY1) && (sY < stWykr.sY2))
 			if ((sX > stWykr.sX1) && (sX < stWykr.sX2) && (sY > stWykr.sY1) && (sY < stWykr.sY2) && ((sX != sPoprzedX) && (sY != sPoprzedY)))
 			{
 				setColor(KOLOR_Z);
 				drawLine(sX, sY, sPoprzedX, sPoprzedY);
+				sPoprzedX = sX;
+				sPoprzedY = sY;
 			}
-			sPoprzedX = sX;
-			sPoprzedY = sY;
 		}
 		break;
 	}
@@ -2899,22 +2886,46 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	print(chNapis, 10 + 8*FONT_SL, 80);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0], ZNAK_STOPIEN);
 	print(chNapis, 10 + 12*FONT_SL, 140);
-	sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.fRozne[0]*1e6, uDaneCM4.dane.fRozne[1]*1e6);
-	print(chNapis, 10 + 12*FONT_SL, 180);
+	if (*chEtap & KALIBRUJ)
+	{
+		sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.fRozne[0]*1e6, uDaneCM4.dane.fRozne[1]*1e6);	//ekstrema X
+		print(chNapis, 10 + 12*FONT_SL, 180);
+	}
+	else
+	{
+		sprintf(chNapis, "%.3e, %.4f ", uDaneCM4.dane.fRozne[0], uDaneCM4.dane.fRozne[1]);	//przesunięcie i skalowanie X
+		print(chNapis, 10 + 7*FONT_SL, 180);
+	}
 
 	setColor(KOLOR_Y);
 	sprintf(chNapis, "%.2f [uT] ", fMag[1]*1e6);
 	print(chNapis, 10 + 8*FONT_SL, 100);
 	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
 	print(chNapis, 10 + 14*FONT_SL, 160);
-	sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.fRozne[2]*1e6, uDaneCM4.dane.fRozne[3]*1e6);
-	print(chNapis, 10 + 12*FONT_SL, 200);
+	if (*chEtap & KALIBRUJ)
+	{
+		sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.fRozne[2]*1e6, uDaneCM4.dane.fRozne[3]*1e6);	//ekstrema Y
+		print(chNapis, 10 + 12*FONT_SL, 200);
+	}
+	else
+	{
+		sprintf(chNapis, "%.3e, %.4f ", uDaneCM4.dane.fRozne[2], uDaneCM4.dane.fRozne[3]);		//przesunięcie i skalowanie Y
+		print(chNapis, 10 + 7*FONT_SL, 200);
+	}
 
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%.2f [uT] ", fMag[2]*1e6);
 	print(chNapis, 10 + 8*FONT_SL, 120);
-	sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.fRozne[4]*1e6, uDaneCM4.dane.fRozne[5]*1e6);
-	print(chNapis, 10 + 12*FONT_SL, 220);
+	if (*chEtap & KALIBRUJ)
+	{
+		sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.fRozne[4]*1e6, uDaneCM4.dane.fRozne[5]*1e6);	//ekstrema Z
+		print(chNapis, 10 + 12*FONT_SL, 220);
+	}
+	else
+	{
+		sprintf(chNapis, "%.3e, %.4f ", uDaneCM4.dane.fRozne[4], uDaneCM4.dane.fRozne[5]);		//przesunięcie i skalowanie Z
+		print(chNapis, 10 + 7*FONT_SL, 220);
+	}
 
 	//sprawdź czy jest naciskany przycisk
 	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)
@@ -2931,18 +2942,18 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	}
 	else	//DOTYK_DOTKNIETO
 	{
-		if (chStanPrzycisku)
+		if (chStanPrzycisku)	//został naciśniety
 		{
 			(*chEtap)++;
-			chStanPrzycisku = 0;
+			chStanPrzycisku = 0;	//usuń ststus naciśnięcia
 			sPoprzedX = stWykr.sX1 + SZER_WYKR_MAG/2;	//środek wykresu
 			sPoprzedY = stWykr.sY1 + SZER_WYKR_MAG/2;
 			DodajProbkeDoMalejKolejki(PRGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
 		}
 	}
 
-	chCzujnik = ((*chEtap & MASKA_CZUJNIKA) >> 4) - 1;
-	if ((*chEtap & MASKA_OSI) == 3)
+	chCzujnik = ((*chEtap & MASKA_CZUJNIKA) >> 4) - 1;	//oblicz indeks czujnika
+	if ((*chEtap & MASKA_OSI) == 3)	//czy obsłużone już wszystkie 3 osie?
 		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_KONF_MAGN1 + chCzujnik;	//zapisz konfigurację bieżącego magnetometru
 
 	//wyjdź dopiero gdy dostanie potwierdzenie zapisu
@@ -2958,6 +2969,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	print(chNapis, CENTER, 25);
 	return chErr;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -139,7 +139,8 @@ uint8_t ObslugaHMC5883(void)
 	default: break;
 	}
 	chSekwencjaPomiaruHMC++;
-	chSekwencjaPomiaruHMC &= 0x03;
+	if (chSekwencjaPomiaruHMC >= 3)
+		chSekwencjaPomiaruHMC = 0;
 	return chErr;
 }
 

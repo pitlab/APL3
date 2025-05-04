@@ -183,16 +183,18 @@ void PetlaGlowna(void)
 			uDaneCM4.dane.fRozne[3] = CzytajFramFloat(FAH_ZYRO2R_WZMOC);
 			break;
 
-		case POL_SPRAWDZ_MAGN1:
 		case POL_KAL_ZERO_MAGN1:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne1);	break;	//uruchom kalibrację zera magnetometru 1
-		case POL_SPRAWDZ_MAGN2:
 		case POL_KAL_ZERO_MAGN2:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne2);	break;	//uruchom kalibrację zera magnetometru 2
-		case POL_SPRAWDZ_MAGN3:
 		case POL_KAL_ZERO_MAGN3:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne3);	break;	//uruchom kalibrację zera magnetometru 3
 
-		case POL_ZAPISZ_KONF_MAGN1:	ZapiszKonfiguracjeMagnetometru(MAG1);	break;
-		case POL_ZAPISZ_KONF_MAGN2:	ZapiszKonfiguracjeMagnetometru(MAG2);	break;
-		case POL_ZAPISZ_KONF_MAGN3:	ZapiszKonfiguracjeMagnetometru(MAG3);	break;
+		case POL_ZAPISZ_KONF_MAGN1:	ZapiszKalibracjeMagnetometru(MAG1);	break;
+		case POL_ZAPISZ_KONF_MAGN2:	ZapiszKalibracjeMagnetometru(MAG2);	break;
+		case POL_ZAPISZ_KONF_MAGN3:	ZapiszKalibracjeMagnetometru(MAG3);	break;
+
+		case POL_POBIERZ_KONF_MAGN1: PobierzKalibracjeMagnetometru(MAG1);	break;
+		case POL_POBIERZ_KONF_MAGN2: PobierzKalibracjeMagnetometru(MAG2);	break;
+		case POL_POBIERZ_KONF_MAGN3: PobierzKalibracjeMagnetometru(MAG3);	break;
+
 		case POL_ZERUJ_EKSTREMA:
 			if (ZerujEkstremaMagnetometru())
 			{
@@ -222,6 +224,7 @@ void PetlaGlowna(void)
 				uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
 			break;
 		case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;	break;	//nadpisz poprzednio zwrócony błąd
+
     	}
 		break;
 
@@ -480,11 +483,12 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 	{
 		for (uint8_t n=0; n<3; n++)
 		{
-			sZeZnakiem = ((int16_t)chDaneMagIIS[2*n+1] * 0x100 + chDaneMagIIS[2*n]) * chZnakIIS[n];
+			sZeZnakiem = ((int16_t)chDaneMagIIS[2*n+1] * 0x100 + chDaneMagIIS[2*n]) * chZnakIIS[n];	//filtruj surowy pomiar bo jest mocno zaszumiony
 			if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN1) || (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
 				uDaneCM4.dane.fMagne1[n] = (float)sZeZnakiem * CZULOSC_IIS2MDC;			//dane surowe podczas kalibracji magnetometru
 			else
-				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
+				//uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
+				uDaneCM4.dane.fMagne1[n] = (3 * uDaneCM4.dane.fMagne1[n] + ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n]) / 4;	//filtruj pomiar bo jest mocno zaszumiony a jest wystarczajaco szybki żeby filtracja nie przesuwała istotnie fazy
 		}
 		*chCzujniki &= ~MAG_IIS;	//dane obsłużone
 		uDaneCM4.dane.chNowyPomiar |= NP_MAG1;	//jest nowy pomiar

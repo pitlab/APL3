@@ -72,8 +72,9 @@ uint8_t ObliczRownanieFunkcjiTemperatury(float fOffset1, float fOffset2, float f
 void ObliczWspTemperaturowy3(WspRownProstej3_t stWsp, float fTemp, float *fPrzesZera);
 float ObliczWspTemperaturowy1(WspRownProstej1_t stWsp, float fTemp);
 uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uint16_t sLicznik, uint8_t chPrzebieg);
-uint8_t ZapiszKonfiguracjeMagnetometru(uint8_t chMagn);
+uint8_t ZapiszKalibracjeMagnetometru(uint8_t chMagn);
 void ZnajdzEkstremaMagnetometru(float *fMag);
 uint8_t ZerujEkstremaMagnetometru(void);
+void PobierzKalibracjeMagnetometru(uint8_t chMagn);
 
 #endif /* INC_MODUL_IIP_H_ */
