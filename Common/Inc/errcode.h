@@ -11,7 +11,7 @@
 #define ERR_OK					0	//wszystko w porządku
 #define ERR_HAL					1	//błąd HAL
 #define ERR_HAL_BUSY			2	//
-#define ERR_DONE				3	//zadanie wykonane
+#define ERR_GOTOWE				3	//zadanie wykonane
 #define ERR_TIMEOUT				4
 #define ERR_ZLA_ILOSC_DANYCH	5
 #define ERR_PARITY				6

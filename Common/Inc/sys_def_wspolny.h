@@ -24,11 +24,11 @@
 #define RAD2DEG				(180/M_PI)
 #define DEG2RAD				(M_PI/180)
 #define KELVIN				273.15f
-#define AKCEL1G				9.80665f		//przelicznik z [g] na [m/s^2]
-#define NOMINALNE_MAGN		46.0e-6f			//nominalna wartość natężenia pola magnetycznego w Teslach dla Polski ok. 46[uT]
-#define INKLINACJA_MAG		(68.f * DEG2RAD)	//inklinacja magnetyczna w radianach: https://www.magnetic-declination.com/
-#define DEKLINACJA_MAG		(6.5f * DEG2RAD)	//deklinacja magnetyczna w radianach: https://www.magnetic-declination.com/
-#define PROMIEN_ZIEMI		6371008.77f			//promień Zimi w metrach
+#define AKCEL1G				9.80665f			//przelicznik z [g] na [m/s^2]
+#define NOMINALNE_MAGN		50.0e-6f			//nominalna wartość natężenia pola magnetycznego w Teslach dla Polski centralnej. Źródło: https://www.magnetic-declination.com/ oraz https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/F.jpg
+#define INKLINACJA_MAG		(68.f * DEG2RAD)	//inklinacja magnetyczna w radianach. Źródło: https://www.magnetic-declination.com/ lub https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/I.jpg
+#define DEKLINACJA_MAG		(6.5f * DEG2RAD)	//deklinacja magnetyczna w radianach. Źródło: https://www.magnetic-declination.com/ lub https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/D.jpg
+#define PROMIEN_ZIEMI		6371008.77f			//promień Ziemi w metrach
 
 //definicje temperatur kalibracji żyroskopów
 #define TEMP_KAL_ZIMNO		(10.f + KELVIN)
@@ -38,14 +38,13 @@
 #define OBR_KAL_WZM			3	//liczba obrótów podczas kalibrcji wzmocnienia żyroskopów
 
 //indeksy pola temperatura w uni wymiany CM4
-//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+//temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
 #define TEMP_BARO1	0
 #define TEMP_BARO2	1
 #define TEMP_IMU1	2
 #define TEMP_IMU2	3
-#define TEMP_MAG1	4
-#define TEMP_CISR1	5	//czujnik ciśnienia różnicowego
-#define TEMP_CISR2	6	//czujnik ciśnienia różnicowego
+#define TEMP_CISR1	4	//czujnik ciśnienia różnicowego
+#define TEMP_CISR2	5	//czujnik ciśnienia różnicowego
 
 #define CZAS_KALIBRACJI		1000	//obiegów pętli głównej po 5ms
 

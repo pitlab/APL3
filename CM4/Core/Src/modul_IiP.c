@@ -665,7 +665,7 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 		}
 	}
 	else
-		chErr = ERR_DONE;		//jeżeli zebrano tyle co trzeba to przestań sumować i zwróć kod zakończenia
+		chErr = ERR_GOTOWE;		//jeżeli zebrano tyle co trzeba to przestań sumować i zwróć kod zakończenia
 
 	//za drugim przebiegiem gdy są już uśrednione oba ciśnienia można policzyć finalne współczynniki skalowania kalibracji
 	if ((sLicznik == CZAS_KALIBRACJI - 1) && chPrzebieg)

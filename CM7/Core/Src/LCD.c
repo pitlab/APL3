@@ -232,7 +232,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAL_BARO:	//kalibracja ciśnienia według wzorca
-		if (KalibrujBaro(&chSekwencerKalibracji) == ERR_DONE)
+		if (KalibrujBaro(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_MENU;
@@ -249,7 +249,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_TESTY:
-		if (TestDotyku() == ERR_DONE)
+		if (TestDotyku() == ERR_GOTOWE)
 			chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
@@ -535,7 +535,7 @@ void RysujEkran(void)
 
 	case TP_KAL_WZM_ZYROR:
 		chSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_R;
-		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == ERR_DONE)
+		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_IMU_WROC;
@@ -544,7 +544,7 @@ void RysujEkran(void)
 
 	case TP_KAL_WZM_ZYROQ:
 		chSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_Q;
-		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == ERR_DONE)
+		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_IMU_WROC;
@@ -553,7 +553,7 @@ void RysujEkran(void)
 
 	case TP_KAL_WZM_ZYROP:
 		chSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_P;
-		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == ERR_DONE)
+		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_IMU_WROC;
@@ -573,7 +573,7 @@ void RysujEkran(void)
 
 	case TP_MAG_KAL1:
 		chSekwencerKalibracji |= MAG1 + KALIBRUJ;
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_MAG_WROC;
@@ -582,7 +582,7 @@ void RysujEkran(void)
 
 	case TP_MAG_KAL2:
 		chSekwencerKalibracji |= MAG2 + KALIBRUJ;
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_MAG_WROC;
@@ -591,7 +591,7 @@ void RysujEkran(void)
 
 	case TP_MAG_KAL3:
 		chSekwencerKalibracji |= MAG3 + KALIBRUJ;
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_MAG_WROC;
@@ -609,7 +609,7 @@ void RysujEkran(void)
 
 	case TP_SPR_MAG1:
 		chSekwencerKalibracji |= MAG1;	//sprawdzenie, bez kalibracji
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_MAG_WROC;
@@ -618,7 +618,7 @@ void RysujEkran(void)
 
 	case TP_SPR_MAG2:
 		chSekwencerKalibracji |= MAG2;	//sprawdzenie, bez kalibracji
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_MAG_WROC;
@@ -627,7 +627,7 @@ void RysujEkran(void)
 
 	case TP_SPR_MAG3:
 		chSekwencerKalibracji |= MAG3;	//sprawdzenie, bez kalibracji
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_DONE)
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_MAG_WROC;
@@ -635,7 +635,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAL_DOTYK:
-		if (KalibrujDotyk() == ERR_DONE)
+		if (KalibrujDotyk() == ERR_GOTOWE)
 			chTrybPracy = TP_TESTY;
 		break;
 
@@ -1469,9 +1469,6 @@ void PomiaryIMU(void)
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[2]*1e6);
 	print(chNapis, 10+32*FONT_SL, 110);
-	//if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(YELLOW); 	else	setColor(GRAY50);
-	//sprintf(chNapis, "%.1f%cC ", uDaneCM4.dane.fTemper[TEMP_MAG1], ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	//print(chNapis, 10+49*FONT_SL, 110);
 
 	//MMC34160
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
@@ -1615,7 +1612,7 @@ void PomiaryCisnieniowe(void)
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[0]);
 	print(chNapis, 10+26*FONT_SL, 30);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(YELLOW); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
 	print(chNapis, 10+40*FONT_SL, 30);
 
 	//BMP581
@@ -1626,7 +1623,7 @@ void PomiaryCisnieniowe(void)
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[1]);
 	print(chNapis, 10+26*FONT_SL, 50);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(YELLOW); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
 	print(chNapis, 10+40*FONT_SL, 50);
 
 	//ND130
@@ -1637,7 +1634,7 @@ void PomiaryCisnieniowe(void)
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[0]);
 	print(chNapis, 10+26*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(YELLOW); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
 	print(chNapis, 10+40*FONT_SL, 70);
 
 	//MS4525
@@ -1648,7 +1645,7 @@ void PomiaryCisnieniowe(void)
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[1]);
 	print(chNapis, 10+26*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(YELLOW); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2] - KELVIN , ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2] - KELVIN , ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
 	print(chNapis, 10+40*FONT_SL, 90);
 
 
@@ -1782,8 +1779,6 @@ void WyswietlParametryKartySD(void)
 
 	if (BSP_SD_IsDetected())
 	{
-
-
 		BSP_SD_GetCardInfo(&CardInfo);
 		HAL_SD_GetCardCID(&hsd1, &pCID);
 		HAL_SD_GetCardCSD(&hsd1, &pCSD);
@@ -2274,7 +2269,7 @@ uint32_t RysujKostkeObrotu(float *fKat)
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran dla kalibracji wzmocnienia żyroskopów
 // Parametry: *chSekwencer	- zmiennaWskazująca na kalibracje konktretnej osi
-// Zwraca: ERR_DONE / ERR_OK - informację o tym czy wyjść z trybu kalibracji czy nie
+// Zwraca: ERR_GOTOWE / ERR_OK - informację o tym czy wyjść z trybu kalibracji czy nie
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 {
@@ -2435,7 +2430,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 
 	default:	//wyjście lub przejscie do kalibracji kolejnej osi
 		sprintf(chNapis, "Wyjdz ");
-		chErr = ERR_DONE;	//zakończ kalibrację
+		chErr = ERR_GOTOWE;	//zakończ kalibrację
 		break;
 	}
 
@@ -2458,7 +2453,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 			//fillRect(stPrzycisk.sX1, stPrzycisk.sY1 ,stPrzycisk.sX2, stPrzycisk.sY2);	//rysuj przycisk
 		}
 		else
-			chErr = ERR_DONE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
+			chErr = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
 
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 	}
@@ -2579,7 +2574,7 @@ void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc)
 // Wykres jest skalowany do maksimum wartosci bezwzględnej obu zmiennych
 // Parametry: *chEtap	- wskaźnik na zmienną wskazującą na kalibracje konktretnej osi w konkretnym magnetometrze. Starszy półbajt koduje numer magnetometru, najmłodsze 2 bity oś obracaną a bit 4 procedurę kalibracji
 // uDaneCM4.dane.fRozne[6] - minima i maksima magnetometrów zbierana przez CM4
-// Zwraca: ERR_DONE / ERR_OK - informację o tym czy wyjść z trybu kalibracji czy nie
+// Zwraca: ERR_GOTOWE / ERR_OK - informację o tym czy wyjść z trybu kalibracji czy nie
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 {
@@ -2937,7 +2932,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			chStanPrzycisku = 1;
 		else
 		{
-			chErr = ERR_DONE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
+			chErr = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
 			uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
 		}
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
@@ -2955,14 +2950,19 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	}
 
 	chCzujnik = ((*chEtap & MASKA_CZUJNIKA) >> 4) - 1;	//oblicz indeks czujnika
-	if ((*chEtap & MASKA_OSI) == 3)	//czy obsłużone już wszystkie 3 osie?
-		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_KONF_MAGN1 + chCzujnik;	//zapisz konfigurację bieżącego magnetometru
+	if ((*chEtap & MASKA_OSI) == 3)	//czy obsłużone już wszystkie 3 osie i jesteśmy w trybie kalibracji?
+	{
+		if (*chEtap & KALIBRUJ)
+			uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_KONF_MAGN1 + chCzujnik;	//zapisz konfigurację bieżącego magnetometru
+		else
+			chErr = ERR_GOTOWE;		//koniec wertyfikacji
+	}
 
 	//wyjdź dopiero gdy dostanie potwierdzenie zapisu
 	if (((*chEtap & MASKA_OSI) == 3) && (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_ZAPISZ_KONF_MAGN1 + chCzujnik))
 	{
 		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
-		chErr = ERR_DONE;		//koniec kalibracji
+		chErr = ERR_GOTOWE;		//koniec kalibracji
 		DodajProbkeDoMalejKolejki(PRGA_GOTOWE, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat kończący: Gotowe
 	}
 
@@ -3090,13 +3090,13 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 
 	case 2:
 		uDaneCM7.dane.chWykonajPolecenie = POL_USREDNIJ_CISN1;	//trwa uśrednianie ciśnienia 1
-		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_DONE)
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_GOTOWE)
 			(*chEtap)++;
 		break;
 
 	case 4:
 		uDaneCM7.dane.chWykonajPolecenie = POL_USREDNIJ_CISN2;	//trwa uśrednianie ciśnienia 2
-		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_DONE)
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_GOTOWE)
 			(*chEtap)++;
 		break;
 
@@ -3111,7 +3111,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		sprintf(chNapis, "dP2 = %.2f Pa", fabs(uDaneCM4.dane.fRozne[1] - uDaneCM4.dane.fRozne[3]));	//Rożnica ciśnień czujnika 2
 		print(chNapis, 10 + stPrzycisk.sX2, 260);
 		if (chStanPrzycisku == 1)
-			chErr = ERR_DONE;	//zakończ
+			chErr = ERR_GOTOWE;	//zakończ
 		break;
 	}
 
@@ -3126,7 +3126,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		}
 		else
 		{
-			chErr = ERR_DONE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
+			chErr = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
 			uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//neutralne polecenie
 		}
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;

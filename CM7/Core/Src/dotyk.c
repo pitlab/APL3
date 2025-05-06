@@ -236,7 +236,7 @@ uint8_t KalibrujDotyk(void)
 					statusDotyku.chFlagi |= DOTYK_ZAPISANO;
 				chEtapKalibr = 0;
 				LCD_clear(BLACK);
-				return ERR_DONE;	//kod wyjścia z procedury kalibracji
+				return ERR_GOTOWE;	//kod wyjścia z procedury kalibracji
 			}
 			statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 		}
@@ -491,7 +491,7 @@ uint8_t TestDotyku(void)
 		{
 			LCD_clear(BLACK);
 			chLicznikDotkniec = 0;
-			return ERR_DONE;
+			return ERR_GOTOWE;
 		}
 	}
 	return ERR_OK;
