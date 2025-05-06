@@ -58,15 +58,14 @@ uint8_t InicjujMagnetometrHMC(void)
               	  	  	(0 << 2);   //Bits 2-7 must be cleared for correct operation.
     chErr = HAL_I2C_Master_Transmit(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 4, MAG_TIMEOUT);		//zapisz 3 rejestry jedną transmisją
 
+    if (!chErr)
+        uDaneCM4.dane.nZainicjowano |= INIT_HMC5883;
+
     for (uint16_t n=0; n<3; n++)
     {
     	chErr |= CzytajFramZWalidacja(FAH_MAGN3_PRZESX + 4*n, &fPrzesMagn3[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
     	chErr |= CzytajFramZWalidacja(FAH_MAGN3_SKALOX + 4*n, &fSkaloMagn3[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
     }
-
-    if (!chErr)
-    uDaneCM4.dane.nZainicjowano |= INIT_HMC5883;
-
     return chErr;
 }
 

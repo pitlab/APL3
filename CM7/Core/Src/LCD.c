@@ -2850,19 +2850,21 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			else
 			if (uDaneCM4.dane.fRozne[2] < fMin[1])	//minimum Y
 			{
+				fMin[1] = uDaneCM4.dane.fRozne[2];
 				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
 			else
 			if (uDaneCM4.dane.fRozne[3] > fMax[1])	//maksimum Y
 			{
+				fMax[1] = uDaneCM4.dane.fRozne[3];
 				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
 			fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi
 		}
 		else
-			fAbsMax = MIN_MAG_WYKR +1;	//podczas weryfikacji rysuj od razu
+			fAbsMax = NOMINALNE_MAGN;
 
 		//rysuj wykres biegunowy X-Y
 		if (fAbsMax > MIN_MAG_WYKR)
@@ -2985,8 +2987,8 @@ float MaximumGlobalne(float* fMin, float* fMax)
 	{
 		if (fMaxGlob < *(fMax + n))
 			fMaxGlob = *(fMax + n);
-		if (fMaxGlob < abs(*(fMin + n)))
-			fMaxGlob = abs(*(fMin + n));
+		if (fMaxGlob < fabsf(*(fMin + n)))
+			fMaxGlob = fabsf(*(fMin + n));
 	}
 	return fMaxGlob;
 }

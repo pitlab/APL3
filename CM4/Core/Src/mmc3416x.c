@@ -71,13 +71,14 @@ uint8_t InicjujMMC3416x(void)
 								  (0 << 7);		//SW_RST Writing “1”will cause the part to reset, similar to power-up. It will clear all registers and also re-read OTP as part of its startup routine.
 				chErr = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 2, TOUT_I2C4_2B);	//wyślij polecenie wykonania pomiaru
 
+				if (!chErr)
+					uDaneCM4.dane.nZainicjowano |= INIT_MMC34160;
+
 				for (uint16_t n=0; n<3; n++)
 				{
 					chErr |= CzytajFramZWalidacja(FAH_MAGN2_PRZESX + 4*n, &fPrzesMagn2[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
 					chErr |= CzytajFramZWalidacja(FAH_MAGN2_SKALOX + 4*n, &fSkaloMagn2[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
 				}
-				if (!chErr)
-					uDaneCM4.dane.nZainicjowano |= INIT_MMC34160;
 			}
 			else
 				chErr = ERR_BRAK_MMC34160;

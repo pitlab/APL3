@@ -483,7 +483,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 	{
 		for (uint8_t n=0; n<3; n++)
 		{
-			sZeZnakiem = ((int16_t)chDaneMagIIS[2*n+1] * 0x100 + chDaneMagIIS[2*n]) * chZnakIIS[n];	//filtruj surowy pomiar bo jest mocno zaszumiony
+			sZeZnakiem = ((int16_t)chDaneMagIIS[2*n+1] * 0x100 + chDaneMagIIS[2*n]) * chZnakIIS[n];
 			if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN1) || (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
 				uDaneCM4.dane.fMagne1[n] = (float)sZeZnakiem * CZULOSC_IIS2MDC;			//dane surowe podczas kalibracji magnetometru
 			else
