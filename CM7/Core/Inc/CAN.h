@@ -9,6 +9,10 @@
 #define INC_CAN_H_
 #include "sys_def_CM7.h"
 
+
+#define ID_MAGNETOMETR	210
+
+void InicjujCAN(void);
 void TestCanTx(void);
 void TestCanRx(void);
 
