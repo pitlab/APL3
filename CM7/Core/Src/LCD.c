@@ -134,8 +134,8 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_NOR},
 	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_QSPI},
 	{"Trans RAM",	"Pomiar predkosci SRAM i DRAM 16-bit",		TP_POMIAR_SRAM,		obr_RAM},
-	{"CAN Rx",		"Test odbioru transmisji CAN",				TP_CAN1,				obr_Wydajnosc},
-	{"CAN Tx",		"Test wysyłania transmisji CAN",			TP_CAN2,				obr_Wydajnosc},
+	{"nic",			"nic",										TP_CAN1,			obr_Wydajnosc},
+	{"CAN Tx",		"Test wysyłania transmisji CAN",			TP_CAN2,			obr_Wydajnosc},
 	{"SD33",		"nic",										TP_W3,				obr_Wydajnosc},
 	{"SD18",		"nic",										TP_W4,				obr_Wydajnosc},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
@@ -376,8 +376,23 @@ void RysujEkran(void)
 	case TP_W4:		chPorty_exp_wysylane[0] &= ~EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - L=1,8V
 
 
-	case TP_CAN1:	TestCanRx();		break;
-	case TP_CAN2:	TestCanTx();		break;
+	case TP_CAN1:	break;
+	case TP_CAN2:	TestCanTx();
+		setColor(KOLOR_X);
+		sprintf(chNapis, "Mag X = %.3f uH", uDaneCM4.dane.fMagne2[0] * 1e6);
+		print(chNapis, 10, 40);
+		setColor(KOLOR_Y);
+		sprintf(chNapis, "Mag Y = %.3f uH", uDaneCM4.dane.fMagne2[1] * 1e6);
+		print(chNapis, 10, 60);
+		setColor(KOLOR_Z);
+		sprintf(chNapis, "Mag Z = %.3f uH", uDaneCM4.dane.fMagne2[2] * 1e6);
+		print(chNapis, 10, 80);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+		}
+	break;
 
 	//***************************************************
 	case TP_KARTA_SD:			///menu Karta SD

@@ -8,6 +8,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "CAN.h"
 #include "main.h"
+#include "wymiana.h"
 
 //konfiguracja prametrów czasowych według https://kvaser.com/support/calculators/can-fd-bit-timing-calculator/
 //Frequency 50000 [kHz], tolerance 4687 [ppm], node delay 210 [ns]
@@ -20,7 +21,7 @@ FDCAN_TxHeaderTypeDef TxHeader;
 uint8_t chDaneCanWych[12];
 uint8_t chDaneCanPrzych[12];
 
-
+extern volatile unia_wymianyCM4_t uDaneCM4;
 extern uint8_t chPorty_exp_wysylane[];
 
 
@@ -54,34 +55,57 @@ void InicjujCAN(void)
 	TxHeader.MessageMarker = 0;       					//Specifies the message marker to be copied into Tx Event FIFO element for identification of Tx message status. This parameter must be a number between 0 and 0xFF
 }
 
-void TestCanTx(void)
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wysyła dane przez CAN
+// Parametry: nic
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+uint8_t TestCanTx(void)
 {
-	//bufor danych pomiarowych osi X
+	uint8_t chErr;
+	//FDCAN_ProtocolStatusTypeDef ProtocolStatus;
+
+	//dane pomiarowe osi X
 	chDaneCanWych[0] = 1;
-	chDaneCanWych[1] = 0x00;
-	chDaneCanWych[2] = 0x00;
-	chDaneCanWych[3] = 0x12;
-	chDaneCanWych[4] = 0x34;
+	FormatujMag2Can(uDaneCM4.dane.fMagne2[0], &chDaneCanWych[1]);
+	chErr = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
+	//HAL_Delay(1);
 
+	//dane pomiarowe osi Y
+	chDaneCanWych[0] = 2;
+	FormatujMag2Can(uDaneCM4.dane.fMagne2[1], &chDaneCanWych[1]);
+	chErr = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
+	//HAL_Delay(1);
 
-	//HAL_FDCAN_EnableTxBufferRequest(&hfdcan2,  BufferIndex);
-	//HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
-	//HAL_FDCAN_AddMessageToTxBuffer(&hfdcan2, &TxHeader, chDaneCanWych, BufferIndex);
-
-
-	if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych) != HAL_OK)
-	{
-		Error_Handler();
-	}
+	//dane pomiarowe osi Z
+	chDaneCanWych[0] = 3;
+	FormatujMag2Can(uDaneCM4.dane.fMagne2[2], &chDaneCanWych[1]);
+	chErr = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
 
 	HAL_Delay(100);
+	return chErr;
 }
 
 
-void TestCanRx(void)
+
+////////////////////////////////////////////////////////////////////////////////
+// Wartość odczytu magnetometru formatuj na liczbę do przesłania przez CAN
+// Liczbę trzeba pomnozyć przez -750000
+// Parametry: fMag - natężnia pola w uT
+// *chWynik - wskaźnik na tablicę[4] danych do wysyłki przez CAN
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void FormatujMag2Can(float fMag, uint8_t* chWynik)
 {
-	//RxLocation = CAN_RX_FIFO0;
-	HAL_FDCAN_GetRxMessage(&hfdcan2,  RxLocation, &RxHeader, chDaneCanPrzych);
+	int32_t nMagCalkowita;
+
+	nMagCalkowita = fMag * 75000000;
+	*(chWynik+0) = (nMagCalkowita & 0xFF000000) >> 24;
+	*(chWynik+1) = (nMagCalkowita & 0x00FF0000) >> 16;
+	*(chWynik+2) = (nMagCalkowita & 0x0000FF00) >> 8;
+	*(chWynik+3) = (nMagCalkowita & 0x000000FF);
 }
 
 
