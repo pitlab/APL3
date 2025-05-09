@@ -27,7 +27,7 @@
 
 uint8_t InicjujJednostkeInercyjna(void);
 uint8_t JednostkaInercyjna1Trygonometria(uint8_t chGniazdo);
-uint8_t JednostkaInercyjna4Kwaterniony(uint8_t chGniazdo);
+uint8_t JednostkaInercyjna4Kwaterniony(uint8_t chGniazdo, float *fZyro, float *fAkcel, float *fMagn);
 float FiltrAdaptacyjnyAkc(float *fAkcel);
 float FiltrAdaptacyjnyMag(float *fMag);
 void JednostkaInercyjnaMadgwick(void);

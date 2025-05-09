@@ -7,7 +7,7 @@
 
 
 #include "sys_def_CM7.h"
-//definicje kolorów
+//definicje kolorów: https://rgbcolorpicker.com/565
 #define	BLACK   	0x0000
 #define	BLUE    	0x001F
 #define	RED     	0xF800
@@ -15,6 +15,7 @@
 #define CYAN    	0x07FF
 #define MAGENTA 	0xF81F
 #define YELLOW  	0xFFE0
+#define ORANGE		0xFDA0
 #define WHITE 		0xFFFF
 #define LIBELLA1	0xAEAA	//płyn
 #define LIBELLA2	0x95EA	//obwódka bąbelka

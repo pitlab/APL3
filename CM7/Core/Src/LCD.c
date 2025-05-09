@@ -1383,6 +1383,7 @@ void BelkaTytulu(char* chTytul)
 void PomiaryIMU(void)
 {
 	int8_t chTon;
+	float fDlugosc;
 
 	if (chRysujRaz)
 	{
@@ -1503,6 +1504,10 @@ void PomiaryIMU(void)
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[2]*1e6);
 	print(chNapis, 10+32*FONT_SL, 110);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(ORANGE); 	else	setColor(GRAY50);
+	fDlugosc = sqrtf(uDaneCM4.dane.fMagne1[0] * uDaneCM4.dane.fMagne1[0] + uDaneCM4.dane.fMagne1[1] * uDaneCM4.dane.fMagne1[1] + uDaneCM4.dane.fMagne1[2] * uDaneCM4.dane.fMagne1[2]);
+	sprintf(chNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
+	print(chNapis, 10+49*FONT_SL, 110);
 
 	//MMC34160
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
@@ -1514,6 +1519,10 @@ void PomiaryIMU(void)
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[2]*1e6);
 	print(chNapis, 10+32*FONT_SL, 130);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(ORANGE1); 	else	setColor(GRAY50);
+	fDlugosc = sqrtf(uDaneCM4.dane.fMagne2[0] * uDaneCM4.dane.fMagne2[0] + uDaneCM4.dane.fMagne2[1] * uDaneCM4.dane.fMagne2[1] + uDaneCM4.dane.fMagne2[2] * uDaneCM4.dane.fMagne2[2]);
+	sprintf(chNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
+	print(chNapis, 10+49*FONT_SL, 130);
 
 	//HMC5883
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
@@ -1525,6 +1534,10 @@ void PomiaryIMU(void)
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[2]*1e6);
 	print(chNapis, 10+32*FONT_SL, 150);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(ORANGE2); 	else	setColor(GRAY50);
+	fDlugosc = sqrtf(uDaneCM4.dane.fMagne3[0] * uDaneCM4.dane.fMagne3[0] + uDaneCM4.dane.fMagne3[1] * uDaneCM4.dane.fMagne3[1] + uDaneCM4.dane.fMagne3[2] * uDaneCM4.dane.fMagne3[2]);
+	sprintf(chNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
+	print(chNapis, 10+49*FONT_SL, 150);
 
 	//sygnalizacja tonem wartości osi Z magnetometru
 	chTon = LICZBA_TONOW_WARIO/2 - (uDaneCM4.dane.fMagne3[2] / (NOMINALNE_MAGN / (LICZBA_TONOW_WARIO/2)));

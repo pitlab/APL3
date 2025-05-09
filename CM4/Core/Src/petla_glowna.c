@@ -129,7 +129,7 @@ void PetlaGlowna(void)
 		break;
 
 	case 6:	JednostkaInercyjna1Trygonometria(ADR_MOD2);	break;	//dane do IMU1
-	case 7:	JednostkaInercyjna4Kwaterniony(ADR_MOD2);	break;	//dane do IMU2
+	case 7:	JednostkaInercyjna4Kwaterniony(ADR_MOD2, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
 	case 8:		break;
 	case 9:		break;
 	case 10:	break;
