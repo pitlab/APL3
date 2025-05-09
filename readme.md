@@ -32,6 +32,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Rysowanie wykresów biegunowych przy kalibracji magnetometru i sterowanie całym procesem
 - Rysowanie okna kalibracji skalowania czujników ciśnienia
 - Rysowanie okna weryfikacji magnetometrów w obrocie płaskim
+- Uruchomiono komunikację po CAN udostępniając na zewnątrz jeden z magnetometrów
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM

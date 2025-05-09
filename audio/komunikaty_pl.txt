@@ -73,4 +73,3 @@ min.wav
 max.wav
 gotowe.wav
 przycisk.wav
-przycisk1.wav

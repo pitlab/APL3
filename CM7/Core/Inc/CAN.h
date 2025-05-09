@@ -13,7 +13,7 @@
 #define ID_MAGNETOMETR	210
 
 void InicjujCAN(void);
-uint8_t TestCanTx(void);
+uint8_t EmulujMagnetometrWizjerCan(float *fDaneMagn);
 void FormatujMag2Can(float fMag, uint8_t* chWynik);
 
 #endif /* INC_CAN_H_ */

@@ -84,7 +84,7 @@
 #define TP_POMIAR_SRAM		33
 #define TP_POMIAR_FQSPI		34
 #define TP_CAN1				35
-#define TP_CAN2				36
+#define TP_EMU_MAG_CAN		36
 #define TP_W3				37
 #define TP_W4				38
 #define TP_WROC_DO_WYDAJN	39

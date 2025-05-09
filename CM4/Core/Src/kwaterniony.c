@@ -277,21 +277,24 @@ void KwaternionSprzezony(float *q, float *sprzezony)
 ////////////////////////////////////////////////////////////////////////////////
 void KatyKwaterniona(float *qA, float *qM, float *fKaty)
 {
-	float a, b;
+	//float a, b;
 
-	//*(fKaty+0) = atan2f(2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2)));
-	a = 2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3));
-	b = 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2));
-	*(fKaty+0) = atan2f(a, b) / 2;
+	//*(fKaty+0) = atan2f(2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2))); 	//zwraca podwójny kąt z odwrotnym znakiem
+	//a = 2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3));
+	//b = 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2));
+	//*(fKaty+0) = atan2f(a, b) / 2;
+	*(fKaty+0) = atan2f((*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2)));	//zwraca pojedynczy kąt z odwrotnym znakiem
 
-	//*(fKaty+1) = asinf (2 * (*(qA+0) * *(qA+2) - *(qA+1) * *(qA+3)));
-	a = 2 * (*(qA+0) * *(qA+2) - *(qA+1) * *(qA+3));
-	*(fKaty+1) = asinf (a) / 2;
+	//*(fKaty+1) = asinf (2 * (*(qA+0) * *(qA+2) - *(qA+1) * *(qA+3)));		//zwraca podwójny kąt z odwrotnym znakiem
+	//a = 2 * (*(qA+0) * *(qA+2) - *(qA+1) * *(qA+3));
+	//*(fKaty+1) = asinf (a) / 2;
+	*(fKaty+1) = asinf ((*(qA+0) * *(qA+2) - *(qA+1) * *(qA+3)));		//zwraca pojedynczy kąt z odwrotnym znakiem
 
-	//*(fKaty+2) = atan2f(2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));
-	a = 2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2));
-	b = 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3));
-	*(fKaty+2) = atan2f(a, b) / 2;
+	//*(fKaty+2) = atan2f(2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));		//zwraca podwójny kąt z odwrotnym znakiem
+	//a = 2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2));
+	//b = 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3));
+	//*(fKaty+2) = atan2f(a, b) / 2;
+	*(fKaty+2) = atan2f((*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));		//zwraca pojedynczy kąt z odwrotnym znakiem
 }
 
 
@@ -307,22 +310,25 @@ void KatyKwaterniona(float *qA, float *qM, float *fKaty)
 ////////////////////////////////////////////////////////////////////////////////
 void KatyKwaterniona2(float *qA, float *qM, float *fKaty)
 {
-	float a, b;
+	float a;//, b;
 
-	//*(fKaty+0) = atan2f(2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2)));
-	a = 2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3));
-	b = 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2));
-	*(fKaty+0) = atan2f(a, b) / 2;
+	//*(fKaty+0) = atan2f(2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2)));	//zwraca podwójny kąt z odwrotnym znakiem
+	//a = 2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3));
+	//b = 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2));
+	//*(fKaty+0) = atan2f(a, b) / 2;
+	*(fKaty+0) = atan2f((*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2)));		//zwraca pojedynczy kąt z odwrotnym znakiem
 
 	//wersja na atan2 niewymagająca normalizacji
 	a = 2 * (*(qA+0) * *(qA+2) - *(qA+1) * *(qA+3));
 	//*(fKaty+1) = 2 * atan2f(sqrtf(1+a), sqrtf(1-a)) - M_PI/2;
-	*(fKaty+1) = (2 * atan2f(sqrtf(1+a), sqrtf(1-a)) - M_PI/2) / 2;
+	//*(fKaty+1) = (2 * atan2f(sqrtf(1+a), sqrtf(1-a)) - M_PI/2) / 2;
+	*(fKaty+1) = atan2f(sqrtf(1+a), sqrtf(1-a)) - M_PI/4;		//zwraca pojedynczy kąt z odwrotnym znakiem
 
-	//*(fKaty+2) = atan2f(2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));
-	a = 2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2));
-	b = 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3));
-	*(fKaty+2) = atan2f(a, b) / 2;
+	//*(fKaty+2) = atan2f(2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));		//zwraca podwójny kąt z odwrotnym znakiem
+	//a = 2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2));
+	//b = 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3));
+	//*(fKaty+2) = atan2f(a, b) / 2;
+	*(fKaty+2) = atan2f((*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));	//zwraca pojedynczy kąt z odwrotnym znakiem
 }
 
 

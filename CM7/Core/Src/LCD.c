@@ -134,8 +134,8 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_NOR},
 	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_QSPI},
 	{"Trans RAM",	"Pomiar predkosci SRAM i DRAM 16-bit",		TP_POMIAR_SRAM,		obr_RAM},
+	{"EmuMagCAN",	"Emulator magnetometru na magistrali CAN",	TP_EMU_MAG_CAN,		obr_kal_mag_n1},
 	{"nic",			"nic",										TP_CAN1,			obr_Wydajnosc},
-	{"CAN Tx",		"Test wysyłania transmisji CAN",			TP_CAN2,			obr_Wydajnosc},
 	{"SD33",		"nic",										TP_W3,				obr_Wydajnosc},
 	{"SD18",		"nic",										TP_W4,				obr_Wydajnosc},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
@@ -377,20 +377,34 @@ void RysujEkran(void)
 
 
 	case TP_CAN1:	break;
-	case TP_CAN2:	TestCanTx();
+	case TP_EMU_MAG_CAN:
+		uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN2;	//włącz tryb jak dla kalibracji aby nie uwzględniać w wyniku danych kalibracyjnych
+		EmulujMagnetometrWizjerCan((float*)uDaneCM4.dane.fMagne2);
+		setFont(BigFont);
 		setColor(KOLOR_X);
-		sprintf(chNapis, "Mag X = %.3f uH", uDaneCM4.dane.fMagne2[0] * 1e6);
+		sprintf(chNapis, "Mag X: %.3f uT ", uDaneCM4.dane.fMagne2[0] * 1e6);
 		print(chNapis, 10, 40);
 		setColor(KOLOR_Y);
-		sprintf(chNapis, "Mag Y = %.3f uH", uDaneCM4.dane.fMagne2[1] * 1e6);
-		print(chNapis, 10, 60);
+		sprintf(chNapis, "Mag Y: %.3f uT ", uDaneCM4.dane.fMagne2[1] * 1e6);
+		print(chNapis, 10, 70);
 		setColor(KOLOR_Z);
-		sprintf(chNapis, "Mag Z = %.3f uH", uDaneCM4.dane.fMagne2[2] * 1e6);
-		print(chNapis, 10, 80);
+		sprintf(chNapis, "Mag Z: %.3f uT ", uDaneCM4.dane.fMagne2[2] * 1e6);
+		print(chNapis, 10, 100);
+
+		if (chRysujRaz)
+		{
+			BelkaTytulu("Emulacja magnetometru CAN");
+			chRysujRaz = 0;
+			setColor(GRAY50);
+			sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
+			print(chNapis, CENTER, 300);
+		}
+
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+			uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//zakończ tryb kalibracyjny
 		}
 	break;
 

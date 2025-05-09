@@ -58,33 +58,31 @@ void InicjujCAN(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wysyła dane przez CAN
-// Parametry: nic
-// Zwraca: nic
+// Wysyła dane magnetometru przez CAN
+// Parametry: *fDaneMagn - wskaźnik na tablicę pomiarów 3 osi magnetometru
+// Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t TestCanTx(void)
+uint8_t EmulujMagnetometrWizjerCan(float *fDaneMagn)
 {
 	uint8_t chErr;
-	//FDCAN_ProtocolStatusTypeDef ProtocolStatus;
 
 	//dane pomiarowe osi X
 	chDaneCanWych[0] = 1;
-	FormatujMag2Can(uDaneCM4.dane.fMagne2[0], &chDaneCanWych[1]);
+	//FormatujMag2Can(uDaneCM4.dane.fMagne2[0], &chDaneCanWych[1]);
+	FormatujMag2Can(*(fDaneMagn+0), &chDaneCanWych[1]);
 	chErr = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
-	//HAL_Delay(1);
 
 	//dane pomiarowe osi Y
 	chDaneCanWych[0] = 2;
-	FormatujMag2Can(uDaneCM4.dane.fMagne2[1], &chDaneCanWych[1]);
+	//FormatujMag2Can(uDaneCM4.dane.fMagne2[1], &chDaneCanWych[1]);
+	FormatujMag2Can(*(fDaneMagn+1), &chDaneCanWych[1]);
 	chErr = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
-	//HAL_Delay(1);
 
 	//dane pomiarowe osi Z
 	chDaneCanWych[0] = 3;
-	FormatujMag2Can(uDaneCM4.dane.fMagne2[2], &chDaneCanWych[1]);
+	//FormatujMag2Can(uDaneCM4.dane.fMagne2[2], &chDaneCanWych[1]);
+	FormatujMag2Can(*(fDaneMagn+2), &chDaneCanWych[1]);
 	chErr = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
-
-	HAL_Delay(100);
 	return chErr;
 }
 

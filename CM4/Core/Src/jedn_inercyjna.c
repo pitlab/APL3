@@ -70,6 +70,9 @@ uint8_t InicjujJednostkeInercyjna(void)
 // Wykonuje obliczenia jednostki inercyjnej metodą filtra komplementarnego łaczącego całkę z prędkosci kątowych i kąty obliczone na podstawie równań trygonometrycznych z akcelerometrów
 // Parametry: chGniazdo - numer gniazda w którym jest moduł IMU
 // Zwraca: kod błędu
+//  - uDaneCM4.dane.fKatZyro1 - kąty uzyskane przez całkowanie żyroskopów
+//  - uDaneCM4.dane.fKatAkcel1 - kąty uzyskane z trygonometrii wektora akcelerometru [0,1] i magnetometru [2]
+//  - uDaneCM4.dane.fKatIMU1 - kąty uzyskane z filtracji komplementarnej obu powyższych
 // Czas trwania: 24us @200Hz
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t JednostkaInercyjna1Trygonometria(uint8_t chGniazdo)
@@ -210,8 +213,8 @@ uint8_t JednostkaInercyjna4Kwaterniony(uint8_t chGniazdo)
 
 
 	//Oblicz katy Eulera: Phi, Theta, Psi - https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-	//KatyKwaterniona(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);	//wersja z asinf
-	KatyKwaterniona2(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);		//wersja z atan2
+	KatyKwaterniona(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);	//wersja z asinf szybsza
+	//KatyKwaterniona2(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);		//wersja z atan2 wolniejsza
 	return ERR_OK;
 }
 
