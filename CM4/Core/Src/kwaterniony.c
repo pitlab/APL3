@@ -283,18 +283,21 @@ void KatyKwaterniona(float *qA, float *qM, float *fKaty)
 	//a = 2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3));
 	//b = 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2));
 	//*(fKaty+0) = atan2f(a, b) / 2;
-	*(fKaty+0) = atan2f((*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2)));	//zwraca pojedynczy kąt z odwrotnym znakiem
+	//*(fKaty+0) = atan2f((*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2)));	//zwraca pojedynczy kąt z odwrotnym znakiem
+	*(fKaty+0) = -atan2f((*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2)));	//zwraca pojedynczy kąt z właściwym znakiem
 
 	//*(fKaty+1) = asinf (2 * (*(qA+0) * *(qA+2) - *(qA+1) * *(qA+3)));		//zwraca podwójny kąt z odwrotnym znakiem
 	//a = 2 * (*(qA+0) * *(qA+2) - *(qA+1) * *(qA+3));
 	//*(fKaty+1) = asinf (a) / 2;
-	*(fKaty+1) = asinf ((*(qA+0) * *(qA+2) - *(qA+1) * *(qA+3)));		//zwraca pojedynczy kąt z odwrotnym znakiem
+	//*(fKaty+1) = asinf ((*(qA+0) * *(qA+2) - *(qA+1) * *(qA+3)));		//zwraca pojedynczy kąt z odwrotnym znakiem
+	*(fKaty+1) = -asinf ((*(qA+0) * *(qA+2) - *(qA+1) * *(qA+3)));		//zwraca pojedynczy kąt z właściwym znakiem
 
 	//*(fKaty+2) = atan2f(2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));		//zwraca podwójny kąt z odwrotnym znakiem
 	//a = 2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2));
 	//b = 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3));
 	//*(fKaty+2) = atan2f(a, b) / 2;
-	*(fKaty+2) = atan2f((*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));		//zwraca pojedynczy kąt z odwrotnym znakiem
+	//*(fKaty+2) = atan2f((*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));		//zwraca pojedynczy kąt z odwrotnym znakiem
+	*(fKaty+2) = -atan2f((*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));		//zwraca pojedynczy kąt z właściwym znakiem
 }
 
 
@@ -330,6 +333,19 @@ void KatyKwaterniona2(float *qA, float *qM, float *fKaty)
 	//*(fKaty+2) = atan2f(a, b) / 2;
 	*(fKaty+2) = atan2f((*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));	//zwraca pojedynczy kąt z odwrotnym znakiem
 }
+
+
+
+//yaw = atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
+//pitch = asin(2 * (w * y - z * x))
+//roll = atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y))
+void KatyKwaterniona3(float *qA, float *qM, float *fKaty)
+{
+	*(fKaty+0) = atan2f(2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2)));
+	*(fKaty+1) = asinf (2 * (*(qA+0) * *(qA+2) - *(qA+3) * *(qA+1)));
+	*(fKaty+2) = atan2f(2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

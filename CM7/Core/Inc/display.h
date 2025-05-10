@@ -15,7 +15,8 @@
 #define CYAN    	0x07FF
 #define MAGENTA 	0xF81F
 #define YELLOW  	0xFFE0
-#define ORANGE		0xFDA0
+//#define ORANGE		0xFDA0
+#define POMARANCZ	0xFDA0
 #define WHITE 		0xFFFF
 #define LIBELLA1	0xAEAA	//płyn
 #define LIBELLA2	0x95EA	//obwódka bąbelka

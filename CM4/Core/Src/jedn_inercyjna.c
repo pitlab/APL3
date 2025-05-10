@@ -45,7 +45,7 @@ extern float fOffsetZyro1[3], fOffsetZyro2[3];
 
 static float fQAcc[4] = {0.0f, 0.0f, 0.0f, 1.0f};	//kwaternion znormalizowanego wektora przyspieszenia
 static float fQMag[4] = {0.0f, 0.0f, 1.0f, 0.0f};	//kwaternion wektora magnetycznego
-
+static float fQMagKompens[4];		//kwaternion magnetometru skompensowanego o pochylenie i przechylenie
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -75,7 +75,7 @@ uint8_t InicjujJednostkeInercyjna(void)
 //  - uDaneCM4.dane.fKatIMU1 - kąty uzyskane z filtracji komplementarnej obu powyższych
 // Czas trwania: 24us @200Hz
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t JednostkaInercyjna1Trygonometria(uint8_t chGniazdo)
+uint8_t JednostkaInercyjnaTrygonometria(uint8_t chGniazdo)
 {
 	//licz całkę z prędkosci kątowych żyroskopów
 	for (uint16_t n=0; n<3; n++)
@@ -98,25 +98,14 @@ uint8_t JednostkaInercyjna1Trygonometria(uint8_t chGniazdo)
 		}
 	}
 
-
-	//kąt przechylenia z akcelerometru: tan(Z/Y) = atan2(Y, Z)
-	//uDaneCM4.dane.fKatAkcel1[0] = atan2f(uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);	// zły znak
-
 	//kąt przechylenia z akcelerometru: tan(-Y/Z) = atan2(Z, Y)
 	uDaneCM4.dane.fKatAkcel1[0] = atan2f(-uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);	//OK, dobry znak
 
-	//uDaneCM4.dane.fKatAkcel1[0] = atan2f(uDaneCM4.dane.fAkcel2[1], uDaneCM4.dane.fAkcel2[2]);
-
 	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(X, Z)
 	uDaneCM4.dane.fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[2]);	//OK
-	//uDaneCM4.dane.fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel2[0], uDaneCM4.dane.fAkcel2[2]);
 
 	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(Y/X) dla X=N, Y=E => atan2(X, Y)
-	uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fMagne3[1], uDaneCM4.dane.fMagne3[0]);
-
-	//kąt odchylenia z akcelerometru: tan(Y/X) = atan2(X, Y)
-	//uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[1]);
-	//uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fAkcel2[0], uDaneCM4.dane.fAkcel2[1]);
+	uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fMagne1[1], uDaneCM4.dane.fMagne1[0]);
 
 	//filtr komplementarny IMU
 	for (uint16_t n=0; n<3; n++)
@@ -125,15 +114,16 @@ uint8_t JednostkaInercyjna1Trygonometria(uint8_t chGniazdo)
 		uDaneCM4.dane.fKatIMU1[n] = 0.05 * uDaneCM4.dane.fKatAkcel1[n] + 0.95 * uDaneCM4.dane.fKatIMU1[n];
 	}
 
-
+	/*/w celu porównania metody policz katy z tych samych danych metodą kwaternionową
 	float fQA[4];	//kwaternion wektora przyspieszenia
 	float fQM[4];
 	//float fAccNorm[3];
 
-	WektorNaKwaternion((float*)uDaneCM4.dane.fAkcel2, fQA);
-	WektorNaKwaternion((float*)uDaneCM4.dane.fMagne3, fQM);
+	WektorNaKwaternion((float*)uDaneCM4.dane.fAkcel1, fQA);
+	WektorNaKwaternion((float*)uDaneCM4.dane.fMagne1, fQM);
 	Normalizuj(fQA, fQA, 4);
-	KatyKwaterniona(fQA, fQM, (float*)uDaneCM4.dane.fKatAkcel2);
+	Normalizuj(fQM, fQM, 4);
+	KatyKwaterniona(fQA, fQM, (float*)uDaneCM4.dane.fKatAkcel2); */
 	return ERR_OK;
 }
 
@@ -146,7 +136,7 @@ uint8_t JednostkaInercyjna1Trygonometria(uint8_t chGniazdo)
 // Zwraca: kod błędu
 // Czas trwania: 39us @200Hz
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t JednostkaInercyjna4Kwaterniony(uint8_t chGniazdo, float *fZyro, float *fAkcel, float *fMagn)
+uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo, float *fZyro, float *fAkcel, float *fMagn)
 {
 	float fdPhi2, fdTheta2, fdPsi2;	//połowy przyrostu kąta obrotu
 	float fQx[4], fQy[4], fQz[4];	//kwaterniony obortów wokół osi XYZ
@@ -154,6 +144,8 @@ uint8_t JednostkaInercyjna4Kwaterniony(uint8_t chGniazdo, float *fZyro, float *f
 	float fQs[4], fQ[4];
 	float fWspFiltraAkc, fWspFiltraMag;
 	float fAccNorm[3], fMagNorm[3];
+	float fQPoch[4], fQprze[4], fQkompens[4];	//kwaterniony obrotu o pochylenie i przechylenie oraz łączny obrót kompensacji magnetometru
+
 
 	//Wyznaczam kwaterniony obrotów w formie algebraicznej korzystając z danych wejściowych wprowadzonych do formy trygonometrycznej
 	//fQz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
@@ -185,8 +177,8 @@ uint8_t JednostkaInercyjna4Kwaterniony(uint8_t chGniazdo, float *fZyro, float *f
 	fQx[3] = 0;
 
 	//składanie 3 obrotów w jeden
-	MnozenieKwaternionow(fQy, fQz, fQzy);	//obrót najpierw wokół Z * Y
-	MnozenieKwaternionow(fQx, fQzy, fQzyx);	//potem obrót ZY * X
+	MnozenieKwaternionow(fQy, fQz, fQzy);	//obrót najpierw wokół Z * Y = ZY
+	MnozenieKwaternionow(fQx, fQzy, fQzyx);	//potem obrót ZY * X = ZYX
 	KwaternionSprzezony(fQzyx, fQs);		//kwaternion sprzężony z kwaternionem obrotu o wszystkie osie
 
 	//obroty wektorów przyspieszenia i magnetycznego
@@ -213,10 +205,47 @@ uint8_t JednostkaInercyjna4Kwaterniony(uint8_t chGniazdo, float *fZyro, float *f
 
 	//Normalizuj(fQAcc, fQAcc, 4);	//normalizuj kwaternion przyspieszenia po przejściu filtra komplementarnego
 
+	//Żeby policzyć kat odchylenia z wektora magnetometru najpierw skompensuj pochylenie i przechylenie obracając kopię wektora mag. o ujemne pochylenie i przechylenie
+	fQprze[0] = cosf(uDaneCM4.dane.fKatIMU2[0]);
+	fQprze[1] = sinf(uDaneCM4.dane.fKatIMU2[0]);
+	fQprze[2] = 0;
+	fQprze[3] = 0;
+
+	fQPoch[0] = cosf(-uDaneCM4.dane.fKatIMU2[1] / 2);
+	fQPoch[1] = 0;
+	fQPoch[2] = sinf(-uDaneCM4.dane.fKatIMU2[1] / 2);
+	fQPoch[3] = 0;
+
+	//MnozenieKwaternionow(fQPoch, fQprze, fQkompens);	//sumuj oba kwaterniony obrotu w jeden kompensacyjny
+	//KwaternionSprzezony(fQkompens, fQs);				//kwaternion sprzężony
+	KwaternionSprzezony(fQPoch, fQs);				//kwaternion sprzężony
+
+	//MnozenieKwaternionow(fQkompens, fQMag, fQ);		//obróć kwaternion pola magnetycznego o ujemne pochylenie i przechylenie
+	MnozenieKwaternionow(fQPoch, fQMag, fQ);		//obróć kwaternion pola magnetycznego o przechylenie
+	MnozenieKwaternionow(fQ, fQs, fQMagKompens);
+
+	//wersja z odwróconą kolejnością pierwszego mnożenia: niczego nie obraca
+	//MnozenieKwaternionow(fQMag, fQPoch, fQ);		//obróć kwaternion pola magnetycznego o pochylenie
+	//MnozenieKwaternionow(fQ, fQs, fQMagKompens);
+
+	//wersja z odwróconą kolejnością obu mnożeń: obraca jak dla ujemnego kąta
+	//MnozenieKwaternionow(fQMag, fQPoch, fQ);		//obróć kwaternion pola magnetycznego o pochylenie
+	//MnozenieKwaternionow(fQs, fQ, fQMagKompens);
+
+
 
 	//Oblicz katy Eulera: Phi, Theta, Psi - https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-	KatyKwaterniona(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);	//wersja z asinf szybsza
+	KatyKwaterniona(fQAcc, fQMagKompens, (float*)uDaneCM4.dane.fKatIMU2);	//wersja z asinf szybsza
 	//KatyKwaterniona2(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);		//wersja z atan2 wolniejsza
+	KatyKwaterniona3(fQAcc, fQMagKompens, (float*)uDaneCM4.dane.fKatAkcel2);	//wersja oryginalna
+
+	//przepisz kwaterniony do zmiennych wymiany
+	for (uint8_t n=0; n<4; n++)
+	{
+		//uDaneCM4.dane.fKwaAkc[n] = fQAcc[n];
+		uDaneCM4.dane.fKwaAkc[n] = fQMagKompens[n];
+		uDaneCM4.dane.fKwaMag[n] = fQMag[n];
+	}
 	return ERR_OK;
 }
 

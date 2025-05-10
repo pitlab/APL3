@@ -1434,9 +1434,11 @@ void PomiaryIMU(void)
 		print(chNapis, 10, 210);
 		sprintf(chNapis, "K%cty Akcel2:", ą);
 		print(chNapis, 10, 230);
-		sprintf(chNapis, "K%cty %cyro 1:", ą, ż);
+		//sprintf(chNapis, "K%cty %cyro 1:", ą, ż);
+		sprintf(chNapis, "Kwaternion Akc:");
 		print(chNapis, 10, 250);
-		sprintf(chNapis, "K%cty %cyro 2:", ą, ż);
+		//sprintf(chNapis, "K%cty %cyro 2:", ą, ż);
+		sprintf(chNapis, "Kwaternion Mag:");
 		print(chNapis, 10, 270);
 
 		setColor(GRAY50);
@@ -1504,7 +1506,7 @@ void PomiaryIMU(void)
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[2]*1e6);
 	print(chNapis, 10+32*FONT_SL, 110);
-	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(ORANGE); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(GRAY50);
 	fDlugosc = sqrtf(uDaneCM4.dane.fMagne1[0] * uDaneCM4.dane.fMagne1[0] + uDaneCM4.dane.fMagne1[1] * uDaneCM4.dane.fMagne1[1] + uDaneCM4.dane.fMagne1[2] * uDaneCM4.dane.fMagne1[2]);
 	sprintf(chNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
 	print(chNapis, 10+49*FONT_SL, 110);
@@ -1519,7 +1521,7 @@ void PomiaryIMU(void)
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[2]*1e6);
 	print(chNapis, 10+32*FONT_SL, 130);
-	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(ORANGE1); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(GRAY50);
 	fDlugosc = sqrtf(uDaneCM4.dane.fMagne2[0] * uDaneCM4.dane.fMagne2[0] + uDaneCM4.dane.fMagne2[1] * uDaneCM4.dane.fMagne2[1] + uDaneCM4.dane.fMagne2[2] * uDaneCM4.dane.fMagne2[2]);
 	sprintf(chNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
 	print(chNapis, 10+49*FONT_SL, 130);
@@ -1534,7 +1536,7 @@ void PomiaryIMU(void)
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[2]*1e6);
 	print(chNapis, 10+32*FONT_SL, 150);
-	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(ORANGE2); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(GRAY50);
 	fDlugosc = sqrtf(uDaneCM4.dane.fMagne3[0] * uDaneCM4.dane.fMagne3[0] + uDaneCM4.dane.fMagne3[1] * uDaneCM4.dane.fMagne3[1] + uDaneCM4.dane.fMagne3[2] * uDaneCM4.dane.fMagne3[2]);
 	sprintf(chNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
 	print(chNapis, 10+49*FONT_SL, 150);
@@ -1589,7 +1591,7 @@ void PomiaryIMU(void)
 	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[2], ZNAK_STOPIEN);
 	print(chNapis, 10+37*FONT_SL, 230);
 
-	//kąty z żyroskopu 1
+	/*/kąty z żyroskopu 1
 	setColor(KOLOR_X);
 	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[0], ZNAK_STOPIEN);
 	print(chNapis, 10+13*FONT_SL, 250);
@@ -1609,7 +1611,35 @@ void PomiaryIMU(void)
 	print(chNapis, 10+25*FONT_SL, 270);
 	setColor(KOLOR_Z);
 	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[2], ZNAK_STOPIEN);
-	print(chNapis, 10+37*FONT_SL, 270);
+	print(chNapis, 10+37*FONT_SL, 270); */
+
+	//kwaternion wektora przyspieszenia
+	setColor(POMARANCZ);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaAkc[0]);
+	print(chNapis, 10+16*FONT_SL, 250);
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaAkc[1]);
+	print(chNapis, 10+26*FONT_SL, 250);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaAkc[2]);
+	print(chNapis, 10+36*FONT_SL, 250);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaAkc[3]);
+	print(chNapis, 10+46*FONT_SL, 250);
+
+	//kwaternion wektora magnetycznego
+	setColor(POMARANCZ);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaMag[0]);
+	print(chNapis, 10+16*FONT_SL, 270);
+	setColor(KOLOR_X);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaMag[1]);
+	print(chNapis, 10+26*FONT_SL, 270);
+	setColor(KOLOR_Y);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaMag[2]);
+	print(chNapis, 10+36*FONT_SL, 270);
+	setColor(KOLOR_Z);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaMag[3]);
+	print(chNapis, 10+46*FONT_SL, 270);
 
 	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI do zera
 	RysujPasekPostepu(CZAS_KALIBRACJI);

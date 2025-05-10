@@ -100,6 +100,8 @@ typedef struct
 	float fPredkosc[2];		//[m/s]
 	float fTemper[6];		//0=MS5611, 1=BMP851, 2=ICM42688 [K], 3=LSM6DSV [K], 4=ND130, 5=MS2545
 	float fRozne[6];		//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji
+	float fKwaAkc[4];		//kwaternion wektora przyspieszenia
+	float fKwaMag[4];		//kwaternion wektora magnetycznego
 	uint16_t sSerwa[16];
 	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
 	uint8_t chErrPetliGlownej;
