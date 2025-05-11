@@ -206,8 +206,8 @@ uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo, float *fZyro, float *fA
 	//Normalizuj(fQAcc, fQAcc, 4);	//normalizuj kwaternion przyspieszenia po przejściu filtra komplementarnego
 
 	//Żeby policzyć kat odchylenia z wektora magnetometru najpierw skompensuj pochylenie i przechylenie obracając kopię wektora mag. o ujemne pochylenie i przechylenie
-	fQprze[0] = cosf(uDaneCM4.dane.fKatIMU2[0]);
-	fQprze[1] = sinf(uDaneCM4.dane.fKatIMU2[0]);
+	fQprze[0] = cosf(uDaneCM4.dane.fKatIMU2[0] / 2);
+	fQprze[1] = sinf(uDaneCM4.dane.fKatIMU2[0] / 2);
 	fQprze[2] = 0;
 	fQprze[3] = 0;
 
@@ -216,12 +216,12 @@ uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo, float *fZyro, float *fA
 	fQPoch[2] = sinf(-uDaneCM4.dane.fKatIMU2[1] / 2);
 	fQPoch[3] = 0;
 
-	//MnozenieKwaternionow(fQPoch, fQprze, fQkompens);	//sumuj oba kwaterniony obrotu w jeden kompensacyjny
-	//KwaternionSprzezony(fQkompens, fQs);				//kwaternion sprzężony
-	KwaternionSprzezony(fQPoch, fQs);				//kwaternion sprzężony
+	MnozenieKwaternionow(fQPoch, fQprze, fQkompens);	//sumuj oba kwaterniony obrotu w jeden kompensacyjny
+	KwaternionSprzezony(fQkompens, fQs);				//kwaternion sprzężony
+	//KwaternionSprzezony(fQPoch, fQs);				//kwaternion sprzężony
 
-	//MnozenieKwaternionow(fQkompens, fQMag, fQ);		//obróć kwaternion pola magnetycznego o ujemne pochylenie i przechylenie
-	MnozenieKwaternionow(fQPoch, fQMag, fQ);		//obróć kwaternion pola magnetycznego o przechylenie
+	MnozenieKwaternionow(fQkompens, fQMag, fQ);		//obróć kwaternion pola magnetycznego o ujemne pochylenie i przechylenie
+	//MnozenieKwaternionow(fQPoch, fQMag, fQ);		//obróć kwaternion pola magnetycznego o przechylenie
 	MnozenieKwaternionow(fQ, fQs, fQMagKompens);
 
 	//wersja z odwróconą kolejnością pierwszego mnożenia: niczego nie obraca
