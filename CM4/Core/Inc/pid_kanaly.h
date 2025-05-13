@@ -1,10 +1,10 @@
-//#define NUM_AXIS  6 //liczba regulowanych osi: pochylenie, przechylenie, odchylenie, wysoko��, prędkość + rezerwa
+//#define NUM_AXIS  6 //liczba regulowanych osi: pochylenie, przechylenie, odchylenie, wysokość, prędkość + rezerwa
 #define FRAM_FLOAT_SIZE     4   //rozmiar liczby float
 #define PID_FRAM_CH_SIZE    4   //ilość zmiennych na kanał regulatora zapisywanych do FRAM
 
 //Rodzaj regulatora
-#define ANG     1   //regulator k�towy
-#define LIN     0   //regulator liniowy
+#define REG_KAT     1   //regulator kątowy
+#define REG_LIN     0   //regulator liniowy
 
 //definicje nazw regulowanych parametrów
 #define ROLL   0    //regulator sterowania przechyleniem (lotkami w samolocie)

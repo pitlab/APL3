@@ -87,7 +87,7 @@
 #define FAU_MIN_PWM         0x3D8           //2U minimalne wysterowanie regulatorów w trakcie lotu [us]
 #define FAU_HOVER_PWM       FAU_MIN_PWM+2   //2U wysterowanie regulatorów w zawisie [us]
 #define FAU_IDLE_PWM        FAU_HOVER_PWM+2 //2U wysterowanie regulatorów na biegu jałowym [us]
-#define FAU_MAX_PWM         FAU_IDLE_PWM+2  //2U maksymalne wysterowanie silnik�w w trakcie lotu [us]
+#define FAU_MAX_PWM         FAU_IDLE_PWM+2  //2U maksymalne wysterowanie silników w trakcie lotu [us]
 
 //wzmocnienia drążków aparatury dla posczeg�lnych tryb�w pracy regulatorów
 #define FAU_SP_GAIN         0x3E0

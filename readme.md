@@ -51,9 +51,11 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Uruchomione czujniki ciśnienia różnicowego ND130 i MS4525. Już pokazują takie samo ciśnienie
 - Zrobiona kalibracja tempraturowa żyroskopów
 - Zrobiona kalibracja przesunięcia zera w funkcji temepratury i skalowania prędkosci kątowej żyroskopów
-- Zrobiona kalibracja przesunięcia zera magnetometrów i normalizacja długości wektora magnetycznego
+- Zrobiona kalibracja przesunięcia zera magnetometrów, normalizacja długości wektora magnetycznego i kompensacha pochylenia i przechylenia
 ![magetometry](obrazki/kalibracja_magnetometrow.jpg) 
 - Skalowanie czujników ciśnienia na podstawie wzorca 27m (10 pięter)
+- Obsługa regulatorów PID
+
 
 
  

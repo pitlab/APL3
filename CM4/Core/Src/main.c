@@ -187,6 +187,7 @@ int main(void)
   InicjujSerwa();
   InicjujModulI2P();
   InicjujJednostkeInercyjna();
+  InicjujPID();
 
   /* USER CODE END 2 */
 

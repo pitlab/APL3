@@ -47,6 +47,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Zmodyfikować test transferu karty SD, tak aby działał z systemową obsługą FAT (obecnie działa poza FAT-em i systemem operacyjnym)
  - Uruchomić czujniki zbliżeniowe VL53L1CX i VL53L5CX
  - Pozbyć się zmiennych fZyroSur i fZyroKal zastępując je jedną zmienną ustawianą w zależnosci od kontekstu (obecności polecenia kalibracyjnego żyroskopów)
+ - Rozbudować warunki korekcji magnetometru w AHRS o prędkość zmiany kąta
 
  * */
 /* USER CODE END Header */
