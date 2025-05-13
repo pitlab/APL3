@@ -94,6 +94,7 @@ typedef struct
 	float fKatZyro2[3];
 	float fKatAkcel1[3];	//[rad]
 	float fKatAkcel2[3];
+	float fKatKwater[3];
 	float fCisnie[2];		//[Pa]
 	float fWysoko[2];		//[m]
 	float fCisnRozn[2];		//0=ND130, 1=MS2545

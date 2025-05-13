@@ -89,13 +89,13 @@ uint8_t ObslugaND130(void)
 		HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 
 		//walidacja poprawności danych
-		if ((chBufND130[0] == 0) && (chBufND130[1] == 0) && (chBufND130[2] == 0) && (chBufND130[3] == 0))
-			return ERR_ZLE_DANE;
+		for (uint16_t n=0; n<4; n++)
+		{
+			if ((chBufND130[n] == 0) || (chBufND130[n] == 0xFF))
+				return ERR_ZLE_DANE;
+		}
 
-		if ((chBufND130[0] == 0xFF) && (chBufND130[1] == 0xFF) && (chBufND130[2] == 0xFF) && (chBufND130[3] == 0xFF))
-			return ERR_ZLE_DANE;
-
-		//czujnik zwraca liczbę 15-bitową, najstarszy bit jest zawsze zerem, więc aby uzyskac liczby ujemne kopiuję bit 14 na pozycję 15
+		//czujnik zwraca liczbę 15-bitową, najstarszy bit jest zawsze zerem, więc aby uzyskać liczby ujemne kopiuję bit 14 na pozycję 15
 		if (chBufND130[0] & 0x40)
 			chBufND130[0] |= 0x80;
 
@@ -121,8 +121,6 @@ uint8_t ObslugaND130(void)
 		//fCisnienie -= 0.02 * uDaneCM4.dane.fTemper[TEMP_IMU1];
 
 		fPrzesuniecieZera = ObliczWspTemperaturowy1(stWspKalTempCzujnRozn1, uDaneCM4.dane.fTemper[TEMP_IMU1]);			//oblicz offset dla bieżącej temperatury
-
-		//uDaneCM4.dane.fCisnRozn[0] = fCisnienie;
 		uDaneCM4.dane.fCisnRozn[0] = (7 * uDaneCM4.dane.fCisnRozn[0] + fCisnienie - fPrzesuniecieZera) / 8;
 
 		//najstarszy bit temperatury zachowuje się dziwnie. Ponieważ czujnik pracuje do 80° i na dwóch najstarszych bitach jest tylko znak, więc przenieś bit 6 na 7

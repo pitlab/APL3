@@ -25,5 +25,5 @@ uint8_t JednostkaInercyjnaTrygonometria(uint8_t chGniazdo);
 uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo, float *fZyro, float *fAkcel, float *fMagn);
 float FiltrAdaptacyjnyAkc(float *fAkcel);
 float FiltrAdaptacyjnyMag(float *fMag);
-void ObrotWektora(uint8_t chGniazdo);
+void TestyObrotu(uint8_t chGniazdo);
 #endif /* INC_JEDN_INERCYJNA_H_ */

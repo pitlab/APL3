@@ -336,14 +336,22 @@ void KatyKwaterniona2(float *qA, float *qM, float *fKaty)
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Oblicza kąty Eulera: Phi, Theta, Psi z wektora podanego jako kwaternion [qr, qi, qj, qk] na podstawie wzorów:
 //yaw = atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z))
 //pitch = asin(2 * (w * y - z * x))
 //roll = atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y))
+// Parametry:
+// [we] *qA - wskaźnik na kwaternion wektora przyspieszenia A = (q0 + iqx + jqy + kqz)
+// [we] *qM - wskaźnik na kwaternion wektora magnetycznego M = (q0 + iqx + jqy + kqz)
+// [wy] *katy - wskaźnik na zmienną z 3 kątami [Phi, Theta, Psi]
+// Zwraca: nic
+// Czas trwania: ? us na 200MHz
 void KatyKwaterniona3(float *qA, float *qM, float *fKaty)
 {
-	*(fKaty+0) = atan2f(2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2)));
-	*(fKaty+1) = asinf (2 * (*(qA+0) * *(qA+2) - *(qA+3) * *(qA+1)));
-	*(fKaty+2) = atan2f(2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3)));
+	*(fKaty+0) = atan2f(2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2))) / -2;
+	*(fKaty+1) = asinf (2 * (*(qA+0) * *(qA+2) - *(qA+3) * *(qA+1))) / -2;
+	*(fKaty+2) = atan2f(2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3))) / -2;
 }
 
 

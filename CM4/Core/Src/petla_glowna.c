@@ -85,7 +85,7 @@ void PetlaGlowna(void)
 	case 2:		//obsługa modułu w gnieździe 3
 		//chErrPG |= ObslugaModuluIiP(ADR_MOD3);
 		//chErrPG |= UstawDekoderModulow(ADR_MOD3);
-		ObrotWektora(ADR_MOD3);
+		TestyObrotu(ADR_MOD3);
 		break;
 
 	case 3:		//obsługa modułu w gnieździe 4

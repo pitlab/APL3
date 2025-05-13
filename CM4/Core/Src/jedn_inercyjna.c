@@ -98,7 +98,7 @@ uint8_t JednostkaInercyjnaTrygonometria(uint8_t chGniazdo)
 		}
 	}
 
-	//kąt przechylenia z akcelerometru: tan(-Y/Z) = atan2(Z, Y)
+	//kąt przechylenia z akcelerometru: tan(Z/-Y) = atan2(Y, Z)
 	uDaneCM4.dane.fKatAkcel1[0] = atan2f(-uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);	//OK, dobry znak
 
 	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(X, Z)
@@ -203,9 +203,13 @@ uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo, float *fZyro, float *fA
 		fQMag[n+1] = (1.0f - fWspFiltraMag) * fQMag[n+1] + fWspFiltraMag * fMagNorm[n];
 	}
 
-	//Normalizuj(fQAcc, fQAcc, 4);	//normalizuj kwaternion przyspieszenia po przejściu filtra komplementarnego
+	//oblicz katy tradycyjnie trygonometrią
+	uDaneCM4.dane.fKatIMU2[0] = atan2f(-fQAcc[2], fQAcc[3]);	//kąt przechylenia z akcelerometru: tan(-Y/Z) = atan2(Z, Y)
+	uDaneCM4.dane.fKatIMU2[1] = atan2f(fQAcc[1], fQAcc[3]);	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(X, Z)
 
-	//Żeby policzyć kat odchylenia z wektora magnetometru najpierw skompensuj pochylenie i przechylenie obracając kopię wektora mag. o ujemne pochylenie i przechylenie
+
+	//Żeby policzyć kat odchylenia z wektora magnetometru najpierw skompensuj pochylenie i przechylenie obracając kopię wektora mag. o ujemne pochylenie i dodatnie przechylenie
+	// zmiana znaku korekcji osi wynika prawdopodobnie ze składania obrotów
 	fQprze[0] = cosf(uDaneCM4.dane.fKatIMU2[0] / 2);
 	fQprze[1] = sinf(uDaneCM4.dane.fKatIMU2[0] / 2);
 	fQprze[2] = 0;
@@ -216,36 +220,26 @@ uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo, float *fZyro, float *fA
 	fQPoch[2] = sinf(-uDaneCM4.dane.fKatIMU2[1] / 2);
 	fQPoch[3] = 0;
 
-	MnozenieKwaternionow(fQPoch, fQprze, fQkompens);	//sumuj oba kwaterniony obrotu w jeden kompensacyjny
+	MnozenieKwaternionow(fQPoch, fQprze, fQkompens);	//sumuj kwaterniony pochylenia i przechylenia w jeden kompensacyjny
 	KwaternionSprzezony(fQkompens, fQs);				//kwaternion sprzężony
-	//KwaternionSprzezony(fQPoch, fQs);				//kwaternion sprzężony
 
-	MnozenieKwaternionow(fQkompens, fQMag, fQ);		//obróć kwaternion pola magnetycznego o ujemne pochylenie i przechylenie
-	//MnozenieKwaternionow(fQPoch, fQMag, fQ);		//obróć kwaternion pola magnetycznego o przechylenie
+	MnozenieKwaternionow(fQkompens, fQMag, fQ);		//obróć kwaternion pola magnetycznego o ujemne pochylenie i dodatnie przechylenie
 	MnozenieKwaternionow(fQ, fQs, fQMagKompens);
 
-	//wersja z odwróconą kolejnością pierwszego mnożenia: niczego nie obraca
-	//MnozenieKwaternionow(fQMag, fQPoch, fQ);		//obróć kwaternion pola magnetycznego o pochylenie
-	//MnozenieKwaternionow(fQ, fQs, fQMagKompens);
-
-	//wersja z odwróconą kolejnością obu mnożeń: obraca jak dla ujemnego kąta
-	//MnozenieKwaternionow(fQMag, fQPoch, fQ);		//obróć kwaternion pola magnetycznego o pochylenie
-	//MnozenieKwaternionow(fQs, fQ, fQMagKompens);
-
-
-
 	//Oblicz katy Eulera: Phi, Theta, Psi - https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-	KatyKwaterniona(fQAcc, fQMagKompens, (float*)uDaneCM4.dane.fKatIMU2);	//wersja z asinf szybsza
-	//KatyKwaterniona2(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);		//wersja z atan2 wolniejsza
-	KatyKwaterniona3(fQAcc, fQMagKompens, (float*)uDaneCM4.dane.fKatAkcel2);	//wersja oryginalna
+	KatyKwaterniona(fQAcc, fQMagKompens, (float*)uDaneCM4.dane.fKatKwater);	//wersja z asinf szybsza
+	//KatyKwaterniona3(fQAcc, fQMagKompens, (float*)uDaneCM4.dane.fKatAkcel2);	//wersja oryginalna dzielona przez -2
 
-	//przepisz kwaterniony do zmiennych wymiany
+	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(Y/X) dla X=N, Y=E => atan2(X, Y)
+	uDaneCM4.dane.fKatIMU2[2] = atan2f(fQMagKompens[2], fQMagKompens[1]);
+
+	/*/przepisz kwaterniony do zmiennych wymiany
 	for (uint8_t n=0; n<4; n++)
 	{
-		//uDaneCM4.dane.fKwaAkc[n] = fQAcc[n];
-		uDaneCM4.dane.fKwaAkc[n] = fQMagKompens[n];
+		uDaneCM4.dane.fKwaAkc[n] = fQAcc[n];
+		//uDaneCM4.dane.fKwaAkc[n] = fQMagKompens[n];
 		uDaneCM4.dane.fKwaMag[n] = fQMag[n];
-	}
+	}*/
 	return ERR_OK;
 }
 
@@ -280,6 +274,8 @@ float FiltrAdaptacyjnyAkc(float *fAkcel)
 	return fWspFiltra;
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja liczy na ile zaburzony jest pomiar magnetometru, analogicznie jak akcelerometr powyżej
 // na tej podstawie wylicza wartość współczynnika dla filtra komplementarnego
@@ -313,10 +309,10 @@ float FiltrAdaptacyjnyMag(float *fMag)
 // Zwraca: nic
 // Czas trwania: ?
 ////////////////////////////////////////////////////////////////////////////////
-void ObrotWektora(uint8_t chGniazdo)
+void TestyObrotu(uint8_t chGniazdo)
 {
 	//float fS0, fX0, fY0, fZ0;
-	float fdPhi2, fdTheta2, fdPsi2;	//połowy przyrostu kąta obrotu
+/*	float fdPhi2, fdTheta2, fdPsi2;	//połowy przyrostu kąta obrotu
 	float fModul;	//długości osi obracajacej wektor
 	float qx[4], qy[4], qz[4];	//kwaterniony obortów wokół osi XYZ
 	float qv[4], vq[4];	//pośrednie etapy mnożenia
@@ -326,166 +322,8 @@ void ObrotWektora(uint8_t chGniazdo)
 	//float fOsObr[3];			//oś obrotu
 	uint32_t nCzas;
 	float A[4][4], B[4][4], C[4][4];	//kwaterniony w postaci macierzowej
-	float fQxyz[4];	//kwaternion obrotu o wszystkie 3 osie jednoczesnie
+	float fQxyz[4];	//kwaternion obrotu o wszystkie 3 osie jednoczesnie */
 
-	//Moduł kwaternionu q to pierwiastek q i kwaterniony sprzężonego q*: |q| = sqrt(q * q*)
-	//Po wykonaniu mmnożenia q * q* część urojona się zeruje pozostawiając część wektorową: sqrt(s^2 + x^2 + y^2 + z^2) = 1
-
-	//postać trygonometryczna kwaternionu q to: q = |q| * (cos fi + (uxi + uyj + uzk) * sin fi)
-
-
-	//utworzyć kwaternion jednostkowy reprezentujący przekształcenie obrotu o całkę z prędkosci kątowej P wokół osi X według wzoru na formę trygonometryczną kwaternionu
-	//os X wokół ktorej odbywa się obrót jest zdefiniowana jako v0 = [vx=1, vy=0, vz=0], więc kwaternion obrotu będzie wygladał tak:
-	//qx = cos (phi/2) + (1 / sqrt(x^2 + y^2 + z^2)*i + 0 / sqrt(x^2 + y^2 + z^2) * j + 0 / sqrt(x^2 + y^2 + z^2) * k) * sin (phi/2)	//odpadają części j i k bo w liczniki mają zero wiec zostaje część i i funkcje trygonometryczne
-	//qx = cos (phi/2) + (1 / sqrt(x^2 + y^2 + z^2)*i) * sin (phi/2)
-
-	//punkt obracany
-	p[0] = 3.0f;
-	p[1] = 0.0f;
-	p[2] = 0.0f;
-
-
-
-	//W pierwszej kolejnosci obracam punkt przez oś obrotu Z
-	//fOsObr[0] = 0.0f;
-	//fOsObr[1] = 0.0f;
-	//fOsObr[2] = 1.0f;
-
-	//analogicznie dla obrotu przez os Z [0, 0, 1] o kąt psi będący całką po ndT z prędkości R
-	//qz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
-//	fdPsi2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000;
-	fdPsi2 = 90 * DEG2RAD / 2;
-	nCzas = PobierzCzas();
-
-	//Wyznaczam kwaternion obrotu w formie algebraicznej korzystając z danych wejściowych wprowadzonych do formy trygonometrycznej
-	//1. wyznaczyć część rzeczywistą kwaternionu s0 = cos(theta) gdzie kąt oborotu to 2*theta, więc s0 = cos(kąt_obrotu/2)
-	qz[0] = cosf(fdPsi2);
-
-	//2. Obliczyć długość osi obrotu |v0| = sqrt(vx^2 + vy^2 + vz^2).
-	//Dla osi X będzie wektor kierunkowy to [1, 0, 0], więc |v0x| = sqrt(1^2 + 0^2 + 0^2)
-	//fModul_v0x = sqrtf(fOsObr[0]*fOsObr[0] + fOsObr[1]*fOsObr[1] + fOsObr[2]*fOsObr[2]);
-	//fModul = sqrtf(fOsObr[2]*fOsObr[2]);
-
-	//3. Obliczyć x0 = vx / |v0| * sin(theta)
-	//qz[1] = fOsObr[0] / fModul * sin(fdPsi2);;		//dzielenie zera przez coś zawsze da zero
-	qz[1] = 0;
-
-	//4. Obliczyć y0 = vy / |v0| * sin(theta)
-	//qz[2] = fOsObr[1] / fModul * sin(fdPsi2);;		//dzielenie zera przez coś zawsze da zero
-	qz[2] = 0;
-
-	//5. Obliczyć z0 = vz / |v0| * sin(theta)
-	//qz[3] = fOsObr[2] / fModul * sin(fdPsi2);
-	qz[3] = sin(fdPsi2);	//oś obrotu to 1, więc moduł też będzie 1 więc można to pominąć
-
-
-	//teraz obrót przez oś Y
-	//fOsObr[0] = 0.0f;
-	//fOsObr[1] = 1.0f;
-	//fOsObr[2] = 0.0f;
-
-	//analogicznie dla obrotu przez os Y [0, 1, 0] o kąt theta będący całką po ndT z prędkości Q
-	//qy = cos (theta/2) + (1 / sqrt(x^2 + y^2 + z^2)*j) * sin (theta/2)
-//	fdTheta2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000;
-	fdTheta2 = 90 * DEG2RAD / 2;
-	//fModul = sqrtf(fOsObr[1]*fOsObr[1]);
-	qy[0] = cosf(fdTheta2);
-	//qy[1] = fOsObr[0] / fModul * sinf(fdTheta2);;
-	qy[1] = 0;
-	//qy[2] = fOsObr[1] / fModul * sinf(fdTheta2);;
-	qy[2] = sinf(fdTheta2);
-	//qy[3] = fOsObr[2] / fModul * sinf(fdTheta2);;
-	qy[3] = 0;
-
-
-	//Na koniec obrót przez oś X
-	//fOsObr[0] = 1.0f;
-	//fOsObr[1] = 0.0f;
-	//fOsObr[2] = 0.0f;
-
-	//całka z predkosci kątowej P to kąt Phi a przyrost kąta w czasie ndT to dPhi
-	//fdPhi = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 1000000;	//[rad/s] * ndT [us] / 1000000 = [rad]
-	//Ponieważ we wzorze występuje połwa kąta, więc aby nie wykonywać dzielenia wielokrotnie, od razu liczę połowę kata
-//	fdPhi2 = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 2000000;
-	fdPhi2 = 90 * DEG2RAD / 2;	//testowo obróć o taki kąt
-	//fModul = sqrtf(fOsObr[0]*fOsObr[0]);
-	qx[0] = cosf(fdPhi2);
-	//qx[1] = fOsObr[0] / fModul * sinf(fdPhi2);
-	qx[1] = sinf(fdPhi2);
-	//qx[2] = fOsObr[1] / fModul * sinf(fdPhi2);
-	qx[2] = 0;
-	//qx[3] = fOsObr[2] / fModul * sinf(fdPhi2);
-	qx[3] = 0;
-
-
-	fModul = sqrtf(3);	//oś obrotu to [1,1,1]
-	fQxyz[0] = 0;//suma 3 kątów
-	fQxyz[1] = 1 / fModul * sinf(fdPhi2);
-	fQxyz[2] = 1 / fModul * sinf(fdTheta2);
-	fQxyz[3] = 1 / fModul * sinf(fdPsi2);
-
-
-
-	//aby zoptymalizowac obliczenia rotacji przez 3 osie stusuję złożenie obrotów dla osi jako kwaterion w postaci macierzowej a następnie przemnażam przez siebie te macierze
-	//[s1	x1	y1	z1]			[s2	x2	y2	z2]			[s3	x3	y3	z3]
-	//[-x1	s1	-z1	y1]		*	[-x2 s2	-z2	y2]  *		[-x3 s3	-z3	y3]
-	//[-y1	z1	s1	-x1]		[-y2 z2	s2	-x2]		[-y3 z3	s3	-x3]
-	//[-z1	-y1	x1	s1]			[-z2 -y2 x2	s2]			[-z3 -y3 x3	s3]
-
-	//Aby nie wykonywać 3 osobnych obrotów dla każdej osi, można obroty zlożyć w jeden monożąc przez siebie kwaterniony obrotu
-	//Metoda 1 - działa dobrze
-	nCzas = PobierzCzas();
-	MnozenieKwaternionow(qy, qz, qv);	//obrót najpierw wokół Z * Y = qv
-	MnozenieKwaternionow(qx, qv, vq);	//potem obrót ZY * X
-	ObrotWektoraKwaternionem(p, vq, r);
-	nCzas = MinalCzas(nCzas);		//6us
-
-
-	//metoda 2 - niezależne obroty - działa poprawnie
-	nCzas = PobierzCzas();
-	ObrotWektoraKwaternionem(p, qz, r);
-	ObrotWektoraKwaternionem(r, qy, s);
-	ObrotWektoraKwaternionem(s, qx, t);
-	nCzas = MinalCzas(nCzas);	//7us
-
-
-	//metoda 3- działa poprawnie z mnożeniem 3
-	nCzas = PobierzCzas();
-	WektorNaKwaternion(p, qp);
-
-	//obrót wokół Z
-	MnozenieKwaternionow(qz, qp, qv);	// Wykonuję pierwsze mnożenie q * v
-	KwaternionSprzezony(qz, qs);		//kwaternion sprzężony q* ma taką samą część rzeczywistą i ujemne części urojone
-	MnozenieKwaternionow(qv, qs, vq);	//wykonuję drugie mnożenie (qv) * q*
-
-	//obrót wokół Y
-	MnozenieKwaternionow(qy, vq, qv);
-	KwaternionSprzezony(qy, qs);
-	MnozenieKwaternionow(qv, qs, vq);
-
-	//obrót wokól X
-	MnozenieKwaternionow(qx, vq, qv);
-	KwaternionSprzezony(qx, qs);
-	MnozenieKwaternionow(qv, qs, vq);
-	nCzas = MinalCzas(nCzas);		//12us
-
-
-	//metoda 4 składanie obrotów z mnożeniem macierzy - działa dobrze
-	nCzas = PobierzCzas();
-	KwaternionNaMacierz(qy, &A[0][0]);
-	KwaternionNaMacierz(qz, &B[0][0]);
-	MnozenieMacierzy4x4(&A[0][0], &B[0][0], &C[0][0]);
-	//MacierzNaKwaternion(&C[0][0], vq);
-	//ObrotWektoraKwaternionem(p, vq, r);
-
-	KwaternionNaMacierz(qx, &A[0][0]);
-	MnozenieMacierzy4x4(&A[0][0], &C[0][0], &B[0][0]);
-	MacierzNaKwaternion(&B[0][0], vq);
-	ObrotWektoraKwaternionem(p, vq, s);
-	nCzas = MinalCzas(nCzas);	//18us
-
-	//metoda 5 - zweryfikować - źle
-	ObrotWektoraKwaternionem(p, fQxyz, r);
 
 
 	//pomiary czasu

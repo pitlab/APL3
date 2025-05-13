@@ -314,29 +314,29 @@
 #define VMAX_PRZES_MAGN    0.01f
 #define VDEF_PRZES_MAGN    0.0f
 
-/*#define VALM_PID_PGAIN    (float)0.0     //limity wartości wzmocnienienia członu P regulatora
-#define VALP_PID_PGAIN    (float)1000
-#define VALD_PID_PGAIN    (float)1.0
+#define VMIN_PID_WZMP    (float)0.0     //limity wartości wzmocnienienia członu P regulatora
+#define VMAX_PID_WZMP    (float)1000
+#define VDEF_PID_WZMP    (float)1.0
 
-#define VALM_PID_IGAIN    (float)0.0     //limity wartości wzmocnienienia członu I regulatora
-#define VALP_PID_IGAIN    (float)1000
-#define VALD_PID_IGAIN    (float)0.0
+#define VMIN_PID_WZMI    (float)0.0     //limity wartości wzmocnienienia członu I regulatora
+#define VMAX_PID_WZMI    (float)1000
+#define VDEF_PID_WZMI    (float)0.0
 
-#define VALM_PID_DGAIN    (float)0.0    //limity wartości wzmocnienienia członu D regulatora
-#define VALP_PID_DGAIN    (float)1000
-#define VALD_PID_DGAIN    (float)0.0
+#define VMIN_PID_WZMD    (float)0.0    //limity wartości wzmocnienienia członu D regulatora
+#define VMAX_PID_WZMD    (float)1000
+#define VDEF_PID_WZMD    (float)0.0
 
-#define VALM_PID_SLEWR    (float)1.0     //limity prędkości narastania sygnału regulatora 0 [%/s]
-#define VALP_PID_SLEWR    (float)10000    //max 100% / 0,01s
-#define VALD_PID_SLEWR    (float)10000
+#define VMIN_PID_SLEWR    (float)1.0     //limity prędkości narastania sygnału regulatora 0 [%/s]
+#define VMAX_PID_SLEWR    (float)10000    //max 100% / 0,01s
+#define VDEF_PID_SLEWR    (float)10000
 
-#define VALM_PID_I_LIM    (float)0.0     //limit wartości całki członu całkującego regulatora PID
-#define VALP_PID_I_LIM    (float)100     //max 100%
-#define VALD_PID_I_LIM    (float)23
+#define VMIN_PID_ILIM    (float)0.0     //limit wartości całki członu całkującego regulatora PID
+#define VMAX_PID_ILIM    (float)100     //max 100%
+#define VDEF_PID_ILIM    (float)23 /*
 
-#define VALM_ADIO_GAIN    (float)0.01   //limity wzmocnienia dla modułu ADCIO
-#define VALP_ADIO_GAIN    (float)100
-#define VALD_ADIO_GAIN    (float)1      //wartość domyślna
+#define VMIN_ADIO_GAIN    (float)0.01   //limity wzmocnienia dla modułu ADCIO
+#define VMAX_ADIO_GAIN    (float)100
+#define VDEF_ADIO_GAIN    (float)1      //wartość domyślna
 
 #define VALM_ADIO_OFST    (float)-100   //limity offsetu dla modułu ADCIO
 #define VALP_ADIO_OFST    (float)100
