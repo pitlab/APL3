@@ -1419,9 +1419,12 @@ void WatekOdbiorczyLPUART1(void const * argument)
 {
   /* USER CODE BEGIN WatekOdbiorczyLPUART1 */
 	InicjalizacjaWatkuOdbiorczegoLPUART1();
+	InicjalizacjaTelemetrii();
+
 	while(1)
 	{
 		ObslugaWatkuOdbiorczegoLPUART1();
+		ObslugaTelemetrii();
 		osDelay(2);
 	}
   /* USER CODE END WatekOdbiorczyLPUART1 */

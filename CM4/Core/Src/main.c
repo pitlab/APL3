@@ -22,6 +22,7 @@
 #include "wymiana_CM4.h"
 #include "modul_IiP.h"
 #include "jedn_inercyjna.h"
+#include "pid.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

@@ -119,8 +119,8 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, uint8_t chKatowy)
         fWyjscieReg += fTemp;
 
         //filtruj IIR wartość błędu aby uzyskać gładką akcję różniczkującą
-    	if (stPID[chKanal].chPodstawaFiltraD >= 2)
-    		stPID[chKanal].fPoprzBlad = ((stPID[chKanal].chPodstFiltraD - 1) * stPID[chKanal].fFiltrRozn + fPoprzBlad) / stPID[chKanal].chPodstFiltraD;
+    	if (stPID[chKanal].chPodstFiltraD >= 2)
+    		stPID[chKanal].fPoprzBlad = ((stPID[chKanal].chPodstFiltraD - 1) * stPID[chKanal].fPoprzBlad + fBladReg) / stPID[chKanal].chPodstFiltraD;
     	else
     		stPID[chKanal].fPoprzBlad = fBladReg;
     }

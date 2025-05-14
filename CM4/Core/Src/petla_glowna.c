@@ -21,6 +21,7 @@
 #include "ND130.h"
 #include "konfig_fram.h"
 #include "MS5611.h"	//testowo
+#include "pid.h"
 
 extern TIM_HandleTypeDef htim7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -155,77 +156,7 @@ void PetlaGlowna(void)
 		//
 
 		//wykonaj polecenie przekazane z CM7
-		uDaneCM4.dane.chOdpowiedzNaPolecenie = uDaneCM7.dane.chWykonajPolecenie;	//domyślnie odeślij to co przyszło aby potwierdzić otrzymanie
-		switch(uDaneCM7.dane.chWykonajPolecenie)
-		{
-		case POL_NIC:	break;		//polecenie neutralne
-		case POL_KALIBRUJ_ZYRO_ZIM:	RozpocznijKalibracjeZeraZyroskopu(POL_KALIBRUJ_ZYRO_ZIM);	break;		//uruchom kalibrację żyroskopów na zimno 10°C
-		case POL_KALIBRUJ_ZYRO_POK:	RozpocznijKalibracjeZeraZyroskopu(POL_KALIBRUJ_ZYRO_POK);	break;		//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
-		case POL_KALIBRUJ_ZYRO_GOR:	RozpocznijKalibracjeZeraZyroskopu(POL_KALIBRUJ_ZYRO_GOR);	break;		//uruchom kalibrację żyroskopów na gorąco 40°C
-
-		case POL_KALIBRUJ_ZYRO_WZMP:		//uruchom kalibrację wzmocnienia żyroskopów P
-		case POL_KALIBRUJ_ZYRO_WZMQ:		//uruchom kalibrację wzmocnienia żyroskopów Q
-		case POL_KALIBRUJ_ZYRO_WZMR:		//uruchom kalibrację wzmocnienia żyroskopów R
-		case POL_ZERUJ_CALKE_ZYRO:	KalibracjaWzmocnieniaZyro(uDaneCM7.dane.chWykonajPolecenie);	break;	//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
-
-		case POL_CZYTAJ_WZM_ZYROP:	//odczytaj wzmocnienia żyroskopów P
-			uDaneCM4.dane.fRozne[2] = CzytajFramFloat(FAH_ZYRO1P_WZMOC);
-			uDaneCM4.dane.fRozne[3] = CzytajFramFloat(FAH_ZYRO2P_WZMOC);
-			break;
-
-		case POL_CZYTAJ_WZM_ZYROQ:	//odczytaj wzmocnienia żyroskopów Q
-			uDaneCM4.dane.fRozne[2] = CzytajFramFloat(FAH_ZYRO1Q_WZMOC);
-			uDaneCM4.dane.fRozne[3] = CzytajFramFloat(FAH_ZYRO2Q_WZMOC);
-			break;
-
-		case POL_CZYTAJ_WZM_ZYROR:	//odczytaj wzmocnienia żyroskopów R
-			uDaneCM4.dane.fRozne[2] = CzytajFramFloat(FAH_ZYRO1R_WZMOC);
-			uDaneCM4.dane.fRozne[3] = CzytajFramFloat(FAH_ZYRO2R_WZMOC);
-			break;
-
-		case POL_KAL_ZERO_MAGN1:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne1);	break;	//uruchom kalibrację zera magnetometru 1
-		case POL_KAL_ZERO_MAGN2:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne2);	break;	//uruchom kalibrację zera magnetometru 2
-		case POL_KAL_ZERO_MAGN3:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne3);	break;	//uruchom kalibrację zera magnetometru 3
-
-		case POL_ZAPISZ_KONF_MAGN1:	ZapiszKalibracjeMagnetometru(MAG1);	break;
-		case POL_ZAPISZ_KONF_MAGN2:	ZapiszKalibracjeMagnetometru(MAG2);	break;
-		case POL_ZAPISZ_KONF_MAGN3:	ZapiszKalibracjeMagnetometru(MAG3);	break;
-
-		case POL_POBIERZ_KONF_MAGN1: PobierzKalibracjeMagnetometru(MAG1);	break;
-		case POL_POBIERZ_KONF_MAGN2: PobierzKalibracjeMagnetometru(MAG2);	break;
-		case POL_POBIERZ_KONF_MAGN3: PobierzKalibracjeMagnetometru(MAG3);	break;
-
-		case POL_ZERUJ_EKSTREMA:
-			if (ZerujEkstremaMagnetometru())
-			{
-				uDaneCM4.dane.chOdpowiedzNaPolecenie = POL_NIC;	//jeżeli dane nie są jeszcze wyzerowane to zwróć inną odpowiedź niż numer polecenia
-				chStanIOwy &= ~MIO41;	//zaświeć czerwoną LED
-				chStanIOwy |= MIO42;	//zgaś zieloną LED
-			}
-			else
-			{
-				chStanIOwy |= MIO41;	//zgaś czerwoną LED
-				chStanIOwy &= ~MIO42;	//zaświeć zieloną LED
-			}
-			break;
-
-		case POL_INICJUJ_USREDN:	KalibrujCisnienie(0, 0, 0, CZAS_KALIBRACJI, 0xFF);	break;	//inicjalizacja
-		case POL_ZERUJ_LICZNIK:
-			sLicznikCzasuKalibracji = 0;
-			break;
-		case POL_USREDNIJ_CISN1:
-			uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnie[0], uDaneCM4.dane.fCisnie[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
-			if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
-				uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
-			break;
-		case POL_USREDNIJ_CISN2:
-			uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnie[0], uDaneCM4.dane.fCisnie[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
-			if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
-				uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
-			break;
-		case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;	break;	//nadpisz poprzednio zwrócony błąd
-
-    	}
+		WykonajPolecenieCM7();
 		break;
 
 	case 16:	//pozwól na testowe uruchomienie inicjalizacji
@@ -234,6 +165,12 @@ void PetlaGlowna(void)
 			InicjujModulI2P();
 			chBuforAnalizyGNSS[0] = 0;
 		}
+		break;
+
+	case 17:
+		uint32_t nCzas = PobierzCzas();
+		RegulatorPID(ndT[0], PID_GYP, REG_LIN);
+		nCzas = MinalCzas(nCzas);
 		break;
 	default:	break;
 	}
@@ -309,6 +246,91 @@ uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nCzasAkt)
 	else
 		nCzas = 0xFFFFFFFF - nPoczatek + nCzasAkt;
 	return nCzas;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// /wykonuje polecenie przekazane z CM7
+// Parametry: brak
+// Zwraca: kod błędu operacji I2C
+////////////////////////////////////////////////////////////////////////////////
+void WykonajPolecenieCM7(void)
+{
+	uDaneCM4.dane.chOdpowiedzNaPolecenie = uDaneCM7.dane.chWykonajPolecenie;	//domyślnie odeślij to co przyszło aby potwierdzić otrzymanie
+	switch(uDaneCM7.dane.chWykonajPolecenie)
+	{
+	case POL_NIC:	break;		//polecenie neutralne
+	case POL_KALIBRUJ_ZYRO_ZIM:	RozpocznijKalibracjeZeraZyroskopu(POL_KALIBRUJ_ZYRO_ZIM);	break;		//uruchom kalibrację żyroskopów na zimno 10°C
+	case POL_KALIBRUJ_ZYRO_POK:	RozpocznijKalibracjeZeraZyroskopu(POL_KALIBRUJ_ZYRO_POK);	break;		//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
+	case POL_KALIBRUJ_ZYRO_GOR:	RozpocznijKalibracjeZeraZyroskopu(POL_KALIBRUJ_ZYRO_GOR);	break;		//uruchom kalibrację żyroskopów na gorąco 40°C
+
+	case POL_KALIBRUJ_ZYRO_WZMP:		//uruchom kalibrację wzmocnienia żyroskopów P
+	case POL_KALIBRUJ_ZYRO_WZMQ:		//uruchom kalibrację wzmocnienia żyroskopów Q
+	case POL_KALIBRUJ_ZYRO_WZMR:		//uruchom kalibrację wzmocnienia żyroskopów R
+	case POL_ZERUJ_CALKE_ZYRO:	KalibracjaWzmocnieniaZyro(uDaneCM7.dane.chWykonajPolecenie);	break;	//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
+
+	case POL_CZYTAJ_WZM_ZYROP:	//odczytaj wzmocnienia żyroskopów P
+		uDaneCM4.dane.fRozne[2] = CzytajFramFloat(FAH_ZYRO1P_WZMOC);
+		uDaneCM4.dane.fRozne[3] = CzytajFramFloat(FAH_ZYRO2P_WZMOC);
+		break;
+
+	case POL_CZYTAJ_WZM_ZYROQ:	//odczytaj wzmocnienia żyroskopów Q
+		uDaneCM4.dane.fRozne[2] = CzytajFramFloat(FAH_ZYRO1Q_WZMOC);
+		uDaneCM4.dane.fRozne[3] = CzytajFramFloat(FAH_ZYRO2Q_WZMOC);
+		break;
+
+	case POL_CZYTAJ_WZM_ZYROR:	//odczytaj wzmocnienia żyroskopów R
+		uDaneCM4.dane.fRozne[2] = CzytajFramFloat(FAH_ZYRO1R_WZMOC);
+		uDaneCM4.dane.fRozne[3] = CzytajFramFloat(FAH_ZYRO2R_WZMOC);
+		break;
+
+	case POL_KAL_ZERO_MAGN1:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne1);	break;	//uruchom kalibrację zera magnetometru 1
+	case POL_KAL_ZERO_MAGN2:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne2);	break;	//uruchom kalibrację zera magnetometru 2
+	case POL_KAL_ZERO_MAGN3:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne3);	break;	//uruchom kalibrację zera magnetometru 3
+
+	case POL_ZAPISZ_KONF_MAGN1:	ZapiszKalibracjeMagnetometru(MAG1);	break;
+	case POL_ZAPISZ_KONF_MAGN2:	ZapiszKalibracjeMagnetometru(MAG2);	break;
+	case POL_ZAPISZ_KONF_MAGN3:	ZapiszKalibracjeMagnetometru(MAG3);	break;
+
+	case POL_POBIERZ_KONF_MAGN1: PobierzKalibracjeMagnetometru(MAG1);	break;
+	case POL_POBIERZ_KONF_MAGN2: PobierzKalibracjeMagnetometru(MAG2);	break;
+	case POL_POBIERZ_KONF_MAGN3: PobierzKalibracjeMagnetometru(MAG3);	break;
+
+	case POL_ZERUJ_EKSTREMA:
+		if (ZerujEkstremaMagnetometru())
+		{
+			uDaneCM4.dane.chOdpowiedzNaPolecenie = POL_NIC;	//jeżeli dane nie są jeszcze wyzerowane to zwróć inną odpowiedź niż numer polecenia
+			chStanIOwy &= ~MIO41;	//zaświeć czerwoną LED
+			chStanIOwy |= MIO42;	//zgaś zieloną LED
+		}
+		else
+		{
+			chStanIOwy |= MIO41;	//zgaś czerwoną LED
+			chStanIOwy &= ~MIO42;	//zaświeć zieloną LED
+		}
+		break;
+
+	case POL_INICJUJ_USREDN:	KalibrujCisnienie(0, 0, 0, CZAS_KALIBRACJI, 0xFF);	break;	//inicjalizacja
+	case POL_ZERUJ_LICZNIK:
+		sLicznikCzasuKalibracji = 0;
+		break;
+
+	case POL_USREDNIJ_CISN1:
+		uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnie[0], uDaneCM4.dane.fCisnie[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
+		if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
+			uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
+		break;
+
+	case POL_USREDNIJ_CISN2:
+		uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnie[0], uDaneCM4.dane.fCisnie[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
+		if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
+			uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
+		break;
+
+	case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;	break;	//nadpisz poprzednio zwrócony błąd
+
+	}
 }
 
 
