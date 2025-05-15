@@ -21,7 +21,10 @@
 
 //typy paczek danych z konfiguracją we flash
 #define FKON_KALIBRACJA_DOTYKU		0x00	//współczynniki kalibracji panelu dotykowego
-
+#define FKON_OKRES_TELEMETRI1		0x01	//okresy wysyłania zmiennych telemetrycznych
+#define FKON_OKRES_TELEMETRI2		0x02	//okresy wysyłania zmiennych telemetrycznych
+#define FKON_OKRES_TELEMETRI3		0x03	//okresy wysyłania zmiennych telemetrycznych
+#define FKON_OKRES_TELEMETRI4		0x04	//okresy wysyłania zmiennych telemetrycznych
 
 #define LICZBA_TYPOW_PACZEK	1
 

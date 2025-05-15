@@ -16,6 +16,20 @@
 #define ILOSC_ODBIORU_DMA		9
 
 
+typedef union 		//unia do konwersji między danymi 16 i 8 bit
+{
+	uint16_t dane16;
+	uint8_t dane8[2];
+} un8_16_t;
+
+typedef union 		//unia do konwersji między danymi 32 i 8 bit
+{
+	uint32_t dane32;
+	uint16_t dane16[2];
+	uint8_t dane8[4];
+} un8_32_t;
+
+
 
 //definicje funkcji lokalnych
 uint8_t InicjujProtokol(void);

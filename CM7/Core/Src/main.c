@@ -75,6 +75,8 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "lwip/apps/lwiperf.h"
 #include "czas.h"
 #include "can.h"
+#include "telemetria.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -168,7 +170,7 @@ static void MX_SDMMC1_SD_Init(void);
 static void MX_RTC_Init(void);
 static void MX_FDCAN2_Init(void);
 void StartDefaultTask(void const * argument);
-void WatekOdbiorczyLPUART1(void const * argument);
+void WatekLPUART1(void const * argument);
 void WatekRejestratora(void const * argument);
 void WatekWyswietlacza(void const * argument);
 
@@ -335,7 +337,7 @@ Error_Handler();
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of tsOdbiorLPUART1 */
-  osThreadDef(tsOdbiorLPUART1, WatekOdbiorczyLPUART1, osPriorityBelowNormal, 0, 96);
+  osThreadDef(tsOdbiorLPUART1, WatekLPUART1, osPriorityBelowNormal, 0, 96);
   tsOdbiorLPUART1Handle = osThreadCreate(osThread(tsOdbiorLPUART1), NULL);
 
   /* definition and creation of tsRejestrator */
@@ -1415,17 +1417,30 @@ void StartDefaultTask(void const * argument)
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 /* USER CODE END Header_WatekOdbiorczyLPUART1 */
-void WatekOdbiorczyLPUART1(void const * argument)
+void WatekLPUART1(void const * argument)
 {
   /* USER CODE BEGIN WatekOdbiorczyLPUART1 */
+	uint32_t nCzas, nCzasPoprzedni;
+	extern volatile uint8_t chLPUartZajety;
+
 	InicjalizacjaWatkuOdbiorczegoLPUART1();
 	InicjalizacjaTelemetrii();
+	nCzasPoprzedni = PobierzCzasT6();
 
 	while(1)
 	{
-		ObslugaWatkuOdbiorczegoLPUART1();
-		ObslugaTelemetrii();
-		osDelay(2);
+		//w pierwszej kolejności obsłuż protokół komunikacyjny
+		if (!chLPUartZajety)
+			ObslugaWatkuOdbiorczegoLPUART1();
+
+		//w drugiej kolejności telemetrię
+		nCzas = MinalCzas(nCzasPoprzedni);	//czas w mikrosekundach
+		if ((nCzas/1000 > KWANT_CZASU_TELEMETRII) && (!chLPUartZajety))
+		{
+			ObslugaTelemetrii(INTERF_UART);
+			nCzasPoprzedni += KWANT_CZASU_TELEMETRII * 1000;
+		}
+		osDelay(5);		//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
 	}
   /* USER CODE END WatekOdbiorczyLPUART1 */
 }

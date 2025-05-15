@@ -24,19 +24,6 @@
 #include "wymiana_CM7.h"
 #include "flash_nor.h"
 
-union _un8_16		//unia do konwersji między danymi 16 i 8 bit
-{
-	uint16_t dane16;
-	uint8_t dane8[2];
-} un8_16;
-
-union _un8_32		//unia do konwersji między danymi 32 i 8 bit
-{
-	uint32_t dane32;
-	uint16_t dane16[2];
-	uint8_t dane8[4];
-} un8_32;
-
 //definicje zmiennych
 uint8_t chStanProtokolu[ILOSC_INTERF_KOM];
 uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
@@ -52,6 +39,8 @@ uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
 uint16_t sLogKomunikacji[ROZMIAR_LOGU_KOMUNIKACJI];
 //uint32_t nLogKomunikacji[ROZMIAR_LOGU_KOMUNIKACJI];
 uint16_t sWskLogu = 0;	//wskaźnik logu
+un8_32_t un8_32;
+un8_16_t un8_16;
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
 ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chBuforNadDMA[ROZMIAR_RAMKI_UART]);
@@ -61,6 +50,7 @@ uint8_t chWyslaneOK = 1;
 uint8_t chBuforKomOdb[ROZMIAR_BUF_ANALIZY_ODB];
 volatile uint16_t sWskNap; 		//wskaźnik napełniania bufora kołowego chBuforKomOdb[]
 volatile uint16_t sWskOpr;		//wskaźnik opróżniania bufora kołowego chBuforKomOdb[]
+volatile uint8_t chLPUartZajety;
 uint8_t chTimeoutOdbioru;
 
 //deklaracje zmiennych zewnętrznych
@@ -180,16 +170,21 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	}
 }
 
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if (huart->Instance == LPUART1)
+		chLPUartZajety = 0;		//skońcyło się wysyłanie , port jest wolny
+}
+
+
 /*
 void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart)
 {
 	if (huart->Instance == LPUART1);
 }
 
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-	if (huart->Instance == LPUART1);
-}
+
 
 
 
@@ -605,7 +600,7 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
     {
     	switch (chInterfejs)
     	{
-    	case INTERF_UART:	HAL_UART_Transmit(&hlpuart1,  chRamkaWyj, chRozmDanych + ROZM_CIALA_RAMKI, 100);	break;
+    	case INTERF_UART:	HAL_UART_Transmit(&hlpuart1,  chRamkaWyj, chRozmDanych + ROZM_CIALA_RAMKI, 100);	chLPUartZajety = 1;	break;
     						//HAL_UART_Transmit_DMA(&hlpuart1, chRamkaWyj, (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI);
     	case INTERF_ETH:	break;
     	case INTERF_USB:	break;
@@ -677,7 +672,10 @@ uint8_t TestKomunikacjiSTD(void)
 
 	sRozmDanych = sprintf((char*)chBuforNadDMA, "Test komunikacji UART: blokująca\n\r");
 	if (sRozmDanych)
+	{
 		chErr = HAL_UART_Transmit(&hlpuart1,  chBuforNadDMA, sRozmDanych, 100);
+		chLPUartZajety = 1;
+	}
 	return chErr;
 }
 
@@ -691,7 +689,10 @@ uint8_t TestKomunikacjiDMA(void)
 
 	sRozmDanych = sprintf((char*)chBuforNadDMA, "Test komunikacji UART: DMA\n\r");
 	if (sRozmDanych)
+	{
 		chErr = HAL_UART_Transmit_DMA(&hlpuart1, (uint8_t*)chBuforNadDMA, sRozmDanych);
+		chLPUartZajety = 1;
+	}
 	return chErr;
 }
 

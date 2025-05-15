@@ -32,6 +32,7 @@
 #define PR_CRC16_2			8
 
 #define ROZMIAR_NAGLOWKA	6
+#define ROZMIAR_CRC			2
 #define NAGLOWEK			0xAA
 #define ADRES_STACJI		0x00
 #define ADRES_BROADCAST		0xFF

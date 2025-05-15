@@ -15,7 +15,7 @@ static uint8_t chPoprzedniaSekunda;
 RTC_TimeTypeDef sTime;
 RTC_DateTypeDef sDate;
 uint8_t chMinuta, chPoprzedniaMinuta;		//zmienne potrzebne do detekcji zmiany czasu przy jego wyświetlaniu
-
+extern TIM_HandleTypeDef htim6;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -48,4 +48,55 @@ void SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 			chStanSynchronizacjiCzasu &= ~SSC_DATA_NIESYNCHR;
 		}
 	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pobiera stan licznika pracującego na 200MHz/200
+// Parametry: brak
+// Zwraca: stan licznika w mikrosekundach
+////////////////////////////////////////////////////////////////////////////////
+uint32_t PobierzCzasT6(void)
+{
+	extern volatile uint16_t sCzasH;
+	return htim6.Instance->CNT + ((uint32_t)sCzasH <<16);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Liczy upływ czasu
+// Parametry: nStart - licznik czasu na na początku pomiaru
+// Zwraca: ilość czasu w milisekundach jaki upłynął do podanego czasu startu
+////////////////////////////////////////////////////////////////////////////////
+uint32_t MinalCzas(uint32_t nPoczatek)
+{
+	uint32_t nCzas, nCzasAkt;
+
+	nCzasAkt = PobierzCzasT6();
+	if (nCzasAkt >= nPoczatek)
+		nCzas = nCzasAkt - nPoczatek;
+	else
+		nCzas = 0xFFFFFFFF - nPoczatek + nCzasAkt;
+	return nCzas;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Liczy upływ czasu
+// Parametry: nStart - licznik czasu na na początku pomiaru
+// nKoniec - licznik czasu na na końcu pomiaru
+// Zwraca: ilość czasu w milisekundach jaki upłynął do podanego czasu startu
+////////////////////////////////////////////////////////////////////////////////
+uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nKoniec)
+{
+	uint32_t nCzas;
+
+	if (nKoniec >= nPoczatek)
+		nCzas = nKoniec - nPoczatek;
+	else
+		nCzas = 0xFFFFFFFF - nPoczatek + nKoniec;
+	return nCzas;
 }

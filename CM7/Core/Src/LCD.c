@@ -25,13 +25,13 @@
 #include "wspolne.h"
 #include <stdlib.h>
 #include "CAN.h"
+#include "czas.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
 extern uint8_t BigFont[];
 const char *build_date = __DATE__;
 const char *build_time = __TIME__;
-extern TIM_HandleTypeDef htim6;
 extern const unsigned short obr_multimetr[];
 extern const unsigned short obr_multitool[];
 extern const unsigned short pitlab_logo18[];
@@ -1156,38 +1156,6 @@ void HSV2RGB(float hue, float sat, float val, float *red, float *grn, float *blu
 		else if (i==4) {*red=t; 	*grn=p; 	*blu=val;}
 		else if (i==5) {*red=val; 	*grn=p; 	*blu=q;}
 	}
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Pobiera stan licznika pracującego na 200MHz/200
-// Parametry: brak
-// Zwraca: stan licznika w mikrosekundach
-////////////////////////////////////////////////////////////////////////////////
-uint32_t PobierzCzasT6(void)
-{
-	extern volatile uint16_t sCzasH;
-	return htim6.Instance->CNT + ((uint32_t)sCzasH <<16);
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Liczy upływ czasu
-// Parametry: nStart - licznik czasu na na początku pomiaru
-// Zwraca: ilość czasu w milisekundach jaki upłynął do podanego czasu startu
-////////////////////////////////////////////////////////////////////////////////
-uint32_t MinalCzas(uint32_t nPoczatek)
-{
-	uint32_t nCzas, nCzasAkt;
-
-	nCzasAkt = PobierzCzasT6();
-	if (nCzasAkt >= nPoczatek)
-		nCzas = nCzasAkt - nPoczatek;
-	else
-		nCzas = 0xFFFFFFFF - nPoczatek + nCzasAkt;
-	return nCzas;
 }
 
 

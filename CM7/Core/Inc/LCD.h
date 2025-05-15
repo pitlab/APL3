@@ -35,8 +35,6 @@ void FraktalDemo(void);
 void GenerateJulia(unsigned short size_x, unsigned short size_y, unsigned short offset_x, unsigned short offset_y, unsigned short zoom, unsigned short * buffer);
 void GenerateMandelbrot(float centre_X, float centre_Y, float Zoom, unsigned short IterationMax, unsigned short * buffer);
 void HSV2RGB(float hue, float sat, float val, float *red, float *grn, float *blu);
-uint32_t PobierzCzasT6(void);
-uint32_t MinalCzas(uint32_t nPoczatek);
 void InitFraktal(unsigned char chTyp);
 void MenuGlowne(unsigned char *tryb);
 void Menu(char *tytul, tmenu *menu, unsigned char *tryb);

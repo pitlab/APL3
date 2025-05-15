@@ -183,4 +183,7 @@
 #define KOMG_MAX_KOMUNIKAT	5
 
 
+//
+#define KWANT_CZASU_TELEMETRII	10	//co tyle milisekund może być wysyłana telemetria
+
 #endif /* INC_SYS_DEF_CM7_H_ */

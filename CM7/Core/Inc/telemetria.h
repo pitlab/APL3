@@ -65,9 +65,11 @@
 #define LICZBA_BAJTOW_ID_TELEMETRII			(LICZBA_ZMIENNYCH_TELEMETRYCZNYCH / 8)	//liczba bajtów w ramce telemetrii identyfikujaca przesyłane zmienne
 
 void InicjalizacjaTelemetrii(void);
-void ObslugaTelemetrii(void);
+void ObslugaTelemetrii(uint8_t chInterfejs);
 float PobierzZmiennaTele(uint64_t lZmienna);
-void WstawDoRamkiTele(float fDane);
-uint8_t InicjujRamkeTele(void);
+uint8_t WstawDoRamkiTele(uint8_t chIndNapRam, uint8_t chPozycja, float fDane);
+uint8_t PrzygotujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint64_t lListaZmiennych, uint8_t chRozmDanych);
+void Float2Char16(float fData, uint8_t* chData);
+void ZapiszKonfiguracjeTelemetrii(void);
 
 #endif /* INC_TELEMETRIA_H_ */
