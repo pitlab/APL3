@@ -62,10 +62,12 @@
 #define TELEM2_TEMPCISR2	0x100002000
 
 #define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	(32+14)
+#define LICZBA_BAJTOW_ID_TELEMETRII			(LICZBA_ZMIENNYCH_TELEMETRYCZNYCH / 8)	//liczba bajtów w ramce telemetrii identyfikujaca przesyłane zmienne
 
 void InicjalizacjaTelemetrii(void);
 void ObslugaTelemetrii(void);
 float PobierzZmiennaTele(uint64_t lZmienna);
 void WstawDoRamkiTele(float fDane);
+uint8_t InicjujRamkeTele(void);
 
 #endif /* INC_TELEMETRIA_H_ */

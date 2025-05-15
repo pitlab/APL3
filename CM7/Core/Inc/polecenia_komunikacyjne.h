@@ -31,7 +31,7 @@
 #define PR_CRC16_1			7
 #define PR_CRC16_2			8
 
-
+#define ROZMIAR_NAGLOWKA	6
 #define NAGLOWEK			0xAA
 #define ADRES_STACJI		0x00
 #define ADRES_BROADCAST		0xFF
@@ -55,7 +55,9 @@
 #define PK_KASUJ_FLASH		12	//kasuj sektor 128kB flash
 #define PK_CZYTAJ_FLASH		13	//odczytaj zawartość Flash
 
-#define PK_ILOSC_POLECEN	14	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
+#define PK_TELEMETRIA		14	//ramka telemetryczna
+
+#define PK_ILOSC_POLECEN	15	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
 
 

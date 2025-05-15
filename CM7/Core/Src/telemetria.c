@@ -9,13 +9,14 @@
 #include "telemetria.h"
 #include "wymiana_CM7.h"
 
-// Dane telemetryczne są wysyłane w zbiorczej ramce. Na początku ramki znajdują się słowa identyfikujące rodzaj przesyłanych danych gdzie kolejne bity określają rodzaj zmiennej
+// Dane telemetryczne są wysyłane w zbiorczej ramce. Na początku ramki znajdują się słowa identyfikujące rodzaj przesyłanych danych gdzie kolejne bity określają rodzaj przesyłanej zmiennej
 // Każda zmienna może mieć zdefiniowany inny okres wysyłania będący wielokrotnością 2ms (50Hz)
 
 
-ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chBuforTelemetrii[2][ROZMIAR_RAMKI_UART]);	//ramki telemetryczne: przygotowywana i wysyłana
+ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chRamkaTelemetrii[2][ROZMIAR_RAMKI_UART]);	//ramki telemetryczne: przygotowywana i wysyłana
 uint8_t chOkresTelem[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii
 uint8_t chLicznikTelem[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];
+uint8_t chIndeksNapelnianejRamki;	//okresla ktora tablica ramk telemetrycznej jest napełniania
 
 extern unia_wymianyCM4_t uDaneCM4;
 
@@ -41,19 +42,29 @@ void ObslugaTelemetrii(void)
 {
 	uint64_t lIdnetyfikatorZmiennej, lListaZmiennych = 0;
 	float fZmiennaTelem;
+	uint8_t chLicznikZmienych = 0;
+
+	InicjujRamkeTele();	//utwórz ciało ramki gotowe do wypełnienia danymi
 
 	for(uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
 	{
 		chLicznikTelem[n]--;
 		if (chLicznikTelem[n] == 0)
 		{
+			chLicznikZmienych++;
 			chLicznikTelem[n] = chOkresTelem[n];
 			lIdnetyfikatorZmiennej = 0x01 << n;
 			lListaZmiennych |= lIdnetyfikatorZmiennej;
 			fZmiennaTelem = PobierzZmiennaTele(lIdnetyfikatorZmiennej);
-			WstawDoRamkiTele(fZmiennaTelem);
+			WstawDoRamkiTele(chIndeksNapelnianejRamki, chLicznikZmienych, fZmiennaTelem);
 		}
 	}
+
+	//wyślij ramkę
+
+	//wskaż na następną ramkę
+	chIndeksNapelnianejRamki++;
+	chIndeksNapelnianejRamki &= 0x01;
 }
 
 
@@ -125,7 +136,30 @@ float PobierzZmiennaTele(uint64_t lZmienna)
 // Parametry: fDane - liczba do wysłania
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void WstawDoRamkiTele(float fDane)
+void WstawDoRamkiTele(uint8_t chIndNapRam, uint8_t chPozycja, float fDane)
 {
 
+
+    for (uint8_t n=0; n<chRozmDanych; n++)
+    	chRamkaTelemetrii[chIndNapRam][chPozycja + ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII] = CRC->DR =  *(chDane + n);
+
+
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Tworzy nagłówek ramki telemetrii. Inicjuje CRC
+// Parametry: fDane - liczba do wysłania
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+uint8_t InicjujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint8_t chRozmDanych)
+{
+	InicjujCRC16(0, WIELOMIAN_CRC);
+	chRamkaTelemetrii[chIndNapRam][0] = NAGLOWEK;
+	chRamkaTelemetrii[chIndNapRam][1] = CRC->DR = chAdrZdalny;
+	chRamkaTelemetrii[chIndNapRam][2] = CRC->DR = chAdrLokalny;
+	chRamkaTelemetrii[chIndNapRam][3] = CRC->DR = (nCzasSystemowy / 10) & 0xFF;
+	chRamkaTelemetrii[chIndNapRam][4] = CRC->DR = PK_TELEMETRIA;
+	chRamkaTelemetrii[chIndNapRam][5] = CRC->DR = chRozmDanych;
 }
