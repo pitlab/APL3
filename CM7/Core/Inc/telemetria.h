@@ -70,6 +70,6 @@ float PobierzZmiennaTele(uint64_t lZmienna);
 uint8_t WstawDoRamkiTele(uint8_t chIndNapRam, uint8_t chPozycja, float fDane);
 uint8_t PrzygotujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint64_t lListaZmiennych, uint8_t chRozmDanych);
 void Float2Char16(float fData, uint8_t* chData);
-void ZapiszKonfiguracjeTelemetrii(void);
+uint8_t ZapiszKonfiguracjeTelemetrii(void);
 
 #endif /* INC_TELEMETRIA_H_ */

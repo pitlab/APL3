@@ -27,7 +27,6 @@ extern unia_wymianyCM4_t uDaneCM4;
 extern uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
 extern uint8_t chAdresLokalny;						//własny adres sieciowy
 extern UART_HandleTypeDef hlpuart1;
-//extern DMA_HandleTypeDef hdma_lpuart1_tx;
 extern un8_16_t un8_16;	//unia do konwersji między danymi 16 i 8 bit
 extern volatile uint8_t chLPUartZajety;
 
@@ -57,10 +56,14 @@ void InicjalizacjaTelemetrii(void)
 					chDoOdczytu--;
 				}
 			}
+			chIndeksPaczki++;
 		}
-		chIndeksPaczki++;
 		chProbOdczytu--;
 	}
+
+	//inicjuj licznik okresem wysyłania
+	for (uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
+		chLicznikTelem[n] = chOkresTelem[n];
 }
 
 
@@ -89,9 +92,9 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 			fZmienna = PobierzZmiennaTele(lIdnetyfikatorZmiennej);
 			if (chRozmiarRamki < (ROZMIAR_RAMKI_UART - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
 			{
-				chLicznikZmienych++;
 				lListaZmiennych |= lIdnetyfikatorZmiennej;
 				chRozmiarRamki = WstawDoRamkiTele(chIndeksNapelnRamki, chLicznikZmienych, fZmienna);
+				chLicznikZmienych++;
 			}
 		}
 	}
@@ -213,7 +216,7 @@ uint8_t PrzygotujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chA
 	chRamkaTelemetrii[chIndNapRam][2] = CRC->DR = chAdrLokalny;
 	chRamkaTelemetrii[chIndNapRam][3] = CRC->DR = (nCzasSystemowy / 10) & 0xFF;
 	chRamkaTelemetrii[chIndNapRam][4] = CRC->DR = PK_TELEMETRIA;
-	chRamkaTelemetrii[chIndNapRam][5] = CRC->DR = chRozmDanych;
+	chRamkaTelemetrii[chIndNapRam][5] = CRC->DR = chRozmDanych * 2 + LICZBA_BAJTOW_ID_TELEMETRII;
 
 	//wstaw listę zmiennych na początku pola danych
 	for(uint16_t n=0; n<LICZBA_BAJTOW_ID_TELEMETRII; n++)
@@ -275,25 +278,28 @@ void Float2Char16(float fData, uint8_t* chData)
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void ZapiszKonfiguracjeTelemetrii(void)
+uint8_t ZapiszKonfiguracjeTelemetrii(void)
 {
 	uint8_t chPaczka[ROZMIAR_PACZKI_KONF8];
 	uint8_t chDoZapisu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
 	uint8_t chIndeksPaczki = 0;
 	uint8_t chProbZapisu = 5;
+	uint8_t chErr;
 
 	while (chDoZapisu && chProbZapisu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
 	{
 		chPaczka[0] = FKON_OKRES_TELEMETRI1 + chIndeksPaczki;
 		for (uint16_t n=0; n<ROZMIAR_PACZKI_KONF8 - 2; n++)
 		{
-			chPaczka[n+2] = chOkresTelem[n + chIndeksPaczki * 30];
+			chPaczka[n+2] = chOkresTelem[n + chIndeksPaczki * ROZMIAR_DANYCH_WPACZCE];
 
 			if (chDoZapisu)	//nie zapisuj wiecej niż trzeba zby nie przepelnić zmiennej
 				chDoZapisu--;
 		}
-		ZapiszPaczkeKonfigu(chPaczka);
-		chIndeksPaczki++;
+		chErr = ZapiszPaczkeKonfigu(chPaczka);
+		if (chErr == ERR_OK)
+			chIndeksPaczki++;
 		chProbZapisu--;
 	}
+	return chErr;
 }

@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include "LCD.h"
 #include "RPi35B_480x320.h"
-
+#include "czas.h"
 
 
 /* Dodać polecnie pooling status bit
