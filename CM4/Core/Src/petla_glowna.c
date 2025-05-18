@@ -50,8 +50,8 @@ volatile uint8_t chCzujnikZapisywanyNaI2CInt;
 uint8_t chNoweDaneI2C;	//zestaw flag informujący o pojawieniu sie nowych danych odebranych na magistrali I2C
 extern uint16_t sLicznikCzasuKalibracji;
 uint8_t chPoprzedniRodzajPomiaru;	//okresla czy poprzedni pomiar magnetometrem MMC był ze zmianą przemagnesowania czy bez
-int16_t sPoleCzujnika[3];
-
+//int16_t sPoleCzujnika[3];
+float fPoleCzujnkaMMC[3];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -457,10 +457,11 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 	extern float fPrzesMagn3[3], fSkaloMagn3[3];
 	uint8_t chErr = ERR_OK;
 	int16_t sZeZnakiem;	//zmiena robocza do konwersji dnych 8-bitowych bez znaku na liczbę 16-bitową ze znakiem
+	float fZeZnakiem;
 	const int8_t chZnakIIS[3] = {1, -1, -1};	//magnetometr 1: odwrotnie jest oś Z, ale żeby ją odwrócić, trzeba zmienić też znak w osi X lub Y. Zmieniam w Y: OK
 	//const int8_t chZnakMMC[3] = {-1, 1, -1};	//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z - zle
-	const int8_t chZnakMMC[3] = {1, 1, 1};		//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z
-	const int8_t chZnakHMC[3] = {1, -1, -1};	//magnetometr 3: jest OK
+	const int8_t chZnakMMC[3] = {-1, -1, 1};		//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z
+	const int8_t chZnakHMC[3] = {1, -1, 1};	//magnetometr 3: jest OK
 
 	if (*chCzujniki & MAG_HMC)
 	{
@@ -511,8 +512,8 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 			if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN1) || (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
 				uDaneCM4.dane.fMagne1[n] = (float)sZeZnakiem * CZULOSC_IIS2MDC;			//dane surowe podczas kalibracji magnetometru
 			else
-				//uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
-				uDaneCM4.dane.fMagne1[n] = (3 * uDaneCM4.dane.fMagne1[n] + ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n]) / 4;	//filtruj pomiar bo jest mocno zaszumiony a jest wystarczajaco szybki żeby filtracja nie przesuwała istotnie fazy
+				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
+				//uDaneCM4.dane.fMagne1[n] = (uDaneCM4.dane.fMagne1[n] + ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n]) / 2;	//filtruj pomiar bo jest mocno zaszumiony a jest wystarczajaco szybki żeby filtracja nie przesuwała istotnie fazy
 		}
 		*chCzujniki &= ~MAG_IIS;	//dane obsłużone
 		uDaneCM4.dane.chNowyPomiar |= NP_MAG1;	//jest nowy pomiar
@@ -530,24 +531,27 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 			//dla zmiany przemagnesowania czyli świeżych pomiarów H+ i H- policz nateżenie pola ziemi bezpośrednio odejmując je od siebie
 			if (chRodzajPomiaruMMC != chPoprzedniRodzajPomiaru)
 			{
-				sZeZnakiem = (sPomiarMMCH[n] - sPomiarMMCL[n]) / 2;
+				float fBiezacePoleCzujnika;
+
+				fZeZnakiem = (float)(sPomiarMMCH[n] - sPomiarMMCL[n]) / 2;
 				if (chRodzajPomiaruMMC < SPMMC3416_REFIL_RESET)
-					sPoleCzujnika[n] = sZeZnakiem - sPomiarMMCH[n];	//licz pole namagnesowania czujnika
+					fBiezacePoleCzujnika = fZeZnakiem - sPomiarMMCH[n];	//licz pole namagnesowania czujnika
 				else
-					sPoleCzujnika[n] = sZeZnakiem + sPomiarMMCL[n];
+					fBiezacePoleCzujnika = -fZeZnakiem - sPomiarMMCL[n];
+				fPoleCzujnkaMMC[n] = (7 * fPoleCzujnkaMMC[n] + fBiezacePoleCzujnika) / 8;	//filtruj obliczenia pola magnesowania czujnika
 			}
 			else	//dla ciagłego pomiaru z jednym typem magnesowania, natężenie pola ziemi licz odejmując obliczone wcześniej pole czujnika
 			{
 				if (chRodzajPomiaruMMC < SPMMC3416_REFIL_RESET)
-					sZeZnakiem = sPomiarMMCH[n] + sPoleCzujnika[n];
+					fZeZnakiem = sPomiarMMCH[n] + fPoleCzujnkaMMC[n];
 				else
-					sZeZnakiem = (sPomiarMMCL[n] - sPoleCzujnika[n]) * -1;
+					fZeZnakiem = (sPomiarMMCL[n] + fPoleCzujnkaMMC[n]) * -1;
 			}
 
 			if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN2) || (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
-				uDaneCM4.dane.fMagne2[n] = (float)sZeZnakiem * CZULOSC_MMC34160;	//dane surowe podczas kalibracji magnetometru
+				uDaneCM4.dane.fMagne2[n] = fZeZnakiem * CZULOSC_MMC34160;	//dane surowe podczas kalibracji magnetometru
 			else
-				uDaneCM4.dane.fMagne2[n] = ((float)sZeZnakiem * CZULOSC_MMC34160 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
+				uDaneCM4.dane.fMagne2[n] = (fZeZnakiem * CZULOSC_MMC34160 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
 		}
 		chPoprzedniRodzajPomiaru = chRodzajPomiaruMMC;
 		*chCzujniki &= ~MAG_MMC;	//dane obsłużone
