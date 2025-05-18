@@ -48,7 +48,7 @@
 #define SPMMC3416_START_CZYT_HM	11	//wyślij polecenie odczytu pomiaru H-
 #define SPMMC3416_LICZ_OPERACJI	12	//liczba operacji
 
-
+#define CYKLI_PRZEMAGNSOWANIA_MMC	200	//co tyle cykli przemagnesować czujnik
 
 //definicje poleceń magnetometru MMC3416x
 #define POL_TM			(1 << 0)	//TM Take measurement, set ‘1’ will initiate measurement

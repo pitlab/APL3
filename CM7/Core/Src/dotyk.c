@@ -16,6 +16,7 @@
 #include <string.h>
 #include "flash_konfig.h"
 #include "semafory.h"
+#include "czas.h"
 
 //deklaracje zmiennych
 extern SPI_HandleTypeDef hspi5;

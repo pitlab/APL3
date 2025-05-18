@@ -68,7 +68,7 @@ uint32_t PobierzCzasT6(void)
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy upływ czasu
 // Parametry: nStart - licznik czasu na na początku pomiaru
-// Zwraca: ilość czasu w milisekundach jaki upłynął do podanego czasu startu
+// Zwraca: ilość czasu w mikrosekundach jaki upłynął do podanego czasu startu
 ////////////////////////////////////////////////////////////////////////////////
 uint32_t MinalCzas(uint32_t nPoczatek)
 {
@@ -88,7 +88,7 @@ uint32_t MinalCzas(uint32_t nPoczatek)
 // Liczy upływ czasu
 // Parametry: nStart - licznik czasu na na początku pomiaru
 // nKoniec - licznik czasu na na końcu pomiaru
-// Zwraca: ilość czasu w milisekundach jaki upłynął do podanego czasu startu
+// Zwraca: ilość czasu w mikrosekundach jaki upłynął do podanego czasu startu
 ////////////////////////////////////////////////////////////////////////////////
 uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nKoniec)
 {

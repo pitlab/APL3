@@ -61,6 +61,9 @@ void InicjalizacjaTelemetrii(void)
 		chProbOdczytu--;
 	}
 
+	for (uint16_t n=0; n<3; n++)
+		chOkresTelem[n] = 2;
+
 	//inicjuj licznik okresem wysyłania
 	for (uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
 		chLicznikTelem[n] = chOkresTelem[n];
