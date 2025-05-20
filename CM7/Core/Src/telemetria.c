@@ -11,6 +11,7 @@
 #include "czas.h"
 #include "flash_konfig.h"
 #include "protokol_kom.h"
+#include "polecenia_komunikacyjne.h"
 
 // Dane telemetryczne są wysyłane w zbiorczej ramce. Na początku ramki znajdują się słowa identyfikujące rodzaj przesyłanych danych, gdzie kolejne bity
 // określają rodzaj przesyłanych zmiennych. Każda zmienna może mieć zdefiniowany inny okres wysyłania będący wielokrotnością KWANT_CZASU_TELEMETRII

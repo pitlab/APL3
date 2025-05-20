@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include "wymiana_CM7.h"
 #include "flash_nor.h"
+#include "telemetria.h"
 
 //definicje zmiennych
 uint8_t chStanProtokolu[ILOSC_INTERF_KOM];
@@ -252,6 +253,7 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
     static uint8_t chRozmDanych;
     static uint8_t chDane[ROZM_DANYCH_UART];
     extern struct st_KonfKam strKonfKam;
+    extern uint8_t chOkresTelem[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 
     chErr = DekodujRamke(chWe, &chAdresZdalny[chInterfejs], &chZnakCzasu[chInterfejs], &chPolecenie, &chRozmDanych, chDane, chInterfejs);
     if (chErr == ERR_RAMKA_GOTOWA)
@@ -388,6 +390,20 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 			}
 			chDane[ROZM_DANYCH_UART];*/
 			chErr = WyslijRamke(chAdresZdalny[chInterfejs], PK_CZYTAJ_FLASH, 2*chDane[4], (uint8_t*)sBuforSektoraFlash, chInterfejs);
+			break;
+
+		case PK_CZYTAJ_OKRES_TELE:	//odczytaj a APL3 okresy telemetrii: chDane[0] == liczba pozycji okresu telemetrii  do odczytania
+			chErr = WyslijRamke(chAdresZdalny[chInterfejs], PK_CZYTAJ_OKRES_TELE, chDane[0], chOkresTelem, chInterfejs);
+			break;
+
+		case PK_ZAPISZ_OKRES_TELE:	//zapisz okresy telemetrii
+			for (uint8_t n=0; n<chRozmDanych; n++)
+				chOkresTelem[n] = chDane[n];
+			chErr = ZapiszKonfiguracjeTelemetrii();
+			if (chErr)
+				chErr = Wyslij_ERR(chErr, 0, chInterfejs);		//zwróć kod błedu zapisu konfiguracji telemetrii
+			else
+				chErr = Wyslij_OK(chDane[1] - chDane[0], 0, chInterfejs);	//odeslij rozmiar zapisanych danych
 			break;
 
 		}
