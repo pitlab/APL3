@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 /* Struktura ramki komunikacyjnej
- * 0xAA - Nagłówek.Strumień danych wejściowych analizujemy pod kątem obecności nagłówka.
+ * NAGLOWEK = 0xAA Strumień danych wejściowych analizujemy pod kątem obecności nagłówka.
  * ADRES ODBIORCY - 0x00 stacja naziemna, 0xFF broadcast, pozostałe to numery BSP w roju.Podczas odbioru w tym miejscu przestajemy analizować jeżeli ramka nas nie dotyczy.Od tego miejsca może zaczynać się szyfrowanie
  * ADERS NADAWCY - aby można było zidentyfikować od kogo pochodzi ramka
  * ZNACZNIK CZASU - licznik setnych części sekundy po to aby można było poskładać we właściwej kolejności dane przesyłane w wielu ramkach
@@ -24,22 +24,25 @@
 #include "wymiana_CM7.h"
 #include "flash_nor.h"
 #include "telemetria.h"
+#include "flash_konfig.h"
 
 //definicje zmiennych
-uint8_t chStanProtokolu[ILOSC_INTERF_KOM];
+static uint8_t chStanProtokolu[ILOSC_INTERF_KOM];
 uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
-uint8_t chAdresLokalny;						//własny adres sieciowy
-uint8_t chLicznikDanych[ILOSC_INTERF_KOM];
-uint8_t chZnakCzasu[ILOSC_INTERF_KOM];
-uint16_t sCrc16We;
-uint8_t chRamkaWyj[ROZMIAR_RAMKI_UART];
+static uint8_t chAdresPrzychodzacy;	//może to być adres BSP lub broadcast
+stBSP_t stBSP;	//struktura zawierajaca adres i nazwę BSP
+static uint8_t chLicznikDanych[ILOSC_INTERF_KOM];
+static uint8_t chZnakCzasu[ILOSC_INTERF_KOM];
+static uint16_t sCrc16We;
+static uint8_t chRamkaWyj[ROZMIAR_RAMKI_UART];
 volatile uint32_t nCzasSystemowy;
 int16_t sSzerZdjecia, sWysZdjecia;
 uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
-#define ROZMIAR_LOGU_KOMUNIKACJI	1024
-uint16_t sLogKomunikacji[ROZMIAR_LOGU_KOMUNIKACJI];
-//uint32_t nLogKomunikacji[ROZMIAR_LOGU_KOMUNIKACJI];
-uint16_t sWskLogu = 0;	//wskaźnik logu
+//debug
+//#define ROZMIAR_LOGU_KOMUNIKACJI	1024
+//uint16_t sLogKomunikacji[ROZMIAR_LOGU_KOMUNIKACJI];
+//static uint16_t sWskLogu = 0;	//wskaźnik logu
+//debug
 un8_32_t un8_32;
 un8_16_t un8_16;
 
@@ -78,7 +81,12 @@ extern void Error_Handler(void);
 uint8_t InicjujProtokol(void)
 {
 	//odczytaj z konfiguracji i ustaw własny adres sieciowy
-	chAdresLokalny = 2;
+	stBSP.chAdres = 2;
+	stBSP.chNazwa[0] = 'a';
+	stBSP.chNazwa[1] = 'b';
+	stBSP.chNazwa[2] = 'c';
+	stBSP.chNazwa[3] = 'd';
+	stBSP.chNazwa[4] = 0;
 	return ERR_OK;
 }
 
@@ -298,13 +306,20 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 			WyslijRamke(chAdresZdalny[chInterfejs], PK_POBIERZ_ZDJECIE, chDane[4], (uint8_t*)(sBuforLCD + nOffsetDanych),  chInterfejs);
 			break;
 
-		case PK_USTAW_ID:		//ustawia identyfikator/adres urządzenia
-			chAdresLokalny = chDane[0];
+		case PK_USTAW_BSP:		//ustawia identyfikator/adres urządzenia
+			stBSP.chAdres = chDane[0];
+			for (n=0; n<DLUGOSC_NAZWY; n++)
+				stBSP.chNazwa[n] = chDane[n+1];
+			ZapiszPaczkeKonfigu(FKON_NAZWA_ID_BSP, (uint8_t*)&stBSP);
 			break;
 
-		case PK_POBIERZ_ID:		//pobiera identyfikator/adres urządzenia
-			chDane[0] = chAdresLokalny;
-			chErr = WyslijRamke(chAdresZdalny[chInterfejs], PK_POBIERZ_ID, 1, chDane, chInterfejs);
+		case PK_POBIERZ_BSP:		//pobiera identyfikator/adres urządzenia
+			chDane[0] = stBSP.chAdres;
+			for (n=0; n<DLUGOSC_NAZWY; n++)
+				chDane[n+1] = stBSP.chNazwa[n];
+			for (n=0; n<4; n++)
+				chDane[n+DLUGOSC_NAZWY+1] = stBSP.chAdrIP[n];
+			chErr = WyslijRamke(chAdresZdalny[chInterfejs], PK_POBIERZ_BSP, DLUGOSC_NAZWY+5, chDane, chInterfejs);
 			break;
 
 		case PK_UST_TR_PRACY:	//ustaw tryb pracy
@@ -440,8 +455,11 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
 		break;
 
     case PR_ADRES_ODB:
-    	if (chWe == chAdresLokalny)				//czy odebraliśmy własny adres sieciowy
+    	if ((chWe == stBSP.chAdres) || (chWe == ADRES_BROADCAST))				//czy odebraliśmy własny adres sieciowy lub adres rozgłoszeniowy
+    	{
+    		chAdresPrzychodzacy = chWe;	//zachowaj do liczenia CRC
     		chStanProtokolu[chInterfejs] = PR_ADRES_NAD;
+    	}
     	else
     		chStanProtokolu[chInterfejs] = PR_ODBIOR_NAGL;
     	break;
@@ -489,7 +507,7 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
 		chStanProtokolu[chInterfejs] = PR_ODBIOR_NAGL;
 		//dodać blokadę zasobu CRC
 		InicjujCRC16(0, WIELOMIAN_CRC);
-		*((volatile uint8_t *)&CRC->DR) = chAdresLokalny;
+		*((volatile uint8_t *)&CRC->DR) = chAdresPrzychodzacy;
 		*((volatile uint8_t *)&CRC->DR) = *chAdrZdalny;
 		*((volatile uint8_t *)&CRC->DR) = *chZnakCzasu;
 		*((volatile uint8_t *)&CRC->DR) = *chPolecenie;
@@ -608,9 +626,9 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
 	uint8_t chLokalnyZnakCzasu = (nCzasSystemowy / 10) & 0xFF;
 
     if (chPolecenie & 0x80)
-    	chErr = PrzygotujRamke(chAdrZdalny, chAdresLokalny,  chLokalnyZnakCzasu, chPolecenie, chRozmDanych, chDane, chRamkaWyj);	//ramka telemetryczna
+    	chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres,  chLokalnyZnakCzasu, chPolecenie, chRozmDanych, chDane, chRamkaWyj);	//ramka telemetryczna
     else
-    	chErr = PrzygotujRamke(chAdrZdalny, chAdresLokalny,  chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chRamkaWyj);	//ramka odpowiedzi
+    	chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres,  chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chRamkaWyj);	//ramka odpowiedzi
 
     if (chErr == ERR_OK)
     {

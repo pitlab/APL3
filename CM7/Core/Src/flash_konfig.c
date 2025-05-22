@@ -72,12 +72,13 @@ unsigned char SprawdzPaczke(unsigned int nAdres)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// zapisuje 16-bajtową paczkę danych do pamięci Flash - wersja na zewnątrz z domyślnym adresem
+// zapisuje 32-bajtową paczkę danych do pamięci Flash - wersja na zewnątrz z domyślnym adresem
 // Parametry:
 // *chDane - wskaźnik na strukturę danych do zaprogramowania
+// chIdPaczki - identyfikator paczki
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ZapiszPaczkeKonfigu(uint8_t* chDane)
+uint8_t ZapiszPaczkeKonfigu(uint8_t chIdPaczki, uint8_t* chDane)
 {
 	uint32_t nRozmiar;
 	uint8_t chErr;
@@ -91,10 +92,11 @@ uint8_t ZapiszPaczkeKonfigu(uint8_t* chDane)
 	if (nRozmiar < ROZMIAR_PACZKI_KONF8)
 		PrzepiszDane();
 
-	chErr = ZapiszPaczkeAdr(nAdresZapisuKonfigu, chDane);
+	chErr = ZapiszPaczkeAdr(chIdPaczki, chDane, nAdresZapisuKonfigu);
 	nAdresZapisuKonfigu += ROZMIAR_PACZKI_KONF;
 	return chErr;
 }
+
 
 
 
@@ -103,19 +105,23 @@ uint8_t ZapiszPaczkeKonfigu(uint8_t* chDane)
 // Parametry:
 // nAdres - adres do zapisu paczki konfiguracji
 // *chDane - wskaźnik na strukturę danych do zaprogramowania
+// chIdPaczki - identyfikator paczki
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ZapiszPaczkeAdr(uint32_t nAdres, uint8_t* chDane)
+uint8_t ZapiszPaczkeAdr(uint8_t chIdPaczki, uint8_t* chDane, uint32_t nAdres)
 {
-	uint8_t n, chSuma;
+	uint8_t chPaczka[ROZMIAR_PACZKI_KONF8];
 
-	//policz sumę kontrolną z danych
-	chSuma = *chDane;	//załaduj pierwszy składnik sumy: ID
-	for (n=2; n<ROZMIAR_PACZKI_KONF; n++)
-		chSuma += *(chDane+n);
-	*(chDane+1) = chSuma;		//zapisz sumę zaraz za ID
+	chPaczka[0] = chIdPaczki;
+	for (uint8_t n=0; n<ROZMIAR_PACZKI_KONF-2; n++)
+		chPaczka[n+2] += *(chDane+n);		//przepisz dane do paczki
 
-	return ZapiszDaneFlashNOR(nAdres, (uint16_t*)chDane, ROZMIAR_PACZKI_KONF16);	//rzutuj 8-bitową paczke na 16-bitową
+	//policz sumę kontrolną paczki
+	chPaczka[1] = 0;
+	for (uint8_t n=2; n<ROZMIAR_PACZKI_KONF; n++)
+		chPaczka[1] += chPaczka[n];		//zapisz sumę zaraz za ID
+
+	return ZapiszDaneFlashNOR(nAdres, (uint16_t*)chDane, ROZMIAR_PACZKI_KONF16);	//rzutuj 8-bitową paczke na 16-bitów
 }
 
 
@@ -127,10 +133,9 @@ uint8_t ZapiszPaczkeAdr(uint32_t nAdres, uint8_t* chDane)
 // chIdent - identyfikator paczki
 // Zwraca: ilość odczytanych danych
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t CzytajPaczkeKonfigu(uint8_t* chDane, uint8_t chIdent)
+uint8_t CzytajPaczkeKonfigu(uint8_t* chDane, uint8_t chIdPaczki)
 {
 	uint8_t n, m, chID;
-	//uint8_t m = 0; //liczba odczytanych danych
 	uint32_t nAdresOdczytu;
 
 	//określ adres początku sektora w którym są zapisane dane
@@ -145,7 +150,7 @@ uint8_t CzytajPaczkeKonfigu(uint8_t* chDane, uint8_t chIdent)
 	for (; n>0; n--)
 	{
 		chID = *(__IO unsigned char*)(nAdresOdczytu + (n-1)*ROZMIAR_PACZKI_KONF16);
-		if (chID == chIdent)	//testowany jest pierwszy bajt paczki zawierajacy identyfikator
+		if (chID == chIdPaczki)	//testowany jest pierwszy bajt paczki zawierajacy identyfikator
 		{
 			if (SprawdzPaczke(nAdresOdczytu + (n-1)*ROZMIAR_PACZKI_KONF16))
 			{
@@ -190,7 +195,7 @@ uint8_t PrzepiszDane(void)
 		m = CzytajPaczkeKonfigu(chPaczka, n);
 		if (m == ROZMIAR_PACZKI_KONF8)		//czy odczytało poprawną paczkę
 		{
-			ZapiszPaczkeAdr(nNowyAdresZapisu, chPaczka);
+			ZapiszPaczkeAdr(FKON_NAZWA_ID_BSP, chPaczka, nNowyAdresZapisu);
 			nNowyAdresZapisu += ROZMIAR_PACZKI_KONF16;
 		}
 	}

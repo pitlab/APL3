@@ -26,16 +26,16 @@
 #define FKON_OKRES_TELEMETRI2		0x02	//okresy wysyłania zmiennych telemetrycznych
 #define FKON_OKRES_TELEMETRI3		0x03	//okresy wysyłania zmiennych telemetrycznych
 #define FKON_OKRES_TELEMETRI4		0x04	//okresy wysyłania zmiennych telemetrycznych
-
+#define FKON_NAZWA_ID_BSP			0x05	//struktura identyfikacyjna BSP: ID, nazwa i numer IP
 #define LICZBA_TYPOW_PACZEK	1
 
 
 
 
 uint8_t InicjujKonfigFlash(void);
-uint8_t ZapiszPaczkeKonfigu(uint8_t* chDane);
-uint8_t ZapiszPaczkeAdr(uint32_t nAdrZapisu,  uint8_t* chDane);
-uint8_t CzytajPaczkeKonfigu(uint8_t* chDane, uint8_t chIdent);
+uint8_t ZapiszPaczkeKonfigu(uint8_t chIdPaczki, uint8_t* chDane);
+uint8_t ZapiszPaczkeAdr(uint8_t chIdPaczki, uint8_t* chDane, uint32_t nAdres);
+uint8_t CzytajPaczkeKonfigu(uint8_t* chDane, uint8_t chIdPaczki);
 float KonwChar2Float(unsigned char *chData);
 void KonwFloat2Char(float fData, unsigned char *chData);
 unsigned short KonwChar2UShort(unsigned char *chData);

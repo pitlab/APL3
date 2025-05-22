@@ -29,7 +29,12 @@ typedef union 		//unia do konwersji między danymi 32 i 8 bit
 	uint8_t dane8[4];
 } un8_32_t;
 
-
+typedef struct		//dobrze aby cała struktura zmieściła się na stronie flasch 30 bajtów
+{
+	uint8_t chAdres;						//własny adres sieciowy
+	uint8_t chNazwa[DLUGOSC_NAZWY];			//nazwa BSP
+	uint8_t chAdrIP[4];						//numer IP
+} stBSP_t;
 
 //definicje funkcji lokalnych
 uint8_t InicjujProtokol(void);

@@ -24,8 +24,8 @@
 
 //definicje pól ramki
 #define PR_ODBIOR_NAGL		0
-#define PR_ADRES_NAD		1
-#define PR_ADRES_ODB		2
+#define PR_ADRES_ODB		1
+#define PR_ADRES_NAD		2
 #define PR_ZNAK_CZASU		3
 #define PR_POLECENIE		4
 #define PR_ROZM_DANYCH		5
@@ -38,6 +38,7 @@
 #define ADRES_STACJI		0x00
 #define ADRES_BROADCAST		0xFF
 #define WIELOMIAN_CRC		0x1021
+#define DLUGOSC_NAZWY		20		//maksymalna długość nazwy BSP, zmiennych telemetrycznych, lub innych nazw
 
 //nazwy poleceń protokołu
 #define PK_OK					0	//akceptacja
@@ -46,8 +47,8 @@
 #define PK_POB_STAT_ZDJECIA		3	//pobierz status gotowości zdjęcia
 #define PK_POBIERZ_ZDJECIE		4	//polecenie przesłania fragmentu zdjecia. We: [0..3] - wskaźnik na pozycje bufora, [4] - rozmiar danych do przesłania
 
-#define PK_USTAW_ID				5	//ustawia identyfikator/adres urządzenia
-#define PK_POBIERZ_ID			6	//pobiera identyfikator/adres urządzenia
+#define PK_USTAW_BSP			5	//ustawia identyfikator/adres urządzenia
+#define PK_POBIERZ_BSP			6	//pobiera identyfikator/adres urządzenia
 #define PK_UST_TR_PRACY			7	//ustaw tryb pracy
 #define PK_POB_PAR_KAMERY		8	//pobierz parametry pracy kamery
 #define PK_UST_PAR_KAMERY		9	//ustaw parametry pracy kamery

@@ -224,15 +224,14 @@ uint8_t KalibrujDotyk(void)
 				for (uint8_t n=0; n<ROZMIAR_PACZKI_KONF8; n++)
 					chPaczka[n] = 0;
 
-				chPaczka[0] = FKON_KALIBRACJA_DOTYKU;
-				KonwFloat2Char(kalibDotyku.fAx, &chPaczka[2]);
-				KonwFloat2Char(kalibDotyku.fAy, &chPaczka[6]);
-				KonwFloat2Char(kalibDotyku.fDeltaX, &chPaczka[10]);
+				KonwFloat2Char(kalibDotyku.fAx, &chPaczka[0]);
+				KonwFloat2Char(kalibDotyku.fAy, &chPaczka[4]);
+				KonwFloat2Char(kalibDotyku.fDeltaX, &chPaczka[18]);
 
-				KonwFloat2Char(kalibDotyku.fBx, &chPaczka[14]);
-				KonwFloat2Char(kalibDotyku.fBy, &chPaczka[18]);
-				KonwFloat2Char(kalibDotyku.fDeltaY, &chPaczka[22]);
-				chErr = ZapiszPaczkeKonfigu(chPaczka);
+				KonwFloat2Char(kalibDotyku.fBx, &chPaczka[12]);
+				KonwFloat2Char(kalibDotyku.fBy, &chPaczka[16]);
+				KonwFloat2Char(kalibDotyku.fDeltaY, &chPaczka[20]);
+				chErr = ZapiszPaczkeKonfigu(FKON_KALIBRACJA_DOTYKU, chPaczka);
 				if (chErr == ERR_OK)
 					statusDotyku.chFlagi |= DOTYK_ZAPISANO;
 				chEtapKalibr = 0;

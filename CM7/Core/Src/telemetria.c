@@ -26,7 +26,7 @@ uint8_t chIndeksNapelnRamki;	//okresla ktora tablica ramki telemetrycznej jest n
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
-extern uint8_t chAdresLokalny;						//własny adres sieciowy
+extern stBSP_t stBSP;						//własny adres sieciowy
 extern UART_HandleTypeDef hlpuart1;
 extern un8_16_t un8_16;	//unia do konwersji między danymi 16 i 8 bit
 extern volatile uint8_t chLPUartZajety;
@@ -105,7 +105,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 
 	if (lListaZmiennych)	//jeżeli jest coś do wysłania
 	{
-		chRozmiarRamki = PrzygotujRamkeTele(chIndeksNapelnRamki, chAdresZdalny[chInterfejs], chAdresLokalny, lListaZmiennych, chLicznikZmienych);	//utwórz ciało ramki gotowe do wysyłk
+		chRozmiarRamki = PrzygotujRamkeTele(chIndeksNapelnRamki, chAdresZdalny[chInterfejs], stBSP.chAdres, lListaZmiennych, chLicznikZmienych);	//utwórz ciało ramki gotowe do wysyłk
 		chLPUartZajety = 1;
 		HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[chIndeksNapelnRamki][0], (uint16_t)chRozmiarRamki);	//wyślij ramkę
 
@@ -284,7 +284,7 @@ void Float2Char16(float fData, uint8_t* chData)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZapiszKonfiguracjeTelemetrii(void)
 {
-	uint8_t chPaczka[ROZMIAR_PACZKI_KONF8];
+	//uint8_t chPaczka[ROZMIAR_PACZKI_KONF8];
 	uint8_t chDoZapisu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
 	uint8_t chIndeksPaczki = 0;
 	uint8_t chProbZapisu = 5;
@@ -292,15 +292,15 @@ uint8_t ZapiszKonfiguracjeTelemetrii(void)
 
 	while (chDoZapisu && chProbZapisu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
 	{
-		chPaczka[0] = FKON_OKRES_TELEMETRI1 + chIndeksPaczki;
+		/*chPaczka[0] = FKON_OKRES_TELEMETRI1 + chIndeksPaczki;
 		for (uint16_t n=0; n<ROZMIAR_PACZKI_KONF8 - 2; n++)
 		{
 			chPaczka[n+2] = chOkresTelem[n + chIndeksPaczki * ROZMIAR_DANYCH_WPACZCE];
 
 			if (chDoZapisu)	//nie zapisuj wiecej niż trzeba zby nie przepelnić zmiennej
 				chDoZapisu--;
-		}
-		chErr = ZapiszPaczkeKonfigu(chPaczka);
+		}*/
+		chErr = ZapiszPaczkeKonfigu(FKON_OKRES_TELEMETRI1 + chIndeksPaczki, &chOkresTelem[chIndeksPaczki * ROZMIAR_DANYCH_WPACZCE]);
 		if (chErr == ERR_OK)
 			chIndeksPaczki++;
 		chProbZapisu--;
