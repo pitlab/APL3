@@ -104,8 +104,7 @@ uint8_t ZapiszPaczkeKonfigu(uint8_t chIdPaczki, uint8_t* chDane)
 // zapisuje paczkę z konfiguracją do zewnętrznej pamięci Flash pod jawnie podany adres
 // Parametry:
 // nAdres - adres do zapisu paczki konfiguracji
-// *chDane - wskaźnik na strukturę danych do zaprogramowania
-// chIdPaczki - identyfikator paczki
+// *chDane - wskaźnik na strukturę danych do zaprogramowania// chIdPaczki - identyfikator paczki
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZapiszPaczkeAdr(uint8_t chIdPaczki, uint8_t* chDane, uint32_t nAdres)
@@ -114,7 +113,7 @@ uint8_t ZapiszPaczkeAdr(uint8_t chIdPaczki, uint8_t* chDane, uint32_t nAdres)
 
 	chPaczka[0] = chIdPaczki;
 	for (uint8_t n=0; n<ROZMIAR_PACZKI_KONF-2; n++)
-		chPaczka[n+2] += *(chDane+n);		//przepisz dane do paczki
+		chPaczka[n+2] = *(chDane+n);		//przepisz dane do paczki
 
 	//policz sumę kontrolną paczki
 	chPaczka[1] = 0;

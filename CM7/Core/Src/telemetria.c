@@ -29,8 +29,9 @@ extern uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
 extern stBSP_t stBSP;						//własny adres sieciowy
 extern UART_HandleTypeDef hlpuart1;
 extern un8_16_t un8_16;	//unia do konwersji między danymi 16 i 8 bit
-extern volatile uint8_t chLPUartZajety;
+extern volatile uint8_t chUartKomunikacjiZajety;
 
+uint8_t chOdczytano, chDoOdczytu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja inicjalizuje zmienne używane do obsługi telemetrii
@@ -40,9 +41,15 @@ extern volatile uint8_t chLPUartZajety;
 void InicjalizacjaTelemetrii(void)
 {
 	uint8_t chPaczka[ROZMIAR_PACZKI_KONF8];
-	uint8_t chOdczytano, chDoOdczytu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
+	uint8_t chOdczytano;
+	uint8_t chDoOdczytu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
 	uint8_t chIndeksPaczki = 0;
 	uint8_t chProbOdczytu = 5;
+
+	//Inicjuj zmienne wartościa wyłączoną gdyby nie dało się odczytać konfiguracji.
+	//Lepiej jest mieć telemetrię wyłaczoną niż zapchaną pracujacą na 100%
+	for (uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
+		chOkresTelem[n] = TEMETETRIA_WYLACZONA;
 
 	while (chDoOdczytu && chProbOdczytu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
 	{
@@ -62,9 +69,6 @@ void InicjalizacjaTelemetrii(void)
 		chProbOdczytu--;
 	}
 
-	for (uint16_t n=0; n<3; n++)
-		chOkresTelem[n] = 2;
-
 	//inicjuj licznik okresem wysyłania
 	for (uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
 		chLicznikTelem[n] = chOkresTelem[n];
@@ -79,10 +83,14 @@ void InicjalizacjaTelemetrii(void)
 ////////////////////////////////////////////////////////////////////////////////
 void ObslugaTelemetrii(uint8_t chInterfejs)
 {
-	uint64_t lIdnetyfikatorZmiennej, lListaZmiennych = 0;
+	//uint64_t lIdnetyfikatorZmiennej, lListaZmiennych = 0;
 	uint8_t chLicznikZmienych = 0;
 	uint8_t chRozmiarRamki = 0;
 	float fZmienna;
+
+	//wyczyść pola w ramce na bity identyfikujące zmienne, bo kolejne bity będą OR-owane z wartoscią początkową, któa musi być zerowa
+	for(uint16_t n=0; n<LICZBA_BAJTOW_ID_TELEMETRII; n++)
+		chRamkaTelemetrii[chIndeksNapelnRamki][ROZMIAR_NAGLOWKA + n] = 0;
 
 	for(uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
 	{
@@ -92,21 +100,19 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 		if (chLicznikTelem[n] == 0)
 		{
 			chLicznikTelem[n] = chOkresTelem[n];
-			lIdnetyfikatorZmiennej = 0x01 << n;
-			fZmienna = PobierzZmiennaTele(lIdnetyfikatorZmiennej);
+			fZmienna = PobierzZmiennaTele(n);
 			if (chRozmiarRamki < (ROZMIAR_RAMKI_UART - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
 			{
-				lListaZmiennych |= lIdnetyfikatorZmiennej;
-				chRozmiarRamki = WstawDoRamkiTele(chIndeksNapelnRamki, chLicznikZmienych, fZmienna);
+				chRozmiarRamki = WstawDaneDoRamkiTele(chIndeksNapelnRamki, chLicznikZmienych, n, fZmienna);
 				chLicznikZmienych++;
 			}
 		}
 	}
 
-	if (lListaZmiennych)	//jeżeli jest coś do wysłania
+	if (chLicznikZmienych)	//jeżeli jest coś do wysłania
 	{
-		chRozmiarRamki = PrzygotujRamkeTele(chIndeksNapelnRamki, chAdresZdalny[chInterfejs], stBSP.chAdres, lListaZmiennych, chLicznikZmienych);	//utwórz ciało ramki gotowe do wysyłk
-		chLPUartZajety = 1;
+		chRozmiarRamki = PrzygotujRamkeTele(chIndeksNapelnRamki, chAdresZdalny[chInterfejs], stBSP.chAdres, chLicznikZmienych);	//utwórz ciało ramki gotowe do wysyłk
+		chUartKomunikacjiZajety = 1;
 		HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[chIndeksNapelnRamki][0], (uint16_t)chRozmiarRamki);	//wyślij ramkę
 
 		//wskaż na następną ramkę
@@ -128,51 +134,57 @@ float PobierzZmiennaTele(uint64_t lZmienna)
 
 	switch (lZmienna)
 	{
-	case TELEM1_AKCEL1X:	fZmiennaTelem = uDaneCM4.dane.fAkcel1[0];		break;
-	case TELEM1_AKCEL1Y:	fZmiennaTelem = uDaneCM4.dane.fAkcel1[1];		break;
-	case TELEM1_AKCEL1Z:	fZmiennaTelem = uDaneCM4.dane.fAkcel1[2];		break;
-	case TELEM1_AKCEL2X:	fZmiennaTelem = uDaneCM4.dane.fAkcel2[0];		break;
-	case TELEM1_AKCEL2Y:	fZmiennaTelem = uDaneCM4.dane.fAkcel2[1];		break;
-	case TELEM1_AKCEL2Z:	fZmiennaTelem = uDaneCM4.dane.fAkcel2[2];		break;
-	case TELEM1_ZYRO1P:		fZmiennaTelem = uDaneCM4.dane.fKatZyro1[0];		break;
-	case TELEM1_ZYRO1Q:		fZmiennaTelem = uDaneCM4.dane.fKatZyro1[1];		break;
-	case TELEM1_ZYRO1R:		fZmiennaTelem = uDaneCM4.dane.fKatZyro1[2];		break;
-	case TELEM1_ZYRO2P:		fZmiennaTelem = uDaneCM4.dane.fKatZyro2[0];		break;
-	case TELEM1_ZYRO2Q:		fZmiennaTelem = uDaneCM4.dane.fKatZyro2[1];		break;
-	case TELEM1_ZYRO2R:		fZmiennaTelem = uDaneCM4.dane.fKatZyro2[2];		break;
-	case TELEM1_MAGNE1X:	fZmiennaTelem = uDaneCM4.dane.fMagne1[0];		break;
-	case TELEM1_MAGNE1Y:	fZmiennaTelem = uDaneCM4.dane.fMagne1[1];		break;
-	case TELEM1_MAGNE1Z:	fZmiennaTelem = uDaneCM4.dane.fMagne1[2];		break;
-	case TELEM1_MAGNE2X:	fZmiennaTelem = uDaneCM4.dane.fMagne2[0];		break;
-	case TELEM1_MAGNE2Y:	fZmiennaTelem = uDaneCM4.dane.fMagne2[1];		break;
-	case TELEM1_MAGNE2Z:	fZmiennaTelem = uDaneCM4.dane.fMagne2[2];		break;
-	case TELEM1_MAGNE3X:	fZmiennaTelem = uDaneCM4.dane.fMagne3[0];		break;
-	case TELEM1_MAGNE3Y:	fZmiennaTelem = uDaneCM4.dane.fMagne3[1];		break;
-	case TELEM1_MAGNE3Z:	fZmiennaTelem = uDaneCM4.dane.fMagne3[2];		break;
-	case TELEM1_KAT_IMU1X:	fZmiennaTelem = uDaneCM4.dane.fKatIMU1[0];		break;
-	case TELEM1_KAT_IMU1Y:	fZmiennaTelem = uDaneCM4.dane.fKatIMU1[1];		break;
-	case TELEM1_KAT_IMU1Z:	fZmiennaTelem = uDaneCM4.dane.fKatIMU1[2];		break;
-	case TELEM1_KAT_IMU2X:	fZmiennaTelem = uDaneCM4.dane.fKatIMU2[0];		break;
-	case TELEM1_KAT_IMU2Y:	fZmiennaTelem = uDaneCM4.dane.fKatIMU2[1];		break;
-	case TELEM1_KAT_IMU2Z:	fZmiennaTelem = uDaneCM4.dane.fKatIMU2[2];		break;
-	case TELEM1_KAT_ZYRO1X:	fZmiennaTelem = uDaneCM4.dane.fKatZyro1[0];		break;
-	case TELEM1_KAT_ZYRO1Y:	fZmiennaTelem = uDaneCM4.dane.fKatZyro1[1];		break;
-	case TELEM1_KAT_ZYRO1Z:	fZmiennaTelem = uDaneCM4.dane.fKatZyro1[2];		break;
+	case TELEID_AKCEL1X:	fZmiennaTelem = uDaneCM4.dane.fAkcel1[0];		break;
+	case TELEID_AKCEL1Y:	fZmiennaTelem = uDaneCM4.dane.fAkcel1[1];		break;
+	case TELEID_AKCEL1Z:	fZmiennaTelem = uDaneCM4.dane.fAkcel1[2];		break;
+	case TELEID_AKCEL2X:	fZmiennaTelem = uDaneCM4.dane.fAkcel2[0];		break;
+	case TELEID_AKCEL2Y:	fZmiennaTelem = uDaneCM4.dane.fAkcel2[1];		break;
+	case TELEID_AKCEL2Z:	fZmiennaTelem = uDaneCM4.dane.fAkcel2[2];		break;
+	case TELEID_ZYRO1P:		fZmiennaTelem = uDaneCM4.dane.fKatZyro1[0];		break;
+	case TELEID_ZYRO1Q:		fZmiennaTelem = uDaneCM4.dane.fKatZyro1[1];		break;
+	case TELEID_ZYRO1R:		fZmiennaTelem = uDaneCM4.dane.fKatZyro1[2];		break;
+	case TELEID_ZYRO2P:		fZmiennaTelem = uDaneCM4.dane.fKatZyro2[0];		break;
+	case TELEID_ZYRO2Q:		fZmiennaTelem = uDaneCM4.dane.fKatZyro2[1];		break;
+	case TELEID_ZYRO2R:		fZmiennaTelem = uDaneCM4.dane.fKatZyro2[2];		break;
+	case TELEID_MAGNE1X:	fZmiennaTelem = uDaneCM4.dane.fMagne1[0];		break;
+	case TELEID_MAGNE1Y:	fZmiennaTelem = uDaneCM4.dane.fMagne1[1];		break;
+	case TELEID_MAGNE1Z:	fZmiennaTelem = uDaneCM4.dane.fMagne1[2];		break;
+	case TELEID_MAGNE2X:	fZmiennaTelem = uDaneCM4.dane.fMagne2[0];		break;
+	case TELEID_MAGNE2Y:	fZmiennaTelem = uDaneCM4.dane.fMagne2[1];		break;
+	case TELEID_MAGNE2Z:	fZmiennaTelem = uDaneCM4.dane.fMagne2[2];		break;
+	case TELEID_MAGNE3X:	fZmiennaTelem = uDaneCM4.dane.fMagne3[0];		break;
+	case TELEID_MAGNE3Y:	fZmiennaTelem = uDaneCM4.dane.fMagne3[1];		break;
+	case TELEID_MAGNE3Z:	fZmiennaTelem = uDaneCM4.dane.fMagne3[2];		break;
+	case TELEID_TEMPIMU1:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_IMU1];		break;
+	case TELEID_TEMPIMU2:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_IMU1];		break;
 
-	case TELEM2_CISBEZW1:	fZmiennaTelem = uDaneCM4.dane.fCisnie[0];		break;
-	case TELEM2_CISBEZW2:	fZmiennaTelem = uDaneCM4.dane.fCisnie[1];		break;
-	case TELEM2_WYSOKOSC1:	fZmiennaTelem = uDaneCM4.dane.fWysoko[0];		break;
-	case TELEM2_WYSOKOSC2:	fZmiennaTelem = uDaneCM4.dane.fWysoko[1];		break;
-	case TELEM2_CISROZN1:	fZmiennaTelem = uDaneCM4.dane.fCisnRozn[0];		break;
-	case TELEM2_CISROZN2:	fZmiennaTelem = uDaneCM4.dane.fCisnRozn[1];		break;
-	case TELEM2_PREDIAS1:	fZmiennaTelem = uDaneCM4.dane.fPredkosc[0];		break;
-	case TELEM2_PREDIAS2:	fZmiennaTelem = uDaneCM4.dane.fPredkosc[1];		break;
-	case TELEM2_TEMPCIS1:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_BARO1];		break;
-	case TELEM2_TEMPCIS2:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_BARO2];		break;
-	case TELEM2_TEMPIMU1:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_IMU1];		break;
-	case TELEM2_TEMPIMU2:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_IMU1];		break;
-	case TELEM2_TEMPCISR1:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_CISR1];		break;
-	case TELEM2_TEMPCISR2:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_CISR2];		break;
+	//zmienne AHRS
+	case TELEID_KAT_IMU1X:	fZmiennaTelem = uDaneCM4.dane.fKatIMU1[0];		break;
+	case TELEID_KAT_IMU1Y:	fZmiennaTelem = uDaneCM4.dane.fKatIMU1[1];		break;
+	case TELEID_KAT_IMU1Z:	fZmiennaTelem = uDaneCM4.dane.fKatIMU1[2];		break;
+	case TELEID_KAT_IMU2X:	fZmiennaTelem = uDaneCM4.dane.fKatIMU2[0];		break;
+	case TELEID_KAT_IMU2Y:	fZmiennaTelem = uDaneCM4.dane.fKatIMU2[1];		break;
+	case TELEID_KAT_IMU2Z:	fZmiennaTelem = uDaneCM4.dane.fKatIMU2[2];		break;
+	case TELEID_KAT_ZYRO1X:	fZmiennaTelem = uDaneCM4.dane.fKatZyro1[0];		break;
+	case TELEID_KAT_ZYRO1Y:	fZmiennaTelem = uDaneCM4.dane.fKatZyro1[1];		break;
+	case TELEID_KAT_ZYRO1Z:	fZmiennaTelem = uDaneCM4.dane.fKatZyro1[2];		break;
+	case TELEID_KAT_AKCELX:	fZmiennaTelem = uDaneCM4.dane.fKatAkcel1[0];	break;
+	case TELEID_KAT_AKCELY:	fZmiennaTelem = uDaneCM4.dane.fKatAkcel1[1];	break;
+	case TELEID_KAT_AKCELZ:	fZmiennaTelem = uDaneCM4.dane.fKatAkcel1[2];	break;
+
+	//zmienne barametryczne
+	case TELEID_CISBEZW1:	fZmiennaTelem = uDaneCM4.dane.fCisnie[0];		break;
+	case TELEID_CISBEZW2:	fZmiennaTelem = uDaneCM4.dane.fCisnie[1];		break;
+	case TELEID_WYSOKOSC1:	fZmiennaTelem = uDaneCM4.dane.fWysoko[0];		break;
+	case TELEID_WYSOKOSC2:	fZmiennaTelem = uDaneCM4.dane.fWysoko[1];		break;
+	case TELEID_CISROZN1:	fZmiennaTelem = uDaneCM4.dane.fCisnRozn[0];		break;
+	case TELEID_CISROZN2:	fZmiennaTelem = uDaneCM4.dane.fCisnRozn[1];		break;
+	case TELEID_PREDIAS1:	fZmiennaTelem = uDaneCM4.dane.fPredkosc[0];		break;
+	case TELEID_PREDIAS2:	fZmiennaTelem = uDaneCM4.dane.fPredkosc[1];		break;
+	case TELEID_TEMPCISB1:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_BARO1];		break;
+	case TELEID_TEMPCISB2:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_BARO2];		break;
+	case TELEID_TEMPCISR1:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_CISR1];		break;
+	case TELEID_TEMPCISR2:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_CISR2];		break;
 
 	default: fZmiennaTelem = -1.0;
 	}
@@ -183,19 +195,29 @@ float PobierzZmiennaTele(uint64_t lZmienna)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Funkcja wstawia do bieżącej ramki telemetrii liczbę do wysłania
-// Parametry: fDane - liczba do wysłania
+// Parametry:
+// chIndNapRam - Indeks napełnianej ramki (numer pierwszej tablicy)
+// chPozycja - kolejny nymer zmiennej w ramce
+// chIdZmiennej - identyfikator typu zmiennej
+// fDane - liczba do wysłania
 // Zwraca: rozmiar ramki
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t WstawDoRamkiTele(uint8_t chIndNapRam, uint8_t chPozycja, float fDane)
+uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chPozycja, uint8_t chIdZmiennej, float fDane)
 {
 	uint8_t chDane[2];
 	uint8_t chRozmiar;
+	uint8_t chBajtBitu;	//numer bajtu w ktorym jest bit identyfikacyjny
 
 	Float2Char16(fDane, chDane);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
 
+	//wstaw dane
 	chRozmiar = ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + 2 * chPozycja;
 	chRamkaTelemetrii[chIndNapRam][chRozmiar + 0] = chDane[0];
     chRamkaTelemetrii[chIndNapRam][chRozmiar + 1] = chDane[1];
+
+    //wstaw bit identyfikatora zmiennej
+    chBajtBitu = chIdZmiennej / 8;
+    chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + chBajtBitu] |= 1 << (chIdZmiennej - (chBajtBitu * 8));
     return chRozmiar + 2;
 }
 
@@ -210,7 +232,7 @@ uint8_t WstawDoRamkiTele(uint8_t chIndNapRam, uint8_t chPozycja, float fDane)
 // chRozmDanych - liczba zmiennych telemetrycznych do wysłania w ramce
 // Zwraca: rozmiar ramki
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t PrzygotujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint64_t lListaZmiennych, uint8_t chRozmDanych)
+uint8_t PrzygotujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint8_t chRozmDanych)
 {
 	uint32_t nCzasSystemowy = PobierzCzasT6();
 
@@ -222,17 +244,13 @@ uint8_t PrzygotujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chA
 	chRamkaTelemetrii[chIndNapRam][4] = CRC->DR = PK_TELEMETRIA;
 	chRamkaTelemetrii[chIndNapRam][5] = CRC->DR = chRozmDanych * 2 + LICZBA_BAJTOW_ID_TELEMETRII;
 
-	//wstaw listę zmiennych na początku pola danych
-	for(uint16_t n=0; n<LICZBA_BAJTOW_ID_TELEMETRII; n++)
-		chRamkaTelemetrii[chIndeksNapelnRamki][ROZMIAR_NAGLOWKA + n] = (lListaZmiennych >> (n*8)) & 0xFF;
-
 	//policz CRC z danych i listy zmiennych
 	for(uint16_t n=0; n < (chRozmDanych * 2 + LICZBA_BAJTOW_ID_TELEMETRII); n++)
-		CRC->DR = chRamkaTelemetrii[chIndeksNapelnRamki][ROZMIAR_NAGLOWKA + n];
+		CRC->DR = chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + n];
 
 	un8_16.dane16 = (uint16_t)CRC->DR;
-	chRamkaTelemetrii[chIndeksNapelnRamki][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 0] =  un8_16.dane8[1];	//starszy
-	chRamkaTelemetrii[chIndeksNapelnRamki][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 1] =  un8_16.dane8[0];	//młodszy
+	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 0] =  un8_16.dane8[1];	//starszy
+	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 1] =  un8_16.dane8[0];	//młodszy
 
 	return chRozmDanych * 2 + LICZBA_BAJTOW_ID_TELEMETRII + ROZMIAR_NAGLOWKA + ROZMIAR_CRC;
 }
@@ -278,7 +296,7 @@ void Float2Char16(float fData, uint8_t* chData)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Zapisuje do FLASH częstotliość wysyłania kolenych zmiennych telemetrycznych
+// Zapisuje do FLASH okres wysyłania kolenych zmiennych telemetrycznych
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -292,17 +310,15 @@ uint8_t ZapiszKonfiguracjeTelemetrii(void)
 
 	while (chDoZapisu && chProbZapisu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
 	{
-		/*chPaczka[0] = FKON_OKRES_TELEMETRI1 + chIndeksPaczki;
-		for (uint16_t n=0; n<ROZMIAR_PACZKI_KONF8 - 2; n++)
-		{
-			chPaczka[n+2] = chOkresTelem[n + chIndeksPaczki * ROZMIAR_DANYCH_WPACZCE];
-
-			if (chDoZapisu)	//nie zapisuj wiecej niż trzeba zby nie przepelnić zmiennej
-				chDoZapisu--;
-		}*/
 		chErr = ZapiszPaczkeKonfigu(FKON_OKRES_TELEMETRI1 + chIndeksPaczki, &chOkresTelem[chIndeksPaczki * ROZMIAR_DANYCH_WPACZCE]);
 		if (chErr == ERR_OK)
+		{
 			chIndeksPaczki++;
+			if (chDoZapisu > ROZMIAR_DANYCH_WPACZCE)
+				chDoZapisu -= ROZMIAR_DANYCH_WPACZCE;
+			else
+				chDoZapisu = 0;
+		}
 		chProbZapisu--;
 	}
 	return chErr;

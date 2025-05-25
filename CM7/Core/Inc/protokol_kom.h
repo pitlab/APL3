@@ -13,7 +13,7 @@
 
 #define ROZMIAR_BUF_ODB_DMA		256
 #define ROZMIAR_BUF_ANALIZY_ODB	2*ROZMIAR_BUF_ODB_DMA
-#define ILOSC_ODBIORU_DMA		9
+//#define ILOSC_ODBIORU_DMA		9	//do metody odbierania małymi porcjami
 
 
 typedef union 		//unia do konwersji między danymi 16 i 8 bit
@@ -50,6 +50,7 @@ uint8_t Wyslij_OK(uint8_t chParametr1, uint8_t chParametr2, uint8_t chInterfejs)
 uint8_t Wyslij_ERR(uint8_t chKodBledu, uint8_t chParametr, uint8_t chInterfejs);
 void StartKomUart(void const * argument);
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
+uint8_t WyslijDebugUART7(uint8_t chZnak);
 
 uint8_t TestKomunikacji(void);
 uint8_t TestKomunikacjiSTD(void);

@@ -733,7 +733,8 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 
 		setColor(GRAY30);
 		setFont(MidFont);
-		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO], ó, ć, ó, ó, ż);	//"By móc mieć w rój Wronów na pohybel wrażym hordom""
+		//sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO], ó, ć, ó, ó, ż);	//"By móc mieć w rój Wronów na pohybel wrażym hordom""
+		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO2], ó, ó, ż, ó);	//"By móc zmóc wraże hordy rojem Wronów"	//STR_WITAJ_MOTTO2
 		print(chNapis, CENTER, 118);
 
 		sprintf(chNapis, "(c) PitLab 2025 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);

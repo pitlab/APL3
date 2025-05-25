@@ -105,6 +105,7 @@ CRC_HandleTypeDef hcrc;
 FDCAN_HandleTypeDef hfdcan2;
 
 UART_HandleTypeDef hlpuart1;
+UART_HandleTypeDef huart7;
 DMA_HandleTypeDef hdma_lpuart1_tx;
 DMA_HandleTypeDef hdma_lpuart1_rx;
 
@@ -142,6 +143,7 @@ uint32_t tsRejestratorBuffer[ 512 ];
 osStaticThreadDef_t tsRejestratorControlBlock;
 osThreadId tsObslugaWyswieHandle;
 /* USER CODE BEGIN PV */
+uint16_t sLicznikTele;
 uint8_t chErr = ERR_OK;
 extern uint8_t chPorty_exp_wysylane[];
 extern struct _statusDotyku statusDotyku;
@@ -169,8 +171,9 @@ static void MX_RNG_Init(void);
 static void MX_SDMMC1_SD_Init(void);
 static void MX_RTC_Init(void);
 static void MX_FDCAN2_Init(void);
+static void MX_UART7_Init(void);
 void StartDefaultTask(void const * argument);
-void WatekLPUART1(void const * argument);
+void WatekOdbiorczyLPUART1(void const * argument);
 void WatekRejestratora(void const * argument);
 void WatekWyswietlacza(void const * argument);
 
@@ -289,6 +292,7 @@ Error_Handler();
   MX_FATFS_Init();
   MX_RTC_Init();
   MX_FDCAN2_Init();
+  MX_UART7_Init();
   /* USER CODE BEGIN 2 */
   chErr |= InicjujSPIModZewn();
   chErr |= InicjujLCD();
@@ -337,7 +341,7 @@ Error_Handler();
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of tsOdbiorLPUART1 */
-  osThreadDef(tsOdbiorLPUART1, WatekLPUART1, osPriorityBelowNormal, 0, 96);
+  osThreadDef(tsOdbiorLPUART1, WatekOdbiorczyLPUART1, osPriorityBelowNormal, 0, 128);
   tsOdbiorLPUART1Handle = osThreadCreate(osThread(tsOdbiorLPUART1), NULL);
 
   /* definition and creation of tsRejestrator */
@@ -443,7 +447,7 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_QSPI|RCC_PERIPHCLK_I2C4
                               |RCC_PERIPHCLK_I2C3|RCC_PERIPHCLK_SAI2
                               |RCC_PERIPHCLK_SPI2|RCC_PERIPHCLK_UART8
-                              |RCC_PERIPHCLK_LPUART1;
+                              |RCC_PERIPHCLK_UART7|RCC_PERIPHCLK_LPUART1;
   PeriphClkInitStruct.PLL2.PLL2M = 5;
   PeriphClkInitStruct.PLL2.PLL2N = 64;
   PeriphClkInitStruct.PLL2.PLL2P = 50;
@@ -617,6 +621,54 @@ static void MX_LPUART1_UART_Init(void)
   /* USER CODE BEGIN LPUART1_Init 2 */
 
   /* USER CODE END LPUART1_Init 2 */
+
+}
+
+/**
+  * @brief UART7 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_UART7_Init(void)
+{
+
+  /* USER CODE BEGIN UART7_Init 0 */
+
+  /* USER CODE END UART7_Init 0 */
+
+  /* USER CODE BEGIN UART7_Init 1 */
+
+  /* USER CODE END UART7_Init 1 */
+  huart7.Instance = UART7;
+  huart7.Init.BaudRate = 115200;
+  huart7.Init.WordLength = UART_WORDLENGTH_8B;
+  huart7.Init.StopBits = UART_STOPBITS_1;
+  huart7.Init.Parity = UART_PARITY_NONE;
+  huart7.Init.Mode = UART_MODE_TX;
+  huart7.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart7.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart7.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart7.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart7.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_HalfDuplex_Init(&huart7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetTxFifoThreshold(&huart7, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetRxFifoThreshold(&huart7, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_DisableFifoMode(&huart7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN UART7_Init 2 */
+
+  /* USER CODE END UART7_Init 2 */
 
 }
 
@@ -1380,6 +1432,13 @@ void StartDefaultTask(void const * argument)
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
+  /*WyslijDebugUART7('s');
+  WyslijDebugUART7('t');
+  WyslijDebugUART7('a');
+  WyslijDebugUART7('r');
+  WyslijDebugUART7('t');
+  WyslijDebugUART7(10);
+  WyslijDebugUART7(13);*/
 	uint8_t chStanDekodera;
 	for(;;)
 	{
@@ -1403,7 +1462,7 @@ void StartDefaultTask(void const * argument)
 
 		//obsłuż wymowę komuniatów głosowych
 		ObslugaWymowyKomunikatu();
-
+		//WyslijDebugUART7('a');
 		osDelay(5);		//ustaw okres taki pracuje CM4 (200MHz -> 5ms)
 	}
   /* USER CODE END 5 */
@@ -1417,11 +1476,13 @@ void StartDefaultTask(void const * argument)
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 /* USER CODE END Header_WatekOdbiorczyLPUART1 */
-void WatekLPUART1(void const * argument)
+void WatekOdbiorczyLPUART1(void const * argument)
 {
   /* USER CODE BEGIN WatekOdbiorczyLPUART1 */
 	uint32_t nCzas, nCzasPoprzedni;
-	extern volatile uint8_t chLPUartZajety;
+	extern volatile uint8_t chUartKomunikacjiZajety;
+	uint8_t chErr;
+	uint8_t chLicznikZajetosci = 0;
 
 	InicjalizacjaWatkuOdbiorczegoLPUART1();
 	InicjalizacjaTelemetrii();
@@ -1430,15 +1491,26 @@ void WatekLPUART1(void const * argument)
 	while(1)
 	{
 		//w pierwszej kolejności obsłuż protokół komunikacyjny
-		if (!chLPUartZajety)
+		chErr = CzekajNaZero(chUartKomunikacjiZajety, 500);		//czekaj [us] jeżeli chUartKomunikacjiZajety == 1
+		if (chErr == ERR_OK)
+		{
 			ObslugaWatkuOdbiorczegoLPUART1();
+			osDelay(5);	//czas na obsługę ramki
+		}
+		else	//watchdog: jeżeli UART jest zbyt długo  zajęty to odblokuj. Trzeba znaleźć co jest przyczyną blokowania
+		{
+			chLicznikZajetosci++;
+			if (chLicznikZajetosci > 5)
+				chUartKomunikacjiZajety = 0;
+		}
 
 		//w drugiej kolejności telemetrię
 		nCzas = MinalCzas(nCzasPoprzedni);	//czas w mikrosekundach
-		if ((nCzas/1000 > KWANT_CZASU_TELEMETRII) && (!chLPUartZajety))
+		if ((nCzas/1000 > KWANT_CZASU_TELEMETRII) && (!chUartKomunikacjiZajety))
 		{
 			ObslugaTelemetrii(INTERF_UART);
 			nCzasPoprzedni += KWANT_CZASU_TELEMETRII * 1000;
+			sLicznikTele++;	//debug
 		}
 		osDelay(5);		//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
 	}

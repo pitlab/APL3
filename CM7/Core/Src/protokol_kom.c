@@ -34,7 +34,6 @@ stBSP_t stBSP;	//struktura zawierajaca adres i nazwę BSP
 static uint8_t chLicznikDanych[ILOSC_INTERF_KOM];
 static uint8_t chZnakCzasu[ILOSC_INTERF_KOM];
 static uint16_t sCrc16We;
-static uint8_t chRamkaWyj[ROZMIAR_RAMKI_UART];
 volatile uint32_t nCzasSystemowy;
 int16_t sSzerZdjecia, sWysZdjecia;
 uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
@@ -45,6 +44,7 @@ uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
 //debug
 un8_32_t un8_32;
 un8_16_t un8_16;
+uint16_t sLicznikAnalizowanychDanych;
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
 ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chBuforNadDMA[ROZMIAR_RAMKI_UART]);
@@ -54,7 +54,7 @@ uint8_t chWyslaneOK = 1;
 uint8_t chBuforKomOdb[ROZMIAR_BUF_ANALIZY_ODB];
 volatile uint16_t sWskNap; 		//wskaźnik napełniania bufora kołowego chBuforKomOdb[]
 volatile uint16_t sWskOpr;		//wskaźnik opróżniania bufora kołowego chBuforKomOdb[]
-volatile uint8_t chLPUartZajety;
+volatile uint8_t chUartKomunikacjiZajety;
 uint8_t chTimeoutOdbioru;
 
 //deklaracje zmiennych zewnętrznych
@@ -62,6 +62,7 @@ extern uint32_t nBuforKamery[ROZM_BUF32_KAM];
 extern uint8_t chTrybPracy;
 extern UART_HandleTypeDef hlpuart1;
 extern DMA_HandleTypeDef hdma_lpuart1_tx;
+extern UART_HandleTypeDef huart7;
 //extern uint16_t sBuforD2[ROZMIAR16_BUFORA]  __attribute__((section(".Bufory_SRAM2")));
 extern uint16_t sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
 extern uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
@@ -87,6 +88,9 @@ uint8_t InicjujProtokol(void)
 	stBSP.chNazwa[2] = 'c';
 	stBSP.chNazwa[3] = 'd';
 	stBSP.chNazwa[4] = 0;
+
+	for (int16_t n=0; n<ROZMIAR_BUF_ODB_DMA+8; n++)
+		chBuforOdbDMA[n] = 0x55;	//wypełnij wzorcem do analizy
 	return ERR_OK;
 }
 
@@ -100,8 +104,6 @@ uint8_t InicjujProtokol(void)
 void InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 {
 	sWskNap = sWskOpr = 0;
-	for (uint16_t n=0; n<2*ROZMIAR_BUF_ODB_DMA+8; n++)
-		chBuforOdbDMA[n] = 0x55;
 	HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
 	//HAL_UART_Receive_DMA(&hlpuart1, chBuforOdbDMA, ILOSC_ODBIORU_DMA);
 	//HAL_UART_Receive_IT(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
@@ -137,11 +139,11 @@ void ObslugaWatkuOdbiorczegoLPUART1(void)
 		}
 	}
 	//sprawdź czy jest właczony bit zezwolenia na przerwanie Idle, bo po wystąpienie błędów potrafi się wyłączyć co uniemożliwia odbiór
-/*	if ((hlpuart1.Instance->CR1 & USART_CR1_IDLEIE) == 0)
+	if ((hlpuart1.Instance->CR1 & USART_CR1_IDLEIE) == 0)
 	{
 		InicjalizacjaWatkuOdbiorczegoLPUART1();
 		chCzasSwieceniaLED[LED_CZER] = 5;
-	}*/
+	}
 }
 
 
@@ -183,7 +185,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if (huart->Instance == LPUART1)
-		chLPUartZajety = 0;		//skońcyło się wysyłanie , port jest wolny
+		chUartKomunikacjiZajety = 0;		//skońcyło się wysyłanie , port jest wolny
 }
 
 
@@ -262,6 +264,8 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
     static uint8_t chDane[ROZM_DANYCH_UART];
     extern struct st_KonfKam strKonfKam;
     extern uint8_t chOkresTelem[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
+
+    sLicznikAnalizowanychDanych++;
 
     chErr = DekodujRamke(chWe, &chAdresZdalny[chInterfejs], &chZnakCzasu[chInterfejs], &chPolecenie, &chRozmDanych, chDane, chInterfejs);
     if (chErr == ERR_RAMKA_GOTOWA)
@@ -409,6 +413,7 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 
 		case PK_CZYTAJ_OKRES_TELE:	//odczytaj a APL3 okresy telemetrii: chDane[0] == liczba pozycji okresu telemetrii  do odczytania
 			chErr = WyslijRamke(chAdresZdalny[chInterfejs], PK_CZYTAJ_OKRES_TELE, chDane[0], chOkresTelem, chInterfejs);
+			WyslijDebugUART7('t');	//t jak telemetria
 			break;
 
 		case PK_ZAPISZ_OKRES_TELE:	//zapisz okresy telemetrii
@@ -477,6 +482,7 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
     case PR_POLECENIE:
     	*chPolecenie = chWe;
     	chStanProtokolu[chInterfejs] = PR_ROZM_DANYCH;
+    	WyslijDebugUART7('p');	//p jak polecenie
     	break;
 
     case PR_ROZM_DANYCH:	//odebrano rozmiar danych
@@ -518,7 +524,10 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
 		//zdjąć blokadę zasobu CRC
 
 		if (sCrc16We == sCrc16Obl)
+		{
 			chErr = ERR_RAMKA_GOTOWA;
+			WyslijDebugUART7('c');	//C jak CRC
+		}
 		else
 			chErr = ERR_CRC;
 		break;
@@ -626,16 +635,20 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
 	uint8_t chLokalnyZnakCzasu = (nCzasSystemowy / 10) & 0xFF;
 
     if (chPolecenie & 0x80)
-    	chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres,  chLokalnyZnakCzasu, chPolecenie, chRozmDanych, chDane, chRamkaWyj);	//ramka telemetryczna
+    	chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres,  chLokalnyZnakCzasu, chPolecenie, chRozmDanych, chDane, chBuforNadDMA);	//ramka telemetryczna
+
     else
-    	chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres,  chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chRamkaWyj);	//ramka odpowiedzi
+    	chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres,  chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chBuforNadDMA);	//ramka odpowiedzi
 
     if (chErr == ERR_OK)
     {
     	switch (chInterfejs)
     	{
-    	case INTERF_UART:	HAL_UART_Transmit(&hlpuart1,  chRamkaWyj, chRozmDanych + ROZM_CIALA_RAMKI, 100);	chLPUartZajety = 1;	break;
-    						//HAL_UART_Transmit_DMA(&hlpuart1, chRamkaWyj, (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI);
+    	case INTERF_UART:
+    		chUartKomunikacjiZajety = 1;
+    		HAL_UART_Transmit_DMA(&hlpuart1, chBuforNadDMA, (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI);
+    		break;
+
     	case INTERF_ETH:	break;
     	case INTERF_USB:	break;
     	default: chErr = ERR_ZLY_INTERFEJS;	break;
@@ -708,7 +721,7 @@ uint8_t TestKomunikacjiSTD(void)
 	if (sRozmDanych)
 	{
 		chErr = HAL_UART_Transmit(&hlpuart1,  chBuforNadDMA, sRozmDanych, 100);
-		chLPUartZajety = 1;
+		chUartKomunikacjiZajety = 1;
 	}
 	return chErr;
 }
@@ -725,8 +738,22 @@ uint8_t TestKomunikacjiDMA(void)
 	if (sRozmDanych)
 	{
 		chErr = HAL_UART_Transmit_DMA(&hlpuart1, (uint8_t*)chBuforNadDMA, sRozmDanych);
-		chLPUartZajety = 1;
+		chUartKomunikacjiZajety = 1;
 	}
 	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wysyła znak debugujący przez UART7 połączony razem z SWD i SWO
+// Parametry:
+// [i] chZnak - znak do wysłania
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t WyslijDebugUART7(uint8_t chZnak)
+{
+	//return HAL_UART_Transmit_IT(&huart7, &chZnak, 1);
+	return HAL_UART_Transmit(&huart7, &chZnak, 1, 1);
 }
 

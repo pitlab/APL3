@@ -100,3 +100,27 @@ uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nKoniec)
 		nCzas = 0xFFFFFFFF - nPoczatek + nKoniec;
 	return nCzas;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Czekaj z timeoutem dopóki zmienna ma wartość niezerową
+// Parametry: chZajety - zmienna, która ma się ustawić na zero
+// nCzasOczekiwania - czas przez jaki czekamy na wyzerowanie się zmiennej w mikrosekundach
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t CzekajNaZero(uint8_t chZajety, uint32_t nCzasOczekiwania)
+{
+	uint32_t nPoczatek, nCzas;
+
+	nPoczatek = PobierzCzasT6();
+	do
+	{
+		nCzas = MinalCzas(nPoczatek);
+	}
+	while(chZajety && (nCzas < nCzasOczekiwania));
+	if (!chZajety)
+		return ERR_OK;
+
+	return ERR_TIMEOUT;
+}

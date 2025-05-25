@@ -90,7 +90,7 @@
 
 
 
-//definicje zmiennych telemetrycznych
+/*/definicje zmiennych telemetrycznych
 #define TELEM1_AKCEL1X		0x000000001
 #define TELEM1_AKCEL1Y		0x000000002
 #define TELEM1_AKCEL1Z		0x000000004
@@ -136,7 +136,6 @@
 #define TELEM2_TEMPIMU1		0x100000400
 #define TELEM2_TEMPIMU2		0x100000800
 #define TELEM2_TEMPCISR1	0x100001000
-#define TELEM2_TEMPCISR2	0x100002000
+#define TELEM2_TEMPCISR2	0x100002000*/
 
-#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	(32+14)
-#define LICZBA_BAJTOW_ID_TELEMETRII			(LICZBA_ZMIENNYCH_TELEMETRYCZNYCH / 8)	//liczba bajtów w ramce telemetrii identyfikujaca przesyłane zmienne
+

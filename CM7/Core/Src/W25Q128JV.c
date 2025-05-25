@@ -11,7 +11,7 @@
 #include "LCD.h"
 #include "RPi35B_480x320.h"
 #include "flash_nor.h"
-
+#include "czas.h"
 
 extern QSPI_HandleTypeDef hqspi;
 extern char chNapis[];
