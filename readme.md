@@ -33,6 +33,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Rysowanie okna kalibracji skalowania czujników ciśnienia
 - Rysowanie okna weryfikacji magnetometrów w obrocie płaskim
 - Uruchomiono komunikację po CAN udostępniając na zewnątrz jeden z magnetometrów
+- Uruchomiona telemetria, wysłanie danych w indywidualnej funkcji czasu dla każdej zmiennej, zapis i odczyt konfiguracji przez NSK 
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM

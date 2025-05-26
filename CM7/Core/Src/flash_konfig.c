@@ -111,12 +111,11 @@ uint8_t ZapiszPaczkeAdr(uint8_t chIdPaczki, uint8_t* chDane, uint32_t nAdres)
 {
 	uint8_t chPaczka[ROZMIAR_PACZKI_KONF8];
 
-	chPaczka[0] = chIdPaczki;
+	chPaczka[0] = chPaczka[1] = chIdPaczki;	//ID i pierwszy element sumy kontrolnej
 	for (uint8_t n=0; n<ROZMIAR_PACZKI_KONF-2; n++)
 		chPaczka[n+2] = *(chDane+n);		//przepisz dane do paczki
 
 	//policz sumę kontrolną paczki
-	chPaczka[1] = 0;
 	for (uint8_t n=2; n<ROZMIAR_PACZKI_KONF; n++)
 		chPaczka[1] += chPaczka[n];		//zapisz sumę zaraz za ID
 
@@ -135,8 +134,7 @@ uint8_t ZapiszPaczkeAdr(uint8_t chIdPaczki, uint8_t* chDane, uint32_t nAdres)
 uint8_t CzytajPaczkeKonfigu(uint8_t* chDane, uint8_t chIdPaczki)
 {
 	uint8_t m, chID;
-	uint16_t n;
-	uint32_t nAdresOdczytu;
+	uint32_t n, nAdresOdczytu;
 
 	//określ adres początku sektora w którym są zapisane dane
 	if (nAdresZapisuKonfigu > ADRES_SEKTORA1)
