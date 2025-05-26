@@ -423,7 +423,10 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 			if (chErr)
 				chErr = Wyslij_ERR(chErr, 0, chInterfejs);		//zwróć kod błedu zapisu konfiguracji telemetrii
 			else
+			{
+				InicjalizacjaTelemetrii();
 				chErr = Wyslij_OK(chDane[1] - chDane[0], 0, chInterfejs);	//odeslij rozmiar zapisanych danych
+			}
 			break;
 
 		}

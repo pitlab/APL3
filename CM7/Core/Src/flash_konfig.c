@@ -120,7 +120,7 @@ uint8_t ZapiszPaczkeAdr(uint8_t chIdPaczki, uint8_t* chDane, uint32_t nAdres)
 	for (uint8_t n=2; n<ROZMIAR_PACZKI_KONF; n++)
 		chPaczka[1] += chPaczka[n];		//zapisz sumę zaraz za ID
 
-	return ZapiszDaneFlashNOR(nAdres, (uint16_t*)chDane, ROZMIAR_PACZKI_KONF16);	//rzutuj 8-bitową paczke na 16-bitów
+	return ZapiszDaneFlashNOR(nAdres, (uint16_t*)chPaczka, ROZMIAR_PACZKI_KONF16);	//rzutuj 8-bitową paczke na 16-bitów
 }
 
 
@@ -134,7 +134,8 @@ uint8_t ZapiszPaczkeAdr(uint8_t chIdPaczki, uint8_t* chDane, uint32_t nAdres)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t CzytajPaczkeKonfigu(uint8_t* chDane, uint8_t chIdPaczki)
 {
-	uint8_t n, m, chID;
+	uint8_t m, chID;
+	uint16_t n;
 	uint32_t nAdresOdczytu;
 
 	//określ adres początku sektora w którym są zapisane dane
