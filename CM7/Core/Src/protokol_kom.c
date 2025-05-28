@@ -15,7 +15,7 @@
  * POLECENIE - kod polecenia do wykonania.
  * ROZMIAR - liczba bajtów danych ramki
  * DANE - opcjonalne dane
- * CRC16 - suma kontrolna ramki od nagłówka do CRC16. Starszy przodem */
+ * CRC16 - suma kontrolna ramki od nagłówka do CRC16. młodszy przodem */
 
 #include "cmsis_os.h"
 #include "protokol_kom.h"
@@ -412,13 +412,18 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 			break;
 
 		case PK_CZYTAJ_OKRES_TELE:	//odczytaj a APL3 okresy telemetrii: chDane[0] == liczba pozycji okresu telemetrii  do odczytania
-			chErr = WyslijRamke(chAdresZdalny[chInterfejs], PK_CZYTAJ_OKRES_TELE, 2*chDane[0], (uint8_t*)sOkresTelem, chInterfejs);
-			WyslijDebugUART7('t');	//t jak telemetria
+			uint8_t chRozmiar = chDane[0];
+			for (uint8_t n=0; n<chRozmiar; n++)
+			{
+				chDane[2*n+0] = (uint8_t)(sOkresTelem[n] & 0x00FF);	//młodszy przodem
+			    chDane[2*n+1] = (uint8_t)(sOkresTelem[n] >> 8);
+			}
+			chErr = WyslijRamke(chAdresZdalny[chInterfejs], PK_CZYTAJ_OKRES_TELE, 2*chRozmiar, chDane, chInterfejs);
 			break;
 
 		case PK_ZAPISZ_OKRES_TELE:	//zapisz okresy telemetrii
 			for (uint8_t n=0; n<chRozmDanych; n++)
-				sOkresTelem[n] = chDane[2*n+0] * 0x100 + chDane[2*n+1];
+				sOkresTelem[n] = chDane[2*n+0] + chDane[2*n+1] * 0x100;	//młodszy przodem
 			chErr = ZapiszKonfiguracjeTelemetrii();
 			if (chErr)
 				chErr = Wyslij_ERR(chErr, 0, chInterfejs);		//zwróć kod błedu zapisu konfiguracji telemetrii
@@ -507,12 +512,12 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
     	break;
 
     case PR_CRC16_1:
-    	sCrc16We = chWe * 0x100;
+    	sCrc16We = chWe;	//młodszy przodem
     	chStanProtokolu[chInterfejs] = PR_CRC16_2;
     	break;
 
     case PR_CRC16_2:
-    	sCrc16We += chWe;
+    	sCrc16We += chWe * 0x100;
 		chStanProtokolu[chInterfejs] = PR_ODBIOR_NAGL;
 		//dodać blokadę zasobu CRC
 		InicjujCRC16(0, WIELOMIAN_CRC);
@@ -558,7 +563,6 @@ void InicjujCRC16(uint16_t sInit, uint16_t sWielomian)
 	CRC->INIT = sInit;
 	CRC->POL = sWielomian;
 	CRC->CR = CRC_CR_RESET | CRC_CR_POLYSIZE_0;
-	//CRC->CR = CRC_CR_RESET | CRC_CR_POLYSIZE_0 | CRC_CR_REV_IN_0;
 }
 
 
@@ -615,8 +619,9 @@ uint8_t PrzygotujRamke(uint8_t chAdrZdalny, uint8_t chAdrLokalny,  uint8_t chZna
     un8_16.dane16 = (uint16_t)CRC->DR;
     //zdjąć blokadę zasobu CRC
 
-    *(chRamka++) = un8_16.dane8[1];	//starszy
     *(chRamka++) = un8_16.dane8[0];	//młodszy
+    *(chRamka++) = un8_16.dane8[1];	//starszy
+
     return ERR_OK;
 }
 

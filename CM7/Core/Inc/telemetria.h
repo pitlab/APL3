@@ -69,11 +69,11 @@
 #define MAX_LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	112
 #define LICZBA_BAJTOW_ID_TELEMETRII			(MAX_LICZBA_ZMIENNYCH_TELEMETRYCZNYCH / 8)	//liczba bajtów w ramce telemetrii identyfikujaca przesyłane zmienne
 
-#define TEMETETRIA_WYLACZONA	0xFFF
+#define TEMETETRIA_WYLACZONA	0xFFFF
 
 void InicjalizacjaTelemetrii(void);
 void ObslugaTelemetrii(uint8_t chInterfejs);
-float PobierzZmiennaTele(uint64_t lZmienna);
+float PobierzZmiennaTele(uint8_t chZmienna);
 uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chPozycja, uint8_t chIdZmiennej, float fDane);
 uint8_t PrzygotujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint8_t chRozmDanych);
 void Float2Char16(float fData, uint8_t* chData);

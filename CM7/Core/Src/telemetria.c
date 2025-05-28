@@ -35,7 +35,7 @@ extern volatile uint8_t chUartKomunikacjiZajety;
 uint8_t chOdczytano, chDoOdczytu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja inicjalizuje zmienne używane do obsługi telemetrii
+// Funkcja inicjalizuje zmienne używane do obsługi telemetrii. Dane są zapisane w porządku cienkokońcówkowym
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -62,8 +62,8 @@ void InicjalizacjaTelemetrii(void)
 			{
 				if (chDoOdczytu)	//nie czytaj wiecej niż trzeba zby nie przepelnić zmiennej
 				{
-					sOkres = chPaczka[2*n+2] * 0x100 + chPaczka[2*n+3];
-					sOkresTelem[n + chIndeksPaczki * 30] = sOkres;
+					sOkres = chPaczka[2*n+2] + chPaczka[2*n+3] * 0x100;
+					sOkresTelem[n + chIndeksPaczki * ROZMIAR_DANYCH_WPACZCE /2] = sOkres;
 					chDoOdczytu--;
 				}
 			}
@@ -131,11 +131,11 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 // Parametry: fDane - liczba do wysłania
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-float PobierzZmiennaTele(uint64_t lZmienna)
+float PobierzZmiennaTele(uint8_t chZmienna)
 {
 	float fZmiennaTelem;
 
-	switch (lZmienna)
+	switch (chZmienna)
 	{
 	case TELEID_AKCEL1X:	fZmiennaTelem = uDaneCM4.dane.fAkcel1[0];		break;
 	case TELEID_AKCEL1Y:	fZmiennaTelem = uDaneCM4.dane.fAkcel1[1];		break;
@@ -252,8 +252,8 @@ uint8_t PrzygotujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chA
 		CRC->DR = chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + n];
 
 	un8_16.dane16 = (uint16_t)CRC->DR;
-	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 0] =  un8_16.dane8[1];	//starszy
-	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 1] =  un8_16.dane8[0];	//młodszy
+	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 0] =  un8_16.dane8[0];	//młodszy przodem
+	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 1] =  un8_16.dane8[1];	//starszy
 
 	return chRozmDanych * 2 + LICZBA_BAJTOW_ID_TELEMETRII + ROZMIAR_NAGLOWKA + ROZMIAR_CRC;
 }
@@ -299,7 +299,7 @@ void Float2Char16(float fData, uint8_t* chData)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Zapisuje do FLASH okres wysyłania kolenych zmiennych telemetrycznych
+// Zapisuje do FLASH okres wysyłania kolenych zmiennych telemetrycznych w porządku młodszy przodem
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -307,7 +307,7 @@ uint8_t ZapiszKonfiguracjeTelemetrii(void)
 {
 	uint8_t chDoZapisu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
 	uint8_t chIndeksPaczki = 0;
-	uint8_t chProbZapisu = 5;
+	uint8_t chProbZapisu = 3;
 	uint8_t chErr;
 
 	while (chDoZapisu && chProbZapisu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
@@ -316,6 +316,7 @@ uint8_t ZapiszKonfiguracjeTelemetrii(void)
 		if (chErr == ERR_OK)
 		{
 			chIndeksPaczki++;
+			chProbZapisu = 3;
 			if (chDoZapisu > ROZMIAR_DANYCH_WPACZCE / 2)
 				chDoZapisu -= ROZMIAR_DANYCH_WPACZCE / 2;
 			else
