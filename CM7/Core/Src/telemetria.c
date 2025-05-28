@@ -15,13 +15,14 @@
 
 // Dane telemetryczne są wysyłane w zbiorczej ramce. Na początku ramki znajdują się słowa identyfikujące rodzaj przesyłanych danych, gdzie kolejne bity
 // określają rodzaj przesyłanych zmiennych. Każda zmienna może mieć zdefiniowany inny okres wysyłania będący wielokrotnością KWANT_CZASU_TELEMETRII
-// dla KWANT_CZASU_TELEMETRII == 10ms daje to max 100Hz, min 0,4Hz
+// dla KWANT_CZASU_TELEMETRII == 10ms daje to max 100 Hz, min 0,4 Hz dla 8 bitów lub min 0,025 Hz (40s)
 // Maksymalnie w ramce można przesłać 112 zmiennych 16-bitowych + 14 bajtów informacji o zmiennych
 
 
 ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chRamkaTelemetrii[2][ROZMIAR_RAMKI_UART]);	//ramki telemetryczne: przygotowywana i wysyłana
-uint8_t chOkresTelem[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
-uint8_t chLicznikTelem[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];
+//uint8_t chOkresTelem[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
+uint16_t sOkresTelem[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
+uint16_t sLicznikTelem[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];
 uint8_t chIndeksNapelnRamki;	//okresla ktora tablica ramki telemetrycznej jest napełniania
 
 extern unia_wymianyCM4_t uDaneCM4;
@@ -40,27 +41,29 @@ uint8_t chOdczytano, chDoOdczytu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
 ////////////////////////////////////////////////////////////////////////////////
 void InicjalizacjaTelemetrii(void)
 {
-	uint8_t chPaczka[ROZMIAR_PACZKI_KONF8];
+	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIG];
 	uint8_t chOdczytano;
 	uint8_t chDoOdczytu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
 	uint8_t chIndeksPaczki = 0;
 	uint8_t chProbOdczytu = 5;
+	uint16_t sOkres;
 
 	//Inicjuj zmienne wartościa wyłączoną gdyby nie dało się odczytać konfiguracji.
 	//Lepiej jest mieć telemetrię wyłaczoną niż zapchaną pracujacą na 100%
 	for (uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
-		chOkresTelem[n] = TEMETETRIA_WYLACZONA;
+		sOkresTelem[n] = TEMETETRIA_WYLACZONA;
 
 	while (chDoOdczytu && chProbOdczytu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
 	{
 		chOdczytano = CzytajPaczkeKonfigu(chPaczka, FKON_OKRES_TELEMETRI1 + chIndeksPaczki);		//odczytaj 30 bajtów danych + identyfikator i CRC
-		if (chOdczytano == ROZMIAR_PACZKI_KONF8)
+		if (chOdczytano == ROZMIAR_PACZKI_KONFIG)
 		{
-			for (uint16_t n=0; n<ROZMIAR_PACZKI_KONF8 - 2; n++)
+			for (uint16_t n=0; n<((ROZMIAR_PACZKI_KONFIG - 2) / 2); n++)
 			{
 				if (chDoOdczytu)	//nie czytaj wiecej niż trzeba zby nie przepelnić zmiennej
 				{
-					chOkresTelem[n + chIndeksPaczki * 30] = chPaczka[n+2];
+					sOkres = chPaczka[2*n+2] * 0x100 + chPaczka[2*n+3];
+					sOkresTelem[n + chIndeksPaczki * 30] = sOkres;
 					chDoOdczytu--;
 				}
 			}
@@ -71,7 +74,7 @@ void InicjalizacjaTelemetrii(void)
 
 	//inicjuj licznik okresem wysyłania
 	for (uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
-		chLicznikTelem[n] = chOkresTelem[n];
+		sLicznikTelem[n] = sOkresTelem[n];
 }
 
 
@@ -94,12 +97,12 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 
 	for(uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
 	{
-		if (chLicznikTelem[n] != 0xFF)	//wartość oznaczająca żeby nie wysyłać danych
-			chLicznikTelem[n]--;
+		if (sLicznikTelem[n] != TEMETETRIA_WYLACZONA)	//wartość oznaczająca żeby nie wysyłać danych
+			sLicznikTelem[n]--;
 
-		if (chLicznikTelem[n] == 0)
+		if (sLicznikTelem[n] == 0)
 		{
-			chLicznikTelem[n] = chOkresTelem[n];
+			sLicznikTelem[n] = sOkresTelem[n];
 			fZmienna = PobierzZmiennaTele(n);
 			if (chRozmiarRamki < (ROZMIAR_RAMKI_UART - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
 			{
@@ -302,7 +305,6 @@ void Float2Char16(float fData, uint8_t* chData)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZapiszKonfiguracjeTelemetrii(void)
 {
-	//uint8_t chPaczka[ROZMIAR_PACZKI_KONF8];
 	uint8_t chDoZapisu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
 	uint8_t chIndeksPaczki = 0;
 	uint8_t chProbZapisu = 5;
@@ -310,12 +312,12 @@ uint8_t ZapiszKonfiguracjeTelemetrii(void)
 
 	while (chDoZapisu && chProbZapisu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
 	{
-		chErr = ZapiszPaczkeKonfigu(FKON_OKRES_TELEMETRI1 + chIndeksPaczki, &chOkresTelem[chIndeksPaczki * ROZMIAR_DANYCH_WPACZCE]);
+		chErr = ZapiszPaczkeKonfigu(FKON_OKRES_TELEMETRI1 + chIndeksPaczki, (uint8_t*)&sOkresTelem[chIndeksPaczki * ROZMIAR_DANYCH_WPACZCE / 2]);
 		if (chErr == ERR_OK)
 		{
 			chIndeksPaczki++;
-			if (chDoZapisu > ROZMIAR_DANYCH_WPACZCE)
-				chDoZapisu -= ROZMIAR_DANYCH_WPACZCE;
+			if (chDoZapisu > ROZMIAR_DANYCH_WPACZCE / 2)
+				chDoZapisu -= ROZMIAR_DANYCH_WPACZCE / 2;
 			else
 				chDoZapisu = 0;
 		}

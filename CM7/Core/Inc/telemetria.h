@@ -69,7 +69,7 @@
 #define MAX_LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	112
 #define LICZBA_BAJTOW_ID_TELEMETRII			(MAX_LICZBA_ZMIENNYCH_TELEMETRYCZNYCH / 8)	//liczba bajtów w ramce telemetrii identyfikujaca przesyłane zmienne
 
-#define TEMETETRIA_WYLACZONA	255
+#define TEMETETRIA_WYLACZONA	0xFFF
 
 void InicjalizacjaTelemetrii(void);
 void ObslugaTelemetrii(uint8_t chInterfejs);

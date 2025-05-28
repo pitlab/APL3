@@ -219,9 +219,9 @@ uint8_t KalibrujDotyk(void)
 				//ObliczKalibracjeDotykuWielopunktowa();	//Źle
 				statusDotyku.chFlagi |= DOTYK_SKALIBROWANY;
 
-				uint8_t chPaczka[ROZMIAR_PACZKI_KONF8];
+				uint8_t chPaczka[ROZMIAR_PACZKI_KONFIG];
 
-				for (uint8_t n=0; n<ROZMIAR_PACZKI_KONF8; n++)
+				for (uint8_t n=0; n<ROZMIAR_PACZKI_KONFIG; n++)
 					chPaczka[n] = 0;
 
 				KonwFloat2Char(kalibDotyku.fAx, &chPaczka[0]);
@@ -506,7 +506,7 @@ uint8_t TestDotyku(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujDotyk(void)
 {
-	uint8_t n, chPaczka[ROZMIAR_PACZKI_KONF8];
+	uint8_t n, chPaczka[ROZMIAR_PACZKI_KONFIG];
 	uint8_t chErr = ERR_BRAK_KONFIG;
 
 	for (n=0; n<4; n++)
@@ -518,7 +518,7 @@ uint8_t InicjujDotyk(void)
 	statusDotyku.nOstCzasPomiaru = 0;
 
 	n = CzytajPaczkeKonfigu(chPaczka, FKON_KALIBRACJA_DOTYKU);
-	if (n == ROZMIAR_PACZKI_KONF8)
+	if (n == ROZMIAR_PACZKI_KONFIG)
 	{
 		kalibDotyku.fAx = KonwChar2Float(&chPaczka[2]);
 		kalibDotyku.fAy = KonwChar2Float(&chPaczka[6]);

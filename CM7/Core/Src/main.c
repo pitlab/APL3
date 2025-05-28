@@ -48,6 +48,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Uruchomić czujniki zbliżeniowe VL53L1CX i VL53L5CX
  - Pozbyć się zmiennych fZyroSur i fZyroKal zastępując je jedną zmienną ustawianą w zależnosci od kontekstu (obecności polecenia kalibracyjnego żyroskopów)
  - Rozbudować warunki korekcji magnetometru w AHRS o prędkość zmiany kąta
+ - Rozszerzyć liczniki telemetrii  8 do  12 bitów
 
  * */
 /* USER CODE END Header */

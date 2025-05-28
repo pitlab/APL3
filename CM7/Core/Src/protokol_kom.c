@@ -263,7 +263,7 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
     static uint8_t chRozmDanych;
     static uint8_t chDane[ROZM_DANYCH_UART];
     extern struct st_KonfKam strKonfKam;
-    extern uint8_t chOkresTelem[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
+    extern uint16_t sOkresTelem[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 
     sLicznikAnalizowanychDanych++;
 
@@ -412,13 +412,13 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 			break;
 
 		case PK_CZYTAJ_OKRES_TELE:	//odczytaj a APL3 okresy telemetrii: chDane[0] == liczba pozycji okresu telemetrii  do odczytania
-			chErr = WyslijRamke(chAdresZdalny[chInterfejs], PK_CZYTAJ_OKRES_TELE, chDane[0], chOkresTelem, chInterfejs);
+			chErr = WyslijRamke(chAdresZdalny[chInterfejs], PK_CZYTAJ_OKRES_TELE, 2*chDane[0], (uint8_t*)sOkresTelem, chInterfejs);
 			WyslijDebugUART7('t');	//t jak telemetria
 			break;
 
 		case PK_ZAPISZ_OKRES_TELE:	//zapisz okresy telemetrii
 			for (uint8_t n=0; n<chRozmDanych; n++)
-				chOkresTelem[n] = chDane[n];
+				sOkresTelem[n] = chDane[2*n+0] * 0x100 + chDane[2*n+1];
 			chErr = ZapiszKonfiguracjeTelemetrii();
 			if (chErr)
 				chErr = Wyslij_ERR(chErr, 0, chInterfejs);		//zwróć kod błedu zapisu konfiguracji telemetrii
