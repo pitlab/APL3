@@ -330,6 +330,24 @@ void WykonajPolecenieCM7(void)
 			uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
 		break;
 
+	case POL_ODCZYTAJ_FRAM:			//odczytaj i wyślij zawartość FRAM spod podanego adresu
+		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE)
+			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE;
+		for (uint16t_n=0; n<uDaneCM7.dane.chRozmiar; n++)
+			uDaneCM4.dane.fRozne[n] = CzytajFramFloat(uDaneCM7.dane.sAdres + n*4);
+		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
+		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie odczytu
+		break;
+
+	case POL_ZAPISZ_FRAM:			//zapisz przekazane dane do FRAM pod podany adres
+		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE)
+			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE;
+		for (uint16t_n=0; n<ROZMIAR_ROZNE; n++)
+			ZapiszFramFloat(uDaneCM7.dane.sAdres + n*4, uDaneCM7.dane.fRozne[n]);
+		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
+		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie odczytu
+		break;
+
 	case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;	break;	//nadpisz poprzednio zwrócony błąd
 
 	}

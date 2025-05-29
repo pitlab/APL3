@@ -18,7 +18,7 @@
 #define ROZMIAR_BUF32_WYMIANY_CM4		ROZMIAR_BUF8_WYMIANY_CM4 / 4
 #define ROZMIAR_BUF32_WYMIANY_CM7		ROZMIAR_BUF8_WYMIANY_CM7 / 4
 #define ROZMIAR_BUF_NAPISU_WYMIANY		32
-
+#define ROZMIAR_ROZNE					8
 
 //definicje poleceń przekazywanych z CM7 do CM4
 #define POL_NIC					0	//nic nie rób
@@ -48,7 +48,8 @@
 #define POL_ZERUJ_LICZNIK		23	//zeruje licznik uśredniana przed kolejnym cyklem
 #define POL_USREDNIJ_CISN1		24	//uśredniania ciśnienia 1 czujników ciśnienia bezwzględnego
 #define POL_USREDNIJ_CISN2		25	//uśredniania ciśnienia 2 czujników ciśnienia bezwzględnego
-
+#define POL_ODCZYTAJ_FRAM		26	//odczytaj i wyślij zawartość FRAM spod podanego adresu
+#define POL_ZAPISZ_FRAM			27	//zapisz przekazane dane do FRAM pod podany adres
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
 
 
@@ -100,17 +101,19 @@ typedef struct
 	float fCisnRozn[2];		//0=ND130, 1=MS2545
 	float fPredkosc[2];		//[m/s]
 	float fTemper[6];		//0=MS5611, 1=BMP851, 2=ICM42688 [K], 3=LSM6DSV [K], 4=ND130, 5=MS2545
-	float fRozne[6];		//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji
+	float fRozne[ROZMIAR_ROZNE];		//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji lub odczytu FRAM
 	float fKwaAkc[4];		//kwaternion wektora przyspieszenia
 	float fKwaMag[4];		//kwaternion wektora magnetycznego
+	uint16_t sAdres;		//adres danych przekazywanych w polu fRozne
 	uint16_t sSerwa[16];
 	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
 	uint8_t chErrPetliGlownej;
 	uint8_t chOdpowiedzNaPolecenie;
+	uint8_t chRozmiar;			//rozmiar danych przekazywanych w polu fRozne
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
 	stGnss_t stGnss1;
-	char chNapis[ROZMIAR_BUF_NAPISU_WYMIANY];
+	char chNapis[ROZMIAR_BUF_NAPISU_WYMIANY];	//do usunięcia
 } stWymianyCM4_t;
 
 
@@ -118,6 +121,9 @@ typedef struct
 typedef struct
 {
 	uint8_t chWykonajPolecenie;
+	uint8_t chRozmiar;				//rozmiar danych przekazywanych w polu fRozne
+	uint16_t sAdres;				//adres danych przekazywanych w polu fRozne
+	float fRozne[ROZMIAR_ROZNE];	//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji lub zapisu FRAM
 } stWymianyCM7_t;
 
 //unie do konwersji struktur na słowa 32-bitowe
