@@ -59,6 +59,10 @@
 #define PK_CZYTAJ_FLASH			13	//odczytaj zawartość Flash 
 #define PK_CZYTAJ_OKRES_TELE	14	//odczytaj okresy telemetrii
 #define PK_ZAPISZ_OKRES_TELE	15	//zapisz okresy telemetrii
+#define PK_ZAPISZ_FRAM_FLOAT	16	//Wysyła dane typu float do zapisu we FRAM w rdzeniu CM4 o rozmiarze ROZMIAR_ROZNE
+#define PK_CZYTAJ_FRAM_FLOAT	17	//wysyła polecenie odczytu zawartości FRAM
+#define PK_WYSLIJ_ODCZYT_FRAM	18	//pobiera odczytane wcześniej dane
+
 
 #define PK_TELEMETRIA			99	//ramka telemetryczna
 

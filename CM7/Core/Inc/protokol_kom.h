@@ -24,6 +24,7 @@ typedef union 		//unia do konwersji między danymi 16 i 8 bit
 
 typedef union 		//unia do konwersji między danymi 32 i 8 bit
 {
+	float daneFloat;
 	uint32_t dane32;
 	uint16_t dane16[2];
 	uint8_t dane8[4];
