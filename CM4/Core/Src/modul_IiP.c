@@ -737,7 +737,7 @@ void ZnajdzEkstremaMagnetometru(float *fMag)
 ////////////////////////////////////////////////////////////////////////////////
 // Zeruje znalezione wcześniej ekstrema magnetometru tak aby nowy pomiar rozpoczął się od czytej sytuacji
 // Parametry: nic
-// Zwraca: stan ekstremów przez derowaniem. ERR_OK - były wyzerowane, ERR_DIV0 nie były wyzerowane
+// Zwraca: ERR_OK
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZerujEkstremaMagnetometru(void)
 {
@@ -745,8 +745,6 @@ uint8_t ZerujEkstremaMagnetometru(void)
 
 	for (uint16_t n=0; n<3; n++)
 	{
-		if ((stMagn.fMin[n] != 0.0f) || (stMagn.fMax[n] != 0.0f))
-			chErr = ERR_DIV0;
 		stMagn.fMin[n] = 0.0f;
 		stMagn.fMax[n] = 0.0f;
 	}

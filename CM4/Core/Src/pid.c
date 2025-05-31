@@ -44,10 +44,10 @@ uint8_t InicjujPID(void)
         chErr |= CzytajFramZWalidacja(FAU_PID_D0 + chAdrOffset, &stPID[n].fWzmD, VMIN_PID_WZMD, VMAX_PID_WZMD, VDEF_PID_WZMD, ERR_NASTAWA_PID);
 
         //odczytaj granicę nasycenia członu całkującego
-        chErr |= CzytajFramZWalidacja(FAU_PID_ILIM0 + chAdrOffset, &stPID[n].fOgrCalki, VMIN_PID_ILIM, VMAX_PID_ILIM, VDEF_PID_ILIM, ERR_NASTAWA_PID);
+        chErr |= CzytajFramZWalidacja(FAU_PID_OGR_I0 + chAdrOffset, &stPID[n].fOgrCalki, VMIN_PID_ILIM, VMAX_PID_ILIM, VDEF_PID_ILIM, ERR_NASTAWA_PID);
 
-        //odczytaj stałą czasową filtru członu różniczkowania
-        stPID[n].chPodstFiltraD = CzytajFRAM(FAU_D_FILTER + n);
+        //odczytaj stałą czasową filtru członu różniczkowania (bity 0..4), typ regulatora (bity 5..6) i to czy regulator jest kątowy (bit 7)
+        stPID[n].chPodstFiltraD = CzytajFRAM(FAU_FILD_REGKAT_TYP + n);
 
         //zeruj integrator
         stPID[n].fCalka = 0.0f;   	//zmianna przechowująca całkę z błędu

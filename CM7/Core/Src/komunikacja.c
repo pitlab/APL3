@@ -17,8 +17,8 @@
 
 uint32_t nOffsetDanych;
 int16_t sSzerZdjecia, sWysZdjecia;
+uint16_t sAdres;
 uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
-uint8_t chLiczbaOdczytDanych;		//liczba danych do odczytu z FRAM
 static un8_32_t un8_32;
 static un8_16_t un8_16;
 
@@ -39,6 +39,7 @@ extern stBSP_t stBSP;	//struktura zawierajaca adres i nazwę BSP
 uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDanych, uint8_t chInterfejs, uint8_t chAdresZdalny)
 {
 	uint8_t n, chErr;
+	uint8_t chRozmiar;
 
 	switch (chPolecenie)
 	{
@@ -125,9 +126,6 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		un8_16.dane8[0] = chDane[0];
 		un8_16.dane8[1] = chDane[1];
 		sWskBufSektora = un8_16.dane16;	//adres bezwzględny bufora
-//debug
-		//sLogKomunikacji[sWskLogu++] = sWskBufSektora;
-//debug
 		//przepisz dane 8-bitowe  i zapisz po konwersji w buforze 16-bitowym
 		for (uint8_t n=0; n<chDane[2]; n++)	//chDane[2] - rozmiar wyrażony w słowach
 		{
@@ -171,18 +169,11 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 			chErr = Wyslij_ERR(ERR_ZLA_ILOSC_DANYCH, 0, chInterfejs);
 
 		CzytajDaneFlashNOR(un8_32.dane32, sBuforSektoraFlash, chDane[4]);
-		/*for (uint8_t n=0; n<chDane[4]; n++)	//chDane[4] - rozmiar wyrażony w słowach
-		{
-			un8_16.dane16 = sBuforSektoraFlash[sWskBufSektora + n];
-			chDane[2*n+3] = un8_16.dane8[0];
-			chDane[2*n+4] = un8_16.dane8[1];
-		}
-		chDane[ROZM_DANYCH_UART];*/
 		chErr = WyslijRamke(chAdresZdalny, PK_CZYTAJ_FLASH, 2*chDane[4], (uint8_t*)sBuforSektoraFlash, chInterfejs);
 		break;
 
 	case PK_CZYTAJ_OKRES_TELE:	//odczytaj a APL3 okresy telemetrii: chDane[0] == liczba pozycji okresu telemetrii  do odczytania
-		uint8_t chRozmiar = chDane[0];
+		chRozmiar = chDane[0];
 		for (uint8_t n=0; n<chRozmiar; n++)
 		{
 			chDane[2*n+0] = (uint8_t)(sOkresTelem[n] & 0x00FF);	//młodszy przodem
@@ -212,43 +203,60 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		}
 		un8_16.dane8[0] = chDane[1];	//adres zapisu
 		un8_16.dane8[1] = chDane[2];
-
-		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_FRAM;
-		uDaneCM7.dane.sAdres = un8_16.dane16;
+		sAdres = un8_16.dane16;						//zapamietaj adres do sprawdzenia czy już się zapisało
+		uDaneCM7.dane.sAdres = un8_16.dane16;		//adres zapisu bloku liczb
+		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_FRAM_FLOAT;
+		uDaneCM7.dane.chRozmiar = chDane[0];		//ilość liczb float
 		for (n=0; n<chDane[0]; n++)
 		{
 			for (uint8_t i=0; i<4; i++)
 				un8_32.dane8[i] = chDane[3+n*4+i];
 			uDaneCM7.dane.fRozne[n] = un8_32.daneFloat;
 		}
+		chErr = Wyslij_OK(0, 0, chInterfejs);
 		break;
 
-	case PK_CZYTAJ_FRAM_FLOAT:			//odczytaj i wyślij do bufora fRozne[] zawartość FRAM spod podanego adresu
-		chLiczbaOdczytDanych = chDane[0];		//zapamietaj rozmiar
-		if (chLiczbaOdczytDanych > ROZMIAR_ROZNE)
+	case PK_WYSLIJ_POTW_ZAPISU:	//jeżeli dane się zapisały to odeslij ERR_OK. jeeli jeszcze nie to ERR_PROCES_TRWA
+		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie != POL_ZAPISZ_FRAM_FLOAT) || (uDaneCM4.dane.sAdres != sAdres))
+		{
+			Wyslij_ERR(ERR_PROCES_TRWA, 0, chInterfejs);	//dane jeszcze nie przyszły
+			break;
+		}
+		chErr = Wyslij_OK(0, 0, chInterfejs);
+		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//wyłącz wykonywanie polecenia POL_ZAPISZ_FRAM_FLOAT
+		break;
+
+	case PK_CZYTAJ_FRAM_FLOAT:			//odczytaj i wyślij do bufora fRozne[] zawartość FRAM spod podanego adresu w chDane[1..2] o rozmiarze podanym w chDane[0]
+		if (chDane[0] > ROZMIAR_ROZNE)
 		{
 			Wyslij_ERR(ERR_ZLA_ILOSC_DANYCH, 0, chInterfejs);
 			break;
 		}
 		un8_16.dane8[0] = chDane[1];	//adres do odczytu
 		un8_16.dane8[1] = chDane[2];
+		sAdres = un8_16.dane16;			//zapamiętaj adres
 		uDaneCM7.dane.sAdres = un8_16.dane16;
-		uDaneCM7.dane.chWykonajPolecenie = POL_ODCZYTAJ_FRAM;
+		uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_FRAM_FLOAT;
+		chErr = Wyslij_OK(0, 0, chInterfejs);
 		break;
 
-	case PK_WYSLIJ_ODCZYT_FRAM:	//wysyła odczytane wcześniej dane
-		if (uDaneCM4.dane.chOdpowiedzNaPolecenie != POL_ODCZYTAJ_FRAM)
+	case PK_WYSLIJ_ODCZYT_FRAM:	//wysyła odczytane wcześniej dane o rozmiarze podanym w chDane[0] - zawsze dotyczy liczby paczek 4 bajtowych
+		if (uDaneCM4.dane.sAdres != sAdres)
 		{
-			Wyslij_ERR(ERR_HAL_BUSY, 0, chInterfejs);	//dane jeszcze nie przyszły
+			Wyslij_ERR(ERR_PROCES_TRWA, 0, chInterfejs);	//dane jeszcze nie przyszły
 			break;
 		}
-		for (n=0; n<chLiczbaOdczytDanych; n++)
+		chRozmiar = chDane[0];	//zapamiętaj w zmiennej, bo dane będą nadpisane;
+		for (n=0; n<chRozmiar; n++)
 		{
 			un8_32.daneFloat = uDaneCM4.dane.fRozne[n];
 			for (uint8_t i=0; i<4; i++)
 				chDane[n*4+i] = un8_32.dane8[i];
 		}
+		chErr = WyslijRamke(chAdresZdalny, PK_WYSLIJ_ODCZYT_FRAM, 4*chRozmiar, chDane, chInterfejs);
+		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//wyłącz wykonywanie polecenia POL_CZYTAJ_FRAM_FLOAT
 		break;
+
 
 	}
     return chErr;

@@ -18,17 +18,17 @@
 
 
 //definicje nazw regulatorów
-#define PID_GYP 0   //regulator steruje prędkością kątową przechylenia (żyroskop P)
-#define PID_GYQ 1   //regulator steruje prędkością kątową pochylenia (żyroskop Q)
-#define PID_GYR 2   //regulator steruje prędkością kątową odchylenia (żyroskop R)
-#define PID_VAR 3   //regulator sterowani prędkością wznoszenia (wario)
-#define PID_PHI 4   //regulator sterowania przechyleniem (lotkami w samolocie)
-#define PID_THE 5   //regulator sterowania pochyleniem (sterem wysokości)
-#define PID_PSI 6   //regulator sterowania odchyleniem (sterem kierunku)
+#define PID_GYP 0   //regulator sterowania prędkością kątową przechylenia (żyroskop P)
+#define PID_PHI 1   //regulator sterowania przechyleniem (lotkami w samolocie)
+#define PID_GYQ 2   //regulator sterowania prędkością kątową pochylenia (żyroskop Q)
+#define PID_THE 3   //regulator sterowania pochyleniem (sterem wysokości)
+#define PID_GYR 4   //regulator sterowania prędkością kątową odchylenia (żyroskop R)
+#define PID_PSI 5  	//regulator sterowania odchyleniem (sterem kierunku)
+#define PID_VAR 6   //regulator sterowani prędkością wznoszenia (wario)
 #define PID_ALT 7   //regulator sterowania wysokością
 #define PID_SPX 8   //regulator sterowania prędkością postępową w X
-#define PID_SPY 9   //regulator sterowania prędkością postępową w Y
-#define PID_POX 10  //regulator stabilizacji wzgl. punktu w osi X
+#define PID_POX 9  	//regulator stabilizacji wzgl. punktu w osi X
+#define PID_SPY 10  //regulator sterowania prędkością postępową w Y
 #define PID_POY 11  //regulator stabilizacji wzgl. punktu w osi Y
 
 #define NUM_PIDS  12 //liczba regulatorów

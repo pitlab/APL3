@@ -73,15 +73,19 @@
 #define FAU_TSYNC_SEC       FAU_TSYNC_MIN+1
 #define FAU_TSYNC_DIF       FAU_TSYNC_SEC+1 //ostatnia różnica czasu synchronizacji
 
-#define FA_USER_PID	    0x0300	
+#define FA_USER_PID	    	0x0300
 #define FAU_PID_P0          FA_USER_PID+0   //4U wzmocnienienie członu P regulatora 0
 #define FAU_PID_I0          FA_USER_PID+4   //4U wzmocnienienie członu I regulatora 0
 #define FAU_PID_D0          FA_USER_PID+8   //4U wzmocnienienie członu D regulatora 0
-#define FAU_PID_ILIM0       FA_USER_PID+12  //4U górna granica wartości całki członu I regulatora 0
+#define FAU_PID_OGR_I0      FA_USER_PID+12  //4U ogranicenie wartości całki członu I regulatora 0
+#define FAU_PID_MIN_WY0		FA_USER_PID+16  //4U minimalna wartość wyjścia
+#define FAU_PID_MAX_WY0		FA_USER_PID+20  //4U maksymalna wartość wyjścia
 //do adresu 0x3C0 jest miejsce na łącznie 12 regulatorów.
 
-#define FAU_D_FILTER        0x3C0           //12*1U Stała czasowa filtru członu różniczkującego
+
+#define FAU_FILD_REGKAT_TYP 0x3C0           //12*1U Stała czasowa filtru członu różniczkującego (bity 0..4). Typ regulatora (bity 5..6) Regulator kątowy (bit 7)
 #define FAU_REG_MODE        0x3CC           //4*1U okresla tryb pracy regulatorów PID: 0=wyłączony, 1=ręczny, 2=akrobacyjny  3=stabilny, 4=prędkości GPS, 5=pozycji GPS
+
 
 //8 wolnych bajtów
 #define FAU_MIN_PWM         0x3D8           //2U minimalne wysterowanie regulatorów w trakcie lotu [us]

@@ -48,8 +48,9 @@
 #define POL_ZERUJ_LICZNIK		23	//zeruje licznik uśredniana przed kolejnym cyklem
 #define POL_USREDNIJ_CISN1		24	//uśredniania ciśnienia 1 czujników ciśnienia bezwzględnego
 #define POL_USREDNIJ_CISN2		25	//uśredniania ciśnienia 2 czujników ciśnienia bezwzględnego
-#define POL_ODCZYTAJ_FRAM		26	//odczytaj i wyślij zawartość FRAM spod podanego adresu
-#define POL_ZAPISZ_FRAM			27	//zapisz przekazane dane do FRAM pod podany adres
+#define POL_CZYTAJ_FRAM_FLOAT	26	//odczytaj i wyślij zawartość FRAM spod podanego adresu
+#define POL_ZAPISZ_FRAM_FLOAT	27	//zapisz przekazane dane do FRAM pod podany adres
+
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
 
 

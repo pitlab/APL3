@@ -46,28 +46,25 @@
 #define PK_ZROB_ZDJECIE			2	//polecenie wykonania zdjęcia. We: [0..1] - sSzerokosc zdjecia, [2..3] - wysokość zdjecia
 #define PK_POB_STAT_ZDJECIA		3	//pobierz status gotowości zdjęcia
 #define PK_POBIERZ_ZDJECIE		4	//polecenie przesłania fragmentu zdjecia. We: [0..3] - wskaźnik na pozycje bufora, [4] - rozmiar danych do przesłania
-
 #define PK_USTAW_BSP			5	//ustawia identyfikator/adres urządzenia
 #define PK_POBIERZ_BSP			6	//pobiera identyfikator/adres urządzenia
 #define PK_UST_TR_PRACY			7	//ustaw tryb pracy
 #define PK_POB_PAR_KAMERY		8	//pobierz parametry pracy kamery
 #define PK_UST_PAR_KAMERY		9	//ustaw parametry pracy kamery
-
 #define PK_ZAPISZ_BUFOR			10	//zapisz dane do bufora 128kB w pamięci RAM
 #define PK_ZAPISZ_FLASH			11	//zapisz stronę 32 bajtów flash
 #define PK_KASUJ_FLASH			12	//kasuj sektor 128kB flash
 #define PK_CZYTAJ_FLASH			13	//odczytaj zawartość Flash 
 #define PK_CZYTAJ_OKRES_TELE	14	//odczytaj okresy telemetrii
 #define PK_ZAPISZ_OKRES_TELE	15	//zapisz okresy telemetrii
-#define PK_ZAPISZ_FRAM_FLOAT	16	//Wysyła dane typu float do zapisu we FRAM w rdzeniu CM4 o rozmiarze ROZMIAR_ROZNE
-#define PK_CZYTAJ_FRAM_FLOAT	17	//wysyła polecenie odczytu zawartości FRAM
-#define PK_WYSLIJ_ODCZYT_FRAM	18	//pobiera odczytane wcześniej dane
+#define PK_ZAPISZ_FRAM_FLOAT	16	//Wysyła dane typu float do zapisu we FRAM w rdzeniu CM4 o podanym rozmiarze liczb float
+#define PK_WYSLIJ_POTW_ZAPISU	17	//wysyła potwierdzenie zapisania danych ERR_OK lub ERR_PROCES_TRWA
+#define PK_CZYTAJ_FRAM_FLOAT	18	//wysyła polecenie odczytu zawartości FRAM typu float
+#define PK_WYSLIJ_ODCZYT_FRAM	19	//pobiera odczytane wcześniej dane lub zwraca ERR_PROCES_TRWA
+#define PK_						20	//
 
-
+#define PK_ILOSC_POLECEN		21	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 #define PK_TELEMETRIA			99	//ramka telemetryczna
-
-#define PK_ILOSC_POLECEN		17	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
-
 
 
 
