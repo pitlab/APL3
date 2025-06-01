@@ -19,6 +19,8 @@ uint32_t nOffsetDanych;
 int16_t sSzerZdjecia, sWysZdjecia;
 uint16_t sAdres;
 uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
+
+
 static un8_32_t un8_32;
 static un8_16_t un8_16;
 
@@ -85,7 +87,10 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		stBSP.chAdres = chDane[0];
 		for (n=0; n<DLUGOSC_NAZWY; n++)
 			stBSP.chNazwa[n] = chDane[n+1];
+		for (n=0; n<4; n++)
+			stBSP.chAdrIP[n] = chDane[n+DLUGOSC_NAZWY+1];
 		ZapiszPaczkeKonfigu(FKON_NAZWA_ID_BSP, (uint8_t*)&stBSP);
+		chErr = Wyslij_OK(PK_USTAW_BSP, 0, chInterfejs);
 		break;
 
 	case PK_POBIERZ_BSP:		//pobiera identyfikator/adres urządzenia

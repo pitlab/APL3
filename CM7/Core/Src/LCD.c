@@ -7,7 +7,6 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-
 #include "LCD.h"
 #include "RPi35B_480x320.h"
 #include <stdio.h>
@@ -26,6 +25,7 @@
 #include <stdlib.h>
 #include "CAN.h"
 #include "czas.h"
+#include "fraktale.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -75,12 +75,12 @@ uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
 
 char chNapis[100], chNapisPodreczny[30];
 float fTemperaturaKalibracji;
-float fZoom, fX, fY;
-float fReal, fImag;
-unsigned char chMnozPalety;
-unsigned char chDemoMode;
-unsigned char chLiczIter;		//licznik iteracji fraktala
-extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
+//float fZoom, fX, fY;
+//float fReal, fImag;
+//uint8_t chMnozPalety;
+//uint8_t chDemoMode;
+uint8_t chLiczIter;		//licznik iteracji wyświetlania
+//extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern struct _statusDotyku statusDotyku;
 extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 extern uint8_t chPorty_exp_wysylane[];
@@ -245,8 +245,11 @@ void RysujEkran(void)
 
 
 	case TP_WITAJ:
+		if (!chLiczIter)
+			chLiczIter = 15;			//ustaw czas wyświetlania x 200ms
 		Ekran_Powitalny(nZainicjowano);	//przywitaj użytkownika i prezentuj wykryty sprzęt
-		chNowyTrybPracy = TP_WROC_DO_MENU;
+		if (!chLiczIter)				//jeżeli koniec odliczania to wyjdź
+			chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
 	case TP_TESTY:
@@ -719,6 +722,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 
 	extern const unsigned short plogo165x80[];
 	extern uint8_t BSP_SD_IsDetected(void);
+	extern stBSP_t stBSP;	//struktura zawierajaca adres i nazwę BSP
 
 	if (chRysujRaz)
 	{
@@ -729,43 +733,46 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 		setBackColor(WHITE);
 		setFont(BigFont);
 		sprintf(chNapis, "%s @%luMHz", (char*)chNapisLcd[STR_WITAJ_TYTUL], HAL_RCC_GetSysClockFreq()/1000000);
-		print(chNapis, CENTER, 95);
+		print(chNapis, CENTER, 90);
 
 		setColor(GRAY30);
 		setFont(MidFont);
 		//sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO], ó, ć, ó, ó, ż);	//"By móc mieć w rój Wronów na pohybel wrażym hordom""
 		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO2], ó, ó, ż, ó);	//"By móc zmóc wraże hordy rojem Wronów"	//STR_WITAJ_MOTTO2
-		print(chNapis, CENTER, 118);
+		print(chNapis, CENTER, 115);
+
+		sprintf(chNapis, "Adres: %d, IP: %d.%d.%d.%d, Nazwa: %s", stBSP.chAdres, stBSP.chAdrIP[0], stBSP.chAdrIP[1], stBSP.chAdrIP[2], stBSP.chAdrIP[3],  stBSP.chNazwa);
+		print(chNapis, CENTER, 135);
 
 		sprintf(chNapis, "(c) PitLab 2025 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
-		print(chNapis, CENTER, 135);
+		print(chNapis, CENTER, 155);
 		chRysujRaz = 0;
 	}
 
 	//pierwsza kolumna sprzętu wewnętrznego
 	x = 5;
-	y = 160;
+	y = WYKRYJ_GORA;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_NOR]);		//"pamięć Flash NOR"
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, (*(zainicjowano+0) & INIT0_FLASH_NOR) == INIT0_FLASH_NOR);
 
-	y += 20;
+	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_QSPI]);	//"pamięć Flash QSPI"
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, (*(zainicjowano+0) & INIT0_FLASH_NOR) == INIT0_FLASH_NOR);
 
-	y += 20;
+	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KARTA_SD]);		//"Karta SD"
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, BSP_SD_IsDetected());
 
-	y += 20;
+	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KAMERA_OV5642]);	//"kamera "
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, (*(zainicjowano+1) & INIT1_KAMERA) == INIT1_KAMERA);
 
 	//dane z CM4
-	y += 20;
+	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_GNSS]);		//GNSS
 	if (uDaneCM4.dane.nZainicjowano & INIT_WYKR_UBLOX)
 		n = sprintf(chNapis, "%s -> %s", (char*)chNapisLcd[STR_SPRAWDZ_GNSS], (char*)chNapisLcd[STR_SPRAWDZ_UBLOX]);	//GNSS -> uBlox
@@ -774,49 +781,50 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 	print(chNapis, x, y);
 	Wykrycie(x, y, n,  (uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY) == INIT_GNSS_GOTOWY);
 
-	y += 20;
+	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, "%s -> %s", (char*)chNapisLcd[STR_SPRAWDZ_GNSS], (char*)chNapisLcd[STR_SPRAWDZ_HMC5883]);	//GNSS -> HMC5883
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_HMC5883) == INIT_HMC5883);
 
 	//druga kolumna sprzętu zewnętrznego
 	x = 5 + DISP_X_SIZE / 2;
-	y = 160;
+	y = WYKRYJ_GORA;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_MS5611]);		//moduł IMU -> MS5611
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_MS5611) == INIT_MS5611);
 
-	y += 20;
+	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_BMP581]);		//moduł IMU -> BMP581
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_BMP581) == INIT_BMP581);
 
-	y += 20;
+	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_ICM42688]);		//moduł IMU -> ICM42688
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_ICM42688) == INIT_ICM42688);
 
-	y += 20;
+	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_LSM6DSV]);		//moduł IMU -> LSM6DSV
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV) == INIT_LSM6DSV);
 
-	y += 20;
+	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_MMC34160]);		//moduł IMU -> MMC34160
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_MMC34160) == INIT_MMC34160);
 
-	y += 20;
+	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_IIS2MDC]);		//moduł IMU -> IIS2MDC
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC) == INIT_IIS2MDC);
 
-	y += 20;
+	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_ND130]);		//moduł IMU -> ND130
 	print(chNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_ND130) == INIT_ND130);
 
-	osDelay(2000);
+	osDelay(200);
+	chLiczIter--;
 }
 
 
@@ -894,230 +902,6 @@ void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fP
 		sprintf(chNapis, (const char*)chOpisBledow[chKomunikatBledu], fParametr1 - KELVIN, ZNAK_STOPIEN, fParametr2 - fParametr3 - KELVIN, ZNAK_STOPIEN, fParametr2 + fParametr3 -  KELVIN, ZNAK_STOPIEN);	break;	//"Zbyt niska temeratura zyroskopow wynoszaca %d%cC. Musi miescic sie w granicach od %d%cC do %d%cC",
 	}
 	printRamka(chNapis, 20, 90, 440, 200);
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// zmierz czas liczenia fraktala Julii
-// Parametry: nic
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void FraktalTest(uint8_t chTyp)
-{
-	uint32_t nCzas;
-
-	nCzas = PobierzCzasT6();
-	switch (chTyp)
-	{
-	case 0:	GenerateJulia(DISP_X_SIZE, DISP_Y_SIZE, DISP_X_SIZE/2, DISP_Y_SIZE/2, 135, sBuforLCD);
-		nCzas = MinalCzas(nCzas);
-		sprintf(chNapis, "Julia: t=%ldus, c=%.3f ", nCzas, fImag);
-		fImag -= 0.002;
-		break;
-
-			//ca�y fraktal - rotacja palety
-	case 1: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
-		nCzas = MinalCzas(nCzas);
-		sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
-		chMnozPalety += 1;
-		break;
-
-			//dolina konika x=-0,75, y=0,1
-	case 2: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
-		nCzas = MinalCzas(nCzas);
-		sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
-		fZoom /= 0.9;
-		break;
-
-			//dolina s�onia x=0,25-0,35, y=0,05, zoom=-0,6..-40
-	case 3: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
-		nCzas = MinalCzas(nCzas);
-		sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
-		fZoom /= 0.9;
-		break;
-	}
-
-	//drawBitmap2(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wywyła większymi paczkami - zła kolejność ale szybciej
-	//drawBitmap(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wysyła bajty parami we właściwej kolejności
-	drawBitmap3(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wyświetla bitmapę po 4 piksele z rotacją bajtów w wewnętrznym buforze. Dobre kolory i trochę szybciej niż po jednym pikselu
-	//drawBitmap4(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wyświetla bitmapę po 4 piksele przez DMA z rotacją bajtów w wewnętrznym buforze - nie działa
-	setFont(MidFont);
-	setColor(GREEN);
-	print(chNapis, 0, 304);
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-// wyświetl demo z fraktalami
-// Parametry: nic
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void FraktalDemo(void)
-{
-	switch (chDemoMode)
-	{
-	case 0:	FraktalTest(0);		//rysuj fraktala Julii
-		if (chLiczIter > 40)
-		{
-			chLiczIter = 0;
-			chDemoMode++;
-			InitFraktal(1);
-		}
-		break;
-
-	case 1:	FraktalTest(1);		//rysuj fraktala Mandelbrota - cały fraktal rotacja kolorów
-		if (chLiczIter > 60)
-		{
-			chLiczIter = 0;
-			chDemoMode++;
-			InitFraktal(2);
-		}
-		break;
-
-	case 2:	FraktalTest(2);		//rysuj fraktala Mandelbrota - dolina konika
-		if (chLiczIter > 20)
-		{
-			chLiczIter = 0;
-			chDemoMode++;
-			InitFraktal(3);
-		}
-		break;
-
-	case 3:	FraktalTest(3);		//rysuj fraktala Mandelbrota - dolina słonia
-		if (chLiczIter > 20)
-		{
-			chLiczIter = 0;
-			chDemoMode++;
-			InitFraktal(2);
-		}
-		break;
-
-	case 4:	chDemoMode++;	break;
-
-	case 5:	//LCD_Test();		chMode++;
-		InitFraktal(0);
-		chDemoMode = 0;	break;
-	}
-	chLiczIter++;
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Inicjalizuj dane fraktali przed uruchomieniem
-// Parametry: nic
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void InitFraktal(unsigned char chTyp)
-{
-#define ITERATION	80
-//#define IMG_CONSTANT	0.285
-//#define REAL_CONSTANT	0.005
-//#define IMG_CONSTANT	-0.73
-//#define REAL_CONSTANT	0.19
-#define IMG_CONSTANT	-0.1
-#define REAL_CONSTANT	0.65
-
-	switch (chTyp)
-	{
-	case 0:	fReal = 0.38; 	fImag = -0.1;	break;	//Julia
-	case 1:	fX=-0.70; 	fY=0.60;	fZoom = -0.6;	chMnozPalety = 2;	break;		//cały fraktal - rotacja palety -0.7, 0.6, -0.6,
-	case 2:	fX=-0.75; 	fY=0.18;	fZoom = -0.6;	chMnozPalety = 15;	break;		//dolina konika x=-0,75, y=0,1
-	case 3:	fX= 0.30; 	fY=0.05;	fZoom = -0.6;	chMnozPalety = 43;	break;		//dolina słonia x=0,25-0,35, y=0,05, zoom=-0,6..-40
-	}
-	//chMnozPalety = 43;		//8, 13, 21, 30, 34, 43, 48, 56, 61
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Generuj fraktal Julii
-// Parametry:
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void GenerateJulia(unsigned short size_x, unsigned short size_y, unsigned short offset_x, unsigned short offset_y, unsigned short zoom, unsigned short * buffer)
-{
-	float tmp1, tmp2;
-	float num_real, num_img;
-	float radius;
-	unsigned short i;
-	unsigned short x,y;
-
-	for (y=0; y<size_y; y++)
-	{
-		for (x=0; x<size_x; x++)
-		{
-			num_real = y - offset_y;
-			num_real = num_real / zoom;
-			num_img = x - offset_x;
-			num_img = num_img / zoom;
-			i=0;
-			radius = 0;
-			while ((i<ITERATION-1) && (radius < 2))
-			{
-				tmp1 = num_real * num_real;
-				tmp2 = num_img * num_img;
-				num_img = 2*num_real*num_img + fImag;
-				num_real = tmp1 - tmp2 + fReal;
-				radius = tmp1 + tmp2;
-				i++;
-			}
-			/* Store the value in the buffer */
-			buffer[x+y*size_x] = i*20;
-		}
-	}
-}
-
-
-#define CONTROL_SIZE_Y	128
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Generuj fraktal Mandelbrota
-// Parametry:
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void GenerateMandelbrot(float centre_X, float centre_Y, float Zoom, unsigned short IterationMax, unsigned short * buffer)
-{
-	double X_Min = centre_X - 1.0/Zoom;
-	double X_Max = centre_X + 1.0/Zoom;
-	double Y_Min = centre_Y - (DISP_Y_SIZE-CONTROL_SIZE_Y) / (DISP_X_SIZE * Zoom);
-	double Y_Max = centre_Y + (DISP_Y_SIZE-CONTROL_SIZE_Y) / (DISP_X_SIZE * Zoom);
-	double dx = (X_Max - X_Min) / DISP_X_SIZE;
-	double dy = (Y_Max - Y_Min) / (DISP_Y_SIZE-CONTROL_SIZE_Y) ;
-	double y = Y_Min;
-	unsigned short j, i;
-	int n;
-	double x, Zx, Zy, Zx2, Zy2, Zxy;
-
-	for (j=0; j<DISP_Y_SIZE; j++)
-	{
-		x = X_Min;
-		for (i = 0; i < DISP_X_SIZE; i++)
-		{
-			Zx = x;
-			Zy = y;
-			n = 0;
-			while (n < IterationMax)
-			{
-				Zx2 = Zx * Zx;
-				Zy2 = Zy * Zy;
-				Zxy = 2.0 * Zx * Zy;
-				Zx = Zx2 - Zy2 + x;
-				Zy = Zxy + y;
-				if(Zx2 + Zy2 > 16.0)
-				{
-					break;
-				}
-				n++;
-			}
-			x += dx;
-
-			buffer[i+j*DISP_X_SIZE] = n*chMnozPalety;
-		}
-		y += dy;
-	}
 }
 
 

@@ -23,12 +23,14 @@
 #include "wymiana_CM7.h"
 #include "telemetria.h"
 #include "komunikacja.h"
+#include "flash_konfig.h"
+#include <string.h>
+
 
 //definicje zmiennych
 static uint8_t chStanProtokolu[ILOSC_INTERF_KOM];
 uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
 static uint8_t chAdresPrzychodzacy;	//może to być adres BSP lub broadcast
-stBSP_t stBSP;	//struktura zawierajaca adres i nazwę BSP
 static uint8_t chLicznikDanych[ILOSC_INTERF_KOM];
 static uint8_t chZnakCzasu[ILOSC_INTERF_KOM];
 static uint16_t sCrc16We;
@@ -37,6 +39,8 @@ static uint8_t chPolecenie;
 static uint8_t chRozmDanych;
 static uint8_t chDane[ROZM_DANYCH_UART];
 static un8_16_t un8_16;
+stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
+const char* chNazwaSierotki = {"Sierotka Wronia"};
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
 ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chBuforNadDMA[ROZMIAR_RAMKI_UART]);
@@ -67,13 +71,27 @@ extern void Error_Handler(void);
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujProtokol(void)
 {
+	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIG];
+	uint8_t chOdczytano;
+
 	//odczytaj z konfiguracji i ustaw własny adres sieciowy
-	stBSP.chAdres = 2;
-	stBSP.chNazwa[0] = 'a';
-	stBSP.chNazwa[1] = 'b';
-	stBSP.chNazwa[2] = 'c';
-	stBSP.chNazwa[3] = 'd';
-	stBSP.chNazwa[4] = 0;
+	chOdczytano = CzytajPaczkeKonfigu(chPaczka, FKON_NAZWA_ID_BSP);
+	if (chOdczytano == ROZMIAR_PACZKI_KONFIG)
+	{
+		stBSP.chAdres = chPaczka[2];
+		for (int16_t n=0; n<DLUGOSC_NAZWY; n++)
+			stBSP.chNazwa[n] = chPaczka[n+3];
+		for (int16_t n=0; n<4; n++)
+			stBSP.chAdrIP[n] = chPaczka[n+3+DLUGOSC_NAZWY];
+	}
+
+	//jeżeli adres jest nieważny to ustaw ostatni możliwy i daj specyficaną nazwę
+	if ((stBSP.chAdres == 0) || (stBSP.chAdres == 0xFF))
+	{
+		stBSP.chAdres = 0xFE;
+		for (int16_t n=0; n<strlen(chNazwaSierotki); n++)
+			stBSP.chNazwa[n] = chNazwaSierotki[n];
+	}
 
 	for (int16_t n=0; n<ROZMIAR_BUF_ODB_DMA+8; n++)
 		chBuforOdbDMA[n] = 0x55;	//wypełnij wzorcem do analizy

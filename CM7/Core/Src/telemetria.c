@@ -27,10 +27,10 @@ uint8_t chIndeksNapelnRamki;	//okresla ktora tablica ramki telemetrycznej jest n
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
-extern stBSP_t stBSP;						//własny adres sieciowy
 extern UART_HandleTypeDef hlpuart1;
 static un8_16_t un8_16;		//unia do konwersji między danymi 16 i 8 bit
 extern volatile uint8_t chUartKomunikacjiZajety;
+extern stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
 
 uint8_t chOdczytano, chDoOdczytu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
 

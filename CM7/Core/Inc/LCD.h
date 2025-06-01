@@ -17,6 +17,8 @@
 #define RYSUJ		0
 #define ODSWIEZ		1
 
+#define WYKRYJ_GORA	175
+#define WYKRYJ_WIERSZ	18
 
 typedef struct
 {
@@ -30,12 +32,7 @@ void RysujEkran(void);
 void Ekran_Powitalny(uint32_t * zainicjowano);
 void Wykrycie(uint16_t x, uint16_t y, uint8_t dopelnij_znakow, uint8_t wynik);
 void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fParametr2, float fParametr3);
-void FraktalTest(unsigned char chTyp);
-void FraktalDemo(void);
-void GenerateJulia(unsigned short size_x, unsigned short size_y, unsigned short offset_x, unsigned short offset_y, unsigned short zoom, unsigned short * buffer);
-void GenerateMandelbrot(float centre_X, float centre_Y, float Zoom, unsigned short IterationMax, unsigned short * buffer);
 void HSV2RGB(float hue, float sat, float val, float *red, float *grn, float *blu);
-void InitFraktal(unsigned char chTyp);
 void MenuGlowne(unsigned char *tryb);
 void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
 void BelkaTytulu(char* chTytul);
