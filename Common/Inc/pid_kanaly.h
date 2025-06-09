@@ -11,27 +11,27 @@
 #define PITCH  1    //regulator sterowania pochyleniem (sterem wysokości)
 #define YAW    2    //regulator sterowania obrotem (sterem kierunku)
 #define ALTI   3    //regulator sterowania wysokością
-#define GPSX   4    //regulator sterowania prędkością i położeniem w osi X
-#define GPSY   5    //regulator sterowania prędkością i położeniem w osi Y
+#define GPSN   4    //regulator sterowania prędkością i położeniem północnym
+#define GPSE   5    //regulator sterowania prędkością i położeniem wschodnim
 
 #define NUM_PARAMS  6 //liczba regulowanych parametrów
 
 
 //definicje nazw regulatorów
-#define PID_GYP 0   //regulator sterowania prędkością kątową przechylenia (żyroskop P)
-#define PID_PHI 1   //regulator sterowania przechyleniem (lotkami w samolocie)
-#define PID_GYQ 2   //regulator sterowania prędkością kątową pochylenia (żyroskop Q)
-#define PID_THE 3   //regulator sterowania pochyleniem (sterem wysokości)
-#define PID_GYR 4   //regulator sterowania prędkością kątową odchylenia (żyroskop R)
-#define PID_PSI 5  	//regulator sterowania odchyleniem (sterem kierunku)
-#define PID_VAR 6   //regulator sterowani prędkością wznoszenia (wario)
-#define PID_ALT 7   //regulator sterowania wysokością
-#define PID_SPX 8   //regulator sterowania prędkością postępową w X
-#define PID_POX 9  	//regulator stabilizacji wzgl. punktu w osi X
-#define PID_SPY 10  //regulator sterowania prędkością postępową w Y
-#define PID_POY 11  //regulator stabilizacji wzgl. punktu w osi Y
+#define PID_PHI 	0   //regulator sterowania przechyleniem (lotkami w samolocie)
+#define PID_GYP 	1   //regulator sterowania prędkością kątową przechylenia (żyroskop P)
+#define PID_THE 	2   //regulator sterowania pochyleniem (sterem wysokości)
+#define PID_GYQ 	3   //regulator sterowania prędkością kątową pochylenia (żyroskop Q)
+#define PID_PSI 	4  	//regulator sterowania odchyleniem (sterem kierunku)
+#define PID_GYR 	5   //regulator sterowania prędkością kątową odchylenia (żyroskop R)
+#define PID_WYS 	6   //regulator sterowania wysokością
+#define PID_WAR 	7   //regulator sterowani prędkością wznoszenia (wario)
+#define PID_NAW_N 	8   //regulator sterowania nawigacją w kierunku północnym
+#define PID_PRE_N	9  	//regulator sterowania prędkością w kierunku północnym
+#define PID_NAW_E 	10  //regulator sterowania nawigacją w kierunku wschodnim
+#define PID_PRE_E	11 	//regulator sterowania prędkością w kierunku wschodnim
 
-#define NUM_PIDS  12 //liczba regulatorów
+#define LICZBA_PID  12 //liczba regulatorów
 
 
 //definicje trybów pracy regulatora

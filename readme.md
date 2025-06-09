@@ -34,6 +34,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Rysowanie okna weryfikacji magnetometrów w obrocie płaskim
 - Uruchomiono komunikację po CAN udostępniając na zewnątrz jeden z magnetometrów
 - Uruchomiona telemetria, wysłanie danych w indywidualnej funkcji czasu dla każdej zmiennej, zapis i odczyt konfiguracji przez NSK 
+- Wyświetlanie nastaw regulatorów PID
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM

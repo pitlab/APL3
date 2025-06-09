@@ -348,6 +348,14 @@ void WykonajPolecenieCM7(void)
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 		break;
 
+	case POL_KASUJ_DRYFT_ZYRO:
+		for (uint16_t n=0; n<3; n++)
+		{
+			uDaneCM4.dane.fKatZyro1[n] = uDaneCM4.dane.fKatAkcel1[n];
+			uDaneCM4.dane.fKatZyro2[n] = uDaneCM4.dane.fKatAkcel2[n];
+		}
+		break;
+
 	case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;	break;	//nadpisz poprzednio zwrócony błąd
 
 	}

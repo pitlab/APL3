@@ -26,6 +26,8 @@
 #include "CAN.h"
 #include "czas.h"
 #include "fraktale.h"
+#include "konfig_fram.h"
+#include "pid_kanaly.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -65,6 +67,7 @@ extern const unsigned short obr_kontrolny[0xFFC];
 extern const unsigned short obr_kostka3D[0xFFC];
 extern const unsigned short obr_cisnienie[0xFFC];
 extern const unsigned short obr_okregi[0xFFC];
+extern const unsigned short obr_narzedzia[0xFFC];
 
 //definicje zmiennych
 uint8_t chTrybPracy;
@@ -115,16 +118,57 @@ prostokat_t stWykr;	//wykres biegunowy magnetometru
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Multimedia",  "Obsluga multimediow: dzwiek i obraz",		TP_MULTIMEDIA, 		obr_glosnik2},
+	{"Pomiary",		"Wyniki pomiarow czujnikow",				TP_POMIARY, 		obr_multimetr},
+	{"Kalibracje", 	"Kalibracja czujnikow pokladowych",			TP_KALIBRACJE,		obr_kontrolny},
+	{"Nastawy",  	"Ustawienia podsystemow",					TP_NASTAWY, 		obr_narzedzia},
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
 	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_kartaSD},
-	{"Kalib IMU", 	"Kalibracja zyroskopow i akclerometrow",	TP_IMU,				obr_baczek},
-	{"Kalib Magn",	"Obsluga i kalibracja magnetometru",		TP_MAGNETOMETR,		obr_kal_mag_n1},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"Multimedia",  "Obsluga multimediow: dzwiek i obraz",		TP_MULTIMEDIA, 		obr_glosnik2}};
+
+
+
+struct tmenu stMenuKalibracje[MENU_WIERSZE * MENU_KOLUMNY]  = {
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
+	{"Kal IMU", 	"Kalibracja czujników IMU",					TP_KAL_IMU,			obr_baczek},
+	{"Kal Magn", 	"Kalibracja magnetometrow",					TP_KAL_MAG,			obr_kal_mag_n1},
+	{"Kal Baro", 	"Kalibracja cisnienia wg wzorca 10 pieter",	TP_KAL_BARO,		obr_cisnienie},
+	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_KAL_DOTYK,		obr_dotyk_zolty},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+
+struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
 	{"Dane cisn",	"Wyniki pomiarow czujnikow cisnienia",		TP_POMIARY_CISN, 	obr_multimetr},
-	{"Kal Baro", 	"Kalibracja cisnienia wg wzorca 10 pieter",	TP_KAL_BARO,		obr_cisnienie},
-	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
-	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_dotyk}};
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_dotyk_zolty},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+
+struct tmenu stMenuNastawy[MENU_WIERSZE * MENU_KOLUMNY]  = {
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
+	{"PID Pochyl",	"Nastawy PID pochylenia",					TP_NAST_PID_POCH, 	obr_narzedzia},
+	{"PID Przech",	"Nastawy PID przechylenia",					TP_NAST_PID_PRZECH, obr_narzedzia},
+	{"PID Odchyl",	"Nastawy PID odchylenia",					TP_NAST_PID_ODCH,	obr_narzedzia},
+	{"PID Wysoko",	"Nastawy PID wysokosci",					TP_NAST_PID_WYSOK,	obr_narzedzia},
+	{"PID NawigN",	"Nastawy PID nawigacji północnej",			TP_NAST_PID_NAW_N,	obr_narzedzia},
+	{"PID NawigE",	"Nastawy PID nawigacji wschodniej",			TP_NAST_PID_NAW_E,	obr_narzedzia},
+	{"Mikser",		"Nastawy miksera silnikow",					TP_NAST_MIKSERA,	obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
 struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -135,12 +179,10 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_QSPI},
 	{"Trans RAM",	"Pomiar predkosci SRAM i DRAM 16-bit",		TP_POMIAR_SRAM,		obr_RAM},
 	{"EmuMagCAN",	"Emulator magnetometru na magistrali CAN",	TP_EMU_MAG_CAN,		obr_kal_mag_n1},
-	{"nic",			"nic",										TP_CAN1,			obr_Wydajnosc},
+	{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katow IMU",		TP_IMU_KOSTKA,		obr_kostka3D},
 	{"SD33",		"nic",										TP_W3,				obr_Wydajnosc},
 	{"SD18",		"nic",										TP_W4,				obr_Wydajnosc},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
-
-
 
 struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
@@ -151,10 +193,9 @@ struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"FFT Audio",	"FFT sygnału z mikrofonu",					TP_MM_AUDIO_FFT,	obr_fft},
 	{"Komunikat1",	"Komunikat glosowy",						TP_MM_KOM1,			obr_volume},
 	{"Komunikat2",	"Komunikat glosowy",						TP_MM_KOM2,			obr_volume},
-	{"Komunikat3",	"Komunikat glosowy",						TP_MM_KOM3,			obr_volume},
-	{"Test kom.",	"Test komunikatów audio",					TP_MM_KOM4,			obr_glosnik2},
+	{"Test kom.",	"Test komunikatów audio",					TP_MM_KOM3,			obr_glosnik2},
+	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
-
 
 struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
@@ -162,12 +203,12 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wylacz Rej",  "Wylacza rejestrator",   					TPKS_WYLACZ_REJ,	obr_kartaSD},
 	{"Parametry",	"Parametry karty SD",						TPKS_PARAMETRY,		obr_kartaSD},
 	//{"Test trans",	"Wyniki pomiaru predkosci transferu",		TPKS_POMIAR, 		obr_multimetr},
-	{"TPKS_4",		"nic  ",									TPKS_4,				obr_dotyk},
-	{"TPKS_4",		"nic  ",									TPKS_4,				obr_dotyk},
-	{"TPKS_5",		"nic  ",									TPKS_5,				obr_dotyk},
-	{"TPKS_6",		"nic  ",									TPKS_6,				obr_dotyk},
-	{"TPKS_7",		"nic  ",									TPKS_7,				obr_dotyk},
-	{"TPKS_8",		"nic  ",									TPKS_8,				obr_dotyk},
+	{"TPKS_4",		"nic  ",									TPKS_4,				obr_dotyk_zolty},
+	{"TPKS_4",		"nic  ",									TPKS_4,				obr_dotyk_zolty},
+	{"TPKS_5",		"nic  ",									TPKS_5,				obr_dotyk_zolty},
+	{"TPKS_6",		"nic  ",									TPKS_6,				obr_dotyk_zolty},
+	{"TPKS_7",		"nic  ",									TPKS_7,				obr_dotyk_zolty},
+	{"TPKS_8",		"nic  ",									TPKS_8,				obr_dotyk_zolty},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
@@ -181,17 +222,17 @@ struct tmenu stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wzm ZyroP", 	"Kalibracja wzmocnienia zyroskopow P",		TP_KAL_WZM_ZYROP,	obr_baczek},
 	{"Wzm ZyroQ", 	"Kalibracja wzmocnienia zyroskopow Q",		TP_KAL_WZM_ZYROQ,	obr_baczek},
 	{"Wzm ZyroR", 	"Kalibracja wzmocnienia zyroskopow R",		TP_KAL_WZM_ZYROR,	obr_baczek},
-	{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katow IMU",		TP_IMU_KOSTKA,		obr_kostka3D},
+	{"ZeroZyro", 	"Kasuj dryft scalkowanego kata z zyro.",	TP_KASUJ_DRYFT_ZYRO,obr_kostka3D},
+	//{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katow IMU",		TP_IMU_KOSTKA,	obr_kostka3D},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
-
 
 struct tmenu stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Kal Magn1", 	"Kalibracja magnetometru 1",				TP_MAG_KAL1,		obr_kal_mag_n1},
 	{"Kal Magn2", 	"Kalibracja magnetometru 2",				TP_MAG_KAL2,		obr_kal_mag_n1},
 	{"Kal Magn3", 	"Kalibracja magnetometru 3",				TP_MAG_KAL3,		obr_kal_mag_n1},
-	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_KAL_DOTYK,		obr_dotyk_zolty},
-	{"MAG4",		"nic  ",									TP_MAG4,			obr_dotyk},
+	{"MAG1",		"nic  ",									TP_MAG1,			obr_dotyk_zolty},
+	{"MAG2",		"nic  ",									TP_MAG2,			obr_dotyk_zolty},
 	{"Spr Magn1",	"Sprawdz kalibracje magnetometru 1",		TP_SPR_MAG1,		obr_kal_mag_n1},
 	{"Spr Magn2",	"Sprawdz kalibracje magnetometru 2",		TP_SPR_MAG2,		obr_kal_mag_n1},
 	{"Spr Magn3",	"Sprawdz kalibracje magnetometru 3",		TP_SPR_MAG3,		obr_kal_mag_n1},
@@ -208,7 +249,7 @@ struct tmenu stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY]  = {
 void RysujEkran(void)
 {
 	if ((statusDotyku.chFlagi & DOTYK_SKALIBROWANY) != DOTYK_SKALIBROWANY)		//sprawdź czy ekran dotykowy jest skalibrowany
-		chTrybPracy = TP_KALIB_DOTYK;
+		chTrybPracy = TP_KAL_DOTYK;
 
 	switch (chTrybPracy)
 	{
@@ -217,20 +258,6 @@ void RysujEkran(void)
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
-	case TP_POMIARY_IMU:	PomiaryIMU();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chNowyTrybPracy = TP_WROC_DO_MENU;
-			ZatrzymajTon();
-		}
-		break;
-
-	case TP_POMIARY_CISN:	PomiaryCisnieniowe();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chNowyTrybPracy = TP_WROC_DO_MENU;
-		}
-		break;
 
 	case TP_KAL_BARO:	//kalibracja ciśnienia według wzorca
 		if (KalibrujBaro(&chSekwencerKalibracji) == ERR_GOTOWE)
@@ -256,8 +283,6 @@ void RysujEkran(void)
 		if (TestDotyku() == ERR_GOTOWE)
 			chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
-
-	case TP_USTAWIENIA:	break;
 
 
 //***************************************************
@@ -310,13 +335,7 @@ void RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
-	case TP_MM_KOM3:	//komunikat audio 3
-		//OdtworzProbkeAudio((uint32_t)&proba_mikrofonu[0], 30714);
-		OdtworzProbkeAudioZeSpisu(2);
-		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
-		break;
-
-	case TP_MM_KOM4:	//komunikat audio 4
+	case TP_MM_KOM3:
 		TestKomunikatow();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
@@ -371,15 +390,39 @@ void RysujEkran(void)
 		}
 		break;
 
-	//case TP_W1:		UstawTon(0, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
-	//case TP_W2:		UstawTon(32, 60);	chTrybPracy = TP_WYDAJNOSC;	break;
+	case TP_IMU_KOSTKA:	//rysuj kostkę 3D
+		float fKat[3];
+		for (uint8_t n=0; n<3; n++)
+			fKat[n] = -1 *uDaneCM4.dane.fKatZyro2[n];	//do rysowania przyjmij kąty z przeciwnym znakiem - jest OK
+		RysujKostkeObrotu(fKat);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+		}
+		break;
+
+	case TP_IMU_KOSTKA_SYM:
+		fSymKatKostki[0] += 5 * DEG2RAD;
+		fSymKatKostki[1] += 3 * DEG2RAD;
+		//fSymKatKostki[2] += 1 * DEG2RAD;
+		for (uint8_t n=0; n<3; n++)
+		{
+			if (fSymKatKostki[n] > M_PI)
+				fSymKatKostki[n] = -M_PI;
+		}
+		RysujKostkeObrotu(fSymKatKostki);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+		}
+		break;
 
 	///LOG_SD1_VSEL - H=3,3V L=1,8V
 	case TP_W3:		chPorty_exp_wysylane[0] |=  EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - H=3,3V
 	case TP_W4:		chPorty_exp_wysylane[0] &= ~EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - L=1,8V
 
-
-	case TP_CAN1:	break;
 	case TP_EMU_MAG_CAN:
 		uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN2;	//włącz tryb jak dla kalibracji aby nie uwzględniać w wyniku danych kalibracyjnych
 		EmulujMagnetometrWizjerCan((float*)uDaneCM4.dane.fMagne2);
@@ -423,7 +466,7 @@ void RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TPKSD_WROC;
+			chNowyTrybPracy = TP_WROC_DO_KARTA;
 		}
 		break;
 
@@ -433,7 +476,7 @@ void RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TPKSD_WROC;
+			chNowyTrybPracy = TP_WROC_DO_KARTA;
 		}
 		break;
 
@@ -442,7 +485,7 @@ void RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TPKSD_WROC;
+			chNowyTrybPracy = TP_WROC_DO_KARTA;
 		}
 		break;
 
@@ -451,7 +494,7 @@ void RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TPKSD_WROC;
+			chNowyTrybPracy = TP_WROC_DO_KARTA;
 		}
 		break;
 
@@ -462,7 +505,7 @@ void RysujEkran(void)
 	case TPKS_8:	break;
 
 //*** IMU ************************************************
-	case TP_IMU:			//menu IMU
+	case TP_KAL_IMU:			//menu kalibracji IMU
 		Menu((char*)chNapisLcd[STR_MENU_IMU], stMenuIMU, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
@@ -519,7 +562,7 @@ void RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_IMU_WROC;
+			chNowyTrybPracy = TP_W3;
 			uDaneCM7.dane.chWykonajPolecenie = POL_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
 		}
 		break;
@@ -534,48 +577,27 @@ void RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_IMU_WROC;
+			chNowyTrybPracy = TP_WROC_KAL_IMU;
 			uDaneCM7.dane.chWykonajPolecenie = POL_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
 		}
 		break;
 
-	case TP_IMU_KOSTKA:	//rysuj kostkę 3D
-		float fKat[3];
-		for (uint8_t n=0; n<3; n++)
-			fKat[n] = -1 *uDaneCM4.dane.fKatZyro2[n];	//do rysowania przyjmij kąty z przeciwnym znakiem - jest OK
-		RysujKostkeObrotu(fKat);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+	case TP_KASUJ_DRYFT_ZYRO:
+		uDaneCM7.dane.chWykonajPolecenie = POL_KASUJ_DRYFT_ZYRO;
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_KASUJ_DRYFT_ZYRO)
 		{
+			uDaneCM7.dane.chWykonajPolecenie = POL_NIC;
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_IMU_WROC;
+			chNowyTrybPracy = TP_WROC_KAL_IMU;
 		}
 		break;
-
-	case TP_IMU_KOSTKA_SYM:
-		fSymKatKostki[0] += 5 * DEG2RAD;
-		fSymKatKostki[1] += 3 * DEG2RAD;
-		//fSymKatKostki[2] += 1 * DEG2RAD;
-		for (uint8_t n=0; n<3; n++)
-		{
-			if (fSymKatKostki[n] > M_PI)
-				fSymKatKostki[n] = -M_PI;
-		}
-		RysujKostkeObrotu(fSymKatKostki);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_IMU_WROC;
-		}
-		break;
-
-
 
 	case TP_KAL_WZM_ZYROR:
 		chSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_R;
 		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_IMU_WROC;
+			chNowyTrybPracy = TP_WROC_KAL_IMU;
 		}
 		break;
 
@@ -584,7 +606,7 @@ void RysujEkran(void)
 		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_IMU_WROC;
+			chNowyTrybPracy = TP_WROC_KAL_IMU;
 		}
 		break;
 
@@ -593,7 +615,7 @@ void RysujEkran(void)
 		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_IMU_WROC;
+			chNowyTrybPracy = TP_WROC_KAL_IMU;
 		}
 		break;
 
@@ -613,7 +635,7 @@ void RysujEkran(void)
 		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_MAG_WROC;
+			chNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
 
@@ -622,7 +644,7 @@ void RysujEkran(void)
 		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_MAG_WROC;
+			chNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
 
@@ -631,16 +653,17 @@ void RysujEkran(void)
 		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_MAG_WROC;
+			chNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
 
-	case TP_MAG4:	break;
+	case TP_MAG1:	break;
+	case TP_MAG2:	break;
 	case TP_SPR_PLASKI:	PlaskiObrotMagnetometrow();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_MAG_WROC;
+			chNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
 
@@ -649,7 +672,7 @@ void RysujEkran(void)
 		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_MAG_WROC;
+			chNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
 
@@ -658,7 +681,7 @@ void RysujEkran(void)
 		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_MAG_WROC;
+			chNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
 
@@ -667,19 +690,88 @@ void RysujEkran(void)
 		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_MAG_WROC;
+			chNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
+
+
+//*** Kalibracje ************************************************
+	case TP_KALIBRACJE:		//menu skupiające różne kalibracje
+		Menu((char*)chNapisLcd[STR_MENU_KALIBRACJE], stMenuKalibracje, &chNowyTrybPracy);
+		chWrocDoTrybu = TP_MENU_GLOWNE;
+		break;
+
 
 	case TP_KAL_DOTYK:
 		if (KalibrujDotyk() == ERR_GOTOWE)
 			chTrybPracy = TP_TESTY;
 		break;
 
-	//case TP_MAG_WROC:
+//*** Pomiary ************************************************
+	case TP_POMIARY:		//menu skupiające różne kalibracje
+		Menu((char*)chNapisLcd[STR_MENU_POMIARY], stMenuPomiary, &chNowyTrybPracy);
+		chWrocDoTrybu = TP_MENU_GLOWNE;
+		break;
 
+	case TP_POMIARY_IMU:	PomiaryIMU();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+			ZatrzymajTon();
+		}
+		break;
+
+	case TP_POMIARY_CISN:	PomiaryCisnieniowe();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+		}
+		break;
+
+//*** Nastawy ************************************************
+	case TP_NASTAWY:		//menu skupiające różne kalibracje
+		Menu((char*)chNapisLcd[STR_MENU_NASTAWY], stMenuNastawy, &chNowyTrybPracy);
+		chWrocDoTrybu = TP_MENU_GLOWNE;
+		break;
+
+	case TP_NAST_PID_POCH:		//regulator sterowania przechyleniem (lotkami w samolocie)
+		NastawyPID(PID_PHI);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+		break;
+
+	case TP_NAST_PID_PRZECH:	//regulator sterowania pochyleniem (sterem wysokości)
+		NastawyPID(PID_THE);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+		break;
+
+	case TP_NAST_PID_ODCH:		//regulator sterowania odchyleniem (sterem kierunku)
+		NastawyPID(PID_PSI);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+		break;
+
+	case TP_NAST_PID_WYSOK:		//regulator sterowania wysokością
+		NastawyPID(PID_WYS);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+		break;
+
+	case TP_NAST_PID_NAW_N:		//regulator sterowania nawigacją w kierunku północnym
+		NastawyPID(PID_NAW_N);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+		break;
+
+	case TP_NAST_PID_NAW_E:		//regulator sterowania nawigacją w kierunku wschodnim
+		NastawyPID(PID_NAW_E);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+		break;
+
+	case TP_NAST_MIKSERA:		break;
 	}
-
 
 
 	//rzeczy do zrobienia podczas uruchamiania nowego trybu pracy
@@ -694,14 +786,16 @@ void RysujEkran(void)
 		//startuje procesy zwiazane z obsługą nowego trybu pracy
 		switch(chTrybPracy)
 		{
-		case TP_WROC_DO_MENU:	chTrybPracy = TP_MENU_GLOWNE;	break;	//powrót do menu głównego
-		case TP_WROC_DO_MMEDIA:	chTrybPracy = TP_MULTIMEDIA;	break;	//powrót do menu MultiMedia
-		case TP_WROC_DO_WYDAJN:	chTrybPracy = TP_WYDAJNOSC;		break;	//powrót do menu Wydajność
-		case TPKSD_WROC:		chTrybPracy = TP_KARTA_SD;		break;	//powrót do menu Karta SD
-		case TP_IMU_WROC:		chTrybPracy = TP_IMU;			break;	//powrót do menu IMU
-		case TP_MAG_WROC:		chTrybPracy = TP_MAGNETOMETR;	break;	//powrót do menu Magnetometr
-		case TP_FRAKTALE:		InitFraktal(0);		break;
-		case TP_USTAWIENIA:		chTrybPracy = TP_KALIB_DOTYK;	break;
+		case TP_WROC_DO_MENU:		chTrybPracy = TP_MENU_GLOWNE;	break;	//powrót do menu głównego
+		case TP_WROC_DO_MMEDIA:		chTrybPracy = TP_MULTIMEDIA;	break;	//powrót do menu MultiMedia
+		case TP_WROC_DO_WYDAJN:		chTrybPracy = TP_WYDAJNOSC;		break;	//powrót do menu Wydajność
+		case TP_WROC_DO_KARTA:		chTrybPracy = TP_KARTA_SD;		break;	//powrót do menu Karta SD
+		case TP_WROC_KAL_IMU:		chTrybPracy = TP_KAL_IMU;		break;	//powrót do menu IMU
+		case TP_WROC_DO_MAG:		chTrybPracy = TP_MAGNETOMETR;	break;	//powrót do menu Magnetometr
+		case TP_WROC_DO_POMIARY:	chTrybPracy = TP_POMIARY;		break;	//powrót do menu Pomiary
+		case TP_WROC_DO_NASTAWY:	chTrybPracy = TP_NASTAWY;		break;	//powrót do menu Nastawy
+		case TP_FRAKTALE:			InitFraktal(0);		break;
+
 		}
 
 		LCD_clear(BLACK);
@@ -3095,4 +3189,158 @@ void PlaskiObrotMagnetometrow(void)
 	setColor(YELLOW);
 	sprintf(chNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne3[0]*1000, uDaneCM4.dane.fMagne3[1]*1e6f);
 	print(chNapis, 10 + 8*FONT_SL, 160);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje ekran Nastaw regulatora PID
+// Parametry:
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void NastawyPID(uint8_t chKanal)
+{
+	float fNastawy[ROZMIAR_REG_PID/4];
+	uint8_t chErr;
+	un8_32_t un8_32;
+
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		sprintf(chNapis, "%s %s", chNapisLcd[STR_NASTAWY_PID], chNapisLcd[STR_PRZECHYLENIA + chKanal/2]);
+		BelkaTytulu(chNapis);
+
+		setColor(GRAY80);
+		sprintf(chNapis, "Regulator g%c%cwny", ł, ó);
+		print(chNapis, 10, 60);
+		sprintf(chNapis, "Kp:");
+		print(chNapis, 10, 80);
+		sprintf(chNapis, "Ti:");
+		print(chNapis, 10, 100);
+		sprintf(chNapis, "Td:");
+		print(chNapis, 10, 120);
+		sprintf(chNapis, "Max I:");
+		print(chNapis, 10, 140);
+		sprintf(chNapis, "Min Wy:");
+		print(chNapis, 10, 160);
+		sprintf(chNapis, "Max Wy:");
+		print(chNapis, 10, 180);
+		sprintf(chNapis, "Filtr D:");
+		print(chNapis, 10, 200);
+		sprintf(chNapis, "k%ctowy:", ą);
+		print(chNapis, 10, 220);
+
+		sprintf(chNapis, "Regulator pochodnej");
+		print(chNapis, 240, 60);
+		sprintf(chNapis, "Kp:");
+		print(chNapis, 240, 80);
+		sprintf(chNapis, "Ti:");
+		print(chNapis, 240, 100);
+		sprintf(chNapis, "Td:");
+		print(chNapis, 240, 120);
+		sprintf(chNapis, "Max I:");
+		print(chNapis, 240, 140);
+		sprintf(chNapis, "Min Wy:");
+		print(chNapis, 240, 160);
+		sprintf(chNapis, "Max Wy:");
+		print(chNapis, 240, 180);
+		sprintf(chNapis, "Filtr D:");
+		print(chNapis, 240, 200);
+		setColor(GRAY60);
+		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
+		print(chNapis, CENTER, 30);
+
+		//odczytaj nastawy regulatorów
+		chErr = CzytajFram(FAU_PID_P0 + (chKanal + 0) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
+		if (chErr == ERR_OK)
+		{
+			un8_32.daneFloat = fNastawy[6];
+			if (un8_32.dane8[0] & 0x40)
+				setColor(GRAY60);	//regulator wyłączony
+			else
+				setColor(WHITE);	//regulator pracuje
+
+			sprintf(chNapis, "%.3f ", fNastawy[0]);	//Kp
+			print(chNapis, 10 + 4*FONT_SL, 80);
+			sprintf(chNapis, "%.3f ", fNastawy[1]);	//Ti
+			print(chNapis, 10 + 4*FONT_SL, 100);
+			sprintf(chNapis, "%.3f ", fNastawy[2]);	//Td
+			print(chNapis, 10 + 4*FONT_SL, 120);
+			sprintf(chNapis, "%.3f ", fNastawy[3]);	//max całki
+			print(chNapis, 10 + 7*FONT_SL, 140);
+			sprintf(chNapis, "%.3f ", fNastawy[4]);	//min wyjścia
+			print(chNapis, 10 + 8*FONT_SL, 160);
+			sprintf(chNapis, "%.3f ", fNastawy[5]);	//max wyjścia
+			print(chNapis, 10 + 8*FONT_SL, 180);
+			sprintf(chNapis, "%d", un8_32.dane8[0] & 0x3F);
+			print(chNapis, 10 + 9*FONT_SL, 200);	//filtr D
+			if (un8_32.dane8[0] & 0x80)
+				sprintf(chNapis, "Tak");
+			else
+				sprintf(chNapis, "Nie");
+			print(chNapis, 10 + 8*FONT_SL, 220);	//kątowy
+		}
+		else
+			chRysujRaz = 1;	//jeżeli się nie odczytało to wyświetl jeszcze raz
+
+		chErr = CzytajFram(FAU_PID_P0 + (chKanal + 1) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
+		if (chErr == ERR_OK)
+		{
+			un8_32.daneFloat = fNastawy[6];
+			if (un8_32.dane8[0] & 0x40)
+				setColor(GRAY60);	//regulator wyłączony
+			else
+				setColor(WHITE);	//regulator pracuje
+
+			sprintf(chNapis, "%.3f ", fNastawy[0]);	//Kp
+			print(chNapis, 240 + 4*FONT_SL, 80);
+			sprintf(chNapis, "%.3f ", fNastawy[1]);	//Ti
+			print(chNapis, 240 + 4*FONT_SL, 100);
+			sprintf(chNapis, "%.3f ", fNastawy[2]);	//Td
+			print(chNapis, 240 + 4*FONT_SL, 120);
+			sprintf(chNapis, "%.3f ", fNastawy[3]);	//max całki
+			print(chNapis, 240 + 7*FONT_SL, 140);
+			sprintf(chNapis, "%.3f ", fNastawy[4]);	//min wyjścia
+			print(chNapis, 240 + 8*FONT_SL, 160);
+			sprintf(chNapis, "%.3f ", fNastawy[5]);	//max wyjścia
+			print(chNapis, 240 + 8*FONT_SL, 180);
+			sprintf(chNapis, "%d", un8_32.dane8[0] & 0x7F);
+			print(chNapis, 240 + 9*FONT_SL, 200);	//filtr D
+		}
+		else
+			chRysujRaz = 1;
+
+		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//nie odczytuj więcej danych
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Odczytuje zawartość pamieci FRAM z CM4
+// Parametry:
+// [we] sAdres - adres komórki pamieci FRAM
+// [we] chRozmiar - ilość liczb float do odczytu
+// [wy] *fDane - wskaźnik na odczytywaną strukturę danych float
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t CzytajFram(uint16_t sAdres, uint8_t chRozmiar, float* fDane)
+{
+	uint8_t chTimeout = 10;
+	uDaneCM7.dane.chRozmiar = chRozmiar;
+	uDaneCM7.dane.sAdres = sAdres;
+	uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_FRAM_FLOAT;
+	do
+	{
+		osDelay(5);
+		chTimeout--;
+	}
+	while ((uDaneCM4.dane.sAdres != uDaneCM7.dane.sAdres) && (chTimeout));
+	for (uint8_t n=0; n<uDaneCM4.dane.chRozmiar; n++)
+		*(fDane + n) = uDaneCM4.dane.fRozne[n];
+
+	if (chTimeout)
+		return ERR_OK;
+	else
+		return ERR_TIMEOUT;
 }

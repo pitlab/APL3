@@ -52,4 +52,6 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap);
 float MaximumGlobalne(float* fMin, float* fMax);
 uint8_t KalibrujBaro(uint8_t *chEtap);
 void PlaskiObrotMagnetometrow(void);
+void NastawyPID(uint8_t chKanal);
+uint8_t CzytajFram(uint16_t sAdres, uint8_t chRozmiar, float* fDane);
 #endif /* INC_LCD_H_ */

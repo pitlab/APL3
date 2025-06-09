@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	201		//numer commitu w repozytorium
+#define WER_REPO	202		//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -53,26 +53,27 @@
 #define LED_NIEB			2
 #define LICZBA_LED			3
 
+
 //tryby pracy
 #define TP_MENU_GLOWNE		0	//wyświetla ekran menu głównego
 #define TP_WROC_DO_MENU		1
-#define TP_KAL_BARO			2	//kalibruj barometry wedlug wzorcowej zmiany ciśnienia
-#define TP_POMIARY_CISN		3
-#define TP_MG3				4
-#define TP_MG4				5
-#define TP_KALIB_DOTYK		6	//kalibracja panelu dotykowego
+#define TP_KALIBRACJE		2	//kalibracja sprzętu
+#define TP_POMIARY			3	//wyświetlaj wyniki pomiarów IMU pobrane z CM4
+#define TP_NASTAWY			4
+#define TP_MG1				5
+
 #define TP_IMU_KOSTKA_SYM	7
 
 #define TP_USTAWIENIA		8
 #define TP_KAMERA			9
 #define TP_TESTY			10
-#define TP_POMIARY_IMU		11	//wyświetlaj wyniki pomiarów IMU pobrane z CM4
+
 #define TP_ZDJECIE			12
 #define TP_WITAJ			13
 #define TP_MULTIMEDIA		14	//menu multimediow
 #define TP_WYDAJNOSC		15	//menu pomiarów wydajności
 #define TP_KARTA_SD			16	//menu obsługi karty SD
-#define TP_IMU				17	//kalibracja sprzętu
+
 #define TP_PODGLAD_IMU		18	//podgląd parametrów IMU podczas kalibracji
 #define TP_WYSWIETL_BLAD	19	//wyświetl kod błędu
 #define TP_MAGNETOMETR		20	//menu obsługi magnetometru
@@ -83,8 +84,8 @@
 #define TP_POMIAR_FNOR		32
 #define TP_POMIAR_SRAM		33
 #define TP_POMIAR_FQSPI		34
-#define TP_CAN1				35
-#define TP_EMU_MAG_CAN		36
+#define TP_EMU_MAG_CAN		35
+#define TP_IMU_KOSTKA		36
 #define TP_W3				37
 #define TP_W4				38
 #define TP_WROC_DO_WYDAJN	39
@@ -98,7 +99,6 @@
 #define TP_MM_KOM1			45	//komunikat audio 1
 #define TP_MM_KOM2			46	//komunikat audio 2
 #define TP_MM_KOM3			47	//komunikat audio 3
-#define TP_MM_KOM4			48	//komunikat audio 4
 #define TP_WROC_DO_MMEDIA	49
 
 //polecenia menu TP_KARTA_SD
@@ -111,9 +111,9 @@
 #define TPKS_6				56
 #define TPKS_7				57
 #define TPKS_8				58
-#define TPKSD_WROC			59
+#define TP_WROC_DO_KARTA	59
 
-//polecenia menu TP_KALIBRACJE
+//polecenia menu TP_KAL_IMU
 #define TP_KAL_ZYRO_ZIM		60
 #define TP_KAL_ZYRO_POK		61
 #define TP_KAL_ZYRO_GOR		62
@@ -122,19 +122,42 @@
 #define TP_KAL_WZM_ZYROR	65
 #define TP_KAL_AKCEL_2D		66
 #define TP_KAL_AKCEL_3D		67
-#define TP_IMU_KOSTKA		68
-#define TP_IMU_WROC			69
+#define TP_KASUJ_DRYFT_ZYRO	68
+#define TP_WROC_KAL_IMU		69
 
 #define TP_MAG_KAL1			70
 #define TP_MAG_KAL2			71
 #define TP_MAG_KAL3			72
-#define TP_MAG4				73
+#define TP_MAG1				73
 #define TP_SPR_PLASKI		74
 #define TP_SPR_MAG1			75
 #define TP_SPR_MAG2			76
 #define TP_SPR_MAG3			77
-#define TP_KAL_DOTYK		78	//kalibracja panelu dotykowego
-#define TP_MAG_WROC			79
+#define TP_MAG2				78
+#define TP_WROC_DO_MAG		79
+
+//Podmenu TP_KALIBRACJE
+#define TP_KAL_IMU			80
+#define TP_KAL_BARO			81	//kalibruj barometry wedlug wzorcowej zmiany ciśnienia
+#define TP_KAL_MAG			82
+#define TP_KAL_DOTYK		83	//kalibracja panelu dotykowego
+#define TP_WROC_DO_KALIBR	89
+
+//podmenu TP_POMIARY
+#define TP_POMIARY_IMU		90	//wyświetlaj wyniki pomiarów IMU pobrane z CM4
+#define TP_POMIARY_CISN		91
+#define TP_WROC_DO_POMIARY	99
+
+//podmenu TP_NASTAWY
+#define TP_NAST_PID_POCH	100
+#define TP_NAST_PID_PRZECH	101
+#define TP_NAST_PID_ODCH	103
+#define TP_NAST_PID_WYSOK	104
+#define TP_NAST_PID_NAW_N	105
+#define TP_NAST_PID_NAW_E	106
+#define TP_NAST_MIKSERA		107
+#define TP_WROC_DO_NASTAWY	109
+
 
 //flagi inicjalizacj sprzetu na płytce
 #define INIT0_FLASH_NOR		0x00000001

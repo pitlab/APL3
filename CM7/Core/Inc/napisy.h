@@ -57,8 +57,18 @@
 #define STR_MAGN					39
 #define STR_KAL						40
 #define STR_WITAJ_MOTTO2			41
-
-#define MAX_NAPISOW					43	//liczba napisów
+#define STR_MENU_KALIBRACJE			42
+#define STR_MENU_POMIARY			43
+#define STR_MENU_NASTAWY			44
+#define STR_NASTAWY_PID				45
+#define STR_PRZECHYLENIA			46
+#define STR_POCHYLENIA				47
+#define STR_ODCHYLENIA				48
+#define STR_WYSOKOSCI				49
+#define STR_NAWIGACJI_N				50
+#define STR_NAWIGACJI_E				51
+//#define STR_
+#define MAX_NAPISOW					52	//liczba napisów
 
 
 #define JEZYK_POLSKI
@@ -111,6 +121,16 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Magn",								//STR_MAGN - skrótowa nazwa magnetometru
 "Kal",								//STR_KAL - skrótowa nazwa kalibracji
 "By m%cc zm%cc wra%ce hordy rojem Wron%cw",	//STR_WITAJ_MOTTO2
+"Menu kalibracji czujnikow",		//STR_MENU_KALIBRACJE
+"Menu pomiarow", 					//STR_MENU_POMIARY
+"Menu nastw podsystemow",	 		//STR_MENU_NASTAWY
+"Nastawy PID",						//STR_NASTAWY_PID
+"przechylenia",						//STR_PRZECHYLENIA
+"pochylenia",						//STR_POCHYLENIA
+"odchylenia",						//STR_ODCHYLENIA
+"wysokosci",						//STR_WYSOKOSCI
+"nawigacji N",						//STR_NAWIGACJI_N
+"nawigacji E",						//STR_NAWIGACJI_E
 };
 
 

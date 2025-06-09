@@ -12,7 +12,7 @@
 
 
 //definicje zmiennych
-stPID_t stPID[NUM_PIDS];
+stPID_t stPID[LICZBA_PID];
 
 
 //deklaracje zmiennych zewnętrznych
@@ -31,7 +31,7 @@ uint8_t InicjujPID(void)
 {
 	uint8_t chAdrOffset, chErr = ERR_OK;
 
-    for (uint8_t n=0; n<NUM_PIDS; n++)
+    for (uint8_t n=0; n<LICZBA_PID; n++)
     {
         chAdrOffset = (n * PID_FRAM_CH_SIZE * FRAM_FLOAT_SIZE);	//offset danych kolejnego kanału regulatora
         //odczytaj wartość wzmocnienienia członu P regulatora
@@ -46,8 +46,8 @@ uint8_t InicjujPID(void)
         //odczytaj granicę nasycenia członu całkującego
         chErr |= CzytajFramZWalidacja(FAU_PID_OGR_I0 + chAdrOffset, &stPID[n].fOgrCalki, VMIN_PID_ILIM, VMAX_PID_ILIM, VDEF_PID_ILIM, ERR_NASTAWA_PID);
 
-        //odczytaj stałą czasową filtru członu różniczkowania (bity 0..4), typ regulatora (bity 5..6) i to czy regulator jest kątowy (bit 7)
-        stPID[n].chPodstFiltraD = CzytajFRAM(FAU_FILD_REGKAT_TYP + n);
+        //odczytaj stałą czasową filtru członu różniczkowania (bity 0..5), właczony (bit 6) i to czy regulator jest kątowy (bit 7)
+        stPID[n].chPodstFiltraD = CzytajFRAM(FAU_FILTRD_TYP + n);
 
         //zeruj integrator
         stPID[n].fCalka = 0.0f;   	//zmianna przechowująca całkę z błędu
@@ -149,6 +149,6 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, uint8_t chKatowy)
 ////////////////////////////////////////////////////////////////////////////////
 void ResetujCalkePID(void)
 {
-    for (uint8_t n=0; n<NUM_PIDS; n++)
+    for (uint8_t n=0; n<LICZBA_PID; n++)
     	stPID[n].fCalka = 0.0f;   //zmianna przechowująca całka z błędu
 }

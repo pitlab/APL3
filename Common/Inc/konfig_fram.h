@@ -77,14 +77,18 @@
 #define FAU_PID_P0          FA_USER_PID+0   //4U wzmocnienienie członu P regulatora 0
 #define FAU_PID_I0          FA_USER_PID+4   //4U wzmocnienienie członu I regulatora 0
 #define FAU_PID_D0          FA_USER_PID+8   //4U wzmocnienienie członu D regulatora 0
-#define FAU_PID_OGR_I0      FA_USER_PID+12  //4U ogranicenie wartości całki członu I regulatora 0
+#define FAU_PID_OGR_I0      FA_USER_PID+12  //4U ograniczenie wartości całki członu I regulatora 0
 #define FAU_PID_MIN_WY0		FA_USER_PID+16  //4U minimalna wartość wyjścia
 #define FAU_PID_MAX_WY0		FA_USER_PID+20  //4U maksymalna wartość wyjścia
+#define FAU_FILTRD_TYP 		FA_USER_PID+24  //1U Stała czasowa filtru członu różniczkującego (bity 0..5), wyłączony (bit 6), Regulator kątowy (bit 7)
+#define FAU_PID1	        FA_USER_PID+25  //1U nic
+#define FAU_PID2			FA_USER_PID+26	//1U nic
+#define FAU_PID3			FA_USER_PID+27	//1U nic
+#define ROZMIAR_REG_PID		28
 //do adresu 0x3C0 jest miejsce na łącznie 12 regulatorów.
 
 
-#define FAU_FILD_REGKAT_TYP 0x3C0           //12*1U Stała czasowa filtru członu różniczkującego (bity 0..4). Typ regulatora (bity 5..6) Regulator kątowy (bit 7)
-#define FAU_REG_MODE        0x3CC           //4*1U okresla tryb pracy regulatorów PID: 0=wyłączony, 1=ręczny, 2=akrobacyjny  3=stabilny, 4=prędkości GPS, 5=pozycji GPS
+
 
 
 //8 wolnych bajtów
