@@ -85,6 +85,9 @@
 #define FAU_PID2			FA_USER_PID+26	//1U nic
 #define FAU_PID3			FA_USER_PID+27	//1U nic
 #define ROZMIAR_REG_PID		28
+#define MASKA_FILTRA_D		0x3F
+#define MASKA_WYLACZONY		0x40
+#define MASKA_KATOWY		0x80
 //do adresu 0x3C0 jest miejsce na łącznie 12 regulatorów.
 
 
@@ -97,7 +100,7 @@
 #define FAU_IDLE_PWM        FAU_HOVER_PWM+2 //2U wysterowanie regulatorów na biegu jałowym [us]
 #define FAU_MAX_PWM         FAU_IDLE_PWM+2  //2U maksymalne wysterowanie silników w trakcie lotu [us]
 
-//wzmocnienia drążków aparatury dla posczeg�lnych tryb�w pracy regulatorów
+//wzmocnienia drążków aparatury dla posczególnych trybów pracy regulatorów
 #define FAU_SP_GAIN         0x3E0
 #define FAU_SPG_ACRO        FAU_SP_GAIN+0   //16U wzmocnienie drążków dla regulatora Acro
 #define FAU_SPG_STAB        FAU_SPG_ACRO+16 //16U wzmocnienie drążków dla regulatora Stab

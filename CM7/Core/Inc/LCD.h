@@ -19,6 +19,9 @@
 
 #define WYKRYJ_GORA	175
 #define WYKRYJ_WIERSZ	18
+#define KOL12	5	//współrzędne x początku pierwszej z dwu kolumn danych
+#define KOL22	245	//współrzędne x początku drugiej z dwu kolumn danych
+
 
 typedef struct
 {
