@@ -18,13 +18,14 @@ typedef struct
 	float fWzmI;   			//wzmocnienie członu I
 	float fWzmD;   			//wzmocnienie członu D
 	float fOgrCalki; 		//ogranicznik wartości całki członu I
-	uint8_t chPodstFiltraD; //podstawa różniczkującego filtra błędu o nieskończonej odpowiedzi fimpulsowej IIR
+	uint8_t chPodstFiltraD; //podstawa różniczkującego filtra błędu o nieskończonej odpowiedzi impulsowej IIR
+	uint8_t chFlagi;		//0x80 - regulator katowy, 0x40 - regulator wyłączony
 	float fMaxWyj;			//maksymalna wartość wyjściowa regulatora
 	float fMinWyj;			//minimalna wartość wyjściowa regulatora
 
 	//zmienne robocze członów dynamicznych
 	float fCalka;  			//zmianna przechowująca całkę z błędu
-	float fPoprzBlad; 		//poprzednia, przefiltrowana wartość błędu do liczenia akcji różniczkującej
+	float fFiltrWePoprz; 		//poprzednia, przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
 
 	//zmienne wyjściowe
 	float fWyjsciePID; 		//wartość wyjściowa z całego regulatora
@@ -36,5 +37,5 @@ typedef struct
 
 //definicje funkcji
 uint8_t InicjujPID(void);
-float RegulatorPID(uint32_t ndT, uint8_t chKanal, uint8_t chKatowy);
+float RegulatorPID(uint32_t ndT, uint8_t chKanal);
 void ResetujCalkePID(void);

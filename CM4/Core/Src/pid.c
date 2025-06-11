@@ -10,13 +10,19 @@
 #include "konfig_fram.h"
 #include "fram.h"
 
+//Przyjmuję że regulator będzie mógł być szeregowy lub równoległy z preferencja szeregowego
+//Człon różniczkujący jest zasilany ujemnym sygnałem wejsciowym a nie błędem aby uniknąć zmiany odpowiedzi od zmiany wartosci zadanej.
+// w klasycznym członie: błąd = wartość zadana - wejscie
+// w układzie zmodyfikowanym u usuwamy wartość zadaną, wiec: błąd = - wejscie
+//Człon różniczkujący bazuje na różnicy między wartością bieżącą i poprzednią sygnału wejsciowego. Aby zmniejszyć szum regulacji, wartość poprzednia
+// jest przefiltrowaną wartością n poprzednich pomiarów gdzie n jest regulowaną nastawą filra D
 
 //definicje zmiennych
-stPID_t stPID[LICZBA_PID];
+stPID_t stPID[LICZBA_PID];	//struktura przechowująca wszystkie zmienne dotyczące regulatora PID
 
 
 //deklaracje zmiennych zewnętrznych
-extern signed short sServoOutVal[];  //zmienna zawiera pozycj� serw wyj�ciowych +-150% z rozdzieczo�ci� 0,25%
+extern signed short sServoOutVal[];  //zmienna zawiera pozycję serw wyjściowych +-150% z rozdzieczością 0,25%
 extern signed short sServoInVal[];
 
 
@@ -30,6 +36,7 @@ extern signed short sServoInVal[];
 uint8_t InicjujPID(void)
 {
 	uint8_t chAdrOffset, chErr = ERR_OK;
+	uint8_t chTemp;
 
     for (uint8_t n=0; n<LICZBA_PID; n++)
     {
@@ -46,12 +53,20 @@ uint8_t InicjujPID(void)
         //odczytaj granicę nasycenia członu całkującego
         chErr |= CzytajFramZWalidacja(FAU_PID_OGR_I0 + chAdrOffset, &stPID[n].fOgrCalki, VMIN_PID_ILIM, VMAX_PID_ILIM, VDEF_PID_ILIM, ERR_NASTAWA_PID);
 
+        //odczytaj minimalną wartość wyjścia
+        chErr |= CzytajFramZWalidacja(FAU_PID_MIN_WY0 + chAdrOffset, &stPID[n].fOgrCalki, VMIN_PID_MINWY, VMAX_PID_MINWY, VDEF_PID_MINWY, ERR_NASTAWA_PID);
+
+        //odczytaj maksymalną wartość wyjścia
+        chErr |= CzytajFramZWalidacja(FAU_PID_MAX_WY0 + chAdrOffset, &stPID[n].fOgrCalki, VMIN_PID_MAXWY, VMAX_PID_MAXWY, VDEF_PID_MAXWY, ERR_NASTAWA_PID);
+
         //odczytaj stałą czasową filtru członu różniczkowania (bity 0..5), właczony (bit 6) i to czy regulator jest kątowy (bit 7)
-        stPID[n].chPodstFiltraD = CzytajFRAM(FAU_FILTRD_TYP + n);
+        chTemp = CzytajFRAM(FAU_FILTRD_TYP + n);
+        stPID[n].chPodstFiltraD = chTemp & MASKA_FILTRA_D;
+        stPID[n].chFlagi = chTemp & (MASKA_WYLACZONY | MASKA_KATOWY);
 
         //zeruj integrator
         stPID[n].fCalka = 0.0f;   	//zmianna przechowująca całkę z błędu
-        stPID[n].fPoprzBlad = 0.0f;	//poprzednia wartość błędu
+        stPID[n].fFiltrWePoprz = 0.0f;	//poprzednia wartość błędu
     }
 
     return chErr;
@@ -64,65 +79,64 @@ uint8_t InicjujPID(void)
 // Parametry: 
 // [i] ndT - czas od ostatniego cyklu [us]
 // [i] chKanal - indeks regulatora i zmiennych
-// [i] chKatowy - określa sposób licznia błędu: liniowy czy katowy (+-180�)
 // Zwraca: znormalizowaną odpowiedź regulatora +-100%
 // Czas wykonania: ?
 ////////////////////////////////////////////////////////////////////////////////
-float RegulatorPID(uint32_t ndT, uint8_t chKanal, uint8_t chKatowy)
+float RegulatorPID(uint32_t ndT, uint8_t chKanal)
 {
-    float fWyjscieReg, fBladReg;   //wartość wyjściowa i błąd sterowania (odchyłka)
+    float fWyjscieReg, fOdchylka;   //wartość wyjściowa i błąd sterowania (odchyłka)
     float fTemp, fdT;
 
     fdT = (float)ndT/1000000;    //czas obiegu petli w sekundach (optymalizacja kilkukrotnie wykorzystywanej zmiennej)
 
     //człon proporocjonalny
-    fBladReg = stPID[chKanal].fZadana - stPID[chKanal].fWejscie;
-    if (chKatowy)  //czy regulator pracuje na wartościach kątowych?
+    fOdchylka = stPID[chKanal].fZadana - stPID[chKanal].fWejscie;
+    if (stPID[chKanal].chFlagi & MASKA_KATOWY)  //czy regulator pracuje na wartościach kątowych?
     {
-        if (fBladReg > M_PI)
-        	fBladReg -= 2*M_PI;
-        if (fBladReg < -M_PI)
-        	fBladReg += 2*M_PI;
+        if (fOdchylka > M_PI)
+        	fOdchylka -= 2*M_PI;
+        if (fOdchylka < -M_PI)
+        	fOdchylka += 2*M_PI;
     }
-    fWyjscieReg = fBladReg * stPID[chKanal].fWzmP;
+    fWyjscieReg = fOdchylka * stPID[chKanal].fWzmP;
     stPID[chKanal].fWyjscieP = fWyjscieReg;  //debugowanie: wartość wyjściowa z członu P
 
     //człon całkujący - liczy sumę błędu od początku do teraz
     if (stPID[chKanal].fWzmI > MIN_WZM_CALK)    //sprawdź warunek !=0 ze wzglądu na dzielenie przez fWzmI[] oraz ogranicz zbyt szybkie całkowanie nastawione pomyłkowo jako 0 a będące bardzo małą liczbą
     {
-    	stPID[chKanal].fCalka += fBladReg * fdT;   //całkowanie odchyłki
-        fTemp = stPID[chKanal].fCalka / stPID[chKanal].fWzmI;
+    	//stPID[chKanal].fCalka += fBladReg * fdT;   //całkowanie odchyłki - regulator równoległy
+    	//stPID[chKanal].fCalka += fWyjscieReg * fdT;   //całkowanie wzmocnionego wejścia - regulator szeregowy
+        //fTemp = stPID[chKanal].fCalka / stPID[chKanal].fWzmI;
+
+    	stPID[chKanal].fCalka += fWyjscieReg * fdT / stPID[chKanal].fWzmI;   //całkowanie wzmocnionego wejścia - regulator szeregowy
 
         //ogranicznik wartości całki
-        if (fTemp > stPID[chKanal].fOgrCalki)
+        if (stPID[chKanal].fCalka > stPID[chKanal].fOgrCalki)
         {
         	stPID[chKanal].fCalka = stPID[chKanal].fOgrCalki * stPID[chKanal].fWzmI;
-            fTemp = stPID[chKanal].fOgrCalki;
+            //fTemp = stPID[chKanal].fOgrCalki;
         }
         else
-        if (fTemp < -stPID[chKanal].fOgrCalki)
+        if (stPID[chKanal].fCalka < -stPID[chKanal].fOgrCalki)
         {
         	stPID[chKanal].fCalka = -stPID[chKanal].fOgrCalki * stPID[chKanal].fWzmI;
-            fTemp = -stPID[chKanal].fOgrCalki;
+            //fTemp = -stPID[chKanal].fOgrCalki;
         }
-        fWyjscieReg += fTemp;
+        fWyjscieReg += stPID[chKanal].fCalka;
+        stPID[chKanal].fWyjscieI = stPID[chKanal].fCalka;  //debugowanie: wartość wyjściowa z członu I
     }
     else
-    	 fTemp = 0.0f;
-    stPID[chKanal].fWyjscieI = fTemp;  //debugowanie: wartość wyjściowa z członu I
+    	 stPID[chKanal].fWyjscieI = 0.0f;  //debugowanie: wartość wyjściowa z członu I
 
 
     //człon różniczkujący
     if (stPID[chKanal].fWzmD > MIN_WZM_ROZN)
     {
-        fTemp = (fBladReg - stPID[chKanal].fPoprzBlad) * stPID[chKanal].fWzmD / fdT;
+        fTemp = (stPID[chKanal].fWejscie - stPID[chKanal].fFiltrWePoprz) * stPID[chKanal].fWzmD / fdT;
         fWyjscieReg += fTemp;
 
-        //filtruj IIR wartość błędu aby uzyskać gładką akcję różniczkującą
-    	if (stPID[chKanal].chPodstFiltraD >= 2)
-    		stPID[chKanal].fPoprzBlad = ((stPID[chKanal].chPodstFiltraD - 1) * stPID[chKanal].fPoprzBlad + fBladReg) / stPID[chKanal].chPodstFiltraD;
-    	else
-    		stPID[chKanal].fPoprzBlad = fBladReg;
+        //filtruj wartość wejścia aby uzyskać gładką akcję różniczkującą
+        stPID[chKanal].fFiltrWePoprz = (stPID[chKanal].chPodstFiltraD * stPID[chKanal].fFiltrWePoprz + stPID[chKanal].fWejscie) / (stPID[chKanal].chPodstFiltraD + 1);
     }
     else
         fTemp = 0.0f;

@@ -343,28 +343,21 @@
 
 #define VMIN_PID_ILIM    (float)0.0     //limit wartości całki członu całkującego regulatora PID
 #define VMAX_PID_ILIM    (float)100     //max 100%
-#define VDEF_PID_ILIM    (float)23 /*
+#define VDEF_PID_ILIM    (float)23
 
-#define VMIN_ADIO_GAIN    (float)0.01   //limity wzmocnienia dla modułu ADCIO
-#define VMAX_ADIO_GAIN    (float)100
-#define VDEF_ADIO_GAIN    (float)1      //wartość domyślna
+#define VMIN_PID_MINWY    (float)-100.0    //minimalna wartość wyjścia
+#define VMAX_PID_MINWY    (float)100.0
+#define VDEF_PID_MINWY    (float)100.0
 
-#define VALM_ADIO_OFST    (float)-100   //limity offsetu dla modułu ADCIO
-#define VALP_ADIO_OFST    (float)100
-#define VALD_ADIO_OFST    (float)0      //wartość domyślna
+#define VMIN_PID_MAXWY    (float)-100.0    //maksymalna wartość wyjścia
+#define VMAX_PID_MAXWY    (float)100.0
+#define VDEF_PID_MAXWY    (float)100.0
 
-#define VALM_AXX_COEF     (float)80.0    //limity wartości  współczynnika A linearyzacji wysoko�ci
-#define VALP_AXX_COEF     (float)180.0 
-#define VALD_AXX_COEF     (float)84.3    //wartość domyślna
 
-#define VALM_BXX_COEF     (float)-4000.0 //limity wartości  współczynnika B linearyzacji wysoko�ci
-#define VALP_BXX_COEF     (float)0.0
-#define VALD_BXX_COEF     (float)-0.8    //wartość domyślna
 
-#define VALM_VDROP_COMP   (float)0.01   //limity wartości  współczynnika B linearyzacji wysoko�ci
-#define VALP_VDROP_COMP   (float)100.0
-#define VALD_VDROP_COMP   (float)5.8    //wartość domyślna
 
+
+/*
 #define VALM_SPGAIN       (float)0.0001  //limity wartości  współczynnika wzmocnienia sygnału zadanego z aparatury
 #define VALP_SPGAIN       (float)100.0
 #define VALD_SPGAIN       (float)1.0    //wartość domyślna*/

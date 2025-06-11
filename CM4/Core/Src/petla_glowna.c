@@ -171,7 +171,7 @@ void PetlaGlowna(void)
 
 	case 17:
 		uint32_t nCzas = PobierzCzas();
-		RegulatorPID(ndT[0], PID_GYP, REG_LIN);
+		RegulatorPID(ndT[0], PID_GYP);
 		nCzas = MinalCzas(nCzas);
 		break;
 	default:	break;
