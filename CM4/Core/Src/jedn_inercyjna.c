@@ -38,7 +38,7 @@
 // oś X jest po szerokości geograficznej. Wschód jest dodatni, zachód ujemny
 // oś Y jest po długości geograficznej. Północ jest dodatnia, południe ujemne
 //
-extern uint32_t ndT[4];								//czas [us] jaki upłynął od poprzeniego obiegu pętli dla 4 modułów wewnetrznych
+//extern uint32_t ndT;								//czas [us] jaki upłynął od poprzeniego obiegu pętli dla 4 modułów wewnetrznych
 extern volatile unia_wymianyCM4_t uDaneCM4;
 extern volatile unia_wymianyCM7_t uDaneCM7;
 extern float fOffsetZyro1[3], fOffsetZyro2[3];
@@ -75,13 +75,13 @@ uint8_t InicjujJednostkeInercyjna(void)
 //  - uDaneCM4.dane.fKatIMU1 - kąty uzyskane z filtracji komplementarnej obu powyższych
 // Czas trwania: 24us @200Hz
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t JednostkaInercyjnaTrygonometria(uint8_t chGniazdo)
+uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 {
 	//licz całkę z prędkosci kątowych żyroskopów
 	for (uint16_t n=0; n<3; n++)
 	{
-		uDaneCM4.dane.fKatZyro1[n] +=  uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;		//[rad/s] * [us / 1000000] => [rad]
-		uDaneCM4.dane.fKatZyro2[n] +=  uDaneCM4.dane.fZyroKal2[n] * ndT[chGniazdo] / 1000000;
+		uDaneCM4.dane.fKatZyro1[n] +=  uDaneCM4.dane.fZyroKal1[n] * ndT / 1000000;		//[rad/s] * [us / 1000000] => [rad]
+		uDaneCM4.dane.fKatZyro2[n] +=  uDaneCM4.dane.fZyroKal2[n] * ndT / 1000000;
 
 		//w czasie kalibracji wzmocnienia nie ograniczaj przyrostu kąta
 		if ((uDaneCM7.dane.chWykonajPolecenie < POL_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.chWykonajPolecenie > POL_KALIBRUJ_ZYRO_WZMP))
@@ -110,7 +110,7 @@ uint8_t JednostkaInercyjnaTrygonometria(uint8_t chGniazdo)
 	//filtr komplementarny IMU
 	for (uint16_t n=0; n<3; n++)
 	{
-		uDaneCM4.dane.fKatIMU1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT[chGniazdo] / 1000000;
+		uDaneCM4.dane.fKatIMU1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT / 1000000;
 		uDaneCM4.dane.fKatIMU1[n] = 0.05 * uDaneCM4.dane.fKatAkcel1[n] + 0.95 * uDaneCM4.dane.fKatIMU1[n];
 	}
 
@@ -136,7 +136,7 @@ uint8_t JednostkaInercyjnaTrygonometria(uint8_t chGniazdo)
 // Zwraca: kod błędu
 // Czas trwania: 39us @200Hz
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo, float *fZyro, float *fAkcel, float *fMagn)
+uint8_t JednostkaInercyjnaKwaterniony(uint32_t ndT, float *fZyro, float *fAkcel, float *fMagn)
 {
 	float fdPhi2, fdTheta2, fdPsi2;	//połowy przyrostu kąta obrotu
 	float fQx[4], fQy[4], fQz[4];	//kwaterniony obortów wokół osi XYZ
@@ -150,7 +150,7 @@ uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo, float *fZyro, float *fA
 	//Wyznaczam kwaterniony obrotów w formie algebraicznej korzystając z danych wejściowych wprowadzonych do formy trygonometrycznej
 	//fQz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
 	//fdPsi2 = uDaneCM4.dane.fZyroKal1[2] * ndT[chGniazdo] / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
-	fdPsi2 = *(fZyro+2) * ndT[chGniazdo] / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fdPsi2 = *(fZyro+2) * ndT / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
 	//fdPsi2 = 0.0f * DEG2RAD / 2;
 	fQz[0] = cosf(fdPsi2);		//część rzeczywista kwaternionu: s0 = cos(theta) gdzie kąt oborotu to 2*theta, więc s0 = cos(kąt_obrotu/2)
 	fQz[1] = 0;
@@ -158,7 +158,7 @@ uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo, float *fZyro, float *fA
 	fQz[3] = sin(fdPsi2);	//z0 = vz / |v0| * sin(theta)  Oś obrotu to 1, więc moduł też będzie 1 więc można to pominąć
 
 	//fQy = cos (theta/2) + (1 / sqrt(x^2 + y^2 + z^2)*j) * sin (theta/2)
-	fdTheta2 = *(fZyro+1) * ndT[chGniazdo] / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fdTheta2 = *(fZyro+1) * ndT / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
 	//fdTheta2 = 0.2f * DEG2RAD / 2;
 	fQy[0] = cosf(fdTheta2);
 	fQy[1] = 0;
@@ -169,7 +169,7 @@ uint8_t JednostkaInercyjnaKwaterniony(uint8_t chGniazdo, float *fZyro, float *fA
 	//fdPhi = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 1000000;
 	//Ponieważ we wzorze występuje połowa kąta, więc aby nie wykonywać dzielenia wielokrotnie, od razu liczę wartość połowy kata
 	//fQx = cos (phi/2) + (1 / sqrt(x^2 + y^2 + z^2)*i) * sin (phi/2)
-	fdPhi2 = *(fZyro+0) * ndT[chGniazdo] / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fdPhi2 = *(fZyro+0) * ndT / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
 	//fdPhi2 = 0.0f * DEG2RAD / 2;
 	fQx[0] = cosf(fdPhi2);
 	fQx[1] = sinf(fdPhi2);

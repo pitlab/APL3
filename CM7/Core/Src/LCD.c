@@ -734,26 +734,26 @@ void RysujEkran(void)
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
-	case TP_NAST_PID_POCH:		//regulator sterowania przechyleniem (lotkami w samolocie)
-		NastawyPID(PID_PHI);
+	case TP_NAST_PID_PRZECH:		//regulator sterowania przechyleniem (lotkami w samolocie)
+		NastawyPID(PID_PRZE);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
 		break;
 
-	case TP_NAST_PID_PRZECH:	//regulator sterowania pochyleniem (sterem wysokości)
-		NastawyPID(PID_THE);
+	case TP_NAST_PID_POCH:	//regulator sterowania pochyleniem (sterem wysokości)
+		NastawyPID(PID_POCH);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
 		break;
 
 	case TP_NAST_PID_ODCH:		//regulator sterowania odchyleniem (sterem kierunku)
-		NastawyPID(PID_PSI);
+		NastawyPID(PID_ODCH);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
 		break;
 
 	case TP_NAST_PID_WYSOK:		//regulator sterowania wysokością
-		NastawyPID(PID_WYS);
+		NastawyPID(PID_WYSO);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
 		break;
@@ -1530,10 +1530,10 @@ void PomiaryCisnieniowe(void)
 
 	//MS5611
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnie[0]);
+	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnieBzw[0]);
 	print(chNapis, KOL12+8*FONT_SL, 30);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(CYAN); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[0]);
+	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysokoMSL[0]);
 	print(chNapis, KOL12+26*FONT_SL, 30);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
@@ -1541,10 +1541,10 @@ void PomiaryCisnieniowe(void)
 
 	//BMP581
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnie[1]);
+	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnieBzw[1]);
 	print(chNapis, KOL12+8*FONT_SL, 50);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(CYAN); 	else	setColor(GRAY50);
-	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysoko[1]);
+	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysokoMSL[1]);
 	print(chNapis, KOL12+26*FONT_SL, 50);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(YELLOW); 	else	setColor(GRAY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
@@ -2975,9 +2975,9 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 
 	// Zwraca: kod błędu
 	setColor(WHITE);
-	sprintf(chNapis, "%.0f Pa", uDaneCM4.dane.fCisnie[0]);
+	sprintf(chNapis, "%.0f Pa", uDaneCM4.dane.fCisnieBzw[0]);
 	print(chNapis, KOL12 + 14*FONT_SL, 100);
-	sprintf(chNapis, "%.0f Pa", uDaneCM4.dane.fCisnie[1]);
+	sprintf(chNapis, "%.0f Pa", uDaneCM4.dane.fCisnieBzw[1]);
 	print(chNapis, KOL12 + 30*FONT_SL, 100);
 	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.fRozne[0]);	//pierwsze uśrednione ciśnienie czujnika 1
 	print(chNapis, KOL12 + 14*FONT_SL, 120);

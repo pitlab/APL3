@@ -24,12 +24,12 @@
 #include "pid.h"
 
 extern TIM_HandleTypeDef htim7;
-extern volatile unia_wymianyCM4_t uDaneCM4;
-extern volatile unia_wymianyCM7_t uDaneCM7;
+extern unia_wymianyCM4_t uDaneCM4;
+extern unia_wymianyCM7_t uDaneCM7;
 uint16_t sGenerator;
 uint32_t nCzasOstatniegoOdcinka;	//przechowuje czas uruchomienia ostatniego odcinka
-uint32_t nCzasPoprzedniegoObiegu[4];	//czas [us] poprzedniego obiegu pętli głównej dla 4 modułów wewnetrznych
-uint32_t ndT[4];						//czas [us] jaki upłynął od poprzeniego obiegu pętli dla 4 modułów wewnetrznych
+uint32_t nCzasPoprzedniegoObiegu;	//czas [us] poprzedniego obiegu pętli głównej
+uint32_t ndT;						//czas [us] jaki upłynął od poprzeniego obiegu pętli
 uint32_t nCzasBiezacy;
 uint8_t chNrOdcinkaCzasu;
 uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU];		//zmierzony czas obsługo odcinka
@@ -52,6 +52,8 @@ extern uint16_t sLicznikCzasuKalibracji;
 uint8_t chPoprzedniRodzajPomiaru;	//okresla czy poprzedni pomiar magnetometrem MMC był ze zmianą przemagnesowania czy bez
 //int16_t sPoleCzujnika[3];
 float fPoleCzujnkaMMC[3];
+extern stPID_t stPID[LICZBA_PID];	//zmienna przechowująca dane dotyczące regulatora PID
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -60,19 +62,10 @@ float fPoleCzujnkaMMC[3];
 ////////////////////////////////////////////////////////////////////////////////
 void PetlaGlowna(void)
 {
-	//licz czas obiegu petli dla modułów wewnętrznych które mogą wymagać czasu do całkowania swoich wartosci
-	if (chNrOdcinkaCzasu < 4)
-	{
-		nCzasBiezacy = PobierzCzas();
-		ndT[chNrOdcinkaCzasu] = MinalCzas2(nCzasPoprzedniegoObiegu[chNrOdcinkaCzasu], nCzasBiezacy);	//licz czas od ostatniego obiegu pętli
-		nCzasPoprzedniegoObiegu[chNrOdcinkaCzasu] = nCzasBiezacy;
-	}
-
 	switch (chNrOdcinkaCzasu)
 	{
 	case 0:		//obsługa modułu w gnieździe 1
 		chErrPG |= UstawDekoderModulow(ADR_MOD1);
-
 		break;
 
 	case 1:		//obsługa modułu w gnieździe 2
@@ -101,7 +94,8 @@ void PetlaGlowna(void)
 		chErrPG |= UstawDekoderModulow(ADR_MOD4);
 		break;
 
-	case 4:		//obsługa GNSS na UART8
+
+	case 5:		//obsługa GNSS na UART8
 		while (chWskNapBaGNSS != chWskOprBaGNSS)
 		{
 			chErrPG |= DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
@@ -124,23 +118,22 @@ void PetlaGlowna(void)
 		}
 		break;
 
-	case 5:
+	case 6:
 		uDaneCM4.dane.chNowyPomiar = 0;	//unieważnij wszystkie poprzednie pomiary. Flagi nowych pomiarów zostaną ustawnine w funkcji ObslugaCzujnikowI2C()
 		if (chNoweDaneI2C)
 			ObslugaCzujnikowI2C(&chNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C to je obrób
 		chErrPG |= RozdzielniaOperacjiI2C();
 		break;
 
-	case 6:	JednostkaInercyjnaTrygonometria(ADR_MOD2);	break;	//dane do IMU1
-	case 7:	JednostkaInercyjnaKwaterniony(ADR_MOD2, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
-	case 8:		break;
+	case 7:	JednostkaInercyjnaTrygonometria(ndT);	break;	//dane do IMU1
+	case 8:	JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
 	case 9:		break;
 	case 10:	break;
 	case 11: chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;
 
 
 	case 12:	//test przekazywania napisów
-		chGeneratorNapisow++;
+		/*chGeneratorNapisow++;
 		if (!chGeneratorNapisow)
 		{
 			char chNapis[20];
@@ -148,7 +141,7 @@ void PetlaGlowna(void)
 			for (uint8_t n=0; n<sizeof(chNapis); n++)
 			  uDaneCM4.dane.chNapis[n] = chNapis[n];
 			chLicznikKomunikatow++;
-		}
+		}*/
 		break;
 
 	case 15:	//wymień dane między rdzeniami
@@ -170,13 +163,15 @@ void PetlaGlowna(void)
 		break;
 
 	case 17:
-		uint32_t nCzas = PobierzCzas();
-		RegulatorPID(ndT[0], PID_GYP);
-		nCzas = MinalCzas(nCzas);
+		StabilizacjaPID(ndT, stPID, &uDaneCM4.dane);
 		break;
+
 	default:	break;
 	}
 
+	nCzasBiezacy = PobierzCzas();
+	ndT = MinalCzas2(nCzasPoprzedniegoObiegu, nCzasBiezacy);	//licz czas od ostatniego obiegu pętli
+	nCzasPoprzedniegoObiegu = nCzasBiezacy;
 
 	//pomiar czasu zajętego w każdym odcinku
 	nCzasOdcinka[chNrOdcinkaCzasu] = MinalCzas(nCzasOstatniegoOdcinka);

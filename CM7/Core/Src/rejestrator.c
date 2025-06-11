@@ -116,10 +116,10 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (nKonfLogera[0] & KLOG1_PRES1)
 		{
 			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strncat(chBufZapisuKarty, "Cisnienie1 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
+				strncat(chBufZapisuKarty, "CisnienieBzw1 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCisnie[0]);
+				sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCisnieBzw[0]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -128,10 +128,10 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (nKonfLogera[0] & KLOG1_PRES2)
 		{
 			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strncat(chBufZapisuKarty, "Cisnienie2 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
+				strncat(chBufZapisuKarty, "CisnienieBzw2 [Pa];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCisnie[1]);
+				sprintf(chBufPodreczny, "%.1f;", uDaneCM4.dane.fCisnieBzw[1]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -140,10 +140,10 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (nKonfLogera[0] & KLOG1_AMSL1)
 		{
 			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strncat(chBufZapisuKarty, "Wysokosc1 [m];", MAX_ROZMIAR_WPISU_LOGU);
+				strncat(chBufZapisuKarty, "Wysokosc MSL1 [m];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fWysoko[0]);
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fWysokoMSL[0]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -152,10 +152,10 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (nKonfLogera[0] & KLOG1_AMSL2)
 		{
 			if (chStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-				strncat(chBufZapisuKarty, "Wysokosc2 [m];", MAX_ROZMIAR_WPISU_LOGU);
+				strncat(chBufZapisuKarty, "Wysokosc MSL2 [m];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fWysoko[1]);
+				sprintf(chBufPodreczny, "%.2f;", uDaneCM4.dane.fWysokoMSL[1]);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}

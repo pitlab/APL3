@@ -176,10 +176,10 @@ float PobierzZmiennaTele(uint8_t chZmienna)
 	case TELEID_KAT_AKCELZ:	fZmiennaTelem = uDaneCM4.dane.fKatAkcel1[2];	break;
 
 	//zmienne barametryczne
-	case TELEID_CISBEZW1:	fZmiennaTelem = uDaneCM4.dane.fCisnie[0];		break;
-	case TELEID_CISBEZW2:	fZmiennaTelem = uDaneCM4.dane.fCisnie[1];		break;
-	case TELEID_WYSOKOSC1:	fZmiennaTelem = uDaneCM4.dane.fWysoko[0];		break;
-	case TELEID_WYSOKOSC2:	fZmiennaTelem = uDaneCM4.dane.fWysoko[1];		break;
+	case TELEID_CISBEZW1:	fZmiennaTelem = uDaneCM4.dane.fCisnieBzw[0];	break;
+	case TELEID_CISBEZW2:	fZmiennaTelem = uDaneCM4.dane.fCisnieBzw[1];	break;
+	case TELEID_WYSOKOSC1:	fZmiennaTelem = uDaneCM4.dane.fWysokoMSL[0];	break;
+	case TELEID_WYSOKOSC2:	fZmiennaTelem = uDaneCM4.dane.fWysokoMSL[1];	break;
 	case TELEID_CISROZN1:	fZmiennaTelem = uDaneCM4.dane.fCisnRozn[0];		break;
 	case TELEID_CISROZN2:	fZmiennaTelem = uDaneCM4.dane.fCisnRozn[1];		break;
 	case TELEID_PREDIAS1:	fZmiennaTelem = uDaneCM4.dane.fPredkosc[0];		break;

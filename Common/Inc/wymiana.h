@@ -9,7 +9,7 @@
 #define INC_WYMIANA_H_
 #include "stm32h7xx_hal.h"
 #include "semafory.h"
-
+#include "pid_kanaly.h"
 
 #define ROWNAJ_DO32B(adres)				((adres + 3) & 0xFFFFFFFC)
 
@@ -77,6 +77,33 @@ typedef struct _GNSS
 	uint8_t chDzien, chMies, chRok;
 } stGnss_t;
 
+typedef struct	//struktura  regulatora PID
+{
+	//wartości wejsciowe
+	float fWejscie;  		//wskaźnik na wartość wejściową
+	float fZadana;  		//wartość zadana
+
+	//nastawy regulatorów
+	float fWzmP;   			//wzmocnienie członu P
+	float fWzmI;   			//wzmocnienie członu I
+	float fWzmD;   			//wzmocnienie członu D
+	float fOgrCalki; 		//ogranicznik wartości całki członu I
+	uint8_t chPodstFiltraD; //podstawa różniczkującego filtra błędu o nieskończonej odpowiedzi impulsowej IIR
+	uint8_t chFlagi;		//0x80 - regulator katowy, 0x40 - regulator wyłączony
+	float fMaxWyj;			//maksymalna wartość wyjściowa regulatora
+	float fMinWyj;			//minimalna wartość wyjściowa regulatora
+
+	//zmienne robocze członów dynamicznych
+	float fCalka;  			//zmianna przechowująca całkę z błędu
+	float fFiltrWePoprz; 		//poprzednia, przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
+
+	//zmienne wyjściowe
+	float fWyjsciePID; 		//wartość wyjściowa z całego regulatora
+	float fWyjscieP;  		//wartość wyjściowa z członu P
+	float fWyjscieI;  		//wartość wyjściowa z członu I
+	float fWyjscieD;  		//wartość wyjściowa z członu D
+} stPID_t;
+
 
 //definicja struktury wymiany danych wychodzących z rdzenia CM4
 //typedef struct _stWymianyCM4
@@ -98,14 +125,29 @@ typedef struct
 	float fKatAkcel1[3];	//[rad]
 	float fKatAkcel2[3];
 	float fKatKwater[3];
-	float fCisnie[2];		//[Pa]
-	float fWysoko[2];		//[m]
+	float fCisnieBzw[2];	//Ciśnienie bezwzgleędne [Pa]
+	float fWysokoMSL[2];	//Wysokość nad poziomem morza [m]
+	float fWariometr[2];	//prędkość pionowa [m/s]
 	float fCisnRozn[2];		//0=ND130, 1=MS2545
 	float fPredkosc[2];		//[m/s]
 	float fTemper[6];		//0=MS5611, 1=BMP851, 2=ICM42688 [K], 3=LSM6DSV [K], 4=ND130, 5=MS2545
 	float fRozne[ROZMIAR_ROZNE];		//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji lub odczytu FRAM
 	float fKwaAkc[4];		//kwaternion wektora przyspieszenia
 	float fKwaMag[4];		//kwaternion wektora magnetycznego
+
+
+	stPID_t pid[LICZBA_PID];		//tablica struktur danych regulatorów PID
+/*	float fPrzechylenieZadane;	//[rad] +-Pi od poziomu
+	float fPochylenieZadane;	//[rad] +-Pi od poziomu
+	float fOdchylenieZadane;	//[rad] +-Pi od północy
+	float fWysokoscMSLZadana;	//[m] wysokość barometryczna / GPS
+	float fPredkPochZadana;		//[rad/s]
+	float fPredkPrzechZadana;	//[rad/s]
+	float fPredkOdchZadana;		//[rad/s]
+	float fPredkPionZadana;		//[m/s]*/
+	uint8_t chTrybLotu;
+
+
 	uint16_t sAdres;		//adres danych przekazywanych w polu fRozne
 	uint16_t sSerwa[16];
 	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
@@ -115,7 +157,7 @@ typedef struct
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
 	stGnss_t stGnss1;
-	char chNapis[ROZMIAR_BUF_NAPISU_WYMIANY];	//do usunięcia
+	//char chNapis[ROZMIAR_BUF_NAPISU_WYMIANY];	//do usunięcia
 } stWymianyCM4_t;
 
 

@@ -831,11 +831,11 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     case ST_TXT_OPIS:
     	if (chDaneIn == '*')	//czekaj na koniec napisu i kopiuj go do napisu w buforze wymiany z terminującym zerem
     	{
-    		if (chBajtStanu < (ROZMIAR_BUF_NAPISU_WYMIANY-1))
+    		/*if (chBajtStanu < (ROZMIAR_BUF_NAPISU_WYMIANY-1))
     		{
     			uDaneCM4.dane.chNapis[chBajtStanu] = chDaneIn;
     			uDaneCM4.dane.chNapis[chBajtStanu+1] = 0;	//koniec stringu
-    		}
+    		}*/
     		if ((chBufStanu[0] == 'u') && (chBufStanu[1] == '-') && (chBufStanu[2] == 'b') && (chBufStanu[3] == 'l') && (chBufStanu[4] == 'o') && (chBufStanu[5] == 'x'))
     			uDaneCM4.dane.nZainicjowano |= INIT_WYKR_UBLOX;
     		chStan = ST_NAGLOWEK1;

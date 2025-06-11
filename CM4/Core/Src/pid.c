@@ -18,13 +18,12 @@
 // jest przefiltrowaną wartością n poprzednich pomiarów gdzie n jest regulowaną nastawą filra D
 
 //definicje zmiennych
-stPID_t stPID[LICZBA_PID];	//struktura przechowująca wszystkie zmienne dotyczące regulatora PID
-
+//stPID_t stPID[LICZBA_PID];	//zmienna przechowująca dane dotyczące regulatora PID
 
 //deklaracje zmiennych zewnętrznych
 extern signed short sServoOutVal[];  //zmienna zawiera pozycję serw wyjściowych +-150% z rozdzieczością 0,25%
 extern signed short sServoInVal[];
-
+extern unia_wymianyCM4_t uDaneCM4;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,7 +89,7 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal)
     fdT = (float)ndT/1000000;    //czas obiegu petli w sekundach (optymalizacja kilkukrotnie wykorzystywanej zmiennej)
 
     //człon proporocjonalny
-    fOdchylka = stPID[chKanal].fZadana - stPID[chKanal].fWejscie;
+    fOdchylka = *stPID[chKanal].fZadana - *stPID[chKanal].fWejscie;
     if (stPID[chKanal].chFlagi & MASKA_KATOWY)  //czy regulator pracuje na wartościach kątowych?
     {
         if (fOdchylka > M_PI)
@@ -132,11 +131,11 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal)
     //człon różniczkujący
     if (stPID[chKanal].fWzmD > MIN_WZM_ROZN)
     {
-        fTemp = (stPID[chKanal].fWejscie - stPID[chKanal].fFiltrWePoprz) * stPID[chKanal].fWzmD / fdT;
+        fTemp = (*stPID[chKanal].fWejscie - stPID[chKanal].fFiltrWePoprz) * stPID[chKanal].fWzmD / fdT;
         fWyjscieReg += fTemp;
 
         //filtruj wartość wejścia aby uzyskać gładką akcję różniczkującą
-        stPID[chKanal].fFiltrWePoprz = (stPID[chKanal].chPodstFiltraD * stPID[chKanal].fFiltrWePoprz + stPID[chKanal].fWejscie) / (stPID[chKanal].chPodstFiltraD + 1);
+        stPID[chKanal].fFiltrWePoprz = (stPID[chKanal].chPodstFiltraD * stPID[chKanal].fFiltrWePoprz + *stPID[chKanal].fWejscie) / (stPID[chKanal].chPodstFiltraD + 1);
     }
     else
         fTemp = 0.0f;
@@ -165,4 +164,50 @@ void ResetujCalkePID(void)
 {
     for (uint8_t n=0; n<LICZBA_PID; n++)
     	stPID[n].fCalka = 0.0f;   //zmianna przechowująca całka z błędu
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja łączy regualtory PID kątów i wysokości z regulatorami prędkości katowych i wario realizując sterowanie stabilnością
+// Parametry: brak
+// [i] ndT - czas od ostatniego cyklu [us]
+// [i] *pid - wskaźnik na strukturę danych regulatorów PID
+// [i] *wron - wskaźnik na strukturę danych parametrów wrona
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane)
+{
+	//regulacja przechylenia
+	dane->pid[PID_PRZE].fWejscie = dane->fKatIMU1[PRZE];
+	RegulatorPID(ndT, PID_PRZE);
+
+	dane->pid[PID_PK_PRZE].fWejscie = dane->fZyroKal1[PRZE];
+	dane->pid[PID_PK_PRZE].fZadana = dane->pid[PID_PRZE].fWyjsciePID;
+	RegulatorPID(ndT, PID_PK_PRZE);
+
+	//regulacja pochylenia
+	dane->pid[PID_POCH].fWejscie = dane->fKatIMU1[POCH];
+	RegulatorPID(ndT, PID_POCH);
+
+	dane->pid[PID_PK_POCH].fWejscie = dane->fZyroKal1[POCH];
+	dane->pid[PID_PK_POCH].fZadana = dane->pid[PID_POCH].fWyjsciePID;
+	RegulatorPID(ndT, PID_PK_POCH);
+
+	//regulacja odchylenia
+	dane->pid[PID_ODCH].fWejscie = dane->fKatIMU1[ODCH];
+	RegulatorPID(ndT, PID_ODCH);
+
+	dane->pid[PID_PK_ODCH].fWejscie = dane->fZyroKal1[ODCH];
+	dane->pid[PID_PK_ODCH].fZadana = dane->pid[PID_ODCH].fWyjsciePID;
+	RegulatorPID(ndT, PID_PK_ODCH);
+
+	//regulacja wysokości
+	dane->pid[PID_WYSO].fWejscie = dane->fWysoko[0];
+	RegulatorPID(ndT, PID_WYSO);
+
+	dane->pid[PID_WARIO].fWejscie = dane->fWariometr[0];
+	dane->pid[PID_WARIO].fZadana = dane->pid[PID_WYSO].fWyjsciePID;
+	RegulatorPID(ndT, PID_WARIO);
+	return ERR_OK;
 }
