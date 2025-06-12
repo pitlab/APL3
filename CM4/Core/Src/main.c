@@ -188,7 +188,7 @@ int main(void)
   InicjujSerwa();
   InicjujModulI2P();
   InicjujJednostkeInercyjna();
-  InicjujPID();
+  InicjujPID((stWymianyCM4_t*)&uDaneCM4.dane);
 
   /* USER CODE END 2 */
 

@@ -88,10 +88,10 @@ typedef struct	//struktura  regulatora PID
 	float fWzmI;   			//wzmocnienie członu I
 	float fWzmD;   			//wzmocnienie członu D
 	float fOgrCalki; 		//ogranicznik wartości całki członu I
-	uint8_t chPodstFiltraD; //podstawa różniczkującego filtra błędu o nieskończonej odpowiedzi impulsowej IIR
-	uint8_t chFlagi;		//0x80 - regulator katowy, 0x40 - regulator wyłączony
 	float fMaxWyj;			//maksymalna wartość wyjściowa regulatora
 	float fMinWyj;			//minimalna wartość wyjściowa regulatora
+	uint8_t chPodstFiltraD; //podstawa różniczkującego filtra błędu o nieskończonej odpowiedzi impulsowej IIR
+	uint8_t chFlagi;		//0x80 - regulator katowy, 0x40 - regulator wyłączony
 
 	//zmienne robocze członów dynamicznych
 	float fCalka;  			//zmianna przechowująca całkę z błędu
@@ -120,7 +120,7 @@ typedef struct
 	float fMagne3[3];
 	float fKatIMU1[3];		//[rad]
 	float fKatIMU2[3];
-	float fKatZyro1[3];	//[rad]
+	float fKatZyro1[3];		//[rad]
 	float fKatZyro2[3];
 	float fKatAkcel1[3];	//[rad]
 	float fKatAkcel2[3];
@@ -135,19 +135,10 @@ typedef struct
 	float fKwaAkc[4];		//kwaternion wektora przyspieszenia
 	float fKwaMag[4];		//kwaternion wektora magnetycznego
 
-
+	stGnss_t stGnss1;		//struktura danych GNSS1
 	stPID_t pid[LICZBA_PID];		//tablica struktur danych regulatorów PID
-/*	float fPrzechylenieZadane;	//[rad] +-Pi od poziomu
-	float fPochylenieZadane;	//[rad] +-Pi od poziomu
-	float fOdchylenieZadane;	//[rad] +-Pi od północy
-	float fWysokoscMSLZadana;	//[m] wysokość barometryczna / GPS
-	float fPredkPochZadana;		//[rad/s]
-	float fPredkPrzechZadana;	//[rad/s]
-	float fPredkOdchZadana;		//[rad/s]
-	float fPredkPionZadana;		//[m/s]*/
+
 	uint8_t chTrybLotu;
-
-
 	uint16_t sAdres;		//adres danych przekazywanych w polu fRozne
 	uint16_t sSerwa[16];
 	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
@@ -156,8 +147,6 @@ typedef struct
 	uint8_t chRozmiar;			//rozmiar danych przekazywanych w polu fRozne
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
-	stGnss_t stGnss1;
-	//char chNapis[ROZMIAR_BUF_NAPISU_WYMIANY];	//do usunięcia
 } stWymianyCM4_t;
 
 

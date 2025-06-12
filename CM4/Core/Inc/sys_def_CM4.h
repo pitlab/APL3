@@ -33,8 +33,7 @@
 
 #define OKRES_PWM		2500	//okres kanału PWM w mikrosekundach
 #define PRZERWA_PPM		3000	//przerwa między paczkami impulsów PPM odbiornika RC
-#define KANALY_SERW		16		//liczba sterowanych kanałów serw
-#define KANALY_ODB		16		//liczba odbieranych kanałów na każdym z dwu wejść odbiorników RC
+
 
 
 

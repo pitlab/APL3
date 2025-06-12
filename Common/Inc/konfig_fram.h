@@ -20,43 +20,36 @@
 // CH - znak alfanumeryczny
 // F - liczba float
 
-#define FA_USER_VAR	    0x0000	    //zmienne użytkownika
-
-#define FAU_TELEMETRY_USB   FA_USER_VAR+104 //64U konfiguracja częstotliwości wysyłania ramek telemetrycznych przez USB
-#define FAU_TELEMETRY_MOD   FA_USER_VAR+168 //64U -,,- przez modem
-#define FAU_TURBO_FRAME     FA_USER_VAR+232 //2U definicja danych turbo ramki dla USB i modemu
-//zostawiam trochę miejsca na ewentualną rozbudowę
+#define FA_USER_VAR	    	0x0000	    		//zmienne użytkownika
+#define FAU_RC1CH_MIN       FA_USER_VAR  		//16x2U minimalna wartość sygnału z danego kanału odbiornika 1
+#define FAU_RC2CH_MIN       FA_USER_VAR+32  	//16x2U minimalna wartość sygnału z danego kanału odbiornika 2
+#define FAU_RC1CH_MAX       FA_USER_VAR+64 		//16x2U maksymalna wartość sygnału z danego kanału odbiornika 1
+#define FAU_RC2CH_MAX       FA_USER_VAR+96 		//16x2U maksymalna wartość sygnału z danego kanału odbiornika 2
+#define FAU_CH6_MIN         FA_USER_VAR+128 	//4U minimalna wartość regulowanej zmiennej
+#define FAU_CH6_MAX         FAU_CH6_MIN+4       //4U maksymalna wartość regulowanej zmiennej
+#define FAU_CH6_FUNCT       FAU_CH6_MAX+4       //1U funkcja kanału 6: rodzaj zmiennej do regulacji
+#define FAU_CH7_MIN         FAU_CH6_FUNCT+4     //4U minimalna wartość regulowanej zmiennej
+#define FAU_CH7_MAX         FAU_CH7_MIN+4       //4U maksymalna wartość regulowanej zmiennej
+#define FAU_CH7_FUNCT       FAU_CH7_MAX+4       //1U funkcja kanału 7: rodzaj zmiennej do regulacji
+//128+18=146=0x92
+//wolnych 14 bajtów
+#define FA_USER_VAR0A		0x00A0
+#define FAU_MIX_PRZECH		FA_USER_VAR0A    	//8*4F współczynnik wpływu przechylenia na dany silnik
+#define FAU_MIX_POCHYL  	FAU_MIX_PRZECH+32   //8*4F współczynnik wpływu pochylenia na dany silnik
+#define FAU_MIX_ODCHYL    	FAU_MIX_POCHYL+32   //8*4F współczynnik wpływu odchylenia na dany silnik
 
 #define FA_USER_VAR2	    0x0100	    //zmienne użytkownika 2
-#define FAU_RCCH_MIN        FA_USER_VAR2    //2x8 minimalna wartość sygnału z danego kanału odbiornika
-#define FAU_RCCH_MAX        FAU_RCCH_MIN+16 //2x8 maksymalna wartość sygnału z danego kanału odbiornika
 
-#define FAU_LOG_CONF1       0x0120          //4I konfiguracja logera 1
-#define FAU_LOG_CONF2       FAU_LOG_CONF1+4 //4I konfiguracja logera 2
-#define FAU_LOG_CONF3       FAU_LOG_CONF2+4 //4I konfiguracja logera 3
-#define FAU_LOG_CONF4       FAU_LOG_CONF3+4 //4I konfiguracja logera 4
-#define FAU_LOG_CONF5       FAU_LOG_CONF4+4 //4I konfiguracja logera 5
-#define FAU_LOG_CONF6       FAU_LOG_CONF5+4 //4I konfiguracja logera 6
-#define FAU_LOG_CONF7       FAU_LOG_CONF6+4 //4I konfiguracja logera 7
-#define FAU_LOG_FREQ        FAU_LOG_CONF7+4 //1CH częstotliwość logowania
-#define FAU_LOG_NAME        FAU_LOG_FREQ+1  //12CH nazwa modelu w nazwie pliku logu
+
+
 #define FAU_LANDING_SPD     FAU_LOG_NAME+13 //4F prędkość lądowania
 //zostało 182 bajty
 
 #define FA_USER_VAR3	    0x0200                //zmienne użytkownika 3 - mikser
-#define FAU_MIX_PITCH       FA_USER_VAR3          //12*4F współczynnik wpływu pochylenia na dany silnik
-#define FAU_MIX_ROLL        FAU_MIX_PITCH+48      //12*4F współczynnik wpływu przechylenia na dany silnik
-#define FAU_MIX_YAW         FAU_MIX_ROLL+48       //12*4F współczynnik wpływu odchylenia na dany silnik
 #define FAU_LOW_VOLT_WARN   FAU_MIX_YAW+48        //4F próg ostrzezenia o niskim napięciu
 #define FAU_LOW_VOLT_ALARM  FAU_LOW_VOLT_WARN+4   //4F próg alarmu niskiego napięcia
 #define FAU_VOLT_DROP_COMP  FAU_LOW_VOLT_ALARM+4  //4F współczynnik kompensacji spadku napięcia pakietu
 
-#define FAU_CH6_MIN         FAU_VOLT_DROP_COMP+4  //4U minimalna wartość regulowanej zmiennej
-#define FAU_CH6_MAX         FAU_CH6_MIN+4         //4U maksymalna wartość regulowanej zmiennej
-#define FAU_CH6_FUNCT       FAU_CH6_MAX+4         //1U funkcja kanału 6: rodzaj zmiennej do regulacji
-#define FAU_CH7_MIN         FAU_CH6_FUNCT+4       //4U minimalna wartość regulowanej zmiennej
-#define FAU_CH7_MAX         FAU_CH7_MIN+4         //4U maksymalna wartość regulowanej zmiennej
-#define FAU_CH7_FUNCT       FAU_CH7_MAX+4         //1U funkcja kanału 7: rodzaj zmiennej do regulacji
 
 #define FAU_MODE_CONF       FAU_CH7_FUNCT+1       //1UC tryb pracy automatyki kalibracji
 #define FAU_VDROP_COMP      FAU_MODE_CONF+4       //4U kompensacja spadku napięcia na  pakiecie [us/V]
@@ -354,7 +347,9 @@
 #define VDEF_PID_MAXWY    (float)100.0
 
 
-
+#define VMIN_MIX_PRZE    (float)-100.0    //maksymalna wartość wyjścia
+#define VMAX_MIX_PRZE    (float)100.0
+#define VDEF_MIX_PRZE    (float)100.0
 
 
 /*

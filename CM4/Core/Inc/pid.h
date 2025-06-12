@@ -10,7 +10,7 @@
 
 
 //definicje funkcji
-uint8_t InicjujPID(void);
-float RegulatorPID(uint32_t ndT, uint8_t chKanal);
+uint8_t InicjujPID(stWymianyCM4_t *dane);
+float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane);
 void ResetujCalkePID(void);
 uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane);

@@ -163,7 +163,7 @@ void PetlaGlowna(void)
 		break;
 
 	case 17:
-		StabilizacjaPID(ndT, stPID, &uDaneCM4.dane);
+		StabilizacjaPID(ndT, &uDaneCM4.dane);
 		break;
 
 	default:	break;
@@ -314,13 +314,13 @@ void WykonajPolecenieCM7(void)
 		break;
 
 	case POL_USREDNIJ_CISN1:
-		uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnie[0], uDaneCM4.dane.fCisnie[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
+		uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
 		if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
 			uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
 		break;
 
 	case POL_USREDNIJ_CISN2:
-		uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnie[0], uDaneCM4.dane.fCisnie[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
+		uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
 		if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
 			uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
 		break;

@@ -96,7 +96,7 @@ uint8_t ObslugaBMP581(void)
 		case 0:	uDaneCM4.dane.fTemper[TEMP_BARO2] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO2] + (float)(CzytajSPIs24mp(PBMP5_TEMP_DATA_XLSB) / 65536) + KELVIN) / 8;	break;
 		default:
 			fCisnienie = (float)(CzytajSPIs24mp(PBMP5_PRESS_DATA_XLSB) / 64);
-			uDaneCM4.dane.fCisnie[1] = (7 * uDaneCM4.dane.fCisnie[1] + fCisnienie) / 8;
+			uDaneCM4.dane.fCisnieBzw[1] = (7 * uDaneCM4.dane.fCisnieBzw[1] + fCisnienie) / 8;
 			break;
 		}
 		chProporcjaPomiarow++;
@@ -107,14 +107,14 @@ uint8_t ObslugaBMP581(void)
 		{
 			if (sLicznikUsrednianiaP0)	//czy przygotowanie ciśnienia P0 jeszcze trwa
 			{
-				uDaneCM4.dane.fWysoko[1] = 0.0f;
+				uDaneCM4.dane.fWysokoMSL[1] = 0.0f;
 				fP0_BMP581 = (127 * fP0_BMP581 + fCisnienie) / 128;
 				sLicznikUsrednianiaP0--;
 				if (sLicznikUsrednianiaP0 == 0)
 					uDaneCM4.dane.nZainicjowano |= INIT_P0_BMP851;
 			}
 			else
-				uDaneCM4.dane.fWysoko[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnie[1], fP0_BMP581, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//P0 gotowe więc oblicz wysokość
+				uDaneCM4.dane.fWysokoMSL[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[1], fP0_BMP581, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//P0 gotowe więc oblicz wysokość
 		}
 	}
 	return chErr;

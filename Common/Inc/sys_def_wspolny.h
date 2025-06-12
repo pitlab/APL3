@@ -30,6 +30,10 @@
 #define DEKLINACJA_MAG		(6.5f * DEG2RAD)	//deklinacja magnetyczna w radianach. Źródło: https://www.magnetic-declination.com/ lub https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/D.jpg
 #define PROMIEN_ZIEMI		6371008.77f			//promień Ziemi w metrach
 
+#define KANALY_SERW		16		//liczba sterowanych kanałów serw
+#define KANALY_ODB		16		//liczba odbieranych kanałów na każdym z dwu wejść odbiorników RC
+#define KANALY_MIKSERA	8		//liczba kanałów wyjściowych, któe mogą wchodzić do miksera
+
 //definicje temperatur kalibracji żyroskopów
 #define TEMP_KAL_ZIMNO		(10.f + KELVIN)
 #define TEMP_KAL_POKOJ		(25.f + KELVIN)

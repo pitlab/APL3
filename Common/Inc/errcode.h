@@ -68,7 +68,8 @@
 #define ERR_ZLE_OBLICZENIA		66	//zła wartość kalibracji, zbytnio obdiega od tego co ma zostać wyliczone
 #define ERR_ZA_DLUGO			67	//czas potrzebny do obróbki danych np. całkowania zbytnio odbiega od normy
 
-#define ERR_NASTAWA_PID			68	//niewłaściwa wartość nastawy regulatora PID
+//#define ERR_NASTAWA_PID			68	//niewłaściwa wartość nastawy regulatora PID
+#define ERR_NASTAWA_FRAM		68	//niewłaściwa wartość nastawy odczytanaj z FRAM
 
 #define ERR_NIE_ZAINICJOWANY	0xFF
 
