@@ -1,12 +1,24 @@
 #include "pid_kanaly.h"
 #include "sys_def_CM4.h"
 #include "wymiana.h"
+#include "konfig_fram.h"
 
 //#define MAX_INT   (float)3.0   //maksymalna wartość całki członu I
 //#define MAX_TIME  1   //podstawa czasu różniczkowania = MAX_TIME* 10ms
 #define MAX_PID   (float)100.0  	//maksymalna wartość wyjściowa regulatora PID = 100%
 #define MIN_WZM_CALK	0.001f		//minimalna wartość wzmocnienia członu całkowania
 #define MIN_WZM_ROZN	0.0001f		//minimalna wartość wzmocnienia członu różniczkowania
+
+
+//definicje bitów konfiguracji PID
+#define PID_MASKA_FILTRA_D		0x3F
+#define PID_WLACZONY			0x40
+#define PID_KATOWY				0x80
+
+
+//#define MASKA_FILTRA_D		0x3F
+//#define MASKA_WYLACZONY		0x40
+//#define MASKA_KATOWY		0x80
 
 
 //definicje funkcji

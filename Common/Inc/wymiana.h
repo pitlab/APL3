@@ -10,6 +10,7 @@
 #include "stm32h7xx_hal.h"
 #include "semafory.h"
 #include "pid_kanaly.h"
+#include "sys_def_wspolny.h"
 
 #define ROWNAJ_DO32B(adres)				((adres + 3) & 0xFFFFFFFC)
 
@@ -138,9 +139,12 @@ typedef struct
 	stGnss_t stGnss1;		//struktura danych GNSS1
 	stPID_t pid[LICZBA_PID];		//tablica struktur danych regulatorów PID
 
-	uint8_t chTrybLotu;
+	uint8_t chTrybLotu;		//tryb lotu jako zestaw funkcjonalności realizowany w danym czasie
+	uint8_t chFlagiLotu;	//bity definiujące parametry lotu
 	uint16_t sAdres;		//adres danych przekazywanych w polu fRozne
-	uint16_t sSerwa[16];
+	int16_t sKanalRC[KANALY_ODB_RC];	//dane z odbiornika RC1
+	//int16_t sKanalRC2[KANALY_ODB_RC];	//dane z odbiornika RC2
+	uint16_t sSerwo[KANALY_SERW];
 	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
 	uint8_t chErrPetliGlownej;
 	uint8_t chOdpowiedzNaPolecenie;

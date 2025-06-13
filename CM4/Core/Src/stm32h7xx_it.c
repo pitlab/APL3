@@ -46,8 +46,8 @@ volatile uint8_t chZbocze[8];	//flaga określająca na które zbocze mamy reagow
 volatile uint32_t nPoprzedniStanTimera2;	//timer 32 bitowy
 volatile uint16_t sPoprzedniStanTimera3, sPoprzedniStanTimera4;
 uint16_t sSerwo[KANALY_SERW];	//sterowane kanałów serw
-volatile uint16_t sOdbRC1[KANALY_ODB];	//odbierane kanały na odbiorniku 1 RC
-volatile uint16_t sOdbRC2[KANALY_ODB];	//odbierane kanały na odbiorniku 2 RC
+volatile uint16_t sOdbRC1[KANALY_ODB_RC];	//odbierane kanały na odbiorniku 1 RC
+volatile uint16_t sOdbRC2[KANALY_ODB_RC];	//odbierane kanały na odbiorniku 2 RC
 uint8_t chNumerKanWejRC1, chNumerKanWejRC2;	//liczniki kanałów w odbieranym sygnale PPM
 volatile uint8_t chNumerKanSerw;
 volatile uint16_t sCzasH;

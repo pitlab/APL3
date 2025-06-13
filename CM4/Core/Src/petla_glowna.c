@@ -87,9 +87,9 @@ void PetlaGlowna(void)
 	case 3:		//obsługa modułu w gnieździe 4
 		for (uint16_t n=0; n<16; n++)
 		{
-			uDaneCM4.dane.sSerwa[n] += n;
-			if (uDaneCM4.dane.sSerwa[n] > 2000)
-				uDaneCM4.dane.sSerwa[n] = 0;
+			uDaneCM4.dane.sSerwo[n] += n;
+			if (uDaneCM4.dane.sSerwo[n] > 2000)
+				uDaneCM4.dane.sSerwo[n] = 0;
 		}
 		chErrPG |= UstawDekoderModulow(ADR_MOD4);
 		break;

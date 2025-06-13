@@ -7,7 +7,6 @@
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "pid.h"
-#include "konfig_fram.h"
 #include "fram.h"
 
 //Przyjmuję że regulator będzie mógł być szeregowy lub równoległy z preferencja szeregowego
@@ -60,8 +59,8 @@ uint8_t InicjujPID(stWymianyCM4_t *dane)
 
         //odczytaj stałą czasową filtru członu różniczkowania (bity 0..5), właczony (bit 6) i to czy regulator jest kątowy (bit 7)
         chTemp = CzytajFRAM(FAU_FILTRD_TYP + n);
-        dane->pid[n].chPodstFiltraD = chTemp & MASKA_FILTRA_D;
-        dane->pid[n].chFlagi = chTemp & (MASKA_WYLACZONY | MASKA_KATOWY);
+        dane->pid[n].chPodstFiltraD = chTemp & PID_MASKA_FILTRA_D;
+        dane->pid[n].chFlagi = chTemp & (PID_WLACZONY | PID_KATOWY);
 
         //zeruj integrator
         dane->pid[n].fCalka = 0.0f;   	//zmianna przechowująca całkę z błędu
@@ -90,7 +89,7 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane)
 
     //człon proporocjonalny
     fOdchylka = dane->pid[chKanal].fZadana - dane->pid[chKanal].fWejscie;
-    if (dane->pid[chKanal].chFlagi & MASKA_KATOWY)  //czy regulator pracuje na wartościach kątowych?
+    if (dane->pid[chKanal].chFlagi & PID_KATOWY)  //czy regulator pracuje na wartościach kątowych?
     {
         if (fOdchylka > M_PI)
         	fOdchylka -= 2*M_PI;

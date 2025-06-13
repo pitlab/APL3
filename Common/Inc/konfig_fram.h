@@ -6,7 +6,6 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-
 //adresy zmiennych konfiguracyjnych w zakresie 0..0x2000  (FA == Fram Address)
 //Indeksy w komentarzu oznaczaja rozmiar (liczba) i typ (litera) zmiennej
 //Typy zmiennych: 
@@ -31,8 +30,15 @@
 #define FAU_CH7_MIN         FAU_CH6_FUNCT+4     //4U minimalna wartość regulowanej zmiennej
 #define FAU_CH7_MAX         FAU_CH7_MIN+4       //4U maksymalna wartość regulowanej zmiennej
 #define FAU_CH7_FUNCT       FAU_CH7_MAX+4       //1U funkcja kanału 7: rodzaj zmiennej do regulacji
+
 //128+18=146=0x92
-//wolnych 14 bajtów
+#define FAU_PWM_MIN         0x0092           	//2U minimalne wysterowanie regulatorów w trakcie lotu [us]
+#define FAU_PWM_JALOWY      FAU_PWM_MIN+2 		//2U wysterowanie regulatorów na biegu jałowym [us]
+#define FAU_WPM_ZAWISU      FAU_PWM_JALOWY+2   	//2U wysterowanie regulatorów w zawisie [us]
+#define FAU_PWM_MAX         FAU_WPM_ZAWISU+2  	//2U maksymalne wysterowanie silników w trakcie lotu [us]
+
+//wolnych 6 bajtów
+
 #define FA_USER_VAR0A		0x00A0
 #define FAU_MIX_PRZECH		FA_USER_VAR0A    	//8*4F współczynnik wpływu przechylenia na dany silnik
 #define FAU_MIX_POCHYL  	FAU_MIX_PRZECH+32   //8*4F współczynnik wpływu pochylenia na dany silnik
@@ -78,9 +84,9 @@
 #define FAU_PID2			FA_USER_PID+26	//1U nic
 #define FAU_PID3			FA_USER_PID+27	//1U nic
 #define ROZMIAR_REG_PID		28
-#define MASKA_FILTRA_D		0x3F
-#define MASKA_WYLACZONY		0x40
-#define MASKA_KATOWY		0x80
+//#define MASKA_FILTRA_D		0x3F
+//#define MASKA_WYLACZONY		0x40
+//#define MASKA_KATOWY		0x80
 //do adresu 0x3C0 jest miejsce na łącznie 12 regulatorów.
 
 
@@ -88,10 +94,7 @@
 
 
 //8 wolnych bajtów
-#define FAU_MIN_PWM         0x3D8           //2U minimalne wysterowanie regulatorów w trakcie lotu [us]
-#define FAU_HOVER_PWM       FAU_MIN_PWM+2   //2U wysterowanie regulatorów w zawisie [us]
-#define FAU_IDLE_PWM        FAU_HOVER_PWM+2 //2U wysterowanie regulatorów na biegu jałowym [us]
-#define FAU_MAX_PWM         FAU_IDLE_PWM+2  //2U maksymalne wysterowanie silników w trakcie lotu [us]
+
 
 //wzmocnienia drążków aparatury dla posczególnych trybów pracy regulatorów
 #define FAU_SP_GAIN         0x3E0

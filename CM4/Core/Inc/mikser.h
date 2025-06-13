@@ -15,9 +15,11 @@
 //struktura danych miksera
 typedef struct
 {
-	float fPrze;
-	float fPoch;
-	float fOdch;
+	uint8_t chSilnikow;					//liczba sterowanych silnikow napedowych
+	float fPrze[KANALY_MIKSERA];		//składowa przechylenia na każdy silnik
+	float fPoch[KANALY_MIKSERA];		//składowa pochylenia na każdy silnik
+	float fOdch[KANALY_MIKSERA];		//składowa odchylenia na każdy silnik
+
 }stMikser_t;
 
 

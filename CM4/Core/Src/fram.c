@@ -295,3 +295,44 @@ uint8_t CzytajFramZWalidacja(uint16_t sAdres, float *fWartosc, float fWartMin, f
 	while (chErr && --chLiczbaPowtorzen);	//w przypadku jakiegokolwiek błędu powtórz całość
     return chErr;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Czyta z pamięci FRAM 2-bajtową zmienną typu uint16_t
+// Parametry: sAdres - adres pamięci
+// Zwraca: zmienna uint16_t
+// Czas wykonania ok.
+////////////////////////////////////////////////////////////////////////////////
+uint16_t CzytajFramU16(uint16_t sAdres)
+{
+	union
+	{
+	    uint8_t U8[2];
+	    uint16_t U16;
+	} unia16;
+
+	CzytajBuforFRAM(sAdres, unia16.U8, 2);
+    return unia16.U16;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Zapisuje do pamięci FRAM 2-bajtową zmienną typu uint16_t
+// Parametry:
+// [i] sAdress - adres pamięci
+// [i] uint16_t - dana do zapisu
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void ZapiszFramU16(uint16_t sAdres, uint16_t sWartosc)
+{
+	union
+	{
+	    uint8_t U8[2];
+	    uint16_t U16;
+	} unia16;
+
+	unia16.U16 = sWartosc;
+    ZapiszBuforFRAM(sAdres, unia16.U8, 2);
+}

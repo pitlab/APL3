@@ -35,11 +35,10 @@ void CzytajBuforFRAM(uint16_t sAdres, uint8_t* chDane, uint16_t sIlosc);
 void ZapiszBuforFRAM(uint16_t sAdres, uint8_t* chDane, uint16_t sIlosc);
 
 
-//definicje funkcji wtórnych
-//float FramDataReadFloat(unsigned short sAddress);
-float CzytajFramFloat(uint16_t sAdres);
-//void FramDataWriteFloat(unsigned short sAddress, float fData);
-void ZapiszFramFloat(uint16_t sAdres, float fWartosc);
-//unsigned char FramDataReadFloatValid(unsigned short sAddress, float *fValue, float fValMin, float fValMax, float fValDef, unsigned char chErrCode);
-uint8_t CzytajFramZWalidacja(uint16_t sAdres, float *fWartosc, float fWartMin, float fWartMax, float fWartDomyslna, uint8_t chKodBledu);
 
+//definicje funkcji wtórnych
+float CzytajFramFloat(uint16_t sAdres);
+void ZapiszFramFloat(uint16_t sAdres, float fWartosc);
+uint8_t CzytajFramZWalidacja(uint16_t sAdres, float *fWartosc, float fWartMin, float fWartMax, float fWartDomyslna, uint8_t chKodBledu);
+uint16_t CzytajFramU16(uint16_t sAdres);
+void ZapiszFramU16(uint16_t sAdres, uint16_t sWartosc);
