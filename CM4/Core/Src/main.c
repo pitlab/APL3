@@ -17,12 +17,12 @@
 /* USER CODE BEGIN Includes */
 #include "petla_glowna.h"
 #include "moduly_wew.h"
-#include "serwa.h"
 #include "GNSS.h"
 #include "wymiana_CM4.h"
 #include "modul_IiP.h"
 #include "jedn_inercyjna.h"
 #include "pid.h"
+#include "mikser.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -185,10 +185,10 @@ int main(void)
   /* USER CODE BEGIN 2 */
   uDaneCM4.dane.nZainicjowano = 0;	//za każdym uruchomieniem detekcja i inicjalizacja sprzętu zaczyna się od początku
   InicjujModulyWew();
-  InicjujSerwa();
   InicjujModulI2P();
   InicjujJednostkeInercyjna();
   InicjujPID((stWymianyCM4_t*)&uDaneCM4.dane);
+  InicjujMikser();
 
   /* USER CODE END 2 */
 
@@ -528,7 +528,7 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_BOTHEDGE;
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
   sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
   sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
   sConfigIC.ICFilter = 0;
@@ -655,10 +655,10 @@ static void MX_TIM4_Init(void)
   {
     Error_Handler();
   }
-  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_BOTHEDGE;
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
   sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
   sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
-  sConfigIC.ICFilter = 0;
+  sConfigIC.ICFilter = 7;
   if (HAL_TIM_IC_ConfigChannel(&htim4, &sConfigIC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();

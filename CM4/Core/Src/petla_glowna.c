@@ -20,8 +20,9 @@
 #include "MS4525.h"
 #include "ND130.h"
 #include "konfig_fram.h"
-#include "MS5611.h"	//testowo
+//#include "MS5611.h"	//testowo
 #include "pid.h"
+#include "odbiornikRC.h"
 
 extern TIM_HandleTypeDef htim7;
 extern unia_wymianyCM4_t uDaneCM4;
@@ -52,8 +53,8 @@ extern uint16_t sLicznikCzasuKalibracji;
 uint8_t chPoprzedniRodzajPomiaru;	//okresla czy poprzedni pomiar magnetometrem MMC był ze zmianą przemagnesowania czy bez
 //int16_t sPoleCzujnika[3];
 float fPoleCzujnkaMMC[3];
-extern stPID_t stPID[LICZBA_PID];	//zmienna przechowująca dane dotyczące regulatora PID
-
+extern stPID_t stPID[LICZBA_PID];	//struktura przechowująca dane dotyczące regulatora PID
+extern stRC_t stRC;					//struktura przechowująca dane odbiorników RC
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -127,31 +128,17 @@ void PetlaGlowna(void)
 
 	case 7:	JednostkaInercyjnaTrygonometria(ndT);	break;	//dane do IMU1
 	case 8:	JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
-	case 9:		break;
+	case 9:	chErrPG |= DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane);	break;
 	case 10:	break;
 	case 11: chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;
-
-
-	case 12:	//test przekazywania napisów
-		/*chGeneratorNapisow++;
-		if (!chGeneratorNapisow)
-		{
-			char chNapis[20];
-			sprintf(chNapis, "CM4 pracuje %d\n\r", chLicznikKomunikatow);
-			for (uint8_t n=0; n<sizeof(chNapis); n++)
-			  uDaneCM4.dane.chNapis[n] = chNapis[n];
-			chLicznikKomunikatow++;
-		}*/
+	case 12:
 		break;
 
 	case 15:	//wymień dane między rdzeniami
 		uDaneCM4.dane.chErrPetliGlownej = chErrPG;
-		chErrPG  = PobierzDaneWymiany_CM7();
-		chErrPG |= UstawDaneWymiany_CM4();
-		//
-
-		//wykonaj polecenie przekazane z CM7
-		WykonajPolecenieCM7();
+		chErrPG  = UstawDaneWymiany_CM4();
+		chErrPG |= PobierzDaneWymiany_CM7();
+		WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
 		break;
 
 	case 16:	//pozwól na testowe uruchomienie inicjalizacji
@@ -166,6 +153,8 @@ void PetlaGlowna(void)
 		StabilizacjaPID(ndT, &uDaneCM4.dane);
 		break;
 
+	case 18:	break;
+	case 19:	break;
 	default:	break;
 	}
 
@@ -214,7 +203,7 @@ uint32_t PobierzCzas(void)
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy upływ czasu mierzony timerem T7 z rozdzieczością 1us
 // Wersja z wewnetrznym czasem bieżącym
-// Parametry: sPoczatek - licznik czasu na na początku pomiaru
+// Parametry: nPoczatek - licznik czasu na na początku pomiaru
 // Zwraca: ilość czasu w mikrosekundach jaki upłynął do podanego czasu początkowego
 ////////////////////////////////////////////////////////////////////////////////
 uint32_t MinalCzas(uint32_t nPoczatek)
@@ -230,18 +219,19 @@ uint32_t MinalCzas(uint32_t nPoczatek)
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy upływ czasu mierzony timerem T7 z rozdzieczością 1us
 // Wersja z zewnetrznym czasem bieżącym
-// Parametry: sPoczatek - licznik czasu na na początku pomiaru
-// nCzasAkt - czas aktualny jako zmienna
+// Parametry:
+// [we] nPoczatek - licznik czasu na na początku pomiaru
+// [we] nKoniec - licznik czasu na na końcu pomiaru
 // Zwraca: ilość czasu w mikrosekundach jaki upłynął do podanego czasu początkowego
 ////////////////////////////////////////////////////////////////////////////////
-uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nCzasAkt)
+uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nKoniec)
 {
 	uint32_t nCzas;
 
-	if (nCzasAkt >= nPoczatek)
-		nCzas = nCzasAkt - nPoczatek;
+	if (nKoniec >= nPoczatek)
+		nCzas = nKoniec - nPoczatek;
 	else
-		nCzas = 0xFFFFFFFF - nPoczatek + nCzasAkt;
+		nCzas = 0xFFFFFFFF - nPoczatek + nKoniec;
 	return nCzas;
 }
 

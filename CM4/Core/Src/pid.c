@@ -38,7 +38,7 @@ uint8_t InicjujPID(stWymianyCM4_t *dane)
 
     for (uint8_t n=0; n<LICZBA_PID; n++)
     {
-        chAdrOffset = (n * PID_FRAM_CH_SIZE * FRAM_FLOAT_SIZE);	//offset danych kolejnego kanału regulatora
+        chAdrOffset = (n * ROZMIAR_REG_PID);	//offset danych kolejnego kanału regulatora
         //odczytaj wartość wzmocnienienia członu P regulatora
         chErr |= CzytajFramZWalidacja(FAU_PID_P0 + chAdrOffset, &dane->pid[n].fWzmP, VMIN_PID_WZMP, VMAX_PID_WZMP, VDEF_PID_WZMP, ERR_NASTAWA_FRAM);
 

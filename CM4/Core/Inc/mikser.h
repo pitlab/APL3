@@ -23,7 +23,8 @@ typedef struct
 }stMikser_t;
 
 
-uint8_t InicjujMikser(stMikser_t* mikser);
+//uint8_t InicjujMikser(stMikser_t* mikser);
+uint8_t InicjujMikser(void);
 uint8_t LiczMikser(stMikser_t* mikser, stWymianyCM4_t *dane);
 
 

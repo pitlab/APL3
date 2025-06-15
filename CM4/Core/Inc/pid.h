@@ -10,11 +10,6 @@
 #define MIN_WZM_ROZN	0.0001f		//minimalna wartość wzmocnienia członu różniczkowania
 
 
-//definicje bitów konfiguracji PID
-#define PID_MASKA_FILTRA_D		0x3F
-#define PID_WLACZONY			0x40
-#define PID_KATOWY				0x80
-
 
 //#define MASKA_FILTRA_D		0x3F
 //#define MASKA_WYLACZONY		0x40

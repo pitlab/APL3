@@ -447,38 +447,38 @@ void LCD_clear(uint16_t kolor)
 // Zwraca: nic
 // Czas rysowania pełnego ekranu: 372ms @25MHz
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_rect(uint16_t col, uint16_t row, uint16_t width, uint16_t height, uint16_t kolor)
+void LCD_ProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t kolor)
 {
 	uint16_t i,j;
-	uint8_t x, dane[8];
+	uint8_t n, dane[8];
 
-	for (x=0; x<8; x++)
-		dane[x] = 0;
+	for (n=0; n<8; n++)
+		dane[n] = 0;
 
 	LCD_write_command16(0x00, 0x2A);	//Column Address Set
-	dane[1] = row>>8;
-	dane[3] = row;
-	dane[5] = (row+height-1)>>8;
-	dane[7] = row+height-1;
+	dane[1] = sStartX >> 8;
+	dane[3] = sStartX;
+	dane[5] = (sStartX + sSzerokosc - 1) >> 8;
+	dane[7] = sStartX + sSzerokosc - 1;
 	LCD_WrData(dane, 8);
 
 	LCD_write_command16(0x00, 0x2B);	//Page Address Set
-	dane[1] = col>>8;
-	dane[3] = col;
-	dane[5] = (col+width-1)>>8;
-	dane[7] = col+width-1;
+	dane[1] = sStartY >> 8;
+	dane[3] = sStartY;
+	dane[5] = (sStartY +  sWysokosc - 1) >> 8;
+	dane[7] =  sStartY + sWysokosc - 1;
 	LCD_WrData(dane, 8);
 
 	LCD_write_command16(0x00, 0x2C);	//Memory Write
-	for(x=0; x<4; x++)
+	for(n=0; n<4; n++)
 	{
-		dane[2*x+0] = kolor>>8;
-		dane[2*x+1] = kolor;
+		dane[2*n+0] = kolor >> 8;
+		dane[2*n+1] = kolor;
 	}
 
-	for(i=0; i<width; i++)
+	for(i=0; i<sWysokosc; i++)
 	{
-		for(j=0; j<height/4; j++)
+		for(j=0; j<sSzerokosc/4; j++)
 			LCD_WrData(dane, 8);
 	}
 }
@@ -789,49 +789,6 @@ void drawRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 	drawHLine(x1, y2, x2-x1);
 	drawVLine(x1, y1, y2-y1);
 	drawVLine(x2, y1, y2-y1);
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// wypełnij kolorem prostokąt o współprzędnych x1, y1, x2, y2
-// Parametry: x, y - współrzędne
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void fillRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
-{
-	int16_t i, nTemp;
-
-	if (x1>x2)
-	{
-		nTemp = x1;
-		x1 = x2;
-		x2 = nTemp;
-	}
-	if (y1>y2)
-	{
-		nTemp = y1;
-		y1 = y2;
-		y2 = nTemp;
-	}
-
-	if (chOrient == POZIOMO)
-	{
-		for (i=0; i<((y2-y1)/2)+1; i++)
-		{
-			drawHLine(x1, y1+i, x2-x1);
-			drawHLine(x1, y2-i, x2-x1);
-		}
-	}
-	else
-	{
-		for (i=0; i<((x2-x1)/2)+1; i++)
-		{
-			drawVLine(x1+i, y1, y2-y1);
-			drawVLine(x2-i, y1, y2-y1);
-		}
-	}
-
 }
 
 

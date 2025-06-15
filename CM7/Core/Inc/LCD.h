@@ -23,6 +23,8 @@
 #define KOL22	245	//współrzędne x początku drugiej z dwu kolumn danych
 
 
+#define ROZDZIECZOSC_PASKA_RC		3	//zakres RC = 1000us / szerokość ekranu [us/pixel]
+
 typedef struct
 {
 	uint16_t sX1;
@@ -41,6 +43,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
 void BelkaTytulu(char* chTytul);
 void PomiaryIMU(void);
 void PomiaryCisnieniowe(void);
+void DaneOdbiornikaRC(void);
 void TestTonuAudio(void);
 void WyswietlParametryKartySD(void);
 void TestKartySD(void);

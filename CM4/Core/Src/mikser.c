@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// AutoPitLot v2.0
+// AutoPitLot v3.0
 // Moduł ubsługi miksera silników napędowych i obsługi serw
 //
 // (c) PitLab 2025
@@ -26,13 +26,17 @@ extern TIM_HandleTypeDef htim7;
 extern TIM_HandleTypeDef htim8;
 extern volatile uint8_t chNumerKanSerw;
 
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja wczytuje z FRAM konfigurację miksera
 // Parametry: *mikser - wskaźnik na lokalną strukturę danych miksera
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjujMikser(stMikser_t* mikser)
+uint8_t InicjujMikser(void)
+//uint8_t InicjujMikser(stMikser_t* mikser)
 {
 	uint8_t chErr = ERR_OK;
 	//włącz odbługę timerów do generowania sygnałów serw i dekodowania PPM z odbiorników RC
@@ -58,9 +62,9 @@ uint8_t InicjujMikser(stMikser_t* mikser)
 
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 	{
-		chErr |= CzytajFramZWalidacja(FAU_MIX_PRZECH + 2*n, mikser->fPrze, VMIN_MIX_PRZE, VMAX_MIX_PRZE, VDEF_MIX_PRZE, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu przechylenia na dany silnik
-		chErr |= CzytajFramZWalidacja(FAU_MIX_POCHYL + 2*n, mikser->fPoch, VMIN_MIX_PRZE, VMAX_MIX_PRZE, VDEF_MIX_PRZE, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu pochylenia na dany silnik
-		chErr |= CzytajFramZWalidacja(FAU_MIX_ODCHYL + 2*n, mikser->fOdch, VMIN_MIX_PRZE, VMAX_MIX_PRZE, VDEF_MIX_PRZE, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu odchylenia na dany silnik
+		chErr |= CzytajFramZWalidacja(FAU_MIX_PRZECH + 2*n, stMikser.fPrze, VMIN_MIX_PRZE, VMAX_MIX_PRZE, VDEF_MIX_PRZE, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu przechylenia na dany silnik
+		chErr |= CzytajFramZWalidacja(FAU_MIX_POCHYL + 2*n, stMikser.fPoch, VMIN_MIX_PRZE, VMAX_MIX_PRZE, VDEF_MIX_PRZE, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu pochylenia na dany silnik
+		chErr |= CzytajFramZWalidacja(FAU_MIX_ODCHYL + 2*n, stMikser.fOdch, VMIN_MIX_PRZE, VMAX_MIX_PRZE, VDEF_MIX_PRZE, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu odchylenia na dany silnik
 	}
 
 	sPWMMin 	= CzytajFramU16(FAU_PWM_MIN);      	//minimalne wysterowanie silników [us]
@@ -175,163 +179,3 @@ uint8_t LiczMikser(stMikser_t* mikser, stWymianyCM4_t *dane)
 }
 
 
-
-/*///////////////////////////////////////////////////////////////////////////////
-// mikser łączący wyjścia regulatorów w układ sterowania. obsługuje MIXER_CHAN kanałów
-// Parametry: brak
-// Zwraca: kod błędu
-// Czas wykonania: 380us
-////////////////////////////////////////////////////////////////////////////////
-void Mixer(void)
-{
-    unsigned short sGas;    //wartość gazu do uzyskania zerowej pływalności
-    unsigned char x;
-    signed short sTmpServo[MIXER_CHAN];
-    signed short sTmp1[MIXER_CHAN], sTmp2[MIXER_CHAN];
-    signed short sMaxTmp1, sMaxTmp2;
-    extern float fVectAngle[3];      //kąty finalnego wektora inercji: phi, theta, psi w [rad]
-    extern float fUserSensVolt[];    //napięcie z czujnika prądu i napiecia
-
-    //ogranicz wartości PID-ów wchodzących do miksera
-    for (x=0; x<4; x++)
-    {
-        if (fPidOut[x] > 100.0)
-            fPidOut[x] = 100.0;
-        else
-        if (fPidOut[x] < -100.0)
-            fPidOut[x] = -100.0;
-    }
-
-    //raz obliczone kosinusy katów będą używane kilkukrotnie
-    fCosPhi = cosf(fVectAngle[0]);
-    fCosTheta = cosf(fVectAngle[1]);
-
-
-    //wartość gazu
-    if ((sLastServoInVal[2] > PPM_IDLE) || (chLandingMode == LANDING_MODE_ON))    //1200us, 3 ząbki poniżej minimum na aparaturze z 33 ząbkami na gazie
-    {
-        if ((sLastServoInVal[2] > PPM_IDLE) && (chEngineArmed))
-        {
-            chWasInFlight = 1;  //poziom gazu uruchomił regulatory - można lądować!
-            chLandingMode = LANDING_MODE_OFF; // Jeśli lądowałeś to przerwij to i radośnie leć dalej!
-        }
-
-        //Uzależnij wartość gazu od spadku napięcia pakietu
-        //Dla hexakoptera zasilanego 4x LiFe opracowałem równanie współczynnika [us/V]: y = 5,8 * dUwe + 28
-        //Część stałą można dodać do ciagu statycznego, ograniczamy się do samego współczynika 5,8 [us/V]
-        //sGas_dUcorr = 5.8 * (13.2 - fUmin); //fVoltDropCompensation
-
-        //pionowa składowa ciągu statycznego ma być niezależna od pochylenia i przechylenia
-        sGas = (sHoverPWM-sIdlePWM+sGas_dUcorr);
-        if(chRegMode[ALTI] >= REG_STAB)
-            sGas /= (fCosPhi * fCosTheta); //skaluj tylko zakres roboczy
-        sGas += sIdlePWM;   //resztę "nieregulowalnego" gazu dodaj bez korekcji
-    }
-    else
-    {
-        if(chWasInFlight)
-        {
-            chLandingMode = LANDING_MODE_ON; // Ląduj - lądowanie rozbroi silniki
-            StartLanding(); //inicjuj procedurę ladowania
-        }
-        else
-        {
-            sGas = sIdlePWM;
-            ResetPIDintegrator();   //zerowanie całkowania w czasie gdy nie leci
-            ResetGPSSetPoint();        //zerowanie wartości zadanej regulatorów pozycji
-            fSetPoint[PID_PSI] = fVectAngle[2] * RAD2DEG; //zerowanie całkowania wartości zadanej w regulatorze odchylenia.
-            fUmin = fUzas;          //inicjuj detektor minimalnego napięcia bez obciążenia silnikami
-        }
-    }
-
-    sMaxTmp1 = sMaxTmp2 = -200*PPM1P_BIP; //inicjuj maksima wartością minimalną aby wyłapać wartości ponizej zera
-    fMixerSum = 0.0;
-    for (x=0; x<chSilnikow; x++)
-    {
-        //w pierwszej kolejności sumuj pochylenie i przechylenie
-        sTmp1[x] = (fMixerPith[x]*fPidOut[PID_GYQ] - fMixerRoll[x]*fPidOut[PID_GYP] )*PPM1P_BIP;
-        if (sTmp1[x] > sMaxTmp1)
-            sMaxTmp1 = sTmp1[x];
-
-        //osobno sumuj mniej ważne regulatory ciągu i odchylenia
-        sTmp2[x] = (fPidOut[PID_VAR] + fMixerYaw[x]*fPidOut[PID_GYR] )*PPM1P_BIP;
-        if (sTmp2[x] > sMaxTmp2)
-            sMaxTmp2 = sTmp2[x];
-
-        //sterowanie odchyleniem za: http://diydrones.com/profiles/blogs/stability-patch-for-motor-max-and-min-and-yaw-curve
-        /*So what we want to do is increase the RPM of half the motors less than we decrease the RPM of the other half and keep it the same as when all motors are at the same RPM.
-        Ok, some maths.
-        x = RPM of all motors at stationary hover.
-        y = RPM reduction of half the motors during Yaw.
-        z = RPM increase of half the motors during Yaw.
-        Total lifting force at hover for a quad is:
-        Total Force = 4*x^2
-        When inducing a Yaw it is:
-        Total Force = 2*(x - y)^2 + 2*(x + z)^2
-        We want these two equations to be equal if we don’t want the quad to start accelerating vertically therefore:
-        4*x^2 = 2*(x - y)^2 + 2*(x + z)^2
-        2*x^2 = (x - y)^2 + (x + z)^2
-        2*x^2 = x^2 + y^2 -2*x*y + x^2 + z^2 + 2*x*z
-        2*x^2 = 2*x^2 + y^2 -2*x*y + z^2 + 2*x*z
-        0 = y^2 -2*x*y + z^2 + 2*x*z
-        0 = z^2 + 2*x*z + y^2 -2*x*y
-        if we solve this for z we get:
-        z = -x + sqrt(x^2 – y^2 + 2*x*y)
-
-        The current ratio line is the ratio we are currently considering using, ie 0.7 up and 1.42 down. As you can see, the ratio starts off 1:1 then reduces to sqrt(2)-1 or 0.414. We could get pretty close to the ideal line using a straight line approximation:
-        z = 1 - (2-SQRT(2)) * x/y
-        */
-        /*fMixerSum += sTmp1[x] + sTmp2[x];
-    }
-    fMixerSum /= MIXER_CHAN;    //policz średnią wartość wysterowania silników [us]
-    fMixerSum += sGas;
-
-    //jeżeli suma kanałów jest większa niż 100% to najpierw skaluj ważniejsze regulatory odpowiadajace za stabilizację a jeżeli jeszcze jest miejsce do potem mniej ważne
-    for (x=0; x<chSilnikow; x++)
-    {
-        if ((sMaxTmp1 + sMaxTmp2 + sGas) < sMaxPWM)     //jeżeli nie przekraczamy zakresu to sumuj wszystkie regulatory
-            sTmpServo[x] = sTmp1[x] + sTmp2[x] + sGas;
-        else
-        {
-            if ((sMaxTmp1 + sGas) < sMaxPWM)
-                sTmpServo[x] = sTmp1[x] + sGas + (sTmp2[x] * (sMaxPWM - sMaxTmp1 - sGas) / sMaxTmp2);   //weź Tmp1 + gaz i doskaluj tyle Tmp2 ile jest miejsca
-            else
-            {
-                if (sMaxTmp1 < sMaxPWM)
-                    sTmpServo[x] = sTmp1[x] + (sMaxPWM - sMaxTmp1);  //weź Tmp1 i doskaluj tyle gazu ile jest miejsca
-                else
-                    sTmpServo[x] = sTmp1[x] * sMaxPWM / sMaxTmp1; //jeżeli nie mieści sie w zakresie sterowania to przeskaluj
-            }
-        }
-
-        //w locie nie schodź poniżej obrotów minimalnych
-        if (sLastServoInVal[2] > PPM_IDLE)
-        {
-            //dolny limit wysterowania w czasie lotu
-            if (sTmpServo[x] < sMinPWM)
-                sTmpServo[x] = sMinPWM;
-        }
-        else
-        {
-            if(chWasInFlight)
-            {
-                //dolny limit wysterowania podczas lądowania
-                if (sTmpServo[x] < sMinPWM)
-                    sTmpServo[x] = sMinPWM;
-            }
-            else
-            {
-                //dolny limit wysterowania przed lotem
-                if (sTmpServo[x] < sIdlePWM)
-                    sTmpServo[x] = sIdlePWM;
-            }
-        }
-
-        //jeżeli silniki uzbrojone to włącz je
-        if (chEngineArmed)
-            sServoOutVal[x] = sTmpServo[x];  //przepisz roboczą zmienną do zmiennej stanu serw
-        else
-            sServoOutVal[x] = PPM_MINVAL;   //wartość wyłączajaca silniki
-    }
-}
-*/

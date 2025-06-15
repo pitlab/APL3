@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "sys_def_CM4.h"
+#include "odbiornikRC.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -32,7 +33,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+extern uint32_t PobierzCzas(void);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -44,13 +45,14 @@
 /* USER CODE BEGIN PV */
 volatile uint8_t chZbocze[8];	//flaga określająca na które zbocze mamy reagować dla wszystkich kanałow wyjściowych serw
 volatile uint32_t nPoprzedniStanTimera2;	//timer 32 bitowy
-volatile uint16_t sPoprzedniStanTimera3, sPoprzedniStanTimera4;
+//volatile uint16_t sPoprzedniStanTimera3, sPoprzedniStanTimera4;
 uint16_t sSerwo[KANALY_SERW];	//sterowane kanałów serw
-volatile uint16_t sOdbRC1[KANALY_ODB_RC];	//odbierane kanały na odbiorniku 1 RC
-volatile uint16_t sOdbRC2[KANALY_ODB_RC];	//odbierane kanały na odbiorniku 2 RC
-uint8_t chNumerKanWejRC1, chNumerKanWejRC2;	//liczniki kanałów w odbieranym sygnale PPM
+//volatile uint16_t sOdbRC1[KANALY_ODB_RC];	//odbierane kanały na odbiorniku 1 RC
+//volatile uint16_t sOdbRC2[KANALY_ODB_RC];	//odbierane kanały na odbiorniku 2 RC
+//uint8_t chNumerKanWejRC1, chNumerKanWejRC2;	//liczniki kanałów w odbieranym sygnale PPM
 volatile uint8_t chNumerKanSerw;
 volatile uint16_t sCzasH;
+extern stRC_t stRC;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -394,23 +396,24 @@ void TIM2_IRQHandler(void)
 	//obsługa wejścia TIM2_CH4 szeregowego sygnału PPM2. Sygnał aktywny niski. Kolejne impulsy zą pomiędzy zboczami narastającymi
 	if (htim2.Instance->SR & TIM_FLAG_CC4)
 	{
-		if (htim2.Instance->CCR4 > nPoprzedniStanTimera2)
-			nTemp = htim2.Instance->CCR4 - nPoprzedniStanTimera2;  //długość impulsu
+		if (htim2.Instance->CCR4 > stRC.sPoprzedniaWartoscTimera2)
+			nTemp = htim2.Instance->CCR4 - stRC.sPoprzedniaWartoscTimera2;  //długość impulsu
 		else
-			nTemp = 0xFFFFFFFF - nPoprzedniStanTimera2 + htim2.Instance->CCR4;  //długość impulsu
+			nTemp = 0xFFFFFFFF - stRC.sPoprzedniaWartoscTimera2 + htim2.Instance->CCR4;  //długość impulsu
 
 		//impuls o długości większej niż 3ms traktowany jest jako przerwa między paczkami impulsów
 		if (nTemp > PRZERWA_PPM)
 		{
-			chNumerKanWejRC2 = 0;
-			//nPPMStartTime[0] = nCurrServoTim;   //potrzebne do detekcji braku sygnału
+			stRC.nCzasWe2 = PobierzCzas();
+			stRC.chNrKan2 = 0;
 		}
 		else
 		{
-			sOdbRC2[chNumerKanWejRC2] = nTemp;
-			chNumerKanWejRC2++;
+			stRC.sOdb2[stRC.chNrKan2] = nTemp;
+			stRC.sZdekodowaneKanaly2 |= (1 << stRC.chNrKan2);	//ustaw bit zdekodowanego kanału
+			stRC.chNrKan2++;
 		}
-		nPoprzedniStanTimera2 = htim2.Instance->CCR4;
+		stRC.sPoprzedniaWartoscTimera2 = htim2.Instance->CCR4;
 	}
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
@@ -480,7 +483,7 @@ void TIM3_IRQHandler(void)
 void TIM4_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM4_IRQn 0 */
-	uint16_t sTemp;			//Licznik 16-bitowy
+	uint16_t sTemp;
 
 	//obsługa wyjścia TIM4_CH4: Serwo kanał 0, zanegowane na inwerterze
 	if (htim4.Instance->SR & TIM_FLAG_CC4)
@@ -505,23 +508,24 @@ void TIM4_IRQHandler(void)
 	//obsługa wejścia TIM4_CH3 szeregowego sygnału PPM1. Sygnał aktywny niski. Kolejne impulsy zą pomiędzy zboczami narastającymi
 	if (htim4.Instance->SR & TIM_FLAG_CC3)
 	{
-		if (htim4.Instance->CCR3 > sPoprzedniStanTimera4)
-			sTemp = htim4.Instance->CCR3 - sPoprzedniStanTimera4;  //długość impulsu
+		if (htim4.Instance->CCR3 > stRC.sPoprzedniaWartoscTimera1)
+			sTemp = htim4.Instance->CCR3 - stRC.sPoprzedniaWartoscTimera1;  //długość impulsu
 		else
-			sTemp = 0xFFFF - sPoprzedniStanTimera4 + htim4.Instance->CCR3;  //długość impulsu
+			sTemp = 0xFFFF - stRC.sPoprzedniaWartoscTimera1 + htim4.Instance->CCR3;  //długość impulsu
 
 		//impuls o długości większej niż 3ms traktowany jest jako przerwa między paczkami impulsów
 		if (sTemp > PRZERWA_PPM)
 		{
-			chNumerKanWejRC1 = 0;
-			//nPPMStartTime[0] = nCurrServoTim;   //potrzebne do detekcji braku sygnału
+			stRC.nCzasWe1 = PobierzCzas();
+			stRC.chNrKan1 = 0;
 		}
 		else
 		{
-			sOdbRC1[chNumerKanWejRC1] = sTemp;
-			chNumerKanWejRC1++;
+			stRC.sOdb1[stRC.chNrKan1] = sTemp;
+			stRC.sZdekodowaneKanaly1 |= (1 << stRC.chNrKan1);	//ustaw bit zdekodowanego kanału
+			stRC.chNrKan1++;
 		}
-		sPoprzedniStanTimera4 = htim4.Instance->CCR3;	//odczyt CCRx kasuje przerwanie
+		stRC.sPoprzedniaWartoscTimera1 = htim4.Instance->CCR3;	//odczyt CCRx kasuje przerwanie
 	}
   /* USER CODE END TIM4_IRQn 0 */
   HAL_TIM_IRQHandler(&htim4);

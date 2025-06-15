@@ -68,6 +68,7 @@ extern const unsigned short obr_kostka3D[0xFFC];
 extern const unsigned short obr_cisnienie[0xFFC];
 extern const unsigned short obr_okregi[0xFFC];
 extern const unsigned short obr_narzedzia[0xFFC];
+extern const unsigned short obr_aparaturaRC[0xFFC];
 
 //definicje zmiennych
 uint8_t chTrybPracy;
@@ -148,7 +149,7 @@ struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
 	{"Dane cisn",	"Wyniki pomiarow czujnikow cisnienia",		TP_POMIARY_CISN, 	obr_multimetr},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"Dane RC",		"Dane z odbiornika RC",						TP_POMIARY_RC,		obr_aparaturaRC},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
@@ -722,8 +723,18 @@ void RysujEkran(void)
 		break;
 
 	case TP_POMIARY_CISN:	PomiaryCisnieniowe();
+
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+		}
+		break;
+
+	case TP_POMIARY_RC:	DaneOdbiornikaRC();
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_POMIARY;
 		}
 		break;
@@ -737,37 +748,55 @@ void RysujEkran(void)
 	case TP_NAST_PID_PRZECH:		//regulator sterowania przechyleniem (lotkami w samolocie)
 		NastawyPID(PID_PRZE);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+		}
 		break;
 
 	case TP_NAST_PID_POCH:	//regulator sterowania pochyleniem (sterem wysokości)
 		NastawyPID(PID_POCH);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+		}
 		break;
 
 	case TP_NAST_PID_ODCH:		//regulator sterowania odchyleniem (sterem kierunku)
 		NastawyPID(PID_ODCH);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+		}
 		break;
 
 	case TP_NAST_PID_WYSOK:		//regulator sterowania wysokością
 		NastawyPID(PID_WYSO);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+		}
 		break;
 
 	case TP_NAST_PID_NAW_N:		//regulator sterowania nawigacją w kierunku północnym
 		NastawyPID(PID_NAW_N);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+		}
 		break;
 
 	case TP_NAST_PID_NAW_E:		//regulator sterowania nawigacją w kierunku wschodnim
 		NastawyPID(PID_NAW_E);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+		}
 		break;
 
 	case TP_NAST_MIKSERA:		break;
@@ -1073,8 +1102,9 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		BelkaTytulu(tytul);		//rysuje belkę tytułu ekranu
 
 		//rysuje pasek podpowiedzi na dole ekranu
-		setColor(GRAY20);
-		fillRect(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, DISP_Y_SIZE);
+		//setColor(GRAY20);
+		//fillRect(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, DISP_Y_SIZE);
+		LCD_ProstokatWypelniony(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, GRAY20);
 		setBackColor(BLACK);
 
 		//rysuj ikony poleceń
@@ -1136,9 +1166,9 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 					}
 				}
 			}
-			setColor(GRAY20);
+			//setColor(GRAY20);
 			//fillRect(0, DISP_X_SIZE-MENU_PASOP_WYS, DISP_Y_SIZE, DISP_X_SIZE);		//zamaż pasek podpowiedzi
-			fillRect(0, DISP_Y_SIZE-MENU_PASOP_WYS, DISP_X_SIZE, DISP_Y_SIZE);		//zamaż pasek podpowiedzi
+			LCD_ProstokatWypelniony(0, DISP_Y_SIZE-MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, GRAY20);		//zamaż pasek podpowiedzi
 
 		}
 
@@ -1208,8 +1238,9 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 ////////////////////////////////////////////////////////////////////////////////
 void BelkaTytulu(char* chTytul)
 {
-	setColor(MENU_TLO_BAR);
-	fillRect(18, 0, DISP_X_SIZE, MENU_NAG_WYS);
+	//setColor(MENU_TLO_BAR);
+	//fillRect(18, 0, DISP_X_SIZE, MENU_NAG_WYS);
+	LCD_ProstokatWypelniony(18, 0, DISP_X_SIZE, MENU_NAG_WYS, MENU_TLO_BAR);
 	drawBitmap(0, 0, 18, 18, pitlab_logo18);	//logo PitLab
 	setColor(YELLOW);
 	setBackColor(MENU_TLO_BAR);
@@ -1608,6 +1639,57 @@ void PomiaryCisnieniowe(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Rysuje okno z damymi odbiornika RC
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void DaneOdbiornikaRC(void)
+{
+	uint16_t y, n, sSkorygowaneRC, sDlugoscPaska, sDlugoscTla;
+
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Dane odbiornika RC");
+		for (n=0; n<KANALY_ODB_RC; n++)
+		{
+			y = n * 17;
+			setColor(GRAY80);
+			sprintf(chNapis, "Kan %2d:", n+1);
+			print(chNapis, KOL12, y+26);
+			setColor(GRAY40);
+			drawRect(119, y+29, (121 + (PPM_MAX - PPM_MIN) / ROZDZIECZOSC_PASKA_RC), y+29+8);
+		}
+		setColor(GRAY50);
+		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
+		print(chNapis, CENTER, 300);
+	}
+
+	for (n=0; n<KANALY_ODB_RC; n++)
+	{
+		y = n * 17;
+		setColor(GRAY80);
+		sprintf(chNapis, "%4d ", uDaneCM4.dane.sKanalRC[n]);
+		print(chNapis, KOL12+8*FONT_SL, y+26);
+
+		if (uDaneCM4.dane.sKanalRC[n] > PPM_MIN)
+			sSkorygowaneRC = uDaneCM4.dane.sKanalRC[n];
+		else
+			sSkorygowaneRC = PPM_MIN;
+
+		//czasai długość kanału jest mniejsza niż minimalna dopuszczlna, wię skoryguj aby nie komplikować obliczeń
+		sDlugoscPaska = (sSkorygowaneRC - PPM_MIN) / ROZDZIECZOSC_PASKA_RC;
+		if (sDlugoscPaska)
+			LCD_ProstokatWypelniony(120, y+30, sDlugoscPaska, 6, BLUE);
+		sDlugoscTla = ((PPM_MAX - PPM_MIN) / ROZDZIECZOSC_PASKA_RC) - sDlugoscPaska;
+		if (sDlugoscTla)
+			LCD_ProstokatWypelniony(121 + sDlugoscPaska, y+30, sDlugoscTla, 6, BLACK);
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Rysuje pasek postepu procesu rdzenia CM4 na dole ekranu
 // Parametry: brak
 // Zwraca: nic
@@ -1617,11 +1699,13 @@ void RysujPasekPostepu(uint16_t sPelenZakres)
 	uint16_t x = (uDaneCM4.dane.sPostepProcesu * DISP_X_SIZE) / sPelenZakres;
 	if (x)	//nie rysuj paska jeżeli ma zerową długość
 	{
-		setColor(BLUE);
-		fillRect(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, x , DISP_Y_SIZE);
+		//setColor(BLUE);
+		//fillRect(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, x , DISP_Y_SIZE);
+		LCD_ProstokatWypelniony(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, x, WYS_PASKA_POSTEPU, BLUE);
 	}
-	setColor(BLACK);
-	fillRect(x, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE , DISP_Y_SIZE);
+	//setColor(BLACK);
+	//fillRect(x, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE , DISP_Y_SIZE);
+	LCD_ProstokatWypelniony(x, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE, WYS_PASKA_POSTEPU, BLUE);
 }
 
 
@@ -2230,7 +2314,6 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		stPrzycisk.sY2 = stPrzycisk.sY1 + 75;
 		RysujPrzycisk(stPrzycisk, "Odczyt", RYSUJ);
 
-		//fillRect(stPrzycisk.sX1, stPrzycisk.sY1 ,stPrzycisk.sX2, stPrzycisk.sY2);	//rysuj przycisk
 		chEtapKalibracji = 0;
 		chStanPrzycisku = 0;
 		setColor(YELLOW);
@@ -2373,8 +2456,6 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		{
 			chStanPrzycisku = 1;
 			RysujPrzycisk(stPrzycisk, chNapis, ODSWIEZ);
-			//setColor(GRAY40);
-			//fillRect(stPrzycisk.sX1, stPrzycisk.sY1 ,stPrzycisk.sX2, stPrzycisk.sY2);	//rysuj przycisk
 		}
 		else
 			chErr = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
@@ -2407,8 +2488,9 @@ void Poziomica(float fKatAkcelX, float fKatAkcelY)
 
 	if (chRysujRaz)
 	{
-		setColor(LIBELLA1);
-		fillRect(0, DISP_Y_SIZE - LIBELLA_BOK, LIBELLA_BOK, DISP_Y_SIZE);	//wypełnienie płynem
+		//setColor(LIBELLA1);
+		//fillRect(0, DISP_Y_SIZE - LIBELLA_BOK, LIBELLA_BOK, DISP_Y_SIZE);	//wypełnienie płynem
+		LCD_ProstokatWypelniony(0, DISP_Y_SIZE - LIBELLA_BOK, LIBELLA_BOK, LIBELLA_BOK, LIBELLA1);
 		chRysujRaz = 0;
 		x2 = (DISP_Y_SIZE - MENU_NAG_WYS)/2;					//współrzędne "starego" bąbelka do zamazania
 		y2 = MENU_NAG_WYS + (DISP_Y_SIZE - MENU_NAG_WYS)/2;
@@ -2478,8 +2560,9 @@ void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc)
 	chRozmiar = strlen(chNapis);
 	if (chCzynnosc == RYSUJ)
 	{
-		setColor(GRAY40);
-		fillRect(prost.sX1, prost.sY1 ,prost.sX2, prost.sY2);	//rysuj przycisk
+		//setColor(GRAY40);
+		//fillRect(prost.sX1, prost.sY1 ,prost.sX2, prost.sY2);	//rysuj przycisk
+		LCD_ProstokatWypelniony(prost.sX1, prost.sY1, prost.sX2-prost.sX1, prost.sY2-prost.sY1, GRAY40);
 	}
 
 	setColor(YELLOW);
@@ -3255,7 +3338,7 @@ void NastawyPID(uint8_t chKanal)
 		if (chErr == ERR_OK)
 		{
 			un8_32.daneFloat = fNastawy[6];
-			if (un8_32.dane8[0] & MASKA_WYLACZONY)
+			if (un8_32.dane8[0] & PID_WLACZONY)
 				setColor(GRAY60);	//regulator wyłączony
 			else
 				setColor(WHITE);	//regulator pracuje
@@ -3272,9 +3355,9 @@ void NastawyPID(uint8_t chKanal)
 			print(chNapis, KOL12 + 8*FONT_SL, 160);
 			sprintf(chNapis, "%.3f ", fNastawy[5]);	//max wyjścia
 			print(chNapis, KOL12 + 8*FONT_SL, 180);
-			sprintf(chNapis, "%d", un8_32.dane8[0] & MASKA_FILTRA_D);
+			sprintf(chNapis, "%d", un8_32.dane8[0] & PID_MASKA_FILTRA_D);
 			print(chNapis, KOL12 + 9*FONT_SL, 200);	//filtr D
-			if (un8_32.dane8[0] & MASKA_KATOWY)
+			if (un8_32.dane8[0] & PID_KATOWY)
 				sprintf(chNapis, "Tak");
 			else
 				sprintf(chNapis, "Nie");
@@ -3287,7 +3370,7 @@ void NastawyPID(uint8_t chKanal)
 		if (chErr == ERR_OK)
 		{
 			un8_32.daneFloat = fNastawy[6];
-			if (un8_32.dane8[0] & MASKA_WYLACZONY)
+			if (un8_32.dane8[0] & PID_WLACZONY)
 				setColor(GRAY60);	//regulator wyłączony
 			else
 				setColor(WHITE);	//regulator pracuje
@@ -3304,7 +3387,7 @@ void NastawyPID(uint8_t chKanal)
 			print(chNapis, KOL22 + 8*FONT_SL, 160);
 			sprintf(chNapis, "%.3f ", fNastawy[5]);	//max wyjścia
 			print(chNapis, KOL22 + 8*FONT_SL, 180);
-			sprintf(chNapis, "%d", un8_32.dane8[0] & MASKA_FILTRA_D);
+			sprintf(chNapis, "%d", un8_32.dane8[0] & PID_MASKA_FILTRA_D);
 			print(chNapis, KOL22 + 9*FONT_SL, 200);	//filtr D
 		}
 		else

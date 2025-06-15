@@ -37,7 +37,7 @@ uint8_t PobierzDaneWymiany_CM4(void)
 		chErr = HAL_HSEM_Take(HSEM_CM4_TO_CM7, 0);
 		if (chErr == ERR_OK)
 		{
-			for (uint8_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
+			for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
 			{
 				uDaneCM4.nSlowa[n] = nBuforWymianyCM4[n];
 			}
@@ -64,7 +64,7 @@ uint8_t UstawDaneWymiany_CM7(void)
 		chErr = HAL_HSEM_Take(HSEM_CM7_TO_CM4, 0);
 		if (chErr == ERR_OK)
 		{
-			for (uint8_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM7; n++)
+			for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM7; n++)
 			{
 				nBuforWymianyCM7[n] = uDaneCM7.nSlowa[n];
 			}

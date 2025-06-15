@@ -37,42 +37,20 @@
 #define FAU_WPM_ZAWISU      FAU_PWM_JALOWY+2   	//2U wysterowanie regulatorów w zawisie [us]
 #define FAU_PWM_MAX         FAU_WPM_ZAWISU+2  	//2U maksymalne wysterowanie silników w trakcie lotu [us]
 
-//wolnych 6 bajtów
-
-#define FA_USER_VAR0A		0x00A0
-#define FAU_MIX_PRZECH		FA_USER_VAR0A    	//8*4F współczynnik wpływu przechylenia na dany silnik
-#define FAU_MIX_POCHYL  	FAU_MIX_PRZECH+32   //8*4F współczynnik wpływu pochylenia na dany silnik
-#define FAU_MIX_ODCHYL    	FAU_MIX_POCHYL+32   //8*4F współczynnik wpływu odchylenia na dany silnik
-
-#define FA_USER_VAR2	    0x0100	    //zmienne użytkownika 2
-
-
-
-#define FAU_LANDING_SPD     FAU_LOG_NAME+13 //4F prędkość lądowania
-//zostało 182 bajty
-
-#define FA_USER_VAR3	    0x0200                //zmienne użytkownika 3 - mikser
-#define FAU_LOW_VOLT_WARN   FAU_MIX_YAW+48        //4F próg ostrzezenia o niskim napięciu
-#define FAU_LOW_VOLT_ALARM  FAU_LOW_VOLT_WARN+4   //4F próg alarmu niskiego napięcia
-#define FAU_VOLT_DROP_COMP  FAU_LOW_VOLT_ALARM+4  //4F współczynnik kompensacji spadku napięcia pakietu
-
-
-#define FAU_MODE_CONF       FAU_CH7_FUNCT+1       //1UC tryb pracy automatyki kalibracji
-#define FAU_VDROP_COMP      FAU_MODE_CONF+4       //4U kompensacja spadku napięcia na  pakiecie [us/V]
-#define FAU_PNE_SEN1_GAIN   FAU_VDROP_COMP+4      //4F wzmocnienie czujnika na module pneumatycznym
-#define FAU_PNE_SEN1_OFST   FAU_PNE_SEN1_GAIN+4   //4F offset czujnika na module pneumatycznym
-#define FAU_PNE_SEN2_GAIN   FAU_PNE_SEN1_OFST+4   //4F wzmocnienie czujnika na module pneumatycznym
-#define FAU_PNE_SEN2_OFST   FAU_PNE_SEN2_GAIN+4   //4F offset czujnika na module pneumatycznym
-//zostało 58 bajtów
-
-#define FAU_TSYNC_MON       0x290           //miesiąc ostatniej synchronizacji
-#define FAU_TSYNC_DAY       FAU_TSYNC_MON+1 //dzień ostatniej synchronizacji
+#define FAU_TSYNC_MON       0x009A           	//miesiąc ostatniej synchronizacji
+#define FAU_TSYNC_DAY       FAU_TSYNC_MON+1 	//dzień ostatniej synchronizacji
 #define FAU_TSYNC_HOU       FAU_TSYNC_DAY+1
 #define FAU_TSYNC_MIN       FAU_TSYNC_HOU+1
 #define FAU_TSYNC_SEC       FAU_TSYNC_MIN+1
 #define FAU_TSYNC_DIF       FAU_TSYNC_SEC+1 //ostatnia różnica czasu synchronizacji
 
-#define FA_USER_PID	    	0x0300
+//mikser
+#define FAU_MIX_PRZECH		0x00A0    			//8*4F współczynnik wpływu przechylenia na dany silnik
+#define FAU_MIX_POCHYL  	FAU_MIX_PRZECH+32   //8*4F współczynnik wpływu pochylenia na dany silnik
+#define FAU_MIX_ODCHYL    	FAU_MIX_POCHYL+32   //8*4F współczynnik wpływu odchylenia na dany silnik
+
+//regulatory PID
+#define FA_USER_PID	    	0x0100
 #define FAU_PID_P0          FA_USER_PID+0   //4U wzmocnienienie członu P regulatora 0
 #define FAU_PID_I0          FA_USER_PID+4   //4U wzmocnienienie członu I regulatora 0
 #define FAU_PID_D0          FA_USER_PID+8   //4U wzmocnienienie członu D regulatora 0
@@ -84,17 +62,16 @@
 #define FAU_PID2			FA_USER_PID+26	//1U nic
 #define FAU_PID3			FA_USER_PID+27	//1U nic
 #define ROZMIAR_REG_PID		28
-//#define MASKA_FILTRA_D		0x3F
-//#define MASKA_WYLACZONY		0x40
-//#define MASKA_KATOWY		0x80
-//do adresu 0x3C0 jest miejsce na łącznie 12 regulatorów.
 
 
+//12 regulatorów zajmuje 336 bajtów - 0x150
 
 
-
-//8 wolnych bajtów
-
+#define FA_USER_VAR3	    0x0300
+#define FAU_LOW_VOLT_WARN   FAU_MIX_YAW+48        //4F próg ostrzezenia o niskim napięciu
+#define FAU_LOW_VOLT_ALARM  FAU_LOW_VOLT_WARN+4   //4F próg alarmu niskiego napięcia
+#define FAU_VOLT_DROP_COMP  FAU_LOW_VOLT_ALARM+4  //4F współczynnik kompensacji spadku napięcia pakietu
+#define FAU_LANDING_SPD     FAU_VOLT_DROP_COMP+4 //4F prędkość lądowania
 
 //wzmocnienia drążków aparatury dla posczególnych trybów pracy regulatorów
 #define FAU_SP_GAIN         0x3E0
@@ -104,13 +81,12 @@
 #define FAU_SPG_GPOS        FAU_SPG_GSPD+8  //8U wzmocnienie drążków dla regulatora pozycji GPS
 
 
-#define FA_SYS_VAR	    0x0420	    //zmienne systemowe i dynamiczne
-#define	FAS_SESSION_NUMBER  FA_SYS_VAR+0    //1S Numer sesji
-#define	FAS_PRESSURE	    FA_SYS_VAR+4    //4D ciśnienie zerowe czujnika bezwzględnego
-#define	FAS_ENERGY1	    FA_SYS_VAR+8    //4D energia pobrana z pakietu 1
-#define	FAS_ENERGY2         FA_SYS_VAR+12   //4D energia pobrana z pakietu 2
-
-
+#define FA_SYS_VAR	    0x0400	    //zmienne systemowe i dynamiczne
+#define	FAS_NUMER_SESJI	  	FA_SYS_VAR+0		//1S Numer sesji
+#define	FAS_ENERGIA1	    FA_SYS_VAR+4    	//4D energia pobrana z pakietu 1
+#define	FAS_ENERGIA2        FA_SYS_VAR+8   		//4D energia pobrana z pakietu 2
+#define	FAS_CISN_01	    	FA_SYS_VAR+12    	//4D ciśnienie zerowe czujnika bezwzględnego 1
+#define	FAS_CISN_02	    	FA_SYS_VAR+14    	//4D ciśnienie zerowe czujnika bezwzględnego 2
 
 
 #define FA_HARD_VAR         	0x0500	    //zmienne definiujące parametry sprzętu 0x500 = 1280
@@ -208,32 +184,6 @@
 
 
 
-/*
-#define	FAH_PDVARIO         FAH_ADCIO7_GAIN+4
-#define	FAH_PDIF_OFFSET	    FAH_PDVARIO+0   //4H offset napięcia czujnika ciśnienia różnicowego
-#define	FAH_VARIO_OFFSET    FAH_PDVARIO+4   //4H offset napięcia członu różniczkującego
-#define	FAH_PDIF_GAIN	    FAH_PDVARIO+8   //4H korekcja wzmocnienia napięcia czujnika ciśnienia różnicowego
-#define	FAH_VARIO_GAIN      FAH_PDVARIO+12  //4H korekcja wzmocnienia napięcia członu różniczkującego
-
-#define	FAH_POWER           FAH_VARIO_GAIN+4
-#define	FAH_CURR1_GAIN      FAH_POWER+0     //4H korekcja wzmocnienia pomiaru prądu czujnikiem 1
-#define	FAH_CURR2_GAIN      FAH_POWER+4     //4H korekcja wzmocnienia pomiaru prądu czujnikiem 2
-#define	FAH_VOLT0_GAIN      FAH_POWER+8     //4H korekcja wzmocnienia pomiaru napięcia na płycie głównej
-#define	FAH_VOLT1_GAIN      FAH_POWER+12    //4H korekcja wzmocnienia pomiaru napięcia czujnikiem 1
-#define	FAH_VOLT2_GAIN      FAH_POWER+16    //4H korekcja wzmocnienia pomiaru napięcia czujnikiem 1
-
-#define	FAH_TEMPER          FAH_VOLT2_GAIN+4
-#define	FAH_TPNE_OFFSET	    FAH_TEMPER+4    //4H korekcja offsetu temperatury przetwornika A/C modułu pneumatycznego
-#define	FAH_ADCIO_TEMP_OFST FAH_TEMPER+8    //4H korekcja offsetu temperatury przetwornika A/C modułu ADCIO
-#define	FAH_TCOUP_REF_OFST  FAH_TEMPER+12   //4H korekcja offsetu czujnika temperatury odniesienia termopar
-#define	FAH_TALTI_AIO_OFST  FAH_TEMPER+24   //4H korekcja offsetu temperatury wysoko�ciomierza na module All-In-One
-*/
-
-
-
-
-//
-#define FAH_VARIO_OFFSET_CPL FAH_MAG_HMC+32
 
 //Waypointy. Każdy zajmuje 12 bajtów. Do końca pamięci jest miejsca na 2581 waypointów
 #define FA_USER_WAYPOINTS    0x0700
@@ -243,7 +193,7 @@
 #define FA_END      0x1FFF  //ostatni bajt pamięci konfiguracji (FM25CL64 - 64kb)
 
 //////////////////////////////////////////////////////////////////////////////
-// Definicje validator�w danych konfiguracyjnych
+// Definicje validatorów danych konfiguracyjnych
 //////////////////////////////////////////////////////////////////////////////
 /*#define VALM_OFST_UNI    (float)-0.3    //max wartość unwersalnej odchyłki ujemnej offsetu
 #define VALP_OFST_UNI    (float)0.3     //
