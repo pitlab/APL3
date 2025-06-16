@@ -22,7 +22,8 @@
 #include "stm32h7xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "sys_def_CM4.h"
+//#include "sys_def_CM4.h"
+#include "sys_def_wspolny.h"
 #include "odbiornikRC.h"
 /* USER CODE END Includes */
 
@@ -406,13 +407,18 @@ void TIM2_IRQHandler(void)
 		{
 			stRC.nCzasWe2 = PobierzCzas();
 			stRC.chNrKan2 = 0;
+			stRC.chStatus2 = RAMKA_OK;
 		}
 		else
+		if ((nTemp > PPM_MIN) && (nTemp < PPM_MAX) && (stRC.chStatus2 == RAMKA_OK))
 		{
 			stRC.sOdb2[stRC.chNrKan2] = nTemp;
 			stRC.sZdekodowaneKanaly2 |= (1 << stRC.chNrKan2);	//ustaw bit zdekodowanego kanału
 			stRC.chNrKan2++;
 		}
+		else
+			stRC.chStatus2 = RAMKA_WADLIWA;
+
 		stRC.sPoprzedniaWartoscTimera2 = htim2.Instance->CCR4;
 	}
   /* USER CODE END TIM2_IRQn 0 */
@@ -518,13 +524,17 @@ void TIM4_IRQHandler(void)
 		{
 			stRC.nCzasWe1 = PobierzCzas();
 			stRC.chNrKan1 = 0;
+			stRC.chStatus1 = RAMKA_OK;
 		}
 		else
+		if ((sTemp > PPM_MIN) && (sTemp < PPM_MAX) && (stRC.chStatus1 == RAMKA_OK))
 		{
 			stRC.sOdb1[stRC.chNrKan1] = sTemp;
 			stRC.sZdekodowaneKanaly1 |= (1 << stRC.chNrKan1);	//ustaw bit zdekodowanego kanału
 			stRC.chNrKan1++;
 		}
+		else
+			stRC.chStatus1 = RAMKA_WADLIWA;
 		stRC.sPoprzedniaWartoscTimera1 = htim4.Instance->CCR3;	//odczyt CCRx kasuje przerwanie
 	}
   /* USER CODE END TIM4_IRQn 0 */

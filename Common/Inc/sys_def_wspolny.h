@@ -62,8 +62,11 @@
 #define PPM_P100    1900    //+100%
 #define PPM_MAX		2000    //wartość maksymalna sygnału +125%
 
-#define PWM_WIDTH   2500    //odelgłość miedzy kolejnymi impulsami PWM
-#define PPM_BREAK   3000    //odstęp między kolejnymi paczkami impulsów  ma conajmniej 3000us
+#define OKRES_PWM		2500	//okres kanału PWM w mikrosekundach
+#define PRZERWA_PPM		3000	//przerwa między paczkami impulsów PPM odbiornika RC
+
+//#define PWM_WIDTH   2500    //odelgłość miedzy kolejnymi impulsami PWM
+//#define PPM_BREAK   3000    //odstęp między kolejnymi paczkami impulsów  ma conajmniej 3000us
 #define PPM_SPACE   20     //odstęp między kolejnymi impulsami PPM [us]
 
 //stany 3-położeniowych przełaczników na kanałach 5, 6 i 7

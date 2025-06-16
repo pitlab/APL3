@@ -31,11 +31,6 @@
 
 #define I2C_TIMOUT		2	//czas w ms timoutu operacji I2C
 
-#define OKRES_PWM		2500	//okres kanału PWM w mikrosekundach
-#define PRZERWA_PPM		3000	//przerwa między paczkami impulsów PPM odbiornika RC
-
-
-
 
 //definicje układów na magistralach I2C3 i I2C4 kodowane na osobnych bitach. Oznaczają że dane z tych czujników są dostępne do obróbki
 #define MAG_MMC				0x01	//magnetometr na IMU

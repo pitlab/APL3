@@ -449,7 +449,7 @@ void LCD_clear(uint16_t kolor)
 ////////////////////////////////////////////////////////////////////////////////
 void LCD_ProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t kolor)
 {
-	uint16_t i,j;
+	uint16_t i, j, k;
 	uint8_t n, dane[8];
 
 	for (n=0; n<8; n++)
@@ -480,6 +480,14 @@ void LCD_ProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzero
 	{
 		for(j=0; j<sSzerokosc/4; j++)
 			LCD_WrData(dane, 8);
+
+		//ponieważ wypełnianie odbywa się paczkami po 4 pixele, może zdarzyć się że nie dopełni wszystkich danych
+		k = sSzerokosc - j*4;	//policz czy jest reszta
+		if (k)
+		{
+			for(j=0; j<k; j++)
+				LCD_WrData(dane, 2);	//dopełnij reszte
+		}
 	}
 }
 

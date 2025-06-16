@@ -37,9 +37,11 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-#define PRZERWA_MIEDZYKANALOWA		0x01	//zaczyna się nieistotny impuls będący przerwą między zboczami dwóch kanałó
-#define KANAL_WLASCIWY				0x02	//ten impuls jest właściwym kanałem RC, trzeba go zmierzyć
 
+//#define PRZERWA_MIEDZYKANALOWA		0x01	//zaczyna się nieistotny impuls będący przerwą między zboczami dwóch kanałó
+//#define KANAL_WLASCIWY				0x02	//ten impuls jest właściwym kanałem RC, trzeba go zmierzyć
+#define RAMKA_OK					0
+#define RAMKA_WADLIWA				3
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
