@@ -13,6 +13,7 @@
 
 
 #define CZAS_RAMKI_PPM_RC	30000	//Czas między kolejnymi ramkami PPM odbiornika RC [us]
+#define ROZMIAR_BUF_ODB_SBUS	32
 
 typedef struct
 {

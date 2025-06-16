@@ -23,6 +23,7 @@
 #include "jedn_inercyjna.h"
 #include "pid.h"
 #include "mikser.h"
+#include "odbiornikRC.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -187,8 +188,10 @@ int main(void)
   InicjujModulyWew();
   InicjujModulI2P();
   InicjujJednostkeInercyjna();
+  InicjujOdbiornikiRC();
   InicjujPID((stWymianyCM4_t*)&uDaneCM4.dane);
   InicjujMikser();
+
 
   /* USER CODE END 2 */
 

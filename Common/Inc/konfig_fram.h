@@ -68,10 +68,12 @@
 
 
 #define FA_USER_VAR3	    0x0300
-#define FAU_LOW_VOLT_WARN   FAU_MIX_YAW+48        //4F próg ostrzezenia o niskim napięciu
-#define FAU_LOW_VOLT_ALARM  FAU_LOW_VOLT_WARN+4   //4F próg alarmu niskiego napięcia
-#define FAU_VOLT_DROP_COMP  FAU_LOW_VOLT_ALARM+4  //4F współczynnik kompensacji spadku napięcia pakietu
-#define FAU_LANDING_SPD     FAU_VOLT_DROP_COMP+4 //4F prędkość lądowania
+#define FAU_KONF_ODB_RC1	FA_USER_VAR3			//1U konfiguracja odbiornika RC1
+#define FAU_KONF_ODB_RC2	FAU_KONF_ODB_RC1+1		//1U konfiguracja odbiornika RC2
+#define FAU_LOW_VOLT_WARN   FAU_KONF_ODB_RC2+1  	//4F próg ostrzezenia o niskim napięciu
+#define FAU_LOW_VOLT_ALARM  FAU_LOW_VOLT_WARN+4 	//4F próg alarmu niskiego napięcia
+#define FAU_VOLT_DROP_COMP  FAU_LOW_VOLT_ALARM+4	//4F współczynnik kompensacji spadku napięcia pakietu
+#define FAU_LANDING_SPD     FAU_VOLT_DROP_COMP+4 	//4F prędkość lądowania
 
 //wzmocnienia drążków aparatury dla posczególnych trybów pracy regulatorów
 #define FAU_SP_GAIN         0x3E0

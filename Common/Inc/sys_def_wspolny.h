@@ -45,29 +45,31 @@
 #define PPM1PROC_BIP   4       //1% = 4us bipolarnie, -100%=1,1us 0%=1,5us +100%=1,9us
 
 //czasy impulsów PPM dla założenia że 1% to 4us
-#define PPM_MIN		1000    //wartość minimalna sygnału -125%
-#define PPM_M100    1100    //-100%
-#define PPM_M90     1140    //-90%
-#define PPM_JALOWY  1200    //obroty jałowe silników
-#define PPM_M75     1200    //-75%
-#define PPM_M50     1300    //-50%
-#define PPM_M25     1400    //-25%
-#define PPM_M20     1420    //-20%
-#define PPM_NEUTR   1500    //neutrum 1500us
-#define PPM_P20     1580    //+20%
-#define PPM_P25     1600    //+25%
-#define PPM_P50     1700    //+50%
-#define PPM_P75     1800    //+75%
-#define PPM_P90     1860    //+90%
-#define PPM_P100    1900    //+100%
-#define PPM_MAX		2000    //wartość maksymalna sygnału +125%
+#define PPM_MIN			1000    //wartość minimalna sygnału -125%
+#define PPM_M100    	1100    //-100%
+#define PPM_M90     	1140    //-90%
+#define PPM_JALOWY  	1200    //obroty jałowe silników
+#define PPM_M75     	1200    //-75%
+#define PPM_M50     	1300    //-50%
+#define PPM_M25     	1400    //-25%
+#define PPM_M20     	1420    //-20%
+#define PPM_NEUTR   	1500    //neutrum 1500us
+#define PPM_P20     	1580    //+20%
+#define PPM_P25     	1600    //+25%
+#define PPM_P50     	1700    //+50%
+#define PPM_P75     	1800    //+75%
+#define PPM_P90     	1860    //+90%
+#define PPM_P100    	1900    //+100%
+#define PPM_MAX			2000    //wartość maksymalna sygnału +125%
 
 #define OKRES_PWM		2500	//okres kanału PWM w mikrosekundach
 #define PRZERWA_PPM		3000	//przerwa między paczkami impulsów PPM odbiornika RC
+//#define PPM_SPACE   	20     	//odstęp między kolejnymi impulsami PPM [us]
 
-//#define PWM_WIDTH   2500    //odelgłość miedzy kolejnymi impulsami PWM
-//#define PPM_BREAK   3000    //odstęp między kolejnymi paczkami impulsów  ma conajmniej 3000us
-#define PPM_SPACE   20     //odstęp między kolejnymi impulsami PPM [us]
+//definicje typów sygnału z odbiornika RC
+#define ODB_RC_PPM		1
+#define ODB_RC_SBUS		2
+#define MASKA_TYPU_RC	0x03	//te bity definiują rodzaj sygnału z odbiornika RC
 
 //stany 3-położeniowych przełaczników na kanałach 5, 6 i 7
 #define RC_PRZEL_MIN 0	//minus 100%

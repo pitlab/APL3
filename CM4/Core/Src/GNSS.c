@@ -31,9 +31,9 @@ uint8_t chBuforNadawczyGNSS[ROZMIAR_BUF_NAD_GNSS];
 uint8_t chBuforOdbioruGNSS[ROZMIAR_BUF_ODB_GNSS];
 uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 
-
+extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart8;
-//extern uint32_t nZainicjowanoCM4[2];		//flagi inicjalizacji sprzętu
 volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
 uint16_t sCzasInicjalizacjiGNSS = 0;	//licznik czasu	inicjalizacji wyrażony w obiegach pętli 1/200Hz = 5ms
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -301,7 +301,7 @@ uint8_t InicjujGNSS(void)
 ////////////////////////////////////////////////////////////////////////////////
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-
+	//odbiór GPS
 	if (huart->Instance == UART8)
 	{
 		//przepisz dane odebrane do większego bufora kołowego analizy danych
@@ -311,9 +311,21 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 			chWskNapBaGNSS++;
 			chWskNapBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
 		}
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//wznów odbiór
+	}
 
-		//wznów odbiór
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
+	//odbiór SBus2
+	if (huart->Instance == USART2)
+	{
+
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//wznów odbiór
+	}
+
+	//odbiór SBus1
+	if (huart->Instance == UART4)
+	{
+
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart4, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//wznów odbiór
 	}
 }
 
