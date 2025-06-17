@@ -11,19 +11,22 @@
 #include "petla_glowna.h"
 #include "fram.h"
 
+//definicje SBus: https://github.com/uzh-rpg/rpg_quadrotor_control/wiki/SBUS-Protocol
+
 stRC_t stRC;	//struktura danych odbiorników RC
 extern unia_wymianyCM4_t uDaneCM4;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim4;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart4;
-DMA_HandleTypeDef hdma_uart2_rx;
+DMA_HandleTypeDef hdma_usart2_rx;
 DMA_HandleTypeDef hdma_uart4_rx;
 uint8_t chBuforOdbioruSBus1[ROZMIAR_BUF_ODB_SBUS];
 uint8_t chBuforOdbioruSBus2[ROZMIAR_BUF_ODB_SBUS];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja wczytuje z FRAM konfigurację odbiorników RC
+// Parametry Sbus 100kBps, 8E2
 // Parametry:
 // Zwraca: kod błędu
 // Czas wykonania:
@@ -38,9 +41,17 @@ uint8_t InicjujOdbiornikiRC(void)
 	chTyp = ODB_RC_SBUS;	//tymczasowo nadpisz konfigurację
 	if ((chTyp & MASKA_TYPU_RC) == ODB_RC_PPM)
 	{
-		//ustaw alternatywną funkcję portu B8
+		//ustaw alternatywną funkcję portu PB8
 		GPIOB->AFR[1] &= ~0x0000000F;	//wyczyść 4 bity AFR8[3:0]
 		GPIOB->AFR[1] |= GPIO_AF2_TIM4;	//AF2 = TIM4_CH3
+
+		//CPU1 can allocate a peripheral for itself by setting the dedicated PERxEN bit in:
+		//• RCC_DnxxxxENR registers or
+		//• RCC_C1_DnxxxxENR registers.
+		//RCC->APB1LENR &= ~RCC_APB1LENR_UART4EN;		//wyłącz zegar dla UART4
+		//RCC->APB1LENR |= RCC_APB1LENR_TIM3EN;		//włącz zegar dla TIM3
+		RCC_C2->APB1LENR &= ~RCC_APB1LENR_UART4EN;		//wyłącz zegar dla UART4
+		RCC_C2->APB1LENR |= RCC_APB1LENR_TIM3EN;		//włącz zegar dla TIM3
 
 		sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
 		sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
@@ -55,11 +66,17 @@ uint8_t InicjujOdbiornikiRC(void)
 		GPIOB->AFR[1] &= ~0x0000000F;	//wyczyść 4 bity AFR8[3:0]
 		GPIOB->AFR[1] |= GPIO_AF8_UART4;	//AF8 = UART4_RX
 
+		//RCC_C2->APB1LENR &= ~RCC_APB1LENR_TIM3EN;		//wyłącz zegar dla TIM3 - nie wyłączaj bo obsługuje jezcze TIM3_CH3: Serwo kanał 3
+		RCC_C1->APB1LENR |= RCC_APB1LENR_UART4EN;		//włącz zegar dla UART4
+		RCC_C2->APB1LENR |= RCC_APB1LENR_UART4EN;		//włącz zegar dla UART4
+		RCC->APB1LENR |= RCC_APB1LENR_UART4EN;			//włącz zegar dla UART4
+		__HAL_RCC_DMA1_CLK_ENABLE();
+
 		huart4.Instance = UART4;
 		huart4.Init.BaudRate = 100000;
 		huart4.Init.WordLength = UART_WORDLENGTH_8B;
-		huart4.Init.StopBits = UART_STOPBITS_1;
-		huart4.Init.Parity = UART_PARITY_NONE;
+		huart4.Init.StopBits = UART_STOPBITS_2;
+		huart4.Init.Parity = UART_PARITY_EVEN;
 		huart4.Init.Mode = UART_MODE_RX;
 		huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 		huart4.Init.OverSampling = UART_OVERSAMPLING_16;
@@ -69,7 +86,12 @@ uint8_t InicjujOdbiornikiRC(void)
 		huart4.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
 		huart4.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
 		chErr = HAL_UART_Init(&huart4);
-		chErr = HAL_UARTEx_DisableFifoMode(&huart4);
+		chErr = HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_2);
+		chErr = HAL_UARTEx_EnableFifoMode(&huart4);
+
+		//włacz przerwanie DMA odbiorczego
+		HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
 
     	//HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);
 		HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);
@@ -82,8 +104,10 @@ uint8_t InicjujOdbiornikiRC(void)
 	{
 		//ustaw alternatywną funkcję portu PA3
 		GPIOA->AFR[0] &= ~0x0000F000;	//wyczyść 4 bity AFR3[3:0]
-		GPIOA->AFR[0] |= GPIO_AF1_TIM2;	//AF1 = TIM2_CH4
+		GPIOA->AFR[0] |= (GPIO_AF1_TIM2 << 16);	//AF1 = TIM2_CH4
 
+		RCC_C1->APB1LENR &= ~RCC_APB1LENR_USART2EN;	//wyłącz zegar dla USART2
+		RCC_C1->APB1LENR |= RCC_APB1LENR_TIM2EN;		//włącz zegar dla TIM2
 
 		sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
 		sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
@@ -96,25 +120,35 @@ uint8_t InicjujOdbiornikiRC(void)
 	{
 		//ustaw alternatywną funkcję portu PA3
 		GPIOA->AFR[0] &= ~0x0000F000;	//wyczyść 4 bity AFR3[3:0]
-		GPIOA->AFR[0] |= GPIO_AF7_USART2;	//AF7 = USART2_RX
+		GPIOA->AFR[0] |= (GPIO_AF7_USART2 << 12);	//AF7 = USART2_RX
+		__HAL_RCC_DMA2_CLK_ENABLE();
 
+		//RCC_C1->APB1LENR &= ~RCC_APB1LENR_TIM2EN;		//wyłącz zegar dla TIM2. Nie wyłaczaj bo obsługuje  wyjście TIM2_CH1
+		RCC_C1->APB1LENR |= RCC_APB1LENR_USART2EN;		//włącz zegar dla USART2
+		RCC_C2->APB1LENR |= RCC_APB1LENR_USART2EN;		//włącz zegar dla USART2
+		RCC->APB1LENR |= RCC_APB1LENR_USART2EN;			//włącz zegar dla UART4
 
-
-		huart2.Instance = UART4;
+		huart2.Instance = USART2;
 		huart2.Init.BaudRate = 100000;
 		huart2.Init.WordLength = UART_WORDLENGTH_8B;
-		huart2.Init.StopBits = UART_STOPBITS_1;
-		huart2.Init.Parity = UART_PARITY_NONE;
+		huart2.Init.StopBits = UART_STOPBITS_2;
+		huart2.Init.Parity = UART_PARITY_EVEN;
 		huart2.Init.Mode = UART_MODE_RX;
 		huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 		huart2.Init.OverSampling = UART_OVERSAMPLING_16;
 		huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
 		huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-		huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
+		//huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
+		huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
 		huart2.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
 		huart2.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
 		chErr = HAL_UART_Init(&huart2);
-		chErr = HAL_UARTEx_DisableFifoMode(&huart2);
+		chErr = HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_2);
+		chErr = HAL_UARTEx_EnableFifoMode(&huart2);
+
+		//włacz przerwanie DMA odbiorczego
+		HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 
 		//HAL_UART_Receive_DMA(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_ODB_SBUS);
 		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_ODB_SBUS);
@@ -172,4 +206,30 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* psRC, stWymianyCM4_t* psDaneCM4)
 	}
 
 	return chErr;
+}
+
+
+
+//
+void UART4_IRQHandler(void)
+{
+  HAL_UART_IRQHandler(&huart4);
+}
+
+
+
+void USART2_IRQHandler(void)
+{
+  HAL_UART_IRQHandler(&huart2);
+}
+
+
+void DMA1_Stream7_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(&hdma_uart4_rx);
+}
+
+void DMA2_Stream0_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(&hdma_usart2_rx);
 }

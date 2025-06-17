@@ -10,6 +10,8 @@
 #include "uBlox.h"
 #include <stdio.h>
 #include "wymiana.h"
+#include "odbiornikRC.h"
+
 
 // Potrzebne informacje znajdują się w następujaących ramkach. Na początek wysarczymi GGA i RMC
 //Ramka	[GGA]	GLL	GSA	GSV	[RMC]	VTG	GRS	GST	ZDA	GBS	PUBX00	PUBX03 PuBX04
@@ -30,7 +32,8 @@
 uint8_t chBuforNadawczyGNSS[ROZMIAR_BUF_NAD_GNSS];
 uint8_t chBuforOdbioruGNSS[ROZMIAR_BUF_ODB_GNSS];
 uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
-
+extern uint8_t chBuforOdbioruSBus1[ROZMIAR_BUF_ODB_SBUS];
+extern uint8_t chBuforOdbioruSBus2[ROZMIAR_BUF_ODB_SBUS];
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart8;
@@ -318,14 +321,16 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	if (huart->Instance == USART2)
 	{
 
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//wznów odbiór
+		//HAL_UARTEx_ReceiveToIdle_DMA(&huart2, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//wznów odbiór
+		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_ODB_SBUS);
 	}
 
 	//odbiór SBus1
 	if (huart->Instance == UART4)
 	{
 
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart4, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//wznów odbiór
+		//HAL_UARTEx_ReceiveToIdle_DMA(&huart4, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//wznów odbiór
+		HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);
 	}
 }
 
