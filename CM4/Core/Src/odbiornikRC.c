@@ -24,6 +24,8 @@ DMA_HandleTypeDef hdma_uart4_rx;
 uint8_t chBuforOdbioruSBus1[ROZMIAR_BUF_ODB_SBUS];
 uint8_t chBuforOdbioruSBus2[ROZMIAR_BUF_ODB_SBUS];
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja wczytuje z FRAM konfigurację odbiorników RC
 // Parametry Sbus 100kBps, 8E2
@@ -35,6 +37,7 @@ uint8_t InicjujOdbiornikiRC(void)
 {
 	uint8_t chTyp, chErr = ERR_OK;
 	TIM_IC_InitTypeDef sConfigIC = {0};
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	//czytaj konfigurację i ustaw Port PB8 jako UART4_RX lub TIM4_CH3
 	chTyp = CzytajFRAM(FAU_KONF_ODB_RC1);
@@ -62,15 +65,24 @@ uint8_t InicjujOdbiornikiRC(void)
 	else
 	if ((chTyp & MASKA_TYPU_RC) == ODB_RC_SBUS)
 	{
+	    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
+	    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	    GPIO_InitStruct.Pull = GPIO_NOPULL;
+	    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	    GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
+	    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 		//ustaw alternatywną funkcję portu B8
-		GPIOB->AFR[1] &= ~0x0000000F;	//wyczyść 4 bity AFR8[3:0]
-		GPIOB->AFR[1] |= GPIO_AF8_UART4;	//AF8 = UART4_RX
+	//	GPIOB->AFR[1] &= ~0x0000000F;	//wyczyść 4 bity AFR8[3:0]
+	//	GPIOB->AFR[1] |= GPIO_AF8_UART4;	//AF8 = UART4_RX
 
 		//RCC_C2->APB1LENR &= ~RCC_APB1LENR_TIM3EN;		//wyłącz zegar dla TIM3 - nie wyłączaj bo obsługuje jezcze TIM3_CH3: Serwo kanał 3
-		RCC_C1->APB1LENR |= RCC_APB1LENR_UART4EN;		//włącz zegar dla UART4
-		RCC_C2->APB1LENR |= RCC_APB1LENR_UART4EN;		//włącz zegar dla UART4
-		RCC->APB1LENR |= RCC_APB1LENR_UART4EN;			//włącz zegar dla UART4
+	//	RCC_C1->APB1LENR |= RCC_APB1LENR_UART4EN;		//włącz zegar dla UART4
+	//	RCC_C2->APB1LENR |= RCC_APB1LENR_UART4EN;		//włącz zegar dla UART4
+	//	RCC->APB1LENR |= RCC_APB1LENR_UART4EN;			//włącz zegar dla UART4
 		__HAL_RCC_DMA1_CLK_ENABLE();
+	    __HAL_RCC_UART4_CLK_ENABLE();
+	    __HAL_RCC_GPIOB_CLK_ENABLE();
 
 		huart4.Instance = UART4;
 		huart4.Init.BaudRate = 100000;
@@ -93,9 +105,36 @@ uint8_t InicjujOdbiornikiRC(void)
 		HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
 
-    	//HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);
-		HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);
+		// UART4 DMA IRX Init
+		hdma_uart4_rx.Instance = DMA1_Stream7;
+		hdma_uart4_rx.Init.Request = DMA_REQUEST_UART4_RX;
+		hdma_uart4_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+		hdma_uart4_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+		hdma_uart4_rx.Init.MemInc = DMA_MINC_ENABLE;
+		hdma_uart4_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+		hdma_uart4_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+		//hdma_uart4_rx.Init.Mode = DMA_NORMAL;
+		hdma_uart4_rx.Init.Mode = DMA_CIRCULAR;
+		//hdma_uart4_rx.Init.Priority = DMA_PRIORITY_LOW;
+		hdma_uart4_rx.Init.Priority = DMA_FIFOMODE_DISABLE;
+		hdma_uart4_rx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+		hdma_uart4_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+		hdma_uart4_rx.Init.MemBurst = DMA_MBURST_SINGLE;
+		hdma_uart4_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
+		chErr = HAL_DMA_Init(&hdma_uart4_rx);
+
+		__HAL_LINKDMA(&huart4, hdmarx, hdma_uart4_rx);
+		//huart4.hdmarx = &hdma_uart4_rx;		//ręczne rozwinięcie makra __HAL_LINKDMA(huart4, hdmarx, hdma_uart4_rx);
+
+
+		/* UART4 interrupt Init */
+		HAL_NVIC_SetPriority(UART4_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(UART4_IRQn);
+
+    	HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);
+		//HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus1, 8);
 	}
+
 
 	//czytaj konfigurację i ustaw Port PA3 jako UART2_RX lub TIM2_CH4
 	chTyp = CzytajFRAM(FAU_KONF_ODB_RC2);
@@ -199,6 +238,11 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* psRC, stWymianyCM4_t* psDaneCM4)
 				psRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
 		}
+	}
+	else
+	if ((nCzasRC1 > 2*CZAS_RAMKI_PPM_RC) && (nCzasRC2 > 2*CZAS_RAMKI_PPM_RC))
+	{
+		HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);
 	}
 	else		//działają oba odbiorniki, określ który jest lepszy
 	{

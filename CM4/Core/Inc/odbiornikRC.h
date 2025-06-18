@@ -13,7 +13,7 @@
 
 
 #define CZAS_RAMKI_PPM_RC	30000	//Czas między kolejnymi ramkami PPM odbiornika RC [us]
-#define ROZMIAR_BUF_ODB_SBUS	32
+#define ROZMIAR_BUF_ODB_SBUS	16
 
 typedef struct
 {
@@ -25,13 +25,10 @@ typedef struct
 	uint8_t chNrKan2;						//wskaźnik numeru kanału odbiornika 2
 	uint32_t nCzasWe1;						//czas początku dekodowania  ostatniego pakietu danych z odbiornika 1
 	uint32_t nCzasWe2;						//czas początku dekodowania  ostatniego pakietu danych z odbiornika 2
-	//uint8_t chZdekodowanoKanalow1;			//liczba zdekodowanych kanałów w ostatniej ramce odbiornika 1
-	//uint8_t chZdekodowanoKanalow2;			//liczba zdekodowanych kanałów w ostatniej ramce odbiornika 2
 	uint16_t sZdekodowaneKanaly1;			//bity zdekodowanych kanałów odbiornika 1
 	uint16_t sZdekodowaneKanaly2;			//bity zdekodowanych kanałów odbiornika 2
 	volatile uint16_t sPoprzedniaWartoscTimera1;	//zapamiętuje wartość timera wejścia odbiornika 1 dla poprzedniego zbocza aby z tego policzyć czas
 	volatile uint16_t sPoprzedniaWartoscTimera2;	//zapamiętuje wartość timera wejścia odbiornika 2 dla poprzedniego zbocza aby z tego policzyć czas
-	//int16_t sOdb[KANALY_ODB_RC];			//dane z odbiorników po dywersyfikacji
 } stRC_t;
 
 

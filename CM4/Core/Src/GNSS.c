@@ -329,8 +329,8 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	if (huart->Instance == UART4)
 	{
 
-		//HAL_UARTEx_ReceiveToIdle_DMA(&huart4, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//wznów odbiór
-		HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);	//wznów odbiór
+		//HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);
 	}
 }
 
@@ -354,6 +354,11 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		}
 		//HAL_UART_Receive_IT(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//odbieraj do bufora
 		HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
+	}
+
+	if (huart->Instance == UART4)
+	{
+		HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);
 	}
 }
 
