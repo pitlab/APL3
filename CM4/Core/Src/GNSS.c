@@ -32,8 +32,8 @@
 uint8_t chBuforNadawczyGNSS[ROZMIAR_BUF_NAD_GNSS];
 uint8_t chBuforOdbioruGNSS[ROZMIAR_BUF_ODB_GNSS];
 uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
-extern uint8_t chBuforOdbioruSBus1[ROZMIAR_BUF_ODB_SBUS];
-extern uint8_t chBuforOdbioruSBus2[ROZMIAR_BUF_ODB_SBUS];
+extern uint8_t chBuforOdbioruSBus1[ROZMIAR_BUF_SBUS];
+extern uint8_t chBuforOdbioruSBus2[ROZMIAR_BUF_SBUS];
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart8;
@@ -322,43 +322,46 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	{
 
 		//HAL_UARTEx_ReceiveToIdle_DMA(&huart2, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//wznów odbiór
-		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_ODB_SBUS);
+		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_SBUS);
 	}
 
 	//odbiór SBus1
 	if (huart->Instance == UART4)
 	{
 
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);	//wznów odbiór
-		//HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);
+		//HAL_UARTEx_ReceiveToIdle_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);	//wznów odbiór
+		//HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);
 	}
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Callback przerwania UARTA. PRzepisuje odebrane dane z małego bufora do większego bufora kołowego analizy protokołu
+// Callback przerwania UARTA.
 // Parametry:
 // *huart - uchwyt uarta
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
+	uint8_t chErr;
+	//Przepisuje odebrane dane GNSS z małego bufora do większego bufora kołowego analizy protokołu
 	if (huart->Instance == UART8)
 	{
-		for (uint8_t n=0; n<ROZMIAR_BUF_ODB_GNSS; n++)
+		for (uint8_t n=0; n<ROZMIAR_BUF_SBUS; n++)
 		{
 			chBuforAnalizyGNSS[chWskNapBaGNSS] = chBuforOdbioruGNSS[n];
 			chWskNapBaGNSS++;
 			chWskNapBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;	//zapętlenie wskaźnika bufora kołowego
 		}
-		//HAL_UART_Receive_IT(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//odbieraj do bufora
-		HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
+		//HAL_UART_Receive_IT(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_SBUS);	//odbieraj do bufora
+		chErr = HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_SBUS);
 	}
 
-	if (huart->Instance == UART4)
+	if (huart->Instance == UART4)		//dane z SBUS1
 	{
-		HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_ODB_SBUS);
+		chErr = HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);
+		//HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);
 	}
 }
 

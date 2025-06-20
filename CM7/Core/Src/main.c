@@ -41,22 +41,20 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Uruchomić zewnętrzne rezonatory kwarcowe, wymienić kwarce na inne z mniejszym ESR
  - Podłączyć i uruchomić kamerę
  - uruchomić komunikację po ethernet
- - Przenieść z APL2 obsługę mikserów, telemetrii do rdzenia CM4
- - Uruchomić układ ethernet
+  - Uruchomić układ ethernet
  - Uruchomić USB w trybie CDC
  - Zmodyfikować test transferu karty SD, tak aby działał z systemową obsługą FAT (obecnie działa poza FAT-em i systemem operacyjnym)
  - Uruchomić czujniki zbliżeniowe VL53L1CX i VL53L5CX
  - Pozbyć się zmiennych fZyroSur i fZyroKal zastępując je jedną zmienną ustawianą w zależnosci od kontekstu (obecności polecenia kalibracyjnego żyroskopów)
  - Rozbudować warunki korekcji magnetometru w AHRS o prędkość zmiany kąta
- - Rozszerzyć liczniki telemetrii  8 do  12 bitów
 
+ - Tymczasowo zmieniono PB9 z timera sygnału serwa na IO debugujący
  * */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
-#include "lwip.h"
 #include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -73,7 +71,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "moduly_SPI.h"
 #include "audio.h"
 #include "rejestrator.h"
-#include "lwip/apps/lwiperf.h"
+//#include "lwip/apps/lwiperf.h"
 #include "czas.h"
 #include "can.h"
 #include "telemetria.h"
@@ -448,7 +446,8 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_QSPI|RCC_PERIPHCLK_I2C4
                               |RCC_PERIPHCLK_I2C3|RCC_PERIPHCLK_SAI2
                               |RCC_PERIPHCLK_SPI2|RCC_PERIPHCLK_UART8
-                              |RCC_PERIPHCLK_UART7|RCC_PERIPHCLK_LPUART1;
+                              |RCC_PERIPHCLK_UART7|RCC_PERIPHCLK_UART4
+                              |RCC_PERIPHCLK_LPUART1;
   PeriphClkInitStruct.PLL2.PLL2M = 5;
   PeriphClkInitStruct.PLL2.PLL2N = 64;
   PeriphClkInitStruct.PLL2.PLL2P = 50;
@@ -690,10 +689,10 @@ static void MX_QUADSPI_Init(void)
   /* USER CODE END QUADSPI_Init 1 */
   /* QUADSPI parameter configuration*/
   hqspi.Instance = QUADSPI;
-  hqspi.Init.ClockPrescaler = 1;
+  hqspi.Init.ClockPrescaler = 255;
   hqspi.Init.FifoThreshold = 1;
   hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_NONE;
-  hqspi.Init.FlashSize = 24;
+  hqspi.Init.FlashSize = 1;
   hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_1_CYCLE;
   hqspi.Init.ClockMode = QSPI_CLOCK_MODE_0;
   hqspi.Init.FlashID = QSPI_FLASH_ID_1;
@@ -1014,6 +1013,7 @@ static void MX_DMA_Init(void)
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
+  __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* Configure DMA request hdma_memtomem_dma1_stream1 on DMA1_Stream1 */
   hdma_memtomem_dma1_stream1.Instance = DMA1_Stream1;
@@ -1301,7 +1301,7 @@ void MX_FMC_Init(void)
   hnor3.Init.WriteOperation = FMC_WRITE_OPERATION_ENABLE;
   hnor3.Init.WaitSignal = FMC_WAIT_SIGNAL_DISABLE;
   hnor3.Init.ExtendedMode = FMC_EXTENDED_MODE_DISABLE;
-  hnor3.Init.AsynchronousWait = FMC_ASYNCHRONOUS_WAIT_ENABLE;
+  hnor3.Init.AsynchronousWait = FMC_ASYNCHRONOUS_WAIT_DISABLE;
   hnor3.Init.WriteBurst = FMC_WRITE_BURST_DISABLE;
   hnor3.Init.ContinuousClock = FMC_CONTINUOUS_CLOCK_SYNC_ONLY;
   hnor3.Init.WriteFifo = FMC_WRITE_FIFO_ENABLE;
@@ -1390,12 +1390,52 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PC1 */
+  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PA1 PA7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_1|GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PA2 */
+  GPIO_InitStruct.Pin = GPIO_PIN_2;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PC4 PC5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
   /*Configure GPIO pin : LCD_RS_Pin */
   GPIO_InitStruct.Pin = LCD_RS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LCD_RS_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB11 */
+  GPIO_InitStruct.Pin = GPIO_PIN_11;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : MODZ_ADR0_Pin MODZ_ADR1_Pin */
   GPIO_InitStruct.Pin = MODZ_ADR0_Pin|MODZ_ADR1_Pin;
@@ -1409,6 +1449,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(TP_INT_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PG13 PG14 */
+  GPIO_InitStruct.Pin = GPIO_PIN_13|GPIO_PIN_14;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
   /* USER CODE END MX_GPIO_Init_2 */
@@ -1427,9 +1475,6 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
 {
-  /* init code for LWIP */
-  //MX_LWIP_Init();
-
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */

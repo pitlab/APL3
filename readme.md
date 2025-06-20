@@ -35,6 +35,8 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Uruchomiono komunikację po CAN udostępniając na zewnątrz jeden z magnetometrów
 - Uruchomiona telemetria, wysłanie danych w indywidualnej funkcji czasu dla każdej zmiennej, zapis i odczyt konfiguracji przez NSK 
 - Wyświetlanie nastaw regulatorów PID
+- Wyświetlanie stanu kanałów odbiornika RC
+![RC](obrazki/odbiornikRC_PPM.jpg)
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM
@@ -57,6 +59,8 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 ![magetometry](obrazki/kalibracja_magnetometrow.jpg) 
 - Skalowanie czujników ciśnienia na podstawie wzorca 27m (10 pięter)
 - Obsługa regulatorów PID
+- Obsługa miksera
+- Obsługa odbiornika RC w standardzie PPM 
 
 
 

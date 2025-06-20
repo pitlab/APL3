@@ -12,8 +12,9 @@
 #include "wymiana.h"
 
 
-#define CZAS_RAMKI_PPM_RC	30000	//Czas między kolejnymi ramkami PPM odbiornika RC [us]
-#define ROZMIAR_BUF_ODB_SBUS	16
+#define OKRES_RAMKI_PPM_RC	30000	//Czas między kolejnymi ramkami PPM odbiornika RC [us]
+#define ROZMIAR_BUF_SBUS	25
+#define OKRES_RAMKI_SBUS	10000	//Czas między kolejnymi ramkami SBus
 
 typedef struct
 {
@@ -34,6 +35,7 @@ typedef struct
 
 //deklaracja funkcji
 uint8_t InicjujOdbiornikiRC(void);
+uint8_t InicjujWyjsciaSBus(void);
 uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* psRC,  stWymianyCM4_t* psDaneCM4);
 
 

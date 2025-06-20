@@ -66,10 +66,19 @@
 #define PRZERWA_PPM		3000	//przerwa między paczkami impulsów PPM odbiornika RC
 //#define PPM_SPACE   	20     	//odstęp między kolejnymi impulsami PPM [us]
 
-//definicje typów sygnału z odbiornika RC
-#define ODB_RC_PPM		1
-#define ODB_RC_SBUS		2
-#define MASKA_TYPU_RC	0x03	//te bity definiują rodzaj sygnału z odbiornika RC
+//definicje typów sygnału z odbiornika RC w konfiguracji FRAM FAU_KONF_ODB_RC
+#define ODB_RC_SBUS		1
+#define ODB_RC_PPM		2
+#define MASKA_TYPU_RC1	0x03	//te bity definiują rodzaj sygnału z odbiornika RC1
+#define MASKA_TYPU_RC2	0x30	//te bity definiują rodzaj sygnału z odbiornika RC2
+
+//definicje typów sygnału 2 pierwszych serw
+#define SERWO_IO		0	//wyjście skonfigurowane jako wjściowy port IO do debugowania algorytmów
+#define SERWO_SBUS		1	//wyjście S-Bus
+#define SERWO_PWM400	2	//wyjście PWM 400Hz
+#define SERWO_PWM50		3	//wyjście PWM 50Hz
+
+
 
 //stany 3-położeniowych przełaczników na kanałach 5, 6 i 7
 #define RC_PRZEL_MIN 0	//minus 100%

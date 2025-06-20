@@ -384,10 +384,17 @@ void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi)
     GPIO_InitStruct.Alternate = GPIO_AF10_QUADSPI;
     HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_10;
+    GPIO_InitStruct.Pin = GPIO_PIN_2;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF9_QUADSPI;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = GPIO_PIN_10;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF9_QUADSPI;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
@@ -863,10 +870,10 @@ static void HAL_FMC_MspInit(void){
   PD15   ------> FMC_D1
   PG2   ------> FMC_A12
   PG3   ------> FMC_A13
-  PG4   ------> FMC_A14
   PG4   ------> FMC_BA0
-  PG5   ------> FMC_A15
+  PG4   ------> FMC_A14
   PG5   ------> FMC_BA1
+  PG5   ------> FMC_A15
   PG6   ------> FMC_NE3
   PG8   ------> FMC_SDCLK
   PC6   ------> FMC_NWAIT
@@ -937,17 +944,21 @@ static void HAL_FMC_MspInit(void){
 
 void HAL_SRAM_MspInit(SRAM_HandleTypeDef* hsram){
   /* USER CODE BEGIN SRAM_MspInit 0 */
+
   /* USER CODE END SRAM_MspInit 0 */
   HAL_FMC_MspInit();
   /* USER CODE BEGIN SRAM_MspInit 1 */
+
   /* USER CODE END SRAM_MspInit 1 */
 }
 
 void HAL_NOR_MspInit(NOR_HandleTypeDef* hnor){
   /* USER CODE BEGIN NOR_MspInit 0 */
+
   /* USER CODE END NOR_MspInit 0 */
   HAL_FMC_MspInit();
   /* USER CODE BEGIN NOR_MspInit 1 */
+
   /* USER CODE END NOR_MspInit 1 */
 }
 
@@ -1012,10 +1023,10 @@ static void HAL_FMC_MspDeInit(void){
   PD15   ------> FMC_D1
   PG2   ------> FMC_A12
   PG3   ------> FMC_A13
-  PG4   ------> FMC_A14
   PG4   ------> FMC_BA0
-  PG5   ------> FMC_A15
+  PG4   ------> FMC_A14
   PG5   ------> FMC_BA1
+  PG5   ------> FMC_A15
   PG6   ------> FMC_NE3
   PG8   ------> FMC_SDCLK
   PC6   ------> FMC_NWAIT
@@ -1054,17 +1065,21 @@ static void HAL_FMC_MspDeInit(void){
 
 void HAL_SRAM_MspDeInit(SRAM_HandleTypeDef* hsram){
   /* USER CODE BEGIN SRAM_MspDeInit 0 */
+
   /* USER CODE END SRAM_MspDeInit 0 */
   HAL_FMC_MspDeInit();
   /* USER CODE BEGIN SRAM_MspDeInit 1 */
+
   /* USER CODE END SRAM_MspDeInit 1 */
 }
 
 void HAL_NOR_MspDeInit(NOR_HandleTypeDef* hnor){
   /* USER CODE BEGIN NOR_MspDeInit 0 */
+
   /* USER CODE END NOR_MspDeInit 0 */
   HAL_FMC_MspDeInit();
   /* USER CODE BEGIN NOR_MspDeInit 1 */
+
   /* USER CODE END NOR_MspDeInit 1 */
 }
 
