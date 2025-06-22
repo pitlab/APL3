@@ -53,14 +53,14 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Dodane automatyczne wyliczanie ciśnienia zerowego z czujników ciśnienia bezwzględnego i liczenie wysokości barometrycznej uwzględniającej wpływ temperatury
 - Zapis konfiguracji do FRAM przeniesiony z APL2 i zaimplementowany w APL3
 - Uruchomione czujniki ciśnienia różnicowego ND130 i MS4525. Już pokazują takie samo ciśnienie
-- Zrobiona kalibracja tempraturowa żyroskopów
-- Zrobiona kalibracja przesunięcia zera w funkcji temepratury i skalowania prędkosci kątowej żyroskopów
-- Zrobiona kalibracja przesunięcia zera magnetometrów, normalizacja długości wektora magnetycznego i kompensacha pochylenia i przechylenia
+- Kalibracja tempraturowa żyroskopów
+- Kalibracja przesunięcia zera w funkcji temepratury i skalowania prędkosci kątowej żyroskopów
+- Kalibracja przesunięcia zera magnetometrów, normalizacja długości wektora magnetycznego i kompensacja pochylenia i przechylenia
 ![magetometry](obrazki/kalibracja_magnetometrow.jpg) 
 - Skalowanie czujników ciśnienia na podstawie wzorca 27m (10 pięter)
 - Obsługa regulatorów PID
-- Obsługa miksera
-- Obsługa odbiornika RC w standardzie PPM 
+- Obsługa miksera silników wielowirnikowca
+- Obsługa odbiornika RC w standardzie PPM oraz S-Bus
 
 
 

@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include "wymiana.h"
 #include "odbiornikRC.h"
-
+#include "petla_glowna.h"
 
 // Potrzebne informacje znajdują się w następujaących ramkach. Na początek wysarczymi GGA i RMC
 //Ramka	[GGA]	GLL	GSA	GSV	[RMC]	VTG	GRS	GST	ZDA	GBS	PUBX00	PUBX03 PuBX04
@@ -344,7 +344,8 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 ////////////////////////////////////////////////////////////////////////////////
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	uint8_t chErr;
+	extern stRC_t stRC;	//struktura danych odbiorników RC
+
 	//Przepisuje odebrane dane GNSS z małego bufora do większego bufora kołowego analizy protokołu
 	if (huart->Instance == UART8)
 	{
@@ -354,16 +355,22 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			chWskNapBaGNSS++;
 			chWskNapBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;	//zapętlenie wskaźnika bufora kołowego
 		}
-		//HAL_UART_Receive_IT(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_SBUS);	//odbieraj do bufora
-		chErr = HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_SBUS);
+		HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_SBUS);
 	}
 
 	if (huart->Instance == UART4)		//dane z SBUS1
 	{
-		chErr = HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);
-		//HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);
+		stRC.nCzasWe1 = PobierzCzas();	//czas przyjścia ramki SBus1
+		HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);
+	}
+
+	if (huart->Instance == USART2)		//dane z SBUS2
+	{
+		stRC.nCzasWe2 = PobierzCzas();	//czas przyjścia ramki SBus2
+		HAL_UART_Receive_DMA(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_SBUS);
 	}
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -333,12 +333,12 @@ uint8_t InicjujWyjsciaSBus(void)
 ////////////////////////////////////////////////////////////////////////////////
 // Porównuje dane z obu odbiorników RC i wybiera ten lepszy przepisując jego dane do struktury danych CM4
 // Parametry:
-// [we] *psRC - wskaźnik na strukturę danych odbiorników RC
+// [we] *stRC - wskaźnik na strukturę danych odbiorników RC
 // [wy] *psDaneCM4 - wskaźnik na strukturę danych CM4
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* psRC, stWymianyCM4_t* psDaneCM4)
+uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 {
 	uint8_t chErr = ERR_OK;
 	uint32_t nCzasBiezacy = PobierzCzas();
@@ -346,17 +346,37 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* psRC, stWymianyCM4_t* psDaneCM4)
 	uint8_t n;
 
 	//Sprawdź kiedy przyszły ostatnie dane RC
-	nCzasRC1 = MinalCzas2(psRC->nCzasWe1, nCzasBiezacy);
-	nCzasRC2 = MinalCzas2(psRC->nCzasWe2, nCzasBiezacy);
+	nCzasRC1 = MinalCzas2(stRC->nCzasWe1, nCzasBiezacy);
+	nCzasRC2 = MinalCzas2(stRC->nCzasWe2, nCzasBiezacy);
+
+	//dekoduj dane jeżeli jest nowa ramka
+	if (nCzasRC1 < OKRES_RAMKI_PPM_RC)
+	{
+		nCzasBiezacy = PobierzCzas();
+		chErr = DekodowanieRamkiBSBus(chBuforOdbioruSBus1, stRC->sOdb1);
+		nCzasBiezacy = MinalCzas(nCzasBiezacy);
+		if (chErr == ERR_OK)
+			stRC->sZdekodowaneKanaly1 = 0xFFFF;
+	}
+
+	if (nCzasRC2 < OKRES_RAMKI_PPM_RC)
+	{
+		chErr = DekodowanieRamkiBSBus(chBuforOdbioruSBus2, stRC->sOdb2);
+		if (chErr == ERR_OK)
+			stRC->sZdekodowaneKanaly2 = 0xFFFF;
+	}
+
 
 	if ((nCzasRC1 < 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC))	//działa odbiornik 1, nie działa 2
 	{
+
+
 		for (n=0; n<KANALY_ODB_RC; n++)
 		{
-			if (psRC->sZdekodowaneKanaly1 & (1<<n))
+			if (stRC->sZdekodowaneKanaly1 & (1<<n))
 			{
-				psDaneCM4->sKanalRC[n] = psRC->sOdb1[n]; 	//przepisz zdekodowane kanały
-				psRC->sZdekodowaneKanaly1 &= ~(1<<n);		//kasuj bit obrobionego kanału
+				psDaneCM4->sKanalRC[n] = stRC->sOdb1[n]; 	//przepisz zdekodowane kanały
+				stRC->sZdekodowaneKanaly1 &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
 		}
 	}
@@ -365,10 +385,10 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* psRC, stWymianyCM4_t* psDaneCM4)
 	{
 		for (n=0; n<KANALY_ODB_RC; n++)
 		{
-			if (psRC->sZdekodowaneKanaly2 & (1<<n))
+			if (stRC->sZdekodowaneKanaly2 & (1<<n))
 			{
-				psDaneCM4->sKanalRC[n] = psRC->sOdb2[n]; 	//przepisz zdekodowane kanały
-				psRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
+				psDaneCM4->sKanalRC[n] = stRC->sOdb2[n]; 	//przepisz zdekodowane kanały
+				stRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
 		}
 	}
@@ -426,4 +446,50 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	{
 
 	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Dekoduje dane z ramki wejściowej odbiorników RC i skaluje je do wygodnego w obsłudze zakresu PPM_MIN..PPM_MAX
+// Parametry:
+// [we] *chRamkaWe - wskaźnik na dane ramki wejsciowej
+// [wy] *sKanaly - wskaźnik na tablicę kanałów RC
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
+{
+	uint8_t* chNaglowek;
+	uint8_t n;
+
+	//dane mogą być przesunięte wzgledem początku więc znajdź nagłówek i synchronizuj się do niego
+	for (n=0; n<KANALY_ODB_RC; n++)
+	{
+		if (*(chRamkaWe + n) == SBUS_NAGLOWEK)
+		{
+			chNaglowek = chRamkaWe + n;
+			break;
+		}
+	}
+	if (n > MAX_PRZESUN_NAGL)
+		return ERR_ZLA_ILOSC_DANYCH;
+
+	*(sKanaly +  0) =  ((((int16_t)*(chNaglowek +  1)       | (((int16_t)*(chNaglowek +  2) << 8) & 0x7E0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly +  1) = (((((int16_t)*(chNaglowek +  2) >> 3) | (((int16_t)*(chNaglowek +  3) << 5) & 0x7E0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly +  2) = (((((int16_t)*(chNaglowek +  3) >> 6) | (((int16_t)*(chNaglowek +  4) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 5) << 10) & 0x400)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly +  3) = (((((int16_t)*(chNaglowek +  5) >> 1) | (((int16_t)*(chNaglowek +  6) << 7) & 0x780)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly +  4) = (((((int16_t)*(chNaglowek +  6) >> 4) | (((int16_t)*(chNaglowek +  7) << 4) & 0x7F0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN ;
+	*(sKanaly +  5) = (((((int16_t)*(chNaglowek +  7) >> 7) | (((int16_t)*(chNaglowek +  8) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 8) << 9) & 0x600)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly +  6) = (((((int16_t)*(chNaglowek +  9) >> 2) | (((int16_t)*(chNaglowek + 10) << 6) & 0x7C0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly +  7) = (((((int16_t)*(chNaglowek + 10) >> 5) | (((int16_t)*(chNaglowek + 11) << 3) & 0x7F8)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly +  8) = (((((int16_t)*(chNaglowek + 12) >> 0) | (((int16_t)*(chNaglowek + 13) << 8) & 0x700)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly +  9) = (((((int16_t)*(chNaglowek + 13) >> 3) | (((int16_t)*(chNaglowek + 14) << 5) & 0x7E0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly + 10) = (((((int16_t)*(chNaglowek + 14) >> 6) | (((int16_t)*(chNaglowek + 15) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 16) << 10) & 0x400)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly + 11) = (((((int16_t)*(chNaglowek + 16) >> 1) | (((int16_t)*(chNaglowek + 17) << 7) & 0x780)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly + 12) = (((((int16_t)*(chNaglowek + 17) >> 4) | (((int16_t)*(chNaglowek + 18) << 4) & 0x7F0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly + 13) = (((((int16_t)*(chNaglowek + 18) >> 7) | (((int16_t)*(chNaglowek + 19) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 20) << 9) & 0x600)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly + 14) = (((((int16_t)*(chNaglowek + 20) >> 2) | (((int16_t)*(chNaglowek + 21) << 6) & 0x7C0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly + 15) = (((((int16_t)*(chNaglowek + 21) >> 5) | (((int16_t)*(chNaglowek + 22) << 3) & 0x7F8)) - SBUS_MIN ) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	return ERR_OK;
 }
