@@ -189,6 +189,42 @@ float PobierzZmiennaTele(uint8_t chZmienna)
 	case TELEID_TEMPCISR1:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_CISR1];		break;
 	case TELEID_TEMPCISR2:	fZmiennaTelem = uDaneCM4.dane.fTemper[TEMP_CISR2];		break;
 
+	//odbiorniki RC
+	case TELEID_RC_KAN1:
+	case TELEID_RC_KAN2:
+	case TELEID_RC_KAN3:
+	case TELEID_RC_KAN4:
+	case TELEID_RC_KAN5:
+	case TELEID_RC_KAN6:
+	case TELEID_RC_KAN7:
+	case TELEID_RC_KAN8:
+	case TELEID_RC_KAN9:
+	case TELEID_RC_KAN10:
+	case TELEID_RC_KAN11:
+	case TELEID_RC_KAN12:
+	case TELEID_RC_KAN13:
+	case TELEID_RC_KAN14:
+	case TELEID_RC_KAN15:
+	case TELEID_RC_KAN16:	fZmiennaTelem = uDaneCM4.dane.sKanalRC[chZmienna - TELEID_RC_KAN1];	break;
+
+	//Serwa
+	case TELEID_SERWO1:
+	case TELEID_SERWO2:
+	case TELEID_SERWO3:
+	case TELEID_SERWO4:
+	case TELEID_SERWO5:
+	case TELEID_SERWO6:
+	case TELEID_SERWO7:
+	case TELEID_SERWO8:
+	case TELEID_SERWO9:
+	case TELEID_SERWO10:
+	case TELEID_SERWO11:
+	case TELEID_SERWO12:
+	case TELEID_SERWO13:
+	case TELEID_SERWO14:
+	case TELEID_SERWO15:
+	case TELEID_SERWO16:	fZmiennaTelem = uDaneCM4.dane.sSerwo[chZmienna - TELEID_SERWO1];	break;
+
 	default: fZmiennaTelem = -1.0;
 	}
 	return fZmiennaTelem;

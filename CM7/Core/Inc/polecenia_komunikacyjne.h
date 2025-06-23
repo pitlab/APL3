@@ -57,13 +57,18 @@
 #define PK_CZYTAJ_FLASH			13	//odczytaj zawartość Flash 
 #define PK_CZYTAJ_OKRES_TELE	14	//odczytaj okresy telemetrii
 #define PK_ZAPISZ_OKRES_TELE	15	//zapisz okresy telemetrii
-#define PK_ZAPISZ_FRAM_FLOAT	16	//Wysyła dane typu float do zapisu we FRAM w rdzeniu CM4 o podanym rozmiarze liczb float
-#define PK_WYSLIJ_POTW_ZAPISU	17	//wysyła potwierdzenie zapisania danych ERR_OK lub ERR_PROCES_TRWA
-#define PK_CZYTAJ_FRAM_FLOAT	18	//wysyła polecenie odczytu zawartości FRAM typu float
-#define PK_WYSLIJ_ODCZYT_FRAM	19	//pobiera odczytane wcześniej dane lub zwraca ERR_PROCES_TRWA
-#define PK_						20	//
 
-#define PK_ILOSC_POLECEN		21	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
+#define PK_ZAPISZ_FRAM_U8		16	//Wysyła dane typu uint8_t do zapisu we FRAM w rdzeniu CM4 o podanym rozmiarze liczb uint8_t
+#define PK_ZAPISZ_FRAM_FLOAT	17	//Wysyła dane typu float do zapisu we FRAM w rdzeniu CM4 o podanym rozmiarze liczb float
+#define PK_WYSLIJ_POTW_ZAPISU	18	//wysyła potwierdzenie zapisania danych ERR_OK lub ERR_PROCES_TRWA
+#define PK_CZYTAJ_FRAM_U8		19	//Wysyła  polecenie odczytu zawartości FRAM typu uint8_t
+#define PK_CZYTAJ_FRAM_FLOAT	20	//wysyła polecenie odczytu zawartości FRAM typu float
+#define PK_WYSLIJ_ODCZYT_FRAM	21	//pobiera odczytane wcześniej dane lub zwraca ERR_PROCES_TRWA
+
+
+
+
+#define PK_ILOSC_POLECEN		22	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 #define PK_TELEMETRIA			99	//ramka telemetryczna
 
 
@@ -88,55 +93,3 @@
 #define TDK_PRACA		0		//normalna praca
 #define TDK_KRATA_CB	1		//czarnobiała karata
 #define TDK_PASKI		2		//7 pionowych pasków
-
-
-
-/*/definicje zmiennych telemetrycznych
-#define TELEM1_AKCEL1X		0x000000001
-#define TELEM1_AKCEL1Y		0x000000002
-#define TELEM1_AKCEL1Z		0x000000004
-#define TELEM1_AKCEL2X		0x000000008
-#define TELEM1_AKCEL2Y		0x000000010
-#define TELEM1_AKCEL2Z		0x000000020
-#define TELEM1_ZYRO1P		0x000000040
-#define TELEM1_ZYRO1Q		0x000000080
-#define TELEM1_ZYRO1R		0x000000100
-#define TELEM1_ZYRO2P		0x000000200
-#define TELEM1_ZYRO2Q		0x000000400
-#define TELEM1_ZYRO2R		0x000000800
-#define TELEM1_MAGNE1X		0x000001000
-#define TELEM1_MAGNE1Y		0x000002000
-#define TELEM1_MAGNE1Z		0x000004000
-#define TELEM1_MAGNE2X		0x000008000
-#define TELEM1_MAGNE2Y		0x000010000
-#define TELEM1_MAGNE2Z		0x000020000
-#define TELEM1_MAGNE3X		0x000040000
-#define TELEM1_MAGNE3Y		0x000080000
-#define TELEM1_MAGNE3Z		0x000100000
-#define TELEM1_KAT_IMU1X	0x000200000
-#define TELEM1_KAT_IMU1Y	0x000400000
-#define TELEM1_KAT_IMU1Z	0x000800000
-#define TELEM1_KAT_IMU2X	0x001000000
-#define TELEM1_KAT_IMU2Y	0x002000000
-#define TELEM1_KAT_IMU2Z	0x004000000
-#define TELEM1_KAT_ZYRO1X	0x008000000
-#define TELEM1_KAT_ZYRO1Y	0x010000000
-#define TELEM1_KAT_ZYRO1Z	0x020000000
-
-
-#define TELEM2_CISBEZW1		0x100000001
-#define TELEM2_CISBEZW2		0x100000002
-#define TELEM2_WYSOKOSC1	0x100000004
-#define TELEM2_WYSOKOSC2	0x100000008
-#define TELEM2_CISROZN1		0x100000010
-#define TELEM2_CISROZN2		0x100000020
-#define TELEM2_PREDIAS1		0x100000040
-#define TELEM2_PREDIAS2		0x100000080
-#define TELEM2_TEMPCIS1		0x100000100
-#define TELEM2_TEMPCIS2		0x100000200
-#define TELEM2_TEMPIMU1		0x100000400
-#define TELEM2_TEMPIMU2		0x100000800
-#define TELEM2_TEMPCISR1	0x100001000
-#define TELEM2_TEMPCISR2	0x100002000*/
-
-

@@ -315,6 +315,14 @@ void WykonajPolecenieCM7(void)
 			uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
 		break;
 
+	case POL_CZYTAJ_FRAM_U8:
+		if (uDaneCM7.dane.chRozmiar > 4*ROZMIAR_ROZNE)
+			uDaneCM7.dane.chRozmiar = 4*ROZMIAR_ROZNE;
+		CzytajBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM4.dane.uRozne.chRozne, uDaneCM7.dane.chRozmiar);
+		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
+		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie odczytu
+		break;
+
 	case POL_CZYTAJ_FRAM_FLOAT:			//odczytaj i wyślij zawartość FRAM spod podanego adresu
 		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE)
 			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE;
@@ -324,7 +332,15 @@ void WykonajPolecenieCM7(void)
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie odczytu
 		break;
 
-	case POL_ZAPISZ_FRAM_FLOAT:			//zapisz przekazane dane do FRAM pod podany adres
+	case POL_ZAPISZ_FRAM_U8:	//zapisz dane uint8_t pod podany adres
+		if (uDaneCM7.dane.chRozmiar > 4*ROZMIAR_ROZNE)
+			uDaneCM7.dane.chRozmiar = 4*ROZMIAR_ROZNE;
+		ZapiszBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM7.dane.uRozne.chRozne, uDaneCM7.dane.chRozmiar);
+		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
+		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
+		break;
+
+	case POL_ZAPISZ_FRAM_FLOAT:			//zapisz przekazane dane typu float do FRAM pod podany adres
 		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE)
 			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE;
 		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)

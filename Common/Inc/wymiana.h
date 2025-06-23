@@ -49,9 +49,12 @@
 #define POL_ZERUJ_LICZNIK		23	//zeruje licznik uśredniana przed kolejnym cyklem
 #define POL_USREDNIJ_CISN1		24	//uśredniania ciśnienia 1 czujników ciśnienia bezwzględnego
 #define POL_USREDNIJ_CISN2		25	//uśredniania ciśnienia 2 czujników ciśnienia bezwzględnego
-#define POL_CZYTAJ_FRAM_FLOAT	26	//odczytaj i wyślij zawartość FRAM spod podanego adresu
-#define POL_ZAPISZ_FRAM_FLOAT	27	//zapisz przekazane dane do FRAM pod podany adres
-#define POL_KASUJ_DRYFT_ZYRO	28	//kasuje druft katów z żyroskopu sprowadzajac je do wartości z akcelerometru
+#define POL_CZYTAJ_FRAM_U8		26	//odczytaj i wyślij zawartość FRAM spod podanego adresu
+#define POL_ZAPISZ_FRAM_U8		27	//zapisz przekazane dane do FRAM pod podany adres
+#define POL_CZYTAJ_FRAM_FLOAT	28	//odczytaj i wyślij zawartość FRAM spod podanego adresu
+#define POL_ZAPISZ_FRAM_FLOAT	29	//zapisz przekazane dane do FRAM pod podany adres
+
+#define POL_KASUJ_DRYFT_ZYRO	30	//kasuje druft katów z żyroskopu sprowadzajac je do wartości z akcelerometru
 
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
 
@@ -105,7 +108,13 @@ typedef struct	//struktura  regulatora PID
 	float fWyjscieD;  		//wartość wyjściowa z członu D
 } stPID_t;
 
-
+typedef union
+{
+	float fRozne[ROZMIAR_ROZNE];
+	uint32_t nRozne[ROZMIAR_ROZNE];
+	uint16_t sRozne[2*ROZMIAR_ROZNE];
+	uint8_t chRozne[4*ROZMIAR_ROZNE];
+}  uRozne_t;
 
 //definicja struktury wymiany danych wychodzących z rdzenia CM4
 //typedef struct _stWymianyCM4
@@ -134,9 +143,11 @@ typedef struct
 	float fPredkosc[2];		//[m/s]
 	float fTemper[6];		//0=MS5611, 1=BMP851, 2=ICM42688 [K], 3=LSM6DSV [K], 4=ND130, 5=MS2545
 	float fRozne[ROZMIAR_ROZNE];		//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji lub odczytu FRAM
+
 	float fKwaAkc[4];		//kwaternion wektora przyspieszenia
 	float fKwaMag[4];		//kwaternion wektora magnetycznego
 
+	uRozne_t uRozne;		//unia różnych typów danych ogólnego zastosowania
 	stGnss_t stGnss1;		//struktura danych GNSS1
 	stPID_t pid[LICZBA_PID];		//tablica struktur danych regulatorów PID
 	uint16_t sSerwo[KANALY_SERW];
@@ -160,6 +171,7 @@ typedef struct
 	uint8_t chRozmiar;				//rozmiar danych przekazywanych w polu fRozne
 	uint16_t sAdres;				//adres danych przekazywanych w polu fRozne
 	float fRozne[ROZMIAR_ROZNE];	//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji lub zapisu FRAM
+	uRozne_t uRozne;				//unia różnych typów danych ogólnego zastosowania
 } stWymianyCM7_t;
 
 //unie do konwersji struktur na słowa 32-bitowe

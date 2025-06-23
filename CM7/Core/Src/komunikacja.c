@@ -200,6 +200,26 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		}
 		break;
 
+	case PK_ZAPISZ_FRAM_U8:	//zapisuje bajty do FRAM
+		if (chDane[0] > 4*ROZMIAR_ROZNE)	//liczba danych uint8_t
+		{
+			Wyslij_ERR(ERR_ZLA_ILOSC_DANYCH, 0, chInterfejs);
+			break;
+		}
+		un8_16.dane8[0] = chDane[1];	//adres zapisu
+		un8_16.dane8[1] = chDane[2];
+		sAdres = un8_16.dane16;						//zapamietaj adres do sprawdzenia czy już się zapisało
+		uDaneCM7.dane.sAdres = un8_16.dane16;		//adres zapisu bloku liczb
+		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_FRAM_U8;
+		uDaneCM7.dane.chRozmiar = chDane[0];		//ilość liczb uint8_t
+		for (n=0; n<chDane[0]; n++)
+		{
+			un8_32.dane8[n & 0x03] = chDane[3+n];
+			uDaneCM7.dane.fRozne[n>>2] = un8_32.dane32;
+		}
+		chErr = Wyslij_OK(0, 0, chInterfejs);
+		break;
+
 	case PK_ZAPISZ_FRAM_FLOAT:				//Wysyła dane typu float do zapisu we FRAM w rdzeniu CM4 o rozmiarze ROZMIAR_ROZNE
 		if (chDane[0] > ROZMIAR_ROZNE)	//liczba danych float (nie uint8_t)
 		{
@@ -229,6 +249,20 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		}
 		chErr = Wyslij_OK(0, 0, chInterfejs);
 		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//wyłącz wykonywanie polecenia POL_ZAPISZ_FRAM_FLOAT
+		break;
+
+	case PK_CZYTAJ_FRAM_U8:
+		if (chDane[0] > 4*ROZMIAR_ROZNE)
+		{
+			Wyslij_ERR(ERR_ZLA_ILOSC_DANYCH, 0, chInterfejs);
+			break;
+		}
+		un8_16.dane8[0] = chDane[1];	//adres do odczytu
+		un8_16.dane8[1] = chDane[2];
+		sAdres = un8_16.dane16;			//zapamiętaj adres
+		uDaneCM7.dane.sAdres = un8_16.dane16;
+		uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_FRAM_U8;
+		chErr = Wyslij_OK(0, 0, chInterfejs);
 		break;
 
 	case PK_CZYTAJ_FRAM_FLOAT:			//odczytaj i wyślij do bufora fRozne[] zawartość FRAM spod podanego adresu w chDane[1..2] o rozmiarze podanym w chDane[0]
@@ -261,6 +295,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		chErr = WyslijRamke(chAdresZdalny, PK_WYSLIJ_ODCZYT_FRAM, 4*chRozmiar, chDane, chInterfejs);
 		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//wyłącz wykonywanie polecenia POL_CZYTAJ_FRAM_FLOAT
 		break;
+
 
 
 	}
