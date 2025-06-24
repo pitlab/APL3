@@ -224,7 +224,7 @@ uint8_t InicjujWyjsciaSBus(void)
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
 	//czytaj konfigurację dwu pierwszych kanałów serw
-	chTyp = CzytajFRAM(FAU_KONF_SBUS_WY);
+	chTyp = CzytajFRAM(FAU_KONF_SERWA12);
 	chTyp = SERWO_SBUS;
 
 	//kanał 1 - konfiguracja pinu PB9
@@ -352,9 +352,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 	//dekoduj dane jeżeli jest nowa ramka
 	if (nCzasRC1 < OKRES_RAMKI_PPM_RC)
 	{
-		nCzasBiezacy = PobierzCzas();
 		chErr = DekodowanieRamkiBSBus(chBuforOdbioruSBus1, stRC->sOdb1);
-		nCzasBiezacy = MinalCzas(nCzasBiezacy);
 		if (chErr == ERR_OK)
 			stRC->sZdekodowaneKanaly1 = 0xFFFF;
 	}
@@ -366,11 +364,8 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 			stRC->sZdekodowaneKanaly2 = 0xFFFF;
 	}
 
-
 	if ((nCzasRC1 < 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC))	//działa odbiornik 1, nie działa 2
 	{
-
-
 		for (n=0; n<KANALY_ODB_RC; n++)
 		{
 			if (stRC->sZdekodowaneKanaly1 & (1<<n))
@@ -408,7 +403,6 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 	if (nCzasRC1 >= OKRES_RAMKI_SBUS)
 	{
 		nCzasWysylkiSbus = nCzasBiezacy;
-		//HAL_UART_Transmit_IT(&huart4, chBuforNadawczySBus1, ROZMIAR_BUF_SBUS);	//wyślij kolejną ramkę
 		HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus1, ROZMIAR_BUF_SBUS);	//wyślij kolejną ramkę
 	}
 
@@ -434,9 +428,7 @@ void USART2_IRQHandler(void)
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
-	//HAL_GPIO_WritePin(MODZ_ADR0_GPIO_Port, MODZ_ADR0_Pin, GPIO_PIN_SET);
-	//HAL_GPIO_WritePin(MODZ_ADR1_GPIO_Port, MODZ_ADR1_Pin, GPIO_PIN_RESET);
+	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
 }
 
 
@@ -456,7 +448,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 // [we] *chRamkaWe - wskaźnik na dane ramki wejsciowej
 // [wy] *sKanaly - wskaźnik na tablicę kanałów RC
 // Zwraca: kod błędu
-// Czas wykonania:
+// Czas wykonania: ok. 5us
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 {
@@ -480,7 +472,7 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 	*(sKanaly +  2) = (((((int16_t)*(chNaglowek +  3) >> 6) | (((int16_t)*(chNaglowek +  4) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 5) << 10) & 0x400)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
 	*(sKanaly +  3) = (((((int16_t)*(chNaglowek +  5) >> 1) | (((int16_t)*(chNaglowek +  6) << 7) & 0x780)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
 	*(sKanaly +  4) = (((((int16_t)*(chNaglowek +  6) >> 4) | (((int16_t)*(chNaglowek +  7) << 4) & 0x7F0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN ;
-	*(sKanaly +  5) = (((((int16_t)*(chNaglowek +  7) >> 7) | (((int16_t)*(chNaglowek +  8) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 8) << 9) & 0x600)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
+	*(sKanaly +  5) = (((((int16_t)*(chNaglowek +  7) >> 7) | (((int16_t)*(chNaglowek +  8) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 9) << 9) & 0x600)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
 	*(sKanaly +  6) = (((((int16_t)*(chNaglowek +  9) >> 2) | (((int16_t)*(chNaglowek + 10) << 6) & 0x7C0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
 	*(sKanaly +  7) = (((((int16_t)*(chNaglowek + 10) >> 5) | (((int16_t)*(chNaglowek + 11) << 3) & 0x7F8)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
 	*(sKanaly +  8) = (((((int16_t)*(chNaglowek + 12) >> 0) | (((int16_t)*(chNaglowek + 13) << 8) & 0x700)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;

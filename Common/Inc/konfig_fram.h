@@ -68,9 +68,13 @@
 
 
 #define FA_USER_VAR3	    0x0300
-#define FAU_KONF_ODB_RC		FA_USER_VAR3			//1U konfiguracja obu odbiorników RC. Bity 0..3 = RC1, bity 4..7 = RC2
-#define FAU_KONF_SBUS_WY	FAU_KONF_ODB_RC+1		//1U konfiguracja wyjść S-Bus.Bity 0..3 = SBus1, bity 4..7 = SBus2
-#define FAU_LOW_VOLT_WARN   FAU_KONF_SBUS_WY+1  	//4F próg ostrzezenia o niskim napięciu
+#define FAU_KONF_ODB_RC		FA_USER_VAR3			//1U konfiguracja odbiorników RC: Bity 0..3 = RC1, bity 4..7 = RC2: 0=PPM, 1=S-Bus, 2=inne (CS QSPI dla RC2)
+#define FAU_KONF_SERWA12	FAU_KONF_ODB_RC+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 1, bity 4..7 = Wyjście 2: 0=PWM 400Hz, 1=SBus
+#define FAU_KONF_SERWA34	FAU_KONF_SERWA12+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 3, bity 4..7 = Wyjście 4: 0=PWM 400Hz, 1=ADC
+#define FAU_KONF_SERWA56	FAU_KONF_SERWA34+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 5, bity 4..7 = Wyjście 6: 0=PWM 400Hz, 1=ADC
+#define FAU_KONF_SERWA78	FAU_KONF_SERWA56+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 7, bity 4..7 = Wyjście 8: 0=PWM 400Hz
+#define FAU_KONF_SERWA916	FAU_KONF_SERWA78+1		//1U konfiguracja wyjść:  0=wyjścia 9..16 PWM 50Hz, 1=wyjścia 9..12 PWM 100Hz, 2=wyjścia 9..10 PWM 200Hz, 3=wyjście 9 PWM 400Hz
+#define FAU_LOW_VOLT_WARN   FAU_KONF_SERWA916+1  	//4F próg ostrzezenia o niskim napięciu
 #define FAU_LOW_VOLT_ALARM  FAU_LOW_VOLT_WARN+4 	//4F próg alarmu niskiego napięcia
 #define FAU_VOLT_DROP_COMP  FAU_LOW_VOLT_ALARM+4	//4F współczynnik kompensacji spadku napięcia pakietu
 #define FAU_LANDING_SPD     FAU_VOLT_DROP_COMP+4 	//4F prędkość lądowania

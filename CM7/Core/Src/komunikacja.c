@@ -213,10 +213,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_FRAM_U8;
 		uDaneCM7.dane.chRozmiar = chDane[0];		//ilość liczb uint8_t
 		for (n=0; n<chDane[0]; n++)
-		{
-			un8_32.dane8[n & 0x03] = chDane[3+n];
-			uDaneCM7.dane.uRozne.fRozne[n>>2] = un8_32.dane32;
-		}
+			uDaneCM7.dane.uRozne.U8[n] = chDane[3+n];
 		chErr = Wyslij_OK(0, 0, chInterfejs);
 		break;
 
@@ -236,7 +233,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		{
 			for (uint8_t i=0; i<4; i++)
 				un8_32.dane8[i] = chDane[3+n*4+i];
-			uDaneCM7.dane.uRozne.fRozne[n] = un8_32.daneFloat;
+			uDaneCM7.dane.uRozne.f32[n] = un8_32.daneFloat;
 		}
 		chErr = Wyslij_OK(0, 0, chInterfejs);
 		break;
@@ -261,6 +258,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		un8_16.dane8[1] = chDane[2];
 		sAdres = un8_16.dane16;			//zapamiętaj adres
 		uDaneCM7.dane.sAdres = un8_16.dane16;
+		uDaneCM7.dane.chRozmiar = chDane[0];
 		uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_FRAM_U8;
 		chErr = Wyslij_OK(0, 0, chInterfejs);
 		break;
@@ -275,11 +273,12 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		un8_16.dane8[1] = chDane[2];
 		sAdres = un8_16.dane16;			//zapamiętaj adres
 		uDaneCM7.dane.sAdres = un8_16.dane16;
+		uDaneCM7.dane.chRozmiar = chDane[0];
 		uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_FRAM_FLOAT;
 		chErr = Wyslij_OK(0, 0, chInterfejs);
 		break;
 
-	case PK_WYSLIJ_ODCZYT_FRAM:	//wysyła odczytane wcześniej dane o rozmiarze podanym w chDane[0] - zawsze dotyczy liczby paczek 4 bajtowych
+	case PK_WYSLIJ_ODCZYT_FRAM:	//wysyła odczytane wcześniej dane o rozmiarze podanym w chDane[0]
 		if (uDaneCM4.dane.sAdres != sAdres)
 		{
 			Wyslij_ERR(ERR_PROCES_TRWA, 0, chInterfejs);	//dane jeszcze nie przyszły
@@ -287,13 +286,10 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		}
 		chRozmiar = chDane[0];	//zapamiętaj w zmiennej, bo dane będą nadpisane;
 		for (n=0; n<chRozmiar; n++)
-		{
-			un8_32.daneFloat = uDaneCM4.dane.uRozne.fRozne[n];
-			for (uint8_t i=0; i<4; i++)
-				chDane[n*4+i] = un8_32.dane8[i];
-		}
-		chErr = WyslijRamke(chAdresZdalny, PK_WYSLIJ_ODCZYT_FRAM, 4*chRozmiar, chDane, chInterfejs);
-		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//wyłącz wykonywanie polecenia POL_CZYTAJ_FRAM_FLOAT
+			chDane[n] = uDaneCM4.dane.uRozne.U8[n];
+
+		chErr = WyslijRamke(chAdresZdalny, PK_WYSLIJ_ODCZYT_FRAM, chRozmiar, chDane, chInterfejs);
+		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//wyłącz wykonywanie polecenia PK_WYSLIJ_ODCZYT_FRAM
 		break;
 
 

@@ -110,10 +110,10 @@ typedef struct	//struktura  regulatora PID
 
 typedef union
 {
-	float fRozne[ROZMIAR_ROZNE];
-	uint32_t nRozne[ROZMIAR_ROZNE];
-	uint16_t sRozne[2*ROZMIAR_ROZNE];
-	uint8_t chRozne[4*ROZMIAR_ROZNE];
+	float f32[ROZMIAR_ROZNE];
+	uint32_t U32[ROZMIAR_ROZNE];
+	uint16_t U16[2*ROZMIAR_ROZNE];
+	uint8_t U8[4*ROZMIAR_ROZNE];
 }  uRozne_t;
 
 //definicja struktury wymiany danych wychodzących z rdzenia CM4
