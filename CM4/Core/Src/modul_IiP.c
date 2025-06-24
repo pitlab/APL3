@@ -421,7 +421,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			{
 				ZapiszFramFloat(FAH_ZYRO1P_WZMOC, fSkaloZyro1[0]);
 				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
-				uDaneCM4.dane.fRozne[0] = fSkaloZyro1[0];	//przekaż wartości kalibracji
+				uDaneCM4.dane.uRozne.fRozne[0] = fSkaloZyro1[0];	//przekaż wartości kalibracji
 			}
 			else
 			{
@@ -434,15 +434,15 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			{
 				ZapiszFramFloat(FAH_ZYRO2P_WZMOC, fSkaloZyro2[0]);
 				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
-				uDaneCM4.dane.fRozne[1] = fSkaloZyro2[0];
+				uDaneCM4.dane.uRozne.fRozne[1] = fSkaloZyro2[0];
 			}
 			else
 			{
 				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_OBLICZENIA;
 				return ERR_OK;
 			}
-			uDaneCM4.dane.fRozne[2] = CzytajFramFloat(FAH_ZYRO1P_WZMOC);	//przekaż wartości bieżącej kalibracji
-			uDaneCM4.dane.fRozne[3] = CzytajFramFloat(FAH_ZYRO2P_WZMOC);
+			uDaneCM4.dane.uRozne.fRozne[2] = CzytajFramFloat(FAH_ZYRO1P_WZMOC);	//przekaż wartości bieżącej kalibracji
+			uDaneCM4.dane.uRozne.fRozne[3] = CzytajFramFloat(FAH_ZYRO2P_WZMOC);
 		}
 		break;
 
@@ -455,7 +455,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			{
 				ZapiszFramFloat(FAH_ZYRO1Q_WZMOC, fSkaloZyro1[1]);
 				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
-				uDaneCM4.dane.fRozne[0] = fSkaloZyro1[1];	//przekaż wartości kalibracji
+				uDaneCM4.dane.uRozne.fRozne[0] = fSkaloZyro1[1];	//przekaż wartości kalibracji
 			}
 			else
 			{
@@ -468,7 +468,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			{
 				ZapiszFramFloat(FAH_ZYRO2Q_WZMOC, fSkaloZyro2[1]);
 				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
-				uDaneCM4.dane.fRozne[1] = fSkaloZyro2[1];
+				uDaneCM4.dane.uRozne.fRozne[1] = fSkaloZyro2[1];
 			}
 			else
 			{
@@ -476,8 +476,8 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 				return ERR_OK;
 			}
 		}
-		uDaneCM4.dane.fRozne[2] = CzytajFramFloat(FAH_ZYRO1Q_WZMOC);	//przekaż wartości bieżącej kalibracji
-		uDaneCM4.dane.fRozne[3] = CzytajFramFloat(FAH_ZYRO2Q_WZMOC);
+		uDaneCM4.dane.uRozne.fRozne[2] = CzytajFramFloat(FAH_ZYRO1Q_WZMOC);	//przekaż wartości bieżącej kalibracji
+		uDaneCM4.dane.uRozne.fRozne[3] = CzytajFramFloat(FAH_ZYRO2Q_WZMOC);
 		break;
 
 	case POL_KALIBRUJ_ZYRO_WZMR:	//kalibruj wzmocnienia żyroskopów R
@@ -488,7 +488,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			{
 				ZapiszFramFloat(FAH_ZYRO1R_WZMOC, fSkaloZyro1[2]);
 				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
-				uDaneCM4.dane.fRozne[0] = fSkaloZyro1[2];	//przekaż wartości kalibracji
+				uDaneCM4.dane.uRozne.fRozne[0] = fSkaloZyro1[2];	//przekaż wartości kalibracji
 			}
 			else
 			{
@@ -501,7 +501,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			{
 				ZapiszFramFloat(FAH_ZYRO2R_WZMOC, fSkaloZyro2[2]);
 				uDaneCM4.dane.nZainicjowano |= INIT_WYK_KAL_WZM_ZYRO;
-				uDaneCM4.dane.fRozne[1] = fSkaloZyro2[2];
+				uDaneCM4.dane.uRozne.fRozne[1] = fSkaloZyro2[2];
 			}
 			else
 			{
@@ -509,8 +509,8 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 				return ERR_OK;
 			}
 		}
-		uDaneCM4.dane.fRozne[2] = CzytajFramFloat(FAH_ZYRO1R_WZMOC);	//przekaż wartości bieżącej kalibracji
-		uDaneCM4.dane.fRozne[3] = CzytajFramFloat(FAH_ZYRO2R_WZMOC);
+		uDaneCM4.dane.uRozne.fRozne[2] = CzytajFramFloat(FAH_ZYRO1R_WZMOC);	//przekaż wartości bieżącej kalibracji
+		uDaneCM4.dane.uRozne.fRozne[3] = CzytajFramFloat(FAH_ZYRO2R_WZMOC);
 		break;
 
 	case POL_ZERUJ_CALKE_ZYRO:		//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
@@ -519,8 +519,8 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			uDaneCM4.dane.fKatZyro1[n] = 0.0f;
 			uDaneCM4.dane.fKatZyro2[n] = 0.0f;
 		}
-		uDaneCM4.dane.fRozne[0] = 0.0f;
-		uDaneCM4.dane.fRozne[1] = 0.0f;
+		uDaneCM4.dane.uRozne.fRozne[0] = 0.0f;
+		uDaneCM4.dane.uRozne.fRozne[1] = 0.0f;
 		uDaneCM4.dane.nZainicjowano &= ~INIT_WYK_KAL_WZM_ZYRO;	//nie jest zainicjowane
 		break;
 
@@ -632,10 +632,10 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 	if (chPrzebieg == 0xFF)
 	{
 		for (uint8_t n=0; n<4; n++)
-			uDaneCM4.dane.fRozne[n] = 0;	//wyczyść ewentualne wcześniejsze dane
+			uDaneCM4.dane.uRozne.fRozne[n] = 0;	//wyczyść ewentualne wcześniejsze dane
 
 		for (uint8_t n=0; n<LICZBA_CZUJ_CISN; n++)
-			uDaneCM4.dane.fRozne[n+4] = fSkaloCisn[n];	//ustaw bieżący współczynnik skalowania
+			uDaneCM4.dane.uRozne.fRozne[n+4] = fSkaloCisn[n];	//ustaw bieżący współczynnik skalowania
 
 		for (uint8_t n=0; n<3; n++)
 		{
@@ -653,7 +653,7 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 			dSuma2[1] += (double)fCisnienie2;
 			dSuma2[2] += (double)fTemp;			//temperatura [K]
 			for (uint8_t n=0; n<LICZBA_CZUJ_CISN; n++)
-				uDaneCM4.dane.fRozne[n+2] = (float)(dSuma2[n] / (sLicznik + 1));
+				uDaneCM4.dane.uRozne.fRozne[n+2] = (float)(dSuma2[n] / (sLicznik + 1));
 		}
 		else
 		{
@@ -661,7 +661,7 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 			dSuma1[1] += (double)fCisnienie2;
 			dSuma1[2] += (double)fTemp;
 			for (uint8_t n=0; n<LICZBA_CZUJ_CISN; n++)
-				uDaneCM4.dane.fRozne[n+0] = (float)(dSuma1[n] / (sLicznik + 1));
+				uDaneCM4.dane.uRozne.fRozne[n+0] = (float)(dSuma1[n] / (sLicznik + 1));
 		}
 	}
 	else
@@ -704,7 +704,7 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 			}
 			else
 				chErr = ERR_ZLE_OBLICZENIA;
-			uDaneCM4.dane.fRozne[n+4] = fSkaloCisn[n];	//odeślij ewentualnie zmodyfikowany współczynnik globalny
+			uDaneCM4.dane.uRozne.fRozne[n+4] = fSkaloCisn[n];	//odeślij ewentualnie zmodyfikowany współczynnik globalny
 		}
 	}
 	return chErr;
@@ -727,8 +727,8 @@ void ZnajdzEkstremaMagnetometru(float *fMag)
 		if (*(fMag+n) > stMagn.fMax[n])
 			stMagn.fMax[n] = *(fMag+n);
 
-		uDaneCM4.dane.fRozne[2*n+0] = stMagn.fMin[n];
-		uDaneCM4.dane.fRozne[2*n+1] = stMagn.fMax[n];
+		uDaneCM4.dane.uRozne.fRozne[2*n+0] = stMagn.fMin[n];
+		uDaneCM4.dane.uRozne.fRozne[2*n+1] = stMagn.fMax[n];
 	}
 }
 
@@ -810,24 +810,24 @@ void PobierzKalibracjeMagnetometru(uint8_t chMagn)
 	case MAG1:
 		for (uint16_t n=0; n<3; n++)
 		{
-			uDaneCM4.dane.fRozne[2*n+0] = fPrzesMagn1[n];
-			uDaneCM4.dane.fRozne[2*n+1] = fSkaloMagn1[n];
+			uDaneCM4.dane.uRozne.fRozne[2*n+0] = fPrzesMagn1[n];
+			uDaneCM4.dane.uRozne.fRozne[2*n+1] = fSkaloMagn1[n];
 		}
 		break;
 
 	case MAG2:
 		for (uint16_t n=0; n<3; n++)
 		{
-			uDaneCM4.dane.fRozne[2*n+0] = fPrzesMagn2[n];
-			uDaneCM4.dane.fRozne[2*n+1] = fSkaloMagn2[n];
+			uDaneCM4.dane.uRozne.fRozne[2*n+0] = fPrzesMagn2[n];
+			uDaneCM4.dane.uRozne.fRozne[2*n+1] = fSkaloMagn2[n];
 		}
 		break;
 
 	case MAG3:
 		for (uint16_t n=0; n<3; n++)
 		{
-			uDaneCM4.dane.fRozne[2*n+0] = fPrzesMagn3[n];
-			uDaneCM4.dane.fRozne[2*n+1] = fSkaloMagn3[n];
+			uDaneCM4.dane.uRozne.fRozne[2*n+0] = fPrzesMagn3[n];
+			uDaneCM4.dane.uRozne.fRozne[2*n+1] = fSkaloMagn3[n];
 		}
 		break;
 	}

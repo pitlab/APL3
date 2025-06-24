@@ -258,18 +258,18 @@ void WykonajPolecenieCM7(void)
 	case POL_ZERUJ_CALKE_ZYRO:	KalibracjaWzmocnieniaZyro(uDaneCM7.dane.chWykonajPolecenie);	break;	//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
 
 	case POL_CZYTAJ_WZM_ZYROP:	//odczytaj wzmocnienia żyroskopów P
-		uDaneCM4.dane.fRozne[2] = CzytajFramFloat(FAH_ZYRO1P_WZMOC);
-		uDaneCM4.dane.fRozne[3] = CzytajFramFloat(FAH_ZYRO2P_WZMOC);
+		uDaneCM4.dane.uRozne.fRozne[2] = CzytajFramFloat(FAH_ZYRO1P_WZMOC);
+		uDaneCM4.dane.uRozne.fRozne[3] = CzytajFramFloat(FAH_ZYRO2P_WZMOC);
 		break;
 
 	case POL_CZYTAJ_WZM_ZYROQ:	//odczytaj wzmocnienia żyroskopów Q
-		uDaneCM4.dane.fRozne[2] = CzytajFramFloat(FAH_ZYRO1Q_WZMOC);
-		uDaneCM4.dane.fRozne[3] = CzytajFramFloat(FAH_ZYRO2Q_WZMOC);
+		uDaneCM4.dane.uRozne.fRozne[2] = CzytajFramFloat(FAH_ZYRO1Q_WZMOC);
+		uDaneCM4.dane.uRozne.fRozne[3] = CzytajFramFloat(FAH_ZYRO2Q_WZMOC);
 		break;
 
 	case POL_CZYTAJ_WZM_ZYROR:	//odczytaj wzmocnienia żyroskopów R
-		uDaneCM4.dane.fRozne[2] = CzytajFramFloat(FAH_ZYRO1R_WZMOC);
-		uDaneCM4.dane.fRozne[3] = CzytajFramFloat(FAH_ZYRO2R_WZMOC);
+		uDaneCM4.dane.uRozne.fRozne[2] = CzytajFramFloat(FAH_ZYRO1R_WZMOC);
+		uDaneCM4.dane.uRozne.fRozne[3] = CzytajFramFloat(FAH_ZYRO2R_WZMOC);
 		break;
 
 	case POL_KAL_ZERO_MAGN1:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne1);	break;	//uruchom kalibrację zera magnetometru 1
@@ -327,7 +327,7 @@ void WykonajPolecenieCM7(void)
 		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE)
 			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE;
 		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
-			uDaneCM4.dane.fRozne[n] = CzytajFramFloat(uDaneCM7.dane.sAdres + n*4);
+			uDaneCM4.dane.uRozne.fRozne[n] = CzytajFramFloat(uDaneCM7.dane.sAdres + n*4);
 		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie odczytu
 		break;
@@ -344,7 +344,7 @@ void WykonajPolecenieCM7(void)
 		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE)
 			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE;
 		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
-			ZapiszFramFloat(uDaneCM7.dane.sAdres + n*4, uDaneCM7.dane.fRozne[n]);
+			ZapiszFramFloat(uDaneCM7.dane.sAdres + n*4, uDaneCM7.dane.uRozne.fRozne[n]);
 		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 		break;

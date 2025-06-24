@@ -215,7 +215,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		for (n=0; n<chDane[0]; n++)
 		{
 			un8_32.dane8[n & 0x03] = chDane[3+n];
-			uDaneCM7.dane.fRozne[n>>2] = un8_32.dane32;
+			uDaneCM7.dane.uRozne.fRozne[n>>2] = un8_32.dane32;
 		}
 		chErr = Wyslij_OK(0, 0, chInterfejs);
 		break;
@@ -236,7 +236,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		{
 			for (uint8_t i=0; i<4; i++)
 				un8_32.dane8[i] = chDane[3+n*4+i];
-			uDaneCM7.dane.fRozne[n] = un8_32.daneFloat;
+			uDaneCM7.dane.uRozne.fRozne[n] = un8_32.daneFloat;
 		}
 		chErr = Wyslij_OK(0, 0, chInterfejs);
 		break;
@@ -288,7 +288,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		chRozmiar = chDane[0];	//zapamiętaj w zmiennej, bo dane będą nadpisane;
 		for (n=0; n<chRozmiar; n++)
 		{
-			un8_32.daneFloat = uDaneCM4.dane.fRozne[n];
+			un8_32.daneFloat = uDaneCM4.dane.uRozne.fRozne[n];
 			for (uint8_t i=0; i<4; i++)
 				chDane[n*4+i] = un8_32.dane8[i];
 		}

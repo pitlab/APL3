@@ -2387,17 +2387,17 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) && (chEtapKalibracji >= 2))
 	{
 		setColor(WHITE);										//nowy współczynnik
-		sprintf(chNapis, "%.3f", uDaneCM4.dane.fRozne[0]);
+		sprintf(chNapis, "%.3f", uDaneCM4.dane.uRozne.fRozne[0]);
 		print(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 200);
-		sprintf(chNapis, "%.3f", uDaneCM4.dane.fRozne[1]);
+		sprintf(chNapis, "%.3f", uDaneCM4.dane.uRozne.fRozne[1]);
 		print(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 220);
 	}
 	else
 	{
 		setColor(GRAY80);										//stary współczynnik
-		sprintf(chNapis, "%.3f", uDaneCM4.dane.fRozne[2]);
+		sprintf(chNapis, "%.3f", uDaneCM4.dane.uRozne.fRozne[2]);
 		print(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 200);
-		sprintf(chNapis, "%.3f", uDaneCM4.dane.fRozne[3]);
+		sprintf(chNapis, "%.3f", uDaneCM4.dane.uRozne.fRozne[3]);
 		print(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 220);
 	}
 
@@ -2577,10 +2577,10 @@ void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran dla kalibracji zera (offsetu) magnetometru. Dla obrotu wokół X rysuje wykres YZ, dla obrotu wokół Y rysuje XZ dla Z rysuje XY
-// Analizuje dane przekazane w zmiennej uDaneCM4.dane.fRozne[6] przez CM4. Funkcja znajjduje i sygnalizuje znalezienia ich maksimów poprzez komunikaty głosowe: 1-minX, 2-maxX, 3-minY, 4-maxY, 5-minZ, 6-maxZ
+// Analizuje dane przekazane w zmiennej uDaneCM4.dane.uRozne.fRozne[6] przez CM4. Funkcja znajjduje i sygnalizuje znalezienia ich maksimów poprzez komunikaty głosowe: 1-minX, 2-maxX, 3-minY, 4-maxY, 5-minZ, 6-maxZ
 // Wykres jest skalowany do maksimum wartosci bezwzględnej obu zmiennych
 // Parametry: *chEtap	- wskaźnik na zmienną wskazującą na kalibracje konktretnej osi w konkretnym magnetometrze. Starszy półbajt koduje numer magnetometru, najmłodsze 2 bity oś obracaną a bit 4 procedurę kalibracji
-// uDaneCM4.dane.fRozne[6] - minima i maksima magnetometrów zbierana przez CM4
+// uDaneCM4.dane.uRozne.fRozne[6] - minima i maksima magnetometrów zbierana przez CM4
 // Zwraca: ERR_GOTOWE / ERR_OK - informację o tym czy wyjść z trybu kalibracji czy nie
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
@@ -2727,28 +2727,28 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	case 0:	chNazwaOsi = 'X';
 		if (*chEtap & KALIBRUJ)
 		{
-			if (uDaneCM4.dane.fRozne[2] < fMin[1])	//minimum Y
+			if (uDaneCM4.dane.uRozne.fRozne[2] < fMin[1])	//minimum Y
 			{
 				fMin[1] = uDaneCM4.dane.fRozne[2];
 				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
 			else
-			if (uDaneCM4.dane.fRozne[3] > fMax[1])	//maksimum Y
+			if (uDaneCM4.dane.uRozne.fRozne[3] > fMax[1])	//maksimum Y
 			{
 				fMax[1] = uDaneCM4.dane.fRozne[3];
 				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
 			else
-			if (uDaneCM4.dane.fRozne[4] < fMin[2])	//minimum Z
+			if (uDaneCM4.dane.uRozne.fRozne[4] < fMin[2])	//minimum Z
 			{
 				fMin[2] = uDaneCM4.dane.fRozne[4];
 				DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
 				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
 			else
-			if (uDaneCM4.dane.fRozne[5] > fMax[2])	//maksimum Z
+			if (uDaneCM4.dane.uRozne.fRozne[5] > fMax[2])	//maksimum Z
 			{
 				fMax[2] = uDaneCM4.dane.fRozne[5];
 				DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
@@ -2756,10 +2756,10 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			}
 
 			//obsłuż ekstrema w osi X ale bez komunkatów o ekstremach
-			if (uDaneCM4.dane.fRozne[0] < fMin[0])	//minimum X
+			if (uDaneCM4.dane.uRozne.fRozne[0] < fMin[0])	//minimum X
 				fMin[0] = uDaneCM4.dane.fRozne[0];
-			if (uDaneCM4.dane.fRozne[1] > fMax[0])	//maksimum X
-				fMax[0] = uDaneCM4.dane.fRozne[1];
+			if (uDaneCM4.dane.uRozne.fRozne[1] > fMax[0])	//maksimum X
+				fMax[0] = uDaneCM4.dane.uRozne.fRozne[1];
 
 			fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi
 		}
@@ -2785,30 +2785,30 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	case 1: chNazwaOsi = 'Y';
 		if (*chEtap & KALIBRUJ)
 		{
-			if (uDaneCM4.dane.fRozne[0] < fMin[0])	//minimum X
+			if (uDaneCM4.dane.uRozne.fRozne[0] < fMin[0])	//minimum X
 			{
-				fMin[0] = uDaneCM4.dane.fRozne[0];
+				fMin[0] = uDaneCM4.dane.uRozne.fRozne[0];
 				DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
 				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
 			else
-			if (uDaneCM4.dane.fRozne[1] > fMax[0])	//maksimum X
+			if (uDaneCM4.dane.uRozne.fRozne[1] > fMax[0])	//maksimum X
 			{
-				fMax[0] = uDaneCM4.dane.fRozne[1];
+				fMax[0] = uDaneCM4.dane.uRozne.fRozne[1];
 				DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
 				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
 			else
-			if (uDaneCM4.dane.fRozne[4] < fMin[2])	//minimum Z
+			if (uDaneCM4.dane.uRozne.fRozne[4] < fMin[2])	//minimum Z
 			{
-				fMin[2] = uDaneCM4.dane.fRozne[4];
+				fMin[2] = uDaneCM4.dane.uRozne.fRozne[4];
 				DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
 				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
 			else
-			if (uDaneCM4.dane.fRozne[5] > fMax[2])	//maksimum Z
+			if (uDaneCM4.dane.uRozne.fRozne[5] > fMax[2])	//maksimum Z
 			{
-				fMax[2] = uDaneCM4.dane.fRozne[5];
+				fMax[2] = uDaneCM4.dane.uRozne.fRozne[5];
 				DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
 				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
@@ -2836,30 +2836,30 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	case 2: chNazwaOsi = 'Z';
 		if (*chEtap & KALIBRUJ)
 		{
-			if (uDaneCM4.dane.fRozne[0] < fMin[0])	//minimum X
+			if (uDaneCM4.dane.uRozne.fRozne[0] < fMin[0])	//minimum X
 			{
-				fMin[0] = uDaneCM4.dane.fRozne[0];
+				fMin[0] = uDaneCM4.dane.uRozne.fRozne[0];
 				DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
 				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
 			else
-			if (uDaneCM4.dane.fRozne[1] > fMax[0])	//maksimum X
+			if (uDaneCM4.dane.uRozne.fRozne[1] > fMax[0])	//maksimum X
 			{
-				fMax[0] = uDaneCM4.dane.fRozne[1];
+				fMax[0] = uDaneCM4.dane.uRozne.fRozne[1];
 				DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
 				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
 			else
-			if (uDaneCM4.dane.fRozne[2] < fMin[1])	//minimum Y
+			if (uDaneCM4.dane.uRozne.fRozne[2] < fMin[1])	//minimum Y
 			{
-				fMin[1] = uDaneCM4.dane.fRozne[2];
+				fMin[1] = uDaneCM4.dane.uRozne.fRozne[2];
 				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
 			else
-			if (uDaneCM4.dane.fRozne[3] > fMax[1])	//maksimum Y
+			if (uDaneCM4.dane.uRozne.fRozne[3] > fMax[1])	//maksimum Y
 			{
-				fMax[1] = uDaneCM4.dane.fRozne[3];
+				fMax[1] = uDaneCM4.dane.uRozne.fRozne[3];
 				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
 				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
@@ -2892,12 +2892,12 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	print(chNapis, KOL12 + 12*FONT_SL, 140);
 	if (*chEtap & KALIBRUJ)
 	{
-		sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.fRozne[0]*1e6, uDaneCM4.dane.fRozne[1]*1e6);	//ekstrema X
+		sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.fRozne[0]*1e6, uDaneCM4.dane.uRozne.fRozne[1]*1e6);	//ekstrema X
 		print(chNapis, KOL12 + 12*FONT_SL, 180);
 	}
 	else
 	{
-		sprintf(chNapis, "%.3e, %.4f ", uDaneCM4.dane.fRozne[0], uDaneCM4.dane.fRozne[1]);	//przesunięcie i skalowanie X
+		sprintf(chNapis, "%.3e, %.4f ", uDaneCM4.dane.uRozne.fRozne[0], uDaneCM4.dane.uRozne.fRozne[1]);	//przesunięcie i skalowanie X
 		print(chNapis, KOL12 + 7*FONT_SL, 180);
 	}
 
@@ -2908,12 +2908,12 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	print(chNapis, KOL12 + 14*FONT_SL, 160);
 	if (*chEtap & KALIBRUJ)
 	{
-		sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.fRozne[2]*1e6, uDaneCM4.dane.fRozne[3]*1e6);	//ekstrema Y
+		sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.fRozne[2]*1e6, uDaneCM4.dane.uRozne.fRozne[3]*1e6);	//ekstrema Y
 		print(chNapis, KOL12 + 12*FONT_SL, 200);
 	}
 	else
 	{
-		sprintf(chNapis, "%.3e, %.4f ", uDaneCM4.dane.fRozne[2], uDaneCM4.dane.fRozne[3]);		//przesunięcie i skalowanie Y
+		sprintf(chNapis, "%.3e, %.4f ", uDaneCM4.dane.uRozne.fRozne[2], uDaneCM4.dane.uRozne.fRozne[3]);		//przesunięcie i skalowanie Y
 		print(chNapis, KOL12 + 7*FONT_SL, 200);
 	}
 
@@ -2922,12 +2922,12 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	print(chNapis, 10 + 8*FONT_SL, 120);
 	if (*chEtap & KALIBRUJ)
 	{
-		sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.fRozne[4]*1e6, uDaneCM4.dane.fRozne[5]*1e6);	//ekstrema Z
+		sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.fRozne[4]*1e6, uDaneCM4.dane.uRozne.fRozne[5]*1e6);	//ekstrema Z
 		print(chNapis, KOL12 + 12*FONT_SL, 220);
 	}
 	else
 	{
-		sprintf(chNapis, "%.3e, %.4f ", uDaneCM4.dane.fRozne[4], uDaneCM4.dane.fRozne[5]);		//przesunięcie i skalowanie Z
+		sprintf(chNapis, "%.3e, %.4f ", uDaneCM4.dane.uRozne.fRozne[4], uDaneCM4.dane.uRozne.fRozne[5]);		//przesunięcie i skalowanie Z
 		print(chNapis, KOL12 + 7*FONT_SL, 220);
 	}
 
@@ -3005,12 +3005,12 @@ float MaximumGlobalne(float* fMin, float* fMax)
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran kalibracji barometru
 // Parametry: *chEtap - wskaźnik na zmienną zawierającą bieżący etap procesu kalibracji
-// uDaneCM4.dane.fRozne[0] - pierwsze uśrednione ciśnienie czujnika 1
-// uDaneCM4.dane.fRozne[1] - pierwsze uśrednione ciśnienie czujnika 2
-// uDaneCM4.dane.fRozne[2] - drugie uśrednione ciśnienie czujnika 1
-// uDaneCM4.dane.fRozne[3] - drugie uśrednione ciśnienie czujnika 2
-// uDaneCM4.dane.fRozne[4] - współczynnik skalowania czujnika 1
-// uDaneCM4.dane.fRozne[5] - współczynnik skalowania czujnika 2
+// uDaneCM4.dane.uRozne.fRozne[0] - pierwsze uśrednione ciśnienie czujnika 1
+// uDaneCM4.dane.uRozne.fRozne[1] - pierwsze uśrednione ciśnienie czujnika 2
+// uDaneCM4.dane.uRozne.fRozne[2] - drugie uśrednione ciśnienie czujnika 1
+// uDaneCM4.dane.uRozne.fRozne[3] - drugie uśrednione ciśnienie czujnika 2
+// uDaneCM4.dane.uRozne.fRozne[4] - współczynnik skalowania czujnika 1
+// uDaneCM4.dane.uRozne.fRozne[5] - współczynnik skalowania czujnika 2
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibrujBaro(uint8_t *chEtap)
@@ -3062,17 +3062,17 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 	print(chNapis, KOL12 + 14*FONT_SL, 100);
 	sprintf(chNapis, "%.0f Pa", uDaneCM4.dane.fCisnieBzw[1]);
 	print(chNapis, KOL12 + 30*FONT_SL, 100);
-	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.fRozne[0]);	//pierwsze uśrednione ciśnienie czujnika 1
+	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.uRozne.fRozne[0]);	//pierwsze uśrednione ciśnienie czujnika 1
 	print(chNapis, KOL12 + 14*FONT_SL, 120);
-	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.fRozne[1]);	//pierwsze uśrednione ciśnienie czujnika 2
+	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.uRozne.fRozne[1]);	//pierwsze uśrednione ciśnienie czujnika 2
 	print(chNapis, KOL12 + 30*FONT_SL, 120);
-	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.fRozne[2]);	//drugie uśrednione ciśnienie czujnika 1
+	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.uRozne.fRozne[2]);	//drugie uśrednione ciśnienie czujnika 1
 	print(chNapis, KOL12 + 14*FONT_SL, 140);
-	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.fRozne[3]);	//drugie uśrednione ciśnienie czujnika 2
+	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.uRozne.fRozne[3]);	//drugie uśrednione ciśnienie czujnika 2
 	print(chNapis, KOL12 + 30*FONT_SL, 140);
-	sprintf(chNapis, "%.6f ", uDaneCM4.dane.fRozne[4]);	//współczynnik skalowania czujnika 1
+	sprintf(chNapis, "%.6f ", uDaneCM4.dane.uRozne.fRozne[4]);	//współczynnik skalowania czujnika 1
 	print(chNapis, KOL12 + 14*FONT_SL, 160);
-	sprintf(chNapis, "%.6f ", uDaneCM4.dane.fRozne[5]);	//współczynnik skalowania czujnika 2
+	sprintf(chNapis, "%.6f ", uDaneCM4.dane.uRozne.fRozne[5]);	//współczynnik skalowania czujnika 2
 	print(chNapis, KOL12 + 30*FONT_SL, 160);
 
 	switch (*chEtap)
@@ -3113,9 +3113,9 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 			RysujPrzycisk(stPrzycisk, "Blad!", ODSWIEZ);
 		else
 			RysujPrzycisk(stPrzycisk, "Gotowe", ODSWIEZ);
-		sprintf(chNapis, "dP1 = %.2f Pa", fabs(uDaneCM4.dane.fRozne[0] - uDaneCM4.dane.fRozne[2]));	//Rożnica ciśnień czujnika 1
+		sprintf(chNapis, "dP1 = %.2f Pa", fabs(uDaneCM4.dane.uRozne.fRozne[0] - uDaneCM4.dane.uRozne.fRozne[2]));	//Rożnica ciśnień czujnika 1
 		print(chNapis, 10 + stPrzycisk.sX2, 240);
-		sprintf(chNapis, "dP2 = %.2f Pa", fabs(uDaneCM4.dane.fRozne[1] - uDaneCM4.dane.fRozne[3]));	//Rożnica ciśnień czujnika 2
+		sprintf(chNapis, "dP2 = %.2f Pa", fabs(uDaneCM4.dane.uRozne.fRozne[1] - uDaneCM4.dane.uRozne.fRozne[3]));	//Rożnica ciśnień czujnika 2
 		print(chNapis, 10 + stPrzycisk.sX2, 260);
 		if (chStanPrzycisku == 1)
 			chErr = ERR_GOTOWE;	//zakończ
@@ -3420,7 +3420,7 @@ uint8_t CzytajFram(uint16_t sAdres, uint8_t chRozmiar, float* fDane)
 	}
 	while ((uDaneCM4.dane.sAdres != uDaneCM7.dane.sAdres) && (chTimeout));
 	for (uint8_t n=0; n<uDaneCM4.dane.chRozmiar; n++)
-		*(fDane + n) = uDaneCM4.dane.fRozne[n];
+		*(fDane + n) = uDaneCM4.dane.uRozne.fRozne[n];
 
 	if (chTimeout)
 		return ERR_OK;
