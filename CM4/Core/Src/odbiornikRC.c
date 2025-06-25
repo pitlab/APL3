@@ -211,7 +211,7 @@ uint8_t InicjujOdbiornikiRC(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja wczytuje z FRAM konfigurację 2 pierwszych nanałów serw i konfiguruje je jako serwo lub S-Bus
+// Funkcja wczytuje z FRAM konfigurację 2 pierwszych kanałów serw i konfiguruje je jako PWM lub S-Bus
 // Parametry Sbus 100kBps, 8E2
 // Parametry:
 // Zwraca: kod błędu
@@ -225,7 +225,6 @@ uint8_t InicjujWyjsciaSBus(void)
 
 	//czytaj konfigurację dwu pierwszych kanałów serw
 	chTyp = CzytajFRAM(FAU_KONF_SERWA12);
-	chTyp = SERWO_SBUS;
 
 	//kanał 1 - konfiguracja pinu PB9
 	__HAL_RCC_GPIOB_CLK_ENABLE();
@@ -233,13 +232,20 @@ uint8_t InicjujWyjsciaSBus(void)
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 
+#define SERWO_PWM400	0	//wyjście PWM 400Hz
+#define SERWO_PWM50		1	//wyjście PWM 50Hz
+#define SERWO_IO		2	//wyjście skonfigurowane jako wjściowy port IO do debugowania algorytmów
+#define SERWO_ALTER1	3	//wyjście S-Bus, ADC
+#define SERWO_ALTER2	4	//wyjście S-Bus, ADC
+
+
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_IO)	//wyjście IO do debugowania
 	{
 	    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
-	if ((chTyp & MASKA_TYPU_RC1) == SERWO_SBUS)		//wyjście jako S-Bus
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_ALTER1)		//wyjście jako S-Bus
 	{
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
@@ -296,7 +302,7 @@ uint8_t InicjujWyjsciaSBus(void)
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM400)
 	{
 		GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
-		    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM50)
@@ -305,13 +311,14 @@ uint8_t InicjujWyjsciaSBus(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 
+
 	//kanał 2 - konfiguracja pinu PB10 - obecnie MOD_QSPI_CS
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
 	{
 
 	}
 	else
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_SBUS)
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ALTER1)
 	{
 
 	}

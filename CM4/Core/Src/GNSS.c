@@ -349,13 +349,13 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	//Przepisuje odebrane dane GNSS z małego bufora do większego bufora kołowego analizy protokołu
 	if (huart->Instance == UART8)
 	{
-		for (uint8_t n=0; n<ROZMIAR_BUF_SBUS; n++)
+		for (uint8_t n=0; n<ROZMIAR_BUF_ODB_GNSS; n++)
 		{
 			chBuforAnalizyGNSS[chWskNapBaGNSS] = chBuforOdbioruGNSS[n];
 			chWskNapBaGNSS++;
 			chWskNapBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;	//zapętlenie wskaźnika bufora kołowego
 		}
-		HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_SBUS);
+		HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
 	}
 
 	if (huart->Instance == UART4)		//dane z SBUS1

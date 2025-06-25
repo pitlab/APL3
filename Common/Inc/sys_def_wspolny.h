@@ -69,15 +69,15 @@
 //definicje typów sygnału z odbiornika RC w konfiguracji FRAM FAU_KONF_ODB_RC
 #define ODB_RC_SBUS		1
 #define ODB_RC_PPM		2
-#define MASKA_TYPU_RC1	0x03	//te bity definiują rodzaj sygnału z odbiornika RC1
-#define MASKA_TYPU_RC2	0x30	//te bity definiują rodzaj sygnału z odbiornika RC2
+#define MASKA_TYPU_RC1	0x07	//te bity definiują rodzaj sygnału z odbiornika RC1
+#define MASKA_TYPU_RC2	0x70	//te bity definiują rodzaj sygnału z odbiornika RC2
 
-//definicje typów sygnału 2 pierwszych serw
-#define SERWO_IO		0	//wyjście skonfigurowane jako wjściowy port IO do debugowania algorytmów
-#define SERWO_SBUS		1	//wyjście S-Bus
-#define SERWO_PWM400	2	//wyjście PWM 400Hz
-#define SERWO_PWM50		3	//wyjście PWM 50Hz
-
+//definicje typów sygnału serw
+#define SERWO_PWM400	0	//wyjście PWM 400Hz
+#define SERWO_PWM50		1	//wyjście PWM 50Hz
+#define SERWO_IO		2	//wyjście skonfigurowane jako wjściowy port IO do debugowania algorytmów
+#define SERWO_ALTER1	3	//wyjście S-Bus, ADC
+#define SERWO_ALTER2	4	//wyjście S-Bus, ADC
 
 
 //stany 3-położeniowych przełaczników na kanałach 5, 6 i 7
