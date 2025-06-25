@@ -14,7 +14,7 @@
 
 #define OKRES_RAMKI_PPM_RC	30000	//Czas między kolejnymi ramkami PPM odbiornika RC [us]
 #define ROZMIAR_BUF_SBUS	25
-#define OKRES_RAMKI_SBUS	10000	//Czas między kolejnymi wychodzącymi ramkami SBus
+#define OKRES_RAMKI_SBUS	9000	//Czas między kolejnymi wychodzącymi ramkami SBus czas jest odmierzany w kwantach 5ms. Niepełne 2 kwanty są po to aby nie porzycał ramek jeżeli pętla wykona się odrobinę szybciej
 #define SBUS_NAGLOWEK		0x0F	//bajt nagłówkowy ramki SBus
 #define MAX_PRZESUN_NAGL	2		//nagłówek ramki S-Bus może być przesunięty maksymalnie o tyle bajtów do tyłu
 #define SBUS_MIN			380		//minimalna wartość jaką przenosi protokół SBus

@@ -67,10 +67,11 @@
 //#define PPM_SPACE   	20     	//odstęp między kolejnymi impulsami PPM [us]
 
 //definicje typów sygnału z odbiornika RC w konfiguracji FRAM FAU_KONF_ODB_RC
+#define ODB_RC_CPPM		0
 #define ODB_RC_SBUS		1
-#define ODB_RC_PPM		2
-#define MASKA_TYPU_RC1	0x07	//te bity definiują rodzaj sygnału z odbiornika RC1
-#define MASKA_TYPU_RC2	0x70	//te bity definiują rodzaj sygnału z odbiornika RC2
+
+#define MASKA_TYPU_RC1	0x0F	//te bity definiują rodzaj sygnału z odbiornika RC1
+#define MASKA_TYPU_RC2	0xF0	//te bity definiują rodzaj sygnału z odbiornika RC2
 
 //definicje typów sygnału serw
 #define SERWO_PWM400	0	//wyjście PWM 400Hz

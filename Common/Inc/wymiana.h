@@ -53,8 +53,8 @@
 #define POL_ZAPISZ_FRAM_U8		27	//zapisz przekazane dane do FRAM pod podany adres
 #define POL_CZYTAJ_FRAM_FLOAT	28	//odczytaj i wyślij zawartość FRAM spod podanego adresu
 #define POL_ZAPISZ_FRAM_FLOAT	29	//zapisz przekazane dane do FRAM pod podany adres
-
 #define POL_KASUJ_DRYFT_ZYRO	30	//kasuje druft katów z żyroskopu sprowadzajac je do wartości z akcelerometru
+#define POL_REKONFIG_SERWA_RC	31	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie konfiguracji we FRAM
 
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
 

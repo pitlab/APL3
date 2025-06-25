@@ -144,8 +144,10 @@ void PetlaGlowna(void)
 	case 16:	//pozwól na testowe uruchomienie inicjalizacji
 		if (chBuforAnalizyGNSS[0] == 0xFF)
 		{
-			InicjujModulI2P();
-			chBuforAnalizyGNSS[0] = 0;
+			InicjujOdbiornikiRC();
+			//InicjujWyjsciaSBus();
+			//InicjujModulI2P();
+			//chBuforAnalizyGNSS[0] = 0;
 		}
 		break;
 
@@ -355,6 +357,11 @@ void WykonajPolecenieCM7(void)
 			uDaneCM4.dane.fKatZyro1[n] = uDaneCM4.dane.fKatAkcel1[n];
 			uDaneCM4.dane.fKatZyro2[n] = uDaneCM4.dane.fKatAkcel2[n];
 		}
+		break;
+
+	case POL_REKONFIG_SERWA_RC:
+		InicjujOdbiornikiRC();
+		InicjujWyjsciaSBus();
 		break;
 
 	case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;	break;	//nadpisz poprzednio zwrócony błąd

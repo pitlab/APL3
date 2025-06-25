@@ -63,8 +63,10 @@ TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim7;
 TIM_HandleTypeDef htim8;
 
+
 UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart8;
+DMA_HandleTypeDef hdma_uart2_rx;
 DMA_HandleTypeDef hdma_uart4_rx;
 DMA_HandleTypeDef hdma_uart4_tx;
 DMA_HandleTypeDef hdma_uart8_rx;

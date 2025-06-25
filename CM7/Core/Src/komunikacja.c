@@ -292,7 +292,10 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//wyłącz wykonywanie polecenia PK_WYSLIJ_ODCZYT_FRAM
 		break;
 
-
+	case PK_REKONFIG_SERWA_RC:	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie zawartosci FRAM
+		uDaneCM7.dane.chWykonajPolecenie = POL_REKONFIG_SERWA_RC;
+		chErr = Wyslij_OK(0, 0, chInterfejs);
+		break;
 
 	}
     return chErr;

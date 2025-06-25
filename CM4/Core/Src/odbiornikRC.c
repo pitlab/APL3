@@ -18,6 +18,7 @@ extern unia_wymianyCM4_t uDaneCM4;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim4;
 UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart4;
 DMA_HandleTypeDef hdma_usart2_rx;
 
@@ -43,34 +44,19 @@ uint8_t InicjujOdbiornikiRC(void)
 	TIM_IC_InitTypeDef sConfigIC = {0};
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
+	//czytaj konfigurację obu odbiorników RC
+	chTyp = CzytajFRAM(FAU_KONF_ODB_RC);
+
+	//ustaw Port PB8 jako UART4_RX lub TIM4_CH3
 	__HAL_RCC_GPIOB_CLK_ENABLE();
     GPIO_InitStruct.Pin = GPIO_PIN_8;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-
-	//czytaj konfigurację obu odbiorników RC
-	chTyp = CzytajFRAM(FAU_KONF_ODB_RC);
-
-
-	//ustaw Port PB8 jako UART4_RX lub TIM4_CH3
-	chTyp = ODB_RC_SBUS;	//tymczasowo nadpisz konfigurację
-	if ((chTyp & MASKA_TYPU_RC1) == ODB_RC_PPM)
+	if ((chTyp & MASKA_TYPU_RC1) == ODB_RC_CPPM)
 	{
 	    GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
 	    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-		//ustaw alternatywną funkcję portu PB8
-		//GPIOB->AFR[1] &= ~0x0000000F;	//wyczyść 4 bity AFR8[3:0]
-		//GPIOB->AFR[1] |= GPIO_AF2_TIM4;	//AF2 = TIM4_CH3
-
-		//CPU1 can allocate a peripheral for itself by setting the dedicated PERxEN bit in:
-		//• RCC_DnxxxxENR registers or
-		//• RCC_C1_DnxxxxENR registers.
-		//RCC->APB1LENR &= ~RCC_APB1LENR_UART4EN;		//wyłącz zegar dla UART4
-		//RCC->APB1LENR |= RCC_APB1LENR_TIM3EN;		//włącz zegar dla TIM3
-		//RCC_C2->APB1LENR &= ~RCC_APB1LENR_UART4EN;		//wyłącz zegar dla UART4
-		//RCC_C2->APB1LENR |= RCC_APB1LENR_TIM3EN;		//włącz zegar dla TIM3
 		__HAL_RCC_TIM4_CLK_ENABLE();
 
 		sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
@@ -84,7 +70,6 @@ uint8_t InicjujOdbiornikiRC(void)
 	{
 	    GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
 	    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
 		__HAL_RCC_DMA1_CLK_ENABLE();
 	    __HAL_RCC_UART4_CLK_ENABLE();
 
@@ -93,7 +78,10 @@ uint8_t InicjujOdbiornikiRC(void)
 		huart4.Init.WordLength = UART_WORDLENGTH_9B;	//bit parzystości liczy sie jako dane
 		huart4.Init.StopBits = UART_STOPBITS_2;
 		huart4.Init.Parity = UART_PARITY_EVEN;
-		huart4.Init.Mode = UART_MODE_TX_RX;
+		if (huart4.Init.Mode == UART_MODE_TX)//jeżeli właczony jest nadajnik to włącz jeszcze odbiornik a jeżeli nie to tylko odbiornik
+			huart4.Init.Mode = UART_MODE_TX_RX;
+		else
+			huart4.Init.Mode = UART_MODE_RX;
 		huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 		huart4.Init.OverSampling = UART_OVERSAMPLING_16;
 		huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
@@ -127,26 +115,23 @@ uint8_t InicjujOdbiornikiRC(void)
 		// UART4 interrupt Init
 		HAL_NVIC_SetPriority(UART4_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(UART4_IRQn);
-
-		//włacz przerwanie DMA odbiorczego
 		HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
-
-    	HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);
-		//HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);
+    	HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);	//włącz odbiór pierwszej ramki
 	}
 
 
 	//ustaw Port PA3 jako UART2_RX lub TIM2_CH4
-	chTyp = ODB_RC_SBUS << 4;	//tymczasowo nadpisz konfigurację
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == ODB_RC_PPM)
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	GPIO_InitStruct.Pin = GPIO_PIN_3;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == ODB_RC_CPPM)
 	{
-		//ustaw alternatywną funkcję portu PA3
-		GPIOA->AFR[0] &= ~0x0000F000;	//wyczyść 4 bity AFR3[3:0]
-		GPIOA->AFR[0] |= (GPIO_AF1_TIM2 << 16);	//AF1 = TIM2_CH4
-
-		RCC_C1->APB1LENR &= ~RCC_APB1LENR_USART2EN;	//wyłącz zegar dla USART2
-		RCC_C1->APB1LENR |= RCC_APB1LENR_TIM2EN;		//włącz zegar dla TIM2
+		GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+		__HAL_RCC_TIM2_CLK_ENABLE();
 
 		sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
 		sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
@@ -157,40 +142,22 @@ uint8_t InicjujOdbiornikiRC(void)
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == ODB_RC_SBUS)
 	{
-	    GPIO_InitStruct.Pin = GPIO_PIN_3;
-	    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-	    GPIO_InitStruct.Pull = GPIO_NOPULL;
-	    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	    GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
 	    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-		//ustaw alternatywną funkcję portu PA3
-		GPIOA->AFR[0] &= ~0x0000F000;	//wyczyść 4 bity AFR3[3:0]
-		GPIOA->AFR[0] |= (GPIO_AF7_USART2 << 12);	//AF7 = USART2_RX
 		__HAL_RCC_DMA2_CLK_ENABLE();
-
-		//RCC_C1->APB1LENR &= ~RCC_APB1LENR_TIM2EN;		//wyłącz zegar dla TIM2. Nie wyłaczaj bo obsługuje  wyjście TIM2_CH1
-		RCC_C1->APB1LENR |= RCC_APB1LENR_USART2EN;		//włącz zegar dla USART2
-		RCC_C2->APB1LENR |= RCC_APB1LENR_USART2EN;		//włącz zegar dla USART2
-		RCC->APB1LENR |= RCC_APB1LENR_USART2EN;			//włącz zegar dla UART4
-
-		//__HAL_RCC_DMA1_CLK_ENABLE();
 		__HAL_RCC_USART2_CLK_ENABLE();
-	    __HAL_RCC_GPIOA_CLK_ENABLE();
 
 		huart2.Instance = USART2;
 		huart2.Init.BaudRate = 100000;
-		huart2.Init.WordLength = UART_WORDLENGTH_8B;
+		huart2.Init.WordLength = UART_WORDLENGTH_9B;
 		huart2.Init.StopBits = UART_STOPBITS_2;
 		huart2.Init.Parity = UART_PARITY_EVEN;
-		//huart2.Init.Mode = UART_MODE_RX;
-		huart2.Init.Mode = UART_MODE_TX_RX;
+		huart2.Init.Mode = UART_MODE_RX;
 		huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 		huart2.Init.OverSampling = UART_OVERSAMPLING_16;
 		huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
 		huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-		//huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
-		huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+		huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
 		huart2.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
 		huart2.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
 		huart2.AdvancedInit.RxPinLevelInvert = UART_ADVFEATURE_RXINV_ENABLE;
@@ -198,12 +165,30 @@ uint8_t InicjujOdbiornikiRC(void)
 		chErr = HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_2);
 		chErr = HAL_UARTEx_EnableFifoMode(&huart2);
 
-		//włacz przerwanie DMA odbiorczego
+		//ponieważ nie ma jak zarezerwować kanału DMA w HAL bo nie cały UART jest dostępny, więc USART2 będzie pracował na przerwaniach
+		/*/ UART2 DMA RX Init
+		hdma_uart2_rx.Instance = DMA2_Stream0;
+		hdma_uart2_rx.Init.Request = DMA_REQUEST_USART2_RX;
+		hdma_uart2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+		hdma_uart2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+		hdma_uart2_rx.Init.MemInc = DMA_MINC_ENABLE;
+		hdma_uart2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+		hdma_uart2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+		hdma_uart2_rx.Init.Mode = DMA_NORMAL;
+		hdma_uart2_rx.Init.Priority = DMA_PRIORITY_LOW;
+		hdma_uart2_rx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+		hdma_uart2_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+		hdma_uart2_rx.Init.MemBurst = DMA_MBURST_SINGLE;
+		hdma_uart2_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
+		chErr = HAL_DMA_Init(&hdma_uart2_rx);
+		__HAL_LINKDMA(&huart2, hdmarx, hdma_uart2_rx);
 		HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+		//HAL_UART_Receive_DMA(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_SBUS);		*/
 
-		//HAL_UART_Receive_DMA(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_SBUS);
-		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_SBUS);
+		HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(USART2_IRQn);
+		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_SBUS);	//włącz odbiór pierwszej ramki
 	}
 	return chErr;
 }
@@ -232,13 +217,20 @@ uint8_t InicjujWyjsciaSBus(void)
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 
-#define SERWO_PWM400	0	//wyjście PWM 400Hz
-#define SERWO_PWM50		1	//wyjście PWM 50Hz
-#define SERWO_IO		2	//wyjście skonfigurowane jako wjściowy port IO do debugowania algorytmów
-#define SERWO_ALTER1	3	//wyjście S-Bus, ADC
-#define SERWO_ALTER2	4	//wyjście S-Bus, ADC
-
-
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM400)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	}
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM50)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	}
+	else
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_IO)	//wyjście IO do debugowania
 	{
 	    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -251,18 +243,18 @@ uint8_t InicjujWyjsciaSBus(void)
 		GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	/*	__HAL_RCC_DMA1_CLK_ENABLE();
+		__HAL_RCC_DMA1_CLK_ENABLE();
 		__HAL_RCC_UART4_CLK_ENABLE();
 
 		huart4.Instance = UART4;
 		huart4.Init.BaudRate = 100000;
-		huart4.Init.WordLength = UART_WORDLENGTH_8B;
+		huart4.Init.WordLength = UART_WORDLENGTH_9B;
 		huart4.Init.StopBits = UART_STOPBITS_2;
 		huart4.Init.Parity = UART_PARITY_EVEN;
-		//if (huart4.Init.Mode == UART_MODE_RX)
-		huart4.Init.Mode = UART_MODE_TX_RX;
-		//else
-			//huart4.Init.Mode = UART_MODE_TX;
+		if (huart4.Init.Mode == UART_MODE_RX)		//jeżeli właczony jest odbiornik to włącz jeszcze nadajnik a jeżeli nie to tylko nadajnik
+			huart4.Init.Mode = UART_MODE_TX_RX;
+		else
+			huart4.Init.Mode = UART_MODE_TX_RX;
 		huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 		huart4.Init.OverSampling = UART_OVERSAMPLING_16;
 		huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
@@ -273,10 +265,11 @@ uint8_t InicjujWyjsciaSBus(void)
 		chErr = HAL_UART_Init(&huart4);
 		chErr = HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_2);
 		chErr = HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_2);
-		chErr = HAL_UARTEx_EnableFifoMode(&huart4);
+		//chErr = HAL_UARTEx_EnableFifoMode(&huart4);
+		chErr = HAL_UARTEx_DisableFifoMode(&huart4);
 
 		HAL_NVIC_SetPriority(UART4_IRQn, 0, 0);
-		HAL_NVIC_EnableIRQ(UART4_IRQn);*/
+		HAL_NVIC_EnableIRQ(UART4_IRQn);
 
 		hdma_uart4_tx.Instance = DMA2_Stream0;
 		hdma_uart4_tx.Init.Request = DMA_REQUEST_UART4_TX;
@@ -293,45 +286,311 @@ uint8_t InicjujWyjsciaSBus(void)
 	    hdma_uart4_tx.Init.PeriphBurst = DMA_PBURST_SINGLE;
 		chErr = HAL_DMA_Init(&hdma_uart4_tx);
 	    __HAL_LINKDMA(&huart4, hdmatx, hdma_uart4_tx);
+		HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+	}
 
-	    /* UART8 interrupt Init */
-	    HAL_NVIC_SetPriority(UART8_IRQn, 0, 0);
-	    HAL_NVIC_EnableIRQ(UART8_IRQn);
+	//kanał 2 - konfiguracja pinu PB10 -TIM2_CH3, USART3_TX, MOD_QSPI_CS
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	GPIO_InitStruct.Pin = GPIO_PIN_10;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM50)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	}
+	/*else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ALTER1)	//wyjście jako S-Bus
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+		__HAL_RCC_USART3_CLK_ENABLE();
+
+		huart3.Instance = USART3;
+		huart3.Init.BaudRate = 100000;
+		huart3.Init.WordLength = UART_WORDLENGTH_9B;
+		huart3.Init.StopBits = UART_STOPBITS_2;
+		huart3.Init.Parity = UART_PARITY_EVEN;
+		if (huart3.Init.Mode == UART_MODE_RX)		//jeżeli właczony jest odbiornik to włącz jeszcze nadajnik a jeżeli nie to tylko nadajnik
+			huart3.Init.Mode = UART_MODE_TX_RX;
+		else
+			huart3.Init.Mode = UART_MODE_TX_RX;
+		huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+		huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+		huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+		huart3.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+		huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
+		huart3.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
+		huart3.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
+		chErr = HAL_UART_Init(&huart3);
+		chErr = HAL_UARTEx_SetRxFifoThreshold(&huart3, UART_RXFIFO_THRESHOLD_1_2);
+		chErr = HAL_UARTEx_SetTxFifoThreshold(&huart3, UART_TXFIFO_THRESHOLD_1_2);
+		//chErr = HAL_UARTEx_EnableFifoMode(&huart3);
+		chErr = HAL_UARTEx_DisableFifoMode(&huart3);
+
+		HAL_NVIC_SetPriority(USART3_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(USART3_IRQn);
+	}*/
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ALTER1)	//MOD_QSPI_CS
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF9_QUADSPI;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	}
+
+
+	chTyp = CzytajFRAM(FAU_KONF_SERWA34);
+
+	//kanał 3 - konfiguracja pinu PA15 TIM2_CH1
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	GPIO_InitStruct.Pin = GPIO_PIN_15;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM400)
 	{
-		GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	}
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM50)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	}
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_IO)	//wyjście IO do debugowania
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	}
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_ALTER1)		//
+	{
+
+	}
+
+
+	//kanał 4 - konfiguracja pinu  PB0 TIM3_CH3
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	GPIO_InitStruct.Pin = GPIO_PIN_0;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM50)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ALTER1)	//ADC12_INP9
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	}
+
+
+	chTyp = CzytajFRAM(FAU_KONF_SERWA56);
+
+	//kanał 5 - konfiguracja pinu PB1 TIM3_CH4
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	GPIO_InitStruct.Pin = GPIO_PIN_1;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM400)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM50)
 	{
-		GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	}
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_IO)	//wyjście IO do debugowania
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	}
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_ALTER1)		//ADC12_INP5
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 
 
-	//kanał 2 - konfiguracja pinu PB10 - obecnie MOD_QSPI_CS
+	//kanał 6 - konfiguracja pinu  PI5 TIM8_CH1
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	GPIO_InitStruct.Pin = GPIO_PIN_5;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
+		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM50)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
+		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
+	}
+	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
 	{
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ALTER1)	//ADC1_INP2
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
+	}
 
+
+	chTyp = CzytajFRAM(FAU_KONF_SERWA78);
+
+	//kanał 7 - konfiguracja pinu PI10  - brak timera na porcie
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	GPIO_InitStruct.Pin = GPIO_PIN_10;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM400)
+	{
+
+	}
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM50)
+	{
+
+	}
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_IO)	//wyjście IO do debugowania
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
+	}
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_ALTER1)		//
+	{
+
+	}
+
+
+	//kanał 8 - konfiguracja pinu  PH15 TIM8_CH3N
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	GPIO_InitStruct.Pin = GPIO_PIN_15;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
+		HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM50)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
+		HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ALTER1)
 	{
 
 	}
+
+
+	//kanały 9-16 - konfiguracja pinu  PA8 TIM1_CH1
+	chTyp = CzytajFRAM(FAU_KONF_SERWA916);
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	GPIO_InitStruct.Pin = GPIO_PIN_1;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+	if (chTyp == SERWO_PWM400)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	}
 	else
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
+	if (chTyp == SERWO_PWM50)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+		GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	}
+	else
+	if (chTyp == SERWO_IO)
+	{
+		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	}
+	else
+	if (chTyp == SERWO_ALTER1)	//ESC9-10 200Hz
 	{
 
 	}
 	else
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM50)
+	if (chTyp == SERWO_ALTER2)	//ESC9-12 100Hz
 	{
 
 	}
+
 	return chErr;
 }
 

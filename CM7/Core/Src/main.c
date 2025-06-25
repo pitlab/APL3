@@ -49,6 +49,13 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Rozbudować warunki korekcji magnetometru w AHRS o prędkość zmiany kąta
 
  - Tymczasowo zmieniono PB9 z timera sygnału serwa na IO debugujący
+
+ //Problemy sprzętowe:
+  * Nie można uruchomić ETH
+  * Nie działają kwarce  - podejrzewany problem z zasilaniem części analogowej
+  * Nie działa wejscie 2 odbiornika RC - prawdopodobnie problem lutowniczy
+  * Nie działa mikrofon - magistrala sprawia wrażenie zajętej
+  *
  * */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
