@@ -122,7 +122,7 @@ uint8_t ObslugaHMC5883(void)
 	case 0:		//startuj pomiar
 		chPoleceniaHMC[0] = MODE;
 		chPoleceniaHMC[1] = (1 << 0);   //Mode Select:0=Continuous-Measurement Mode, 1=Single-Measurement Mode, 2-3=Idle Mode.
-	    HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chPoleceniaHMC, 2);
+		chErr = HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chPoleceniaHMC, 2);
 	    break;
 
 	case 1:	//startuj odczyt

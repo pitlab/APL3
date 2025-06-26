@@ -160,6 +160,7 @@ typedef struct
 	uint8_t chOdpowiedzNaPolecenie;
 	uint8_t chRozmiar;			//rozmiar danych przekazywanych w polu fRozne
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
+	uint32_t nBrakCzujnika;		//zestaw flag obecnosci czujników
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
 } stWymianyCM4_t;
 

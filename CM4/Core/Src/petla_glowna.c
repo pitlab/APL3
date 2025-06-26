@@ -380,7 +380,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 {
 	uint8_t chErr = ERR_OK;
 	//printf("I2C");
-
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, SET);	//kanał serw 2 skonfigurowany jako IO
 	//operacje na zewnętrznej magistrali I2C3
 	switch(chEtapOperacjiI2C)
 	{
@@ -390,7 +390,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	case 3:	chErr = ObslugaHMC5883();		break;
 	default: break;
 	}
-
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, RESET);	//kanał serw 2 skonfigurowany jako IO
 	//operacje na wewnętrznej magistrali I2C4
 	switch(chEtapOperacjiI2C)
 	{
@@ -476,7 +476,8 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 ////////////////////////////////////////////////////////////////////////////////
 // Obsługuje obróbkę danych odczytanych z czujników na I2C
 // Parametry: chCzujniki - wskaźnik na zmienną z polami bitowymi inforującymi o danych z czujników
-// Zwraca: nic
+// Zwraca: kod błędu
+// Czas wykonania: 8/16us
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 {

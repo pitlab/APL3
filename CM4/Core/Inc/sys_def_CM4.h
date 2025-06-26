@@ -61,5 +61,6 @@
 //znaczenie bitów zmiennej chNoweDaneI2C
 #define DANE_I2C_HMC	0x01	//Dane z czujnika HMC
 
+#define MAX_PROB_INICJALIZACJI		5	//po tylu błędnych próbach inicjalizacji uznajemy czujnik za nieobecny i nie próbujemy więcej.
 
 #endif /* INC_SYS_DEF_CM4_H_ */

@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // AutoPitLot v3.0
-// Moduł ubsługi odbiorników RC
+// Moduł ubsługi odbiorników RC i wyjść serw/ESC
 //
 // (c) PitLab 2025
 // https://www.pitlab.pl
@@ -26,7 +26,7 @@ extern DMA_HandleTypeDef hdma_uart4_rx;
 extern DMA_HandleTypeDef hdma_uart4_tx;
 uint8_t chBuforOdbioruSBus1[ROZMIAR_BUF_SBUS];
 uint8_t chBuforOdbioruSBus2[ROZMIAR_BUF_SBUS];
-uint8_t chBuforNadawczySBus1[ROZMIAR_BUF_SBUS] =  {0x0f,0x01,0x04,0x20,0x00,0xff,0x07,0x40,0x00,0x02,0x10,0x80,0x2c,0x64,0x21,0x0b,0x59,0x08,0x40,0x00,0x02,0x10,0x80,0x00,0x00};
+uint8_t chBuforNadawczySBus[ROZMIAR_BUF_SBUS] =  {0x0f,0x01,0x04,0x20,0x00,0xff,0x07,0x40,0x00,0x02,0x10,0x80,0x2c,0x64,0x21,0x0b,0x59,0x08,0x40,0x00,0x02,0x10,0x80,0x00,0x00};
 
 uint32_t nCzasWysylkiSbus;
 
@@ -669,7 +669,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 	if (nCzasRC1 >= OKRES_RAMKI_SBUS)
 	{
 		nCzasWysylkiSbus = nCzasBiezacy;
-		HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus1, ROZMIAR_BUF_SBUS);	//wyślij kolejną ramkę
+		HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus, ROZMIAR_BUF_SBUS);	//wyślij kolejną ramkę
 	}
 
 	return chErr;

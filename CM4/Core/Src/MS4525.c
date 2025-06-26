@@ -13,7 +13,7 @@
 #include "spi.h"
 #include "modul_IiP.h"
 
-//Zakres pomairowy to +-1psi co odpowiada +-6894.76 [Pa] co odpowiada prędkosci 108,5 m/s (390,6 km/h)
+//Zakres pomiarowy to +-1psi co odpowiada +-6894.76 [Pa] co odpowiada prędkosci 108,5 m/s (390,6 km/h)
 
 
 extern I2C_HandleTypeDef hi2c3;
@@ -22,7 +22,7 @@ static uint8_t chProporcjaPomiarow;
 extern uint8_t chCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
 uint8_t chDaneMS4525[5];
 float fCiśnienieZerowaniaMS4525;	//ciśnienie zmierzone podczas kalibracji czujnika. Należy odjać je od bieżących wskazań
-uint16_t sLicznikZerowaniaMS4525;	//odlicza czas uśredniania danych z czujnika
+uint16_t sLicznikZerowaniaMS4525 = MAX_PROB_INICJALIZACJI;	//odlicza czas uśredniania danych z czujnika. Podczas inicjalizacji zlicza próby nieudanej inicjalizacji
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika.
@@ -41,6 +41,12 @@ uint8_t InicjujMS4525(void)
 		uDaneCM4.dane.nZainicjowano |= INIT_MS4525;
 		KalibrujZeroMS4525();
 	}
+	else	//wystapił błąd inicjalizacji. Po wystapieniu MAX_PROB_INICJAIZACJI wyłącz obsługę czujnika
+	{
+		sLicznikZerowaniaMS4525--;
+		if (!sLicznikZerowaniaMS4525)
+			uDaneCM4.dane.nBrakCzujnika |= INIT_MS4525;
+	}
 	return chErr;
 }
 
@@ -56,6 +62,10 @@ uint8_t InicjujMS4525(void)
 uint8_t ObslugaMS4525(void)
 {
 	uint8_t chErr;
+
+	//po MAX_PROB_INICJALIZACJI ustawiany jest bit braku czujnika. Taki czujnik nie jest dłużej obsługiwany
+	if (uDaneCM4.dane.nBrakCzujnika & INIT_MS4525)
+		return ERR_BRAK_MS4525;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_MS4525) != INIT_MS4525)	//jeżeli czujnik nie jest zainicjowany
 	{
