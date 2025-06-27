@@ -58,9 +58,9 @@
 #define FAU_PID_MIN_WY0		FA_USER_PID+16  //4U minimalna wartość wyjścia
 #define FAU_PID_MAX_WY0		FA_USER_PID+20  //4U maksymalna wartość wyjścia
 #define FAU_FILTRD_TYP 		FA_USER_PID+24  //1U Stała czasowa filtru członu różniczkującego (bity 0..5), wyłączony (bit 6), Regulator kątowy (bit 7)
-#define FAU_PID1	        FA_USER_PID+25  //1U nic
-#define FAU_PID2			FA_USER_PID+26	//1U nic
-#define FAU_PID3			FA_USER_PID+27	//1U nic
+//#define FAU_PID_WYJSCIE		FA_USER_PID+25	//1U Indeks odbiorcy do którego podłączone jest wyjście PID
+#define FAU_PID1	        FA_USER_PID+26  //1U nic
+#define FAU_PID2			FA_USER_PID+27	//1U nic
 #define ROZMIAR_REG_PID		28
 
 

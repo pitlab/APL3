@@ -81,7 +81,7 @@ typedef struct _GNSS
 	uint8_t chDzien, chMies, chRok;
 } stGnss_t;
 
-typedef struct	//struktura  regulatora PID
+/*typedef struct	//struktura  regulatora PID
 {
 	//wartości wejsciowe
 	float fWejscie;  		//wskaźnik na wartość wejściową
@@ -106,7 +106,7 @@ typedef struct	//struktura  regulatora PID
 	float fWyjscieP;  		//wartość wyjściowa z członu P
 	float fWyjscieI;  		//wartość wyjściowa z członu I
 	float fWyjscieD;  		//wartość wyjściowa z członu D
-} stPID_t;
+} stPID_t; */
 
 typedef union
 {
@@ -149,7 +149,7 @@ typedef struct
 
 	uRozne_t uRozne;		//unia różnych typów danych ogólnego zastosowania
 	stGnss_t stGnss1;		//struktura danych GNSS1
-	stPID_t pid[LICZBA_PID];		//tablica struktur danych regulatorów PID
+	stWyjPID_t stWyjPID[LICZBA_PID];		//tablica struktur danych wyjściowych regulatorów PID
 	uint16_t sSerwo[KANALY_SERW];
 	int16_t sKanalRC[KANALY_ODB_RC];
 	uint8_t chTrybLotu;		//tryb lotu jako zestaw funkcjonalności realizowany w danym czasie

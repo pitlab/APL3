@@ -1,3 +1,8 @@
+#ifndef SRC_PID_KANALY_H_
+#define SRC_PID_KANALY_H_
+
+#include "stm32h7xx_hal.h"
+
 //#define NUM_AXIS  6 //liczba regulowanych osi: pochylenie, przechylenie, odchylenie, wysokość, prędkość + rezerwa
 //#define FRAM_FLOAT_SIZE     4   //rozmiar liczby float
 
@@ -49,3 +54,37 @@
 #define PID_MASKA_FILTRA_D		0x3F
 #define PID_WLACZONY			0x40
 #define PID_KATOWY				0x80
+
+
+
+typedef struct	//struktura konfiguracji regulatora PID
+{
+	//wartości wejsciowe
+	float fWejscie;  		//wskaźnik na wartość wejściową
+	float fZadana;  		//wartość zadana
+
+	//nastawy regulatorów
+	float fWzmP;   			//wzmocnienie członu P
+	float fWzmI;   			//wzmocnienie członu I
+	float fWzmD;   			//wzmocnienie członu D
+	float fOgrCalki; 		//ogranicznik wartości całki członu I
+	float fMaxWyj;			//maksymalna wartość wyjściowa regulatora
+	float fMinWyj;			//minimalna wartość wyjściowa regulatora
+	uint8_t chPodstFiltraD; //podstawa różniczkującego filtra błędu o nieskończonej odpowiedzi impulsowej IIR
+	uint8_t chFlagi;		//0x80 - regulator katowy, 0x40 - regulator wyłączony
+} stKonfPID_t;
+
+typedef struct	//struktura wyjścia regulatora PID
+{
+	//zmienne robocze członów dynamicznych
+	float fCalka;  			//zmianna przechowująca całkę z błędu
+	float fFiltrWePoprz; 		//poprzednia, przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
+
+	//zmienne wyjściowe
+	float fWyjsciePID; 		//wartość wyjściowa z całego regulatora
+	float fWyjscieP;  		//wartość wyjściowa z członu P
+	float fWyjscieI;  		//wartość wyjściowa z członu I
+	float fWyjscieD;  		//wartość wyjściowa z członu D
+} stWyjPID_t;
+
+#endif

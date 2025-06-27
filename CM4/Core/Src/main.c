@@ -197,7 +197,7 @@ int main(void)
   InicjujJednostkeInercyjna();
   InicjujOdbiornikiRC();
   InicjujWyjsciaSBus();
-  InicjujPID((stWymianyCM4_t*)&uDaneCM4.dane);
+  InicjujPID();
   InicjujMikser();
 
 

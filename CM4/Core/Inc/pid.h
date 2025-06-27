@@ -10,14 +10,8 @@
 #define MIN_WZM_ROZN	0.0001f		//minimalna wartość wzmocnienia członu różniczkowania
 
 
-
-//#define MASKA_FILTRA_D		0x3F
-//#define MASKA_WYLACZONY		0x40
-//#define MASKA_KATOWY		0x80
-
-
 //definicje funkcji
-uint8_t InicjujPID(stWymianyCM4_t *dane);
-float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane);
+uint8_t InicjujPID(void);
+float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPID_t *konfig);
 void ResetujCalkePID(void);
-uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane);
+uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig);

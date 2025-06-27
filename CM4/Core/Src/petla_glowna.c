@@ -53,8 +53,8 @@ extern uint16_t sLicznikCzasuKalibracji;
 uint8_t chPoprzedniRodzajPomiaru;	//okresla czy poprzedni pomiar magnetometrem MMC był ze zmianą przemagnesowania czy bez
 //int16_t sPoleCzujnika[3];
 float fPoleCzujnkaMMC[3];
-extern stPID_t stPID[LICZBA_PID];	//struktura przechowująca dane dotyczące regulatora PID
 extern stRC_t stRC;					//struktura przechowująca dane odbiorników RC
+extern stKonfPID_t stKonfigPID[LICZBA_PID];	//struktura przechowująca dane dotyczące konfiguracji regulatora PID
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -152,7 +152,7 @@ void PetlaGlowna(void)
 		break;
 
 	case 17:
-		StabilizacjaPID(ndT, &uDaneCM4.dane);
+		StabilizacjaPID(ndT, &uDaneCM4.dane, stKonfigPID);
 		break;
 
 	case 18:	break;
@@ -177,12 +177,14 @@ void PetlaGlowna(void)
 
 
 	//nadwyżkę czasu odcinka wytrać w jałowej petli
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, SET);	//kanał serw 2 skonfigurowany jako IO
 	do
 	{
 		__WFI();	//uśpij kontroler w oczekwianiu na przerwanie od czegokolwiek np. timera 7 mierzącego czas
 		nCzasJalowy = PobierzCzas() - nCzasOstatniegoOdcinka;
 	}
 	while (nCzasJalowy < CZAS_ODCINKA);
+	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, RESET);	//kanał serw 2 skonfigurowany jako IO
 
 	nCzasOstatniegoOdcinka = PobierzCzas();
 }
@@ -240,9 +242,10 @@ uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nKoniec)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// /wykonuje polecenie przekazane z CM7
+// Wykonuje polecenie przekazane z rdzenia CM7
 // Parametry: brak
-// Zwraca: kod błędu operacji I2C
+// Zwraca: nic
+// Czas wykonania: 680ns (dla POL_NIC)
 ////////////////////////////////////////////////////////////////////////////////
 void WykonajPolecenieCM7(void)
 {
@@ -380,7 +383,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 {
 	uint8_t chErr = ERR_OK;
 	//printf("I2C");
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, SET);	//kanał serw 2 skonfigurowany jako IO
+	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, SET);	//kanał serw 2 skonfigurowany jako IO
 	//operacje na zewnętrznej magistrali I2C3
 	switch(chEtapOperacjiI2C)
 	{
@@ -390,7 +393,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	case 3:	chErr = ObslugaHMC5883();		break;
 	default: break;
 	}
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, RESET);	//kanał serw 2 skonfigurowany jako IO
+
 	//operacje na wewnętrznej magistrali I2C4
 	switch(chEtapOperacjiI2C)
 	{
