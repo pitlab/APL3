@@ -13,14 +13,14 @@
 
 
 #define ROZM_DANYCH_ETH		1024
-#define ROZM_CIALA_RAMKI	8
 #define TR_TIMEOUT			250		//timeout ramki w ms
 #define TR_PROB_WYSLANIA	1
+#define ROZMIAR_NAGLOWKA	6
+#define ROZMIAR_CRC			2
+#define ROZM_CIALA_RAMKI	(ROZMIAR_NAGLOWKA + ROZMIAR_CRC)
 
 #define ROZMIAR_RAMKI_UART	254
 #define ROZM_DANYCH_UART	(ROZMIAR_RAMKI_UART - ROZM_CIALA_RAMKI)
-#define ROZMIAR_NAGLOWKA	6
-#define ROZMIAR_CRC			2
 
 //definicje pól ramki
 #define PR_ODBIOR_NAGL		0
@@ -69,9 +69,12 @@
 
 
 
-#define PK_ILOSC_POLECEN		22	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
-#define PK_TELEMETRIA			99	//ramka telemetryczna
+#define PK_ILOSC_POLECEN		23	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
+#define PK_TELEMETRIA1			96	//ramka telemetryczna 1
+#define PK_TELEMETRIA2			97	//ramka telemetryczna 2
+#define PK_TELEMETRIA3			98	//ramka telemetryczna 3 - na razie nie używane
+#define PK_TELEMETRIA4			99	//ramka telemetryczna 4 - na razie nie używane
 
 
 //Status gotowośco wykonania zdjęcia

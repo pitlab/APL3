@@ -28,7 +28,7 @@ static un8_16_t un8_16;
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 extern struct st_KonfKam strKonfKam;
-extern uint16_t sOkresTelem[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
+extern uint16_t sOkresTelemetrii[MAX_INDEKSOW_TELEMETR_W_RAMCE];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 extern  uint8_t chPolecenie;
 extern  uint8_t chRozmDanych;
 extern  uint8_t chDane[ROZM_DANYCH_UART];
@@ -142,7 +142,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		break;
 
 	case PK_ZAPISZ_FLASH: 	//zapisz bufor 256 słów do sektora flash NOR o przekazanym adresie
-		for (uint8_t n=0; n<4; n++)
+		for (n=0; n<4; n++)
 			un8_32.dane8[n] = chDane[n];	//adres sektora
 		chErr = ZapiszDaneFlashNOR(un8_32.dane32, sBuforSektoraFlash, ROZMIAR16_BUF_SEKT);
 		if (chErr == ERR_OK)
@@ -153,7 +153,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		break;
 
 	case PK_KASUJ_FLASH:	//kasuj sektor 128kB flash
-		for (uint8_t n=0; n<4; n++)
+		for (n=0; n<4; n++)
 			un8_32.dane8[n] = chDane[n];
 		chErr = KasujSektorFlashNOR(un8_32.dane32);
 
@@ -177,20 +177,22 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		chErr = WyslijRamke(chAdresZdalny, PK_CZYTAJ_FLASH, 2*chDane[4], (uint8_t*)sBuforSektoraFlash, chInterfejs);
 		break;
 
-	case PK_CZYTAJ_OKRES_TELE:	//odczytaj a APL3 okresy telemetrii: chDane[0] == liczba pozycji okresu telemetrii  do odczytania
+	case PK_CZYTAJ_OKRES_TELE:	//odczytaj a APL3 okresy telemetrii: chDane[0] == liczba pozycji okresu telemetrii  do odczytania, chDane[1] == numer zmiennej względen początku
 		chRozmiar = chDane[0];
-		for (uint8_t n=0; n<chRozmiar; n++)
+		for (uint8_t n=chDane[1]; n<chRozmiar; n++)
 		{
-			chDane[2*n+0] = (uint8_t)(sOkresTelem[n] & 0x00FF);	//młodszy przodem
-			chDane[2*n+1] = (uint8_t)(sOkresTelem[n] >> 8);
+			chDane[2*n+0] = (uint8_t)(sOkresTelemetrii[n] & 0x00FF);	//młodszy przodem
+			chDane[2*n+1] = (uint8_t)(sOkresTelemetrii[n] >> 8);
 		}
 		chErr = WyslijRamke(chAdresZdalny, PK_CZYTAJ_OKRES_TELE, 2*chRozmiar, chDane, chInterfejs);
 		break;
 
 	case PK_ZAPISZ_OKRES_TELE:	//zapisz okresy telemetrii
-		for (n=0; n< chRozmDanych; n++)
-			sOkresTelem[n] = chDane[2*n+0] + chDane[2*n+1] * 0x100;	//młodszy przodem
-		chErr = ZapiszKonfiguracjeTelemetrii();
+		uint16_t sPrzesuniecie = chDane[0] + chDane[1] * 0x100;	//indeks pierwszej zmiennej, młodszy przodem
+
+		for (n=0; n<chRozmDanych/2; n++)
+			sOkresTelemetrii[n] = chDane[2*n+2] + chDane[2*n+3] * 0x100;	//kolejnne okresy telemetrii, młodszy przodem
+		chErr = ZapiszKonfiguracjeTelemetrii(sPrzesuniecie);
 		if (chErr)
 			chErr = Wyslij_ERR(chErr, 0, chInterfejs);		//zwróć kod błedu zapisu konfiguracji telemetrii
 		else
