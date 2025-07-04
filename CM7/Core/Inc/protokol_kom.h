@@ -16,6 +16,7 @@
 //#define ILOSC_ODBIORU_DMA		9	//do metody odbierania małymi porcjami
 
 
+
 typedef union 		//unia do konwersji między danymi 16 i 8 bit
 {
 	uint16_t dane16;

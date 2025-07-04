@@ -1533,7 +1533,8 @@ void WatekOdbiorczyLPUART1(void const * argument)
 {
   /* USER CODE BEGIN WatekOdbiorczyLPUART1 */
 	uint32_t nCzas, nCzasPoprzedni;
-	extern volatile uint8_t chUartKomunikacjiZajety;
+	//extern volatile uint8_t chUartKomunikacjiZajety;
+	extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
 	uint8_t chErr;
 	uint8_t chLicznikZajetosci = 0;
 
@@ -1544,7 +1545,7 @@ void WatekOdbiorczyLPUART1(void const * argument)
 	while(1)
 	{
 		//w pierwszej kolejności obsłuż protokół komunikacyjny
-		chErr = CzekajNaZero(chUartKomunikacjiZajety, 500);		//czekaj [us] jeżeli chUartKomunikacjiZajety == 1
+		chErr = CzekajNaZero(st_ZajetoscLPUART.chZajetyPrzez, 500);		//czekaj [us] jeżeli st_ZajetoscLPUART.chZajetyPrzez > 0
 		if (chErr == ERR_OK)
 		{
 			ObslugaWatkuOdbiorczegoLPUART1();
@@ -1554,12 +1555,12 @@ void WatekOdbiorczyLPUART1(void const * argument)
 		{
 			chLicznikZajetosci++;
 			if (chLicznikZajetosci > 5)
-				chUartKomunikacjiZajety = 0;
+				st_ZajetoscLPUART.chZajetyPrzez = 0;
 		}
 
 		//w drugiej kolejności telemetrię
 		nCzas = MinalCzas(nCzasPoprzedni);	//czas w mikrosekundach
-		if ((nCzas/1000 > KWANT_CZASU_TELEMETRII) && (!chUartKomunikacjiZajety))
+		if ((nCzas/1000 > KWANT_CZASU_TELEMETRII) && (st_ZajetoscLPUART.chZajetyPrzez == 0))
 		{
 			ObslugaTelemetrii(INTERF_UART);
 			nCzasPoprzedni += KWANT_CZASU_TELEMETRII * 1000;

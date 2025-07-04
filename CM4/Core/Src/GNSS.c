@@ -362,6 +362,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	{
 		stRC.nCzasWe1 = PobierzCzas();	//czas przyjścia ramki SBus1
 		HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);
+		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);			//kanał serw 2 skonfigurowany jako IO
 	}
 
 	if (huart->Instance == USART2)		//dane z SBUS2

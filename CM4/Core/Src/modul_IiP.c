@@ -132,13 +132,17 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo)
 	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;
 	//hspi2.Instance->CFG2 |= SPI_POLARITY_HIGH | SPI_PHASE_2EDGE;	//testowo ustaw mode 3
 
-	//ustaw adres A2 = 0 zrobiony z linii Ix2 modułu
+	//ustaw adres A2 = 0 zrobiony z linii MOD_IOx1 modułu
 	switch (gniazdo)
 	{
-	case ADR_MOD1: 	chStanIOwy &= ~MIO12;	break;
+	/*case ADR_MOD1: 	chStanIOwy &= ~MIO12;	break;	//tak było
 	case ADR_MOD2:	chStanIOwy &= ~MIO22;	break;
 	case ADR_MOD3:	chStanIOwy &= ~MIO32;	break;
-	case ADR_MOD4:	chStanIOwy &= ~MIO42;	break;
+	case ADR_MOD4:	chStanIOwy &= ~MIO42;	break;*/
+	case ADR_MOD1: 	chStanIOwy &= ~MIO11;	break;		//tak powinno być - sprawdzić
+	case ADR_MOD2:	chStanIOwy &= ~MIO21;	break;
+	case ADR_MOD3:	chStanIOwy &= ~MIO31;	break;
+	case ADR_MOD4:	chStanIOwy &= ~MIO41;	break;
 	}
 
 	chErr = WyslijDaneExpandera(chStanIOwy);
@@ -161,18 +165,18 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo)
 	//ustaw adres A2 = 1 zrobiony z linii Ix2 modułu
 	switch (gniazdo)
 	{
-	case ADR_MOD1: 	chStanIOwy |= MIO12;	break;
+	/*case ADR_MOD1: 	chStanIOwy |= MIO12;	break;
 	case ADR_MOD2:	chStanIOwy |= MIO22;	break;
 	case ADR_MOD3:	chStanIOwy |= MIO32;	break;
-	case ADR_MOD4:	chStanIOwy |= MIO42;	break;
+	case ADR_MOD4:	chStanIOwy |= MIO42;	break;*/
+	case ADR_MOD1: 	chStanIOwy |= MIO11;	break;
+	case ADR_MOD2:	chStanIOwy |= MIO21;	break;
+	case ADR_MOD3:	chStanIOwy |= MIO31;	break;
+	case ADR_MOD4:	chStanIOwy |= MIO41;	break;
 	}
 	chErr |= WyslijDaneExpandera(chStanIOwy);
 	chErr |= UstawDekoderModulow(gniazdo);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
 	UstawAdresNaModule(ADR_MIIP_GRZALKA);				//ustaw adres A0..1
-
-	//grzałkę włącza się przez CS=0
-	//HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-
 
 	// Układ ND130 pracujacy na magistrali SPI ma okres zegara 6us co odpowiada częstotliwości 166kHz
 	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_256;	//przestaw zegar na 40MHz / 256 = 156kHz
@@ -184,8 +188,31 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo)
 		HAL_Delay(1);	//resetuj układ
 	}
 
-	//hspi2.Instance->CFG2 &= ~(SPI_POLARITY_HIGH | SPI_PHASE_2EDGE);
 	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
+
+	//termostatuj moduł uśrednioną temperaturą obu czujników IMU
+	uint8_t chLiczbaTermometrow = 0;
+	float fTemeratura = 0.0f;
+	float fOdchylkaRegulacji;
+
+	for (uint8_t n=TEMP_IMU1; n<TEMP_IMU2; n++)
+	{
+		if ((uDaneCM4.dane.fTemper[n] > TEMPERATURA_MIN_OK) && (uDaneCM4.dane.fTemper[n] < TEMPERATURA_MAX_OK))
+		{
+			fTemeratura += uDaneCM4.dane.fTemper[n];
+			chLiczbaTermometrow++;
+		}
+	}
+	if (chLiczbaTermometrow > 1)
+		fTemeratura /= chLiczbaTermometrow;
+
+	if (fTemeratura < TEMPERATURA_TERMOSTATU)
+	{
+		fOdchylkaRegulacji = TEMPERATURA_TERMOSTATU - fTemeratura;	//świadomie zamieniam znak odchyłki aby pracować z liczbami dodatnimi
+		fOdchylkaRegulacji *= WZMOCNIENIE_REGULATORA;
+	}
+
+
 	return chErr;
 }
 
@@ -830,5 +857,25 @@ void PobierzKalibracjeMagnetometru(uint8_t chMagn)
 			uDaneCM4.dane.uRozne.f32[2*n+1] = fSkaloMagn3[n];
 		}
 		break;
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Realizuje akcję termostatowania modułu właączajac grzałkę na MOD_IOx2
+// Parametry: gniazdo - numer gniazda w którym siedzi moduł
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void Termostat(uint8_t gniazdo, float fTemeratura)
+{
+
+	//ustaw adres A2 = 0 zrobiony z linii Ix2 modułu
+	switch (gniazdo)
+	{
+	case ADR_MOD1: 	chStanIOwy &= ~MIO12;	break;
+	case ADR_MOD2:	chStanIOwy &= ~MIO22;	break;
+	case ADR_MOD3:	chStanIOwy &= ~MIO32;	break;
+	case ADR_MOD4:	chStanIOwy &= ~MIO42;	break;
 	}
 }

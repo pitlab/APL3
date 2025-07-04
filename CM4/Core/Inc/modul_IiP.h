@@ -26,6 +26,13 @@
 #define PRZYSPIESZENIE_ZIEMSKIE	9.80665f			//m/s^2
 //#define KELWIN					273.15f
 
+//definicje zakresu temperatur [K] uznawanych za poprawne. Wskazanie poza tą granicą powoduje uznanie czujnika za niesprawny
+#define TEMPERATURA_MIN_OK	243	//-30°C
+#define TEMPERATURA_MAX_OK	343	//+70°C
+
+#define TEMPERATURA_TERMOSTATU	298	//25°C = temperatura zadana termostatu
+#define WZMOCNIENIE_REGULATORA	10	//wzmocnienie regualtora P regulacji temepratury
+
 #define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących
 
 #define LICZBA_CZUJ_CISN	2
@@ -76,5 +83,6 @@ uint8_t ZapiszKalibracjeMagnetometru(uint8_t chMagn);
 void ZnajdzEkstremaMagnetometru(float *fMag);
 uint8_t ZerujEkstremaMagnetometru(void);
 void PobierzKalibracjeMagnetometru(uint8_t chMagn);
+void Termostat(uint8_t gniazdo, float fTemeratura);
 
 #endif /* INC_MODUL_IIP_H_ */

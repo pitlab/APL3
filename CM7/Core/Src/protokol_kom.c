@@ -46,11 +46,15 @@ const char* chNazwaSierotki = {"Sierotka Wronia"};
 ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chBuforNadDMA[ROZMIAR_RAMKI_UART]);
 ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA+8]);
 
+extern ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chRamkaTelemetrii[2*LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_UART]);	//ramki telemetryczne: przygotowywana i wysyłana dla zmiennych 0..127 oraz 128..255
+extern uint8_t chIndeksNapelnRamki;	//okresla ktora tablica ramki telemetrycznej jest napełniania
 uint8_t chWyslaneOK = 1;
 uint8_t chBuforKomOdb[ROZMIAR_BUF_ANALIZY_ODB];
 volatile uint16_t sWskNap; 		//wskaźnik napełniania bufora kołowego chBuforKomOdb[]
 volatile uint16_t sWskOpr;		//wskaźnik opróżniania bufora kołowego chBuforKomOdb[]
-volatile uint8_t chUartKomunikacjiZajety;
+//volatile uint8_t chUartKomunikacjiZajety;	//wskazuje na wysyłanie ramki z poniższej listy
+//volatile uint8_t chDoWyslaniaLPUART[1 + LICZBA_RAMEK_TELEMETR];	//lista rzeczy do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
+volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
 uint8_t chTimeoutOdbioru;
 
 //deklaracje zmiennych zewnętrznych
@@ -186,10 +190,33 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 }
 
 
+
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if (huart->Instance == LPUART1)
-		chUartKomunikacjiZajety = 0;		//skońcyło się wysyłanie , port jest wolny
+	{
+		//skończyło się wysyłanie, wyczyść flagę zajetości i liczbę rzeczy do wysłania
+		if (st_ZajetoscLPUART.chZajetyPrzez)
+		{
+			st_ZajetoscLPUART.sDoWyslania[st_ZajetoscLPUART.chZajetyPrzez] = 0;	//nie ma nic wiecej do wysłania
+			st_ZajetoscLPUART.chZajetyPrzez = 0;	//nie jest już zajety
+		}
+
+		//port jest wolny, możn wysłać rzeczy zaległe
+		for (uint8_t n=0; n< ROZMIAR_KOLEJKI_LPUART; n++)
+		{
+			if (st_ZajetoscLPUART.sDoWyslania[n])
+			{
+				switch (n)
+				{
+				case RAMKA_POLECEN:	HAL_UART_Transmit_DMA(&hlpuart1, chBuforNadDMA, st_ZajetoscLPUART.sDoWyslania[n]);	break;	//ramkę poleceń
+				case RAMKA_TELE1:	HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[n + chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[n]);	break;	//ramkę telemetryczną 1
+				case RAMKA_TELE2:	HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[n + chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[n]);	break;	//ramkę telemetryczną 2
+				}
+				break;	//zakończ wykonanie petli for po wysłaniu pierwszej transmisji
+			}
+		}
+	}
 }
 
 
@@ -483,7 +510,8 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
     	switch (chInterfejs)
     	{
     	case INTERF_UART:
-    		chUartKomunikacjiZajety = 1;
+    		st_ZajetoscLPUART.chZajetyPrzez = RAMKA_POLECEN;
+    		st_ZajetoscLPUART.sDoWyslania[RAMKA_POLECEN - 1] = (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI;
     		HAL_UART_Transmit_DMA(&hlpuart1, chBuforNadDMA, (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI);
     		break;
 
@@ -559,7 +587,7 @@ uint8_t TestKomunikacjiSTD(void)
 	if (sRozmDanych)
 	{
 		chErr = HAL_UART_Transmit(&hlpuart1,  chBuforNadDMA, sRozmDanych, 100);
-		chUartKomunikacjiZajety = 1;
+		//chUartKomunikacjiZajety = 1;
 	}
 	return chErr;
 }
@@ -576,7 +604,7 @@ uint8_t TestKomunikacjiDMA(void)
 	if (sRozmDanych)
 	{
 		chErr = HAL_UART_Transmit_DMA(&hlpuart1, (uint8_t*)chBuforNadDMA, sRozmDanych);
-		chUartKomunikacjiZajety = 1;
+		//chUartKomunikacjiZajety = 1;
 	}
 	return chErr;
 }

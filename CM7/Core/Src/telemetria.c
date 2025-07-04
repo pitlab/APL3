@@ -30,9 +30,10 @@ extern unia_wymianyCM4_t uDaneCM4;
 extern uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
 extern UART_HandleTypeDef hlpuart1;
 static un8_16_t un8_16;		//unia do konwersji między danymi 16 i 8 bit
-extern volatile uint8_t chUartKomunikacjiZajety;
+//extern volatile uint8_t chUartKomunikacjiZajety;
+extern volatile uint8_t chDoWyslania[1 + LICZBA_RAMEK_TELEMETR];	//lista rzeczy do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
 extern stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
-
+extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
 uint8_t chOdczytano, chDoOdczytu = MAX_INDEKSOW_TELEMETR_W_RAMCE;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,7 +91,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 	uint8_t chLicznikZmienych = 0;
 	uint8_t chIloscDanych[LICZBA_RAMEK_TELEMETR] = {0, 0};
 	uint8_t chNrRamki;
-	uint16_t sRozmiarRamki;
+	//uint16_t sRozmiarRamki;
 	float fZmienna;
 
 	//wyczyść w ramkach pola na bity identyfikujące zmienne, bo kolejne bity będą OR-owane z wartością początkową, więc musi ona na początku być zerem
@@ -120,14 +121,26 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 		}
 	}
 
+	//przygotuj ramki do wysłania
 	for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
 	{
 		if (chIloscDanych[r] > 0)	//jeżeli jest coś do wysłania
 		{
 			PrzygotujRamkeTele(chIndeksNapelnRamki, chAdresZdalny[chInterfejs], stBSP.chAdres, chLicznikZmienych);	//utwórz ramkę gotową do wysyłki
-			chUartKomunikacjiZajety = 1;
-			sRozmiarRamki = chIloscDanych[r] * 2 + LICZBA_BAJTOW_ID_TELEMETRII + ROZM_CIALA_RAMKI;
-			HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[chIndeksNapelnRamki][0], sRozmiarRamki);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
+			st_ZajetoscLPUART.sDoWyslania[r+1] = chIloscDanych[r] * 2 + LICZBA_BAJTOW_ID_TELEMETRII + ROZM_CIALA_RAMKI;
+		}
+	}
+
+	if (st_ZajetoscLPUART.chZajetyPrzez == 0)	//jeżeli LPUART nie jest zajęty to wyślij telemetrię
+	{
+		for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
+		{
+			if (st_ZajetoscLPUART.sDoWyslania[r+1])
+			{
+				st_ZajetoscLPUART.chZajetyPrzez = RAMKA_TELE1 + r;
+				HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[r+1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
+				break;
+			}
 		}
 	}
 

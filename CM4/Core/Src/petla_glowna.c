@@ -177,14 +177,14 @@ void PetlaGlowna(void)
 
 
 	//nadwyżkę czasu odcinka wytrać w jałowej petli
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, SET);	//kanał serw 2 skonfigurowany jako IO
+	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, SET);	//kanał serw 2 skonfigurowany jako IO
 	do
 	{
 		__WFI();	//uśpij kontroler w oczekwianiu na przerwanie od czegokolwiek np. timera 7 mierzącego czas
 		nCzasJalowy = PobierzCzas() - nCzasOstatniegoOdcinka;
 	}
 	while (nCzasJalowy < CZAS_ODCINKA);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, RESET);	//kanał serw 2 skonfigurowany jako IO
+	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, RESET);	//kanał serw 2 skonfigurowany jako IO
 
 	nCzasOstatniegoOdcinka = PobierzCzas();
 }
