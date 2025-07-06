@@ -30,8 +30,9 @@
 #define TEMPERATURA_MIN_OK	243	//-30°C
 #define TEMPERATURA_MAX_OK	343	//+70°C
 
-#define TEMPERATURA_TERMOSTATU	298	//25°C = temperatura zadana termostatu
-#define WZMOCNIENIE_REGULATORA	10	//wzmocnienie regualtora P regulacji temepratury
+//#define TEMPERATURA_ZADANA_TERMOSTATU		298	//25°C
+#define TEMPERATURA_ZADANA_TERMOSTATU		315	//DO TESTÓW
+#define WZMOCNIENIE_REGULATORA_TERMOSTATU	10	//wzmocnienie regualtora P regulacji temepratury
 
 #define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących
 
@@ -70,7 +71,7 @@ typedef struct
 } magn_t;
 
 uint8_t InicjujModulI2P(void);
-uint8_t ObslugaModuluI2P(uint8_t gniazdo);
+uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy);
 float WysokoscBarometryczna(float fP, float fP0, float fTemp);
 uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib);
 uint8_t KalibrujZeroZyroskopu(void);
@@ -83,6 +84,6 @@ uint8_t ZapiszKalibracjeMagnetometru(uint8_t chMagn);
 void ZnajdzEkstremaMagnetometru(float *fMag);
 uint8_t ZerujEkstremaMagnetometru(void);
 void PobierzKalibracjeMagnetometru(uint8_t chMagn);
-void Termostat(uint8_t gniazdo, float fTemeratura);
+void Termostat(uint8_t chGniazdo, uint8_t* pchStanIOwy, float fTemeratura);
 
 #endif /* INC_MODUL_IIP_H_ */

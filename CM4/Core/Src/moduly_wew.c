@@ -85,7 +85,7 @@ uint8_t WyslijDaneExpandera(uint8_t daneWy)
 
 	UstawDekoderModulow(ADR_EXPIO);			//Ustaw dekoder adresów /CS.
 	dane_wysylane[0] = SPI_EXTIO + SPI_EXTIO_WR;	//Adres układu IO
-	dane_wysylane[1] = MCP23S08_GPIO;
+	dane_wysylane[1] = MCP23S08_GPIO;				//rejestr
 	dane_wysylane[2] = daneWy;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 	chErr = HAL_SPI_Transmit(&hspi2, dane_wysylane, 3, HAL_MAX_DELAY);
@@ -196,8 +196,8 @@ uint8_t UstawDekoderModulow(uint8_t modul)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Ustawia adres na liniach SUB_MOD_ASR0..1 idących do modułu aby móć zaadresować układy na module
-// Adres jesyt ustawiony na portach PD3 i PD6
+// Ustawia adres na liniach ADR0_NA_MOD..ADR1_NA_MOD idących do modułu aby móć zaadresować układy na module
+// Adres jest ustawiony na portach PD3 i PD6
 // Parametry: modul - adres modułu
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
@@ -210,23 +210,23 @@ uint8_t UstawAdresNaModule(uint8_t chAdres)
 	switch (chAdres)
 	{
 	case 0:
-		HAL_GPIO_WritePin(SUB_MOD_ADR0_GPIO_Port, SUB_MOD_ADR0_Pin, GPIO_PIN_RESET);	//SUB_ADR0
-		HAL_GPIO_WritePin(SUB_MOD_ADR1_GPIO_Port, SUB_MOD_ADR1_Pin, GPIO_PIN_RESET);	//SUB_ADR1
+		HAL_GPIO_WritePin(SUB_MOD_ADR0_GPIO_Port, SUB_MOD_ADR0_Pin, GPIO_PIN_RESET);	//ADR0_NA_MOD
+		HAL_GPIO_WritePin(SUB_MOD_ADR1_GPIO_Port, SUB_MOD_ADR1_Pin, GPIO_PIN_RESET);	//ADR1_NA_MOD
 		break;
 
 	case 1:
-		HAL_GPIO_WritePin(SUB_MOD_ADR0_GPIO_Port, SUB_MOD_ADR0_Pin, GPIO_PIN_SET);		//SUB_ADR0
-		HAL_GPIO_WritePin(SUB_MOD_ADR1_GPIO_Port, SUB_MOD_ADR1_Pin, GPIO_PIN_RESET);	//SUB_ADR1
+		HAL_GPIO_WritePin(SUB_MOD_ADR0_GPIO_Port, SUB_MOD_ADR0_Pin, GPIO_PIN_SET);		//ADR0_NA_MOD
+		HAL_GPIO_WritePin(SUB_MOD_ADR1_GPIO_Port, SUB_MOD_ADR1_Pin, GPIO_PIN_RESET);	//ADR1_NA_MOD
 		break;
 
 	case 2:
-		HAL_GPIO_WritePin(SUB_MOD_ADR0_GPIO_Port, SUB_MOD_ADR0_Pin, GPIO_PIN_RESET);	//SUB_ADR0
-		HAL_GPIO_WritePin(SUB_MOD_ADR1_GPIO_Port, SUB_MOD_ADR1_Pin, GPIO_PIN_SET);		//SUB_ADR1
+		HAL_GPIO_WritePin(SUB_MOD_ADR0_GPIO_Port, SUB_MOD_ADR0_Pin, GPIO_PIN_RESET);	//ADR0_NA_MOD
+		HAL_GPIO_WritePin(SUB_MOD_ADR1_GPIO_Port, SUB_MOD_ADR1_Pin, GPIO_PIN_SET);		//ADR1_NA_MOD
 		break;
 
 	case 3:
-		HAL_GPIO_WritePin(SUB_MOD_ADR0_GPIO_Port, SUB_MOD_ADR0_Pin, GPIO_PIN_SET);		//SUB_ADR0
-		HAL_GPIO_WritePin(SUB_MOD_ADR1_GPIO_Port, SUB_MOD_ADR1_Pin, GPIO_PIN_SET);		//SUB_ADR1
+		HAL_GPIO_WritePin(SUB_MOD_ADR0_GPIO_Port, SUB_MOD_ADR0_Pin, GPIO_PIN_SET);		//ADR0_NA_MOD
+		HAL_GPIO_WritePin(SUB_MOD_ADR1_GPIO_Port, SUB_MOD_ADR1_Pin, GPIO_PIN_SET);		//ADR1_NA_MOD
 		break;
 
 		default:	chErr = ERR_ZLY_ADRES;	break;

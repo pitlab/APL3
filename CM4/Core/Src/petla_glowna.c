@@ -51,7 +51,6 @@ volatile uint8_t chCzujnikZapisywanyNaI2CInt;
 uint8_t chNoweDaneI2C;	//zestaw flag informujący o pojawieniu sie nowych danych odebranych na magistrali I2C
 extern uint16_t sLicznikCzasuKalibracji;
 uint8_t chPoprzedniRodzajPomiaru;	//okresla czy poprzedni pomiar magnetometrem MMC był ze zmianą przemagnesowania czy bez
-//int16_t sPoleCzujnika[3];
 float fPoleCzujnkaMMC[3];
 extern stRC_t stRC;					//struktura przechowująca dane odbiorników RC
 extern stKonfPID_t stKonfigPID[LICZBA_PID];	//struktura przechowująca dane dotyczące konfiguracji regulatora PID
@@ -70,13 +69,12 @@ void PetlaGlowna(void)
 		break;
 
 	case 1:		//obsługa modułu w gnieździe 2
-		ObslugaModuluI2P(ADR_MOD2);
-		/*uint8_t chErr = ObslugaModuluI2P(ADR_MOD2);
+		uint8_t chErr = ObslugaModuluI2P(ADR_MOD2, &chStanIOwy);
 		if (chErr)
-			chStanIOwy &= ~MIO41;	//zaświeć czerwoną LED
+			chStanIOwy &= ~MIO40;	//zaświeć czerwoną LED
 		else
-			chStanIOwy |= MIO41;	//zgaś czerwoną LED */
-		chErrPG |= PobierzDaneExpandera(&chStanIOwe);
+			chStanIOwy |= MIO40;	//zgaś czerwoną LED
+
 		break;
 
 	case 2:		//obsługa modułu w gnieździe 3
@@ -102,7 +100,7 @@ void PetlaGlowna(void)
 			chErrPG |= DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
 			chWskOprBaGNSS++;
 			chWskOprBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
-			//chStanIOwy ^= MIO42;		//Zielona LED
+			//chStanIOwy ^= MIO41;		//Zielona LED
 			chTimeoutGNSS = TIMEOUT_GNSS;
 		}
 		if ((uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY) == 0)
@@ -130,7 +128,9 @@ void PetlaGlowna(void)
 	case 8:	JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
 	case 9:	chErrPG |= DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane);	break;
 	case 10:	break;
-	case 11: chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;
+	case 11:
+		//chErrPG |= PobierzDaneExpandera(&chStanIOwe);		//wszystkie porty ustawione na wyjściowe, nie ma co pobierać
+		chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;
 	case 12:
 		break;
 
@@ -293,13 +293,13 @@ void WykonajPolecenieCM7(void)
 		if (ZerujEkstremaMagnetometru())
 		{
 			uDaneCM4.dane.chOdpowiedzNaPolecenie = POL_NIC;	//jeżeli dane nie są jeszcze wyzerowane to zwróć inną odpowiedź niż numer polecenia
-			chStanIOwy &= ~MIO41;	//zaświeć czerwoną LED
-			chStanIOwy |= MIO42;	//zgaś zieloną LED
+			//chStanIOwy &= ~MIO40;	//zaświeć czerwoną LED
+			//chStanIOwy |= MIO41;	//zgaś zieloną LED
 		}
 		else
 		{
-			chStanIOwy |= MIO41;	//zgaś czerwoną LED
-			chStanIOwy &= ~MIO42;	//zaświeć zieloną LED
+			//chStanIOwy |= MIO40;	//zgaś czerwoną LED
+			//chStanIOwy &= ~MIO41;	//zaświeć zieloną LED
 		}
 		break;
 

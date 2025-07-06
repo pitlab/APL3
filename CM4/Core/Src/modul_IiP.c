@@ -117,11 +117,13 @@ uint8_t InicjujModulI2P(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // wykonuje czynności pomiarowe dla układów znajdujących się na module
-// Parametry: nic
+// Parametry:
+// [we] chGniazdo - numer gniazda, w którym siedzi moduł
+// [we-wy] *pchStanIOwy - wskaźnik na stan linii IO na modułach
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ObslugaModuluI2P(uint8_t gniazdo)
+uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 {
 	uint8_t chErr;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
@@ -135,48 +137,56 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo)
 	//ustaw adres A2 = 0 zrobiony z linii MOD_IOx1 modułu
 	switch (gniazdo)
 	{
-	/*case ADR_MOD1: 	chStanIOwy &= ~MIO12;	break;	//tak było
-	case ADR_MOD2:	chStanIOwy &= ~MIO22;	break;
-	case ADR_MOD3:	chStanIOwy &= ~MIO32;	break;
-	case ADR_MOD4:	chStanIOwy &= ~MIO42;	break;*/
-	case ADR_MOD1: 	chStanIOwy &= ~MIO11;	break;		//tak powinno być - sprawdzić
-	case ADR_MOD2:	chStanIOwy &= ~MIO21;	break;
-	case ADR_MOD3:	chStanIOwy &= ~MIO31;	break;
-	case ADR_MOD4:	chStanIOwy &= ~MIO41;	break;
+	case ADR_MOD1: 	*pchStanIOwy &= ~MIO11;	break;
+	case ADR_MOD2:	*pchStanIOwy &= ~MIO21;	break;
+	case ADR_MOD3:	*pchStanIOwy &= ~MIO31;	break;
+	case ADR_MOD4:	*pchStanIOwy &= ~MIO41;	break;
 	}
 
-	chErr = WyslijDaneExpandera(chStanIOwy);
+	chErr = WyslijDaneExpandera(*pchStanIOwy);
 	chErr |= UstawDekoderModulow(gniazdo);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
-	UstawAdresNaModule(ADR_MIIP_MS5611);				//ustaw adres A0..1
+	chErr |= UstawAdresNaModule(ADR_MIIP_MS5611);				//ustaw adres A0..1
 	chErr |= ObslugaMS5611();
 
-	UstawAdresNaModule(ADR_MIIP_BMP581);				//ustaw adres A0..1
+	chErr |= UstawAdresNaModule(ADR_MIIP_BMP581);				//ustaw adres A0..1
 	chErr |= ObslugaBMP581();
 
-	UstawAdresNaModule(ADR_MIIP_ICM42688);				//ustaw adres A0..1
+	chErr |= UstawAdresNaModule(ADR_MIIP_ICM42688);				//ustaw adres A0..1
 	chErr |= ObslugaICM42688();
 
-	UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres A0..1
+	chErr |= UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres A0..1
 	chErr |= ObslugaLSM6DSV();
 
 	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))
 		KalibrujZeroZyroskopu();
 
-	//ustaw adres A2 = 1 zrobiony z linii Ix2 modułu
+	//termostatuj moduł uśrednioną temperaturą obu czujników IMU a jezeli nie ma obu to chociaż jednego
+	uint8_t chLiczbaTermometrow = 0;
+	float fTemeratura = 0.0f;
+
+	for (uint8_t n=TEMP_IMU1; n<=TEMP_IMU2; n++)
+	{
+		if ((uDaneCM4.dane.fTemper[n] > TEMPERATURA_MIN_OK) && (uDaneCM4.dane.fTemper[n] < TEMPERATURA_MAX_OK))
+		{
+			fTemeratura += uDaneCM4.dane.fTemper[n];
+			chLiczbaTermometrow++;
+		}
+	}
+	if (chLiczbaTermometrow > 1)
+		fTemeratura /= chLiczbaTermometrow;
+
+	if (fTemeratura > 0.0f)
+		Termostat(gniazdo, pchStanIOwy, fTemeratura);	//termostat zwraca stan linii grzałki ale sam jej nie ustawia
+
+	//ustaw adres A2 = 1 zrobiony z linii Ix1 modułu
 	switch (gniazdo)
 	{
-	/*case ADR_MOD1: 	chStanIOwy |= MIO12;	break;
-	case ADR_MOD2:	chStanIOwy |= MIO22;	break;
-	case ADR_MOD3:	chStanIOwy |= MIO32;	break;
-	case ADR_MOD4:	chStanIOwy |= MIO42;	break;*/
-	case ADR_MOD1: 	chStanIOwy |= MIO11;	break;
-	case ADR_MOD2:	chStanIOwy |= MIO21;	break;
-	case ADR_MOD3:	chStanIOwy |= MIO31;	break;
-	case ADR_MOD4:	chStanIOwy |= MIO41;	break;
+	case ADR_MOD1: 	*pchStanIOwy |= MIO11;	break;
+	case ADR_MOD2:	*pchStanIOwy |= MIO21;	break;
+	case ADR_MOD3:	*pchStanIOwy |= MIO31;	break;
+	case ADR_MOD4:	*pchStanIOwy |= MIO41;	break;
 	}
-	chErr |= WyslijDaneExpandera(chStanIOwy);
-	chErr |= UstawDekoderModulow(gniazdo);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
-	UstawAdresNaModule(ADR_MIIP_GRZALKA);				//ustaw adres A0..1
+	chErr = WyslijDaneExpandera(*pchStanIOwy);	//ustaw stan linii A2 i grzałki
 
 	// Układ ND130 pracujacy na magistrali SPI ma okres zegara 6us co odpowiada częstotliwości 166kHz
 	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_256;	//przestaw zegar na 40MHz / 256 = 156kHz
@@ -189,30 +199,6 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo)
 	}
 
 	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
-
-	//termostatuj moduł uśrednioną temperaturą obu czujników IMU
-	uint8_t chLiczbaTermometrow = 0;
-	float fTemeratura = 0.0f;
-	float fOdchylkaRegulacji;
-
-	for (uint8_t n=TEMP_IMU1; n<TEMP_IMU2; n++)
-	{
-		if ((uDaneCM4.dane.fTemper[n] > TEMPERATURA_MIN_OK) && (uDaneCM4.dane.fTemper[n] < TEMPERATURA_MAX_OK))
-		{
-			fTemeratura += uDaneCM4.dane.fTemper[n];
-			chLiczbaTermometrow++;
-		}
-	}
-	if (chLiczbaTermometrow > 1)
-		fTemeratura /= chLiczbaTermometrow;
-
-	if (fTemeratura < TEMPERATURA_TERMOSTATU)
-	{
-		fOdchylkaRegulacji = TEMPERATURA_TERMOSTATU - fTemeratura;	//świadomie zamieniam znak odchyłki aby pracować z liczbami dodatnimi
-		fOdchylkaRegulacji *= WZMOCNIENIE_REGULATORA;
-	}
-
-
 	return chErr;
 }
 
@@ -863,19 +849,37 @@ void PobierzKalibracjeMagnetometru(uint8_t chMagn)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Realizuje akcję termostatowania modułu właączajac grzałkę na MOD_IOx2
-// Parametry: gniazdo - numer gniazda w którym siedzi moduł
-// Zwraca: nic
+// Realizuje akcję termostatowania modułu sterując grzałką na MOD_IOx0
+// Parametry:
+// [we] chGniazdo - numer gniazda, w którym siedzi moduł
+// [we-wy] *pchStanIOwy - wskaźnik na stan linii IO na modułach
+// [we] fTemeratura - bieżąca temperatura modułu
+// Zwraca: stan linii IO sterującej grzałką
 ////////////////////////////////////////////////////////////////////////////////
-void Termostat(uint8_t gniazdo, float fTemeratura)
+void Termostat(uint8_t chGniazdo, uint8_t* pchStanIOwy, float fTemeratura)
 {
+	float fOdchylkaRegulacji = TEMPERATURA_ZADANA_TERMOSTATU - fTemeratura;
 
-	//ustaw adres A2 = 0 zrobiony z linii Ix2 modułu
-	switch (gniazdo)
+	if (fOdchylkaRegulacji > 0)
 	{
-	case ADR_MOD1: 	chStanIOwy &= ~MIO12;	break;
-	case ADR_MOD2:	chStanIOwy &= ~MIO22;	break;
-	case ADR_MOD3:	chStanIOwy &= ~MIO32;	break;
-	case ADR_MOD4:	chStanIOwy &= ~MIO42;	break;
+		//włącz grzałkę na linii Ix0 modułu
+		switch (chGniazdo)
+		{
+		case ADR_MOD1: 	*pchStanIOwy |= MIO10;	break;
+		case ADR_MOD2:	*pchStanIOwy |= MIO20;	break;
+		case ADR_MOD3:	*pchStanIOwy |= MIO30;	break;
+		case ADR_MOD4:	*pchStanIOwy |= MIO40;	break;
+		}
+	}
+	else
+	{
+		//wyłącz grzałkę na linii Ix0 modułu
+		switch (chGniazdo)
+		{
+		case ADR_MOD1: 	*pchStanIOwy &= ~MIO10;	break;
+		case ADR_MOD2:	*pchStanIOwy &= ~MIO20;	break;
+		case ADR_MOD3:	*pchStanIOwy &= ~MIO30;	break;
+		case ADR_MOD4:	*pchStanIOwy &= ~MIO40;	break;
+		}
 	}
 }

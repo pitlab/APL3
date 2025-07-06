@@ -47,14 +47,14 @@
 #define TOUT_I2C4_7B		2
 
 //definicje kanałów IO
-#define MIO11	(1 << 0) 	//MOD_IO11
-#define MIO12	(1 << 1) 	//MOD_IO12
-#define MIO21	(1 << 2)	//MOD_IO21
-#define MIO22	(1 << 3) 	//MOD_IO22
-#define MIO31	(1 << 4) 	//MOD_IO31
-#define MIO32	(1 << 5) 	//MOD_IO32
-#define MIO41   (1 << 6) 	//MOD_IO41
-#define MIO42	(1 << 7)	//MOD_IO42
+#define MIO10	(1 << 0) 	//MOD_IO10
+#define MIO11	(1 << 1) 	//MOD_IO11
+#define MIO20	(1 << 2)	//MOD_IO20
+#define MIO21	(1 << 3) 	//MOD_IO21
+#define MIO30	(1 << 4) 	//MOD_IO30
+#define MIO31	(1 << 5) 	//MOD_IO31
+#define MIO40   (1 << 6) 	//MOD_IO40
+#define MIO41	(1 << 7)	//MOD_IO41
 
 #define MASKA_INIT_GNSS		0x07
 
