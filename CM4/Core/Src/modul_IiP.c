@@ -35,6 +35,10 @@ magn_t stMagn;
 extern float fPrzesMagn1[3], fSkaloMagn1[3];
 extern float fPrzesMagn2[3], fSkaloMagn2[3];
 extern float fPrzesMagn3[3], fSkaloMagn3[3];
+float fWzmocRegTermostatu = WZMOCNIENIE_REGULATORA_TERMOSTATU;
+static uint8_t chLicznikOkresuPWMTermostatu;
+static uint8_t chWypelnieniePWM;
+float fTemeraturaTermostatu;
 
 ////////////////////////////////////////////////////////////////////////////////
 // wykonuje czynności pomiarowe dla ukłądów znajdujących się na module
@@ -175,8 +179,9 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	if (chLiczbaTermometrow > 1)
 		fTemeratura /= chLiczbaTermometrow;
 
-	if (fTemeratura > 0.0f)
-		Termostat(gniazdo, pchStanIOwy, fTemeratura);	//termostat zwraca stan linii grzałki ale sam jej nie ustawia
+	fTemeraturaTermostatu = (3*fTemeraturaTermostatu + fTemeratura)/4;
+	if (fTemeraturaTermostatu > 0.0f)
+		Termostat(gniazdo, pchStanIOwy, fTemeraturaTermostatu);	//termostat zwraca stan linii grzałki ale sam jej nie ustawia
 
 	//ustaw adres A2 = 1 zrobiony z linii Ix1 modułu
 	switch (gniazdo)
@@ -850,6 +855,7 @@ void PobierzKalibracjeMagnetometru(uint8_t chMagn)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Realizuje akcję termostatowania modułu sterując grzałką na MOD_IOx0
+// Regulator P steruje wypełnieniem PWM o okresie 100 obiegów pętli
 // Parametry:
 // [we] chGniazdo - numer gniazda, w którym siedzi moduł
 // [we-wy] *pchStanIOwy - wskaźnik na stan linii IO na modułach
@@ -858,9 +864,19 @@ void PobierzKalibracjeMagnetometru(uint8_t chMagn)
 ////////////////////////////////////////////////////////////////////////////////
 void Termostat(uint8_t chGniazdo, uint8_t* pchStanIOwy, float fTemeratura)
 {
-	float fOdchylkaRegulacji = TEMPERATURA_ZADANA_TERMOSTATU - fTemeratura;
+	if (chLicznikOkresuPWMTermostatu >= OKRES_PWM_TERMOSTATU)	//czy jest początek okresu PWM
+	{
+		chLicznikOkresuPWMTermostatu = 0;
+		float fWypelnieniePWM = fWzmocRegTermostatu * (TEMPERATURA_ZADANA_TERMOSTATU - fTemeratura);
 
-	if (fOdchylkaRegulacji > 0)
+		if (fWypelnieniePWM > OKRES_PWM_TERMOSTATU)
+			fWypelnieniePWM = OKRES_PWM_TERMOSTATU;
+		if (fWypelnieniePWM < 0)	//nie ma akcji chłodzenia
+			fWypelnieniePWM = 0;
+		chWypelnieniePWM = (int8_t)fWypelnieniePWM;
+	}
+
+	if (chLicznikOkresuPWMTermostatu < chWypelnieniePWM)
 	{
 		//włącz grzałkę na linii Ix0 modułu
 		switch (chGniazdo)
@@ -882,4 +898,5 @@ void Termostat(uint8_t chGniazdo, uint8_t* pchStanIOwy, float fTemeratura)
 		case ADR_MOD4:	*pchStanIOwy &= ~MIO40;	break;
 		}
 	}
+	chLicznikOkresuPWMTermostatu++;
 }
