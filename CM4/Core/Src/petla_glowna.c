@@ -20,9 +20,9 @@
 #include "MS4525.h"
 #include "ND130.h"
 #include "konfig_fram.h"
-//#include "MS5611.h"	//testowo
 #include "pid.h"
 #include "odbiornikRC.h"
+#include "adc.h"
 
 extern TIM_HandleTypeDef htim7;
 extern unia_wymianyCM4_t uDaneCM4;
@@ -55,6 +55,8 @@ float fPoleCzujnkaMMC[3];
 extern stRC_t stRC;					//struktura przechowująca dane odbiorników RC
 extern stKonfPID_t stKonfigPID[LICZBA_PID];	//struktura przechowująca dane dotyczące konfiguracji regulatora PID
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
 // Parametry: brak
@@ -62,37 +64,43 @@ extern stKonfPID_t stKonfigPID[LICZBA_PID];	//struktura przechowująca dane doty
 ////////////////////////////////////////////////////////////////////////////////
 void PetlaGlowna(void)
 {
+	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetowornika A/C
+	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
+	if (chNrOdcinkaCzasu < 8)
+	{
+		chErrPG |= UstawDekoderModulow(chNrOdcinkaCzasu);
+		PomiarADC(chNrOdcinkaCzasu);
+	}
+
 	switch (chNrOdcinkaCzasu)
 	{
-	case 0:		//obsługa modułu w gnieździe 1
-		chErrPG |= UstawDekoderModulow(ADR_MOD1);
+	case ADR_MOD1:		//obsługa modułu w gnieździe 1
 		break;
 
-	case 1:		//obsługa modułu w gnieździe 2
+	case ADR_MOD2:		//obsługa modułu w gnieździe 2
 		uint8_t chErr = ObslugaModuluI2P(ADR_MOD2, &chStanIOwy);
 		if (chErr)
 			chStanIOwy &= ~MIO40;	//zaświeć czerwoną LED
 		else
 			chStanIOwy |= MIO40;	//zgaś czerwoną LED
-
 		break;
 
-	case 2:		//obsługa modułu w gnieździe 3
+	case ADR_MOD3:		//obsługa modułu w gnieździe 3
 		//chErrPG |= ObslugaModuluIiP(ADR_MOD3);
-		//chErrPG |= UstawDekoderModulow(ADR_MOD3);
 		TestyObrotu(ADR_MOD3);
 		break;
 
-	case 3:		//obsługa modułu w gnieździe 4
+	case ADR_MOD4:		//obsługa modułu w gnieździe 4
 		for (uint16_t n=0; n<16; n++)
 		{
 			uDaneCM4.dane.sSerwo[n] += n;
 			if (uDaneCM4.dane.sSerwo[n] > 2000)
 				uDaneCM4.dane.sSerwo[n] = 0;
 		}
-		chErrPG |= UstawDekoderModulow(ADR_MOD4);
 		break;
 
+	case 4:
+		break;
 
 	case 5:		//obsługa GNSS na UART8
 		while (chWskNapBaGNSS != chWskOprBaGNSS)
@@ -131,6 +139,7 @@ void PetlaGlowna(void)
 	case 11:
 		//chErrPG |= PobierzDaneExpandera(&chStanIOwe);		//wszystkie porty ustawione na wyjściowe, nie ma co pobierać
 		chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;
+
 	case 12:
 		break;
 
@@ -159,6 +168,8 @@ void PetlaGlowna(void)
 	case 19:	break;
 	default:	break;
 	}
+
+
 
 	nCzasBiezacy = PobierzCzas();
 	ndT = MinalCzas2(nCzasPoprzedniegoObiegu, nCzasBiezacy);	//licz czas od ostatniego obiegu pętli

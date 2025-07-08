@@ -30,10 +30,10 @@
 #define TEMPERATURA_MIN_OK	243	//-30°C
 #define TEMPERATURA_MAX_OK	343	//+70°C
 
-//#define TEMPERATURA_ZADANA_TERMOSTATU		298.15f	//25,15°C, troszke wicej niż 25 aby skompensować uchyb regulacji
-#define TEMPERATURA_ZADANA_TERMOSTATU		308.15f	//35°C DO TESTÓW
+#define TEMPERATURA_ZADANA_TERMOSTATU		298.15f	//25,15°C, troszkę więcej niż 25°C aby skompensować uchyb regulatora P
+//#define TEMPERATURA_ZADANA_TERMOSTATU		308.15f	//35°C DO TESTÓW
 //#define TEMPERATURA_ZADANA_TERMOSTATU		313	//40°C DO TESTÓW
-#define WZMOCNIENIE_REGULATORA_TERMOSTATU	80	//wzmocnienie regualtora P regulacji temperatury- maksymalny uchyb 1°C
+#define WZMOCNIENIE_REGULATORA_TERMOSTATU	80	//wzmocnienie regualtora P regulacji temperatury - maksymalny uchyb 1°C
 #define OKRES_PWM_TERMOSTATU				100
 
 #define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących

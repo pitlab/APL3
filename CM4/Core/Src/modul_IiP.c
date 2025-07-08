@@ -149,16 +149,16 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 
 	chErr = WyslijDaneExpandera(*pchStanIOwy);
 	chErr |= UstawDekoderModulow(gniazdo);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
-	chErr |= UstawAdresNaModule(ADR_MIIP_MS5611);				//ustaw adres A0..1
+	chErr |= UstawAdresNaModule(ADR_MIIP_MS5611);				//ustaw adres na module A0..1
 	chErr |= ObslugaMS5611();
 
-	chErr |= UstawAdresNaModule(ADR_MIIP_BMP581);				//ustaw adres A0..1
+	chErr |= UstawAdresNaModule(ADR_MIIP_BMP581);				//ustaw adres na module A0..1
 	chErr |= ObslugaBMP581();
 
-	chErr |= UstawAdresNaModule(ADR_MIIP_ICM42688);				//ustaw adres A0..1
+	chErr |= UstawAdresNaModule(ADR_MIIP_ICM42688);				//ustaw adres na module A0..1
 	chErr |= ObslugaICM42688();
 
-	chErr |= UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres A0..1
+	chErr |= UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres na module A0..1
 	chErr |= ObslugaLSM6DSV();
 
 	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))
