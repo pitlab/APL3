@@ -838,7 +838,7 @@ void RysujEkran(void)
 // Parametry: zainicjowano - wskaźnik na tablicę bitów z flagami zainicjowanego sprzętu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void Ekran_Powitalny(uint32_t* zainicjowano)
+void Ekran_Powitalny(uint32_t* zainicjowanoCM7)
 {
 	uint8_t n;
 	uint16_t x, y;
@@ -877,12 +877,12 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 	y = WYKRYJ_GORA;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_NOR]);		//"pamięć Flash NOR"
 	print(chNapis, x, y);
-	Wykrycie(x, y, n, (*(zainicjowano+0) & INIT0_FLASH_NOR) == INIT0_FLASH_NOR);
+	Wykrycie(x, y, n, (*zainicjowanoCM7 & INIT0_FLASH_NOR) == INIT0_FLASH_NOR);
 
 	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_QSPI]);	//"pamięć Flash QSPI"
 	print(chNapis, x, y);
-	Wykrycie(x, y, n, (*(zainicjowano+0) & INIT0_FLASH_NOR) == INIT0_FLASH_NOR);
+	Wykrycie(x, y, n, (*zainicjowanoCM7 & INIT0_FLASH_NOR) == INIT0_FLASH_NOR);
 
 	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KARTA_SD]);		//"Karta SD"
@@ -892,7 +892,7 @@ void Ekran_Powitalny(uint32_t* zainicjowano)
 	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KAMERA_OV5642]);	//"kamera "
 	print(chNapis, x, y);
-	Wykrycie(x, y, n, (*(zainicjowano+1) & INIT1_KAMERA) == INIT1_KAMERA);
+	Wykrycie(x, y, n, (*zainicjowanoCM7 & INIT_KAMERA) == INIT_KAMERA);
 
 	//dane z CM4
 	y += WYKRYJ_WIERSZ;

@@ -24,7 +24,7 @@
 ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaFlashNOR"))) 	sFlashNOR[ROZMIAR16_BUFORA]);	//bufor do odczytu z Flash NOR
 ALIGN_32BYTES(const uint16_t __attribute__((section(".SekcjaFlashCPU"))) 		sFlashMem[ROZMIAR16_BUFORA]);	//bufor do odczytu z wewnętrznego flash
 ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaSRAM2"))) 	sBuforD2[ROZMIAR16_BUFORA]);
-ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaZewnSRAM")))	sExtSramBuf[ROZMIAR16_BUFORA]);
+//ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaZewnSRAM")))	sExtSramBuf[ROZMIAR16_BUFORA]);
 ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaDRAM")))		sBuforDram[ROZMIAR16_BUFORA]);
 ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaDTCM")))		sBuforDTCM[ROZMIAR16_BUFORA]);
 ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaAxiSRAM")))	sBufor[ROZMIAR16_BUFORA]);
@@ -769,7 +769,7 @@ void TestPredkosciOdczytuRAM(void)
 	}
 	setColor(WHITE);
 
-	//Odczyt z zewnętrznego SRAM do RAM w pętli
+	/*/Odczyt z zewnętrznego SRAM do RAM w pętli
 	nCzas = PobierzCzasT6();
 	for (y=0; y<1000; y++)
 	{
@@ -897,6 +897,7 @@ void TestPredkosciOdczytuRAM(void)
 
 	for (y=0; y<ROZMIAR16_BUFORA; y++)
 		sBufor[y] = y;
+		*/
 
 	//zapis DRAM
 	nCzas = PobierzCzasT6();
@@ -1085,7 +1086,7 @@ void TestPredkosciOdczytuRAM(void)
 	}
 
 
-	//sekwencyjny odczyt z external SRAM
+	/*/sekwencyjny odczyt z external SRAM
 	nCzas = PobierzCzasT6();
 	for (y=0; y<1000; y++)
 	{
@@ -1097,7 +1098,7 @@ void TestPredkosciOdczytuRAM(void)
 	{
 		sprintf(chNapis, "random ExtSRAM->AxiSRAM  t = %ld us => %.2f MB/s ", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		print(chNapis, 10, 300);
-	}
+	}*/
 }
 
 
@@ -1151,7 +1152,7 @@ void InicjujMDMA(void)
 	mdmaLinkNodeConfig.Init.SourceBlockAddressOffset  = 0;
 	mdmaLinkNodeConfig.Init.DestBlockAddressOffset    = 0;
 
-	mdmaLinkNodeConfig.SrcAddress      = (uint32_t)sExtSramBuf;
+	//mdmaLinkNodeConfig.SrcAddress      = (uint32_t)sExtSramBuf;
 	mdmaLinkNodeConfig.DstAddress      = (uint32_t)sBufor;
 	mdmaLinkNodeConfig.BlockDataLength = (ROZMIAR16_BUFORA);
 	mdmaLinkNodeConfig.BlockCount      = 1;
@@ -1175,7 +1176,7 @@ void InicjujMDMA(void)
 	mdmaLinkNodeConfig.Init.DestBlockAddressOffset    = 0;
 
 	mdmaLinkNodeConfig.SrcAddress      = (uint32_t)sBufor;
-	mdmaLinkNodeConfig.DstAddress      = (uint32_t)sExtSramBuf;
+	//mdmaLinkNodeConfig.DstAddress      = (uint32_t)sExtSramBuf;
 	mdmaLinkNodeConfig.BlockDataLength = (ROZMIAR16_BUFORA);
 	mdmaLinkNodeConfig.BlockCount      = 1;
 

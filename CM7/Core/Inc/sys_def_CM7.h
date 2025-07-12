@@ -167,9 +167,9 @@
 #define INIT0_EXPANDER_IO	0x00000008
 
 //flagi inicjalizacj sprzetu poza płytką
-#define INIT1_MOD_IMU		0x00000001
-#define INIT1_KAMERA		0x00000002
-
+#define INIT_MOD_IMU		0x00010000
+#define INIT_KAMERA			0x00020000
+#define INIT_KARTA_SD		0x00040000
 
 
 //semafory sprzętowe
@@ -181,7 +181,16 @@
 #define ILOSC_INTERF_KOM	3
 
 #define ROZM_BUF16_LCD		320*480
-#define ROZM_BUF32_KAM		320*480/ 2
+#define STD_OBRAZU_5M 		(2592*1944)		//rozdzielczość przetwornika
+#define STD_OBRAZU_4K_N		(2160*1920)
+#define STD_OBRAZU_4M		(2592*1520)
+#define STD_OBRAZU_5M_N		(1944*1296)
+#define STD_OBRAZU_1080P	(1920*1080)		//Full HD
+#define STD_OBRAZU_4M_N		(1440*1280)
+#define STD_OBRAZU_720P		(1280*720)			//720P
+
+//#define ROZM_BUF32_KAM		(2592*1944)		//pełen rozmiar przetwornika nie mieści się w  ext SRAM
+#define ROZM_BUF16_KAM		STD_OBRAZU_1080P
 
 //pamięc flash NOR
 #define ADRES_NOR			0x68000000

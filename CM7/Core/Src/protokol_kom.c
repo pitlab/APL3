@@ -58,7 +58,7 @@ volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
 uint8_t chTimeoutOdbioru;
 
 //deklaracje zmiennych zewnętrznych
-extern uint32_t nBuforKamery[ROZM_BUF32_KAM];
+extern uint16_t sBuforKamery[ROZM_BUF16_KAM];
 extern UART_HandleTypeDef hlpuart1;
 extern DMA_HandleTypeDef hdma_lpuart1_tx;
 extern UART_HandleTypeDef huart7;
