@@ -46,9 +46,9 @@ extern double dSumaZyro1[3], dSumaZyro2[3];
 uint8_t BSP_SD_IsDetected(void)
 {
 	uint8_t status = SD_PRESENT;
-	extern uint8_t chPorty_exp_odbierane[3];
+	extern uint8_t chPort_exp_odbierany[3];
 
-	if (chPorty_exp_odbierane[0] & EXP04_LOG_CARD_DET)		//styk detekcji karty zwiera do masy gdy karta jest obecna a pulllup wystawia 1 gdy jest nieobecna w gnieździe
+	if (chPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)		//styk detekcji karty zwiera do masy gdy karta jest obecna a pulllup wystawia 1 gdy jest nieobecna w gnieździe
 		status = SD_NOT_PRESENT;
 	return status;
 }
@@ -62,7 +62,7 @@ uint8_t BSP_SD_IsDetected(void)
 ////////////////////////////////////////////////////////////////////////////////
 void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 {
-	extern uint8_t chPorty_exp_wysylane[];
+	extern uint8_t chPort_exp_wysylany[];
 	extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 	uint8_t chErr;
 
@@ -71,13 +71,13 @@ void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 		InicjujSPIModZewn();
 
 	if (status == SET)
-		chPorty_exp_wysylane[0] &= ~EXP02_LOG_VSELECT;	//LOG_SD1_VSEL: L=1,8V
+		chPort_exp_wysylany[0] &= ~EXP02_LOG_VSELECT;	//LOG_SD1_VSEL: L=1,8V
 	else
-		chPorty_exp_wysylane[0] |=  EXP02_LOG_VSELECT;	//LOG_SD1_VSEL: H=3,3V
+		chPort_exp_wysylany[0] |=  EXP02_LOG_VSELECT;	//LOG_SD1_VSEL: H=3,3V
 
 	//wysyłaj aż dane do ekspandera do skutku
 	do
-		chErr = WyslijDaneExpandera(SPI_EXTIO_0, chPorty_exp_wysylane[0]);
+		chErr = WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
 	while (chErr != ERR_OK);
 }
 
@@ -948,7 +948,7 @@ void TestKartySD(void)
 	uint32_t start_time = 0;
 	uint32_t stop_time = 0;
 	char chNapis[60];
-	//extern uint8_t chPorty_exp_wysylane[];
+	//extern uint8_t chPort_exp_wysylany[];
 	//float fNapiecie;
 
 	/*if (chRysujRaz)
@@ -957,7 +957,7 @@ void TestKartySD(void)
 		chRysujRaz = 0;
 		BelkaTytulu("Test tranferu karty SD");
 
-		if (chPorty_exp_wysylane[0] & EXP02_LOG_VSELECT)	//LOG_SD1_VSEL: H=3,3V
+		if (chPort_exp_wysylany[0] & EXP02_LOG_VSELECT)	//LOG_SD1_VSEL: H=3,3V
 			fNapiecie = 3.3;
 		else
 			fNapiecie = 1.8;

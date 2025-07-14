@@ -253,21 +253,21 @@ void LCD_data_read(uint8_t *chDane, uint8_t chIlosc)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujLCD(void)
 {
-	extern uint8_t chPorty_exp_wysylane[LICZBA_EXP_SPI_ZEWN];
+	extern uint8_t chPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN];
 
 	HAL_Delay(10);
 
 	// LCD_RESET 1 - 0 - 1
-	chPorty_exp_wysylane[0] |= EXP01_LCD_RESET;	//RES=1
-	WyslijDaneExpandera(SPI_EXTIO_0, chPorty_exp_wysylane[0]);
+	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
+	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
 	HAL_Delay(10);
 
-	chPorty_exp_wysylane[0] &= ~EXP01_LCD_RESET;	//RES=0
-	WyslijDaneExpandera(SPI_EXTIO_0, chPorty_exp_wysylane[0]);
+	chPort_exp_wysylany[0] &= ~EXP01_LCD_RESET;	//RES=0
+	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
 	HAL_Delay(20);
 
-	chPorty_exp_wysylane[0] |= EXP01_LCD_RESET;	//RES=1
-	WyslijDaneExpandera(SPI_EXTIO_0, chPorty_exp_wysylane[0]);
+	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
+	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
 	HAL_Delay(20);
 
 	LCD_write_command16(0x00, 0xB0);

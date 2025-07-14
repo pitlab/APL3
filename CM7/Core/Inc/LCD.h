@@ -60,4 +60,5 @@ uint8_t KalibrujBaro(uint8_t *chEtap);
 void PlaskiObrotMagnetometrow(void);
 void NastawyPID(uint8_t chKanal);
 uint8_t CzytajFram(uint16_t sAdres, uint8_t chRozmiar, float* fDane);
+uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObraz);
 #endif /* INC_LCD_H_ */

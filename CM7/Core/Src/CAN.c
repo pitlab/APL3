@@ -22,7 +22,7 @@ uint8_t chDaneCanWych[12];
 uint8_t chDaneCanPrzych[12];
 
 extern volatile unia_wymianyCM4_t uDaneCM4;
-extern uint8_t chPorty_exp_wysylane[];
+extern uint8_t chPort_exp_wysylany[];
 
 
 
@@ -33,7 +33,7 @@ extern uint8_t chPorty_exp_wysylane[];
 ////////////////////////////////////////////////////////////////////////////////
 void InicjujCAN(void)
 {
-	chPorty_exp_wysylane[1] &= ~EXP12_CAN_STANDBY;	//wyłącz standby ustawiając stan niski na wejściu STB
+	chPort_exp_wysylany[1] &= ~EXP12_CAN_STANDBY;	//wyłącz standby ustawiając stan niski na wejściu STB
 	if (HAL_FDCAN_Start(&hfdcan2) != HAL_OK)
 	{
 		Error_Handler();

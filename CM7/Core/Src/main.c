@@ -159,7 +159,7 @@ osThreadId tsObslugaWyswieHandle;
 /* USER CODE BEGIN PV */
 uint16_t sLicznikTele;
 uint8_t chErr = ERR_OK;
-extern uint8_t chPorty_exp_wysylane[];
+extern uint8_t chPort_exp_wysylany[];
 extern struct _statusDotyku statusDotyku;
 extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 extern uint8_t chStanSynchronizacjiCzasu;
@@ -552,7 +552,7 @@ static void MX_DCMI_Init(void)
   hdcmi.Init.PCKPolarity = DCMI_PCKPOLARITY_FALLING;
   hdcmi.Init.VSPolarity = DCMI_VSPOLARITY_LOW;
   hdcmi.Init.HSPolarity = DCMI_HSPOLARITY_HIGH;
-  hdcmi.Init.CaptureRate = DCMI_CR_ALTERNATE_4_FRAME;
+  hdcmi.Init.CaptureRate = DCMI_CR_ALL_FRAME;
   hdcmi.Init.ExtendedDataMode = DCMI_EXTEND_DATA_8B;
   hdcmi.Init.JPEGMode = DCMI_JPEG_DISABLE;
   hdcmi.Init.ByteSelectMode = DCMI_BSM_ALL;
@@ -1736,12 +1736,12 @@ void WatekRejestratora(void const * argument)
 {
   /* USER CODE BEGIN WatekRejestratora */
 	extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-	extern uint8_t chPorty_exp_odbierane[LICZBA_EXP_SPI_ZEWN];
+	extern uint8_t chPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
 	extern uint8_t chKodBleduFAT;
 
 	for(;;)
 	{
-		if ((chPorty_exp_odbierane[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty				{
+		if ((chPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty				{
 		{
 			if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
 			{
@@ -1952,10 +1952,10 @@ void Error_Handler(void)
 	//włącz czerwoną LED sygnalizując bład
 	if ((nZainicjowano & INIT0_EXPANDER_IO) == 0)
 		InicjujSPIModZewn();
-	chPorty_exp_wysylane[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
-	chPorty_exp_wysylane[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
-	chPorty_exp_wysylane[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
-	WyslijDaneExpandera(SPI_EXTIO_2, chPorty_exp_wysylane[2]);
+	chPort_exp_wysylany[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
+	chPort_exp_wysylany[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
+	chPort_exp_wysylany[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
+	WyslijDaneExpandera(SPI_EXTIO_2, chPort_exp_wysylany[2]);
   __disable_irq();
   while (1)
   {

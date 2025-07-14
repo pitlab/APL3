@@ -30,17 +30,21 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "kamera.h"
 #include "polecenia_komunikacyjne.h"
+#include "moduly_SPI.h"
 
 
 ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaZewnSRAM")))	sBuforKamery[ROZM_BUF16_KAM]);
 struct st_KonfKam strKonfKam;
 
+uint16_t sLicznikLiniiKamery;
 extern uint32_t nZainicjowano;		//flagi inicjalizacji sprzętu
 extern DCMI_HandleTypeDef hdcmi;
 extern DMA_HandleTypeDef hdma_dcmi;
 extern TIM_HandleTypeDef htim12;
 extern I2C_HandleTypeDef hi2c2;
 extern const struct sensor_reg OV5642_RGB_QVGA[];
+extern const uint8_t chAdres_expandera[];
+extern uint8_t chPort_exp_wysylany[];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizacja pracy kamery
@@ -50,14 +54,33 @@ extern const struct sensor_reg OV5642_RGB_QVGA[];
 uint8_t InicjalizujKamere(void)
 {
 	uint8_t chErr;
-
 	uint32_t nHCLK = HAL_RCC_GetHCLKFreq();		//200MHz
+
+	//ustaw i włącz przerwania
+	HAL_NVIC_SetPriority(DCMI_IRQn, 0x0F, 0);
+	HAL_NVIC_EnableIRQ(DCMI_IRQn);
+
+	HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0x0F, 0);
+	HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+
+	//Zresetuj kamerę. Power Down jest cały czas nieaktywny = L
+	chPort_exp_wysylany[0] &= ~EXP03_CAM_RESET;		//CAM_RES - reset kamery ustaw aktywny niski
+	chErr = WyslijDaneExpandera(chAdres_expandera[0], chPort_exp_wysylany[0]);	//wyślij dane do expandera I/O
+	if (chErr)
+		return chErr;
 
 	//ustawienie timera generującego PWM 20MHz
 	chErr = HAL_TIM_Base_Start_IT(&htim12);
 	htim12.Instance->ARR = (nHCLK / KAMERA_ZEGAR) - 1;		//częstotliwość PWM
 	htim12.Instance->CCR1 = (nHCLK / KAMERA_ZEGAR) / 2;	//wypełnienie PWM
 	chErr = HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1);
+
+	HAL_Delay(10);	//power on period
+	chPort_exp_wysylany[0] |= EXP03_CAM_RESET;		//CAM_RES - reset kamery ustaw nieaktywny wysoki
+		chErr = WyslijDaneExpandera(chAdres_expandera[0], chPort_exp_wysylany[0]);	//wyślij dane do expandera I/O
+		if (chErr)
+			return chErr;
+	HAL_Delay(30);
 
 	chErr = SprawdzKamere();
 	if (chErr)
@@ -74,12 +97,18 @@ uint8_t InicjalizujKamere(void)
 		return chErr;
 
 	//ustaw domyślne parametry pracy kamery
-	strKonfKam.sSzerWe = 1280;
-	strKonfKam.sWysWe = 960;
-	strKonfKam.sSzerWy = 320;
-	strKonfKam.sWysWy = 240;
+	//strKonfKam.sSzerWe = 1280;
+	//strKonfKam.sWysWe = 960;
+	//strKonfKam.sSzerWy = 320;
+	//strKonfKam.sWysWy = 240;
+	//strKonfKam.sSzerWe = 1920;
+	//strKonfKam.sWysWe = 1280;
+	strKonfKam.sSzerWe = 960;
+	strKonfKam.sWysWe = 640;
+	strKonfKam.sSzerWy = 480;
+	strKonfKam.sWysWy = 320;
 	strKonfKam.chTrybDiagn = 0;	//brak trybu diagnostycznego
-	strKonfKam.chFlagi = 0;
+	strKonfKam.chFlagi = 1;
 
 	chErr = UstawKamere(&strKonfKam);
 	if (chErr)
@@ -163,19 +192,19 @@ uint8_t Wyslij_Blok_Kamera(const struct sensor_reg reglist[])
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t	SprawdzKamere(void)
 {
-	uint16_t DaneH;
-	uint8_t daneL, powtorz = 10;
+	uint16_t sDaneH;
+	uint8_t chDaneL, powtorz = 10;
 
 	do
 	{
-		Czytaj_I2C_Kamera(0x300A, (uint8_t*)&DaneH);	//Chip ID High Byte = 0x56
-		Czytaj_I2C_Kamera(0x300B, &daneL);	//Chip ID Low Byte = 0x42
+		Czytaj_I2C_Kamera(0x300A, (uint8_t*)&sDaneH);	//Chip ID High Byte = 0x56
+		Czytaj_I2C_Kamera(0x300B, &chDaneL);	//Chip ID Low Byte = 0x42
 		powtorz--;
 		HAL_Delay(1);
-		DaneH <<= 8;
-		DaneH |= daneL;
+		sDaneH <<= 8;
+		sDaneH |= chDaneL;
 	}
-	while ((DaneH != OV5642_ID) && powtorz);
+	while ((sDaneH != OV5642_ID) && powtorz);
 	if (powtorz == 0)
 		return ERR_BRAK_KAMERY;
 	else
@@ -282,6 +311,8 @@ uint8_t RozpocznijPraceDCMI(uint8_t chAparat)
 	//Konfiguracja transferu DMA z DCMI do pamięci
 	if (chAparat)		//1 = zdjecie, 0 = film
 		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamery, ROZM_BUF16_KAM);
+		//chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamery, strKonfKam.sSzerWy * strKonfKam.sWysWy / 2);
+
 	else
 		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)sBuforKamery, ROZM_BUF16_KAM);
 	return chErr;
@@ -318,8 +349,21 @@ uint8_t ZrobZdjecie(int16_t sSzerokosc, uint16_t sWysokosc)
 	Wyslij_I2C_Kamera(0x380b, (sWysokosc & 0x00FF));		//Timing DVPVO: [7:0] output vertical height low byte [7:0]
 
 	//Konfiguracja transferu DMA z DCMI do pamięci
-	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamery, ROZM_BUF16_KAM / 2);
+	//chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamery, ROZM_BUF16_KAM / 2);
+	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamery, (uint32_t)sSzerokosc * sWysokosc / 2);
 	return chErr;
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Callback od końca wiersza kamery
+// Parametry:
+//  hdcmi - wskaźnik na interfejs DCMI
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void HAL_DCMI_LineEventCallback(DCMI_HandleTypeDef *hdcmi)
+{
+	sLicznikLiniiKamery++;
+}
 

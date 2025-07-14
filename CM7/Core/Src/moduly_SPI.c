@@ -12,12 +12,12 @@
 #include "semafory.h"
 
 //deklaracje zmiennych
-uint8_t chPorty_exp_wysylane[LICZBA_EXP_SPI_ZEWN] = {0x04, 0x00, 0xE0};
-uint8_t chPorty_exp_odbierane[LICZBA_EXP_SPI_ZEWN];
+uint8_t chPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN] = {0x04, 0x00, 0xE0};
+uint8_t chPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
 uint8_t chStanDekoderaSPI;
 volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 extern SPI_HandleTypeDef hspi5;
-const uint8_t chAdresy_expanderow[LICZBA_EXP_SPI_ZEWN] = {SPI_EXTIO_0, SPI_EXTIO_1, SPI_EXTIO_2};
+const uint8_t chAdres_expandera[LICZBA_EXP_SPI_ZEWN] = {SPI_EXTIO_0, SPI_EXTIO_1, SPI_EXTIO_2};
 extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -120,9 +120,9 @@ uint8_t InicjujSPIModZewn(void)
 	Err |= UstawDekoderZewn(CS_NIC);
 
 	//włącz niebieskiego LEDa sygnalizujacego konfigurację lub kalibracje
-	chPorty_exp_wysylane[2] |= EXP27_LED_CZER | EXP26_LED_ZIEL;		//wyłącz LED_CZER, wyłącz LED_ZIEL
-	chPorty_exp_wysylane[2] &= ~EXP25_LED_NIEB;		//włącz LED_NIEB
-	Err |= WyslijDaneExpandera(SPI_EXTIO_2, chPorty_exp_wysylane[2]);
+	chPort_exp_wysylany[2] |= EXP27_LED_CZER | EXP26_LED_ZIEL;		//wyłącz LED_CZER, wyłącz LED_ZIEL
+	chPort_exp_wysylany[2] &= ~EXP25_LED_NIEB;		//włącz LED_NIEB
+	Err |= WyslijDaneExpandera(SPI_EXTIO_2, chPort_exp_wysylany[2]);
 
 	nZainicjowano[0] |= INIT0_EXPANDER_IO;
 	hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróć wcześniejszą konfigurację
@@ -270,7 +270,7 @@ uint8_t PobierzDaneExpandera(uint8_t adres, uint8_t* daneWe)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t WymienDaneExpanderow(void)
 {
-	HAL_StatusTypeDef Err;
+	HAL_StatusTypeDef chErr;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
 	//Ponieważ zegar SPI = 100MHz a układ może pracować z prędkością max 10MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 16 => 6,25MHz
@@ -280,31 +280,31 @@ uint8_t WymienDaneExpanderow(void)
 
 	//ustaw bieżący stan LED-ów
 	if (chCzasSwieceniaLED[LED_CZER])
-		chPorty_exp_wysylane[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
+		chPort_exp_wysylany[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
 	else
-		chPorty_exp_wysylane[2] |= EXP27_LED_CZER;		//wyłącz LED_CZER
+		chPort_exp_wysylany[2] |= EXP27_LED_CZER;		//wyłącz LED_CZER
 
 	if (chCzasSwieceniaLED[LED_ZIEL])
-		chPorty_exp_wysylane[2] &= ~EXP26_LED_ZIEL;		//włącz LED_ZIEL
+		chPort_exp_wysylany[2] &= ~EXP26_LED_ZIEL;		//włącz LED_ZIEL
 	else
-		chPorty_exp_wysylane[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
+		chPort_exp_wysylany[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
 
 	if (chCzasSwieceniaLED[LED_NIEB])
-		chPorty_exp_wysylane[2] &= ~EXP25_LED_NIEB;		//włącz LED_NIEB
+		chPort_exp_wysylany[2] &= ~EXP25_LED_NIEB;		//włącz LED_NIEB
 	else
-		chPorty_exp_wysylane[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
+		chPort_exp_wysylany[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
 
 	//wyślij dane do expanderów I/O
 	for (uint8_t x=0; x<LICZBA_EXP_SPI_ZEWN; x++)
 	{
-		Err = WyslijDaneExpandera(chAdresy_expanderow[x], chPorty_exp_wysylane[x]);
-		if (Err != ERR_OK)
-			return Err;
-		Err = PobierzDaneExpandera(chAdresy_expanderow[x], &chPorty_exp_odbierane[x]);
-		if (Err != ERR_OK)
-			return Err;
+		chErr = WyslijDaneExpandera(chAdres_expandera[x], chPort_exp_wysylany[x]);
+		if (chErr != ERR_OK)
+			return chErr;
+		chErr = PobierzDaneExpandera(chAdres_expandera[x], &chPort_exp_odbierany[x]);
+		if (chErr != ERR_OK)
+			return chErr;
 	}
 	hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróć wcześniejszą konfigurację
-	return Err;
+	return chErr;
 }
 

@@ -28,6 +28,8 @@
 #include "fraktale.h"
 #include "konfig_fram.h"
 #include "pid_kanaly.h"
+#include "kamera.h"
+
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -69,6 +71,8 @@ extern const unsigned short obr_cisnienie[0xFFC];
 extern const unsigned short obr_okregi[0xFFC];
 extern const unsigned short obr_narzedzia[0xFFC];
 extern const unsigned short obr_aparaturaRC[0xFFC];
+extern const unsigned short obr_aparat[0xFFC];
+extern const unsigned short obr_kamera[0xFFC];
 
 //definicje zmiennych
 uint8_t chTrybPracy;
@@ -87,8 +91,8 @@ uint8_t chLiczIter;		//licznik iteracji wyświetlania
 //extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern struct _statusDotyku statusDotyku;
 extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
-extern uint8_t chPorty_exp_wysylane[];
-extern uint8_t chPorty_exp_odbierane[];
+extern uint8_t chPort_exp_wysylany[];
+extern uint8_t chPort_exp_odbierany[];
 extern uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
 extern SD_HandleTypeDef hsd1;
 extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
@@ -115,6 +119,7 @@ prostokat_t stPrzycisk;
 uint8_t chStanPrzycisku;
 uint8_t chEtapKalibracji;
 prostokat_t stWykr;	//wykres biegunowy magnetometru
+extern uint16_t __attribute__((section(".SekcjaZewnSRAM")))	sBuforKamery[ROZM_BUF16_KAM];
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -192,9 +197,9 @@ struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wzmacniacz",	"Wlacza wzmacniacz, wylacza mikrofon",		TP_MM2,				obr_glosnik2},
 	{"Test Tonu",	"Test tonu wario",							TP_MM_TEST_TONU,	obr_glosnik2},
 	{"FFT Audio",	"FFT sygnału z mikrofonu",					TP_MM_AUDIO_FFT,	obr_fft},
-	{"Komunikat1",	"Komunikat glosowy",						TP_MM_KOM1,			obr_volume},
-	{"Komunikat2",	"Komunikat glosowy",						TP_MM_KOM2,			obr_volume},
-	{"Test kom.",	"Test komunikatów audio",					TP_MM_KOM3,			obr_glosnik2},
+	{"Zdjecie",		"Wykonuje kamerą statyczne zdjecie",		TP_MM_ZDJECIE,		obr_aparat},
+	{"Kamera",		"Uruchamia kamerę w trybie ciagłem",		TP_MM_KAMERA,		obr_kamera},
+	{"Test kom.",	"Test komunikatów audio",					TP_MM_KOM,			obr_glosnik2},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
@@ -268,18 +273,6 @@ void RysujEkran(void)
 		}
 		break;
 
-		chNowyTrybPracy = TP_WROC_DO_MENU;
-		break;
-
-
-	case TP_WITAJ:
-		if (!chLiczIter)
-			chLiczIter = 15;			//ustaw czas wyświetlania x 200ms
-		Ekran_Powitalny(nZainicjowano);	//przywitaj użytkownika i prezentuj wykryty sprzęt
-		if (!chLiczIter)				//jeżeli koniec odliczania to wyjdź
-			chNowyTrybPracy = TP_WROC_DO_MENU;
-		break;
-
 	case TP_TESTY:
 		if (TestDotyku() == ERR_GOTOWE)
 			chNowyTrybPracy = TP_WROC_DO_MENU;
@@ -299,14 +292,14 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM1:		//"Włącza mikrofon, włącza wzmacniacz
-		chPorty_exp_wysylane[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu, aktywny niski
-		chPorty_exp_wysylane[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio, aktywny niski
+		chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu, aktywny niski
+		chPort_exp_wysylany[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio, aktywny niski
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM2:	//Włącza wzmacniacz, włącza mikrofon
-		chPorty_exp_wysylane[1] &= ~EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu, aktywny niski
-		chPorty_exp_wysylane[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio, aktywny niski
+		chPort_exp_wysylany[1] &= ~EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu, aktywny niski
+		chPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio, aktywny niski
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
@@ -325,20 +318,34 @@ void RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
-	case TP_MM_KOM1:	//komunikat audio 1
-		//OdtworzProbkeAudio((uint32_t)&sWszystkiegoNajlepszegoAda[0], 65126);
-		OdtworzProbkeAudioZeSpisu(0);
+	case TP_MM_ZDJECIE:	//pojedyncze zdjęcie
+		ZrobZdjecie(480, 320);
+		//ZrobZdjecie(320,240);
+		//WyswietlZdjecie(320,240, sBuforKamery);
+		WyswietlZdjecie(480, 320, sBuforKamery);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
-	case TP_MM_KOM2:	//komunikat audio 2
-		OdtworzProbkeAudioZeSpisu(1);
+	case TP_MM_KAMERA:	//ciagła praca kamery
+		RozpocznijPraceDCMI(0);
+		WyswietlZdjecie(480, 320, sBuforKamery);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
-	case TP_MM_KOM3:
+	case TP_MM_KOM:
 		TestKomunikatow();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		}
+		break;
+
+	case TP_WITAJ:
+		if (!chLiczIter)
+			chLiczIter = 15;			//ustaw czas wyświetlania x 200ms
+		Ekran_Powitalny(nZainicjowano);	//przywitaj użytkownika i prezentuj wykryty sprzęt
+		if (!chLiczIter)				//jeżeli koniec odliczania to wyjdź
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_MMEDIA;
@@ -421,8 +428,8 @@ void RysujEkran(void)
 		break;
 
 	///LOG_SD1_VSEL - H=3,3V L=1,8V
-	case TP_W3:		chPorty_exp_wysylane[0] |=  EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - H=3,3V
-	case TP_W4:		chPorty_exp_wysylane[0] &= ~EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - L=1,8V
+	case TP_W3:		chPort_exp_wysylany[0] |=  EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - H=3,3V
+	case TP_W4:		chPort_exp_wysylany[0] &= ~EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - L=1,8V
 
 	case TP_EMU_MAG_CAN:
 		uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN2;	//włącz tryb jak dla kalibracji aby nie uwzględniać w wyniku danych kalibracyjnych
@@ -1771,7 +1778,7 @@ void WyswietlParametryKartySD(void)
 	HAL_SD_CardCSDTypedef pCSD;
 	HAL_SD_CardStatusTypeDef pStatus;
 	char chOEM[2];
-	extern uint8_t chPorty_exp_wysylane[];
+	extern uint8_t chPort_exp_wysylany[];
 	float fNapiecie;
 	uint16_t sPozY;
 
@@ -1843,7 +1850,7 @@ void WyswietlParametryKartySD(void)
 		print(chNapis, KOL12, sPozY);
 		sPozY += 20;
 
-		if (chPorty_exp_wysylane[0] & EXP02_LOG_VSELECT)	//LOG_SD1_VSEL: H=3,3V
+		if (chPort_exp_wysylany[0] & EXP02_LOG_VSELECT)	//LOG_SD1_VSEL: H=3,3V
 			fNapiecie = 3.3;
 		else
 			fNapiecie = 1.8;
@@ -1998,7 +2005,7 @@ void WyswietlRejestratorKartySD(void)
 	sprintf(chNapis, "Karta SD: ");
 	print(chNapis, KOL12, sPozY);
 	setColor(YELLOW);
-	if ((chPorty_exp_odbierane[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty
+	if ((chPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty
 	{
 		setColor(KOLOR_Y);
 		sprintf(chNapis, "Obecna");
@@ -3429,4 +3436,26 @@ uint8_t CzytajFram(uint16_t sAdres, uint8_t chRozmiar, float* fDane)
 		return ERR_OK;
 	else
 		return ERR_TIMEOUT;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wyświetla zawartość bufora kamery
+// Parametry:
+// [we] sSzerokosc - szerokość obrazu do wyświetlenia
+// [we] sWysokosc - wysokość obrazu do wyświetlenia
+// [we] *sObraz - wskaźnik na bufor obrazu
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObraz)
+{
+	uint8_t chErr = ERR_OK;
+
+	if (sSzerokosc > DISP_X_SIZE)
+		sSzerokosc = DISP_X_SIZE;
+	if (sWysokosc > DISP_Y_SIZE)
+		sWysokosc = DISP_Y_SIZE;
+	drawBitmap(0, 0, sSzerokosc, sWysokosc, sObraz);
+	return chErr;
 }

@@ -35,7 +35,7 @@ int32_t nRozmiarProbki;			//pozostały do pobrania rozmiar próbki audio
 uint8_t chGlosnosc;				//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI_AUDIO
 
 extern SAI_HandleTypeDef hsai_BlockB2;
-extern uint8_t chPorty_exp_wysylane[];
+extern uint8_t chPort_exp_wysylany[];
 extern void Error_Handler(void);
 
 
@@ -49,8 +49,8 @@ extern void Error_Handler(void);
 uint8_t InicjujAudio(void)
 {
 	//domyslnie ustaw wejscia ShutDown tak aby aktywny był wzmacniacz
-	//chPorty_exp_wysylane[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
-	chPorty_exp_wysylane[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
+	//chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
+	chPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
 	chGlosnosc = 45;
 	chWskNapKolKom = chWskOprKolKom = 0;
 	return ERR_OK;
@@ -291,8 +291,8 @@ uint8_t RejestrujAudio(void)
 	uint8_t chErr;
 
 	//Włącza mikrofon wyłącza wzmacniacz
-	chPorty_exp_wysylane[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu, aktywny niski
-	chPorty_exp_wysylane[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio, aktywny niski
+	chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu, aktywny niski
+	chPort_exp_wysylany[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio, aktywny niski
 
 
 	hsai_BlockB2.Instance = SAI2_Block_B;

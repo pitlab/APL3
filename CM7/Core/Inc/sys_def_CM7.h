@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	225		//numer commitu w repozytorium
+#define WER_REPO	228		//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -96,9 +96,9 @@
 #define TP_MM2				42
 #define TP_MM_TEST_TONU		43
 #define TP_MM_AUDIO_FFT		44	//FFT sygnału z mikrofonu
-#define TP_MM_KOM1			45	//komunikat audio 1
-#define TP_MM_KOM2			46	//komunikat audio 2
-#define TP_MM_KOM3			47	//komunikat audio 3
+#define TP_MM_ZDJECIE		45	//pojedyncze zdjęcie
+#define TP_MM_KAMERA		46	//ciagła praca kamery
+#define TP_MM_KOM			47	//generator komunikatów audio
 #define TP_WROC_DO_MMEDIA	49
 
 //polecenia menu TP_KARTA_SD

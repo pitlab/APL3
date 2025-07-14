@@ -62,6 +62,7 @@ volatile unsigned long ulHighFrequencyTimerTicks = 0;
 /* External variables --------------------------------------------------------*/
 extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 extern DMA_HandleTypeDef hdma_dcmi;
+extern DCMI_HandleTypeDef hdcmi;
 extern FDCAN_HandleTypeDef hfdcan2;
 extern I2C_HandleTypeDef hi2c2;
 extern DMA_HandleTypeDef hdma_lpuart1_tx;
@@ -83,7 +84,7 @@ extern TIM_HandleTypeDef htim6;
 extern TIM_HandleTypeDef htim17;
 
 /* USER CODE BEGIN EV */
-extern uint8_t chPorty_exp_wysylane[LICZBA_EXP_SPI_ZEWN];
+extern uint8_t chPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN];
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -110,10 +111,10 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-	chPorty_exp_wysylane[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
-	chPorty_exp_wysylane[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
-	chPorty_exp_wysylane[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
-	WyslijDaneExpandera(SPI_EXTIO_2, chPorty_exp_wysylane[2]);
+	chPort_exp_wysylany[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
+	chPort_exp_wysylany[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
+	chPort_exp_wysylany[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
+	WyslijDaneExpandera(SPI_EXTIO_2, chPort_exp_wysylany[2]);
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
@@ -339,6 +340,20 @@ void OTG_HS_IRQHandler(void)
   /* USER CODE BEGIN OTG_HS_IRQn 1 */
 
   /* USER CODE END OTG_HS_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DCMI global interrupt.
+  */
+void DCMI_IRQHandler(void)
+{
+  /* USER CODE BEGIN DCMI_IRQn 0 */
+
+  /* USER CODE END DCMI_IRQn 0 */
+  HAL_DCMI_IRQHandler(&hdcmi);
+  /* USER CODE BEGIN DCMI_IRQn 1 */
+
+  /* USER CODE END DCMI_IRQn 1 */
 }
 
 /**
