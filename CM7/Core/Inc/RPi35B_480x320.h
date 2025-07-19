@@ -8,16 +8,21 @@
 #ifndef RPI35B_480X320_H_
 #define RPI35B_480X320_H_
 #include "stm32h7xx_hal.h"
-
-uint8_t LCD_write_command16(uint8_t chDane1, uint8_t chDane2);
+uint8_t LCD_write_command8(uint8_t chDane);
+uint8_t LCD_write_command16(uint8_t chDane);
 uint8_t LCD_WrData(uint8_t* chDane, uint8_t chIlosc);
 uint8_t LCD_WrDataDMA(uint8_t* chDane, uint16_t sIlosc);
 uint8_t LCD_write_data16(uint8_t chDane1, uint8_t chDane2);
-uint8_t LCD_write_dat_pie16(uint8_t chDane1, uint8_t chDane2);
-void LCD_write_dat_sro16(uint8_t chDane1, uint8_t chDane2);
-void LCD_write_dat_ost16(uint8_t chDane1, uint8_t chDane2);
+uint8_t LCD_write_dat_jed8(uint8_t chDane);
+uint8_t LCD_write_dat_jed16(uint8_t chDane);
+uint8_t LCD_write_dat_pie8(uint8_t chDane);
+uint8_t LCD_write_dat_pie16(uint8_t chDane);
+void LCD_write_dat_sro8(uint8_t chDane);
+void LCD_write_dat_sro16(uint8_t chDane);
+void LCD_write_dat_ost8(uint8_t chDane);
+void LCD_write_dat_ost16(uint8_t chDane);
 void LCD_data_read(uint8_t *chDane, uint8_t chIlosc);
-uint8_t InicjujLCD(void);
+uint8_t InicjujLCD_35B_16bit(void);
 void LCD_Orient(uint8_t orient);
 void LCD_clear(uint16_t kolor);
 //void LCD_rect(uint16_t col, uint16_t row, uint16_t width, uint16_t height, uint16_t color);

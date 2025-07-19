@@ -231,10 +231,11 @@ void PeriphCommonClock_Config(void)
   /** Initializes the peripherals clock
   */
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_QSPI|RCC_PERIPHCLK_I2C4
-                              |RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_I2C3
-                              |RCC_PERIPHCLK_SAI2|RCC_PERIPHCLK_SPI2
-                              |RCC_PERIPHCLK_UART8|RCC_PERIPHCLK_UART7
-                              |RCC_PERIPHCLK_UART4|RCC_PERIPHCLK_LPUART1;
+                              |RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_I2C2
+                              |RCC_PERIPHCLK_I2C3|RCC_PERIPHCLK_SAI2
+                              |RCC_PERIPHCLK_SPI2|RCC_PERIPHCLK_UART8
+                              |RCC_PERIPHCLK_UART7|RCC_PERIPHCLK_UART4
+                              |RCC_PERIPHCLK_LPUART1;
   PeriphClkInitStruct.PLL2.PLL2M = 5;
   PeriphClkInitStruct.PLL2.PLL2N = 64;
   PeriphClkInitStruct.PLL2.PLL2P = 50;

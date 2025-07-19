@@ -42,16 +42,16 @@ volatile uint8_t chDMAgotowe;
 ////////////////////////////////////////////////////////////////////////////////
 // Wysyła polecenie do wyświetlacza LCD
 // Zawiera semafor kontrolujący dostęp do SPI.Funkcja czeka na zwolnienie semafora
-// Parametry: chDane1, chDane2 - polecenia wysłane w jednej ramce ograniczonej CS
+// Parametry: chDane - polecenie wysłane w jednej ramce ograniczonej CS
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t LCD_write_command16(uint8_t chDane1, uint8_t chDane2)
+uint8_t LCD_write_command16(uint8_t chDane)
 {
 	HAL_StatusTypeDef chErr;
 	uint8_t dane_nadawane[2];
 
-	dane_nadawane[0] = chDane1;
-	dane_nadawane[1] = chDane2;
+	dane_nadawane[0] = 0x00;
+	dane_nadawane[1] = chDane;
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 		osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
@@ -66,6 +66,23 @@ uint8_t LCD_write_command16(uint8_t chDane1, uint8_t chDane2)
 	return chErr;
 }
 
+uint8_t LCD_write_command8(uint8_t chDane)
+{
+	HAL_StatusTypeDef chErr;
+
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+		osDelay(1);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+	if (chErr == ERR_OK)
+	{
+		UstawDekoderZewn(CS_LCD);											//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
+		chErr = HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
+		UstawDekoderZewn(CS_NIC);											//LCD_CS=1
+	}
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	return chErr;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +110,7 @@ uint8_t LCD_WrData(uint8_t* chDane, uint8_t chIlosc)
 }
 
 
-/*///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // Wysyła do wyświetlacza LCD przez DMA bufor danych w jednej ramce ograniczonej CS. Steruje liniami RS i CS
 // Parametry: *chDane - wskaźnika na bufor z danymi wysłane
 // sIlosc - ilość wysyłanych danych
@@ -108,7 +125,7 @@ uint8_t LCD_WrDataDMA(uint8_t* chDane, uint16_t sIlosc)
 	Err = HAL_SPI_Transmit_DMA(&hspi5, chDane, sIlosc);
 	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 	return Err;
-} */
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -141,18 +158,64 @@ uint8_t LCD_write_data16(uint8_t chDane1, uint8_t chDane2)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wysyła dane do wyświetlacza LCD - pierwsze, steruje liniami RS i CS
+// Wysyła jedyne dane do wyświetlacza LCD w trybie 16-bitowym, steruje liniami RS i CS na początku i końcu
 // Zawiera semafor kontrolujący dostęp do SPI.Funkcja czeka na zwolnienie semafora
 // Parametry: chDane
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t LCD_write_dat_pie16(uint8_t chDane1, uint8_t chDane2)
+uint8_t LCD_write_dat_jed16(uint8_t chDane)
 {
 	HAL_StatusTypeDef chErr;
 	uint8_t dane_nadawane[2];
 
-	dane_nadawane[0] = chDane1;
-	dane_nadawane[1] = chDane2;
+	dane_nadawane[0] = 0x00;
+	dane_nadawane[1] = chDane;
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+			osDelay(1);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+	if (chErr == ERR_OK)
+	{
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
+		UstawDekoderZewn(CS_NIC);
+	}
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	return chErr;
+}
+
+uint8_t LCD_write_dat_jed8(uint8_t chDane)
+{
+	HAL_StatusTypeDef chErr;
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+			osDelay(1);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+	if (chErr == ERR_OK)
+	{
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+		chErr = HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
+		UstawDekoderZewn(CS_NIC);
+	}
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wysyła pierwsze dane do wyświetlacza LCD w trybie 16-bitowym, steruje liniami RS i CS na początku
+// Zawiera semafor kontrolujący dostęp do SPI.Funkcja czeka na zwolnienie semafora
+// Parametry: chDane
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+uint8_t LCD_write_dat_pie16(uint8_t chDane)
+{
+	HAL_StatusTypeDef chErr;
+	uint8_t dane_nadawane[2];
+
+	dane_nadawane[0] = 0x00;
+	dane_nadawane[1] = chDane;
 
 
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
@@ -168,27 +231,56 @@ uint8_t LCD_write_dat_pie16(uint8_t chDane1, uint8_t chDane2)
 	return chErr;
 }
 
+uint8_t LCD_write_dat_pie8(uint8_t chDane)
+{
+	HAL_StatusTypeDef chErr;
+
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+			osDelay(1);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+	if (chErr == ERR_OK)
+	{
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+		chErr = HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
+	}
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	return chErr;
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wysyła dane do wyświetlacza LCD - środkowe: tylko transmisja danych
+// Wysyła środkowe dane do wyświetlacza LCD w trybie 16-bitowym. Nie steruje liniami CS i RC
 // Zawiera semafor kontrolujący dostęp do SPI.Funkcja czeka na zwolnienie semafora
 // Parametry: chDane
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_write_dat_sro16(uint8_t chDane1, uint8_t chDane2)
+void LCD_write_dat_sro16(uint8_t chDane)
 {
 	uint8_t dane_nadawane[2];
 	HAL_StatusTypeDef chErr;
 
-	dane_nadawane[0] = chDane1;
-	dane_nadawane[1] = chDane2;
+	dane_nadawane[0] = 0x00;
+	dane_nadawane[1] = chDane;
 
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 			osDelay(1);
 	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
 		HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+}
+
+void LCD_write_dat_sro8(uint8_t chDane)
+{
+	HAL_StatusTypeDef chErr;
+
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+			osDelay(1);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+	if (chErr == ERR_OK)
+		HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
 	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 }
 
@@ -200,13 +292,13 @@ void LCD_write_dat_sro16(uint8_t chDane1, uint8_t chDane2)
 // Parametry: chDane
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_write_dat_ost16(uint8_t chDane1, uint8_t chDane2)
+void LCD_write_dat_ost16(uint8_t chDane)
 {
 	uint8_t dane_nadawane[2];
 	HAL_StatusTypeDef chErr;
 
-	dane_nadawane[0] = chDane1;
-	dane_nadawane[1] = chDane2;
+	dane_nadawane[0] = 0x00;
+	dane_nadawane[1] = chDane;
 
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
 		osDelay(1);
@@ -214,6 +306,21 @@ void LCD_write_dat_ost16(uint8_t chDane1, uint8_t chDane2)
 	if (chErr == ERR_OK)
 	{
 		HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
+		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+	}
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+}
+
+void LCD_write_dat_ost8(uint8_t chDane)
+{
+	HAL_StatusTypeDef chErr;
+
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+		osDelay(1);
+	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+	if (chErr == ERR_OK)
+	{
+		HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
 		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 	}
 	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
@@ -251,11 +358,9 @@ void LCD_data_read(uint8_t *chDane, uint8_t chIlosc)
 // Parametry: nic
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjujLCD(void)
+uint8_t InicjujLCD_35B_16bit(void)
 {
 	extern uint8_t chPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN];
-
-	HAL_Delay(10);
 
 	// LCD_RESET 1 - 0 - 1
 	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
@@ -270,82 +375,346 @@ uint8_t InicjujLCD(void)
 	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
 	HAL_Delay(20);
 
-	LCD_write_command16(0x00, 0xB0);
+	LCD_write_command16(0xB0);
 	LCD_write_data16(0x00, 0x00);
-	LCD_write_command16(0x00, 0x11);
+	LCD_write_command16(0x11);
 
 	HAL_Delay(285); 			//285ms przerwy
 
-	LCD_write_command16(0x00, 0x21);
-	LCD_write_command16(0x00, 0x3A);
+	LCD_write_command16(0x21);
+	LCD_write_command16(0x3A);
 	LCD_write_data16(0x00, 0x55);
 
-	LCD_write_command16(0x00, 0xC2);
+	LCD_write_command16(0xC2);
 	LCD_write_data16(0x00, 0x33);
 
-	LCD_write_command16(0x00, 0xC5);
-	LCD_write_dat_pie16(0x00, 0x00);
-	LCD_write_dat_sro16(0x00, 0x1E);
-	LCD_write_dat_ost16(0x00, 0x80);
+	LCD_write_command16(0xC5);
+	LCD_write_dat_pie16( 0x00);
+	LCD_write_dat_sro16(0x1E);
+	LCD_write_dat_ost16(0x80);
 
-	LCD_write_command16(0x00, 0x36);
+	LCD_write_command16(0x36);
 	LCD_write_data16(0x00, 0x28);
 
-	LCD_write_command16(0x00, 0xB1);
+	LCD_write_command16(0xB1);
 	LCD_write_data16(0x00, 0xB0);
 
-	LCD_write_command16(0x00, 0xE0);	//Positive Gamma Correction
-	LCD_write_dat_pie16(0x00, 0x00);
-	LCD_write_dat_sro16(0x00, 0x13);
-	LCD_write_dat_sro16(0x00, 0x18);
-	LCD_write_dat_sro16(0x00, 0x04);
-	LCD_write_dat_sro16(0x00, 0x0F);
-	LCD_write_dat_sro16(0x00, 0x06);
-	LCD_write_dat_sro16(0x00, 0x3A);
-	LCD_write_dat_sro16(0x00, 0x56);
-	LCD_write_dat_sro16(0x00, 0x4D);
-	LCD_write_dat_sro16(0x00, 0x03);
-	LCD_write_dat_sro16(0x00, 0x0A);
-	LCD_write_dat_sro16(0x00, 0x06);
-	LCD_write_dat_sro16(0x00, 0x30);
-	LCD_write_dat_sro16(0x00, 0x3E);
-	LCD_write_dat_ost16(0x00, 0x0F);
+	LCD_write_command16(0xE0);	//Positive Gamma Correction
+	LCD_write_dat_pie16(0x00);
+	LCD_write_dat_sro16(0x13);
+	LCD_write_dat_sro16(0x18);
+	LCD_write_dat_sro16(0x04);
+	LCD_write_dat_sro16(0x0F);
+	LCD_write_dat_sro16(0x06);
+	LCD_write_dat_sro16(0x3A);
+	LCD_write_dat_sro16(0x56);
+	LCD_write_dat_sro16(0x4D);
+	LCD_write_dat_sro16(0x03);
+	LCD_write_dat_sro16(0x0A);
+	LCD_write_dat_sro16(0x06);
+	LCD_write_dat_sro16(0x30);
+	LCD_write_dat_sro16(0x3E);
+	LCD_write_dat_ost16(0x0F);
 
-	LCD_write_command16(0x00, 0xE1);	//Negative Gamma Correction
-	LCD_write_dat_pie16(0x00, 0x00);
-	LCD_write_dat_sro16(0x00, 0x13);
-	LCD_write_dat_sro16(0x00, 0x18);
-	LCD_write_dat_sro16(0x00, 0x01);
-	LCD_write_dat_sro16(0x00, 0x11);
-	LCD_write_dat_sro16(0x00, 0x06);
-	LCD_write_dat_sro16(0x00, 0x38);
-	LCD_write_dat_sro16(0x00, 0x34);
-	LCD_write_dat_sro16(0x00, 0x4D);
-	LCD_write_dat_sro16(0x00, 0x06);
-	LCD_write_dat_sro16(0x00, 0x0D);
-	LCD_write_dat_sro16(0x00, 0x0B);
-	LCD_write_dat_sro16(0x00, 0x31);
-	LCD_write_dat_sro16(0x00, 0x37);
-	LCD_write_dat_ost16(0x00, 0x0F);
+	LCD_write_command16(0xE1);	//Negative Gamma Correction
+	LCD_write_dat_pie16(0x00);
+	LCD_write_dat_sro16(0x13);
+	LCD_write_dat_sro16(0x18);
+	LCD_write_dat_sro16(0x01);
+	LCD_write_dat_sro16(0x11);
+	LCD_write_dat_sro16(0x06);
+	LCD_write_dat_sro16(0x38);
+	LCD_write_dat_sro16(0x34);
+	LCD_write_dat_sro16(0x4D);
+	LCD_write_dat_sro16(0x06);
+	LCD_write_dat_sro16(0x0D);
+	LCD_write_dat_sro16(0x0B);
+	LCD_write_dat_sro16(0x31);
+	LCD_write_dat_sro16(0x37);
+	LCD_write_dat_ost16(0x0F);
 
-	LCD_write_command16(0x00, 0x11);
+	LCD_write_command16(0x11);
 	HAL_Delay(302); 		//302ms
 
-	LCD_write_command16(0x00, 0x29);
-	LCD_write_command16(0x00, 0x36);	//orientacja ekranu
+	LCD_write_command16(0x29);
+	LCD_write_command16(0x36);	//orientacja ekranu
 	LCD_write_data16(0x00, 0xE8);
 
-	LCD_write_command16(0x00, 0x2A);	//Column Address Set
-	LCD_write_dat_pie16(0x00, 0x00);
-	LCD_write_dat_sro16(0x00, 0x00);
-	LCD_write_dat_sro16(0x00, 0x01);
-	LCD_write_dat_ost16(0x00, 0xDF);
+	LCD_write_command16(0x2A);	//Column Address Set
+	LCD_write_dat_pie16(0x00);
+	LCD_write_dat_sro16(0x00);
+	LCD_write_dat_sro16(0x01);
+	LCD_write_dat_ost16(0xDF);
 
-	LCD_write_command16(0x00, 0x2B);	//Page Address Set
-	LCD_write_dat_pie16(0x00, 0x00);
-	LCD_write_dat_sro16(0x00, 0x00);
-	LCD_write_dat_sro16(0x00, 0x01);
-	LCD_write_dat_ost16(0x00, 0x3F);
+	LCD_write_command16(0x2B);	//Page Address Set
+	LCD_write_dat_pie16(0x00);
+	LCD_write_dat_sro16(0x00);
+	LCD_write_dat_sro16(0x01);
+	LCD_write_dat_ost16(0x3F);
+
+	chRysujRaz = 1;
+	nZainicjowano[0] |= INIT0_LCD480x320;
+	return ERR_OK;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Konfiguracja wyświetlacza 3.5inch RPi LCD (C) https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(C)
+// Nie działa
+// Parametry: nic
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t InicjujLCD_35C_8bit(void)
+{
+	extern uint8_t chPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN];
+
+	// LCD_RESET 1 - 0 - 1
+	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
+	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+	HAL_Delay(10);
+
+	chPort_exp_wysylany[0] &= ~EXP01_LCD_RESET;	//RES=0
+	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+	HAL_Delay(20);
+
+	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
+	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+	HAL_Delay(20);
+
+	LCD_write_command8(0xFF);
+	LCD_write_command8(0xFF);
+	HAL_Delay(5);
+
+	LCD_write_command8(0xFF);
+	LCD_write_command8(0xFF);
+	LCD_write_command8(0xFF);
+	LCD_write_command8(0xFF);
+	HAL_Delay(10);
+
+	LCD_write_command8(0xB0);
+	LCD_write_dat_jed8(0x00);
+
+	LCD_write_command8(0xB3);
+	LCD_write_dat_pie8(0x02);
+	LCD_write_dat_sro8(0x00);
+	LCD_write_dat_sro8(0x00);
+	LCD_write_dat_ost8(0x10);
+
+	LCD_write_command8(0xB4);
+	LCD_write_dat_jed8(0x11);
+
+	LCD_write_command8(0xC0);
+	LCD_write_dat_pie8(0x13);
+	LCD_write_dat_sro8(0x3B);
+	LCD_write_dat_sro8(0x00);
+	LCD_write_dat_sro8(0x00);
+	LCD_write_dat_sro8(0x00);
+	LCD_write_dat_sro8(0x01);
+	LCD_write_dat_sro8(0x00);	//NW
+	LCD_write_dat_ost8(0x43);
+
+	LCD_write_command8(0xC1);
+	LCD_write_dat_pie8(0x08);
+	LCD_write_dat_sro8(0x15);	//CLOCK
+	LCD_write_dat_sro8(0x08);
+	LCD_write_dat_ost8(0x08);
+
+	LCD_write_command8(0xC4);
+	LCD_write_dat_pie8(0x15);
+	LCD_write_dat_sro8(0x03);
+	LCD_write_dat_sro8(0x03);
+	LCD_write_dat_ost8(0x01);
+
+	LCD_write_command8(0xC6);
+	LCD_write_dat_jed8(0x02);
+
+	LCD_write_command8(0xC8);
+	LCD_write_dat_pie8(0x0C);
+	LCD_write_dat_sro8(0x05);
+	LCD_write_dat_sro8(0x0A);
+	LCD_write_dat_sro8(0x6B);
+	LCD_write_dat_sro8(0x04);
+	LCD_write_dat_sro8(0x06);
+	LCD_write_dat_sro8(0x15);
+	LCD_write_dat_sro8(0x10);
+	LCD_write_dat_sro8(0x00);
+	LCD_write_dat_sro8(0x31);
+	LCD_write_dat_sro8(0x10);
+	LCD_write_dat_sro8(0x15);
+	LCD_write_dat_sro8(0x06);
+	LCD_write_dat_sro8(0x64);
+	LCD_write_dat_sro8(0x0D);
+	LCD_write_dat_sro8(0x0A);
+	LCD_write_dat_sro8(0x05);
+	LCD_write_dat_sro8(0x0C);
+	LCD_write_dat_sro8(0x31);
+	LCD_write_dat_ost8(0x00);
+
+	LCD_write_command8(0x35);
+	LCD_write_dat_jed8(0x00);
+
+	LCD_write_command8(0x0C);
+	LCD_write_dat_jed8(0x66);
+
+	LCD_write_command8(0x3A);
+	LCD_write_dat_jed8(0x66);
+
+	LCD_write_command8(0x44);
+	LCD_write_dat_pie8(0x00);
+	LCD_write_dat_ost8(0x01);
+
+	LCD_write_command8(0xD0);
+	LCD_write_dat_pie8(0x07);
+	LCD_write_dat_sro8(0x07);	//VCI1
+	LCD_write_dat_sro8(0x14);	//VRH 0x1D
+	LCD_write_dat_ost8(0xA2);	//BT
+
+	LCD_write_command8(0xD1);
+	LCD_write_dat_pie8(0x03);
+	LCD_write_dat_sro8(0x5A);	//VCM
+	LCD_write_dat_ost8(0x10);	//VDV
+
+	LCD_write_command8(0xD2);
+	LCD_write_dat_pie8(0x03);
+	LCD_write_dat_sro8(0x04);
+	LCD_write_dat_ost8(0x04);
+
+	LCD_write_command8(0x11);
+	HAL_Delay(150);
+
+	LCD_write_command8(0x2A);
+	LCD_write_dat_pie8(0x00);
+	LCD_write_dat_sro8(0x00);
+	LCD_write_dat_sro8(0x01);
+	LCD_write_dat_ost8(0x3F);	//320
+
+	LCD_write_command8(0x2B);
+	LCD_write_dat_pie8(0x00);
+	LCD_write_dat_sro8(0x00);
+	LCD_write_dat_sro8(0x01);
+	LCD_write_dat_ost8(0xDF);	//480
+
+	//write_SPI_commond(0xB4);
+	//write_SPI_data(0x00);
+	HAL_Delay(100);
+	LCD_write_command8(0x29);
+
+	HAL_Delay(30);
+	LCD_write_command8(0x2C);
+
+	chRysujRaz = 1;
+	nZainicjowano[0] |= INIT0_LCD480x320;
+	return ERR_OK;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Konfiguracja wyświetlacza 3.5inch RPi LCD (C) https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(C)
+// Na podstawie sterownika NoTro: https://github.com/notro/fbtft/blob/master/fb_ili9486.c
+// Nie działa
+// Parametry: nic
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t InicjujLCD_35C_notro(void)
+{
+	extern uint8_t chPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN];
+
+	// LCD_RESET 1 - 0 - 1
+	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
+	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+	HAL_Delay(10);
+
+	chPort_exp_wysylany[0] &= ~EXP01_LCD_RESET;	//RES=0
+	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+	HAL_Delay(20);
+
+	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
+	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+	HAL_Delay(20);
+
+//	LCD_write_command16(0xFF);
+	//LCD_write_command16(0xFF);
+	//HAL_Delay(5);		//delay_nms(5);
+
+	//LCD_write_command16(0xFF);
+	//LCD_write_command16(0xFF);
+	//LCD_write_command16(0xFF);
+	//LCD_write_command16(0xFF);
+//	HAL_Delay(10);		//delay_nms(10);
+
+	LCD_write_command16(0xB0);	// Interface Mode Control
+	LCD_write_dat_jed16(0x00);
+
+	LCD_write_command16(0x11);	// Sleep OUT
+	HAL_Delay(250);
+
+	LCD_write_command16(0xB0);	// Power Control 3
+	LCD_write_dat_jed16(0x44);
+
+	LCD_write_command16(0xC5);	// VCOM Control 1
+	LCD_write_dat_pie16(0x00);
+	LCD_write_dat_sro16(0x00);
+	LCD_write_dat_sro16(0x00);
+	LCD_write_dat_ost16(0x00);
+
+	LCD_write_command16(0xE0);	// PGAMCTRL(Positive Gamma Control)
+	LCD_write_dat_pie16(0x0F);
+	LCD_write_dat_sro16(0x1F);
+	LCD_write_dat_sro16(0x1C);
+	LCD_write_dat_sro16(0x0C);
+	LCD_write_dat_sro16(0x0F);
+	LCD_write_dat_sro16(0x08);
+	LCD_write_dat_sro16(0x48);
+	LCD_write_dat_sro16(0x98);
+	LCD_write_dat_sro16(0x37);
+	LCD_write_dat_sro16(0x0A);
+	LCD_write_dat_sro16(0x13);
+	LCD_write_dat_sro16(0x04);
+	LCD_write_dat_sro16(0x11);
+	LCD_write_dat_sro16(0x0D);
+	LCD_write_dat_ost16(0x00);
+
+	LCD_write_command16(0xE1);	// NGAMCTRL(Negative Gamma Control)
+	LCD_write_dat_pie16(0x0F);
+	LCD_write_dat_sro16(0x32);
+	LCD_write_dat_sro16(0x2E);
+	LCD_write_dat_sro16(0x0B);
+	LCD_write_dat_sro16(0x0D);
+	LCD_write_dat_sro16(0x05);
+	LCD_write_dat_sro16(0x47);
+	LCD_write_dat_sro16(0x75);
+	LCD_write_dat_sro16(0x37);
+	LCD_write_dat_sro16(0x06);
+	LCD_write_dat_sro16(0x10);
+	LCD_write_dat_sro16(0x03);
+	LCD_write_dat_sro16(0x24);
+	LCD_write_dat_sro16(0x20);
+	LCD_write_dat_ost16(0x00);
+
+	LCD_write_command16(0xE2);	// Digital Gamma Control 1
+	LCD_write_dat_pie16(0x0F);
+	LCD_write_dat_sro16(0x32);
+	LCD_write_dat_sro16(0x2E);
+	LCD_write_dat_sro16(0x0B);
+	LCD_write_dat_sro16(0x0D);
+	LCD_write_dat_sro16(0x05);
+	LCD_write_dat_sro16(0x47);
+	LCD_write_dat_sro16(0x75);
+	LCD_write_dat_sro16(0x37);
+	LCD_write_dat_sro16(0x06);
+	LCD_write_dat_sro16(0x10);
+	LCD_write_dat_sro16(0x03);
+	LCD_write_dat_sro16(0x24);
+	LCD_write_dat_sro16(0x20);
+	LCD_write_dat_ost16(0x00);
+
+	LCD_write_command16(0x11);	// Sleep OUT
+	HAL_Delay(250);
+
+	LCD_write_command16(0x29);		// Display ON
+	HAL_Delay(30);
 
 	chRysujRaz = 1;
 	nZainicjowano[0] |= INIT0_LCD480x320;
@@ -363,11 +732,11 @@ void LCD_Orient(uint8_t orient)
 {
 	/*uint8_t chDane[8];
 
-	LCD_write_command16(0x00, 0x04);
+	LCD_write_command16(0x04);
 	LCD_data_read(chDane, 8);*/
 
 
-	LCD_write_command16(0x00, 0x36); // Memory Access Control
+	LCD_write_command16(0x36); // Memory Access Control
 	if (orient)	//PIONOWO
 	{
 		LCD_write_data16(0x00,
@@ -413,19 +782,19 @@ void LCD_clear(uint16_t kolor)
 	setColor(kolor);
 	setBackColor(kolor);
 
-	LCD_write_command16(0x00, 0x2A);	//Column Address Set
+	LCD_write_command16(0x2A);	//Column Address Set
 	for (x=0; x<8; x++)
 		dane[x] = 0;
 	dane[5] = 0x01;
 	dane[7] = 0xDF;		//479 = 0x1DF
 	LCD_WrData(dane, 8);
 
-	LCD_write_command16(0x00, 0x2B);	//Page Address Set
+	LCD_write_command16(0x2B);	//Page Address Set
 	dane[5] = 0x01;
 	dane[7] = 0x3F;		//319 = 0x13F
 	LCD_WrData(dane, 8);
 
-	LCD_write_command16(0x00, 0x2C);	//Memory Write
+	LCD_write_command16(0x2C);	//Memory Write
 	for (x=0; x<4; x++)
 	{
 		dane[2*x+0] = bch;
@@ -455,21 +824,21 @@ void LCD_ProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzero
 	for (n=0; n<8; n++)
 		dane[n] = 0;
 
-	LCD_write_command16(0x00, 0x2A);	//Column Address Set
+	LCD_write_command16(0x2A);	//Column Address Set
 	dane[1] = sStartX >> 8;
 	dane[3] = sStartX;
 	dane[5] = (sStartX + sSzerokosc - 1) >> 8;
 	dane[7] = sStartX + sSzerokosc - 1;
 	LCD_WrData(dane, 8);
 
-	LCD_write_command16(0x00, 0x2B);	//Page Address Set
+	LCD_write_command16(0x2B);	//Page Address Set
 	dane[1] = sStartY >> 8;
 	dane[3] = sStartY;
 	dane[5] = (sStartY +  sWysokosc - 1) >> 8;
 	dane[7] =  sStartY + sWysokosc - 1;
 	LCD_WrData(dane, 8);
 
-	LCD_write_command16(0x00, 0x2C);	//Memory Write
+	LCD_write_command16(0x2C);	//Memory Write
 	for(n=0; n<4; n++)
 	{
 		dane[2*n+0] = kolor >> 8;
@@ -571,21 +940,21 @@ void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 		y2 = sTemp;
 	}
 
-	LCD_write_command16(0x00, 0x2A);	//Column Address Set
+	LCD_write_command16(0x2A);	//Column Address Set
 	dane[1] = x1>>8;
 	dane[3] = x1;
 	dane[5] = x2>>8;
 	dane[7] = x2;
 	LCD_WrData(dane, 8);
 
-	LCD_write_command16(0x00, 0x2B);	//Page Address Set
+	LCD_write_command16(0x2B);	//Page Address Set
 	dane[1] = y1>>8;
 	dane[3] = y1;
 	dane[5] = y2>>8;
 	dane[7] = y2;
 	LCD_WrData(dane, 8);
 
-	LCD_write_command16(0x00, 0x2C);	//Memory Write
+	LCD_write_command16(0x2C);	//Memory Write
 }
 
 
@@ -695,8 +1064,8 @@ uint16_t getBackColor(void)
 void drawPixel(uint16_t x, uint16_t y)
 {
 	setXY(x, y, x, y);
-	LCD_write_dat_pie16(0x00, fch);
-	LCD_write_dat_ost16(0x00, fcl);
+	LCD_write_dat_pie16(fch);
+	LCD_write_dat_ost16(fcl);
 	//clrXY();
 }
 
@@ -730,8 +1099,8 @@ void drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 				//LCD_write_dat_pie(fch);
 				//LCD_write_dat_ost(fcl);
 				LCD_write_data16(fch, fcl);
-				//LCD_write_dat_pie16(0x00, fch);
-				//LCD_write_dat_ost16(0x00, fcl);
+				//LCD_write_dat_pie16(fch);
+				//LCD_write_dat_ost16(fcl);
 				if (row == y2)
 					return;
 				row += ystep;
@@ -752,8 +1121,8 @@ void drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 				//LCD_write_dat_pie(fch);
 				//LCD_write_dat_ost(fcl);
 				LCD_write_data16(fch, fcl);
-				//LCD_write_dat_pie16(0x00, fch);
-				//LCD_write_dat_ost16(0x00, fcl);
+				//LCD_write_dat_pie16(fch);
+				//LCD_write_dat_ost16(fcl);
 				if (col == x2)
 					return;
 				col += xstep;
@@ -1273,21 +1642,21 @@ void CzytajPamiecObrazu(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint
 {
 	uint8_t dane[8];
 
-	LCD_write_command16(0x00, 0x2A);	//Column Address Set
+	LCD_write_command16(0x2A);	//Column Address Set
 	dane[1] = x1>>8;
 	dane[3] = x1;
 	dane[5] = x2>>8;
 	dane[7] = x2;
 	LCD_WrData(dane, 8);
 
-	LCD_write_command16(0x00, 0x2B);	//Page Address Set
+	LCD_write_command16(0x2B);	//Page Address Set
 	dane[1] = y1>>8;
 	dane[3] = y1;
 	dane[5] = y2>>8;
 	dane[7] = y2;
 	LCD_WrData(dane, 8);
 
-	LCD_write_command16(0x00, 0x2E);	//Memory Read
+	LCD_write_command16(0x2E);	//Memory Read
 
 	for (uint16_t n=y1; n<y2; n++)
 	{
