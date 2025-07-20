@@ -72,10 +72,10 @@ can be configured to be skipped, but at least one of the instruction, address, a
 uint8_t InicjujFlashQSPI(void)
 {
 	HAL_StatusTypeDef chErr = 0;
-	extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
+	extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 
 	if (W25_SprawdzObecnoscFlashQSPI() == ERR_OK)
-		nZainicjowano[0] |= INIT0_FLASH_QSPI;
+		nZainicjowanoCM7 |= INIT_FLASH_QSPI;
 	return chErr;
 
 }

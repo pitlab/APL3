@@ -55,8 +55,12 @@ uint8_t InicjujND130(void)
     		return ERR_TIMEOUT;
     }
     while (chErr);
-    uDaneCM4.dane.nZainicjowano |= INIT_ND130;
-    sLicznikZerowaniaND130 = LICZBA_PROBEK_USREDNIANIA_ND130;
+
+    if (chErr == ERR_OK)
+    {
+    	uDaneCM4.dane.nZainicjowano |= INIT_ND130;
+    	sLicznikZerowaniaND130 = LICZBA_PROBEK_USREDNIANIA_ND130;
+    }
     return chErr;
 }
 

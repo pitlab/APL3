@@ -63,11 +63,11 @@ uint8_t BSP_SD_IsDetected(void)
 void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 {
 	extern uint8_t chPort_exp_wysylany[];
-	extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
+	extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 	uint8_t chErr;
 
 	//Może być wywoływany przez inicjalizacją Expanderów, więc sprawdź czy expandery są zainicjowane a jeżeli nie to najpierw je inicjalizuj
-	if ((nZainicjowano[0] & INIT0_EXPANDER_IO) == 0)
+	if ((nZainicjowanoCM7 & INIT_EXPANDER_IO) == 0)
 		InicjujSPIModZewn();
 
 	if (status == SET)

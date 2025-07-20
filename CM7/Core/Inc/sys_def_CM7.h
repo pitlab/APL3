@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	228		//numer commitu w repozytorium
+#define WER_REPO	231		//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -161,10 +161,10 @@
 
 
 //flagi inicjalizacj sprzetu na płytce
-#define INIT0_FLASH_NOR		0x00000001
-#define INIT0_LCD480x320	0x00000002
-#define INIT0_FLASH_QSPI	0x00000004
-#define INIT0_EXPANDER_IO	0x00000008
+#define INIT_FLASH_NOR		0x00000001
+#define INIT_LCD480x320		0x00000002
+#define INIT_FLASH_QSPI		0x00000004
+#define INIT_EXPANDER_IO	0x00000008
 
 //flagi inicjalizacj sprzetu poza płytką
 #define INIT_MOD_IMU		0x00010000

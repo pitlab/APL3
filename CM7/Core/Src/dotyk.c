@@ -20,7 +20,7 @@
 
 //deklaracje zmiennych
 extern SPI_HandleTypeDef hspi5;
-uint8_t chEtapKalibr;	//etap kalibracji kolejnego punktu
+uint8_t chEtapKalibr = 0;	//etap kalibracji kolejnego punktu
 struct _statusDotyku statusDotyku;
 struct _kalibracjaDotyku kalibDotyku;
 uint16_t sXd[PKT_KAL];	//surowy pomiar panelu rezystancyjnego dla danego punktu kalibracyjnego X
@@ -461,15 +461,19 @@ uint8_t TestObliczenKalibracji(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t TestDotyku(void)
 {
-	uint16_t sKolor;
+	extern uint8_t chRysujRaz;
+	uint16_t sKolor = getColor();	//zapamiętaj kolor
 
-	sKolor = getColor();	//zapamiętaj kolor
-	setColor(GRAY40);
-	sprintf(chNapis, "Test kalibracji");
-	print(chNapis, CENTER, 60);
-	setColor(GRAY50);
-	sprintf(chNapis, "Nacisnij ekran 6 razy aby zakonczyc");
-	print(chNapis, CENTER, 80);
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		setColor(GRAY40);
+		sprintf(chNapis, "Test kalibracji");
+		print(chNapis, CENTER, 60);
+		setColor(GRAY50);
+		sprintf(chNapis, "Nacisnij ekran 6 razy aby zakonczyc");
+		print(chNapis, CENTER, 80);
+	}
 
 	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)		//jeżeli był dotknięty
 	{
@@ -480,10 +484,8 @@ uint8_t TestDotyku(void)
 
 		//setColor(RED);
 		setColor(YELLOW);
-		sprintf(chNapis, "Dotyk ADC = (%d, %d) ", statusDotyku.sAdc[0], statusDotyku.sAdc[1]);
+		sprintf(chNapis, "Dotyk @ (%d, %d) = %d ", statusDotyku.sX, statusDotyku.sY, statusDotyku.sAdc[2]);
 		print(chNapis, 80, 140);
-		sprintf(chNapis, "Dotyk Ekran = (%d, %d) ", statusDotyku.sX, statusDotyku.sY);
-		print(chNapis, 80, 160);
 
 		setColor(sKolor);	//przywróć kolor
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;

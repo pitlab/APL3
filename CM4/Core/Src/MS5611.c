@@ -57,8 +57,12 @@ uint8_t InicjujMS5611(void)
         }
     }
     while (chErr);
-    uDaneCM4.dane.nZainicjowano |= INIT_MS5611;
-    sLicznikUsrednianiaP0 = LICZBA_PROBEK_USREDNIANIA;	//rozpocznij przygotowanie P0
+
+    if (chErr == ERR_OK)
+    {
+    	uDaneCM4.dane.nZainicjowano |= INIT_MS5611;
+    	sLicznikUsrednianiaP0 = LICZBA_PROBEK_USREDNIANIA;	//rozpocznij przygotowanie P0
+    }
     return chErr;
 }
 

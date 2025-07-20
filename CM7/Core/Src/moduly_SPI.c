@@ -18,7 +18,7 @@ uint8_t chStanDekoderaSPI;
 volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 extern SPI_HandleTypeDef hspi5;
 const uint8_t chAdres_expandera[LICZBA_EXP_SPI_ZEWN] = {SPI_EXTIO_0, SPI_EXTIO_1, SPI_EXTIO_2};
-extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
+extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjuje układy na magistrali zewnętrznej SPI5. Funkcja najwyższego poziomu, bez parametrów
@@ -124,7 +124,7 @@ uint8_t InicjujSPIModZewn(void)
 	chPort_exp_wysylany[2] &= ~EXP25_LED_NIEB;		//włącz LED_NIEB
 	Err |= WyslijDaneExpandera(SPI_EXTIO_2, chPort_exp_wysylany[2]);
 
-	nZainicjowano[0] |= INIT0_EXPANDER_IO;
+	nZainicjowanoCM7 |= INIT_EXPANDER_IO;
 	hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróć wcześniejszą konfigurację
 	return Err;
 }

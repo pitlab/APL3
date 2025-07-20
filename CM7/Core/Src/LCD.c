@@ -90,7 +90,7 @@ float fTemperaturaKalibracji;
 uint8_t chLiczIter;		//licznik iteracji wyświetlania
 //extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern struct _statusDotyku statusDotyku;
-extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
+extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 extern uint8_t chPort_exp_wysylany[];
 extern uint8_t chPort_exp_odbierany[];
 extern uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
@@ -344,7 +344,7 @@ void RysujEkran(void)
 	case TP_WITAJ:
 		if (!chLiczIter)
 			chLiczIter = 15;			//ustaw czas wyświetlania x 200ms
-		Ekran_Powitalny(nZainicjowano);	//przywitaj użytkownika i prezentuj wykryty sprzęt
+		Ekran_Powitalny(nZainicjowanoCM7);	//przywitaj użytkownika i prezentuj wykryty sprzęt
 		if (!chLiczIter)				//jeżeli koniec odliczania to wyjdź
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -845,7 +845,7 @@ void RysujEkran(void)
 // Parametry: zainicjowano - wskaźnik na tablicę bitów z flagami zainicjowanego sprzętu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void Ekran_Powitalny(uint32_t* zainicjowanoCM7)
+void Ekran_Powitalny(uint32_t nZainicjowano)
 {
 	uint8_t n;
 	uint16_t x, y;
@@ -884,12 +884,12 @@ void Ekran_Powitalny(uint32_t* zainicjowanoCM7)
 	y = WYKRYJ_GORA;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_NOR]);		//"pamięć Flash NOR"
 	print(chNapis, x, y);
-	Wykrycie(x, y, n, (*zainicjowanoCM7 & INIT0_FLASH_NOR) == INIT0_FLASH_NOR);
+	Wykrycie(x, y, n, (nZainicjowano & INIT_FLASH_NOR) == INIT_FLASH_NOR);
 
 	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_QSPI]);	//"pamięć Flash QSPI"
 	print(chNapis, x, y);
-	Wykrycie(x, y, n, (*zainicjowanoCM7 & INIT0_FLASH_NOR) == INIT0_FLASH_NOR);
+	Wykrycie(x, y, n, (nZainicjowano & INIT_FLASH_QSPI) == INIT_FLASH_QSPI);
 
 	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KARTA_SD]);		//"Karta SD"
@@ -899,7 +899,7 @@ void Ekran_Powitalny(uint32_t* zainicjowanoCM7)
 	y += WYKRYJ_WIERSZ;
 	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KAMERA_OV5642]);	//"kamera "
 	print(chNapis, x, y);
-	Wykrycie(x, y, n, (*zainicjowanoCM7 & INIT_KAMERA) == INIT_KAMERA);
+	Wykrycie(x, y, n, (nZainicjowano & INIT_KAMERA) == INIT_KAMERA);
 
 	//dane z CM4
 	y += WYKRYJ_WIERSZ;

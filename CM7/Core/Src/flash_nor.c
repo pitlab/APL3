@@ -62,25 +62,22 @@ uint8_t InicjujFlashNOR(void)
 	FMC_NORSRAM_TimingTypeDef Timing = {0};
 	FMC_SDRAM_TimingTypeDef SdramTiming = {0};
 
-	extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
+	extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 	extern void Error_Handler(void);
 
-	/* Pamięć jest taktowana zegarem 200 MHz (max 240MHz), daje to okres 5ns (4,1ns)
+	/* Pamięć jest taktowana zegarem 200 MHz, daje to okres 5ns
 	 * Włączenie FIFO, właczenie wszystkich uprawnień na MPU Cortexa nic nie daje
 	  Dla tych parametrów zapis bufor 512B ma przepustowość 258kB/s, odczyt danych 45,5MB/s   */
 	Timing.AddressSetupTime = 0;		//0ns
-	Timing.AddressHoldTime = 6;			//45ns	45/8,3 => 6
-	Timing.DataSetupTime = 18;			//18*5 = 90ns
+	Timing.AddressHoldTime = 6;			//45ns	45/10 => 5
+	Timing.DataSetupTime = 18;			//90ns/5ns = 18
 	Timing.BusTurnAroundDuration = 3;	//tyko dla multipleksowanego NOR
-	Timing.CLKDivision = 2;				//240/2=120MHz -> 8,3ns
+	Timing.CLKDivision = 2;				//200/2=100MHz -> 10ns
 	Timing.DataLatency = 2;
 	Timing.AccessMode = FMC_ACCESS_MODE_A;
 	if (HAL_NOR_Init(&hnor3, &Timing, NULL) != HAL_OK)
 		Error_Handler( );
 
-	chErr = SprawdzObecnoscFlashNOR();
-	if (chErr == ERR_OK)
-		nZainicjowano[0] |= INIT0_FLASH_NOR;
 	HAL_NOR_ReturnToReadMode(&hnor3);		//ustaw pamięć w tryb odczytu
 
 	//ręcznie włącz Bit 13 WAITEN: Wait enable bit oraz Bit 11 WAITCFG: Wait timing configuration,ponieważ sterownik HAL go nie włącza
@@ -131,11 +128,11 @@ uint8_t InicjujFlashNOR(void)
 	}
 
 	FMC_SDRAM_CommandTypeDef Command;
-
-
 	SDRAM_Initialization_Sequence(&hsdram1, &Command);
 
-
+	chErr = SprawdzObecnoscFlashNOR();
+	if (chErr == ERR_OK)
+		nZainicjowanoCM7 |= INIT_FLASH_NOR;
 
 	return chErr;
 }
@@ -220,7 +217,7 @@ uint8_t SprawdzObecnoscFlashNOR(void)
 			if ((norID.Device_Code2 != 0x2228) &&	//1Gb
 				(norID.Device_Code2 != 0x2223) &&	//512Mb
 				(norID.Device_Code2 != 0x2222) &&	//256Mb		S29GL256S90
-				(norID.Device_Code2 != 0x2222))		//128Mb
+				(norID.Device_Code2 != 0x2221))		//128Mb
 			{
 				chErr = ERR_BRAK_FLASH_NOR;
 			}

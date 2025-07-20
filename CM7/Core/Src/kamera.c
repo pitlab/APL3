@@ -37,7 +37,7 @@ ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaZewnSRAM")))	sBuforKamery[
 struct st_KonfKam strKonfKam;
 
 uint16_t sLicznikLiniiKamery;
-extern uint32_t nZainicjowano;		//flagi inicjalizacji sprzętu
+extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 extern DCMI_HandleTypeDef hdcmi;
 extern DMA_HandleTypeDef hdma_dcmi;
 extern TIM_HandleTypeDef htim12;
@@ -209,7 +209,7 @@ uint8_t	SprawdzKamere(void)
 		return ERR_BRAK_KAMERY;
 	else
 	{
-		nZainicjowano += INIT_KAMERA;
+		nZainicjowanoCM7 |= INIT_KAMERA;
 		return ERR_OK;
 	}
 }

@@ -23,7 +23,7 @@
 //deklaracje zmiennych
 extern SPI_HandleTypeDef hspi5;
 extern uint8_t chRysujRaz;
-extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
+extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 
 uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 uint8_t chOrient;
@@ -453,7 +453,7 @@ uint8_t InicjujLCD_35B_16bit(void)
 	LCD_write_dat_ost16(0x3F);
 
 	chRysujRaz = 1;
-	nZainicjowano[0] |= INIT0_LCD480x320;
+	nZainicjowanoCM7 |= INIT_LCD480x320;
 	return ERR_OK;
 }
 
@@ -604,7 +604,7 @@ uint8_t InicjujLCD_35C_8bit(void)
 	LCD_write_command8(0x2C);
 
 	chRysujRaz = 1;
-	nZainicjowano[0] |= INIT0_LCD480x320;
+	nZainicjowanoCM7 |= INIT_LCD480x320;
 	return ERR_OK;
 }
 
@@ -717,7 +717,7 @@ uint8_t InicjujLCD_35C_notro(void)
 	HAL_Delay(30);
 
 	chRysujRaz = 1;
-	nZainicjowano[0] |= INIT0_LCD480x320;
+	nZainicjowanoCM7 |= INIT_LCD480x320;
 	return ERR_OK;
 }
 

@@ -31,7 +31,7 @@ uint8_t chKolejkaKomunkatow[ROZM_KOLEJKI_KOMUNIKATOW];	//bufor kołowy do przech
 static uint8_t chWskNapKolKom, chWskOprKolKom;		//wskaźniki napełniania i opróżniania kolejki komunikatów audio
 uint8_t chNumerTonu = 0xFF;		//ton domyślnie wyłączony
 static uint32_t nAdresProbki;	//adres w pamieci flash skąd pobierany jest kolejny fragment próbki audio
-int32_t nRozmiarProbki;			//pozostały do pobrania rozmiar próbki audio
+uint32_t nRozmiarProbki;			//pozostały do pobrania rozmiar próbki audio
 uint8_t chGlosnosc;				//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI_AUDIO
 
 extern SAI_HandleTypeDef hsai_BlockB2;
@@ -115,16 +115,17 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 	chGlosnikJestZajęty = 1;		//zajęcie zasobu "głośnika"
 	nAdresProbki   = nAdres;	//przepisz do zmiennych globalnych
 	nRozmiarProbki = nRozmiar;
-
+	if (nRozmiar > ROZMIAR_BUFORA_AUDIO)
+		nRozmiar = ROZMIAR_BUFORA_AUDIO;
 
 	//napełnij pierwszy cały bufor, reszta będzie dopełniana połówkami w callbackach od opróżnienia połowy i całego bufora
-	for (uint32_t n=0; n<ROZMIAR_BUFORA_AUDIO; n++)
+	for (uint32_t n=0; n<nRozmiar; n++)
 	{
 		//sBuforAudioWy[n] =  *(int16_t*)nAdresProbki;
 		sBuforAudioWy[n] = (*(int16_t*)nAdresProbki * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
 		nAdresProbki += 2;
 	}
-	nRozmiarProbki -= ROZMIAR_BUFORA_AUDIO;
+	nRozmiarProbki -= nRozmiar;
 
 	return HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, (uint16_t)ROZMIAR_BUFORA_AUDIO);
 }
@@ -152,7 +153,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 	}
 
 	//napełnij pierwszą połowę bufora
-	for (uint16_t n=0; n<nRozmiar; n++)
+	for (uint8_t n=0; n<nRozmiar; n++)
 	{
 		sProbka = 0;
 		if (nRozmiarProbki > 0)					//czy jest komunikat
@@ -586,7 +587,7 @@ uint8_t DodajProbkeDoMalejKolejki(uint8_t chNumerProbki, uint8_t chRozmiarKolejk
 	chKolejkaKomunkatow[chWskNapKolKom++] = chNumerProbki;
 	if (chWskNapKolKom >= chRozmiarKolejki)
 			chWskNapKolKom = 0;
-	for (uint16_t n=chRozmiarKolejki; n<ROZM_KOLEJKI_KOMUNIKATOW; n++)	//pozostałą część kolejki wypełnij komunikatami nie do wymówienia
+	for (uint8_t n=chRozmiarKolejki; n<ROZM_KOLEJKI_KOMUNIKATOW; n++)	//pozostałą część kolejki wypełnij komunikatami nie do wymówienia
 		chKolejkaKomunkatow[n] = PRGA_PUSTE_MIEJSCE;
 
 	return ERR_OK;
