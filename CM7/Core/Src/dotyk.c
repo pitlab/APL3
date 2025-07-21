@@ -104,8 +104,11 @@ uint8_t CzytajDotyk(void)
 	else
 		return ERR_ZAJETY_SEMAFOR;
 
-	if (statusDotyku.sAdc[2] > MIN_Z)		//czy siła nacisku jest wystarczająca
+	if (statusDotyku.sAdc[2] > MIN_Z)	//czy siła nacisku jest wystarczająca
 	{
+		if (statusDotyku.sAdc[2] == 0x1FFF) //czy jest to brak sterownika dotyku
+			return ERR_BRAK_WYSWIETLACZA;
+
 		if (statusDotyku.chCzasDotkniecia)
 		{
 			statusDotyku.chCzasDotkniecia--;

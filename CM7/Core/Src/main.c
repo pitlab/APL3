@@ -319,13 +319,15 @@ Error_Handler();
   MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
   chErr |= InicjujSPIModZewn();
-  chErr |= InicjujLCD_35B_16bit();
+  chErr |= InicjujDotyk();
+  if (!chErr)
+	  chErr |= InicjujLCD_35B_16bit();	//wyświetlacz inicjalizuj tylko gdy wykryto sterownik panelu dotykowego
   chErr |= InicjujFlashNOR();
   chErr |= InicjujFlashQSPI();
   chErr |= InicjujKonfigFlash();
   chErr |= InicjujProtokol();
   chErr |= InicjujAudio();
-  chErr |= InicjujDotyk();
+
   chErr |= InicjalizujKamere();
   if (chErr != ERR_OK)
   	  chCzasSwieceniaLED[LED_CZER] = 50;	//świeć 5s
@@ -987,7 +989,18 @@ static void MX_SDMMC1_SD_Init(void)
 {
 
   /* USER CODE BEGIN SDMMC1_Init 0 */
-
+	//Ponieważ procedura inicjalizacji wchodzi w Error_Handler() w przypadku braku karty, więc samodzielnie obsługuję inicjalizację nie traktując braku karty jako błąd, ale stan pracy
+	hsd1.Instance = SDMMC1;
+	hsd1.Init.ClockEdge = SDMMC_CLOCK_EDGE_RISING;
+	hsd1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
+	hsd1.Init.BusWide = SDMMC_BUS_WIDE_4B;
+	hsd1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
+	hsd1.Init.ClockDiv = 0;
+	hsd1.Init.TranceiverPresent = SDMMC_TRANSCEIVER_PRESENT;
+	if (HAL_SD_Init(&hsd1) == HAL_OK)
+		nZainicjowanoCM7 |= INIT_KARTA_SD;
+	return;
+	//dlaszy kod niegdy nie jest wykonywany
   /* USER CODE END SDMMC1_Init 0 */
 
   /* USER CODE BEGIN SDMMC1_Init 1 */
@@ -1817,9 +1830,13 @@ void WatekWyswietlacza(void const * argument)
 	/* Infinite loop */
 	for(;;)
 	{
-		if (nZainicjowanoCM7 & INIT_DOTYK)		//jeżeli nie ma panelu dotykowego, to nie ma również wyświetlacza
+		if (nZainicjowanoCM7 & INIT_LCD480x320)		//obsłuż wyświetlacz tylko wtedy jest zainicjowany
+		{
 			RysujEkran();
-		osDelay(1);
+			osDelay(1);
+		}
+		else
+			osDelay(10000);
 	}
   /* USER CODE END WatekWyswietlacza */
 }

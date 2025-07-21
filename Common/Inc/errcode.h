@@ -45,13 +45,8 @@
 #define ERR_BRAK_MMC34160		37
 #define ERR_BRAK_IIS2MDS		38
 #define ERR_BRAK_MS4525			39
-
-#define ERR_I2C_BERR			40
-#define ERR_I2C_ARB_LOST		41
-#define ERR_I2C_ACK_FAIL		42
-#define ERR_I2C_SDA_LOCK		43
-#define ERR_I2C_SCL_LOCK		44
-#define ERR_I2C_TIMEOUT			45
+#define ERR_BRAK_KARTY_SD		40
+#define ERR_BRAK_WYSWIETLACZA	41
 
 
 #define ERR_BRAK_POZW_ZAPISU	50	//brak pozwolenia zapisu dla obszaru pamieci Flash
@@ -71,6 +66,13 @@
 
 //#define ERR_NASTAWA_PID			68	//niewłaściwa wartość nastawy regulatora PID
 #define ERR_NASTAWA_FRAM		68	//niewłaściwa wartość nastawy odczytanaj z FRAM
+
+#define ERR_I2C_BERR			70
+#define ERR_I2C_ARB_LOST		71
+#define ERR_I2C_ACK_FAIL		72
+#define ERR_I2C_SDA_LOCK		73
+#define ERR_I2C_SCL_LOCK		74
+#define ERR_I2C_TIMEOUT			75
 
 #define ERR_NIE_ZAINICJOWANY	0xFF
 

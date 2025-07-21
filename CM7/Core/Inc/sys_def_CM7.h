@@ -162,15 +162,15 @@
 
 //flagi inicjalizacj sprzetu na płytce
 #define INIT_FLASH_NOR		0x00000001
-#define INIT_LCD480x320		0x00000002
-#define INIT_FLASH_QSPI		0x00000004
-#define INIT_EXPANDER_IO	0x00000008
+#define INIT_FLASH_QSPI		0x00000002
+#define INIT_EXPANDER_IO	0x00000004
 
 //flagi inicjalizacj sprzetu poza płytką
 #define INIT_MOD_IMU		0x00010000
 #define INIT_KAMERA			0x00020000
 #define INIT_KARTA_SD		0x00040000
 #define INIT_DOTYK			0x00080000
+#define INIT_LCD480x320		0x00100000
 
 //semafory sprzętowe
 
