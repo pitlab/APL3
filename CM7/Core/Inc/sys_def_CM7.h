@@ -170,7 +170,7 @@
 #define INIT_MOD_IMU		0x00010000
 #define INIT_KAMERA			0x00020000
 #define INIT_KARTA_SD		0x00040000
-
+#define INIT_DOTYK			0x00080000
 
 //semafory sprzętowe
 

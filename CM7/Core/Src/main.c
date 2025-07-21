@@ -157,6 +157,7 @@ uint32_t tsRejestratorBuffer[ 512 ];
 osStaticThreadDef_t tsRejestratorControlBlock;
 osThreadId tsObslugaWyswieHandle;
 /* USER CODE BEGIN PV */
+uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 uint16_t sLicznikTele;
 uint8_t chErr = ERR_OK;
 extern uint8_t chPort_exp_wysylany[];
@@ -201,7 +202,7 @@ void WatekWyswietlacza(void const * argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wersja oczekiwania wykorzystująca usypianie kontrolera
@@ -1655,8 +1656,8 @@ void StartDefaultTask(void const * argument)
 	for(;;)
 	{
 		chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
-		WymienDaneExpanderow();
 		CzytajDotyk();
+		WymienDaneExpanderow();
 		UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
 
 		//obsłuż międzyprocesorową wymianę danych
@@ -1816,7 +1817,8 @@ void WatekWyswietlacza(void const * argument)
 	/* Infinite loop */
 	for(;;)
 	{
-		RysujEkran();
+		if (nZainicjowanoCM7 & INIT_DOTYK)		//jeżeli nie ma panelu dotykowego, to nie ma również wyświetlacza
+			RysujEkran();
 		osDelay(1);
 	}
   /* USER CODE END WatekWyswietlacza */

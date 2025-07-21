@@ -510,6 +510,7 @@ uint8_t InicjujDotyk(void)
 {
 	uint8_t n, chPaczka[ROZMIAR_PACZKI_KONFIG];
 	uint8_t chErr = ERR_BRAK_KONFIG;
+	extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 
 	for (n=0; n<4; n++)
 		statusDotyku.sAdc[n] = 0;
@@ -534,6 +535,17 @@ uint8_t InicjujDotyk(void)
 	}
 	statusDotyku.chCzasDotkniecia = 1;	//potrzebne do uruchomienia pierwszej kalibracji przez trzymanie ekranu podczas włączania
 	//normalnie potrzeba trzymać ekran przez kilka cykli aby zostało to uznane za dotknięcie, natomiast podcza uruchomienia jest tylko jedna próba stąd licznik musi być =1
+
+	//sprawdź obecność panelu dotykowego
+	CzytajDotyk();
+	if (statusDotyku.sAdc[0] == 0x1FFF)		//taką wartość zwraca gdy nie ma podłaczonego ekranu
+	{
+		nZainicjowanoCM7 &= ~INIT_DOTYK;
+		chErr = ERR_BRAK_DANYCH;
+	}
+	else
+		nZainicjowanoCM7 |= INIT_DOTYK;
+
 	return chErr;
 }
 
