@@ -193,7 +193,7 @@ uint8_t Wyslij_Blok_Kamera(const struct sensor_reg reglist[])
 uint8_t	SprawdzKamere(void)
 {
 	uint16_t sDaneH;
-	uint8_t chDaneL, powtorz = 10;
+	uint8_t chDaneL, powtorz = 5;
 
 	do
 	{

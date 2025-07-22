@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	231		//numer commitu w repozytorium
+#define WER_REPO	234		//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -164,6 +164,7 @@
 #define INIT_FLASH_NOR		0x00000001
 #define INIT_FLASH_QSPI		0x00000002
 #define INIT_EXPANDER_IO	0x00000004
+#define INIT_AUDIO			0x00000008
 
 //flagi inicjalizacj sprzetu poza płytką
 #define INIT_MOD_IMU		0x00010000
@@ -214,6 +215,11 @@
 #define KOMG_PREDKOSC		4
 #define KOMG_KIERUNEK		5
 #define KOMG_MAX_KOMUNIKAT	5
+
+//zakres adresów FLASH bank 1 dostępnych dla CM7
+#define POCZATEK_FLASH		0x08000000
+#define KONIEC_FLASH		0x080FFFFF
+
 
 
 //

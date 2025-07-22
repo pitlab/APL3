@@ -334,15 +334,18 @@ Error_Handler();
 
   InicjujMDMA();
   InicjujCAN();
-  CzytajDotyk();
-  if (statusDotyku.sAdc[2] > MIN_Z)						//jeżeli ekran jest dotknięty w czasie uruchamiania
+  chErr = CzytajDotyk();
+  if (chErr == ERR_OK)
   {
-	  statusDotyku.chFlagi &= ~DOTYK_SKALIBROWANY;		//wymuś ponowną kalibrację przez odjęcie statusu skalibrowania
-  }
-  else
-  {
-	  chTrybPracy = TP_WITAJ;				//w wątku wyświetlającym zacznij od trybu powitalnego. Ważne aby tryb był inny od TP_MENU_GLOWNE bo on nadpisuje chNowyTrybPracy
-	  chNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
+	  if (statusDotyku.sAdc[2] > MIN_Z)			//jeżeli ekran jest dotknięty w czasie uruchamiania
+	  {
+		  statusDotyku.chFlagi &= ~DOTYK_SKALIBROWANY;		//wymuś ponowną kalibrację przez odjęcie statusu skalibrowania
+	  }
+	  else
+	  {
+		  chTrybPracy = TP_WITAJ;				//w wątku wyświetlającym zacznij od trybu powitalnego. Ważne aby tryb był inny od TP_MENU_GLOWNE bo on nadpisuje chNowyTrybPracy
+		  chNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
+	  }
   }
   /* USER CODE END 2 */
 

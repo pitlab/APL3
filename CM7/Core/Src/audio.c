@@ -37,7 +37,7 @@ uint8_t chGlosnosc;				//regulacja głośności odtwarzania komunikatów w zakre
 extern SAI_HandleTypeDef hsai_BlockB2;
 extern uint8_t chPort_exp_wysylany[];
 extern void Error_Handler(void);
-
+extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 
 
 
@@ -48,12 +48,18 @@ extern void Error_Handler(void);
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujAudio(void)
 {
+	uint8_t chErr;
+
 	//domyslnie ustaw wejscia ShutDown tak aby aktywny był wzmacniacz
 	//chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
 	chPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
 	chGlosnosc = 45;
 	chWskNapKolKom = chWskOprKolKom = 0;
-	return ERR_OK;
+
+	chErr = OdtworzProbkeAudioZeSpisu(PRGA_GOTOWY_SLUZYC);	//komunikat powitalny, sprawdzajacy czy audio działa
+	if (chErr == ERR_OK)
+		nZainicjowanoCM7 |= INIT_AUDIO;
+	return chErr;
 }
 
 
@@ -67,8 +73,8 @@ uint8_t ObslugaWymowyKomunikatu(void)
 {
 	uint8_t chErr;
 
-	if ((chWskNapKolKom == chWskOprKolKom) || chGlosnikJestZajęty)
-		return ERR_OK;		//nie ma nic do wymówienia
+	if ((chWskNapKolKom == chWskOprKolKom) || chGlosnikJestZajęty || ((nZainicjowanoCM7 & INIT_AUDIO) != INIT_AUDIO))
+		return ERR_OK;		//nie ma nic do wymówienia lub nie skonfigurowane
 
 	//pobierz kolejną próbkę do wymówienia i zacznij wymowę
 	chErr = OdtworzProbkeAudioZeSpisu(chKolejkaKomunkatow[chWskOprKolKom++]);
@@ -107,8 +113,8 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 
 	if ((nAdres < ADR_POCZATKU_KOM_AUDIO) || (nAdres > ADR_KONCA_KOM_AUDIO))
 	{
-		chCzasSwieceniaLED[LED_CZER] = 20;	//włącz czerwoną na 2 sekundy
-		if (nAdres > 0x081FFFFF)	//jeżeli we flash programu to tylko sygnalizuj
+		chCzasSwieceniaLED[LED_CZER] += 20;	//włącz czerwoną na 2 sekundy
+		if ((nAdres < POCZATEK_FLASH) || (nAdres > KONIEC_FLASH))	//jeżeli we flash programu to tylko sygnalizuj
 			return ERR_BRAK_PROBKI_AUDIO;
 	}
 
