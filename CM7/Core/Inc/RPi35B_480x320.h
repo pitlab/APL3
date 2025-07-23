@@ -23,6 +23,7 @@ void LCD_write_dat_ost8(uint8_t chDane);
 void LCD_write_dat_ost16(uint8_t chDane);
 void LCD_data_read(uint8_t *chDane, uint8_t chIlosc);
 uint8_t InicjujLCD_35B_16bit(void);
+uint8_t InicjujLCD_35C_16bit(void);
 void LCD_Orient(uint8_t orient);
 void LCD_clear(uint16_t kolor);
 //void LCD_rect(uint16_t col, uint16_t row, uint16_t width, uint16_t height, uint16_t color);

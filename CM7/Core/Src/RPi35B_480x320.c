@@ -617,7 +617,7 @@ uint8_t InicjujLCD_35C_8bit(void)
 // Parametry: nic
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjujLCD_35C_notro(void)
+uint8_t InicjujLCD_35C_16bit(void)
 {
 	extern uint8_t chPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN];
 
@@ -650,7 +650,13 @@ uint8_t InicjujLCD_35C_notro(void)
 	LCD_write_command16(0x11);	// Sleep OUT
 	HAL_Delay(250);
 
-	LCD_write_command16(0xB0);	// Power Control 3
+	LCD_write_command16(0x3A);	// Interface Pixel Format, 16 bits / pixel
+	LCD_write_dat_jed16(0x55);
+
+	LCD_write_command16(0x36);	// Memory Access Control
+	LCD_write_dat_jed16(0x28);
+
+	LCD_write_command16(0xC2);	// Power Control 3
 	LCD_write_dat_jed16(0x44);
 
 	LCD_write_command16(0xC5);	// VCOM Control 1
@@ -710,11 +716,14 @@ uint8_t InicjujLCD_35C_notro(void)
 	LCD_write_dat_sro16(0x20);
 	LCD_write_dat_ost16(0x00);
 
+	LCD_write_command16(0x36);	// Memory Access Control, BGR
+	LCD_write_dat_jed16(0x28);
+
 	LCD_write_command16(0x11);	// Sleep OUT
 	HAL_Delay(250);
 
 	LCD_write_command16(0x29);		// Display ON
-	HAL_Delay(30);
+	HAL_Delay(250);
 
 	chRysujRaz = 1;
 	nZainicjowanoCM7 |= INIT_LCD480x320;

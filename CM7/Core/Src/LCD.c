@@ -29,7 +29,7 @@
 #include "konfig_fram.h"
 #include "pid_kanaly.h"
 #include "kamera.h"
-
+#include "pamiec.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -186,7 +186,7 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Trans RAM",	"Pomiar predkosci SRAM i DRAM 16-bit",		TP_POMIAR_SRAM,		obr_RAM},
 	{"EmuMagCAN",	"Emulator magnetometru na magistrali CAN",	TP_EMU_MAG_CAN,		obr_kal_mag_n1},
 	{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katow IMU",		TP_IMU_KOSTKA,		obr_kostka3D},
-	{"SD33",		"nic",										TP_W3,				obr_Wydajnosc},
+	{"Magistrala",	"Test magistrali danych i adresowej",		TP_W3,				obr_Wydajnosc},
 	{"SD18",		"nic",										TP_W4,				obr_Wydajnosc},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
@@ -428,8 +428,10 @@ void RysujEkran(void)
 		break;
 
 	///LOG_SD1_VSEL - H=3,3V L=1,8V
-	case TP_W3:		chPort_exp_wysylany[0] |=  EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - H=3,3V
-	case TP_W4:		chPort_exp_wysylany[0] &= ~EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - L=1,8V
+	//case TP_W3:		chPort_exp_wysylany[0] |=  EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - H=3,3V
+	//case TP_W4:		chPort_exp_wysylany[0] &= ~EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - L=1,8V
+	case TP_W3: SprawdzMagistrale();	break;
+
 
 	case TP_EMU_MAG_CAN:
 		uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN2;	//włącz tryb jak dla kalibracji aby nie uwzględniać w wyniku danych kalibracyjnych

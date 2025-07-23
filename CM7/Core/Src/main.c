@@ -83,7 +83,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "can.h"
 #include "telemetria.h"
 #include "kamera.h"
-
+#include "pamiec.h"
 
 /* USER CODE END Includes */
 
@@ -159,7 +159,7 @@ osThreadId tsObslugaWyswieHandle;
 /* USER CODE BEGIN PV */
 uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 uint16_t sLicznikTele;
-uint8_t chErr = ERR_OK;
+uint8_t chErr1, chErr = ERR_OK;
 extern uint8_t chPort_exp_wysylany[];
 extern struct _statusDotyku statusDotyku;
 extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
@@ -276,8 +276,7 @@ int main(void)
   /* Configure the peripherals common clocks */
   PeriphCommonClock_Config();
 /* USER CODE BEGIN Boot_Mode_Sequence_2 */
-/* When system initialization is finished, Cortex-M7 will release Cortex-M4 by means of
-HSEM notification */
+/* When system initialization is finished, Cortex-M7 will release Cortex-M4 by means of HSEM notification */
 /*HW semaphore Clock enable*/
 __HAL_RCC_HSEM_CLK_ENABLE();
 /*Take HSEM */
@@ -318,13 +317,19 @@ Error_Handler();
   MX_I2C2_Init();
   MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
+
   chErr |= InicjujSPIModZewn();
-  chErr |= InicjujDotyk();
-  if (!chErr)
-	  chErr |= InicjujLCD_35B_16bit();	//wyświetlacz inicjalizuj tylko gdy wykryto sterownik panelu dotykowego
-  chErr |= InicjujFlashNOR();
+  chErr |= InicjujFlashNOR();	//inicjalizacja wszystkich typów pamięci na szynie równoległej
+  //chErr  = SprawdzMagistrale();
   chErr |= InicjujFlashQSPI();
   chErr |= InicjujKonfigFlash();
+  chErr1 = InicjujDotyk();
+  if (chErr1 != ERR_BRAK_DANYCH)		//wyświetlacz inicjalizuj tylko gdy wykryto sterownik panelu dotykowego
+	  chErr |= InicjujLCD_35B_16bit();
+	  //chErr |= InicjujLCD_35C_16bit();
+  else
+	  chErr |= chErr1;
+
   chErr |= InicjujProtokol();
   chErr |= InicjujAudio();
 
@@ -1839,7 +1844,7 @@ void WatekWyswietlacza(void const * argument)
 			osDelay(1);
 		}
 		else
-			osDelay(10000);
+			osDelay(1000);
 	}
   /* USER CODE END WatekWyswietlacza */
 }
