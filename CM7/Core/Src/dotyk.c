@@ -264,8 +264,8 @@ uint8_t KalibrujDotyk(void)
 	print(chNapis, 80, 180);
 	sprintf(chNapis, "Z1=%d   ", statusDotyku.sAdc[2]);
 	print(chNapis, 80, 200);
-	sprintf(chNapis, "Z2=%d ", statusDotyku.sAdc[3]);
-	print(chNapis, 80, 220);
+	//sprintf(chNapis, "Z2=%d ", statusDotyku.sAdc[3]);
+	//print(chNapis, 80, 220);
 	setColor(sKolor);	//przywróć kolor
 	return chErr;
 }

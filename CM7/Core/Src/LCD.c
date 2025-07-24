@@ -713,6 +713,8 @@ void RysujEkran(void)
 
 
 	case TP_KAL_DOTYK:
+		chNowyTrybPracy = 0;			//nowy tryb jest ustawiany po starcie dla normalnej pracy ze skalibrowanym panelem. Jednak w przypadku potrzeby kalobracji,
+										//powoduje to wyczyszczenie opisu i pierwszego krzyżyka i nie wiadomo o co chodzi, więc kasuję chNowyTrybPracy
 		if (KalibrujDotyk() == ERR_GOTOWE)
 			chTrybPracy = TP_TESTY;
 		break;

@@ -31,7 +31,7 @@
 #define FKON_OKRES_TELEMETRI8		0x08	//okresy wysyłania zmiennych telemetrycznych 210..239
 #define FKON_OKRES_TELEMETRI9		0x09	//okresy wysyłania zmiennych telemetrycznych 240..269
 #define FKON_NAZWA_ID_BSP			0x0A	//struktura identyfikacyjna BSP: ID, nazwa i numer IP
-#define LICZBA_TYPOW_PACZEK	1
+#define LICZBA_TYPOW_PACZEK	11
 
 
 
