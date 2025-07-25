@@ -144,7 +144,7 @@ uint8_t CzytajPaczkeKonfigu(uint8_t* chDane, uint8_t chIdPaczki)
 
 	//sprawdź warunki początkowe. nAdresZapisuKonfigu wskazuje na pierwsze wolne miejsce, więc musi być większy niż nAdresOdczytu wskazujący na dane
 	if (nAdresZapisuKonfigu <= nAdresOdczytu)
-		return 0;
+		return 0;	//nie odczytano danych
 
 	//określ ile paczek trzeba odczytać
 	n = (nAdresZapisuKonfigu - nAdresOdczytu) / ROZMIAR_PACZKI_KONF16;

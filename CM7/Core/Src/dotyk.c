@@ -222,19 +222,19 @@ uint8_t KalibrujDotyk(void)
 				//ObliczKalibracjeDotykuWielopunktowa();	//Źle
 				statusDotyku.chFlagi |= DOTYK_SKALIBROWANY;
 
-				uint8_t chPaczka[ROZMIAR_PACZKI_KONFIG];
+				uint8_t chDane[ROZMIAR_PACZKI_KONFIG-2];
 
-				for (uint8_t n=0; n<ROZMIAR_PACZKI_KONFIG; n++)
-					chPaczka[n] = 0;
+				for (uint8_t n=0; n<ROZMIAR_PACZKI_KONFIG-2; n++)
+					chDane[n] = 0;
 
-				KonwFloat2Char(kalibDotyku.fAx, &chPaczka[0]);
-				KonwFloat2Char(kalibDotyku.fAy, &chPaczka[4]);
-				KonwFloat2Char(kalibDotyku.fDeltaX, &chPaczka[18]);
+				KonwFloat2Char(kalibDotyku.fAx, &chDane[0]);
+				KonwFloat2Char(kalibDotyku.fAy, &chDane[4]);
+				KonwFloat2Char(kalibDotyku.fDeltaX, &chDane[8]);
 
-				KonwFloat2Char(kalibDotyku.fBx, &chPaczka[12]);
-				KonwFloat2Char(kalibDotyku.fBy, &chPaczka[16]);
-				KonwFloat2Char(kalibDotyku.fDeltaY, &chPaczka[20]);
-				chErr = ZapiszPaczkeKonfigu(FKON_KALIBRACJA_DOTYKU, chPaczka);
+				KonwFloat2Char(kalibDotyku.fBx, &chDane[12]);
+				KonwFloat2Char(kalibDotyku.fBy, &chDane[16]);
+				KonwFloat2Char(kalibDotyku.fDeltaY, &chDane[20]);
+				chErr = ZapiszPaczkeKonfigu(FKON_KALIBRACJA_DOTYKU, chDane);
 				if (chErr == ERR_OK)
 					statusDotyku.chFlagi |= DOTYK_ZAPISANO;
 				chEtapKalibr = 0;
