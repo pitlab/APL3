@@ -127,6 +127,7 @@ uint8_t SprawdzObecnoscFlashNOR(void)
 	HAL_StatusTypeDef chErr;
 
 	chErr = HAL_NOR_Read_ID(&hnor3, &norID);
+	HAL_NOR_ReturnToReadMode(&hnor3);		//ustaw pamięć w tryb odczytu
 	if (chErr == HAL_OK)
 	{
 		if ((norID.Device_Code1 == 0x227E) &&  (norID.Device_Code3 == 0x2201) && (norID.Manufacturer_Code == 0x0001))
