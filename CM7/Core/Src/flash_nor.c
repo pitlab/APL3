@@ -13,7 +13,7 @@
 //#include "LCD.h"
 //#include "RPi35B_480x320.h"
 //#include "czas.h"
-
+#include "pamiec.h"
 
 /* Dodać polecnie pooling status bit
  * Sprawdzić jak działa przełaczanie między zapisem (HAL_NOR_WriteOperation_Enable) i odczytem (HAL_NOR_ReturnToReadMode)

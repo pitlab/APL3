@@ -17,6 +17,6 @@ uint8_t TestPredkosciZapisuNOR(void);
 void InicjujMDMA(void);
 void MDMA_TransferCompleteCallback(MDMA_HandleTypeDef *hmdma);
 void MDMA_TransferErrorCallback(MDMA_HandleTypeDef *hmdma);
-uint8_t SprawdzMagistrale(void);
+uint8_t SprawdzMagistrale(uint32_t nAdresBazowy);
 
 #endif /* INC_PAMIEC_H_ */

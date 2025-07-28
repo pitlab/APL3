@@ -910,31 +910,37 @@ void MDMA_TransferErrorCallback(MDMA_HandleTypeDef *hmdma)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wykonuje serię zapisów i odczytów na równoległej magistrali danych aby sprawdzić czy wszystkie linie danych i adresowe są drożne
-// Parametry: nic
+// Wykonuje serię zapisów i odczytów do pamięci na równoległej magistrali danych aby sprawdzić czy wszystkie linie danych i adresowe są drożne
+// Parametry: nAdresBazowy - adres początku pamięci
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t SprawdzMagistrale(void)
+uint8_t SprawdzMagistrale(uint32_t nAdresBazowy)
 {
 	uint16_t sBufTest , sWartoscTestowa;
 	uint16_t *sAdres;
+	uint16_t sLicznikBledow = 0;
 
-	sAdres = (uint16_t*)0x60000000;		//SRAM: 0x6000 0000..0x603F FFFF (4M)
-	//sAdres = (uint16_t*)0xC0000000;	//DRAM:	0xC000 0000..0xC3FF FFFF (64M)
+	sAdres = (uint16_t*)nAdresBazowy;
 
-	for (uint8_t m=0; m<8; m++)	//przemiataj magistralę adresową
+	//for(;;)
 	{
-		for (uint8_t n=0; n<16; n++)	//przemiataj magistralę danych
+		for (uint8_t m=0; m<11; m++)	//przemiataj magistralę adresową
 		{
-			sWartoscTestowa = (1 << n);
-			*sAdres = sWartoscTestowa;
-			sBufTest = *sAdres;
-			if (sBufTest != sWartoscTestowa)
-				return ERR_ZLE_DANE;
+			for (uint8_t n=0; n<16; n++)	//przemiataj magistralę danych
+			{
+				sWartoscTestowa = (1 << n);
+				*sAdres = sWartoscTestowa;
+				sBufTest = *sAdres;
+				if (sBufTest != sWartoscTestowa)
+					sLicznikBledow++;
+			}
+			sAdres = (uint16_t*)(nAdresBazowy + (2<<m));
 		}
-		sAdres = (uint16_t*)(0x60000000 + (2<<(2*m)));
 	}
-	return ERR_OK;
+	if (sLicznikBledow)
+		return ERR_ZLE_DANE;
+	else
+		return ERR_OK;
 }
 
 

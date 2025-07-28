@@ -320,7 +320,8 @@ Error_Handler();
 
   chErr |= InicjujSPIModZewn();
   chErr |= InicjujFlashNOR();	//inicjalizacja wszystkich typów pamięci na szynie równoległej
-  //chErr  = SprawdzMagistrale();
+  chErr |= SprawdzMagistrale(0x60000000);	//sprawdź pamięć SRAM
+  chErr |= SprawdzMagistrale(0xC0000000);	//sprawdź pamięć DRAM
   chErr |= InicjujFlashQSPI();
   chErr |= InicjujKonfigFlash();
   chErr1 = InicjujDotyk();
@@ -444,7 +445,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = 4;
   RCC_OscInitStruct.PLL.PLLN = 128;
   RCC_OscInitStruct.PLL.PLLP = 2;
-  RCC_OscInitStruct.PLL.PLLQ = 8;
+  RCC_OscInitStruct.PLL.PLLQ = 16;
   RCC_OscInitStruct.PLL.PLLR = 8;
   RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_2;
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
@@ -1504,10 +1505,10 @@ void MX_FMC_Init(void)
   Timing.AccessMode = FMC_ACCESS_MODE_A;
   /* ExtTiming */
 
-  if (HAL_NOR_Init(&hnor3, &Timing, NULL) != HAL_OK)
+ /* if (HAL_NOR_Init(&hnor3, &Timing, NULL) != HAL_OK)
   {
     Error_Handler( );
-  }
+  }*/
 
   /** Perform the SDRAM1 memory initialization sequence
   */
