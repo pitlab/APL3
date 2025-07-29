@@ -52,7 +52,7 @@ uint8_t InicjujFlashNOR(void)
 	if (HAL_NOR_Init(&hnor3, &Timing, NULL) != HAL_OK)
 		Error_Handler( );
 
-	HAL_NOR_ReturnToReadMode(&hnor3);		//ustaw pamięć w tryb odczytu
+	//HAL_NOR_ReturnToReadMode(&hnor3);		//ustaw pamięć w tryb odczytu
 
 	//ręcznie włącz Bit 13 WAITEN: Wait enable bit oraz Bit 11 WAITCFG: Wait timing configuration,ponieważ sterownik HAL go nie włącza
 	//indeksy struktury BTCR są wspólne dla rejestrów BCRx i RTRx, więc BCR3 ma indeks 4

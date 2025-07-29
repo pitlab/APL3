@@ -430,7 +430,13 @@ void RysujEkran(void)
 	///LOG_SD1_VSEL - H=3,3V L=1,8V
 	//case TP_W3:		chPort_exp_wysylany[0] |=  EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - H=3,3V
 	//case TP_W4:		chPort_exp_wysylany[0] &= ~EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - L=1,8V
-	case TP_W3: SprawdzMagistrale(0xC0000000);	break;
+	case TP_W3: SprawdzMagistrale(0xC0000000);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+		}
+		break;
 
 
 	case TP_EMU_MAG_CAN:

@@ -1,20 +1,15 @@
 /* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file    stm32h7xx_it.c
-  * @brief   Interrupt Service Routines.
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+//////////////////////////////////////////////////////////////////////////////
+//
+// Obsługa przerwań
+//
+// (c) PitLab 2025
+// http://www.pitlab.pl
+//////////////////////////////////////////////////////////////////////////////
+// Aby wygenerować sygnał PPM timer musi być taktowany zegarem 1MHz (200MHZ/199+1) 1/f = 1us
+// Aby wygenerować sygnał DShot150 timer musi być taktowany 6MHz -> 0,1667us. T0H to 15 cyknięć zegara, T1H to 30 cyknięć, cały bit to 40 cyknięć
+// Aby wygenerować sygnał DShot300 timer musi być taktowany 12MHz...
+//Ponieważ 200MHz nie dzieli się przez 6 i 12 zegar kontrolera musi wynosić 204Mz. Żeby uzyskać DShot600 podzielnik musi wynosić 24 i zegar musi mieć wartość 216MHz
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -79,6 +74,7 @@ extern DMA_HandleTypeDef hdma_i2c4_rx;
 extern DMA_HandleTypeDef hdma_i2c4_tx;
 extern I2C_HandleTypeDef hi2c3;
 extern I2C_HandleTypeDef hi2c4;
+extern DMA_HandleTypeDef hdma_tim8_ch3;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
@@ -391,7 +387,7 @@ void TIM2_IRQHandler(void)
   /* USER CODE BEGIN TIM2_IRQn 0 */
 	uint32_t nTemp;		//Licznik 32-bitowy
 
-	//obsługa wyjścia TIM2_CH1
+	//obsługa wyjścia TIM2_CH1: Serwo kanał 3
 	if (htim2.Instance->SR & TIM_FLAG_CC1)
 	{
 		if (chZbocze[2])	//zbocze narastajace, odmierz długość impulsu
@@ -453,7 +449,7 @@ void TIM3_IRQHandler(void)
   /* USER CODE BEGIN TIM3_IRQn 0 */
 	//Licznik 16-bitowy
 
-	//obsługa wyjścia TIM3_CH3: Serwo kanał 3
+	//obsługa wyjścia TIM3_CH3: Serwo kanał 4
 	if (htim3.Instance->SR & TIM_FLAG_CC3)
 	{
 		if (chZbocze[3])	//zbocze narastajace, odmierz długość impulsu
@@ -473,7 +469,7 @@ void TIM3_IRQHandler(void)
 		htim3.Instance->SR &= ~TIM_FLAG_CC3;	//kasuj przerwanie przez zapis zera
 	}
 
-	//obsługa wyjścia TIM3_CH4: Serwo kanał 4
+	//obsługa wyjścia TIM3_CH4: Serwo kanał 5
 	if (htim3.Instance->SR & TIM_FLAG_CC4)
 	{
 		if (chZbocze[4])	//zbocze narastajace, odmierz długość impulsu
@@ -508,7 +504,7 @@ void TIM4_IRQHandler(void)
   /* USER CODE BEGIN TIM4_IRQn 0 */
 	uint16_t sTemp;
 
-	//obsługa wyjścia TIM4_CH4: Serwo kanał 0, zanegowane na inwerterze
+	//obsługa wyjścia TIM4_CH4: Serwo kanał 1, zanegowane na inwerterze
 	if (htim4.Instance->SR & TIM_FLAG_CC4)
 	{
 		if (chZbocze[0])	//zbocze narastajace, odmierz długość impulsu
@@ -567,7 +563,7 @@ void TIM4_IRQHandler(void)
 void TIM8_CC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM8_CC_IRQn 0 */
-	//obsługa wyjścia TIM8_CH1: Serwo kanał 5
+	//obsługa wyjścia TIM8_CH1: Serwo kanał 6
 	if (htim8.Instance->SR & TIM_FLAG_CC1)
 	{
 		if (chZbocze[5])	//zbocze narastajace, odmierz długość impulsu
@@ -587,7 +583,7 @@ void TIM8_CC_IRQHandler(void)
 		htim8.Instance->SR &= ~TIM_FLAG_CC1;	//kasuj przerwanie przez zapis zera
 	}
 
-	//obsługa wyjścia TIM8_CH3N: Serwo kanał 7
+	//obsługa wyjścia TIM8_CH3N: Serwo kanał 8
 	if (htim8.Instance->SR & TIM_FLAG_CC3)
 	{
 		if (chZbocze[7])	//zbocze narastajace, odmierz długość impulsu
@@ -654,6 +650,20 @@ void DMA2_Stream0_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
 
   /* USER CODE END DMA2_Stream0_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream2 global interrupt.
+  */
+void DMA2_Stream2_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream2_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream2_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_tim8_ch3);
+  /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream2_IRQn 1 */
 }
 
 /**
