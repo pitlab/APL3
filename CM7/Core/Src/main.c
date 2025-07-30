@@ -48,11 +48,9 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Pozbyć się zmiennych fZyroSur i fZyroKal zastępując je jedną zmienną ustawianą w zależnosci od kontekstu (obecności polecenia kalibracyjnego żyroskopów)
  - Rozbudować warunki korekcji magnetometru w AHRS o prędkość zmiany kąta
 
- - Tymczasowo zmieniono PB9 z timera sygnału serwa na IO debugujący
 
  //Problemy sprzętowe:
   * Nie można uruchomić ETH
-  * Nie działają kwarce  - podejrzewany problem z zasilaniem części analogowej
   * Nie działa wejscie 2 odbiornika RC - prawdopodobnie problem lutowniczy
   * Nie działa mikrofon - magistrala sprawia wrażenie zajętej
   *

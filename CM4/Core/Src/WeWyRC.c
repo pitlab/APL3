@@ -1,15 +1,16 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // AutoPitLot v3.0
-// Moduł ubsługi odbiorników RC i wyjść serw/ESC
+// Moduł ubsługi wejść odbiorników RC i wyjść serw/ESC
 //
 // (c) PitLab 2025
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "odbiornikRC.h"
+#include "WeWyRC.h"
 #include "konfig_fram.h"
 #include "petla_glowna.h"
 #include "fram.h"
+#include "dshot.h"
 
 //definicje SBus: https://github.com/uzh-rpg/rpg_quadrotor_control/wiki/SBUS-Protocol
 
@@ -38,7 +39,7 @@ uint32_t nCzasWysylkiSbus;
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjujOdbiornikiRC(void)
+uint8_t InicjujWejsciaRC(void)
 {
 	uint8_t chTyp, chErr = ERR_OK;
 	TIM_IC_InitTypeDef sConfigIC = {0};
@@ -196,13 +197,13 @@ uint8_t InicjujOdbiornikiRC(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja wczytuje z FRAM konfigurację 2 pierwszych kanałów serw i konfiguruje je jako PWM lub S-Bus
+// Funkcja wczytuje z FRAM konfigurację kanałów serw i konfiguruje je jako PWM, DShot lub S-Bus
 // Parametry Sbus 100kBps, 8E2
 // Parametry:
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjujWyjsciaSBus(void)
+uint8_t InicjujWyjsciaRC(void)
 {
 	uint8_t chTyp, chErr = ERR_OK;
 	//TIM_IC_InitTypeDef sConfigIC = {0};
@@ -464,19 +465,38 @@ uint8_t InicjujWyjsciaSBus(void)
 	GPIO_InitStruct.Pin = GPIO_PIN_5;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
+	HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
-		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
+
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM50)
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
-		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
+
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT150)
+	{
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT150, 6);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT300)
+	{
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT300, 6);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT600)
+	{
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT600, 6);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT1200)
+	{
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT1200, 6);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
@@ -527,19 +547,38 @@ uint8_t InicjujWyjsciaSBus(void)
 	GPIO_InitStruct.Pin = GPIO_PIN_15;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
+	HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);		//domyslnie ma być timer. w przypadku IO lub ADC, konfiguracja będzie nadpisana
 
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
-		HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM50)
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
-		HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT150)
+	{
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT150, 8);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT300)
+	{
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT300, 8);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT600)
+	{
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT600, 8);
+	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT1200)
+	{
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT1200, 8);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
@@ -592,6 +631,31 @@ uint8_t InicjujWyjsciaSBus(void)
 	}
 
 	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja aktualizuje dane wysyłane na wyjścia RC
+// Parametry: *dane - wskaźnik na strukturę zawierajacą wartości wyjścia regulatorów PID
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
+{
+	uint16_t sWysterowanie[KANALY_MIKSERA];
+
+	//aktualizuj młodsze 8 kanałów serw/ESC. Starsza mogą być tylko PWM
+	for (uint8_t n=0; n<KANALY_MIKSERA / 2; n++)
+	{
+		//sprawdź rodzaj ustawionego protokołu wyjscia
+
+		//if DSHot
+		sWysterowanie[n] = dane->sSerwo[n];
+	}
+
+	//if DSHot
+	AktualizujDShotDMA(sWysterowanie[6], 6);
+	return AktualizujDShotDMA(sWysterowanie[8], 8);
 }
 
 

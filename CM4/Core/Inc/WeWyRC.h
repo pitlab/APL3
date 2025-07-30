@@ -1,5 +1,5 @@
 /*
- * odbiornikRC.h
+ * WeWyRC.h
  *
  *  Created on: Jun 15, 2025
  *      Author: PitLab
@@ -41,8 +41,9 @@ typedef struct
 
 
 //deklaracja funkcji
-uint8_t InicjujOdbiornikiRC(void);
-uint8_t InicjujWyjsciaSBus(void);
+uint8_t InicjujWejsciaRC(void);	//odbiorniki
+uint8_t InicjujWyjsciaRC(void);	//serwa, ESC
+uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane);
 uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC,  stWymianyCM4_t* psDaneCM4);
 uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly);
 

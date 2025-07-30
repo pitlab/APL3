@@ -10,7 +10,7 @@
 #include "uBlox.h"
 #include <stdio.h>
 #include "wymiana.h"
-#include "odbiornikRC.h"
+#include "WeWyRC.h"
 #include "petla_glowna.h"
 
 // Potrzebne informacje znajdują się w następujaących ramkach. Na początek wysarczymi GGA i RMC

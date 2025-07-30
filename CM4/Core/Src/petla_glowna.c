@@ -21,7 +21,7 @@
 #include "ND130.h"
 #include "konfig_fram.h"
 #include "pid.h"
-#include "odbiornikRC.h"
+#include "WeWyRC.h"
 #include "adc.h"
 #include "dshot.h"
 
@@ -154,8 +154,8 @@ void PetlaGlowna(void)
 	case 16:	//pozwól na testowe uruchomienie inicjalizacji
 		if (chBuforAnalizyGNSS[0] == 0xFF)
 		{
-			InicjujOdbiornikiRC();
-			//InicjujWyjsciaSBus();
+			//InicjujWyjsciaRC();
+			InicjujWyjsciaRC();
 			//InicjujModulI2P();
 			//chBuforAnalizyGNSS[0] = 0;
 		}
@@ -372,8 +372,8 @@ void WykonajPolecenieCM7(void)
 		break;
 
 	case POL_REKONFIG_SERWA_RC:
-		InicjujOdbiornikiRC();
-		InicjujWyjsciaSBus();
+		InicjujWejsciaRC();
+		InicjujWyjsciaRC();
 		break;
 
 	case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;	break;	//nadpisz poprzednio zwrócony błąd

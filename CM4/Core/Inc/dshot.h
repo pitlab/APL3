@@ -59,9 +59,8 @@ typedef struct
 
 
 //deklaraje funkcji
-uint8_t InicjujESC(void);
-uint8_t UstawTrybDShot(uint8_t chProtokol);
-uint8_t AktualizujDShotDMA(uint16_t sWysterowanie);
-uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane);
+uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal);
+uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t chKanal);
+
 
 #endif /* INC_DSHOT_H_ */

@@ -73,12 +73,18 @@
 #define MASKA_TYPU_RC1	0x0F	//te bity definiują rodzaj sygnału z odbiornika RC1
 #define MASKA_TYPU_RC2	0xF0	//te bity definiują rodzaj sygnału z odbiornika RC2
 
-//definicje typów sygnału serw
+//definicje typów sygnału wyjściowego RC dla serw i regulatorów silników
 #define SERWO_PWM400	0	//wyjście PWM 400Hz
-#define SERWO_PWM50		1	//wyjście PWM 50Hz
-#define SERWO_IO		2	//wyjście skonfigurowane jako wjściowy port IO do debugowania algorytmów
-#define SERWO_ALTER1	3	//wyjście S-Bus, ADC
-#define SERWO_ALTER2	4	//wyjście S-Bus, ADC
+#define SERWO_PWM200	1	//wyjście PWM 200Hz
+#define SERWO_PWM100	2	//wyjście PWM 100Hz
+#define SERWO_PWM50		3	//wyjście PWM 50Hz
+#define SERWO_DSHOT150	4	//wyjście DShot150
+#define SERWO_DSHOT300	5	//wyjście DShot300
+#define SERWO_DSHOT600	6	//wyjście DShot300
+#define SERWO_DSHOT1200	7	//wyjście DShot1200
+#define SERWO_IO		8	//wyjście skonfigurowane jako wjściowy port IO do debugowania algorytmów
+#define SERWO_ALTER1	9	//wyjście S-Bus, ADC
+#define SERWO_ALTER2	10	//wyjście S-Bus, ADC
 
 
 //stany 3-położeniowych przełaczników na kanałach 5, 6 i 7

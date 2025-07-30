@@ -19,7 +19,7 @@
 /* USER CODE BEGIN Includes */
 //#include "sys_def_CM4.h"
 #include "sys_def_wspolny.h"
-#include "odbiornikRC.h"
+#include "WeWyRC.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -75,12 +75,12 @@ extern DMA_HandleTypeDef hdma_i2c4_tx;
 extern I2C_HandleTypeDef hi2c3;
 extern I2C_HandleTypeDef hi2c4;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
+extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim7;
-extern TIM_HandleTypeDef htim8;
 extern DMA_HandleTypeDef hdma_uart4_rx;
 extern DMA_HandleTypeDef hdma_uart4_tx;
 extern DMA_HandleTypeDef hdma_uart8_rx;
@@ -558,58 +558,6 @@ void TIM4_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles TIM8 capture compare interrupt.
-  */
-void TIM8_CC_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM8_CC_IRQn 0 */
-	//obsługa wyjścia TIM8_CH1: Serwo kanał 6
-	if (htim8.Instance->SR & TIM_FLAG_CC1)
-	{
-		if (chZbocze[5])	//zbocze narastajace, odmierz długość impulsu
-		{
-			htim8.Instance->CCR1 += sSerwo[5];
-			htim8.Instance->CCMR1 &= ~TIM_CCMR1_OC1M_Msk;
-			htim8.Instance->CCMR1 |= TIM_CCMR1_OC1M_1;		//Set channel to inactive level on match
-			chZbocze[5] = 0;
-		}
-		else	//zbocze opadające
-		{
-			htim8.Instance->CCR1 += OKRES_PWM - sSerwo[5];
-			htim8.Instance->CCMR1 &= ~TIM_CCMR1_OC1M_Msk;
-			htim8.Instance->CCMR1 |= TIM_CCMR1_OC1M_0;		//Set channel to active level on match
-			chZbocze[5] = 1;
-		}
-		htim8.Instance->SR &= ~TIM_FLAG_CC1;	//kasuj przerwanie przez zapis zera
-	}
-
-	//obsługa wyjścia TIM8_CH3N: Serwo kanał 8
-	if (htim8.Instance->SR & TIM_FLAG_CC3)
-	{
-		if (chZbocze[7])	//zbocze narastajace, odmierz długość impulsu
-		{
-			htim8.Instance->CCR3 += sSerwo[7];
-			htim8.Instance->CCMR2 &= ~TIM_CCMR2_OC3M_Msk;
-			htim8.Instance->CCMR2 |= TIM_CCMR2_OC3M_1;		//Set channel to inactive level on match
-			chZbocze[7] = 0;
-		}
-		else	//zbocze opadające
-		{
-			htim8.Instance->CCR3 += OKRES_PWM - sSerwo[7];
-			htim8.Instance->CCMR2 &= ~TIM_CCMR2_OC3M_Msk;
-			htim8.Instance->CCMR2 |= TIM_CCMR2_OC3M_0;		//Set channel to active level on match
-			chZbocze[7] = 1;
-		}
-		htim8.Instance->SR &= ~TIM_FLAG_CC3;	//kasuj przerwanie przez zapis zera
-	}
-  /* USER CODE END TIM8_CC_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim8);
-  /* USER CODE BEGIN TIM8_CC_IRQn 1 */
-
-  /* USER CODE END TIM8_CC_IRQn 1 */
-}
-
-/**
   * @brief This function handles DMA1 stream7 global interrupt.
   */
 void DMA1_Stream7_IRQHandler(void)
@@ -664,6 +612,20 @@ void DMA2_Stream2_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
 
   /* USER CODE END DMA2_Stream2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream3 global interrupt.
+  */
+void DMA2_Stream3_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream3_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream3_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_tim8_ch1);
+  /* USER CODE BEGIN DMA2_Stream3_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream3_IRQn 1 */
 }
 
 /**
