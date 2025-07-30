@@ -481,22 +481,22 @@ uint8_t InicjujWyjsciaRC(void)
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT150)
 	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT150, 6);
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC6);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT300)
 	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT300, 6);
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC6);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT600)
 	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT600, 6);
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC6);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT1200)
 	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT1200, 6);
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC6);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
@@ -563,22 +563,22 @@ uint8_t InicjujWyjsciaRC(void)
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT150)
 	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT150, 8);
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC8);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT300)
 	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT300, 8);
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC8);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT600)
 	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT600, 8);
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC8);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT1200)
 	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT1200, 8);
+		chErr = UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC8);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
@@ -642,20 +642,17 @@ uint8_t InicjujWyjsciaRC(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
 {
-	uint16_t sWysterowanie[KANALY_MIKSERA];
+	uint8_t chErr = ERR_OK;
 
 	//aktualizuj młodsze 8 kanałów serw/ESC. Starsza mogą być tylko PWM
-	for (uint8_t n=0; n<KANALY_MIKSERA / 2; n++)
+	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 	{
 		//sprawdź rodzaj ustawionego protokołu wyjscia
 
 		//if DSHot
-		sWysterowanie[n] = dane->sSerwo[n];
+		chErr |= AktualizujDShotDMA(dane->sSerwo[n], n);
 	}
-
-	//if DSHot
-	AktualizujDShotDMA(sWysterowanie[6], 6);
-	return AktualizujDShotDMA(sWysterowanie[8], 8);
+	return chErr;
 }
 
 

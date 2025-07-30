@@ -86,6 +86,15 @@
 #define SERWO_ALTER1	9	//wyjście S-Bus, ADC
 #define SERWO_ALTER2	10	//wyjście S-Bus, ADC
 
+//definicje numerów kanałów
+#define KANAL_RC1	0
+#define KANAL_RC2	1
+#define KANAL_RC3	2
+#define KANAL_RC4	3
+#define KANAL_RC5	4
+#define KANAL_RC6	5
+#define KANAL_RC7	6
+#define KANAL_RC8	7
 
 //stany 3-położeniowych przełaczników na kanałach 5, 6 i 7
 #define RC_PRZEL_MIN 0	//minus 100%
