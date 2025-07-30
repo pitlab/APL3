@@ -25,6 +25,7 @@
 #include "mikser.h"
 #include "odbiornikRC.h"
 #include "adc.h"
+#include "dshot.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -206,7 +207,7 @@ int main(void)
   InicjujPID();
   InicjujMikser();
   InicjujADC();
-
+  InicjujESC();			//ustaw protokół sterujący ESC
   /* USER CODE END 2 */
 
   /* Infinite loop */

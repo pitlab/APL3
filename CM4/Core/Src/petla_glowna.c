@@ -23,6 +23,7 @@
 #include "pid.h"
 #include "odbiornikRC.h"
 #include "adc.h"
+#include "dshot.h"
 
 extern TIM_HandleTypeDef htim7;
 extern unia_wymianyCM4_t uDaneCM4;
@@ -160,12 +161,9 @@ void PetlaGlowna(void)
 		}
 		break;
 
-	case 17:
-		StabilizacjaPID(ndT, &uDaneCM4.dane, stKonfigPID);
-		break;
-
-	case 18:	break;
-	case 19:	break;
+	case 17:	break;
+	case 18:	StabilizacjaPID(ndT, &uDaneCM4.dane, stKonfigPID);	break;
+	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;
 	default:	break;
 	}
 
