@@ -21,7 +21,10 @@
 #define SBUS_NEU			1030	//wartość SBus w pozycji neutralnej
 #define SBUS_MAX			1680	//maksymalna wartość jaką przenosi protokół SBus
 
-
+#define ZEGAR_PWM			2000000	//[Hz] aby osiągnać krok 500ns
+#define IMPULS_PWM			1000
+#define LICZBA_WEJSC_RC		2
+#define LICZBA_WYJSC_RC		9
 
 typedef struct
 {

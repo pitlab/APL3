@@ -208,11 +208,15 @@ int main(void)
   InicjujModulI2P();
   InicjujJednostkeInercyjna();
 
-  //ZapiszFRAM(FAU_KONF_SERWA12, 0x97);	//kanał 1 jako PWM400, kanał 2 jako DSHot300
-  //ZapiszFRAM(FAU_KONF_SERWA34, 0x99);	//kanał 3 jako DSHot300, kanał 4 jako DSHot300
-  //ZapiszFRAM(FAU_KONF_SERWA56, 0x99);	//kanał 5 jako DSHot300, kanał 6 jako DSHot300
-  //ZapiszFRAM(FAU_KONF_SERWA78, 0x90);	//kanał 7 jako IO, kanał 8 jako DSHot300
-  //ZapiszFRAM(FAU_KONF_SERWA916, 0x00);	//kanał
+  ZapiszFRAM(FAU_KONF_WY1_RC, SERWO_PWM400);
+  ZapiszFRAM(FAU_KONF_WY2_RC, SERWO_PWM400);
+  ZapiszFRAM(FAU_KONF_WY3_RC, SERWO_PWM400);
+  ZapiszFRAM(FAU_KONF_WY4_RC, SERWO_PWM400);
+  ZapiszFRAM(FAU_KONF_WY5_RC, SERWO_PWM400);
+  ZapiszFRAM(FAU_KONF_WY6_RC, SERWO_PWM400);
+  ZapiszFRAM(FAU_KONF_WY7_RC, SERWO_IO);
+  ZapiszFRAM(FAU_KONF_WY8_RC, SERWO_PWM400);
+  ZapiszFRAM(FAU_KONF_WY916_RC, SERWO_PWM50);
 
 
   InicjujWejsciaRC();	//odbiorniki RC

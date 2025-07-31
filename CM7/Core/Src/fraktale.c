@@ -122,7 +122,7 @@ void FraktalTest(uint8_t chTyp)
 		fImag -= 0.002;
 		break;
 
-			//ca�y fraktal - rotacja palety
+			//cały fraktal - rotacja palety
 	case 1: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
 		nCzas = MinalCzas(nCzas);
 		sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
@@ -136,7 +136,7 @@ void FraktalTest(uint8_t chTyp)
 		fZoom /= 0.9;
 		break;
 
-			//dolina s�onia x=0,25-0,35, y=0,05, zoom=-0,6..-40
+			//dolina słonia x=0,25-0,35, y=0,05, zoom=-0,6..-40
 	case 3: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
 		nCzas = MinalCzas(nCzas);
 		sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);

@@ -68,7 +68,19 @@
 
 
 #define FA_USER_VAR3	    0x0300
-#define FAU_KONF_ODB_RC		FA_USER_VAR3			//1U konfiguracja odbiorników RC: Bity 0..3 = RC1, bity 4..7 = RC2: 0=PPM, 1=S-Bus, 2=inne (CS QSPI dla RC2)
+#define FAU_KONF_ODB_RC		FA_USER_VAR3			//1U konfiguracja odbiorników RC: Bity 0..3 = RC1, bity 4..7 = RC2: 0=PPM, 1=S-Bus
+#define FAU_KONF_WE1_RC		FA_USER_VAR3			//1U konfiguracja wejścia RC1: 0=PPM, 1=S-Bus
+#define FAU_KONF_WE2_RC		FAU_KONF_WE1_RC+1		//1U konfiguracja wejścia RC2: 0=PPM, 1=S-Bus
+#define FAU_KONF_WY1_RC		FAU_KONF_WE2_RC+1		//1U konfiguracja wyjścia RC1: np. SERWO_PWM400 zdefiniowanych w sys_def_wspolnych.h
+#define FAU_KONF_WY2_RC		FAU_KONF_WY1_RC+1		//1U konfiguracja wyjścia RC2
+#define FAU_KONF_WY3_RC		FAU_KONF_WY2_RC+1		//1U konfiguracja wyjścia RC3
+#define FAU_KONF_WY4_RC		FAU_KONF_WY3_RC+1		//1U konfiguracja wyjścia RC4
+#define FAU_KONF_WY5_RC		FAU_KONF_WY4_RC+1		//1U konfiguracja wyjścia RC5
+#define FAU_KONF_WY6_RC		FAU_KONF_WY5_RC+1		//1U konfiguracja wyjścia RC6
+#define FAU_KONF_WY7_RC		FAU_KONF_WY6_RC+1		//1U konfiguracja wyjścia RC7
+#define FAU_KONF_WY8_RC		FAU_KONF_WY7_RC+1		//1U konfiguracja wyjścia RC8
+#define FAU_KONF_WY916_RC	FAU_KONF_WY8_RC+1		//1U konfiguracja wyjść RC9-16
+
 #define FAU_KONF_SERWA12	FAU_KONF_ODB_RC+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 1, bity 4..7 = Wyjście 2
 #define FAU_KONF_SERWA34	FAU_KONF_SERWA12+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 3, bity 4..7 = Wyjście 4
 #define FAU_KONF_SERWA56	FAU_KONF_SERWA34+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 5, bity 4..7 = Wyjście 6

@@ -393,7 +393,7 @@ void TIM2_IRQHandler(void)
   /* USER CODE BEGIN TIM2_IRQn 0 */
 	uint32_t nTemp;		//Licznik 32-bitowy
 
-	//obsługa wyjścia TIM2_CH1: Serwo kanał 3
+	/*/obsługa wyjścia TIM2_CH1: Serwo kanał 3
 	if (htim2.Instance->SR & TIM_FLAG_CC1)
 	{
 		if (chZbocze[2])	//zbocze narastajace, odmierz długość impulsu
@@ -411,7 +411,7 @@ void TIM2_IRQHandler(void)
 			chZbocze[2] = 1;
 		}
 		htim2.Instance->SR &= ~TIM_FLAG_CC1;	//kasuj przerwanie przez zapis zera
-	}
+	}*/
 
 	//obsługa wejścia TIM2_CH4 szeregowego sygnału PPM2. Sygnał aktywny niski. Kolejne impulsy zą pomiędzy zboczami narastającymi
 	if (htim2.Instance->SR & TIM_FLAG_CC4)
