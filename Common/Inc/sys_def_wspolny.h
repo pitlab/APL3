@@ -73,18 +73,25 @@
 #define MASKA_TYPU_RC1	0x0F	//te bity definiują rodzaj sygnału z odbiornika RC1
 #define MASKA_TYPU_RC2	0xF0	//te bity definiują rodzaj sygnału z odbiornika RC2
 
-//definicje typów sygnału wyjściowego RC dla serw i regulatorów silników
-#define SERWO_PWM400	0	//wyjście PWM 400Hz
-#define SERWO_PWM200	1	//wyjście PWM 200Hz
-#define SERWO_PWM100	2	//wyjście PWM 100Hz
-#define SERWO_PWM50		3	//wyjście PWM 50Hz
-#define SERWO_DSHOT150	4	//wyjście DShot150
-#define SERWO_DSHOT300	5	//wyjście DShot300
-#define SERWO_DSHOT600	6	//wyjście DShot300
-#define SERWO_DSHOT1200	7	//wyjście DShot1200
-#define SERWO_IO		8	//wyjście skonfigurowane jako wjściowy port IO do debugowania algorytmów
-#define SERWO_ALTER1	9	//wyjście S-Bus, ADC
-#define SERWO_ALTER2	10	//wyjście S-Bus, ADC
+//definicje typów sygnału wyjściowego RC dla serw i regulatorów silników.
+//Bit 3 oznacza protokół DShot, bit 2 oznacza PWM. Dzięki temu sprawdzając 1 bit można ustawić konfiguracje dla całej grupy protokołów
+#define SERWO_IO		0	//wyjście skonfigurowane jako wjściowy port IO do debugowania algorytmów
+#define SERWO_SBUS		1	//wyjście S-Bus
+#define SERWO_ANALOG	2	//wyjście ADC
+#define SERWO_ALTER		3	//fukcja alternatywna
+
+#define SERWO_PWMXXX	4	//bit użycia dowolnego PWM
+#define SERWO_PWM50		4	//wyjście PWM 50Hz
+#define SERWO_PWM100	5	//wyjście PWM 100Hz
+#define SERWO_PWM200	6	//wyjście PWM 200Hz
+#define SERWO_PWM400	7	//wyjście PWM 400Hz
+
+#define SERWO_DSHOTXXX	8	//bit użycia dowolnego DShot
+#define SERWO_DSHOT150	8	//wyjście DShot150
+#define SERWO_DSHOT300	9	//wyjście DShot300
+#define SERWO_DSHOT600	10	//wyjście DShot300
+#define SERWO_DSHOT1200	11	//wyjście DShot1200
+
 
 //definicje numerów kanałów
 #define KANAL_RC1	0

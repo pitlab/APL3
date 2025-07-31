@@ -17,7 +17,9 @@
 stRC_t stRC;	//struktura danych odbiorników RC
 extern unia_wymianyCM4_t uDaneCM4;
 extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim8;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart4;
@@ -48,6 +50,7 @@ uint8_t InicjujWejsciaRC(void)
 	//Część wspólna dla wszystkich ustawień
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 
 	//czytaj konfigurację obu odbiorników RC
 	chTyp = CzytajFRAM(FAU_KONF_ODB_RC);
@@ -55,7 +58,6 @@ uint8_t InicjujWejsciaRC(void)
 	//ustaw Port PB8 jako UART4_RX lub TIM4_CH3
 	__HAL_RCC_GPIOB_CLK_ENABLE();
     GPIO_InitStruct.Pin = GPIO_PIN_8;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	if ((chTyp & MASKA_TYPU_RC1) == ODB_RC_CPPM)
 	{
 	    GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
@@ -66,7 +68,7 @@ uint8_t InicjujWejsciaRC(void)
 		sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
 		sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
 		sConfigIC.ICFilter = 7;
-		chErr = HAL_TIM_IC_ConfigChannel(&htim4, &sConfigIC, TIM_CHANNEL_3);
+		chErr |= HAL_TIM_IC_ConfigChannel(&htim4, &sConfigIC, TIM_CHANNEL_3);
 	}
 	else
 	if ((chTyp & MASKA_TYPU_RC1) == ODB_RC_SBUS)
@@ -92,11 +94,11 @@ uint8_t InicjujWejsciaRC(void)
 		huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
 		huart4.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
 		huart4.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
-		chErr = HAL_UART_Init(&huart4);
-		chErr = HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_2);
-		chErr = HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_2);
-		//chErr = HAL_UARTEx_EnableFifoMode(&huart4);
-		chErr = HAL_UARTEx_DisableFifoMode(&huart4);
+		chErr |= HAL_UART_Init(&huart4);
+		chErr |= HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_2);
+		chErr |= HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_2);
+		//chErr |= HAL_UARTEx_EnableFifoMode(&huart4);
+		chErr |= HAL_UARTEx_DisableFifoMode(&huart4);
 
 		// UART4 DMA RX Init
 		hdma_uart4_rx.Instance = DMA1_Stream7;
@@ -112,7 +114,7 @@ uint8_t InicjujWejsciaRC(void)
 		hdma_uart4_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
 		hdma_uart4_rx.Init.MemBurst = DMA_MBURST_SINGLE;
 		hdma_uart4_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
-		chErr = HAL_DMA_Init(&hdma_uart4_rx);
+		chErr |= HAL_DMA_Init(&hdma_uart4_rx);
 		__HAL_LINKDMA(&huart4, hdmarx, hdma_uart4_rx);
 
 		// UART4 interrupt Init
@@ -127,7 +129,6 @@ uint8_t InicjujWejsciaRC(void)
 	//ustaw Port PA3 jako UART2_RX lub TIM2_CH4
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_3;
-	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == ODB_RC_CPPM)
 	{
@@ -139,7 +140,7 @@ uint8_t InicjujWejsciaRC(void)
 		sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
 		sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
 		sConfigIC.ICFilter = 7;
-		chErr = HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_4);
+		chErr |= HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_4);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == ODB_RC_SBUS)
@@ -163,9 +164,9 @@ uint8_t InicjujWejsciaRC(void)
 		huart2.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
 		huart2.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
 		huart2.AdvancedInit.RxPinLevelInvert = UART_ADVFEATURE_RXINV_ENABLE;
-		chErr = HAL_UART_Init(&huart2);
-		chErr = HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_2);
-		chErr = HAL_UARTEx_EnableFifoMode(&huart2);
+		chErr |= HAL_UART_Init(&huart2);
+		chErr |= HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_2);
+		chErr |= HAL_UARTEx_EnableFifoMode(&huart2);
 
 		//ponieważ nie ma jak zarezerwować kanału DMA w HAL bo nie cały UART jest dostępny, więc USART2 będzie pracował na przerwaniach
 		/*/ UART2 DMA RX Init
@@ -182,7 +183,7 @@ uint8_t InicjujWejsciaRC(void)
 		hdma_uart2_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
 		hdma_uart2_rx.Init.MemBurst = DMA_MBURST_SINGLE;
 		hdma_uart2_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
-		chErr = HAL_DMA_Init(&hdma_uart2_rx);
+		chErr |= HAL_DMA_Init(&hdma_uart2_rx);
 		__HAL_LINKDMA(&huart2, hdmarx, hdma_uart2_rx);
 		HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
@@ -198,8 +199,7 @@ uint8_t InicjujWejsciaRC(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja wczytuje z FRAM konfigurację kanałów serw i konfiguruje je jako PWM, DShot lub S-Bus
-// Parametry Sbus 100kBps, 8E2
+// Funkcja wczytuje z FRAM konfigurację kanałów serw i konfiguruje je jako PWM, DShot, S-Bus, IO, lub wejście analogowe
 // Parametry:
 // Zwraca: kod błędu
 // Czas wykonania:
@@ -212,27 +212,26 @@ uint8_t InicjujWyjsciaRC(void)
 
 	//Część wspólna dla wszystkich ustawień
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	//częstotliwość do 12 MHz
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;			//domyslnie jest timer lbo UART
 
 	//czytaj konfigurację dwu pierwszych kanałów serw
 	chTyp = CzytajFRAM(FAU_KONF_SERWA12);
 
-	//kanał 1 - konfiguracja pinu PB9
+	//**** kanał 1 - konfiguracja pinu PB9 **********************************************************
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_9;
+	GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM400)
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
-		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 	}
 	else
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM50)
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
-		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 	}
 	else
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_IO)	//wyjście IO do debugowania
@@ -241,9 +240,8 @@ uint8_t InicjujWyjsciaRC(void)
 	    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
-	if ((chTyp & MASKA_TYPU_RC1) == SERWO_ALTER1)		//wyjście jako S-Bus
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_SBUS)		//wyjście jako S-Bus 100 kBps, 8E2
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
@@ -266,11 +264,11 @@ uint8_t InicjujWyjsciaRC(void)
 		huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
 		huart4.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
 		huart4.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
-		chErr = HAL_UART_Init(&huart4);
-		chErr = HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_2);
-		chErr = HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_2);
+		chErr |= HAL_UART_Init(&huart4);
+		chErr |= HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_2);
+		chErr |= HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_2);
 		//chErr = HAL_UARTEx_EnableFifoMode(&huart4);
-		chErr = HAL_UARTEx_DisableFifoMode(&huart4);
+		chErr |= HAL_UARTEx_DisableFifoMode(&huart4);
 
 		HAL_NVIC_SetPriority(UART4_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(UART4_IRQn);
@@ -288,28 +286,28 @@ uint8_t InicjujWyjsciaRC(void)
 	    hdma_uart4_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
 	    hdma_uart4_tx.Init.MemBurst = DMA_MBURST_SINGLE;
 	    hdma_uart4_tx.Init.PeriphBurst = DMA_PBURST_SINGLE;
-		chErr = HAL_DMA_Init(&hdma_uart4_tx);
+		chErr |= HAL_DMA_Init(&hdma_uart4_tx);
 	    __HAL_LINKDMA(&huart4, hdmatx, hdma_uart4_tx);
 		HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 	}
+	else
+		chErr |= ERR_BRAK_KONFIG;
 
-	//kanał 2 - konfiguracja pinu PB10 -TIM2_CH3, USART3_TX, MOD_QSPI_CS
+	//**** kanał 2 - konfiguracja pinu PB10 -TIM2_CH3, USART3_TX, MOD_QSPI_CS **********************************************************
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_10;
+	GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
-		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+		//konfiguracja domyślna
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM50)
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
-		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+		//konfiguracja domyślna
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
@@ -318,9 +316,8 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	/*else
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ALTER1)	//wyjście jako S-Bus
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_SBUS)	//wyjście jako S-Bus 100 kBps, 8E2
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 		__HAL_RCC_USART3_CLK_ENABLE();
@@ -341,43 +338,54 @@ uint8_t InicjujWyjsciaRC(void)
 		huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
 		huart3.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
 		huart3.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
-		chErr = HAL_UART_Init(&huart3);
-		chErr = HAL_UARTEx_SetRxFifoThreshold(&huart3, UART_RXFIFO_THRESHOLD_1_2);
-		chErr = HAL_UARTEx_SetTxFifoThreshold(&huart3, UART_TXFIFO_THRESHOLD_1_2);
-		//chErr = HAL_UARTEx_EnableFifoMode(&huart3);
-		chErr = HAL_UARTEx_DisableFifoMode(&huart3);
+		chErr |= HAL_UART_Init(&huart3);
+		chErr |= HAL_UARTEx_SetRxFifoThreshold(&huart3, UART_RXFIFO_THRESHOLD_1_2);
+		chErr |= HAL_UARTEx_SetTxFifoThreshold(&huart3, UART_TXFIFO_THRESHOLD_1_2);
+		//chErr |= HAL_UARTEx_EnableFifoMode(&huart3);
+		chErr |= HAL_UARTEx_DisableFifoMode(&huart3);
 
 		HAL_NVIC_SetPriority(USART3_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(USART3_IRQn);
 	}*/
 	else
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ALTER1)	//MOD_QSPI_CS
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ALTER)	//MOD_QSPI_CS
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Alternate = GPIO_AF9_QUADSPI;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
-
+	else
+		chErr |= ERR_BRAK_KONFIG;
 
 	chTyp = CzytajFRAM(FAU_KONF_SERWA34);
 
-	//kanał 3 - konfiguracja pinu PA15 TIM2_CH1
+
+	//**** kanał 3 - konfiguracja pinu PA15 TIM2_CH1 **********************************************************
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_15;
+	GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM400)
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
-		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
 	}
 	else
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM50)
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
-		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
 	}
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_DSHOT150)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC3);
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_DSHOT300)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC3);
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_DSHOT600)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC3);
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_DSHOT1200)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC3);
 	else
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_IO)	//wyjście IO do debugowania
 	{
@@ -385,29 +393,36 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 	}
 	else
-	if ((chTyp & MASKA_TYPU_RC1) == SERWO_ALTER1)		//
-	{
+		chErr |= ERR_BRAK_KONFIG;
 
-	}
-
-
-	//kanał 4 - konfiguracja pinu  PB0 TIM3_CH3
+	//**** kanał 4 - konfiguracja pinu  PB0 TIM3_CH3 **********************************************************
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_0;
+	GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWMXXX)	//czy grupa kanałów używająca timera 8 jest ustawiona na PWM
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+		HAL_NVIC_EnableIRQ(TIM3_IRQn);
+		htim3.Init.Prescaler = 199;
+		htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+		htim3.Init.Period = 65535;
+		htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+		htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+		HAL_TIM_Base_Init(&htim3);
 	}
 	else
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM50)
-	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-	}
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT150)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC4);
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT300)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC4);
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT600)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC4);
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT1200)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC4);
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
 	{
@@ -415,32 +430,44 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ALTER1)	//ADC12_INP9
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ANALOG)	//ADC12_INP9
 	{
 		GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
-
+	else
+		chErr |= ERR_BRAK_KONFIG;
 
 	chTyp = CzytajFRAM(FAU_KONF_SERWA56);
 
-	//kanał 5 - konfiguracja pinu PB1 TIM3_CH4
-	__HAL_RCC_GPIOA_CLK_ENABLE();
+	//**** kanał 5 - konfiguracja pinu PB1 TIM3_CH4 **********************************************************
+	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_1;
+	GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM400)
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWMXXX)	//czy grupa kanałów używająca timera 8 jest ustawiona na PWM
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+		HAL_NVIC_EnableIRQ(TIM3_IRQn);
+		htim3.Init.Prescaler = 199;
+		htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+		htim3.Init.Period = 65535;
+		htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+		htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+		HAL_TIM_Base_Init(&htim3);
 	}
 	else
-	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM50)
-	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-	}
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_DSHOT150)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC5);
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_DSHOT300)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC5);
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_DSHOT600)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC5);
+	else
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_DSHOT1200)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC5);
 	else
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_IO)	//wyjście IO do debugowania
 	{
@@ -448,48 +475,49 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
-	if ((chTyp & MASKA_TYPU_RC1) == SERWO_ALTER1)		//ADC12_INP5
+	if ((chTyp & MASKA_TYPU_RC1) == SERWO_ANALOG)		//ADC12_INP5
 	{
 		GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
+	else
+		chErr |= ERR_BRAK_KONFIG;
 
-
-	//kanał 6 - konfiguracja pinu  PI5 TIM8_CH1
-	__HAL_RCC_GPIOB_CLK_ENABLE();
+	//**** kanał 6 - konfiguracja pinu  PI5 TIM8_CH1 **********************************************************
+	__HAL_RCC_GPIOI_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_5;
-	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
 	HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWMXXX)	//czy grupa kanałów używająca timera 8 jest ustawiona na PWM
 	{
-
-	}
-	else
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM50)
-	{
-
+		HAL_NVIC_EnableIRQ(TIM8_CC_IRQn);
+		htim8.Init.Prescaler = 199;
+		htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
+		htim8.Init.Period = 65535;
+		htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+		htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+		HAL_TIM_Base_Init(&htim8);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT150)
 	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC6);
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC6);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT300)
 	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC6);
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC6);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT600)
 	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC6);
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC6);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT1200)
 	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC6);
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC6);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
@@ -498,78 +526,56 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 	}
 	else
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ALTER1)	//ADC1_INP2
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ANALOG)	//ADC1_INP2
 	{
 		GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
 		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 	}
-
+	else
+		chErr |= ERR_BRAK_KONFIG;
 
 	chTyp = CzytajFRAM(FAU_KONF_SERWA78);
 
-	//kanał 7 - konfiguracja pinu PI10  - brak timera na porcie
-	__HAL_RCC_GPIOA_CLK_ENABLE();
+	//**** kanał 7 - konfiguracja pinu PI10  - brak timera na porcie **********************************************************
+	__HAL_RCC_GPIOI_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_10;
 
-
-	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM400)
-	{
-
-	}
-	else
-	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM50)
-	{
-
-	}
-	else
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_IO)	//wyjście IO do debugowania
 	{
 		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 	}
 	else
-	if ((chTyp & MASKA_TYPU_RC1) == SERWO_ALTER1)		//
-	{
+		chErr |= ERR_BRAK_KONFIG;
 
-	}
-
-
-	//kanał 8 - konfiguracja pinu  PH15 TIM8_CH3N
-	__HAL_RCC_GPIOB_CLK_ENABLE();
+	//**** kanał 8 - konfiguracja pinu  PH15 TIM8_CH3N **********************************************************
+	__HAL_RCC_GPIOH_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_15;
-	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
 	HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);		//domyslnie ma być timer. w przypadku IO lub ADC, konfiguracja będzie nadpisana
 
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWMXXX)	//czy grupa kanałów używająca timera 8 jest ustawiona na PWM
 	{
-
-	}
-	else
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM50)
-	{
-
+		HAL_NVIC_EnableIRQ(TIM8_CC_IRQn);	//włącz przerwania do generowania PWM
+		htim8.Init.Prescaler = 199;
+		htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
+		htim8.Init.Period = 65535;
+		htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+		htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+		HAL_TIM_Base_Init(&htim8);
 	}
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT150)
-	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC8);
-	}
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC8);
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT300)
-	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC8);
-	}
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC8);
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT600)
-	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC8);
-	}
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC8);
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT1200)
-	{
-		chErr = UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC8);
-	}
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC8);
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
 	{
@@ -577,29 +583,24 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 	}
 	else
-	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_ALTER1)
-	{
-
-	}
+		chErr |= ERR_BRAK_KONFIG;
 
 
 	//kanały 9-16 - konfiguracja pinu  PA8 TIM1_CH1
 	chTyp = CzytajFRAM(FAU_KONF_SERWA916);
-	__HAL_RCC_GPIOB_CLK_ENABLE();
-	GPIO_InitStruct.Pin = GPIO_PIN_1;
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	GPIO_InitStruct.Pin = GPIO_PIN_8;
+	GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	if (chTyp == SERWO_PWM400)
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
-		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
 	}
 	else
 	if (chTyp == SERWO_PWM50)
 	{
-		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-		GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
-		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
 	}
 	else
 	if (chTyp == SERWO_IO)
@@ -608,15 +609,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 	}
 	else
-	if (chTyp == SERWO_ALTER1)	//ESC9-10 200Hz
-	{
-
-	}
-	else
-	if (chTyp == SERWO_ALTER2)	//ESC9-12 100Hz
-	{
-
-	}
+		chErr |= ERR_BRAK_KONFIG;
 
 	return chErr;
 }
@@ -640,6 +633,9 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
 		//if DSHot
 		chErr |= AktualizujDShotDMA(dane->sSerwo[n], n);
 	}
+
+	HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
+	//HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_15);	//serwo kanał 8
 	return chErr;
 }
 

@@ -9,7 +9,9 @@
 // Aby wygenerować sygnał PPM timer musi być taktowany zegarem 1MHz (200MHZ/199+1) 1/f = 1us
 // Aby wygenerować sygnał DShot150 timer musi być taktowany 6MHz -> 0,1667us. T0H to 15 cyknięć zegara, T1H to 30 cyknięć, cały bit to 40 cyknięć
 // Aby wygenerować sygnał DShot300 timer musi być taktowany 12MHz...
-//Ponieważ 200MHz nie dzieli się przez 6 i 12 zegar kontrolera musi wynosić 204Mz. Żeby uzyskać DShot600 podzielnik musi wynosić 24 i zegar musi mieć wartość 216MHz
+// Aby wygenerować sygnał DShot600 timer musi być taktowany 24MHz...
+// Aby wygenerować sygnał DShot1200 timer musi być taktowany 48MHz...
+// Ponieważ 200MHz nie dzieli się przez 6 i 12 zegar kontrolera musi wynosić 204Mz. Żeby uzyskać DShot600 podzielnik musi wynosić 24 i zegar musi mieć wartość 216MHz
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -74,6 +76,8 @@ extern DMA_HandleTypeDef hdma_i2c4_rx;
 extern DMA_HandleTypeDef hdma_i2c4_tx;
 extern I2C_HandleTypeDef hi2c3;
 extern I2C_HandleTypeDef hi2c4;
+extern DMA_HandleTypeDef hdma_tim3_ch3;
+extern DMA_HandleTypeDef hdma_tim3_ch4;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
 extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern TIM_HandleTypeDef htim1;
@@ -81,6 +85,7 @@ extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim7;
+extern TIM_HandleTypeDef htim8;
 extern DMA_HandleTypeDef hdma_uart4_rx;
 extern DMA_HandleTypeDef hdma_uart4_tx;
 extern DMA_HandleTypeDef hdma_uart8_rx;
@@ -558,6 +563,20 @@ void TIM4_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles TIM8 capture compare interrupt.
+  */
+void TIM8_CC_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM8_CC_IRQn 0 */
+
+  /* USER CODE END TIM8_CC_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim8);
+  /* USER CODE BEGIN TIM8_CC_IRQn 1 */
+
+  /* USER CODE END TIM8_CC_IRQn 1 */
+}
+
+/**
   * @brief This function handles DMA1 stream7 global interrupt.
   */
 void DMA1_Stream7_IRQHandler(void)
@@ -626,6 +645,34 @@ void DMA2_Stream3_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream3_IRQn 1 */
 
   /* USER CODE END DMA2_Stream3_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream4 global interrupt.
+  */
+void DMA2_Stream4_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream4_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream4_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_tim3_ch3);
+  /* USER CODE BEGIN DMA2_Stream4_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream4_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream5 global interrupt.
+  */
+void DMA2_Stream5_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream5_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream5_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_tim3_ch4);
+  /* USER CODE BEGIN DMA2_Stream5_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream5_IRQn 1 */
 }
 
 /**

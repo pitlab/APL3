@@ -66,6 +66,8 @@ TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 TIM_HandleTypeDef htim7;
 TIM_HandleTypeDef htim8;
+DMA_HandleTypeDef hdma_tim3_ch3;
+DMA_HandleTypeDef hdma_tim3_ch4;
 DMA_HandleTypeDef hdma_tim8_ch3;
 DMA_HandleTypeDef hdma_tim8_ch1;
 
@@ -204,8 +206,10 @@ int main(void)
   InicjujModulI2P();
   InicjujJednostkeInercyjna();
 
-  //ZapiszFRAM(FAU_KONF_SERWA56, 0x50);	//kanał 5 jako PWM400, kanał 6 jako DSHot300
-  //ZapiszFRAM(FAU_KONF_SERWA78, 0x58);	//kanał 7 jako IO, kanał 8 jako DSHot300
+  //ZapiszFRAM(FAU_KONF_SERWA34, 0x97);	//kanał 3 jako PWM400, kanał 4 jako DSHot300
+  //ZapiszFRAM(FAU_KONF_SERWA56, 0x99);	//kanał 5 jako DSHot300, kanał 6 jako DSHot300
+  //ZapiszFRAM(FAU_KONF_SERWA78, 0x90);	//kanał 7 jako IO, kanał 8 jako DSHot300
+
 
   InicjujWejsciaRC();	//odbiorniki RC
   InicjujWyjsciaRC();	//serwa, ESC
@@ -712,7 +716,7 @@ static void MX_TIM3_Init(void)
   {
     Error_Handler();
   }
-  if (HAL_TIM_OC_Init(&htim3) != HAL_OK)
+  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
   {
     Error_Handler();
   }
@@ -722,15 +726,15 @@ static void MX_TIM3_Init(void)
   {
     Error_Handler();
   }
-  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
   sConfigOC.Pulse = 0;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  if (HAL_TIM_OC_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
   {
     Error_Handler();
   }
-  if (HAL_TIM_OC_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
   {
     Error_Handler();
   }
@@ -1084,6 +1088,12 @@ static void MX_DMA_Init(void)
   /* DMA2_Stream3_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
+  /* DMA2_Stream4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
+  /* DMA2_Stream5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
 
 }
 
@@ -1292,21 +1302,21 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = MODW_ADR2_Pin|ADR_SER0_Pin|ADR_SER1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	//do 12 MHz
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
   /*Configure GPIO pin : ADR_SER2_Pin */
   GPIO_InitStruct.Pin = ADR_SER2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	//do 12 MHz
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(ADR_SER2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PA3 */
   GPIO_InitStruct.Pin = GPIO_PIN_3;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	//do 12 MHz
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
@@ -1314,7 +1324,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = MODW_ADR1_Pin|MODW_ADR0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	//do 12 MHz
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOK, &GPIO_InitStruct);
 
   /*Configure GPIO pin : IO_INT_Pin */
@@ -1327,14 +1337,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = MOD_SPI_NCS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;		//do 60 MHz
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
   HAL_GPIO_Init(MOD_SPI_NCS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : SUB_MOD_ADR0_Pin SUB_MOD_ADR1_Pin */
   GPIO_InitStruct.Pin = SUB_MOD_ADR0_Pin|SUB_MOD_ADR1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;			//do 12 MHz
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
