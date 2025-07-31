@@ -41,7 +41,8 @@
 #define DS_BITOW_GAZU		11
 #define DS_BITOW_TELE		1
 #define DS_BITOW_CRC		4
-#define DS_BITOW_LACZNIE	16
+#define DS_BITOW_DANYCH		16
+#define DS_BITOW_PRZERWY	9
 #define DS_OFFSET_DANYCH	48		//wartości przesyłane protokołem są powiększone o taką wartość
 #define DS_MAX_DANE			2000	//maksymalna wartość danych uwzgledniana przez protokół
 

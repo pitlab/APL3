@@ -22,13 +22,13 @@ extern FATFS SDFatFS;    /* File system object for SD logical drive */
 extern FIL SDFile;       /* File object for SD */
 
 extern volatile unia_wymianyCM4_t uDaneCM4;
-ALIGN_32BYTES(uint8_t aTxBuffer[_MAX_SS]);
-ALIGN_32BYTES(uint8_t aRxBuffer[_MAX_SS]);
+uint8_t __attribute__ ((aligned (32))) aTxBuffer[_MAX_SS];
+uint8_t __attribute__ ((aligned (32))) aRxBuffer[_MAX_SS];
 __IO uint8_t RxCplt, TxCplt;
 uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 uint32_t nKonfLogera[3] = {0xFFFFFF2B, 0xFFC00000, 0x000001F8};	//zestaw flag włączajacych dane do rejestracji
-ALIGN_32BYTES(static char chBufZapisuKarty[ROZMIAR_BUFORA_LOGU]);	//bufor na jedną linijkę logu
-ALIGN_32BYTES(static char chBufPodreczny[30]);
+static char __attribute__ ((aligned (32))) chBufZapisuKarty[ROZMIAR_BUFORA_LOGU];	//bufor na jedną linijkę logu
+static char __attribute__ ((aligned (32))) chBufPodreczny[30];
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;
 uint8_t chKodBleduFAT;
 uint8_t chTimerSync;	//odlicza czas w jednostce zapisu na dysk do wykonania sync

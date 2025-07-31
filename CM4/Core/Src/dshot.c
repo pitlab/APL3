@@ -11,7 +11,7 @@ extern TIM_HandleTypeDef htim8;
 extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
 
-ALIGN_32BYTES(uint32_t __attribute__((section(".SekcjaSRAM1")))	nBuforDShot[KANALY_MIKSERA][DS_BITOW_LACZNIE]);	//kolejne wartości bitów protokołu dla wszystkich kanałów
+uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforDShot[KANALY_MIKSERA][DS_BITOW_DANYCH + DS_BITOW_PRZERWY] = {0};
 stDShot_t stDShot;
 
 
@@ -89,6 +89,33 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		chErr = HAL_TIM_PWM_Init(&htim8);
 	}
 
+	if (chKanal == KANAL_RC6)		//kanał 6
+	{
+		sConfigOC.OCMode = TIM_OCMODE_PWM1;
+		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+		sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+		sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+		sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+		sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+		sConfigOC.Pulse = stDShot.nT1H;
+		chErr = HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_1);
+
+		hdma_tim8_ch1.Instance = DMA2_Stream3;
+		hdma_tim8_ch1.Init.Request = DMA_REQUEST_TIM8_CH1;
+		hdma_tim8_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
+		hdma_tim8_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
+		hdma_tim8_ch1.Init.MemInc = DMA_MINC_ENABLE;
+		hdma_tim8_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+		hdma_tim8_ch1.Init.MemDataAlignment = DMA_PDATAALIGN_WORD;
+		hdma_tim8_ch1.Init.Mode = DMA_CIRCULAR;
+		hdma_tim8_ch1.Init.Priority = DMA_PRIORITY_MEDIUM;
+		hdma_tim8_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+		chErr = HAL_DMA_Init(&hdma_tim8_ch1);
+
+		AktualizujDShotDMA(1000, chKanal);
+		chErr = HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, &nBuforDShot[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);
+	}
+
 	if (chKanal == KANAL_RC8)	//kanał 8
 	{
 		sConfigOC.OCMode = TIM_OCMODE_PWM1;
@@ -113,35 +140,7 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		chErr = HAL_DMA_Init(&hdma_tim8_ch3);
 
 		AktualizujDShotDMA(1000, chKanal);
-		chErr = HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_3, &nBuforDShot[chKanal][0], DS_BITOW_LACZNIE);
-	}
-
-	if (chKanal == KANAL_RC6)		//kanał 6
-	{
-		sConfigOC.OCMode = TIM_OCMODE_PWM1;
-		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-		sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-		sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-		sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-		sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-		sConfigOC.Pulse = stDShot.nT1H;
-		chErr = HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_1);
-
-		//chErr = HAL_DMA_DeInit(&hdma_tim8_ch1);
-		hdma_tim8_ch1.Instance = DMA2_Stream3;
-		hdma_tim8_ch1.Init.Request = DMA_REQUEST_TIM8_CH1;
-		hdma_tim8_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
-		hdma_tim8_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
-		hdma_tim8_ch1.Init.MemInc = DMA_MINC_ENABLE;
-		hdma_tim8_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-		hdma_tim8_ch1.Init.MemDataAlignment = DMA_PDATAALIGN_WORD;
-		hdma_tim8_ch1.Init.Mode = DMA_CIRCULAR;
-		hdma_tim8_ch1.Init.Priority = DMA_PRIORITY_MEDIUM;
-		hdma_tim8_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-		chErr = HAL_DMA_Init(&hdma_tim8_ch1);
-
-		AktualizujDShotDMA(1000, chKanal);
-		chErr = HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, &nBuforDShot[chKanal][0], DS_BITOW_LACZNIE);
+		chErr = HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_3, &nBuforDShot[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);
 	}
 	return chErr;
 }
@@ -190,6 +189,12 @@ uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t chKanal)
 			nBuforDShot[chKanal][n+12] = stDShot.nT0H;	//wysyłany bit 0
 		sCRC <<= 1;		//wskaż kolejny bit
 	}
+
+	//zerami oznacz przerwę między ramkami
+	for (uint8_t n=0; n<DS_BITOW_PRZERWY; n++)
+		nBuforDShot[chKanal][n + DS_BITOW_DANYCH] = 0;
+
+
 	//nBuforDShot[chKanal][DS_BITOW_LACZNIE - 1] = 0;	//przerwa między ramkami w ostatnim bicie
 
 	//chErr = HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_1);

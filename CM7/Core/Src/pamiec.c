@@ -17,22 +17,22 @@
 #include "flash_nor.h"
 
 
-ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaFlashNOR"))) 	sFlashNOR[ROZMIAR16_BUFORA]);	//bufor do odczytu z Flash NOR
-ALIGN_32BYTES(const uint16_t __attribute__((section(".SekcjaFlashCPU"))) 		sFlashMem[ROZMIAR16_BUFORA]);	//bufor do odczytu z wewnętrznego flash
-ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaSRAM2"))) 	sBuforD2[ROZMIAR16_BUFORA]);
-//ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaZewnSRAM")))	sExtSramBuf[ROZMIAR16_BUFORA]);
-ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaDRAM")))		sBuforDram[ROZMIAR16_BUFORA]);
-ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaDTCM")))		sBuforDTCM[ROZMIAR16_BUFORA]);
-ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaAxiSRAM")))	sBufor[ROZMIAR16_BUFORA]);
-ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaAxiSRAM")))	sBufor2[ROZMIAR16_BUFORA]);
-ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaAxiSRAM"))) 	sBuforSektoraFlash[ROZMIAR16_BUF_SEKT]);	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
+
+const uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaFlashCPU"))) 		sFlashMem[ROZMIAR16_BUFORA];	//bufor do odczytu z wewnętrznego flash
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaFlashNOR"))) 	sFlashNOR[ROZMIAR16_BUFORA];	//bufor do odczytu z Flash NOR
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM2"))) 	sBuforD2[ROZMIAR16_BUFORA];
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM")))		sBuforDram[ROZMIAR16_BUFORA];
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDTCM")))		sBuforDTCM[ROZMIAR16_BUFORA];
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM")))	sBufor[ROZMIAR16_BUFORA];
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM")))	sBufor2[ROZMIAR16_BUFORA];
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) 	sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
 extern uint16_t __attribute__((section(".SekcjaZewnSRAM")))	sBuforKamery[ROZM_BUF16_KAM];
 
 uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 volatile uint8_t chKoniecTransferuMDMA;
 volatile uint8_t chBladTransferuMDMA;
-ALIGN_32BYTES(MDMA_LinkNodeTypeDef Xfer_Node1);
-ALIGN_32BYTES(MDMA_LinkNodeTypeDef Xfer_Node2);
+MDMA_LinkNodeTypeDef  __attribute__ ((aligned (32))) Xfer_Node1;
+MDMA_LinkNodeTypeDef  __attribute__ ((aligned (32))) Xfer_Node2;
 extern SRAM_HandleTypeDef hsram1;
 extern NOR_HandleTypeDef hnor3;
 extern SDRAM_HandleTypeDef hsdram1;

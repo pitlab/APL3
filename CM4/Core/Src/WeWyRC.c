@@ -45,6 +45,10 @@ uint8_t InicjujWejsciaRC(void)
 	TIM_IC_InitTypeDef sConfigIC = {0};
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
+	//Część wspólna dla wszystkich ustawień
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
 	//czytaj konfigurację obu odbiorników RC
 	chTyp = CzytajFRAM(FAU_KONF_ODB_RC);
 
@@ -52,8 +56,6 @@ uint8_t InicjujWejsciaRC(void)
 	__HAL_RCC_GPIOB_CLK_ENABLE();
     GPIO_InitStruct.Pin = GPIO_PIN_8;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	if ((chTyp & MASKA_TYPU_RC1) == ODB_RC_CPPM)
 	{
 	    GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
@@ -126,8 +128,7 @@ uint8_t InicjujWejsciaRC(void)
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_3;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == ODB_RC_CPPM)
 	{
 		GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
@@ -209,14 +210,16 @@ uint8_t InicjujWyjsciaRC(void)
 	//TIM_IC_InitTypeDef sConfigIC = {0};
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
+	//Część wspólna dla wszystkich ustawień
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
 	//czytaj konfigurację dwu pierwszych kanałów serw
 	chTyp = CzytajFRAM(FAU_KONF_SERWA12);
 
 	//kanał 1 - konfiguracja pinu PB9
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_9;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM400)
 	{
@@ -294,8 +297,6 @@ uint8_t InicjujWyjsciaRC(void)
 	//kanał 2 - konfiguracja pinu PB10 -TIM2_CH3, USART3_TX, MOD_QSPI_CS
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_10;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
 	{
@@ -363,8 +364,6 @@ uint8_t InicjujWyjsciaRC(void)
 	//kanał 3 - konfiguracja pinu PA15 TIM2_CH1
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_15;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM400)
 	{
@@ -395,8 +394,6 @@ uint8_t InicjujWyjsciaRC(void)
 	//kanał 4 - konfiguracja pinu  PB0 TIM3_CH3
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_0;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
 	{
@@ -430,8 +427,6 @@ uint8_t InicjujWyjsciaRC(void)
 	//kanał 5 - konfiguracja pinu PB1 TIM3_CH4
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_1;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM400)
 	{
@@ -463,8 +458,6 @@ uint8_t InicjujWyjsciaRC(void)
 	//kanał 6 - konfiguracja pinu  PI5 TIM8_CH1
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_5;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
 	HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
@@ -517,8 +510,7 @@ uint8_t InicjujWyjsciaRC(void)
 	//kanał 7 - konfiguracja pinu PI10  - brak timera na porcie
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_10;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
 
 	if ((chTyp & MASKA_TYPU_RC1) == SERWO_PWM400)
 	{
@@ -545,8 +537,6 @@ uint8_t InicjujWyjsciaRC(void)
 	//kanał 8 - konfiguracja pinu  PH15 TIM8_CH3N
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_15;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
 	HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);		//domyslnie ma być timer. w przypadku IO lub ADC, konfiguracja będzie nadpisana
@@ -597,8 +587,6 @@ uint8_t InicjujWyjsciaRC(void)
 	chTyp = CzytajFRAM(FAU_KONF_SERWA916);
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_1;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 
 	if (chTyp == SERWO_PWM400)
 	{

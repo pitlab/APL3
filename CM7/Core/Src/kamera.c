@@ -33,7 +33,9 @@
 #include "moduly_SPI.h"
 
 
-ALIGN_32BYTES(uint16_t __attribute__((section(".SekcjaZewnSRAM")))	sBuforKamery[ROZM_BUF16_KAM]);
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamery[ROZM_BUF16_KAM] = {0};
+
+
 struct st_KonfKam strKonfKam;
 
 uint16_t sLicznikLiniiKamery;

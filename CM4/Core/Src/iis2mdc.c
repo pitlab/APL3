@@ -14,9 +14,9 @@
 #include "konfig_fram.h"
 
 //Zmienne przesyłane przez I2C4 we współpracy z BDMA a on ma dostęp tylko SRAM4
-ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chDaneMagIIS[6]);		//dane pomiarowe magnetometru IIS
-ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chStatusIIS);			//ststus magnetometru IIS
-ALIGN_32BYTES(uint8_t __attribute__((section(".SekcjaSRAM4")))	chPolWychMagIIS[2]);	//dane wychodzące aby nie kolidowały z przychodzącymi
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chDaneMagIIS[6];		//dane pomiarowe magnetometru IIS
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chStatusIIS;			//ststus magnetometru IIS
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chPolWychMagIIS[2];	//dane wychodzące aby nie kolidowały z przychodzącymi
 
 extern I2C_HandleTypeDef hi2c4;
 extern DMA_HandleTypeDef hdma_i2c4_rx;

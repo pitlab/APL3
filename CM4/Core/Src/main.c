@@ -1254,6 +1254,11 @@ static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
+  // Predkosci portów IO
+  //GPIO_SPEED_FREQ_LOW 		- do 12 MHz
+  //GPIO_SPEED_FREQ_MEDIUM		- do 60 MHz
+  //GPIO_SPEED_FREQ_HIGH 		- do 85 MHz
+  //GPIO_SPEED_FREQ_VERY_HIGH 	- do 100 MHz
   /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
@@ -1287,21 +1292,21 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = MODW_ADR2_Pin|ADR_SER0_Pin|ADR_SER1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	//do 12 MHz
   HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
   /*Configure GPIO pin : ADR_SER2_Pin */
   GPIO_InitStruct.Pin = ADR_SER2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	//do 12 MHz
   HAL_GPIO_Init(ADR_SER2_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PA3 */
   GPIO_InitStruct.Pin = GPIO_PIN_3;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	//do 12 MHz
   GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
@@ -1309,7 +1314,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = MODW_ADR1_Pin|MODW_ADR0_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	//do 12 MHz
   HAL_GPIO_Init(GPIOK, &GPIO_InitStruct);
 
   /*Configure GPIO pin : IO_INT_Pin */
@@ -1322,14 +1327,14 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = MOD_SPI_NCS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_MEDIUM;		//do 60 MHz
   HAL_GPIO_Init(MOD_SPI_NCS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : SUB_MOD_ADR0_Pin SUB_MOD_ADR1_Pin */
   GPIO_InitStruct.Pin = SUB_MOD_ADR0_Pin|SUB_MOD_ADR1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;			//do 12 MHz
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
