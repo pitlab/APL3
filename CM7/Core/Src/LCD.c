@@ -390,7 +390,7 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TP_POMIAR_FQSPI:	W25_TestTransferu();
+	case TP_POMIAR_FQSPI:	//W25_TestTransferu();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;

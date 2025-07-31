@@ -218,7 +218,7 @@ uint8_t InicjujWyjsciaRC(void)
 	//czytaj konfigurację dwu pierwszych kanałów serw
 	chTyp = CzytajFRAM(FAU_KONF_SERWA12);
 
-	//**** kanał 1 - konfiguracja pinu PB9 **********************************************************
+	//**** kanał 1 - konfiguracja pinu PB9 TIM4_CH4 **********************************************************
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_9;
 	GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
@@ -294,12 +294,22 @@ uint8_t InicjujWyjsciaRC(void)
 	else
 		chErr |= ERR_BRAK_KONFIG;
 
-	//**** kanał 2 - konfiguracja pinu PB10 -TIM2_CH3, USART3_TX, MOD_QSPI_CS **********************************************************
+	//**** kanał 2 - konfiguracja pinu PB10 - TIM2_CH3, USART3_TX, MOD_QSPI_CS **********************************************************
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_10;
 	GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWMXXX)	//czy grupa kanałów używająca timera 2 jest ustawiona na PWM
+	{
+		HAL_NVIC_EnableIRQ(TIM2_IRQn);
+		htim2.Init.Prescaler = 200 - 1;
+		htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+		htim2.Init.Period = 65535;
+		htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+		htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+		HAL_TIM_Base_Init(&htim2);
+	}
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_PWM400)
 	{
 		//konfiguracja domyślna
@@ -309,6 +319,18 @@ uint8_t InicjujWyjsciaRC(void)
 	{
 		//konfiguracja domyślna
 	}
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT150)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC2);
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT300)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC2);
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT600)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC2);
+	else
+	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_DSHOT1200)
+		chErr |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC2);
 	else
 	if (((chTyp & MASKA_TYPU_RC2) >> 4) == SERWO_IO)
 	{
