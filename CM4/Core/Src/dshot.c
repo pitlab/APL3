@@ -145,10 +145,9 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		htim3.Init.Period = stDShot.nBit;
 		htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		//chErr |= HAL_TIM_Base_Init(&htim3);
 		chErr |= HAL_TIM_PWM_Init(&htim3);
 		AktualizujDShotDMA(1000, chKanal);	//przelicz czas trwania bitów
-		HAL_NVIC_DisableIRQ(TIM3_IRQn);	//generowanie PWM dla DShot nie wymaga przerwań
+		//HAL_NVIC_DisableIRQ(TIM3_IRQn);	//generowanie PWM dla DShot nie wymaga przerwań
 	}
 
 	if (chKanal == KANAL_RC4)		//kanał 4

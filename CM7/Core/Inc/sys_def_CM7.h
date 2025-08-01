@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	248		//numer commitu w repozytorium
+#define WER_REPO	249		//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -189,9 +189,13 @@
 #define STD_OBRAZU_1080P	(1920*1080)		//Full HD
 #define STD_OBRAZU_4M_N		(1440*1280)
 #define STD_OBRAZU_720P		(1280*720)			//720P
+#define STD_OBRAZU_VGA		(640*480)
+#define STD_OBRAZU_DVGA		(480*320)
+#define STD_OBRAZU_QVGA		(320*240)
+#define STD_OBRAZU_OVGA		(160*120)
 
 //#define ROZM_BUF32_KAM		(2592*1944)		//pełen rozmiar przetwornika nie mieści się w  ext SRAM
-#define ROZM_BUF16_KAM		STD_OBRAZU_1080P
+#define ROZM_BUF16_KAM		STD_OBRAZU_OVGA
 
 //pamięc flash NOR
 #define ADRES_NOR			0x68000000

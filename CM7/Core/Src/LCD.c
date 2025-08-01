@@ -120,6 +120,7 @@ uint8_t chStanPrzycisku;
 uint8_t chEtapKalibracji;
 prostokat_t stWykr;	//wykres biegunowy magnetometru
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamery[ROZM_BUF16_KAM];
+extern uint16_t sBuforKameryAxi[ROZM_BUF16_KAM];
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -319,10 +320,12 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM_ZDJECIE:	//pojedyncze zdjęcie
-		ZrobZdjecie(480, 320);
+		//ZrobZdjecie(480, 320);
+		ZrobZdjecie(160, 120);
 		//ZrobZdjecie(320,240);
 		//WyswietlZdjecie(320,240, sBuforKamery);
-		WyswietlZdjecie(480, 320, sBuforKamery);
+		//WyswietlZdjecie(480, 320, sBuforKamery);
+		WyswietlZdjecie(160, 120, sBuforKameryAxi);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 

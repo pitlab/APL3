@@ -144,6 +144,8 @@ uint8_t InicjujWejsciaRC(void)
 		GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 		__HAL_RCC_TIM2_CLK_ENABLE();
+		HAL_NVIC_SetPriority(TIM2_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(TIM2_IRQn);	//odbiór PPM wymaga przerwań
 
 		sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
 		sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
@@ -325,9 +327,7 @@ uint8_t InicjujWyjsciaRC(void)
 		htim2.Init.Period = OKRES_PWM;
 		htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		//HAL_TIM_Base_Init(&htim2);
 		chErr |= HAL_TIM_PWM_Init(&htim2);
-		HAL_NVIC_DisableIRQ(TIM2_IRQn);
 		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, &nBuforDShot[KANAL_RC2][0], KANALY_MIKSERA);
 	}
 	else
@@ -405,22 +405,7 @@ uint8_t InicjujWyjsciaRC(void)
 		htim2.Init.Period = OKRES_PWM;
 		htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		//HAL_TIM_Base_Init(&htim2);
 		chErr |= HAL_TIM_PWM_Init(&htim2);
-		HAL_NVIC_DisableIRQ(TIM2_IRQn);
-
-		/*hdma_tim2_ch1.Instance = DMA2_Stream6;
-		hdma_tim2_ch1.Init.Request = DMA_REQUEST_TIM2_CH1;
-		hdma_tim2_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
-		hdma_tim2_ch1.Init.PeriphInc = DMA_PINC_DISABLE;
-		hdma_tim2_ch1.Init.MemInc = DMA_MINC_ENABLE;
-		hdma_tim2_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-		hdma_tim2_ch1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-		hdma_tim2_ch1.Init.Mode = DMA_CIRCULAR;
-		hdma_tim2_ch1.Init.Priority = DMA_PRIORITY_MEDIUM;
-		hdma_tim2_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-		HAL_DMA_Init(&hdma_tim2_ch1);*/
-
 		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &nBuforDShot[KANAL_RC3][0], KANALY_MIKSERA);
 	}
 	else
@@ -640,7 +625,8 @@ uint8_t InicjujWyjsciaRC(void)
 		chErr |= ERR_BRAK_KONFIG;
 
 
-	//kanały 9-16 - konfiguracja portu PA8 TIM1_CH1
+	//**** kanały 9-16 - konfiguracja portu PA8 TIM1_CH1 **********************************************************
+	//pracuje jako PWM bez DMA, ponieważ brakuje zasobów
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_8;
 	GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
@@ -648,14 +634,21 @@ uint8_t InicjujWyjsciaRC(void)
 
 	if ((chKonfigWyRC[KANAL_RC916] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
-		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
+		HAL_NVIC_SetPriority(TIM1_CC_IRQn, 0, 0);
+		HAL_NVIC_EnableIRQ(TIM1_CC_IRQn);		//na tym kanala generowanie PWM wymaga przerwań aby przełączyć dekoden kanałów. DMA nie jest używane
+
+		sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+		sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+		sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+		chErr |= HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1);
+
 		htim1.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim1.Init.Period = OKRES_PWM;
 		htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		chErr |= HAL_TIM_PWM_Init(&htim1);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim1, TIM_CHANNEL_1, &nBuforDShot[KANAL_RC916][0], KANALY_MIKSERA);
+		chErr |= HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC916] == SERWO_IO)
@@ -725,7 +718,7 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
 		}	//switch
 	}	//for
 
-	HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
+	//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
 	//HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_15);	//serwo kanał 8
 	return chErr;
 }

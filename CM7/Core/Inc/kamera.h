@@ -16,7 +16,7 @@
 #define OV5642_I2C_ADR	0x78
 #define OV5642_ID		0x5642
 #define KAMERA_TIMEOUT	1	//czas w milisekundach na wysłanie jednego polecenia do kamery. Nominalnie jest to ok 400us na adres i 3 bajty danych
-#define KAMERA_ZEGAR	16000000	//kamera wymaga zegara 24MHz (6-27MHz)
+#define KAMERA_ZEGAR	20000000	//kamera wymaga zegara 24MHz (6-27MHz)
 
 
 

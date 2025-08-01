@@ -41,16 +41,12 @@ extern uint32_t PobierzCzas(void);
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-volatile uint8_t chZbocze[8];	//flaga określająca na które zbocze mamy reagować dla wszystkich kanałow wyjściowych serw
+//volatile uint8_t chZbocze[8];	//flaga określająca na które zbocze mamy reagować dla wszystkich kanałow wyjściowych serw
 volatile uint32_t nPoprzedniStanTimera2;	//timer 32 bitowy
-//volatile uint16_t sPoprzedniStanTimera3, sPoprzedniStanTimera4;
-uint16_t sSerwo[KANALY_SERW];	//sterowane kanałów serw
-//volatile uint16_t sOdbRC1[KANALY_ODB_RC];	//odbierane kanały na odbiorniku 1 RC
-//volatile uint16_t sOdbRC2[KANALY_ODB_RC];	//odbierane kanały na odbiorniku 2 RC
-//uint8_t chNumerKanWejRC1, chNumerKanWejRC2;	//liczniki kanałów w odbieranym sygnale PPM
 volatile uint8_t chNumerKanSerw;
 volatile uint16_t sCzasH;
 extern stRC_t stRC;
+extern unia_wymianyCM4_t uDaneCM4;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -309,71 +305,58 @@ void ADC_IRQHandler(void)
 void TIM1_CC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM1_CC_IRQn 0 */
-	//obsługa wyjścia TIM1_CH1 do generowania kanałów 50Hz [8..15]
+	//obsługa wyjścia TIM1_CH1 jako PWM do generowania kanałów 50Hz [8..15]
 	if (htim1.Instance->SR & TIM_FLAG_CC1)
 	{
-		if (chZbocze[chNumerKanSerw])	//zbocze narastajace, odmierz długość impulsu
+		chNumerKanSerw++;						//ustaw następny kanał
+		if (chNumerKanSerw == KANALY_SERW)
+			chNumerKanSerw = 8;
+		switch (chNumerKanSerw)					//ustaw dekoder
 		{
-			htim1.Instance->CCR1 += sSerwo[chNumerKanSerw];
-			htim1.Instance->CCMR1 &= ~TIM_CCMR1_OC1M_Msk;
-			htim1.Instance->CCMR1 |= TIM_CCMR1_OC1M_1;		//Set channel to inactive level on match
-			chZbocze[chNumerKanSerw] = 0;
+		case 8:
+			HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_RESET);
+			break;
+		case 9:
+			HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_RESET);
+			break;
+		case 10:
+			HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_RESET);
+			break;
+		case 11:
+			HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_RESET);
+			break;
+		case 12:
+			HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_SET);
+			break;
+		case 13:
+			HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_SET);
+			break;
+		case 14:
+			HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_SET);
+			break;
+		case 15:
+			HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_SET);
+			break;
+		default:	break;
 		}
-		else	//zbocze opadające
-		{
-			htim1.Instance->CCR1 += OKRES_PWM - sSerwo[chNumerKanSerw];
-			htim1.Instance->CCMR1 &= ~TIM_CCMR1_OC1M_Msk;
-			htim1.Instance->CCMR1 |= TIM_CCMR1_OC1M_0;		//Set channel to active level on match
-			chZbocze[chNumerKanSerw] = 1;
-
-			chNumerKanSerw++;						//ustaw następny kanał
-			if (chNumerKanSerw == KANALY_SERW)
-				chNumerKanSerw = 8;
-			switch (chNumerKanSerw)					//ustaw dekoder
-			{
-			case 8:
-				HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_RESET);
-				break;
-			case 9:
-				HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_RESET);
-				break;
-			case 10:
-				HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_RESET);
-				break;
-			case 11:
-				HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_RESET);
-				break;
-			case 12:
-				HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_SET);
-				break;
-			case 13:
-				HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_SET);
-				break;
-			case 14:
-				HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_SET);
-				break;
-			case 15:
-				HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(ADR_SER1_GPIO_Port, ADR_SER1_Pin, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(ADR_SER2_GPIO_Port, ADR_SER2_Pin, GPIO_PIN_SET);
-				break;
-			default:	break;
-			}
-		}
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, uDaneCM4.dane.sSerwo[chNumerKanSerw]);
+		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
 		htim1.Instance->SR &= ~TIM_FLAG_CC1;	//kasuj przerwanie przez zapis zera
 	}
 
@@ -391,26 +374,6 @@ void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
 	uint32_t nTemp;		//Licznik 32-bitowy
-
-	/*/obsługa wyjścia TIM2_CH1: Serwo kanał 3
-	if (htim2.Instance->SR & TIM_FLAG_CC1)
-	{
-		if (chZbocze[2])	//zbocze narastajace, odmierz długość impulsu
-		{
-			htim2.Instance->CCR1 += sSerwo[2];
-			htim2.Instance->CCMR1 &= ~TIM_CCMR1_OC1M_Msk;
-			htim2.Instance->CCMR1 |= TIM_CCMR1_OC1M_1;		//Set channel to inactive level on match
-			chZbocze[2] = 0;
-		}
-		else	//zbocze opadające
-		{
-			htim2.Instance->CCR1 += OKRES_PWM - sSerwo[2];
-			htim2.Instance->CCMR1 &= ~TIM_CCMR1_OC1M_Msk;
-			htim2.Instance->CCMR1 |= TIM_CCMR1_OC1M_0;		//Set channel to active level on match
-			chZbocze[2] = 1;
-		}
-		htim2.Instance->SR &= ~TIM_FLAG_CC1;	//kasuj przerwanie przez zapis zera
-	}*/
 
 	//obsługa wejścia TIM2_CH4 szeregowego sygnału PPM2. Sygnał aktywny niski. Kolejne impulsy zą pomiędzy zboczami narastającymi
 	if (htim2.Instance->SR & TIM_FLAG_CC4)
@@ -453,26 +416,6 @@ void TIM4_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM4_IRQn 0 */
 	uint16_t sTemp;
-
-	/*/obsługa wyjścia TIM4_CH4: Serwo kanał 1, zanegowane na inwerterze
-	if (htim4.Instance->SR & TIM_FLAG_CC4)
-	{
-		if (chZbocze[0])	//zbocze narastajace, odmierz długość impulsu
-		{
-			htim4.Instance->CCR4 += sSerwo[0];
-			htim4.Instance->CCMR2 &= ~TIM_CCMR2_OC4M_Msk;
-			htim4.Instance->CCMR2 |= TIM_CCMR2_OC4M_1;		//Set channel to inactive level on match
-			chZbocze[0] = 0;
-		}
-		else	//zbocze opadające
-		{
-			htim4.Instance->CCR4 +=  OKRES_PWM - sSerwo[0];
-			htim4.Instance->CCMR2 &= ~TIM_CCMR2_OC4M_Msk;
-			htim4.Instance->CCMR2 |= TIM_CCMR2_OC4M_0;		//Set channel to active level on match
-			chZbocze[0] = 1;
-		}
-		htim4.Instance->SR &= ~TIM_FLAG_CC4;	//kasuj przerwanie przez zapis zera
-	}*/
 
 	//obsługa wejścia TIM4_CH3 szeregowego sygnału PPM1. Sygnał aktywny niski. Kolejne impulsy zą pomiędzy zboczami narastającymi
 	if (htim4.Instance->SR & TIM_FLAG_CC3)
