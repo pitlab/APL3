@@ -1143,7 +1143,6 @@ NVIC2.SVCall_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
 NVIC2.SysTick_IRQn=true\:15\:0\:false\:false\:true\:false\:true\:false
 NVIC2.TIM1_CC_IRQn=true\:0\:0\:false\:false\:true\:true\:true\:true
 NVIC2.TIM2_IRQn=true\:0\:0\:false\:false\:true\:true\:true\:true
-NVIC2.TIM3_IRQn=true\:0\:0\:false\:false\:true\:true\:true\:true
 NVIC2.TIM4_IRQn=true\:0\:0\:false\:false\:true\:true\:true\:true
 NVIC2.TIM7_IRQn=true\:0\:0\:false\:false\:true\:true\:true\:true
 NVIC2.UART8_IRQn=true\:0\:0\:false\:false\:true\:true\:true\:true

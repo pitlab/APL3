@@ -84,7 +84,6 @@ extern DMA_HandleTypeDef hdma_tim8_ch3;
 extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim7;
 extern DMA_HandleTypeDef hdma_uart4_rx;
@@ -448,61 +447,6 @@ void TIM2_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles TIM3 global interrupt.
-  */
-void TIM3_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM3_IRQn 0 */
-	//Licznik 16-bitowy
-
-	//obsługa wyjścia TIM3_CH3: Serwo kanał 4
-	if (htim3.Instance->SR & TIM_FLAG_CC3)
-	{
-		if (chZbocze[3])	//zbocze narastajace, odmierz długość impulsu
-		{
-			htim3.Instance->CCR3 += sSerwo[3];
-			htim3.Instance->CCMR2 &= ~TIM_CCMR2_OC3M_Msk;
-			htim3.Instance->CCMR2 |= TIM_CCMR2_OC3M_1;		//Set channel to inactive level on match
-			chZbocze[3] = 0;
-		}
-		else	//zbocze opadające
-		{
-			htim3.Instance->CCR3 += OKRES_PWM - sSerwo[3];
-			htim3.Instance->CCMR2 &= ~TIM_CCMR2_OC3M_Msk;
-			htim3.Instance->CCMR2 |= TIM_CCMR2_OC3M_0;		//Set channel to active level on match
-			chZbocze[3] = 1;
-		}
-		htim3.Instance->SR &= ~TIM_FLAG_CC3;	//kasuj przerwanie przez zapis zera
-	}
-
-	//obsługa wyjścia TIM3_CH4: Serwo kanał 5
-	if (htim3.Instance->SR & TIM_FLAG_CC4)
-	{
-		if (chZbocze[4])	//zbocze narastajace, odmierz długość impulsu
-		{
-			htim3.Instance->CCR4 += sSerwo[4];
-			htim3.Instance->CCMR2 &= ~TIM_CCMR2_OC4M_Msk;
-			htim3.Instance->CCMR2 |= TIM_CCMR2_OC4M_1;		//Set channel to inactive level on match
-			chZbocze[4] = 0;
-		}
-		else	//zbocze opadające
-		{
-			htim3.Instance->CCR4 += OKRES_PWM - sSerwo[4];
-			htim3.Instance->CCMR2 &= ~TIM_CCMR2_OC4M_Msk;
-			htim3.Instance->CCMR2 |= TIM_CCMR2_OC4M_0;		//Set channel to active level on match
-			chZbocze[4] = 1;
-		}
-		htim3.Instance->SR &= ~TIM_FLAG_CC4;	//kasuj przerwanie przez zapis zera
-	}
-
-  /* USER CODE END TIM3_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim3);
-  /* USER CODE BEGIN TIM3_IRQn 1 */
-
-  /* USER CODE END TIM3_IRQn 1 */
-}
-
-/**
   * @brief This function handles TIM4 global interrupt.
   */
 void TIM4_IRQHandler(void)
@@ -510,7 +454,7 @@ void TIM4_IRQHandler(void)
   /* USER CODE BEGIN TIM4_IRQn 0 */
 	uint16_t sTemp;
 
-	//obsługa wyjścia TIM4_CH4: Serwo kanał 1, zanegowane na inwerterze
+	/*/obsługa wyjścia TIM4_CH4: Serwo kanał 1, zanegowane na inwerterze
 	if (htim4.Instance->SR & TIM_FLAG_CC4)
 	{
 		if (chZbocze[0])	//zbocze narastajace, odmierz długość impulsu
@@ -528,7 +472,7 @@ void TIM4_IRQHandler(void)
 			chZbocze[0] = 1;
 		}
 		htim4.Instance->SR &= ~TIM_FLAG_CC4;	//kasuj przerwanie przez zapis zera
-	}
+	}*/
 
 	//obsługa wejścia TIM4_CH3 szeregowego sygnału PPM1. Sygnał aktywny niski. Kolejne impulsy zą pomiędzy zboczami narastającymi
 	if (htim4.Instance->SR & TIM_FLAG_CC3)
