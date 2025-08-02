@@ -13,6 +13,8 @@
  0x30040200..0x38000000 - 130k (0x7FBEFE00) wolne
  0x68000000..0x6803FFFF - 2*128k pamięć konfiguracji
  0x68040000..0x680FFFFF - 30*128k pamięć komunikatów słownych 16-bit, 16kHz
+ 0x68400000..0x687FFFFF - 32*128 (4MB) próby umieszczenia czcionek i obrazków
+ 0x68800000..0x687FFFFF - 24MB reszta
  0xC0000000..0xC3FFFFFF
 
 
@@ -486,7 +488,7 @@ void PeriphCommonClock_Config(void)
                               |RCC_PERIPHCLK_UART4|RCC_PERIPHCLK_LPUART1;
   PeriphClkInitStruct.PLL2.PLL2M = 5;
   PeriphClkInitStruct.PLL2.PLL2N = 80;
-  PeriphClkInitStruct.PLL2.PLL2P = 12;
+  PeriphClkInitStruct.PLL2.PLL2P = 62;
   PeriphClkInitStruct.PLL2.PLL2Q = 15;
   PeriphClkInitStruct.PLL2.PLL2R = 2;
   PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_1;
@@ -501,14 +503,14 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;
   PeriphClkInitStruct.PLL3.PLL3FRACN = 0;
   PeriphClkInitStruct.FmcClockSelection = RCC_FMCCLKSOURCE_PLL2;
-  PeriphClkInitStruct.Sai23ClockSelection = RCC_SAI23CLKSOURCE_PLL3;
+  PeriphClkInitStruct.Sai23ClockSelection = RCC_SAI23CLKSOURCE_PLL2;
   PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL3;
   PeriphClkInitStruct.Spi45ClockSelection = RCC_SPI45CLKSOURCE_PLL3;
   PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_PLL2;
   PeriphClkInitStruct.I2c123ClockSelection = RCC_I2C123CLKSOURCE_PLL3;
   PeriphClkInitStruct.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_PLL2;
   PeriphClkInitStruct.I2c4ClockSelection = RCC_I2C4CLKSOURCE_PLL3;
-  PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL2;
+  PeriphClkInitStruct.AdcClockSelection = RCC_ADCCLKSOURCE_PLL3;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -940,7 +942,7 @@ static void MX_SAI2_Init(void)
   hsai_BlockB2.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
   hsai_BlockB2.Init.MonoStereoMode = SAI_MONOMODE;
   hsai_BlockB2.Init.CompandingMode = SAI_NOCOMPANDING;
-  hsai_BlockB2.Init.TriState = SAI_OUTPUT_RELEASED;
+  hsai_BlockB2.Init.TriState = SAI_OUTPUT_NOTRELEASED;
   if (HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BIT, 2) != HAL_OK)
   {
     Error_Handler();

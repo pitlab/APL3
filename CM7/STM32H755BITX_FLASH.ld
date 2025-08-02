@@ -238,7 +238,10 @@ SECTIONS
  /* Sekcja w zewnętrznej pamieci flash 512Mb (4MB) na miagistrali 16-bit */  
  .flash_nor (NOLOAD) :
   {  
-    *(.SekcjaFlashNOR)
+  	. = ABSOLUTE(0x68040000);
+  	*(.SekcjaFlashNORKomunikaty)
+  	. = ABSOLUTE(0x68400000);
+    *(.SekcjaFlashNORDane)
   } >FLASH_NOR
   
   /* Sekcja w zewnętrznej pamieci SDRAM 512Mb (64MB) na miagistrali 16-bit */

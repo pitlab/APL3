@@ -198,9 +198,9 @@ struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wzmacniacz",	"Wlacza wzmacniacz, wylacza mikrofon",		TP_MM2,				obr_glosnik2},
 	{"Test Tonu",	"Test tonu wario",							TP_MM_TEST_TONU,	obr_glosnik2},
 	{"FFT Audio",	"FFT sygnału z mikrofonu",					TP_MM_AUDIO_FFT,	obr_fft},
-	{"Zdjecie",		"Wykonuje kamerą statyczne zdjecie",		TP_MM_ZDJECIE,		obr_aparat},
-	{"Kamera",		"Uruchamia kamerę w trybie ciagłem",		TP_MM_KAMERA,		obr_kamera},
-	{"Test kom.",	"Test komunikatów audio",					TP_MM_KOM,			obr_glosnik2},
+	{"Zdjecie",		"Wykonuje statyczne zdjecie kamera",		TP_MM_ZDJECIE,		obr_aparat},
+	{"Kamera",		"Uruchamia kamere w trybie ciaglym",		TP_MM_KAMERA,		obr_kamera},
+	{"Test kom.",	"Test komunikatow audio",					TP_MM_KOM,			obr_glosnik2},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
@@ -315,7 +315,13 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM_AUDIO_FFT:			//FFT sygnału z mikrofonu
-		RejestrujAudio();
+		uint8_t chErr = RozpocznijRejestracjeDzwieku();
+		do
+		{
+			chErr = NapelnijBuforDzwieku();
+		}
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		chTrybPracy = chWrocDoTrybu;
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
@@ -323,15 +329,23 @@ void RysujEkran(void)
 		//ZrobZdjecie(480, 320);
 		ZrobZdjecie(160, 120);
 		//ZrobZdjecie(320,240);
+		extern uint16_t sLicznikLiniiKamery;
+
+		setColor(KOLOR_Z);
+		sprintf(chNapis, "Linii: %d  ", sLicznikLiniiKamery);
+		print(chNapis, KOL12, 300);
+		sLicznikLiniiKamery = 0;
 		//WyswietlZdjecie(320,240, sBuforKamery);
 		//WyswietlZdjecie(480, 320, sBuforKamery);
 		WyswietlZdjecie(160, 120, sBuforKameryAxi);
+		HAL_Delay(1000);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KAMERA:	//ciagła praca kamery
 		RozpocznijPraceDCMI(0);
-		WyswietlZdjecie(480, 320, sBuforKamery);
+		//WyswietlZdjecie(480, 320, sBuforKamery);
+		WyswietlZdjecie(160, 120, sBuforKameryAxi);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 

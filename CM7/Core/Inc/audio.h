@@ -10,7 +10,7 @@
 
 #include "sys_def_CM7.h"
 
-#define ROZMIAR_BUFORA_AUDIO	256
+#define ROZMIAR_BUFORA_AUDIO	128
 #define SKALA_GLOSNOSCI_AUDIO	128		//rozpiętość głosnośco od zera do tej wartosci
 #define SKALA_GLOSNOSCI_TONU	128		//aby uzyskać finalną amplitud
 #define LICZBA_TONOW_WARIO		50		//liczba tonów sygnału wario, musi być liczbą parzystą
@@ -117,7 +117,8 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar);
 uint8_t OdtworzProbkeAudioZeSpisu(uint8_t chNrProbki);
 void UstawTon(uint8_t chNrTonu, uint8_t chGlosnosc);
 void ZatrzymajTon(void);
-uint8_t RejestrujAudio(void);
+uint8_t RozpocznijRejestracjeDzwieku(void);
+uint8_t NapelnijBuforDzwieku(void);
 uint8_t DodajProbkeDoKolejki(uint8_t chNumerProbki);
 uint8_t DodajProbkeDoMalejKolejki(uint8_t chNumerProbki, uint8_t chRozmiarKolejki);
 uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc);

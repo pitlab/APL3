@@ -16,7 +16,7 @@
 //ton - dźwięk generowany przez odtwarzanie przebiegu sinusiudy
 
 static volatile int16_t sBuforAudioWy[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów wychodzących
-static volatile int16_t sBuforAudioWe[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów przychodzących
+static volatile int32_t nBuforAudioWe[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów przychodzących
 static volatile int16_t sBuforTonuWario[ROZMIAR_BUFORA_TONU];	//bufor do przechowywania podstawowego tonu wario
 static volatile int16_t sBuforNowegoTonuWario[ROZMIAR_BUFORA_TONU];	//bufor nowego tonu wario, który ma się zsynchronizować z podstawowym buforem w chwili przejścia przez zero aby uniknąć zakłóceń
 static uint8_t chJestNowyTon;			//flaga informująca o tym że pojawił się nowy ton i trzeba go synchronicznie przepisać to podstawowego bufora tonu
@@ -36,9 +36,8 @@ uint8_t chGlosnosc;				//regulacja głośności odtwarzania komunikatów w zakre
 
 extern SAI_HandleTypeDef hsai_BlockB2;
 extern uint8_t chPort_exp_wysylany[];
-extern void Error_Handler(void);
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
-
+uint16_t sAudio;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -293,36 +292,42 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 // Parametry: nic
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t RejestrujAudio(void)
+uint8_t RozpocznijRejestracjeDzwieku(void)
 {
 	uint8_t chErr;
 
 	//Włącza mikrofon wyłącza wzmacniacz
-	chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu, aktywny niski
-	chPort_exp_wysylany[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio, aktywny niski
+	chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącza ShutDown mikrofonu, aktywny niski
+	chPort_exp_wysylany[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włącza ShutDown wzmacniacza audio, aktywny niski
 
 
 	hsai_BlockB2.Instance = SAI2_Block_B;
 	hsai_BlockB2.Init.AudioMode = SAI_MODEMASTER_RX;
 	hsai_BlockB2.Init.Synchro = SAI_ASYNCHRONOUS;
-	hsai_BlockB2.Init.OutputDrive = SAI_OUTPUTDRIVE_ENABLE;
-	hsai_BlockB2.Init.NoDivider = SAI_MASTERDIVIDER_ENABLE;
+	hsai_BlockB2.Init.OutputDrive = SAI_OUTPUTDRIVE_DISABLE;
+	hsai_BlockB2.Init.NoDivider = SAI_MCK_OVERSAMPLING_DISABLE;
 	hsai_BlockB2.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_EMPTY;
 	hsai_BlockB2.Init.AudioFrequency = SAI_AUDIO_FREQUENCY_16K;
 	hsai_BlockB2.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
 	hsai_BlockB2.Init.MonoStereoMode = SAI_MONOMODE;
 	hsai_BlockB2.Init.CompandingMode = SAI_NOCOMPANDING;
-	hsai_BlockB2.Init.TriState = SAI_OUTPUT_RELEASED;
-	if (HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BIT, 2) != HAL_OK)
-	{
-		Error_Handler();
-	}
-	for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO; n++)
-		sBuforAudioWe[n] = n;
+	chErr = HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_24BIT, 0);
 
-	chErr = HAL_SAI_Receive(&hsai_BlockB2, (uint8_t*)sBuforAudioWe, ROZMIAR_BUFORA_AUDIO, 1000);
+	for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO; n++)
+		nBuforAudioWe[n] = n;
+
+	chErr = HAL_SAI_Receive(&hsai_BlockB2, (uint8_t*)nBuforAudioWe, ROZMIAR_BUFORA_AUDIO, 10);
+	//chErr = HAL_SAI_Receive_IT(&hsai_BlockB2, (uint8_t*)sBuforAudioWe, ROZMIAR_BUFORA_AUDIO);
 	return chErr;
 }
+
+
+uint8_t NapelnijBuforDzwieku(void)
+{
+	sAudio = (uint16_t)(nBuforAudioWe[0] >>16);
+	return HAL_SAI_Receive(&hsai_BlockB2, (uint8_t*)nBuforAudioWe, ROZMIAR_BUFORA_AUDIO, 10);
+}
+//void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai)
 
 
 

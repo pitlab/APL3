@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // AutoPitLot v3.0
-// Moduł osługi kamery DCMI na układzie OV5642
+// Moduł osługi kamery DCMI na układzie OV5642 o rozdzielczości 2592x1944
 //
 // (c) PitLab 2025
 // http://www.pitlab.pl
@@ -119,9 +119,11 @@ uint8_t InicjalizujKamere(void)
 	//strKonfKam.sWysWe = 1280;
 	strKonfKam.sSzerWe = 960;
 	strKonfKam.sWysWe = 640;
-	strKonfKam.sSzerWy = 480;
-	strKonfKam.sWysWy = 320;
-	strKonfKam.chTrybDiagn = 0;	//brak trybu diagnostycznego
+	strKonfKam.sSzerWy = 240;
+	strKonfKam.sWysWy = 120;
+	//strKonfKam.chTrybDiagn = 0;	//brak trybu diagnostycznego
+	strKonfKam.chTrybDiagn = TDK_KRATA_CB;	//czarnobiała krata
+
 	strKonfKam.chFlagi = 1;
 
 	chErr = UstawKamere(&strKonfKam);
@@ -130,7 +132,7 @@ uint8_t InicjalizujKamere(void)
 
 	Wyslij_I2C_Kamera(0x4300, 0x6F);	//format control [7..4] 6=RGB656, [3..0] 1={R[4:0], G[5:3]},{G[2:0}, B[4:0]}
 
-	chErr = RozpocznijPraceDCMI(strKonfKam.chFlagi & FUK1_ZDJ_FILM);	//1 = zdjecie, 0 = film (tylko ten jeden bit)
+	//chErr = RozpocznijPraceDCMI(strKonfKam.chFlagi & FUK1_ZDJ_FILM);	//1 = zdjecie, 0 = film (tylko ten jeden bit)
 	return chErr;
 }
 
@@ -256,7 +258,7 @@ uint8_t UstawKamere(stKonfKam_t *konf)
 	//wzór testowy
 	switch(konf->chTrybDiagn)
 	{
-	case TDK_KRATA_CB:	//czarnobiała karata
+	case TDK_KRATA_CB:	//czarnobiała krata
 		Wyslij_I2C_Kamera(0x503d , 0x85);	//test pattern: B/W square
 		Wyslij_I2C_Kamera(0x503e, 0x1a);	//PRE ISP TEST SETTING2 [7] reserved, [6:4] 1=random data pattern seed enable, [3] 1=test pattern square b/w mode, [2] 1=add test pattern on image data, [1:0] 0=color bar, 1=random data, 2=square data, 3=black image
 		break;
