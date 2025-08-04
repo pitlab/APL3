@@ -488,7 +488,7 @@ void PeriphCommonClock_Config(void)
                               |RCC_PERIPHCLK_UART4|RCC_PERIPHCLK_LPUART1;
   PeriphClkInitStruct.PLL2.PLL2M = 5;
   PeriphClkInitStruct.PLL2.PLL2N = 80;
-  PeriphClkInitStruct.PLL2.PLL2P = 62;
+  PeriphClkInitStruct.PLL2.PLL2P = 47;
   PeriphClkInitStruct.PLL2.PLL2Q = 15;
   PeriphClkInitStruct.PLL2.PLL2R = 2;
   PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_1;
@@ -937,7 +937,7 @@ static void MX_SAI2_Init(void)
   hsai_BlockB2.Init.OutputDrive = SAI_OUTPUTDRIVE_DISABLE;
   hsai_BlockB2.Init.NoDivider = SAI_MCK_OVERSAMPLING_DISABLE;
   hsai_BlockB2.Init.MckOverSampling = SAI_MCK_OVERSAMPLING_DISABLE;
-  hsai_BlockB2.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_EMPTY;
+  hsai_BlockB2.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_FULL;
   hsai_BlockB2.Init.AudioFrequency = SAI_AUDIO_FREQUENCY_16K;
   hsai_BlockB2.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
   hsai_BlockB2.Init.MonoStereoMode = SAI_MONOMODE;

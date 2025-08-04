@@ -73,7 +73,8 @@ extern const unsigned short obr_narzedzia[0xFFC];
 extern const unsigned short obr_aparaturaRC[0xFFC];
 extern const unsigned short obr_aparat[0xFFC];
 extern const unsigned short obr_kamera[0xFFC];
-
+extern const unsigned short obr_papuga[0xFFC];
+extern int16_t __attribute__ ((aligned (16))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforPapuga[ROZMIAR_BUFORA_PAPUGI];
 //definicje zmiennych
 uint8_t chTrybPracy;
 uint8_t chNowyTrybPracy;
@@ -193,9 +194,9 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 
 struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Miki Rej",  	"Obsluga kamery, aparatu i obrobka obrazu",	TP_MMREJ,	 		obr_Mikołaj_Rey},
-	{"Mikrofon",	"Wlacza mikrofon wylacza wzmacniacz",		TP_MM1,				obr_glosnik2},
-	{"Wzmacniacz",	"Wlacza wzmacniacz, wylacza mikrofon",		TP_MM2,				obr_glosnik2},
+	{"Miki Rej",  	"Deklaracja Mikolaja Reja o APL",			TP_MMREJ,	 		obr_Mikołaj_Rey},
+	{"Papuga",		"Rejestrator i odtwarzacz dźwięku",			TP_MMPAPUGA,		obr_papuga},
+	{"Miki DRAM",	"Test wymowy z DRAM",						TP_MM2,				obr_glosnik2},
 	{"Test Tonu",	"Test tonu wario",							TP_MM_TEST_TONU,	obr_glosnik2},
 	{"FFT Audio",	"FFT sygnału z mikrofonu",					TP_MM_AUDIO_FFT,	obr_fft},
 	{"Zdjecie",		"Wykonuje statyczne zdjecie kamera",		TP_MM_ZDJECIE,		obr_aparat},
@@ -287,24 +288,69 @@ void RysujEkran(void)
 		break;
 
 	case TP_MMREJ:
+		InicjujOdtwarzanieDzwieku();
 		//OdtworzProbkeAudio((uint32_t)&sNiechajNarodowie[0], 129808);
 		OdtworzProbkeAudioZeSpisu(PRGA_NIECHAJ_NARODO);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
-	case TP_MM1:		//"Włącza mikrofon, włącza wzmacniacz
-		chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu, aktywny niski
-		chPort_exp_wysylany[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio, aktywny niski
+	case TP_MMPAPUGA:
+		extern int16_t sBuforAudioWe[2][ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
+		uint16_t sLiczbaBuforowNagrania;
+		InicjujRejestracjeDzwieku();
+
+		//czekaj na stabilizcję napięcia na mikrofonie
+		for (uint8_t n=0; n<5; n++)
+		{
+			LCD_ProstokatWypelniony(n*DISP_Y_SIZE/20, DISP_Y_SIZE - WYS_PASKA_POSTEPU, (n+1)*DISP_Y_SIZE/5, WYS_PASKA_POSTEPU, BLUE);
+			NapelnijBuforDzwieku(sBuforPapuga, DISP_X_SIZE);
+			sprintf(chNapis, "Inicjalizacja: %d/%d", n, 5);
+			print(chNapis, 10, 5);
+			RysujPrzebieg(0, sBuforPapuga, GRAY80);
+		}
+		LCD_clear(BLACK);
+
+		setColor(YELLOW);
+		for (uint32_t n=0; n<ROZMIAR_BUFORA_PAPUGI; n++)
+			sBuforPapuga[n] = 0;	//czyść bufor przed nagraniem
+
+		sLiczbaBuforowNagrania = ROZMIAR_BUFORA_PAPUGI / 8000;
+		for (uint16_t n=0; n<sLiczbaBuforowNagrania; n++)
+		{
+			NapelnijBuforDzwieku((sBuforPapuga + n*8000), 8000);
+			sprintf(chNapis, "Rejestracja: %d/%d", n, sLiczbaBuforowNagrania);
+			print(chNapis, 10, 20);
+			LCD_ProstokatWypelniony(n*DISP_Y_SIZE/sLiczbaBuforowNagrania, DISP_Y_SIZE - WYS_PASKA_POSTEPU, (n+1)*DISP_Y_SIZE/sLiczbaBuforowNagrania, WYS_PASKA_POSTEPU, BLUE);
+		}
+		LCD_ProstokatWypelniony(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE, WYS_PASKA_POSTEPU, BLACK);
+
+		//narysuj przebieg na ekranie
+		for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO_WE; n++)
+			sBuforAudioWe[0][n] = sBuforPapuga[n*32];
+		RysujPrzebieg(NULL, sBuforAudioWe[0], WHITE);
+
+		NormalizujDzwiek(sBuforPapuga, ROZMIAR_BUFORA_PAPUGI, 80);	//normalizuj dźwięk do ustalonej gośności
+
+		//narysuj przebieg na ekranie po normalizacji
+		for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO_WE; n++)
+			sBuforAudioWe[0][n] = sBuforPapuga[n*32] / 256;
+		RysujPrzebieg(NULL, sBuforAudioWe[0], YELLOW);
+
+		sprintf(chNapis, "Odtwarzanie      ");
+		print(chNapis, 10, 20);
+		InicjujOdtwarzanieDzwieku();
+		OdtworzProbkeAudio((uint32_t)sBuforPapuga, ROZMIAR_BUFORA_PAPUGI);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
-	case TP_MM2:	//Włącza wzmacniacz, włącza mikrofon
-		chPort_exp_wysylany[1] &= ~EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu, aktywny niski
-		chPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio, aktywny niski
+	case TP_MM2:
+		InicjujOdtwarzanieDzwieku();
+		PrzepiszProbkeDoDRAM(PRGA_NIECHAJ_NARODO);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_TEST_TONU:
+		InicjujOdtwarzanieDzwieku();
 		TestTonuAudio();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
@@ -315,10 +361,18 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM_AUDIO_FFT:			//FFT sygnału z mikrofonu
-		uint8_t chErr = RozpocznijRejestracjeDzwieku();
+		//extern int32_t nBuforAudioWe[ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
+		extern int16_t sBuforAudioWe[2][ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
+		extern uint8_t chWskaznikBuforaAudio;
+		uint8_t chWskKasowania;
+		InicjujRejestracjeDzwieku();
 		do
 		{
-			chErr = NapelnijBuforDzwieku();
+			chWskKasowania = chWskaznikBuforaAudio;
+			chWskaznikBuforaAudio ^= 0x01;
+			chWskaznikBuforaAudio &= 0x01;
+			NapelnijBuforDzwieku(&sBuforAudioWe[chWskaznikBuforaAudio][0], ROZMIAR_BUFORA_AUDIO_WE);
+			RysujPrzebieg(sBuforAudioWe[chWskKasowania], sBuforAudioWe[chWskaznikBuforaAudio], WHITE);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chTrybPracy = chWrocDoTrybu;
@@ -350,6 +404,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM_KOM:
+		InicjujOdtwarzanieDzwieku();
 		TestKomunikatow();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
@@ -3485,4 +3540,62 @@ uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObra
 		sWysokosc = DISP_Y_SIZE;
 	drawBitmap(0, 0, sSzerokosc, sWysokosc, sObraz);
 	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wyświetla dane na wykresie 480 punktów
+// Parametry:
+// [we] *nDane - wskaźnik na dane do wyświetlenia
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sKolor)
+{
+	int16_t y1 = DISP_Y_SIZE/2, y2;
+	int16_t nMin = 0x4FFF;//, nMax = -0x4FFF;
+
+	if (sDaneKasowania)		//zamazuj poprzednie dane jeżeli jest podany wskaźnik na te dane
+	{
+		//znajdź ekstrema sygnału
+		for (int16_t x=0; x<DISP_X_SIZE; x++)
+		{
+			if (*(sDaneKasowania + x) < nMin)
+				nMin = *(sDaneKasowania + x);
+		}
+
+		for (int16_t x=0; x<480; x++)
+		{
+			y2 = (uint16_t)(*(sDaneKasowania + x) - nMin);
+			if (y2 > DISP_Y_SIZE / 2)	//ogranicz duże wartosci aby rysując nie mazało po pamieci ekranu
+				y2 =  DISP_Y_SIZE / 2;
+			if (y2 < -DISP_Y_SIZE/2)
+				y2 = -DISP_Y_SIZE / 2;
+
+			y2 += DISP_Y_SIZE / 2;
+			drawLine(x, y1, x+1, y2);
+			y1 = y2;
+		}
+	}
+
+	setColor(sKolor);
+	nMin = 0x4FFF;
+	for (int16_t x=0; x<DISP_X_SIZE; x++)
+	{
+		if (*(sDaneRysowania + x) < nMin)
+			nMin = *(sDaneRysowania + x);
+	}
+
+	for (int16_t x=0; x<480; x++)
+	{
+		y2 = (uint16_t)(*(sDaneRysowania + x) - nMin);
+		if (y2 > DISP_Y_SIZE / 2)	//ogranicz duże wartosci aby rysując nie mazało po pamieci ekranu
+			y2 =  DISP_Y_SIZE / 2;
+		if (y2 < -DISP_Y_SIZE/2)
+			y2 = -DISP_Y_SIZE / 2;
+
+		y2 += DISP_Y_SIZE / 2;
+		drawLine(x, y1, x+1, y2);
+		y1 = y2;
+	}
 }

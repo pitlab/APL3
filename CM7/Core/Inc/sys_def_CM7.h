@@ -92,7 +92,7 @@
 
 //polecenia menu Multimedia
 #define TP_MMREJ			40	//M.Rej
-#define TP_MM1				41
+#define TP_MMPAPUGA			41
 #define TP_MM2				42
 #define TP_MM_TEST_TONU		43
 #define TP_MM_AUDIO_FFT		44	//FFT sygnału z mikrofonu

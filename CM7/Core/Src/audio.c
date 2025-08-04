@@ -9,14 +9,22 @@
 #include "LCD.h"
 #include "RPi35B_480x320.h"
 #include <stdio.h>
+#include "moduly_SPI.h"
+#include "cmsis_os.h"
+
 
 //Słowniczek:
 //próbka audio - pojedynczy plik wave zapisany we flash
 //komunikat - grupa próbek składająca się w zdanie do wypowiedzenia
 //ton - dźwięk generowany przez odtwarzanie przebiegu sinusiudy
 
+//int16_t __attribute__ ((aligned (16))) __attribute__((section(".SekcjaDRAM"))) sBuforPapuga[ROZMIAR_BUFORA_PAPUGI];
+int16_t __attribute__ ((aligned (16))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforPapuga[ROZMIAR_BUFORA_PAPUGI];
+
 static volatile int16_t sBuforAudioWy[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów wychodzących
-static volatile int32_t nBuforAudioWe[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów przychodzących
+//int32_t nBuforAudioWe[ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
+int16_t sBuforAudioWe[2][ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
+uint8_t chWskaznikBuforaAudio;
 static volatile int16_t sBuforTonuWario[ROZMIAR_BUFORA_TONU];	//bufor do przechowywania podstawowego tonu wario
 static volatile int16_t sBuforNowegoTonuWario[ROZMIAR_BUFORA_TONU];	//bufor nowego tonu wario, który ma się zsynchronizować z podstawowym buforem w chwili przejścia przez zero aby uniknąć zakłóceń
 static uint8_t chJestNowyTon;			//flaga informująca o tym że pojawił się nowy ton i trzeba go synchronicznie przepisać to podstawowego bufora tonu
@@ -35,9 +43,10 @@ uint32_t nRozmiarProbki;			//pozostały do pobrania rozmiar próbki audio
 uint8_t chGlosnosc;				//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI_AUDIO
 
 extern SAI_HandleTypeDef hsai_BlockB2;
+extern const uint8_t chAdres_expandera[LICZBA_EXP_SPI_ZEWN];
 extern uint8_t chPort_exp_wysylany[];
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
-uint16_t sAudio;
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -47,7 +56,7 @@ uint16_t sAudio;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujAudio(void)
 {
-	uint8_t chErr;
+	uint8_t chErr = ERR_OK;
 
 	//domyslnie ustaw wejscia ShutDown tak aby aktywny był wzmacniacz
 	//chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
@@ -55,8 +64,8 @@ uint8_t InicjujAudio(void)
 	chGlosnosc = 45;
 	chWskNapKolKom = chWskOprKolKom = 0;
 
-	chErr = OdtworzProbkeAudioZeSpisu(PRGA_GOTOWY_SLUZYC);	//komunikat powitalny, sprawdzajacy czy audio działa
-	if (chErr == ERR_OK)
+	/*chErr = OdtworzProbkeAudioZeSpisu(PRGA_GOTOWY_SLUZYC);	//komunikat powitalny, sprawdzajacy czy audio działa
+	if (chErr == ERR_OK)*/
 		nZainicjowanoCM7 |= INIT_AUDIO;
 	return chErr;
 }
@@ -99,6 +108,29 @@ uint8_t OdtworzProbkeAudioZeSpisu(uint8_t chNrProbki)
 
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Przepisuję próbkę głosową z Flash do DRAM i odtwarza ją
+// Parametry: chNrKomunikatu - numer komunikatu okreslający pozycję w spisie
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t PrzepiszProbkeDoDRAM(uint8_t chNrProbki)
+{
+	uint32_t *sAdres;
+	uint32_t nRozmiar;
+	if (chNrProbki >= PRGA_MAX_PROBEK)
+		return ERR_BRAK_PROBKI_AUDIO;
+
+	sAdres = (uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 0);
+	nRozmiar = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 4) / 2;
+
+	for (uint32_t n=0; n<nRozmiar; n++)
+		sBuforPapuga[n] = (uint16_t)*(sAdres + n);
+	return OdtworzProbkeAudio((uint32_t)sBuforPapuga, nRozmiar);
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Odtwarza pojedynczy komunikat głosowy zapisany w adresowalnym obszarze pamięci poprzez DMA pracujące z buforem kołowym
 // Parametry:
@@ -108,14 +140,15 @@ uint8_t OdtworzProbkeAudioZeSpisu(uint8_t chNrProbki)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 {
-	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+	uint8_t chErr;
+	/*extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 
 	if ((nAdres < ADR_POCZATKU_KOM_AUDIO) || (nAdres > ADR_KONCA_KOM_AUDIO))
 	{
 		chCzasSwieceniaLED[LED_CZER] += 20;	//włącz czerwoną na 2 sekundy
 		if ((nAdres < POCZATEK_FLASH) || (nAdres > KONIEC_FLASH))	//jeżeli we flash programu to tylko sygnalizuj
 			return ERR_BRAK_PROBKI_AUDIO;
-	}
+	}*/
 
 	chGlosnikJestZajęty = 1;		//zajęcie zasobu "głośnika"
 	nAdresProbki   = nAdres;	//przepisz do zmiennych globalnych
@@ -132,7 +165,8 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 	}
 	nRozmiarProbki -= nRozmiar;
 
-	return HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, (uint16_t)ROZMIAR_BUFORA_AUDIO);
+	chErr = HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, (uint16_t)ROZMIAR_BUFORA_AUDIO);
+	return chErr;
 }
 
 
@@ -288,53 +322,89 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Pobiera dane z mikrofonu
+// Zmienia konfigurację systemu audio na odtwarzanie próbek
 // Parametry: nic
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t RozpocznijRejestracjeDzwieku(void)
+uint8_t InicjujOdtwarzanieDzwieku(void)
 {
 	uint8_t chErr;
 
-	//Włącza mikrofon wyłącza wzmacniacz
-	chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącza ShutDown mikrofonu, aktywny niski
-	chPort_exp_wysylany[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włącza ShutDown wzmacniacza audio, aktywny niski
+	if (chPort_exp_wysylany[1] & EXP13_AUDIO_IN_SD)		//jeżeli aktywny jest mikrofon
+	{
+		//Włącza wzmacniacz, wyłącza mikrofon
+		chPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - ShutDown wzmacniacza audio, aktywny niski
+		chPort_exp_wysylany[1] &= ~EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD  - ShutDown mikrofonu, aktywny niskii
+		chErr = WyslijDaneExpandera(chAdres_expandera[1], chPort_exp_wysylany[1]);
+	}
 
+	hsai_BlockB2.Instance = SAI2_Block_B;
+	hsai_BlockB2.Init.AudioMode = SAI_MODEMASTER_TX;
+	hsai_BlockB2.Init.Synchro = SAI_ASYNCHRONOUS;
+	hsai_BlockB2.Init.OutputDrive = SAI_OUTPUTDRIVE_DISABLE;
+	hsai_BlockB2.Init.NoDivider = SAI_MCK_OVERSAMPLING_DISABLE;
+	hsai_BlockB2.Init.MckOverSampling = SAI_MCK_OVERSAMPLING_DISABLE;
+	hsai_BlockB2.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_EMPTY;
+	hsai_BlockB2.Init.AudioFrequency = SAI_AUDIO_FREQUENCY_16K;
+	hsai_BlockB2.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
+	hsai_BlockB2.Init.MonoStereoMode = SAI_MONOMODE;
+	hsai_BlockB2.Init.CompandingMode = SAI_NOCOMPANDING;
+	hsai_BlockB2.Init.TriState = SAI_OUTPUT_RELEASED;
+	chErr = HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BIT, 2);
+	return chErr;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Zmienia konfigurację systemu audio na rejestracje próbek
+// Parametry: nic
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t InicjujRejestracjeDzwieku(void)
+{
+	uint8_t chErr;
+
+	if (chPort_exp_wysylany[1] & EXP14_AUDIO_OUT_SD)	//jeżeli aktywny jest wzmacniacz
+	{
+		//Włącza mikrofon wyłącza wzmacniacz
+		chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - ShutDown mikrofonu, aktywny niski
+		chPort_exp_wysylany[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - ShutDown wzmacniacza audio, aktywny niski
+		chErr = WyslijDaneExpandera(chAdres_expandera[1], chPort_exp_wysylany[1]);
+	}
+	osDelay(10);	//czas na stabilizcję napięcia na mikrofonie
 
 	hsai_BlockB2.Instance = SAI2_Block_B;
 	hsai_BlockB2.Init.AudioMode = SAI_MODEMASTER_RX;
 	hsai_BlockB2.Init.Synchro = SAI_ASYNCHRONOUS;
 	hsai_BlockB2.Init.OutputDrive = SAI_OUTPUTDRIVE_DISABLE;
 	hsai_BlockB2.Init.NoDivider = SAI_MCK_OVERSAMPLING_DISABLE;
-	hsai_BlockB2.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_EMPTY;
+	hsai_BlockB2.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_FULL;
 	hsai_BlockB2.Init.AudioFrequency = SAI_AUDIO_FREQUENCY_16K;
 	hsai_BlockB2.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
 	hsai_BlockB2.Init.MonoStereoMode = SAI_MONOMODE;
 	hsai_BlockB2.Init.CompandingMode = SAI_NOCOMPANDING;
-	chErr = HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_24BIT, 0);
-
-	for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO; n++)
-		nBuforAudioWe[n] = n;
-
-	chErr = HAL_SAI_Receive(&hsai_BlockB2, (uint8_t*)nBuforAudioWe, ROZMIAR_BUFORA_AUDIO, 10);
-	//chErr = HAL_SAI_Receive_IT(&hsai_BlockB2, (uint8_t*)sBuforAudioWe, ROZMIAR_BUFORA_AUDIO);
+	chErr = HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BITEXTENDED, 2);	//dane w 2 słowach
+	//chErr = HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_24BIT, 2);
 	return chErr;
 }
 
 
-uint8_t NapelnijBuforDzwieku(void)
+
+uint8_t NapelnijBuforDzwieku(int16_t *sBufor, uint16_t sRozmiar)
 {
-	sAudio = (uint16_t)(nBuforAudioWe[0] >>16);
-	return HAL_SAI_Receive(&hsai_BlockB2, (uint8_t*)nBuforAudioWe, ROZMIAR_BUFORA_AUDIO, 10);
+	uint8_t chErr;
+	chErr = HAL_SAI_Receive(&hsai_BlockB2, (uint8_t*)sBufor, sRozmiar, 100+sRozmiar/16);
+	return chErr;
 }
 //void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai)
+
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja generuje tablicę próbek tonu akustycznego, które będą miksowane z ewentualnymi komunikatami audio i wypuszczane na wzmacniacz
 // Prędkość odtwarzania jest stała i wynosi 16kHz, wiec aby zmienić ton, należy zmieniać długość tablicy z jednym okresem sinusa
-// Ton jest jednym okresem sinusa o podstawowej częstotliwości naniesionym na nośną o częstotliwości 3 krotnie wyjższej
+// Ton jest jednym okresem sinusa o podstawowej częstotliwości naniesionym na nośną o częstotliwości 3 krotnie wyższej
 // Parametry:
 // 	chNrTonu - numer kolejnego tonu jaki jest generowany w zakresie 0..LICZBA_TONOW_WARIO
 //	chGlosnosc - amplituda sygnału w zakresie 0..255
@@ -690,4 +760,43 @@ uint8_t DlugoscKolejkiKomunikatow(void)
 		return chWskNapKolKom - chWskOprKolKom;
 	else
 		return ROZM_KOLEJKI_KOMUNIKATOW + chWskNapKolKom - chWskOprKolKom;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// normalizuje dźwięk w buforze do ustalonej głośności
+// Parametry: s*Bufor - wskaźnik na bufor z danymi
+//   nRozmiar - liczba próbek w buforze
+//   chGlosnosc - docelowa głosność w zakresie 0..100
+// Zwraca: długość kolejki
+////////////////////////////////////////////////////////////////////////////////
+void NormalizujDzwiek(int16_t* sBufor, uint32_t nRozmiar, uint8_t chGlosnosc)
+{
+	int16_t sMin, sMax;
+	int16_t sSrednia, sRob;
+	float fWzmocnienie;
+	int64_t lSuma = 0;
+
+	sMin = 0x4FFF;
+	sMax = -0x4FFF;
+	for (uint32_t n=0; n<nRozmiar; n++)
+	{
+		if (*(sBufor+n) > sMax)
+			sMax = *(sBufor+n);
+		if (*(sBufor+n) < sMin)
+			sMin = *(sBufor+n);
+		lSuma += *(sBufor+n);
+	}
+	sSrednia = lSuma / nRozmiar;
+
+	uint16_t sAmplituda = sMax - sMin;
+	fWzmocnienie = 32768.0f * chGlosnosc / (100 * sAmplituda);
+
+	for (uint32_t n=0; n<nRozmiar; n++)
+	{
+		sRob = *(sBufor+n) - sSrednia;	//ustaw sygnał w środku zakresu
+		sRob *= fWzmocnienie;
+		*(sBufor+n) = sRob;
+	}
 }
