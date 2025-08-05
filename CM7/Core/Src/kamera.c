@@ -32,9 +32,7 @@
 #include "polecenia_komunikacyjne.h"
 #include "moduly_SPI.h"
 
-
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamery[ROZM_BUF16_KAM] = {0};
-uint16_t sBuforKameryAxi[ROZM_BUF16_KAM] = {0};
 
 struct st_KonfKam strKonfKam;
 
@@ -89,16 +87,15 @@ uint8_t InicjalizujKamere(void)
 	chErr |= HAL_TIM_OC_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1);
 	chErr = HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1);
 
-	HAL_Delay(10);	//power on period
-	chPort_exp_wysylany[0] |= EXP03_CAM_RESET;		//CAM_RES - reset kamery ustaw nieaktywny wysoki
-		chErr = WyslijDaneExpandera(chAdres_expandera[0], chPort_exp_wysylany[0]);	//wyślij dane do expandera I/O
-		if (chErr)
-			return chErr;
-	HAL_Delay(30);
-
+	HAL_Delay(10);	//power on period. Nie używać osdelay ponieważ w czasie inicjalizacji system jeszcze nie wstał
 	chErr = SprawdzKamere();
 	if (chErr)
+	{
+		HAL_TIM_PWM_Stop(&htim12, TIM_CHANNEL_1);	//zatrzymaj taktowanie skoro nie ma kamery
+		HAL_NVIC_DisableIRQ(DCMI_IRQn);
+		HAL_NVIC_DisableIRQ(DMA2_Stream1_IRQn);
 		return chErr;
+	}
 
 	Wyslij_I2C_Kamera(0x3103, 0x93);	//PLL clock select: [1] PLL input clock: 1=from pre-divider
 	Wyslij_I2C_Kamera(0x3008, 0x82);	//system control 00: [7] software reset mode, [6] software power down mode {def=0x02}
@@ -106,6 +103,9 @@ uint8_t InicjalizujKamere(void)
 	/*err = Wyslij_Blok_Kamera(ov5642_dvp_fmt_global_init);		//174ms @ 20MHz
 	if (err)
 		return err;*/
+	Wyslij_I2C_Kamera(0x471B, 0x01);	//HSYNC mode enable- test
+
+
 	chErr = Wyslij_Blok_Kamera(OV5642_RGB_QVGA);					//150ms @ 20MHz
 	if (chErr)
 		return chErr;
@@ -208,25 +208,32 @@ uint8_t Wyslij_Blok_Kamera(const struct sensor_reg reglist[])
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t	SprawdzKamere(void)
 {
+	uint8_t chErr = ERR_BRAK_KAMERY;
 	uint16_t sDaneH;
-	uint8_t chDaneL, powtorz = 5;
+	uint8_t chDaneL, chPowtorz = 10;
 
 	do
 	{
+		//pnieważ moduły kamer OV5042 i OV5040 mają unaczej ułożone piny RESET i POWER_DOWN a mamy możliwość sterowania tylko jednym pinem, sprawdź obecność kamery w obu stanach
+		chPort_exp_wysylany[0] ^= EXP03_CAM_RESET;		//CAM_RES - zmień stan linii resetu kamery
+		chErr = WyslijDaneExpandera(chAdres_expandera[0], chPort_exp_wysylany[0]);	//wyślij dane do expandera I/O
+		if (chErr)
+			return chErr;
+		HAL_Delay(30);	//nie używać osDelay ponieważ w czasie inicjalizacji system jeszcze nie działa
+
 		Czytaj_I2C_Kamera(0x300A, (uint8_t*)&sDaneH);	//Chip ID High Byte = 0x56
 		Czytaj_I2C_Kamera(0x300B, &chDaneL);	//Chip ID Low Byte = 0x42
-		powtorz--;
-		HAL_Delay(1);
+		chPowtorz--;
 		sDaneH <<= 8;
 		sDaneH |= chDaneL;
 	}
-	while ((sDaneH != OV5642_ID) && powtorz);
-	if (powtorz == 0)
-		return ERR_BRAK_KAMERY;
+	while ((sDaneH != OV5642_ID) && (sDaneH != OV5640_ID) && chPowtorz);	//na raze OV5640 nie działa, ponieważ linia PDOWN jest na APL3 stale == L a na module kamery wypada na linii RESET, więc kamera jest na stale zresetowana
+	if (chPowtorz == 0)
+		return chErr;
 	else
 	{
 		nZainicjowanoCM7 |= INIT_KAMERA;
-		return ERR_OK;
+		return chErr;
 	}
 }
 
@@ -326,11 +333,10 @@ uint8_t RozpocznijPraceDCMI(uint8_t chAparat)
 
 	//Konfiguracja transferu DMA z DCMI do pamięci
 	if (chAparat)		//1 = zdjecie, 0 = film
-		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKameryAxi, ROZM_BUF16_KAM);
-		//chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamery, strKonfKam.sSzerWy * strKonfKam.sWysWy / 2);
+		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamery, strKonfKam.sSzerWy * strKonfKam.sWysWy / 2);
 
 	else
-		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)sBuforKameryAxi, ROZM_BUF16_KAM);
+		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)sBuforKamery, ROZM_BUF16_KAM);
 	return chErr;
 }
 
@@ -346,13 +352,25 @@ uint8_t RozpocznijPraceDCMI(uint8_t chAparat)
 uint8_t ZrobZdjecie(int16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t chErr;
+	uint8_t chStatusDCMI;
 
-	chErr = HAL_DCMI_Stop(&hdcmi);
-	if (chErr)
-		return chErr;
+
+	chStatusDCMI = HAL_DCMI_GetState(&hdcmi);
+	switch (chStatusDCMI)
+	{
+	case HAL_DCMI_STATE_READY:	break;	//jest OK kontynuuj pracę
+	case HAL_DCMI_STATE_BUSY:			//jeżeli trwa praca kamery to ją zatrzymaj i zrób zdjęcie
+			chErr = HAL_DCMI_Stop(&hdcmi);
+			if (chErr)
+				return chErr;
+			break;
+	default:
+		chErr = HAL_DCMI_Stop(&hdcmi);
+		return ERR_BRAK_KAMERY;	//jeżeli nie typowy stan to zwróc bład
+	}
 
 	//skalowanie obrazu
-	chErr |= Wyslij_I2C_Kamera(0x5001, 0x7F);	//ISP control 01: [7] Special digital effects, [6] UV adjust enable, [5]1=Vertical scaling enable, [4]1=Horizontal scaling enable, [3] Line stretch enable, [2] UV average enable, [1] color matrix enable, [0] auto white balance AWB
+	chErr  = Wyslij_I2C_Kamera(0x5001, 0x7F);	//ISP control 01: [7] Special digital effects, [6] UV adjust enable, [5]1=Vertical scaling enable, [4]1=Horizontal scaling enable, [3] Line stretch enable, [2] UV average enable, [1] color matrix enable, [0] auto white balance AWB
 	chErr |= Wyslij_I2C_Kamera(0x3804, 0x05);	//Timing HW: [3:0] Horizontal width high byte 0x500=1280,  0x280=640, 0x140=320 (scale input}
 	chErr |= Wyslij_I2C_Kamera(0x3805, 0x00);	//Timing HW: [7:0] Horizontal width low byte
 	chErr |= Wyslij_I2C_Kamera(0x3806, 0x03);	//Timing VH: [3:0] HREF vertical height high byte 0x3C0=960, 0x1E0=480, 0x0F0=240
@@ -365,8 +383,7 @@ uint8_t ZrobZdjecie(int16_t sSzerokosc, uint16_t sWysokosc)
 	chErr |= Wyslij_I2C_Kamera(0x380b, (sWysokosc & 0x00FF));		//Timing DVPVO: [7:0] output vertical height low byte [7:0]
 
 	//Konfiguracja transferu DMA z DCMI do pamięci
-	//chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamery, ROZM_BUF16_KAM / 2);
-	chErr |= HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKameryAxi, (uint32_t)sSzerokosc * sWysokosc / 2);
+	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamery, ROZM_BUF16_KAM / 2);
 	return chErr;
 }
 

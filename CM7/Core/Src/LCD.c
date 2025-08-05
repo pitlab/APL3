@@ -81,7 +81,7 @@ uint8_t chNowyTrybPracy;
 uint8_t chWrocDoTrybu;
 uint8_t chRysujRaz;
 uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
-
+static uint8_t chErr;	//zmienna obowiązuje lokalnie
 char chNapis[100], chNapisPodreczny[30];
 float fTemperaturaKalibracji;
 //float fZoom, fX, fY;
@@ -121,7 +121,6 @@ uint8_t chStanPrzycisku;
 uint8_t chEtapKalibracji;
 prostokat_t stWykr;	//wykres biegunowy magnetometru
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamery[ROZM_BUF16_KAM];
-extern uint16_t sBuforKameryAxi[ROZM_BUF16_KAM];
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -388,26 +387,32 @@ void RysujEkran(void)
 		break;
 
 	case TP_MM_ZDJECIE:	//pojedyncze zdjęcie
-		//ZrobZdjecie(480, 320);
-		ZrobZdjecie(160, 120);
-		//ZrobZdjecie(320,240);
 		extern uint16_t sLicznikLiniiKamery;
-
-		setColor(KOLOR_Z);
-		sprintf(chNapis, "Linii: %d  ", sLicznikLiniiKamery);
-		print(chNapis, KOL12, 300);
 		sLicznikLiniiKamery = 0;
-		//WyswietlZdjecie(320,240, sBuforKamery);
-		//WyswietlZdjecie(480, 320, sBuforKamery);
-		WyswietlZdjecie(160, 120, sBuforKameryAxi);
-		HAL_Delay(1000);
+		//chErr = ZrobZdjecie(480, 320);
+		chErr = ZrobZdjecie(320,240);
+		//chErr = ZrobZdjecie(160, 120);
+		if (chErr)
+		{
+			setColor(RED);
+			sprintf(chNapis, "Blad: %d  ", chErr);
+		}
+		else
+		{
+			setColor(GREEN);
+			sprintf(chNapis, "Linii: %d  ", sLicznikLiniiKamery);
+			WyswietlZdjecie(320,240, sBuforKamery);
+			//WyswietlZdjecie(480, 320, sBuforKamery);
+		}
+		print(chNapis, KOL12, 300);
+		osDelay(600);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
 	case TP_MM_KAMERA:	//ciagła praca kamery
 		RozpocznijPraceDCMI(0);
 		//WyswietlZdjecie(480, 320, sBuforKamery);
-		WyswietlZdjecie(160, 120, sBuforKameryAxi);
+		WyswietlZdjecie(320, 240, sBuforKamery);
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
@@ -1066,7 +1071,7 @@ void Wykrycie(uint16_t x, uint16_t y, uint8_t znakow, uint8_t wykryto)
 	for (n=0; n<kropek; n++)
 	{
 		printChar('.', x+n*szer_fontu, y);
-		//HAL_Delay(50);
+		//osDelay(50);
 	}
 	if (wykryto)
 	{

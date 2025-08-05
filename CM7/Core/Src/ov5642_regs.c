@@ -747,8 +747,7 @@ const struct sensor_reg OV5642_RGB_QVGA[]  =
 {
 	{0x3103 ,0x93},		//PLL clock select: [1] PLL input clock: 1=from pre-divider
 	{0x3008 ,0x02},		//system control 00: [7] software reset mode, [6] software power down mode {def=0x02}
-	//{0x3017 ,0x7f},		//pad output enable 01 (0=in, 1=out}: [7] FREX, [6] VSYNC, [5] HREF, [4] PCLK, [3] D9, [2] D8, [1] D7, [0] D6
-	{0x3017 ,0x3f},		//pad output enable 01 (0=in, 1=out}: [7] FREX, [6] VSYNC, [5] HREF, [4] PCLK, [3] D9, [2] D8, [1] D7, [0] D6 - testowo beez VSYNC
+	{0x3017 ,0x7f},		//pad output enable 01 (0=in, 1=out}: [7] FREX, [6] VSYNC, [5] HREF, [4] PCLK, [3] D9, [2] D8, [1] D7, [0] D6 - muszą być wszystkie linie sterujące
 	{0x3018 ,0xfc},		//pad output enable 02 (0=in, 1=out}: [7] D5, [6] D4, [5] D3, [4] D2, [3] D1, [2] D0, [1] GPIO1, [0] GPIO0
 	{0x3810 ,0xc2},
 	{0x3615 ,0xf0},
