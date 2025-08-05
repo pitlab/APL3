@@ -13,7 +13,7 @@
 #define CZESTOTLIWOSC_AUDIO		16000
 #define ROZMIAR_BUFORA_AUDIO	256
 #define ROZMIAR_BUFORA_AUDIO_WE	480		//tyle danych aby wykres można było wrzucić na ekran
-#define ROZMIAR_BUFORA_PAPUGI	(uint32_t)(CZESTOTLIWOSC_AUDIO * 10)	//16kHz * 10 sekund
+#define ROZMIAR_BUFORA_PAPUGI	(uint32_t)(32*480)	//~16kHz * 10 sekund
 #define SKALA_GLOSNOSCI_AUDIO	128		//rozpiętość głosnośco od zera do tej wartosci
 #define SKALA_GLOSNOSCI_TONU	128		//aby uzyskać finalną amplitud
 #define LICZBA_TONOW_WARIO		50		//liczba tonów sygnału wario, musi być liczbą parzystą

@@ -23,7 +23,7 @@ int16_t __attribute__ ((aligned (16))) __attribute__((section(".SekcjaZewnSRAM")
 
 static volatile int16_t sBuforAudioWy[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów wychodzących
 //int32_t nBuforAudioWe[ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
-int16_t sBuforAudioWe[2][ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
+int16_t sBuforAudioWe[2][2*ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
 uint8_t chWskaznikBuforaAudio;
 static volatile int16_t sBuforTonuWario[ROZMIAR_BUFORA_TONU];	//bufor do przechowywania podstawowego tonu wario
 static volatile int16_t sBuforNowegoTonuWario[ROZMIAR_BUFORA_TONU];	//bufor nowego tonu wario, który ma się zsynchronizować z podstawowym buforem w chwili przejścia przez zero aby uniknąć zakłóceń
@@ -46,7 +46,7 @@ extern SAI_HandleTypeDef hsai_BlockB2;
 extern const uint8_t chAdres_expandera[LICZBA_EXP_SPI_ZEWN];
 extern uint8_t chPort_exp_wysylany[];
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
-
+uint32_t nLicznikSAI_DMA;	//test
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -135,20 +135,21 @@ uint8_t PrzepiszProbkeDoDRAM(uint8_t chNrProbki)
 // Odtwarza pojedynczy komunikat głosowy zapisany w adresowalnym obszarze pamięci poprzez DMA pracujące z buforem kołowym
 // Parametry:
 // 	nAdres - adres początku komunikatu
-//	nRozmiar - rozmiar komunikat w bajtach
+//	nRozmiar - rozmiar komunikatu w bajtach
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 {
 	uint8_t chErr;
-	/*extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 
+	nLicznikSAI_DMA = 0;	//test
 	if ((nAdres < ADR_POCZATKU_KOM_AUDIO) || (nAdres > ADR_KONCA_KOM_AUDIO))
 	{
 		chCzasSwieceniaLED[LED_CZER] += 20;	//włącz czerwoną na 2 sekundy
 		if ((nAdres < POCZATEK_FLASH) || (nAdres > KONIEC_FLASH))	//jeżeli we flash programu to tylko sygnalizuj
 			return ERR_BRAK_PROBKI_AUDIO;
-	}*/
+	}
 
 	chGlosnikJestZajęty = 1;		//zajęcie zasobu "głośnika"
 	nAdresProbki   = nAdres;	//przepisz do zmiennych globalnych
@@ -242,6 +243,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 		if (chNumerTonu >= LICZBA_TONOW_WARIO)
 			HAL_SAI_DMAStop(&hsai_BlockB2);
 	}
+	nLicznikSAI_DMA++;	//test
 }
 
 

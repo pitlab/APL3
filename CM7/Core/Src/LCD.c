@@ -195,7 +195,7 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Miki Rej",  	"Deklaracja Mikolaja Reja o APL",			TP_MMREJ,	 		obr_Mikołaj_Rey},
-	{"Papuga",		"Rejestrator i odtwarzacz dźwięku",			TP_MMPAPUGA,		obr_papuga},
+	{"Papuga",		"Rejestrator i odtwarzacz dzwieku",			TP_MMPAPUGA,		obr_papuga},
 	{"Miki DRAM",	"Test wymowy z DRAM",						TP_MM2,				obr_glosnik2},
 	{"Test Tonu",	"Test tonu wario",							TP_MM_TEST_TONU,	obr_glosnik2},
 	{"FFT Audio",	"FFT sygnału z mikrofonu",					TP_MM_AUDIO_FFT,	obr_fft},
@@ -295,8 +295,9 @@ void RysujEkran(void)
 		break;
 
 	case TP_MMPAPUGA:
-		extern int16_t sBuforAudioWe[2][ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
+		extern int16_t sBuforAudioWe[2][2*ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
 		uint16_t sLiczbaBuforowNagrania;
+		uint16_t y1, y2, sMin = 0x4FFF;
 		InicjujRejestracjeDzwieku();
 
 		//czekaj na stabilizcję napięcia na mikrofonie
@@ -308,38 +309,45 @@ void RysujEkran(void)
 			print(chNapis, 10, 5);
 			RysujPrzebieg(0, sBuforPapuga, GRAY80);
 		}
+		//znajdź minimum z ostatniej próbki robiegowej
+		for (int16_t x=0; x<DISP_X_SIZE; x++)
+		{
+			if (sBuforPapuga[x] < sMin)
+				sMin = sBuforPapuga[x];
+		}
 		LCD_clear(BLACK);
 
 		setColor(YELLOW);
 		for (uint32_t n=0; n<ROZMIAR_BUFORA_PAPUGI; n++)
 			sBuforPapuga[n] = 0;	//czyść bufor przed nagraniem
 
-		sLiczbaBuforowNagrania = ROZMIAR_BUFORA_PAPUGI / 8000;
+		//narysuj przebieg na ekranie
+		y1 = DISP_Y_SIZE / 2;
+		sLiczbaBuforowNagrania = ROZMIAR_BUFORA_PAPUGI / 64;
 		for (uint16_t n=0; n<sLiczbaBuforowNagrania; n++)
 		{
-			NapelnijBuforDzwieku((sBuforPapuga + n*8000), 8000);
+			NapelnijBuforDzwieku((sBuforPapuga + n*64), 64);
 			sprintf(chNapis, "Rejestracja: %d/%d", n, sLiczbaBuforowNagrania);
 			print(chNapis, 10, 20);
 			LCD_ProstokatWypelniony(n*DISP_Y_SIZE/sLiczbaBuforowNagrania, DISP_Y_SIZE - WYS_PASKA_POSTEPU, (n+1)*DISP_Y_SIZE/sLiczbaBuforowNagrania, WYS_PASKA_POSTEPU, BLUE);
+
+			y2 = sBuforPapuga[n*64] - sMin;
+			if (y2 > DISP_Y_SIZE / 2)	//ogranicz duże wartosci aby rysując nie mazało po pamieci ekranu
+				y2 =  DISP_Y_SIZE / 2;
+			if (y2 < -DISP_Y_SIZE/2)
+				y2 = -DISP_Y_SIZE / 2;
+
+			y2 += DISP_Y_SIZE / 2;	//przesuń na środek
+			drawLine(2*n, y1, 2*n+1, y2);
+			y1 = y2;
 		}
-		LCD_ProstokatWypelniony(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE, WYS_PASKA_POSTEPU, BLACK);
+		LCD_ProstokatWypelniony(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE, WYS_PASKA_POSTEPU, BLACK);//pasek postępu
 
-		//narysuj przebieg na ekranie
-		for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO_WE; n++)
-			sBuforAudioWe[0][n] = sBuforPapuga[n*32];
-		RysujPrzebieg(NULL, sBuforAudioWe[0], WHITE);
-
-		NormalizujDzwiek(sBuforPapuga, ROZMIAR_BUFORA_PAPUGI, 80);	//normalizuj dźwięk do ustalonej gośności
-
-		//narysuj przebieg na ekranie po normalizacji
-		for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO_WE; n++)
-			sBuforAudioWe[0][n] = sBuforPapuga[n*32] / 256;
-		RysujPrzebieg(NULL, sBuforAudioWe[0], YELLOW);
-
+		NormalizujDzwiek(sBuforPapuga, ROZMIAR_BUFORA_PAPUGI, 100);	//normalizuj dźwięk do ustalonej gośności
 		sprintf(chNapis, "Odtwarzanie      ");
 		print(chNapis, 10, 20);
 		InicjujOdtwarzanieDzwieku();
-		OdtworzProbkeAudio((uint32_t)sBuforPapuga, ROZMIAR_BUFORA_PAPUGI);
+		OdtworzProbkeAudio((uint32_t)sBuforPapuga, ROZMIAR_BUFORA_PAPUGI * 2);	//*2 bo rozmiar komunikatu jest w bajtach
 		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
 		break;
 
@@ -362,7 +370,7 @@ void RysujEkran(void)
 
 	case TP_MM_AUDIO_FFT:			//FFT sygnału z mikrofonu
 		//extern int32_t nBuforAudioWe[ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
-		extern int16_t sBuforAudioWe[2][ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
+		extern int16_t sBuforAudioWe[2][2*ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
 		extern uint8_t chWskaznikBuforaAudio;
 		uint8_t chWskKasowania;
 		InicjujRejestracjeDzwieku();
@@ -371,7 +379,7 @@ void RysujEkran(void)
 			chWskKasowania = chWskaznikBuforaAudio;
 			chWskaznikBuforaAudio ^= 0x01;
 			chWskaznikBuforaAudio &= 0x01;
-			NapelnijBuforDzwieku(&sBuforAudioWe[chWskaznikBuforaAudio][0], ROZMIAR_BUFORA_AUDIO_WE);
+			NapelnijBuforDzwieku(&sBuforAudioWe[chWskaznikBuforaAudio][0], 2*ROZMIAR_BUFORA_AUDIO_WE);
 			RysujPrzebieg(sBuforAudioWe[chWskKasowania], sBuforAudioWe[chWskaznikBuforaAudio], WHITE);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
@@ -3545,7 +3553,7 @@ uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObra
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wyświetla dane na wykresie 480 punktów
+// Wyświetla dane na wykresie 480 punktów. Bierze co drugą próbkę aby rozciagnać podstawę czasu
 // Parametry:
 // [we] *nDane - wskaźnik na dane do wyświetlenia
 // Zwraca: kod błędu
@@ -3560,13 +3568,13 @@ void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sK
 		//znajdź ekstrema sygnału
 		for (int16_t x=0; x<DISP_X_SIZE; x++)
 		{
-			if (*(sDaneKasowania + x) < nMin)
-				nMin = *(sDaneKasowania + x);
+			if (*(sDaneKasowania + 2*x) < nMin)
+				nMin = *(sDaneKasowania + 2*x);
 		}
-
+		setColor(BLACK);
 		for (int16_t x=0; x<480; x++)
 		{
-			y2 = (uint16_t)(*(sDaneKasowania + x) - nMin);
+			y2 = (uint16_t)(*(sDaneKasowania + 2*x) - nMin);
 			if (y2 > DISP_Y_SIZE / 2)	//ogranicz duże wartosci aby rysując nie mazało po pamieci ekranu
 				y2 =  DISP_Y_SIZE / 2;
 			if (y2 < -DISP_Y_SIZE/2)
@@ -3582,13 +3590,13 @@ void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sK
 	nMin = 0x4FFF;
 	for (int16_t x=0; x<DISP_X_SIZE; x++)
 	{
-		if (*(sDaneRysowania + x) < nMin)
-			nMin = *(sDaneRysowania + x);
+		if (*(sDaneRysowania + 2*x) < nMin)
+			nMin = *(sDaneRysowania + 2*x);
 	}
 
 	for (int16_t x=0; x<480; x++)
 	{
-		y2 = (uint16_t)(*(sDaneRysowania + x) - nMin);
+		y2 = (uint16_t)(*(sDaneRysowania + 2*x) - nMin);
 		if (y2 > DISP_Y_SIZE / 2)	//ogranicz duże wartosci aby rysując nie mazało po pamieci ekranu
 			y2 =  DISP_Y_SIZE / 2;
 		if (y2 < -DISP_Y_SIZE/2)

@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	250		//numer commitu w repozytorium
+#define WER_REPO	252		//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -207,9 +207,11 @@
 #define ROZM_WPISU_AUDIO	8		//liczba bajtów zajęta przez wpis spisu komunikatów (4 bajty adres i 4 bajty długości)
 #define ADR_SPISU_KOM_AUDIO	(ADRES_NOR + SEKTOR_KOM_AUDIO * ROZMIAR_SEKTORA)
 #define ROZM_SPISU_KOM		128		//tyle komunikatów można zapisać w spisie
-#define ADR_POCZATKU_KOM_AUDIO	(ADR_SPISU_KOM_AUDIO + ROZM_SPISU_KOM * ROZM_WPISU_AUDIO)
-#define ADR_KONCA_KOM_AUDIO	(ADR_POCZATKU_KOM_AUDIO + LICZBA_SEKT_AUDIO * ROZMIAR_SEKTORA)
-#define ADRES_DRAM			0xC0000000
+//#define ADR_POCZATKU_KOM_AUDIO	(ADR_SPISU_KOM_AUDIO + ROZM_SPISU_KOM * ROZM_WPISU_AUDIO)
+//#define ADR_KONCA_KOM_AUDIO	(ADR_POCZATKU_KOM_AUDIO + LICZBA_SEKT_AUDIO * ROZMIAR_SEKTORA)
+#define ADR_POCZATKU_KOM_AUDIO	0x24000000	//AXI RAM komunikaty mogą znaleźć się od Axi RAM przez domyślnie zewnętrzny flash aż do DRAM
+#define ADR_KONCA_KOM_AUDIO		0xC3FFFFFF	//koniec DRAM
+#define ADRES_DRAM				0xC0000000
 
 
 //typy komunikatów głosowych
