@@ -43,7 +43,7 @@
 #define STR_MENU_MULMETR			26
 #define STR_MENU_TEST				27
 #define STR_MENU_SETINGS			28
-#define STR_MENU_MULTI_MEDIA		29
+#define STR_MENU_MEDIA_AUDIO		29
 
 #define STR_MENU_WYDAJNOSC			30
 #define STR_MENU_KARTA_SD			31
@@ -67,8 +67,9 @@
 #define STR_WYSOKOSCI				49
 #define STR_NAWIGACJI_N				50
 #define STR_NAWIGACJI_E				51
+#define STR_MENU_KAMERA				52
 //#define STR_
-#define MAX_NAPISOW					52	//liczba napisów
+#define MAX_NAPISOW					53	//liczba napisów
 
 
 #define JEZYK_POLSKI
@@ -107,7 +108,7 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "nic",								//STR_MENU_MULMETR		max 17 znaków
 "nic",								//STR_MENU_TEST			max 17 znaków
 "Menu Ustawien",					//STR_MENU_SETINGS
-"Menu MultiMedia",					//STR_MENU_MULTI_MEDIA
+"Menu audio",						//STR_MENU_MEDIA_AUDIO
 
 "Menu Wydajnosc",					//STR_MENU_WYDAJNOSC
 "Menu Karta SD",					//STR_MENU_KARTA_SD
@@ -131,6 +132,7 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "wysokosci",						//STR_WYSOKOSCI
 "nawigacji N",						//STR_NAWIGACJI_N
 "nawigacji E",						//STR_NAWIGACJI_E
+"Menu kamera",						//STR_MENU_KAMERA
 };
 
 

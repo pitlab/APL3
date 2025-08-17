@@ -63,14 +63,12 @@
 #define TP_MG1				5
 
 #define TP_IMU_KOSTKA_SYM	7
-
 #define TP_USTAWIENIA		8
-#define TP_KAMERA			9
-#define TP_TESTY			10
 
-#define TP_ZDJECIE			12
-#define TP_WITAJ			13
-#define TP_MULTIMEDIA		14	//menu multimediow
+#define TP_TESTY			10
+#define TP_WITAJ			11
+#define TP_MEDIA_AUDIO		13	//menu obsługi audio
+#define TP_MEDIA_KAMERA		14	//menu obsługi kamery
 #define TP_WYDAJNOSC		15	//menu pomiarów wydajności
 #define TP_KARTA_SD			16	//menu obsługi karty SD
 
@@ -91,15 +89,16 @@
 #define TP_WROC_DO_WYDAJN	39
 
 //polecenia menu Multimedia
-#define TP_MMREJ			40	//M.Rej
-#define TP_MMPAPUGA			41
+#define TP_MREJ				40	//M.Rej
+#define TP_PAPUGA			41
 #define TP_MM2				42
-#define TP_MM_TEST_TONU		43
-#define TP_MM_AUDIO_FFT		44	//FFT sygnału z mikrofonu
-#define TP_MM_ZDJECIE		45	//pojedyncze zdjęcie
-#define TP_MM_KAMERA		46	//ciagła praca kamery
+#define TP_TEST_TONU		43
+#define TP_AUDIO_FFT		44	//FFT sygnału z mikrofonu
+
 #define TP_MM_KOM			47	//generator komunikatów audio
-#define TP_WROC_DO_MMEDIA	49
+#define TP_WROC_DO_AUDIO	49
+
+
 
 //polecenia menu TP_KARTA_SD
 #define TPKS_WLACZ_REJ		50
@@ -159,6 +158,15 @@
 #define TP_NAST_MIKSERA		107
 #define TP_WROC_DO_NASTAWY	109
 
+//polecenia menu kamera
+#define TP_ZDJECIE			110	//pojedyncze zdjęcie
+#define TP_KAMERA			111	//ciagła praca kamery
+#define TP_USTAW_KAM_160x120	112
+#define TP_USTAW_KAM_320x240	113
+#define TP_USTAW_KAM_480x320	114
+
+#define TP_WROC_DO_KAMERA	119
+
 
 //flagi inicjalizacj sprzetu na płytce
 #define INIT_FLASH_NOR		0x00000001
@@ -195,7 +203,7 @@
 #define STD_OBRAZU_OVGA		(160*120)		//1/octo VGA
 
 //#define ROZM_BUF32_KAM		(2592*1944)		//pełen rozmiar przetwornika nie mieści się w  ext SRAM
-#define ROZM_BUF16_KAM		STD_OBRAZU_QVGA
+#define ROZM_BUF16_KAM		STD_OBRAZU_VGA
 
 //pamięc flash NOR
 #define ADRES_NOR			0x68000000

@@ -70,7 +70,7 @@ uint8_t InicjalizujKamere(void)
 	if (chErr)
 		return chErr;
 
-	//ustawienie timera generującego PWM 20MHz
+	//ustawienie timera generującego PWM 20MHz jako zegar dla przetwornika makery
 	htim12.Instance = TIM12;
 	htim12.Init.Prescaler = 0;
 	htim12.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -103,37 +103,47 @@ uint8_t InicjalizujKamere(void)
 	/*err = Wyslij_Blok_Kamera(ov5642_dvp_fmt_global_init);		//174ms @ 20MHz
 	if (err)
 		return err;*/
-	Wyslij_I2C_Kamera(0x471B, 0x01);	//HSYNC mode enable- test
-
 
 	chErr = Wyslij_Blok_Kamera(OV5642_RGB_QVGA);					//150ms @ 20MHz
 	if (chErr)
 		return chErr;
 
 	//ustaw domyślne parametry pracy kamery
-	//strKonfKam.sSzerWe = 1280;
-	//strKonfKam.sWysWe = 960;
-	//strKonfKam.sSzerWy = 320;
-	//strKonfKam.sWysWy = 240;
-	//strKonfKam.sSzerWe = 1920;
-	//strKonfKam.sWysWe = 1280;
-	strKonfKam.sSzerWe = 960;
-	strKonfKam.sWysWe = 640;
-	strKonfKam.sSzerWy = 240;
-	strKonfKam.sWysWy = 120;
+	strKonfKam.sSzerWe = 480;
+	strKonfKam.sWysWe = 320;
+	strKonfKam.sSzerWy = 480;
+	strKonfKam.sWysWy = 320;
 	//strKonfKam.chTrybDiagn = 0;	//brak trybu diagnostycznego
 	strKonfKam.chTrybDiagn = TDK_KRATA_CB;	//czarnobiała krata
-
+	//strKonfKam.chTrybDiagn = TDK_PASKI;		//kolorowe paski
 	strKonfKam.chFlagi = 1;
-
 	chErr = UstawKamere(&strKonfKam);
 	if (chErr)
 		return chErr;
 
-	Wyslij_I2C_Kamera(0x4300, 0x6F);	//format control [7..4] 6=RGB656, [3..0] 1={R[4:0], G[5:3]},{G[2:0}, B[4:0]}
+	chErr = Wyslij_I2C_Kamera(0x4300, 0x6F);	//format control [7..4] 6=RGB656, [3..0] 1={R[4:0], G[5:3]},{G[2:0}, B[4:0]}
 
 	//chErr = RozpocznijPraceDCMI(strKonfKam.chFlagi & FUK1_ZDJ_FILM);	//1 = zdjecie, 0 = film (tylko ten jeden bit)
 	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// funkcja umożliwia ręczne wgranie paramerów z menu
+// Parametry:
+//  rejestr - 16 bitowy adres rejestru kamery
+//  dane - dane zapisywane do rejestru
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t UstawNastawyKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chZoom)
+{
+	strKonfKam.sSzerWe = chZoom * sSzerokosc;
+	strKonfKam.sWysWe = chZoom * sWysokosc;
+	strKonfKam.sSzerWy = sSzerokosc;
+	strKonfKam.sWysWy = sWysokosc;
+
+	return UstawKamere(&strKonfKam);
 }
 
 
@@ -247,44 +257,46 @@ uint8_t	SprawdzKamere(void)
 uint8_t UstawKamere(stKonfKam_t *konf)
 {
 	//uint8_t chReg;
+	uint8_t chErr;
 
-	Wyslij_I2C_Kamera(0x5001, 0x7F);	//ISP control 01: [7] Special digital effects, [6] UV adjust enable, [5]1=Vertical scaling enable, [4]1=Horizontal scaling enable, [3] Line stretch enable, [2] UV average enable, [1] color matrix enable, [0] auto white balance AWB
+	chErr  = Wyslij_I2C_Kamera(0x5001, 0x7F);	//ISP control 01: [7] Special digital effects, [6] UV adjust enable, [5]1=Vertical scaling enable, [4]1=Horizontal scaling enable, [3] Line stretch enable, [2] UV average enable, [1] color matrix enable, [0] auto white balance AWB
 
 	//ustaw rozdzielczość wejściową
-	Wyslij_I2C_Kamera(0x3804, (uint8_t)(konf->sSzerWe>>8));		//Timing HW: [3:0] Horizontal width high byte 0x500=1280,  0x280=640, 0x140=320 (scale input}
-	Wyslij_I2C_Kamera(0x3805, (uint8_t)(konf->sSzerWe & 0xFF));	//Timing HW: [7:0] Horizontal width low byte
-	Wyslij_I2C_Kamera(0x3806, (uint8_t)(konf->sWysWe>>8));			//Timing VH: [3:0] HREF vertical height high byte 0x3C0=960, 0x1E0=480, 0x0F0=240
-	Wyslij_I2C_Kamera(0x3807, (uint8_t)(konf->sWysWe & 0xFF));		//Timing VH: [7:0] HREF vertical height low byte
+	chErr |= Wyslij_I2C_Kamera(0x3804, (uint8_t)(konf->sSzerWe>>8));		//Timing HW: [3:0] Horizontal width high byte 0x500=1280,  0x280=640, 0x140=320 (scale input}
+	chErr |= Wyslij_I2C_Kamera(0x3805, (uint8_t)(konf->sSzerWe & 0xFF));	//Timing HW: [7:0] Horizontal width low byte
+	chErr |= Wyslij_I2C_Kamera(0x3806, (uint8_t)(konf->sWysWe>>8));			//Timing VH: [3:0] HREF vertical height high byte 0x3C0=960, 0x1E0=480, 0x0F0=240
+	chErr |= Wyslij_I2C_Kamera(0x3807, (uint8_t)(konf->sWysWe & 0xFF));		//Timing VH: [7:0] HREF vertical height low byte
 
 	//ustaw rozdzielczość wyjściową
-	Wyslij_I2C_Kamera(0x3808, (uint8_t)(konf->sSzerWy>>8));		//Timing DVPHO: [3:0] output horizontal width high byte [11:8]
-	Wyslij_I2C_Kamera(0x3809, (uint8_t)(konf->sSzerWy & 0xFF));	//Timing DVPHO: [7:0] output horizontal width low byte [7:0]
-	Wyslij_I2C_Kamera(0x380a, (uint8_t)(konf->sWysWy>>8));			//Timing DVPVO: [3:0] output vertical height high byte [11:8]
-	Wyslij_I2C_Kamera(0x380b, (uint8_t)(konf->sWysWy & 0xFF));		//Timing DVPVO: [7:0] output vertical height low byte [7:0]
+	chErr |= Wyslij_I2C_Kamera(0x3808, (uint8_t)(konf->sSzerWy>>8));		//Timing DVPHO: [3:0] output horizontal width high byte [11:8]
+	chErr |= Wyslij_I2C_Kamera(0x3809, (uint8_t)(konf->sSzerWy & 0xFF));	//Timing DVPHO: [7:0] output horizontal width low byte [7:0]
+	chErr |= Wyslij_I2C_Kamera(0x380a, (uint8_t)(konf->sWysWy>>8));			//Timing DVPVO: [3:0] output vertical height high byte [11:8]
+	chErr |= Wyslij_I2C_Kamera(0x380b, (uint8_t)(konf->sWysWy & 0xFF));		//Timing DVPVO: [7:0] output vertical height low byte [7:0]
 
 	//wzór testowy
 	switch(konf->chTrybDiagn)
 	{
 	case TDK_KRATA_CB:	//czarnobiała krata
-		Wyslij_I2C_Kamera(0x503d , 0x85);	//test pattern: B/W square
-		Wyslij_I2C_Kamera(0x503e, 0x1a);	//PRE ISP TEST SETTING2 [7] reserved, [6:4] 1=random data pattern seed enable, [3] 1=test pattern square b/w mode, [2] 1=add test pattern on image data, [1:0] 0=color bar, 1=random data, 2=square data, 3=black image
+		chErr |= Wyslij_I2C_Kamera(0x503d, 0x85);	//test pattern: B/W square
+		chErr |= Wyslij_I2C_Kamera(0x503e, 0x1a);	//PRE ISP TEST SETTING2 [7] reserved, [6:4] 1=random data pattern seed enable, [3] 1=test pattern square b/w mode, [2] 1=add test pattern on image data, [1:0] 0=color bar, 1=random data, 2=square data, 3=black image
 		break;
 
 	case TDK_PASKI:		//7 pionowych pasków
-		Wyslij_I2C_Kamera(0x503d , 0x80);	//test pattern: color bar
-		Wyslij_I2C_Kamera(0x503e, 0x00);	//PRE ISP TEST SETTING2 [7] reserved, [6:4] 1=random data pattern seed enable, [3] 1=test pattern square b/w mode, [2] 1=add test pattern on image data, [1:0] 0=color bar, 1=random data, 2=square data, 3=black image
+		chErr |= Wyslij_I2C_Kamera(0x503d, 0x80);	//test pattern: color bar
+		chErr |= Wyslij_I2C_Kamera(0x503e, 0x00);	//PRE ISP TEST SETTING2 [7] reserved, [6:4] 1=random data pattern seed enable, [3] 1=test pattern square b/w mode, [2] 1=add test pattern on image data, [1:0] 0=color bar, 1=random data, 2=square data, 3=black image
 		break;
 
 	case TDK_PRACA:		//normalna praca
 	default:
 	}
 
-	return 0;
 	//ustaw rotację w poziomie i pionie
 	//chReg = 0x80 + ((konf->chFlagi && FUK1_OBR_PION) << 6) +  ((konf->chFlagi && FUK1_OBR_POZ) << 5);
-	//return Wyslij_I2C_Kamera(0x3818, chReg);	//TIMING TC REG18: [6] mirror, [5] Vertial flip, [4] 1=thumbnail mode,  [3] 1=compression, [1] vertical subsample 1/4, [0] vertical subsample 1/2  <def:0x80>
+	//chErr |= Wyslij_I2C_Kamera(0x3818, chReg);	//TIMING TC REG18: [6] mirror, [5] Vertial flip, [4] 1=thumbnail mode,  [3] 1=compression, [1] vertical subsample 1/4, [0] vertical subsample 1/2  <def:0x80>
 	//for the mirror function it is necessary to set registers 0x3621 [5:4] and 0x3801
+	return chErr;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -349,7 +361,7 @@ uint8_t RozpocznijPraceDCMI(uint8_t chAparat)
 // [i] - sWysokosc - wysokość zdjęcia w pikselach
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ZrobZdjecie(int16_t sSzerokosc, uint16_t sWysokosc)
+uint8_t ZrobZdjecie(void)
 {
 	uint8_t chErr;
 	uint8_t chStatusDCMI;
@@ -368,19 +380,6 @@ uint8_t ZrobZdjecie(int16_t sSzerokosc, uint16_t sWysokosc)
 		chErr = HAL_DCMI_Stop(&hdcmi);
 		return ERR_BRAK_KAMERY;	//jeżeli nie typowy stan to zwróc bład
 	}
-
-	//skalowanie obrazu
-	chErr  = Wyslij_I2C_Kamera(0x5001, 0x7F);	//ISP control 01: [7] Special digital effects, [6] UV adjust enable, [5]1=Vertical scaling enable, [4]1=Horizontal scaling enable, [3] Line stretch enable, [2] UV average enable, [1] color matrix enable, [0] auto white balance AWB
-	chErr |= Wyslij_I2C_Kamera(0x3804, 0x05);	//Timing HW: [3:0] Horizontal width high byte 0x500=1280,  0x280=640, 0x140=320 (scale input}
-	chErr |= Wyslij_I2C_Kamera(0x3805, 0x00);	//Timing HW: [7:0] Horizontal width low byte
-	chErr |= Wyslij_I2C_Kamera(0x3806, 0x03);	//Timing VH: [3:0] HREF vertical height high byte 0x3C0=960, 0x1E0=480, 0x0F0=240
-	chErr |= Wyslij_I2C_Kamera(0x3807, 0xC0);	//Timing VH: [7:0] HREF vertical height low byte
-
-	//ustaw rozmiar obrazu
-	chErr |= Wyslij_I2C_Kamera(0x3808, (sSzerokosc & 0xFF00)>>8);	//Timing DVPHO: [3:0] output horizontal width high byte [11:8]
-	chErr |= Wyslij_I2C_Kamera(0x3809, (sSzerokosc & 0x00FF));		//Timing DVPHO: [7:0] output horizontal width low byte [7:0]
-	chErr |= Wyslij_I2C_Kamera(0x380a, (sWysokosc & 0xFF00)>>8);		//Timing DVPVO: [3:0] output vertical height high byte [11:8]
-	chErr |= Wyslij_I2C_Kamera(0x380b, (sWysokosc & 0x00FF));		//Timing DVPVO: [7:0] output vertical height low byte [7:0]
 
 	//Konfiguracja transferu DMA z DCMI do pamięci
 	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamery, ROZM_BUF16_KAM / 2);

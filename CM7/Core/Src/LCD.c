@@ -133,8 +133,8 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"Multimedia",  "Obsluga multimediow: dzwiek i obraz",		TP_MULTIMEDIA, 		obr_glosnik2}};
+	{"Kamera",		"Obsługa kamery",							TP_MEDIA_KAMERA,	obr_aparat},
+	{"Audio",  		"Obsluga multimediow: dzwiek i obraz",		TP_MEDIA_AUDIO,		obr_glosnik2}};
 
 
 
@@ -191,16 +191,29 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"SD18",		"nic",										TP_W4,				obr_Wydajnosc},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
-struct tmenu stMenuMultiMedia[MENU_WIERSZE * MENU_KOLUMNY]  = {
+struct tmenu stMenuAudio[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Miki Rej",  	"Deklaracja Mikolaja Reja o APL",			TP_MMREJ,	 		obr_Mikołaj_Rey},
-	{"Papuga",		"Rejestrator i odtwarzacz dzwieku",			TP_MMPAPUGA,		obr_papuga},
+	{"Miki Rej",  	"Deklaracja Mikolaja Reja o APL",			TP_MREJ,	 		obr_Mikołaj_Rey},
+	{"Papuga",		"Rejestrator i odtwarzacz dzwieku",			TP_PAPUGA,			obr_papuga},
 	{"Miki DRAM",	"Test wymowy z DRAM",						TP_MM2,				obr_glosnik2},
-	{"Test Tonu",	"Test tonu wario",							TP_MM_TEST_TONU,	obr_glosnik2},
-	{"FFT Audio",	"FFT sygnału z mikrofonu",					TP_MM_AUDIO_FFT,	obr_fft},
-	{"Zdjecie",		"Wykonuje statyczne zdjecie kamera",		TP_MM_ZDJECIE,		obr_aparat},
-	{"Kamera",		"Uruchamia kamere w trybie ciaglym",		TP_MM_KAMERA,		obr_kamera},
+	{"Test Tonu",	"Test tonu wario",							TP_TEST_TONU,		obr_glosnik2},
+	{"FFT Audio",	"FFT sygnału z mikrofonu",					TP_AUDIO_FFT,		obr_fft},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"Test kom.",	"Test komunikatow audio",					TP_MM_KOM,			obr_glosnik2},
+	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+
+struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
+	{"Zdjecie",		"Wykonuje statyczne zdjecie kamera",		TP_ZDJECIE,			obr_aparat},
+	{"Kamera",		"Uruchamia kamere w trybie ciaglym",		TP_KAMERA,			obr_kamera},
+	{"160x120",		"Ustawia kamere na 160x120 ",				TP_USTAW_KAM_160x120,	obr_narzedzia},
+	{"320x240",		"Ustawia kamere na 320x240 ",				TP_USTAW_KAM_320x240,	obr_narzedzia},
+	{"480x320",		"Ustawia kamere na 480x320 ",				TP_USTAW_KAM_480x320,	obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
@@ -281,19 +294,19 @@ void RysujEkran(void)
 
 
 //***************************************************
-	case TP_MULTIMEDIA:			//menu multimediow
-		Menu((char*)chNapisLcd[STR_MENU_MULTI_MEDIA], stMenuMultiMedia, &chNowyTrybPracy);
+	case TP_MEDIA_AUDIO:			//menu audio
+		Menu((char*)chNapisLcd[STR_MENU_MEDIA_AUDIO], stMenuAudio, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
-	case TP_MMREJ:
+	case TP_MREJ:
 		InicjujOdtwarzanieDzwieku();
 		//OdtworzProbkeAudio((uint32_t)&sNiechajNarodowie[0], 129808);
 		OdtworzProbkeAudioZeSpisu(PRGA_NIECHAJ_NARODO);
-		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		chNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
 
-	case TP_MMPAPUGA:
+	case TP_PAPUGA:
 		extern int16_t sBuforAudioWe[2][2*ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
 		uint16_t sLiczbaBuforowNagrania;
 		uint16_t y1, y2, sMin = 0x4FFF;
@@ -347,27 +360,27 @@ void RysujEkran(void)
 		print(chNapis, 10, 20);
 		InicjujOdtwarzanieDzwieku();
 		OdtworzProbkeAudio((uint32_t)sBuforPapuga, ROZMIAR_BUFORA_PAPUGI * 2);	//*2 bo rozmiar komunikatu jest w bajtach
-		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		chNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
 
 	case TP_MM2:
 		InicjujOdtwarzanieDzwieku();
 		PrzepiszProbkeDoDRAM(PRGA_NIECHAJ_NARODO);
-		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		chNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
 
-	case TP_MM_TEST_TONU:
+	case TP_TEST_TONU:
 		InicjujOdtwarzanieDzwieku();
 		TestTonuAudio();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			ZatrzymajTon();
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+			chNowyTrybPracy = TP_WROC_DO_AUDIO;
 		}
 		break;
 
-	case TP_MM_AUDIO_FFT:			//FFT sygnału z mikrofonu
+	case TP_AUDIO_FFT:			//FFT sygnału z mikrofonu
 		//extern int32_t nBuforAudioWe[ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
 		extern int16_t sBuforAudioWe[2][2*ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
 		extern uint8_t chWskaznikBuforaAudio;
@@ -383,38 +396,10 @@ void RysujEkran(void)
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chTrybPracy = chWrocDoTrybu;
-		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+		chNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
 
-	case TP_MM_ZDJECIE:	//pojedyncze zdjęcie
-		extern uint16_t sLicznikLiniiKamery;
-		sLicznikLiniiKamery = 0;
-		//chErr = ZrobZdjecie(480, 320);
-		chErr = ZrobZdjecie(320,240);
-		//chErr = ZrobZdjecie(160, 120);
-		if (chErr)
-		{
-			setColor(RED);
-			sprintf(chNapis, "Blad: %d  ", chErr);
-		}
-		else
-		{
-			setColor(GREEN);
-			sprintf(chNapis, "Linii: %d  ", sLicznikLiniiKamery);
-			WyswietlZdjecie(320,240, sBuforKamery);
-			//WyswietlZdjecie(480, 320, sBuforKamery);
-		}
-		print(chNapis, KOL12, 300);
-		osDelay(600);
-		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
-		break;
 
-	case TP_MM_KAMERA:	//ciagła praca kamery
-		RozpocznijPraceDCMI(0);
-		//WyswietlZdjecie(480, 320, sBuforKamery);
-		WyswietlZdjecie(320, 240, sBuforKamery);
-		chNowyTrybPracy = TP_WROC_DO_MMEDIA;
-		break;
 
 	case TP_MM_KOM:
 		InicjujOdtwarzanieDzwieku();
@@ -422,7 +407,7 @@ void RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+			chNowyTrybPracy = TP_WROC_DO_AUDIO;
 		}
 		break;
 
@@ -433,8 +418,57 @@ void RysujEkran(void)
 		if (!chLiczIter)				//jeżeli koniec odliczania to wyjdź
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MMEDIA;
+			chNowyTrybPracy = TP_WROC_DO_AUDIO;
 		}
+		break;
+
+//***************************************************
+	case TP_MEDIA_KAMERA:			//menu kamera
+		Menu((char*)chNapisLcd[STR_MENU_KAMERA], stMenuKamera, &chNowyTrybPracy);
+		chWrocDoTrybu = TP_MENU_GLOWNE;
+		break;
+
+	case TP_ZDJECIE:	//pojedyncze zdjęcie
+		extern uint16_t sLicznikLiniiKamery;
+		sLicznikLiniiKamery = 0;
+		chErr = ZrobZdjecie();
+		if (chErr)
+		{
+			setColor(MAGENTA);
+			sprintf(chNapis, "Blad: %d  ", chErr);
+		}
+		else
+		{
+			setColor(GREEN);
+			sprintf(chNapis, "Linii: %d  ", sLicznikLiniiKamery);
+			//WyswietlZdjecie(320,240, sBuforKamery);
+			WyswietlZdjecie(480, 320, sBuforKamery);
+		}
+		print(chNapis, KOL12, 300);
+		osDelay(600);
+		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		break;
+
+	case TP_KAMERA:	//ciagła praca kamery
+		RozpocznijPraceDCMI(0);
+		WyswietlZdjecie(480, 320, sBuforKamery);
+		//WyswietlZdjecie(320, 240, sBuforKamery);
+		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		break;
+
+	case TP_USTAW_KAM_160x120:
+		chErr = UstawNastawyKamery(160, 120, 4);
+		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		break;
+
+	case TP_USTAW_KAM_320x240:
+		chErr = UstawNastawyKamery(320, 240, 1);
+		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		break;
+
+	case TP_USTAW_KAM_480x320:
+		chErr = UstawNastawyKamery(480, 320, 1);
+		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
 //***************************************************
@@ -918,7 +952,8 @@ void RysujEkran(void)
 		switch(chTrybPracy)
 		{
 		case TP_WROC_DO_MENU:		chTrybPracy = TP_MENU_GLOWNE;	break;	//powrót do menu głównego
-		case TP_WROC_DO_MMEDIA:		chTrybPracy = TP_MULTIMEDIA;	break;	//powrót do menu MultiMedia
+		case TP_WROC_DO_AUDIO:		chTrybPracy = TP_MEDIA_AUDIO;	break;	//powrót do menu Audio
+		case TP_WROC_DO_KAMERA:		chTrybPracy = TP_MEDIA_KAMERA;	break;	//powrót do menu Kamera
 		case TP_WROC_DO_WYDAJN:		chTrybPracy = TP_WYDAJNOSC;		break;	//powrót do menu Wydajność
 		case TP_WROC_DO_KARTA:		chTrybPracy = TP_KARTA_SD;		break;	//powrót do menu Karta SD
 		case TP_WROC_KAL_IMU:		chTrybPracy = TP_KAL_IMU;		break;	//powrót do menu IMU
