@@ -18,6 +18,7 @@
 #define OV5640_ID		0x5640
 #define KAMERA_TIMEOUT	1	//czas w milisekundach na wysłanie jednego polecenia do kamery. Nominalnie jest to ok 400us na adres i 3 bajty danych
 #define KAMERA_ZEGAR	24000000	//kamera wymaga zegara 24MHz (6-27MHz)
+//#define KAMERA_ZEGAR	20000000	//kamera wymaga zegara 24MHz (6-27MHz)
 
 
 
@@ -46,6 +47,6 @@ uint8_t RozpocznijPraceDCMI(uint8_t chAparat);
 //uint8_t ZrobZdjecie(int16_t sSzerokosc, uint16_t sWysokosc);
 uint8_t ZrobZdjecie(void);
 uint8_t Wyslij_Blok_Kamera(const struct sensor_reg reglist[]);
-uint8_t UstawNastawyKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chZoom);
+uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chZoom);
 
 #endif /* INC_KONFIGURACJA_H_ */

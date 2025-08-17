@@ -441,7 +441,6 @@ void RysujEkran(void)
 		{
 			setColor(GREEN);
 			sprintf(chNapis, "Linii: %d  ", sLicznikLiniiKamery);
-			//WyswietlZdjecie(320,240, sBuforKamery);
 			WyswietlZdjecie(480, 320, sBuforKamery);
 		}
 		print(chNapis, KOL12, 300);
@@ -451,23 +450,23 @@ void RysujEkran(void)
 
 	case TP_KAMERA:	//ciagła praca kamery
 		RozpocznijPraceDCMI(0);
-		WyswietlZdjecie(480, 320, sBuforKamery);
-		//WyswietlZdjecie(320, 240, sBuforKamery);
+		do WyswietlZdjecie(480, 320, sBuforKamery);
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
 	case TP_USTAW_KAM_160x120:
-		chErr = UstawNastawyKamery(160, 120, 4);
+		chErr = UstawRozdzielczoscKamery(160, 120, 1);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
 	case TP_USTAW_KAM_320x240:
-		chErr = UstawNastawyKamery(320, 240, 1);
+		chErr = UstawRozdzielczoscKamery(320, 240, 2);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
 	case TP_USTAW_KAM_480x320:
-		chErr = UstawNastawyKamery(480, 320, 1);
+		chErr = UstawRozdzielczoscKamery(480, 320, 1);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 

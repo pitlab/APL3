@@ -109,12 +109,12 @@ uint8_t InicjalizujKamere(void)
 		return chErr;
 
 	//ustaw domyślne parametry pracy kamery
-	strKonfKam.sSzerWe = 480;
-	strKonfKam.sWysWe = 320;
-	strKonfKam.sSzerWy = 480;
-	strKonfKam.sWysWy = 320;
-	//strKonfKam.chTrybDiagn = 0;	//brak trybu diagnostycznego
-	strKonfKam.chTrybDiagn = TDK_KRATA_CB;	//czarnobiała krata
+	strKonfKam.sSzerWe = KAM_SZEROKOSC_OBRAZU * KAM_ZOOM_CYFROWY;
+	strKonfKam.sWysWe = KAM_WYSOKOSC_OBRAZU * KAM_ZOOM_CYFROWY;
+	strKonfKam.sSzerWy = KAM_SZEROKOSC_OBRAZU;
+	strKonfKam.sWysWy = KAM_WYSOKOSC_OBRAZU;
+	strKonfKam.chTrybDiagn = 0;	//brak trybu diagnostycznego
+	//strKonfKam.chTrybDiagn = TDK_KRATA_CB;	//czarnobiała krata
 	//strKonfKam.chTrybDiagn = TDK_PASKI;		//kolorowe paski
 	strKonfKam.chFlagi = 1;
 	chErr = UstawKamere(&strKonfKam);
@@ -136,8 +136,11 @@ uint8_t InicjalizujKamere(void)
 //  dane - dane zapisywane do rejestru
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t UstawNastawyKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chZoom)
+uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chZoom)
 {
+	//wyczyść zmienną obrazu aby zmiany były widoczne
+	for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)
+		sBuforKamery[n] = 0;
 	strKonfKam.sSzerWe = chZoom * sSzerokosc;
 	strKonfKam.sWysWe = chZoom * sWysokosc;
 	strKonfKam.sSzerWy = sSzerokosc;
