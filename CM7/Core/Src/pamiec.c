@@ -11,11 +11,10 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "pamiec.h"
 #include <stdio.h>
-#include "LCD.h"
 #include "RPi35B_480x320.h"
 #include "czas.h"
 #include "flash_nor.h"
-
+#include "rysuj.h"
 
 
 const uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaFlashCPU"))) 		sFlashMem[ROZMIAR16_BUFORA];	//bufor do odczytu z wewnętrznego flash

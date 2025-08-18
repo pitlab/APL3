@@ -164,7 +164,10 @@
 #define TP_USTAW_KAM_160x120	112
 #define TP_USTAW_KAM_320x240	113
 #define TP_USTAW_KAM_480x320	114
-
+#define TP_KAM1				115
+#define TP_KAM2				116
+#define TP_KAM3				117
+#define TP_KAM4				118
 #define TP_WROC_DO_KAMERA	119
 
 
@@ -203,7 +206,7 @@
 #define STD_OBRAZU_OVGA		(160*120)		//1/octo VGA
 
 //#define ROZM_BUF32_KAM		(2592*1944)		//pełen rozmiar przetwornika nie mieści się w  ext SRAM
-#define ROZM_BUF16_KAM		STD_OBRAZU_VGA
+#define ROZM_BUF16_KAM		STD_OBRAZU_DVGA
 
 //pamięc flash NOR
 #define ADRES_NOR			0x68000000

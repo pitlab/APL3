@@ -33,6 +33,7 @@
 #include "moduly_SPI.h"
 
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamery[ROZM_BUF16_KAM] = {0};
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforObrazu[ROZM_BUF16_KAM] = {0};
 
 struct st_KonfKam strKonfKam;
 
@@ -43,6 +44,8 @@ extern DMA_HandleTypeDef hdma_dcmi;
 extern TIM_HandleTypeDef htim12;
 extern I2C_HandleTypeDef hi2c2;
 extern const struct sensor_reg OV5642_RGB_QVGA[];
+extern const struct sensor_reg ov5642_dvp_fmt_global_init[];
+extern const struct sensor_reg OV5642_VGA_preview_setting[];
 extern const uint8_t chAdres_expandera[];
 extern uint8_t chPort_exp_wysylany[];
 
@@ -100,10 +103,11 @@ uint8_t InicjalizujKamere(void)
 	Wyslij_I2C_Kamera(0x3103, 0x93);	//PLL clock select: [1] PLL input clock: 1=from pre-divider
 	Wyslij_I2C_Kamera(0x3008, 0x82);	//system control 00: [7] software reset mode, [6] software power down mode {def=0x02}
 	HAL_Delay(30);
-	/*err = Wyslij_Blok_Kamera(ov5642_dvp_fmt_global_init);		//174ms @ 20MHz
-	if (err)
-		return err;*/
+	/*chErr = Wyslij_Blok_Kamera(ov5642_dvp_fmt_global_init);		//174ms @ 20MHz
+	if (chErr)
+		return chErr;*/
 
+	//chErr = Wyslij_Blok_Kamera(OV5642_VGA_preview_setting);
 	chErr = Wyslij_Blok_Kamera(OV5642_RGB_QVGA);					//150ms @ 20MHz
 	if (chErr)
 		return chErr;
@@ -121,9 +125,10 @@ uint8_t InicjalizujKamere(void)
 	if (chErr)
 		return chErr;
 
-	chErr = Wyslij_I2C_Kamera(0x4300, 0x6F);	//format control [7..4] 6=RGB656, [3..0] 1={R[4:0], G[5:3]},{G[2:0}, B[4:0]}
-
-	//chErr = RozpocznijPraceDCMI(strKonfKam.chFlagi & FUK1_ZDJ_FILM);	//1 = zdjecie, 0 = film (tylko ten jeden bit)
+	//naturalny układ pikseli kamery to: wiersze parzyte B, G, B, G...; wiersze nieparzyste G, R, G, R...
+	//chErr = Wyslij_I2C_Kamera(0x4300, 0x61);	//format control [7..4] 6=RGB656, [3..0] 1={R[4:0], G[5:3]},{G[2:0}, B[4:0]} - źle
+	//chErr = Wyslij_I2C_Kamera(0x4300, 0x62);	//format control [7..4] 6=RGB656, [3..0] 2={G[4:0], R[5:3]},{R[2:0}, B[4:0]} - źle
+	chErr = Wyslij_I2C_Kamera(0x4300, 0x6F);	//format control [7..4] 6=RGB656, [3..0] 1={G[2:0}, B[4:0]},{R[4:0], G[5:3]} - OK
 	return chErr;
 }
 
@@ -132,8 +137,9 @@ uint8_t InicjalizujKamere(void)
 ////////////////////////////////////////////////////////////////////////////////
 // funkcja umożliwia ręczne wgranie paramerów z menu
 // Parametry:
-//  rejestr - 16 bitowy adres rejestru kamery
-//  dane - dane zapisywane do rejestru
+//  sSzerokosc - szerokość wyjściowa obrazu kamery
+//  sWysokosc - wysokość wyjściowa obrazu kamery
+//  chZoom - mnożnik powiekszenia cyfrowego, powiększa tylukrotnie obraz wejściowy
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chZoom)
@@ -145,7 +151,7 @@ uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_
 	strKonfKam.sWysWe = chZoom * sWysokosc;
 	strKonfKam.sSzerWy = sSzerokosc;
 	strKonfKam.sWysWy = sWysokosc;
-
+	strKonfKam.chTrybDiagn = 0;			//brak trybu diagnostycznego
 	return UstawKamere(&strKonfKam);
 }
 
@@ -402,3 +408,15 @@ void HAL_DCMI_LineEventCallback(DCMI_HandleTypeDef *hdcmi)
 	sLicznikLiniiKamery++;
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Ustawia tryb diagnostyki kolorów
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void UstawTrybDiagnostycznyPaski(void)
+{
+	strKonfKam.chTrybDiagn = TDK_PASKI;		//kolorowe paski
+	UstawKamere(&strKonfKam);
+}

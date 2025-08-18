@@ -48,5 +48,6 @@ uint8_t RozpocznijPraceDCMI(uint8_t chAparat);
 uint8_t ZrobZdjecie(void);
 uint8_t Wyslij_Blok_Kamera(const struct sensor_reg reglist[]);
 uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chZoom);
+void UstawTrybDiagnostycznyPaski(void);
 
 #endif /* INC_KONFIGURACJA_H_ */

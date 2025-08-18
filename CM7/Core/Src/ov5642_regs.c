@@ -1391,7 +1391,7 @@ const struct sensor_reg OV5642_RGB_QVGA[]  =
 	{0x501e, 0x2a},		//RGB dither control: [6] from 0=register/1=system control, [5:4] R channel register control when 0x501E = 0: 2=RGB565/555, [3:2] G channel, [1:0] B channel
 	{0x5002, 0x78},		//isp control 02: [7] 1= thumbnail scaling enable, [4] 1= dithering enable, [3] 1= YUV to RGB enable, [2] 1=horizontal subsampling enable
 	{0x501f, 0x01},		//format mux control: [5] swap Y and UV of external camera enable, [4] UV selection, [3] UV fixed enable, [2:0] format selection: 1=ISP RGB
-	{0x4300, 0x61},		//format control [7..4] 6=RGB656, [3..0] 1={R[4:0], G[5:3]},{G[2:0}, B[4:0]}
+	//{0x4300, 0x61},		//format control [7..4] 6=RGB656, [3..0] 1={R[4:0], G[5:3]},{G[2:0}, B[4:0]}
 
 	//test color bar
 	//{0x503d, 0x80},		//test pattern [7] 1=color bar enable, [5:4] 00= color bar pattern

@@ -39,8 +39,7 @@ void Wykrycie(uint16_t x, uint16_t y, uint8_t dopelnij_znakow, uint8_t wynik);
 void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fParametr2, float fParametr3);
 void HSV2RGB(float hue, float sat, float val, float *red, float *grn, float *blu);
 void MenuGlowne(unsigned char *tryb);
-void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
-void BelkaTytulu(char* chTytul);
+
 void PomiaryIMU(void);
 void PomiaryCisnieniowe(void);
 void DaneOdbiornikaRC(void);
@@ -60,6 +59,4 @@ uint8_t KalibrujBaro(uint8_t *chEtap);
 void PlaskiObrotMagnetometrow(void);
 void NastawyPID(uint8_t chKanal);
 uint8_t CzytajFram(uint16_t sAdres, uint8_t chRozmiar, float* fDane);
-uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObraz);
-void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sKolor);
 #endif /* INC_LCD_H_ */

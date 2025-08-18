@@ -37,6 +37,8 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Wyświetlanie nastaw regulatorów PID
 - Wyświetlanie stanu kanałów odbiornika RC
 ![RC](obrazki/odbiornikRC_PPM.jpg)
+- Obsługa mikrofonu na magistrali I2S
+- Przechwytywanie obrazu z kamery DCMI
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM

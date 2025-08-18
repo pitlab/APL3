@@ -8,6 +8,7 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "LCD.h"
+#include "rysuj.h"
 #include "RPi35B_480x320.h"
 #include <stdio.h>
 #include <math.h>
@@ -30,6 +31,7 @@
 #include "pid_kanaly.h"
 #include "kamera.h"
 #include "pamiec.h"
+#include "analiza_obrazu.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -38,7 +40,7 @@ const char *build_date = __DATE__;
 const char *build_time = __TIME__;
 extern const unsigned short obr_multimetr[];
 extern const unsigned short obr_multitool[];
-extern const unsigned short pitlab_logo18[];
+
 extern const char *chNazwyMies3Lit[] ;
 extern const unsigned short obr_mmedia[];
 extern const unsigned short obr_fraktal[];
@@ -97,10 +99,6 @@ extern uint8_t chPort_exp_odbierany[];
 extern uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
 extern SD_HandleTypeDef hsd1;
 extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-extern RTC_TimeTypeDef sTime;
-extern RTC_DateTypeDef sDate;
-extern RTC_HandleTypeDef hrtc;
-static uint8_t chOstatniCzas;
 extern unia_wymianyCM7_t uDaneCM7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 float fKostka[8][3] = {		//załóżmy wstępnie że kostka będzie miała rozmiar połowy wyświetlacza i umieszczona centralnie na wyswietlaczu. Dla kątów zerowych będzie widzana z góry
@@ -120,6 +118,8 @@ prostokat_t stPrzycisk;
 uint8_t chStanPrzycisku;
 uint8_t chEtapKalibracji;
 prostokat_t stWykr;	//wykres biegunowy magnetometru
+uint8_t chHistR[32], chHistG[64], chHistB[32];
+
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamery[ROZM_BUF16_KAM];
 
 //Definicje ekranów menu
@@ -211,10 +211,10 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"160x120",		"Ustawia kamere na 160x120 ",				TP_USTAW_KAM_160x120,	obr_narzedzia},
 	{"320x240",		"Ustawia kamere na 320x240 ",				TP_USTAW_KAM_320x240,	obr_narzedzia},
 	{"480x320",		"Ustawia kamere na 480x320 ",				TP_USTAW_KAM_480x320,	obr_narzedzia},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
+	{"nic",			"nic",										TP_KAM1,			obr_aparat},
+	{"nic",			"nic",										TP_KAM2,			obr_aparat},
+	{"nic",			"nic",										TP_KAM3,			obr_aparat},
+	{"Paski",		"Ustawia tryb diagnostyki kolorow",			TP_KAM4,			obr_kontrolny},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -450,7 +450,12 @@ void RysujEkran(void)
 
 	case TP_KAMERA:	//ciagła praca kamery
 		RozpocznijPraceDCMI(0);
-		do WyswietlZdjecie(480, 320, sBuforKamery);
+		do
+		{
+			WyswietlZdjecie(480, 320, sBuforKamery);
+			HistogramRGB565(sBuforKamery, chHistR, chHistG, chHistB,  STD_OBRAZU_DVGA);
+			RysujHistogramRGB16(chHistR, chHistG, chHistB);
+		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
@@ -469,6 +474,23 @@ void RysujEkran(void)
 		chErr = UstawRozdzielczoscKamery(480, 320, 1);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
+
+	case TP_KAM1:	Wyslij_I2C_Kamera(0x4300, 0x61);	//format control [7..4] 6=RGB656, [3..0] 1={R[4:0], G[5:3]},{G[2:0}, B[4:0]}
+		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		break;
+
+	case TP_KAM2:	Wyslij_I2C_Kamera(0x4300, 0x62);	//format control [7..4] 6=RGB656, [3..0] 2={G[4:0], R[5:3]},{R[2:0}, B[4:0]}
+		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		break;
+
+	case TP_KAM3:	Wyslij_I2C_Kamera(0x4300, 0x6F);	//format control [7..4] 6=RGB656, [3..0] 1={G[2:0}, B[4:0]},{R[4:0], G[5:3]}
+		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		break;
+
+	case TP_KAM4:	UstawTrybDiagnostycznyPaski();
+		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		break;
+
 
 //***************************************************
 	case TP_WYDAJNOSC:			///menu pomiarów wydajności
@@ -1166,45 +1188,6 @@ void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fP
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Konwersja kolorów z HSV na RBG
-// Parametry:
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void HSV2RGB(float hue, float sat, float val, float *red, float *grn, float *blu)
-{
-	int i;
-	float f, p, q, t;
-	if(val==0)
-	{
-		red=0;
-		grn=0;
-		val=0;
-	}
-	else
-	{
-		hue/=60;
-		i = floor(hue);
-		f = hue-i;
-		p = val*(1-sat);
-		q = val*(1-(sat*f));
-		t = val*(1-(sat*(1-f)));
-		if (i==0)
-		{
-			*red=val;
-			*grn=t;
-			*blu=p;
-		}
-		else if (i==1) {*red=q; 	*grn=val; 	*blu=p;}
-		else if (i==2) {*red=p; 	*grn=val; 	*blu=t;}
-		else if (i==3) {*red=p; 	*grn=q; 	*blu=val;}
-		else if (i==4) {*red=t; 	*grn=p; 	*blu=val;}
-		else if (i==5) {*red=val; 	*grn=p; 	*blu=q;}
-	}
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran menu głównego
 // Parametry:
 // *tryb - wskaźnik na numer pozycji menu
@@ -1214,177 +1197,6 @@ void MenuGlowne(unsigned char *tryb)
 {
 	Menu((char*)chNapisLcd[STR_MENU_MAIN], stMenuGlowne, tryb);
 	chWrocDoTrybu = TP_MENU_GLOWNE;
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Rysuje ekran parametryzowalnego menu
-// Parametry:
-// [i] *tytul - napis z nazwą menu wyświetlaną w górnym pasku
-// [i] *menu - wskaźnik na strukturę menu
-// [i] *napisy - wskaźnik na zmienną zawierajacą napisy
-// [o] *tryb - wskaźnik na zwracany numer pozycji menu
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
-{
-	unsigned char chStarySelPos;
-	unsigned char n, m;			//zapętlacze
-	int x, x2, y;	//pomocnicze współrzędne ekranowe
-
-	if (chRysujRaz)
-	{
-		BelkaTytulu(tytul);		//rysuje belkę tytułu ekranu
-
-		//rysuje pasek podpowiedzi na dole ekranu
-		//setColor(GRAY20);
-		//fillRect(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, DISP_Y_SIZE);
-		LCD_ProstokatWypelniony(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, GRAY20);
-		setBackColor(BLACK);
-
-		//rysuj ikony poleceń
-		setFont(MidFont);
-		for (m=0; m<MENU_WIERSZE; m++)
-		{
-			for (n=0; n<MENU_KOLUMNY; n++)
-			{
-				//licz współrzedne środka ikony
-				x = (DISP_X_SIZE/(2*MENU_KOLUMNY)) + n * (DISP_X_SIZE/MENU_KOLUMNY);
-				y = ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / (2*MENU_WIERSZE)) + m * ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
-
-				setColor(MENU_TLO_NAK);
-				drawBitmap(x-MENU_ICO_WYS/2, y-MENU_ICO_DLG/2, MENU_ICO_DLG, MENU_ICO_WYS, menu[m*MENU_KOLUMNY+n].sIkona);
-
-				setColor(GRAY60);
-				x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
-				strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
-				print(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
-			}
-		}
-	}
-
-	//sprawdź czy jest naciskany ekran
-	if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) || chRysujRaz)
-	{
-		chStarySelPos = chMenuSelPos;
-
-		if (statusDotyku.sY < (DISP_Y_SIZE - MENU_NAG_WYS)/2)	//czy naciśniety górny rząd
-			m = 0;
-		else	//czy naciśniety dolny rząd
-			m = 1;
-
-		for (n=0; n<MENU_KOLUMNY; n++)
-		{
-			if ((statusDotyku.sX > n*(DISP_X_SIZE / MENU_KOLUMNY)) && (statusDotyku.sX < (n+1)*(DISP_X_SIZE / MENU_KOLUMNY)))
-				chMenuSelPos = m * MENU_KOLUMNY + n;
-		}
-
-
-		if (chStarySelPos != chMenuSelPos)	//zamaż tylko gdy stara ramka jest inna od wybranej
-		{
-			//zamaż starą ramkę kolorem nieaktywnym
-			for (m=0; m<MENU_WIERSZE; m++)
-			{
-				for (n=0; n<MENU_KOLUMNY; n++)
-				{
-					if (chStarySelPos == m*MENU_KOLUMNY+n)
-					{
-						//licz współrzedne środka ikony
-						x = (DISP_X_SIZE /(2*MENU_KOLUMNY)) + n * (DISP_X_SIZE / MENU_KOLUMNY);
-						y = ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / (2*MENU_WIERSZE)) + m * ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
-						setColor(BLACK);
-						drawRoundRect(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
-						setColor(GRAY60);
-						x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
-						strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
-						print(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
-					}
-				}
-			}
-			//setColor(GRAY20);
-			//fillRect(0, DISP_X_SIZE-MENU_PASOP_WYS, DISP_Y_SIZE, DISP_X_SIZE);		//zamaż pasek podpowiedzi
-			LCD_ProstokatWypelniony(0, DISP_Y_SIZE-MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, GRAY20);		//zamaż pasek podpowiedzi
-
-		}
-
-		//rysuj nową zaznaczoną ramkę
-		for (m=0; m<MENU_WIERSZE; m++)
-		{
-			for (n=0; n<MENU_KOLUMNY; n++)
-			{
-				if (chMenuSelPos == m*MENU_KOLUMNY+n)
-				{
-					//licz współrzedne środka ikony
-					x = (DISP_X_SIZE/(2*MENU_KOLUMNY)) + n * (DISP_X_SIZE/MENU_KOLUMNY);
-					y = ((DISP_Y_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/(2*MENU_WIERSZE)) + m * ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS)/MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
-					if  (statusDotyku.chFlagi == DOTYK_DOTKNIETO)	//czy naciśnięty ekran
-						setColor(MENU_RAM_WYB);
-					else
-						setColor(MENU_RAM_AKT);
-					drawRoundRect(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
-					setColor(GRAY80);
-					x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
-					strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
-					print(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
-				}
-			}
-		}
-		//rysuj pasek podpowiedzi
-		if ((chStarySelPos != chMenuSelPos) || chRysujRaz)
-		{
-			setColor(MENU_RAM_AKT);
-			setBackColor(GRAY20);
-			strcpy(chNapis, menu[chMenuSelPos].chPomoc);
-			print(chNapis, DW_SPACE, DISP_Y_SIZE - DW_SPACE - FONT_SH);
-			setBackColor(BLACK);
-			chRysujRaz = 0;
-		}
-	}
-
-	//czy był naciśniety enkoder lub ekran
-	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-	{
-		*tryb = menu[chMenuSelPos].chMode;
-		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;	//kasuj flagę naciśnięcia ekranu
-		DodajProbkeDoMalejKolejki(PRGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//odtwórz komunikat audio przycisku
-		return;
-	}
-	*tryb = 0;
-
-	//rysuj czas
-	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-	if (sTime.Seconds != chOstatniCzas)
-	{
-		setColor(GRAY50);
-		setColor(MENU_RAM_AKT);
-		sprintf(chNapis, "%02d:%02d:%02d", sTime.Hours,  sTime.Minutes,  sTime.Seconds);
-		print(chNapis, DISP_X_SIZE - 9*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
-		chOstatniCzas = sTime.Seconds;
-	}
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Rysuje belkę menu z logo i tytułem w poziomej orientacji ekranu
-// Wychodzi z ustawionym czarnym tłem, białym kolorem i średnia czcionką
-// Parametry: wskaźnik na zmienną z tytułem okna
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void BelkaTytulu(char* chTytul)
-{
-	//setColor(MENU_TLO_BAR);
-	//fillRect(18, 0, DISP_X_SIZE, MENU_NAG_WYS);
-	LCD_ProstokatWypelniony(18, 0, DISP_X_SIZE, MENU_NAG_WYS, MENU_TLO_BAR);
-	drawBitmap(0, 0, 18, 18, pitlab_logo18);	//logo PitLab
-	setColor(YELLOW);
-	setBackColor(MENU_TLO_BAR);
-	setFont(BigFont);
-	print(chTytul, CENTER, UP_SPACE);
-	setBackColor(BLACK);
-	setColor(WHITE);
-	setFont(MidFont);
 }
 
 
@@ -3565,28 +3377,6 @@ uint8_t CzytajFram(uint16_t sAdres, uint8_t chRozmiar, float* fDane)
 		return ERR_OK;
 	else
 		return ERR_TIMEOUT;
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Wyświetla zawartość bufora kamery
-// Parametry:
-// [we] sSzerokosc - szerokość obrazu do wyświetlenia
-// [we] sWysokosc - wysokość obrazu do wyświetlenia
-// [we] *sObraz - wskaźnik na bufor obrazu
-// Zwraca: kod błędu
-////////////////////////////////////////////////////////////////////////////////
-uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObraz)
-{
-	uint8_t chErr = ERR_OK;
-
-	if (sSzerokosc > DISP_X_SIZE)
-		sSzerokosc = DISP_X_SIZE;
-	if (sWysokosc > DISP_Y_SIZE)
-		sWysokosc = DISP_Y_SIZE;
-	drawBitmap(0, 0, sSzerokosc, sWysokosc, sObraz);
-	return chErr;
 }
 
 
