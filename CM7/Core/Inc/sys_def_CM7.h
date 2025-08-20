@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	255		//numer commitu w repozytorium
+#define WER_REPO	257		//numer commitu w repozytorium
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD
@@ -61,7 +61,7 @@
 #define TP_POMIARY			3	//wyświetlaj wyniki pomiarów IMU pobrane z CM4
 #define TP_NASTAWY			4
 #define TP_MG1				5
-
+#define TP_ETHERNET			6
 #define TP_IMU_KOSTKA_SYM	7
 #define TP_USTAWIENIA		8
 
@@ -170,6 +170,9 @@
 #define TP_KAM4				118
 #define TP_WROC_DO_KAMERA	119
 
+//polecenia manu ethernet
+#define TP_ETH_INFO			120
+#define TP_WROC_DO_ETH		129
 
 //flagi inicjalizacj sprzetu na płytce
 #define INIT_FLASH_NOR		0x00000001

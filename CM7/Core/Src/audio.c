@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include "moduly_SPI.h"
 #include "cmsis_os.h"
-
+#include "rysuj.h"
 
 //Słowniczek:
 //próbka audio - pojedynczy plik wave zapisany we flash

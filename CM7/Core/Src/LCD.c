@@ -32,7 +32,7 @@
 #include "kamera.h"
 #include "pamiec.h"
 #include "analiza_obrazu.h"
-
+#include "ip_addr.h"
 //deklaracje zmiennych
 extern uint8_t MidFont[];
 extern uint8_t BigFont[];
@@ -76,6 +76,9 @@ extern const unsigned short obr_aparaturaRC[0xFFC];
 extern const unsigned short obr_aparat[0xFFC];
 extern const unsigned short obr_kamera[0xFFC];
 extern const unsigned short obr_papuga[0xFFC];
+extern const unsigned short obr_ethernet[0xFFC];
+
+
 extern int16_t __attribute__ ((aligned (16))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforPapuga[ROZMIAR_BUFORA_PAPUGI];
 //definicje zmiennych
 uint8_t chTrybPracy;
@@ -130,7 +133,7 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Nastawy",  	"Ustawienia podsystemow",					TP_NASTAWY, 		obr_narzedzia},
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
 	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_kartaSD},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"Ethernet",	"Obsłga ethernetu",							TP_ETHERNET,		obr_ethernet},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"Kamera",		"Obsługa kamery",							TP_MEDIA_KAMERA,	obr_aparat},
@@ -232,6 +235,19 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
 
 
+struct tmenu stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY]  = {
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
+	{"Info",		"Informacje o laczu sieciowym",				TP_ETH_INFO,		obr_ethernet},
+	{"nic",			"nic",										TP_KAM1,			obr_ethernet},
+	{"nic",			"nic",										TP_KAM1,			obr_ethernet},
+	{"nic",			"nic",										TP_KAM1,			obr_ethernet},
+	{"nic",			"nic",										TP_KAM1,			obr_ethernet},
+	{"nic",			"nic",										TP_KAM1,			obr_ethernet},
+	{"nic",			"nic",										TP_KAM2,			obr_ethernet},
+	{"nic",			"nic",										TP_KAM3,			obr_ethernet},
+	{"nic",			"nic",										TP_KAM1,			obr_ethernet},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+
 struct tmenu stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Zyro Zimno", 	"Kalibracja zera zyroskopow w 10C",			TP_KAL_ZYRO_ZIM,	obr_baczek},
@@ -292,9 +308,8 @@ void RysujEkran(void)
 			chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
-
-//***************************************************
-	case TP_MEDIA_AUDIO:			//menu audio
+	//*** Audio ************************************************
+	case TP_MEDIA_AUDIO:
 		Menu((char*)chNapisLcd[STR_MENU_MEDIA_AUDIO], stMenuAudio, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
@@ -422,7 +437,8 @@ void RysujEkran(void)
 		}
 		break;
 
-//***************************************************
+
+	//*** Kamera ************************************************
 	case TP_MEDIA_KAMERA:			//menu kamera
 		Menu((char*)chNapisLcd[STR_MENU_KAMERA], stMenuKamera, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
@@ -491,8 +507,33 @@ void RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
+	//*** Ethernet ************************************************
+	case TP_ETHERNET:
+		Menu((char*)chNapisLcd[STR_MENU_ETHERNET], stMenuEthernet, &chNowyTrybPracy);
+		chWrocDoTrybu = TP_MENU_GLOWNE;
+		break;
 
-//***************************************************
+	case TP_ETH_INFO:
+
+		uint32_t ipaddr = 0;
+		//ip_addr_get_ip4_u32(ipaddr);
+
+		//(src_ipaddr)->addr;
+		sprintf(chNapis, "IP:%ld.%ld.%ld.%ld", (ipaddr & 0xFF000000)>>24, (ipaddr & 0xFF0000)>>16, (ipaddr & 0xFF00)>>8, (ipaddr & 0xFF));
+		setColor(GRAY30);
+		setFont(MidFont);
+		print(chNapis, CENTER, 90);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_ETH;
+		}
+		break;
+
+
+
+
+	//*** Wydajność ************************************************
 	case TP_WYDAJNOSC:			///menu pomiarów wydajności
 		Menu((char*)chNapisLcd[STR_MENU_WYDAJNOSC], stMenuWydajnosc, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
@@ -610,7 +651,7 @@ void RysujEkran(void)
 		}
 	break;
 
-	//***************************************************
+	//*** Karta SD ************************************************
 	case TP_KARTA_SD:			///menu Karta SD
 		Menu((char*)chNapisLcd[STR_MENU_KARTA_SD], stMenuKartaSD, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
@@ -982,7 +1023,7 @@ void RysujEkran(void)
 		case TP_WROC_DO_POMIARY:	chTrybPracy = TP_POMIARY;		break;	//powrót do menu Pomiary
 		case TP_WROC_DO_NASTAWY:	chTrybPracy = TP_NASTAWY;		break;	//powrót do menu Nastawy
 		case TP_FRAKTALE:			InitFraktal(0);		break;
-
+		case TP_WROC_DO_ETH:		chTrybPracy = TP_ETHERNET;		break;	//powrót do menu Ethernet
 		}
 
 		LCD_clear(BLACK);

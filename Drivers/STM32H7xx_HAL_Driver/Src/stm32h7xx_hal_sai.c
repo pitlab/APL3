@@ -2305,8 +2305,7 @@ static HAL_StatusTypeDef SAI_InitI2S(SAI_HandleTypeDef *hsai, uint32_t protocol,
   else
   {
     /* Receive */
-    //hsai->Init.ClockStrobing     = SAI_CLOCKSTROBING_RISINGEDGE;	//było
-	hsai->Init.ClockStrobing     = SAI_CLOCKSTROBING_RISINGEDGE;
+    hsai->Init.ClockStrobing     = SAI_CLOCKSTROBING_RISINGEDGE;
   }
   hsai->FrameInit.FSDefinition   = SAI_FS_CHANNEL_IDENTIFICATION;
   hsai->SlotInit.SlotActive      = SAI_SLOTACTIVE_ALL;

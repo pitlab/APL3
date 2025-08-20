@@ -68,8 +68,9 @@
 #define STR_NAWIGACJI_N				50
 #define STR_NAWIGACJI_E				51
 #define STR_MENU_KAMERA				52
+#define STR_MENU_ETHERNET			53
 //#define STR_
-#define MAX_NAPISOW					53	//liczba napisów
+#define MAX_NAPISOW					54	//liczba napisów
 
 
 #define JEZYK_POLSKI
@@ -133,6 +134,7 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "nawigacji N",						//STR_NAWIGACJI_N
 "nawigacji E",						//STR_NAWIGACJI_E
 "Menu kamera",						//STR_MENU_KAMERA
+"Menu Ethernet",					//STR_MENU_ETHERNET
 };
 
 
