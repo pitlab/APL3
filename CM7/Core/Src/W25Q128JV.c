@@ -6,10 +6,10 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 
+#include <RPi35B_480x320.h>
 #include <stdio.h>
 #include "W25Q128JV.h"
 #include "LCD.h"
-#include "RPi35B_480x320.h"
 #include "flash_nor.h"
 #include "czas.h"
 

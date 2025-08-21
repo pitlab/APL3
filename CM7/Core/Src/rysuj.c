@@ -7,8 +7,8 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <RPi35B_480x320.h>
 #include "rysuj.h"
-#include "RPi35B_480x320.h"
 #include <string.h>
 #include <stdio.h>
 #include "dotyk.h"
@@ -25,6 +25,10 @@ extern char chNapis[];
 extern struct _statusDotyku statusDotyku;
 extern uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
 static uint8_t chOstatniCzas;
+uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
+uint8_t chOrient;
+uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
+uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran parametryzowalnego menu
@@ -278,3 +282,85 @@ void HSV2RGB(float hue, float sat, float val, float *red, float *grn, float *blu
 		else if (i==5) {*red=val; 	*grn=p; 	*blu=q;}
 	}
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Ustawia kolor rysowania jako RGB
+// Parametry: r, g, b - składowe RGB koloru
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void setColorRGB(uint8_t r, uint8_t g, uint8_t b)
+{
+	fch = ((r & 0xF8) | g>>5);
+	fcl = ((g & 0x1C)<<3 | b>>3);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Ustawia kolor rysowania jako natywny dla wyświetlacza 5R+6G+5B
+// Parametry: color - kolor
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void setColor(uint16_t color)
+{
+	fch = (uint8_t)(color>>8);
+	fcl = (uint8_t)(color & 0xFF);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// pobiera aktywny kolor
+// Parametry: nic
+// Zwraca: kolor
+////////////////////////////////////////////////////////////////////////////////
+uint16_t getColor(void)
+{
+	return (fch<<8) | fcl;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Ustawia kolor tła jako RGB
+// Parametry: r, g, b - składowe RGB koloru
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void setBackColorRGB(uint8_t r, uint8_t g, uint8_t b)
+{
+	bch=((r&248)|g>>5);
+	bcl=((g&28)<<3|b>>3);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Ustawia kolor tła jako natywny dla wyświetlacza 5R+6G+5B
+// Parametry: color - kolor
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void setBackColor(uint16_t color)
+{
+	if (color == TRANSPARENT)
+		_transparent = 1;
+	else
+	{
+		bch = (uint8_t)(color>>8);
+		bcl = (uint8_t)(color & 0xFF);
+		_transparent = 0;
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// pobiera aktywny kolor tła
+// Parametry: nic
+// Zwraca: kolor
+////////////////////////////////////////////////////////////////////////////////
+uint16_t getBackColor(void)
+{
+	return (bch<<8) | bcl;
+}
+

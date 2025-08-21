@@ -6,9 +6,9 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <RPi35B_480x320.h>
 #include "fraktale.h"
 #include "czas.h"
-#include "RPi35B_480x320.h"
 
 
 float fZoom, fX, fY;

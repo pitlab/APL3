@@ -5,12 +5,12 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <RPi35B_480x320.h>
 #include "dotyk.h"
 #include "moduly_SPI.h"
 #include "errcode.h"
 #include "LCD.h"
 #include "display.h"
-#include "RPi35B_480x320.h"
 #include "sys_def_CM7.h"
 #include <stdio.h>
 #include <string.h>

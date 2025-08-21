@@ -9,9 +9,9 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "LCD.h"
 #include "rysuj.h"
-#include "RPi35B_480x320.h"
 #include <stdio.h>
 #include <math.h>
+#include <RPi35B_480x320.h>
 #include <string.h>
 #include <W25Q128JV.h>
 #include "dotyk.h"
@@ -32,7 +32,11 @@
 #include "kamera.h"
 #include "pamiec.h"
 #include "analiza_obrazu.h"
-#include "ip_addr.h"
+//#include "netif.h"
+#include "ip4_addr.h"
+
+
+
 //deklaracje zmiennych
 extern uint8_t MidFont[];
 extern uint8_t BigFont[];
@@ -514,23 +518,25 @@ void RysujEkran(void)
 		break;
 
 	case TP_ETH_INFO:
+		extern ip4_addr_t ipaddr;
+		extern ip4_addr_t netmask;
+		extern ip4_addr_t gw;
 
-		uint32_t ipaddr = 0;
-		//ip_addr_get_ip4_u32(ipaddr);
-
-		//(src_ipaddr)->addr;
-		sprintf(chNapis, "IP:%ld.%ld.%ld.%ld", (ipaddr & 0xFF000000)>>24, (ipaddr & 0xFF0000)>>16, (ipaddr & 0xFF00)>>8, (ipaddr & 0xFF));
-		setColor(GRAY30);
+		setColor(WHITE);
 		setFont(MidFont);
-		print(chNapis, CENTER, 90);
+		sprintf(chNapis, "IP: %ld.%ld.%ld.%ld",(ipaddr.addr & 0xFF), (ipaddr.addr & 0xFF00)>>8, (ipaddr.addr & 0xFF0000)>>16, (ipaddr.addr & 0xFF000000)>>24);
+		print(chNapis, 10, 40);
+		sprintf(chNapis, "Maska: %ld.%ld.%ld.%ld", (netmask.addr & 0xFF), (netmask.addr & 0xFF00)>>8, (netmask.addr & 0xFF0000)>>16, (netmask.addr & 0xFF000000)>>24);
+		print(chNapis, 10, 60);
+		sprintf(chNapis, "GW: %ld.%ld.%ld.%ld", (gw.addr & 0xFF), (gw.addr & 0xFF00)>>8, (gw.addr & 0xFF0000)>>16, (gw.addr & 0xFF000000)>>24);
+		print(chNapis, 10, 80);
+
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_ETH;
 		}
 		break;
-
-
 
 
 	//*** Wydajność ************************************************

@@ -18,6 +18,8 @@
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
 #define WER_REPO	257		//numer commitu w repozytorium
+#define LCD_ILI9488
+//#define LCD_RPI35B
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD

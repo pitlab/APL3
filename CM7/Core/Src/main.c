@@ -58,6 +58,8 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  * */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+#include <ili9488.h>
+#include <RPi35B_480x320.h>
 #include "main.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
@@ -67,7 +69,6 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "sys_def_CM7.h"
-#include "RPi35B_480x320.h"
 #include "LCD.h"
 #include "dotyk.h"
 #include "W25Q128JV.h"
@@ -322,9 +323,10 @@ Error_Handler();
   chErr |= InicjujKonfigFlash();
   chErr1 = InicjujDotyk();
   if (chErr1 != ERR_BRAK_DANYCH)		//wyświetlacz inicjalizuj tylko gdy wykryto sterownik panelu dotykowego
-	  chErr |= InicjujLCD_35B_16bit();
+	  //chErr |= InicjujLCD_35B_16bit();
 	  //chErr |= InicjujLCD_35C_16bit();
   	  //chErr |= InicjujLCD_35C_8bit();
+	  chErr = InicjujLCD_ILI9488();
   else
 	  chErr |= chErr1;
 
@@ -1020,7 +1022,8 @@ static void MX_SPI5_Init(void)
   hspi5.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi5.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi5.Init.NSS = SPI_NSS_SOFT;
-  hspi5.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+  //hspi5.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;		//50 / 4 = 12,5MHz
+  hspi5.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;		//50 / 8 = 6,25MH
   hspi5.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi5.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi5.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -1614,7 +1617,7 @@ void StartDefaultTask(void const * argument)
   MX_USB_DEVICE_Init();
 
   /* init code for LWIP */
-  MX_LWIP_Init();
+  //MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
   /*WyslijDebugUART7('s');
   WyslijDebugUART7('t');

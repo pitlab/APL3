@@ -9,9 +9,9 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <RPi35B_480x320.h>
 #include "pamiec.h"
 #include <stdio.h>
-#include "RPi35B_480x320.h"
 #include "czas.h"
 #include "flash_nor.h"
 #include "rysuj.h"
