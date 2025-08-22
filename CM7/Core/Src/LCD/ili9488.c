@@ -12,17 +12,24 @@
 #include "LCD_SPI.h"
 #include "display.h"
 #include "rysuj.h"
-
+#include "main.h"
+#include "semafory.h"
+#include "cmsis_os.h"
 // Wyświetlacz pracował na 25MHz ale później zaczął śmiecić na ekranie. Próbuję na 22,2MHz - jest OK
 
 
 //deklaracje zmiennych
+extern SPI_HandleTypeDef hspi5;
 extern uint8_t chRysujRaz;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 extern uint8_t chOrient;
 extern uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
+extern struct current_font cfont;
 uint8_t chKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
 uint8_t chTlo666[3];		//kolory tła w formacie RGB 6-6-6
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Konfiguracja wyświetlacza
@@ -45,66 +52,30 @@ uint8_t InicjujLCD_ILI9488(void)
 
 	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
 	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
-	HAL_Delay(200);
+	HAL_Delay(120);
 
 	LCD_write_command8(ILI9488_RDDID);	//Read display identification information
 	LCD_data_read(chBuf, 4);
 
 	LCD_write_command8(ILI9488_GMCTRP1);
-	LCD_write_dat_pie8(0x00);
-	LCD_write_dat_sro8(0x03);
-	LCD_write_dat_sro8(0x09);
-	LCD_write_dat_sro8(0x08);
-	LCD_write_dat_sro8(0x16);
-	LCD_write_dat_sro8(0x0A);
-	LCD_write_dat_sro8(0x3F);
-	LCD_write_dat_sro8(0x78);
-	LCD_write_dat_sro8(0x4C);
-	LCD_write_dat_sro8(0x09);
-	LCD_write_dat_sro8(0x0A);
-	LCD_write_dat_sro8(0x08);
-	LCD_write_dat_sro8(0x16);
-	LCD_write_dat_sro8(0x1A);
-	LCD_write_dat_ost8(0x0F);
+	LCD_WrData((uint8_t *)"\x00\x03\x09\x08\x16\x0A\x3F\x78\x4C\x09\x0A\x08\x16\x1A\x0F", 15);
 
 	LCD_write_command8(ILI9488_GMCTRN1);
-	LCD_write_dat_pie8(0x00);
-	LCD_write_dat_sro8(0x16);
-	LCD_write_dat_sro8(0x19);
-	LCD_write_dat_sro8(0x03);
-	LCD_write_dat_sro8(0x0F);
-	LCD_write_dat_sro8(0x05);
-	LCD_write_dat_sro8(0x32);
-	LCD_write_dat_sro8(0x45);
-	LCD_write_dat_sro8(0x0E);
-	LCD_write_dat_sro8(0x0D);
-	LCD_write_dat_sro8(0x35);
-	LCD_write_dat_sro8(0x37);
-	LCD_write_dat_ost8(0x0F);
+	LCD_WrData((uint8_t *)"\x00\x16\x19\x03\x0F\x05\x32\x45\x46\x04\x0E\x0D\x35\x37\x0F", 15);
 
 	LCD_write_command8(ILI9488_PWCTR1);	//Power Control 1
-	LCD_write_dat_pie8(0x17);	//Vreg1out
-	LCD_write_dat_ost8(0x15);	//Verg2out
+	LCD_WrData((uint8_t *)"\x17\x15", 2);		//Vreg1out, Verg2out
 
 	LCD_write_command8(ILI9488_PWCTR1); 	//Power Control 2
 	LCD_write_dat_jed8(0x41);   //VGH,VGL
 
 	LCD_write_command8(ILI9488_VMCTR1);   //Power Control 3
-	LCD_write_dat_pie8(0x00);
-	LCD_write_dat_sro8(0x12);   //Vcom
-	LCD_write_dat_ost8(0x80);
+	LCD_WrData((uint8_t *)"\x00\x12\x80", 3);	//Vcom
 
-	LCD_write_command8(ILI9488_MADCTL);	//Memory Access Control
-	LCD_write_dat_jed8(
-		(1 << 7)|	//MY Row Address Order
-		(1 << 6)|	//MX Column Address Order
-		(1 << 5)|	//MV Row/Column Exchange
-		(0 << 4)|	//ML Vertical Refresh Order
-		(1 << 3)|	//BGR RGB-BGR Order
-		(0 << 2));	//MH Horizontal Refresh ORDER
+	LCD_Orient(POZIOMO);
 
 	LCD_write_command8(ILI9488_PIXFMT);	// Interface Pixel Format
-	LCD_write_dat_jed8(0x66);	//18 bit
+	LCD_write_dat_jed8(0x66);	//18 bit/*
 
 	LCD_write_command8(0xB0);      // Interface Mode Control
 	LCD_write_dat_jed8(
@@ -122,26 +93,17 @@ uint8_t InicjujLCD_ILI9488(void)
 	LCD_write_dat_jed8(0x02);    //2-dot
 
 	LCD_write_command8(ILI9488_DFUNCTR);      //Display Function Control  RGB/MCU Interface Control
-	LCD_write_dat_pie8(0x02);    //MCU
-	LCD_write_dat_ost8(0x02);    //Source,Gate scan dieection
-	//powinien być trzeci parametr
+	LCD_WrData((uint8_t *)"\x02\x02", 2);		 //MCU, Source,Gate scan dieection
 
 	LCD_write_command8(0xE9);      // Set Image Functio
 	LCD_write_dat_jed8(0x00);    // Disable 24 bit data
 
 	LCD_write_command8(0xF7);      // Adjust Control
-	LCD_write_dat_pie8(0xA9);
-	LCD_write_dat_sro8(0x51);
-	LCD_write_dat_sro8(0x2C);
-	LCD_write_dat_ost8(0x82);    // D7 stream, loose
-
+	LCD_WrData((uint8_t *)"\xA9\x51\x2C\x82", 4);	// D7 stream, loose */
 
 	LCD_write_command8(ILI9488_SLPOUT);    //Exit Sleep
 	HAL_Delay(120);
-
 	LCD_write_command8(ILI9488_DISPON);    //Display on
-
-	LCD_Orient(POZIOMO);
 
 	LCD_write_command8(ILI9488_RDDID);	//Read display identification information
 	LCD_data_read(chBuf, 4);
@@ -201,8 +163,7 @@ void LCD_Orient(uint8_t orient)
 ////////////////////////////////////////////////////////////////////////////////
 void LCD_clear(uint16_t sKolor565)
 {
-	uint32_t y;
-	uint8_t x, dane[12];
+	uint8_t chDane[12];
 
 	if (!sKolor565)
 		sKolor565 = BLACK;
@@ -212,26 +173,39 @@ void LCD_clear(uint16_t sKolor565)
 	setBackColor(sKolor565);
 
 	LCD_write_command8(ILI9488_CASET);	//Column Address Set
-	for (x=0; x<8; x++)
-		dane[x] = 0;
-	dane[5] = 0x01;
-	dane[7] = 0xDF;		//479 = 0x1DF
-	LCD_WrData(dane, 8);
+	for (uint8_t x=0; x<2; x++)
+		chDane[x] = 0;
+	chDane[2] = 0x01;
+	chDane[3] = 0xDF;		//479 = 0x1DF
+	LCD_WrData(chDane, 4);
 
 	LCD_write_command8(ILI9488_PASET);	//Page Address Set
-	dane[5] = 0x01;
-	dane[7] = 0x3F;		//319 = 0x13F
-	LCD_WrData(dane, 8);
+	chDane[2] = 0x01;
+	chDane[3] = 0x3F;		//319 = 0x13F
+	LCD_WrData(chDane, 4);
 
-	LCD_write_command8(ILI9488_RAMWR);	//Memory Write
-	for (x=0; x<4; x++)
+	for (uint8_t x=0; x<4; x++)
 	{
-		dane[3*x + 0] = chKolor666[0];
-		dane[3*x + 1] = chKolor666[1];
-		dane[3*x + 2] = chKolor666[2];
+		chDane[3*x + 0] = chKolor666[0];
+		chDane[3*x + 1] = chKolor666[1];
+		chDane[3*x + 2] = chKolor666[2];
 	}
-	for(y=0; y<320*480/4; y++)	//dane wysyłane paczkami po 4 pixele
-		LCD_WrData(dane, 12);
+	LCD_write_command8(ILI9488_RAMWR);	//Memory Write
+
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+		osDelay(1);
+	HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+	{
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+		for(uint16_t y=0; y<320; y++)
+		{
+			for(uint16_t x=0; x<480/4; x++)
+				HAL_SPI_Transmit(&hspi5, chDane, 12, HAL_MAX_DELAY);
+		}
+			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+	}
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 }
 
 
@@ -332,43 +306,43 @@ uint16_t getBackColor(void)
 void LCD_ProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t kolor)
 {
 	uint16_t i, j, k;
-	uint8_t n, dane[8];
+	uint8_t n, dane[12];
 
-	for (n=0; n<8; n++)
-		dane[n] = 0;
+	LCD_write_command8(ILI9488_CASET);	//Column Address Set
+	dane[0] = sStartX >> 8;
+	dane[1] = sStartX;
+	dane[2] = (sStartX + sSzerokosc - 1) >> 8;
+	dane[3] = sStartX + sSzerokosc - 1;
+	LCD_WrData(dane, 4);
 
-	LCD_write_command8(0x2A);	//Column Address Set
-	dane[1] = sStartX >> 8;
-	dane[3] = sStartX;
-	dane[5] = (sStartX + sSzerokosc - 1) >> 8;
-	dane[7] = sStartX + sSzerokosc - 1;
-	LCD_WrData(dane, 8);
+	LCD_write_command8(ILI9488_PASET);	//Page Address Set
+	dane[0] = sStartY >> 8;
+	dane[1] = sStartY;
+	dane[2] = (sStartY +  sWysokosc - 1) >> 8;
+	dane[3] =  sStartY + sWysokosc - 1;
+	LCD_WrData(dane, 4);
 
-	LCD_write_command8(0x2B);	//Page Address Set
-	dane[1] = sStartY >> 8;
-	dane[3] = sStartY;
-	dane[5] = (sStartY +  sWysokosc - 1) >> 8;
-	dane[7] =  sStartY + sWysokosc - 1;
-	LCD_WrData(dane, 8);
-
-	LCD_write_command8(0x2C);	//Memory Write
+	setColor(kolor);
+	LCD_write_command8(ILI9488_RAMWR);	//Memory Write
 	for(n=0; n<4; n++)
 	{
-		dane[2*n+0] = kolor >> 8;
-		dane[2*n+1] = kolor;
+		LCD_WrData(chKolor666, 3);
+		dane[3*n + 0] = chKolor666[0];
+		dane[3*n + 1] = chKolor666[1];
+		dane[3*n + 2] = chKolor666[2];
 	}
 
 	for(i=0; i<sWysokosc; i++)
 	{
 		for(j=0; j<sSzerokosc/4; j++)
-			LCD_WrData(dane, 8);
+			LCD_WrData(dane, 12);
 
 		//ponieważ wypełnianie odbywa się paczkami po 4 pixele, może zdarzyć się że nie dopełni wszystkich danych
-		k = sSzerokosc - j*4;	//policz czy jest reszta
+		k = sSzerokosc - j * 4;	//policz czy jest reszta
 		if (k)
 		{
 			for(j=0; j<k; j++)
-				LCD_WrData(dane, 2);	//dopełnij reszte
+				LCD_WrData(dane, 3);	//dopełnij reszte
 		}
 	}
 }
@@ -383,7 +357,7 @@ void LCD_ProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzero
 ////////////////////////////////////////////////////////////////////////////////
 void drawHLine(int16_t x, int16_t y, int16_t len)
 {
-	int i;
+	//int i;
 
 	if (len < 0)
 	{
@@ -392,8 +366,9 @@ void drawHLine(int16_t x, int16_t y, int16_t len)
 	}
 	setXY(x, y, x+len, y);
 
-	for (i=0; i<len+1; i++)
-		LCD_WrData(chKolor666, 3);
+	//for (i=0; i<len+1; i++)
+		//LCD_WrData(chKolor666, 3);
+	LCD_WrData(chKolor666, 3 * (len + 1));
 	clrXY();
 }
 
@@ -407,7 +382,7 @@ void drawHLine(int16_t x, int16_t y, int16_t len)
 ////////////////////////////////////////////////////////////////////////////////
 void drawVLine(int16_t x, int16_t y, int16_t len)
 {
-	int i;
+	//int i;
 
 	if (len < 0)
 	{
@@ -416,8 +391,9 @@ void drawVLine(int16_t x, int16_t y, int16_t len)
 	}
 	setXY(x, y, x, y+len);
 
-	for (i=0; i<len+1; i++)
-		LCD_WrData(chKolor666, 3);
+	//for (i=0; i<len+1; i++)
+		//LCD_WrData(chKolor666, 3);
+	LCD_WrData(chKolor666, 3 * (len + 1));
 	clrXY();
 }
 
@@ -450,21 +426,21 @@ void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 		y2 = sTemp;
 	}
 
-	LCD_write_command8(0x2A);	//Column Address Set
+	LCD_write_command8(ILI9488_CASET);	//Column Address Set
 	dane[0] = x1>>8;	//Start Column H
 	dane[1] = x1;		//Start Column L
 	dane[2] = x2>>8;	//End Column H
 	dane[3] = x2;		//End Column L
 	LCD_WrData(dane, 4);
 
-	LCD_write_command8(0x2B);	//Page Address Set
+	LCD_write_command8(ILI9488_PASET);	//Page Address Set
 	dane[0] = y1>>8;	//Start Page H
 	dane[1] = y1;		//Start Page L
 	dane[2] = y2>>8;	//End Page H
 	dane[3] = y2;		//End Page L
 	LCD_WrData(dane, 4);
 
-	LCD_write_command8(0x2C);	//Memory Write. Po tym poleceniu następuje transfer danych
+	LCD_write_command8(ILI9488_RAMWR);	//Memory Write. Po tym poleceniu następuje transfer danych
 }
 
 
@@ -493,9 +469,90 @@ void drawPixel(uint16_t x, uint16_t y)
 {
 	setXY(x, y, x, y);
 	LCD_WrData(chKolor666, 3);
-	/*LCD_write_dat_pie16(chKolor666[0]);
-	LCD_write_dat_sro8(chKolor666[1]);
-	LCD_write_dat_ost16(chKolor666[2]);*/
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// pisze znak na miejscu o podanych współrzędnych
+// Parametry: c - znak; x, y - współrzędne
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void printChar(uint8_t c, uint16_t x, uint16_t y)
+{
+	uint8_t i, ch;
+	uint16_t j;
+	uint16_t temp;
+	uint16_t zz;
+
+	if (!_transparent)
+	{
+		if (chOrient == POZIOMO)
+		{
+			setXY(x, y, x + cfont.x_size - 1, y + cfont.y_size -  1);
+
+			temp=((c - cfont.offset) * ((cfont.x_size / 8) * cfont.y_size)) + 4;
+			for(j=0; j<((cfont.x_size / 8) * cfont.y_size); j++)
+			{
+				ch = cfont.font[temp];
+				for(i=0; i<8; i++)
+				{
+					if ((ch&(1<<(7-i))) != 0)
+						//LCD_write_data16(fch, fcl);
+						LCD_WrData(chKolor666, 3);
+					else
+						//LCD_write_data16(bch, bcl);
+						LCD_WrData(chTlo666, 3);
+				}
+				temp++;
+			}
+		}
+		else
+		{
+			temp=((c-cfont.offset)*((cfont.x_size/8)*cfont.y_size))+4;
+
+			for(j=0;j<((cfont.x_size/8)*cfont.y_size);j+=(cfont.x_size/8))
+			{
+				setXY(x,y+(j/(cfont.x_size/8)),x+cfont.x_size-1,y+(j/(cfont.x_size/8)));
+				for (zz=(cfont.x_size/8)-1; zz>=0; zz--)
+				{
+					ch=cfont.font[temp+zz];
+					for(i=0;i<8;i++)
+					{
+						if((ch&(1<<i))!=0)
+							//LCD_write_data16(fch, fcl);
+							LCD_WrData(chKolor666, 3);
+						else
+							//LCD_write_data16(bch, bcl);
+							LCD_WrData(chTlo666, 3);
+					}
+				}
+				temp+=(cfont.x_size/8);
+			}
+		}
+	}
+	else
+	{
+		temp=((c-cfont.offset)*((cfont.x_size/8)*cfont.y_size))+4;
+		for(j=0;j<cfont.y_size;j++)
+		{
+			for (zz=0; zz<(cfont.x_size/8); zz++)
+			{
+				ch = cfont.font[temp+zz];
+				for(i=0;i<8;i++)
+				{
+					if((ch&(1<<(7-i)))!=0)
+					{
+						setXY(x+i+(zz*8),y+j,x+i+(zz*8)+1,y+j+1);
+						//LCD_write_data16(fch, fcl);
+						LCD_WrData(chKolor666, 3);
+					}
+				}
+			}
+			temp+=(cfont.x_size/8);
+		}
+	}
+	clrXY();
 }
 
 
@@ -512,31 +569,48 @@ void drawBitmap(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t
 	uint16_t col;
 	uint32_t tx, ty, tc;
 
+
+
 	if (chOrient == POZIOMO)
 	{
 		setXY(x, y, x+sx-1, y+sy-1);
+		while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+			osDelay(1);
+		HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 		for (tc=0; tc<(sx*sy); tc++)
 		{
 			col = data[tc];
-			//LCD_write_data16(col>>8, col);
 			setColor(col);
-			LCD_WrData(chKolor666, 3);
+			//LCD_WrData(chKolor666, 3);
+			HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
 		}
+		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+		HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	}
 	else
 	{
 		for (ty=0; ty<sy; ty++)
 		{
 			setXY(x, y+ty, x+sx-1, y+ty);
+			while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+				osDelay(1);
+			HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+			UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+			HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 			for (tx=sx-1; tx>=0; tx--)
 			{
 				col = data[(ty*sx)+tx];
-				//LCD_write_data16(col>>8, col);
 				setColor(col);
-				LCD_WrData(chKolor666, 3);
+				//LCD_WrData(chKolor666, 3);
+				HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
 			}
+			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 		}
 	}
+
 	clrXY();
 }
 #endif

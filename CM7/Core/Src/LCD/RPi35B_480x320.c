@@ -31,16 +31,11 @@ extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern uint8_t chOrient;
 extern uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
 extern uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
-struct _current_font
-{
-	unsigned char* font;
-	unsigned char x_size;
-	unsigned char y_size;
-	unsigned char offset;
-	unsigned char numchars;
-} cfont;
 volatile uint8_t chDMAgotowe;
 
+//#ifdef LCD_RPI35B
+extern struct current_font cfont;
+//#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Konfiguracja wyświetlacza 3.5inch RPi LCD (B) https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(B)
@@ -908,7 +903,7 @@ void drawRoundRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 }
 
 
-
+#ifdef LCD_RPI35B
 ////////////////////////////////////////////////////////////////////////////////
 // pisze znak na miejscu o podanych współrzędnych
 // Parametry: c - znak; x, y - współrzędne
@@ -985,7 +980,7 @@ void printChar(uint8_t c, uint16_t x, uint16_t y)
 	}
 	//clrXY();
 }
-
+#endif
 
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -18,6 +18,7 @@
 extern RTC_HandleTypeDef hrtc;
 extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
+struct current_font cfont;
 extern uint8_t MidFont[];
 extern uint8_t BigFont[];
 extern uint8_t chRysujRaz;

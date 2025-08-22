@@ -70,7 +70,7 @@ uint8_t LCD_write_command8(uint8_t chDane)
 // Parametry: *chDane - wskaźnika na bufor z danymi wysłane
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t LCD_WrData(uint8_t* chDane, uint8_t chIlosc)
+uint8_t LCD_WrData(uint8_t* chDane, uint16_t sIlosc)
 {
 	HAL_StatusTypeDef chErr;
 
@@ -81,12 +81,13 @@ uint8_t LCD_WrData(uint8_t* chDane, uint8_t chIlosc)
 	{
 		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-		chErr = HAL_SPI_Transmit(&hspi5, chDane, chIlosc, HAL_MAX_DELAY);
+		chErr = HAL_SPI_Transmit(&hspi5, chDane, sIlosc, HAL_MAX_DELAY);
 		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 	}
 	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	return chErr;
 }
+
 
 
 ///////////////////////////////////////////////////////////////////////////////

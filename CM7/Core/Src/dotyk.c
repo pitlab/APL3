@@ -81,7 +81,7 @@ uint8_t CzytajDotyk(void)
 		return ERR_OK;
 	statusDotyku.nOstCzasPomiaru = PobierzCzasT6();
 
-	//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI6
+	//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI5
 	nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
 	if (!nStanSemaforaSPI)
 	{

@@ -12,7 +12,7 @@
 
 uint8_t LCD_write_command8(uint8_t chDane);
 uint8_t LCD_write_command16(uint8_t chDane);
-uint8_t LCD_WrData(uint8_t* chDane, uint8_t chIlosc);
+uint8_t LCD_WrData(uint8_t* chDane, uint16_t sIlosc);
 uint8_t LCD_WrDataDMA(uint8_t* chDane, uint16_t sIlosc);
 uint8_t LCD_write_data16(uint8_t chDane1, uint8_t chDane2);
 uint8_t LCD_write_dat_jed8(uint8_t chDane);

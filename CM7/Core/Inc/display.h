@@ -103,6 +103,15 @@
 #define ź	135
 #define ZNAK_STOPIEN	139
 
+typedef struct current_font
+{
+	unsigned char* font;
+	unsigned char x_size;
+	unsigned char y_size;
+	unsigned char offset;
+	unsigned char numchars;
+} current_font_t;
+
 
 //menu obrazkowe na środku ekranu
 typedef struct tmenu
