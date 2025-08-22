@@ -17,12 +17,7 @@ void BelkaTytulu(char* chTytul);
 uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObraz);
 void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sKolor);
 uint8_t RysujHistogramRGB16(uint8_t *histR, uint8_t *histG, uint8_t *histB);
-void setColorRGB(uint8_t r, uint8_t g, uint8_t b);
-void setColor(uint16_t color);
-uint16_t getColor(void);
-void setBackColorRGB(uint8_t r, uint8_t g, uint8_t b);
-void setBackColor(uint16_t color);
-uint16_t getBackColor(void);
+
 
 
 #endif /* INC_RYSUJ_H_ */

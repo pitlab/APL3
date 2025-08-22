@@ -73,7 +73,12 @@ void LCD_Orient(uint8_t orient);
 void LCD_clear(uint16_t kolor);
 void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 void clrXY(void);
-
+void setColorRGB(uint8_t r, uint8_t g, uint8_t b);
+void setColor(uint16_t color);
+uint16_t getColor(void);
+void setBackColorRGB(uint8_t r, uint8_t g, uint8_t b);
+void setBackColor(uint16_t color);
+uint16_t getBackColor(void);
 void LCD_Orient(uint8_t orient);
 void LCD_clear(uint16_t kolor);
 void LCD_ProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t kolor);
@@ -82,6 +87,6 @@ void drawVLine(int16_t x, int16_t y, int16_t len);
 void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 void clrXY(void);
 void drawPixel(uint16_t x, uint16_t y);
-
+void drawBitmap(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* data);
 
 #endif /* INC_LCD_ILI9488_H_ */
