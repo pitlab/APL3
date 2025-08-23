@@ -231,9 +231,9 @@ void setColorRGB(uint8_t r, uint8_t g, uint8_t b)
 ////////////////////////////////////////////////////////////////////////////////
 void setColor(uint16_t sKolor565)
 {
-	chKolor666[0] = (uint8_t)((sKolor565 & 0xF800) >> 11);
-	chKolor666[1] = (uint8_t)((sKolor565 & 0x07E0) >> 5);
-	chKolor666[2] = (uint8_t) (sKolor565 & 0x001F);
+	chKolor666[0] = (uint8_t)((sKolor565 & 0xF800) >> 8);
+	chKolor666[1] = (uint8_t)((sKolor565 & 0x07E0) >> 3);
+	chKolor666[2] = (uint8_t) (sKolor565 & 0x001F) << 3;
 }
 
 
@@ -245,7 +245,7 @@ void setColor(uint16_t sKolor565)
 ////////////////////////////////////////////////////////////////////////////////
 uint16_t getColor(void)
 {
-	return ((uint16_t)(chKolor666[0] & 0xF8)  << 11) + ((uint16_t)(chKolor666[1] & 0xFC) << 5) + (chKolor666[2] & 0xF8);
+	return ((uint16_t)(chKolor666[0] & 0xF8)  << 8) + ((uint16_t)(chKolor666[1] & 0xFC) << 3) + ((chKolor666[2] & 0xF8) >>3);
 }
 
 
@@ -275,9 +275,9 @@ void setBackColor(uint16_t sKolor565)
 		_transparent = 1;
 	else
 	{
-		chTlo666[0] = (uint8_t)((sKolor565 % 0xF800) >> 11);
-		chTlo666[1] = (uint8_t)((sKolor565 & 0x07E0) >> 5);
-		chTlo666[2] = (uint8_t) (sKolor565 & 0x001F);
+		chTlo666[0] = (uint8_t)((sKolor565 & 0xF800) >> 8);
+		chTlo666[1] = (uint8_t)((sKolor565 & 0x07E0) >> 3);
+		chTlo666[2] = (uint8_t) (sKolor565 & 0x001F) << 3;
 		_transparent = 0;
 	}
 }
@@ -291,7 +291,8 @@ void setBackColor(uint16_t sKolor565)
 ////////////////////////////////////////////////////////////////////////////////
 uint16_t getBackColor(void)
 {
-	return ((uint16_t)(chTlo666[0] & 0xF8) << 11) + ((uint16_t)(chTlo666[1] & 0xFC) << 5) + (chTlo666[2] & 0xF8);
+	//return ((uint16_t)(chTlo666[0] & 0xF8) << 11) + ((uint16_t)(chTlo666[1] & 0xFC) << 5) + (chTlo666[2] & 0xF8);
+	return ((uint16_t)(chTlo666[0] & 0xF8)  << 8) + ((uint16_t)(chTlo666[1] & 0xFC) << 3) + ((chTlo666[2] & 0xF8) >>3);
 }
 
 
@@ -363,7 +364,17 @@ void RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 		x -= len;
 	}
 	setXY(x, y, x+len, y);
-	LCD_WrData(chKolor666, 3 * (len + 1));
+
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+		osDelay(1);
+	HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+	for (uint16_t n=0; n<len+1; n++)
+		HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
+	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	//LCD_WrData(chKolor666, 3 * (len + 1));
 	clrXY();
 }
 
@@ -383,7 +394,16 @@ void RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 		y -= len;
 	}
 	setXY(x, y, x, y+len);
-	LCD_WrData(chKolor666, 3 * (len + 1));
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+		osDelay(1);
+	HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+	for (uint16_t n=0; n<len+1; n++)
+		HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
+	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	//LCD_WrData(chKolor666, 3 * (len + 1));
 	clrXY();
 }
 

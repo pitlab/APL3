@@ -74,9 +74,6 @@
 #define MAX_NAPISOW					55	//liczba napisów
 
 
-#define JEZYK_POLSKI
-#ifdef JEZYK_POLSKI
-
 
 
 //definicje komunikatów o błędach
@@ -90,5 +87,4 @@
 
 
 
-#endif //JEZYK_POLSKI
 #endif /* INC_NAPISY_H_ */

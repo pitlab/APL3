@@ -260,19 +260,16 @@ uint8_t KalibrujDotyk(void)
 	}
 
 	sKolor = getColor();	//zapamiętaj kolor
-	setColor(RED);
-	sprintf(chNapis, "Dotyk ADC:");
-	RysujNapis(chNapis, 80, 140);
 
 	setColor(YELLOW);
-	sprintf(chNapis, "X=%3d ", statusDotyku.sAdc[0]);
+	sprintf(chNapis, "Dotyk ADC:");
+	RysujNapis(chNapis, 80, 140);
+	sprintf(chNapis, "X = %d   ", statusDotyku.sAdc[0]);
 	RysujNapis(chNapis, 80, 160);
-	sprintf(chNapis, "Y=%d  ", statusDotyku.sAdc[1]);
+	sprintf(chNapis, "Y = %d   ", statusDotyku.sAdc[1]);
 	RysujNapis(chNapis, 80, 180);
-	sprintf(chNapis, "Z1=%d   ", statusDotyku.sAdc[2]);
+	sprintf(chNapis, "Z = %d   ", statusDotyku.sAdc[2]);
 	RysujNapis(chNapis, 80, 200);
-	//sprintf(chNapis, "Z2=%d ", statusDotyku.sAdc[3]);
-	//RysujNapis(chNapis, 80, 220);
 	setColor(sKolor);	//przywróć kolor
 	return chErr;
 }

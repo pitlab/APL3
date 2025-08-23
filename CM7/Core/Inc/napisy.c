@@ -1,11 +1,17 @@
-/*
- * napisy.c
- *
- *  Created on: Aug 23, 2025
- *      Author: PitLab
- */
+//////////////////////////////////////////////////////////////////////////////
+//
+// Zestaw napisów wyświetlanych na LCD
+//
+//
+// (c) PitLab 2025
+// http://www.pitlab.pl
+//////////////////////////////////////////////////////////////////////////////
 
 #include "napisy.h"
+
+
+#define JEZYK_POLSKI
+#ifdef JEZYK_POLSKI
 
 
 const char *chNapisLcd[MAX_NAPISOW]  = {
@@ -78,3 +84,5 @@ const char *chOpisBledow[MAX_KOMUNIKATOW] = {
 };
 
 const char *chNazwyMies3Lit[13]  = {"---", "Sty","Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paz", "Lis", "Gru"};
+
+#endif //JEZYK_POLSKI

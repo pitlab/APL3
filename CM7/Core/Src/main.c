@@ -321,13 +321,19 @@ Error_Handler();
   //chErr |= InicjujFlashQSPI();
   chErr |= InicjujKonfigFlash();
   chErr1 = InicjujDotyk();
-  //if (chErr1 != ERR_BRAK_DANYCH)		//wyświetlacz inicjalizuj tylko gdy wykryto sterownik panelu dotykowego
-	  //chErr |= InicjujLCD_35B_16bit();
+  if (chErr1 != ERR_BRAK_DANYCH)		//wyświetlacz inicjalizuj tylko gdy wykryto sterownik panelu dotykowego
+#ifdef LCD_RPI35B
+	  chErr |= InicjujLCD_35B_16bit();
+#endif
+#ifdef LCD_RPI35C
 	  //chErr |= InicjujLCD_35C_16bit();
-  	  //chErr |= InicjujLCD_35C_8bit();
+  	  chErr |= InicjujLCD_35C_8bit();
+#endif
+#ifdef LCD_ILI9488
 	  chErr = InicjujLCD_ILI9488();
-  //else
-	//  chErr |= chErr1;
+#endif
+  else
+	  chErr |= chErr1;
 
   chErr |= InicjujProtokol();
   chErr |= InicjujAudio();
