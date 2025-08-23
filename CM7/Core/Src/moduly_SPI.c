@@ -32,10 +32,10 @@ uint8_t InicjujSPIModZewn(void)
 	HAL_StatusTypeDef Err;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
-	//Ponieważ zegar SPI = 100MHz a układ może pracować z prędkością max 10MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 16 => 6,25MHz
+	//Ponieważ zegar SPI = 50MHz a układ może pracować z prędkością max 10MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 8 => 6,25MHz
 	nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
 	hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
-	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_16;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/16
+	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_8;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/16
 
 	dane_wysylane[0] = SPI_EXTIO_0;	//teraz komunikacja z U41
 
@@ -273,10 +273,10 @@ uint8_t WymienDaneExpanderow(void)
 	HAL_StatusTypeDef chErr;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
-	//Ponieważ zegar SPI = 100MHz a układ może pracować z prędkością max 10MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 16 => 6,25MHz
+	//Ponieważ zegar SPI = 50MHz a układ może pracować z prędkością max 10MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 8 => 6,25MHz
 	nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
 	hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
-	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_16;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/16
+	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_8;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/16
 
 	//ustaw bieżący stan LED-ów
 	if (chCzasSwieceniaLED[LED_CZER])

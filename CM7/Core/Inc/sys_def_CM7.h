@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	259		//numer commitu w repozytorium
+#define WER_REPO	261		//numer commitu w repozytorium
 #define LCD_ILI9488
 //#define LCD_RPI35B
 

@@ -7,12 +7,14 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <RPi35B_480x320.h>
+//#include <RPi35B_480x320.h>
 #include "rysuj.h"
 #include <string.h>
 #include <stdio.h>
 #include "dotyk.h"
 #include "audio.h"
+#include <RPi35B_480x320.h>
+#include <ili9488.h>
 
 //deklaracje zmiennych
 extern RTC_HandleTypeDef hrtc;
@@ -27,7 +29,7 @@ extern struct _statusDotyku statusDotyku;
 extern uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
 static uint8_t chOstatniCzas;
 uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
-uint8_t chOrient;
+uint8_t chOrientacja;
 uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
 uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
 
@@ -53,11 +55,11 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		//rysuje pasek podpowiedzi na dole ekranu
 		//setColor(GRAY20);
 		//fillRect(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, DISP_Y_SIZE);
-		LCD_ProstokatWypelniony(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, GRAY20);
+		RysujProstokatWypelniony(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, GRAY20);
 		setBackColor(BLACK);
 
 		//rysuj ikony poleceń
-		setFont(MidFont);
+		UstawCzcionke(MidFont);
 		for (m=0; m<MENU_WIERSZE; m++)
 		{
 			for (n=0; n<MENU_KOLUMNY; n++)
@@ -67,12 +69,12 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 				y = ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / (2*MENU_WIERSZE)) + m * ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
 
 				setColor(MENU_TLO_NAK);
-				drawBitmap(x-MENU_ICO_WYS/2, y-MENU_ICO_DLG/2, MENU_ICO_DLG, MENU_ICO_WYS, menu[m*MENU_KOLUMNY+n].sIkona);
+				RysujBitmape(x-MENU_ICO_WYS/2, y-MENU_ICO_DLG/2, MENU_ICO_DLG, MENU_ICO_WYS, menu[m*MENU_KOLUMNY+n].sIkona);
 
 				setColor(GRAY60);
 				x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
 				strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
-				print(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
+				RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 			}
 		}
 	}
@@ -107,17 +109,17 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 						x = (DISP_X_SIZE /(2*MENU_KOLUMNY)) + n * (DISP_X_SIZE / MENU_KOLUMNY);
 						y = ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / (2*MENU_WIERSZE)) + m * ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
 						setColor(BLACK);
-						drawRoundRect(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
+						RysujProstokatZaokraglony(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
 						setColor(GRAY60);
 						x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
 						strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
-						print(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
+						RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 					}
 				}
 			}
 			//setColor(GRAY20);
 			//fillRect(0, DISP_X_SIZE-MENU_PASOP_WYS, DISP_Y_SIZE, DISP_X_SIZE);		//zamaż pasek podpowiedzi
-			LCD_ProstokatWypelniony(0, DISP_Y_SIZE-MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, GRAY20);		//zamaż pasek podpowiedzi
+			RysujProstokatWypelniony(0, DISP_Y_SIZE-MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, GRAY20);		//zamaż pasek podpowiedzi
 
 		}
 
@@ -135,11 +137,11 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 						setColor(MENU_RAM_WYB);
 					else
 						setColor(MENU_RAM_AKT);
-					drawRoundRect(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
+					RysujProstokatZaokraglony(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
 					setColor(GRAY80);
 					x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
 					strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
-					print(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
+					RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 				}
 			}
 		}
@@ -149,7 +151,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 			setColor(MENU_RAM_AKT);
 			setBackColor(GRAY20);
 			strcpy(chNapis, menu[chMenuSelPos].chPomoc);
-			print(chNapis, DW_SPACE, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+			RysujNapis(chNapis, DW_SPACE, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 			setBackColor(BLACK);
 			chRysujRaz = 0;
 		}
@@ -173,7 +175,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		setColor(GRAY50);
 		setColor(MENU_RAM_AKT);
 		sprintf(chNapis, "%02d:%02d:%02d", sTime.Hours,  sTime.Minutes,  sTime.Seconds);
-		print(chNapis, DISP_X_SIZE - 9*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+		RysujNapis(chNapis, DISP_X_SIZE - 9*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		chOstatniCzas = sTime.Seconds;
 	}
 }
@@ -190,15 +192,15 @@ void BelkaTytulu(char* chTytul)
 {
 	extern const unsigned short pitlab_logo18[];
 
-	LCD_ProstokatWypelniony(18, 0, DISP_X_SIZE, MENU_NAG_WYS, MENU_TLO_BAR);
-	drawBitmap(0, 0, 18, 18, pitlab_logo18);	//logo PitLab
+	RysujProstokatWypelniony(18, 0, DISP_X_SIZE, MENU_NAG_WYS, MENU_TLO_BAR);
+	RysujBitmape(0, 0, 18, 18, pitlab_logo18);	//logo PitLab
 	setColor(YELLOW);
 	setBackColor(MENU_TLO_BAR);
-	setFont(BigFont);
-	print(chTytul, CENTER, UP_SPACE);
+	UstawCzcionke(BigFont);
+	RysujNapis(chTytul, CENTER, UP_SPACE);
 	setBackColor(BLACK);
 	setColor(WHITE);
-	setFont(MidFont);
+	UstawCzcionke(MidFont);
 }
 
 
@@ -219,7 +221,7 @@ uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObra
 		sSzerokosc = DISP_X_SIZE;
 	if (sWysokosc > DISP_Y_SIZE)
 		sWysokosc = DISP_Y_SIZE;
-	drawBitmap(0, 0, sSzerokosc, sWysokosc, sObraz);
+	RysujBitmape(0, 0, sSzerokosc, sWysokosc, sObraz);
 	return chErr;
 }
 
@@ -235,13 +237,13 @@ uint8_t RysujHistogramRGB16(uint8_t *histR, uint8_t *histG, uint8_t *histB)
 	uint8_t chErr = ERR_OK;
 
 	for (uint8_t x=0; x<32; x++)
-		LCD_ProstokatWypelniony(x*2, DISP_Y_SIZE - *(histR+x), 2, *(histR+x), RED);
+		RysujProstokatWypelniony(x*2, DISP_Y_SIZE - *(histR+x), 2, *(histR+x), RED);
 
 	for (uint8_t x=0; x<64; x++)
-		LCD_ProstokatWypelniony(x*2+64, DISP_Y_SIZE - *(histG+x), 2, *(histG+x), GREEN);
+		RysujProstokatWypelniony(x*2+64, DISP_Y_SIZE - *(histG+x), 2, *(histG+x), GREEN);
 
 	for (uint8_t x=0; x<32; x++)
-		LCD_ProstokatWypelniony(x*2+192, DISP_Y_SIZE - *(histB+x), 2, *(histB+x), BLUE);
+		RysujProstokatWypelniony(x*2+192, DISP_Y_SIZE - *(histB+x), 2, *(histB+x), BLUE);
 	return chErr;
 }
 
@@ -285,3 +287,212 @@ void HSV2RGB(float hue, float sat, float val, float *red, float *grn, float *blu
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// rysuj prostokąt o współrzędnych x1,y1, x2,y2 we wcześniej zdefiniowanym kolorze
+// Parametry: x, y - współrzędne
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujProstokat(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
+{
+	int nTemp;
+
+	if (x1>x2)
+	{
+		nTemp = x1;
+		x1 = x2;
+		x2 = nTemp;
+	}
+	if (y1>y2)
+	{
+		nTemp = y1;
+		y1 = y2;
+		y2 = nTemp;
+	}
+
+	RysujLiniePozioma(x1, y1, x2-x1);
+	RysujLiniePozioma(x1, y2, x2-x1);
+	RysujLiniePionowa(x1, y1, y2-y1);
+	RysujLiniePionowa(x2, y1, y2-y1);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// rysuj zaokrąglony prostokąt o współprzędnych (x1,y1), (x2,y2) we wcześniej zdefiniowanym kolorze
+// Parametry: x, y - współrzędne krawędzi
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujProstokatZaokraglony(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
+{
+	uint16_t nTemp;
+
+	if (x1>x2)
+	{
+		nTemp = x1;
+		x1 = x2;
+		x2 = nTemp;
+	}
+	if (y1>y2)
+	{
+		nTemp = y1;
+		y1 = y2;
+		y2 = nTemp;
+	}
+	if ((x2-x1)>4 && (y2-y1)>4)
+	{
+		drawPixel(x1+1,y1+1);
+		drawPixel(x2-1,y1+1);
+		drawPixel(x1+1,y2-1);
+		drawPixel(x2-1,y2-1);
+		RysujLiniePozioma(x1+2, y1, x2-x1-4);
+		RysujLiniePozioma(x1+2, y2, x2-x1-4);
+		RysujLiniePionowa(x1, y1+2, y2-y1-4);
+		RysujLiniePionowa(x2, y1+2, y2-y1-4);
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// ustawia aktualną czcionkę
+// Parametry: *chCzcionka - wskaźnik na tablicę znaków z nagłówkiem identyfikującym czcionkę
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void UstawCzcionke(uint8_t* chCzcionka)
+{
+	cfont.font = chCzcionka;
+	cfont.x_size = *(chCzcionka + 0);
+	cfont.y_size = *(chCzcionka + 1);
+	cfont.offset = *(chCzcionka + 2);
+	cfont.numchars = *(chCzcionka + 3);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pobiera szerokość aktualnej czcionki
+// Parametry: nic
+// Zwraca: szerokość znaku
+////////////////////////////////////////////////////////////////////////////////
+uint8_t GetFontX(void)
+{
+	return cfont.x_size;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pobiera wysokość aktualnej czcionki
+// Parametry: nic
+// Zwraca: wysokość znaku
+////////////////////////////////////////////////////////////////////////////////
+uint8_t GetFontY(void)
+{
+	return cfont.y_size;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// pisze napis na miejscu o podanych współrzędnych
+// Parametry:
+// *st - ciąg do wypisania
+//  x, y - współrzędne
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujNapis(char *str, uint16_t x, uint16_t y)
+{
+	int stl;
+
+	stl = strlen((char*)str);
+
+	if (chOrientacja == POZIOMO)
+	{
+	if (x == RIGHT)
+		x = (DISP_X_SIZE+1)-(stl*cfont.x_size);
+	if (x == CENTER)
+		x = ((DISP_X_SIZE+1)-(stl*cfont.x_size))/2;
+	}
+	else	//wersja dla pionowego układu ekranu
+	{
+	if (x == RIGHT)
+		x = (DISP_VX_SIZE+1)-(stl*cfont.x_size);
+	if (x == CENTER)
+		x = ((DISP_VX_SIZE+1)-(stl*cfont.x_size))/2;
+	}
+
+	for (uint16_t i=0; i<stl; i++)
+		RysujZnak(*str++, x + (i*(cfont.x_size)), y);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// pisze zawijający się napis w ramce o podanych współrzędnych
+// Parametry:
+// *st - ciąg do wypisania
+//  x, y - współrzędne
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujNapiswRamce(char *str, uint16_t x, uint16_t y, uint16_t sx, uint16_t sy)
+{
+	int dlugoscNapisu, dlugoscWiersza;
+
+	dlugoscNapisu = strlen((char*)str);
+
+	do
+	{
+		if ((dlugoscNapisu * cfont.x_size) > sx)	//czy napis dłuższy niż szerokość ramki
+		{
+			//znajdź spację czyli miejsce do złamania napisu zaczynając od ostatniego znaku mieszcząceogo się w ramce
+			for (uint16_t n = sx / cfont.x_size; n > 0; n--)
+			{
+				if (*(str+n) == ' ')
+				{
+					dlugoscWiersza = n;
+					break;
+				}
+			}
+		}
+		else
+			dlugoscWiersza = dlugoscNapisu;
+
+
+		//if (chOrientacja == POZIOMO)		//na razie obsługuję tylko poziomo
+		{
+			if (x == RIGHT)
+				x = (DISP_X_SIZE - sx + 1) - (dlugoscWiersza * cfont.x_size);
+			if (x == CENTER)
+				x = ((DISP_X_SIZE - sx) / 2)  + (sx - (dlugoscWiersza * cfont.x_size)) / 2;
+		}
+		for (uint16_t i=0; i<dlugoscWiersza; i++)
+			RysujZnak(*str++, x + (i*(cfont.x_size)), y);
+
+		dlugoscNapisu -= dlugoscWiersza;
+		y += cfont.y_size;
+	} 	while  (dlugoscNapisu && (y < (y + sy)));
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// rysuje koło
+// Parametry:
+//  x, y - współrzdne środka
+//  radius - promień
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujKolo(uint16_t x, uint16_t y, uint16_t promien)
+{
+	int16_t y1, x1;
+
+	for(y1=-promien; y1<=0; y1++)
+		for(x1=-promien; x1<=0; x1++)
+			if(x1*x1+y1*y1 <= promien*promien)
+			{
+				RysujLiniePozioma(x+x1, y+y1, 2*(-x1));
+				RysujLiniePozioma(x+x1, y-y1, 2*(-x1));
+				break;
+			}
+}

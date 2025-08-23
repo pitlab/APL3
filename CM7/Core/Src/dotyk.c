@@ -1,12 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// Moduł obsługi sterownika ekranu dotykowego na układzie ADS7846
+// Moduł obsługi sterownika ekranu dotykowego na układzie ADS7846 lub XPT2046
 //
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <RPi35B_480x320.h>
 #include "dotyk.h"
+#include <rysuj.h>
+#include <ili9488.h>
+#include <RPi35B_480x320.h>
 #include "moduly_SPI.h"
 #include "errcode.h"
 #include "LCD.h"
@@ -17,6 +19,7 @@
 #include "flash_konfig.h"
 #include "semafory.h"
 #include "czas.h"
+#include "napisy.h"
 
 //deklaracje zmiennych
 extern SPI_HandleTypeDef hspi5;
@@ -31,6 +34,7 @@ uint8_t chLicznikDotkniec;
 //deklaracje zmiennych
 extern uint8_t MidFont[];
 extern char chNapis[50];
+extern const char *chNapisLcd[];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Czyta dane ze sterownika ekranu dotykowego
@@ -159,14 +163,17 @@ uint8_t KalibrujDotyk(void)
 	{
 	case 0:	//inicjalizacja zmiennych
 		//LCD_Orient(POZIOMO);
-		LCD_clear(BLACK);
+		WypelnijEkran(BLACK);
 		//TestObliczenKalibracji();		//testowo sprawdzenie poprawności obliczeń
 		setColor(WHITE);
-		setFont(MidFont);
-		sprintf(chNapis, "Dotknij krzyzyk aby");
-		print(chNapis, CENTER, 60);
+		UstawCzcionke(MidFont);
+		/*sprintf(chNapis, "Dotknij krzyzyk aby");
+		RysujNapis(chNapis, CENTER, 60);
 		sprintf(chNapis, "skalibrowac ekran dotykowy");
-		print(chNapis, CENTER, 80);
+		RysujNapis(chNapis, CENTER, 80);*/
+
+		//RysujNapiswRamce((char*)chNapisLcd[STR_DOTKNIJ_ABY_SKALIBROWAC], 0, 60, DISP_X_SIZE, 20);
+		RysujNapis((char*)chNapisLcd[STR_DOTKNIJ_ABY_SKALIBROWAC], CENTER, 70);
 		statusDotyku.chFlagi = 0;
 		chEtapKalibr++;
 		break;
@@ -238,7 +245,7 @@ uint8_t KalibrujDotyk(void)
 				if (chErr == ERR_OK)
 					statusDotyku.chFlagi |= DOTYK_ZAPISANO;
 				chEtapKalibr = 0;
-				LCD_clear(BLACK);
+				WypelnijEkran(BLACK);
 				return ERR_GOTOWE;	//kod wyjścia z procedury kalibracji
 			}
 			statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
@@ -248,24 +255,24 @@ uint8_t KalibrujDotyk(void)
 	//rysuj krzyżyk kalibracyjny dla etapów większych niż 0
 	if (chEtapKalibr)
 	{
-		drawHLine(sXe[chEtapKalibr-1] - KRZYZ/2, sYe[chEtapKalibr-1], KRZYZ);
-		drawVLine(sXe[chEtapKalibr-1], sYe[chEtapKalibr-1] - KRZYZ/2, KRZYZ);
+		RysujLiniePozioma(sXe[chEtapKalibr-1] - KRZYZ/2, sYe[chEtapKalibr-1], KRZYZ);
+		RysujLiniePionowa(sXe[chEtapKalibr-1], sYe[chEtapKalibr-1] - KRZYZ/2, KRZYZ);
 	}
 
 	sKolor = getColor();	//zapamiętaj kolor
 	setColor(RED);
 	sprintf(chNapis, "Dotyk ADC:");
-	print(chNapis, 80, 140);
+	RysujNapis(chNapis, 80, 140);
 
 	setColor(YELLOW);
 	sprintf(chNapis, "X=%3d ", statusDotyku.sAdc[0]);
-	print(chNapis, 80, 160);
+	RysujNapis(chNapis, 80, 160);
 	sprintf(chNapis, "Y=%d  ", statusDotyku.sAdc[1]);
-	print(chNapis, 80, 180);
+	RysujNapis(chNapis, 80, 180);
 	sprintf(chNapis, "Z1=%d   ", statusDotyku.sAdc[2]);
-	print(chNapis, 80, 200);
+	RysujNapis(chNapis, 80, 200);
 	//sprintf(chNapis, "Z2=%d ", statusDotyku.sAdc[3]);
-	//print(chNapis, 80, 220);
+	//RysujNapis(chNapis, 80, 220);
 	setColor(sKolor);	//przywróć kolor
 	return chErr;
 }
@@ -472,29 +479,29 @@ uint8_t TestDotyku(void)
 		chRysujRaz = 0;
 		setColor(GRAY40);
 		sprintf(chNapis, "Test kalibracji");
-		print(chNapis, CENTER, 60);
+		RysujNapis(chNapis, CENTER, 60);
 		setColor(GRAY50);
 		sprintf(chNapis, "Nacisnij ekran 6 razy aby zakonczyc");
-		print(chNapis, CENTER, 80);
+		RysujNapis(chNapis, CENTER, 80);
 	}
 
 	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)		//jeżeli był dotknięty
 	{
 		setColor(WHITE);
-		drawHLine(statusDotyku.sX - KRZYZ/2, statusDotyku.sY, KRZYZ);
-		drawVLine(statusDotyku.sX, statusDotyku.sY - KRZYZ/2, KRZYZ);
+		RysujLiniePozioma(statusDotyku.sX - KRZYZ/2, statusDotyku.sY, KRZYZ);
+		RysujLiniePionowa(statusDotyku.sX, statusDotyku.sY - KRZYZ/2, KRZYZ);
 
 
 		//setColor(RED);
 		setColor(YELLOW);
 		sprintf(chNapis, "Dotyk @ (%d, %d) = %d ", statusDotyku.sX, statusDotyku.sY, statusDotyku.sAdc[2]);
-		print(chNapis, 80, 140);
+		RysujNapis(chNapis, 80, 140);
 
 		setColor(sKolor);	//przywróć kolor
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 		if (chLicznikDotkniec++ == 6)		//gdy licznik dotknięć doliczy do zadanej wartosci wtedy zakończ test
 		{
-			LCD_clear(BLACK);
+			WypelnijEkran(BLACK);
 			chLicznikDotkniec = 0;
 			return ERR_GOTOWE;
 		}

@@ -22,7 +22,7 @@
 extern SPI_HandleTypeDef hspi5;
 extern uint8_t chRysujRaz;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
-extern uint8_t chOrient;
+extern uint8_t chOrientacja;
 extern uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
 extern struct current_font cfont;
 uint8_t chKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
@@ -72,7 +72,7 @@ uint8_t InicjujLCD_ILI9488(void)
 	LCD_write_command8(ILI9488_VMCTR1);   //Power Control 3
 	LCD_WrData((uint8_t *)"\x00\x12\x80", 3);	//Vcom
 
-	LCD_Orient(POZIOMO);
+	OrientacjaEkranu(POZIOMO);
 
 	LCD_write_command8(ILI9488_PIXFMT);	// Interface Pixel Format
 	LCD_write_dat_jed8(0x66);	//18 bit/*
@@ -118,10 +118,10 @@ uint8_t InicjujLCD_ILI9488(void)
 #ifdef LCD_ILI9488
 ////////////////////////////////////////////////////////////////////////////////
 // ustawia orientację ekranu
-// Parametry: orient - orientacja
+// Parametry: orientacja - orientacja ekranu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_Orient(uint8_t orient)
+void OrientacjaEkranu(uint8_t orientacja)
 {
 	/*uint8_t chDane[8];
 
@@ -130,7 +130,7 @@ void LCD_Orient(uint8_t orient)
 
 
 	LCD_write_command8(0x36); // Memory Access Control
-	if (orient)	//PIONOWO
+	if (orientacja)	//PIONOWO
 	{
 		LCD_write_dat_jed8(
 			(0<<2)|	//MH Horizontal Refresh ORDER
@@ -150,18 +150,18 @@ void LCD_Orient(uint8_t orient)
 			(1<<6)|	//MX Column Address Order
 			(1<<7));	//MY Row Address Order
 	}
-	chOrient = orient;
+	chOrientacja = orientacja;
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Zapełnij cały ekran kolorem
-// Parametry: nic
+// Parametry: sKolor565 - kolor w formacie RGB 5-6-5
 // Zwraca: nic
 // Czas czyszczenia ekranu: 378ms @25MHz
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_clear(uint16_t sKolor565)
+void WypelnijEkran(uint16_t sKolor565)
 {
 	uint8_t chDane[12];
 
@@ -216,25 +216,24 @@ void LCD_clear(uint16_t sKolor565)
 ////////////////////////////////////////////////////////////////////////////////
 void setColorRGB(uint8_t r, uint8_t g, uint8_t b)
 {
-	//fch = ((r & 0xF8) | g>>5);
-	//fcl = ((g & 0x1C)<<3 | b>>3);
-	chKolor666[0] = r | 0x80;	//najstarszy bit jest zawsze 1
-	chKolor666[1] = g | 0x80;
-	chKolor666[2] = b | 0x80;
+	chKolor666[0] = r;
+	chKolor666[1] = g;
+	chKolor666[2] = b;
 }
+
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ustawia kolor rysowania jako natywny dla wyświetlacza konwertując RGB 5-6-5 na RGB 6-6-6
-// Parametry: color - kolor
+// Parametry: sKolor565 - kolor w formacie RGB 5-6-5
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void setColor(uint16_t color)
+void setColor(uint16_t sKolor565)
 {
-	chKolor666[0] = (uint8_t)((color % 0xF800) >> 10)| 0x80;
-	chKolor666[1] = (uint8_t)((color & 0x07E0) >> 5) | 0x80;
-	chKolor666[2] = (uint8_t)((color & 0x001F) << 1) | 0x80;
+	chKolor666[0] = (uint8_t)((sKolor565 & 0xF800) >> 11);
+	chKolor666[1] = (uint8_t)((sKolor565 & 0x07E0) >> 5);
+	chKolor666[2] = (uint8_t) (sKolor565 & 0x001F);
 }
 
 
@@ -246,7 +245,7 @@ void setColor(uint16_t color)
 ////////////////////////////////////////////////////////////////////////////////
 uint16_t getColor(void)
 {
-	return ((uint16_t)((chKolor666[0] & 0x7C) << 1) << 11) + ((uint16_t)((chKolor666[1] & 0x7E) << 1) << 5) + ((chKolor666[2] & 0x7C) << 1);
+	return ((uint16_t)(chKolor666[0] & 0xF8)  << 11) + ((uint16_t)(chKolor666[1] & 0xFC) << 5) + (chKolor666[2] & 0xF8);
 }
 
 
@@ -258,27 +257,27 @@ uint16_t getColor(void)
 ////////////////////////////////////////////////////////////////////////////////
 void setBackColorRGB(uint8_t r, uint8_t g, uint8_t b)
 {
-	chTlo666[0] = r | 0x80;	//najstarszy bit jest zawsze 1
-	chTlo666[1] = g | 0x80;
-	chTlo666[2] = b | 0x80;
+	chTlo666[0] = r;
+	chTlo666[1] = g;
+	chTlo666[2] = b;
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ustawia kolor tła jako natywny dla wyświetlacza 5R+6G+5B
-// Parametry: color - kolor
+// Parametry: sKolor565 - kolor w formacie RGB 5-6-5
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void setBackColor(uint16_t color)
+void setBackColor(uint16_t sKolor565)
 {
-	if (color == TRANSPARENT)
+	if (sKolor565 == TRANSPARENT)
 		_transparent = 1;
 	else
 	{
-		chTlo666[0] = (uint8_t)((color % 0xF800) >> 10)| 0x80;
-		chTlo666[1] = (uint8_t)((color & 0x07E0) >> 5) | 0x80;
-		chTlo666[2] = (uint8_t)((color & 0x001F) << 1) | 0x80;
+		chTlo666[0] = (uint8_t)((sKolor565 % 0xF800) >> 11);
+		chTlo666[1] = (uint8_t)((sKolor565 & 0x07E0) >> 5);
+		chTlo666[2] = (uint8_t) (sKolor565 & 0x001F);
 		_transparent = 0;
 	}
 }
@@ -292,7 +291,7 @@ void setBackColor(uint16_t color)
 ////////////////////////////////////////////////////////////////////////////////
 uint16_t getBackColor(void)
 {
-	return ((uint16_t)((chTlo666[0] & 0x7C) << 1) << 11) + ((uint16_t)((chTlo666[1] & 0x7E) << 1) << 5) + ((chTlo666[2] & 0x7C) << 1);
+	return ((uint16_t)(chTlo666[0] & 0xF8) << 11) + ((uint16_t)(chTlo666[1] & 0xFC) << 5) + (chTlo666[2] & 0xF8);
 }
 
 
@@ -300,10 +299,11 @@ uint16_t getBackColor(void)
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuj prostokąt wypełniony kolorem
 // Parametry:
+//  sKolor565 - kolor w formacie RGB 5-6-5
 // Zwraca: nic
 // Czas rysowania pełnego ekranu: 372ms @25MHz
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_ProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t kolor)
+void RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t sKolor565)
 {
 	uint16_t i, j, k;
 	uint8_t n, dane[12];
@@ -322,7 +322,7 @@ void LCD_ProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzero
 	dane[3] =  sStartY + sWysokosc - 1;
 	LCD_WrData(dane, 4);
 
-	setColor(kolor);
+	setColor(sKolor565);
 	LCD_write_command8(ILI9488_RAMWR);	//Memory Write
 	for(n=0; n<4; n++)
 	{
@@ -355,19 +355,14 @@ void LCD_ProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzero
 // len - długośc linii
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void drawHLine(int16_t x, int16_t y, int16_t len)
+void RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 {
-	//int i;
-
 	if (len < 0)
 	{
 		len = -len;
 		x -= len;
 	}
 	setXY(x, y, x+len, y);
-
-	//for (i=0; i<len+1; i++)
-		//LCD_WrData(chKolor666, 3);
 	LCD_WrData(chKolor666, 3 * (len + 1));
 	clrXY();
 }
@@ -380,20 +375,77 @@ void drawHLine(int16_t x, int16_t y, int16_t len)
 // len - długość linii
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void drawVLine(int16_t x, int16_t y, int16_t len)
+void RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 {
-	//int i;
-
 	if (len < 0)
 	{
 		len = -len;
 		y -= len;
 	}
 	setXY(x, y, x, y+len);
-
-	//for (i=0; i<len+1; i++)
-		//LCD_WrData(chKolor666, 3);
 	LCD_WrData(chKolor666, 3 * (len + 1));
+	clrXY();
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// rysuj linię o współrzędnych x1,y1, x2,y3 we wcześniej zdefiniowanym kolorze
+// Parametry: x, y - współrzędne
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
+{
+	if (y1==y2)
+		RysujLiniePozioma(x1, y1, x2-x1);
+	else if (x1==x2)
+		RysujLiniePionowa(x1, y1, y2-y1);
+	else
+	{
+		uint16_t	dx = (x2 > x1 ? x2 - x1 : x1 - x2);
+		int16_t		xstep =  x2 > x1 ? 1 : -1;
+		uint16_t	dy = (y2 > y1 ? y2 - y1 : y1 - y2);
+		int16_t		ystep =  y2 > y1 ? 1 : -1;
+		int16_t	col = x1, row = y1;
+
+		if (dx < dy)
+		{
+			int16_t t = - (dy >> 1);
+			while (1)
+			{
+				setXY (col, row, col, row);
+				LCD_WrData(chKolor666, 3);
+
+				if (row == y2)
+					return;
+				row += ystep;
+				t += dx;
+				if (t >= 0)
+				{
+					col += xstep;
+					t   -= dy;
+				}
+			}
+		}
+		else
+		{
+			int16_t t = - (dx >> 1);
+			while (1)
+			{
+				setXY (col, row, col, row);
+				LCD_WrData(chKolor666, 3);
+				if (col == x2)
+					return;
+				col += xstep;
+				t += dy;
+				if (t >= 0)
+				{
+					row += ystep;
+					t   -= dx;
+				}
+			}
+		}
+	}
 	clrXY();
 }
 
@@ -411,7 +463,7 @@ void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 	uint16_t sTemp;
 	uint8_t dane[4];
 
-	if (chOrient == PIONOWO)
+	if (chOrientacja == PIONOWO)
 	{
 		sTemp = x1;
 		x1 = y1;
@@ -452,7 +504,7 @@ void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 ////////////////////////////////////////////////////////////////////////////////
 void clrXY(void)
 {
-	if (chOrient == PIONOWO)
+	if (chOrientacja == PIONOWO)
 		setXY(0, 0, DISP_X_SIZE, DISP_Y_SIZE);
 	else
 		setXY(0, 0, DISP_Y_SIZE, DISP_X_SIZE);
@@ -478,7 +530,7 @@ void drawPixel(uint16_t x, uint16_t y)
 // Parametry: c - znak; x, y - współrzędne
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void printChar(uint8_t c, uint16_t x, uint16_t y)
+void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 {
 	uint8_t i, ch;
 	uint16_t j;
@@ -487,9 +539,15 @@ void printChar(uint8_t c, uint16_t x, uint16_t y)
 
 	if (!_transparent)
 	{
-		if (chOrient == POZIOMO)
+		if (chOrientacja == POZIOMO)
 		{
 			setXY(x, y, x + cfont.x_size - 1, y + cfont.y_size -  1);
+			while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+				osDelay(1);
+			HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+			UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+			HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+
 
 			temp=((c - cfont.offset) * ((cfont.x_size / 8) * cfont.y_size)) + 4;
 			for(j=0; j<((cfont.x_size / 8) * cfont.y_size); j++)
@@ -498,14 +556,16 @@ void printChar(uint8_t c, uint16_t x, uint16_t y)
 				for(i=0; i<8; i++)
 				{
 					if ((ch&(1<<(7-i))) != 0)
-						//LCD_write_data16(fch, fcl);
-						LCD_WrData(chKolor666, 3);
+						//LCD_WrData(chKolor666, 3);
+						HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
 					else
-						//LCD_write_data16(bch, bcl);
-						LCD_WrData(chTlo666, 3);
+						//LCD_WrData(chTlo666, 3);
+						HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_MAX_DELAY);
 				}
 				temp++;
 			}
+			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 		}
 		else
 		{
@@ -514,19 +574,26 @@ void printChar(uint8_t c, uint16_t x, uint16_t y)
 			for(j=0;j<((cfont.x_size/8)*cfont.y_size);j+=(cfont.x_size/8))
 			{
 				setXY(x,y+(j/(cfont.x_size/8)),x+cfont.x_size-1,y+(j/(cfont.x_size/8)));
+				while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+					osDelay(1);
+				HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+				UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+				HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 				for (zz=(cfont.x_size/8)-1; zz>=0; zz--)
 				{
 					ch=cfont.font[temp+zz];
 					for(i=0;i<8;i++)
 					{
 						if((ch&(1<<i))!=0)
-							//LCD_write_data16(fch, fcl);
-							LCD_WrData(chKolor666, 3);
+							//LCD_WrData(chKolor666, 3);
+							HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
 						else
-							//LCD_write_data16(bch, bcl);
-							LCD_WrData(chTlo666, 3);
+							//LCD_WrData(chTlo666, 3);
+							HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_MAX_DELAY);
 					}
 				}
+				UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+				HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 				temp+=(cfont.x_size/8);
 			}
 		}
@@ -544,7 +611,6 @@ void printChar(uint8_t c, uint16_t x, uint16_t y)
 					if((ch&(1<<(7-i)))!=0)
 					{
 						setXY(x+i+(zz*8),y+j,x+i+(zz*8)+1,y+j+1);
-						//LCD_write_data16(fch, fcl);
 						LCD_WrData(chKolor666, 3);
 					}
 				}
@@ -564,14 +630,12 @@ void printChar(uint8_t c, uint16_t x, uint16_t y)
 //  sx, sy - rozmiar bitmapy
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void drawBitmap(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* data)
+void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* obraz)
 {
 	uint16_t col;
 	uint32_t tx, ty, tc;
 
-
-
-	if (chOrient == POZIOMO)
+	if (chOrientacja == POZIOMO)
 	{
 		setXY(x, y, x+sx-1, y+sy-1);
 		while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
@@ -581,9 +645,8 @@ void drawBitmap(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t
 		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 		for (tc=0; tc<(sx*sy); tc++)
 		{
-			col = data[tc];
+			col = obraz[tc];
 			setColor(col);
-			//LCD_WrData(chKolor666, 3);
 			HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
 		}
 		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
@@ -601,16 +664,83 @@ void drawBitmap(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t
 			HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 			for (tx=sx-1; tx>=0; tx--)
 			{
-				col = data[(ty*sx)+tx];
+				col = obraz[(ty*sx)+tx];
 				setColor(col);
-				//LCD_WrData(chKolor666, 3);
 				HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
 			}
 			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 		}
 	}
+	clrXY();
+}
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// rysuje okrąg
+// Parametry:
+//  x, y - współrzdne środka
+//  radius - promień
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujOkrag(uint16_t x, uint16_t y, uint16_t promien)
+{
+	int16_t f = 1 - promien;
+	int16_t ddF_x = 1;
+	int16_t ddF_y = -2 * promien;
+	int16_t x1 = 0;
+	int16_t y1 = promien;
+
+	//cbi(P_CS, B_CS);
+	setXY(x, y + promien, x, y + promien);
+	LCD_WrData(chKolor666, 3);
+
+	setXY(x, y - promien, x, y - promien);
+	LCD_WrData(chKolor666, 3);
+
+	setXY(x + promien, y, x + promien, y);
+	LCD_WrData(chKolor666, 3);
+
+	setXY(x - promien, y, x - promien, y);
+	LCD_WrData(chKolor666, 3);
+
+	while(x1 < y1)
+	{
+		if(f >= 0)
+		{
+			y1--;
+			ddF_y += 2;
+			f += ddF_y;
+		}
+		x1++;
+		ddF_x += 2;
+		f += ddF_x;
+		setXY(x + x1, y + y1, x + x1, y + y1);
+		LCD_WrData(chKolor666, 3);
+
+		setXY(x - x1, y + y1, x - x1, y + y1);
+		LCD_WrData(chKolor666, 3);
+
+		setXY(x + x1, y - y1, x + x1, y - y1);
+		LCD_WrData(chKolor666, 3);
+
+		setXY(x - x1, y - y1, x - x1, y - y1);
+		LCD_WrData(chKolor666, 3);
+
+		setXY(x + y1, y + x1, x + y1, y + x1);
+		LCD_WrData(chKolor666, 3);
+
+		setXY(x - y1, y + x1, x - y1, y + x1);
+		LCD_WrData(chKolor666, 3);
+
+		setXY(x + y1, y - x1, x + y1, y - x1);
+		LCD_WrData(chKolor666, 3);
+
+		setXY(x - y1, y - x1, x - y1, y - x1);
+		LCD_WrData(chKolor666, 3);
+	}
+	//sbi(P_CS, B_CS);
 	clrXY();
 }
 #endif

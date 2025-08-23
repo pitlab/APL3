@@ -28,7 +28,7 @@ extern uint8_t chRysujRaz;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 
 extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
-extern uint8_t chOrient;
+extern uint8_t chOrientacja;
 extern uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
 extern uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
 volatile uint8_t chDMAgotowe;
@@ -418,19 +418,13 @@ uint8_t InicjujLCD_35C_16bit(void)
 #ifdef LCD_RPI35B
 ////////////////////////////////////////////////////////////////////////////////
 // ustawia orientację ekranu
-// Parametry: orient - orientacja
+// Parametry: orientacja - orientacja układu ekranu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_Orient(uint8_t orient)
+void OrientacjaEkranu(uint8_t orientacja)
 {
-	/*uint8_t chDane[8];
-
-	LCD_write_command16(0x04);
-	LCD_data_read(chDane, 8);*/
-
-
 	LCD_write_command16(0x36); // Memory Access Control
-	if (orient)	//PIONOWO
+	if (orientacja)	//PIONOWO
 	{
 		LCD_write_data16(0x00,
 			(0<<2)|	//MH Horizontal Refresh ORDER
@@ -450,30 +444,30 @@ void LCD_Orient(uint8_t orient)
 			(1<<6)|	//MX Column Address Order
 			(1<<7));	//MY Row Address Order
 	}
-	chOrient = orient;
+	chOrientacja = orientacja;
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Zapełnij cały ekran kolorem
-// Parametry: nic
+// Parametry: sKolor565 - kolor w formacie RGB 5-6-5
 // Zwraca: nic
 // Czas czyszczenia ekranu: 378ms @25MHz
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_clear(uint16_t kolor)
+void WypelnijEkran(uint16_t sKolor565)
 {
 	uint32_t y;
 	uint8_t x, dane[8];
 
 	//for(y=0; y<DISP_X_SIZE * DISP_Y_SIZE; y++)
 		//sBuforLCD[y] = GRAY20;
-	if (!kolor)
-		kolor = BLACK;
+	if (!sKolor565)
+		sKolor565 = BLACK;
 
 	chRysujRaz = 1;
-	setColor(kolor);
-	setBackColor(kolor);
+	setColor(sKolor565);
+	setBackColor(sKolor565);
 
 	LCD_write_command16(0x2A);	//Column Address Set
 	for (x=0; x<8; x++)
@@ -518,13 +512,13 @@ void setColorRGB(uint8_t r, uint8_t g, uint8_t b)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ustawia kolor rysowania jako natywny dla wyświetlacza 5R+6G+5B
-// Parametry: color - kolor
+// Parametry: sKolor565 - kolor w formacie RGB 5-6-5
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void setColor(uint16_t color)
+void setColor(uint16_t sKolor565)
 {
-	fch = (uint8_t)(color>>8);
-	fcl = (uint8_t)(color & 0xFF);
+	fch = (uint8_t)(sKolor565>>8);
+	fcl = (uint8_t)(sKolor565 & 0xFF);
 }
 
 
@@ -548,25 +542,25 @@ uint16_t getColor(void)
 ////////////////////////////////////////////////////////////////////////////////
 void setBackColorRGB(uint8_t r, uint8_t g, uint8_t b)
 {
-	bch=((r&248)|g>>5);
-	bcl=((g&28)<<3|b>>3);
+	bch = ((r&248) | g>>5);
+	bcl = ((g&28)<<3 | b>>3);
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // Ustawia kolor tła jako natywny dla wyświetlacza 5R+6G+5B
-// Parametry: color - kolor
+// Parametry: sKolor565 - kolor w formacie RGB 5-6-5
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void setBackColor(uint16_t color)
+void setBackColor(uint16_t sKolor565)
 {
 	if (color == TRANSPARENT)
 		_transparent = 1;
 	else
 	{
-		bch = (uint8_t)(color>>8);
-		bcl = (uint8_t)(color & 0xFF);
+		bch = (uint8_t)(sKolor565>>8);
+		bcl = (uint8_t)(sKolor565 & 0xFF);
 		_transparent = 0;
 	}
 }
@@ -591,7 +585,7 @@ uint16_t getBackColor(void)
 // Zwraca: nic
 // Czas rysowania pełnego ekranu: 372ms @25MHz
 ////////////////////////////////////////////////////////////////////////////////
-void LCD_ProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t kolor)
+void RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t kolor)
 {
 	uint16_t i, j, k;
 	uint8_t n, dane[8];
@@ -643,7 +637,7 @@ void LCD_ProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzero
 // len - długośc linii
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void drawHLine(int16_t x, int16_t y, int16_t len)
+void RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 {
 	int i;
 
@@ -667,7 +661,7 @@ void drawHLine(int16_t x, int16_t y, int16_t len)
 // len - długość linii
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void drawVLine(int16_t x, int16_t y, int16_t len)
+void RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 {
 	int i;
 
@@ -747,13 +741,9 @@ void clrXY(void)
 	else
 		setXY(0, 0, DISP_Y_SIZE, DISP_X_SIZE);
 }
-#endif
 
 
 
-
-
-#ifdef LCD_RPI35B
 ////////////////////////////////////////////////////////////////////////////////
 // rysuje piksel o współprzędnych x,y we wcześniej zdefiniowanym kolorze
 // Parametry: x, y - współrzędne
@@ -766,7 +756,7 @@ void drawPixel(uint16_t x, uint16_t y)
 	LCD_write_dat_ost16(fcl);
 	//clrXY();
 }
-#endif
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -774,7 +764,7 @@ void drawPixel(uint16_t x, uint16_t y)
 // Parametry: x, y - współrzędne
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
+void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 {
 	if (y1==y2)
 		drawHLine(x1, y1, x2-x1);
@@ -794,11 +784,7 @@ void drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 			while (1)
 			{
 				setXY (col, row, col, row);
-				//LCD_write_dat_pie(fch);
-				//LCD_write_dat_ost(fcl);
 				LCD_write_data16(fch, fcl);
-				//LCD_write_dat_pie16(fch);
-				//LCD_write_dat_ost16(fcl);
 				if (row == y2)
 					return;
 				row += ystep;
@@ -816,11 +802,7 @@ void drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 			while (1)
 			{
 				setXY (col, row, col, row);
-				//LCD_write_dat_pie(fch);
-				//LCD_write_dat_ost(fcl);
 				LCD_write_data16(fch, fcl);
-				//LCD_write_dat_pie16(fch);
-				//LCD_write_dat_ost16(fcl);
 				if (col == x2)
 					return;
 				col += xstep;
@@ -833,83 +815,17 @@ void drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 			}
 		}
 	}
-	//clrXY();
+	clrXY();
 }
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-// rysuj prostokąt o współrzędnych x1,y1, x2,y2 we wcześniej zdefiniowanym kolorze
-// Parametry: x, y - współrzędne
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void drawRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
-{
-	int nTemp;
-
-	if (x1>x2)
-	{
-		nTemp = x1;
-		x1 = x2;
-		x2 = nTemp;
-	}
-	if (y1>y2)
-	{
-		nTemp = y1;
-		y1 = y2;
-		y2 = nTemp;
-	}
-
-	drawHLine(x1, y1, x2-x1);
-	drawHLine(x1, y2, x2-x1);
-	drawVLine(x1, y1, y2-y1);
-	drawVLine(x2, y1, y2-y1);
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// rysuj zaokrąglony prostokąt o współprzędnych x1,y1, x2,y2 we wcześniej zdefiniowanym kolorze
-// Parametry: x, y - współrzędne
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void drawRoundRect(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
-{
-	uint16_t nTemp;
-
-	if (x1>x2)
-	{
-		nTemp = x1;
-		x1 = x2;
-		x2 = nTemp;
-	}
-	if (y1>y2)
-	{
-		nTemp = y1;
-		y1 = y2;
-		y2 = nTemp;
-	}
-	if ((x2-x1)>4 && (y2-y1)>4)
-	{
-		drawPixel(x1+1,y1+1);
-		drawPixel(x2-1,y1+1);
-		drawPixel(x1+1,y2-1);
-		drawPixel(x2-1,y2-1);
-		drawHLine(x1+2, y1, x2-x1-4);
-		drawHLine(x1+2, y2, x2-x1-4);
-		drawVLine(x1, y1+2, y2-y1-4);
-		drawVLine(x2, y1+2, y2-y1-4);
-	}
-}
-
-
-#ifdef LCD_RPI35B
 ////////////////////////////////////////////////////////////////////////////////
 // pisze znak na miejscu o podanych współrzędnych
 // Parametry: c - znak; x, y - współrzędne
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void printChar(uint8_t c, uint16_t x, uint16_t y)
+void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 {
 	uint8_t i,ch;
 	uint16_t j;
@@ -980,128 +896,9 @@ void printChar(uint8_t c, uint16_t x, uint16_t y)
 	}
 	//clrXY();
 }
-#endif
-
-
-////////////////////////////////////////////////////////////////////////////////
-// ustawia aktualną czcionkę
-// Parametry: c - znak; x, y - współrzędne
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void setFont(uint8_t* font)
-{
-	cfont.font = font;
-	cfont.x_size = *(font+0);
-	cfont.y_size = *(font+1);
-	cfont.offset = *(font+2);
-	cfont.numchars = *(font+3);
-}
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-// Pobiera szerokość aktualnej czcionki
-// Parametry: nic
-// Zwraca: szerokość znaku
-////////////////////////////////////////////////////////////////////////////////
-uint8_t GetFontX(void)
-{
-	return cfont.x_size;
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Pobiera wysokość aktualnej czcionki
-// Parametry: nic
-// Zwraca: wysokość znaku
-////////////////////////////////////////////////////////////////////////////////
-uint8_t GetFontY(void)
-{
-	return cfont.y_size;
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// pisze napis na miejscu o podanych współrzędnych
-// Parametry:
-// *st - ciąg do wypisania
-//  x, y - współrzędne
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void print(char *str, uint16_t x, uint16_t y)
-{
-	int stl;
-
-	stl = strlen((char*)str);
-
-	if (chOrient == POZIOMO)
-	{
-	if (x == RIGHT)
-		x = (DISP_X_SIZE+1)-(stl*cfont.x_size);
-	if (x == CENTER)
-		x = ((DISP_X_SIZE+1)-(stl*cfont.x_size))/2;
-	}
-	else	//wersja dla pionowego układu ekranu
-	{
-	if (x == RIGHT)
-		x = (DISP_VX_SIZE+1)-(stl*cfont.x_size);
-	if (x == CENTER)
-		x = ((DISP_VX_SIZE+1)-(stl*cfont.x_size))/2;
-	}
-
-	for (uint16_t i=0; i<stl; i++)
-		printChar(*str++, x + (i*(cfont.x_size)), y);
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// pisze zawijający się napis w ramce o podanych współrzędnych
-// Parametry:
-// *st - ciąg do wypisania
-//  x, y - współrzędne
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void printRamka(char *str, uint16_t x, uint16_t y, uint16_t sx, uint16_t sy)
-{
-	int dlugoscNapisu, dlugoscWiersza;
-
-	dlugoscNapisu = strlen((char*)str);
-
-	do
-	{
-		if ((dlugoscNapisu * cfont.x_size) > sx)	//czy napis dłuższy niż szerokość ramki
-		{
-			//znajdź spację czyli miejsce do złamania napisu zaczynając od ostatniego znaku mieszcząceogo się w ramce
-			for (uint16_t n = sx / cfont.x_size; n > 0; n--)
-			{
-				if (*(str+n) == ' ')
-				{
-					dlugoscWiersza = n;
-					break;
-				}
-			}
-		}
-		else
-			dlugoscWiersza = dlugoscNapisu;
-
-
-		//if (chOrient == POZIOMO)		//na razie obsługuję tylko poziomo
-		{
-			if (x == RIGHT)
-				x = (DISP_X_SIZE - sx + 1) - (dlugoscWiersza * cfont.x_size);
-			if (x == CENTER)
-				x = ((DISP_X_SIZE - sx) / 2)  + (sx - (dlugoscWiersza * cfont.x_size)) / 2;
-		}
-		for (uint16_t i=0; i<dlugoscWiersza; i++)
-			printChar(*str++, x + (i*(cfont.x_size)), y);
-
-		dlugoscNapisu -= dlugoscWiersza;
-		y += cfont.y_size;
-	} 	while  (dlugoscNapisu && (y < (y + sy)));
-}
 
 
 
@@ -1112,25 +909,25 @@ void printRamka(char *str, uint16_t x, uint16_t y, uint16_t sx, uint16_t sy)
 //  radius - promień
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void drawCircle(uint16_t x, uint16_t y, uint16_t radius)
+void RysujOkrag(uint16_t x, uint16_t y, uint16_t promien)
 {
-	int16_t f = 1 - radius;
+	int16_t f = 1 - promien;
 	int16_t ddF_x = 1;
-	int16_t ddF_y = -2 * radius;
+	int16_t ddF_y = -2 * promien;
 	int16_t x1 = 0;
-	int16_t y1 = radius;
+	int16_t y1 = promien;
 
 	//cbi(P_CS, B_CS);
-	setXY(x, y + radius, x, y + radius);
+	setXY(x, y + promien, x, y + promien);
 	LCD_write_data16(fch, fcl);
 
-	setXY(x, y - radius, x, y - radius);
+	setXY(x, y - promien, x, y - promien);
 	LCD_write_data16(fch, fcl);
 
-	setXY(x + radius, y, x + radius, y);
+	setXY(x + promien, y, x + promien, y);
 	LCD_write_data16(fch, fcl);
 
-	setXY(x - radius, y, x - radius, y);
+	setXY(x - promien, y, x - promien, y);
 	LCD_write_data16(fch, fcl);
 
 	while(x1 < y1)
@@ -1174,30 +971,6 @@ void drawCircle(uint16_t x, uint16_t y, uint16_t radius)
 
 
 
-
-////////////////////////////////////////////////////////////////////////////////
-// rysuje koło
-// Parametry:
-//  x, y - współrzdne środka
-//  radius - promień
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void fillCircle(uint16_t x, uint16_t y, uint16_t radius)
-{
-	int16_t y1, x1;
-
-	for(y1=-radius; y1<=0; y1++)
-		for(x1=-radius; x1<=0; x1++)
-			if(x1*x1+y1*y1 <= radius*radius)
-			{
-				drawHLine(x+x1, y+y1, 2*(-x1));
-				drawHLine(x+x1, y-y1, 2*(-x1));
-				break;
-			}
-}
-
-
-#ifdef LCD_RPI35B
 ////////////////////////////////////////////////////////////////////////////////
 // wyświetla bitmapę po jednym pikselu
 // Parametry:
@@ -1205,7 +978,7 @@ void fillCircle(uint16_t x, uint16_t y, uint16_t radius)
 //  sx, sy - rozmiar bitmapy
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void drawBitmap(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* data)
+void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* data)
 {
 	uint16_t col;
 	uint32_t tx, ty, tc;
@@ -1326,7 +1099,6 @@ void drawBitmap4(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_
 			LCD_WrDataDMA(bufor, 16);
 		}
 	}
-
 }
 #endif
 
@@ -1341,21 +1113,7 @@ void drawBitmap4(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_
 ////////////////////////////////////////////////////////////////////////////////
 void CzytajPamiecObrazu(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t* bufor)
 {
-	uint8_t dane[8];
-
-	LCD_write_command16(0x2A);	//Column Address Set
-	dane[1] = x1>>8;
-	dane[3] = x1;
-	dane[5] = x2>>8;
-	dane[7] = x2;
-	LCD_WrData(dane, 8);
-
-	LCD_write_command16(0x2B);	//Page Address Set
-	dane[1] = y1>>8;
-	dane[3] = y1;
-	dane[5] = y2>>8;
-	dane[7] = y2;
-	LCD_WrData(dane, 8);
+	setXY(x1, y1, x2, y2);
 
 	LCD_write_command16(0x2E);	//Memory Read
 

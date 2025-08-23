@@ -6,10 +6,11 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <RPi35B_480x320.h>
+#include "rysuj.h"
 #include "fraktale.h"
 #include "czas.h"
-
+#include <RPi35B_480x320.h>
+#include <ili9488.h>
 
 float fZoom, fX, fY;
 float fReal, fImag;
@@ -118,39 +119,43 @@ void FraktalTest(uint8_t chTyp)
 	{
 	case 0:	GenerateJulia(DISP_X_SIZE, DISP_Y_SIZE, DISP_X_SIZE/2, DISP_Y_SIZE/2, 135, sBuforLCD);
 		nCzas = MinalCzas(nCzas);
-		sprintf(chNapis, "Julia: t=%ldus, c=%.3f ", nCzas, fImag);
+		//sprintf(chNapis, "Julia: t=%ldus, c=%.3f ", nCzas, fImag);
+		sprintf(chNapis, "Julia: t=%.2fms, c=%.3f ", nCzas/1000.0, fImag);
 		fImag -= 0.002;
 		break;
 
 			//cały fraktal - rotacja palety
 	case 1: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
 		nCzas = MinalCzas(nCzas);
-		sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
+		//sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
+		sprintf(chNapis, "Mandelbrot: t=%.2fms z=%.1f, p=%d", nCzas/1000.0, fZoom, chMnozPalety);
 		chMnozPalety += 1;
 		break;
 
 			//dolina konika x=-0,75, y=0,1
 	case 2: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
 		nCzas = MinalCzas(nCzas);
-		sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
+		//sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
+		sprintf(chNapis, "Mandelbrot: t=%.2fms z=%.1f, p=%d", nCzas/1000.0, fZoom, chMnozPalety);
 		fZoom /= 0.9;
 		break;
 
 			//dolina słonia x=0,25-0,35, y=0,05, zoom=-0,6..-40
 	case 3: GenerateMandelbrot(fX, fY, fZoom, 30, sBuforLCD);
 		nCzas = MinalCzas(nCzas);
-		sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
+		//sprintf(chNapis, "Mandelbrot: t=%ldus z=%.1f, p=%d", nCzas, fZoom, chMnozPalety);
+		sprintf(chNapis, "Mandelbrot: t=%.2fms z=%.1f, p=%d", nCzas/1000.0, fZoom, chMnozPalety);
 		fZoom /= 0.9;
 		break;
 	}
 
-	//drawBitmap2(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wywyła większymi paczkami - zła kolejność ale szybciej
-	drawBitmap(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wysyła bajty parami we właściwej kolejności
-	//drawBitmap3(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wyświetla bitmapę po 4 piksele z rotacją bajtów w wewnętrznym buforze. Dobre kolory i trochę szybciej niż po jednym pikselu
-	//drawBitmap4(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wyświetla bitmapę po 4 piksele przez DMA z rotacją bajtów w wewnętrznym buforze - nie działa
-	setFont(MidFont);
+	//RysujBitmape2(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wywyła większymi paczkami - zła kolejność ale szybciej
+	RysujBitmape(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wysyła bajty parami we właściwej kolejności
+	//RysujBitmape3(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wyświetla bitmapę po 4 piksele z rotacją bajtów w wewnętrznym buforze. Dobre kolory i trochę szybciej niż po jednym pikselu
+	//RysujBitmape4(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wyświetla bitmapę po 4 piksele przez DMA z rotacją bajtów w wewnętrznym buforze - nie działa
+	UstawCzcionke(MidFont);
 	setColor(GREEN);
-	print(chNapis, 0, 304);
+	RysujNapis(chNapis, 0, 304);
 }
 
 

@@ -702,19 +702,19 @@ void TestKomunikatow(void)
 
 		setColor(GRAY80);
 		sprintf(chNapis, "Rozmiar kolejki komunikat%cw:", ó);
-		print(chNapis, 10, 60);
+		RysujNapis(chNapis, 10, 60);
 		sprintf(chNapis, "Wymawiam:");
-		print(chNapis, 10, 40);
+		RysujNapis(chNapis, 10, 40);
 
 		setColor(GRAY60);
 		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
-		print(chNapis, CENTER, 300);
+		RysujNapis(chNapis, CENTER, 300);
 	}
 
 	setColor(WHITE);
 	chDlugosc = DlugoscKolejkiKomunikatow();
 	sprintf(chNapis, "%d/%d  ",chDlugosc, ROZM_KOLEJKI_KOMUNIKATOW);
-	print(chNapis, 10+29*FONT_SL, 60);
+	RysujNapis(chNapis, 10+29*FONT_SL, 60);
 	if (!chDlugosc)	//gdy kolejka komunikatów się opróżni
 	{
 
@@ -743,7 +743,7 @@ void TestKomunikatow(void)
 		for (n=chDlugosc; n<50; n++)
 			chNapis[n] = ' ';	//dopełnij spacjami aby zamazać wczesniejsze napisy
 		chNapis[n] = 0;
-		print(chNapis, 10+10*FONT_SL, 40);
+		RysujNapis(chNapis, 10+10*FONT_SL, 40);
 
 		PrzygotujKomunikat(chTypKomunikatu, fWartosc);
 	}

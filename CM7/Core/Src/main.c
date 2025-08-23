@@ -58,8 +58,6 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  * */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <ili9488.h>
-#include <RPi35B_480x320.h>
 #include "main.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
@@ -85,6 +83,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "telemetria.h"
 #include "kamera.h"
 #include "pamiec.h"
+#include <ili9488.h>
 
 /* USER CODE END Includes */
 
@@ -500,7 +499,7 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL3.PLL3M = 3;
   PeriphClkInitStruct.PLL3.PLL3N = 125;
   PeriphClkInitStruct.PLL3.PLL3P = 5;
-  PeriphClkInitStruct.PLL3.PLL3Q = 10;
+  PeriphClkInitStruct.PLL3.PLL3Q = 6;
   PeriphClkInitStruct.PLL3.PLL3R = 125;
   PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_2;
   PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;
@@ -1022,8 +1021,7 @@ static void MX_SPI5_Init(void)
   hspi5.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi5.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi5.Init.NSS = SPI_NSS_SOFT;
-  //hspi5.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;		//50 / 4 = 12,5MHz
-  hspi5.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;		//50 / 8 = 6,25MH
+  hspi5.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
   hspi5.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi5.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi5.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;

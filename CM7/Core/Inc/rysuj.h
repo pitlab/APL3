@@ -11,13 +11,17 @@
 
 #include "display.h"
 
-
 void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
 void BelkaTytulu(char* chTytul);
 uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObraz);
 void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sKolor);
 uint8_t RysujHistogramRGB16(uint8_t *histR, uint8_t *histG, uint8_t *histB);
-
-
-
+void RysujProstokat(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+void RysujProstokatZaokraglony(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
+void UstawCzcionke(uint8_t* chCzcionka);
+uint8_t GetFontX(void);
+uint8_t GetFontY(void);
+void RysujNapis(char *st, uint16_t x, uint16_t y);
+void RysujNapiswRamce(char *str, uint16_t x, uint16_t y, uint16_t sx, uint16_t sy);
+void RysujKolo(uint16_t x, uint16_t y, uint16_t promien);
 #endif /* INC_RYSUJ_H_ */

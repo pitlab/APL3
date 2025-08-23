@@ -54,6 +54,12 @@ uint8_t LCD_write_command8(uint8_t chDane)
 	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	if (chErr == ERR_OK)
 	{
+		//Ponieważ zegar SPI = 50MHz a wyświetlacz może pracować z prędkością max 20MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 8 => 6,25MHz
+		//nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
+		hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
+		hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;
+
+
 		UstawDekoderZewn(CS_LCD);											//LCD_CS=0
 		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
 		chErr = HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
