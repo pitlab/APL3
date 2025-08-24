@@ -97,8 +97,12 @@ uint8_t CzytajDotyk(void)
 				hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_64;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/64
 
 				//domyslnie używam innej orientacji, więc zaimeń osie X i Y
-				statusDotyku.sAdc[0] = CzytajKanalDotyku(TPCHY);	//najlepiej się zmienia dla osi X. Ponieważ wartość maleje dla większych X, więc używam odwrotności
-				statusDotyku.sAdc[1] = 4096 - CzytajKanalDotyku(TPCHX);	//najlepiej się zmienia dla osi Y
+				statusDotyku.sAdc[0] = CzytajKanalDotyku(TPCHY);	//najlepiej się zmienia dla osi X.
+#ifdef LCD_ILI9488 			//wyświetlacz z Aliexpress ma odwrócony kierunek w osi Y
+				statusDotyku.sAdc[1] = CzytajKanalDotyku(TPCHX);	//najlepiej się zmienia dla osi Y
+#else
+				statusDotyku.sAdc[1] = 4096 - CzytajKanalDotyku(TPCHX);	//Ponieważ wartość maleje dla większych Y, więc używam odwrotności
+#endif
 				statusDotyku.sAdc[2] = CzytajKanalDotyku(TPCHZ1);
 				statusDotyku.sAdc[3] = CzytajKanalDotyku(TPCHZ2);
 				HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
@@ -125,9 +129,9 @@ uint8_t CzytajDotyk(void)
 					//oblicz współrzędne ekranowe
 					float fTemp;
 					fTemp = kalibDotyku.fAx * statusDotyku.sAdc[0] + kalibDotyku.fBx * statusDotyku.sAdc[1] + kalibDotyku.fDeltaX;
-					statusDotyku.sX = (uint16_t)fTemp;
+					statusDotyku.sX = (uint16_t)(fTemp + 0.5f);	//uwzględnij zaokrąglenie
 					fTemp = kalibDotyku.fAy * statusDotyku.sAdc[0] + kalibDotyku.fBy * statusDotyku.sAdc[1] + kalibDotyku.fDeltaY;
-					statusDotyku.sY = (uint16_t)fTemp;
+					statusDotyku.sY = (uint16_t)(fTemp + 0.5f);
 				}
 			}
 		}
@@ -426,6 +430,7 @@ void ObliczKalibracjeDotyku3Punktowa(void)
 	kalibDotyku.fBy = (a12 * sYe[0] + a22 * sYe[1] + a32 * sYe[2]) / fWyznacznik;
 	kalibDotyku.fDeltaY = (a13 * sYe[0] + a23 * sYe[1] + a33 * sYe[2]) / fWyznacznik;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -8,11 +8,11 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <RPi35B_480x320.h>
 #include "display.h"
 #include "main.h"
 #include "moduly_SPI.h"
 #include <math.h>
-#include <RPi35B_480x320.h>
 #include <stdio.h>
 #include <string.h>
 #include "semafory.h"
@@ -26,7 +26,7 @@
 //extern SPI_HandleTypeDef hspi5;
 extern uint8_t chRysujRaz;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
-
+extern SPI_HandleTypeDef hspi5;
 extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern uint8_t chOrientacja;
 extern uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
@@ -555,7 +555,7 @@ void setBackColorRGB(uint8_t r, uint8_t g, uint8_t b)
 ////////////////////////////////////////////////////////////////////////////////
 void setBackColor(uint16_t sKolor565)
 {
-	if (color == TRANSPARENT)
+	if (sKolor565 == TRANSPARENT)
 		_transparent = 1;
 	else
 	{
@@ -678,87 +678,6 @@ void RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 }
 
 
-
-////////////////////////////////////////////////////////////////////////////////
-// ustawia parametry pamięci do rysowania linii
-// Parametry:
-// x1, y1 współrzędne początku obszaru
-// x2, y2 współrzędne końca obszaru
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
-{
-	uint16_t sTemp;
-	uint8_t x, dane[8];
-
-	for (x=0; x<8; x++)
-		dane[x] = 0;
-
-	if (chOrient == PIONOWO)
-	{
-		sTemp = x1;
-		x1 = y1;
-		y1 = sTemp;
-		sTemp = x2;
-		x2 = y2;
-		y2 = sTemp;
-		y1=DISP_Y_SIZE - y1;
-		y2=DISP_Y_SIZE - y2;
-		sTemp = y1;
-		y1 = y2;
-		y2 = sTemp;
-	}
-
-	LCD_write_command16(0x2A);	//Column Address Set
-	dane[1] = x1>>8;
-	dane[3] = x1;
-	dane[5] = x2>>8;
-	dane[7] = x2;
-	LCD_WrData(dane, 8);
-
-	LCD_write_command16(0x2B);	//Page Address Set
-	dane[1] = y1>>8;
-	dane[3] = y1;
-	dane[5] = y2>>8;
-	dane[7] = y2;
-	LCD_WrData(dane, 8);
-
-	LCD_write_command16(0x2C);	//Memory Write
-}
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// zeruje parametry pamięci do rysowania linii
-// Parametry:nic
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void clrXY(void)
-{
-	if (chOrient == PIONOWO)
-		setXY(0, 0, DISP_X_SIZE, DISP_Y_SIZE);
-	else
-		setXY(0, 0, DISP_Y_SIZE, DISP_X_SIZE);
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// rysuje piksel o współprzędnych x,y we wcześniej zdefiniowanym kolorze
-// Parametry: x, y - współrzędne
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void drawPixel(uint16_t x, uint16_t y)
-{
-	setXY(x, y, x, y);
-	LCD_write_dat_pie16(fch);
-	LCD_write_dat_ost16(fcl);
-	//clrXY();
-}
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // rysuj linię o współrzędnych x1,y1, x2,y3 we wcześniej zdefiniowanym kolorze
 // Parametry: x, y - współrzędne
@@ -767,9 +686,9 @@ void drawPixel(uint16_t x, uint16_t y)
 void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 {
 	if (y1==y2)
-		drawHLine(x1, y1, x2-x1);
+		RysujLiniePionowa(x1, y1, x2-x1);
 	else if (x1==x2)
-		drawVLine(x1, y1, y2-y1);
+		RysujLiniePozioma(x1, y1, y2-y1);
 	else
 	{
 		uint16_t	dx = (x2 > x1 ? x2 - x1 : x1 - x2);
@@ -821,6 +740,86 @@ void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// ustawia parametry pamięci do rysowania linii
+// Parametry:
+// x1, y1 współrzędne początku obszaru
+// x2, y2 współrzędne końca obszaru
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
+{
+	uint16_t sTemp;
+	uint8_t x, dane[8];
+
+	for (x=0; x<8; x++)
+		dane[x] = 0;
+
+	if (chOrientacja == PIONOWO)
+	{
+		sTemp = x1;
+		x1 = y1;
+		y1 = sTemp;
+		sTemp = x2;
+		x2 = y2;
+		y2 = sTemp;
+		y1=DISP_Y_SIZE - y1;
+		y2=DISP_Y_SIZE - y2;
+		sTemp = y1;
+		y1 = y2;
+		y2 = sTemp;
+	}
+
+	LCD_write_command16(0x2A);	//Column Address Set
+	dane[1] = x1>>8;
+	dane[3] = x1;
+	dane[5] = x2>>8;
+	dane[7] = x2;
+	LCD_WrData(dane, 8);
+
+	LCD_write_command16(0x2B);	//Page Address Set
+	dane[1] = y1>>8;
+	dane[3] = y1;
+	dane[5] = y2>>8;
+	dane[7] = y2;
+	LCD_WrData(dane, 8);
+
+	LCD_write_command16(0x2C);	//Memory Write
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// zeruje parametry pamięci do rysowania linii
+// Parametry:nic
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void clrXY(void)
+{
+	if (chOrientacja == PIONOWO)
+		setXY(0, 0, DISP_X_SIZE, DISP_Y_SIZE);
+	else
+		setXY(0, 0, DISP_Y_SIZE, DISP_X_SIZE);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// rysuje piksel o współprzędnych x,y we wcześniej zdefiniowanym kolorze
+// Parametry: x, y - współrzędne
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void drawPixel(uint16_t x, uint16_t y)
+{
+	setXY(x, y, x, y);
+	LCD_write_dat_pie16(fch);
+	LCD_write_dat_ost16(fcl);
+	//clrXY();
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // pisze znak na miejscu o podanych współrzędnych
 // Parametry: c - znak; x, y - współrzędne
 // Zwraca: nic
@@ -834,7 +833,7 @@ void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 
 	if (!_transparent)
 	{
-		if (chOrient==POZIOMO)
+		if (chOrientacja==POZIOMO)
 		{
 			setXY(x,y,x+cfont.x_size-1,y+cfont.y_size-1);
 
@@ -980,31 +979,50 @@ void RysujOkrag(uint16_t x, uint16_t y, uint16_t promien)
 ////////////////////////////////////////////////////////////////////////////////
 void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* data)
 {
-	uint16_t col;
+	uint16_t sKolor565;
+	uint8_t chTabKol[4] = {0};
 	uint32_t tx, ty, tc;
 
-	if (chOrient == POZIOMO)
+	if (chOrientacja == POZIOMO)
 	{
 		setXY(x, y, x+sx-1, y+sy-1);
+		while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+			osDelay(1);
+		HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 		for (tc=0; tc<(sx*sy); tc++)
 		{
-			col = data[tc];
-			LCD_write_data16(col>>8, col);
+			sKolor565 = data[tc];
+			chTabKol[0] = (uint8_t)(sKolor565 >> 8);
+			chTabKol[1] = (uint8_t) sKolor565;
+			HAL_SPI_Transmit(&hspi5, chTabKol, 2, HAL_MAX_DELAY);
 		}
+		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+		HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	}
 	else
 	{
 		for (ty=0; ty<sy; ty++)
 		{
 			setXY(x, y+ty, x+sx-1, y+ty);
+			while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+				osDelay(1);
+			HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+			UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+			HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 			for (tx=sx-1; tx>=0; tx--)
 			{
-				col = data[(ty*sx)+tx];
-				LCD_write_data16(col>>8, col);
+				sKolor565 = data[(ty*sx)+tx];
+				chTabKol[0] = (uint8_t)(sKolor565 >> 8);
+				chTabKol[1] = (uint8_t) sKolor565;
+				HAL_SPI_Transmit(&hspi5, chTabKol, 2, HAL_MAX_DELAY);
 			}
+			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 		}
 	}
-	//clrXY();
+	clrXY();
 }
 
 
@@ -1021,7 +1039,7 @@ void drawBitmap2(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint16_t* dat
 //	uint16_t col;
 	uint32_t tc;
 
-	if (chOrient == POZIOMO)
+	if (chOrientacja == POZIOMO)
 	{
 		setXY(x, y, x+sx-1, y+sy-1);
 		for (tc=0; tc<(sx*sy/8); tc++)
@@ -1049,7 +1067,7 @@ void drawBitmap3(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_
 	uint32_t tc;
 	uint8_t n, bufor[8];
 
-	if (chOrient == POZIOMO)
+	if (chOrientacja == POZIOMO)
 	{
 		setXY(x, y, x+sx-1, y+sy-1);
 		for (tc=0; tc<(sx*sy/4); tc++)
@@ -1082,7 +1100,7 @@ void drawBitmap4(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_
 	uint8_t n, bufor[16];
 
 	chDMAgotowe = 1;
-	if (chOrient == POZIOMO)
+	if (chOrientacja == POZIOMO)
 	{
 		setXY(x, y, x+sx-1, y+sy-1);
 		for (tc=0; tc<(sx*sy/8); tc++)

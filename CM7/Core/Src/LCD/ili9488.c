@@ -652,7 +652,7 @@ void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 ////////////////////////////////////////////////////////////////////////////////
 void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* obraz)
 {
-	uint16_t col;
+	//uint16_t col;
 	uint32_t tx, ty, tc;
 
 	if (chOrientacja == POZIOMO)
@@ -665,8 +665,7 @@ void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16
 		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 		for (tc=0; tc<(sx*sy); tc++)
 		{
-			col = obraz[tc];
-			setColor(col);
+			setColor(obraz[tc]);
 			HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
 		}
 		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
@@ -684,8 +683,7 @@ void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16
 			HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 			for (tx=sx-1; tx>=0; tx--)
 			{
-				col = obraz[(ty*sx)+tx];
-				setColor(col);
+				setColor(obraz[(ty*sx)+tx]);
 				HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
 			}
 			UstawDekoderZewn(CS_NIC);										//LCD_CS=1

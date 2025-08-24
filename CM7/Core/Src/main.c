@@ -83,6 +83,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "telemetria.h"
 #include "kamera.h"
 #include "pamiec.h"
+#include <RPi35B_480x320.h>
 #include <ili9488.h>
 
 /* USER CODE END Includes */
