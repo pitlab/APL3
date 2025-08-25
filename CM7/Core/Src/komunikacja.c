@@ -108,22 +108,50 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		break;
 
 	case PK_POB_PAR_KAMERY:	//pobierz parametry pracy kamery
-		chDane[0] = (uint8_t)(strKonfKam.sSzerWy / SKALA_ROZDZ_KAM);
-		chDane[1] = (uint8_t)(strKonfKam.sWysWy / SKALA_ROZDZ_KAM);
-		chDane[2] = (uint8_t)(strKonfKam.sSzerWe / SKALA_ROZDZ_KAM);
-		chDane[3] = (uint8_t)(strKonfKam.sWysWe / SKALA_ROZDZ_KAM);
+		chDane[0] = (uint8_t)(strKonfKam.sSzerWy / KROK_ROZDZ_KAM);
+		chDane[1] = (uint8_t)(strKonfKam.sWysWy / KROK_ROZDZ_KAM);
+		chDane[2] = (uint8_t)(strKonfKam.sSzerWe / KROK_ROZDZ_KAM);
+		chDane[3] = (uint8_t)(strKonfKam.sWysWe / KROK_ROZDZ_KAM);
 		chDane[4] = strKonfKam.chTrybDiagn;
-		chDane[5] = strKonfKam.chFlagi;
+		chDane[5] = strKonfKam.chObracanieObrazu;
+		chDane[6] = strKonfKam.chFormatObrazu;
+		chDane[7] = (uint8_t)(strKonfKam.sWzmocnienieR >> 8);
+		chDane[8] = (uint8_t)(strKonfKam.sWzmocnienieR & 0xFF);
+		chDane[9] = (uint8_t)(strKonfKam.sWzmocnienieG >> 8);
+		chDane[10] = (uint8_t)(strKonfKam.sWzmocnienieG & 0xFF);
+		chDane[11] = (uint8_t)(strKonfKam.sWzmocnienieB >> 8);
+		chDane[12] = (uint8_t)(strKonfKam.sWzmocnienieB & 0xFF);
+		chDane[13] = strKonfKam.chKontrolaBalansuBieli;
+		chDane[14] = (uint8_t)(strKonfKam.nEkspozycjaReczna >> 16) & 0xF;	//AEC Long Channel Exposure [19:0]: 0x3500..02
+		chDane[15] = (uint8_t)(strKonfKam.nEkspozycjaReczna >> 8);
+		chDane[16] = (uint8_t)(strKonfKam.nEkspozycjaReczna & 0xFF);
+		chDane[17] = strKonfKam.chKontrolaExpo;
+		chDane[18] = strKonfKam.chTrybyEkspozycji;
+		chDane[19] = strKonfKam.chGranicaMinExpo;
+		chDane[20] = (uint8_t)(strKonfKam.nGranicaMaxExpo >> 16) & 0xF;		//Maximum Exposure Output Limit [19..0]: 0x3A02..04
+		chDane[21] = (uint8_t)(strKonfKam.nGranicaMaxExpo >> 8);
+		chDane[22] = (uint8_t)(strKonfKam.nGranicaMaxExpo & 0xFF);
 		chErr = WyslijRamke(chAdresZdalny, PK_POB_PAR_KAMERY, 6, chDane, chInterfejs);
 		break;
 
 	case PK_UST_PAR_KAMERY:	//ustaw parametry pracy kamery
-		strKonfKam.sSzerWy = chDane[0] * SKALA_ROZDZ_KAM;
-		strKonfKam.sWysWy = chDane[1] * SKALA_ROZDZ_KAM;
-		strKonfKam.sSzerWe = chDane[2] * SKALA_ROZDZ_KAM;
-		strKonfKam.sWysWe = chDane[3] * SKALA_ROZDZ_KAM;
+		strKonfKam.sSzerWy = chDane[0] * KROK_ROZDZ_KAM;
+		strKonfKam.sWysWy = chDane[1] * KROK_ROZDZ_KAM;
+		strKonfKam.sSzerWe = chDane[2] * KROK_ROZDZ_KAM;
+		strKonfKam.sWysWe = chDane[3] * KROK_ROZDZ_KAM;
 		strKonfKam.chTrybDiagn = chDane[4];
-		strKonfKam.chFlagi = chDane[5];
+		strKonfKam.chObracanieObrazu = chDane[5];
+		strKonfKam.chFormatObrazu = chDane[6];
+		strKonfKam.sWzmocnienieR = ((uint16_t)chDane[7] << 8) + chDane[8];
+		strKonfKam.sWzmocnienieG = ((uint16_t)chDane[9] << 8) + chDane[10];
+		strKonfKam.sWzmocnienieB = ((uint16_t)chDane[11] << 8) + chDane[12];
+		strKonfKam.chKontrolaBalansuBieli = chDane[13];
+		strKonfKam.nEkspozycjaReczna = ((uint32_t)chDane[14] << 16) + ((uint32_t)chDane[15] << 8) + chDane[16];
+		strKonfKam.chKontrolaExpo = chDane[17];
+		strKonfKam.chTrybyEkspozycji = chDane[18];
+		strKonfKam.chGranicaMinExpo = chDane[19];
+		strKonfKam.nGranicaMaxExpo = ((uint32_t)chDane[20] << 16) + ((uint32_t)chDane[21] << 8) + chDane[22];
+		UstawKamere(&strKonfKam);
 		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
 

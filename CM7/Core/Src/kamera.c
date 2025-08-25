@@ -120,16 +120,27 @@ uint8_t InicjalizujKamere(void)
 	strKonfKam.chTrybDiagn = 0;	//brak trybu diagnostycznego
 	//strKonfKam.chTrybDiagn = TDK_KRATA_CB;	//czarnobiała krata
 	//strKonfKam.chTrybDiagn = TDK_PASKI;		//kolorowe paski
-	strKonfKam.chFlagi = 1;
-	chErr = UstawKamere(&strKonfKam);
-	if (chErr)
-		return chErr;
+
 
 	//naturalny układ pikseli kamery to: wiersze parzyte B, G, B, G...; wiersze nieparzyste G, R, G, R...
 	//chErr = Wyslij_I2C_Kamera(0x4300, 0x61);	//format control [7..4] 6=RGB656, [3..0] 1={R[4:0], G[5:3]},{G[2:0}, B[4:0]} - źle
 	//chErr = Wyslij_I2C_Kamera(0x4300, 0x62);	//format control [7..4] 6=RGB656, [3..0] 2={G[4:0], R[5:3]},{R[2:0}, B[4:0]} - źle
-	chErr = Wyslij_I2C_Kamera(0x4300, 0x6F);	//format control [7..4] 6=RGB656, [3..0] 1={G[2:0}, B[4:0]},{R[4:0], G[5:3]} - OK
-	return chErr;
+	//chErr = Wyslij_I2C_Kamera(0x4300, 0x6F);
+
+	//ustaw rejestry konfiguracyjne
+	strKonfKam.chObracanieObrazu = 0xc1;		//TIMING TC REG18: [6] mirror, [5] Vertial flip, [4] 1=thumbnail mode, [3] 1=compression, [1] vertical subsample 1/4, [0] vertical subsample 1/2  <def:0x80>
+	strKonfKam.chFormatObrazu = 0x6F;		//format control [7..4] 6=RGB656, [3..0] 1={G[2:0}, B[4:0]},{R[4:0], G[5:3]} - OK
+	strKonfKam.sWzmocnienieR = 0x0400;		//AWB red gain[11:0] / 0x400;
+	strKonfKam.sWzmocnienieG = 0x0400;		//AWB green gain[11:0] / 0x400;
+	strKonfKam.sWzmocnienieB = 0x0400;		//AWB blue gain[11:0] / 0x400;
+	strKonfKam.chKontrolaBalansuBieli = 0x00;	//AWB Manual enable[0]: 0=Auto, 1=manual
+	strKonfKam.nEkspozycjaReczna = 0x000000;	//AEC Long Channel Exposure [19:0]: 0x3500..02
+	strKonfKam.chKontrolaExpo = 0x07;		//AEC PK MANUAL 0x3503: AEC Manual Mode Control: [2]-VTS manual, [1]-AGC manual, [0]-AEC manual: pełna kontrola ręczna
+
+	strKonfKam.chTrybyEkspozycji = 0x78;		//AEC CTRL0 0x3A00: [7]-not used, [6]-less one line mode, [5]-band function, [4]-band low limit mode, [3]-reserved, [2]-Night mode (ekspozycja trwa 1..8 ramek) [1]-not used, [0]-Freeze
+	strKonfKam.chGranicaMinExpo = 0x04; 		//Minimum Exposure Output Limit [7..0] 0x3A01:
+	strKonfKam.nGranicaMaxExpo = 0x03D800;	//Maximum Exposure Output Limit [19..0]: 0x3A02..04
+	return UstawKamere(&strKonfKam);
 }
 
 
@@ -299,10 +310,27 @@ uint8_t UstawKamere(stKonfKam_t *konf)
 	default:
 	}
 
-	//ustaw rotację w poziomie i pionie
-	//chReg = 0x80 + ((konf->chFlagi && FUK1_OBR_PION) << 6) +  ((konf->chFlagi && FUK1_OBR_POZ) << 5);
-	//chErr |= Wyslij_I2C_Kamera(0x3818, chReg);	//TIMING TC REG18: [6] mirror, [5] Vertial flip, [4] 1=thumbnail mode,  [3] 1=compression, [1] vertical subsample 1/4, [0] vertical subsample 1/2  <def:0x80>
-	//for the mirror function it is necessary to set registers 0x3621 [5:4] and 0x3801
+	chErr |= Wyslij_I2C_Kamera(0x3818, konf->chObracanieObrazu);	//Timing Control: 0x3818 (ustaw rotację w poziomie i pionie), //for the mirror function it is necessary to set registers 0x3621 [5:4] and 0x3801
+	chErr |= Wyslij_I2C_Kamera(0x4300, konf->chFormatObrazu);		//Format Control 0x4300
+
+	chErr |= Wyslij_I2C_Kamera(0x3400, (uint8_t)(konf->sWzmocnienieR) >> 8) & 0xF;	//AWB R Gain [11:8]: 0x3400..01
+	chErr |= Wyslij_I2C_Kamera(0x3401, (uint8_t)(konf->sWzmocnienieR) & 0xFF);		//AWB R Gain [7:0]:  0x3400..01
+	chErr |= Wyslij_I2C_Kamera(0x3402, (uint8_t)(konf->sWzmocnienieG) >> 8) & 0xF;	//AWB G Gain [11:8]: 0x3402..03
+	chErr |= Wyslij_I2C_Kamera(0x3403, (uint8_t)(konf->sWzmocnienieG) & 0xFF);		//AWB G Gain [7:0]:  0x3402..03
+	chErr |= Wyslij_I2C_Kamera(0x3404, (uint8_t)(konf->sWzmocnienieB) >> 8) & 0xF;	//AWB B Gain [11:8]: 0x3404..05
+	chErr |= Wyslij_I2C_Kamera(0x3405, (uint8_t)(konf->sWzmocnienieB) & 0xFF);		//AWB B Gain [7:0]:  0x3404..05
+	chErr |= Wyslij_I2C_Kamera(0x3406, konf->chKontrolaBalansuBieli);	//AWB Manual: 0x3406
+
+	chErr |= Wyslij_I2C_Kamera(0x3500, (uint8_t)(konf->nEkspozycjaReczna) >> 16) & 0xF;	//AEC Long Channel Exposure [19:0]: 0x3500..02
+	chErr |= Wyslij_I2C_Kamera(0x3501, (uint8_t)(konf->nEkspozycjaReczna) >> 8);	//AEC Long Channel Exposure [19:0]: 0x3500..02
+	chErr |= Wyslij_I2C_Kamera(0x3502, (uint8_t)(konf->nEkspozycjaReczna) & 0xFF);
+
+	chErr |= Wyslij_I2C_Kamera(0x3503, konf->chKontrolaExpo);		//AEC Manual Mode Control: 0x3503
+	chErr |= Wyslij_I2C_Kamera(0x3A00, konf->chTrybyEkspozycji);	//AEC System Control 0: 0x3A00
+	chErr |= Wyslij_I2C_Kamera(0x3A01, konf->chGranicaMinExpo);		//Minimum Exposure Output Limit [7..0]: 0x3A01
+	chErr |= Wyslij_I2C_Kamera(0x3A02, (uint8_t)(konf->nGranicaMaxExpo) >> 16) & 0xF;	//Maximum Exposure Output Limit [19..0]: 0x3A02..04
+	chErr |= Wyslij_I2C_Kamera(0x3A03, (uint8_t)(konf->nGranicaMaxExpo) >> 8);
+	chErr |= Wyslij_I2C_Kamera(0x3A04, (uint8_t)(konf->nGranicaMaxExpo) & 0xFF);
 	return chErr;
 }
 

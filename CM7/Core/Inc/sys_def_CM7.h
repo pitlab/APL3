@@ -17,10 +17,12 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	262		//numer commitu w repozytorium
-#define LCD_ILI9488
-//#define LCD_RPI35B
-//#define LCD_RPI35C
+#define WER_REPO	263		//numer commitu w repozytorium
+
+//wybór typu wyświetlacza
+#define LCD_ILI9488		//https://sklep.msalamon.pl/produkt/wyswietlacz-tft-lcd-35%E2%80%B3-ili9488-320x480/?srsltid=AfmBOopUr_Ot4ZQNoDns7QPYb-sgwqNSRUYaUR1s1TTm1hDWmuxMRWXO
+//#define LCD_RPI35B	//https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(B)
+//#define LCD_RPI35C	//https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(C) ten niestety jeszcze nie działa
 
 //definicje bitów danych expanderów IO
 #define EXP00_TP_INT		0x01	//TP_INT - wejście przerwań panelu dotykowego LCD

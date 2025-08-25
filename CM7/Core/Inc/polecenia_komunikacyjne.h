@@ -97,7 +97,7 @@ typedef struct
 #define SGZ_BLAD		2		//wystapił błąd wykonania zdjecia
 
 //kamera
-#define SKALA_ROZDZ_KAM	16	//proporcja między obrazem zbieranym przez kamerę (HS x VS) a wysyłanym (DVPHO x DVPVO)
+#define KROK_ROZDZ_KAM	16		//najmnijeszy krok zmiany rozmiaru obrazu o tyle pikseli. Umożliwia wysłanie rozmiaru jako liczby 8-bitowej
 #define MAX_SZER_KAM	2592
 #define MAX_WYS_KAM		1944 
 
