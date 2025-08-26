@@ -27,10 +27,12 @@
 //konfiguracja kamery
 struct st_KonfKam
 {
-	uint16_t sSzerWe;
-	uint16_t sWysWe;
-	uint16_t sSzerWy;
-	uint16_t sWysWy;
+	uint8_t chSzerWe;
+	uint8_t chWysWe;
+	uint8_t chSzerWy;
+	uint8_t chWysWy;
+	uint8_t chPrzesWyPoz;		//przesunięcie obrazu względem początku matrycy w poziomie
+	uint8_t chPrzesWyPio;		//przesunięcie obrazu względem początku matrycy w pionie
 	uint8_t chTrybDiagn;
 	uint8_t chObracanieObrazu;	//Timing Control: 0x3818
 	uint8_t chFormatObrazu;		//Format Control 0x4300
