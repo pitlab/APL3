@@ -38,6 +38,8 @@ extern uint16_t sBuforLCD[];
 extern uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern stBSP_t stBSP;	//struktura zawierajaca adres i nazwę BSP
 
+
+
 uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDanych, uint8_t chInterfejs, uint8_t chAdresZdalny)
 {
 	uint8_t n, chErr;
@@ -132,7 +134,10 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		chDane[21] = (uint8_t)(strKonfKam.nGranicaMaxExpo >> 16) & 0xF;		//Maximum Exposure Output Limit [19..0]: 0x3A02..04
 		chDane[22] = (uint8_t)(strKonfKam.nGranicaMaxExpo >> 8);
 		chDane[23] = (uint8_t)(strKonfKam.nGranicaMaxExpo & 0xFF);
-		chErr = WyslijRamke(chAdresZdalny, PK_POB_PAR_KAMERY, 6, chDane, chInterfejs);
+		chDane[24] = strKonfKam.chKontrolaISP0;		//0x5000
+		chDane[25] = strKonfKam.chKontrolaISP1;		//0x50001
+		chDane[26] = strKonfKam.chProgUsuwania;		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
+		chErr = WyslijRamke(chAdresZdalny, PK_POB_PAR_KAMERY, 27, chDane, chInterfejs);
 		break;
 
 	case PK_UST_PAR_KAMERY:	//ustaw parametry pracy kamery
@@ -152,9 +157,15 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		strKonfKam.chKontrolaExpo = chDane[18];
 		strKonfKam.chTrybyEkspozycji = chDane[19];
 		strKonfKam.chGranicaMinExpo = chDane[20];
-		strKonfKam.nGranicaMaxExpo = ((uint32_t)chDane[21] << 16) + ((uint32_t)chDane[21] << 8) + chDane[23];
-		UstawKamere(&strKonfKam);
-		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
+		strKonfKam.nGranicaMaxExpo = ((uint32_t)chDane[21] << 16) + ((uint32_t)chDane[22] << 8) + chDane[23];
+		strKonfKam.chKontrolaISP0 = chDane[24];		//0x5000
+		strKonfKam.chKontrolaISP1 = chDane[25];		//0x50001
+		strKonfKam.chProgUsuwania = chDane[26];		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
+		chErr = UstawKamere(&strKonfKam);
+		if (chErr)
+			chErr = Wyslij_ERR(chPolecenie, chErr, chInterfejs);
+		else
+			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
 
 	case PK_ZAPISZ_BUFOR:

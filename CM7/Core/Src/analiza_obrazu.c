@@ -207,11 +207,12 @@ void HistogramCB7(uint8_t *obraz, uint8_t *hist, uint32_t rozmiar)
 // [we] rozmiar - ilość pikseli do analizy
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void HistogramRGB565(uint16_t *obrazRGB565, uint8_t *histR, uint8_t *histG, uint8_t *histB, uint32_t rozmiar)
+void HistogramRGB565(uint16_t *obrazRGB565, uint32_t rozmiar, uint8_t *histR, uint8_t *histG, uint8_t *histB)
 {
 	uint16_t sPixel;
 	uint32_t nSumaR[32], nSumaG[64], nSumaB[32], temp;
 
+	//inicjuj sumę pokseli w danym kolorze, później będzie inkrementowana, wiec musi zaczynać się od zera
 	for (uint8_t n=0; n<32; n++)
 	{
 		nSumaR[n] = 0;

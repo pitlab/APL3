@@ -45,6 +45,9 @@ struct st_KonfKam
 	uint8_t chTrybyEkspozycji;	//AEC System Control 0: 0x3A00
 	uint8_t chGranicaMinExpo;	//Minimum Exposure Output Limit [7..0]: 0x3A01
 	uint32_t nGranicaMaxExpo;	//Maximum Exposure Output Limit [19..0]: 0x3A02..04
+	uint8_t chKontrolaISP0;		//0x5000
+	uint8_t chKontrolaISP1;		//0x50001
+	uint8_t chProgUsuwania;		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
 };
 
 typedef struct st_KonfKam stKonfKam_t;

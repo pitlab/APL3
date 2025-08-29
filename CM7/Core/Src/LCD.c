@@ -36,7 +36,6 @@
 #include "ip4_addr.h"
 
 
-
 //deklaracje zmiennych
 extern uint8_t MidFont[];
 extern uint8_t BigFont[];
@@ -55,12 +54,12 @@ extern const unsigned short obr_fft[];
 extern const unsigned short obr_glosnik1[];
 extern const unsigned short obr_glosnik2[];
 extern const unsigned short obr_glosnik_neg[];
-extern const unsigned short obr_wroc[];
+//extern const unsigned short obr_wroc[];
 extern const unsigned short obr_foto[];
 extern const unsigned short obr_Mikołaj_Rey[];
 extern const unsigned short obr_Wydajnosc[];
 extern const unsigned short obr_mtest[];
-extern const unsigned short obr_back[];
+//extern const unsigned short obr_back[];
 extern const unsigned short obr_volume[];
 extern const unsigned short obr_touch[0xFFC];
 extern const unsigned short obr_dotyk[0xFFC];
@@ -75,10 +74,20 @@ extern const unsigned short obr_cisnienie[0xFFC];
 extern const unsigned short obr_okregi[0xFFC];
 extern const unsigned short obr_narzedzia[0xFFC];
 extern const unsigned short obr_aparaturaRC[0xFFC];
+//extern const unsigned short obr_aparat[0xFFC];
+//extern const unsigned short obr_kamera[0xFFC];
+//extern const unsigned short obr_papuga[0xFFC];
+
+//wygenerowane przez chata GPT
+extern const unsigned short obr_Polaczenie[0xFFC];
+extern const unsigned short obr_konfiguracja[0xFFC];
+extern const unsigned short obr_KonfKartySD[0xFFC];
 extern const unsigned short obr_aparat[0xFFC];
+extern const unsigned short obr_KonfigDotyk[0xFFC];
 extern const unsigned short obr_kamera[0xFFC];
-extern const unsigned short obr_papuga[0xFFC];
-extern const unsigned short obr_ethernet[0xFFC];
+extern const unsigned short obr_papuga1[0xFFC];
+extern const unsigned short obr_powrot1[0xFFC];
+extern const unsigned short obr_glosnik1[0xFFC];
 
 extern const char *chNapisLcd[MAX_NAPISOW];
 extern const char *chOpisBledow[MAX_KOMUNIKATOW];
@@ -134,14 +143,14 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Pomiary",		"Wyniki pomiarow czujnikow",				TP_POMIARY, 		obr_multimetr},
 	{"Kalibracje", 	"Kalibracja czujnikow pokladowych",			TP_KALIBRACJE,		obr_kontrolny},
-	{"Nastawy",  	"Ustawienia podsystemow",					TP_NASTAWY, 		obr_narzedzia},
+	{"Nastawy",  	"Ustawienia podsystemow",					TP_NASTAWY, 		obr_konfiguracja},
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
-	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_kartaSD},
-	{"Ethernet",	"Obsłga ethernetu",							TP_ETHERNET,		obr_ethernet},
+	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_KonfKartySD},
+	{"Ethernet",	"Obsłga ethernetu",							TP_ETHERNET,		obr_Polaczenie},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"Kamera",		"Obsługa kamery",							TP_MEDIA_KAMERA,	obr_aparat},
-	{"Audio",  		"Obsluga multimediow: dzwiek i obraz",		TP_MEDIA_AUDIO,		obr_glosnik2}};
+	{"Audio",  		"Obsluga multimediow: dzwiek i obraz",		TP_MEDIA_AUDIO,		obr_glosnik1}};
 
 
 
@@ -150,13 +159,13 @@ struct tmenu stMenuKalibracje[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Kal IMU", 	"Kalibracja czujników IMU",					TP_KAL_IMU,			obr_baczek},
 	{"Kal Magn", 	"Kalibracja magnetometrow",					TP_KAL_MAG,			obr_kal_mag_n1},
 	{"Kal Baro", 	"Kalibracja cisnienia wg wzorca 10 pieter",	TP_KAL_BARO,		obr_cisnienie},
-	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_KAL_DOTYK,		obr_dotyk_zolty},
+	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_KAL_DOTYK,		obr_KonfigDotyk},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
@@ -169,7 +178,7 @@ struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_dotyk_zolty},
-	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuNastawy[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
@@ -182,7 +191,7 @@ struct tmenu stMenuNastawy[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Mikser",		"Nastawy miksera silnikow",					TP_NAST_MIKSERA,	obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 
 struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -196,12 +205,12 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katow IMU",		TP_IMU_KOSTKA,		obr_kostka3D},
 	{"Magistrala",	"Test magistrali danych i adresowej",		TP_W3,				obr_Wydajnosc},
 	{"SD18",		"nic",										TP_W4,				obr_Wydajnosc},
-	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuAudio[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Miki Rej",  	"Deklaracja Mikolaja Reja o APL",			TP_MREJ,	 		obr_Mikołaj_Rey},
-	{"Papuga",		"Rejestrator i odtwarzacz dzwieku",			TP_PAPUGA,			obr_papuga},
+	{"Papuga",		"Rejestrator i odtwarzacz dzwieku",			TP_PAPUGA,			obr_papuga1},
 	{"Miki DRAM",	"Test wymowy z DRAM",						TP_MM2,				obr_glosnik2},
 	{"Test Tonu",	"Test tonu wario",							TP_TEST_TONU,		obr_glosnik2},
 	{"FFT Audio",	"FFT sygnału z mikrofonu",					TP_AUDIO_FFT,		obr_fft},
@@ -209,7 +218,7 @@ struct tmenu stMenuAudio[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"Test kom.",	"Test komunikatow audio",					TP_MM_KOM,			obr_glosnik2},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
-	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
@@ -222,7 +231,7 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										TP_KAM2,			obr_aparat},
 	{"nic",			"nic",										TP_KAM3,			obr_aparat},
 	{"Paski",		"Ustawia tryb diagnostyki kolorow",			TP_KAM4,			obr_kontrolny},
-	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
@@ -236,21 +245,21 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"TPKS_6",		"nic  ",									TPKS_6,				obr_dotyk_zolty},
 	{"TPKS_7",		"nic  ",									TPKS_7,				obr_dotyk_zolty},
 	{"TPKS_8",		"nic  ",									TPKS_8,				obr_dotyk_zolty},
-	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 
 struct tmenu stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Info",		"Informacje o laczu sieciowym",				TP_ETH_INFO,		obr_ethernet},
-	{"nic",			"nic",										TP_KAM1,			obr_ethernet},
-	{"nic",			"nic",										TP_KAM1,			obr_ethernet},
-	{"nic",			"nic",										TP_KAM1,			obr_ethernet},
-	{"nic",			"nic",										TP_KAM1,			obr_ethernet},
-	{"nic",			"nic",										TP_KAM1,			obr_ethernet},
-	{"nic",			"nic",										TP_KAM2,			obr_ethernet},
-	{"nic",			"nic",										TP_KAM3,			obr_ethernet},
-	{"nic",			"nic",										TP_KAM1,			obr_ethernet},
-	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+	{"Info",		"Informacje o laczu sieciowym",				TP_ETH_INFO,		obr_Polaczenie},
+	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
+	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
+	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
+	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
+	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
+	{"nic",			"nic",										TP_KAM2,			obr_Polaczenie},
+	{"nic",			"nic",										TP_KAM3,			obr_Polaczenie},
+	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
@@ -264,7 +273,7 @@ struct tmenu stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wzm ZyroR", 	"Kalibracja wzmocnienia zyroskopow R",		TP_KAL_WZM_ZYROR,	obr_baczek},
 	{"ZeroZyro", 	"Kasuj dryft scalkowanego kata z zyro.",	TP_KASUJ_DRYFT_ZYRO,obr_kostka3D},
 	//{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katow IMU",		TP_IMU_KOSTKA,	obr_kostka3D},
-	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
@@ -277,7 +286,7 @@ struct tmenu stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Spr Magn2",	"Sprawdz kalibracje magnetometru 2",		TP_SPR_MAG2,		obr_kal_mag_n1},
 	{"Spr Magn3",	"Sprawdz kalibracje magnetometru 3",		TP_SPR_MAG3,		obr_kal_mag_n1},
 	{"Spr Mag 2D",	"Sprawdz płaski obrotu dla 3 magnetom.",	TP_SPR_PLASKI,		obr_okregi},
-	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_back}};
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -473,7 +482,7 @@ void RysujEkran(void)
 		do
 		{
 			WyswietlZdjecie(480, 320, sBuforKamery);
-			HistogramRGB565(sBuforKamery, chHistR, chHistG, chHistB,  STD_OBRAZU_DVGA);
+			HistogramRGB565(sBuforKamery, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
 			RysujHistogramRGB16(chHistR, chHistG, chHistB);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
