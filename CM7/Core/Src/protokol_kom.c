@@ -127,9 +127,14 @@ void InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 ////////////////////////////////////////////////////////////////////////////////
 void ObslugaWatkuOdbiorczegoLPUART1(void)
 {
+	uint8_t chErr;
+
 	while (sWskNap != sWskOpr)
 	{
-		AnalizujDaneKom(chBuforKomOdb[sWskOpr], INTERF_UART);
+		chErr = AnalizujDaneKom(chBuforKomOdb[sWskOpr], INTERF_UART);
+		if (chErr)
+			chCzasSwieceniaLED[LED_CZER] = 5;
+
 		sWskOpr++;
 		//zapętlenie wskaźnika bufora kołowego
 		if (sWskOpr >= ROZMIAR_BUF_ANALIZY_ODB)

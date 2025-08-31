@@ -235,15 +235,17 @@ uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObra
 uint8_t RysujHistogramRGB16(uint8_t *histR, uint8_t *histG, uint8_t *histB)
 {
 	uint8_t chErr = ERR_OK;
+	uint16_t sPoczatek;
 
-	for (uint8_t x=0; x<32; x++)
-		RysujProstokatWypelniony(x*2, DISP_Y_SIZE - *(histR+x), 2, *(histR+x), RED);
-
-	for (uint8_t x=0; x<64; x++)
-		RysujProstokatWypelniony(x*2+64, DISP_Y_SIZE - *(histG+x), 2, *(histG+x), GREEN);
-
-	for (uint8_t x=0; x<32; x++)
-		RysujProstokatWypelniony(x*2+192, DISP_Y_SIZE - *(histB+x), 2, *(histB+x), BLUE);
+	for (uint8_t x=0; x<ROZDZIECZOSC_HISTOGRAMU; x++)
+	{
+		sPoczatek = x * SZER_PASKA_HISTOGRAMU;
+		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histR+x), SZER_PASKA_HISTOGRAMU, *(histR+x), RED);
+		sPoczatek = x * SZER_PASKA_HISTOGRAMU + SZER_PASKA_HISTOGRAMU * ROZDZIECZOSC_HISTOGRAMU;
+		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histG+x), SZER_PASKA_HISTOGRAMU, *(histG+x), GREEN);
+		sPoczatek = x * SZER_PASKA_HISTOGRAMU + (2 * SZER_PASKA_HISTOGRAMU * ROZDZIECZOSC_HISTOGRAMU);
+		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histB+x), SZER_PASKA_HISTOGRAMU, *(histB+x), BLUE);
+	}
 	return chErr;
 }
 

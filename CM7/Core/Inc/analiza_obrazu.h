@@ -8,7 +8,7 @@
 #ifndef INC_ANALIZA_OBRAZU_H_
 #define INC_ANALIZA_OBRAZU_H_
 #define DZIELNIK_HIST_CB	8
-#define DZIELNIK_HIST_RGB	128
+#define DZIELNIK_HIST_RGB	(3*32)	//służy do normalizacji histogramu kolorowego 5-5-5
 
 
 #include <stdint.h>

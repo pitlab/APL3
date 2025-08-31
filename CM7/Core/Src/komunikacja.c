@@ -27,7 +27,7 @@ static un8_16_t un8_16;
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
-extern struct st_KonfKam strKonfKam;
+extern struct st_KonfKam stKonfKam;
 extern uint16_t sOkresTelemetrii[MAX_INDEKSOW_TELEMETR_W_RAMCE];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 extern  uint8_t chPolecenie;
 extern  uint8_t chRozmDanych;
@@ -110,60 +110,95 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		break;
 
 	case PK_POB_PAR_KAMERY:	//pobierz parametry pracy kamery
-		chDane[0] = strKonfKam.chSzerWy;
-		chDane[1] = strKonfKam.chWysWy;
-		chDane[2] = strKonfKam.chSzerWe;
-		chDane[3] = strKonfKam.chWysWe;
-		chDane[4] = strKonfKam.chPrzesWyPoz;
-		chDane[5] = strKonfKam.chPrzesWyPio;
-		chDane[6] = strKonfKam.chObracanieObrazu;
-		chDane[7] = strKonfKam.chFormatObrazu;
-		chDane[8] = (uint8_t)(strKonfKam.sWzmocnienieR >> 8);
-		chDane[9] = (uint8_t)(strKonfKam.sWzmocnienieR & 0xFF);
-		chDane[10] = (uint8_t)(strKonfKam.sWzmocnienieG >> 8);
-		chDane[11] = (uint8_t)(strKonfKam.sWzmocnienieG & 0xFF);
-		chDane[12] = (uint8_t)(strKonfKam.sWzmocnienieB >> 8);
-		chDane[13] = (uint8_t)(strKonfKam.sWzmocnienieB & 0xFF);
-		chDane[14] = strKonfKam.chKontrolaBalansuBieli;
-		chDane[15] = (uint8_t)(strKonfKam.nEkspozycjaReczna >> 16) & 0xF;	//AEC Long Channel Exposure [19:0]: 0x3500..02
-		chDane[16] = (uint8_t)(strKonfKam.nEkspozycjaReczna >> 8);
-		chDane[17] = (uint8_t)(strKonfKam.nEkspozycjaReczna & 0xFF);
-		chDane[18] = strKonfKam.chKontrolaExpo;
-		chDane[19] = strKonfKam.chTrybyEkspozycji;
-		chDane[20] = strKonfKam.chGranicaMinExpo;
-		chDane[21] = (uint8_t)(strKonfKam.nGranicaMaxExpo >> 16) & 0xF;		//Maximum Exposure Output Limit [19..0]: 0x3A02..04
-		chDane[22] = (uint8_t)(strKonfKam.nGranicaMaxExpo >> 8);
-		chDane[23] = (uint8_t)(strKonfKam.nGranicaMaxExpo & 0xFF);
-		chDane[24] = strKonfKam.chKontrolaISP0;		//0x5000
-		chDane[25] = strKonfKam.chKontrolaISP1;		//0x50001
-		chDane[26] = strKonfKam.chProgUsuwania;		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
+		chDane[0] = stKonfKam.chSzerWy;
+		chDane[1] = stKonfKam.chWysWy;
+		chDane[2] = stKonfKam.chSzerWe;
+		chDane[3] = stKonfKam.chWysWe;
+		chDane[4] = stKonfKam.chPrzesWyPoz;
+		chDane[5] = stKonfKam.chPrzesWyPio;
+		chDane[6] = stKonfKam.chObracanieObrazu;
+		chDane[7] = stKonfKam.chFormatObrazu;
+		chDane[8] = (uint8_t)(stKonfKam.sWzmocnienieR >> 8);
+		chDane[9] = (uint8_t)(stKonfKam.sWzmocnienieR & 0xFF);
+		chDane[10] = (uint8_t)(stKonfKam.sWzmocnienieG >> 8);
+		chDane[11] = (uint8_t)(stKonfKam.sWzmocnienieG & 0xFF);
+		chDane[12] = (uint8_t)(stKonfKam.sWzmocnienieB >> 8);
+		chDane[13] = (uint8_t)(stKonfKam.sWzmocnienieB & 0xFF);
+		chDane[14] = stKonfKam.chKontrBalBieli;
+		//chDane[15] = (uint8_t)(stKonfKam.nEkspozycjaReczna >> 16) & 0xF;	//AEC Long Channel Exposure [19:0]: 0x3500..02
+		//chDane[16] = (uint8_t)(stKonfKam.nEkspozycjaReczna >> 8);
+		//chDane[17] = (uint8_t)(stKonfKam.nEkspozycjaReczna & 0xFF);
+		chDane[15] = 0;			//AEC Long Channel Exposure [19:0]: 0x3500..02
+		chDane[16] = (uint8_t)(stKonfKam.sCzasEkspozycji >> 8);
+		chDane[17] = (uint8_t)(stKonfKam.sCzasEkspozycji & 0xFF);
+		chDane[18] = stKonfKam.chKontrolaExpo;
+		chDane[19] = stKonfKam.chTrybyEkspozycji;
+		chDane[20] = stKonfKam.chGranicaMinExpo;
+		chDane[21] = (uint8_t)(stKonfKam.nGranicaMaxExpo >> 16) & 0xF;		//Maximum Exposure Output Limit [19..0]: 0x3A02..04
+		chDane[22] = (uint8_t)(stKonfKam.nGranicaMaxExpo >> 8);
+		chDane[23] = (uint8_t)(stKonfKam.nGranicaMaxExpo & 0xFF);
+		chDane[24] = stKonfKam.chKontrolaISP0;		//0x5000
+		chDane[25] = stKonfKam.chKontrolaISP1;		//0x50001
+		chDane[26] = stKonfKam.chProgUsuwania;		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
 		chErr = WyslijRamke(chAdresZdalny, PK_POB_PAR_KAMERY, 27, chDane, chInterfejs);
 		break;
 
 	case PK_UST_PAR_KAMERY:	//ustaw parametry pracy kamery
-		strKonfKam.chSzerWy = chDane[0];
-		strKonfKam.chWysWy = chDane[1];
-		strKonfKam.chSzerWe = chDane[2];
-		strKonfKam.chWysWe = chDane[3];
-		strKonfKam.chPrzesWyPoz = chDane[4];
-		strKonfKam.chPrzesWyPio = chDane[5];
-		strKonfKam.chObracanieObrazu = chDane[6];
-		strKonfKam.chFormatObrazu = chDane[7];
-		strKonfKam.sWzmocnienieR = ((uint16_t)chDane[8] << 8) + chDane[9];
-		strKonfKam.sWzmocnienieG = ((uint16_t)chDane[10] << 8) + chDane[11];
-		strKonfKam.sWzmocnienieB = ((uint16_t)chDane[12] << 8) + chDane[13];
-		strKonfKam.chKontrolaBalansuBieli = chDane[14];
-		strKonfKam.nEkspozycjaReczna = ((uint32_t)chDane[15] << 16) + ((uint32_t)chDane[16] << 8) + chDane[17];
-		strKonfKam.chKontrolaExpo = chDane[18];
-		strKonfKam.chTrybyEkspozycji = chDane[19];
-		strKonfKam.chGranicaMinExpo = chDane[20];
-		strKonfKam.nGranicaMaxExpo = ((uint32_t)chDane[21] << 16) + ((uint32_t)chDane[22] << 8) + chDane[23];
-		strKonfKam.chKontrolaISP0 = chDane[24];		//0x5000
-		strKonfKam.chKontrolaISP1 = chDane[25];		//0x50001
-		strKonfKam.chProgUsuwania = chDane[26];		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
-		chErr = UstawKamere(&strKonfKam);
+		stKonfKam.chSzerWy = chDane[0];
+		stKonfKam.chWysWy = chDane[1];
+		stKonfKam.chSzerWe = chDane[2];
+		stKonfKam.chWysWe = chDane[3];
+		stKonfKam.chPrzesWyPoz = chDane[4];
+		stKonfKam.chPrzesWyPio = chDane[5];
+		stKonfKam.chObracanieObrazu = chDane[6];
+		stKonfKam.chFormatObrazu = chDane[7];
+		stKonfKam.sWzmocnienieR = ((uint16_t)chDane[8] << 8) + chDane[9];
+		stKonfKam.sWzmocnienieG = ((uint16_t)chDane[10] << 8) + chDane[11];
+		stKonfKam.sWzmocnienieB = ((uint16_t)chDane[12] << 8) + chDane[13];
+		stKonfKam.chKontrBalBieli = chDane[14];
+		//stKonfKam.nEkspozycjaReczna = ((uint32_t)chDane[15] << 16) + ((uint32_t)chDane[16] << 8) + chDane[17];
+		stKonfKam.sCzasEkspozycji = ((uint16_t)chDane[16] << 8) + chDane[17];
+		stKonfKam.chKontrolaExpo = chDane[18];
+		stKonfKam.chTrybyEkspozycji = chDane[19];
+		stKonfKam.chGranicaMinExpo = chDane[20];
+		stKonfKam.nGranicaMaxExpo = ((uint32_t)chDane[21] << 16) + ((uint32_t)chDane[22] << 8) + chDane[23];
+		stKonfKam.chKontrolaISP0 = chDane[24];		//0x5000
+		stKonfKam.chKontrolaISP1 = chDane[25];		//0x50001
+		stKonfKam.chProgUsuwania = chDane[26];		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
+		chErr = UstawKamere(&stKonfKam);	//wersja z rejestrami osobno
+		//chErr = UstawKamere2(&stKonfKam);	//wersja z grupami rejestrów
 		if (chErr)
-			chErr = Wyslij_ERR(chPolecenie, chErr, chInterfejs);
+			Wyslij_ERR(chPolecenie, chErr, chInterfejs);
+		else
+			Wyslij_OK(chPolecenie, 0, chInterfejs);
+		break;
+
+	case PK_UST_PAR_KAMERY_GRUP:	//ustaw parametry pracy kamery grupowo
+		stKonfKam.chSzerWy = chDane[0];
+		stKonfKam.chWysWy = chDane[1];
+		stKonfKam.chSzerWe = chDane[2];
+		stKonfKam.chWysWe = chDane[3];
+		stKonfKam.chPrzesWyPoz = chDane[4];
+		stKonfKam.chPrzesWyPio = chDane[5];
+		stKonfKam.chObracanieObrazu = chDane[6];
+		stKonfKam.chFormatObrazu = chDane[7];
+		stKonfKam.sWzmocnienieR = ((uint16_t)chDane[8] << 8) + chDane[9];
+		stKonfKam.sWzmocnienieG = ((uint16_t)chDane[10] << 8) + chDane[11];
+		stKonfKam.sWzmocnienieB = ((uint16_t)chDane[12] << 8) + chDane[13];
+		stKonfKam.chKontrBalBieli = chDane[14];
+		//stKonfKam.nEkspozycjaReczna = ((uint32_t)chDane[15] << 16) + ((uint32_t)chDane[16] << 8) + chDane[17];
+		stKonfKam.sCzasEkspozycji = ((uint16_t)chDane[16] << 8) + chDane[17];
+
+		stKonfKam.chKontrolaExpo = chDane[18];
+		stKonfKam.chTrybyEkspozycji = chDane[19];
+		stKonfKam.chGranicaMinExpo = chDane[20];
+		stKonfKam.nGranicaMaxExpo = ((uint32_t)chDane[21] << 16) + ((uint32_t)chDane[22] << 8) + chDane[23];
+		stKonfKam.chKontrolaISP0 = chDane[24];		//0x5000
+		stKonfKam.chKontrolaISP1 = chDane[25];		//0x50001
+		stKonfKam.chProgUsuwania = chDane[26];		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
+		chErr = UstawKamere2(&stKonfKam);	//wersja z grupami rejestrów
+		if (chErr)
+			Wyslij_ERR(chPolecenie, chErr, chInterfejs);
 		else
 			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
@@ -189,7 +224,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		if (chErr == ERR_OK)
 			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		else
-			chErr = Wyslij_ERR(chErr, 0, chInterfejs);
+			Wyslij_ERR(chErr, 0, chInterfejs);
 		sWskBufSektora = 0;
 		break;
 
@@ -202,7 +237,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		if (chErr == ERR_OK)
 			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		else
-			chErr = Wyslij_ERR(chErr, 0, chInterfejs);
+			 Wyslij_ERR(chErr, 0, chInterfejs);
 		break;
 
 	case PK_CZYTAJ_FLASH:	//odczytaj zawartość Flash
@@ -210,9 +245,17 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 			un8_32.dane8[n] = chDane[n];	//adres sektora
 
 		if (chDane[4] > ROZMIAR16_BUF_SEKT)	//jeżeli zażądano odczytu więcej niż pomieści bufor sektora to zwróc błąd
-			chErr = Wyslij_ERR(ERR_ZLA_ILOSC_DANYCH, 0, chInterfejs);
+		{
+			chErr = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_ERR(chErr, 0, chInterfejs);
+			break;
+		}
 		if (2* chDane[4] > ROZM_DANYCH_UART)	//jeżeli zażądano odczytu więcej niż pomieści ramka komunikacyjna to zwróc błąd
-			chErr = Wyslij_ERR(ERR_ZLA_ILOSC_DANYCH, 0, chInterfejs);
+		{
+			chErr = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_ERR(chErr, 0, chInterfejs);
+			break;
+		}
 
 		CzytajDaneFlashNOR(un8_32.dane32, sBuforSektoraFlash, chDane[4]);
 		chErr = WyslijRamke(chAdresZdalny, PK_CZYTAJ_FLASH, 2*chDane[4], (uint8_t*)sBuforSektoraFlash, chInterfejs);
@@ -235,7 +278,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 			sOkresTelemetrii[n] = chDane[2*n+2] + chDane[2*n+3] * 0x100;	//kolejnne okresy telemetrii, młodszy przodem
 		chErr = ZapiszKonfiguracjeTelemetrii(sPrzesuniecie);
 		if (chErr)
-			chErr = Wyslij_ERR(chErr, 0, chInterfejs);		//zwróć kod błedu zapisu konfiguracji telemetrii
+			Wyslij_ERR(chErr, 0, chInterfejs);		//zwróć kod błedu zapisu konfiguracji telemetrii
 		else
 		{
 			InicjalizacjaTelemetrii();
@@ -246,7 +289,8 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 	case PK_ZAPISZ_FRAM_U8:	//zapisuje bajty do FRAM
 		if (chDane[0] > 4*ROZMIAR_ROZNE)	//liczba danych uint8_t
 		{
-			Wyslij_ERR(ERR_ZLA_ILOSC_DANYCH, 0, chInterfejs);
+			chErr = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_ERR(chErr, 0, chInterfejs);
 			break;
 		}
 		un8_16.dane8[0] = chDane[1];	//adres zapisu
@@ -263,7 +307,8 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 	case PK_ZAPISZ_FRAM_FLOAT:				//Wysyła dane typu float do zapisu we FRAM w rdzeniu CM4 o rozmiarze ROZMIAR_ROZNE
 		if (chDane[0] > ROZMIAR_ROZNE)	//liczba danych float (nie uint8_t)
 		{
-			Wyslij_ERR(ERR_ZLA_ILOSC_DANYCH, 0, chInterfejs);
+			chErr = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_ERR(chErr, 0, chInterfejs);
 			break;
 		}
 		un8_16.dane8[0] = chDane[1];	//adres zapisu
@@ -284,7 +329,8 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 	case PK_WYSLIJ_POTW_ZAPISU:	//jeżeli dane się zapisały to odeslij ERR_OK. jeeli jeszcze nie to ERR_PROCES_TRWA
 		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie != POL_ZAPISZ_FRAM_FLOAT) || (uDaneCM4.dane.sAdres != sAdres))
 		{
-			Wyslij_ERR(ERR_PROCES_TRWA, 0, chInterfejs);	//dane jeszcze nie przyszły
+			chErr = ERR_PROCES_TRWA;		//dane jeszcze nie przyszły
+			Wyslij_ERR(chErr, 0, chInterfejs);
 			break;
 		}
 		chErr = Wyslij_OK(0, 0, chInterfejs);
@@ -294,7 +340,8 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 	case PK_CZYTAJ_FRAM_U8:
 		if (chDane[0] > 4*ROZMIAR_ROZNE)
 		{
-			Wyslij_ERR(ERR_ZLA_ILOSC_DANYCH, 0, chInterfejs);
+			chErr = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_ERR(chErr, 0, chInterfejs);
 			break;
 		}
 		un8_16.dane8[0] = chDane[1];	//adres do odczytu
@@ -309,7 +356,8 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 	case PK_CZYTAJ_FRAM_FLOAT:			//odczytaj i wyślij do bufora fRozne[] zawartość FRAM spod podanego adresu w chDane[1..2] o rozmiarze podanym w chDane[0]
 		if (chDane[0] > ROZMIAR_ROZNE)
 		{
-			Wyslij_ERR(ERR_ZLA_ILOSC_DANYCH, 0, chInterfejs);
+			chErr = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_ERR(chErr, 0, chInterfejs);
 			break;
 		}
 		un8_16.dane8[0] = chDane[1];	//adres do odczytu
@@ -324,7 +372,8 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 	case PK_WYSLIJ_ODCZYT_FRAM:	//wysyła odczytane wcześniej dane o rozmiarze podanym w chDane[0]
 		if (uDaneCM4.dane.sAdres != sAdres)
 		{
-			Wyslij_ERR(ERR_PROCES_TRWA, 0, chInterfejs);	//dane jeszcze nie przyszły
+			chErr = ERR_PROCES_TRWA;		//dane jeszcze nie przyszły
+			Wyslij_ERR(chErr, 0, chInterfejs);
 			break;
 		}
 		chRozmiar = chDane[0];	//zapamiętaj w zmiennej, bo dane będą nadpisane;

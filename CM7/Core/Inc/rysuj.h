@@ -8,8 +8,10 @@
 #ifndef INC_RYSUJ_H_
 #define INC_RYSUJ_H_
 #include "sys_def_CM7.h"
-
 #include "display.h"
+
+#define SZER_PASKA_HISTOGRAMU		4		//szerokość paska w pikselach
+#define ROZDZIECZOSC_HISTOGRAMU		32		//liczba prążków w histogramie
 
 void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
 void BelkaTytulu(char* chTytul);

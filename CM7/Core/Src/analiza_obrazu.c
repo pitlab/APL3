@@ -198,11 +198,11 @@ void HistogramCB7(uint8_t *obraz, uint8_t *hist, uint32_t rozmiar)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy histogram z obrazu RGB565.
-// Bity czerwony i niebieski mają skalę 5-bitową (32), zielony 6-bitową (64).
+// Bity czerwony i niebieski mają skalę 5-bitową, zielony 6-bitową, więc żeby można było porównywać wyrównuję histogram do 5 bitów.
 // Parametry:
 // [we] obraz* - wskaźnik na bufor[2*rozmiar] z obrazem RGB565
 // [wy] histR - 32 elementowy, 16-bitowy histogram
-// [wy] histG - 64 elementowy, 16-bitowy histogram
+// [wy] histG - 32 elementowy, 16-bitowy histogram
 // [wy] histB - 32 elementowy, 16-bitowy histogram
 // [we] rozmiar - ilość pikseli do analizy
 // Zwraca: nic
@@ -210,7 +210,7 @@ void HistogramCB7(uint8_t *obraz, uint8_t *hist, uint32_t rozmiar)
 void HistogramRGB565(uint16_t *obrazRGB565, uint32_t rozmiar, uint8_t *histR, uint8_t *histG, uint8_t *histB)
 {
 	uint16_t sPixel;
-	uint32_t nSumaR[32], nSumaG[64], nSumaB[32], temp;
+	uint32_t nSumaR[32], nSumaG[32], nSumaB[32], temp;
 
 	//inicjuj sumę pokseli w danym kolorze, później będzie inkrementowana, wiec musi zaczynać się od zera
 	for (uint8_t n=0; n<32; n++)
@@ -225,7 +225,7 @@ void HistogramRGB565(uint16_t *obrazRGB565, uint32_t rozmiar, uint8_t *histR, ui
 	{
 		sPixel = *(obrazRGB565 + n);
 		nSumaR[(sPixel & 0xF800) >> 11]++;
-		nSumaG[(sPixel & 0x07E0) >> 5]++;
+		nSumaG[(sPixel & 0x07C0) >> 6]++;	//ogranicz rozdzielczość zielonego do 5 bitów
 		nSumaB[(sPixel & 0x001F)]++;
 	}
 
@@ -234,14 +234,11 @@ void HistogramRGB565(uint16_t *obrazRGB565, uint32_t rozmiar, uint8_t *histR, ui
 		temp = nSumaR[n] / DZIELNIK_HIST_RGB;
 		*(histR+n) = temp & 0xFF;
 
-		temp = nSumaB[n] / DZIELNIK_HIST_RGB;
-		*(histB+n) = temp & 0xFF;
-	}
-
-	for (uint8_t n=0; n<64; n++)
-	{
 		temp = nSumaG[n] / DZIELNIK_HIST_RGB;
 		*(histG+n) = temp & 0xFF;
+
+		temp = nSumaB[n] / DZIELNIK_HIST_RGB;
+		*(histB+n) = temp & 0xFF;
 	}
 }
 

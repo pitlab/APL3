@@ -20,12 +20,12 @@
 #define KAMERA_ZEGAR	24000000	//kamera wymaga zegara 24MHz (6-27MHz)
 //#define KAMERA_ZEGAR	20000000	//kamera wymaga zegara 24MHz (6-27MHz)
 
-
+#define ROZMIAR_STRUKTURY_REJESTROW_KAMERY 20
 
 
 
 //konfiguracja kamery
-struct st_KonfKam
+typedef struct st_KonfKam
 {
 	uint8_t chSzerWe;
 	uint8_t chWysWe;
@@ -39,8 +39,9 @@ struct st_KonfKam
 	uint16_t sWzmocnienieR;		//AWB R Gain: 0x3400..01
 	uint16_t sWzmocnienieG;		//AWB G Gain: 0x3402..03
 	uint16_t sWzmocnienieB;		//AWB B Gain: 0x3404..05
-	uint8_t chKontrolaBalansuBieli;	//AWB Manual: 0x3406
-	uint32_t nEkspozycjaReczna;	//AEC Long Channel Exposure [19:0]: 0x3500..02
+	uint8_t chKontrBalBieli;	//AWB Manual: 0x3406
+	//uint32_t nEkspozycjaReczna;	//AEC Long Channel Exposure [19:0]: 0x3500..02
+	uint16_t sCzasEkspozycji;	//AEC Long Channel Exposure [19:0]: 0x3500..02
 	uint8_t chKontrolaExpo;		//AEC Manual Mode Control: 0x3503
 	uint8_t chTrybyEkspozycji;	//AEC System Control 0: 0x3A00
 	uint8_t chGranicaMinExpo;	//Minimum Exposure Output Limit [7..0]: 0x3A01
@@ -48,21 +49,30 @@ struct st_KonfKam
 	uint8_t chKontrolaISP0;		//0x5000
 	uint8_t chKontrolaISP1;		//0x50001
 	uint8_t chProgUsuwania;		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
-};
+} stKonfKam_t;
 
-typedef struct st_KonfKam stKonfKam_t;
-//extern struct st_KonfKam strKonfKam;
+//typedef struct st_KonfKam stKonfKam_t;
+
 
 uint8_t InicjalizujKamere(void);
 uint8_t Wyslij_I2C_Kamera(uint16_t rejestr, uint8_t dane);
 uint8_t Czytaj_I2C_Kamera(uint16_t rejestr, uint8_t *dane);
 uint8_t	SprawdzKamere(void);
 uint8_t UstawKamere(stKonfKam_t *konf);
+uint8_t UstawKamere2(stKonfKam_t *konf);
 uint8_t RozpocznijPraceDCMI(uint8_t chAparat);
 //uint8_t ZrobZdjecie(int16_t sSzerokosc, uint16_t sWysokosc);
 uint8_t ZrobZdjecie(void);
 uint8_t Wyslij_Blok_Kamera(const struct sensor_reg reglist[]);
 uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chZoom);
-void UstawTrybDiagnostycznyPaski(void);
+uint8_t UtworzGrupeRejestrowKamery(uint8_t chNrGrupy, struct sensor_reg *stListaRejestrow, uint8_t chLiczbaRejestrow);
+uint8_t UruchomGrupeRejestrowKamery(uint8_t chNrGrupy);
+
+
+void UstawDomyslny(void);
+void Ustaw1(void);
+void Ustaw2(void);
+void Ustaw3(void);
+
 
 #endif /* INC_KONFIGURACJA_H_ */

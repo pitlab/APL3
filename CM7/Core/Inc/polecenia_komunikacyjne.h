@@ -79,11 +79,11 @@ typedef struct
 #define PK_CZYTAJ_FRAM_FLOAT	20	//wysyła polecenie odczytu zawartości FRAM typu float
 #define PK_WYSLIJ_ODCZYT_FRAM	21	//pobiera odczytane wcześniej dane lub zwraca ERR_PROCES_TRWA
 #define PK_REKONFIG_SERWA_RC	22	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie zawartosci FRAM
+#define PK_UST_PAR_KAMERY_GRUP	23	//ustaw parametry pracy kamery grupowo
 
 
 
-
-#define PK_ILOSC_POLECEN		23	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
+#define PK_ILOSC_POLECEN		24	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
 #define PK_TELEMETRIA1			96	//ramka telemetryczna 1
 #define PK_TELEMETRIA2			97	//ramka telemetryczna 2

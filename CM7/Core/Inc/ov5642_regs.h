@@ -11,8 +11,8 @@
 
 
 struct sensor_reg {
-	uint16_t reg;
-	uint8_t val;
+	uint16_t sRejestr;
+	uint8_t chWartosc;
 };
 
 #define KAM_ROZDZIELCZOSC_X		2592	//natywna rozdzielczość przetwornika obrazu
