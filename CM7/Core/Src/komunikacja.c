@@ -125,22 +125,22 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		chDane[12] = (uint8_t)(stKonfKam.sWzmocnienieB >> 8);
 		chDane[13] = (uint8_t)(stKonfKam.sWzmocnienieB & 0xFF);
 		chDane[14] = stKonfKam.chKontrBalBieli;
-		//chDane[15] = (uint8_t)(stKonfKam.nEkspozycjaReczna >> 16) & 0xF;	//AEC Long Channel Exposure [19:0]: 0x3500..02
-		//chDane[16] = (uint8_t)(stKonfKam.nEkspozycjaReczna >> 8);
-		//chDane[17] = (uint8_t)(stKonfKam.nEkspozycjaReczna & 0xFF);
-		chDane[15] = 0;			//AEC Long Channel Exposure [19:0]: 0x3500..02
-		chDane[16] = (uint8_t)(stKonfKam.sCzasEkspozycji >> 8);
+		chDane[15] = stKonfKam.chNasycenie;
+		chDane[16] = (uint8_t)(stKonfKam.sCzasEkspozycji >> 8);		//AEC Long Channel Exposure [19:0]: 0x3500..02
 		chDane[17] = (uint8_t)(stKonfKam.sCzasEkspozycji & 0xFF);
 		chDane[18] = stKonfKam.chKontrolaExpo;
 		chDane[19] = stKonfKam.chTrybyEkspozycji;
-		chDane[20] = stKonfKam.chGranicaMinExpo;
-		chDane[21] = (uint8_t)(stKonfKam.nGranicaMaxExpo >> 16) & 0xF;		//Maximum Exposure Output Limit [19..0]: 0x3A02..04
-		chDane[22] = (uint8_t)(stKonfKam.nGranicaMaxExpo >> 8);
-		chDane[23] = (uint8_t)(stKonfKam.nGranicaMaxExpo & 0xFF);
+		chDane[20] = (uint8_t)(stKonfKam.sAGCLong >> 8);
+		chDane[21] = (uint8_t)(stKonfKam.sAGCLong & 0xFF);
+		chDane[22] = (uint8_t)(stKonfKam.sAGCVTS >> 8);
+		chDane[23] = (uint8_t)(stKonfKam.sAGCVTS & 0xFF);
 		chDane[24] = stKonfKam.chKontrolaISP0;		//0x5000
 		chDane[25] = stKonfKam.chKontrolaISP1;		//0x50001
 		chDane[26] = stKonfKam.chProgUsuwania;		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
-		chErr = WyslijRamke(chAdresZdalny, PK_POB_PAR_KAMERY, 27, chDane, chInterfejs);
+		chDane[27] = (uint8_t)(stKonfKam.sAGCAdjust >> 8);
+		chDane[28] = (uint8_t)(stKonfKam.sAGCAdjust & 0xFF);
+		chDane[29] = stKonfKam.chPoziomEkspozycji;
+		chErr = WyslijRamke(chAdresZdalny, PK_POB_PAR_KAMERY, 30, chDane, chInterfejs);
 		break;
 
 	case PK_UST_PAR_KAMERY:	//ustaw parametry pracy kamery
@@ -156,15 +156,17 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		stKonfKam.sWzmocnienieG = ((uint16_t)chDane[10] << 8) + chDane[11];
 		stKonfKam.sWzmocnienieB = ((uint16_t)chDane[12] << 8) + chDane[13];
 		stKonfKam.chKontrBalBieli = chDane[14];
-		//stKonfKam.nEkspozycjaReczna = ((uint32_t)chDane[15] << 16) + ((uint32_t)chDane[16] << 8) + chDane[17];
+		stKonfKam.chNasycenie = chDane[15];
 		stKonfKam.sCzasEkspozycji = ((uint16_t)chDane[16] << 8) + chDane[17];
 		stKonfKam.chKontrolaExpo = chDane[18];
 		stKonfKam.chTrybyEkspozycji = chDane[19];
-		stKonfKam.chGranicaMinExpo = chDane[20];
-		stKonfKam.nGranicaMaxExpo = ((uint32_t)chDane[21] << 16) + ((uint32_t)chDane[22] << 8) + chDane[23];
+		stKonfKam.sAGCLong = ((uint16_t)chDane[20] << 8) + chDane[21];
+		stKonfKam.sAGCVTS = ((uint16_t)chDane[22] << 8) + chDane[23];
 		stKonfKam.chKontrolaISP0 = chDane[24];		//0x5000
 		stKonfKam.chKontrolaISP1 = chDane[25];		//0x50001
 		stKonfKam.chProgUsuwania = chDane[26];		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
+		stKonfKam.sAGCAdjust = ((uint16_t)chDane[27] << 8) + chDane[28];
+		stKonfKam.chPoziomEkspozycji = chDane[29];
 		chErr = UstawKamere(&stKonfKam);	//wersja z rejestrami osobno
 		//chErr = UstawKamere2(&stKonfKam);	//wersja z grupami rejestrów
 		if (chErr)
@@ -186,17 +188,26 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		stKonfKam.sWzmocnienieG = ((uint16_t)chDane[10] << 8) + chDane[11];
 		stKonfKam.sWzmocnienieB = ((uint16_t)chDane[12] << 8) + chDane[13];
 		stKonfKam.chKontrBalBieli = chDane[14];
-		//stKonfKam.nEkspozycjaReczna = ((uint32_t)chDane[15] << 16) + ((uint32_t)chDane[16] << 8) + chDane[17];
+		stKonfKam.chNasycenie = chDane[15];
 		stKonfKam.sCzasEkspozycji = ((uint16_t)chDane[16] << 8) + chDane[17];
-
 		stKonfKam.chKontrolaExpo = chDane[18];
 		stKonfKam.chTrybyEkspozycji = chDane[19];
-		stKonfKam.chGranicaMinExpo = chDane[20];
-		stKonfKam.nGranicaMaxExpo = ((uint32_t)chDane[21] << 16) + ((uint32_t)chDane[22] << 8) + chDane[23];
+		stKonfKam.sAGCLong = ((uint16_t)chDane[20] << 8) + chDane[21];
+		stKonfKam.sAGCVTS = ((uint16_t)chDane[22] << 8) + chDane[23];
 		stKonfKam.chKontrolaISP0 = chDane[24];		//0x5000
 		stKonfKam.chKontrolaISP1 = chDane[25];		//0x50001
 		stKonfKam.chProgUsuwania = chDane[26];		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
+		stKonfKam.sAGCAdjust = ((uint16_t)chDane[27] << 8) + chDane[28];
+		stKonfKam.chPoziomEkspozycji = chDane[29];
 		chErr = UstawKamere2(&stKonfKam);	//wersja z grupami rejestrów
+		if (chErr)
+			Wyslij_ERR(chPolecenie, chErr, chInterfejs);
+		else
+			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
+		break;
+
+	case PK_RESETUJ_KAMERE:
+		chErr = InicjalizujKamere();
 		if (chErr)
 			Wyslij_ERR(chPolecenie, chErr, chInterfejs);
 		else

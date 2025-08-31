@@ -33,7 +33,9 @@
 #include "moduly_SPI.h"
 #include "protokol_kom.h"
 
+
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamery[ROZM_BUF16_KAM] = {0};
+//uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamery[ROZM_BUF16_KAM] = {0};
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforObrazu[ROZM_BUF16_KAM] = {0};
 
 struct st_KonfKam stKonfKam;
@@ -83,7 +85,6 @@ uint8_t InicjalizujKamere(void)
 	htim12.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 	chErr = HAL_TIM_OC_Init(&htim12);
 
-	//sConfigOC.OCMode = TIM_OCMODE_TIMING;
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	sConfigOC.Pulse =  (nHCLK / KAMERA_ZEGAR) / 2;	//wypełnienie PWM
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
@@ -91,8 +92,8 @@ uint8_t InicjalizujKamere(void)
 	chErr |= HAL_TIM_OC_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_1);
 	chErr = HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1);
 
-	HAL_Delay(10);	//power on period. Nie używać osdelay ponieważ w czasie inicjalizacji system jeszcze nie wstał
-	chErr = SprawdzKamere();
+	HAL_Delay(30);	//power on period. Nie używać osdelay ponieważ w czasie inicjalizacji system jeszcze nie wstał
+	chErr = SprawdzKamere();	//wewnątrz funkcji ustawia reset = H
 	if (chErr)
 	{
 		HAL_TIM_PWM_Stop(&htim12, TIM_CHANNEL_1);	//zatrzymaj taktowanie skoro nie ma kamery
@@ -118,45 +119,27 @@ uint8_t InicjalizujKamere(void)
 	stKonfKam.chWysWe = KAM_WYSOKOSC_OBRAZU  / KROK_ROZDZ_KAM * KAM_ZOOM_CYFROWY;
 	stKonfKam.chSzerWy = KAM_SZEROKOSC_OBRAZU / KROK_ROZDZ_KAM;
 	stKonfKam.chWysWy = KAM_WYSOKOSC_OBRAZU / KROK_ROZDZ_KAM;
-	//stKonfKam.chPrzesWyPoz = (stKonfKam.chSzerWe - stKonfKam.chSzerWy) / 2;	//środek obrazu
-	//stKonfKam.chPrzesWyPio = (stKonfKam.chWysWe - stKonfKam.chWysWy) / 2;	//środek obrazu
 	stKonfKam.chPrzesWyPoz = 0;
 	stKonfKam.chPrzesWyPio = 0;
-
-	stKonfKam.chTrybDiagn = 0;	//brak trybu diagnostycznego
-	//stKonfKam.chTrybDiagn = TDK_KRATA_CB;	//czarnobiała krata
-	//stKonfKam.chTrybDiagn = TDK_PASKI;		//kolorowe paski
-
-
-	//naturalny układ pikseli kamery to: wiersze parzyte B, G, B, G...; wiersze nieparzyste G, R, G, R...
-	//chErr = Wyslij_I2C_Kamera(0x4300, 0x61);	//format control [7..4] 6=RGB656, [3..0] 1={R[4:0], G[5:3]},{G[2:0}, B[4:0]} - źle
-	//chErr = Wyslij_I2C_Kamera(0x4300, 0x62);	//format control [7..4] 6=RGB656, [3..0] 2={G[4:0], R[5:3]},{R[2:0}, B[4:0]} - źle
-	//chErr = Wyslij_I2C_Kamera(0x4300, 0x6F);
-
-	//ustaw rejestry konfiguracyjne
 	stKonfKam.chObracanieObrazu = 0xc1;		//TIMING TC REG18: [6] mirror, [5] Vertial flip, [4] 1=thumbnail mode, [3] 1=compression, [1] vertical subsample 1/4, [0] vertical subsample 1/2  <def:0x80>
 	stKonfKam.chFormatObrazu = 0x6F;		//format control [7..4] 6=RGB656, [3..0] 1={G[2:0}, B[4:0]},{R[4:0], G[5:3]} - OK
 	stKonfKam.sWzmocnienieR = 0x0400;		//AWB red gain[11:0] / 0x400;
 	stKonfKam.sWzmocnienieG = 0x0400;		//AWB green gain[11:0] / 0x400;
 	stKonfKam.sWzmocnienieB = 0x0400;		//AWB blue gain[11:0] / 0x400;
 	stKonfKam.chKontrBalBieli = 0x00;		//AWB Manual enable[0]: 0=Auto, 1=manual
-	//stKonfKam.nEkspozycjaReczna = 0x000000;	//AEC Long Channel Exposure [19:0]: 0x3500..02
-	stKonfKam.sCzasEkspozycji = 0x0000;		//AEC Long Channel Exposure [19:0]: 0x3500..02
-
+	stKonfKam.sCzasEkspozycji = 0x03E8;		//AEC Long Channel Exposure [19:0]: 0x3500..02
 	stKonfKam.chKontrolaExpo = 0x00;		//AEC PK MANUAL 0x3503: AEC Manual Mode Control: [2]-VTS manual, [1]-AGC manual, [0]-AEC manual: pełna kontrola automatyczna
-
 	stKonfKam.chTrybyEkspozycji = 0x7C;		//AEC CTRL0 0x3A00: [7]-not used, [6]-less one line mode, [5]-band function, [4]-band low limit mode, [3]-reserved, [2]-Night mode (ekspozycja trwa 1..8 ramek) [1]-not used, [0]-Freeze
-	stKonfKam.chGranicaMinExpo = 0x04; 		//Minimum Exposure Output Limit [7..0] 0x3A01:
-	stKonfKam.nGranicaMaxExpo = 0x03D800;	//Maximum Exposure Output Limit [19..0]: 0x3A02..04
-
+	stKonfKam.sAGCLong = 0;					//AEC PK Long Gain 0x3508..09
+	stKonfKam.sAGCAdjust = 0;				//AEC PK AGC ADJ 0x350A..0B
+	stKonfKam.sAGCVTS = 0;					//AEC PK VTS Output 0x350C..0D
 	stKonfKam.chKontrolaISP0 = 0xDF;		//ISP Control 00 default value
 	stKonfKam.chKontrolaISP1 = 0x4F;		//ISP Control 01 default value
 	stKonfKam.chProgUsuwania = 0x40;		//Even CTRL 00
+	stKonfKam.chNasycenie = 0x40;			//SDE Control3 Saturation U i V: 0x5583 i 0x5584
+	stKonfKam.chPoziomEkspozycji = SKALA_POZIOMU_EKSPOZYCJI / 2;	//ustawiana jest grupa rejestrów z czego podstawowy to 0x3A10
 	return UstawKamere(&stKonfKam);
 }
-
-
-
 
 
 
@@ -424,7 +407,6 @@ uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_
 
 	stKonfKam.chSzerWy = (uint8_t)(sSzerokosc / KROK_ROZDZ_KAM);
 	stKonfKam.chWysWy = (uint8_t)(sWysokosc / KROK_ROZDZ_KAM);
-	stKonfKam.chTrybDiagn = 0;			//brak trybu diagnostycznego
 	return UstawKamere(&stKonfKam);
 }
 
@@ -478,6 +460,7 @@ uint8_t UstawKamere(stKonfKam_t *konf)
 	chErr |= Wyslij_I2C_Kamera(0x3818, konf->chObracanieObrazu);	//Timing Control: 0x3818 (ustaw rotację w poziomie i pionie), //for the mirror function it is necessary to set registers 0x3621 [5:4] and 0x3801
 	chErr |= Wyslij_I2C_Kamera(0x4300, konf->chFormatObrazu);		//Format Control 0x4300
 
+	//regulacja balansu bieli
 	un8_32.dane16[0] = konf->sWzmocnienieR & 0xFFF;
 	chErr |= Wyslij_I2C_Kamera(0x3400, un8_32.dane8[1]);	//AWB R Gain [11:0]: 0x3400..01
 	chErr |= Wyslij_I2C_Kamera(0x3401, un8_32.dane8[0]);
@@ -492,28 +475,57 @@ uint8_t UstawKamere(stKonfKam_t *konf)
 
 	chErr |= Wyslij_I2C_Kamera(0x3406, konf->chKontrBalBieli);	//AWB Manual: 0x3406
 
-	//un8_32.dane32 = konf->nEkspozycjaReczna & 0xFFFFF;
-	un8_32.dane32 = (uint32_t)konf->sCzasEkspozycji << 4;
+	//nasycenie koloru wysyłane jest do obu rejestrów: U i V
+	chErr |= Wyslij_I2C_Kamera(0x5583, konf->chNasycenie);	//SDE Control3 Saturation U: 0x5583
+	chErr |= Wyslij_I2C_Kamera(0x5584, konf->chNasycenie);	//SDE Control3 Saturation V: 0x5584
 
+	//regulacja czułosci
+	chErr |= Wyslij_I2C_Kamera(0x3503, konf->chKontrolaExpo);		//AEC Manual Mode Control: 0x3503
+	chErr |= Wyslij_I2C_Kamera(0x3A00, konf->chTrybyEkspozycji);	//AEC System Control 0: 0x3A00
+
+	un8_32.dane32 = (uint32_t)konf->sCzasEkspozycji << 4;
 	chErr |= Wyslij_I2C_Kamera(0x3500, un8_32.dane8[2]);	//AEC Long Channel Exposure [19:0]: 0x3500..02
 	chErr |= Wyslij_I2C_Kamera(0x3501, un8_32.dane8[1]);
 	chErr |= Wyslij_I2C_Kamera(0x3502, un8_32.dane8[0]);
 
-	chErr |= Wyslij_I2C_Kamera(0x3503, konf->chKontrolaExpo);		//AEC Manual Mode Control: 0x3503
-	chErr |= Wyslij_I2C_Kamera(0x3A00, konf->chTrybyEkspozycji);	//AEC System Control 0: 0x3A00
-	chErr |= Wyslij_I2C_Kamera(0x3A01, konf->chGranicaMinExpo);		//Minimum Exposure Output Limit [7..0]: 0x3A01
+	un8_32.dane16[0] = konf->sAGCLong & 0x1FF;
+	chErr |= Wyslij_I2C_Kamera(0x3508, un8_32.dane8[1]);	//AEC PK Long Gain 0x3508..09
+	chErr |= Wyslij_I2C_Kamera(0x3509, un8_32.dane8[0]);
 
-	un8_32.dane32 = konf->nGranicaMaxExpo & 0xFFFFF;
-	chErr |= Wyslij_I2C_Kamera(0x3A14, un8_32.dane8[2]);	//Maximum Exposure Output Limit 50Hz [19..0]: 0x3A02..04
-	chErr |= Wyslij_I2C_Kamera(0x3A15, un8_32.dane8[1]);
-	chErr |= Wyslij_I2C_Kamera(0x3A16, un8_32.dane8[0]);
+	un8_32.dane16[0] = konf->sAGCAdjust & 0x1FF;
+	chErr |= Wyslij_I2C_Kamera(0x350A, un8_32.dane8[1]);	//AEC PK AGC ADJ 0x350A..0B
+	chErr |= Wyslij_I2C_Kamera(0x350B, un8_32.dane8[0]);
+
+	un8_32.dane16[0] = konf->sAGCVTS & 0x1FF;
+	chErr |= Wyslij_I2C_Kamera(0x350C, un8_32.dane8[1]);	//AEC PK VTS Output 0x350C..0D
+	chErr |= Wyslij_I2C_Kamera(0x350D, un8_32.dane8[0]);
 
 	chErr |= Wyslij_I2C_Kamera(0x5080, konf->chProgUsuwania);	//0x5080 Even CTRL 00 Treshold for even odd  cancelling
+
+	//ustaw poziom ekspozycji opisany w OV5642 Camera Module Software Application Notes str 27 gdzie ustawiane jest 6 rejestrów
+	if (konf->chPoziomEkspozycji >= SKALA_POZIOMU_EKSPOZYCJI)	//walidacja wartości ze wzgledu na użyte poniżej funkcje
+		konf->chPoziomEkspozycji = SKALA_POZIOMU_EKSPOZYCJI / 2;
+	//najbardziej charakterystyczny rejestr 0x3A10 zmienia się od 8 do 88, więc przyjmuję poszerzony zakres zmiany od 0 do 96 co odpowiada jego liniowej zmianie a wartość 96 => SKALA_POZIOMU_EKSPOZYCJI
+	chErr |= Wyslij_I2C_Kamera(0x3A0F, konf->chPoziomEkspozycji + 8);	//zaczyna jak 0x3A10, potem o 8 większy. Upraszczając przyjmuję że jest cały czas większy o 8
+	chErr |= Wyslij_I2C_Kamera(0x3A10, konf->chPoziomEkspozycji);		//rejestr bazowy
+	//parametr 0x3A11 zachowuje się dosyć nieregularnie, ale można przyjąć że zaczyna się o 8 większy rośnie średnio 1,67 raza szybciej niż 0x3A10
+	float fTemp = (float)konf->chPoziomEkspozycji * 1.667f;
+	chErr |= Wyslij_I2C_Kamera(0x3A11, (uint8_t)fTemp + 8);
+	chErr |= Wyslij_I2C_Kamera(0x3A1B, konf->chPoziomEkspozycji + 8);	//jest o 8 większy niż 0x3A10
+	chErr |= Wyslij_I2C_Kamera(0x3A1E, konf->chPoziomEkspozycji);	//zachowuje się jak bazowy 0x3A10 z korekta na początku. Dla uproszczenia pomijam korektę
+	//parametr 0x3A1F ma wartość 0x10 dla wartosci <=0 i 0x20 dla >0. W tym przypadku 0 oznacza połowę skali
+	if (konf->chPoziomEkspozycji > SKALA_POZIOMU_EKSPOZYCJI/2)
+		chErr |= Wyslij_I2C_Kamera(0x3A1F, 0x20);
+	else
+		chErr |= Wyslij_I2C_Kamera(0x3A1F, 0x10);
+
+
 	chErr |= HAL_DCMI_Resume(&hdcmi);	//wznów pracę po zakończonej konfiguracji
 	return chErr;
 }
 
 
+//wersja ustawiania z grupami rejestrów. Na razie nie działa
 uint8_t UstawKamere2(stKonfKam_t *konf)
 {
 	uint8_t chErr;
@@ -598,7 +610,12 @@ uint8_t UstawKamere2(stKonfKam_t *konf)
 	stListaRejestrow[5].chWartosc = un8_32.dane8[1];
 	stListaRejestrow[6].sRejestr = 0x3405;				//AWB B Gain [7:0]
 	stListaRejestrow[6].chWartosc = un8_32.dane8[0];
-	chErr = UtworzGrupeRejestrowKamery(2, stListaRejestrow, 7);
+
+	stListaRejestrow[7].sRejestr = 0x5583;				//SDE Control3 Saturation U: 0x5583
+	stListaRejestrow[7].chWartosc = konf->chNasycenie;
+	stListaRejestrow[8].sRejestr = 0x5584;				//SDE Control3 Saturation V: 0x5584
+	stListaRejestrow[8].chWartosc = konf->chNasycenie;
+	chErr = UtworzGrupeRejestrowKamery(2, stListaRejestrow, 9);
 	if (chErr)
 		return chErr;
 
@@ -607,26 +624,34 @@ uint8_t UstawKamere2(stKonfKam_t *konf)
 	stListaRejestrow[0].chWartosc = konf->chTrybyEkspozycji;
 	stListaRejestrow[1].sRejestr = 0x3503;				//AEC Manual Mode Control: 0x3503
 	stListaRejestrow[1].chWartosc = konf->chKontrolaExpo;
-	stListaRejestrow[2].sRejestr = 0x3A01;				//Minimum Exposure Output Limit [7..0]: 0x3A01
-	stListaRejestrow[2].chWartosc = konf->chGranicaMinExpo;
 
-	//un8_32.dane32 = konf->nEkspozycjaReczna & 0xFFFFF;
 	un8_32.dane32 = (uint32_t)konf->sCzasEkspozycji << 4;
-	stListaRejestrow[3].sRejestr = 0x3500;				//AEC Long Channel Exposure [19:16]
-	stListaRejestrow[3].chWartosc = un8_32.dane8[2];
-	stListaRejestrow[4].sRejestr = 0x3501;				//AEC Long Channel Exposure [15:8]
-	stListaRejestrow[4].chWartosc = un8_32.dane8[1];
-	stListaRejestrow[5].sRejestr = 0x3502;				//AEC Long Channel Exposure [7:0]
-	stListaRejestrow[5].chWartosc = un8_32.dane8[0];
+	stListaRejestrow[2].sRejestr = 0x3500;				//AEC Long Channel Exposure [19:16]
+	stListaRejestrow[2].chWartosc = un8_32.dane8[2];
+	stListaRejestrow[3].sRejestr = 0x3501;				//AEC Long Channel Exposure [15:8]
+	stListaRejestrow[3].chWartosc = un8_32.dane8[1];
+	stListaRejestrow[4].sRejestr = 0x3502;				//AEC Long Channel Exposure [7:0]
+	stListaRejestrow[4].chWartosc = un8_32.dane8[0];
 
-	un8_32.dane32 = konf->nGranicaMaxExpo & 0xFFFFF;
-	stListaRejestrow[6].sRejestr = 0x3A14;				//Maximum Exposure Output Limit 50Hz [19:16]
-	stListaRejestrow[6].chWartosc = un8_32.dane8[2];
-	stListaRejestrow[7].sRejestr = 0x3A15;				//Maximum Exposure Output Limit 50Hz [15:8]
-	stListaRejestrow[7].chWartosc = un8_32.dane8[1];
-	stListaRejestrow[8].sRejestr = 0x3A16;				//Maximum Exposure Output Limit 50Hz [7:0]
-	stListaRejestrow[8].chWartosc = un8_32.dane8[0];
-	chErr = UtworzGrupeRejestrowKamery(3, stListaRejestrow, 9);
+	un8_32.dane16[0] = konf->sAGCLong & 0x1FF;
+	stListaRejestrow[5].sRejestr = 0x3508;				//AEC PK Long Gain high bit 0x3508 [0]
+	stListaRejestrow[5].chWartosc = un8_32.dane8[2];
+	stListaRejestrow[6].sRejestr = 0x3509;				//AEC PK Long Gain 0x3509 [7:0]
+	stListaRejestrow[6].chWartosc = un8_32.dane8[1];
+
+	un8_32.dane16[0] = konf->sAGCAdjust & 0x1FF;
+	stListaRejestrow[7].sRejestr = 0x3508;				//AEC PK AGC ADJ 0x350A..0B
+	stListaRejestrow[7].chWartosc = un8_32.dane8[2];
+	stListaRejestrow[8].sRejestr = 0x3509;				//AEC PK AGC ADJ 0x350A..0B
+	stListaRejestrow[8].chWartosc = un8_32.dane8[1];
+
+	un8_32.dane16[0] = konf->sAGCVTS & 0x1FF;
+	stListaRejestrow[9].sRejestr = 0x3508;				//AEC PK VTS Output 0x350C..0D
+	stListaRejestrow[9].chWartosc = un8_32.dane8[2];
+	stListaRejestrow[10].sRejestr = 0x3509;				//AEC PK VTS Output 0x350C..0D
+	stListaRejestrow[10].chWartosc = un8_32.dane8[1];
+
+	chErr = UtworzGrupeRejestrowKamery(3, stListaRejestrow, 11);
 	if (chErr)
 		return chErr;
 
@@ -638,16 +663,21 @@ uint8_t UstawKamere2(stKonfKam_t *konf)
 	return chErr;
 }
 
+
+
 void UstawDomyslny(void)
 {
 	UstawKamere(&stKonfKam);
 }
 
 
+
 void Ustaw1(void)
 {
 	UstawKamere2(&stKonfKam);
 }
+
+
 
 void Ustaw2(void)
 {
