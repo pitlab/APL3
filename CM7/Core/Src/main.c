@@ -41,7 +41,6 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Dodać polecenie Blank check oraz ramkę komunikacyjną dla pamięci Flash
  - sprawdzić dlaczego kompas pokazuje zły kierunek (ujemną wartość dla wschodu, dodatnią dla zachodu)
  - ustawić odpowiednie kąty w poziomicy podczas kalibracji skalowania żyroskopów
- - Podłączyć i uruchomić kamerę
  - Uruchomić układ ethernet
  - uruchomić komunikację po ethernet
  - Uruchomić USB w trybie CDC
@@ -1491,19 +1490,19 @@ void MX_FMC_Init(void)
   hsdram1.Init.RowBitsNumber = FMC_SDRAM_ROW_BITS_NUM_12;
   hsdram1.Init.MemoryDataWidth = FMC_SDRAM_MEM_BUS_WIDTH_16;
   hsdram1.Init.InternalBankNumber = FMC_SDRAM_INTERN_BANKS_NUM_4;
-  hsdram1.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_3;
+  hsdram1.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_2;
   hsdram1.Init.WriteProtection = FMC_SDRAM_WRITE_PROTECTION_DISABLE;
-  hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_PERIOD_2;
+  hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_DISABLE;
   hsdram1.Init.ReadBurst = FMC_SDRAM_RBURST_ENABLE;
-  hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_2;
+  hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_1;
   /* SdramTiming */
-  SdramTiming.LoadToActiveDelay = 16;
-  SdramTiming.ExitSelfRefreshDelay = 16;
-  SdramTiming.SelfRefreshTime = 16;
-  SdramTiming.RowCycleDelay = 16;
-  SdramTiming.WriteRecoveryTime = 16;
-  SdramTiming.RPDelay = 16;
-  SdramTiming.RCDDelay = 16;
+  SdramTiming.LoadToActiveDelay = 2;
+  SdramTiming.ExitSelfRefreshDelay = 8;
+  SdramTiming.SelfRefreshTime = 7;
+  SdramTiming.RowCycleDelay = 7;
+  SdramTiming.WriteRecoveryTime = 5;
+  SdramTiming.RPDelay = 2;
+  SdramTiming.RCDDelay = 2;
 
   if (HAL_SDRAM_Init(&hsdram1, &SdramTiming) != HAL_OK)
   {
@@ -1511,7 +1510,14 @@ void MX_FMC_Init(void)
   }
 
   /* USER CODE BEGIN FMC_Init 2 */
-
+  //Czasy według dokumentacji str 18
+  //Zegar dla FMS to 96MHz -> 10ns
+  //Row Cycle Time during Auto Refresh 	66ns
+  //Exit Self-Refresh to any Command 	75ns
+  //Write recovery time 				15ns
+  //Row Precharge Time 					15ns
+  //Row to Column Delay Time 15			15ns
+  //Row Cycle Time during Auto Refresh	66ns
   /* USER CODE END FMC_Init 2 */
 }
 
@@ -1654,7 +1660,7 @@ void StartDefaultTask(void const * argument)
 		//obsłuż wymowę komuniatów głosowych
 		ObslugaWymowyKomunikatu();
 		//WyslijDebugUART7('a');
-		osDelay(5);		//ustaw okres taki pracuje CM4 (200MHz -> 5ms)
+		osDelay(5);		//ustaw okres z jakim pracuje CM4 (200Hz -> 5ms)
 	}
   /* USER CODE END 5 */
 }

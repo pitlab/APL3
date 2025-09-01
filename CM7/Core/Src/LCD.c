@@ -136,7 +136,10 @@ uint8_t chEtapKalibracji;
 prostokat_t stWykr;	//wykres biegunowy magnetometru
 uint8_t chHistR[32], chHistG[64], chHistB[32];
 
-extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamery[ROZM_BUF16_KAM];
+//extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamery[ROZM_BUF16_KAM];
+extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM];
+extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM];
+
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -223,8 +226,8 @@ struct tmenu stMenuAudio[MENU_WIERSZE * MENU_KOLUMNY]  = {
 struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Zdjecie",		"Wykonuje statyczne zdjecie kamera",		TP_ZDJECIE,			obr_aparat},
-	{"Kamera",		"Uruchamia kamere w trybie ciaglym",		TP_KAMERA,			obr_kamera},
-	{"160x120",		"Ustawia kamere na 160x120 ",				TP_USTAW_KAM_160x120,	obr_narzedzia},
+	{"Kam. SRAM",	"Kamera w trybie ciaglym z pam. SRAM",		TP_KAMERA,			obr_kamera},
+	{"Kam. DRAM",	"Kamera w trybie ciaglym z pam. DRAM",		TP_KAM5,			obr_kamera},
 	{"320x240",		"Ustawia kamere na 320x240 ",				TP_USTAW_KAM_320x240,	obr_narzedzia},
 	{"480x320",		"Ustawia kamere na 480x320 ",				TP_USTAW_KAM_480x320,	obr_narzedzia},
 	{"nic",			"nic",										TP_KAM1,			obr_kamera},
@@ -470,7 +473,7 @@ void RysujEkran(void)
 		{
 			setColor(GREEN);
 			sprintf(chNapis, "Linii: %d  ", sLicznikLiniiKamery);
-			WyswietlZdjecie(480, 320, sBuforKamery);
+			WyswietlZdjecie(480, 320, sBuforKamerySRAM);
 		}
 		RysujNapis(chNapis, KOL12, 300);
 		osDelay(600);
@@ -478,7 +481,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAMERA:	//ciagła praca kamery
-		RozpocznijPraceDCMI(0);
+		RozpocznijPraceDCMI(0, sBuforKamerySRAM);
 		uint8_t chRej1, chRej2, chRej3;
 		uint16_t sExpo;
 		//uint32_t nExpo;
@@ -494,20 +497,38 @@ void RysujEkran(void)
 			//nExpo = ((uint32_t)chRej1 << 16) + ((uint32_t)chRej2 << 8) + chRej3;
 			//nExpo = ((uint32_t)chRej1 << 12) + ((uint32_t)chRej2 << 4) + (chRej3 >> 4);
 			sExpo = ((uint16_t)chRej1 << 12) + ((uint16_t)chRej2 << 4) + (chRej3 >> 4);
-			WyswietlZdjecie(480, 320, sBuforKamery);
-			HistogramRGB565(sBuforKamery, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
+			WyswietlZdjecie(480, 320, sBuforKamerySRAM);
+			HistogramRGB565(sBuforKamerySRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
 			RysujHistogramRGB16(chHistR, chHistG, chHistB);
 			setColor(ZOLTY);
 			//sprintf(chNapis, "DVPHO: %d HS: %d ", chRej1, chRej2);
 			sprintf(chNapis, "AEC: %d  ", sExpo);
 			RysujNapis(chNapis, 0, 304);
+			for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)	//czyść obraz
+				sBuforKamerySRAM[n] = 0;
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
-	case TP_USTAW_KAM_160x120:
-		chErr = UstawRozdzielczoscKamery(160, 120, 1);
+	case TP_KAM5:
+		RozpocznijPraceDCMI(0, sBuforKameryDRAM);
+		do
+		{
+			Czytaj_I2C_Kamera(0x3500, &chRej1);	//AEC Long Channel Exposure [19:0]: 0x3500
+			Czytaj_I2C_Kamera(0x3501, &chRej2);	//AEC Long Channel Exposure [19:0]: 0x3501
+			Czytaj_I2C_Kamera(0x3502, &chRej3);	//AEC Long Channel Exposure [19:0]: 0x3502
+			sExpo = ((uint16_t)chRej1 << 12) + ((uint16_t)chRej2 << 4) + (chRej3 >> 4);
+			WyswietlZdjecie(480, 320, sBuforKameryDRAM);
+			HistogramRGB565(sBuforKameryDRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
+			RysujHistogramRGB16(chHistR, chHistG, chHistB);
+			setColor(ZOLTY);
+			sprintf(chNapis, "AEC: %d  ", sExpo);
+			RysujNapis(chNapis, 0, 304);
+			for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)	//czyść obraz
+				sBuforKameryDRAM[n] = 0;
+		}
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 

@@ -32,11 +32,10 @@
 #include "polecenia_komunikacyjne.h"
 #include "moduly_SPI.h"
 #include "protokol_kom.h"
-//#include <string.h>
 
 
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamery[ROZM_BUF16_KAM] = {0};
-//uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamery[ROZM_BUF16_KAM] = {0};
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM] = {0};
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforObrazu[ROZM_BUF16_KAM] = {0};
 
 struct st_KonfKam stKonfKam;
@@ -106,7 +105,7 @@ uint8_t InicjalizujKamere(void)
 
 	Wyslij_I2C_Kamera(0x3103, 0x93);	//PLL clock select: [1] PLL input clock: 1=from pre-divider
 	Wyslij_I2C_Kamera(0x3008, 0x82);	//system control 00: [7] software reset mode, [6] software power down mode {def=0x02}
-	HAL_Delay(30);
+	HAL_Delay(2);						//Reset settling time <1ms
 	/*chErr = Wyslij_Blok_Kamera(ov5642_dvp_fmt_global_init);		//174ms @ 20MHz
 	if (chErr)
 		return chErr;*/
@@ -228,7 +227,7 @@ uint8_t	SprawdzKamere(void)
 		chErr = WyslijDaneExpandera(chAdres_expandera[0], chPort_exp_wysylany[0]);	//wyślij dane do expandera I/O
 		if (chErr)
 			return chErr;
-		HAL_Delay(30);	//nie używać osDelay ponieważ w czasie inicjalizacji system jeszcze nie działa
+		HAL_Delay(2);	//nie używać osDelay ponieważ w czasie inicjalizacji system jeszcze nie działa
 
 		Czytaj_I2C_Kamera(0x300A, (uint8_t*)&sDaneH);	//Chip ID High Byte = 0x56
 		Czytaj_I2C_Kamera(0x300B, &chDaneL);	//Chip ID Low Byte = 0x42
@@ -253,7 +252,7 @@ uint8_t	SprawdzKamere(void)
 // Parametry: chAparat - 1 = tryb pojedyńczego zdjęcia, 0 = tryb filmu
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t RozpocznijPraceDCMI(uint8_t chAparat)
+uint8_t RozpocznijPraceDCMI(uint8_t chTrybPracy, uint16_t* sBufor)
 {
 	uint8_t chErr;
 
@@ -282,7 +281,7 @@ uint8_t RozpocznijPraceDCMI(uint8_t chAparat)
 	hdma_dcmi.Init.MemInc = DMA_MINC_ENABLE;
 	hdma_dcmi.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
 	hdma_dcmi.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-	if (chAparat)		//1 = zdjecie, 0 = film
+	if (chTrybPracy)		//1 = zdjecie, 0 = film
 		hdma_dcmi.Init.Mode = DMA_NORMAL;
 	else
 		hdma_dcmi.Init.Mode = DMA_CIRCULAR;
@@ -293,11 +292,11 @@ uint8_t RozpocznijPraceDCMI(uint8_t chAparat)
 		return chErr;
 
 	//Konfiguracja transferu DMA z DCMI do pamięci
-	if (chAparat)		//1 = zdjecie, 0 = film
-		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamery, stKonfKam.chSzerWy * stKonfKam.chWysWy * KROK_ROZDZ_KAM / 2);
+	if (chTrybPracy)		//1 = zdjecie, 0 = film
+		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBufor, stKonfKam.chSzerWy * stKonfKam.chWysWy * KROK_ROZDZ_KAM / 2);
 
 	else
-		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)sBuforKamery, ROZM_BUF16_KAM);
+		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)sBufor, ROZM_BUF16_KAM);
 	return chErr;
 }
 
@@ -331,7 +330,7 @@ uint8_t ZrobZdjecie(void)
 	}
 
 	//Konfiguracja transferu DMA z DCMI do pamięci
-	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamery, ROZM_BUF16_KAM / 2);
+	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamerySRAM, ROZM_BUF16_KAM / 2);
 	return chErr;
 }
 
@@ -407,7 +406,10 @@ uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_
 {
 	//wyczyść zmienną obrazu aby zmiany były widoczne
 	for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)
-		sBuforKamery[n] = 0;
+	{
+		sBuforKamerySRAM[n] = 0;
+		sBuforKameryDRAM[n] = 0;
+	}
 
 	stKonfKam.chSzerWy = (uint8_t)(sSzerokosc / KROK_ROZDZ_KAM);
 	stKonfKam.chWysWy = (uint8_t)(sWysokosc / KROK_ROZDZ_KAM);

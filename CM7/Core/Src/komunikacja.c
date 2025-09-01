@@ -170,7 +170,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		chErr = UstawKamere(&stKonfKam);	//wersja z rejestrami osobno
 		//chErr = UstawKamere2(&stKonfKam);	//wersja z grupami rejestrów
 		if (chErr)
-			Wyslij_ERR(chPolecenie, chErr, chInterfejs);
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 		else
 			Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
@@ -201,7 +201,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		stKonfKam.chPoziomEkspozycji = chDane[29];
 		chErr = UstawKamere2(&stKonfKam);	//wersja z grupami rejestrów
 		if (chErr)
-			Wyslij_ERR(chPolecenie, chErr, chInterfejs);
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 		else
 			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
@@ -209,7 +209,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 	case PK_RESETUJ_KAMERE:
 		chErr = InicjalizujKamere();
 		if (chErr)
-			Wyslij_ERR(chPolecenie, chErr, chInterfejs);
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 		else
 			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
@@ -235,7 +235,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		if (chErr == ERR_OK)
 			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		else
-			Wyslij_ERR(chErr, 0, chInterfejs);
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 		sWskBufSektora = 0;
 		break;
 
@@ -248,7 +248,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		if (chErr == ERR_OK)
 			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		else
-			 Wyslij_ERR(chErr, 0, chInterfejs);
+			 Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 		break;
 
 	case PK_CZYTAJ_FLASH:	//odczytaj zawartość Flash
@@ -258,13 +258,13 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		if (chDane[4] > ROZMIAR16_BUF_SEKT)	//jeżeli zażądano odczytu więcej niż pomieści bufor sektora to zwróc błąd
 		{
 			chErr = ERR_ZLA_ILOSC_DANYCH;
-			Wyslij_ERR(chErr, 0, chInterfejs);
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 			break;
 		}
 		if (2* chDane[4] > ROZM_DANYCH_UART)	//jeżeli zażądano odczytu więcej niż pomieści ramka komunikacyjna to zwróc błąd
 		{
 			chErr = ERR_ZLA_ILOSC_DANYCH;
-			Wyslij_ERR(chErr, 0, chInterfejs);
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 			break;
 		}
 
@@ -289,7 +289,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 			sOkresTelemetrii[n] = chDane[2*n+2] + chDane[2*n+3] * 0x100;	//kolejnne okresy telemetrii, młodszy przodem
 		chErr = ZapiszKonfiguracjeTelemetrii(sPrzesuniecie);
 		if (chErr)
-			Wyslij_ERR(chErr, 0, chInterfejs);		//zwróć kod błedu zapisu konfiguracji telemetrii
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);		//zwróć kod błedu zapisu konfiguracji telemetrii
 		else
 		{
 			InicjalizacjaTelemetrii();
@@ -301,7 +301,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		if (chDane[0] > 4*ROZMIAR_ROZNE)	//liczba danych uint8_t
 		{
 			chErr = ERR_ZLA_ILOSC_DANYCH;
-			Wyslij_ERR(chErr, 0, chInterfejs);
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 			break;
 		}
 		un8_16.dane8[0] = chDane[1];	//adres zapisu
@@ -319,7 +319,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		if (chDane[0] > ROZMIAR_ROZNE)	//liczba danych float (nie uint8_t)
 		{
 			chErr = ERR_ZLA_ILOSC_DANYCH;
-			Wyslij_ERR(chErr, 0, chInterfejs);
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 			break;
 		}
 		un8_16.dane8[0] = chDane[1];	//adres zapisu
@@ -341,7 +341,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie != POL_ZAPISZ_FRAM_FLOAT) || (uDaneCM4.dane.sAdres != sAdres))
 		{
 			chErr = ERR_PROCES_TRWA;		//dane jeszcze nie przyszły
-			Wyslij_ERR(chErr, 0, chInterfejs);
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 			break;
 		}
 		chErr = Wyslij_OK(0, 0, chInterfejs);
@@ -352,7 +352,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		if (chDane[0] > 4*ROZMIAR_ROZNE)
 		{
 			chErr = ERR_ZLA_ILOSC_DANYCH;
-			Wyslij_ERR(chErr, 0, chInterfejs);
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 			break;
 		}
 		un8_16.dane8[0] = chDane[1];	//adres do odczytu
@@ -368,7 +368,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		if (chDane[0] > ROZMIAR_ROZNE)
 		{
 			chErr = ERR_ZLA_ILOSC_DANYCH;
-			Wyslij_ERR(chErr, 0, chInterfejs);
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 			break;
 		}
 		un8_16.dane8[0] = chDane[1];	//adres do odczytu
@@ -384,7 +384,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		if (uDaneCM4.dane.sAdres != sAdres)
 		{
 			chErr = ERR_PROCES_TRWA;		//dane jeszcze nie przyszły
-			Wyslij_ERR(chErr, 0, chInterfejs);
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 			break;
 		}
 		chRozmiar = chDane[0];	//zapamiętaj w zmiennej, bo dane będą nadpisane;
