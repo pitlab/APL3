@@ -145,6 +145,7 @@
 #define TP_KAL_BARO			81	//kalibruj barometry wedlug wzorcowej zmiany ciśnienia
 #define TP_KAL_MAG			82
 #define TP_KAL_DOTYK		83	//kalibracja panelu dotykowego
+#define TP_KAL_HARD_FAULT	84
 #define TP_WROC_DO_KALIBR	89
 
 //podmenu TP_POMIARY

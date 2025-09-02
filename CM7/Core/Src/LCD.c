@@ -34,7 +34,7 @@
 #include "pamiec.h"
 #include "analiza_obrazu.h"
 #include "ip4_addr.h"
-
+#include "ff.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -136,10 +136,11 @@ uint8_t chEtapKalibracji;
 prostokat_t stWykr;	//wykres biegunowy magnetometru
 uint8_t chHistR[32], chHistG[64], chHistB[32];
 
-//extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamery[ROZM_BUF16_KAM];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM];
-
+FIL __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) SDPlikZdjecia;
+//FIL SDPlikZdjecia;
+//uint16_t sLicznikZdjec;
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -167,7 +168,7 @@ struct tmenu stMenuKalibracje[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"HardFault",	"Genruje wystapiene HardFault",				TP_KAL_HARD_FAULT,	obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -476,15 +477,29 @@ void RysujEkran(void)
 			WyswietlZdjecie(480, 320, sBuforKamerySRAM);
 		}
 		RysujNapis(chNapis, KOL12, 300);
+		//
+		FRESULT fres = 0;
+		extern RTC_HandleTypeDef hrtc;
+		extern RTC_TimeTypeDef sTime;
+		extern RTC_DateTypeDef sDate;
+
+		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+		sprintf(chNapis, "Zdjecie%04d%02d%02d_%02d%02d%02d.txt",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+		fres = f_open(&SDPlikZdjecia, chNapis, FA_OPEN_ALWAYS | FA_WRITE);
+		if (fres == FR_OK)
+		{
+			f_puts((char*)sBuforKamerySRAM, &SDPlikZdjecia);	//zapis do pliku
+			f_close(&SDPlikZdjecia);
+		}
 		osDelay(600);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
-	case TP_KAMERA:	//ciagła praca kamery
+	case TP_KAMERA:	//ciagła praca kamery z pamięcią SRAM
 		RozpocznijPraceDCMI(0, sBuforKamerySRAM);
 		uint8_t chRej1, chRej2, chRej3;
 		uint16_t sExpo;
-		//uint32_t nExpo;
 		do
 		{
 			//Czytaj_I2C_Kamera(0x3401, &chRej1);	//AWB R Gain [11:0]: 0x3400..01
@@ -501,17 +516,14 @@ void RysujEkran(void)
 			HistogramRGB565(sBuforKamerySRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
 			RysujHistogramRGB16(chHistR, chHistG, chHistB);
 			setColor(ZOLTY);
-			//sprintf(chNapis, "DVPHO: %d HS: %d ", chRej1, chRej2);
 			sprintf(chNapis, "AEC: %d  ", sExpo);
 			RysujNapis(chNapis, 0, 304);
-			for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)	//czyść obraz
-				sBuforKamerySRAM[n] = 0;
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
-	case TP_KAM5:
+	case TP_KAM5:	//ciagła praca kamery z pamięcią DRAM
 		RozpocznijPraceDCMI(0, sBuforKameryDRAM);
 		do
 		{
@@ -525,8 +537,8 @@ void RysujEkran(void)
 			setColor(ZOLTY);
 			sprintf(chNapis, "AEC: %d  ", sExpo);
 			RysujNapis(chNapis, 0, 304);
-			for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)	//czyść obraz
-				sBuforKameryDRAM[n] = 0;
+			//for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)	//czyść obraz
+				//sBuforKameryDRAM[n] = 0;
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -875,6 +887,12 @@ void RysujEkran(void)
 
 	case TP_KAL_AKCEL_2D:
 	case TP_KAL_AKCEL_3D:
+
+	case TP_KAL_HARD_FAULT:
+			printf("Start\n");
+			//ITM_Sendchar('T');
+			void (*fp)(void) = (void (*)(void))(0x00000000);	//Generuje HardFault
+			fp();
 		break;
 
 //*** Magnetometr ************************************************

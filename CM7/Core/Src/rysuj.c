@@ -28,7 +28,10 @@ extern char chNapis[];
 extern struct _statusDotyku statusDotyku;
 extern uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
 static uint8_t chOstatniCzas;
-uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
+//uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
+
+
 uint8_t chOrientacja;
 uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
 uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym

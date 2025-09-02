@@ -60,6 +60,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "main.h"
 #include "cmsis_os.h"
 #include "fatfs.h"
+#include "libjpeg.h"
 #include "lwip.h"
 #include "usb_device.h"
 
@@ -312,6 +313,7 @@ Error_Handler();
   MX_DCMI_Init();
   MX_I2C2_Init();
   MX_TIM12_Init();
+  MX_LIBJPEG_Init();
   /* USER CODE BEGIN 2 */
 
   chErr |= InicjujSPIModZewn();

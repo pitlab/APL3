@@ -20,10 +20,10 @@
 
 //int16_t __attribute__ ((aligned (16))) __attribute__((section(".SekcjaDRAM"))) sBuforPapuga[ROZMIAR_BUFORA_PAPUGI];
 int16_t __attribute__ ((aligned (16))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforPapuga[ROZMIAR_BUFORA_PAPUGI];
+int16_t __attribute__ ((aligned (16))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforAudioWe[2][2*ROZMIAR_BUFORA_AUDIO_WE];
 
 static volatile int16_t sBuforAudioWy[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów wychodzących
-//int32_t nBuforAudioWe[ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
-int16_t sBuforAudioWe[2][2*ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
+//int16_t sBuforAudioWe[2][2*ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
 uint8_t chWskaznikBuforaAudio;
 static volatile int16_t sBuforTonuWario[ROZMIAR_BUFORA_TONU];	//bufor do przechowywania podstawowego tonu wario
 static volatile int16_t sBuforNowegoTonuWario[ROZMIAR_BUFORA_TONU];	//bufor nowego tonu wario, który ma się zsynchronizować z podstawowym buforem w chwili przejścia przez zero aby uniknąć zakłóceń
