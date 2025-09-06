@@ -103,8 +103,14 @@
 #define DEFAULT_ACCEPTMBOX_SIZE 6
 /*----- Value in opt.h for RECV_BUFSIZE_DEFAULT: INT_MAX -----*/
 #define RECV_BUFSIZE_DEFAULT 2000000000
-/*----- Value in opt.h for LWIP_STATS: 1 -----*/
-#define LWIP_STATS 0
+/*----- Default Value for LWIP_DISABLE_TCP_SANITY_CHECKS: 0 ---*/
+#define LWIP_DISABLE_TCP_SANITY_CHECKS 1
+/*----- Default Value for LWIP_DISABLE_MEMP_SANITY_CHECKS: 0 ---*/
+#define LWIP_DISABLE_MEMP_SANITY_CHECKS 1
+/*----- Default Value for LWIP_STATS: 0 ---*/
+#define LWIP_STATS 1
+/*----- Value in opt.h for MIB2_STATS: 0 or SNMP_LWIP_MIB2 -----*/
+#define MIB2_STATS 0
 /*----- Value in opt.h for CHECKSUM_GEN_IP: 1 -----*/
 #define CHECKSUM_GEN_IP 0
 /*----- Value in opt.h for CHECKSUM_GEN_UDP: 1 -----*/
@@ -125,9 +131,25 @@
 #define CHECKSUM_CHECK_ICMP 0
 /*----- Value in opt.h for CHECKSUM_CHECK_ICMP6: 1 -----*/
 #define CHECKSUM_CHECK_ICMP6 0
+/*----- Default Value for NETIF_DEBUG: LWIP_DBG_OFF ---*/
+#define NETIF_DEBUG LWIP_DBG_ON
+/*----- Default Value for PBUF_DEBUG: LWIP_DBG_OFF ---*/
+#define PBUF_DEBUG LWIP_DBG_ON
+/*----- Default Value for API_MSG_DEBUG: LWIP_DBG_OFF ---*/
+#define API_MSG_DEBUG LWIP_DBG_ON
+/*----- Default Value for IP_DEBUG: LWIP_DBG_OFF ---*/
+#define IP_DEBUG LWIP_DBG_ON
+/*----- Default Value for TCP_DEBUG: LWIP_DBG_OFF ---*/
+#define TCP_DEBUG LWIP_DBG_ON
+/*----- Default Value for TCP_INPUT_DEBUG: LWIP_DBG_OFF ---*/
+#define TCP_INPUT_DEBUG LWIP_DBG_ON
+/*----- Default Value for TCPIP_DEBUG: LWIP_DBG_OFF ---*/
+#define TCPIP_DEBUG LWIP_DBG_ON
 /*-----------------------------------------------------------------------------*/
 /* USER CODE BEGIN 1 */
-
+#define LWIP_NOASSERT 	0
+#define LWIP_DEBUG 		LWIP_DBG_ON
+#define ETH_PAD_SIZE   	2      /* kluczowe! */
 /* USER CODE END 1 */
 
 #ifdef __cplusplus

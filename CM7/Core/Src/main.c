@@ -201,6 +201,18 @@ void WatekWyswietlacza(void const * argument);
 /* USER CODE BEGIN 0 */
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja pisząca zawartość printf() na terminalu
+// Parametry: ch - znak do wypisania
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+int __io_putchar(int ch)
+{
+ //ITM_SendChar(ch);	/// Write character to ITM ch.0
+ HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, 0xFFFF);	//hlpuart1 jest wykorzystywany do komunikacji, wiec do printf można używać tylko awaryjnie
+ return(ch);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wersja oczekiwania wykorzystująca usypianie kontrolera
@@ -359,6 +371,8 @@ Error_Handler();
 		  chNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
 	  }
   }
+
+  printf("Hello via SWO!\r\n");
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
