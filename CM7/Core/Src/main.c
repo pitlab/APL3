@@ -208,8 +208,8 @@ void WatekWyswietlacza(void const * argument);
 ////////////////////////////////////////////////////////////////////////////////
 int __io_putchar(int ch)
 {
- //ITM_SendChar(ch);	/// Write character to ITM ch.0
- HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, 0xFFFF);	//hlpuart1 jest wykorzystywany do komunikacji, wiec do printf można używać tylko awaryjnie
+	//ITM_SendChar(ch);	/// Write character to ITM ch.0
+	HAL_UART_Transmit(&huart7, (uint8_t *)&ch, 1, 0xFFFF);	//huart7 to jest port w gnieździe razem z SWD
  return(ch);
 }
 
@@ -372,7 +372,7 @@ Error_Handler();
 	  }
   }
 
-  printf("Hello via SWO!\r\n");
+  printf("Dzien dobry! APL3 zglasza sie gotowy do dzialania.\r\n");		//wyślij komunikat po porcie debugującym
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */

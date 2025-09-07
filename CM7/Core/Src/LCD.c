@@ -587,29 +587,37 @@ void RysujEkran(void)
 		extern ip4_addr_t gw;
 		extern struct stats_ lwip_stats;
 
+		if (chRysujRaz)
+		{
+			BelkaTytulu("Statystyki Internetowe");
+			chRysujRaz = 0;
+		}
+
 		setColor(WHITE);
 		UstawCzcionke(MidFont);
-		sprintf(chNapis, "IP: %ld.%ld.%ld.%ld",(ipaddr.addr & 0xFF), (ipaddr.addr & 0xFF00)>>8, (ipaddr.addr & 0xFF0000)>>16, (ipaddr.addr & 0xFF000000)>>24);
-		RysujNapis(chNapis, 10, 40);
-		sprintf(chNapis, "Maska: %ld.%ld.%ld.%ld", (netmask.addr & 0xFF), (netmask.addr & 0xFF00)>>8, (netmask.addr & 0xFF0000)>>16, (netmask.addr & 0xFF000000)>>24);
-		RysujNapis(chNapis, 10, 60);
-		sprintf(chNapis, "GW: %ld.%ld.%ld.%ld", (gw.addr & 0xFF), (gw.addr & 0xFF00)>>8, (gw.addr & 0xFF0000)>>16, (gw.addr & 0xFF000000)>>24);
-		RysujNapis(chNapis, 10, 80);
+		sprintf(chNapis, "NumerIP: %ld.%ld.%ld.%ld",(ipaddr.addr & 0xFF), (ipaddr.addr & 0xFF00)>>8, (ipaddr.addr & 0xFF0000)>>16, (ipaddr.addr & 0xFF000000)>>24);
+		RysujNapis(chNapis, 10, 30);
+		sprintf(chNapis, "Maska:   %ld.%ld.%ld.%ld", (netmask.addr & 0xFF), (netmask.addr & 0xFF00)>>8, (netmask.addr & 0xFF0000)>>16, (netmask.addr & 0xFF000000)>>24);
+		RysujNapis(chNapis, 10, 50);
+		sprintf(chNapis, "GateWay: %ld.%ld.%ld.%ld", (gw.addr & 0xFF), (gw.addr & 0xFF00)>>8, (gw.addr & 0xFF0000)>>16, (gw.addr & 0xFF000000)>>24);
+		RysujNapis(chNapis, 10, 70);
 
-		sprintf(chNapis, "LINK: xmit: %d recv: %d drop:%d err:%d", lwip_stats.link.xmit, lwip_stats.link.recv, lwip_stats.link.drop, lwip_stats.link.err);
-		RysujNapis(chNapis, 10, 100);
-		sprintf(chNapis, "ARP:  xmit=%d recv=%d drop=%d err=%d", lwip_stats.etharp.xmit, lwip_stats.etharp.recv, lwip_stats.etharp.drop, lwip_stats.etharp.err);
-		RysujNapis(chNapis, 10, 120);
-		sprintf(chNapis, "UDP:  xmit=%d recv=%d drop=%d err=%d", lwip_stats.udp.xmit, lwip_stats.udp.recv, lwip_stats.udp.drop, lwip_stats.udp.err);
-		RysujNapis(chNapis, 10, 140);
-		sprintf(chNapis, "TCP:  xmit=%d recv=%d drop=%d err=%d", lwip_stats.tcp.xmit, lwip_stats.tcp.recv, lwip_stats.tcp.drop, lwip_stats.tcp.err);
-		RysujNapis(chNapis, 10, 160);
-		sprintf(chNapis, "HEAP: avail=%ld used=%ld err=%d illegal=%d", (uint32_t)lwip_stats.mem.avail, (uint32_t)lwip_stats.mem.used, lwip_stats.mem.err, lwip_stats.mem.illegal);
-		RysujNapis(chNapis, 10, 180);
-		sprintf(chNapis, "MEMP: avail=%ld used=%ld err=%d illegal=%d", (uint32_t)lwip_stats.memp[1]->avail, (uint32_t)lwip_stats.memp[1]->used, lwip_stats.memp[1]->err, lwip_stats.memp[1]->illegal);
-		RysujNapis(chNapis, 10, 200);
-		sprintf(chNapis, "SYS:  sem.err=%d mutex.err=%d mbox.err=%d", lwip_stats.sys.sem.err, lwip_stats.sys.mutex.err, lwip_stats.sys.mbox.err);
-		RysujNapis(chNapis, 10, 220);
+		sprintf(chNapis, "LINK:    xmit=%d recv=%d drop=%d err=%d", lwip_stats.link.xmit, lwip_stats.link.recv, lwip_stats.link.drop, lwip_stats.link.err);
+		RysujNapis(chNapis, 10, 90);
+		sprintf(chNapis, "ARP:     xmit=%d recv=%d drop=%d err=%d", lwip_stats.etharp.xmit, lwip_stats.etharp.recv, lwip_stats.etharp.drop, lwip_stats.etharp.err);
+		RysujNapis(chNapis, 10, 110);
+		sprintf(chNapis, "UDP:     xmit=%d recv=%d drop=%d err=%d", lwip_stats.udp.xmit, lwip_stats.udp.recv, lwip_stats.udp.drop, lwip_stats.udp.err);
+		RysujNapis(chNapis, 10, 130);
+		sprintf(chNapis, "TCP:     xmit=%d recv=%d drop=%d err=%d", lwip_stats.tcp.xmit, lwip_stats.tcp.recv, lwip_stats.tcp.drop, lwip_stats.tcp.err);
+		RysujNapis(chNapis, 10, 150);
+		sprintf(chNapis, "TCP Err: checksum=%d length=%d options=%d protocol=%d", lwip_stats.tcp.chkerr, lwip_stats.tcp.lenerr, lwip_stats.tcp.opterr, lwip_stats.tcp.proterr);
+		RysujNapis(chNapis, 10, 170);
+		sprintf(chNapis, "MemHeap: avail=%ld used=%ld err=%d illegal=%d", (uint32_t)lwip_stats.mem.avail, (uint32_t)lwip_stats.mem.used, lwip_stats.mem.err, lwip_stats.mem.illegal);
+		RysujNapis(chNapis, 10, 190);
+		sprintf(chNapis, "MemPoll: avail=%ld used=%ld err=%d illegal=%d", (uint32_t)lwip_stats.memp[1]->avail, (uint32_t)lwip_stats.memp[1]->used, lwip_stats.memp[1]->err, lwip_stats.memp[1]->illegal);
+		RysujNapis(chNapis, 10, 210);
+		sprintf(chNapis, "SYS Err: semafor=%d mutex=%d mbox=%d", lwip_stats.sys.sem.err, lwip_stats.sys.mutex.err, lwip_stats.sys.mbox.err);
+		RysujNapis(chNapis, 10, 230);
 
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{

@@ -39,6 +39,8 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 ![RC](obrazki/odbiornikRC_PPM.jpg)
 - Obsługa mikrofonu na magistrali I2S
 - Przechwytywanie obrazu z kamery DCMI
+- Działają podstawy transmisji TCP/IP po ethernet
+![RC](obrazki/statystyki_internet.jpg)
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM
