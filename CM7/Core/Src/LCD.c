@@ -35,6 +35,7 @@
 #include "analiza_obrazu.h"
 #include "ip4_addr.h"
 #include "ff.h"
+#include "lwip/stats.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -584,6 +585,7 @@ void RysujEkran(void)
 		extern ip4_addr_t ipaddr;
 		extern ip4_addr_t netmask;
 		extern ip4_addr_t gw;
+		extern struct stats_ lwip_stats;
 
 		setColor(WHITE);
 		UstawCzcionke(MidFont);
@@ -593,6 +595,21 @@ void RysujEkran(void)
 		RysujNapis(chNapis, 10, 60);
 		sprintf(chNapis, "GW: %ld.%ld.%ld.%ld", (gw.addr & 0xFF), (gw.addr & 0xFF00)>>8, (gw.addr & 0xFF0000)>>16, (gw.addr & 0xFF000000)>>24);
 		RysujNapis(chNapis, 10, 80);
+
+		sprintf(chNapis, "LINK: xmit: %d recv: %d drop:%d err:%d", lwip_stats.link.xmit, lwip_stats.link.recv, lwip_stats.link.drop, lwip_stats.link.err);
+		RysujNapis(chNapis, 10, 100);
+		sprintf(chNapis, "ARP:  xmit=%d recv=%d drop=%d err=%d", lwip_stats.etharp.xmit, lwip_stats.etharp.recv, lwip_stats.etharp.drop, lwip_stats.etharp.err);
+		RysujNapis(chNapis, 10, 120);
+		sprintf(chNapis, "UDP:  xmit=%d recv=%d drop=%d err=%d", lwip_stats.udp.xmit, lwip_stats.udp.recv, lwip_stats.udp.drop, lwip_stats.udp.err);
+		RysujNapis(chNapis, 10, 140);
+		sprintf(chNapis, "TCP:  xmit=%d recv=%d drop=%d err=%d", lwip_stats.tcp.xmit, lwip_stats.tcp.recv, lwip_stats.tcp.drop, lwip_stats.tcp.err);
+		RysujNapis(chNapis, 10, 160);
+		sprintf(chNapis, "HEAP: avail=%ld used=%ld err=%d illegal=%d", (uint32_t)lwip_stats.mem.avail, (uint32_t)lwip_stats.mem.used, lwip_stats.mem.err, lwip_stats.mem.illegal);
+		RysujNapis(chNapis, 10, 180);
+		sprintf(chNapis, "MEMP: avail=%ld used=%ld err=%d illegal=%d", (uint32_t)lwip_stats.memp[1]->avail, (uint32_t)lwip_stats.memp[1]->used, lwip_stats.memp[1]->err, lwip_stats.memp[1]->illegal);
+		RysujNapis(chNapis, 10, 200);
+		sprintf(chNapis, "SYS:  sem.err=%d mutex.err=%d mbox.err=%d", lwip_stats.sys.sem.err, lwip_stats.sys.mutex.err, lwip_stats.sys.mbox.err);
+		RysujNapis(chNapis, 10, 220);
 
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
