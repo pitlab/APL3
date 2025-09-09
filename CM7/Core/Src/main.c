@@ -85,6 +85,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "pamiec.h"
 #include <RPi35B_480x320.h>
 #include <ili9488.h>
+#include "lwip/api.h"
 
 /* USER CODE END Includes */
 
@@ -155,6 +156,7 @@ osThreadId tsRejestratorHandle;
 uint32_t tsRejestratorBuffer[ 512 ];
 osStaticThreadDef_t tsRejestratorControlBlock;
 osThreadId tsObslugaWyswieHandle;
+osThreadId tsSerwerTCPHandle;
 /* USER CODE BEGIN PV */
 uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 uint16_t sLicznikTele;
@@ -192,6 +194,7 @@ void StartDefaultTask(void const * argument);
 void WatekOdbiorczyLPUART1(void const * argument);
 void WatekRejestratora(void const * argument);
 void WatekWyswietlacza(void const * argument);
+void WatekSerweraTCP(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -252,7 +255,7 @@ int main(void)
 /* USER CODE END Boot_Mode_Sequence_0 */
 
   /* MPU Configuration--------------------------------------------------------*/
-  MPU_Config();
+ MPU_Config();
 
   /* Enable the CPU Cache */
 
@@ -407,6 +410,10 @@ Error_Handler();
   /* definition and creation of tsObslugaWyswie */
   osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 320);
   tsObslugaWyswieHandle = osThreadCreate(osThread(tsObslugaWyswie), NULL);
+
+  /* definition and creation of tsSerwerTCP */
+  osThreadDef(tsSerwerTCP, WatekSerweraTCP, osPriorityBelowNormal, 0, 512);
+  tsSerwerTCPHandle = osThreadCreate(osThread(tsSerwerTCP), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -1826,6 +1833,43 @@ void WatekWyswietlacza(void const * argument)
 			osDelay(1000);
 	}
   /* USER CODE END WatekWyswietlacza */
+}
+
+/* USER CODE BEGIN Header_WatekSerweraTCP */
+/**
+* @brief Function implementing the tsSerwerTCP thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_WatekSerweraTCP */
+void WatekSerweraTCP(void const * argument)
+{
+  /* USER CODE BEGIN WatekSerweraTCP */
+	/*struct netconn *conn, *newconn;
+	struct netbuf *buf;
+	err_t err;
+
+	conn = netconn_new(NETCONN_TCP);
+	netconn_bind(conn, IP_ADDR_ANY, 4000);
+	netconn_listen(conn);*/
+	for(;;)
+	{
+		/*err = netconn_accept(conn, &newconn);
+		if (err == ERR_OK)
+		{
+			while ((err = netconn_recv(newconn, &buf)) == ERR_OK)
+			{
+				void *data;
+				u16_t len;
+				netbuf_data(buf, &data, &len);
+				AnalizaKomunikatuTCP(data, len);	// tutaj obsługujesz komunikat
+				netbuf_delete(buf);
+			}
+			netconn_delete(newconn);
+		}*/
+		osDelay(10);
+	}
+  /* USER CODE END WatekSerweraTCP */
 }
 
  /* MPU Configuration */

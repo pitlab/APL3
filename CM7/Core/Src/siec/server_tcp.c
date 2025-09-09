@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // Moduł obsługi serwera TCP/IP
-//
+// Serwer pracuje w wątku WatekSerweraTCP znajdującym się w pliku main.c
 //
 //
 // (c) PitLab 2025
@@ -15,50 +15,14 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Startuje testowy serwer do wypisywania komunikatów na ekranie
-// Parametry: sPort - numer portu na jakim uruchamiana jest usługa
+// Obsługa serwer do wypisywania komunikatów na ekranie
+// Parametry: *dane - wskaźnik na bufor z komunikatem
+//  sDlugosc - rozmiar danych w buforze
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ServerTcpKomunikatow(uint16_t sPort)
+uint8_t AnalizaKomunikatuTCP(void* dane, uint16_t sDlugosc)
 {
-	struct tcp_pcb *pcb, *listen_pcb;
-	uint8_t chErr = ERR_OK;
-	IRQ_DECL_PROTECT(x);
+	uint8_t chErr = BLAD_OK;
 
-	IRQ_PROTECT(x, LWIP_IRQ_PRIO);
-	pcb = tcp_new();
-	IRQ_UNPROTECT(x);
-	if (pcb == NULL)
-		return -1;
-
-	IRQ_PROTECT(x, LWIP_IRQ_PRIO);
-	chErr = tcp_bind(pcb, IP_ADDR_ANY, sPort);
-	IRQ_UNPROTECT(x);
-	if (chErr != ERR_OK)
-	{
-		IRQ_PROTECT(x, LWIP_IRQ_PRIO);
-		// Trzeba zwolnić pamięć, poprzednio było tcp_abandon(pcb, 0);
-		tcp_close(pcb);
-		IRQ_UNPROTECT(x);
-		return -1;
-	}
-
-	// Między wywołaniem tcp_listen a tcp_accept stos lwIP nie może odbierać połączeń.
-	IRQ_PROTECT(x, LWIP_IRQ_PRIO);
-	listen_pcb = tcp_listen(pcb);
-	if (listen_pcb)
-	//tcp_accept(listen_pcb, accept_callback);
-	tcp_accept(listen_pcb, accept);
-
-	IRQ_UNPROTECT(x);
-
-	if (listen_pcb == NULL)
-	{
-		IRQ_PROTECT(x, LWIP_IRQ_PRIO);
-		//Trzeba zwolnić pamięć, poprzednio było tcp_abandon(pcb, 0);
-		tcp_close(pcb);
-		IRQ_UNPROTECT(x);
-		return -1;
-	}
 	return chErr;
 }

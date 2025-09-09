@@ -194,6 +194,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 void BelkaTytulu(char* chTytul)
 {
 	extern const unsigned short pitlab_logo18[];
+	extern uint8_t chStatusPolaczeniaETH;
 
 	RysujProstokatWypelniony(18, 0, DISP_X_SIZE, MENU_NAG_WYS, MENU_TLO_BAR);
 	RysujBitmape(0, 0, 18, 18, pitlab_logo18);	//logo PitLab
@@ -204,6 +205,8 @@ void BelkaTytulu(char* chTytul)
 	setBackColor(BLACK);
 	setColor(WHITE);
 	UstawCzcionke(MidFont);
+	sprintf(chNapis, "%d", chStatusPolaczeniaETH);
+	RysujNapis(chNapis, DISP_X_SIZE-FONT_SL, UP_SPACE);	//testowo status połączenia ETH
 }
 
 
