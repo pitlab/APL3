@@ -200,18 +200,18 @@ SECTIONS
 /* Sekcja buforów w pamięci SRAM2_AHB_D2 128K*/
 .bufory_SRAM2_AHB_D2 (NOLOAD) :
   {
-   	*(.SekcjaSRAM2)     
+   	*(.SekcjaSRAM2)
+   	*(.Rx_PoolSection)     
   } >SRAM2_AHB_D2
   
 /* Sekcja buforów ethernetu SRAM3_AHB_D2 32kB */
 .bufory_SRAM3_AHB_D2 (NOLOAD) :
   {
     . = ABSOLUTE(0x30040000);
-    *(.RxDescripSection) 
+    *(.RxDecripSection) 
     . = ABSOLUTE(0x30040100);
-    *(.TxDescripSection)    
-    . = ABSOLUTE(0x30040200);
-    *(.Rx_PoolSection)  
+    *(.TxDecripSection)    
+    . = ABSOLUTE(0x30040200);      
     *(.Bufory_SRAM3) 
     *(.Sram3Section) 
   } >SRAM3_AHB_D2

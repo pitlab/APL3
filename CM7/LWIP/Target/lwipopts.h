@@ -145,8 +145,6 @@
 #define TCP_DEBUG LWIP_DBG_ON
 /*----- Default Value for TCP_INPUT_DEBUG: LWIP_DBG_OFF ---*/
 #define TCP_INPUT_DEBUG LWIP_DBG_ON
-/*----- Default Value for TCP_OUTPUT_DEBUG: LWIP_DBG_OFF ---*/
-#define TCP_OUTPUT_DEBUG LWIP_DBG_ON
 /*----- Default Value for UDP_DEBUG: LWIP_DBG_OFF ---*/
 #define UDP_DEBUG LWIP_DBG_ON
 /*----- Default Value for TCPIP_DEBUG: LWIP_DBG_OFF ---*/

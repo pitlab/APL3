@@ -77,7 +77,6 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "moduly_SPI.h"
 #include "audio.h"
 #include "rejestrator.h"
-//#include "lwip/apps/lwiperf.h"
 #include "czas.h"
 #include "can.h"
 #include "telemetria.h"
@@ -86,6 +85,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include <RPi35B_480x320.h>
 #include <ili9488.h>
 #include "lwip/api.h"
+#include "siec/server_tcp.h"
 
 /* USER CODE END Includes */
 
@@ -255,7 +255,7 @@ int main(void)
 /* USER CODE END Boot_Mode_Sequence_0 */
 
   /* MPU Configuration--------------------------------------------------------*/
- MPU_Config();
+  MPU_Config();
 
   /* Enable the CPU Cache */
 
@@ -400,11 +400,11 @@ Error_Handler();
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of tsOdbiorLPUART1 */
-  osThreadDef(tsOdbiorLPUART1, WatekOdbiorczyLPUART1, osPriorityBelowNormal, 0, 128);
+  osThreadDef(tsOdbiorLPUART1, WatekOdbiorczyLPUART1, osPriorityAboveNormal, 0, 128);
   tsOdbiorLPUART1Handle = osThreadCreate(osThread(tsOdbiorLPUART1), NULL);
 
   /* definition and creation of tsRejestrator */
-  osThreadStaticDef(tsRejestrator, WatekRejestratora, osPriorityBelowNormal, 0, 512, tsRejestratorBuffer, &tsRejestratorControlBlock);
+  osThreadStaticDef(tsRejestrator, WatekRejestratora, osPriorityHigh, 0, 512, tsRejestratorBuffer, &tsRejestratorControlBlock);
   tsRejestratorHandle = osThreadCreate(osThread(tsRejestrator), NULL);
 
   /* definition and creation of tsObslugaWyswie */
@@ -1652,13 +1652,6 @@ void StartDefaultTask(void const * argument)
   /* init code for LWIP */
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
-  /*WyslijDebugUART7('s');
-  WyslijDebugUART7('t');
-  WyslijDebugUART7('a');
-  WyslijDebugUART7('r');
-  WyslijDebugUART7('t');
-  WyslijDebugUART7(10);
-  WyslijDebugUART7(13);*/
 	uint8_t chStanDekodera;
 	for(;;)
 	{
@@ -1682,7 +1675,6 @@ void StartDefaultTask(void const * argument)
 
 		//obsłuż wymowę komuniatów głosowych
 		ObslugaWymowyKomunikatu();
-		//WyslijDebugUART7('a');
 		osDelay(5);		//ustaw okres z jakim pracuje CM4 (200Hz -> 5ms)
 	}
   /* USER CODE END 5 */
@@ -1845,16 +1837,16 @@ void WatekWyswietlacza(void const * argument)
 void WatekSerweraTCP(void const * argument)
 {
   /* USER CODE BEGIN WatekSerweraTCP */
-	/*struct netconn *conn, *newconn;
+	struct netconn *conn, *newconn;
 	struct netbuf *buf;
 	err_t err;
 
 	conn = netconn_new(NETCONN_TCP);
 	netconn_bind(conn, IP_ADDR_ANY, 4000);
-	netconn_listen(conn);*/
+	netconn_listen(conn);
 	for(;;)
 	{
-		/*err = netconn_accept(conn, &newconn);
+		err = netconn_accept(conn, &newconn);
 		if (err == ERR_OK)
 		{
 			while ((err = netconn_recv(newconn, &buf)) == ERR_OK)
@@ -1866,8 +1858,8 @@ void WatekSerweraTCP(void const * argument)
 				netbuf_delete(buf);
 			}
 			netconn_delete(newconn);
-		}*/
-		osDelay(10);
+		}
+		osDelay(1);
 	}
   /* USER CODE END WatekSerweraTCP */
 }

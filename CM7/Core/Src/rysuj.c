@@ -202,11 +202,11 @@ void BelkaTytulu(char* chTytul)
 	setBackColor(MENU_TLO_BAR);
 	UstawCzcionke(BigFont);
 	RysujNapis(chTytul, CENTER, UP_SPACE);
-	setBackColor(BLACK);
 	setColor(WHITE);
 	UstawCzcionke(MidFont);
 	sprintf(chNapis, "%d", chStatusPolaczeniaETH);
 	RysujNapis(chNapis, DISP_X_SIZE-FONT_SL, UP_SPACE);	//testowo status połączenia ETH
+	setBackColor(BLACK);
 }
 
 
