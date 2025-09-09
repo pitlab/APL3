@@ -163,7 +163,7 @@ uint8_t TestPredkosciZapisuNOR(void)
 	{
 		nAdres = ADRES_NOR + ((SEKTOR_TESTOW_PROG + y) * ROZMIAR16_SEKTORA);
 		chErr = KasujSektorFlashNOR(nAdres);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			sprintf(chNapis, "B%c%cd kasowania sektora", ł, ą);
 			RysujNapis(chNapis, 10, 40);
@@ -179,7 +179,7 @@ uint8_t TestPredkosciZapisuNOR(void)
 	for (y=0; y<64; y++)
 	{
 		chErr = CzytajDaneFlashNOR(nAdres + y * ROZMIAR16_BUFORA, sBufor, ROZMIAR16_BUFORA);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			sprintf(chNapis, "B%c%cd odczytu", ł, ą);
 			RysujNapis(chNapis, 10, 80);
@@ -196,7 +196,7 @@ uint8_t TestPredkosciZapisuNOR(void)
 			sBufor[x] = x + (y<<8);
 
 		chErr = ZapiszDaneFlashNOR(nAdres, sBufor, ROZMIAR16_BUFORA);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			sprintf(chNapis, "B%c%cd na stronie =%ld", ł, ą, y);
 			RysujNapis(chNapis, 10, 60);
@@ -215,7 +215,7 @@ uint8_t TestPredkosciZapisuNOR(void)
 	for (y=0; y<1000; y++)
 	{
 		chErr = CzytajDaneFlashNOR(nAdres, sBufor, ROZMIAR16_BUFORA);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			sprintf(chNapis, "B%c%cd odczytu", ł, ą);
 			RysujNapis(chNapis, 10, 80);
@@ -261,7 +261,7 @@ void TestPredkosciOdczytuNOR(void)
 	for (y=0; y<16; y++)
 	{
 		chErr = HAL_NOR_ReadBuffer(&hnor3, nAdres, sBufor, ROZMIAR16_BUFORA);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			setColor(RED);
 			sprintf(chNapis, "B%c%cd odczytu", ł, ą);
@@ -343,7 +343,7 @@ void TestPredkosciOdczytuNOR(void)
 	for (y=0; y<16; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, ADRES_NOR, (uint32_t)sBufor, ROZMIAR16_BUFORA);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			setColor(RED);
 			sprintf(chNapis, "Blad odczytu przez DMA");
@@ -366,7 +366,7 @@ void TestPredkosciOdczytuNOR(void)
 	for (y=0; y<16; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBufor2, (uint32_t)sBufor, ROZMIAR16_BUFORA);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			setColor(RED);
 			sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
@@ -389,7 +389,7 @@ void TestPredkosciOdczytuNOR(void)
 	for (y=0; y<16; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBuforD2, (uint32_t)sBufor, ROZMIAR16_BUFORA);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			setColor(RED);
 			sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
@@ -410,7 +410,7 @@ void TestPredkosciOdczytuNOR(void)
 	//odczyt z NOR przez MDMA
 	nCzas = PobierzCzasT6();
 	chErr = HAL_MDMA_Start(&hmdma_mdma_channel2_dma1_stream1_tc_0, (uint32_t)sFlashNOR, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
-	if (chErr != ERR_OK)
+	if (chErr != BLAD_OK)
 	{
 		setColor(RED);
 		sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
@@ -423,7 +423,7 @@ void TestPredkosciOdczytuNOR(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 			sprintf(chNapis, "MDMA: NOR->AxiRAM     t = %ld us => %.2f MB/s ", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		else
 			sprintf(chNapis, "MDMA: NOR->AxiRAM     B%c%cd", ł, ą);
@@ -433,7 +433,7 @@ void TestPredkosciOdczytuNOR(void)
 	//odczyt z Flash przez MDMA
 	nCzas = PobierzCzasT6();
 	chErr = HAL_MDMA_Start(&hmdma_mdma_channel3_dma1_stream1_tc_0, (uint32_t)sFlashMem, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
-	if (chErr != ERR_OK)
+	if (chErr != BLAD_OK)
 	{
 		setColor(RED);
 		sprintf(chNapis, "Blad odczytu przez DMA");
@@ -446,7 +446,7 @@ void TestPredkosciOdczytuNOR(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 			sprintf(chNapis, "MDMA: Flash->AxiRAM   t = %ld us => %.2f MB/s ", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		else
 			sprintf(chNapis, "MDMA: Flash->AxiRAM   B%c%cd", ł, ą);
@@ -457,7 +457,7 @@ void TestPredkosciOdczytuNOR(void)
 	//odczyt z RAM przez MDMA
 	nCzas = PobierzCzasT6();
 	chErr = HAL_MDMA_Start(&hmdma_mdma_channel4_dma1_stream1_tc_0, (uint32_t)sBuforD2, (uint32_t)sBufor, ROZMIAR16_BUFORA, 16);
-	if (chErr != ERR_OK)
+	if (chErr != BLAD_OK)
 	{
 		setColor(RED);
 		sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
@@ -470,7 +470,7 @@ void TestPredkosciOdczytuNOR(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 			sprintf(chNapis, "MDMA: SRAM1->AxiRAM   t = %ld us => %.2f MB/s ", nCzas, (float)(ROZMIAR8_BUFORA * 16) / (nCzas * 1.048576f));
 		else
 			sprintf(chNapis, "MDMA: SRAM1->AxiRAM   B%c%cd", ł, ą);
@@ -541,7 +541,7 @@ void TestPredkosciOdczytuRAM(void)
 	for (y=0; y<1000; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBuforKamerySRAM, (uint32_t)sBufor, ROZMIAR16_BUFORA);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			setColor(RED);
 			sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
@@ -564,7 +564,7 @@ void TestPredkosciOdczytuRAM(void)
 	for (y=0; y<1000; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBufor, (uint32_t)sBuforKamerySRAM, ROZMIAR16_BUFORA);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			setColor(RED);
 			sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
@@ -586,7 +586,7 @@ void TestPredkosciOdczytuRAM(void)
 	//odczyt z zewnętrznego SRAM przez MDMA
 	nCzas = PobierzCzasT6();
 	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBuforKamerySRAM, (uint32_t)sBufor, ROZMIAR16_BUFORA, 1000);
-	if (chErr != ERR_OK)
+	if (chErr != BLAD_OK)
 	{
 		setColor(RED);
 		sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
@@ -599,7 +599,7 @@ void TestPredkosciOdczytuRAM(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 			sprintf(chNapis, "MDMA: ExtSRAM->AxiSRAM   t = %ld us => %.2f MB/s ", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		else
 			sprintf(chNapis, "MDMA: ExtSRAM->AxiSRAM   B%c%cd", ł, ą);
@@ -611,7 +611,7 @@ void TestPredkosciOdczytuRAM(void)
 	nCzas = PobierzCzasT6();
 	//chErr = HAL_MDMA_Start(&hmdma_mdma_channel1_dma1_stream1_tc_0, (uint32_t)sBufor, (uint32_t)sBuforKamerySRAM, ROZMIAR16_BUFORA, 1000);
 	chErr = HAL_MDMA_Start_IT(&hmdma_mdma_channel1_dma1_stream1_tc_0, (uint32_t)sBufor, (uint32_t)sBuforKamerySRAM, ROZMIAR16_BUFORA, 1);
-	if (chErr != ERR_OK)
+	if (chErr != BLAD_OK)
 	{
 		setColor(RED);
 		sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
@@ -624,7 +624,7 @@ void TestPredkosciOdczytuRAM(void)
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
 	{
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 			sprintf(chNapis, "MDMA: AxiSRAM->ExtSRAM   t = %ld us => %.2f MB/s ", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		else
 			sprintf(chNapis, "MDMA: ExtSRAM->AxiSRAM   B%c%cd", ł, ą);
@@ -640,7 +640,7 @@ void TestPredkosciOdczytuRAM(void)
 		chErr = HAL_SDRAM_Write_16b(&hsdram1, (uint32_t *)ADRES_DRAM, sBufor, ROZMIAR16_BUFORA);
 
 	nCzas = MinalCzas(nCzas);
-	if (chErr == ERR_OK)
+	if (chErr == BLAD_OK)
 	{
 		sprintf(chNapis, "HAL_SDRAM_Write_16b()    t = %ld us => %.2f MB/s ", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		RysujNapis(chNapis, 10, 160);
@@ -655,7 +655,7 @@ void TestPredkosciOdczytuRAM(void)
 	for (x=0; x<1000; x++)
 		chErr = HAL_SDRAM_Read_16b(&hsdram1, (uint32_t *)ADRES_DRAM, sBufor, ROZMIAR16_BUFORA);
 	nCzas = MinalCzas(nCzas);
-	if (chErr == ERR_OK)
+	if (chErr == BLAD_OK)
 	{
 		sprintf(chNapis, "HAL_SDRAM_Read_16b()     t = %ld us => %.2f MB/s ", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		RysujNapis(chNapis, 10, 180);
@@ -701,7 +701,7 @@ void TestPredkosciOdczytuRAM(void)
 	{
 		//chErr = HAL_SDRAM_Read_DMA(&hsdram1, (uint32_t *)ADRES_DRAM, (uint32_t*)sBufor, 1);
 		chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBuforDram, (uint32_t)sBufor, ROZMIAR16_BUFORA, 1000);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			setColor(RED);
 			sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
@@ -730,7 +730,7 @@ void TestPredkosciOdczytuRAM(void)
 	{
 		chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBufor, (uint32_t)sBuforDram, ROZMIAR16_BUFORA, 1000);
 		//chErr = HAL_SDRAM_Write_DMA(&hsdram1, (uint32_t *)ADRES_DRAM, (uint32_t*)sBufor, 1);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			setColor(RED);
 			sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
@@ -757,7 +757,7 @@ void TestPredkosciOdczytuRAM(void)
 	for (y=0; y<1000; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBufor, (uint32_t)sBuforDram, ROZMIAR16_BUFORA);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			setColor(RED);
 			sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
@@ -780,7 +780,7 @@ void TestPredkosciOdczytuRAM(void)
 	for (y=0; y<1000; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBuforDram, (uint32_t)sBufor, ROZMIAR16_BUFORA);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 		{
 			setColor(RED);
 			sprintf(chNapis, "B%c%cd odczytu przez DMA", ł, ą);
@@ -962,7 +962,7 @@ uint8_t SprawdzMagistrale(uint32_t nAdresBazowy)
 	if (sLicznikBledow)
 		return ERR_ZLE_DANE;
 	else
-		return ERR_OK;
+		return BLAD_OK;
 }
 
 

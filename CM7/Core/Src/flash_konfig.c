@@ -47,7 +47,7 @@ uint8_t InicjujKonfigFlash(void)
 			break;
 		}
 	}
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 

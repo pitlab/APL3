@@ -8,11 +8,11 @@
 #ifndef ERRCODE_H_
 #define ERRCODE_H_
 
-#define ERR_OK					0	//wszystko w porządku
+#define BLAD_OK					0	//wszystko w porządku
 #define ERR_HAL					1	//błąd HAL
 #define ERR_HAL_BUSY			2	//
 #define ERR_GOTOWE				3	//zadanie wykonane
-#define ERR_TIMEOUT				4
+#define BLAD_TIMEOUT			4
 #define ERR_ZLA_ILOSC_DANYCH	5
 #define ERR_PARITY				6
 #define ERR_CRC					7	//błędne CRC z danych

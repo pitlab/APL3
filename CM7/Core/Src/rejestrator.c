@@ -78,7 +78,7 @@ void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 	//wysyłaj aż dane do ekspandera do skutku
 	do
 		chErr = WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
-	while (chErr != ERR_OK);
+	while (chErr != BLAD_OK);
 }
 
 
@@ -912,7 +912,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		chStatusRejestratora &= ~(STATREJ_ZAMKNIJ_PLIK | STATREJ_OTWARTY_PLIK | STATREJ_WLACZONY);
 	}
 
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 

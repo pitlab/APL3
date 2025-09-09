@@ -139,7 +139,7 @@ uint8_t InicjujSPIModZewn(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawDekoderZewn(uint8_t uklad)
 {
-	uint8_t Err = ERR_OK;
+	uint8_t Err = BLAD_OK;
 	chStanDekoderaSPI = uklad;
 	switch (uklad)
 	{
@@ -206,7 +206,7 @@ uint8_t WyslijDaneExpandera(uint8_t adres, uint8_t daneWy)
 	if (!nStanSemaforaSPI)
 	{
 		chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 		{
 			UstawDekoderZewn(CS_IO);
 			chErr = HAL_SPI_Transmit(&hspi5, dane_wysylane, 3, HAL_MAX_DELAY);
@@ -245,7 +245,7 @@ uint8_t PobierzDaneExpandera(uint8_t adres, uint8_t* daneWe)
 	if (!nStanSemaforaSPI)
 	{
 		chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 		{
 			UstawDekoderZewn(CS_IO);
 			chErr = HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_MAX_DELAY);
@@ -298,10 +298,10 @@ uint8_t WymienDaneExpanderow(void)
 	for (uint8_t x=0; x<LICZBA_EXP_SPI_ZEWN; x++)
 	{
 		chErr = WyslijDaneExpandera(chAdres_expandera[x], chPort_exp_wysylany[x]);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 			return chErr;
 		chErr = PobierzDaneExpandera(chAdres_expandera[x], &chPort_exp_odbierany[x]);
-		if (chErr != ERR_OK)
+		if (chErr != BLAD_OK)
 			return chErr;
 	}
 	hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróć wcześniejszą konfigurację

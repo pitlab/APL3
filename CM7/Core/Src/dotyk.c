@@ -82,14 +82,14 @@ uint8_t CzytajDotyk(void)
 	//sprawdź czy upłyneło wystarczająco czasu od ostatniego odczytu
 	nCzasDotyku = MinalCzas(statusDotyku.nOstCzasPomiaru);
 	if (nCzasDotyku < 50000)	//50ms -> 20Hz
-		return ERR_OK;
+		return BLAD_OK;
 	statusDotyku.nOstCzasPomiaru = PobierzCzasT6();
 
 	//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI5
 	nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
 	if (!nStanSemaforaSPI)
 	{
-		if (HAL_HSEM_Take(HSEM_SPI5_WYSW, 0) == ERR_OK)
+		if (HAL_HSEM_Take(HSEM_SPI5_WYSW, 0) == BLAD_OK)
 		{
 				//Ponieważ zegar SPI = 100MHz a układ może pracować z prędkością max 2,5MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 64
 				nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
@@ -148,7 +148,7 @@ uint8_t CzytajDotyk(void)
 	else
 		sDotykAdc[4] = 0; */
 
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -160,7 +160,7 @@ uint8_t CzytajDotyk(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibrujDotyk(void)
 {
-	uint8_t chErr = ERR_OK;	//domyślny kod błedu;
+	uint8_t chErr = BLAD_OK;	//domyślny kod błedu;
 	uint16_t sKolor;
 
 	switch(chEtapKalibr)
@@ -246,7 +246,7 @@ uint8_t KalibrujDotyk(void)
 				KonwFloat2Char(kalibDotyku.fBy, &chDane[16]);
 				KonwFloat2Char(kalibDotyku.fDeltaY, &chDane[20]);
 				chErr = ZapiszPaczkeKonfigu(FKON_KALIBRACJA_DOTYKU, chDane);
-				if (chErr == ERR_OK)
+				if (chErr == BLAD_OK)
 					statusDotyku.chFlagi |= DOTYK_ZAPISANO;
 				chEtapKalibr = 0;
 				WypelnijEkran(BLACK);
@@ -459,7 +459,7 @@ uint8_t TestObliczenKalibracji(void)
 	ObliczKalibracjeDotyku3Punktowa();			//zwraca dobre wartości
 
 	if ((kalibDotyku.fAx == 0.0623) && (kalibDotyku.fBx == 0.0054) && (kalibDotyku.fDeltaX == 9.9951) && (kalibDotyku.fAy == -0.0163) && (kalibDotyku.fBy == 0.01868) && (kalibDotyku.fDeltaY == -10.1458))
-		return ERR_OK;
+		return BLAD_OK;
 	else
 		return ERR_ZLE_DANE;
 }
@@ -508,7 +508,7 @@ uint8_t TestDotyku(void)
 			return ERR_GOTOWE;
 		}
 	}
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -543,7 +543,7 @@ uint8_t InicjujDotyk(void)
 		kalibDotyku.fDeltaY = KonwChar2Float(&chPaczka[22]);
 
 		statusDotyku.chFlagi |= DOTYK_SKALIBROWANY;
-		chErr = ERR_OK;
+		chErr = BLAD_OK;
 	}
 	statusDotyku.chCzasDotkniecia = 1;	//potrzebne do uruchomienia pierwszej kalibracji przez trzymanie ekranu podczas włączania
 	//normalnie potrzeba trzymać ekran przez kilka cykli aby zostało to uznane za dotknięcie, natomiast podcza uruchomienia jest tylko jedna próba stąd licznik musi być =1

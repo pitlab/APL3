@@ -232,7 +232,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		for (n=0; n<4; n++)
 			un8_32.dane8[n] = chDane[n];	//adres sektora
 		chErr = ZapiszDaneFlashNOR(un8_32.dane32, sBuforSektoraFlash, ROZMIAR16_BUF_SEKT);
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		else
 			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
@@ -245,7 +245,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		chErr = KasujSektorFlashNOR(un8_32.dane32);
 
 		//na potwierdzenie wyślij ramkę OK lub ramkę z kodem błędu
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		else
 			 Wyslij_ERR(chErr, chPolecenie, chInterfejs);
@@ -337,7 +337,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		chErr = Wyslij_OK(0, 0, chInterfejs);
 		break;
 
-	case PK_WYSLIJ_POTW_ZAPISU:	//jeżeli dane się zapisały to odeslij ERR_OK. jeeli jeszcze nie to ERR_PROCES_TRWA
+	case PK_WYSLIJ_POTW_ZAPISU:	//jeżeli dane się zapisały to odeslij BLAD_OK. jeeli jeszcze nie to ERR_PROCES_TRWA
 		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie != POL_ZAPISZ_FRAM_FLOAT) || (uDaneCM4.dane.sAdres != sAdres))
 		{
 			chErr = ERR_PROCES_TRWA;		//dane jeszcze nie przyszły

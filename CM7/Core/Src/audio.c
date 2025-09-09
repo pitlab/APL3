@@ -56,7 +56,7 @@ uint32_t nLicznikSAI_DMA;	//test
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujAudio(void)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 
 	//domyslnie ustaw wejscia ShutDown tak aby aktywny był wzmacniacz
 	//chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
@@ -65,7 +65,7 @@ uint8_t InicjujAudio(void)
 	chWskNapKolKom = chWskOprKolKom = 0;
 
 	/*chErr = OdtworzProbkeAudioZeSpisu(PRGA_GOTOWY_SLUZYC);	//komunikat powitalny, sprawdzajacy czy audio działa
-	if (chErr == ERR_OK)*/
+	if (chErr == BLAD_OK)*/
 		nZainicjowanoCM7 |= INIT_AUDIO;
 	return chErr;
 }
@@ -82,7 +82,7 @@ uint8_t ObslugaWymowyKomunikatu(void)
 	uint8_t chErr;
 
 	if ((chWskNapKolKom == chWskOprKolKom) || chGlosnikJestZajęty || ((nZainicjowanoCM7 & INIT_AUDIO) != INIT_AUDIO))
-		return ERR_OK;		//nie ma nic do wymówienia lub nie skonfigurowane
+		return BLAD_OK;		//nie ma nic do wymówienia lub nie skonfigurowane
 
 	//pobierz kolejną próbkę do wymówienia i zacznij wymowę
 	chErr = OdtworzProbkeAudioZeSpisu(chKolejkaKomunkatow[chWskOprKolKom++]);
@@ -645,7 +645,7 @@ uint8_t DodajProbkeDoKolejki(uint8_t chNumerProbki)
 	if (chWskNapKolKom >= ROZM_KOLEJKI_KOMUNIKATOW)
 			chWskNapKolKom = 0;
 
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -673,7 +673,7 @@ uint8_t DodajProbkeDoMalejKolejki(uint8_t chNumerProbki, uint8_t chRozmiarKolejk
 	for (uint8_t n=chRozmiarKolejki; n<ROZM_KOLEJKI_KOMUNIKATOW; n++)	//pozostałą część kolejki wypełnij komunikatami nie do wymówienia
 		chKolejkaKomunkatow[n] = PRGA_PUSTE_MIEJSCE;
 
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 

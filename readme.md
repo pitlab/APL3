@@ -39,6 +39,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 ![RC](obrazki/odbiornikRC_PPM.jpg)
 - Obsługa mikrofonu na magistrali I2S
 - Przechwytywanie obrazu z kamery DCMI
+- Uruchomiono nowy rodzaj wyświetlacza oparty o ILI9488
 - Działają podstawy transmisji TCP/IP po ethernet
 ![RC](obrazki/statystyki_internet.jpg)
 
@@ -58,7 +59,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Zapis konfiguracji do FRAM przeniesiony z APL2 i zaimplementowany w APL3
 - Uruchomione czujniki ciśnienia różnicowego ND130 i MS4525. Już pokazują takie samo ciśnienie
 - Kalibracja tempraturowa żyroskopów
-- Kalibracja przesunięcia zera w funkcji temepratury i skalowania prędkosci kątowej żyroskopów
+- Kalibracja przesunięcia zera w funkcji temperatury i skalowania prędkości kątowej żyroskopów
 - Kalibracja przesunięcia zera magnetometrów, normalizacja długości wektora magnetycznego i kompensacja pochylenia i przechylenia
 ![magetometry](obrazki/kalibracja_magnetometrow.jpg) 
 - Skalowanie czujników ciśnienia na podstawie wzorca 27m (10 pięter)

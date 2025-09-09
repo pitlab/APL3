@@ -618,12 +618,12 @@ void RysujEkran(void)
 		RysujNapis(chNapis, 10, 210);
 		sprintf(chNapis, "SYS Err: semafor=%d mutex=%d mbox=%d", lwip_stats.sys.sem.err, lwip_stats.sys.mutex.err, lwip_stats.sys.mbox.err);
 		RysujNapis(chNapis, 10, 230);
-
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_ETH;
 		}
+		osDelay(100);	//pozwól pracować innym wątkom
 		break;
 
 
@@ -2366,13 +2366,13 @@ uint32_t RysujKostkeObrotu(float *fKat)
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran dla kalibracji wzmocnienia żyroskopów
 // Parametry: *chSekwencer	- zmiennaWskazująca na kalibracje konktretnej osi
-// Zwraca: ERR_GOTOWE / ERR_OK - informację o tym czy wyjść z trybu kalibracji czy nie
+// Zwraca: ERR_GOTOWE / BLAD_OK - informację o tym czy wyjść z trybu kalibracji czy nie
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 {
 	char chNazwaOsi;
 	float fPochylenie, fPrzechylenie;
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	//uint8_t chRozmiar;
 
 	if (chRysujRaz)
@@ -2668,12 +2668,12 @@ void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc)
 // Wykres jest skalowany do maksimum wartosci bezwzględnej obu zmiennych
 // Parametry: *chEtap	- wskaźnik na zmienną wskazującą na kalibracje konktretnej osi w konkretnym magnetometrze. Starszy półbajt koduje numer magnetometru, najmłodsze 2 bity oś obracaną a bit 4 procedurę kalibracji
 // uDaneCM4.dane.uRozne.f32[6] - minima i maksima magnetometrów zbierana przez CM4
-// Zwraca: ERR_GOTOWE / ERR_OK - informację o tym czy wyjść z trybu kalibracji czy nie
+// Zwraca: ERR_GOTOWE / BLAD_OK - informację o tym czy wyjść z trybu kalibracji czy nie
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 {
 	char chNazwaOsi;
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	float fWspSkal;		//współczynnik skalowania wykresu
 	float fMag[3];		//dane bieżącego magnetometru
 	uint16_t sX, sY;	//bieżace współrzędne na wykresie
@@ -2770,7 +2770,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			}
 		}
 		else
-			return ERR_OK;	//nie idź dalej dopóki nie dostanie potwierdzenia że ekstrema zostały wyzerowane.
+			return BLAD_OK;	//nie idź dalej dopóki nie dostanie potwierdzenia że ekstrema zostały wyzerowane.
 	}
 
 	//pobierz dane z konkretnego magnetometru
@@ -3102,7 +3102,7 @@ float MaximumGlobalne(float* fMin, float* fMax)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibrujBaro(uint8_t *chEtap)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 
 	if (chRysujRaz)
 	{
@@ -3418,7 +3418,7 @@ void NastawyPID(uint8_t chKanal)
 
 		//odczytaj nastawy regulatorów
 		chErr = CzytajFram(FAU_PID_P0 + (chKanal + 0) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 		{
 			un8_32.daneFloat = fNastawy[6];
 			if (un8_32.dane8[0] & PID_WLACZONY)
@@ -3450,7 +3450,7 @@ void NastawyPID(uint8_t chKanal)
 			chRysujRaz = 1;	//jeżeli się nie odczytało to wyświetl jeszcze raz
 
 		chErr = CzytajFram(FAU_PID_P0 + (chKanal + 1) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 		{
 			un8_32.daneFloat = fNastawy[6];
 			if (un8_32.dane8[0] & PID_WLACZONY)
@@ -3506,9 +3506,9 @@ uint8_t CzytajFram(uint16_t sAdres, uint8_t chRozmiar, float* fDane)
 		*(fDane + n) = uDaneCM4.dane.uRozne.f32[n];
 
 	if (chTimeout)
-		return ERR_OK;
+		return BLAD_OK;
 	else
-		return ERR_TIMEOUT;
+		return BLAD_TIMEOUT;
 }
 
 

@@ -218,7 +218,7 @@ void BelkaTytulu(char* chTytul)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObraz)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 
 	if (sSzerokosc > DISP_X_SIZE)
 		sSzerokosc = DISP_X_SIZE;
@@ -237,7 +237,7 @@ uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObra
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t RysujHistogramRGB16(uint8_t *histR, uint8_t *histG, uint8_t *histB)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	uint16_t sPoczatek;
 
 	for (uint8_t x=0; x<ROZDZIECZOSC_HISTOGRAMU; x++)

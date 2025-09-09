@@ -443,7 +443,7 @@ uint8_t ZapiszKonfiguracjeTelemetrii(uint16_t sPrzesuniecie)
 	while (chDoZapisu && chProbZapisu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
 	{
 		chErr = ZapiszPaczkeKonfigu(FKON_OKRES_TELEMETRI1 + chIndeksPaczki, (uint8_t*)&sOkresTelemetrii[chIndeksPaczki * ROZMIAR_DANYCH_WPACZCE / 2]);
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 		{
 			chIndeksPaczki++;
 			chProbZapisu = 3;

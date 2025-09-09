@@ -138,7 +138,7 @@ uint8_t InicjujLCD_35B_16bit(void)
 
 	chRysujRaz = 1;
 	nZainicjowanoCM7 |= INIT_LCD480x320;
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -289,7 +289,7 @@ uint8_t InicjujLCD_35C_8bit(void)
 
 	chRysujRaz = 1;
 	nZainicjowanoCM7 |= INIT_LCD480x320;
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -411,7 +411,7 @@ uint8_t InicjujLCD_35C_16bit(void)
 
 	chRysujRaz = 1;
 	nZainicjowanoCM7 |= INIT_LCD480x320;
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -986,7 +986,7 @@ void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16
 	if (chOrientacja == POZIOMO)
 	{
 		setXY(x, y, x+sx-1, y+sy-1);
-		while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+		while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
 			osDelay(1);
 		HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
@@ -1006,7 +1006,7 @@ void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16
 		for (ty=0; ty<sy; ty++)
 		{
 			setXY(x, y+ty, x+sx-1, y+ty);
-			while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+			while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
 				osDelay(1);
 			HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 			UstawDekoderZewn(CS_LCD);										//LCD_CS=0

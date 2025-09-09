@@ -120,7 +120,7 @@ uint8_t CzekajNaZero(uint8_t chZajety, uint32_t nCzasOczekiwania)
 	}
 	while(chZajety && (nCzas < nCzasOczekiwania));
 	if (!chZajety)
-		return ERR_OK;
+		return BLAD_OK;
 
-	return ERR_TIMEOUT;
+	return BLAD_TIMEOUT;
 }

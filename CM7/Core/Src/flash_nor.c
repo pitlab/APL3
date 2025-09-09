@@ -105,7 +105,7 @@ uint8_t InicjujFlashNOR(void)
 	SDRAM_Initialization_Sequence(&hsdram1, &Command);
 
 	chErr = SprawdzObecnoscFlashNOR();
-	if (chErr == ERR_OK)
+	if (chErr == BLAD_OK)
 		nZainicjowanoCM7 |= INIT_FLASH_NOR;
 
 	return chErr;
@@ -159,7 +159,7 @@ uint8_t KasujSektorFlashNOR(uint32_t nAdres)
 	uint8_t chErr;
 
 	chErr = HAL_NOR_Erase_Block(&hnor3, ADRES_NOR, nAdres & 0x00FFFFFF);	//potrzebny jest adres względny
-	if (chErr == ERR_OK)
+	if (chErr == BLAD_OK)
 		chErr = HAL_NOR_GetStatus(&hnor3, nAdres, 1100);	//Sector Erase time 128 kbyte (typ/max) = 275/1100ms (pdf str.46)
 	return chErr;
 }
@@ -212,7 +212,7 @@ uint8_t ZapiszDaneFlashNOR(uint32_t nAdres, uint16_t* sDane, uint32_t nIlosc)
 	}
 
 	chErr = HAL_NOR_ProgramBuffer(&hnor3, nAdres & 0x00FFFFFF, sDane, nIlosc);	//potrzebny jest adres względny
-	if (chErr == ERR_OK)
+	if (chErr == BLAD_OK)
 		chErr = HAL_NOR_GetStatus(&hnor3, nAdres, 2);	//Buffer Programming time (Typ/max) = 340/750us  (pdf str.46)
 
 	HAL_NOR_ReturnToReadMode(&hnor3);
@@ -292,7 +292,7 @@ uint8_t CzytajIdNOR(uint16_t *sId)
 
 	for (uint8_t n=0; n<16; n++)
 		sId[n] = *(__IO uint16_t *)(ADRES_NOR + n);
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 

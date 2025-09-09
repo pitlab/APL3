@@ -77,6 +77,10 @@
 #define TCP_SND_BUF 5840
 /*----- Default Value for TCP_SND_QUEUELEN: 17 ---*/
 #define TCP_SND_QUEUELEN 16
+/*----- Default Value for LWIP_NETIF_STATUS_CALLBACK: 0 ---*/
+#define LWIP_NETIF_STATUS_CALLBACK 1
+/*----- Default Value for LWIP_NETIF_EXT_STATUS_CALLBACK: 0 ---*/
+#define LWIP_NETIF_EXT_STATUS_CALLBACK 1
 /*----- Value in opt.h for LWIP_NETIF_LINK_CALLBACK: 0 -----*/
 #define LWIP_NETIF_LINK_CALLBACK 1
 /*----- Value in opt.h for TCPIP_THREAD_STACKSIZE: 0 -----*/
@@ -129,10 +133,10 @@
 #define CHECKSUM_CHECK_ICMP6 0
 /*----- Default Value for NETIF_DEBUG: LWIP_DBG_OFF ---*/
 #define NETIF_DEBUG LWIP_DBG_ON
-/*----- Default Value for PBUF_DEBUG: LWIP_DBG_OFF ---*/
-#define PBUF_DEBUG LWIP_DBG_ON
 /*----- Default Value for API_MSG_DEBUG: LWIP_DBG_OFF ---*/
 #define API_MSG_DEBUG LWIP_DBG_ON
+/*----- Default Value for ICMP_DEBUG: LWIP_DBG_OFF ---*/
+#define ICMP_DEBUG LWIP_DBG_ON
 /*----- Default Value for IP_DEBUG: LWIP_DBG_OFF ---*/
 #define IP_DEBUG LWIP_DBG_ON
 /*----- Default Value for SYS_DEBUG: LWIP_DBG_OFF ---*/

@@ -110,7 +110,7 @@ uint8_t InicjujLCD_ILI9488(void)
 
 	chRysujRaz = 1;
 	nZainicjowanoCM7 |= INIT_LCD480x320;
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -192,7 +192,7 @@ void WypelnijEkran(uint16_t sKolor565)
 	}
 	LCD_write_command8(ILI9488_RAMWR);	//Memory Write
 
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
 		osDelay(1);
 	HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	{
@@ -365,7 +365,7 @@ void RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 	}
 	setXY(x, y, x+len, y);
 
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
 		osDelay(1);
 	HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
@@ -394,7 +394,7 @@ void RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 		y -= len;
 	}
 	setXY(x, y, x, y+len);
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
 		osDelay(1);
 	HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
@@ -562,7 +562,7 @@ void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 		if (chOrientacja == POZIOMO)
 		{
 			setXY(x, y, x + cfont.x_size - 1, y + cfont.y_size -  1);
-			while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+			while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
 				osDelay(1);
 			HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 			UstawDekoderZewn(CS_LCD);										//LCD_CS=0
@@ -594,7 +594,7 @@ void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 			for(j=0;j<((cfont.x_size/8)*cfont.y_size);j+=(cfont.x_size/8))
 			{
 				setXY(x,y+(j/(cfont.x_size/8)),x+cfont.x_size-1,y+(j/(cfont.x_size/8)));
-				while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+				while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
 					osDelay(1);
 				HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 				UstawDekoderZewn(CS_LCD);										//LCD_CS=0
@@ -658,7 +658,7 @@ void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16
 	if (chOrientacja == POZIOMO)
 	{
 		setXY(x, y, x+sx-1, y+sy-1);
-		while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+		while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
 			osDelay(1);
 		HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
@@ -676,7 +676,7 @@ void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16
 		for (ty=0; ty<sy; ty++)
 		{
 			setXY(x, y+ty, x+sx-1, y+ty);
-			while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != ERR_OK)
+			while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
 				osDelay(1);
 			HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 			UstawDekoderZewn(CS_LCD);										//LCD_CS=0

@@ -99,7 +99,7 @@ uint8_t InicjujProtokol(void)
 
 	for (int16_t n=0; n<ROZMIAR_BUF_ODB_DMA+8; n++)
 		chBuforOdbDMA[n] = 0x55;	//wypełnij wzorcem do analizy
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -317,7 +317,7 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, uint8_t *chPolecenie, uint8_t *chRozmDanych, uint8_t *chDane, uint8_t chInterfejs)
 {
-	uint8_t n, chErr = ERR_OK;
+	uint8_t n, chErr = BLAD_OK;
 	uint16_t sCrc16Obl;
 
     switch (chStanProtokolu[chInterfejs])
@@ -484,7 +484,7 @@ uint8_t PrzygotujRamke(uint8_t chAdrZdalny, uint8_t chAdrLokalny,  uint8_t chZna
     *(chRamka++) = un8_16.dane8[0];	//młodszy
     *(chRamka++) = un8_16.dane8[1];	//starszy
 
-    return ERR_OK;
+    return BLAD_OK;
 }
 
 
@@ -510,7 +510,7 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
     else
     	chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres,  chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chBuforNadDMA);	//ramka odpowiedzi
 
-    if (chErr == ERR_OK)
+    if (chErr == BLAD_OK)
     {
     	switch (chInterfejs)
     	{
