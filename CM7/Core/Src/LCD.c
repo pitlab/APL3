@@ -142,6 +142,9 @@ extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDR
 FIL __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) SDPlikZdjecia;
 //FIL SDPlikZdjecia;
 //uint16_t sLicznikZdjec;
+extern uint8_t chWiadomoscGG[80];	//bufor na odebraną wiadomość
+extern uint8_t chNowaWiadomoscGG;	//informuje o pojawieniu się nowej wiadomości
+uint8_t chWskWierszaGG;	//identyfikuje w którym wierszu ma zostać napisana wiadomość
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -256,7 +259,7 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 struct tmenu stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Info",		"Informacje o laczu sieciowym",				TP_ETH_INFO,		obr_Polaczenie},
-	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
+	{"Gadu-Gadu",	"Test serwera TCP jako Gadu-Gadu",			TP_ETH_GADU_GADU,	obr_Polaczenie},
 	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
 	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
 	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
@@ -624,6 +627,28 @@ void RysujEkran(void)
 			chNowyTrybPracy = TP_WROC_DO_ETH;
 		}
 		osDelay(100);	//pozwól pracować innym wątkom
+		break;
+
+
+	case TP_ETH_GADU_GADU:
+		if (chRysujRaz)
+		{
+			BelkaTytulu("Gadu-Gadu port:4000");
+			chRysujRaz = 0;
+		}
+
+		if (chNowaWiadomoscGG)
+		{
+			chNowaWiadomoscGG = 0;
+			RysujNapis((char*)chWiadomoscGG, 10, 20 + 20 * chWskWierszaGG);
+			chWskWierszaGG++;
+		}
+
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_ETH;
+		}
 		break;
 
 

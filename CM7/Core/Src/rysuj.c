@@ -175,10 +175,11 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 	if (sTime.Seconds != chOstatniCzas)
 	{
-		setColor(GRAY50);
 		setColor(MENU_RAM_AKT);
+		setBackColor(GRAY20);
 		sprintf(chNapis, "%02d:%02d:%02d", sTime.Hours,  sTime.Minutes,  sTime.Seconds);
 		RysujNapis(chNapis, DISP_X_SIZE - 9*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+		setBackColor(BLACK);
 		chOstatniCzas = sTime.Seconds;
 	}
 }

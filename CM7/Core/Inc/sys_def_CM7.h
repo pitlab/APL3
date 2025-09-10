@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	274		//numer commitu w repozytorium
+#define WER_REPO	278		//numer commitu w repozytorium
 
 //wybór typu wyświetlacza
 #define LCD_ILI9488		//https://sklep.msalamon.pl/produkt/wyswietlacz-tft-lcd-35%E2%80%B3-ili9488-320x480/?srsltid=AfmBOopUr_Ot4ZQNoDns7QPYb-sgwqNSRUYaUR1s1TTm1hDWmuxMRWXO
@@ -178,6 +178,7 @@
 
 //polecenia manu ethernet
 #define TP_ETH_INFO			120
+#define TP_ETH_GADU_GADU	121
 #define TP_WROC_DO_ETH		129
 
 //flagi inicjalizacj sprzetu na płytce
