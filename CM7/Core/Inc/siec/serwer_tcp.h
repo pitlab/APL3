@@ -1,12 +1,12 @@
 /*
- * server_tcp.h
+ * serwer_tcp.h
  *
  *  Created on: Sep 8, 2025
  *      Author: PitLab
  */
 
-#ifndef INC_SIEC_SERVER_TCP_H_
-#define INC_SIEC_SERVER_TCP_H_
+#ifndef INC_SIEC_SERWER_TCP_H_
+#define INC_SIEC_SERWER_TCP_H_
 #include "sys_def_CM7.h"
 #include "display.h"
 
@@ -15,4 +15,4 @@
 
 uint8_t AnalizaKomunikatuTCP(uint8_t* dane, uint16_t sDlugosc);
 
-#endif /* INC_SIEC_SERVER_TCP_H_ */
+#endif /* INC_SIEC_SERWER_TCP_H_ */

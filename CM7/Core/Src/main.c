@@ -84,8 +84,9 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "pamiec.h"
 #include <RPi35B_480x320.h>
 #include <ili9488.h>
+#include "siec/serwer_tcp.h"
+#include "siec/serwerRTSP.h"
 #include "lwip/api.h"
-#include "siec/server_tcp.h"
 
 /* USER CODE END Includes */
 
@@ -157,6 +158,7 @@ uint32_t tsRejestratorBuffer[ 512 ];
 osStaticThreadDef_t tsRejestratorControlBlock;
 osThreadId tsObslugaWyswieHandle;
 osThreadId tsSerwerTCPHandle;
+osThreadId tsSerwerRTSPHandle;
 /* USER CODE BEGIN PV */
 uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 uint16_t sLicznikTele;
@@ -195,6 +197,7 @@ void WatekOdbiorczyLPUART1(void const * argument);
 void WatekRejestratora(void const * argument);
 void WatekWyswietlacza(void const * argument);
 void WatekSerweraTCP(void const * argument);
+void WatekSerweraRTSP(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -414,6 +417,10 @@ Error_Handler();
   /* definition and creation of tsSerwerTCP */
   osThreadDef(tsSerwerTCP, WatekSerweraTCP, osPriorityBelowNormal, 0, 512);
   tsSerwerTCPHandle = osThreadCreate(osThread(tsSerwerTCP), NULL);
+
+  /* definition and creation of tsSerwerRTSP */
+  osThreadDef(tsSerwerRTSP, WatekSerweraRTSP, osPriorityBelowNormal, 0, 512);
+  tsSerwerRTSPHandle = osThreadCreate(osThread(tsSerwerRTSP), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -1837,31 +1844,54 @@ void WatekWyswietlacza(void const * argument)
 void WatekSerweraTCP(void const * argument)
 {
   /* USER CODE BEGIN WatekSerweraTCP */
-	struct netconn *conn, *newconn;
-	struct netbuf *buf;
-	err_t err;
+	struct netconn *PolaczeniePasywneGG, *PolaczenieAktywneGG;	//połączenia serwera i klienta w stylu GG
+	struct netbuf *bufGG;
+	err_t nErr;
 
-	conn = netconn_new(NETCONN_TCP);
-	netconn_bind(conn, IP_ADDR_ANY, 4000);
-	netconn_listen(conn);
+	PolaczeniePasywneGG = netconn_new(NETCONN_TCP);
+	netconn_bind(PolaczeniePasywneGG, IP_ADDR_ANY, 4000);
+	netconn_listen(PolaczeniePasywneGG);
 	for(;;)
 	{
-		err = netconn_accept(conn, &newconn);
-		if (err == ERR_OK)
+		nErr = netconn_accept(PolaczeniePasywneGG, &PolaczenieAktywneGG);
+		if (nErr == ERR_OK)
 		{
-			while ((err = netconn_recv(newconn, &buf)) == ERR_OK)
+			while ((nErr = netconn_recv(PolaczenieAktywneGG, &bufGG)) == ERR_OK)
 			{
 				void *data;
 				u16_t len;
-				netbuf_data(buf, &data, &len);
-				AnalizaKomunikatuTCP(data, len);	// tutaj obsługujesz komunikat
-				netbuf_delete(buf);
+				netbuf_data(bufGG, &data, &len);
+				AnalizaKomunikatuTCP(data, len);
+				netbuf_delete(bufGG);
 			}
-			netconn_delete(newconn);
+			netconn_delete(PolaczenieAktywneGG);
 		}
 		osDelay(1);
 	}
   /* USER CODE END WatekSerweraTCP */
+}
+
+/* USER CODE BEGIN Header_WatekSerweraRTSP */
+/**
+* @brief Function implementing the tsSerwerRTSP thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_WatekSerweraRTSP */
+void WatekSerweraRTSP(void const * argument)
+{
+  /* USER CODE BEGIN WatekSerweraRTSP */
+	err_t nErr;
+	nErr = OtworzPolaczenieSerweraRTSP();
+	if (nErr)
+		return;
+
+	for(;;)
+	{
+		ObslugaSerweraRTSP();
+		osDelay(25);
+	}
+  /* USER CODE END WatekSerweraRTSP */
 }
 
  /* MPU Configuration */

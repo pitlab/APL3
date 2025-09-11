@@ -7,10 +7,9 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "siec/server_tcp.h"
-#include "siec/makra.h"
 #include <lwip/altcp.h>
 #include <lwip/tcp.h>
+#include <siec/serwer_tcp.h>
 
 uint8_t chWiadomoscGG[DLUGOSC_WIADOMOSCI_GG];	//bufor na odebraną wiadomość
 uint8_t chNowaWiadomoscGG;	//informuje o pojawieniu się nowej wiadomości
@@ -34,7 +33,7 @@ uint8_t AnalizaKomunikatuTCP(uint8_t* dane, uint16_t sDlugosc)
 	{
 		for (uint16_t n=0; n<sDlugosc; n++)
 			chWiadomoscGG[n] = *(dane + n);
-
+		chWiadomoscGG[sDlugosc] = 0;	//zero terminujące string
 		chNowaWiadomoscGG = 1;
 	}
 	return chErr;

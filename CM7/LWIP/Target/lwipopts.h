@@ -135,6 +135,8 @@
 #define NETIF_DEBUG LWIP_DBG_ON
 /*----- Default Value for API_MSG_DEBUG: LWIP_DBG_OFF ---*/
 #define API_MSG_DEBUG LWIP_DBG_ON
+/*----- Default Value for SOCKETS_DEBUG: LWIP_DBG_OFF ---*/
+#define SOCKETS_DEBUG LWIP_DBG_ON
 /*----- Default Value for ICMP_DEBUG: LWIP_DBG_OFF ---*/
 #define ICMP_DEBUG LWIP_DBG_ON
 /*----- Default Value for IP_DEBUG: LWIP_DBG_OFF ---*/
@@ -145,6 +147,8 @@
 #define TCP_DEBUG LWIP_DBG_ON
 /*----- Default Value for TCP_INPUT_DEBUG: LWIP_DBG_OFF ---*/
 #define TCP_INPUT_DEBUG LWIP_DBG_ON
+/*----- Default Value for TCP_OUTPUT_DEBUG: LWIP_DBG_OFF ---*/
+#define TCP_OUTPUT_DEBUG LWIP_DBG_ON
 /*----- Default Value for UDP_DEBUG: LWIP_DBG_OFF ---*/
 #define UDP_DEBUG LWIP_DBG_ON
 /*----- Default Value for TCPIP_DEBUG: LWIP_DBG_OFF ---*/
