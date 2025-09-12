@@ -16,6 +16,7 @@
 #define PORT_RTSP   554
 #define PORT_RTP    5004
 
+#define ROZMIAR_PAKIETU_RTP	1400
 
 err_t OtworzPolaczenieSerweraRTSP(int *nGniazdoPolaczenia);
 void ObslugaSerweraRTSP(int nGniazdoPolaczenia);

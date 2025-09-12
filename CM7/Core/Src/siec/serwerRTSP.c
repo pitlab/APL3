@@ -11,6 +11,7 @@
 #include "lwip/api.h"
 #include "lwip/tcp.h"
 #include "lwip/sockets.h"
+#include "czas.h"
 
 //podsłuchowanie w wireshark: tcp.port == 8554 oraz udp.port >= 5000
 
@@ -64,7 +65,7 @@ static struct sockaddr_in client_addr;   // adres klienta
 //int nDeskrGniazdaPolaczenia, nDeskrGniazdaOdbioru;
 struct sockaddr_in AdresSerwera, AdresKlienta;
 
-
+extern const unsigned char oko480x320[152318];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizacja serwera RTSP
@@ -115,13 +116,9 @@ void ObslugaSerweraRTSP(int nGniazdoPolaczenia)
 		//while (nRozmiar > 0)
 		{
 			buffer[nRozmiar] = 0;	//utnij string na końcu, aby nie były analizowane śmieci w buforze
-
-			// znajdź CSeq
-			char *cseq_ptr = strstr(buffer, "CSeq:");
+			char *cseq_ptr = strstr(buffer, "CSeq:");	// znajdź CSeq
 			if (cseq_ptr)
-			{
 				sscanf(cseq_ptr, "CSeq: %d", &cseq);
-			}
 
 			if (strstr(buffer, "OPTIONS"))
 			{
@@ -134,10 +131,10 @@ void ObslugaSerweraRTSP(int nGniazdoPolaczenia)
 				char sdp[256];
 				snprintf(sdp, sizeof(sdp),
 						 "v=0\r\n"
-						 "o=- 0 0 IN IP4 192.168.1.100\r\n"
+						 "o=- 0 0 IN IP4 192.168.1.101\r\n"
 						 "s=STM32 Camera Stream\r\n"
 						 "t=0 0\r\n"
-						 "m=video 5004 RTP/AVP 26\r\n"
+						 "m=video %d RTP/AVP 26\r\n"
 						 "a=rtpmap:26 JPEG/90000\r\n", PORT_RTP);
 
 				char reply[512];
@@ -165,7 +162,8 @@ void ObslugaSerweraRTSP(int nGniazdoPolaczenia)
 				snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nTransport: RTP/AVP;unicast;client_port=%d-%d\r\nSession: 12345678\r\n\r\n", cseq, client_rtp_port, client_rtp_port+1);
 				send(nDeskrGniazdaOdbioru, reply, strlen(reply), 0);
 			}
-			else if (strstr(buffer, "PLAY")) {
+			else if (strstr(buffer, "PLAY"))
+			{
 				char reply[256];
 				snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nSession: 12345678\r\n\r\n", cseq);
 				send(nDeskrGniazdaOdbioru, reply, strlen(reply), 0);
@@ -198,58 +196,61 @@ void WatekStreamujacyRTP(void *arg)
     if (sock < 0)
         vTaskDelete(NULL);
 
-    uint8_t rtp_packet[1400];
-    uint16_t seq = 0;
-    uint32_t timestamp = 0;
+    uint8_t chPakiet_RTP[ROZMIAR_PAKIETU_RTP];
+    uint16_t sNumerPakietu = 0;
+    uint32_t nTimeStamp = PobierzCzasT6();
+    uint32_t nOffsetObrazu, nRozmiarObrazu, nPorcjaObrazu;
 
     while (1)
     {
-        // RTP header (12 bajtów)
-        rtp_packet[0] = 0x80;      // V=2, P=0, X=0, CC=0
-        rtp_packet[1] = 26;        // format: PT=96 (dynamic, np. H264), PT=26 (JPEG), PT=32 (MPEG2)
-        rtp_packet[2] = seq >> 8;
-        rtp_packet[3] = seq & 0xFF;
-        rtp_packet[4] = timestamp >> 24;
-        rtp_packet[5] = timestamp >> 16;
-        rtp_packet[6] = timestamp >> 8;
-        rtp_packet[7] = timestamp & 0xFF;
-        rtp_packet[8] = 0x12;      // SSRC (stały na próbę)
-        rtp_packet[9] = 0x34;
-        rtp_packet[10] = 0x56;
-        rtp_packet[11] = 0x78;
+    	//początek obrazu
+    	nRozmiarObrazu = sizeof(oko480x320);
+    	nOffsetObrazu = 0;
+    	while (nOffsetObrazu < nRozmiarObrazu)
+		{
+			//Nagłówek RTP (12 bajtów)
+			chPakiet_RTP[0] = 0x00;      // V(wersja)=2, P(padding)=0, X(extension)=0, CC(CRSC count)=0
+			chPakiet_RTP[1] = 26;        //Payload Type: PT=96 (dynamic, np. H264), PT=26 (JPEG), PT=32 (MPEG2)
+			chPakiet_RTP[2] = sNumerPakietu >> 8;	//Sequence number
+			chPakiet_RTP[3] = sNumerPakietu & 0xFF;
+			chPakiet_RTP[4] = nTimeStamp >> 24;
+			chPakiet_RTP[5] = nTimeStamp >> 16;
+			chPakiet_RTP[6] = nTimeStamp >> 8;
+			chPakiet_RTP[7] = nTimeStamp & 0xFF;
+			chPakiet_RTP[8] = 0x12;     //SSRC (Synchronizacja źródła): 32-bitowy identyfikator unikalny dla każdej aktywnej aplikacji lub urządzenia w ramach sesji RTP,
+			chPakiet_RTP[9] = 0x34;		//   służący do synchronizacji strumieni pochodzących z różnych źródeł.
+			chPakiet_RTP[10] = 0x56;
+			chPakiet_RTP[11] = 0x78;
 
-        // JPEG header (8 bajtów)
-		packet[12] = 0; // Type-specific
-		packet[13] = (offset >> 16) & 0xFF;
-		packet[14] = (offset >> 8) & 0xFF;
-		packet[15] = offset & 0xFF;
-		packet[16] = 1;   // Type = baseline
-		packet[17] = 255; // Q=255
-		packet[18] = 640/8; // width/8
-		packet[19] = 480/8; // height/8
+			//Nagłówek JPEG  (8 bajtów)
+			chPakiet_RTP[12] = 0; // Type-specific
+			chPakiet_RTP[13] = (nOffsetObrazu >> 16) & 0xFF;
+			chPakiet_RTP[14] = (nOffsetObrazu >> 8) & 0xFF;
+			chPakiet_RTP[15] = nOffsetObrazu & 0xFF;
+			chPakiet_RTP[16] = 1;   // Type = baseline JPEG
+			chPakiet_RTP[17] = 255; // Q=255 tablice kwantyzacji są w JPEG
+			chPakiet_RTP[18] = 480/8; // width/8
+			chPakiet_RTP[19] = 320/8; // height/8
 
-		 // JPEG header (8 bajtów)
-		packet[12] = 0; // Type-specific
-		packet[13] = (offset >> 16) & 0xFF;
-		packet[14] = (offset >> 8) & 0xFF;
-		packet[15] = offset & 0xFF;
-		packet[16] = 1;   // Type = baseline
-		packet[17] = 255; // Q=255
-		packet[18] = 640/8; // width/8
-		packet[19] = 480/8; // height/8
+			//przepisz kolejny kawałek obrazu do ramki
+			nPorcjaObrazu = nRozmiarObrazu - nOffsetObrazu;
+			if (nPorcjaObrazu > ROZMIAR_PAKIETU_RTP - 20)
+				nPorcjaObrazu = ROZMIAR_PAKIETU_RTP - 20;
+			memcpy(&chPakiet_RTP[20], oko480x320 + nOffsetObrazu, nPorcjaObrazu);
 
-        // Wysłanie do klienta
-		sendto(sock, packet, 20 + chunk, 0, (struct sockaddr*)dst, sizeof(*dst));
+			//w ostatnim segmencie daj znacznik
+	        if ((nOffsetObrazu + nPorcjaObrazu) >= nRozmiarObrazu)
+	        {
+	        	chPakiet_RTP[1] |= 0x80; // M=1
+	        }
 
-		(*seq)++;
-		offset += chunk;
-		(*timestamp) += 90000 / 25; // np. 25 fps
-
-        //sendto(sock, rtp_packet, 400, 0, (struct sockaddr*)&client_addr, sizeof(client_addr));
-        //seq++;
-        //timestamp += 3600; // udawana prędkość ~40fps
-
-        vTaskDelay(pdMS_TO_TICKS(40));
+			// Wysłanie do klienta
+			sendto(sock, chPakiet_RTP, 20 + nPorcjaObrazu, 0, (struct sockaddr*)&client_addr, sizeof(client_addr));
+			sNumerPakietu++;
+			nOffsetObrazu += nPorcjaObrazu;
+		}
+    	nTimeStamp += 90000 / 25; // np. 25 fps
+    	vTaskDelay(pdMS_TO_TICKS(40));
     }
 }
 
