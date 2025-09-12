@@ -61,9 +61,9 @@ Możesz używać TIM w STM32 do odmierzania 90 kHz (dla H.264) albo 8 kHz/48 kHz
 
 static int client_rtp_port = PORT_RTP;   // port docelowy RTP (ustawiany przez SETUP)
 static struct sockaddr_in client_addr;   // adres klienta
-int sockfd, connfd;
-struct sockaddr_in servaddr, cliaddr;
-socklen_t len;
+//int nDeskrGniazdaPolaczenia, nDeskrGniazdaOdbioru;
+struct sockaddr_in AdresSerwera, AdresKlienta;
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -71,22 +71,22 @@ socklen_t len;
 // Parametry: brak
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-err_t OtworzPolaczenieSerweraRTSP(void)
+err_t OtworzPolaczenieSerweraRTSP(int *nGniazdoPolaczenia)
 {
 	err_t nErr;
 
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
-	if (sockfd < 0) vTaskDelete(NULL);
+	*nGniazdoPolaczenia = socket(AF_INET, SOCK_STREAM, 0);
+	if (*nGniazdoPolaczenia < 0) vTaskDelete(NULL);
 
-	memset(&servaddr, 0, sizeof(servaddr));
-	servaddr.sin_family = AF_INET;
-	servaddr.sin_addr.s_addr = INADDR_ANY;
-	servaddr.sin_port = htons(PORT_RTSP);
+	memset(&AdresSerwera, 0, sizeof(AdresSerwera));
+	AdresSerwera.sin_family = AF_INET;				//rodzina portów, dla IP4 zawsze AF_INET
+	AdresSerwera.sin_addr.s_addr = INADDR_ANY;		//adres IP
+	AdresSerwera.sin_port = htons(PORT_RTSP);		//numer portu na którym nasłuchuje serwer (big endian)
 
-	nErr = bind(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr));
+	nErr = bind(*nGniazdoPolaczenia, (struct sockaddr*)&AdresSerwera, sizeof(AdresSerwera));
 	if (nErr)
 		return nErr;
-	nErr = listen(sockfd, 2);
+	nErr = listen(*nGniazdoPolaczenia, 2);
 	return nErr;
 }
 
@@ -98,81 +98,91 @@ err_t OtworzPolaczenieSerweraRTSP(void)
 //  sDlugosc - rozmiar danych w buforze
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-void ObslugaSerweraRTSP(void)
+void ObslugaSerweraRTSP(int nGniazdoPolaczenia)
 {
 	char buffer[1024];
-	int len;
+	ssize_t nRozmiar;
 	int cseq = 1;
+	socklen_t nRozmiarGniazda;
+	int nDeskrGniazdaOdbioru;
 
-	while ((len = recv(connfd, buffer, sizeof(buffer)-1, 0)) > 0)
+	nRozmiarGniazda = sizeof(AdresKlienta);
+	nDeskrGniazdaOdbioru = accept(nGniazdoPolaczenia, (struct sockaddr*)&AdresKlienta, &nRozmiarGniazda);
+	if (nDeskrGniazdaOdbioru >= 0)
 	{
-		buffer[len] = 0;
+		while ((nRozmiar = recv(nDeskrGniazdaOdbioru, buffer, sizeof(buffer)-1, 0)) > 0)
+		//nRozmiar = recv(nDeskrGniazdaOdbioru, buffer, sizeof(buffer)-1, 0);
+		//while (nRozmiar > 0)
+		{
+			buffer[nRozmiar] = 0;	//utnij string na końcu, aby nie były analizowane śmieci w buforze
 
-		// znajdź CSeq
-		char *cseq_ptr = strstr(buffer, "CSeq:");
-		if (cseq_ptr)
-		{
-			sscanf(cseq_ptr, "CSeq: %d", &cseq);
-		}
-
-		if (strstr(buffer, "OPTIONS"))
-		{
-			char reply[256];
-			snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nPublic: OPTIONS, DESCRIBE, SETUP, PLAY, TEARDOWN\r\n\r\n", cseq);
-			send(connfd, reply, strlen(reply), 0);
-		}
-		else if (strstr(buffer, "DESCRIBE"))
-		{
-			char sdp[256];
-			snprintf(sdp, sizeof(sdp),
-					 "v=0\r\n"
-					 "o=- 0 0 IN IP4 192.168.1.100\r\n"
-					 "s=STM32 RTSP Stream\r\n"
-					 "m=video %d RTP/AVP 96\r\n"
-					 "a=rtpmap:96 H264/90000\r\n", PORT_RTP);
-
-			char reply[512];
-			snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nContent-Type: application/sdp\r\nContent-Length: %d\r\n\r\n%s", cseq, (int)strlen(sdp), sdp);
-			send(connfd, reply, strlen(reply), 0);
-		}
-		else if (strstr(buffer, "SETUP"))
-		{
-			// zakładamy UDP, klient poda w Transport: client_port=xxxx
-			char *tp = strstr(buffer, "client_port=");
-			if (tp)
+			// znajdź CSeq
+			char *cseq_ptr = strstr(buffer, "CSeq:");
+			if (cseq_ptr)
 			{
-				sscanf(tp, "client_port=%d", &client_rtp_port);
+				sscanf(cseq_ptr, "CSeq: %d", &cseq);
 			}
 
-			// ustaw adres klienta
-			struct sockaddr_in addr;
-			socklen_t addrlen = sizeof(addr);
-			getpeername(connfd, (struct sockaddr*)&addr, &addrlen);
-			client_addr.sin_family = AF_INET;
-			client_addr.sin_port = htons(client_rtp_port);
-			client_addr.sin_addr = addr.sin_addr;
+			if (strstr(buffer, "OPTIONS"))
+			{
+				char reply[256];
+				snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nPublic: OPTIONS, DESCRIBE, SETUP, PLAY, TEARDOWN\r\n\r\n", cseq);
+				send(nDeskrGniazdaOdbioru, reply, strlen(reply), 0);
+			}
+			else if (strstr(buffer, "DESCRIBE"))
+			{
+				char sdp[256];
+				snprintf(sdp, sizeof(sdp),
+						 "v=0\r\n"
+						 "o=- 0 0 IN IP4 192.168.1.100\r\n"
+						 "s=STM32 Camera Stream\r\n"
+						 "t=0 0\r\n"
+						 "m=video 5004 RTP/AVP 26\r\n"
+						 "a=rtpmap:26 JPEG/90000\r\n", PORT_RTP);
 
-			char reply[256];
-			snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nTransport: RTP/AVP;unicast;client_port=%d-%d\r\nSession: 12345678\r\n\r\n", cseq, client_rtp_port, client_rtp_port+1);
-			send(connfd, reply, strlen(reply), 0);
-		}
-		else if (strstr(buffer, "PLAY")) {
-			char reply[256];
-			snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nSession: 12345678\r\n\r\n", cseq);
-			send(connfd, reply, strlen(reply), 0);
+				char reply[512];
+				snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nContent-Type: application/sdp\r\nContent-Length: %d\r\n\r\n%s", cseq, (int)strlen(sdp), sdp);
+				send(nDeskrGniazdaOdbioru, reply, strlen(reply), 0);
+			}
+			else if (strstr(buffer, "SETUP"))
+			{
+				// zakładamy UDP, klient poda w Transport: client_port=xxxx
+				char *tp = strstr(buffer, "client_port=");
+				if (tp)
+				{
+					sscanf(tp, "client_port=%d", &client_rtp_port);
+				}
 
-			// Start RTP stream w osobnym tasku
-			xTaskCreate(WatekStreamujacyRTP, "rtp", 1024, NULL, osPriorityNormal, NULL);
+				// ustaw adres klienta
+				struct sockaddr_in addr;
+				socklen_t addrlen = sizeof(addr);
+				getpeername(nDeskrGniazdaOdbioru, (struct sockaddr*)&addr, &addrlen);
+				client_addr.sin_family = AF_INET;
+				client_addr.sin_port = htons(client_rtp_port);
+				client_addr.sin_addr = addr.sin_addr;
+
+				char reply[256];
+				snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nTransport: RTP/AVP;unicast;client_port=%d-%d\r\nSession: 12345678\r\n\r\n", cseq, client_rtp_port, client_rtp_port+1);
+				send(nDeskrGniazdaOdbioru, reply, strlen(reply), 0);
+			}
+			else if (strstr(buffer, "PLAY")) {
+				char reply[256];
+				snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nSession: 12345678\r\n\r\n", cseq);
+				send(nDeskrGniazdaOdbioru, reply, strlen(reply), 0);
+
+				// Start RTP stream w osobnym tasku
+				xTaskCreate(WatekStreamujacyRTP, "rtp", 1024, NULL, osPriorityNormal, NULL);
+			}
+			else if (strstr(buffer, "TEARDOWN"))
+			{
+				char reply[128];
+				snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nSession: 12345678\r\n\r\n", cseq);
+				send(nDeskrGniazdaOdbioru, reply, strlen(reply), 0);
+				break;
+			}
 		}
-		else if (strstr(buffer, "TEARDOWN"))
-		{
-			char reply[128];
-			snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nSession: 12345678\r\n\r\n", cseq);
-			send(connfd, reply, strlen(reply), 0);
-			break;
-		}
-	}
-	closesocket(connfd);
+		closesocket(nDeskrGniazdaOdbioru);
+	}	//if (nDeskrGniazdaOdbioru >= 0)
 }
 
 
@@ -196,7 +206,7 @@ void WatekStreamujacyRTP(void *arg)
     {
         // RTP header (12 bajtów)
         rtp_packet[0] = 0x80;      // V=2, P=0, X=0, CC=0
-        rtp_packet[1] = 96;        // PT=96 (dynamic, np. H264)
+        rtp_packet[1] = 26;        // format: PT=96 (dynamic, np. H264), PT=26 (JPEG), PT=32 (MPEG2)
         rtp_packet[2] = seq >> 8;
         rtp_packet[3] = seq & 0xFF;
         rtp_packet[4] = timestamp >> 24;
@@ -208,18 +218,38 @@ void WatekStreamujacyRTP(void *arg)
         rtp_packet[10] = 0x56;
         rtp_packet[11] = 0x78;
 
-        // Payload (losowe bajty)
-        for (int i = 12; i < 400; i++)
-        {
-            rtp_packet[i] = rand() & 0xFF;
-        }
+        // JPEG header (8 bajtów)
+		packet[12] = 0; // Type-specific
+		packet[13] = (offset >> 16) & 0xFF;
+		packet[14] = (offset >> 8) & 0xFF;
+		packet[15] = offset & 0xFF;
+		packet[16] = 1;   // Type = baseline
+		packet[17] = 255; // Q=255
+		packet[18] = 640/8; // width/8
+		packet[19] = 480/8; // height/8
+
+		 // JPEG header (8 bajtów)
+		packet[12] = 0; // Type-specific
+		packet[13] = (offset >> 16) & 0xFF;
+		packet[14] = (offset >> 8) & 0xFF;
+		packet[15] = offset & 0xFF;
+		packet[16] = 1;   // Type = baseline
+		packet[17] = 255; // Q=255
+		packet[18] = 640/8; // width/8
+		packet[19] = 480/8; // height/8
 
         // Wysłanie do klienta
-        sendto(sock, rtp_packet, 400, 0, (struct sockaddr*)&client_addr, sizeof(client_addr));
-        seq++;
-        timestamp += 3600; // udawana prędkość ~40fps
+		sendto(sock, packet, 20 + chunk, 0, (struct sockaddr*)dst, sizeof(*dst));
 
-        vTaskDelay(pdMS_TO_TICKS(25));
+		(*seq)++;
+		offset += chunk;
+		(*timestamp) += 90000 / 25; // np. 25 fps
+
+        //sendto(sock, rtp_packet, 400, 0, (struct sockaddr*)&client_addr, sizeof(client_addr));
+        //seq++;
+        //timestamp += 3600; // udawana prędkość ~40fps
+
+        vTaskDelay(pdMS_TO_TICKS(40));
     }
 }
 

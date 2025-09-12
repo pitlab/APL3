@@ -17,8 +17,8 @@
 #define PORT_RTP    5004
 
 
-err_t OtworzPolaczenieSerweraRTSP(void);
-void ObslugaSerweraRTSP(void);
+err_t OtworzPolaczenieSerweraRTSP(int *nGniazdoPolaczenia);
+void ObslugaSerweraRTSP(int nGniazdoPolaczenia);
 //err_t AnalizaKomunikatuRTSP(uint8_t* dane, uint16_t sDlugosc);
 void WatekStreamujacyRTP(void *arg);
 

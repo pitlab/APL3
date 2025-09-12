@@ -1881,14 +1881,15 @@ void WatekSerweraTCP(void const * argument)
 void WatekSerweraRTSP(void const * argument)
 {
   /* USER CODE BEGIN WatekSerweraRTSP */
+	int nDeskryptorGniazdaPolaczenia;
 	err_t nErr;
-	nErr = OtworzPolaczenieSerweraRTSP();
+	nErr = OtworzPolaczenieSerweraRTSP(&nDeskryptorGniazdaPolaczenia);
 	if (nErr)
 		return;
 
 	for(;;)
 	{
-		ObslugaSerweraRTSP();
+		ObslugaSerweraRTSP(nDeskryptorGniazdaPolaczenia);
 		osDelay(25);
 	}
   /* USER CODE END WatekSerweraRTSP */
