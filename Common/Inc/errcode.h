@@ -66,13 +66,8 @@
 
 //#define ERR_NASTAWA_PID			68	//niewłaściwa wartość nastawy regulatora PID
 #define ERR_NASTAWA_FRAM		68	//niewłaściwa wartość nastawy odczytanaj z FRAM
+#define BLAD_OTWARCIA_GNIAZDA	69	//bład otwarcia gniazda TCP
 
-#define ERR_I2C_BERR			70
-#define ERR_I2C_ARB_LOST		71
-#define ERR_I2C_ACK_FAIL		72
-#define ERR_I2C_SDA_LOCK		73
-#define ERR_I2C_SCL_LOCK		74
-#define ERR_I2C_TIMEOUT			75
 
 #define ERR_NIE_ZAINICJOWANY	0xFF
 

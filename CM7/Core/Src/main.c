@@ -86,7 +86,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include <ili9488.h>
 #include "siec/serwer_tcp.h"
 #include "siec/serwerRTSP.h"
-#include "lwip/api.h"
+
 
 /* USER CODE END Includes */
 
@@ -1844,28 +1844,17 @@ void WatekWyswietlacza(void const * argument)
 void WatekSerweraTCP(void const * argument)
 {
   /* USER CODE BEGIN WatekSerweraTCP */
-	struct netconn *PolaczeniePasywneGG, *PolaczenieAktywneGG;	//połączenia serwera i klienta w stylu GG
-	struct netbuf *bufGG;
+	/*struct netconn *PolaczeniePasywne, *PolaczenieAktywne;	//połączenia serwera i klienta
+	struct netbuf *bufor;
 	err_t nErr;
 
-	PolaczeniePasywneGG = netconn_new(NETCONN_TCP);
-	netconn_bind(PolaczeniePasywneGG, IP_ADDR_ANY, 4000);
-	netconn_listen(PolaczeniePasywneGG);
+	PolaczeniePasywne = netconn_new(NETCONN_TCP);
+	netconn_bind(PolaczeniePasywne, IP_ADDR_ANY, 4000);
+	netconn_listen(PolaczeniePasywne);*/
+	OtworzPortSertweraTCP();
 	for(;;)
 	{
-		nErr = netconn_accept(PolaczeniePasywneGG, &PolaczenieAktywneGG);
-		if (nErr == ERR_OK)
-		{
-			while ((nErr = netconn_recv(PolaczenieAktywneGG, &bufGG)) == ERR_OK)
-			{
-				void *data;
-				u16_t len;
-				netbuf_data(bufGG, &data, &len);
-				AnalizaKomunikatuTCP(data, len);
-				netbuf_delete(bufGG);
-			}
-			netconn_delete(PolaczenieAktywneGG);
-		}
+		ObslugaSerweraTCP();
 		osDelay(1);
 	}
   /* USER CODE END WatekSerweraTCP */
@@ -1890,7 +1879,7 @@ void WatekSerweraRTSP(void const * argument)
 	for(;;)
 	{
 		ObslugaSerweraRTSP(nDeskryptorGniazdaPolaczenia);
-		osDelay(25);
+		osDelay(1);
 	}
   /* USER CODE END WatekSerweraRTSP */
 }

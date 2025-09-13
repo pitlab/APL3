@@ -31,7 +31,7 @@ extern struct st_KonfKam stKonfKam;
 extern uint16_t sOkresTelemetrii[MAX_INDEKSOW_TELEMETR_W_RAMCE];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 extern  uint8_t chPolecenie;
 extern  uint8_t chRozmDanych;
-extern  uint8_t chDane[ROZM_DANYCH_UART];
+extern  uint8_t chDane[ROZMIAR_DANYCH_KOMUNIKACJI];
 extern uint16_t sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
 extern uint8_t chTrybPracy;
 extern uint16_t sBuforLCD[];
@@ -261,7 +261,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 			break;
 		}
-		if (2* chDane[4] > ROZM_DANYCH_UART)	//jeżeli zażądano odczytu więcej niż pomieści ramka komunikacyjna to zwróc błąd
+		if (2* chDane[4] > ROZMIAR_DANYCH_KOMUNIKACJI)	//jeżeli zażądano odczytu więcej niż pomieści ramka komunikacyjna to zwróc błąd
 		{
 			chErr = ERR_ZLA_ILOSC_DANYCH;
 			Wyslij_ERR(chErr, chPolecenie, chInterfejs);

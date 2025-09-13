@@ -37,16 +37,16 @@ static uint16_t sCrc16We;
 volatile uint32_t nCzasSystemowy;
 static uint8_t chPolecenie;
 static uint8_t chRozmDanych;
-static uint8_t chDane[ROZM_DANYCH_UART];
+static uint8_t chDane[ROZMIAR_DANYCH_KOMUNIKACJI];
 static un8_16_t un8_16;
 stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
 const char* chNazwaSierotki = {"Sierotka Wronia"};
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chBuforNadDMA[ROZMIAR_RAMKI_UART];
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chBuforNadDMA[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA+8];
-
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chRamkaTelemetrii[2*LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_UART];	//ramki telemetryczne: przygotowywana i wysyłana dla zmiennych 0..127 oraz 128..255
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chRamkaTelemetrii[2*LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla zmiennych 0..127 oraz 128..255
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chBuforNadRamkiKomTCP[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
 extern uint8_t chIndeksNapelnRamki;	//okresla ktora tablica ramki telemetrycznej jest napełniania
 uint8_t chWyslaneOK = 1;
 uint8_t chBuforKomOdb[ROZMIAR_BUF_ANALIZY_ODB];
@@ -65,6 +65,9 @@ extern UART_HandleTypeDef huart7;
 extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 extern void CzytajPamiecObrazu(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t* bufor);
 extern void Error_Handler(void);
+extern uint8_t chRozmiarRamkiNadTCP;		//rozmiar ramki nadawczej TCP. Jest zerowany po wysłaniu i ustawioany gdy gotowy do wysyłki
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Odbiera dane przychodzące z interfejsów kmunikacyjnych w trybie: pytanie - odpowiedź
@@ -454,7 +457,7 @@ uint16_t LiczCRC16(uint8_t chDane)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PrzygotujRamke(uint8_t chAdrZdalny, uint8_t chAdrLokalny,  uint8_t chZnakCzasu, uint8_t chPolecenie, uint8_t chRozmDanych, uint8_t *chDane, uint8_t *chRamka)
 {
-    if (chRozmDanych > ROZM_DANYCH_UART)
+    if (chRozmDanych > ROZMIAR_DANYCH_KOMUNIKACJI)
     	return(ERR_ZLA_ILOSC_DANYCH);
 
     if ((chPolecenie & ~0x80) > PK_ILOSC_POLECEN)
@@ -501,29 +504,31 @@ uint8_t PrzygotujRamke(uint8_t chAdrZdalny, uint8_t chAdrLokalny,  uint8_t chZna
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDanych, uint8_t *chDane, uint8_t chInterfejs)
 {
-	uint8_t chErr;
+	uint8_t chErr = BLAD_OK;
 	uint8_t chLokalnyZnakCzasu = (nCzasSystemowy / 10) & 0xFF;
 
-    if (chPolecenie & 0x80)
-    	chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres,  chLokalnyZnakCzasu, chPolecenie, chRozmDanych, chDane, chBuforNadDMA);	//ramka telemetryczna
-
-    else
-    	chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres,  chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chBuforNadDMA);	//ramka odpowiedzi
-
-    if (chErr == BLAD_OK)
-    {
-    	switch (chInterfejs)
-    	{
-    	case INTERF_UART:
+	switch (chInterfejs)
+	{
+	case INTERF_UART:
+		chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres,  chLokalnyZnakCzasu, chPolecenie, chRozmDanych, chDane, chBuforNadDMA);
+		if (chErr == BLAD_OK)
+		{
     		st_ZajetoscLPUART.chZajetyPrzez = RAMKA_POLECEN;
     		st_ZajetoscLPUART.sDoWyslania[RAMKA_POLECEN - 1] = (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI;
     		HAL_UART_Transmit_DMA(&hlpuart1, chBuforNadDMA, (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI);
-    		break;
+		}
+		break;
 
-    	case INTERF_ETH:	break;
-    	case INTERF_USB:	break;
-    	default: chErr = ERR_ZLY_INTERFEJS;	break;
-    	}
+	case INTERF_ETH:
+		chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres,  chLokalnyZnakCzasu, chPolecenie, chRozmDanych, chDane, chBuforNadRamkiKomTCP);
+		if (chErr == BLAD_OK)
+		{
+			chRozmiarRamkiNadTCP = chRozmDanych + ROZM_CIALA_RAMKI;		//ustaw rozmiar ramki nadawczej TCP gotowej do wysyłki
+		}
+    	break;
+
+    case INTERF_USB:	break;
+    default: chErr = ERR_ZLY_INTERFEJS;	break;
     }
     return chErr;
 }

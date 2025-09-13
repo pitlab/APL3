@@ -140,11 +140,6 @@ uint8_t chHistR[32], chHistG[64], chHistB[32];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM];
 FIL __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) SDPlikZdjecia;
-//FIL SDPlikZdjecia;
-//uint16_t sLicznikZdjec;
-extern uint8_t chWiadomoscGG[80];	//bufor na odebraną wiadomość
-extern uint8_t chNowaWiadomoscGG;	//informuje o pojawieniu się nowej wiadomości
-uint8_t chWskWierszaGG;	//identyfikuje w którym wierszu ma zostać napisana wiadomość
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -635,13 +630,6 @@ void RysujEkran(void)
 		{
 			BelkaTytulu("Gadu-Gadu port:4000");
 			chRysujRaz = 0;
-		}
-
-		if (chNowaWiadomoscGG)
-		{
-			chNowaWiadomoscGG = 0;
-			RysujNapis((char*)chWiadomoscGG, 10, 20 + 20 * chWskWierszaGG);
-			chWskWierszaGG++;
 		}
 
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
