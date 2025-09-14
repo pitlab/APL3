@@ -31,7 +31,8 @@ static uint8_t chOstatniCzas;
 //uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 
-
+uint8_t chStatusPolaczenia;		//każe 2 kolejne bity oznaczają status połaczenia: LPUART, USB, TCP, RTSP
+static uint8_t chPoprzedniStatusPolaczenia;	//sluży do wykrycia zmiany statusu
 uint8_t chOrientacja;
 uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
 uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
@@ -59,7 +60,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		//setColor(GRAY20);
 		//fillRect(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, DISP_Y_SIZE);
 		RysujProstokatWypelniony(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, GRAY20);
-		setBackColor(BLACK);
+		setBackColor(CZARNY);
 
 		//rysuj ikony poleceń
 		UstawCzcionke(MidFont);
@@ -80,6 +81,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 				RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 			}
 		}
+		chPoprzedniStatusPolaczenia = 0;	//wymuś przerysowanie statusu połączenia
 	}
 
 	//sprawdź czy jest naciskany ekran
@@ -111,7 +113,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 						//licz współrzedne środka ikony
 						x = (DISP_X_SIZE /(2*MENU_KOLUMNY)) + n * (DISP_X_SIZE / MENU_KOLUMNY);
 						y = ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / (2*MENU_WIERSZE)) + m * ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
-						setColor(BLACK);
+						setColor(CZARNY);
 						RysujProstokatZaokraglony(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
 						setColor(GRAY60);
 						x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
@@ -155,7 +157,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 			setBackColor(GRAY20);
 			strcpy(chNapis, menu[chMenuSelPos].chPomoc);
 			RysujNapis(chNapis, DW_SPACE, DISP_Y_SIZE - DW_SPACE - FONT_SH);
-			setBackColor(BLACK);
+			setBackColor(CZARNY);
 			chRysujRaz = 0;
 		}
 	}
@@ -178,9 +180,37 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		setColor(MENU_RAM_AKT);
 		setBackColor(GRAY20);
 		sprintf(chNapis, "%02d:%02d:%02d", sTime.Hours,  sTime.Minutes,  sTime.Seconds);
-		RysujNapis(chNapis, DISP_X_SIZE - 9*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
-		setBackColor(BLACK);
+		RysujNapis(chNapis, DISP_X_SIZE - 8*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		chOstatniCzas = sTime.Seconds;
+		setBackColor(CZARNY);
+	}
+
+	//odśwież status połączenia jeżeli się zmieniło
+	if (chStatusPolaczenia != chPoprzedniStatusPolaczenia)
+	{
+		chPoprzedniStatusPolaczenia = chStatusPolaczenia;
+		setBackColor(GRAY20);
+		for (uint8_t n=0; n<4; n++)
+		{
+			//Połączenie może mieć max 4 stany: 0=brak gotowości do odbioru, 1=gotowe do odbioru, 2=połączone, 3=aktywnie transmituje lub odbiera
+			switch ((chStatusPolaczenia >> (2*n)) & 0x03)
+			{
+			case 0: setColor(GRAY60);	break;
+			case 1: setColor(ZOLTY);	break;
+			case 2: setColor(ZIELONY);	break;
+			case 3: setColor(CZERWONY);	break;
+			}
+
+			//w wybranym kolorze napisz nazwe interfejsu
+			switch (n)
+			{
+			case 0:	RysujNapis("UART", DISP_X_SIZE - 27*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
+			case 1:	RysujNapis("USB", DISP_X_SIZE - 22*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
+			case 2:	RysujNapis("TCP", DISP_X_SIZE - 18*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
+			case 3:	RysujNapis("RTSP", DISP_X_SIZE - 14*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
+			}
+		}
+		setBackColor(CZARNY);
 	}
 }
 
@@ -195,19 +225,16 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 void BelkaTytulu(char* chTytul)
 {
 	extern const unsigned short pitlab_logo18[];
-	extern uint8_t chStatusPolaczeniaETH;
 
 	RysujProstokatWypelniony(18, 0, DISP_X_SIZE, MENU_NAG_WYS, MENU_TLO_BAR);
 	RysujBitmape(0, 0, 18, 18, pitlab_logo18);	//logo PitLab
-	setColor(YELLOW);
+	setColor(ZOLTY);
 	setBackColor(MENU_TLO_BAR);
 	UstawCzcionke(BigFont);
 	RysujNapis(chTytul, CENTER, UP_SPACE);
-	setColor(WHITE);
+	setColor(BIALY);
 	UstawCzcionke(MidFont);
-	sprintf(chNapis, "%d", chStatusPolaczeniaETH);
-	RysujNapis(chNapis, DISP_X_SIZE-FONT_SL, UP_SPACE);	//testowo status połączenia ETH
-	setBackColor(BLACK);
+	setBackColor(CZARNY);
 }
 
 

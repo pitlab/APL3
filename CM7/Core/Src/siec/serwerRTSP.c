@@ -64,8 +64,10 @@ static int client_rtp_port = PORT_RTP;   // port docelowy RTP (ustawiany przez S
 static struct sockaddr_in client_addr;   // adres klienta
 //int nDeskrGniazdaPolaczenia, nDeskrGniazdaOdbioru;
 struct sockaddr_in AdresSerwera, AdresKlienta;
-
+uint8_t chTrwaStreamRTP;
 extern const unsigned char oko480x320[152318];
+extern uint8_t chStatusPolaczenia;
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizacja serwera RTSP
@@ -88,6 +90,9 @@ err_t OtworzPolaczenieSerweraRTSP(int *nGniazdoPolaczenia)
 	if (nErr)
 		return nErr;
 	nErr = listen(*nGniazdoPolaczenia, 2);
+
+	chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_RTSP);
+	chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_RTSP);
 	return nErr;
 }
 
@@ -111,6 +116,8 @@ void ObslugaSerweraRTSP(int nGniazdoPolaczenia)
 	nDeskrGniazdaOdbioru = accept(nGniazdoPolaczenia, (struct sockaddr*)&AdresKlienta, &nRozmiarGniazda);
 	if (nDeskrGniazdaOdbioru >= 0)
 	{
+		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_RTSP);
+		chStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_RTSP);
 		while ((nRozmiar = recv(nDeskrGniazdaOdbioru, buffer, sizeof(buffer)-1, 0)) > 0)
 		//nRozmiar = recv(nDeskrGniazdaOdbioru, buffer, sizeof(buffer)-1, 0);
 		//while (nRozmiar > 0)
@@ -169,6 +176,7 @@ void ObslugaSerweraRTSP(int nGniazdoPolaczenia)
 				send(nDeskrGniazdaOdbioru, reply, strlen(reply), 0);
 
 				// Start RTP stream w osobnym tasku
+				chTrwaStreamRTP = 1;
 				xTaskCreate(WatekStreamujacyRTP, "rtp", 1024, NULL, osPriorityNormal, NULL);
 			}
 			else if (strstr(buffer, "TEARDOWN"))
@@ -176,11 +184,12 @@ void ObslugaSerweraRTSP(int nGniazdoPolaczenia)
 				char reply[128];
 				snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nSession: 12345678\r\n\r\n", cseq);
 				send(nDeskrGniazdaOdbioru, reply, strlen(reply), 0);
+				chTrwaStreamRTP = 0;
 				break;
 			}
 		}
 		closesocket(nDeskrGniazdaOdbioru);
-	}	//if (nDeskrGniazdaOdbioru >= 0)
+	}
 }
 
 
@@ -201,8 +210,10 @@ void WatekStreamujacyRTP(void *arg)
     uint32_t nTimeStamp = PobierzCzasT6();
     uint32_t nOffsetObrazu, nRozmiarObrazu, nPorcjaObrazu;
 
-    while (1)
+    while (chTrwaStreamRTP)
     {
+    	chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_RTSP);
+
     	//początek obrazu
     	nRozmiarObrazu = sizeof(oko480x320);
     	nOffsetObrazu = 0;
@@ -252,5 +263,7 @@ void WatekStreamujacyRTP(void *arg)
     	nTimeStamp += 90000 / 25; // np. 25 fps
     	vTaskDelay(pdMS_TO_TICKS(40));
     }
+    chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_RTSP);
+    chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_RTSP);
 }
 

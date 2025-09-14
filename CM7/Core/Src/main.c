@@ -419,7 +419,7 @@ Error_Handler();
   tsSerwerTCPHandle = osThreadCreate(osThread(tsSerwerTCP), NULL);
 
   /* definition and creation of tsSerwerRTSP */
-  osThreadDef(tsSerwerRTSP, WatekSerweraRTSP, osPriorityBelowNormal, 0, 512);
+  osThreadDef(tsSerwerRTSP, WatekSerweraRTSP, osPriorityBelowNormal, 0, 1024);
   tsSerwerRTSPHandle = osThreadCreate(osThread(tsSerwerRTSP), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -1699,10 +1699,10 @@ void WatekOdbiorczyLPUART1(void const * argument)
 {
   /* USER CODE BEGIN WatekOdbiorczyLPUART1 */
 	uint32_t nCzas, nCzasPoprzedni;
-	//extern volatile uint8_t chUartKomunikacjiZajety;
 	extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
 	uint8_t chErr;
 	uint8_t chLicznikZajetosci = 0;
+	extern uint8_t chStatusPolaczenia;
 
 	InicjalizacjaWatkuOdbiorczegoLPUART1();
 	InicjalizacjaTelemetrii();
@@ -1715,13 +1715,15 @@ void WatekOdbiorczyLPUART1(void const * argument)
 		if (chErr == ERR_OK)
 		{
 			ObslugaWatkuOdbiorczegoLPUART1();
-			osDelay(5);	//czas na obsługę ramki
+			osDelay(2);	//czas na obsługę ramki
 		}
 		else	//watchdog: jeżeli UART jest zbyt długo  zajęty to odblokuj. Trzeba znaleźć co jest przyczyną blokowania
 		{
 			chLicznikZajetosci++;
 			if (chLicznikZajetosci > 5)
 				st_ZajetoscLPUART.chZajetyPrzez = 0;
+			chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
+			chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);
 		}
 
 		//w drugiej kolejności telemetrię
@@ -1731,8 +1733,11 @@ void WatekOdbiorczyLPUART1(void const * argument)
 			ObslugaTelemetrii(INTERF_UART);
 			nCzasPoprzedni += KWANT_CZASU_TELEMETRII * 1000;
 			sLicznikTele++;	//debug
+			osDelay(4);		//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
 		}
-		osDelay(5);		//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
+		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
+		chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);
+		osDelay(1);
 	}
   /* USER CODE END WatekOdbiorczyLPUART1 */
 }

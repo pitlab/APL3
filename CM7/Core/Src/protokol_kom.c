@@ -131,9 +131,11 @@ void InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 void ObslugaWatkuOdbiorczegoLPUART1(void)
 {
 	uint8_t chErr;
+	extern uint8_t chStatusPolaczenia;
 
 	while (sWskNap != sWskOpr)
 	{
+		chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
 		chErr = AnalizujDaneKom(chBuforKomOdb[sWskOpr], INTERF_UART);
 		if (chErr)
 			chCzasSwieceniaLED[LED_CZER] = 5;
@@ -143,6 +145,7 @@ void ObslugaWatkuOdbiorczegoLPUART1(void)
 		if (sWskOpr >= ROZMIAR_BUF_ANALIZY_ODB)
 			sWskOpr = 0;
 		chTimeoutOdbioru = 5;	//x osDelay(2); [ms] w głównym wątku
+		chStatusPolaczenia &= ~(STAT_POL_MASKA_OTW << STAT_POL_UART);	//sygnalizuj powrót do stanu otwartości
 	}
 
 	//po upływie timeoutu resetuj stan protokołu aby następną ramkę zaczął dekodować od nagłówka

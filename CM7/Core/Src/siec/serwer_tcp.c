@@ -19,6 +19,8 @@ struct netbuf *bufor;
 err_t nErr;
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chBuforNadRamkiKomTCP[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
 uint8_t chRozmiarRamkiNadTCP;		//rozmiar ramki nadawczej TCP. Jest zerowany po wysłaniu i ustawioany gdy gotowy do wysyłki
+extern uint8_t chStatusPolaczenia;
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -29,6 +31,8 @@ uint8_t chRozmiarRamkiNadTCP;		//rozmiar ramki nadawczej TCP. Jest zerowany po w
 uint8_t OtworzPortSertweraTCP(void)
 {
 	err_t nErr;
+
+	chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
 	DeskryptorPolaczeniaPasywnego = netconn_new(NETCONN_TCP);
 	if (DeskryptorPolaczeniaPasywnego == NULL)
 		return BLAD_OTWARCIA_GNIAZDA;
@@ -42,7 +46,12 @@ uint8_t OtworzPortSertweraTCP(void)
 
 	nErr = netconn_listen(DeskryptorPolaczeniaPasywnego);
 	if (nErr)
+	{
 		netconn_delete(DeskryptorPolaczeniaPasywnego);
+	}
+
+	chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
+	chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_TCP);
 	return (uint8_t)(nErr & 0xFF);
 }
 
@@ -60,6 +69,8 @@ uint8_t ObslugaSerweraTCP(void)
 	nErr = netconn_accept(DeskryptorPolaczeniaPasywnego, &DeskryptorPolaczeniaAktywnego);
 	if (nErr == ERR_OK)
 	{
+		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
+		chStatusPolaczenia |= STAT_POL_OTWARTY << STAT_POL_TCP;
 		while ((nErr = netconn_recv(DeskryptorPolaczeniaAktywnego, &bufor)) == ERR_OK)
 		{
 			void* chDane;
@@ -73,15 +84,21 @@ uint8_t ObslugaSerweraTCP(void)
 					if (chErr)
 						chCzasSwieceniaLED[LED_CZER] = 5;	//ewentualne problemy komunikacyjne sygnalizuj czerwonym LED-em przez wielokrotność 100ms
 
-					if (chRozmiarRamkiNadTCP > 0)
+					if (chRozmiarRamkiNadTCP > 0)	//czy jest odpowiedź do odesłania
 					{
+						chStatusPolaczenia |= STAT_POL_PRZESYLA << STAT_POL_TCP;
 						nErr = netconn_write(DeskryptorPolaczeniaAktywnego, chBuforNadRamkiKomTCP, chRozmiarRamkiNadTCP, NETCONN_COPY);
+						chRozmiarRamkiNadTCP = 0;
+						chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
+						chStatusPolaczenia |= STAT_POL_OTWARTY << STAT_POL_TCP;
 					}
 				}
 			}
 			netbuf_delete(bufor);
 		}
 		netconn_delete(DeskryptorPolaczeniaAktywnego);
+		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
+		chStatusPolaczenia |= STAT_POL_GOTOWY << STAT_POL_TCP;
 	}
 	else
 		chErr = (uint8_t)(nErr & 0xFF);

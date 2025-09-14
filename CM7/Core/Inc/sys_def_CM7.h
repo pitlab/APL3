@@ -252,4 +252,17 @@
 //
 #define KWANT_CZASU_TELEMETRII	10	//co tyle milisekund może być wysyłana telemetria
 
+
+//przesunięcie flagi i maski w zmiennej chStatusPolaczenia
+#define STAT_POL_UART	0
+#define STAT_POL_USB	2
+#define STAT_POL_TCP	4
+#define STAT_POL_RTSP	6
+#define STAT_POL_NIEAKTYWNY	0
+#define STAT_POL_GOTOWY		1
+#define STAT_POL_OTWARTY	2
+#define STAT_POL_PRZESYLA	3
+#define STAT_POL_MASKA		3
+#define STAT_POL_MASKA_OTW	1	//pozwala na przejscie z STAT_POL_PRZESYLA na STAT_POL_OTWARTY jednym poleceniem NAND
+
 #endif /* INC_SYS_DEF_CM7_H_ */
