@@ -37,7 +37,7 @@ extern uint8_t chTrybPracy;
 extern uint16_t sBuforLCD[];
 extern uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern stBSP_t stBSP;	//struktura zawierajaca adres i nazwę BSP
-
+extern uint8_t chStatusPolaczenia;
 
 
 uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDanych, uint8_t chInterfejs, uint8_t chAdresZdalny)
@@ -102,6 +102,12 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		for (n=0; n<4; n++)
 			chDane[n+DLUGOSC_NAZWY+1] = stBSP.chAdrIP[n];
 		chErr = WyslijRamke(chAdresZdalny, PK_POBIERZ_BSP, DLUGOSC_NAZWY+5, chDane, chInterfejs);
+		//polecenie PK_POBIERZ_BSP otwiera połączenie UART, więc zmień stan na otwarty
+		if (chInterfejs == INTERF_UART)
+		{
+			chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
+			chStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);
+		}
 		break;
 
 	case PK_UST_TR_PRACY:	//ustaw tryb pracy
@@ -398,6 +404,13 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 	case PK_REKONFIG_SERWA_RC:	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie zawartosci FRAM
 		uDaneCM7.dane.chWykonajPolecenie = POL_REKONFIG_SERWA_RC;
 		chErr = Wyslij_OK(0, 0, chInterfejs);
+		break;
+
+	case PK_ZAMKNIJ_POLACZENIE:	// zamyka połączenie UART, więc zmień stan na STAT_POL_GOTOWY
+		if (chInterfejs == INTERF_UART)
+		{
+			chStatusPolaczenia &= ~(STAT_POL_MASKA_GOT << STAT_POL_UART);
+		}
 		break;
 
 	}

@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	282		//numer commitu w repozytorium
+#define WER_REPO	284		//numer commitu w repozytorium
 
 //wybór typu wyświetlacza
 #define LCD_ILI9488		//https://sklep.msalamon.pl/produkt/wyswietlacz-tft-lcd-35%E2%80%B3-ili9488-320x480/?srsltid=AfmBOopUr_Ot4ZQNoDns7QPYb-sgwqNSRUYaUR1s1TTm1hDWmuxMRWXO
@@ -254,8 +254,8 @@
 
 
 //przesunięcie flagi i maski w zmiennej chStatusPolaczenia
-#define STAT_POL_UART	0
-#define STAT_POL_USB	2
+#define STAT_POL_USB	0
+#define STAT_POL_UART	2
 #define STAT_POL_TCP	4
 #define STAT_POL_RTSP	6
 #define STAT_POL_NIEAKTYWNY	0
@@ -264,5 +264,6 @@
 #define STAT_POL_PRZESYLA	3
 #define STAT_POL_MASKA		3
 #define STAT_POL_MASKA_OTW	1	//pozwala na przejscie z STAT_POL_PRZESYLA na STAT_POL_OTWARTY jednym poleceniem NAND
+#define STAT_POL_MASKA_GOT	2	//pozwala na przejscie z STAT_POL_PRZESYLA na STAT_POL_GOTOWY jednym poleceniem NAND
 
 #endif /* INC_SYS_DEF_CM7_H_ */

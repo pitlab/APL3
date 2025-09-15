@@ -81,9 +81,9 @@ typedef struct
 #define PK_REKONFIG_SERWA_RC	22	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie zawartosci FRAM
 #define PK_UST_PAR_KAMERY_GRUP	23	//ustaw parametry pracy kamery grupowo
 #define PK_RESETUJ_KAMERE		24	//sprzetowo resetuje kamerę i ładuje domyślne ustawienia
+#define PK_ZAMKNIJ_POLACZENIE	25	//NSK kończy pracę i zatrzymuje transmisję danych
 
-
-#define PK_ILOSC_POLECEN		25	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
+#define PK_ILOSC_POLECEN		26	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
 #define PK_TELEMETRIA1			96	//ramka telemetryczna 1
 #define PK_TELEMETRIA2			97	//ramka telemetryczna 2

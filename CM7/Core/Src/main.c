@@ -1703,6 +1703,7 @@ void WatekOdbiorczyLPUART1(void const * argument)
 	uint8_t chErr;
 	uint8_t chLicznikZajetosci = 0;
 	extern uint8_t chStatusPolaczenia;
+	uint8_t chStatusUART;
 
 	InicjalizacjaWatkuOdbiorczegoLPUART1();
 	InicjalizacjaTelemetrii();
@@ -1722,9 +1723,8 @@ void WatekOdbiorczyLPUART1(void const * argument)
 			chLicznikZajetosci++;
 			if (chLicznikZajetosci > 5)
 				st_ZajetoscLPUART.chZajetyPrzez = 0;
-			chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
-			chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);
 		}
+		chStatusUART = chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);	//status z transmisji ramki
 
 		//w drugiej kolejności telemetrię
 		nCzas = MinalCzas(nCzasPoprzedni);	//czas w mikrosekundach
@@ -1735,8 +1735,12 @@ void WatekOdbiorczyLPUART1(void const * argument)
 			sLicznikTele++;	//debug
 			osDelay(4);		//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
 		}
+		chStatusUART |= chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);		//suma statusów  z transmisji ramki i telemetrii
 		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
-		chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);
+		if (chStatusUART == (STAT_POL_OTWARTY << STAT_POL_UART))	//jeżeli był ustawiony bit transmisji lub otwartośco
+			chStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);	//to wróć do stanu otwartego łącza
+		else
+			chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
 		osDelay(1);
 	}
   /* USER CODE END WatekOdbiorczyLPUART1 */

@@ -204,10 +204,10 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 			//w wybranym kolorze napisz nazwe interfejsu
 			switch (n)
 			{
-			case 0:	RysujNapis("UART", DISP_X_SIZE - 27*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
-			case 1:	RysujNapis("USB", DISP_X_SIZE - 22*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
-			case 2:	RysujNapis("TCP", DISP_X_SIZE - 18*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
-			case 3:	RysujNapis("RTSP", DISP_X_SIZE - 14*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
+			case 0:	RysujNapis(" USB", DISP_X_SIZE - 27*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
+			case 1:	RysujNapis("UART", DISP_X_SIZE - 22*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
+			case 2:	RysujNapis("TCP",  DISP_X_SIZE - 17*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
+			case 3:	RysujNapis("RTSP", DISP_X_SIZE - 13*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
 			}
 		}
 		setBackColor(CZARNY);
