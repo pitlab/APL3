@@ -32,7 +32,7 @@ static uint8_t chOstatniCzas;
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 
 uint8_t chStatusPolaczenia;		//każe 2 kolejne bity oznaczają status połaczenia: LPUART, USB, TCP, RTSP
-static uint8_t chPoprzedniStatusPolaczenia;	//sluży do wykrycia zmiany statusu
+static uint8_t chPoprzedniStatusPolaczenia = 0xFF;	//sluży do wykrycia zmiany statusu
 uint8_t chOrientacja;
 uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
 uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
@@ -81,7 +81,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 				RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 			}
 		}
-		chPoprzedniStatusPolaczenia = 0;	//wymuś przerysowanie statusu połączenia
+		chPoprzedniStatusPolaczenia = 0xFF;	//wymuś przerysowanie statusu połączenia
 	}
 
 	//sprawdź czy jest naciskany ekran
@@ -186,14 +186,17 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	}
 
 	//odśwież status połączenia jeżeli się zmieniło
-	if (chStatusPolaczenia != chPoprzedniStatusPolaczenia)
+	uint8_t chStatus;
+
+	setBackColor(GRAY20);
+	for (uint8_t n=0; n<4; n++)		//rozpatruj sobno każde połaczenia
 	{
-		chPoprzedniStatusPolaczenia = chStatusPolaczenia;
-		setBackColor(GRAY20);
-		for (uint8_t n=0; n<4; n++)
+		chStatus = (chStatusPolaczenia >> (2*n)) & 0x03;		//wyodrebnij bity danego połączenia
+		if (chStatus != ((chPoprzedniStatusPolaczenia >> (2*n)) & 0x03))
 		{
 			//Połączenie może mieć max 4 stany: 0=brak gotowości do odbioru, 1=gotowe do odbioru, 2=połączone, 3=aktywnie transmituje lub odbiera
-			switch ((chStatusPolaczenia >> (2*n)) & 0x03)
+			//switch ((chStatusPolaczenia >> (2*n)) & 0x03)
+			switch (chStatus)
 			{
 			case 0: setColor(GRAY60);	break;
 			case 1: setColor(ZOLTY);	break;
@@ -204,14 +207,15 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 			//w wybranym kolorze napisz nazwe interfejsu
 			switch (n)
 			{
-			case 0:	RysujNapis(" USB", DISP_X_SIZE - 27*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
+			case 0:	RysujNapis(" USB", DISP_X_SIZE - 27*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;	//napis zaczyna się od spacji aby nie zlewało się z poprzednią treścią
 			case 1:	RysujNapis("UART", DISP_X_SIZE - 22*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
 			case 2:	RysujNapis("TCP",  DISP_X_SIZE - 17*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
 			case 3:	RysujNapis("RTSP", DISP_X_SIZE - 13*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
 			}
 		}
-		setBackColor(CZARNY);
 	}
+	chPoprzedniStatusPolaczenia = chStatusPolaczenia;
+	setBackColor(CZARNY);
 }
 
 

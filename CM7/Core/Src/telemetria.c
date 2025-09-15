@@ -109,7 +109,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 
 		if (sLicznikTelemetrii[n] == 0)		//licznik zmiennej doszedł do 0 więc trzeba ją wysłać
 		{
-			chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
+			//chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
 			sLicznikTelemetrii[n] = sOkresTelemetrii[n];		//przeładuj licznik nowym okresem
 			fZmienna = PobierzZmiennaTele(n);
 			chNrRamki = n >> 7;
@@ -118,9 +118,9 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 
 				WstawDaneDoRamkiTele(chIndeksNapelnRamki, chLicznikZmienych, n, fZmienna);
 				chIloscDanych[chNrRamki]++;
-				//chLicznikZmienych++;
+				chLicznikZmienych++;
 			}
-			chStatusPolaczenia &= ~(STAT_POL_MASKA_OTW << STAT_POL_UART);	//sygnalizuj powrót do stanu otwartości
+			//chStatusPolaczenia &= ~(STAT_POL_MASKA_OTW << STAT_POL_UART);	//sygnalizuj powrót do stanu otwartości
 		}
 	}
 
@@ -140,6 +140,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 		{
 			if (st_ZajetoscLPUART.sDoWyslania[r+1])
 			{
+				chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
 				st_ZajetoscLPUART.chZajetyPrzez = RAMKA_TELE1 + r;
 				HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[r+1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
 				break;
@@ -370,13 +371,11 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 ////////////////////////////////////////////////////////////////////////////////
 void PrzygotujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint8_t chRozmDanych)
 {
-	uint32_t nCzasSystemowy = PobierzCzasT6();
-
 	InicjujCRC16(0, WIELOMIAN_CRC);
 	chRamkaTelemetrii[chIndNapRam][0] = NAGLOWEK;
 	chRamkaTelemetrii[chIndNapRam][1] = CRC->DR = chAdrZdalny;
 	chRamkaTelemetrii[chIndNapRam][2] = CRC->DR = chAdrLokalny;
-	chRamkaTelemetrii[chIndNapRam][3] = CRC->DR = (nCzasSystemowy / 10) & 0xFF;
+	chRamkaTelemetrii[chIndNapRam][3] = CRC->DR = (PobierzCzasT6() / 10) & 0xFF;
 	chRamkaTelemetrii[chIndNapRam][4] = CRC->DR = PK_TELEMETRIA1 + chIndNapRam / 2;	//indeks ramki wskazuje na zakres zmiennych a to determinuje numer polecenia
 	chRamkaTelemetrii[chIndNapRam][5] = CRC->DR = chRozmDanych * 2 + LICZBA_BAJTOW_ID_TELEMETRII;
 

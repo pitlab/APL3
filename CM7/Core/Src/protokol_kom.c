@@ -25,7 +25,7 @@
 #include "komunikacja.h"
 #include "flash_konfig.h"
 #include <string.h>
-
+#include "czas.h"
 
 //definicje zmiennych
 static uint8_t chStanProtokolu[ILOSC_INTERF_KOM];
@@ -34,7 +34,7 @@ static uint8_t chAdresPrzychodzacy;	//może to być adres BSP lub broadcast
 static uint8_t chLicznikDanych[ILOSC_INTERF_KOM];
 static uint8_t chZnakCzasu[ILOSC_INTERF_KOM];
 static uint16_t sCrc16We;
-volatile uint32_t nCzasSystemowy;
+//volatile uint32_t nCzasSystemowy;
 static uint8_t chPolecenie;
 static uint8_t chRozmDanych;
 static uint8_t chDane[ROZMIAR_DANYCH_KOMUNIKACJI];
@@ -508,12 +508,11 @@ uint8_t PrzygotujRamke(uint8_t chAdrZdalny, uint8_t chAdrLokalny,  uint8_t chZna
 uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDanych, uint8_t *chDane, uint8_t chInterfejs)
 {
 	uint8_t chErr = BLAD_OK;
-	uint8_t chLokalnyZnakCzasu = (nCzasSystemowy / 10) & 0xFF;
 
 	switch (chInterfejs)
 	{
 	case INTERF_UART:
-		chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres,  chLokalnyZnakCzasu, chPolecenie, chRozmDanych, chDane, chBuforNadDMA);
+		chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres, chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chBuforNadDMA);
 		if (chErr == BLAD_OK)
 		{
     		st_ZajetoscLPUART.chZajetyPrzez = RAMKA_POLECEN;
@@ -523,7 +522,7 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
 		break;
 
 	case INTERF_ETH:
-		chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres,  chLokalnyZnakCzasu, chPolecenie, chRozmDanych, chDane, chBuforNadRamkiKomTCP);
+		chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres, chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chBuforNadRamkiKomTCP);
 		if (chErr == BLAD_OK)
 		{
 			chRozmiarRamkiNadTCP = chRozmDanych + ROZM_CIALA_RAMKI;		//ustaw rozmiar ramki nadawczej TCP gotowej do wysyłki
