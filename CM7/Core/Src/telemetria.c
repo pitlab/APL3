@@ -143,6 +143,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 				chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
 				st_ZajetoscLPUART.chZajetyPrzez = RAMKA_TELE1 + r;
 				HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[r+1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
+				st_ZajetoscLPUART.sDoWyslania[r+1] = 0;	//wysłano więc zdejmij z kolejki
 				break;
 			}
 		}
