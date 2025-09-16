@@ -36,7 +36,7 @@ uint8_t InicjujMS4525(void)
 
 	//wyślij adres i sprawdź czy odpowie ACK-iem
 	chErr = HAL_I2C_Master_Transmit(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 2, I2C_TIMOUT);
-	if (chErr == ERR_OK)
+	if (chErr == BLAD_OK)
 	{
 		uDaneCM4.dane.nZainicjowano |= INIT_MS4525;
 		KalibrujZeroMS4525();

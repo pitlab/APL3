@@ -59,9 +59,7 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t DekodujNMEA(uint8_t chDaneIn)
 {
     uint8_t chErr;
-    chErr = ERR_OK;
-
-    
+    chErr = BLAD_OK;
 
     if (chBajtStanu >= BUF_STAN_SIZE)
         chBajtStanu = 0;   
@@ -332,7 +330,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
         if (chDaneIn == ',')
         {
             chErr = DecodeFloat(chBufStanu, chBajtStanu-1, &fGPDOP);
-            if ((chErr == ERR_OK) | (chErr == ERR_BRAK_DANYCH))
+            if ((chErr == BLAD_OK) | (chErr == ERR_BRAK_DANYCH))
                 chStan = ST_GSA_HDOP;
             else
                 chStan = ST_ERR; 
@@ -345,7 +343,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
         {
             chErr = DecodeFloat(chBufStanu, chBajtStanu-1, &fGHDOP);
             uDaneCM4.dane.stGnss1.fHdop = fGHDOP;
-            if ((chErr == ERR_OK) | (chErr == ERR_BRAK_DANYCH))
+            if ((chErr == BLAD_OK) | (chErr == ERR_BRAK_DANYCH))
                 chStan = ST_GSA_VDOP;
             else
                 chStan = ST_ERR;
@@ -357,7 +355,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
         if (chDaneIn == '*')
         {
             chErr = DecodeFloat(chBufStanu, chBajtStanu-1, &fGVDOP);             
-            if ((chErr == ERR_OK) | (chErr == ERR_BRAK_DANYCH))
+            if ((chErr == BLAD_OK) | (chErr == ERR_BRAK_DANYCH))
                 chStan = ST_NAGLOWEK1;
             else
                 chStan = ST_ERR;
@@ -407,7 +405,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
         if (chDaneIn == ',')
         {
             chErr = DecodeFloat(chBufStanu, chBajtStanu-1, &fGPDOP);
-            if ((chErr == ERR_OK) | (chErr == ERR_BRAK_DANYCH))
+            if ((chErr == BLAD_OK) | (chErr == ERR_BRAK_DANYCH))
                 chStan = ST_GSA_HDOP_GS;
             else
                 chStan = ST_ERR; 
@@ -419,7 +417,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
         if (chDaneIn == ',')
         {
             chErr = DecodeFloat(chBufStanu, chBajtStanu-1, &fGHDOP);
-            if ((chErr == ERR_OK) | (chErr == ERR_BRAK_DANYCH))
+            if ((chErr == BLAD_OK) | (chErr == ERR_BRAK_DANYCH))
                 chStan = ST_GSA_VDOP_GS;
             else
                 chStan = ST_ERR;
@@ -431,7 +429,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
         if (chDaneIn == '*')
         {
             chErr = DecodeFloat(chBufStanu, chBajtStanu-1, &fGVDOP);             
-            if ((chErr == ERR_OK) | (chErr == ERR_BRAK_DANYCH))
+            if ((chErr == BLAD_OK) | (chErr == ERR_BRAK_DANYCH))
                 chStan = ST_NAGLOWEK1;
             else
                 chStan = ST_ERR;
@@ -851,7 +849,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     }	//switch
 
     if (chErr == ERR_BRAK_DANYCH)   //nie raportuj tego błędu
-        chErr = ERR_OK;
+        chErr = BLAD_OK;
 
     return chErr;
 }
@@ -970,7 +968,7 @@ uint8_t DecodeLonLat(uint8_t *chDaneIn, uint8_t chLiczbaZnakow, double *dStopnie
     *dStopnie += (double)Asci2UChar(chDaneIn+(chPoz-2), 2)/60;
     *dStopnie += (double)Asci2ULong(chDaneIn+(chPoz+1), 4)/600000;
 
-    return ERR_OK;
+    return BLAD_OK;
 }
 
 
@@ -1034,7 +1032,7 @@ uint8_t DecodeFloat(uint8_t *chDaneIn, uint8_t chLiczbaZnakow, float *fResult)
     }
 
      //*fResult = fLiczba;
-    return ERR_OK;
+    return BLAD_OK;
 }
 
 

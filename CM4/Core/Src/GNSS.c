@@ -49,12 +49,12 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 // Pierwsze 2 sekundy czeka na prezentację modułu na prędkości 9600 i jezeli go wykryje to zaczyna jego inicjalizację.
 // Jeżeli nie wykryje to wymusza prędkosć docelową i wywyła konfigurację, bo zakłada że moduł jest podtrzymany bateryjnie trzyma swoją konfigurację i prędkość transmisji
 // Parametry: brak
-// Zwraca: kod zakończenia inicjalizacji: ERR_DONE = zakończono, ERR_OK - w trakcie
+// Zwraca: kod zakończenia inicjalizacji: ERR_DONE = zakończono, BLAD_OK - w trakcie
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujGNSS(void)
 {
 	uint8_t n, chRozmiar = 0;
-    uint8_t chErr = ERR_OK;
+    uint8_t chErr = BLAD_OK;
 
     switch (sCzasInicjalizacjiGNSS)	//zlicza kolejne uruchomienia co 1 obieg pętli głównej
     {

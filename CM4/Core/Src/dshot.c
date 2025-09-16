@@ -28,7 +28,7 @@ stDShot_t stDShot;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	uint32_t nDzielnik;
 	TIM_OC_InitTypeDef sConfigOC = {0};
 
@@ -258,7 +258,7 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t chKanal)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	uint16_t sCRC;
 	//TIM_OC_InitTypeDef sConfigOC = {0};
 	if (sWysterowanie > DS_MAX_DANE)

@@ -61,7 +61,7 @@ uint8_t InicjujJednostkeInercyjna(void)
 		uDaneCM4.dane.fKatZyro1[n] = 0;
 		uDaneCM4.dane.fKatZyro2[n] = 0;
 	}
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -124,7 +124,7 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 	Normalizuj(fQA, fQA, 4);
 	Normalizuj(fQM, fQM, 4);
 	KatyKwaterniona(fQA, fQM, (float*)uDaneCM4.dane.fKatAkcel2); */
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -240,7 +240,7 @@ uint8_t JednostkaInercyjnaKwaterniony(uint32_t ndT, float *fZyro, float *fAkcel,
 		//uDaneCM4.dane.fKwaAkc[n] = fQMagKompens[n];
 		uDaneCM4.dane.fKwaMag[n] = fQMag[n];
 	}*/
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 

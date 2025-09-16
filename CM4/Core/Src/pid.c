@@ -33,7 +33,7 @@ stKonfPID_t stKonfigPID[LICZBA_PID];
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujPID(void)
 {
-	uint8_t chAdrOffset, chErr = ERR_OK;
+	uint8_t chAdrOffset, chErr = BLAD_OK;
 	uint8_t chTemp;
 
     for (uint8_t n=0; n<LICZBA_PID; n++)
@@ -210,5 +210,5 @@ uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 	konfig[PID_WARIO].fWejscie = dane->fWariometr[0];
 	konfig[PID_WARIO].fZadana = dane->stWyjPID[PID_WYSO].fWyjsciePID;
 	RegulatorPID(ndT, PID_WARIO, dane, konfig);
-	return ERR_OK;
+	return BLAD_OK;
 }

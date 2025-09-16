@@ -98,7 +98,7 @@ uint8_t InicjujMMC3416x(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaMMC3416x(void)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_MMC34160) != INIT_MMC34160)
 	{

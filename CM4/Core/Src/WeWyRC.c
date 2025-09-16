@@ -52,7 +52,7 @@ extern uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSR
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujWejsciaRC(void)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	TIM_IC_InitTypeDef sConfigIC = {0};
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
@@ -217,7 +217,7 @@ uint8_t InicjujWejsciaRC(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujWyjsciaRC(void)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	//TIM_IC_InitTypeDef sConfigIC = {0};
 	TIM_OC_InitTypeDef sConfigOC = {0};
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -671,7 +671,7 @@ uint8_t InicjujWyjsciaRC(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 
 	//aktualizuj młodsze 8 kanałów serw/ESC. Starsza mogą być tylko PWM
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
@@ -735,7 +735,7 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	uint32_t nCzasBiezacy = PobierzCzas();
 	uint32_t nCzasRC1, nCzasRC2;
 	uint8_t n;
@@ -748,14 +748,14 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 	if (nCzasRC1 < OKRES_RAMKI_PPM_RC)
 	{
 		chErr = DekodowanieRamkiBSBus(chBuforOdbioruSBus1, stRC->sOdb1);
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 			stRC->sZdekodowaneKanaly1 = 0xFFFF;
 	}
 
 	if (nCzasRC2 < OKRES_RAMKI_PPM_RC)
 	{
 		chErr = DekodowanieRamkiBSBus(chBuforOdbioruSBus2, stRC->sOdb2);
-		if (chErr == ERR_OK)
+		if (chErr == BLAD_OK)
 			stRC->sZdekodowaneKanaly2 = 0xFFFF;
 	}
 
@@ -878,5 +878,5 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 	*(sKanaly + 13) = (((((int16_t)*(chNaglowek + 18) >> 7) | (((int16_t)*(chNaglowek + 19) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 20) << 9) & 0x600)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
 	*(sKanaly + 14) = (((((int16_t)*(chNaglowek + 20) >> 2) | (((int16_t)*(chNaglowek + 21) << 6) & 0x7C0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
 	*(sKanaly + 15) = (((((int16_t)*(chNaglowek + 21) >> 5) | (((int16_t)*(chNaglowek + 22) << 3) & 0x7F8)) - SBUS_MIN ) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	return ERR_OK;
+	return BLAD_OK;
 }

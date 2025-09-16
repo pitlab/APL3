@@ -124,34 +124,37 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 		}
 	}
 
-	//przygotuj ramki do wysłania
-	for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
+	if (chLicznikZmienych)	//jeżeli coś zostało przygotowane do wysłania
 	{
-		if (chIloscDanych[r] > 0)	//jeżeli jest coś do wysłania
-		{
-			PrzygotujRamkeTele(chIndeksNapelnRamki, chAdresZdalny[chInterfejs], stBSP.chAdres, chLicznikZmienych);	//utwórz ramkę gotową do wysyłki
-			st_ZajetoscLPUART.sDoWyslania[r+1] = chIloscDanych[r] * 2 + LICZBA_BAJTOW_ID_TELEMETRII + ROZM_CIALA_RAMKI;
-		}
-	}
-
-	if (st_ZajetoscLPUART.chZajetyPrzez == 0)	//jeżeli LPUART nie jest zajęty to wyślij telemetrię
-	{
+		//przygotuj ramki do wysłania
 		for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
 		{
-			if (st_ZajetoscLPUART.sDoWyslania[r+1])
+			if (chIloscDanych[r] > 0)	//jeżeli jest coś do wysłania
 			{
-				chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
-				st_ZajetoscLPUART.chZajetyPrzez = RAMKA_TELE1 + r;
-				HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[r+1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
-				st_ZajetoscLPUART.sDoWyslania[r+1] = 0;	//wysłano więc zdejmij z kolejki
-				break;
+				PrzygotujRamkeTele(chIndeksNapelnRamki, chAdresZdalny[chInterfejs], stBSP.chAdres, chLicznikZmienych);	//utwórz ramkę gotową do wysyłki
+				st_ZajetoscLPUART.sDoWyslania[r+1] = chIloscDanych[r] * 2 + LICZBA_BAJTOW_ID_TELEMETRII + ROZM_CIALA_RAMKI;
 			}
 		}
-	}
 
-	//wskaż na następną ramkę
-	chIndeksNapelnRamki++;
-	chIndeksNapelnRamki &= 0x01;
+		if (st_ZajetoscLPUART.chZajetyPrzez == 0)	//jeżeli LPUART nie jest zajęty to wyślij telemetrię
+		{
+			for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
+			{
+				if (st_ZajetoscLPUART.sDoWyslania[r+1])
+				{
+					chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
+					st_ZajetoscLPUART.chZajetyPrzez = RAMKA_TELE1 + r;
+					HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[r+1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
+					st_ZajetoscLPUART.sDoWyslania[r+1] = 0;	//wysłano więc zdejmij z kolejki
+					break;
+				}
+			}
+		}
+
+		//wskaż na następną ramkę
+		chIndeksNapelnRamki++;
+		chIndeksNapelnRamki &= 0x01;
+	}
 }
 
 
@@ -172,8 +175,9 @@ uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chPozycja, uint16_t sI
 	uint8_t chIdZmiennej = sIdZmiennej & 0x7F;
 	uint8_t chBajtBitu;	//numer bajtu w ktorym jest bit identyfikacyjny
 
+	//zmienne > 128 zapisz w kolejnej ramce, więc oblicz nowy indeks. Zmiene 0..127 zapisywane są maprzemiennie w ramkach 0 i 1, zmienne 128..255 naprzemiennie w ramkach 2 i 3 itd...
 	chIndNapRam &= 0x01;	//obetnij nadmiar danych. To co przychodzi wskazuje tylko na ramkę napełnianą (jedną z dwóch)
-	chIndNapRam *= 2 * (sIdZmiennej >> 7);	//zmienne o numerach będących wielokrotnością 128 mają być umieszczone w kolejnych parach tablicy
+	chIndNapRam += 2 * (sIdZmiennej >> 7);	//zmienne o numerach będących wielokrotnością 128 mają być umieszczone w kolejnych parach tablicy
 
 	Float2Char16(fDane, chDane);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
 

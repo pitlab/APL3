@@ -92,7 +92,7 @@ uint8_t InicjujIIS2MDC(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaIIS2MDC(void)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC) != INIT_IIS2MDC)
 	{

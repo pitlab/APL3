@@ -38,7 +38,7 @@ uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU];		//zmierzony czas obsługo odcinka
 uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
 uint32_t nCzasJalowy;
 
-uint8_t chErrPG = ERR_OK;		//błąd petli głównej
+uint8_t chErrPG = BLAD_OK;		//błąd petli głównej
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;
@@ -376,7 +376,7 @@ void WykonajPolecenieCM7(void)
 		InicjujWyjsciaRC();
 		break;
 
-	case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;	break;	//nadpisz poprzednio zwrócony błąd
+	case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = BLAD_OK;	break;	//nadpisz poprzednio zwrócony błąd
 
 	}
 }
@@ -390,7 +390,7 @@ void WykonajPolecenieCM7(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t RozdzielniaOperacjiI2C(void)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	//printf("I2C");
 	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, SET);	//kanał serw 2 skonfigurowany jako IO
 	//operacje na zewnętrznej magistrali I2C3
@@ -502,7 +502,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 	extern float fPrzesMagn1[3], fSkaloMagn1[3];
 	extern float fPrzesMagn2[3], fSkaloMagn2[3];
 	extern float fPrzesMagn3[3], fSkaloMagn3[3];
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	int16_t sZeZnakiem;	//zmiena robocza do konwersji dnych 8-bitowych bez znaku na liczbę 16-bitową ze znakiem
 	float fZeZnakiem;
 	const int8_t chZnakIIS[3] = {1, -1, -1};	//magnetometr 1: odwrotnie jest oś Z, ale żeby ją odwrócić, trzeba zmienić też znak w osi X lub Y. Zmieniam w Y: OK

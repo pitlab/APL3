@@ -45,7 +45,7 @@ uint8_t InicjujADC(void)
 uint8_t PomiarADC(uint8_t chKanal)
 {
 	uint32_t nOdczytADC2, nOdczytADC3;
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 
 	nOdczytADC2 = HAL_ADC_GetValue(&hadc2);
 	nOdczytADC3 = HAL_ADC_GetValue(&hadc3);

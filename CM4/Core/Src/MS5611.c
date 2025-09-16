@@ -47,7 +47,7 @@ uint8_t InicjujMS5611(void)
     		sKonfig[n] = CzytajSPIu16mp(PMS_PROM_READ_C1 + 2*n);
 
         if (MinalCzas(nCzasStart) > 5000)   //czekaj maksymalnie 5000us
-            return ERR_TIMEOUT;
+            return BLAD_TIMEOUT;
 
         //sprawdź czy odczytana konfiguracja nie jest samymi zerami ani jedynkami
         for (uint16_t n=0; n<6; n++)
@@ -58,7 +58,7 @@ uint8_t InicjujMS5611(void)
     }
     while (chErr);
 
-    if (chErr == ERR_OK)
+    if (chErr == BLAD_OK)
     {
     	uDaneCM4.dane.nZainicjowano |= INIT_MS5611;
     	sLicznikUsrednianiaP0 = LICZBA_PROBEK_USREDNIANIA;	//rozpocznij przygotowanie P0
@@ -168,7 +168,7 @@ float MS5611_LiczCisnienie(uint32_t nKonwersja, int32_t ndTemp)
 uint8_t ObslugaMS5611(void)
 {
 	uint32_t nKonwersja;
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	float fCisnienie = 0;
 	static int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia. Zmienna statyczna aby istniała poza czasem życia funkcji
 

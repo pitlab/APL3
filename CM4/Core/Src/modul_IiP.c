@@ -48,7 +48,7 @@ float fTemeraturaTermostatu;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujModulI2P(void)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	uint8_t chLiczbaPowtorzen = 3;
 	float fTemp1[3], fTemp2[3];	//temperatury na zimno, pokojowo i gorąco dla obu żyroskopów i czujników ciśnienia
 	float fOffsetZyro1Z, fOffsetZyro2Z;		//offsety na zimno
@@ -197,7 +197,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_256;	//przestaw zegar na 40MHz / 256 = 156kHz
 	UstawAdresNaModule(ADR_MIIP_ND130);				//ustaw adres A0..1
 	chErr |= ObslugaND130();
-	if (chErr == ERR_TIMEOUT)
+	if (chErr == BLAD_TIMEOUT)
 	{
 		UstawAdresNaModule(ADR_MIIP_RES_ND130);	//wejście resetujące ND130
 		HAL_Delay(1);	//resetuj układ
@@ -219,7 +219,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObliczRownanieFunkcjiTemperatury(float fPrzes1, float fPrzes2, float fTemp1, float fTemp2, float *fA, float *fB)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	float fdTemp, fdPrzes;
 	//Uwaga! We wzorze liczenia dryftu temperatura jest w mianowniku, więc skala nie może być w stopniach Celsjusza gdyż wystąpi dzielenie przez zero,
 	//a wcześniej dzielenie przez bardzo małą wartość, co powoduje że charakterystyka strzela do nieskończonosci.
@@ -351,10 +351,10 @@ uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib)
 
 	//sprawdź czy kalibracja już trwa jeżeli tak, to nie zaczynaj kolejnej przed zakończeniem obecnej
 	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))
-		return ERR_OK;
+		return BLAD_OK;
 
 	fTemperatura = (uDaneCM4.dane.fTemper[TEMP_IMU1] + uDaneCM4.dane.fTemper[TEMP_IMU2]) / 2;
-	uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_OK;
+	uDaneCM4.dane.chOdpowiedzNaPolecenie = BLAD_OK;
 
 	switch (chRodzajKalib)
 	{
@@ -416,7 +416,7 @@ uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib)
 	}
 	fSumaCisn[0] = 0.0;
 	uDaneCM4.dane.sPostepProcesu = CZAS_KALIBRACJI;
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -444,7 +444,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			else
 			{
 				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_OBLICZENIA;
-				return ERR_OK;
+				return BLAD_OK;
 			}
 
 			fSkaloZyro2[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro2[0]);
@@ -457,7 +457,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			else
 			{
 				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_OBLICZENIA;
-				return ERR_OK;
+				return BLAD_OK;
 			}
 			uDaneCM4.dane.uRozne.f32[2] = CzytajFramFloat(FAH_ZYRO1P_WZMOC);	//przekaż wartości bieżącej kalibracji
 			uDaneCM4.dane.uRozne.f32[3] = CzytajFramFloat(FAH_ZYRO2P_WZMOC);
@@ -478,7 +478,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			else
 			{
 				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_OBLICZENIA;
-				return ERR_OK;
+				return BLAD_OK;
 			}
 
 			fSkaloZyro2[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro2[1]);
@@ -491,7 +491,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			else
 			{
 				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_OBLICZENIA;
-				return ERR_OK;
+				return BLAD_OK;
 			}
 		}
 		uDaneCM4.dane.uRozne.f32[2] = CzytajFramFloat(FAH_ZYRO1Q_WZMOC);	//przekaż wartości bieżącej kalibracji
@@ -511,7 +511,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			else
 			{
 				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_OBLICZENIA;
-				return ERR_OK;
+				return BLAD_OK;
 			}
 
 			fSkaloZyro2[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro2[2]);
@@ -524,7 +524,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			else
 			{
 				uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZLE_OBLICZENIA;
-				return ERR_OK;
+				return BLAD_OK;
 			}
 		}
 		uDaneCM4.dane.uRozne.f32[2] = CzytajFramFloat(FAH_ZYRO1R_WZMOC);	//przekaż wartości bieżącej kalibracji
@@ -546,7 +546,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 	}
 
 	uDaneCM4.dane.chOdpowiedzNaPolecenie = chRodzajKalib;	//zwróć potwierdzenie że znajduje się w danym etapie
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -618,7 +618,7 @@ uint8_t KalibrujZeroZyroskopu(void)
 			InicjujModulI2P();	//przelicz współczynniki
 		}
 	}
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -639,11 +639,11 @@ uint8_t KalibrujZeroZyroskopu(void)
 // uDaneCM4.dane.uRozne.f32[3] - drugie uśrednione ciśnienie czujnika 2
 // uDaneCM4.dane.uRozne.f32[4] - współczynnik skalowania czujnika 1
 // uDaneCM4.dane.uRozne.f32[5] - współczynnik skalowania czujnika 2
-// Zwraca: kod błędu ERR_DONE gdy gotowe, ERR_OK w trakcie pracy
+// Zwraca: kod błędu ERR_DONE gdy gotowe, BLAD_OK w trakcie pracy
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uint16_t sLicznik, uint8_t chPrzebieg)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	float fSredCisn1[LICZBA_CZUJ_CISN], fSredCisn2[LICZBA_CZUJ_CISN];
 
 	//wstępne inicjowanie procesu
@@ -755,11 +755,11 @@ void ZnajdzEkstremaMagnetometru(float *fMag)
 ////////////////////////////////////////////////////////////////////////////////
 // Zeruje znalezione wcześniej ekstrema magnetometru tak aby nowy pomiar rozpoczął się od czytej sytuacji
 // Parametry: nic
-// Zwraca: ERR_OK
+// Zwraca: BLAD_OK
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZerujEkstremaMagnetometru(void)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 
 	for (uint16_t n=0; n<3; n++)
 	{
@@ -781,7 +781,7 @@ uint8_t ZerujEkstremaMagnetometru(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZapiszKalibracjeMagnetometru(uint8_t chMagn)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 
 	for (uint16_t n=0; n<3; n++)
 	{

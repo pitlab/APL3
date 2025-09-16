@@ -290,7 +290,7 @@ uint8_t CzytajFramZWalidacja(uint16_t sAdres, float *fWartosc, float fWartMin, f
 			chErr = chKodBledu;
 		}
 		else
-			chErr = ERR_OK;
+			chErr = BLAD_OK;
 	}
 	while (chErr && --chLiczbaPowtorzen);	//w przypadku jakiegokolwiek błędu powtórz całość
     return chErr;

@@ -75,7 +75,7 @@ uint8_t InicjujLSM6DSV(void)
 	ZapiszSPIu8(chDane, 2);
 
 	uDaneCM4.dane.nZainicjowano |= INIT_LSM6DSV;
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -88,7 +88,7 @@ uint8_t InicjujLSM6DSV(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaLSM6DSV(void)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	uint8_t chDane[15];
 	float fPrzesuniecieZyro[3];
 

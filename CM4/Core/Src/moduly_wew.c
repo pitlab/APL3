@@ -138,7 +138,7 @@ uint8_t PobierzDaneExpandera(uint8_t* daneWe)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawDekoderModulow(uint8_t modul)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 
 	if (modul == chAdresModulu)
 		return chErr;		//jest ustawione to co trzeba
@@ -203,7 +203,7 @@ uint8_t UstawDekoderModulow(uint8_t modul)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawAdresNaModule(uint8_t chAdres)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 
 	chAdres &= 0x03;	//ustawiamy tylko najmłodsze 2 bity
 

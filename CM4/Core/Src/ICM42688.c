@@ -85,7 +85,7 @@ uint8_t InicjujICM42688(void)
 	ZapiszSPIu8(chDane, 2);
 
 	uDaneCM4.dane.nZainicjowano |= INIT_ICM42688;
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -98,7 +98,7 @@ uint8_t InicjujICM42688(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaICM42688(void)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	uint8_t chDane[15];
 	float fPrzesuniecieZyro[3];
 

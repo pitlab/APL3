@@ -66,7 +66,7 @@ uint8_t InicjujBMP581(void)
 
 	sLicznikUsrednianiaP0 = LICZBA_PROBEK_USREDNIANIA;	//rozpocznij filtrowanie P0
 	uDaneCM4.dane.nZainicjowano |= INIT_BMP581;
-	return ERR_OK;
+	return BLAD_OK;
 }
 
 
@@ -80,7 +80,7 @@ uint8_t InicjujBMP581(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaBMP581(void)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	float fCisnienie = 0;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_BMP581) != INIT_BMP581)	//jeżeli czujnik nie jest zainicjowany

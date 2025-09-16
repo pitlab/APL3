@@ -38,7 +38,7 @@ extern volatile uint8_t chNumerKanSerw;
 uint8_t InicjujMikser(void)
 //uint8_t InicjujMikser(stMikser_t* mikser)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 	//włącz odbługę timerów do generowania sygnałów serw i dekodowania PPM z odbiorników RC
 	HAL_TIM_OC_Start_IT(&htim1, TIM_CHANNEL_1);		//generowanie impulsów dla serw [8..15] 50Hz
 	HAL_TIM_OC_Start_IT(&htim2, TIM_CHANNEL_1);		//generowanie impulsów dla serwo[2]
@@ -89,7 +89,7 @@ uint8_t LiczMikser(stMikser_t* mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 	int16_t sMaxTmp1, sMaxTmp2;	//maksymalne wartości sygnału wysterowania
 	int16_t sPWMGazu;
 	float fCosPrze, fCosPoch;
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 
 
 	//czy poziom gazu sugeruje że Wron jest w locie

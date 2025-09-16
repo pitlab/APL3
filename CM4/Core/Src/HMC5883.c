@@ -91,7 +91,7 @@ uint8_t SprawdzObecnoscHMC5883(void)
         	if ((chDaneMagHMC[0] == 'H') && (chDaneMagHMC[1] == '4') && (chDaneMagHMC[2] == '3'))
         	{
 
-        		return ERR_OK;
+        		return BLAD_OK;
         	}
         }
         uDaneCM4.dane.nZainicjowano &= ~INIT_HMC5883;
@@ -109,7 +109,7 @@ uint8_t SprawdzObecnoscHMC5883(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaHMC5883(void)
 {
-	uint8_t chErr = ERR_OK;
+	uint8_t chErr = BLAD_OK;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_HMC5883) != INIT_HMC5883)
 	{

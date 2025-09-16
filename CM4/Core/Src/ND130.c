@@ -49,14 +49,14 @@ uint8_t InicjujND130(void)
 
     	//sprawdź czy układ przedstawił się jako "ND130"
        	if ((chBufND130[4] == 'N') && (chBufND130[5] == 'D') && (chBufND130[6] == '1') && (chBufND130[7] == '3') && (chBufND130[8] == '0'))
-        	chErr = ERR_OK;
+        	chErr = BLAD_OK;
 
     	if (MinalCzas(nCzasStart) > 5000)   //czekaj maksymalnie 5000us
-    		return ERR_TIMEOUT;
+    		return BLAD_TIMEOUT;
     }
     while (chErr);
 
-    if (chErr == ERR_OK)
+    if (chErr == BLAD_OK)
     {
     	uDaneCM4.dane.nZainicjowano |= INIT_ND130;
     	sLicznikZerowaniaND130 = LICZBA_PROBEK_USREDNIANIA_ND130;
