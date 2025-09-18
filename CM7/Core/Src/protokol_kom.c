@@ -37,7 +37,7 @@ static uint16_t sCrc16We;
 //volatile uint32_t nCzasSystemowy;
 static uint8_t chPolecenie;
 static uint8_t chRozmDanych;
-static uint8_t chDane[ROZMIAR_DANYCH_KOMUNIKACJI];
+static uint8_t chDaneRamkiKom[ROZMIAR_DANYCH_KOMUNIKACJI];
 static un8_16_t un8_16;
 stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
 const char* chNazwaSierotki = {"Sierotka Wronia"};
@@ -300,9 +300,9 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 {
     uint8_t chErr;
 
-    chErr = DekodujRamke(chWe, &chAdresZdalny[chInterfejs], &chZnakCzasu[chInterfejs], &chPolecenie, &chRozmDanych, chDane, chInterfejs);
+    chErr = DekodujRamke(chWe, &chAdresZdalny[chInterfejs], &chZnakCzasu[chInterfejs], &chPolecenie, &chRozmDanych, chDaneRamkiKom, chInterfejs);
     if (chErr == ERR_RAMKA_GOTOWA)
-    	chErr = UruchomPolecenie(chPolecenie, chDane, chRozmDanych, chInterfejs, chAdresZdalny[chInterfejs]);
+    	chErr = UruchomPolecenie(chPolecenie, chDaneRamkiKom, chRozmDanych, chInterfejs, chAdresZdalny[chInterfejs]);
 
     return chErr;
 }

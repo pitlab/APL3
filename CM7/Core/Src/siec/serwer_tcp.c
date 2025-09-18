@@ -17,7 +17,7 @@ extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczon
 struct netconn *DeskryptorPolaczeniaPasywnego, *DeskryptorPolaczeniaAktywnego, *DeskryptorNadawczy;	//połączenia serwera i klienta
 struct netbuf *bufor;
 err_t nErr;
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chBuforNadRamkiKomTCP[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chBuforNadRamkiKomTCP[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
 uint8_t chRozmiarRamkiNadTCP;		//rozmiar ramki nadawczej TCP. Jest zerowany po wysłaniu i ustawioany gdy gotowy do wysyłki
 extern uint8_t chStatusPolaczenia;
 

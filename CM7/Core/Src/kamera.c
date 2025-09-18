@@ -34,9 +34,9 @@
 #include "protokol_kom.h"
 
 
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM] = {0};
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforObrazu[ROZM_BUF16_KAM] = {0};
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM] = {0};	//bufor na klatki filmu
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};		//bufor na klatki filmu
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforZdjecia[ROZM_BUF16_KAM] = {0};	//bufor na statyczne zdjęcie
 
 struct st_KonfKam stKonfKam;
 static struct st_KonfKam stPoprzKonfig;	//zmienna lokalna
@@ -330,7 +330,7 @@ uint8_t ZrobZdjecie(void)
 	}
 
 	//Konfiguracja transferu DMA z DCMI do pamięci
-	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamerySRAM, ROZM_BUF16_KAM / 2);
+	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforZdjecia, ROZM_BUF16_KAM / 2);
 	return chErr;
 }
 
@@ -409,6 +409,7 @@ uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_
 	{
 		sBuforKamerySRAM[n] = 0;
 		sBuforKameryDRAM[n] = 0;
+		sBuforZdjecia[n] = 0;
 	}
 
 	stKonfKam.chSzerWy = (uint8_t)(sSzerokosc / KROK_ROZDZ_KAM);

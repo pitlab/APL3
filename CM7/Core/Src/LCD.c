@@ -460,7 +460,7 @@ void RysujEkran(void)
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
-	case TP_ZDJECIE:	//pojedyncze zdjęcie
+	case TP_ZDJECIE:	//wykonaj pojedyncze zdjęcie
 		extern uint16_t sLicznikLiniiKamery;
 		sLicznikLiniiKamery = 0;
 		chErr = ZrobZdjecie();
@@ -476,8 +476,8 @@ void RysujEkran(void)
 			WyswietlZdjecie(480, 320, sBuforKamerySRAM);
 		}
 		RysujNapis(chNapis, KOL12, 300);
-		//
-		FRESULT fres = 0;
+		//Na egzemplarzu 2 nie działa karta SD
+		/*FRESULT fres = 0;
 		extern RTC_HandleTypeDef hrtc;
 		extern RTC_TimeTypeDef sTime;
 		extern RTC_DateTypeDef sDate;
@@ -490,7 +490,7 @@ void RysujEkran(void)
 		{
 			f_puts((char*)sBuforKamerySRAM, &SDPlikZdjecia);	//zapis do pliku
 			f_close(&SDPlikZdjecia);
-		}
+		}*/
 		osDelay(600);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;

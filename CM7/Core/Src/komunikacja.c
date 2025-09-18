@@ -14,6 +14,8 @@
 #include "polecenia_komunikacyjne.h"
 #include "wymiana_CM7.h"
 #include "kamera.h"
+#include "display.h"
+
 
 uint32_t nOffsetDanych;
 int16_t sSzerZdjecia, sWysZdjecia;
@@ -34,7 +36,8 @@ extern  uint8_t chRozmDanych;
 extern  uint8_t chDane[ROZMIAR_DANYCH_KOMUNIKACJI];
 extern uint16_t sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
 extern uint8_t chTrybPracy;
-extern uint16_t sBuforLCD[];
+extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM];	//bufor na klatki filmu
+extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforZdjecia[ROZM_BUF16_KAM];		//bufor na statyczne zdjęcie
 extern uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern stBSP_t stBSP;	//struktura zawierajaca adres i nazwę BSP
 extern uint8_t chStatusPolaczenia;
@@ -51,38 +54,38 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		chErr = Wyslij_OK(PK_OK, 0, chInterfejs);
 		break;
 
-	case PK_ZROB_ZDJECIE:		//polecenie wykonania zdjęcia. We: [0..1] - sSzerokosc zdjecia, [2..3] - wysokość zdjecia
-		sSzerZdjecia = (uint16_t)chDane[1] * 0x100 + chDane[0];
-		sWysZdjecia  = (uint16_t)chDane[3] * 0x100 + chDane[2];
-		chTrybPracy = TP_ZDJECIE;
+	case PK_ZROB_ZDJECIE:		//polecenie wykonania zdjęcia.
+		//chTrybPracy = TP_ZDJECIE;
 		//chStatusZdjecia = SGZ_CZEKA;	//oczekiwania na wykonanie zdjęcia
 		//chStatusZdjecia = SGZ_BLAD;		//dopóki nie ma kamery niech zgłasza bład
 		chStatusZdjecia = SGZ_GOTOWE;
-		//generuj testową strukturę obrazu
-		/*if (chStatusZdjecia == SGZ_GOTOWE)
-		{
-			for (int x=0; x<ROZM_BUF32_KAM; x++)
-			{
-				sPix = (x*2) & 0xFFFF;
-				nBuforKamery[x] = (sPix+1)*0x10000 + sPix;
-			}
-		}*/
-
-		//CzytajPamiecObrazu(0, 0, 200, 320, (uint8_t*)sBuforLCD);	//odczytaj pamięć obrazu do bufora LCD
-		chErr = Wyslij_OK(PK_ZROB_ZDJECIE, 0, chInterfejs);
+		chErr = ZrobZdjecie();
+		if (chErr)
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
+		else
+			chErr = Wyslij_OK(PK_ZROB_ZDJECIE, 0, chInterfejs);
 		break;
 
-	case PK_POB_STAT_ZDJECIA:	//pobierz status gotowości zdjęcia
+	case PK_POB_STAT_ZDJECIA:	//pobierz status gotowości zdjęcia - trzeba dopracować metodę ustawiania stautus po wykonaniu zdjecia w jakims callbacku
 		chDane[0] = chStatusZdjecia;
 		chErr = WyslijRamke(chAdresZdalny, PK_POB_STAT_ZDJECIA, 1, chDane, chInterfejs);
+		for (uint16_t y=0; y<320; y++)
+		{
+			for (uint16_t x=0; x<480; x++)
+			{
+				if (x == 5)
+					sBuforZdjecia[y*480 + x] = ZOLTY;
+				if (y == 5)
+					sBuforZdjecia[y*480 + x] = CZERWONY;
+			}
+		}
 		break;
 
 	case PK_POBIERZ_ZDJECIE:		//polecenie przesłania fragmentu zdjecia. We: [0..3] - wskaźnik na pozycje bufora, [4] - rozmiar danych do przesłania
 		for (n=0; n<4; n++)
 			un8_32.dane8[n] = chDane[n];
 		nOffsetDanych = un8_32.dane32;
-		//WyslijRamke(chAdresZdalny[chInterfejs], PK_POBIERZ_ZDJECIE, chDane[4], (uint8_t*)(nBuforKamery + nOffsetDanych),  chInterfejs);
-		WyslijRamke(chAdresZdalny, PK_POBIERZ_ZDJECIE, chDane[4], (uint8_t*)(sBuforLCD + nOffsetDanych),  chInterfejs);
+		chErr = WyslijRamke(chAdresZdalny, PK_POBIERZ_ZDJECIE, chDane[4], (uint8_t*)(sBuforZdjecia + nOffsetDanych),  chInterfejs);
 		break;
 
 	case PK_USTAW_BSP:		//ustawia identyfikator/adres urządzenia
@@ -410,6 +413,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		if (chInterfejs == INTERF_UART)
 		{
 			chStatusPolaczenia &= ~(STAT_POL_MASKA_GOT << STAT_POL_UART);
+			chErr = BLAD_OK;
 		}
 		break;
 
