@@ -330,7 +330,8 @@ uint8_t ZrobZdjecie(void)
 	}
 
 	//Konfiguracja transferu DMA z DCMI do pamięci
-	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforZdjecia, ROZM_BUF16_KAM / 2);
+	//chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforZdjecia, ROZM_BUF16_KAM / 2);
+	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforZdjecia, 480*320/4);	//rozmiar bufora musi być podany w słowach 32-bitowych
 	return chErr;
 }
 
@@ -783,63 +784,16 @@ void Ustaw1(void)
 
 
 
-void Ustaw2(void)
+////////////////////////////////////////////////////////////////////////////////
+// Ustawia kamerę w trybie czarno białym YCbCr z samą luminancją
+// Parametry: brak
+// Zwraca: kod błędu HAL
+////////////////////////////////////////////////////////////////////////////////
+uint8_t UstawObrazCzarnoBialy(void)
 {
-	un8_32_t un8_32;
-	//3. Grupa odpowiedzialna za balans bieli
-	stListaRejestrow[0].sRejestr = 0x3406;				//AWB Manual: 0x3406
-	stListaRejestrow[0].chWartosc = stKonfKam.chKontrBalBieli;
-
-	un8_32.dane16[0] = stKonfKam.sWzmocnienieR & 0xFFF;
-	stListaRejestrow[1].sRejestr = 0x3400;				//AWB R Gain [11:8]
-	stListaRejestrow[1].chWartosc = un8_32.dane8[1];
-	stListaRejestrow[2].sRejestr = 0x3401;				//AWB R Gain [7:0]
-	stListaRejestrow[2].chWartosc = un8_32.dane8[0];
-
-	un8_32.dane16[0] = stKonfKam.sWzmocnienieG & 0xFFF;
-	stListaRejestrow[3].sRejestr = 0x3402;				//AWB G Gain [11:8]
-	stListaRejestrow[3].chWartosc = un8_32.dane8[1];
-	stListaRejestrow[4].sRejestr = 0x3403;				//AWB G Gain [7:0]
-	stListaRejestrow[4].chWartosc = un8_32.dane8[0];
-
-	un8_32.dane16[0] = stKonfKam.sWzmocnienieB & 0xFFF;
-	stListaRejestrow[5].sRejestr = 0x3404;				//AWB B Gain [11:8]
-	stListaRejestrow[5].chWartosc = un8_32.dane8[1];
-	stListaRejestrow[6].sRejestr = 0x3405;				//AWB B Gain [7:0]
-	stListaRejestrow[6].chWartosc = un8_32.dane8[0];
-	UtworzGrupeRejestrowKamery(2, stListaRejestrow, 7);
-	UruchomGrupeRejestrowKamery(2);
+	uint8_t chErr;
+	stKonfKam.chFormatObrazu = 0x10;
+	chErr = UstawKamere(&stKonfKam);
+	return chErr;
 }
 
-
-
-void Ustaw3(void)
-{
-	//un8_32_t un8_32;
-
-	//1. Najpierw rejestry kontrolne do grupy 0, bo one właczają ustawiane później funkcjonalności
-	stListaRejestrow[0].sRejestr = 0x5000;				//ISP control 00: [0] Color InterPolation enable
-	stListaRejestrow[0].chWartosc = stKonfKam.chKontrolaISP0;
-	stListaRejestrow[1].sRejestr = 0x5001;				//ISP control 01: [7] Special digital effects, [6] UV adjust enable, [5]1=Vertical scaling enable, [4]1=Horizontal scaling enable, [3] Line stretch enable, [2] UV average enable, [1] color matrix enable, [0] auto white balance AWB
-	stListaRejestrow[1].chWartosc = stKonfKam.chKontrolaISP1;
-	stListaRejestrow[2].sRejestr = 0x3818;				//Timing Control: 0x3818 (ustaw rotację w poziomie i pionie), //for the mirror function it is necessary to set registers 0x3621 [5:4] and 0x3801
-	stListaRejestrow[2].chWartosc = stKonfKam.chObracanieObrazu;
-	stListaRejestrow[3].sRejestr = 0x4300;				//Format Control 0x4300
-	stListaRejestrow[3].chWartosc = stKonfKam.chFormatObrazu;
-
-	/*/ustaw rozdzielczość wejściową
-	un8_32.dane16[0] = ((uint16_t)stKonfKam.chSzerWe * KROK_ROZDZ_KAM) & 0xFFF;
-	stListaRejestrow[4].sRejestr = 0x3804;				//Timing HW: [3:0] Horizontal width high byte 0x500=1280,  0x280=640, 0x140=320 (scale input}
-	stListaRejestrow[4].chWartosc = un8_32.dane8[1];
-	stListaRejestrow[5].sRejestr = 0x3805;				//Timing HW: [7:0] Horizontal width low byte
-	stListaRejestrow[5].chWartosc = un8_32.dane8[0];
-
-	un8_32.dane16[0] = ((uint16_t)stKonfKam.chWysWe * KROK_ROZDZ_KAM) & 0xFFF;
-	stListaRejestrow[6].sRejestr = 0x3806;				//Timing VH: [3:0] HREF vertical height high byte 0x3C0=960, 0x1E0=480, 0x0F0=240
-	stListaRejestrow[6].chWartosc = un8_32.dane8[1];
-	stListaRejestrow[7].sRejestr = 0x3807;				//Timing VH: [7:0] HREF vertical height low byte
-	stListaRejestrow[7].chWartosc = un8_32.dane8[0];*/
-
-	UtworzGrupeRejestrowKamery(0, stListaRejestrow, 4);
-	UruchomGrupeRejestrowKamery(0);
-}

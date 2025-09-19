@@ -85,6 +85,7 @@ void RysujLiniePionowa(int16_t x, int16_t y, int16_t len);
 void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 void RysujPixel(uint16_t x, uint16_t y);
 void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* data);
+void RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_t* chObraz);
 void RysujOkrag(uint16_t x, uint16_t y, uint16_t promien);
 void RysujZnak(uint8_t c, uint16_t x, uint16_t y);
 #endif /* INC_LCD_ILI9488_H_ */

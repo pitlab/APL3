@@ -55,12 +55,10 @@ extern const unsigned short obr_fft[];
 extern const unsigned short obr_glosnik1[];
 extern const unsigned short obr_glosnik2[];
 extern const unsigned short obr_glosnik_neg[];
-//extern const unsigned short obr_wroc[];
 extern const unsigned short obr_foto[];
 extern const unsigned short obr_Mikołaj_Rey[];
 extern const unsigned short obr_Wydajnosc[];
 extern const unsigned short obr_mtest[];
-//extern const unsigned short obr_back[];
 extern const unsigned short obr_volume[];
 extern const unsigned short obr_touch[0xFFC];
 extern const unsigned short obr_dotyk[0xFFC];
@@ -75,9 +73,6 @@ extern const unsigned short obr_cisnienie[0xFFC];
 extern const unsigned short obr_okregi[0xFFC];
 extern const unsigned short obr_narzedzia[0xFFC];
 extern const unsigned short obr_aparaturaRC[0xFFC];
-//extern const unsigned short obr_aparat[0xFFC];
-//extern const unsigned short obr_kamera[0xFFC];
-//extern const unsigned short obr_papuga[0xFFC];
 
 //wygenerowane przez chata GPT
 extern const unsigned short obr_Polaczenie[0xFFC];
@@ -103,12 +98,7 @@ uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
 static uint8_t chErr;	//zmienna obowiązuje lokalnie
 char chNapis[100], chNapisPodreczny[30];
 float fTemperaturaKalibracji;
-//float fZoom, fX, fY;
-//float fReal, fImag;
-//uint8_t chMnozPalety;
-//uint8_t chDemoMode;
 uint8_t chLiczIter;		//licznik iteracji wyświetlania
-//extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern struct _statusDotyku statusDotyku;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 extern uint8_t chPort_exp_wysylany[];
@@ -138,7 +128,9 @@ prostokat_t stWykr;	//wykres biegunowy magnetometru
 uint8_t chHistR[32], chHistG[64], chHistB[32];
 
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM];
+extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforZdjecia[ROZM_BUF16_KAM];	//bufor na statyczne zdjęcie
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[];
 FIL __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) SDPlikZdjecia;
 
 //Definicje ekranów menu
@@ -232,8 +224,8 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"480x320",		"Ustawia kamere na 480x320 ",				TP_USTAW_KAM_480x320,	obr_narzedzia},
 	{"nic",			"nic",										TP_KAM1,			obr_kamera},
 	{"nic",			"nic",										TP_KAM2,			obr_kamera},
-	{"nic",			"nic",										TP_KAM3,			obr_kamera},
-	{"Paski",		"Ustawia tryb diagnostyki kolorow",			TP_KAM4,			obr_kamera},
+	{"nic",			"nic   ",									TP_KAM3,			obr_kamera},
+	{"Czar-Bialy",	"Obraz czarnobiały",						TP_KAM4,			obr_kamera},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -564,14 +556,22 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAM3:
-		Ustaw2();
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
 	case TP_KAM4:
-		Ustaw3();
+		UstawObrazCzarnoBialy();
+		RozpocznijPraceDCMI(0, sBuforKamerySRAM);
+		do
+		{
+			KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, (uint8_t*)sBuforZdjecia, 480*320);
+			WyswietlZdjecie(480, 320, sBuforZdjecia);
+		}
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
+
+
 
 	//*** Ethernet ************************************************
 	case TP_ETHERNET:

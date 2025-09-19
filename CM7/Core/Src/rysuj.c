@@ -29,7 +29,7 @@ extern struct _statusDotyku statusDotyku;
 extern uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
 static uint8_t chOstatniCzas;
 //uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
+extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 
 uint8_t chStatusPolaczenia;		//każe 2 kolejne bity oznaczają status połaczenia: LPUART, USB, TCP, RTSP
 static uint8_t chPoprzedniStatusPolaczenia = 0xFF;	//sluży do wykrycia zmiany statusu

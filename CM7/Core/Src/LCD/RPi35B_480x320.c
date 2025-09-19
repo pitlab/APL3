@@ -23,11 +23,14 @@
 
 
 //deklaracje zmiennych
+#ifdef LCD_RPI35B
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 2];
+#endif
 //extern SPI_HandleTypeDef hspi5;
 extern uint8_t chRysujRaz;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 extern SPI_HandleTypeDef hspi5;
-extern uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
+
 extern uint8_t chOrientacja;
 extern uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
 extern uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym

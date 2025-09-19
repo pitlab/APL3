@@ -61,6 +61,7 @@ uint8_t Czytaj_I2C_Kamera(uint16_t rejestr, uint8_t *dane);
 uint8_t	SprawdzKamere(void);
 uint8_t UstawKamere(stKonfKam_t *konf);
 uint8_t UstawKamere2(stKonfKam_t *konf);
+uint8_t UstawObrazCzarnoBialy(void);
 //uint8_t RozpocznijPraceDCMI(uint8_t chAparat);
 uint8_t RozpocznijPraceDCMI(uint8_t chTrybPracy, uint16_t* sBufor);
 uint8_t ZrobZdjecie(void);

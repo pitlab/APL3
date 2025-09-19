@@ -27,7 +27,7 @@ extern uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy ry
 extern struct current_font cfont;
 uint8_t chKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
 uint8_t chTlo666[3];		//kolory tła w formacie RGB 6-6-6
-
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
 
 
 
@@ -693,7 +693,62 @@ void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16
 	clrXY();
 }
 
+#ifdef LCD_ILI9488
+////////////////////////////////////////////////////////////////////////////////
+// wyświetla bitmapę po jednym pikselu z pamięci gdzie każdy z kolorów RGB zajmuje 1 bajt
+// Parametry:
+//  x, y - współrzędne ekranu
+//  sx, sy - rozmiar bitmapy
+// chObraz - wskaźnik na obraz
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_t* chObraz)
+{
+	uint16_t col;
+	uint32_t tx, ty;
 
+	if (chOrientacja == POZIOMO)
+	{
+		setXY(x, y, x+sx-1, y+sy-1);
+		while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
+			osDelay(1);
+		HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+		/*for (tc=0; tc<(sx*sy); tc++)
+		{
+			setColor(obraz[tc]);
+			HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
+		}*/
+		for (uint16_t n=0; n<sy; n++)
+			HAL_SPI_Transmit(&hspi5, chObraz + n*3*sx, sx*3, HAL_MAX_DELAY);
+		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+		HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	}
+	else
+	{
+		for (ty=0; ty<sy; ty++)
+		{
+			setXY(x, y+ty, x+sx-1, y+ty);
+			while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
+				osDelay(1);
+			HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+			UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+			HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+			for (tx=sx-1; tx>=0; tx--)
+			{
+				col  = (uint16_t)chObraz[(ty*sx)+tx + 0] << 8;
+				col |= (uint16_t)chObraz[(ty*sx)+tx + 1];
+				setColor(col);
+				HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
+			}
+			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+		}
+	}
+	clrXY();
+}
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // rysuje okrąg
