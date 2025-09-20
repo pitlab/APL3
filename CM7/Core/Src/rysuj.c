@@ -15,6 +15,7 @@
 #include "audio.h"
 #include <RPi35B_480x320.h>
 #include <ili9488.h>
+#include "czas.h"
 
 //deklaracje zmiennych
 extern RTC_HandleTypeDef hrtc;
@@ -223,7 +224,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje belkę menu z logo i tytułem w poziomej orientacji ekranu
-// Wychodzi z ustawionym czarnym tłem, białym kolorem i średnia czcionką
+// Wychodzi z ustawionym czarnym tłem, białym kolorem i śCZERWONYnia czcionką
 // Parametry: wskaźnik na zmienną z tytułem okna
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -245,7 +246,7 @@ void BelkaTytulu(char* chTytul)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wyświetla zawartość bufora kamery
+// Wyświetla zawartość 16 bitowego bufora kamery w formacie RGB565
 // Parametry:
 // [we] sSzerokosc - szerokość obrazu do wyświetlenia
 // [we] sWysokosc - wysokość obrazu do wyświetlenia
@@ -267,6 +268,33 @@ uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObra
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Wyświetla zawartość 3*8 bitowego bufora kamery w formacie RGB666
+// Parametry:
+// [we] sSzerokosc - szerokość obrazu do wyświetlenia
+// [we] sWysokosc - wysokość obrazu do wyświetlenia
+// [we] *sObraz - wskaźnik na bufor obrazu
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* chObraz)
+{
+	uint8_t chErr = BLAD_OK;
+	uint32_t nCzas;
+
+	nCzas = PobierzCzasT6();
+	if (sSzerokosc > DISP_X_SIZE)
+		sSzerokosc = DISP_X_SIZE;
+	if (sWysokosc > DISP_Y_SIZE)
+		sWysokosc = DISP_Y_SIZE;
+	RysujBitmape888(0, 0, sSzerokosc, sWysokosc, chObraz);
+	nCzas = MinalCzas(nCzas);
+	sprintf(chNapis, "%.2f fps", 1.0/(nCzas/1000000.0));
+	setColor(ZOLTY);
+	RysujNapis(chNapis, 0, DISP_Y_SIZE - FONT_BH);
+	return chErr;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Rysuje histogram na dole ekranu
 // Parametry: wskaźnik na zmienną z tytułem okna
 // Zwraca: kod błędu
@@ -279,11 +307,11 @@ uint8_t RysujHistogramRGB16(uint8_t *histR, uint8_t *histG, uint8_t *histB)
 	for (uint8_t x=0; x<ROZDZIECZOSC_HISTOGRAMU; x++)
 	{
 		sPoczatek = x * SZER_PASKA_HISTOGRAMU;
-		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histR+x), SZER_PASKA_HISTOGRAMU, *(histR+x), RED);
+		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histR+x), SZER_PASKA_HISTOGRAMU, *(histR+x), CZERWONY);
 		sPoczatek = x * SZER_PASKA_HISTOGRAMU + SZER_PASKA_HISTOGRAMU * ROZDZIECZOSC_HISTOGRAMU;
-		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histG+x), SZER_PASKA_HISTOGRAMU, *(histG+x), GREEN);
+		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histG+x), SZER_PASKA_HISTOGRAMU, *(histG+x), ZIELONY);
 		sPoczatek = x * SZER_PASKA_HISTOGRAMU + (2 * SZER_PASKA_HISTOGRAMU * ROZDZIECZOSC_HISTOGRAMU);
-		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histB+x), SZER_PASKA_HISTOGRAMU, *(histB+x), BLUE);
+		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histB+x), SZER_PASKA_HISTOGRAMU, *(histB+x), NIEBIESKI);
 	}
 	return chErr;
 }

@@ -67,12 +67,36 @@ void KonwersjaCB8doRGB666(uint8_t *obrazCB, uint8_t *obrazCB666, uint32_t rozmia
 	for (uint32_t n=0; n<rozmiar; n++)
 	{
 		pixCB = *(obrazCB+n);
-		pixRGB = pixCB >> 2;
+		//pixRGB = pixCB << 2;
+		pixRGB = pixCB;
 		*(obrazCB666 + 3*n + 0) = pixRGB;
 		*(obrazCB666 + 3*n + 1) = pixRGB;
 		*(obrazCB666 + 3*n + 2) = pixRGB;
 	}
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Konwertuje 16-bitowy obraz RGB565 na 24-bitowy RGB666
+// Parametry:
+// [we] obrazCB* - wskaźnik na bufor[rozmiar] z obrazem czarno-białym
+// [wy] obrazCB565* - wskaźnik na bufor[2*rozmiar] z obrazem czarno-białym
+// rozmiar - rozmiar bufora
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void KonwersjaRGB565doRGB666(uint16_t *obrazRG565, uint8_t *obrazRGB666, uint32_t rozmiar)
+{
+	uint16_t sPix565;
+	for (uint32_t n=0; n<rozmiar; n++)
+	{
+		sPix565 = *(obrazRG565 + n);
+		*(obrazRGB666 + 3*n + 0) = ((sPix565 & 0xF800) >> 11) << 3;	//R
+		*(obrazRGB666 + 3*n + 1) = ((sPix565 & 0x07E0) >> 5) << 2;	//G
+		*(obrazRGB666 + 3*n + 2) =  (sPix565 & 0x001F) << 3;		//B
+	}
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

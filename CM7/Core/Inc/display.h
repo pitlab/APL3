@@ -14,7 +14,7 @@
 #define	NIEBIESKI  	0x001F
 #define	RED     	0xF800
 #define	CZERWONY   	0xF800
-#define	GREEN   	0x07E0
+//#define	GREEN   	0x07E0
 #define	ZIELONY   	0x07E0
 #define CYJAN    	0x07FF
 #define CYAN    	0x07FF
@@ -36,21 +36,28 @@
 #define GRAY60 		0x9CD3
 #define GRAY70 		0xB596
 #define GRAY80 		0xCE79
+
+#define SZARY10 	0x18C3	//najciemniejszy
+#define SZARY20 	0x3186
+#define SZARY30 	0x4A69
+#define SZARY40 	0x632C
+#define SZARY50 	0x7BEF
+#define SZARY60 	0x9CD3
+#define SZARY70 	0xB596
+#define SZARY80 	0xCE79
 #define TEAL		0x0410	//ciemny zgniłozielony
-
-
-#define	KOLOR_X    	0xFA8A	//FF5151
-#define	KOLOR_Y	   	0x07E0
-#define	KOLOR_Z   	0x7C7F	//7E8EFE
+#define	KOLOR_X    	0xFA8A	//kolor dla osi X czujników (czerwony)
+#define	KOLOR_Y	   	0x07E0	//dla osi Y (zielony)
+#define	KOLOR_Z   	0x7C7F	//dla osi Z (niebieski)
 
 #define MENU_TLO_BAR	GRAY40	//kolor belki menu górnego
 #define MENU_TLO_WYB	GRAY70	//pozycja menu edytowana lub uruchamiana
 #define MENU_TLO_AKT	GRAY50	//pozycja menu podświetlona
 #define MENU_TLO_NAK	GRAY30	//pozycja nieaktywna
 
-#define MENU_RAM_WYB	GREEN
-#define MENU_RAM_AKT	WHITE
-#define MENU_RAM_NAK	GRAY50
+#define MENU_RAM_WYB	ZIELONY
+#define MENU_RAM_AKT	BIALY
+#define MENU_RAM_NAK	SZARY50
 #define TRANSPARENT		0xFFFE	//specjalny kolor tła
 
 

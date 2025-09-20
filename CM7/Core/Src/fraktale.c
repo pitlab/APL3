@@ -158,7 +158,7 @@ void FraktalTest(uint8_t chTyp)
 	nCzasRysowania = MinalCzas(nCzasRysowania);
 #endif
 	UstawCzcionke(MidFont);
-	setColor(GREEN);
+	setColor(ZIELONY);
 	RysujNapis(chNapis, 0, 304);
 
 	sprintf(chNapis, "trys=%.2fms", nCzasRysowania/1000.0);

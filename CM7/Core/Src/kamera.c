@@ -32,7 +32,7 @@
 #include "polecenia_komunikacyjne.h"
 #include "moduly_SPI.h"
 #include "protokol_kom.h"
-
+#include "display.h"
 
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM] = {0};	//bufor na klatki filmu
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};		//bufor na klatki filmu
@@ -116,8 +116,8 @@ uint8_t InicjalizujKamere(void)
 		return chErr;
 
 	//ustaw domyślne parametry pracy kamery
-	stKonfKam.chSzerWe = KAM_SZEROKOSC_OBRAZU  / KROK_ROZDZ_KAM * KAM_ZOOM_CYFROWY;
-	stKonfKam.chWysWe = KAM_WYSOKOSC_OBRAZU  / KROK_ROZDZ_KAM * KAM_ZOOM_CYFROWY;
+	stKonfKam.chSzerWe = KAM_SZEROKOSC_OBRAZU / KROK_ROZDZ_KAM * KAM_ZOOM_CYFROWY;
+	stKonfKam.chWysWe = KAM_WYSOKOSC_OBRAZU / KROK_ROZDZ_KAM * KAM_ZOOM_CYFROWY;
 	stKonfKam.chSzerWy = KAM_SZEROKOSC_OBRAZU / KROK_ROZDZ_KAM;
 	stKonfKam.chWysWy = KAM_WYSOKOSC_OBRAZU / KROK_ROZDZ_KAM;
 	stKonfKam.chPrzesWyPoz = 0;
@@ -772,6 +772,9 @@ uint8_t UstawKamere2(stKonfKam_t *konf)
 
 void UstawDomyslny(void)
 {
+	stKonfKam.chFormatObrazu = 0x6F;	//obraz RGB565
+	stKonfKam.chSzerWe = KAM_SZEROKOSC_OBRAZU / KROK_ROZDZ_KAM * 1;
+	stKonfKam.chWysWe = KAM_WYSOKOSC_OBRAZU / KROK_ROZDZ_KAM * 1;
 	UstawKamere(&stKonfKam);
 }
 
@@ -793,6 +796,8 @@ uint8_t UstawObrazCzarnoBialy(void)
 {
 	uint8_t chErr;
 	stKonfKam.chFormatObrazu = 0x10;
+	stKonfKam.chSzerWe = KAM_SZEROKOSC_OBRAZU / KROK_ROZDZ_KAM * 2;
+	stKonfKam.chWysWe = KAM_WYSOKOSC_OBRAZU / KROK_ROZDZ_KAM * 2;
 	chErr = UstawKamere(&stKonfKam);
 	return chErr;
 }

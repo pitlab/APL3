@@ -16,6 +16,7 @@
 void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
 void BelkaTytulu(char* chTytul);
 uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObraz);
+uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* chObraz);
 void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sKolor);
 uint8_t RysujHistogramRGB16(uint8_t *histR, uint8_t *histG, uint8_t *histB);
 void RysujProstokat(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);

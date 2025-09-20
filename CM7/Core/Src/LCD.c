@@ -464,7 +464,7 @@ void RysujEkran(void)
 		}
 		else
 		{
-			setColor(GREEN);
+			setColor(ZIELONY);
 			sprintf(chNapis, "Linii: %d  ", sLicznikLiniiKamery);
 			WyswietlZdjecie(480, 320, sBuforKamerySRAM);
 		}
@@ -489,6 +489,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAMERA:	//ciagła praca kamery z pamięcią SRAM
+		UstawDomyslny();
 		RozpocznijPraceDCMI(0, sBuforKamerySRAM);
 		uint8_t chRej1, chRej2, chRej3;
 		uint16_t sExpo;
@@ -501,36 +502,29 @@ void RysujEkran(void)
 			Czytaj_I2C_Kamera(0x3500, &chRej1);	//AEC Long Channel Exposure [19:0]: 0x3500
 			Czytaj_I2C_Kamera(0x3501, &chRej2);	//AEC Long Channel Exposure [19:0]: 0x3501
 			Czytaj_I2C_Kamera(0x3502, &chRej3);	//AEC Long Channel Exposure [19:0]: 0x3502
-			//nExpo = ((uint32_t)chRej1 << 16) + ((uint32_t)chRej2 << 8) + chRej3;
-			//nExpo = ((uint32_t)chRej1 << 12) + ((uint32_t)chRej2 << 4) + (chRej3 >> 4);
 			sExpo = ((uint16_t)chRej1 << 12) + ((uint16_t)chRej2 << 4) + (chRej3 >> 4);
-			WyswietlZdjecie(480, 320, sBuforKamerySRAM);
+
+			KonwersjaRGB565doRGB666(sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 			HistogramRGB565(sBuforKamerySRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
 			RysujHistogramRGB16(chHistR, chHistG, chHistB);
 			setColor(ZOLTY);
 			sprintf(chNapis, "AEC: %d  ", sExpo);
-			RysujNapis(chNapis, 0, 304);
+			RysujNapis(chNapis, 400, 304);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
 	case TP_KAM5:	//ciagła praca kamery z pamięcią DRAM
+		UstawDomyslny();
 		RozpocznijPraceDCMI(0, sBuforKameryDRAM);
 		do
 		{
-			Czytaj_I2C_Kamera(0x3500, &chRej1);	//AEC Long Channel Exposure [19:0]: 0x3500
-			Czytaj_I2C_Kamera(0x3501, &chRej2);	//AEC Long Channel Exposure [19:0]: 0x3501
-			Czytaj_I2C_Kamera(0x3502, &chRej3);	//AEC Long Channel Exposure [19:0]: 0x3502
-			sExpo = ((uint16_t)chRej1 << 12) + ((uint16_t)chRej2 << 4) + (chRej3 >> 4);
-			WyswietlZdjecie(480, 320, sBuforKameryDRAM);
+			KonwersjaRGB565doRGB666(sBuforKameryDRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 			HistogramRGB565(sBuforKameryDRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
 			RysujHistogramRGB16(chHistR, chHistG, chHistB);
-			setColor(ZOLTY);
-			sprintf(chNapis, "AEC: %d  ", sExpo);
-			RysujNapis(chNapis, 0, 304);
-			//for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)	//czyść obraz
-				//sBuforKameryDRAM[n] = 0;
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -565,8 +559,8 @@ void RysujEkran(void)
 		RozpocznijPraceDCMI(0, sBuforKamerySRAM);
 		do
 		{
-			KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, (uint8_t*)sBuforZdjecia, 480*320);
-			WyswietlZdjecie(480, 320, sBuforZdjecia);
+			KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -2346,7 +2340,7 @@ uint32_t RysujKostkeObrotu(float *fKat)
 	}
 
 	//rysuj obrys kostki z dołu
-	setColor(GREEN);
+	setColor(ZIELONY);
 	//if (nIloczynSkalarny[1] <= 0)	//jeżeli odległość dolnej płaszczyzny od ekranu jest większa niż górnej płaszczyzny
 	{
 		RysujLinie(sKostka[4][0] + DISP_X_SIZE/2, sKostka[4][1] + DISP_Y_SIZE/2, sKostka[5][0] + DISP_X_SIZE/2, sKostka[5][1] + DISP_Y_SIZE/2);
