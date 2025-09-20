@@ -512,7 +512,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 
 	if (*chCzujniki & MAG_HMC)
 	{
-		//Uwaga! Czujnik HMS5883L ma osie w nietypowej kolejności XZY, więc konwersję trzeba zrobić ręcznie poza pętlą
+		//Uwaga! Czujnik HMS5883L ma osie w nietypowej kolejności XZY, więc konwersję trzeba wykonać ręcznie poza pętlą
 		sZeZnakiem = ((int16_t)chDaneMagHMC[0] * 0x100 + chDaneMagHMC[1]) * chZnakHMC[0];	//oś X
 		if ((uDaneCM7.dane.chWykonajPolecenie == POL_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.chWykonajPolecenie == POL_ZERUJ_EKSTREMA))
 			uDaneCM4.dane.fMagne3[0] = (float)sZeZnakiem * CZULOSC_HMC5883;			//dane surowe podczas kalibracji magnetometru wyrażone w Teslach

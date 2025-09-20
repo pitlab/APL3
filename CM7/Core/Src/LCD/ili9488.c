@@ -702,7 +702,7 @@ void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16
 ////////////////////////////////////////////////////////////////////////////////
 // wyświetla bitmapę po jednym pikselu z pamięci gdzie każdy z kolorów RGB zajmuje 1 bajt
 // Parametry:
-//  x, y - współrzędne ekranu
+//  x, y - współrzędne początku ekranu (Lewy Górny Róg)
 //  sx, sy - rozmiar bitmapy
 // chObraz - wskaźnik na obraz
 // Zwraca: nic
@@ -724,7 +724,7 @@ void RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_t* 
 //			HAL_SPI_Transmit(&hspi5, chObraz + n*3*sx, sx*3, HAL_MAX_DELAY);	//wyślij cały wiersz gdzie piksel zajmuje 3 bajty
 
 		for (uint16_t n=0; n<sy/32; n++)
-			HAL_SPI_Transmit(&hspi5, chObraz + n*32*3*sx, sx*32*3, HAL_MAX_DELAY);	//wyślij 4 wiersze gdzie piksel zajmuje 3 bajty
+			HAL_SPI_Transmit(&hspi5, chObraz + n*32*3*sx, sx*32*3, HAL_MAX_DELAY);	//w jednym transferze wyślij 32 wiersze, gdzie piksel zajmuje 3 bajty
 		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 		HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	}

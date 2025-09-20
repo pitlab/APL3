@@ -65,21 +65,17 @@ extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 extern DMA_HandleTypeDef hdma_dcmi;
 extern DCMI_HandleTypeDef hdcmi;
 extern FDCAN_HandleTypeDef hfdcan2;
+extern MDMA_HandleTypeDef hmdma_jpeg_outfifo_th;
+extern MDMA_HandleTypeDef hmdma_jpeg_infifo_th;
+extern JPEG_HandleTypeDef hjpeg;
 extern DMA_HandleTypeDef hdma_lpuart1_tx;
 extern DMA_HandleTypeDef hdma_lpuart1_rx;
 extern UART_HandleTypeDef hlpuart1;
 extern UART_HandleTypeDef huart7;
-extern MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
-extern MDMA_HandleTypeDef hmdma_mdma_channel1_dma1_stream1_tc_0;
-extern MDMA_HandleTypeDef hmdma_mdma_channel2_dma1_stream1_tc_0;
-extern MDMA_HandleTypeDef hmdma_mdma_channel3_dma1_stream1_tc_0;
-extern MDMA_HandleTypeDef hmdma_mdma_channel4_dma1_stream1_tc_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel5_sdmmc1_end_data_0;
 extern RTC_HandleTypeDef hrtc;
 extern DMA_HandleTypeDef hdma_sai2_b;
 extern SD_HandleTypeDef hsd1;
-extern DMA_HandleTypeDef hdma_spi5_tx;
-extern SPI_HandleTypeDef hspi5;
 extern TIM_HandleTypeDef htim6;
 extern TIM_HandleTypeDef htim17;
 
@@ -193,20 +189,6 @@ void DebugMon_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32h7xx.s).                    */
 /******************************************************************************/
-
-/**
-  * @brief This function handles DMA1 stream0 global interrupt.
-  */
-void DMA1_Stream0_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Stream0_IRQn 0 */
-
-  /* USER CODE END DMA1_Stream0_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_spi5_tx);
-  /* USER CODE BEGIN DMA1_Stream0_IRQn 1 */
-
-  /* USER CODE END DMA1_Stream0_IRQn 1 */
-}
 
 /**
   * @brief This function handles DMA1 stream6 global interrupt.
@@ -377,20 +359,6 @@ void UART7_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles SPI5 global interrupt.
-  */
-void SPI5_IRQHandler(void)
-{
-  /* USER CODE BEGIN SPI5_IRQn 0 */
-
-  /* USER CODE END SPI5_IRQn 0 */
-  HAL_SPI_IRQHandler(&hspi5);
-  /* USER CODE BEGIN SPI5_IRQn 1 */
-
-  /* USER CODE END SPI5_IRQn 1 */
-}
-
-/**
   * @brief This function handles TIM17 global interrupt.
   */
 void TIM17_IRQHandler(void)
@@ -419,6 +387,20 @@ void TIM17_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles JPEG global interrupt.
+  */
+void JPEG_IRQHandler(void)
+{
+  /* USER CODE BEGIN JPEG_IRQn 0 */
+
+  /* USER CODE END JPEG_IRQn 0 */
+  HAL_JPEG_IRQHandler(&hjpeg);
+  /* USER CODE BEGIN JPEG_IRQn 1 */
+
+  /* USER CODE END JPEG_IRQn 1 */
+}
+
+/**
   * @brief This function handles MDMA global interrupt.
   */
 void MDMA_IRQHandler(void)
@@ -426,11 +408,8 @@ void MDMA_IRQHandler(void)
   /* USER CODE BEGIN MDMA_IRQn 0 */
 
   /* USER CODE END MDMA_IRQn 0 */
-  HAL_MDMA_IRQHandler(&hmdma_mdma_channel0_dma1_stream1_tc_0);
-  HAL_MDMA_IRQHandler(&hmdma_mdma_channel1_dma1_stream1_tc_0);
-  HAL_MDMA_IRQHandler(&hmdma_mdma_channel2_dma1_stream1_tc_0);
-  HAL_MDMA_IRQHandler(&hmdma_mdma_channel3_dma1_stream1_tc_0);
-  HAL_MDMA_IRQHandler(&hmdma_mdma_channel4_dma1_stream1_tc_0);
+  HAL_MDMA_IRQHandler(&hmdma_jpeg_infifo_th);
+  HAL_MDMA_IRQHandler(&hmdma_jpeg_outfifo_th);
   HAL_MDMA_IRQHandler(&hmdma_mdma_channel5_sdmmc1_end_data_0);
   /* USER CODE BEGIN MDMA_IRQn 1 */
 

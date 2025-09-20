@@ -60,11 +60,6 @@ extern unia_wymianyCM4_t uDaneCM4;
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-extern MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
-extern MDMA_HandleTypeDef hmdma_mdma_channel1_dma1_stream1_tc_0;
-extern MDMA_HandleTypeDef hmdma_mdma_channel2_dma1_stream1_tc_0;
-extern MDMA_HandleTypeDef hmdma_mdma_channel3_dma1_stream1_tc_0;
-extern MDMA_HandleTypeDef hmdma_mdma_channel4_dma1_stream1_tc_0;
 extern ADC_HandleTypeDef hadc2;
 extern DMA_HandleTypeDef hdma_i2c3_rx;
 extern DMA_HandleTypeDef hdma_i2c3_tx;

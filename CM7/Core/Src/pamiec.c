@@ -58,12 +58,12 @@ MDMA_LinkNodeTypeDef  __attribute__ ((aligned (32))) Xfer_Node2;
 extern SRAM_HandleTypeDef hsram1;
 extern NOR_HandleTypeDef hnor3;
 extern SDRAM_HandleTypeDef hsdram1;
-extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
+/*extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 extern MDMA_HandleTypeDef hmdma_mdma_channel0_dma1_stream1_tc_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel1_dma1_stream1_tc_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel2_dma1_stream1_tc_0;
 extern MDMA_HandleTypeDef hmdma_mdma_channel3_dma1_stream1_tc_0;
-extern MDMA_HandleTypeDef hmdma_mdma_channel4_dma1_stream1_tc_0;
+extern MDMA_HandleTypeDef hmdma_mdma_channel4_dma1_stream1_tc_0;*/
 extern RNG_HandleTypeDef hrng;
 extern char chNapis[];
 HAL_StatusTypeDef hsErr;
@@ -324,7 +324,7 @@ void TestPredkosciOdczytuNOR(void)
 
 
 	//odczyt z NOR przez DMA
-	nCzas = PobierzCzasT6();
+	/*nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
 		HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sFlashNOR, (uint32_t)sBufor, ROZMIAR16_BUFORA);
@@ -475,7 +475,7 @@ void TestPredkosciOdczytuNOR(void)
 		else
 			sprintf(chNapis, "MDMA: SRAM1->AxiRAM   B%c%cd", ł, ą);
 		RysujNapis(chNapis, 10, 280);
-	}
+	}*/
 }
 
 
@@ -537,7 +537,7 @@ void TestPredkosciOdczytuRAM(void)
 	}
 
 	//odczyt z zewnętrznego SRAM przez DMA
-	nCzas = PobierzCzasT6();
+	/*nCzas = PobierzCzasT6();
 	for (y=0; y<1000; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBuforKamerySRAM, (uint32_t)sBufor, ROZMIAR16_BUFORA);
@@ -629,7 +629,7 @@ void TestPredkosciOdczytuRAM(void)
 		else
 			sprintf(chNapis, "MDMA: ExtSRAM->AxiSRAM   B%c%cd", ł, ą);
 		RysujNapis(chNapis, 10, 140);
-	}
+	}*/
 
 	for (y=0; y<ROZMIAR16_BUFORA; y++)
 		sBufor[y] = y;
@@ -753,7 +753,7 @@ void TestPredkosciOdczytuRAM(void)
 
 
 	//zapis do  DRAM przez DMA1
-	nCzas = PobierzCzasT6();
+	/*nCzas = PobierzCzasT6();
 	for (y=0; y<1000; y++)
 	{
 		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBufor, (uint32_t)sBuforDram, ROZMIAR16_BUFORA);
@@ -795,7 +795,7 @@ void TestPredkosciOdczytuRAM(void)
 	{
 		sprintf(chNapis, "DMA1: DRAM->AxiSRAM      t = %ld us => %.2f MB/s ", nCzas, (float)(ROZMIAR8_BUFORA * 1000) / (nCzas * 1.048576f));
 		RysujNapis(chNapis, 10, 260);
-	}
+	}*/
 
 
 	//przygotuj zestaw liczb losowych aby nie generować go w czasie testu
@@ -845,7 +845,7 @@ void TestPredkosciOdczytuRAM(void)
 ////////////////////////////////////////////////////////////////////////////////
 void InicjujMDMA(void)
 {
-	 MDMA_LinkNodeConfTypeDef mdmaLinkNodeConfig;
+/*	 MDMA_LinkNodeConfTypeDef mdmaLinkNodeConfig;
 
 	//kanał do odczytu zewnetrznego SRAM
 	mdmaLinkNodeConfig.Init.Request              = MDMA_REQUEST_SW;
@@ -902,7 +902,7 @@ void InicjujMDMA(void)
 	HAL_MDMA_RegisterCallback(&hmdma_mdma_channel0_dma1_stream1_tc_0, HAL_MDMA_XFER_ERROR_CB_ID, MDMA_TransferErrorCallback);
 
 	HAL_NVIC_SetPriority(MDMA_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(MDMA_IRQn);
+	HAL_NVIC_EnableIRQ(MDMA_IRQn);*/
 }
 
 

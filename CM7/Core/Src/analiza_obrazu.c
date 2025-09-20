@@ -54,10 +54,10 @@ void KonwersjaCB7doRGB5666(uint8_t *obrazCB, uint16_t *obrazCB565, uint32_t rozm
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Konwertuje dane czarno-białe o głębi 8-bitowej na RGB5655
+// Konwertuje dane czarno-białe z kamery o głębi 8-bitowej na RGB666
 // Parametry:
 // [we] obrazCB* - wskaźnik na bufor[rozmiar] z obrazem czarno-białym
-// [wy] obrazCB565* - wskaźnik na bufor[2*rozmiar] z obrazem czarno-białym
+// [wy] obrazCB666* - wskaźnik na bufor[3*rozmiar] z obrazem czarno-białym
 // rozmiar - rozmiar bufora
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -67,7 +67,6 @@ void KonwersjaCB8doRGB666(uint8_t *obrazCB, uint8_t *obrazCB666, uint32_t rozmia
 	for (uint32_t n=0; n<rozmiar; n++)
 	{
 		pixCB = *(obrazCB+n);
-		//pixRGB = pixCB << 2;
 		pixRGB = pixCB;
 		*(obrazCB666 + 3*n + 0) = pixRGB;
 		*(obrazCB666 + 3*n + 1) = pixRGB;

@@ -21,7 +21,6 @@
 #include "wymiana.h"
 #include "audio.h"
 #include "protokol_kom.h"
-#include "ff.h"
 #include "rejestrator.h"
 #include "wspolne.h"
 #include <stdlib.h>
@@ -36,6 +35,7 @@
 #include "ip4_addr.h"
 #include "ff.h"
 #include "lwip/stats.h"
+
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -133,6 +133,8 @@ extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDR
 //extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[];
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
 FIL __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) SDPlikZdjecia;
+extern struct st_KonfKam stKonfKam;
+
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -226,7 +228,7 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										TP_KAM1,			obr_kamera},
 	{"nic",			"nic",										TP_KAM2,			obr_kamera},
 	{"nic",			"nic   ",									TP_KAM3,			obr_kamera},
-	{"Czar-Bialy",	"Obraz czarnobiały",						TP_KAM4,			obr_kamera},
+	{"Czar-Bialy",	"Obraz czarnobiały",						TP_KAM_CB,			obr_kamera},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -490,7 +492,7 @@ void RysujEkran(void)
 
 	case TP_KAMERA:	//ciagła praca kamery z pamięcią SRAM
 		UstawDomyslny();
-		RozpocznijPraceDCMI(0, sBuforKamerySRAM);
+		RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM);
 		uint8_t chRej1, chRej2, chRej3;
 		uint16_t sExpo;
 		do
@@ -518,7 +520,7 @@ void RysujEkran(void)
 
 	case TP_KAM5:	//ciagła praca kamery z pamięcią DRAM
 		UstawDomyslny();
-		RozpocznijPraceDCMI(0, sBuforKameryDRAM);
+		RozpocznijPraceDCMI(stKonfKam, sBuforKameryDRAM);
 		do
 		{
 			KonwersjaRGB565doRGB666(sBuforKameryDRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
@@ -554,18 +556,39 @@ void RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
-	case TP_KAM4:
-		UstawObrazCzarnoBialy();
-		RozpocznijPraceDCMI(0, sBuforKamerySRAM);
+	case TP_KAM_CB:
+
+		chErr = UstawObrazCzarnoBialy(DISP_X_SIZE, DISP_Y_SIZE);
+		if (chErr)
+			break;
 		do
 		{
-			KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+			CzyscBufory();
+			chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM);
+			if (chErr)
+				break;
+
+			for (uint32_t n=ROZM_BUF16_KAM-1; n>0; n--)	//zmierz rozmiar połowy obrazu kamery
+			{
+				if (sBuforKamerySRAM[n] != 0)
+					break;
+			}
+
+			chErr = ObrazCzarnoBialy((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			if (chErr)
+				break;
+
+			for (uint32_t n=(DISP_X_SIZE * DISP_Y_SIZE * 3 - 1); n>0; n--)	//zmierz rozmiar połowy obrazu kamery
+			{
+				if (chBuforLCD[n] != 0)
+					break;
+			}
+
 			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
-
 
 
 	//*** Ethernet ************************************************
@@ -1109,7 +1132,7 @@ void RysujEkran(void)
 	}
 
 
-	//rzeczy do zrobienia podczas uruchamiania nowego trybu pracy
+	//rzeczy do wykonania podczas uruchamiania nowego trybu pracy
 	if (chNowyTrybPracy)
 	{
 		chWrocDoTrybu = chTrybPracy;

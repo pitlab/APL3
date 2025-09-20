@@ -173,7 +173,7 @@
 #define TP_KAM1				115
 #define TP_KAM2				116
 #define TP_KAM3				117
-#define TP_KAM4				118
+#define TP_KAM_CB			118	//kamera czarno-biała
 #define TP_WROC_DO_KAMERA	119
 
 //polecenia manu ethernet

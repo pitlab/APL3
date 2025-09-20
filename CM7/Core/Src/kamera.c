@@ -33,6 +33,8 @@
 #include "moduly_SPI.h"
 #include "protokol_kom.h"
 #include "display.h"
+#include "jpeg.h"
+#include "analiza_obrazu.h"
 
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM] = {0};	//bufor na klatki filmu
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};		//bufor na klatki filmu
@@ -42,6 +44,7 @@ struct st_KonfKam stKonfKam;
 static struct st_KonfKam stPoprzKonfig;	//zmienna lokalna
 struct sensor_reg stListaRejestrow[ROZMIAR_STRUKTURY_REJESTROW_KAMERY];
 uint16_t sLicznikLiniiKamery;
+uint16_t sLicznikRamekKamery;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 extern DCMI_HandleTypeDef hdcmi;
 extern DMA_HandleTypeDef hdma_dcmi;
@@ -52,6 +55,11 @@ extern const struct sensor_reg ov5642_dvp_fmt_global_init[];
 extern const struct sensor_reg OV5642_VGA_preview_setting[];
 extern const uint8_t chAdres_expandera[];
 extern uint8_t chPort_exp_wysylany[];
+extern uint8_t chBuforJPEG[ROZMIAR_BUF_JPEG];
+extern JPEG_HandleTypeDef hjpeg;
+uint32_t nRozmiarObrazuJPEG;
+
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizacja pracy kamery
@@ -249,54 +257,42 @@ uint8_t	SprawdzKamere(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // uruchamia DCMI w trybie pojedyńczego zdjęcia jako aparat lub ciagłej pracy jako kamera
-// Parametry: chAparat - 1 = tryb pojedyńczego zdjęcia, 0 = tryb filmu
+// Parametry: chAparat - 1 = KAM_ZDJECIE, tryb pojedyńczego zdjęcia, 0 = KAM_FILM, tryb filmu
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t RozpocznijPraceDCMI(uint8_t chTrybPracy, uint16_t* sBufor)
+uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor)
 {
 	uint8_t chErr;
-
-	hdcmi.Instance = DCMI;
-	hdcmi.Init.SynchroMode = DCMI_SYNCHRO_HARDWARE;
-	hdcmi.Init.PCKPolarity = DCMI_PCKPOLARITY_FALLING;
-	hdcmi.Init.VSPolarity = DCMI_VSPOLARITY_LOW;
-	hdcmi.Init.HSPolarity = DCMI_HSPOLARITY_HIGH;
-	hdcmi.Init.CaptureRate = DCMI_CR_ALL_FRAME;
-	hdcmi.Init.ExtendedDataMode = DCMI_EXTEND_DATA_8B;
-	hdcmi.Init.JPEGMode = DCMI_JPEG_DISABLE;
-	hdcmi.Init.ByteSelectMode = DCMI_BSM_ALL;
-	hdcmi.Init.ByteSelectStart = DCMI_OEBS_ODD;
-	hdcmi.Init.LineSelectMode = DCMI_LSM_ALL;
-	hdcmi.Init.LineSelectStart = DCMI_OELS_ODD;
-	hdcmi.Instance->IER = DCMI_IT_FRAME | DCMI_IT_OVR | DCMI_IT_ERR | DCMI_IT_VSYNC | DCMI_IT_LINE;
-	chErr = HAL_DCMI_Init(&hdcmi);
-	if (chErr)
-		return chErr;
+	uint32_t nRozmiarObrazu32bit;
 
 	//konfiguracja DMA do DCMI
-	hdma_dcmi.Instance = DMA2_Stream1;
-	hdma_dcmi.Init.Request = DMA_REQUEST_DCMI;
-	hdma_dcmi.Init.Direction = DMA_PERIPH_TO_MEMORY;
-	hdma_dcmi.Init.PeriphInc = DMA_PINC_DISABLE;
-	hdma_dcmi.Init.MemInc = DMA_MINC_ENABLE;
 	hdma_dcmi.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
 	hdma_dcmi.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-	if (chTrybPracy)		//1 = zdjecie, 0 = film
+	if (konfig.chTrybPracy == KAM_ZDJECIE)
 		hdma_dcmi.Init.Mode = DMA_NORMAL;
 	else
 		hdma_dcmi.Init.Mode = DMA_CIRCULAR;
-	hdma_dcmi.Init.Priority = DMA_PRIORITY_HIGH;
-	hdma_dcmi.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+	//hdma_dcmi.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+	hdma_dcmi.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
 	chErr = HAL_DMA_Init(&hdma_dcmi);
 	if (chErr)
 		return chErr;
 
-	//Konfiguracja transferu DMA z DCMI do pamięci
-	if (chTrybPracy)		//1 = zdjecie, 0 = film
-		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBufor, stKonfKam.chSzerWy * stKonfKam.chWysWy * KROK_ROZDZ_KAM / 2);
+	//Oblicz rozmiar obrazu w zależnosci od jego formatu i rozdzielczosci
+	switch (konfig.chFormatObrazu)
+	{
+	case 0x10:	nRozmiarObrazu32bit = konfig.chSzerWy * konfig.chWysWy * KROK_ROZDZ_KAM / 4;	break;	//obraz Y8 - czarnobiały, 1 bajt na piksel
+	case 0x6F:	nRozmiarObrazu32bit = konfig.chSzerWy * konfig.chWysWy * KROK_ROZDZ_KAM / 2;	break;	//obraz RGB565 - kolorowy 2 bajty na piksel
+	default: chErr = ERR_ZLE_DANE;	break;
+	}
+	if (chErr)
+		return chErr;
 
+	//Konfiguracja transferu DMA z DCMI do pamięci
+	if (konfig.chTrybPracy == KAM_ZDJECIE)		//KAM_ZDJECIE=1 lub KAM_FILM=0
+		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBufor, nRozmiarObrazu32bit);
 	else
-		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)sBufor, ROZM_BUF16_KAM);
+		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)sBufor, nRozmiarObrazu32bit);
 	return chErr;
 }
 
@@ -313,7 +309,6 @@ uint8_t ZrobZdjecie(void)
 {
 	uint8_t chErr;
 	uint8_t chStatusDCMI;
-
 
 	chStatusDCMI = HAL_DCMI_GetState(&hdcmi);
 	switch (chStatusDCMI)
@@ -346,6 +341,21 @@ uint8_t ZrobZdjecie(void)
 void HAL_DCMI_LineEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
 	sLicznikLiniiKamery++;
+}
+
+void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
+{
+
+}
+
+void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
+{
+	sLicznikRamekKamery++;
+}
+
+void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
+{
+	sLicznikRamekKamery++;
 }
 
 
@@ -772,6 +782,7 @@ uint8_t UstawKamere2(stKonfKam_t *konf)
 
 void UstawDomyslny(void)
 {
+	stKonfKam.chTrybPracy = KAM_FILM;
 	stKonfKam.chFormatObrazu = 0x6F;	//obraz RGB565
 	stKonfKam.chSzerWe = KAM_SZEROKOSC_OBRAZU / KROK_ROZDZ_KAM * 1;
 	stKonfKam.chWysWe = KAM_WYSOKOSC_OBRAZU / KROK_ROZDZ_KAM * 1;
@@ -792,13 +803,72 @@ void Ustaw1(void)
 // Parametry: brak
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t UstawObrazCzarnoBialy(void)
+uint8_t UstawObrazCzarnoBialy(uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t chErr;
+
+	stKonfKam.chTrybPracy = KAM_ZDJECIE;
 	stKonfKam.chFormatObrazu = 0x10;
-	stKonfKam.chSzerWe = KAM_SZEROKOSC_OBRAZU / KROK_ROZDZ_KAM * 2;
-	stKonfKam.chWysWe = KAM_WYSOKOSC_OBRAZU / KROK_ROZDZ_KAM * 2;
+	stKonfKam.chSzerWe = sSzerokosc / KROK_ROZDZ_KAM * 2;
+	stKonfKam.chWysWe = sWysokosc / KROK_ROZDZ_KAM * 2;
 	chErr = UstawKamere(&stKonfKam);
+	if (chErr)
+		return chErr;
+
+	//wyzeruj pamięć aby było wiadomo ile miejsca zajmuje skompresowany obraz
+	for (uint32_t n=0; n<ROZMIAR_BUF_JPEG; n++)
+		chBuforJPEG[n] = 0;
+
+	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, 75);
 	return chErr;
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Obsługuje kamerę pracujacą w trybie czarno-białego aparatu (platka po klatce) z kompresją
+// Parametry: *chBufKamery - wskaźnik na bufor Y8 z obrazem kamery (1 bajt na piksel)
+//  *chBufLCD - wskaźnik na bufor RGB666 wyświetlacza (3 bajty na piksel)
+//  sSzerokosc, sWysokosc - rozmiary obrazu w pikselach
+// Zwraca: kod błędu HAL
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ObrazCzarnoBialy(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzerokosc, uint16_t sWysokosc)
+{
+	uint8_t chErr;
+
+	//nie trzba czyścić buforów przed uruchomieniem DMA, ponieważ oba bufory są w obszarze z wyłączaonym czache w MPU
+	//SCB_CleanDCache_by_Addr((uint32_t*)chBufKamery, (int32_t)(sSzerokosc * sWysokosc / 4));	//bufor jest w ZewnSRAM a ten obszar ma wyłączony cache w MPU
+	//SCB_CleanDCache_by_Addr((uint32_t*)chBuforJPEG, (int32_t)(ROZMIAR_BUF_JPEG / 4));	//bufor jest w SRAM2 a ten obszar ma wyłączony cache w MPU
+
+	//sprawdź stan i uruchom kompresję tylko gdy jpeg jest gotowy
+	if (hjpeg.State == HAL_JPEG_STATE_READY)
+	{
+		chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBufKamery, sSzerokosc * sWysokosc, chBuforJPEG, ROZMIAR_BUF_JPEG);
+		for (uint32_t n=ROZMIAR_BUF_JPEG-1; n>0; n--)	//zmierz rozmiar skompresowanego obrazu
+		{
+			if (chBuforJPEG[n] != 0)
+			{
+				nRozmiarObrazuJPEG = n;
+				break;
+			}
+		}
+	}
+
+	KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBufLCD, sSzerokosc * sWysokosc);
+	return chErr;
+}
+
+
+void CzyscBufory(void)
+{
+
+
+	for (uint32_t n=0; n<ROZMIAR_BUF_JPEG; n++)
+		chBuforJPEG[n] = 0;
+
+	for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)
+		sBuforKamerySRAM[n] = 0;
+
+	for (uint32_t n=0; n<(DISP_X_SIZE * DISP_Y_SIZE * 3); n++)
+		chBuforLCD[n] = 0;
+}

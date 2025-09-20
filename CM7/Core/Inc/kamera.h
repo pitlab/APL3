@@ -23,6 +23,9 @@
 #define ROZMIAR_STRUKTURY_REJESTROW_KAMERY 20
 #define SKALA_POZIOMU_EKSPOZYCJI	96
 
+//tryby pracy kamery
+#define KAM_ZDJECIE	1
+#define KAM_FILM	0
 
 //konfiguracja kamery
 typedef struct st_KonfKam
@@ -33,7 +36,7 @@ typedef struct st_KonfKam
 	uint8_t chWysWy;
 	uint8_t chPrzesWyPoz;		//przesunięcie obrazu względem początku matrycy w poziomie
 	uint8_t chPrzesWyPio;		//przesunięcie obrazu względem początku matrycy w pionie
-//	uint8_t chTrybDiagn;
+	uint8_t chTrybPracy;		//KAM_ZDJECIE lub KAM_FILM
 	uint8_t chObracanieObrazu;	//Timing Control: 0x3818
 	uint8_t chFormatObrazu;		//Format Control 0x4300
 	uint16_t sWzmocnienieR;		//AWB R Gain: 0x3400..01
@@ -61,15 +64,17 @@ uint8_t Czytaj_I2C_Kamera(uint16_t rejestr, uint8_t *dane);
 uint8_t	SprawdzKamere(void);
 uint8_t UstawKamere(stKonfKam_t *konf);
 uint8_t UstawKamere2(stKonfKam_t *konf);
-uint8_t UstawObrazCzarnoBialy(void);
-//uint8_t RozpocznijPraceDCMI(uint8_t chAparat);
-uint8_t RozpocznijPraceDCMI(uint8_t chTrybPracy, uint16_t* sBufor);
+//uint8_t RozpocznijPraceDCMI(uint8_t chTrybPracy, uint16_t* sBufor);
+uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor);
 uint8_t ZrobZdjecie(void);
 uint8_t Wyslij_Blok_Kamera(const struct sensor_reg reglist[]);
 uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chZoom);
 uint8_t UtworzGrupeRejestrowKamery(uint8_t chNrGrupy, struct sensor_reg *stListaRejestrow, uint8_t chLiczbaRejestrow);
 uint8_t UruchomGrupeRejestrowKamery(uint8_t chNrGrupy);
 
+uint8_t UstawObrazCzarnoBialy(uint16_t sSzerokosc, uint16_t sWysokosc);
+uint8_t ObrazCzarnoBialy(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzerokosc, uint16_t sWysokosc);
+void CzyscBufory(void);
 
 void UstawDomyslny(void);
 void Ustaw1(void);
