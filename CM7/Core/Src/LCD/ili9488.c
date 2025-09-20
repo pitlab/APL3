@@ -1,7 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // Moduł obsługi wyświetlacza TFT 320x480 ILI9488 pracującego na magistrali SPI (max 20MHz)
-//
+// Czasy rysowania ekranu z bufora 3 bajty na piksel:
+// Przy taktowaniu 83MHz/4 225ms -> 4,4 fps
+// Przy taktowaniu 100MHz/4 190ms -> 5,26 fps
+// Przy taktowaniu 125MHz/4 154ms -> 6,49 fps
 //
 // (c) PitLab 2025
 // http://www.pitlab.pl
@@ -27,7 +30,9 @@ extern uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy ry
 extern struct current_font cfont;
 uint8_t chKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
 uint8_t chTlo666[3];		//kolory tła w formacie RGB 6-6-6
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
+//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
+
 
 
 
@@ -715,13 +720,11 @@ void RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_t* 
 		HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
 		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-		/*for (tc=0; tc<(sx*sy); tc++)
-		{
-			setColor(obraz[tc]);
-			HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
-		}*/
-		for (uint16_t n=0; n<sy; n++)
-			HAL_SPI_Transmit(&hspi5, chObraz + n*3*sx, sx*3, HAL_MAX_DELAY);
+//		for (uint16_t n=0; n<sy; n++)
+//			HAL_SPI_Transmit(&hspi5, chObraz + n*3*sx, sx*3, HAL_MAX_DELAY);	//wyślij cały wiersz gdzie piksel zajmuje 3 bajty
+
+		for (uint16_t n=0; n<sy/32; n++)
+			HAL_SPI_Transmit(&hspi5, chObraz + n*32*3*sx, sx*32*3, HAL_MAX_DELAY);	//wyślij 4 wiersze gdzie piksel zajmuje 3 bajty
 		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 		HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	}

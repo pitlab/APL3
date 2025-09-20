@@ -41,18 +41,23 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Dodać polecenie Blank check oraz ramkę komunikacyjną dla pamięci Flash
  - sprawdzić dlaczego kompas pokazuje zły kierunek (ujemną wartość dla wschodu, dodatnią dla zachodu)
  - ustawić odpowiednie kąty w poziomicy podczas kalibracji skalowania żyroskopów
- - Uruchomić układ ethernet
- - uruchomić komunikację po ethernet
  - Uruchomić USB w trybie CDC
  - Zmodyfikować test transferu karty SD, tak aby działał z systemową obsługą FAT (obecnie działa poza FAT-em i systemem operacyjnym)
  - Uruchomić czujniki zbliżeniowe VL53L1CX i VL53L5CX
+ - Uruchomić czujnik zblizeniowy ICU 20201
  - Pozbyć się zmiennych fZyroSur i fZyroKal zastępując je jedną zmienną ustawianą w zależnosci od kontekstu (obecności polecenia kalibracyjnego żyroskopów)
  - Rozbudować warunki korekcji magnetometru w AHRS o prędkość zmiany kąta
  - Sprawdzic stabilność danych i konieczność odświeżania w SDRAM
+ - do LWIP podać adres IP zawarty w stBSP.chAdrIP
+ - uruchomić kompresję sprzetową JPEG
+ - podać skompresowany obraz do serwera RTSP
 
- //Problemy sprzętowe:
-  * Nie można uruchomić ETH
+ //Problemy sprzętowe egzemplarza 1:
+  * Nie można uruchomić ETH i kamery
   * Nie działa wejscie 2 odbiornika RC - prawdopodobnie problem lutowniczy
+  *
+ //Problemy sprzętowe egzemplarza 2:
+  * Nie dziala karta SD
   *
  * */
 /* USER CODE END Header */
@@ -534,7 +539,7 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL3.PLL3M = 3;
   PeriphClkInitStruct.PLL3.PLL3N = 125;
   PeriphClkInitStruct.PLL3.PLL3P = 5;
-  PeriphClkInitStruct.PLL3.PLL3Q = 6;
+  PeriphClkInitStruct.PLL3.PLL3Q = 4;
   PeriphClkInitStruct.PLL3.PLL3R = 100;
   PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_2;
   PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;
