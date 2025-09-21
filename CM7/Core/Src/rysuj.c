@@ -279,6 +279,8 @@ uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* 
 {
 	uint8_t chErr = BLAD_OK;
 	uint32_t nCzas;
+	extern uint32_t nRozmiarObrazuJPEG;
+	extern uint32_t nRozmiarObrazuKamery;
 
 	nCzas = PobierzCzasT6();
 	if (sSzerokosc > DISP_X_SIZE)
@@ -287,7 +289,7 @@ uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* 
 		sWysokosc = DISP_Y_SIZE;
 	RysujBitmape888(0, 0, sSzerokosc, sWysokosc, chObraz);
 	nCzas = MinalCzas(nCzas);
-	sprintf(chNapis, "%.2f fps", 1.0/(nCzas/1000000.0));
+	sprintf(chNapis, "%.2f fps, kompr: %.1f", 1.0/(nCzas/1000000.0), (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);
 	setColor(ZOLTY);
 	RysujNapis(chNapis, 0, DISP_Y_SIZE - FONT_BH);
 	return chErr;

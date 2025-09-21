@@ -134,6 +134,8 @@ extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDR
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
 FIL __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) SDPlikZdjecia;
 extern struct st_KonfKam stKonfKam;
+extern uint32_t nRozmiarObrazuKamery;
+
 
 
 //Definicje ekranów menu
@@ -568,10 +570,15 @@ void RysujEkran(void)
 			if (chErr)
 				break;
 
+			osDelay(22);	//czekaj na przechwycenie całej ramki obrazu	21,6ms
+
 			for (uint32_t n=ROZM_BUF16_KAM-1; n>0; n--)	//zmierz rozmiar połowy obrazu kamery
 			{
 				if (sBuforKamerySRAM[n] != 0)
-					break;
+				{
+					nRozmiarObrazuKamery = n * 2;	//rozmiar w bajtach
+					break;					//n == 76800
+				}
 			}
 
 			chErr = ObrazCzarnoBialy((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
@@ -581,7 +588,7 @@ void RysujEkran(void)
 			for (uint32_t n=(DISP_X_SIZE * DISP_Y_SIZE * 3 - 1); n>0; n--)	//zmierz rozmiar połowy obrazu kamery
 			{
 				if (chBuforLCD[n] != 0)
-					break;
+					break;					//460800
 			}
 
 			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
