@@ -16,6 +16,7 @@
 #include <RPi35B_480x320.h>
 #include <ili9488.h>
 #include "czas.h"
+#include "analiza_obrazu.h"
 
 //deklaracje zmiennych
 extern RTC_HandleTypeDef hrtc;
@@ -296,26 +297,46 @@ uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* 
 }
 
 
+
 ////////////////////////////////////////////////////////////////////////////////
-// Rysuje histogram na dole ekranu
-// Parametry: wskaźnik na zmienną z tytułem okna
+// Rysuje histogram obrazu kolorowego RGB565 na dole ekranu
+// Parametry: *histR, *histG, *histB - wskaźniki na składowe histogramu
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t RysujHistogramRGB16(uint8_t *histR, uint8_t *histG, uint8_t *histB)
+void RysujHistogramRGB32(uint8_t *histR, uint8_t *histG, uint8_t *histB)
 {
-	uint8_t chErr = BLAD_OK;
-	uint16_t sPoczatek;
+	uint16_t sPoczatek;	//wskazuje na początek kolejnego histogramu
+	uint16_t sXprzes;	//przesuwa całość do prawego brzegu
 
-	for (uint8_t x=0; x<ROZDZIECZOSC_HISTOGRAMU; x++)
+	for (uint8_t x=0; x<ROZMIAR_HIST_KOLOR; x++)
 	{
-		sPoczatek = x * SZER_PASKA_HISTOGRAMU;
-		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histR+x), SZER_PASKA_HISTOGRAMU, *(histR+x), CZERWONY);
-		sPoczatek = x * SZER_PASKA_HISTOGRAMU + SZER_PASKA_HISTOGRAMU * ROZDZIECZOSC_HISTOGRAMU;
-		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histG+x), SZER_PASKA_HISTOGRAMU, *(histG+x), ZIELONY);
-		sPoczatek = x * SZER_PASKA_HISTOGRAMU + (2 * SZER_PASKA_HISTOGRAMU * ROZDZIECZOSC_HISTOGRAMU);
-		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histB+x), SZER_PASKA_HISTOGRAMU, *(histB+x), NIEBIESKI);
+		sXprzes = x + DISP_X_SIZE - (3 * ROZMIAR_HIST_KOLOR * SZER_PASKA_HISTOGRAMU);
+		sPoczatek = sXprzes;
+		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histR + x), SZER_PASKA_HISTOGRAMU, *(histR + x), CZERWONY);
+		sPoczatek = sXprzes + x * SZER_PASKA_HISTOGRAMU + SZER_PASKA_HISTOGRAMU * ROZMIAR_HIST_KOLOR;
+		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histG + x), SZER_PASKA_HISTOGRAMU, *(histG + x), ZIELONY);
+		sPoczatek = sXprzes + x * SZER_PASKA_HISTOGRAMU + (2 * SZER_PASKA_HISTOGRAMU * ROZMIAR_HIST_KOLOR);
+		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histB + x), SZER_PASKA_HISTOGRAMU, *(histB + x), NIEBIESKI);
 	}
-	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje histogram obrazu czarno-białego na dole ekranu wyrównany do prawej
+// Parametry: *histCB8 - wskaźnik na histogram
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+void RysujHistogramCB8(uint8_t *histCB8)
+{
+	//uint16_t xprzes;
+
+	for (uint16_t x=0; x<ROZMIAR_HIST_CB8; x++)
+	{
+		//xprzes = x + DISP_X_SIZE - ROZMIAR_HIST_CB8;
+		//RysujProstokatWypelniony(xprzes, DISP_Y_SIZE - *(histCB8 + x), 1, *(histCB8 + x), ZOLTY);
+		RysujProstokatWypelniony(x + DISP_X_SIZE - ROZMIAR_HIST_CB8, DISP_Y_SIZE - *(histCB8 + x), 1, *(histCB8 + x), ZOLTY);
+	}
 }
 
 

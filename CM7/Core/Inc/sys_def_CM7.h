@@ -167,13 +167,13 @@
 //polecenia menu kamera
 #define TP_ZDJECIE			110	//pojedyncze zdjęcie
 #define TP_KAMERA			111	//ciagła praca kamery
-#define TP_KAM5				112
-#define TP_USTAW_KAM_320x240	113
-#define TP_USTAW_KAM_480x320	114
-#define TP_KAM1				115
-#define TP_KAM2				116
-#define TP_KAM_DIAG			117
-#define TP_KAM_CB			118	//kamera czarno-biała
+#define TP_KAM_DRAM			112
+#define TP_KAM_CB			113	//kamera czarno-biała
+#define TP_USTAW_KAM_320x240	114
+#define TP_USTAW_KAM_480x320	115
+#define TP_KAM1				116
+#define TP_KAM2				117
+#define TP_KAM_DIAG			118
 #define TP_WROC_DO_KAMERA	119
 
 //polecenia manu ethernet

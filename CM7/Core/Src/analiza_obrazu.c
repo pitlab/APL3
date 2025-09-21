@@ -209,33 +209,66 @@ void DetekcjaKrawedziSobel(uint8_t *obrazWe, uint8_t *obrazWy, uint16_t szerokos
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy histogram z 7-bitowego obrazu czarno-białego
 // Parametry:
-// [we] obraz* - wskaźnik na bufor[rozmiar] z obrazem czarno-białym
-// [wy] hist - 129 elementowy, 8-bitowy histogram. Ostatni element jest dla liczb spoza zakresu
-// [we] rozmiar - ilość pikseli do analizy
+// [we] *chObraz - wskaźnik na bufor[rozmiar] z obrazem czarno-białym
+// [wy] *chHist - 129 elementowy, 8-bitowy histogram. Ostatni element jest dla liczb spoza zakresu
+// [we] nRozmiar - ilość pikseli do analizy
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void HistogramCB7(uint8_t *obraz, uint8_t *hist, uint32_t rozmiar)
+void HistogramCB7(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist)
 {
-	uint32_t histogram[129], temp;
+	uint32_t nHistogram[ROZMIAR_HIST_CB7 + 1], temp;
 	uint8_t pix;
 
-	for (uint8_t n=0; n<129; n++)
-		histogram[n] = 0;
+	for (uint8_t n=0; n<ROZMIAR_HIST_CB7 + 1; n++)
+		nHistogram[n] = 0;
 
-	for (uint32_t n=0; n<rozmiar; n++)
+	for (uint32_t n=0; n<nRozmiar; n++)
 	{
-		pix = *(obraz+n);
-		if (pix > 128)
-			pix = 128;	//ostatnia pozycja zbiera śmieci spoza zakresu 7-bit
-		histogram[pix]++;
+		pix = *(chObraz + n);
+		if (pix > ROZMIAR_HIST_CB7)
+			pix = ROZMIAR_HIST_CB7;	//ostatnia pozycja zbiera śmieci spoza zakresu 7-bit
+		nHistogram[pix]++;
 	}
 
-	for (uint8_t n=0; n<129; n++)
+	for (uint8_t n=0; n<ROZMIAR_HIST_CB7 + 1; n++)
 	{
-		temp = (uint8_t)(histogram[n] / DZIELNIK_HIST_CB);
+		temp = (uint8_t)(nHistogram[n] / DZIELNIK_HIST_CB);
 		if (temp > 255)
 			temp = 255;
-		*(hist+n) = temp;
+		*(chHist + n) = temp;
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Liczy histogram z 8-bitowego obrazu czarno-białego
+// Parametry:
+// [we] *chObraz - wskaźnik na bufor[rozmiar] z obrazem czarno-białym
+// [wy] *chHist - 256 elementowy, 8-bitowy histogram.
+// [we] nRozmiar - ilość pikseli do analizy
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void HistogramCB8(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist)
+{
+	uint32_t nHistogram[ROZMIAR_HIST_CB8], temp;
+	uint8_t pix;
+
+	for (uint16_t n=0; n<ROZMIAR_HIST_CB8; n++)
+		nHistogram[n] = 0;
+
+	for (uint32_t n=0; n<nRozmiar; n++)
+	{
+		pix = *(chObraz + n);
+		nHistogram[pix]++;
+	}
+
+	for (uint16_t n=0; n<ROZMIAR_HIST_CB8; n++)
+	{
+		temp = (uint8_t)(nHistogram[n] / DZIELNIK_HIST_CB);
+		if (temp > 255)
+			temp = 255;
+		*(chHist + n) = temp;
 	}
 }
 
@@ -255,14 +288,14 @@ void HistogramCB7(uint8_t *obraz, uint8_t *hist, uint32_t rozmiar)
 void HistogramRGB565(uint16_t *obrazRGB565, uint32_t rozmiar, uint8_t *histR, uint8_t *histG, uint8_t *histB)
 {
 	uint16_t sPixel;
-	uint32_t nSumaR[32], nSumaG[32], nSumaB[32], temp;
+	uint32_t nSumaR[ROZMIAR_HIST_KOLOR], nSumaG[ROZMIAR_HIST_KOLOR], nSumaB[ROZMIAR_HIST_KOLOR], temp;
 
 	//inicjuj sumę pokseli w danym kolorze, później będzie inkrementowana, wiec musi zaczynać się od zera
-	for (uint8_t n=0; n<32; n++)
+	for (uint8_t n=0; n<ROZMIAR_HIST_KOLOR; n++)
 	{
 		nSumaR[n] = 0;
 		nSumaG[n] = 0;
-		nSumaG[n+32] = 0;
+		nSumaG[n+ROZMIAR_HIST_KOLOR] = 0;
 		nSumaB[n] = 0;
 	}
 
@@ -274,7 +307,7 @@ void HistogramRGB565(uint16_t *obrazRGB565, uint32_t rozmiar, uint8_t *histR, ui
 		nSumaB[(sPixel & 0x001F)]++;
 	}
 
-	for (uint8_t n=0; n<32; n++)
+	for (uint8_t n=0; n<ROZMIAR_HIST_KOLOR; n++)
 	{
 		temp = nSumaR[n] / DZIELNIK_HIST_RGB;
 		*(histR+n) = temp & 0xFF;

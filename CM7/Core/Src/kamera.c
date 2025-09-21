@@ -453,14 +453,14 @@ uint8_t UstawKamere(stKonfKam_t *konf)
 	chErr = HAL_DCMI_Suspend(&hdcmi);	//zatrzymaj pracę na czas konfiguracji
 	if (konf->chKontrolaISP0 != stPoprzKonfig.chKontrolaISP0)	//zapisz tylko gdy była zmiana
 	{
-		chErr |= Wyslij_I2C_Kamera(0x5000, konf->chKontrolaISP0);	//0x5000
 		stPoprzKonfig.chKontrolaISP0 = konf->chKontrolaISP0;
+		chErr |= Wyslij_I2C_Kamera(0x5000, konf->chKontrolaISP0);	//0x5000
 	}
 
 	if (konf->chKontrolaISP1 != stPoprzKonfig.chKontrolaISP1)
 	{
-		chErr |= Wyslij_I2C_Kamera(0x5001, konf->chKontrolaISP1);	//ISP control 01: [7] Special digital effects, [6] UV adjust enable, [5]1=Vertical scaling enable, [4]1=Horizontal scaling enable, [3] Line stretch enable, [2] UV average enable, [1] color matrix enable, [0] auto white balance AWB
 		stPoprzKonfig.chKontrolaISP1 = konf->chKontrolaISP1;
+		chErr |= Wyslij_I2C_Kamera(0x5001, konf->chKontrolaISP1);	//ISP control 01: [7] Special digital effects, [6] UV adjust enable, [5]1=Vertical scaling enable, [4]1=Horizontal scaling enable, [3] Line stretch enable, [2] UV average enable, [1] color matrix enable, [0] auto white balance AWB
 	}
 	if (chErr)
 		return chErr;
@@ -469,160 +469,180 @@ uint8_t UstawKamere(stKonfKam_t *konf)
 	if (konf->chPrzesWyPoz != stPoprzKonfig.chPrzesWyPoz)
 	{
 		un8_32.dane16[0] = (uint16_t)konf->chPrzesWyPoz * KROK_ROZDZ_KAM;
-		chErr |= Wyslij_I2C_Kamera(0x3800, un8_32.dane8[1]);	//Timing HS: [3:0] HREF Horizontal start point high byte [11:8]
-		chErr |= Wyslij_I2C_Kamera(0x3801, un8_32.dane8[0]);	//Timing HS: [7:0] HREF Horizontal start point low byte [7:0]
 		stPoprzKonfig.chPrzesWyPoz = konf->chPrzesWyPoz;
+		//ustaw początek obrazu w X
+		chErr |= Wyslij_I2C_Kamera(0x3800, un8_32.dane8[1]);	//Timing HS: [11:8] HREF Horizontal start point high byte
+		chErr |= Wyslij_I2C_Kamera(0x3801, un8_32.dane8[0]);	//Timing HS: [7:0] HREF Horizontal start point low byte
+		//ustaw współrzędną X początku okna uśredniania jasności
+		chErr |= Wyslij_I2C_Kamera(0x5680, un8_32.dane8[1]);	//AVG X start [11:8] Horizontal start position for averaging window
+		chErr |= Wyslij_I2C_Kamera(0x5681, un8_32.dane8[0]);	//AVG X start [7:0]
 	}
 
 	//ustaw położenie względem początku obrazu w pionie
 	if (konf->chPrzesWyPio != stPoprzKonfig.chPrzesWyPio)
 	{
 		un8_32.dane16[0] = (uint16_t)konf->chPrzesWyPio * KROK_ROZDZ_KAM;
-		chErr |= Wyslij_I2C_Kamera(0x3802, un8_32.dane8[1]);	//Timing VS: [3:0] HREF Vertical start point high byte [11:8]
-		chErr |= Wyslij_I2C_Kamera(0x3803, un8_32.dane8[0]);	//Timing VS: [7:0] HREF Vertical start point low byte [7:0]
 		stPoprzKonfig.chPrzesWyPio = konf->chPrzesWyPio;
+		//ustaw początek obrazu w Y
+		chErr |= Wyslij_I2C_Kamera(0x3802, un8_32.dane8[1]);	//Timing VS: [11:8] HREF Vertical start point high byte
+		chErr |= Wyslij_I2C_Kamera(0x3803, un8_32.dane8[0]);	//Timing VS: [7:0] HREF Vertical start point low byte
+		//ustaw współrzędną Y początku okna uśredniania jasności
+		chErr |= Wyslij_I2C_Kamera(0x5684, un8_32.dane8[1]);	//AVG Y start [10:8] Vertical start point for averaging window
+		chErr |= Wyslij_I2C_Kamera(0x5685, un8_32.dane8[0]);	//AVG Y start [7:0]
 	}
 
 	//ustaw szerokość wejściową
 	if (konf->chSzerWe != stPoprzKonfig.chSzerWe)
 	{
+		stPoprzKonfig.chSzerWe = konf->chSzerWe;
+		//ustaw szerokość X okna obrazu
 		un8_32.dane16[0] = (uint16_t)konf->chSzerWe * KROK_ROZDZ_KAM;
 		chErr |= Wyslij_I2C_Kamera(0x3804, un8_32.dane8[1]);	//Timing HW: [3:0] Horizontal width high byte 0x500=1280,  0x280=640, 0x140=320 (scale input}
 		chErr |= Wyslij_I2C_Kamera(0x3805, un8_32.dane8[0]);	//Timing HW: [7:0] Horizontal width low byte
-		stPoprzKonfig.chSzerWe = konf->chSzerWe;
+
+		//ustaw współrzędną X końca okna uśredniania jasności = poczatek obrazu X + szerokość obrazu
+		un8_32.dane16[0] = ((uint16_t)konf->chPrzesWyPoz * KROK_ROZDZ_KAM) + ((uint16_t)konf->chSzerWe * KROK_ROZDZ_KAM);
+		chErr |= Wyslij_I2C_Kamera(0x5682, un8_32.dane8[1]);	//AVG X end [11:8] Horizontal start position for averaging window
+		chErr |= Wyslij_I2C_Kamera(0x5683, un8_32.dane8[0]);	//AVG X end [7:0]
 	}
 
 	//ustaw wysokość wejściową
 	if (konf->chWysWe != stPoprzKonfig.chWysWe)
 	{
+		stPoprzKonfig.chWysWe = konf->chWysWe;
+		//ustaw wysokość Y okna obrazu
 		un8_32.dane16[0] = (uint16_t)konf->chWysWe * KROK_ROZDZ_KAM;
 		chErr |= Wyslij_I2C_Kamera(0x3806, un8_32.dane8[1]);	//Timing VH: [3:0] HREF vertical height high byte 0x3C0=960, 0x1E0=480, 0x0F0=240
 		chErr |= Wyslij_I2C_Kamera(0x3807, un8_32.dane8[0]);	//Timing VH: [7:0] HREF vertical height low byte
-		stPoprzKonfig.chWysWe = konf->chWysWe;
+		//ustaw współrzędną Y końca okna uśredniania jasności = poczatek obrazu Y + wysokość obrazu
+		un8_32.dane16[0] = ((uint16_t)konf->chPrzesWyPio * KROK_ROZDZ_KAM) + ((uint16_t)konf->chWysWe * KROK_ROZDZ_KAM);
+		chErr |= Wyslij_I2C_Kamera(0x5686, un8_32.dane8[1]);	//AVG Y end [10:8] Vertical end point for averaging window
+		chErr |= Wyslij_I2C_Kamera(0x5687, un8_32.dane8[0]);	//AVG Y end [7:0]
 	}
 
 	//ustaw szerokość wyjściową
 	if (konf->chSzerWy != stPoprzKonfig.chSzerWy)
 	{
+		stPoprzKonfig.chSzerWy = konf->chSzerWy;
 		un8_32.dane16[0] = (uint16_t)konf->chSzerWy * KROK_ROZDZ_KAM;
 		chErr |= Wyslij_I2C_Kamera(0x3808,  un8_32.dane8[1]);	//Timing DVPHO: [3:0] output horizontal width high byte [11:8]
 		chErr |= Wyslij_I2C_Kamera(0x3809,  un8_32.dane8[0]);	//Timing DVPHO: [7:0] output horizontal width low byte [7:0]
-		stPoprzKonfig.chSzerWy = konf->chSzerWy;
 	}
 
 	//ustaw wysokość wyjściową
 	if (konf->chWysWy != stPoprzKonfig.chWysWy)
 	{
+		stPoprzKonfig.chWysWy = konf->chWysWy;
 		un8_32.dane16[0] = (uint16_t)konf->chWysWy * KROK_ROZDZ_KAM;
 		chErr |= Wyslij_I2C_Kamera(0x380A, un8_32.dane8[1]);	//Timing DVPVO: [3:0] output vertical height high byte [11:8]
 		chErr |= Wyslij_I2C_Kamera(0x380B, un8_32.dane8[0]);	//Timing DVPVO: [7:0] output vertical height low byte [7:0]
-		stPoprzKonfig.chWysWy = konf->chWysWy;
 	}
 
 	if (konf->chObracanieObrazu != stPoprzKonfig.chObracanieObrazu)
 	{
-		chErr |= Wyslij_I2C_Kamera(0x3818, konf->chObracanieObrazu);	//Timing Control: 0x3818 (ustaw rotację w poziomie i pionie), //for the mirror function it is necessary to set registers 0x3621 [5:4] and 0x3801
 		stPoprzKonfig.chObracanieObrazu = konf->chObracanieObrazu;
+		chErr |= Wyslij_I2C_Kamera(0x3818, konf->chObracanieObrazu);	//Timing Control: 0x3818 (ustaw rotację w poziomie i pionie), //for the mirror function it is necessary to set registers 0x3621 [5:4] and 0x3801
 	}
 
 	if (konf->chFormatObrazu != stPoprzKonfig.chFormatObrazu)
 	{
-		chErr |= Wyslij_I2C_Kamera(0x4300, konf->chFormatObrazu);		//Format Control 0x4300
 		stPoprzKonfig.chFormatObrazu = konf->chFormatObrazu;
+		chErr |= Wyslij_I2C_Kamera(0x4300, konf->chFormatObrazu);		//Format Control 0x4300
 	}
 
 	//regulacja balansu bieli
 	if (konf->sWzmocnienieR != stPoprzKonfig.sWzmocnienieR)
 	{
+		stPoprzKonfig.sWzmocnienieR = konf->sWzmocnienieR;
 		un8_32.dane16[0] = konf->sWzmocnienieR & 0xFFF;
 		chErr |= Wyslij_I2C_Kamera(0x3400, un8_32.dane8[1]);	//AWB R Gain [11:0]: 0x3400..01
 		chErr |= Wyslij_I2C_Kamera(0x3401, un8_32.dane8[0]);
-		stPoprzKonfig.sWzmocnienieR = konf->sWzmocnienieR;
 	}
 	if (konf->sWzmocnienieG != stPoprzKonfig.sWzmocnienieG)
 	{
+		stPoprzKonfig.sWzmocnienieG = konf->sWzmocnienieG;
 		un8_32.dane16[0] = konf->sWzmocnienieG & 0xFFF;
 		chErr |= Wyslij_I2C_Kamera(0x3402, un8_32.dane8[1]);	//AWB G Gain [11:0]: 0x3402..03
 		chErr |= Wyslij_I2C_Kamera(0x3403, un8_32.dane8[0]);
-		stPoprzKonfig.sWzmocnienieG = konf->sWzmocnienieG;
 	}
 	if (konf->sWzmocnienieB != stPoprzKonfig.sWzmocnienieB)
 	{
+		stPoprzKonfig.sWzmocnienieB = konf->sWzmocnienieB;
 		un8_32.dane16[0] = konf->sWzmocnienieB & 0xFFF;
 		chErr |= Wyslij_I2C_Kamera(0x3404, un8_32.dane8[1]);	//AWB B Gain [11:0]: 0x3404..05
 		chErr |= Wyslij_I2C_Kamera(0x3405, un8_32.dane8[0]);
-		stPoprzKonfig.sWzmocnienieB = konf->sWzmocnienieB;
 	}
 
 	if (konf->chKontrBalBieli != stPoprzKonfig.chKontrBalBieli)
 	{
-		chErr |= Wyslij_I2C_Kamera(0x3406, konf->chKontrBalBieli);	//AWB Manual: 0x3406
 		stPoprzKonfig.chKontrBalBieli = konf->chKontrBalBieli;
+		chErr |= Wyslij_I2C_Kamera(0x3406, konf->chKontrBalBieli);	//AWB Manual: 0x3406
 	}
 
 	//nasycenie koloru wysyłane jest do obu rejestrów: U i V
 	if (konf->chNasycenie != stPoprzKonfig.chNasycenie)
 	{
+		stPoprzKonfig.chNasycenie = konf->chNasycenie;
 		chErr |= Wyslij_I2C_Kamera(0x5583, konf->chNasycenie);	//SDE Control3 Saturation U: 0x5583
 		chErr |= Wyslij_I2C_Kamera(0x5584, konf->chNasycenie);	//SDE Control3 Saturation V: 0x5584
-		stPoprzKonfig.chNasycenie = konf->chNasycenie;
 	}
 
 	//regulacja czułosci
 	if (konf->chKontrolaExpo != stPoprzKonfig.chKontrolaExpo)
 	{
-		chErr |= Wyslij_I2C_Kamera(0x3503, konf->chKontrolaExpo);		//AEC Manual Mode Control: 0x3503
 		stPoprzKonfig.chKontrolaExpo = konf->chKontrolaExpo;
+		chErr |= Wyslij_I2C_Kamera(0x3503, konf->chKontrolaExpo);		//AEC Manual Mode Control: 0x3503
 	}
 
 	if (konf->chTrybyEkspozycji != stPoprzKonfig.chTrybyEkspozycji)
 	{
-		chErr |= Wyslij_I2C_Kamera(0x3A00, konf->chTrybyEkspozycji);	//AEC System Control 0: 0x3A00
 		stPoprzKonfig.chTrybyEkspozycji = konf->chTrybyEkspozycji;
+		chErr |= Wyslij_I2C_Kamera(0x3A00, konf->chTrybyEkspozycji);	//AEC System Control 0: 0x3A00
 	}
 
 	if (konf->sCzasEkspozycji != stPoprzKonfig.sCzasEkspozycji)
 	{
+		stPoprzKonfig.sCzasEkspozycji = konf->sCzasEkspozycji;
 		un8_32.dane32 = (uint32_t)konf->sCzasEkspozycji << 4;
 		chErr |= Wyslij_I2C_Kamera(0x3500, un8_32.dane8[2]);	//AEC Long Channel Exposure [19:0]: 0x3500..02
 		chErr |= Wyslij_I2C_Kamera(0x3501, un8_32.dane8[1]);
 		chErr |= Wyslij_I2C_Kamera(0x3502, un8_32.dane8[0]);
-		stPoprzKonfig.sCzasEkspozycji = konf->sCzasEkspozycji;
 	}
 
 	if (konf->sAGCLong != stPoprzKonfig.sAGCLong)
 	{
+		stPoprzKonfig.sAGCLong = konf->sAGCLong;
 		un8_32.dane16[0] = konf->sAGCLong & 0x1FF;
 		chErr |= Wyslij_I2C_Kamera(0x3508, un8_32.dane8[1]);	//AEC PK Long Gain 0x3508..09
 		chErr |= Wyslij_I2C_Kamera(0x3509, un8_32.dane8[0]);
-		stPoprzKonfig.sAGCLong = konf->sAGCLong;
 	}
 
 	if (konf->sAGCAdjust != stPoprzKonfig.sAGCAdjust)
 	{
+		stPoprzKonfig.sAGCAdjust = konf->sAGCAdjust;
 		un8_32.dane16[0] = konf->sAGCAdjust & 0x1FF;
 		chErr |= Wyslij_I2C_Kamera(0x350A, un8_32.dane8[1]);	//AEC PK AGC ADJ 0x350A..0B
 		chErr |= Wyslij_I2C_Kamera(0x350B, un8_32.dane8[0]);
-		stPoprzKonfig.sAGCAdjust = konf->sAGCAdjust;
 	}
 
 	if (konf->sAGCVTS != stPoprzKonfig.sAGCVTS)
 	{
+		stPoprzKonfig.sAGCVTS = konf->sAGCVTS;
 		un8_32.dane16[0] = konf->sAGCVTS & 0x1FF;
 		chErr |= Wyslij_I2C_Kamera(0x350C, un8_32.dane8[1]);	//AEC PK VTS Output 0x350C..0D
 		chErr |= Wyslij_I2C_Kamera(0x350D, un8_32.dane8[0]);
-		stPoprzKonfig.sAGCVTS = konf->sAGCVTS;
 	}
 
 	if (konf->chProgUsuwania != stPoprzKonfig.chProgUsuwania)
 	{
-		chErr |= Wyslij_I2C_Kamera(0x5080, konf->chProgUsuwania);	//0x5080 Even CTRL 00 Treshold for even odd  cancelling
 		stPoprzKonfig.chProgUsuwania = konf->chProgUsuwania;
+		chErr |= Wyslij_I2C_Kamera(0x5080, konf->chProgUsuwania);	//0x5080 Even CTRL 00 Treshold for even odd  cancelling
 	}
 
 	//ustaw poziom ekspozycji opisany w OV5642 Camera Module Software Application Notes str 27 gdzie ustawiane jest 6 rejestrów
 	if (konf->chPoziomEkspozycji != stPoprzKonfig.chPoziomEkspozycji)
 	{
+		stPoprzKonfig.chPoziomEkspozycji = konf->chPoziomEkspozycji;
 		if (konf->chPoziomEkspozycji >= SKALA_POZIOMU_EKSPOZYCJI)	//walidacja wartości ze wzgledu na użyte poniżej funkcje
 			konf->chPoziomEkspozycji = SKALA_POZIOMU_EKSPOZYCJI / 2;
 
@@ -644,11 +664,11 @@ uint8_t UstawKamere(stKonfKam_t *konf)
 			chErr |= Wyslij_I2C_Kamera(0x3A1F, 0x20);
 		else
 			chErr |= Wyslij_I2C_Kamera(0x3A1F, 0x10);
-		stPoprzKonfig.chPoziomEkspozycji = konf->chPoziomEkspozycji;
 	}
 	chErr |= HAL_DCMI_Resume(&hdcmi);	//wznów pracę po zakończonej konfiguracji
 	return chErr;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -798,8 +818,8 @@ void UstawDomyslny(void)
 {
 	stKonfKam.chTrybPracy = KAM_FILM;
 	stKonfKam.chFormatObrazu = 0x6F;	//obraz RGB565
-	stKonfKam.chSzerWe = KAM_SZEROKOSC_OBRAZU / KROK_ROZDZ_KAM * 1;
-	stKonfKam.chWysWe = KAM_WYSOKOSC_OBRAZU / KROK_ROZDZ_KAM * 1;
+	stKonfKam.chSzerWe = KAM_SZEROKOSC_OBRAZU / KROK_ROZDZ_KAM * 3;
+	stKonfKam.chWysWe = KAM_WYSOKOSC_OBRAZU / KROK_ROZDZ_KAM * 3;
 	UstawKamere(&stKonfKam);
 }
 
@@ -821,8 +841,8 @@ uint8_t UstawObrazCzarnoBialy(uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t chErr;
 
-	stKonfKam.chTrybPracy = KAM_ZDJECIE;
-	//stKonfKam.chTrybPracy = KAM_FILM;
+	//stKonfKam.chTrybPracy = KAM_ZDJECIE;
+	stKonfKam.chTrybPracy = KAM_FILM;
 	stKonfKam.chFormatObrazu = 0x10;
 	stKonfKam.chSzerWe = sSzerokosc / KROK_ROZDZ_KAM * 2;
 	stKonfKam.chWysWe = sWysokosc / KROK_ROZDZ_KAM * 2;

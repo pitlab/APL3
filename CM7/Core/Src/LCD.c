@@ -125,7 +125,8 @@ prostokat_t stPrzycisk;
 uint8_t chStanPrzycisku;
 uint8_t chEtapKalibracji;
 prostokat_t stWykr;	//wykres biegunowy magnetometru
-uint8_t chHistR[32], chHistG[64], chHistB[32];
+uint8_t chHistR[ROZMIAR_HIST_KOLOR], chHistG[ROZMIAR_HIST_KOLOR], chHistB[ROZMIAR_HIST_KOLOR];
+uint8_t chHistCB8[ROZMIAR_HIST_CB8];
 
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforZdjecia[ROZM_BUF16_KAM];	//bufor na statyczne zdjęcie
@@ -224,13 +225,13 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Zdjecie",		"Wykonuje statyczne zdjecie kamera",		TP_ZDJECIE,			obr_aparat},
 	{"Kam. SRAM",	"Kamera w trybie ciaglym z pam. SRAM",		TP_KAMERA,			obr_kamera},
-	{"Kam. DRAM",	"Kamera w trybie ciaglym z pam. DRAM",		TP_KAM5,			obr_kamera},
+	{"Kam. DRAM",	"Kamera w trybie ciaglym z pam. DRAM",		TP_KAM_DRAM,			obr_kamera},
+	{"Czar-Bialy",	"Obraz czarnobiały",						TP_KAM_CB,			obr_kamera},
+	{"Domyślny",	"Konfiguracja domyślna",					TP_KAM1,			obr_narzedzia},
 	{"320x240",		"Ustawia kamere na 320x240 ",				TP_USTAW_KAM_320x240,	obr_narzedzia},
 	{"480x320",		"Ustawia kamere na 480x320 ",				TP_USTAW_KAM_480x320,	obr_narzedzia},
-	{"nic",			"nic",										TP_KAM1,			obr_kamera},
 	{"nic",			"nic",										TP_KAM2,			obr_kamera},
 	{"Diagnoza",	"Wykonuje diagnostykę kamery",				TP_KAM_DIAG,		obr_narzedzia},
-	{"Czar-Bialy",	"Obraz czarnobiały",						TP_KAM_CB,			obr_kamera},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -473,7 +474,7 @@ void RysujEkran(void)
 			WyswietlZdjecie(480, 320, sBuforKamerySRAM);
 		}
 		RysujNapis(chNapis, KOL12, 300);
-		//Na egzemplarzu 2 nie działa karta SD
+		//Naprawić: Na egzemplarzu 2 nie działa karta SD
 		/*FRESULT fres = 0;
 		extern RTC_HandleTypeDef hrtc;
 		extern RTC_TimeTypeDef sTime;
@@ -495,62 +496,18 @@ void RysujEkran(void)
 	case TP_KAMERA:	//ciagła praca kamery z pamięcią SRAM
 		UstawDomyslny();
 		RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM);
-		//uint8_t chRej1, chRej2, chRej3, chRej4, chRej5;
-		//uint16_t sExpo;
 		do
 		{
-			//Czytaj_I2C_Kamera(0x3401, &chRej1);	//AWB R Gain [11:0]: 0x3400..01
-			//Czytaj_I2C_Kamera(0x3805, &chRej1);	//Timing HW: [7:0] Horizontal width low byte
-			//Czytaj_I2C_Kamera(0x3809, &chRej1);		//Timing DVPHO: [7:0] output horizontal width low byte [7:0]
-			//Czytaj_I2C_Kamera(0x3801, &chRej2);		//Timing HS: [7:0] HREF Horizontal start point low byte [7:0]
-			//Czytaj_I2C_Kamera(0x3500, &chRej1);	//AEC Long Channel Exposure [19:0]: 0x3500
-			//Czytaj_I2C_Kamera(0x3501, &chRej2);	//AEC Long Channel Exposure [19:0]: 0x3501
-			//Czytaj_I2C_Kamera(0x3502, &chRej3);	//AEC Long Channel Exposure [19:0]: 0x3502
-			//sExpo = ((uint16_t)chRej1 << 12) + ((uint16_t)chRej2 << 4) + (chRej3 >> 4);
-
-			//Odczytaj 0x5690 — to bieżąca średnia jasność (AVG). Jeśli wartość skacze gwałtownie, AEC reaguje za agresywnie
-			//Czytaj_I2C_Kamera(0x5690, &chRej1);	//AVG R10 - average value
-			//Czytaj_I2C_Kamera(0x3A0F, &chRej2);	//AEC CTRL0F - high treshold value
-			//Czytaj_I2C_Kamera(0x3A10, &chRej3);	//AEC CTRL10 - low treshold value
-			//Czytaj_I2C_Kamera(0x3A1B, &chRej4);	//high treshold value from image change from stable state to unstable state
-			//Czytaj_I2C_Kamera(0x3A1E, &chRej5);	//low treshold value from image change from stable state to unstable state
-
-
-
 			KonwersjaRGB565doRGB666(sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
 			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 			HistogramRGB565(sBuforKamerySRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
-			RysujHistogramRGB16(chHistR, chHistG, chHistB);
-			/*setColor(ZOLTY);
-			//sprintf(chNapis, "AEC: %d  ", sExpo);
-			sprintf(chNapis, "AVG: 0x%X, AECprogH: 0x%X, L: 0x%X, stabH: 0x%X, L: 0x%X", chRej1, chRej2, chRej3, chRej4, chRej5);
-			RysujNapis(chNapis, 0, 290);
-
-			Czytaj_I2C_Kamera(0x3503, &chRej1);	//tryb EAC/AEG
-			Czytaj_I2C_Kamera(0x350C, &chRej2);	//VTSH
-			Czytaj_I2C_Kamera(0x350D, &chRej3);	//VTSL
-			sprintf(chNapis, "AEC/AGC: 0x%X, VTS: 0x%X%X", chRej1, chRej2, chRej3);
-			RysujNapis(chNapis, 0, 270);
-
-			Czytaj_I2C_Kamera(0x5680, &chRej1);	//okno AVG X start H
-			Czytaj_I2C_Kamera(0x5681, &chRej2);	//start L
-			Czytaj_I2C_Kamera(0x5682, &chRej3);	//end H
-			Czytaj_I2C_Kamera(0x5683, &chRej4);	//end L
-			sprintf(chNapis, "okno AVG X: %d, %d", (uint16_t)chRej1<<8 | chRej2, (uint16_t)chRej3<<8 | chRej4);
-			RysujNapis(chNapis, 0, 250);
-
-			Czytaj_I2C_Kamera(0x5684, &chRej1);	//okno AVG Y start H
-			Czytaj_I2C_Kamera(0x5685, &chRej2);	//start L
-			Czytaj_I2C_Kamera(0x5686, &chRej3);	//end H
-			Czytaj_I2C_Kamera(0x5687, &chRej4);	//end L
-			sprintf(chNapis, "okno AVG Y: %d, %d", (uint16_t)chRej1<<8 | chRej2, (uint16_t)chRej3<<8 | chRej4);
-			RysujNapis(chNapis, 0, 230);*/
+			RysujHistogramRGB32(chHistR, chHistG, chHistB);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
-	case TP_KAM5:	//ciagła praca kamery z pamięcią DRAM
+	case TP_KAM_DRAM:	//ciagła praca kamery z pamięcią DRAM
 		UstawDomyslny();
 		RozpocznijPraceDCMI(stKonfKam, sBuforKameryDRAM);
 		do
@@ -558,11 +515,46 @@ void RysujEkran(void)
 			KonwersjaRGB565doRGB666(sBuforKameryDRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
 			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 			HistogramRGB565(sBuforKameryDRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
-			RysujHistogramRGB16(chHistR, chHistG, chHistB);
+			RysujHistogramRGB32(chHistR, chHistG, chHistB);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
+
+
+	case TP_KAM_CB:	//praca z orazem czarno-białym
+		chErr = UstawObrazCzarnoBialy(DISP_X_SIZE, DISP_Y_SIZE);
+		if (chErr)
+			break;
+		do
+		{
+			CzyscBufory();
+			chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM);
+			if (chErr)
+				break;
+
+			osDelay(22);	//czekaj na przechwycenie całej ramki obrazu	21,6ms
+
+			for (uint32_t n=ROZM_BUF16_KAM-1; n>0; n--)	//zmierz rozmiar połowy obrazu kamery
+			{
+				if (sBuforKamerySRAM[n] != 0)
+				{
+					nRozmiarObrazuKamery = n * 2;	//rozmiar w bajtach
+					break;					//n == 76800
+				}
+			}
+
+			HistogramCB8((uint8_t*)sBuforKamerySRAM, STD_OBRAZU_DVGA, chHistCB8);
+			chErr = ObrazCzarnoBialy((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			if (chErr)
+				break;
+
+			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
+			RysujHistogramCB8(chHistCB8);
+		}
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+			break;
 
 	case TP_USTAW_KAM_320x240:
 		chErr = UstawRozdzielczoscKamery(320, 240, 2);
@@ -617,43 +609,7 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TP_KAM_CB:
-		chErr = UstawObrazCzarnoBialy(DISP_X_SIZE, DISP_Y_SIZE);
-		if (chErr)
-			break;
-		do
-		{
-			CzyscBufory();
-			chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM);
-			if (chErr)
-				break;
 
-			osDelay(22);	//czekaj na przechwycenie całej ramki obrazu	21,6ms
-
-			for (uint32_t n=ROZM_BUF16_KAM-1; n>0; n--)	//zmierz rozmiar połowy obrazu kamery
-			{
-				if (sBuforKamerySRAM[n] != 0)
-				{
-					nRozmiarObrazuKamery = n * 2;	//rozmiar w bajtach
-					break;					//n == 76800
-				}
-			}
-
-			chErr = ObrazCzarnoBialy((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
-			if (chErr)
-				break;
-
-			for (uint32_t n=(DISP_X_SIZE * DISP_Y_SIZE * 3 - 1); n>0; n--)	//zmierz rozmiar połowy obrazu kamery
-			{
-				if (chBuforLCD[n] != 0)
-					break;					//460800
-			}
-
-			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
-		}
-		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-		chNowyTrybPracy = TP_WROC_DO_KAMERA;
-		break;
 
 
 	//*** Ethernet ************************************************

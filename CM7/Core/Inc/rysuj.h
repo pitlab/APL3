@@ -10,15 +10,15 @@
 #include "sys_def_CM7.h"
 #include "display.h"
 
-#define SZER_PASKA_HISTOGRAMU		4		//szerokość paska w pikselach
-#define ROZDZIECZOSC_HISTOGRAMU		32		//liczba prążków w histogramie
+#define SZER_PASKA_HISTOGRAMU		2		//szerokość paska w pikselach
 
 void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
 void BelkaTytulu(char* chTytul);
 uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObraz);
 uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* chObraz);
 void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sKolor);
-uint8_t RysujHistogramRGB16(uint8_t *histR, uint8_t *histG, uint8_t *histB);
+void RysujHistogramRGB32(uint8_t *histR, uint8_t *histG, uint8_t *histB);
+void RysujHistogramCB8(uint8_t *histCB8);
 void RysujProstokat(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 void RysujProstokatZaokraglony(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 void UstawCzcionke(uint8_t* chCzcionka);
