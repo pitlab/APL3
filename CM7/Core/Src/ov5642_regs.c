@@ -1318,7 +1318,9 @@ const struct sensor_reg OV5642_RGB_QVGA[]  =
 	{0x54AD, 0x20},
 	{0x54AE, 0x00},
 	{0x54AF, 0x16},
-	{0x54B0, 0x01},
+
+
+	/*{0x54B0, 0x01},	//ma być ustawianie po AEC/AGC
 	{0x54B1, 0x20},
 	{0x54B2, 0x00},
 	{0x54B3, 0x10},
@@ -1327,7 +1329,7 @@ const struct sensor_reg OV5642_RGB_QVGA[]  =
 	{0x54B6, 0x00},
 	{0x54B7, 0xDF},
 	{0x5402, 0x3f},
-	{0x5403, 0x00},
+	{0x5403, 0x00},*/
 
 	//;UV ADJUST
 	{0x5500, 0x10},
@@ -1357,7 +1359,7 @@ const struct sensor_reg OV5642_RGB_QVGA[]  =
 	{0x5686, ((KAM_POCZATEK_OKNA_Y + KAM_WYSOKOSC_OBRAZU) & 0xFF00)>>8},		//AVG Y end: [3:0]		960=0x3C0; 320=0x140
 	{0x5687, ((KAM_POCZATEK_OKNA_Y + KAM_WYSOKOSC_OBRAZU) & 0x00FF)},		//AVG Y end: [7:0]
 
-	//;AE
+	/*/;AE
 	{0x5025, 0x80},
 	//{0x3a0f, 0x30},		//AEC CTRL0F Stable Range High Limit (enter) Bit[7:0]: WPT
 	{0x3a0f, 0x78},		//AEC CTRL0F Stable Range High Limit (enter) Bit[7:0]: WPT
@@ -1375,7 +1377,28 @@ const struct sensor_reg OV5642_RGB_QVGA[]  =
 	{0x3a11, 0xD0},		//AEC CTRL11 Step Manual Mode, Fast Zone High Limit bit[7:0] VPT_HIGH
 
 	//{0x3a1f, 0x10},		//AEC CTRL1F Step Manual Mode, Fast Zone High Low bit[7:0] VPT_LOW
-	{0x3a1f, 0x40},		//AEC CTRL1F Step Manual Mode, Fast Zone High Low bit[7:0] VPT_LOW
+	{0x3a1f, 0x40},		//AEC CTRL1F Step Manual Mode, Fast Zone High Low bit[7:0] VPT_LOW */
+
+	//dodane 2025_09_21
+	//AEC/AGC setting
+	//Make sure use AEC/AGC source before gamma (0x5025 = 0x80}
+	{0x5025, 0x80},
+	{0x3a0f, 0x48},
+	{0x3a10, 0x40},
+	{0x3a1b, 0x4a},
+	{0x3a1e, 0x3e},
+	{0x3a11, 0x70},
+	{0x3a1f, 0x20},
+
+	//Gamma related setting
+	{0x54B0, 0x1 }, //ADD
+	{0x54B1, 0x20},
+	{0x54B2, 0x0},
+	{0x54B3, 0x10},
+	{0x54B4, 0x0},
+	{0x54B5, 0xf0},
+	{0x54B6, 0x0},
+	{0x54B7, 0xDF},
 
 	//Average section weighting - średnia luminancji z 16 stref określonych oknem
 	{0x5688, 0xfd},		//bity[3:0] section 1 weight, bity[7:4] section 2 weight
@@ -1410,6 +1433,14 @@ const struct sensor_reg OV5642_RGB_QVGA[]  =
 
 	//{0x3818, 0xA8},	//TIMING TC REG18: [6] mirror, [5] Vertial flip, [4] 1=thumbnail mode,  [3] 1=compression, [1] vertical subsample 1/4, [0] vertical subsample 1/2  <def:0x80>
 	//{0x3621, 0x10},	//ARRAY CONTROL 01: [7] horizontal binning enable
+
+	//De-noise setting
+	{0x5317, 0x00}, //08
+
+	//Auto Sharpness    +1
+	{0x530c, 0x04},
+	{0x530d, 0x18},
+	{0x5312, 0x20},
 
 	{0xffff, 0xff}
 };

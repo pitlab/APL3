@@ -700,18 +700,18 @@ void TestKomunikatow(void)
 		chRysujRaz = 0;
 		BelkaTytulu("Generator komunikatow");
 
-		setColor(GRAY80);
+		setColor(SZARY80);
 		sprintf(chNapis, "Rozmiar kolejki komunikat%cw:", ó);
 		RysujNapis(chNapis, 10, 60);
 		sprintf(chNapis, "Wymawiam:");
 		RysujNapis(chNapis, 10, 40);
 
-		setColor(GRAY60);
+		setColor(SZARY60);
 		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 		RysujNapis(chNapis, CENTER, 300);
 	}
 
-	setColor(WHITE);
+	setColor(BIALY);
 	chDlugosc = DlugoscKolejkiKomunikatow();
 	sprintf(chNapis, "%d/%d  ",chDlugosc, ROZM_KOLEJKI_KOMUNIKATOW);
 	RysujNapis(chNapis, 10+29*FONT_SL, 60);

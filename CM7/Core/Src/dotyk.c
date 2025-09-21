@@ -167,9 +167,9 @@ uint8_t KalibrujDotyk(void)
 	{
 	case 0:	//inicjalizacja zmiennych
 		//LCD_Orient(POZIOMO);
-		WypelnijEkran(BLACK);
+		WypelnijEkran(CZARNY);
 		//TestObliczenKalibracji();		//testowo sprawdzenie poprawności obliczeń
-		setColor(WHITE);
+		setColor(BIALY);
 		UstawCzcionke(MidFont);
 		/*sprintf(chNapis, "Dotknij krzyzyk aby");
 		RysujNapis(chNapis, CENTER, 60);
@@ -216,7 +216,7 @@ uint8_t KalibrujDotyk(void)
 		{
 			sXd[chEtapKalibr-1] = statusDotyku.sAdc[0];
 			sYd[chEtapKalibr-1] = statusDotyku.sAdc[1];
-			setColor(BLACK);	//ustaw czarny kolor aby zamazać stary krzyżyk
+			setColor(CZARNY);	//ustaw czarny kolor aby zamazać stary krzyżyk
 			statusDotyku.sAdc[2] = 0;
 			//
 		}
@@ -225,7 +225,7 @@ uint8_t KalibrujDotyk(void)
 	{
 		if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)		//jeżeli był dotknięty
 		{
-			setColor(WHITE);	//ponownie rysuj krzyzyk na biało
+			setColor(BIALY);	//ponownie rysuj krzyzyk na biało
 			chEtapKalibr++;
 			if (chEtapKalibr == PKT_KAL+1)
 			{
@@ -249,7 +249,7 @@ uint8_t KalibrujDotyk(void)
 				if (chErr == BLAD_OK)
 					statusDotyku.chFlagi |= DOTYK_ZAPISANO;
 				chEtapKalibr = 0;
-				WypelnijEkran(BLACK);
+				WypelnijEkran(CZARNY);
 				return ERR_GOTOWE;	//kod wyjścia z procedury kalibracji
 			}
 			statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
@@ -489,13 +489,13 @@ uint8_t TestDotyku(void)
 
 	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)		//jeżeli był dotknięty
 	{
-		setColor(WHITE);
+		setColor(BIALY);
 		RysujLiniePozioma(statusDotyku.sX - KRZYZ/2, statusDotyku.sY, KRZYZ);
 		RysujLiniePionowa(statusDotyku.sX, statusDotyku.sY - KRZYZ/2, KRZYZ);
 
 
 		//setColor(RED);
-		setColor(YELLOW);
+		setColor(ZOLTY);
 		sprintf(chNapis, "Dotyk @ (%d, %d) = %d ", statusDotyku.sX, statusDotyku.sY, statusDotyku.sAdc[2]);
 		RysujNapis(chNapis, 80, 140);
 
@@ -503,7 +503,7 @@ uint8_t TestDotyku(void)
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 		if (chLicznikDotkniec++ == 6)		//gdy licznik dotknięć doliczy do zadanej wartosci wtedy zakończ test
 		{
-			WypelnijEkran(BLACK);
+			WypelnijEkran(CZARNY);
 			chLicznikDotkniec = 0;
 			return ERR_GOTOWE;
 		}

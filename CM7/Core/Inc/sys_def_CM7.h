@@ -172,7 +172,7 @@
 #define TP_USTAW_KAM_480x320	114
 #define TP_KAM1				115
 #define TP_KAM2				116
-#define TP_KAM3				117
+#define TP_KAM_DIAG			117
 #define TP_KAM_CB			118	//kamera czarno-biała
 #define TP_WROC_DO_KAMERA	119
 

@@ -171,7 +171,7 @@ void WypelnijEkran(uint16_t sKolor565)
 	uint8_t chDane[12];
 
 	if (!sKolor565)
-		sKolor565 = BLACK;
+		sKolor565 = CZARNY;
 
 	chRysujRaz = 1;
 	setColor(sKolor565);		//wykonuje konwersję z RGB565 na RGB666

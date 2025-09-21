@@ -8,22 +8,16 @@
 
 #include "sys_def_CM7.h"
 //definicje kolorów: https://rgbcolorpicker.com/565
-#define	BLACK   	0x0000
 #define	CZARNY   	0x0000
-#define	BLUE    	0x001F
 #define	NIEBIESKI  	0x001F
-#define	RED     	0xF800
 #define	CZERWONY   	0xF800
-//#define	GREEN   	0x07E0
 #define	ZIELONY   	0x07E0
 #define CYJAN    	0x07FF
 #define CYAN    	0x07FF
 #define MAGENTA 	0xF81F
 #define ZOLTY	  	0xFFE0
 #define YELLOW  	0xFFE0
-//#define ORANGE		0xFDA0
 #define POMARANCZ	0xFDA0
-#define WHITE 		0xFFFF
 #define BIALY 		0xFFFF
 #define LIBELLA1	0xAEAA	//płyn
 #define LIBELLA2	0x95EA	//obwódka bąbelka
@@ -33,7 +27,6 @@
 #define GRAY30 		0x4A69
 #define GRAY40 		0x632C
 #define GRAY50 		0x7BEF
-#define GRAY60 		0x9CD3
 #define GRAY70 		0xB596
 #define GRAY80 		0xCE79
 

@@ -60,7 +60,7 @@ extern JPEG_HandleTypeDef hjpeg;
 uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint32_t nRozmiarObrazuKamery;	//w bajtach
 uint8_t chObrazGotowy;
-
+stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -161,7 +161,7 @@ uint8_t InicjalizujKamere(void)
 // Parametry:
 //  rejestr - 16 bitowy adres rejestru kamery
 //  dane - dane zapisywane do rejestru
-// Zwraca: kod błędu
+// Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t Czytaj_I2C_Kamera(uint16_t rejestr, uint8_t *dane)
 {
@@ -632,8 +632,13 @@ uint8_t UstawKamere(stKonfKam_t *konf)
 		//parametr 0x3A11 zachowuje się dosyć nieregularnie, ale można przyjąć że zaczyna się o 8 większy rośnie średnio 1,67 raza szybciej niż 0x3A10
 		float fTemp = (float)konf->chPoziomEkspozycji * 1.667f;
 		chErr |= Wyslij_I2C_Kamera(0x3A11, (uint8_t)fTemp + 8);
-		chErr |= Wyslij_I2C_Kamera(0x3A1B, konf->chPoziomEkspozycji + 8);	//jest o 8 większy niż 0x3A10
-		chErr |= Wyslij_I2C_Kamera(0x3A1E, konf->chPoziomEkspozycji);	//zachowuje się jak bazowy 0x3A10 z korekta na początku. Dla uproszczenia pomijam korektę
+		//chErr |= Wyslij_I2C_Kamera(0x3A1B, konf->chPoziomEkspozycji + 8);	//jest o 8 większy niż 0x3A10
+		//chErr |= Wyslij_I2C_Kamera(0x3A1E, konf->chPoziomEkspozycji);	//zachowuje się jak bazowy 0x3A10 z korekta na początku. Dla uproszczenia pomijam korektę
+
+		//Sprawdzić czy jest porpzwnie: według global init granica stabilnej pracy jest o 2 jednostki szersza
+		chErr |= Wyslij_I2C_Kamera(0x3A1B, konf->chPoziomEkspozycji + 10);	//jest o 8 większy niż 0x3A10
+		chErr |= Wyslij_I2C_Kamera(0x3A1E, konf->chPoziomEkspozycji - 2);	//zachowuje się jak bazowy 0x3A10 z korekta na początku. Dla uproszczenia pomijam korektę
+
 		//parametr 0x3A1F ma wartość 0x10 dla wartosci <=0 i 0x20 dla >0. W tym przypadku 0 oznacza połowę skali
 		if (konf->chPoziomEkspozycji > SKALA_POZIOMU_EKSPOZYCJI/2)
 			chErr |= Wyslij_I2C_Kamera(0x3A1F, 0x20);
@@ -883,4 +888,66 @@ void CzyscBufory(void)
 
 	for (uint32_t n=0; n<(DISP_X_SIZE * DISP_Y_SIZE * 3); n++)
 		chBuforLCD[n] = 0;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Odczytuje z kamery grupę rejestrów pozwalajacą ocenić stan automatyki kamery
+// Parametry: brak
+// Zwraca: kod błędu HAL
+////////////////////////////////////////////////////////////////////////////////
+uint8_t WykonajDiagnostykeKamery(stDiagKam_t* stDiagKam)
+{
+	uint8_t chErr, chRej1, chRej2;
+
+	//Odczytaj 0x5690 — to bieżąca średnia jasność (AVG). Jeśli wartość skacze gwałtownie, AEC reaguje za agresywnie
+	chErr = Czytaj_I2C_Kamera(0x5690, &stDiagKam->chSredniaJasnoscAVG);	//AVG R10 - average value
+	if (chErr)
+		return chErr;
+
+	chErr |= Czytaj_I2C_Kamera(0x3A0F, &stDiagKam->chProgAEC_H);	//AEC CTRL0F - high treshold value
+	chErr |= Czytaj_I2C_Kamera(0x3A10, &stDiagKam->chProgAEC_L);	//AEC CTRL10 - low treshold value
+	chErr |= Czytaj_I2C_Kamera(0x3A1B, &stDiagKam->chProgStabAEC_H);	//high treshold value from image change from stable state to unstable state
+	chErr |= Czytaj_I2C_Kamera(0x3A1E, &stDiagKam->chProgStabAEC_L);	//low treshold value from image change from stable state to unstable state
+
+	chErr |= Czytaj_I2C_Kamera(0x3503, &stDiagKam->chTrybEAC_EAG);	//tryb EAC/AEG
+	chErr |= Czytaj_I2C_Kamera(0x350C, &chRej1);	//VTSH
+	chErr |= Czytaj_I2C_Kamera(0x350D, &chRej2);	//VTSL
+	stDiagKam->sMaxCzasEkspoVTS = (uint16_t)chRej1<<8 | chRej2;
+
+	chErr |= Czytaj_I2C_Kamera(0x5680, &chRej1);	//okno AVG X start H
+	chErr |= Czytaj_I2C_Kamera(0x5681, &chRej2);	//start L
+	stDiagKam->sPoczatOknaAVG_X = (uint16_t)chRej1<<8 | chRej2;
+
+	chErr |= Czytaj_I2C_Kamera(0x5682, &chRej1);	//end H
+	chErr |= Czytaj_I2C_Kamera(0x5683, &chRej2);	//end L
+	stDiagKam->sKoniecOknaAVG_X = (uint16_t)chRej1<<8 | chRej2;
+
+	chErr |= Czytaj_I2C_Kamera(0x5684, &chRej1);	//okno AVG Y start H
+	chErr |= Czytaj_I2C_Kamera(0x5685, &chRej2);	//start L
+	stDiagKam->sPoczatOknaAVG_Y = (uint16_t)chRej1<<8 | chRej2;
+
+	chErr |= Czytaj_I2C_Kamera(0x5686, &chRej1);	//end H
+	chErr |= Czytaj_I2C_Kamera(0x5687, &chRej2);	//end L
+	stDiagKam->sKoniecOknaAVG_Y = (uint16_t)chRej1<<8 | chRej2;
+	if (chErr)
+		return chErr;
+
+	chErr |= Czytaj_I2C_Kamera(0x3800, &chRej1);	//Timing HS
+	chErr |= Czytaj_I2C_Kamera(0x3801, &chRej2);
+	stDiagKam->sPoczatOknaObrazu_X = (uint16_t)chRej1<<8 | chRej2;
+
+	chErr |= Czytaj_I2C_Kamera(0x3802, &chRej1);	//Timing VS
+	chErr |= Czytaj_I2C_Kamera(0x3803, &chRej2);
+	stDiagKam->sPoczatOknaObrazu_Y = (uint16_t)chRej1<<8 | chRej2;
+
+	chErr |= Czytaj_I2C_Kamera(0x3804, &chRej1);	//Timing VW
+	chErr |= Czytaj_I2C_Kamera(0x3805, &chRej2);
+	stDiagKam->sRozmiarOknaObrazu_X = (uint16_t)chRej1<<8 | chRej2;
+
+	chErr |= Czytaj_I2C_Kamera(0x3806, &chRej1);	//Timing VH
+	chErr |= Czytaj_I2C_Kamera(0x3807, &chRej2);
+	stDiagKam->sRozmiarOknaObrazu_Y = (uint16_t)chRej1<<8 | chRej2;
+	return chErr;
 }

@@ -21,7 +21,7 @@
 //#define KAMERA_ZEGAR	20000000	//kamera wymaga zegara 24MHz (6-27MHz)
 
 #define ROZMIAR_STRUKTURY_REJESTROW_KAMERY 20
-#define SKALA_POZIOMU_EKSPOZYCJI	96
+#define SKALA_POZIOMU_EKSPOZYCJI	0x96
 
 //tryby pracy kamery
 #define KAM_ZDJECIE	1
@@ -56,7 +56,25 @@ typedef struct st_KonfKam
 	uint8_t chPoziomEkspozycji;	//wpływa na grupę rejestrów: 0x3A0F..1F
 } stKonfKam_t;
 
-
+//diagnostyka stanu kamery
+typedef struct st_DiagKam
+{
+	uint16_t sPoczatOknaAVG_X;		//0x5680..01
+	uint16_t sKoniecOknaAVG_X;		//0x5682..03
+	uint16_t sPoczatOknaAVG_Y;		//0x5684..05
+	uint16_t sKoniecOknaAVG_Y;		//0x5686..07
+	uint16_t sPoczatOknaObrazu_X;	//0x3800..01
+	uint16_t sPoczatOknaObrazu_Y;	//0x3802..03
+	uint16_t sRozmiarOknaObrazu_X;	//0x3804..05
+	uint16_t sRozmiarOknaObrazu_Y;	//0x3806..07
+	uint8_t chTrybEAC_EAG;			//0x3503
+	uint8_t chSredniaJasnoscAVG;	//0x5690
+	uint8_t chProgAEC_H;			//0x3A0F
+	uint8_t chProgAEC_L;			//0x3A10
+	uint8_t chProgStabAEC_H;		//0x3A1B
+	uint8_t chProgStabAEC_L;		//0x3A1E
+	uint16_t sMaxCzasEkspoVTS;		//0x350C..0dD
+} stDiagKam_t;
 
 uint8_t InicjalizujKamere(void);
 uint8_t Wyslij_I2C_Kamera(uint16_t rejestr, uint8_t dane);
@@ -75,6 +93,7 @@ uint8_t UruchomGrupeRejestrowKamery(uint8_t chNrGrupy);
 uint8_t UstawObrazCzarnoBialy(uint16_t sSzerokosc, uint16_t sWysokosc);
 uint8_t ObrazCzarnoBialy(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzerokosc, uint16_t sWysokosc);
 void CzyscBufory(void);
+uint8_t WykonajDiagnostykeKamery(stDiagKam_t* stDiagKam);
 
 void UstawDomyslny(void);
 void Ustaw1(void);

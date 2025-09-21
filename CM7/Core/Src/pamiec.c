@@ -148,14 +148,12 @@ uint8_t TestPredkosciZapisuNOR(void)
 	{
 		chRysujRaz = 0;
 		BelkaTytulu("Pomiar zapisu do Flash NOR");
-		setColor(GRAY60);
+		setColor(SZARY60);
 		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 		RysujNapis(chNapis, CENTER, 300);
 	}
-	setColor(WHITE);
-
+	setColor(BIALY);
 	chErr = HAL_NOR_ReturnToReadMode(&hnor3);
-	setColor(WHITE);
 
 	//zmierz czas kasowania sektora
 	nCzas = PobierzCzasT6();
@@ -248,12 +246,12 @@ void TestPredkosciOdczytuNOR(void)
 	{
 		chRysujRaz = 0;
 		BelkaTytulu("Pomiar odczytu z Flash NOR");
-		setColor(GRAY60);
+		setColor(SZARY60);
 		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 		RysujNapis(chNapis, CENTER, 300);
 		chErr = HAL_NOR_ReturnToReadMode(&hnor3);
 	}
-	setColor(WHITE);
+	setColor(BIALY);
 
 	//odczyt z NOR metodą odczytu bufora
 	nAdres = ADRES_NOR;
@@ -263,7 +261,7 @@ void TestPredkosciOdczytuNOR(void)
 		chErr = HAL_NOR_ReadBuffer(&hnor3, nAdres, sBufor, ROZMIAR16_BUFORA);
 		if (chErr != BLAD_OK)
 		{
-			setColor(RED);
+			setColor(CZERWONY);
 			sprintf(chNapis, "B%c%cd odczytu", ł, ą);
 			RysujNapis(chNapis, 10, 40);
 			return;
@@ -498,12 +496,12 @@ void TestPredkosciOdczytuRAM(void)
 	{
 		chRysujRaz = 0;
 		BelkaTytulu("Pomiary przepustowosci RAM");
-		setColor(GRAY60);
+		setColor(SZARY60);
 		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 		RysujNapis(chNapis, CENTER, 300);
 		chErr = HAL_NOR_ReturnToReadMode(&hnor3);
 	}
-	setColor(WHITE);
+	setColor(BIALY);
 
 	//Odczyt z zewnętrznego SRAM do RAM w pętli
 	nCzas = PobierzCzasT6();

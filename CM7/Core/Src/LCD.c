@@ -135,7 +135,7 @@ extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZew
 FIL __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) SDPlikZdjecia;
 extern struct st_KonfKam stKonfKam;
 extern uint32_t nRozmiarObrazuKamery;
-
+extern stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
 
 
 //Definicje ekranów menu
@@ -229,7 +229,7 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"480x320",		"Ustawia kamere na 480x320 ",				TP_USTAW_KAM_480x320,	obr_narzedzia},
 	{"nic",			"nic",										TP_KAM1,			obr_kamera},
 	{"nic",			"nic",										TP_KAM2,			obr_kamera},
-	{"nic",			"nic   ",									TP_KAM3,			obr_kamera},
+	{"Diagnoza",	"Wykonuje diagnostykę kamery",				TP_KAM_DIAG,		obr_narzedzia},
 	{"Czar-Bialy",	"Obraz czarnobiały",						TP_KAM_CB,			obr_kamera},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
@@ -257,7 +257,7 @@ struct tmenu stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
 	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
 	{"nic",			"nic",										TP_KAM2,			obr_Polaczenie},
-	{"nic",			"nic",										TP_KAM3,			obr_Polaczenie},
+	{"nic",			"nic",										TP_KAM2,			obr_Polaczenie},
 	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
@@ -343,7 +343,7 @@ void RysujEkran(void)
 		//czekaj na stabilizcję napięcia na mikrofonie
 		for (uint8_t n=0; n<5; n++)
 		{
-			RysujProstokatWypelniony(n*DISP_Y_SIZE/20, DISP_Y_SIZE - WYS_PASKA_POSTEPU, (n+1)*DISP_Y_SIZE/5, WYS_PASKA_POSTEPU, BLUE);
+			RysujProstokatWypelniony(n*DISP_Y_SIZE/20, DISP_Y_SIZE - WYS_PASKA_POSTEPU, (n+1)*DISP_Y_SIZE/5, WYS_PASKA_POSTEPU, NIEBIESKI);
 			NapelnijBuforDzwieku(sBuforPapuga, DISP_X_SIZE);
 			sprintf(chNapis, "Inicjalizacja: %d/%d", n, 5);
 			RysujNapis(chNapis, 10, 5);
@@ -355,7 +355,7 @@ void RysujEkran(void)
 			if (sBuforPapuga[x] < sMin)
 				sMin = sBuforPapuga[x];
 		}
-		WypelnijEkran(BLACK);
+		WypelnijEkran(CZARNY);
 
 		setColor(ZOLTY);
 		for (uint32_t n=0; n<ROZMIAR_BUFORA_PAPUGI; n++)
@@ -369,7 +369,7 @@ void RysujEkran(void)
 			NapelnijBuforDzwieku((sBuforPapuga + n*64), 64);
 			sprintf(chNapis, "Rejestracja: %d/%d", n, sLiczbaBuforowNagrania);
 			RysujNapis(chNapis, 10, 20);
-			RysujProstokatWypelniony(n*DISP_Y_SIZE/sLiczbaBuforowNagrania, DISP_Y_SIZE - WYS_PASKA_POSTEPU, (n+1)*DISP_Y_SIZE/sLiczbaBuforowNagrania, WYS_PASKA_POSTEPU, BLUE);
+			RysujProstokatWypelniony(n*DISP_Y_SIZE/sLiczbaBuforowNagrania, DISP_Y_SIZE - WYS_PASKA_POSTEPU, (n+1)*DISP_Y_SIZE/sLiczbaBuforowNagrania, WYS_PASKA_POSTEPU, NIEBIESKI);
 
 			y2 = sBuforPapuga[n*64] - sMin;
 			if (y2 > DISP_Y_SIZE / 2)	//ogranicz duże wartosci aby rysując nie mazało po pamieci ekranu
@@ -381,7 +381,7 @@ void RysujEkran(void)
 			RysujLinie(2*n, y1, 2*n+1, y2);
 			y1 = y2;
 		}
-		RysujProstokatWypelniony(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE, WYS_PASKA_POSTEPU, BLACK);//pasek postępu
+		RysujProstokatWypelniony(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE, WYS_PASKA_POSTEPU, CZARNY);//pasek postępu
 
 		NormalizujDzwiek(sBuforPapuga, ROZMIAR_BUFORA_PAPUGI, 100);	//normalizuj dźwięk do ustalonej gośności
 		sprintf(chNapis, "Odtwarzanie      ");
@@ -420,7 +420,7 @@ void RysujEkran(void)
 			chWskaznikBuforaAudio ^= 0x01;
 			chWskaznikBuforaAudio &= 0x01;
 			NapelnijBuforDzwieku(&sBuforAudioWe[chWskaznikBuforaAudio][0], 2*ROZMIAR_BUFORA_AUDIO_WE);
-			RysujPrzebieg(sBuforAudioWe[chWskKasowania], sBuforAudioWe[chWskaznikBuforaAudio], WHITE);
+			RysujPrzebieg(sBuforAudioWe[chWskKasowania], sBuforAudioWe[chWskaznikBuforaAudio], BIALY);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chTrybPracy = chWrocDoTrybu;
@@ -495,26 +495,56 @@ void RysujEkran(void)
 	case TP_KAMERA:	//ciagła praca kamery z pamięcią SRAM
 		UstawDomyslny();
 		RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM);
-		uint8_t chRej1, chRej2, chRej3;
-		uint16_t sExpo;
+		//uint8_t chRej1, chRej2, chRej3, chRej4, chRej5;
+		//uint16_t sExpo;
 		do
 		{
 			//Czytaj_I2C_Kamera(0x3401, &chRej1);	//AWB R Gain [11:0]: 0x3400..01
 			//Czytaj_I2C_Kamera(0x3805, &chRej1);	//Timing HW: [7:0] Horizontal width low byte
 			//Czytaj_I2C_Kamera(0x3809, &chRej1);		//Timing DVPHO: [7:0] output horizontal width low byte [7:0]
 			//Czytaj_I2C_Kamera(0x3801, &chRej2);		//Timing HS: [7:0] HREF Horizontal start point low byte [7:0]
-			Czytaj_I2C_Kamera(0x3500, &chRej1);	//AEC Long Channel Exposure [19:0]: 0x3500
-			Czytaj_I2C_Kamera(0x3501, &chRej2);	//AEC Long Channel Exposure [19:0]: 0x3501
-			Czytaj_I2C_Kamera(0x3502, &chRej3);	//AEC Long Channel Exposure [19:0]: 0x3502
-			sExpo = ((uint16_t)chRej1 << 12) + ((uint16_t)chRej2 << 4) + (chRej3 >> 4);
+			//Czytaj_I2C_Kamera(0x3500, &chRej1);	//AEC Long Channel Exposure [19:0]: 0x3500
+			//Czytaj_I2C_Kamera(0x3501, &chRej2);	//AEC Long Channel Exposure [19:0]: 0x3501
+			//Czytaj_I2C_Kamera(0x3502, &chRej3);	//AEC Long Channel Exposure [19:0]: 0x3502
+			//sExpo = ((uint16_t)chRej1 << 12) + ((uint16_t)chRej2 << 4) + (chRej3 >> 4);
+
+			//Odczytaj 0x5690 — to bieżąca średnia jasność (AVG). Jeśli wartość skacze gwałtownie, AEC reaguje za agresywnie
+			//Czytaj_I2C_Kamera(0x5690, &chRej1);	//AVG R10 - average value
+			//Czytaj_I2C_Kamera(0x3A0F, &chRej2);	//AEC CTRL0F - high treshold value
+			//Czytaj_I2C_Kamera(0x3A10, &chRej3);	//AEC CTRL10 - low treshold value
+			//Czytaj_I2C_Kamera(0x3A1B, &chRej4);	//high treshold value from image change from stable state to unstable state
+			//Czytaj_I2C_Kamera(0x3A1E, &chRej5);	//low treshold value from image change from stable state to unstable state
+
+
 
 			KonwersjaRGB565doRGB666(sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
 			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 			HistogramRGB565(sBuforKamerySRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
 			RysujHistogramRGB16(chHistR, chHistG, chHistB);
-			setColor(ZOLTY);
-			sprintf(chNapis, "AEC: %d  ", sExpo);
-			RysujNapis(chNapis, 400, 304);
+			/*setColor(ZOLTY);
+			//sprintf(chNapis, "AEC: %d  ", sExpo);
+			sprintf(chNapis, "AVG: 0x%X, AECprogH: 0x%X, L: 0x%X, stabH: 0x%X, L: 0x%X", chRej1, chRej2, chRej3, chRej4, chRej5);
+			RysujNapis(chNapis, 0, 290);
+
+			Czytaj_I2C_Kamera(0x3503, &chRej1);	//tryb EAC/AEG
+			Czytaj_I2C_Kamera(0x350C, &chRej2);	//VTSH
+			Czytaj_I2C_Kamera(0x350D, &chRej3);	//VTSL
+			sprintf(chNapis, "AEC/AGC: 0x%X, VTS: 0x%X%X", chRej1, chRej2, chRej3);
+			RysujNapis(chNapis, 0, 270);
+
+			Czytaj_I2C_Kamera(0x5680, &chRej1);	//okno AVG X start H
+			Czytaj_I2C_Kamera(0x5681, &chRej2);	//start L
+			Czytaj_I2C_Kamera(0x5682, &chRej3);	//end H
+			Czytaj_I2C_Kamera(0x5683, &chRej4);	//end L
+			sprintf(chNapis, "okno AVG X: %d, %d", (uint16_t)chRej1<<8 | chRej2, (uint16_t)chRej3<<8 | chRej4);
+			RysujNapis(chNapis, 0, 250);
+
+			Czytaj_I2C_Kamera(0x5684, &chRej1);	//okno AVG Y start H
+			Czytaj_I2C_Kamera(0x5685, &chRej2);	//start L
+			Czytaj_I2C_Kamera(0x5686, &chRej3);	//end H
+			Czytaj_I2C_Kamera(0x5687, &chRej4);	//end L
+			sprintf(chNapis, "okno AVG Y: %d, %d", (uint16_t)chRej1<<8 | chRej2, (uint16_t)chRej3<<8 | chRej4);
+			RysujNapis(chNapis, 0, 230);*/
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -554,12 +584,40 @@ void RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
-	case TP_KAM3:
-		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+	case TP_KAM_DIAG:
+		if (chRysujRaz)
+		{
+			BelkaTytulu("Diagnostyka kamery");
+			chRysujRaz = 0;
+		}
+
+		setColor(BIALY);
+		UstawCzcionke(MidFont);
+		WykonajDiagnostykeKamery(&stDiagKam);
+
+		sprintf(chNapis, "AVG: 0x%X, Prog AEC: 0x%X..0x%X, stab: 0x%X..0x%X", stDiagKam.chSredniaJasnoscAVG, stDiagKam.chProgAEC_H, stDiagKam.chProgAEC_L, stDiagKam.chProgStabAEC_H, stDiagKam.chProgStabAEC_L);
+		RysujNapis(chNapis, 0, 30);
+
+		sprintf(chNapis, "AEC/AGC: 0x%X, VTS: %d", stDiagKam.chTrybEAC_EAG, stDiagKam.sMaxCzasEkspoVTS);
+		RysujNapis(chNapis, 0, 50);
+
+		sprintf(chNapis, "okno AVG X: %d..%d, Y: %d..%d", stDiagKam.sPoczatOknaAVG_X, stDiagKam.sKoniecOknaAVG_X, stDiagKam.sPoczatOknaAVG_Y, stDiagKam.sKoniecOknaAVG_Y);
+		RysujNapis(chNapis, 0, 70);
+
+		sprintf(chNapis, "Poczatek okna obrazu X: %d, Y: %d", stDiagKam.sPoczatOknaObrazu_X, stDiagKam.sPoczatOknaObrazu_Y);
+		RysujNapis(chNapis, 0, 90);
+
+		sprintf(chNapis, "Rozmiar okna obrazu X: %d, Y: %d", stDiagKam.sRozmiarOknaObrazu_X, stDiagKam.sRozmiarOknaObrazu_Y);
+		RysujNapis(chNapis, 0, 110);
+
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		}
 		break;
 
 	case TP_KAM_CB:
-
 		chErr = UstawObrazCzarnoBialy(DISP_X_SIZE, DISP_Y_SIZE);
 		if (chErr)
 			break;
@@ -616,7 +674,7 @@ void RysujEkran(void)
 			chRysujRaz = 0;
 		}
 
-		setColor(WHITE);
+		setColor(BIALY);
 		UstawCzcionke(MidFont);
 		sprintf(chNapis, "NumerIP: %ld.%ld.%ld.%ld",(ipaddr.addr & 0xFF), (ipaddr.addr & 0xFF00)>>8, (ipaddr.addr & 0xFF0000)>>16, (ipaddr.addr & 0xFF000000)>>24);
 		RysujNapis(chNapis, 10, 30);
@@ -1164,7 +1222,7 @@ void RysujEkran(void)
 		case TP_WROC_DO_ETH:		chTrybPracy = TP_ETHERNET;		break;	//powrót do menu Ethernet
 		}
 
-		WypelnijEkran(BLACK);
+		WypelnijEkran(CZARNY);
 	}
 }
 
@@ -1186,11 +1244,11 @@ void Ekran_Powitalny(uint32_t nZainicjowano)
 
 	if (chRysujRaz)
 	{
-		WypelnijEkran(WHITE);
+		WypelnijEkran(BIALY);
 		RysujBitmape((DISP_X_SIZE-165)/2, 5, 165, 80, plogo165x80);
 
 		setColor(GRAY20);
-		setBackColor(WHITE);
+		setBackColor(BIALY);
 		UstawCzcionke(BigFont);
 		sprintf(chNapis, "%s @%luMHz", (char*)chNapisLcd[STR_WITAJ_TYTUL], HAL_RCC_GetSysClockFreq()/1000000);
 		RysujNapis(chNapis, CENTER, 90);
@@ -1333,13 +1391,13 @@ void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fP
 {
 	if (chRysujRaz)
 	{
-		WypelnijEkran(BLACK);
+		WypelnijEkran(CZARNY);
 		chRysujRaz = 0;
 	}
-//		setBackColor(BLACK);
+//		setBackColor(CZARNY);
 
 	//nagłówek komunikatu
-	setColor(RED);
+	setColor(CZERWONY);
 	UstawCzcionke(BigFont);
 	sprintf(chNapis, (char*)chOpisBledow[KOMUNIKAT_NAGLOWEK]);	//"Blad wykonania polecenia!",
 	RysujNapis(chNapis, CENTER, 70);
@@ -1684,7 +1742,7 @@ void PomiaryCisnieniowe(void)
 	}
 
 	//MS5611
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(BIALY); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnieBzw[0]);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 30);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(CYJAN); 	else	setColor(GRAY50);
@@ -1695,7 +1753,7 @@ void PomiaryCisnieniowe(void)
 	RysujNapis(chNapis, KOL12+40*FONT_SL, 30);
 
 	//BMP581
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(BIALY); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnieBzw[1]);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 50);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(CYJAN); 	else	setColor(GRAY50);
@@ -1706,7 +1764,7 @@ void PomiaryCisnieniowe(void)
 	RysujNapis(chNapis, KOL12+40*FONT_SL, 50);
 
 	//ND130
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(BIALY); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[0]);
 	RysujNapis(chNapis, KOL12+11*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(MAGENTA); 	else	setColor(GRAY50);
@@ -1717,7 +1775,7 @@ void PomiaryCisnieniowe(void)
 	RysujNapis(chNapis, KOL12+40*FONT_SL, 70);
 
 	//MS4525
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(WHITE); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(BIALY); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[1]);
 	RysujNapis(chNapis, KOL12+11*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(MAGENTA); 	else	setColor(GRAY50);
@@ -1729,7 +1787,7 @@ void PomiaryCisnieniowe(void)
 
 
 	if (uDaneCM4.dane.stGnss1.chFix)
-		setColor(WHITE);	//jest fix
+		setColor(BIALY);	//jest fix
 	else
 		setColor(GRAY70);	//nie ma fixa
 
@@ -1807,10 +1865,10 @@ void DaneOdbiornikaRC(void)
 
 		sDlugoscPaska = (sSkorygowaneRC - PPM_MIN) / ROZDZIECZOSC_PASKA_RC;
 		if (sDlugoscPaska)
-			RysujProstokatWypelniony(120, y+30, sDlugoscPaska, 6, BLUE);
+			RysujProstokatWypelniony(120, y+30, sDlugoscPaska, 6, NIEBIESKI);
 		sDlugoscTla = ((PPM_MAX - PPM_MIN) / ROZDZIECZOSC_PASKA_RC) - sDlugoscPaska;
 		if (sDlugoscTla)
-			RysujProstokatWypelniony(121 + sDlugoscPaska, y+30, sDlugoscTla, 6, BLACK);
+			RysujProstokatWypelniony(121 + sDlugoscPaska, y+30, sDlugoscTla, 6, CZARNY);
 	}
 }
 
@@ -1828,11 +1886,11 @@ void RysujPasekPostepu(uint16_t sPelenZakres)
 	{
 		//setColor(BLUE);
 		//fillRect(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, x , DISP_Y_SIZE);
-		RysujProstokatWypelniony(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, x, WYS_PASKA_POSTEPU, BLUE);
+		RysujProstokatWypelniony(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, x, WYS_PASKA_POSTEPU, NIEBIESKI);
 	}
-	//setColor(BLACK);
+	//setColor(CZARNY);
 	//fillRect(x, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE , DISP_Y_SIZE);
-	RysujProstokatWypelniony(x, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE, WYS_PASKA_POSTEPU, BLUE);
+	RysujProstokatWypelniony(x, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE, WYS_PASKA_POSTEPU, NIEBIESKI);
 }
 
 
@@ -1868,7 +1926,7 @@ void TestTonuAudio(void)
 		if (chNumerTonu >= LICZBA_TONOW_WARIO)
 			chNumerTonu = 0;
 
-		setColor(WHITE);
+		setColor(BIALY);
 		sprintf(chNapis, "%d ", chNumerTonu);
 		RysujNapis(chNapis, KOL12+16*FONT_SL, 30);
 		sprintf(chNapis, "%.1f Hz ", 1.0f * CZESTOTLIWOSC_AUDIO / (MIN_OKRES_TONU + chNumerTonu * SKOK_TONU));
@@ -1906,7 +1964,7 @@ void WyswietlParametryKartySD(void)
 
 		//zamaż ewentualną pozostałość napisu o braku karty
 		UstawCzcionke(BigFont);
-		setColor(BLACK);
+		setColor(CZARNY);
 		sprintf(chNapis, "                             ");
 		RysujNapis(chNapis, CENTER, 50);
 		UstawCzcionke(MidFont);
@@ -2090,7 +2148,7 @@ void WyswietlParametryKartySD(void)
 	else
 	{
 		UstawCzcionke(BigFont);
-		setColor(RED);
+		setColor(CZERWONY);
 		sprintf(chNapis, "Wolne %carty, tu brak karty! ", ż);
 		RysujNapis(chNapis, CENTER, 50);
 		chRysujRaz = 1;
@@ -2294,7 +2352,7 @@ uint32_t RysujKostkeObrotu(float *fKat)
 	}
 	nCzas = MinalCzas(nCzas);
 	//zamaż poprzednią kostkę kolorem tła
-	setColor(BLACK);
+	setColor(CZARNY);
 	RysujLinie(sKostkaPoprzednia[0][0] + DISP_X_SIZE/2, sKostkaPoprzednia[0][1] + DISP_Y_SIZE/2, sKostkaPoprzednia[1][0] + DISP_X_SIZE/2, sKostkaPoprzednia[1][1] + DISP_Y_SIZE/2);
 	RysujLinie(sKostkaPoprzednia[1][0] + DISP_X_SIZE/2, sKostkaPoprzednia[1][1] + DISP_Y_SIZE/2, sKostkaPoprzednia[2][0] + DISP_X_SIZE/2, sKostkaPoprzednia[2][1] + DISP_Y_SIZE/2);
 	RysujLinie(sKostkaPoprzednia[2][0] + DISP_X_SIZE/2, sKostkaPoprzednia[2][1] + DISP_Y_SIZE/2, sKostkaPoprzednia[3][0] + DISP_X_SIZE/2, sKostkaPoprzednia[3][1] + DISP_Y_SIZE/2);
@@ -2360,7 +2418,7 @@ uint32_t RysujKostkeObrotu(float *fKat)
 		nIloczynSkalarny[n] = sWektor[n][0] * sWektorRzutowania[n][0] + sWektor[n][1] * sWektorRzutowania[n][1] + sWektor[n][2] * sWektorRzutowania[n][2]; */
 
 	//rysuj obrys kostki z góry
-	setColor(RED);
+	setColor(CZERWONY);
 	//if (nIloczynSkalarny[0] <= 0)	//jeżeli odległość górnej płaszczyzny od ekrany jest większa niż dolnej płaszcyzny
 	{
 		RysujLinie(sKostka[0][0] + DISP_X_SIZE/2, sKostka[0][1] + DISP_Y_SIZE/2, sKostka[1][0] + DISP_X_SIZE/2, sKostka[1][1] + DISP_Y_SIZE/2);
@@ -2446,7 +2504,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		setColor(ZOLTY);
 		sprintf(chNapis, "B%cbelek powinien by%c w %crodku poziomicy", ą, ć, ś);
 		RysujNapis(chNapis, CENTER, 50);
-		setColor(GRAY60);
+		setColor(SZARY60);
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
 		RysujNapis(chNapis, CENTER, 70);
 		statusDotyku.chFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
@@ -2513,7 +2571,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	//wyświetl współczynnik kalibracji
 	if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) && (chEtapKalibracji >= 2))
 	{
-		setColor(WHITE);										//nowy współczynnik
+		setColor(BIALY);										//nowy współczynnik
 		sprintf(chNapis, "%.3f", uDaneCM4.dane.uRozne.f32[0]);
 		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 200);
 		sprintf(chNapis, "%.3f", uDaneCM4.dane.uRozne.f32[1]);
@@ -2571,7 +2629,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	/*setBackColor(GRAY40);	//kolor tła napisu kolorem przycisku
 	UstawCzcionke(BigFont);
 	RysujNapis(chNapis, stPrzycisk.sX1 + (stPrzycisk.sX2 - stPrzycisk.sX1)/2 - chRozmiar*FONT_BL/2 , stPrzycisk.sY1 + (stPrzycisk.sY2 - stPrzycisk.sY1)/2 - FONT_BH/2);
-	setBackColor(BLACK);
+	setBackColor(CZARNY);
 	UstawCzcionke(MidFont);*/
 
 
@@ -2653,15 +2711,15 @@ void Poziomica(float fKatAkcelX, float fKatAkcelY)
 		y2 = y;
 
 		//skala 5°
-		setColor(BLACK);
+		setColor(CZARNY);
 		RysujOkrag(LIBELLA_BOK / 2, DISP_Y_SIZE - LIBELLA_BOK / 2, 50);
 
 		//skala 10°
-		setColor(BLACK);
+		setColor(CZARNY);
 		RysujOkrag(LIBELLA_BOK / 2, DISP_Y_SIZE - LIBELLA_BOK / 2, 75);
 
 		//skala 15°
-		setColor(BLACK);
+		setColor(CZARNY);
 		RysujOkrag(LIBELLA_BOK / 2, DISP_Y_SIZE - LIBELLA_BOK / 2, 100);
 
 		RysujLiniePozioma(0, DISP_Y_SIZE - LIBELLA_BOK/2, LIBELLA_BOK);
@@ -2694,7 +2752,7 @@ void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc)
 	setBackColor(GRAY40);	//kolor tła napisu kolorem przycisku
 	UstawCzcionke(BigFont);
 	RysujNapis(chNapis, prost.sX1 + (prost.sX2 - prost.sX1)/2 - chRozmiar*FONT_BL/2 , prost.sY1 + (prost.sY2 - prost.sY1)/2 - FONT_BH/2);
-	setBackColor(BLACK);
+	setBackColor(CZARNY);
 	UstawCzcionke(MidFont);
 }
 
@@ -2760,7 +2818,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		}
 
 
-		setColor(GRAY60);
+		setColor(SZARY60);
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
 		RysujNapis(chNapis, CENTER, 45);
 
@@ -3151,7 +3209,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		sprintf(chNapis, "U%crednij ci%cn. pocz. Pokonaj wys=27m i ponownie u%crednij", ś, ś, ś);
 		RysujNapis(chNapis, CENTER, 30);
 
-		setColor(GRAY60);
+		setColor(SZARY60);
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
 		RysujNapis(chNapis, CENTER, 50);
 
@@ -3182,7 +3240,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 	}
 
 	// Zwraca: kod błędu
-	setColor(WHITE);
+	setColor(BIALY);
 	sprintf(chNapis, "%.0f Pa", uDaneCM4.dane.fCisnieBzw[0]);
 	RysujNapis(chNapis, KOL12 + 14*FONT_SL, 100);
 	sprintf(chNapis, "%.0f Pa", uDaneCM4.dane.fCisnieBzw[1]);
@@ -3312,7 +3370,7 @@ void PlaskiObrotMagnetometrow(void)
 		sprintf(chNapis, "Deklinacja: %.2f %c", DEKLINACJA_MAG * RAD2DEG, ZNAK_STOPIEN);
 		RysujNapis(chNapis, KOL12, 200);
 
-		setColor(GRAY60);
+		setColor(SZARY60);
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
 		RysujNapis(chNapis, CENTER, 30);
 
@@ -3450,7 +3508,7 @@ void NastawyPID(uint8_t chKanal)
 		RysujNapis(chNapis, KOL22, 180);
 		sprintf(chNapis, "Filtr D:");
 		RysujNapis(chNapis, KOL22, 200);
-		setColor(GRAY60);
+		setColor(SZARY60);
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
 		RysujNapis(chNapis, CENTER, 30);
 
@@ -3460,9 +3518,9 @@ void NastawyPID(uint8_t chKanal)
 		{
 			un8_32.daneFloat = fNastawy[6];
 			if (un8_32.dane8[0] & PID_WLACZONY)
-				setColor(GRAY60);	//regulator wyłączony
+				setColor(SZARY60);	//regulator wyłączony
 			else
-				setColor(WHITE);	//regulator pracuje
+				setColor(BIALY);	//regulator pracuje
 
 			sprintf(chNapis, "%.3f ", fNastawy[0]);	//Kp
 			RysujNapis(chNapis, KOL12 + 4*FONT_SL, 80);
@@ -3492,9 +3550,9 @@ void NastawyPID(uint8_t chKanal)
 		{
 			un8_32.daneFloat = fNastawy[6];
 			if (un8_32.dane8[0] & PID_WLACZONY)
-				setColor(GRAY60);	//regulator wyłączony
+				setColor(SZARY60);	//regulator wyłączony
 			else
-				setColor(WHITE);	//regulator pracuje
+				setColor(BIALY);	//regulator pracuje
 
 			sprintf(chNapis, "%.3f ", fNastawy[0]);	//Kp
 			RysujNapis(chNapis, KOL22 + 4*FONT_SL, 80);
@@ -3570,7 +3628,7 @@ void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sK
 			if (*(sDaneKasowania + 2*x) < nMin)
 				nMin = *(sDaneKasowania + 2*x);
 		}
-		setColor(BLACK);
+		setColor(CZARNY);
 		for (int16_t x=0; x<480; x++)
 		{
 			y2 = (uint16_t)(*(sDaneKasowania + 2*x) - nMin);

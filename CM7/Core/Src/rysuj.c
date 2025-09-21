@@ -77,7 +77,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 				setColor(MENU_TLO_NAK);
 				RysujBitmape(x-MENU_ICO_WYS/2, y-MENU_ICO_DLG/2, MENU_ICO_DLG, MENU_ICO_WYS, menu[m*MENU_KOLUMNY+n].sIkona);
 
-				setColor(GRAY60);
+				setColor(SZARY60);
 				x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
 				strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
 				RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
@@ -117,7 +117,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 						y = ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / (2*MENU_WIERSZE)) + m * ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS) / MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
 						setColor(CZARNY);
 						RysujProstokatZaokraglony(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
-						setColor(GRAY60);
+						setColor(SZARY60);
 						x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
 						strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
 						RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
@@ -156,7 +156,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		if ((chStarySelPos != chMenuSelPos) || chRysujRaz)
 		{
 			setColor(MENU_RAM_AKT);
-			setBackColor(GRAY20);
+			setBackColor(SZARY20);
 			strcpy(chNapis, menu[chMenuSelPos].chPomoc);
 			RysujNapis(chNapis, DW_SPACE, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 			setBackColor(CZARNY);
@@ -180,7 +180,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	if (sTime.Seconds != chOstatniCzas)
 	{
 		setColor(MENU_RAM_AKT);
-		setBackColor(GRAY20);
+		setBackColor(SZARY20);
 		sprintf(chNapis, "%02d:%02d:%02d", sTime.Hours,  sTime.Minutes,  sTime.Seconds);
 		RysujNapis(chNapis, DISP_X_SIZE - 8*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		chOstatniCzas = sTime.Seconds;
@@ -190,7 +190,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	//odśwież status połączenia jeżeli się zmieniło
 	uint8_t chStatus;
 
-	setBackColor(GRAY20);
+	setBackColor(SZARY20);
 	for (uint8_t n=0; n<4; n++)		//rozpatruj sobno każde połaczenia
 	{
 		chStatus = (chStatusPolaczenia >> (2*n)) & 0x03;		//wyodrebnij bity danego połączenia
@@ -200,7 +200,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 			//switch ((chStatusPolaczenia >> (2*n)) & 0x03)
 			switch (chStatus)
 			{
-			case 0: setColor(GRAY60);	break;
+			case 0: setColor(SZARY60);	break;
 			case 1: setColor(ZOLTY);	break;
 			case 2: setColor(ZIELONY);	break;
 			case 3: setColor(CZERWONY);	break;
