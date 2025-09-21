@@ -73,7 +73,9 @@ typedef struct st_DiagKam
 	uint8_t chProgAEC_L;			//0x3A10
 	uint8_t chProgStabAEC_H;		//0x3A1B
 	uint8_t chProgStabAEC_L;		//0x3A1E
-	uint16_t sMaxCzasEkspoVTS;		//0x350C..0dD
+	uint16_t sMaxCzasEkspoVTS;		//0x350C..0D
+	uint16_t sRozmiarPoz_HTS;		//0x380C..0D
+	uint16_t sRozmiarPio_VTS;		//0x380E..0F
 } stDiagKam_t;
 
 uint8_t InicjalizujKamere(void);
@@ -84,6 +86,7 @@ uint8_t UstawKamere(stKonfKam_t *konf);
 uint8_t UstawKamere2(stKonfKam_t *konf);
 //uint8_t RozpocznijPraceDCMI(uint8_t chTrybPracy, uint16_t* sBufor);
 uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor);
+uint8_t CzekajNaKoniecPracyDCMI(void);
 uint8_t ZrobZdjecie(void);
 uint8_t Wyslij_Blok_Kamera(const struct sensor_reg reglist[]);
 uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chZoom);

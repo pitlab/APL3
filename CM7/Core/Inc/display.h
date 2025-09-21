@@ -13,23 +13,14 @@
 #define	CZERWONY   	0xF800
 #define	ZIELONY   	0x07E0
 #define CYJAN    	0x07FF
-#define CYAN    	0x07FF
 #define MAGENTA 	0xF81F
 #define ZOLTY	  	0xFFE0
-#define YELLOW  	0xFFE0
+//#define YELLOW  	0xFFE0
 #define POMARANCZ	0xFDA0
 #define BIALY 		0xFFFF
 #define LIBELLA1	0xAEAA	//płyn
 #define LIBELLA2	0x95EA	//obwódka bąbelka
 #define LIBELLA3	0xCFAA	//bąbelek
-#define GRAY10 		0x18C3	//najciemniejszy
-#define GRAY20 		0x3186
-#define GRAY30 		0x4A69
-#define GRAY40 		0x632C
-#define GRAY50 		0x7BEF
-#define GRAY70 		0xB596
-#define GRAY80 		0xCE79
-
 #define SZARY10 	0x18C3	//najciemniejszy
 #define SZARY20 	0x3186
 #define SZARY30 	0x4A69
@@ -43,10 +34,10 @@
 #define	KOLOR_Y	   	0x07E0	//dla osi Y (zielony)
 #define	KOLOR_Z   	0x7C7F	//dla osi Z (niebieski)
 
-#define MENU_TLO_BAR	GRAY40	//kolor belki menu górnego
-#define MENU_TLO_WYB	GRAY70	//pozycja menu edytowana lub uruchamiana
-#define MENU_TLO_AKT	GRAY50	//pozycja menu podświetlona
-#define MENU_TLO_NAK	GRAY30	//pozycja nieaktywna
+#define MENU_TLO_BAR	SZARY40	//kolor belki menu górnego
+#define MENU_TLO_WYB	SZARY70	//pozycja menu edytowana lub uruchamiana
+#define MENU_TLO_AKT	SZARY50	//pozycja menu podświetlona
+#define MENU_TLO_NAK	SZARY30	//pozycja nieaktywna
 
 #define MENU_RAM_WYB	ZIELONY
 #define MENU_RAM_AKT	BIALY

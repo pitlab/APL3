@@ -60,9 +60,9 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		BelkaTytulu(tytul);		//rysuje belkę tytułu ekranu
 
 		//rysuje pasek podpowiedzi na dole ekranu
-		//setColor(GRAY20);
+		//setColor(SZARY20);
 		//fillRect(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, DISP_Y_SIZE);
-		RysujProstokatWypelniony(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, GRAY20);
+		RysujProstokatWypelniony(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, SZARY20);
 		setBackColor(CZARNY);
 
 		//rysuj ikony poleceń
@@ -125,9 +125,9 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 					}
 				}
 			}
-			//setColor(GRAY20);
+			//setColor(SZARY20);
 			//fillRect(0, DISP_X_SIZE-MENU_PASOP_WYS, DISP_Y_SIZE, DISP_X_SIZE);		//zamaż pasek podpowiedzi
-			RysujProstokatWypelniony(0, DISP_Y_SIZE-MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, GRAY20);		//zamaż pasek podpowiedzi
+			RysujProstokatWypelniony(0, DISP_Y_SIZE-MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, SZARY20);		//zamaż pasek podpowiedzi
 
 		}
 
@@ -146,7 +146,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 					else
 						setColor(MENU_RAM_AKT);
 					RysujProstokatZaokraglony(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
-					setColor(GRAY80);
+					setColor(SZARY80);
 					x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
 					strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
 					RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
@@ -306,16 +306,16 @@ uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* 
 void RysujHistogramRGB32(uint8_t *histR, uint8_t *histG, uint8_t *histB)
 {
 	uint16_t sPoczatek;	//wskazuje na początek kolejnego histogramu
-	uint16_t sXprzes;	//przesuwa całość do prawego brzegu
 
 	for (uint8_t x=0; x<ROZMIAR_HIST_KOLOR; x++)
 	{
-		sXprzes = x + DISP_X_SIZE - (3 * ROZMIAR_HIST_KOLOR * SZER_PASKA_HISTOGRAMU);
-		sPoczatek = sXprzes;
+		sPoczatek = (x * SZER_PASKA_HISTOGRAMU) + (DISP_X_SIZE - (3 * ROZMIAR_HIST_KOLOR * SZER_PASKA_HISTOGRAMU));
 		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histR + x), SZER_PASKA_HISTOGRAMU, *(histR + x), CZERWONY);
-		sPoczatek = sXprzes + x * SZER_PASKA_HISTOGRAMU + SZER_PASKA_HISTOGRAMU * ROZMIAR_HIST_KOLOR;
+
+		sPoczatek = (x * SZER_PASKA_HISTOGRAMU) + (DISP_X_SIZE - (3 * ROZMIAR_HIST_KOLOR * SZER_PASKA_HISTOGRAMU)) + (ROZMIAR_HIST_KOLOR * SZER_PASKA_HISTOGRAMU);
 		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histG + x), SZER_PASKA_HISTOGRAMU, *(histG + x), ZIELONY);
-		sPoczatek = sXprzes + x * SZER_PASKA_HISTOGRAMU + (2 * SZER_PASKA_HISTOGRAMU * ROZMIAR_HIST_KOLOR);
+
+		sPoczatek = (x * SZER_PASKA_HISTOGRAMU) + (DISP_X_SIZE - (3 * ROZMIAR_HIST_KOLOR * SZER_PASKA_HISTOGRAMU)) + (2 * ROZMIAR_HIST_KOLOR * SZER_PASKA_HISTOGRAMU);
 		RysujProstokatWypelniony(sPoczatek, DISP_Y_SIZE - *(histB + x), SZER_PASKA_HISTOGRAMU, *(histB + x), NIEBIESKI);
 	}
 }

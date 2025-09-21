@@ -12,6 +12,9 @@
 #include "lwip/tcp.h"
 #include "lwip/sockets.h"
 #include "czas.h"
+#include "jpeg.h"
+
+
 
 //podsłuchowanie w wireshark: tcp.port == 8554 oraz udp.port >= 5000
 
@@ -65,8 +68,10 @@ static struct sockaddr_in client_addr;   // adres klienta
 //int nDeskrGniazdaPolaczenia, nDeskrGniazdaOdbioru;
 struct sockaddr_in AdresSerwera, AdresKlienta;
 uint8_t chTrwaStreamRTP;
-extern const unsigned char oko480x320[152318];
+//extern const unsigned char oko480x320[152318];
 extern uint8_t chStatusPolaczenia;
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJPEG[ROZMIAR_BUF_JPEG];
+extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -208,16 +213,15 @@ void WatekStreamujacyRTP(void *arg)
     uint8_t chPakiet_RTP[ROZMIAR_PAKIETU_RTP];
     uint16_t sNumerPakietu = 0;
     uint32_t nTimeStamp = PobierzCzasT6();
-    uint32_t nOffsetObrazu, nRozmiarObrazu, nPorcjaObrazu;
+    uint32_t nOffsetObrazu, nPorcjaObrazu;
 
     while (chTrwaStreamRTP)
     {
     	chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_RTSP);
 
     	//początek obrazu
-    	nRozmiarObrazu = sizeof(oko480x320);
     	nOffsetObrazu = 0;
-    	while (nOffsetObrazu < nRozmiarObrazu)
+    	while (nOffsetObrazu < nRozmiarObrazuJPEG)
 		{
 			//Nagłówek RTP (12 bajtów)
 			chPakiet_RTP[0] = 0x00;      // V(wersja)=2, P(padding)=0, X(extension)=0, CC(CRSC count)=0
@@ -244,13 +248,13 @@ void WatekStreamujacyRTP(void *arg)
 			chPakiet_RTP[19] = 320/8; // height/8
 
 			//przepisz kolejny kawałek obrazu do ramki
-			nPorcjaObrazu = nRozmiarObrazu - nOffsetObrazu;
+			nPorcjaObrazu = nRozmiarObrazuJPEG - nOffsetObrazu;
 			if (nPorcjaObrazu > ROZMIAR_PAKIETU_RTP - 20)
 				nPorcjaObrazu = ROZMIAR_PAKIETU_RTP - 20;
-			memcpy(&chPakiet_RTP[20], oko480x320 + nOffsetObrazu, nPorcjaObrazu);
+			memcpy(&chPakiet_RTP[20], chBuforJPEG + nOffsetObrazu, nPorcjaObrazu);
 
 			//w ostatnim segmencie daj znacznik
-	        if ((nOffsetObrazu + nPorcjaObrazu) >= nRozmiarObrazu)
+	        if ((nOffsetObrazu + nPorcjaObrazu) >= nRozmiarObrazuJPEG)
 	        {
 	        	chPakiet_RTP[1] |= 0x80; // M=1
 	        }

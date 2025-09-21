@@ -138,7 +138,6 @@ extern struct st_KonfKam stKonfKam;
 extern uint32_t nRozmiarObrazuKamery;
 extern stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
 
-
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
@@ -225,8 +224,8 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Zdjecie",		"Wykonuje statyczne zdjecie kamera",		TP_ZDJECIE,			obr_aparat},
 	{"Kam. SRAM",	"Kamera w trybie ciaglym z pam. SRAM",		TP_KAMERA,			obr_kamera},
-	{"Kam. DRAM",	"Kamera w trybie ciaglym z pam. DRAM",		TP_KAM_DRAM,			obr_kamera},
-	{"Czar-Bialy",	"Obraz czarnobiały",						TP_KAM_CB,			obr_kamera},
+	{"Kam. DRAM",	"Kamera w trybie ciaglym z pam. DRAM",		TP_KAM_DRAM,		obr_kamera},
+	{"Czar-Bialy",	"Obraz czarno-bialy",						TP_KAM_CB,			obr_kamera},
 	{"Domyślny",	"Konfiguracja domyślna",					TP_KAM1,			obr_narzedzia},
 	{"320x240",		"Ustawia kamere na 320x240 ",				TP_USTAW_KAM_320x240,	obr_narzedzia},
 	{"480x320",		"Ustawia kamere na 480x320 ",				TP_USTAW_KAM_480x320,	obr_narzedzia},
@@ -348,7 +347,7 @@ void RysujEkran(void)
 			NapelnijBuforDzwieku(sBuforPapuga, DISP_X_SIZE);
 			sprintf(chNapis, "Inicjalizacja: %d/%d", n, 5);
 			RysujNapis(chNapis, 10, 5);
-			RysujPrzebieg(0, sBuforPapuga, GRAY80);
+			RysujPrzebieg(0, sBuforPapuga, SZARY80);
 		}
 		//znajdź minimum z ostatniej próbki robiegowej
 		for (int16_t x=0; x<DISP_X_SIZE; x++)
@@ -533,7 +532,9 @@ void RysujEkran(void)
 			if (chErr)
 				break;
 
-			osDelay(22);	//czekaj na przechwycenie całej ramki obrazu	21,6ms
+			chErr = CzekajNaKoniecPracyDCMI();
+			if (chErr)
+				break;
 
 			for (uint32_t n=ROZM_BUF16_KAM-1; n>0; n--)	//zmierz rozmiar połowy obrazu kamery
 			{
@@ -601,6 +602,9 @@ void RysujEkran(void)
 
 		sprintf(chNapis, "Rozmiar okna obrazu X: %d, Y: %d", stDiagKam.sRozmiarOknaObrazu_X, stDiagKam.sRozmiarOknaObrazu_Y);
 		RysujNapis(chNapis, 0, 110);
+
+		sprintf(chNapis, "Rozmiar obrazu X (HTS): %d, Y (VTS): %d", stDiagKam.sRozmiarPoz_HTS, stDiagKam.sRozmiarPio_VTS);
+		RysujNapis(chNapis, 0, 130);
 
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
@@ -784,7 +788,7 @@ void RysujEkran(void)
 		{
 			BelkaTytulu("Emulacja magnetometru CAN");
 			chRysujRaz = 0;
-			setColor(GRAY50);
+			setColor(SZARY50);
 			sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 			RysujNapis(chNapis, CENTER, 300);
 		}
@@ -1203,13 +1207,13 @@ void Ekran_Powitalny(uint32_t nZainicjowano)
 		WypelnijEkran(BIALY);
 		RysujBitmape((DISP_X_SIZE-165)/2, 5, 165, 80, plogo165x80);
 
-		setColor(GRAY20);
+		setColor(SZARY20);
 		setBackColor(BIALY);
 		UstawCzcionke(BigFont);
 		sprintf(chNapis, "%s @%luMHz", (char*)chNapisLcd[STR_WITAJ_TYTUL], HAL_RCC_GetSysClockFreq()/1000000);
 		RysujNapis(chNapis, CENTER, 90);
 
-		setColor(GRAY30);
+		setColor(SZARY30);
 		UstawCzcionke(MidFont);
 		//sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO], ó, ć, ó, ó, ż);	//"By móc mieć w rój Wronów na pohybel wrażym hordom""
 		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO2], ó, ó, ż, ó);	//"By móc zmóc wraże hordy rojem Wronów"	//STR_WITAJ_MOTTO2
@@ -1331,7 +1335,7 @@ void Wykrycie(uint16_t x, uint16_t y, uint8_t znakow, uint8_t wykryto)
 	}
 	x += kropek * szer_fontu;
 	RysujNapis(chNapis, x , y);
-	setColor(GRAY30);
+	setColor(SZARY30);
 }
 
 
@@ -1360,7 +1364,7 @@ void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fP
 
 	//stopka komunikatu
 	UstawCzcionke(MidFont);
-	setColor(GRAY50);
+	setColor(SZARY50);
 	sprintf(chNapis, (char*)chOpisBledow[KOMUNIKAT_STOPKA]);	//"Wdus ekran i trzymaj aby zakonczyc"
 	RysujNapis(chNapis, CENTER, 250);
 
@@ -1406,7 +1410,7 @@ void PomiaryIMU(void)
 		chRysujRaz = 0;
 		BelkaTytulu("Dane pomiarowe AHRS");
 
-		setColor(GRAY80);
+		setColor(SZARY80);
 		sprintf(chNapis, "Akcel1:");
 		RysujNapis(chNapis, KOL12, 30);
 		sprintf(chNapis, "[m/s^2]");
@@ -1457,102 +1461,102 @@ void PomiaryIMU(void)
 		sprintf(chNapis, "Kwaternion Mag:");
 		RysujNapis(chNapis, KOL12, 270);
 
-		setColor(GRAY50);
+		setColor(SZARY50);
 		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 		RysujNapis(chNapis, CENTER, 300);
 	}
 
 	//ICM42688
-	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fAkcel1[0]);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 30);
-	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fAkcel1[1]);
 	RysujNapis(chNapis, KOL12+20*FONT_SL, 30);
-	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fAkcel1[2]);
 	RysujNapis(chNapis, KOL12+32*FONT_SL, 30);
 
 	//LSM6DSV
-	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fAkcel2[0]);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 50);
-	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fAkcel2[1]);
 	RysujNapis(chNapis, KOL12+20*FONT_SL, 50);
-	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fAkcel2[2]);
 	RysujNapis(chNapis, KOL12+32*FONT_SL, 50);
 
 	//ICM42688
-	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[0]);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 70);
-	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[1]);
 	RysujNapis(chNapis, KOL12+20*FONT_SL, 70);
-	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[2]);
 	RysujNapis(chNapis, KOL12+32*FONT_SL, 70);
-	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(ZOLTY); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(ZOLTY); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	RysujNapis(chNapis, KOL12+49*FONT_SL, 70);
 
 	//LSM6DSV
-	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[0]);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 90);
-	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[1]);
 	RysujNapis(chNapis, KOL12+20*FONT_SL, 90);
-	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[2]);
 	RysujNapis(chNapis, KOL12+32*FONT_SL, 90);
-	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(ZOLTY); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(ZOLTY); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU2] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
 	RysujNapis(chNapis, KOL12+49*FONT_SL, 90);
 
 	//IIS2MDC
-	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[0]*1e6);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 110);
-	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[1]*1e6);
 	RysujNapis(chNapis, KOL12+20*FONT_SL, 110);
-	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[2]*1e6);
 	RysujNapis(chNapis, KOL12+32*FONT_SL, 110);
-	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(SZARY50);
 	fDlugosc = sqrtf(uDaneCM4.dane.fMagne1[0] * uDaneCM4.dane.fMagne1[0] + uDaneCM4.dane.fMagne1[1] * uDaneCM4.dane.fMagne1[1] + uDaneCM4.dane.fMagne1[2] * uDaneCM4.dane.fMagne1[2]);
 	sprintf(chNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
 	RysujNapis(chNapis, KOL12+49*FONT_SL, 110);
 
 	//MMC34160
-	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[0]*1e6);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 130);
-	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[1]*1e6);
 	RysujNapis(chNapis, KOL12+20*FONT_SL, 130);
-	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[2]*1e6);
 	RysujNapis(chNapis, KOL12+32*FONT_SL, 130);
-	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(SZARY50);
 	fDlugosc = sqrtf(uDaneCM4.dane.fMagne2[0] * uDaneCM4.dane.fMagne2[0] + uDaneCM4.dane.fMagne2[1] * uDaneCM4.dane.fMagne2[1] + uDaneCM4.dane.fMagne2[2] * uDaneCM4.dane.fMagne2[2]);
 	sprintf(chNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
 	RysujNapis(chNapis, KOL12+49*FONT_SL, 130);
 
 	//HMC5883
-	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_X); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[0]*1e6);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 150);
-	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Y); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[1]*1e6);
 	RysujNapis(chNapis, KOL12+20*FONT_SL, 150);
-	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Z); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[2]*1e6);
 	RysujNapis(chNapis, KOL12+32*FONT_SL, 150);
-	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(SZARY50);
 	fDlugosc = sqrtf(uDaneCM4.dane.fMagne3[0] * uDaneCM4.dane.fMagne3[0] + uDaneCM4.dane.fMagne3[1] * uDaneCM4.dane.fMagne3[1] + uDaneCM4.dane.fMagne3[2] * uDaneCM4.dane.fMagne3[2]);
 	sprintf(chNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
 	RysujNapis(chNapis, KOL12+49*FONT_SL, 150);
@@ -1675,7 +1679,7 @@ void PomiaryCisnieniowe(void)
 		chRysujRaz = 0;
 		BelkaTytulu("Dane czujnikow cisnienia");
 
-		setColor(GRAY80);
+		setColor(SZARY80);
 		sprintf(chNapis, "Ci%cn 1:             AGL1:", ś);
 		RysujNapis(chNapis, KOL12, 30);
 		sprintf(chNapis, "Ci%cn 2:             AGL2:", ś);
@@ -1692,52 +1696,52 @@ void PomiaryCisnieniowe(void)
 		sprintf(chNapis, "GNSS Czas:             Data:              Sat:");
 		RysujNapis(chNapis, KOL12, 180);
 
-		setColor(GRAY50);
+		setColor(SZARY50);
 		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 		RysujNapis(chNapis, CENTER, 300);
 	}
 
 	//MS5611
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(BIALY); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(BIALY); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnieBzw[0]);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 30);
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(CYJAN); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(CYJAN); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysokoMSL[0]);
 	RysujNapis(chNapis, KOL12+26*FONT_SL, 30);
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(ZOLTY); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(ZOLTY); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
 	RysujNapis(chNapis, KOL12+40*FONT_SL, 30);
 
 	//BMP581
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(BIALY); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(BIALY); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnieBzw[1]);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 50);
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(CYJAN); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(CYJAN); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysokoMSL[1]);
 	RysujNapis(chNapis, KOL12+26*FONT_SL, 50);
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(ZOLTY); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(ZOLTY); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
 	RysujNapis(chNapis, KOL12+40*FONT_SL, 50);
 
 	//ND130
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(BIALY); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(BIALY); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[0]);
 	RysujNapis(chNapis, KOL12+11*FONT_SL, 70);
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(MAGENTA); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(MAGENTA); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[0]);
 	RysujNapis(chNapis, KOL12+26*FONT_SL, 70);
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(ZOLTY); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(ZOLTY); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
 	RysujNapis(chNapis, KOL12+40*FONT_SL, 70);
 
 	//MS4525
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(BIALY); 	else	setColor(GRAY50);	//stan wyzerowania sygnalizuj kolorem
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(BIALY); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[1]);
 	RysujNapis(chNapis, KOL12+11*FONT_SL, 90);
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(MAGENTA); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(MAGENTA); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[1]);
 	RysujNapis(chNapis, KOL12+26*FONT_SL, 90);
-	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(ZOLTY); 	else	setColor(GRAY50);
+	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(ZOLTY); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2] - KELVIN , ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
 	RysujNapis(chNapis, KOL12+40*FONT_SL, 90);
 
@@ -1745,7 +1749,7 @@ void PomiaryCisnieniowe(void)
 	if (uDaneCM4.dane.stGnss1.chFix)
 		setColor(BIALY);	//jest fix
 	else
-		setColor(GRAY70);	//nie ma fixa
+		setColor(SZARY70);	//nie ma fixa
 
 	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dDlugoscGeo);
 	RysujNapis(chNapis, KOL12+11*FONT_SL, 140);
@@ -1792,13 +1796,13 @@ void DaneOdbiornikaRC(void)
 		for (n=0; n<KANALY_ODB_RC; n++)
 		{
 			y = n * 17;
-			setColor(GRAY80);
+			setColor(SZARY80);
 			sprintf(chNapis, "Kan %2d:", n+1);
 			RysujNapis(chNapis, KOL12, y+26);
-			setColor(GRAY40);
+			setColor(SZARY40);
 			RysujProstokat(119, y+29, (121 + (PPM_MAX - PPM_MIN) / ROZDZIECZOSC_PASKA_RC), y+29+8);
 		}
-		setColor(GRAY50);
+		setColor(SZARY50);
 		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 		RysujNapis(chNapis, CENTER, 300);
 	}
@@ -1806,7 +1810,7 @@ void DaneOdbiornikaRC(void)
 	for (n=0; n<KANALY_ODB_RC; n++)
 	{
 		y = n * 17;
-		setColor(GRAY80);
+		setColor(SZARY80);
 		sprintf(chNapis, "%4d ", uDaneCM4.dane.sKanalRC[n]);
 		RysujNapis(chNapis, KOL12+8*FONT_SL, y+26);
 
@@ -1865,7 +1869,7 @@ void TestTonuAudio(void)
 		chRysujRaz = 0;
 		BelkaTytulu("Test tonu wario");
 
-		setColor(GRAY80);
+		setColor(SZARY80);
 		sprintf(chNapis, "Numer tonu:");
 		RysujNapis(chNapis, KOL12, 30);
 		sprintf(chNapis, "Czest. 1 harm.:");
@@ -1934,7 +1938,7 @@ void WyswietlParametryKartySD(void)
 		HAL_SD_GetCardStatus(&hsd1, &pStatus);
 		sPozY = 30;
 
-		setColor(GRAY70);
+		setColor(SZARY70);
 		sprintf(chNapis, "Typ: %ld ", CardInfo.CardType);
 		RysujNapis(chNapis, KOL12, sPozY);
 		sPozY += 20;
@@ -1955,15 +1959,15 @@ void WyswietlParametryKartySD(void)
 		for (uint16_t n=0; n<12; n++)
 		{
 			if (CardInfo.Class & (1<<n))
-				setColor(GRAY80);
+				setColor(SZARY80);
 			else
-				setColor(GRAY40);
+				setColor(SZARY40);
 			sprintf(chNapis, "%X", n);
 			RysujNapis(chNapis, KOL12 + ((5+n)*FONT_SL), sPozY);
 		}
 		sPozY += 20;
 
-		setColor(GRAY70);
+		setColor(SZARY70);
 		sprintf(chNapis, "Klasa predk: %d ", pStatus.SpeedClass);
 		RysujNapis(chNapis, KOL12, sPozY);
 		sPozY += 20;
@@ -2049,7 +2053,7 @@ void WyswietlParametryKartySD(void)
 		//RysujNapis(chNapis, KOL22, sPozY);
 		//sPozY += 20;
 
-		setColor(GRAY70);
+		setColor(SZARY70);
 		sprintf(chNapis, "Format: ");
 		RysujNapis(chNapis, KOL22, sPozY);
 		switch (pCSD.FileFormat)
@@ -2059,11 +2063,11 @@ void WyswietlParametryKartySD(void)
 		case 2: sprintf(chNapis, "UnivFileFormat ");	break;
 		default: sprintf(chNapis, "Nieznany ");			break;
 		}
-		setColor(GRAY80);
+		setColor(SZARY80);
 		RysujNapis(chNapis, KOL22+8*FONT_SL, sPozY);
 		sPozY += 20;
 
-		setColor(GRAY70);
+		setColor(SZARY70);
 		sprintf(chNapis, "Manuf ID: ");
 		RysujNapis(chNapis, KOL22, sPozY);
 		switch (pCID.ManufacturerID)
@@ -2082,11 +2086,11 @@ void WyswietlParametryKartySD(void)
 		case 0x82:	sprintf(chNapis, "Sony ");	break;
 		default:	sprintf(chNapis, "%X ", pCID.ManufacturerID);
 		}
-		setColor(GRAY80);
+		setColor(SZARY80);
 		RysujNapis(chNapis, KOL22+10*FONT_SL, sPozY);
 		sPozY += 20;
 
-		setColor(GRAY70);
+		setColor(SZARY70);
 		chOEM[0] = (pCID.OEM_AppliID & 0xFF00)>>8;
 		chOEM[1] = pCID.OEM_AppliID & 0x00FF;
 		sprintf(chNapis, "OEM_AppliID: %c%c ", chOEM[0], chOEM[1]);
@@ -2131,7 +2135,7 @@ void WyswietlRejestratorKartySD(void)
 	}
 
 	sPozY = 30;
-	setColor(GRAY80);
+	setColor(SZARY80);
 
 	sprintf(chNapis, "Karta SD: ");
 	RysujNapis(chNapis, KOL12, sPozY);
@@ -2150,7 +2154,7 @@ void WyswietlRejestratorKartySD(void)
 	sPozY += 20;
 
 
-	setColor(GRAY80);
+	setColor(SZARY80);
 	sprintf(chNapis, "Stan FATu: ");
 	RysujNapis(chNapis, KOL12, sPozY);
 
@@ -2168,7 +2172,7 @@ void WyswietlRejestratorKartySD(void)
 	RysujNapis(chNapis, KOL12 + 11*FONT_SL, sPozY);
 	sPozY += 20;
 
-	setColor(GRAY80);
+	setColor(SZARY80);
 	sprintf(chNapis, "Plik logu: ");
 	RysujNapis(chNapis, KOL12, sPozY);
 
@@ -2188,7 +2192,7 @@ void WyswietlRejestratorKartySD(void)
 	RysujNapis(chNapis, KOL12 + 11*FONT_SL, sPozY);
 	sPozY += 20;
 
-	setColor(GRAY80);
+	setColor(SZARY80);
 	sprintf(chNapis, "Rejestrator: ");
 	RysujNapis(chNapis, KOL12, sPozY);
 	setColor(ZOLTY);
@@ -2205,7 +2209,7 @@ void WyswietlRejestratorKartySD(void)
 	RysujNapis(chNapis, KOL12 + 13*FONT_SL, sPozY);
 	sPozY += 20;
 
-	setColor(GRAY80);
+	setColor(SZARY80);
 	sprintf(chNapis, "Zapelnienie: ");
 	RysujNapis(chNapis, KOL12, sPozY);
 	float fZapelnienie = (float)sMaxDlugoscWierszaLogu / ROZMIAR_BUFORA_LOGU;
@@ -2407,7 +2411,7 @@ uint32_t RysujKostkeObrotu(float *fKat)
 		for (uint16_t m=0; m<2; m++)
 			sKostkaPoprzednia[n][m] = sKostka[n][m];
 	}
-	setColor(GRAY50);
+	setColor(SZARY50);
 	sprintf(chNapis, "t=%ldus, phi=%.1f, theta=%.1f, psi=%.1f ", nCzas, fKat[0]*RAD2DEG, fKat[1]*RAD2DEG, fKat[2]*RAD2DEG);
 	RysujNapis(chNapis, 0, 0);
 	return nCzas;
@@ -2431,7 +2435,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	{
 		//chRysujRaz = 0;	będzie wyzerowane w funkcji rysowania poziomicy
 		BelkaTytulu("Kalibr. wzmocnienia zyro");
-		setColor(GRAY80);
+		setColor(SZARY80);
 
 		sprintf(chNapis, "Ca%cka %cyro 1:", ł, ż);
 		RysujNapis(chNapis, KOL12 + LIBELLA_BOK, 100);
@@ -2448,7 +2452,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		sprintf(chNapis, "WspKal %cyro2:", ż);
 		RysujNapis(chNapis, KOL12 + LIBELLA_BOK, 220);
 
-		setColor(GRAY40);
+		setColor(SZARY40);
 		stPrzycisk.sX1 = 10 + LIBELLA_BOK;
 		stPrzycisk.sY1 = 240;
 		stPrzycisk.sX2 = stPrzycisk.sX1 + 210;
@@ -2535,7 +2539,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	}
 	else
 	{
-		setColor(GRAY80);										//stary współczynnik
+		setColor(SZARY80);										//stary współczynnik
 		sprintf(chNapis, "%.3f", uDaneCM4.dane.uRozne.f32[2]);
 		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 200);
 		sprintf(chNapis, "%.3f", uDaneCM4.dane.uRozne.f32[3]);
@@ -2582,7 +2586,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		break;
 	}
 
-	/*setBackColor(GRAY40);	//kolor tła napisu kolorem przycisku
+	/*setBackColor(SZARY40);	//kolor tła napisu kolorem przycisku
 	UstawCzcionke(BigFont);
 	RysujNapis(chNapis, stPrzycisk.sX1 + (stPrzycisk.sX2 - stPrzycisk.sX1)/2 - chRozmiar*FONT_BL/2 , stPrzycisk.sY1 + (stPrzycisk.sY2 - stPrzycisk.sY1)/2 - FONT_BH/2);
 	setBackColor(CZARNY);
@@ -2699,13 +2703,13 @@ void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc)
 	chRozmiar = strlen(chNapis);
 	if (chCzynnosc == RYSUJ)
 	{
-		//setColor(GRAY40);
+		//setColor(SZARY40);
 		//fillRect(prost.sX1, prost.sY1 ,prost.sX2, prost.sY2);	//rysuj przycisk
-		RysujProstokatWypelniony(prost.sX1, prost.sY1, prost.sX2-prost.sX1, prost.sY2-prost.sY1, GRAY40);
+		RysujProstokatWypelniony(prost.sX1, prost.sY1, prost.sX2-prost.sX1, prost.sY2-prost.sY1, SZARY40);
 	}
 
 	setColor(ZOLTY);
-	setBackColor(GRAY40);	//kolor tła napisu kolorem przycisku
+	setBackColor(SZARY40);	//kolor tła napisu kolorem przycisku
 	UstawCzcionke(BigFont);
 	RysujNapis(chNapis, prost.sX1 + (prost.sX2 - prost.sX1)/2 - chRozmiar*FONT_BL/2 , prost.sY1 + (prost.sY2 - prost.sY1)/2 - FONT_BH/2);
 	setBackColor(CZARNY);
@@ -2743,7 +2747,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			sprintf(chNapis, "%s %s %d", chNapisLcd[STR_WERYFIKACJA], chNapisLcd[STR_MAGNETOMETRU], (*chEtap & MASKA_CZUJNIKA)>>4);
 		BelkaTytulu(chNapis);
 
-		setColor(GRAY80);
+		setColor(SZARY80);
 		sprintf(chNapis, "%s X:", chNapisLcd[STR_MAGN]);
 		RysujNapis(chNapis, KOL12, 80);
 		sprintf(chNapis, "%s Y:", chNapisLcd[STR_MAGN]);
@@ -2778,14 +2782,14 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
 		RysujNapis(chNapis, CENTER, 45);
 
-		setColor(GRAY40);
+		setColor(SZARY40);
 		stPrzycisk.sX1 = 10;
 		stPrzycisk.sY1 = 250;
 		stPrzycisk.sX2 = stPrzycisk.sX1 + 210;
 		stPrzycisk.sY2 = DISP_Y_SIZE;
 		RysujPrzycisk(stPrzycisk, "Nastepna Os", RYSUJ);
 
-		setColor(GRAY40);
+		setColor(SZARY40);
 		stWykr.sX1 = DISP_X_SIZE - SZER_WYKR_MAG;
 		stWykr.sY1 = DISP_Y_SIZE - SZER_WYKR_MAG;
 		stWykr.sX2 = DISP_X_SIZE;
@@ -3169,7 +3173,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
 		RysujNapis(chNapis, CENTER, 50);
 
-		setColor(GRAY80);
+		setColor(SZARY80);
 		sprintf(chNapis, "Czujnik 1");
 		RysujNapis(chNapis, KOL12 + 15*FONT_SL, 80);
 		sprintf(chNapis, "Czujnik 2");
@@ -3185,7 +3189,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		RysujNapis(chNapis, KOL12, 160);
 
 
-		setColor(GRAY40);
+		setColor(SZARY40);
 		stPrzycisk.sX1 = 10;
 		stPrzycisk.sY1 = 210;
 		stPrzycisk.sX2 = stPrzycisk.sX1 + 250;
@@ -3308,7 +3312,7 @@ void PlaskiObrotMagnetometrow(void)
 		sprintf(chNapis, "%s 2D %s", chNapisLcd[STR_WERYFIKACJA], chNapisLcd[STR_MAGNETOMETRU]);
 		BelkaTytulu(chNapis);
 
-		setColor(GRAY80);
+		setColor(SZARY80);
 		sprintf(chNapis, "Przechylenie:");
 		RysujNapis(chNapis, KOL12, 80);
 		sprintf(chNapis, "Pochylenie:");
@@ -3330,7 +3334,7 @@ void PlaskiObrotMagnetometrow(void)
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
 		RysujNapis(chNapis, CENTER, 30);
 
-		setColor(GRAY40);
+		setColor(SZARY40);
 		stWykr.sX1 = DISP_X_SIZE - SZER_WYKR_MAG;
 		stWykr.sY1 = DISP_Y_SIZE - SZER_WYKR_MAG;
 		stWykr.sX2 = DISP_X_SIZE;
@@ -3341,7 +3345,7 @@ void PlaskiObrotMagnetometrow(void)
 		RysujOkrag(stWykr.sX1 + SZER_WYKR_MAG/2, stWykr.sY1 + SZER_WYKR_MAG/2, PROMIEN_RZUTU_MAGN);
 
 		//legenda kierunków  magnetycznych
-		setColor(GRAY80);
+		setColor(SZARY80);
 		RysujZnak('N', stWykr.sX1 + SZER_WYKR_MAG - 20, stWykr.sY1 + SZER_WYKR_MAG/2);
 		RysujZnak('E', stWykr.sX1 + SZER_WYKR_MAG/2, stWykr.sY1 + SZER_WYKR_MAG - 20);
 		RysujZnak('S', stWykr.sX1 + 20, stWykr.sY1 + SZER_WYKR_MAG/2);
@@ -3428,7 +3432,7 @@ void NastawyPID(uint8_t chKanal)
 		sprintf(chNapis, "%s %s", chNapisLcd[STR_NASTAWY_PID], chNapisLcd[STR_PRZECHYLENIA + chKanal/2]);
 		BelkaTytulu(chNapis);
 
-		setColor(GRAY80);
+		setColor(SZARY80);
 		sprintf(chNapis, "Regulator g%c%cwny", ł, ó);
 		RysujNapis(chNapis, KOL12, 60);
 		sprintf(chNapis, "Kp:");

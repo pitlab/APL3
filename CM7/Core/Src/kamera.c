@@ -35,6 +35,7 @@
 #include "display.h"
 #include "jpeg.h"
 #include "analiza_obrazu.h"
+#include "cmsis_os.h"
 
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM] = {0};	//bufor na klatki filmu
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};		//bufor na klatki filmu
@@ -59,7 +60,7 @@ extern uint8_t chBuforJPEG[ROZMIAR_BUF_JPEG];
 extern JPEG_HandleTypeDef hjpeg;
 uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint32_t nRozmiarObrazuKamery;	//w bajtach
-uint8_t chObrazGotowy;
+volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
 stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
 
@@ -283,15 +284,9 @@ uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor)
 	if (chErr)
 		return chErr;
 
-	//Oblicz rozmiar obrazu w zależnosci od jego formatu i rozdzielczosci
-	switch (konfig.chFormatObrazu)
-	{
-	case 0x10:	nRozmiarObrazu32bit = (konfig.chSzerWy * KROK_ROZDZ_KAM) * (konfig.chWysWy * KROK_ROZDZ_KAM) / 4;	break;	//obraz Y8 - czarnobiały, 1 bajt na piksel
-	case 0x6F:	nRozmiarObrazu32bit = (konfig.chSzerWy * KROK_ROZDZ_KAM) * (konfig.chWysWy * KROK_ROZDZ_KAM) / 2;	break;	//obraz RGB565 - kolorowy 2 bajty na piksel
-	default: chErr = ERR_ZLE_DANE;	break;
-	}
-	if (chErr)
-		return chErr;
+	//bez względu na format danych RGB565 lub YCbCr, kamera zwraca tą samą liczbę danych: 16 bitów na piksel
+	nRozmiarObrazu32bit = (konfig.chSzerWy * KROK_ROZDZ_KAM) * (konfig.chWysWy * KROK_ROZDZ_KAM) / 2;
+	chObrazKameryGotowy = 0;	//flaga jest ustawiana w callbacku: HAL_DCMI_FrameEventCallback
 
 	//Konfiguracja transferu DMA z DCMI do pamięci
 	if (konfig.chTrybPracy == KAM_ZDJECIE)		//KAM_ZDJECIE=1 lub KAM_FILM=0
@@ -299,6 +294,30 @@ uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor)
 	else
 		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)sBufor, nRozmiarObrazu32bit);
 	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Czeka z timeoutem aż DCMI w trybie snapshot przechwyci cały obraz
+// Cała ramka obrazu trwa 21,6ms, wiec czekam max 6 ramek
+// Parametry: brak
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t CzekajNaKoniecPracyDCMI(void)
+{
+	uint8_t chLicznikTimeoutu = 173;	//przy 6, 7 ramkach = 130, 151ms czasami wyskskuje na timeoucie
+	do
+	{
+		osDelay(1);		//przełącz na inny wątek
+		chLicznikTimeoutu--;
+	}
+	while ((!chObrazKameryGotowy) && chLicznikTimeoutu);
+
+	if (chLicznikTimeoutu)
+		return BLAD_OK;
+	else
+		return BLAD_TIMEOUT;
 }
 
 
@@ -356,7 +375,7 @@ void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
 	sLicznikRamekKamery++;
-	chObrazGotowy = 1;
+	chObrazKameryGotowy = 1;
 }
 
 void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
@@ -850,10 +869,6 @@ uint8_t UstawObrazCzarnoBialy(uint16_t sSzerokosc, uint16_t sWysokosc)
 	if (chErr)
 		return chErr;
 
-	//wyzeruj pamięć aby było wiadomo ile miejsca zajmuje skompresowany obraz
-	for (uint32_t n=0; n<ROZMIAR_BUF_JPEG; n++)
-		chBuforJPEG[n] = 0;
-
 	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, 75);
 	return chErr;
 }
@@ -969,5 +984,13 @@ uint8_t WykonajDiagnostykeKamery(stDiagKam_t* stDiagKam)
 	chErr |= Czytaj_I2C_Kamera(0x3806, &chRej1);	//Timing VH
 	chErr |= Czytaj_I2C_Kamera(0x3807, &chRej2);
 	stDiagKam->sRozmiarOknaObrazu_Y = (uint16_t)chRej1<<8 | chRej2;
+
+	chErr |= Czytaj_I2C_Kamera(0x380C, &chRej1);	//Timing HTS - total horizontal size
+	chErr |= Czytaj_I2C_Kamera(0x380D, &chRej2);
+	stDiagKam->sRozmiarPoz_HTS = (uint16_t)chRej1<<8 | chRej2;
+
+	chErr |= Czytaj_I2C_Kamera(0x380E, &chRej1);	//Timing VTS - total vertical size
+	chErr |= Czytaj_I2C_Kamera(0x380F, &chRej2);
+	stDiagKam->sRozmiarPio_VTS = (uint16_t)chRej1<<8 | chRej2;
 	return chErr;
 }

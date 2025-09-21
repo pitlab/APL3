@@ -265,7 +265,7 @@ uint8_t KalibrujDotyk(void)
 
 	sKolor = getColor();	//zapamiętaj kolor
 
-	setColor(YELLOW);
+	setColor(ZOLTY);
 	sprintf(chNapis, "Dotyk ADC:");
 	RysujNapis(chNapis, 80, 140);
 	sprintf(chNapis, "X = %d   ", statusDotyku.sAdc[0]);
@@ -479,10 +479,10 @@ uint8_t TestDotyku(void)
 	if (chRysujRaz)
 	{
 		chRysujRaz = 0;
-		setColor(GRAY40);
+		setColor(SZARY40);
 		sprintf(chNapis, "Test kalibracji");
 		RysujNapis(chNapis, CENTER, 60);
-		setColor(GRAY50);
+		setColor(SZARY50);
 		sprintf(chNapis, "Nacisnij ekran 6 razy aby zakonczyc");
 		RysujNapis(chNapis, CENTER, 80);
 	}
