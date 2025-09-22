@@ -15,7 +15,6 @@
 #define CYJAN    	0x07FF
 #define MAGENTA 	0xF81F
 #define ZOLTY	  	0xFFE0
-//#define YELLOW  	0xFFE0
 #define POMARANCZ	0xFDA0
 #define BIALY 		0xFFFF
 #define LIBELLA1	0xAEAA	//płyn

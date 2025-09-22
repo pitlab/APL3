@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	296		//numer commitu w repozytorium
+#define WER_REPO	297		//numer commitu w repozytorium
 
 //wybór typu wyświetlacza
 #define LCD_ILI9488		//https://sklep.msalamon.pl/produkt/wyswietlacz-tft-lcd-35%E2%80%B3-ili9488-320x480/?srsltid=AfmBOopUr_Ot4ZQNoDns7QPYb-sgwqNSRUYaUR1s1TTm1hDWmuxMRWXO lub https://pl.aliexpress.com/item/1005008606165384.html?spm=a2g0o.productlist.main.1.236d39e0dslaJU&algo_pvid=7c8e747e-899a-49cd-bec1-53d6e396e7f9&algo_exp_id=7c8e747e-899a-49cd-bec1-53d6e396e7f9-0&pdp_ext_f=%7B%22order%22%3A%222%22%2C%22eval%22%3A%221%22%2C%22fromPage%22%3A%22search%22%7D&pdp_npi=6%40dis%21PLN%2183.38%2139.19%21%21%2122.47%2110.56%21%402103917f17584357494216126eaa8c%2112000045923645614%21sea%21PL%210%21ABX%211%210%21n_tag%3A-29910%3Bd%3Af9771149%3Bm03_new_user%3A-29895&curPageLogUid=dILRVszJHv9D&utparam-url=scene%3Asearch%7Cquery_from%3A%7Cx_object_id%3A1005008606165384%7C_p_origin_prod%3A
@@ -168,17 +168,18 @@
 #define TP_ZDJECIE			110	//pojedyncze zdjęcie
 #define TP_KAMERA			111	//ciagła praca kamery
 #define TP_KAM_DRAM			112
-#define TP_KAM_CB			113	//kamera czarno-biała
+#define TP_KAM_Y8			113	//kompresja czarno-biała
 #define TP_USTAW_KAM_320x240	114
 #define TP_USTAW_KAM_480x320	115
 #define TP_KAM1				116
-#define TP_KAM2				117
+#define TP_KAM_YUV420		117	//kompresja kolorowa
 #define TP_KAM_DIAG			118
 #define TP_WROC_DO_KAMERA	119
 
 //polecenia manu ethernet
 #define TP_ETH_INFO			120
 #define TP_ETH_GADU_GADU	121
+#define ET_ETH1				122
 #define TP_WROC_DO_ETH		129
 
 //flagi inicjalizacj sprzetu na płytce
@@ -217,6 +218,7 @@
 
 //#define ROZM_BUF32_KAM		(2592*1944)		//pełen rozmiar przetwornika nie mieści się w  ext SRAM
 #define ROZM_BUF16_KAM		STD_OBRAZU_DVGA
+#define ROZM_BUF_YUV420		(STD_OBRAZU_DVGA * 3 / 2)
 
 //pamięc flash NOR
 #define ADRES_NOR			0x68000000

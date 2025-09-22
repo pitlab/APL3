@@ -244,8 +244,8 @@ void WatekStreamujacyRTP(void *arg)
 			chPakiet_RTP[15] = nOffsetObrazu & 0xFF;
 			chPakiet_RTP[16] = 1;   // Type = baseline JPEG
 			chPakiet_RTP[17] = 255; // Q=255 tablice kwantyzacji są w JPEG
-			chPakiet_RTP[18] = 480/8; // width/8
-			chPakiet_RTP[19] = 320/8; // height/8
+			chPakiet_RTP[18] = 480 / 8; // width/8
+			chPakiet_RTP[19] = 320 / 8; // height/8
 
 			//przepisz kolejny kawałek obrazu do ramki
 			nPorcjaObrazu = nRozmiarObrazuJPEG - nOffsetObrazu;

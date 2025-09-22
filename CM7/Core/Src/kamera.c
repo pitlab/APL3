@@ -40,7 +40,7 @@
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM] = {0};	//bufor na klatki filmu
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};		//bufor na klatki filmu
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforZdjecia[ROZM_BUF16_KAM] = {0};	//bufor na statyczne zdjęcie
-
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKameryYUV420[ROZM_BUF_YUV420] = {0};	//bufor na obraz YUV420
 struct st_KonfKam stKonfKam;
 static struct st_KonfKam stPoprzKonfig;	//zmienna lokalna
 struct sensor_reg stListaRejestrow[ROZMIAR_STRUKTURY_REJESTROW_KAMERY];
@@ -58,7 +58,7 @@ extern const uint8_t chAdres_expandera[];
 extern uint8_t chPort_exp_wysylany[];
 extern uint8_t chBuforJPEG[ROZMIAR_BUF_JPEG];
 extern JPEG_HandleTypeDef hjpeg;
-uint32_t nRozmiarObrazuJPEG;	//w bajtach
+extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint32_t nRozmiarObrazuKamery;	//w bajtach
 volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
 stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
@@ -263,10 +263,10 @@ uint8_t	SprawdzKamere(void)
 // Parametry: chAparat - 1 = KAM_ZDJECIE, tryb pojedyńczego zdjęcia, 0 = KAM_FILM, tryb filmu
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor)
+uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor, uint32_t nRozmiarObrazu32bit)
 {
 	uint8_t chErr;
-	uint32_t nRozmiarObrazu32bit;
+	//uint32_t nRozmiarObrazu32bit;
 
 	//konfiguracja DMA do DCMI
 	hdma_dcmi.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
@@ -285,7 +285,7 @@ uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor)
 		return chErr;
 
 	//bez względu na format danych RGB565 lub YCbCr, kamera zwraca tą samą liczbę danych: 16 bitów na piksel
-	nRozmiarObrazu32bit = (konfig.chSzerWy * KROK_ROZDZ_KAM) * (konfig.chWysWy * KROK_ROZDZ_KAM) / 2;
+	//nRozmiarObrazu32bit = (konfig.chSzerWy * KROK_ROZDZ_KAM) * (konfig.chWysWy * KROK_ROZDZ_KAM) / 2;
 	chObrazKameryGotowy = 0;	//flaga jest ustawiana w callbacku: HAL_DCMI_FrameEventCallback
 
 	//Konfiguracja transferu DMA z DCMI do pamięci
@@ -413,10 +413,7 @@ uint8_t UtworzGrupeRejestrowKamery(uint8_t chNrGrupy, struct sensor_reg *stLista
 	return chErr;
 }
 
-void CzekajNaGotowyObraz(void)
-{
 
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Uruchamia wykonanie grupy rejestrów
@@ -833,26 +830,54 @@ uint8_t UstawKamere2(stKonfKam_t *konf)
 
 
 
-void UstawDomyslny(void)
+////////////////////////////////////////////////////////////////////////////////
+// Ustawia kamerę w trybie kolorowym RGB656 generujący obraz na wwyświetlacz LCD
+// Parametry: brak
+// Zwraca: kod błędu HAL
+////////////////////////////////////////////////////////////////////////////////
+uint8_t UstawRGB565(uint16_t sSzerokosc, uint16_t sWysokosc)
 {
+	uint8_t chErr;
+
 	stKonfKam.chTrybPracy = KAM_FILM;
 	stKonfKam.chFormatObrazu = 0x6F;	//obraz RGB565
-	stKonfKam.chSzerWe = KAM_SZEROKOSC_OBRAZU / KROK_ROZDZ_KAM * 3;
-	stKonfKam.chWysWe = KAM_WYSOKOSC_OBRAZU / KROK_ROZDZ_KAM * 3;
-	UstawKamere(&stKonfKam);
+	stKonfKam.chSzerWe = sSzerokosc / KROK_ROZDZ_KAM * 3;
+	stKonfKam.chWysWe = sWysokosc / KROK_ROZDZ_KAM * 3;
+	stKonfKam.chSzerWy = sSzerokosc / KROK_ROZDZ_KAM;
+	stKonfKam.chWysWy = sWysokosc / KROK_ROZDZ_KAM;
+	chErr = UstawKamere(&stKonfKam);
+	return chErr;
 }
 
 
-
-void Ustaw1(void)
+////////////////////////////////////////////////////////////////////////////////
+// Ustawia kamerę w trybie kolorowym YUV420 aby generować obraz do kompresji JPEG
+// Parametry: brak
+// Zwraca: kod błędu HAL
+////////////////////////////////////////////////////////////////////////////////
+uint8_t UstawYUV420(uint16_t sSzerokosc, uint16_t sWysokosc)
 {
-	UstawKamere2(&stKonfKam);
+	uint8_t chErr;
+
+	stKonfKam.chTrybPracy = KAM_ZDJECIE;
+	//stKonfKam.chTrybPracy = KAM_FILM;
+	stKonfKam.chFormatObrazu = 0x40;	//obraz YUV420	YYYY/YUYV
+	stKonfKam.chSzerWe = sSzerokosc / KROK_ROZDZ_KAM * 3;
+	stKonfKam.chWysWe = sWysokosc / KROK_ROZDZ_KAM * 3;
+	stKonfKam.chSzerWy = sSzerokosc / KROK_ROZDZ_KAM;
+	stKonfKam.chWysWy = sWysokosc / KROK_ROZDZ_KAM;
+	chErr = UstawKamere(&stKonfKam);
+	if (chErr)
+		return chErr;
+
+	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, 75);
+		return chErr;
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Ustawia kamerę w trybie czarno białym YCbCr z samą luminancją
+// Ustawia kamerę w trybie czarno białym YCbCr z samą luminancją, aby generować obraz do kompresji JPEG
 // Parametry: brak
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
@@ -860,16 +885,20 @@ uint8_t UstawObrazCzarnoBialy(uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t chErr;
 
+	nRozmiarObrazuKamery = (uint32_t)sSzerokosc * sWysokosc;
+
 	//stKonfKam.chTrybPracy = KAM_ZDJECIE;
 	stKonfKam.chTrybPracy = KAM_FILM;
-	stKonfKam.chFormatObrazu = 0x10;
+	stKonfKam.chFormatObrazu = 0x10;	//obraz Y8
 	stKonfKam.chSzerWe = sSzerokosc / KROK_ROZDZ_KAM * 2;
 	stKonfKam.chWysWe = sWysokosc / KROK_ROZDZ_KAM * 2;
+	stKonfKam.chSzerWy = sSzerokosc / KROK_ROZDZ_KAM;
+	stKonfKam.chWysWy = sWysokosc / KROK_ROZDZ_KAM;
 	chErr = UstawKamere(&stKonfKam);
 	if (chErr)
 		return chErr;
 
-	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, 75);
+	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_GRAYSCALE_COLORSPACE, 75);
 	return chErr;
 }
 
@@ -882,7 +911,7 @@ uint8_t UstawObrazCzarnoBialy(uint16_t sSzerokosc, uint16_t sWysokosc)
 //  sSzerokosc, sWysokosc - rozmiary obrazu w pikselach
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ObrazCzarnoBialy(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzerokosc, uint16_t sWysokosc)
+uint8_t KompresujObrazCzarnoBialy(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t chErr;
 
@@ -894,14 +923,14 @@ uint8_t ObrazCzarnoBialy(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzer
 	if (hjpeg.State == HAL_JPEG_STATE_READY)
 	{
 		chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBufKamery, sSzerokosc * sWysokosc, chBuforJPEG, ROZMIAR_BUF_JPEG);
-		for (uint32_t n=ROZMIAR_BUF_JPEG-1; n>0; n--)	//zmierz rozmiar skompresowanego obrazu
+		/*for (uint32_t n=ROZMIAR_BUF_JPEG-1; n>0; n--)	//zmierz rozmiar skompresowanego obrazu
 		{
 			if (chBuforJPEG[n] != 0)
 			{
 				nRozmiarObrazuJPEG = n;
 				break;
 			}
-		}
+		}*/
 	}
 	else
 		nRozmiarObrazuJPEG = 0;
@@ -911,13 +940,39 @@ uint8_t ObrazCzarnoBialy(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzer
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Obsługuje kamerę pracujacą w trybie YUV420 z kompresją
+// Parametry: *chBufKamery - wskaźnik na bufor YUV420 z obrazem kamery (2 bajty na piksel)
+//  *chBufLCD - wskaźnik na bufor RGB666 wyświetlacza (3 bajty na piksel)
+//  sSzerokosc, sWysokosc - rozmiary obrazu w pikselach
+// Zwraca: kod błędu HAL
+////////////////////////////////////////////////////////////////////////////////
+uint8_t KompresujObrazYUV420(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzerokosc, uint16_t sWysokosc)
+{
+	uint8_t chErr;
+	uint32_t nRozmiarWe;
+
+	//sprawdź stan i uruchom kompresję tylko gdy jpeg jest gotowy
+	if (hjpeg.State == HAL_JPEG_STATE_READY)
+	{
+		nRozmiarWe   = (sSzerokosc * sWysokosc)          // Y
+				 	 + (sSzerokosc * sWysokosc) / 4      // Cb
+					 + (sSzerokosc * sWysokosc) / 4;     // Cr
+		chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBufKamery, nRozmiarWe, chBuforJPEG, ROZMIAR_BUF_JPEG);
+
+	}
+	else
+		nRozmiarObrazuJPEG = 0;
+
+	//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBufLCD, sSzerokosc * sWysokosc);
+	return chErr;
+}
+
+
+
 void CzyscBufory(void)
 {
-
-
-	for (uint32_t n=0; n<ROZMIAR_BUF_JPEG; n++)
-		chBuforJPEG[n] = 0;
-
 	for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)
 		sBuforKamerySRAM[n] = 0;
 

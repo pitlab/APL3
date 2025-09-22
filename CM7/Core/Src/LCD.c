@@ -35,7 +35,7 @@
 #include "ip4_addr.h"
 #include "ff.h"
 #include "lwip/stats.h"
-
+#include "jpeg.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -133,9 +133,11 @@ extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZe
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM];
 //extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[];
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
+extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKameryYUV420[ROZM_BUF_YUV420];	//bufor na obraz YUV420
 FIL __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) SDPlikZdjecia;
 extern struct st_KonfKam stKonfKam;
 extern uint32_t nRozmiarObrazuKamery;
+extern uint32_t nRozmiarObrazuJPEG;
 extern stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
 
 //Definicje ekranów menu
@@ -225,11 +227,11 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Zdjecie",		"Wykonuje statyczne zdjecie kamera",		TP_ZDJECIE,			obr_aparat},
 	{"Kam. SRAM",	"Kamera w trybie ciaglym z pam. SRAM",		TP_KAMERA,			obr_kamera},
 	{"Kam. DRAM",	"Kamera w trybie ciaglym z pam. DRAM",		TP_KAM_DRAM,		obr_kamera},
-	{"Czar-Bialy",	"Obraz czarno-bialy",						TP_KAM_CB,			obr_kamera},
-	{"Domyślny",	"Konfiguracja domyślna",					TP_KAM1,			obr_narzedzia},
+	{"Jpeg Y8",		"Kompresja obrazu czarno-bialego Y8",		TP_KAM_Y8,			obr_kamera},
+	{"Jpeg Y420",	"Kompresja obrazu kolorowego YUV420",		TP_KAM_YUV420,		obr_kamera},
+	{"Domyslny",	"Konfiguracja domyślna",					TP_KAM_YUV420,			obr_narzedzia},
 	{"320x240",		"Ustawia kamere na 320x240 ",				TP_USTAW_KAM_320x240,	obr_narzedzia},
 	{"480x320",		"Ustawia kamere na 480x320 ",				TP_USTAW_KAM_480x320,	obr_narzedzia},
-	{"nic",			"nic",										TP_KAM2,			obr_kamera},
 	{"Diagnoza",	"Wykonuje diagnostykę kamery",				TP_KAM_DIAG,		obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
@@ -252,13 +254,13 @@ struct tmenu stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Info",		"Informacje o laczu sieciowym",				TP_ETH_INFO,		obr_Polaczenie},
 	{"Gadu-Gadu",	"Test serwera TCP jako Gadu-Gadu",			TP_ETH_GADU_GADU,	obr_Polaczenie},
-	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
-	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
-	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
-	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
-	{"nic",			"nic",										TP_KAM2,			obr_Polaczenie},
-	{"nic",			"nic",										TP_KAM2,			obr_Polaczenie},
-	{"nic",			"nic",										TP_KAM1,			obr_Polaczenie},
+	{"nic",			"nic",										ET_ETH1,			obr_Polaczenie},
+	{"nic",			"nic",										ET_ETH1,			obr_Polaczenie},
+	{"nic",			"nic",										ET_ETH1,			obr_Polaczenie},
+	{"nic",			"nic",										ET_ETH1,			obr_Polaczenie},
+	{"nic",			"nic",										ET_ETH1,			obr_Polaczenie},
+	{"nic",			"nic",										ET_ETH1,			obr_Polaczenie},
+	{"nic",			"nic",										ET_ETH1,			obr_Polaczenie},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -493,8 +495,8 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAMERA:	//ciagła praca kamery z pamięcią SRAM
-		UstawDomyslny();
-		RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM);
+		UstawRGB565(DISP_X_SIZE, DISP_Y_SIZE);
+		RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
 			KonwersjaRGB565doRGB666(sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
@@ -507,8 +509,8 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAM_DRAM:	//ciagła praca kamery z pamięcią DRAM
-		UstawDomyslny();
-		RozpocznijPraceDCMI(stKonfKam, sBuforKameryDRAM);
+		UstawRGB565(DISP_X_SIZE, DISP_Y_SIZE);
+		RozpocznijPraceDCMI(stKonfKam, sBuforKameryDRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
 			KonwersjaRGB565doRGB666(sBuforKameryDRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
@@ -521,14 +523,13 @@ void RysujEkran(void)
 		break;
 
 
-	case TP_KAM_CB:	//praca z orazem czarno-białym
+	case TP_KAM_Y8:	//praca z orazem czarno-białym
 		chErr = UstawObrazCzarnoBialy(DISP_X_SIZE, DISP_Y_SIZE);
 		if (chErr)
 			break;
 		do
 		{
-			CzyscBufory();
-			chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM);
+			chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 4);
 			if (chErr)
 				break;
 
@@ -536,26 +537,49 @@ void RysujEkran(void)
 			if (chErr)
 				break;
 
-			for (uint32_t n=ROZM_BUF16_KAM-1; n>0; n--)	//zmierz rozmiar połowy obrazu kamery
-			{
-				if (sBuforKamerySRAM[n] != 0)
-				{
-					nRozmiarObrazuKamery = n * 2;	//rozmiar w bajtach
-					break;					//n == 76800
-				}
-			}
-
-			HistogramCB8((uint8_t*)sBuforKamerySRAM, STD_OBRAZU_DVGA, chHistCB8);
-			chErr = ObrazCzarnoBialy((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			//HistogramCB8((uint8_t*)sBuforKamerySRAM, STD_OBRAZU_DVGA, chHistCB8);
+			chErr = KompresujObrazCzarnoBialy((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 			if (chErr)
 				break;
 
 			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
-			RysujHistogramCB8(chHistCB8);
+			//RysujHistogramCB8(chHistCB8);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
+
+
+	case TP_KAM_YUV420:	//kompresja obrazu kolorowego
+		uint32_t nCzas;
+		chErr = UstawYUV420(DISP_X_SIZE, DISP_Y_SIZE);
+		if (chErr)
+			break;
+		do
+		{
+			chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKameryYUV420, DISP_X_SIZE * DISP_Y_SIZE / 2 * 3);
+			if (chErr)
+				break;
+			chErr = CzekajNaKoniecPracyDCMI();
+			//if (chErr)
+				//break;
+
+			nCzas = PobierzCzasT6();
+			chErr = KompresujObrazYUV420((uint8_t*)sBuforKameryYUV420, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			if (chErr)
+				break;
+
+			chErr = CzekajNaKoniecPracyJPEG();
+			nCzas = MinalCzas(nCzas);
+			//WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
+			sprintf(chNapis, "%.2f fps, kompr: %.1f", 1.0/(nCzas/1000000.0), (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);
+			setColor(ZOLTY);
+			RysujNapis(chNapis, 0, DISP_Y_SIZE - FONT_BH);
+		}
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		break;
+
 
 	case TP_USTAW_KAM_320x240:
 		chErr = UstawRozdzielczoscKamery(320, 240, 2);
@@ -568,12 +592,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAM1:
-		UstawDomyslny();
-		chNowyTrybPracy = TP_WROC_DO_KAMERA;
-		break;
-
-	case TP_KAM2:
-		Ustaw1();
+		UstawRGB565(DISP_X_SIZE, DISP_Y_SIZE);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
