@@ -169,7 +169,7 @@
 #define TP_KAMERA			111	//ciagła praca kamery
 #define TP_KAM_DRAM			112
 #define TP_KAM_Y8			113	//kompresja czarno-biała
-#define TP_USTAW_KAM_320x240	114
+#define TP_KAM_JPEG_Y8		114	//kompresja Jpeg obrazu Y8
 #define TP_USTAW_KAM_480x320	115
 #define TP_KAM1				116
 #define TP_KAM_YUV420		117	//kompresja kolorowa

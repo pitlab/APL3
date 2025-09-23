@@ -153,6 +153,141 @@ uint8_t CzekajNaKoniecPracyJPEG(void)
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Przygotuj pojedynczy zestaw MCU 8x8 dla sprzętowego kompresora w formacie YUV420: Y, Y, Y, Y, Cb, Cr
+// Parametry: *chObrazY8 - wskaźnik na wejsciowy obraz Y8 czarno-biały
+//  *chBlokWyj - wskaźnik na zestaw danych idący do kompresora skonfigurowanego na YUV420
+// sSzerokosc, sWysokosc - rozmiary obrazu. sSzerokosc musi być podzielna przez 32, sWysokosc podzielna przez 8
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t KompresujY8(uint8_t *chObrazY8, uint8_t *chBlokWyj, uint16_t sSzerokosc, uint16_t sWysokosc)
+{
+	//uint16_t sIndeksBlokuMCU;
+	uint8_t chErr = BLAD_OK;
+
+	//Do kompresji wybieram format YUV420 jako najbardziej efektywny. Minimalna jednostka zawiera 4 kolejne bloki luminancji i 2 bloki chrominancji: niebieski Cb i czerwony Cr
+	//Każdy z bloków nazywanych MCU jest fragmentem obrazu 8x8 pikseli. Taki zestaw danych (chBlokWyj) podawany jest na kompresor sprzetowy
+	for (uint16_t y=0; y<WYSOKOSC_MCU; y++)
+	{
+		//pierwszy blok luminancji Y
+		for (uint16_t x=0; x<SZEROKOSC_MCU; x++)
+		{
+			*(chBlokWyj + x + (0 * ROZMIAR_MCU) + (y * SZEROKOSC_MCU)) = *(chObrazY8 + x + (0 * SZEROKOSC_MCU) + (y * 4 * SZEROKOSC_MCU));
+		}
+		//drugi blok luminancji Y
+		for (uint16_t x=0; x<SZEROKOSC_MCU; x++)
+		{
+			*(chBlokWyj + x + (1 * ROZMIAR_MCU) + (y * SZEROKOSC_MCU)) = *(chObrazY8 + x + (1 * SZEROKOSC_MCU) + (y * 4 * SZEROKOSC_MCU));
+		}
+		//trzeci blok luminancji Y
+		for (uint16_t x=0; x<SZEROKOSC_MCU; x++)
+		{
+			*(chBlokWyj + x + (2 * ROZMIAR_MCU) + (y * SZEROKOSC_MCU)) = *(chObrazY8 + x + (2 * SZEROKOSC_MCU) + (y * 4 * SZEROKOSC_MCU));
+		}
+		//czwarty blok luminancji Y
+		for (uint16_t x=0; x<SZEROKOSC_MCU; x++)
+		{
+			*(chBlokWyj + x + (3 * ROZMIAR_MCU) + (y * SZEROKOSC_MCU)) = *(chObrazY8 + x + (3 * SZEROKOSC_MCU) + (y * 4 * SZEROKOSC_MCU));
+		}
+		//blok chrominancji niebieskiej Cb
+		for (uint16_t x=0; x<SZEROKOSC_MCU; x++)
+		{
+			*(chBlokWyj + x + (4 * ROZMIAR_MCU) + (y * SZEROKOSC_MCU)) = 128;	//obraz jest szary, więc brak zróżnicowania składowych chrominancji
+		}
+		//blok chrominancji czerwonej Cr
+		for (uint16_t x=0; x<SZEROKOSC_MCU; x++)
+		{
+			*(chBlokWyj + x + (5 * ROZMIAR_MCU) + (y * SZEROKOSC_MCU)) = 128;	//obraz jest szary, więc brak zróżnicowania składowych chrominancji
+		}
+	}
+	//teraz taki zesyaw danych można podać na kompresor
 
 
+	return chErr;
+}
+
+
+/**
+  * @brief  Convert RGB to Gray blocks pixels
+  * @param  pInBuffer  : pointer to input RGB888/ARGB8888 blocks.
+  * @param  pOutBuffer : pointer to output Gray blocks buffer.
+  * @param  BlockIndex : index of the input buffer first block in the final image.
+  * @param  DataCount  : number of bytes in the input buffer .
+  * @param  ConvertedDataCount  : number of converted bytes from input buffer.
+  * @retval Number of blocks converted from RGB to Gray
+  */
+/*static uint32_t JPEG_ARGB_MCU_Gray_ConvertBlocks(uint8_t *pInBuffer, uint8_t *pOutBuffer, uint32_t BlockIndex, uint32_t DataCount, uint32_t *ConvertedDataCount)
+{
+  uint32_t numberMCU;
+  uint32_t i,j, currentMCU, xRef,yRef, colones;
+
+  uint32_t refline;
+  int32_t offset;
+
+  uint32_t red, green, blue;
+
+  uint8_t *pOutAddr;
+  uint8_t *pInAddr;
+  uint8_t ycomp;
+
+  numberMCU = (DataCount / (JPEG_BYTES_PER_PIXEL * GRAY_444_BLOCK_SIZE));
+
+  currentMCU = BlockIndex;
+  *ConvertedDataCount = numberMCU * GRAY_444_BLOCK_SIZE;
+
+  pOutAddr = &pOutBuffer[0];
+
+  while(currentMCU < (numberMCU + BlockIndex))
+  {
+    xRef = ((currentMCU *JPEG_ConvertorParams.H_factor) / JPEG_ConvertorParams.WidthExtend)*JPEG_ConvertorParams.V_factor;
+
+    yRef = ((currentMCU *JPEG_ConvertorParams.H_factor) % JPEG_ConvertorParams.WidthExtend);
+
+    refline = JPEG_ConvertorParams.ScaledWidth * xRef + (JPEG_BYTES_PER_PIXEL*yRef);
+
+    currentMCU++;
+
+    if(((currentMCU *JPEG_ConvertorParams.H_factor) % JPEG_ConvertorParams.WidthExtend) == 0)
+    {
+      colones = JPEG_ConvertorParams.H_factor - JPEG_ConvertorParams.LineOffset;
+    }
+    else
+    {
+      colones = JPEG_ConvertorParams.H_factor;
+    }
+    offset = 0;
+
+    for(i= 0; i <  JPEG_ConvertorParams.V_factor; i++)
+    {
+      pInAddr = &pInBuffer[0] ;
+
+      for(j=0; j < colones; j++)
+      {
+#if (JPEG_RGB_FORMAT == JPEG_RGB565)
+        red   = (((*(__IO uint16_t *)(pInAddr + refline)) & JPEG_RGB565_RED_MASK)   >> JPEG_RED_OFFSET) ;
+        green = (((*(__IO uint16_t *)(pInAddr + refline)) & JPEG_RGB565_GREEN_MASK) >> JPEG_GREEN_OFFSET) ;
+        blue  = (((*(__IO uint16_t *)(pInAddr + refline)) & JPEG_RGB565_BLUE_MASK)  >> JPEG_BLUE_OFFSET) ;
+        red   = (red << 3)   | (red >> 2);
+        green = (green << 2) | (green >> 4);
+        blue  = (blue << 3)  | (blue >> 2);
+#else
+        red   = (*(pInAddr + refline + JPEG_RED_OFFSET/8)) ;
+        green = (*(pInAddr + refline + JPEG_GREEN_OFFSET/8)) ;
+        blue  = (*(pInAddr + refline + JPEG_BLUE_OFFSET/8)) ;
+#endif
+        ycomp  = (uint8_t)((int32_t)(*(RED_Y_LUT + red)) + (int32_t)(*(GREEN_Y_LUT + green)) + (int32_t)(*(BLUE_Y_LUT + blue)));
+
+        (*(pOutAddr + offset)) = (ycomp);
+
+        pInAddr += JPEG_BYTES_PER_PIXEL;
+        offset++;
+      }
+      offset += (JPEG_ConvertorParams.H_factor - colones);
+      refline += JPEG_ConvertorParams.ScaledWidth;
+    }
+    pOutAddr +=  JPEG_ConvertorParams.BlockSize;
+  }
+
+  return numberMCU;
+}*/
 

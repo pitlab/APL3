@@ -229,8 +229,8 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Kam. DRAM",	"Kamera w trybie ciaglym z pam. DRAM",		TP_KAM_DRAM,		obr_kamera},
 	{"Jpeg Y8",		"Kompresja obrazu czarno-bialego Y8",		TP_KAM_Y8,			obr_kamera},
 	{"Jpeg Y420",	"Kompresja obrazu kolorowego YUV420",		TP_KAM_YUV420,		obr_kamera},
-	{"Domyslny",	"Konfiguracja domyślna",					TP_KAM_YUV420,			obr_narzedzia},
-	{"320x240",		"Ustawia kamere na 320x240 ",				TP_USTAW_KAM_320x240,	obr_narzedzia},
+	{"Domyslny",	"Konfiguracja domyślna",					TP_KAM_YUV420,		obr_narzedzia},
+	{"Test komp",	"TestKompreji ",							TP_KAM_JPEG_Y8,		obr_kamera},
 	{"480x320",		"Ustawia kamere na 480x320 ",				TP_USTAW_KAM_480x320,	obr_narzedzia},
 	{"Diagnoza",	"Wykonuje diagnostykę kamery",				TP_KAM_DIAG,		obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
@@ -581,8 +581,13 @@ void RysujEkran(void)
 		break;
 
 
-	case TP_USTAW_KAM_320x240:
-		chErr = UstawRozdzielczoscKamery(320, 240, 2);
+	case TP_KAM_JPEG_Y8:
+		for (uint16_t n=0; n<4*64; n++)
+		{
+			chBuforLCD[n] = (uint8_t)(n & 0xFF);
+			sBuforKameryYUV420[n] = 0;
+		}
+		chErr = KompresujY8(chBuforLCD, (uint8_t*)sBuforKameryYUV420, 32, 8);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
