@@ -15,9 +15,13 @@ extern MDMA_HandleTypeDef hmdma_jpeg_outfifo_th;
 extern MDMA_HandleTypeDef hmdma_jpeg_infifo_th;
 //uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM2"))) chBuforJPEG[ROZMIAR_BUF_JPEG] = {0};	//SekcjaSRAM2 ma wyłączony cache w MPU, więc może pracować z MDMA bez konieczności czyszczenia cache
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJPEG[ROZMIAR_BUF_JPEG] = {0};	//SekcjaZewnSRAM ma wyłączony cache w MPU, więc może pracować z MDMA bez konieczności czyszczenia cache
-
+uint8_t chBlok[ROZMIAR_BLOKU];
 uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint8_t chObrazSkompresowany;
+
+// Bufor wyjściowy dla jednego MCU
+uint8_t chBuforMCU[6 * ROZMIAR_BLOKU];  // [Y0][Y1][Y2][Y3][Cb][Cr]
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -154,53 +158,133 @@ uint8_t CzekajNaKoniecPracyJPEG(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Przygotuj pojedynczy zestaw MCU 8x8 dla sprzętowego kompresora w formacie YUV420: Y, Y, Y, Y, Cb, Cr
+// Przygotuj pojedynczy MCU czyli zestaw bloków 8x8 dla sprzętowego kompresora w formacie YUV420: Y, Y, Y, Y, Cb, Cr
+// Do kompresji wybieram format YUV420 jako najbardziej efektywny. Minimalna jednostka MCU zawiera 4 sąsiadująceze sobą bloki luminancji i 2 bloki chrominancji:
+// niebieski Cb i czerwony Cr. Każdy z bloków luminancji jest fragmentem obrazu Y8 (czarnio-białego) 8x8 pikseli a bloko chromiannacji zawierają stałą = 128.
+// W MCU znjdują się 4 sąsiadujace ze sobą bloki chrominancji, czyli obszar (2x2) x (8x8). Odpowiada obszarowi 16x16 ale nie liniowo tylko w kratkę.
+// Kolejne MCU są brane aż do końca wiersza MCU, potem kolejny wiersz MCU i tak aż do konca obrazu.
+// Taki zestaw danych (chBlokWyj) podawany jest na kompresor sprzetowy
 // Parametry: *chObrazY8 - wskaźnik na wejsciowy obraz Y8 czarno-biały
 //  *chBlokWyj - wskaźnik na zestaw danych idący do kompresora skonfigurowanego na YUV420
-// sSzerokosc, sWysokosc - rozmiary obrazu. sSzerokosc musi być podzielna przez 32, sWysokosc podzielna przez 8
+// sSzerokosc, sWysokosc - rozmiary obrazu podzielne przez 16
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KompresujY8(uint8_t *chObrazY8, uint8_t *chBlokWyj, uint16_t sSzerokosc, uint16_t sWysokosc)
+uint8_t KompresujYUV420(uint8_t *chObrazWe, uint8_t *chBlokWyj, uint16_t sSzerokosc, uint16_t sWysokosc)
 {
-	//uint16_t sIndeksBlokuMCU;
 	uint8_t chErr = BLAD_OK;
+	uint32_t nOffsetMCU_wzgObrazu;	//przesuniecie bloku wzgledem początku obrazu
+	uint32_t nOffsetBloku_wzgMCU;	//przesuniecie bloku względem początku MCU
+	//uint32_t nOffset_wzgBloku;		//przesuniecie danych wzgledem początku bloku
+	uint8_t chLiczbaMCU_Szer = sSzerokosc / (2 * SZEROKOSC_BLOKU);	//liczba MCU luminancji (czwórek bloków) po szerokosci obrazu
+	uint8_t chLiczbaMCU_Wys = sWysokosc / (2 * WYSOKOSC_BLOKU);	//liczba MCU luminancji (czwórek bloków) po wysokosci obrazu
 
-	//Do kompresji wybieram format YUV420 jako najbardziej efektywny. Minimalna jednostka zawiera 4 kolejne bloki luminancji i 2 bloki chrominancji: niebieski Cb i czerwony Cr
-	//Każdy z bloków nazywanych MCU jest fragmentem obrazu 8x8 pikseli. Taki zestaw danych (chBlokWyj) podawany jest na kompresor sprzetowy
-	for (uint16_t y=0; y<WYSOKOSC_MCU; y++)
+	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_GRAYSCALE_COLORSPACE, 75);	//JPEG_YCBCR_COLORSPACE,  JPEG_GRAYSCALE_COLORSPACE
+	if (chErr)
+		return chErr;
+
+	for (uint32_t n=0; n<ROZMIAR_BUF_JPEG; n++)
+		chBuforJPEG[n] = 0;
+
+	//wypełnij oba bloki chrominancji neutralną wartoscią, niezmienną dla całego obrazu
+	for (uint16_t n=(4 * ROZMIAR_BLOKU); n<(6 * ROZMIAR_BLOKU); n++)
+		chBuforMCU[n] = 128;
+
+
+	for (uint16_t my=0; my<chLiczbaMCU_Wys; my++)	//pętla pracująca na wysokości obrazu
 	{
-		//pierwszy blok luminancji Y
-		for (uint16_t x=0; x<SZEROKOSC_MCU; x++)
+		for (uint16_t mx=0; mx<chLiczbaMCU_Szer; mx++)	//pętla pracująca na szerokości obrazu
 		{
-			*(chBlokWyj + x + (0 * ROZMIAR_MCU) + (y * SZEROKOSC_MCU)) = *(chObrazY8 + x + (0 * SZEROKOSC_MCU) + (y * 4 * SZEROKOSC_MCU));
-		}
-		//drugi blok luminancji Y
-		for (uint16_t x=0; x<SZEROKOSC_MCU; x++)
-		{
-			*(chBlokWyj + x + (1 * ROZMIAR_MCU) + (y * SZEROKOSC_MCU)) = *(chObrazY8 + x + (1 * SZEROKOSC_MCU) + (y * 4 * SZEROKOSC_MCU));
-		}
-		//trzeci blok luminancji Y
-		for (uint16_t x=0; x<SZEROKOSC_MCU; x++)
-		{
-			*(chBlokWyj + x + (2 * ROZMIAR_MCU) + (y * SZEROKOSC_MCU)) = *(chObrazY8 + x + (2 * SZEROKOSC_MCU) + (y * 4 * SZEROKOSC_MCU));
-		}
-		//czwarty blok luminancji Y
-		for (uint16_t x=0; x<SZEROKOSC_MCU; x++)
-		{
-			*(chBlokWyj + x + (3 * ROZMIAR_MCU) + (y * SZEROKOSC_MCU)) = *(chObrazY8 + x + (3 * SZEROKOSC_MCU) + (y * 4 * SZEROKOSC_MCU));
-		}
-		//blok chrominancji niebieskiej Cb
-		for (uint16_t x=0; x<SZEROKOSC_MCU; x++)
-		{
-			*(chBlokWyj + x + (4 * ROZMIAR_MCU) + (y * SZEROKOSC_MCU)) = 128;	//obraz jest szary, więc brak zróżnicowania składowych chrominancji
-		}
-		//blok chrominancji czerwonej Cr
-		for (uint16_t x=0; x<SZEROKOSC_MCU; x++)
-		{
-			*(chBlokWyj + x + (5 * ROZMIAR_MCU) + (y * SZEROKOSC_MCU)) = 128;	//obraz jest szary, więc brak zróżnicowania składowych chrominancji
+			//tutaj obrókba MCU
+			nOffsetMCU_wzgObrazu = (mx * 4 * ROZMIAR_BLOKU) + (my * chLiczbaMCU_Szer * 4 * ROZMIAR_BLOKU);
+			for (uint16_t y=0; y<WYSOKOSC_BLOKU; y++)	//pętla pracująca na wysokosci bloków wewnątrz całego MCU
+			{
+				//nOffset_wzgBloku = y * 4 * SZEROKOSC_BLOKU;
+
+				//pierwszy blok luminancji Y
+				nOffsetBloku_wzgMCU = (0 * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU);
+				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
+					chBuforMCU[x + nOffsetBloku_wzgMCU] = *(chObrazWe + x + nOffsetBloku_wzgMCU + nOffsetMCU_wzgObrazu);
+
+				//następny z prawej blok luminancji Y
+				nOffsetBloku_wzgMCU = (1 * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU);
+				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
+					chBuforMCU[x + nOffsetBloku_wzgMCU] = *(chObrazWe + x + nOffsetBloku_wzgMCU + nOffsetMCU_wzgObrazu);
+
+				//trzeci blok luminancji Y poniżej pierwszego, przesuniety o 2 bloki i liczbę MCU w szerokości obrazu
+				nOffsetBloku_wzgMCU =  (2 * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU);
+				//nOffsetBloku = (2 * ROZMIAR_BLOKU) + nOffsetBloku_wzgObrazu;
+				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
+					chBuforMCU[x + nOffsetBloku_wzgMCU] = *(chObrazWe + x + nOffsetBloku_wzgMCU + nOffsetMCU_wzgObrazu);
+
+				//czwarty blok luminancji Y
+				nOffsetBloku_wzgMCU =  3 * ROZMIAR_BLOKU;
+				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
+					chBuforMCU[x + nOffsetBloku_wzgMCU] = *(chObrazWe + x + nOffsetBloku_wzgMCU + nOffsetMCU_wzgObrazu);
+			}
+			//teraz 2 bloki chrominancji
+
+
+			//wyrzucam na debug
+			printf("moje MCU\r\n");
+			for (uint16_t n=0; n<4; n++)
+			{
+				for (uint16_t y=0; y<WYSOKOSC_BLOKU; y++)
+				{
+					for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
+					{
+						printf("%2X ", chBuforMCU[x + (y*SZEROKOSC_BLOKU) + (n*ROZMIAR_BLOKU)]);
+					}
+					printf("\r\n");
+					osDelay(1);		//czas na wyjscie printfa(1);
+				}
+				printf("\r\n");
+			}
+
+			//kompresja jednego MCU
+			if (hjpeg.State == HAL_JPEG_STATE_READY)
+			{
+				//chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBlokWyj, 6 * ROZMIAR_BLOKU, chBuforJPEG, ROZMIAR_BUF_JPEG);
+				chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, 4 * ROZMIAR_BLOKU, chBuforJPEG, ROZMIAR_BUF_JPEG);	//dla Y8 jest mniej bloków
+			}
+			else
+				nRozmiarObrazuJPEG = 0;
 		}
 	}
-	//teraz taki zesyaw danych można podać na kompresor
+
+
+
+	uint8_t chCroma[ROZMIAR_BLOKU] = {128};
+
+	//prepareMCU(0, 0, uint8_t *Yplane, uint8_t *Cbplane, uint8_t *Crplane, chBlokWyj);
+	//prepareMCU(mx, my, Yplane, Cbplane, Crplane, chBuforMCU);
+	prepareMCU(0, 0, chObrazWe, chCroma, chCroma, chBuforMCU);
+
+	printf("sztuczne MCU\r\n");
+	for (uint16_t n=0; n<4; n++)
+	{
+		for (uint16_t y=0; y<WYSOKOSC_BLOKU; y++)
+		{
+			for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
+			{
+				printf("%2X ", chBuforMCU[x + (y*SZEROKOSC_BLOKU) + (n*ROZMIAR_BLOKU)]);
+			}
+			printf("\r\n");
+			osDelay(1);		//czas na wyjscie printfa(1);
+		}
+		printf("\r\n");
+	}
+
+	//for (uint16_t n=0; n<ROZMIAR_MCU420; n++)
+		//printf("%X", chBuforMCU[n]);
+
+	//teraz taki zestaw danych można podać na kompresor
+	if (hjpeg.State == HAL_JPEG_STATE_READY)
+	{
+		chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, 4 * ROZMIAR_BLOKU, chBuforJPEG, ROZMIAR_BUF_JPEG);
+
+	}
+	else
+		nRozmiarObrazuJPEG = 0;
 
 
 	return chErr;
@@ -291,3 +375,67 @@ uint8_t KompresujY8(uint8_t *chObrazY8, uint8_t *chBlokWyj, uint16_t sSzerokosc,
   return numberMCU;
 }*/
 
+
+
+//przykład z chata
+#include <stdint.h>
+#include <string.h>
+
+#define WIDTH   480
+#define HEIGHT  320
+
+#define MCU_W   16
+#define MCU_H   16
+
+#define Y_BLOCK_SIZE   64   // 8x8
+#define C_BLOCK_SIZE   64
+
+
+
+// Funkcja: kopiowanie bloku 8x8 z płaszczyzny
+void copyBlock8x8(uint8_t *dst, const uint8_t *src, int stride, int startX, int startY)
+{
+    for (int y = 0; y < 8; y++) {
+        memcpy(&dst[y * 8], &src[(startY + y) * stride + startX], 8);
+    }
+}
+
+// Funkcja: przygotowanie jednego MCU (YUV420)
+void prepareMCU(int mcuX, int mcuY, uint8_t *Yplane, uint8_t *Cbplane, uint8_t *Crplane, uint8_t *dstBuffer)
+{
+    int baseX = mcuX * MCU_W;
+    int baseY = mcuY * MCU_H;
+
+    // 4 bloki Y (każdy 8x8)
+    copyBlock8x8(&dstBuffer[0 * 64], Yplane, WIDTH, baseX, baseY);       // Y0
+    copyBlock8x8(&dstBuffer[1 * 64], Yplane, WIDTH, baseX + 8, baseY);   // Y1
+    copyBlock8x8(&dstBuffer[2 * 64], Yplane, WIDTH, baseX, baseY + 8);   // Y2
+    copyBlock8x8(&dstBuffer[3 * 64], Yplane, WIDTH, baseX + 8, baseY + 8); // Y3
+
+    // Blok Cb (skalowany 8x8 → indeksy dzielone przez 2)
+    int cbBaseX = mcuX * 8;
+    int cbBaseY = mcuY * 8;
+    copyBlock8x8(&dstBuffer[4 * 64], Cbplane, WIDTH / 2, cbBaseX, cbBaseY);
+
+    // Blok Cr
+    copyBlock8x8(&dstBuffer[5 * 64], Crplane, WIDTH / 2, cbBaseX, cbBaseY);
+}
+
+// Funkcja: przygotowanie całego obrazu do podania DMA encoderowi
+void prepareImage(uint8_t *Yplane, uint8_t *Cbplane, uint8_t *Crplane, void (*feedMCU)(uint8_t *mcuData))
+{
+    //int mcuPerRow = WIDTH / MCU_W;   // 480 / 16 = 30
+    //int mcuPerCol = HEIGHT / MCU_H;  // 320 / 16 = 20
+
+	int mcuPerRow = 32 / MCU_W;
+	int mcuPerCol = 16 / MCU_H;
+
+    for (int my = 0; my < mcuPerCol; my++) {
+        for (int mx = 0; mx < mcuPerRow; mx++) {
+            prepareMCU(mx, my, Yplane, Cbplane, Crplane, chBuforMCU);
+
+            // Przekazanie MCU do enkodera JPEG
+            //feedMCU(chBuforMCU);
+        }
+    }
+}

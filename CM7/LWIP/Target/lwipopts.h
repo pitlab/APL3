@@ -132,33 +132,33 @@
 /*----- Value in opt.h for CHECKSUM_CHECK_ICMP6: 1 -----*/
 #define CHECKSUM_CHECK_ICMP6 0
 /*----- Default Value for NETIF_DEBUG: LWIP_DBG_OFF ---*/
-#define NETIF_DEBUG LWIP_DBG_ON
+//#define NETIF_DEBUG LWIP_DBG_ON
 /*----- Default Value for API_MSG_DEBUG: LWIP_DBG_OFF ---*/
-#define API_MSG_DEBUG LWIP_DBG_ON
+//#define API_MSG_DEBUG LWIP_DBG_ON
 /*----- Default Value for SOCKETS_DEBUG: LWIP_DBG_OFF ---*/
-#define SOCKETS_DEBUG LWIP_DBG_ON
+//#define SOCKETS_DEBUG LWIP_DBG_ON
 /*----- Default Value for ICMP_DEBUG: LWIP_DBG_OFF ---*/
-#define ICMP_DEBUG LWIP_DBG_ON
+//#define ICMP_DEBUG LWIP_DBG_ON
 /*----- Default Value for IP_DEBUG: LWIP_DBG_OFF ---*/
-#define IP_DEBUG LWIP_DBG_ON
+//#define IP_DEBUG LWIP_DBG_ON
 /*----- Default Value for SYS_DEBUG: LWIP_DBG_OFF ---*/
-#define SYS_DEBUG LWIP_DBG_ON
+//#define SYS_DEBUG LWIP_DBG_ON
 /*----- Default Value for TCP_DEBUG: LWIP_DBG_OFF ---*/
-#define TCP_DEBUG LWIP_DBG_ON
+//#define TCP_DEBUG LWIP_DBG_ON
 /*----- Default Value for TCP_INPUT_DEBUG: LWIP_DBG_OFF ---*/
-#define TCP_INPUT_DEBUG LWIP_DBG_ON
+//#define TCP_INPUT_DEBUG LWIP_DBG_ON
 /*----- Default Value for TCP_OUTPUT_DEBUG: LWIP_DBG_OFF ---*/
-#define TCP_OUTPUT_DEBUG LWIP_DBG_ON
+//#define TCP_OUTPUT_DEBUG LWIP_DBG_ON
 /*----- Default Value for UDP_DEBUG: LWIP_DBG_OFF ---*/
-#define UDP_DEBUG LWIP_DBG_ON
+//#define UDP_DEBUG LWIP_DBG_ON
 /*----- Default Value for TCPIP_DEBUG: LWIP_DBG_OFF ---*/
-#define TCPIP_DEBUG LWIP_DBG_ON
+//#define TCPIP_DEBUG LWIP_DBG_ON
 /*----- Default Value for DHCP_DEBUG: LWIP_DBG_OFF ---*/
 #define DHCP_DEBUG LWIP_DBG_ON
 /*-----------------------------------------------------------------------------*/
 /* USER CODE BEGIN 1 */
 #define LWIP_NOASSERT 	0
-#define LWIP_DEBUG 		LWIP_DBG_ON
+//#define LWIP_DEBUG 		LWIP_DBG_ON
 //#define ETH_PAD_SIZE   	2      /* kluczowe! */
 /* USER CODE END 1 */
 

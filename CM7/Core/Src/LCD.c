@@ -65,7 +65,7 @@ extern const unsigned short obr_dotyk[0xFFC];
 extern const unsigned short obr_dotyk_zolty[0xFFC];
 extern const unsigned short obr_kartaSD[0xFFC];
 extern const unsigned short obr_kartaSDneg[0xFFC];
-extern const unsigned short obr_baczek[0xF80];
+//extern const unsigned short obr_baczek[0xF80];
 extern const unsigned short obr_kal_mag_n1[0xFFC];
 extern const unsigned short obr_kontrolny[0xFFC];
 extern const unsigned short obr_kostka3D[0xFFC];
@@ -84,6 +84,7 @@ extern const unsigned short obr_kamera[0xFFC];
 extern const unsigned short obr_papuga1[0xFFC];
 extern const unsigned short obr_powrot1[0xFFC];
 extern const unsigned short obr_glosnik1[0xFFC];
+extern const unsigned short obr_zyroskop[0xFFC];
 
 extern const char *chNapisLcd[MAX_NAPISOW];
 extern const char *chOpisBledow[MAX_KOMUNIKATOW];
@@ -158,7 +159,7 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 
 struct tmenu stMenuKalibracje[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Kal IMU", 	"Kalibracja czujników IMU",					TP_KAL_IMU,			obr_baczek},
+	{"Kal IMU", 	"Kalibracja czujników IMU",					TP_KAL_IMU,			obr_zyroskop},
 	{"Kal Magn", 	"Kalibracja magnetometrow",					TP_KAL_MAG,			obr_kal_mag_n1},
 	{"Kal Baro", 	"Kalibracja cisnienia wg wzorca 10 pieter",	TP_KAL_BARO,		obr_cisnienie},
 	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_KAL_DOTYK,		obr_KonfigDotyk},
@@ -265,14 +266,14 @@ struct tmenu stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY]  = {
 
 struct tmenu stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Zyro Zimno", 	"Kalibracja zera zyroskopow w 10C",			TP_KAL_ZYRO_ZIM,	obr_baczek},
-	{"Zyro Pokoj", 	"Kalibracja zera zyroskopow w 25C",			TP_KAL_ZYRO_POK,	obr_baczek},
-	{"Zyro Gorac", 	"Kalibracja zera zyroskopow w 40C",			TP_KAL_ZYRO_GOR,	obr_baczek},
+	{"Zyro Zimno", 	"Kalibracja zera zyroskopow w 10C",			TP_KAL_ZYRO_ZIM,	obr_zyroskop},
+	{"Zyro Pokoj", 	"Kalibracja zera zyroskopow w 25C",			TP_KAL_ZYRO_POK,	obr_zyroskop},
+	{"Zyro Gorac", 	"Kalibracja zera zyroskopow w 40C",			TP_KAL_ZYRO_GOR,	obr_zyroskop},
 	{"Akcel 2D",	"Kalibracja akcelerometrow 2D",				TP_KAL_AKCEL_2D,	obr_kontrolny},
 	{"Akcel 3D",	"Kalibracja akcelerometrow 3D",				TP_KAL_AKCEL_3D,	obr_kontrolny},
-	{"Wzm ZyroP", 	"Kalibracja wzmocnienia zyroskopow P",		TP_KAL_WZM_ZYROP,	obr_baczek},
-	{"Wzm ZyroQ", 	"Kalibracja wzmocnienia zyroskopow Q",		TP_KAL_WZM_ZYROQ,	obr_baczek},
-	{"Wzm ZyroR", 	"Kalibracja wzmocnienia zyroskopow R",		TP_KAL_WZM_ZYROR,	obr_baczek},
+	{"Wzm ZyroP", 	"Kalibracja wzmocnienia zyroskopow P",		TP_KAL_WZM_ZYROP,	obr_zyroskop},
+	{"Wzm ZyroQ", 	"Kalibracja wzmocnienia zyroskopow Q",		TP_KAL_WZM_ZYROQ,	obr_zyroskop},
+	{"Wzm ZyroR", 	"Kalibracja wzmocnienia zyroskopow R",		TP_KAL_WZM_ZYROR,	obr_zyroskop},
 	{"ZeroZyro", 	"Kasuj dryft scalkowanego kata z zyro.",	TP_KASUJ_DRYFT_ZYRO,obr_kostka3D},
 	//{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katow IMU",		TP_IMU_KOSTKA,	obr_kostka3D},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
@@ -582,12 +583,16 @@ void RysujEkran(void)
 
 
 	case TP_KAM_JPEG_Y8:
-		for (uint16_t n=0; n<4*64; n++)
+		for (uint16_t n=0; n<240*64; n++)	//wiersz to 40/8 = 60 4 wiersze -> 240 MCU
 		{
-			chBuforLCD[n] = (uint8_t)(n & 0xFF);
+			//chBuforLCD[n] = (uint8_t)(n & 0xFF);
+			sBuforKamerySRAM[n] = 2 * n;	//liczby 16 bitowe, ale wskazują tak jak bajty
 			sBuforKameryYUV420[n] = 0;
 		}
-		chErr = KompresujY8(chBuforLCD, (uint8_t*)sBuforKameryYUV420, 32, 8);
+		//chErr = KompresujYUV420(chBuforLCD, (uint8_t*)sBuforKameryYUV420, 16, 16);	//dane syntetyczne
+		chErr = KompresujYUV420((uint8_t*)sBuforKamerySRAM, (uint8_t*)sBuforKameryYUV420, 32, 16);	//dane syntetyczne
+		//chErr = KompresujYUV420((uint8_t*)sBuforKamerySRAM, (uint8_t*)sBuforKameryYUV420, 32, 16);	//dane z kamery
+
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
