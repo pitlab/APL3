@@ -323,10 +323,8 @@ uint8_t CzekajNaKoniecPracyDCMI(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// wykonuje jedno zdjęcie kamerą i trzyma je w buforze kamery
-// Parametry:
-// [i] - sSzerokosc - szerokość zdjecia w pikselach
-// [i] - sWysokosc - wysokość zdjęcia w pikselach
+// wykonuje jedno zdjęcie kamerą i trzyma je w sBuforZdjecia
+// Parametry: brak
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZrobZdjecie(void)
@@ -867,11 +865,7 @@ uint8_t UstawYUV420(uint16_t sSzerokosc, uint16_t sWysokosc)
 	stKonfKam.chSzerWy = sSzerokosc / KROK_ROZDZ_KAM;
 	stKonfKam.chWysWy = sWysokosc / KROK_ROZDZ_KAM;
 	chErr = UstawKamere(&stKonfKam);
-	if (chErr)
-		return chErr;
-
-	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, 75);
-		return chErr;
+	return chErr;
 }
 
 
@@ -895,10 +889,6 @@ uint8_t UstawObrazCzarnoBialy(uint16_t sSzerokosc, uint16_t sWysokosc)
 	stKonfKam.chSzerWy = sSzerokosc / KROK_ROZDZ_KAM;
 	stKonfKam.chWysWy = sWysokosc / KROK_ROZDZ_KAM;
 	chErr = UstawKamere(&stKonfKam);
-	if (chErr)
-		return chErr;
-
-	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_GRAYSCALE_COLORSPACE, 75);
 	return chErr;
 }
 
@@ -915,27 +905,8 @@ uint8_t KompresujObrazCzarnoBialy(uint8_t* chBufKamery, uint8_t* chBufLCD, uint1
 {
 	uint8_t chErr;
 
-	//nie trzeba czyścić buforów przed uruchomieniem DMA, ponieważ oba bufory są w obszarze z wyłączaonym czache w MPU
-	//SCB_CleanDCache_by_Addr((uint32_t*)chBufKamery, (int32_t)(sSzerokosc * sWysokosc / 4));	//bufor jest w ZewnSRAM a ten obszar ma wyłączony cache w MPU
-	//SCB_CleanDCache_by_Addr((uint32_t*)chBuforJPEG, (int32_t)(ROZMIAR_BUF_JPEG / 4));	//bufor jest w SRAM2 a ten obszar ma wyłączony cache w MPU
-
-	//sprawdź stan i uruchom kompresję tylko gdy jpeg jest gotowy
-	if (hjpeg.State == HAL_JPEG_STATE_READY)
-	{
-		chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBufKamery, sSzerokosc * sWysokosc, chBuforJPEG, ROZMIAR_BUF_JPEG);
-		/*for (uint32_t n=ROZMIAR_BUF_JPEG-1; n>0; n--)	//zmierz rozmiar skompresowanego obrazu
-		{
-			if (chBuforJPEG[n] != 0)
-			{
-				nRozmiarObrazuJPEG = n;
-				break;
-			}
-		}*/
-	}
-	else
-		nRozmiarObrazuJPEG = 0;
-
-	KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBufLCD, sSzerokosc * sWysokosc);
+	chErr = KompresujYUV420(chBufKamery, sSzerokosc, sWysokosc, chBuforJPEG, ROZMIAR_BUF_JPEG);
+	KonwersjaCB8doRGB666(chBufKamery, chBufLCD, sSzerokosc * sWysokosc);
 	return chErr;
 }
 
@@ -950,20 +921,10 @@ uint8_t KompresujObrazCzarnoBialy(uint8_t* chBufKamery, uint8_t* chBufLCD, uint1
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KompresujObrazYUV420(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzerokosc, uint16_t sWysokosc)
 {
-	uint8_t chErr;
-	uint32_t nRozmiarWe;
+	uint8_t chErr = BLAD_OK;
 
-	//sprawdź stan i uruchom kompresję tylko gdy jpeg jest gotowy
-	if (hjpeg.State == HAL_JPEG_STATE_READY)
-	{
-		nRozmiarWe   = (sSzerokosc * sWysokosc)          // Y
-				 	 + (sSzerokosc * sWysokosc) / 4      // Cb
-					 + (sSzerokosc * sWysokosc) / 4;     // Cr
-		chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBufKamery, nRozmiarWe, chBuforJPEG, ROZMIAR_BUF_JPEG);
 
-	}
-	else
-		nRozmiarObrazuJPEG = 0;
+	chErr = KompresujYUV420(chBufKamery, sSzerokosc, sWysokosc, chBuforJPEG, ROZMIAR_BUF_JPEG);
 
 	//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBufLCD, sSzerokosc * sWysokosc);
 	return chErr;

@@ -11,16 +11,23 @@
 #include "sys_def_CM7.h"
 
 
-#define ROZMIAR_BUF_JPEG	(480 * 320)
+#define ROZMIAR_BUF_JPEG	(480 * 320 / 4)	//na razie minimalna kompresja jest rzędu 7 razy
 #define SZEROKOSC_BLOKU		8
 #define WYSOKOSC_BLOKU		8
 #define ROZMIAR_BLOKU		(SZEROKOSC_BLOKU * WYSOKOSC_BLOKU)
 #define ROZMIAR_MCU420		(6 * ROZMIAR_BLOKU)
 
+//flagi ustawiane w calbackach określające stan enkodera
+#define KOMPR_PUSTE_WE		1	//na wejście enkodera można podać nowe dane
+#define KOMPR_MCU_GOTOWY	2	//podany MCU jest już skompresowany
+#define KOMPR_OBR_GOTOWY	4	//podany obraz jest już skompresowany
+
+
+
 uint8_t InicjalizujJpeg(void);
 uint8_t KonfigurujKompresjeJpeg(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chKolor, uint8_t chJakoscKompresji);
 uint8_t CzekajNaKoniecPracyJPEG(void);
-uint8_t KompresujYUV420(uint8_t *chObrazY8, uint8_t *chBlokWyj, uint16_t sSzerokosc, uint16_t sWysokosc);
+uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t *chDaneSkompresowane, uint32_t nRozmiarBuforaJPEG);
 
 
 void prepareMCU(int mcuX, int mcuY, uint8_t *Yplane, uint8_t *Cbplane, uint8_t *Crplane, uint8_t *dstBuffer);

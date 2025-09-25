@@ -138,8 +138,12 @@ extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZe
 FIL __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) SDPlikZdjecia;
 extern struct st_KonfKam stKonfKam;
 extern uint32_t nRozmiarObrazuKamery;
-extern uint32_t nRozmiarObrazuJPEG;
 extern stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJPEG[ROZMIAR_BUF_JPEG];
+extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
+
+
+
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -524,7 +528,7 @@ void RysujEkran(void)
 		break;
 
 
-	case TP_KAM_Y8:	//praca z orazem czarno-białym
+	case TP_KAM_Y8:	//praca z obrazem czarno-białym
 		chErr = UstawObrazCzarnoBialy(DISP_X_SIZE, DISP_Y_SIZE);
 		if (chErr)
 			break;
@@ -573,7 +577,7 @@ void RysujEkran(void)
 			chErr = CzekajNaKoniecPracyJPEG();
 			nCzas = MinalCzas(nCzas);
 			//WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
-			sprintf(chNapis, "%.2f fps, kompr: %.1f", 1.0/(nCzas/1000000.0), (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);
+			sprintf(chNapis, "%.2f fps, kompr: %.1f", (float)1000000.0/nCzas, (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);	//Sprawdzić: hard fault
 			setColor(ZOLTY);
 			RysujNapis(chNapis, 0, DISP_Y_SIZE - FONT_BH);
 		}
@@ -583,16 +587,21 @@ void RysujEkran(void)
 
 
 	case TP_KAM_JPEG_Y8:
-		for (uint16_t n=0; n<240*64; n++)	//wiersz to 40/8 = 60 4 wiersze -> 240 MCU
+		chErr = UstawObrazCzarnoBialy(DISP_X_SIZE, DISP_Y_SIZE);
+		/*for (uint16_t n=0; n<240*64; n++)	//wiersz to 40/8 = 60 4 wiersze -> 240 MCU
 		{
 			//chBuforLCD[n] = (uint8_t)(n & 0xFF);
 			sBuforKamerySRAM[n] = 2 * n;	//liczby 16 bitowe, ale wskazują tak jak bajty
 			sBuforKameryYUV420[n] = 0;
-		}
-		//chErr = KompresujYUV420(chBuforLCD, (uint8_t*)sBuforKameryYUV420, 16, 16);	//dane syntetyczne
-		chErr = KompresujYUV420((uint8_t*)sBuforKamerySRAM, (uint8_t*)sBuforKameryYUV420, 32, 16);	//dane syntetyczne
-		//chErr = KompresujYUV420((uint8_t*)sBuforKamerySRAM, (uint8_t*)sBuforKameryYUV420, 32, 16);	//dane z kamery
-
+		}*/
+		chErr = ZrobZdjecie();
+		nCzas = PobierzCzasT6();
+		chErr = KompresujYUV420((uint8_t*)sBuforZdjecia, DISP_X_SIZE, DISP_Y_SIZE, chBuforJPEG, ROZMIAR_BUF_JPEG);		//dane z kamery
+		//chErr = KompresujYUV420((uint8_t*)sBuforKamerySRAM, 48, 32, chBuforJPEG, ROZMIAR_BUF_JPEG);	//dane syntetyczne- 6 MCU YUV420
+		nCzas = MinalCzas(nCzas);
+		setColor(ZOLTY);
+		sprintf(chNapis, "Czas kompresji: %ld us, rozmiar obrazu: %ld, kompresja %.2f", nCzas, nRozmiarObrazuJPEG, (float)(DISP_X_SIZE*DISP_Y_SIZE) / nRozmiarObrazuJPEG);
+		RysujNapis(chNapis, 0, 30);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
