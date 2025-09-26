@@ -17,6 +17,9 @@
 #include <ili9488.h>
 #include "czas.h"
 #include "analiza_obrazu.h"
+#include "FreeRTOS.h"
+#include "task.h"
+
 
 //deklaracje zmiennych
 extern RTC_HandleTypeDef hrtc;
@@ -39,6 +42,7 @@ static uint8_t chPoprzedniStatusPolaczenia = 0xFF;	//sluży do wykrycia zmiany s
 uint8_t chOrientacja;
 uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
 uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran parametryzowalnego menu
@@ -218,6 +222,14 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		}
 	}
 	chPoprzedniStatusPolaczenia = chStatusPolaczenia;
+
+	//wypisz rozmiar sterty
+	size_t stosWHM = uxTaskGetStackHighWaterMark(NULL);
+	size_t freeHeap = xPortGetFreeHeapSize();
+	//size_t minEverFreeHeap = xPortGetMinimumEverFreeHeapSize();
+	setColor(CYJAN);
+	sprintf(chNapis, " %d/%d", freeHeap, stosWHM);
+	RysujNapis(chNapis, DISP_X_SIZE - 39*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 	setBackColor(CZARNY);
 }
 

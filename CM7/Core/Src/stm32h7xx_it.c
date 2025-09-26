@@ -488,22 +488,22 @@ void debugHardFault(uint32_t *sp)
     uint32_t pc  = sp[6];
     uint32_t psr = sp[7];
 
-    printf("HardFault:\n");
-    printf("SCB->CFSR   0x%08lx\n", cfsr);
-    printf("SCB->HFSR   0x%08lx\n", hfsr);
-    printf("SCB->MMFAR  0x%08lx\n", mmfar);
-    printf("SCB->BFAR   0x%08lx\n", bfar);
+    printf("HardFault:\r\n");
+    printf("SCB->CFSR   0x%08lx\r\n", cfsr);
+    printf("SCB->HFSR   0x%08lx\r\n", hfsr);
+    printf("SCB->MMFAR  0x%08lx\r\n", mmfar);
+    printf("SCB->BFAR   0x%08lx\r\n", bfar);
     printf("\n");
 
-    printf("SP          0x%08lx\n", (uint32_t)sp);
-    printf("R0          0x%08lx\n", r0);
-    printf("R1          0x%08lx\n", r1);
-    printf("R2          0x%08lx\n", r2);
-    printf("R3          0x%08lx\n", r3);
-    printf("R12         0x%08lx\n", r12);
-    printf("LR          0x%08lx\n", lr);
-    printf("PC          0x%08lx\n", pc);
-    printf("PSR         0x%08lx\n", psr);
+    printf("SP          0x%08lxrn", (uint32_t)sp);
+    printf("R0          0x%08lxrn", r0);
+    printf("R1          0x%08lxrn", r1);
+    printf("R2          0x%08lxrn", r2);
+    printf("R3          0x%08lxrn", r3);
+    printf("R12         0x%08lxrn", r12);
+    printf("LR          0x%08lxrn", lr);
+    printf("PC          0x%08lxrn", pc);
+    printf("PSR         0x%08lxrn", psr);
     while(1);
 }
 

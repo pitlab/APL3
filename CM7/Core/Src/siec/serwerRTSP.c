@@ -72,6 +72,7 @@ uint8_t chTrwaStreamRTP;
 extern uint8_t chStatusPolaczenia;
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJPEG[ROZMIAR_BUF_JPEG];
 extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chPakiet_RTP[ROZMIAR_PAKIETU_RTP];
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -134,7 +135,7 @@ void ObslugaSerweraRTSP(int nGniazdoPolaczenia)
 
 			if (strstr(buffer, "OPTIONS"))
 			{
-				char reply[256];
+				char reply[128];
 				snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nPublic: OPTIONS, DESCRIBE, SETUP, PLAY, TEARDOWN\r\n\r\n", cseq);
 				send(nDeskrGniazdaOdbioru, reply, strlen(reply), 0);
 			}
@@ -170,13 +171,13 @@ void ObslugaSerweraRTSP(int nGniazdoPolaczenia)
 				client_addr.sin_port = htons(client_rtp_port);
 				client_addr.sin_addr = addr.sin_addr;
 
-				char reply[256];
+				char reply[128];
 				snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nTransport: RTP/AVP;unicast;client_port=%d-%d\r\nSession: 12345678\r\n\r\n", cseq, client_rtp_port, client_rtp_port+1);
 				send(nDeskrGniazdaOdbioru, reply, strlen(reply), 0);
 			}
 			else if (strstr(buffer, "PLAY"))
 			{
-				char reply[256];
+				char reply[64];
 				snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nSession: 12345678\r\n\r\n", cseq);
 				send(nDeskrGniazdaOdbioru, reply, strlen(reply), 0);
 
@@ -186,7 +187,7 @@ void ObslugaSerweraRTSP(int nGniazdoPolaczenia)
 			}
 			else if (strstr(buffer, "TEARDOWN"))
 			{
-				char reply[128];
+				char reply[64];
 				snprintf(reply, sizeof(reply), "RTSP/1.0 200 OK\r\nCSeq: %d\r\nSession: 12345678\r\n\r\n", cseq);
 				send(nDeskrGniazdaOdbioru, reply, strlen(reply), 0);
 				chTrwaStreamRTP = 0;
@@ -210,7 +211,7 @@ void WatekStreamujacyRTP(void *arg)
     if (sock < 0)
         vTaskDelete(NULL);
 
-    uint8_t chPakiet_RTP[ROZMIAR_PAKIETU_RTP];
+    //uint8_t chPakiet_RTP[ROZMIAR_PAKIETU_RTP];	//przeniesiony na zewnątrz do SRAM3
     uint16_t sNumerPakietu = 0;
     uint32_t nTimeStamp = PobierzCzasT6();
     uint32_t nOffsetObrazu, nPorcjaObrazu;
@@ -261,13 +262,16 @@ void WatekStreamujacyRTP(void *arg)
 
 			// Wysłanie do klienta
 			sendto(sock, chPakiet_RTP, 20 + nPorcjaObrazu, 0, (struct sockaddr*)&client_addr, sizeof(client_addr));
+			//printf("np:%d ", sNumerPakietu);
 			sNumerPakietu++;
 			nOffsetObrazu += nPorcjaObrazu;
+			printf("oo:%ld ", nOffsetObrazu);
 		}
     	nTimeStamp += 90000 / 25; // np. 25 fps
     	vTaskDelay(pdMS_TO_TICKS(40));
     }
     chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_RTSP);
     chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_RTSP);
+    vTaskDelete(NULL);
 }
 

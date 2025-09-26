@@ -37,6 +37,7 @@
 #include "lwip/stats.h"
 #include "jpeg.h"
 
+
 //deklaracje zmiennych
 extern uint8_t MidFont[];
 extern uint8_t BigFont[];
@@ -211,7 +212,7 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"EmuMagCAN",	"Emulator magnetometru na magistrali CAN",	TP_EMU_MAG_CAN,		obr_kal_mag_n1},
 	{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katow IMU",		TP_IMU_KOSTKA,		obr_kostka3D},
 	{"Magistrala",	"Test magistrali danych i adresowej",		TP_W3,				obr_Wydajnosc},
-	{"SD18",		"nic",										TP_W4,				obr_Wydajnosc},
+	{"Pamiec",		"Status pamieci",							TP_STAN_PAMIECI,	obr_Wydajnosc},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuAudio[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -237,7 +238,7 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Domyslny",	"Konfiguracja domyślna",					TP_KAM_YUV420,		obr_narzedzia},
 	{"Test komp",	"TestKompreji ",							TP_KAM_JPEG_Y8,		obr_kamera},
 	{"480x320",		"Ustawia kamere na 480x320 ",				TP_USTAW_KAM_480x320,	obr_narzedzia},
-	{"Diagnoza",	"Wykonuje diagnostykę kamery",				TP_KAM_DIAG,		obr_narzedzia},
+	{"Diagnoza",	"Wykonuje diagnostyke kamery",				TP_KAM_DIAG,		obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -800,6 +801,29 @@ void RysujEkran(void)
 	//case TP_W3:		chPort_exp_wysylany[0] |=  EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - H=3,3V
 	//case TP_W4:		chPort_exp_wysylany[0] &= ~EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - L=1,8V
 	case TP_W3: SprawdzMagistrale(0xC0000000);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+		}
+		break;
+
+
+	case TP_STAN_PAMIECI:
+		setColor(ZOLTY);
+		sprintf(chNapis, "Wolna sterta: %d", xPortGetFreeHeapSize());
+		RysujNapis(chNapis, KOL12, 40);
+
+		sprintf(chNapis, "Minimalna wolna pamiec: %d", xPortGetMinimumEverFreeHeapSize());
+		RysujNapis(chNapis, KOL12, 70);
+
+		/*struct mallinfo mi;
+		memset(&mi,0,sizeof(struct mallinfo));
+		mi = mallinfo();
+
+		sprintf(chNapis, "mallinfo: Arena %ld, Free %ld, Used %ls", mi.arena, mi.fordblks, mi.uordblks);
+		RysujNapis(chNapis, KOL12, 100);*/
+
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;

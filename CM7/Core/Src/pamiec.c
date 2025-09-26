@@ -964,3 +964,11 @@ uint8_t SprawdzMagistrale(uint32_t nAdresBazowy)
 }
 
 
+
+void vApplicationStackOverflowHook(void)
+{
+printf("Stack overflow");
+}
+
+
+

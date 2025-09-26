@@ -49,8 +49,8 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Rozbudować warunki korekcji magnetometru w AHRS o prędkość zmiany kąta
  - Sprawdzić stabilność danych i konieczność odświeżania w SDRAM
  - do LWIP podać adres IP zawarty w stBSP.chAdrIP
- - uruchomić kompresję sprzetową JPEG
  - podać skompresowany obraz do serwera RTSP
+ - sprawdzić dlaczego wywala się hard fault na ethernet_input()
 
  //Problemy sprzętowe egzemplarza 1:
   * Nie można uruchomić ETH i kamery
@@ -260,7 +260,7 @@ int main(void)
 /* USER CODE END Boot_Mode_Sequence_0 */
 
   /* MPU Configuration--------------------------------------------------------*/
-    MPU_Config();
+  MPU_Config();
 
   /* Enable the CPU Cache */
 
@@ -422,7 +422,7 @@ Error_Handler();
   tsSerwerTCPHandle = osThreadCreate(osThread(tsSerwerTCP), NULL);
 
   /* definition and creation of tsSerwerRTSP */
-  osThreadDef(tsSerwerRTSP, WatekSerweraRTSP, osPriorityBelowNormal, 0, 768);
+  osThreadDef(tsSerwerRTSP, WatekSerweraRTSP, osPriorityBelowNormal, 0, 1024);
   tsSerwerRTSPHandle = osThreadCreate(osThread(tsSerwerRTSP), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
