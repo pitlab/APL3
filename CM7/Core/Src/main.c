@@ -414,7 +414,8 @@ Error_Handler();
   tsRejestratorHandle = osThreadCreate(osThread(tsRejestrator), NULL);
 
   /* definition and creation of tsObslugaWyswie */
-  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 320);
+  //osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 320);
+  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 1024);
   tsObslugaWyswieHandle = osThreadCreate(osThread(tsObslugaWyswie), NULL);
 
   /* definition and creation of tsSerwerTCP */

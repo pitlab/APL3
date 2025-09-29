@@ -18,6 +18,9 @@
 
 #define ROZMIAR_PAKIETU_RTP	1400
 
+#define RTP_PT_JPEG         26
+#define RTP_JPEG_RESTART	0x40
+
 err_t OtworzPolaczenieSerweraRTSP(int *nGniazdoPolaczenia);
 void ObslugaSerweraRTSP(int nGniazdoPolaczenia);
 //err_t AnalizaKomunikatuRTSP(uint8_t* dane, uint16_t sDlugosc);

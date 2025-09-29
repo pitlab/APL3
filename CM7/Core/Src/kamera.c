@@ -306,7 +306,7 @@ uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor, uint32_t nRozm
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t CzekajNaKoniecPracyDCMI(void)
 {
-	uint8_t chLicznikTimeoutu = 173;	//przy 6, 7 ramkach = 130, 151ms czasami wyskskuje na timeoucie
+	uint8_t chLicznikTimeoutu = 250;	//przy 6, 7 ramkach = 130, 151ms czasami wyskskuje na timeoucie
 	do
 	{
 		osDelay(1);		//przełącz na inny wątek
@@ -833,7 +833,7 @@ uint8_t UstawKamere2(stKonfKam_t *konf)
 // Parametry: brak
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t UstawRGB565(uint16_t sSzerokosc, uint16_t sWysokosc)
+uint8_t UstawObrazKameryRGB565(uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t chErr;
 
@@ -853,7 +853,7 @@ uint8_t UstawRGB565(uint16_t sSzerokosc, uint16_t sWysokosc)
 // Parametry: brak
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t UstawYUV420(uint16_t sSzerokosc, uint16_t sWysokosc)
+uint8_t UstawObrazKameryYUV420(uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t chErr;
 
@@ -871,18 +871,18 @@ uint8_t UstawYUV420(uint16_t sSzerokosc, uint16_t sWysokosc)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Ustawia kamerę w trybie czarno białym YCbCr z samą luminancją, aby generować obraz do kompresji JPEG
+// Ustawia kamerę w trybie czarno białym Y8 z samą luminancją, aby generować obraz do kompresji JPEG
 // Parametry: brak
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t UstawObrazCzarnoBialy(uint16_t sSzerokosc, uint16_t sWysokosc)
+uint8_t UstawObrazKameryY8(uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t chErr;
 
 	nRozmiarObrazuKamery = (uint32_t)sSzerokosc * sWysokosc;
 
-	//stKonfKam.chTrybPracy = KAM_ZDJECIE;
-	stKonfKam.chTrybPracy = KAM_FILM;
+	stKonfKam.chTrybPracy = KAM_ZDJECIE;
+	//stKonfKam.chTrybPracy = KAM_FILM;
 	stKonfKam.chFormatObrazu = 0x10;	//obraz Y8
 	stKonfKam.chSzerWe = sSzerokosc / KROK_ROZDZ_KAM * 2;
 	stKonfKam.chWysWe = sWysokosc / KROK_ROZDZ_KAM * 2;
@@ -901,11 +901,11 @@ uint8_t UstawObrazCzarnoBialy(uint16_t sSzerokosc, uint16_t sWysokosc)
 //  sSzerokosc, sWysokosc - rozmiary obrazu w pikselach
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KompresujObrazCzarnoBialy(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzerokosc, uint16_t sWysokosc)
+uint8_t KompresujObrazY8(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t chErr;
 
-	chErr = KompresujYUV420(chBufKamery, sSzerokosc, sWysokosc, chBuforJPEG, ROZMIAR_BUF_JPEG);
+	chErr = KompresujY8(chBufKamery, sSzerokosc, sWysokosc, chBuforJPEG, ROZMIAR_BUF_JPEG);
 	KonwersjaCB8doRGB666(chBufKamery, chBufLCD, sSzerokosc * sWysokosc);
 	return chErr;
 }

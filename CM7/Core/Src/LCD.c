@@ -501,7 +501,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAMERA:	//ciagła praca kamery z pamięcią SRAM
-		UstawRGB565(DISP_X_SIZE, DISP_Y_SIZE);
+		UstawObrazKameryRGB565(DISP_X_SIZE, DISP_Y_SIZE);
 		RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
@@ -515,7 +515,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAM_DRAM:	//ciagła praca kamery z pamięcią DRAM
-		UstawRGB565(DISP_X_SIZE, DISP_Y_SIZE);
+		UstawObrazKameryRGB565(DISP_X_SIZE, DISP_Y_SIZE);
 		RozpocznijPraceDCMI(stKonfKam, sBuforKameryDRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
@@ -530,7 +530,7 @@ void RysujEkran(void)
 
 
 	case TP_KAM_Y8:	//praca z obrazem czarno-białym
-		chErr = UstawObrazCzarnoBialy(DISP_X_SIZE, DISP_Y_SIZE);
+		chErr = UstawObrazKameryY8(DISP_X_SIZE, DISP_Y_SIZE);
 		if (chErr)
 			break;
 		do
@@ -544,7 +544,11 @@ void RysujEkran(void)
 				break;
 
 			//HistogramCB8((uint8_t*)sBuforKamerySRAM, STD_OBRAZU_DVGA, chHistCB8);
-			chErr = KompresujObrazCzarnoBialy((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			//testowo wypełnij bufor kamery narastajacymi liczbami
+			//for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)
+				//sBuforKamerySRAM[n] = (uint16_t)(n & 0xFFFF);
+
+			chErr = KompresujObrazY8((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 			if (chErr)
 				break;
 
@@ -558,7 +562,7 @@ void RysujEkran(void)
 
 	case TP_KAM_YUV420:	//kompresja obrazu kolorowego
 		uint32_t nCzas;
-		chErr = UstawYUV420(DISP_X_SIZE, DISP_Y_SIZE);
+		chErr = UstawObrazKameryYUV420(DISP_X_SIZE, DISP_Y_SIZE);
 		if (chErr)
 			break;
 		do
@@ -588,7 +592,7 @@ void RysujEkran(void)
 
 
 	case TP_KAM_JPEG_Y8:
-		chErr = UstawObrazCzarnoBialy(DISP_X_SIZE, DISP_Y_SIZE);
+		chErr = UstawObrazKameryY8(DISP_X_SIZE, DISP_Y_SIZE);
 		/*for (uint16_t n=0; n<240*64; n++)	//wiersz to 40/8 = 60 4 wiersze -> 240 MCU
 		{
 			//chBuforLCD[n] = (uint8_t)(n & 0xFF);
@@ -612,7 +616,7 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAM1:
-		UstawRGB565(DISP_X_SIZE, DISP_Y_SIZE);
+		UstawObrazKameryRGB565(DISP_X_SIZE, DISP_Y_SIZE);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
