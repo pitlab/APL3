@@ -29,8 +29,5 @@ uint8_t KonfigurujKompresjeJpeg(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t
 uint8_t CzekajNaKoniecPracyJPEG(void);
 uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t *chDaneSkompresowane, uint32_t nRozmiarBuforaJPEG);
 uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t *chDaneSkompresowane, uint32_t nRozmiarBuforaJPEG);
-
-void prepareMCU(int mcuX, int mcuY, uint8_t *Yplane, uint8_t *Cbplane, uint8_t *Crplane, uint8_t *dstBuffer);
-void copyBlock8x8(uint8_t *dst, const uint8_t *src, int stride, int startX, int startY);
-void prepareImage(uint8_t *Yplane, uint8_t *Cbplane, uint8_t *Crplane, void (*feedMCU)(uint8_t *mcuData));
+uint8_t* ZnajdzZnacznikJpeg(uint8_t *chDaneSkompresowane, uint8_t chZnacznik);
 #endif /* INC_JPEG_H_ */

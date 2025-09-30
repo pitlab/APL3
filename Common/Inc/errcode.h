@@ -68,6 +68,7 @@
 #define ERR_NASTAWA_FRAM		68	//niewłaściwa wartość nastawy odczytanaj z FRAM
 #define BLAD_OTWARCIA_GNIAZDA	69	//bład otwarcia gniazda TCP
 #define BLAD_ZAJETY_JPEG		70	//kompresor, który powinien czekać na dane nie jest dostępny
+//#define BLAD_BRAK_ZNACZN_JPEG	71	//nie znalezino danego znacznika w skompresowanych danych
 
 #define ERR_NIE_ZAINICJOWANY	0xFF
 

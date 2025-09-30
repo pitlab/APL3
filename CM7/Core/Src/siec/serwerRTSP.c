@@ -216,9 +216,11 @@ void WatekStreamujacyRTP(void *arg)
     //uint8_t chPakiet_RTP[ROZMIAR_PAKIETU_RTP];	//przeniesiony na zewnątrz do SRAM3
     uint16_t sNumerPakietu = 0;
     uint32_t nTimeStamp = PobierzCzasT6();
-    uint32_t nOffsetObrazu, nPorcjaObrazu;
-    uint8_t chPierwszaRamka = 1;	//w pierwszej ramce trzeba przesłać tablice kwantyzacji
+    uint32_t nOffsetObrazu, nRozmiarObrazuDoWyslania;
     uint8_t chRozmiarNaglowka;
+    //uint8_t chErr;
+    uint8_t* chDane = NULL;
+    uint8_t chRozmiarTablicyKwantyzcji;	//64 (mono)lub 128 bajtów (kolor)
 
     while (chTrwaStreamRTP)
     {
@@ -247,46 +249,56 @@ void WatekStreamujacyRTP(void *arg)
 			chPakiet_RTP[13] = (nOffsetObrazu >> 16) & 0xFF;	//The Fragment Offset is the offset in bytes of the current packet in the JPEG frame data.
 			chPakiet_RTP[14] = (nOffsetObrazu >> 8) & 0xFF;		//This value is encoded in network byte order (most significant byte first).
 			chPakiet_RTP[15] = nOffsetObrazu & 0xFF;
-			chPakiet_RTP[16] = 0;   // Type = baseline JPEG
-			chPakiet_RTP[17] = 0; 	// Q=255 tablice kwantyzacji są w JPEG
+			chPakiet_RTP[16] = 0;   // Type = baseline JPEG  8-bit samples
+			chPakiet_RTP[17] = 255; 	// Q=255 tablice kwantyzacji są w JPEG
 			chPakiet_RTP[18] = 480 / 8; // width/8
 			chPakiet_RTP[19] = 320 / 8; // height/8
 			chPakiet_RTP[20] = 0;		//restart interval
  			//jpeghdr_rst: u_int16 - nie uwzględniam restartu
 			//dri;	f:1; l:1; count:14;		//dri - restart intervel in MCU or 0 if no restarts
 
-			if (chPierwszaRamka)
+
+			if (nOffsetObrazu == 0)	//pierwsza ramka, w której trzeba przesłać tablicę kwantyzacji
 			{
-				chPierwszaRamka = 0;
+				chDane = ZnajdzZnacznikJpeg(chBuforJPEG, 0xDB);	//0xFFDB oznacza tablicę kwantyzacji
+				if (chDane)
+				{
+					chRozmiarTablicyKwantyzcji = *(chDane + 1) - 3;	//rozmiar danych oprócz tablicy kwantyzacji obejmuje jeszcze 16-bitwowy rozmiar i bajt kontrolny
+					chDane += 3;	//przeskocz 16-bitowy rozmiar i bajt kontrolny Pq/Tq
+				}
+
+				//chPierwszaRamka = 0;
 				//Quantization Table header:  This header MUST be present after the main JPEG header (and after the Restart Marker header, if present)
 				//when using Q values 128-255. It provides a way to specify the quantization tables associated with this Q value in-band.
 				chPakiet_RTP[21] = 0;	//MBZ
 				chPakiet_RTP[22] = 0;	//Precision
 				chPakiet_RTP[23] = 0;	//Length H
-				chPakiet_RTP[24] = 64;	//Length L
-				memcpy(&chPakiet_RTP[25], hjpeg.QuantTable0, 64);
-				chRozmiarNaglowka = 89;
+				chPakiet_RTP[24] = chRozmiarTablicyKwantyzcji;	//Length L
+				memcpy(&chPakiet_RTP[25], chDane, chRozmiarTablicyKwantyzcji);	//skopiuj tablicę kwantyzacji obrazu do pierwszej ramki
+				chRozmiarNaglowka = 25 + chRozmiarTablicyKwantyzcji;
+				//chDane += chRozmiarTablicyKwantyzcji;
+				chDane = ZnajdzZnacznikJpeg(chBuforJPEG, 0xDA);	//0xFFDA oznaca SOS Start Of Scan - początek danych obrazu
 			}
 			else
 				chRozmiarNaglowka = 21;
 
 			//przepisz kolejny kawałek obrazu do ramki
-			nPorcjaObrazu = nRozmiarObrazuJPEG - nOffsetObrazu;
-			if (nPorcjaObrazu > ROZMIAR_PAKIETU_RTP - chRozmiarNaglowka)
-				nPorcjaObrazu = ROZMIAR_PAKIETU_RTP - chRozmiarNaglowka;
-			memcpy(&chPakiet_RTP[chRozmiarNaglowka], chBuforJPEG + nOffsetObrazu, nPorcjaObrazu);
+			nRozmiarObrazuDoWyslania = nRozmiarObrazuJPEG - nOffsetObrazu;
+			if (nRozmiarObrazuDoWyslania > ROZMIAR_PAKIETU_RTP - chRozmiarNaglowka)
+				nRozmiarObrazuDoWyslania = ROZMIAR_PAKIETU_RTP - chRozmiarNaglowka;
+			memcpy(&chPakiet_RTP[chRozmiarNaglowka], chDane + nOffsetObrazu, nRozmiarObrazuDoWyslania);
 
-			//w ostatnim segmencie daj znacznik
-	        if ((nOffsetObrazu + nPorcjaObrazu) >= nRozmiarObrazuJPEG)
+			//w ostatnim segmencie daj znacznik końca
+	        if ((nOffsetObrazu + nRozmiarObrazuDoWyslania) >= nRozmiarObrazuJPEG)
 	        {
 	        	chPakiet_RTP[1] |= 0x80; // RTP Marker M=1
 	        }
 
 			// Wysłanie do klienta
-			sendto(sock, chPakiet_RTP, chRozmiarNaglowka + nPorcjaObrazu, 0, (struct sockaddr*)&client_addr, sizeof(client_addr));
+			sendto(sock, chPakiet_RTP, chRozmiarNaglowka + nRozmiarObrazuDoWyslania, 0, (struct sockaddr*)&client_addr, sizeof(client_addr));
 			//printf("np:%d ", sNumerPakietu);
 			sNumerPakietu++;
-			nOffsetObrazu += nPorcjaObrazu;
+			nOffsetObrazu += nRozmiarObrazuDoWyslania;
 			printf("oo:%ld ", nOffsetObrazu);
 		}
     	nTimeStamp += 90000 / 25; // np. 25 fps

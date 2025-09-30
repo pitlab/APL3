@@ -424,3 +424,30 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc,
 	//printf("Finalny timeout: %02X ", 100 - chLicznikTimeoutu);
 	return chErr;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Znajduje położenie danych za znacznikiem w skompresowanych danych JPEG
+// Parametry:
+// [we] *chDaneSkompresowane - wskaźnik na skompresowane dane wejsciowe
+// [we] chZnacznik - poszukiwany znacznik 0xFFcośtam
+// Zwraca: wskaźnik na dane po znaczniku lub NULL jeżeli nie znalazło
+////////////////////////////////////////////////////////////////////////////////
+uint8_t* ZnajdzZnacznikJpeg(uint8_t *chDaneSkompresowane, uint8_t chZnacznik)
+{
+	uint8_t* chPoczatek = NULL;
+
+	for (uint16_t n=0; n<10250; n++)	//przeszukaj początek danych
+	{
+		if (*(chDaneSkompresowane + n) == 0xFF)
+		{
+			if (*(chDaneSkompresowane + n + 1) == chZnacznik)
+			{
+				chPoczatek = (uint8_t*)(chDaneSkompresowane + n + 2);
+				break;
+			}
+		}
+	}
+	return chPoczatek;
+}
