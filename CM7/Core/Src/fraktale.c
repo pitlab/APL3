@@ -148,7 +148,7 @@ void FraktalTest(uint8_t chTyp)
 	}
 #ifdef LCD_RPI35B
 	//RysujBitmape2(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wywyła większymi paczkami - zła kolejność ale szybciej
-	RysujBitmape(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);		//wysyła bajty parami we właściwej kolejności
+	RysujBitmape(0, 0, DISP_X_SIZE, DISP_Y_SIZE, (uint16_t*)chBuforLCD);		//wysyła bajty parami we właściwej kolejności
 	//RysujBitmape3(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wyświetla bitmapę po 4 piksele z rotacją bajtów w wewnętrznym buforze. Dobre kolory i trochę szybciej niż po jednym pikselu
 	//RysujBitmape4(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wyświetla bitmapę po 4 piksele przez DMA z rotacją bajtów w wewnętrznym buforze - nie działa
 #endif

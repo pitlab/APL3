@@ -466,7 +466,7 @@ void WypelnijEkran(uint16_t sKolor565)
 	//for(y=0; y<DISP_X_SIZE * DISP_Y_SIZE; y++)
 		//sBuforLCD[y] = GRAY20;
 	if (!sKolor565)
-		sKolor565 = BLACK;
+		sKolor565 = CZARNY;
 
 	chRysujRaz = 1;
 	setColor(sKolor565);

@@ -78,7 +78,11 @@ void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 
 	//wysyłaj aż dane do ekspandera do skutku
 	do
+	{
 		chErr = WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+		if (chErr == ERR_ZAJETY_SEMAFOR)	//czy SPi jest zajęte przez inny proces?
+			osDelay(1);						//jeżeli tak to czekaj aż inny proces zakończy pracę
+	}
 	while (chErr != BLAD_OK);
 }
 
@@ -1120,3 +1124,46 @@ uint8_t chExpander = 0;
 		}
     }
   }*/
+
+/*
+#include "stm32h7xx.h"
+
+#define SECTOR_SIZE 512
+
+uint32_t SD_ReadBlock_CMD17(uint32_t blockAddr, uint8_t *buffer) {
+    // 1. Ustaw adres sektora
+    // Dla SDHC/SDXC: blockAddr = numer sektora
+    // Dla SDSC (stare <2GB): blockAddr *= 512
+
+    // 2. Skonfiguruj licznik bajtów
+    SDMMC1->DLEN = SECTOR_SIZE;
+
+    // 3. Skonfiguruj transfer: 512 bajtów, blok pojedynczy, tryb read
+    SDMMC1->DCTRL = (9 << 4)       // DBLOCKSIZE = 2^9 = 512 bajtów
+                  | (1 << 0);      // DTEN = data transfer enable
+
+    // 4. Wyślij CMD17
+    SDMMC1->ARG = blockAddr;
+    SDMMC1->CMD = (17 & 0x3F)      // index = 17
+                | (1 << 6)         // CPSMEN = start command
+                | (0 << 8);        // response type: short (R1)
+
+    // 5. Czekaj na flagę RXDAVL (data available in FIFO)
+    uint32_t *buf32 = (uint32_t*)buffer;
+    uint32_t words = SECTOR_SIZE / 4;
+    for (uint32_t i = 0; i < words; i++)
+    {
+        while (!(SDMMC1->STA & SDMMC_STA_BUSYD0END)) {
+            if (SDMMC1->STA & (SDMMC_STA_BUSYD0END | SDMMC_STA_DTIMEOUT)) {
+                return 1; // błąd
+            }
+        }
+        buf32[i] = SDMMC1->FIFO;  // odczytaj słowo z FIFO
+    }
+
+    // 6. Poczekaj na koniec transferu
+    while (!(SDMMC1->STA & SDMMC_STA_DATAEND)) {}
+    SDMMC1->ICR = SDMMC_ICR_DATAENDC;  // skasuj flagę
+
+    return 0; // OK
+}*/

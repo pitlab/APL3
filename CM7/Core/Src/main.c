@@ -25,7 +25,6 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 0x08000000	1024K	CM7		+		-		+		-		RO		RO		FLASH			kod programu dla CM7
 0x08100000	1024K	CM4		+		-		+		-		RO		RO		FLASH			kod programu dla CM4
 0x20000000	128K	CM7														DTCMRAM
-0x24000000	512K	CM7		-		-		-		+		RW		RW		SRAM_AXI_D1		stos i dane dla CM7
 0x24000000	512K	CM7		-		+		+		+		RW		RW		SRAM_AXI_D1		stos i dane dla CM7 - obecnie przestawione
 0x30000000  128K	CM4		-		+		-		+		RW		RW		SRAM1_AHB_D2	stos i dane dla CM4
 0x30020000	128K	CM7		-		-		-		-   	RW		RW		SRAM2_AHB_D2	sterta LwIP
@@ -169,6 +168,9 @@ extern struct _statusDotyku statusDotyku;
 extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 extern uint8_t chStanSynchronizacjiCzasu;
 extern unia_wymianyCM4_t uDaneCM4;
+
+//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM2"))) chBuforSD[512];
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforSD[512];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -414,8 +416,7 @@ Error_Handler();
   tsRejestratorHandle = osThreadCreate(osThread(tsRejestrator), NULL);
 
   /* definition and creation of tsObslugaWyswie */
-  //osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 320);
-  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 1024);
+  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 320);
   tsObslugaWyswieHandle = osThreadCreate(osThread(tsObslugaWyswie), NULL);
 
   /* definition and creation of tsSerwerTCP */
@@ -483,7 +484,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = 2;
   RCC_OscInitStruct.PLL.PLLN = 144;
   RCC_OscInitStruct.PLL.PLLP = 2;
-  RCC_OscInitStruct.PLL.PLLQ = 18;
+  RCC_OscInitStruct.PLL.PLLQ = 36;
   RCC_OscInitStruct.PLL.PLLR = 8;
   RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_2;
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
@@ -524,9 +525,9 @@ void PeriphCommonClock_Config(void)
   */
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_FMC|RCC_PERIPHCLK_I2C4
                               |RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_I2C2
-                              |RCC_PERIPHCLK_I2C3|RCC_PERIPHCLK_SDMMC
-                              |RCC_PERIPHCLK_SAI2|RCC_PERIPHCLK_SPI2
-                              |RCC_PERIPHCLK_SPI5|RCC_PERIPHCLK_LPUART1;
+                              |RCC_PERIPHCLK_I2C3|RCC_PERIPHCLK_SAI2
+                              |RCC_PERIPHCLK_SPI2|RCC_PERIPHCLK_SPI5
+                              |RCC_PERIPHCLK_LPUART1;
   PeriphClkInitStruct.PLL2.PLL2M = 5;
   PeriphClkInitStruct.PLL2.PLL2N = 80;
   PeriphClkInitStruct.PLL2.PLL2P = 47;
@@ -544,7 +545,6 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;
   PeriphClkInitStruct.PLL3.PLL3FRACN = 0;
   PeriphClkInitStruct.FmcClockSelection = RCC_FMCCLKSOURCE_PLL2;
-  PeriphClkInitStruct.SdmmcClockSelection = RCC_SDMMCCLKSOURCE_PLL2;
   PeriphClkInitStruct.Sai23ClockSelection = RCC_SAI23CLKSOURCE_PLL2;
   PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL3;
   PeriphClkInitStruct.Spi45ClockSelection = RCC_SPI45CLKSOURCE_PLL3;
@@ -1031,11 +1031,12 @@ static void MX_SDMMC1_SD_Init(void)
   /* USER CODE BEGIN SDMMC1_Init 0 */
 	//Ponieważ procedura inicjalizacji wchodzi w Error_Handler() w przypadku braku karty, więc samodzielnie obsługuję inicjalizację nie traktując braku karty jako błąd, ale stan pracy
 	hsd1.Instance = SDMMC1;
-	hsd1.Init.ClockEdge = SDMMC_CLOCK_EDGE_RISING;
-	hsd1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
-	hsd1.Init.BusWide = SDMMC_BUS_WIDE_4B;
+	hsd1.Init.ClockEdge = SDMMC_CLOCK_EDGE_RISING;	//When using the external transceiver the direction signal polarity must be set as high.
+	hsd1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_ENABLE;
+	//hsd1.Init.BusWide = SDMMC_BUS_WIDE_4B;
+	hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
 	hsd1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-	hsd1.Init.ClockDiv = 0;
+	hsd1.Init.ClockDiv = 4;
 	hsd1.Init.TranceiverPresent = SDMMC_TRANSCEIVER_PRESENT;
 	if (HAL_SD_Init(&hsd1) == HAL_OK)
 		nZainicjowanoCM7 |= INIT_KARTA_SD;
@@ -1048,7 +1049,7 @@ static void MX_SDMMC1_SD_Init(void)
   /* USER CODE END SDMMC1_Init 1 */
   hsd1.Instance = SDMMC1;
   hsd1.Init.ClockEdge = SDMMC_CLOCK_EDGE_RISING;
-  hsd1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
+  hsd1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_ENABLE;
   hsd1.Init.BusWide = SDMMC_BUS_WIDE_4B;
   hsd1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
   hsd1.Init.ClockDiv = 0;
@@ -1620,6 +1621,7 @@ void WatekRejestratora(void const * argument)
 	extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 	extern uint8_t chPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
 	extern uint8_t chKodBleduFAT;
+	//extern uint8_t chBuforLCD[];
 
 	for(;;)
 	{
@@ -1629,6 +1631,8 @@ void WatekRejestratora(void const * argument)
 			{
 				if (chStatusRejestratora & STATREJ_WLACZONY)
 					ObslugaPetliRejestratora();
+				else
+					osDelay(5000);	//jeżeli logowanie nie jest włączone to wstrzymaj wątek na tyle czasu
 			}
 			else	//jeżeli FAT nie jest gotowy to go zamontuj
 			{
@@ -1636,14 +1640,22 @@ void WatekRejestratora(void const * argument)
 				FRESULT fres;
 
 				hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
+				hsd1.ErrorCode = 0;							//zacznij pracę bez kodu błędu
 				status = SD_initialize(0);
 				if (status == RES_OK)
 				{
 					fres = BSP_SD_Init();
 					if (fres == FR_OK)
 					{
+						HAL_SD_ReadBlocks(&hsd1, chBuforSD, 0, 1, HAL_MAX_DELAY);
+						//HAL_SD_ReadBlocks_DMA(&hsd1, chBuforLCD, 0, 2);
+						__DSB();  // Data Synchronization Barrier
+						SCB_InvalidateDCache_by_Addr(chBuforSD, 512);
+						__DSB();  // Data Synchronization Barrier
+						__ISB();  // Instruction Synchronization Barrier
 
-						fres = f_mount(&SDFatFS, SDPath, 1);
+
+						fres = f_mount(&SDFatFS, SDPath, 1);		//1=montuj teraz, 0=przy próbie zapisu
 						if (fres == FR_OK)
 						{
 							chStatusRejestratora |= STATREJ_FAT_GOTOWY;
@@ -1663,6 +1675,8 @@ void WatekRejestratora(void const * argument)
 						chKodBleduFAT = fres;
 					}
 				}
+				if (fres != FR_OK)
+					osDelay(1000);	//ponawiaj próbę inicjalizacji co tyle czasu
 			}
 		}
 		else	//jeżeli nie ma karty
@@ -1674,8 +1688,8 @@ void WatekRejestratora(void const * argument)
 				f_mount(NULL, "", 1);		//zdemontuj system plików
 				chStatusRejestratora = 0;
 			}
+			osDelay(2000);	//sprawdź czy jest karta co tyle czasu
 		}
-		osDelay(200);
 	}
   /* USER CODE END WatekRejestratora */
 }

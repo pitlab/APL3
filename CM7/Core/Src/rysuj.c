@@ -300,7 +300,9 @@ uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* 
 		sSzerokosc = DISP_X_SIZE;
 	if (sWysokosc > DISP_Y_SIZE)
 		sWysokosc = DISP_Y_SIZE;
+#ifdef 	LCD_ILI9488
 	RysujBitmape888(0, 0, sSzerokosc, sWysokosc, chObraz);
+#endif
 	nCzas = MinalCzas(nCzas);
 	sprintf(chNapis, "%.2f fps, kompr: %.1f", 1.0/(nCzas/1000000.0), (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);
 	setColor(ZOLTY);

@@ -20,7 +20,7 @@
 #include "cmsis_os.h"
 // Wyświetlacz pracował na 25MHz ale później zaczął śmiecić na ekranie. Próbuję na 22,2MHz - jest OK
 
-
+#ifdef LCD_ILI9488
 //deklaracje zmiennych
 extern SPI_HandleTypeDef hspi5;
 extern uint8_t chRysujRaz;
@@ -120,7 +120,6 @@ uint8_t InicjujLCD_ILI9488(void)
 
 
 
-#ifdef LCD_ILI9488
 ////////////////////////////////////////////////////////////////////////////////
 // ustawia orientację ekranu
 // Parametry: orientacja - orientacja ekranu
