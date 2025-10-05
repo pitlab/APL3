@@ -226,6 +226,6 @@ uint8_t BSP_SD_IsDetected(void);
 void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status);
 uint8_t ObslugaPetliRejestratora(void);
 uint8_t Wait_SDCARD_Ready(void);
-uint32_t SD_ReadBlock_CMD17(uint32_t blockAddr, uint8_t *buffer);
+
 
 #endif /* INC_REJESTRATOR_H_ */

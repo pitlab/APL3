@@ -56,7 +56,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
   * Nie działa wejscie 2 odbiornika RC - prawdopodobnie problem lutowniczy
   *
  //Problemy sprzętowe egzemplarza 2:
-  * Nie dziala karta SD
+  * Problemy z inicjalajuzacją USB
   *
  * */
 /* USER CODE END Header */
@@ -1033,10 +1033,9 @@ static void MX_SDMMC1_SD_Init(void)
 	hsd1.Instance = SDMMC1;
 	hsd1.Init.ClockEdge = SDMMC_CLOCK_EDGE_RISING;	//When using the external transceiver the direction signal polarity must be set as high.
 	hsd1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_ENABLE;
-	//hsd1.Init.BusWide = SDMMC_BUS_WIDE_4B;
-	hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
+	hsd1.Init.BusWide = SDMMC_BUS_WIDE_4B;
 	hsd1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-	hsd1.Init.ClockDiv = 4;
+	hsd1.Init.ClockDiv = 0;
 	hsd1.Init.TranceiverPresent = SDMMC_TRANSCEIVER_PRESENT;
 	if (HAL_SD_Init(&hsd1) == HAL_OK)
 		nZainicjowanoCM7 |= INIT_KARTA_SD;
@@ -1516,7 +1515,7 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void const * argument)
 {
   /* init code for USB_DEVICE */
-  MX_USB_DEVICE_Init();
+  //MX_USB_DEVICE_Init();
 
   /* init code for LWIP */
   MX_LWIP_Init();
@@ -1621,7 +1620,6 @@ void WatekRejestratora(void const * argument)
 	extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 	extern uint8_t chPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
 	extern uint8_t chKodBleduFAT;
-	//extern uint8_t chBuforLCD[];
 
 	for(;;)
 	{
@@ -1639,22 +1637,14 @@ void WatekRejestratora(void const * argument)
 				DSTATUS status;
 				FRESULT fres;
 
-				hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
-				hsd1.ErrorCode = 0;							//zacznij pracę bez kodu błędu
+				//hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
+				//hsd1.ErrorCode = 0;							//zacznij pracę bez kodu błędu
 				status = SD_initialize(0);
 				if (status == RES_OK)
 				{
 					fres = BSP_SD_Init();
 					if (fres == FR_OK)
 					{
-						HAL_SD_ReadBlocks(&hsd1, chBuforSD, 0, 1, HAL_MAX_DELAY);
-						//HAL_SD_ReadBlocks_DMA(&hsd1, chBuforLCD, 0, 2);
-						__DSB();  // Data Synchronization Barrier
-						SCB_InvalidateDCache_by_Addr(chBuforSD, 512);
-						__DSB();  // Data Synchronization Barrier
-						__ISB();  // Instruction Synchronization Barrier
-
-
 						fres = f_mount(&SDFatFS, SDPath, 1);		//1=montuj teraz, 0=przy próbie zapisu
 						if (fres == FR_OK)
 						{

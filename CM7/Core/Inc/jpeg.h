@@ -22,6 +22,7 @@
 #define KOMPR_MCU_GOTOWY	2	//podany MCU jest już skompresowany
 #define KOMPR_OBR_GOTOWY	4	//podany obraz jest już skompresowany
 
+#define ROZMIAR_NAGL_JPEG	20
 
 
 uint8_t InicjalizujJpeg(void);
