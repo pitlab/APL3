@@ -597,37 +597,50 @@ void RysujEkran(void)
 		extern RTC_HandleTypeDef hrtc;
 		extern RTC_TimeTypeDef sTime;
 		extern RTC_DateTypeDef sDate;
+		static const uint8_t chNaglJpeg[20] = {
+				    0xFF, 0xD8, 	// Start Of Image
+				    0xFF, 0xE0, 	// APPlication0 (JFIF)
+					0x00, 0x10, 	// rozmiar: 16
+					'J', 'F', 'I', 'F', 0x00, // Identyfikator
+					0x01, 0x01,		//wersja 1.1
+					0x00,			//jednostka 1 dpi
+					0x00, 0x01, 	//gęstość poziomo
+					0x00, 0x01,		//gęstość pionowo
+					0x00, 0x00};	//thumbnail 0x0
+
+
 		// Nagłówek JPEG dla obrazu 480x320, 8-bit Y8 grayscale
 		static const uint8_t chNaglJpeg_480x320_y8[] = {
-		    0xFF, 0xD8,                                     // SOI
+		    0xFF, 0xD8,                                     // Start Of Image
 		    0xFF, 0xE0, 0x00, 0x10, 'J', 'F', 'I', 'F', 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00,0x00,	// APP0 (JFIF)
 
-		    // DQT (luminancja)
-		    0xFF, 0xDB, 0x00, 0x43, 0x00,
-		    16,11,10,16,24,40,51,61,
-		    12,12,14,19,26,58,60,55,
-		    14,13,16,24,40,57,69,56,
-		    14,17,22,29,51,87,80,62,
-		    18,22,37,56,68,109,103,77,
-		    24,35,55,64,81,104,113,92,
-		    49,64,78,87,103,121,120,101,
-		    72,92,95,98,112,100,103,99,
+		    0xFF, 0xDB, 	// DQT Tablica kwantyzacji luminancji
+			0x00, 0x43,		// długość tablicy (67)
+			0x00,			//0 = luminancja
+		    16,11,10,16,24,40,51,61, 12,12,14,19,26,58,60,55,	//tablica 8x8
+		    14,13,16,24,40,57,69,56, 14,17,22,29,51,87,80,62,
+		    18,22,37,56,68,109,103,77, 24,35,55,64,81,104,113,92,
+		    49,64,78,87,103,121,120,101, 72,92,95,98,112,100,103,99,
 
-		    // SOF0 (Baseline DCT)
-		    0xFF, 0xC0, 0x00, 0x0B,
-		    0x08,                     // 8-bit per component
-		    0x01, 0x40,               // wysokość = 320 (0x0140)
-		    0x01, 0xE0,               // szerokość = 480 (0x01E0)
-		    0x01,                     // liczba komponentów = 1 (Y)
-		    0x01, 0x11, 0x00,         // ID=1, sampling 1x1, DQT=0
+		    0xFF, 0xC0, 	// SOF (Start Of Frame 0) (Baseline DCT)
+			0x00, 0x0B,		// rozmiar: 12
+		    0x08,           // precyzja: 8 bitów na piksel
+		    0x01, 0x40,     // wysokość = 320 (0x0140)
+		    0x01, 0xE0,     // szerokość = 480 (0x01E0)
+		    0x01,          	// liczba komponentów = 1 (Y)
+		    0x01, 			// ID=1
+			0x11, 			// sampling 1x1
+			0x00,         	// DQT=0
 
-		    // DHT (DC Luminancja)
-		    0xFF, 0xC4, 0x00, 0x1F, 0x00,
+		    0xFF, 0xC4, 	// DFT (Define Huffman Table) (DC Luminancja)
+			0x00, 0x1F, 	// długość: 31
+			0x00,			// klasa: 0x=DC x0=Destination
 		    0x00,0x01,0x05,0x01,0x01,0x01,0x01,0x01,0x01,0x00,0x00,0x00,0x00,0x00,0x00,
 		    0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0A,0x0B,
 
-		    // DHT (AC Luminancja)
-		    0xFF, 0xC4, 0x00, 0xB5, 0x10,
+		    0xFF, 0xC4, 	// DFT (Define Huffman Table)  (AC Luminancja)
+			0x00, 0xB5, 	// długość: 181
+			0x10,			// klasa: 1x=AC x0=Destination
 		    0x00,0x02,0x01,0x03,0x03,0x02,0x04,0x03,0x05,0x05,0x04,0x04,0x00,0x00,0x01,0x7D,
 		    0x01,0x02,0x03,0x00,0x04,0x11,0x05,0x12,0x21,0x31,0x41,0x06,0x13,0x51,0x61,0x07,
 		    0x22,0x71,0x14,0x32,0x81,0x91,0xA1,0x08,0x23,0x42,0xB1,0xC1,0x15,0x52,0xD1,0xF0,
@@ -641,9 +654,14 @@ void RysujEkran(void)
 		    0xE3,0xE4,0xE5,0xE6,0xE7,0xE8,0xE9,0xEA,0xF1,0xF2,0xF3,0xF4,0xF5,0xF6,0xF7,0xF8,
 		    0xF9,0xFA,
 
-		    // SOS (Start of Scan)
-		    0xFF, 0xDA, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3F, 0x00
+		    0xFF, 0xDA, 	// SOS (Start of Scan)
+			0x00, 0x08,		// rozmiar: 8
+			0x01, 			// liczba komponentów: 1 - Luminancja
+			0x01, 0x00,		// użyte tablice: 1={DC=0, AC=0}
+			0x00, 0x3F, 	// spectral selection: 0..63
+			0x00			// succesive approximation: 00
 		};
+		const uint8_t eoi[2] = {0xFF, 0xD9};	//EOI (End Of Image)
 		UINT bw;
 //		uint16_t sRozmiarNaglowka = sizeof(chNaglJpeg_480x320_y8);
 
@@ -662,8 +680,9 @@ void RysujEkran(void)
 		fres = f_open(&SDFile, chNapis, FA_OPEN_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
 		{
-			f_write(&SDFile, chNaglJpeg_480x320_y8, sizeof(chNaglJpeg_480x320_y8), &bw);
-			f_write(&SDFile, &chBuforJPEG[2], nRozmiarObrazuJPEG, &bw);
+			f_write(&SDFile, chNaglJpeg, 20, &bw);
+			f_write(&SDFile, &chBuforJPEG[2], nRozmiarObrazuJPEG, &bw);	//dane z obcietym znacznikiem SOI (FFD8)
+			f_write(&SDFile, eoi, 2, &bw);
 			f_close(&SDFile);
 		}
 		setColor(ZOLTY);
@@ -682,25 +701,17 @@ void RysujEkran(void)
 
 		    // DQT luminancja (ID=0)
 		    0xFF, 0xDB, 0x00, 0x43, 0x00,
-		    16,11,10,16,24,40,51,61,
-		    12,12,14,19,26,58,60,55,
-		    14,13,16,24,40,57,69,56,
-		    14,17,22,29,51,87,80,62,
-		    18,22,37,56,68,109,103,77,
-		    24,35,55,64,81,104,113,92,
-		    49,64,78,87,103,121,120,101,
-		    72,92,95,98,112,100,103,99,
+		    16,11,10,16,24,40,51,61, 12,12,14,19,26,58,60,55,
+		    14,13,16,24,40,57,69,56, 14,17,22,29,51,87,80,62,
+		    18,22,37,56,68,109,103,77, 24,35,55,64,81,104,113,92,
+		    49,64,78,87,103,121,120,101, 72,92,95,98,112,100,103,99,
 
 		    // DQT chrominancja (ID=1)
 		    0xFF, 0xDB, 0x00, 0x43, 0x01,
-		    17,18,24,47,99,99,99,99,
-		    18,21,26,66,99,99,99,99,
-		    24,26,56,99,99,99,99,99,
-		    47,66,99,99,99,99,99,99,
-		    99,99,99,99,99,99,99,99,
-		    99,99,99,99,99,99,99,99,
-		    99,99,99,99,99,99,99,99,
-		    99,99,99,99,99,99,99,99,
+		    17,18,24,47,99,99,99,99, 18,21,26,66,99,99,99,99,
+		    24,26,56,99,99,99,99,99, 47,66,99,99,99,99,99,99,
+		    99,99,99,99,99,99,99,99, 99,99,99,99,99,99,99,99,
+		    99,99,99,99,99,99,99,99, 99,99,99,99,99,99,99,99,
 
 		    // SOF0 (Baseline DCT)
 		    0xFF, 0xC0, 0x00, 0x11,
@@ -708,13 +719,9 @@ void RysujEkran(void)
 		    0x01, 0x40,       // height = 320
 		    0x01, 0xE0,       // width  = 480
 		    0x03,             // 3 components (Y, Cb, Cr)
-
-		    // Component Y
-		    0x01, 0x22, 0x00, // ID=1, sampling 2x2 (H=2, V=2), uses QTable 0
-		    // Component Cb
-		    0x02, 0x11, 0x01, // ID=2, sampling 1x1, uses QTable 1
-		    // Component Cr
-		    0x03, 0x11, 0x01, // ID=3, sampling 1x1, uses QTable 1
+		    0x01, 0x22, 0x00, // Component Y: ID=1, sampling 2x2 (H=2, V=2), uses QTable 0
+		    0x02, 0x11, 0x01, // Component Cb: ID=2, sampling 1x1, uses QTable 1
+		    0x03, 0x11, 0x01, // Component Cr: ID=3, sampling 1x1, uses QTable 1
 
 		    // DHT DC Luminance
 		    0xFF,0xC4,0x00,0x1F,0x00,
@@ -780,8 +787,9 @@ void RysujEkran(void)
 		fres = f_open(&SDFile, chNapis, FA_OPEN_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
 		{
-			f_write(&SDFile, chNaglJpeg_480x320_yuv420, sizeof(chNaglJpeg_480x320_yuv420), &bw);
+			f_write(&SDFile, chNaglJpeg, 20, &bw);
 			f_write(&SDFile, &chBuforJPEG[2], nRozmiarObrazuJPEG, &bw);
+			f_write(&SDFile, eoi, 2, &bw);
 			f_close(&SDFile);
 		}
 		setColor(ZOLTY);
