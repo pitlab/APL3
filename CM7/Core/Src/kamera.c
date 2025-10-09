@@ -905,6 +905,12 @@ uint8_t KompresujObrazY8(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzer
 {
 	uint8_t chErr;
 
+	/*/test kompresji
+	for (uint32_t n=0; n<sSzerokosc * sWysokosc; n+=2)
+	{
+		chBufKamery[n+0] = (uint8_t)((n & 0xFF00)>>8);
+		chBufKamery[n+1] = (uint8_t)(n & 0x00FF);
+	}*/
 	chErr = KompresujY8(chBufKamery, sSzerokosc, sWysokosc, chBuforJPEG, ROZMIAR_BUF_JPEG);
 	KonwersjaCB8doRGB666(chBufKamery, chBufLCD, sSzerokosc * sWysokosc);
 	return chErr;
