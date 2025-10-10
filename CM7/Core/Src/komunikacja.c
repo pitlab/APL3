@@ -36,8 +36,7 @@ extern  uint8_t chRozmDanych;
 extern  uint8_t chDane[ROZMIAR_DANYCH_KOMUNIKACJI];
 extern uint16_t sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
 extern uint8_t chTrybPracy;
-extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM];	//bufor na klatki filmu
-extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforZdjecia[ROZM_BUF16_KAM];		//bufor na statyczne zdjęcie
+extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[];	//bufor na klatki filmu
 extern uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern stBSP_t stBSP;	//struktura zawierajaca adres i nazwę BSP
 extern uint8_t chStatusPolaczenia;
@@ -59,7 +58,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		//chStatusZdjecia = SGZ_CZEKA;	//oczekiwania na wykonanie zdjęcia
 		//chStatusZdjecia = SGZ_BLAD;		//dopóki nie ma kamery niech zgłasza bład
 		chStatusZdjecia = SGZ_GOTOWE;
-		chErr = ZrobZdjecie();
+		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		if (chErr)
 			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 		else
@@ -74,9 +73,9 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 			for (uint16_t x=0; x<480; x++)
 			{
 				if (x == 5)
-					sBuforZdjecia[y*480 + x] = ZOLTY;
+					sBuforKamerySRAM[y*480 + x] = ZOLTY;
 				if (y == 5)
-					sBuforZdjecia[y*480 + x] = CZERWONY;
+					sBuforKamerySRAM[y*480 + x] = CZERWONY;
 			}
 		}
 		break;
@@ -85,7 +84,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		for (n=0; n<4; n++)
 			un8_32.dane8[n] = chDane[n];
 		nOffsetDanych = un8_32.dane32;
-		chErr = WyslijRamke(chAdresZdalny, PK_POBIERZ_ZDJECIE, chDane[4], (uint8_t*)(sBuforZdjecia + nOffsetDanych),  chInterfejs);
+		chErr = WyslijRamke(chAdresZdalny, PK_POBIERZ_ZDJECIE, chDane[4], (uint8_t*)(sBuforKamerySRAM + nOffsetDanych),  chInterfejs);
 		break;
 
 	case PK_USTAW_BSP:		//ustawia identyfikator/adres urządzenia

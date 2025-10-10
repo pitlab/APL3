@@ -38,6 +38,15 @@ extern RTC_HandleTypeDef hrtc;
 extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
 extern double dSumaZyro1[3], dSumaZyro2[3];
+extern uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych na kartę SD
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJPEG[2][ROZMIAR_BUF_JPEG];
+FIL SDJpegFile;       //struktura pliku z obrazem
+//extern char chNapis[100];
+extern RTC_HandleTypeDef hrtc;
+extern RTC_TimeTypeDef sTime;
+extern RTC_DateTypeDef sDate;
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Zwraca obecność karty w gnieździe. Wymaga wcześniejszego odczytania stanu expanderów I/O, ktore czytane są w każdym obiegu pętli StartDefaultTask()
@@ -1087,3 +1096,56 @@ void TestKartySD(void)
 	}
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// zapisuje strumień danych z enkodera jpeg na kartę przekazywany przez podwójny bufor: chBuforJpeg[2][ROZMIAR_BUF_JPEG]
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void ObslugaZapisuJpeg(void)
+{
+	FRESULT fres = 0;
+	UINT bw;
+
+	//jest flaga otwarcia pliku
+	if (chStatusBufJpeg & STAT_JPG_OTWORZ)
+	{
+		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+		sprintf(chBufPodreczny, "ZdjecieY8_%04d%02d%02d_%02d%02d%02d.jpg",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+
+		fres = f_open(&SDJpegFile, chBufPodreczny, FA_OPEN_ALWAYS | FA_WRITE);
+		if (fres == FR_OK)
+		{
+			f_write(&SDJpegFile, chNaglJpegSOI, 20, &bw);
+			chStatusBufJpeg &= ~STAT_JPG_OTWORZ;	//skasuj flagę potwierdzając otwarcie pliku do zapisu
+		}
+	}
+	else
+	//jest flaga zapisu pierwszego segmentu z korektą znacznika SOI
+	if (chStatusBufJpeg & STAT_JPG_PIERWSZY)
+	{
+		f_write(&SDJpegFile, &chBuforJpeg[0][2], ROZMIAR_BUF_JPEG, &bw);	//dane z obcietym znacznikiem SOI (FFD8) zawsze w pierwszym buforze
+		chStatusBufJpeg &= ~STAT_JPG_PIERWSZY;	//skasuj flagę
+	}
+	else
+	if (chStatusBufJpeg & STAT_JPG_PELEN_BUF0)
+	{
+		f_write(&SDJpegFile, &chBuforJpeg[0][0], ROZMIAR_BUF_JPEG, &bw);
+		chStatusBufJpeg &= ~STAT_JPG_PELEN_BUF0;	//skasuj flagę
+	}
+	else
+	if (chStatusBufJpeg & STAT_JPG_PELEN_BUF1)
+	{
+		f_write(&SDJpegFile, &chBuforJpeg[1][0], ROZMIAR_BUF_JPEG, &bw);
+		chStatusBufJpeg &= ~STAT_JPG_PELEN_BUF0;	//skasuj flagę
+	}
+	else
+	if (chStatusBufJpeg & STAT_JPG_ZAMKNIJ)
+	{
+		f_write(&SDJpegFile, chNaglJpegEOI, 2, &bw);
+		f_close(&SDJpegFile);
+		chStatusBufJpeg &= ~STAT_JPG_ZAMKNIJ;	//skasuj flagę
+	}
+}

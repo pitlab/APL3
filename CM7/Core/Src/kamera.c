@@ -37,10 +37,8 @@
 #include "analiza_obrazu.h"
 #include "cmsis_os.h"
 
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM] = {0};	//bufor na klatki filmu
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[STD_OBRAZU_5M_N / 2] = {0};	//bufor na klatki filmu
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};		//bufor na klatki filmu
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforZdjecia[ROZM_BUF16_KAM] = {0};	//bufor na statyczne zdjęcie
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKameryYUV420[ROZM_BUF_YUV420] = {0};	//bufor na obraz YUV420
 struct st_KonfKam stKonfKam;
 static struct st_KonfKam stPoprzKonfig;	//zmienna lokalna
 struct sensor_reg stListaRejestrow[ROZMIAR_STRUKTURY_REJESTROW_KAMERY];
@@ -327,7 +325,7 @@ uint8_t CzekajNaKoniecPracyDCMI(void)
 // Parametry: brak
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ZrobZdjecie(void)
+uint8_t ZrobZdjecie(uint16_t* sBufor, uint32_t nRozmiarObrazu32bit)
 {
 	uint8_t chErr;
 	uint8_t chStatusDCMI;
@@ -347,8 +345,8 @@ uint8_t ZrobZdjecie(void)
 	}
 
 	//Konfiguracja transferu DMA z DCMI do pamięci
-	//chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforZdjecia, ROZM_BUF16_KAM / 2);
-	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforZdjecia, 480*320/4);	//rozmiar bufora musi być podany w słowach 32-bitowych
+	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBufor, nRozmiarObrazu32bit);
+	//chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamerySRAM, 480*320/4);	//rozmiar bufora musi być podany w słowach 32-bitowych
 	return chErr;
 }
 
@@ -443,7 +441,6 @@ uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_
 	{
 		sBuforKamerySRAM[n] = 0;
 		sBuforKameryDRAM[n] = 0;
-		sBuforZdjecia[n] = 0;
 	}
 
 	stKonfKam.chSzerWy = (uint8_t)(sSzerokosc / KROK_ROZDZ_KAM);

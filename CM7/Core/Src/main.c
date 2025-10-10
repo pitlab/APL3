@@ -1620,6 +1620,7 @@ void WatekRejestratora(void const * argument)
 	extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 	extern uint8_t chPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
 	extern uint8_t chKodBleduFAT;
+	extern uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych na kartę SD
 
 	for(;;)
 	{
@@ -1630,7 +1631,10 @@ void WatekRejestratora(void const * argument)
 				if (chStatusRejestratora & STATREJ_WLACZONY)
 					ObslugaPetliRejestratora();
 				else
-					osDelay(5000);	//jeżeli logowanie nie jest włączone to wstrzymaj wątek na tyle czasu
+				if (chStatusBufJpeg)	//czy ktoryś z buforow JPEG wymaga zapisu na kartę
+					ObslugaZapisuJpeg();
+				else
+					osDelay(5);	//jeżeli logowanie nie jest włączone to wstrzymaj wątek na tyle czasu
 			}
 			else	//jeżeli FAT nie jest gotowy to go zamontuj
 			{

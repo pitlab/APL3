@@ -130,21 +130,17 @@ prostokat_t stWykr;	//wykres biegunowy magnetometru
 uint8_t chHistR[ROZMIAR_HIST_KOLOR], chHistG[ROZMIAR_HIST_KOLOR], chHistB[ROZMIAR_HIST_KOLOR];
 uint8_t chHistCB8[ROZMIAR_HIST_CB8];
 
-extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF16_KAM];
-extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforZdjecia[ROZM_BUF16_KAM];	//bufor na statyczne zdjęcie
+extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF_YUV420];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM];
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
-extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKameryYUV420[ROZM_BUF_YUV420];	//bufor na obraz YUV420
-//FIL __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) SDPlikZdjecia;
 extern struct st_KonfKam stKonfKam;
 extern uint32_t nRozmiarObrazuKamery;
 extern stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJPEG[ROZMIAR_BUF_JPEG];
 extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
-extern FIL SDFile;       /* File object for SD */
 extern const uint8_t chNaglJpegSOI[20];
 extern const uint8_t chNaglJpegEOI[2];
-
+extern FIL SDJpegFile;       //struktura pliku z obrazem
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -470,7 +466,7 @@ void RysujEkran(void)
 		extern uint16_t sLicznikLiniiKamery;
 
 		sLicznikLiniiKamery = 0;
-		chErr = ZrobZdjecie();
+		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		if (chErr)
 		{
 			setColor(MAGENTA);
@@ -492,11 +488,11 @@ void RysujEkran(void)
 		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 		sprintf(chNapis, "Zdjecie%04d%02d%02d_%02d%02d%02d.txt",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
 
-		fres = f_open(&SDFile, chNapis, FA_OPEN_ALWAYS | FA_WRITE);
+		fres = f_open(&SDJpegFile, chNapis, FA_OPEN_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
 		{
-			f_puts((char*)sBuforKamerySRAM, &SDFile);	//zapis do pliku
-			f_close(&SDFile);
+			f_puts((char*)sBuforKamerySRAM, &SDJpegFile);	//zapis do pliku
+			f_close(&SDJpegFile);
 		}
 		osDelay(600);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -570,7 +566,7 @@ void RysujEkran(void)
 			break;
 		do
 		{
-			chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKameryYUV420, DISP_X_SIZE * DISP_Y_SIZE / 2 * 3);
+			chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2 * 3);
 			if (chErr)
 				break;
 			chErr = CzekajNaKoniecPracyDCMI();
@@ -578,7 +574,7 @@ void RysujEkran(void)
 				//break;
 
 			nCzas = PobierzCzasT6();
-			chErr = KompresujObrazYUV420((uint8_t*)sBuforKameryYUV420, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			chErr = KompresujObrazYUV420((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 			if (chErr)
 				break;
 
@@ -600,10 +596,10 @@ void RysujEkran(void)
 		extern RTC_DateTypeDef sDate;
 		UINT bw;
 
-		chErr = UstawObrazKameryY8(DISP_X_SIZE, DISP_Y_SIZE);
-		chErr = ZrobZdjecie();	//wynik w sBuforZdjecia
+		chErr = UstawObrazKameryY8(SZER_ZDJECIA, WYS_ZDJECIA);
+		chErr = ZrobZdjecie(sBuforKamerySRAM, SZER_ZDJECIA * WYS_ZDJECIA / 4);
 		nCzas = PobierzCzasT6();
-		chErr = KompresujObrazY8((uint8_t*)sBuforZdjecia, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+		chErr = KompresujY8((uint8_t*)sBuforKamerySRAM, SZER_ZDJECIA, WYS_ZDJECIA, chBuforJPEG, ROZMIAR_BUF_JPEG);
 		nCzas = MinalCzas(nCzas);
 		if (chErr)
 			break;
@@ -612,17 +608,18 @@ void RysujEkran(void)
 		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 		sprintf(chNapis, "ZdjecieY8_%04d%02d%02d_%02d%02d%02d.jpg",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
 
-		fres = f_open(&SDFile, chNapis, FA_OPEN_ALWAYS | FA_WRITE);
+		fres = f_open(&SDJpegFile, chNapis, FA_OPEN_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
 		{
-			f_write(&SDFile, chNaglJpegSOI, 20, &bw);
-			f_write(&SDFile, &chBuforJPEG[2], nRozmiarObrazuJPEG, &bw);	//dane z obcietym znacznikiem SOI (FFD8)
-			f_write(&SDFile, chNaglJpegEOI, 2, &bw);
-			f_close(&SDFile);
+			f_write(&SDJpegFile, chNaglJpegSOI, 20, &bw);
+			f_write(&SDJpegFile, &chBuforJPEG[2], nRozmiarObrazuJPEG, &bw);	//dane z obcietym znacznikiem SOI (FFD8)
+			f_write(&SDJpegFile, chNaglJpegEOI, 2, &bw);
+			f_close(&SDJpegFile);
 		}
 		setColor(ZOLTY);
-		sprintf(chNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f", nCzas, nRozmiarObrazuJPEG, (float)(DISP_X_SIZE*DISP_Y_SIZE) / nRozmiarObrazuJPEG);
-		WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
+		sprintf(chNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f", nCzas, nRozmiarObrazuJPEG, (float)(SZER_ZDJECIA*WYS_ZDJECIA) / nRozmiarObrazuJPEG);
+		//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBufLCD, SZER_ZDJECIA * WYS_ZDJECIA);
+		//WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 		RysujNapis(chNapis, 0, 30);
 		osDelay(3000);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -630,9 +627,9 @@ void RysujEkran(void)
 
 	case TP_KAM_ZDJ_JYUV420:	//wykonuje zdjecie YUV420 jpg
 		chErr = UstawObrazKameryYUV420(DISP_X_SIZE, DISP_Y_SIZE);
-		chErr = ZrobZdjecie();	//wynik w sBuforZdjecia
+		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//wynik w sBuforKamerySRAM
 		nCzas = PobierzCzasT6();
-		chErr = KompresujObrazYUV420((uint8_t*)sBuforZdjecia, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+		chErr = KompresujObrazYUV420((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 		nCzas = MinalCzas(nCzas);
 		if (chErr)
 			break;
@@ -641,13 +638,13 @@ void RysujEkran(void)
 		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 		sprintf(chNapis, "ZdjYUV420_%04d%02d%02d_%02d%02d%02d.jpg",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
 
-		fres = f_open(&SDFile, chNapis, FA_OPEN_ALWAYS | FA_WRITE);
+		fres = f_open(&SDJpegFile, chNapis, FA_OPEN_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
 		{
-			f_write(&SDFile, chNaglJpegSOI, 20, &bw);
-			f_write(&SDFile, &chBuforJPEG[2], nRozmiarObrazuJPEG, &bw);
-			f_write(&SDFile, chNaglJpegEOI, 2, &bw);
-			f_close(&SDFile);
+			f_write(&SDJpegFile, chNaglJpegSOI, 20, &bw);
+			f_write(&SDJpegFile, &chBuforJPEG[2], nRozmiarObrazuJPEG, &bw);
+			f_write(&SDJpegFile, chNaglJpegEOI, 2, &bw);
+			f_close(&SDJpegFile);
 		}
 		setColor(ZOLTY);
 		sprintf(chNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f", nCzas, nRozmiarObrazuJPEG, (float)(DISP_X_SIZE*DISP_Y_SIZE) / nRozmiarObrazuJPEG);

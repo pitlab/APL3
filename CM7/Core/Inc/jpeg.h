@@ -10,8 +10,8 @@
 
 #include "sys_def_CM7.h"
 
-
-#define ROZMIAR_BUF_JPEG	(480 * 320 / 4)	//na razie minimalna kompresja jest rzędu 7 razy
+//#define ROZMIAR_BUF_JPEG	(SZER_ZDJECIA * WYS_ZDJECIA / 20)	//na razie minimalna kompresja jest rzędu 7 razy
+#define ROZMIAR_BUF_JPEG	2048	//podwójne buforowanie
 #define SZEROKOSC_BLOKU		8
 #define WYSOKOSC_BLOKU		8
 #define ROZMIAR_BLOKU		(SZEROKOSC_BLOKU * WYSOKOSC_BLOKU)
