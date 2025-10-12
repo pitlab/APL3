@@ -317,7 +317,8 @@ void HAL_JPEG_DataReadyCallback(JPEG_HandleTypeDef *hjpeg, uint8_t *pDataOut, ui
 	chWskNapKolejki &= MASKA_LICZBY_BUF;
 
 	//ustaw status
-	chStatusBufJpeg |= (1 << chWskaznikBufJpeg);	//ustaw bit zapełnienie bieżącego bufora danych JPEG. Strona odbiorczas wyczyści go gdy rozładuje dane
+	//chStatusBufJpeg |= (1 << chWskaznikBufJpeg);	//ustaw bit zapełnienie bieżącego bufora danych JPEG. Strona odbiorczas wyczyści go gdy rozładuje dane
+	chStatusBufJpeg |= STAT_JPG_PELEN_BUF;
 	chWskaznikBufJpeg++;							//przełacz bufor skompresowanych danych na następny
 	chWskaznikBufJpeg &= MASKA_LICZBY_BUF;
 
@@ -569,6 +570,28 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 				{
 					printf("Timeout1: mx=%d my=%d\n\r", mx, my);
 					return BLAD_TIMEOUT;
+				}
+			}
+
+			//jeżeli kolejka buforów jest bliska zapełnienia to wstrzymaj kompresor aby nie utracić danych
+			if (chWskOprKolejki != chWskNapKolejki)
+			{
+				uint8_t chZajetoscBufora;
+				if (chWskNapKolejki > chWskOprKolejki)
+					chZajetoscBufora = chWskNapKolejki - chWskOprKolejki;
+				else
+					chZajetoscBufora = ILOSC_BUF_JPEG + chWskNapKolejki - chWskOprKolejki;
+
+				chLicznikTimeoutu = 100;
+				while (chZajetoscBufora > ILOSC_BUF_JPEG - 2)
+				{
+					osDelay(1);
+					chLicznikTimeoutu--;
+					if (!chLicznikTimeoutu)
+					{
+						printf("Timeout zajetosci bufora: %d/%d\n\r", chZajetoscBufora, ILOSC_BUF_JPEG);
+						return BLAD_TIMEOUT;
+					}
 				}
 			}
 

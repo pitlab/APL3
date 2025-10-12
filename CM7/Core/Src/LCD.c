@@ -602,7 +602,14 @@ void RysujEkran(void)
 		chErr = KompresujY8((uint8_t*)sBuforKamerySRAM, SZER_ZDJECIA, WYS_ZDJECIA);	//, chBuforJpeg, ROZMIAR_BUF_JPEG);
 		nCzas = MinalCzas(nCzas);
 		if (chErr)
+		{
+			setColor(ZOLTY);
+			sprintf(chNapis, "Blad: %d", chErr);
+			RysujNapis(chNapis, 0, 100);
+			if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
+				chNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
+		}
 
 		/*HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);

@@ -876,16 +876,30 @@ uint8_t UstawObrazKameryYUV420(uint16_t sSzerokosc, uint16_t sWysokosc)
 uint8_t UstawObrazKameryY8(uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t chErr;
+	uint8_t chZoom, chZoomX, chZoomY;
 
 	nRozmiarObrazuKamery = (uint32_t)sSzerokosc * sWysokosc;
+
+	//znajdź największy zoom cyfrowy dla danego obrazu
+	chZoomX = MAX_SZER_KAM / sSzerokosc;
+	chZoomY = MAX_WYS_KAM / sWysokosc;
+	if (chZoomX > chZoomY)
+		chZoom = chZoomY;
+	else
+		chZoom = chZoomX;
 
 	stKonfKam.chTrybPracy = KAM_ZDJECIE;
 	//stKonfKam.chTrybPracy = KAM_FILM;
 	stKonfKam.chFormatObrazu = 0x10;	//obraz Y8
-	stKonfKam.chSzerWe = sSzerokosc / KROK_ROZDZ_KAM * 2;
-	stKonfKam.chWysWe = sWysokosc / KROK_ROZDZ_KAM * 2;
+	stKonfKam.chSzerWe = sSzerokosc / KROK_ROZDZ_KAM * chZoom;
+	stKonfKam.chWysWe = sWysokosc / KROK_ROZDZ_KAM * chZoom;
 	stKonfKam.chSzerWy = sSzerokosc / KROK_ROZDZ_KAM;
 	stKonfKam.chWysWy = sWysokosc / KROK_ROZDZ_KAM;
+
+	//centruj w obrazie
+	stKonfKam.chPrzesWyPoz = (MAX_SZER_KAM - (sSzerokosc * chZoom)) / (2 * KROK_ROZDZ_KAM);
+	stKonfKam.chPrzesWyPio = (MAX_WYS_KAM - (sWysokosc * chZoom)) / (2 * KROK_ROZDZ_KAM);
+
 	chErr = UstawKamere(&stKonfKam);
 	return chErr;
 }

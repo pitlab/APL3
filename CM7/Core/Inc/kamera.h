@@ -18,10 +18,9 @@
 #define OV5640_ID		0x5640
 #define KAMERA_TIMEOUT	1	//czas w milisekundach na wysłanie jednego polecenia do kamery. Nominalnie jest to ok 400us na adres i 3 bajty danych
 #define KAMERA_ZEGAR	24000000	//kamera wymaga zegara 24MHz (6-27MHz)
-//#define KAMERA_ZEGAR	20000000	//kamera wymaga zegara 24MHz (6-27MHz)
-
 #define ROZMIAR_STRUKTURY_REJESTROW_KAMERY 20
 #define SKALA_POZIOMU_EKSPOZYCJI	0x96
+#define KROK_ROZDZ_KAM	16		//najmnijeszy krok zmiany rozmiaru obrazu o tyle pikseli. Umożliwia wysłanie rozmiaru jako liczby 8-bitowej
 
 //tryby pracy kamery
 #define KAM_ZDJECIE	1

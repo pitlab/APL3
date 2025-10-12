@@ -40,7 +40,7 @@ extern RTC_DateTypeDef sDate;
 extern double dSumaZyro1[3], dSumaZyro2[3];
 extern uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych na kartę SD
 extern volatile uint8_t chKolejkaBuf[ILOSC_BUF_JPEG];	//przechowuje kolejność zapisu buforów na kartę. Istotne gdy trzba zapisać więcej niż 1 bufor
-extern uint8_t chWskOprKolejki;	//wskaźnik opróżniania kolejki buforów do zapisu
+extern uint8_t chWskNapKolejki, chWskOprKolejki;	//wskaźniki napełniania i opróżniania kolejki buforów do zapisu
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[2][ROZMIAR_BUF_JPEG];
 FIL SDJpegFile;       //struktura pliku z obrazem
 //extern char chNapis[100];
@@ -1133,34 +1133,47 @@ void ObslugaZapisuJpeg(void)
 			//bufor z danymi zaczyna się od pozycji ROZMIAR_NAGL_JPEG
 			f_write(&SDJpegFile, chNaglJpegSOI, ROZMIAR_NAGL_JPEG, &bw);
 			//f_write(&SDJpegFile, &chBuforJpeg[0][ROZMIAR_NAGL_JPEG], ROZMIAR_BUF_JPEG - ROZMIAR_NAGL_JPEG, &bw);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
-			//powyższe niestety nie działa, więc zapisuję więcej niż wielokrotność sektora
+			//powyższe niestety nie działa, więc pomimo konieczności wstawienia nagłówka zapisuję pełen bufor
 			f_write(&SDJpegFile, &chBuforJpeg[0][ROZMIAR_ZNACZ_xOI], ROZMIAR_BUF_JPEG - ROZMIAR_ZNACZ_xOI, &bw);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
 			chStatusBufJpeg &= ~(STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF0);	//skasuj flagę
 			chWskOprKolejki++;
 			chWskOprKolejki &= MASKA_LICZBY_BUF;
 	}
 	else
-	if (chStatusBufJpeg & (STAT_JPG_PELEN_BUF0 | STAT_JPG_PELEN_BUF1 | STAT_JPG_PELEN_BUF2 | STAT_JPG_PELEN_BUF3))
+	//if (chStatusBufJpeg & (STAT_JPG_PELEN_BUF0 | STAT_JPG_PELEN_BUF1 | STAT_JPG_PELEN_BUF2 | STAT_JPG_PELEN_BUF3))
+	if ((chWskOprKolejki != chWskNapKolejki) | (chStatusBufJpeg & STAT_JPG_PELEN_BUF))
 	{
-		//jest bufor do zapisu. Wyciagnij go z kolejki aby zapisać w odpowiedzniej kolejności. Jest to istotne gdy np. są do zapisu pierwszy i ostatni
+		uint8_t chZajetoscBufora;
+		if (chWskNapKolejki > chWskOprKolejki)
+			chZajetoscBufora = chWskNapKolejki - chWskOprKolejki;
+		else
+			chZajetoscBufora = ILOSC_BUF_JPEG + chWskNapKolejki - chWskOprKolejki;
+		printf("Buf: %d\r\n", chZajetoscBufora);
+		//jest bufor do zapisu. Wyciagnij go z kolejki aby zapisać w odpowiedzniej kolejności. Jest to istotne gdy np. są do zapisu pierwszy i ostatni, wtedy kolejka definiuje kolejność zapisu
 		fres = f_write(&SDJpegFile, &chBuforJpeg[chKolejkaBuf[chWskOprKolejki]][0], ROZMIAR_BUF_JPEG, &bw);
 		if (fres == FR_OK)
 		{
-			chStatusBufJpeg &= ~(1 << chKolejkaBuf[chWskOprKolejki]);	//skasuj flagę opróżnionego bufora
+			//chStatusBufJpeg &= ~(1 << chKolejkaBuf[chWskOprKolejki]);	//skasuj flagę opróżnionego bufora
+			chStatusBufJpeg &= ~STAT_JPG_PELEN_BUF;
 			chWskOprKolejki++;
 			chWskOprKolejki &= MASKA_LICZBY_BUF;
 		}
 	}
+	else
 	if (chStatusBufJpeg & STAT_JPG_ZAMKNIJ)
 	{
 		fres = f_write(&SDJpegFile, chNaglJpegEOI, ROZMIAR_ZNACZ_xOI, &bw);
 		fres = f_close(&SDJpegFile);
 		if (fres == FR_OK)
+		{
 			chStatusBufJpeg &= ~STAT_JPG_ZAMKNIJ;	//skasuj flagę
-		f_sync(&SDJpegFile);
+			f_sync(&SDJpegFile);
+			printf("Gotowe\r\n");
+		}
 	}
 
 	//jeżeli nie ma nic do zapisu, to przełacz sie na inny wątek
-	if ((chStatusBufJpeg & (STAT_JPG_PELEN_BUF0 | STAT_JPG_PELEN_BUF1 | STAT_JPG_PELEN_BUF2 | STAT_JPG_PELEN_BUF3)) == 0)
+	//if ((chStatusBufJpeg & (STAT_JPG_PELEN_BUF0 | STAT_JPG_PELEN_BUF1 | STAT_JPG_PELEN_BUF2 | STAT_JPG_PELEN_BUF3)) == 0)
+	if ((chStatusBufJpeg & STAT_JPG_PELEN_BUF) == 0)
 		osDelay(1);
 }
