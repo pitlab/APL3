@@ -70,7 +70,7 @@ struct sockaddr_in AdresSerwera, AdresKlienta;
 uint8_t chTrwaStreamRTP;
 //extern const unsigned char oko480x320[152318];
 extern uint8_t chStatusPolaczenia;
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJPEG[ROZMIAR_BUF_JPEG];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ROZMIAR_BUF_JPEG];
 extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chPakiet_RTP[ROZMIAR_PAKIETU_RTP];
 extern JPEG_HandleTypeDef hjpeg;
@@ -260,7 +260,7 @@ void WatekStreamujacyRTP(void *arg)
 
 			if (nOffsetObrazu == 0)	//pierwsza ramka, w której trzeba przesłać tablicę kwantyzacji
 			{
-				chDane = ZnajdzZnacznikJpeg(chBuforJPEG, 0xDB);	//0xFFDB oznacza tablicę kwantyzacji
+				chDane = ZnajdzZnacznikJpeg(chBuforJpeg, 0xDB);	//0xFFDB oznacza tablicę kwantyzacji
 				if (chDane)
 				{
 					chRozmiarTablicyKwantyzcji = *(chDane + 1) - 3;	//rozmiar danych oprócz tablicy kwantyzacji obejmuje jeszcze 16-bitwowy rozmiar i bajt kontrolny
@@ -277,7 +277,7 @@ void WatekStreamujacyRTP(void *arg)
 				memcpy(&chPakiet_RTP[25], chDane, chRozmiarTablicyKwantyzcji);	//skopiuj tablicę kwantyzacji obrazu do pierwszej ramki
 				chRozmiarNaglowka = 25 + chRozmiarTablicyKwantyzcji;
 				//chDane += chRozmiarTablicyKwantyzcji;
-				chDane = ZnajdzZnacznikJpeg(chBuforJPEG, 0xDA);	//0xFFDA oznaca SOS Start Of Scan - początek danych obrazu
+				chDane = ZnajdzZnacznikJpeg(chBuforJpeg, 0xDA);	//0xFFDA oznaca SOS Start Of Scan - początek danych obrazu
 			}
 			else
 				chRozmiarNaglowka = 21;

@@ -136,7 +136,7 @@ extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZew
 extern struct st_KonfKam stKonfKam;
 extern uint32_t nRozmiarObrazuKamery;
 extern stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJPEG[ROZMIAR_BUF_JPEG];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ROZMIAR_BUF_JPEG];
 extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 extern const uint8_t chNaglJpegSOI[20];
 extern const uint8_t chNaglJpegEOI[2];
@@ -599,12 +599,12 @@ void RysujEkran(void)
 		chErr = UstawObrazKameryY8(SZER_ZDJECIA, WYS_ZDJECIA);
 		chErr = ZrobZdjecie(sBuforKamerySRAM, SZER_ZDJECIA * WYS_ZDJECIA / 4);
 		nCzas = PobierzCzasT6();
-		chErr = KompresujY8((uint8_t*)sBuforKamerySRAM, SZER_ZDJECIA, WYS_ZDJECIA, chBuforJPEG, ROZMIAR_BUF_JPEG);
+		chErr = KompresujY8((uint8_t*)sBuforKamerySRAM, SZER_ZDJECIA, WYS_ZDJECIA);	//, chBuforJpeg, ROZMIAR_BUF_JPEG);
 		nCzas = MinalCzas(nCzas);
 		if (chErr)
 			break;
 
-		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+		/*HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 		sprintf(chNapis, "ZdjecieY8_%04d%02d%02d_%02d%02d%02d.jpg",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
 
@@ -612,12 +612,12 @@ void RysujEkran(void)
 		if (fres == FR_OK)
 		{
 			f_write(&SDJpegFile, chNaglJpegSOI, 20, &bw);
-			f_write(&SDJpegFile, &chBuforJPEG[2], nRozmiarObrazuJPEG, &bw);	//dane z obcietym znacznikiem SOI (FFD8)
+			f_write(&SDJpegFile, &chBuforJpeg[2], nRozmiarObrazuJPEG, &bw);	//dane z obcietym znacznikiem SOI (FFD8)
 			f_write(&SDJpegFile, chNaglJpegEOI, 2, &bw);
 			f_close(&SDJpegFile);
 		}
 		setColor(ZOLTY);
-		sprintf(chNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f", nCzas, nRozmiarObrazuJPEG, (float)(SZER_ZDJECIA*WYS_ZDJECIA) / nRozmiarObrazuJPEG);
+		sprintf(chNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f", nCzas, nRozmiarObrazuJPEG, (float)(SZER_ZDJECIA*WYS_ZDJECIA) / nRozmiarObrazuJPEG);*/
 		//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBufLCD, SZER_ZDJECIA * WYS_ZDJECIA);
 		//WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 		RysujNapis(chNapis, 0, 30);
@@ -642,7 +642,7 @@ void RysujEkran(void)
 		if (fres == FR_OK)
 		{
 			f_write(&SDJpegFile, chNaglJpegSOI, 20, &bw);
-			f_write(&SDJpegFile, &chBuforJPEG[2], nRozmiarObrazuJPEG, &bw);
+			f_write(&SDJpegFile, &chBuforJpeg[2], nRozmiarObrazuJPEG, &bw);
 			f_write(&SDJpegFile, chNaglJpegEOI, 2, &bw);
 			f_close(&SDJpegFile);
 		}

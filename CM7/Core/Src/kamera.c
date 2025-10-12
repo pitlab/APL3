@@ -37,7 +37,8 @@
 #include "analiza_obrazu.h"
 #include "cmsis_os.h"
 
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[STD_OBRAZU_5M_N / 2] = {0};	//bufor na klatki filmu
+//uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[STD_OBRAZU_5M_N / 2] = {0};	//bufor na klatki filmu
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[SZER_ZDJECIA * WYS_ZDJECIA / 2] = {0};	//bufor na klatki filmu
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};		//bufor na klatki filmu
 struct st_KonfKam stKonfKam;
 static struct st_KonfKam stPoprzKonfig;	//zmienna lokalna
@@ -54,7 +55,7 @@ extern const struct sensor_reg ov5642_dvp_fmt_global_init[];
 extern const struct sensor_reg OV5642_VGA_preview_setting[];
 extern const uint8_t chAdres_expandera[];
 extern uint8_t chPort_exp_wysylany[];
-extern uint8_t chBuforJPEG[ROZMIAR_BUF_JPEG];
+extern uint8_t chBuforJpeg[ROZMIAR_BUF_JPEG];
 extern JPEG_HandleTypeDef hjpeg;
 extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint32_t nRozmiarObrazuKamery;	//w bajtach
@@ -908,7 +909,7 @@ uint8_t KompresujObrazY8(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzer
 		chBufKamery[n+0] = (uint8_t)((n & 0xFF00)>>8);
 		chBufKamery[n+1] = (uint8_t)(n & 0x00FF);
 	}*/
-	chErr = KompresujY8(chBufKamery, sSzerokosc, sWysokosc, chBuforJPEG, ROZMIAR_BUF_JPEG);
+	chErr = KompresujY8(chBufKamery, sSzerokosc, sWysokosc);	//, chBuforJpeg, ROZMIAR_BUF_JPEG);
 	KonwersjaCB8doRGB666(chBufKamery, chBufLCD, sSzerokosc * sWysokosc);
 	return chErr;
 }
@@ -927,7 +928,7 @@ uint8_t KompresujObrazYUV420(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t s
 	uint8_t chErr = BLAD_OK;
 
 
-	chErr = KompresujYUV420(chBufKamery, sSzerokosc, sWysokosc, chBuforJPEG, ROZMIAR_BUF_JPEG);
+	chErr = KompresujYUV420(chBufKamery, sSzerokosc, sWysokosc, chBuforJpeg, ROZMIAR_BUF_JPEG);
 
 	//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBufLCD, sSzerokosc * sWysokosc);
 	return chErr;

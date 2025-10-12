@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	0
 #define WER_PODRZ	1
-#define WER_REPO	308		//numer commitu w repozytorium
+#define WER_REPO	309		//numer commitu w repozytorium
 
 //wybór typu wyświetlacza
 #define LCD_ILI9488		//https://sklep.msalamon.pl/produkt/wyswietlacz-tft-lcd-35%E2%80%B3-ili9488-320x480/?srsltid=AfmBOopUr_Ot4ZQNoDns7QPYb-sgwqNSRUYaUR1s1TTm1hDWmuxMRWXO lub https://pl.aliexpress.com/item/1005008606165384.html?spm=a2g0o.productlist.main.1.236d39e0dslaJU&algo_pvid=7c8e747e-899a-49cd-bec1-53d6e396e7f9&algo_exp_id=7c8e747e-899a-49cd-bec1-53d6e396e7f9-0&pdp_ext_f=%7B%22order%22%3A%222%22%2C%22eval%22%3A%221%22%2C%22fromPage%22%3A%22search%22%7D&pdp_npi=6%40dis%21PLN%2183.38%2139.19%21%21%2122.47%2110.56%21%402103917f17584357494216126eaa8c%2112000045923645614%21sea%21PL%210%21ABX%211%210%21n_tag%3A-29910%3Bd%3Af9771149%3Bm03_new_user%3A-29895&curPageLogUid=dILRVszJHv9D&utparam-url=scene%3Asearch%7Cquery_from%3A%7Cx_object_id%3A1005008606165384%7C_p_origin_prod%3A
@@ -217,8 +217,10 @@
 #define STD_OBRAZU_DVGA		(480*320)		//1/duo VGA
 #define STD_OBRAZU_QVGA		(320*240)		//1/quadro VGA
 #define STD_OBRAZU_OVGA		(160*120)		//1/octo VGA
-#define SZER_ZDJECIA		1944
-#define WYS_ZDJECIA			1280
+//#define SZER_ZDJECIA		2592
+//#define WYS_ZDJECIA			1080
+#define SZER_ZDJECIA		1280
+#define WYS_ZDJECIA			720
 
 //#define ROZM_BUF32_KAM		(2592*1944)		//pełen rozmiar przetwornika nie mieści się w  ext SRAM
 #define ROZM_BUF16_KAM		STD_OBRAZU_DVGA
@@ -276,8 +278,10 @@
 //znaczenie bitów statusu zapisu obrazu jpeg
 #define STAT_JPG_PELEN_BUF0		0x01
 #define STAT_JPG_PELEN_BUF1		0x02
+#define STAT_JPG_PELEN_BUF2		0x04
+#define STAT_JPG_PELEN_BUF3		0x08
 #define STAT_JPG_OTWORZ			0x10
-#define STAT_JPG_PIERWSZY		0x20
+#define STAT_JPG_NAGLOWEK		0x20
 #define STAT_JPG_ZAMKNIJ		0x40
 
 #endif /* INC_SYS_DEF_CM7_H_ */

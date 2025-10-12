@@ -11,7 +11,9 @@
 #include "sys_def_CM7.h"
 
 //#define ROZMIAR_BUF_JPEG	(SZER_ZDJECIA * WYS_ZDJECIA / 20)	//na razie minimalna kompresja jest rzędu 7 razy
-#define ROZMIAR_BUF_JPEG	2048	//podwójne buforowanie
+#define ROZMIAR_BUF_JPEG	2048	//4 minimalne sektory, 1 sektor FAT32
+#define ILOSC_BUF_JPEG		4		//poczwórne buforowanie
+#define MASKA_LICZBY_BUF	0x03	//maska do przycinania wskaźnika buforów
 #define SZEROKOSC_BLOKU		8
 #define WYSOKOSC_BLOKU		8
 #define ROZMIAR_BLOKU		(SZEROKOSC_BLOKU * WYSOKOSC_BLOKU)
@@ -23,12 +25,12 @@
 #define KOMPR_OBR_GOTOWY	4	//podany obraz jest już skompresowany
 
 #define ROZMIAR_NAGL_JPEG	20
-
+#define ROZMIAR_ZNACZ_xOI	2
 
 uint8_t InicjalizujJpeg(void);
 uint8_t KonfigurujKompresjeJpeg(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chKolor, uint8_t chWspKompresji);
 uint8_t CzekajNaKoniecPracyJPEG(void);
 uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t *chDaneSkompresowane, uint32_t nRozmiarBuforaJPEG);
-uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t *chDaneSkompresowane, uint32_t nRozmiarBuforaJPEG);
+uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc);//, uint8_t *chDaneSkompresowane, uint32_t nRozmiarBuforaJPEG);
 uint8_t* ZnajdzZnacznikJpeg(uint8_t *chDaneSkompresowane, uint8_t chZnacznik);
 #endif /* INC_JPEG_H_ */

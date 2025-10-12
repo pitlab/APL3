@@ -14,7 +14,7 @@
 #include "sd_diskio.h"
 #include <string.h>
 #include <stdio.h>
-
+#include <jpeg.h>
 
 extern SD_HandleTypeDef hsd1;
 extern uint8_t retSD;    /* Return value for SD */
@@ -29,7 +29,7 @@ __IO uint8_t RxCplt, TxCplt;
 uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 uint32_t nKonfLogera[3] = {0xFFFFFF2B, 0xFFC00000, 0x000001F8};	//zestaw flag włączajacych dane do rejestracji
 static char __attribute__ ((aligned (32))) chBufZapisuKarty[ROZMIAR_BUFORA_LOGU];	//bufor na jedną linijkę logu
-static char __attribute__ ((aligned (32))) chBufPodreczny[30];
+static char __attribute__ ((aligned (32))) chBufPodreczny[40];
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;
 uint8_t chKodBleduFAT;
 uint8_t chTimerSync;	//odlicza czas w jednostce zapisu na dysk do wykonania sync
@@ -39,12 +39,17 @@ extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
 extern double dSumaZyro1[3], dSumaZyro2[3];
 extern uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych na kartę SD
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJPEG[2][ROZMIAR_BUF_JPEG];
+extern volatile uint8_t chKolejkaBuf[ILOSC_BUF_JPEG];	//przechowuje kolejność zapisu buforów na kartę. Istotne gdy trzba zapisać więcej niż 1 bufor
+extern uint8_t chWskOprKolejki;	//wskaźnik opróżniania kolejki buforów do zapisu
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[2][ROZMIAR_BUF_JPEG];
 FIL SDJpegFile;       //struktura pliku z obrazem
 //extern char chNapis[100];
 extern RTC_HandleTypeDef hrtc;
 extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
+extern JPEG_HandleTypeDef hjpeg;
+extern const uint8_t chNaglJpegSOI[20];
+extern const uint8_t chNaglJpegEOI[2];	//EOI (End Of Image)
 
 
 
@@ -1099,7 +1104,7 @@ void TestKartySD(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// zapisuje strumień danych z enkodera jpeg na kartę przekazywany przez podwójny bufor: chBuforJpeg[2][ROZMIAR_BUF_JPEG]
+// zapisuje strumień danych z enkodera jpeg na kartę przekazywany przez bufor: chBuforJpeg[ILOSC_BUF_JPEG][ROZMIAR_BUF_JPEG]
 // Parametry: brak
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -1108,44 +1113,54 @@ void ObslugaZapisuJpeg(void)
 	FRESULT fres = 0;
 	UINT bw;
 
-	//jest flaga otwarcia pliku
-	if (chStatusBufJpeg & STAT_JPG_OTWORZ)
+	extern volatile uint8_t chKolejkaBuf[ILOSC_BUF_JPEG];	//przechowuje kolejność zapisu buforów na kartę. Istotne gdy trzba zapisać więcej niż 1 bufor
+	extern uint8_t chWskOprKolejki;	//wskaźnik opróżniania kolejki buforów do zapisu
+
+	if (chStatusBufJpeg & STAT_JPG_OTWORZ)		//jest flaga otwarcia pliku
 	{
 		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-		sprintf(chBufPodreczny, "ZdjecieY8_%04d%02d%02d_%02d%02d%02d.jpg",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+		sprintf(chBufPodreczny, "ZdjY8_%04d%02d%02d_%02d%02d%02d.jpg",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
 
 		fres = f_open(&SDJpegFile, chBufPodreczny, FA_OPEN_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
-		{
-			f_write(&SDJpegFile, chNaglJpegSOI, 20, &bw);
 			chStatusBufJpeg &= ~STAT_JPG_OTWORZ;	//skasuj flagę potwierdzając otwarcie pliku do zapisu
+	}
+	else
+	if ((chStatusBufJpeg & (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF0)) == (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF0))	//jest pierwszy nie pełny bufor danych czekajacy na dodanie nagłówka
+	{
+			//na początku danych z jpeg jest znacznik SOI [2] ale brakuje nagłówka pliku. Wstaw kompletny nagłówek a za nim dane jpeg bez SOI
+			//bufor z danymi zaczyna się od pozycji ROZMIAR_NAGL_JPEG
+			f_write(&SDJpegFile, chNaglJpegSOI, ROZMIAR_NAGL_JPEG, &bw);
+			//f_write(&SDJpegFile, &chBuforJpeg[0][ROZMIAR_NAGL_JPEG], ROZMIAR_BUF_JPEG - ROZMIAR_NAGL_JPEG, &bw);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
+			//powyższe niestety nie działa, więc zapisuję więcej niż wielokrotność sektora
+			f_write(&SDJpegFile, &chBuforJpeg[0][ROZMIAR_ZNACZ_xOI], ROZMIAR_BUF_JPEG - ROZMIAR_ZNACZ_xOI, &bw);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
+			chStatusBufJpeg &= ~(STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF0);	//skasuj flagę
+			chWskOprKolejki++;
+			chWskOprKolejki &= MASKA_LICZBY_BUF;
+	}
+	else
+	if (chStatusBufJpeg & (STAT_JPG_PELEN_BUF0 | STAT_JPG_PELEN_BUF1 | STAT_JPG_PELEN_BUF2 | STAT_JPG_PELEN_BUF3))
+	{
+		//jest bufor do zapisu. Wyciagnij go z kolejki aby zapisać w odpowiedzniej kolejności. Jest to istotne gdy np. są do zapisu pierwszy i ostatni
+		fres = f_write(&SDJpegFile, &chBuforJpeg[chKolejkaBuf[chWskOprKolejki]][0], ROZMIAR_BUF_JPEG, &bw);
+		if (fres == FR_OK)
+		{
+			chStatusBufJpeg &= ~(1 << chKolejkaBuf[chWskOprKolejki]);	//skasuj flagę opróżnionego bufora
+			chWskOprKolejki++;
+			chWskOprKolejki &= MASKA_LICZBY_BUF;
 		}
 	}
-	else
-	//jest flaga zapisu pierwszego segmentu z korektą znacznika SOI
-	if (chStatusBufJpeg & STAT_JPG_PIERWSZY)
-	{
-		f_write(&SDJpegFile, &chBuforJpeg[0][2], ROZMIAR_BUF_JPEG, &bw);	//dane z obcietym znacznikiem SOI (FFD8) zawsze w pierwszym buforze
-		chStatusBufJpeg &= ~STAT_JPG_PIERWSZY;	//skasuj flagę
-	}
-	else
-	if (chStatusBufJpeg & STAT_JPG_PELEN_BUF0)
-	{
-		f_write(&SDJpegFile, &chBuforJpeg[0][0], ROZMIAR_BUF_JPEG, &bw);
-		chStatusBufJpeg &= ~STAT_JPG_PELEN_BUF0;	//skasuj flagę
-	}
-	else
-	if (chStatusBufJpeg & STAT_JPG_PELEN_BUF1)
-	{
-		f_write(&SDJpegFile, &chBuforJpeg[1][0], ROZMIAR_BUF_JPEG, &bw);
-		chStatusBufJpeg &= ~STAT_JPG_PELEN_BUF0;	//skasuj flagę
-	}
-	else
 	if (chStatusBufJpeg & STAT_JPG_ZAMKNIJ)
 	{
-		f_write(&SDJpegFile, chNaglJpegEOI, 2, &bw);
-		f_close(&SDJpegFile);
-		chStatusBufJpeg &= ~STAT_JPG_ZAMKNIJ;	//skasuj flagę
+		fres = f_write(&SDJpegFile, chNaglJpegEOI, ROZMIAR_ZNACZ_xOI, &bw);
+		fres = f_close(&SDJpegFile);
+		if (fres == FR_OK)
+			chStatusBufJpeg &= ~STAT_JPG_ZAMKNIJ;	//skasuj flagę
+		f_sync(&SDJpegFile);
 	}
+
+	//jeżeli nie ma nic do zapisu, to przełacz sie na inny wątek
+	if ((chStatusBufJpeg & (STAT_JPG_PELEN_BUF0 | STAT_JPG_PELEN_BUF1 | STAT_JPG_PELEN_BUF2 | STAT_JPG_PELEN_BUF3)) == 0)
+		osDelay(1);
 }
