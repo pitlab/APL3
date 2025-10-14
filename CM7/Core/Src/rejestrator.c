@@ -21,7 +21,7 @@ extern uint8_t retSD;    /* Return value for SD */
 extern char SDPath[4];   /* SD logical drive path */
 extern FATFS SDFatFS;    /* File system object for SD logical drive */
 extern FIL SDFile;       /* File object for SD */
-
+uint8_t chNazwaPlikuObr[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
 extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t __attribute__ ((aligned (32))) aTxBuffer[_MAX_SS];
 uint8_t __attribute__ ((aligned (32))) aRxBuffer[_MAX_SS];
@@ -1118,16 +1118,29 @@ void ObslugaZapisuJpeg(void)
 
 	if (chStatusBufJpeg & STAT_JPG_OTWORZ)		//jest flaga otwarcia pliku
 	{
+		if (chStatusBufJpeg & STAT_JPG_OTWARTY)
+		{
+			fres = f_close(&SDJpegFile);
+			if (fres == FR_OK)
+			{
+				chStatusBufJpeg &= ~STAT_JPG_OTWARTY;
+				printf("Awar.zamkn.pliku\r\n");
+			}
+		}
+
 		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-		sprintf(chBufPodreczny, "ZdjY8_%04d%02d%02d_%02d%02d%02d.jpg",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+		sprintf(chBufPodreczny, "%s_%04d%02d%02d_%02d%02d%02d.jpg", chNazwaPlikuObr, sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
 
 		fres = f_open(&SDJpegFile, chBufPodreczny, FA_OPEN_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
+		{
 			chStatusBufJpeg &= ~STAT_JPG_OTWORZ;	//skasuj flagę potwierdzając otwarcie pliku do zapisu
+			chStatusBufJpeg |= STAT_JPG_OTWARTY;
+		}
 	}
 	else
-	if ((chStatusBufJpeg & (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF0)) == (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF0))	//jest pierwszy nie pełny bufor danych czekajacy na dodanie nagłówka
+	if ((chStatusBufJpeg & (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF0 | STAT_JPG_OTWARTY)) == (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF0 | STAT_JPG_OTWARTY))	//jest pierwszy nie pełny bufor danych czekajacy na dodanie nagłówka
 	{
 			//na początku danych z jpeg jest znacznik SOI [2] ale brakuje nagłówka pliku. Wstaw kompletny nagłówek a za nim dane jpeg bez SOI
 			//bufor z danymi zaczyna się od pozycji ROZMIAR_NAGL_JPEG
@@ -1140,8 +1153,7 @@ void ObslugaZapisuJpeg(void)
 			chWskOprKolejki &= MASKA_LICZBY_BUF;
 	}
 	else
-	//if (chStatusBufJpeg & (STAT_JPG_PELEN_BUF0 | STAT_JPG_PELEN_BUF1 | STAT_JPG_PELEN_BUF2 | STAT_JPG_PELEN_BUF3))
-	if ((chWskOprKolejki != chWskNapKolejki) | (chStatusBufJpeg & STAT_JPG_PELEN_BUF))
+	if ((chWskOprKolejki != chWskNapKolejki) | ((chStatusBufJpeg & (STAT_JPG_PELEN_BUF | STAT_JPG_OTWARTY)) == (STAT_JPG_PELEN_BUF | STAT_JPG_OTWARTY)))
 	{
 		uint8_t chZajetoscBufora;
 		if (chWskNapKolejki > chWskOprKolejki)
@@ -1166,7 +1178,7 @@ void ObslugaZapisuJpeg(void)
 		fres = f_close(&SDJpegFile);
 		if (fres == FR_OK)
 		{
-			chStatusBufJpeg &= ~STAT_JPG_ZAMKNIJ;	//skasuj flagę
+			chStatusBufJpeg &= ~(STAT_JPG_ZAMKNIJ | STAT_JPG_OTWARTY);	//skasuj flagi polecenia zamknięcia i stanu otwartosci pliku
 			f_sync(&SDJpegFile);
 			printf("Gotowe\r\n");
 		}

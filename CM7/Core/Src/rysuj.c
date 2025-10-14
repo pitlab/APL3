@@ -19,7 +19,7 @@
 #include "analiza_obrazu.h"
 #include "FreeRTOS.h"
 #include "task.h"
-
+#include "rejestrator.h"
 
 //deklaracje zmiennych
 extern RTC_HandleTypeDef hrtc;
@@ -35,8 +35,8 @@ extern uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia 
 static uint8_t chOstatniCzas;
 //uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
-
-
+extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+extern uint8_t chPort_exp_odbierany[];
 uint8_t chStatusPolaczenia;		//każe 2 kolejne bity oznaczają status połaczenia: LPUART, USB, TCP, RTSP
 static uint8_t chPoprzedniStatusPolaczenia = 0xFF;	//sluży do wykrycia zmiany statusu
 uint8_t chOrientacja;
@@ -163,7 +163,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 			setColor(MENU_RAM_AKT);
 			setBackColor(SZARY20);
 			strcpy(chNapis, menu[chMenuSelPos].chPomoc);
-			RysujNapis(chNapis, DW_SPACE, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+			RysujNapis(chNapis, DW_SPACE, DISP_Y_SIZE - 2 * (DW_SPACE - FONT_SH));
 			setBackColor(CZARNY);
 			chRysujRaz = 0;
 		}
@@ -222,6 +222,28 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		}
 	}
 	chPoprzedniStatusPolaczenia = chStatusPolaczenia;
+
+	//status karty
+	if ((chPort_exp_odbierany[0] & EXP04_LOG_CARD_DET) == 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty, aktywny niski
+	{
+		if (chStatusRejestratora & STATREJ_WLACZONY)
+		{
+			setColor(ZIELONY);
+			RysujNapis("SD Loguje", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+		}
+		else
+		if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
+		{
+			setColor(ZOLTY);
+			RysujNapis("SD Gotowe", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+		}
+	}
+	else
+	{
+		setColor(CZERWONY);
+		RysujNapis("Brak uSD!", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+	}
+
 
 	//wypisz rozmiar sterty
 	size_t stosWHM = uxTaskGetStackHighWaterMark(NULL);

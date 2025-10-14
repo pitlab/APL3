@@ -26,6 +26,14 @@
 #define KAM_ZDJECIE	1
 #define KAM_FILM	0
 
+//formaty obrazu
+#define OBR_Y8		0x10	//Y8		YYYY
+#define OBR_YUV444	0x30	//YAU444	YUVYUV/GBRGBR
+#define OBR_YUV420	0x40	//YUV420	YYYY/YUYV
+#define OBR_RGB565 	0x6F	//RGB565	{g[2:0], b[4:0]}, {r[4:0], g[5:3]}
+
+
+
 //konfiguracja kamery
 typedef struct st_KonfKam
 {
@@ -83,18 +91,18 @@ uint8_t Czytaj_I2C_Kamera(uint16_t rejestr, uint8_t *dane);
 uint8_t	SprawdzKamere(void);
 uint8_t UstawKamere(stKonfKam_t *konf);
 uint8_t UstawKamere2(stKonfKam_t *konf);
-//uint8_t RozpocznijPraceDCMI(uint8_t chTrybPracy, uint16_t* sBufor);
 uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor, uint32_t nRozmiarObrazu32bit);
 uint8_t CzekajNaKoniecPracyDCMI(void);
 uint8_t ZrobZdjecie(uint16_t* sBufor, uint32_t nRozmiarObrazu32bit);
 uint8_t Wyslij_Blok_Kamera(const struct sensor_reg reglist[]);
-uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chZoom);
+//uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chZoom);
 uint8_t UtworzGrupeRejestrowKamery(uint8_t chNrGrupy, struct sensor_reg *stListaRejestrow, uint8_t chLiczbaRejestrow);
 uint8_t UruchomGrupeRejestrowKamery(uint8_t chNrGrupy);
 
-uint8_t UstawObrazKameryYUV420(uint16_t sSzerokosc, uint16_t sWysokosc);
-uint8_t UstawObrazKameryRGB565(uint16_t sSzerokosc, uint16_t sWysokosc);
-uint8_t UstawObrazKameryY8(uint16_t sSzerokosc, uint16_t sWysokosc);
+//uint8_t UstawObrazKameryYUV420(uint16_t sSzerokosc, uint16_t sWysokosc);
+//uint8_t UstawObrazKameryRGB565(uint16_t sSzerokosc, uint16_t sWysokosc);
+//uint8_t UstawObrazKameryY8(uint16_t sSzerokosc, uint16_t sWysokosc);
+uint8_t UstawObrazKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chFormatObrazu, uint8_t chTrybPracy);
 uint8_t KompresujObrazY8(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzerokosc, uint16_t sWysokosc);
 uint8_t KompresujObrazYUV420(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzerokosc, uint16_t sWysokosc);
 void CzyscBufory(void);

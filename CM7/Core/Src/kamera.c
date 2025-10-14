@@ -830,7 +830,7 @@ uint8_t UstawKamere2(stKonfKam_t *konf)
 // Ustawia kamerę w trybie kolorowym RGB656 generujący obraz na wwyświetlacz LCD
 // Parametry: brak
 // Zwraca: kod błędu HAL
-////////////////////////////////////////////////////////////////////////////////
+/*///////////////////////////////////////////////////////////////////////////////
 uint8_t UstawObrazKameryRGB565(uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t chErr;
@@ -843,37 +843,18 @@ uint8_t UstawObrazKameryRGB565(uint16_t sSzerokosc, uint16_t sWysokosc)
 	stKonfKam.chWysWy = sWysokosc / KROK_ROZDZ_KAM;
 	chErr = UstawKamere(&stKonfKam);
 	return chErr;
-}
+}*/
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Ustawia kamerę w trybie kolorowym YUV420 aby generować obraz do kompresji JPEG
-// Parametry: brak
+// Ustawia rozdzielczość, format obrazu i tryb pracy kamery
+// Parametry: sSzerokosc, sSzerokosc - rozmiar obrazu w pikselach
+//  chFormatObrazu - konfiguracja dla rejestru 0x4300 FormatControl, ustala rodazj danych wychodzących z kamery
+//  chTrybPracy - tryb pracy DMA: pojedyńczy (zdjecie) lub ciagły (film)
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t UstawObrazKameryYUV420(uint16_t sSzerokosc, uint16_t sWysokosc)
-{
-	uint8_t chErr;
-
-	stKonfKam.chTrybPracy = KAM_ZDJECIE;
-	//stKonfKam.chTrybPracy = KAM_FILM;
-	stKonfKam.chFormatObrazu = 0x40;	//obraz YUV420	YYYY/YUYV
-	stKonfKam.chSzerWe = sSzerokosc / KROK_ROZDZ_KAM * 3;
-	stKonfKam.chWysWe = sWysokosc / KROK_ROZDZ_KAM * 3;
-	stKonfKam.chSzerWy = sSzerokosc / KROK_ROZDZ_KAM;
-	stKonfKam.chWysWy = sWysokosc / KROK_ROZDZ_KAM;
-	chErr = UstawKamere(&stKonfKam);
-	return chErr;
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Ustawia kamerę w trybie czarno białym Y8 z samą luminancją, aby generować obraz do kompresji JPEG
-// Parametry: brak
-// Zwraca: kod błędu HAL
-////////////////////////////////////////////////////////////////////////////////
-uint8_t UstawObrazKameryY8(uint16_t sSzerokosc, uint16_t sWysokosc)
+uint8_t UstawObrazKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chFormatObrazu, uint8_t chTrybPracy)
 {
 	uint8_t chErr;
 	uint8_t chZoom, chZoomX, chZoomY;
@@ -888,8 +869,8 @@ uint8_t UstawObrazKameryY8(uint16_t sSzerokosc, uint16_t sWysokosc)
 	else
 		chZoom = chZoomX;
 
-	stKonfKam.chTrybPracy = KAM_ZDJECIE;
-	//stKonfKam.chTrybPracy = KAM_FILM;
+	stKonfKam.chTrybPracy = chTrybPracy;
+
 	stKonfKam.chFormatObrazu = 0x10;	//obraz Y8
 	stKonfKam.chSzerWe = sSzerokosc / KROK_ROZDZ_KAM * chZoom;
 	stKonfKam.chWysWe = sWysokosc / KROK_ROZDZ_KAM * chZoom;
@@ -901,50 +882,6 @@ uint8_t UstawObrazKameryY8(uint16_t sSzerokosc, uint16_t sWysokosc)
 	stKonfKam.chPrzesWyPio = (MAX_WYS_KAM - (sWysokosc * chZoom)) / (2 * KROK_ROZDZ_KAM);
 
 	chErr = UstawKamere(&stKonfKam);
-	return chErr;
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Obsługuje kamerę pracujacą w trybie czarno-białego aparatu (platka po klatce) z kompresją
-// Parametry: *chBufKamery - wskaźnik na bufor Y8 z obrazem kamery (1 bajt na piksel)
-//  *chBufLCD - wskaźnik na bufor RGB666 wyświetlacza (3 bajty na piksel)
-//  sSzerokosc, sWysokosc - rozmiary obrazu w pikselach
-// Zwraca: kod błędu HAL
-////////////////////////////////////////////////////////////////////////////////
-uint8_t KompresujObrazY8(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzerokosc, uint16_t sWysokosc)
-{
-	uint8_t chErr;
-
-	/*/test kompresji
-	for (uint32_t n=0; n<sSzerokosc * sWysokosc; n+=2)
-	{
-		chBufKamery[n+0] = (uint8_t)((n & 0xFF00)>>8);
-		chBufKamery[n+1] = (uint8_t)(n & 0x00FF);
-	}*/
-	chErr = KompresujY8(chBufKamery, sSzerokosc, sWysokosc);	//, chBuforJpeg, ROZMIAR_BUF_JPEG);
-	KonwersjaCB8doRGB666(chBufKamery, chBufLCD, sSzerokosc * sWysokosc);
-	return chErr;
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Obsługuje kamerę pracujacą w trybie YUV420 z kompresją
-// Parametry: *chBufKamery - wskaźnik na bufor YUV420 z obrazem kamery (2 bajty na piksel)
-//  *chBufLCD - wskaźnik na bufor RGB666 wyświetlacza (3 bajty na piksel)
-//  sSzerokosc, sWysokosc - rozmiary obrazu w pikselach
-// Zwraca: kod błędu HAL
-////////////////////////////////////////////////////////////////////////////////
-uint8_t KompresujObrazYUV420(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t sSzerokosc, uint16_t sWysokosc)
-{
-	uint8_t chErr = BLAD_OK;
-
-
-	chErr = KompresujYUV420(chBufKamery, sSzerokosc, sWysokosc, chBuforJpeg, ROZMIAR_BUF_JPEG);
-
-	//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBufLCD, sSzerokosc * sWysokosc);
 	return chErr;
 }
 

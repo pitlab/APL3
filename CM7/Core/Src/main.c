@@ -1624,7 +1624,7 @@ void WatekRejestratora(void const * argument)
 
 	for(;;)
 	{
-		if ((chPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty				{
+		if ((chPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty, aktywny niski
 		{
 			if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
 			{

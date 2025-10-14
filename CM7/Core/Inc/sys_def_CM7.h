@@ -223,7 +223,7 @@
 #define MAX_WYS_KAM 		(1944/2)		//maksymalna rozdzielczosć pionowa kamery
 #define SZER_ZDJECIA		1280
 #define WYS_ZDJECIA			960
-
+#define DLG_NAZWY_PLIKU_OBR	10			//długość początku nazwy pliku obrazu
 //#define ROZM_BUF32_KAM		(2592*1944)		//pełen rozmiar przetwornika nie mieści się w  ext SRAM
 #define ROZM_BUF16_KAM		STD_OBRAZU_DVGA
 #define ROZM_BUF_YUV420		(STD_OBRAZU_DVGA * 3 / 2)
@@ -286,5 +286,7 @@
 #define STAT_JPG_OTWORZ			0x10
 #define STAT_JPG_NAGLOWEK		0x20
 #define STAT_JPG_ZAMKNIJ		0x40
+#define STAT_JPG_OTWARTY		0x80
+
 
 #endif /* INC_SYS_DEF_CM7_H_ */
