@@ -232,9 +232,9 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Jpeg Y8",		"Kompresja obrazu czarno-bialego Y8",		TP_KAM_Y8,			obr_kamera},
 	{"Jpeg Y420",	"Kompresja obrazu kolorowego YUV420",		TP_KAM_YUV420,		obr_kamera},
 
-	{"Zdj JY8",		"Wykonaj zdjecie jpg Y8",					TP_KAM_ZDJ_JY8,		obr_aparat},
-	{"Zdj JY420",	"Wykonaj zdjecie jpg YUV420",				TP_KAM_ZDJ_JYUV420,	obr_aparat},
-	{"Domyslny",	"Konfiguracja domyślna",					TP_KAM1,			obr_narzedzia},
+	{"Zdj Y8",		"Wykonaj zdjecie jpg Y8",					TP_KAM_ZDJ_Y8,		obr_aparat},
+	{"Zdj YUV420",	"Wykonaj zdjecie jpg YUV420",				TP_KAM_ZDJ_YUV420,	obr_aparat},
+	{"Zdj YUV444",	"Wykonaj zdjecie jpg YUV444",				TP_KAM_ZDJ_YUV444,	obr_aparat},
 	{"Diagnoza",	"Wykonuje diagnostyke kamery",				TP_KAM_DIAG,		obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
@@ -590,7 +590,7 @@ void RysujEkran(void)
 		break;
 
 
-	case TP_KAM_ZDJ_JY8:	//wykonuje zdjecie Y8 jpg
+	case TP_KAM_ZDJ_Y8:	//wykonuje zdjecie Y8 jpg
 		extern RTC_HandleTypeDef hrtc;
 		extern RTC_TimeTypeDef sTime;
 		extern RTC_DateTypeDef sDate;
@@ -632,7 +632,7 @@ void RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
-	case TP_KAM_ZDJ_JYUV420:	//wykonuje zdjecie YUV420 jpg
+	case TP_KAM_ZDJ_YUV420:	//wykonuje zdjecie YUV420 jpg
 		chErr = UstawObrazKameryYUV420(DISP_X_SIZE, DISP_Y_SIZE);
 		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//wynik w sBuforKamerySRAM
 		nCzas = PobierzCzasT6();
@@ -660,7 +660,7 @@ void RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
-	case TP_KAM1:
+	case TP_KAM_ZDJ_YUV444:
 		UstawObrazKameryRGB565(DISP_X_SIZE, DISP_Y_SIZE);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;

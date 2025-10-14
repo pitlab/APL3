@@ -489,16 +489,14 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 
 ////////////////////////////////////////////////////////////////////////////////
 // Przygotuj pojedynczy MCU Y8 czyli blok 8x8 dla sprzętowego kompresora pracującego w formacie JPEG_GRAYSCALE_COLORSPACE
-// Format Y8 zawiera same bloki luminancji przez co można na nim uzyskać majwyższy wspólczynnik kompresji
-// Skompresowane dane są pakowane do podwójnego bufora i tam na bieżąco zapisywane do pliku
+// Format Y8 zawiera same bloki luminancji, przez co można na nim uzyskać najwyższy wspóczynnik kompresji
+// Skompresowane dane są pakowane do bufora aby wątek rejestratora mógł zapisać je do pliku
 // Parametry:
-// [we] *chObrazWe - wskaźnik na czarniibiały obraz wejsciowy Y8
-// [we] sSzerokosc, sWysokosc - rozmiary obrazu. Muszą być podzielne przez 16
-// [wy] *chDaneSkompresowane - wskaźnik na bufor danych skompresowanych
-// [we] nRozmiarBuforaJPEG - wielkość bufora na dane wyjsciowe
+// [we] *chObrazWe - wskaźnik na czarno-biały obraz wejsciowy Y8
+// [we] sSzerokosc, sWysokosc - rozmiary obrazu. Muszą być podzielne przez 8
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)//, uint8_t *chDaneSkompresowane, uint32_t nRozmiarBuforaJPEG)
+uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t chErr = BLAD_OK;
 	uint32_t nOffsetMCU_wzgObrazu;	//przesuniecie bloku wzgledem początku obrazu
@@ -600,7 +598,144 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 			if (hjpeg.State == HAL_JPEG_STATE_READY)
 			{
 				HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, ROZMIAR_BLOKU);	//przekaż bufor z nowymi danymi
-				chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, 1 * ROZMIAR_BLOKU, chBuforJpeg[chWskaznikBufJpeg], ROZMIAR_BUF_JPEG);	//rozpocznij kompresję
+				chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, ROZMIAR_BLOKU, chBuforJpeg[chWskaznikBufJpeg], ROZMIAR_BUF_JPEG);	//rozpocznij kompresję
+			}
+			else
+				chErr = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wzów kompresję
+
+			if (chStatusBufJpeg & STAT_JPG_OTWORZ)
+				osDelay(5);	//daj czas na otwarcie pliku
+		}
+	}
+
+	//czekaj aż ostatnie MCU zostanie skompresowane
+	chLicznikTimeoutu = 100;
+	while((chWynikKompresji & KOMPR_OBR_GOTOWY) == 0)	//czekaj aż HAL_JPEG_EncodeCpltCallback ustawi flagę końca kompresji i zaktualizuje rozmiar danych
+	{
+		osDelay(1);
+		chLicznikTimeoutu--;
+		if (!chLicznikTimeoutu)
+			return BLAD_TIMEOUT;
+	}
+	chErr = CzekajNaKoniecPracyJPEG();
+	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Przygotuj pojedynczy MCU YUV444 czyli blok 8x8 z luminancją i 2 bloki z chrominancją z dla sprzętowego kompresora pracującego w formacie JPEG_444_SUBSAMPLING
+// Format YUV444 zawiera pełną informację o chrominancji przez co zapewnia najlepsze odwzorowanie kolorów
+// Skompresowane dane są pakowane do bufora aby wątek obsługi rejestratora mógł zapisać je do pliku
+// Parametry:
+// [we] *chObrazWe - wskaźnik na kolorowy obraz wejciowy YUV444
+// [we] sSzerokosc, sWysokosc - rozmiary obrazu. Muszą być podzielne przez 8
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
+{
+	uint8_t chErr = BLAD_OK;
+	uint32_t nOffsetMCU_wzgObrazu;	//przesuniecie bloku wzgledem początku obrazu
+	uint32_t nOffsetMCU_wzgWiersza;
+	uint32_t nOffset_wzgMCU;		//przesunęcie obrazu wejściowego względem początku MCU
+	uint8_t chLiczbaMCU_Szer = sSzerokosc / SZEROKOSC_BLOKU;	//liczba MCU luminancji po szerokosci obrazu
+	uint8_t chLiczbaMCU_Wys = sWysokosc / WYSOKOSC_BLOKU;	//liczba MCU luminancji po wysokosci obrazu
+	uint8_t chLicznikTimeoutu;
+
+	for (uint8_t m=0; m<MASKA_LICZBY_BUF; m++)
+	{
+		for (uint16_t n=0; n<ROZMIAR_BUF_JPEG; n++)
+			chBuforJpeg[m][n] = 0;
+	}
+	chWskaznikBufJpeg = 0;
+	nRozmiarObrazuJPEG = 0;
+	//ustaw pierwszy bufor z miejscem na nagłówek. Kolejne bufory będą ustawiane w HAL_JPEG_DataReadyCallback
+	//HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskaznikBufJpeg][ROZMIAR_NAGL_JPEG - ROZMIAR_ZNACZ_xOI], ROZMIAR_BUF_JPEG - ROZMIAR_NAGL_JPEG);	//nie działa - pisze od początku bufora i wypełnia cały bufor
+	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskaznikBufJpeg][ROZMIAR_NAGL_JPEG], ROZMIAR_BUF_JPEG);
+
+	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
+	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
+	chWskNapKolejki = chWskOprKolejki = 0;
+
+	//chKolejkaBuf[chWskNapKolejki] = STAT_JPG_OTWORZ;	//przechowuje kolejność zapisu buforów na kartę. Istotne gdy trzba zapisać więcej niż 1 bufor
+	//uint8_t chWskNapKolejki, chWskOprKolejki;	//wskaźniki napełniania i opróżniania kolejki buforów do zapisu
+
+	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_444_SUBSAMPLING, 80);
+	if (chErr)
+	{
+		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
+			HAL_JPEG_Abort(&hjpeg);
+		return chErr;
+	}
+
+	//rozpocznij formowanie MCU
+	for (uint16_t my=0; my<chLiczbaMCU_Wys; my++)	//pętla pracująca na MCU wysokości obrazu
+	{
+		nOffsetMCU_wzgObrazu = my * chLiczbaMCU_Szer * ROZMIAR_BLOKU;
+		for (uint16_t mx=0; mx<chLiczbaMCU_Szer; mx++)	//pętla pracująca na MCU szerokości obrazu
+		{
+			nOffsetMCU_wzgWiersza = mx * SZEROKOSC_BLOKU;					//przesunięcie o liczbę MCU w bieżącym wierszu
+			for (uint16_t y=0; y<WYSOKOSC_BLOKU; y++)	//pętla pracująca na wysokosci wewnątrz MCU
+			{
+				nOffset_wzgMCU = (y * chLiczbaMCU_Szer * SZEROKOSC_BLOKU);	//przesunięcie pełnych wierszy obrazu
+
+				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)	//pętla pracująca na szerokości wewnątrz MCU
+					chBuforMCU[x + (y * SZEROKOSC_BLOKU)] = *(chObrazWe + x + nOffset_wzgMCU + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+			}
+
+			//wyrzucam na debug
+			/*printf("MCU %d\r\n", mx + my*chLiczbaMCU_Szer);
+			for (uint16_t y=0; y<WYSOKOSC_BLOKU; y++)
+			{
+				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
+				{
+					printf("%02X ", chBuforMCU[x + (y*SZEROKOSC_BLOKU)]);
+				}
+				printf("\r\n");
+				osDelay(1);		//czas na wyjscie printfa(1);
+			}*/
+
+			chLicznikTimeoutu = 100;
+			while((chWynikKompresji & KOMPR_PUSTE_WE) == 0)	//czekaj aż callback ustawi flagę gotowości na przyjęcie danych
+			{
+				osDelay(1);
+				chLicznikTimeoutu--;
+				if (!chLicznikTimeoutu)
+				{
+					printf("Timeout1: mx=%d my=%d\n\r", mx, my);
+					return BLAD_TIMEOUT;
+				}
+			}
+
+			//jeżeli kolejka buforów jest bliska zapełnienia to wstrzymaj kompresor aby nie utracić danych
+			if (chWskOprKolejki != chWskNapKolejki)
+			{
+				uint8_t chZajetoscBufora;
+				if (chWskNapKolejki > chWskOprKolejki)
+					chZajetoscBufora = chWskNapKolejki - chWskOprKolejki;
+				else
+					chZajetoscBufora = ILOSC_BUF_JPEG + chWskNapKolejki - chWskOprKolejki;
+
+				chLicznikTimeoutu = 100;
+				while (chZajetoscBufora > ILOSC_BUF_JPEG - 2)
+				{
+					osDelay(1);
+					chLicznikTimeoutu--;
+					if (!chLicznikTimeoutu)
+					{
+						printf("Timeout zajetosci bufora: %d/%d\n\r", chZajetoscBufora, ILOSC_BUF_JPEG);
+						return BLAD_TIMEOUT;
+					}
+				}
+			}
+
+			//kompresja jednego MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie, niech się kompresuje na bieżąco
+			chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
+			if (hjpeg.State == HAL_JPEG_STATE_READY)
+			{
+				HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, ROZMIAR_BLOKU);	//przekaż bufor z nowymi danymi
+				chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, ROZMIAR_BLOKU, chBuforJpeg[chWskaznikBufJpeg], ROZMIAR_BUF_JPEG);	//rozpocznij kompresję
 			}
 			else
 				chErr = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wzów kompresję
