@@ -527,19 +527,23 @@ uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 		return chErr;
 	}
 
-	//rozpocznij formowanie MCU
+	//rozpocznij formowanie MCU składajacego sie z 3 bloków 8x8: Y, Cr, i Cb z danych ułożonych sekwencyjnie: YUVYUV (U=Cb, V=Cr)
 	for (uint16_t my=0; my<chLiczbaMCU_Wys; my++)	//pętla pracująca na MCU wysokości obrazu
 	{
-		nOffsetMCU_wzgObrazu = my * chLiczbaMCU_Szer * ROZMIAR_BLOKU;
+		nOffsetMCU_wzgObrazu = my * chLiczbaMCU_Szer * 3 * ROZMIAR_BLOKU;
 		for (uint16_t mx=0; mx<chLiczbaMCU_Szer; mx++)	//pętla pracująca na MCU szerokości obrazu
 		{
-			nOffsetMCU_wzgWiersza = mx * SZEROKOSC_BLOKU;					//przesunięcie o liczbę MCU w bieżącym wierszu
+			nOffsetMCU_wzgWiersza = mx * 3 * SZEROKOSC_BLOKU;					//przesunięcie o liczbę MCU w bieżącym wierszu
 			for (uint16_t y=0; y<WYSOKOSC_BLOKU; y++)	//pętla pracująca na wysokosci wewnątrz MCU
 			{
-				nOffset_wzgMCU = (y * chLiczbaMCU_Szer * SZEROKOSC_BLOKU);	//przesunięcie pełnych wierszy obrazu
+				nOffset_wzgMCU = (y * chLiczbaMCU_Szer * 3 * SZEROKOSC_BLOKU);	//przesunięcie pełnych wierszy obrazu
 
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)	//pętla pracująca na szerokości wewnątrz MCU
-					chBuforMCU[x + (y * SZEROKOSC_BLOKU)] = *(chObrazWe + x + nOffset_wzgMCU + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+				{
+					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + 0 * ROZMIAR_BLOKU] = *(chObrazWe + 3 * x + 0 + nOffset_wzgMCU + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);	//Y
+					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + 1 * ROZMIAR_BLOKU] = *(chObrazWe + 3 * x + 1 + nOffset_wzgMCU + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);	//U=Cb
+					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + 2 * ROZMIAR_BLOKU] = *(chObrazWe + 3 * x + 2 + nOffset_wzgMCU + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);	//V=Cr
+				}
 			}
 
 			//wyrzucam na debug

@@ -28,7 +28,8 @@
 
 //formaty obrazu
 #define OBR_Y8		0x10	//Y8		YYYY
-#define OBR_YUV444	0x30	//YAU444	YUVYUV/GBRGBR
+#define OBR_YUV444	0x20	//YAU444	YUVYUV/GBRGBR
+#define OBR_YUV422	0x30	//YAU422	YUYV
 #define OBR_YUV420	0x40	//YUV420	YYYY/YUYV
 #define OBR_RGB565 	0x6F	//RGB565	{g[2:0], b[4:0]}, {r[4:0], g[5:3]}
 

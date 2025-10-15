@@ -651,6 +651,15 @@ void RysujEkran(void)
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV444, KAM_ZDJECIE);
 		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_X_SIZE);
 		nCzas = PobierzCzasT6();
+		/*/testowo wypełnij bufor kamery narastajacymi liczbami
+		uint8_t* chWskBuf = (uint8_t*)sBuforKamerySRAM;
+		for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)
+		{
+			*(chWskBuf + 3*n+0) = (uint8_t)((n & 0x0F) | 0xA0);	//Y
+			*(chWskBuf + 3*n+1) = (uint8_t)((n & 0x0F) | 0xB0);	//U
+			*(chWskBuf + 3*n+2) = (uint8_t)((n & 0x0F) | 0xC0);	//V
+		}*/
+
 		chErr = KompresujYUV444((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
 		nCzas = MinalCzas(nCzas);
 		if (chErr)

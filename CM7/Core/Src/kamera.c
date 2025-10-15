@@ -870,8 +870,7 @@ uint8_t UstawObrazKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chForm
 		chZoom = chZoomX;
 
 	stKonfKam.chTrybPracy = chTrybPracy;
-
-	stKonfKam.chFormatObrazu = 0x10;	//obraz Y8
+	stKonfKam.chFormatObrazu = chFormatObrazu;
 	stKonfKam.chSzerWe = sSzerokosc / KROK_ROZDZ_KAM * chZoom;
 	stKonfKam.chWysWe = sWysokosc / KROK_ROZDZ_KAM * chZoom;
 	stKonfKam.chSzerWy = sSzerokosc / KROK_ROZDZ_KAM;

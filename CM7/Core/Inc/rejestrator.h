@@ -22,6 +22,11 @@
 #define MAX_ROZMIAR_WPISU_LOGU	20
 #define WPISOW_NA_SYNC			100		//po tylu zapisach linii robiony jest SYNC na karcie
 
+//nadpisz timeouty gdyż wartosci domyślne wynoszą 0xFFFFFFFF i przy braku karty proces praktycznie się zawiesza
+#define SDMMC_DATATIMEOUT                  ((uint32_t)0xFFU)
+#define SDMMC_SWDATATIMEOUT                ((uint32_t)0xFFU)
+
+
 //definicja znaczenia bitów rejestratora
 #define STATREJ_FAT_GOTOWY		0x01
 #define STATREJ_ZAPISZ_NAGLOWEK	0x02
