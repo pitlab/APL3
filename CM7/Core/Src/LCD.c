@@ -613,6 +613,7 @@ void RysujEkran(void)
 		}
 
 		sprintf(chNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f", nCzas, nRozmiarObrazuJPEG, (float)(SZER_ZDJECIA*WYS_ZDJECIA) / nRozmiarObrazuJPEG);
+		chStatusRejestratora |= STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
 		//jest ustawiony większy rozmiar, więc nie wyswietlaj obrazu
 		//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBufLCD, SZER_ZDJECIA * WYS_ZDJECIA);
 		//WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
@@ -622,11 +623,23 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAM_ZDJ_YUV420:	//wykonuje zdjecie YUV420 jpg
+		//cał pamięć SRAM wypełnij wzorcem 0x1111 a następnie bufor wzorcem 0x4444
+		uint16_t* sWskSram = (uint16_t*)0x60000000;
+		for (uint32_t n=0; n<0x400000; n++)
+			*(sWskSram + n) = 0x1111;
+		for (uint32_t m=0; m<SZER_ZDJECIA/4; m++)
+		{
+			for (uint32_t n=0; n<WYS_ZDJECIA; n++)
+				sBuforKamerySRAM[n+m*WYS_ZDJECIA] = (m & 0x0FFF) | 0x4000;
+		}
 		sprintf((char*)chNazwaPlikuObr, "ZdjYUV420");	//początek nazwy pliku ze zdjeciem
-		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV420, KAM_ZDJECIE);
-		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//wynik w sBuforKamerySRAM
+		//chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV420, KAM_ZDJECIE);
+		//chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//wynik w sBuforKamerySRAM
+		chErr = UstawObrazKamery(60, 40, OBR_YUV420, KAM_ZDJECIE);
+		chErr = ZrobZdjecie(sBuforKamerySRAM, 60 * 40 / 2);	//wynik w sBuforKamerySRAM
 		nCzas = PobierzCzasT6();
-		chErr = KompresujYUV420((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
+		//chErr = KompresujYUV420((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
+		chErr = KompresujYUV420((uint8_t*)sBuforKamerySRAM, 60, 40);
 		//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBufLCD, DISP_X_SIZE * DISP_Y_SIZE);
 		nCzas = MinalCzas(nCzas);
 		setColor(ZOLTY);
@@ -646,10 +659,10 @@ void RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
-	case TP_KAM_ZDJ_YUV444:
+	case TP_KAM_ZDJ_YUV444:	//Analiza obrazu pokazuje że coś jest nie tak z obrazem YUV444. Dla obrazu o szerokości 480 pix powtarza się biała linia 4x16 bajtów co 2*480 pikseli
 		sprintf((char*)chNazwaPlikuObr, "ZdjYUV444");	//początek nazwy pliku ze zdjeciem
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV444, KAM_ZDJECIE);
-		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_X_SIZE);
+		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_X_SIZE * 2 / 3);	//rozmiar obrazu to 3 bajty na piksel
 		nCzas = PobierzCzasT6();
 		/*/testowo wypełnij bufor kamery narastajacymi liczbami
 		uint8_t* chWskBuf = (uint8_t*)sBuforKamerySRAM;

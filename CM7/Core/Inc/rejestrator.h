@@ -23,8 +23,8 @@
 #define WPISOW_NA_SYNC			100		//po tylu zapisach linii robiony jest SYNC na karcie
 
 //nadpisz timeouty gdyż wartosci domyślne wynoszą 0xFFFFFFFF i przy braku karty proces praktycznie się zawiesza
-#define SDMMC_DATATIMEOUT                  ((uint32_t)0xFFU)
-#define SDMMC_SWDATATIMEOUT                ((uint32_t)0xFFU)
+//#define SDMMC_DATATIMEOUT                  ((uint32_t)0xFFU)
+//#define SDMMC_SWDATATIMEOUT                ((uint32_t)0xFFU)
 
 
 //definicja znaczenia bitów rejestratora
@@ -34,7 +34,7 @@
 #define STATREJ_OTWARTY_PLIK	0x08
 #define STATREJ_ZAMKNIJ_PLIK	0x10
 #define STATREJ_BYL_OTWARTY		0x20
-
+#define STATREJ_ZAPISZ_BMP		0x40
 
 //definicje bitów konfiguracji logera
 #define KLOG1_CZAS      0x00000001	    //czas

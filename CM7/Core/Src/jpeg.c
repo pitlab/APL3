@@ -546,14 +546,19 @@ uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 				}
 			}
 
-			//wyrzucam na debug
-			/*printf("MCU %d\r\n", mx + my*chLiczbaMCU_Szer);
+			/*/wyrzucam na debug
+			printf("MCU %d\r\n", mx + my*chLiczbaMCU_Szer);
 			for (uint16_t y=0; y<WYSOKOSC_BLOKU; y++)
 			{
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
-				{
-					printf("%02X ", chBuforMCU[x + (y*SZEROKOSC_BLOKU)]);
-				}
+					printf("%02X ", chBuforMCU[x + (y*SZEROKOSC_BLOKU) + 0 * ROZMIAR_BLOKU]);
+				printf("\t");
+				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
+					printf("%02X ", chBuforMCU[x + (y*SZEROKOSC_BLOKU) + 1 * ROZMIAR_BLOKU]);
+				printf("\t");
+				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
+					printf("%02X ", chBuforMCU[x + (y*SZEROKOSC_BLOKU) + 2 * ROZMIAR_BLOKU]);
+
 				printf("\r\n");
 				osDelay(1);		//czas na wyjscie printfa(1);
 			}*/
@@ -682,27 +687,42 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 				nOffsetObrazuWe = (y * chLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
 								+ (0 * SZEROKOSC_BLOKU);						//przesunięcie wzgledem początku MCU
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
-					chBuforMCU[x + (0 * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + (0 * ROZMIAR_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
 
 				//następny z prawej blok luminancji Y
 				nOffsetObrazuWe = (y * chLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
 								+ (1 * SZEROKOSC_BLOKU);						//przesunięcie wzgledem początku MCU
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
-					chBuforMCU[x + (1 * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + (1 * ROZMIAR_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
 
 				//trzeci blok luminancji Y poniżej pierwszego, przesuniety o 2 bloki i liczbę MCU w szerokości obrazu
 				nOffsetObrazuWe = (y * chLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
 								+ (chLiczbaMCU_Szer * 2 * ROZMIAR_BLOKU)		//przesunięcie o pierwszy wiersz bloków
 								+ (0 * SZEROKOSC_BLOKU);						//przesunięcie wzgledem początku MCU
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
-					chBuforMCU[x + (2 * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + (2 * ROZMIAR_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
 
 				//czwarty blok luminancji Y
 				nOffsetObrazuWe = (y * chLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
 								+ (chLiczbaMCU_Szer * 2 * ROZMIAR_BLOKU)		//przesunięcie o pierwszy wiersz bloków
 								+ (1 * SZEROKOSC_BLOKU);						//przesunięcie wzgledem początku MCU
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
-					chBuforMCU[x + (3 * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + (3 * ROZMIAR_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+
+
+				//blok chrominancji Cb
+				nOffsetObrazuWe = (y * chLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
+								+ (0 * SZEROKOSC_BLOKU);						//przesunięcie wzgledem początku MCU
+
+				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
+					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + (4 * ROZMIAR_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+
+				//blok chrominancji Cr
+				nOffsetObrazuWe = (y * chLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
+								+ (0 * SZEROKOSC_BLOKU);						//przesunięcie wzgledem początku MCU
+
+				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
+					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + (5 * ROZMIAR_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
 			}
 			//teraz 2 bloki chrominancji, które na razie pomijam
 

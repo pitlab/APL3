@@ -52,7 +52,7 @@ MEMORY
   SRAM3_AHB_D2	(xrw)  : ORIGIN = 0x30040000, LENGTH = 32K		/* AHB-SRAM3 D2: bufory ethernet, USB */
   SRAM4_AHB_D3	(xrw)  : ORIGIN = 0x38000000, LENGTH = 64K		/* AHB-SRAM4 D3: współdzielenie danych między rdzeniami, rozmiar=0x10000 */
   BACKUP  		(rw)   : ORIGIN = 0x38800000, LENGTH = 4K
-  EXT_SRAM		(rw)   : ORIGIN = 0x60000000, LENGTH = 4M		/* zewnętrzny SRAM 2Mbx16  bank1 CS1*/
+  EXT_SRAM		(rw)   : ORIGIN = 0x60000000, LENGTH = 2M		/* zewnętrzny SRAM 2Mbx16  bank1 CS1*/
   FLASH_NOR		(rxw)  : ORIGIN = 0x68000000, LENGTH = 32M		/* zewnętrzny flash 256Mb  bank1 CS3*/
   DRAM			(rxw)  : ORIGIN = 0xC0000000, LENGTH = 64M		/* zewnętrzny SDRAM 512Mb  bank SDNE0 */
 }

@@ -90,6 +90,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "siec/serwer_tcp.h"
 #include "siec/serwerRTSP.h"
 #include "jpeg.h"
+#include "bmp.h"
 
 /* USER CODE END Includes */
 
@@ -1634,7 +1635,13 @@ void WatekRejestratora(void const * argument)
 				if (chStatusBufJpeg)	//czy ktoryś z buforow JPEG wymaga zapisu na kartę
 					ObslugaZapisuJpeg();
 				else
-					osDelay(5);	//jeżeli logowanie nie jest włączone to wstrzymaj wątek na tyle czasu
+				if (chStatusRejestratora & STATREJ_ZAPISZ_BMP)
+				{
+					ObslugaZapisuBmp();
+					chStatusRejestratora &= ~STATREJ_ZAPISZ_BMP;
+				}
+				else
+					osDelay(5);	//jeżeli nie ma nic do zapisu to wstrzymaj wątek na tyle czasu
 			}
 			else	//jeżeli FAT nie jest gotowy to go zamontuj
 			{
