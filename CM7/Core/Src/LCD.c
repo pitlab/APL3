@@ -599,6 +599,8 @@ void RysujEkran(void)
 		sprintf((char*)chNazwaPlikuObr, "ZdjY8");	//początek nazwy pliku ze zdjeciem
 		chErr = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_Y8, KAM_ZDJECIE);
 		chErr = ZrobZdjecie(sBuforKamerySRAM, SZER_ZDJECIA * WYS_ZDJECIA / 4);
+		if (chErr)
+			break;
 		nCzas = PobierzCzasT6();
 		chErr = KompresujY8((uint8_t*)sBuforKamerySRAM, SZER_ZDJECIA, WYS_ZDJECIA);	//, chBuforJpeg, ROZMIAR_BUF_JPEG);
 		nCzas = MinalCzas(nCzas);

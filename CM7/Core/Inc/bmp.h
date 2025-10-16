@@ -10,6 +10,8 @@
 #include "sys_def_CM7.h"
 
 #define ROZMIAR_NAGLOWKA_BMP	54
+#define ROZMIAR_PALETY_BMP		1024
+#define OFFSET_DANYCH_BMP		(ROZMIAR_NAGLOWKA_BMP + ROZMIAR_PALETY_BMP)
 
 //formaty obrazu
 #define BMP_KOLOR_Y8		8
