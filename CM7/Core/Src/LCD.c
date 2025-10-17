@@ -677,6 +677,7 @@ void RysujEkran(void)
 
 		chErr = KompresujYUV444((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
 		nCzas = MinalCzas(nCzas);
+		chStatusRejestratora |= STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
 		if (chErr)
 		{
 			setColor(ZOLTY);
