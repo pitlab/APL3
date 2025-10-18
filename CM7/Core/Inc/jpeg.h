@@ -12,7 +12,7 @@
 
 //#define ROZMIAR_BUF_JPEG	(SZER_ZDJECIA * WYS_ZDJECIA / 20)	//na razie minimalna kompresja jest rzędu 7 razy
 //#define ROZMIAR_BUF_JPEG	2048	//4 minimalne sektory, 1 sektor FAT32
-#define ROZMIAR_BUF_JPEG	4096	//8 minimalnych sektorów, 2 sektory FAT32
+#define ROZM_BUF_WY_JPEG	4096	//8 minimalnych sektorów, 2 sektory FAT32
 //#define ILOSC_BUF_JPEG		4		//buforowanie x4
 //#define MASKA_LICZBY_BUF	0x03	//maska do przycinania wskaźnika buforów
 #define ILOSC_BUF_JPEG		8		//buforowanie x8
@@ -21,6 +21,8 @@
 #define WYSOKOSC_BLOKU		8
 #define ROZMIAR_BLOKU		(SZEROKOSC_BLOKU * WYSOKOSC_BLOKU)
 #define ROZMIAR_MCU420		(6 * ROZMIAR_BLOKU)
+#define ILOSC_BUF_WE_MCU	12		//liczba podzielna przez 6 (UVY420), przez 4(UVY422), przez 3 (UVY444) i przez 1 (Y8)
+//#define MASKA_BUF_MCU		0x07	//maska do przycinania wskaźnika buforów
 
 //flagi ustawiane w calbackach określające stan enkodera
 #define KOMPR_PUSTE_WE		1	//na wejście enkodera można podać nowe dane

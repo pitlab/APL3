@@ -54,7 +54,7 @@ extern const struct sensor_reg ov5642_dvp_fmt_global_init[];
 extern const struct sensor_reg OV5642_VGA_preview_setting[];
 extern const uint8_t chAdres_expandera[];
 extern uint8_t chPort_exp_wysylany[];
-extern uint8_t chBuforJpeg[ROZMIAR_BUF_JPEG];
+extern uint8_t chBuforJpeg[ROZM_BUF_WY_JPEG];
 extern JPEG_HandleTypeDef hjpeg;
 extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint32_t nRozmiarObrazuKamery;	//w bajtach

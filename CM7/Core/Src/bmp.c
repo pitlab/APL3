@@ -89,7 +89,6 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 	chNaglowek[36] = (uint8_t)(nRozmiarDanych >> 16);
 	chNaglowek[37] = (uint8_t)(nRozmiarDanych >> 24);
 
-
 	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 	sprintf(chBufPodreczny, "zdj_%04d%02d%02d_%02d%02d%02d.bmp", sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
@@ -129,18 +128,15 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 
 	//teraz przepisz obraz wierszami od dołu do góry
 	//uint8_t chBuforWiersza[sSzerokosc * 3];	//rozmiar potrzebny do obsługi koloru
-	uint8_t *chBuforWiersza = NULL;
-		chBuforWiersza = (uint8_t*)malloc(sSzerokosc * 3);	//tworzę zmienną dynamiczną pobierającą pamieć ze sterty zamiast ze stosu
+	uint8_t *chBuforWiersza = (uint8_t*)malloc(sSzerokosc * 3);	//tworzę zmienną dynamiczną pobierającą pamieć ze sterty zamiast ze stosu
 
     for (int16_t y=sWysokosc-1; y>=0; y--)	//zmienna musi być ze znakiem!
     {
     	nOffsetWiersza = y * sSzerokosc * 3;
     	if (chFormatKoloru == OBR_Y8)
-    	{
     		fres = f_write(&SDBmpFile, &chObrazWe[y * sSzerokosc], sSzerokosc, &nZapisanoBajtow);	//zapisz prosto z obrazu
-    	}
-    	else	//obraz kolorowy
-		if (chFormatKoloru == OBR_RGB565)
+    	//else
+		if (chFormatKoloru == OBR_RGB565)	//obraz kolorowy
     	{
     		// Konwersja RGB → BGR (BMP wymaga odwrotnej kolejności)
 			for (uint16_t x = 0; x < sSzerokosc; x++)
@@ -150,7 +146,6 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 				chBuforWiersza[s3x + 1] = chObrazWe[nOffsetWiersza + s3x + 1]; // Green
 				chBuforWiersza[s3x + 2] = chObrazWe[nOffsetWiersza + s3x + 0]; // Red
 			}
-
 			fres = f_write(&SDBmpFile, chBuforWiersza, sSzerokosc, &nZapisanoBajtow);
     	}
 		else
@@ -165,9 +160,13 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 				nV = (int32_t)chObrazWe[nOffsetWiersza + s3x + 2] - 128;
 
 				// Konwersja wg ITU-R BT.601
-				nR = nY + (int32_t)(1.402f * nV);
-				nG = nY - (int32_t)(0.344136f * nU + 0.714136f * nV);
-				nB = nY + (int32_t)(1.772f * nU);
+				//nR = nY + (int32_t)(1.402f * nV);
+				//nG = nY - (int32_t)(0.344136f * nU + 0.714136f * nV);
+				//nB = nY + (int32_t)(1.772f * nU);
+				//optymalizacja bez używania float
+				nR = nY + ((1436 * nV) >> 10);
+				nG = nY - ((352 * nU + 731 * nV) >> 10);
+				nB = nY + ((1815 * nU) >> 10);
 
 				// Ogranicz zakres do [0..255]
 				if (nR < 0) nR = 0; else if (nR > 255) nR = 255;
@@ -183,12 +182,9 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 
 		if ((fres != FR_OK) || (nZapisanoBajtow != sSzerokosc))
 		{
-			if (fres != FR_OK)
-			{
-				free(chBuforWiersza);
-				f_close(&SDBmpFile);
-				return (uint8_t)fres;
-			}
+			free(chBuforWiersza);
+			f_close(&SDBmpFile);
+			return (uint8_t)fres;
 		}
     }
     free(chBuforWiersza);

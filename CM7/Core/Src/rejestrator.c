@@ -41,7 +41,7 @@ extern double dSumaZyro1[3], dSumaZyro2[3];
 extern uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych na kartę SD
 extern volatile uint8_t chKolejkaBuf[ILOSC_BUF_JPEG];	//przechowuje kolejność zapisu buforów na kartę. Istotne gdy trzba zapisać więcej niż 1 bufor
 extern uint8_t chWskNapKolejki, chWskOprKolejki;	//wskaźniki napełniania i opróżniania kolejki buforów do zapisu
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[2][ROZMIAR_BUF_JPEG];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[2][ROZM_BUF_WY_JPEG];
 FIL SDJpegFile;       //struktura pliku z obrazem
 //extern char chNapis[100];
 extern RTC_HandleTypeDef hrtc;
@@ -1104,7 +1104,7 @@ void TestKartySD(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// zapisuje strumień danych z enkodera jpeg na kartę przekazywany przez bufor: chBuforJpeg[ILOSC_BUF_JPEG][ROZMIAR_BUF_JPEG]
+// zapisuje strumień danych z enkodera jpeg na kartę przekazywany przez bufor: chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG]
 // Parametry: brak
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -1112,7 +1112,7 @@ void ObslugaZapisuJpeg(void)
 {
 	FRESULT fres;
 	UINT nZapisanoBajtow;
-
+	extern volatile uint8_t chZajetoscBuforaWyJpeg;
 	extern volatile uint8_t chKolejkaBuf[ILOSC_BUF_JPEG];	//przechowuje kolejność zapisu buforów na kartę. Istotne gdy trzba zapisać więcej niż 1 bufor
 	extern uint8_t chWskOprKolejki;	//wskaźnik opróżniania kolejki buforów do zapisu
 
@@ -1145,9 +1145,9 @@ void ObslugaZapisuJpeg(void)
 		//na początku danych z jpeg jest znacznik SOI [2] ale brakuje nagłówka pliku. Wstaw kompletny nagłówek a za nim dane jpeg bez SOI
 		//bufor z danymi zaczyna się od pozycji ROZMIAR_NAGL_JPEG
 		f_write(&SDJpegFile, chNaglJpegSOI, ROZMIAR_NAGL_JPEG, &nZapisanoBajtow);
-		//f_write(&SDJpegFile, &chBuforJpeg[0][ROZMIAR_NAGL_JPEG], ROZMIAR_BUF_JPEG - ROZMIAR_NAGL_JPEG, &bw);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
+		//f_write(&SDJpegFile, &chBuforJpeg[0][ROZMIAR_NAGL_JPEG], ROZM_BUF_WY_JPEG - ROZMIAR_NAGL_JPEG, &bw);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
 		//powyższe niestety nie działa, więc pomimo konieczności wstawienia nagłówka zapisuję pełen bufor
-		f_write(&SDJpegFile, &chBuforJpeg[0][ROZMIAR_ZNACZ_xOI], ROZMIAR_BUF_JPEG - ROZMIAR_ZNACZ_xOI, &nZapisanoBajtow);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
+		f_write(&SDJpegFile, &chBuforJpeg[0][ROZMIAR_ZNACZ_xOI], ROZM_BUF_WY_JPEG - ROZMIAR_ZNACZ_xOI, &nZapisanoBajtow);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
 		chStatusBufJpeg &= ~(STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF0);	//skasuj flagę
 		chWskOprKolejki++;
 		chWskOprKolejki &= MASKA_LICZBY_BUF;
@@ -1162,11 +1162,12 @@ void ObslugaZapisuJpeg(void)
 			chZajetoscBufora = ILOSC_BUF_JPEG + chWskNapKolejki - chWskOprKolejki;
 		printf("Buf: %d\r\n", chZajetoscBufora);
 		//jest bufor do zapisu. Wyciagnij go z kolejki aby zapisać w odpowiedzniej kolejności. Jest to istotne gdy np. są do zapisu pierwszy i ostatni, wtedy kolejka definiuje kolejność zapisu
-		fres = f_write(&SDJpegFile, &chBuforJpeg[chKolejkaBuf[chWskOprKolejki]][0], ROZMIAR_BUF_JPEG, &nZapisanoBajtow);
+		fres = f_write(&SDJpegFile, &chBuforJpeg[chKolejkaBuf[chWskOprKolejki]][0], ROZM_BUF_WY_JPEG, &nZapisanoBajtow);
 		if (fres == FR_OK)
 		{
 			//chStatusBufJpeg &= ~(1 << chKolejkaBuf[chWskOprKolejki]);	//skasuj flagę opróżnionego bufora
 			chStatusBufJpeg &= ~STAT_JPG_PELEN_BUF;
+			chZajetoscBuforaWyJpeg--;
 			chWskOprKolejki++;
 			chWskOprKolejki &= MASKA_LICZBY_BUF;
 		}

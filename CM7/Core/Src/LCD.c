@@ -136,7 +136,7 @@ extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZew
 extern struct st_KonfKam stKonfKam;
 extern uint32_t nRozmiarObrazuKamery;
 extern stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ROZMIAR_BUF_JPEG];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ROZM_BUF_WY_JPEG];
 extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 extern const uint8_t chNaglJpegSOI[20];
 extern const uint8_t chNaglJpegEOI[2];
@@ -608,18 +608,18 @@ void RysujEkran(void)
 		if (chErr)
 		{
 			sprintf(chNapis, "Blad: %d", chErr);
-			RysujNapis(chNapis, 0, 100);
+			RysujNapis(chNapis, 10, 30);
 			if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
 				chNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
 		}
 
 		sprintf(chNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f", nCzas, nRozmiarObrazuJPEG, (float)(SZER_ZDJECIA*WYS_ZDJECIA) / nRozmiarObrazuJPEG);
+		RysujNapis(chNapis, 0, 30);
 		chStatusRejestratora |= STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
 		//jest ustawiony większy rozmiar, więc nie wyswietlaj obrazu
 		//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBufLCD, SZER_ZDJECIA * WYS_ZDJECIA);
 		//WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
-		RysujNapis(chNapis, 0, 30);
 		osDelay(3000);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
@@ -649,7 +649,7 @@ void RysujEkran(void)
 		{
 			setColor(ZOLTY);
 			sprintf(chNapis, "Blad: %d", chErr);
-			RysujNapis(chNapis, 0, 100);
+			RysujNapis(chNapis, 10, 30);
 			if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
 				chNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
@@ -682,7 +682,7 @@ void RysujEkran(void)
 		{
 			setColor(ZOLTY);
 			sprintf(chNapis, "Blad: %d", chErr);
-			RysujNapis(chNapis, 0, 100);
+			RysujNapis(chNapis, 10, 30);
 			if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
 				chNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;

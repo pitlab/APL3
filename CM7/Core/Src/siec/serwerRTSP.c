@@ -70,7 +70,7 @@ struct sockaddr_in AdresSerwera, AdresKlienta;
 uint8_t chTrwaStreamRTP;
 //extern const unsigned char oko480x320[152318];
 extern uint8_t chStatusPolaczenia;
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ROZMIAR_BUF_JPEG];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ROZM_BUF_WY_JPEG];
 extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chPakiet_RTP[ROZMIAR_PAKIETU_RTP];
 extern JPEG_HandleTypeDef hjpeg;
