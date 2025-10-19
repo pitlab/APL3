@@ -83,7 +83,10 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 	chNaglowek[24] = (uint8_t)(sWysokosc >> 16);
 	chNaglowek[25] = (uint8_t)(sWysokosc >> 24);
 	chNaglowek[26] = 1; // liczba płaszczyzn
-	chNaglowek[28] = chFormatKoloru; // 8-bitowy obraz (256 kolorów) lub 24-bity BGR
+	if (chFormatKoloru == OBR_Y8)
+		chNaglowek[28] = 8; 	// 8-bitowy obraz (256 kolorów)
+	else
+		chNaglowek[28] = 24; 	//24-bity BGR
 	chNaglowek[34] = (uint8_t)(nRozmiarDanych);
 	chNaglowek[35] = (uint8_t)(nRozmiarDanych >> 8);
 	chNaglowek[36] = (uint8_t)(nRozmiarDanych >> 16);
@@ -126,10 +129,13 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 		}
 	}
 
-	//teraz przepisz obraz wierszami od dołu do góry
-	//uint8_t chBuforWiersza[sSzerokosc * 3];	//rozmiar potrzebny do obsługi koloru
-	uint8_t *chBuforWiersza = (uint8_t*)malloc(sSzerokosc * 3);	//tworzę zmienną dynamiczną pobierającą pamieć ze sterty zamiast ze stosu
+	uint8_t *chBuforWiersza;		//tworzę zmienną dynamiczną pobierającą pamieć ze sterty zamiast ze stosu
+	if (chFormatKoloru == OBR_Y8)
+		chBuforWiersza = (uint8_t*)malloc(sSzerokosc * 1);
+	else
+		chBuforWiersza = (uint8_t*)malloc(sSzerokosc * 3);
 
+	//teraz przepisz obraz wierszami od dołu do góry
     for (int16_t y=sWysokosc-1; y>=0; y--)	//zmienna musi być ze znakiem!
     {
     	nOffsetWiersza = y * sSzerokosc * 3;

@@ -35,7 +35,7 @@ extern uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia 
 static uint8_t chOstatniCzas;
 //uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
-extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+extern volatile uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 extern uint8_t chPort_exp_odbierany[];
 uint8_t chStatusPolaczenia;		//każe 2 kolejne bity oznaczają status połaczenia: LPUART, USB, TCP, RTSP
 static uint8_t chPoprzedniStatusPolaczenia = 0xFF;	//sluży do wykrycia zmiany statusu
@@ -236,6 +236,11 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		{
 			setColor(ZOLTY);
 			RysujNapis("SD Gotowe", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+		}
+		else
+		{
+			setColor(CZERWONY);
+			RysujNapis("Blad SD!", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		}
 	}
 	else

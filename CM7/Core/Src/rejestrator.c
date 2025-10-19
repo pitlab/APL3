@@ -26,10 +26,10 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t __attribute__ ((aligned (32))) aTxBuffer[_MAX_SS];
 uint8_t __attribute__ ((aligned (32))) aRxBuffer[_MAX_SS];
 __IO uint8_t RxCplt, TxCplt;
-uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+volatile uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 uint32_t nKonfLogera[3] = {0xFFFFFF2B, 0xFFC00000, 0x000001F8};	//zestaw flag włączajacych dane do rejestracji
 static char __attribute__ ((aligned (32))) chBufZapisuKarty[ROZMIAR_BUFORA_LOGU];	//bufor na jedną linijkę logu
-char __attribute__ ((aligned (32))) chBufPodreczny[40];
+char __attribute__ ((aligned (32))) chBufPodreczny[_MAX_LFN];
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;
 uint8_t chKodBleduFAT;
 uint8_t chTimerSync;	//odlicza czas w jednostce zapisu na dysk do wykonania sync
@@ -38,19 +38,21 @@ extern RTC_HandleTypeDef hrtc;
 extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
 extern double dSumaZyro1[3], dSumaZyro2[3];
-extern uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych na kartę SD
-extern volatile uint8_t chKolejkaBuf[ILOSC_BUF_JPEG];	//przechowuje kolejność zapisu buforów na kartę. Istotne gdy trzba zapisać więcej niż 1 bufor
-extern uint8_t chWskNapKolejki, chWskOprKolejki;	//wskaźniki napełniania i opróżniania kolejki buforów do zapisu
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[2][ROZM_BUF_WY_JPEG];
+extern volatile uint8_t chZajetoscBuforaWyJpeg;
+extern volatile uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych na kartę SD
+extern volatile uint8_t chWskOprBufJpeg;	// wskazuje z którego bufora obecnie są odczytywane dane
+//extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];	//SekcjaZewnSRAM ma wyłączony cache w MPU, więc może pracować z MDMA bez konieczności czyszczenia cache
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];
+extern volatile uint8_t chZatrzymanoWy;
 FIL SDJpegFile;       //struktura pliku z obrazem
 //extern char chNapis[100];
 extern RTC_HandleTypeDef hrtc;
 extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
 extern JPEG_HandleTypeDef hjpeg;
-extern const uint8_t chNaglJpegSOI[20];
-extern const uint8_t chNaglJpegEOI[2];	//EOI (End Of Image)
-
+extern const uint8_t chNaglJpegSOI[ROZMIAR_NAGL_JPEG];
+extern const uint8_t chNaglJpegEOI[ROZMIAR_ZNACZ_xOI];	//EOI (End Of Image)
+extern const uint8_t chNaglJpegExif[ROZMIAR_EXIF];
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1111,10 +1113,7 @@ void TestKartySD(void)
 void ObslugaZapisuJpeg(void)
 {
 	FRESULT fres;
-	UINT nZapisanoBajtow;
-	extern volatile uint8_t chZajetoscBuforaWyJpeg;
-	extern volatile uint8_t chKolejkaBuf[ILOSC_BUF_JPEG];	//przechowuje kolejność zapisu buforów na kartę. Istotne gdy trzba zapisać więcej niż 1 bufor
-	extern uint8_t chWskOprKolejki;	//wskaźnik opróżniania kolejki buforów do zapisu
+	UINT nZapisanoBajtow = 0;
 
 	if (chStatusBufJpeg & STAT_JPG_OTWORZ)		//jest flaga otwarcia pliku
 	{
@@ -1137,46 +1136,51 @@ void ObslugaZapisuJpeg(void)
 		{
 			chStatusBufJpeg &= ~STAT_JPG_OTWORZ;	//skasuj flagę potwierdzając otwarcie pliku do zapisu
 			chStatusBufJpeg |= STAT_JPG_OTWARTY;
+			fres  = f_write(&SDJpegFile, chNaglJpegSOI, ROZMIAR_NAGL_JPEG, &nZapisanoBajtow);				//nagłówej Jpeg
+			fres |= f_write(&SDJpegFile, chNaglJpegExif, sizeof(chNaglJpegExif), &nZapisanoBajtow);		//exif
 		}
+		else
+			chStatusRejestratora &= ~STATREJ_FAT_GOTOWY;	//wymuś ponowną inicjalizację karty
 	}
 	else
-	if ((chStatusBufJpeg & (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF0 | STAT_JPG_OTWARTY)) == (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF0 | STAT_JPG_OTWARTY))	//jest pierwszy nie pełny bufor danych czekajacy na dodanie nagłówka
+	if ((chStatusBufJpeg & (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF | STAT_JPG_OTWARTY)) == (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF | STAT_JPG_OTWARTY))	//jest pierwszy nie pełny bufor danych czekajacy na dodanie nagłówka
 	{
 		//na początku danych z jpeg jest znacznik SOI [2] ale brakuje nagłówka pliku. Wstaw kompletny nagłówek a za nim dane jpeg bez SOI
-		//bufor z danymi zaczyna się od pozycji ROZMIAR_NAGL_JPEG
-		f_write(&SDJpegFile, chNaglJpegSOI, ROZMIAR_NAGL_JPEG, &nZapisanoBajtow);
-		//f_write(&SDJpegFile, &chBuforJpeg[0][ROZMIAR_NAGL_JPEG], ROZM_BUF_WY_JPEG - ROZMIAR_NAGL_JPEG, &bw);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
-		//powyższe niestety nie działa, więc pomimo konieczności wstawienia nagłówka zapisuję pełen bufor
-		f_write(&SDJpegFile, &chBuforJpeg[0][ROZMIAR_ZNACZ_xOI], ROZM_BUF_WY_JPEG - ROZMIAR_ZNACZ_xOI, &nZapisanoBajtow);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
-		chStatusBufJpeg &= ~(STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF0);	//skasuj flagę
-		chWskOprKolejki++;
-		chWskOprKolejki &= MASKA_LICZBY_BUF;
-	}
-	else
-	if ((chWskOprKolejki != chWskNapKolejki) | ((chStatusBufJpeg & (STAT_JPG_PELEN_BUF | STAT_JPG_OTWARTY)) == (STAT_JPG_PELEN_BUF | STAT_JPG_OTWARTY)))
-	{
-		uint8_t chZajetoscBufora;
-		if (chWskNapKolejki > chWskOprKolejki)
-			chZajetoscBufora = chWskNapKolejki - chWskOprKolejki;
-		else
-			chZajetoscBufora = ILOSC_BUF_JPEG + chWskNapKolejki - chWskOprKolejki;
-		printf("Buf: %d\r\n", chZajetoscBufora);
-		//jest bufor do zapisu. Wyciagnij go z kolejki aby zapisać w odpowiedzniej kolejności. Jest to istotne gdy np. są do zapisu pierwszy i ostatni, wtedy kolejka definiuje kolejność zapisu
-		fres = f_write(&SDJpegFile, &chBuforJpeg[chKolejkaBuf[chWskOprKolejki]][0], ROZM_BUF_WY_JPEG, &nZapisanoBajtow);
+		fres = f_write(&SDJpegFile, &chBuforJpeg[chWskOprBufJpeg][ROZMIAR_ZNACZ_xOI], ROZM_BUF_WY_JPEG - ROZMIAR_ZNACZ_xOI, &nZapisanoBajtow);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
 		if (fres == FR_OK)
 		{
-			//chStatusBufJpeg &= ~(1 << chKolejkaBuf[chWskOprKolejki]);	//skasuj flagę opróżnionego bufora
-			chStatusBufJpeg &= ~STAT_JPG_PELEN_BUF;
+			chStatusBufJpeg &= ~(STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF);	//skasuj flagi
+			chWskOprBufJpeg++;
+			chWskOprBufJpeg &= MASKA_LICZBY_BUF;
 			chZajetoscBuforaWyJpeg--;
-			chWskOprKolejki++;
-			chWskOprKolejki &= MASKA_LICZBY_BUF;
 		}
+		else
+			chStatusRejestratora &= ~STATREJ_FAT_GOTOWY;	//wymuś ponowną inicjalizację karty
+	}
+	else
+	if (chZajetoscBuforaWyJpeg && (chStatusBufJpeg & STAT_JPG_OTWARTY))
+	{
+		fres = f_write(&SDJpegFile, &chBuforJpeg[chWskOprBufJpeg][0], ROZM_BUF_WY_JPEG, &nZapisanoBajtow);
+		if (fres == FR_OK)
+		{
+			chStatusBufJpeg &= ~STAT_JPG_PELEN_BUF;
+			chWskOprBufJpeg++;
+			chWskOprBufJpeg &= MASKA_LICZBY_BUF;
+			chZajetoscBuforaWyJpeg--;
+			if (chZatrzymanoWy)
+			{
+				chZatrzymanoWy = 0;
+				HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_OUTPUT);		//wzów kompresję
+			}
+		}
+		else
+			chStatusRejestratora &= ~STATREJ_FAT_GOTOWY;	//wymuś ponowną inicjalizację karty
 	}
 	else
 	if (chStatusBufJpeg & STAT_JPG_ZAMKNIJ)
 	{
-		fres = f_write(&SDJpegFile, chNaglJpegEOI, ROZMIAR_ZNACZ_xOI, &nZapisanoBajtow);
-		fres = f_close(&SDJpegFile);
+		fres  = f_write(&SDJpegFile, chNaglJpegEOI, ROZMIAR_ZNACZ_xOI, &nZapisanoBajtow);
+		fres |= f_close(&SDJpegFile);
 		if (fres == FR_OK)
 		{
 			chStatusBufJpeg &= ~(STAT_JPG_ZAMKNIJ | STAT_JPG_OTWARTY);	//skasuj flagi polecenia zamknięcia i stanu otwartosci pliku

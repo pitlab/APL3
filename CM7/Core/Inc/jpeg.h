@@ -10,13 +10,10 @@
 
 #include "sys_def_CM7.h"
 
-//#define ROZMIAR_BUF_JPEG	(SZER_ZDJECIA * WYS_ZDJECIA / 20)	//na razie minimalna kompresja jest rzędu 7 razy
-//#define ROZMIAR_BUF_JPEG	2048	//4 minimalne sektory, 1 sektor FAT32
-#define ROZM_BUF_WY_JPEG	4096	//8 minimalnych sektorów, 2 sektory FAT32
-//#define ILOSC_BUF_JPEG		4		//buforowanie x4
-//#define MASKA_LICZBY_BUF	0x03	//maska do przycinania wskaźnika buforów
-#define ILOSC_BUF_JPEG		8		//buforowanie x8
-#define MASKA_LICZBY_BUF	0x07	//maska do przycinania wskaźnika buforów
+#define ROZM_BUF_WY_JPEG	8192	//16 sektorów, 1 jednostka alokacji FAT32
+//#define ROZM_BUF_WY_JPEG	1024	//2 sektory
+#define ILOSC_BUF_JPEG		4		//buforowanie x4
+#define MASKA_LICZBY_BUF	0x03	//maska do przycinania wskaźnika buforów
 #define SZEROKOSC_BLOKU		8
 #define WYSOKOSC_BLOKU		8
 #define ROZMIAR_BLOKU		(SZEROKOSC_BLOKU * WYSOKOSC_BLOKU)
@@ -31,6 +28,8 @@
 
 #define ROZMIAR_NAGL_JPEG	20
 #define ROZMIAR_ZNACZ_xOI	2
+#define ROZMIAR_EXIF		44
+
 
 uint8_t InicjalizujJpeg(void);
 uint8_t KonfigurujKompresjeJpeg(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chTypKoloru, uint8_t chTypChrominancji, uint8_t chJakoscObrazu);

@@ -42,8 +42,8 @@ uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) 
 struct st_KonfKam stKonfKam;
 static struct st_KonfKam stPoprzKonfig;	//zmienna lokalna
 struct sensor_reg stListaRejestrow[ROZMIAR_STRUKTURY_REJESTROW_KAMERY];
-uint16_t sLicznikLiniiKamery;
-uint16_t sLicznikRamekKamery;
+volatile uint16_t sLicznikLiniiKamery;
+volatile uint16_t sLicznikRamekKamery;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 extern DCMI_HandleTypeDef hdcmi;
 extern DMA_HandleTypeDef hdma_dcmi;
@@ -302,27 +302,29 @@ uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor, uint32_t nRozm
 // Parametry: brak
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t CzekajNaKoniecPracyDCMI(void)
+uint8_t CzekajNaKoniecPracyDCMI(uint16_t sWysokoscZdjecia)
 {
-	uint8_t chLicznikTimeoutu = 250;	//przy 6, 7 ramkach = 130, 151ms czasami wyskskuje na timeoucie
+	uint8_t chErr = BLAD_OK;
+	uint8_t chLicznikTimeoutu = 250;
 	do
 	{
 		osDelay(1);		//przełącz na inny wątek
 		chLicznikTimeoutu--;
 	}
-	while ((!chObrazKameryGotowy) && chLicznikTimeoutu);
+	while ((sLicznikLiniiKamery <= sWysokoscZdjecia) && chLicznikTimeoutu);
 
-	if (chLicznikTimeoutu)
-		return BLAD_OK;
-	else
-		return BLAD_TIMEOUT;
+	chErr = HAL_DCMI_Stop(&hdcmi);
+	if (!chLicznikTimeoutu)
+		chErr = BLAD_TIMEOUT;
+	return chErr;
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // wykonuje jedno zdjęcie kamerą i trzyma je w sBuforZdjecia
-// Parametry: brak
+// Parametry: *sBufor - wskaźnik na bufor obrazu
+//  nRozmiarObrazu32bit - rozmiar bufora widzianego jako 32-bitowy, ponieważ DMA pracuje na pełnej magistrali
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZrobZdjecie(uint16_t* sBufor, uint32_t nRozmiarObrazu32bit)
@@ -335,18 +337,25 @@ uint8_t ZrobZdjecie(uint16_t* sBufor, uint32_t nRozmiarObrazu32bit)
 	{
 	case HAL_DCMI_STATE_READY:	break;	//jest OK kontynuuj pracę
 	case HAL_DCMI_STATE_BUSY:			//jeżeli trwa praca kamery to ją zatrzymaj i zrób zdjęcie
-			chErr = HAL_DCMI_Stop(&hdcmi);
-			if (chErr)
-				return chErr;
-			break;
+		chErr = HAL_DCMI_Stop(&hdcmi);
+		if (chErr)
+			return chErr;
+		break;
+
 	default:
 		chErr = HAL_DCMI_Stop(&hdcmi);
 		return ERR_BRAK_KAMERY;	//jeżeli nie typowy stan to zwróc bład
 	}
 
-	//Konfiguracja transferu DMA z DCMI do pamięci
+	//wyczyść obraz
+	for (uint32_t n=0; n<nRozmiarObrazu32bit; n++)
+		*((uint32_t*)sBufor + n) = 0;
+
+	chObrazKameryGotowy = 0;
+	sLicznikLiniiKamery = 0;
+	sLicznikRamekKamery = 0;
+	//Konfiguracja transferu MDMA z DCMI do pamięci
 	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBufor, nRozmiarObrazu32bit);
-	//chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBuforKamerySRAM, 480*320/4);	//rozmiar bufora musi być podany w słowach 32-bitowych
 	return chErr;
 }
 
@@ -365,12 +374,11 @@ void HAL_DCMI_LineEventCallback(DCMI_HandleTypeDef *hdcmi)
 
 void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
 {
-
+	sLicznikRamekKamery++;
 }
 
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
-	sLicznikRamekKamery++;
 	chObrazKameryGotowy = 1;
 }
 

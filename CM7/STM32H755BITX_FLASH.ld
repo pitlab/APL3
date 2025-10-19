@@ -213,7 +213,7 @@ SECTIONS
     *(.TxDecripSection)    
     . = ABSOLUTE(0x30040200);      
     *(.Bufory_SRAM3) 
-    *(.Sram3Section) 
+    *(.SekcjaSRAM3) 
   } >SRAM3_AHB_D2
 
 /* Sekcja buforów w pamięci SRAM4_AHB_D3 aktywnych również w standby, 64k */

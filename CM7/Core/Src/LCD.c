@@ -540,7 +540,7 @@ void RysujEkran(void)
 			if (chErr)
 				break;
 
-			chErr = CzekajNaKoniecPracyDCMI();
+			chErr = CzekajNaKoniecPracyDCMI(DISP_Y_SIZE);
 			if (chErr)
 				break;
 
@@ -573,7 +573,7 @@ void RysujEkran(void)
 			chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2 * 3);
 			if (chErr)
 				break;
-			chErr = CzekajNaKoniecPracyDCMI();
+			chErr = CzekajNaKoniecPracyDCMI(DISP_Y_SIZE);
 			//if (chErr)
 				//break;
 
@@ -598,12 +598,20 @@ void RysujEkran(void)
 	case TP_KAM_ZDJ_Y8:	//wykonuje zdjecie Y8 jpg
 		sprintf((char*)chNazwaPlikuObr, "ZdjY8");	//początek nazwy pliku ze zdjeciem
 		chErr = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_Y8, KAM_ZDJECIE);
+		nCzas = PobierzCzasT6();
 		chErr = ZrobZdjecie(sBuforKamerySRAM, SZER_ZDJECIA * WYS_ZDJECIA / 4);
 		if (chErr)
+		{
+			chNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
+		}
+		CzekajNaKoniecPracyDCMI(WYS_ZDJECIA);
+		nCzas = MinalCzas(nCzas);
+		printf("t dcmi=%dus\r\n", nCzas);
 		nCzas = PobierzCzasT6();
 		chErr = KompresujY8((uint8_t*)sBuforKamerySRAM, SZER_ZDJECIA, WYS_ZDJECIA);	//, chBuforJpeg, ROZMIAR_BUF_JPEG);
 		nCzas = MinalCzas(nCzas);
+		printf("t jpeg=%dus\r\n", nCzas);
 		setColor(ZOLTY);
 		if (chErr)
 		{

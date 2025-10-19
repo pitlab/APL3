@@ -933,7 +933,7 @@ static void MX_RTC_Init(void)
 
   /** Initialize RTC and set the Time and Date
   */
-  sTime.Hours = 7;
+  sTime.Hours = 14;
   sTime.Minutes = 0;
   sTime.Seconds = 0;
   sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
@@ -944,7 +944,7 @@ static void MX_RTC_Init(void)
   }
   sDate.WeekDay = RTC_WEEKDAY_SUNDAY;
   sDate.Month = RTC_MONTH_OCTOBER;
-  sDate.Date = 18;
+  sDate.Date = 19;
   sDate.Year = 25;
   if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN) != HAL_OK)
   {
@@ -1618,7 +1618,7 @@ void WatekOdbiorczyLPUART1(void const * argument)
 void WatekRejestratora(void const * argument)
 {
   /* USER CODE BEGIN WatekRejestratora */
-	extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+	extern volatile uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 	extern uint8_t chPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
 	extern uint8_t chKodBleduFAT;
 	extern uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych na kartę SD
