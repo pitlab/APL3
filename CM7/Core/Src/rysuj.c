@@ -239,14 +239,14 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		}
 		else
 		{
-			setColor(CZERWONY);
-			RysujNapis("Blad SD!", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+			setColor(BLAD);
+			RysujNapis("Blad SD! ", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		}
 	}
 	else
 	{
-		setColor(CZERWONY);
-		RysujNapis("Brak uSD!", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+		setColor(BLAD);
+		RysujNapis("Brak SD! ", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 	}
 
 

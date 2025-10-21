@@ -11,6 +11,10 @@
 #define	CZARNY   	0x0000
 #define	NIEBIESKI  	0x001F
 #define	CZERWONY   	0xF800
+//#define	BLAD	   	0xF884
+//#define	BLAD	   	0xF908
+#define	BLAD	   	0xF988
+#define	FIOLETOWY  	0xFA10
 #define	ZIELONY   	0x07E0
 #define CYJAN    	0x07FF
 #define MAGENTA 	0xF81F

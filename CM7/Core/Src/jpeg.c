@@ -196,6 +196,13 @@ const uint8_t chNaglJpegExif[ROZMIAR_EXIF] =
   uint8_t InicjalizujJpeg(void)
 {
 	uint8_t chErr;
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+	//ustaw piny PB0 i PB1 do machania. W CM4 są skonfigurowane jako GPIO_MODE_OUTPUT_PP
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	chErr = HAL_JPEG_Init(&hjpeg);
    	return chErr;
 }
@@ -292,6 +299,7 @@ void HAL_JPEG_GetDataCallback(JPEG_HandleTypeDef *hjpeg, uint32_t NbDecodedData)
 		printf("Kont ");
 	}
 
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	chWynikKompresji |= KOMPR_PUSTE_WE;		//na wejście enkodera można podać nowe dane
 }
 
@@ -321,6 +329,7 @@ void HAL_JPEG_DataReadyCallback(JPEG_HandleTypeDef *hjpeg, uint8_t *pDataOut, ui
 		HAL_JPEG_Pause(hjpeg, JPEG_PAUSE_RESUME_OUTPUT);
 		chZatrzymanoWy = 1;
 	}
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 }
 
 
@@ -355,6 +364,8 @@ uint8_t CzekajNaKoniecPracyJPEG(void)
 // Przygotuj pojedynczy MCU Y8 czyli blok 8x8 dla sprzętowego kompresora pracującego w formacie JPEG_GRAYSCALE_COLORSPACE
 // Format Y8 zawiera same bloki luminancji, przez co można na nim uzyskać najwyższy wspóczynnik kompresji
 // Skompresowane dane są pakowane do bufora aby wątek rejestratora mógł zapisać je do pliku
+// Pomiary pokazują że kolejne 6 MCU 8x8 pobierane są co 136us. Pełen obraz 1280x960 zawiera 160x120 = 19200 MCU stąd kompresja obrazu 19200/6*136us zajmuje 436,2ms
+// Aby uzyskać strumień przynajmniej 15fps czas kompresji musi być mniejszy niż 66,6(6)ms co odpowiada 2941 MCU czyli np. 77x38 MCU = 616x304
 // Parametry:
 // [we] *chObrazWe - wskaźnik na czarno-biały obraz wejsciowy Y8
 // [we] sSzerokosc, sWysokosc - rozmiary obrazu. Muszą być podzielne przez 8

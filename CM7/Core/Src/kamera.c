@@ -313,6 +313,9 @@ uint8_t CzekajNaKoniecPracyDCMI(uint16_t sWysokoscZdjecia)
 	}
 	while ((sLicznikLiniiKamery <= sWysokoscZdjecia) && chLicznikTimeoutu);
 
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+
 	chErr = HAL_DCMI_Stop(&hdcmi);
 	if (!chLicznikTimeoutu)
 		chErr = BLAD_TIMEOUT;
@@ -332,6 +335,8 @@ uint8_t ZrobZdjecie(uint16_t* sBufor, uint32_t nRozmiarObrazu32bit)
 	uint8_t chErr;
 	uint8_t chStatusDCMI;
 
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 	chStatusDCMI = HAL_DCMI_GetState(&hdcmi);
 	switch (chStatusDCMI)
 	{
@@ -354,6 +359,9 @@ uint8_t ZrobZdjecie(uint16_t* sBufor, uint32_t nRozmiarObrazu32bit)
 	chObrazKameryGotowy = 0;
 	sLicznikLiniiKamery = 0;
 	sLicznikRamekKamery = 0;
+
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 	//Konfiguracja transferu MDMA z DCMI do pamięci
 	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBufor, nRozmiarObrazu32bit);
 	return chErr;
