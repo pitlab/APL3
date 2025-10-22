@@ -143,6 +143,7 @@ extern const uint8_t chNaglJpegEOI[2];
 extern FIL SDJpegFile;       //struktura pliku z obrazem
 extern uint8_t chNazwaPlikuObr[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
 uint32_t nCzas;
+extern uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -532,36 +533,36 @@ void RysujEkran(void)
 
 
 	case TP_KAM_Y8:	//praca z obrazem czarno-białym
-		//ponieważ bufor obrazu 1280x960 jest 8 razy większy niż 480x320 wiec dzielę go na 8 i w kolejnych zapisuję kolejne klatki
-		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_FILM);
+		//ponieważ bufor obrazu 1280x960 jest 8 razy większy niż 480x320 wiec dzielę go na 8 części i w nich zapisuję kolejne klatki
+		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_ZDJECIE);
 		if (chErr)
 			break;
 
-		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 4);
-		if (chErr)
-			break;
 		do
 		{
+			//utwórz wskaźnik na konkretny bufor w obrębie zmiennej sBuforKamerySRAM wskazujący na kolejną 1/8 zmiennej
+			uint16_t* sPodBufor = sBuforKamerySRAM + chWskNapBufKam * (DISP_X_SIZE * DISP_Y_SIZE / (4 * 8));
+			chErr = RozpocznijPraceDCMI(stKonfKam, sPodBufor, DISP_X_SIZE * DISP_Y_SIZE / 4);
+			if (chErr)
+				break;
+			chWskNapBufKam++;
+			chWskNapBufKam &= MASKA_BUFORA_KAMERY;
 		//	chErr = CzekajNaKoniecPracyDCMI(DISP_Y_SIZE);
 			//if (chErr)
 				//break;
-
-			//HistogramCB8((uint8_t*)sBuforKamerySRAM, STD_OBRAZU_DVGA, chHistCB8);
-			//testowo wypełnij bufor kamery narastajacymi liczbami
-			//for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)
-				//sBuforKamerySRAM[n] = (uint16_t)(n & 0xFFFF);
 			nCzas = PobierzCzasT6();
-			chErr = KompresujY8((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
+			chErr = KompresujY8((uint8_t*)sPodBufor, DISP_X_SIZE, DISP_Y_SIZE);
 			nCzas = MinalCzas(nCzas);
-			KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+			KonwersjaCB8doRGB666((uint8_t*)sPodBufor, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
 			if (chErr)
 				break;
-			sprintf(chNapis, "tkompr: %ldus", nCzas);
-			setColor(ZOLTY);
-			RysujNapis(chNapis, 0, DISP_Y_SIZE - 2*FONT_BH);
+
 #ifdef 	LCD_ILI9488
 			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 #endif
+			sprintf(chNapis, "tkompr: %ldus", nCzas);
+			setColor(ZOLTY);
+			RysujNapis(chNapis, 0, DISP_Y_SIZE - 2*FONT_BH);
 			//RysujHistogramCB8(chHistCB8);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);

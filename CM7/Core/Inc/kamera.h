@@ -33,7 +33,7 @@
 #define OBR_YUV420	0x40	//YUV420	YYYY/YUYV
 #define OBR_RGB565 	0x6F	//RGB565	{g[2:0], b[4:0]}, {r[4:0], g[5:3]}
 
-
+#define MASKA_BUFORA_KAMERY	0x07
 
 //konfiguracja kamery
 typedef struct st_KonfKam

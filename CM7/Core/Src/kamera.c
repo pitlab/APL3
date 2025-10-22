@@ -61,6 +61,7 @@ uint32_t nRozmiarObrazuKamery;	//w bajtach
 volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
 stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
+uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizacja pracy kamery
