@@ -533,37 +533,46 @@ void RysujEkran(void)
 
 
 	case TP_KAM_Y8:	//praca z obrazem czarno-białym
+		extern uint8_t chZajetoscBuforaWyJpeg;
+		extern volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
 		//ponieważ bufor obrazu 1280x960 jest 8 razy większy niż 480x320 wiec dzielę go na 8 części i w nich zapisuję kolejne klatki
-		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_ZDJECIE);
+		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_FILM);
 		if (chErr)
 			break;
-
+		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 4);
+		if (chErr)
+			break;
 		do
 		{
-			//utwórz wskaźnik na konkretny bufor w obrębie zmiennej sBuforKamerySRAM wskazujący na kolejną 1/8 zmiennej
-			uint16_t* sPodBufor = sBuforKamerySRAM + chWskNapBufKam * (DISP_X_SIZE * DISP_Y_SIZE / (4 * 8));
-			chErr = RozpocznijPraceDCMI(stKonfKam, sPodBufor, DISP_X_SIZE * DISP_Y_SIZE / 4);
-			if (chErr)
-				break;
+			while (!chObrazKameryGotowy)	//synchronizuj się do początku nowej klatki obrazu
+				osDelay(1);
+			chObrazKameryGotowy = 0;
 			chWskNapBufKam++;
 			chWskNapBufKam &= MASKA_BUFORA_KAMERY;
-		//	chErr = CzekajNaKoniecPracyDCMI(DISP_Y_SIZE);
-			//if (chErr)
-				//break;
-			nCzas = PobierzCzasT6();
-			chErr = KompresujY8((uint8_t*)sPodBufor, DISP_X_SIZE, DISP_Y_SIZE);
-			nCzas = MinalCzas(nCzas);
-			KonwersjaCB8doRGB666((uint8_t*)sPodBufor, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
-			if (chErr)
-				break;
-
+			//utwórz wskaźnik na konkretny bufor w obrębie zmiennej sBuforKamerySRAM wskazujący na kolejną 1/8 zmiennej
+			//uint16_t* sPodBufor = sBuforKamerySRAM + chWskNapBufKam * (DISP_X_SIZE * DISP_Y_SIZE / (4 * 8));
+			//chErr = RozpocznijPraceDCMI(stKonfKam, sPodBufor, DISP_X_SIZE * DISP_Y_SIZE / 4);
+			if (chWskNapBufKam & 0x01)		//nieparzyste obrazy kompresuj a parzyste wyświetlaj
+			{
+				chZajetoscBuforaWyJpeg = 0;		//zapełniaj bufor danych skompresowanych od początku.
+				nCzas = PobierzCzasT6();
+				//chErr = KompresujY8((uint8_t*)sPodBufor, DISP_X_SIZE, DISP_Y_SIZE);
+				chErr = KompresujY8((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
+				nCzas = MinalCzas(nCzas);
+			}
+			else
+			{
+				//KonwersjaCB8doRGB666((uint8_t*)sPodBufor, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+				KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+				HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 #ifdef 	LCD_ILI9488
-			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
+				WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
+				HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 #endif
-			sprintf(chNapis, "tkompr: %ldus", nCzas);
-			setColor(ZOLTY);
-			RysujNapis(chNapis, 0, DISP_Y_SIZE - 2*FONT_BH);
-			//RysujHistogramCB8(chHistCB8);
+				sprintf(chNapis, "Tkompr: %ld us, buf: %d", nCzas, chWskNapBufKam);
+				setColor(ZOLTY);
+				RysujNapis(chNapis, 0, DISP_Y_SIZE - 2*FONT_BH);
+			}
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -603,6 +612,8 @@ void RysujEkran(void)
 
 
 	case TP_KAM_ZDJ_Y8:	//wykonuje zdjecie Y8 jpg
+
+
 		sprintf((char*)chNazwaPlikuObr, "ZdjY8");	//początek nazwy pliku ze zdjeciem
 		chErr = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_Y8, KAM_ZDJECIE);
 		nCzas = PobierzCzasT6();
@@ -618,9 +629,13 @@ void RysujEkran(void)
 		nCzas = PobierzCzasT6();
 		chErr = KompresujY8((uint8_t*)sBuforKamerySRAM, SZER_ZDJECIA, WYS_ZDJECIA);	//, chBuforJpeg, ROZMIAR_BUF_JPEG);
 		nCzas = MinalCzas(nCzas);
-		printf("Tjpeg=%ldus\r\n", nCzas);
 		setColor(ZOLTY);
-		if (chErr)
+		if (!chErr)
+		{
+			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;
+			printf("Tjpeg=%ldus\r\n", nCzas);
+		}
+		else
 		{
 			sprintf(chNapis, "Blad: %d", chErr);
 			RysujNapis(chNapis, 10, 30);

@@ -389,6 +389,7 @@ void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
 	chObrazKameryGotowy = 1;
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 }
 
 void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)

@@ -35,6 +35,7 @@
 #define STATREJ_ZAMKNIJ_PLIK	0x10
 #define STATREJ_BYL_OTWARTY		0x20
 #define STATREJ_ZAPISZ_BMP		0x40
+#define STATREJ_ZAPISZ_JPG		0x80
 
 //definicje bitów konfiguracji logera
 #define KLOG1_CZAS      0x00000001	    //czas

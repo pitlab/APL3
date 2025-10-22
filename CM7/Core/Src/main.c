@@ -1632,8 +1632,14 @@ void WatekRejestratora(void const * argument)
 				if (chStatusRejestratora & STATREJ_WLACZONY)
 					ObslugaPetliRejestratora();
 				else
-				if (chStatusBufJpeg)	//czy ktoryś z buforow JPEG wymaga zapisu na kartę
-					ObslugaZapisuJpeg();
+				if (chStatusRejestratora & STATREJ_ZAPISZ_JPG)
+				{
+					if (chStatusBufJpeg)	//czy ktoryś z buforow JPEG wymaga zapisu na kartę
+					{
+						ObslugaZapisuJpeg();
+						chStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;
+					}
+				}
 				else
 				if (chStatusRejestratora & STATREJ_ZAPISZ_BMP)
 				{

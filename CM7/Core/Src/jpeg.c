@@ -299,7 +299,7 @@ void HAL_JPEG_GetDataCallback(JPEG_HandleTypeDef *hjpeg, uint32_t NbDecodedData)
 		printf("Kont ");
 	}
 
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	chWynikKompresji |= KOMPR_PUSTE_WE;		//na wejście enkodera można podać nowe dane
 }
 
@@ -329,7 +329,7 @@ void HAL_JPEG_DataReadyCallback(JPEG_HandleTypeDef *hjpeg, uint8_t *pDataOut, ui
 		HAL_JPEG_Pause(hjpeg, JPEG_PAUSE_RESUME_OUTPUT);
 		chZatrzymanoWy = 1;
 	}
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 }
 
 
