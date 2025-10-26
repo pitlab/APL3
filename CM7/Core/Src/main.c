@@ -1762,6 +1762,7 @@ void WatekSerweraRTSP(void const * argument)
 {
   /* USER CODE BEGIN WatekSerweraRTSP */
 	int nDeskryptorGniazdaPolaczenia;
+
 	err_t nErr;
 	nErr = OtworzPolaczenieSerweraRTSP(&nDeskryptorGniazdaPolaczenia);
 	if (nErr)

@@ -38,10 +38,10 @@
 //konfiguracja kamery
 typedef struct st_KonfKam
 {
-	uint8_t chSzerWe;
-	uint8_t chWysWe;
-	uint8_t chSzerWy;
-	uint8_t chWysWy;
+	uint8_t chSzerWe;			//szerokość patrzenia przetwornika obrazu / KROK_ROZDZ_KAM
+	uint8_t chWysWe;			//wysokość patrzenia przetwornika obrazu / KROK_ROZDZ_KAM
+	uint8_t chSzerWy;			//szerokość obrazu wychodzącego z kamery / KROK_ROZDZ_KAM
+	uint8_t chWysWy;			//wysokość obrazu wychodzącego z kamery / KROK_ROZDZ_KAM
 	uint8_t chPrzesWyPoz;		//przesunięcie obrazu względem początku matrycy w poziomie
 	uint8_t chPrzesWyPio;		//przesunięcie obrazu względem początku matrycy w pionie
 	uint8_t chTrybPracy;		//KAM_ZDJECIE lub KAM_FILM
