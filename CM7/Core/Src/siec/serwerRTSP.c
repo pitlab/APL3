@@ -265,7 +265,7 @@ void WatekStreamujacyRTP(void *arg)
 			chPakiet_RTP[17] = 255; 							// Q=255 tablice kwantyzacji są w JPEG
 			chPakiet_RTP[18] = stKonfKam.chSzerWy * 2; 			// width/8
 			chPakiet_RTP[19] = stKonfKam.chWysWy * 2; 			// height/8
-			chPakiet_RTP[20] = 0;								//dri - restart intervel in MCU or 0 if no restarts
+			chPakiet_RTP[20] = 0;								//dri - restart interval in MCU or 0 if no restarts
 
 			if (nOffsetObrazu == 0)	//pierwsza ramka, w której trzeba przesłać tablicę kwantyzacji
 			{
@@ -276,7 +276,6 @@ void WatekStreamujacyRTP(void *arg)
 					chDaneJpeg += 3;	//przeskocz 16-bitowy rozmiar i bajt kontrolny Pq/Tq
 				}
 
-				//chPierwszaRamka = 0;
 				//Quantization Table header:  This header MUST be present after the main JPEG header (and after the Restart Marker header, if present)
 				//when using Q values 128-255. It provides a way to specify the quantization tables associated with this Q value in-band.
 				chPakiet_RTP[21] = 0;	//MBZ
@@ -313,6 +312,7 @@ void WatekStreamujacyRTP(void *arg)
     	nTimeStamp += 90000 / 2; // np. 2 fps
     	vTaskDelay(pdMS_TO_TICKS(40));
     }
+    //zakonczyła sie transmisja, wróć do statusu gotowości
     chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_RTSP);
     chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_RTSP);
     vTaskDelete(NULL);

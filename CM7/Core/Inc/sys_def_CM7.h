@@ -82,6 +82,8 @@
 #define TP_PODGLAD_IMU		18	//podgląd parametrów IMU podczas kalibracji
 #define TP_WYSWIETL_BLAD	19	//wyświetl kod błędu
 #define TP_MAGNETOMETR		20	//menu obsługi magnetometru
+#define TP_TEST_OSD			21
+
 
 //polecenia menu Wydajność
 #define TP_FRAKTALE			30	//wyświetla benchmark fraktalowy

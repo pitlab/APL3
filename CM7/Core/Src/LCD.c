@@ -36,7 +36,7 @@
 #include "ff.h"
 #include "lwip/stats.h"
 #include "jpeg.h"
-
+#include "LCD_mem.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -155,7 +155,7 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_KonfKartySD},
 	{"Ethernet",	"Obsłga ethernetu",							TP_ETHERNET,		obr_Polaczenie},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"Test OSD",	"Test OSD",									TP_TEST_OSD,		obr_narzedzia},
 	{"Kamera",		"Obsługa kamery",							TP_MEDIA_KAMERA,	obr_aparat},
 	{"Audio",  		"Obsluga multimediow: dzwiek i obraz",		TP_MEDIA_AUDIO,		obr_glosnik1}};
 
@@ -327,6 +327,22 @@ void RysujEkran(void)
 	case TP_TESTY:
 		if (TestDotyku() == ERR_GOTOWE)
 			chNowyTrybPracy = TP_WROC_DO_MENU;
+		break;
+
+	case TP_TEST_OSD:	//testuje funkcje rysowania w buforze
+		WypelnijBuforEkranu(chBuforLCD, 0xFF0000);
+		nCzas = PobierzCzasT6();
+		RysujProstokatWypelnionywBuforze(100, 100, 300, 200, chBuforLCD, 0x00FF00);
+		nCzas = MinalCzas(nCzas);
+		RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
+		sprintf(chNapis, "t: %ld us ", nCzas);
+		setColor(ZOLTY);
+		RysujNapis(chNapis, 0, DISP_Y_SIZE - FONT_BH);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_MENU;
+		}
 		break;
 
 	//*** Audio ************************************************
@@ -911,7 +927,6 @@ void RysujEkran(void)
 			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
 		}
 		break;
-
 
 	case TP_STAN_PAMIECI:
 		setColor(ZOLTY);
