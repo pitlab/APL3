@@ -330,10 +330,15 @@ void RysujEkran(void)
 		break;
 
 	case TP_TEST_OSD:	//testuje funkcje rysowania w buforze
-		WypelnijBuforEkranu(chBuforLCD, 0xFF0000);
 		nCzas = PobierzCzasT6();
-		RysujProstokatWypelnionywBuforze(100, 100, 300, 200, chBuforLCD, 0x00FF00);
+		WypelnijBuforEkranu(chBuforLCD, 0x550000);
 		nCzas = MinalCzas(nCzas);
+
+		//RysujProstokatWypelnionywBuforze(100, 100, 300, 200, chBuforLCD, 0x00FF00);	//OK
+		RysujLiniewBuforze(20, 100, 400, 300, chBuforLCD, 0x00FF00);
+		RysujLiniePoziomawBuforze(20, 400, 100, chBuforLCD, 0x0000FF);
+		RysujLiniePionowawBuforze(20, 100, 300, chBuforLCD, 0x0000FF);
+
 		RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 		sprintf(chNapis, "t: %ld us ", nCzas);
 		setColor(ZOLTY);
