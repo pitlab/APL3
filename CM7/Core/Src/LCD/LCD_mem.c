@@ -15,6 +15,8 @@
 
 
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
+extern struct current_font cfont;
+extern uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
 
 ////////////////////////////////////////////////////////////////////////////////
 // Zapełnij cały bufor wyświetlacza podanym kolorem
@@ -87,7 +89,7 @@ void RysujLiniewBuforze(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint
 	int16_t x = x1, y = y1;
 	uint32_t nOffset;
 
-	// ustalenie kierunku rysowania
+	// ustalenie kierunku rysowania w osi X
 	if (x1 < x2)
 	{
 		xi = 1;
@@ -99,6 +101,7 @@ void RysujLiniewBuforze(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint
 		dx = x1 - x2;
 	}
 
+	//i w osi Y
 	if (y1 < y2)
 	{
 		yi = 1;
@@ -116,7 +119,7 @@ void RysujLiniewBuforze(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint
 	*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
 	*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 
-	// oś wiodąca to OX
+	//jezeli oś wiodąca X
 	if (dx > dy)
 	{
 		ai = (dy - dx) * 2;
@@ -143,7 +146,7 @@ void RysujLiniewBuforze(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint
 			*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 		}
 	}
-	else	// oś wiodąca to OY
+	else	// oś wiodąca Y
 	{
 		ai = ( dx - dy ) * 2;
 		bi = dx * 2;
@@ -235,23 +238,27 @@ void RysujOkragwBuforze(uint16_t x, uint16_t y, uint16_t promien, uint8_t *chBuf
 	int16_t ddF_y = -2 * promien;
 	int16_t x1 = 0;
 	int16_t y1 = promien;
+	uint32_t nOffset;
 
-	//jalizacja:Rozpocznij od punktu \((0,r)\), gdzie \(r\) to promień okręgu.Oblicz wartość początkową parametru decyzyjnego, często oznaczanego jako \(d\) lub \(e\), zgodnie z formułą \(d=1-r\).Generowanie pierwszej ósemki okręgu:Iteruj, zwiększając \(x\) od \(0\) do momentu, gdy \(x=y\) (czyli do \(45^{\circ }\)).W każdym kroku wykonaj następujące działania:Wyświetl punkty symetryczne w 8 ćwiartkach okręgu (np. \((x,y),(x,-y),(-x,y),(-x,-y),(y,x),(y,-x),(-y,x),(-y,-x)\)).Sprawdź wartość parametru decyzyjnego \(d\).Jeśli \(d\le 0\), wybierz następny piksel na wschód (\(x+1,y\)). Zaktualizuj parametr decyzyjny za pomocą formuły \(d=d+2x+1\).Jeśli \(d>0\), wybierz następny piksel na południowy-wschód (\(x+1,y-1\)). Zaktualizuj parametr decyzyjny za pomocą formuły \(d=d+2x-2y+1\).Zwiększ \(x\) o 1. 
+	nOffset = (y + promien) * DISP_X_SIZE * 3 + x * 3;
+	*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+	*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+	*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 
+	nOffset = (y - promien) * DISP_X_SIZE * 3 + x * 3;
+	*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+	*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+	*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 
+	nOffset = y * DISP_X_SIZE * 3 + (x + promien) * 3;
+	*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+	*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+	*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 
-	/*/cbi(P_CS, B_CS);
-	setXY(x, y + promien, x, y + promien);
-	LCD_WrData(chKolor666, 3);
-
-	setXY(x, y - promien, x, y - promien);
-	LCD_WrData(chKolor666, 3);
-
-	setXY(x + promien, y, x + promien, y);
-	LCD_WrData(chKolor666, 3);
-
-	setXY(x - promien, y, x - promien, y);
-	LCD_WrData(chKolor666, 3);
+	nOffset = y * DISP_X_SIZE * 3 + (x - promien) * 3;
+	*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+	*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+	*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 
 	while(x1 < y1)
 	{
@@ -264,34 +271,147 @@ void RysujOkragwBuforze(uint16_t x, uint16_t y, uint16_t promien, uint8_t *chBuf
 		x1++;
 		ddF_x += 2;
 		f += ddF_x;
-		setXY(x + x1, y + y1, x + x1, y + y1);
-		LCD_WrData(chKolor666, 3);
+		nOffset = (y + y1) * DISP_X_SIZE * 3 + (x + x1) * 3;
+		*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+		*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+		*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 
-		setXY(x - x1, y + y1, x - x1, y + y1);
-		LCD_WrData(chKolor666, 3);
+		nOffset = (y + y1) * DISP_X_SIZE * 3 + (x - x1) * 3;
+		*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+		*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+		*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 
-		setXY(x + x1, y - y1, x + x1, y - y1);
-		LCD_WrData(chKolor666, 3);
+		nOffset = (y - y1) * DISP_X_SIZE * 3 + (x + x1) * 3;
+		*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+		*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+		*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 
-		setXY(x - x1, y - y1, x - x1, y - y1);
-		LCD_WrData(chKolor666, 3);
+		nOffset = (y - y1) * DISP_X_SIZE * 3 + (x - x1) * 3;
+		*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+		*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+		*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 
-		setXY(x + y1, y + x1, x + y1, y + x1);
-		LCD_WrData(chKolor666, 3);
+		nOffset = (y + x1) * DISP_X_SIZE * 3 + (x + y1) * 3;
+		*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+		*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+		*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 
-		setXY(x - y1, y + x1, x - y1, y + x1);
-		LCD_WrData(chKolor666, 3);
+		nOffset = (y + x1) * DISP_X_SIZE * 3 + (x - y1) * 3;
+		*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+		*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+		*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 
-		setXY(x + y1, y - x1, x + y1, y - x1);
-		LCD_WrData(chKolor666, 3);
+		nOffset = (y - x1) * DISP_X_SIZE * 3 + (x + y1) * 3;
+		*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+		*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+		*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 
-		setXY(x - y1, y - x1, x - y1, y - x1);
-		LCD_WrData(chKolor666, 3);
+		nOffset = (y - x1) * DISP_X_SIZE * 3 + (x - y1) * 3;
+		*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+		*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+		*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
 	}
-	//sbi(P_CS, B_CS);
-	clrXY();*/
 }
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Pisze znak w buforze na miejscu o podanych współrzędnych
+// Parametry:
+//	chZnak - znak;
+//	x, y - współrzędne
+//  chBufor* - wskaźnik na bufor pamieci ekranu
+//  nKolorARGB, nTloARGB - kolory znaku i tła w formacie ARGB 8888
+//	chTransparent - okresla czy wolne przestrzenie w znaku są przezroczyste czy wypełnione kolorem tła
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujZnakwBuforze(uint8_t chZnak, uint16_t x, uint16_t y, uint8_t *chBufor, uint32_t nKolorARGB, uint32_t nTloARGB, uint8_t chPrzezroczystosc)
+{
+	uint8_t i, ch;
+	uint16_t j;
+	uint16_t temp;
+	int16_t zz;
+	uint32_t nOffset;
+
+	temp = ((chZnak - cfont.offset) * ((cfont.x_size / 8) * cfont.y_size)) + 4;
+
+	if (!chPrzezroczystosc)
+	{
+		for(j=0;j<((cfont.x_size/8)*cfont.y_size);j+=(cfont.x_size/8))
+		{
+			//setXY(x,y+(j/(cfont.x_size/8)),x+cfont.x_size-1,y+(j/(cfont.x_size/8)));
+			for (zz=(cfont.x_size / 8)-1; zz>=0; zz--)
+			{
+				ch=cfont.font[temp + zz];
+				for(i=0; i<8; i++)
+				{
+					nOffset = (y + (j / (cfont.x_size / 8))) * DISP_X_SIZE * 3 + (x + i + zz * 8) * 3;
+
+					if((ch & (1<<i)) != 0)
+					{
+						*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+						*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+						*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
+					}
+					else
+					{
+						*(chBufor + nOffset + 0) = (uint8_t)(nTloARGB >> 16);
+						*(chBufor + nOffset + 1) = (uint8_t)(nTloARGB >> 8);
+						*(chBufor + nOffset + 2) = (uint8_t)(nTloARGB & 0xFF);
+					}
+				}
+			}
+			temp += (cfont.x_size / 8);
+		}
+	}
+	else
+	{
+		for(j=0;j<cfont.y_size;j++)
+		{
+			for (zz=0; zz<(cfont.x_size/8); zz++)
+			{
+				ch = cfont.font[temp + zz];
+				for(i=0; i<8; i++)
+				{
+					if((ch&(1<<(7-i)))!=0)
+					{
+						//setXY(x+i+(zz*8),y+j,x+i+(zz*8)+1,y+j+1);
+						nOffset = (y + j) * DISP_X_SIZE * 3 + (x + i + zz * 8) * 3;
+						*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
+						*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);
+						*(chBufor + nOffset + 2) = (uint8_t)(nKolorARGB & 0xFF);
+					}
+				}
+			}
+			temp+=(cfont.x_size/8);
+		}
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pisze napis w buforze na miejscu o podanych współrzędnych
+// Parametry:
+//	*chNapis - wskaźnik na napis;
+//	x, y - współrzędne, gdzie x może przybierać formy szczegółne: RIGHT napis od lewego brzegu ekranu, CENTER - napis wyjustowany na środku
+//  chBufor* - wskaźnik na bufor pamieci ekranu
+//  nKolorARGB, nTloARGB - kolory znaku i tła w formacie ARGB 8888
+//	chTransparent - okresla czy wolne przestrzenie w znaku są przezroczyste czy wypełnione kolorem tła
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujNapiswBuforze(char *chNapis, uint16_t x, uint16_t y, uint8_t *chBufor, uint32_t nKolorARGB, uint32_t nTloARGB, uint8_t chPrzezroczystosc)
+{
+	uint16_t sDlugosc;
+
+	sDlugosc = strlen((char*)chNapis);
+
+	if (x == RIGHT)
+		x = (DISP_X_SIZE + 1) - (sDlugosc * cfont.x_size);
+	if (x == CENTER)
+		x = ((DISP_X_SIZE + 1) - (sDlugosc * cfont.x_size)) / 2;
+
+	for (uint16_t n=0; n<sDlugosc; n++)
+		RysujZnakwBuforze(*chNapis++, x + (n * cfont.x_size), y, chBufor, nKolorARGB, nTloARGB, chPrzezroczystosc);
+}
 
