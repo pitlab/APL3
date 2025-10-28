@@ -394,7 +394,7 @@ void RysujZnakwBuforze(uint8_t chZnak, uint16_t x, uint16_t y, uint8_t *chBufor,
 // Pisze napis w buforze na miejscu o podanych współrzędnych
 // Parametry:
 //	*chNapis - wskaźnik na napis;
-//	x, y - współrzędne, gdzie x może przybierać formy szczegółne: RIGHT napis od lewego brzegu ekranu, CENTER - napis wyjustowany na środku
+//	x, y - współrzędne, gdzie x może przybierać formy szczegółne: RIGHT napis od prawego brzegu ekranu, CENTER - napis wyjustowany na środku
 //  chBufor* - wskaźnik na bufor pamieci ekranu
 //  nKolorARGB, nTloARGB - kolory znaku i tła w formacie ARGB 8888
 //	chTransparent - okresla czy wolne przestrzenie w znaku są przezroczyste czy wypełnione kolorem tła
