@@ -337,17 +337,21 @@ void RysujZnakwBuforze(uint8_t chZnak, uint16_t x, uint16_t y, uint8_t *chBufor,
 
 	if (!chPrzezroczystosc)
 	{
-		for(j=0;j<((cfont.x_size/8)*cfont.y_size);j+=(cfont.x_size/8))
+		//for(j=0;j<((cfont.x_size/8)*cfont.y_size);j+=(cfont.x_size/8))
+		for(j=0;j<cfont.y_size;j++)
 		{
 			//setXY(x,y+(j/(cfont.x_size/8)),x+cfont.x_size-1,y+(j/(cfont.x_size/8)));
-			for (zz=(cfont.x_size / 8)-1; zz>=0; zz--)
+			//for (zz=(cfont.x_size / 8)-1; zz>=0; zz--)
+			for (zz=0; zz<(cfont.x_size/8); zz++)
 			{
 				ch=cfont.font[temp + zz];
 				for(i=0; i<8; i++)
 				{
-					nOffset = (y + (j / (cfont.x_size / 8))) * DISP_X_SIZE * 3 + (x + i + zz * 8) * 3;
+					//nOffset = (y + (j / (cfont.x_size / 8))) * DISP_X_SIZE * 3 + (x + i + zz * 8) * 3;
+					nOffset = (y + j) * DISP_X_SIZE * 3 + (x + i + zz * 8) * 3;
 
-					if((ch & (1<<i)) != 0)
+					//if((ch & (1<<i)) != 0)
+					if((ch & (1 << (7 - i))) != 0)
 					{
 						*(chBufor + nOffset + 0) = (uint8_t)(nKolorARGB >> 16);
 						*(chBufor + nOffset + 1) = (uint8_t)(nKolorARGB >> 8);

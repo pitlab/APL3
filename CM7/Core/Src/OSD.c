@@ -40,13 +40,14 @@ uint8_t InicjujOSD(void)
 	hdma2d.LayerCfg[1].InputOffset = 0;
 	hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB888;
 	hdma2d.LayerCfg[1].AlphaMode = DMA2D_REPLACE_ALPHA;
-	hdma2d.LayerCfg[1].InputAlpha = 0x7F;		//mocno przezroczysty
+	hdma2d.LayerCfg[1].InputAlpha = 0x5F;		//mocno przezroczysty
 	hdma2d.LayerCfg[1].AlphaInverted = DMA2D_REGULAR_ALPHA;
 	hdma2d.LayerCfg[1].RedBlueSwap = DMA2D_RB_REGULAR;
 	hdma2d.LayerCfg[1].ChromaSubSampling = DMA2D_NO_CSS;
 	//background: kamera
 	hdma2d.LayerCfg[0].InputOffset = 0;
-	hdma2d.LayerCfg[0].InputColorMode = DMA2D_INPUT_L8;
+	//hdma2d.LayerCfg[0].InputColorMode = DMA2D_INPUT_L8;
+	hdma2d.LayerCfg[0].InputColorMode = DMA2D_INPUT_RGB565;
 	hdma2d.LayerCfg[0].AlphaMode = DMA2D_REPLACE_ALPHA;
 	hdma2d.LayerCfg[0].InputAlpha = 0xFF;		//nieprzezroczysty
 	chErr |= HAL_DMA2D_Init(&hdma2d);

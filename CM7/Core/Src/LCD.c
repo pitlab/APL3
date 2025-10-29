@@ -335,16 +335,14 @@ void RysujEkran(void)
 		break;
 
 	case TP_TEST_OSD:	//testuje funkcje rysowania w buforze
-		//chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV420, KAM_ZDJECIE);		//kolor
-		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_FILM);				//CB
+		//chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_FILM);			//CB
+		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);		//kolor
 		if (chErr)
 			break;
-		//chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE * 3 / 2);	//kolor
-		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 4);		//CB
+		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//kolor
+		//chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 4);		//CB
 		if (chErr)
 			break;
-		//chErr = CzekajNaKoniecPracyDCMI(DISP_Y_SIZE);
-
 		do
 		{
 			chTimeout = 60;
