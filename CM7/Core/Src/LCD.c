@@ -37,6 +37,7 @@
 #include "lwip/stats.h"
 #include "jpeg.h"
 #include "LCD_mem.h"
+#include "osd.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -133,6 +134,7 @@ uint8_t chHistCB8[ROZMIAR_HIST_CB8];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF_YUV420];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM];
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
 extern struct st_KonfKam stKonfKam;
 extern uint32_t nRozmiarObrazuKamery;
 extern stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
@@ -330,13 +332,19 @@ void RysujEkran(void)
 		break;
 
 	case TP_TEST_OSD:	//testuje funkcje rysowania w buforze
-		nCzas = PobierzCzasT6();
+		chErr = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_YUV420, KAM_ZDJECIE);
+		if (chErr)
+			break;
+		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE * 3 / 2);
+		if (chErr)
+			break;
+		chErr = CzekajNaKoniecPracyDCMI(DISP_Y_SIZE);
 		RysujOSD();
+		nCzas = PobierzCzasT6();
+		chErr = PolaczBuforOSDzObrazem((uint8_t*)sBuforKamerySRAM, chBuforOSD, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 		nCzas = MinalCzas(nCzas);
-		RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
+		RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla obraz na LCD
 
-		//setColor(ZOLTY);
-		//RysujNapis(chNapis, 0, DISP_Y_SIZE - FONT_BH);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;

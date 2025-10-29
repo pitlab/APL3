@@ -87,10 +87,12 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "pamiec.h"
 #include <RPi35B_480x320.h>
 #include <ili9488.h>
+#include <osd.h>
 #include "siec/serwer_tcp.h"
 #include "siec/serwerRTSP.h"
 #include "jpeg.h"
 #include "bmp.h"
+#include "osd.h"
 
 /* USER CODE END Includes */
 
@@ -370,7 +372,7 @@ Error_Handler();
   chErr |= InicjalizujKamere();
   if (chErr != ERR_OK)
   	  chCzasSwieceniaLED[LED_CZER] = 50;	//świeć 5s
-
+  chErr |= InicjujOSD();
   InicjujMDMA();
   InicjujCAN();
   chErr = CzytajDotyk();

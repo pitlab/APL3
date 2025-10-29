@@ -224,7 +224,8 @@
 #define MAX_SZER_KAM 		(2592/2)		//maksymalna rozdzielczosć pozioma kamery
 #define MAX_WYS_KAM 		(1944/2)		//maksymalna rozdzielczosć pionowa kamery
 #define SZER_ZDJECIA		1280
-#define WYS_ZDJECIA			960
+//#define WYS_ZDJECIA			960
+#define WYS_ZDJECIA			800
 #define DLG_NAZWY_PLIKU_OBR	10			//długość początku nazwy pliku obrazu
 //#define ROZM_BUF32_KAM		(2592*1944)		//pełen rozmiar przetwornika nie mieści się w  ext SRAM
 #define ROZM_BUF16_KAM		STD_OBRAZU_DVGA
