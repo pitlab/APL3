@@ -146,6 +146,9 @@ extern FIL SDJpegFile;       //struktura pliku z obrazem
 extern uint8_t chNazwaPlikuObr[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
 uint32_t nCzas;
 extern uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
+extern uint8_t chZajetoscBuforaWyJpeg;
+extern volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
+uint8_t chTimeout;
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -332,24 +335,44 @@ void RysujEkran(void)
 		break;
 
 	case TP_TEST_OSD:	//testuje funkcje rysowania w buforze
-		chErr = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_YUV420, KAM_ZDJECIE);
+		//chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV420, KAM_ZDJECIE);		//kolor
+		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_FILM);				//CB
 		if (chErr)
 			break;
-		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE * 3 / 2);
+		//chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE * 3 / 2);	//kolor
+		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 4);		//CB
 		if (chErr)
 			break;
-		chErr = CzekajNaKoniecPracyDCMI(DISP_Y_SIZE);
-		RysujOSD();
-		nCzas = PobierzCzasT6();
-		chErr = PolaczBuforOSDzObrazem((uint8_t*)sBuforKamerySRAM, chBuforOSD, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
-		nCzas = MinalCzas(nCzas);
-		RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla obraz na LCD
+		//chErr = CzekajNaKoniecPracyDCMI(DISP_Y_SIZE);
 
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		do
+		{
+			chTimeout = 60;
+			while (!chObrazKameryGotowy && chTimeout)	//synchronizuj się do początku nowej klatki obrazu
+			{
+				osDelay(1);
+				chTimeout--;
+			}
+			chObrazKameryGotowy = 0;
+			//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+			//RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla obraz z kamery na LCD
+
+			RysujOSD();
+			//RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforOSD);	//wyświetla obraz OSD na LCD
+			nCzas = PobierzCzasT6();
+			//chErr = PolaczBuforOSDzObrazem((uint8_t*)sBuforKamerySRAM, chBuforOSD, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			nCzas = MinalCzas(nCzas);
+			RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla połączone obrazy na LCD
+		}
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+				chNowyTrybPracy = TP_WROC_DO_MENU;
+
+		/*if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_MENU;
-		}
+		}*/
 		break;
 
 	//*** Audio ************************************************
@@ -556,8 +579,7 @@ void RysujEkran(void)
 
 
 	case TP_KAM_Y8:	//praca z obrazem czarno-białym
-		extern uint8_t chZajetoscBuforaWyJpeg;
-		extern volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
+
 		//ponieważ bufor obrazu 1280x960 jest 8 razy większy niż 480x320 wiec dzielę go na 8 części i w nich zapisuję kolejne klatki
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_FILM);
 		if (chErr)
@@ -719,15 +741,6 @@ void RysujEkran(void)
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV444, KAM_ZDJECIE);
 		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_X_SIZE * 2 / 3);	//rozmiar obrazu to 3 bajty na piksel
 		nCzas = PobierzCzasT6();
-		/*/testowo wypełnij bufor kamery narastajacymi liczbami
-		uint8_t* chWskBuf = (uint8_t*)sBuforKamerySRAM;
-		for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)
-		{
-			*(chWskBuf + 3*n+0) = (uint8_t)((n & 0x0F) | 0xA0);	//Y
-			*(chWskBuf + 3*n+1) = (uint8_t)((n & 0x0F) | 0xB0);	//U
-			*(chWskBuf + 3*n+2) = (uint8_t)((n & 0x0F) | 0xC0);	//V
-		}*/
-
 		chErr = KompresujYUV444((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
 		nCzas = MinalCzas(nCzas);
 		chStatusRejestratora |= STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
@@ -3736,7 +3749,7 @@ void NastawyPID(uint8_t chKanal)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t CzytajFram(uint16_t sAdres, uint8_t chRozmiar, float* fDane)
 {
-	uint8_t chTimeout = 10;
+	chTimeout = 10;
 	uDaneCM7.dane.chRozmiar = chRozmiar;
 	uDaneCM7.dane.sAdres = sAdres;
 	uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_FRAM_FLOAT;

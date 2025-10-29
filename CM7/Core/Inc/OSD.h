@@ -12,8 +12,8 @@
 
 uint8_t InicjujOSD(void);
 void RysujOSD();
-uint8_t PolaczBuforOSDzObrazem(uint8_t *chObrazKamery, uint8_t *chBuforOSD, uint8_t *chBuforWyjsciowy, uint16_t sSzerokosc, uint16_t sWysokosc);
-
-
+uint8_t PolaczBuforOSDzObrazem(uint8_t *chObrazFront, uint8_t *chObrazTlo, uint8_t *chBuforWyjsciowy, uint16_t sSzerokosc, uint16_t sWysokosc);
+void XferCpltCallback(DMA2D_HandleTypeDef *hdma2d);
+void XferErrorCallback(DMA2D_HandleTypeDef *hdma2d);
 
 #endif /* INC_OSD_H_ */

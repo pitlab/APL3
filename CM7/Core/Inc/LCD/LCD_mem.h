@@ -4,6 +4,9 @@
 #define INC_LCD_MEM_H_
 #include "stm32h7xx_hal.h"
 
+#define NAPIS_Z_TLEM	0	//napis ma tło w kolorze tła
+#define NAPIS_PRZEZR	1	//napis jest rysowany bez tła
+
 
 void WypelnijBuforEkranu(uint8_t *chBufor, uint32_t nKolorARGB);
 void RysujProstokatWypelnionywBuforze(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t *chBufor, uint32_t nKolorARGB);
