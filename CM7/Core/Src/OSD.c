@@ -32,21 +32,18 @@ uint8_t InicjujOSD(void)
 	hdma2d.XferErrorCallback = XferErrorCallback;
 
 	hdma2d.Instance = DMA2D;
-	//hdma2d.Init.Mode = DMA2D_M2M_BLEND_BG;
 	hdma2d.Init.Mode = DMA2D_M2M_BLEND;
 	hdma2d.Init.ColorMode = DMA2D_OUTPUT_RGB888;
 	hdma2d.Init.OutputOffset = 0;
 	//1=foreground: OSD
 	hdma2d.LayerCfg[1].InputOffset = 0;
-	hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB888;
-	hdma2d.LayerCfg[1].AlphaMode = DMA2D_REPLACE_ALPHA;
-	hdma2d.LayerCfg[1].InputAlpha = 0x5F;		//mocno przezroczysty
+	hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_ARGB4444;
+	hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
 	hdma2d.LayerCfg[1].AlphaInverted = DMA2D_REGULAR_ALPHA;
-	hdma2d.LayerCfg[1].RedBlueSwap = DMA2D_RB_REGULAR;
+	hdma2d.LayerCfg[1].RedBlueSwap = DMA2D_RB_SWAP;
 	hdma2d.LayerCfg[1].ChromaSubSampling = DMA2D_NO_CSS;
 	//background: kamera
 	hdma2d.LayerCfg[0].InputOffset = 0;
-	//hdma2d.LayerCfg[0].InputColorMode = DMA2D_INPUT_L8;
 	hdma2d.LayerCfg[0].InputColorMode = DMA2D_INPUT_RGB565;
 	hdma2d.LayerCfg[0].AlphaMode = DMA2D_REPLACE_ALPHA;
 	hdma2d.LayerCfg[0].InputAlpha = 0xFF;		//nieprzezroczysty
@@ -56,6 +53,8 @@ uint8_t InicjujOSD(void)
 	return chErr;
 }
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja rysuje w buforze pamieci elementy ekranu OSD
 // Parametry:
@@ -63,16 +62,53 @@ uint8_t InicjujOSD(void)
 ////////////////////////////////////////////////////////////////////////////////
 void RysujOSD()
 {
-	WypelnijBuforEkranu(chBuforOSD, 0x000000);
-	RysujProstokatWypelnionywBuforze(0, 0, DISP_X_SIZE, 20, chBuforOSD, 0x00FFFF);	//OK
-	RysujLiniewBuforze(20, 100, 400, 300, chBuforOSD, 0x00FF00);
-	RysujLiniePoziomawBuforze(20, 400, 100, chBuforOSD, 0xFF0000);
-	RysujLiniePionowawBuforze(20, 100, 300, chBuforOSD, 0x0000FF);
-	RysujOkragwBuforze(240, 160, 140, chBuforOSD, 0x7F007F);
+	uint16_t sKolor, sTlo, sBrakTla;
 
-	sprintf(chNapisOSD, "Test blendera");
-	RysujNapiswBuforze(chNapisOSD, 20, 40, chBuforOSD, 0xFFFF00, 0x555555, NAPIS_PRZEZR);
-	RysujNapiswBuforze(chNapisOSD, 20, 60, chBuforOSD, 0xFFFF00, 0x555555, NAPIS_Z_TLEM);
+	sKolor = 0x0000;
+	WypelnijEkranwBuforze(chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+	sBrakTla = 0;
+	sprintf(chNapisOSD, "Abc");
+
+	//zwiększaj przezroczystość w połnej skali 16 kroków
+	for (uint8_t n=0; n<16; n++)
+	{
+		sKolor = 0x0F00 | n << 12;	//czerwony
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 0, DISP_X_SIZE/16, 20, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = 0x00F0 | n << 12;	//zielony
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 20, DISP_X_SIZE/16, 20, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = 0x000F | n << 12;	//niebieski
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 40, DISP_X_SIZE/16, 20, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = 0x00FF | n << 12;	//cyjan
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 60, DISP_X_SIZE/16, 20, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = 0x0F0F | n << 12;	//magenta
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 80, DISP_X_SIZE/16, 20, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = 0x0FF0 | n << 12;	//żółty
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 100, DISP_X_SIZE/16, 20, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+		sKolor = 0x7F0F;	//magenta
+		sTlo = 0x0999 | n << 12;	//szary
+		RysujNapiswBuforze(chNapisOSD, n * DISP_X_SIZE/16, 120, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sTlo, ROZMIAR_KOLORU_OSD);
+		sKolor = 0x0F0F | n << 12;	//magenta
+		RysujNapiswBuforze(chNapisOSD, n * DISP_X_SIZE/16, 140, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sBrakTla, ROZMIAR_KOLORU_OSD);
+	}
+
+	//podwójna linia ukośna
+	sKolor = 0x70F0;	//zielony
+	RysujLiniewBuforze(20, 100, 400, 300, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	sKolor = 0x7F0F;	//przeciwstawny do zielonego
+	RysujLiniewBuforze(21, 101, 401, 301, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+	sKolor = 0x7F00;	//czerwony
+	RysujLiniePoziomawBuforze(20, 400, 160, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	sKolor = 0x700F;	//niebieski
+	RysujLiniePionowawBuforze(20, 160, 300, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+	//podwójny okrąg o przeciwstawnych kolorach
+	sKolor = 0x7707;	//fioletowy
+	RysujOkragwBuforze(240, 180, 80, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	sKolor = 0x77F7;	//
+	RysujOkragwBuforze(240, 180, 81, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 }
 
 

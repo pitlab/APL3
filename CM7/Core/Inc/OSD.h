@@ -9,6 +9,7 @@
 #define INC_OSD_H_
 #include "sys_def_CM7.h"
 
+#define ROZMIAR_KOLORU_OSD	2
 
 uint8_t InicjujOSD(void);
 void RysujOSD();
