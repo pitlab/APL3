@@ -5,7 +5,7 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include"bmp.h"
+#include "bmp.h"
 #include "kamera.h"
 #include "ff.h"
 #include <string.h>
@@ -29,12 +29,9 @@ extern struct st_KonfKam stKonfKam;
 ////////////////////////////////////////////////////////////////////////////////
 void ObslugaZapisuBmp(void)
 {
-	//uint8_t chFormatKoloru;
+	if (stKonfKam.chFormatObrazu == OBR_Y8)
+		ZapiszPlikBmp((uint8_t*)sBuforKamerySRAM, BMP_KOLOR_8, (uint16_t)stKonfKam.chSzerWy * KROK_ROZDZ_KAM, (uint16_t)stKonfKam.chWysWy * KROK_ROZDZ_KAM);
 
-	if ((stKonfKam.chFormatObrazu != OBR_Y8) && (stKonfKam.chFormatObrazu =! OBR_RGB565) && (stKonfKam.chFormatObrazu =! OBR_YUV444))
-		return;	//nieobsługiwany format koloru
-
-	ZapiszPlikBmp((uint8_t*)sBuforKamerySRAM, stKonfKam.chFormatObrazu, (uint16_t)stKonfKam.chSzerWy * KROK_ROZDZ_KAM, (uint16_t)stKonfKam.chWysWy * KROK_ROZDZ_KAM);
 }
 
 
@@ -42,7 +39,8 @@ void ObslugaZapisuBmp(void)
 ////////////////////////////////////////////////////////////////////////////////
 // zapisuje monochromatyczny obraz do pliku bmp
 // Parametry: *chObrazWe - wskaźnik na dane obrazu
-//  sSzerokosc, sWysokosc - rozmiary obrazu będące wielokrotnością 4
+//	chFormatKoloru - określa ilość bitów koloru piksela: 8 lub 24
+//	sSzerokosc, sWysokosc - rozmiary obrazu będące wielokrotnością 4
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzerokosc, uint16_t sWysokosc)
@@ -54,7 +52,6 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 	uint32_t nRozmiarPliku = ROZMIAR_NAGLOWKA_BMP + nRozmiarDanych;
 	uint32_t nOffsetWiersza;
 	uint16_t s3x;
-	uint32_t nY, nU, nV, nR, nG, nB;
 
 	chNaglowek[2] = (uint8_t)(nRozmiarPliku);
 	chNaglowek[3] = (uint8_t)(nRozmiarPliku >> 8);
@@ -62,7 +59,7 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 	chNaglowek[5] = (uint8_t)(nRozmiarPliku >> 24);
 
 	//ustal rozmiar offsety danych. Dla trybu 8 bitowego za nagłówkiem jest paleta kolorów
-	if (chFormatKoloru == OBR_Y8)
+	if (chFormatKoloru == BMP_KOLOR_8)
 		nOffsetWiersza = ROZMIAR_NAGLOWKA_BMP + ROZMIAR_PALETY_BMP;	//tryb z paletą 8-bitową
 	else
 		nOffsetWiersza = ROZMIAR_NAGLOWKA_BMP;						//tryby z kolorem 24-bitowym
@@ -83,10 +80,7 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 	chNaglowek[24] = (uint8_t)(sWysokosc >> 16);
 	chNaglowek[25] = (uint8_t)(sWysokosc >> 24);
 	chNaglowek[26] = 1; // liczba płaszczyzn
-	if (chFormatKoloru == OBR_Y8)
-		chNaglowek[28] = 8; 	// 8-bitowy obraz (256 kolorów)
-	else
-		chNaglowek[28] = 24; 	//24-bity BGR
+	chNaglowek[28] = chFormatKoloru; 	// obraz  8-bitowy lub 24-bitowy BGR
 	chNaglowek[34] = (uint8_t)(nRozmiarDanych);
 	chNaglowek[35] = (uint8_t)(nRozmiarDanych >> 8);
 	chNaglowek[36] = (uint8_t)(nRozmiarDanych >> 16);
@@ -108,7 +102,7 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 		return (uint8_t)fres;
 	}
 
-	if (chFormatKoloru == OBR_Y8)
+	if (chFormatKoloru == BMP_KOLOR_8)
 	{
 		//zapisz paletę (256 kolorów od czarnego do białego). Aby nie powiekszać stosu tworząc dużą strukturę palety kolorów (256*4 bajty), zapisuję ją sekwencyjnie 32x32 bajty
 		for (uint8_t m=0; m<32; m++)
@@ -130,7 +124,7 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 	}
 
 	uint8_t *chBuforWiersza;		//tworzę zmienną dynamiczną pobierającą pamieć ze sterty zamiast ze stosu
-	if (chFormatKoloru == OBR_Y8)
+	if (chFormatKoloru == BMP_KOLOR_8)
 		chBuforWiersza = (uint8_t*)malloc(sSzerokosc * 1);
 	else
 		chBuforWiersza = (uint8_t*)malloc(sSzerokosc * 3);
@@ -139,25 +133,40 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
     for (int16_t y=sWysokosc-1; y>=0; y--)	//zmienna musi być ze znakiem!
     {
     	nOffsetWiersza = y * sSzerokosc * 3;
-    	if (chFormatKoloru == OBR_Y8)
+    	if (chFormatKoloru == BMP_KOLOR_8)
+    	{
     		fres = f_write(&SDBmpFile, &chObrazWe[y * sSzerokosc], sSzerokosc, &nZapisanoBajtow);	//zapisz prosto z obrazu
+    		if ((fres != FR_OK) || (nZapisanoBajtow != sSzerokosc))
+			{
+				free(chBuforWiersza);
+				f_close(&SDBmpFile);
+				return (uint8_t)fres;
+			}
+    	}
     	//else
-		if (chFormatKoloru == OBR_RGB565)	//obraz kolorowy
+		if (chFormatKoloru == BMP_KOLOR_24)	//obraz kolorowy
     	{
     		// Konwersja RGB → BGR (BMP wymaga odwrotnej kolejności)
 			for (uint16_t x = 0; x < sSzerokosc; x++)
 			{
 				s3x = 3 * x;
-				chBuforWiersza[s3x + 0] = chObrazWe[nOffsetWiersza + s3x + 2]; // Blue
-				chBuforWiersza[s3x + 1] = chObrazWe[nOffsetWiersza + s3x + 1]; // Green
-				chBuforWiersza[s3x + 2] = chObrazWe[nOffsetWiersza + s3x + 0]; // Red
+				*(chBuforWiersza + s3x + 0) = chObrazWe[nOffsetWiersza + s3x + 2]; // Blue
+				*(chBuforWiersza + s3x + 1) = chObrazWe[nOffsetWiersza + s3x + 1]; // Green
+				*(chBuforWiersza + s3x + 2) = chObrazWe[nOffsetWiersza + s3x + 0]; // Red
 			}
-			fres = f_write(&SDBmpFile, chBuforWiersza, sSzerokosc, &nZapisanoBajtow);
+			fres = f_write(&SDBmpFile, chBuforWiersza, sSzerokosc * 3, &nZapisanoBajtow);
+			if ((fres != FR_OK) || (nZapisanoBajtow != sSzerokosc * 3))
+			{
+				free(chBuforWiersza);
+				f_close(&SDBmpFile);
+				return (uint8_t)fres;
+			}
     	}
-		else
+		/*else
 		if (chFormatKoloru == OBR_YUV444)
 		{
 			// Konwersja YUV → BGR
+			//uint32_t nY, nU, nV, nR, nG, nB;
 			for (uint16_t x = 0; x < sSzerokosc; x++)
 			{
 				s3x = 3 * x;
@@ -184,14 +193,7 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 				chBuforWiersza[s3x + 2] = (uint8_t)nR; // Red
 			}
 			fres = f_write(&SDBmpFile, chBuforWiersza, sSzerokosc, &nZapisanoBajtow);
-		}
-
-		if ((fres != FR_OK) || (nZapisanoBajtow != sSzerokosc))
-		{
-			free(chBuforWiersza);
-			f_close(&SDBmpFile);
-			return (uint8_t)fres;
-		}
+		}*/
     }
     free(chBuforWiersza);
 	fres = f_close(&SDBmpFile);

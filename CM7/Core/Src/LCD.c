@@ -38,6 +38,7 @@
 #include "jpeg.h"
 #include "LCD_mem.h"
 #include "osd.h"
+#include "bmp.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -256,8 +257,8 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"TPKS_4",		"nic  ",									TPKS_4,				obr_dotyk_zolty},
 	{"TPKS_5",		"nic  ",									TPKS_5,				obr_dotyk_zolty},
 	{"TPKS_6",		"nic  ",									TPKS_6,				obr_dotyk_zolty},
-	{"TPKS_7",		"nic  ",									TPKS_7,				obr_dotyk_zolty},
-	{"TPKS_8",		"nic  ",									TPKS_8,				obr_dotyk_zolty},
+	{"Zapis BMP8",	"Zapis bufora wyswietlacza na karte  ",		TPKS_ZAPISZ_BMP8,	obr_kartaSD},
+	{"ZapisBMP24",	"Zapis bufora wyswietlacza na karte  ",		TPKS_ZAPISZ_BMP24,	obr_kartaSD},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 
@@ -655,8 +656,6 @@ void RysujEkran(void)
 
 
 	case TP_KAM_ZDJ_Y8:	//wykonuje zdjecie Y8 jpg
-
-
 		sprintf((char*)chNazwaPlikuObr, "ZdjY8");	//początek nazwy pliku ze zdjeciem
 		chErr = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_Y8, KAM_ZDJECIE);
 		nCzas = PobierzCzasT6();
@@ -1046,9 +1045,17 @@ void RysujEkran(void)
 
 	case TPKS_4:
 	case TPKS_5:
-	case TPKS_6:
-	case TPKS_7:
-	case TPKS_8:	break;
+	case TPKS_6:	break;
+
+	case TPKS_ZAPISZ_BMP8:	chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_8, DISP_X_SIZE, DISP_Y_SIZE);
+		chTrybPracy = chWrocDoTrybu;
+		chNowyTrybPracy = TP_WROC_DO_KARTA;
+		break;
+
+	case TPKS_ZAPISZ_BMP24:	chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
+		chTrybPracy = chWrocDoTrybu;
+		chNowyTrybPracy = TP_WROC_DO_KARTA;
+		break;
 
 //*** IMU ************************************************
 	case TP_KAL_IMU:			//menu kalibracji IMU

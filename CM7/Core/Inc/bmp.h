@@ -14,8 +14,8 @@
 //#define OFFSET_DANYCH_BMP		(ROZMIAR_NAGLOWKA_BMP + ROZMIAR_PALETY_BMP)
 
 //formaty obrazu
-//#define BMP_KOLOR_Y8		8
-//#define BMP_KOLOR_RGB24		24
+#define BMP_KOLOR_8		8
+#define BMP_KOLOR_24	24
 
 
 void ObslugaZapisuBmp(void);
