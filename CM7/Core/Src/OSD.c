@@ -56,11 +56,11 @@ uint8_t InicjujOSD(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja rysuje w buforze pamieci elementy ekranu OSD
+// Funkcja rysuje w buforze pamieci elementy ekranu OSD używajac kolorów ARGB4444
 // Parametry:
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujOSD()
+void RysujOSD(void)
 {
 	uint16_t sKolor, sTlo, sBrakTla;
 

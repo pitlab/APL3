@@ -20,5 +20,6 @@
 
 void ObslugaZapisuBmp(void);
 uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzerokosc, uint16_t sWysokosc);
+uint8_t ZapiszPlikBin(uint8_t *chDaneWe, uint32_t nRozmiar);
 
 #endif /* INC_BMP_H_ */

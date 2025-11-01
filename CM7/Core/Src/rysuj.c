@@ -245,7 +245,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	}
 	else
 	{
-		setColor(BLAD);
+		setColor(POMARANCZ);
 		RysujNapis("Brak SD! ", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 	}
 

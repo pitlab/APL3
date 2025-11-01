@@ -160,7 +160,7 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
 	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_KonfKartySD},
 	{"Ethernet",	"Obsłga ethernetu",							TP_ETHERNET,		obr_Polaczenie},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"Test BMP",	"Test BMP",									TP_TEST_BMP,		obr_narzedzia},
 	{"Test OSD",	"Test OSD",									TP_TEST_OSD,		obr_narzedzia},
 	{"Kamera",		"Obsługa kamery",							TP_MEDIA_KAMERA,	obr_aparat},
 	{"Audio",  		"Obsluga multimediow: dzwiek i obraz",		TP_MEDIA_AUDIO,		obr_glosnik1}};
@@ -252,12 +252,11 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wlacz Rej",   "Wlacza rejestrator",   					TPKS_WLACZ_REJ,		obr_kartaSD},
 	{"Wylacz Rej",  "Wylacza rejestrator",   					TPKS_WYLACZ_REJ,	obr_kartaSD},
 	{"Parametry",	"Parametry karty SD",						TPKS_PARAMETRY,		obr_kartaSD},
-	//{"Test trans",	"Wyniki pomiaru predkosci transferu",		TPKS_POMIAR, 		obr_multimetr},
-	{"TPKS_4",		"nic  ",									TPKS_4,				obr_dotyk_zolty},
-	{"TPKS_4",		"nic  ",									TPKS_4,				obr_dotyk_zolty},
-	{"TPKS_5",		"nic  ",									TPKS_5,				obr_dotyk_zolty},
-	{"TPKS_6",		"nic  ",									TPKS_6,				obr_dotyk_zolty},
-	{"Zapis BMP8",	"Zapis bufora wyswietlacza na karte  ",		TPKS_ZAPISZ_BMP8,	obr_kartaSD},
+	{"Test24",		"nic  ",									TPKS_4,				obr_dotyk_zolty},
+	{"TestBin",		"nic  ",									TPKS_5,				obr_dotyk_zolty},
+	{"Test trans",	"Wyniki pomiaru predkosci transferu",		TPKS_POMIAR, 		obr_multimetr},
+	{"ZapisBin24",	"Zapis bufora wyswietlacza na karte  ",		TPKS_ZAPISZ_BIN,	obr_kartaSD},
+	{"ZapisBMP8",	"Zapis bufora wyswietlacza na karte  ",		TPKS_ZAPISZ_BMP8,	obr_kartaSD},
 	{"ZapisBMP24",	"Zapis bufora wyswietlacza na karte  ",		TPKS_ZAPISZ_BMP24,	obr_kartaSD},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
@@ -366,12 +365,29 @@ void RysujEkran(void)
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 				chNowyTrybPracy = TP_WROC_DO_MENU;
+		break;
 
-		/*if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+	case TP_TEST_BMP:	//testuje funkcje zapisu kolorowego BMP
+		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);		//kolor
+		if (chErr)
+			break;
+		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//kolor
+		if (chErr)
+			break;
+		do
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MENU;
-		}*/
+			chTimeout = 60;
+			while (!chObrazKameryGotowy && chTimeout)	//synchronizuj się do początku nowej klatki obrazu
+			{
+				osDelay(1);
+				chTimeout--;
+			}
+			chObrazKameryGotowy = 0;
+			KonwersjaRGB565doRGB666(sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+			RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla obraz z kamery na LCD
+		}
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+				chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
 	//*** Audio ************************************************
@@ -382,7 +398,6 @@ void RysujEkran(void)
 
 	case TP_MREJ:
 		InicjujOdtwarzanieDzwieku();
-		//OdtworzProbkeAudio((uint32_t)&sNiechajNarodowie[0], 129808);
 		OdtworzProbkeAudioZeSpisu(PRGA_NIECHAJ_NARODO);
 		chNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
@@ -1044,8 +1059,39 @@ void RysujEkran(void)
 		break;
 
 	case TPKS_4:
+		for (uint32_t y=0; y<DISP_Y_SIZE; y++)
+		{
+			for (uint32_t x=0; x<DISP_X_SIZE; x++)
+			{
+				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 0] = 0xFF;	//R
+				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 1] = 0;
+				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 2] = y & 0xFF;
+			}
+		}
+		chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
+		chTrybPracy = chWrocDoTrybu;
+		chNowyTrybPracy = TP_WROC_DO_KARTA;
+		break;
+
 	case TPKS_5:
-	case TPKS_6:	break;
+		for (uint32_t y=0; y<DISP_Y_SIZE; y++)
+		{
+			for (uint32_t x=0; x<DISP_X_SIZE; x++)
+			{
+				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 0] = 0xFF;	//R
+				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 1] = 0;
+				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 2] = y & 0xFF;
+			}
+		}
+		chErr = ZapiszPlikBin(chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
+		chTrybPracy = chWrocDoTrybu;
+		chNowyTrybPracy = TP_WROC_DO_KARTA;
+		break;
+
+	case TPKS_ZAPISZ_BIN:	chErr = ZapiszPlikBin(chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
+		chTrybPracy = chWrocDoTrybu;
+		chNowyTrybPracy = TP_WROC_DO_KARTA;
+		break;
 
 	case TPKS_ZAPISZ_BMP8:	chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_8, DISP_X_SIZE, DISP_Y_SIZE);
 		chTrybPracy = chWrocDoTrybu;

@@ -83,6 +83,7 @@
 #define TP_WYSWIETL_BLAD	19	//wyświetl kod błędu
 #define TP_MAGNETOMETR		20	//menu obsługi magnetometru
 #define TP_TEST_OSD			21
+#define TP_TEST_BMP			22
 
 
 //polecenia menu Wydajność
@@ -116,7 +117,7 @@
 #define TPKS_POMIAR  		53
 #define TPKS_4				54
 #define TPKS_5				55
-#define TPKS_6				56
+#define TPKS_ZAPISZ_BIN		56
 #define TPKS_ZAPISZ_BMP8	57	//zapisuje zawartość bufora ekranu do pliku bmp 8-bitowego
 #define TPKS_ZAPISZ_BMP24	58	//zapisuje zawartość bufora ekranu do pliku bmp 24-bitowego
 #define TP_WROC_DO_KARTA	59
