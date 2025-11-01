@@ -7,6 +7,8 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "czas.h"
 
+
+
 extern RTC_HandleTypeDef hrtc;
 
 //pole bitowe określające potrzebę i stan synchronizacji lokalnego zegara z GNSS. Wartość 0 gdy nie potrzeba synchronizacji
@@ -123,4 +125,23 @@ uint8_t CzekajNaZero(uint8_t chZajety, uint32_t nCzasOczekiwania)
 		return BLAD_OK;
 
 	return BLAD_TIMEOUT;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Dostarcza czas dla FATFS
+// Parametry: brak
+// Zwraca: czas
+////////////////////////////////////////////////////////////////////////////////
+DWORD PobierzCzasFAT(void)
+{
+    HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+    HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);  // Uwaga: GetDate MUSI być po GetTime
+
+    return ((DWORD)(sDate.Year + 20) << 25)    // Rok = 2000 + sDate.Year, FAT zaczyna od 1980
+         | ((DWORD)sDate.Month << 21)
+         | ((DWORD)sDate.Date << 16)
+         | ((DWORD)sTime.Hours << 11)
+         | ((DWORD)sTime.Minutes << 5)
+         | ((DWORD)sTime.Seconds >> 1);        // FAT ma dokładność do 2 s
 }

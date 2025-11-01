@@ -215,7 +215,7 @@
 /  When enable exFAT, also LFN needs to be enabled. (_USE_LFN >= 1)
 /  Note that enabling exFAT discards C89 compatibility. */
 
-#define _FS_NORTC	1
+#define _FS_NORTC	0
 #define _NORTC_MON	2
 #define _NORTC_MDAY	9
 #define _NORTC_YEAR	2025
@@ -242,7 +242,7 @@
 #define _FS_REENTRANT    1  /* 0:Disable or 1:Enable */
 
 #define _USE_MUTEX       0 /* 0:Disable or 1:Enable */
-#define _FS_TIMEOUT      1000 /* Timeout period in unit of time ticks */
+#define _FS_TIMEOUT      500 /* Timeout period in unit of time ticks */
 #define _SYNC_t          osSemaphoreId
 /* The option _FS_REENTRANT switches the re-entrancy (thread safe) of the FatFs
 /  module itself. Note that regardless of this option, file access to different

@@ -21,7 +21,7 @@ extern char __attribute__ ((aligned (32))) chBufPodreczny[40];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[];
 extern struct st_KonfKam stKonfKam;
 
-uint8_t chBuforWiersza[DISP_X_SIZE * 3];
+//uint8_t chBuforWiersza[DISP_X_SIZE * 3 * 2];	//bufor na 2 wiersze
 
 ////////////////////////////////////////////////////////////////////////////////
 // zapisuje obraz z kamery do pliku bmp. Ponieważ jest wywoływana w wątku rejestratora, jest bezparametrowa
@@ -51,8 +51,9 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 	uint8_t chNaglowek[ROZMIAR_NAGLOWKA_BMP] = {'B','M'};
 	uint32_t nRozmiarDanych;
 	uint32_t nRozmiarPliku;
-	uint32_t nOffsetWiersza;
-	uint32_t s3x;
+	uint32_t nOffsetWiersza, nOffsetPiksela;
+	//uint16_t s3x;
+	uint8_t r,g,b;
 
 	if (chFormatKoloru == BMP_KOLOR_8)
 	{
@@ -61,7 +62,7 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 	}
 	else
 	{
-		nRozmiarDanych = sSzerokosc * sWysokosc * 3;
+		nRozmiarDanych = sSzerokosc * sWysokosc * BAJTOW_KOLORU;
 		nRozmiarPliku = ROZMIAR_NAGLOWKA_BMP + nRozmiarDanych;
 	}
 
@@ -154,25 +155,21 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 		}
 	}
 
-	//uint8_t *chBuforWiersza;		//tworzę zmienną dynamiczną pobierającą pamieć ze sterty zamiast ze stosu
+	uint8_t *chBuforWiersza;		//tworzę zmienną dynamiczną pobierającą pamieć ze sterty zamiast ze stosu
 	if (chFormatKoloru == BMP_KOLOR_8)
-		//chBuforWiersza = (uint8_t*)malloc(sSzerokosc * 1);
-		chBuforWiersza[0] = 0;	//cokolwiek
+		chBuforWiersza = (uint8_t*)malloc(sSzerokosc * BAJTOW_SZAROSCI * WIERSZY_BMP);
 	else
-	{
-		//chBuforWiersza = (uint8_t*)malloc(sSzerokosc * 3);
-		SCB_CleanInvalidateDCache_by_Addr((uint32_t*)chObrazWe, sSzerokosc * sWysokosc * 3);	//synchronizacja cache
-	}
+		chBuforWiersza = (uint8_t*)malloc(sSzerokosc * BAJTOW_KOLORU * WIERSZY_BMP);
 
 	//teraz przepisz obraz wierszami od dołu do góry
-    for (int32_t y=sWysokosc-1; y>=0; y--)	//zmienna musi być ze znakiem!
+    for (int32_t y=(sWysokosc/WIERSZY_BMP)-1; y>=0; y--)	//przy liczeniu w dół poniżej 0 zmienna musi być ze znakiem!
     {
     	if (chFormatKoloru == BMP_KOLOR_8)
     	{
-    		fres = f_write(&SDBmpFile, &chObrazWe[y * sSzerokosc], sSzerokosc, &nZapisanoBajtow);	//zapisz prosto z obrazu
-    		if ((fres != FR_OK) || (nZapisanoBajtow != sSzerokosc))
+    		fres = f_write(&SDBmpFile, &chObrazWe[y * sSzerokosc * WIERSZY_BMP], sSzerokosc * WIERSZY_BMP, &nZapisanoBajtow);	//zapisz prosto z obrazu
+    		if ((fres != FR_OK) || (nZapisanoBajtow != sSzerokosc * WIERSZY_BMP))
 			{
-				//free(chBuforWiersza);
+				free(chBuforWiersza);
 				f_close(&SDBmpFile);
 				return (uint8_t)fres;
 			}
@@ -180,20 +177,37 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 
 		if (chFormatKoloru == BMP_KOLOR_24)	//obraz kolorowy
     	{
-			nOffsetWiersza = y * sSzerokosc * 3;
-    		// Konwersja RGB → BGR (BMP wymaga odwrotnej kolejności)
-			for (uint32_t x = 0; x < sSzerokosc; x++)
-			{
-				s3x = 3 * x;
-				*(chBuforWiersza + s3x + 0) = chObrazWe[nOffsetWiersza + s3x + 2]; // Blue
-				*(chBuforWiersza + s3x + 1) = chObrazWe[nOffsetWiersza + s3x + 1]; // Green
-				*(chBuforWiersza + s3x + 2) = chObrazWe[nOffsetWiersza + s3x + 0]; // Red
-			}
+			nOffsetWiersza = y * sSzerokosc * BAJTOW_KOLORU * WIERSZY_BMP;
+			//for (int16_t w = WIERSZY_BMP-1; w>=0; w--)		//przy liczeniu w dół poniżej 0 zmienna musi być ze znakiem!
+			//for (int16_t w=0; w<WIERSZY_BMP; w++)
+			//{
+
+				for (uint32_t x = 0; x < sSzerokosc; x++)
+				{
+					if (x == 119)
+						fres = 0;
+
+					nOffsetPiksela = BAJTOW_KOLORU * x;
+					// Konwersja RGB → BGR (BMP wymaga odwrotnej kolejności)
+					/*chBuforWiersza[w * sSzerokosc + nOffsetPiksela + 0] = chObrazWe[(WIERSZY_BMP - 1 - w) * sSzerokosc + nOffsetWiersza + nOffsetPiksela + 2]; // Blue
+					chBuforWiersza[w * sSzerokosc + nOffsetPiksela + 1] = chObrazWe[(WIERSZY_BMP - 1 - w) * sSzerokosc + nOffsetWiersza + nOffsetPiksela + 1]; // Green
+					chBuforWiersza[w * sSzerokosc + nOffsetPiksela + 2] = chObrazWe[(WIERSZY_BMP - 1 - w) * sSzerokosc + nOffsetWiersza + nOffsetPiksela + 0]; // Red*/
+					/*chBuforWiersza[nOffsetPiksela + 0] = chObrazWe[nOffsetWiersza + nOffsetPiksela + 2]; // Blue
+					chBuforWiersza[nOffsetPiksela + 1] = chObrazWe[nOffsetWiersza + nOffsetPiksela + 1]; // Green
+					chBuforWiersza[nOffsetPiksela + 2] = chObrazWe[nOffsetWiersza + nOffsetPiksela + 0]; // Red*/
+					r = chObrazWe[nOffsetWiersza + nOffsetPiksela + 0];
+					g = chObrazWe[nOffsetWiersza + nOffsetPiksela + 1];
+					b = chObrazWe[nOffsetWiersza + nOffsetPiksela + 2];
+					chBuforWiersza[nOffsetPiksela + 0] = b;
+					chBuforWiersza[nOffsetPiksela + 1] = g;
+					chBuforWiersza[nOffsetPiksela + 2] = r;
+				}
+			//}
 			//liczba pikseli w wierszu musi być podzielna przez 4 - ze wzgledu na szerokość obrazu podzielną przez 16 jest to zawsze spełnione
-			fres = f_write(&SDBmpFile, chBuforWiersza, sSzerokosc * 3, &nZapisanoBajtow);
-			if ((fres != FR_OK) || (nZapisanoBajtow != sSzerokosc * 3))
+			fres = f_write(&SDBmpFile, chBuforWiersza, sSzerokosc * 3 * WIERSZY_BMP, &nZapisanoBajtow);
+			if ((fres != FR_OK) || (nZapisanoBajtow != sSzerokosc * 3 * WIERSZY_BMP))
 			{
-				//free(chBuforWiersza);
+				free(chBuforWiersza);
 				f_close(&SDBmpFile);
 				return (uint8_t)fres;
 			}
@@ -231,7 +245,7 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 			fres = f_write(&SDBmpFile, chBuforWiersza, sSzerokosc, &nZapisanoBajtow);
 		}*/
     }
-    //free(chBuforWiersza);
+    free(chBuforWiersza);
 	fres = f_close(&SDBmpFile);
 	return (uint8_t)fres;
 }

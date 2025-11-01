@@ -18,9 +18,8 @@
 #include <string.h>
 #include <stdio.h>
 #include "ff_gen_drv.h"
-//#include "sdram_diskio.h"
 #include "sd_diskio.h"
-
+#include "czas.h"
 /* USER CODE END Header */
 #include "fatfs.h"
 
@@ -44,6 +43,18 @@ void MX_FATFS_Init(void)
 
 
   /* USER CODE END Init */
+}
+
+/**
+  * @brief  Gets Time from RTC
+  * @param  None
+  * @retval Time in DWORD
+  */
+DWORD get_fattime(void)
+{
+  /* USER CODE BEGIN get_fattime */
+	return PobierzCzasFAT();
+  /* USER CODE END get_fattime */
 }
 
 /* USER CODE BEGIN Application */

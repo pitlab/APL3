@@ -158,7 +158,7 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Kalibracje", 	"Kalibracja czujnikow pokladowych",			TP_KALIBRACJE,		obr_kontrolny},
 	{"Nastawy",  	"Ustawienia podsystemow",					TP_NASTAWY, 		obr_konfiguracja},
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
-	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_KonfKartySD},
+	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_kartaSD},
 	{"Ethernet",	"Obsłga ethernetu",							TP_ETHERNET,		obr_Polaczenie},
 	{"Test BMP",	"Test BMP",									TP_TEST_BMP,		obr_narzedzia},
 	{"Test OSD",	"Test OSD",									TP_TEST_OSD,		obr_narzedzia},
@@ -252,8 +252,8 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wlacz Rej",   "Wlacza rejestrator",   					TPKS_WLACZ_REJ,		obr_kartaSD},
 	{"Wylacz Rej",  "Wylacza rejestrator",   					TPKS_WYLACZ_REJ,	obr_kartaSD},
 	{"Parametry",	"Parametry karty SD",						TPKS_PARAMETRY,		obr_kartaSD},
-	{"Test24",		"nic  ",									TPKS_4,				obr_dotyk_zolty},
-	{"TestBin",		"nic  ",									TPKS_5,				obr_dotyk_zolty},
+	{"TestBmp24R",	"nic  ",									TPKS_4,				obr_dotyk_zolty},
+	{"TestBmp24G",	"nic  ",									TPKS_5,				obr_dotyk_zolty},
 	{"Test trans",	"Wyniki pomiaru predkosci transferu",		TPKS_POMIAR, 		obr_multimetr},
 	{"ZapisBin24",	"Zapis bufora wyswietlacza na karte  ",		TPKS_ZAPISZ_BIN,	obr_kartaSD},
 	{"ZapisBMP8",	"Zapis bufora wyswietlacza na karte  ",		TPKS_ZAPISZ_BMP8,	obr_kartaSD},
@@ -1050,12 +1050,20 @@ void RysujEkran(void)
 		break;
 
 	case TPKS_POMIAR:
-		TestKartySD();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		//TestKartySD();
+		for (uint32_t y=0; y<DISP_Y_SIZE; y++)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_KARTA;
+			for (uint32_t x=0; x<DISP_X_SIZE; x++)
+			{
+				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 0] = x & 0xFF;
+				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 1] = y & 0xFF;
+				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 2] = (y >> 8) & 0xFF;;
+			}
 		}
+		chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
+		chErr = ZapiszPlikBin(chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
+		chTrybPracy = chWrocDoTrybu;
+		chNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
 	case TPKS_4:
@@ -1065,7 +1073,7 @@ void RysujEkran(void)
 			{
 				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 0] = 0xFF;	//R
 				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 1] = 0;
-				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 2] = y & 0xFF;
+				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 2] = 0;
 			}
 		}
 		chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
@@ -1078,9 +1086,9 @@ void RysujEkran(void)
 		{
 			for (uint32_t x=0; x<DISP_X_SIZE; x++)
 			{
-				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 0] = 0xFF;	//R
-				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 1] = 0;
-				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 2] = y & 0xFF;
+				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 0] = 0;	//R
+				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 1] = 0xFF;
+				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 2] = 0;
 			}
 		}
 		chErr = ZapiszPlikBin(chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
