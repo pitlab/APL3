@@ -18,6 +18,7 @@ extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZe
 extern DMA2D_HandleTypeDef hdma2d;
 static char chNapisOSD[60];
 static uint8_t chTransferDMA2DZakonczony;
+uint32_t nFlagiObiektowOsd;	//flagi obecnosci poszczególnych obiektów  na ekranie OSD
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjuje zasoby używane przez OSD
@@ -35,12 +36,12 @@ uint8_t InicjujOSD(void)
 	hdma2d.Init.Mode = DMA2D_M2M_BLEND;
 	hdma2d.Init.ColorMode = DMA2D_OUTPUT_RGB888;
 	hdma2d.Init.OutputOffset = 0;
+	hdma2d.Init.RedBlueSwap = DMA2D_RB_SWAP;
 	//1=foreground: OSD
 	hdma2d.LayerCfg[1].InputOffset = 0;
 	hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_ARGB4444;
 	hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
 	hdma2d.LayerCfg[1].AlphaInverted = DMA2D_REGULAR_ALPHA;
-	//hdma2d.LayerCfg[1].RedBlueSwap = DMA2D_RB_SWAP;
 	hdma2d.LayerCfg[1].RedBlueSwap = DMA2D_RB_REGULAR;
 	hdma2d.LayerCfg[1].ChromaSubSampling = DMA2D_NO_CSS;
 	//background: kamera
@@ -61,7 +62,7 @@ uint8_t InicjujOSD(void)
 // Parametry:
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujOSD(void)
+void RysujTestoweOSD(void)
 {
 	uint16_t sKolor, sTlo, sBrakTla;
 
@@ -110,6 +111,34 @@ void RysujOSD(void)
 	RysujOkragwBuforze(240, 180, 80, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 	sKolor = 0x77F7;	//
 	RysujOkragwBuforze(240, 180, 81, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja rysuje w buforze pamieci elementy ekranu OSD używajac kolorów ARGB4444
+// Parametry:
+//	sSzerokosc, sWysokosc - rozmiary obrazu OSD
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujOSD(uint16_t sSzerokosc, uint16_t sWysokosc)
+{
+	uint16_t sKolor, sTlo, sBrakTla;
+
+	sKolor = 0x0000;
+	WypelnijEkranwBuforze(chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+
+	if (nFlagiObiektowOsd & OSD_HORYZONT)	//rysuj sztuczny horyzont
+	{
+
+	}
+
+
+	if (nFlagiObiektowOsd & OSD_WYS_PRED)	//rysuj wskaźniki prędkości po lewej i wysokości po prawej
+	{
+
+	}
 }
 
 

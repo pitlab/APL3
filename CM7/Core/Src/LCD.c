@@ -355,7 +355,7 @@ void RysujEkran(void)
 			//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
 			//RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla obraz z kamery na LCD
 
-			RysujOSD();
+			RysujTestoweOSD();
 			//RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforOSD);	//wyświetla obraz OSD na LCD
 			nCzas = PobierzCzasT6();
 			//chErr = PolaczBuforOSDzObrazem((uint8_t*)sBuforKamerySRAM, chBuforOSD, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
@@ -680,28 +680,27 @@ void RysujEkran(void)
 			chNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
 		}
+		RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 		CzekajNaKoniecPracyDCMI(WYS_ZDJECIA);
 		nCzas = MinalCzas(nCzas);
 		printf("Tdcmi=%ldus\r\n", nCzas);
+		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
 		nCzas = PobierzCzasT6();
 		chErr = KompresujY8((uint8_t*)sBuforKamerySRAM, SZER_ZDJECIA, WYS_ZDJECIA);	//, chBuforJpeg, ROZMIAR_BUF_JPEG);
 		nCzas = MinalCzas(nCzas);
 		setColor(ZOLTY);
 		if (!chErr)
-		{
-			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;
 			printf("Tjpeg=%ldus\r\n", nCzas);
-		}
 		else
 		{
-			sprintf(chNapis, "Blad: %d", chErr);
+			sprintf(chNapis, "Blad: %d ", chErr);
 			RysujNapis(chNapis, 10, 30);
 			if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
 				chNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
 		}
 
-		sprintf(chNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f", nCzas, nRozmiarObrazuJPEG, (float)(SZER_ZDJECIA*WYS_ZDJECIA) / nRozmiarObrazuJPEG);
+		sprintf(chNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f ", nCzas, nRozmiarObrazuJPEG, (float)(SZER_ZDJECIA*WYS_ZDJECIA) / nRozmiarObrazuJPEG);
 		RysujNapis(chNapis, 0, 30);
 		chStatusRejestratora |= STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
 		//jest ustawiony większy rozmiar, więc nie wyswietlaj obrazu
@@ -709,6 +708,7 @@ void RysujEkran(void)
 		//WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 		osDelay(3000);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		chStatusRejestratora &= STATREJ_ZAPISZ_BMP | STATREJ_ZAPISZ_JPG;	//wyłącz zapis plików
 		break;
 
 	case TP_KAM_ZDJ_YUV420:	//wykonuje zdjecie YUV420 jpg
@@ -1002,8 +1002,7 @@ void RysujEkran(void)
 			BelkaTytulu("Emulacja magnetometru CAN");
 			chRysujRaz = 0;
 			setColor(SZARY50);
-			sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
-			RysujNapis(chNapis, CENTER, 300);
+			RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 		}
 
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
@@ -1625,8 +1624,7 @@ void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fP
 	//stopka komunikatu
 	UstawCzcionke(MidFont);
 	setColor(SZARY50);
-	sprintf(chNapis, (char*)chOpisBledow[KOMUNIKAT_STOPKA]);	//"Wdus ekran i trzymaj aby zakonczyc"
-	RysujNapis(chNapis, CENTER, 250);
+	RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 250);	//"Wdus ekran i trzymaj aby zakonczyc"
 
 	//treść komunikatu
 	setColor(ZOLTY);
@@ -1722,8 +1720,7 @@ void PomiaryIMU(void)
 		RysujNapis(chNapis, KOL12, 270);
 
 		setColor(SZARY50);
-		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
-		RysujNapis(chNapis, CENTER, 300);
+		RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 	}
 
 	//ICM42688
@@ -1957,8 +1954,7 @@ void PomiaryCisnieniowe(void)
 		RysujNapis(chNapis, KOL12, 180);
 
 		setColor(SZARY50);
-		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
-		RysujNapis(chNapis, CENTER, 300);
+		RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 	}
 
 	//MS5611
@@ -2063,8 +2059,7 @@ void DaneOdbiornikaRC(void)
 			RysujProstokat(119, y+29, (121 + (PPM_MAX - PPM_MIN) / ROZDZIECZOSC_PASKA_RC), y+29+8);
 		}
 		setColor(SZARY50);
-		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
-		RysujNapis(chNapis, CENTER, 300);
+		RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 	}
 
 	for (n=0; n<KANALY_ODB_RC; n++)

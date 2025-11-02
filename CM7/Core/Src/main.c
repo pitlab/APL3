@@ -1688,21 +1688,22 @@ void WatekRejestratora(void const * argument)
 			if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
 			{
 				if (chStatusRejestratora & STATREJ_WLACZONY)
+				{
 					ObslugaPetliRejestratora();
+				}
 				else
-				if (chStatusRejestratora & STATREJ_ZAPISZ_JPG)
+				if (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//flaga jest kasowana po zamknięciu pliku, ponieważ proces w zaleznosci od rozmiaru pliku może wymagać wielu iteracji
 				{
 					if (chStatusBufJpeg)	//czy ktoryś z buforow JPEG wymaga zapisu na kartę
 					{
 						ObslugaZapisuJpeg();
-						chStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;
 					}
 				}
 				else
 				if (chStatusRejestratora & STATREJ_ZAPISZ_BMP)
 				{
 					ObslugaZapisuBmp();
-					chStatusRejestratora &= ~STATREJ_ZAPISZ_BMP;
+					chStatusRejestratora &= ~STATREJ_ZAPISZ_BMP;	//zapis bmp jest jednoprzebiegowy, wiec flagę można skasować po pierwszym przejściu
 				}
 				else
 					osDelay(5);	//jeżeli nie ma nic do zapisu to wstrzymaj wątek na tyle czasu

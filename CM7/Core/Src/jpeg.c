@@ -185,7 +185,9 @@ const uint8_t chNaglJpegExif[ROZMIAR_EXIF] =
 	0x07,0x00,0x00,0x00,    // Długość stringu
 	0x1A,0x00,0x00,0x00,    // Offset do wartości
 	0x00,0x00,0x00,0x00,    // offset do IFD1 = 0 (koniec)
-	'A','P','L','v','3','.','0', 0x00,
+	'A','P','L','v',
+	'0' + WER_GLOWNA,'.',
+	'0' + WER_PODRZ, 0x00,
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -401,6 +403,7 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 	{
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
+		printf("Blad Konf\r\n");
 		return chErr;
 	}
 
@@ -423,8 +426,8 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 			//printf("in%d:%d, ", sZajetoscBuforaWeJpeg, chWskNapBufMcu);
 			chWskNapBufMcu++;
 
-			//jeżeli bufor wejściowy jest zapełniony, to przerwij pracę i posprzątaj po sobie
-			if (sZajetoscBuforaWeJpeg >= (ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU))
+			//jeżeli bufor wejściowy jest przepełniony, to przerwij pracę i posprzątaj po sobie
+			if (sZajetoscBuforaWeJpeg > (ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU))
 			{
 				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
@@ -461,9 +464,20 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 				}
 			}
 
-			//jeżeli jedna ze stronwstrzymuje pracę to czekaj aż się udrożni
+			//jeżeli jedna ze stron wstrzymuje pracę to czekaj aż się udrożni
+			chLicznikTimeoutu = 100;
 			while (chZatrzymanoWy)
+			{
 				osDelay(5);
+				chLicznikTimeoutu--;
+				if (!chLicznikTimeoutu)
+				{
+					HAL_JPEG_Abort(&hjpeg);
+					chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+					printf("Timeout Wyj\r\n");
+					return BLAD_TIMEOUT;
+				}
+			}
 		}
 	}
 
@@ -477,6 +491,7 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 		{
 			HAL_JPEG_Abort(&hjpeg);
 			chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+			printf("Timeout Ost\r\n");
 			return BLAD_TIMEOUT;
 		}
 	}

@@ -77,10 +77,10 @@
 
 
 //definicje komunikatów o błędach
-#define KOMUNIKAT_NAGLOWEK		0
-#define KOMUNIKAT_STOPKA		1
-#define KOMUNIKAT_ZA_ZIMNO		2
-#define KOMUNIKAT_ZA_CIEPLO		3
+#define KOMUNIKAT_NAGLOWEK			0
+#define KOMUNIKAT_DUS_I_TRZYMAJ		1
+#define KOMUNIKAT_ZA_ZIMNO			2
+#define KOMUNIKAT_ZA_CIEPLO			3
 #define MAX_KOMUNIKATOW			4
 
 

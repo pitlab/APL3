@@ -111,12 +111,21 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 	chNaglowek[36] = (uint8_t)(nRozmiarDanych >> 16);
 	chNaglowek[37] = (uint8_t)(nRozmiarDanych >> 24);
 	//biXPelsPerMeter - rozdzielczość w pixelach na metr dla osi OX;
-	//biYPelsPerMeter - analogocznie j.w. dla osi OY,
+	//biYPelsPerMeter - analogicznie j.w. dla osi OY,
 	//biClrUsed - ilość kolorów która faktycznie została użyta,
 	//biClrImportant - ilość kolorów znaczących.
 	//biClrRotation - flaga rotacji palety
 	for (uint8_t n=38; n<ROZMIAR_NAGLOWKA_BMP; n++)
 		chNaglowek[n] = 0;
+
+	chNaglowek[56] = 'A';
+	chNaglowek[57] = 'P';
+	chNaglowek[58] = 'L';
+	chNaglowek[59] = 'v';
+	chNaglowek[60] = '0' + WER_GLOWNA;
+	chNaglowek[61] = '.';
+	chNaglowek[62] = '0' + WER_PODRZ;
+	chNaglowek[63] = 0;
 
 	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);

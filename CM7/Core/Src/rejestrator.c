@@ -1182,11 +1182,11 @@ void ObslugaZapisuJpeg(void)
 		fres  = f_write(&SDJpegFile, chNaglJpegEOI, ROZMIAR_ZNACZ_xOI, &nZapisanoBajtow);
 		fres |= f_close(&SDJpegFile);
 		if (fres == FR_OK)
-		{
-			chStatusBufJpeg &= ~(STAT_JPG_ZAMKNIJ | STAT_JPG_OTWARTY);	//skasuj flagi polecenia zamknięcia i stanu otwartosci pliku
-			f_sync(&SDJpegFile);
 			printf("Gotowe\r\n");
-		}
+		else
+			printf("Blad zamkniecia pliku %d\r\n", fres);
+		chStatusBufJpeg &= ~(STAT_JPG_ZAMKNIJ | STAT_JPG_OTWARTY);	//skasuj flagi polecenia zamknięcia i stanu otwartosci pliku
+		chStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;	//wyłącz flagę obsługi pliku JPEG
 	}
 
 	//jeżeli nie ma nic do zapisu, to przełacz sie na inny wątek
