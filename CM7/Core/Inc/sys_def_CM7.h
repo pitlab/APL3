@@ -78,7 +78,7 @@
 #define TP_MEDIA_KAMERA		14	//menu obsługi kamery
 #define TP_WYDAJNOSC		15	//menu pomiarów wydajności
 #define TP_KARTA_SD			16	//menu obsługi karty SD
-
+#define TP_MENU_OSD			17
 #define TP_PODGLAD_IMU		18	//podgląd parametrów IMU podczas kalibracji
 #define TP_WYSWIETL_BLAD	19	//wyświetl kod błędu
 #define TP_MAGNETOMETR		20	//menu obsługi magnetometru
@@ -181,11 +181,25 @@
 #define TP_KAM_DIAG			118	//wykonuje dignostykę kamery
 #define TP_WROC_DO_KAMERA	119
 
-//polecenia manu ethernet
+//polecenia menu ethernet
 #define TP_ETH_INFO			120
 #define TP_ETH_GADU_GADU	121
 #define ET_ETH1				122
 #define TP_WROC_DO_ETH		129
+
+
+//polecenia menu: TP_MENU_OSD
+#define TPO_TEST_OSD480		130
+#define TPO_TEST_OSD320		131
+#define TPO_TEST_OSD240		132
+#define TPO_OSD4			133
+#define TPO_TEST_BLENDERA	134
+#define TPO_OSD5			135
+#define TPO_OSD6			136
+#define TPO_OSD7			137
+#define TPO_OSD8			138
+#define TP_WROC_DO_OSD		139
+
 
 //flagi inicjalizacj sprzetu na płytce
 #define INIT_FLASH_NOR		0x00000001

@@ -70,8 +70,9 @@
 #define STR_MENU_KAMERA				52
 #define STR_MENU_ETHERNET			53
 #define STR_DOTKNIJ_ABY_SKALIBROWAC	54
+#define STR_MENU_OSD				55
 //#define STR_
-#define MAX_NAPISOW					55	//liczba napisów
+#define MAX_NAPISOW					56	//liczba napisów
 
 
 

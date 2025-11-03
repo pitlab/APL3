@@ -8,7 +8,6 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "LCD.h"
-#include "rysuj.h"
 #include <stdio.h>
 #include <math.h>
 #include <RPi35B_480x320.h>
@@ -150,6 +149,7 @@ extern uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
 extern uint8_t chZajetoscBuforaWyJpeg;
 extern volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
 uint8_t chTimeout;
+extern stKonfOsd_t stKonfOSD;
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -161,8 +161,8 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_kartaSD},
 	{"Ethernet",	"Obsłga ethernetu",							TP_ETHERNET,		obr_Polaczenie},
 	{"Test BMP",	"Test BMP",									TP_TEST_BMP,		obr_narzedzia},
-	{"Test OSD",	"Test OSD",									TP_TEST_OSD,		obr_narzedzia},
-	{"Kamera",		"Obsługa kamery",							TP_MEDIA_KAMERA,	obr_aparat},
+	{"OSD",			"Testy OSD",								TP_MENU_OSD,		obr_aparat},
+	{"Kamera",		"Obsługa kamery",							TP_MEDIA_KAMERA,	obr_kamera},
 	{"Audio",  		"Obsluga multimediow: dzwiek i obraz",		TP_MEDIA_AUDIO,		obr_glosnik1}};
 
 
@@ -245,6 +245,19 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Zdj YUV420",	"Wykonaj zdjecie jpg YUV420",				TP_KAM_ZDJ_YUV420,	obr_aparat},
 	{"Zdj YUV444",	"Wykonaj zdjecie jpg YUV444",				TP_KAM_ZDJ_YUV444,	obr_aparat},
 	{"Diagnoza",	"Wykonuje diagnostyke kamery",				TP_KAM_DIAG,		obr_narzedzia},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
+
+struct tmenu stMenuOsd[MENU_WIERSZE * MENU_KOLUMNY]  = {
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
+	{"Obraz OSD4", 	"Pokazuje obraz OSD 480x320",				TPO_TEST_OSD480,	obr_kamera},
+	{"Obraz OSD3", 	"Pokazuje obraz OSD 320x240",				TPO_TEST_OSD320,	obr_kamera},
+	{"Obraz OSD2", 	"Pokazuje obraz OSD 240x160",				TPO_TEST_OSD240,	obr_kamera},
+	{"O4",		 	"nic",										TPO_OSD4,			obr_kamera},
+	{"Test Blend",	"Test blendera",							TPO_TEST_BLENDERA,	obr_kamera},
+	{"O5",		 	"nic",										TPO_OSD5,			obr_kamera},
+	{"O6",		 	"nic",										TPO_OSD6,			obr_kamera},
+	{"O7",		 	"nic",										TPO_OSD7,			obr_kamera},
+	{"O8",		 	"nic",										TPO_OSD8,			obr_kamera},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -332,39 +345,6 @@ void RysujEkran(void)
 	case TP_TESTY:
 		if (TestDotyku() == ERR_GOTOWE)
 			chNowyTrybPracy = TP_WROC_DO_MENU;
-		break;
-
-	case TP_TEST_OSD:	//testuje funkcje rysowania w buforze
-		//chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_FILM);			//CB
-		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);		//kolor
-		if (chErr)
-			break;
-		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//kolor
-		//chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 4);		//CB
-		if (chErr)
-			break;
-		do
-		{
-			chTimeout = 60;
-			while (!chObrazKameryGotowy && chTimeout)	//synchronizuj się do początku nowej klatki obrazu
-			{
-				osDelay(1);
-				chTimeout--;
-			}
-			chObrazKameryGotowy = 0;
-			//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
-			//RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla obraz z kamery na LCD
-
-			RysujTestoweOSD();
-			//RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforOSD);	//wyświetla obraz OSD na LCD
-			nCzas = PobierzCzasT6();
-			//chErr = PolaczBuforOSDzObrazem((uint8_t*)sBuforKamerySRAM, chBuforOSD, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
-			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
-			nCzas = MinalCzas(nCzas);
-			RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla połączone obrazy na LCD
-		}
-		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-				chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
 	case TP_TEST_BMP:	//testuje funkcje zapisu kolorowego BMP
@@ -804,7 +784,87 @@ void RysujEkran(void)
 		}
 		break;
 
+	//*** OSD ************************************************
+	case TP_MENU_OSD:
+		Menu((char*)chNapisLcd[STR_MENU_OSD], stMenuOsd, &chNowyTrybPracy);
+		chWrocDoTrybu = TP_MENU_GLOWNE;
+		break;
 
+	case TPO_TEST_BLENDERA:	//testuje funkcje rysowania w buforze
+		//chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_FILM);			//CB
+		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);		//kolor
+		if (chErr)
+			break;
+		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//kolor
+		//chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 4);		//CB
+		if (chErr)
+			break;
+		do
+		{
+			chTimeout = 60;
+			while (!chObrazKameryGotowy && chTimeout)	//synchronizuj się do początku nowej klatki obrazu
+			{
+				osDelay(1);
+				chTimeout--;
+			}
+			chObrazKameryGotowy = 0;
+			//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+			//RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla obraz z kamery na LCD
+
+			RysujTestoweOSD();
+			//RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforOSD);	//wyświetla obraz OSD na LCD
+			nCzas = PobierzCzasT6();
+			//chErr = PolaczBuforOSDzObrazem((uint8_t*)sBuforKamerySRAM, chBuforOSD, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			nCzas = MinalCzas(nCzas);
+			RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla połączone obrazy na LCD
+		}
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+				chNowyTrybPracy = TP_WROC_DO_MENU;
+		break;
+
+	case TPO_TEST_OSD480:
+		stKonfOSD.sSzerokosc = 480;
+		stKonfOSD.sWysokosc = 320;
+		uint8_t chKolor[2] = {90, 90};	//szare tło
+		WypelnijEkranwBuforze1((uint8_t*)sBuforKamerySRAM,  chKolor, 2);
+		do
+		{
+			RysujOSD(stKonfOSD, uDaneCM4.dane);
+			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
+		}
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+			chNowyTrybPracy = TP_WROC_DO_OSD;
+		break;
+
+	case TPO_TEST_OSD320:
+		stKonfOSD.sSzerokosc = 320;
+		stKonfOSD.sWysokosc = 240;
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM,  SZARY30);
+		do
+		{
+			RysujOSD(stKonfOSD, uDaneCM4.dane);
+			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
+		}
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+			chNowyTrybPracy = TP_WROC_DO_OSD;
+		break;
+
+	case TPO_TEST_OSD240:
+		stKonfOSD.sSzerokosc = 240;
+		stKonfOSD.sWysokosc = 160;
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM,  SZARY50);
+		do
+		{
+			RysujOSD(stKonfOSD, uDaneCM4.dane);
+			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
+		}
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+			chNowyTrybPracy = TP_WROC_DO_OSD;
+		break;
 
 
 	//*** Ethernet ************************************************
@@ -1431,6 +1491,7 @@ void RysujEkran(void)
 		case TP_WROC_DO_MENU:		chTrybPracy = TP_MENU_GLOWNE;	break;	//powrót do menu głównego
 		case TP_WROC_DO_AUDIO:		chTrybPracy = TP_MEDIA_AUDIO;	break;	//powrót do menu Audio
 		case TP_WROC_DO_KAMERA:		chTrybPracy = TP_MEDIA_KAMERA;	break;	//powrót do menu Kamera
+		case TP_WROC_DO_OSD:		chTrybPracy = TP_MENU_OSD;		break;	//powrót do menu OSD
 		case TP_WROC_DO_WYDAJN:		chTrybPracy = TP_WYDAJNOSC;		break;	//powrót do menu Wydajność
 		case TP_WROC_DO_KARTA:		chTrybPracy = TP_KARTA_SD;		break;	//powrót do menu Karta SD
 		case TP_WROC_KAL_IMU:		chTrybPracy = TP_KAL_IMU;		break;	//powrót do menu IMU

@@ -11,8 +11,8 @@
 #define NAPIS_PRZEZR	1	//napis jest rysowany bez tła
 
 void PostawPikselwBuforze(uint16_t x, uint16_t y, uint8_t *chBufor, uint8_t *chKolor, uint8_t chRozmKoloru);
-void WypelnijEkranwBuforze(uint8_t *chBufor, uint8_t *chKolor, uint8_t chRozmKoloru);
-
+void WypelnijEkranwBuforze1(uint8_t *chBufor, uint8_t *chKolor, uint8_t chRozmKoloru);
+void WypelnijEkranwBuforze(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t *chBufor, uint16_t sKolor);
 void RysujProstokatWypelnionywBuforze(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t *chBufor, uint8_t *chKolor, uint8_t chRozmKoloru);
 void RysujLiniewBuforze(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t *chBufor, uint8_t *chKolor, uint8_t chRozmKoloru);
 void RysujLiniePoziomawBuforze(uint16_t x1, uint16_t x2, uint16_t y, uint8_t *chBufor, uint8_t *chKolor, uint8_t chRozmKoloru);

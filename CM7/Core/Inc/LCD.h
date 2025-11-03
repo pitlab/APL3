@@ -9,6 +9,7 @@
 #define INC_LCD_H_
 #include "sys_def_CM7.h"
 #include "display.h"
+#include "rysuj.h"
 
 //#define MIN_MAG_WYKR	NOMINALNE_MAGN / 600		//minimalna wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru
 #define MIN_MAG_WYKR	NOMINALNE_MAGN * 0.8f		//minimalna wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru
@@ -25,13 +26,6 @@
 
 #define ROZDZIECZOSC_PASKA_RC		3	//zakres RC = 1000us / szerokość ekranu [us/pixel]
 
-typedef struct
-{
-	uint16_t sX1;
-	uint16_t sY1;
-	uint16_t sX2;
-	uint16_t sY2;
-} prostokat_t;
 
 void RysujEkran(void);
 void Ekran_Powitalny(uint32_t nZainicjowano);

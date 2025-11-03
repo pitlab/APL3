@@ -12,7 +12,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-
+#include "osd.h"
 
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[SZER_BUFORA * WYS_BUFORA * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
 extern struct current_font cfont;
@@ -47,7 +47,7 @@ void PostawPikselwBuforze(uint16_t x, uint16_t y, uint8_t *chBufor, uint8_t *chK
 //  Zwraca: nic
 // Czas wykonania: 46 us
 ////////////////////////////////////////////////////////////////////////////////
-void WypelnijEkranwBuforze(uint8_t *chBufor, uint8_t *chKolor, uint8_t chRozmKoloru)
+void WypelnijEkranwBuforze1(uint8_t *chBufor, uint8_t *chKolor, uint8_t chRozmKoloru)
 {
 	uint32_t nOffset;
 
@@ -62,6 +62,28 @@ void WypelnijEkranwBuforze(uint8_t *chBufor, uint8_t *chKolor, uint8_t chRozmKol
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Zapełnij cały bufor wyświetlacza podanym kolorem
+// Parametry:
+// 	sSzerokosc, sWysokosc - rozmiary ekranu
+//	chBufor* - wskaźnik na bufor pamieci ekranu
+//  nKolorARGB - kolor w formacie ARGB4444
+//  Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void WypelnijEkranwBuforze(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t *chBufor, uint16_t sKolor)
+{
+	uint32_t nOffset;
+
+	for (uint16_t y=0; y<sWysokosc; y++)
+	{
+		for (uint16_t x=0; x<sSzerokosc; x++)
+		{
+			nOffset = y * sSzerokosc * ROZMIAR_KOLORU_OSD + x * ROZMIAR_KOLORU_OSD;
+			*(chBufor + nOffset + 0) = (uint8_t)sKolor;
+			*(chBufor + nOffset + 1) = (uint8_t)(sKolor >> 8);
+		}
+	}
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -66,6 +66,11 @@
 #define NP_EXT_IAS	0x08
 
 
+//definicje kątow
+#define PRZE	0
+#define POCH	1
+#define ODCH	2
+
 typedef struct _GNSS
 {
 	double dDlugoscGeo;

@@ -73,6 +73,7 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Menu kamera",						//STR_MENU_KAMERA
 "Menu Ethernet",					//STR_MENU_ETHERNET
 "Dotknij krzyzyk aby skalibrowac ekran",	//STR_DOTKNIJ_ABY_SKALIBROWAC
+"Menu OSD",							//STR_MENU_OSD
 };
 
 

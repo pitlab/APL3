@@ -10,6 +10,14 @@
 #include "sys_def_CM7.h"
 #include "display.h"
 
+typedef struct
+{
+	uint16_t sX1;
+	uint16_t sY1;
+	uint16_t sX2;
+	uint16_t sY2;
+} prostokat_t;
+
 #define SZER_PASKA_HISTOGRAMU		2		//szerokość paska w pikselach
 
 void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
