@@ -830,7 +830,7 @@ void RysujEkran(void)
 		WypelnijEkranwBuforze1((uint8_t*)sBuforKamerySRAM,  chKolor, 2);
 		do
 		{
-			RysujOSD(stKonfOSD, uDaneCM4.dane);
+			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
 			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
 		}
@@ -844,7 +844,7 @@ void RysujEkran(void)
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM,  SZARY30);
 		do
 		{
-			RysujOSD(stKonfOSD, uDaneCM4.dane);
+			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
 			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
 		}
@@ -858,7 +858,7 @@ void RysujEkran(void)
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM,  SZARY50);
 		do
 		{
-			RysujOSD(stKonfOSD, uDaneCM4.dane);
+			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
 			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
 		}

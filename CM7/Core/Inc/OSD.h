@@ -70,7 +70,7 @@ typedef struct st_KonfOsd
 } stKonfOsd_t;
 
 //definicje flag obiektów OSD
-#define FLO_WIDOCZNY	0x01	//obiekt widoczny
+#define FO_WIDOCZNY	0x01	//obiekt widoczny
 
 
 
@@ -82,7 +82,10 @@ uint8_t PolaczBuforOSDzObrazem(uint8_t *chObrazFront, uint8_t *chObrazTlo, uint8
 void XferCpltCallback(DMA2D_HandleTypeDef *hdma2d);
 void XferErrorCallback(DMA2D_HandleTypeDef *hdma2d);
 void RysujTestoweOSD();
-void RysujOSD(stKonfOsd_t stKonf, stWymianyCM4_t stDane);
+void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane);
 void PobierzPozycjeObiektu(stKonfOsd_t stKonf, prostokat_t *stWspolrzedne);
+
+float Deg2Rad(float stopnie);
+float Rad2Deg(float radiany);
 
 #endif /* INC_OSD_H_ */

@@ -196,7 +196,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	uint8_t chStatus;
 
 	setBackColor(SZARY20);
-	for (uint8_t n=0; n<4; n++)		//rozpatruj sobno każde połaczenia
+	for (uint8_t n=0; n<4; n++)		//rozpatruj każde połaczenie osobno
 	{
 		chStatus = (chStatusPolaczenia >> (2*n)) & 0x03;		//wyodrebnij bity danego połączenia
 		if (chStatus != ((chPoprzedniStatusPolaczenia >> (2*n)) & 0x03))
@@ -255,7 +255,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	size_t freeHeap = xPortGetFreeHeapSize();
 	//size_t minEverFreeHeap = xPortGetMinimumEverFreeHeapSize();
 	setColor(CYJAN);
-	sprintf(chNapis, " %d/%d", freeHeap, stosWHM);
+	sprintf(chNapis, " %d/%d ", freeHeap, stosWHM);
 	RysujNapis(chNapis, DISP_X_SIZE - 39*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 	setBackColor(CZARNY);
 }

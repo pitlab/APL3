@@ -303,4 +303,5 @@
 #define STAT_JPG_OTWARTY		0x80
 
 
+
 #endif /* INC_SYS_DEF_CM7_H_ */

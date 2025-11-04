@@ -50,9 +50,8 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - do LWIP podać adres IP zawarty w stBSP.chAdrIP
  - podać skompresowany obraz do serwera RTSP
  - sprawdzić dlaczego wywala się hard fault na ethernet_input()
- - Dodać czas do FAT
  - Dodać synchronizację czasu z serwerem RTC
-
+ - Dodać wyłaczanie przerwań na czas alokacji pamięci przez memalloc()
 
  //Problemy sprzętowe egzemplarza 1:
   * Nie można uruchomić ETH i kamery
@@ -427,7 +426,7 @@ Error_Handler();
   tsRejestratorHandle = osThreadCreate(osThread(tsRejestrator), NULL);
 
   /* definition and creation of tsObslugaWyswie */
-  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 384);
+  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 512);
   tsObslugaWyswieHandle = osThreadCreate(osThread(tsObslugaWyswie), NULL);
 
   /* definition and creation of tsSerwerTCP */

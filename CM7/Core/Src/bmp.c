@@ -164,11 +164,13 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 		}
 	}
 
+	__set_PRIMASK(1);   // wyłącza wszystkie przerwania
 	uint8_t *chBuforWiersza;		//tworzę zmienną dynamiczną pobierającą pamieć ze sterty zamiast ze stosu
 	if (chFormatKoloru == BMP_KOLOR_8)
 		chBuforWiersza = (uint8_t*)malloc(sSzerokosc * BAJTOW_SZAROSCI * WIERSZY_BMP);
 	else
 		chBuforWiersza = (uint8_t*)malloc(sSzerokosc * BAJTOW_KOLORU * WIERSZY_BMP);
+	__set_PRIMASK(0);   // włącza wszystkie przerwania
 
 	//teraz przepisz obraz wierszami od dołu do góry
     for (int32_t y=(sWysokosc/WIERSZY_BMP)-1; y>=0; y--)	//przy liczeniu w dół poniżej 0 zmienna musi być ze znakiem!
@@ -178,7 +180,9 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
     		fres = f_write(&SDBmpFile, &chObrazWe[y * sSzerokosc * WIERSZY_BMP], sSzerokosc * WIERSZY_BMP, &nZapisanoBajtow);	//zapisz prosto z obrazu
     		if ((fres != FR_OK) || (nZapisanoBajtow != sSzerokosc * WIERSZY_BMP))
 			{
+    			__set_PRIMASK(1);   // wyłącza wszystkie przerwania
 				free(chBuforWiersza);
+				__set_PRIMASK(0);   // włącza wszystkie przerwania
 				f_close(&SDBmpFile);
 				return (uint8_t)fres;
 			}
@@ -216,7 +220,9 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 			fres = f_write(&SDBmpFile, chBuforWiersza, sSzerokosc * 3 * WIERSZY_BMP, &nZapisanoBajtow);
 			if ((fres != FR_OK) || (nZapisanoBajtow != sSzerokosc * 3 * WIERSZY_BMP))
 			{
+				__set_PRIMASK(1);   // wyłącza wszystkie przerwania
 				free(chBuforWiersza);
+				__set_PRIMASK(0);   // włącza wszystkie przerwania
 				f_close(&SDBmpFile);
 				return (uint8_t)fres;
 			}
@@ -254,7 +260,9 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 			fres = f_write(&SDBmpFile, chBuforWiersza, sSzerokosc, &nZapisanoBajtow);
 		}*/
     }
+    __set_PRIMASK(1);   // wyłącza wszystkie przerwania
     free(chBuforWiersza);
+    __set_PRIMASK(0);   // włącza wszystkie przerwania
 	fres = f_close(&SDBmpFile);
 	return (uint8_t)fres;
 }

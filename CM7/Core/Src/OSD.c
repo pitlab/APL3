@@ -10,6 +10,8 @@
 #include "display.h"
 #include "LCD_mem.h"
 #include "cmsis_os.h"
+#include <math.h>
+
 
 //uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
@@ -34,6 +36,7 @@ uint8_t InicjujOSD(void)
 	stKonfOSD.stHoryzont.sKolorObiektu = 0x7F00;	//czerwony 50% przezroczystości
 	stKonfOSD.stHoryzont.sPozycjaX = POZ_SRODEK;
 	stKonfOSD.stHoryzont.sPozycjaY = POZ_SRODEK;
+	stKonfOSD.stHoryzont.chFlagi = FO_WIDOCZNY;
 
 
 	hdma2d.XferCpltCallback = XferCpltCallback;
@@ -195,7 +198,7 @@ void RysujTestoweOSD(void)
 //	sSzerokosc, sWysokosc - rozmiary obrazu OSD
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujOSD(stKonfOsd_t stKonf, stWymianyCM4_t stDane)
+void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 {
 	uint16_t sKolor;
 	uint16_t x, y, x1, y1, x2, y2;	//współrzędne
@@ -203,32 +206,57 @@ void RysujOSD(stKonfOsd_t stKonf, stWymianyCM4_t stDane)
 	WypelnijEkranwBuforze(DISP_X_SIZE, DISP_Y_SIZE, chBuforOSD, KOLOSD_CZARNY);
 
 	//horyzont rysuję jako belkę o długości 50% szerokosci ekranu w zerze pochylenia i krótsze belki 40% szerokości ekranu co 10°
-	if (stKonf.stHoryzont.chFlagi & FLO_WIDOCZNY)
+	if (stKonf->stHoryzont.chFlagi & FO_WIDOCZNY)
 	{
-		uint16_t sDlugoscPolowyBelki = stKonf.sSzerokosc * HOR_SZER00_PROC / 200;
+		uint16_t sDlugoscPolowyBelki = stKonf->sSzerokosc * HOR_SZER00_PROC / 200;
 		//licz współrzędne środka prawego końca belki
-		x = (uint16_t)(sDlugoscPolowyBelki * cos(stDane.fKatIMU1[PRZE]));
-		y = (uint16_t)(sDlugoscPolowyBelki * sin(stDane.fKatIMU1[PRZE]));
+		x = (uint16_t)(sDlugoscPolowyBelki * cos(stDane->fKatIMU1[PRZE]));
+		y = (uint16_t)(sDlugoscPolowyBelki * sin(stDane->fKatIMU1[PRZE]));
 
-		uint16_t sWysokoscPolowyOkna = stKonf.sWysokosc * HOR_WYS_PROC / 200;
-		int16_t sWysokoscPochylenia = sWysokoscPolowyOkna * stDane.fKatIMU1[POCH] / HOR_SKALA_POCH;	//przesunięcie w pionie środka horyzontu w zależnosci od pochylenia
+		uint16_t sWysokoscPolowyOkna = stKonf->sWysokosc * HOR_WYS_PROC / 200;
+		int16_t sWysokoscPochylenia = sWysokoscPolowyOkna * stDane->fKatIMU1[POCH] / Deg2Rad(HOR_SKALA_POCH);	//przesunięcie w pionie środka horyzontu w zależnosci od pochylenia
 
-		x1 = stKonf.sSzerokosc / 2 - x;	//sprawdzić czy znaki są OK
-		x2 = stKonf.sSzerokosc / 2 + x;
-		y1 = stKonf.sWysokosc / 2 + sWysokoscPochylenia - y;
-		y2 = stKonf.sWysokosc / 2 + sWysokoscPochylenia + y;
 
-		sKolor = stKonf.stHoryzont.sKolorObiektu;
+		x1 = stKonf->sSzerokosc / 2 - x;	//sprawdzić czy znaki są OK
+		x2 = stKonf->sSzerokosc / 2 + x;
+		y1 = stKonf->sWysokosc / 2 + sWysokoscPochylenia - y;
+		y2 = stKonf->sWysokosc / 2 + sWysokoscPochylenia + y;
+
+		sKolor = stKonf->stHoryzont.sKolorObiektu;
 		RysujLiniewBuforze(x1, y1, x2, y2, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
 
 	}
 
 
-	if (stKonf.stPredWys.chFlagi & FLO_WIDOCZNY)	//rysuj wskaźniki prędkości po lewej i wysokości po prawej
+	if (stKonf->stPredWys.chFlagi & FO_WIDOCZNY)	//rysuj wskaźniki prędkości po lewej i wysokości po prawej
 	{
 
 	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Konwertuje stopnie na radiany
+// Parametry: stopnie
+// Zwraca: radiany
+////////////////////////////////////////////////////////////////////////////////
+float Deg2Rad(float stopnie)
+{
+	return stopnie / 180.0f * M_PI;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Konwertuje radiany na stopnie
+// Parametry: radiany
+// Zwraca: stopnie
+////////////////////////////////////////////////////////////////////////////////
+float Rad2Deg(float radiany)
+{
+	return radiany / M_PI * 180.0f;
 }
 
 

@@ -7,6 +7,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "analiza_obrazu.h"
 #include "stdlib.h"
+#include <cmsis_gcc.h>	//
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -288,7 +289,15 @@ void HistogramCB8(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist)
 void HistogramRGB565(uint16_t *obrazRGB565, uint32_t rozmiar, uint8_t *histR, uint8_t *histG, uint8_t *histB)
 {
 	uint16_t sPixel;
-	uint32_t nSumaR[ROZMIAR_HIST_KOLOR], nSumaG[ROZMIAR_HIST_KOLOR], nSumaB[ROZMIAR_HIST_KOLOR], temp;
+	//uint32_t nSumaR[ROZMIAR_HIST_KOLOR], nSumaG[ROZMIAR_HIST_KOLOR], nSumaB[ROZMIAR_HIST_KOLOR],
+	uint32_t temp;
+	uint32_t *nSumaR, *nSumaG, *nSumaB;
+
+	__set_PRIMASK(1);   // wyłącza wszystkie przerwania
+	nSumaR = (uint32_t*)malloc(ROZMIAR_HIST_KOLOR);
+	nSumaG = (uint32_t*)malloc(ROZMIAR_HIST_KOLOR);
+	nSumaB = (uint32_t*)malloc(ROZMIAR_HIST_KOLOR);
+	__set_PRIMASK(0);   // włącza wszystkie przerwania
 
 	//inicjuj sumę pokseli w danym kolorze, później będzie inkrementowana, wiec musi zaczynać się od zera
 	for (uint8_t n=0; n<ROZMIAR_HIST_KOLOR; n++)
@@ -318,6 +327,11 @@ void HistogramRGB565(uint16_t *obrazRGB565, uint32_t rozmiar, uint8_t *histR, ui
 		temp = nSumaB[n] / DZIELNIK_HIST_RGB;
 		*(histB+n) = temp & 0xFF;
 	}
+	__set_PRIMASK(1);   // wyłącza wszystkie przerwania
+	free(nSumaR);
+	free(nSumaG);
+	free(nSumaB);
+	__set_PRIMASK(0);   // włącza wszystkie przerwania
 }
 
 
