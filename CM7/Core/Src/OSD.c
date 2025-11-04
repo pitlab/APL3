@@ -11,7 +11,7 @@
 #include "LCD_mem.h"
 #include "cmsis_os.h"
 #include <math.h>
-
+#include "czas.h"
 
 //uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
@@ -37,6 +37,10 @@ uint8_t InicjujOSD(void)
 	stKonfOSD.stHoryzont.sPozycjaX = POZ_SRODEK;
 	stKonfOSD.stHoryzont.sPozycjaY = POZ_SRODEK;
 	stKonfOSD.stHoryzont.chFlagi = FO_WIDOCZNY;
+
+	stKonfOSD.stPredWys.sKolorObiektu = 0x700F;	//niebieski 50% przezroczystości
+	stKonfOSD.stPredWys.chFlagi = FO_WIDOCZNY;
+
 
 
 	hdma2d.XferCpltCallback = XferCpltCallback;
@@ -167,27 +171,27 @@ void RysujTestoweOSD(void)
 
 		sKolor = 0x7F0F;	//magenta
 		sTlo = 0x0999 | n << 12;	//szary
-		RysujNapiswBuforze(chNapisOSD, n * DISP_X_SIZE/16, 120, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sTlo, ROZMIAR_KOLORU_OSD);
+		RysujNapiswBuforze(chNapisOSD, n * DISP_X_SIZE/16, 120, DISP_X_SIZE, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sTlo, ROZMIAR_KOLORU_OSD);
 		sKolor = 0x0F0F | n << 12;	//magenta
-		RysujNapiswBuforze(chNapisOSD, n * DISP_X_SIZE/16, 140, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sBrakTla, ROZMIAR_KOLORU_OSD);
+		RysujNapiswBuforze(chNapisOSD, n * DISP_X_SIZE/16, 140, DISP_X_SIZE, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sBrakTla, ROZMIAR_KOLORU_OSD);
 	}
 
 	//podwójna linia ukośna
 	sKolor = 0x70F0;	//zielony
-	RysujLiniewBuforze(20, 100, 400, 300, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujLiniewBuforze(20, 100, 400, 300, DISP_X_SIZE, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 	sKolor = 0x7F0F;	//przeciwstawny do zielonego
-	RysujLiniewBuforze(21, 101, 401, 301, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujLiniewBuforze(21, 101, 401, 301, DISP_X_SIZE, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
 	sKolor = 0x7F00;	//czerwony
-	RysujLiniePoziomawBuforze(20, 400, 160, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujLiniePoziomawBuforze(20, 400, 160, DISP_X_SIZE, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 	sKolor = 0x700F;	//niebieski
-	RysujLiniePionowawBuforze(20, 160, 300, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujLiniePionowawBuforze(20, 160, 300, DISP_X_SIZE,  chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
 	//podwójny okrąg o przeciwstawnych kolorach
 	sKolor = 0x7707;	//fioletowy
-	RysujOkragwBuforze(240, 180, 80, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujOkragwBuforze(240, 180, 80, DISP_X_SIZE, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 	sKolor = 0x77F7;	//
-	RysujOkragwBuforze(240, 180, 81, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujOkragwBuforze(240, 180, 81, DISP_X_SIZE, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 }
 
 
@@ -200,38 +204,98 @@ void RysujTestoweOSD(void)
 ////////////////////////////////////////////////////////////////////////////////
 void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 {
-	uint16_t sKolor;
-	uint16_t x, y, x1, y1, x2, y2;	//współrzędne
+	uint16_t sKolor, sTlo;
+	int16_t x, y, x1, y1, x2, y2;	//współrzędne
+	int16_t sKorektaPrzech;
+	//float fTemp;
+	uint32_t nStart, nStop, nCykli;
 
-	WypelnijEkranwBuforze(DISP_X_SIZE, DISP_Y_SIZE, chBuforOSD, KOLOSD_CZARNY);
+	WypelnijEkranwBuforze(stKonf->sSzerokosc, stKonf->sWysokosc, chBuforOSD, KOLOSD_PRZEZR);
 
 	//horyzont rysuję jako belkę o długości 50% szerokosci ekranu w zerze pochylenia i krótsze belki 40% szerokości ekranu co 10°
 	if (stKonf->stHoryzont.chFlagi & FO_WIDOCZNY)
 	{
+		float fSinPrze = sin(stDane->fKatIMU1[PRZE]);
+		float fCosPrze = cos(stDane->fKatIMU1[PRZE]);
+
 		uint16_t sDlugoscPolowyBelki = stKonf->sSzerokosc * HOR_SZER00_PROC / 200;
-		//licz współrzędne środka prawego końca belki
-		x = (uint16_t)(sDlugoscPolowyBelki * cos(stDane->fKatIMU1[PRZE]));
-		y = (uint16_t)(sDlugoscPolowyBelki * sin(stDane->fKatIMU1[PRZE]));
+		//licz współrzędne środka prawego końca belki zerowego kąta
+		x = (int16_t)(sDlugoscPolowyBelki * fCosPrze);
+		y = (int16_t)(sDlugoscPolowyBelki * fSinPrze);
 
 		uint16_t sWysokoscPolowyOkna = stKonf->sWysokosc * HOR_WYS_PROC / 200;
-		int16_t sWysokoscPochylenia = sWysokoscPolowyOkna * stDane->fKatIMU1[POCH] / Deg2Rad(HOR_SKALA_POCH);	//przesunięcie w pionie środka horyzontu w zależnosci od pochylenia
+		int16_t sWysokoscPochylenia = (int16_t)(sWysokoscPolowyOkna * stDane->fKatIMU1[POCH] / Deg2Rad(HOR_SKALA_POCH));	//przesunięcie w pionie środka horyzontu w zależnosci od pochylenia
 
-
-		x1 = stKonf->sSzerokosc / 2 - x;	//sprawdzić czy znaki są OK
+		x1 = stKonf->sSzerokosc / 2 - x;
 		x2 = stKonf->sSzerokosc / 2 + x;
-		y1 = stKonf->sWysokosc / 2 + sWysokoscPochylenia - y;
-		y2 = stKonf->sWysokosc / 2 + sWysokoscPochylenia + y;
-
+		y1 = stKonf->sWysokosc / 2 - sWysokoscPochylenia - y;
+		y2 = stKonf->sWysokosc / 2 - sWysokoscPochylenia + y;
 		sKolor = stKonf->stHoryzont.sKolorObiektu;
-		RysujLiniewBuforze(x1, y1, x2, y2, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
+		//belka +10°
+		sDlugoscPolowyBelki = stKonf->sSzerokosc * HOR_SZER10_PROC / 200;
+		x = (int16_t)(sDlugoscPolowyBelki * fCosPrze);
+		y = (int16_t)(sDlugoscPolowyBelki * fSinPrze);
+		sWysokoscPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] + Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
+		sKorektaPrzech = sWysokoscPochylenia * fSinPrze;
 
+		//x1 = stKonf->sSzerokosc / 2 - x;
+		//x2 = stKonf->sSzerokosc / 2 + x;
+		y1 = stKonf->sWysokosc / 2 - sWysokoscPochylenia - y + Deg2Rad(10);
+		y2 = stKonf->sWysokosc / 2 - sWysokoscPochylenia + y + Deg2Rad(10);
+		RysujLiniewBuforze(x1 + sKorektaPrzech, y1, x2 + sKorektaPrzech, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+		//belka -10°
+		sWysokoscPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] - Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
+		sKorektaPrzech = sWysokoscPochylenia * fSinPrze;
+		//x1 = stKonf->sSzerokosc / 2 - x;
+		//x2 = stKonf->sSzerokosc / 2 + x;
+		y1 = stKonf->sWysokosc / 2 - sWysokoscPochylenia - y;
+		y2 = stKonf->sWysokosc / 2 - sWysokoscPochylenia + y;
+		RysujLiniewBuforze(x1 + sKorektaPrzech, y1, x2 + sKorektaPrzech, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 	}
 
 
 	if (stKonf->stPredWys.chFlagi & FO_WIDOCZNY)	//rysuj wskaźniki prędkości po lewej i wysokości po prawej
 	{
+		sKolor = stKonf->stPredWys.sKolorObiektu;
+		sTlo = KOLOSD_PRZEZR;
 
+		//linia skali prędkosci
+		x = stKonf->sSzerokosc * PIW_SZER_PROC / 100;
+		y1 = stKonf->sWysokosc * (100 - PIW_WYS_PROC) / 200;
+		y2 = stKonf->sWysokosc - y1;
+		RysujLiniewBuforze(x, y1, x, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+		StartPomiaruCykli();	//włącza licznik pomiaru cykli
+		nStart = DWT->CYCCNT;
+		//sprintf(chNapisOSD, "%.1f", stDane->fPredkosc[0]);
+		sprintf(chNapisOSD, "%.3ld", (uint32_t)(stDane->fPredkosc[0]));
+		nStop = DWT->CYCCNT;
+		nCykli = nStop - nStart;
+		x1 = x - 4 * FONT_SL;
+		y = stKonf->sWysokosc / 2 - FONT_SL / 2;
+		RysujNapiswBuforze(chNapisOSD, x1, y, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sTlo, ROZMIAR_KOLORU_OSD);
+
+		//linia skali wysokości
+		x = stKonf->sSzerokosc - x;
+		//y1 = stKonf->sWysokosc * PIW_WYS_PROC / 100;
+		//y2 = stKonf->sWysokosc - y1;
+		RysujLiniewBuforze(x, y1, x, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+		/*if (!(DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk))
+		{
+		    DWT->LAR = 0xC5ACCE55; // odblokuj dostęp (niektóre H7 wymagają)
+		    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+		}*/
+
+		nStart = DWT->CYCCNT;
+		sprintf(chNapisOSD, "%.3d", (uint16_t)(stDane->fWysokoMSL[0]));
+		nStop = DWT->CYCCNT;
+		nCykli = nStop - nStart;
+		x1 = x + FONT_SL;
+		RysujNapiswBuforze(chNapisOSD, x1, y, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sTlo, ROZMIAR_KOLORU_OSD);
 	}
 }
 
@@ -258,6 +322,7 @@ float Rad2Deg(float radiany)
 {
 	return radiany / M_PI * 180.0f;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

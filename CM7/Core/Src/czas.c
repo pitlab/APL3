@@ -145,3 +145,18 @@ DWORD PobierzCzasFAT(void)
          | ((DWORD)sTime.Minutes << 5)
          | ((DWORD)sTime.Seconds >> 1);        // FAT ma dokładność do 2 s
 }
+
+
+
+void StartPomiaruCykli(void)
+{
+	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;   // włącz DWT
+	DWT->CYCCNT = 0;                                  // wyzeruj licznik
+	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+}
+
+
+uint32_t WynikPomiaruCykli(void)
+{
+	return DWT->CYCCNT;
+}

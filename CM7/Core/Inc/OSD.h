@@ -15,6 +15,8 @@
 
 //definicje kolorów OSD w formacie ARGB4444
 #define KOLOSD_CZARNY	0xF000
+#define KOLOSD_PRZEZR	0x0000
+#define KOLOSD_BIALY	0xFFFF
 
 
 //definicje określajace położenie wzgledne obiektow ekranowych OSD
@@ -38,10 +40,14 @@
 
 //definicje wizualizacji belki sztucznego horyzontu
 #define HOR_SZER00_PROC	50		//szerokość belki 0° pochylenia horyzontu w procentach szerokosci ekranu
-#define HOR_SZER10_PROC	40		//szerokość belki 10° pochylenia horyzontu w procentach szerokosci ekranu
+#define HOR_SZER10_PROC	30		//szerokość belek co 10° pochylenia horyzontu w procentach szerokosci ekranu
 #define HOR_WYS_PROC	40		//wysokość pola w którym jest widoczny horyzont w procentach wysokości ekranu
 #define HOR_GRUBOSC		5		//grubość belki horyzontu w pikselach
 #define HOR_SKALA_POCH	30		//stopni pochylenia pokazanych w oknie horyzontu
+
+#define PIW_SZER_PROC	20		//Prędkość i Wysokość - pionowa skala jest w tylu procentach ekranu od brzegów
+#define PIW_WYS_PROC	40		//wysokość pola w którym są widoczne pionowe skale prędkosci i wysokosci
+
 
 //struktura obiektów ekranowych OSD
 typedef struct st_ObiektOsd

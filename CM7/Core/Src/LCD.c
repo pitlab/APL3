@@ -814,7 +814,6 @@ void RysujEkran(void)
 			RysujTestoweOSD();
 			//RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforOSD);	//wyświetla obraz OSD na LCD
 			nCzas = PobierzCzasT6();
-			//chErr = PolaczBuforOSDzObrazem((uint8_t*)sBuforKamerySRAM, chBuforOSD, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 			nCzas = MinalCzas(nCzas);
 			RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla połączone obrazy na LCD
@@ -826,12 +825,11 @@ void RysujEkran(void)
 	case TPO_TEST_OSD480:
 		stKonfOSD.sSzerokosc = 480;
 		stKonfOSD.sWysokosc = 320;
-		uint8_t chKolor[2] = {90, 90};	//szare tło
-		WypelnijEkranwBuforze1((uint8_t*)sBuforKamerySRAM,  chKolor, 2);
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM, SZARY20);
 		do
 		{
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
-			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
@@ -845,7 +843,7 @@ void RysujEkran(void)
 		do
 		{
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
-			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
@@ -855,11 +853,11 @@ void RysujEkran(void)
 	case TPO_TEST_OSD240:
 		stKonfOSD.sSzerokosc = 240;
 		stKonfOSD.sWysokosc = 160;
-		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM,  SZARY50);
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM,  SZARY40);
 		do
 		{
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
-			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);

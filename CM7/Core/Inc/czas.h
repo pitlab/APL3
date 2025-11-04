@@ -24,5 +24,6 @@ uint32_t MinalCzas(uint32_t nPoczatek);
 uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nKoniec);
 uint8_t CzekajNaZero(uint8_t chZajety, uint32_t nCzasOczekiwania);
 DWORD PobierzCzasFAT(void);
-
+void StartPomiaruCykli(void);
+uint32_t WynikPomiaruCykli(void);
 #endif /* INC_CZAS_H_ */
