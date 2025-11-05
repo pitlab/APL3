@@ -14,10 +14,19 @@
 #define ROZMIAR_KOLORU_OSD	2
 
 //definicje kolorów OSD w formacie ARGB4444
-#define KOLOSD_CZARNY	0xF000
+#define KOLOSD_CZARNY	0x0000
 #define KOLOSD_PRZEZR	0x0000
 #define KOLOSD_BIALY	0xFFFF
+#define KOLOSD_CZERWONY	0x0F00
+#define KOLOSD_ZIELONY	0x00F0
+#define KOLOSD_NIEBIES	0x000F
 
+//definicje poziomu przezroczystości
+#define PRZEZR_0		0xF000
+#define PRZEZR_25		0xC000
+#define PRZEZR_50		0x7000
+#define PRZEZR_75		0x3000
+#define PRZEZR_100		0x0000
 
 //definicje określajace położenie wzgledne obiektow ekranowych OSD
 #define	POZ_SRODEK		0xFFFF		//środek ekranu poziomo lub pionowo
@@ -38,13 +47,21 @@
 #define	POZ_PRAWO3		0xFFF0
 #define	POZ_PRAWO4		0xFFEF
 
+
+#define OSD_CZCION_SZER	FONT_SL		//szerokość czcionki użytej w OSD
+#define OSD_CZCION_WYS	FONT_SH		//wysokość czcionki użytej w OSD
+#define OSD_MARGINES	20			//zamiast rysować od brzegu zacznij od tej wartosci
+#define OSD_SZER_OBIEKTU	(10 * OSD_CZCION_SZER)
+#define OSD_WYS_OBIEKTU	(3 * OSD_CZCION_WYS / 2)
+
 //definicje wizualizacji belki sztucznego horyzontu
 #define HOR_SZER00_PROC	50		//szerokość belki 0° pochylenia horyzontu w procentach szerokosci ekranu
-#define HOR_SZER10_PROC	30		//szerokość belek co 10° pochylenia horyzontu w procentach szerokosci ekranu
+#define HOR_SZER10_PROC	20		//szerokość belek co 10° pochylenia horyzontu w procentach szerokosci ekranu
 #define HOR_WYS_PROC	40		//wysokość pola w którym jest widoczny horyzont w procentach wysokości ekranu
 #define HOR_GRUBOSC		5		//grubość belki horyzontu w pikselach
 #define HOR_SKALA_POCH	30		//stopni pochylenia pokazanych w oknie horyzontu
-
+#define PIW_ODL_RAMKI	1		//odległość między napisem wyniku pomiaru a ramkę strzałki
+#define PIW_KOR_WYS_CZC	1		//korekta położenia środka wysokości czcionki
 #define PIW_SZER_PROC	20		//Prędkość i Wysokość - pionowa skala jest w tylu procentach ekranu od brzegów
 #define PIW_WYS_PROC	40		//wysokość pola w którym są widoczne pionowe skale prędkosci i wysokosci
 
@@ -89,7 +106,7 @@ void XferCpltCallback(DMA2D_HandleTypeDef *hdma2d);
 void XferErrorCallback(DMA2D_HandleTypeDef *hdma2d);
 void RysujTestoweOSD();
 void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane);
-void PobierzPozycjeObiektu(stKonfOsd_t stKonf, prostokat_t *stWspolrzedne);
+void PobierzPozycjeObiektu(stObiektOsd_t *stObiekt, stKonfOsd_t *stKonf, prostokat_t *stWspolrzedne);
 
 float Deg2Rad(float stopnie);
 float Rad2Deg(float radiany);

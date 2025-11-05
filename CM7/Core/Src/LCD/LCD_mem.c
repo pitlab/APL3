@@ -35,7 +35,7 @@ void PostawPikselwBuforze(uint16_t x, uint16_t y, uint16_t sSzerokosc, uint8_t *
 {
 	uint32_t nOffset;
 
-	if ((x < sSzerokosc) && (y < sSzerokosc))	//zabezoieczenie przed współrzędnymi ujemnymi
+	if ((x < sSzerokosc) && (y < sSzerokosc))	//zabezpieczenie przed współrzędnymi ujemnymi
 	{
 		nOffset = y * sSzerokosc * chRozmKoloru + x * chRozmKoloru;
 		for (uint8_t n=0; n<chRozmKoloru; n++)
@@ -132,6 +132,9 @@ void RysujLiniewBuforze(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint
 	int16_t x = x1, y = y1;
 	//uint32_t nOffset;
 
+	if ((x1 > sSzerokosc) || (x2 > sSzerokosc) || (y1 > sSzerokosc) || (y2 > sSzerokosc))	//zabezpieczenie przed współrzędnymi ujemnymi. Zakłada że szerokość jest zawsze większa niż nieznanz tutaj wysokość
+		return;
+
 	// ustalenie kierunku rysowania w osi X
 	if (x1 < x2)
 	{
@@ -221,6 +224,9 @@ void RysujLiniewBuforze(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint
 ////////////////////////////////////////////////////////////////////////////////
 void RysujLiniePoziomawBuforze(uint16_t x1, uint16_t x2, uint16_t y, uint16_t sSzerokosc, uint8_t *chBufor, uint8_t *chKolor, uint8_t chRozmKoloru)
 {
+	if ((x1 > sSzerokosc) || (x2 > sSzerokosc) || (y > sSzerokosc))	//zabezpieczenie przed współrzędnymi ujemnymi. Zakłada że szerokość jest zawsze większa niż nieznanz tutaj wysokość
+		return;
+
 	for (uint16_t x=x1; x<x2; x++)
 		PostawPikselwBuforze(x, y, sSzerokosc, chBufor, chKolor, chRozmKoloru);
 }
@@ -238,6 +244,9 @@ void RysujLiniePoziomawBuforze(uint16_t x1, uint16_t x2, uint16_t y, uint16_t sS
 ////////////////////////////////////////////////////////////////////////////////
 void RysujLiniePionowawBuforze(uint16_t x, uint16_t y1, uint16_t y2, uint16_t sSzerokosc, uint8_t *chBufor, uint8_t *chKolor, uint8_t chRozmKoloru)
 {
+	if ((x > sSzerokosc) || (y1 > sSzerokosc) || (y2 > sSzerokosc))	//zabezpieczenie przed współrzędnymi ujemnymi. Zakłada że szerokość jest zawsze większa niż nieznanz tutaj wysokość
+		return;
+
 	for (uint16_t y=y1; y<y2; y++)
 		PostawPikselwBuforze(x, y, sSzerokosc, chBufor, chKolor, chRozmKoloru);
 }

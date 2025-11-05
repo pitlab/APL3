@@ -148,15 +148,48 @@ DWORD PobierzCzasFAT(void)
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Rozpoczyna pomiar cykli maszynowych. Ważne narzędzie do optymalizacji procesów
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
 void StartPomiaruCykli(void)
 {
 	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;   // włącz DWT
-	DWT->CYCCNT = 0;                                  // wyzeruj licznik
+	DWT->CYCCNT = 0;    //Processor clock cycle counter
+	DWT->CPICNT = 0;		//Counts additional cycles required to execute multi-cycle instructions, except those recorded by DWT_LSUCNT, and counts any instruction fetch stalls.
+	DWT->EXCCNT = 0;	//Counts the number of cycles spent in exception processing.
+	DWT->SLEEPCNT = 0;	//Counts the number of cycles spent in sleep mode (WFI, WFE, sleep-on-exit).
+	DWT->LSUCNT = 0;	//Counts additional cycles required to execute load and store instructions
 	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 }
 
 
-uint32_t WynikPomiaruCykli(void)
+
+////////////////////////////////////////////////////////////////////////////////
+// Zwraca wynik pomiaru liczby cykli maszynowych.
+// Parametry: brak
+// Zwraca: liczba cykli od czasu włączenia procesu
+////////////////////////////////////////////////////////////////////////////////
+uint32_t WynikPomiaruCykli(uint8_t *CPI, uint8_t *EXC, uint8_t *SLEEP, uint8_t *LSU)
 {
+	*CPI = DWT->CPICNT;
+	*EXC = DWT->EXCCNT;
+	*SLEEP = DWT->SLEEPCNT;
+	*LSU = DWT->LSUCNT;
+	CoreDebug->DEMCR &= ~CoreDebug_DEMCR_TRCENA_Msk;   // wyłącz DWT
 	return DWT->CYCCNT;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pisze na konsoli wynik pomiaru liczby cykli maszynowych.
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void StopPrintfCykle(void)
+{
+	printf("Cykle: %ld (%ld us) multi: %d wyjatki: %d dodatk: %d sleep: %d\r\n", DWT->CYCCNT, DWT->CYCCNT / (HAL_RCC_GetSysClockFreq()/1000000), (uint8_t)DWT->CPICNT, (uint8_t)DWT->EXCCNT, (uint8_t)DWT->LSUCNT, (uint8_t)DWT->SLEEPCNT);
+}
+

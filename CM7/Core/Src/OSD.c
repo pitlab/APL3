@@ -33,13 +33,24 @@ uint8_t InicjujOSD(void)
 	uint8_t chErr = BLAD_OK;
 
 	//wstępna konfiguracja. Właściwa będzie kiedyś odczytana z pamieci konfiguracji
-	stKonfOSD.stHoryzont.sKolorObiektu = 0x7F00;	//czerwony 50% przezroczystości
+	stKonfOSD.stHoryzont.sKolorObiektu = KOLOSD_CZERWONY + PRZEZR_50;	//czerwony 50% przezroczystości
 	stKonfOSD.stHoryzont.sPozycjaX = POZ_SRODEK;
 	stKonfOSD.stHoryzont.sPozycjaY = POZ_SRODEK;
 	stKonfOSD.stHoryzont.chFlagi = FO_WIDOCZNY;
 
-	stKonfOSD.stPredWys.sKolorObiektu = 0x700F;	//niebieski 50% przezroczystości
+	stKonfOSD.stPredWys.sKolorObiektu = KOLOSD_NIEBIES + PRZEZR_50;	//niebieski 50% przezroczystości
 	stKonfOSD.stPredWys.chFlagi = FO_WIDOCZNY;
+
+	stKonfOSD.stSzerGeo.sKolorObiektu = KOLOSD_ZIELONY + PRZEZR_50;
+	stKonfOSD.stSzerGeo.chFlagi = FO_WIDOCZNY;
+	stKonfOSD.stSzerGeo.sPozycjaX = POZ_LEWO1;
+	stKonfOSD.stSzerGeo.sPozycjaY = POZ_DOL1;
+
+	stKonfOSD.stDlugGeo.sKolorObiektu = KOLOSD_ZIELONY + PRZEZR_50;
+	stKonfOSD.stDlugGeo.chFlagi = FO_WIDOCZNY;
+	stKonfOSD.stDlugGeo.sPozycjaX = POZ_LEWO2;
+	stKonfOSD.stDlugGeo.sPozycjaY = POZ_DOL2;
+
 
 
 
@@ -148,7 +159,7 @@ void RysujTestoweOSD(void)
 
 	//sKolor = 0x0000;
 	//WypelnijEkranwBuforze1(chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-	WypelnijEkranwBuforze(DISP_X_SIZE, DISP_Y_SIZE, chBuforOSD, KOLOSD_CZARNY);
+	WypelnijEkranwBuforze(DISP_X_SIZE, DISP_Y_SIZE, chBuforOSD, KOLOSD_CZARNY + PRZEZR_0);
 
 	sBrakTla = 0;
 	sprintf(chNapisOSD, "Abc");
@@ -205,11 +216,14 @@ void RysujTestoweOSD(void)
 void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 {
 	uint16_t sKolor, sTlo;
-	int16_t x, y, x1, y1, x2, y2;	//współrzędne
-	int16_t sKorektaPrzech;
-	//float fTemp;
-	uint32_t nStart, nStop, nCykli;
+	int16_t x, y, x1, y1, x2, y2, sTemp;	//współrzędne
+	int16_t sKorektaXPrzech;
+	int16_t sXSrodkaBelki, sYSrodkaBelki;
+	//uint32_t nCykleStart, nCykle1, nCykle2;
+	prostokat_t stWspXY;	//współrzędne ekranowe
+	uint8_t chZnak;
 
+	StartPomiaruCykli();	//włącza licznik pomiaru cykli
 	WypelnijEkranwBuforze(stKonf->sSzerokosc, stKonf->sWysokosc, chBuforOSD, KOLOSD_PRZEZR);
 
 	//horyzont rysuję jako belkę o długości 50% szerokosci ekranu w zerze pochylenia i krótsze belki 40% szerokości ekranu co 10°
@@ -224,79 +238,125 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		y = (int16_t)(sDlugoscPolowyBelki * fSinPrze);
 
 		uint16_t sWysokoscPolowyOkna = stKonf->sWysokosc * HOR_WYS_PROC / 200;
-		int16_t sWysokoscPochylenia = (int16_t)(sWysokoscPolowyOkna * stDane->fKatIMU1[POCH] / Deg2Rad(HOR_SKALA_POCH));	//przesunięcie w pionie środka horyzontu w zależnosci od pochylenia
+		int16_t sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * stDane->fKatIMU1[POCH] / Deg2Rad(HOR_SKALA_POCH));	//przesunięcie w pionie środka horyzontu w zależnosci od pochylenia
 
 		x1 = stKonf->sSzerokosc / 2 - x;
 		x2 = stKonf->sSzerokosc / 2 + x;
-		y1 = stKonf->sWysokosc / 2 - sWysokoscPochylenia - y;
-		y2 = stKonf->sWysokosc / 2 - sWysokoscPochylenia + y;
+		y1 = stKonf->sWysokosc / 2 - sWysPochylenia - y;
+		y2 = stKonf->sWysokosc / 2 - sWysPochylenia + y;
 		sKolor = stKonf->stHoryzont.sKolorObiektu;
 		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
-		//belka +10°
+		//belka +10°, policz współrzędne końca krótszej belki
 		sDlugoscPolowyBelki = stKonf->sSzerokosc * HOR_SZER10_PROC / 200;
 		x = (int16_t)(sDlugoscPolowyBelki * fCosPrze);
 		y = (int16_t)(sDlugoscPolowyBelki * fSinPrze);
-		sWysokoscPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] + Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
-		sKorektaPrzech = sWysokoscPochylenia * fSinPrze;
 
-		//x1 = stKonf->sSzerokosc / 2 - x;
-		//x2 = stKonf->sSzerokosc / 2 + x;
-		y1 = stKonf->sWysokosc / 2 - sWysokoscPochylenia - y + Deg2Rad(10);
-		y2 = stKonf->sWysokosc / 2 - sWysokoscPochylenia + y + Deg2Rad(10);
-		RysujLiniewBuforze(x1 + sKorektaPrzech, y1, x2 + sKorektaPrzech, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		//oblicz korektę położenia środka belki wynikajacą ze zmiany pochylenia
+		sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] + Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
+
+		//Środki wszystkich belek łączy niewidoczna, prostopadła do nich linia. Kolejne belki przecinaja ją co odległość: sWysPochylenia
+		//Dla każdej belki trzeba wyznaczyć miejsce na tej linii i rozpocząć rysowanie belki symetrycznie wzgledem tego punktu
+		sXSrodkaBelki = sWysPochylenia * fCosPrze;
+		sYSrodkaBelki = sWysPochylenia * fSinPrze;
+
+		//x1 = stKonf->sSzerokosc / 2 + sXSrodkaBelki - x;
+		//x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki + x;
+		x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
+		x1 -= x;
+		x2 += x;
+
+		y1 = y2 = stKonf->sWysokosc / 2 - sWysPochylenia + sYSrodkaBelki + Deg2Rad(10);	//część wspólna obu współrzędnych
+		y1 -= y;
+		y2 += y;
+		//RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sTlo = KOLOSD_ZIELONY + PRZEZR_50;
+		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sTlo, ROZMIAR_KOLORU_OSD);
 
 		//belka -10°
-		sWysokoscPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] - Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
-		sKorektaPrzech = sWysokoscPochylenia * fSinPrze;
+		sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] - Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
+		sKorektaXPrzech = sWysPochylenia * fSinPrze;
 		//x1 = stKonf->sSzerokosc / 2 - x;
 		//x2 = stKonf->sSzerokosc / 2 + x;
-		y1 = stKonf->sWysokosc / 2 - sWysokoscPochylenia - y;
-		y2 = stKonf->sWysokosc / 2 - sWysokoscPochylenia + y;
-		RysujLiniewBuforze(x1 + sKorektaPrzech, y1, x2 + sKorektaPrzech, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		y1 = stKonf->sWysokosc / 2 - sWysPochylenia - y;
+		y2 = stKonf->sWysokosc / 2 - sWysPochylenia + y;
+		RysujLiniewBuforze(x1 + sKorektaXPrzech, y1, x2 + sKorektaXPrzech, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 	}
 
 
 	if (stKonf->stPredWys.chFlagi & FO_WIDOCZNY)	//rysuj wskaźniki prędkości po lewej i wysokości po prawej
 	{
 		sKolor = stKonf->stPredWys.sKolorObiektu;
-		sTlo = KOLOSD_PRZEZR;
+		sTlo = KOLOSD_CZARNY + PRZEZR_100;
 
 		//linia skali prędkosci
 		x = stKonf->sSzerokosc * PIW_SZER_PROC / 100;
 		y1 = stKonf->sWysokosc * (100 - PIW_WYS_PROC) / 200;
 		y2 = stKonf->sWysokosc - y1;
 		RysujLiniewBuforze(x, y1, x, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sprintf(chNapisOSD, "%.3d", (uint16_t)(stDane->fPredkosc[0]));
 
-		StartPomiaruCykli();	//włącza licznik pomiaru cykli
-		nStart = DWT->CYCCNT;
-		//sprintf(chNapisOSD, "%.1f", stDane->fPredkosc[0]);
-		sprintf(chNapisOSD, "%.3ld", (uint32_t)(stDane->fPredkosc[0]));
-		nStop = DWT->CYCCNT;
-		nCykli = nStop - nStart;
-		x1 = x - 4 * FONT_SL;
-		y = stKonf->sWysokosc / 2 - FONT_SL / 2;
-		RysujNapiswBuforze(chNapisOSD, x1, y, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sTlo, ROZMIAR_KOLORU_OSD);
+		x1 = x - 5 * OSD_CZCION_SZER;
+		y = stKonf->sWysokosc / 2 - OSD_CZCION_WYS / 2;
+		RysujNapiswBuforze(chNapisOSD, x1, y-PIW_KOR_WYS_CZC, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sTlo, ROZMIAR_KOLORU_OSD);
+
+		//rysuj strzałkę dookoła pomiaru prędkości
+		x1 = x - 6 * OSD_CZCION_SZER - PIW_ODL_RAMKI;
+		x2 = x - 2 * OSD_CZCION_SZER;
+		y1 = stKonf->sWysokosc / 2 - OSD_CZCION_WYS / 2 - PIW_ODL_RAMKI;
+		y2 = stKonf->sWysokosc / 2 + OSD_CZCION_WYS / 2 + PIW_ODL_RAMKI;
+		RysujLiniePoziomawBuforze(x1, x2, y1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//góra
+		RysujLiniePoziomawBuforze(x1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//dół
+		RysujLiniewBuforze(x2, y1, x, stKonf->sWysokosc / 2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);	//ostrze góra
+		RysujLiniewBuforze(x2, y2, x, stKonf->sWysokosc / 2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);	//ostrze dół
+		RysujLiniePionowawBuforze(x1, y1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//tył strzałki
+
 
 		//linia skali wysokości
 		x = stKonf->sSzerokosc - x;
-		//y1 = stKonf->sWysokosc * PIW_WYS_PROC / 100;
-		//y2 = stKonf->sWysokosc - y1;
+		y1 = stKonf->sWysokosc * (100 - PIW_WYS_PROC) / 200;
+		y2 = stKonf->sWysokosc - y1;
 		RysujLiniewBuforze(x, y1, x, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
-		/*if (!(DWT->CTRL & DWT_CTRL_CYCCNTENA_Msk))
-		{
-		    DWT->LAR = 0xC5ACCE55; // odblokuj dostęp (niektóre H7 wymagają)
-		    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-		}*/
-
-		nStart = DWT->CYCCNT;
 		sprintf(chNapisOSD, "%.3d", (uint16_t)(stDane->fWysokoMSL[0]));
-		nStop = DWT->CYCCNT;
-		nCykli = nStop - nStart;
-		x1 = x + FONT_SL;
-		RysujNapiswBuforze(chNapisOSD, x1, y, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sTlo, ROZMIAR_KOLORU_OSD);
+		x1 = x + 2 * OSD_CZCION_SZER;
+		RysujNapiswBuforze(chNapisOSD, x1, y-PIW_KOR_WYS_CZC, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sTlo, ROZMIAR_KOLORU_OSD);
+
+		//rysuj strzałkę dookoła pomiaru wysokości
+		x1 = x + 2 * OSD_CZCION_SZER;
+		x2 = x + 6 * OSD_CZCION_SZER + PIW_ODL_RAMKI;
+		y1 = stKonf->sWysokosc / 2 - OSD_CZCION_WYS / 2 - PIW_ODL_RAMKI;
+		y2 = stKonf->sWysokosc / 2 + OSD_CZCION_WYS / 2 + PIW_ODL_RAMKI;
+		RysujLiniePoziomawBuforze(x1, x2, y1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//góra
+		RysujLiniePoziomawBuforze(x1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//dół
+		RysujLiniewBuforze(x, stKonf->sWysokosc / 2, x1, y1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);	//ostrze góra
+		RysujLiniewBuforze(x, stKonf->sWysokosc / 2, x1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);	//ostrze dół
+		RysujLiniePionowawBuforze(x2, y1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//tył strzałki
 	}
+
+	if (stKonf->stSzerGeo.chFlagi & FO_WIDOCZNY)		//szerokość geograficzna
+	{
+		if (stDane->stGnss1.dSzerokoscGeo > 0.0)
+			chZnak = 'N';
+		else
+			chZnak = 'S';
+		sprintf(chNapisOSD, "%.6f%c", stDane->stGnss1.dSzerokoscGeo, chZnak);
+		PobierzPozycjeObiektu(&stKonf->stSzerGeo, stKonf, &stWspXY);
+		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stSzerGeo.sKolorObiektu, (uint8_t*)&stKonf->stSzerGeo.sKolorTla, ROZMIAR_KOLORU_OSD);
+	}
+
+	if (stKonf->stDlugGeo.chFlagi & FO_WIDOCZNY)		//długość geograficzna
+	{
+		if (stDane->stGnss1.dDlugoscGeo > 0.0)
+			chZnak = 'E';
+		else
+			chZnak = 'W';
+		sprintf(chNapisOSD, "%.6f%c", stDane->stGnss1.dDlugoscGeo, chZnak);
+		PobierzPozycjeObiektu(&stKonf->stDlugGeo, stKonf, &stWspXY);
+		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stSzerGeo.sKolorObiektu, (uint8_t*)&stKonf->stSzerGeo.sKolorTla, ROZMIAR_KOLORU_OSD);
+	}
+
+	StopPrintfCykle();		//drukuje na konsoli liczbę wykonanych cykli
 }
 
 
@@ -332,8 +392,65 @@ float Rad2Deg(float radiany)
 //	*stWspolrzedne - wskaźnik na współrzedne obiektu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void PobierzPozycjeObiektu(stKonfOsd_t stKonf, prostokat_t *stWspolrzedne)
+void PobierzPozycjeObiektu(stObiektOsd_t *stObiekt, stKonfOsd_t *stKonf, prostokat_t *stWspolrzedne)
 {
+	if (stObiekt->sPozycjaX == POZ_SRODEK)	//środek ekranu poziomo lub pionowo
+		stWspolrzedne->sX1 = stKonf->sSzerokosc / 2;
+	else
+	if (stObiekt->sPozycjaX == POZ_LEWO1)	//pierwszy obiekt od lewej
+		stWspolrzedne->sX1 = OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaX == POZ_LEWO2)	//drugi obiekt od lewej
+		stWspolrzedne->sX1 = OSD_SZER_OBIEKTU + OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaX == POZ_LEWO3)	//trzeci obiekt od lewej
+		stWspolrzedne->sX1 = 2 * OSD_SZER_OBIEKTU + OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaX == POZ_LEWO4)	//czwarty obiekt od lewej
+		stWspolrzedne->sX1 = 3 * OSD_SZER_OBIEKTU + OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaX == POZ_PRAWO1)	//pierwszy obiekt od prawej
+		stWspolrzedne->sX1 = stKonf->sSzerokosc - OSD_SZER_OBIEKTU - OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaX == POZ_PRAWO2)	//drugi obiekt od prawej
+		stWspolrzedne->sX1 = stKonf->sSzerokosc - 2 * OSD_SZER_OBIEKTU - OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaX == POZ_PRAWO3)	//trzeci obiekt od prawej
+		stWspolrzedne->sX1 = stKonf->sSzerokosc - 3 * OSD_SZER_OBIEKTU - OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaX == POZ_PRAWO4)	//czwarty obiekt od prawej
+		stWspolrzedne->sX1 = stKonf->sSzerokosc - 4 * OSD_SZER_OBIEKTU - OSD_MARGINES;
+	else
+		stWspolrzedne->sX1 = stObiekt->sPozycjaX;
 
+
+	if (stObiekt->sPozycjaY == POZ_SRODEK)	//środek ekranu poziomo lub pionowo
+		stWspolrzedne->sY1 = stKonf->sWysokosc / 2;
+	else
+	if (stObiekt->sPozycjaY == POZ_GORA1)	//pierwszy obiekt od góry
+		stWspolrzedne->sY1 = OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaY == POZ_GORA2)	//drugi obiekt od góry
+		stWspolrzedne->sY1 = OSD_WYS_OBIEKTU  + OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaY == POZ_GORA3)	//trzeci obiekt od góry
+		stWspolrzedne->sY1 = 2 * OSD_WYS_OBIEKTU  + OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaY == POZ_GORA4)	//czwarty obiekt od góry
+		stWspolrzedne->sY1 = 3 * OSD_WYS_OBIEKTU  + OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaY == POZ_DOL1)	//pierwszy obiekt od dołu
+		stWspolrzedne->sY1 = stKonf->sWysokosc - OSD_WYS_OBIEKTU - OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaY == POZ_DOL2)	//drugi obiekt od dołu
+		stWspolrzedne->sY1 = stKonf->sWysokosc - 2 * OSD_WYS_OBIEKTU - OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaY == POZ_DOL3)	//trzeci obiekt od dołu
+		stWspolrzedne->sY1 = stKonf->sWysokosc - 3 * OSD_WYS_OBIEKTU - OSD_MARGINES;
+	else
+	if (stObiekt->sPozycjaY == POZ_DOL4)	//czwarty obiekt od dołu
+		stWspolrzedne->sY1 = stKonf->sWysokosc - 4 * OSD_WYS_OBIEKTU - OSD_MARGINES;
+	else
+		stWspolrzedne->sY1 = stObiekt->sPozycjaY;
 }
 
