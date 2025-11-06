@@ -25,8 +25,10 @@ extern TIM_HandleTypeDef htim6;
 // Parametry: wskaźnik na strukturę danych z GNSS
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void SynchronizujCzasDoGNSS(stGnss_t *stGnss)
+uint8_t SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 {
+	uint8_t chErr = ERR_PROCES_TRWA;
+
 	//synchronizację robię tylko wraz z pojawieniem się nowego odczytu czasu
 	if (stGnss->chSek != chPoprzedniaSekunda)
 	{
@@ -37,7 +39,7 @@ void SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 			sTime.Seconds = stGnss->chSek;
 			sTime.Minutes = stGnss->chMin;
 			sTime.Hours = stGnss->chGodz;
-			HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+			chErr = HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 			chStanSynchronizacjiCzasu &= ~SSC_CZAS_NIESYNCHR;
 		}
 
@@ -46,10 +48,27 @@ void SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 			sDate.Date = stGnss->chDzien;
 			sDate.Month = stGnss->chMies;
 			sDate.Year = stGnss->chRok;
-			HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+			chErr = HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 			chStanSynchronizacjiCzasu &= ~SSC_DATA_NIESYNCHR;
 		}
 	}
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pobiera datę i czas z RTC
+// Parametry: wskaźnik na zmienne z datą i czasem
+// Zwraca: kod błędu HAL
+////////////////////////////////////////////////////////////////////////////////
+uint8_t PobierzDateCzas(RTC_DateTypeDef *sData, RTC_TimeTypeDef *sCzas)
+{
+	uint8_t chErr;
+
+	chErr  = HAL_RTC_GetDate(&hrtc, sData, RTC_FORMAT_BIN);
+	chErr |= HAL_RTC_GetTime(&hrtc, sCzas, RTC_FORMAT_BIN);
+	return chErr;
 }
 
 

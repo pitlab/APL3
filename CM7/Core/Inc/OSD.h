@@ -20,6 +20,9 @@
 #define KOLOSD_CZERWONY	0x0F00
 #define KOLOSD_ZIELONY	0x00F0
 #define KOLOSD_NIEBIES	0x000F
+#define KOLOSD_ZOLTY	0x0FF0
+#define KOLOSD_CYJAN	0x00FF
+#define KOLOSD_MAGENTA	0x0F0F
 
 //definicje poziomu przezroczystości
 #define PRZEZR_0		0xF000
@@ -64,7 +67,8 @@
 #define PIW_KOR_WYS_CZC	1		//korekta położenia środka wysokości czcionki
 #define PIW_SZER_PROC	20		//Prędkość i Wysokość - pionowa skala jest w tylu procentach ekranu od brzegów
 #define PIW_WYS_PROC	40		//wysokość pola w którym są widoczne pionowe skale prędkosci i wysokosci
-
+#define PIW_ZNAK_STRZAL	4		//liczba znaków mieszczących się w strzałce (wysokość 4 cyfrowa)
+#define PIW_DYST_NAPISU	12		//odległość między osią a napisem, miejsce na ostrze strzałki
 
 //struktura obiektów ekranowych OSD
 typedef struct st_ObiektOsd
@@ -87,6 +91,8 @@ typedef struct st_KonfOsd
 	stObiektOsd_t stPredWys;	//prędkość i wysokość lotu
 	stObiektOsd_t stDlugGeo;	//długość geograficzna
 	stObiektOsd_t stSzerGeo;	//szerokość geograficzna
+	stObiektOsd_t stData;		//bieżąca data
+	stObiektOsd_t stCzas;		//bieżący czas
 	stObiektOsd_t stNapiBat;	//napięcie baterii
 	stObiektOsd_t stPradBat;	//prad pobierany z baterii
 	stObiektOsd_t stEnerBat;	//energia baterii: pobrana lub pozostała

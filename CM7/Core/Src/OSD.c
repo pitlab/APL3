@@ -22,6 +22,9 @@ static char chNapisOSD[60];
 static uint8_t chTransferDMA2DZakonczony;
 uint32_t nFlagiObiektowOsd;	//flagi obecnosci poszczególnych obiektów  na ekranie OSD
 stKonfOsd_t stKonfOSD;
+extern RTC_TimeTypeDef sTime;
+extern RTC_DateTypeDef sDate;
+extern const char *chNazwyMies3Lit[13];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjuje zasoby używane przez OSD
@@ -46,12 +49,20 @@ uint8_t InicjujOSD(void)
 	stKonfOSD.stSzerGeo.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stSzerGeo.sPozycjaY = POZ_DOL1;
 
-	stKonfOSD.stDlugGeo.sKolorObiektu = KOLOSD_ZIELONY + PRZEZR_50;
+	stKonfOSD.stDlugGeo.sKolorObiektu = KOLOSD_MAGENTA + PRZEZR_50;
 	stKonfOSD.stDlugGeo.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stDlugGeo.sPozycjaX = POZ_LEWO2;
 	stKonfOSD.stDlugGeo.sPozycjaY = POZ_DOL2;
 
+	stKonfOSD.stData.sKolorObiektu = KOLOSD_ZOLTY + PRZEZR_50;
+	stKonfOSD.stData.chFlagi = FO_WIDOCZNY;
+	stKonfOSD.stData.sPozycjaX = POZ_PRAWO1;
+	stKonfOSD.stData.sPozycjaY = POZ_DOL1;
 
+	stKonfOSD.stCzas.sKolorObiektu = KOLOSD_CYJAN + PRZEZR_50;
+	stKonfOSD.stCzas.chFlagi = FO_WIDOCZNY;
+	stKonfOSD.stCzas.sPozycjaX = POZ_PRAWO2;
+	stKonfOSD.stCzas.sPozycjaY = POZ_DOL2;
 
 
 	hdma2d.XferCpltCallback = XferCpltCallback;
@@ -216,7 +227,7 @@ void RysujTestoweOSD(void)
 void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 {
 	uint16_t sKolor, sTlo;
-	int16_t x, y, x1, y1, x2, y2, sTemp;	//współrzędne
+	int16_t x, y, x1, y1, x2, y2;	//współrzędne
 	int16_t sKorektaXPrzech;
 	int16_t sXSrodkaBelki, sYSrodkaBelki;
 	//uint32_t nCykleStart, nCykle1, nCykle2;
@@ -257,16 +268,19 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 
 		//Środki wszystkich belek łączy niewidoczna, prostopadła do nich linia. Kolejne belki przecinaja ją co odległość: sWysPochylenia
 		//Dla każdej belki trzeba wyznaczyć miejsce na tej linii i rozpocząć rysowanie belki symetrycznie wzgledem tego punktu
-		sXSrodkaBelki = sWysPochylenia * fCosPrze;
-		sYSrodkaBelki = sWysPochylenia * fSinPrze;
+		sXSrodkaBelki = sWysPochylenia * fSinPrze;
+		sYSrodkaBelki = sWysPochylenia * fCosPrze;
 
 		//x1 = stKonf->sSzerokosc / 2 + sXSrodkaBelki - x;
 		//x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki + x;
-		x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
-		x1 -= x;
-		x2 += x;
+		//x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
+		//x1 -= x;
+		//x2 += x;
+		x1 = x2 = stKonf->sSzerokosc / 2;
+		x1 -= x + sXSrodkaBelki;
+		x2 += x + sXSrodkaBelki;
 
-		y1 = y2 = stKonf->sWysokosc / 2 - sWysPochylenia + sYSrodkaBelki + Deg2Rad(10);	//część wspólna obu współrzędnych
+		y1 = y2 = stKonf->sWysokosc / 2 - sWysPochylenia + sYSrodkaBelki;	//część wspólna obu współrzędnych
 		y1 -= y;
 		y2 += y;
 		//RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
@@ -283,8 +297,8 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		RysujLiniewBuforze(x1 + sKorektaXPrzech, y1, x2 + sKorektaXPrzech, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 	}
 
-
-	if (stKonf->stPredWys.chFlagi & FO_WIDOCZNY)	//rysuj wskaźniki prędkości po lewej i wysokości po prawej
+	//rysuj wskaźniki prędkości po lewej i wysokości po prawej wygledem środka ekranu
+	if (stKonf->stPredWys.chFlagi & FO_WIDOCZNY)
 	{
 		sKolor = stKonf->stPredWys.sKolorObiektu;
 		sTlo = KOLOSD_CZARNY + PRZEZR_100;
@@ -301,8 +315,8 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		RysujNapiswBuforze(chNapisOSD, x1, y-PIW_KOR_WYS_CZC, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sTlo, ROZMIAR_KOLORU_OSD);
 
 		//rysuj strzałkę dookoła pomiaru prędkości
-		x1 = x - 6 * OSD_CZCION_SZER - PIW_ODL_RAMKI;
-		x2 = x - 2 * OSD_CZCION_SZER;
+		x1 = x - PIW_DYST_NAPISU - PIW_ZNAK_STRZAL * OSD_CZCION_SZER - PIW_ODL_RAMKI;
+		x2 = x - PIW_DYST_NAPISU;
 		y1 = stKonf->sWysokosc / 2 - OSD_CZCION_WYS / 2 - PIW_ODL_RAMKI;
 		y2 = stKonf->sWysokosc / 2 + OSD_CZCION_WYS / 2 + PIW_ODL_RAMKI;
 		RysujLiniePoziomawBuforze(x1, x2, y1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//góra
@@ -323,8 +337,10 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		RysujNapiswBuforze(chNapisOSD, x1, y-PIW_KOR_WYS_CZC, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sTlo, ROZMIAR_KOLORU_OSD);
 
 		//rysuj strzałkę dookoła pomiaru wysokości
-		x1 = x + 2 * OSD_CZCION_SZER;
-		x2 = x + 6 * OSD_CZCION_SZER + PIW_ODL_RAMKI;
+		//x1 = x + 2 * OSD_CZCION_SZER;
+		//x2 = x + 6 * OSD_CZCION_SZER + PIW_ODL_RAMKI;
+		x1 = x + PIW_DYST_NAPISU;
+		x2 = x + PIW_DYST_NAPISU + PIW_ZNAK_STRZAL * OSD_CZCION_SZER + PIW_ODL_RAMKI;
 		y1 = stKonf->sWysokosc / 2 - OSD_CZCION_WYS / 2 - PIW_ODL_RAMKI;
 		y2 = stKonf->sWysokosc / 2 + OSD_CZCION_WYS / 2 + PIW_ODL_RAMKI;
 		RysujLiniePoziomawBuforze(x1, x2, y1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//góra
@@ -334,9 +350,10 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		RysujLiniePionowawBuforze(x2, y1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//tył strzałki
 	}
 
-	if (stKonf->stSzerGeo.chFlagi & FO_WIDOCZNY)		//szerokość geograficzna
+	//szerokość geograficzna
+	if (stKonf->stSzerGeo.chFlagi & FO_WIDOCZNY)
 	{
-		if (stDane->stGnss1.dSzerokoscGeo > 0.0)
+		if (stDane->stGnss1.dSzerokoscGeo >= 0.0)
 			chZnak = 'N';
 		else
 			chZnak = 'S';
@@ -345,15 +362,36 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stSzerGeo.sKolorObiektu, (uint8_t*)&stKonf->stSzerGeo.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}
 
-	if (stKonf->stDlugGeo.chFlagi & FO_WIDOCZNY)		//długość geograficzna
+	//długość geograficzna
+	if (stKonf->stDlugGeo.chFlagi & FO_WIDOCZNY)
 	{
-		if (stDane->stGnss1.dDlugoscGeo > 0.0)
+		if (stDane->stGnss1.dDlugoscGeo >= 0.0)
 			chZnak = 'E';
 		else
 			chZnak = 'W';
 		sprintf(chNapisOSD, "%.6f%c", stDane->stGnss1.dDlugoscGeo, chZnak);
 		PobierzPozycjeObiektu(&stKonf->stDlugGeo, stKonf, &stWspXY);
-		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stSzerGeo.sKolorObiektu, (uint8_t*)&stKonf->stSzerGeo.sKolorTla, ROZMIAR_KOLORU_OSD);
+		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stDlugGeo.sKolorObiektu, (uint8_t*)&stKonf->stDlugGeo.sKolorTla, ROZMIAR_KOLORU_OSD);
+	}
+
+	//datę i czas trzeba pobrać razem, nawet jeżeli tylko jeden składnik jest potrzebny
+	if ((stKonf->stData.chFlagi & FO_WIDOCZNY) || (stKonf->stCzas.chFlagi & FO_WIDOCZNY))
+		PobierzDateCzas(&sDate, &sTime);
+
+	//bieżąca data
+	if (stKonf->stData.chFlagi & FO_WIDOCZNY)
+	{
+		sprintf(chNapisOSD, "%2d %s %.2d", sDate.Date, chNazwyMies3Lit[sDate.Month], sDate.Year);
+		PobierzPozycjeObiektu(&stKonf->stData, stKonf, &stWspXY);
+		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stData.sKolorObiektu, (uint8_t*)&stKonf->stData.sKolorTla, ROZMIAR_KOLORU_OSD);
+	}
+
+	//bieżacy czas
+	if (stKonf->stCzas.chFlagi & FO_WIDOCZNY)
+	{
+		sprintf(chNapisOSD, "%2d:%.2d:%.2d", sTime.Hours, sTime.Minutes, sTime.Seconds);
+		PobierzPozycjeObiektu(&stKonf->stCzas, stKonf, &stWspXY);
+		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stCzas.sKolorObiektu, (uint8_t*)&stKonf->stCzas.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}
 
 	StopPrintfCykle();		//drukuje na konsoli liczbę wykonanych cykli

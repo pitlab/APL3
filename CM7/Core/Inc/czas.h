@@ -18,7 +18,8 @@
 
 
 
-void SynchronizujCzasDoGNSS(stGnss_t *stGnss);
+uint8_t SynchronizujCzasDoGNSS(stGnss_t *stGnss);
+uint8_t PobierzDateCzas(RTC_DateTypeDef *sData, RTC_TimeTypeDef *sCzas);
 uint32_t PobierzCzasT6(void);
 uint32_t MinalCzas(uint32_t nPoczatek);
 uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nKoniec);
