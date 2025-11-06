@@ -228,15 +228,18 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 {
 	uint16_t sKolor, sTlo;
 	int16_t x, y, x1, y1, x2, y2;	//współrzędne
-	int16_t sKorektaXPrzech;
+	int16_t sXprzechyl, sYprzechyl;	//korekta położenia końców belki wynikająca z przechylenia
+	int16_t sLx1, sLy1, sLx2, sLy2;
 	int16_t sXSrodkaBelki, sYSrodkaBelki;
-	//uint32_t nCykleStart, nCykle1, nCykle2;
+	uint32_t nCykleStart, nCykle1, nCykle2;
 	prostokat_t stWspXY;	//współrzędne ekranowe
 	uint8_t chZnak;
 
 	StartPomiaruCykli();	//włącza licznik pomiaru cykli
+	nCykleStart = DWT->CYCCNT;
 	WypelnijEkranwBuforze(stKonf->sSzerokosc, stKonf->sWysokosc, chBuforOSD, KOLOSD_PRZEZR);
-
+	nCykle1 = DWT->CYCCNT;
+	nCykle2 = nCykle1 - nCykleStart;
 	//horyzont rysuję jako belkę o długości 50% szerokosci ekranu w zerze pochylenia i krótsze belki 40% szerokości ekranu co 10°
 	if (stKonf->stHoryzont.chFlagi & FO_WIDOCZNY)
 	{
@@ -244,57 +247,85 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		float fCosPrze = cos(stDane->fKatIMU1[PRZE]);
 
 		uint16_t sDlugoscPolowyBelki = stKonf->sSzerokosc * HOR_SZER00_PROC / 200;
-		//licz współrzędne środka prawego końca belki zerowego kąta
-		x = (int16_t)(sDlugoscPolowyBelki * fCosPrze);
-		y = (int16_t)(sDlugoscPolowyBelki * fSinPrze);
+		//licz współrzędne środka prawego końca belki zerowego kąta względem środka ekranu
+		sXprzechyl = (int16_t)(sDlugoscPolowyBelki * fCosPrze);
+		sYprzechyl = (int16_t)(sDlugoscPolowyBelki * fSinPrze);
 
 		uint16_t sWysokoscPolowyOkna = stKonf->sWysokosc * HOR_WYS_PROC / 200;
 		int16_t sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * stDane->fKatIMU1[POCH] / Deg2Rad(HOR_SKALA_POCH));	//przesunięcie w pionie środka horyzontu w zależnosci od pochylenia
 
-		x1 = stKonf->sSzerokosc / 2 - x;
-		x2 = stKonf->sSzerokosc / 2 + x;
-		y1 = stKonf->sWysokosc / 2 - sWysPochylenia - y;
-		y2 = stKonf->sWysokosc / 2 - sWysPochylenia + y;
+		x1 = x2 = stKonf->sSzerokosc / 2;
+		x1 -= sXprzechyl;
+		x2 += sXprzechyl;
+		y1 = y2 = stKonf->sWysokosc / 2 + sWysPochylenia;
+		y1 += sYprzechyl;
+		y2 -= sYprzechyl;
 		sKolor = stKonf->stHoryzont.sKolorObiektu;
 		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
-		//belka +10°, policz współrzędne końca krótszej belki
+
+		//belki krótsze dla kolejnych 10°
 		sDlugoscPolowyBelki = stKonf->sSzerokosc * HOR_SZER10_PROC / 200;
-		x = (int16_t)(sDlugoscPolowyBelki * fCosPrze);
-		y = (int16_t)(sDlugoscPolowyBelki * fSinPrze);
+		sXprzechyl = (int16_t)(sDlugoscPolowyBelki * fCosPrze);
+		sYprzechyl = (int16_t)(sDlugoscPolowyBelki * fSinPrze);
 
-		//oblicz korektę położenia środka belki wynikajacą ze zmiany pochylenia
-		sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] + Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
-
+		//belka +20°, policz współrzędne końca krótszej belki
+		sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] - Deg2Rad(20)) / Deg2Rad(HOR_SKALA_POCH));
 		//Środki wszystkich belek łączy niewidoczna, prostopadła do nich linia. Kolejne belki przecinaja ją co odległość: sWysPochylenia
 		//Dla każdej belki trzeba wyznaczyć miejsce na tej linii i rozpocząć rysowanie belki symetrycznie wzgledem tego punktu
-		sXSrodkaBelki = sWysPochylenia * fSinPrze;
-		sYSrodkaBelki = sWysPochylenia * fCosPrze;
+		sLx1 = sXSrodkaBelki = sWysPochylenia * fSinPrze;
+		sLy1 = sYSrodkaBelki = sWysPochylenia * fCosPrze;
 
-		//x1 = stKonf->sSzerokosc / 2 + sXSrodkaBelki - x;
-		//x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki + x;
-		//x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
-		//x1 -= x;
-		//x2 += x;
-		x1 = x2 = stKonf->sSzerokosc / 2;
-		x1 -= x + sXSrodkaBelki;
-		x2 += x + sXSrodkaBelki;
+		x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
+		x1 -= sXprzechyl;
+		x2 += sXprzechyl;
+		y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
+		y1 += sYprzechyl;
+		y2 -= sYprzechyl;
+		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
-		y1 = y2 = stKonf->sWysokosc / 2 - sWysPochylenia + sYSrodkaBelki;	//część wspólna obu współrzędnych
-		y1 -= y;
-		y2 += y;
-		//RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-		sTlo = KOLOSD_ZIELONY + PRZEZR_50;
-		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sTlo, ROZMIAR_KOLORU_OSD);
+		//belka +10°, policz współrzędne końca krótszej belki
+		sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] - Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
+		sLx1 = sXSrodkaBelki = sWysPochylenia * fSinPrze;
+		sLy1 = sYSrodkaBelki = sWysPochylenia * fCosPrze;
+
+		x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
+		x1 -= sXprzechyl;
+		x2 += sXprzechyl;
+		y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
+		y1 += sYprzechyl;
+		y2 -= sYprzechyl;
+		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
 		//belka -10°
-		sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] - Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
-		sKorektaXPrzech = sWysPochylenia * fSinPrze;
-		//x1 = stKonf->sSzerokosc / 2 - x;
-		//x2 = stKonf->sSzerokosc / 2 + x;
-		y1 = stKonf->sWysokosc / 2 - sWysPochylenia - y;
-		y2 = stKonf->sWysokosc / 2 - sWysPochylenia + y;
-		RysujLiniewBuforze(x1 + sKorektaXPrzech, y1, x2 + sKorektaXPrzech, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] + Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
+		sLx2 = sXSrodkaBelki = sWysPochylenia * fSinPrze;
+		sLy2 = sYSrodkaBelki = sWysPochylenia * fCosPrze;
+
+		x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
+		x1 -= sXprzechyl;
+		x2 += sXprzechyl;
+		y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
+		y1 += sYprzechyl;
+		y2 -= sYprzechyl;
+		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+		//belka -20°
+		sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] + Deg2Rad(20)) / Deg2Rad(HOR_SKALA_POCH));
+		sLx2 = sXSrodkaBelki = sWysPochylenia * fSinPrze;
+		sLy2 = sYSrodkaBelki = sWysPochylenia * fCosPrze;
+
+		x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
+		x1 -= sXprzechyl;
+		x2 += sXprzechyl;
+		y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
+		y1 += sYprzechyl;
+		y2 -= sYprzechyl;
+		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+		//Linia pomocnicza prostopadła do horyzontu
+		//sKolor = KOLOSD_BIALY + PRZEZR_50;
+		//RysujLiniewBuforze(stKonf->sSzerokosc / 2 + sLx1, stKonf->sWysokosc / 2 + sLy1, stKonf->sSzerokosc / 2 + sLx2, stKonf->sWysokosc / 2 + sLy2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 	}
 
 	//rysuj wskaźniki prędkości po lewej i wysokości po prawej wygledem środka ekranu
@@ -381,7 +412,8 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	//bieżąca data
 	if (stKonf->stData.chFlagi & FO_WIDOCZNY)
 	{
-		sprintf(chNapisOSD, "%2d %s %.2d", sDate.Date, chNazwyMies3Lit[sDate.Month], sDate.Year);
+		if (sDate.Month <= 12)	//zabezpieczenie przed
+			sprintf(chNapisOSD, "%2d %s %.2d", sDate.Date, chNazwyMies3Lit[sDate.Month], sDate.Year);
 		PobierzPozycjeObiektu(&stKonf->stData, stKonf, &stWspXY);
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stData.sKolorObiektu, (uint8_t*)&stKonf->stData.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}
@@ -424,71 +456,42 @@ float Rad2Deg(float radiany)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja pobiera współrzędne obiektu wykonując ewentualne przeliczenie współrzędnych względnych
+// Funkcja pobiera współrzędne obiektu wykonując ewentualne przeliczenie współrzędnych
+// względnych na bezwzgledne w zależnosci od bieżącej konfiguracji ekranu OSD
 // Parametry:
-//	stKonf - struktura konfiguracji OSD
-//	*stWspolrzedne - wskaźnik na współrzedne obiektu
+// 	*stObiekt - wskaźnik na strukturę obiektu do wyswietlenia na OSD, zawierający współrzędne obiektu
+//	*stKonf - wskaźnik na strukturę konfiguracji OSD zawierajacą rozmiar ekranu OSD
+//	*stWspolrzedne - wskaźnik na zwracane bezwzględne współrzedne obiektu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 void PobierzPozycjeObiektu(stObiektOsd_t *stObiekt, stKonfOsd_t *stKonf, prostokat_t *stWspolrzedne)
 {
-	if (stObiekt->sPozycjaX == POZ_SRODEK)	//środek ekranu poziomo lub pionowo
-		stWspolrzedne->sX1 = stKonf->sSzerokosc / 2;
-	else
-	if (stObiekt->sPozycjaX == POZ_LEWO1)	//pierwszy obiekt od lewej
-		stWspolrzedne->sX1 = OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaX == POZ_LEWO2)	//drugi obiekt od lewej
-		stWspolrzedne->sX1 = OSD_SZER_OBIEKTU + OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaX == POZ_LEWO3)	//trzeci obiekt od lewej
-		stWspolrzedne->sX1 = 2 * OSD_SZER_OBIEKTU + OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaX == POZ_LEWO4)	//czwarty obiekt od lewej
-		stWspolrzedne->sX1 = 3 * OSD_SZER_OBIEKTU + OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaX == POZ_PRAWO1)	//pierwszy obiekt od prawej
-		stWspolrzedne->sX1 = stKonf->sSzerokosc - OSD_SZER_OBIEKTU - OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaX == POZ_PRAWO2)	//drugi obiekt od prawej
-		stWspolrzedne->sX1 = stKonf->sSzerokosc - 2 * OSD_SZER_OBIEKTU - OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaX == POZ_PRAWO3)	//trzeci obiekt od prawej
-		stWspolrzedne->sX1 = stKonf->sSzerokosc - 3 * OSD_SZER_OBIEKTU - OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaX == POZ_PRAWO4)	//czwarty obiekt od prawej
-		stWspolrzedne->sX1 = stKonf->sSzerokosc - 4 * OSD_SZER_OBIEKTU - OSD_MARGINES;
-	else
-		stWspolrzedne->sX1 = stObiekt->sPozycjaX;
+	switch (stObiekt->sPozycjaX)
+	{
+	case POZ_SRODEK:stWspolrzedne->sX1 = stKonf->sSzerokosc / 2;				break;	//środek ekranu poziomo lub pionowo
+	case POZ_LEWO1:	stWspolrzedne->sX1 = OSD_MARGINES;							break;	//pierwszy obiekt od lewej
+	case POZ_LEWO2:	stWspolrzedne->sX1 = OSD_SZER_OBIEKTU + OSD_MARGINES;		break;	//drugi obiekt od lewej
+	case POZ_LEWO3:	stWspolrzedne->sX1 = 2 * OSD_SZER_OBIEKTU + OSD_MARGINES;	break;	//trzeci obiekt od lewej
+	case POZ_LEWO4:	stWspolrzedne->sX1 = 3 * OSD_SZER_OBIEKTU + OSD_MARGINES;	break;	//czwarty obiekt od lewej
+	case POZ_PRAWO1:stWspolrzedne->sX1 = stKonf->sSzerokosc - OSD_SZER_OBIEKTU - OSD_MARGINES;	break;	//pierwszy obiekt od prawej
+	case POZ_PRAWO2:stWspolrzedne->sX1 = stKonf->sSzerokosc - 2 * OSD_SZER_OBIEKTU - OSD_MARGINES;	break;	//drugi obiekt od prawej
+	case POZ_PRAWO3:stWspolrzedne->sX1 = stKonf->sSzerokosc - 3 * OSD_SZER_OBIEKTU - OSD_MARGINES;	break;	//trzeci obiekt od prawej
+	case POZ_PRAWO4:stWspolrzedne->sX1 = stKonf->sSzerokosc - 4 * OSD_SZER_OBIEKTU - OSD_MARGINES;	break;	//czwarty obiekt od prawej
+	default:		stWspolrzedne->sX1 = stObiekt->sPozycjaX;
+	}
 
-
-	if (stObiekt->sPozycjaY == POZ_SRODEK)	//środek ekranu poziomo lub pionowo
-		stWspolrzedne->sY1 = stKonf->sWysokosc / 2;
-	else
-	if (stObiekt->sPozycjaY == POZ_GORA1)	//pierwszy obiekt od góry
-		stWspolrzedne->sY1 = OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaY == POZ_GORA2)	//drugi obiekt od góry
-		stWspolrzedne->sY1 = OSD_WYS_OBIEKTU  + OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaY == POZ_GORA3)	//trzeci obiekt od góry
-		stWspolrzedne->sY1 = 2 * OSD_WYS_OBIEKTU  + OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaY == POZ_GORA4)	//czwarty obiekt od góry
-		stWspolrzedne->sY1 = 3 * OSD_WYS_OBIEKTU  + OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaY == POZ_DOL1)	//pierwszy obiekt od dołu
-		stWspolrzedne->sY1 = stKonf->sWysokosc - OSD_WYS_OBIEKTU - OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaY == POZ_DOL2)	//drugi obiekt od dołu
-		stWspolrzedne->sY1 = stKonf->sWysokosc - 2 * OSD_WYS_OBIEKTU - OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaY == POZ_DOL3)	//trzeci obiekt od dołu
-		stWspolrzedne->sY1 = stKonf->sWysokosc - 3 * OSD_WYS_OBIEKTU - OSD_MARGINES;
-	else
-	if (stObiekt->sPozycjaY == POZ_DOL4)	//czwarty obiekt od dołu
-		stWspolrzedne->sY1 = stKonf->sWysokosc - 4 * OSD_WYS_OBIEKTU - OSD_MARGINES;
-	else
-		stWspolrzedne->sY1 = stObiekt->sPozycjaY;
+	switch (stObiekt->sPozycjaY)
+	{
+	case POZ_SRODEK:stWspolrzedne->sY1 = stKonf->sWysokosc / 2;					break;	//środek ekranu poziomo lub pionowo
+	case POZ_GORA1: stWspolrzedne->sY1 = OSD_MARGINES;							break;	//pierwszy obiekt od góry
+	case POZ_GORA2:	stWspolrzedne->sY1 = OSD_WYS_OBIEKTU + OSD_MARGINES;		break;	//drugi obiekt od góry
+	case POZ_GORA3:	stWspolrzedne->sY1 = 2 * OSD_WYS_OBIEKTU  + OSD_MARGINES;	break;	//trzeci obiekt od góry
+	case POZ_GORA4:	stWspolrzedne->sY1 = 3 * OSD_WYS_OBIEKTU  + OSD_MARGINES;	break;	//czwarty obiekt od góry
+	case POZ_DOL1:	stWspolrzedne->sY1 = stKonf->sWysokosc - OSD_WYS_OBIEKTU - OSD_MARGINES;	break;	//pierwszy obiekt od dołu
+	case POZ_DOL2:	stWspolrzedne->sY1 = stKonf->sWysokosc - 2 * OSD_WYS_OBIEKTU - OSD_MARGINES;	break;	//drugi obiekt od dołu
+	case POZ_DOL3:	stWspolrzedne->sY1 = stKonf->sWysokosc - 3 * OSD_WYS_OBIEKTU - OSD_MARGINES;	break;	//trzeci obiekt od dołu
+	case POZ_DOL4:	stWspolrzedne->sY1 = stKonf->sWysokosc - 4 * OSD_WYS_OBIEKTU - OSD_MARGINES;	break;	//czwarty obiekt od dołu
+	default:		stWspolrzedne->sY1 = stObiekt->sPozycjaY;
+	}
 }
 

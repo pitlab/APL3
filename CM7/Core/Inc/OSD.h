@@ -13,10 +13,10 @@
 
 #define ROZMIAR_KOLORU_OSD	2
 
-//definicje kolorów OSD w formacie ARGB4444
+//definicje kolorów OSD w formacie ARGB4444 bez ustawionej przerzroczystości
 #define KOLOSD_CZARNY	0x0000
 #define KOLOSD_PRZEZR	0x0000
-#define KOLOSD_BIALY	0xFFFF
+#define KOLOSD_BIALY	0x0FFF
 #define KOLOSD_CZERWONY	0x0F00
 #define KOLOSD_ZIELONY	0x00F0
 #define KOLOSD_NIEBIES	0x000F
