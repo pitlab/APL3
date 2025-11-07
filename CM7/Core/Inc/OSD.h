@@ -14,13 +14,27 @@
 #define ROZMIAR_KOLORU_OSD	2
 
 //definicje kolorów OSD w formacie ARGB4444 bez ustawionej przerzroczystości
-#define KOLOSD_CZARNY	0x0000
 #define KOLOSD_PRZEZR	0x0000
+#define KOLOSD_CZARNY	0x0000
+#define KOLOSD_SZARY75	0x0CCC
+#define KOLOSD_SZARY50	0x0777
+#define KOLOSD_SZARY25	0x0333
 #define KOLOSD_BIALY	0x0FFF
 #define KOLOSD_CZERWONY	0x0F00
+#define KOLOSD_CZER1	0x0F33
+#define KOLOSD_CZER2	0x0F77
+#define KOLOSD_CZER3	0x0FCC
 #define KOLOSD_ZIELONY	0x00F0
+#define KOLOSD_ZIEL1	0x03F3
+#define KOLOSD_ZIEL2	0x07F7
+#define KOLOSD_ZIEL3	0x0CFC
 #define KOLOSD_NIEBIES	0x000F
+#define KOLOSD_NIEB1	0x033F
+#define KOLOSD_NIEB2	0x077F
+#define KOLOSD_NIEB3	0x0CCF
 #define KOLOSD_ZOLTY	0x0FF0
+#define KOLOSD_ZOLT1	0x0FF3
+#define KOLOSD_ZOLT2	0x0FF7
 #define KOLOSD_CYJAN	0x00FF
 #define KOLOSD_MAGENTA	0x0F0F
 
@@ -53,7 +67,7 @@
 
 #define OSD_CZCION_SZER	FONT_SL		//szerokość czcionki użytej w OSD
 #define OSD_CZCION_WYS	FONT_SH		//wysokość czcionki użytej w OSD
-#define OSD_MARGINES	20			//zamiast rysować od brzegu zacznij od tej wartosci
+#define OSD_MARGINES	10			//zamiast rysować od brzegu zacznij od tej wartosci
 #define OSD_SZER_OBIEKTU	(10 * OSD_CZCION_SZER)
 #define OSD_WYS_OBIEKTU	(3 * OSD_CZCION_WYS / 2)
 
@@ -96,11 +110,19 @@ typedef struct st_KonfOsd
 	stObiektOsd_t stNapiBat;	//napięcie baterii
 	stObiektOsd_t stPradBat;	//prad pobierany z baterii
 	stObiektOsd_t stEnerBat;	//energia baterii: pobrana lub pozostała
+	//obiekty diagnostyczne
+	stObiektOsd_t stCzasWyp;	//czas wypełniania ekranu tłem
+	stObiektOsd_t stCzasRys;	//czas rysowania całego ekranu
+	stObiektOsd_t stCzasHor;	//czas rysowania horyzontu
+	stObiektOsd_t stCzasPiW;	//czas rysowania wysokości i prędkosci
+	stObiektOsd_t stCzasDaty;	//czas rysowania daty
+	stObiektOsd_t stCzasGNSS;	//czas rysowania pozycji GNSS
 } stKonfOsd_t;
 
 //definicje flag obiektów OSD
-#define FO_WIDOCZNY	0x01	//obiekt widoczny
-
+#define FO_WIDOCZNY		0x80	//obiekt widoczny
+#define FO_E_POBRANA	0x01	//wskazuje na energię pobraną lub pozostałą
+#define FO_E_POZOSTALA	0x00	//lub pozostałą (brak bitu)
 
 
 
