@@ -13,8 +13,7 @@
 #include <math.h>
 #include "czas.h"
 
-//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * ROZMIAR_KOLORU_OSD];	//pamięć obrazu OSD
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[SZER_ZDJECIA * WYS_ZDJECIA / 2];
 extern DMA2D_HandleTypeDef hdma2d;
@@ -25,6 +24,7 @@ stKonfOsd_t stKonfOSD;
 extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
 extern const char *chNazwyMies3Lit[13];
+uint16_t LicznikLiniiCzyszczeniaOSD;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjuje zasoby używane przez OSD
@@ -96,8 +96,8 @@ uint8_t InicjujOSD(void)
 	stKonfOSD.stCzasWyp.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stCzasWyp.sPozycjaY = POZ_GORA1;
 
-	stKonfOSD.stCzasRys.sKolorObiektu = KOLOSD_SZARY75 + PRZEZR_25;
-	stKonfOSD.stCzasRys.sKolorTla = KOLOSD_SZARY75 + PRZEZR_75;
+	stKonfOSD.stCzasRys.sKolorObiektu = KOLOSD_SZARY75 + PRZEZR_75;
+	stKonfOSD.stCzasRys.sKolorTla = KOLOSD_SZARY75 + PRZEZR_25;
 	stKonfOSD.stCzasRys.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasRys.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stCzasRys.sPozycjaY = POZ_GORA2;
@@ -129,6 +129,9 @@ uint8_t InicjujOSD(void)
 	stKonfOSD.stCzasGNSS.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasGNSS.sPozycjaX = POZ_PRAWO1;
 	stKonfOSD.stCzasGNSS.sPozycjaY = POZ_GORA1;
+
+	//wypełnij tło w buforze OSD
+	//WypelnijEkranwBuforze(DISP_X_SIZE, DISP_Y_SIZE, chBuforOSD, PRZEZR_0); - jest wypełniane przed uruchomieniem z menu
 
 	hdma2d.XferCpltCallback = XferCpltCallback;
 	hdma2d.XferErrorCallback = XferErrorCallback;
@@ -293,15 +296,21 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 {
 	uint16_t sKolor;
 	int16_t x, y, x1, y1, x2, y2;	//współrzędne
-	int16_t sXprzechyl, sYprzechyl;	//korekta położenia końców belki wynikająca z przechylenia
-	int16_t sXSrodkaBelki, sYSrodkaBelki;
+
 	uint32_t nCykleStartGlob, nCykleStartLok, nCykleStop;
 	prostokat_t stWspXY;	//współrzędne ekranowe
 	uint8_t chZnak;
 
 	StartPomiaruCykli();	//włącza licznik pomiaru cykli
 	nCykleStartGlob = DWT->CYCCNT;	//globalnego czas początku pomiaru
-	WypelnijEkranwBuforze(stKonf->sSzerokosc, stKonf->sWysokosc, chBuforOSD, KOLOSD_PRZEZR);
+	//WypelnijEkranwBuforze(stKonf->sSzerokosc, stKonf->sWysokosc, chBuforOSD, PRZEZR_100);
+
+	//systematycznie zamazuj po jednej linii ekranu aby czyścić ewentualne śmieci
+	sKolor = PRZEZR_100;
+	RysujLiniePoziomawBuforze(0, stKonf->sSzerokosc, LicznikLiniiCzyszczeniaOSD, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	LicznikLiniiCzyszczeniaOSD++;
+	if (LicznikLiniiCzyszczeniaOSD >= stKonf->sWysokosc)
+		LicznikLiniiCzyszczeniaOSD = 0;
 
 	//Czas wypełniania ekranu tłem
 	if (stKonfOSD.stCzasWyp.chFlagi & FO_WIDOCZNY)
@@ -314,88 +323,14 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	}
 
 	nCykleStartLok = DWT->CYCCNT;
-	//horyzont rysuję jako belkę o długości 50% szerokosci ekranu w zerze pochylenia i krótsze belki 40% szerokości ekranu co 10°
+
 	if (stKonf->stHoryzont.chFlagi & FO_WIDOCZNY)
 	{
-		float fSinPrze = sin(stDane->fKatIMU1[PRZE]);
-		float fCosPrze = cos(stDane->fKatIMU1[PRZE]);
+		//rysuj poprzedni horyzont kolorem przezroczystym
+		RysujHoryzont(stKonf, stKonf->stHoryzont.fPoprzWartosc1, stKonf->stHoryzont.fPoprzWartosc2, PRZEZR_100);
 
-		uint16_t sDlugoscPolowyBelki = stKonf->sSzerokosc * HOR_SZER00_PROC / 200;
-		//licz współrzędne środka prawego końca belki zerowego kąta względem środka ekranu
-		sXprzechyl = (int16_t)(sDlugoscPolowyBelki * fCosPrze);
-		sYprzechyl = (int16_t)(sDlugoscPolowyBelki * fSinPrze);
-
-		uint16_t sWysokoscPolowyOkna = stKonf->sWysokosc * HOR_WYS_PROC / 200;
-		int16_t sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * stDane->fKatIMU1[POCH] / Deg2Rad(HOR_SKALA_POCH));	//przesunięcie w pionie środka horyzontu w zależnosci od pochylenia
-
-		x1 = x2 = stKonf->sSzerokosc / 2;
-		x1 -= sXprzechyl;
-		x2 += sXprzechyl;
-		y1 = y2 = stKonf->sWysokosc / 2 + sWysPochylenia;
-		y1 += sYprzechyl;
-		y2 -= sYprzechyl;
-		sKolor = stKonf->stHoryzont.sKolorObiektu;
-		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-
-
-		//belki krótsze dla kolejnych 10°
-		sDlugoscPolowyBelki = stKonf->sSzerokosc * HOR_SZER10_PROC / 200;
-		sXprzechyl = (int16_t)(sDlugoscPolowyBelki * fCosPrze);
-		sYprzechyl = (int16_t)(sDlugoscPolowyBelki * fSinPrze);
-
-		//belka +20°, policz współrzędne końca krótszej belki
-		sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] - Deg2Rad(20)) / Deg2Rad(HOR_SKALA_POCH));
-		//Środki wszystkich belek łączy niewidoczna, prostopadła do nich linia. Kolejne belki przecinaja ją co odległość: sWysPochylenia
-		//Dla każdej belki trzeba wyznaczyć miejsce na tej linii i rozpocząć rysowanie belki symetrycznie wzgledem tego punktu
-		sXSrodkaBelki = sWysPochylenia * fSinPrze;
-		sYSrodkaBelki = sWysPochylenia * fCosPrze;
-
-		x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
-		x1 -= sXprzechyl;
-		x2 += sXprzechyl;
-		y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
-		y1 += sYprzechyl;
-		y2 -= sYprzechyl;
-		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-
-		//belka +10°, policz współrzędne końca krótszej belki
-		sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] - Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
-		sXSrodkaBelki = sWysPochylenia * fSinPrze;
-		sYSrodkaBelki = sWysPochylenia * fCosPrze;
-
-		x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
-		x1 -= sXprzechyl;
-		x2 += sXprzechyl;
-		y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
-		y1 += sYprzechyl;
-		y2 -= sYprzechyl;
-		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-
-		//belka -10°
-		sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] + Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
-		sXSrodkaBelki = sWysPochylenia * fSinPrze;
-		sYSrodkaBelki = sWysPochylenia * fCosPrze;
-
-		x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
-		x1 -= sXprzechyl;
-		x2 += sXprzechyl;
-		y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
-		y1 += sYprzechyl;
-		y2 -= sYprzechyl;
-		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-
-		//belka -20°
-		sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (stDane->fKatIMU1[POCH] + Deg2Rad(20)) / Deg2Rad(HOR_SKALA_POCH));
-		sXSrodkaBelki = sWysPochylenia * fSinPrze;
-		sYSrodkaBelki = sWysPochylenia * fCosPrze;
-
-		x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
-		x1 -= sXprzechyl;
-		x2 += sXprzechyl;
-		y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
-		y1 += sYprzechyl;
-		y2 -= sYprzechyl;
-		RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		//rysuj bieżący horyzont właściwym kolorem
+		RysujHoryzont(stKonf, stDane->fKatIMU1[POCH], stDane->fKatIMU1[PRZE], stKonf->stHoryzont.sKolorObiektu);
 	}
 
 	//czas rysowania horyzontu
@@ -516,6 +451,8 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	{
 		if (sDate.Month <= 12)	//zabezpieczenie przed
 			sprintf(chNapisOSD, "%2d %s %.2d", sDate.Date, chNazwyMies3Lit[sDate.Month], sDate.Year);
+		else
+			sprintf(chNapisOSD, "-- --- --");
 		PobierzPozycjeObiektu(&stKonf->stData, stKonf, &stWspXY);
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stData.sKolorObiektu, (uint8_t*)&stKonf->stData.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}
@@ -573,11 +510,110 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	{
 		nCykleStop = DWT->CYCCNT;
 		nCykleStop -= nCykleStartGlob;
-		sprintf(chNapisOSD, "Trys: %ld ", nCykleStop / (HAL_RCC_GetSysClockFreq()/1000000));
+		sprintf(chNapisOSD, "Trys %ld ", nCykleStop / (HAL_RCC_GetSysClockFreq()/1000000));
 		PobierzPozycjeObiektu(&stKonf->stCzasRys, stKonf, &stWspXY);
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stCzasRys.sKolorObiektu, (uint8_t*)&stKonf->stCzasRys.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}
 	StopPrintfCykle();		//drukuje na konsoli liczbę wykonanych cykli
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje kontrolkę sztucznego horyzontu jako belkę o długości 50% szerokosci ekranu w zerze pochylenia i krótsze belki 40% szerokości ekranu co 10°
+// Parametry:
+//	*stKonf - wskaźnik na konfigurację OSD
+//	fPochylenie, fPrzechylenie - bieżące pochylenie i przechylenie
+//	sKolor - kolor obiektu
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujHoryzont(stKonfOsd_t *stKonf, float fPochylenie, float fPrzechylenie, uint16_t sKolor)
+{
+	int16_t sXprzechyl, sYprzechyl;	//korekta położenia końców belki wynikająca z przechylenia
+	int16_t sXSrodkaBelki, sYSrodkaBelki;
+	int16_t x1, y1, x2, y2;	//współrzędne
+
+	//zachowaj wartości bieżące na nastepne rysowanie
+	stKonf->stHoryzont.fPoprzWartosc1 = fPochylenie;
+	stKonf->stHoryzont.fPoprzWartosc2 = fPrzechylenie;
+
+	float fSinPrze = sin(fPrzechylenie);
+	float fCosPrze = cos(fPrzechylenie);
+
+	uint16_t sDlugoscPolowyBelki = stKonf->sSzerokosc * HOR_SZER00_PROC / 200;
+	//licz współrzędne środka prawego końca belki zerowego kąta względem środka ekranu
+	sXprzechyl = (int16_t)(sDlugoscPolowyBelki * fCosPrze);
+	sYprzechyl = (int16_t)(sDlugoscPolowyBelki * fSinPrze);
+
+	uint16_t sWysokoscPolowyOkna = stKonf->sWysokosc * HOR_WYS_PROC / 200;
+	int16_t sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * fPochylenie / Deg2Rad(HOR_SKALA_POCH));	//przesunięcie w pionie środka horyzontu w zależnosci od pochylenia
+
+	x1 = x2 = stKonf->sSzerokosc / 2;
+	x1 -= sXprzechyl;
+	x2 += sXprzechyl;
+	y1 = y2 = stKonf->sWysokosc / 2 + sWysPochylenia;
+	y1 += sYprzechyl;
+	y2 -= sYprzechyl;
+	RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+	//belki krótsze dla kolejnych 10°
+	sDlugoscPolowyBelki = stKonf->sSzerokosc * HOR_SZER10_PROC / 200;
+	sXprzechyl = (int16_t)(sDlugoscPolowyBelki * fCosPrze);
+	sYprzechyl = (int16_t)(sDlugoscPolowyBelki * fSinPrze);
+
+	//belka +20°, policz współrzędne końca krótszej belki
+	sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (fPochylenie - Deg2Rad(20)) / Deg2Rad(HOR_SKALA_POCH));
+	//Środki wszystkich belek łączy niewidoczna, prostopadła do nich linia. Kolejne belki przecinaja ją co odległość: sWysPochylenia
+	//Dla każdej belki trzeba wyznaczyć miejsce na tej linii i rozpocząć rysowanie belki symetrycznie wzgledem tego punktu
+	sXSrodkaBelki = sWysPochylenia * fSinPrze;
+	sYSrodkaBelki = sWysPochylenia * fCosPrze;
+
+	x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
+	x1 -= sXprzechyl;
+	x2 += sXprzechyl;
+	y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
+	y1 += sYprzechyl;
+	y2 -= sYprzechyl;
+	RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+	//belka +10°, policz współrzędne końca krótszej belki
+	sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (fPochylenie - Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
+	sXSrodkaBelki = sWysPochylenia * fSinPrze;
+	sYSrodkaBelki = sWysPochylenia * fCosPrze;
+
+	x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
+	x1 -= sXprzechyl;
+	x2 += sXprzechyl;
+	y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
+	y1 += sYprzechyl;
+	y2 -= sYprzechyl;
+	RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+	//belka -10°
+	sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (fPochylenie + Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
+	sXSrodkaBelki = sWysPochylenia * fSinPrze;
+	sYSrodkaBelki = sWysPochylenia * fCosPrze;
+
+	x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
+	x1 -= sXprzechyl;
+	x2 += sXprzechyl;
+	y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
+	y1 += sYprzechyl;
+	y2 -= sYprzechyl;
+	RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+	//belka -20°
+	sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (fPochylenie + Deg2Rad(20)) / Deg2Rad(HOR_SKALA_POCH));
+	sXSrodkaBelki = sWysPochylenia * fSinPrze;
+	sYSrodkaBelki = sWysPochylenia * fCosPrze;
+
+	x1 = x2 = stKonf->sSzerokosc / 2 + sXSrodkaBelki;
+	x1 -= sXprzechyl;
+	x2 += sXprzechyl;
+	y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
+	y1 += sYprzechyl;
+	y2 -= sYprzechyl;
+	RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 }
 
 

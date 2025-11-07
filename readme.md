@@ -42,6 +42,9 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Uruchomiono nowy rodzaj wyświetlacza oparty o ILI9488
 - Działają podstawy transmisji TCP/IP po ethernet
 ![RC](obrazki/statystyki_internet.jpg)
+- Uruchomiono DMA2D z funkcją blendera
+- Podstawowa wersja OSD
+![OSD](obrazki/zdj_20251107_215444.bmp) 
 
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM

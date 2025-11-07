@@ -14,7 +14,7 @@
 #define ROZMIAR_KOLORU_OSD	2
 
 //definicje kolorów OSD w formacie ARGB4444 bez ustawionej przerzroczystości
-#define KOLOSD_PRZEZR	0x0000
+//#define KOLOSD_PRZEZR	0x0000
 #define KOLOSD_CZARNY	0x0000
 #define KOLOSD_SZARY75	0x0CCC
 #define KOLOSD_SZARY50	0x0777
@@ -85,22 +85,32 @@
 #define PIW_DYST_NAPISU	12		//odległość między osią a napisem, miejsce na ostrze strzałki
 
 //struktura obiektów ekranowych OSD
-typedef struct st_ObiektOsd
+typedef struct
 {
 	uint8_t chFlagi;
 	uint16_t sPozycjaX;		//położenie poziome (bezwzględne w pikselach lub stała okreslająca położenie wzgledne)
 	uint16_t sPozycjaY;		//położenie pionowe
 	uint16_t sKolorObiektu;	//ARGB4444
 	uint16_t sKolorTla;		//ARGB4444
-	float fPoprzWartosc;	//wartość poprzednia potrzebna do określenia potrzeby przerysowania obiektu
 } stObiektOsd_t;
+
+typedef struct
+{
+	uint8_t chFlagi;
+	uint16_t sPozycjaX;		//położenie poziome (bezwzględne w pikselach lub stała okreslająca położenie wzgledne)
+	uint16_t sPozycjaY;		//położenie pionowe
+	uint16_t sKolorObiektu;	//ARGB4444
+	uint16_t sKolorTla;		//ARGB4444
+	float fPoprzWartosc1;	//wartość poprzednia 1 potrzebna do określenia potrzeby przerysowania obiektu
+	float fPoprzWartosc2;	//wartość poprzednia 2
+} stObOsd_F2_t;			//typ obiektu OSD zawierajacego 2 zmienne float
 
 //struktura konfiguracji OSD
 typedef struct st_KonfOsd
 {
 	uint16_t sSzerokosc;		//szerokość obrazu
 	uint16_t sWysokosc;			//wysokość obrazu
-	stObiektOsd_t stHoryzont;	//obiekt sztucznego horyzontu
+	stObOsd_F2_t stHoryzont;	//obiekt sztucznego horyzontu
 	stObiektOsd_t stKursMag;	//kurs lotu: magnetyczny lub geograficzny
 	stObiektOsd_t stPredWys;	//prędkość i wysokość lotu
 	stObiektOsd_t stDlugGeo;	//długość geograficzna
@@ -134,6 +144,7 @@ void XferCpltCallback(DMA2D_HandleTypeDef *hdma2d);
 void XferErrorCallback(DMA2D_HandleTypeDef *hdma2d);
 void RysujTestoweOSD();
 void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane);
+void RysujHoryzont(stKonfOsd_t *stKonf, float fPochylenie, float fPrzechylenie, uint16_t sKolor);
 void PobierzPozycjeObiektu(stObiektOsd_t *stObiekt, stKonfOsd_t *stKonf, prostokat_t *stWspolrzedne);
 
 float Deg2Rad(float stopnie);

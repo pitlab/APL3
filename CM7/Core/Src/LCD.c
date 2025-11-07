@@ -826,6 +826,7 @@ void RysujEkran(void)
 		stKonfOSD.sSzerokosc = 480;
 		stKonfOSD.sWysokosc = 320;
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM, SZARY20);
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
 		do
 		{
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
@@ -839,7 +840,8 @@ void RysujEkran(void)
 	case TPO_TEST_OSD320:
 		stKonfOSD.sSzerokosc = 320;
 		stKonfOSD.sWysokosc = 240;
-		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM,  SZARY30);
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM,  SZARY20);
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
 		do
 		{
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
@@ -853,7 +855,8 @@ void RysujEkran(void)
 	case TPO_TEST_OSD240:
 		stKonfOSD.sSzerokosc = 240;
 		stKonfOSD.sWysokosc = 160;
-		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM,  SZARY40);
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM,  SZARY20);
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
 		do
 		{
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
