@@ -97,8 +97,10 @@ typedef struct
 	uint8_t chFlagi;
 	uint16_t sPozycjaX;		//położenie poziome (bezwzględne w pikselach lub stała okreslająca położenie wzgledne)
 	uint16_t sPozycjaY;		//położenie pionowe
-	uint16_t sKolorObiektu;	//ARGB4444
-	uint16_t sKolorTla;		//ARGB4444
+	uint16_t sKolorObiektu;	//ARGB4444 Podstawowy kolor kontrolki
+	uint16_t sKolorJasny;	//ARGB4444 Kolor jasnej obwiedni
+	uint16_t sKolorCiemny;	//ARGB4444 Kolor ciemnej obwiedni
+	uint16_t sKolorTla;		//ARGB4444 Kolor wypełniania tła
 } stObiektOsd_t;
 
 typedef struct

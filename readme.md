@@ -43,8 +43,9 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Działają podstawy transmisji TCP/IP po ethernet
 ![RC](obrazki/statystyki_internet.jpg)
 - Uruchomiono DMA2D z funkcją blendera
-- Podstawowa wersja OSD
+- Podstawowa wersja OSD działająca na żywo na obrazie kamery lub jako sama nakładka na szarym tle 
 ![OSD](obrazki/zdj_20251107_215444.bmp) 
+
 
 
 ### Rdzeń CM4:

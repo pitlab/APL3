@@ -67,7 +67,7 @@ extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZew
 uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
 volatile uint8_t chBladKamery;	//1=HAL_DCMI_ERROR_OVR, 2=DCMI_ERROR_SYNC, 3=HAL_DCMI_ERROR_TIMEOUT, 4=HAL_DCMI_ERROR_DMA
 volatile uint8_t chTrybPracyKamery;	//steruje co dalej robić z obrazem pozyskanym przez DCMI
-
+extern uint32_t nCzasBlend, nCzasLCD;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizacja pracy kamery
@@ -285,7 +285,6 @@ uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor, uint32_t nRozm
 	hdma_dcmi.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
 	hdma_dcmi.Init.MemBurst = DMA_MBURST_INC4;
 	hdma_dcmi.Init.PeriphBurst = DMA_PBURST_SINGLE;
-	//hdma_dcmi.Init.PeriphBurst = DMA_PBURST_INC4;
 	chErr = HAL_DMA_Init(&hdma_dcmi);
 	if (chErr)
 		return chErr;
@@ -396,6 +395,15 @@ void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Callback gotowej klatki obrazu
+// Uruchami DMA2D, które pobiera obraz do dalszej obróbki. Na razie tylko do OSD
+// Parametry:
+//  hdcmi - wskaźnik na interfejs DCMI
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
 	chObrazKameryGotowy = 1;
@@ -405,6 +413,7 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 		if (hdma2d.State == HAL_DMA2D_STATE_BUSY)
 			HAL_DMA2D_Abort(&hdma2d);
 		//chTransferDMA2DZakonczony = 0;
+		nCzasBlend = DWT->CYCCNT;
 		HAL_DMA2D_BlendingStart_IT(&hdma2d, (uint32_t)chBuforOSD, (uint32_t)sBuforKamerySRAM, (uint32_t)chBuforLCD, stKonfKam.chSzerWy * KROK_ROZDZ_KAM, stKonfKam.chWysWy * KROK_ROZDZ_KAM);
 	}
 }

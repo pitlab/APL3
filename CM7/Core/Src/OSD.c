@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// Obsługa wyświetlania na obrazie cyfrowym
+// Obsługa wyświetlania informacji na obrazie cyfrowym
 //
 //
 // (c) PitLab 2025
@@ -44,6 +44,8 @@ uint8_t InicjujOSD(void)
 	stKonfOSD.stHoryzont.chFlagi = FO_WIDOCZNY;
 
 	stKonfOSD.stPredWys.sKolorObiektu = KOLOSD_NIEB1 + PRZEZR_50;	//niebieski 50% przezroczystości
+	stKonfOSD.stPredWys.sKolorJasny =  KOLOSD_NIEB2 + PRZEZR_50;
+	stKonfOSD.stPredWys.sKolorCiemny = KOLOSD_NIEBIES + PRZEZR_50;
 	//stKonfOSD.stPredWys.sKolorTla = KOLOSD_NIEB3 + PRZEZR_75;
 	stKonfOSD.stPredWys.chFlagi = FO_WIDOCZNY;
 
@@ -74,61 +76,60 @@ uint8_t InicjujOSD(void)
 	stKonfOSD.stNapiBat.sKolorObiektu = KOLOSD_CZER1 + PRZEZR_50;
 	stKonfOSD.stNapiBat.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stNapiBat.sPozycjaX = POZ_PRAWO3;
-	stKonfOSD.stNapiBat.sPozycjaY = POZ_GORA2;
+	stKonfOSD.stNapiBat.sPozycjaY = POZ_GORA3;
 
 	//prad pobierany z baterii
 	stKonfOSD.stPradBat.sKolorObiektu = KOLOSD_CZER2 + PRZEZR_50;
 	stKonfOSD.stPradBat.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stPradBat.sPozycjaX = POZ_PRAWO2;
-	stKonfOSD.stPradBat.sPozycjaY = POZ_GORA2;
+	stKonfOSD.stPradBat.sPozycjaY = POZ_GORA3;
 
 	//energia baterii: pobrana lub pozostała
 	stKonfOSD.stEnerBat.sKolorObiektu = KOLOSD_CZER3 + PRZEZR_50;
 	stKonfOSD.stEnerBat.chFlagi = FO_WIDOCZNY + FO_E_POBRANA;
 	stKonfOSD.stEnerBat.sPozycjaX = POZ_PRAWO1;
-	stKonfOSD.stEnerBat.sPozycjaY = POZ_GORA2;
-
+	stKonfOSD.stEnerBat.sPozycjaY = POZ_GORA3;
 
 	//obiekty dagnostyczne
 	//czas wypełniania tłem
-	stKonfOSD.stCzasWyp.sKolorObiektu = KOLOSD_SZARY75 + PRZEZR_25;
-	stKonfOSD.stCzasWyp.sKolorTla = KOLOSD_SZARY75 + PRZEZR_75;
+	stKonfOSD.stCzasWyp.sKolorObiektu = KOLOSD_BIALY + PRZEZR_0;
+	stKonfOSD.stCzasWyp.sKolorTla = KOLOSD_SZARY50 + PRZEZR_75;
 	stKonfOSD.stCzasWyp.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasWyp.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stCzasWyp.sPozycjaY = POZ_GORA1;
 
-	stKonfOSD.stCzasRys.sKolorObiektu = KOLOSD_SZARY75 + PRZEZR_75;
-	stKonfOSD.stCzasRys.sKolorTla = KOLOSD_SZARY75 + PRZEZR_25;
+	stKonfOSD.stCzasRys.sKolorObiektu = KOLOSD_BIALY + PRZEZR_25;
+	stKonfOSD.stCzasRys.sKolorTla = KOLOSD_SZARY50 + PRZEZR_50;
 	stKonfOSD.stCzasRys.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasRys.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stCzasRys.sPozycjaY = POZ_GORA2;
 
 	//czas blendowania
-	stKonfOSD.stCzasBlend.sKolorObiektu = KOLOSD_SZARY50 + PRZEZR_75;
-	stKonfOSD.stCzasBlend.sKolorTla = KOLOSD_SZARY75 + PRZEZR_25;
+	stKonfOSD.stCzasBlend.sKolorObiektu = KOLOSD_BIALY + PRZEZR_50;
+	stKonfOSD.stCzasBlend.sKolorTla = KOLOSD_SZARY50 + PRZEZR_25;
 	stKonfOSD.stCzasBlend.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasBlend.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stCzasBlend.sPozycjaY = POZ_GORA3;
 
 	//czas rysowania na LCD
-	stKonfOSD.stCzasLCD.sKolorObiektu = KOLOSD_SZARY50 + PRZEZR_75;
-	stKonfOSD.stCzasLCD.sKolorTla = KOLOSD_SZARY75 + PRZEZR_25;
+	stKonfOSD.stCzasLCD.sKolorObiektu = KOLOSD_BIALY + PRZEZR_75;
+	stKonfOSD.stCzasLCD.sKolorTla = KOLOSD_SZARY25 + PRZEZR_50;
 	stKonfOSD.stCzasLCD.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasLCD.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stCzasLCD.sPozycjaY = POZ_GORA4;
 
 	//czas rysowania horyzontu
-	stKonfOSD.stCzasHor.sKolorObiektu = KOLOSD_BIALY + PRZEZR_0;	;
+	stKonfOSD.stCzasHor.sKolorObiektu = KOLOSD_BIALY + PRZEZR_0;
 	//stKonfOSD.stCzasHor.sKolorTla = KOLOSD_SZARY75 + PRZEZR_50;
 	stKonfOSD.stCzasHor.chFlagi = FO_WIDOCZNY;
-	stKonfOSD.stCzasHor.sPozycjaX = POZ_PRAWO4;
+	stKonfOSD.stCzasHor.sPozycjaX = POZ_PRAWO2;
 	stKonfOSD.stCzasHor.sPozycjaY = POZ_GORA1;
 
 	//czas rysowania wysokości i prędkosci
 	stKonfOSD.stCzasPiW.sKolorObiektu = KOLOSD_BIALY + PRZEZR_25;
 	//stKonfOSD.stCzasPiW.sKolorTla = KOLOSD_SZARY50 + PRZEZR_50;
 	stKonfOSD.stCzasPiW.chFlagi = FO_WIDOCZNY;
-	stKonfOSD.stCzasPiW.sPozycjaX = POZ_PRAWO3;
+	stKonfOSD.stCzasPiW.sPozycjaX = POZ_PRAWO1;
 	stKonfOSD.stCzasPiW.sPozycjaY = POZ_GORA1;
 
 	//czas rysowania daty
@@ -136,14 +137,14 @@ uint8_t InicjujOSD(void)
 	//stKonfOSD.stCzasDaty.sKolorTla = PRZEZR_50;
 	stKonfOSD.stCzasDaty.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasDaty.sPozycjaX = POZ_PRAWO2;
-	stKonfOSD.stCzasDaty.sPozycjaY = POZ_GORA1;
+	stKonfOSD.stCzasDaty.sPozycjaY = POZ_GORA2;
 
 	//czas rysowania pozycji GNSS
 	stKonfOSD.stCzasGNSS.sKolorObiektu = KOLOSD_BIALY + PRZEZR_75;
 	//stKonfOSD.stCzasGNSS.sKolorTla = KOLOSD_SZARY50 + PRZEZR_50;
 	stKonfOSD.stCzasGNSS.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasGNSS.sPozycjaX = POZ_PRAWO1;
-	stKonfOSD.stCzasGNSS.sPozycjaY = POZ_GORA1;
+	stKonfOSD.stCzasGNSS.sPozycjaY = POZ_GORA2;
 
 	//wypełnij tło w buforze OSD
 	//WypelnijEkranwBuforze(DISP_X_SIZE, DISP_Y_SIZE, chBuforOSD, PRZEZR_0); - jest wypełniane przed uruchomieniem z menu
@@ -218,6 +219,7 @@ uint8_t PolaczBuforOSDzObrazem(uint8_t *chObrazFront, uint8_t *chObrazTlo, uint8
 void XferCpltCallback(DMA2D_HandleTypeDef *hdma2d)
 {
 	chTransferDMA2DZakonczony = 1;
+	nCzasBlend = DWT->CYCCNT - nCzasBlend;
 }
 
 
@@ -333,7 +335,7 @@ void RysujTestoweOSD(void)
 ////////////////////////////////////////////////////////////////////////////////
 void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 {
-	uint16_t sKolor;
+	uint16_t sKolor, sKolJasny, sKolCiemny;
 	int16_t x, y, x1, y1, x2, y2;	//współrzędne
 
 	uint32_t nCykleStartGlob, nCykleStartLok, nCykleStop;
@@ -387,12 +389,15 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	if (stKonf->stPredWys.chFlagi & FO_WIDOCZNY)
 	{
 		sKolor = stKonf->stPredWys.sKolorObiektu;
-
+		sKolJasny = stKonf->stPredWys.sKolorJasny;
+		sKolCiemny = stKonf->stPredWys.sKolorCiemny;
 		//linia skali prędkosci
 		x = stKonf->sSzerokosc * PIW_SZER_PROC / 100;
 		y1 = stKonf->sWysokosc * (100 - PIW_WYS_PROC) / 200;
 		y2 = stKonf->sWysokosc - y1;
 		RysujLiniewBuforze(x, y1, x, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x+1, y1, x+1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x-1, y1, x-1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
 		sprintf(chNapisOSD, "%.3d", (uint16_t)(stDane->fPredkosc[0]));
 
 		x1 = x - 5 * OSD_CZCION_SZER;
@@ -415,6 +420,8 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		y1 = stKonf->sWysokosc * (100 - PIW_WYS_PROC) / 200;
 		y2 = stKonf->sWysokosc - y1;
 		RysujLiniewBuforze(x, y1, x, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x+1, y1, x+1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x-1, y1, x-1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
 
 		sprintf(chNapisOSD, "%.3d", (uint16_t)(stDane->fWysokoMSL[0]));
 		x1 = x + 2 * OSD_CZCION_SZER;
@@ -447,8 +454,6 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	//czas blendowania
 	if (stKonfOSD.stCzasBlend.chFlagi & FO_WIDOCZNY)
 	{
-		nCykleStop = DWT->CYCCNT;
-		nCykleStop -= nCykleStartLok;
 		sprintf(chNapisOSD, "Tble %ld ", nCzasBlend / (HAL_RCC_GetSysClockFreq()/1000000));
 		PobierzPozycjeObiektu(&stKonf->stCzasBlend, stKonf, &stWspXY);
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stCzasBlend.sKolorObiektu, (uint8_t*)&stKonf->stCzasBlend.sKolorTla, ROZMIAR_KOLORU_OSD);
@@ -457,8 +462,6 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	//czas rysowania na LCD
 	if (stKonfOSD.stCzasPiW.chFlagi & FO_WIDOCZNY)
 	{
-		nCykleStop = DWT->CYCCNT;
-		nCykleStop -= nCykleStartLok;
 		sprintf(chNapisOSD, "Tlcd %ld ", nCzasLCD / (HAL_RCC_GetSysClockFreq()/1000000));
 		PobierzPozycjeObiektu(&stKonf->stCzasLCD, stKonf, &stWspXY);
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stCzasLCD.sKolorObiektu, (uint8_t*)&stKonf->stCzasLCD.sKolorTla, ROZMIAR_KOLORU_OSD);

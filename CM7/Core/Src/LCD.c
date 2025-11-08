@@ -154,6 +154,8 @@ extern volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawian
 uint8_t chTimeout;
 extern stKonfOsd_t stKonfOSD;
 extern volatile uint8_t chTrybPracyKamery;	//steruje co dalej robić z obrazem pozyskanym przez DCMI
+extern uint32_t nCzasBlend, nCzasLCD;
+
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -827,7 +829,6 @@ void RysujEkran(void)
 	case TPO_OSD240:
 	case TPO_OSD320:
 	case TPO_OSD480:	//obraz a rzeczywistym tle
-		extern uint32_t nCzasLCD;
 		if (chTrybPracy == TPO_OSD240)
 		{
 			stKonfOSD.sSzerokosc = 240;
@@ -904,8 +905,12 @@ void RysujEkran(void)
 		do
 		{
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
+			nCzasBlend = DWT->CYCCNT;	//start pomiaru
 			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+			nCzasBlend = DWT->CYCCNT - nCzasBlend; //koniec pomiaru
+			nCzasLCD = DWT->CYCCNT;	//start pomiaru
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
+			nCzasLCD = DWT->CYCCNT - nCzasLCD; //koniec pomiaru
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 			chNowyTrybPracy = TP_WROC_DO_OSD;
