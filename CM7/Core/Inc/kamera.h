@@ -35,6 +35,10 @@
 
 #define MASKA_BUFORA_KAMERY	0x07
 
+//tryby rpacy kamery
+#define TPK_NIC		0		//nie ruszaj danych
+#define TPK_OSD		1		//dane RGB565 z kamery idą przez DMA2D do bufora LCD
+
 //konfiguracja kamery
 typedef struct st_KonfKam
 {
@@ -110,8 +114,8 @@ uint8_t KompresujObrazYUV420(uint8_t* chBufKamery, uint8_t* chBufLCD, uint16_t s
 void CzyscBufory(void);
 uint8_t WykonajDiagnostykeKamery(stDiagKam_t* stDiagKam);
 
-
-
-
+void DCMI_DMAXferCplt(struct __DMA_HandleTypeDef * hdma);
+void DCMI_DMAXferHalfCplt(DMA_HandleTypeDef * hdma);
+void DCMI_DMAError(struct __DMA_HandleTypeDef * hdma);
 
 #endif /* INC_KONFIGURACJA_H_ */

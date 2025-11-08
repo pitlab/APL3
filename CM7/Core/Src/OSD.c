@@ -25,6 +25,7 @@ extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
 extern const char *chNazwyMies3Lit[13];
 uint16_t LicznikLiniiCzyszczeniaOSD;
+uint32_t nCzasBlend, nCzasLCD;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjuje zasoby używane przez OSD
@@ -101,6 +102,20 @@ uint8_t InicjujOSD(void)
 	stKonfOSD.stCzasRys.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasRys.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stCzasRys.sPozycjaY = POZ_GORA2;
+
+	//czas blendowania
+	stKonfOSD.stCzasBlend.sKolorObiektu = KOLOSD_SZARY50 + PRZEZR_75;
+	stKonfOSD.stCzasBlend.sKolorTla = KOLOSD_SZARY75 + PRZEZR_25;
+	stKonfOSD.stCzasBlend.chFlagi = FO_WIDOCZNY;
+	stKonfOSD.stCzasBlend.sPozycjaX = POZ_LEWO1;
+	stKonfOSD.stCzasBlend.sPozycjaY = POZ_GORA3;
+
+	//czas rysowania na LCD
+	stKonfOSD.stCzasLCD.sKolorObiektu = KOLOSD_SZARY50 + PRZEZR_75;
+	stKonfOSD.stCzasLCD.sKolorTla = KOLOSD_SZARY75 + PRZEZR_25;
+	stKonfOSD.stCzasLCD.chFlagi = FO_WIDOCZNY;
+	stKonfOSD.stCzasLCD.sPozycjaX = POZ_LEWO1;
+	stKonfOSD.stCzasLCD.sPozycjaY = POZ_GORA4;
 
 	//czas rysowania horyzontu
 	stKonfOSD.stCzasHor.sKolorObiektu = KOLOSD_BIALY + PRZEZR_0;	;
@@ -246,18 +261,59 @@ void RysujTestoweOSD(void)
 	//zwiększaj przezroczystość w połnej skali 16 kroków
 	for (uint8_t n=0; n<16; n++)
 	{
-		sKolor = 0x0F00 | n << 12;	//czerwony
-		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 0, DISP_X_SIZE/16, 20, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-		sKolor = 0x00F0 | n << 12;	//zielony
-		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 20, DISP_X_SIZE/16, 20, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-		sKolor = 0x000F | n << 12;	//niebieski
-		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 40, DISP_X_SIZE/16, 20, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-		sKolor = 0x00FF | n << 12;	//cyjan
-		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 60, DISP_X_SIZE/16, 20, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-		sKolor = 0x0F0F | n << 12;	//magenta
-		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 80, DISP_X_SIZE/16, 20, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-		sKolor = 0x0FF0 | n << 12;	//żółty
-		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 100, DISP_X_SIZE/16, 20, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_CZERWONY | n << 12;	//czerwony
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 0, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_CZER1 | n << 12;	//czerwony
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 5, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_CZER2 | n << 12;	//czerwony
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 10, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_CZER3 | n << 12;	//czerwony
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 15, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+		sKolor = KOLOSD_ZIELONY | n << 12;	//zielony
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 20, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_ZIEL1 | n << 12;	//zielony
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 25, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_ZIEL2 | n << 12;	//zielony
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 30, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_ZIEL3 | n << 12;	//zielony
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 35, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+		sKolor = KOLOSD_NIEBIES | n << 12;	//niebieski
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 40, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_NIEB1 | n << 12;	//niebieski
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 45, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_NIEB2 | n << 12;	//niebieski
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 50, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_NIEB3 | n << 12;	//niebieski
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 55, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+		sKolor = KOLOSD_CYJAN | n << 12;	//cyjan
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 60, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_CYJAN1 | n << 12;	//cyjan
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 65, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_CYJAN2 | n << 12;	//cyjan
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 70, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_CYJAN3 | n << 12;	//cyjan
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 75, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+		sKolor = KOLOSD_MAGENTA | n << 12;	//magenta
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 80, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_MAGEN1 | n << 12;	//magenta
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 85, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_MAGEN2 | n << 12;	//magenta
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 90, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_MAGEN3 | n << 12;	//magenta
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 95, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+
+		sKolor = KOLOSD_ZOLTY | n << 12;	//żółty
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 100, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_ZOLTY1 | n << 12;	//żółty
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 105, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_ZOLTY2 | n << 12;	//żółty
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 110, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+		sKolor = KOLOSD_ZOLTY3 | n << 12;	//żółty
+		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 115, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
 		sKolor = 0x7F0F;	//magenta
 		sTlo = 0x0999 | n << 12;	//szary
@@ -265,23 +321,6 @@ void RysujTestoweOSD(void)
 		sKolor = 0x0F0F | n << 12;	//magenta
 		RysujNapiswBuforze(chNapisOSD, n * DISP_X_SIZE/16, 140, DISP_X_SIZE, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&sBrakTla, ROZMIAR_KOLORU_OSD);
 	}
-
-	//podwójna linia ukośna
-	sKolor = 0x70F0;	//zielony
-	RysujLiniewBuforze(20, 100, 400, 300, DISP_X_SIZE, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-	sKolor = 0x7F0F;	//przeciwstawny do zielonego
-	RysujLiniewBuforze(21, 101, 401, 301, DISP_X_SIZE, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-
-	sKolor = 0x7F00;	//czerwony
-	RysujLiniePoziomawBuforze(20, 400, 160, DISP_X_SIZE, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-	sKolor = 0x700F;	//niebieski
-	RysujLiniePionowawBuforze(20, 160, 300, DISP_X_SIZE,  chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-
-	//podwójny okrąg o przeciwstawnych kolorach
-	sKolor = 0x7707;	//fioletowy
-	RysujOkragwBuforze(240, 180, 80, DISP_X_SIZE, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-	sKolor = 0x77F7;	//
-	RysujOkragwBuforze(240, 180, 81, DISP_X_SIZE, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 }
 
 
@@ -405,6 +444,26 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stCzasPiW.sKolorObiektu, (uint8_t*)&stKonf->stCzasPiW.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}
 
+	//czas blendowania
+	if (stKonfOSD.stCzasBlend.chFlagi & FO_WIDOCZNY)
+	{
+		nCykleStop = DWT->CYCCNT;
+		nCykleStop -= nCykleStartLok;
+		sprintf(chNapisOSD, "Tble %ld ", nCzasBlend / (HAL_RCC_GetSysClockFreq()/1000000));
+		PobierzPozycjeObiektu(&stKonf->stCzasBlend, stKonf, &stWspXY);
+		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stCzasBlend.sKolorObiektu, (uint8_t*)&stKonf->stCzasBlend.sKolorTla, ROZMIAR_KOLORU_OSD);
+	}
+
+	//czas rysowania na LCD
+	if (stKonfOSD.stCzasPiW.chFlagi & FO_WIDOCZNY)
+	{
+		nCykleStop = DWT->CYCCNT;
+		nCykleStop -= nCykleStartLok;
+		sprintf(chNapisOSD, "Tlcd %ld ", nCzasLCD / (HAL_RCC_GetSysClockFreq()/1000000));
+		PobierzPozycjeObiektu(&stKonf->stCzasLCD, stKonf, &stWspXY);
+		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stCzasLCD.sKolorObiektu, (uint8_t*)&stKonf->stCzasLCD.sKolorTla, ROZMIAR_KOLORU_OSD);
+	}
+
 	//szerokość geograficzna
 	if (stKonf->stSzerGeo.chFlagi & FO_WIDOCZNY)
 	{
@@ -514,7 +573,7 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		PobierzPozycjeObiektu(&stKonf->stCzasRys, stKonf, &stWspXY);
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stCzasRys.sKolorObiektu, (uint8_t*)&stKonf->stCzasRys.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}
-	StopPrintfCykle();		//drukuje na konsoli liczbę wykonanych cykli
+	WyswietlCykle();		//drukuje na konsoli liczbę wykonanych cykli
 }
 
 

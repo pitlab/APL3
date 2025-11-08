@@ -46,6 +46,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Podstawowa wersja OSD
 ![OSD](obrazki/zdj_20251107_215444.bmp) 
 
+
 ### Rdzeń CM4:
 - Obsługa pamięci FRAM
 - Obsługa expandera IO

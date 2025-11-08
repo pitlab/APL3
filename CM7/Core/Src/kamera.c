@@ -36,6 +36,7 @@
 #include "jpeg.h"
 #include "analiza_obrazu.h"
 #include "cmsis_os.h"
+#include "osd.h"
 
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[SZER_ZDJECIA * WYS_ZDJECIA / 2] = {0};
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};
@@ -47,6 +48,7 @@ volatile uint16_t sLicznikRamekKamery;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 extern DCMI_HandleTypeDef hdcmi;
 extern DMA_HandleTypeDef hdma_dcmi;
+extern DMA2D_HandleTypeDef hdma2d;
 extern TIM_HandleTypeDef htim12;
 extern I2C_HandleTypeDef hi2c2;
 extern const struct sensor_reg OV5642_RGB_QVGA[];
@@ -61,7 +63,11 @@ uint32_t nRozmiarObrazuKamery;	//w bajtach
 volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
 stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * ROZMIAR_KOLORU_OSD];	//pamięć obrazu OSD
 uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
+volatile uint8_t chBladKamery;	//1=HAL_DCMI_ERROR_OVR, 2=DCMI_ERROR_SYNC, 3=HAL_DCMI_ERROR_TIMEOUT, 4=HAL_DCMI_ERROR_DMA
+volatile uint8_t chTrybPracyKamery;	//steruje co dalej robić z obrazem pozyskanym przez DCMI
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizacja pracy kamery
@@ -87,7 +93,7 @@ uint8_t InicjalizujKamere(void)
 	if (chErr)
 		return chErr;
 
-	//ustawienie timera generującego PWM 20MHz jako zegar dla przetwornika makery
+	//ustawienie timera generującego PWM 20MHz jako zegar dla przetwornika kamery
 	htim12.Instance = TIM12;
 	htim12.Init.Prescaler = 0;
 	htim12.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -279,9 +285,17 @@ uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor, uint32_t nRozm
 	hdma_dcmi.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
 	hdma_dcmi.Init.MemBurst = DMA_MBURST_INC4;
 	hdma_dcmi.Init.PeriphBurst = DMA_PBURST_SINGLE;
+	//hdma_dcmi.Init.PeriphBurst = DMA_PBURST_INC4;
 	chErr = HAL_DMA_Init(&hdma_dcmi);
 	if (chErr)
 		return chErr;
+
+	HAL_DMA_RegisterCallback(&hdma_dcmi, HAL_DMA_XFER_CPLT_CB_ID, &DCMI_DMAXferCplt);
+	HAL_DMA_RegisterCallback(&hdma_dcmi, HAL_DMA_XFER_HALFCPLT_CB_ID, &DCMI_DMAXferHalfCplt);
+	HAL_DMA_RegisterCallback(&hdma_dcmi, HAL_DMA_XFER_HALFCPLT_CB_ID, &DCMI_DMAError);
+
+
+
 
 	//bez względu na format danych RGB565 lub YCbCr, kamera zwraca tą samą liczbę danych: 16 bitów na piksel
 	//nRozmiarObrazu32bit = (konfig.chSzerWy * KROK_ROZDZ_KAM) * (konfig.chWysWy * KROK_ROZDZ_KAM) / 2;
@@ -291,7 +305,10 @@ uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor, uint32_t nRozm
 	if (konfig.chTrybPracy == KAM_ZDJECIE)		//KAM_ZDJECIE=1 lub KAM_FILM=0
 		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBufor, nRozmiarObrazu32bit);
 	else
+	{
 		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_CONTINUOUS, (uint32_t)sBufor, nRozmiarObrazu32bit);
+		//chErr = HAL_DMAEx_MultiBufferStart_IT(hdcmi.DMA_Handle, (uint32_t)&DCMI->DR, (uint32_t)sBufor, (uint32_t)(sBufor + nRozmiarObrazu32bit), nRozmiarObrazu32bit);
+	}
 	return chErr;
 }
 
@@ -313,10 +330,6 @@ uint8_t CzekajNaKoniecPracyDCMI(uint16_t sWysokoscZdjecia)
 		chLicznikTimeoutu--;
 	}
 	while ((sLicznikLiniiKamery <= sWysokoscZdjecia) && chLicznikTimeoutu);
-
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
-
 	chErr = HAL_DCMI_Stop(&hdcmi);
 	if (!chLicznikTimeoutu)
 		chErr = BLAD_TIMEOUT;
@@ -336,8 +349,6 @@ uint8_t ZrobZdjecie(uint16_t* sBufor, uint32_t nRozmiarObrazu32bit)
 	uint8_t chErr;
 	uint8_t chStatusDCMI;
 
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 	chStatusDCMI = HAL_DCMI_GetState(&hdcmi);
 	switch (chStatusDCMI)
 	{
@@ -361,8 +372,6 @@ uint8_t ZrobZdjecie(uint16_t* sBufor, uint32_t nRozmiarObrazu32bit)
 	sLicznikLiniiKamery = 0;
 	sLicznikRamekKamery = 0;
 
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 	//Konfiguracja transferu MDMA z DCMI do pamięci
 	chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBufor, nRozmiarObrazu32bit);
 	return chErr;
@@ -383,13 +392,21 @@ void HAL_DCMI_LineEventCallback(DCMI_HandleTypeDef *hdcmi)
 
 void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
 {
-	sLicznikRamekKamery++;
+	chBladKamery = hdcmi->ErrorCode;	//1=HAL_DCMI_ERROR_OVR, 2=DCMI_ERROR_SYNC, 3=HAL_DCMI_ERROR_TIMEOUT, 4=HAL_DCMI_ERROR_DMA
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 }
 
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
 	chObrazKameryGotowy = 1;
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+	if (chTrybPracyKamery == TPK_OSD)
+	{
+		if (hdma2d.State == HAL_DMA2D_STATE_BUSY)
+			HAL_DMA2D_Abort(&hdma2d);
+		//chTransferDMA2DZakonczony = 0;
+		HAL_DMA2D_BlendingStart_IT(&hdma2d, (uint32_t)chBuforOSD, (uint32_t)sBuforKamerySRAM, (uint32_t)chBuforLCD, stKonfKam.chSzerWy * KROK_ROZDZ_KAM, stKonfKam.chWysWy * KROK_ROZDZ_KAM);
+	}
 }
 
 void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
@@ -397,10 +414,24 @@ void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
 	sLicznikRamekKamery++;
 }
 
+//callback
+void DCMI_DMAXferCplt(struct __DMA_HandleTypeDef * hdma)
+{
+	sLicznikRamekKamery++;
+}
 
+void DCMI_DMAXferHalfCplt(DMA_HandleTypeDef * hdma)
+{
+	sLicznikRamekKamery++;
+}
+
+void DCMI_DMAError(struct __DMA_HandleTypeDef * hdma)
+{
+	sLicznikRamekKamery++;
+}
 
 ////////////////////////////////////////////////////////////////////////////////
-// Zbiera ustawienie wielu rejestrów w jedną z 4 grup w pamięci kamery aby uruchomić je pojedynczym poleceniem w obrębie jednej klatki obrazu
+// Zbiera ustawienie wielu rejestrów w jedną z 4 grup w pamięci kamery aby odpalić je pojedynczym poleceniem w obrębie jednej klatki obrazu
 // Parametry: chNrGrupy - numer grupy rejestrów [0..3]
 //   stListaRejestrow - wskaźnika na tablicę struktur zawierajaca kolejne rejestry do zgrupowania
 //   chLiczbaRejestrow - liczba rejestrów w strukturze do zgrupowania max: ROZMIAR_STRUKTURY_REJESTROW_KAMERY
@@ -981,3 +1012,21 @@ uint8_t WykonajDiagnostykeKamery(stDiagKam_t* stDiagKam)
 	stDiagKam->sRozmiarPio_VTS = (uint16_t)chRej1<<8 | chRej2;
 	return chErr;
 }
+
+
+
+/*///////////////////////////////////////////////////////////////////////////////
+// Przechwytuje obraz kamery w trybie ciagłym
+// Parametry: brak
+// Zwraca: kod błędu HAL
+////////////////////////////////////////////////////////////////////////////////
+uint8_t PrzechwycObrazKamery(st_KonfKam* stKonf)
+{
+	uint8_t chErr;
+	chErr = UstawObrazKamery(stKonf->sSzerokosc, stKonf->sWysokosc, OBR_RGB565, KAM_FILM);		//kolor
+	if (chErr)
+		break;
+	chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, stKonf->sSzerokosc * stKonf->sWysokosc / 2);	//kolor
+	if (chErr)
+		break;
+}*/

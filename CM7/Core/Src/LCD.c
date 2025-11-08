@@ -75,6 +75,9 @@ extern const unsigned short obr_cisnienie[0xFFC];
 extern const unsigned short obr_okregi[0xFFC];
 extern const unsigned short obr_narzedzia[0xFFC];
 extern const unsigned short obr_aparaturaRC[0xFFC];
+extern const unsigned short obr_bmp24[0xFFC];
+extern const unsigned short obr_bmp8[0xFFC];
+
 
 //wygenerowane przez chata GPT
 extern const unsigned short obr_Polaczenie[0xFFC];
@@ -150,6 +153,7 @@ extern uint8_t chZajetoscBuforaWyJpeg;
 extern volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
 uint8_t chTimeout;
 extern stKonfOsd_t stKonfOSD;
+extern volatile uint8_t chTrybPracyKamery;	//steruje co dalej robić z obrazem pozyskanym przez DCMI
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -249,15 +253,15 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 
 struct tmenu stMenuOsd[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Obraz OSD4", 	"Pokazuje obraz OSD 480x320",				TPO_TEST_OSD480,	obr_kamera},
-	{"Obraz OSD3", 	"Pokazuje obraz OSD 320x240",				TPO_TEST_OSD320,	obr_kamera},
-	{"Obraz OSD2", 	"Pokazuje obraz OSD 240x160",				TPO_TEST_OSD240,	obr_kamera},
-	{"O4",		 	"nic",										TPO_OSD4,			obr_kamera},
-	{"Test Blend",	"Test blendera",							TPO_TEST_BLENDERA,	obr_kamera},
-	{"O5",		 	"nic",										TPO_OSD5,			obr_kamera},
-	{"O6",		 	"nic",										TPO_OSD6,			obr_kamera},
-	{"O7",		 	"nic",										TPO_OSD7,			obr_kamera},
-	{"O8",		 	"nic",										TPO_OSD8,			obr_kamera},
+	{"Obraz 480", 	"Pokazuje obraz OSD 480x320",				TPO_TEST_OSD480,	obr_kamera},
+	{"Obraz 320", 	"Pokazuje obraz OSD 320x240",				TPO_TEST_OSD320,	obr_kamera},
+	{"Obraz 240", 	"Pokazuje obraz OSD 240x160",				TPO_TEST_OSD240,	obr_kamera},
+	{"O4",		 	"nic",										TPO_OSD4,			obr_narzedzia},
+	{"Blender",		"Test blendera",							TPO_TEST_BLENDERA,	obr_kamera},
+	{"OSD 480",		"OSD 480x320",								TPO_OSD480,			obr_kamera},
+	{"OSD 320",		"OSD 320x240",								TPO_OSD320,			obr_kamera},
+	{"OSD 240",		"OSD 240x160",								TPO_OSD240,			obr_kamera},
+	{"O8",		 	"nic",										TPO_OSD8,			obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -265,14 +269,13 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wlacz Rej",   "Wlacza rejestrator",   					TPKS_WLACZ_REJ,		obr_kartaSD},
 	{"Wylacz Rej",  "Wylacza rejestrator",   					TPKS_WYLACZ_REJ,	obr_kartaSD},
 	{"Parametry",	"Parametry karty SD",						TPKS_PARAMETRY,		obr_kartaSD},
-	{"TestBmp24R",	"nic  ",									TPKS_4,				obr_dotyk_zolty},
-	{"TestBmp24G",	"nic  ",									TPKS_5,				obr_dotyk_zolty},
+	{"ZapisBin24",	"Zapis bufora LCD 480x320 na karte  ",		TPKS_ZAPISZ_BIN,	obr_bmp8},
+	{"ZapisBMP8",	"Zapis bufora LCD 480x320 na karte  ",		TPKS_ZAPISZ_BMP8,	obr_bmp8},
 	{"Test trans",	"Wyniki pomiaru predkosci transferu",		TPKS_POMIAR, 		obr_multimetr},
-	{"ZapisBin24",	"Zapis bufora wyswietlacza na karte  ",		TPKS_ZAPISZ_BIN,	obr_kartaSD},
-	{"ZapisBMP8",	"Zapis bufora wyswietlacza na karte  ",		TPKS_ZAPISZ_BMP8,	obr_kartaSD},
-	{"ZapisBMP24",	"Zapis bufora wyswietlacza na karte  ",		TPKS_ZAPISZ_BMP24,	obr_kartaSD},
+	{"Bmp24 240",	"Zapis bufora LCD 480x320 na karte  ",		TPKS_ZAP_BMP24_240,	obr_bmp24},
+	{"Bmp24 320",	"Zapis bufora LCD 320x240 na karte  ",		TPKS_ZAP_BMP24_320,	obr_bmp24},
+	{"BMP24 480",	"Zapis bufora LCD 240x180 na karte  ",		TPKS_ZAP_BMP24_480,	obr_bmp24},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
-
 
 struct tmenu stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
@@ -542,7 +545,6 @@ void RysujEkran(void)
 		break;
 
 	case TP_KAMERA:	//ciagła praca kamery z pamięcią SRAM
-		//UstawObrazKameryRGB565(DISP_X_SIZE, DISP_Y_SIZE);
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
 		RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
@@ -603,10 +605,10 @@ void RysujEkran(void)
 			{
 				//KonwersjaCB8doRGB666((uint8_t*)sPodBufor, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
 				KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
-				HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+				//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 #ifdef 	LCD_ILI9488
 				WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
-				HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+				//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 #endif
 				sprintf(chNapis, "Tkompr: %ld us, buf: %d", nCzas, chWskNapBufKam);
 				setColor(ZOLTY);
@@ -819,43 +821,85 @@ void RysujEkran(void)
 			RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla połączone obrazy na LCD
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-				chNowyTrybPracy = TP_WROC_DO_MENU;
+				chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
-	case TPO_TEST_OSD480:
-		stKonfOSD.sSzerokosc = 480;
-		stKonfOSD.sWysokosc = 320;
-		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM, SZARY20);
-		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
-		do
+	case TPO_OSD240:
+	case TPO_OSD320:
+	case TPO_OSD480:	//obraz a rzeczywistym tle
+		extern uint32_t nCzasLCD;
+		if (chTrybPracy == TPO_OSD240)
 		{
-			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
-			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
-			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
+			stKonfOSD.sSzerokosc = 240;
+			stKonfOSD.sWysokosc = 160;
 		}
-		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-			chNowyTrybPracy = TP_WROC_DO_OSD;
-		break;
-
-	case TPO_TEST_OSD320:
-		stKonfOSD.sSzerokosc = 320;
-		stKonfOSD.sWysokosc = 240;
-		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM,  SZARY20);
+		else
+		if (chTrybPracy == TPO_OSD320)
+		{
+			stKonfOSD.sSzerokosc = 320;
+			stKonfOSD.sWysokosc = 240;
+		}
+		else
+		if (chTrybPracy == TPO_OSD480)
+		{
+			stKonfOSD.sSzerokosc = 480;
+			stKonfOSD.sWysokosc = 320;
+		}
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
+		chErr = UstawObrazKamery(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, OBR_RGB565, KAM_FILM);		//kolor
+		if (chErr)
+			break;
+		chTrybPracyKamery = TPK_OSD;
+		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
+		if (chErr)
+			break;
 		do
 		{
+			/*chTimeout = 60;
+			while (!chObrazKameryGotowy && chTimeout)	//synchronizuj się do początku nowej klatki obrazu
+			{
+				osDelay(1);
+				chTimeout--;
+				//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+			}
+			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+			chObrazKameryGotowy = 0;*/
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
+
+			/*nCzasBlend = DWT->CYCCNT;	//start pomiaru
 			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+			nCzasBlend = DWT->CYCCNT - nCzasBlend; //koniec pomiaru*/
+
+			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
+			nCzasLCD = DWT->CYCCNT;	//start pomiaru
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
+			nCzasLCD = DWT->CYCCNT - nCzasLCD; //koniec pomiaru
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 			chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
 	case TPO_TEST_OSD240:
-		stKonfOSD.sSzerokosc = 240;
-		stKonfOSD.sWysokosc = 160;
-		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM,  SZARY20);
+	case TPO_TEST_OSD320:
+	case TPO_TEST_OSD480:	//obraz na testowym tle
+		if (chTrybPracy == TPO_TEST_OSD240)
+		{
+			stKonfOSD.sSzerokosc = 240;
+			stKonfOSD.sWysokosc = 160;
+		}
+		else
+		if (chTrybPracy == TPO_TEST_OSD320)
+		{
+			stKonfOSD.sSzerokosc = 320;
+			stKonfOSD.sWysokosc = 240;
+		}
+		else
+		if (chTrybPracy == TPO_TEST_OSD480)
+		{
+			stKonfOSD.sSzerokosc = 480;
+			stKonfOSD.sWysokosc = 320;
+		}
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM, SZARY20);
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
 		do
 		{
@@ -1126,36 +1170,6 @@ void RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
-	case TPKS_4:
-		for (uint32_t y=0; y<DISP_Y_SIZE; y++)
-		{
-			for (uint32_t x=0; x<DISP_X_SIZE; x++)
-			{
-				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 0] = 0xFF;	//R
-				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 1] = 0;
-				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 2] = 0;
-			}
-		}
-		chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
-		chTrybPracy = chWrocDoTrybu;
-		chNowyTrybPracy = TP_WROC_DO_KARTA;
-		break;
-
-	case TPKS_5:
-		for (uint32_t y=0; y<DISP_Y_SIZE; y++)
-		{
-			for (uint32_t x=0; x<DISP_X_SIZE; x++)
-			{
-				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 0] = 0;	//R
-				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 1] = 0xFF;
-				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 2] = 0;
-			}
-		}
-		chErr = ZapiszPlikBin(chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
-		chTrybPracy = chWrocDoTrybu;
-		chNowyTrybPracy = TP_WROC_DO_KARTA;
-		break;
-
 	case TPKS_ZAPISZ_BIN:	chErr = ZapiszPlikBin(chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
 		chTrybPracy = chWrocDoTrybu;
 		chNowyTrybPracy = TP_WROC_DO_KARTA;
@@ -1166,7 +1180,17 @@ void RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
-	case TPKS_ZAPISZ_BMP24:	chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
+	case TPKS_ZAP_BMP24_480:	chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
+		chTrybPracy = chWrocDoTrybu;
+		chNowyTrybPracy = TP_WROC_DO_KARTA;
+		break;
+
+	case TPKS_ZAP_BMP24_320:	chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, 320, 240);
+		chTrybPracy = chWrocDoTrybu;
+		chNowyTrybPracy = TP_WROC_DO_KARTA;
+		break;
+
+	case TPKS_ZAP_BMP24_240:	chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, 240, 160);
 		chTrybPracy = chWrocDoTrybu;
 		chNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;

@@ -33,10 +33,17 @@
 #define KOLOSD_NIEB2	0x077F
 #define KOLOSD_NIEB3	0x0CCF
 #define KOLOSD_ZOLTY	0x0FF0
-#define KOLOSD_ZOLT1	0x0FF3
-#define KOLOSD_ZOLT2	0x0FF7
+#define KOLOSD_ZOLTY1	0x0FF3
+#define KOLOSD_ZOLTY2	0x0FF7
+#define KOLOSD_ZOLTY3	0x0FFC
 #define KOLOSD_CYJAN	0x00FF
+#define KOLOSD_CYJAN1	0x03FF
+#define KOLOSD_CYJAN2	0x07FF
+#define KOLOSD_CYJAN3	0x0CFF
 #define KOLOSD_MAGENTA	0x0F0F
+#define KOLOSD_MAGEN1	0x0F3F
+#define KOLOSD_MAGEN2	0x0F7F
+#define KOLOSD_MAGEN3	0x0FCF
 
 //definicje poziomu przezroczystości
 #define PRZEZR_0		0xF000
@@ -123,6 +130,9 @@ typedef struct st_KonfOsd
 	//obiekty diagnostyczne
 	stObiektOsd_t stCzasWyp;	//czas wypełniania ekranu tłem
 	stObiektOsd_t stCzasRys;	//czas rysowania całego ekranu
+	stObiektOsd_t stCzasBlend;	//czas blendowania
+	stObiektOsd_t stCzasLCD;	//czas rysowania na LCD
+
 	stObiektOsd_t stCzasHor;	//czas rysowania horyzontu
 	stObiektOsd_t stCzasPiW;	//czas rysowania wysokości i prędkosci
 	stObiektOsd_t stCzasDaty;	//czas rysowania daty
