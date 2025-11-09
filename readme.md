@@ -44,7 +44,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 ![RC](obrazki/statystyki_internet.jpg)
 - Uruchomiono DMA2D z funkcją blendera
 - Podstawowa wersja OSD działająca na żywo na obrazie kamery lub jako sama nakładka na szarym tle 
-![OSD](obrazki/zdj_20251107_215444.bmp) 
+![OSD](obrazki/zdj_20251109_081718.bmp) 
 
 
 

@@ -37,37 +37,43 @@ uint8_t InicjujOSD(void)
 	uint8_t chErr = BLAD_OK;
 
 	//wstępna konfiguracja. Właściwa będzie kiedyś odczytana z pamieci konfiguracji
-	stKonfOSD.stHoryzont.sKolorObiektu = KOLOSD_CZER1 + PRZEZR_50;	//czerwony 50% przezroczystości
+	stKonfOSD.stHoryzont.sKolorObiektu = KOLOSD_CZER0 + PRZEZR_50;	//czerwony 50% przezroczystości
+	stKonfOSD.stHoryzont.sKolorJasny = KOLOSD_CZER2 + PRZEZR_50;
+	stKonfOSD.stHoryzont.sKolorCiemny = KOLOSD_CZER8 + PRZEZR_50;
 	//stKonfOSD.stHoryzont.sKolorTla = KOLOSD_CZER3 + PRZEZR_75;
 	stKonfOSD.stHoryzont.sPozycjaX = POZ_SRODEK;
 	stKonfOSD.stHoryzont.sPozycjaY = POZ_SRODEK;
 	stKonfOSD.stHoryzont.chFlagi = FO_WIDOCZNY;
 
-	stKonfOSD.stPredWys.sKolorObiektu = KOLOSD_NIEB1 + PRZEZR_50;	//niebieski 50% przezroczystości
+	stKonfOSD.stPredWys.sKolorObiektu = KOLOSD_NIEB0 + PRZEZR_50;	//niebieski 50% przezroczystości
 	stKonfOSD.stPredWys.sKolorJasny =  KOLOSD_NIEB2 + PRZEZR_50;
-	stKonfOSD.stPredWys.sKolorCiemny = KOLOSD_NIEBIES + PRZEZR_50;
+	stKonfOSD.stPredWys.sKolorCiemny = KOLOSD_NIEB8 + PRZEZR_50;
 	//stKonfOSD.stPredWys.sKolorTla = KOLOSD_NIEB3 + PRZEZR_75;
 	stKonfOSD.stPredWys.chFlagi = FO_WIDOCZNY;
 
 	//współzędne geograficzne
-	stKonfOSD.stSzerGeo.sKolorObiektu = KOLOSD_ZIELONY + PRZEZR_50;
+	stKonfOSD.stSzerGeo.sKolorObiektu = KOLOSD_ZIEL0 + PRZEZR_50;
 	stKonfOSD.stSzerGeo.sKolorTla = KOLOSD_ZIEL3 + PRZEZR_75;
 	stKonfOSD.stSzerGeo.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stSzerGeo.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stSzerGeo.sPozycjaY = POZ_DOL1;
 
 	stKonfOSD.stDlugGeo.sKolorObiektu = KOLOSD_ZIEL1 + PRZEZR_50;
-	stKonfOSD.stDlugGeo.sKolorTla = KOLOSD_ZOLTY + PRZEZR_75;
+	stKonfOSD.stDlugGeo.sKolorTla = KOLOSD_ZOLTY0 + PRZEZR_75;
 	stKonfOSD.stDlugGeo.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stDlugGeo.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stDlugGeo.sPozycjaY = POZ_DOL2;
 
-	stKonfOSD.stData.sKolorObiektu = KOLOSD_ZOLTY + PRZEZR_50;
+	stKonfOSD.stData.sKolorObiektu = KOLOSD_ZOLTY0 + PRZEZR_50;
+	stKonfOSD.stData.sKolorCiemny = KOLOSD_ZOLTY9 + PRZEZR_50;
+	stKonfOSD.stData.sKolorJasny = KOLOSD_ZOLTY1 + PRZEZR_50;
 	stKonfOSD.stData.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stData.sPozycjaX = POZ_PRAWO2;
 	stKonfOSD.stData.sPozycjaY = POZ_DOL1;
 
-	stKonfOSD.stCzas.sKolorObiektu = KOLOSD_CYJAN + PRZEZR_50;
+	stKonfOSD.stCzas.sKolorObiektu = KOLOSD_CYJAN0 + PRZEZR_50;
+	stKonfOSD.stCzas.sKolorCiemny = KOLOSD_CYJAN8 + PRZEZR_50;
+	stKonfOSD.stCzas.sKolorJasny = KOLOSD_CYJAN2 + PRZEZR_50;
 	stKonfOSD.stCzas.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzas.sPozycjaX = POZ_PRAWO1;
 	stKonfOSD.stCzas.sPozycjaY = POZ_DOL1;
@@ -263,7 +269,7 @@ void RysujTestoweOSD(void)
 	//zwiększaj przezroczystość w połnej skali 16 kroków
 	for (uint8_t n=0; n<16; n++)
 	{
-		sKolor = KOLOSD_CZERWONY | n << 12;	//czerwony
+		sKolor = KOLOSD_CZER0 | n << 12;	//czerwony
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 0, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 		sKolor = KOLOSD_CZER1 | n << 12;	//czerwony
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 5, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
@@ -272,7 +278,7 @@ void RysujTestoweOSD(void)
 		sKolor = KOLOSD_CZER3 | n << 12;	//czerwony
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 15, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
-		sKolor = KOLOSD_ZIELONY | n << 12;	//zielony
+		sKolor = KOLOSD_ZIEL0 | n << 12;	//zielony
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 20, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 		sKolor = KOLOSD_ZIEL1 | n << 12;	//zielony
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 25, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
@@ -281,7 +287,7 @@ void RysujTestoweOSD(void)
 		sKolor = KOLOSD_ZIEL3 | n << 12;	//zielony
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 35, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
-		sKolor = KOLOSD_NIEBIES | n << 12;	//niebieski
+		sKolor = KOLOSD_NIEB0 | n << 12;	//niebieski
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 40, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 		sKolor = KOLOSD_NIEB1 | n << 12;	//niebieski
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 45, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
@@ -290,7 +296,7 @@ void RysujTestoweOSD(void)
 		sKolor = KOLOSD_NIEB3 | n << 12;	//niebieski
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 55, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
-		sKolor = KOLOSD_CYJAN | n << 12;	//cyjan
+		sKolor = KOLOSD_CYJAN0 | n << 12;	//cyjan
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 60, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 		sKolor = KOLOSD_CYJAN1 | n << 12;	//cyjan
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 65, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
@@ -299,7 +305,7 @@ void RysujTestoweOSD(void)
 		sKolor = KOLOSD_CYJAN3 | n << 12;	//cyjan
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 75, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
-		sKolor = KOLOSD_MAGENTA | n << 12;	//magenta
+		sKolor = KOLOSD_MAGEN0 | n << 12;	//magenta
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 80, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 		sKolor = KOLOSD_MAGEN1 | n << 12;	//magenta
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 85, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
@@ -308,7 +314,7 @@ void RysujTestoweOSD(void)
 		sKolor = KOLOSD_MAGEN3 | n << 12;	//magenta
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 95, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
-		sKolor = KOLOSD_ZOLTY | n << 12;	//żółty
+		sKolor = KOLOSD_ZOLTY0 | n << 12;	//żółty
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 100, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 		sKolor = KOLOSD_ZOLTY1 | n << 12;	//żółty
 		RysujProstokatWypelnionywBuforze(n * DISP_X_SIZE/16, 105, DISP_X_SIZE/16, 5, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
@@ -368,10 +374,10 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	if (stKonf->stHoryzont.chFlagi & FO_WIDOCZNY)
 	{
 		//rysuj poprzedni horyzont kolorem przezroczystym
-		RysujHoryzont(stKonf, stKonf->stHoryzont.fPoprzWartosc1, stKonf->stHoryzont.fPoprzWartosc2, PRZEZR_100);
+		RysujHoryzont(stKonf, stKonf->stHoryzont.fPoprzWartosc1, stKonf->stHoryzont.fPoprzWartosc2, PRZEZR_100, PRZEZR_100, PRZEZR_100);
 
 		//rysuj bieżący horyzont właściwym kolorem
-		RysujHoryzont(stKonf, stDane->fKatIMU1[POCH], stDane->fKatIMU1[PRZE], stKonf->stHoryzont.sKolorObiektu);
+		RysujHoryzont(stKonf, stDane->fKatIMU1[POCH], stDane->fKatIMU1[PRZE], stKonf->stHoryzont.sKolorObiektu, stKonf->stHoryzont.sKolorJasny, stKonf->stHoryzont.sKolorCiemny);
 	}
 
 	//czas rysowania horyzontu
@@ -391,13 +397,13 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		sKolor = stKonf->stPredWys.sKolorObiektu;
 		sKolJasny = stKonf->stPredWys.sKolorJasny;
 		sKolCiemny = stKonf->stPredWys.sKolorCiemny;
-		//linia skali prędkosci
+		//linia skali prędkosci z lewej strony
 		x = stKonf->sSzerokosc * PIW_SZER_PROC / 100;
 		y1 = stKonf->sWysokosc * (100 - PIW_WYS_PROC) / 200;
 		y2 = stKonf->sWysokosc - y1;
-		RysujLiniewBuforze(x, y1, x, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-		RysujLiniewBuforze(x+1, y1, x+1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
-		RysujLiniewBuforze(x-1, y1, x-1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x+2, y1, x+2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x, y1, x, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x+1, y1, x+1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 		sprintf(chNapisOSD, "%.3d", (uint16_t)(stDane->fPredkosc[0]));
 
 		x1 = x - 5 * OSD_CZCION_SZER;
@@ -409,35 +415,62 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		x2 = x - PIW_DYST_NAPISU;
 		y1 = stKonf->sWysokosc / 2 - OSD_CZCION_WYS / 2 - PIW_ODL_RAMKI;
 		y2 = stKonf->sWysokosc / 2 + OSD_CZCION_WYS / 2 + PIW_ODL_RAMKI;
+		RysujLiniePoziomawBuforze(x1+1, x2, y1-1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniePoziomawBuforze(x1-1, x2, y1+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
 		RysujLiniePoziomawBuforze(x1, x2, y1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//góra
+
+		RysujLiniePoziomawBuforze(x1+1, x2, y2-1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniePoziomawBuforze(x1-1, x2, y2+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
 		RysujLiniePoziomawBuforze(x1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//dół
+
+		RysujLiniewBuforze(x2, y1-1, x, (stKonf->sWysokosc / 2)-1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x2, y1+1, x, (stKonf->sWysokosc / 2)+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
 		RysujLiniewBuforze(x2, y1, x, stKonf->sWysokosc / 2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);	//ostrze góra
+
+		RysujLiniewBuforze(x2, y2-1, x, (stKonf->sWysokosc / 2)-1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x2, y2+1, x, (stKonf->sWysokosc / 2)+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
 		RysujLiniewBuforze(x2, y2, x, stKonf->sWysokosc / 2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);	//ostrze dół
+
+		RysujLiniePionowawBuforze(x1+1, y1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniePionowawBuforze(x1-1, y1+1, y2+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
 		RysujLiniePionowawBuforze(x1, y1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//tył strzałki
 
-		//linia skali wysokości
+		//linia skali wysokości z prawej strony
 		x = stKonf->sSzerokosc - x;
 		y1 = stKonf->sWysokosc * (100 - PIW_WYS_PROC) / 200;
 		y2 = stKonf->sWysokosc - y1;
-		RysujLiniewBuforze(x, y1, x, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
-		RysujLiniewBuforze(x+1, y1, x+1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
-		RysujLiniewBuforze(x-1, y1, x-1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x, y1, x, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x-2, y1, x-2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x-1, y1, x-1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
 
 		sprintf(chNapisOSD, "%.3d", (uint16_t)(stDane->fWysokoMSL[0]));
 		x1 = x + 2 * OSD_CZCION_SZER;
 		RysujNapiswBuforze(chNapisOSD, x1, y-PIW_KOR_WYS_CZC, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, (uint8_t*)&stKonf->stPredWys.sKolorTla, ROZMIAR_KOLORU_OSD);
 
 		//rysuj strzałkę dookoła pomiaru wysokości
-		//x1 = x + 2 * OSD_CZCION_SZER;
-		//x2 = x + 6 * OSD_CZCION_SZER + PIW_ODL_RAMKI;
 		x1 = x + PIW_DYST_NAPISU;
 		x2 = x + PIW_DYST_NAPISU + PIW_ZNAK_STRZAL * OSD_CZCION_SZER + PIW_ODL_RAMKI;
 		y1 = stKonf->sWysokosc / 2 - OSD_CZCION_WYS / 2 - PIW_ODL_RAMKI;
 		y2 = stKonf->sWysokosc / 2 + OSD_CZCION_WYS / 2 + PIW_ODL_RAMKI;
+
+		RysujLiniePoziomawBuforze(x1, x2+1, y1-1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniePoziomawBuforze(x1, x2, y1+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
 		RysujLiniePoziomawBuforze(x1, x2, y1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//góra
+
+		RysujLiniePoziomawBuforze(x1, x2+1, y2-1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniePoziomawBuforze(x1+1, x2, y2+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
 		RysujLiniePoziomawBuforze(x1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//dół
+
+		RysujLiniewBuforze(x, (stKonf->sWysokosc / 2)-1, x1, y1-1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x, (stKonf->sWysokosc / 2)+1, x1, y1+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
 		RysujLiniewBuforze(x, stKonf->sWysokosc / 2, x1, y1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);	//ostrze góra
+
+		RysujLiniewBuforze(x, (stKonf->sWysokosc / 2)-1, x1, y2-1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniewBuforze(x, (stKonf->sWysokosc / 2)+1, x1, y2+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
 		RysujLiniewBuforze(x, stKonf->sWysokosc / 2, x1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);	//ostrze dół
+
+		RysujLiniePionowawBuforze(x2+1, y1-1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolJasny, ROZMIAR_KOLORU_OSD);
+		RysujLiniePionowawBuforze(x2-1, y1+1, y2+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolCiemny, ROZMIAR_KOLORU_OSD);
 		RysujLiniePionowawBuforze(x2, y1, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);					//tył strzałki
 	}
 
@@ -589,7 +622,7 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 //	sKolor - kolor obiektu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujHoryzont(stKonfOsd_t *stKonf, float fPochylenie, float fPrzechylenie, uint16_t sKolor)
+void RysujHoryzont(stKonfOsd_t *stKonf, float fPochylenie, float fPrzechylenie, uint16_t sKolor, uint16_t sKolorJasny, uint16_t sKolorCiemny)
 {
 	int16_t sXprzechyl, sYprzechyl;	//korekta położenia końców belki wynikająca z przechylenia
 	int16_t sXSrodkaBelki, sYSrodkaBelki;
@@ -616,7 +649,9 @@ void RysujHoryzont(stKonfOsd_t *stKonf, float fPochylenie, float fPrzechylenie, 
 	y1 = y2 = stKonf->sWysokosc / 2 + sWysPochylenia;
 	y1 += sYprzechyl;
 	y2 -= sYprzechyl;
+	RysujLiniewBuforze(x1+1, y1-1, x2+1, y2-1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolorJasny, ROZMIAR_KOLORU_OSD);
 	RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujLiniewBuforze(x1-1, y1+1, x2-1, y2+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolorCiemny, ROZMIAR_KOLORU_OSD);
 
 	//belki krótsze dla kolejnych 10°
 	sDlugoscPolowyBelki = stKonf->sSzerokosc * HOR_SZER10_PROC / 200;
@@ -636,7 +671,10 @@ void RysujHoryzont(stKonfOsd_t *stKonf, float fPochylenie, float fPrzechylenie, 
 	y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
 	y1 += sYprzechyl;
 	y2 -= sYprzechyl;
+	//RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujLiniewBuforze(x1+1, y1-1, x2+1, y2-1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolorJasny, ROZMIAR_KOLORU_OSD);
 	RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujLiniewBuforze(x1-1, y1+1, x2-1, y2+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolorCiemny, ROZMIAR_KOLORU_OSD);
 
 	//belka +10°, policz współrzędne końca krótszej belki
 	sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (fPochylenie - Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
@@ -649,7 +687,11 @@ void RysujHoryzont(stKonfOsd_t *stKonf, float fPochylenie, float fPrzechylenie, 
 	y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
 	y1 += sYprzechyl;
 	y2 -= sYprzechyl;
+	//RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujLiniewBuforze(x1+1, y1-1, x2+1, y2-1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolorJasny, ROZMIAR_KOLORU_OSD);
 	RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujLiniewBuforze(x1-1, y1+1, x2-1, y2+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolorCiemny, ROZMIAR_KOLORU_OSD);
+
 
 	//belka -10°
 	sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (fPochylenie + Deg2Rad(10)) / Deg2Rad(HOR_SKALA_POCH));
@@ -662,7 +704,11 @@ void RysujHoryzont(stKonfOsd_t *stKonf, float fPochylenie, float fPrzechylenie, 
 	y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
 	y1 += sYprzechyl;
 	y2 -= sYprzechyl;
+	//RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujLiniewBuforze(x1+1, y1-1, x2+1, y2-1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolorJasny, ROZMIAR_KOLORU_OSD);
 	RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujLiniewBuforze(x1-1, y1+1, x2-1, y2+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolorCiemny, ROZMIAR_KOLORU_OSD);
+
 
 	//belka -20°
 	sWysPochylenia = (int16_t)(sWysokoscPolowyOkna * (fPochylenie + Deg2Rad(20)) / Deg2Rad(HOR_SKALA_POCH));
@@ -675,7 +721,11 @@ void RysujHoryzont(stKonfOsd_t *stKonf, float fPochylenie, float fPrzechylenie, 
 	y1 = y2 = stKonf->sWysokosc / 2 + sYSrodkaBelki;	//część wspólna obu współrzędnych
 	y1 += sYprzechyl;
 	y2 -= sYprzechyl;
+	//RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujLiniewBuforze(x1+1, y1-1, x2+1, y2-1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolorJasny, ROZMIAR_KOLORU_OSD);
 	RysujLiniewBuforze(x1, y1, x2, y2, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolor, ROZMIAR_KOLORU_OSD);
+	RysujLiniewBuforze(x1-1, y1+1, x2-1, y2+1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&sKolorCiemny, ROZMIAR_KOLORU_OSD);
+
 }
 
 

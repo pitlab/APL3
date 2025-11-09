@@ -20,30 +20,48 @@
 #define KOLOSD_SZARY50	0x0777
 #define KOLOSD_SZARY25	0x0333
 #define KOLOSD_BIALY	0x0FFF
-#define KOLOSD_CZERWONY	0x0F00
-#define KOLOSD_CZER1	0x0F33
-#define KOLOSD_CZER2	0x0F77
-#define KOLOSD_CZER3	0x0FCC
-#define KOLOSD_ZIELONY	0x00F0
+#define KOLOSD_CZER0	0x0F00		//pełen kolor
+#define KOLOSD_CZER1	0x0F33		//pełen kolor + 1/4 jasności
+#define KOLOSD_CZER2	0x0F77		//pełen kolor + 1/2 jasności
+#define KOLOSD_CZER3	0x0FCC		//pełen kolor + 3/4 jasności
+#define KOLOSD_CZER9	0x0C00		//3/4 koloru
+#define KOLOSD_CZER8	0x0700		//1/2 koloru
+#define KOLOSD_CZER7	0x0300		//1/4 koloru
+#define KOLOSD_ZIEL0	0x00F0
 #define KOLOSD_ZIEL1	0x03F3
 #define KOLOSD_ZIEL2	0x07F7
 #define KOLOSD_ZIEL3	0x0CFC
-#define KOLOSD_NIEBIES	0x000F
+#define KOLOSD_ZIEL9	0x00C0
+#define KOLOSD_ZIEL8	0x0070
+#define KOLOSD_ZIEL7	0x0030
+#define KOLOSD_NIEB0	0x000F
 #define KOLOSD_NIEB1	0x033F
 #define KOLOSD_NIEB2	0x077F
 #define KOLOSD_NIEB3	0x0CCF
-#define KOLOSD_ZOLTY	0x0FF0
+#define KOLOSD_NIEB9	0x000C
+#define KOLOSD_NIEB8	0x0007
+#define KOLOSD_NIEB7	0x0003
+#define KOLOSD_ZOLTY0	0x0FF0
 #define KOLOSD_ZOLTY1	0x0FF3
 #define KOLOSD_ZOLTY2	0x0FF7
 #define KOLOSD_ZOLTY3	0x0FFC
-#define KOLOSD_CYJAN	0x00FF
-#define KOLOSD_CYJAN1	0x03FF
-#define KOLOSD_CYJAN2	0x07FF
-#define KOLOSD_CYJAN3	0x0CFF
-#define KOLOSD_MAGENTA	0x0F0F
+#define KOLOSD_ZOLTY9	0x0CC0
+#define KOLOSD_ZOLTY8	0x0770
+#define KOLOSD_ZOLTY7	0x0330
+#define KOLOSD_CYJAN0	0x00FF		//pełen kolor
+#define KOLOSD_CYJAN1	0x03FF		//pełen kolor + 1/4 jasności
+#define KOLOSD_CYJAN2	0x07FF		//pełen kolor + 1/2 jasności
+#define KOLOSD_CYJAN3	0x0CFF		//pełen kolor + 3/4 jasności
+#define KOLOSD_CYJAN9	0x00CC		//3/4 koloru
+#define KOLOSD_CYJAN8	0x0077		//1/2 koloru
+#define KOLOSD_CYJAN7	0x0033		//1/4 koloru
+#define KOLOSD_MAGEN0	0x0F0F
 #define KOLOSD_MAGEN1	0x0F3F
 #define KOLOSD_MAGEN2	0x0F7F
 #define KOLOSD_MAGEN3	0x0FCF
+#define KOLOSD_MAGEN9	0x0C0C
+#define KOLOSD_MAGEN8	0x0707
+#define KOLOSD_MAGEN7	0x0303
 
 //definicje poziomu przezroczystości
 #define PRZEZR_0		0xF000
@@ -89,7 +107,7 @@
 #define PIW_SZER_PROC	20		//Prędkość i Wysokość - pionowa skala jest w tylu procentach ekranu od brzegów
 #define PIW_WYS_PROC	40		//wysokość pola w którym są widoczne pionowe skale prędkosci i wysokosci
 #define PIW_ZNAK_STRZAL	4		//liczba znaków mieszczących się w strzałce (wysokość 4 cyfrowa)
-#define PIW_DYST_NAPISU	12		//odległość między osią a napisem, miejsce na ostrze strzałki
+#define PIW_DYST_NAPISU	16		//odległość między osią a napisem, miejsce na ostrze strzałki
 
 //struktura obiektów ekranowych OSD
 typedef struct
@@ -109,6 +127,8 @@ typedef struct
 	uint16_t sPozycjaX;		//położenie poziome (bezwzględne w pikselach lub stała okreslająca położenie wzgledne)
 	uint16_t sPozycjaY;		//położenie pionowe
 	uint16_t sKolorObiektu;	//ARGB4444
+	uint16_t sKolorJasny;	//ARGB4444 Kolor jasnej obwiedni
+	uint16_t sKolorCiemny;	//ARGB4444 Kolor ciemnej obwiedni
 	uint16_t sKolorTla;		//ARGB4444
 	float fPoprzWartosc1;	//wartość poprzednia 1 potrzebna do określenia potrzeby przerysowania obiektu
 	float fPoprzWartosc2;	//wartość poprzednia 2
@@ -129,6 +149,7 @@ typedef struct st_KonfOsd
 	stObiektOsd_t stNapiBat;	//napięcie baterii
 	stObiektOsd_t stPradBat;	//prad pobierany z baterii
 	stObiektOsd_t stEnerBat;	//energia baterii: pobrana lub pozostała
+	//stObiektOsd_t stLogo;		//logo producenta
 	//obiekty diagnostyczne
 	stObiektOsd_t stCzasWyp;	//czas wypełniania ekranu tłem
 	stObiektOsd_t stCzasRys;	//czas rysowania całego ekranu
@@ -156,7 +177,8 @@ void XferCpltCallback(DMA2D_HandleTypeDef *hdma2d);
 void XferErrorCallback(DMA2D_HandleTypeDef *hdma2d);
 void RysujTestoweOSD();
 void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane);
-void RysujHoryzont(stKonfOsd_t *stKonf, float fPochylenie, float fPrzechylenie, uint16_t sKolor);
+//void RysujHoryzont(stKonfOsd_t *stKonf, float fPochylenie, float fPrzechylenie, uint16_t sKolor);
+void RysujHoryzont(stKonfOsd_t *stKonf, float fPochylenie, float fPrzechylenie, uint16_t sKolor, uint16_t sKolorJasny, uint16_t sKolorCiemny);
 void PobierzPozycjeObiektu(stObiektOsd_t *stObiekt, stKonfOsd_t *stKonf, prostokat_t *stWspolrzedne);
 
 float Deg2Rad(float stopnie);
