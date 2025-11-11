@@ -40,7 +40,8 @@
 #define TPK_OSD		1		//dane RGB565 z kamery idą przez DMA2D do bufora LCD
 
 //konfiguracja kamery
-typedef struct st_KonfKam
+//typedef struct st_KonfKam
+typedef struct
 {
 	uint8_t chSzerWe;			//szerokość patrzenia przetwornika obrazu / KROK_ROZDZ_KAM
 	uint8_t chWysWe;			//wysokość patrzenia przetwornika obrazu / KROK_ROZDZ_KAM
@@ -96,7 +97,7 @@ uint8_t Czytaj_I2C_Kamera(uint16_t rejestr, uint8_t *dane);
 uint8_t	SprawdzKamere(void);
 uint8_t UstawKamere(stKonfKam_t *konf);
 uint8_t UstawKamere2(stKonfKam_t *konf);
-uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor, uint32_t nRozmiarObrazu32bit);
+uint8_t RozpocznijPraceDCMI(stKonfKam_t *konfig, uint16_t* sBufor, uint32_t nRozmiarObrazu32bit);
 //uint8_t CzekajNaKoniecPracyDCMI(void);
 uint8_t CzekajNaKoniecPracyDCMI(uint16_t sWysokoscZdjecia);
 uint8_t ZrobZdjecie(uint16_t* sBufor, uint32_t nRozmiarObrazu32bit);

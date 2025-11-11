@@ -26,6 +26,7 @@ extern RTC_DateTypeDef sDate;
 extern const char *chNazwyMies3Lit[13];
 uint16_t LicznikLiniiCzyszczeniaOSD;
 uint32_t nCzasBlend, nCzasLCD;
+uint8_t chBuforYCbCr[DISP_X_SIZE / 2 * 4 * 6 ];	//bufor na dane pośrednie przy kompresji obrazu RGB
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjuje zasoby używane przez OSD

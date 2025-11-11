@@ -19,7 +19,7 @@ extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
 extern char __attribute__ ((aligned (32))) chBufPodreczny[40];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[];
-extern struct st_KonfKam stKonfKam;
+extern stKonfKam_t stKonfKam;
 
 //uint8_t chBuforWiersza[DISP_X_SIZE * 3 * 2];	//bufor na 2 wiersze
 

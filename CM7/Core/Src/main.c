@@ -1697,6 +1697,8 @@ void WatekRejestratora(void const * argument)
 					{
 						ObslugaZapisuJpeg();
 					}
+					else
+						osDelay(1);
 				}
 				else
 				if (chStatusRejestratora & STATREJ_ZAPISZ_BMP)

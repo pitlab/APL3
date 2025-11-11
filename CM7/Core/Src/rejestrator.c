@@ -10,6 +10,7 @@
 #include "bsp_driver_sd.h"
 #include "moduly_SPI.h"
 #include "wymiana.h"
+#include "kamera.h"
 #include "ff_gen_drv.h"
 #include "sd_diskio.h"
 #include <string.h>
@@ -53,7 +54,7 @@ extern JPEG_HandleTypeDef hjpeg;
 extern const uint8_t chNaglJpegSOI[ROZMIAR_NAGL_JPEG];
 extern const uint8_t chNaglJpegEOI[ROZMIAR_ZNACZ_xOI];	//EOI (End Of Image)
 extern const uint8_t chNaglJpegExif[ROZMIAR_EXIF];
-
+extern stKonfKam_t stKonfKam;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Zwraca obecność karty w gnieździe. Wymaga wcześniejszego odczytania stanu expanderów I/O, ktore czytane są w każdym obiegu pętli StartDefaultTask()
@@ -1136,8 +1137,10 @@ void ObslugaZapisuJpeg(void)
 		{
 			chStatusBufJpeg &= ~STAT_JPG_OTWORZ;	//skasuj flagę potwierdzając otwarcie pliku do zapisu
 			chStatusBufJpeg |= STAT_JPG_OTWARTY;
-			fres  = f_write(&SDJpegFile, chNaglJpegSOI, ROZMIAR_NAGL_JPEG, &nZapisanoBajtow);				//nagłówej Jpeg
-			fres |= f_write(&SDJpegFile, chNaglJpegExif, sizeof(chNaglJpegExif), &nZapisanoBajtow);		//exif
+			//fres  = f_write(&SDJpegFile, chNaglJpegSOI, ROZMIAR_NAGL_JPEG, &nZapisanoBajtow);		//nagłówek Jpeg
+			nZapisanoBajtow = PrzygotujExif(&stKonfKam, &uDaneCM4.dane, sDate, sTime);
+			fres |= f_write(&SDJpegFile, chNaglJpegExif, nZapisanoBajtow, &nZapisanoBajtow);		//exif
+			fres  = f_write(&SDJpegFile, chNaglJpegSOI, ROZMIAR_NAGL_JPEG, &nZapisanoBajtow);		//nagłówek Jpeg
 		}
 		else
 			chStatusRejestratora &= ~STATREJ_FAT_GOTOWY;	//wymuś ponowną inicjalizację karty

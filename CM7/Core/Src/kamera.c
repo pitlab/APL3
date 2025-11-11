@@ -40,8 +40,10 @@
 
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[SZER_ZDJECIA * WYS_ZDJECIA / 2] = {0};
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};
-struct st_KonfKam stKonfKam;
-static struct st_KonfKam stPoprzKonfig;	//zmienna lokalna
+//struct st_KonfKam stKonfKam;
+//static struct st_KonfKam stPoprzKonfig;	//zmienna lokalna
+stKonfKam_t stKonfKam;
+static stKonfKam_t stPoprzKonfig;
 struct sensor_reg stListaRejestrow[ROZMIAR_STRUKTURY_REJESTROW_KAMERY];
 volatile uint16_t sLicznikLiniiKamery;
 volatile uint16_t sLicznikRamekKamery;
@@ -268,7 +270,7 @@ uint8_t	SprawdzKamere(void)
 // Parametry: chAparat - 1 = KAM_ZDJECIE, tryb pojedyńczego zdjęcia, 0 = KAM_FILM, tryb filmu
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor, uint32_t nRozmiarObrazu32bit)
+uint8_t RozpocznijPraceDCMI(stKonfKam_t* konfig, uint16_t* sBufor, uint32_t nRozmiarObrazu32bit)
 {
 	uint8_t chErr;
 	//uint32_t nRozmiarObrazu32bit;
@@ -276,7 +278,7 @@ uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor, uint32_t nRozm
 	//konfiguracja DMA do DCMI
 	hdma_dcmi.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
 	hdma_dcmi.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-	if (konfig.chTrybPracy == KAM_ZDJECIE)
+	if (konfig->chTrybPracy == KAM_ZDJECIE)
 		hdma_dcmi.Init.Mode = DMA_NORMAL;
 	else
 		hdma_dcmi.Init.Mode = DMA_CIRCULAR;
@@ -293,15 +295,12 @@ uint8_t RozpocznijPraceDCMI(stKonfKam_t konfig, uint16_t* sBufor, uint32_t nRozm
 	HAL_DMA_RegisterCallback(&hdma_dcmi, HAL_DMA_XFER_HALFCPLT_CB_ID, &DCMI_DMAXferHalfCplt);
 	HAL_DMA_RegisterCallback(&hdma_dcmi, HAL_DMA_XFER_HALFCPLT_CB_ID, &DCMI_DMAError);
 
-
-
-
 	//bez względu na format danych RGB565 lub YCbCr, kamera zwraca tą samą liczbę danych: 16 bitów na piksel
 	//nRozmiarObrazu32bit = (konfig.chSzerWy * KROK_ROZDZ_KAM) * (konfig.chWysWy * KROK_ROZDZ_KAM) / 2;
 	chObrazKameryGotowy = 0;	//flaga jest ustawiana w callbacku: HAL_DCMI_FrameEventCallback
 
 	//Konfiguracja transferu DMA z DCMI do pamięci
-	if (konfig.chTrybPracy == KAM_ZDJECIE)		//KAM_ZDJECIE=1 lub KAM_FILM=0
+	if (konfig->chTrybPracy == KAM_ZDJECIE)		//KAM_ZDJECIE=1 lub KAM_FILM=0
 		chErr = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)sBufor, nRozmiarObrazu32bit);
 	else
 	{

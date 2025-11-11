@@ -232,7 +232,7 @@ void WatekStreamujacyRTP(void *arg)
     uint8_t chRozmiarNaglowka;
     uint8_t* chDaneJpeg = NULL;
     uint8_t chRozmiarTablicyKwantyzcji;	//64 (mono)lub 128 bajtów (kolor)
-    extern struct st_KonfKam stKonfKam;
+    extern stKonfKam_t stKonfKam;
 
     while (chTrwaStreamRTP)
     {

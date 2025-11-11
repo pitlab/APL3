@@ -9,7 +9,9 @@
 #include "jpeg.h"
 #include "cmsis_os.h"
 #include "ff.h"
+#include "czas.h"
 #include "rejestrator.h"
+#include "analiza_obrazu.h"
 
 extern JPEG_HandleTypeDef hjpeg;
 extern MDMA_HandleTypeDef hmdma_jpeg_outfifo_th;
@@ -27,8 +29,17 @@ volatile uint8_t chZatrzymanoWe, chZatrzymanoWy;
 volatile uint8_t chZajetoscBuforaWyJpeg;	//liczba buforów
 volatile uint16_t sZajetoscBuforaWeJpeg, sZajetoscBuforaWyJpeg;		//liczba bajtów w buforach
 extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+extern RTC_TimeTypeDef sTime;
+extern RTC_DateTypeDef sDate;
+uint8_t chNaglJpegExif[ROZMIAR_EXIF] = {
+		0xFF, 0xE1,             // APP1 marker
+		0x00, 0x2A,             // Rozmiar (42 bajty)
+		'E','x','i','f',0x00,0x00,
+		// TIFF header (little endian)
+		'I','I',0x2A,0x00,      // "II" = Intel, 0x2A00 = magic
+		0x08,0x00,0x00,0x00};    // offset do IFD0
 const uint8_t chNaglJpegSOI[ROZMIAR_NAGL_JPEG] = {
-		    0xFF, 0xD8, 	//SIOI (Start Of Image)
+		    0xFF, 0xD8, 	//SOI (Start Of Image)
 		    0xFF, 0xE0, 	// APPlication0 (JFIF)
 			0x00, 0x10, 	// rozmiar: 16
 			'J', 'F', 'I', 'F', 0x00, // Identyfikator
@@ -169,26 +180,7 @@ static const uint8_t chNaglJpeg_480x320_yuv420[] = {
 	0x00, 0x3F, 0x00   // spectral selection
 };*/
 
-const uint8_t chNaglJpegExif[ROZMIAR_EXIF] =
-{
-	0xFF, 0xE1,             // APP1 marker
-	0x00, 0x2A,             // Rozmiar (42 bajty)
-	'E','x','i','f',0x00,0x00,
-	// TIFF header (little endian)
-	'I','I',0x2A,0x00,      // "II" = Intel, 0x2A00 = magic
-	0x08,0x00,0x00,0x00,    // offset do IFD0
-	// IFD0 (Image File Directory)
-	0x01,0x00,              // liczba tagów = 1
-	// Tag 0x0131 = Software
-	0x31,0x01,              // Tag ID (Software)
-	0x02,0x00,              // Typ ASCII
-	0x07,0x00,0x00,0x00,    // Długość stringu
-	0x1A,0x00,0x00,0x00,    // Offset do wartości
-	0x00,0x00,0x00,0x00,    // offset do IFD1 = 0 (koniec)
-	'A','P','L','v',
-	'0' + WER_GLOWNA,'.',
-	'0' + WER_PODRZ, 0x00,
-};
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizacja kompresji sprzętowej
@@ -778,6 +770,58 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Kompresuj obraz RGB888 z pośrednią konwersja na YUV420 do buforaYCbCr
+// Parametry:
+// [we] *obrazRGB888 - wskaźnik na bufor z obrazem wejściowym
+// [wy] *buforYCbCr - wskaźnik na bufor obrazu pośredniego o rozmiarze: (sSzerokosc / 2) * 4 * 6
+// [wy] *chDaneSkompresowane - wskaźnik na bufor danych skompresowanych
+// [we] sSzerokosc, sWysokosc - rozmiary obrazu. Muszą być podzielne przez 8
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDaneSkompresowane, uint16_t sSzerokosc, uint16_t sWysokosc)
+{
+	uint8_t chErr;
+	uint8_t chIloscWierszyPionowo = sWysokosc / 8;
+
+	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_420_SUBSAMPLING, 60);
+	if (chErr)
+	{
+		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
+			HAL_JPEG_Abort(&hjpeg);
+		return chErr;
+	}
+
+	chWskNapBufJpeg = 0;
+	nRozmiarObrazuJPEG = 0;
+	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
+
+	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
+	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
+
+	//formowanie MCU z 8 wierszy obrazu
+	for (uint8_t y=0; y<chIloscWierszyPionowo; y++)
+	{
+		KonwersjaRGB888doYCbCr420((obrazRGB888 + y * sSzerokosc * 8 * 3), buforYCbCr, sSzerokosc);
+
+		//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
+		chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
+		if (hjpeg.State == HAL_JPEG_STATE_READY)
+		{
+			HAL_JPEG_ConfigInputBuffer(&hjpeg, buforYCbCr, ROZMIAR_MCU420 * sSzerokosc / 8);	//przekaż bufor z nowymi danymi
+			chErr = HAL_JPEG_Encode_DMA(&hjpeg, buforYCbCr, ROZMIAR_MCU420 * sSzerokosc / 8, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+		}
+		else
+			chErr = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wzów kompresję
+
+		if (chStatusBufJpeg & STAT_JPG_OTWORZ)
+			osDelay(5);	//daj czas na otwarcie pliku
+	}
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Znajduje położenie danych za znacznikiem w skompresowanych danych JPEG
 // Parametry:
 // [we] *chDaneSkompresowane - wskaźnik na skompresowane dane wejsciowe
@@ -801,3 +845,135 @@ uint8_t* ZnajdzZnacznikJpeg(uint8_t *chDaneSkompresowane, uint8_t chZnacznik)
 	}
 	return chPoczatek;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Buduje strukturę bloku Exif do umieszczenia w pliku jpeg
+// Pierwszych 18 bajtów jest już ustawionych, trzeba wstawić kolejne tagi
+// Parametry:
+// [we] *stKonf - wskaźnik na konfigurację kamery
+// [we] *stDane - wskaźnik na dane autopilota
+// Zwraca: rozmiar struktury
+////////////////////////////////////////////////////////////////////////////////
+uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC_DateTypeDef stData, RTC_TimeTypeDef stCzas)
+{
+	uint32_t nRozmiar;
+	uint8_t chBufor[25];
+	uint8_t* chWskaznikTAG;
+	uint8_t* chAdresDanych;
+
+	chNaglJpegExif[0] = 0xFF;	//SOI
+	chNaglJpegExif[1] = 0xD8;
+	chNaglJpegExif[2] = 0xFF;	//APP1
+	chNaglJpegExif[3] = 0xE1;
+	chNaglJpegExif[4] = 0x00;	// Rozmiar (192 bajty)
+	chNaglJpegExif[5] = 0xC0;
+	chNaglJpegExif[6] = 'E';
+	chNaglJpegExif[7] = 'x';
+	chNaglJpegExif[8] = 'i';
+	chNaglJpegExif[9] = 'f';
+	chNaglJpegExif[10] = 0x00;
+	chNaglJpegExif[11] = 0x00;
+
+	// TIFF header (little endian)
+	chNaglJpegExif[12] = 'I';
+	chNaglJpegExif[13] = 'I';
+	chNaglJpegExif[14] = 0x2A;		// "II" = Intel, 0x2A00 = magic
+	chNaglJpegExif[15] = 0x00;
+	chNaglJpegExif[16] = 0x08;
+	chNaglJpegExif[17] = 0x00;
+	chNaglJpegExif[18] = 0x00;
+	chNaglJpegExif[19] = 0x00;    // offset do IFD0
+
+	//IFD0
+	chWskaznikTAG = (uint8_t*)chNaglJpegExif + 20;	//adres miejsca gdzie zapisać kolejny TAG
+	chAdresDanych = chWskaznikTAG + LICZBA_TAGOW_EXIF * ROZMIAR_TAGU_EXIF;	//adres gdzie zapisać dane
+
+	chBufor[0] = (uint8_t)((stKonf->chSzerWy * KROK_ROZDZ_KAM) >> 8);
+	chBufor[1] = (uint8_t)(stKonf->chSzerWy * KROK_ROZDZ_KAM);
+	PrzygotujTag(&chWskaznikTAG, EXTAG_IMAGE_WIDTH, EXIF_TYPE_SHORT, chBufor, 2, &chAdresDanych);
+
+	chBufor[0] = (uint8_t)((stKonf->chWysWy * KROK_ROZDZ_KAM) >> 8);
+	chBufor[1] = (uint8_t)(stKonf->chWysWy * KROK_ROZDZ_KAM);
+	PrzygotujTag(&chWskaznikTAG, EXTAG_IMAGE_HEIGHT, EXIF_TYPE_SHORT, chBufor, 2, &chAdresDanych);
+
+	chBufor[0] = 0;
+	chBufor[1] = 8;
+	PrzygotujTag(&chWskaznikTAG, EXTAG_BITS_PER_SAMPLE, EXIF_TYPE_SHORT, chBufor, 2, &chAdresDanych);
+
+	chBufor[0] = 0;	//punkt (0,0) jest: 1=LGR, 2PGR, 3=DGR, 4=DLR,
+	chBufor[1] = 1;	//obrócone rząd z kolumną: 5=LGR, 6=PGR, 7=DPR, 8=DLR
+	PrzygotujTag(&chWskaznikTAG, EXTAG_ORIENTATION, EXIF_TYPE_SHORT, chBufor, 2, &chAdresDanych);
+
+	chBufor[0] = 0;	//[2,1]=YCbCr422
+	chBufor[1] = 2;	//[2,2]=YCbCr420
+	chBufor[2] = 0;
+	chBufor[3] = 2;
+	PrzygotujTag(&chWskaznikTAG, EXTAG_YCBCR_SUBSAMPL, EXIF_TYPE_SHORT, chBufor, 4, &chAdresDanych);
+
+	chBufor[0] = 0;
+	chBufor[1] = 24;
+	chBufor[2] = 0;
+	chBufor[3] = 2;
+	PrzygotujTag(&chWskaznikTAG, EXTAG_OFFSET2JPEG_SOI, EXIF_TYPE_LONG, chBufor, 4, &chAdresDanych);
+
+	chBufor[0] = nRozmiarObrazuJPEG>>24;
+	chBufor[1] = nRozmiarObrazuJPEG>>16;
+	chBufor[2] = nRozmiarObrazuJPEG>>8;
+	chBufor[3] = nRozmiarObrazuJPEG;
+	PrzygotujTag(&chWskaznikTAG, EXTAG_BYTES_JPEG_DATA, EXIF_TYPE_LONG, chBufor, 4, &chAdresDanych);
+
+	nRozmiar = sprintf((char*)chBufor, "%4d:%02d:%02d %02d:%02d:%02d", stData.Year + 2000, stData.Month, stData.Date, stCzas.Hours, stCzas.Minutes, stCzas.Seconds);
+	PrzygotujTag(&chWskaznikTAG, EXTAG_DATE_TIME, EXIF_TYPE_ASCII, chBufor, nRozmiar, &chAdresDanych);
+
+	nRozmiar = sprintf((char*)chBufor, "PitLab ");
+	PrzygotujTag(&chWskaznikTAG, EXTAG_IMAGE_INPUT_MANUF, EXIF_TYPE_ASCII, chBufor, nRozmiar, &chAdresDanych);
+
+	nRozmiar = sprintf((char*)chBufor, "APLv%d.%d ",WER_GLOWNA,  WER_PODRZ);
+	PrzygotujTag(&chWskaznikTAG, EXTAG_EQUIPMENT_MODEL, EXIF_TYPE_ASCII, chBufor, nRozmiar, &chAdresDanych);
+
+	nRozmiar = chAdresDanych - (uint8_t*)chNaglJpegExif;	//rozmiar to różnica wskaźników początku i końca danych
+	return nRozmiar;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Buduje strukturę tagu w Exif. Rozmiar TAG-a to 12 bajtów
+// Pierwsze 2 bajty to identyfikator, koleje 2 to typ danych, kolejne 4 bajty to rozmiar, kolejne 4 to offset danych
+// Parametry:
+// [wy] *nTag - wskaźnik wskaźnik na budowany TAG
+// [we] sID - identyfikator TAG-u
+// [we] sTyp - typ danych
+// [we] *chDane wskaźnik na dane
+// [we] chRozmiar - rozmiar danych wyrażony w bajtach
+// [we] nOffset - offset do danych począwszy od nagłówka TIFF
+// Zwraca: rozmiar struktury
+////////////////////////////////////////////////////////////////////////////////
+void PrzygotujTag(uint8_t** chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *chDane, uint8_t chRozmiar, uint8_t** chWskDanych)
+{
+	uint32_t nOffset = *chWskDanych - *chWskTaga;
+
+	*(*chWskTaga + 0) = (uint8_t)sTagID;
+	*(*chWskTaga + 1) = (uint8_t)sTagID >> 8;
+	*(*chWskTaga + 2) = (uint8_t)sTyp;
+	*(*chWskTaga + 3) = (uint8_t)sTyp >> 8;
+	*(*chWskTaga + 4) = chRozmiar >> 1;	//rozmiar ma być wyrażony w słowach 16-bit
+	*(*chWskTaga + 5) = 0;
+	*(*chWskTaga + 6) = 0;
+	*(*chWskTaga + 7) = 0;
+	*(*chWskTaga + 8)  = (uint8_t)nOffset;			//Offset od początku nagłówka TIFF do miejsca gdzie dane są zapisane
+	*(*chWskTaga + 9)  = (uint8_t)nOffset >> 8;
+	*(*chWskTaga + 10) = (uint8_t)nOffset >> 16;
+	*(*chWskTaga + 11) = (uint8_t)nOffset >> 24;
+
+	for (uint8_t n=0; n<chRozmiar; n++)
+		*(*chWskDanych + n) = *(chDane + n);
+
+	*chWskDanych += chRozmiar;
+	*chWskTaga += ROZMIAR_TAGU_EXIF;	//wskaż na adres następnego tagu
+}
+
+
+

@@ -29,7 +29,7 @@ static un8_16_t un8_16;
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
-extern struct st_KonfKam stKonfKam;
+extern stKonfKam_t stKonfKam;
 extern uint16_t sOkresTelemetrii[MAX_INDEKSOW_TELEMETR_W_RAMCE];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 extern  uint8_t chPolecenie;
 extern  uint8_t chRozmDanych;

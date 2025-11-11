@@ -138,7 +138,7 @@ extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZe
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM];
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
-extern struct st_KonfKam stKonfKam;
+extern stKonfKam_t stKonfKam;
 extern uint32_t nRozmiarObrazuKamery;
 extern stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ROZM_BUF_WY_JPEG];
@@ -155,7 +155,7 @@ uint8_t chTimeout;
 extern stKonfOsd_t stKonfOSD;
 extern volatile uint8_t chTrybPracyKamery;	//steruje co dalej robić z obrazem pozyskanym przez DCMI
 extern uint32_t nCzasBlend, nCzasLCD;
-
+extern uint8_t chBuforYCbCr[DISP_X_SIZE / 2 * 4 * 6 ];	//bufor na dane pośrednie przy kompresji obrazu RGB
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -356,7 +356,7 @@ void RysujEkran(void)
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);		//kolor
 		if (chErr)
 			break;
-		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//kolor
+		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//kolor
 		if (chErr)
 			break;
 		do
@@ -548,7 +548,7 @@ void RysujEkran(void)
 
 	case TP_KAMERA:	//ciagła praca kamery z pamięcią SRAM
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
-		RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
+		RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
 			KonwersjaRGB565doRGB666(sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
@@ -563,7 +563,7 @@ void RysujEkran(void)
 	case TP_KAM_DRAM:	//ciagła praca kamery z pamięcią DRAM
 		//UstawObrazKameryRGB565(DISP_X_SIZE, DISP_Y_SIZE);
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
-		RozpocznijPraceDCMI(stKonfKam, sBuforKameryDRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
+		RozpocznijPraceDCMI(&stKonfKam, sBuforKameryDRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
 			KonwersjaRGB565doRGB666(sBuforKameryDRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
@@ -582,7 +582,7 @@ void RysujEkran(void)
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_FILM);
 		if (chErr)
 			break;
-		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 4);
+		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 4);
 		if (chErr)
 			break;
 		do
@@ -629,7 +629,7 @@ void RysujEkran(void)
 			break;
 		do
 		{
-			chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2 * 3);
+			chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2 * 3);
 			if (chErr)
 				break;
 			chErr = CzekajNaKoniecPracyDCMI(DISP_Y_SIZE);
@@ -799,7 +799,7 @@ void RysujEkran(void)
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);		//kolor
 		if (chErr)
 			break;
-		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//kolor
+		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//kolor
 		//chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 4);		//CB
 		if (chErr)
 			break;
@@ -851,7 +851,7 @@ void RysujEkran(void)
 		if (chErr)
 			break;
 		chTrybPracyKamery = TPK_OSD;
-		chErr = RozpocznijPraceDCMI(stKonfKam, sBuforKamerySRAM, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
+		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
 		if (chErr)
 			break;
 		do
@@ -916,6 +916,12 @@ void RysujEkran(void)
 			chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
+	case TPO_OSD8:		//kompresja jpeg obrazu OSD
+		for (uint32_t n=0; n<480/2*4*6; n++)
+			*(chBuforYCbCr + n) = 0;
+		KompresujRGB888(chBuforLCD, chBuforYCbCr, chBuforJpeg, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+		chNowyTrybPracy = TP_WROC_DO_OSD;
+		break;
 
 	//*** Ethernet ************************************************
 	case TP_ETHERNET:
