@@ -127,27 +127,28 @@ void KonwersjaRGB888doYCbCr420(uint8_t *obrazRGB888, uint8_t *obrazYCbCr, uint16
 
 	for (uint8_t b=0; b<chLiczbaBlokow; b++)
 	{
-		for (uint8_t y=0; y<4; y++)
+		for (uint8_t y=0; y<4; y++)	//pętla po 2 wierszach
 		{
 			sOffsetBloku = (y * chLiczbaBlokow + b) * 16 * 3;
 			sOffsetWyj = (y * chLiczbaBlokow + b) * 24;
-			for (uint8_t x=0; x<4; x++)
+			for (uint8_t x=0; x<4; x++)	//pętla po 2 kolumnach
 			{
 				sOfssetWiersza = 6 * x;
-				chR1 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 0 );
+				chR1 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 0 );		//2 górne piksele MCU
 				chG1 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 1 );
 				chB1 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 2 );
 				chR2 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 3 );
 				chG2 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 4 );
 				chB2 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 5 );
 				sOfssetWiersza = chLiczbaBlokow * 24 + 6 * x;
-				chR3 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 0 );
+				chR3 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 0 );		//2 dolne piksele MCU
 				chG3 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 1 );
 				chB3 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 2 );
 				chR4 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 3 );
 				chG4 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 4 );
 				chB4 = *(obrazRGB888 + sOffsetBloku + sOfssetWiersza + 5 );
 
+				//Formowanie MCU
 				/*nCzas = DWT->CYCCNT;
 				//
 				chY1 = 0.299 * chR1 + 0.587 * chG1 + 0.114 * chB1;	//354 cykle maszynowe - Oficjalna wersja
@@ -156,22 +157,22 @@ void KonwersjaRGB888doYCbCr420(uint8_t *obrazRGB888, uint8_t *obrazYCbCr, uint16
 				nCzas = DWT->CYCCNT;
 				chY1 = ((uint16_t)chR1 * 77 +  (uint16_t)chG1 * 150 +  (uint16_t)chB1 * 29) >> 8;	//255 cykli
 				nCzas = DWT->CYCCNT - nCzas;
-				*(obrazYCbCr + sOffsetWyj + 4*x + 0) = chY1;
+				*(obrazYCbCr + sOffsetWyj + 6*x + 0) = chY1;
 
 				chY2 = ((uint16_t)chR2 * 77 +  (uint16_t)chG2 * 150 +  (uint16_t)chB2 * 29) >> 8;
-				*(obrazYCbCr + sOffsetWyj + 4*x + 1) = chY2;
+				*(obrazYCbCr + sOffsetWyj + 6*x + 1) = chY2;
 
 				chY3 = ((uint16_t)chR3 * 77 +  (uint16_t)chG3 * 150 +  (uint16_t)chB3 * 29) >> 8;
-				*(obrazYCbCr + sOffsetWyj + 4*x + 2) = chY3;
+				*(obrazYCbCr + sOffsetWyj + 6*x + 2) = chY3;
 
 				chY4 = ((uint16_t)chR4 * 77 +  (uint16_t)chG4 * 150 +  (uint16_t)chB4 * 29) >> 8;
-				*(obrazYCbCr + sOffsetWyj + 4*x + 3) = chY4;
+				*(obrazYCbCr + sOffsetWyj + 6*x + 3) = chY4;
 
 				chCb = ((int8_t)chR1 * (-43) + (int8_t)chG1 * (-84)  + (int8_t)chB1 * (127) + 128) >> 8;
-				*(obrazYCbCr + sOffsetWyj + 4*x + 4) = chCb;
+				*(obrazYCbCr + sOffsetWyj + 6*x + 4) = chCb;
 
 				chCr = ((int8_t)chR1 * (127) + (int8_t)chG1 * (-106) + (int8_t)chB1 * (-21) + 128) >> 8;	//284 cykle
-				*(obrazYCbCr + sOffsetWyj + 4*x + 5) = chCr;
+				*(obrazYCbCr + sOffsetWyj + 6*x + 5) = chCr;
 			}
 		}
 	}

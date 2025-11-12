@@ -208,7 +208,7 @@ static const uint8_t chNaglJpeg_480x320_yuv420[] = {
 // Parametry: sSzerokosc, sWysokosc - rozmiary kompresowanego obrazu
 // chTypKoloru - stała definiująca przestrzeń kolorów dla sprzętowego enkodera
 // chJakoscObrazu - współczynnik z zakresu 0..100 okreslający jakość kompresji
-// Zwraca: nic
+// Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KonfigurujKompresjeJpeg(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chTypKoloru, uint8_t chTypChrominancji, uint8_t chJakoscObrazu)
 {
@@ -782,8 +782,9 @@ uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDa
 {
 	uint8_t chErr;
 	uint8_t chIloscWierszyPionowo = sWysokosc / 8;
+	uint8_t chDaneDoKompresji;
 
-	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_420_SUBSAMPLING, 60);
+	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_420_SUBSAMPLING, 80);
 	if (chErr)
 	{
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
@@ -801,21 +802,37 @@ uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDa
 	//formowanie MCU z 8 wierszy obrazu
 	for (uint8_t y=0; y<chIloscWierszyPionowo; y++)
 	{
-		KonwersjaRGB888doYCbCr420((obrazRGB888 + y * sSzerokosc * 8 * 3), buforYCbCr, sSzerokosc);
+		KonwersjaRGB888doYCbCr420((obrazRGB888 + y * sSzerokosc * 8 * 3), buforYCbCr, sSzerokosc);	//8 wierszy po 3 składowe na koloru na piksel
 
 		//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
 		chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
-		if (hjpeg.State == HAL_JPEG_STATE_READY)
+		chDaneDoKompresji = 1;	//są dane do kompresji
+		do
 		{
-			HAL_JPEG_ConfigInputBuffer(&hjpeg, buforYCbCr, ROZMIAR_MCU420 * sSzerokosc / 8);	//przekaż bufor z nowymi danymi
-			chErr = HAL_JPEG_Encode_DMA(&hjpeg, buforYCbCr, ROZMIAR_MCU420 * sSzerokosc / 8, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
-		}
-		else
-			chErr = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wzów kompresję
+			if (hjpeg.State == HAL_JPEG_STATE_READY)
+			{
+				HAL_JPEG_ConfigInputBuffer(&hjpeg, buforYCbCr, ROZMIAR_MCU420 * sSzerokosc / 8);	//przekaż bufor z nowymi danymi
+				chErr = HAL_JPEG_Encode_DMA(&hjpeg, buforYCbCr, ROZMIAR_MCU420 * sSzerokosc / 8, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+				chDaneDoKompresji = 0;
+			}
+			else
+			{
+				if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
+					osDelay(5);
 
-		if (chStatusBufJpeg & STAT_JPG_OTWORZ)
-			osDelay(5);	//daj czas na otwarcie pliku
+				if (chZatrzymanoWe)
+				{
+					chErr = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję
+					chZatrzymanoWe = 0;
+				}
+			}
+
+			if (chStatusBufJpeg & STAT_JPG_OTWORZ)
+				osDelay(5);	//daj czas na otwarcie pliku
+		}
+		while (chDaneDoKompresji && !chErr);	//pracuj dotąd aż przygotowane dane zostaną pobrane przez kompresor lub wystąpi błąd
 	}
+	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	return chErr;
 }
 
@@ -877,14 +894,14 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chNaglJpegExif[11] = 0x00;
 
 	// TIFF header (little endian)
-	chNaglJpegExif[12] = 'I';
+	chNaglJpegExif[12] = 'I';		//"II" = Intel - określa porządek bajtów
 	chNaglJpegExif[13] = 'I';
-	chNaglJpegExif[14] = 0x2A;		// "II" = Intel, 0x2A00 = magic
+	chNaglJpegExif[14] = 0x2A;		//0x2A00 = magic
 	chNaglJpegExif[15] = 0x00;
-	chNaglJpegExif[16] = 0x08;
+	chNaglJpegExif[16] = 0x08;		// offset do IFD0
 	chNaglJpegExif[17] = 0x00;
 	chNaglJpegExif[18] = 0x00;
-	chNaglJpegExif[19] = 0x00;    // offset do IFD0
+	chNaglJpegExif[19] = 0x00;
 
 	//IFD0
 	chWskaznikTAG = (uint8_t*)chNaglJpegExif + 20;	//adres miejsca gdzie zapisać kolejny TAG
@@ -902,15 +919,18 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[1] = 8;
 	PrzygotujTag(&chWskaznikTAG, EXTAG_BITS_PER_SAMPLE, EXIF_TYPE_SHORT, chBufor, 2, &chAdresDanych);
 
+	nRozmiar = sprintf((char*)chBufor, "PitLab ");
+	PrzygotujTag(&chWskaznikTAG, EXTAG_IMAGE_INPUT_MANUF, EXIF_TYPE_ASCII, chBufor, nRozmiar, &chAdresDanych);
+
+	nRozmiar = sprintf((char*)chBufor, "APLv%d.%d ",WER_GLOWNA,  WER_PODRZ);
+	PrzygotujTag(&chWskaznikTAG, EXTAG_EQUIPMENT_MODEL, EXIF_TYPE_ASCII, chBufor, nRozmiar, &chAdresDanych);
+
 	chBufor[0] = 0;	//punkt (0,0) jest: 1=LGR, 2PGR, 3=DGR, 4=DLR,
 	chBufor[1] = 1;	//obrócone rząd z kolumną: 5=LGR, 6=PGR, 7=DPR, 8=DLR
 	PrzygotujTag(&chWskaznikTAG, EXTAG_ORIENTATION, EXIF_TYPE_SHORT, chBufor, 2, &chAdresDanych);
 
-	chBufor[0] = 0;	//[2,1]=YCbCr422
-	chBufor[1] = 2;	//[2,2]=YCbCr420
-	chBufor[2] = 0;
-	chBufor[3] = 2;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_YCBCR_SUBSAMPL, EXIF_TYPE_SHORT, chBufor, 4, &chAdresDanych);
+	nRozmiar = sprintf((char*)chBufor, "%4d:%02d:%02d %02d:%02d:%02d", stData.Year + 2000, stData.Month, stData.Date, stCzas.Hours, stCzas.Minutes, stCzas.Seconds);
+	PrzygotujTag(&chWskaznikTAG, EXTAG_DATE_TIME, EXIF_TYPE_ASCII, chBufor, nRozmiar, &chAdresDanych);
 
 	chBufor[0] = 0;
 	chBufor[1] = 24;
@@ -924,14 +944,11 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[3] = nRozmiarObrazuJPEG;
 	PrzygotujTag(&chWskaznikTAG, EXTAG_BYTES_JPEG_DATA, EXIF_TYPE_LONG, chBufor, 4, &chAdresDanych);
 
-	nRozmiar = sprintf((char*)chBufor, "%4d:%02d:%02d %02d:%02d:%02d", stData.Year + 2000, stData.Month, stData.Date, stCzas.Hours, stCzas.Minutes, stCzas.Seconds);
-	PrzygotujTag(&chWskaznikTAG, EXTAG_DATE_TIME, EXIF_TYPE_ASCII, chBufor, nRozmiar, &chAdresDanych);
-
-	nRozmiar = sprintf((char*)chBufor, "PitLab ");
-	PrzygotujTag(&chWskaznikTAG, EXTAG_IMAGE_INPUT_MANUF, EXIF_TYPE_ASCII, chBufor, nRozmiar, &chAdresDanych);
-
-	nRozmiar = sprintf((char*)chBufor, "APLv%d.%d ",WER_GLOWNA,  WER_PODRZ);
-	PrzygotujTag(&chWskaznikTAG, EXTAG_EQUIPMENT_MODEL, EXIF_TYPE_ASCII, chBufor, nRozmiar, &chAdresDanych);
+	chBufor[0] = 0;	//[2,1]=YCbCr422
+	chBufor[1] = 2;	//[2,2]=YCbCr420
+	chBufor[2] = 0;
+	chBufor[3] = 2;
+	PrzygotujTag(&chWskaznikTAG, EXTAG_YCBCR_SUBSAMPL, EXIF_TYPE_SHORT, chBufor, 4, &chAdresDanych);
 
 	nRozmiar = chAdresDanych - (uint8_t*)chNaglJpegExif;	//rozmiar to różnica wskaźników początku i końca danych
 	return nRozmiar;

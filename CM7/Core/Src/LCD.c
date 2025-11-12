@@ -917,6 +917,8 @@ void RysujEkran(void)
 		break;
 
 	case TPO_OSD8:		//kompresja jpeg obrazu OSD
+		sprintf((char*)chNazwaPlikuObr, "OSDYUV420");	//początek nazwy pliku ze zdjeciem
+		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 		for (uint32_t n=0; n<480/2*4*6; n++)
 			*(chBuforYCbCr + n) = 0;
 		KompresujRGB888(chBuforLCD, chBuforYCbCr, chBuforJpeg, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
