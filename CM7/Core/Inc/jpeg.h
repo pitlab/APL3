@@ -19,7 +19,8 @@
 #define SZEROKOSC_BLOKU		8
 #define WYSOKOSC_BLOKU		8
 #define ROZMIAR_BLOKU		(SZEROKOSC_BLOKU * WYSOKOSC_BLOKU)
-#define ROZMIAR_MCU420		(6 * ROZMIAR_BLOKU / 4)
+#define ROZMIAR_MCU422		(4 * ROZMIAR_BLOKU)
+#define ROZMIAR_MCU420		(6 * ROZMIAR_BLOKU)
 #define ILOSC_BUF_WE_MCU	12		//liczba podzielna przez 6 (UVY420), przez 4(UVY422), przez 3 (UVY444) i przez 1 (Y8)
 //#define MASKA_BUF_MCU		0x07	//maska do przycinania wskaźnika buforów
 

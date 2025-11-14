@@ -770,7 +770,7 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Kompresuj obraz RGB888 z pośrednią konwersja na YUV420 do buforaYCbCr
+// Kompresuj obraz RGB888 z pośrednią konwersja na YUV422 do buforaYCbCr
 // Parametry:
 // [we] *obrazRGB888 - wskaźnik na bufor z obrazem wejściowym
 // [wy] *buforYCbCr - wskaźnik na bufor obrazu pośredniego o rozmiarze: (sSzerokosc / 2) * 4 * 6
@@ -784,7 +784,7 @@ uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDa
 	uint8_t chIloscWierszyPionowo = sWysokosc / 8;
 	uint8_t chDaneDoKompresji;
 
-	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_420_SUBSAMPLING, 80);
+	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_422_SUBSAMPLING, 80);
 	if (chErr)
 	{
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
@@ -799,10 +799,10 @@ uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDa
 	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
 	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
 
-	//formowanie MCU z 8 wierszy obrazu
+	//formowanie MCU z 8 wierszy obrazu tworzących rząd bloków 8x8
 	for (uint8_t y=0; y<chIloscWierszyPionowo; y++)
 	{
-		KonwersjaRGB888doYCbCr420((obrazRGB888 + y * sSzerokosc * 8 * 3), buforYCbCr, sSzerokosc);	//8 wierszy po 3 składowe na koloru na piksel
+		KonwersjaRGB888doYCbCr422((obrazRGB888 + y * sSzerokosc * 8 * 3), buforYCbCr, sSzerokosc);	//8 wierszy po 3 składowe na koloru na piksel
 
 		//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
 		chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
@@ -811,8 +811,8 @@ uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDa
 		{
 			if (hjpeg.State == HAL_JPEG_STATE_READY)
 			{
-				HAL_JPEG_ConfigInputBuffer(&hjpeg, buforYCbCr, ROZMIAR_MCU420 * sSzerokosc / 8);	//przekaż bufor z nowymi danymi
-				chErr = HAL_JPEG_Encode_DMA(&hjpeg, buforYCbCr, ROZMIAR_MCU420 * sSzerokosc / 8, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+				HAL_JPEG_ConfigInputBuffer(&hjpeg, buforYCbCr, ROZMIAR_MCU422 * sSzerokosc / 16);	//przekaż bufor z nowymi danymi
+				chErr = HAL_JPEG_Encode_DMA(&hjpeg, buforYCbCr, ROZMIAR_MCU422 * sSzerokosc / 16, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
 				chDaneDoKompresji = 0;
 			}
 			else

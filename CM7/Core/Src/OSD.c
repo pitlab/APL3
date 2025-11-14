@@ -11,11 +11,13 @@
 #include "LCD_mem.h"
 #include "cmsis_os.h"
 #include <math.h>
+#include "jpeg.h"
 #include "czas.h"
 
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * ROZMIAR_KOLORU_OSD];	//pamięć obrazu OSD
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[SZER_ZDJECIA * WYS_ZDJECIA / 2];
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chBuforYCbCr[DISP_X_SIZE / 16 * ROZMIAR_MCU420];	//bufor na dane pośrednie przy kompresji obrazu RGB, pracuje z DMA, musi być wyrównany do 32 bitów
 extern DMA2D_HandleTypeDef hdma2d;
 static char chNapisOSD[60];
 static uint8_t chTransferDMA2DZakonczony;
@@ -26,7 +28,6 @@ extern RTC_DateTypeDef sDate;
 extern const char *chNazwyMies3Lit[13];
 uint16_t LicznikLiniiCzyszczeniaOSD;
 uint32_t nCzasBlend, nCzasLCD;
-uint8_t __attribute__ ((aligned (32))) chBuforYCbCr[DISP_X_SIZE / 2 * 4 * 6 ];	//bufor na dane pośrednie przy kompresji obrazu RGB, pracuje z DMA, musi być wyrównany do 32 bitów
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjuje zasoby używane przez OSD
