@@ -118,48 +118,43 @@ void KonwersjaRGB565doRGB666(uint16_t *obrazRG565, uint8_t *obrazRGB666, uint32_
 ////////////////////////////////////////////////////////////////////////////////
 void KonwersjaRGB888doYCbCr422(uint8_t *obrazRGB888, uint8_t *obrazYCbCr, uint16_t sSzerokosc)
 {
-	uint16_t sOffsetWiersza, sOffsetBloku, sOffsetWyjscia;
-	uint8_t chLiczbaBlokow = sSzerokosc / 8;
+	uint32_t nOffsetWiersza, nOffsetBloku;
+	uint32_t nOfsetWe, nOffsetWyjscia;
+	uint16_t chLiczbaParBlokow = sSzerokosc / 16;
 	uint8_t chR1, chG1, chB1, chR2, chG2, chB2;
-	uint8_t chY1, chY2, chCb, chCr;
-	//uint32_t nCzas;
+	int16_t sY1, sY2, sCb, sCr;
 
-	StartPomiaruCykli();
-
-	for (uint8_t b=0; b<chLiczbaBlokow/2; b++)	//petla po połowie bloków na szerokosci obrazu
+	for (uint8_t b=0; b<chLiczbaParBlokow; b++)	//petla po połowie bloków na szerokosci obrazu
 	{
-		sOffsetWiersza = b * 2 * ROZMIAR_BLOKU;
+		nOffsetBloku = 2 * b * 24;
 		for (uint8_t y=0; y<8; y++)				//pętla po wierszach
 		{
+			nOffsetWiersza = y * sSzerokosc * 3;
 			for (uint8_t x=0; x<8; x++)			//pętla po  kolumnach
 			{
-				sOffsetBloku = y * 24 + x * 3;
-				chR1 = *(obrazRGB888 + sOffsetWiersza + sOffsetBloku + 0 );		//piksele bloku parzystego
-				chG1 = *(obrazRGB888 + sOffsetWiersza + sOffsetBloku + 1 );
-				chB1 = *(obrazRGB888 + sOffsetWiersza + sOffsetBloku + 2 );
+				nOfsetWe = nOffsetWiersza + nOffsetBloku + 3 * x;
+				chR1 = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku lewego
+				chG1 = *(obrazRGB888 + nOfsetWe + 1);
+				chB1 = *(obrazRGB888 + nOfsetWe + 2);
 
-				sOffsetBloku += 3 * ROZMIAR_BLOKU;
-				chR2 = *(obrazRGB888 + sOffsetWiersza + sOffsetBloku + 0 );		//piksele bloku nieparzystego
-				chG2 = *(obrazRGB888 + sOffsetWiersza + sOffsetBloku + 1 );
-				chB2 = *(obrazRGB888 + sOffsetWiersza + sOffsetBloku + 2 );
+				nOfsetWe += 24;
+				chR2 = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku prawego
+				chG2 = *(obrazRGB888 + nOfsetWe + 1);
+				chB2 = *(obrazRGB888 + nOfsetWe + 2);
 
 				//Formowanie MCU
-				sOffsetWyjscia = b * 4 * ROZMIAR_BLOKU +  y * 8 + x;
-				//chY1 = 0.299 * chR1 + 0.587 * chG1 + 0.114 * chB1;	//354 cykle maszynowe - Oficjalna wersja
-				//chY4 = ((uint16_t)chG4 * 2 + chR4 + chB4) >> 2;	//162 cykle - najbardziej uproszczona
-				//nCzas = DWT->CYCCNT;
-				chY1 = ((uint16_t)chR1 * 77 +  (uint16_t)chG1 * 150 +  (uint16_t)chB1 * 29) >> 8;	//255 cykli
-				//nCzas = DWT->CYCCNT - nCzas;
-				*(obrazYCbCr + sOffsetWyjscia + 0 * ROZMIAR_BLOKU) = chY1;
+				nOffsetWyjscia = b * ROZMIAR_MCU422 + y * 8 + x;
+				sY1 = ((uint16_t)chR1 * 77 + (uint16_t)chG1 * 150 + (uint16_t)chB1 * 29) >> 8;	//255 cykli
+				*(obrazYCbCr + nOffsetWyjscia + 0 * ROZMIAR_BLOKU) = (uint8_t)sY1;
 
-				chY2 = ((uint16_t)chR2 * 77 +  (uint16_t)chG2 * 150 +  (uint16_t)chB2 * 29) >> 8;
-				*(obrazYCbCr + sOffsetWyjscia + 1 * ROZMIAR_BLOKU) = chY2;
+				sY2 = ((uint16_t)chR2 * 77 + (uint16_t)chG2 * 150 + (uint16_t)chB2 * 29) >> 8;
+				*(obrazYCbCr + nOffsetWyjscia + 1 * ROZMIAR_BLOKU) = (uint8_t)sY2;
 
-				chCb = ((int8_t)chR1 * (-43) + (int8_t)chG1 * (-84)  + (int8_t)chB1 * (127) + 128) >> 8;
-				*(obrazYCbCr + sOffsetWyjscia + 2 * ROZMIAR_BLOKU) = chCb;
+				sCb = (  ((int32_t)(chR1+chR2) * (-43)) + ((int32_t)(chG1+chG2) * (-84)) + ((int32_t)(chB1+chB2) * (127)) + 256) >> 9;
+				*(obrazYCbCr + nOffsetWyjscia + 2 * ROZMIAR_BLOKU) = (uint8_t)sCb;
 
-				chCr = ((int8_t)chR1 * (127) + (int8_t)chG1 * (-106) + (int8_t)chB1 * (-21) + 128) >> 8;	//284 cykle
-				*(obrazYCbCr + sOffsetWyjscia + 3 * ROZMIAR_BLOKU) = chCr;
+				sCr = ( ((int32_t)(chR1+chR2) * (127)) + ((int32_t)(chG1+chG2) * (-106)) + ((int32_t)(chB1+chB2) * (-21)) + 256) >> 9;	//284 cykle
+				*(obrazYCbCr + nOffsetWyjscia + 3 * ROZMIAR_BLOKU) = (uint8_t)sCr;
 			}
 		}
 	}
