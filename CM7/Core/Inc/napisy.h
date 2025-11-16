@@ -71,8 +71,11 @@
 #define STR_MENU_ETHERNET			53
 #define STR_DOTKNIJ_ABY_SKALIBROWAC	54
 #define STR_MENU_OSD				55
+#define STR_PITLAB					56
+#define STR_EXIF					57
+#define STR_JPEG					58
 //#define STR_
-#define MAX_NAPISOW					56	//liczba napisów
+#define MAX_NAPISOW					59	//liczba napisów
 
 
 

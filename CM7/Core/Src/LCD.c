@@ -263,7 +263,7 @@ struct tmenu stMenuOsd[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"OSD 480",		"OSD 480x320",								TPO_OSD480,			obr_kamera},
 	{"OSD 320",		"OSD 320x240",								TPO_OSD320,			obr_kamera},
 	{"OSD 240",		"OSD 240x160",								TPO_OSD240,			obr_kamera},
-	{"O8",		 	"nic",										TPO_OSD8,			obr_narzedzia},
+	{"Jpeg",		"Zapisz plik JPEG z Exif",					TPO_OSD_JPEG,			obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -916,7 +916,7 @@ void RysujEkran(void)
 			chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
-	case TPO_OSD8:		//kompresja jpeg obrazu OSD
+	case TPO_OSD_JPEG:		//kompresja jpeg obrazu OSD
 		sprintf((char*)chNazwaPlikuObr, "OSDYUV422");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 		for (uint32_t n=0; n<480/2*4*6; n++)

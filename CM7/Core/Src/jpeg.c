@@ -12,10 +12,14 @@
 #include "czas.h"
 #include "rejestrator.h"
 #include "analiza_obrazu.h"
+#include "kamera.h"
+#include "napisy.h"
+
 
 extern JPEG_HandleTypeDef hjpeg;
 extern MDMA_HandleTypeDef hmdma_jpeg_outfifo_th;
 extern MDMA_HandleTypeDef hmdma_jpeg_infifo_th;
+extern const char *chNapisLcd[MAX_NAPISOW];
 //uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};	//SekcjaZewnSRAM ma wyłączony cache w MPU, więc może pracować z MDMA bez konieczności czyszczenia cache
 //uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM2"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};	//SekcjaZewnSRAM ma wyłączony cache w MPU, więc może pracować z MDMA bez konieczności czyszczenia cache
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};
@@ -870,12 +874,12 @@ uint8_t* ZnajdzZnacznikJpeg(uint8_t *chDaneSkompresowane, uint8_t chZnacznik)
 ////////////////////////////////////////////////////////////////////////////////
 uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC_DateTypeDef stData, RTC_TimeTypeDef stCzas)
 {
-	uint32_t nRozmiar;
+	uint32_t nRozmiar, nOffset;
 	uint8_t chBufor[25];
-	uint8_t *chWskaznikTAG;
-	uint8_t *chAdresDanych;
-	uint16_t sAdresExif, sAdresGPS;
-	uint8_t *chPoczatekTIFF = (uint8_t*)chNaglJpegExif + 12;
+	uint8_t *wskchAdresTAG;
+	uint8_t *wskchAdresDanych;
+	uint8_t *wskchAdresExif, *wskchAdresGPS;
+	uint8_t *wskchPoczatekTIFF = (uint8_t*)chNaglJpegExif + 12;
 	float fTemp1, fTemp2;
 
 	chNaglJpegExif[0] = 0xFF;	//SOI
@@ -905,55 +909,71 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chNaglJpegExif[20] = (uint8_t)LICZBA_TAGOW_IFD0;
 	chNaglJpegExif[21] = (uint8_t)(LICZBA_TAGOW_IFD0 >> 8);
 
-	chWskaznikTAG = (uint8_t*)chNaglJpegExif + 22;	//adres miejsca gdzie zapisać pierwszy TAG
-	chAdresDanych = chWskaznikTAG + (LICZBA_TAGOW_IFD0 * ROZMIAR_TAGU) + 4;	//adres za grupą tagów gdzie zapisać dane + wskaźnik 4 bajty do IFD1
+	wskchAdresTAG = (uint8_t*)chNaglJpegExif + 22;	//adres miejsca gdzie zapisać pierwszy TAG
+	wskchAdresDanych = wskchAdresTAG + (LICZBA_TAGOW_IFD0 * ROZMIAR_TAGU) + 4;	//adres za grupą tagów gdzie zapisać dane + wskaźnik 4 bajty do IFD1
 
 	//TAG-i IFD0 ***********************************************************************************************************************************
-	nRozmiar = sprintf((char*)chBufor, "Exif JPEG 422 ");
-	PrzygotujTag(&chWskaznikTAG, EXTAG_IMAGE_DESCRIPTION, EXIF_TYPE_ASCII, chBufor, nRozmiar, &chAdresDanych, chPoczatekTIFF);
+	switch (stKonf->chFormatObrazu)
+	{
+	case OBR_RGB565:nRozmiar = sprintf((char*)chBufor, "%s %s YUV422 ", chNapisLcd[STR_EXIF], chNapisLcd[STR_JPEG]);	break;	//obraz kolorowy
+	case OBR_Y8:	nRozmiar = sprintf((char*)chBufor, "%s %s Y8 ", chNapisLcd[STR_EXIF], chNapisLcd[STR_JPEG]);	break;		//obraz monochromatyczny
+	default:		nRozmiar = sprintf((char*)chBufor, "nieznany %s ", chNapisLcd[STR_JPEG]);	break;
+	}
+	PrzygotujTag(&wskchAdresTAG, EXTAG_IMAGE_DESCRIPTION, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
 
-	nRozmiar = sprintf((char*)chBufor, "PitLab ");
-	PrzygotujTag(&chWskaznikTAG, EXTAG_IMAGE_INPUT_MAKE, EXIF_TYPE_ASCII, chBufor, nRozmiar, &chAdresDanych, chPoczatekTIFF);
+	nRozmiar = sprintf((char*)chBufor, "%s ", chNapisLcd[STR_PITLAB]);
+	PrzygotujTag(&wskchAdresTAG, EXTAG_IMAGE_INPUT_MAKE, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
 
-	nRozmiar = sprintf((char*)chBufor, "APLv%d.%d ",WER_GLOWNA,  WER_PODRZ);
-	PrzygotujTag(&chWskaznikTAG, EXTAG_EQUIPMENT_MODEL, EXIF_TYPE_ASCII, chBufor, nRozmiar, &chAdresDanych, chPoczatekTIFF);
+	nRozmiar = sprintf((char*)chBufor, "APL hv%d.%d ",WER_GLOWNA,  WER_PODRZ);
+	PrzygotujTag(&wskchAdresTAG, EXTAG_EQUIPMENT_MODEL, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
+
+	nRozmiar = sprintf((char*)chBufor, "APL sv%d ", WER_REPO);
+	PrzygotujTag(&wskchAdresTAG, EXTAG_SOFTWARE, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
+
+	nRozmiar = sprintf((char*)chBufor, "Piotr Laskowski ");	//dodać: artystę zapisać gdzieś w osobnej strukturze
+	PrzygotujTag(&wskchAdresTAG, EXTAG_ARTIST, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
 
 	chBufor[0] = 1;	//punkt (0,0) jest: 1=LGR, 2PGR, 3=DGR, 4=DLR,
 	chBufor[1] = 0;	//obrócone rząd z kolumną: 5=LGR, 6=PGR, 7=DPR, 8=DLR
 	chBufor[2] = 0;
 	chBufor[3] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_ORIENTATION, EXIF_TYPE_SHORT, chBufor, 0, &chAdresDanych, chPoczatekTIFF);	//zerowy rozmiar, wstaw dane zamiast offsetu
+	PrzygotujTag(&wskchAdresTAG, EXTAG_ORIENTATION, EXIF_TYPE_SHORT, chBufor, 0, &wskchAdresDanych, wskchPoczatekTIFF);	//zerowy rozmiar, wstaw dane zamiast offsetu
 
 	nRozmiar = sprintf((char*)chBufor, "%4d:%02d:%02d %02d:%02d:%02d", stData.Year + 2000, stData.Month, stData.Date, stCzas.Hours, stCzas.Minutes, stCzas.Seconds);
-	PrzygotujTag(&chWskaznikTAG, EXTAG_DATE_TIME, EXIF_TYPE_ASCII, chBufor, nRozmiar, &chAdresDanych, chPoczatekTIFF);
+	PrzygotujTag(&wskchAdresTAG, EXTAG_DATE_TIME, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
 
-	sAdresExif = *chAdresDanych;
-	chBufor[0] = (uint8_t)sAdresExif;	//młodszy przodem - adres do Exif IFD jako końcówka danych sekcji IFD0
-	chBufor[1] = (uint8_t)(sAdresExif >> 8);
-	chBufor[2] = 0;
-	chBufor[3] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_EXIF_IFD, EXIF_TYPE_SHORT, chBufor, 0, &chAdresDanych, chPoczatekTIFF);
+	wskchAdresExif = wskchAdresDanych + ROZMIAR_INTEROPER;
+	nOffset = (uint32_t)wskchAdresExif - (uint32_t)&chNaglJpegExif[22];	//offset do Exif IFD, czyli różnica adresów IFD0 i Exif_IFD
+	chBufor[0] = (uint8_t)(nOffset);	//młodszy przodem
+	chBufor[1] = (uint8_t)(nOffset >> 8);
+	chBufor[2] = (uint8_t)(nOffset >> 16);
+	chBufor[3] = (uint8_t)(nOffset >> 24);
+	PrzygotujTag(&wskchAdresTAG, EXTAG_EXIF_IFD, EXIF_TYPE_SHORT, chBufor, 0, &wskchAdresDanych, wskchPoczatekTIFF);	//rozmiar=0, dane umieść w TAGu
 
-	sAdresGPS = LICZBA_TAGOW_EXIF * (ROZMIAR_TAGU + 8);	//liczbę nadmiarowych danych tagów Exif - przyjmuję jako 8 na tag, bo to głównie Rational
-	chBufor[0] = (uint8_t)sAdresGPS;	//młodszy przodem - adres do GPS IFD
-	chBufor[1] = (uint8_t)(sAdresGPS >> 8);
-	chBufor[2] = 0;
-	chBufor[3] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_GPS_IFD, EXIF_TYPE_SHORT, chBufor, 0, &chAdresDanych, chPoczatekTIFF);
+	wskchAdresGPS = wskchAdresExif + LICZBA_TAGOW_EXIF * (ROZMIAR_TAGU + 8) + ROZMIAR_INTEROPER;	//liczbę nadmiarowych danych tagów Exif - przyjmuję jako 8 na tag, bo to głównie Rational
+	nOffset = (uint32_t)wskchAdresGPS - (uint32_t)&chNaglJpegExif[22];	//offset do Exif IFD, czyli różnica adresów IFD0 i GPS_IFD
+	chBufor[0] = (uint8_t)(nOffset);	//młodszy przodem
+	chBufor[1] = (uint8_t)(nOffset >> 8);
+	chBufor[2] = (uint8_t)(nOffset >> 16);
+	chBufor[3] = (uint8_t)(nOffset >> 24);
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_IFD, EXIF_TYPE_SHORT, chBufor, 0, &wskchAdresDanych, wskchPoczatekTIFF);		//rozmiar=0, dane umieść w TAGu
+
+	nRozmiar = sprintf((char*)chBufor, "%c %s 2025 ", 0xA9, chNapisLcd[STR_PITLAB]);
+	PrzygotujTag(&wskchAdresTAG, EXTAG_COPYRIGT, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
 
 	//wskaźnik do IFD1: 0 = brak
-	*(chWskaznikTAG + 8) = 0;	//młodszy przodem
-	*(chWskaznikTAG + 9) = 0;
-	*(chWskaznikTAG + 10) = 0;
-	*(chWskaznikTAG + 11) = 0;
+	*(wskchAdresTAG + 0) = 0;	//młodszy przodem
+	*(wskchAdresTAG + 1) = 0;
+	*(wskchAdresTAG + 2) = 0;
+	*(wskchAdresTAG + 3) = 0;
 	//Tutaj lądują dane do których wskaźniki są podane w tagach IFD0.....
 
 	//TAG-i Exif IFD ***********************************************************************************************************************************
-	chNaglJpegExif[sAdresExif - 22 + 0] = (uint8_t)LICZBA_TAGOW_EXIF;			//Liczba tagów - Interoperability number
-	chNaglJpegExif[sAdresExif - 22 + 1] = (uint8_t)(LICZBA_TAGOW_EXIF >> 8);
+	*(wskchAdresExif + 0) = (uint8_t)LICZBA_TAGOW_EXIF;			//Liczba tagów - Interoperability number
+	*(wskchAdresExif + 1) = (uint8_t)(LICZBA_TAGOW_EXIF >> 8);
 
-	chWskaznikTAG = (uint8_t*)chNaglJpegExif + 22 + sAdresExif;	//adres miejsca gdzie zapisać pierwszy TAG w grupie Exif
-	chAdresDanych = chWskaznikTAG + (LICZBA_TAGOW_EXIF * ROZMIAR_TAGU);	//adres za grupą tagów gdzie zapisać dane
+	wskchAdresTAG = wskchAdresExif + ROZMIAR_INTEROPER;	//adres miejsca gdzie zapisać pierwszy TAG w grupie Exif
+	wskchAdresDanych = wskchAdresTAG + (LICZBA_TAGOW_EXIF * ROZMIAR_TAGU);	//adres za grupą tagów gdzie zapisać dane
 
 	fTemp1 = stDane->fTemper[0] * 10.0f;	//Dodać temperaturę otoczenia, na razie jest temperatura IMU
 	fTemp2 = floorf(fTemp1);	//pełne dziesiate części stopni
@@ -965,7 +985,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[5] = 0;
 	chBufor[6] = 0;
 	chBufor[7] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_TEMPERATURE, EXIF_TYPE_SRATIONAL, chBufor, 8, &chAdresDanych, chPoczatekTIFF);	//SRATIONAL x1
+	PrzygotujTag(&wskchAdresTAG, EXTAG_TEMPERATURE, EXIF_TYPE_SRATIONAL, chBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//SRATIONAL x1
 
 	fTemp2 = floorf(stDane->fCisnieBzw[0]);
 	chBufor[0] = (uint8_t)fTemp2;
@@ -976,7 +996,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[5] = 0;
 	chBufor[6] = 0;
 	chBufor[7] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_PRESSURE, EXIF_TYPE_RATIONAL, chBufor, 8, &chAdresDanych, chPoczatekTIFF);	//RATIONAL x1
+	PrzygotujTag(&wskchAdresTAG, EXTAG_PRESSURE, EXIF_TYPE_RATIONAL, chBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//RATIONAL x1
 
 	fTemp1 = stDane->fKatIMU1[1] * 1800.0f / M_PI;	//kąt pochylenie IMU w dziesiatych częściach stopnia docelowo dodać IMU kamery
 	fTemp2 = floorf(fTemp1);	//pełne dziesiate części stopni
@@ -988,7 +1008,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[5] = 0;
 	chBufor[6] = 0;
 	chBufor[7] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_CAM_ELEVATION, EXIF_TYPE_SRATIONAL, chBufor, 8, &chAdresDanych, chPoczatekTIFF);	//SRATIONAL x1
+	PrzygotujTag(&wskchAdresTAG, EXTAG_CAM_ELEVATION, EXIF_TYPE_SRATIONAL, chBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//SRATIONAL x1
 
 	fTemp1 = (float)stKonf->chSzerWe / (float)stKonf->chSzerWy;	//zoom cyfrowy po szerokości
 	fTemp2 = floorf(fTemp1 * 100.0f);
@@ -1000,21 +1020,20 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[5] = 0;
 	chBufor[6] = 0;
 	chBufor[7] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_DIGITAL_ZOOM, EXIF_TYPE_RATIONAL, chBufor, 8, &chAdresDanych, chPoczatekTIFF);	//RATIONAL x1
-
+	PrzygotujTag(&wskchAdresTAG, EXTAG_DIGITAL_ZOOM, EXIF_TYPE_RATIONAL, chBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//RATIONAL x1
 
 	//TAG-i GPS IFD ***********************************************************************************************************************************
-	chNaglJpegExif[sAdresGPS - 22 + 0] = (uint8_t)LICZBA_TAGOW_GPS;			//Liczba tagów - Interoperability number
-	chNaglJpegExif[sAdresGPS - 22 + 1] = (uint8_t)(LICZBA_TAGOW_GPS >> 8);
+	*(wskchAdresGPS + 0) = (uint8_t)LICZBA_TAGOW_GPS;			//Liczba tagów - Interoperability number
+	*(wskchAdresGPS + 1) = (uint8_t)(LICZBA_TAGOW_GPS >> 8);
 
-	chWskaznikTAG = (uint8_t*)chNaglJpegExif + 22 + sAdresGPS;	//adres miejsca gdzie zapisać pierwszy TAG w grupie Exif
-	chAdresDanych = chWskaznikTAG + (LICZBA_TAGOW_GPS * ROZMIAR_TAGU);	//adres za grupą tagów gdzie zapisać dane
+	wskchAdresTAG = wskchAdresGPS + ROZMIAR_INTEROPER;	//adres miejsca gdzie zapisać pierwszy TAG w grupie GPS
+	wskchAdresDanych = wskchAdresTAG + (LICZBA_TAGOW_GPS * ROZMIAR_TAGU);	//adres za grupą tagów gdzie zapisać dane
 
 	chBufor[0] = 2;
 	chBufor[1] = 3;
 	chBufor[2] = 0;
 	chBufor[3] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_GPS_TAG_VERSION, EXIF_TYPE_BYTE, chBufor, 4, &chAdresDanych, chPoczatekTIFF);	//BYTE x4
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_TAG_VERSION, EXIF_TYPE_BYTE, chBufor, 4, &wskchAdresDanych, wskchPoczatekTIFF);	//BYTE x4
 
 	fTemp1 = stDane->stGnss1.dSzerokoscGeo;
 	if (fTemp1 < 0)
@@ -1025,7 +1044,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	else
 		chBufor[0] = 'N';
 	chBufor[1] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_GPS_NS_LATI_REF, EXIF_TYPE_ASCII, chBufor, 2, &chAdresDanych, chPoczatekTIFF);	//ASCII x2
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_NS_LATI_REF, EXIF_TYPE_ASCII, chBufor, 2, &wskchAdresDanych, wskchPoczatekTIFF);	//ASCII x2
 
 	fTemp2 = fTemp1 * 180 / M_PI;	//radiany -> stopnie
 	fTemp1 = floorf(fTemp2);			//pełne stopnie
@@ -1061,8 +1080,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[21] = 0;
 	chBufor[22] = 0;
 	chBufor[23] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_GPS_LATITUDE, EXIF_TYPE_RATIONAL, chBufor, 24, &chAdresDanych, chPoczatekTIFF);
-
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_LATITUDE, EXIF_TYPE_RATIONAL, chBufor, 24, &wskchAdresDanych, wskchPoczatekTIFF);
 
 	fTemp1 = stDane->stGnss1.dDlugoscGeo;
 	if (fTemp1 < 0)
@@ -1073,7 +1091,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	else
 		chBufor[0] = 'E';
 	chBufor[1] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_GPS_EW_LONGI_REF, EXIF_TYPE_ASCII, chBufor, 2, &chAdresDanych, chPoczatekTIFF);	//ASCII x2
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_EW_LONGI_REF, EXIF_TYPE_ASCII, chBufor, 2, &wskchAdresDanych, wskchPoczatekTIFF);	//ASCII x2
 
 	fTemp2 = fTemp1 * 180 / M_PI;	//radiany -> stopnie
 	fTemp1 = floorf(fTemp2);			//pełne stopnie
@@ -1109,7 +1127,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[21] = 0;
 	chBufor[22] = 0;
 	chBufor[23] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_GPS_LONGITUDE, EXIF_TYPE_RATIONAL, chBufor, 24, &chAdresDanych, chPoczatekTIFF);	//RATIONAL x3
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_LONGITUDE, EXIF_TYPE_RATIONAL, chBufor, 24, &wskchAdresDanych, wskchPoczatekTIFF);	//RATIONAL x3
 
 	fTemp1 = stDane->stGnss1.fWysokoscMSL;
 	if (fTemp1 < 0)
@@ -1119,7 +1137,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	}
 	else
 		chBufor[0] = 0;		//0 = powyżej poziomu morza
-	PrzygotujTag(&chWskaznikTAG, EXTAG_GPS_ALTITUDE_REF, EXIF_TYPE_BYTE, chBufor, 1, &chAdresDanych, chPoczatekTIFF);	//BYTE x1
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_ALTITUDE_REF, EXIF_TYPE_BYTE, chBufor, 1, &wskchAdresDanych, wskchPoczatekTIFF);	//BYTE x1
 
 	fTemp1 *= 10.0f;			//dziesiąte części metra
 	fTemp2 = floorf(fTemp1);		//pełne dziesiątki
@@ -1131,7 +1149,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[5] = 0;
 	chBufor[6] = 0;
 	chBufor[7] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_GPS_ALTITUDE, EXIF_TYPE_RATIONAL, chBufor, 8, &chAdresDanych, chPoczatekTIFF);	//RATIONAL x1
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_ALTITUDE, EXIF_TYPE_RATIONAL, chBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//RATIONAL x1
 
 	//timestamp GPS
 	chBufor[0] = stDane->stGnss1.chGodz;
@@ -1158,34 +1176,31 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[21] = 0;
 	chBufor[22] = 0;
 	chBufor[23] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_GPS_TIME_STAMP, EXIF_TYPE_RATIONAL, chBufor, 24, &chAdresDanych, chPoczatekTIFF);	//RATIONAL x3
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_TIME_STAMP, EXIF_TYPE_RATIONAL, chBufor, 24, &wskchAdresDanych, wskchPoczatekTIFF);	//RATIONAL x3
 
 	sprintf((char*)chBufor, "%.2d", stDane->stGnss1.chLiczbaSatelit);
-	PrzygotujTag(&chWskaznikTAG, EXTAG_GPS_SATS, EXIF_TYPE_ASCII, chBufor, 4, &chAdresDanych, chPoczatekTIFF);		//ASCII
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_SATS, EXIF_TYPE_ASCII, chBufor, 4, &wskchAdresDanych, wskchPoczatekTIFF);		//ASCII
 
 	chBufor[0] = 'K';	//km/h
 	chBufor[1] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_GPS_SPEED_REF, EXIF_TYPE_ASCII, chBufor, 2, &chAdresDanych, chPoczatekTIFF);		//ASCII
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_SPEED_REF, EXIF_TYPE_ASCII, chBufor, 2, &wskchAdresDanych, wskchPoczatekTIFF);		//ASCII
 
 	fTemp1 = stDane->stGnss1.fPredkoscWzglZiemi;	//prędkość w m/s
-	fTemp2 = fTemp1 / 3.6f;							//prędkość w km/h
-
-	fTemp2 = floorf(fTemp1);		//pełne dziesiątki
+	fTemp2 = fTemp1 * 10.0f / 3.6f;					//prędkość w 10*km/h
+	fTemp2 = floorf(fTemp1);						//pełne dziesiątki
 	chBufor[0] = (uint8_t)fTemp2;
 	chBufor[1] = (uint8_t)((uint32_t)fTemp2 >> 8);
 	chBufor[2] = (uint8_t)((uint32_t)fTemp2 >> 16);
 	chBufor[3] = (uint8_t)((uint32_t)fTemp2 >> 24);
-	chBufor[4] = 10;		// metrów / 10
+	chBufor[4] = 10;		// km/h / 10
 	chBufor[5] = 0;
 	chBufor[6] = 0;
 	chBufor[7] = 0;
-	PrzygotujTag(&chWskaznikTAG, EXTAG_GPS_SPEED, EXIF_TYPE_RATIONAL, chBufor, 8, &chAdresDanych, chPoczatekTIFF);	//RATIONAL x1
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_SPEED, EXIF_TYPE_RATIONAL, chBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//RATIONAL x1
 
-
-
-	//aktualizuj rozmiar APP1
-	nRozmiar = chAdresDanych - (uint8_t*)chNaglJpegExif;	//rozmiar to różnica wskaźników początku i końca danych
-	chNaglJpegExif[4] = (uint8_t)(nRozmiar >> 8);   // Rozmiar APP1 (big endian)
+	//aktualizuj rozmiar struktury Exif
+	nRozmiar = wskchAdresDanych - (uint8_t*)chNaglJpegExif;	//rozmiar to różnica wskaźników początku i końca danych
+	chNaglJpegExif[4] = (uint8_t)(nRozmiar >> 8);   // Rozmiar (big endian)
 	chNaglJpegExif[5] = (uint8_t)nRozmiar;
 	return nRozmiar;
 }
@@ -1208,15 +1223,33 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 void PrzygotujTag(uint8_t **chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *chDane, uint32_t nRozmiar, uint8_t **chWskDanych, uint8_t *chPoczatekTIFF)
 {
 	uint32_t nOffset = *chWskDanych - chPoczatekTIFF;
+	uint8_t chRozmiarTagu;
+
+	//oblicz jednostkowy rozmiar tagu dla różnych typów danych
+	switch (sTyp)
+	{
+	case EXIF_TYPE_BYTE:
+	case EXIF_TYPE_ASCII:		chRozmiarTagu = nRozmiar;		break; 	//ASCII
+	case EXIF_TYPE_SHORT:												//SHORT
+		if (nRozmiar)
+			chRozmiarTagu = nRozmiar / 2;
+		else
+			chRozmiarTagu = 1;	//dla tagów o podanej zerowej długosci przyjmij 1 short
+		break;
+	case EXIF_TYPE_LONG:											 	//LONG 32-bit
+	case EXIF_TYPE_SLONG:		chRozmiarTagu = nRozmiar / 4;	break; 	//Signed LONG 32-bit
+	case EXIF_TYPE_RATIONAL:											//RATIONAL: 2x LONG. Pierwszy numerator, drugi denominator
+	case EXIF_TYPE_SRATIONAL: 	chRozmiarTagu = nRozmiar / 8;	break;	//Signed RATIONAL: 2x SLONG
+	}
 
 	*(*chWskTaga +  0) = (uint8_t)(sTagID);
 	*(*chWskTaga +  1) = (uint8_t)(sTagID >> 8);
 	*(*chWskTaga +  2) = (uint8_t)(sTyp);
 	*(*chWskTaga +  3) = (uint8_t)(sTyp >> 8);
-	*(*chWskTaga +  4) = (uint8_t)(nRozmiar);
-	*(*chWskTaga +  5) = (uint8_t)(nRozmiar >>  8);
-	*(*chWskTaga +  6) = (uint8_t)(nRozmiar >> 16);
-	*(*chWskTaga +  7) = (uint8_t)(nRozmiar >> 24);
+	*(*chWskTaga +  4) = chRozmiarTagu;
+	*(*chWskTaga +  5) = 0;
+	*(*chWskTaga +  6) = 0;
+	*(*chWskTaga +  7) = 0;
 	if (nRozmiar)	//jeżeli rozmiar jest niezerowy to wstaw offset do segmentu danych, jeżeli zerowy, to wstaw 4 bajty danych zamiast offsetu
 	{
 		*(*chWskTaga +  8) = (uint8_t)(nOffset);			//Offset od początku nagłówka TIFF do miejsca gdzie dane są zapisane

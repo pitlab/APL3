@@ -197,7 +197,7 @@
 #define TPO_OSD480			135
 #define TPO_OSD320			136
 #define TPO_OSD240			137
-#define TPO_OSD8			138
+#define TPO_OSD_JPEG		138
 #define TP_WROC_DO_OSD		139
 
 
