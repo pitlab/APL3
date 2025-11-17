@@ -942,24 +942,27 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	nRozmiar = sprintf((char*)chBufor, "%4d:%02d:%02d %02d:%02d:%02d", stData.Year + 2000, stData.Month, stData.Date, stCzas.Hours, stCzas.Minutes, stCzas.Seconds);
 	PrzygotujTag(&wskchAdresTAG, EXTAG_DATE_TIME, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
 
+	nRozmiar = sprintf((char*)chBufor, "%c %s 2025 ", 0xA9, chNapisLcd[STR_PITLAB]);
+	PrzygotujTag(&wskchAdresTAG, EXTAG_COPYRIGT, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
+
 	wskchAdresExif = wskchAdresDanych + ROZMIAR_INTEROPER;
+	wskchAdresExif = (uint8_t*)(((uint32_t)wskchAdresExif + 1) & 0xFFFFFFFE);	//wyrównanie do 2
 	nOffset = (uint32_t)wskchAdresExif - (uint32_t)&chNaglJpegExif[22];	//offset do Exif IFD, czyli różnica adresów IFD0 i Exif_IFD
 	chBufor[0] = (uint8_t)(nOffset);	//młodszy przodem
 	chBufor[1] = (uint8_t)(nOffset >> 8);
 	chBufor[2] = (uint8_t)(nOffset >> 16);
 	chBufor[3] = (uint8_t)(nOffset >> 24);
-	PrzygotujTag(&wskchAdresTAG, EXTAG_EXIF_IFD, EXIF_TYPE_SHORT, chBufor, 0, &wskchAdresDanych, wskchPoczatekTIFF);	//rozmiar=0, dane umieść w TAGu
+	PrzygotujTag(&wskchAdresTAG, EXTAG_EXIF_IFD, EXIF_TYPE_LONG, chBufor, 0, &wskchAdresDanych, wskchPoczatekTIFF);	//rozmiar=0, dane umieść w TAGu
 
 	wskchAdresGPS = wskchAdresExif + LICZBA_TAGOW_EXIF * (ROZMIAR_TAGU + 8) + ROZMIAR_INTEROPER;	//liczbę nadmiarowych danych tagów Exif - przyjmuję jako 8 na tag, bo to głównie Rational
+	wskchAdresGPS = (uint8_t*)(((uint32_t)wskchAdresGPS + 1) & 0xFFFFFFFE);	//wyrównanie do 2
+	//wskchAdresGPS = wskchAdresDanych + ROZMIAR_INTEROPER;
 	nOffset = (uint32_t)wskchAdresGPS - (uint32_t)&chNaglJpegExif[22];	//offset do Exif IFD, czyli różnica adresów IFD0 i GPS_IFD
 	chBufor[0] = (uint8_t)(nOffset);	//młodszy przodem
 	chBufor[1] = (uint8_t)(nOffset >> 8);
 	chBufor[2] = (uint8_t)(nOffset >> 16);
 	chBufor[3] = (uint8_t)(nOffset >> 24);
-	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_IFD, EXIF_TYPE_SHORT, chBufor, 0, &wskchAdresDanych, wskchPoczatekTIFF);		//rozmiar=0, dane umieść w TAGu
-
-	nRozmiar = sprintf((char*)chBufor, "%c %s 2025 ", 0xA9, chNapisLcd[STR_PITLAB]);
-	PrzygotujTag(&wskchAdresTAG, EXTAG_COPYRIGT, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_IFD, EXIF_TYPE_LONG, chBufor, 0, &wskchAdresDanych, wskchPoczatekTIFF);		//rozmiar=0, dane umieść w TAGu
 
 	//wskaźnik do IFD1: 0 = brak
 	*(wskchAdresTAG + 0) = 0;	//młodszy przodem
@@ -1229,18 +1232,17 @@ void PrzygotujTag(uint8_t **chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *
 	switch (sTyp)
 	{
 	case EXIF_TYPE_BYTE:
-	case EXIF_TYPE_ASCII:		chRozmiarTagu = nRozmiar;		break; 	//ASCII
-	case EXIF_TYPE_SHORT:												//SHORT
-		if (nRozmiar)
-			chRozmiarTagu = nRozmiar / 2;
-		else
-			chRozmiarTagu = 1;	//dla tagów o podanej zerowej długosci przyjmij 1 short
-		break;
+	case EXIF_TYPE_ASCII:	chRozmiarTagu = nRozmiar;			break; 	//ASCII
+	case EXIF_TYPE_SHORT:	chRozmiarTagu = nRozmiar / 2;		break;	//SHORT
 	case EXIF_TYPE_LONG:											 	//LONG 32-bit
-	case EXIF_TYPE_SLONG:		chRozmiarTagu = nRozmiar / 4;	break; 	//Signed LONG 32-bit
+	case EXIF_TYPE_SLONG:	chRozmiarTagu = nRozmiar / 4;		break;	//Signed LONG 32-bit
 	case EXIF_TYPE_RATIONAL:											//RATIONAL: 2x LONG. Pierwszy numerator, drugi denominator
 	case EXIF_TYPE_SRATIONAL: 	chRozmiarTagu = nRozmiar / 8;	break;	//Signed RATIONAL: 2x SLONG
 	}
+
+	//dla tagów o podanej zerowej długosci przyjmij rozmiar 1
+	if (chRozmiarTagu == 0)
+		chRozmiarTagu = 1;
 
 	*(*chWskTaga +  0) = (uint8_t)(sTagID);
 	*(*chWskTaga +  1) = (uint8_t)(sTagID >> 8);
@@ -1259,6 +1261,8 @@ void PrzygotujTag(uint8_t **chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *
 
 		for (uint32_t n=0; n<nRozmiar; n++)
 			*(*chWskDanych + n) = *(chDane + n);
+		*(*chWskDanych + nRozmiar) = 0;
+		nRozmiar++;		//powiększ rozmiar o zero terminujące wartość
 	}
 	else	//jeżeli rozmiar jest zerowy, to wstaw 4 bajty danych zamiast offsetu
 	{
