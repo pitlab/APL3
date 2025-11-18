@@ -935,9 +935,9 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 
 	chBufor[0] = 1;	//punkt (0,0) jest: 1=LGR, 2PGR, 3=DGR, 4=DLR,
 	chBufor[1] = 0;	//obrócone rząd z kolumną: 5=LGR, 6=PGR, 7=DPR, 8=DLR
-	chBufor[2] = 0;
-	chBufor[3] = 0;
-	PrzygotujTag(&wskchAdresTAG, EXTAG_ORIENTATION, EXIF_TYPE_SHORT, chBufor, 0, &wskchAdresDanych, wskchPoczatekTIFF);	//zerowy rozmiar, wstaw dane zamiast offsetu
+	//chBufor[2] = 0;
+	//chBufor[3] = 0;
+	PrzygotujTag(&wskchAdresTAG, EXTAG_ORIENTATION, EXIF_TYPE_SHORT, chBufor, 2, &wskchAdresDanych, wskchPoczatekTIFF);	//wstaw dane zamiast offsetu
 
 	nRozmiar = sprintf((char*)chBufor, "%4d:%02d:%02d %02d:%02d:%02d", stData.Year + 2000, stData.Month, stData.Date, stCzas.Hours, stCzas.Minutes, stCzas.Seconds);
 	PrzygotujTag(&wskchAdresTAG, EXTAG_DATE_TIME, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
@@ -952,17 +952,16 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[1] = (uint8_t)(nOffset >> 8);
 	chBufor[2] = (uint8_t)(nOffset >> 16);
 	chBufor[3] = (uint8_t)(nOffset >> 24);
-	PrzygotujTag(&wskchAdresTAG, EXTAG_EXIF_IFD, EXIF_TYPE_LONG, chBufor, 0, &wskchAdresDanych, wskchPoczatekTIFF);	//rozmiar=0, dane umieść w TAGu
+	PrzygotujTag(&wskchAdresTAG, EXTAG_EXIF_IFD, EXIF_TYPE_LONG, chBufor, 4, &wskchAdresDanych, wskchPoczatekTIFF);	//rozmiar=0, dane umieść w TAGu
 
 	wskchAdresGPS = wskchAdresExif + LICZBA_TAGOW_EXIF * (ROZMIAR_TAGU + 8) + ROZMIAR_INTEROPER;	//liczbę nadmiarowych danych tagów Exif - przyjmuję jako 8 na tag, bo to głównie Rational
 	wskchAdresGPS = (uint8_t*)(((uint32_t)wskchAdresGPS + 1) & 0xFFFFFFFE);	//wyrównanie do 2
-	//wskchAdresGPS = wskchAdresDanych + ROZMIAR_INTEROPER;
 	nOffset = (uint32_t)wskchAdresGPS - (uint32_t)&chNaglJpegExif[22];	//offset do Exif IFD, czyli różnica adresów IFD0 i GPS_IFD
 	chBufor[0] = (uint8_t)(nOffset);	//młodszy przodem
 	chBufor[1] = (uint8_t)(nOffset >> 8);
 	chBufor[2] = (uint8_t)(nOffset >> 16);
 	chBufor[3] = (uint8_t)(nOffset >> 24);
-	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_IFD, EXIF_TYPE_LONG, chBufor, 0, &wskchAdresDanych, wskchPoczatekTIFF);		//rozmiar=0, dane umieść w TAGu
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_IFD, EXIF_TYPE_LONG, chBufor, 4, &wskchAdresDanych, wskchPoczatekTIFF);		//rozmiar=0, dane umieść w TAGu
 
 	//wskaźnik do IFD1: 0 = brak
 	*(wskchAdresTAG + 0) = 0;	//młodszy przodem
@@ -1036,7 +1035,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[1] = 3;
 	chBufor[2] = 0;
 	chBufor[3] = 0;
-	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_TAG_VERSION, EXIF_TYPE_BYTE, chBufor, 4, &wskchAdresDanych, wskchPoczatekTIFF);	//BYTE x4
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_TAG_VERSION, EXIF_TYPE_BYTE, chBufor, 0, &wskchAdresDanych, wskchPoczatekTIFF);	//BYTE x4, ale nie wstawiaj ich do danych
 
 	fTemp1 = stDane->stGnss1.dSzerokoscGeo;
 	if (fTemp1 < 0)
@@ -1181,12 +1180,9 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[23] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_TIME_STAMP, EXIF_TYPE_RATIONAL, chBufor, 24, &wskchAdresDanych, wskchPoczatekTIFF);	//RATIONAL x3
 
-	sprintf((char*)chBufor, "%.2d", stDane->stGnss1.chLiczbaSatelit);
-	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_SATS, EXIF_TYPE_ASCII, chBufor, 4, &wskchAdresDanych, wskchPoczatekTIFF);		//ASCII
-
 	chBufor[0] = 'K';	//km/h
 	chBufor[1] = 0;
-	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_SPEED_REF, EXIF_TYPE_ASCII, chBufor, 2, &wskchAdresDanych, wskchPoczatekTIFF);		//ASCII
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_SPEED_REF, EXIF_TYPE_ASCII, chBufor, 2, &wskchAdresDanych, wskchPoczatekTIFF);		//ASCII,
 
 	fTemp1 = stDane->stGnss1.fPredkoscWzglZiemi;	//prędkość w m/s
 	fTemp2 = fTemp1 * 10.0f / 3.6f;					//prędkość w 10*km/h
@@ -1232,10 +1228,10 @@ void PrzygotujTag(uint8_t **chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *
 	switch (sTyp)
 	{
 	case EXIF_TYPE_BYTE:
-	case EXIF_TYPE_ASCII:	chRozmiarTagu = nRozmiar;			break; 	//ASCII
-	case EXIF_TYPE_SHORT:	chRozmiarTagu = nRozmiar / 2;		break;	//SHORT
-	case EXIF_TYPE_LONG:											 	//LONG 32-bit
-	case EXIF_TYPE_SLONG:	chRozmiarTagu = nRozmiar / 4;		break;	//Signed LONG 32-bit
+	case EXIF_TYPE_ASCII:		chRozmiarTagu = nRozmiar;		break;		//ASCII
+	case EXIF_TYPE_SHORT:		chRozmiarTagu = nRozmiar / 2;		break;	//SHORT
+	case EXIF_TYPE_LONG:				//LONG 32-bit
+	case EXIF_TYPE_SLONG:		chRozmiarTagu = nRozmiar / 4;	break;	//Signed LONG 32-bit
 	case EXIF_TYPE_RATIONAL:											//RATIONAL: 2x LONG. Pierwszy numerator, drugi denominator
 	case EXIF_TYPE_SRATIONAL: 	chRozmiarTagu = nRozmiar / 8;	break;	//Signed RATIONAL: 2x SLONG
 	}
@@ -1252,7 +1248,7 @@ void PrzygotujTag(uint8_t **chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *
 	*(*chWskTaga +  5) = 0;
 	*(*chWskTaga +  6) = 0;
 	*(*chWskTaga +  7) = 0;
-	if (nRozmiar)	//jeżeli rozmiar jest niezerowy to wstaw offset do segmentu danych, jeżeli zerowy, to wstaw 4 bajty danych zamiast offsetu
+	if (nRozmiar > 4)	//jeżeli rozmiar nie zmieści się w strukturze to wstaw offset do segmentu danych, jeżeli zmieści, to wstaw 4 bajty danych zamiast offsetu
 	{
 		*(*chWskTaga +  8) = (uint8_t)(nOffset);			//Offset od początku nagłówka TIFF do miejsca gdzie dane są zapisane
 		*(*chWskTaga +  9) = (uint8_t)(nOffset >>  8);
@@ -1263,16 +1259,16 @@ void PrzygotujTag(uint8_t **chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *
 			*(*chWskDanych + n) = *(chDane + n);
 		*(*chWskDanych + nRozmiar) = 0;
 		nRozmiar++;		//powiększ rozmiar o zero terminujące wartość
+		*chWskDanych += nRozmiar;
 	}
-	else	//jeżeli rozmiar jest zerowy, to wstaw 4 bajty danych zamiast offsetu
+	else	//jeżeli rozmiar zmieści sie w 4 bajtach to go wstaw zamiast offsetu
 	{
-		*(*chWskTaga +  8) = *(chDane + 0);
-		*(*chWskTaga +  9) = *(chDane + 1);
-		*(*chWskTaga + 10) = *(chDane + 2);
-		*(*chWskTaga + 11) = *(chDane + 3);
+		for (uint8_t n=0; n<nRozmiar; n++)
+			*(*chWskTaga + n + 8) = *(chDane + n);
+		//*(*chWskTaga +  9) = *(chDane + 1);
+		//*(*chWskTaga + 10) = *(chDane + 2);
+		//*(*chWskTaga + 11) = *(chDane + 3);
 	}
-
-	*chWskDanych += nRozmiar;
 	*chWskTaga += ROZMIAR_TAGU;	//wskaż na adres następnego tagu
 }
 
