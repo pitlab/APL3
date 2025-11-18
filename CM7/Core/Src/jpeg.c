@@ -879,7 +879,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	uint8_t *wskchAdresTAG;
 	uint8_t *wskchAdresDanych;
 	uint8_t *wskchAdresExif, *wskchAdresGPS;
-	uint8_t *wskchPoczatekTIFF = (uint8_t*)chNaglJpegExif + 12;
+	uint8_t *wskchPoczatekTIFF = &chNaglJpegExif[12];	//początek TIFF
 	float fTemp1, fTemp2;
 
 	chNaglJpegExif[0] = 0xFF;	//SOI
@@ -947,7 +947,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 
 	wskchAdresExif = wskchAdresDanych + ROZMIAR_INTEROPER;
 	wskchAdresExif = (uint8_t*)(((uint32_t)wskchAdresExif + 1) & 0xFFFFFFFE);	//wyrównanie do 2
-	nOffset = (uint32_t)wskchAdresExif - (uint32_t)&chNaglJpegExif[22];	//offset do Exif IFD, czyli różnica adresów IFD0 i Exif_IFD
+	nOffset = (uint32_t)wskchAdresExif - (uint32_t)wskchPoczatekTIFF;	//offset do Exif IFD, czyli różnica adresów IFD0 i Exif_IFD
 	chBufor[0] = (uint8_t)(nOffset);	//młodszy przodem
 	chBufor[1] = (uint8_t)(nOffset >> 8);
 	chBufor[2] = (uint8_t)(nOffset >> 16);
@@ -956,7 +956,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 
 	wskchAdresGPS = wskchAdresExif + LICZBA_TAGOW_EXIF * (ROZMIAR_TAGU + 8) + ROZMIAR_INTEROPER;	//liczbę nadmiarowych danych tagów Exif - przyjmuję jako 8 na tag, bo to głównie Rational
 	wskchAdresGPS = (uint8_t*)(((uint32_t)wskchAdresGPS + 1) & 0xFFFFFFFE);	//wyrównanie do 2
-	nOffset = (uint32_t)wskchAdresGPS - (uint32_t)&chNaglJpegExif[22];	//offset do Exif IFD, czyli różnica adresów IFD0 i GPS_IFD
+	nOffset = (uint32_t)wskchAdresGPS - (uint32_t)wskchPoczatekTIFF;	//offset do Exif IFD, czyli różnica adresów IFD0 i GPS_IFD
 	chBufor[0] = (uint8_t)(nOffset);	//młodszy przodem
 	chBufor[1] = (uint8_t)(nOffset >> 8);
 	chBufor[2] = (uint8_t)(nOffset >> 16);
@@ -977,19 +977,19 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	wskchAdresTAG = wskchAdresExif + ROZMIAR_INTEROPER;	//adres miejsca gdzie zapisać pierwszy TAG w grupie Exif
 	wskchAdresDanych = wskchAdresTAG + (LICZBA_TAGOW_EXIF * ROZMIAR_TAGU);	//adres za grupą tagów gdzie zapisać dane
 
-	fTemp1 = stDane->fTemper[0] * 10.0f;	//Dodać temperaturę otoczenia, na razie jest temperatura IMU
+	fTemp1 = stDane->fTemper[0] - 273.15f;	//Dodać temperaturę otoczenia, na razie jest temperatura IMU [°C]
 	fTemp2 = floorf(fTemp1);	//pełne dziesiate części stopni
 	chBufor[0] = (int8_t)fTemp2;		//liczba ze znakiem
 	chBufor[1] = (int8_t)((int16_t)fTemp2 >> 8);
 	chBufor[2] = 0;
 	chBufor[3] = 0;
-	chBufor[4] = 10;		// stopnie / 10
+	chBufor[4] = 1;		// stopnie / 1
 	chBufor[5] = 0;
 	chBufor[6] = 0;
 	chBufor[7] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_TEMPERATURE, EXIF_TYPE_SRATIONAL, chBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//SRATIONAL x1
 
-	fTemp2 = floorf(stDane->fCisnieBzw[0]);
+	fTemp2 = floorf(stDane->fCisnieBzw[0] / 100);	//ciśnienie w hPa
 	chBufor[0] = (uint8_t)fTemp2;
 	chBufor[1] = (uint8_t)((uint16_t)fTemp2 >> 8);
 	chBufor[2] = 0;
@@ -1000,25 +1000,23 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[7] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_PRESSURE, EXIF_TYPE_RATIONAL, chBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//RATIONAL x1
 
-	fTemp1 = stDane->fKatIMU1[1] * 1800.0f / M_PI;	//kąt pochylenie IMU w dziesiatych częściach stopnia docelowo dodać IMU kamery
+	fTemp1 = stDane->fKatIMU1[1] * 180.0f / M_PI;	//kąt pochylenie IMU w dziesiatych częściach stopnia docelowo dodać IMU kamery
 	fTemp2 = floorf(fTemp1);	//pełne dziesiate części stopni
 	chBufor[0] = (int8_t)fTemp2;		//liczba ze znakiem
 	chBufor[1] = (int8_t)((int16_t)fTemp2 >> 8);
 	chBufor[2] = 0;
 	chBufor[3] = 0;
-	chBufor[4] = 10;		// stopnie / 10
+	chBufor[4] = 1;		// stopnie / 1
 	chBufor[5] = 0;
 	chBufor[6] = 0;
 	chBufor[7] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_CAM_ELEVATION, EXIF_TYPE_SRATIONAL, chBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//SRATIONAL x1
 
-	fTemp1 = (float)stKonf->chSzerWe / (float)stKonf->chSzerWy;	//zoom cyfrowy po szerokości
-	fTemp2 = floorf(fTemp1 * 100.0f);
-	chBufor[0] = (uint8_t)fTemp2;
-	chBufor[1] = (uint8_t)((uint16_t)fTemp2 >> 8);
+	chBufor[0] = (uint8_t)(stKonf->chSzerWe / stKonf->chSzerWy);	//zoom cyfrowy po szerokości
+	chBufor[1] = 0;
 	chBufor[2] = 0;
 	chBufor[3] = 0;
-	chBufor[4] = 100;		// zoom / 100
+	chBufor[4] = 1;		// zoom / 1
 	chBufor[5] = 0;
 	chBufor[6] = 0;
 	chBufor[7] = 0;
@@ -1035,7 +1033,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[1] = 3;
 	chBufor[2] = 0;
 	chBufor[3] = 0;
-	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_TAG_VERSION, EXIF_TYPE_BYTE, chBufor, 0, &wskchAdresDanych, wskchPoczatekTIFF);	//BYTE x4, ale nie wstawiaj ich do danych
+	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_TAG_VERSION, EXIF_TYPE_BYTE, chBufor, 4, &wskchAdresDanych, wskchPoczatekTIFF);	//BYTE x4, ale nie wstawiaj ich do danych
 
 	fTemp1 = stDane->stGnss1.dSzerokoscGeo;
 	if (fTemp1 < 0)
@@ -1047,10 +1045,8 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 		chBufor[0] = 'N';
 	chBufor[1] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_NS_LATI_REF, EXIF_TYPE_ASCII, chBufor, 2, &wskchAdresDanych, wskchPoczatekTIFF);	//ASCII x2
-
-	fTemp2 = fTemp1 * 180 / M_PI;	//radiany -> stopnie
-	fTemp1 = floorf(fTemp2);			//pełne stopnie
-	chBufor[0] = (uint8_t)fTemp1;
+	fTemp2 = (uint8_t)floorf(fTemp1);		//pełne stopnie;
+	chBufor[0] = (uint8_t)fTemp2;
 	chBufor[1] = 0;
 	chBufor[2] = 0;
 	chBufor[3] = 0;
@@ -1059,8 +1055,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[6] = 0;
 	chBufor[7] = 0;
 
-	fTemp2 -= fTemp1;	//ułamkowa część stopni
-	fTemp2 *= 60;		//minuty
+	fTemp2 = (fTemp1 - fTemp2) * 60.0f;	//ułamkowa część stopni -> minuty
 	fTemp1 = floorf(fTemp2);			//pełne minuty
 	chBufor[8] = (uint8_t)fTemp1;
 	chBufor[9] = 0;
@@ -1071,9 +1066,8 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[14] = 0;
 	chBufor[15] = 0;
 
-	fTemp2 -= fTemp1;		//ułamkowa część minut
-	fTemp2 *= 6000;			//sekundy * 100
-	fTemp1 = floorf(fTemp2);	//pełne setki sekund
+	fTemp2 = (fTemp2 - fTemp1) * 6000.0f;	//ułamkowa część minut -> //sekundy * 100
+	fTemp1 = floorf(fTemp2);			//pełne setki sekund
 	chBufor[17] = (uint8_t)fTemp1;
 	chBufor[16] = (uint8_t)((uint16_t)fTemp1 >> 8);
 	chBufor[18] = 0;
@@ -1095,9 +1089,9 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[1] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_EW_LONGI_REF, EXIF_TYPE_ASCII, chBufor, 2, &wskchAdresDanych, wskchPoczatekTIFF);	//ASCII x2
 
-	fTemp2 = fTemp1 * 180 / M_PI;	//radiany -> stopnie
-	fTemp1 = floorf(fTemp2);			//pełne stopnie
-	chBufor[0] = (uint8_t)fTemp1;
+	//fTemp2 = fTemp1 * 180 / M_PI;	//radiany -> stopnie
+	fTemp2 = floorf(fTemp1);			//pełne stopnie
+	chBufor[0] = (uint8_t)fTemp2;
 	chBufor[1] = 0;
 	chBufor[2] = 0;
 	chBufor[3] = 0;
@@ -1106,8 +1100,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[6] = 0;
 	chBufor[7] = 0;
 
-	fTemp2 -= fTemp1;	//ułamkowa część stopni
-	fTemp2 *= 60;		//minuty
+	fTemp2 = (fTemp1 - fTemp2) * 60.0f;	//ułamkowa część stopni -> minuty
 	fTemp1 = floorf(fTemp2);			//pełne minuty
 	chBufor[8] = (uint8_t)fTemp1;
 	chBufor[9] = 0;
@@ -1118,8 +1111,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[14] = 0;
 	chBufor[15] = 0;
 
-	fTemp2 -= fTemp1;		//ułamkowa część minut
-	fTemp2 *= 6000.0f;			//sekundy * 100
+	fTemp2 = (fTemp2 - fTemp1) * 6000.0f;		//ułamkowa część minut
 	fTemp1 = floorf(fTemp2);	//pełne setki sekund
 	chBufor[17] = (uint8_t)fTemp1;
 	chBufor[16] = (uint8_t)((uint16_t)fTemp1 >> 8);
@@ -1170,8 +1162,8 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	chBufor[13] = 0;
 	chBufor[14] = 0;
 	chBufor[15] = 0;
-	chBufor[17] = stDane->stGnss1.chSek;
-	chBufor[16] = 0;
+	chBufor[16] = stDane->stGnss1.chSek;
+	chBufor[17] = 0;
 	chBufor[18] = 0;
 	chBufor[19] = 0;
 	chBufor[20] = 1;	// sekundy / 1
