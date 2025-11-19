@@ -108,6 +108,48 @@ void KonwersjaRGB565doRGB666(uint16_t *obrazRG565, uint8_t *obrazRGB666, uint32_
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Konwertuje piksel w formacie RGB888 na YCbCr
+// Parametry:
+// [we] chR, chG, chB - skłądowe RGB piksela wejściowego
+// [wy] *chY, *chCb, *chCr - wskaźniki na składowe luminancji i chrominancji
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void KonwersjaRGB888doYCbCr(uint8_t chR, uint8_t chG, uint8_t chB, uint8_t *chY, uint8_t *chCb, uint8_t *chCr)
+{
+	uint16_t sY;
+	int16_t sCb, sCr;
+
+	sY = ((uint16_t)chR * 77 + (uint16_t)chG * 150 + (uint16_t)chB * 29) >> 8;
+	sCb = (((int16_t)chR * (-43)) + ((int16_t)chG * (-84))  + ((int16_t)chB * (127)) + 128) >> 8;
+	sCr = (((int16_t)chR * (127)) + ((int16_t)chG * (-106)) + ((int16_t)chB * (-21)) + 128) >> 8;
+
+	//obetnij do 8 bitów
+	if (sY < 0xFF)	//liczba bez znaku, wiec obetnij tylko górę
+		*chY = sY;
+	else
+		*chY = 0xFF;
+
+	//to są liczby ze znakiem, wiec testuj górę i dół
+	if (sCb < 0)
+		*chCb = 0;
+	else
+	if (sCb > 0xFF)
+		*chCb = 0xFF;
+	else
+		*chCb = (uint8_t)sCb;
+
+	if (sCr < 0)
+		*chCr = 0;
+	else
+	if (sCr > 0xFF)
+		*chCr = 0xFF;
+	else
+		*chCr = (uint8_t)sCr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Konwertuje wiersz bloków 8x8 obrazu w formacie RGB888 znajdujace się w buforze
 // na kolejne bloki MCU dla obrazu YCbCr422
 // Parametry:
@@ -122,7 +164,8 @@ void KonwersjaRGB888doYCbCr422(uint8_t *obrazRGB888, uint8_t *obrazYCbCr, uint16
 	uint32_t nOfsetWe, nOffsetWyjscia;
 	uint16_t chLiczbaParBlokow = sSzerokosc / 16;
 	uint8_t chR1, chG1, chB1, chR2, chG2, chB2;
-	int16_t sY1, sY2, sCb, sCr;
+	uint8_t chY1, chCb1, chCr1, chY2, chCb2, chCr2;
+
 
 	for (uint8_t b=0; b<chLiczbaParBlokow; b++)	//petla po połowie bloków na szerokosci obrazu
 	{
@@ -136,25 +179,20 @@ void KonwersjaRGB888doYCbCr422(uint8_t *obrazRGB888, uint8_t *obrazYCbCr, uint16
 				chR1 = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku lewego
 				chG1 = *(obrazRGB888 + nOfsetWe + 1);
 				chB1 = *(obrazRGB888 + nOfsetWe + 2);
+				KonwersjaRGB888doYCbCr(chR1, chG1, chB1, &chY1, &chCb1, &chCr1);
 
 				nOfsetWe += 24;
 				chR2 = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku prawego
 				chG2 = *(obrazRGB888 + nOfsetWe + 1);
 				chB2 = *(obrazRGB888 + nOfsetWe + 2);
+				KonwersjaRGB888doYCbCr(chR2, chG2, chB2, &chY2, &chCb2, &chCr2);
 
 				//Formowanie MCU
 				nOffsetWyjscia = b * ROZMIAR_MCU422 + y * 8 + x;
-				sY1 = ((uint16_t)chR1 * 77 + (uint16_t)chG1 * 150 + (uint16_t)chB1 * 29) >> 8;	//255 cykli
-				*(obrazYCbCr + nOffsetWyjscia + 0 * ROZMIAR_BLOKU) = (uint8_t)sY1;
-
-				sY2 = ((uint16_t)chR2 * 77 + (uint16_t)chG2 * 150 + (uint16_t)chB2 * 29) >> 8;
-				*(obrazYCbCr + nOffsetWyjscia + 1 * ROZMIAR_BLOKU) = (uint8_t)sY2;
-
-				sCb = (  ((int32_t)(chR1+chR2) * (-43)) + ((int32_t)(chG1+chG2) * (-84)) + ((int32_t)(chB1+chB2) * (127)) + 256) >> 9;
-				*(obrazYCbCr + nOffsetWyjscia + 2 * ROZMIAR_BLOKU) = (uint8_t)sCb;
-
-				sCr = ( ((int32_t)(chR1+chR2) * (127)) + ((int32_t)(chG1+chG2) * (-106)) + ((int32_t)(chB1+chB2) * (-21)) + 256) >> 9;	//284 cykle
-				*(obrazYCbCr + nOffsetWyjscia + 3 * ROZMIAR_BLOKU) = (uint8_t)sCr;
+				*(obrazYCbCr + nOffsetWyjscia + 0 * ROZMIAR_BLOKU) = chY1;
+				*(obrazYCbCr + nOffsetWyjscia + 1 * ROZMIAR_BLOKU) = chY2;
+				*(obrazYCbCr + nOffsetWyjscia + 2 * ROZMIAR_BLOKU) = (uint8_t)((uint16_t)chCb1 + chCb2) >> 1;
+				*(obrazYCbCr + nOffsetWyjscia + 3 * ROZMIAR_BLOKU) = (uint8_t)((uint16_t)chCr1 + chCr2) >> 1;
 			}
 		}
 	}
