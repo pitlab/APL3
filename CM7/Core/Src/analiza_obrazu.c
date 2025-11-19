@@ -150,57 +150,6 @@ void KonwersjaRGB888doYCbCr(uint8_t chR, uint8_t chG, uint8_t chB, uint8_t *chY,
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Konwertuje wiersz bloków 8x8 obrazu w formacie RGB888 znajdujace się w buforze
-// na kolejne bloki MCU dla obrazu YCbCr422
-// Parametry:
-// [we] *obrazRGB888 - wskaźnik na bufor[3*rozmiar] z obrazem wejściowym
-// [wy] *obrazYCbCr - wskaźnik na bufor[2*rozmiar] z obrazem wyjściowym
-// [we] sSzerokosc - szerokość obrazu w pikselach. Musi być podzielna przez 8
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void KonwersjaRGB888doYCbCr422(uint8_t *obrazRGB888, uint8_t *obrazYCbCr, uint16_t sSzerokosc)
-{
-	uint32_t nOffsetWiersza, nOffsetBloku;
-	uint32_t nOfsetWe, nOffsetWyjscia;
-	uint16_t chLiczbaParBlokow = sSzerokosc / 16;
-	uint8_t chR1, chG1, chB1, chR2, chG2, chB2;
-	uint8_t chY1, chCb1, chCr1, chY2, chCb2, chCr2;
-
-
-	for (uint8_t b=0; b<chLiczbaParBlokow; b++)	//petla po połowie bloków na szerokosci obrazu
-	{
-		nOffsetBloku = 2 * b * 24;
-		for (uint8_t y=0; y<8; y++)				//pętla po wierszach
-		{
-			nOffsetWiersza = y * sSzerokosc * 3;
-			for (uint8_t x=0; x<8; x++)			//pętla po  kolumnach
-			{
-				nOfsetWe = nOffsetWiersza + nOffsetBloku + 3 * x;
-				chR1 = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku lewego
-				chG1 = *(obrazRGB888 + nOfsetWe + 1);
-				chB1 = *(obrazRGB888 + nOfsetWe + 2);
-				KonwersjaRGB888doYCbCr(chR1, chG1, chB1, &chY1, &chCb1, &chCr1);
-
-				nOfsetWe += 24;
-				chR2 = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku prawego
-				chG2 = *(obrazRGB888 + nOfsetWe + 1);
-				chB2 = *(obrazRGB888 + nOfsetWe + 2);
-				KonwersjaRGB888doYCbCr(chR2, chG2, chB2, &chY2, &chCb2, &chCr2);
-
-				//Formowanie MCU
-				nOffsetWyjscia = b * ROZMIAR_MCU422 + y * 8 + x;
-				*(obrazYCbCr + nOffsetWyjscia + 0 * ROZMIAR_BLOKU) = chY1;
-				*(obrazYCbCr + nOffsetWyjscia + 1 * ROZMIAR_BLOKU) = chY2;
-				*(obrazYCbCr + nOffsetWyjscia + 2 * ROZMIAR_BLOKU) = (uint8_t)((uint16_t)chCb1 + chCb2) >> 1;
-				*(obrazYCbCr + nOffsetWyjscia + 3 * ROZMIAR_BLOKU) = (uint8_t)((uint16_t)chCr1 + chCr2) >> 1;
-			}
-		}
-	}
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
 // Wykonuje splot Robertsa do detekcji krawędzi na obrazie monochromatycznym
 // Są dwie macierze splotu robiace detekcję w poziomie i pionie
 // [1  0] [ 0 1]

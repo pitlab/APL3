@@ -313,6 +313,18 @@ uint8_t RozpocznijPraceDCMI(stKonfKam_t* konfig, uint16_t* sBufor, uint32_t nRoz
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// uruchamia DCMI w trybie pojedyńczego zdjęcia jako aparat lub ciagłej pracy jako kamera
+// Parametry: chAparat - 1 = KAM_ZDJECIE, tryb pojedyńczego zdjęcia, 0 = KAM_FILM, tryb filmu
+// Zwraca: kod błędu HAL
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ZakonczPraceDCMI(void)
+{
+	return HAL_DCMI_Stop(&hdcmi);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Czeka z timeoutem aż DCMI w trybie snapshot przechwyci cały obraz
 // Cała ramka obrazu trwa 21,6ms, wiec czekam max 6 ramek
 // Parametry: brak

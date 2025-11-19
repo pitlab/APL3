@@ -24,7 +24,7 @@
 //definicje parametrów dotknięcia ekranu
 
 #define MIN_Z	50		//minimalna siła nacisku na ekran
-#define MIN_T	2		//minimalny czas trwania dotknięcia [cykli]
+#define MIN_T	1		//minimalny czas trwania dotknięcia [cykli]
 #define PKT_KAL	3		//punktów kalibracji
 
 //flagi statusu
@@ -32,14 +32,13 @@
 #define DOTYK_ZWOLNONO		0x02	//puszczono przycisk ekranowy
 #define DOTYK_ZAPISANO		0x04	//zapisano dane konfiguracyjne
 #define DOTYK_SKALIBROWANY	0x08	//została wykonana kalibracja
-
+#define DOTYK_ODCZYTAC		0x80	//trzeba odczytać status dotyku, ponieważ upłynął czas a odczyt nie był możliwy
 
 struct _statusDotyku
 {
 	uint16_t sAdc[4];
 	uint16_t sX;
 	uint16_t sY;
-	uint8_t chCzasDotkniecia;	//czas utrzymania dotknięcia
 	uint8_t chFlagi;			//flagi określające naciśnięcie i zwolnienie przycisku ekranowego
 	uint32_t nOstCzasPomiaru;	//ostatni pomiar czasu między kolejnymi dotknięciami ekranu
 };

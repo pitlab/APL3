@@ -98,6 +98,7 @@ uint8_t	SprawdzKamere(void);
 uint8_t UstawKamere(stKonfKam_t *konf);
 uint8_t UstawKamere2(stKonfKam_t *konf);
 uint8_t RozpocznijPraceDCMI(stKonfKam_t *konfig, uint16_t* sBufor, uint32_t nRozmiarObrazu32bit);
+uint8_t ZakonczPraceDCMI(void);
 //uint8_t CzekajNaKoniecPracyDCMI(void);
 uint8_t CzekajNaKoniecPracyDCMI(uint16_t sWysokoscZdjecia);
 uint8_t ZrobZdjecie(uint16_t* sBufor, uint32_t nRozmiarObrazu32bit);

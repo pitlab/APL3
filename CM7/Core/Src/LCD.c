@@ -196,7 +196,7 @@ struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"TestDotyk",	"Testy panelu dotykowego",					TP_TESTY,			obr_dotyk_zolty},
+	{"TestDotyk",	"Testy panelu dotykowego",					TP_POMIARY_DOTYKU,			obr_dotyk_zolty},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuNastawy[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -331,6 +331,9 @@ void RysujEkran(void)
 	if ((statusDotyku.chFlagi & DOTYK_SKALIBROWANY) != DOTYK_SKALIBROWANY)		//sprawdź czy ekran dotykowy jest skalibrowany
 		chTrybPracy = TP_KAL_DOTYK;
 
+	if (statusDotyku.chFlagi & DOTYK_ODCZYTAC)	//przy najbliższej okazji trzeba odczytać dotyk
+		CzytajDotyk();
+
 	switch (chTrybPracy)
 	{
 	case TP_MENU_GLOWNE:	// wyświetla menu główne	MenuGlowne(&chNowyTrybPracy);
@@ -347,7 +350,7 @@ void RysujEkran(void)
 		}
 		break;
 
-	case TP_TESTY:
+	case TP_POMIARY_DOTYKU:
 		if (TestDotyku() == ERR_GOTOWE)
 			chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
@@ -850,6 +853,7 @@ void RysujEkran(void)
 		chErr = UstawObrazKamery(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, OBR_RGB565, KAM_FILM);		//kolor
 		if (chErr)
 			break;
+
 		chTrybPracyKamery = TPK_OSD;
 		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
 		if (chErr)
@@ -877,7 +881,8 @@ void RysujEkran(void)
 			nCzasLCD = DWT->CYCCNT - nCzasLCD; //koniec pomiaru
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-			chNowyTrybPracy = TP_WROC_DO_OSD;
+		chErr = ZakonczPraceDCMI();
+		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
 	case TPO_TEST_OSD240:
@@ -919,6 +924,21 @@ void RysujEkran(void)
 	case TPO_OSD_JPEG:		//kompresja jpeg obrazu OSD
 		sprintf((char*)chNazwaPlikuObr, "OSDYUV422");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+		/*uint8_t chBlok = 0;
+		for (uint32_t n=0; n<480*320/(128*3); n++)
+		{
+			for (uint32_t b=0; b<3*128/6; b++)
+			{
+				chBuforLCD[3*128*n+b*6+0] = chBlok | 0x10;
+				chBuforLCD[3*128*n+b*6+1] = chBlok | 0x40;
+				chBuforLCD[3*128*n+b*6+2] = chBlok | 0x20;
+				chBuforLCD[3*128*n+b*6+3] = chBlok | 0x10;
+				chBuforLCD[3*128*n+b*6+4] = chBlok | 0x80;
+				chBuforLCD[3*128*n+b*6+5] = chBlok | 0x20;
+			}
+			chBlok++;
+			chBlok &= 0x0F;
+		}*/
 		for (uint32_t n=0; n<480/2*4*6; n++)
 			*(chBuforYCbCr + n) = 0;
 		KompresujRGB888(chBuforLCD, chBuforYCbCr, chBuforJpeg, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
@@ -1416,7 +1436,7 @@ void RysujEkran(void)
 		chNowyTrybPracy = 0;			//nowy tryb jest ustawiany po starcie dla normalnej pracy ze skalibrowanym panelem. Jednak w przypadku potrzeby kalobracji,
 										//powoduje to wyczyszczenie opisu i pierwszego krzyżyka i nie wiadomo o co chodzi, więc kasuję chNowyTrybPracy
 		if (KalibrujDotyk() == ERR_GOTOWE)
-			chTrybPracy = TP_TESTY;
+			chTrybPracy = TP_POMIARY_DOTYKU;
 		break;
 
 //*** Pomiary ************************************************

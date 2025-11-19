@@ -91,63 +91,50 @@ uint8_t CzytajDotyk(void)
 	{
 		if (HAL_HSEM_Take(HSEM_SPI5_WYSW, 0) == BLAD_OK)
 		{
-				//Ponieważ zegar SPI = 100MHz a układ może pracować z prędkością max 2,5MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 64
-				nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
-				hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
-				hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_64;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/64
+			//Ponieważ zegar SPI = 100MHz a układ może pracować z prędkością max 2,5MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 64
+			nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
+			hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
+			hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_64;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/64
 
-				//domyslnie używam innej orientacji, więc zaimeń osie X i Y
-				statusDotyku.sAdc[0] = CzytajKanalDotyku(TPCHY);	//najlepiej się zmienia dla osi X.
+			//domyslnie używam innej orientacji, więc zaimeń osie X i Y
+			statusDotyku.sAdc[0] = CzytajKanalDotyku(TPCHY);	//najlepiej się zmienia dla osi X.
 #ifdef LCD_ILI9488 			//wyświetlacz z Aliexpress ma odwrócony kierunek w osi Y
-				statusDotyku.sAdc[1] = CzytajKanalDotyku(TPCHX);	//najlepiej się zmienia dla osi Y
+			statusDotyku.sAdc[1] = CzytajKanalDotyku(TPCHX);	//najlepiej się zmienia dla osi Y
 #else
-				statusDotyku.sAdc[1] = 4096 - CzytajKanalDotyku(TPCHX);	//Ponieważ wartość maleje dla większych Y, więc używam odwrotności
+			statusDotyku.sAdc[1] = 4096 - CzytajKanalDotyku(TPCHX);	//Ponieważ wartość maleje dla większych Y, więc używam odwrotności
 #endif
-				statusDotyku.sAdc[2] = CzytajKanalDotyku(TPCHZ1);
-				statusDotyku.sAdc[3] = CzytajKanalDotyku(TPCHZ2);
-				HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-				hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
+			statusDotyku.sAdc[2] = CzytajKanalDotyku(TPCHZ1);
+			statusDotyku.sAdc[3] = CzytajKanalDotyku(TPCHZ2);
+			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+			hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
+			statusDotyku.chFlagi &= ~DOTYK_ODCZYTAC;	//kasuj flagę potrzeby odczytu
 		}
 	}
 	else
+	{
+		statusDotyku.chFlagi |= DOTYK_ODCZYTAC;	//przy najbliższej okazji trzeba odczytać dotyk
 		return ERR_ZAJETY_SEMAFOR;
+	}
 
 	if (statusDotyku.sAdc[2] > MIN_Z)	//czy siła nacisku jest wystarczająca
 	{
 		if (statusDotyku.sAdc[2] == 0x1FFF) //czy jest to brak sterownika dotyku
 			return ERR_BRAK_WYSWIETLACZA;
 
-		if (statusDotyku.chCzasDotkniecia)
+		statusDotyku.chFlagi |= DOTYK_DOTKNIETO;
+		if (statusDotyku.chFlagi & DOTYK_SKALIBROWANY)
 		{
-			statusDotyku.chCzasDotkniecia--;
-			if (!statusDotyku.chCzasDotkniecia)
-			{
-				statusDotyku.chFlagi |= DOTYK_DOTKNIETO;
-
-				if (statusDotyku.chFlagi & DOTYK_SKALIBROWANY)
-				{
-					//oblicz współrzędne ekranowe
-					float fTemp;
-					fTemp = kalibDotyku.fAx * statusDotyku.sAdc[0] + kalibDotyku.fBx * statusDotyku.sAdc[1] + kalibDotyku.fDeltaX;
-					statusDotyku.sX = (uint16_t)(fTemp + 0.5f);	//uwzględnij zaokrąglenie
-					fTemp = kalibDotyku.fAy * statusDotyku.sAdc[0] + kalibDotyku.fBy * statusDotyku.sAdc[1] + kalibDotyku.fDeltaY;
-					statusDotyku.sY = (uint16_t)(fTemp + 0.5f);
-				}
-			}
+			//oblicz współrzędne ekranowe
+			float fTemp;
+			fTemp = kalibDotyku.fAx * statusDotyku.sAdc[0] + kalibDotyku.fBx * statusDotyku.sAdc[1] + kalibDotyku.fDeltaX;
+			statusDotyku.sX = (uint16_t)(fTemp + 0.5f);	//uwzględnij zaokrąglenie
+			fTemp = kalibDotyku.fAy * statusDotyku.sAdc[0] + kalibDotyku.fBy * statusDotyku.sAdc[1] + kalibDotyku.fDeltaY;
+			statusDotyku.sY = (uint16_t)(fTemp + 0.5f);
 		}
+
 	}
 	else
-	{
-		statusDotyku.chCzasDotkniecia = MIN_T;	//jeżeli jest puszczenie to przeładuj czas dotknięcia
 		statusDotyku.chFlagi |= DOTYK_ZWOLNONO;
-	}
-
-	/*/oblicz siłę dotyku - coś jest skopane, wskazania są odwrotnie proporcjonalne do siły nacisku
-	if (sDotykAdc[2])
-		sDotykAdc[4] = (200 * sDotykAdc[0]/4096) * ((sDotykAdc[3]/sDotykAdc[2])-1);
-	else
-		sDotykAdc[4] = 0; */
-
 	return BLAD_OK;
 }
 
@@ -508,6 +495,11 @@ uint8_t TestDotyku(void)
 			return ERR_GOTOWE;
 		}
 	}
+
+	setColor(ZOLTY);
+	sprintf(chNapis, "Pomiar: %d, %d, %d   ", statusDotyku.sAdc[0], statusDotyku.sAdc[1], statusDotyku.sAdc[2]);
+	RysujNapis(chNapis, 80, 160);
+
 	return BLAD_OK;
 }
 
@@ -529,7 +521,6 @@ uint8_t InicjujDotyk(void)
 	statusDotyku.chFlagi = 0;
 	statusDotyku.sX = 0;
 	statusDotyku.sY = 0;
-	statusDotyku.chCzasDotkniecia = 0;
 	statusDotyku.nOstCzasPomiaru = 0;
 
 	n = CzytajPaczkeKonfigu(chPaczka, FKON_KALIBRACJA_DOTYKU);
@@ -545,8 +536,6 @@ uint8_t InicjujDotyk(void)
 		statusDotyku.chFlagi |= DOTYK_SKALIBROWANY;
 		chErr = BLAD_OK;
 	}
-	statusDotyku.chCzasDotkniecia = 1;	//potrzebne do uruchomienia pierwszej kalibracji przez trzymanie ekranu podczas włączania
-	//normalnie potrzeba trzymać ekran przez kilka cykli aby zostało to uznane za dotknięcie, natomiast podcza uruchomienia jest tylko jedna próba stąd licznik musi być =1
 
 	//sprawdź obecność panelu dotykowego
 	CzytajDotyk();

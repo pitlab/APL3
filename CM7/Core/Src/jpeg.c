@@ -778,9 +778,14 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDaneSkompresowane, uint16_t sSzerokosc, uint16_t sWysokosc)
 {
+	uint32_t nOffsetWiersza, nOffsetBloku, nOffsetWierszaBlokow;
+	uint32_t nOfsetWe, nOffsetWyjscia;
+	uint16_t chLiczbaParBlokow = sSzerokosc / 16;
+	uint8_t chR, chG, chB;
+	uint8_t chY1, chCb1, chCr1, chY2, chCb2, chCr2;
 	uint8_t chErr;
-	uint16_t sIloscWierszyPionowo = sWysokosc / 8;
-	uint32_t nDanychWierszaBlokow = sSzerokosc / 8 * ROZMIAR_BLOKU * 3;
+	uint16_t sIloscBlokowPionowo = sWysokosc / 8;
+	//uint32_t nDanychWierszaBlokow = sSzerokosc / 8 * ROZMIAR_BLOKU * 3;
 	uint8_t chDaneDoKompresji;
 
 	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_422_SUBSAMPLING, 80);
@@ -798,10 +803,46 @@ uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDa
 	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
 	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
 
-	//formowanie MCU z 8 wierszy obrazu tworzących rząd bloków 8x8
-	for (uint16_t y=0; y<sIloscWierszyPionowo; y++)
+	for (uint16_t by=0; by<sIloscBlokowPionowo; by++)	//pętla po wierszu bloków 8x8 na wysokości obrazu
 	{
-		KonwersjaRGB888doYCbCr422((obrazRGB888 + y * nDanychWierszaBlokow), buforYCbCr, sSzerokosc);	//8 wierszy po 3 składowe na koloru na piksel
+		nOffsetWierszaBlokow = by * chLiczbaParBlokow * 2 * ROZMIAR_BLOKU;
+		for (uint8_t bx=0; bx<chLiczbaParBlokow; bx++)	//petla po połowie bloków na szerokosci obrazu
+		{
+			nOffsetBloku =  2 * bx * 24;
+			nOffsetBloku += nOffsetWierszaBlokow;
+			for (uint8_t y=0; y<8; y++)				//pętla po wierszach
+			{
+				nOffsetWiersza = y * sSzerokosc * 3;
+				nOffsetWiersza += nOffsetBloku;
+				for (uint8_t x=0; x<8; x++)			//pętla po  kolumnach
+				{
+					nOfsetWe = nOffsetWiersza + 3 * x;
+					chR = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku lewego
+					chG = *(obrazRGB888 + nOfsetWe + 1);
+					chB = *(obrazRGB888 + nOfsetWe + 2);
+					KonwersjaRGB888doYCbCr(chR, chG, chB, &chY1, &chCb1, &chCr1);
+					/*chY1 = chG;
+					chCb1 = chB;
+					chCr1 = chR;*/
+
+					nOfsetWe += 24;
+					chR = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku prawego
+					chG = *(obrazRGB888 + nOfsetWe + 1);
+					chB = *(obrazRGB888 + nOfsetWe + 2);
+					KonwersjaRGB888doYCbCr(chR, chG, chB, &chY2, &chCb2, &chCr2);
+					/*chY2 = chG;
+					chCb2 = chB;
+					chCr2 = chR;*/
+
+					//Formowanie MCU
+					nOffsetWyjscia = bx * ROZMIAR_MCU422 + y * 8 + x;
+					*(buforYCbCr + nOffsetWyjscia + 0 * ROZMIAR_BLOKU) = chY1;
+					*(buforYCbCr + nOffsetWyjscia + 1 * ROZMIAR_BLOKU) = chY2;
+					*(buforYCbCr + nOffsetWyjscia + 2 * ROZMIAR_BLOKU) = (uint8_t)((uint16_t)chCb1 + chCb2) >> 1;
+					*(buforYCbCr + nOffsetWyjscia + 3 * ROZMIAR_BLOKU) = (uint8_t)((uint16_t)chCr1 + chCr2) >> 1;
+				}
+			}
+		}
 
 		//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
 		chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
