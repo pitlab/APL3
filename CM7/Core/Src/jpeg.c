@@ -14,7 +14,8 @@
 #include "analiza_obrazu.h"
 #include "kamera.h"
 #include "napisy.h"
-
+#include "jpeg_utils_conf.h"
+//#include "jpeg_utils.h"
 
 extern JPEG_HandleTypeDef hjpeg;
 extern MDMA_HandleTypeDef hmdma_jpeg_outfifo_th;
@@ -47,6 +48,32 @@ const uint8_t chNaglJpegSOI[ROZMIAR_NAGL_JPEG] = {
 			0x00, 0x01,		//gęstość pionowo
 			0x00, 0x00};	//thumbnail 0x0
 const uint8_t chNaglJpegEOI[ROZMIAR_ZNACZ_xOI] = {0xFF, 0xD9};	//EOI (End Of Image)
+
+static uint16_t JPEG_Y_MCU_LUT[256];
+static uint16_t JPEG_Y_MCU_444_LUT[64];
+
+static uint16_t JPEG_Cb_MCU_420_LUT[256];
+static uint16_t JPEG_Cb_MCU_422_LUT[256];
+static uint16_t JPEG_Cb_MCU_444_LUT[64];
+
+static uint16_t JPEG_Cr_MCU_420_LUT[256];
+static uint16_t JPEG_Cr_MCU_422_LUT[256];
+static uint16_t JPEG_Cr_MCU_444_LUT[64];
+
+static uint16_t JPEG_K_MCU_420_LUT[256];
+static uint16_t JPEG_K_MCU_422_LUT[256];
+static uint16_t JPEG_K_MCU_444_LUT[64];
+
+static int32_t RED_Y_LUT[256];            /* Red to Y color conversion Look Up Table  */
+static int32_t RED_CB_LUT[256];           /* Red to Cb color conversion Look Up Table  */
+static int32_t BLUE_CB_RED_CR_LUT[256];   /* Red to Cr and Blue to Cb color conversion Look Up Table  */
+static int32_t GREEN_Y_LUT[256];          /* Green to Y color conversion Look Up Table*/
+static int32_t GREEN_CR_LUT[256];         /* Green to Cr color conversion Look Up Table*/
+static int32_t GREEN_CB_LUT[256];         /* Green to Cb color conversion Look Up Table*/
+static int32_t BLUE_Y_LUT[256];           /* Blue to Y color conversion Look Up Table */
+static int32_t BLUE_CR_LUT[256];          /* Blue to Cr color conversion Look Up Table */
+//JPEG_RGBToYCbCr_Convert_Function pRGBToYCbCr_Convert_Function;
+static  JPEG_MCU_RGB_ConvertorTypeDef JPEG_ConvertorParams;
 
 // Nagłówek JPEG dla obrazu 480x320, 8-bit Y8 grayscale
 /*static const uint8_t chNaglJpeg_480x320_y8[] = {
@@ -876,6 +903,142 @@ uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDa
 	return chErr;
 }
 
+uint8_t KompresujRGB888A(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDaneSkompresowane, uint16_t sSzerokosc, uint16_t sWysokosc)
+{
+	uint32_t nOffsetWiersza;//, nOffsetBloku, nOffsetWierszaBlokow;
+	uint32_t nOfsetWe, nOffsetWyjscia;
+	uint8_t chR, chG, chB;
+	uint8_t chY1, chCb1, chCr1, chY2, chCb2, chCr2;
+	uint8_t chErr;
+	uint16_t sIloscBlokowPionowo = sWysokosc / 8;
+	uint8_t chDaneDoKompresji;
+
+	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_422_SUBSAMPLING, 80);
+	if (chErr)
+	{
+		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
+			HAL_JPEG_Abort(&hjpeg);
+		return chErr;
+	}
+
+	chWskNapBufJpeg = 0;
+	nRozmiarObrazuJPEG = 0;
+	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
+
+	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
+	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
+
+	for (uint16_t by=0; by<sIloscBlokowPionowo; by++)	//pętla po wierszu bloków 8x8 na wysokości obrazu
+	{
+		nOffsetWyjscia = 0;
+		for (uint8_t y=0; y<8; y++)				//pętla po wierszach
+		{
+			nOffsetWiersza = y * sSzerokosc * 3;
+			for (uint8_t x=0; x<sSzerokosc/2; x++)			//pętla po parach kolumn
+			{
+				nOfsetWe = nOffsetWiersza + 3 * x;
+				chR = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku lewego
+				chG = *(obrazRGB888 + nOfsetWe + 1);
+				chB = *(obrazRGB888 + nOfsetWe + 2);
+				KonwersjaRGB888doYCbCr(chR, chG, chB, &chY1, &chCb1, &chCr1);
+
+				//nOfsetWe += 24;
+				chR = *(obrazRGB888 + nOfsetWe + 3);		//piksele bloku prawego
+				chG = *(obrazRGB888 + nOfsetWe + 4);
+				chB = *(obrazRGB888 + nOfsetWe + 5);
+				KonwersjaRGB888doYCbCr(chR, chG, chB, &chY2, &chCb2, &chCr2);
+
+				*(buforYCbCr + nOffsetWyjscia++) = chY1;
+				*(buforYCbCr + nOffsetWyjscia++) = (uint8_t)((uint16_t)chCb1 + chCb2) >> 1;
+				*(buforYCbCr + nOffsetWyjscia++) = chY2;
+				*(buforYCbCr + nOffsetWyjscia++) = (uint8_t)((uint16_t)chCr1 + chCr2) >> 1;
+			}
+		}
+
+		//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
+		chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
+		chDaneDoKompresji = 1;	//są dane do kompresji
+		do
+		{
+			if (hjpeg.State == HAL_JPEG_STATE_READY)
+			{
+				HAL_JPEG_ConfigInputBuffer(&hjpeg, buforYCbCr, ROZMIAR_MCU422 * sSzerokosc / 16);	//przekaż bufor z nowymi danymi
+				chErr = HAL_JPEG_Encode_DMA(&hjpeg, buforYCbCr, ROZMIAR_MCU422 * sSzerokosc / 16, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+				chDaneDoKompresji = 0;
+			}
+			else
+			{
+				if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
+					osDelay(5);
+
+				if (chZatrzymanoWe)
+				{
+					chErr = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję
+					chZatrzymanoWe = 0;
+				}
+			}
+
+			if (chStatusBufJpeg & STAT_JPG_OTWORZ)
+				osDelay(5);	//daj czas na otwarcie pliku
+		}
+		while (chDaneDoKompresji && !chErr);	//pracuj dotąd aż przygotowane dane zostaną pobrane przez kompresor lub wystąpi błąd
+	}
+	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+	return chErr;
+}
+
+
+
+
+uint8_t KompresujPrzyklad(uint8_t *obrazRGB888,  uint8_t *chMCU, uint16_t sSzerokosc, uint16_t sWysokosc)
+{
+	uint8_t chErr = 0;
+	uint32_t BlockIndex = 0;
+	uint32_t DataCount = sSzerokosc * sWysokosc;
+	uint32_t ConvertedDataCount;
+	uint32_t hMCU, vMCU;
+
+	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_422_SUBSAMPLING, 80);
+	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
+
+	JPEG_ConvertorParams.BlockSize = ROZMIAR_MCU422;
+	JPEG_ConvertorParams.Cb_MCU_LUT = JPEG_Cb_MCU_422_LUT;
+	JPEG_ConvertorParams.Cr_MCU_LUT = JPEG_Cr_MCU_422_LUT;
+	JPEG_ConvertorParams.Y_MCU_LUT = JPEG_Y_MCU_LUT;
+	JPEG_ConvertorParams.K_MCU_LUT = JPEG_K_MCU_422_LUT;
+	JPEG_ConvertorParams.ChromaSubsampling = JPEG_422_SUBSAMPLING;
+	JPEG_ConvertorParams.ColorSpace = JPEG_YCBCR_COLORSPACE;
+	JPEG_ConvertorParams.ImageHeight = sWysokosc;
+	JPEG_ConvertorParams.ImageWidth = sSzerokosc;
+	JPEG_ConvertorParams.ImageSize_Bytes = sSzerokosc * sWysokosc;
+	JPEG_ConvertorParams.LineOffset =JPEG_ConvertorParams.ImageWidth % 16;
+	JPEG_ConvertorParams.WidthExtend = JPEG_ConvertorParams.ImageWidth + JPEG_ConvertorParams.LineOffset;
+	JPEG_ConvertorParams.ScaledWidth = JPEG_BYTES_PER_PIXEL * JPEG_ConvertorParams.ImageWidth;
+	JPEG_ConvertorParams.H_factor = 16;
+	JPEG_ConvertorParams.V_factor = 8;
+	hMCU = (JPEG_ConvertorParams.ImageWidth / JPEG_ConvertorParams.H_factor);
+	if((JPEG_ConvertorParams.ImageWidth % JPEG_ConvertorParams.H_factor) != 0)
+	{
+	hMCU++; /*+1 for horizenatl incomplete MCU */
+	}
+
+	vMCU = (JPEG_ConvertorParams.ImageHeight / JPEG_ConvertorParams.V_factor);
+	if((JPEG_ConvertorParams.ImageHeight % JPEG_ConvertorParams.V_factor) != 0)
+	{
+	vMCU++; /*+1 for vertical incomplete MCU */
+	}
+
+	JPEG_ConvertorParams.MCU_Total_Nb = (hMCU * vMCU);
+
+	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
+	JPEG_Init_MCU_LUT();
+	JPEG_ARGB_MCU_YCbCr422_ConvertBlocks(obrazRGB888, chMCU, BlockIndex, DataCount, &ConvertedDataCount);
+	HAL_JPEG_ConfigInputBuffer(&hjpeg, chMCU, ROZMIAR_MCU422 * sSzerokosc / 16 * sWysokosc);	//przekaż bufor z nowymi danymi
+	chErr = HAL_JPEG_Encode_DMA(&hjpeg, chMCU, ROZMIAR_MCU422 * sSzerokosc / 16 * sWysokosc, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+
+	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+	return chErr;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1307,3 +1470,317 @@ void PrzygotujTag(uint8_t **chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *
 
 
 
+void JPEG_Init_MCU_LUT(void)
+{
+  uint32_t i, j, offset;
+
+  /*Y LUT */
+  for(i = 0; i < 16; i++)
+  {
+    for(j = 0; j < 16; j++)
+    {
+      offset =  j + (i*8);
+      if((j>=8) && (i>=8)) offset+= 120;
+      else  if((j>=8) && (i<8)) offset+= 56;
+      else  if((j<8) && (i>=8)) offset+= 64;
+
+      JPEG_Y_MCU_LUT[i*16 + j] = offset;
+    }
+  }
+
+  /*Cb Cr K LUT*/
+  for(i = 0; i < 16; i++)
+  {
+    for(j = 0; j < 16; j++)
+    {
+      offset = i*16 + j;
+
+      JPEG_Cb_MCU_420_LUT[offset] = (j/2) + ((i/2)*8) + 256;
+      JPEG_Cb_MCU_422_LUT[offset] = (j/2) + (i*8) + 128;
+
+      JPEG_Cr_MCU_420_LUT[offset] = (j/2) + ((i/2)*8) + 320;
+      JPEG_Cr_MCU_422_LUT[offset] = (j/2) + (i*8) + 192;
+
+      JPEG_K_MCU_420_LUT[offset] = (j/2) + ((i/2)*8) + 384;
+      JPEG_K_MCU_422_LUT[offset] = (j/2) + ((i/2)*8) + 256;
+    }
+  }
+
+  for(i = 0; i < 8; i++)
+  {
+    for(j = 0; j < 8; j++)
+    {
+      offset = i*8 + j;
+
+      JPEG_Y_MCU_444_LUT[offset]  = offset;
+      JPEG_Cb_MCU_444_LUT[offset] = offset + 64 ;
+      JPEG_Cr_MCU_444_LUT[offset] = offset + 128 ;
+      JPEG_K_MCU_444_LUT[offset]  = offset + 192 ;
+    }
+  }
+}
+
+
+/**
+  * @brief  Convert RGB to YCbCr 4:2:2 blocks pixels
+  * @param  pInBuffer  : pointer to input RGB888/ARGB8888 frame buffer.
+  * @param  pOutBuffer : pointer to output YCbCr blocks buffer.
+  * @param  BlockIndex : index of the input buffer first block in the final image.
+  * @param  DataCount  : number of bytes in the input buffer .
+  * @param  ConvertedDataCount  : number of converted bytes from input buffer.
+  * @retval Number of blocks converted from RGB to YCbCr
+  */
+uint32_t JPEG_ARGB_MCU_YCbCr422_ConvertBlocks(uint8_t *pInBuffer, uint8_t *pOutBuffer, uint32_t BlockIndex, uint32_t DataCount, uint32_t *ConvertedDataCount)
+{
+  uint32_t numberMCU;
+  uint32_t i,j, currentMCU, xRef,yRef, colones;
+
+  uint32_t refline;
+  int32_t ycomp, crcomp, cbcomp, offset;
+
+  uint32_t red, green, blue;
+
+  uint8_t *pOutAddr;
+  uint8_t *pInAddr;
+
+  numberMCU = ((2 * DataCount) / (JPEG_BYTES_PER_PIXEL * YCBCR_422_BLOCK_SIZE));
+
+  currentMCU = BlockIndex;
+  *ConvertedDataCount = numberMCU * JPEG_ConvertorParams.BlockSize;
+
+  pOutAddr = &pOutBuffer[0];
+
+  while(currentMCU < (numberMCU + BlockIndex))
+  {
+    xRef = ((currentMCU *JPEG_ConvertorParams.H_factor) / JPEG_ConvertorParams.WidthExtend)*JPEG_ConvertorParams.V_factor;
+
+    yRef = ((currentMCU *JPEG_ConvertorParams.H_factor) % JPEG_ConvertorParams.WidthExtend);
+
+
+    refline = JPEG_ConvertorParams.ScaledWidth * xRef + (JPEG_BYTES_PER_PIXEL*yRef);
+
+    currentMCU++;
+
+    if(((currentMCU *JPEG_ConvertorParams.H_factor) % JPEG_ConvertorParams.WidthExtend) == 0)
+    {
+      colones = JPEG_ConvertorParams.H_factor - JPEG_ConvertorParams.LineOffset;
+    }
+    else
+    {
+      colones = JPEG_ConvertorParams.H_factor;
+    }
+    offset = 0;
+
+    for(i= 0; i <  JPEG_ConvertorParams.V_factor; i+=1)
+    {
+
+      pInAddr = &pInBuffer[0] ;
+
+      for(j=0; j < colones; j+=2)
+      {
+        // First Pixel
+#if (JPEG_RGB_FORMAT == JPEG_RGB565)
+        red   = (((*(__IO uint16_t *)(pInAddr + refline)) & JPEG_RGB565_RED_MASK)   >> JPEG_RED_OFFSET) ;
+        green = (((*(__IO uint16_t *)(pInAddr + refline)) & JPEG_RGB565_GREEN_MASK) >> JPEG_GREEN_OFFSET) ;
+        blue  = (((*(__IO uint16_t *)(pInAddr + refline)) & JPEG_RGB565_BLUE_MASK)  >> JPEG_BLUE_OFFSET) ;
+        red   = (red << 3)   | (red >> 2);
+        green = (green << 2) | (green >> 4);
+        blue  = (blue << 3)  | (blue >> 2);
+#else
+        red   = (*(pInAddr + refline + JPEG_RED_OFFSET/8)) ;
+        green = (*(pInAddr + refline + JPEG_GREEN_OFFSET/8)) ;
+        blue  = (*(pInAddr + refline + JPEG_BLUE_OFFSET/8)) ;
+#endif
+        ycomp  = (int32_t)(*(RED_Y_LUT + red)) + (int32_t)(*(GREEN_Y_LUT + green)) + (int32_t)(*(BLUE_Y_LUT + blue));
+        cbcomp = (int32_t)(*(RED_CB_LUT + red)) + (int32_t)(*(GREEN_CB_LUT + green)) + (int32_t)(*(BLUE_CB_RED_CR_LUT + blue)) + 128;
+        crcomp = (int32_t)(*(BLUE_CB_RED_CR_LUT + red)) + (int32_t)(*(GREEN_CR_LUT + green)) + (int32_t)(*(BLUE_CR_LUT + blue)) + 128;
+
+        (*(pOutAddr + JPEG_ConvertorParams.Y_MCU_LUT[offset]))  = ycomp;
+        (*(pOutAddr + JPEG_ConvertorParams.Cb_MCU_LUT[offset])) = cbcomp;
+        (*(pOutAddr + JPEG_ConvertorParams.Cr_MCU_LUT[offset])) = crcomp;
+
+        // Second Pixel
+#if (JPEG_RGB_FORMAT == JPEG_RGB565)
+        red   = (((*(__IO uint16_t *)(pInAddr + refline + JPEG_BYTES_PER_PIXEL)) & JPEG_RGB565_RED_MASK)   >> JPEG_RED_OFFSET) ;
+        green = (((*(__IO uint16_t *)(pInAddr + refline + JPEG_BYTES_PER_PIXEL)) & JPEG_RGB565_GREEN_MASK) >> JPEG_GREEN_OFFSET) ;
+        blue  = (((*(__IO uint16_t *)(pInAddr + refline + JPEG_BYTES_PER_PIXEL)) & JPEG_RGB565_BLUE_MASK)  >> JPEG_BLUE_OFFSET) ;
+        red   = (red << 3)   | (red >> 2);
+        green = (green << 2) | (green >> 4);
+        blue  = (blue << 3)  | (blue >> 2);
+#else
+        red   = (*(pInAddr + refline + JPEG_BYTES_PER_PIXEL + JPEG_RED_OFFSET/8)) ;
+        green = (*(pInAddr + refline + JPEG_BYTES_PER_PIXEL + JPEG_GREEN_OFFSET/8)) ;
+        blue  = (*(pInAddr + refline + JPEG_BYTES_PER_PIXEL + JPEG_BLUE_OFFSET/8)) ;
+#endif
+        ycomp  = (int32_t)(*(RED_Y_LUT + red)) + (int32_t)(*(GREEN_Y_LUT + green)) + (int32_t)(*(BLUE_Y_LUT + blue));
+        (*(pOutAddr + JPEG_ConvertorParams.Y_MCU_LUT[offset + 1]))  = ycomp;
+
+
+
+        pInAddr += JPEG_BYTES_PER_PIXEL * 2;
+        offset+=2;
+      }
+      offset += (JPEG_ConvertorParams.H_factor - colones);
+      refline += JPEG_ConvertorParams.ScaledWidth ;
+
+    }
+    pOutAddr +=  JPEG_ConvertorParams.BlockSize;
+  }
+
+  return numberMCU;
+}
+
+
+
+
+/**
+  * @brief  Retrieve Encoding RGB to YCbCr color conversion function and block number
+  * @param  pJpegInfo  : JPEG_ConfTypeDef that contains the JPEG image information.
+  *                      These info are available in the HAL callback "HAL_JPEG_InfoReadyCallback".
+  * @param  pFunction  : pointer to JPEG_RGBToYCbCr_Convert_Function , used to Retrieve the color conversion function
+  *                      depending of the jpeg image color space and chroma sampling info.
+  * @param ImageNbMCUs : pointer to uint32_t, used to Retrieve the total number of MCU blocks in the jpeg image.
+  * @retval HAL status : HAL_OK or HAL_ERROR.
+  */
+/*HAL_StatusTypeDef JPEG_GetEncodeColorConvertFunc(JPEG_ConfTypeDef *pJpegInfo, JPEG_RGBToYCbCr_Convert_Function *pFunction, uint32_t *ImageNbMCUs)
+{
+  uint32_t hMCU, vMCU;
+
+  JPEG_ConvertorParams.ColorSpace = pJpegInfo->ColorSpace;
+  JPEG_ConvertorParams.ChromaSubsampling = pJpegInfo->ChromaSubsampling;
+
+  if(JPEG_ConvertorParams.ColorSpace == JPEG_YCBCR_COLORSPACE)
+  {
+    if(JPEG_ConvertorParams.ChromaSubsampling == JPEG_420_SUBSAMPLING)
+    {
+      *pFunction =  JPEG_ARGB_MCU_YCbCr420_ConvertBlocks;
+    }
+    else if (JPEG_ConvertorParams.ChromaSubsampling == JPEG_422_SUBSAMPLING)
+    {
+      *pFunction = JPEG_ARGB_MCU_YCbCr422_ConvertBlocks;
+    }
+    else if (JPEG_ConvertorParams.ChromaSubsampling == JPEG_444_SUBSAMPLING)
+    {
+      *pFunction = JPEG_ARGB_MCU_YCbCr444_ConvertBlocks;
+    }
+    else
+    {
+       return HAL_ERROR; // Chroma SubSampling Not supported
+    }
+  }
+  else if(JPEG_ConvertorParams.ColorSpace == JPEG_GRAYSCALE_COLORSPACE)
+  {
+    *pFunction = JPEG_ARGB_MCU_Gray_ConvertBlocks;
+  }
+  else if(JPEG_ConvertorParams.ColorSpace == JPEG_CMYK_COLORSPACE)
+  {
+    *pFunction = JPEG_ARGB_MCU_YCCK_ConvertBlocks;
+  }
+  else
+  {
+     return HAL_ERROR; // Color space Not supported
+  }
+
+  JPEG_ConvertorParams.ImageWidth = pJpegInfo->ImageWidth;
+  JPEG_ConvertorParams.ImageHeight = pJpegInfo->ImageHeight;
+  JPEG_ConvertorParams.ImageSize_Bytes = pJpegInfo->ImageWidth * pJpegInfo->ImageHeight * JPEG_BYTES_PER_PIXEL;
+
+  if((JPEG_ConvertorParams.ChromaSubsampling == JPEG_420_SUBSAMPLING) || (JPEG_ConvertorParams.ChromaSubsampling == JPEG_422_SUBSAMPLING))
+  {
+    JPEG_ConvertorParams.LineOffset = JPEG_ConvertorParams.ImageWidth % 16;
+
+    JPEG_ConvertorParams.Y_MCU_LUT = JPEG_Y_MCU_LUT;
+
+    if(JPEG_ConvertorParams.LineOffset != 0)
+    {
+      JPEG_ConvertorParams.LineOffset = 16 - JPEG_ConvertorParams.LineOffset;
+    }
+
+    JPEG_ConvertorParams.H_factor = 16;
+
+    if(JPEG_ConvertorParams.ChromaSubsampling == JPEG_420_SUBSAMPLING)
+    {
+      JPEG_ConvertorParams.V_factor  = 16;
+
+      if(JPEG_ConvertorParams.ColorSpace == JPEG_YCBCR_COLORSPACE)
+      {
+        JPEG_ConvertorParams.BlockSize =  YCBCR_420_BLOCK_SIZE;
+      }
+
+      JPEG_ConvertorParams.Cb_MCU_LUT = JPEG_Cb_MCU_420_LUT;
+      JPEG_ConvertorParams.Cr_MCU_LUT = JPEG_Cr_MCU_420_LUT;
+
+      JPEG_ConvertorParams.K_MCU_LUT  = JPEG_K_MCU_420_LUT;
+    }
+    else // 4:2:2
+    {
+      JPEG_ConvertorParams.V_factor = 8;
+
+      if(JPEG_ConvertorParams.ColorSpace == JPEG_YCBCR_COLORSPACE)
+      {
+        JPEG_ConvertorParams.BlockSize =  YCBCR_422_BLOCK_SIZE;
+      }
+
+      JPEG_ConvertorParams.Cb_MCU_LUT = JPEG_Cb_MCU_422_LUT;
+      JPEG_ConvertorParams.Cr_MCU_LUT = JPEG_Cr_MCU_422_LUT;
+
+      JPEG_ConvertorParams.K_MCU_LUT  = JPEG_K_MCU_422_LUT;
+    }
+  }
+  else if(JPEG_ConvertorParams.ChromaSubsampling == JPEG_444_SUBSAMPLING)
+  {
+    JPEG_ConvertorParams.LineOffset = JPEG_ConvertorParams.ImageWidth % 8;
+
+    JPEG_ConvertorParams.Y_MCU_LUT = JPEG_Y_MCU_444_LUT;
+
+    JPEG_ConvertorParams.Cb_MCU_LUT = JPEG_Cb_MCU_444_LUT;
+    JPEG_ConvertorParams.Cr_MCU_LUT = JPEG_Cr_MCU_444_LUT;
+
+    JPEG_ConvertorParams.K_MCU_LUT  = JPEG_K_MCU_444_LUT;
+
+    if(JPEG_ConvertorParams.LineOffset != 0)
+    {
+      JPEG_ConvertorParams.LineOffset = 8 - JPEG_ConvertorParams.LineOffset;
+    }
+    JPEG_ConvertorParams.H_factor = 8;
+    JPEG_ConvertorParams.V_factor = 8;
+
+    if(JPEG_ConvertorParams.ColorSpace == JPEG_YCBCR_COLORSPACE)
+    {
+      JPEG_ConvertorParams.BlockSize = YCBCR_444_BLOCK_SIZE;
+    }
+    if(JPEG_ConvertorParams.ColorSpace == JPEG_CMYK_COLORSPACE)
+    {
+      JPEG_ConvertorParams.BlockSize = CMYK_444_BLOCK_SIZE;
+    }
+    else if(JPEG_ConvertorParams.ColorSpace == JPEG_GRAYSCALE_COLORSPACE)
+    {
+      JPEG_ConvertorParams.BlockSize = GRAY_444_BLOCK_SIZE;
+    }
+
+  }
+  else
+  {
+     return HAL_ERROR; // Not supported
+  }
+
+
+  JPEG_ConvertorParams.WidthExtend = JPEG_ConvertorParams.ImageWidth + JPEG_ConvertorParams.LineOffset;
+  JPEG_ConvertorParams.ScaledWidth = JPEG_BYTES_PER_PIXEL * JPEG_ConvertorParams.ImageWidth;
+
+  hMCU = (JPEG_ConvertorParams.ImageWidth / JPEG_ConvertorParams.H_factor);
+  if((JPEG_ConvertorParams.ImageWidth % JPEG_ConvertorParams.H_factor) != 0)
+  {
+    hMCU++; //+1 for horizenatl incomplete MCU
+  }
+
+  vMCU = (JPEG_ConvertorParams.ImageHeight / JPEG_ConvertorParams.V_factor);
+  if((JPEG_ConvertorParams.ImageHeight % JPEG_ConvertorParams.V_factor) != 0)
+  {
+    vMCU++; //+1 for vertical incomplete MCU
+  }
+  JPEG_ConvertorParams.MCU_Total_Nb = (hMCU * vMCU);
+  *ImageNbMCUs = JPEG_ConvertorParams.MCU_Total_Nb;
+
+  return HAL_OK;
+}*/

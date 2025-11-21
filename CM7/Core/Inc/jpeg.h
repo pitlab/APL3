@@ -38,6 +38,53 @@
 #define ROZMIAR_EXIF		560		//rozmiar wyrównany tak aby kolena sekcja jpeg zaczynała się od adresu będącego wielokrotnością 4
 #define ROZMIAR_INTEROPER	2
 
+
+//z przykładu
+#define JPEG_BYTES_PER_PIXEL     3
+#define JPEG_GREEN_OFFSET        8       /* Offset of the GREEN color in a pixel         */
+#define YCBCR_422_BLOCK_SIZE       256
+
+
+#if (JPEG_SWAP_RB == 0)
+#define JPEG_RED_OFFSET        11      /* Offset of the RED color in a pixel           */
+#define JPEG_BLUE_OFFSET       0       /* Offset of the BLUE color in a pixel          */
+#define JPEG_RGB565_RED_MASK   0xF800  /* Mask of Red component in RGB565 Format       */
+#define JPEG_RGB565_BLUE_MASK  0x001F  /* Mask of Blue component in RGB565 Format      */
+#else
+#define JPEG_RED_OFFSET        0       /* Offset of the RED color in a pixel           */
+#define JPEG_BLUE_OFFSET       11      /* Offset of the BLUE color in a pixel          */
+#define JPEG_RGB565_RED_MASK   0x001F  /* Mask of Red component in RGB565 Format       */
+#define JPEG_RGB565_BLUE_MASK  0xF800  /* Mask of Blue component in RGB565 Format      */
+#endif /* JPEG_SWAP_RB */
+
+typedef struct __JPEG_MCU_RGB_ConvertorTypeDef
+{
+  uint32_t ColorSpace;
+  uint32_t ChromaSubsampling;
+
+  uint32_t ImageWidth;
+  uint32_t ImageHeight;
+  uint32_t ImageSize_Bytes;
+
+  uint32_t LineOffset;
+  uint32_t BlockSize;
+
+  uint32_t H_factor;
+  uint32_t V_factor;
+
+  uint32_t WidthExtend;
+  uint32_t ScaledWidth;
+
+  uint32_t MCU_Total_Nb;
+
+  uint16_t *Y_MCU_LUT;
+  uint16_t *Cb_MCU_LUT;
+  uint16_t *Cr_MCU_LUT;
+  uint16_t *K_MCU_LUT;
+
+}JPEG_MCU_RGB_ConvertorTypeDef;
+
+
 //definicje typów tagów Exif
 #define EXIF_TYPE_BYTE			0x01   	//BYTE
 #define EXIF_TYPE_ASCII			0x02  	//ASCII
@@ -94,6 +141,8 @@
 #define EXTAG_GPS_SPEED			0x0D	//RATIONAL x1
 #define EXTAG_GPS_DATE_STAMP	0x1D	//ASCII x11
 
+
+
 uint8_t InicjalizujJpeg(void);
 uint8_t KonfigurujKompresjeJpeg(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chTypKoloru, uint8_t chTypChrominancji, uint8_t chJakoscObrazu);
 uint8_t CzekajNaKoniecPracyJPEG(void);
@@ -101,8 +150,15 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc);
 uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc);
 uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDaneSkompresowane, uint16_t sSzerokosc, uint16_t sWysokosc);
+uint8_t KompresujRGB888A(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDaneSkompresowane, uint16_t sSzerokosc, uint16_t sWysokosc);
 uint8_t* ZnajdzZnacznikJpeg(uint8_t *chDaneSkompresowane, uint8_t chZnacznik);
 uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC_DateTypeDef stData, RTC_TimeTypeDef stCzas);
 //void PrzygotujTag(uint8_t** chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *chDane, uint8_t chRozmiar, uint8_t** chWskDanych);
 void PrzygotujTag(uint8_t** chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *chDane, uint32_t nRozmiar, uint8_t** chWskDanych, uint8_t *chPoczatekTIFF);
+
+uint8_t KompresujPrzyklad(uint8_t *obrazRGB888,  uint8_t *chMCU, uint16_t sSzerokosc, uint16_t sWysokosc);
+void JPEG_Init_MCU_LUT(void);
+uint32_t JPEG_ARGB_MCU_YCbCr422_ConvertBlocks (uint8_t *pInBuffer, uint8_t *pOutBuffer, uint32_t BlockIndex, uint32_t DataCount, uint32_t *ConvertedDataCount);
+//HAL_StatusTypeDef JPEG_GetEncodeColorConvertFunc(JPEG_ConfTypeDef *pJpegInfo, JPEG_RGBToYCbCr_Convert_Function *pFunction, uint32_t *ImageNbMCUs);
+//static uint32_t JPEG_ARGB_MCU_YCbCr422_ConvertBlocks (uint8_t *pInBuffer, uint8_t *pOutBuffer, uint32_t BlockIndex, uint32_t DataCount, uint32_t *ConvertedDataCount);
 #endif /* INC_JPEG_H_ */

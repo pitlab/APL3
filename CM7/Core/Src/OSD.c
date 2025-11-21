@@ -611,7 +611,7 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		PobierzPozycjeObiektu(&stKonf->stCzasRys, stKonf, &stWspXY);
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stCzasRys.sKolorObiektu, (uint8_t*)&stKonf->stCzasRys.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}
-	WyswietlCykle();		//drukuje na konsoli liczbę wykonanych cykli
+	//WyswietlCykle();		//drukuje na konsoli liczbę wykonanych cykli
 }
 
 
