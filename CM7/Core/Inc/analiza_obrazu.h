@@ -21,7 +21,7 @@ void KonwersjaRGB565doCB7(uint16_t *obrazRGB565, uint8_t *obrazCB, uint32_t rozm
 void KonwersjaCB7doRGB565(uint8_t *obrazCB, uint16_t *obrazCB565, uint32_t rozmiar);
 void KonwersjaCB8doRGB666(uint8_t *obrazCB, uint8_t *obrazCB666, uint32_t rozmiar);
 void KonwersjaRGB565doRGB666(uint16_t *obrazRG565, uint8_t *obrazRGB666, uint32_t rozmiar);
-void KonwersjaRGB888doYCbCr(uint8_t chR, uint8_t chG, uint8_t chB, uint8_t *chY, uint8_t *chCb, uint8_t *chCr);
+void KonwersjaRGB888doYCbCr(uint8_t chR, uint8_t chG, uint8_t chB, uint8_t *chY, int8_t *chCb, int8_t *chCr);
 void DetekcjaKrawedziRoberts(uint8_t *obrazWe, uint8_t *obrazWy, uint16_t szerokosc, uint16_t wysokosc, uint8_t prog);
 void DetekcjaKrawedziSobel(uint8_t *obrazWe, uint8_t *obrazWy, uint16_t szerokosc, uint16_t wysokosc, uint8_t prog);
 void HistogramCB7(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist);

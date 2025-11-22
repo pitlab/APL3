@@ -745,11 +745,12 @@ void RysujEkran(void)
 		chErr = KompresujYUV444((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
 		nCzas = MinalCzas(nCzas);*/
 
-		sprintf((char*)chNazwaPlikuObr, "Test");	//początek nazwy pliku ze zdjeciem
+		sprintf((char*)chNazwaPlikuObr, "Test3");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_BMP | STATREJ_ZAPISZ_JPG;	//włącz zapis plików
 		//Metoda z oficjalnych przykładów
+		JPEG_Init_MCU_LUT();
 		JPEG_InitColorTables();
-		KompresujPrzyklad(chBuforOSD, (uint8_t *)sBuforKamerySRAM,  240,  128);
+		KompresujPrzyklad(chBuforLCD, (uint8_t *)sBuforKamerySRAM,  240,  96);
 
 
 		if (chErr)
@@ -933,7 +934,6 @@ void RysujEkran(void)
 	case TPO_OSD_JPEG:		//kompresja jpeg obrazu OSD
 		sprintf((char*)chNazwaPlikuObr, "OSDYUV422");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
-		JPEG_Init_MCU_LUT();
 		/*uint8_t chBlok = 0;
 		for (uint32_t n=0; n<480*320/(128*3); n++)
 		{
@@ -951,8 +951,7 @@ void RysujEkran(void)
 		}*/
 		for (uint32_t n=0; n<480/2*4*6; n++)
 			*(chBuforYCbCr + n) = 0;
-		//KompresujRGB888(chBuforLCD, chBuforYCbCr, chBuforJpeg, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
-		KompresujRGB888A(chBuforLCD, chBuforYCbCr, chBuforJpeg, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+		KompresujRGB888(chBuforLCD, chBuforYCbCr, chBuforJpeg, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 

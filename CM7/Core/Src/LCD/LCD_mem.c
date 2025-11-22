@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// Funkcje wyświetlania bezpośrednio do pamięci dla wyświetlacza
-//  przyjmującego kolor w formacie RGB666 lub RGB888
+// Funkcje wyświetlania bezpośrednio do pamięci obrazu
+//  przyjmującego kolor w formacie RGB888
 //
 //
 // (c) PitLab 2025

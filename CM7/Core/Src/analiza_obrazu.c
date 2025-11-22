@@ -114,7 +114,7 @@ void KonwersjaRGB565doRGB666(uint16_t *obrazRG565, uint8_t *obrazRGB666, uint32_
 // [wy] *chY, *chCb, *chCr - wskaźniki na składowe luminancji i chrominancji
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void KonwersjaRGB888doYCbCr(uint8_t chR, uint8_t chG, uint8_t chB, uint8_t *chY, uint8_t *chCb, uint8_t *chCr)
+void KonwersjaRGB888doYCbCr(uint8_t chR, uint8_t chG, uint8_t chB, uint8_t *chY, int8_t *chCb, int8_t *chCr)
 {
 	uint16_t sY;
 	int16_t sCb, sCr;
@@ -130,19 +130,19 @@ void KonwersjaRGB888doYCbCr(uint8_t chR, uint8_t chG, uint8_t chB, uint8_t *chY,
 		*chY = 0xFF;
 
 	//to są liczby ze znakiem, wiec testuj górę i dół
-	if (sCb < 0)
-		*chCb = 0;
+	if (sCb < -127)
+		*chCb = -127;
 	else
-	if (sCb > 0xFF)
-		*chCb = 0xFF;
+	if (sCb > 128)
+		*chCb = 128;
 	else
 		*chCb = (uint8_t)sCb;
 
-	if (sCr < 0)
-		*chCr = 0;
+	if (sCr < -127)
+		*chCr = -127;
 	else
-	if (sCr > 0xFF)
-		*chCr = 0xFF;
+	if (sCr > 128)
+		*chCr = 128;
 	else
 		*chCr = (uint8_t)sCr;
 }
