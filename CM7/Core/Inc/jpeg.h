@@ -23,6 +23,7 @@
 #define ROZMIAR_MCU420		(6 * ROZMIAR_BLOKU)
 #define ILOSC_BUF_WE_MCU	12		//liczba podzielna przez 6 (UVY420), przez 4(UVY422), przez 3 (UVY444) i przez 1 (Y8)
 //#define MASKA_BUF_MCU		0x07	//maska do przycinania wskaźnika buforów
+#define LICZBA_KOLOROW_RGB	3		//liczba bajtów kolorów
 
 //flagi ustawiane w calbackach określające stan enkodera
 #define KOMPR_PUSTE_WE		1	//na wejście enkodera można podać nowe dane
@@ -150,7 +151,10 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc);
 uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc);
 uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDaneSkompresowane, uint16_t sSzerokosc, uint16_t sWysokosc);
-uint8_t KompresujRGB888A(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDaneSkompresowane, uint16_t sSzerokosc, uint16_t sWysokosc);
+uint8_t KompresujRGB888jakoY8(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDaneSkompresowane, uint16_t sSzerokosc, uint16_t sWysokosc);	//testowo
+uint8_t TestKonwersjiRGB888doYCbCr(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint16_t sSzerokosc, uint16_t sWysokosc);
+
+
 uint8_t* ZnajdzZnacznikJpeg(uint8_t *chDaneSkompresowane, uint8_t chZnacznik);
 uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC_DateTypeDef stData, RTC_TimeTypeDef stCzas);
 //void PrzygotujTag(uint8_t** chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *chDane, uint8_t chRozmiar, uint8_t** chWskDanych);

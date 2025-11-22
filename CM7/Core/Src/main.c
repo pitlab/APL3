@@ -1741,6 +1741,8 @@ void WatekRejestratora(void const * argument)
 						}
 						chKodBleduFAT = fres;
 					}
+					else
+						chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s - sygnalizacja błędu montowania woluminu karty
 				}
 				if (fres != FR_OK)
 					osDelay(1000);	//ponawiaj próbę inicjalizacji co tyle czasu
@@ -1755,7 +1757,10 @@ void WatekRejestratora(void const * argument)
 				f_mount(NULL, "", 1);		//zdemontuj system plików
 				chStatusRejestratora = 0;
 			}
+			else
+				chCzasSwieceniaLED[LED_CZER] = 1;	//x0,1s - sygnalizacja braku karty
 			osDelay(2000);	//sprawdź czy jest karta co tyle czasu
+
 		}
 	}
   /* USER CODE END WatekRejestratora */
@@ -1770,13 +1775,16 @@ void WatekRejestratora(void const * argument)
 /* USER CODE END Header_WatekWyswietlacza */
 void WatekWyswietlacza(void const * argument)
 {
+	uint8_t chErr;
   /* USER CODE BEGIN WatekWyswietlacza */
 	/* Infinite loop */
 	for(;;)
 	{
 		if (nZainicjowanoCM7 & INIT_LCD480x320)		//obsłuż wyświetlacz tylko wtedy jest zainicjowany
 		{
-			RysujEkran();
+			chErr = RysujEkran();
+			if (chErr)
+				chCzasSwieceniaLED[LED_ZIEL] = 3;	//x0,1s - sygnalizacja błędów obsługi poleceń
 			osDelay(1);
 		}
 		else

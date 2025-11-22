@@ -247,7 +247,8 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Kam. SRAM",	"Kamera w trybie ciaglym z pam. SRAM",		TP_KAMERA,			obr_kamera},
 	{"Kam. DRAM",	"Kamera w trybie ciaglym z pam. DRAM",		TP_KAM_DRAM,		obr_kamera},
 	{"Jpeg Y8",		"Kompresja obrazu czarno-bialego Y8",		TP_KAM_Y8,			obr_kamera},
-	{"Jpeg Y420",	"Kompresja obrazu kolorowego YUV420",		TP_KAM_YUV420,		obr_kamera},
+	//{"Jpeg Y420",	"Kompresja obrazu kolorowego YUV420",		TP_KAM_YUV420,		obr_kamera},
+	{"BMP Luma",	"Zapis luminancji do pliki BMP",			TP_KAM_YUV420,		obr_kamera},
 
 	{"Zdj Y8",		"Wykonaj zdjecie jpg Y8",					TP_KAM_ZDJ_Y8,		obr_aparat},
 	{"Zdj YUV420",	"Wykonaj zdjecie jpg YUV420",				TP_KAM_ZDJ_YUV420,	obr_aparat},
@@ -260,12 +261,12 @@ struct tmenu stMenuOsd[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Obraz 480", 	"Pokazuje obraz OSD 480x320",				TPO_TEST_OSD480,	obr_kamera},
 	{"Obraz 320", 	"Pokazuje obraz OSD 320x240",				TPO_TEST_OSD320,	obr_kamera},
 	{"Obraz 240", 	"Pokazuje obraz OSD 240x160",				TPO_TEST_OSD240,	obr_kamera},
-	{"O4",		 	"nic",										TPO_OSD4,			obr_narzedzia},
+	{"Jpeg Y8",		 "nic",										TPO_OSD4,			obr_narzedzia},
 	{"Blender",		"Test blendera",							TPO_TEST_BLENDERA,	obr_kamera},
 	{"OSD 480",		"OSD 480x320",								TPO_OSD480,			obr_kamera},
 	{"OSD 320",		"OSD 320x240",								TPO_OSD320,			obr_kamera},
 	{"OSD 240",		"OSD 240x160",								TPO_OSD240,			obr_kamera},
-	{"Jpeg",		"Zapisz plik JPEG z Exif",					TPO_OSD_JPEG,		obr_narzedzia},
+	{"Jpeg 422",	"Zapisz plik JPEG z Exif",					TPO_OSD_JPEG,		obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -328,13 +329,13 @@ struct tmenu stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY]  = {
 // Zwraca: nic
 // Czas rysowania pełnego ekranu: 174ms
 ////////////////////////////////////////////////////////////////////////////////
-void RysujEkran(void)
+uint8_t RysujEkran(void)
 {
 	if ((statusDotyku.chFlagi & DOTYK_SKALIBROWANY) != DOTYK_SKALIBROWANY)		//sprawdź czy ekran dotykowy jest skalibrowany
 		chTrybPracy = TP_KAL_DOTYK;
 
 	if (statusDotyku.chFlagi & DOTYK_ODCZYTAC)	//przy najbliższej okazji trzeba odczytać dotyk
-		CzytajDotyk();
+		chErr = CzytajDotyk();
 
 	switch (chTrybPracy)
 	{
@@ -629,7 +630,7 @@ void RysujEkran(void)
 
 	case TP_KAM_YUV420:	//kompresja obrazu kolorowego
 		//chErr = UstawObrazKameryYUV420(DISP_X_SIZE, DISP_Y_SIZE);
-		chErr = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_YUV420, KAM_ZDJECIE);
+		/*chErr = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_YUV420, KAM_ZDJECIE);
 		if (chErr)
 			break;
 		do
@@ -654,7 +655,15 @@ void RysujEkran(void)
 			setColor(ZOLTY);
 			RysujNapis(chNapis, 0, DISP_Y_SIZE - FONT_BH);
 		}
-		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);*/
+
+		//konfiguracja wymagana przez proces zapisu BMP
+		stKonfKam.chFormatObrazu = OBR_Y8;
+		stKonfKam.chSzerWy = stKonfOSD.sSzerokosc / KROK_ROZDZ_KAM;
+		stKonfKam.chWysWy  = stKonfOSD.sWysokosc / KROK_ROZDZ_KAM;
+
+		//zapisz chrominancję lub luminację z bufora LCD do pliku bmp z: sBuforKamerySRAM
+		TestKonwersjiRGB888doYCbCr(chBuforLCD, (uint8_t*)sBuforKamerySRAM, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
@@ -934,24 +943,18 @@ void RysujEkran(void)
 	case TPO_OSD_JPEG:		//kompresja jpeg obrazu OSD
 		sprintf((char*)chNazwaPlikuObr, "OSDYUV422");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
-		/*uint8_t chBlok = 0;
-		for (uint32_t n=0; n<480*320/(128*3); n++)
-		{
-			for (uint32_t b=0; b<3*128/6; b++)
-			{
-				chBuforLCD[3*128*n+b*6+0] = chBlok | 0x10;
-				chBuforLCD[3*128*n+b*6+1] = chBlok | 0x40;
-				chBuforLCD[3*128*n+b*6+2] = chBlok | 0x20;
-				chBuforLCD[3*128*n+b*6+3] = chBlok | 0x10;
-				chBuforLCD[3*128*n+b*6+4] = chBlok | 0x80;
-				chBuforLCD[3*128*n+b*6+5] = chBlok | 0x20;
-			}
-			chBlok++;
-			chBlok &= 0x0F;
-		}*/
 		for (uint32_t n=0; n<480/2*4*6; n++)
 			*(chBuforYCbCr + n) = 0;
-		KompresujRGB888(chBuforLCD, chBuforYCbCr, chBuforJpeg, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+		chErr = KompresujRGB888(chBuforLCD, chBuforYCbCr, chBuforJpeg, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+		chNowyTrybPracy = TP_WROC_DO_OSD;
+		break;
+
+	case TPO_OSD4:
+		sprintf((char*)chNazwaPlikuObr, "OSD_Y8");	//początek nazwy pliku ze zdjeciem
+		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+		for (uint32_t n=0; n<480/2*4*6; n++)
+			*(chBuforYCbCr + n) = 0;
+		chErr = KompresujRGB888jakoY8(chBuforLCD, chBuforYCbCr, chBuforJpeg, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
@@ -1572,6 +1575,7 @@ void RysujEkran(void)
 
 		WypelnijEkran(CZARNY);
 	}
+	return chErr;
 }
 
 
@@ -1774,9 +1778,9 @@ void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fP
 // *tryb - wskaźnik na numer pozycji menu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void MenuGlowne(unsigned char *tryb)
+void MenuGlowne(uint8_t *chTryb)
 {
-	Menu((char*)chNapisLcd[STR_MENU_MAIN], stMenuGlowne, tryb);
+	Menu((char*)chNapisLcd[STR_MENU_MAIN], stMenuGlowne, chTryb);
 	chWrocDoTrybu = TP_MENU_GLOWNE;
 }
 

@@ -219,10 +219,11 @@ static const uint8_t chNaglJpeg_480x320_yuv420[] = {
 
 	//ustaw piny PB0 i PB1 do machania. W CM4 są skonfigurowane jako GPIO_MODE_OUTPUT_PP
 	__HAL_RCC_GPIOB_CLK_ENABLE();
-	GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1;
+	GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1;	//Test
 	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	chErr = HAL_JPEG_Init(&hjpeg);
+	HAL_JPEG_RegisterCallback(&hjpeg, HAL_JPEG_ERROR_CB_ID, HAL_JPEG_ErrorCallback);
    	return chErr;
 }
 
@@ -807,82 +808,75 @@ uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDa
 {
 	uint32_t nOffsetWiersza, nOffsetBloku, nOffsetWierszaBlokow;
 	uint32_t nOfsetWe ;
-	uint32_t nOffsetWyjsciaY, nOffsetWyjsciaC;
+	uint32_t nOffsetWyjscia;
 	uint16_t chLiczbaParBlokow = sSzerokosc / 16;
 	uint8_t chR, chG, chB;
 	uint8_t chY1, chY2;
 	int8_t chCb1, chCr1, chCb2, chCr2;
-	uint8_t chErr;
+	uint8_t chErr, chDaneDoZapisu;
 	uint16_t sIloscBlokowPionowo = sWysokosc / 8;
-	uint8_t chDaneDoKompresji;
 
 	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_422_SUBSAMPLING, 80);
 	if (chErr)
 	{
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
+		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+		chStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;
 		return chErr;
 	}
 
 	chWskNapBufJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
-	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
-
 	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
 	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
 
 	for (uint16_t by=0; by<sIloscBlokowPionowo; by++)	//pętla po wierszu bloków 8x8 na wysokości obrazu
 	{
-		nOffsetWierszaBlokow = by * chLiczbaParBlokow * 6 * ROZMIAR_BLOKU;
+		nOffsetWierszaBlokow = by * chLiczbaParBlokow * 2 * LICZBA_KOLOROW_RGB * ROZMIAR_BLOKU;
 		for (uint8_t bx=0; bx<chLiczbaParBlokow; bx++)	//petla po połowie bloków na szerokosci obrazu
 		{
-			nOffsetBloku =  2 * bx * 24;
+			nOffsetBloku =  2 * bx * SZEROKOSC_BLOKU * LICZBA_KOLOROW_RGB;
 			nOffsetBloku += nOffsetWierszaBlokow;
-			for (uint8_t y=0; y<8; y++)				//pętla po wierszach
+			for (uint8_t y=0; y<WYSOKOSC_BLOKU; y++)				//pętla po wierszach
 			{
-				nOffsetWiersza = y * sSzerokosc * 3;
+				nOffsetWiersza = y * sSzerokosc * LICZBA_KOLOROW_RGB;
 				nOffsetWiersza += nOffsetBloku;
-				for (uint8_t x=0; x<8; x++)			//pętla po  kolumnach
+				for (uint8_t x=0; x<SZEROKOSC_BLOKU; x++)			//pętla po  kolumnach
 				{
-					nOfsetWe = nOffsetWiersza + 3 * x;
+					nOfsetWe = nOffsetWiersza + LICZBA_KOLOROW_RGB * x;
 					chR = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku lewego
 					chG = *(obrazRGB888 + nOfsetWe + 1);
 					chB = *(obrazRGB888 + nOfsetWe + 2);
 					KonwersjaRGB888doYCbCr(chR, chG, chB, &chY1, &chCb1, &chCr1);
-					*(obrazRGB888 + nOfsetWe + 0) = 1;
-					*(obrazRGB888 + nOfsetWe + 1) = 2;
-					*(obrazRGB888 + nOfsetWe + 2) = 3;
 
-					nOfsetWe += 24;
+					nOfsetWe += SZEROKOSC_BLOKU * LICZBA_KOLOROW_RGB;
 					chR = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku prawego
 					chG = *(obrazRGB888 + nOfsetWe + 1);
 					chB = *(obrazRGB888 + nOfsetWe + 2);
 					KonwersjaRGB888doYCbCr(chR, chG, chB, &chY2, &chCb2, &chCr2);
-					*(obrazRGB888 + nOfsetWe + 0) = 4;
-					*(obrazRGB888 + nOfsetWe + 1) = 5;
-					*(obrazRGB888 + nOfsetWe + 2) = 6;
 
 					//Formowanie MCU
-					nOffsetWyjsciaY = bx * ROZMIAR_MCU422 + y * 16 + x * 2;
-					nOffsetWyjsciaC = bx * ROZMIAR_MCU422 + y * 8 + x;
-					*(buforYCbCr + nOffsetWyjsciaY + 0) = chY1;
-					*(buforYCbCr + nOffsetWyjsciaY + 1) = chY2;
-					*(buforYCbCr + nOffsetWyjsciaC + 2 * ROZMIAR_BLOKU) = (uint8_t)(((int16_t)chCb1 + chCb2) >> 1);
-					*(buforYCbCr + nOffsetWyjsciaC + 3 * ROZMIAR_BLOKU) = (uint8_t)(((int16_t)chCr1 + chCr2) >> 1);
+					nOffsetWyjscia = bx * ROZMIAR_MCU422 + y * SZEROKOSC_BLOKU + x;
+					*(buforYCbCr + nOffsetWyjscia + 0 * ROZMIAR_BLOKU) = chY1;
+					*(buforYCbCr + nOffsetWyjscia + 1 * ROZMIAR_BLOKU) = chY2;
+					*(buforYCbCr + nOffsetWyjscia + 2 * ROZMIAR_BLOKU) = (uint8_t)(((int16_t)chCb1 + chCb2) >> 1);
+					*(buforYCbCr + nOffsetWyjscia + 3 * ROZMIAR_BLOKU) = (uint8_t)(((int16_t)chCr1 + chCr2) >> 1);
 				}
 			}
 		}
 
 		//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
 		chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
-		chDaneDoKompresji = 1;	//są dane do kompresji
+		chDaneDoZapisu = 1;
 		do
 		{
 			if (hjpeg.State == HAL_JPEG_STATE_READY)
 			{
-				HAL_JPEG_ConfigInputBuffer(&hjpeg, buforYCbCr, ROZMIAR_MCU422 * sSzerokosc / 16);	//przekaż bufor z nowymi danymi
-				chErr = HAL_JPEG_Encode_DMA(&hjpeg, buforYCbCr, ROZMIAR_MCU422 * sSzerokosc / 16, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
-				chDaneDoKompresji = 0;
+				HAL_JPEG_ConfigInputBuffer(&hjpeg, buforYCbCr, ROZMIAR_MCU422 * sSzerokosc / (2 * SZEROKOSC_BLOKU));	//bufor MCU z calego wiersza bloków
+				HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
+				chErr = HAL_JPEG_Encode_DMA(&hjpeg, buforYCbCr, ROZMIAR_MCU422 * sSzerokosc / (2 * SZEROKOSC_BLOKU), chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+				chDaneDoZapisu = 0;
 			}
 			else
 			{
@@ -893,16 +887,161 @@ uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDa
 				{
 					chErr = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję
 					chZatrzymanoWe = 0;
+					chDaneDoZapisu = 0;
 				}
+				else
+					osDelay(1);
 			}
 
 			if (chStatusBufJpeg & STAT_JPG_OTWORZ)
 				osDelay(5);	//daj czas na otwarcie pliku
-		}
-		while (chDaneDoKompresji && !chErr);	//pracuj dotąd aż przygotowane dane zostaną pobrane przez kompresor lub wystąpi błąd
+		} while (chDaneDoZapisu);
 	}
 	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//testowo
+////////////////////////////////////////////////////////////////////////////////
+uint8_t KompresujRGB888jakoY8(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDaneSkompresowane, uint16_t sSzerokosc, uint16_t sWysokosc)
+{
+	uint32_t nOffsetWiersza, nOffsetBloku, nOffsetWierszaBlokow;
+	uint32_t nOfsetWe ;
+	uint32_t nOffsetWyjscia;
+	uint16_t chLiczbaParBlokow = sSzerokosc / 16;
+	uint8_t chR, chG, chB;
+	uint8_t chY1, chY2;
+	int8_t chCb1, chCr1, chCb2, chCr2;
+	uint8_t chErr, chDaneDoZapisu;
+	uint16_t sIloscBlokowPionowo = sWysokosc / 8;
+
+	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_GRAYSCALE_COLORSPACE, JPEG_444_SUBSAMPLING, 80);
+	if (chErr)
+	{
+		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
+			HAL_JPEG_Abort(&hjpeg);
+		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+		chStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;
+		return chErr;
+	}
+
+	chWskNapBufJpeg = 0;
+	nRozmiarObrazuJPEG = 0;
+
+
+	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
+	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
+
+	for (uint16_t by=0; by<sIloscBlokowPionowo; by++)	//pętla po wierszu bloków 8x8 na wysokości obrazu
+	{
+		nOffsetWierszaBlokow = by * chLiczbaParBlokow * 6 * ROZMIAR_BLOKU;
+		for (uint8_t bx=0; bx<chLiczbaParBlokow; bx++)	//petla po połowie bloków na szerokosci obrazu - obrabiane są 2 bloki jednocześnie, bo mają mieć wspólną chrominancję
+		{
+			nOffsetBloku =  2 * bx * SZEROKOSC_BLOKU * LICZBA_KOLOROW_RGB;
+			nOffsetBloku += nOffsetWierszaBlokow;
+			for (uint8_t y=0; y<WYSOKOSC_BLOKU; y++)				//pętla po wierszach
+			{
+				nOffsetWiersza = y * sSzerokosc * LICZBA_KOLOROW_RGB;
+				nOffsetWiersza += nOffsetBloku;
+				for (uint8_t x=0; x<SZEROKOSC_BLOKU; x++)			//pętla po  kolumnach
+				{
+					nOfsetWe = nOffsetWiersza + LICZBA_KOLOROW_RGB * x;
+					chR = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku lewego
+					chG = *(obrazRGB888 + nOfsetWe + 1);
+					chB = *(obrazRGB888 + nOfsetWe + 2);
+					KonwersjaRGB888doYCbCr(chR, chG, chB, &chY1, &chCb1, &chCr1);
+
+					nOfsetWe += SZEROKOSC_BLOKU * LICZBA_KOLOROW_RGB;
+					chR = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku prawego
+					chG = *(obrazRGB888 + nOfsetWe + 1);
+					chB = *(obrazRGB888 + nOfsetWe + 2);
+					KonwersjaRGB888doYCbCr(chR, chG, chB, &chY2, &chCb2, &chCr2);
+
+					//Formowanie MCU
+					nOffsetWyjscia = bx * 2 * ROZMIAR_BLOKU + y * SZEROKOSC_BLOKU + x;
+					*(buforYCbCr + nOffsetWyjscia + 0 * ROZMIAR_BLOKU) = chY1;
+					*(buforYCbCr + nOffsetWyjscia + 1 * ROZMIAR_BLOKU) = chY2;
+				}
+			}
+		}
+
+		//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
+		chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
+		chDaneDoZapisu = 1;
+		do
+		{
+			if (hjpeg.State == HAL_JPEG_STATE_READY)
+			{
+				HAL_JPEG_ConfigInputBuffer(&hjpeg, buforYCbCr, ROZMIAR_BLOKU * sSzerokosc / SZEROKOSC_BLOKU);				////bufor MCU z calego wiersza bloków
+				HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
+				chErr = HAL_JPEG_Encode_DMA(&hjpeg, buforYCbCr, ROZMIAR_BLOKU * sSzerokosc / SZEROKOSC_BLOKU, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+				chDaneDoZapisu = 0;
+			}
+			else
+			{
+				if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
+					osDelay(5);
+
+				if (chZatrzymanoWe)
+				{
+					chErr = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję
+					chZatrzymanoWe = 0;
+					chDaneDoZapisu = 0;
+				}
+				else
+					osDelay(1);
+			}
+			if (chStatusBufJpeg & STAT_JPG_OTWORZ)
+				osDelay(5);	//daj czas na otwarcie pliku
+		} while (chDaneDoZapisu);
+	}
+	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Konwertuje obraz RGB na YCbCr i zapisuje jedną składową do pliku BMP
+// Parametry:
+// [we] *obrazRGB888 - wskaźnik na bufor z obrazem wejściowym
+// [wy] *buforYCbCr - wskaźnik na bufor obrazu YCbCr do zapisu
+// [wy] *chDaneSkompresowane - wskaźnik na bufor danych skompresowanych
+// [we] sSzerokosc, sWysokosc - rozmiary obrazu. Muszą być podzielne przez 8
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t TestKonwersjiRGB888doYCbCr(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint16_t sSzerokosc, uint16_t sWysokosc)
+{
+	uint8_t chR, chG, chB;
+	uint8_t chY;
+	int8_t chCb, chCr;
+	uint32_t nOfsetWiersza, nOfsetWe, nOfsetWy;
+
+	chStatusRejestratora = STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
+
+
+
+	for (uint16_t y=0; y<sWysokosc; y++)
+	{
+		nOfsetWiersza = y * sSzerokosc * LICZBA_KOLOROW_RGB;
+		for (uint16_t x=0; x<sSzerokosc; x++)
+		{
+			nOfsetWe = nOfsetWiersza + x * LICZBA_KOLOROW_RGB;
+			chR = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku lewego
+			chG = *(obrazRGB888 + nOfsetWe + 1);
+			chB = *(obrazRGB888 + nOfsetWe + 2);
+			KonwersjaRGB888doYCbCr(chR, chG, chB, &chY, &chCb, &chCr);
+
+			nOfsetWy = y * sSzerokosc + x;
+			//*(buforYCbCr + nOfsetWy) = chY;		//zapisz luminancję
+			//*(buforYCbCr + nOfsetWy) = chCb;		//zapisz chrominancję niebieską
+			*(buforYCbCr + nOfsetWy) = chCr;		//zapisz chrominancję czerwoną
+		}
+	}
+	return BLAD_OK;
 }
 
 
