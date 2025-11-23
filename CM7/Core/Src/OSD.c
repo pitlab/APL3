@@ -39,61 +39,61 @@ uint8_t InicjujOSD(void)
 	uint8_t chErr = BLAD_OK;
 
 	//wstępna konfiguracja. Właściwa będzie kiedyś odczytana z pamieci konfiguracji
-	stKonfOSD.stHoryzont.sKolorObiektu = KOLOSD_CZER0 + PRZEZR_50;	//czerwony 50% przezroczystości
-	stKonfOSD.stHoryzont.sKolorJasny = KOLOSD_CZER2 + PRZEZR_50;
-	stKonfOSD.stHoryzont.sKolorCiemny = KOLOSD_CZER8 + PRZEZR_50;
+	stKonfOSD.stHoryzont.sKolorObiektu = KOLOSD_CZER0 + PRZEZR_60;	//czerwony 50% przezroczystości
+	stKonfOSD.stHoryzont.sKolorJasny = KOLOSD_CZER2 + PRZEZR_60;
+	stKonfOSD.stHoryzont.sKolorCiemny = KOLOSD_CZER8 + PRZEZR_60;
 	//stKonfOSD.stHoryzont.sKolorTla = KOLOSD_CZER3 + PRZEZR_75;
 	stKonfOSD.stHoryzont.sPozycjaX = POZ_SRODEK;
 	stKonfOSD.stHoryzont.sPozycjaY = POZ_SRODEK;
 	stKonfOSD.stHoryzont.chFlagi = FO_WIDOCZNY;
 
-	stKonfOSD.stPredWys.sKolorObiektu = KOLOSD_NIEB0 + PRZEZR_50;	//niebieski 50% przezroczystości
-	stKonfOSD.stPredWys.sKolorJasny =  KOLOSD_NIEB2 + PRZEZR_50;
-	stKonfOSD.stPredWys.sKolorCiemny = KOLOSD_NIEB8 + PRZEZR_50;
+	stKonfOSD.stPredWys.sKolorObiektu = KOLOSD_NIEB0 + PRZEZR_60;	//niebieski 50% przezroczystości
+	stKonfOSD.stPredWys.sKolorJasny =  KOLOSD_NIEB2 + PRZEZR_60;
+	stKonfOSD.stPredWys.sKolorCiemny = KOLOSD_NIEB8 + PRZEZR_60;
 	//stKonfOSD.stPredWys.sKolorTla = KOLOSD_NIEB3 + PRZEZR_75;
 	stKonfOSD.stPredWys.chFlagi = FO_WIDOCZNY;
 
 	//współzędne geograficzne
-	stKonfOSD.stSzerGeo.sKolorObiektu = KOLOSD_ZIEL0 + PRZEZR_50;
-	stKonfOSD.stSzerGeo.sKolorTla = KOLOSD_ZIEL3 + PRZEZR_75;
+	stKonfOSD.stSzerGeo.sKolorObiektu = KOLOSD_ZIEL0 + PRZEZR_60;
+	stKonfOSD.stSzerGeo.sKolorTla = KOLOSD_ZIEL3 + PRZEZR_73;
 	stKonfOSD.stSzerGeo.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stSzerGeo.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stSzerGeo.sPozycjaY = POZ_DOL1;
 
-	stKonfOSD.stDlugGeo.sKolorObiektu = KOLOSD_ZIEL1 + PRZEZR_50;
-	stKonfOSD.stDlugGeo.sKolorTla = KOLOSD_ZOLTY0 + PRZEZR_75;
+	stKonfOSD.stDlugGeo.sKolorObiektu = KOLOSD_ZIEL1 + PRZEZR_60;
+	stKonfOSD.stDlugGeo.sKolorTla = KOLOSD_ZOLTY0 + PRZEZR_73;
 	stKonfOSD.stDlugGeo.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stDlugGeo.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stDlugGeo.sPozycjaY = POZ_DOL2;
 
-	stKonfOSD.stData.sKolorObiektu = KOLOSD_ZOLTY0 + PRZEZR_50;
-	stKonfOSD.stData.sKolorCiemny = KOLOSD_ZOLTY9 + PRZEZR_50;
-	stKonfOSD.stData.sKolorJasny = KOLOSD_ZOLTY1 + PRZEZR_50;
+	stKonfOSD.stData.sKolorObiektu = KOLOSD_ZOLTY0 + PRZEZR_60;
+	stKonfOSD.stData.sKolorCiemny = KOLOSD_ZOLTY9 + PRZEZR_60;
+	stKonfOSD.stData.sKolorJasny = KOLOSD_ZOLTY1 + PRZEZR_60;
 	stKonfOSD.stData.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stData.sPozycjaX = POZ_PRAWO2;
 	stKonfOSD.stData.sPozycjaY = POZ_DOL1;
 
-	stKonfOSD.stCzas.sKolorObiektu = KOLOSD_CYJAN0 + PRZEZR_50;
-	stKonfOSD.stCzas.sKolorCiemny = KOLOSD_CYJAN8 + PRZEZR_50;
-	stKonfOSD.stCzas.sKolorJasny = KOLOSD_CYJAN2 + PRZEZR_50;
+	stKonfOSD.stCzas.sKolorObiektu = KOLOSD_CYJAN0 + PRZEZR_60;
+	stKonfOSD.stCzas.sKolorCiemny = KOLOSD_CYJAN8 + PRZEZR_60;
+	stKonfOSD.stCzas.sKolorJasny = KOLOSD_CYJAN2 + PRZEZR_60;
 	stKonfOSD.stCzas.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzas.sPozycjaX = POZ_PRAWO1;
 	stKonfOSD.stCzas.sPozycjaY = POZ_DOL1;
 
 	//napięcie baterii
-	stKonfOSD.stNapiBat.sKolorObiektu = KOLOSD_CZER1 + PRZEZR_50;
+	stKonfOSD.stNapiBat.sKolorObiektu = KOLOSD_CZER1 + PRZEZR_60;
 	stKonfOSD.stNapiBat.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stNapiBat.sPozycjaX = POZ_PRAWO3;
 	stKonfOSD.stNapiBat.sPozycjaY = POZ_GORA3;
 
 	//prad pobierany z baterii
-	stKonfOSD.stPradBat.sKolorObiektu = KOLOSD_CZER2 + PRZEZR_50;
+	stKonfOSD.stPradBat.sKolorObiektu = KOLOSD_CZER2 + PRZEZR_60;
 	stKonfOSD.stPradBat.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stPradBat.sPozycjaX = POZ_PRAWO2;
 	stKonfOSD.stPradBat.sPozycjaY = POZ_GORA3;
 
 	//energia baterii: pobrana lub pozostała
-	stKonfOSD.stEnerBat.sKolorObiektu = KOLOSD_CZER3 + PRZEZR_50;
+	stKonfOSD.stEnerBat.sKolorObiektu = KOLOSD_CZER3 + PRZEZR_60;
 	stKonfOSD.stEnerBat.chFlagi = FO_WIDOCZNY + FO_E_POBRANA;
 	stKonfOSD.stEnerBat.sPozycjaX = POZ_PRAWO1;
 	stKonfOSD.stEnerBat.sPozycjaY = POZ_GORA3;
@@ -101,55 +101,55 @@ uint8_t InicjujOSD(void)
 	//obiekty dagnostyczne
 	//czas wypełniania tłem
 	stKonfOSD.stCzasWyp.sKolorObiektu = KOLOSD_BIALY + PRZEZR_0;
-	stKonfOSD.stCzasWyp.sKolorTla = KOLOSD_SZARY50 + PRZEZR_75;
+	stKonfOSD.stCzasWyp.sKolorTla = KOLOSD_SZARY50 + PRZEZR_73;
 	stKonfOSD.stCzasWyp.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasWyp.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stCzasWyp.sPozycjaY = POZ_GORA1;
 
-	stKonfOSD.stCzasRys.sKolorObiektu = KOLOSD_BIALY + PRZEZR_25;
-	stKonfOSD.stCzasRys.sKolorTla = KOLOSD_SZARY50 + PRZEZR_50;
+	stKonfOSD.stCzasRys.sKolorObiektu = KOLOSD_BIALY + PRZEZR_20;
+	stKonfOSD.stCzasRys.sKolorTla = KOLOSD_SZARY50 + PRZEZR_60;
 	stKonfOSD.stCzasRys.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasRys.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stCzasRys.sPozycjaY = POZ_GORA2;
 
 	//czas blendowania
-	stKonfOSD.stCzasBlend.sKolorObiektu = KOLOSD_BIALY + PRZEZR_50;
-	stKonfOSD.stCzasBlend.sKolorTla = KOLOSD_SZARY50 + PRZEZR_25;
+	stKonfOSD.stCzasBlend.sKolorObiektu = KOLOSD_BIALY + PRZEZR_60;
+	stKonfOSD.stCzasBlend.sKolorTla = KOLOSD_SZARY50 + PRZEZR_20;
 	stKonfOSD.stCzasBlend.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasBlend.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stCzasBlend.sPozycjaY = POZ_GORA3;
 
 	//czas rysowania na LCD
-	stKonfOSD.stCzasLCD.sKolorObiektu = KOLOSD_BIALY + PRZEZR_75;
-	stKonfOSD.stCzasLCD.sKolorTla = KOLOSD_SZARY25 + PRZEZR_50;
+	stKonfOSD.stCzasLCD.sKolorObiektu = KOLOSD_BIALY + PRZEZR_66;
+	stKonfOSD.stCzasLCD.sKolorTla = KOLOSD_SZARY25 + PRZEZR_60;
 	stKonfOSD.stCzasLCD.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasLCD.sPozycjaX = POZ_LEWO1;
 	stKonfOSD.stCzasLCD.sPozycjaY = POZ_GORA4;
 
 	//czas rysowania horyzontu
 	stKonfOSD.stCzasHor.sKolorObiektu = KOLOSD_BIALY + PRZEZR_0;
-	//stKonfOSD.stCzasHor.sKolorTla = KOLOSD_SZARY75 + PRZEZR_50;
+	//stKonfOSD.stCzasHor.sKolorTla = KOLOSD_SZARY75 + PRZEZR_60;
 	stKonfOSD.stCzasHor.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasHor.sPozycjaX = POZ_PRAWO2;
 	stKonfOSD.stCzasHor.sPozycjaY = POZ_GORA1;
 
 	//czas rysowania wysokości i prędkosci
-	stKonfOSD.stCzasPiW.sKolorObiektu = KOLOSD_BIALY + PRZEZR_25;
-	//stKonfOSD.stCzasPiW.sKolorTla = KOLOSD_SZARY50 + PRZEZR_50;
+	stKonfOSD.stCzasPiW.sKolorObiektu = KOLOSD_BIALY + PRZEZR_20;
+	//stKonfOSD.stCzasPiW.sKolorTla = KOLOSD_SZARY50 + PRZEZR_60;
 	stKonfOSD.stCzasPiW.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasPiW.sPozycjaX = POZ_PRAWO1;
 	stKonfOSD.stCzasPiW.sPozycjaY = POZ_GORA1;
 
 	//czas rysowania daty
-	stKonfOSD.stCzasDaty.sKolorObiektu = KOLOSD_BIALY + PRZEZR_50;
+	stKonfOSD.stCzasDaty.sKolorObiektu = KOLOSD_BIALY + PRZEZR_60;
 	//stKonfOSD.stCzasDaty.sKolorTla = PRZEZR_50;
 	stKonfOSD.stCzasDaty.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasDaty.sPozycjaX = POZ_PRAWO2;
 	stKonfOSD.stCzasDaty.sPozycjaY = POZ_GORA2;
 
 	//czas rysowania pozycji GNSS
-	stKonfOSD.stCzasGNSS.sKolorObiektu = KOLOSD_BIALY + PRZEZR_75;
-	//stKonfOSD.stCzasGNSS.sKolorTla = KOLOSD_SZARY50 + PRZEZR_50;
+	stKonfOSD.stCzasGNSS.sKolorObiektu = KOLOSD_BIALY + PRZEZR_73;
+	//stKonfOSD.stCzasGNSS.sKolorTla = KOLOSD_SZARY50 + PRZEZR_60;
 	stKonfOSD.stCzasGNSS.chFlagi = FO_WIDOCZNY;
 	stKonfOSD.stCzasGNSS.sPozycjaX = POZ_PRAWO1;
 	stKonfOSD.stCzasGNSS.sPozycjaY = POZ_GORA2;
@@ -188,8 +188,8 @@ uint8_t InicjujOSD(void)
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja wykonuje zmieszanie zawartosci bufora OSD z obrazem z kamery
 // Parametry:
-//	*chObrazFront - adres bufora foreground
-//	*chObrazTlo - adre bufora backbground
+//	*chObrazFront - adres bufora foreground z zawartością OSD w formacie ARGB4444
+//	*chObrazTlo - adres bufora backbground z obrazem kamery w formacie RGB565
 //	*chBuforWyjsciowy - adres bufora wyjściowego
 //	sSzerokosc, sWysokosc - rozmiary obrazu
 // Zwraca: kod błędu

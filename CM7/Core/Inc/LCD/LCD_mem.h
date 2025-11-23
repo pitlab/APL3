@@ -21,5 +21,6 @@ void RysujLiniePionowawBuforze(uint16_t x, uint16_t y1, uint16_t y2, uint16_t sS
 void RysujOkragwBuforze(uint16_t x, uint16_t y, uint16_t promien, uint16_t sSzerokosc, uint8_t *chBufor, uint8_t *chKolor, uint8_t chRozmKoloru);
 void RysujZnakwBuforze(uint8_t chZnak, uint16_t x, uint16_t y, uint16_t sSzerokosc, uint8_t *chBufor, uint8_t *chKolor, uint8_t *chTlo, uint8_t chRozmKoloru);
 void RysujNapiswBuforze(char *chNapis, uint16_t x, uint16_t y, uint16_t sSzerokosc, uint8_t *chBufor, uint8_t *chKolor, uint8_t *chTlo, uint8_t chRozmKoloru);
+void RysujHistogramOSD_RGB32(uint8_t *chOSD, uint8_t *histR, uint8_t *histG, uint8_t *histB);
 
 #endif /* INC_LCD_MEM_H_ */

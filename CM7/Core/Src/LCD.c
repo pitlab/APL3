@@ -149,13 +149,14 @@ extern const uint8_t chNaglJpegSOI[20];
 extern const uint8_t chNaglJpegEOI[2];
 extern FIL SDJpegFile;       //struktura pliku z obrazem
 extern uint8_t chNazwaPlikuObr[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
-uint32_t nCzas;
+
 extern uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
 extern uint8_t chZajetoscBuforaWyJpeg;
 extern volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
 uint8_t chTimeout;
 extern stKonfOsd_t stKonfOSD;
 extern volatile uint8_t chTrybPracyKamery;	//steruje co dalej robić z obrazem pozyskanym przez DCMI
+uint32_t nCzas, nCzasHist;
 extern uint32_t nCzasBlend, nCzasLCD;
 extern uint8_t chBuforYCbCr[DISP_X_SIZE / 2 * 4 * 6 ];	//bufor na dane pośrednie przy kompresji obrazu RGB
 
@@ -518,7 +519,7 @@ uint8_t RysujEkran(void)
 
 	case TP_ZDJECIE:	//wykonaj pojedyncze zdjęcie
 		extern uint16_t sLicznikLiniiKamery;
-
+		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
 		sLicznikLiniiKamery = 0;
 		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		if (chErr)
@@ -553,20 +554,33 @@ uint8_t RysujEkran(void)
 		break;
 
 	case TP_KAMERA:	//ciagła praca kamery z pamięcią SRAM
+		stKonfOSD.chOSDWlaczone = 1;	//włacz OSD z histogramem
+		stKonfOSD.sSzerokosc = DISP_X_SIZE;
+		stKonfOSD.sWysokosc = DISP_Y_SIZE;
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);	//czyść poprzednią zawartość
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
 		RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
-			KonwersjaRGB565doRGB666(sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+			nCzas = PobierzCzasT6();
+			LiczHistogramRGB565(sBuforKamerySRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);	//licz histogram
+			nCzas = MinalCzas(nCzas);
+			nCzasHist = PobierzCzasT6();
+			RysujHistogramOSD_RGB32(chBuforOSD, chHistR, chHistG, chHistB);
+			nCzasHist = MinalCzas(nCzasHist);
 			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
-			HistogramRGB565(sBuforKamerySRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
-			RysujHistogramRGB32(chHistR, chHistG, chHistB);
+			nCzasLCD = MinalCzas(nCzasLCD);
+			sprintf(chNapis, "Tobl: %ld ms, Trys: %ld ms, %ld fps", nCzas / 1000, nCzasHist / 1000, 1000000 / nCzasLCD);
+			RysujNapiswBuforze(chNapis, 0, DISP_Y_SIZE - FONT_BH, DISP_X_SIZE, chBuforOSD, (uint8_t*)(KOLOSD_ZOLTY0 + PRZEZR_20), (uint8_t*)PRZEZR_0, ROZMIAR_KOLORU_OSD);
+			nCzasLCD = PobierzCzasT6();
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		stKonfOSD.chOSDWlaczone = 0;	//wyłącz OSD
 		break;
 
 	case TP_KAM_DRAM:	//ciagła praca kamery z pamięcią DRAM
+		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
 		//UstawObrazKameryRGB565(DISP_X_SIZE, DISP_Y_SIZE);
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
 		RozpocznijPraceDCMI(&stKonfKam, sBuforKameryDRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
@@ -574,7 +588,7 @@ uint8_t RysujEkran(void)
 		{
 			KonwersjaRGB565doRGB666(sBuforKameryDRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
 			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
-			HistogramRGB565(sBuforKameryDRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
+			LiczHistogramRGB565(sBuforKameryDRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
 			RysujHistogramRGB32(chHistR, chHistG, chHistB);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
@@ -583,7 +597,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_KAM_Y8:	//praca z obrazem czarno-białym
-
+		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
 		//ponieważ bufor obrazu 1280x960 jest 8 razy większy niż 480x320 wiec dzielę go na 8 części i w nich zapisuję kolejne klatki
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_FILM);
 		if (chErr)
@@ -661,6 +675,8 @@ uint8_t RysujEkran(void)
 		stKonfKam.chFormatObrazu = OBR_Y8;
 		stKonfKam.chSzerWy = stKonfOSD.sSzerokosc / KROK_ROZDZ_KAM;
 		stKonfKam.chWysWy  = stKonfOSD.sWysokosc / KROK_ROZDZ_KAM;
+		ZakonczPraceDCMI();	//wyłącz kamerę aby nie nadpisywała obrazu w sBuforKamerySRAM
+		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
 
 		//zapisz chrominancję lub luminację z bufora LCD do pliku bmp z: sBuforKamerySRAM
 		TestKonwersjiRGB888doYCbCr(chBuforLCD, (uint8_t*)sBuforKamerySRAM, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
@@ -669,6 +685,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_KAM_ZDJ_Y8:	//wykonuje zdjecie Y8 jpg
+		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
 		sprintf((char*)chNazwaPlikuObr, "ZdjY8");	//początek nazwy pliku ze zdjeciem
 		chErr = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_Y8, KAM_ZDJECIE);
 		nCzas = PobierzCzasT6();
@@ -834,14 +851,7 @@ uint8_t RysujEkran(void)
 				chTimeout--;
 			}
 			chObrazKameryGotowy = 0;
-			//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
-			//RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla obraz z kamery na LCD
-
 			RysujTestoweOSD();
-			//RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforOSD);	//wyświetla obraz OSD na LCD
-			nCzas = PobierzCzasT6();
-			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
-			nCzas = MinalCzas(nCzas);
 			RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla połączone obrazy na LCD
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
@@ -873,7 +883,7 @@ uint8_t RysujEkran(void)
 		if (chErr)
 			break;
 
-		chTrybPracyKamery = TPK_OSD;
+		stKonfOSD.chOSDWlaczone = 1;
 		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
 		if (chErr)
 			break;
@@ -890,10 +900,6 @@ uint8_t RysujEkran(void)
 			chObrazKameryGotowy = 0;*/
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
 
-			/*nCzasBlend = DWT->CYCCNT;	//start pomiaru
-			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
-			nCzasBlend = DWT->CYCCNT - nCzasBlend; //koniec pomiaru*/
-
 			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 			nCzasLCD = DWT->CYCCNT;	//start pomiaru
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
@@ -902,6 +908,7 @@ uint8_t RysujEkran(void)
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chErr = ZakonczPraceDCMI();
 		chNowyTrybPracy = TP_WROC_DO_OSD;
+		stKonfOSD.chOSDWlaczone = 0;	//wyłącz OSD
 		break;
 
 	case TPO_TEST_OSD240:
@@ -929,9 +936,6 @@ uint8_t RysujEkran(void)
 		do
 		{
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
-			nCzasBlend = DWT->CYCCNT;	//start pomiaru
-			chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
-			nCzasBlend = DWT->CYCCNT - nCzasBlend; //koniec pomiaru
 			nCzasLCD = DWT->CYCCNT;	//start pomiaru
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
 			nCzasLCD = DWT->CYCCNT - nCzasLCD; //koniec pomiaru
@@ -941,6 +945,7 @@ uint8_t RysujEkran(void)
 		break;
 
 	case TPO_OSD_JPEG:		//kompresja jpeg obrazu OSD
+		ZakonczPraceDCMI();
 		sprintf((char*)chNazwaPlikuObr, "OSDYUV422");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 		for (uint32_t n=0; n<480/2*4*6; n++)
@@ -950,6 +955,7 @@ uint8_t RysujEkran(void)
 		break;
 
 	case TPO_OSD4:
+		ZakonczPraceDCMI();
 		sprintf((char*)chNazwaPlikuObr, "OSD_Y8");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 		for (uint32_t n=0; n<480/2*4*6; n++)

@@ -35,9 +35,6 @@
 
 #define MASKA_BUFORA_KAMERY	0x07
 
-//tryby rpacy kamery
-#define TPK_NIC		0		//nie ruszaj danych
-#define TPK_OSD		1		//dane RGB565 z kamery idą przez DMA2D do bufora LCD
 
 //konfiguracja kamery
 //typedef struct st_KonfKam
@@ -67,6 +64,7 @@ typedef struct
 	uint8_t chProgUsuwania;		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
 	uint8_t chNasycenie;		//SDE Control3 i 4: 0x5583 Saturation U i 5584 Saturation V
 	uint8_t chPoziomEkspozycji;	//wpływa na grupę rejestrów: 0x3A0F..1F
+	//uint8_t chTrybOSD;			//włacza OSD na obraz kamery
 } stKonfKam_t;
 
 //diagnostyka stanu kamery

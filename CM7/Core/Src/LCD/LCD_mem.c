@@ -13,6 +13,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "osd.h"
+#include "rysuj.h"
+#include "analiza_obrazu.h"
 
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[SZER_BUFORA * WYS_BUFORA * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
 extern struct current_font cfont;
@@ -106,7 +108,7 @@ void RysujProstokatWypelnionywBuforze(uint16_t sStartX, uint16_t sStartY, uint16
 	for (uint16_t y=0; y<sWysokosc; y++)
 	{
 		for (uint16_t x=0; x<sSzerokosc; x++)
-			PostawPikselwBuforze(sStartX + x, sStartY + y, sSzerokosc, chBufor, chKolor, chRozmKoloru);
+			PostawPikselwBuforze(sStartX + x, sStartY + y, DISP_X_SIZE, chBufor, chKolor, chRozmKoloru);
 	}
 }
 
@@ -381,3 +383,42 @@ void RysujNapiswBuforze(char *chNapis, uint16_t x, uint16_t y, uint16_t sSzeroko
 		RysujZnakwBuforze(*chNapis++, x + (n * cfont.x_size), y, sSzerokosc, chBufor, chKolor, chTlo, chRozmKoloru);
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje histogram obrazu kolorowego RGB565 w prawej dolnej części ekranu
+// Aby nie trzeba było zamazwywać całego tła za każdym razem, histogra jest rysowany w dwu etapach:
+// W pierwszym jako widoczny pasek, nastepnie jako przezroczysta reszta, zamazując poprzednią zawartość
+// Parametry:
+//	*chOSD - wskaźnik na obraz OSD w którym ma być rysowany histogram
+//	*histR, *histG, *histB - wskaźniki na składowe histogramu
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+void RysujHistogramOSD_RGB32(uint8_t *chOSD, uint8_t *histR, uint8_t *histG, uint8_t *histB)
+{
+	uint16_t sPoczatekX;	//współrzędna X początku kolejnego histogramu
+	uint16_t sWysokosc;		//współrzędna Y wierzchołka paska histogramu
+	uint16_t sKolorR = KOLOSD_CZER0 + PRZEZR_60;
+	uint16_t sKolorG = KOLOSD_ZIEL0 + PRZEZR_60;
+	uint16_t sKolorB = KOLOSD_NIEB0 + PRZEZR_60;
+	uint16_t sKolorTla = PRZEZR_100;
+
+	for (uint8_t x=0; x<ROZMIAR_HIST_KOLOR; x++)
+	{
+		sPoczatekX = (x * SZER_PASKA_HISTOGRAMU) + (DISP_X_SIZE - (3 * ROZMIAR_HIST_KOLOR * SZER_PASKA_HISTOGRAMU));
+		sWysokosc = *(histR + x);
+		RysujProstokatWypelnionywBuforze(sPoczatekX, DISP_Y_SIZE - sWysokosc, SZER_PASKA_HISTOGRAMU, sWysokosc, chOSD, (uint8_t*)&sKolorR, ROZMIAR_KOLORU_OSD);	//pasek
+		RysujProstokatWypelnionywBuforze(sPoczatekX, DISP_Y_SIZE - 255,  SZER_PASKA_HISTOGRAMU, 255 - sWysokosc, chOSD, (uint8_t*)&sKolorTla, ROZMIAR_KOLORU_OSD);			//dopełnienie
+
+		sPoczatekX = (x * SZER_PASKA_HISTOGRAMU) + (DISP_X_SIZE - (3 * ROZMIAR_HIST_KOLOR * SZER_PASKA_HISTOGRAMU)) + (ROZMIAR_HIST_KOLOR * SZER_PASKA_HISTOGRAMU);
+		sWysokosc = *(histG + x);
+		RysujProstokatWypelnionywBuforze(sPoczatekX, DISP_Y_SIZE - sWysokosc, SZER_PASKA_HISTOGRAMU, sWysokosc, chOSD, (uint8_t*)&sKolorG, ROZMIAR_KOLORU_OSD);
+		RysujProstokatWypelnionywBuforze(sPoczatekX, DISP_Y_SIZE - 255, SZER_PASKA_HISTOGRAMU, 255 - sWysokosc, chOSD, (uint8_t*)&sKolorTla, ROZMIAR_KOLORU_OSD);
+
+		sPoczatekX = (x * SZER_PASKA_HISTOGRAMU) + (DISP_X_SIZE - (3 * ROZMIAR_HIST_KOLOR * SZER_PASKA_HISTOGRAMU)) + (2 * ROZMIAR_HIST_KOLOR * SZER_PASKA_HISTOGRAMU);
+		sWysokosc = *(histB + x);
+		RysujProstokatWypelnionywBuforze(sPoczatekX, DISP_Y_SIZE - sWysokosc, SZER_PASKA_HISTOGRAMU,sWysokosc, chOSD, (uint8_t*)&sKolorB, ROZMIAR_KOLORU_OSD);
+		RysujProstokatWypelnionywBuforze(sPoczatekX, DISP_Y_SIZE - 255, SZER_PASKA_HISTOGRAMU, 255 - sWysokosc, chOSD, (uint8_t*)&sKolorTla, ROZMIAR_KOLORU_OSD);
+	}
+}
+;

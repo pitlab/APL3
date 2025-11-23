@@ -64,11 +64,22 @@
 #define KOLOSD_MAGEN7	0x0303
 
 //definicje poziomu przezroczystości
-#define PRZEZR_0		0xF000
-#define PRZEZR_25		0xC000
-#define PRZEZR_50		0x7000
-#define PRZEZR_75		0x3000
-#define PRZEZR_100		0x0000
+#define PRZEZR_0		0xF000		// 0/15 = 0%
+#define PRZEZR_6		0xE000		// 1/15 = 6,25%
+#define PRZEZR_13		0xD000		// 2/15 = 12,5%
+#define PRZEZR_20		0xC000		// 3/15 = 20%
+#define PRZEZR_27		0xB000		// 4/15 = 26,7%
+#define PRZEZR_33		0xA000		// 5/15 = 33,3%
+#define PRZEZR_40		0x9000		// 6/15 = 40%
+#define PRZEZR_46		0x8000		// 7/15 = 46,7
+#define PRZEZR_53		0x7000		// 8/15 = 53%
+#define PRZEZR_60		0x6000		// 9/15 = 60%
+#define PRZEZR_66		0x5000		//10/15 = 66,6%
+#define PRZEZR_73		0x4000		//11/15 = 73,3%
+#define PRZEZR_80		0x3000		//12/15 = 80%
+#define PRZEZR_87		0x2000		//13/15 = 86,6%
+#define PRZEZR_93		0x1000		//14/15 = 93,3%
+#define PRZEZR_100		0x0000		//15/15 = 100%
 
 //definicje określajace położenie wzgledne obiektow ekranowych OSD
 #define	POZ_SRODEK		0xFFFF		//środek ekranu poziomo lub pionowo
@@ -137,6 +148,7 @@ typedef struct
 //struktura konfiguracji OSD
 typedef struct st_KonfOsd
 {
+	uint8_t chOSDWlaczone;		//włacza pracę blendera
 	uint16_t sSzerokosc;		//szerokość obrazu
 	uint16_t sWysokosc;			//wysokość obrazu
 	stObOsd_F2_t stHoryzont;	//obiekt sztucznego horyzontu

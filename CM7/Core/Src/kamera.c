@@ -68,8 +68,9 @@ extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZew
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * ROZMIAR_KOLORU_OSD];	//pamięć obrazu OSD
 uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
 volatile uint8_t chBladKamery;	//1=HAL_DCMI_ERROR_OVR, 2=DCMI_ERROR_SYNC, 3=HAL_DCMI_ERROR_TIMEOUT, 4=HAL_DCMI_ERROR_DMA
-volatile uint8_t chTrybPracyKamery;	//steruje co dalej robić z obrazem pozyskanym przez DCMI
+//volatile uint8_t chTrybPracyKamery;	//steruje co dalej robić z obrazem pozyskanym przez DCMI
 extern uint32_t nCzasBlend, nCzasLCD;
+extern stKonfOsd_t stKonfOSD;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizacja pracy kamery
@@ -419,16 +420,23 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
 	chObrazKameryGotowy = 1;
 	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-	if (chTrybPracyKamery == TPK_OSD)
+	if (stKonfOSD.chOSDWlaczone)	//czy OSD jest włączone?
 	{
 		if (hdma2d.State == HAL_DMA2D_STATE_BUSY)
 			HAL_DMA2D_Abort(&hdma2d);
-		//chTransferDMA2DZakonczony = 0;
 		nCzasBlend = DWT->CYCCNT;
 		HAL_DMA2D_BlendingStart_IT(&hdma2d, (uint32_t)chBuforOSD, (uint32_t)sBuforKamerySRAM, (uint32_t)chBuforLCD, stKonfKam.chSzerWy * KROK_ROZDZ_KAM, stKonfKam.chWysWy * KROK_ROZDZ_KAM);
 	}
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Callback gotowej linii obrazu - nieużyteczny
+// Parametry:
+//  hdcmi - wskaźnik na interfejs DCMI
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
 void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
 	sLicznikRamekKamery++;

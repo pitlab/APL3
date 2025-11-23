@@ -24,9 +24,9 @@ void KonwersjaRGB565doRGB666(uint16_t *obrazRG565, uint8_t *obrazRGB666, uint32_
 void KonwersjaRGB888doYCbCr(uint8_t chR, uint8_t chG, uint8_t chB, uint8_t *chY, int8_t *chCb, int8_t *chCr);
 void DetekcjaKrawedziRoberts(uint8_t *obrazWe, uint8_t *obrazWy, uint16_t szerokosc, uint16_t wysokosc, uint8_t prog);
 void DetekcjaKrawedziSobel(uint8_t *obrazWe, uint8_t *obrazWy, uint16_t szerokosc, uint16_t wysokosc, uint8_t prog);
-void HistogramCB7(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist);
-void HistogramCB8(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist);
-void HistogramRGB565(uint16_t *obrazRGB565, uint32_t rozmiar, uint8_t *histR, uint8_t *histG, uint8_t *histB);
+void LiczHistogramCB7(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist);
+void LiczHistogramCB8(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist);
+void LiczHistogramRGB565(uint16_t *obrazRGB565, uint32_t rozmiar, uint8_t *histR, uint8_t *histG, uint8_t *histB);
 void Progowanie(uint8_t *obraz, uint8_t prog, uint32_t rozmiar);
 void Dylatacja(uint8_t *obrazWe, uint8_t *obrazWy, uint16_t szerokosc, uint16_t wysokosc, uint8_t prog);
 void Erozja(uint8_t *obrazWe, uint8_t *obrazWy, uint16_t szerokosc, uint16_t wysokosc, uint8_t prog);

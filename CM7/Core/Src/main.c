@@ -52,6 +52,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - sprawdzić dlaczego wywala się hard fault na ethernet_input()
  - Dodać synchronizację czasu z serwerem RTC
  - Dodać wyłaczanie przerwań na czas alokacji pamięci przez memalloc()
+ - histogram dodać jako część OSD, aby był integralną częścią obrazu z dużą przezroczystoscią
 
  //Problemy sprzętowe egzemplarza 1:
   * Nie można uruchomić ETH i kamery

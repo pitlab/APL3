@@ -116,14 +116,14 @@ void KonwersjaRGB565doRGB666(uint16_t *obrazRG565, uint8_t *obrazRGB666, uint32_
 ////////////////////////////////////////////////////////////////////////////////
 void KonwersjaRGB888doYCbCr(uint8_t chR, uint8_t chG, uint8_t chB, uint8_t *chY, int8_t *chCb, int8_t *chCr)
 {
-	uint16_t sY;
-	int16_t sCb, sCr;
+	//uint16_t sY;
+	//int16_t sCb, sCr;
 
-	sY = ((uint16_t)chR * 77 + (uint16_t)chG * 150 + (uint16_t)chB * 29) >> 8;
-	sCb = (((int16_t)chR * (-43)) + ((int16_t)chG * (-84))  + ((int16_t)chB * (127)) + 128) >> 8;
-	sCr = (((int16_t)chR * (127)) + ((int16_t)chG * (-106)) + ((int16_t)chB * (-21)) + 128) >> 8;
+	*chY = ((uint16_t)chR * 77 + (uint16_t)chG * 150 + (uint16_t)chB * 29) >> 8;
+	*chCb = ((((int16_t)chR * (-43)) + ((int16_t)chG * (-84))  + ((int16_t)chB * (127)) ) >> 8) + 128;
+	*chCr = ((((int16_t)chR * (127)) + ((int16_t)chG * (-106)) + ((int16_t)chB * (-21)) ) >> 8) + 128;
 
-	//obetnij do 8 bitów
+	/*/obetnij do 8 bitów
 	if (sY < 0xFF)	//liczba bez znaku, wiec obetnij tylko górę
 		*chY = sY;
 	else
@@ -144,7 +144,7 @@ void KonwersjaRGB888doYCbCr(uint8_t chR, uint8_t chG, uint8_t chB, uint8_t *chY,
 	if (sCr > 128)
 		*chCr = 128;
 	else
-		*chCr = (uint8_t)sCr;
+		*chCr = (uint8_t)sCr;*/
 }
 
 
@@ -265,7 +265,7 @@ void DetekcjaKrawedziSobel(uint8_t *obrazWe, uint8_t *obrazWy, uint16_t szerokos
 // [we] nRozmiar - ilość pikseli do analizy
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void HistogramCB7(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist)
+void LiczHistogramCB7(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist)
 {
 	uint32_t nHistogram[ROZMIAR_HIST_CB7 + 1], temp;
 	uint8_t pix;
@@ -300,7 +300,7 @@ void HistogramCB7(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist)
 // [we] nRozmiar - ilość pikseli do analizy
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void HistogramCB8(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist)
+void LiczHistogramCB8(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist)
 {
 	uint32_t nHistogram[ROZMIAR_HIST_CB8], temp;
 	uint8_t pix;
@@ -336,7 +336,7 @@ void HistogramCB8(uint8_t *chObraz, uint32_t nRozmiar, uint8_t *chHist)
 // [we] rozmiar - ilość pikseli do analizy
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void HistogramRGB565(uint16_t *obrazRGB565, uint32_t rozmiar, uint8_t *histR, uint8_t *histG, uint8_t *histB)
+void LiczHistogramRGB565(uint16_t *obrazRGB565, uint32_t rozmiar, uint8_t *histR, uint8_t *histG, uint8_t *histB)
 {
 	uint16_t sPixel;
 	uint32_t temp;

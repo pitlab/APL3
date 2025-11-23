@@ -318,11 +318,11 @@ uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObra
 uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* chObraz)
 {
 	uint8_t chErr = BLAD_OK;
-	uint32_t nCzas;
-	extern uint32_t nRozmiarObrazuJPEG;
-	extern uint32_t nRozmiarObrazuKamery;
+	//uint32_t nCzas;
+	//extern uint32_t nRozmiarObrazuJPEG;
+	//extern uint32_t nRozmiarObrazuKamery;
 
-	nCzas = PobierzCzasT6();
+	//nCzas = PobierzCzasT6();
 	if (sSzerokosc > DISP_X_SIZE)
 		sSzerokosc = DISP_X_SIZE;
 	if (sWysokosc > DISP_Y_SIZE)
@@ -330,10 +330,10 @@ uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* 
 #ifdef 	LCD_ILI9488
 	RysujBitmape888(0, 0, sSzerokosc, sWysokosc, chObraz);
 #endif
-	nCzas = MinalCzas(nCzas);
-	sprintf(chNapis, "%.2f fps, kompr: %.1f", 1.0/(nCzas/1000000.0), (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);
-	setColor(ZOLTY);
-	RysujNapis(chNapis, 0, DISP_Y_SIZE - FONT_BH);
+	//nCzas = MinalCzas(nCzas);
+	//sprintf(chNapis, "%.2f fps, kompr: %.1f", 1.0/(nCzas/1000000.0), (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);
+	//setColor(ZOLTY);
+	//RysujNapis(chNapis, 0, DISP_Y_SIZE - FONT_BH);
 	return chErr;
 }
 
