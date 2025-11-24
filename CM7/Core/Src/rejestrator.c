@@ -16,6 +16,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <jpeg.h>
+#include "czas.h"
+
+
 
 extern SD_HandleTypeDef hsd1;
 extern uint8_t retSD;    /* Return value for SD */
@@ -35,7 +38,6 @@ UINT nDoZapisuNaKarte, nZapisanoNaKarte;
 uint8_t chKodBleduFAT;
 uint8_t chTimerSync;	//odlicza czas w jednostce zapisu na dysk do wykonania sync
 uint16_t sDlugoscWierszaLogu, sMaxDlugoscWierszaLogu;
-extern RTC_HandleTypeDef hrtc;
 extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
 extern double dSumaZyro1[3], dSumaZyro2[3];
@@ -46,10 +48,6 @@ extern volatile uint8_t chWskOprBufJpeg;	// wskazuje z którego bufora obecnie s
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];
 extern volatile uint8_t chZatrzymanoWy;
 FIL SDJpegFile;       //struktura pliku z obrazem
-//extern char chNapis[100];
-extern RTC_HandleTypeDef hrtc;
-extern RTC_TimeTypeDef sTime;
-extern RTC_DateTypeDef sDate;
 extern JPEG_HandleTypeDef hjpeg;
 extern const uint8_t chNaglJpegSOI[ROZMIAR_NAGL_JPEG];
 extern const uint8_t chNaglJpegEOI[ROZMIAR_ZNACZ_xOI];	//EOI (End Of Image)
@@ -124,9 +122,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "Czas [g:m:s.ss];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-				HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-
+				PobierzDateCzas(&sDate, &sTime);
 				uint32_t nSetneSekundy;
 				nSetneSekundy = 100 * sTime.SubSeconds / sTime.SecondFraction;
 				sprintf(chBufPodreczny, "%02d:%02d:%02d.%02ld;", sTime.Hours,  sTime.Minutes,  sTime.Seconds, nSetneSekundy);
@@ -905,8 +901,7 @@ uint8_t ObslugaPetliRejestratora(void)
 	else	//jeżei plik nie jest otwarty to go otwórz
 	{
 		FRESULT fres;
-		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+		PobierzDateCzas(&sDate, &sTime);
 		sprintf(chBufPodreczny, "%04d%02d%02d_%02d%02d%02d_APL3.csv",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
 		fres = f_open(&SDFile, chBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
@@ -914,7 +909,6 @@ uint8_t ObslugaPetliRejestratora(void)
 		sMaxDlugoscWierszaLogu = 0;
 		chTimerSync = WPISOW_NA_SYNC;
 	}
-
 
 	//sprawdź czy nie wyłączono rejestratoraw czasie pracy
 	if ((chStatusRejestratora & STATREJ_WLACZONY) == 0)
@@ -1128,8 +1122,7 @@ void ObslugaZapisuJpeg(void)
 			}
 		}
 
-		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+		PobierzDateCzas(&sDate, &sTime);
 		sprintf(chBufPodreczny, "%s_%04d%02d%02d_%02d%02d%02d.jpg", chNazwaPlikuObr, sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
 
 		fres = f_open(&SDJpegFile, chBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
@@ -1137,10 +1130,10 @@ void ObslugaZapisuJpeg(void)
 		{
 			chStatusBufJpeg &= ~STAT_JPG_OTWORZ;	//skasuj flagę potwierdzając otwarcie pliku do zapisu
 			chStatusBufJpeg |= STAT_JPG_OTWARTY;
-			//fres  = f_write(&SDJpegFile, chNaglJpegSOI, ROZMIAR_NAGL_JPEG, &nZapisanoBajtow);		//nagłówek Jpeg
 			nZapisanoBajtow = PrzygotujExif(&stKonfKam, &uDaneCM4.dane, sDate, sTime);
 			fres |= f_write(&SDJpegFile, chNaglJpegExif, nZapisanoBajtow, &nZapisanoBajtow);		//exif
-			fres  = f_write(&SDJpegFile, chNaglJpegSOI, ROZMIAR_NAGL_JPEG, &nZapisanoBajtow);		//nagłówek Jpeg
+			fres |= f_write(&SDJpegFile, chNaglJpegSOI, ROZMIAR_NAGL_JPEG, &nZapisanoBajtow);		//nagłówek Jpeg
+			osDelay(1);
 		}
 		else
 			chStatusRejestratora &= ~STATREJ_FAT_GOTOWY;	//wymuś ponowną inicjalizację karty
@@ -1180,14 +1173,14 @@ void ObslugaZapisuJpeg(void)
 			chStatusRejestratora &= ~STATREJ_FAT_GOTOWY;	//wymuś ponowną inicjalizację karty
 	}
 	else
-	if (chStatusBufJpeg & STAT_JPG_ZAMKNIJ)
+	if ((chStatusBufJpeg & STAT_JPG_ZAMKNIJ) && ((chStatusBufJpeg & STAT_JPG_PELEN_BUF) != STAT_JPG_PELEN_BUF))
 	{
 		fres  = f_write(&SDJpegFile, chNaglJpegEOI, ROZMIAR_ZNACZ_xOI, &nZapisanoBajtow);
 		fres |= f_close(&SDJpegFile);
 		if (fres == FR_OK)
 			printf("Gotowe\r\n");
 		else
-			printf("Blad zamkniecia pliku %d\r\n", fres);
+			printf("Blad nr %d zamkniecia pliku\r\n", fres);
 		chStatusBufJpeg &= ~(STAT_JPG_ZAMKNIJ | STAT_JPG_OTWARTY);	//skasuj flagi polecenia zamknięcia i stanu otwartosci pliku
 		chStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;	//wyłącz flagę obsługi pliku JPEG
 	}

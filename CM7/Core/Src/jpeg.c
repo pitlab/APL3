@@ -21,7 +21,6 @@ extern JPEG_HandleTypeDef hjpeg;
 extern MDMA_HandleTypeDef hmdma_jpeg_outfifo_th;
 extern MDMA_HandleTypeDef hmdma_jpeg_infifo_th;
 extern const char *chNapisLcd[MAX_NAPISOW];
-//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};	//SekcjaZewnSRAM ma wyłączony cache w MPU, więc może pracować z MDMA bez konieczności czyszczenia cache
 //uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM2"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};	//SekcjaZewnSRAM ma wyłączony cache w MPU, więc może pracować z MDMA bez konieczności czyszczenia cache
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};
 volatile uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych na kartę SD
@@ -348,6 +347,7 @@ void HAL_JPEG_DataReadyCallback(JPEG_HandleTypeDef *hjpeg, uint8_t *pDataOut, ui
 	{
 		HAL_JPEG_Pause(hjpeg, JPEG_PAUSE_RESUME_OUTPUT);
 		chZatrzymanoWy = 1;
+		printf("Zatrz\r\n");
 	}
 	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 }
@@ -412,8 +412,8 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 	sZajetoscBuforaWeJpeg = 0;
 	chWskNapBufMcu = 0;
 
-	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
-	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
+
+	chStatusBufJpeg |= STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
 	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
 
 	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_GRAYSCALE_COLORSPACE, JPEG_444_SUBSAMPLING, 80);
@@ -469,6 +469,7 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 				chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
 				if (hjpeg.State == HAL_JPEG_STATE_READY)	//tylko dla pierwszego uruchomienia
 				{
+					HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 					chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
 				}
 				else
@@ -545,11 +546,8 @@ uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 		for (uint16_t n=0; n<ROZM_BUF_WY_JPEG; n++)
 			chBuforJpeg[m][n] = 0;
 	}
-	chWskNapBufJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
-	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
-
-	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
+	chStatusBufJpeg |= STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
 	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
 
 	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_444_SUBSAMPLING, 80);
@@ -612,7 +610,9 @@ uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 			chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
 			if (hjpeg.State == HAL_JPEG_STATE_READY)
 			{
+				chWskNapBufJpeg = 0;
 				HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, 3 * ROZMIAR_BLOKU);	//przekaż bufor z nowymi danymi
+				HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 				chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, 3 * ROZMIAR_BLOKU, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
 			}
 			else
@@ -677,11 +677,8 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 	for (uint16_t n=(4 * ROZMIAR_BLOKU); n<(6 * ROZMIAR_BLOKU); n++)
 		chBuforMCU[n] = 128;
 
-	chWskNapBufJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
-	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
-
-	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
+	chStatusBufJpeg |= STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
 	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
 
 	//rozpocznij formowanie MCU
@@ -768,6 +765,8 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 			chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
 			if (hjpeg.State == HAL_JPEG_STATE_READY)
 			{
+				chWskNapBufJpeg = 0;
+				HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 				HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, 6 * ROZMIAR_BLOKU);	//przekaż bufor z nowymi danymi
 				chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, 6 * ROZMIAR_BLOKU, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
 			}
@@ -800,11 +799,10 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 // Parametry:
 // [we] *obrazRGB888 - wskaźnik na bufor z obrazem wejściowym
 // [wy] *buforYCbCr - wskaźnik na bufor obrazu pośredniego o rozmiarze: (sSzerokosc / 2) * 4 * 6
-// [wy] *chDaneSkompresowane - wskaźnik na bufor danych skompresowanych
 // [we] sSzerokosc, sWysokosc - rozmiary obrazu. Muszą być podzielne przez 8
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDaneSkompresowane, uint16_t sSzerokosc, uint16_t sWysokosc)
+uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint32_t nOffsetWiersza, nOffsetBloku, nOffsetWierszaBlokow;
 	uint32_t nOfsetWe ;
@@ -826,9 +824,8 @@ uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDa
 		return chErr;
 	}
 
-	chWskNapBufJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
-	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
+	chStatusBufJpeg |= STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
 	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
 
 	for (uint16_t by=0; by<sIloscBlokowPionowo; by++)	//pętla po wierszu bloków 8x8 na wysokości obrazu
@@ -873,6 +870,7 @@ uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDa
 		{
 			if (hjpeg.State == HAL_JPEG_STATE_READY)
 			{
+				chWskNapBufJpeg = 0;
 				HAL_JPEG_ConfigInputBuffer(&hjpeg, buforYCbCr, ROZMIAR_MCU422 * sSzerokosc / (2 * SZEROKOSC_BLOKU));	//bufor MCU z calego wiersza bloków
 				HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 				chErr = HAL_JPEG_Encode_DMA(&hjpeg, buforYCbCr, ROZMIAR_MCU422 * sSzerokosc / (2 * SZEROKOSC_BLOKU), chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
@@ -906,7 +904,7 @@ uint8_t KompresujRGB888(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDa
 ////////////////////////////////////////////////////////////////////////////////
 //testowo
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KompresujRGB888jakoY8(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t *chDaneSkompresowane, uint16_t sSzerokosc, uint16_t sWysokosc)
+uint8_t KompresujRGB888jakoY8(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint32_t nOffsetWiersza, nOffsetBloku, nOffsetWierszaBlokow;
 	uint32_t nOfsetWe ;
@@ -928,11 +926,10 @@ uint8_t KompresujRGB888jakoY8(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t
 		return chErr;
 	}
 
-	chWskNapBufJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
-
-
-	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
+	chWskNapBufJpeg = 0;
+	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
+	chStatusBufJpeg |= STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
 	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
 
 	for (uint16_t by=0; by<sIloscBlokowPionowo; by++)	//pętla po wierszu bloków 8x8 na wysokości obrazu
@@ -976,7 +973,6 @@ uint8_t KompresujRGB888jakoY8(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint8_t
 			if (hjpeg.State == HAL_JPEG_STATE_READY)
 			{
 				HAL_JPEG_ConfigInputBuffer(&hjpeg, buforYCbCr, ROZMIAR_BLOKU * sSzerokosc / SZEROKOSC_BLOKU);				////bufor MCU z calego wiersza bloków
-				HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 				chErr = HAL_JPEG_Encode_DMA(&hjpeg, buforYCbCr, ROZMIAR_BLOKU * sSzerokosc / SZEROKOSC_BLOKU, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
 				chDaneDoZapisu = 0;
 			}
@@ -1020,10 +1016,6 @@ uint8_t TestKonwersjiRGB888doYCbCr(uint8_t *obrazRGB888, uint8_t *buforYCbCr, ui
 	int8_t chCb, chCr;
 	uint32_t nOfsetWiersza, nOfsetWe, nOfsetWy;
 
-	chStatusRejestratora = STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
-
-
-
 	for (uint16_t y=0; y<sWysokosc; y++)
 	{
 		nOfsetWiersza = y * sSzerokosc * LICZBA_KOLOROW_RGB;
@@ -1036,9 +1028,9 @@ uint8_t TestKonwersjiRGB888doYCbCr(uint8_t *obrazRGB888, uint8_t *buforYCbCr, ui
 			KonwersjaRGB888doYCbCr(chR, chG, chB, &chY, &chCb, &chCr);
 
 			nOfsetWy = y * sSzerokosc + x;
-			//*(buforYCbCr + nOfsetWy) = chY;		//zapisz luminancję
+			*(buforYCbCr + nOfsetWy) = chY;		//zapisz luminancję
 			//*(buforYCbCr + nOfsetWy) = chCb;		//zapisz chrominancję niebieską
-			*(buforYCbCr + nOfsetWy) = chCr;		//zapisz chrominancję czerwoną
+			//*(buforYCbCr + nOfsetWy) = chCr;		//zapisz chrominancję czerwoną
 		}
 	}
 	return BLAD_OK;
@@ -1065,7 +1057,6 @@ uint8_t KompresujPrzyklad(uint8_t *obrazRGB888,  uint8_t *chMCU, uint16_t sSzero
 	uint32_t hMCU, vMCU;
 
 	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_422_SUBSAMPLING, 80);
-	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 
 	JPEG_ConvertorParams.BlockSize = ROZMIAR_MCU422;
 	JPEG_ConvertorParams.Cb_MCU_LUT = JPEG_Cb_MCU_422_LUT;
@@ -1107,9 +1098,11 @@ uint8_t KompresujPrzyklad(uint8_t *obrazRGB888,  uint8_t *chMCU, uint16_t sSzero
 
 	JPEG_ConvertorParams.MCU_Total_Nb = (hMCU * vMCU);
 
-	chStatusBufJpeg = STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
+	chWskNapBufJpeg = 0;
+	chStatusBufJpeg |= STAT_JPG_OTWORZ | STAT_JPG_NAGLOWEK;	//otwórz plik a gdy bądą pierwsze dane to zapisz nagłówek
 	JPEG_ARGB_MCU_YCbCr422_ConvertBlocks(obrazRGB888, chMCU, BlockIndex, DataCount, &ConvertedDataCount);
 	HAL_JPEG_ConfigInputBuffer(&hjpeg, chMCU, ROZMIAR_MCU422 * sSzerokosc / 16 * sWysokosc);	//przekaż bufor z nowymi danymi
+	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 	chErr = HAL_JPEG_Encode_DMA(&hjpeg, chMCU, ROZMIAR_MCU422 * sSzerokosc / 16 * sWysokosc, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
 
 	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku

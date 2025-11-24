@@ -1705,7 +1705,7 @@ void WatekRejestratora(void const * argument)
 				if (chStatusRejestratora & STATREJ_ZAPISZ_BMP)
 				{
 					ObslugaZapisuBmp();
-					chStatusRejestratora &= ~STATREJ_ZAPISZ_BMP;	//zapis bmp jest jednoprzebiegowy, wiec flagę można skasować po pierwszym przejściu
+
 				}
 				else
 					osDelay(5);	//jeżeli nie ma nic do zapisu to wstrzymaj wątek na tyle czasu

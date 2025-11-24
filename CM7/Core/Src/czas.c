@@ -66,8 +66,8 @@ uint8_t PobierzDateCzas(RTC_DateTypeDef *sData, RTC_TimeTypeDef *sCzas)
 {
 	uint8_t chErr;
 
-	chErr  = HAL_RTC_GetDate(&hrtc, sData, RTC_FORMAT_BIN);
-	chErr |= HAL_RTC_GetTime(&hrtc, sCzas, RTC_FORMAT_BIN);
+	chErr  = HAL_RTC_GetTime(&hrtc, sCzas, RTC_FORMAT_BIN);
+	chErr |= HAL_RTC_GetDate(&hrtc, sData, RTC_FORMAT_BIN);		// Uwaga: GetDate MUSI być po GetTime
 	return chErr;
 }
 
@@ -154,9 +154,7 @@ uint8_t CzekajNaZero(uint8_t chZajety, uint32_t nCzasOczekiwania)
 ////////////////////////////////////////////////////////////////////////////////
 DWORD PobierzCzasFAT(void)
 {
-    HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-    HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);  // Uwaga: GetDate MUSI być po GetTime
-
+    PobierzDateCzas(&sDate, &sTime);
     return ((DWORD)(sDate.Year + 20) << 25)    // Rok = 2000 + sDate.Year, FAT zaczyna od 1980
          | ((DWORD)sDate.Month << 21)
          | ((DWORD)sDate.Date << 16)

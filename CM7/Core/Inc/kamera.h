@@ -64,7 +64,6 @@ typedef struct
 	uint8_t chProgUsuwania;		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
 	uint8_t chNasycenie;		//SDE Control3 i 4: 0x5583 Saturation U i 5584 Saturation V
 	uint8_t chPoziomEkspozycji;	//wpływa na grupę rejestrów: 0x3A0F..1F
-	//uint8_t chTrybOSD;			//włacza OSD na obraz kamery
 } stKonfKam_t;
 
 //diagnostyka stanu kamery
