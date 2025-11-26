@@ -149,7 +149,7 @@ extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 extern const uint8_t chNaglJpegSOI[20];
 extern const uint8_t chNaglJpegEOI[2];
 extern FIL SDJpegFile;       //struktura pliku z obrazem
-extern uint8_t chNazwaPlikuObr[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
+extern uint8_t chNazwaPlikuObrazu[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
 
 extern uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
 extern uint8_t chZajetoscBuforaWyJpeg;
@@ -678,7 +678,7 @@ uint8_t RysujEkran(void)
 
 	case TP_KAM_ZDJ_Y8:	//wykonuje zdjecie Y8 jpg
 		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
-		sprintf((char*)chNazwaPlikuObr, "ZdjY8");	//początek nazwy pliku ze zdjeciem
+		sprintf((char*)chNazwaPlikuObrazu, "ZdjY8");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
 
 		chErr = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_Y8, KAM_ZDJECIE);
@@ -730,7 +730,7 @@ uint8_t RysujEkran(void)
 			for (uint32_t n=0; n<WYS_ZDJECIA; n++)
 				sBuforKamerySRAM[n+m*WYS_ZDJECIA] = (m & 0x0FFF) | 0x4000;
 		}
-		sprintf((char*)chNazwaPlikuObr, "ZdjYUV420");	//początek nazwy pliku ze zdjeciem
+		sprintf((char*)chNazwaPlikuObrazu, "ZdjYUV420");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
 		//chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV420, KAM_ZDJECIE);
 		//chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//wynik w sBuforKamerySRAM
@@ -760,14 +760,14 @@ uint8_t RysujEkran(void)
 
 
 	case TP_KAM_ZDJ_YUV422:	//Analiza obrazu pokazuje że coś jest nie tak z obrazem YUV444. Dla obrazu o szerokości 480 pix powtarza się biała linia 4x16 bajtów co 2*480 pikseli
-		/*sprintf((char*)chNazwaPlikuObr, "ZdjYUV444");	//początek nazwy pliku ze zdjeciem
+		/*sprintf((char*)chNazwaPlikuObrazu, "ZdjYUV444");	//początek nazwy pliku ze zdjeciem
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV444, KAM_ZDJECIE);
 		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_X_SIZE * 2 / 3);	//rozmiar obrazu to 3 bajty na piksel
 		nCzas = PobierzCzasT6();
 		chErr = KompresujYUV444((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
 		nCzas = MinalCzas(nCzas);*/
 
-		sprintf((char*)chNazwaPlikuObr, "Test3");	//początek nazwy pliku ze zdjeciem
+		sprintf((char*)chNazwaPlikuObrazu, "Test3");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_BMP | STATREJ_ZAPISZ_JPG;	//włącz zapis plików
 		//Metoda z oficjalnych przykładów
 		JPEG_Init_MCU_LUT();
@@ -836,7 +836,7 @@ uint8_t RysujEkran(void)
 		ZakonczPraceDCMI();	//wyłącz kamerę aby nie nadpisywała obrazu w sBuforKamerySRAM
 		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
 		TestKonwersjiRGB888doYCbCr(chBuforLCD, (uint8_t*)sBuforKamerySRAM, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
-		sprintf((char*)chNazwaPlikuObr, "Luma");	//początek nazwy pliku ze zdjeciem
+		sprintf((char*)chNazwaPlikuObrazu, "Luma");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora = STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
 		stKonfKam.chFormatObrazu = OBR_Y8;			//obraz ma sie zapisać jako monochromatyczny
 		chNowyTrybPracy = TP_WROC_DO_OSD;
@@ -933,28 +933,28 @@ uint8_t RysujEkran(void)
 
 	case TPO_OSD_JPEG:		//kompresja jpeg obrazu OSD
 		ZakonczPraceDCMI();
-		sprintf((char*)chNazwaPlikuObr, "OSDYUV422");	//początek nazwy pliku ze zdjeciem
+		sprintf((char*)chNazwaPlikuObrazu, "OSDYUV422");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 		for (uint32_t n=0; n<ILOSC_BUF_JPEG; n++)		//czysć bufor danych skompresowanych
 		{
 			for (uint32_t i=0; i<ROZM_BUF_WY_JPEG; i++)
 				chBuforJpeg[n][i] = 0;
 		}
-		chErr = KompresujRGB888(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+		chErr = KompresujRGB888doYUV422(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
 
 	case TPO_OSD4:
 		ZakonczPraceDCMI();
-		sprintf((char*)chNazwaPlikuObr, "OSD_Y8");	//początek nazwy pliku ze zdjeciem
+		sprintf((char*)chNazwaPlikuObrazu, "OSD_Y8");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 		for (uint32_t n=0; n<ILOSC_BUF_JPEG; n++)		//czysć bufor danych skompresowanych
 		{
 			for (uint32_t i=0; i<ROZM_BUF_WY_JPEG; i++)
 				chBuforJpeg[n][i] = 0;
 		}
-		chErr = KompresujRGB888jakoY8(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+		chErr = KompresujRGB888doY8(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 

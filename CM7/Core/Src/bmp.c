@@ -21,7 +21,7 @@ extern RTC_DateTypeDef sDate;
 extern char __attribute__ ((aligned (32))) chBufPodreczny[40];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[];
 extern stKonfKam_t stKonfKam;
-extern uint8_t chNazwaPlikuObr[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
+extern uint8_t chNazwaPlikuObrazu[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
 extern volatile uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 //uint8_t chBuforWiersza[DISP_X_SIZE * 3 * 2];	//bufor na 2 wiersze
 
@@ -137,7 +137,7 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 
 	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-	sprintf(chBufPodreczny, "%s_%04d%02d%02d_%02d%02d%02d.bmp", chNazwaPlikuObr, sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+	sprintf(chBufPodreczny, "%s_%04d%02d%02d_%02d%02d%02d.bmp", chNazwaPlikuObrazu, sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
 
 	fres = f_open(&SDBmpFile, chBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
 	if (fres != FR_OK)

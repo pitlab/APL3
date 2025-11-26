@@ -17,15 +17,16 @@
 #include <stdio.h>
 #include <jpeg.h>
 #include "czas.h"
-
-
+#include "display.h"
+#include "LCD.h"
+#include <ili9488.h>
 
 extern SD_HandleTypeDef hsd1;
 extern uint8_t retSD;    /* Return value for SD */
 extern char SDPath[4];   /* SD logical drive path */
 extern FATFS SDFatFS;    /* File system object for SD logical drive */
 extern FIL SDFile;       /* File object for SD */
-uint8_t chNazwaPlikuObr[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
+uint8_t chNazwaPlikuObrazu[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
 extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t __attribute__ ((aligned (32))) aTxBuffer[_MAX_SS];
 uint8_t __attribute__ ((aligned (32))) aRxBuffer[_MAX_SS];
@@ -46,7 +47,8 @@ extern volatile uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status 
 extern volatile uint8_t chWskOprBufJpeg;	// wskazuje z którego bufora obecnie są odczytywane dane
 //extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];	//SekcjaZewnSRAM ma wyłączony cache w MPU, więc może pracować z MDMA bez konieczności czyszczenia cache
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];
-extern volatile uint8_t chZatrzymanoWy;
+extern volatile uint8_t chZatrzymaneWyJpeg;
+
 FIL SDJpegFile;       //struktura pliku z obrazem
 extern JPEG_HandleTypeDef hjpeg;
 extern const uint8_t chNaglJpegSOI[ROZMIAR_NAGL_JPEG];
@@ -1123,26 +1125,27 @@ void ObslugaZapisuJpeg(void)
 		}
 
 		PobierzDateCzas(&sDate, &sTime);
-		sprintf(chBufPodreczny, "%s_%04d%02d%02d_%02d%02d%02d.jpg", chNazwaPlikuObr, sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
-
+		sprintf(chBufPodreczny, "%s_%04d%02d%02d_%02d%02d%02d.jpg", chNazwaPlikuObrazu, sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
 		fres = f_open(&SDJpegFile, chBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
 		{
 			chStatusBufJpeg &= ~STAT_JPG_OTWORZ;	//skasuj flagę potwierdzając otwarcie pliku do zapisu
 			chStatusBufJpeg |= STAT_JPG_OTWARTY;
-			nZapisanoBajtow = PrzygotujExif(&stKonfKam, &uDaneCM4.dane, sDate, sTime);
-			fres |= f_write(&SDJpegFile, chNaglJpegExif, nZapisanoBajtow, &nZapisanoBajtow);		//exif
+			uint32_t nRozmiarExif = PrzygotujExif(&stKonfKam, &uDaneCM4.dane, sDate, sTime);
+			//nRozmiarExif = (nRozmiarExif + 3) & 0xFFFFFFFC;										//wyrównanie do 4 bajtów aby DMA się nie zacinało
+			nRozmiarExif = (nRozmiarExif + ROZMIAR_NAGL_JPEG + 511) & 0xFFFFFE00;					//wyrównanie do 512 bajtów aby DMA się nie zacinało
+			nRozmiarExif -= ROZMIAR_NAGL_JPEG;
+			fres |= f_write(&SDJpegFile, chNaglJpegExif, nRozmiarExif, &nZapisanoBajtow);		//exif
 			fres |= f_write(&SDJpegFile, chNaglJpegSOI, ROZMIAR_NAGL_JPEG, &nZapisanoBajtow);		//nagłówek Jpeg
 			osDelay(1);
 		}
-		else
-			chStatusRejestratora &= ~STATREJ_FAT_GOTOWY;	//wymuś ponowną inicjalizację karty
 	}
 	else
 	if ((chStatusBufJpeg & (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF | STAT_JPG_OTWARTY)) == (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF | STAT_JPG_OTWARTY))	//jest pierwszy nie pełny bufor danych czekajacy na dodanie nagłówka
 	{
 		//na początku danych z jpeg jest znacznik SOI [2] ale brakuje nagłówka pliku. Wstaw kompletny nagłówek a za nim dane jpeg bez SOI
-		fres = f_write(&SDJpegFile, &chBuforJpeg[chWskOprBufJpeg][ROZMIAR_ZNACZ_xOI], ROZM_BUF_WY_JPEG - ROZMIAR_ZNACZ_xOI, &nZapisanoBajtow);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
+		//fres = f_write(&SDJpegFile, &chBuforJpeg[chWskOprBufJpeg][ROZMIAR_ZNACZ_xOI], ROZM_BUF_WY_JPEG - ROZMIAR_ZNACZ_xOI, &nZapisanoBajtow);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
+		fres = f_write(&SDJpegFile, &chBuforJpeg[chWskOprBufJpeg][0], ROZM_BUF_WY_JPEG, &nZapisanoBajtow);
 		if (fres == FR_OK)
 		{
 			chStatusBufJpeg &= ~(STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF);	//skasuj flagi
@@ -1151,7 +1154,19 @@ void ObslugaZapisuJpeg(void)
 			chZajetoscBuforaWyJpeg--;
 		}
 		else
-			chStatusRejestratora &= ~STATREJ_FAT_GOTOWY;	//wymuś ponowną inicjalizację karty
+		{
+			PobierzKodBleduFAT(fres, chBufPodreczny);
+			setColor(BLAD);
+			RysujNapis(chBufPodreczny, CENTER, 150);
+			if (fres == FR_INVALID_OBJECT)
+				chStatusRejestratora &= ~STATREJ_FAT_GOTOWY;	//wymuś ponowną inicjalizację karty po prawdopodobnym jej wyjęciu
+			if (fres == FR_DISK_ERR)	//The lower layer, disk_read, disk_write or disk_ioctl function, reported that an unrecoverable hard error occured. Note that if once this error occured in the operation to an open file, the file object is aborted and any operations to the file except f_close will be rejected.
+			{
+				fres = f_close(&SDJpegFile);
+				chStatusBufJpeg &= ~STAT_JPG_OTWARTY;	//potrzebne ponowne otwarcie pliku
+				chStatusBufJpeg |= STAT_JPG_OTWORZ + STAT_JPG_NAGLOWEK;	//ponownie trzeba otwirzyć plik i wstawić nagłówek
+			}
+		}
 	}
 	else
 	if (chZajetoscBuforaWyJpeg && (chStatusBufJpeg & STAT_JPG_OTWARTY))
@@ -1163,14 +1178,12 @@ void ObslugaZapisuJpeg(void)
 			chWskOprBufJpeg++;
 			chWskOprBufJpeg &= MASKA_LICZBY_BUF;
 			chZajetoscBuforaWyJpeg--;
-			if (chZatrzymanoWy)
+			if (chZatrzymaneWyJpeg)
 			{
-				chZatrzymanoWy = 0;
+				chZatrzymaneWyJpeg = 0;
 				HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_OUTPUT);		//wzów kompresję
 			}
 		}
-		else
-			chStatusRejestratora &= ~STATREJ_FAT_GOTOWY;	//wymuś ponowną inicjalizację karty
 	}
 	else
 	if ((chStatusBufJpeg & STAT_JPG_ZAMKNIJ) && ((chStatusBufJpeg & STAT_JPG_PELEN_BUF) != STAT_JPG_PELEN_BUF))
