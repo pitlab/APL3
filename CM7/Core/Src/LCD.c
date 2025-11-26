@@ -159,7 +159,6 @@ extern stKonfOsd_t stKonfOSD;
 extern volatile uint8_t chTrybPracyKamery;	//steruje co dalej robić z obrazem pozyskanym przez DCMI
 uint32_t nCzas, nCzasHist;
 extern uint32_t nCzasBlend, nCzasLCD;
-extern uint8_t chBuforYCbCr[DISP_X_SIZE / 2 * 4 * 6 ];	//bufor na dane pośrednie przy kompresji obrazu RGB
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -936,14 +935,12 @@ uint8_t RysujEkran(void)
 		ZakonczPraceDCMI();
 		sprintf((char*)chNazwaPlikuObr, "OSDYUV422");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
-		for (uint32_t n=0; n<480/2*4*6; n++)			//czyść bufor pośredn
-			*(chBuforYCbCr + n) = 0;
 		for (uint32_t n=0; n<ILOSC_BUF_JPEG; n++)		//czysć bufor danych skompresowanych
 		{
 			for (uint32_t i=0; i<ROZM_BUF_WY_JPEG; i++)
 				chBuforJpeg[n][i] = 0;
 		}
-		chErr = KompresujRGB888(chBuforLCD, chBuforYCbCr, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+		chErr = KompresujRGB888(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
@@ -952,14 +949,12 @@ uint8_t RysujEkran(void)
 		ZakonczPraceDCMI();
 		sprintf((char*)chNazwaPlikuObr, "OSD_Y8");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
-		for (uint32_t n=0; n<480/2*4*6; n++)			//czyść bufor pośredn
-			*(chBuforYCbCr + n) = 0;
 		for (uint32_t n=0; n<ILOSC_BUF_JPEG; n++)		//czysć bufor danych skompresowanych
 		{
 			for (uint32_t i=0; i<ROZM_BUF_WY_JPEG; i++)
 				chBuforJpeg[n][i] = 0;
 		}
-		chErr = KompresujRGB888jakoY8(chBuforLCD, chBuforYCbCr, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+		chErr = KompresujRGB888jakoY8(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
