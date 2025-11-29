@@ -1132,11 +1132,8 @@ void ObslugaZapisuJpeg(void)
 			chStatusBufJpeg &= ~STAT_JPG_OTWORZ;	//skasuj flagę potwierdzając otwarcie pliku do zapisu
 			chStatusBufJpeg |= STAT_JPG_OTWARTY;
 			uint32_t nRozmiarExif = PrzygotujExif(&stKonfKam, &uDaneCM4.dane, sDate, sTime);
-			//nRozmiarExif = (nRozmiarExif + 3) & 0xFFFFFFFC;										//wyrównanie do 4 bajtów aby DMA się nie zacinało
-			nRozmiarExif = (nRozmiarExif + ROZMIAR_NAGL_JPEG + 511) & 0xFFFFFE00;					//wyrównanie do 512 bajtów aby DMA się nie zacinało
-			nRozmiarExif -= ROZMIAR_NAGL_JPEG;
+			nRozmiarExif = (nRozmiarExif + 3) & 0xFFFFFFFC;										//wyrównanie do 4 bajtów aby DMA się nie zacinało
 			fres |= f_write(&SDJpegFile, chNaglJpegExif, nRozmiarExif, &nZapisanoBajtow);		//exif
-			fres |= f_write(&SDJpegFile, chNaglJpegSOI, ROZMIAR_NAGL_JPEG, &nZapisanoBajtow);		//nagłówek Jpeg
 			osDelay(1);
 		}
 	}
@@ -1144,7 +1141,6 @@ void ObslugaZapisuJpeg(void)
 	if ((chStatusBufJpeg & (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF | STAT_JPG_OTWARTY)) == (STAT_JPG_NAGLOWEK | STAT_JPG_PELEN_BUF | STAT_JPG_OTWARTY))	//jest pierwszy nie pełny bufor danych czekajacy na dodanie nagłówka
 	{
 		//na początku danych z jpeg jest znacznik SOI [2] ale brakuje nagłówka pliku. Wstaw kompletny nagłówek a za nim dane jpeg bez SOI
-		//fres = f_write(&SDJpegFile, &chBuforJpeg[chWskOprBufJpeg][ROZMIAR_ZNACZ_xOI], ROZM_BUF_WY_JPEG - ROZMIAR_ZNACZ_xOI, &nZapisanoBajtow);	//dane ze  znacznikiem SOI (FFD8) zawsze są w pierwszym buforze
 		fres = f_write(&SDJpegFile, &chBuforJpeg[chWskOprBufJpeg][0], ROZM_BUF_WY_JPEG, &nZapisanoBajtow);
 		if (fres == FR_OK)
 		{
@@ -1163,8 +1159,8 @@ void ObslugaZapisuJpeg(void)
 			if (fres == FR_DISK_ERR)	//The lower layer, disk_read, disk_write or disk_ioctl function, reported that an unrecoverable hard error occured. Note that if once this error occured in the operation to an open file, the file object is aborted and any operations to the file except f_close will be rejected.
 			{
 				fres = f_close(&SDJpegFile);
-				chStatusBufJpeg &= ~STAT_JPG_OTWARTY;	//potrzebne ponowne otwarcie pliku
-				chStatusBufJpeg |= STAT_JPG_OTWORZ + STAT_JPG_NAGLOWEK;	//ponownie trzeba otwirzyć plik i wstawić nagłówek
+				chStatusBufJpeg &= ~STAT_JPG_OTWARTY;
+				//chStatusBufJpeg |= STAT_JPG_OTWORZ + STAT_JPG_NAGLOWEK;	//ponownie trzeba otworzyć plik i wstawić nagłówek
 			}
 		}
 	}
@@ -1194,12 +1190,12 @@ void ObslugaZapisuJpeg(void)
 			printf("Gotowe\r\n");
 		else
 			printf("Blad nr %d zamkniecia pliku\r\n", fres);
-		chStatusBufJpeg &= ~(STAT_JPG_ZAMKNIJ | STAT_JPG_OTWARTY);	//skasuj flagi polecenia zamknięcia i stanu otwartosci pliku
+		chStatusBufJpeg &= ~(STAT_JPG_ZAMKNIJ + STAT_JPG_OTWARTY + STAT_JPG_NAGLOWEK);	//skasuj flagi polecenia zamknięcia i stanu otwartosci pliku
 		chStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;	//wyłącz flagę obsługi pliku JPEG
 	}
 
 	//jeżeli nie ma nic do zapisu, to przełacz sie na inny wątek
 	//if ((chStatusBufJpeg & (STAT_JPG_PELEN_BUF0 | STAT_JPG_PELEN_BUF1 | STAT_JPG_PELEN_BUF2 | STAT_JPG_PELEN_BUF3)) == 0)
 	if ((chStatusBufJpeg & STAT_JPG_PELEN_BUF) == 0)
-		osDelay(1);
+		osDelay(5);
 }

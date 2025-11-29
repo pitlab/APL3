@@ -16,7 +16,7 @@
 #include "flash_nor.h"
 #include "rysuj.h"
 
-/* Przykłądowa konfiguracjia DRAM
+/* Przykładowa konfiguracjia DRAM
  * hsdram1.Instance = FMC_SDRAM_DEVICE;
    hsdram1.Init.SDBank = FMC_SDRAM_BANK1;
   hsdram1.Init.ColumnBitsNumber = FMC_SDRAM_COLUMN_BITS_NUM_8;
@@ -107,7 +107,7 @@ void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_Comman
 	// Step 7: Program the external memory mode register
 	tmpmrd = (uint32_t)0;
 
-			 /*SDRAM_MODEREG_BURST_LENGTH_2          |
+	/*SDRAM_MODEREG_BURST_LENGTH_2          |
 	SDRAM_MODEREG_BURST_TYPE_SEQUENTIAL   |
 	SDRAM_MODEREG_CAS_LATENCY_3           |
 	SDRAM_MODEREG_OPERATING_MODE_STANDARD |
@@ -122,7 +122,7 @@ void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_Comman
 	// Step 8: Set the refresh rate counter
 	// Refresh Period (8192 cycles) = 64ms
 	// COUNT = (SDRAM refresh period ⁄ Number of rows) – 20 = (8192 / 12) - 20 = 662
-	HAL_SDRAM_ProgramRefreshRate(hsdram, 662);
+	HAL_SDRAM_ProgramRefreshRate(hsdram, 1345);
 
 	// (15.62 us x Freq) - 20
 	// Set the device refresh counter

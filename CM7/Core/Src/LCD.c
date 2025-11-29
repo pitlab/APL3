@@ -259,13 +259,13 @@ struct tmenu stMenuOsd[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Obraz 480", 	"Pokazuje obraz OSD 480x320",				TPO_TEST_OSD480,	obr_kamera},
 	{"Obraz 320", 	"Pokazuje obraz OSD 320x240",				TPO_TEST_OSD320,	obr_kamera},
-	{"Obraz 240", 	"Pokazuje obraz OSD 240x160",				TPO_TEST_OSD240,	obr_kamera},
-	{"Jpeg Y8",		"nic",										TPO_OSD4,			obr_narzedzia},
-	{"BMP Luma",	"Zapisz obrazu luminancji do pliku bpm",	TPO_ZAPIS_BMP,		obr_kamera},
+	{"Jpeg 444",	"Zapisz plik JPEG z Exif",					TPO_TEST_OSD240,	obr_kartaSD},
+	{"Jpeg 422",	"Zapisz plik JPEG z Exif",					TPO_OSD_JPEG,		obr_kartaSD},
+	{"Jpeg Y8",		"nic",										TPO_OSD4,			obr_kartaSD},
 	{"OSD 480",		"OSD 480x320",								TPO_OSD480,			obr_kamera},
 	{"OSD 320",		"OSD 320x240",								TPO_OSD320,			obr_kamera},
 	{"OSD 240",		"OSD 240x160",								TPO_OSD240,			obr_kamera},
-	{"Jpeg 422",	"Zapisz plik JPEG z Exif",					TPO_OSD_JPEG,		obr_narzedzia},
+	{"BMP Luma",	"Zapisz obrazu luminancji do pliku bpm",	TPO_ZAPIS_BMP,		obr_kartaSD},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -842,7 +842,6 @@ uint8_t RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
-
 	case TPO_OSD240:
 	case TPO_OSD320:
 	case TPO_OSD480:	//obraz a rzeczywistym tle
@@ -896,8 +895,6 @@ uint8_t RysujEkran(void)
 		stKonfOSD.chOSDWlaczone = 0;	//wyłącz OSD
 		break;
 
-
-	case TPO_TEST_OSD240:
 	case TPO_TEST_OSD320:
 	case TPO_TEST_OSD480:	//obraz na testowym tle
 		if (chTrybPracy == TPO_TEST_OSD240)
@@ -957,6 +954,19 @@ uint8_t RysujEkran(void)
 		chErr = KompresujRGB888doY8(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
+
+	case TPO_TEST_OSD240:
+		ZakonczPraceDCMI();
+		sprintf((char*)chNazwaPlikuObrazu, "OSDYUV444");	//początek nazwy pliku ze zdjeciem
+		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+		for (uint32_t n=0; n<ILOSC_BUF_JPEG; n++)		//czysć bufor danych skompresowanych
+		{
+			for (uint32_t i=0; i<ROZM_BUF_WY_JPEG; i++)
+				chBuforJpeg[n][i] = 0;
+		}
+		chErr = KompresujRGB888doYUV444(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+		chNowyTrybPracy = TP_WROC_DO_OSD;
+				break;
 
 
 	//*** Ethernet ************************************************

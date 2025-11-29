@@ -19,12 +19,11 @@
 #define SZEROKOSC_BLOKU		8
 #define WYSOKOSC_BLOKU		8
 #define ROZMIAR_BLOKU		(SZEROKOSC_BLOKU * WYSOKOSC_BLOKU)
+#define ROZMIAR_MCU_Y8		ROZMIAR_BLOKU
 #define ROZMIAR_MCU422		(4 * ROZMIAR_BLOKU)
 #define ROZMIAR_MCU420		(6 * ROZMIAR_BLOKU)
-//#define ILOSC_BUF_WE_MCU	12		//liczba podzielna przez 6 (UVY420), przez 4(UVY422), przez 3 (UVY444) i przez 1 (Y8)
-#define ILOSC_BUF_WE_MCU	24		//liczba podzielna przez 6 (UVY420), przez 4(UVY422), przez 3 (UVY444) i przez 1 (Y8)
-//#define MASKA_BUF_MCU		0x07	//maska do przycinania wskaźnika buforów
-#define LICZBA_KOLOROW_RGB	3		//liczba bajtów kolorów
+#define ILOSC_BUF_WE_MCU	24		//liczba podzielna przez 2*6 (UVY420), przez 2*4(UVY422), przez 2*3 (UVY444) i przez 2*1 (Y8) - podwójne buforowane
+#define LICZBA_KOLOR_RGB888	3		//liczba bajtów koloru
 
 //flagi ustawiane w calbackach określające stan enkodera
 #define KOMPR_PUSTE_WE		1	//na wejście enkodera można podać nowe dane
@@ -151,6 +150,7 @@ uint8_t CzekajNaKoniecPracyJPEG(void);
 uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc);
 uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc);
 uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc);
+uint8_t KompresujRGB888doYUV444(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t sWysokosc);
 uint8_t KompresujRGB888doYUV422(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t sWysokosc);
 uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t sWysokosc);	//testowo
 uint8_t TestKonwersjiRGB888doYCbCr(uint8_t *obrazRGB888, uint8_t *buforYCbCr, uint16_t sSzerokosc, uint16_t sWysokosc);

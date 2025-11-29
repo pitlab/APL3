@@ -110,41 +110,15 @@ void KonwersjaRGB565doRGB666(uint16_t *obrazRG565, uint8_t *obrazRGB666, uint32_
 ////////////////////////////////////////////////////////////////////////////////
 // Konwertuje piksel w formacie RGB888 na YCbCr
 // Parametry:
-// [we] chR, chG, chB - skłądowe RGB piksela wejściowego
+// [we] chR, chG, chB - składowe RGB piksela wejściowego
 // [wy] *chY, *chCb, *chCr - wskaźniki na składowe luminancji i chrominancji
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 void KonwersjaRGB888doYCbCr(uint8_t chR, uint8_t chG, uint8_t chB, uint8_t *chY, int8_t *chCb, int8_t *chCr)
 {
-	//uint16_t sY;
-	//int16_t sCb, sCr;
-
 	*chY = ((uint16_t)chR * 77 + (uint16_t)chG * 150 + (uint16_t)chB * 29) >> 8;
 	*chCb = ((((int16_t)chR * (-43)) + ((int16_t)chG * (-84))  + ((int16_t)chB * (127)) ) >> 8) + 128;
 	*chCr = ((((int16_t)chR * (127)) + ((int16_t)chG * (-106)) + ((int16_t)chB * (-21)) ) >> 8) + 128;
-
-	/*/obetnij do 8 bitów
-	if (sY < 0xFF)	//liczba bez znaku, wiec obetnij tylko górę
-		*chY = sY;
-	else
-		*chY = 0xFF;
-
-	//to są liczby ze znakiem, wiec testuj górę i dół
-	if (sCb < -127)
-		*chCb = -127;
-	else
-	if (sCb > 128)
-		*chCb = 128;
-	else
-		*chCb = (uint8_t)sCb;
-
-	if (sCr < -127)
-		*chCr = -127;
-	else
-	if (sCr > 128)
-		*chCr = 128;
-	else
-		*chCr = (uint8_t)sCr;*/
 }
 
 

@@ -95,7 +95,7 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 	chNaglowek[13] = (uint8_t)(nOffsetWiersza >> 24);
 
 	// Nagłówek DIB (BITMAPINFOHEADER)
-	chNaglowek[14] = 40; 							// rozmiar DIB header
+	chNaglowek[14] = 50; 							// rozmiar nagłówka, offset na początek obrazu lub palety
 	chNaglowek[15] = 0;
 	chNaglowek[16] = 0;
 	chNaglowek[17] = 0;
