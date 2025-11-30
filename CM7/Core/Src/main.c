@@ -620,7 +620,7 @@ static void MX_DCMI_Init(void)
   hdcmi.Init.PCKPolarity = DCMI_PCKPOLARITY_FALLING;
   hdcmi.Init.VSPolarity = DCMI_VSPOLARITY_LOW;
   hdcmi.Init.HSPolarity = DCMI_HSPOLARITY_HIGH;
-  hdcmi.Init.CaptureRate = DCMI_CR_ALL_FRAME;
+  hdcmi.Init.CaptureRate = DCMI_CR_ALTERNATE_2_FRAME;
   hdcmi.Init.ExtendedDataMode = DCMI_EXTEND_DATA_8B;
   hdcmi.Init.JPEGMode = DCMI_JPEG_DISABLE;
   hdcmi.Init.ByteSelectMode = DCMI_BSM_ALL;
@@ -724,8 +724,8 @@ static void MX_FDCAN2_Init(void)
   hfdcan2.Init.RxBuffersNbr = 3;
   hfdcan2.Init.RxBufferSize = FDCAN_DATA_BYTES_8;
   hfdcan2.Init.TxEventsNbr = 0;
-  hfdcan2.Init.TxBuffersNbr = 3;
-  hfdcan2.Init.TxFifoQueueElmtsNbr = 3;
+  hfdcan2.Init.TxBuffersNbr = 16;
+  hfdcan2.Init.TxFifoQueueElmtsNbr = 16;
   hfdcan2.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
   hfdcan2.Init.TxElmtSize = FDCAN_DATA_BYTES_8;
   if (HAL_FDCAN_Init(&hfdcan2) != HAL_OK)
@@ -1442,15 +1442,15 @@ void MX_FMC_Init(void)
   hsdram1.Init.InternalBankNumber = FMC_SDRAM_INTERN_BANKS_NUM_4;
   hsdram1.Init.CASLatency = FMC_SDRAM_CAS_LATENCY_2;
   hsdram1.Init.WriteProtection = FMC_SDRAM_WRITE_PROTECTION_DISABLE;
-  hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_PERIOD_2;
+  hsdram1.Init.SDClockPeriod = FMC_SDRAM_CLOCK_DISABLE;
   hsdram1.Init.ReadBurst = FMC_SDRAM_RBURST_ENABLE;
-  hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_0;
+  hsdram1.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_1;
   /* SdramTiming */
   SdramTiming.LoadToActiveDelay = 2;
-  SdramTiming.ExitSelfRefreshDelay = 6;
-  SdramTiming.SelfRefreshTime = 4;
-  SdramTiming.RowCycleDelay = 6;
-  SdramTiming.WriteRecoveryTime = 2;
+  SdramTiming.ExitSelfRefreshDelay = 8;
+  SdramTiming.SelfRefreshTime = 7;
+  SdramTiming.RowCycleDelay = 7;
+  SdramTiming.WriteRecoveryTime = 5;
   SdramTiming.RPDelay = 2;
   SdramTiming.RCDDelay = 2;
 
@@ -1776,7 +1776,6 @@ void WatekRejestratora(void const * argument)
 /* USER CODE END Header_WatekWyswietlacza */
 void WatekWyswietlacza(void const * argument)
 {
-	uint8_t chErr;
   /* USER CODE BEGIN WatekWyswietlacza */
 	/* Infinite loop */
 	for(;;)

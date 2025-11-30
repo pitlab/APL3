@@ -863,9 +863,10 @@ uint8_t KompresujRGB888doYUV422(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 					//chBuforMCU[nOffsetWyjscia + 2 * ROZMIAR_BLOKU] = (uint8_t)(((int16_t)chCb1 + chCb2) >> 1);
 					//chBuforMCU[nOffsetWyjscia + 3 * ROZMIAR_BLOKU] = (uint8_t)(((int16_t)chCr1 + chCr2) >> 1);
 
+					//test innego ułożenia MCU: Y1,Cb,Y2,CR
 					chBuforMCU[nOffsetWyjscia + 1 * ROZMIAR_BLOKU] = (uint8_t)(((int16_t)chCb1 + chCb2) >> 1);
-					chBuforMCU[nOffsetWyjscia + 2 * ROZMIAR_BLOKU] = (uint8_t)(((int16_t)chCr1 + chCr2) >> 1);
-					chBuforMCU[nOffsetWyjscia + 3 * ROZMIAR_BLOKU] = chY2;
+					chBuforMCU[nOffsetWyjscia + 2 * ROZMIAR_BLOKU] = chY2;
+					chBuforMCU[nOffsetWyjscia + 3 * ROZMIAR_BLOKU] = (uint8_t)(((int16_t)chCr1 + chCr2) >> 1);
 				}
 			}
 		}
@@ -954,7 +955,7 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 	int8_t chCb1, chCr1, chCb2, chCr2;
 	uint8_t chErr, chDaneDoZapisu;
 	uint16_t sIloscBlokowPionowo = sWysokosc / 8;
-
+	uint8_t chLicznikTimeoutu = 0;
 
 	chWskNapBufJpeg = chWskOprBufJpeg = 0;
 	chZatrzymaneWeJpeg = chZatrzymaneWyJpeg = 0;
@@ -1052,7 +1053,17 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 							printf("Wzn, ");
 						}
 						else
-							osDelay(1);
+						{
+							printf("Czeka, ");
+							osDelay(2);
+							chLicznikTimeoutu++;
+							if (chLicznikTimeoutu > 100)
+							{
+								printf("Timeout\r\n");
+								chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+								return BLAD_TIMEOUT;
+							}
+						}
 					}
 					if (chStatusBufJpeg & STAT_JPG_OTWORZ)
 						osDelay(5);	//daj czas na otwarcie pliku
@@ -1195,6 +1206,9 @@ uint8_t KompresujRGB888doYUV444(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 			{
 				if (hjpeg.State == HAL_JPEG_STATE_READY)
 				{
+					//czyść cache
+					SCB_CleanInvalidateDCache_by_Addr((uint32_t*)chBuforMCU, ROZMIAR_BLOKU * ILOSC_BUF_WE_MCU / 4);
+					SCB_CleanInvalidateDCache_by_Addr((uint32_t*)chBuforJpeg, ROZM_BUF_WY_JPEG);
 					chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, ROZMIAR_BLOKU * ILOSC_BUF_WE_MCU / 2, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
 					chDaneDoZapisu = 0;
 					printf("Start, ");
@@ -2087,3 +2101,60 @@ uint32_t JPEG_ARGB_MCU_YCbCr422_ConvertBlocks(uint8_t *pInBuffer, uint8_t *pOutB
 
   return HAL_OK;
 }*/
+
+
+
+// 1 MCU dla YUV444 (192 B) lub YUV422 (256 B)
+#define TEST_IS_YUV444 1
+#if TEST_IS_YUV444
+  #define TEST_MCU_SIZE  (3*64)   // 192
+#else
+  #define TEST_MCU_SIZE  (4*64)   // 256
+#endif
+
+uint8_t one_mcu[TEST_MCU_SIZE] __attribute__((aligned(32)));
+uint8_t out_buf[4096] __attribute__((aligned(32)));
+
+void test_one_mcu_encode(void)
+{
+    // fill neutral values: luma ~128, chroma ~128
+    for (int i=0;i<TEST_MCU_SIZE;i++) one_mcu[i] = 128;
+
+    // clean cache
+    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)one_mcu, TEST_MCU_SIZE);
+    SCB_CleanInvalidateDCache_by_Addr((uint32_t*)out_buf, sizeof(out_buf));
+
+    // start encoding
+    HAL_StatusTypeDef st = HAL_JPEG_Encode_DMA(&hjpeg, one_mcu, TEST_MCU_SIZE, out_buf, sizeof(out_buf));
+    printf("HAL_JPEG_Encode_DMA() => %d\n", (int)st);
+
+    // poll status + DMA counters (10 s timeout)
+    uint32_t start = HAL_GetTick();
+    while (HAL_GetTick() - start < 10000)
+    {
+        // print hjpeg state & error code occasionally
+        static uint32_t last = 0;
+        if (HAL_GetTick() - last >= 200) {
+            last = HAL_GetTick();
+            printf("t=%lu ms: hjpeg.State=%d, ErrorCode=0x%08lX\n",
+                   (unsigned long)(HAL_GetTick()-start), (int)hjpeg.State,
+                   (unsigned long)hjpeg.ErrorCode);
+
+            // print DMA/MDMA info if available
+            if (hjpeg.hdmain != NULL && hjpeg.hdmain->Instance != NULL) {
+                printf("  HDMAIN CBNDTR=%lu CMAR=%ld CDAR=%ld\n",
+                       (unsigned long)hjpeg.hdmain->Instance->CBNDTR, hjpeg.hdmain->Instance->CMAR, hjpeg.hdmain->Instance->CDAR);
+            }
+            if (hjpeg.hdmaout != NULL && hjpeg.hdmaout->Instance != NULL) {
+                printf("  HDMAOUT CBNDTR=%lu CMAR=%ld CDAR=%ld\n",
+                       (unsigned long)hjpeg.hdmaout->Instance->CBNDTR, hjpeg.hdmaout->Instance->CMAR, hjpeg.hdmaout->Instance->CDAR);
+            }
+        }
+
+        // break if encoder finished or error
+        if (hjpeg.State == HAL_JPEG_STATE_READY) { printf("ENCODE DONE (READY)\n"); break; }
+        if (hjpeg.ErrorCode != HAL_JPEG_ERROR_NONE) { printf("ENCODE ERROR 0x%08lX\n", (unsigned long)hjpeg.ErrorCode); break; }
+
+        osDelay(10);
+    }
+}

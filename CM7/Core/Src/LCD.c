@@ -895,7 +895,8 @@ uint8_t RysujEkran(void)
 		stKonfOSD.chOSDWlaczone = 0;	//wyłącz OSD
 		break;
 
-	case TPO_TEST_OSD320:
+	case TPO_TEST_OSD320:	test_one_mcu_encode();	chNowyTrybPracy = TP_WROC_DO_OSD;	break;
+
 	case TPO_TEST_OSD480:	//obraz na testowym tle
 		if (chTrybPracy == TPO_TEST_OSD240)
 		{

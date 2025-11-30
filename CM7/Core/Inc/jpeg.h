@@ -166,4 +166,5 @@ void JPEG_Init_MCU_LUT(void);
 uint32_t JPEG_ARGB_MCU_YCbCr422_ConvertBlocks (uint8_t *pInBuffer, uint8_t *pOutBuffer, uint32_t BlockIndex, uint32_t DataCount, uint32_t *ConvertedDataCount);
 //HAL_StatusTypeDef JPEG_GetEncodeColorConvertFunc(JPEG_ConfTypeDef *pJpegInfo, JPEG_RGBToYCbCr_Convert_Function *pFunction, uint32_t *ImageNbMCUs);
 //static uint32_t JPEG_ARGB_MCU_YCbCr422_ConvertBlocks (uint8_t *pInBuffer, uint8_t *pOutBuffer, uint32_t BlockIndex, uint32_t DataCount, uint32_t *ConvertedDataCount);
+void test_one_mcu_encode(void);
 #endif /* INC_JPEG_H_ */

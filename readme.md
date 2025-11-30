@@ -45,6 +45,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Uruchomiono DMA2D z funkcją blendera
 - Podstawowa wersja OSD działająca na żywo na obrazie kamery lub jako sama nakładka na szarym tle 
 ![OSD](obrazki/zdj_20251109_081718.bmp) 
+- Poprawnie zapisuje monochromatyczne pliki jpeg
 - W pliku jpeg zapisuje strukturę Exif zawierajacą między innymi współrzędne GPS 
 
 
