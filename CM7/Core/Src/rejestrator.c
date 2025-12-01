@@ -1177,12 +1177,13 @@ void ObslugaZapisuJpeg(void)
 			if (chZatrzymaneWyJpeg)
 			{
 				chZatrzymaneWyJpeg = 0;
-				HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_OUTPUT);		//wzów kompresję
+				HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_OUTPUT);		//wzów kompresję po opróżnianiu bufora wyjściowego
+				printf("WznWy, ");
 			}
 		}
 	}
 	else
-	if ((chStatusBufJpeg & STAT_JPG_ZAMKNIJ) && ((chStatusBufJpeg & STAT_JPG_PELEN_BUF) != STAT_JPG_PELEN_BUF))
+	if ((chStatusBufJpeg & STAT_JPG_ZAMKNIJ) && ((chStatusBufJpeg & (STAT_JPG_PELEN_BUF + STAT_JPG_OTWARTY)) != (STAT_JPG_PELEN_BUF + STAT_JPG_OTWARTY)))
 	{
 		fres  = f_write(&SDJpegFile, chNaglJpegEOI, ROZMIAR_ZNACZ_xOI, &nZapisanoBajtow);
 		fres |= f_close(&SDJpegFile);
@@ -1190,7 +1191,7 @@ void ObslugaZapisuJpeg(void)
 			printf("Gotowe\r\n");
 		else
 			printf("Blad nr %d zamkniecia pliku\r\n", fres);
-		chStatusBufJpeg &= ~(STAT_JPG_ZAMKNIJ + STAT_JPG_OTWARTY + STAT_JPG_NAGLOWEK);	//skasuj flagi polecenia zamknięcia i stanu otwartosci pliku
+		chStatusBufJpeg &= ~(STAT_JPG_ZAMKNIJ + STAT_JPG_OTWARTY + STAT_JPG_NAGLOWEK + STAT_JPG_PELEN_BUF);	//skasuj flagi
 		chStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;	//wyłącz flagę obsługi pliku JPEG
 	}
 
