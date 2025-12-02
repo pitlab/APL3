@@ -1122,6 +1122,8 @@ void ObslugaZapisuJpeg(void)
 				chStatusBufJpeg &= ~STAT_JPG_OTWARTY;
 				printf("Awar.zamkn.pliku\r\n");
 			}
+			else
+				printf("Blad zamkn.pliku\r\n");
 		}
 
 		PobierzDateCzas(&sDate, &sTime);
@@ -1135,6 +1137,10 @@ void ObslugaZapisuJpeg(void)
 			nRozmiarExif = (nRozmiarExif + 3) & 0xFFFFFFFC;										//wyrównanie do 4 bajtów aby DMA się nie zacinało
 			fres |= f_write(&SDJpegFile, chNaglJpegExif, nRozmiarExif, &nZapisanoBajtow);		//exif
 			osDelay(1);
+		}
+		else
+		{
+			printf("Blad otw.pliku\r\n");
 		}
 	}
 	else
@@ -1151,6 +1157,7 @@ void ObslugaZapisuJpeg(void)
 		}
 		else
 		{
+			printf("Blad zap.nagl.\r\n");
 			PobierzKodBleduFAT(fres, chBufPodreczny);
 			setColor(BLAD);
 			RysujNapis(chBufPodreczny, CENTER, 150);
@@ -1181,6 +1188,8 @@ void ObslugaZapisuJpeg(void)
 				printf("WznWy, ");
 			}
 		}
+		else
+			printf("Blad zap.pliku\r\n");
 	}
 	else
 	if ((chStatusBufJpeg & STAT_JPG_ZAMKNIJ) && ((chStatusBufJpeg & (STAT_JPG_PELEN_BUF + STAT_JPG_OTWARTY)) != (STAT_JPG_PELEN_BUF + STAT_JPG_OTWARTY)))

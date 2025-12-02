@@ -931,41 +931,39 @@ uint8_t RysujEkran(void)
 
 	case TPO_OSD_JPEG:		//kompresja jpeg obrazu OSD
 		ZakonczPraceDCMI();
-		sprintf((char*)chNazwaPlikuObrazu, "OSDYUV422");	//początek nazwy pliku ze zdjeciem
-		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
-		for (uint32_t n=0; n<ILOSC_BUF_JPEG; n++)		//czysć bufor danych skompresowanych
+		for (uint8_t n=1; n<10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
-			for (uint32_t i=0; i<ROZM_BUF_WY_JPEG; i++)
-				chBuforJpeg[n][i] = 0;
+			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+			sprintf((char*)chNazwaPlikuObrazu, "YUV422_%d", n*10);	//początek nazwy pliku ze zdjeciem
+			chErr = KompresujRGB888doYUV422(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
+			osDelay(10);
 		}
-		chErr = KompresujRGB888doYUV422(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
 
 	case TPO_OSD4:
 		ZakonczPraceDCMI();
-		sprintf((char*)chNazwaPlikuObrazu, "OSD_Y8");	//początek nazwy pliku ze zdjeciem
-		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
-		for (uint32_t n=0; n<ILOSC_BUF_JPEG; n++)		//czysć bufor danych skompresowanych
+		for (uint8_t n=1; n<10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
-			for (uint32_t i=0; i<ROZM_BUF_WY_JPEG; i++)
-				chBuforJpeg[n][i] = 0;
+			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+			sprintf((char*)chNazwaPlikuObrazu, "Y8_%d", n*10);	//początek nazwy pliku ze zdjeciem
+			chErr = KompresujRGB888doY8(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
+			osDelay(10);
 		}
-		chErr = KompresujRGB888doY8(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
 	case TPO_TEST_OSD240:
 		ZakonczPraceDCMI();
-		sprintf((char*)chNazwaPlikuObrazu, "OSDYUV444");	//początek nazwy pliku ze zdjeciem
-		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
-		for (uint32_t n=0; n<ILOSC_BUF_JPEG; n++)		//czysć bufor danych skompresowanych
+		for (uint8_t n=1; n<10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
-			for (uint32_t i=0; i<ROZM_BUF_WY_JPEG; i++)
-				chBuforJpeg[n][i] = 0;
+			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+			sprintf((char*)chNazwaPlikuObrazu, "YUV444_%d", n*10);	//początek nazwy pliku ze zdjeciem
+			chErr = KompresujRGB888doYUV444(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
+			osDelay(10);
 		}
-		chErr = KompresujRGB888doYUV444(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 				break;
 
