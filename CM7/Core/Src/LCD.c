@@ -152,7 +152,6 @@ extern FIL SDJpegFile;       //struktura pliku z obrazem
 extern uint8_t chNazwaPlikuObrazu[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
 
 extern uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
-extern uint8_t chZajetoscBuforaWyJpeg;
 extern volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
 uint8_t chTimeout;
 extern stKonfOsd_t stKonfOSD;
@@ -625,7 +624,6 @@ uint8_t RysujEkran(void)
 			//chErr = RozpocznijPraceDCMI(stKonfKam, sPodBufor, DISP_X_SIZE * DISP_Y_SIZE / 4);
 			if (chWskNapBufKam & 0x01)		//nieparzyste obrazy kompresuj a parzyste wyświetlaj
 			{
-				chZajetoscBuforaWyJpeg = 0;		//zapełniaj bufor danych skompresowanych od początku.
 				nCzas = PobierzCzasT6();
 				//chErr = KompresujY8((uint8_t*)sPodBufor, DISP_X_SIZE, DISP_Y_SIZE);
 				chErr = KompresujY8((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
@@ -931,12 +929,14 @@ uint8_t RysujEkran(void)
 
 	case TPO_OSD_JPEG:		//kompresja jpeg obrazu OSD
 		ZakonczPraceDCMI();
-		for (uint8_t n=1; n<10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
+		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)chNazwaPlikuObrazu, "YUV422_%d", n*10);	//początek nazwy pliku ze zdjeciem
 			chErr = KompresujRGB888doYUV422(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			osDelay(10);
+			chErr = CzekajNaKoniecPracyJPEG();
+			if (chErr)
+				printf("Err: %d ", chErr);
 		}
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
@@ -944,25 +944,33 @@ uint8_t RysujEkran(void)
 
 	case TPO_OSD4:
 		ZakonczPraceDCMI();
-		for (uint8_t n=1; n<10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
+		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)chNazwaPlikuObrazu, "Y8_%d", n*10);	//początek nazwy pliku ze zdjeciem
 			chErr = KompresujRGB888doY8(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			osDelay(10);
+			chErr = CzekajNaKoniecPracyJPEG();
+			if (chErr)
+				printf("Err: %d ", chErr);
 		}
-
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
 	case TPO_TEST_OSD240:
 		ZakonczPraceDCMI();
-		for (uint8_t n=1; n<10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
+		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)chNazwaPlikuObrazu, "YUV444_%d", n*10);	//początek nazwy pliku ze zdjeciem
 			chErr = KompresujRGB888doYUV444(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			osDelay(10);
+			chErr = CzekajNaKoniecPracyJPEG();
+			if (chErr)
+				printf("Err: %d ", chErr);
+			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż isę zapisze
+			{
+				osDelay(5);
+				printf("Sync, ");
+			}
 		}
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 				break;
