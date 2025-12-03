@@ -931,12 +931,15 @@ uint8_t RysujEkran(void)
 		ZakonczPraceDCMI();
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
+			printf("Obraz %d%%: ", n*10);
 			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)chNazwaPlikuObrazu, "YUV422_%d", n*10);	//początek nazwy pliku ze zdjeciem
 			chErr = KompresujRGB888doYUV422(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			chErr = CzekajNaKoniecPracyJPEG();
-			if (chErr)
-				printf("Err: %d ", chErr);
+			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
+			{
+				printf("Sync, ");
+				osDelay(5);
+			}
 		}
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
@@ -946,12 +949,15 @@ uint8_t RysujEkran(void)
 		ZakonczPraceDCMI();
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
+			printf("Obraz %d%%: ", n*10);
 			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)chNazwaPlikuObrazu, "Y8_%d", n*10);	//początek nazwy pliku ze zdjeciem
 			chErr = KompresujRGB888doY8(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			chErr = CzekajNaKoniecPracyJPEG();
-			if (chErr)
-				printf("Err: %d ", chErr);
+			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
+			{
+				printf("Sync, ");
+				osDelay(5);
+			}
 		}
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
@@ -960,16 +966,14 @@ uint8_t RysujEkran(void)
 		ZakonczPraceDCMI();
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
+			printf("Obraz %d%%: ", n*10);
 			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)chNazwaPlikuObrazu, "YUV444_%d", n*10);	//początek nazwy pliku ze zdjeciem
 			chErr = KompresujRGB888doYUV444(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			chErr = CzekajNaKoniecPracyJPEG();
-			if (chErr)
-				printf("Err: %d ", chErr);
-			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż isę zapisze
+			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
 			{
-				osDelay(5);
 				printf("Sync, ");
+				osDelay(5);
 			}
 		}
 		chNowyTrybPracy = TP_WROC_DO_OSD;

@@ -34,7 +34,6 @@ volatile uint8_t chWskNapBufJpeg, chWskOprBufJpeg;	// wskazuje do którego bufor
 uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint8_t chWynikKompresji;		//flagi ustawiane w callbackach, określajace postęp przepływu danych przez enkoder JPEG
 uint8_t chWskNapBufMcu;			//wskaźnik napełniania buforów MCU
-volatile uint8_t chZatrzymaneWeJpeg, chZatrzymaneWyJpeg;
 volatile uint16_t sZajetoscBuforaWeJpeg, sZajetoscBuforaWyJpeg;		//liczba bajtów w buforach wejściowym i wyjściowym kompresora
 extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 extern RTC_TimeTypeDef sTime;
@@ -246,35 +245,12 @@ uint8_t KonfigurujKompresjeJpeg(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Callback HAL_JPEG_InfoReadyCallback is asserted if the current operation
-// is a JPEG decoding to provide the application with JPEG image  parameters.
-// This callback is asserted when the JPEG peripheral successfully parse the JPEG header.
-////////////////////////////////////////////////////////////////////////////////
-void HAL_JPEG_InfoReadyCallback(JPEG_HandleTypeDef *hjpeg, JPEG_ConfTypeDef *pInfo)
-{
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
 // Callback HAL_JPEG_EncodeCpltCallback is asserted when the HAL JPEG driver has ended the current JPEG encoding operation,
 // and all output data has been transmitted to the application.
 ////////////////////////////////////////////////////////////////////////////////
 void HAL_JPEG_EncodeCpltCallback(JPEG_HandleTypeDef *hjpeg)
 {
-	chWynikKompresji |= KOMPR_OBR_GOTOWY;		//podany obraz właśnie został skompresowany
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Callback HAL_JPEG_DecodeCpltCallback is asserted when the HAL JPEG driver has ended the
-// current JPEG decoding operation. and all output data has been transmitted to the application.
-////////////////////////////////////////////////////////////////////////////////
-void HAL_JPEG_DecodeCpltCallback(JPEG_HandleTypeDef *hjpeg)
-{
-
+	chStatusBufJpeg |= STAT_JPG_GOTOWY;		//podany obraz właśnie został skompresowany
 }
 
 
@@ -302,17 +278,15 @@ void HAL_JPEG_ErrorCallback(JPEG_HandleTypeDef *hjpeg)
 void HAL_JPEG_GetDataCallback(JPEG_HandleTypeDef *hjpeg, uint32_t NbDecodedData)
 {
 	sZajetoscBuforaWeJpeg -= NbDecodedData;
-	if (sZajetoscBuforaWeJpeg)	//jeżeli po pobraniu danych w buforze wejsciowym są jeszcze dane, to kompresuj je
+	if (sZajetoscBuforaWeJpeg)	//jeżeli po pobraniu danych w buforze wejsściowym są jeszcze dane, to kompresuj je
 	{
 		HAL_JPEG_ConfigInputBuffer(hjpeg, chBuforMCU + NbDecodedData, sZajetoscBuforaWeJpeg);
-		//HAL_JPEG_Resume(hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję - sprawdzić czy to polecenie jest potrzebne
 		printf("Kont ");
 	}
 	else	//jeżeli kompresor zużył wszystkie dane jakie były przygotowane
 	{
 		HAL_JPEG_Pause(hjpeg, JPEG_PAUSE_RESUME_INPUT);
-		chZatrzymaneWeJpeg = 1;
-		chWynikKompresji |= KOMPR_PUSTE_WE;		//na wejście enkodera można podać nowe dane
+		chStatusBufJpeg |= STAT_JPG_ZATRZYMANE_WE;
 		//printf("PauWe, ");
 	}
 	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
@@ -326,22 +300,20 @@ void HAL_JPEG_GetDataCallback(JPEG_HandleTypeDef *hjpeg, uint32_t NbDecodedData)
 ////////////////////////////////////////////////////////////////////////////////
 void HAL_JPEG_DataReadyCallback(JPEG_HandleTypeDef *hjpeg, uint8_t *pDataOut, uint32_t OutDataLength)
 {
+	sZajetoscBuforaWyJpeg += OutDataLength;
+	nRozmiarObrazuJPEG += OutDataLength;
+	printf("Rozm: %ld wsk: %d buf: %d\r\n",  nRozmiarObrazuJPEG, chWskNapBufJpeg, sZajetoscBuforaWyJpeg);
 	chWskNapBufJpeg++;							//przełącz bufor danych skompresowanych na następny
 	chWskNapBufJpeg &= MASKA_LICZBY_BUF;
-	sZajetoscBuforaWyJpeg += OutDataLength;
 
 	if (sZajetoscBuforaWyJpeg < ILOSC_BUF_JPEG * ROZM_BUF_WY_JPEG)
 	{
 		HAL_JPEG_ConfigOutputBuffer(hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);	//ustaw następny bufor
-
-		nRozmiarObrazuJPEG += OutDataLength;
-		chWynikKompresji |= KOMPR_MCU_GOTOWY;	//są gotowe skompresowane dane MCU
-		printf("Rozm: %ld wsk: %d buf: %d\r\n",  nRozmiarObrazuJPEG, chWskNapBufJpeg, sZajetoscBuforaWyJpeg);
 	}
 	else
 	{
 		HAL_JPEG_Pause(hjpeg, JPEG_PAUSE_RESUME_OUTPUT);
-		chZatrzymaneWyJpeg = 1;
+		chStatusBufJpeg |= STAT_JPG_ZATRZYMANE_WY;
 		printf("PauWy, ");
 		if (!(chStatusRejestratora & STATREJ_ZAPISZ_JPG))
 			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//wyłącz flagę obsługi pliku JPEG
@@ -352,18 +324,18 @@ void HAL_JPEG_DataReadyCallback(JPEG_HandleTypeDef *hjpeg, uint8_t *pDataOut, ui
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Czeka z timeoutem aż JPEG skompresuje cały obraz
+// Czeka z timeoutem aż JPEG skompresuje wszystkie MCU
 // Parametry: brak
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t CzekajNaKoniecPracyJPEG(void)
 {
-	uint8_t chLicznikTimeoutu = 100;
 	uint8_t chErr = BLAD_OK;
+	uint8_t chLicznikTimeoutu = 200;
 
-	while (((chWynikKompresji & KOMPR_OBR_GOTOWY) != KOMPR_OBR_GOTOWY) && chLicznikTimeoutu)
+	while (((chStatusBufJpeg & STAT_JPG_GOTOWY) != STAT_JPG_GOTOWY) && chLicznikTimeoutu)
 	{
-		osDelay(1);		//przełącz na inny wątek
+		osDelay(5);		//przełącz na inny wątek
 		chLicznikTimeoutu--;
 	}
 
@@ -372,6 +344,8 @@ uint8_t CzekajNaKoniecPracyJPEG(void)
 		HAL_JPEG_Abort(&hjpeg);
 		chErr = BLAD_TIMEOUT;
 	}
+	else
+		printf("Czekano %dms, ", (200 - chLicznikTimeoutu) * 5);
 	return chErr;
 }
 
@@ -396,7 +370,6 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 	uint32_t nOffset_wzgMCU;		//przesunęcie obrazu wejściowego względem początku MCU
 	uint8_t chLiczbaMCU_Szer = sSzerokosc / SZEROKOSC_BLOKU;	//liczba MCU luminancji po szerokosci obrazu
 	uint8_t chLiczbaMCU_Wys = sWysokosc / WYSOKOSC_BLOKU;	//liczba MCU luminancji po wysokosci obrazu
-	uint8_t chLicznikTimeoutu;
 
 	for (uint8_t m=0; m<ILOSC_BUF_JPEG; m++)
 	{
@@ -404,29 +377,31 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 			chBuforJpeg[m][n] = 0;
 	}
 	chWskNapBufJpeg = chWskOprBufJpeg = 0;
-	chZatrzymaneWeJpeg = chZatrzymaneWyJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
 	sZajetoscBuforaWeJpeg = 0;
 	chWskNapBufMcu = 0;
-	chStatusBufJpeg |= STAT_JPG_OTWORZ;	//otwórz plik
-	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
+	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
+	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
 	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_GRAYSCALE_COLORSPACE, JPEG_444_SUBSAMPLING, 80);
 	if (chErr)
 	{
-		if ((hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING) || (hjpeg.State == HAL_JPEG_STATE_ERROR))
+		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
 		printf("Blad konf JPEG: %ld\r\n", hjpeg.ErrorCode);
+		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 		return chErr;
 	}
 	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 
-	//rozpocznij formowanie MCU
+
 	for (uint16_t my=0; my<chLiczbaMCU_Wys; my++)	//pętla pracująca na MCU wysokości obrazu
 	{
 		nOffsetMCU_wzgObrazu = my * chLiczbaMCU_Szer * ROZMIAR_BLOKU;
 		for (uint16_t mx=0; mx<chLiczbaMCU_Szer; mx++)	//pętla pracująca na MCU szerokości obrazu
 		{
+			//rozpocznij formowanie MCU
+
 			//sprawdź czy jest miejsce na kolejny MCU
 			while (sZajetoscBuforaWeJpeg > ((ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU) - ROZMIAR_MCU_Y8))
 			{
@@ -469,7 +444,6 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 					chWskNapBufMcu = 0;	//zacznij napełniać od początku
 				}
 
-				chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
 				if (hjpeg.State == HAL_JPEG_STATE_READY)	//tylko dla pierwszego uruchomienia
 				{
 					chErr = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
@@ -477,50 +451,20 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 				}
 				else
 				{
-					if (chZatrzymaneWeJpeg)
+					if (chStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
 					{
 						chErr = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wzów kompresję
-						chZatrzymaneWeJpeg = 0;
+						chStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
 						printf("Wzn1, ");
 					}
 					else
 						osDelay(1);
 				}
 			}
-
-			//jeżeli jedna ze stron wstrzymuje pracę to czekaj aż się udrożni
-			chLicznikTimeoutu = 100;
-			while (chZatrzymaneWyJpeg)
-			{
-				osDelay(10);
-				chLicznikTimeoutu--;
-				if (!chLicznikTimeoutu)
-				{
-					HAL_JPEG_Abort(&hjpeg);
-					chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
-					printf("Timeout Wyj\r\n");
-					return BLAD_TIMEOUT;
-				}
-			}
 		}
 	}
 
-	//czekaj aż ostatnie MCU zostanie skompresowane
-	chLicznikTimeoutu = 100;
-	while((chWynikKompresji & KOMPR_OBR_GOTOWY) == 0)	//czekaj aż HAL_JPEG_EncodeCpltCallback ustawi flagę końca kompresji i zaktualizuje rozmiar danych
-	{
-		osDelay(10);
-		chLicznikTimeoutu--;
-		if (!chLicznikTimeoutu)
-		{
-			HAL_JPEG_Abort(&hjpeg);
-			chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
-			printf("Timeout Ost\r\n");
-			//return BLAD_TIMEOUT;
-			return BLAD_OK;				//Wyjaśnić dlaczego nie pojawia się flaga KOMPR_OBR_GOTOWY
-		}
-	}
-	chErr = CzekajNaKoniecPracyJPEG();
+	chErr = CzekajNaKoniecPracyJPEG();		//czekaj aż ostatnie MCU zostanie skompresowane
 	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	printf("Koniec.\r\n");
 	return chErr;
@@ -545,7 +489,6 @@ uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 	uint32_t nOffset_wzgMCU;		//przesunęcie obrazu wejściowego względem początku MCU
 	uint8_t chLiczbaMCU_Szer = sSzerokosc / SZEROKOSC_BLOKU;	//liczba MCU luminancji po szerokosci obrazu
 	uint8_t chLiczbaMCU_Wys = sWysokosc / WYSOKOSC_BLOKU;	//liczba MCU luminancji po wysokosci obrazu
-	uint8_t chLicznikTimeoutu;
 
 	for (uint8_t m=0; m<MASKA_LICZBY_BUF; m++)
 	{
@@ -554,29 +497,29 @@ uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 	}
 
 	chWskNapBufJpeg = chWskOprBufJpeg = 0;
-	chZatrzymaneWeJpeg = chZatrzymaneWyJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
 	sZajetoscBuforaWeJpeg = 0;
 	chWskNapBufMcu = 0;
+	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
+	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
-	chStatusBufJpeg |= STAT_JPG_OTWORZ;	//otwórz plik
-	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
-	chWskNapBufJpeg = 0;
 	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_444_SUBSAMPLING, 80);
 	if (chErr)
 	{
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
+		printf("Blad konf JPEG: %ld\r\n", hjpeg.ErrorCode);
+		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 		return chErr;
 	}
 	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 
-	//rozpocznij formowanie MCU składajacego sie z 3 bloków 8x8: Y, Cr, i Cb z danych ułożonych sekwencyjnie: YUVYUV (U=Cb, V=Cr)
 	for (uint16_t my=0; my<chLiczbaMCU_Wys; my++)	//pętla pracująca na MCU wysokości obrazu
 	{
 		nOffsetMCU_wzgObrazu = my * chLiczbaMCU_Szer * 3 * ROZMIAR_BLOKU;
 		for (uint16_t mx=0; mx<chLiczbaMCU_Szer; mx++)	//pętla pracująca na MCU szerokości obrazu
 		{
+			//rozpocznij formowanie MCU składajacego sie z 3 bloków 8x8: Y, Cr, i Cb z danych ułożonych sekwencyjnie: YUVYUV (U=Cb, V=Cr)
 			nOffsetMCU_wzgWiersza = mx * 3 * SZEROKOSC_BLOKU;					//przesunięcie o liczbę MCU w bieżącym wierszu
 			for (uint16_t y=0; y<WYSOKOSC_BLOKU; y++)	//pętla pracująca na wysokosci wewnątrz MCU
 			{
@@ -602,20 +545,7 @@ uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 				return ERR_BUF_OVERRUN;
 			}
 
-			chLicznikTimeoutu = 100;
-			while((chWynikKompresji & KOMPR_PUSTE_WE) == 0)	//czekaj aż callback ustawi flagę gotowości na przyjęcie danych
-			{
-				osDelay(1);
-				chLicznikTimeoutu--;
-				if (!chLicznikTimeoutu)
-				{
-					printf("Timeout1: mx=%d my=%d\n\r", mx, my);
-					return BLAD_TIMEOUT;
-				}
-			}
-
 			//kompresja jednego MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie, niech się kompresuje na bieżąco
-			chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
 			if (hjpeg.State == HAL_JPEG_STATE_READY)
 			{
 				HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, 3 * ROZMIAR_BLOKU);	//przekaż bufor z nowymi danymi
@@ -629,16 +559,7 @@ uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 		}
 	}
 
-	//czekaj aż ostatnie MCU zostanie skompresowane
-	chLicznikTimeoutu = 100;
-	while((chWynikKompresji & KOMPR_OBR_GOTOWY) == 0)	//czekaj aż HAL_JPEG_EncodeCpltCallback ustawi flagę końca kompresji i zaktualizuje rozmiar danych
-	{
-		osDelay(1);
-		chLicznikTimeoutu--;
-		if (!chLicznikTimeoutu)
-			return BLAD_TIMEOUT;
-	}
-	chErr = CzekajNaKoniecPracyJPEG();
+	chErr = CzekajNaKoniecPracyJPEG();		//czekaj aż ostatnie MCU zostanie skompresowane
 	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	return chErr;
 }
@@ -666,31 +587,31 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 	uint32_t nOffsetObrazuWe;		//przesunęcie obrazu wejściowego względem początku MCU
 	uint8_t chLiczbaMCU_Szer = sSzerokosc / (2 * SZEROKOSC_BLOKU);	//liczba MCU luminancji (czwórek bloków) po szerokosci obrazu
 	uint8_t chLiczbaMCU_Wys = sWysokosc / (2 * WYSOKOSC_BLOKU);	//liczba MCU luminancji (czwórek bloków) po wysokosci obrazu
-	uint8_t chLicznikTimeoutu;
 
 	chWskNapBufJpeg = chWskOprBufJpeg = 0;
-	chZatrzymaneWeJpeg = chZatrzymaneWyJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
 	sZajetoscBuforaWeJpeg = 0;
 	chWskNapBufMcu = 0;
-	chStatusBufJpeg |= STAT_JPG_OTWORZ;	//otwórz plik
-	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
+	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
+	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
 	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_420_SUBSAMPLING, 60);
 	if (chErr)
 	{
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
+		printf("Blad konf JPEG: %ld\r\n", hjpeg.ErrorCode);
+		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 		return chErr;
 	}
 	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 
-	//rozpocznij formowanie MCU
 	for (uint16_t my=0; my<chLiczbaMCU_Wys; my++)	//pętla pracująca na wysokości obrazu
 	{
 		nOffsetMCU_wzgObrazu = my * chLiczbaMCU_Szer * 4 * ROZMIAR_BLOKU;
 		for (uint16_t mx=0; mx<chLiczbaMCU_Szer; mx++)	//pętla pracująca na szerokości obrazu
 		{
+			//rozpocznij formowanie MCU
 			nOffsetMCU_wzgWiersza = (mx * 2 * SZEROKOSC_BLOKU);					//przesunięcie o liczbę MCU w bieżącym wierszu
 			for (uint16_t y=0; y<WYSOKOSC_BLOKU; y++)	//pętla pracująca na wysokosci bloków wewnątrz całego MCU
 			{
@@ -748,20 +669,7 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 				return ERR_BUF_OVERRUN;
 			}
 
-			chLicznikTimeoutu = 100;
-			while((chWynikKompresji & KOMPR_PUSTE_WE) == 0)	//czekaj aż callback ustawi flagę gotowości na przyjęcie danych
-			{
-				osDelay(1);
-				chLicznikTimeoutu--;
-				if (!chLicznikTimeoutu)
-				{
-					printf("Timeout1: mx=%d my=%d\n\r", mx, my);
-					return BLAD_TIMEOUT;
-				}
-			}
-
 			//kompresja jednego MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie, niech się kompresuje na bieżąco
-			chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
 			if (hjpeg.State == HAL_JPEG_STATE_READY)
 			{
 				HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, 6 * ROZMIAR_BLOKU);	//przekaż bufor z nowymi danymi
@@ -775,17 +683,7 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 		}
 	}
 
-	//czekaj aż ostatnie MCU zostanie skompresowane
-	chLicznikTimeoutu = 100;
-	while((chWynikKompresji & KOMPR_OBR_GOTOWY) == 0)	//czekaj aż HAL_JPEG_EncodeCpltCallback ustawi flagę końca kompresji i zaktualizuje rozmiar danych
-	{
-		osDelay(1);
-		chLicznikTimeoutu--;
-		if (!chLicznikTimeoutu)
-		//	return BLAD_TIMEOUT;
-			chWynikKompresji |= KOMPR_OBR_GOTOWY;	//Sprawdzić dlaczego nie ma przerwania od zaskończenia kompresji
-	}
-	chErr = CzekajNaKoniecPracyJPEG();
+	chErr = CzekajNaKoniecPracyJPEG();		//czekaj aż ostatnie MCU zostanie skompresowane
 	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	return chErr;
 }
@@ -813,19 +711,18 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 	uint8_t chLicznikTimeoutu = 0;
 
 	chWskNapBufJpeg = chWskOprBufJpeg = 0;
-	chZatrzymaneWeJpeg = chZatrzymaneWyJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
 	sZajetoscBuforaWeJpeg = 0;
 	chWskNapBufMcu = 0;
-	chStatusBufJpeg |= STAT_JPG_OTWORZ;	//otwórz plik
-	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
+	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
+	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
 	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_GRAYSCALE_COLORSPACE, JPEG_444_SUBSAMPLING, chJakosc);
 	if (chErr)
 	{
-		printf("Blad konf\r\n");
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
+		printf("Blad konf JPEG: %ld\r\n", hjpeg.ErrorCode);
 		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 		return chErr;
 	}
@@ -888,7 +785,6 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 				}
 
 				//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
-				chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
 				chDaneDoZapisu = 1;
 				do
 				{
@@ -900,10 +796,10 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 					}
 					else
 					{
-						if (chZatrzymaneWeJpeg)
+						if (chStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
 						{
 							chErr = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję
-							chZatrzymaneWeJpeg = 0;
+							chStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
 							chDaneDoZapisu = 0;
 							//printf("Wzn, ");
 						}
@@ -939,14 +835,13 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 			chWskNapBufMcu = 0;	//zacznij napełniać od początku
 		}
 
-		chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
 		chDaneDoZapisu = 1;
 		do
 		{
-			if (chZatrzymaneWeJpeg)
+			if (chStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
 			{
 				chErr = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję
-				chZatrzymaneWeJpeg = 0;
+				chStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
 				chDaneDoZapisu = 0;
 				printf("Ostatnia porcja %d MCU, ", chWskNapBufMcu);
 			}
@@ -955,7 +850,7 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 		} while (chDaneDoZapisu);
 	}
 
-
+	chErr = CzekajNaKoniecPracyJPEG();
 	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	return chErr;
 }
@@ -983,19 +878,18 @@ uint8_t KompresujRGB888doYUV444(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 	uint8_t chLicznikTimeoutu = 0;
 
 	chWskNapBufJpeg = chWskOprBufJpeg = 0;
-	chZatrzymaneWeJpeg = chZatrzymaneWyJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
 	sZajetoscBuforaWeJpeg = 0;
 	chWskNapBufMcu = 0;
-	chStatusBufJpeg |= STAT_JPG_OTWORZ;	//otwórz plik
-	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
+	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
+	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
 	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_444_SUBSAMPLING, chJakosc);
 	if (chErr)
 	{
-		printf("Blad konf\r\n");
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
+		printf("Blad konf JPEG: %ld\r\n", hjpeg.ErrorCode);
 		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 		return chErr;
 	}
@@ -1054,7 +948,6 @@ uint8_t KompresujRGB888doYUV444(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 				}
 
 				//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
-				chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
 				chDaneDoZapisu = 1;
 				do
 				{
@@ -1069,10 +962,10 @@ uint8_t KompresujRGB888doYUV444(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 					}
 					else
 					{
-						if (chZatrzymaneWeJpeg)
+						if (chStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
 						{
 							chErr = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję
-							chZatrzymaneWeJpeg = 0;
+							chStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
 							chDaneDoZapisu = 0;
 							chLicznikTimeoutu = 0;
 							//printf("Wzn, ");
@@ -1097,6 +990,8 @@ uint8_t KompresujRGB888doYUV444(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 			}	// czy połowa lub cały bufor
 		}	//bx
 	}	//by
+
+	chErr = CzekajNaKoniecPracyJPEG();
 	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	return chErr;
 }
@@ -1124,19 +1019,18 @@ uint8_t KompresujRGB888doYUV422(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 	uint8_t chLicznikTimeoutu = 0;
 
 	chWskNapBufJpeg = chWskOprBufJpeg = 0;
-	chZatrzymaneWeJpeg = chZatrzymaneWyJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
 	sZajetoscBuforaWeJpeg = 0;
 	chWskNapBufMcu = 0;
-	chStatusBufJpeg |= STAT_JPG_OTWORZ;	//otwórz plik
-	chWynikKompresji = KOMPR_PUSTE_WE;	//proces startuje z flagą gotowości do przyjęcia danych
+	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
+	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
 	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_422_SUBSAMPLING, chJakosc);
 	if (chErr)
 	{
-		printf("Blad konf\r\n");
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
+		printf("Blad konf JPEG: %ld\r\n", hjpeg.ErrorCode);
 		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 		return chErr;
 	}
@@ -1202,7 +1096,6 @@ uint8_t KompresujRGB888doYUV422(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 				}
 
 				//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
-				chWynikKompresji &= ~KOMPR_PUSTE_WE;	//kasuj flagę pustego enkodera
 				chDaneDoZapisu = 1;
 				do
 				{
@@ -1214,10 +1107,10 @@ uint8_t KompresujRGB888doYUV422(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 					}
 					else
 					{
-						if (chZatrzymaneWeJpeg)
+						if (chStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
 						{
 							chErr = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję
-							chZatrzymaneWeJpeg = 0;
+							chStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
 							chDaneDoZapisu = 0;
 							chLicznikTimeoutu = 0;
 							//printf("Wzn, ");
@@ -1242,6 +1135,8 @@ uint8_t KompresujRGB888doYUV422(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 			}	// czy połowa lub cały bufor
 		}	//bx
 	}	//by
+
+	chErr = CzekajNaKoniecPracyJPEG();
 	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	return chErr;
 }

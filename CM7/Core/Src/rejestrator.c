@@ -46,7 +46,6 @@ extern volatile uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status 
 extern volatile uint8_t chWskOprBufJpeg;	// wskazuje z którego bufora obecnie są odczytywane dane
 //extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];	//SekcjaZewnSRAM ma wyłączony cache w MPU, więc może pracować z MDMA bez konieczności czyszczenia cache
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];
-extern volatile uint8_t chZatrzymaneWyJpeg;
 extern volatile uint16_t sZajetoscBuforaWyJpeg;		//liczba bajtów w buforze wyjściowym kompresora
 
 FIL SDJpegFile;       //struktura pliku z obrazem
@@ -1155,10 +1154,10 @@ void ObslugaZapisuJpeg(void)
 			chWskOprBufJpeg++;
 			chWskOprBufJpeg &= MASKA_LICZBY_BUF;
 			sZajetoscBuforaWyJpeg -= nZapisanoBajtow;
-			if (chZatrzymaneWyJpeg)
+			if (chStatusBufJpeg & STAT_JPG_ZATRZYMANE_WY)
 			{
-				chZatrzymaneWyJpeg = 0;
-				HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_OUTPUT);		//wzów kompresję po opróżnianiu bufora wyjściowego
+				chStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WY;
+				HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_OUTPUT);		//wzów kompresję po opróżnieniu bufora wyjściowego
 				printf("WznWy, ");
 			}
 		}

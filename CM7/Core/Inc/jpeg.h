@@ -26,9 +26,8 @@
 #define LICZBA_KOLOR_RGB888	3		//liczba bajtów koloru
 
 //flagi ustawiane w calbackach określające stan enkodera
-#define KOMPR_PUSTE_WE		1	//na wejście enkodera można podać nowe dane
-#define KOMPR_MCU_GOTOWY	2	//podany MCU jest już skompresowany
-#define KOMPR_OBR_GOTOWY	4	//podany obraz jest już skompresowany
+//#define KOMPR_PUSTE_WE		1	//na wejście enkodera można podać nowe dane
+//#define KOMPR_OBR_GOTOWY	4	//podany obraz jest już skompresowany
 
 #define ROZMIAR_NAGL_JPEG	20
 #define ROZMIAR_ZNACZ_xOI	2
