@@ -257,14 +257,14 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 struct tmenu stMenuOsd[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Obraz 480", 	"Pokazuje obraz OSD 480x320",				TPO_TEST_OSD480,	obr_kamera},
-	{"Obraz 320", 	"Pokazuje obraz OSD 320x240",				TPO_TEST_OSD320,	obr_kamera},
-	{"Jpeg 444",	"Zapisz plik JPEG z Exif",					TPO_TEST_OSD240,	obr_kartaSD},
-	{"Jpeg 422",	"Zapisz plik JPEG z Exif",					TPO_OSD_JPEG,		obr_kartaSD},
-	{"Jpeg Y8",		"nic",										TPO_OSD4,			obr_kartaSD},
+	{"Jpeg 444",	"Zapisz plik JPEG w formacie 444",			TPO_JPEG444,		obr_kartaSD},
+	{"Jpeg 422",	"Zapisz plik JPEG w formacie 422",			TPO_JPEG422,		obr_kartaSD},
+	{"Jpeg 420", 	"Zapisz plik JPEG w formacie 420",			TPO_JPEG420,		obr_kartaSD},
+	{"Jpeg Y8",		"Zapisz plik JPEG w formacie Y8",			TPO_JPEG_Y8,		obr_kartaSD},
 	{"OSD 480",		"OSD 480x320",								TPO_OSD480,			obr_kamera},
 	{"OSD 320",		"OSD 320x240",								TPO_OSD320,			obr_kamera},
 	{"OSD 240",		"OSD 240x160",								TPO_OSD240,			obr_kamera},
-	{"BMP Luma",	"Zapisz obrazu luminancji do pliku bpm",	TPO_ZAPIS_BMP,		obr_kartaSD},
+	{"BMP Luma",	"Zapisz luminancji do pliku BMP",			TPO_ZAPIS_BMP,		obr_kartaSD},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -758,21 +758,12 @@ uint8_t RysujEkran(void)
 
 
 	case TP_KAM_ZDJ_YUV422:	//Analiza obrazu pokazuje że coś jest nie tak z obrazem YUV444. Dla obrazu o szerokości 480 pix powtarza się biała linia 4x16 bajtów co 2*480 pikseli
-		/*sprintf((char*)chNazwaPlikuObrazu, "ZdjYUV444");	//początek nazwy pliku ze zdjeciem
+		sprintf((char*)chNazwaPlikuObrazu, "ZdjYUV444");	//początek nazwy pliku ze zdjeciem
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV444, KAM_ZDJECIE);
 		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_X_SIZE * 2 / 3);	//rozmiar obrazu to 3 bajty na piksel
 		nCzas = PobierzCzasT6();
 		chErr = KompresujYUV444((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
-		nCzas = MinalCzas(nCzas);*/
-
-		sprintf((char*)chNazwaPlikuObrazu, "Test3");	//początek nazwy pliku ze zdjeciem
-		chStatusRejestratora |= STATREJ_ZAPISZ_BMP | STATREJ_ZAPISZ_JPG;	//włącz zapis plików
-		//Metoda z oficjalnych przykładów
-		JPEG_Init_MCU_LUT();
-		JPEG_InitColorTables();
-		KompresujPrzyklad(chBuforLCD, (uint8_t *)sBuforKamerySRAM,  240,  96);
-
-
+		nCzas = MinalCzas(nCzas);
 		if (chErr)
 		{
 			setColor(ZOLTY);
@@ -893,26 +884,11 @@ uint8_t RysujEkran(void)
 		stKonfOSD.chOSDWlaczone = 0;	//wyłącz OSD
 		break;
 
-	case TPO_TEST_OSD320:	test_one_mcu_encode();	chNowyTrybPracy = TP_WROC_DO_OSD;	break;
+
 
 	case TPO_TEST_OSD480:	//obraz na testowym tle
-		if (chTrybPracy == TPO_TEST_OSD240)
-		{
-			stKonfOSD.sSzerokosc = 240;
-			stKonfOSD.sWysokosc = 160;
-		}
-		else
-		if (chTrybPracy == TPO_TEST_OSD320)
-		{
-			stKonfOSD.sSzerokosc = 320;
-			stKonfOSD.sWysokosc = 240;
-		}
-		else
-		if (chTrybPracy == TPO_TEST_OSD480)
-		{
-			stKonfOSD.sSzerokosc = 480;
-			stKonfOSD.sWysokosc = 320;
-		}
+		stKonfOSD.sSzerokosc = 480;
+		stKonfOSD.sWysokosc = 320;
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM, SZARY20);
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
 		do
@@ -927,7 +903,24 @@ uint8_t RysujEkran(void)
 		break;
 
 
-	case TPO_OSD_JPEG:		//kompresja jpeg obrazu OSD
+	case TPO_JPEG420:
+		ZakonczPraceDCMI();
+		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
+		{
+			printf("Obraz %d%%: ", n*10);
+			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+			sprintf((char*)chNazwaPlikuObrazu, "YUV420_%d", n*10);	//początek nazwy pliku ze zdjeciem
+			chErr = KompresujRGB888doYUV420(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
+			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
+			{
+				printf("Sync, ");
+				osDelay(5);
+			}
+		}
+		chNowyTrybPracy = TP_WROC_DO_OSD;
+		break;
+
+	case TPO_JPEG422:		//kompresja jpeg obrazu OSD
 		ZakonczPraceDCMI();
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
@@ -944,8 +937,24 @@ uint8_t RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
+	case TPO_JPEG444:
+		ZakonczPraceDCMI();
+		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
+		{
+			printf("Obraz %d%%: ", n*10);
+			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+			sprintf((char*)chNazwaPlikuObrazu, "YUV444_%d", n*10);	//początek nazwy pliku ze zdjeciem
+			chErr = KompresujRGB888doYUV444(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
+			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
+			{
+				printf("Sync, ");
+				osDelay(5);
+			}
+		}
+		chNowyTrybPracy = TP_WROC_DO_OSD;
+		break;
 
-	case TPO_OSD4:
+	case TPO_JPEG_Y8:
 		ZakonczPraceDCMI();
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
@@ -961,24 +970,6 @@ uint8_t RysujEkran(void)
 		}
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
-
-	case TPO_TEST_OSD240:
-		ZakonczPraceDCMI();
-		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
-		{
-			printf("Obraz %d%%: ", n*10);
-			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
-			sprintf((char*)chNazwaPlikuObrazu, "YUV444_%d", n*10);	//początek nazwy pliku ze zdjeciem
-			chErr = KompresujRGB888doYUV444(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
-			{
-				printf("Sync, ");
-				osDelay(5);
-			}
-		}
-		chNowyTrybPracy = TP_WROC_DO_OSD;
-				break;
-
 
 	//*** Ethernet ************************************************
 	case TP_ETHERNET:

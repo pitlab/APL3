@@ -20,6 +20,7 @@
 #include "display.h"
 #include "LCD.h"
 #include <ili9488.h>
+#include "exif.h"
 
 extern SD_HandleTypeDef hsd1;
 extern uint8_t retSD;    /* Return value for SD */

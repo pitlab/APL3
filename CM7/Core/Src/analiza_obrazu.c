@@ -117,8 +117,10 @@ void KonwersjaRGB565doRGB666(uint16_t *obrazRG565, uint8_t *obrazRGB666, uint32_
 void KonwersjaRGB888doYCbCr(uint8_t chR, uint8_t chG, uint8_t chB, uint8_t *chY, int8_t *chCb, int8_t *chCr)
 {
 	*chY = ((uint16_t)chR * 77 + (uint16_t)chG * 150 + (uint16_t)chB * 29) >> 8;
-	*chCb = ((((int16_t)chR * (-43)) + ((int16_t)chG * (-84))  + ((int16_t)chB * (127)) ) >> 8) + 128;
-	*chCr = ((((int16_t)chR * (127)) + ((int16_t)chG * (-106)) + ((int16_t)chB * (-21)) ) >> 8) + 128;
+	if (chCb)	//jeżeli wskaźnik != NULL
+		*chCb = ((((int16_t)chR * (-43)) + ((int16_t)chG * (-84))  + ((int16_t)chB * (127)) ) >> 8) + 128;
+	if (chCr)
+		*chCr = ((((int16_t)chR * (127)) + ((int16_t)chG * (-106)) + ((int16_t)chB * (-21)) ) >> 8) + 128;
 }
 
 

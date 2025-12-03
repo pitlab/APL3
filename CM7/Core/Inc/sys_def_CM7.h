@@ -190,14 +190,14 @@
 
 //polecenia menu: TP_MENU_OSD
 #define TPO_TEST_OSD480		130
-#define TPO_TEST_OSD320		131
-#define TPO_TEST_OSD240		132
-#define TPO_OSD4			133
-#define TPO_ZAPIS_BMP		134
+#define TPO_JPEG444			131
+#define TPO_JPEG422			132
+#define TPO_JPEG420			133
+#define TPO_JPEG_Y8			134
 #define TPO_OSD480			135
 #define TPO_OSD320			136
 #define TPO_OSD240			137
-#define TPO_OSD_JPEG		138
+#define TPO_ZAPIS_BMP		138
 #define TP_WROC_DO_OSD		139
 
 
