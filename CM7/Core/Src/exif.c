@@ -9,8 +9,6 @@
 #include "napisy.h"
 
 uint8_t chNaglJpegExif[ROZMIAR_EXIF];
-extern RTC_TimeTypeDef sTime;
-extern RTC_DateTypeDef sDate;
 extern const char *chNapisLcd[MAX_NAPISOW];
 
 
@@ -87,7 +85,7 @@ void PrzygotujTag(uint8_t **chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *
 // [we] *stDane - wskaźnik na dane autopilota
 // Zwraca: rozmiar struktury
 ////////////////////////////////////////////////////////////////////////////////
-uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC_DateTypeDef stData, RTC_TimeTypeDef stCzas)
+uint32_t PrzygotujExif(JPEG_HandleTypeDef *hjpeg, stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC_DateTypeDef *stData, RTC_TimeTypeDef *stCzas)
 {
 	uint32_t nRozmiar, nOffset;
 	uint8_t chBufor[25];
@@ -96,6 +94,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	uint8_t *wskchAdresExif, *wskchAdresGPS;
 	uint8_t *wskchPoczatekTIFF = &chNaglJpegExif[12];	//początek TIFF
 	float fTemp1, fTemp2;
+	JPEG_ConfTypeDef KonfigJpeg;
 
 	chNaglJpegExif[0] = 0xFF;	//SOI
 	chNaglJpegExif[1] = 0xD8;
@@ -128,11 +127,19 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	wskchAdresDanych = wskchAdresTAG + (LICZBA_TAGOW_IFD0 * ROZMIAR_TAGU) + 4;	//adres za grupą tagów gdzie zapisać dane + wskaźnik 4 bajty do IFD1
 
 	//TAG-i IFD0 ***********************************************************************************************************************************
-	switch (stKonf->chFormatObrazu)
+	//switch (stKonf->chFormatObrazu)
+	HAL_JPEG_GetInfo(hjpeg, &KonfigJpeg);
+	if (KonfigJpeg.ColorSpace == JPEG_GRAYSCALE_COLORSPACE)
+		nRozmiar = sprintf((char*)chBufor, "%s %s Grayscale ", chNapisLcd[STR_EXIF], chNapisLcd[STR_JPEG]);	//obraz monochromatyczny
+	else	//obrazy kolorowe
 	{
-	case OBR_RGB565:nRozmiar = sprintf((char*)chBufor, "%s %s YUV422 ", chNapisLcd[STR_EXIF], chNapisLcd[STR_JPEG]);	break;	//obraz kolorowy
-	case OBR_Y8:	nRozmiar = sprintf((char*)chBufor, "%s %s Y8 ", chNapisLcd[STR_EXIF], chNapisLcd[STR_JPEG]);	break;		//obraz monochromatyczny
-	default:		nRozmiar = sprintf((char*)chBufor, "nieznany %s ", chNapisLcd[STR_JPEG]);	break;
+		switch (KonfigJpeg.ChromaSubsampling)
+		{
+		case JPEG_444_SUBSAMPLING:	nRozmiar = sprintf((char*)chBufor, "%s %s YUV444 ", chNapisLcd[STR_EXIF], chNapisLcd[STR_JPEG]);	break;
+		case JPEG_422_SUBSAMPLING:	nRozmiar = sprintf((char*)chBufor, "%s %s YUV422 ", chNapisLcd[STR_EXIF], chNapisLcd[STR_JPEG]);	break;
+		case JPEG_420_SUBSAMPLING:	nRozmiar = sprintf((char*)chBufor, "%s %s YUV420 ", chNapisLcd[STR_EXIF], chNapisLcd[STR_JPEG]);	break;
+		default:		nRozmiar = sprintf((char*)chBufor, "nieznany %s ", chNapisLcd[STR_JPEG]);	break;
+		}
 	}
 	PrzygotujTag(&wskchAdresTAG, EXTAG_IMAGE_DESCRIPTION, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
 
@@ -154,7 +161,7 @@ uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC
 	//chBufor[3] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_ORIENTATION, EXIF_TYPE_SHORT, chBufor, 2, &wskchAdresDanych, wskchPoczatekTIFF);	//wstaw dane zamiast offsetu
 
-	nRozmiar = sprintf((char*)chBufor, "%4d:%02d:%02d %02d:%02d:%02d", stData.Year + 2000, stData.Month, stData.Date, stCzas.Hours, stCzas.Minutes, stCzas.Seconds);
+	nRozmiar = sprintf((char*)chBufor, "%4d:%02d:%02d %02d:%02d:%02d", stData->Year + 2000, stData->Month, stData->Date, stCzas->Hours, stCzas->Minutes, stCzas->Seconds);
 	PrzygotujTag(&wskchAdresTAG, EXTAG_DATE_TIME, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
 
 	nRozmiar = sprintf((char*)chBufor, "%c %s 2025 ", 0xA9, chNapisLcd[STR_PITLAB]);

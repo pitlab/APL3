@@ -15,7 +15,6 @@
 #include "analiza_obrazu.h"
 #include "kamera.h"
 
-//#include "jpeg_utils_conf.h"
 
 
 extern JPEG_HandleTypeDef hjpeg;
@@ -41,23 +40,7 @@ extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejes
 
 const uint8_t chNaglJpegEOI[ROZMIAR_ZNACZ_xOI] = {0xFF, 0xD9};	//EOI (End Of Image) - zapisywany na końcu pliku jpeg
 
-/*static uint16_t JPEG_Y_MCU_LUT[256];
-static uint16_t JPEG_Y_MCU_444_LUT[64];
 
-static uint16_t JPEG_Cb_MCU_420_LUT[256];
-static uint16_t JPEG_Cb_MCU_422_LUT[256];
-static uint16_t JPEG_Cb_MCU_444_LUT[64];
-
-static uint16_t JPEG_Cr_MCU_420_LUT[256];
-static uint16_t JPEG_Cr_MCU_422_LUT[256];
-static uint16_t JPEG_Cr_MCU_444_LUT[64];
-
-static uint16_t JPEG_K_MCU_420_LUT[256];
-static uint16_t JPEG_K_MCU_422_LUT[256];
-static uint16_t JPEG_K_MCU_444_LUT[64];
-
-//JPEG_RGBToYCbCr_Convert_Function pRGBToYCbCr_Convert_Function;
-static  JPEG_MCU_RGB_ConvertorTypeDef JPEG_ConvertorParams;*/
 
 // Nagłówek JPEG dla obrazu 480x320, 8-bit Y8 grayscale
 /*static const uint8_t chNaglJpeg_480x320_y8[] = {

@@ -77,8 +77,7 @@
 #define EXTAG_GPS_SPEED			0x0D	//RATIONAL x1
 #define EXTAG_GPS_DATE_STAMP	0x1D	//ASCII x11
 
-
-uint32_t PrzygotujExif(stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC_DateTypeDef stData, RTC_TimeTypeDef stCzas);
+uint32_t PrzygotujExif(JPEG_HandleTypeDef *hjpeg, stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC_DateTypeDef *stData, RTC_TimeTypeDef *stCzas);
 void PrzygotujTag(uint8_t** chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *chDane, uint32_t nRozmiar, uint8_t** chWskDanych, uint8_t *chPoczatekTIFF);
 
 

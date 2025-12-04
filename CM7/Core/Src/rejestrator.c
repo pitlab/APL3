@@ -1133,7 +1133,8 @@ void ObslugaZapisuJpeg(void)
 		{
 			chStatusBufJpeg &= ~STAT_JPG_OTWORZ;	//skasuj flagę potwierdzając otwarcie pliku do zapisu
 			chStatusBufJpeg |= STAT_JPG_OTWARTY;
-			uint32_t nRozmiarExif = PrzygotujExif(&stKonfKam, &uDaneCM4.dane, sDate, sTime);
+
+			uint32_t nRozmiarExif = PrzygotujExif(&hjpeg, &stKonfKam, &uDaneCM4.dane, &sDate, &sTime);
 			nRozmiarExif = (nRozmiarExif + 3) & 0xFFFFFFFC;										//wyrównanie do 4 bajtów aby DMA się nie zacinało
 			fres |= f_write(&SDJpegFile, chNaglJpegExif, nRozmiarExif, &nZapisanoBajtow);		//exif
 		}
