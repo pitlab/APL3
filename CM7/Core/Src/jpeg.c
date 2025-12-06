@@ -29,15 +29,14 @@ uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))
 //uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chBuforMCU[ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU] = {0};	- błąd DMA
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM")))chBuforMCU[ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU] = {0};
 
-volatile uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych na kartę SD
+volatile uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych z bufora danych skompresowanych
 volatile uint8_t chWskNapBufJpeg, chWskOprBufJpeg;	// wskazuje do którego bufora obecnie są zapisywane dane i z którego są odczytywane
 uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint8_t chWynikKompresji;		//flagi ustawiane w callbackach, określajace postęp przepływu danych przez enkoder JPEG
 uint8_t chWskNapBufMcu;			//wskaźnik napełniania buforów MCU
 volatile uint16_t sZajetoscBuforaWeJpeg, sZajetoscBuforaWyJpeg;		//liczba bajtów w buforach wejściowym i wyjściowym kompresora
 extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-
-
+JPEG_ConfTypeDef stKonfJpeg;	//struktura konfiguracyjna JPEGa
 const uint8_t chNaglJpegEOI[ROZMIAR_ZNACZ_xOI] = {0xFF, 0xD9};	//EOI (End Of Image) - zapisywany na końcu pliku jpeg
 
 
@@ -203,18 +202,16 @@ static const uint8_t chNaglJpeg_480x320_yuv420[] = {
 // chJakoscObrazu - współczynnik z zakresu 0..100 okreslający jakość kompresji
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KonfigurujKompresjeJpeg(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chTypKoloru, uint8_t chTypChrominancji, uint8_t chJakoscObrazu)
+uint8_t KonfigurujKompresjeJpeg(JPEG_ConfTypeDef *stKonfJpeg, uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chTypKoloru, uint8_t chTypChrominancji, uint8_t chJakoscObrazu)
 {
-	JPEG_ConfTypeDef pConf;
-
 	if (hjpeg.State == HAL_JPEG_STATE_ERROR)
 		HAL_JPEG_Abort(&hjpeg);
-	pConf.ColorSpace = chTypKoloru;					//JPEG_GRAYSCALE_COLORSPACE, JPEG_YCBCR_COLORSPACE
-	pConf.ChromaSubsampling = chTypChrominancji;	//JPEG_444_SUBSAMPLING, JPEG_422_SUBSAMPLING, JPEG_420_SUBSAMPLING
-	pConf.ImageWidth = sSzerokosc;
-	pConf.ImageHeight = sWysokosc;
-	pConf.ImageQuality = chJakoscObrazu;
-	return HAL_JPEG_ConfigEncoding(&hjpeg, &pConf);
+	stKonfJpeg->ColorSpace = chTypKoloru;					//JPEG_GRAYSCALE_COLORSPACE, JPEG_YCBCR_COLORSPACE
+	stKonfJpeg->ChromaSubsampling = chTypChrominancji;	//JPEG_444_SUBSAMPLING, JPEG_422_SUBSAMPLING, JPEG_420_SUBSAMPLING
+	stKonfJpeg->ImageWidth = sSzerokosc;
+	stKonfJpeg->ImageHeight = sWysokosc;
+	stKonfJpeg->ImageQuality = chJakoscObrazu;
+	return HAL_JPEG_ConfigEncoding(&hjpeg, stKonfJpeg);
 }
 
 
@@ -244,7 +241,7 @@ void HAL_JPEG_ErrorCallback(JPEG_HandleTypeDef *hjpeg)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//Można podać enkoderowi kolejne dane
+// Można podać enkoderowi kolejne dane
 // Callback HAL_JPEG_GetDataCallback is asserted for both encoding and decoding
 // operations to inform the application that the input buffer has been
 // consumed by the peripheral and to ask for a new data chunk if the operation
@@ -253,7 +250,7 @@ void HAL_JPEG_ErrorCallback(JPEG_HandleTypeDef *hjpeg)
 void HAL_JPEG_GetDataCallback(JPEG_HandleTypeDef *hjpeg, uint32_t NbDecodedData)
 {
 	sZajetoscBuforaWeJpeg -= NbDecodedData;
-	if (sZajetoscBuforaWeJpeg)	//jeżeli po pobraniu danych w buforze wejsściowym są jeszcze dane, to kompresuj je
+	if (sZajetoscBuforaWeJpeg)	//jeżeli po pobraniu danych w buforze wejściowym są jeszcze dane, to kompresuj je
 	{
 		HAL_JPEG_ConfigInputBuffer(hjpeg, chBuforMCU + NbDecodedData, sZajetoscBuforaWeJpeg);
 		printf("Kont ");
@@ -270,19 +267,18 @@ void HAL_JPEG_GetDataCallback(JPEG_HandleTypeDef *hjpeg, uint32_t NbDecodedData)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//skompresowane dane sa gotowe
+// Skompresowane dane sa gotowe
 // Callback HAL_JPEG_DataReadyCallback is asserted when the HAL JPEG driver has filled the given output buffer with the given size.
 ////////////////////////////////////////////////////////////////////////////////
 void HAL_JPEG_DataReadyCallback(JPEG_HandleTypeDef *hjpeg, uint8_t *pDataOut, uint32_t OutDataLength)
 {
-	sZajetoscBuforaWyJpeg += OutDataLength;
-	nRozmiarObrazuJPEG += OutDataLength;
-	printf("Rozm: %ld wsk: %d buf: %d\r\n",  nRozmiarObrazuJPEG, chWskNapBufJpeg, sZajetoscBuforaWyJpeg);
-	chWskNapBufJpeg++;							//przełącz bufor danych skompresowanych na następny
-	chWskNapBufJpeg &= MASKA_LICZBY_BUF;
-
 	if (sZajetoscBuforaWyJpeg < ILOSC_BUF_JPEG * ROZM_BUF_WY_JPEG)
 	{
+		chWskNapBufJpeg++;							//przełącz bufor danych skompresowanych na następny
+		chWskNapBufJpeg &= MASKA_LICZBY_BUF;
+		sZajetoscBuforaWyJpeg += OutDataLength;
+		nRozmiarObrazuJPEG += OutDataLength;
+		printf("Rozm: %ld wsk: %d buf: %d\r\n",  nRozmiarObrazuJPEG, chWskNapBufJpeg, sZajetoscBuforaWyJpeg);
 		HAL_JPEG_ConfigOutputBuffer(hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);	//ustaw następny bufor
 	}
 	else
@@ -290,10 +286,7 @@ void HAL_JPEG_DataReadyCallback(JPEG_HandleTypeDef *hjpeg, uint8_t *pDataOut, ui
 		HAL_JPEG_Pause(hjpeg, JPEG_PAUSE_RESUME_OUTPUT);
 		chStatusBufJpeg |= STAT_JPG_ZATRZYMANE_WY;
 		printf("PauWy, ");
-		if (!(chStatusRejestratora & STATREJ_ZAPISZ_JPG))
-			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//wyłącz flagę obsługi pliku JPEG
 	}
-	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 }
 
 
@@ -358,7 +351,7 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
 	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
-	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_GRAYSCALE_COLORSPACE, JPEG_444_SUBSAMPLING, 80);
+	chErr = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_GRAYSCALE_COLORSPACE, JPEG_444_SUBSAMPLING, 80);
 	if (chErr)
 	{
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
@@ -478,7 +471,7 @@ uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
 	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
-	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_444_SUBSAMPLING, 80);
+	chErr = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_444_SUBSAMPLING, 80);
 	if (chErr)
 	{
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
@@ -571,7 +564,7 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
 	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
-	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_420_SUBSAMPLING, 60);
+	chErr = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_420_SUBSAMPLING, 60);
 	if (chErr)
 	{
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
@@ -693,7 +686,7 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
 	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
-	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_GRAYSCALE_COLORSPACE, JPEG_444_SUBSAMPLING, chJakosc);
+	chErr = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_GRAYSCALE_COLORSPACE, JPEG_444_SUBSAMPLING, chJakosc);
 	if (chErr)
 	{
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
@@ -737,7 +730,7 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 				}		//pętla po  kolumnach bloku
 			} 		//pętla po wierszach bloku
 
-			chWskNapBufMcu += 2;	//produkowane są jednoczesnie po 2 bloki wejściowe
+			chWskNapBufMcu += 2;	//produkowane są jednocześnie po 2 bloki wejściowe
 			sZajetoscBuforaWeJpeg += 2 * ROZMIAR_BLOKU;
 
 			//jeżeli bufor wejściowy jest przepełniony, to przerwij pracę i posprzątaj po sobie
@@ -860,7 +853,7 @@ uint8_t KompresujRGB888doYUV444(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
 	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
-	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_444_SUBSAMPLING, chJakosc);
+	chErr = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_444_SUBSAMPLING, chJakosc);
 	if (chErr)
 	{
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
@@ -1001,7 +994,7 @@ uint8_t KompresujRGB888doYUV422(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
 	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
-	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_422_SUBSAMPLING, chJakosc);
+	chErr = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_422_SUBSAMPLING, chJakosc);
 	if (chErr)
 	{
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
@@ -1148,7 +1141,7 @@ uint8_t KompresujRGB888doYUV420(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
 	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
-	chErr = KonfigurujKompresjeJpeg(sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_420_SUBSAMPLING, chJakosc);
+	chErr = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_420_SUBSAMPLING, chJakosc);
 	if (chErr)
 	{
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)

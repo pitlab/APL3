@@ -144,7 +144,7 @@ extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxi
 extern stKonfKam_t stKonfKam;
 extern uint32_t nRozmiarObrazuKamery;
 extern stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
-
+extern JPEG_HandleTypeDef hjpeg;
 extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 extern const uint8_t chNaglJpegSOI[20];
 extern const uint8_t chNaglJpegEOI[2];
@@ -243,11 +243,11 @@ struct tmenu stMenuAudio[MENU_WIERSZE * MENU_KOLUMNY]  = {
 
 struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Zdj txt",		"Wykonuje zdjecie w firmie binarnej",		TP_ZDJECIE,			obr_aparat},
 	{"Kam. SRAM",	"Kamera w trybie ciaglym z pam. SRAM",		TP_KAMERA,			obr_kamera},
 	{"Kam. DRAM",	"Kamera w trybie ciaglym z pam. DRAM",		TP_KAM_DRAM,		obr_kamera},
 	{"Jpeg Y8",		"Kompresja obrazu czarno-bialego Y8",		TP_KAM_Y8,			obr_kamera},
 	{"Jpeg Y420",	"Kompresja obrazu kolorowego YUV420",		TP_KAM_YUV420,		obr_kamera},
+	{"RTSP Y422",	"Kompresja YUV42 dla serwera RTSP",			TP_RTSP_YUV422,		obr_kamera},
 	{"Zdj Y8",		"Wykonaj zdjecie jpg Y8",					TP_KAM_ZDJ_Y8,		obr_aparat},
 	{"Zdj YUV420",	"Wykonaj zdjecie jpg YUV420",				TP_KAM_ZDJ_YUV420,	obr_aparat},
 	{"Zdj YUV422",	"Wykonaj zdjecie jpg YUV422",				TP_KAM_ZDJ_YUV422,	obr_aparat},
@@ -524,7 +524,7 @@ uint8_t RysujEkran(void)
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
-	case TP_ZDJECIE:	//wykonaj pojedyncze zdjęcie
+	/*case TP_ZDJECIE:	//wykonaj pojedyncze zdjęcie i zapisz je w pliku binarnym txt
 		extern uint16_t sLicznikLiniiKamery;
 		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
 		sLicznikLiniiKamery = 0;
@@ -558,7 +558,7 @@ uint8_t RysujEkran(void)
 		}
 		osDelay(600);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
-		break;
+		break;*/
 
 	case TP_KAMERA:	//ciagła praca kamery z pamięcią SRAM
 		stKonfOSD.chOSDWlaczone = 1;	//włacz OSD z histogramem
@@ -668,6 +668,31 @@ uint8_t RysujEkran(void)
 			sprintf(chNapis, "%.2f fps, kompr: %.1f", (float)1000000.0/nCzas, (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);	//Sprawdzić: hard fault
 			setColor(ZOLTY);
 			RysujNapis(chNapis, 0, DISP_Y_SIZE - FONT_BH);
+		}
+		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		break;
+
+	case TP_RTSP_YUV422:	//kamera generuje standarowy obraz na ekran, DMA2D nakłada OSD i zamienia na format RGB888, obraz jest kompresowany bez nagłówka JPEG
+		stKonfOSD.sSzerokosc = 480;
+		stKonfOSD.sWysokosc = 320;
+		stKonfOSD.chOSDWlaczone = 1;
+		chStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;	//wyłącz rejestrację na karcie
+		hjpeg.Instance->CONFR1 &= ~JPEG_CONFR1_HDR;		//wyłącz generowanie nagłówka JPEG
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
+
+		chErr = UstawObrazKamery(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, OBR_RGB565, KAM_FILM);		//kolor
+		if (chErr)
+			break;
+
+		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
+		if (chErr)
+			break;
+		do
+		{
+			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
+			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
+			chErr = KompresujRGB888doYUV422(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, 30);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -855,7 +880,7 @@ uint8_t RysujEkran(void)
 		chErr = UstawObrazKamery(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, OBR_RGB565, KAM_FILM);		//kolor
 		if (chErr)
 			break;
-
+		hjpeg.Instance->CONFR1 |= JPEG_CONFR1_HDR;	//włącz generowanie nagłówka JPEG
 		stKonfOSD.chOSDWlaczone = 1;
 		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
 		if (chErr)
@@ -905,6 +930,7 @@ uint8_t RysujEkran(void)
 
 	case TPO_JPEG420:
 		ZakonczPraceDCMI();
+		hjpeg.Instance->CONFR1 |= JPEG_CONFR1_HDR;	//włącz generowanie nagłówka JPEG
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			printf("Obraz %d%%: ", n*10);
@@ -922,6 +948,7 @@ uint8_t RysujEkran(void)
 
 	case TPO_JPEG422:		//kompresja jpeg obrazu OSD
 		ZakonczPraceDCMI();
+		hjpeg.Instance->CONFR1 |= JPEG_CONFR1_HDR;	//włącz generowanie nagłówka JPEG
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			printf("Obraz %d%%: ", n*10);
@@ -939,6 +966,7 @@ uint8_t RysujEkran(void)
 
 	case TPO_JPEG444:
 		ZakonczPraceDCMI();
+		hjpeg.Instance->CONFR1 |= JPEG_CONFR1_HDR;	//włącz generowanie nagłówka JPEG
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			printf("Obraz %d%%: ", n*10);
@@ -956,6 +984,7 @@ uint8_t RysujEkran(void)
 
 	case TPO_JPEG_Y8:
 		ZakonczPraceDCMI();
+		hjpeg.Instance->CONFR1 |= JPEG_CONFR1_HDR;	//włącz generowanie nagłówka JPEG
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			printf("Obraz %d%%: ", n*10);

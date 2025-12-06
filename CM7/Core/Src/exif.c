@@ -10,7 +10,7 @@
 
 uint8_t chNaglJpegExif[ROZMIAR_EXIF];
 extern const char *chNapisLcd[MAX_NAPISOW];
-
+extern JPEG_ConfTypeDef stKonfigJpeg;	//struktura konfiguracyjna JPEGa
 
 ////////////////////////////////////////////////////////////////////////////////
 // Buduje strukturę tagu w Exif. Rozmiar TAG-a to 12 bajtów
@@ -85,7 +85,7 @@ void PrzygotujTag(uint8_t **chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *
 // [we] *stDane - wskaźnik na dane autopilota
 // Zwraca: rozmiar struktury
 ////////////////////////////////////////////////////////////////////////////////
-uint32_t PrzygotujExif(JPEG_HandleTypeDef *hjpeg, stKonfKam_t *stKonf, volatile stWymianyCM4_t *stDane, RTC_DateTypeDef *stData, RTC_TimeTypeDef *stCzas)
+uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, volatile stWymianyCM4_t *stDane, RTC_DateTypeDef *stData, RTC_TimeTypeDef *stCzas)
 {
 	uint32_t nRozmiar, nOffset;
 	uint8_t chBufor[25];
@@ -94,7 +94,6 @@ uint32_t PrzygotujExif(JPEG_HandleTypeDef *hjpeg, stKonfKam_t *stKonf, volatile 
 	uint8_t *wskchAdresExif, *wskchAdresGPS;
 	uint8_t *wskchPoczatekTIFF = &chNaglJpegExif[12];	//początek TIFF
 	float fTemp1, fTemp2;
-	JPEG_ConfTypeDef KonfigJpeg;
 
 	chNaglJpegExif[0] = 0xFF;	//SOI
 	chNaglJpegExif[1] = 0xD8;
@@ -128,12 +127,13 @@ uint32_t PrzygotujExif(JPEG_HandleTypeDef *hjpeg, stKonfKam_t *stKonf, volatile 
 
 	//TAG-i IFD0 ***********************************************************************************************************************************
 	//switch (stKonf->chFormatObrazu)
-	HAL_JPEG_GetInfo(hjpeg, &KonfigJpeg);
-	if (KonfigJpeg.ColorSpace == JPEG_GRAYSCALE_COLORSPACE)
+	//HAL_JPEG_GetInfo(hjpeg, &KonfigJpeg);
+
+	if (stKonfJpeg->ColorSpace == JPEG_GRAYSCALE_COLORSPACE)
 		nRozmiar = sprintf((char*)chBufor, "%s %s Grayscale ", chNapisLcd[STR_EXIF], chNapisLcd[STR_JPEG]);	//obraz monochromatyczny
 	else	//obrazy kolorowe
 	{
-		switch (KonfigJpeg.ChromaSubsampling)
+		switch (stKonfJpeg->ChromaSubsampling)
 		{
 		case JPEG_444_SUBSAMPLING:	nRozmiar = sprintf((char*)chBufor, "%s %s YUV444 ", chNapisLcd[STR_EXIF], chNapisLcd[STR_JPEG]);	break;
 		case JPEG_422_SUBSAMPLING:	nRozmiar = sprintf((char*)chBufor, "%s %s YUV422 ", chNapisLcd[STR_EXIF], chNapisLcd[STR_JPEG]);	break;
@@ -167,7 +167,7 @@ uint32_t PrzygotujExif(JPEG_HandleTypeDef *hjpeg, stKonfKam_t *stKonf, volatile 
 	nRozmiar = sprintf((char*)chBufor, "%c %s 2025 ", 0xA9, chNapisLcd[STR_PITLAB]);
 	PrzygotujTag(&wskchAdresTAG, EXTAG_COPYRIGT, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
 
-	wskchAdresExif = wskchAdresDanych + ROZMIAR_INTEROPER;
+	wskchAdresExif = wskchAdresDanych + ROZMIAR_INTEROPER + 4;
 	wskchAdresExif = (uint8_t*)(((uint32_t)wskchAdresExif + 1) & 0xFFFFFFFE);	//wyrównanie do 2
 	nOffset = (uint32_t)wskchAdresExif - (uint32_t)wskchPoczatekTIFF;	//offset do Exif IFD, czyli różnica adresów IFD0 i Exif_IFD
 	chBufor[0] = (uint8_t)(nOffset);	//młodszy przodem
@@ -176,7 +176,7 @@ uint32_t PrzygotujExif(JPEG_HandleTypeDef *hjpeg, stKonfKam_t *stKonf, volatile 
 	chBufor[3] = (uint8_t)(nOffset >> 24);
 	PrzygotujTag(&wskchAdresTAG, EXTAG_EXIF_IFD, EXIF_TYPE_LONG, chBufor, 4, &wskchAdresDanych, wskchPoczatekTIFF);	//rozmiar=0, dane umieść w TAGu
 
-	wskchAdresGPS = wskchAdresExif + LICZBA_TAGOW_EXIF * (ROZMIAR_TAGU + 8) + ROZMIAR_INTEROPER;	//liczbę nadmiarowych danych tagów Exif - przyjmuję jako 8 na tag, bo to głównie Rational
+	wskchAdresGPS = wskchAdresExif + LICZBA_TAGOW_EXIF * (ROZMIAR_TAGU + 8) + ROZMIAR_INTEROPER + 4;	//liczbę nadmiarowych danych tagów Exif - przyjmuję jako 8 na tag, bo to głównie Rational
 	wskchAdresGPS = (uint8_t*)(((uint32_t)wskchAdresGPS + 1) & 0xFFFFFFFE);	//wyrównanie do 2
 	nOffset = (uint32_t)wskchAdresGPS - (uint32_t)wskchPoczatekTIFF;	//offset do Exif IFD, czyli różnica adresów IFD0 i GPS_IFD
 	chBufor[0] = (uint8_t)(nOffset);	//młodszy przodem
@@ -234,12 +234,13 @@ uint32_t PrzygotujExif(JPEG_HandleTypeDef *hjpeg, stKonfKam_t *stKonf, volatile 
 	chBufor[7] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_CAM_ELEVATION, EXIF_TYPE_SRATIONAL, chBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//SRATIONAL x1
 
-	chBufor[0] = (uint8_t)(stKonf->chSzerWe / stKonf->chSzerWy);	//zoom cyfrowy po szerokości
-	chBufor[1] = 0;
-	chBufor[2] = 0;
+	fTemp2 = 1000.0f * stKonfKam->chSzerWe / stKonfKam->chSzerWy;	//zoom cyfrowy po szerokości
+	chBufor[0] = (uint8_t)fTemp2;
+	chBufor[1] = (uint8_t)((uint16_t)fTemp2 >> 8);
+	chBufor[2] = (uint8_t)((uint16_t)fTemp2 >> 16);
 	chBufor[3] = 0;
-	chBufor[4] = 1;		// zoom / 1
-	chBufor[5] = 0;
+	chBufor[4] = 0xE8;		// zoom / 1000
+	chBufor[5] = 0x03;
 	chBufor[6] = 0;
 	chBufor[7] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_DIGITAL_ZOOM, EXIF_TYPE_RATIONAL, chBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//RATIONAL x1
@@ -267,6 +268,7 @@ uint32_t PrzygotujExif(JPEG_HandleTypeDef *hjpeg, stKonfKam_t *stKonf, volatile 
 		chBufor[0] = 'N';
 	chBufor[1] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_NS_LATI_REF, EXIF_TYPE_ASCII, chBufor, 2, &wskchAdresDanych, wskchPoczatekTIFF);	//ASCII x2
+
 	fTemp2 = (uint8_t)floorf(fTemp1);		//pełne stopnie;
 	chBufor[0] = (uint8_t)fTemp2;
 	chBufor[1] = 0;

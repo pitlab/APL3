@@ -170,11 +170,11 @@
 #define TP_WROC_DO_NASTAWY	109
 
 //polecenia menu kamera
-#define TP_ZDJECIE			110	//pojedyncze zdjęcie
-#define TP_KAMERA			111	//ciagła praca kamery
-#define TP_KAM_DRAM			112
-#define TP_KAM_Y8			113	//kompresja Jpeg obrazu Y8
-#define TP_KAM_YUV420		114	//kompresja kolorowa
+#define TP_KAMERA			110	//ciagła praca kamery
+#define TP_KAM_DRAM			111
+#define TP_KAM_Y8			112	//kompresja Jpeg obrazu Y8
+#define TP_KAM_YUV420		113	//kompresja kolorowa
+#define TP_RTSP_YUV422		114	//kommpresja kolorowa na bieżaco dla serwera RTSP
 #define TP_KAM_ZDJ_Y8		115	//zapisz na karte zdjęcie jpeg Y8
 #define TP_KAM_ZDJ_YUV420	116	//zapisz na karte zdjęcie jpeg YUV420
 #define TP_KAM_ZDJ_YUV422	117 //zapisz na karte zdjęcie jpeg YUV444

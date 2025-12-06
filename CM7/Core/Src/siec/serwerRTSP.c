@@ -2,7 +2,9 @@
 //
 // Moduł obsługi serwera RTSP
 // Serwer pracuje w wątku WatekSerweraRTSP znajdującym się w pliku main.c
-//
+// Dokumenty bazowe:
+//	 RFC3550: RTP: A Transport Protocol for Real-Time Applications
+//	 RFC2435: RTP Payload Format for JPEG-compressed Video
 //
 // (c) PitLab 2025
 // http://www.pitlab.pl
@@ -69,11 +71,17 @@ static struct sockaddr_in stAdresSerwera;	//adres serwera
 uint8_t chTrwaStreamRTP;
 //extern const unsigned char oko480x320[152318];
 extern uint8_t chStatusPolaczenia;
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ROZM_BUF_WY_JPEG];
+//extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ROZM_BUF_WY_JPEG];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];
+
 extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chPakiet_RTP[ROZMIAR_PAKIETU_RTP];
 extern JPEG_HandleTypeDef hjpeg;
 static uint32_t __attribute__((section(".SekcjaBackup"))) nNrSesji;	//identyfikator ma być unikalny, więc siedzi w pamieci z podtrzymaniem bateryjnym
+extern JPEG_ConfTypeDef stKonfJpeg;	//struktura konfiguracyjna JPEGa
+extern volatile uint16_t sZajetoscBuforaWyJpeg;		//liczba bajtów w buforze wyjściowym kompresora
+extern volatile uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych z bufora danych skompresowanych
+extern volatile uint8_t chWskOprBufJpeg;	// wskazuje z którego bufora obecnie są odczytywane dane
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizacja serwera RTSP
@@ -215,7 +223,7 @@ void ObslugaSerweraRTSP(int nGniazdoPolaczenia)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wątek RTP generujący losowe dane jako "wideo"
+// Wątek  pakujący strumień z kompresora JPEG do ramek RTP
 // Parametry:
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -228,19 +236,25 @@ void WatekStreamujacyRTP(void *arg)
     //uint8_t chPakiet_RTP[ROZMIAR_PAKIETU_RTP];	//przeniesiony na zewnątrz do SRAM3
     uint16_t sNumerPakietu = 0;
     uint32_t nTimeStamp = PobierzCzasT6();
-    uint32_t nOffsetObrazu, nRozmiarObrazuDoWyslania;
+    uint32_t nOffsetObrazu;
+    uint32_t nLiczbaSkopiowanychDanychJpeg, nIloscDanychDoSkopiowania;
+    uint32_t nOffsetBuforaJpeg, nIloscDanychwBuforzeJpeg;
     uint8_t chRozmiarNaglowka;
-    uint8_t* chDaneJpeg = NULL;
     uint8_t chRozmiarTablicyKwantyzcji;	//64 (mono)lub 128 bajtów (kolor)
-    extern stKonfKam_t stKonfKam;
+    if (stKonfJpeg.ColorSpace == JPEG_GRAYSCALE_COLORSPACE)
+		chRozmiarTablicyKwantyzcji = 64;	//obraz monochromatyczny ma jedną tablicę
+	else
+		chRozmiarTablicyKwantyzcji = 128;	//obraz kolorowy ma dwie
 
     while (chTrwaStreamRTP)
     {
-    	chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_RTSP);
+    	chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_RTSP);		//ustaw status na dole ekranu menu
 
     	//początek obrazu
     	nOffsetObrazu = 0;
-    	while (nOffsetObrazu < nRozmiarObrazuJPEG)
+    	nOffsetBuforaJpeg = 0;
+    	nLiczbaSkopiowanychDanychJpeg = 0;
+    	do
 		{
 			//Nagłówek RTP (12 bajtów) wg RFC1889
 			chPakiet_RTP[0] = (2 << 6)|(0 << 5)|(0 << 4)|(0);   //V:2(wersja)=2, P:1(padding)=0, X:1(extension)=0, CC:4(CRSC count)=0
@@ -256,25 +270,18 @@ void WatekStreamujacyRTP(void *arg)
 			chPakiet_RTP[10] = nNrSesji >> 8;
 			chPakiet_RTP[11] = nNrSesji & 0xFF;
 
-			//Nagłówek JPEG  (8 bajtów)
-			chPakiet_RTP[12] = 0; 								//Type-specific: if no interpretation is specified, this field MUST be zeroed on transmission and ignored on reception.
-			chPakiet_RTP[13] = (nOffsetObrazu >> 16) & 0xFF;	//The Fragment Offset is the offset in bytes of the current packet in the JPEG frame data.
-			chPakiet_RTP[14] = (nOffsetObrazu >> 8) & 0xFF;		//This value is encoded in network byte order (most significant byte first).
-			chPakiet_RTP[15] = nOffsetObrazu & 0xFF;
-			chPakiet_RTP[16] = 0;   							// Type = baseline JPEG  8-bit samples
-			chPakiet_RTP[17] = 255; 							// Q=255 tablice kwantyzacji są w JPEG
-			chPakiet_RTP[18] = stKonfKam.chSzerWy * 2; 			// width/8
-			chPakiet_RTP[19] = stKonfKam.chWysWy * 2; 			// height/8
-			chPakiet_RTP[20] = 0;								//dri - restart interval in MCU or 0 if no restarts
-
-			if (nOffsetObrazu == 0)	//pierwsza ramka, w której trzeba przesłać tablicę kwantyzacji
+			if (nLiczbaSkopiowanychDanychJpeg == 0)	//pierwsza ramka, w której trzeba przesłać tablicę kwantyzacji
 			{
-				chDaneJpeg = ZnajdzZnacznikJpeg(chBuforJpeg, 0xDB);	//0xFFDB oznacza tablicę kwantyzacji
-				if (chDaneJpeg)
-				{
-					chRozmiarTablicyKwantyzcji = *(chDaneJpeg + 1) - 3;	//rozmiar danych oprócz tablicy kwantyzacji obejmuje jeszcze 16-bitwowy rozmiar i bajt kontrolny
-					chDaneJpeg += 3;	//przeskocz 16-bitowy rozmiar i bajt kontrolny Pq/Tq
-				}
+				//Nagłówek JPEG  (8 bajtów)
+				chPakiet_RTP[12] = 0; 								//Type-specific: if no interpretation is specified, this field MUST be zeroed on transmission and ignored on reception.
+				chPakiet_RTP[13] = (nOffsetObrazu >> 16) & 0xFF;	//The Fragment Offset is the offset in bytes of the current packet in the JPEG frame data.
+				chPakiet_RTP[14] = (nOffsetObrazu >> 8) & 0xFF;		//This value is encoded in network byte order (most significant byte first).
+				chPakiet_RTP[15] = nOffsetObrazu & 0xFF;
+				chPakiet_RTP[16] = 0;   							// Type = baseline JPEG  8-bit samples
+				chPakiet_RTP[17] = 255; 							// Q=255 tablice kwantyzacji są dynamiczne i są w każdym JPEG
+				chPakiet_RTP[18] = stKonfJpeg.ImageWidth >> 3;		// width/8
+				chPakiet_RTP[19] = stKonfJpeg.ImageHeight >> 3; 	// height/8
+				chPakiet_RTP[20] = 0;								//dri - restart interval in MCU or 0 if no restarts
 
 				//Quantization Table header:  This header MUST be present after the main JPEG header (and after the Restart Marker header, if present)
 				//when using Q values 128-255. It provides a way to specify the quantization tables associated with this Q value in-band.
@@ -282,36 +289,74 @@ void WatekStreamujacyRTP(void *arg)
 				chPakiet_RTP[22] = 0;	//Precision
 				chPakiet_RTP[23] = 0;	//Length H
 				chPakiet_RTP[24] = chRozmiarTablicyKwantyzcji;	//Length L
-				memcpy(&chPakiet_RTP[25], chDaneJpeg, chRozmiarTablicyKwantyzcji);	//skopiuj tablicę kwantyzacji obrazu do pierwszej ramki
-				chRozmiarNaglowka = 25 + chRozmiarTablicyKwantyzcji;
-				//chDane += chRozmiarTablicyKwantyzcji;
-				chDaneJpeg = ZnajdzZnacznikJpeg(chBuforJpeg, 0xDA);	//0xFFDA oznaca SOS Start Of Scan - początek danych obrazu
+
+				memcpy(&chPakiet_RTP[25], hjpeg.QuantTable0, chRozmiarTablicyKwantyzcji);	//skopiuj tablice kwantyzacji obrazu do pierwszej ramki
+				chWskOprBufJpeg = 0;	//zacznij opróżnianie bufora jpeg od początku
+				//chDaneJpeg = ZnajdzZnacznikJpeg(&chBuforJpeg[chWskOprBufJpeg][64], 0xDA) + 2;	//0xFFDA oznacza SOS Start Of Scan - początek danych obrazu z pominięciem znacznika
+				//sZajetoscBuforaWyJpeg -= (uint32_t)chDaneJpeg - (uint32_t)&chBuforJpeg[chWskOprBufJpeg][0];
+				chRozmiarNaglowka = nOffsetObrazu = 25 + chRozmiarTablicyKwantyzcji;
 			}
 			else
-				chRozmiarNaglowka = 21;
+				chRozmiarNaglowka = nOffsetObrazu = 12;
 
-			//przepisz kolejny kawałek obrazu do ramki
-			nRozmiarObrazuDoWyslania = nRozmiarObrazuJPEG - nOffsetObrazu;
-			if (nRozmiarObrazuDoWyslania > ROZMIAR_PAKIETU_RTP - chRozmiarNaglowka)
-				nRozmiarObrazuDoWyslania = ROZMIAR_PAKIETU_RTP - chRozmiarNaglowka;
-			memcpy(&chPakiet_RTP[chRozmiarNaglowka], chDaneJpeg + nOffsetObrazu, nRozmiarObrazuDoWyslania);
+			//przepisz kolejny kawałek obrazu do ramki. RTC2435 mówi: The data following the RTP/JPEG headers is an entropy-coded segment
+			//consisting of a single scan.  The scan header is not present and is inferred from the RTP/JPEG header.  The scan is terminated either
+			//implicitly (i.e., the point at which the image is fully parsed), or explicitly with an EOI marker.
+			do
+			{
+				//określ ile mamy dostępnych danych do skopiowania
+				if (sZajetoscBuforaWyJpeg > ROZM_BUF_WY_JPEG)	//czy dany bufor jest pełny? (ostatni zwykle jest niepełny)
+					nIloscDanychwBuforzeJpeg = ROZM_BUF_WY_JPEG - nOffsetBuforaJpeg;
+				else
+					nIloscDanychwBuforzeJpeg = sZajetoscBuforaWyJpeg - nOffsetBuforaJpeg;
+
+				//sprawdź czy dane do skopiowania zmieszczą się w bieżącym pakiecie RTP
+				if (nIloscDanychwBuforzeJpeg > (ROZMIAR_PAKIETU_RTP - chRozmiarNaglowka))
+					nIloscDanychDoSkopiowania = ROZMIAR_PAKIETU_RTP - chRozmiarNaglowka;	//jeżeli cały bufor sie nie zmieści to skopiuj tylko tyle
+				else
+					nIloscDanychDoSkopiowania = nIloscDanychwBuforzeJpeg;
+
+				memcpy(&chPakiet_RTP[nOffsetObrazu], &chBuforJpeg[chWskOprBufJpeg][nOffsetBuforaJpeg], nIloscDanychDoSkopiowania);
+				nOffsetObrazu += nIloscDanychDoSkopiowania;
+				nLiczbaSkopiowanychDanychJpeg += nIloscDanychDoSkopiowania;
+				nOffsetBuforaJpeg = nIloscDanychDoSkopiowania;
+				sZajetoscBuforaWyJpeg -= nIloscDanychDoSkopiowania;
+
+				if (chStatusBufJpeg & STAT_JPG_ZATRZYMANE_WY)
+				{
+					chStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WY;
+					HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_OUTPUT);		//wzów kompresję po opróżnieniu bufora wyjściowego
+					printf("WznWy, ");
+				}
+
+				//jeżeli skopiowano cały bufor to przełącz się na następny
+				if (nIloscDanychDoSkopiowania == 0)
+				{
+					chWskOprBufJpeg++;
+					chWskOprBufJpeg &= MASKA_LICZBY_BUF;
+				}
+			}
+			while ((nOffsetObrazu < ROZMIAR_PAKIETU_RTP) && (nIloscDanychwBuforzeJpeg));
+
 
 			//w ostatnim segmencie daj znacznik końca
-	        if ((nOffsetObrazu + nRozmiarObrazuDoWyslania) >= nRozmiarObrazuJPEG)
-	        {
-	        	chPakiet_RTP[1] |= 0x80; // RTP Marker M=1
-	        }
+			if ((chStatusBufJpeg & STAT_JPG_GOTOWY) && (nIloscDanychDoSkopiowania == 0))
+				chPakiet_RTP[1] |= 0x80; // RTP Marker M=1
 
-			// Wysłanie do klienta
-			sendto(sock, chPakiet_RTP, chRozmiarNaglowka + nRozmiarObrazuDoWyslania, 0, (struct sockaddr*)&stAdresKlienta, sizeof(stAdresKlienta));
-			//printf("np:%d ", sNumerPakietu);
-			sNumerPakietu++;
-			nOffsetObrazu += nRozmiarObrazuDoWyslania;
-			printf("oo:%ld ", nOffsetObrazu);
+			//sprawdź czy wysłać pakiet bo jest już pełen lub koniec obrazu
+			//if (((nOffsetObrazu + chRozmiarNaglowka) == ROZMIAR_PAKIETU_RTP) || ((chStatusBufJpeg & STAT_JPG_GOTOWY) && (nIloscDanychDoSkopiowania == 0)))
+			{
+				sendto(sock, chPakiet_RTP, chRozmiarNaglowka + nOffsetObrazu, 0, (struct sockaddr*)&stAdresKlienta, sizeof(stAdresKlienta));	// Wysłanie do klienta
+				sNumerPakietu++;
+			}
+
 		}
-    	nTimeStamp += 90000 / 2; // np. 2 fps
+    	while ((nOffsetObrazu < nRozmiarObrazuJPEG) && ((chStatusBufJpeg & STAT_JPG_GOTOWY) != STAT_JPG_GOTOWY));
+
+    	nTimeStamp += 90000 / 2; 	//liczba fps - do ustalenia
     	vTaskDelay(pdMS_TO_TICKS(40));
-    }
+    }	//(chTrwaStreamRTP)
+
     //zakonczyła sie transmisja, wróć do statusu gotowości
     chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_RTSP);
     chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_RTSP);

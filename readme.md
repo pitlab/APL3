@@ -4,7 +4,7 @@
 
 To są początki projektu. Obecnie jest zaimplementowana następująca funkcjonalność:
 ### Rdzeń CM7:
-- Sterowanie wyświetlaczem od Raspbery Pi 480x320 po SPI.
+- Sterowanie wyświetlaczem LCD 480x320 po magistrali SPI.
 - Odczyt i 3-punktowa kalibracja ekranu dotykowego. Do uruchomienia jest jeszcza kalibracja wielopunktowa.
 - Menu graficzne do obsługi wielu funkcjonalności, ekran powitalny z prezentacją wykrytego sprzętu.
 - Obsługa pamieci Flash NOR S29GL256S90 na magistrali równoległej 16-bit
@@ -39,15 +39,14 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 ![RC](obrazki/odbiornikRC_PPM.jpg)
 - Obsługa mikrofonu na magistrali I2S
 - Przechwytywanie obrazu z kamery DCMI
-- Uruchomiono nowy rodzaj wyświetlacza oparty o ILI9488
+- Uruchomiono nowy rodzaj znacznie tańszego wyświetlacza LCD opartego o chipset ILI9488
 - Działają podstawy transmisji TCP/IP po ethernet
 ![RC](obrazki/statystyki_internet.jpg)
 - Uruchomiono DMA2D z funkcją blendera
 - Podstawowa wersja OSD działająca na żywo na obrazie kamery lub jako sama nakładka na szarym tle 
 ![OSD](obrazki/zdj_20251109_081718.bmp) 
-- Poprawnie zapisuje monochromatyczne pliki jpeg
-- W pliku jpeg zapisuje strukturę Exif zawierajacą między innymi współrzędne GPS 
-
+- Zapisuje pliki jpeg w monochromatycznym formacie Y8, oraz kolorowych YUV444, YUV420 i YUV420. 
+- W pliku jpeg zapisuje strukturę Exif zawierajacą między innymi współrzędne GNSS 
 
 
 ### Rdzeń CM4:

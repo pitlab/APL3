@@ -43,7 +43,7 @@ uint16_t sDlugoscWierszaLogu, sMaxDlugoscWierszaLogu;
 extern RTC_TimeTypeDef sTime;
 extern RTC_DateTypeDef sDate;
 extern double dSumaZyro1[3], dSumaZyro2[3];
-extern volatile uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych na kartę SD
+extern volatile uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych z bufora danych skompresowanych
 extern volatile uint8_t chWskOprBufJpeg;	// wskazuje z którego bufora obecnie są odczytywane dane
 //extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];	//SekcjaZewnSRAM ma wyłączony cache w MPU, więc może pracować z MDMA bez konieczności czyszczenia cache
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];
@@ -55,6 +55,7 @@ extern const uint8_t chNaglJpegSOI[ROZMIAR_NAGL_JPEG];
 extern const uint8_t chNaglJpegEOI[ROZMIAR_ZNACZ_xOI];	//EOI (End Of Image)
 extern const uint8_t chNaglJpegExif[ROZMIAR_EXIF];
 extern stKonfKam_t stKonfKam;
+extern JPEG_ConfTypeDef stKonfJpeg;	//struktura konfiguracyjna JPEGa
 
 ////////////////////////////////////////////////////////////////////////////////
 // Zwraca obecność karty w gnieździe. Wymaga wcześniejszego odczytania stanu expanderów I/O, ktore czytane są w każdym obiegu pętli StartDefaultTask()
@@ -1134,7 +1135,7 @@ void ObslugaZapisuJpeg(void)
 			chStatusBufJpeg &= ~STAT_JPG_OTWORZ;	//skasuj flagę potwierdzając otwarcie pliku do zapisu
 			chStatusBufJpeg |= STAT_JPG_OTWARTY;
 
-			uint32_t nRozmiarExif = PrzygotujExif(&hjpeg, &stKonfKam, &uDaneCM4.dane, &sDate, &sTime);
+			uint32_t nRozmiarExif = PrzygotujExif(&stKonfJpeg, &stKonfKam, &uDaneCM4.dane, &sDate, &sTime);
 			nRozmiarExif = (nRozmiarExif + 3) & 0xFFFFFFFC;										//wyrównanie do 4 bajtów aby DMA się nie zacinało
 			fres |= f_write(&SDJpegFile, chNaglJpegExif, nRozmiarExif, &nZapisanoBajtow);		//exif
 		}
