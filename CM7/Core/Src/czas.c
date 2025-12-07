@@ -11,13 +11,14 @@
 
 extern RTC_HandleTypeDef hrtc;
 
-//pole bitowe określające potrzebę i stan synchronizacji lokalnego zegara z GNSS. Wartość 0 gdy nie potrzeba synchronizacji
-uint8_t chStanSynchronizacjiCzasu  = SSC_CZAS_NIESYNCHR | SSC_DATA_NIESYNCHR;
+//pole bitowe określające stan synchronizacji lokalnego zegara z GNSS. Wartość 1 gdy jest zsynchronizowana
+uint8_t chStanSynchronizacjiCzasu = 0;
 static uint8_t chPoprzedniaSekunda;
 RTC_TimeTypeDef sTime;
 RTC_DateTypeDef sDate;
 uint8_t chMinuta, chPoprzedniaMinuta;		//zmienne potrzebne do detekcji zmiany czasu przy jego wyświetlaniu
 extern TIM_HandleTypeDef htim6;
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,23 +34,46 @@ uint8_t SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 	if (stGnss->chSek != chPoprzedniaSekunda)
 	{
 		chPoprzedniaSekunda = stGnss->chSek;
-
-		if ((chStanSynchronizacjiCzasu & SSC_CZAS_NIESYNCHR) && (stGnss->chGodz != 0) && (stGnss->chMin != 0))
+		if ((chStanSynchronizacjiCzasu & SSC_MASKA_CZASU) != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR))	//gdy brak pełnej synchronizacji czasu
 		{
-			sTime.Seconds = stGnss->chSek;
-			sTime.Minutes = stGnss->chMin;
-			sTime.Hours = stGnss->chGodz;
-			chErr = HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-			chStanSynchronizacjiCzasu &= ~SSC_CZAS_NIESYNCHR;
+			//synchronizacja tylko w niezerowych sekundach lub gdy sekundy już wcześniej były zsynchronizowane
+			if (((stGnss->chSek != 0) && (stGnss->chSek < 60)) || ((chStanSynchronizacjiCzasu & SSC_SEK_SYNCHR) == 0))
+			{
+				sTime.Seconds = stGnss->chSek;
+				chStanSynchronizacjiCzasu |= SSC_SEK_SYNCHR;	//ustaw flagę synchronizacji
+				if ((stGnss->chMin != 0) && (stGnss->chMin < 60))	//synchronizacja tylko w niezerowych minutach
+				{
+					sTime.Minutes = stGnss->chMin;
+					chStanSynchronizacjiCzasu |= SSC_MIN_SYNCHR;	//ustaw flagę synchronizacji
+					//godzina == 0 to zwykle brak poprawnego czasu, ale jeżeli minuta i sekundą są niezerowe to może być czas między północą a pierwszą
+					if (stGnss->chGodz < 24)
+					{
+						sTime.Hours = stGnss->chGodz;
+						chStanSynchronizacjiCzasu |= SSC_GODZ_SYNCHR;
+						chErr = HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);		//ustaw czas gdy wszystko poprawne
+					}
+				}
+			}
 		}
 
-		if ((chStanSynchronizacjiCzasu & SSC_DATA_NIESYNCHR) && (stGnss->chRok != 0))
+		if ((chStanSynchronizacjiCzasu & SSC_MASKA_DATY) != (SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))	//gdy brak pełnej synchronizacji daty
 		{
-			sDate.Date = stGnss->chDzien;
-			sDate.Month = stGnss->chMies;
-			sDate.Year = stGnss->chRok;
-			chErr = HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-			chStanSynchronizacjiCzasu &= ~SSC_DATA_NIESYNCHR;
+			if ((stGnss->chDzien != 0) && (stGnss->chDzien <= 31))
+			{
+				sDate.Date = stGnss->chDzien;
+				chStanSynchronizacjiCzasu |= SSC_DZIEN_SYNCHR;	//ustaw flagę synchronizacji
+				if ((stGnss->chMies != 0) && (stGnss->chMies <= 12))
+				{
+					sDate.Month = stGnss->chMies;
+					chStanSynchronizacjiCzasu |= SSC_MIES_SYNCHR;	//ustaw flagę synchronizacji
+					if ((stGnss->chRok != 0) && (stGnss->chRok < 50))
+					{
+						sDate.Year = stGnss->chRok;
+						chStanSynchronizacjiCzasu |= SSC_ROK_SYNCHR;
+						chErr = HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);		//ustaw datę gdy wszystko jest poprawne
+					}
+				}
+			}
 		}
 	}
 	return chErr;

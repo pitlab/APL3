@@ -1596,8 +1596,8 @@ void StartDefaultTask(void const * argument)
 			chErr = ERR_OK;
 		}
 
-		//synchronizacja czasu
-		if (chStanSynchronizacjiCzasu)
+		//synchronizacja czasu i daty z GNSS tylko dopóki nie są w pełni zsynchroniozwane, później pracuję na RTC. Docelowo również synchronizacja z NTP
+		if (chStanSynchronizacjiCzasu != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
 			SynchronizujCzasDoGNSS(&uDaneCM4.dane.stGnss1);
 
 		//obsłuż wymowę komuniatów głosowych

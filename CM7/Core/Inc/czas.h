@@ -13,9 +13,17 @@
 #include "integer.h"
 
 //definicje flag zmiennej chStanSynchronizacjiCzasu
-#define SSC_CZAS_NIESYNCHR		0x01
-#define SSC_DATA_NIESYNCHR		0x02
+//#define SSC_CZAS_NIESYNCHR		0x01
+//#define SSC_DATA_NIESYNCHR		0x02
 
+#define SSC_GODZ_SYNCHR		0x01
+#define SSC_MIN_SYNCHR		0x02
+#define SSC_SEK_SYNCHR		0x04
+#define SSC_MASKA_CZASU		0x0F
+#define SSC_ROK_SYNCHR		0x10
+#define SSC_MIES_SYNCHR		0x20
+#define SSC_DZIEN_SYNCHR	0x40
+#define SSC_MASKA_DATY		0xF0
 
 
 uint8_t SynchronizujCzasDoGNSS(stGnss_t *stGnss);

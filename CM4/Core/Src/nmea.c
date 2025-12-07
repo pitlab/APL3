@@ -639,7 +639,7 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
         break; */
 
     case ST_RMC_UTC:
-    	if (chDaneIn == '.')
+   		if ((chDaneIn == '.') && (chRMC_Status == 'A'))
 		{
     		uDaneCM4.dane.stGnss1.chGodz = Asci2UChar(chBufStanu+0, 2) - chStrefaCzas;
     		uDaneCM4.dane.stGnss1.chMin  = Asci2UChar(chBufStanu+2, 2);
@@ -799,11 +799,11 @@ uint8_t DekodujNMEA(uint8_t chDaneIn)
     case ST_RMC_DATE:
     	if (chDaneIn == ',')
 		{
-    		if (chBajtStanu >= 4)
+    		if ((chBajtStanu >= 4) && (chRMC_Status == 'A'))
     		{
 				uDaneCM4.dane.stGnss1.chDzien = Asci2UChar(chBufStanu+0, 2);
 				uDaneCM4.dane.stGnss1.chMies  = Asci2UChar(chBufStanu+2, 2);
-				uDaneCM4.dane.stGnss1.chRok    = Asci2UChar(chBufStanu+4, 2);
+				uDaneCM4.dane.stGnss1.chRok   = Asci2UChar(chBufStanu+4, 2);
     		}
             chStan = ST_RMC_MAG_VAR;
             chBajtStanu = 0;
@@ -964,9 +964,9 @@ uint8_t DecodeLonLat(uint8_t *chDaneIn, uint8_t chLiczbaZnakow, double *dStopnie
     if ((chPoz < 3) || (chPoz > 5))   //szerokość 1-3 cyfrowa
 	return ERR_DLUGOSC_LONLAT;
 
-    *dStopnie  = (double)Asci2UChar(chDaneIn, chPoz-2);
-    *dStopnie += (double)Asci2UChar(chDaneIn+(chPoz-2), 2)/60;
-    *dStopnie += (double)Asci2ULong(chDaneIn+(chPoz+1), 4)/600000;
+    *dStopnie  = (double)Asci2UChar(chDaneIn, chPoz-2);				//2 znaki stopni
+    *dStopnie += (double)Asci2UChar(chDaneIn+(chPoz-2), 2)/60;		//2 znaki minut
+    *dStopnie += (double)Asci2ULong(chDaneIn+(chPoz+1), 4)/600000;	//4 znaki 10-tysiecznej części minuty
 
     return BLAD_OK;
 }

@@ -184,7 +184,17 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 	if (sTime.Seconds != chOstatniCzas)
 	{
-		setColor(MENU_RAM_AKT);
+		extern uint8_t chStanSynchronizacjiCzasu;
+		if (chStanSynchronizacjiCzasu == (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
+			setColor(BIALY);	//czas i data zsynchroniozwane
+		else
+		{
+			if (chStanSynchronizacjiCzasu == (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR))
+					setColor(SZARY70);	//tylko czas jest zsynchroniozwany
+			else
+				setColor(SZARY50);	//czas i data niezsynchronizowane
+		}
+
 		setBackColor(SZARY20);
 		sprintf(chNapis, "%02d:%02d:%02d", sTime.Hours,  sTime.Minutes,  sTime.Seconds);
 		RysujNapis(chNapis, DISP_X_SIZE - 8*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);

@@ -161,7 +161,7 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 	//chBufor[3] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_ORIENTATION, EXIF_TYPE_SHORT, chBufor, 2, &wskchAdresDanych, wskchPoczatekTIFF);	//wstaw dane zamiast offsetu
 
-	nRozmiar = sprintf((char*)chBufor, "%4d:%02d:%02d %02d:%02d:%02d", stData->Year + 2000, stData->Month, stData->Date, stCzas->Hours, stCzas->Minutes, stCzas->Seconds);
+	nRozmiar = sprintf((char*)chBufor, "%4d-%02d-%02d %02d:%02d:%02d", stData->Year + 2000, stData->Month, stData->Date, stCzas->Hours, stCzas->Minutes, stCzas->Seconds);
 	PrzygotujTag(&wskchAdresTAG, EXTAG_DATE_TIME, EXIF_TYPE_ASCII, chBufor, nRozmiar, &wskchAdresDanych, wskchPoczatekTIFF);
 
 	nRozmiar = sprintf((char*)chBufor, "%c %s 2025 ", 0xA9, chNapisLcd[STR_PITLAB]);
@@ -292,8 +292,8 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 
 	fTemp2 = (fTemp2 - fTemp1) * 6000.0f;	//ułamkowa część minut -> //sekundy * 100
 	fTemp1 = floorf(fTemp2);			//pełne setki sekund
-	chBufor[17] = (uint8_t)fTemp1;
-	chBufor[16] = (uint8_t)((uint16_t)fTemp1 >> 8);
+	chBufor[16] = (uint8_t)fTemp1;
+	chBufor[17] = (uint8_t)((uint16_t)fTemp1 >> 8);
 	chBufor[18] = 0;
 	chBufor[19] = 0;
 	chBufor[20] = 100;		// sekundy / 100
@@ -337,8 +337,8 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 
 	fTemp2 = (fTemp2 - fTemp1) * 6000.0f;		//ułamkowa część minut
 	fTemp1 = floorf(fTemp2);	//pełne setki sekund
-	chBufor[17] = (uint8_t)fTemp1;
-	chBufor[16] = (uint8_t)((uint16_t)fTemp1 >> 8);
+	chBufor[16] = (uint8_t)fTemp1;
+	chBufor[17] = (uint8_t)((uint16_t)fTemp1 >> 8);
 	chBufor[18] = 0;
 	chBufor[19] = 0;
 	chBufor[20] = 100;		// sekundy / 100
