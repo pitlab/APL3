@@ -28,6 +28,8 @@ extern const char *chNazwyMies3Lit[13];
 uint16_t LicznikLiniiCzyszczeniaOSD;
 uint32_t nCzasBlend, nCzasLCD;
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjuje zasoby używane przez OSD
 // Parametry:

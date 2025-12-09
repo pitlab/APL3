@@ -43,23 +43,23 @@
 #define STR_MENU_MULMETR			26
 #define STR_MENU_TEST				27
 #define STR_MENU_SETINGS			28
-#define STR_MENU_MEDIA_AUDIO		29
+#define STR_AUDIO					29
 
-#define STR_MENU_WYDAJNOSC			30
-#define STR_MENU_KARTA_SD			31
-#define STR_MENU_IMU				32
-#define STR_MENU_MAGNETOMETR		33
+#define STR_WYDAJNOSC				30
+#define STR_KARTA_SD				31
+#define STR_IMU						32
+#define STR_MAGNETOMETR				33
 #define STR_KALIBRACJA				34
 #define STR_WERYFIKACJA				35
 #define STR_MAGNETOMETRU			36
-#define STR_MAGNETOMETR				37
+#define STR_MENU					37
 #define STR_EKSTREMA				38
 #define STR_MAGN					39
 #define STR_KAL						40
 #define STR_WITAJ_MOTTO2			41
-#define STR_MENU_KALIBRACJE			42
-#define STR_MENU_POMIARY			43
-#define STR_MENU_NASTAWY			44
+#define STR_KALIBRACJE				42
+#define STR_POMIARY					43
+#define STR_NASTAWY					44
 #define STR_NASTAWY_PID				45
 #define STR_PRZECHYLENIA			46
 #define STR_POCHYLENIA				47
@@ -67,15 +67,16 @@
 #define STR_WYSOKOSCI				49
 #define STR_NAWIGACJI_N				50
 #define STR_NAWIGACJI_E				51
-#define STR_MENU_KAMERA				52
-#define STR_MENU_ETHERNET			53
+#define STR_KAMERA					52
+#define STR_ETHERNET				53
 #define STR_DOTKNIJ_ABY_SKALIBROWAC	54
-#define STR_MENU_OSD				55
+#define STR_OSD						55
 #define STR_PITLAB					56
 #define STR_EXIF					57
 #define STR_JPEG					58
+#define STR_TESTY					59
 //#define STR_
-#define MAX_NAPISOW					59	//liczba napisów
+#define MAX_NAPISOW					61	//liczba napisów
 
 
 

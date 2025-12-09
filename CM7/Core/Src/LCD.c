@@ -141,6 +141,7 @@ extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDR
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforTestowyDRAM[100];
 extern stKonfKam_t stKonfKam;
 extern uint32_t nRozmiarObrazuKamery;
 extern stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
@@ -167,10 +168,10 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Nastawy",  	"Ustawienia podsystemow",					TP_NASTAWY, 		obr_konfiguracja},
 	{"Wydajnosc",	"Pomiary wydajnosci systemow",				TP_WYDAJNOSC,		obr_Wydajnosc},
 	{"Karta SD",	"Rejestrator i parametry karty SD",			TP_KARTA_SD,		obr_kartaSD},
-	{"Ethernet",	"Obsłga ethernetu",							TP_ETHERNET,		obr_Polaczenie},
-	{"Test BMP",	"Test BMP",									TP_TEST_BMP,		obr_narzedzia},
-	{"OSD",			"Testy OSD",								TP_MENU_OSD,		obr_aparat},
-	{"Kamera",		"Obsługa kamery",							TP_MEDIA_KAMERA,	obr_kamera},
+	{"Ethernet",	"Obsluga ethernetu",						TP_ETHERNET,		obr_Polaczenie},
+	{"Testy",		"Test",										TP_TESTY,			obr_narzedzia},
+	{"OSD",			"Obsluga OSD",								TP_MENU_OSD,		obr_aparat},
+	{"Kamera",		"Obsluga kamery",							TP_MEDIA_KAMERA,	obr_kamera},
 	{"Audio",  		"Obsluga multimediow: dzwiek i obraz",		TP_MEDIA_AUDIO,		obr_glosnik1}};
 
 
@@ -293,6 +294,19 @@ struct tmenu stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										ET_ETH1,			obr_Polaczenie},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
+struct tmenu stMenuTestowe[MENU_WIERSZE * MENU_KOLUMNY]  = {
+	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
+	{"nic",			"nic",										TP_TEST1,			obr_narzedzia},
+	{"nic",			"nic",										TP_TEST2,			obr_narzedzia},
+	{"nic",			"nic",										TP_TEST3,			obr_narzedzia},
+	{"nic",			"nic",										TP_TEST4,			obr_narzedzia},
+	{"Zap. DRAM",	"nic",										TP_TEST5,			obr_narzedzia},
+	{"nic",			"nic",										TP_TEST6,			obr_narzedzia},
+	{"nic",			"nic",										TP_TEST7,			obr_narzedzia},
+	{"nic",			"nic",										TP_TEST8,			obr_narzedzia},
+	{"nic",			"nic",										TP_TEST9,			obr_narzedzia},
+	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
+
 struct tmenu stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Zyro Zimno", 	"Kalibracja zera zyroskopow w 10C",			TP_KAL_ZYRO_ZIM,	obr_zyroskop},
@@ -338,8 +352,10 @@ uint8_t RysujEkran(void)
 
 	switch (chTrybPracy)
 	{
-	case TP_MENU_GLOWNE:	// wyświetla menu główne	MenuGlowne(&chNowyTrybPracy);
-		Menu((char*)chNapisLcd[STR_MENU_MAIN], stMenuGlowne, &chNowyTrybPracy);
+	case TP_MENU_GLOWNE:	// wyświetla menu główne
+		//Menu((char*)chNapisLcd[STR_MENU_MAIN], stMenuGlowne, &chNowyTrybPracy);
+		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_MENU_MAIN]);
+		Menu(chNapisPodreczny, stMenuGlowne, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -358,34 +374,62 @@ uint8_t RysujEkran(void)
 			chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
-
-	case TP_TEST_BMP:	//testuje funkcje zapisu kolorowego BMP
-		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);		//kolor
-		if (chErr)
-			break;
-		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//kolor
-		if (chErr)
-			break;
-		do
-		{
-			chTimeout = 60;
-			while (!chObrazKameryGotowy && chTimeout)	//synchronizuj się do początku nowej klatki obrazu
-			{
-				osDelay(1);
-				chTimeout--;
-			}
-			chObrazKameryGotowy = 0;
-			KonwersjaRGB565doRGB666(sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
-			RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);	//wyświetla obraz z kamery na LCD
-		}
-		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-				chNowyTrybPracy = TP_WROC_DO_MENU;
+	//*** Menu Testy ************************************************
+	case TP_TESTY:
+		//Menu(strcat((char*)chNapisLcd[STR_TESTY], (char*)chNapisLcd[STR_MENU]), stMenuTestowe, &chNowyTrybPracy);
+		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_TESTY]);
+		Menu(chNapisPodreczny, stMenuTestowe, &chNowyTrybPracy);
+		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
+
+
+
+	case TP_TEST1:
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_TESTY;
+		}
+		break;
+
+	case TP_TEST2:
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_TESTY;
+		}
+		break;
+
+	case TP_TEST3:
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_TESTY;
+		}
+		break;
+
+	case TP_TEST4:
+	case TP_TEST5:
+		for (uint8_t n=0; n<100; n++)
+			chBuforTestowyDRAM[n] = n;
+		chTrybPracy = chWrocDoTrybu;
+		chNowyTrybPracy = TP_WROC_DO_TESTY;
+		break;
+
+	case TP_TEST6:
+	case TP_TEST7:
+	case TP_TEST8:
+	case TP_TEST9:
+
+
+
 
 
 	//*** Audio ************************************************
 	case TP_MEDIA_AUDIO:
-		Menu((char*)chNapisLcd[STR_MENU_MEDIA_AUDIO], stMenuAudio, &chNowyTrybPracy);
+		//Menu(strcat((char*)chNapisLcd[STR_MENU_MEDIA_AUDIO], (char*)chNapisLcd[STR_MENU]), stMenuAudio, &chNowyTrybPracy);
+		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_AUDIO]);
+		Menu(chNapisPodreczny, stMenuAudio, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -412,7 +456,7 @@ uint8_t RysujEkran(void)
 			RysujNapis(chNapis, 10, 5);
 			RysujPrzebieg(0, sBuforPapuga, SZARY80);
 		}
-		//znajdź minimum z ostatniej próbki robiegowej
+		//znajdź minimum z ostatniej próbki rozbiegowej
 		for (int16_t x=0; x<DISP_X_SIZE; x++)
 		{
 			if (sBuforPapuga[x] < sMin)
@@ -520,7 +564,9 @@ uint8_t RysujEkran(void)
 
 	//*** Kamera ************************************************
 	case TP_MEDIA_KAMERA:			//menu kamera
-		Menu((char*)chNapisLcd[STR_MENU_KAMERA], stMenuKamera, &chNowyTrybPracy);
+		//Menu((char*)chNapisLcd[STR_MENU_KAMERA], stMenuKamera, &chNowyTrybPracy);
+		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KAMERA]);
+		Menu(chNapisPodreczny, stMenuKamera, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -566,6 +612,7 @@ uint8_t RysujEkran(void)
 		stKonfOSD.sWysokosc = DISP_Y_SIZE;
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);	//czyść poprzednią zawartość
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
+		chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 		RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
@@ -587,19 +634,25 @@ uint8_t RysujEkran(void)
 		break;
 
 	case TP_KAM_DRAM:	//ciagła praca kamery z pamięcią DRAM
-		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
-		//UstawObrazKameryRGB565(DISP_X_SIZE, DISP_Y_SIZE);
+		stKonfOSD.chOSDWlaczone = 0;	//wyłacz OSD z histogramem
+		//stKonfOSD.chOSDWlaczone = 1;	//włacz OSD z histogramem
+		stKonfOSD.sSzerokosc = DISP_X_SIZE;
+		stKonfOSD.sWysokosc = DISP_Y_SIZE;
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
+		//chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKameryDRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 		RozpocznijPraceDCMI(&stKonfKam, sBuforKameryDRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
+			//LiczHistogramRGB565(sBuforKameryDRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
+			RysujHistogramOSD_RGB32(chBuforOSD, chHistR, chHistG, chHistB);
 			KonwersjaRGB565doRGB666(sBuforKameryDRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
 			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
-			LiczHistogramRGB565(sBuforKameryDRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
-			RysujHistogramRGB32(chHistR, chHistG, chHistB);
+
+			//RysujHistogramRGB32(chHistR, chHistG, chHistB);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		stKonfOSD.chOSDWlaczone = 0;	//wyłącz OSD
 		break;
 
 
@@ -841,7 +894,9 @@ uint8_t RysujEkran(void)
 
 	//*** OSD ************************************************
 	case TP_MENU_OSD:
-		Menu((char*)chNapisLcd[STR_MENU_OSD], stMenuOsd, &chNowyTrybPracy);
+		//Menu((char*)chNapisLcd[STR_MENU_OSD], stMenuOsd, &chNowyTrybPracy);
+		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_OSD]);
+		Menu(chNapisPodreczny, stMenuOsd, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1002,7 +1057,9 @@ uint8_t RysujEkran(void)
 
 	//*** Ethernet ************************************************
 	case TP_ETHERNET:
-		Menu((char*)chNapisLcd[STR_MENU_ETHERNET], stMenuEthernet, &chNowyTrybPracy);
+		//Menu((char*)chNapisLcd[STR_MENU_ETHERNET], stMenuEthernet, &chNowyTrybPracy);
+		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_ETHERNET]);
+		Menu(chNapisPodreczny, stMenuEthernet, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1070,7 +1127,9 @@ uint8_t RysujEkran(void)
 
 	//*** Wydajność ************************************************
 	case TP_WYDAJNOSC:			///menu pomiarów wydajności
-		Menu((char*)chNapisLcd[STR_MENU_WYDAJNOSC], stMenuWydajnosc, &chNowyTrybPracy);
+		//Menu((char*)chNapisLcd[STR_MENU_WYDAJNOSC], stMenuWydajnosc, &chNowyTrybPracy);
+		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_WYDAJNOSC]);
+		Menu(chNapisPodreczny, stMenuWydajnosc, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1219,7 +1278,9 @@ uint8_t RysujEkran(void)
 
 	//*** Karta SD ************************************************
 	case TP_KARTA_SD:			///menu Karta SD
-		Menu((char*)chNapisLcd[STR_MENU_KARTA_SD], stMenuKartaSD, &chNowyTrybPracy);
+		//Menu((char*)chNapisLcd[STR_MENU_KARTA_SD], stMenuKartaSD, &chNowyTrybPracy);
+		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KARTA_SD]);
+		Menu(chNapisPodreczny, stMenuKartaSD, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1306,7 +1367,9 @@ uint8_t RysujEkran(void)
 
 //*** IMU ************************************************
 	case TP_KAL_IMU:			//menu kalibracji IMU
-		Menu((char*)chNapisLcd[STR_MENU_IMU], stMenuIMU, &chNowyTrybPracy);
+		//Menu((char*)chNapisLcd[STR_MENU_IMU], stMenuIMU, &chNowyTrybPracy);
+		sprintf(chNapisPodreczny, "%s %s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KALIBRACJA], chNapisLcd[STR_IMU]);
+		Menu(chNapisPodreczny, stMenuIMU, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1442,7 +1505,9 @@ uint8_t RysujEkran(void)
 
 //*** Magnetometr ************************************************
 	case TP_MAGNETOMETR:	//menu obsługi magnetometru
-		Menu((char*)chNapisLcd[STR_MENU_MAGNETOMETR], stMenuMagnetometr, &chNowyTrybPracy);
+		//Menu((char*)chNapisLcd[STR_MENU_MAGNETOMETR], stMenuMagnetometr, &chNowyTrybPracy);
+		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_MAGNETOMETR]);
+		Menu(chNapisPodreczny, stMenuMagnetometr, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		chSekwencerKalibracji = 0;
 		break;
@@ -1521,7 +1586,9 @@ uint8_t RysujEkran(void)
 
 //*** Kalibracje ************************************************
 	case TP_KALIBRACJE:		//menu skupiające różne kalibracje
-		Menu((char*)chNapisLcd[STR_MENU_KALIBRACJE], stMenuKalibracje, &chNowyTrybPracy);
+		//Menu((char*)chNapisLcd[STR_MENU_KALIBRACJE], stMenuKalibracje, &chNowyTrybPracy);
+		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KALIBRACJE]);
+		Menu(chNapisPodreczny, stMenuKalibracje, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1536,7 +1603,9 @@ uint8_t RysujEkran(void)
 
 //*** Pomiary ************************************************
 	case TP_POMIARY:		//menu skupiające różne kalibracje
-		Menu((char*)chNapisLcd[STR_MENU_POMIARY], stMenuPomiary, &chNowyTrybPracy);
+		//Menu((char*)chNapisLcd[STR_MENU_POMIARY], stMenuPomiary, &chNowyTrybPracy);
+		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_POMIARY]);
+		Menu(chNapisPodreczny, stMenuPomiary, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1571,7 +1640,9 @@ uint8_t RysujEkran(void)
 
 //*** Nastawy ************************************************
 	case TP_NASTAWY:		//menu skupiające różne kalibracje
-		Menu((char*)chNapisLcd[STR_MENU_NASTAWY], stMenuNastawy, &chNowyTrybPracy);
+		//Menu((char*)chNapisLcd[STR_MENU_NASTAWY], stMenuNastawy, &chNowyTrybPracy);
+		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_NASTAWY]);
+		Menu(chNapisPodreczny, stMenuNastawy, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1664,6 +1735,7 @@ uint8_t RysujEkran(void)
 		case TP_WROC_DO_NASTAWY:	chTrybPracy = TP_NASTAWY;		break;	//powrót do menu Nastawy
 		case TP_FRAKTALE:			InitFraktal(0);		break;
 		case TP_WROC_DO_ETH:		chTrybPracy = TP_ETHERNET;		break;	//powrót do menu Ethernet
+		case TP_WROC_DO_TESTY:		chTrybPracy = TP_TESTY;			break;	//powrót do menu Testy
 		}
 
 		WypelnijEkran(CZARNY);
@@ -1861,20 +1933,6 @@ void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fP
 		sprintf(chNapis, (const char*)chOpisBledow[chKomunikatBledu], fParametr1 - KELVIN, ZNAK_STOPIEN, fParametr2 - fParametr3 - KELVIN, ZNAK_STOPIEN, fParametr2 + fParametr3 -  KELVIN, ZNAK_STOPIEN);	break;	//"Zbyt niska temeratura zyroskopow wynoszaca %d%cC. Musi miescic sie w granicach od %d%cC do %d%cC",
 	}
 	RysujNapiswRamce(chNapis, 20, 90, 440, 200);
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Rysuje ekran menu głównego
-// Parametry:
-// *tryb - wskaźnik na numer pozycji menu
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void MenuGlowne(uint8_t *chTryb)
-{
-	Menu((char*)chNapisLcd[STR_MENU_MAIN], stMenuGlowne, chTryb);
-	chWrocDoTrybu = TP_MENU_GLOWNE;
 }
 
 

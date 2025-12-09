@@ -82,7 +82,7 @@
 #define TP_WYSWIETL_BLAD	19	//wyświetl kod błędu
 #define TP_MAGNETOMETR		20	//menu obsługi magnetometru
 #define TP_TEST_OSD			21
-#define TP_TEST_BMP			22
+#define TP_TESTY			22	//menu testy
 
 
 //polecenia menu Wydajność
@@ -200,6 +200,17 @@
 #define TPO_ZAPIS_BMP		138
 #define TP_WROC_DO_OSD		139
 
+//polecenie manu Testy
+#define TP_WROC_DO_TESTY	140
+#define TP_TEST1			141
+#define TP_TEST2			142
+#define TP_TEST3			143
+#define TP_TEST4			144
+#define TP_TEST5			145
+#define TP_TEST6			146
+#define TP_TEST7			147
+#define TP_TEST8			148
+#define TP_TEST9			149
 
 //flagi inicjalizacj sprzetu na płytce
 #define INIT_FLASH_NOR		0x00000001

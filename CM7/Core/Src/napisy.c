@@ -41,28 +41,28 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Ublox",							//STR_SPRAWDZ_UBLOX
 "nic",								//STR_SPRAWDZ_
 "Dotyk:",							//STR_TEST_TOUCH
-"Menu Glowne",						//STR_MENU_MAIN			max 17 znaków
+"Glowne",							//STR_MENU_MAIN			max 17 znaków
 "nic",								//STR_MENU_PROTOCOLS	max 17 znaków
 "nic",								//STR_MENU_MULMETR		max 17 znaków
 "nic",								//STR_MENU_TEST			max 17 znaków
 "Menu Ustawien",					//STR_MENU_SETINGS
-"Menu audio",						//STR_MENU_MEDIA_AUDIO
+"Audio",							//STR_AUDIO
 
-"Menu Wydajnosc",					//STR_MENU_WYDAJNOSC
-"Menu Karta SD",					//STR_MENU_KARTA_SD
-"Menu kalibracji IMU",				//STR_MENU_IMU
-"Menu Magnetometr",					//STR_MENU_MAGNETOMETR
+"Wydajnosc",						//STR_WYDAJNOSC
+"Karta SD",							//STR_KARTA_SD
+"IMU",								//STR_IMU
+"Magnetometr",						//STR_MAGNETOMETR
 "Kalibracja",						//STR_KALIBRACJA
 "Weryfikacja",						//STR_WERYFIKACJA
 "magnetometru",						//STR_MAGNETOMETRU
-"Magnetometr",						//STR_MAGNETOMETR
+"Menu",								//STR_MENU
 "Ekstrema",							//STR_EKSTREMA
 "Magn",								//STR_MAGN - skrótowa nazwa magnetometru
 "Kal",								//STR_KAL - skrótowa nazwa kalibracji
 "By m%cc zm%cc wra%ce hordy rojem Wron%cw",	//STR_WITAJ_MOTTO2
-"Menu kalibracji czujnikow",		//STR_MENU_KALIBRACJE
-"Menu pomiarow", 					//STR_MENU_POMIARY
-"Menu nastw podsystemow",	 		//STR_MENU_NASTAWY
+"kalibracji czujnikow",				//STR_KALIBRACJE
+"Pomiary",		 					//STR_POMIARY
+"nastwy podsystemow",	 			//STR_NASTAWY
 "Nastawy PID",						//STR_NASTAWY_PID
 "przechylenia",						//STR_PRZECHYLENIA
 "pochylenia",						//STR_POCHYLENIA
@@ -70,13 +70,14 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "wysokosci",						//STR_WYSOKOSCI
 "nawigacji N",						//STR_NAWIGACJI_N
 "nawigacji E",						//STR_NAWIGACJI_E
-"Menu kamera",						//STR_MENU_KAMERA
-"Menu Ethernet",					//STR_MENU_ETHERNET
+"Kamera",							//STR_KAMERA
+"Ethernet",							//STR_ETHERNET
 "Dotknij krzyzyk aby skalibrowac ekran",	//STR_DOTKNIJ_ABY_SKALIBROWAC
-"Menu OSD",							//STR_MENU_OSD
+"OSD",								//STR_OSD
 "PitLab",							//STR_PITLAB
 "Exif",								//STR_EXIF
 "JPEG",								//STR_JPEG
+"Testy",							//STR_TESTY
 };
 
 
