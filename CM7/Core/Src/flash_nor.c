@@ -33,27 +33,7 @@ extern SDRAM_HandleTypeDef hsdram1;
 uint8_t InicjujFlashNOR(void)
 {
 	uint8_t chErr;
-	//FMC_NORSRAM_TimingTypeDef Timing = {0};
-	//FMC_SDRAM_TimingTypeDef SdramTiming = {0};
-
 	extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
-	//extern void Error_Handler(void);
-
-	/* Pamięć jest taktowana zegarem 200 MHz, daje to okres 5ns
-	 * Włączenie FIFO, właczenie wszystkich uprawnień na MPU Cortexa nic nie daje
-	  Dla tych parametrów zapis bufor 512B ma przepustowość 258kB/s, odczyt danych 45,5MB/s   */
-/*	Timing.AddressSetupTime = 0;		//0ns
-	Timing.AddressHoldTime = 6;			//45ns	45/10 => 5
-	Timing.DataSetupTime = 18;			//90ns/5ns = 18
-	Timing.BusTurnAroundDuration = 3;	//tyko dla multipleksowanego NOR
-	Timing.CLKDivision = 2;				//200/2=100MHz -> 10ns
-	Timing.DataLatency = 2;
-	Timing.AccessMode = FMC_ACCESS_MODE_A;
-	if (HAL_NOR_Init(&hnor3, &Timing, NULL) != HAL_OK)
-		Error_Handler( ); */
-
-
-	//HAL_NOR_ReturnToReadMode(&hnor3);		//ustaw pamięć w tryb odczytu
 
 	//ręcznie włącz Bit 13 WAITEN: Wait enable bit oraz Bit 11 WAITCFG: Wait timing configuration,ponieważ sterownik HAL go nie włącza
 	//indeksy struktury BTCR są wspólne dla rejestrów BCRx i RTRx, więc BCR3 ma indeks 4
