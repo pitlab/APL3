@@ -38,10 +38,12 @@
 #include "cmsis_os.h"
 #include "osd.h"
 
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[SZER_ZDJECIA * WYS_ZDJECIA / 2] = {0};
+//uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[SZER_ZDJECIA * WYS_ZDJECIA / 2] = {0};
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamerySRAM[SZER_ZDJECIA * WYS_ZDJECIA] = {0};
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};
-//struct st_KonfKam stKonfKam;
-//static struct st_KonfKam stPoprzKonfig;	//zmienna lokalna
+extern uint8_t chBuforJpeg[ROZM_BUF_WY_JPEG];
+extern uint8_t chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
+extern uint8_t chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * ROZMIAR_KOLORU_OSD];	//pamięć obrazu OSD
 stKonfKam_t stKonfKam;
 static stKonfKam_t stPoprzKonfig;
 struct sensor_reg stListaRejestrow[ROZMIAR_STRUKTURY_REJESTROW_KAMERY];
@@ -54,21 +56,15 @@ extern DMA2D_HandleTypeDef hdma2d;
 extern TIM_HandleTypeDef htim12;
 extern I2C_HandleTypeDef hi2c2;
 extern const struct sensor_reg OV5642_RGB_QVGA[];
-extern const struct sensor_reg ov5642_dvp_fmt_global_init[];
-extern const struct sensor_reg OV5642_VGA_preview_setting[];
 extern const uint8_t chAdres_expandera[];
 extern uint8_t chPort_exp_wysylany[];
-extern uint8_t chBuforJpeg[ROZM_BUF_WY_JPEG];
 extern JPEG_HandleTypeDef hjpeg;
 extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint32_t nRozmiarObrazuKamery;	//w bajtach
 volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
 stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * ROZMIAR_KOLORU_OSD];	//pamięć obrazu OSD
 uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
 volatile uint8_t chBladKamery;	//1=HAL_DCMI_ERROR_OVR, 2=DCMI_ERROR_SYNC, 3=HAL_DCMI_ERROR_TIMEOUT, 4=HAL_DCMI_ERROR_DMA
-//volatile uint8_t chTrybPracyKamery;	//steruje co dalej robić z obrazem pozyskanym przez DCMI
 extern uint32_t nCzasBlend, nCzasLCD;
 extern stKonfOsd_t stKonfOSD;
 
@@ -125,11 +121,7 @@ uint8_t InicjalizujKamere(void)
 	Wyslij_I2C_Kamera(0x3103, 0x93);	//PLL clock select: [1] PLL input clock: 1=from pre-divider
 	Wyslij_I2C_Kamera(0x3008, 0x82);	//system control 00: [7] software reset mode, [6] software power down mode {def=0x02}
 	HAL_Delay(2);						//Reset settling time <1ms
-	/*chErr = Wyslij_Blok_Kamera(ov5642_dvp_fmt_global_init);		//174ms @ 20MHz
-	if (chErr)
-		return chErr;*/
 
-	//chErr = Wyslij_Blok_Kamera(OV5642_VGA_preview_setting);
 	chErr = Wyslij_Blok_Kamera(OV5642_RGB_QVGA);					//150ms @ 20MHz
 	if (chErr)
 		return chErr;

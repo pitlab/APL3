@@ -96,7 +96,7 @@ extern const unsigned short obr_zyroskop[0xFFC];
 extern const char *chNapisLcd[MAX_NAPISOW];
 extern const char *chOpisBledow[MAX_KOMUNIKATOW];
 extern const char *chNazwyMies3Lit[13];
-extern int16_t __attribute__ ((aligned (16))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforPapuga[ROZMIAR_BUFORA_PAPUGI];
+extern int16_t sBuforPapuga[ROZMIAR_BUFORA_PAPUGI];
 //definicje zmiennych
 uint8_t chTrybPracy;
 uint8_t chNowyTrybPracy;
@@ -136,11 +136,11 @@ prostokat_t stWykr;	//wykres biegunowy magnetometru
 uint8_t chHistR[ROZMIAR_HIST_KOLOR], chHistG[ROZMIAR_HIST_KOLOR], chHistB[ROZMIAR_HIST_KOLOR];
 uint8_t chHistCB8[ROZMIAR_HIST_CB8];
 
-extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[ROZM_BUF_YUV420];
-extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM];
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];
+extern uint16_t sBuforKamerySRAM[ROZM_BUF_YUV420];
+extern uint16_t sBuforKameryDRAM[ROZM_BUF16_KAM];
+extern uint8_t chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
+extern uint8_t chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
+extern uint8_t chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforTestowyDRAM[100];
 extern stKonfKam_t stKonfKam;
 extern uint32_t nRozmiarObrazuKamery;

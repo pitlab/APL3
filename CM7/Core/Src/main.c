@@ -1474,6 +1474,7 @@ void MX_FMC_Init(void)
   //Row Cycle Time during Auto Refresh	66ns
 
 
+  //obsluga na podstawie: https://community.st.com/t5/stm32-mcus/how-to-set-up-the-fmc-peripheral-to-interface-with-the-sdram/ta-p/49457
   	FMC_SDRAM_CommandTypeDef Command;
 	/* Step 1 and Step 2 already done in HAL_SDRAM_Init() */
 	/* Step 3: Configure a clock configuration enable command */

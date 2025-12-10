@@ -10,7 +10,6 @@
 
 #include "sys_def_CM7.h"
 
-void SDRAM_Initialization_Sequence(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_CommandTypeDef *Command);
 void TestPredkosciOdczytuNOR(void);
 void TestPredkosciOdczytuRAM(void);
 uint8_t TestPredkosciZapisuNOR(void);

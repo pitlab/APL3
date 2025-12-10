@@ -12,8 +12,8 @@
 
 
 #define ROZM_BUF_WY_JPEG	8192	//16 sektorów, 1 jednostka alokacji FAT32
-#define ILOSC_BUF_JPEG		4		//buforowanie x4
-#define MASKA_LICZBY_BUF	0x03	//maska do przycinania wskaźnika buforów
+#define ILOSC_BUF_JPEG		8		//buforowanie zapisu danych na karte
+#define MASKA_LICZBY_BUF	0x07	//maska do przycinania roznącego wskaźnika buforów
 #define SZEROKOSC_BLOKU		8
 #define WYSOKOSC_BLOKU		8
 #define ROZMIAR_BLOKU		(SZEROKOSC_BLOKU * WYSOKOSC_BLOKU)
