@@ -24,6 +24,8 @@
 #include "usbd_def.h"
 #include "usbd_core.h"
 #include "usbd_cdc.h"
+#include "sys_def_CM7.h"
+#include "moduly_SPI.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -35,7 +37,8 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+extern uint8_t chPort_exp_wysylany[];
+extern const uint8_t chAdres_expandera[];
 /* USER CODE END PV */
 
 PCD_HandleTypeDef hpcd_USB_OTG_HS;
@@ -333,6 +336,18 @@ static void PCD_ConnectCallback(PCD_HandleTypeDef *hpcd)
 void HAL_PCD_ConnectCallback(PCD_HandleTypeDef *hpcd)
 #endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
 {
+	/*uint8_t chErr;
+
+	chPort_exp_wysylany[1] &= ~EXP17_USB_EN;		//USB_EN - włącznik transmisji USB. Wykonawcą jest tranzystor PNP, więc 0 = właczony, 1 = wyłaczony
+	do
+	{
+		//chErr = WyslijDaneExpandera(chAdres_expandera[1], chPort_exp_wysylany[1]);
+		chErr = WymienDaneExpanderow();
+		//if (chErr)
+			//osDelay(5);
+	}
+	while (chErr != BLAD_OK);*/
+
   USBD_LL_DevConnected((USBD_HandleTypeDef*)hpcd->pData);
 }
 
@@ -347,6 +362,16 @@ static void PCD_DisconnectCallback(PCD_HandleTypeDef *hpcd)
 void HAL_PCD_DisconnectCallback(PCD_HandleTypeDef *hpcd)
 #endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
 {
+	uint8_t chErr;
+	chPort_exp_wysylany[1] |= EXP17_USB_EN;		//USB_EN - włącznik transmisji USB. Wykonawcą jest tranzystor PNP, więc 0 = właczony, 1 = wyłaczony
+	do
+	{
+		//chErr = WyslijDaneExpandera(chAdres_expandera[1], chPort_exp_wysylany[1]);
+		chErr = WymienDaneExpanderow();
+		//if (chErr)
+			//osDelay(5);
+	}
+	while (chErr != BLAD_OK);
   USBD_LL_DevDisconnected((USBD_HandleTypeDef*)hpcd->pData);
 }
 

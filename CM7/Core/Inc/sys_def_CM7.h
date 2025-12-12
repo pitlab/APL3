@@ -43,7 +43,7 @@
 #define EXP14_AUDIO_OUT_SD	0x10	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
 #define EXP15_ETH_RMII_EXER	0x20	//ETH_RMII_EXER - wejście sygnału błędu transmisji ETH
 #define EXP16_BMS_I2C_SW	0x40	//BMS_I2C_SW - przełacznik zegara I2C miedzy pakietami
-#define EXP17_USB_EN		0x80	//USB_EN - włącznik transmisji USB
+#define EXP17_USB_EN		0x80	//USB_EN - włącznik pull-up na rezystorze 1,5k na linii D+ USB. Wykonawcą jest tranzystor PNP, więc 0 = właczony, 1 = wyłaczony
 
 #define EXP20_ZASIL_WE1		0x01	//ZASIL_WL_WE1 - wyjście
 #define EXP21_ZASIL_WE2		0x02	//ZASIL_WL_WE2 - wyjście

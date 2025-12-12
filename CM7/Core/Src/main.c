@@ -1612,6 +1612,7 @@ void StartDefaultTask(void const * argument)
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
 	uint8_t chStanDekodera;
+	chPort_exp_wysylany[1] &= ~EXP17_USB_EN;		//USB_EN - włącznik pull-up na rezystorze 1,5k na linii D+ USB. Wykonawcą jest tranzystor PNP, więc 0 = właczony, 1 = wyłaczony
 	for(;;)
 	{
 		chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
