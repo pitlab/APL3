@@ -24,8 +24,6 @@
 #include "usbd_def.h"
 #include "usbd_core.h"
 #include "usbd_cdc.h"
-#include "sys_def_CM7.h"
-#include "moduly_SPI.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -101,11 +99,6 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF12_OTG2_FS;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = GPIO_PIN_13;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = GPIO_PIN_14|GPIO_PIN_15;
@@ -250,6 +243,19 @@ void HAL_PCD_ResetCallback(PCD_HandleTypeDef *hpcd)
 
   /* Reset Device. */
   USBD_LL_Reset((USBD_HandleTypeDef*)hpcd->pData);
+
+  /*/--- FIX: prepare EP0 OUT to receive SETUP
+  static uint8_t setup_buffer[8];
+
+  USB_OTG_OUTEndpointTypeDef *out0 = &hpcd->OUT_ep[0];
+  // Prepare EP0 OUT for SETUP
+  out0->DOEPTSIZ =       (3U << 29) |   // SUPCNT = 3 (setup packets)
+	      (1U << 19) |   // PKTCNT = 1
+	      (8U << 0);     // XFRSIZ = 8 bytes (SETUP)
+
+  out0->DOEPCTL |= USB_OTG_DOEPCTL_EPENA | USB_OTG_DOEPCTL_USBAEP;
+
+  HAL_PCD_EP_Receive(hpcd, 0x00, setup_buffer, 8);*/
 }
 
 /**
@@ -336,18 +342,6 @@ static void PCD_ConnectCallback(PCD_HandleTypeDef *hpcd)
 void HAL_PCD_ConnectCallback(PCD_HandleTypeDef *hpcd)
 #endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
 {
-	/*uint8_t chErr;
-
-	chPort_exp_wysylany[1] &= ~EXP17_USB_EN;		//USB_EN - włącznik transmisji USB. Wykonawcą jest tranzystor PNP, więc 0 = właczony, 1 = wyłaczony
-	do
-	{
-		//chErr = WyslijDaneExpandera(chAdres_expandera[1], chPort_exp_wysylany[1]);
-		chErr = WymienDaneExpanderow();
-		//if (chErr)
-			//osDelay(5);
-	}
-	while (chErr != BLAD_OK);*/
-
   USBD_LL_DevConnected((USBD_HandleTypeDef*)hpcd->pData);
 }
 
@@ -362,16 +356,6 @@ static void PCD_DisconnectCallback(PCD_HandleTypeDef *hpcd)
 void HAL_PCD_DisconnectCallback(PCD_HandleTypeDef *hpcd)
 #endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
 {
-	uint8_t chErr;
-	chPort_exp_wysylany[1] |= EXP17_USB_EN;		//USB_EN - włącznik transmisji USB. Wykonawcą jest tranzystor PNP, więc 0 = właczony, 1 = wyłaczony
-	do
-	{
-		//chErr = WyslijDaneExpandera(chAdres_expandera[1], chPort_exp_wysylany[1]);
-		chErr = WymienDaneExpanderow();
-		//if (chErr)
-			//osDelay(5);
-	}
-	while (chErr != BLAD_OK);
   USBD_LL_DevDisconnected((USBD_HandleTypeDef*)hpcd->pData);
 }
 
@@ -399,8 +383,8 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
   hpcd_USB_OTG_HS.Init.phy_itface = USB_OTG_EMBEDDED_PHY;
   hpcd_USB_OTG_HS.Init.Sof_enable = DISABLE;
   hpcd_USB_OTG_HS.Init.low_power_enable = DISABLE;
-  hpcd_USB_OTG_HS.Init.lpm_enable = ENABLE;
-  hpcd_USB_OTG_HS.Init.vbus_sensing_enable = ENABLE;
+  hpcd_USB_OTG_HS.Init.lpm_enable = DISABLE;
+  hpcd_USB_OTG_HS.Init.vbus_sensing_enable = DISABLE;
   hpcd_USB_OTG_HS.Init.use_dedicated_ep1 = ENABLE;
   hpcd_USB_OTG_HS.Init.use_external_vbus = DISABLE;
   if (HAL_PCD_Init(&hpcd_USB_OTG_HS) != HAL_OK)
