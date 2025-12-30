@@ -13,6 +13,8 @@
 #include "dshot.h"
 
 //definicje SBus: https://github.com/uzh-rpg/rpg_quadrotor_control/wiki/SBUS-Protocol
+//S-Bus oraz DShot mają rozdzielczość 11-bitów, wiec przyjmuję taką rozdzielczość sterowania
+
 
 stRC_t stRC;	//struktura danych odbiorników RC
 extern unia_wymianyCM4_t uDaneCM4;

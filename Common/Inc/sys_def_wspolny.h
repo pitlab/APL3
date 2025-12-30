@@ -20,7 +20,7 @@
 #define INIT_TRWA_KAL_ZYRO_GOR	0x00040000	//trwa kalibracja zera żyroskopu na gorąco
 #define INIT_WYK_KAL_WZM_ZYRO	0x00080000	//wykonano kalibrację wzmocnienia żyroskopu w danej osi
 
-
+#define TESTY		//włacz testowanie algorytmów, można wyłaczyć dla _nieświadowego_ końcowego użytkownika
 #define RAD2DEG				(180/M_PI)
 #define DEG2RAD				(M_PI/180)
 #define KELVIN				273.15f

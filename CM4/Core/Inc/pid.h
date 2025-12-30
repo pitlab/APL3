@@ -15,3 +15,4 @@ uint8_t InicjujPID(void);
 float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPID_t *konfig);
 void ResetujCalkePID(void);
 uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig);
+void TestPID(void);

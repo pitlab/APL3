@@ -217,6 +217,12 @@ int main(void)
   InicjujPID();
   InicjujMikser();
   InicjujADC();
+
+
+#ifdef TESTY		//testy algorytmów
+  TestyFram();
+  TestPID();
+#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */

@@ -192,7 +192,7 @@ struct tmenu stMenuKalibracje[MENU_WIERSZE * MENU_KOLUMNY]  = {
 struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
-	{"Dane cisn",	"Wyniki pomiarow czujnikow cisnienia",		TP_POMIARY_CISN, 	obr_multimetr},
+	{"Cisn GNSS",	"Wyniki pom. czujnikow cisnienia i GNSS",	TP_POMIARY_CISN, 	obr_multimetr},
 	{"Dane RC",		"Dane z odbiornika RC",						TP_POMIARY_RC,		obr_aparaturaRC},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},

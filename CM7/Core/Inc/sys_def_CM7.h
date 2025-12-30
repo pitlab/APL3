@@ -32,7 +32,7 @@
 #define EXP02_LOG_VSELECT	0x04	//LOG_SD1_VSEL - wybor napięcia IO karty SD: H=3,3V L=1,8V
 #define EXP03_CAM_RESET		0x08	//CAM_RES - reset kamery
 #define EXP04_LOG_CARD_DET	0x10	//LOG_SD1_CDETECT - wejscie detekcji obecności karty
-#define EXP05_USB_HOST_DEV	0x20	//USB_HOST_DEVICE - sposób przedstawiania sie urządzenia po USB jako: 1=Host, 0=Device
+#define EXP05_USB_HOST_DEV	0x20	//USB_HOST_DEVICE - sposób przedstawiania sie urządzenia po USB jako: 0=Host, 1=Device
 #define EXP06_MOD_OPEN_DR1	0x40	//MOD_OSW_IO1 - wyjście Open Drain 1
 #define EXP07_MOD_OPOE_DR2	0x80	//MOD_OSW_IO2 - wyjście Open Drain 2
 
@@ -41,9 +41,9 @@
 #define EXP12_CAN_STANDBY	0x04	//MODZ_CAN_STBY - włącznie Standby sterownika CAN
 #define EXP13_AUDIO_IN_SD	0x08	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
 #define EXP14_AUDIO_OUT_SD	0x10	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
-#define EXP15_ETH_RMII_EXER	0x20	//ETH_RMII_EXER - wejście sygnału błędu transmisji ETH
+//#define EXP15_ETH_RMII_EXER	0x20	//ETH_RMII_EXER - wejście sygnału błędu transmisji ETH
 #define EXP16_BMS_I2C_SW	0x40	//BMS_I2C_SW - przełacznik zegara I2C miedzy pakietami
-#define EXP17_USB_EN		0x80	//USB_EN - włącznik pull-up na rezystorze 1,5k na linii D+ USB. Wykonawcą jest tranzystor PNP, więc 0 = właczony, 1 = wyłaczony
+//#define EXP17_USB_EN		0x80	//USB_EN - włącznik pull-up na rezystorze 1,5k na linii D+ USB. Wykonawcą jest tranzystor PNP, więc 0 = właczony, 1 = wyłaczony
 
 #define EXP20_ZASIL_WE1		0x01	//ZASIL_WL_WE1 - wyjście
 #define EXP21_ZASIL_WE2		0x02	//ZASIL_WL_WE2 - wyjście

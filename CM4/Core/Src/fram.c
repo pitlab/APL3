@@ -9,6 +9,7 @@
 #include "fram.h"
 #include "moduly_wew.h"
 #include "main.h"
+#include "konfig_fram.h"
 
 extern SPI_HandleTypeDef hspi2;
 extern uint8_t chAdresModulu;	//bieżący adres ustawiony na dekoderze
@@ -335,4 +336,54 @@ void ZapiszFramU16(uint16_t sAdres, uint16_t sWartosc)
 
 	unia16.U16 = sWartosc;
     ZapiszBuforFRAM(sAdres, unia16.U8, 2);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Testuje funkcje zapisu i odczytu FRAM
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void TestyFram(void)
+{
+	uint8_t chDane[9] = {0};
+	uint8_t chErr;
+	uint16_t sTest;
+	float fTest;
+
+	CzytajIdFRAM(chDane);	//test ID pamięci FRAM 64Kbit
+	assert((chDane[8] == 0x00) && (chDane[7] == 0x22) && (chDane[6] == 0xC2) && (chDane[5] == 0x7F));
+
+	ZapiszFRAM(FAH_TEST, 0x55);
+	chDane[0] = CzytajFRAM(FAH_TEST);
+	assert(chDane[0] == 0x55);
+
+	chDane[0] = 0xAA;
+	chDane[1] = 0xFF;
+	chDane[2] = 0x00;
+	chDane[3] = 0xCC;
+	ZapiszBuforFRAM(FAH_TEST, chDane, 4);
+	for (uint8_t n=0; n<4; n++)
+		chDane[n] = 0x55;
+	CzytajBuforFRAM(FAH_TEST, chDane, 4);
+	assert((chDane[0] == 0xAA) && (chDane[1] == 0xFF) && (chDane[2] == 0x00) && (chDane[3] == 0xCC));
+
+	ZapiszFramFloat(FAH_TEST, 12345.678);
+	fTest = CzytajFramFloat(FAH_TEST);
+	assert(fTest > 12345.677);
+	assert(fTest < 12345.679);
+
+	chErr = CzytajFramZWalidacja(FAH_TEST, &fTest, -1234.56, 67890.12, 123.456, 0x22);		//poprawny odczyt z walidacją
+	assert(chErr == BLAD_OK);
+	assert(fTest > 12345.677);
+	assert(fTest < 12345.679);
+	chErr = CzytajFramZWalidacja(FAH_TEST, &fTest, -1234.56, 1234.12, 123.4567, 0x22);		//korekta odczytu z walidacją
+	assert(chErr == 0x22);
+	assert(fTest > 123.4556);
+	assert(fTest < 123.4568);
+
+	ZapiszFramU16(FAH_TEST, 0x9876);
+	sTest = CzytajFramU16(FAH_TEST);
+	assert(sTest == 0x9876);
 }

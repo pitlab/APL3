@@ -155,7 +155,7 @@ typedef struct
 	uRozne_t uRozne;		//unia różnych typów danych ogólnego zastosowania
 	stGnss_t stGnss1;		//struktura danych GNSS1
 	stWyjPID_t stWyjPID[LICZBA_PID];		//tablica struktur danych wyjściowych regulatorów PID
-	uint16_t sSerwo[KANALY_SERW];
+	uint16_t sSerwo[KANALY_SERW];		//wartość wysterowania serwa lub ESC
 	int16_t sKanalRC[KANALY_ODB_RC];
 	uint8_t chTrybLotu;		//tryb lotu jako zestaw funkcjonalności realizowany w danym czasie
 	uint8_t chFlagiLotu;	//bity definiujące parametry lotu

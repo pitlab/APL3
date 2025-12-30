@@ -11,7 +11,7 @@
 #include "fram.h"
 #include "pid.h"
 
-stMikser_t stMikser;	//struktura zmiennych miksera
+stMikser_t stMikser[KANALY_MIKSERA];	//struktura zmiennych miksera
 uint16_t sPWMMin;		//wysterowanie regulatorów pozwalajace na kręcenie silnikiem z minimalna prędkością
 uint16_t sPWMJalowy;	//wysterowanie regulatorów pozwalajace na kręcenie silnikiem z prędkością jałową, odrobinę większą niż minimalna
 uint16_t sPWMZawisu;	//wysterowanie regulatorów pozwalajace na zawis Wrona
@@ -62,9 +62,9 @@ uint8_t InicjujMikser(void)
 
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 	{
-		chErr |= CzytajFramZWalidacja(FAU_MIX_PRZECH + 2*n, stMikser.fPrze, VMIN_MIX_PRZE, VMAX_MIX_PRZE, VDEF_MIX_PRZE, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu przechylenia na dany silnik
-		chErr |= CzytajFramZWalidacja(FAU_MIX_POCHYL + 2*n, stMikser.fPoch, VMIN_MIX_PRZE, VMAX_MIX_PRZE, VDEF_MIX_PRZE, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu pochylenia na dany silnik
-		chErr |= CzytajFramZWalidacja(FAU_MIX_ODCHYL + 2*n, stMikser.fOdch, VMIN_MIX_PRZE, VMAX_MIX_PRZE, VDEF_MIX_PRZE, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu odchylenia na dany silnik
+		chErr |= CzytajFramZWalidacja(FAU_MIX_PRZECH + 2*n, &stMikser[n].fPrze, VMIN_MIX_PRZE, VMAX_MIX_PRZE, VDEF_MIX_PRZE, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu przechylenia na dany silnik
+		chErr |= CzytajFramZWalidacja(FAU_MIX_POCHYL + 2*n, &stMikser[n].fPoch, VMIN_MIX_PRZE, VMAX_MIX_PRZE, VDEF_MIX_PRZE, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu pochylenia na dany silnik
+		chErr |= CzytajFramZWalidacja(FAU_MIX_ODCHYL + 2*n, &stMikser[n].fOdch, VMIN_MIX_PRZE, VMAX_MIX_PRZE, VDEF_MIX_PRZE, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu odchylenia na dany silnik
 	}
 
 	sPWMMin 	= CzytajFramU16(FAU_PWM_MIN);      	//minimalne wysterowanie silników [us]
@@ -78,11 +78,14 @@ uint8_t InicjujMikser(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonuje obliczenia na sygnałach wychodzących z PID pochodnej. Formuje sygnałów dla silników
-// Parametry: brak
+// Parametry:
+//	*mikser - wskaźnik na strukturę konfiguracyjną miksera
+//	*dane - wskaźnik na strukturę danych autopilota
+//	*konfig - wskaźnik na strukturę konfiguracji regulatorów PID
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t LiczMikser(stMikser_t* mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig)
+uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 {
 	int16_t sTmp1[KANALY_MIKSERA], sTmp2[KANALY_MIKSERA];	//sumy cząstkowe sygnału wysterowania silnika
 	int16_t sTmpSerwo[KANALY_MIKSERA];
@@ -117,21 +120,21 @@ uint8_t LiczMikser(stMikser_t* mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 	}
 
 	sMaxTmp1 = sMaxTmp2 = -200 * PPM1PROC_BIP; //inicjuj maksima wartością minimalną aby wyłapać wartości ponizej zera
-	for (uint8_t n=0; n<mikser->chSilnikow; n++)
+	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 	{
 		//w pierwszej kolejności sumuj pochylenie i przechylenie
-		sTmp1[n] = (mikser->fPoch[n] * dane->stWyjPID[PID_PK_POCH].fWyjsciePID - mikser->fPrze[n] * dane->stWyjPID[PID_PK_PRZE].fWyjsciePID) * PPM1PROC_BIP;
+		sTmp1[n] = (mikser + n)->fPoch * dane->stWyjPID[PID_PK_POCH].fWyjsciePID - (mikser + n)->fPrze * dane->stWyjPID[PID_PK_PRZE].fWyjsciePID * PPM1PROC_BIP;
 		if (sTmp1[n] > sMaxTmp1)
 			sMaxTmp1 = sTmp1[n];
 
 		//osobno sumuj mniej ważne regulatory ciągu i odchylenia
-		sTmp2[n] = (dane->stWyjPID[PID_WARIO].fWyjsciePID + mikser->fOdch[n] * dane->stWyjPID[PID_PK_ODCH].fWyjsciePID ) * PPM1PROC_BIP;
+		sTmp2[n] = (dane->stWyjPID[PID_WARIO].fWyjsciePID + (mikser + n)->fOdch * dane->stWyjPID[PID_PK_ODCH].fWyjsciePID ) * PPM1PROC_BIP;
 		if (sTmp2[n] > sMaxTmp2)
 			sMaxTmp2 = sTmp2[n];
 	}
 
 	 //jeżeli suma kanałów jest większa niż 100% to najpierw skaluj ważniejsze regulatory odpowiadajace za stabilizację a jeżeli jeszcze jest miejsce do potem mniej ważne
-	for (uint8_t n=0; n<mikser->chSilnikow; n++)
+	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 	{
 		if ((sMaxTmp1 + sMaxTmp2 + sPWMGazu) < sPWMMax)     //jeżeli nie przekraczamy zakresu to sumuj wszystkie regulatory
 			sTmpSerwo[n] = sTmp1[n] + sTmp2[n] + sPWMGazu;

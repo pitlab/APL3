@@ -42,3 +42,4 @@ void ZapiszFramFloat(uint16_t sAdres, float fWartosc);
 uint8_t CzytajFramZWalidacja(uint16_t sAdres, float *fWartosc, float fWartMin, float fWartMax, float fWartDomyslna, uint8_t chKodBledu);
 uint16_t CzytajFramU16(uint16_t sAdres);
 void ZapiszFramU16(uint16_t sAdres, uint16_t sWartosc);
+void TestyFram(void);

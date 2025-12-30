@@ -24,6 +24,7 @@
 #include "WeWyRC.h"
 #include "adc.h"
 #include "dshot.h"
+#include "mikser.h"
 
 extern TIM_HandleTypeDef htim7;
 extern unia_wymianyCM4_t uDaneCM4;
@@ -55,8 +56,7 @@ uint8_t chPoprzedniRodzajPomiaru;	//okresla czy poprzedni pomiar magnetometrem M
 float fPoleCzujnkaMMC[3];
 extern stRC_t stRC;					//struktura przechowująca dane odbiorników RC
 extern stKonfPID_t stKonfigPID[LICZBA_PID];	//struktura przechowująca dane dotyczące konfiguracji regulatora PID
-
-
+extern stMikser_t stMikser[KANALY_MIKSERA];	//struktura zmiennych miksera
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -65,7 +65,7 @@ extern stKonfPID_t stKonfigPID[LICZBA_PID];	//struktura przechowująca dane doty
 ////////////////////////////////////////////////////////////////////////////////
 void PetlaGlowna(void)
 {
-	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetowornika A/C
+	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetwornika A/C
 	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
 	if (chNrOdcinkaCzasu < 8)
 	{
@@ -161,8 +161,8 @@ void PetlaGlowna(void)
 		}
 		break;
 
-	case 17:	break;
-	case 18:	StabilizacjaPID(ndT, &uDaneCM4.dane, stKonfigPID);	break;
+	case 17:	StabilizacjaPID(ndT, &uDaneCM4.dane, stKonfigPID);	break;
+	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID);	break;
 	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;
 	default:	break;
 	}

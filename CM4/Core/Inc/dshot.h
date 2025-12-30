@@ -12,12 +12,7 @@
 #include "konfig_fram.h"
 
 
-/*/definicje timingu
-#define ZEGAR_TIMEROW		216000000	//MHz
-#define PODZIELNIK_TIMERA	34
-#define ZEGAR_TIMERA		(ZEGAR_TIMEROW / PODZIELNIK_TIMERA)		//6 MHz
-#define CZAS_OKRESU			(1.0f / ZEGAR_TIMERA)		//0,16667 us*/
-
+//definicje timingu
 #define DS150_ZEGAR			6000000
 #define DS300_ZEGAR			12000000
 #define DS600_ZEGAR			24000000

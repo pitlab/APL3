@@ -78,7 +78,7 @@ typedef struct	//struktura wyjścia regulatora PID
 {
 	//zmienne robocze członów dynamicznych
 	float fCalka;  			//zmianna przechowująca całkę z błędu
-	float fFiltrWePoprz; 		//poprzednia, przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
+	float fFiltrWePoprz; 	//poprzednia, przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
 
 	//zmienne wyjściowe
 	float fWyjsciePID; 		//wartość wyjściowa z całego regulatora

@@ -197,7 +197,7 @@
 
 #define	FAH_SKALO_CISN_BEZWZGL1	FAH_MAGN3+24    //współczynnik skalowania ciśnienia bezwzględnego czujnika 1
 #define	FAH_SKALO_CISN_BEZWZGL2	FAH_MAGN3+28    //współczynnik skalowania ciśnienia bezwzględnego czujnika 2
-
+#define FAH_TEST				FAH_MAGN3+32	//4H testowy zapis do pamięci w celu sprawdzenia poprawnosci
 
 
 

@@ -1605,14 +1605,13 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
 {
-  /* init code for USB_DEVICE */
-  MX_USB_DEVICE_Init();
-
   /* init code for LWIP */
   MX_LWIP_Init();
+
+  /* init code for USB_DEVICE */
+  MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
 	uint8_t chStanDekodera;
-	chPort_exp_wysylany[1] &= ~EXP17_USB_EN;		//USB_EN - włącznik pull-up na rezystorze 1,5k na linii D+ USB. Wykonawcą jest tranzystor PNP, więc 0 = właczony, 1 = wyłaczony
 	for(;;)
 	{
 		chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
