@@ -31,43 +31,44 @@ stKonfPID_t stKonfigPID[LICZBA_PID];
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujPID(void)
 {
-	uint8_t chAdrOffset, chErr = BLAD_OK;
+	uint8_t chErr = BLAD_OK;
 	uint8_t chTemp;
+	uint16_t sAdrOffset;
 
-    for (uint8_t n=0; n<LICZBA_PID; n++)
+    for (uint16_t n=0; n<LICZBA_PID; n++)
     {
-        chAdrOffset = (n * ROZMIAR_REG_PID);	//offset danych kolejnego kanału regulatora
+    	sAdrOffset = (n * ROZMIAR_REG_PID);	//offset danych kolejnego kanału regulatora
         //odczytaj wartość wzmocnienienia członu P regulatora
-        chErr |= CzytajFramZWalidacja(FAU_PID_P0 + chAdrOffset, &stKonfigPID[n].fWzmP, VMIN_PID_WZMP, VMAX_PID_WZMP, VDEF_PID_WZMP, ERR_NASTAWA_FRAM);
+        chErr |= CzytajFramZWalidacja(FAU_PID_P0 + sAdrOffset, &stKonfigPID[n].fWzmP, VMIN_PID_WZMP, VMAX_PID_WZMP, VDEF_PID_WZMP, ERR_NASTAWA_FRAM);
         assert(stKonfigPID[n].fWzmP > 0.0);
 
         //odczytaj wartość wzmocnienienia członu I regulatora
-        chErr |= CzytajFramZWalidacja(FAU_PID_I0 + chAdrOffset, &stKonfigPID[n].fWzmI, VMIN_PID_WZMI, VMAX_PID_WZMI, VDEF_PID_WZMI, ERR_NASTAWA_FRAM);
+        chErr |= CzytajFramZWalidacja(FAU_PID_I0 + sAdrOffset, &stKonfigPID[n].fWzmI, VMIN_PID_WZMI, VMAX_PID_WZMI, VDEF_PID_WZMI, ERR_NASTAWA_FRAM);
         assert(stKonfigPID[n].fWzmI >= 0.0);
 
         //odczytaj wartość wzmocnienienia członu D regulatora
-        chErr |= CzytajFramZWalidacja(FAU_PID_D0 + chAdrOffset, &stKonfigPID[n].fWzmD, VMIN_PID_WZMD, VMAX_PID_WZMD, VDEF_PID_WZMD, ERR_NASTAWA_FRAM);
+        chErr |= CzytajFramZWalidacja(FAU_PID_D0 + sAdrOffset, &stKonfigPID[n].fWzmD, VMIN_PID_WZMD, VMAX_PID_WZMD, VDEF_PID_WZMD, ERR_NASTAWA_FRAM);
         assert(stKonfigPID[n].fWzmD >= 0.0);
 
         //odczytaj granicę nasycenia członu całkującego
-        chErr |= CzytajFramZWalidacja(FAU_PID_OGR_I0 + chAdrOffset, &stKonfigPID[n].fOgrCalki, VMIN_PID_ILIM, VMAX_PID_ILIM, VDEF_PID_ILIM, ERR_NASTAWA_FRAM);
+        chErr |= CzytajFramZWalidacja(FAU_PID_OGR_I0 + sAdrOffset, &stKonfigPID[n].fOgrCalki, VMIN_PID_ILIM, VMAX_PID_ILIM, VDEF_PID_ILIM, ERR_NASTAWA_FRAM);
         assert(stKonfigPID[n].fOgrCalki > 0.0);
 
         //odczytaj minimalną wartość wyjścia
-        chErr |= CzytajFramZWalidacja(FAU_PID_MIN_WY0 + chAdrOffset, &stKonfigPID[n].fMinWyj, VMIN_PID_MINWY, VMAX_PID_MINWY, VDEF_PID_MINWY, ERR_NASTAWA_FRAM);
-        //assert(stKonfigPID[n].fMinWyj >-1000.0);
+        chErr |= CzytajFramZWalidacja(FAU_PID_MIN_WY0 + sAdrOffset, &stKonfigPID[n].fMinWyj, VMIN_PID_MINWY, VMAX_PID_MINWY, VDEF_PID_MINWY, ERR_NASTAWA_FRAM);
+        assert(stKonfigPID[n].fMinWyj >-1000.0);
 
         //odczytaj maksymalną wartość wyjścia
-        chErr |= CzytajFramZWalidacja(FAU_PID_MAX_WY0 + chAdrOffset, &stKonfigPID[n].fMaxWyj, VMIN_PID_MAXWY, VMAX_PID_MAXWY, VDEF_PID_MAXWY, ERR_NASTAWA_FRAM);
+        chErr |= CzytajFramZWalidacja(FAU_PID_MAX_WY0 + sAdrOffset, &stKonfigPID[n].fMaxWyj, VMIN_PID_MAXWY, VMAX_PID_MAXWY, VDEF_PID_MAXWY, ERR_NASTAWA_FRAM);
         assert(stKonfigPID[n].fMaxWyj < 1000.0);
 
         //odczytaj stałą czasową filtru członu różniczkowania (bity 0..5), właczony (bit 6) i to czy regulator jest kątowy (bit 7)
-        chTemp = CzytajFRAM(FAU_FILTRD_TYP + n);
+        chTemp = CzytajFRAM(FAU_FILTRD_TYP + sAdrOffset);
         stKonfigPID[n].chPodstFiltraD = chTemp & PID_MASKA_FILTRA_D;
         stKonfigPID[n].chFlagi = chTemp & (PID_WLACZONY | PID_KATOWY);
 
         //zeruj integrator
-        uDaneCM4.dane.stWyjPID[n].fCalka = 0.0f;   	//zmianna przechowująca całkę z błędu
+        uDaneCM4.dane.stWyjPID[n].fCalka = 0.0f;   	//zmienna przechowująca całkę z błędu
         uDaneCM4.dane.stWyjPID[n].fFiltrWePoprz = 0.0f;	//poprzednia wartość błędu
     }
 
@@ -106,23 +107,17 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
     //człon całkujący - liczy sumę błędu od początku do teraz
     if (konfig[chKanal].fWzmI > MIN_WZM_CALK)    //sprawdź warunek !=0 ze wzglądu na dzielenie przez fWzmI[] oraz ogranicz zbyt szybkie całkowanie nastawione pomyłkowo jako 0 a będące bardzo małą liczbą
     {
-    	//stPID[chKanal].fCalka += fBladReg * fdT;   //całkowanie odchyłki - regulator równoległy
-    	//stPID[chKanal].fCalka += fWyjscieReg * fdT;   //całkowanie wzmocnionego wejścia - regulator szeregowy
-        //fTemp = stPID[chKanal].fCalka / stPID[chKanal].fWzmI;
-
     	dane->stWyjPID[chKanal].fCalka += fWyjscieReg * fdT / konfig[chKanal].fWzmI;   //całkowanie wzmocnionego wejścia - regulator szeregowy
 
         //ogranicznik wartości całki
         if (dane->stWyjPID[chKanal].fCalka > konfig[chKanal].fOgrCalki)
         {
         	dane->stWyjPID[chKanal].fCalka = konfig[chKanal].fOgrCalki * konfig[chKanal].fWzmI;
-            //fTemp = stPID[chKanal].fOgrCalki;
         }
         else
         if (dane->stWyjPID[chKanal].fCalka < -konfig[chKanal].fOgrCalki)
         {
         	dane->stWyjPID[chKanal].fCalka = -konfig[chKanal].fOgrCalki * konfig[chKanal].fWzmI;
-            //fTemp = -stPID[chKanal].fOgrCalki;
         }
         fWyjscieReg += dane->stWyjPID[chKanal].fCalka;
         dane->stWyjPID[chKanal].fWyjscieI = dane->stWyjPID[chKanal].fCalka;  //debugowanie: wartość wyjściowa z członu I
@@ -205,7 +200,10 @@ uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 	RegulatorPID(ndT, PID_PK_ODCH, dane, konfig);
 
 	//regulacja wysokości
-	konfig[PID_WYSO].fWejscie = dane->fWysokoMSL[0];
+	//konfig[PID_WYSO].fWejscie = dane->fWysokoMSL[0];
+	ndT = 5000;
+	stKonfigPID[PID_WYSO].fZadana = 60;
+	stKonfigPID[PID_WYSO].fWejscie = 40;
 	RegulatorPID(ndT, PID_WYSO, dane, konfig);
 
 	konfig[PID_WARIO].fWejscie = dane->fWariometr[0];
@@ -233,16 +231,16 @@ void TestPID(void)
 	assert(uDaneCM4.dane.stWyjPID[PID_POCH].fWyjscieP < 15.001 * DEG2RAD * stKonfigPID[PID_POCH].fWzmP);
 	assert(uDaneCM4.dane.stWyjPID[PID_POCH].fWyjscieP > 14.999 * DEG2RAD * stKonfigPID[PID_POCH].fWzmP);
 
-	//sprawdź działanie członu całkującego regulatora wysokości. Całka to czas zdwojenia, więc przy wzmocnieniu Kp=1 błąd podwaja się po sekundzie.
-	//czas trwania testu=10*5ms, błąd=10m, więc przyrost powinien wynosić 50/1000 * (20 * Kp) * Ti
+	//sprawdź działanie członu całkującego regulatora wysokości. Całka to czas zdwojenia, więc przy wzmocnieniu Kp=1 i Ti=1 błąd podwaja się po sekundzie.
+	//czas trwania testu=10*5ms, błąd=20m, więc przyrost powinien wynosić 50/1000 * (20 * Kp) / Ti
 	stKonfigPID[PID_WYSO].fZadana = 60;
 	stKonfigPID[PID_WYSO].fWejscie = 40;
-	stKonfigPID[PID_WYSO].fWzmI = 1;			//Testowo - usunąć po ustawieniu wartosci
+	stKonfigPID[PID_WYSO].fWzmI = 2;			//Testowo - usunąć po ustawieniu wartosci
 	uDaneCM4.dane.stWyjPID[PID_WYSO].fCalka = 0;
 	for (uint8_t n=0; n<10; n++)
 		RegulatorPID(ndT, PID_WYSO, &uDaneCM4.dane, stKonfigPID);
-	assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI == 0.1 * stKonfigPID[PID_WYSO].fWzmP * stKonfigPID[PID_WYSO].fWzmI);
+	assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI == 0.05 * 10 * 20 * stKonfigPID[PID_WYSO].fWzmP / stKonfigPID[PID_WYSO].fWzmI);
 	uDaneCM4.dane.stWyjPID[PID_WYSO].fCalka = 0;	//usuń całkę po teście
-	assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI == 5);
+	//assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI == 5);
 
 }

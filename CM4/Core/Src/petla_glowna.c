@@ -155,9 +155,10 @@ void PetlaGlowna(void)
 		if (chBuforAnalizyGNSS[0] == 0xFF)
 		{
 			//InicjujWyjsciaRC();
-			InicjujWyjsciaRC();
+			//InicjujWyjsciaRC();
 			//InicjujModulI2P();
 			//chBuforAnalizyGNSS[0] = 0;
+			InicjujPID();
 		}
 		break;
 

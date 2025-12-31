@@ -51,18 +51,17 @@
 
 //regulatory PID
 #define FA_USER_PID	    	0x0100
-#define FAU_PID_P0          FA_USER_PID+0   //4U wzmocnienienie członu P regulatora 0
-#define FAU_PID_I0          FA_USER_PID+4   //4U wzmocnienienie członu I regulatora 0
-#define FAU_PID_D0          FA_USER_PID+8   //4U wzmocnienienie członu D regulatora 0
-#define FAU_PID_OGR_I0      FA_USER_PID+12  //4U ograniczenie wartości całki członu I regulatora 0
-#define FAU_PID_MIN_WY0		FA_USER_PID+16  //4U minimalna wartość wyjścia
-#define FAU_PID_MAX_WY0		FA_USER_PID+20  //4U maksymalna wartość wyjścia
+#define FAU_PID_P0          FA_USER_PID+0   //4F wzmocnienienie członu P regulatora 0
+#define FAU_PID_I0          FA_USER_PID+4   //4F wzmocnienienie członu I regulatora 0
+#define FAU_PID_D0          FA_USER_PID+8   //4F wzmocnienienie członu D regulatora 0
+#define FAU_PID_OGR_I0      FA_USER_PID+12  //4F ograniczenie wartości całki członu I regulatora 0
+#define FAU_PID_MIN_WY0		FA_USER_PID+16  //4F minimalna wartość wyjścia
+#define FAU_PID_MAX_WY0		FA_USER_PID+20  //4F maksymalna wartość wyjścia
 #define FAU_FILTRD_TYP 		FA_USER_PID+24  //1U Stała czasowa filtru członu różniczkującego (bity 0..5), wyłączony (bit 6), Regulator kątowy (bit 7)
-//#define FAU_PID_WYJSCIE		FA_USER_PID+25	//1U Indeks odbiorcy do którego podłączone jest wyjście PID
-#define FAU_PID1	        FA_USER_PID+26  //1U nic
-#define FAU_PID2			FA_USER_PID+27	//1U nic
+#define FAU_PID1	        FA_USER_PID+25  //1U nic
+#define FAU_PID2			FA_USER_PID+26	//1U nic
+#define FAU_PID3			FA_USER_PID+27	//1U nic
 #define ROZMIAR_REG_PID		28
-
 
 //12 regulatorów zajmuje 336 bajtów - 0x150
 
