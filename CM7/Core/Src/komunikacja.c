@@ -294,7 +294,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		uint16_t sPrzesuniecie = chDane[0] + chDane[1] * 0x100;	//indeks pierwszej zmiennej, młodszy przodem
 
 		for (n=0; n<chRozmDanych/2; n++)
-			sOkresTelemetrii[n] = chDane[2*n+2] + chDane[2*n+3] * 0x100;	//kolejnne okresy telemetrii, młodszy przodem
+			sOkresTelemetrii[n + sPrzesuniecie] = chDane[2*n+2] + chDane[2*n+3] * 0x100;	//kolejnne okresy telemetrii, młodszy przodem
 		chErr = ZapiszKonfiguracjeTelemetrii(sPrzesuniecie);
 		if (chErr)
 			Wyslij_ERR(chErr, chPolecenie, chInterfejs);		//zwróć kod błedu zapisu konfiguracji telemetrii

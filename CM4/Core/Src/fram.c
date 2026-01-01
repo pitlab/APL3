@@ -340,6 +340,7 @@ void ZapiszFramU16(uint16_t sAdres, uint16_t sWartosc)
 
 
 
+#ifdef TESTY		//testy algorytmów
 ////////////////////////////////////////////////////////////////////////////////
 // Testuje funkcje zapisu i odczytu FRAM
 // Parametry: brak
@@ -387,3 +388,4 @@ void TestyFram(void)
 	sTest = CzytajFramU16(FAH_TEST);
 	assert(sTest == 0x9876);
 }
+#endif

@@ -214,6 +214,7 @@ uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 
 
 
+#ifdef TESTY		//testy algorytmów
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja testująca regulatory. Sprawdza czy dla wybranych warunków i nastaw uzyskuje się właściwą odpowiedź .
 // Test bazuje na rzeczywistych nastawach i wymyślonych danych wejściowych
@@ -223,6 +224,8 @@ uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 void TestPID(void)
 {
 	uint32_t ndT = 5000;	//czas obiegu pętli 200Hz [us]
+	float fOdpowiedzNominalna;	//taka powinna być nominalna odpowiedź regulatora
+	float fProgGor, fProgDol;	//progi testowania wartosci górny i dolny
 
 	//sprawdź odpowiedź członu proporcjonalnego regulatora kątowego na zawijanie kątów wokół 2Pi
 	stKonfigPID[PID_POCH].fZadana = 370 * DEG2RAD;	//odpowiada +10°
@@ -231,16 +234,21 @@ void TestPID(void)
 	assert(uDaneCM4.dane.stWyjPID[PID_POCH].fWyjscieP < 15.001 * DEG2RAD * stKonfigPID[PID_POCH].fWzmP);
 	assert(uDaneCM4.dane.stWyjPID[PID_POCH].fWyjscieP > 14.999 * DEG2RAD * stKonfigPID[PID_POCH].fWzmP);
 
-	//sprawdź działanie członu całkującego regulatora wysokości. Całka to czas zdwojenia, więc przy wzmocnieniu Kp=1 i Ti=1 błąd podwaja się po sekundzie.
+	//sprawdź działanie członu całkującego regulatora wysokości. Całka to czas zdwojenia, więc przy wzmocnieniu Kp=1 i Ti=1 całka po sekundzie osiaga dwukrotność uchybu.
 	//czas trwania testu=10*5ms, błąd=20m, więc przyrost powinien wynosić 50/1000 * (20 * Kp) / Ti
 	stKonfigPID[PID_WYSO].fZadana = 60;
 	stKonfigPID[PID_WYSO].fWejscie = 40;
-	stKonfigPID[PID_WYSO].fWzmI = 2;			//Testowo - usunąć po ustawieniu wartosci
 	uDaneCM4.dane.stWyjPID[PID_WYSO].fCalka = 0;
 	for (uint8_t n=0; n<10; n++)
 		RegulatorPID(ndT, PID_WYSO, &uDaneCM4.dane, stKonfigPID);
-	assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI == 0.05 * 10 * 20 * stKonfigPID[PID_WYSO].fWzmP / stKonfigPID[PID_WYSO].fWzmI);
-	uDaneCM4.dane.stWyjPID[PID_WYSO].fCalka = 0;	//usuń całkę po teście
-	//assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI == 5);
+
+	fOdpowiedzNominalna = 0.005 * 10 * 20 * stKonfigPID[PID_WYSO].fWzmP / stKonfigPID[PID_WYSO].fWzmI;
+	fProgGor = fOdpowiedzNominalna + 0.001;
+	fProgDol = fOdpowiedzNominalna - 0.001;
+	assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI < fProgGor);
+	assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI > fProgDol);
+	uDaneCM4.dane.stWyjPID[PID_WYSO].fCalka = 0;	//wyczyść całkę po teście
+
 
 }
+#endif

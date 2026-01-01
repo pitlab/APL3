@@ -45,14 +45,14 @@ void InicjalizacjaTelemetrii(void)
 {
 	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIG];
 	uint8_t chOdczytano;
-	uint8_t chDoOdczytu = MAX_INDEKSOW_TELEMETR_W_RAMCE;
+	uint8_t chDoOdczytu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
 	uint8_t chIndeksPaczki = 0;
-	uint8_t chProbOdczytu = 5;
+	uint8_t chProbOdczytu = PROB_ODCZYTU_TELEMETRII;
 	uint16_t sOkres;
 
 	//Inicjuj zmienne wartościa wyłączoną gdyby nie dało się odczytać konfiguracji.
 	//Lepiej jest mieć telemetrię wyłaczoną niż zapchaną pracujacą na 100%
-	for (uint16_t n=0; n<MAX_INDEKSOW_TELEMETR_W_RAMCE; n++)
+	for (uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
 		sOkresTelemetrii[n] = TELEMETRIA_WYLACZONA;
 
 	while (chDoOdczytu && chProbOdczytu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
@@ -62,7 +62,7 @@ void InicjalizacjaTelemetrii(void)
 		{
 			for (uint16_t n=0; n<((ROZMIAR_PACZKI_KONFIG - 2) / 2); n++)
 			{
-				if (chDoOdczytu)	//nie czytaj wiecej niż trzeba zby nie przepelnić zmiennej
+				if (chDoOdczytu)	//nie czytaj wiecej niż trzeba aby nie przepełnić zmiennej
 				{
 					sOkres = chPaczka[2*n+2] + chPaczka[2*n+3] * 0x100;
 					sOkresTelemetrii[n + chIndeksPaczki * ROZMIAR_DANYCH_WPACZCE /2] = sOkres;
@@ -70,12 +70,13 @@ void InicjalizacjaTelemetrii(void)
 				}
 			}
 			chIndeksPaczki++;
+			chProbOdczytu = PROB_ODCZYTU_TELEMETRII;
 		}
 		chProbOdczytu--;
 	}
 
 	//inicjuj licznik okresem wysyłania
-	for (uint16_t n=0; n<MAX_INDEKSOW_TELEMETR_W_RAMCE; n++)
+	for (uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
 		sLicznikTelemetrii[n] = sOkresTelemetrii[n];
 }
 
@@ -443,16 +444,16 @@ void Float2Char16(float fData, uint8_t* chData)
 uint8_t ZapiszKonfiguracjeTelemetrii(uint16_t sPrzesuniecie)
 {
 	uint8_t chDoZapisu = OKRESOW_TELEMETRII_W_RAMCE;
-	uint8_t chIndeksPaczki = (sPrzesuniecie * 2) / ROZMIAR_DANYCH_WPACZCE;
+	uint16_t sIndeksPaczki = (sPrzesuniecie * 2) / ROZMIAR_DANYCH_WPACZCE;
 	uint8_t chProbZapisu = 3;
 	uint8_t chErr;
 
 	while (chDoZapisu && chProbZapisu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
 	{
-		chErr = ZapiszPaczkeKonfigu(FKON_OKRES_TELEMETRI1 + chIndeksPaczki, (uint8_t*)&sOkresTelemetrii[chIndeksPaczki * ROZMIAR_DANYCH_WPACZCE / 2]);
+		chErr = ZapiszPaczkeKonfigu(FKON_OKRES_TELEMETRI1 + sIndeksPaczki, (uint8_t*)&sOkresTelemetrii[sIndeksPaczki * ROZMIAR_DANYCH_WPACZCE / 2]);
 		if (chErr == BLAD_OK)
 		{
-			chIndeksPaczki++;
+			sIndeksPaczki++;
 			chProbZapisu = 3;
 			if (chDoZapisu > ROZMIAR_DANYCH_WPACZCE / 2)
 				chDoZapisu -= ROZMIAR_DANYCH_WPACZCE / 2;

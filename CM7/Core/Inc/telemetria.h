@@ -11,6 +11,8 @@
 #include "sys_def_CM7.h"
 #include "polecenia_komunikacyjne.h"
 
+
+#define PROB_ODCZYTU_TELEMETRII		3
 //definicje zmiennych telemetrycznych
 //zmienne IMU
 #define TELEID_AKCEL1X		0
