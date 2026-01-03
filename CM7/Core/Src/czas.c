@@ -149,12 +149,12 @@ uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nKoniec)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Czekaj z timeoutem dopóki zmienna ma wartość niezerową
+// Czekaj z timeoutem dopóki zmienna definiująca zajetość procesu ma wartość niezerową
 // Parametry: chZajety - zmienna, która ma się ustawić na zero
 // nCzasOczekiwania - czas przez jaki czekamy na wyzerowanie się zmiennej w mikrosekundach
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t CzekajNaZero(uint8_t chZajety, uint32_t nCzasOczekiwania)
+uint8_t CzekajzTimeoutemPokiZajety(uint8_t chZajety, uint32_t nCzasOczekiwania)
 {
 	uint32_t nPoczatek, nCzas;
 

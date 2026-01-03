@@ -1429,7 +1429,7 @@ uint8_t RysujEkran(void)
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_W3;
+			chNowyTrybPracy = TP_KAL_IMU;
 			uDaneCM7.dane.chWykonajPolecenie = POL_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
 		}
 		break;
@@ -1733,7 +1733,7 @@ uint8_t RysujEkran(void)
 		case TP_WROC_DO_MAG:		chTrybPracy = TP_MAGNETOMETR;	break;	//powrót do menu Magnetometr
 		case TP_WROC_DO_POMIARY:	chTrybPracy = TP_POMIARY;		break;	//powrót do menu Pomiary
 		case TP_WROC_DO_NASTAWY:	chTrybPracy = TP_NASTAWY;		break;	//powrót do menu Nastawy
-		case TP_FRAKTALE:			InitFraktal(0);		break;
+		case TP_FRAKTALE:			InitFraktal(START_FRAKTAL);		break;
 		case TP_WROC_DO_ETH:		chTrybPracy = TP_ETHERNET;		break;	//powrót do menu Ethernet
 		case TP_WROC_DO_TESTY:		chTrybPracy = TP_TESTY;			break;	//powrót do menu Testy
 		}
@@ -2380,16 +2380,10 @@ void DaneOdbiornikaRC(void)
 ////////////////////////////////////////////////////////////////////////////////
 void RysujPasekPostepu(uint16_t sPelenZakres)
 {
-	uint16_t x = (uDaneCM4.dane.sPostepProcesu * DISP_X_SIZE) / sPelenZakres;
-	if (x)	//nie rysuj paska jeżeli ma zerową długość
-	{
-		//setColor(BLUE);
-		//fillRect(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, x , DISP_Y_SIZE);
-		RysujProstokatWypelniony(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, x, WYS_PASKA_POSTEPU, NIEBIESKI);
-	}
-	//setColor(CZARNY);
-	//fillRect(x, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE , DISP_Y_SIZE);
-	RysujProstokatWypelniony(x, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE, WYS_PASKA_POSTEPU, NIEBIESKI);
+	uint16_t sDlugoscPaska = (uDaneCM4.dane.sPostepProcesu * DISP_X_SIZE) / sPelenZakres;
+	if (sDlugoscPaska)	//nie rysuj paska jeżeli ma zerową długość
+		RysujProstokatWypelniony(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, sDlugoscPaska, WYS_PASKA_POSTEPU, NIEBIESKI);		//Aktywna cześć paska
+	RysujProstokatWypelniony(sDlugoscPaska, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE - sDlugoscPaska, WYS_PASKA_POSTEPU, CZARNY);	//tło za paskiem
 }
 
 

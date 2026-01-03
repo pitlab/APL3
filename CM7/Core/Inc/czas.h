@@ -31,7 +31,7 @@ uint8_t PobierzDateCzas(RTC_DateTypeDef *sData, RTC_TimeTypeDef *sCzas);
 uint32_t PobierzCzasT6(void);
 uint32_t MinalCzas(uint32_t nPoczatek);
 uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nKoniec);
-uint8_t CzekajNaZero(uint8_t chZajety, uint32_t nCzasOczekiwania);
+uint8_t CzekajzTimeoutemPokiZajety(uint8_t chZajety, uint32_t nCzasOczekiwania);
 DWORD PobierzCzasFAT(void);
 void StartPomiaruCykli(void);
 uint32_t WynikPomiaruCykli(uint8_t *CPI, uint8_t *EXC, uint8_t *SLEEP, uint8_t *LSU);

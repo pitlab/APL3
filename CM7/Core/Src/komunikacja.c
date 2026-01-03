@@ -30,7 +30,7 @@ static un8_16_t un8_16;
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 extern stKonfKam_t stKonfKam;
-extern uint16_t sOkresTelemetrii[MAX_INDEKSOW_TELEMETR_W_RAMCE];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
+extern uint16_t sOkresTelemetrii[LICZBA_RAMEK_TELEMETR * OKRESOW_TELEMETRII_W_RAMCE];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 extern  uint8_t chPolecenie;
 extern  uint8_t chRozmDanych;
 extern  uint8_t chDane[ROZMIAR_DANYCH_KOMUNIKACJI];
@@ -46,6 +46,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 {
 	uint8_t n, chErr;
 	uint8_t chRozmiar;
+	uint16_t sPrzesuniecie;
 
 	switch (chPolecenie)
 	{
@@ -282,18 +283,19 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 
 	case PK_CZYTAJ_OKRES_TELE:	//odczytaj a APL3 okresy telemetrii: chDane[0] == liczba pozycji okresu telemetrii  do odczytania, chDane[1] == numer zmiennej względen początku
 		chRozmiar = chDane[0];
-		for (uint8_t n=chDane[1]; n<chRozmiar; n++)
+		sPrzesuniecie = chDane[1] + chDane[2] * 0x100;	//indeks pierwszej zmiennej, młodszy przodem
+		for (uint8_t n=0; n<chRozmiar; n++)
 		{
-			chDane[2*n+0] = (uint8_t)(sOkresTelemetrii[n] & 0x00FF);	//młodszy przodem
-			chDane[2*n+1] = (uint8_t)(sOkresTelemetrii[n] >> 8);
+			chDane[2*n+0] = (uint8_t)(sOkresTelemetrii[sPrzesuniecie+n] & 0x00FF);	//młodszy przodem
+			chDane[2*n+1] = (uint8_t)(sOkresTelemetrii[sPrzesuniecie+n] >> 8);
 		}
 		chErr = WyslijRamke(chAdresZdalny, PK_CZYTAJ_OKRES_TELE, 2*chRozmiar, chDane, chInterfejs);
 		break;
 
 	case PK_ZAPISZ_OKRES_TELE:	//zapisz okresy telemetrii
-		uint16_t sPrzesuniecie = chDane[0] + chDane[1] * 0x100;	//indeks pierwszej zmiennej, młodszy przodem
-
-		for (n=0; n<chRozmDanych/2; n++)
+		sPrzesuniecie = chDane[0] + chDane[1] * 0x100;	//indeks pierwszej zmiennej, młodszy przodem
+		chRozmiar = (chRozmDanych - 2) / 2;
+		for (uint8_t n=0; n<chRozmiar; n++)
 			sOkresTelemetrii[n + sPrzesuniecie] = chDane[2*n+2] + chDane[2*n+3] * 0x100;	//kolejnne okresy telemetrii, młodszy przodem
 		chErr = ZapiszKonfiguracjeTelemetrii(sPrzesuniecie);
 		if (chErr)

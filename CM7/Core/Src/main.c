@@ -170,7 +170,6 @@ osThreadId tsSerwerTCPHandle;
 osThreadId tsSerwerRTSPHandle;
 /* USER CODE BEGIN PV */
 uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
-uint16_t sLicznikTele;
 uint8_t chErr1, chErr = ERR_OK;
 extern uint8_t chPort_exp_wysylany[];
 extern struct _statusDotyku statusDotyku;
@@ -1650,7 +1649,7 @@ void StartDefaultTask(void const * argument)
 void WatekOdbiorczyLPUART1(void const * argument)
 {
   /* USER CODE BEGIN WatekOdbiorczyLPUART1 */
-	uint32_t nCzas, nCzasPoprzedni;
+	uint32_t nCzasTele, nCzasPoprzedniTele;
 	extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
 	uint8_t chErr;
 	uint8_t chLicznikZajetosci = 0;
@@ -1659,12 +1658,12 @@ void WatekOdbiorczyLPUART1(void const * argument)
 
 	InicjalizacjaWatkuOdbiorczegoLPUART1();
 	InicjalizacjaTelemetrii();
-	nCzasPoprzedni = PobierzCzasT6();
+	nCzasPoprzedniTele = PobierzCzasT6();
 
 	while(1)
 	{
 		//w pierwszej kolejności obsłuż protokół komunikacyjny
-		chErr = CzekajNaZero(st_ZajetoscLPUART.chZajetyPrzez, 500);		//czekaj [us] jeżeli st_ZajetoscLPUART.chZajetyPrzez > 0
+		chErr = CzekajzTimeoutemPokiZajety(st_ZajetoscLPUART.chZajetyPrzez, 500);		//czekaj [us] jeżeli st_ZajetoscLPUART.chZajetyPrzez > 0
 		if (chErr == ERR_OK)
 		{
 			ObslugaWatkuOdbiorczegoLPUART1();
@@ -1679,21 +1678,20 @@ void WatekOdbiorczyLPUART1(void const * argument)
 		chStatusUART = chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);	//status z transmisji ramki
 
 		//w drugiej kolejności telemetrię
-		nCzas = MinalCzas(nCzasPoprzedni);	//czas w mikrosekundach
-		if ((nCzas/1000 > KWANT_CZASU_TELEMETRII) && (st_ZajetoscLPUART.chZajetyPrzez == 0))
+		nCzasTele = MinalCzas(nCzasPoprzedniTele);	//czas w mikrosekundach
+		if ((nCzasTele >= KWANT_CZASU_TELEMETRII * 1000) && (st_ZajetoscLPUART.chZajetyPrzez == 0))
 		{
 			ObslugaTelemetrii(INTERF_UART);
-			nCzasPoprzedni += KWANT_CZASU_TELEMETRII * 1000;
-			sLicznikTele++;	//debug
-			osDelay(4);		//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
+			nCzasPoprzedniTele += KWANT_CZASU_TELEMETRII * 1000;
+			osDelay(5);	//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
 		}
 		chStatusUART |= chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);		//suma statusów  z transmisji ramki i telemetrii
 		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
-		if (chStatusUART == (STAT_POL_OTWARTY << STAT_POL_UART))	//jeżeli był ustawiony bit transmisji lub otwartośco
+		if (chStatusUART == (STAT_POL_OTWARTY << STAT_POL_UART))	//jeżeli był ustawiony bit transmisji lub otwartości
 			chStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);	//to wróć do stanu otwartego łącza
 		else
 			chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
-		osDelay(1);
+		taskYIELD();
 	}
   /* USER CODE END WatekOdbiorczyLPUART1 */
 }
@@ -1734,6 +1732,7 @@ void WatekRejestratora(void const * argument)
 				}
 				else
 					osDelay(5);	//jeżeli nie ma nic do zapisu to wstrzymaj wątek na tyle czasu
+					//taskYIELD();
 			}
 			else	//jeżeli FAT nie jest gotowy to go zamontuj
 			{
@@ -1810,7 +1809,7 @@ void WatekWyswietlacza(void const * argument)
 			chErr = RysujEkran();
 			if (chErr)
 				chCzasSwieceniaLED[LED_ZIEL] = 3;	//x0,1s - sygnalizacja błędów obsługi poleceń
-			osDelay(1);
+			//osDelay(1);
 		}
 		else
 			osDelay(1000);

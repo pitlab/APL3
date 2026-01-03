@@ -21,10 +21,10 @@
 // Każda ramka ma 2 kopie, gdzie jedna ramka jest napełniana a druga wysyłana.
 
 // LPUART korzysta z BDMA a ono ma dostęp tylko do SRAM4, więc ramka telemetrii musi być zdefiniowana w SRAM4
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chRamkaTelemetrii[2*LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla zmiennych 0..127 oraz 128..255
-uint16_t sOkresTelemetrii[LICZBA_RAMEK_TELEMETR * MAX_INDEKSOW_TELEMETR_W_RAMCE];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
-uint16_t sLicznikTelemetrii[LICZBA_RAMEK_TELEMETR * MAX_INDEKSOW_TELEMETR_W_RAMCE];
-uint8_t chIndeksNapelnRamki;	//okresla ktora tablica ramki telemetrycznej jest napełniania
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chRamkaTelemetrii[2*LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla 16-bitowych zmiennych 0..127 oraz 128..255
+uint16_t sOkresTelemetrii[LICZBA_RAMEK_TELEMETR * OKRESOW_TELEMETRII_W_RAMCE];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
+uint16_t sLicznikTelemetrii[LICZBA_RAMEK_TELEMETR * OKRESOW_TELEMETRII_W_RAMCE];
+uint8_t chIndeksNapelnRamki;	//określa która tablica ramki telemetrycznej jest napełniania
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
@@ -34,7 +34,8 @@ static un8_16_t un8_16;		//unia do konwersji między danymi 16 i 8 bit
 extern volatile uint8_t chDoWyslania[1 + LICZBA_RAMEK_TELEMETR];	//lista rzeczy do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
 extern stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
 extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
-uint8_t chOdczytano, chDoOdczytu = MAX_INDEKSOW_TELEMETR_W_RAMCE;
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja inicjalizuje zmienne używane do obsługi telemetrii. Dane są zapisane w porządku cienkokońcówkowym

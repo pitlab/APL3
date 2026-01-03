@@ -10,6 +10,7 @@
 #include "sys_def_CM7.h"
 #include "display.h"
 
+#define	START_FRAKTAL	1
 
 void InitFraktal(unsigned char chTyp);
 void FraktalDemo(void);

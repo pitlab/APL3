@@ -15,7 +15,7 @@
 float fZoom, fX, fY;
 float fReal, fImag;
 uint16_t sMnozPalety;
-uint8_t chDemoMode;
+uint8_t chDemoMode = START_FRAKTAL;	//zacznij od rotacji palety Mandelbrota
 extern uint8_t chLiczIter;		//licznik iteracji fraktala
 extern uint8_t chBuforLCD[];	//rozmiar bufora zależy od typu wyświetlacza
 extern char chNapis[100];
