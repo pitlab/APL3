@@ -112,12 +112,10 @@ uint8_t InicjujProtokol(void)
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void InicjalizacjaWatkuOdbiorczegoLPUART1(void)
+uint8_t InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 {
 	sWskNap = sWskOpr = 0;
-	HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
-	//HAL_UART_Receive_DMA(&hlpuart1, chBuforOdbDMA, ILOSC_ODBIORU_DMA);
-	//HAL_UART_Receive_IT(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
+	return HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
 }
 
 
@@ -332,7 +330,10 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
 		if (chWe == NAGLOWEK)
 			chStanProtokolu[chInterfejs] = PR_ADRES_ODB;
 		else
+		{
 			chErr = ERR_ZLY_NAGL;
+			printf("n");
+		}
 		break;
 
     case PR_ADRES_ODB:
@@ -358,7 +359,7 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
     case PR_POLECENIE:
     	*chPolecenie = chWe;
     	chStanProtokolu[chInterfejs] = PR_ROZM_DANYCH;
-    	WyslijDebugUART7('p');	//p jak polecenie
+    	printf("P:%d,", chWe);
     	break;
 
     case PR_ROZM_DANYCH:	//odebrano rozmiar danych
@@ -402,7 +403,7 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
 		if (sCrc16We == sCrc16Obl)
 		{
 			chErr = ERR_RAMKA_GOTOWA;
-			WyslijDebugUART7('c');	//C jak CRC
+			printf("c,");
 		}
 		else
 			chErr = ERR_CRC;
@@ -606,7 +607,6 @@ uint8_t TestKomunikacjiSTD(void)
 
 
 
-
 uint8_t TestKomunikacjiDMA(void)
 {
 	uint8_t chErr = 0;
@@ -621,17 +621,4 @@ uint8_t TestKomunikacjiDMA(void)
 	return chErr;
 }
 
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Wysyła znak debugujący przez UART7 połączony razem z SWD i SWO
-// Parametry:
-// [i] chZnak - znak do wysłania
-// Zwraca: kod błędu
-////////////////////////////////////////////////////////////////////////////////
-uint8_t WyslijDebugUART7(uint8_t chZnak)
-{
-	//return HAL_UART_Transmit_IT(&huart7, &chZnak, 1);
-	return HAL_UART_Transmit(&huart7, &chZnak, 1, 1);
-}
 

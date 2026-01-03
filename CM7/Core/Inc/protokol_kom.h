@@ -40,7 +40,7 @@ typedef struct		//dobrze aby cała struktura zmieściła się na stronie flasch 
 
 //definicje funkcji lokalnych
 uint8_t InicjujProtokol(void);
-void InicjalizacjaWatkuOdbiorczegoLPUART1(void);
+uint8_t InicjalizacjaWatkuOdbiorczegoLPUART1(void);
 void ObslugaWatkuOdbiorczegoLPUART1(void);
 uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs);
 uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, uint8_t *chPolecenie, uint8_t *chRozmDanych, uint8_t *chDane, uint8_t chInterfejs);

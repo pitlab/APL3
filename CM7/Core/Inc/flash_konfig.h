@@ -21,19 +21,25 @@
 
 //typy paczek danych z konfiguracją we flash
 #define FKON_KALIBRACJA_DOTYKU		0x00	//współczynniki kalibracji panelu dotykowego
-#define FKON_OKRES_TELEMETRI1		0x01	//okresy wysyłania zmiennych telemetrycznych 0..29
-#define FKON_OKRES_TELEMETRI2		0x02	//okresy wysyłania zmiennych telemetrycznych 30..59
-#define FKON_OKRES_TELEMETRI3		0x03	//okresy wysyłania zmiennych telemetrycznych 60..89
-#define FKON_OKRES_TELEMETRI4		0x04	//okresy wysyłania zmiennych telemetrycznych 90..119
-#define FKON_OKRES_TELEMETRI5		0x05	//okresy wysyłania zmiennych telemetrycznych 120..149
-#define FKON_OKRES_TELEMETRI6		0x06	//okresy wysyłania zmiennych telemetrycznych 150..179
-#define FKON_OKRES_TELEMETRI7		0x07	//okresy wysyłania zmiennych telemetrycznych 180..209
-#define FKON_OKRES_TELEMETRI8		0x08	//okresy wysyłania zmiennych telemetrycznych 210..239
-#define FKON_OKRES_TELEMETRI9		0x09	//okresy wysyłania zmiennych telemetrycznych 240..269
-#define FKON_NAZWA_ID_BSP			0x0A	//struktura identyfikacyjna BSP: ID, nazwa i numer IP
-#define LICZBA_TYPOW_PACZEK	11
-
-
+#define FKON_NAZWA_ID_BSP			0x01	//struktura identyfikacyjna BSP: ID, nazwa i numer IP
+#define FKON_OKRES_TELEMETRI1		0x02	//okresy wysyłania zmiennych telemetrycznych 0
+#define FKON_OKRES_TELEMETRI2		0x03	//okresy wysyłania zmiennych telemetrycznych 15
+#define FKON_OKRES_TELEMETRI3		0x04	//okresy wysyłania zmiennych telemetrycznych 30
+#define FKON_OKRES_TELEMETRI4		0x05	//okresy wysyłania zmiennych telemetrycznych 45
+#define FKON_OKRES_TELEMETRI5		0x06	//okresy wysyłania zmiennych telemetrycznych 60
+#define FKON_OKRES_TELEMETRI6		0x07	//okresy wysyłania zmiennych telemetrycznych 75
+#define FKON_OKRES_TELEMETRI7		0x08	//okresy wysyłania zmiennych telemetrycznych 90
+#define FKON_OKRES_TELEMETRI8		0x09	//okresy wysyłania zmiennych telemetrycznych 105
+#define FKON_OKRES_TELEMETRI9		0x0A	//okresy wysyłania zmiennych telemetrycznych 120
+#define FKON_OKRES_TELEMETRI10		0x0B	//okresy wysyłania zmiennych telemetrycznych 135
+#define FKON_OKRES_TELEMETRI11		0x0C	//okresy wysyłania zmiennych telemetrycznych 150
+#define FKON_OKRES_TELEMETRI12		0x0D	//okresy wysyłania zmiennych telemetrycznych 175
+#define FKON_OKRES_TELEMETRI13		0x0E	//okresy wysyłania zmiennych telemetrycznych 180
+#define FKON_OKRES_TELEMETRI14		0x0F	//okresy wysyłania zmiennych telemetrycznych 195
+#define FKON_OKRES_TELEMETRI15		0x10	//okresy wysyłania zmiennych telemetrycznych 210
+#define FKON_OKRES_TELEMETRI16		0x11	//okresy wysyłania zmiennych telemetrycznych 225
+#define FKON_OKRES_TELEMETRI17		0x12	//okresy wysyłania zmiennych telemetrycznych 240
+#define LICZBA_TYPOW_PACZEK			0x13
 
 
 uint8_t InicjujKonfigFlash(void);

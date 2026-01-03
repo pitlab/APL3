@@ -212,7 +212,6 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		if (chStatus != ((chPoprzedniStatusPolaczenia >> (2*n)) & 0x03))
 		{
 			//Połączenie może mieć max 4 stany: 0=brak gotowości do odbioru, 1=gotowe do odbioru, 2=połączone, 3=aktywnie transmituje lub odbiera
-			//switch ((chStatusPolaczenia >> (2*n)) & 0x03)
 			switch (chStatus)
 			{
 			case 0: setColor(SZARY60);	break;

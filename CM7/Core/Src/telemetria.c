@@ -111,7 +111,6 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 
 		if (sLicznikTelemetrii[n] == 0)		//licznik zmiennej doszedł do 0 więc trzeba ją wysłać
 		{
-			//chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
 			sLicznikTelemetrii[n] = sOkresTelemetrii[n];		//przeładuj licznik nowym okresem
 			fZmienna = PobierzZmiennaTele(n);
 			chNrRamki = n >> 7;
@@ -122,7 +121,6 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 				chIloscDanych[chNrRamki]++;
 				chLicznikZmienych++;
 			}
-			//chStatusPolaczenia &= ~(STAT_POL_MASKA_OTW << STAT_POL_UART);	//sygnalizuj powrót do stanu otwartości
 		}
 	}
 

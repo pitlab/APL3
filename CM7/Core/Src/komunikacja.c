@@ -51,7 +51,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 	switch (chPolecenie)
 	{
 	case PK_OK:	//odeslij polecenie OK
-		chErr = Wyslij_OK(PK_OK, 0, chInterfejs);
+		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
 
 	case PK_ZROB_ZDJECIE:		//polecenie wykonania zdjęcia.
@@ -63,7 +63,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		if (chErr)
 			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 		else
-			chErr = Wyslij_OK(PK_ZROB_ZDJECIE, 0, chInterfejs);
+			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
 
 	case PK_POB_STAT_ZDJECIA:	//pobierz status gotowości zdjęcia - trzeba dopracować metodę ustawiania stautus po wykonaniu zdjecia w jakims callbacku
@@ -94,8 +94,11 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 			stBSP.chNazwa[n] = chDane[n+1];
 		for (n=0; n<4; n++)
 			stBSP.chAdrIP[n] = chDane[n+DLUGOSC_NAZWY+1];
-		ZapiszPaczkeKonfigu(FKON_NAZWA_ID_BSP, (uint8_t*)&stBSP);
-		chErr = Wyslij_OK(PK_USTAW_BSP, 0, chInterfejs);
+		chErr = ZapiszPaczkeKonfigu(FKON_NAZWA_ID_BSP, (uint8_t*)&stBSP);
+		if (chErr)
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
+		else
+			chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
 
 	case PK_POBIERZ_BSP:		//pobiera identyfikator/adres urządzenia
@@ -115,7 +118,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 
 	case PK_UST_TR_PRACY:	//ustaw tryb pracy
 		chTrybPracy = chDane[0];
-		chErr = Wyslij_OK(PK_UST_TR_PRACY, 0, chInterfejs);
+		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
 
 	case PK_POB_PAR_KAMERY:	//pobierz parametry pracy kamery
@@ -322,7 +325,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		uDaneCM7.dane.chRozmiar = chDane[0];		//ilość liczb uint8_t
 		for (n=0; n<chDane[0]; n++)
 			uDaneCM7.dane.uRozne.U8[n] = chDane[3+n];
-		chErr = Wyslij_OK(0, 0, chInterfejs);
+		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
 
 	case PK_ZAPISZ_FRAM_FLOAT:				//Wysyła dane typu float do zapisu we FRAM w rdzeniu CM4 o rozmiarze ROZMIAR_ROZNE
@@ -344,7 +347,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 				un8_32.dane8[i] = chDane[3+n*4+i];
 			uDaneCM7.dane.uRozne.f32[n] = un8_32.daneFloat;
 		}
-		chErr = Wyslij_OK(0, 0, chInterfejs);
+		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
 
 	case PK_WYSLIJ_POTW_ZAPISU:	//jeżeli dane się zapisały to odeslij BLAD_OK. jeeli jeszcze nie to ERR_PROCES_TRWA
@@ -354,7 +357,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
 			break;
 		}
-		chErr = Wyslij_OK(0, 0, chInterfejs);
+		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//wyłącz wykonywanie polecenia POL_ZAPISZ_FRAM_FLOAT
 		break;
 
@@ -371,7 +374,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		uDaneCM7.dane.sAdres = un8_16.dane16;
 		uDaneCM7.dane.chRozmiar = chDane[0];
 		uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_FRAM_U8;
-		chErr = Wyslij_OK(0, 0, chInterfejs);
+		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
 
 	case PK_CZYTAJ_FRAM_FLOAT:			//odczytaj i wyślij do bufora fRozne[] zawartość FRAM spod podanego adresu w chDane[1..2] o rozmiarze podanym w chDane[0]
@@ -387,7 +390,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		uDaneCM7.dane.sAdres = un8_16.dane16;
 		uDaneCM7.dane.chRozmiar = chDane[0];
 		uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_FRAM_FLOAT;
-		chErr = Wyslij_OK(0, 0, chInterfejs);
+		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
 
 	case PK_WYSLIJ_ODCZYT_FRAM:	//wysyła odczytane wcześniej dane o rozmiarze podanym w chDane[0]
@@ -407,7 +410,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 
 	case PK_REKONFIG_SERWA_RC:	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie zawartosci FRAM
 		uDaneCM7.dane.chWykonajPolecenie = POL_REKONFIG_SERWA_RC;
-		chErr = Wyslij_OK(0, 0, chInterfejs);
+		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
 
 	case PK_ZAMKNIJ_POLACZENIE:	// zamyka połączenie UART, więc zmień stan na STAT_POL_GOTOWY

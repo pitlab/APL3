@@ -46,13 +46,12 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Uruchomić czujnik zblizeniowy ICU 20201
  - Pozbyć się zmiennych fZyroSur i fZyroKal zastępując je jedną zmienną ustawianą w zależnosci od kontekstu (obecności polecenia kalibracyjnego żyroskopów)
  - Rozbudować warunki korekcji magnetometru w AHRS o prędkość zmiany kąta
- - Sprawdzić stabilność danych i konieczność odświeżania w SDRAM
  - do LWIP podać adres IP zawarty w stBSP.chAdrIP
  - podać skompresowany obraz do serwera RTSP
  - sprawdzić dlaczego wywala się hard fault na ethernet_input()
  - Dodać synchronizację czasu z serwerem RTC
  - Dodać wyłaczanie przerwań na czas alokacji pamięci przez memalloc()
- - histogram dodać jako część OSD, aby był integralną częścią obrazu z dużą przezroczystoscią
+ - są problemy z dokładnoscią odmierzania czasu telemetrii. np. ramka 10Hz przychodzi z częstotliwością 12Hz. To jest kwestia poprawności zarządzania czasem w wątku LPUART
 
  //Problemy sprzętowe egzemplarza 1:
   * Nie można uruchomić ETH i kamery
@@ -418,7 +417,7 @@ Error_Handler();
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of tsOdbiorLPUART1 */
-  osThreadDef(tsOdbiorLPUART1, WatekOdbiorczyLPUART1, osPriorityAboveNormal, 0, 128);
+  osThreadDef(tsOdbiorLPUART1, WatekOdbiorczyLPUART1, osPriorityAboveNormal, 0, 192);
   tsOdbiorLPUART1Handle = osThreadCreate(osThread(tsOdbiorLPUART1), NULL);
 
   /* definition and creation of tsRejestrator */
@@ -1656,10 +1655,16 @@ void WatekOdbiorczyLPUART1(void const * argument)
 	extern uint8_t chStatusPolaczenia;
 	uint8_t chStatusUART;
 
-	InicjalizacjaWatkuOdbiorczegoLPUART1();
+	chErr = InicjalizacjaWatkuOdbiorczegoLPUART1();
 	InicjalizacjaTelemetrii();
 	nCzasPoprzedniTele = PobierzCzasT6();
 
+	if (chErr)
+	{
+		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
+		chStatusPolaczenia |= (STAT_POL_NIEAKTYWNY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
+	}
+	else
 	while(1)
 	{
 		//w pierwszej kolejności obsłuż protokół komunikacyjny
@@ -1675,7 +1680,7 @@ void WatekOdbiorczyLPUART1(void const * argument)
 			if (chLicznikZajetosci > 5)
 				st_ZajetoscLPUART.chZajetyPrzez = 0;
 		}
-		chStatusUART = chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);	//status z transmisji ramki
+		chStatusUART = chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);	//status transmisji ramki
 
 		//w drugiej kolejności telemetrię
 		nCzasTele = MinalCzas(nCzasPoprzedniTele);	//czas w mikrosekundach
@@ -1685,13 +1690,13 @@ void WatekOdbiorczyLPUART1(void const * argument)
 			nCzasPoprzedniTele += KWANT_CZASU_TELEMETRII * 1000;
 			osDelay(5);	//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
 		}
-		chStatusUART |= chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);		//suma statusów  z transmisji ramki i telemetrii
+		chStatusUART |= chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);		//suma statusów transmisji ramki i telemetrii
 		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
 		if (chStatusUART == (STAT_POL_OTWARTY << STAT_POL_UART))	//jeżeli był ustawiony bit transmisji lub otwartości
 			chStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);	//to wróć do stanu otwartego łącza
 		else
 			chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
-		taskYIELD();
+		//taskYIELD();
 	}
   /* USER CODE END WatekOdbiorczyLPUART1 */
 }
