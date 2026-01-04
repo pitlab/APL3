@@ -1990,12 +1990,24 @@ void PomiaryIMU(void)
 
 		sprintf(chNapis, "K%cty 1:", ą);
 		RysujNapis(chNapis, KOL12, 170);
+		sprintf(chNapis, "[%c]", ZNAK_STOPIEN);
+		RysujNapis(chNapis, KOL12+40*FONT_SL, 170);
+
 		sprintf(chNapis, "K%cty 2:", ą);
 		RysujNapis(chNapis, KOL12, 190);
-		sprintf(chNapis, "K%cty Akcel1:", ą);
+		sprintf(chNapis, "[%c]", ZNAK_STOPIEN);
+		RysujNapis(chNapis, KOL12+40*FONT_SL, 190);
+
+		sprintf(chNapis, "K%cty Akc1:", ą);
 		RysujNapis(chNapis, KOL12, 210);
-		sprintf(chNapis, "K%cty Akcel2:", ą);
+		sprintf(chNapis, "[%c]", ZNAK_STOPIEN);
+		RysujNapis(chNapis, KOL12+46*FONT_SL, 210);
+
+		sprintf(chNapis, "K%cty Akc2:", ą);
 		RysujNapis(chNapis, KOL12, 230);
+		sprintf(chNapis, "[%c]", ZNAK_STOPIEN);
+		RysujNapis(chNapis, KOL12+46*FONT_SL, 230);
+
 		//sprintf(chNapis, "K%cty %cyro 1:", ą, ż);
 		sprintf(chNapis, "Kwaternion Akc:");
 		RysujNapis(chNapis, KOL12, 250);
@@ -2031,13 +2043,13 @@ void PomiaryIMU(void)
 
 	//ICM42688
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[0]);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fZyroKal1[0]);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[1]);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fZyroKal1[1]);
 	RysujNapis(chNapis, KOL12+20*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal1[2]);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fZyroKal1[2]);
 	RysujNapis(chNapis, KOL12+32*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(ZOLTY); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
@@ -2045,13 +2057,13 @@ void PomiaryIMU(void)
 
 	//LSM6DSV
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[0]);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fZyroKal2[0]);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[1]);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fZyroKal2[1]);
 	RysujNapis(chNapis, KOL12+20*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fZyroKal2[2]);
+	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fZyroKal2[2]);
 	RysujNapis(chNapis, KOL12+32*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(ZOLTY); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU2] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
@@ -2111,46 +2123,46 @@ void PomiaryIMU(void)
 	//UstawTon(chTon, 80);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[0], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU1[0]);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 170);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[1], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU1[1]);
 	RysujNapis(chNapis, KOL12+20*FONT_SL, 170);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU1[2], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU1[2]);
 	RysujNapis(chNapis, KOL12+32*FONT_SL, 170);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0]);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 190);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1]);
 	RysujNapis(chNapis, KOL12+20*FONT_SL, 190);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[2], ZNAK_STOPIEN);
+	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU2[2]);
 	RysujNapis(chNapis, KOL12+32*FONT_SL, 190);
 
 	//kąty z akcelrometru 1
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[0], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+13*FONT_SL, 210);
+	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[0]);
+	RysujNapis(chNapis, KOL12+11*FONT_SL, 210);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[1], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+25*FONT_SL, 210);
+	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[1]);
+	RysujNapis(chNapis, KOL12+24*FONT_SL, 210);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[2], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+37*FONT_SL, 210);
+	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[2]);
+	RysujNapis(chNapis, KOL12+36*FONT_SL, 210);
 
 	//kąty z akcelrometru 2
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[0], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+13*FONT_SL, 230);
+	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[0]);
+	RysujNapis(chNapis, KOL12+11*FONT_SL, 230);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[1], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+25*FONT_SL, 230);
+	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[1]);
+	RysujNapis(chNapis, KOL12+24*FONT_SL, 230);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[2], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+37*FONT_SL, 230);
+	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[2]);
+	RysujNapis(chNapis, KOL12+36*FONT_SL, 230);
 
 	/*/kąty z żyroskopu 1
 	setColor(KOLOR_X);

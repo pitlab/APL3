@@ -177,13 +177,14 @@
 #define MAX_INDEKSOW_TELEMETR_W_RAMCE	128		//zmienne w ramce można wybrać z takiej puli indeksów
 #define LICZBA_BAJTOW_ID_TELEMETRII		16		//liczba bajtów w ramce telemetrii identyfikujaca przesyłane zmienne
 #define LICZBA_RAMEK_TELEMETR			2		//obecnie są 2 ramki dla zmiennych 0..127 i 128..256
+#define MASKA_LICZBY_RAMEK_TELE			0x01
 #define TELEMETRIA_WYLACZONA		0xFFFF
 #define OKRESOW_TELEMETRII_W_RAMCE		120		//w ramce przesyłane jest na raz się tyle 16-bitowych okresów telemetrii (liczba podzialna przez 15, bo tyle danych mieści się na stronie flash)
 
 void InicjalizacjaTelemetrii(void);
 void ObslugaTelemetrii(uint8_t chInterfejs);
 float PobierzZmiennaTele(uint16_t sZmienna);
-uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chPozycja, uint16_t sIdZmiennej, float fDane);
+uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t chPozycja, uint16_t sIdZmiennej, float fDane);
 void PrzygotujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint8_t chRozmDanych);
 void Float2Char16(float fData, uint8_t* chData);
 uint8_t ZapiszKonfiguracjeTelemetrii(uint16_t sPrzesuniecie);

@@ -23,8 +23,8 @@ static char chNapisOSD[60];
 static uint8_t chTransferDMA2DZakonczony;
 uint32_t nFlagiObiektowOsd;	//flagi obecnosci poszczególnych obiektów  na ekranie OSD
 stKonfOsd_t stKonfOSD;
-extern RTC_TimeTypeDef sTime;
-extern RTC_DateTypeDef sDate;
+extern RTC_TimeTypeDef stTime;
+extern RTC_DateTypeDef stDate;
 extern const char *chNazwyMies3Lit[13];
 uint16_t LicznikLiniiCzyszczeniaOSD;
 uint32_t nCzasBlend, nCzasLCD;
@@ -543,13 +543,13 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	nCykleStartLok = DWT->CYCCNT;
 	//datę i czas trzeba pobrać razem, nawet jeżeli tylko jeden składnik jest potrzebny
 	if ((stKonf->stData.chFlagi & FO_WIDOCZNY) || (stKonf->stCzas.chFlagi & FO_WIDOCZNY))
-		PobierzDateCzas(&sDate, &sTime);
+		PobierzDateCzas(&stDate, &stTime);
 
 	//bieżąca data
 	if (stKonf->stData.chFlagi & FO_WIDOCZNY)
 	{
-		if (sDate.Month <= 12)	//zabezpieczenie przed
-			sprintf(chNapisOSD, "%2d %s %.2d", sDate.Date, chNazwyMies3Lit[sDate.Month], sDate.Year);
+		if (stDate.Month <= 12)	//zabezpieczenie przed
+			sprintf(chNapisOSD, "%2d %s %.2d", stDate.Date, chNazwyMies3Lit[stDate.Month], stDate.Year);
 		else
 			sprintf(chNapisOSD, "-- --- --");
 		PobierzPozycjeObiektu(&stKonf->stData, stKonf, &stWspXY);
@@ -569,7 +569,7 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	//bieżacy czas
 	if (stKonf->stCzas.chFlagi & FO_WIDOCZNY)
 	{
-		sprintf(chNapisOSD, "%2d:%.2d:%.2d", sTime.Hours, sTime.Minutes, sTime.Seconds);
+		sprintf(chNapisOSD, "%2d:%.2d:%.2d", stTime.Hours, stTime.Minutes, stTime.Seconds);
 		PobierzPozycjeObiektu(&stKonf->stCzas, stKonf, &stWspXY);
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, chBuforOSD, (uint8_t*)&stKonf->stCzas.sKolorObiektu, (uint8_t*)&stKonf->stCzas.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}

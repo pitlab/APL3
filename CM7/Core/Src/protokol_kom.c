@@ -115,6 +115,7 @@ uint8_t InicjujProtokol(void)
 uint8_t InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 {
 	sWskNap = sWskOpr = 0;
+	st_ZajetoscLPUART.chZajetyPrzez = LPUART_WOLNY;
 	return HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
 }
 
@@ -205,22 +206,34 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	if (huart->Instance == LPUART1)
 	{
 		//skończyło się wysyłanie, wyczyść flagę zajetości i liczbę rzeczy do wysłania
-		if (st_ZajetoscLPUART.chZajetyPrzez)
-		{
-			st_ZajetoscLPUART.sDoWyslania[st_ZajetoscLPUART.chZajetyPrzez] = 0;	//nie ma nic wiecej do wysłania
-			st_ZajetoscLPUART.chZajetyPrzez = 0;	//nie jest już zajety
-		}
+		if (st_ZajetoscLPUART.chZajetyPrzez != LPUART_WOLNY)
+			st_ZajetoscLPUART.chZajetyPrzez = LPUART_WOLNY;
 
-		//port jest wolny, możn wysłać rzeczy zaległe
+		//port jest wolny, można wysłać rzeczy zaległe
 		for (uint8_t n=0; n< ROZMIAR_KOLEJKI_LPUART; n++)
 		{
 			if (st_ZajetoscLPUART.sDoWyslania[n])
 			{
+				st_ZajetoscLPUART.chZajetyPrzez = n;
 				switch (n)
 				{
-				case RAMKA_POLECEN:	HAL_UART_Transmit_DMA(&hlpuart1, chBuforNadDMA, st_ZajetoscLPUART.sDoWyslania[n]);	break;	//ramkę poleceń
-				case RAMKA_TELE1:	HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[n + chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[n]);	break;	//ramkę telemetryczną 1
-				case RAMKA_TELE2:	HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[n + chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[n]);	break;	//ramkę telemetryczną 2
+				case RAMKA_POLECEN:
+					HAL_UART_Transmit_DMA(&hlpuart1, chBuforNadDMA, st_ZajetoscLPUART.sDoWyslania[n]);
+					break;
+
+				case RAMKA_TELE1:	//ramkę telemetryczną 1
+					HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[0 + chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[n]);
+					st_ZajetoscLPUART.sDoWyslania[n] = 0;	//nie ma nic wiecej do wysłania
+					break;
+
+				case RAMKA_TELE2:	//ramkę telemetryczną 2
+					HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[2 + chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[n]);
+					st_ZajetoscLPUART.sDoWyslania[n] = 0;	//nie ma nic wiecej do wysłania
+					break;
+
+				default:
+					assert(1);	//tutaj program nigdy nie powinien wskoczyć
+					break;
 				}
 				break;	//zakończ wykonanie petli for po wysłaniu pierwszej transmisji
 			}

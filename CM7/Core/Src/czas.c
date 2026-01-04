@@ -14,8 +14,8 @@ extern RTC_HandleTypeDef hrtc;
 //pole bitowe określające stan synchronizacji lokalnego zegara z GNSS. Wartość 1 gdy jest zsynchronizowana
 uint8_t chStanSynchronizacjiCzasu = 0;
 static uint8_t chPoprzedniaSekunda;
-RTC_TimeTypeDef sTime;
-RTC_DateTypeDef sDate;
+RTC_TimeTypeDef stTime;
+RTC_DateTypeDef stDate;
 uint8_t chMinuta, chPoprzedniaMinuta;		//zmienne potrzebne do detekcji zmiany czasu przy jego wyświetlaniu
 extern TIM_HandleTypeDef htim6;
 
@@ -39,18 +39,18 @@ uint8_t SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 			//synchronizacja tylko w niezerowych sekundach lub gdy sekundy już wcześniej były zsynchronizowane
 			if (((stGnss->chSek != 0) && (stGnss->chSek < 60)) || ((chStanSynchronizacjiCzasu & SSC_SEK_SYNCHR) == 0))
 			{
-				sTime.Seconds = stGnss->chSek;
+				stTime.Seconds = stGnss->chSek;
 				chStanSynchronizacjiCzasu |= SSC_SEK_SYNCHR;	//ustaw flagę synchronizacji
 				if ((stGnss->chMin != 0) && (stGnss->chMin < 60))	//synchronizacja tylko w niezerowych minutach
 				{
-					sTime.Minutes = stGnss->chMin;
+					stTime.Minutes = stGnss->chMin;
 					chStanSynchronizacjiCzasu |= SSC_MIN_SYNCHR;	//ustaw flagę synchronizacji
 					//godzina == 0 to zwykle brak poprawnego czasu, ale jeżeli minuta i sekundą są niezerowe to może być czas między północą a pierwszą
 					if (stGnss->chGodz < 24)
 					{
-						sTime.Hours = stGnss->chGodz;
+						stTime.Hours = stGnss->chGodz;
 						chStanSynchronizacjiCzasu |= SSC_GODZ_SYNCHR;
-						chErr = HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);		//ustaw czas gdy wszystko poprawne
+						chErr = HAL_RTC_SetTime(&hrtc, &stTime, RTC_FORMAT_BIN);		//ustaw czas gdy wszystko poprawne
 					}
 				}
 			}
@@ -60,17 +60,17 @@ uint8_t SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 		{
 			if ((stGnss->chDzien != 0) && (stGnss->chDzien <= 31))
 			{
-				sDate.Date = stGnss->chDzien;
+				stDate.Date = stGnss->chDzien;
 				chStanSynchronizacjiCzasu |= SSC_DZIEN_SYNCHR;	//ustaw flagę synchronizacji
 				if ((stGnss->chMies != 0) && (stGnss->chMies <= 12))
 				{
-					sDate.Month = stGnss->chMies;
+					stDate.Month = stGnss->chMies;
 					chStanSynchronizacjiCzasu |= SSC_MIES_SYNCHR;	//ustaw flagę synchronizacji
 					if ((stGnss->chRok != 0) && (stGnss->chRok < 50))
 					{
-						sDate.Year = stGnss->chRok;
+						stDate.Year = stGnss->chRok;
 						chStanSynchronizacjiCzasu |= SSC_ROK_SYNCHR;
-						chErr = HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);		//ustaw datę gdy wszystko jest poprawne
+						chErr = HAL_RTC_SetDate(&hrtc, &stDate, RTC_FORMAT_BIN);		//ustaw datę gdy wszystko jest poprawne
 					}
 				}
 			}
@@ -83,15 +83,15 @@ uint8_t SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pobiera datę i czas z RTC
-// Parametry: wskaźnik na zmienne z datą i czasem
+// Parametry: wskaźnik na struktury z datą i czasem
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t PobierzDateCzas(RTC_DateTypeDef *sData, RTC_TimeTypeDef *sCzas)
+HAL_StatusTypeDef PobierzDateCzas(RTC_DateTypeDef *stData, RTC_TimeTypeDef *stCzas)
 {
-	uint8_t chErr;
+	HAL_StatusTypeDef chErr;
 
-	chErr  = HAL_RTC_GetTime(&hrtc, sCzas, RTC_FORMAT_BIN);
-	chErr |= HAL_RTC_GetDate(&hrtc, sData, RTC_FORMAT_BIN);		// Uwaga: GetDate MUSI być po GetTime
+	chErr  = HAL_RTC_GetTime(&hrtc, stCzas, RTC_FORMAT_BIN);
+	chErr |= HAL_RTC_GetDate(&hrtc, stData, RTC_FORMAT_BIN);		// Uwaga: GetDate MUSI być po GetTime ze względu na shadow registers
 	return chErr;
 }
 
@@ -178,13 +178,13 @@ uint8_t CzekajzTimeoutemPokiZajety(uint8_t chZajety, uint32_t nCzasOczekiwania)
 ////////////////////////////////////////////////////////////////////////////////
 DWORD PobierzCzasFAT(void)
 {
-    PobierzDateCzas(&sDate, &sTime);
-    return ((DWORD)(sDate.Year + 20) << 25)    // Rok = 2000 + sDate.Year, FAT zaczyna od 1980
-         | ((DWORD)sDate.Month << 21)
-         | ((DWORD)sDate.Date << 16)
-         | ((DWORD)sTime.Hours << 11)
-         | ((DWORD)sTime.Minutes << 5)
-         | ((DWORD)sTime.Seconds >> 1);        // FAT ma dokładność do 2 s
+    PobierzDateCzas(&stDate, &stTime);
+    return ((DWORD)(stDate.Year + 20) << 25)    // Rok = 2000 + stDate.Year, FAT zaczyna od 1980
+         | ((DWORD)stDate.Month << 21)
+         | ((DWORD)stDate.Date << 16)
+         | ((DWORD)stTime.Hours << 11)
+         | ((DWORD)stTime.Minutes << 5)
+         | ((DWORD)stTime.Seconds >> 1);        // FAT ma dokładność do 2 s
 }
 
 

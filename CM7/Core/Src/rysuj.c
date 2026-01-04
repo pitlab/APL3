@@ -23,8 +23,8 @@
 
 //deklaracje zmiennych
 extern RTC_HandleTypeDef hrtc;
-extern RTC_TimeTypeDef sTime;
-extern RTC_DateTypeDef sDate;
+extern RTC_TimeTypeDef stTime;
+extern RTC_DateTypeDef stDate;
 struct current_font cfont;
 extern uint8_t MidFont[];
 extern uint8_t BigFont[];
@@ -180,9 +180,8 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	*tryb = 0;
 
 	//rysuj czas
-	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-	if (sTime.Seconds != chOstatniCzas)
+	PobierzDateCzas(&stDate, &stTime);
+	if (stTime.Seconds != chOstatniCzas)
 	{
 		extern uint8_t chStanSynchronizacjiCzasu;
 		if (chStanSynchronizacjiCzasu == (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
@@ -196,9 +195,9 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		}
 
 		setBackColor(SZARY20);
-		sprintf(chNapis, "%02d:%02d:%02d", sTime.Hours,  sTime.Minutes,  sTime.Seconds);
+		sprintf(chNapis, "%02d:%02d:%02d", stTime.Hours,  stTime.Minutes,  stTime.Seconds);
 		RysujNapis(chNapis, DISP_X_SIZE - 8*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
-		chOstatniCzas = sTime.Seconds;
+		chOstatniCzas = stTime.Seconds;
 		setBackColor(CZARNY);
 	}
 

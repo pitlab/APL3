@@ -40,8 +40,8 @@ UINT nDoZapisuNaKarte, nZapisanoNaKarte;
 uint8_t chKodBleduFAT;
 uint8_t chTimerSync;	//odlicza czas w jednostce zapisu na dysk do wykonania sync
 uint16_t sDlugoscWierszaLogu, sMaxDlugoscWierszaLogu;
-extern RTC_TimeTypeDef sTime;
-extern RTC_DateTypeDef sDate;
+extern RTC_TimeTypeDef stTime;
+extern RTC_DateTypeDef stDate;
 extern double dSumaZyro1[3], dSumaZyro2[3];
 extern volatile uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych z bufora danych skompresowanych
 extern volatile uint8_t chWskOprBufJpeg;	// wskazuje z którego bufora obecnie są odczytywane dane
@@ -125,10 +125,10 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(chBufZapisuKarty, "Czas [g:m:s.ss];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				PobierzDateCzas(&sDate, &sTime);
+				PobierzDateCzas(&stDate, &stTime);
 				uint32_t nSetneSekundy;
-				nSetneSekundy = 100 * sTime.SubSeconds / sTime.SecondFraction;
-				sprintf(chBufPodreczny, "%02d:%02d:%02d.%02ld;", sTime.Hours,  sTime.Minutes,  sTime.Seconds, nSetneSekundy);
+				nSetneSekundy = 100 * stTime.SubSeconds / stTime.SecondFraction;
+				sprintf(chBufPodreczny, "%02d:%02d:%02d.%02ld;", stTime.Hours,  stTime.Minutes,  stTime.Seconds, nSetneSekundy);
 				strncat(chBufZapisuKarty, chBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -904,8 +904,8 @@ uint8_t ObslugaPetliRejestratora(void)
 	else	//jeżei plik nie jest otwarty to go otwórz
 	{
 		FRESULT fres;
-		PobierzDateCzas(&sDate, &sTime);
-		sprintf(chBufPodreczny, "%04d%02d%02d_%02d%02d%02d_APL3.csv",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+		PobierzDateCzas(&stDate, &stTime);
+		sprintf(chBufPodreczny, "%04d%02d%02d_%02d%02d%02d_APL3.csv",stDate.Year+2000, stDate.Month, stDate.Date, stTime.Hours, stTime.Minutes, stTime.Seconds);
 		fres = f_open(&SDFile, chBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
 			chStatusRejestratora |= STATREJ_OTWARTY_PLIK | STATREJ_ZAPISZ_NAGLOWEK;
@@ -1127,15 +1127,15 @@ void ObslugaZapisuJpeg(void)
 				printf("Blad zamkn.pliku\r\n");
 		}
 
-		PobierzDateCzas(&sDate, &sTime);
-		sprintf(chBufPodreczny, "%s_%04d%02d%02d_%02d%02d%02d.jpg", chNazwaPlikuObrazu, sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+		PobierzDateCzas(&stDate, &stTime);
+		sprintf(chBufPodreczny, "%s_%04d%02d%02d_%02d%02d%02d.jpg", chNazwaPlikuObrazu, stDate.Year+2000, stDate.Month, stDate.Date, stTime.Hours, stTime.Minutes, stTime.Seconds);
 		fres = f_open(&SDJpegFile, chBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
 		{
 			chStatusBufJpeg &= ~STAT_JPG_OTWORZ;	//skasuj flagę potwierdzając otwarcie pliku do zapisu
 			chStatusBufJpeg |= STAT_JPG_OTWARTY;
 
-			uint32_t nRozmiarExif = PrzygotujExif(&stKonfJpeg, &stKonfKam, &uDaneCM4.dane, &sDate, &sTime);
+			uint32_t nRozmiarExif = PrzygotujExif(&stKonfJpeg, &stKonfKam, &uDaneCM4.dane, &stDate, &stTime);
 			nRozmiarExif = (nRozmiarExif + 3) & 0xFFFFFFFC;										//wyrównanie do 4 bajtów aby DMA się nie zacinało
 			fres |= f_write(&SDJpegFile, chNaglJpegExif, nRozmiarExif, &nZapisanoBajtow);		//exif
 		}

@@ -180,13 +180,7 @@ static const uint8_t chNaglJpeg_480x320_yuv420[] = {
   uint8_t InicjalizujJpeg(void)
 {
 	uint8_t chErr;
-	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-	//ustaw piny PB0 i PB1 do machania. W CM4 są skonfigurowane jako GPIO_MODE_OUTPUT_PP
-	__HAL_RCC_GPIOB_CLK_ENABLE();
-	GPIO_InitStruct.Pin = GPIO_PIN_0 | GPIO_PIN_1;	//Test
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	chErr = HAL_JPEG_Init(&hjpeg);
 	HAL_JPEG_RegisterCallback(&hjpeg, HAL_JPEG_ERROR_CB_ID, HAL_JPEG_ErrorCallback);
    	return chErr;
@@ -260,7 +254,6 @@ void HAL_JPEG_GetDataCallback(JPEG_HandleTypeDef *hjpeg, uint32_t NbDecodedData)
 		chStatusBufJpeg |= STAT_JPG_ZATRZYMANE_WE;
 		//printf("PauWe, ");
 	}
-	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 }
 
 

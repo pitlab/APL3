@@ -4,7 +4,7 @@
 // AutoPitLot v3.0
 // Moduł pętli głównej obługi multimediów na rdzeniu Cortex-M7
 //
-// (c) PitLab 2024-25
+// (c) PitLab 2024-26
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 /* Pamięć (adresowanie bajtami):
@@ -52,6 +52,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Dodać synchronizację czasu z serwerem RTC
  - Dodać wyłaczanie przerwań na czas alokacji pamięci przez memalloc()
  - są problemy z dokładnoscią odmierzania czasu telemetrii. np. ramka 10Hz przychodzi z częstotliwością 12Hz. To jest kwestia poprawności zarządzania czasem w wątku LPUART
+ - kalibracja żyroskopu powinna kasować całkę kata na wykresie
 
  //Problemy sprzętowe egzemplarza 1:
   * Nie można uruchomić ETH i kamery
@@ -392,7 +393,8 @@ Error_Handler();
   }
   chErr |= InicjalizujJpeg();
 
-  printf("Dzien dobry! APL3 zglasza sie gotowy do dzialania.\r\n");		//wyślij komunikat po porcie debugującym
+  extern stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
+  printf("Dzien dobry! APL3 nr %d (%s) zglasza sie gotowy do dzialania.\r\n", stBSP.chAdres, stBSP.chNazwa);		//wyślij komunikat po porcie debugującym
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -1668,23 +1670,24 @@ void WatekOdbiorczyLPUART1(void const * argument)
 	while(1)
 	{
 		//w pierwszej kolejności obsłuż protokół komunikacyjny
-		chErr = CzekajzTimeoutemPokiZajety(st_ZajetoscLPUART.chZajetyPrzez, 500);		//czekaj [us] jeżeli st_ZajetoscLPUART.chZajetyPrzez > 0
+		chErr = CzekajzTimeoutemPokiZajety(st_ZajetoscLPUART.chZajetyPrzez + 1, 500);		//czekaj [us] jeżeli zajęty przez jeden z typów transmisji. Wartość funkcji ma być zerem a tutaj wolny oznacza -1, stąd obecność +1
 		if (chErr == ERR_OK)
 		{
 			ObslugaWatkuOdbiorczegoLPUART1();
 			osDelay(2);	//czas na obsługę ramki
+			chLicznikZajetosci = 0;
 		}
-		else	//watchdog: jeżeli UART jest zbyt długo  zajęty to odblokuj. Trzeba znaleźć co jest przyczyną blokowania
+		else	//watchdog: jeżeli UART jest zbyt długo zajęty to odblokuj. Trzeba znaleźć co jest przyczyną blokowania
 		{
 			chLicznikZajetosci++;
 			if (chLicznikZajetosci > 5)
-				st_ZajetoscLPUART.chZajetyPrzez = 0;
+				st_ZajetoscLPUART.chZajetyPrzez = LPUART_WOLNY;
 		}
 		chStatusUART = chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);	//status transmisji ramki
 
 		//w drugiej kolejności telemetrię
 		nCzasTele = MinalCzas(nCzasPoprzedniTele);	//czas w mikrosekundach
-		if ((nCzasTele >= KWANT_CZASU_TELEMETRII * 1000) && (st_ZajetoscLPUART.chZajetyPrzez == 0))
+		if ((nCzasTele >= KWANT_CZASU_TELEMETRII * 1000) && (st_ZajetoscLPUART.chZajetyPrzez == (int8_t)LPUART_WOLNY))
 		{
 			ObslugaTelemetrii(INTERF_UART);
 			nCzasPoprzedniTele += KWANT_CZASU_TELEMETRII * 1000;
@@ -1696,7 +1699,7 @@ void WatekOdbiorczyLPUART1(void const * argument)
 			chStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);	//to wróć do stanu otwartego łącza
 		else
 			chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
-		//taskYIELD();
+		taskYIELD();
 	}
   /* USER CODE END WatekOdbiorczyLPUART1 */
 }

@@ -12,12 +12,11 @@
 #include <stdlib.h>
 #include "display.h"
 #include "rejestrator.h"
+#include "czas.h"
 
 FIL SDBmpFile;       //struktura pliku z obrazem
-//extern char chNapis[100];
-extern RTC_HandleTypeDef hrtc;
-extern RTC_TimeTypeDef sTime;
-extern RTC_DateTypeDef sDate;
+extern RTC_TimeTypeDef stTime;
+extern RTC_DateTypeDef stDate;
 extern char __attribute__ ((aligned (32))) chBufPodreczny[40];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[];
 extern stKonfKam_t stKonfKam;
@@ -135,9 +134,8 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 	chNaglowek[62] = '0' + WER_PODRZ;
 	chNaglowek[63] = 0;
 
-	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-	sprintf(chBufPodreczny, "%s_%04d%02d%02d_%02d%02d%02d.bmp", chNazwaPlikuObrazu, sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+	PobierzDateCzas(&stDate, &stTime);
+	sprintf(chBufPodreczny, "%s_%04d%02d%02d_%02d%02d%02d.bmp", chNazwaPlikuObrazu, stDate.Year+2000, stDate.Month, stDate.Date, stTime.Hours, stTime.Minutes, stTime.Seconds);
 
 	fres = f_open(&SDBmpFile, chBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
 	if (fres != FR_OK)
@@ -288,9 +286,8 @@ uint8_t ZapiszPlikBin(uint8_t *chDaneWe, uint32_t nRozmiar)
 	FRESULT fres = 0;
 	UINT nZapisanoBajtow;
 
-	HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-	HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-	sprintf(chBufPodreczny, "dane_%04d%02d%02d_%02d%02d%02d.bin", sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+	PobierzDateCzas(&stDate, &stTime);
+	sprintf(chBufPodreczny, "dane_%04d%02d%02d_%02d%02d%02d.bin", stDate.Year+2000, stDate.Month, stDate.Date, stTime.Hours, stTime.Minutes, stTime.Seconds);
 
 	fres = f_open(&SDBmpFile, chBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
 	if (fres != FR_OK)
