@@ -40,7 +40,7 @@ static uint8_t chRozmDanych;
 static uint8_t chDaneRamkiKom[ROZMIAR_DANYCH_KOMUNIKACJI];
 static un8_16_t un8_16;
 stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
-const char* chNazwaSierotki = {"Sierotka Wronia"};
+const char* chNazwaSierotki = {"Sierotka Wronia"};	//domyślna nazwa nienazwanego BSP
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chBuforNadDMA[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];

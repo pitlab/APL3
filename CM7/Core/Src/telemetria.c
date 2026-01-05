@@ -128,7 +128,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 	{
 		if (chIloscDanych[r] > 0)	//jeżeli jest coś do wysłania
 		{
-			PrzygotujRamkeTele(chIndeksNapelnRamki + chIndeksAdresow * LICZBA_RAMEK_TELEMETR, chAdresZdalny[chInterfejs], stBSP.chAdres, chIloscDanych[r]);	//utwórz ramkę gotową do wysyłki
+			PrzygotujRamkeTele(chIndeksNapelnRamki + r * LICZBA_RAMEK_TELEMETR, chAdresZdalny[chInterfejs], stBSP.chAdres, chIloscDanych[r]);	//utwórz ramkę gotową do wysyłki
 			st_ZajetoscLPUART.sDoWyslania[r+1] = chIloscDanych[r] * 2 + LICZBA_BAJTOW_ID_TELEMETRII + ROZM_CIALA_RAMKI;
 		}
 	}
