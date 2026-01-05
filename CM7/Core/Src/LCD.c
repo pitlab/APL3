@@ -97,7 +97,8 @@ extern const char *chNapisLcd[MAX_NAPISOW];
 extern const char *chOpisBledow[MAX_KOMUNIKATOW];
 extern const char *chNazwyMies3Lit[13];
 extern int16_t sBuforPapuga[ROZMIAR_BUFORA_PAPUGI];
-//definicje zmiennych
+extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+
 uint8_t chTrybPracy;
 uint8_t chNowyTrybPracy;
 uint8_t chWrocDoTrybu;
@@ -1424,7 +1425,11 @@ uint8_t RysujEkran(void)
 			chNowyTrybPracy = TP_WYSWIETL_BLAD;
 		}
 		else
+		{
 			PomiaryIMU();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
+			if (uDaneCM4.dane.sPostepProcesu)
+				chCzasSwieceniaLED[LED_NIEB] = 5;	//świeć niebieskim LED w trakcie kalibracji
+		}
 
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{

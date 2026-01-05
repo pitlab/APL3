@@ -31,9 +31,9 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 0x30040000	32K		CM7		-		+		-		+  		RW		RW		SRAM3_AHB_D2    deskryptory ethernet (nie mogą być cache'owalne) i bufor [12*MTU]
 0x38000000	64K		CM4+7	-		+		-		-		RW		RW		SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2
 0x38800000	4K		CM7														BACKUP
-0x60000000	4M		CM7		-		+		-		+		RW		RW		EXT_SRAM		bufor obrazu z kamery
+0x60000000	4M		CM7		-		+		-		+		RW		RW		EXT_SRAM		obecnie nieużywana. Docelowo usunąć jako zbyt drogi
 0x68000000	32M		CM7		+		+		+		-		RW		RW		FLASH_NOR
-0xC0000000	64M		CM7		-		+		-		+		RW		RW		EXT_DRAM
+0xC0000000	64M		CM7		-		+		-		+		RW		RW		EXT_DRAM		bufor obrazu z kamery
 
 
  *Zrobić:
@@ -53,6 +53,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Dodać wyłaczanie przerwań na czas alokacji pamięci przez memalloc()
  - są problemy z dokładnoscią odmierzania czasu telemetrii. np. ramka 10Hz przychodzi z częstotliwością 12Hz. To jest kwestia poprawności zarządzania czasem w wątku LPUART
  - kalibracja żyroskopu powinna kasować całkę kata na wykresie
+ - okresowo zmienia się polecenie zmieniajac ekran meny w dane pomiarowe. Sprawdzić co jest przyczyną błędu zasadzic się na zmianę stanu zmiennej chTrybPracy albo chNowyTrybPracy
 
  //Problemy sprzętowe egzemplarza 1:
   * Nie można uruchomić ETH i kamery
