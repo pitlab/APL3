@@ -62,11 +62,8 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	if (chRysujRaz)
 	{
 		BelkaTytulu(tytul);		//rysuje belkę tytułu ekranu
-
-		//rysuje pasek podpowiedzi na dole ekranu
-		//setColor(SZARY20);
-		//fillRect(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, DISP_Y_SIZE);
-		RysujProstokatWypelniony(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, SZARY20);
+		RysujProstokatWypelniony(0, MENU_NAG_WYS, DISP_X_SIZE, DISP_Y_SIZE - MENU_PASOP_WYS - MENU_NAG_WYS, CZARNY);	//czyści ekran
+		RysujProstokatWypelniony(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, SZARY20);	//rysuje pasek podpowiedzi na dole ekranu
 		setBackColor(CZARNY);
 
 		//rysuj ikony poleceń

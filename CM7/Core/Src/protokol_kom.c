@@ -78,12 +78,12 @@ extern uint8_t chRozmiarRamkiNadTCP;		//rozmiar ramki nadawczej TCP. Jest zerowa
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujProtokol(void)
 {
-	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIG];
+	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
 	uint8_t chOdczytano;
 
 	//odczytaj z konfiguracji i ustaw własny adres sieciowy
 	chOdczytano = CzytajPaczkeKonfigu(chPaczka, FKON_NAZWA_ID_BSP);
-	if (chOdczytano == ROZMIAR_PACZKI_KONFIG)
+	if (chOdczytano == ROZMIAR_PACZKI_KONFIGU)
 	{
 		stBSP.chAdres = chPaczka[2];
 		for (int16_t n=0; n<DLUGOSC_NAZWY; n++)

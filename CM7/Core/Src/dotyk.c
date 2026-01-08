@@ -83,15 +83,17 @@ uint8_t CzytajDotyk(void)
 	nCzasDotyku = MinalCzas(statusDotyku.nOstCzasPomiaru);
 	if (nCzasDotyku < 50000)	//50ms -> 20Hz
 		return BLAD_OK;
-	statusDotyku.nOstCzasPomiaru = PobierzCzasT6();
+
 
 	//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI5
 	nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
-	if (!nStanSemaforaSPI)
+	if (nStanSemaforaSPI)
+		return ERR_ZAJETY_SEMAFOR;
+	else
 	{
 		if (HAL_HSEM_Take(HSEM_SPI5_WYSW, 0) == BLAD_OK)
 		{
-			//Ponieważ zegar SPI = 100MHz a układ może pracować z prędkością max 2,5MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 64
+			//Ponieważ zegar SPI = 125MHz a układ może pracować z prędkością max 2,5MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 64
 			nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
 			hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
 			hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_64;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/64
@@ -107,13 +109,8 @@ uint8_t CzytajDotyk(void)
 			statusDotyku.sAdc[3] = CzytajKanalDotyku(TPCHZ2);
 			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 			hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
-			statusDotyku.chFlagi &= ~DOTYK_ODCZYTAC;	//kasuj flagę potrzeby odczytu
+			statusDotyku.nOstCzasPomiaru = PobierzCzasT6();
 		}
-	}
-	else
-	{
-		statusDotyku.chFlagi |= DOTYK_ODCZYTAC;	//przy najbliższej okazji trzeba odczytać dotyk
-		return ERR_ZAJETY_SEMAFOR;
 	}
 
 	if (statusDotyku.sAdc[2] > MIN_Z)	//czy siła nacisku jest wystarczająca
@@ -130,6 +127,10 @@ uint8_t CzytajDotyk(void)
 			statusDotyku.sX = (uint16_t)(fTemp + 0.5f);	//uwzględnij zaokrąglenie
 			fTemp = kalibDotyku.fAy * statusDotyku.sAdc[0] + kalibDotyku.fBy * statusDotyku.sAdc[1] + kalibDotyku.fDeltaY;
 			statusDotyku.sY = (uint16_t)(fTemp + 0.5f);
+
+			//po nadpisaniu danych zdarzało się że wyliczane współrzędne wynosiły (0,0). W takiej sytuacji wymuś ponowną kalibrację
+			if ((statusDotyku.sX == 0) && (statusDotyku.sY == 0))
+				statusDotyku.chFlagi &= ~DOTYK_SKALIBROWANY;
 		}
 
 	}
@@ -153,17 +154,9 @@ uint8_t KalibrujDotyk(void)
 	switch(chEtapKalibr)
 	{
 	case 0:	//inicjalizacja zmiennych
-		//LCD_Orient(POZIOMO);
 		WypelnijEkran(CZARNY);
-		//TestObliczenKalibracji();		//testowo sprawdzenie poprawności obliczeń
 		setColor(BIALY);
 		UstawCzcionke(MidFont);
-		/*sprintf(chNapis, "Dotknij krzyzyk aby");
-		RysujNapis(chNapis, CENTER, 60);
-		sprintf(chNapis, "skalibrowac ekran dotykowy");
-		RysujNapis(chNapis, CENTER, 80);*/
-
-		//RysujNapiswRamce((char*)chNapisLcd[STR_DOTKNIJ_ABY_SKALIBROWAC], 0, 60, DISP_X_SIZE, 20);
 		RysujNapis((char*)chNapisLcd[STR_DOTKNIJ_ABY_SKALIBROWAC], CENTER, 70);
 		statusDotyku.chFlagi = 0;
 		chEtapKalibr++;
@@ -220,9 +213,9 @@ uint8_t KalibrujDotyk(void)
 				//ObliczKalibracjeDotykuWielopunktowa();	//Źle
 				statusDotyku.chFlagi |= DOTYK_SKALIBROWANY;
 
-				uint8_t chDane[ROZMIAR_PACZKI_KONFIG-2];
+				uint8_t chDane[ROZMIAR_PACZKI_KONFIGU-2];
 
-				for (uint8_t n=0; n<ROZMIAR_PACZKI_KONFIG-2; n++)
+				for (uint8_t n=0; n<ROZMIAR_PACZKI_KONFIGU-2; n++)
 					chDane[n] = 0;
 
 				KonwFloat2Char(kalibDotyku.fAx, &chDane[0]);
@@ -352,7 +345,7 @@ void ObliczKalibracjeDotykuWielopunktowa(void)
 	// delta = n * (a * b - c^2) + 2 * c * d * e - a * e^2 - b * d^2  (wyznacznik macierzy A)
 	fWyznacznik =  PKT_KAL * (a * b - c * c) + 2 * c * d * e - a * e * e - b * d * d;
 
-	//oblicz iz zapisz finalne współczynniki kalibracji
+	//oblicz finalne współczynniki kalibracji
 	kalibDotyku.fAx = fDeltaX1 / fWyznacznik;		// ax = deltaX1 / delta
 	kalibDotyku.fBx = fDeltaX2 / fWyznacznik;		// bx = deltaX2 / delta
 	kalibDotyku.fDeltaX = fDeltaX3 / fWyznacznik;	// deltaX = deltaX3 / delta
@@ -425,7 +418,7 @@ void ObliczKalibracjeDotyku3Punktowa(void)
 // Parametry: nic
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t TestObliczenKalibracji(void)
+void TestObliczenKalibracji(void)
 {
 	sXe[0] = 64;
 	sYe[0] = 384;
@@ -442,13 +435,20 @@ uint8_t TestObliczenKalibracji(void)
 	sXd[2] = 2629;
 	sYd[2] = 3367;
 
-	//ObliczKalibracjeDotykuWielopunktowa();	//wszystko jest złe
-	ObliczKalibracjeDotyku3Punktowa();			//zwraca dobre wartości
+	ObliczKalibracjeDotyku3Punktowa();
 
-	if ((kalibDotyku.fAx == 0.0623) && (kalibDotyku.fBx == 0.0054) && (kalibDotyku.fDeltaX == 9.9951) && (kalibDotyku.fAy == -0.0163) && (kalibDotyku.fBy == 0.01868) && (kalibDotyku.fDeltaY == -10.1458))
-		return BLAD_OK;
-	else
-		return ERR_ZLE_DANE;
+	assert(kalibDotyku.fAx > 0.06226);
+	assert(kalibDotyku.fAx < 0.06228);
+	assert(kalibDotyku.fBx > 0.0054333);
+	assert(kalibDotyku.fBx < 0.0054335);
+	assert(kalibDotyku.fDeltaX > 9.9950);
+	assert(kalibDotyku.fDeltaX < 9.9952);
+	assert(kalibDotyku.fAy > -0.016301);
+	assert(kalibDotyku.fAy < -0.016299);
+	assert(kalibDotyku.fBy > 0.18680);
+	assert(kalibDotyku.fBy < 0.18682);
+	assert(kalibDotyku.fDeltaY > -10.14578);
+	assert(kalibDotyku.fDeltaY < -10.14576);
 }
 
 
@@ -512,7 +512,7 @@ uint8_t TestDotyku(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujDotyk(void)
 {
-	uint8_t n, chPaczka[ROZMIAR_PACZKI_KONFIG];
+	uint8_t n, chPaczka[ROZMIAR_PACZKI_KONFIGU];
 	uint8_t chErr = ERR_BRAK_KONFIG;
 	extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 
@@ -524,7 +524,7 @@ uint8_t InicjujDotyk(void)
 	statusDotyku.nOstCzasPomiaru = 0;
 
 	n = CzytajPaczkeKonfigu(chPaczka, FKON_KALIBRACJA_DOTYKU);
-	if (n == ROZMIAR_PACZKI_KONFIG)
+	if (n == ROZMIAR_PACZKI_KONFIGU)
 	{
 		kalibDotyku.fAx = KonwChar2Float(&chPaczka[2]);
 		kalibDotyku.fAy = KonwChar2Float(&chPaczka[6]);
@@ -539,7 +539,7 @@ uint8_t InicjujDotyk(void)
 
 	//sprawdź obecność panelu dotykowego
 	CzytajDotyk();
-	if (statusDotyku.sAdc[0] == 0x1FFF)		//taką wartość zwraca gdy nie ma podłaczonego ekranu
+	if (statusDotyku.sAdc[0] == 0x1FFF)		//taką wartość zwraca gdy nie ma podłączonego ekranu
 	{
 		nZainicjowanoCM7 &= ~INIT_DOTYK;
 		chErr = ERR_BRAK_DANYCH;

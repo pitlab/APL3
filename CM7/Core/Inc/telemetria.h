@@ -100,8 +100,11 @@
 #define TELEID_SERWO14		76
 #define TELEID_SERWO15		77
 #define TELEID_SERWO16		78
-//max do 127
 
+#define TELEID_DOTYK_ADC0	79
+#define TELEID_DOTYK_ADC1	80
+#define TELEID_DOTYK_ADC2	81
+//max do 127
 
 //zmiene telemetryczne w ramce 2
 #define TELEID_PID_PRZE_WZAD	128	//wartość zadana regulatora sterowania przechyleniem

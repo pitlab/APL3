@@ -348,18 +348,13 @@ uint8_t RysujEkran(void)
 	if ((statusDotyku.chFlagi & DOTYK_SKALIBROWANY) != DOTYK_SKALIBROWANY)		//sprawdź czy ekran dotykowy jest skalibrowany
 		chTrybPracy = TP_KAL_DOTYK;
 
-	if (statusDotyku.chFlagi & DOTYK_ODCZYTAC)	//przy najbliższej okazji trzeba odczytać dotyk
-		chErr = CzytajDotyk();
-
 	switch (chTrybPracy)
 	{
 	case TP_MENU_GLOWNE:	// wyświetla menu główne
-		//Menu((char*)chNapisLcd[STR_MENU_MAIN], stMenuGlowne, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_MENU_MAIN]);
 		Menu(chNapisPodreczny, stMenuGlowne, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
-
 
 	case TP_KAL_BARO:	//kalibracja ciśnienia według wzorca
 		if (KalibrujBaro(&chSekwencerKalibracji) == ERR_GOTOWE)
@@ -368,7 +363,6 @@ uint8_t RysujEkran(void)
 			chNowyTrybPracy = TP_WROC_DO_MENU;
 		}
 		break;
-
 
 	case TP_POMIARY_DOTYKU:
 		if (TestDotyku() == ERR_GOTOWE)
@@ -382,8 +376,6 @@ uint8_t RysujEkran(void)
 		Menu(chNapisPodreczny, stMenuTestowe, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
-
-
 
 	case TP_TEST1:
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
@@ -1713,20 +1705,16 @@ uint8_t RysujEkran(void)
 
 
 	case TP_NAST_MIKSERA:		break;
+
+	default:
+		printf("zly tryb pracy\n\r");
 	}
 
 
 	//rzeczy do wykonania podczas uruchamiania nowego trybu pracy
 	if (chNowyTrybPracy)
 	{
-		chWrocDoTrybu = chTrybPracy;
-		chTrybPracy = chNowyTrybPracy;
-		chNowyTrybPracy = 0;
-		statusDotyku.chFlagi &= ~(DOTYK_DOTKNIETO | DOTYK_ZWOLNONO);	//czyść flagi ekranu dotykowego aby móc reagować na nie w trakcie pracy danego trybu
-		chRysujRaz = 1;
-
-		//startuje procesy zwiazane z obsługą nowego trybu pracy
-		switch(chTrybPracy)
+		switch(chNowyTrybPracy)
 		{
 		case TP_WROC_DO_MENU:		chTrybPracy = TP_MENU_GLOWNE;	break;	//powrót do menu głównego
 		case TP_WROC_DO_AUDIO:		chTrybPracy = TP_MEDIA_AUDIO;	break;	//powrót do menu Audio
@@ -1738,12 +1726,16 @@ uint8_t RysujEkran(void)
 		case TP_WROC_DO_MAG:		chTrybPracy = TP_MAGNETOMETR;	break;	//powrót do menu Magnetometr
 		case TP_WROC_DO_POMIARY:	chTrybPracy = TP_POMIARY;		break;	//powrót do menu Pomiary
 		case TP_WROC_DO_NASTAWY:	chTrybPracy = TP_NASTAWY;		break;	//powrót do menu Nastawy
-		case TP_FRAKTALE:			InitFraktal(START_FRAKTAL);		break;
+		case TP_FRAKTALE:			InitFraktal(START_FRAKTAL);		chTrybPracy = TP_FRAKTALE;	break;
 		case TP_WROC_DO_ETH:		chTrybPracy = TP_ETHERNET;		break;	//powrót do menu Ethernet
 		case TP_WROC_DO_TESTY:		chTrybPracy = TP_TESTY;			break;	//powrót do menu Testy
+		default:
+			RysujProstokatWypelniony(0, 0, DISP_X_SIZE, DISP_Y_SIZE, CZARNY);	//czyści ekran
+			chTrybPracy = chNowyTrybPracy;	break;	//typowe wywołanie pozycji z menu
 		}
-
-		WypelnijEkran(CZARNY);
+		chNowyTrybPracy = 0;
+		statusDotyku.chFlagi &= ~(DOTYK_DOTKNIETO | DOTYK_ZWOLNONO);	//czyść flagi ekranu dotykowego aby móc reagować na nie w trakcie pracy danego trybu
+		chRysujRaz = 1;		//jednorazowo rysuj statyczne elementy nowego ekranu
 	}
 	return chErr;
 }

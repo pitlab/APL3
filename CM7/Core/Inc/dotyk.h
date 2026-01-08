@@ -19,12 +19,12 @@
 
 //definicje elementów ekranowych
 #define BRZEG	50		//odległość od brzegu ekranu
-#define KRZYZ	16		//długość linii krzyzyka
+#define KRZYZ	16		//długość linii krzyżyka
 
 //definicje parametrów dotknięcia ekranu
 
-#define MIN_Z	50		//minimalna siła nacisku na ekran
-#define MIN_T	1		//minimalny czas trwania dotknięcia [cykli]
+#define MIN_Z	60		//minimalna siła nacisku na ekran
+#define MIN_T	3		//minimalny czas trwania dotknięcia [cykli]
 #define PKT_KAL	3		//punktów kalibracji
 
 //flagi statusu
@@ -32,7 +32,6 @@
 #define DOTYK_ZWOLNONO		0x02	//puszczono przycisk ekranowy
 #define DOTYK_ZAPISANO		0x04	//zapisano dane konfiguracyjne
 #define DOTYK_SKALIBROWANY	0x08	//została wykonana kalibracja
-#define DOTYK_ODCZYTAC		0x80	//trzeba odczytać status dotyku, ponieważ upłynął czas a odczyt nie był możliwy
 
 struct _statusDotyku
 {
@@ -60,7 +59,7 @@ uint8_t KalibrujDotyk(void);
 void ObliczKalibracjeDotykuWielopunktowa(void);
 void ObliczKalibracjeDotyku3Punktowa(void);
 uint8_t TestDotyku(void);
-uint8_t TestObliczenKalibracji(void);
+void TestObliczenKalibracji(void);
 uint8_t InicjujDotyk(void);
 
 #endif /* INC_DOTYK_H_ */

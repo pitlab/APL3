@@ -349,6 +349,11 @@ Error_Handler();
   MX_DMA2D_Init();
   /* USER CODE BEGIN 2 */
 
+#ifdef TESTY		//testy algorytmów
+  TestObliczenKalibracji();
+#endif
+
+
   chErr |= InicjujSPIModZewn();
   chErr |= InicjujFlashNOR();
   chErr |= SprawdzMagistrale(0x60000000);	//sprawdź pamięć SRAM
@@ -393,6 +398,7 @@ Error_Handler();
 	  }
   }
   chErr |= InicjalizujJpeg();
+
 
   extern stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
   printf("Dzien dobry! APL3 nr %d (%s) zglasza sie gotowy do dzialania.\r\n", stBSP.chAdres, stBSP.chNazwa);		//wyślij komunikat po porcie debugującym

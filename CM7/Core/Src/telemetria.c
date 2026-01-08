@@ -12,6 +12,7 @@
 #include "flash_konfig.h"
 #include "protokol_kom.h"
 #include "polecenia_komunikacyjne.h"
+#include "dotyk.h"
 
 // Dane telemetryczne są wysyłane w zbiorczej ramce mogącej pomieścić MAX_ZMIENNYCH_TELEMETR_W_RAMCE (115). Dane są z puli adresowej obejmującej MAX_INDEKSOW_TELEMETR_W_RAMCE (128) zmiennych.
 // Ponieważ danych może być więcej, przewodziano 2 lub wiecej rodzajów ramek telemetrii
@@ -33,7 +34,7 @@ static un8_16_t un8_16;		//unia do konwersji między danymi 16 i 8 bit
 extern volatile uint8_t chDoWyslania[1 + LICZBA_RAMEK_TELEMETR];	//lista rzeczy do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
 extern stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
 extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
-
+extern struct _statusDotyku statusDotyku;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +44,7 @@ extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
 ////////////////////////////////////////////////////////////////////////////////
 void InicjalizacjaTelemetrii(void)
 {
-	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIG];
+	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
 	uint8_t chOdczytano;
 	uint8_t chDoOdczytu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
 	uint8_t chIndeksPaczki = 0;
@@ -58,9 +59,9 @@ void InicjalizacjaTelemetrii(void)
 	while (chDoOdczytu && chProbOdczytu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
 	{
 		chOdczytano = CzytajPaczkeKonfigu(chPaczka, FKON_OKRES_TELEMETRI1 + chIndeksPaczki);		//odczytaj 30 bajtów danych + identyfikator i CRC
-		if (chOdczytano == ROZMIAR_PACZKI_KONFIG)
+		if (chOdczytano == ROZMIAR_PACZKI_KONFIGU)
 		{
-			for (uint16_t n=0; n<((ROZMIAR_PACZKI_KONFIG - 2) / 2); n++)
+			for (uint16_t n=0; n<((ROZMIAR_PACZKI_KONFIGU - 2) / 2); n++)
 			{
 				if (chDoOdczytu)	//nie czytaj wiecej niż trzeba aby nie przepełnić zmiennej
 				{
@@ -280,6 +281,12 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TELEID_SERWO14:
 	case TELEID_SERWO15:	//aby nie generować zbyt dużo kodu stosuję wzór do obliczenia indeksu zmiennej dla wszystkich kanałów
 	case TELEID_SERWO16:	fZmiennaTele = uDaneCM4.dane.sSerwo[sZmienna - TELEID_SERWO1];	break;
+
+	case TELEID_DOTYK_ADC0:	fZmiennaTele = statusDotyku.sAdc[0];		break;
+	case TELEID_DOTYK_ADC1:	fZmiennaTele = statusDotyku.sAdc[1];		break;
+	case TELEID_DOTYK_ADC2:	fZmiennaTele = statusDotyku.sAdc[2];		break;
+
+
 
 	case TELEID_PID_PRZE_WZAD:		break;	//wartość zadana regulatora sterowania przechyleniem
 	case TELEID_PID_PRZE_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRZE].fWyjsciePID;	break;	//wyjście regulatora sterowania przechyleniem
