@@ -201,17 +201,6 @@ int main(void)
   InicjujModulyWew();
   InicjujModulI2P();
   InicjujJednostkeInercyjna();
-
-  ZapiszFRAM(FAU_KONF_WY1_RC, SERWO_PWM400);
-  ZapiszFRAM(FAU_KONF_WY2_RC, SERWO_PWM400);
-  ZapiszFRAM(FAU_KONF_WY3_RC, SERWO_PWM100);
-  ZapiszFRAM(FAU_KONF_WY4_RC, SERWO_IO);	//tymczasowo do machania pinem w CM7
-  ZapiszFRAM(FAU_KONF_WY5_RC, SERWO_IO);	//tymczasowo do machania pinem w CM7
-  ZapiszFRAM(FAU_KONF_WY6_RC, SERWO_PWM50);
-  ZapiszFRAM(FAU_KONF_WY7_RC, SERWO_IO);
-  ZapiszFRAM(FAU_KONF_WY8_RC, SERWO_PWM400);
-  ZapiszFRAM(FAU_KONF_WY916_RC, SERWO_PWM50);
-
   InicjujWejsciaRC();	//odbiorniki RC
   InicjujWyjsciaRC();	//serwa, ESC
   InicjujPID();

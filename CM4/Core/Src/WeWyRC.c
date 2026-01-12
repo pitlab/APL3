@@ -55,6 +55,7 @@ extern uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSR
 uint8_t InicjujWejsciaRC(void)
 {
 	uint8_t chErr = BLAD_OK;
+	uint8_t chDaneKonfig;
 	TIM_IC_InitTypeDef sConfigIC = {0};
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 
@@ -63,8 +64,10 @@ uint8_t InicjujWejsciaRC(void)
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 
-	//czytaj konfigurację kanałów wejściowych RC
-	CzytajBuforFRAM(FAU_KONF_WE1_RC, chKonfigWeRC, LICZBA_WYJSC_RC);
+	//czytaj konfigurację obu kanałów wejściowych RC
+	CzytajBuforFRAM(FAU_KONF_ODB_RC, &chDaneKonfig, 1);
+	chKonfigWeRC[KANAL_RC1] = chDaneKonfig & MASKA_TYPU_RC1;
+	chKonfigWeRC[KANAL_RC2] = chDaneKonfig >> 4;
 
 	//ustaw Port PB8 jako UART4_RX lub TIM4_CH3
 	__HAL_RCC_GPIOB_CLK_ENABLE();
@@ -212,7 +215,7 @@ uint8_t InicjujWejsciaRC(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja wczytuje z FRAM konfigurację kanałów serw i konfiguruje je jako PWM, DShot, S-Bus, IO, lub wejście analogowe
+// Wczytuje z FRAM konfigurację kanałów serw i konfiguruje je jako PWM, DShot, S-Bus, IO, lub wejście analogowe
 // Parametry:
 // Zwraca: kod błędu
 // Czas wykonania:
@@ -220,6 +223,7 @@ uint8_t InicjujWejsciaRC(void)
 uint8_t InicjujWyjsciaRC(void)
 {
 	uint8_t chErr = BLAD_OK;
+	uint8_t chDaneKonfig;
 	//TIM_IC_InitTypeDef sConfigIC = {0};
 	TIM_OC_InitTypeDef sConfigOC = {0};
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -234,8 +238,13 @@ uint8_t InicjujWyjsciaRC(void)
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 	sConfigOC.Pulse = IMPULS_PWM;
 
-	//czytaj konfigurację kanałów wyjściowych RC
-	CzytajBuforFRAM(FAU_KONF_WY1_RC, chKonfigWyRC, LICZBA_WYJSC_RC);
+	//czytaj konfigurację kanałów wyjściowych RC: Bity 0..3 = Wyjście nieparzyste, bity 4..7 = Wyjście parzyste
+	for (uint8_t n=0; n<4; n++)
+	{
+		CzytajBuforFRAM(FAU_KONF_SERWA12 + n, &chDaneKonfig, 1);
+		chKonfigWyRC[KANAL_RC1 + 2*n] = chDaneKonfig & MASKA_TYPU_RC1;
+		chKonfigWyRC[KANAL_RC2 + 2*n] = chDaneKonfig >> 4;
+	}
 
 	//**** kanał 1 - konfiguracja portu PB9 TIM4_CH4 **********************************************************
 	__HAL_RCC_GPIOB_CLK_ENABLE();

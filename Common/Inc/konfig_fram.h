@@ -66,25 +66,13 @@
 //12 regulatorów zajmuje 336 bajtów - 0x150
 
 
-#define FA_USER_VAR3	    0x0300
-#define FAU_KONF_ODB_RC		FA_USER_VAR3			//1U konfiguracja odbiorników RC: Bity 0..3 = RC1, bity 4..7 = RC2: 0=PPM, 1=S-Bus
-#define FAU_KONF_WE1_RC		FA_USER_VAR3			//1U konfiguracja wejścia RC1: 0=PPM, 1=S-Bus
-#define FAU_KONF_WE2_RC		FAU_KONF_WE1_RC+1		//1U konfiguracja wejścia RC2: 0=PPM, 1=S-Bus
-#define FAU_KONF_WY1_RC		FAU_KONF_WE2_RC+1		//1U konfiguracja wyjścia RC1: np. SERWO_PWM400 zdefiniowanych w sys_def_wspolnych.h
-#define FAU_KONF_WY2_RC		FAU_KONF_WY1_RC+1		//1U konfiguracja wyjścia RC2
-#define FAU_KONF_WY3_RC		FAU_KONF_WY2_RC+1		//1U konfiguracja wyjścia RC3
-#define FAU_KONF_WY4_RC		FAU_KONF_WY3_RC+1		//1U konfiguracja wyjścia RC4
-#define FAU_KONF_WY5_RC		FAU_KONF_WY4_RC+1		//1U konfiguracja wyjścia RC5
-#define FAU_KONF_WY6_RC		FAU_KONF_WY5_RC+1		//1U konfiguracja wyjścia RC6
-#define FAU_KONF_WY7_RC		FAU_KONF_WY6_RC+1		//1U konfiguracja wyjścia RC7
-#define FAU_KONF_WY8_RC		FAU_KONF_WY7_RC+1		//1U konfiguracja wyjścia RC8
-#define FAU_KONF_WY916_RC	FAU_KONF_WY8_RC+1		//1U konfiguracja wyjść RC9-16
-
+//konfiguracja odbiorników RC i wyjść serw/ESC zdefiniowane w sys_def_wspolnych.h
+#define FAU_KONF_ODB_RC		0x0300			//1U konfiguracja odbiorników RC: Bity 0..3 = RC1, bity 4..7 = RC2: 0=PPM, 1=S-Bus
 #define FAU_KONF_SERWA12	FAU_KONF_ODB_RC+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 1, bity 4..7 = Wyjście 2
 #define FAU_KONF_SERWA34	FAU_KONF_SERWA12+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 3, bity 4..7 = Wyjście 4
 #define FAU_KONF_SERWA56	FAU_KONF_SERWA34+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 5, bity 4..7 = Wyjście 6
 #define FAU_KONF_SERWA78	FAU_KONF_SERWA56+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 7, bity 4..7 = Wyjście 8
-#define FAU_KONF_SERWA916	FAU_KONF_SERWA78+1		//1U konfiguracja wyjść:  0=wyjścia 9..16 PWM 50Hz, 1=wyjścia 9..12 PWM 100Hz, 2=wyjścia 9..10 PWM 200Hz, 3=wyjście 9 PWM 400Hz
+#define FAU_KONF_SERWA916	FAU_KONF_SERWA78+1		//1U konfiguracja wyjść: 0=wyjścia 9..16 PWM 50Hz, 1=wyjścia 9..12 PWM 100Hz, 2=wyjścia 9..10 PWM 200Hz, 3=wyjście 9 PWM 400Hz
 #define FAU_LOW_VOLT_WARN   FAU_KONF_SERWA916+1  	//4F próg ostrzezenia o niskim napięciu
 #define FAU_LOW_VOLT_ALARM  FAU_LOW_VOLT_WARN+4 	//4F próg alarmu niskiego napięcia
 #define FAU_VOLT_DROP_COMP  FAU_LOW_VOLT_ALARM+4	//4F współczynnik kompensacji spadku napięcia pakietu

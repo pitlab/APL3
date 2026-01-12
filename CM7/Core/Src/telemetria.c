@@ -23,8 +23,8 @@
 
 // LPUART korzysta z BDMA a ono ma dostęp tylko do SRAM4, więc ramka telemetrii musi być zdefiniowana w SRAM4
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chRamkaTelemetrii[2*LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla 16-bitowych zmiennych 0..127 oraz 128..255
-uint16_t sOkresTelemetrii[LICZBA_RAMEK_TELEMETR * OKRESOW_TELEMETRII_W_RAMCE];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
-uint16_t sLicznikTelemetrii[LICZBA_RAMEK_TELEMETR * OKRESOW_TELEMETRII_W_RAMCE];
+uint16_t sOkresTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
+uint16_t sLicznikTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];
 uint8_t chIndeksNapelnRamki;	//określa która tablica ramki telemetrycznej jest napełniania
 
 extern unia_wymianyCM4_t uDaneCM4;
@@ -35,7 +35,8 @@ extern volatile uint8_t chDoWyslania[1 + LICZBA_RAMEK_TELEMETR];	//lista rzeczy 
 extern stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
 extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
 extern struct _statusDotyku statusDotyku;
-
+extern RTC_TimeTypeDef stTime;
+extern RTC_DateTypeDef stDate;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja inicjalizuje zmienne używane do obsługi telemetrii. Dane są zapisane w porządku cienkokońcówkowym
@@ -109,17 +110,18 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 	for(uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
 	{
 		if (sLicznikTelemetrii[n] != TELEMETRIA_WYLACZONA)	//wartość oznaczająca aby nie wysyłać danych
-			sLicznikTelemetrii[n]--;
-
-		if (sLicznikTelemetrii[n] == 0)		//licznik zmiennej doszedł do 0 więc trzeba ją wysłać
 		{
-			sLicznikTelemetrii[n] = sOkresTelemetrii[n];		//przeładuj licznik nowym okresem
-			fZmienna = PobierzZmiennaTele(n);
-			chIndeksAdresow = n >> 7;
-			if (chIloscDanych[chIndeksAdresow] < (ROZMIAR_RAMKI_KOMUNIKACYJNEJ - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
+			sLicznikTelemetrii[n]--;
+			if (sLicznikTelemetrii[n] == 0)		//licznik zmiennej doszedł do 0 więc trzeba ją wysłać
 			{
-				WstawDaneDoRamkiTele(chIndeksNapelnRamki, chIndeksAdresow, chIloscDanych[chIndeksAdresow], n, fZmienna);
-				chIloscDanych[chIndeksAdresow]++;
+				sLicznikTelemetrii[n] = sOkresTelemetrii[n];		//przeładuj licznik nowym okresem
+				fZmienna = PobierzZmiennaTele(n);
+				chIndeksAdresow = n >> 7;
+				if (chIloscDanych[chIndeksAdresow] < (ROZMIAR_RAMKI_KOMUNIKACYJNEJ - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
+				{
+					WstawDaneDoRamkiTele(chIndeksNapelnRamki, chIndeksAdresow, chIloscDanych[chIndeksAdresow], n, fZmienna);
+					chIloscDanych[chIndeksAdresow]++;
+				}
 			}
 		}
 	}
@@ -371,11 +373,14 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 ////////////////////////////////////////////////////////////////////////////////
 void PrzygotujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint8_t chRozmDanych)
 {
+	PobierzDateCzas(&stDate, &stTime);
+
 	InicjujCRC16(0, WIELOMIAN_CRC);
 	chRamkaTelemetrii[chIndNapRam][0] = NAGLOWEK;
 	chRamkaTelemetrii[chIndNapRam][1] = CRC->DR = chAdrZdalny;
 	chRamkaTelemetrii[chIndNapRam][2] = CRC->DR = chAdrLokalny;
-	chRamkaTelemetrii[chIndNapRam][3] = CRC->DR = (PobierzCzasT6() / 10) & 0xFF;
+	//chRamkaTelemetrii[chIndNapRam][3] = CRC->DR = (PobierzCzasT6() / 10) & 0xFF;
+	chRamkaTelemetrii[chIndNapRam][3] = CRC->DR = (uint8_t)stTime.SubSeconds;	//1/256 cześć sekundy czasu RTC synchronizowanego z GPS
 	chRamkaTelemetrii[chIndNapRam][4] = CRC->DR = PK_TELEMETRIA1 + chIndNapRam / 2;	//indeks ramki wskazuje na zakres zmiennych a to determinuje numer polecenia
 	chRamkaTelemetrii[chIndNapRam][5] = CRC->DR = chRozmDanych * 2 + LICZBA_BAJTOW_ID_TELEMETRII;
 

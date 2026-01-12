@@ -97,7 +97,7 @@
     <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
         <listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
     </listAttribute>
-    <stringAttribute key="org.eclipse.dsf.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;memoryBlockExpressionList context=&quot;reserved-for-future-use&quot;&gt;&lt;gdbmemoryBlockExpression address=&quot;1610680064&quot; label=&quot;&amp;amp;sBuforKamerySRAM[0]&quot;/&gt;&lt;gdbmemoryBlockExpression address=&quot;603988468&quot; label=&quot;chNaglJpegExif&quot;/&gt;&lt;gdbmemoryBlockExpression address=&quot;805569024&quot; label=&quot;chBuforYCbCr&quot;/&gt;&lt;/memoryBlockExpressionList&gt;"/>
+    <stringAttribute key="org.eclipse.dsf.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;memoryBlockExpressionList context=&quot;reserved-for-future-use&quot;&gt;&lt;gdbmemoryBlockExpression address=&quot;1610680064&quot; label=&quot;&amp;amp;sBuforKamerySRAM[0]&quot;/&gt;&lt;gdbmemoryBlockExpression address=&quot;603988468&quot; label=&quot;chNaglJpegExif&quot;/&gt;&lt;gdbmemoryBlockExpression address=&quot;805569024&quot; label=&quot;chBuforYCbCr&quot;/&gt;&lt;gdbmemoryBlockExpression address=&quot;1744884640&quot; label=&quot;0x6800d3a0&quot;/&gt;&lt;/memoryBlockExpressionList&gt;"/>
     <stringAttribute key="process_factory_id" value="com.st.stm32cube.ide.mcu.debug.launch.HardwareDebugProcessFactory"/>
     <stringAttribute key="saved_expressions&lt;seperator&gt;Unknown" value="stack,.stack"/>
 </launchConfiguration>

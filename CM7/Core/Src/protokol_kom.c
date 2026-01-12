@@ -68,7 +68,6 @@ extern void Error_Handler(void);
 extern uint8_t chRozmiarRamkiNadTCP;		//rozmiar ramki nadawczej TCP. Jest zerowany po wysłaniu i ustawioany gdy gotowy do wysyłki
 
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // Odbiera dane przychodzące z interfejsów kmunikacyjnych w trybie: pytanie - odpowiedź
 // Parametry:
