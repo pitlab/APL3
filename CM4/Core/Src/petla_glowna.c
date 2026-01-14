@@ -135,7 +135,7 @@ void PetlaGlowna(void)
 
 	case 7:	JednostkaInercyjnaTrygonometria(ndT);	break;	//dane do IMU1
 	case 8:	JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
-	case 9:	chErrPG |= DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane);	break;
+	case 9:	chErrPG |= ObslugaRamkiBSBus();	break;
 	case 10:	break;
 	case 11:
 		//chErrPG |= PobierzDaneExpandera(&chStanIOwe);		//wszystkie porty ustawione na wyjściowe, nie ma co pobierać

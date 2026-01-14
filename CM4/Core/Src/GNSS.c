@@ -32,12 +32,15 @@
 uint8_t chBuforNadawczyGNSS[ROZMIAR_BUF_NAD_GNSS];
 uint8_t chBuforOdbioruGNSS[ROZMIAR_BUF_ODB_GNSS];
 uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
-extern uint8_t chBuforOdbioruSBus1[ROZMIAR_BUF_SBUS];
-extern uint8_t chBuforOdbioruSBus2[ROZMIAR_BUF_SBUS];
+extern uint8_t chBuforAnalizySBus1[ROZMIAR_BUF_ANA_SBUS];
+extern uint8_t chBuforAnalizySBus2[ROZMIAR_BUF_ANA_SBUS];
+extern uint8_t chBuforOdbioruSBus1[ROZM_BUF_ODB_SBUS];
+extern uint8_t chBuforOdbioruSBus2[ROZM_BUF_ODB_SBUS];
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart8;
 volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
+extern volatile uint8_t chWskNapBufAnaSBus1, chWskOprBufAnaSBus1; //wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus1
 uint16_t sCzasInicjalizacjiGNSS = 0;	//licznik czasu	inicjalizacji wyrażony w obiegach pętli 1/200Hz = 5ms
 extern volatile unia_wymianyCM4_t uDaneCM4;
 
@@ -298,7 +301,7 @@ uint8_t InicjujGNSS(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Callback odbiorczy UART - obevnie nie używane
+// Callback odbiorczy UART - obecnie nie używane
 // Parametry: brak
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -321,16 +324,16 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	if (huart->Instance == USART2)
 	{
 
-		//HAL_UARTEx_ReceiveToIdle_DMA(&huart2, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//wznów odbiór
-		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_SBUS);
+		//HAL_UARTEx_ReceiveToIdle_DMA(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);	//wznów odbiór
+		//HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);
 	}
 
 	//odbiór SBus1
 	if (huart->Instance == UART4)
 	{
 
-		//HAL_UARTEx_ReceiveToIdle_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);	//wznów odbiór
-		//HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);
+		//HAL_UARTEx_ReceiveToIdle_DMA(&huart4, chBuforOdbioruSBus1, ROZM_BUF_ODB_SBUS);	//wznów odbiór
+		//HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus1, ROZM_BUF_ODB_SBUS);
 	}
 }
 
@@ -358,17 +361,25 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
 	}
 
-	if (huart->Instance == UART4)		//dane z SBUS1
+	//dane z SBUS1
+	if (huart->Instance == UART4)
 	{
 		stRC.nCzasWe1 = PobierzCzas();	//czas przyjścia ramki SBus1
-		HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);
+		for (uint8_t n=0; n<ROZM_BUF_ODB_SBUS; n++)
+		{
+			chBuforAnalizySBus1[chWskNapBufAnaSBus1] = chBuforOdbioruSBus1[n];
+			chWskNapBufAnaSBus1++;
+			chWskNapBufAnaSBus1 &= MASKA_ROZM_BUF_ANA_SBUS;	//zapętlenie wskaźnika bufora kołowego
+		}
+		HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZM_BUF_ODB_SBUS);
 		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);			//kanał serw 2 skonfigurowany jako IO
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);				//kanał serw 4 skonfigurowany jako IO
 	}
 
 	if (huart->Instance == USART2)		//dane z SBUS2
 	{
-		stRC.nCzasWe2 = PobierzCzas();	//czas przyjścia ramki SBus2
-		HAL_UART_Receive_DMA(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_SBUS);
+		//stRC.nCzasWe2 = PobierzCzas();	//czas przyjścia ramki SBus2
+		//HAL_UART_Receive_DMA(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);
 	}
 }
 

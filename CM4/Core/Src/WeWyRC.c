@@ -11,6 +11,7 @@
 #include "petla_glowna.h"
 #include "fram.h"
 #include "dshot.h"
+#include "GNSS.h"
 
 //definicje SBus: https://github.com/uzh-rpg/rpg_quadrotor_control/wiki/SBUS-Protocol
 //S-Bus oraz DShot mają rozdzielczość 11-bitów, wiec przyjmuję taką rozdzielczość sterowania
@@ -36,12 +37,21 @@ extern DMA_HandleTypeDef hdma_tim8_ch3;
 
 extern DMA_HandleTypeDef hdma_uart4_rx;
 extern DMA_HandleTypeDef hdma_uart4_tx;
-uint8_t chBuforOdbioruSBus1[ROZMIAR_BUF_SBUS];
-uint8_t chBuforOdbioruSBus2[ROZMIAR_BUF_SBUS];
-uint8_t chBuforNadawczySBus[ROZMIAR_BUF_SBUS] =  {0x0f,0x01,0x04,0x20,0x00,0xff,0x07,0x40,0x00,0x02,0x10,0x80,0x2c,0x64,0x21,0x0b,0x59,0x08,0x40,0x00,0x02,0x10,0x80,0x00,0x00};
+
+
+uint8_t chBuforAnalizySBus1[ROZMIAR_BUF_ANA_SBUS];
+uint8_t chBuforAnalizySBus2[ROZMIAR_BUF_ANA_SBUS];
+volatile uint8_t chWskNapBufAnaSBus1, chWskOprBufAnaSBus1; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus1
+volatile uint8_t chWskNapBufAnaSBus2, chWskOprBufAnaSBus2; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus1
+uint8_t chWskNapRamkiSBus1, chWskNapRamkiSBus2;				//wskaźniki napełniania ramek SBus
+uint8_t chBuforOdbioruSBus1[ROZM_BUF_ODB_SBUS];
+uint8_t chBuforOdbioruSBus2[ROZM_BUF_ODB_SBUS];
+uint8_t chRamkaSBus1[ROZMIAR_RAMKI_SBUS];
+uint8_t chRamkaSBus2[ROZMIAR_RAMKI_SBUS];
+uint8_t chBuforNadawczySBus[ROZMIAR_RAMKI_SBUS] =  {0x0f,0x01,0x04,0x20,0x00,0xff,0x07,0x40,0x00,0x02,0x10,0x80,0x2c,0x64,0x21,0x0b,0x59,0x08,0x40,0x00,0x02,0x10,0x80,0x00};
 uint8_t chKonfigWeRC[LICZBA_WEJSC_RC];
 uint8_t chKonfigWyRC[LICZBA_WYJSC_RC];
-
+uint8_t chKorektaPoczatkuRamki;
 uint32_t nCzasWysylkiSbus;
 extern uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforDShot[KANALY_MIKSERA][DS_BITOW_DANYCH + DS_BITOW_PRZERWY];
 
@@ -136,7 +146,7 @@ uint8_t InicjujWejsciaRC(void)
 		HAL_NVIC_EnableIRQ(UART4_IRQn);
 		HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
-    	HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);	//włącz odbiór pierwszej ramki
+    	HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZM_BUF_ODB_SBUS);	//włącz odbiór pierwszej ramki
 	}
 
 
@@ -207,7 +217,7 @@ uint8_t InicjujWejsciaRC(void)
 
 		HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(USART2_IRQn);
-		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_SBUS);	//włącz odbiór pierwszej ramki
+		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);	//włącz odbiór pierwszej ramki
 	}
 	return chErr;
 }
@@ -736,87 +746,6 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-// Porównuje dane z obu odbiorników RC i wybiera ten lepszy przepisując jego dane do struktury danych CM4
-// Parametry:
-// [we] *stRC - wskaźnik na strukturę danych odbiorników RC
-// [wy] *psDaneCM4 - wskaźnik na strukturę danych CM4
-// Zwraca: kod błędu
-// Czas wykonania:
-////////////////////////////////////////////////////////////////////////////////
-uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
-{
-	uint8_t chErr = BLAD_OK;
-	uint32_t nCzasBiezacy = PobierzCzas();
-	uint32_t nCzasRC1, nCzasRC2;
-	uint8_t n;
-
-	//Sprawdź kiedy przyszły ostatnie dane RC
-	nCzasRC1 = MinalCzas2(stRC->nCzasWe1, nCzasBiezacy);
-	nCzasRC2 = MinalCzas2(stRC->nCzasWe2, nCzasBiezacy);
-
-	//dekoduj dane jeżeli jest nowa ramka
-	if (nCzasRC1 < OKRES_RAMKI_PPM_RC)
-	{
-		chErr = DekodowanieRamkiBSBus(chBuforOdbioruSBus1, stRC->sOdb1);
-		if (chErr == BLAD_OK)
-			stRC->sZdekodowaneKanaly1 = 0xFFFF;
-	}
-
-	if (nCzasRC2 < OKRES_RAMKI_PPM_RC)
-	{
-		chErr = DekodowanieRamkiBSBus(chBuforOdbioruSBus2, stRC->sOdb2);
-		if (chErr == BLAD_OK)
-			stRC->sZdekodowaneKanaly2 = 0xFFFF;
-	}
-
-	if ((nCzasRC1 < 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC))	//działa odbiornik 1, nie działa 2
-	{
-		for (n=0; n<KANALY_ODB_RC; n++)
-		{
-			if (stRC->sZdekodowaneKanaly1 & (1<<n))
-			{
-				psDaneCM4->sKanalRC[n] = stRC->sOdb1[n]; 	//przepisz zdekodowane kanały
-				stRC->sZdekodowaneKanaly1 &= ~(1<<n);		//kasuj bit obrobionego kanału
-			}
-		}
-	}
-	else
-	if ((nCzasRC1 > 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 < 2*OKRES_RAMKI_PPM_RC))	//nie działa odbiornik 1, działa 2
-	{
-		for (n=0; n<KANALY_ODB_RC; n++)
-		{
-			if (stRC->sZdekodowaneKanaly2 & (1<<n))
-			{
-				psDaneCM4->sKanalRC[n] = stRC->sOdb2[n]; 	//przepisz zdekodowane kanały
-				stRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
-			}
-		}
-	}
-	else
-	if ((nCzasRC1 > 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC))
-	{
-		//HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZMIAR_BUF_SBUS);
-		//HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus2, ROZMIAR_BUF_SBUS);
-	}
-	else		//działają oba odbiorniki, określ który jest lepszy
-	{
-
-	}
-
-	//sprawdź czy trzeba już wysłać nową ramkę Sbus
-	nCzasRC1 = MinalCzas2(nCzasWysylkiSbus, nCzasBiezacy);
-	if (nCzasRC1 >= OKRES_RAMKI_SBUS)
-	{
-		nCzasWysylkiSbus = nCzasBiezacy;
-		HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus, ROZMIAR_BUF_SBUS);	//wyślij kolejną ramkę
-	}
-
-	return chErr;
-}
-
-
-
 //
 void UART4_IRQHandler(void)
 {
@@ -847,6 +776,128 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 }
 
 
+//fizyczny odbiór HAL_UART_RxCpltCallback znajduje się w pliku GNSS.c
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Odbiór danych SBus z bufora kołowego i formowanie ich w ramkę
+// Parametry:
+// [we] *chRamkaSBus - wskaźnik na dane formowanej ramki
+// [we/wy] *chWskNapRamki - wskaźnik na wskaźnik napełniania ramki SBus
+// [we] *chBuforAnalizy - wskaźnik na bufor z danymi wejsciowymi
+// [we] chWskNapBuf - wskaźnik napełniania bufora wejsciowego
+// [wy] *chWskOprBuf - wskaźnik na wskaźnik opróżniania bufora wejściowego
+// Zwraca: kod wykonania operacji: BLAD_GOTOWE gdy jest kompletna ramka, BLAD_OK gdy skończyły się dane ale nie skompetowano jeszcze ramki
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t FormowanieRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_t *chBuforAnalizy, uint8_t chWskNapBuf, uint8_t *chWskOprBuf)
+{
+	uint8_t chDane;
+
+	while (chWskNapBufAnaSBus1 == chWskOprBufAnaSBus1)
+	{
+		chDane = chBuforAnalizySBus1[chWskOprBufAnaSBus1];
+
+		// detekcja początku ramki po wykryciu nagłówka i poprzedzającej go stopki
+		if ((chDane == SBUS_NAGLOWEK) && (chBuforAnalizySBus1[(chWskOprBufAnaSBus1 - 1) & MASKA_ROZM_BUF_ANA_SBUS] == SBUS_STOPKA))
+			chWskNapRamkiSBus1 = 0;
+
+		chRamkaSBus1[chWskNapRamkiSBus1] = chDane;
+		if (chWskNapRamkiSBus1 < ROZMIAR_RAMKI_SBUS)
+			chWskNapRamkiSBus1++;
+
+		chWskOprBufAnaSBus1++;
+		chWskOprBufAnaSBus1 &= MASKA_ROZM_BUF_ANA_SBUS;	//zapętlenie wskaźnika bufora kołowego
+
+		if ((chDane == SBUS_STOPKA ) && (chWskNapRamkiSBus1 == ROZMIAR_RAMKI_SBUS))
+			return BLAD_GOTOWE;	//odebrano całą ramkę. Reszta danych będzie obrobiona w następnym przebiegu
+	}
+	return BLAD_OK;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Porównuje dane z obu odbiorników RC i wybiera ten lepszy przepisując jego dane do struktury danych CM4
+// Parametry:
+// [we] *stRC - wskaźnik na strukturę danych odbiorników RC
+// [wy] *psDaneCM4 - wskaźnik na strukturę danych CM4
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
+{
+	uint8_t chErr = BLAD_OK;
+	uint32_t nCzasBiezacy = PobierzCzas();
+	uint32_t nCzasRC1, nCzasRC2;
+	uint8_t n;
+
+	//Sprawdź kiedy przyszły ostatnie dane RC
+	nCzasRC1 = MinalCzas2(stRC->nCzasWe1, nCzasBiezacy);
+	nCzasRC2 = MinalCzas2(stRC->nCzasWe2, nCzasBiezacy);
+
+	//dekoduj dane jeżeli jest nowa ramka
+	if (nCzasRC1 < OKRES_RAMKI_PPM_RC)
+	{
+
+	}
+
+	if (nCzasRC2 < OKRES_RAMKI_PPM_RC)
+	{
+
+	}
+
+	if ((nCzasRC1 < 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC))	//działa odbiornik 1, nie działa 2
+	{
+		for (n=0; n<KANALY_ODB_RC; n++)
+		{
+			if (stRC->sZdekodowaneKanaly1 & (1<<n))
+			{
+				psDaneCM4->sKanalRC[n] = stRC->sOdb1[n]; 	//przepisz zdekodowane kanały
+				stRC->sZdekodowaneKanaly1 &= ~(1<<n);		//kasuj bit obrobionego kanału
+			}
+		}
+	}
+	else
+	if ((nCzasRC1 > 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 < 2*OKRES_RAMKI_PPM_RC))	//nie działa odbiornik 1, działa 2
+	{
+		for (n=0; n<KANALY_ODB_RC; n++)
+		{
+			if (stRC->sZdekodowaneKanaly2 & (1<<n))
+			{
+				psDaneCM4->sKanalRC[n] = stRC->sOdb2[n]; 	//przepisz zdekodowane kanały
+				stRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
+			}
+		}
+	}
+	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
+	if (nCzasRC1 > 2*OKRES_RAMKI_PPM_RC)
+	{
+		HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZM_BUF_ODB_SBUS);
+	}
+	else
+	if (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC)
+	{
+		HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);
+	}
+	else		//działają oba odbiorniki, określ który jest lepszy
+	{
+
+	}
+
+	//sprawdź czy trzeba już wysłać nową ramkę Sbus
+	nCzasRC1 = MinalCzas2(nCzasWysylkiSbus, nCzasBiezacy);
+	if (nCzasRC1 >= OKRES_RAMKI_SBUS)
+	{
+		nCzasWysylkiSbus = nCzasBiezacy;
+		HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus, ROZM_BUF_ODB_SBUS);	//wyślij kolejną ramkę
+	}
+
+	return chErr;
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Dekoduje dane z ramki wejściowej odbiorników RC i skaluje je do wygodnego w obsłudze zakresu PPM_MIN..PPM_MAX
@@ -870,6 +921,9 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 			break;
 		}
 	}
+	//ramka S-Bus zaczyna się od nagłówka 0x0F, który powinien być pierwszym odebranym bajtem.
+	//Jeżeli nie trafia na początek, to zmniejsz liczbę odebieranych danych, tak aby przesunął się na początek
+	chKorektaPoczatkuRamki = n;
 	if (n > MAX_PRZESUN_NAGL)
 		return ERR_ZLA_ILOSC_DANYCH;
 
@@ -891,3 +945,47 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 	*(sKanaly + 15) = (((((int16_t)*(chNaglowek + 21) >> 5) | (((int16_t)*(chNaglowek + 22) << 3) & 0x7F8)) - SBUS_MIN ) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
 	return BLAD_OK;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja nadrzędna wywoływana z pętli głównej, skupiająca w sobie funkcje potrzebne do obsługi ramki S-Bus
+// Parametry: brak
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ObslugaRamkiBSBus(void)
+{
+	uint8_t chBlad;
+
+	//obsługa kanału 1
+	chBlad = FormowanieRamkiSBus(chRamkaSBus1, &chWskNapRamkiSBus1, chBuforAnalizySBus1, (uint8_t)chWskNapBufAnaSBus1, (uint8_t*)&chWskOprBufAnaSBus1);
+	if (chBlad == BLAD_GOTOWE)
+	{
+		chBlad = DekodowanieRamkiBSBus(chRamkaSBus1, stRC.sOdb1);
+		if (chBlad == BLAD_OK)
+		{
+			stRC.sZdekodowaneKanaly1 = 0xFFFF;
+			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+			stRC.nCzasWe1 = PobierzCzas();
+		}
+	}
+
+	//obsługa kanału 2
+	chBlad = FormowanieRamkiSBus(chRamkaSBus2, &chWskNapRamkiSBus2, chBuforAnalizySBus2, (uint8_t)chWskNapBufAnaSBus2, (uint8_t*)&chWskOprBufAnaSBus2);
+	if (chBlad == BLAD_GOTOWE)
+	{
+		chBlad = DekodowanieRamkiBSBus(chBuforOdbioruSBus2, stRC.sOdb2);
+		if (chBlad == BLAD_OK)
+		{
+			stRC.sZdekodowaneKanaly2 = 0xFFFF;
+			stRC.nCzasWe2 = PobierzCzas();
+		}
+	}
+
+	//scalenie obu kanałów w jedne dane dane odbiornika RC
+	chBlad = DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane);
+	return chBlad;
+}
+
+
