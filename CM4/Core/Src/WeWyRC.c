@@ -795,22 +795,22 @@ uint8_t FormowanieRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_
 {
 	uint8_t chDane;
 
-	while (chWskNapBufAnaSBus1 == chWskOprBufAnaSBus1)
+	while (chWskNapBuf != *chWskOprBuf)
 	{
-		chDane = chBuforAnalizySBus1[chWskOprBufAnaSBus1];
+		chDane = chBuforAnalizy[*chWskOprBuf];
 
 		// detekcja początku ramki po wykryciu nagłówka i poprzedzającej go stopki
-		if ((chDane == SBUS_NAGLOWEK) && (chBuforAnalizySBus1[(chWskOprBufAnaSBus1 - 1) & MASKA_ROZM_BUF_ANA_SBUS] == SBUS_STOPKA))
-			chWskNapRamkiSBus1 = 0;
+		if ((chDane == SBUS_NAGLOWEK) && (chBuforAnalizy[(*chWskOprBuf - 1) & MASKA_ROZM_BUF_ANA_SBUS] == SBUS_STOPKA))
+			*chWskNapRamki = 0;
 
-		chRamkaSBus1[chWskNapRamkiSBus1] = chDane;
-		if (chWskNapRamkiSBus1 < ROZMIAR_RAMKI_SBUS)
-			chWskNapRamkiSBus1++;
+		chRamkaSBus[*chWskNapRamki] = chDane;
+		if (*chWskNapRamki < ROZMIAR_RAMKI_SBUS)
+			(*chWskNapRamki)++;
 
-		chWskOprBufAnaSBus1++;
-		chWskOprBufAnaSBus1 &= MASKA_ROZM_BUF_ANA_SBUS;	//zapętlenie wskaźnika bufora kołowego
+		(*chWskOprBuf)++;
+		(*chWskOprBuf) &= MASKA_ROZM_BUF_ANA_SBUS;	//zapętlenie wskaźnika bufora kołowego
 
-		if ((chDane == SBUS_STOPKA ) && (chWskNapRamkiSBus1 == ROZMIAR_RAMKI_SBUS))
+		if ((chDane == SBUS_STOPKA ) && (*chWskNapRamki == ROZMIAR_RAMKI_SBUS))
 			return BLAD_GOTOWE;	//odebrano całą ramkę. Reszta danych będzie obrobiona w następnym przebiegu
 	}
 	return BLAD_OK;
@@ -836,17 +836,6 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 	//Sprawdź kiedy przyszły ostatnie dane RC
 	nCzasRC1 = MinalCzas2(stRC->nCzasWe1, nCzasBiezacy);
 	nCzasRC2 = MinalCzas2(stRC->nCzasWe2, nCzasBiezacy);
-
-	//dekoduj dane jeżeli jest nowa ramka
-	if (nCzasRC1 < OKRES_RAMKI_PPM_RC)
-	{
-
-	}
-
-	if (nCzasRC2 < OKRES_RAMKI_PPM_RC)
-	{
-
-	}
 
 	if ((nCzasRC1 < 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC))	//działa odbiornik 1, nie działa 2
 	{
@@ -958,6 +947,8 @@ uint8_t ObslugaRamkiBSBus(void)
 {
 	uint8_t chBlad;
 
+	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);				//kanał serw 5 skonfigurowany jako IO
+
 	//obsługa kanału 1
 	chBlad = FormowanieRamkiSBus(chRamkaSBus1, &chWskNapRamkiSBus1, chBuforAnalizySBus1, (uint8_t)chWskNapBufAnaSBus1, (uint8_t*)&chWskOprBufAnaSBus1);
 	if (chBlad == BLAD_GOTOWE)
@@ -966,7 +957,7 @@ uint8_t ObslugaRamkiBSBus(void)
 		if (chBlad == BLAD_OK)
 		{
 			stRC.sZdekodowaneKanaly1 = 0xFFFF;
-			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 			stRC.nCzasWe1 = PobierzCzas();
 		}
 	}
@@ -982,7 +973,6 @@ uint8_t ObslugaRamkiBSBus(void)
 			stRC.nCzasWe2 = PobierzCzas();
 		}
 	}
-
 	//scalenie obu kanałów w jedne dane dane odbiornika RC
 	chBlad = DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane);
 	return chBlad;

@@ -35,11 +35,11 @@ uint32_t nCzasPoprzedniegoObiegu;	//czas [us] poprzedniego obiegu pętli główn
 uint32_t ndT;						//czas [us] jaki upłynął od poprzeniego obiegu pętli
 uint32_t nCzasBiezacy;
 uint8_t chNrOdcinkaCzasu;
-uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU];		//zmierzony czas obsługo odcinka
+uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU + 1];		//zmierzony czas obsługo odcinka. Na ostatniej pozycji jest czas jałowy
 uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
 uint32_t nCzasJalowy;
 
-uint8_t chErrPG = BLAD_OK;		//błąd petli głównej
+uint8_t chBladPG = BLAD_OK;		//błąd petli głównej
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;
@@ -69,7 +69,7 @@ void PetlaGlowna(void)
 	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
 	if (chNrOdcinkaCzasu < 8)
 	{
-		chErrPG |= UstawDekoderModulow(chNrOdcinkaCzasu);
+		chBladPG |= UstawDekoderModulow(chNrOdcinkaCzasu);
 		PomiarADC(chNrOdcinkaCzasu);
 	}
 
@@ -79,15 +79,15 @@ void PetlaGlowna(void)
 		break;
 
 	case ADR_MOD2:		//obsługa modułu w gnieździe 2
-		uint8_t chErr = ObslugaModuluI2P(ADR_MOD2, &chStanIOwy);
-		if (chErr)
+		uint8_t chBlad = ObslugaModuluI2P(ADR_MOD2, &chStanIOwy);
+		if (chBlad)
 			chStanIOwy &= ~MIO40;	//zaświeć czerwoną LED
 		else
 			chStanIOwy |= MIO40;	//zgaś czerwoną LED
 		break;
 
 	case ADR_MOD3:		//obsługa modułu w gnieździe 3
-		//chErrPG |= ObslugaModuluIiP(ADR_MOD3);
+		//chBladPG |= ObslugaModuluIiP(ADR_MOD3);
 		TestyObrotu(ADR_MOD3);
 		break;
 
@@ -106,7 +106,7 @@ void PetlaGlowna(void)
 	case 5:		//obsługa GNSS na UART8
 		while (chWskNapBaGNSS != chWskOprBaGNSS)
 		{
-			chErrPG |= DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
+			chBladPG |= DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
 			chWskOprBaGNSS++;
 			chWskOprBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
 			//chStanIOwy ^= MIO41;		//Zielona LED
@@ -127,27 +127,28 @@ void PetlaGlowna(void)
 		break;
 
 	case 6:
+
 		uDaneCM4.dane.chNowyPomiar = 0;	//unieważnij wszystkie poprzednie pomiary. Flagi nowych pomiarów zostaną ustawnine w funkcji ObslugaCzujnikowI2C()
 		if (chNoweDaneI2C)
 			ObslugaCzujnikowI2C(&chNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C to je obrób
-		chErrPG |= RozdzielniaOperacjiI2C();
+		chBladPG |= RozdzielniaOperacjiI2C();
 		break;
 
 	case 7:	JednostkaInercyjnaTrygonometria(ndT);	break;	//dane do IMU1
 	case 8:	JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
-	case 9:	chErrPG |= ObslugaRamkiBSBus();	break;
+	case 9:	chBladPG |= ObslugaRamkiBSBus();	break;
 	case 10:	break;
 	case 11:
-		//chErrPG |= PobierzDaneExpandera(&chStanIOwe);		//wszystkie porty ustawione na wyjściowe, nie ma co pobierać
-		chErrPG |= WyslijDaneExpandera(chStanIOwy); 	break;
+		//chBladPG |= PobierzDaneExpandera(&chStanIOwe);		//wszystkie porty ustawione na wyjściowe, nie ma co pobierać
+		chBladPG |= WyslijDaneExpandera(chStanIOwy); 	break;
 
 	case 12:
 		break;
 
 	case 15:	//wymień dane między rdzeniami
-		uDaneCM4.dane.chErrPetliGlownej = chErrPG;
-		chErrPG  = UstawDaneWymiany_CM4();
-		chErrPG |= PobierzDaneWymiany_CM7();
+		uDaneCM4.dane.chErrPetliGlownej = chBladPG;
+		chBladPG  = UstawDaneWymiany_CM4();
+		chBladPG |= PobierzDaneWymiany_CM7();
 		WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
 		break;
 
@@ -168,8 +169,6 @@ void PetlaGlowna(void)
 	default:	break;
 	}
 
-
-
 	nCzasBiezacy = PobierzCzas();
 	ndT = MinalCzas2(nCzasPoprzedniegoObiegu, nCzasBiezacy);	//licz czas od ostatniego obiegu pętli
 	nCzasPoprzedniegoObiegu = nCzasBiezacy;
@@ -183,18 +182,22 @@ void PetlaGlowna(void)
 	if (chNrOdcinkaCzasu == LICZBA_ODCINKOW_CZASU)
 	{
 		chNrOdcinkaCzasu = 0;
+		nCzasOdcinka[LICZBA_ODCINKOW_CZASU] = nCzasJalowy;	//na ostatnia pozycję zapisz sumę czasu jałowego całego obiegu głównej pętli
+		nCzasJalowy = 0;
 	}
 
 
 	//nadwyżkę czasu odcinka wytrać w jałowej petli
+	//Zrobić: Trzeba obliczyć czas i ustawić timer generujący przerwanie budzące. Obecnie śpi zbyt długo
 	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, SET);	//kanał serw 2 skonfigurowany jako IO
-	do
+	/*do
 	{
 		__WFI();	//uśpij kontroler w oczekwianiu na przerwanie od czegokolwiek np. timera 7 mierzącego czas
-		nCzasJalowy = PobierzCzas() - nCzasOstatniegoOdcinka;
+		nCzasJalowy += PobierzCzas() - nCzasOstatniegoOdcinka;
 	}
-	while (nCzasJalowy < CZAS_ODCINKA);
+	while (nCzasJalowy < CZAS_ODCINKA);*/
 	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, RESET);	//kanał serw 2 skonfigurowany jako IO
+	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);				//kanał serw 5 skonfigurowany jako IO
 
 	nCzasOstatniegoOdcinka = PobierzCzas();
 }
@@ -391,16 +394,17 @@ void WykonajPolecenieCM7(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t RozdzielniaOperacjiI2C(void)
 {
-	uint8_t chErr = BLAD_OK;
-	//printf("I2C");
-	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, SET);	//kanał serw 2 skonfigurowany jako IO
+	uint8_t chBlad = BLAD_OK;
+
+	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);	//kanał serw 2 skonfigurowany jako IO
+	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);		//kanał serw 5 skonfigurowany jako IO
 	//operacje na zewnętrznej magistrali I2C3
 	switch(chEtapOperacjiI2C)
 	{
 	case 0:
-	case 2: chErr = ObslugaMS4525();		break;
+	case 2: chBlad = ObslugaMS4525();		break;
 	case 1:
-	case 3:	chErr = ObslugaHMC5883();		break;
+	case 3:	chBlad = ObslugaHMC5883();		break;
 	default: break;
 	}
 
@@ -408,15 +412,15 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	switch(chEtapOperacjiI2C)
 	{
 	case 0:
-	case 2:	chErr = ObslugaIIS2MDC();		break;
+	case 2:	chBlad = ObslugaIIS2MDC();		break;
 	case 1:
-	case 3:	chErr = ObslugaMMC3416x();		break;
+	case 3:	chBlad = ObslugaMMC3416x();		break;
 	default: break;
 	}
 
 	chEtapOperacjiI2C++;
 	chEtapOperacjiI2C &= 0x03;
-	return chErr;
+	return chBlad;
 }
 
 
@@ -503,7 +507,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 	extern float fPrzesMagn1[3], fSkaloMagn1[3];
 	extern float fPrzesMagn2[3], fSkaloMagn2[3];
 	extern float fPrzesMagn3[3], fSkaloMagn3[3];
-	uint8_t chErr = BLAD_OK;
+	uint8_t chBlad = BLAD_OK;
 	int16_t sZeZnakiem;	//zmiena robocza do konwersji dnych 8-bitowych bez znaku na liczbę 16-bitową ze znakiem
 	float fZeZnakiem;
 	const int8_t chZnakIIS[3] = {1, -1, -1};	//magnetometr 1: odwrotnie jest oś Z, ale żeby ją odwrócić, trzeba zmienić też znak w osi X lub Y. Zmieniam w Y: OK
@@ -605,7 +609,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 		*chCzujniki &= ~MAG_MMC;	//dane obsłużone
 		uDaneCM4.dane.chNowyPomiar |= NP_MAG2;	//jest nowy pomiar
 	}
-	return chErr;
+	return chBlad;
 }
 
 

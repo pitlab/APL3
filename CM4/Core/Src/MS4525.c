@@ -2,8 +2,9 @@
 //
 // AutoPitLot v3.0
 // Obsługa czujnika ciśnienia różnicowego MS4525 5AI na magistrali I2C
+// Zakres pomiarowy to +-1psi co odpowiada +-6894.76 [Pa] co odpowiada prędkosci 108,5 m/s (390,6 km/h)
 //
-// (c) Pit Lab 2025
+// (c) Pit Lab 2025-26
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "MS4525.h"
@@ -13,7 +14,6 @@
 #include "spi.h"
 #include "modul_IiP.h"
 
-//Zakres pomiarowy to +-1psi co odpowiada +-6894.76 [Pa] co odpowiada prędkosci 108,5 m/s (390,6 km/h)
 
 
 extern I2C_HandleTypeDef hi2c3;
@@ -32,11 +32,11 @@ uint16_t sLicznikZerowaniaMS4525 = MAX_PROB_INICJALIZACJI;	//odlicza czas uśred
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujMS4525(void)
 {
-	uint8_t chErr;
+	uint8_t chBlad;
 
 	//wyślij adres i sprawdź czy odpowie ACK-iem
-	chErr = HAL_I2C_Master_Transmit(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 2, I2C_TIMOUT);
-	if (chErr == BLAD_OK)
+	chBlad = HAL_I2C_Master_Transmit(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 2, I2C_TIMOUT);
+	if (chBlad == BLAD_OK)
 	{
 		uDaneCM4.dane.nZainicjowano |= INIT_MS4525;
 		KalibrujZeroMS4525();
@@ -47,7 +47,7 @@ uint8_t InicjujMS4525(void)
 		if (!sLicznikZerowaniaMS4525)
 			uDaneCM4.dane.nBrakCzujnika |= INIT_MS4525;
 	}
-	return chErr;
+	return chBlad;
 }
 
 
@@ -61,7 +61,7 @@ uint8_t InicjujMS4525(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaMS4525(void)
 {
-	uint8_t chErr;
+	uint8_t chBlad;
 
 	//po MAX_PROB_INICJALIZACJI ustawiany jest bit braku czujnika. Taki czujnik nie jest dłużej obsługiwany
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_MS4525)
@@ -69,9 +69,9 @@ uint8_t ObslugaMS4525(void)
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_MS4525) != INIT_MS4525)	//jeżeli czujnik nie jest zainicjowany
 	{
-		chErr = InicjujMS4525();
-		if (chErr)
-			return chErr;
+		chBlad = InicjujMS4525();
+		if (chBlad)
+			return chBlad;
 	}
 	else	//czujnik jest zainicjowany
 	{
@@ -79,18 +79,18 @@ uint8_t ObslugaMS4525(void)
 		{
 		case 0:
 			chCzujnikOdczytywanyNaI2CExt = CISN_ROZN_MS2545;	//odczytaj ciśnienie różnicowe i temepraturę
-			chErr = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 4);
+			chBlad = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 4);
 			break;
 
 		default:
 			chCzujnikOdczytywanyNaI2CExt = CISN_TEMP_MS2545;	//odczytaj ciśnienie różnicowe
-			chErr = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 2);
+			chBlad = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 2);
 			break;
 		}
 		chProporcjaPomiarow++;
 		chProporcjaPomiarow &= 0x0F;
 	}
-	return chErr;
+	return chBlad;
 }
 
 
@@ -109,7 +109,7 @@ float CisnienieMS2545(uint8_t * dane)
 
 	sCisnienie = (uint16_t)(0x100 * *(dane+0) + *(dane+1));
 	fCisnienie =  ((float)sCisnienie - 1638.3f) * (2*ZAKRES_POMIAROWY_CISNIENIA) / (0.8f * 16383) - ZAKRES_POMIAROWY_CISNIENIA;	//wynik w [psi]
-	fCisnienie *= PASKALI_NA_PSI;	//wynik w [Pa]
+	fCisnienie *= PASKAL_NA_PSI;	//wynik w [Pa]
 
 	//zerowanie wskazań czujnika
 	if (sLicznikZerowaniaMS4525)
@@ -124,6 +124,7 @@ float CisnienieMS2545(uint8_t * dane)
 
 	return fCisnienie;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

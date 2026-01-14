@@ -15,8 +15,8 @@
 #define ROZMIAR_BUF_ANA_GNSS	32
 #define MASKA_ROZM_BUF_ANA_GNSS	0x1F
 
-#define ROZMIAR_BUF_ANA_SBUS	32
-#define MASKA_ROZM_BUF_ANA_SBUS	0x1F
+#define ROZMIAR_BUF_ANA_SBUS	64
+#define MASKA_ROZM_BUF_ANA_SBUS	0x3F
 
 #define CYKL_STARTU_ZMIAN_PREDK	400		//od tego czasu wykonaj serię zapisów zmian prędkości transmitowanych na 9600, 19200, 38400, 75600 i 115200
 #define CYKL_STARTU_INI_MTK		500		//po tym czasie rozpocznij inicjalizację GPS

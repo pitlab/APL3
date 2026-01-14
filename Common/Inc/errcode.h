@@ -38,13 +38,14 @@
 
 #define ERR_SRAM_TEST			30 //błąd pamięci SRAM
 #define ERR_BRAK_KAMERY			31	//nie wykryto obecności kamery
-#define ERR_BRAK_MAG_ZEW		32	//nie wykryto obecności magnetometru zewnętrznego
+//#define ERR_BRAK_MAG_ZEW		32	//nie wykryto obecności magnetometru zewnętrznego
+#define BLAD_BRAK_MAGETOMETRU	32	//nie wykryto obecności magnetometru
 #define ERR_BRAK_FLASH_NOR		33
 #define ERR_BRAK_BMP581			34
 #define ERR_BRAK_ICM42688		35
 #define ERR_BRAK_LSM6DSV		36
 #define ERR_BRAK_MMC34160		37
-#define ERR_BRAK_IIS2MDS		38
+#define ERR_BRAK_IIS2MDC		38
 #define ERR_BRAK_MS4525			39
 #define ERR_BRAK_KARTY_SD		40
 #define ERR_BRAK_WYSWIETLACZA	41
