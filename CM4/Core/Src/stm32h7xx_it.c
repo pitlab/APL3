@@ -82,6 +82,7 @@ extern DMA_HandleTypeDef hdma_uart4_tx;
 extern DMA_HandleTypeDef hdma_uart8_rx;
 extern DMA_HandleTypeDef hdma_uart8_tx;
 extern UART_HandleTypeDef huart8;
+extern uint8_t chKonfigWeRC[LICZBA_WEJSC_RC];
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -373,29 +374,32 @@ void TIM2_IRQHandler(void)
 	//obsługa wejścia TIM2_CH4 szeregowego sygnału PPM2. Sygnał aktywny niski. Kolejne impulsy zą pomiędzy zboczami narastającymi
 	if (htim2.Instance->SR & TIM_FLAG_CC4)
 	{
-		if (htim2.Instance->CCR4 > stRC.sPoprzedniaWartoscTimera2)
-			nTemp = htim2.Instance->CCR4 - stRC.sPoprzedniaWartoscTimera2;  //długość impulsu
-		else
-			nTemp = 0xFFFFFFFF - stRC.sPoprzedniaWartoscTimera2 + htim2.Instance->CCR4;  //długość impulsu
-
-		//impuls o długości większej niż 3ms traktowany jest jako przerwa między paczkami impulsów
-		if (nTemp > PRZERWA_PPM)
+		//przerwania timera interpretuj jako impulsy tylko gdy wejście RC jest skonfigurowane jako CPPM. Gdy jest ustawiony S-Bus to generuje zakłócenia
+		if (chKonfigWeRC[KANAL_RC2] == ODB_RC_CPPM)
 		{
-			stRC.nCzasWe2 = PobierzCzas();
-			stRC.chNrKan2 = 0;
-			stRC.chStatus2 = RAMKA_OK;
-		}
-		else
-		if ((nTemp > PPM_MIN) && (nTemp < PPM_MAX) && (stRC.chStatus2 == RAMKA_OK))
-		{
-			stRC.sOdb2[stRC.chNrKan2] = nTemp;
-			stRC.sZdekodowaneKanaly2 |= (1 << stRC.chNrKan2);	//ustaw bit zdekodowanego kanału
-			stRC.chNrKan2++;
-		}
-		else
-			stRC.chStatus2 = RAMKA_WADLIWA;
+			if (htim2.Instance->CCR4 > stRC.sPoprzedniaWartoscTimera2)
+				nTemp = htim2.Instance->CCR4 - stRC.sPoprzedniaWartoscTimera2;  //długość impulsu
+			else
+				nTemp = 0xFFFFFFFF - stRC.sPoprzedniaWartoscTimera2 + htim2.Instance->CCR4;  //długość impulsu
 
-		stRC.sPoprzedniaWartoscTimera2 = htim2.Instance->CCR4;
+			//impuls o długości większej niż 3ms traktowany jest jako przerwa między paczkami impulsów
+			if (nTemp > PRZERWA_PPM)
+			{
+				stRC.nCzasWe2 = PobierzCzas();
+				stRC.chNrKan2 = 0;
+				stRC.chStatus2 = RAMKA_OK;
+			}
+			else
+			if ((nTemp > PPM_MIN) && (nTemp < PPM_MAX) && (stRC.chStatus2 == RAMKA_OK))
+			{
+				stRC.sOdb2[stRC.chNrKan2] = nTemp;
+				stRC.sZdekodowaneKanaly2 |= (1 << stRC.chNrKan2);	//ustaw bit zdekodowanego kanału
+				stRC.chNrKan2++;
+			}
+			else
+				stRC.chStatus2 = RAMKA_WADLIWA;
+		}
+		stRC.sPoprzedniaWartoscTimera2 = htim2.Instance->CCR4;	//odczyt CCRx kasuje przerwanie
 	}
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
@@ -415,27 +419,31 @@ void TIM4_IRQHandler(void)
 	//obsługa wejścia TIM4_CH3 szeregowego sygnału PPM1. Sygnał aktywny niski. Kolejne impulsy zą pomiędzy zboczami narastającymi
 	if (htim4.Instance->SR & TIM_FLAG_CC3)
 	{
-		if (htim4.Instance->CCR3 > stRC.sPoprzedniaWartoscTimera1)
-			sTemp = htim4.Instance->CCR3 - stRC.sPoprzedniaWartoscTimera1;  //długość impulsu
-		else
-			sTemp = 0xFFFF - stRC.sPoprzedniaWartoscTimera1 + htim4.Instance->CCR3;  //długość impulsu
+		//przerwania timera interpretuj jako impulsy tylko gdy wejście RC jest skonfigurowane jako CPPM. Gdy jest ustawiony S-Bus to generuje zakłócenia
+		if (chKonfigWeRC[KANAL_RC1] == ODB_RC_CPPM)
+		{
+			if (htim4.Instance->CCR3 > stRC.sPoprzedniaWartoscTimera1)
+				sTemp = htim4.Instance->CCR3 - stRC.sPoprzedniaWartoscTimera1;  //długość impulsu
+			else
+				sTemp = 0xFFFF - stRC.sPoprzedniaWartoscTimera1 + htim4.Instance->CCR3;  //długość impulsu
 
-		//impuls o długości większej niż 3ms traktowany jest jako przerwa między paczkami impulsów
-		if (sTemp > PRZERWA_PPM)
-		{
-			stRC.nCzasWe1 = PobierzCzas();
-			stRC.chNrKan1 = 0;
-			stRC.chStatus1 = RAMKA_OK;
+			//impuls o długości większej niż 3ms traktowany jest jako przerwa między paczkami impulsów
+			if (sTemp > PRZERWA_PPM)
+			{
+				stRC.nCzasWe1 = PobierzCzas();
+				stRC.chNrKan1 = 0;
+				stRC.chStatus1 = RAMKA_OK;
+			}
+			else
+			if ((sTemp > PPM_MIN) && (sTemp < PPM_MAX) && (stRC.chStatus1 == RAMKA_OK))
+			{
+				stRC.sOdb1[stRC.chNrKan1] = sTemp;
+				stRC.sZdekodowaneKanaly1 |= (1 << stRC.chNrKan1);	//ustaw bit zdekodowanego kanału
+				stRC.chNrKan1++;
+			}
+			else
+				stRC.chStatus1 = RAMKA_WADLIWA;
 		}
-		else
-		if ((sTemp > PPM_MIN) && (sTemp < PPM_MAX) && (stRC.chStatus1 == RAMKA_OK))
-		{
-			stRC.sOdb1[stRC.chNrKan1] = sTemp;
-			stRC.sZdekodowaneKanaly1 |= (1 << stRC.chNrKan1);	//ustaw bit zdekodowanego kanału
-			stRC.chNrKan1++;
-		}
-		else
-			stRC.chStatus1 = RAMKA_WADLIWA;
 		stRC.sPoprzedniaWartoscTimera1 = htim4.Instance->CCR3;	//odczyt CCRx kasuje przerwanie
 	}
   /* USER CODE END TIM4_IRQn 0 */

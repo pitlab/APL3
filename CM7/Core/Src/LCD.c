@@ -199,7 +199,7 @@ struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
 	{"TestDotyk",	"Testy panelu dotykowego",					TP_POMIARY_DOTYKU,			obr_dotyk_zolty},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
@@ -240,7 +240,7 @@ struct tmenu stMenuAudio[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"Test kom.",	"Test komunikatow audio",					TP_MM_KOM,			obr_glosnik2},
-	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
+	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -536,18 +536,6 @@ uint8_t RysujEkran(void)
 		InicjujOdtwarzanieDzwieku();
 		TestKomunikatow();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_AUDIO;
-		}
-		break;
-
-
-	case TP_WITAJ:
-		if (!chLiczIter)
-			chLiczIter = 15;			//ustaw czas wyświetlania x 200ms
-		Ekran_Powitalny(nZainicjowanoCM7);	//przywitaj użytkownika i prezentuj wykryty sprzęt
-		if (!chLiczIter)				//jeżeli koniec odliczania to wyjdź
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_AUDIO;
@@ -1628,6 +1616,18 @@ uint8_t RysujEkran(void)
 
 	case TP_POMIARY_RC:	DaneOdbiornikaRC();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+		}
+		break;
+
+
+	case TP_WITAJ:
+		if (!chLiczIter)
+			chLiczIter = 15;			//ustaw czas wyświetlania x 200ms
+		Ekran_Powitalny(nZainicjowanoCM7);	//przywitaj użytkownika i prezentuj wykryty sprzęt
+		if (!chLiczIter)				//jeżeli koniec odliczania to wyjdź
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_POMIARY;

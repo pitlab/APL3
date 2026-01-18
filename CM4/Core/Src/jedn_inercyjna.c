@@ -304,6 +304,7 @@ float FiltrAdaptacyjnyMag(float *fMag)
 }
 
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja do testowania i pomiaru parametrów algorytmów
 // Zwraca: nic

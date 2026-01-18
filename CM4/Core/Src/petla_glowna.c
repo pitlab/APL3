@@ -197,7 +197,7 @@ void PetlaGlowna(void)
 	}
 	while (nCzasJalowy < CZAS_ODCINKA);*/
 	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, RESET);	//kanał serw 2 skonfigurowany jako IO
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);				//kanał serw 5 skonfigurowany jako IO
+	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);				//kanał serw 5 skonfigurowany jako IO
 
 	nCzasOstatniegoOdcinka = PobierzCzas();
 }

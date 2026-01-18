@@ -373,7 +373,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		}
 		HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZM_BUF_ODB_SBUS);
 		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);			//kanał serw 2 skonfigurowany jako IO
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);				//kanał serw 4 skonfigurowany jako IO
+		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);				//kanał serw 4 skonfigurowany jako IO
 	}
 
 	if (huart->Instance == USART2)		//dane z SBUS2

@@ -837,7 +837,8 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 	nCzasRC1 = MinalCzas2(stRC->nCzasWe1, nCzasBiezacy);
 	nCzasRC2 = MinalCzas2(stRC->nCzasWe2, nCzasBiezacy);
 
-	if ((nCzasRC1 < 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC))	//działa odbiornik 1, nie działa 2
+	//if ((nCzasRC1 < 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC))	//działa odbiornik 1, nie działa 2
+	if (nCzasRC1 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 1
 	{
 		for (n=0; n<KANALY_ODB_RC; n++)
 		{
@@ -847,9 +848,11 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 				stRC->sZdekodowaneKanaly1 &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
 		}
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);				//kanał serw 5 skonfigurowany jako IO
 	}
 	else
-	if ((nCzasRC1 > 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 < 2*OKRES_RAMKI_PPM_RC))	//nie działa odbiornik 1, działa 2
+	//if ((nCzasRC1 > 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 < 2*OKRES_RAMKI_PPM_RC))	//nie działa odbiornik 1, działa 2
+	if (nCzasRC2 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 2
 	{
 		for (n=0; n<KANALY_ODB_RC; n++)
 		{
@@ -859,6 +862,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 				stRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
 		}
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	}
 	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
 	if (nCzasRC1 > 2*OKRES_RAMKI_PPM_RC)
@@ -870,10 +874,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 	{
 		HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);
 	}
-	else		//działają oba odbiorniki, określ który jest lepszy
-	{
 
-	}
 
 	//sprawdź czy trzeba już wysłać nową ramkę Sbus
 	nCzasRC1 = MinalCzas2(nCzasWysylkiSbus, nCzasBiezacy);
@@ -957,7 +958,6 @@ uint8_t ObslugaRamkiBSBus(void)
 		if (chBlad == BLAD_OK)
 		{
 			stRC.sZdekodowaneKanaly1 = 0xFFFF;
-			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 			stRC.nCzasWe1 = PobierzCzas();
 		}
 	}
