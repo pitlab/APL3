@@ -40,7 +40,7 @@ extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart8;
 volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
-extern volatile uint8_t chWskNapBufAnaSBus1, chWskOprBufAnaSBus1; //wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus1
+extern volatile uint8_t chWskNapBufAnaSBus1, chWskNapBufAnaSBus2; 	//wskaźniki napełniania kołowego bufora odbiorczego analizy danych S-Bus1 i S-Bus2
 uint16_t sCzasInicjalizacjiGNSS = 0;	//licznik czasu	inicjalizacji wyrażony w obiegach pętli 1/200Hz = 5ms
 extern volatile unia_wymianyCM4_t uDaneCM4;
 
@@ -378,8 +378,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 	if (huart->Instance == USART2)		//dane z SBUS2
 	{
-		//stRC.nCzasWe2 = PobierzCzas();	//czas przyjścia ramki SBus2
-		//HAL_UART_Receive_DMA(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);
+		stRC.nCzasWe2 = PobierzCzas();	//czas przyjścia ramki SBus2
+		for (uint8_t n=0; n<ROZM_BUF_ODB_SBUS; n++)
+		{
+			chBuforAnalizySBus2[chWskNapBufAnaSBus2] = chBuforOdbioruSBus2[n];
+			chWskNapBufAnaSBus2++;
+			chWskNapBufAnaSBus2 &= MASKA_ROZM_BUF_ANA_SBUS;	//zapętlenie wskaźnika bufora kołowego
+		}
+		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);
 	}
 }
 
@@ -388,8 +394,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy sumę kontrolną ramki UBX
 // Parametry:
-// *chCK_A - wskaźnik na pierwszy bajt sumy
-// *chCK_B - wskaźnik na drugi bajt sumy
 // *chRamka - wskaźnik na ramkę
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////

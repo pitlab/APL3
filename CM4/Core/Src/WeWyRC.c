@@ -42,7 +42,7 @@ extern DMA_HandleTypeDef hdma_uart4_tx;
 uint8_t chBuforAnalizySBus1[ROZMIAR_BUF_ANA_SBUS];
 uint8_t chBuforAnalizySBus2[ROZMIAR_BUF_ANA_SBUS];
 volatile uint8_t chWskNapBufAnaSBus1, chWskOprBufAnaSBus1; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus1
-volatile uint8_t chWskNapBufAnaSBus2, chWskOprBufAnaSBus2; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus1
+volatile uint8_t chWskNapBufAnaSBus2, chWskOprBufAnaSBus2; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus2
 uint8_t chWskNapRamkiSBus1, chWskNapRamkiSBus2;				//wskaźniki napełniania ramek SBus
 uint8_t chBuforOdbioruSBus1[ROZM_BUF_ODB_SBUS];
 uint8_t chBuforOdbioruSBus2[ROZM_BUF_ODB_SBUS];
@@ -173,7 +173,6 @@ uint8_t InicjujWejsciaRC(void)
 	{
 	    GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
 	    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-		__HAL_RCC_DMA2_CLK_ENABLE();
 		__HAL_RCC_USART2_CLK_ENABLE();
 
 		huart2.Instance = USART2;
@@ -188,33 +187,15 @@ uint8_t InicjujWejsciaRC(void)
 		huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
 		huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
 		huart2.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
-		huart2.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
-		huart2.AdvancedInit.RxPinLevelInvert = UART_ADVFEATURE_RXINV_ENABLE;
+		//huart2.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
+		//huart2.AdvancedInit.RxPinLevelInvert = UART_ADVFEATURE_RXINV_ENABLE;
+
 		chErr |= HAL_UART_Init(&huart2);
 		chErr |= HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_2);
-		chErr |= HAL_UARTEx_EnableFifoMode(&huart2);
+		//chErr |= HAL_UARTEx_EnableFifoMode(&huart2);
+		chErr |= HAL_UARTEx_DisableFifoMode(&huart2);
 
-		//ponieważ nie ma jak zarezerwować kanału DMA w HAL bo nie cały UART jest dostępny, więc USART2 będzie pracował na przerwaniach
-		/*/ UART2 DMA RX Init
-		hdma_uart2_rx.Instance = DMA2_Stream0;
-		hdma_uart2_rx.Init.Request = DMA_REQUEST_USART2_RX;
-		hdma_uart2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-		hdma_uart2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-		hdma_uart2_rx.Init.MemInc = DMA_MINC_ENABLE;
-		hdma_uart2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-		hdma_uart2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-		hdma_uart2_rx.Init.Mode = DMA_NORMAL;
-		hdma_uart2_rx.Init.Priority = DMA_PRIORITY_LOW;
-		hdma_uart2_rx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
-		hdma_uart2_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-		hdma_uart2_rx.Init.MemBurst = DMA_MBURST_SINGLE;
-		hdma_uart2_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
-		chErr |= HAL_DMA_Init(&hdma_uart2_rx);
-		__HAL_LINKDMA(&huart2, hdmarx, hdma_uart2_rx);
-		HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
-		HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-		//HAL_UART_Receive_DMA(&huart2, chBuforOdbioruSBus2, ROZMIAR_BUF_SBUS);		*/
-
+		//ponieważ nie ma jak zarezerwować kanału DMA w HAL bo dostępna jest tylko część odbiorcza, więc USART2 będzie pracował na przerwaniach
 		HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(USART2_IRQn);
 		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);	//włącz odbiór pierwszej ramki
@@ -966,7 +947,7 @@ uint8_t ObslugaRamkiBSBus(void)
 	chBlad = FormowanieRamkiSBus(chRamkaSBus2, &chWskNapRamkiSBus2, chBuforAnalizySBus2, (uint8_t)chWskNapBufAnaSBus2, (uint8_t*)&chWskOprBufAnaSBus2);
 	if (chBlad == BLAD_GOTOWE)
 	{
-		chBlad = DekodowanieRamkiBSBus(chBuforOdbioruSBus2, stRC.sOdb2);
+		chBlad = DekodowanieRamkiBSBus(chRamkaSBus2, stRC.sOdb2);
 		if (chBlad == BLAD_OK)
 		{
 			stRC.sZdekodowaneKanaly2 = 0xFFFF;
