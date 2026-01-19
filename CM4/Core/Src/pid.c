@@ -93,7 +93,7 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
     fdT = (float)ndT/1000000;    //czas obiegu petli w sekundach (optymalizacja kilkukrotnie wykorzystywanej zmiennej)
 
     //człon proporcjonalny
-    fOdchylka = konfig[chKanal].fZadana - konfig[chKanal].fWejscie;
+    fOdchylka = dane->stWyjPID[chKanal].fZadana - dane->stWyjPID[chKanal].fWejscie;
     if (konfig[chKanal].chFlagi & PID_KATOWY)  //czy regulator pracuje na wartościach kątowych?
     {
         if (fOdchylka > M_PI)
@@ -102,6 +102,11 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
         	fOdchylka += 2*M_PI;
     }
     fWyjscieReg = fOdchylka * konfig[chKanal].fWzmP;
+    if (fWyjscieReg > MAX_PID)
+    	fWyjscieReg = MAX_PID;
+    else
+    if (fWyjscieReg < -MAX_PID)
+    	fWyjscieReg = -MAX_PID;
     dane->stWyjPID[chKanal].fWyjscieP = fWyjscieReg;  //debugowanie: wartość wyjściowa z członu P
 
     //człon całkujący - liczy sumę błędu od początku do teraz
@@ -129,11 +134,16 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
     //człon różniczkujący
     if (konfig[chKanal].fWzmD > MIN_WZM_ROZN)
     {
-        fTemp = (konfig[chKanal].fWejscie - dane->stWyjPID[chKanal].fFiltrWePoprz) * konfig[chKanal].fWzmD / fdT;
+        fTemp = (dane->stWyjPID[chKanal].fWejscie - dane->stWyjPID[chKanal].fFiltrWePoprz) * konfig[chKanal].fWzmD / fdT;
         fWyjscieReg += fTemp;
+        if (fTemp > MAX_PID)
+        	fTemp = MAX_PID;
+	   else
+	   if (fTemp < -MAX_PID)
+		   fTemp = -MAX_PID;
 
         //filtruj wartość wejścia aby uzyskać gładką akcję różniczkującą
-        dane->stWyjPID[chKanal].fFiltrWePoprz = (konfig[chKanal].chPodstFiltraD * dane->stWyjPID[chKanal].fFiltrWePoprz + konfig[chKanal].fWejscie) / (konfig[chKanal].chPodstFiltraD + 1);
+        dane->stWyjPID[chKanal].fFiltrWePoprz = (konfig[chKanal].chPodstFiltraD * dane->stWyjPID[chKanal].fFiltrWePoprz + dane->stWyjPID[chKanal].fWejscie) / (konfig[chKanal].chPodstFiltraD + 1);
     }
     else
         fTemp = 0.0f;
@@ -176,38 +186,41 @@ void ResetujCalkePID(void)
 uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 {
 	//regulacja przechylenia
-	konfig[PID_PRZE].fWejscie = dane->fKatIMU1[PRZE];
+	dane->stWyjPID[PID_PRZE].fZadana = (float)(dane->sKanalRC[PRZE] - PPM_NEUTR) * MAX_PID  / (PPM_MAX - PPM_NEUTR);
+	dane->stWyjPID[PID_PRZE].fWejscie = dane->fKatIMU1[PRZE];
 	RegulatorPID(ndT, PID_PRZE, dane, konfig);
 
-	konfig[PID_PK_PRZE].fWejscie = dane->fZyroKal1[PRZE];
-	konfig[PID_PK_PRZE].fZadana = dane->stWyjPID[PID_PRZE].fWyjsciePID;
+	dane->stWyjPID[PID_PK_PRZE].fWejscie = dane->fZyroKal1[PRZE];
+	dane->stWyjPID[PID_PK_PRZE].fZadana = dane->stWyjPID[PID_PRZE].fWyjsciePID;
 	RegulatorPID(ndT, PID_PK_PRZE, dane, konfig);
 
 	//regulacja pochylenia
-	konfig[PID_POCH].fWejscie = dane->fKatIMU1[POCH];
+	dane->stWyjPID[PID_POCH].fZadana = (float)(dane->sKanalRC[POCH] - PPM_NEUTR) * MAX_PID  / (PPM_MAX - PPM_NEUTR);
+	dane->stWyjPID[PID_POCH].fWejscie = dane->fKatIMU1[POCH];
 	RegulatorPID(ndT, PID_POCH, dane, konfig);
 
-	konfig[PID_PK_POCH].fWejscie = dane->fZyroKal1[POCH];
-	konfig[PID_PK_POCH].fZadana = dane->stWyjPID[PID_POCH].fWyjsciePID;
+	dane->stWyjPID[PID_PK_POCH].fWejscie = dane->fZyroKal1[POCH];
+	dane->stWyjPID[PID_PK_POCH].fZadana = dane->stWyjPID[PID_POCH].fWyjsciePID;
 	RegulatorPID(ndT, PID_PK_POCH, dane, konfig);
 
 	//regulacja odchylenia
-	konfig[PID_ODCH].fWejscie = dane->fKatIMU1[ODCH];
+	dane->stWyjPID[PID_ODCH].fZadana = (float)(dane->sKanalRC[3] - PPM_NEUTR) * MAX_PID  / (PPM_MAX - PPM_NEUTR);
+	dane->stWyjPID[PID_ODCH].fWejscie = dane->fKatIMU1[ODCH];
 	RegulatorPID(ndT, PID_ODCH, dane, konfig);
 
-	konfig[PID_PK_ODCH].fWejscie = dane->fZyroKal1[ODCH];
-	konfig[PID_PK_ODCH].fZadana = dane->stWyjPID[PID_ODCH].fWyjsciePID;
+	dane->stWyjPID[PID_PK_ODCH].fWejscie = dane->fZyroKal1[ODCH];
+	dane->stWyjPID[PID_PK_ODCH].fZadana = dane->stWyjPID[PID_ODCH].fWyjsciePID;
 	RegulatorPID(ndT, PID_PK_ODCH, dane, konfig);
 
 	//regulacja wysokości
 	//konfig[PID_WYSO].fWejscie = dane->fWysokoMSL[0];
 	ndT = 5000;
-	stKonfigPID[PID_WYSO].fZadana = 60;
-	stKonfigPID[PID_WYSO].fWejscie = 40;
+	dane->stWyjPID[PID_WYSO].fZadana = 60;
+	dane->stWyjPID[PID_WYSO].fWejscie = 40;
 	RegulatorPID(ndT, PID_WYSO, dane, konfig);
 
-	konfig[PID_WARIO].fWejscie = dane->fWariometr[0];
-	konfig[PID_WARIO].fZadana = dane->stWyjPID[PID_WYSO].fWyjsciePID;
+	dane->stWyjPID[PID_WARIO].fWejscie = dane->fWariometr[0];
+	dane->stWyjPID[PID_WARIO].fZadana = dane->stWyjPID[PID_WYSO].fWyjsciePID;
 	RegulatorPID(ndT, PID_WARIO, dane, konfig);
 	return BLAD_OK;
 }
@@ -228,16 +241,16 @@ void TestPID(void)
 	float fProgGor, fProgDol;	//progi testowania wartosci górny i dolny
 
 	//sprawdź odpowiedź członu proporcjonalnego regulatora kątowego na zawijanie kątów wokół 2Pi
-	stKonfigPID[PID_POCH].fZadana = 370 * DEG2RAD;	//odpowiada +10°
-	stKonfigPID[PID_POCH].fWejscie = -5 * DEG2RAD;
+	uDaneCM4.dane.stWyjPID[PID_POCH].fZadana = 370 * DEG2RAD;	//odpowiada +10°
+	uDaneCM4.dane.stWyjPID[PID_POCH].fWejscie = -5 * DEG2RAD;
 	RegulatorPID(ndT, PID_POCH, &uDaneCM4.dane, stKonfigPID);
 	assert(uDaneCM4.dane.stWyjPID[PID_POCH].fWyjscieP < 15.001 * DEG2RAD * stKonfigPID[PID_POCH].fWzmP);
 	assert(uDaneCM4.dane.stWyjPID[PID_POCH].fWyjscieP > 14.999 * DEG2RAD * stKonfigPID[PID_POCH].fWzmP);
 
 	//sprawdź działanie członu całkującego regulatora wysokości. Całka to czas zdwojenia, więc przy wzmocnieniu Kp=1 i Ti=1 całka po sekundzie osiaga dwukrotność uchybu.
 	//czas trwania testu=10*5ms, błąd=20m, więc przyrost powinien wynosić 50/1000 * (20 * Kp) / Ti
-	stKonfigPID[PID_WYSO].fZadana = 60;
-	stKonfigPID[PID_WYSO].fWejscie = 40;
+	uDaneCM4.dane.stWyjPID[PID_WYSO].fZadana = 60;
+	uDaneCM4.dane.stWyjPID[PID_WYSO].fWejscie = 40;
 	uDaneCM4.dane.stWyjPID[PID_WYSO].fCalka = 0;
 	for (uint8_t n=0; n<10; n++)
 		RegulatorPID(ndT, PID_WYSO, &uDaneCM4.dane, stKonfigPID);

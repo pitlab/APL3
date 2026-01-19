@@ -59,11 +59,6 @@
 
 typedef struct	//struktura konfiguracji regulatora PID
 {
-	//wartości wejsciowe
-	float fWejscie;  		//wskaźnik na wartość wejściową
-	float fZadana;  		//wartość zadana
-
-	//nastawy regulatorów
 	float fWzmP;   			//wzmocnienie członu P
 	float fWzmI;   			//wzmocnienie członu I
 	float fWzmD;   			//wzmocnienie członu D
@@ -74,8 +69,12 @@ typedef struct	//struktura konfiguracji regulatora PID
 	uint8_t chFlagi;		//0x80 - regulator katowy, 0x40 - regulator wyłączony
 } stKonfPID_t;
 
-typedef struct	//struktura wyjścia regulatora PID
+typedef struct	//struktura danych roboczych regulatora PID
 {
+	//wartości wejsciowe
+	float fWejscie;  		//wartość mierzona regulowanego parametru
+	float fZadana;  		//wartość zadana
+
 	//zmienne robocze członów dynamicznych
 	float fCalka;  			//zmianna przechowująca całkę z błędu
 	float fFiltrWePoprz; 	//poprzednia, przefiltrowana wartość wejściowa do liczenia akcji różniczkującej

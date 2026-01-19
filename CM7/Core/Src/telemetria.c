@@ -289,8 +289,7 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TELEID_DOTYK_ADC2:	fZmiennaTele = statusDotyku.sAdc[2];		break;
 
 
-
-	case TELEID_PID_PRZE_WZAD:		break;	//wartość zadana regulatora sterowania przechyleniem
+	case TELEID_PID_PRZE_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRZE].fZadana;		break;	//wartość zadana regulatora sterowania przechyleniem
 	case TELEID_PID_PRZE_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRZE].fWyjsciePID;	break;	//wyjście regulatora sterowania przechyleniem
 	case TELEID_PID_PRZE_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRZE].fWyjscieP;		break;	//wyjście członu P
 	case TELEID_PID_PRZE_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRZE].fWyjscieI;		break;	//wyjście członu I
@@ -301,7 +300,7 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TELEID_PID_PK_PRZE_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PK_PRZE].fWyjscieI;	break;	//wyjście członu I
 	case TELEID_PID_PK_PRZE_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PK_PRZE].fWyjscieD;	break;	//wyjście członu D
 
-	case TELEID_PID_POCH_WZAD:	break;	//wartość zadana regulatora sterowania pochyleniem
+	case TELEID_PID_POCH_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_POCH].fZadana;		break;	//wartość zadana regulatora sterowania pochyleniem
 	case TELEID_PID_POCH_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_POCH].fWyjsciePID;	break;	//wyjście regulatora sterowania pochyleniem
 	case TELEID_PID_POCH_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_POCH].fWyjscieP;		break;	//wyjście członu P
 	case TELEID_PID_POCH_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_POCH].fWyjscieI;		break;	//wyjście członu I
@@ -311,7 +310,7 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TELEID_PID_PK_POCH_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PK_POCH].fWyjscieI;	break;	//wyjście członu I
 	case TELEID_PID_PK_POCH_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PK_POCH].fWyjscieD;	break;	//wyjście członu D
 
-	case TELEID_PID_ODCH_WZAD:	break;	//wartość zadana regulatora sterowania odchyleniem
+	case TELEID_PID_ODCH_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_ODCH].fZadana;		break;	//wartość zadana regulatora sterowania odchyleniem
 	case TELEID_PID_ODCH_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_ODCH].fWyjsciePID;	break;	//wyjście regulatora sterowania odchyleniem
 	case TELEID_PID_ODCH_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_ODCH].fWyjscieP;		break;	//wyjście członu P
 	case TELEID_PID_ODCH_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_ODCH].fWyjscieI;		break;	//wyjście członu I
@@ -322,7 +321,7 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TELEID_PID_PK_ODCH_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PK_ODCH].fWyjscieI;	break;	//wyjście członu I
 	case TELEID_PID_PK_ODCH_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PK_ODCH].fWyjscieD;	break;	//wyjście członu D
 
-	case TELEID_PID_WYSO_WZAD:	break;	//wartość zadana regulatora sterowania wysokością
+	case TELEID_PID_WYSO_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WYSO].fZadana;		break;	//wartość zadana regulatora sterowania wysokością
 	case TELEID_PID_WYSO_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjsciePID;	break;	//wyjście regulatora sterowania odchyleniem
 	case TELEID_PID_WYSO_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieP;		break;	//wyjście członu P
 	case TELEID_PID_WYSO_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI;		break;	//wyjście członu I
@@ -333,7 +332,7 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TELEID_PID_PR_WYSO_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fWyjscieI;		break;	//wyjście członu I
 	case TELEID_PID_PR_WYSO_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fWyjscieD;		break;	//wyjście członu D
 
-	case TELEID_PID_NAWN_WZAD:	break;	//wartość zadana regulatora sterowania nawigacją w kierunku północnym
+	case TELEID_PID_NAWN_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAW_N].fZadana;		break;	//wartość zadana regulatora sterowania nawigacją w kierunku północnym
 	case TELEID_PID_NAWN_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAW_N].fWyjsciePID;	break;	//wyjście regulatora sterowania nawigacją w kierunku północnym
 	case TELEID_PID_NAWN_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAW_N].fWyjscieP;		break;	//wyjście członu P
 	case TELEID_PID_NAWN_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAW_N].fWyjscieI;		break;	//wyjście członu I
@@ -344,7 +343,7 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TELEID_PID_PR_NAWN_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRE_N].fWyjscieI;		break;	//wyjście członu I
 	case TELEID_PID_PR_NAWN_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRE_N].fWyjscieD;		break;	//wyjście członu D
 
-	case TELEID_PID_NAWE_WZAD:	break;	//wartość zadana regulatora sterowania nawigacją w kierunku wschodnim
+	case TELEID_PID_NAWE_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAW_E].fZadana;		break;	//wartość zadana regulatora sterowania nawigacją w kierunku wschodnim
 	case TELEID_PID_NAWE_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAW_E].fWyjsciePID;	break;	//wyjście regulatora sterowania nawigacją w kierunku północnym
 	case TELEID_PID_NAWE_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAW_E].fWyjscieP;		break;	//wyjście członu P
 	case TELEID_PID_NAWE_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAW_E].fWyjscieI;		break;	//wyjście członu I
