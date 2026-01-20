@@ -382,6 +382,27 @@ void WykonajPolecenieCM7(void)
 
 	case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = BLAD_OK;	break;	//nadpisz poprzednio zwrócony błąd
 
+	case POL_ZAPISZ_KONFIG_PID:
+		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE)
+			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE;
+		uint8_t chIndeksRegulatora = (uint8_t)uDaneCM7.dane.sAdres;
+		uint16_t sAdresFram = FA_USER_PID +  chIndeksRegulatora * ROZMIAR_REG_PID;
+
+		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar-1; n++)
+			ZapiszFramFloat(sAdresFram + n*4, uDaneCM7.dane.uRozne.f32[n]);
+		stKonfigPID[chIndeksRegulatora].fWzmP = uDaneCM7.dane.uRozne.f32[0];
+		stKonfigPID[chIndeksRegulatora].fWzmI = uDaneCM7.dane.uRozne.f32[1];
+		stKonfigPID[chIndeksRegulatora].fWzmD = uDaneCM7.dane.uRozne.f32[2];
+		stKonfigPID[chIndeksRegulatora].fOgrCalki = uDaneCM7.dane.uRozne.f32[3];
+		stKonfigPID[chIndeksRegulatora].fMinWyj = uDaneCM7.dane.uRozne.f32[4];
+		stKonfigPID[chIndeksRegulatora].fMaxWyj = uDaneCM7.dane.uRozne.f32[5];
+
+		uint8_t chStalaCzasowaD_flagi = uDaneCM7.dane.uRozne.U8[4 * (uDaneCM7.dane.chRozmiar - 1) + 0];
+		ZapiszBuforFRAM(sAdresFram + 4 * (uDaneCM7.dane.chRozmiar - 1), &chStalaCzasowaD_flagi, 1);	//stała czasowa filtra D
+		stKonfigPID[chIndeksRegulatora].chPodstFiltraD = chStalaCzasowaD_flagi & PID_MASKA_FILTRA_D;
+		stKonfigPID[chIndeksRegulatora].chFlagi = chStalaCzasowaD_flagi & ~PID_MASKA_FILTRA_D;
+		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
+		break;
 	}
 }
 

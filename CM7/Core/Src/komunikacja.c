@@ -421,6 +421,28 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		}
 		break;
 
+	case PK_ZAPISZ_KONFIG_PID:			//Wysyła dane do zapisu we FRAM w rdzeniu CM4 oraz zapisania do zmienych regulatora
+		if ((chDane[0] >= LICZBA_PID) || (chRozmDanych*4 > ROZMIAR_ROZNE))	//indeks kanału regulatora nie powinien przekraczać liczby regulatorów i nie powinna zostać przepełniona struktura danych przekazywanych
+		{
+			chErr = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
+			break;
+		}
+		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_KONFIG_PID;
+		uDaneCM7.dane.chRozmiar = 6;		//ilość liczb float zawierających konfigurację regulatora
+		uDaneCM7.dane.sAdres = chDane[0];	//indeks regulatora
+		for (n=0; n<uDaneCM7.dane.chRozmiar; n++)
+		{
+			for (uint8_t i=0; i<4; i++)
+				un8_32.dane8[i] = chDane[2+n*4+i];
+			uDaneCM7.dane.uRozne.f32[n] = un8_32.daneFloat;
+		}
+		//w ostatnich 4 bajtach zamiast float przeslij konfigurację zawartą w bajtach
+		uDaneCM7.dane.uRozne.U8[4 * uDaneCM7.dane.chRozmiar] = chDane[1];	//stała czasowa filtra D
+		uDaneCM7.dane.chRozmiar++;
+		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
+		break;
+
 	}
     return chErr;
 }
