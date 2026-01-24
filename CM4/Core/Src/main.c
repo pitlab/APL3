@@ -26,6 +26,7 @@
 #include "WeWyRC.h"
 #include "adc.h"
 #include "fram.h"
+#include "kontroler_lotu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -198,6 +199,7 @@ int main(void)
   MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
   uDaneCM4.dane.nZainicjowano = 0;	//za każdym uruchomieniem detekcja i inicjalizacja sprzętu zaczyna się od początku
+  InicjujADC();
   InicjujModulyWew();
   InicjujModulI2P();
   InicjujJednostkeInercyjna();
@@ -205,8 +207,7 @@ int main(void)
   InicjujWyjsciaRC();	//serwa, ESC
   InicjujPID();
   InicjujMikser();
-  InicjujADC();
-
+  InicjujKontrolerLotu();
 
 #ifdef TESTY		//testy algorytmów
   TestyFram();

@@ -15,6 +15,7 @@
 #include "wymiana_CM7.h"
 #include "kamera.h"
 #include "display.h"
+#include "konfig_fram.h"
 
 
 uint32_t nOffsetDanych;
@@ -311,7 +312,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		break;
 
 	case PK_ZAPISZ_FRAM_U8:	//zapisuje bajty do FRAM
-		if (chDane[0] > 4*ROZMIAR_ROZNE)	//liczba danych uint8_t
+		if (chDane[0] > ROZMIAR_ROZNE_CHAR)	//liczba danych uint8_t
 		{
 			chErr = ERR_ZLA_ILOSC_DANYCH;
 			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
@@ -328,8 +329,8 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
 
-	case PK_ZAPISZ_FRAM_FLOAT:				//Wysyła dane typu float do zapisu we FRAM w rdzeniu CM4 o rozmiarze ROZMIAR_ROZNE
-		if (chDane[0] > ROZMIAR_ROZNE)	//liczba danych float (nie uint8_t)
+	case PK_ZAPISZ_FRAM_FLOAT:				//Wysyła dane typu float do zapisu we FRAM w rdzeniu CM4 o rozmiarze ROZMIAR_ROZNE_FLOAT
+		if (chDane[0] > ROZMIAR_ROZNE_FLOAT)	//liczba danych float (nie uint8_t)
 		{
 			chErr = ERR_ZLA_ILOSC_DANYCH;
 			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
@@ -362,7 +363,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		break;
 
 	case PK_CZYTAJ_FRAM_U8:
-		if (chDane[0] > 4*ROZMIAR_ROZNE)
+		if (chDane[0] > ROZMIAR_ROZNE_CHAR)
 		{
 			chErr = ERR_ZLA_ILOSC_DANYCH;
 			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
@@ -378,7 +379,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		break;
 
 	case PK_CZYTAJ_FRAM_FLOAT:			//odczytaj i wyślij do bufora fRozne[] zawartość FRAM spod podanego adresu w chDane[1..2] o rozmiarze podanym w chDane[0]
-		if (chDane[0] > ROZMIAR_ROZNE)
+		if (chDane[0] > ROZMIAR_ROZNE_FLOAT)
 		{
 			chErr = ERR_ZLA_ILOSC_DANYCH;
 			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
@@ -422,7 +423,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		break;
 
 	case PK_ZAPISZ_KONFIG_PID:			//Wysyła dane do zapisu we FRAM w rdzeniu CM4 oraz zapisania do zmienych regulatora
-		if ((chDane[0] >= LICZBA_PID) || (chRozmDanych*4 > ROZMIAR_ROZNE))	//indeks kanału regulatora nie powinien przekraczać liczby regulatorów i nie powinna zostać przepełniona struktura danych przekazywanych
+		if ((chDane[0] >= LICZBA_PID) || (chRozmDanych > ROZMIAR_ROZNE_CHAR))	//indeks kanału regulatora nie powinien przekraczać liczby regulatorów i nie powinna zostać przepełniona struktura danych przekazywanych
 		{
 			chErr = ERR_ZLA_ILOSC_DANYCH;
 			Wyslij_ERR(chErr, chPolecenie, chInterfejs);
@@ -440,6 +441,39 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		//w ostatnich 4 bajtach zamiast float przeslij konfigurację zawartą w bajtach
 		uDaneCM7.dane.uRozne.U8[4 * uDaneCM7.dane.chRozmiar] = chDane[1];	//stała czasowa filtra D
 		uDaneCM7.dane.chRozmiar++;
+		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
+		break;
+
+	case PK_ZAPISZ_ZADANE_AKRO:	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie AKRO
+		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_ZADANE_AKRO;
+		for (n=0; n<ROZMIAR_DRAZKOW; n++)
+		{
+			for (uint8_t i=0; i<4; i++)
+				un8_32.dane8[i] = chDane[n*4+i];
+			uDaneCM7.dane.uRozne.f32[n] = un8_32.daneFloat;
+		}
+		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
+		break;
+
+	case PK_ZAPISZ_ZADANE_STAB:	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie STAB
+		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_ZADANE_STAB;
+		for (n=0; n<ROZMIAR_DRAZKOW; n++)
+		{
+			for (uint8_t i=0; i<4; i++)
+				un8_32.dane8[i] = chDane[n*4+i];
+			uDaneCM7.dane.uRozne.f32[n] = un8_32.daneFloat;
+		}
+		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
+		break;
+
+	case PK_ZAPISZ_WYSTER_NAPEDU:		//zapsuje nastawy wysterowania napędu dla wartości jałowej, minimalnej, zawisu i maksymalnej
+		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_PWM_NAPEDU;
+		for (n=0; n<ROZMIAR_DRAZKOW; n++)
+		{
+			for (uint8_t i=0; i<2; i++)
+				un8_32.dane8[i] = chDane[n*2+i];
+			uDaneCM7.dane.uRozne.U16[n] = un8_32.dane16[0];
+		}
 		chErr = Wyslij_OK(chPolecenie, 0, chInterfejs);
 		break;
 

@@ -19,7 +19,10 @@
 #define ROZMIAR_BUF32_WYMIANY_CM4		ROZMIAR_BUF8_WYMIANY_CM4 / 4
 #define ROZMIAR_BUF32_WYMIANY_CM7		ROZMIAR_BUF8_WYMIANY_CM7 / 4
 #define ROZMIAR_BUF_NAPISU_WYMIANY		32
-#define ROZMIAR_ROZNE					8
+//#define ROZMIAR_ROZNE					8
+#define ROZMIAR_ROZNE_FLOAT				8
+#define ROZMIAR_ROZNE_SHORT				16
+#define ROZMIAR_ROZNE_CHAR				32
 
 //definicje poleceń przekazywanych z CM7 do CM4
 #define POL_NIC					0	//nic nie rób
@@ -56,7 +59,9 @@
 #define POL_KASUJ_DRYFT_ZYRO	30	//kasuje druft katów z żyroskopu sprowadzajac je do wartości z akcelerometru
 #define POL_REKONFIG_SERWA_RC	31	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie konfiguracji we FRAM
 #define POL_ZAPISZ_KONFIG_PID	32	//zapisuje konfogurację PID do FRAM oraz do zmiennych roboczych
-
+#define POL_ZAPISZ_ZADANE_AKRO	33	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie AKRO
+#define POL_ZAPISZ_ZADANE_STAB	34	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie STAB
+#define POL_ZAPISZ_PWM_NAPEDU	35	//zapsuje nastawy wysterowania napędu dla wartości jałowej, minimalnej, zawisu i maksymalnej
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
 
 
@@ -116,10 +121,10 @@ typedef struct _GNSS
 
 typedef union
 {
-	float f32[ROZMIAR_ROZNE];
-	uint32_t U32[ROZMIAR_ROZNE];
-	uint16_t U16[2*ROZMIAR_ROZNE];
-	uint8_t U8[4*ROZMIAR_ROZNE];
+	float f32[ROZMIAR_ROZNE_FLOAT];
+	uint32_t U32[ROZMIAR_ROZNE_FLOAT];
+	uint16_t U16[ROZMIAR_ROZNE_SHORT];
+	uint8_t U8[ROZMIAR_ROZNE_CHAR];
 }  uRozne_t;
 
 //definicja struktury wymiany danych wychodzących z rdzenia CM4
@@ -177,7 +182,7 @@ typedef struct
 	uint8_t chWykonajPolecenie;
 	uint8_t chRozmiar;				//rozmiar danych przekazywanych w polu fRozne
 	uint16_t sAdres;				//adres danych przekazywanych w polu fRozne
-	float fRozne[ROZMIAR_ROZNE];	//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji lub zapisu FRAM
+	float fRozne[ROZMIAR_ROZNE_FLOAT];	//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji lub zapisu FRAM
 	uRozne_t uRozne;				//unia różnych typów danych ogólnego zastosowania
 } stWymianyCM7_t;
 

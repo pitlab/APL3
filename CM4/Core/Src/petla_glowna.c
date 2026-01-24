@@ -57,6 +57,15 @@ float fPoleCzujnkaMMC[3];
 extern stRC_t stRC;					//struktura przechowująca dane odbiorników RC
 extern stKonfPID_t stKonfigPID[LICZBA_PID];	//struktura przechowująca dane dotyczące konfiguracji regulatora PID
 extern stMikser_t stMikser[KANALY_MIKSERA];	//struktura zmiennych miksera
+extern float fSkalaWartosciZadanejAkro[ROZMIAR_DRAZKOW];	//wartość zadana dla pełnego wychylenia drążka aparatury w trybie AKRO
+extern float fSkalaWartosciZadanejStab[ROZMIAR_DRAZKOW];	//wartość zadana dla pełnego wychylenia drążka aparatury w trybie STAB
+extern uint16_t sWysterowanieJalowe;	//wartość wysterowania regulatorów dla uzyskania obrotów jałowych
+extern uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
+extern uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
+extern uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -334,16 +343,16 @@ void WykonajPolecenieCM7(void)
 		break;
 
 	case POL_CZYTAJ_FRAM_U8:
-		if (uDaneCM7.dane.chRozmiar > 4*ROZMIAR_ROZNE)
-			uDaneCM7.dane.chRozmiar = 4*ROZMIAR_ROZNE;
+		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_CHAR)
+			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_CHAR;
 		CzytajBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM4.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
 		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie odczytu
 		break;
 
 	case POL_CZYTAJ_FRAM_FLOAT:			//odczytaj i wyślij zawartość FRAM spod podanego adresu
-		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE)
-			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE;
+		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_FLOAT)
+			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_FLOAT;
 		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
 			uDaneCM4.dane.uRozne.f32[n] = CzytajFramFloat(uDaneCM7.dane.sAdres + n*4);
 		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
@@ -351,16 +360,16 @@ void WykonajPolecenieCM7(void)
 		break;
 
 	case POL_ZAPISZ_FRAM_U8:	//zapisz dane uint8_t pod podany adres
-		if (uDaneCM7.dane.chRozmiar > 4*ROZMIAR_ROZNE)
-			uDaneCM7.dane.chRozmiar = 4*ROZMIAR_ROZNE;
+		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_CHAR)
+			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_CHAR;
 		ZapiszBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM7.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
 		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 		break;
 
 	case POL_ZAPISZ_FRAM_FLOAT:			//zapisz przekazane dane typu float do FRAM pod podany adres
-		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE)
-			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE;
+		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_FLOAT)
+			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_FLOAT;
 		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
 			ZapiszFramFloat(uDaneCM7.dane.sAdres + n*4, uDaneCM7.dane.uRozne.f32[n]);
 		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
@@ -383,8 +392,8 @@ void WykonajPolecenieCM7(void)
 	case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = BLAD_OK;	break;	//nadpisz poprzednio zwrócony błąd
 
 	case POL_ZAPISZ_KONFIG_PID:
-		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE)
-			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE;
+		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_FLOAT)
+			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_FLOAT;
 		uint8_t chIndeksRegulatora = (uint8_t)uDaneCM7.dane.sAdres;
 		uint16_t sAdresFram = FA_USER_PID +  chIndeksRegulatora * ROZMIAR_REG_PID;
 
@@ -402,6 +411,31 @@ void WykonajPolecenieCM7(void)
 		stKonfigPID[chIndeksRegulatora].chPodstFiltraD = chStalaCzasowaD_flagi & PID_MASKA_FILTRA_D;
 		stKonfigPID[chIndeksRegulatora].chFlagi = chStalaCzasowaD_flagi & ~PID_MASKA_FILTRA_D;
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
+		break;
+
+	case POL_ZAPISZ_ZADANE_AKRO:
+		for (uint16_t n=0; n<ROZMIAR_DRAZKOW; n++)
+		{
+			ZapiszFramFloat(FAU_ZADANA_AKRO + n*4, uDaneCM7.dane.uRozne.f32[n]);
+			fSkalaWartosciZadanejAkro[n] = uDaneCM7.dane.uRozne.f32[n];
+		}
+		break;
+
+	case POL_ZAPISZ_ZADANE_STAB:
+		for (uint16_t n=0; n<ROZMIAR_DRAZKOW; n++)
+		{
+			ZapiszFramFloat(FAU_ZADANA_STAB + n*4, uDaneCM7.dane.uRozne.f32[n]);
+			fSkalaWartosciZadanejStab[n] = uDaneCM7.dane.uRozne.f32[n];
+		}
+		break;
+
+	case POL_ZAPISZ_PWM_NAPEDU:
+		for (uint16_t n=0; n<ROZMIAR_DRAZKOW; n++)
+			ZapiszFramU16(FAU_PWM_JALOWY + n*2, uDaneCM7.dane.uRozne.U16[n]);
+		sWysterowanieJalowe = uDaneCM7.dane.uRozne.U16[0];
+		sWysterowanieMin = uDaneCM7.dane.uRozne.U16[1];
+		sWysterowanieZawisu = uDaneCM7.dane.uRozne.U16[2];
+		sWysterowanieMax = uDaneCM7.dane.uRozne.U16[3];
 		break;
 	}
 }

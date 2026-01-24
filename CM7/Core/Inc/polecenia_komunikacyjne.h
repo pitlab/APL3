@@ -85,8 +85,12 @@ typedef struct
 #define PK_RESETUJ_KAMERE		24	//sprzetowo resetuje kamerę i ładuje domyślne ustawienia
 #define PK_ZAMKNIJ_POLACZENIE	25	//NSK kończy pracę i zatrzymuje transmisję danych
 #define PK_ZAPISZ_KONFIG_PID	26	//zapiszuje zmodyfikowaną konfigurację regulatorów PID
+#define PK_ZAPISZ_ZADANE_AKRO	27	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie AKRO
+#define PK_ZAPISZ_ZADANE_STAB	28	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie STAB
+#define PK_ZAPISZ_WYSTER_NAPEDU	29	//zapsuje nastawy wysterowania napędu dla wartości jałowej, minimalnej, zawisu i maksymalnej
 
-#define PK_ILOSC_POLECEN		27	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
+
+#define PK_ILOSC_POLECEN		30	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
 #define PK_TELEMETRIA1			96	//ramka telemetryczna 1
 #define PK_TELEMETRIA2			97	//ramka telemetryczna 2
