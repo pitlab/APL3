@@ -54,15 +54,15 @@ uint8_t InicjujPID(void)
 
         //odczytaj granicę nasycenia członu całkującego
         chErr |= CzytajFramZWalidacja(FAU_PID_OGR_I0 + sAdrOffset, &stKonfigPID[n].fOgrCalki, VMIN_PID_ILIM, VMAX_PID_ILIM, VDEF_PID_ILIM, ERR_NASTAWA_FRAM);
-        assert(stKonfigPID[n].fOgrCalki > 0.0);
+        assert(stKonfigPID[n].fOgrCalki >= 0.0);
 
         //odczytaj minimalną wartość wyjścia
         chErr |= CzytajFramZWalidacja(FAU_PID_MIN_WY0 + sAdrOffset, &stKonfigPID[n].fMinWyj, VMIN_PID_MINWY, VMAX_PID_MINWY, VDEF_PID_MINWY, ERR_NASTAWA_FRAM);
-        assert(stKonfigPID[n].fMinWyj >-1000.0);
+        assert(stKonfigPID[n].fMinWyj >=-100.0);
 
         //odczytaj maksymalną wartość wyjścia
         chErr |= CzytajFramZWalidacja(FAU_PID_MAX_WY0 + sAdrOffset, &stKonfigPID[n].fMaxWyj, VMIN_PID_MAXWY, VMAX_PID_MAXWY, VDEF_PID_MAXWY, ERR_NASTAWA_FRAM);
-        assert(stKonfigPID[n].fMaxWyj < 1000.0);
+        assert(stKonfigPID[n].fMaxWyj <= 100.0);
 
         //odczytaj stałą czasową filtru członu różniczkowania (bity 0..5), właczony (bit 6) i to czy regulator jest kątowy (bit 7)
         chTemp = CzytajFRAM(FAU_FILTRD_TYP + sAdrOffset);
@@ -118,14 +118,10 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
 
         //ogranicznik wartości całki
         if (dane->stWyjPID[chKanal].fCalka > konfig[chKanal].fOgrCalki)
-        {
-        	dane->stWyjPID[chKanal].fCalka = konfig[chKanal].fOgrCalki * konfig[chKanal].fWzmI;
-        }
-        else
+        	dane->stWyjPID[chKanal].fCalka = konfig[chKanal].fOgrCalki;
         if (dane->stWyjPID[chKanal].fCalka < -konfig[chKanal].fOgrCalki)
-        {
-        	dane->stWyjPID[chKanal].fCalka = -konfig[chKanal].fOgrCalki * konfig[chKanal].fWzmI;
-        }
+        	dane->stWyjPID[chKanal].fCalka = -konfig[chKanal].fOgrCalki;
+
         fWyjscieReg += dane->stWyjPID[chKanal].fCalka;
         dane->stWyjPID[chKanal].fWyjscieI = dane->stWyjPID[chKanal].fCalka;  //debugowanie: wartość wyjściowa z członu I
     }

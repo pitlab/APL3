@@ -68,7 +68,8 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulatora, uint32_t ndT, stWymianyCM4_t *d
 	for (uint16_t n=0; n<ROZMIAR_DRAZKOW; n++)
 	{
 		//sprowadź wartość kanałów wejsciowych z drążków aparatury RC do znormalizowanej wartości symetrycznej wzgledem zera: +-100
-		fWeRc[n] = (float)(dane->sKanalRC[n] - PPM_NEUTR) / (PPM_MAX - PPM_NEUTR) * 100.0f;
+		//fWeRc[n] = (float)(dane->sKanalRC[n] - PPM_NEUTR) / (PPM_MAX - PPM_NEUTR) * 100.0f;
+		fWeRc[n] = (float)(dane->sKanalRC[n] - PPM_NEUTR) / (PPM_MAX - PPM_NEUTR);
 
 		chIndeksPID_Kata = 2*n + 0;	//indeks regulatora parametru głównego: kątów i wysokości
 		chIndeksPID_Predk =  2*n + 1;	//indeks regulatora pochodnej: prędkosci kątowych i prędkosci zmiany wysokości

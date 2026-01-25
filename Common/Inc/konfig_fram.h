@@ -84,12 +84,12 @@
 
 
 
-#define FA_SYS_VAR	    0x0400	    //zmienne systemowe i dynamiczne
-#define	FAS_NUMER_SESJI	  	FA_SYS_VAR+0		//1S Numer sesji
-#define	FAS_ENERGIA1	    FA_SYS_VAR+4    	//4D energia pobrana z pakietu 1
-#define	FAS_ENERGIA2        FA_SYS_VAR+8   		//4D energia pobrana z pakietu 2
-#define	FAS_CISN_01	    	FA_SYS_VAR+12    	//4D ciśnienie zerowe czujnika bezwzględnego 1
-#define	FAS_CISN_02	    	FA_SYS_VAR+14    	//4D ciśnienie zerowe czujnika bezwzględnego 2
+#define FA_SYS_VAR	    	0x0400	    //zmienne systemowe i dynamiczne
+#define	FAS_NUMER_SESJI	  	0x0400		//1U Numer sesji
+#define	FAS_ENERGIA1	    0x0401    	//4D energia pobrana z pakietu 1
+#define	FAS_ENERGIA2        0x0405   	//4D energia pobrana z pakietu 2
+#define	FAS_CISN_01	    	0x0409    	//4D ciśnienie zerowe czujnika bezwzględnego 1
+#define	FAS_CISN_02	    	0x040D    	//4D ciśnienie zerowe czujnika bezwzględnego 2
 
 
 #define FA_HARD_VAR         	0x0500	    //zmienne definiujące parametry sprzętu 0x500 = 1280
