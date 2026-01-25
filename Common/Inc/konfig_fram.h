@@ -19,35 +19,35 @@
 // CH - znak alfanumeryczny
 // F - liczba float
 
-#define FA_USER_VAR	    	0x0000	    		//zmienne użytkownika
-#define FAU_RC1CH_MIN       FA_USER_VAR  		//16x2U minimalna wartość sygnału z danego kanału odbiornika 1
-#define FAU_RC2CH_MIN       FA_USER_VAR+32  	//16x2U minimalna wartość sygnału z danego kanału odbiornika 2
-#define FAU_RC1CH_MAX       FA_USER_VAR+64 		//16x2U maksymalna wartość sygnału z danego kanału odbiornika 1
-#define FAU_RC2CH_MAX       FA_USER_VAR+96 		//16x2U maksymalna wartość sygnału z danego kanału odbiornika 2
-#define FAU_CH6_MIN         FA_USER_VAR+128 	//4U minimalna wartość regulowanej zmiennej
-#define FAU_CH6_MAX         FAU_CH6_MIN+4       //4U maksymalna wartość regulowanej zmiennej
-#define FAU_CH6_FUNCT       FAU_CH6_MAX+4       //1U funkcja kanału 6: rodzaj zmiennej do regulacji
-#define FAU_CH7_MIN         FAU_CH6_FUNCT+4     //4U minimalna wartość regulowanej zmiennej
-#define FAU_CH7_MAX         FAU_CH7_MIN+4       //4U maksymalna wartość regulowanej zmiennej
-#define FAU_CH7_FUNCT       FAU_CH7_MAX+4       //1U funkcja kanału 7: rodzaj zmiennej do regulacji
+#define FA_USER_VAR	    	0x0000	    //zmienne użytkownika
+#define FAU_WE_RC1_MIN		0x0000		//16*2U minimalna wartość każdego kanału z odbiornika RC1
+#define FAU_WE_RC1_MAX		0x0020		//16*2U maksymalna wartość każdego kanału z odbiornika RC1
+#define FAU_WE_RC2_MIN		0x0040		//16*2U minimalna wartość każdego kanału z odbiornika RC2
+#define FAU_WE_RC2_MAX		0x0060		//16*2U maksymalna wartość każdego kanału z odbiornika RC2
 
-//128+18=146=0x92
-#define FAU_PWM_JALOWY      0x0092           	//2U wysterowanie regulatorów na biegu jałowym [us]
-#define FAU_PWM_MIN      	FAU_PWM_JALOWY+2 	//2U minimalne wysterowanie regulatorów w trakcie lotu [us]
-#define FAU_WPM_ZAWISU      FAU_PWM_MIN+2   	//2U wysterowanie regulatorów w zawisie [us]
-#define FAU_PWM_MAX         FAU_WPM_ZAWISU+2  	//2U maksymalne wysterowanie silników w trakcie lotu [us]
+#define FAU_CH6_MIN         0x0080 		//4F minimalna wartość regulowanej zmiennej
+#define FAU_CH6_MAX         0x0084      //4F maksymalna wartość regulowanej zmiennej
+#define FAU_CH6_FUNCT       0x0088      //1U funkcja kanału 6: rodzaj zmiennej do regulacji
+#define FAU_CH7_MIN         0x0089		//4F minimalna wartość regulowanej zmiennej
+#define FAU_CH7_MAX         0x008D      //4F maksymalna wartość regulowanej zmiennej
+#define FAU_CH7_FUNCT       0x0091      //1U funkcja kanału 7: rodzaj zmiennej do regulacji
 
-#define FAU_TSYNC_MON       0x009A           	//miesiąc ostatniej synchronizacji
-#define FAU_TSYNC_DAY       FAU_TSYNC_MON+1 	//dzień ostatniej synchronizacji
-#define FAU_TSYNC_HOU       FAU_TSYNC_DAY+1
-#define FAU_TSYNC_MIN       FAU_TSYNC_HOU+1
-#define FAU_TSYNC_SEC       FAU_TSYNC_MIN+1
-#define FAU_TSYNC_DIF       FAU_TSYNC_SEC+1 //ostatnia różnica czasu synchronizacji
+#define FAU_PWM_JALOWY      0x0092     	//2U wysterowanie regulatorów na biegu jałowym [us]
+#define FAU_PWM_MIN      	0x0094 		//2U minimalne wysterowanie regulatorów w trakcie lotu [us]
+#define FAU_WPM_ZAWISU      0x0096   	//2U wysterowanie regulatorów w zawisie [us]
+#define FAU_PWM_MAX         0x0098  	//2U maksymalne wysterowanie silników w trakcie lotu [us]
+
+#define FAU_TSYNC_MON       0x009A     	//1U miesiąc ostatniej synchronizacji
+#define FAU_TSYNC_DAY       0x009B 		//1U dzień ostatniej synchronizacji
+#define FAU_TSYNC_HOU       0x009C		//1U
+#define FAU_TSYNC_MIN       0x009D
+#define FAU_TSYNC_SEC       0x009E
+#define FAU_TSYNC_DIF       0x009F 		//1U ostatnia różnica czasu synchronizacji
 
 //mikser
-#define FAU_MIX_PRZECH		0x00A0    			//8*4F współczynnik wpływu przechylenia na dany silnik
-#define FAU_MIX_POCHYL  	FAU_MIX_PRZECH+32   //8*4F współczynnik wpływu pochylenia na dany silnik
-#define FAU_MIX_ODCHYL    	FAU_MIX_POCHYL+32   //8*4F współczynnik wpływu odchylenia na dany silnik
+#define FAU_MIX_PRZECH		0x00A0		//8*4F współczynnik wpływu przechylenia na dany silnik
+#define FAU_MIX_POCHYL  	0x00C0   	//8*4F współczynnik wpływu pochylenia na dany silnik
+#define FAU_MIX_ODCHYL    	0x00E0   	//8*4F współczynnik wpływu odchylenia na dany silnik
 
 //regulatory PID
 #define FA_USER_PID	    	0x0100
@@ -64,24 +64,24 @@
 #define ROZMIAR_REG_PID		28
 
 //12 regulatorów zajmuje 336 bajtów - 0x150
-
+#define FA_TRYB_REG	    	0x0250		//4*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków
 
 //konfiguracja odbiorników RC i wyjść serw/ESC zdefiniowane w sys_def_wspolnych.h
-#define FAU_KONF_ODB_RC		0x0300			//1U konfiguracja odbiorników RC: Bity 0..3 = RC1, bity 4..7 = RC2: 0=PPM, 1=S-Bus
-#define FAU_KONF_SERWA12	FAU_KONF_ODB_RC+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 1, bity 4..7 = Wyjście 2
-#define FAU_KONF_SERWA34	FAU_KONF_SERWA12+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 3, bity 4..7 = Wyjście 4
-#define FAU_KONF_SERWA56	FAU_KONF_SERWA34+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 5, bity 4..7 = Wyjście 6
-#define FAU_KONF_SERWA78	FAU_KONF_SERWA56+1		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 7, bity 4..7 = Wyjście 8
-#define FAU_KONF_SERWA916	FAU_KONF_SERWA78+1		//1U konfiguracja wyjść: 0=wyjścia 9..16 PWM 50Hz, 1=wyjścia 9..12 PWM 100Hz, 2=wyjścia 9..10 PWM 200Hz, 3=wyjście 9 PWM 400Hz
-#define FAU_LOW_VOLT_WARN   FAU_KONF_SERWA916+1  	//4F próg ostrzezenia o niskim napięciu
-#define FAU_LOW_VOLT_ALARM  FAU_LOW_VOLT_WARN+4 	//4F próg alarmu niskiego napięcia
-#define FAU_VOLT_DROP_COMP  FAU_LOW_VOLT_ALARM+4	//4F współczynnik kompensacji spadku napięcia pakietu
-#define FAU_LANDING_SPD     FAU_VOLT_DROP_COMP+4 	//4F prędkość lądowania
+#define FAU_KONF_ODB_RC		0x0300		//1U konfiguracja odbiorników RC: Bity 0..3 = RC1, bity 4..7 = RC2: 0=PPM, 1=S-Bus
+#define FAU_KONF_SERWA12	0x0301		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 1, bity 4..7 = Wyjście 2
+#define FAU_KONF_SERWA34	0x0302		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 3, bity 4..7 = Wyjście 4
+#define FAU_KONF_SERWA56	0x0303		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 5, bity 4..7 = Wyjście 6
+#define FAU_KONF_SERWA78	0x0304		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 7, bity 4..7 = Wyjście 8
+#define FAU_KONF_SERWA916	0x0305		//1U konfiguracja wyjść: 0=wyjścia 9..16 PWM 50Hz, 1=wyjścia 9..12 PWM 100Hz, 2=wyjścia 9..10 PWM 200Hz, 3=wyjście 9 PWM 400Hz
+#define FAU_LOW_VOLT_WARN   0x0306  	//4F próg ostrzezenia o niskim napięciu
+#define FAU_LOW_VOLT_ALARM  0x030A 		//4F próg alarmu niskiego napięcia
+#define FAU_VOLT_DROP_COMP  0x030E		//4F współczynnik kompensacji spadku napięcia pakietu
+#define FAU_LANDING_SPD     0x0312		//4F prędkość lądowania
 
 //wzmocnienia drążków aparatury dla poszczególnych trybów pracy regulatorów
-#define FAU_ZADANA_AKRO     0x3E0					//4x4F wartość zadana z drążków aparatury dla regulatora Akro
-#define FAU_ZADANA_STAB     FAU_ZADANA_AKRO+16 		//4x4F wartość zadana z drążków aparatury dla regulatora Stab
-#define ROZMIAR_DRAZKOW		4						//liczba regulatorów które mają wartość zadaną ustawianą drążkami aparatury
+#define FAU_ZADANA_AKRO     0x316		//4x4F wartość zadana z drążków aparatury dla regulatora Akro
+#define FAU_ZADANA_STAB     0x324		//4x4F wartość zadana z drążków aparatury dla regulatora Stab
+
 
 
 #define FA_SYS_VAR	    0x0400	    //zmienne systemowe i dynamiczne
@@ -296,7 +296,7 @@
 
 #define VMIN_PID_MINWY    (float)-100.0    //minimalna wartość wyjścia
 #define VMAX_PID_MINWY    (float)100.0
-#define VDEF_PID_MINWY    (float)100.0
+#define VDEF_PID_MINWY    (float)-100.0
 
 #define VMIN_PID_MAXWY    (float)-100.0    //maksymalna wartość wyjścia
 #define VMAX_PID_MAXWY    (float)100.0

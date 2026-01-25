@@ -25,6 +25,9 @@
 #include "adc.h"
 #include "dshot.h"
 #include "mikser.h"
+#include "kontroler_lotu.h"
+
+
 
 extern TIM_HandleTypeDef htim7;
 extern unia_wymianyCM4_t uDaneCM4;
@@ -63,7 +66,7 @@ extern uint16_t sWysterowanieJalowe;	//wartość wysterowania regulatorów dla u
 extern uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
 extern uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
 extern uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych
-
+extern uint8_t chTrybRegulatora[ROZMIAR_DRAZKOW];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
 
 
 
@@ -172,7 +175,9 @@ void PetlaGlowna(void)
 		}
 		break;
 
-	case 17:	StabilizacjaPID(ndT, &uDaneCM4.dane, stKonfigPID);	break;
+	case 17:	//StabilizacjaPID(ndT, &uDaneCM4.dane, stKonfigPID);	break;
+				chBladPG |= KontrolerLotu(chTrybRegulatora, ndT, &uDaneCM4.dane, stKonfigPID);	break;
+
 	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID);	break;
 	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;
 	default:	break;

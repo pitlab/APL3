@@ -54,6 +54,11 @@ uint8_t chKonfigWyRC[LICZBA_WYJSC_RC];
 uint8_t chKorektaPoczatkuRamki;
 uint32_t nCzasWysylkiSbus;
 extern uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforDShot[KANALY_MIKSERA][DS_BITOW_DANYCH + DS_BITOW_PRZERWY];
+uint16_t sMinKanaluRC1[KANALY_ODB_RC], sMaxKanaluRC1[KANALY_ODB_RC];	//minimalne i maksymalne wartości kanałów odbiornika RC1
+uint16_t sMinKanaluRC2[KANALY_ODB_RC], sMaxKanaluRC2[KANALY_ODB_RC];	//minimalne i maksymalne wartości kanałów odbiornika RC2
+uint16_t sZnormalizoweneWeRC[KANALY_ODB_RC];
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja wczytuje z FRAM konfigurację odbiorników RC
@@ -200,6 +205,15 @@ uint8_t InicjujWejsciaRC(void)
 		HAL_NVIC_EnableIRQ(USART2_IRQn);
 		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);	//włącz odbiór pierwszej ramki
 	}
+
+	//odczytaj z FRAM minima i maksima kanałów RC aby móc je znormalizować
+    for (uint16_t n=0; n<KANALY_ODB_RC; n++)
+    {
+    	sMinKanaluRC1[n] = CzytajFramU16(FAU_WE_RC1_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
+    	sMaxKanaluRC1[n] = CzytajFramU16(FAU_WE_RC1_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
+    	sMinKanaluRC2[n] = CzytajFramU16(FAU_WE_RC2_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
+    	sMaxKanaluRC2[n] = CzytajFramU16(FAU_WE_RC2_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
+    }
 	return chErr;
 }
 
@@ -800,7 +814,27 @@ uint8_t FormowanieRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Normalizuje sygnały RC sprowadzajac je do standardowego zakresu 1000..2000
+// Parametry:
+// [i] sWejscie - wejście sygnału odebranego z aparatury
+// [i] sMin, sMax - minimalna i maksymalna wartość kanału
+// [o] *sWyjscie - wskaźnik na wartość kanałów po normalizacji
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+void NormalizujWejsciaRC(uint16_t sWejscie, uint16_t sMin, uint16_t sMax, uint16_t *sWyjscie)
+{
+	for (uint16_t n=0; n<KANALY_ODB_RC; n++)
+	{
+
+	}
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Porównuje dane z obu odbiorników RC i wybiera ten lepszy przepisując jego dane do struktury danych CM4
+// Zrobić: Sygnały z róznych typów odbiorników i róznych protokołów powinny zostać znormalizowane przed porównaniem
 // Parametry:
 // [we] *stRC - wskaźnik na strukturę danych odbiorników RC
 // [wy] *psDaneCM4 - wskaźnik na strukturę danych CM4
@@ -958,5 +992,7 @@ uint8_t ObslugaRamkiBSBus(void)
 	chBlad = DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane);
 	return chBlad;
 }
+
+
 
 

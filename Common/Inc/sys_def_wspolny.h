@@ -35,10 +35,14 @@
 #define KANALY_MIKSERA	8		//liczba kanałów wyjściowych, które mogą wchodzić do miksera
 
 //definicje kanałów RC
-#define KANRC_POCH		0
-#define KANRC_PRZE		1
+#define KANRC_PRZE		0
+#define KANRC_POCH		1
 #define KANRC_ODCH		2
 #define KANRC_GAZ		3
+#define ROZMIAR_DRAZKOW		4						//liczba regulatorów które mają wartość zadaną ustawianą drążkami aparatury
+
+
+
 
 //przelicznik liczby mikrosekund sygnału PPM na 1 procent wysterowania kanału RC
 #define PPM1PROC_UNI   8       //1% = 8us unipolarnie, 0%=1,1us 100%=1,9us
@@ -126,8 +130,8 @@
 #define TEMP_BARO2	1
 #define TEMP_IMU1	2
 #define TEMP_IMU2	3
-#define TEMP_CISR1	4	//czujnik ciśnienia różnicowego
-#define TEMP_CISR2	5	//czujnik ciśnienia różnicowego
+#define TEMP_CISR1	4	//temperatura wewnętrznego czujnika ciśnienia różnicowego np. ND130
+#define TEMP_CISR2	5	//temperatura zewnetrznego czujnika ciśnienia różnicowego np. MS4525
 
 #define CZAS_KALIBRACJI		1000	//obiegów pętli głównej po 5ms
 
@@ -150,6 +154,14 @@
 
 
 #define WYSOKOSC10PIETER	27.0f	//wysokość w metrach 10 pięter
+
+
+//definicje trybów regulacji
+#define REG_WYLACZ		0		//regultor wyłączony
+#define REG_RECZNA		1		//regulacja ręczna, bezpośrednio z drążków aparatury
+#define REG_AKRO		2		//regulacja akrobacyjna, steruje pochodną parametru głównego: prędkością kątową lub prędkości zmiany wysokości
+#define REG_STAB		3		//regulacja stabilizująca, steruje parametrem głównym: kątem lub wysokością
+#define REG_AUTO		4		//regulacja automatyczna, steruje wartością nadrzędną czyli nawigacją po wspołrzędnych geograficznych
 
 
 //definicje trybów lotu

@@ -22,6 +22,8 @@
 //deklaracje zmiennych zewnętrznych
 extern unia_wymianyCM4_t uDaneCM4;
 stKonfPID_t stKonfigPID[LICZBA_PID];
+extern float fSkalaWartosciZadanejAkro[ROZMIAR_DRAZKOW];	//wartość zadana dla pełnego wychylenia drążka aparatury w trybie AKRO
+extern float fSkalaWartosciZadanejStab[ROZMIAR_DRAZKOW];	//wartość zadana dla pełnego wychylenia drążka aparatury w trybie STAB
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja przeładowuje konfigurację regulatora PID
@@ -186,7 +188,7 @@ void ResetujCalkePID(void)
 uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 {
 	//regulacja przechylenia
-	dane->stWyjPID[PID_PRZE].fZadana = (float)(dane->sKanalRC[PRZE] - PPM_NEUTR) * MAX_PID  / (PPM_MAX - PPM_NEUTR);
+	dane->stWyjPID[PID_PRZE].fZadana = (float)(dane->sKanalRC[PRZE] - PPM_NEUTR) * fSkalaWartosciZadanejStab[PRZE]  / (PPM_MAX - PPM_NEUTR);
 	dane->stWyjPID[PID_PRZE].fWejscie = dane->fKatIMU1[PRZE];
 	RegulatorPID(ndT, PID_PRZE, dane, konfig);
 

@@ -11,6 +11,7 @@
 #include "wymiana.h"
 
 uint8_t InicjujKontrolerLotu(void);
+uint8_t KontrolerLotu(uint8_t *chTrybRegulatora, uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig);
 
 
 #endif /* INC_KONTROLER_LOTU_H_ */
