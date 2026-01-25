@@ -424,6 +424,7 @@ void WykonajPolecenieCM7(void)
 			ZapiszFramFloat(FAU_ZADANA_AKRO + n*4, uDaneCM7.dane.uRozne.f32[n]);
 			fSkalaWartosciZadanejAkro[n] = uDaneCM7.dane.uRozne.f32[n];
 		}
+		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 		break;
 
 	case POL_ZAPISZ_ZADANE_STAB:
@@ -432,6 +433,7 @@ void WykonajPolecenieCM7(void)
 			ZapiszFramFloat(FAU_ZADANA_STAB + n*4, uDaneCM7.dane.uRozne.f32[n]);
 			fSkalaWartosciZadanejStab[n] = uDaneCM7.dane.uRozne.f32[n];
 		}
+		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 		break;
 
 	case POL_ZAPISZ_PWM_NAPEDU:
@@ -441,6 +443,7 @@ void WykonajPolecenieCM7(void)
 		sWysterowanieMin = uDaneCM7.dane.uRozne.U16[1];
 		sWysterowanieZawisu = uDaneCM7.dane.uRozne.U16[2];
 		sWysterowanieMax = uDaneCM7.dane.uRozne.U16[3];
+		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 		break;
 	}
 }

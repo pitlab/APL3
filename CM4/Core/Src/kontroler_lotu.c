@@ -54,7 +54,7 @@ return chErr;
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonuje obliczenia stabilizacji lotu w różnych trybach pracy
 // Parametry:
-// [i] *chTrybRegulatora - wskaźnia na stopień automatyzacji procesu: REG_RECZNA, REG_AKRO, REG_STAB, REG_AUTO
+// [i] *chTrybRegulatora - wskaźnik na stopień automatyzacji procesu: REG_RECZNA, REG_AKRO, REG_STAB, REG_AUTO
 // [i] ndT - czas od ostatniego cyklu [us]
 // [i] *konfig - wskaźnik na strukturę danych regulatorów PID
 // Zwraca: kod błędu

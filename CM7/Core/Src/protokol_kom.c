@@ -551,23 +551,6 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wysyła ramkę komunikacyjną z kodem OK
-// Parametry:
-// [i] chInterfejs - interfejs komunikacyjny przez który ma być przesłana ramka
-// Zwraca: kod błędu
-////////////////////////////////////////////////////////////////////////////////
-uint8_t Wyslij_OK(uint8_t chParametr1, uint8_t chParametr2, uint8_t chInterfejs)
-{
-	uint8_t chDane[2];
-    chDane[0] = chParametr1;
-    chDane[1] = chParametr2;
-
-    return WyslijRamke(chAdresZdalny[chInterfejs], PK_OK, 2, chDane, chInterfejs);
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
 // Wysyła ramkę komunikacyjną z kodem błędu
 // Parametry:
 // [i] chKodBledu - kod błędu
@@ -575,7 +558,7 @@ uint8_t Wyslij_OK(uint8_t chParametr1, uint8_t chParametr2, uint8_t chInterfejs)
 // [i] chInterfejs - interfejs komunikacyjny przez który ma być przesłana ramka
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t Wyslij_ERR(uint8_t chKodBledu, uint8_t chParametr, uint8_t chInterfejs)
+uint8_t Wyslij_KodBledu(uint8_t chKodBledu, uint8_t chParametr, uint8_t chInterfejs)
 {
 	uint8_t chDane[2];
     chDane[0] = chKodBledu;
