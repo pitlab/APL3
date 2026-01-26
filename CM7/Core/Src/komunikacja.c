@@ -453,6 +453,14 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 
+	case PK_ZAPISZ_TRYB_REG:
+		for (n=0; n<ROZMIAR_DRAZKOW; n++)
+			uDaneCM7.dane.uRozne.U8[n] = chDane[n];
+		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_TRYB_REG;
+		uDaneCM7.dane.sAdres = PK_ZAPISZ_TRYB_REG;	//fejkowy adres wysyłany w ceku uzyskania potwierdzenia zapisu
+		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
+		break;
+
 	}
     return chErr;
 }

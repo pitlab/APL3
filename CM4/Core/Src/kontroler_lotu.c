@@ -17,7 +17,7 @@ uint16_t sWysterowanieJalowe;	//wartość wysterowania regulatorów dla uzyskani
 uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
 uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
 uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych
-uint8_t chTrybRegulatora[ROZMIAR_DRAZKOW];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
+uint8_t chTrybRegulacji[ROZMIAR_DRAZKOW];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wczytuje konfigurację kontrolera lotu
@@ -28,14 +28,14 @@ uint8_t InicjujKontrolerLotu(void)
 {
 	uint8_t chErr = BLAD_OK;
 
-	CzytajBuforFRAM(FA_TRYB_REG, chTrybRegulatora, ROZMIAR_DRAZKOW);	//4*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków
+	CzytajBuforFRAM(FA_TRYB_REG, chTrybRegulacji, ROZMIAR_DRAZKOW);	//4*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków
 
     for (uint16_t n=0; n<ROZMIAR_DRAZKOW; n++)
     {
         //odczytaj wartość skalowania wartości zadanej dla trybów STAB i AKRO
         chErr |= CzytajFramZWalidacja(FAU_ZADANA_AKRO + n*4, &fSkalaWartosciZadanejAkro[n], VMIN_PID_WZMP, VMAX_PID_WZMP, VDEF_PID_WZMP, ERR_NASTAWA_FRAM);	//4x4F wartość zadana z drążków aparatury dla regulatora Akro
         chErr |= CzytajFramZWalidacja(FAU_ZADANA_STAB + n*4, &fSkalaWartosciZadanejStab[n], VMIN_PID_WZMP, VMAX_PID_WZMP, VDEF_PID_WZMP, ERR_NASTAWA_FRAM);	//4x4F wartość zadana z drążków aparatury dla regulatora Stab
-        chTrybRegulatora[n] = REG_STAB;	//na razie przypisz na sztywno
+        chTrybRegulacji[n] = REG_STAB;	//na razie przypisz na sztywno
     }
 
 
@@ -54,12 +54,12 @@ return chErr;
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonuje obliczenia stabilizacji lotu w różnych trybach pracy
 // Parametry:
-// [i] *chTrybRegulatora - wskaźnik na stopień automatyzacji procesu: REG_RECZNA, REG_AKRO, REG_STAB, REG_AUTO
+// [i] *chTrybRegulacji - wskaźnik na stopień automatyzacji procesu: REG_RECZNA, REG_AKRO, REG_STAB, REG_AUTO
 // [i] ndT - czas od ostatniego cyklu [us]
 // [i] *konfig - wskaźnik na strukturę danych regulatorów PID
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KontrolerLotu(uint8_t *chTrybRegulatora, uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig)
+uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 {
 	float fWeRc[ROZMIAR_DRAZKOW];
 	uint8_t chIndeksPID_Kata, chIndeksPID_Predk;
@@ -74,18 +74,18 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulatora, uint32_t ndT, stWymianyCM4_t *d
 		chIndeksPID_Kata = 2*n + 0;	//indeks regulatora parametru głównego: kątów i wysokości
 		chIndeksPID_Predk =  2*n + 1;	//indeks regulatora pochodnej: prędkosci kątowych i prędkosci zmiany wysokości
 
-		if (chTrybRegulatora[n] > REG_WYLACZ)
+		if (chTrybRegulacji[n] > REG_WYLACZ)
 		{
-			if (chTrybRegulatora[n] == REG_RECZNA)
+			if (chTrybRegulacji[n] == REG_RECZNA)
 				dane->stWyjPID[chIndeksPID_Predk].fWyjsciePID = fWeRc[n];	//regulatory nie działają, wstaw dane z drążka
 			else	//regulatory działają
 			{
 				//określ czy regulator kata przechylenia ma pracować
-				if (chTrybRegulatora[n] > REG_AKRO)
+				if (chTrybRegulacji[n] > REG_AKRO)
 				{
 
 					//określ co ma być wartością zadaną dla regulatora kąta: regulatory nawigacji czy drążek RC
-					if (chTrybRegulatora[n] == REG_AUTO)
+					if (chTrybRegulacji[n] == REG_AUTO)
 					{
 						//tutaj będzie obsługa regulatora nawigacyjnego
 						//dane->stWyjPID[chIndeksPID_Predk].fZadana = składowa przechylenia z regulatora prędkosci zmiany pozycji geograficznej
@@ -115,18 +115,18 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulatora, uint32_t ndT, stWymianyCM4_t *d
 	}
 
 	/*/regulacja przechylenia
-	if (chTrybRegulatora[PRZE] > REG_WYLACZ)
+	if (chTrybRegulacji[PRZE] > REG_WYLACZ)
 	{
-		if (chTrybRegulatora[PRZE] == REG_RECZNY)
+		if (chTrybRegulacji[PRZE] == REG_RECZNY)
 			dane->stWyjPID[PID_PK_PRZE].fWyjsciePID = fWeRc[PRZE];	//regulatory nie działają, wstaw dane z drążka
 		else	//regulatory działają
 		{
 			//określ czy regulator kata przechylenia ma pracować
-			if (chTrybRegulatora[PRZE] > REG_AKRO)
+			if (chTrybRegulacji[PRZE] > REG_AKRO)
 			{
 
 				//określ co ma być wartością zadaną dla regulatora kąta: regulatory nawigacji czy drążek RC
-				if (chTrybRegulatora[PRZE] == REG_AUTO)
+				if (chTrybRegulacji[PRZE] == REG_AUTO)
 				{
 					//tutaj będzie obsługa regulatora nawigacyjnego
 					//dane->stWyjPID[PID_PRZE].fZadana = składowa przechylenia z regulatora prędkosci zmiany pozycji geograficznej
@@ -154,17 +154,17 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulatora, uint32_t ndT, stWymianyCM4_t *d
 	}
 
 	//regulacja pochylenia
-	if (chTrybRegulatora[POCH] > REG_WYLACZ)
+	if (chTrybRegulacji[POCH] > REG_WYLACZ)
 	{
-		if (chTrybRegulatora[POCH] == REG_RECZNY)
+		if (chTrybRegulacji[POCH] == REG_RECZNY)
 			dane->stWyjPID[PID_PK_POCH].fWyjsciePID = fWeRc[POCH];	//regulatory nie działają, wstaw dane z drążka
 		else	//regulatory działają
 		{
 			//określ czy regulator kata pochylenia ma pracować
-			if (chTrybRegulatora[POCH] > REG_AKRO)
+			if (chTrybRegulacji[POCH] > REG_AKRO)
 			{
 				//określ co ma być wartością zadaną dla regulatora kąta: regulatory nawigacji czy drążek RC
-				if (chTrybRegulatora[POCH] == REG_AUTO)
+				if (chTrybRegulacji[POCH] == REG_AUTO)
 				{
 					//tutaj będzie obsługa regulatora nawigacyjnego
 					//dane->stWyjPID[PID_PK_POCH].fZadana = składowa pochylenia z regulatora prędkosci zmiany pozycji geograficznej
@@ -192,17 +192,17 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulatora, uint32_t ndT, stWymianyCM4_t *d
 	}
 
 	//regulacja odchylenia
-	if (chTrybRegulatora[ODCH] > REG_WYLACZ)
+	if (chTrybRegulacji[ODCH] > REG_WYLACZ)
 	{
-		if (chTrybRegulatora[ODCH] == REG_RECZNY)
+		if (chTrybRegulacji[ODCH] == REG_RECZNY)
 			dane->stWyjPID[PID_PK_ODCH].fWyjsciePID = fWeRc[ODCH];	//regulatory nie działają, wstaw dane z drążka
 		else	//regulatory działają
 		{
 			//określ czy regulator kata odchylenia ma pracować
-			if (chTrybRegulatora[ODCH] > REG_AKRO)
+			if (chTrybRegulacji[ODCH] > REG_AKRO)
 			{
 				//określ co ma być wartością zadaną dla regulatora kąta: regulatory nawigacji czy drążek RC
-				if (chTrybRegulatora[ODCH] == REG_AUTO)
+				if (chTrybRegulacji[ODCH] == REG_AUTO)
 				{
 					//tutaj będzie obsługa regulatora nawigacyjnego
 					//dane->stWyjPID[PID_PK_ODCH].fZadana = składowa odchylenia z regulatora prędkosci zmiany pozycji geograficznej
@@ -230,17 +230,17 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulatora, uint32_t ndT, stWymianyCM4_t *d
 	}
 
 	//regulacja wysokości
-	if (chTrybRegulatora[WYSO] > REG_WYLACZ)
+	if (chTrybRegulacji[WYSO] > REG_WYLACZ)
 	{
-		if (chTrybRegulatora[WYSO] == REG_RECZNY)
+		if (chTrybRegulacji[WYSO] == REG_RECZNY)
 			dane->stWyjPID[PID_WARIO].fWyjsciePID = fWeRc[WYSO];	//regulatory nie działają, wstaw dane z drążka
 		else	//regulatory działają
 		{
 			//określ czy regulator wysokości ma pracować
-			if (chTrybRegulatora[WYSO] > REG_AKRO)
+			if (chTrybRegulacji[WYSO] > REG_AKRO)
 			{
 				//określ co ma być wartością zadaną dla regulatora kąta: regulatory nawigacji czy drążek RC
-				if (chTrybRegulatora[WYSO] == REG_AUTO)
+				if (chTrybRegulacji[WYSO] == REG_AUTO)
 				{
 					//tutaj będzie obsługa regulatora nawigacyjnego
 					//dane->stWyjPID[PID_WARIO].fZadana = składowa wysokości z regulatora prędkosci zmiany pozycji geograficznej

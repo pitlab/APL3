@@ -79,8 +79,8 @@
 #define FAU_LANDING_SPD     0x0312		//4F prędkość lądowania
 
 //wzmocnienia drążków aparatury dla poszczególnych trybów pracy regulatorów
-#define FAU_ZADANA_AKRO     0x316		//4x4F wartość zadana z drążków aparatury dla regulatora Akro
-#define FAU_ZADANA_STAB     0x324		//4x4F wartość zadana z drążków aparatury dla regulatora Stab
+#define FAU_ZADANA_AKRO     0x0316		//4x4F wartość zadana z drążków aparatury dla regulatora Akro
+#define FAU_ZADANA_STAB     0x0326		//4x4F wartość zadana z drążków aparatury dla regulatora Stab
 
 
 

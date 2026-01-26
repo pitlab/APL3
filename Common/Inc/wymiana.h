@@ -62,6 +62,7 @@
 #define POL_ZAPISZ_ZADANE_AKRO	33	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie AKRO
 #define POL_ZAPISZ_ZADANE_STAB	34	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie STAB
 #define POL_ZAPISZ_PWM_NAPEDU	35	//zapsuje nastawy wysterowania napędu dla wartości jałowej, minimalnej, zawisu i maksymalnej
+#define POL_ZAPISZ_TRYB_REG		36	//zapisuje tryb pracy 4 podstawowych regulatorów
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
 
 

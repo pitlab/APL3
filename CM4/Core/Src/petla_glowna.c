@@ -66,8 +66,7 @@ extern uint16_t sWysterowanieJalowe;	//wartość wysterowania regulatorów dla u
 extern uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
 extern uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
 extern uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych
-extern uint8_t chTrybRegulatora[ROZMIAR_DRAZKOW];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
-
+extern uint8_t chTrybRegulacji[ROZMIAR_DRAZKOW];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -176,7 +175,7 @@ void PetlaGlowna(void)
 		break;
 
 	case 17:	//StabilizacjaPID(ndT, &uDaneCM4.dane, stKonfigPID);	break;
-				chBladPG |= KontrolerLotu(chTrybRegulatora, ndT, &uDaneCM4.dane, stKonfigPID);	break;
+				chBladPG |= KontrolerLotu(chTrybRegulacji, ndT, &uDaneCM4.dane, stKonfigPID);	break;
 
 	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID);	break;
 	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;
@@ -443,6 +442,13 @@ void WykonajPolecenieCM7(void)
 		sWysterowanieMin = uDaneCM7.dane.uRozne.U16[1];
 		sWysterowanieZawisu = uDaneCM7.dane.uRozne.U16[2];
 		sWysterowanieMax = uDaneCM7.dane.uRozne.U16[3];
+		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
+		break;
+
+	case POL_ZAPISZ_TRYB_REG:	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
+		ZapiszBuforFRAM(FA_TRYB_REG, uDaneCM7.dane.uRozne.U8, ROZMIAR_DRAZKOW);
+		for (uint16_t n=0; n<ROZMIAR_DRAZKOW; n++)
+			chTrybRegulacji[n] = uDaneCM7.dane.uRozne.U8[n];
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 		break;
 	}
