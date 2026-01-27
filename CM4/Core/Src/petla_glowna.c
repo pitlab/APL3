@@ -409,6 +409,7 @@ void WykonajPolecenieCM7(void)
 		stKonfigPID[chIndeksRegulatora].fOgrCalki = uDaneCM7.dane.uRozne.f32[3];
 		stKonfigPID[chIndeksRegulatora].fMinWyj = uDaneCM7.dane.uRozne.f32[4];
 		stKonfigPID[chIndeksRegulatora].fMaxWyj = uDaneCM7.dane.uRozne.f32[5];
+		stKonfigPID[chIndeksRegulatora].fSkalaWZadanej = uDaneCM7.dane.uRozne.f32[6];
 
 		uint8_t chStalaCzasowaD_flagi = uDaneCM7.dane.uRozne.U8[4 * (uDaneCM7.dane.chRozmiar - 1) + 0];
 		ZapiszBuforFRAM(sAdresFram + 4 * (uDaneCM7.dane.chRozmiar - 1), &chStalaCzasowaD_flagi, 1);	//stała czasowa filtra D
@@ -417,7 +418,7 @@ void WykonajPolecenieCM7(void)
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 		break;
 
-	case POL_ZAPISZ_ZADANE_AKRO:
+/*	case POL_ZAPISZ_ZADANE_AKRO:
 		for (uint16_t n=0; n<ROZMIAR_DRAZKOW; n++)
 		{
 			ZapiszFramFloat(FAU_ZADANA_AKRO + n*4, uDaneCM7.dane.uRozne.f32[n]);
@@ -433,7 +434,7 @@ void WykonajPolecenieCM7(void)
 			fSkalaWartosciZadanejStab[n] = uDaneCM7.dane.uRozne.f32[n];
 		}
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
-		break;
+		break;*/
 
 	case POL_ZAPISZ_PWM_NAPEDU:
 		for (uint16_t n=0; n<ROZMIAR_DRAZKOW; n++)

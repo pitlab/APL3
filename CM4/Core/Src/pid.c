@@ -22,8 +22,6 @@
 //deklaracje zmiennych zewnętrznych
 extern unia_wymianyCM4_t uDaneCM4;
 stKonfPID_t stKonfigPID[LICZBA_PID];
-extern float fSkalaWartosciZadanejAkro[ROZMIAR_DRAZKOW];	//wartość zadana dla pełnego wychylenia drążka aparatury w trybie AKRO
-extern float fSkalaWartosciZadanejStab[ROZMIAR_DRAZKOW];	//wartość zadana dla pełnego wychylenia drążka aparatury w trybie STAB
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja przeładowuje konfigurację regulatora PID
@@ -42,7 +40,7 @@ uint8_t InicjujPID(void)
     	sAdrOffset = (n * ROZMIAR_REG_PID);	//offset danych kolejnego kanału regulatora
         //odczytaj wartość wzmocnienienia członu P regulatora
         chErr |= CzytajFramZWalidacja(FAU_PID_P0 + sAdrOffset, &stKonfigPID[n].fWzmP, VMIN_PID_WZMP, VMAX_PID_WZMP, VDEF_PID_WZMP, ERR_NASTAWA_FRAM);
-        assert(stKonfigPID[n].fWzmP > 0.0);
+        assert(stKonfigPID[n].fWzmP >= 0.0);
 
         //odczytaj wartość wzmocnienienia członu I regulatora
         chErr |= CzytajFramZWalidacja(FAU_PID_I0 + sAdrOffset, &stKonfigPID[n].fWzmI, VMIN_PID_WZMI, VMAX_PID_WZMI, VDEF_PID_WZMI, ERR_NASTAWA_FRAM);
@@ -63,6 +61,11 @@ uint8_t InicjujPID(void)
         //odczytaj maksymalną wartość wyjścia
         chErr |= CzytajFramZWalidacja(FAU_PID_MAX_WY0 + sAdrOffset, &stKonfigPID[n].fMaxWyj, VMIN_PID_MAXWY, VMAX_PID_MAXWY, VDEF_PID_MAXWY, ERR_NASTAWA_FRAM);
         assert(stKonfigPID[n].fMaxWyj <= 100.0);
+
+        //odczytaj skalowanie wartości zadanej
+        chErr |= CzytajFramZWalidacja(FAU_SKALA_WZADANEJ0 + sAdrOffset, &stKonfigPID[n].fSkalaWZadanej, VMIN_PID_SKALAWZ, VMAX_PID_SKALAWZ, VDEF_PID_SKALAWZ, ERR_NASTAWA_FRAM);
+        assert(stKonfigPID[n].fSkalaWZadanej <= 1000.0);
+        assert(stKonfigPID[n].fSkalaWZadanej >= 0.0001);
 
         //odczytaj stałą czasową filtru członu różniczkowania (bity 0..5), właczony (bit 6) i to czy regulator jest kątowy (bit 7)
         chTemp = CzytajFRAM(FAU_FILTRD_TYP + sAdrOffset);
@@ -184,7 +187,7 @@ void ResetujCalkePID(void)
 uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 {
 	//regulacja przechylenia
-	dane->stWyjPID[PID_PRZE].fZadana = (float)(dane->sKanalRC[PRZE] - PPM_NEUTR) * fSkalaWartosciZadanejStab[PRZE]  / (PPM_MAX - PPM_NEUTR);
+	//dane->stWyjPID[PID_PRZE].fZadana = (float)(dane->sKanalRC[PRZE] - PPM_NEUTR) * fSkalaWartosciZadanejStab[PRZE]  / (PPM_MAX - PPM_NEUTR);
 	dane->stWyjPID[PID_PRZE].fWejscie = dane->fKatIMU1[PRZE];
 	RegulatorPID(ndT, PID_PRZE, dane, konfig);
 
@@ -242,6 +245,7 @@ void TestPID(void)
 	uDaneCM4.dane.stWyjPID[PID_POCH].fZadana = 370 * DEG2RAD;	//odpowiada +10°
 	uDaneCM4.dane.stWyjPID[PID_POCH].fWejscie = -5 * DEG2RAD;
 	RegulatorPID(ndT, PID_POCH, &uDaneCM4.dane, stKonfigPID);
+
 	assert(uDaneCM4.dane.stWyjPID[PID_POCH].fWyjscieP < 15.001 * DEG2RAD * stKonfigPID[PID_POCH].fWzmP);
 	assert(uDaneCM4.dane.stWyjPID[PID_POCH].fWyjscieP > 14.999 * DEG2RAD * stKonfigPID[PID_POCH].fWzmP);
 

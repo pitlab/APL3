@@ -57,14 +57,15 @@
 #define FAU_PID_OGR_I0      FA_USER_PID+12  //4F ograniczenie wartości całki członu I regulatora 0
 #define FAU_PID_MIN_WY0		FA_USER_PID+16  //4F minimalna wartość wyjścia
 #define FAU_PID_MAX_WY0		FA_USER_PID+20  //4F maksymalna wartość wyjścia
-#define FAU_FILTRD_TYP 		FA_USER_PID+24  //1U Stała czasowa filtru członu różniczkującego (bity 0..5), wyłączony (bit 6), Regulator kątowy (bit 7)
-#define FAU_PID1	        FA_USER_PID+25  //1U nic
-#define FAU_PID2			FA_USER_PID+26	//1U nic
-#define FAU_PID3			FA_USER_PID+27	//1U nic
-#define ROZMIAR_REG_PID		28
+#define FAU_SKALA_WZADANEJ0 FA_USER_PID+24	//4F skalowanie wartości zadanej
+#define FAU_FILTRD_TYP 		FA_USER_PID+28  //1U Stała czasowa filtru członu różniczkującego (bity 0..5), wyłączony (bit 6), Regulator kątowy (bit 7)
+#define FAU_PID1	        FA_USER_PID+29  //1U nic
+#define FAU_PID2			FA_USER_PID+30	//1U nic
+#define FAU_PID3			FA_USER_PID+31	//1U nic
+#define ROZMIAR_REG_PID		32
 
-//12 regulatorów zajmuje 336 bajtów - 0x150
-#define FA_TRYB_REG	    	0x0250		//4*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków
+//12 regulatorów zajmuje 336 bajtów - 0x180
+#define FA_TRYB_REG	    	0x0280		//4*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków
 
 //konfiguracja odbiorników RC i wyjść serw/ESC zdefiniowane w sys_def_wspolnych.h
 #define FAU_KONF_ODB_RC		0x0300		//1U konfiguracja odbiorników RC: Bity 0..3 = RC1, bity 4..7 = RC2: 0=PPM, 1=S-Bus
@@ -79,8 +80,8 @@
 #define FAU_LANDING_SPD     0x0312		//4F prędkość lądowania
 
 //wzmocnienia drążków aparatury dla poszczególnych trybów pracy regulatorów
-#define FAU_ZADANA_AKRO     0x0316		//4x4F wartość zadana z drążków aparatury dla regulatora Akro
-#define FAU_ZADANA_STAB     0x0326		//4x4F wartość zadana z drążków aparatury dla regulatora Stab
+//#define FAU_ZADANA_AKRO     0x0316		//4x4F wartość zadana z drążków aparatury dla regulatora Akro
+//#define FAU_ZADANA_STAB     0x0326		//4x4F wartość zadana z drążków aparatury dla regulatora Stab
 
 
 
@@ -266,46 +267,49 @@
 #define VALP_TCOM_ALTI    (float)1.2     //
 #define VALD_TCOM_ALTI    (float)1.0 */
 
-#define VMIN_SKALO_MAGN    0.010f		//limity wartości skalowania pomiaru magnetometru
-#define VMAX_SKALO_MAGN    100.0f
-#define VDEF_SKALO_MAGN    1.0f
+#define VMIN_SKALO_MAGN    	0.010f		//limity wartości skalowania pomiaru magnetometru
+#define VMAX_SKALO_MAGN    	100.0f
+#define VDEF_SKALO_MAGN    	1.0f
 
-#define VMIN_PRZES_MAGN    -0.01f		//limity wartości przesunięcia pomiaru magnetometru +/- 10 mT
-#define VMAX_PRZES_MAGN    0.01f
-#define VDEF_PRZES_MAGN    0.0f
+#define VMIN_PRZES_MAGN    	-0.01f		//limity wartości przesunięcia pomiaru magnetometru +/- 10 mT
+#define VMAX_PRZES_MAGN    	0.01f
+#define VDEF_PRZES_MAGN    	0.0f
 
-#define VMIN_PID_WZMP    (float)0.0     //limity wartości wzmocnienienia członu P regulatora
-#define VMAX_PID_WZMP    (float)1000
-#define VDEF_PID_WZMP    (float)1.0
+#define VMIN_PID_WZMP    	(float)0.0     //limity wartości wzmocnienienia członu P regulatora
+#define VMAX_PID_WZMP    	(float)1000
+#define VDEF_PID_WZMP    	(float)1.0
 
-#define VMIN_PID_WZMI    (float)0.0     //limity wartości wzmocnienienia członu I regulatora
-#define VMAX_PID_WZMI    (float)1000
-#define VDEF_PID_WZMI    (float)0.0
+#define VMIN_PID_WZMI    	(float)0.0     //limity wartości wzmocnienienia członu I regulatora
+#define VMAX_PID_WZMI    	(float)1000
+#define VDEF_PID_WZMI    	(float)0.0
 
-#define VMIN_PID_WZMD    (float)0.0    //limity wartości wzmocnienienia członu D regulatora
-#define VMAX_PID_WZMD    (float)1000
-#define VDEF_PID_WZMD    (float)0.0
+#define VMIN_PID_WZMD    	(float)0.0    //limity wartości wzmocnienienia członu D regulatora
+#define VMAX_PID_WZMD    	(float)1000
+#define VDEF_PID_WZMD    	(float)0.0
 
-#define VMIN_PID_SLEWR    (float)1.0     //limity prędkości narastania sygnału regulatora 0 [%/s]
-#define VMAX_PID_SLEWR    (float)10000    //max 100% / 0,01s
-#define VDEF_PID_SLEWR    (float)10000
+#define VMIN_PID_SLEWR   	(float)1.0     //limity prędkości narastania sygnału regulatora 0 [%/s]
+#define VMAX_PID_SLEWR   	(float)10000    //max 100% / 0,01s
+#define VDEF_PID_SLEWR   	(float)10000
 
-#define VMIN_PID_ILIM    (float)0.0     //limit wartości całki członu całkującego regulatora PID
-#define VMAX_PID_ILIM    (float)100     //max 100%
-#define VDEF_PID_ILIM    (float)23
+#define VMIN_PID_ILIM    	(float)0.0     //limit wartości całki członu całkującego regulatora PID
+#define VMAX_PID_ILIM    	(float)100     //max 100%
+#define VDEF_PID_ILIM    	(float)23
 
-#define VMIN_PID_MINWY    (float)-100.0    //minimalna wartość wyjścia
-#define VMAX_PID_MINWY    (float)100.0
-#define VDEF_PID_MINWY    (float)-100.0
+#define VMIN_PID_MINWY   	(float)-100.0    //minimalna wartość wyjścia
+#define VMAX_PID_MINWY   	(float)100.0
+#define VDEF_PID_MINWY   	(float)-100.0
 
-#define VMIN_PID_MAXWY    (float)-100.0    //maksymalna wartość wyjścia
-#define VMAX_PID_MAXWY    (float)100.0
-#define VDEF_PID_MAXWY    (float)100.0
+#define VMIN_PID_MAXWY   	(float)-100.0    //maksymalna wartość wyjścia
+#define VMAX_PID_MAXWY   	(float)100.0
+#define VDEF_PID_MAXWY   	(float)100.0
 
+#define VMIN_PID_SKALAWZ 	(float)0.0001    //skalowanie wartości zadanej
+#define VMAX_PID_SKALAWZ 	(float)1000.0
+#define VDEF_PID_SKALAWZ 	(float)0.2
 
-#define VMIN_MIX_PRZE    (float)-100.0    //maksymalna wartość wyjścia
-#define VMAX_MIX_PRZE    (float)100.0
-#define VDEF_MIX_PRZE    (float)100.0
+#define VMIN_MIX_PRZE		(float)-100.0    //maksymalna wartość wyjścia
+#define VMAX_MIX_PRZE    	(float)100.0
+#define VDEF_MIX_PRZE    	(float)100.0
 
 
 /*

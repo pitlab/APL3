@@ -65,6 +65,7 @@ typedef struct	//struktura konfiguracji regulatora PID
 	float fOgrCalki; 		//ogranicznik wartości całki członu I
 	float fMaxWyj;			//maksymalna wartość wyjściowa regulatora
 	float fMinWyj;			//minimalna wartość wyjściowa regulatora
+	float fSkalaWZadanej;	//skalowanie wartosci zadanej
 	uint8_t chPodstFiltraD; //podstawa różniczkującego filtra błędu o nieskończonej odpowiedzi impulsowej IIR
 	uint8_t chFlagi;		//0x80 - regulator katowy, 0x40 - regulator wyłączony
 } stKonfPID_t;

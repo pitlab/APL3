@@ -403,7 +403,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 			break;
 		}
 		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_KONFIG_PID;
-		uDaneCM7.dane.chRozmiar = 6;		//ilość liczb float zawierających konfigurację regulatora
+		uDaneCM7.dane.chRozmiar = (ROZMIAR_REG_PID / 4) - 1;		//ilość liczb float zawierających konfigurację regulatora
 		uDaneCM7.dane.sAdres = chDane[0];	//indeks regulatora
 		for (n=0; n<uDaneCM7.dane.chRozmiar; n++)
 		{
@@ -417,7 +417,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 
-	case PK_ZAPISZ_ZADANE_AKRO:	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie AKRO
+	/*case PK_ZAPISZ_ZADANE_AKRO:	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie AKRO
 		for (n=0; n<ROZMIAR_DRAZKOW; n++)
 		{
 			for (uint8_t i=0; i<4; i++)
@@ -439,7 +439,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_ZADANE_STAB;
 		uDaneCM7.dane.sAdres = PK_ZAPISZ_ZADANE_STAB;	//fejkowy adres wysyłany w ceku uzyskania potwierdzenia zapisu
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
-		break;
+		break;*/
 
 	case PK_ZAPISZ_WYSTER_NAPEDU:		//zapisuje nastawy wysterowania napędu dla wartości jałowej, minimalnej, zawisu i maksymalnej
 		for (n=0; n<ROZMIAR_DRAZKOW; n++)
