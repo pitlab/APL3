@@ -3965,6 +3965,7 @@ void PlaskiObrotMagnetometrow(void)
 void NastawyPID(uint8_t chKanal)
 {
 	float fNastawy[ROZMIAR_REG_PID/4];
+	uint8_t chTrybRegulatora[ROZMIAR_DRAZKOW];
 	uint8_t chErr;
 	un8_32_t un8_32;
 
@@ -3989,10 +3990,12 @@ void NastawyPID(uint8_t chKanal)
 		RysujNapis(chNapis, KOL12, 160);
 		sprintf(chNapis, "Max Wy:");
 		RysujNapis(chNapis, KOL12, 180);
-		sprintf(chNapis, "Filtr D:");
+		sprintf(chNapis, "SkWzad:");
 		RysujNapis(chNapis, KOL12, 200);
-		sprintf(chNapis, "k%ctowy:", ą);
+		sprintf(chNapis, "Filtr D:");
 		RysujNapis(chNapis, KOL12, 220);
+		sprintf(chNapis, "k%ctowy:", ą);
+		RysujNapis(chNapis, KOL12, 240);
 
 		sprintf(chNapis, "Regulator pochodnej");
 		RysujNapis(chNapis, KOL22, 60);
@@ -4008,21 +4011,26 @@ void NastawyPID(uint8_t chKanal)
 		RysujNapis(chNapis, KOL22, 160);
 		sprintf(chNapis, "Max Wy:");
 		RysujNapis(chNapis, KOL22, 180);
-		sprintf(chNapis, "Filtr D:");
+		sprintf(chNapis, "SkWzad:");
 		RysujNapis(chNapis, KOL22, 200);
+		sprintf(chNapis, "Filtr D:");
+		RysujNapis(chNapis, KOL22, 220);
 		setColor(SZARY60);
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
 		RysujNapis(chNapis, CENTER, 30);
 
+		//odczytaj tryb pracy regulatorów
+		chErr = CzytajFramChar(FA_TRYB_REG, LICZBA_REG_PARAM, chTrybRegulatora);
+
+
 		//odczytaj nastawy regulatorów
-		chErr = CzytajFram(FAU_PID_P0 + (chKanal + 0) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
+		chErr = CzytajFramFoat(FAU_PID_P0 + (chKanal + 0) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
 		if (chErr == BLAD_OK)
 		{
-			un8_32.daneFloat = fNastawy[6];
-			if (un8_32.dane8[0] & PID_WLACZONY)
-				setColor(SZARY60);	//regulator wyłączony
-			else
+			if (chTrybRegulatora[chKanal/2] > REG_AKRO)
 				setColor(BIALY);	//regulator pracuje
+			else
+				setColor(SZARY60);	//regulator wyłączony
 
 			sprintf(chNapis, "%.3f ", fNastawy[0]);	//Kp
 			RysujNapis(chNapis, KOL12 + 4*FONT_SL, 80);
@@ -4036,25 +4044,27 @@ void NastawyPID(uint8_t chKanal)
 			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 160);
 			sprintf(chNapis, "%.3f ", fNastawy[5]);	//max wyjścia
 			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 180);
+			sprintf(chNapis, "%.3f ", fNastawy[6]);	//skalowanie wartości zadanej
+			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 200);
+			un8_32.daneFloat =  fNastawy[7];
 			sprintf(chNapis, "%d", un8_32.dane8[0] & PID_MASKA_FILTRA_D);
-			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 200);	//filtr D
+			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 220);	//filtr D
 			if (un8_32.dane8[0] & PID_KATOWY)
 				sprintf(chNapis, "Tak");
 			else
 				sprintf(chNapis, "Nie");
-			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 220);	//kątowy
+			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 240);	//kątowy
 		}
 		else
 			chRysujRaz = 1;	//jeżeli się nie odczytało to wyświetl jeszcze raz
 
-		chErr = CzytajFram(FAU_PID_P0 + (chKanal + 1) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
+		chErr = CzytajFramFoat(FAU_PID_P0 + (chKanal + 1) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
 		if (chErr == BLAD_OK)
 		{
-			un8_32.daneFloat = fNastawy[6];
-			if (un8_32.dane8[0] & PID_WLACZONY)
-				setColor(SZARY60);	//regulator wyłączony
-			else
+			if (chTrybRegulatora[chKanal/2] > REG_RECZNA)
 				setColor(BIALY);	//regulator pracuje
+			else
+				setColor(SZARY60);	//regulator wyłączony
 
 			sprintf(chNapis, "%.3f ", fNastawy[0]);	//Kp
 			RysujNapis(chNapis, KOL22 + 4*FONT_SL, 80);
@@ -4068,8 +4078,11 @@ void NastawyPID(uint8_t chKanal)
 			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 160);
 			sprintf(chNapis, "%.3f ", fNastawy[5]);	//max wyjścia
 			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 180);
+			sprintf(chNapis, "%.3f ", fNastawy[6]);	//skalowanie wartości zadanej
+			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 200);
+			un8_32.daneFloat =  fNastawy[7];
 			sprintf(chNapis, "%d", un8_32.dane8[0] & PID_MASKA_FILTRA_D);
-			RysujNapis(chNapis, KOL22 + 9*FONT_SL, 200);	//filtr D
+			RysujNapis(chNapis, KOL22 + 9*FONT_SL, 220);	//filtr D
 		}
 		else
 			chRysujRaz = 1;
@@ -4081,14 +4094,14 @@ void NastawyPID(uint8_t chKanal)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Odczytuje zawartość pamieci FRAM z CM4
+// Odczytuje zawartość pamieci FRAM z CM4 jako liczby float
 // Parametry:
 // [we] sAdres - adres komórki pamieci FRAM
 // [we] chRozmiar - ilość liczb float do odczytu
 // [wy] *fDane - wskaźnik na odczytywaną strukturę danych float
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t CzytajFram(uint16_t sAdres, uint8_t chRozmiar, float* fDane)
+uint8_t CzytajFramFoat(uint16_t sAdres, uint8_t chRozmiar, float *fDane)
 {
 	chTimeout = 10;
 	uDaneCM7.dane.chRozmiar = chRozmiar;
@@ -4102,6 +4115,36 @@ uint8_t CzytajFram(uint16_t sAdres, uint8_t chRozmiar, float* fDane)
 	while ((uDaneCM4.dane.sAdres != uDaneCM7.dane.sAdres) && (chTimeout));
 	for (uint8_t n=0; n<uDaneCM4.dane.chRozmiar; n++)
 		*(fDane + n) = uDaneCM4.dane.uRozne.f32[n];
+
+	if (chTimeout)
+		return BLAD_OK;
+	else
+		return BLAD_TIMEOUT;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Odczytuje zawartość pamieci FRAM z CM4 jako liczby unsigned char
+// Parametry:
+// [we] sAdres - adres komórki pamieci FRAM
+// [we] chRozmiar - ilość liczb float do odczytu
+// [wy] *fDane - wskaźnik na odczytywaną strukturę danych float
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t CzytajFramChar(uint16_t sAdres, uint8_t chRozmiar, uint8_t *chDane)
+{
+	chTimeout = 10;
+	uDaneCM7.dane.chRozmiar = chRozmiar;
+	uDaneCM7.dane.sAdres = sAdres;
+	uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_FRAM_U8;
+	do
+	{
+		osDelay(5);
+		chTimeout--;
+	}
+	while ((uDaneCM4.dane.sAdres != uDaneCM7.dane.sAdres) && (chTimeout));
+	for (uint8_t n=0; n<uDaneCM4.dane.chRozmiar; n++)
+		*(chDane + n) = uDaneCM4.dane.uRozne.U8[n];
 
 	if (chTimeout)
 		return BLAD_OK;

@@ -11,16 +11,6 @@
 #define REG_KAT     1   //regulator kątowy
 #define REG_LIN     0   //regulator liniowy
 
-//definicje nazw regulowanych parametrów
-#define PRZE	0    //regulator sterowania przechyleniem (lotkami w samolocie)
-#define POCH	1    //regulator sterowania pochyleniem (sterem wysokości)
-#define ODCH    2    //regulator sterowania obrotem (sterem kierunku)
-#define WYSO	3    //regulator sterowania wysokością
-#define GPSN	4    //regulator sterowania prędkością i położeniem północnym
-#define GPSE	5    //regulator sterowania prędkością i położeniem wschodnim
-
-#define NUM_PARAMS  6 //liczba regulowanych parametrów
-
 
 //definicje nazw regulatorów
 #define PID_PRZE 	0   //regulator sterowania przechyleniem (lotkami w samolocie)
@@ -52,7 +42,6 @@
 
 //definicje bitów konfiguracji PID
 #define PID_MASKA_FILTRA_D		0x3F
-#define PID_WLACZONY			0x40
 #define PID_KATOWY				0x80
 
 

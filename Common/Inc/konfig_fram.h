@@ -65,7 +65,7 @@
 #define ROZMIAR_REG_PID		32
 
 //12 regulatorów zajmuje 336 bajtów - 0x180
-#define FA_TRYB_REG	    	0x0280		//4*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków
+#define FA_TRYB_REG	    	0x0280		//6*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków i 2 regulatorów pozycji N i E
 
 //konfiguracja odbiorników RC i wyjść serw/ESC zdefiniowane w sys_def_wspolnych.h
 #define FAU_KONF_ODB_RC		0x0300		//1U konfiguracja odbiorników RC: Bity 0..3 = RC1, bity 4..7 = RC2: 0=PPM, 1=S-Bus

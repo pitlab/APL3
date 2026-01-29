@@ -39,7 +39,8 @@
 #define KANRC_POCH		1
 #define KANRC_ODCH		2
 #define KANRC_GAZ		3
-#define ROZMIAR_DRAZKOW		4						//liczba regulatorów które mają wartość zadaną ustawianą drążkami aparatury
+#define ROZMIAR_DRAZKOW		4	//liczba regulatorów które mają wartość zadaną ustawianą drążkami aparatury
+#define LICZBA_DRAZKOW		4	//liczba regulatorów które mają wartość zadaną ustawianą drążkami aparatury
 
 
 
@@ -162,6 +163,18 @@
 #define REG_AKRO		2		//regulacja akrobacyjna, steruje pochodną parametru głównego: prędkością kątową lub prędkości zmiany wysokości
 #define REG_STAB		3		//regulacja stabilizująca, steruje parametrem głównym: kątem lub wysokością
 #define REG_AUTO		4		//regulacja automatyczna, steruje wartością nadrzędną czyli nawigacją po wspołrzędnych geograficznych
+
+
+//definicje regulowanych parametrów
+#define PRZE	0    //regulator sterowania przechyleniem (lotkami w samolocie)
+#define POCH	1    //regulator sterowania pochyleniem (sterem wysokości)
+#define ODCH    2    //regulator sterowania obrotem (sterem kierunku)
+#define WYSO	3    //regulator sterowania wysokością
+#define POZN	4    //regulator sterowania prędkością i położeniem północnym
+#define POZE	5    //regulator sterowania prędkością i położeniem wschodnim
+
+#define LICZBA_REG_PARAM  6 //liczba regulowanych parametrów
+
 
 
 //definicje trybów lotu

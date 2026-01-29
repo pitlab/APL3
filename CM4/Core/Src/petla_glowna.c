@@ -177,7 +177,7 @@ void PetlaGlowna(void)
 	case 17:	//StabilizacjaPID(ndT, &uDaneCM4.dane, stKonfigPID);	break;
 				chBladPG |= KontrolerLotu(chTrybRegulacji, ndT, &uDaneCM4.dane, stKonfigPID);	break;
 
-	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID);	break;
+	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID, chTrybRegulacji);	break;
 	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;
 	default:	break;
 	}

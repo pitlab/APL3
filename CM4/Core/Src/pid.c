@@ -17,11 +17,13 @@
 // jest przefiltrowaną wartością n poprzednich pomiarów gdzie n jest regulowaną nastawą filtra D
 
 //definicje zmiennych
-//stPID_t stPID[LICZBA_PID];	//zmienna przechowująca dane dotyczące regulatora PID
+stKonfPID_t stKonfigPID[LICZBA_PID];
 
 //deklaracje zmiennych zewnętrznych
 extern unia_wymianyCM4_t uDaneCM4;
-stKonfPID_t stKonfigPID[LICZBA_PID];
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja przeładowuje konfigurację regulatora PID
@@ -70,7 +72,7 @@ uint8_t InicjujPID(void)
         //odczytaj stałą czasową filtru członu różniczkowania (bity 0..5), właczony (bit 6) i to czy regulator jest kątowy (bit 7)
         chTemp = CzytajFRAM(FAU_FILTRD_TYP + sAdrOffset);
         stKonfigPID[n].chPodstFiltraD = chTemp & PID_MASKA_FILTRA_D;
-        stKonfigPID[n].chFlagi = chTemp & (PID_WLACZONY | PID_KATOWY);
+        stKonfigPID[n].chFlagi = chTemp & PID_KATOWY;
 
         //zeruj integrator
         uDaneCM4.dane.stWyjPID[n].fCalka = 0.0f;   	//zmienna przechowująca całkę z błędu

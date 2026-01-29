@@ -25,7 +25,7 @@ extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim7;
 //extern TIM_HandleTypeDef htim8;
 extern volatile uint8_t chNumerKanSerw;
-
+extern uint8_t chTrybRegulacji[ROZMIAR_DRAZKOW];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
 
 
 
@@ -85,7 +85,7 @@ uint8_t InicjujMikser(void)
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig)
+uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig, uint8_t *chTrybRegulacji)
 {
 	int16_t sTmp1[KANALY_MIKSERA], sTmp2[KANALY_MIKSERA];	//sumy cząstkowe sygnału wysterowania silnika
 	int16_t sTmpSerwo[KANALY_MIKSERA];
@@ -102,9 +102,7 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 		fCosPrze = cosf(dane->fKatIMU1[PRZE]);
 		fCosPoch = cosf(dane->fKatIMU1[POCH]);
 		//pionowa składowa ciągu statycznego ma być niezależna od pochylenia i przechylenia
-
-		if (((konfig + KANRC_GAZ)->chFlagi & PID_WLACZONY) && fCosPrze &&	fCosPoch)	//działa regulator wysokości i kosinusy kątów są niezerowe
-		//if ((dane->pid[PID_WYSO].chFlagi & PID_WLACZONY) && fCosPrze &&	fCosPoch)	//działa regulator wysokości i kosinusy kątów są niezerowe
+		if ((chTrybRegulacji > REG_WYLACZ) && fCosPrze &&	fCosPoch)	//działa regulator wysokości i kosinusy kątów są niezerowe
 			sPWMGazu /= (fCosPrze * fCosPoch); //skaluj tylko zakres roboczy
 		sPWMGazu += sPWMJalowy;   //resztę "nieregulowalnego" gazu dodaj bez korekcji
 	}
