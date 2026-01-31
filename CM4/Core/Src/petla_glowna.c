@@ -66,7 +66,7 @@ extern uint16_t sWysterowanieJalowe;	//wartość wysterowania regulatorów dla u
 extern uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
 extern uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
 extern uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych
-extern uint8_t chTrybRegulacji[ROZMIAR_DRAZKOW];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
+extern uint8_t chTrybRegulacji[LICZBA_REG_PARAM];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -396,6 +396,9 @@ void WykonajPolecenieCM7(void)
 	case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = BLAD_OK;	break;	//nadpisz poprzednio zwrócony błąd
 
 	case POL_ZAPISZ_KONFIG_PID:
+#ifdef TESTY
+		assert(uDaneCM7.dane.chRozmiar == ROZMIAR_REG_PID / sizeof(float));
+#endif
 		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_FLOAT)
 			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_FLOAT;
 		uint8_t chIndeksRegulatora = (uint8_t)uDaneCM7.dane.sAdres;
@@ -418,26 +421,11 @@ void WykonajPolecenieCM7(void)
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 		break;
 
-/*	case POL_ZAPISZ_ZADANE_AKRO:
-		for (uint16_t n=0; n<ROZMIAR_DRAZKOW; n++)
-		{
-			ZapiszFramFloat(FAU_ZADANA_AKRO + n*4, uDaneCM7.dane.uRozne.f32[n]);
-			fSkalaWartosciZadanejAkro[n] = uDaneCM7.dane.uRozne.f32[n];
-		}
-		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
-		break;
-
-	case POL_ZAPISZ_ZADANE_STAB:
-		for (uint16_t n=0; n<ROZMIAR_DRAZKOW; n++)
-		{
-			ZapiszFramFloat(FAU_ZADANA_STAB + n*4, uDaneCM7.dane.uRozne.f32[n]);
-			fSkalaWartosciZadanejStab[n] = uDaneCM7.dane.uRozne.f32[n];
-		}
-		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
-		break;*/
-
 	case POL_ZAPISZ_PWM_NAPEDU:
-		for (uint16_t n=0; n<ROZMIAR_DRAZKOW; n++)
+#ifdef TESTY
+		assert(uDaneCM7.dane.chRozmiar == ROZMIAR_DRAZKOW);
+#endif
+		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
 			ZapiszFramU16(FAU_PWM_JALOWY + n*2, uDaneCM7.dane.uRozne.U16[n]);
 		sWysterowanieJalowe = uDaneCM7.dane.uRozne.U16[0];
 		sWysterowanieMin = uDaneCM7.dane.uRozne.U16[1];
@@ -447,8 +435,11 @@ void WykonajPolecenieCM7(void)
 		break;
 
 	case POL_ZAPISZ_TRYB_REG:	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
-		ZapiszBuforFRAM(FA_TRYB_REG, uDaneCM7.dane.uRozne.U8, ROZMIAR_DRAZKOW);
-		for (uint16_t n=0; n<ROZMIAR_DRAZKOW; n++)
+#ifdef TESTY
+		assert(uDaneCM7.dane.chRozmiar == LICZBA_REG_PARAM);
+#endif
+		ZapiszBuforFRAM(FA_TRYB_REG, uDaneCM7.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
+		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
 			chTrybRegulacji[n] = uDaneCM7.dane.uRozne.U8[n];
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 		break;

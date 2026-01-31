@@ -402,47 +402,30 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 			Wyslij_KodBledu(chErr, chPolecenie, chInterfejs);
 			break;
 		}
+#ifdef TESTY
+		assert(chRozmDanych == ROZMIAR_REG_PID);
+#endif
 		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_KONFIG_PID;
-		uDaneCM7.dane.chRozmiar = (ROZMIAR_REG_PID / 4) - 1;		//ilość liczb float zawierających konfigurację regulatora
+		uDaneCM7.dane.chRozmiar = (chRozmDanych / sizeof(float)) - 1;		//ilość liczb float zawierających konfigurację regulatora, ostatnia liczba zawiera flagi
 		uDaneCM7.dane.sAdres = chDane[0];	//indeks regulatora
+		//chDane[2] i chDane[3] są wolne do wykorzystania
 		for (n=0; n<uDaneCM7.dane.chRozmiar; n++)
 		{
-			for (uint8_t i=0; i<4; i++)
-				un8_32.dane8[i] = chDane[2+n*4+i];
+			for (uint8_t i=0; i<sizeof(float); i++)
+				un8_32.dane8[i] = chDane[4 + n*sizeof(float) + i];
 			uDaneCM7.dane.uRozne.f32[n] = un8_32.daneFloat;
 		}
 		//w ostatnich 4 bajtach zamiast float przeslij konfigurację zawartą w bajtach
-		uDaneCM7.dane.uRozne.U8[4 * uDaneCM7.dane.chRozmiar] = chDane[1];	//stała czasowa filtra D
+		uDaneCM7.dane.uRozne.U8[sizeof(float) * uDaneCM7.dane.chRozmiar] = chDane[1];	//stała czasowa filtra D
 		uDaneCM7.dane.chRozmiar++;
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 
-	/*case PK_ZAPISZ_ZADANE_AKRO:	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie AKRO
-		for (n=0; n<ROZMIAR_DRAZKOW; n++)
-		{
-			for (uint8_t i=0; i<4; i++)
-				un8_32.dane8[i] = chDane[n*4+i];
-			uDaneCM7.dane.uRozne.f32[n] = un8_32.daneFloat;
-		}
-		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_ZADANE_AKRO;
-		uDaneCM7.dane.sAdres = PK_ZAPISZ_ZADANE_AKRO;	//fejkowy adres wysyłany w ceku uzyskania potwierdzenia zapisu
-		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
-		break;
-
-	case PK_ZAPISZ_ZADANE_STAB:	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie STAB
-		for (n=0; n<ROZMIAR_DRAZKOW; n++)
-		{
-			for (uint8_t i=0; i<4; i++)
-				un8_32.dane8[i] = chDane[n*4+i];
-			uDaneCM7.dane.uRozne.f32[n] = un8_32.daneFloat;
-		}
-		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_ZADANE_STAB;
-		uDaneCM7.dane.sAdres = PK_ZAPISZ_ZADANE_STAB;	//fejkowy adres wysyłany w ceku uzyskania potwierdzenia zapisu
-		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
-		break;*/
-
 	case PK_ZAPISZ_WYSTER_NAPEDU:		//zapisuje nastawy wysterowania napędu dla wartości jałowej, minimalnej, zawisu i maksymalnej
-		for (n=0; n<ROZMIAR_DRAZKOW; n++)
+#ifdef TESTY
+		assert(chRozmDanych == ROZMIAR_DRAZKOW);
+#endif
+		for (n=0; n<chRozmDanych; n++)
 		{
 			for (uint8_t i=0; i<2; i++)
 				un8_32.dane8[i] = chDane[n*2+i];
@@ -450,14 +433,19 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		}
 		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_PWM_NAPEDU;
 		uDaneCM7.dane.sAdres = PK_ZAPISZ_WYSTER_NAPEDU;	//fejkowy adres wysyłany w ceku uzyskania potwierdzenia zapisu
+		uDaneCM7.dane.chRozmiar = chRozmDanych;
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 
 	case PK_ZAPISZ_TRYB_REG:
-		for (n=0; n<ROZMIAR_DRAZKOW; n++)
+#ifdef TESTY
+		assert(chRozmDanych == LICZBA_REG_PARAM);
+#endif
+		for (n=0; n<chRozmDanych; n++)
 			uDaneCM7.dane.uRozne.U8[n] = chDane[n];
 		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_TRYB_REG;
 		uDaneCM7.dane.sAdres = PK_ZAPISZ_TRYB_REG;	//fejkowy adres wysyłany w ceku uzyskania potwierdzenia zapisu
+		uDaneCM7.dane.chRozmiar = chRozmDanych;
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 
