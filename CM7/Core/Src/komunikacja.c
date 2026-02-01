@@ -421,6 +421,16 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 
+	case PK_ZBIERAJ_EKSTREMA_RC:	//rozpoczyna zbieranie ekstremalnych wartości kanałów obu odbiorników RC
+		uDaneCM7.dane.chWykonajPolecenie = POL_ZBIERAJ_EKSTREMA_RC;
+		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
+		break;
+
+	case PK_ZAPISZ_EKSTREMA_RC:		//kończy zbieranie ekstremalnych wartości kanałów obu odbiorników RC i zapisuje wyniki do FRAM
+		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_EKSTREMA_RC;
+		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
+		break;
+
 	case PK_ZAPISZ_WYSTER_NAPEDU:		//zapisuje nastawy wysterowania napędu dla wartości jałowej, minimalnej, zawisu i maksymalnej
 #ifdef TESTY
 		assert(chRozmDanych == ROZMIAR_DRAZKOW);

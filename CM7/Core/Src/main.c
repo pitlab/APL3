@@ -438,12 +438,12 @@ Error_Handler();
   tsObslugaWyswieHandle = osThreadCreate(osThread(tsObslugaWyswie), NULL);
 
   /* definition and creation of tsSerwerTCP */
-  osThreadDef(tsSerwerTCP, WatekSerweraTCP, osPriorityBelowNormal, 0, 512);
-  tsSerwerTCPHandle = osThreadCreate(osThread(tsSerwerTCP), NULL);
+  //osThreadDef(tsSerwerTCP, WatekSerweraTCP, osPriorityBelowNormal, 0, 512);
+  //tsSerwerTCPHandle = osThreadCreate(osThread(tsSerwerTCP), NULL);
 
   /* definition and creation of tsSerwerRTSP */
-  osThreadDef(tsSerwerRTSP, WatekSerweraRTSP, osPriorityBelowNormal, 0, 1024);
-  tsSerwerRTSPHandle = osThreadCreate(osThread(tsSerwerRTSP), NULL);
+  //osThreadDef(tsSerwerRTSP, WatekSerweraRTSP, osPriorityBelowNormal, 0, 1024);
+  //tsSerwerRTSPHandle = osThreadCreate(osThread(tsSerwerRTSP), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -1613,7 +1613,7 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void const * argument)
 {
   /* init code for LWIP */
-  MX_LWIP_Init();
+  //MX_LWIP_Init();
 
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
@@ -1842,13 +1842,6 @@ void WatekWyswietlacza(void const * argument)
 void WatekSerweraTCP(void const * argument)
 {
   /* USER CODE BEGIN WatekSerweraTCP */
-	/*struct netconn *PolaczeniePasywne, *PolaczenieAktywne;	//połączenia serwera i klienta
-	struct netbuf *bufor;
-	err_t nErr;
-
-	PolaczeniePasywne = netconn_new(NETCONN_TCP);
-	netconn_bind(PolaczeniePasywne, IP_ADDR_ANY, 4000);
-	netconn_listen(PolaczeniePasywne);*/
 	OtworzPortSertweraTCP();
 	for(;;)
 	{

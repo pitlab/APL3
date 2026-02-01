@@ -54,9 +54,8 @@ uint8_t chKonfigWyRC[LICZBA_WYJSC_RC];
 uint8_t chKorektaPoczatkuRamki;
 uint32_t nCzasWysylkiSbus;
 extern uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforDShot[KANALY_MIKSERA][DS_BITOW_DANYCH + DS_BITOW_PRZERWY];
-uint16_t sMinKanaluRC1[KANALY_ODB_RC], sMaxKanaluRC1[KANALY_ODB_RC];	//minimalne i maksymalne wartości kanałów odbiornika RC1
-uint16_t sMinKanaluRC2[KANALY_ODB_RC], sMaxKanaluRC2[KANALY_ODB_RC];	//minimalne i maksymalne wartości kanałów odbiornika RC2
-uint16_t sZnormalizoweneWeRC[KANALY_ODB_RC];
+//uint16_t sMinKanaluRC1[KANALY_ODB_RC], sMaxKanaluRC1[KANALY_ODB_RC];	//minimalne i maksymalne wartości kanałów odbiornika RC1
+//uint16_t sMinKanaluRC2[KANALY_ODB_RC], sMaxKanaluRC2[KANALY_ODB_RC];	//minimalne i maksymalne wartości kanałów odbiornika RC2
 
 
 
@@ -209,10 +208,10 @@ uint8_t InicjujWejsciaRC(void)
 	//odczytaj z FRAM minima i maksima kanałów RC aby móc je znormalizować
     for (uint16_t n=0; n<KANALY_ODB_RC; n++)
     {
-    	sMinKanaluRC1[n] = CzytajFramU16(FAU_WE_RC1_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
-    	sMaxKanaluRC1[n] = CzytajFramU16(FAU_WE_RC1_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
-    	sMinKanaluRC2[n] = CzytajFramU16(FAU_WE_RC2_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
-    	sMaxKanaluRC2[n] = CzytajFramU16(FAU_WE_RC2_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
+    	stRC.sMin1[n] = CzytajFramU16(FAU_WE_RC1_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
+    	stRC.sMax1[n] = CzytajFramU16(FAU_WE_RC1_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
+    	stRC.sMin2[n] = CzytajFramU16(FAU_WE_RC2_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
+    	stRC.sMax2[n] = CzytajFramU16(FAU_WE_RC2_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
     }
 	return chErr;
 }
@@ -809,6 +808,101 @@ uint8_t FormowanieRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_
 			return BLAD_GOTOWE;	//odebrano całą ramkę. Reszta danych będzie obrobiona w następnym przebiegu
 	}
 	return BLAD_OK;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rozpoczyna zbiór nowych ekstremalnych wartości wszystkich kanalów z obu odbiorników RC
+// Parametry: brak - funkcja do wywyołania z zewnątrz
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RozpocznijZbieranieEkstremowWejscRC(void)
+{
+	//rozpoacznij zbieranie gdy jeszcze nie jest rozpoczęte
+	if ((stRC.chStatus & STATRC_ZBIERAJ_EKSTREMA) != STATRC_ZBIERAJ_EKSTREMA)
+	{
+		stRC.chStatus |= STATRC_ZBIERAJ_EKSTREMA;
+		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
+		{
+			stRC.sMin1[n] = PPM_MAX;
+			stRC.sMax1[n] = PPM_MIN;
+			stRC.sMin2[n] = PPM_MAX;
+			stRC.sMax2[n] = PPM_MIN;
+		}
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Zbiera ekstremalne wartości wszystkich kanalów z obu odbiorników RC
+// Parametry: [io] *stRC - wskaźnik na strukturę przechowujaca dane odbiorników
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void ZbierajEkstremaWejscRC(stRC_t *stRC)
+{
+	if (stRC->chStatus & STATRC_ZBIERAJ_EKSTREMA)
+	{
+		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
+		{
+			if (stRC->sOdb1[n] < stRC->sMin1[n])
+				stRC->sMin1[n] = stRC->sOdb1[n];
+			if (stRC->sOdb1[n] > stRC->sMax1[n])
+				stRC->sMax1[n] = stRC->sOdb1[n];
+			if ((stRC->sMin1[n] < PPM_M75) && (stRC->sMax1[n] > PPM_P75))
+				stRC->chStatus |= STATRC_ZEBRANO_EKSTR1;
+
+			if (stRC->sOdb2[n] < stRC->sMin2[n])
+				stRC->sMin2[n] = stRC->sOdb2[n];
+			if (stRC->sOdb2[n] > stRC->sMax2[n])
+				stRC->sMax2[n] = stRC->sOdb2[n];
+			if ((stRC->sMin2[n] < PPM_M75) && (stRC->sMax2[n] > PPM_P75))
+				stRC->chStatus |= STATRC_ZEBRANO_EKSTR2;
+		}
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Kończy zbiór ekstremalnych wartości wszystkich kanalów z obu odbiorników RC
+// Wartości o ile zostały zebrane są zapisywane we FRAM a jezęli nie to przywracane są poprzednie wartości
+// Parametry: brak - funkcja do wywołania z zewnątrz
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void ZapiszEkstremaWejscRC(void)
+{
+	if ((stRC.chStatus & STATRC_ZEBRANO_EKSTR1) || (stRC.chStatus & STATRC_ZEBRANO_EKSTR2))
+	{
+		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
+		{
+			//odbiornik 1
+			if (stRC.chStatus & STATRC_ZEBRANO_EKSTR1)
+			{
+				ZapiszFramU16(FAU_WE_RC1_MIN + n*2, stRC.sMin1[n]);		//16*2U minimalna wartość sygnału RC dla każego kanału
+				ZapiszFramU16(FAU_WE_RC1_MAX + n*2, stRC.sMax1[n]);		//16*2U maksymalna wartość sygnału RC dla każego kanału
+			}
+			else	//jeżeli nie zebrano danych, bo np. nie ma podłączonego odbiornika to przywróć ostatnio zapisane wartosci
+			{
+				stRC.sMin1[n] = CzytajFramU16(FAU_WE_RC1_MIN + n*2);
+				stRC.sMax1[n] = CzytajFramU16(FAU_WE_RC1_MAX + n*2);
+			}
+
+			//odbiornik 2
+			if (stRC.chStatus & STATRC_ZEBRANO_EKSTR2)
+			{
+				ZapiszFramU16(FAU_WE_RC2_MIN + n*2, stRC.sMin2[n]);
+				ZapiszFramU16(FAU_WE_RC2_MAX + n*2, stRC.sMin2[n]);
+			}
+			else
+			{
+				stRC.sMin2[n] = CzytajFramU16(FAU_WE_RC2_MIN + n*2);
+				stRC.sMax2[n] = CzytajFramU16(FAU_WE_RC2_MAX + n*2);
+			}
+		}
+		stRC.chStatus &= ~(STATRC_ZBIERAJ_EKSTREMA | STATRC_ZEBRANO_EKSTR1 | STATRC_ZEBRANO_EKSTR2);
+	}
 }
 
 

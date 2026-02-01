@@ -147,7 +147,11 @@ void PetlaGlowna(void)
 
 	case 7:	JednostkaInercyjnaTrygonometria(ndT);	break;	//dane do IMU1
 	case 8:	JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
-	case 9:	chBladPG |= ObslugaRamkiBSBus();	break;
+
+	case 9:	chBladPG |= ObslugaRamkiBSBus();
+		ZbierajEkstremaWejscRC(&stRC);
+		break;
+
 	case 10:	break;
 	case 11:
 		//chBladPG |= PobierzDaneExpandera(&chStanIOwe);		//wszystkie porty ustawione na wyjściowe, nie ma co pobierać
@@ -174,8 +178,7 @@ void PetlaGlowna(void)
 		}
 		break;
 
-	case 17:	//StabilizacjaPID(ndT, &uDaneCM4.dane, stKonfigPID);	break;
-				chBladPG |= KontrolerLotu(chTrybRegulacji, ndT, &uDaneCM4.dane, stKonfigPID);	break;
+	case 17:	chBladPG |= KontrolerLotu(chTrybRegulacji, ndT, &uDaneCM4.dane, stKonfigPID);	break;
 
 	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID, chTrybRegulacji);	break;
 	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;
@@ -393,7 +396,9 @@ void WykonajPolecenieCM7(void)
 		InicjujWyjsciaRC();
 		break;
 
-	case POL_CZYSC_BLEDY:		uDaneCM4.dane.chOdpowiedzNaPolecenie = BLAD_OK;	break;	//nadpisz poprzednio zwrócony błąd
+	case POL_CZYSC_BLEDY:	uDaneCM4.dane.chOdpowiedzNaPolecenie = BLAD_OK;	break;	//nadpisz poprzednio zwrócony błąd
+	case POL_ZBIERAJ_EKSTREMA_RC:	RozpocznijZbieranieEkstremowWejscRC();	break;	//rozpoczyna zbieranie ekstremalnych wartości kanałów obu odbiorników RC
+	case POL_ZAPISZ_EKSTREMA_RC:	ZapiszEkstremaWejscRC();	break;	//kończy zbieranie ekstremalnych wartości kanałów obu odbiorników RC i zapisuje wyniki do FRAM
 
 	case POL_ZAPISZ_KONFIG_PID:
 #ifdef TESTY

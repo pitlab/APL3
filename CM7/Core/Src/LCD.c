@@ -4034,17 +4034,17 @@ void NastawyPID(uint8_t chKanal)
 
 			sprintf(chNapis, "%.3f ", fNastawy[0]);	//Kp
 			RysujNapis(chNapis, KOL12 + 4*FONT_SL, 80);
-			sprintf(chNapis, "%.3f ", fNastawy[1]);	//Ti
+			sprintf(chNapis, "%.4f ", fNastawy[1]);	//Ti
 			RysujNapis(chNapis, KOL12 + 4*FONT_SL, 100);
-			sprintf(chNapis, "%.3f ", fNastawy[2]);	//Td
+			sprintf(chNapis, "%.4f ", fNastawy[2]);	//Td
 			RysujNapis(chNapis, KOL12 + 4*FONT_SL, 120);
-			sprintf(chNapis, "%.3f ", fNastawy[3]);	//max całki
+			sprintf(chNapis, "%.0f ", fNastawy[3]);	//max całki
 			RysujNapis(chNapis, KOL12 + 7*FONT_SL, 140);
-			sprintf(chNapis, "%.3f ", fNastawy[4]);	//min wyjścia
+			sprintf(chNapis, "%.0f ", fNastawy[4]);	//min wyjścia
 			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 160);
-			sprintf(chNapis, "%.3f ", fNastawy[5]);	//max wyjścia
+			sprintf(chNapis, "%.0f ", fNastawy[5]);	//max wyjścia
 			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 180);
-			sprintf(chNapis, "%.3f ", fNastawy[6]);	//skalowanie wartości zadanej
+			sprintf(chNapis, "%.6f ", fNastawy[6]);	//skalowanie wartości zadanej
 			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 200);
 			un8_32.daneFloat =  fNastawy[7];
 			sprintf(chNapis, "%d", un8_32.dane8[0] & PID_MASKA_FILTRA_D);

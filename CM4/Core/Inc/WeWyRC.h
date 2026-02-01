@@ -28,12 +28,22 @@
 #define LICZBA_WEJSC_RC		2
 #define LICZBA_WYJSC_RC		9
 
+//znaczenia bitów zmiennej chStatus
+#define STATRC_RAMKA1_OK		0x01
+#define STATRC_RAMKA2_OK		0x02
+#define STATRC_ZBIERAJ_EKSTREMA	0x04
+#define STATRC_ZEBRANO_EKSTR1	0x08
+#define STATRC_ZEBRANO_EKSTR2	0x10
+
 typedef struct
 {
 	int16_t sOdb1[KANALY_ODB_RC];	//dane z odbiornika RC1
 	int16_t sOdb2[KANALY_ODB_RC];	//dane z odbiornika RC2
-	uint8_t chStatus1;				//określaja stan odbioru RC1
-	uint8_t chStatus2;				//określaja stan odbioru RC2
+	int16_t sMin1[KANALY_ODB_RC];	//esktrema: minimalne wartości kanałów odbiornika 1
+	int16_t sMin2[KANALY_ODB_RC];	//esktrema: minimalne wartości kanałów odbiornika 2
+	int16_t sMax1[KANALY_ODB_RC];	//esktrema: maksymalne wartości kanałów odbiornika 1
+	int16_t sMax2[KANALY_ODB_RC];	//esktrema: maksymalne wartości kanałów odbiornika 2
+	uint8_t chStatus;				//określaja stan odbiorników
 	uint8_t chNrKan1;						//wskaźnik numeru kanału odbiornika 1
 	uint8_t chNrKan2;						//wskaźnik numeru kanału odbiornika 2
 	uint32_t nCzasWe1;						//czas początku dekodowania  ostatniego pakietu danych z odbiornika 1
@@ -53,6 +63,9 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC,  stWymianyCM4_t* psDaneCM4);
 uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly);
 uint8_t FormowanieRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_t *chBuforAnalizy, uint8_t chWskNapBuf, uint8_t *chWskOprBuf);
 uint8_t ObslugaRamkiBSBus(void);
+void RozpocznijZbieranieEkstremowWejscRC(void);
+void ZapiszEkstremaWejscRC(void);
+void ZbierajEkstremaWejscRC(stRC_t *stRC);
 void NormalizujWejsciaRC(uint16_t sWejscie, uint16_t sMin, uint16_t sMax, uint16_t *sWyjscie);
 
 #endif /* INC_ODBIORNIKRC_H_ */

@@ -186,6 +186,7 @@ void ResetujCalkePID(void)
 // [i] *konfig - wskaźnik na strukturę danych regulatorów PID
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
+//Obecnie nie używane - do usuniecia po uruchomieniu kontrolera lotu
 uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 {
 	//regulacja przechylenia
@@ -253,19 +254,20 @@ void TestPID(void)
 
 	//sprawdź działanie członu całkującego regulatora wysokości. Całka to czas zdwojenia, więc przy wzmocnieniu Kp=1 i Ti=1 całka po sekundzie osiaga dwukrotność uchybu.
 	//czas trwania testu=10*5ms, błąd=20m, więc przyrost powinien wynosić 50/1000 * (20 * Kp) / Ti
-	uDaneCM4.dane.stWyjPID[PID_WYSO].fZadana = 60;
-	uDaneCM4.dane.stWyjPID[PID_WYSO].fWejscie = 40;
-	uDaneCM4.dane.stWyjPID[PID_WYSO].fCalka = 0;
-	for (uint8_t n=0; n<10; n++)
-		RegulatorPID(ndT, PID_WYSO, &uDaneCM4.dane, stKonfigPID);
+	if (stKonfigPID[PID_WYSO].fWzmI)	//zapobiegnie dzieleniu przez zero
+	{
+		uDaneCM4.dane.stWyjPID[PID_WYSO].fZadana = 60;
+		uDaneCM4.dane.stWyjPID[PID_WYSO].fWejscie = 40;
+		uDaneCM4.dane.stWyjPID[PID_WYSO].fCalka = 0;
+		for (uint8_t n=0; n<10; n++)
+			RegulatorPID(ndT, PID_WYSO, &uDaneCM4.dane, stKonfigPID);
 
-	fOdpowiedzNominalna = 0.005 * 10 * 20 * stKonfigPID[PID_WYSO].fWzmP / stKonfigPID[PID_WYSO].fWzmI;
-	fProgGor = fOdpowiedzNominalna + 0.001;
-	fProgDol = fOdpowiedzNominalna - 0.001;
-	assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI < fProgGor);
-	assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI > fProgDol);
-	uDaneCM4.dane.stWyjPID[PID_WYSO].fCalka = 0;	//wyczyść całkę po teście
-
-
+		fOdpowiedzNominalna = 0.005 * 10 * 20 * stKonfigPID[PID_WYSO].fWzmP / stKonfigPID[PID_WYSO].fWzmI;
+		fProgGor = fOdpowiedzNominalna + 0.001;
+		fProgDol = fOdpowiedzNominalna - 0.001;
+		assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI < fProgGor);
+		assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI > fProgDol);
+		uDaneCM4.dane.stWyjPID[PID_WYSO].fCalka = 0;	//wyczyść całkę po teście
+	}
 }
 #endif

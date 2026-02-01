@@ -387,17 +387,17 @@ void TIM2_IRQHandler(void)
 			{
 				stRC.nCzasWe2 = PobierzCzas();
 				stRC.chNrKan2 = 0;
-				stRC.chStatus2 = RAMKA_OK;
+				stRC.chStatus |= STATRC_RAMKA2_OK;
 			}
 			else
-			if ((nTemp > PPM_MIN) && (nTemp < PPM_MAX) && (stRC.chStatus2 == RAMKA_OK))
+			if ((nTemp > PPM_MIN) && (nTemp < PPM_MAX) && (stRC.chStatus & STATRC_RAMKA2_OK))
 			{
 				stRC.sOdb2[stRC.chNrKan2] = nTemp;
 				stRC.sZdekodowaneKanaly2 |= (1 << stRC.chNrKan2);	//ustaw bit zdekodowanego kanału
 				stRC.chNrKan2++;
 			}
 			else
-				stRC.chStatus2 = RAMKA_WADLIWA;
+				stRC.chStatus &= ~STATRC_RAMKA2_OK;
 		}
 		stRC.sPoprzedniaWartoscTimera2 = htim2.Instance->CCR4;	//odczyt CCRx kasuje przerwanie
 	}
@@ -432,17 +432,17 @@ void TIM4_IRQHandler(void)
 			{
 				stRC.nCzasWe1 = PobierzCzas();
 				stRC.chNrKan1 = 0;
-				stRC.chStatus1 = RAMKA_OK;
+				stRC.chStatus |= STATRC_RAMKA1_OK;
 			}
 			else
-			if ((sTemp > PPM_MIN) && (sTemp < PPM_MAX) && (stRC.chStatus1 == RAMKA_OK))
+			if ((sTemp > PPM_MIN) && (sTemp < PPM_MAX) && (stRC.chStatus & STATRC_RAMKA1_OK))
 			{
 				stRC.sOdb1[stRC.chNrKan1] = sTemp;
 				stRC.sZdekodowaneKanaly1 |= (1 << stRC.chNrKan1);	//ustaw bit zdekodowanego kanału
 				stRC.chNrKan1++;
 			}
 			else
-				stRC.chStatus1 = RAMKA_WADLIWA;
+				stRC.chStatus &= ~STATRC_RAMKA1_OK;
 		}
 		stRC.sPoprzedniaWartoscTimera1 = htim4.Instance->CCR3;	//odczyt CCRx kasuje przerwanie
 	}

@@ -59,8 +59,8 @@
 #define POL_KASUJ_DRYFT_ZYRO	30	//kasuje druft katów z żyroskopu sprowadzajac je do wartości z akcelerometru
 #define POL_REKONFIG_SERWA_RC	31	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie konfiguracji we FRAM
 #define POL_ZAPISZ_KONFIG_PID	32	//zapisuje konfogurację PID do FRAM oraz do zmiennych roboczych
-//#define POL_ZAPISZ_ZADANE_AKRO	33	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie AKRO
-//#define POL_ZAPISZ_ZADANE_STAB	34	//zapisuje maksymalne wartości zadane regulatorów sterowane drążkami aparatury w trybie STAB
+#define POL_ZBIERAJ_EKSTREMA_RC	33	//rozpoczyna zbieranie ekstremalnych wartości kanałów obu odbiorników RC
+#define POL_ZAPISZ_EKSTREMA_RC	34	//kończy zbieranie ekstremalnych wartości kanałów obu odbiorników RC i zapisuje wyniki do FRAM
 #define POL_ZAPISZ_PWM_NAPEDU	35	//zapsuje nastawy wysterowania napędu dla wartości jałowej, minimalnej, zawisu i maksymalnej
 #define POL_ZAPISZ_TRYB_REG		36	//zapisuje tryb pracy 4 podstawowych regulatorów
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
