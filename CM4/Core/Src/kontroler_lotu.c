@@ -11,10 +11,7 @@
 #include "fram.h"
 #include "pid.h"
 
-uint16_t sWysterowanieJalowe;	//wartość wysterowania regulatorów dla uzyskania obrotów jałowych
-uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
-uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
-uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych
+
 uint8_t chTrybRegulacji[LICZBA_REG_PARAM];	//rodzaj regulacji dla podstawowych parametrów
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -27,13 +24,7 @@ uint8_t InicjujKontrolerLotu(void)
 	uint8_t chErr = BLAD_OK;
 
 	CzytajBuforFRAM(FA_TRYB_REG, chTrybRegulacji, LICZBA_REG_PARAM);	//6*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków i 2 regulatorów pozycji N i E
-
-    sWysterowanieJalowe = CzytajFramU16(FAU_PWM_JALOWY);	//2U wysterowanie regulatorów na biegu jałowym [us]
-    sWysterowanieMin =  CzytajFramU16(FAU_PWM_MIN);			//2U minimalne wysterowanie regulatorów w trakcie lotu [us]
-    sWysterowanieZawisu = CzytajFramU16(FAU_WPM_ZAWISU);	//2U wysterowanie regulatorów w zawisie [us]
-    sWysterowanieMax = CzytajFramU16(FAU_PWM_MAX);			//2U maksymalne wysterowanie silników w trakcie lotu [us]
-
-return chErr;
+	return chErr;
 }
 
 

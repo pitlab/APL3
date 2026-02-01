@@ -180,7 +180,7 @@ void PetlaGlowna(void)
 
 	case 17:	chBladPG |= KontrolerLotu(chTrybRegulacji, ndT, &uDaneCM4.dane, stKonfigPID);	break;
 
-	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID, chTrybRegulacji);	break;
+	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID);	break;
 	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;
 	default:	break;
 	}
@@ -428,7 +428,7 @@ void WykonajPolecenieCM7(void)
 
 	case POL_ZAPISZ_PWM_NAPEDU:
 #ifdef TESTY
-		assert(uDaneCM7.dane.chRozmiar == ROZMIAR_DRAZKOW);
+		assert(uDaneCM7.dane.chRozmiar == 2*ROZMIAR_DRAZKOW);
 #endif
 		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
 			ZapiszFramU16(FAU_PWM_JALOWY + n*2, uDaneCM7.dane.uRozne.U16[n]);

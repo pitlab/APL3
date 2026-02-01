@@ -433,7 +433,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 
 	case PK_ZAPISZ_WYSTER_NAPEDU:		//zapisuje nastawy wysterowania napędu dla wartości jałowej, minimalnej, zawisu i maksymalnej
 #ifdef TESTY
-		assert(chRozmDanych == ROZMIAR_DRAZKOW);
+		assert(chRozmDanych == 2*ROZMIAR_DRAZKOW);
 #endif
 		for (n=0; n<chRozmDanych; n++)
 		{

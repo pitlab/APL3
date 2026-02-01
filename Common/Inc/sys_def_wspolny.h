@@ -37,8 +37,9 @@
 //definicje kanałów RC
 #define KANRC_PRZE		0
 #define KANRC_POCH		1
-#define KANRC_ODCH		2
-#define KANRC_GAZ		3
+#define KANRC_GAZ		2
+#define KANRC_ODCH		3
+
 #define ROZMIAR_DRAZKOW		4	//liczba regulatorów które mają wartość zadaną ustawianą drążkami aparatury
 #define LICZBA_DRAZKOW		4	//liczba regulatorów które mają wartość zadaną ustawianą drążkami aparatury
 
@@ -75,6 +76,7 @@
 //definicje typów sygnału z odbiornika RC w konfiguracji FRAM FAU_KONF_ODB_RC
 #define ODB_RC_CPPM		0
 #define ODB_RC_SBUS		1
+#define ODB_RC_SRSF		2	//crossfire
 
 #define MASKA_TYPU_RC1	0x0F	//te bity definiują rodzaj sygnału z odbiornika RC1
 #define MASKA_TYPU_RC2	0xF0	//te bity definiują rodzaj sygnału z odbiornika RC2

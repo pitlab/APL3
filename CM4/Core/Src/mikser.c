@@ -12,10 +12,11 @@
 #include "pid.h"
 
 stMikser_t stMikser[KANALY_MIKSERA];	//struktura zmiennych miksera
-uint16_t sPWMMin;		//wysterowanie regulatorów pozwalajace na kręcenie silnikiem z minimalna prędkością
-uint16_t sPWMJalowy;	//wysterowanie regulatorów pozwalajace na kręcenie silnikiem z prędkością jałową, odrobinę większą niż minimalna
-uint16_t sPWMZawisu;	//wysterowanie regulatorów pozwalajace na zawis Wrona
-uint16_t sPWMMax;		//wysterowanie regulatorów pozwalajace na kręcenie silnikiem z maksymalną prędkością. Dalsze zwiększanie wysterowania nic nie daje, więc w ten sposób wykluczamy go z zakresu regulacji
+uint16_t sWysterowanieJalowe;	//wartość wysterowania regulatorów dla uzyskania obrotów jałowych
+uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
+uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
+uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych. Dalsze zwiększanie wysterowania nic nie daje, więc w ten sposób wykluczamy go z zakresu regulacji
+
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern TIM_HandleTypeDef htim1;
@@ -67,10 +68,10 @@ uint8_t InicjujMikser(void)
 		chErr |= CzytajFramZWalidacja(FAU_MIX_ODCHYL + 2*n, &stMikser[n].fOdch, VMIN_MIX_PRZE, VMAX_MIX_PRZE, VDEF_MIX_PRZE, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu odchylenia na dany silnik
 	}
 
-	sPWMMin 	= CzytajFramU16(FAU_PWM_MIN);      	//minimalne wysterowanie silników [us]
-	sPWMJalowy 	= CzytajFramU16(FAU_PWM_JALOWY);    //wysterowanie silników dla biegu jałowego [us]
-	sPWMZawisu 	= CzytajFramU16(FAU_WPM_ZAWISU);  	//wysterowanie silników dla zawisu [us]
-	sPWMMax  	= CzytajFramU16(FAU_PWM_MAX);     	//maksymalne wysterowanie silników [us]
+	sWysterowanieMin 	= CzytajFramU16(FAU_PWM_MIN);      	//minimalne wysterowanie silników [us]
+	sWysterowanieJalowe = CzytajFramU16(FAU_PWM_JALOWY);    //wysterowanie silników dla biegu jałowego [us]
+	sWysterowanieZawisu = CzytajFramU16(FAU_WPM_ZAWISU);  	//wysterowanie silników dla zawisu [us]
+	sWysterowanieMax  	= CzytajFramU16(FAU_PWM_MAX);     	//maksymalne wysterowanie silników [us]
 	return chErr;
 }
 
@@ -85,7 +86,7 @@ uint8_t InicjujMikser(void)
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig, uint8_t *chTrybRegulacji)
+uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 {
 	int16_t sTmp1[KANALY_MIKSERA], sTmp2[KANALY_MIKSERA];	//sumy cząstkowe sygnału wysterowania silnika
 	int16_t sTmpSerwo[KANALY_MIKSERA];
@@ -98,13 +99,13 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 	//czy poziom gazu sugeruje że Wron jest w locie
 	if ((dane->sKanalRC[KANRC_GAZ] > PPM_JALOWY) || (dane->chTrybLotu == TRLOT_LADOWANIE))
 	{
-		sPWMGazu = sPWMZawisu - sPWMJalowy;
+		sPWMGazu = sWysterowanieZawisu - sWysterowanieJalowe;
 		fCosPrze = cosf(dane->fKatIMU1[PRZE]);
 		fCosPoch = cosf(dane->fKatIMU1[POCH]);
 		//pionowa składowa ciągu statycznego ma być niezależna od pochylenia i przechylenia
-		if ((chTrybRegulacji > REG_WYLACZ) && fCosPrze &&	fCosPoch)	//działa regulator wysokości i kosinusy kątów są niezerowe
+		if (fCosPrze &&	fCosPoch)	//kosinusy kątów są niezerowe
 			sPWMGazu /= (fCosPrze * fCosPoch); //skaluj tylko zakres roboczy
-		sPWMGazu += sPWMJalowy;   //resztę "nieregulowalnego" gazu dodaj bez korekcji
+		sPWMGazu += sWysterowanieJalowe;   //resztę "nieregulowalnego" gazu dodaj bez korekcji
 	}
 	else	//gaz zdjety
 	{
@@ -114,7 +115,7 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 			dane->chTrybLotu = TRLOT_LADOWANIE;
 		}
 		else
-			sPWMGazu = sPWMJalowy;
+			sPWMGazu = sWysterowanieJalowe;
 	}
 
 	sMaxTmp1 = sMaxTmp2 = -200 * PPM1PROC_BIP; //inicjuj maksima wartością minimalną aby wyłapać wartości ponizej zera
@@ -134,41 +135,41 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 	 //jeżeli suma kanałów jest większa niż 100% to najpierw skaluj ważniejsze regulatory odpowiadajace za stabilizację a jeżeli jeszcze jest miejsce do potem mniej ważne
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 	{
-		if ((sMaxTmp1 + sMaxTmp2 + sPWMGazu) < sPWMMax)     //jeżeli nie przekraczamy zakresu to sumuj wszystkie regulatory
+		if ((sMaxTmp1 + sMaxTmp2 + sPWMGazu) < sWysterowanieMax)     //jeżeli nie przekraczamy zakresu to sumuj wszystkie regulatory
 			sTmpSerwo[n] = sTmp1[n] + sTmp2[n] + sPWMGazu;
 		else
 		{
-			if ((sMaxTmp1 + sPWMGazu) < sPWMMax)
-				sTmpSerwo[n] = sTmp1[n] + sPWMGazu + (sTmp2[n] * (sPWMMax - sMaxTmp1 - sPWMGazu) / sMaxTmp2);   //weź Tmp1 + gaz i doskaluj tyle Tmp2 ile jest miejsca
+			if ((sMaxTmp1 + sPWMGazu) < sWysterowanieMax)
+				sTmpSerwo[n] = sTmp1[n] + sPWMGazu + (sTmp2[n] * (sWysterowanieMax - sMaxTmp1 - sPWMGazu) / sMaxTmp2);   //weź Tmp1 + gaz i doskaluj tyle Tmp2 ile jest miejsca
 			else
 			{
-				if (sMaxTmp1 < sPWMMax)
-					sTmpSerwo[n] = sTmp1[n] + (sPWMMax - sMaxTmp1);  //weź Tmp1 i doskaluj tyle gazu ile jest miejsca
+				if (sMaxTmp1 < sWysterowanieMax)
+					sTmpSerwo[n] = sTmp1[n] + (sWysterowanieMax - sMaxTmp1);  //weź Tmp1 i doskaluj tyle gazu ile jest miejsca
 				else
-					sTmpSerwo[n] = sTmp1[n] * sPWMMax / sMaxTmp1; //jeżeli nie mieści sie w zakresie sterowania to przeskaluj
+					sTmpSerwo[n] = sTmp1[n] * sWysterowanieMax / sMaxTmp1; //jeżeli nie mieści sie w zakresie sterowania to przeskaluj
 			}
 		}
 
 		//w locie nie schodź poniżej obrotów minimalnych
-		if (dane->sKanalRC[KANRC_GAZ] > sPWMJalowy)
+		if (dane->sKanalRC[KANRC_GAZ] > sWysterowanieJalowe)
 		{
 			//dolny limit wysterowania w czasie lotu
-			if (sTmpSerwo[n] < sPWMMin)
-				sTmpSerwo[n] = sPWMMin;
+			if (sTmpSerwo[n] < sWysterowanieMin)
+				sTmpSerwo[n] = sWysterowanieMin;
 		}
 		else
 		{
 			if(dane->chTrybLotu & WL_TRWA_LOT)
 			{
 				//dolny limit wysterowania podczas lądowania
-				if (sTmpSerwo[n] < sPWMMin)
-					sTmpSerwo[n] = sPWMMin;
+				if (sTmpSerwo[n] < sWysterowanieMin)
+					sTmpSerwo[n] = sWysterowanieMin;
 			}
 			else
 			{
 				//dolny limit wysterowania przed lotem
-				if (sTmpSerwo[n] < sPWMJalowy)
-					sTmpSerwo[n] = sPWMJalowy;
+				if (sTmpSerwo[n] < sWysterowanieJalowe)
+					sTmpSerwo[n] = sWysterowanieJalowe;
 			}
 		}
 
@@ -176,7 +177,7 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 		if (dane->chTrybLotu > TRLOT_UZBROJONY)
 			dane->sSerwo[n] = sTmpSerwo[n];  //przepisz roboczą zmienną do zmiennej stanu serw
 		else
-			dane->sSerwo[n] = sPWMMin;   //wartość wyłączajaca silniki
+			dane->sSerwo[n] = sWysterowanieMin;   //wartość wyłączajaca silniki
 	}
 	return chErr;
 }
