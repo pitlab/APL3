@@ -12,6 +12,8 @@
 #include "fram.h"
 #include "dshot.h"
 #include "GNSS.h"
+#include "kontroler_lotu.h"
+
 
 //definicje SBus: https://github.com/uzh-rpg/rpg_quadrotor_control/wiki/SBUS-Protocol
 //S-Bus oraz DShot mają rozdzielczość 11-bitów, wiec przyjmuję taką rozdzielczość sterowania
@@ -235,7 +237,6 @@ uint8_t InicjujWyjsciaRC(void)
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	//częstotliwość do 12 MHz
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;			//domyślnie jest timer albo UART
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 	sConfigOC.Pulse = IMPULS_PWM;
 
@@ -255,7 +256,8 @@ uint8_t InicjujWyjsciaRC(void)
 
 	if ((chKonfigWyRC[KANAL_RC1] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
-		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_4);
+		sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;		//wyjście przechodzi przez inwerter, więc wymaga dodatkowego odwrócenia sygnału aby finalnie było niezmienione
+		chErr |= HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4);
 		htim4.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim4.Init.Period = OKRES_PWM;
@@ -333,7 +335,8 @@ uint8_t InicjujWyjsciaRC(void)
 
 	if ((chKonfigWyRC[KANAL_RC2] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
-		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
+		sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;		//wyjście przechodzi przez inwerter, więc wymaga dodatkowego odwrócenia sygnału aby finalnie było niezmienione
+		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3);
 		htim2.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim2.Init.Period = OKRES_PWM;
@@ -410,6 +413,7 @@ uint8_t InicjujWyjsciaRC(void)
 
 	if ((chKonfigWyRC[KANAL_RC3] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
+		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
 
 		htim2.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
@@ -450,7 +454,8 @@ uint8_t InicjujWyjsciaRC(void)
 
 	if ((chKonfigWyRC[KANAL_RC4] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
-		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3);
+		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+		chErr |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3);
 		htim3.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim3.Init.Period = OKRES_PWM;
@@ -495,7 +500,8 @@ uint8_t InicjujWyjsciaRC(void)
 
 	if ((chKonfigWyRC[KANAL_RC5] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
-		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_4);
+		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+		chErr |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4);
 		htim3.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim3.Init.Period = OKRES_PWM;
@@ -540,7 +546,8 @@ uint8_t InicjujWyjsciaRC(void)
 
 	if ((chKonfigWyRC[KANAL_RC6] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
-		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
+		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+		chErr |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_1);
 		htim8.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim8.Init.Period = OKRES_PWM;
@@ -606,7 +613,8 @@ uint8_t InicjujWyjsciaRC(void)
 
 	if ((chKonfigWyRC[KANAL_RC8] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
-		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3);
+		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+		chErr |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_3);
 		htim8.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim8.Init.Period = OKRES_PWM;
