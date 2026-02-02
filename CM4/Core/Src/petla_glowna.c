@@ -148,8 +148,9 @@ void PetlaGlowna(void)
 	case 7:	JednostkaInercyjnaTrygonometria(ndT);	break;	//dane do IMU1
 	case 8:	JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
 
-	case 9:	chBladPG |= ObslugaRamkiBSBus();
+	case 9:	chBladPG |= ObslugaRamkiSBus();
 		ZbierajEkstremaWejscRC(&stRC);
+		chBladPG |= AnalizujSygnalRC(&uDaneCM4.dane);
 		break;
 
 	case 10:	break;

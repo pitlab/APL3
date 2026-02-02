@@ -159,7 +159,7 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 		}
 		else
 		{
-			if(dane->chTrybLotu & WL_TRWA_LOT)
+			if(dane->chFlagiLotu & FL_SILN_UZBROJONE)
 			{
 				//dolny limit wysterowania podczas lądowania
 				if (sTmpSerwo[n] < sWysterowanieMin)
@@ -173,8 +173,7 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 			}
 		}
 
-		//jeżeli jesteśmy w jednym z trybów lotnych
-		if (dane->chTrybLotu > TRLOT_UZBROJONY)
+		if (dane->chFlagiLotu & FL_SILN_UZBROJONE)
 			dane->sSerwo[n] = sTmpSerwo[n];  //przepisz roboczą zmienną do zmiennej stanu serw
 		else
 			dane->sSerwo[n] = sWysterowanieMin;   //wartość wyłączajaca silniki

@@ -34,6 +34,7 @@ uint8_t InicjujKontrolerLotu(void)
 // Parametry:
 // [i] *chTrybRegulacji - wskaźnik na stopień automatyzacji procesu: REG_RECZNA, REG_AKRO, REG_STAB, REG_AUTO
 // [i] ndT - czas od ostatniego cyklu [us]
+// [i] *dane - wskaźnik na dane CM4 zawierajace m.inn. stan regulatorów PID
 // [i] *konfig - wskaźnik na strukturę danych regulatorów PID
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
@@ -90,3 +91,29 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 
 	return chErr;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Uzbraja silniki powodujac że zaczynają pracować na obrotach jałowych. Przed uzbrojeniem sprawdza poprawność pracy kluczowych czujników
+// Parametry:
+// [i] *dane - wskaźnik na dane CM4
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t UzbrojSilniki(stWymianyCM4_t *dane)
+{
+	dane->chFlagiLotu |= FL_SILN_UZBROJONE;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Rozbraja silniki
+// [i] *dane - wskaźnik na dane CM4
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RozbrojSilniki(stWymianyCM4_t *dane)
+{
+	dane->chFlagiLotu &= ~FL_SILN_UZBROJONE;
+}
+

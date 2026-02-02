@@ -53,9 +53,7 @@ uint8_t chKonfigWeRC[LICZBA_WEJSC_RC];
 uint8_t chKonfigWyRC[LICZBA_WYJSC_RC];
 uint8_t chKorektaPoczatkuRamki;
 uint32_t nCzasWysylkiSbus;
-extern uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforDShot[KANALY_MIKSERA][DS_BITOW_DANYCH + DS_BITOW_PRZERWY];
-//uint16_t sMinKanaluRC1[KANALY_ODB_RC], sMaxKanaluRC1[KANALY_ODB_RC];	//minimalne i maksymalne wartości kanałów odbiornika RC1
-//uint16_t sMinKanaluRC2[KANALY_ODB_RC], sMaxKanaluRC2[KANALY_ODB_RC];	//minimalne i maksymalne wartości kanałów odbiornika RC2
+extern uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA[KANALY_MIKSERA][DS_BITOW_DANYCH + DS_BITOW_PRZERWY];
 
 
 
@@ -228,7 +226,6 @@ uint8_t InicjujWyjsciaRC(void)
 {
 	uint8_t chErr = BLAD_OK;
 	uint8_t chDaneKonfig;
-	//TIM_IC_InitTypeDef sConfigIC = {0};
 	TIM_OC_InitTypeDef sConfigOC = {0};
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 	uint32_t nHCLK = HAL_RCC_GetHCLKFreq();
@@ -236,7 +233,7 @@ uint8_t InicjujWyjsciaRC(void)
 	//Część wspólna dla wszystkich ustawień
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;	//częstotliwość do 12 MHz
-	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;			//domyslnie jest timer lbo UART
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;			//domyślnie jest timer albo UART
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
@@ -265,7 +262,7 @@ uint8_t InicjujWyjsciaRC(void)
 		htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		chErr |= HAL_TIM_PWM_Init(&htim4);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_4, &nBuforDShot[KANAL_RC1][0], KANALY_MIKSERA);
+		chErr |= HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_4, &nBuforTimDMA[KANAL_RC1][0], KANALY_MIKSERA);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC1] == SERWO_IO)	//wyjście IO do debugowania
@@ -343,7 +340,7 @@ uint8_t InicjujWyjsciaRC(void)
 		htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		chErr |= HAL_TIM_PWM_Init(&htim2);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, &nBuforDShot[KANAL_RC2][0], KANALY_MIKSERA);
+		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC2][0], KANALY_MIKSERA);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC2] == SERWO_DSHOT150)
@@ -421,7 +418,7 @@ uint8_t InicjujWyjsciaRC(void)
 		htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		chErr |= HAL_TIM_PWM_Init(&htim2);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &nBuforDShot[KANAL_RC3][0], KANALY_MIKSERA);
+		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &nBuforTimDMA[KANAL_RC3][0], KANALY_MIKSERA);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC3] == SERWO_DSHOT150)
@@ -460,7 +457,7 @@ uint8_t InicjujWyjsciaRC(void)
 		htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		chErr |= HAL_TIM_PWM_Init(&htim3);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_3, &nBuforDShot[KANAL_RC4][0], KANALY_MIKSERA);
+		chErr |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC4][0], KANALY_MIKSERA);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC4] == SERWO_DSHOT150)
@@ -505,7 +502,7 @@ uint8_t InicjujWyjsciaRC(void)
 		htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		chErr |= HAL_TIM_PWM_Init(&htim3);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, &nBuforDShot[KANAL_RC5][0], KANALY_MIKSERA);
+		chErr |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, &nBuforTimDMA[KANAL_RC5][0], KANALY_MIKSERA);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC5] == SERWO_DSHOT150)
@@ -550,7 +547,7 @@ uint8_t InicjujWyjsciaRC(void)
 		htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		chErr |= HAL_TIM_PWM_Init(&htim8);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, &nBuforDShot[KANAL_RC6][0], KANALY_MIKSERA);
+		chErr |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, &nBuforTimDMA[KANAL_RC6][0], KANALY_MIKSERA);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC6] == SERWO_DSHOT150)
@@ -616,7 +613,7 @@ uint8_t InicjujWyjsciaRC(void)
 		htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		chErr |= HAL_TIM_PWM_Init(&htim8);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_3, &nBuforDShot[KANAL_RC8][0], KANALY_MIKSERA);
+		chErr |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC8][0], KANALY_MIKSERA);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC8] == SERWO_DSHOT150)
@@ -696,31 +693,31 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
 		{
 		case SERWO_PWM400:
 			for (uint8_t m=0; m<KANALY_MIKSERA; m++)
-				nBuforDShot[n][m] = dane->sSerwo[n] / 2 + 1000;		//przesunięcie z 0..2000 do 1000..2000us
+				nBuforTimDMA[n][m] = dane->sSerwo[n] / 2 + 1000;		//przesunięcie z 0..2000 do 1000..2000us
 			break;
 
 		case SERWO_PWM200:	//co drugi w buforze jest kanał, pozostałe są zerami
 			for (uint8_t m=0; m<KANALY_MIKSERA/2; m++)
 			{
-				nBuforDShot[n][2*m+0] = dane->sSerwo[n] / 2 + 1000;		//przesunięcie z 0..2000 do 1000..2000us
-				nBuforDShot[n][2*m+1] = 0;
+				nBuforTimDMA[n][2*m+0] = dane->sSerwo[n] / 2 + 1000;		//przesunięcie z 0..2000 do 1000..2000us
+				nBuforTimDMA[n][2*m+1] = 0;
 			}
 			break;
 
 		case SERWO_PWM100:	//co czwarty w buforze jest kanał, pozostałe są zerami
 			for (uint8_t m=0; m<KANALY_MIKSERA/4; m++)
 			{
-				nBuforDShot[n][4*m+0] = dane->sSerwo[n] / 2 + 1000;		//przesunięcie z 0..2000 do 1000..2000us
-				nBuforDShot[n][4*m+1] = 0;
-				nBuforDShot[n][4*m+2] = 0;
-				nBuforDShot[n][4*m+3] = 0;
+				nBuforTimDMA[n][4*m+0] = dane->sSerwo[n] / 2 + 1000;		//przesunięcie z 0..2000 do 1000..2000us
+				nBuforTimDMA[n][4*m+1] = 0;
+				nBuforTimDMA[n][4*m+2] = 0;
+				nBuforTimDMA[n][4*m+3] = 0;
 			}
 			break;
 
 		case SERWO_PWM50:	//pierwszy w buforze jest kanał, pozostałe są zerami
-			nBuforDShot[n][0] = dane->sSerwo[n] / 2 + 1000;		//przesunięcie z 0..2000 do 1000..2000us
+			nBuforTimDMA[n][0] = dane->sSerwo[n] / 2 + 1000;		//przesunięcie z 0..2000 do 1000..2000us
 			for (uint8_t m=1; m<KANALY_MIKSERA; m++)
-				nBuforDShot[n][m] = 0;
+				nBuforTimDMA[n][m] = 0;
 			break;
 
 		//if DSHot
@@ -985,15 +982,44 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 	}
 
 
-	//sprawdź czy trzeba już wysłać nową ramkę Sbus
-	nCzasRC1 = MinalCzas2(nCzasWysylkiSbus, nCzasBiezacy);
-	if (nCzasRC1 >= OKRES_RAMKI_SBUS)
-	{
-		nCzasWysylkiSbus = nCzasBiezacy;
-		HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus, ROZM_BUF_ODB_SBUS);	//wyślij kolejną ramkę
-	}
-
 	return chErr;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Analizuje gotowy znormalizowany sygnał z odbiornika RC uruchamiając specjalne funkcje sterowane drążkami aparatury
+// Parametry:
+// [we] *psDaneCM4 - wskaźnik na strukturę danych CM4
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4)
+{
+	uint8_t chBlad = BLAD_OK;
+
+	//Dodać  sprawdzenie czy przyszły nowe dane z odbiornika
+
+    //sprawdź warunek uzbrojenia silników, czyli gaz na mininum i kierunek w prawo
+	if ((psDaneCM4->sKanalRC[KANRC_GAZ] < PPM_M90) && (psDaneCM4->sKanalRC[KANRC_ODCH] > PPM_P90))
+		chBlad = UzbrojSilniki(psDaneCM4);
+
+    //sprawdź warunek rozbrojenia silników, czyli gaz na mininum i kierunek w lewo
+	if ((psDaneCM4->sKanalRC[KANRC_GAZ] < PPM_M90) && (psDaneCM4->sKanalRC[KANRC_ODCH] < PPM_M90))
+		RozbrojSilniki(psDaneCM4);
+
+    //sprawdź warunek ..., czyli gaz na maksimum i kierunek w lewo
+	if ((psDaneCM4->sKanalRC[KANRC_GAZ] > PPM_P90) && (psDaneCM4->sKanalRC[KANRC_ODCH] < PPM_M90) && ((psDaneCM4->chFlagiLotu & FL_SILN_UZBROJONE) != FL_SILN_UZBROJONE))
+    {
+        //obsługa ...
+    }
+
+    //sprawdź warunek zerowania zużycia energii, czyli gaz na maksimum i kierunek w prawo
+    if ((psDaneCM4->sKanalRC[KANRC_GAZ] > PPM_P90) && (psDaneCM4->sKanalRC[KANRC_ODCH] > PPM_P90) && ((psDaneCM4->chFlagiLotu & FL_SILN_UZBROJONE) != FL_SILN_UZBROJONE))
+    {
+        //obsługa resetownia licznika energii
+    }
+    return chBlad;
 }
 
 
@@ -1053,7 +1079,7 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ObslugaRamkiBSBus(void)
+uint8_t ObslugaRamkiSBus(void)
 {
 	uint8_t chBlad;
 
@@ -1082,8 +1108,18 @@ uint8_t ObslugaRamkiBSBus(void)
 			stRC.nCzasWe2 = PobierzCzas();
 		}
 	}
+
 	//scalenie obu kanałów w jedne dane dane odbiornika RC
 	chBlad = DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane);
+
+
+	//sprawdź czy trzeba już wysłać nową ramkę Sbus
+	uint32_t nCzasRC = MinalCzas(nCzasWysylkiSbus);
+	if (nCzasRC >= OKRES_RAMKI_SBUS)
+	{
+		nCzasWysylkiSbus = PobierzCzas();
+		HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus, ROZM_BUF_ODB_SBUS);	//wyślij kolejną ramkę
+	}
 	return chBlad;
 }
 

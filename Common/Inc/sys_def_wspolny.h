@@ -182,7 +182,7 @@
 //definicje trybów lotu
 #define TRLOT_BEZPIECZNY	0	//regulatory i nawigacja wyłączone
 //do wartości 9 tryby naziemne
-#define TRLOT_UZBROJONY		10	//silniki pracują na biegu jałowym
+#define TRLOT_UZBROJONY		10
 #define TRLOT_WZNOSZENIE	11	//kopter wznosi się na nominalnej prędkości pionowej
 #define TRLOT_LOT_RECZNY	12	//lot sterowany przez pilota
 #define TRLOT_LOT_AUTO		13	//lot autonomiczny
@@ -190,4 +190,5 @@
 #define TRLOT_LADOWANIE		15	//lądowanie autonomiczne
 
 //definicje flag trybu lotu dotyczących zmiennej stWymianyCM4.chFlagiLotu
-#define WL_TRWA_LOT			0x01
+#define FL_SILN_UZBROJONE	0x01	//silniki pracują na biegu jałowym
+#define FL_TRWA_LOT			0x02
