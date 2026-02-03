@@ -21,6 +21,7 @@
 
 stRC_t stRC;	//struktura danych odbiorników RC
 extern unia_wymianyCM4_t uDaneCM4;
+extern unia_wymianyCM7_t uDaneCM7;
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
@@ -51,11 +52,13 @@ uint8_t chBuforOdbioruSBus2[ROZM_BUF_ODB_SBUS];
 uint8_t chRamkaSBus1[ROZMIAR_RAMKI_SBUS];
 uint8_t chRamkaSBus2[ROZMIAR_RAMKI_SBUS];
 uint8_t chBuforNadawczySBus[ROZMIAR_RAMKI_SBUS] =  {0x0f,0x01,0x04,0x20,0x00,0xff,0x07,0x40,0x00,0x02,0x10,0x80,0x2c,0x64,0x21,0x0b,0x59,0x08,0x40,0x00,0x02,0x10,0x80,0x00};
-uint8_t chKonfigWeRC[LICZBA_WEJSC_RC];
+uint8_t chKonfigWeRC[LICZBA_WEJSC_RC];	//określa jakiego typu sygnał wchodzi z odbiornika
 uint8_t chKonfigWyRC[LICZBA_WYJSC_RC];
 uint8_t chKorektaPoczatkuRamki;
 uint32_t nCzasWysylkiSbus;
 extern uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA[KANALY_MIKSERA][DS_BITOW_DANYCH + DS_BITOW_PRZERWY];
+uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC do funkcji drążków aparatury
+uint8_t chFunkcjaKanaluRC[KANALY_FUNKCYJNE];	//przypisanie funkcji do kanału wejściowego odbiornika RC
 
 
 
@@ -212,6 +215,24 @@ uint8_t InicjujWejsciaRC(void)
     	stRC.sMax1[n] = CzytajFramU16(FAU_WE_RC1_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
     	stRC.sMin2[n] = CzytajFramU16(FAU_WE_RC2_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
     	stRC.sMax2[n] = CzytajFramU16(FAU_WE_RC2_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
+    }
+
+    //odczytaj z FRAM numery kanałów dla 4 drążków RC
+    for (uint16_t n=0; n<LICZBA_DRAZKOW; n++)
+    {
+    	chKanalDrazkaRC[n] = CzytajFramU16(FAU_KAN_DRAZKA_RC + n);	//4*1U Numer kanału przypisany do funkcji drążka aparatury: przechylenia, pochylenia, odchylenia i wysokości
+#ifdef TESTY
+    	assert(chKanalDrazkaRC[n] < LICZBA_DRAZKOW);
+#endif
+    }
+
+    //odczytaj z FRAM numery funkcji dla wyższych niż 4 kanałów RC
+    for (uint16_t n=0; n<KANALY_FUNKCYJNE; n++)
+    {
+    	chFunkcjaKanaluRC[n] = CzytajFramU16(FAU_FUNKCJA_KAN_RC + n);	//12*1U Numer funkcji przypisanej do kanału RC (5..16)
+#ifdef TESTY
+    	assert(chFunkcjaKanaluRC[n] < LICZBA_FUNKCJI_RC);
+#endif
     }
 	return chErr;
 }
@@ -940,7 +961,7 @@ void NormalizujWejsciaRC(uint16_t sWejscie, uint16_t sMin, uint16_t sMax, uint16
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
+uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
 {
 	uint8_t chErr = BLAD_OK;
 	uint32_t nCzasBiezacy = PobierzCzas();
@@ -958,7 +979,8 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 		{
 			if (stRC->sZdekodowaneKanaly1 & (1<<n))
 			{
-				psDaneCM4->sKanalRC[n] = stRC->sOdb1[n]; 	//przepisz zdekodowane kanały
+				if ((psDaneCM7->chOdbiornikRC == ODB_RC1) || (psDaneCM7->chOdbiornikRC == ODB_OBA))
+					psDaneCM4->sKanalRC[n] = stRC->sOdb1[n]; 	//przepisz zdekodowane kanały
 				stRC->sZdekodowaneKanaly1 &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
 		}
@@ -972,7 +994,8 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC, stWymianyCM4_t* psDaneCM4)
 		{
 			if (stRC->sZdekodowaneKanaly2 & (1<<n))
 			{
-				psDaneCM4->sKanalRC[n] = stRC->sOdb2[n]; 	//przepisz zdekodowane kanały
+				if ((psDaneCM7->chOdbiornikRC == ODB_RC2) || (psDaneCM7->chOdbiornikRC == ODB_OBA))
+					psDaneCM4->sKanalRC[n] = stRC->sOdb2[n]; 	//przepisz zdekodowane kanały
 				stRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
 		}
@@ -1009,21 +1032,21 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4)
 	//Dodać  sprawdzenie czy przyszły nowe dane z odbiornika
 
     //sprawdź warunek uzbrojenia silników, czyli gaz na mininum i kierunek w prawo
-	if ((psDaneCM4->sKanalRC[KANRC_GAZ] < PPM_M90) && (psDaneCM4->sKanalRC[KANRC_ODCH] > PPM_P90))
+	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] < PPM_M90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] > PPM_P90))
 		chBlad = UzbrojSilniki(psDaneCM4);
 
     //sprawdź warunek rozbrojenia silników, czyli gaz na mininum i kierunek w lewo
-	if ((psDaneCM4->sKanalRC[KANRC_GAZ] < PPM_M90) && (psDaneCM4->sKanalRC[KANRC_ODCH] < PPM_M90))
+	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] < PPM_M90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < PPM_M90))
 		RozbrojSilniki(psDaneCM4);
 
     //sprawdź warunek ..., czyli gaz na maksimum i kierunek w lewo
-	if ((psDaneCM4->sKanalRC[KANRC_GAZ] > PPM_P90) && (psDaneCM4->sKanalRC[KANRC_ODCH] < PPM_M90) && ((psDaneCM4->chFlagiLotu & FL_SILN_UZBROJONE) != FL_SILN_UZBROJONE))
+	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] > PPM_P90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < PPM_M90) && ((psDaneCM4->chFlagiLotu & FL_SILN_UZBROJONE) != FL_SILN_UZBROJONE))
     {
         //obsługa ...
     }
 
     //sprawdź warunek zerowania zużycia energii, czyli gaz na maksimum i kierunek w prawo
-    if ((psDaneCM4->sKanalRC[KANRC_GAZ] > PPM_P90) && (psDaneCM4->sKanalRC[KANRC_ODCH] > PPM_P90) && ((psDaneCM4->chFlagiLotu & FL_SILN_UZBROJONE) != FL_SILN_UZBROJONE))
+    if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] > PPM_P90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] > PPM_P90) && ((psDaneCM4->chFlagiLotu & FL_SILN_UZBROJONE) != FL_SILN_UZBROJONE))
     {
         //obsługa resetownia licznika energii
     }
@@ -1118,7 +1141,7 @@ uint8_t ObslugaRamkiSBus(void)
 	}
 
 	//scalenie obu kanałów w jedne dane dane odbiornika RC
-	chBlad = DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane);
+	chBlad = DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane, &uDaneCM7.dane);
 
 
 	//sprawdź czy trzeba już wysłać nową ramkę Sbus

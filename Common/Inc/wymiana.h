@@ -93,32 +93,6 @@ typedef struct _GNSS
 	uint8_t chDzien, chMies, chRok;
 } stGnss_t;
 
-/*typedef struct	//struktura  regulatora PID
-{
-	//wartości wejsciowe
-	float fWejscie;  		//wskaźnik na wartość wejściową
-	float fZadana;  		//wartość zadana
-
-	//nastawy regulatorów
-	float fWzmP;   			//wzmocnienie członu P
-	float fWzmI;   			//wzmocnienie członu I
-	float fWzmD;   			//wzmocnienie członu D
-	float fOgrCalki; 		//ogranicznik wartości całki członu I
-	float fMaxWyj;			//maksymalna wartość wyjściowa regulatora
-	float fMinWyj;			//minimalna wartość wyjściowa regulatora
-	uint8_t chPodstFiltraD; //podstawa różniczkującego filtra błędu o nieskończonej odpowiedzi impulsowej IIR
-	uint8_t chFlagi;		//0x80 - regulator katowy, 0x40 - regulator wyłączony
-
-	//zmienne robocze członów dynamicznych
-	float fCalka;  			//zmianna przechowująca całkę z błędu
-	float fFiltrWePoprz; 		//poprzednia, przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-
-	//zmienne wyjściowe
-	float fWyjsciePID; 		//wartość wyjściowa z całego regulatora
-	float fWyjscieP;  		//wartość wyjściowa z członu P
-	float fWyjscieI;  		//wartość wyjściowa z członu I
-	float fWyjscieD;  		//wartość wyjściowa z członu D
-} stPID_t; */
 
 typedef union
 {
@@ -181,6 +155,7 @@ typedef struct
 typedef struct
 {
 	uint8_t chWykonajPolecenie;
+	uint8_t chOdbiornikRC;			//wybór danych z odbiornika: RC1, RC2, oba zdywersyfikowane
 	uint8_t chRozmiar;				//rozmiar danych przekazywanych w polu fRozne
 	uint16_t sAdres;				//adres danych przekazywanych w polu fRozne
 	float fRozne[ROZMIAR_ROZNE_FLOAT];	//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji lub zapisu FRAM

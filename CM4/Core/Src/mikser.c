@@ -26,8 +26,8 @@ extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim7;
 //extern TIM_HandleTypeDef htim8;
 extern volatile uint8_t chNumerKanSerw;
-extern uint8_t chTrybRegulacji[ROZMIAR_DRAZKOW];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
-
+extern uint8_t chTrybRegulacji[LICZBA_DRAZKOW];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
+extern uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC do funkcji drążków aparatury
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -97,7 +97,7 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 
 
 	//czy poziom gazu sugeruje że Wron jest w locie
-	if ((dane->sKanalRC[KANRC_GAZ] > PPM_JALOWY) || (dane->chTrybLotu == TRLOT_LADOWANIE))
+	if ((dane->sKanalRC[chKanalDrazkaRC[WYSO]] > PPM_JALOWY) || (dane->chTrybLotu == TRLOT_LADOWANIE))
 	{
 		sPWMGazu = sWysterowanieZawisu - sWysterowanieJalowe;
 		fCosPrze = cosf(dane->fKatIMU1[PRZE]);
@@ -151,7 +151,7 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 		}
 
 		//w locie nie schodź poniżej obrotów minimalnych
-		if (dane->sKanalRC[KANRC_GAZ] > sWysterowanieJalowe)
+		if (dane->sKanalRC[chKanalDrazkaRC[WYSO]] > sWysterowanieJalowe)
 		{
 			//dolny limit wysterowania w czasie lotu
 			if (sTmpSerwo[n] < sWysterowanieMin)

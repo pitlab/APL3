@@ -60,8 +60,8 @@ float fPoleCzujnkaMMC[3];
 extern stRC_t stRC;					//struktura przechowująca dane odbiorników RC
 extern stKonfPID_t stKonfigPID[LICZBA_PID];	//struktura przechowująca dane dotyczące konfiguracji regulatora PID
 extern stMikser_t stMikser[KANALY_MIKSERA];	//struktura zmiennych miksera
-extern float fSkalaWartosciZadanejAkro[ROZMIAR_DRAZKOW];	//wartość zadana dla pełnego wychylenia drążka aparatury w trybie AKRO
-extern float fSkalaWartosciZadanejStab[ROZMIAR_DRAZKOW];	//wartość zadana dla pełnego wychylenia drążka aparatury w trybie STAB
+extern float fSkalaWartosciZadanejAkro[LICZBA_DRAZKOW];	//wartość zadana dla pełnego wychylenia drążka aparatury w trybie AKRO
+extern float fSkalaWartosciZadanejStab[LICZBA_DRAZKOW];	//wartość zadana dla pełnego wychylenia drążka aparatury w trybie STAB
 extern uint16_t sWysterowanieJalowe;	//wartość wysterowania regulatorów dla uzyskania obrotów jałowych
 extern uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
 extern uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
@@ -429,7 +429,7 @@ void WykonajPolecenieCM7(void)
 
 	case POL_ZAPISZ_PWM_NAPEDU:
 #ifdef TESTY
-		assert(uDaneCM7.dane.chRozmiar == 2*ROZMIAR_DRAZKOW);
+		assert(uDaneCM7.dane.chRozmiar == 2*LICZBA_DRAZKOW);
 #endif
 		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
 			ZapiszFramU16(FAU_PWM_JALOWY + n*2, uDaneCM7.dane.uRozne.U16[n]);
@@ -444,7 +444,7 @@ void WykonajPolecenieCM7(void)
 #ifdef TESTY
 		assert(uDaneCM7.dane.chRozmiar == LICZBA_REG_PARAM);
 #endif
-		ZapiszBuforFRAM(FA_TRYB_REG, uDaneCM7.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
+		ZapiszBuforFRAM(FAU_TRYB_REG, uDaneCM7.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
 		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
 			chTrybRegulacji[n] = uDaneCM7.dane.uRozne.U8[n];
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu

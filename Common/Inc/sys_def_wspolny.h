@@ -30,20 +30,11 @@
 #define DEKLINACJA_MAG		(6.5f * DEG2RAD)	//deklinacja magnetyczna w radianach. Źródło: https://www.magnetic-declination.com/ lub https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/D.jpg
 #define PROMIEN_ZIEMI		6371008.77f			//promień Ziemi w metrach
 
-#define KANALY_SERW		16		//liczba sterowanych kanałów serw
-#define KANALY_ODB_RC	16		//liczba odbieranych kanałów na każdym z dwu wejść odbiorników RC
-#define KANALY_MIKSERA	8		//liczba kanałów wyjściowych, które mogą wchodzić do miksera
-
-//definicje kanałów RC
-#define KANRC_PRZE		0
-#define KANRC_POCH		1
-#define KANRC_GAZ		2
-#define KANRC_ODCH		3
-
-#define ROZMIAR_DRAZKOW		4	//liczba regulatorów które mają wartość zadaną ustawianą drążkami aparatury
+#define KANALY_SERW			16	//liczba sterowanych kanałów serw
+#define KANALY_ODB_RC		16	//liczba odbieranych kanałów na każdym z dwu wejść odbiorników RC
+#define KANALY_MIKSERA		8	//liczba kanałów wyjściowych, które mogą wchodzić do miksera
+#define KANALY_FUNKCYJNE	(KANALY_ODB_RC - LICZBA_DRAZKOW)	//liczba kanałów mogących uruchamiać funkcje autopilota
 #define LICZBA_DRAZKOW		4	//liczba regulatorów które mają wartość zadaną ustawianą drążkami aparatury
-
-
 
 
 //przelicznik liczby mikrosekund sygnału PPM na 1 procent wysterowania kanału RC
@@ -73,6 +64,11 @@
 #define PRZERWA_PPM		3000	//przerwa między paczkami impulsów PPM odbiornika RC
 //#define PPM_SPACE   	20     	//odstęp między kolejnymi impulsami PPM [us]
 
+//definicje żródła sygnału z odbiorników RC
+#define ODB_RC1			1	//pobieramy dane z odbiornika 1
+#define ODB_RC2			2	//pobieramy dane z odbiornika 2
+#define ODB_OBA			3	//pobieramy dane z obu odbiorników po przeprowadzonej dywersyfikacji
+
 //definicje typów sygnału z odbiornika RC w konfiguracji FRAM FAU_KONF_ODB_RC
 #define ODB_RC_CPPM		0
 #define ODB_RC_SBUS		1
@@ -101,7 +97,22 @@
 #define SERWO_DSHOT1200	11	//wyjście DShot1200
 
 
-//definicje numerów kanałów
+//definicje Funkcji sygnału wejściowego Odbiornika RC
+#define FORC_CH5		4
+#define FORC_CH6		5
+#define FORC_CH7		6
+#define FORC_CH8		7
+#define FORC_CH9		8
+#define FORC_CH10		9
+#define FORC_CH11		10
+#define FORC_CH12		11
+#define FORC_CH13		12
+#define FORC_CH14		13
+#define FORC_CH15		14
+#define FORC_CH16		15
+
+
+//definicje numerów kanałów sygnału wyjściowego
 #define KANAL_RC1	0
 #define KANAL_RC2	1
 #define KANAL_RC3	2
@@ -119,6 +130,12 @@
 #define RC_PRZEL_P50 3	//plus 50%
 #define RC_PRZEL_PLU 4	//plus 100%
 
+//definicje funkcji uruchamianych kanałem RC
+#define FRC_WLACZ_WYJSCIE_OD1	0
+#define FRC_WLACZ_WYJSCIE_OD2	1
+#define FRC_WYMOW_KOMUNIKAT1	2
+#define FRC_WYMOW_KOMUNIKAT2	3
+#define LICZBA_FUNKCJI_RC		4
 
 //definicje temperatur kalibracji żyroskopów
 #define TEMP_KAL_ZIMNO		(10.f + KELVIN)

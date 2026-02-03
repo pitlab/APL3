@@ -59,7 +59,7 @@ typedef struct
 uint8_t InicjujWejsciaRC(void);	//odbiorniki
 uint8_t InicjujWyjsciaRC(void);	//serwa, ESC
 uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane);
-uint8_t DywersyfikacjaOdbiornikowRC(stRC_t* stRC,  stWymianyCM4_t* psDaneCM4);
+uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7);
 uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly);
 uint8_t FormowanieRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_t *chBuforAnalizy, uint8_t chWskNapBuf, uint8_t *chWskOprBuf);
 uint8_t ObslugaRamkiSBus(void);

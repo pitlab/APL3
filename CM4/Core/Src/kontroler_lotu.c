@@ -23,7 +23,7 @@ uint8_t InicjujKontrolerLotu(void)
 {
 	uint8_t chErr = BLAD_OK;
 
-	CzytajBuforFRAM(FA_TRYB_REG, chTrybRegulacji, LICZBA_REG_PARAM);	//6*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków i 2 regulatorów pozycji N i E
+	CzytajBuforFRAM(FAU_TRYB_REG, chTrybRegulacji, LICZBA_REG_PARAM);	//6*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków i 2 regulatorów pozycji N i E
 	return chErr;
 }
 
@@ -102,7 +102,9 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UzbrojSilniki(stWymianyCM4_t *dane)
 {
+	uint8_t chBlad = BLAD_OK;
 	dane->chFlagiLotu |= FL_SILN_UZBROJONE;
+	return chBlad;
 }
 
 

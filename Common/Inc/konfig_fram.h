@@ -9,12 +9,12 @@
 //adresy zmiennych konfiguracyjnych w zakresie 0..0x2000  (FA == Fram Address)
 //Indeksy w komentarzu oznaczaja rozmiar (liczba) i typ (litera) zmiennej
 //Typy zmiennych: 
+//FAU - zmienna użytkownika, zawiera jego nastawy
 //FAS - zmienna systemowa lub dynamiczna, nie dotykać sama się modyfikuje
 //FAH - zmienna zawierająca parametry sprzetu - chronić przed przypadkową zmianą
-//FAU - zmienna użytkownika, zawiera jego nastawy
 //
-//Formaty liczb:
-// U - liczba całkowita bez znaku. Cyfra przed literą oznacza rozmiar w bajtach
+//Formaty liczb. Cyfra przed literą oznacza rozmiar w bajtach:
+// U - liczba całkowita bez znaku.
 // S - liczba całkowita ze znakiem.
 // CH - znak alfanumeryczny
 // F - liczba float
@@ -65,7 +65,9 @@
 #define ROZMIAR_REG_PID		32
 
 //12 regulatorów zajmuje 336 bajtów - 0x180
-#define FA_TRYB_REG	    	0x0280		//6*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków i 2 regulatorów pozycji N i E
+#define FAU_TRYB_REG	    0x0280		//6*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków i 2 regulatorów pozycji N i E
+#define FAU_KAN_DRAZKA_RC	0x0286		//4*1U Numer kanału przypisany do funkcji drążka aparatury: przechylenia, pochylenia, odchylenia i wysokości
+#define FAU_FUNKCJA_KAN_RC	0x028A		//12*1U Numer funkcji przypisanej do kanału RC (5..16)
 
 //konfiguracja odbiorników RC i wyjść serw/ESC zdefiniowane w sys_def_wspolnych.h
 #define FAU_KONF_ODB_RC		0x0300		//1U konfiguracja odbiorników RC: Bity 0..3 = RC1, bity 4..7 = RC2: 0=PPM, 1=S-Bus
