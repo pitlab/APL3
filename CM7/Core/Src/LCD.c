@@ -3965,7 +3965,7 @@ void PlaskiObrotMagnetometrow(void)
 void NastawyPID(uint8_t chKanal)
 {
 	float fNastawy[ROZMIAR_REG_PID/4];
-	uint8_t chTrybRegulatora[ROZMIAR_DRAZKOW];
+	uint8_t chTrybRegulatora[LICZBA_DRAZKOW];
 	uint8_t chErr;
 	un8_32_t un8_32;
 
@@ -4020,7 +4020,7 @@ void NastawyPID(uint8_t chKanal)
 		RysujNapis(chNapis, CENTER, 30);
 
 		//odczytaj tryb pracy regulatorów
-		chErr = CzytajFramChar(FA_TRYB_REG, LICZBA_REG_PARAM, chTrybRegulatora);
+		chErr = CzytajFramChar(FAU_TRYB_REG, LICZBA_REG_PARAM, chTrybRegulatora);
 
 
 		//odczytaj nastawy regulatorów

@@ -676,7 +676,7 @@ uint8_t InicjujWyjsciaRC(void)
 	if ((chKonfigWyRC[KANAL_RC916] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
 		HAL_NVIC_SetPriority(TIM1_CC_IRQn, 0, 0);
-		HAL_NVIC_EnableIRQ(TIM1_CC_IRQn);		//na tym kanala generowanie PWM wymaga przerwań aby przełączyć dekoden kanałów. DMA nie jest używane
+		HAL_NVIC_EnableIRQ(TIM1_CC_IRQn);		//na tym kanale generowanie PWM wymaga przerwań aby przełączyć dekoden kanałów. DMA nie jest używane
 
 		sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
 		sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
@@ -759,7 +759,9 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
 		}	//switch
 	}	//for
 
-	//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
+	//starsze 8 wyjść jest aktualizowanych w obsłudze przerwania TIM1_CC_IRQHandler() w pliku stm32h7xx_it.c
+
+	//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);	//serwo kanał 7
 	//HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_15);	//serwo kanał 8
 	return chErr;
 }

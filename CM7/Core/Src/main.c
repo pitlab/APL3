@@ -177,6 +177,7 @@ extern struct _statusDotyku statusDotyku;
 extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 extern uint8_t chStanSynchronizacjiCzasu;
 extern unia_wymianyCM4_t uDaneCM4;
+extern unia_wymianyCM7_t uDaneCM7;
 
 //uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM2"))) chBuforSD[512];
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforSD[512];
@@ -1619,6 +1620,7 @@ void StartDefaultTask(void const * argument)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
 	uint8_t chStanDekodera;
+	uDaneCM7.dane.chOdbiornikRC = ODB_OBA;	//przesyłaj stan obu odbiorników po dywersyfikacji
 	for(;;)
 	{
 		chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera

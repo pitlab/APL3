@@ -433,7 +433,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 
 	case PK_ZAPISZ_WYSTER_NAPEDU:		//zapisuje nastawy wysterowania napędu dla wartości jałowej, minimalnej, zawisu i maksymalnej
 #ifdef TESTY
-		assert(chRozmDanych == 2*ROZMIAR_DRAZKOW);
+		assert(chRozmDanych == 2*LICZBA_DRAZKOW);
 #endif
 		for (n=0; n<chRozmDanych; n++)
 		{
@@ -442,7 +442,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 			uDaneCM7.dane.uRozne.U16[n] = un8_32.dane16[0];
 		}
 		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_PWM_NAPEDU;
-		uDaneCM7.dane.sAdres = PK_ZAPISZ_WYSTER_NAPEDU;	//fejkowy adres wysyłany w ceku uzyskania potwierdzenia zapisu
+		uDaneCM7.dane.sAdres = PK_ZAPISZ_WYSTER_NAPEDU;	//fejkowy adres wysyłany w celu uzyskania potwierdzenia zapisu
 		uDaneCM7.dane.chRozmiar = chRozmDanych;
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
@@ -454,11 +454,21 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		for (n=0; n<chRozmDanych; n++)
 			uDaneCM7.dane.uRozne.U8[n] = chDane[n];
 		uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_TRYB_REG;
-		uDaneCM7.dane.sAdres = PK_ZAPISZ_TRYB_REG;	//fejkowy adres wysyłany w ceku uzyskania potwierdzenia zapisu
+		uDaneCM7.dane.sAdres = PK_ZAPISZ_TRYB_REG;	//fejkowy adres wysyłany w celu uzyskania potwierdzenia zapisu
 		uDaneCM7.dane.chRozmiar = chRozmDanych;
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 
+	case PK_RESETUJ_CM4:	//resetuj rdzeń CM4, zwykle po zmianie konfiguracji
+		if ((uDaneCM4.dane.chFlagiLotu & FL_SILN_UZBROJONE) != FL_SILN_UZBROJONE)	//nie pozwalaj na reset gdy silniki są uzbrojone
+		{
+			Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
+			HAL_Delay(10);
+			NVIC_SystemReset();
+		}
+		else
+			Wyslij_KodBledu(BLAD_ODMOWA_WYKONANIA, chPolecenie, chInterfejs);
+		break;
 	}
     return chErr;
 }

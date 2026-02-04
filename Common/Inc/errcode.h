@@ -17,7 +17,7 @@
 #define ERR_ZLA_ILOSC_DANYCH	5
 #define ERR_PARITY				6
 #define ERR_CRC					7	//błędne CRC z danych
-//#define ERR_DIV0				9
+#define BLAD_ODMOWA_WYKONANIA	8	//odmowa wykonania polecenia ze wzgledu na bezpieczeństwo lotu
 #define ERR_PROCES_TRWA			9
 #define ERR_BUF_OVERRUN			10
 #define ERR_ZAPIS_KONFIG		11	//błąd zapisu konfiguracji

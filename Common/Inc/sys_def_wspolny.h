@@ -207,5 +207,5 @@
 #define TRLOT_LADOWANIE		15	//lądowanie autonomiczne
 
 //definicje flag trybu lotu dotyczących zmiennej stWymianyCM4.chFlagiLotu
-#define FL_SILN_UZBROJONE	0x01	//silniki pracują na biegu jałowym
+#define FL_SILN_UZBROJONE	0x01	//silniki pracują co najmniej na biegu jałowym
 #define FL_TRWA_LOT			0x02

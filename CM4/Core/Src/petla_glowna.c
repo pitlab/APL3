@@ -449,6 +449,30 @@ void WykonajPolecenieCM7(void)
 			chTrybRegulacji[n] = uDaneCM7.dane.uRozne.U8[n];
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 		break;
+
+	case POL_RESETUJ_CM4:
+		//uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
+		//SCB->AIRCR |= SCB_AIRCR_SYSRESETREQ_Msk;
+
+	   /* __disable_irq();
+
+	    // Deinit peryferiów
+	    HAL_DeInit();
+
+	    // Wyłącz przerwania NVIC
+	    for (int i = 0; i < 8; i++)
+	        NVIC->ICER[i] = 0xFFFFFFFF;
+
+	    // Ustaw MSP na wartość z wektora resetu
+	    uint32_t reset_sp = *(uint32_t *)FLASH_BANK2_BASE;
+	    uint32_t reset_pc = *(uint32_t *)(FLASH_BANK2_BASE + 4);
+
+	    __set_MSP(reset_sp);
+
+	    // Skok do Reset_Handler
+	    ((void (*)(void))reset_pc)();*/
+		break;
+
 	}
 }
 
