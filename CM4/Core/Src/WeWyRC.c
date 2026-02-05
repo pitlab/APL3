@@ -262,12 +262,14 @@ uint8_t InicjujWyjsciaRC(void)
 	sConfigOC.Pulse = IMPULS_PWM;
 
 	//czytaj konfigurację kanałów wyjściowych RC: Bity 0..3 = Wyjście nieparzyste, bity 4..7 = Wyjście parzyste
-	for (uint8_t n=0; n<4; n++)
+	for (uint8_t n=0; n<LICZBA_KONFIG_WYJSC_RC-1; n++)
 	{
 		CzytajBuforFRAM(FAU_KONF_SERWA12 + n, &chDaneKonfig, 1);
 		chKonfigWyRC[KANAL_RC1 + 2*n] = chDaneKonfig & MASKA_TYPU_RC1;
 		chKonfigWyRC[KANAL_RC2 + 2*n] = chDaneKonfig >> 4;
 	}
+	CzytajBuforFRAM(FAU_KONF_SERWA916, &chKonfigWyRC[8], 1);		//konfiguracją ostatniej grupy wyjść jest nietypowa, wiec odczytaj osobno
+
 
 	//**** kanał 1 - konfiguracja portu PB9 TIM4_CH4 **********************************************************
 	__HAL_RCC_GPIOB_CLK_ENABLE();
@@ -667,7 +669,7 @@ uint8_t InicjujWyjsciaRC(void)
 
 
 	//**** kanały 9-16 - konfiguracja portu PA8 TIM1_CH1 **********************************************************
-	//pracuje jako PWM bez DMA, ponieważ brakuje zasobów
+	//pracuje jako PWM bez DMA, ponieważ w przerwaniu musi zmieniać stan dekodera a swoją drogą nie ma już wolnych kanałów DMA
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_8;
 	GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
@@ -699,6 +701,10 @@ uint8_t InicjujWyjsciaRC(void)
 	}
 	else
 		chErr |= ERR_BRAK_KONFIG;
+
+	//wstępnie ustaw jakieś wartosci początkowe
+	for (uint16_t n=8; n<KANALY_SERW; n++)
+		uDaneCM4.dane.sSerwo[n] = 1000 + 10 * n;
 
 	return chErr;
 }

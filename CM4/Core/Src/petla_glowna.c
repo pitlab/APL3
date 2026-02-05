@@ -103,12 +103,6 @@ void PetlaGlowna(void)
 		break;
 
 	case ADR_MOD4:		//obsługa modułu w gnieździe 4
-		for (uint16_t n=8; n<KANALY_SERW; n++)
-		{
-			uDaneCM4.dane.sSerwo[n] += n;
-			if (uDaneCM4.dane.sSerwo[n] > 2000)
-				uDaneCM4.dane.sSerwo[n] = 0;
-		}
 		break;
 
 	case 4:

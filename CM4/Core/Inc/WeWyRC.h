@@ -27,6 +27,9 @@
 #define IMPULS_PWM			1000
 #define LICZBA_WEJSC_RC		2
 #define LICZBA_WYJSC_RC		9
+#define LICZBA_KONFIG_WYJSC_RC	5	//pierwsze 8 wyjść zajmują pół bajtu, ostatnie wyjście definiujące grupę 8..16 cały bajt
+
+
 
 //znaczenia bitów zmiennej chStatus
 #define STATRC_RAMKA1_OK		0x01

@@ -36,7 +36,8 @@ void MenuGlowne(uint8_t *chTryb);
 
 void PomiaryIMU(void);
 void PomiaryCisnieniowe(void);
-void DaneOdbiornikaRC(void);
+//void DaneOdbiornikaRC(void);
+void RysujPaskiKanalowRC(uint8_t chIndeksOpisu, uint16_t *sDane);
 void TestTonuAudio(void);
 void WyswietlParametryKartySD(void);
 void TestKartySD(void);

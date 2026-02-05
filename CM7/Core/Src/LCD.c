@@ -194,8 +194,8 @@ struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
 	{"Cisn GNSS",	"Wyniki pom. czujnikow cisnienia i GNSS",	TP_POMIARY_CISN, 	obr_multimetr},
-	{"Dane RC",		"Dane z odbiornika RC",						TP_POMIARY_RC,		obr_aparaturaRC},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"Odb RC",		"Dane z odbiornika RC",						TP_POMIARY_RC,		obr_aparaturaRC},
+	{"Wyj RC",		"Dane na wyjściach RC: serwa, ESC",			TP_POMIARY_SERWA,	obr_aparaturaRC},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
@@ -1588,7 +1588,6 @@ uint8_t RysujEkran(void)
 
 //*** Pomiary ************************************************
 	case TP_POMIARY:		//menu skupiające różne kalibracje
-		//Menu((char*)chNapisLcd[STR_MENU_POMIARY], stMenuPomiary, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_POMIARY]);
 		Menu(chNapisPodreczny, stMenuPomiary, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
@@ -1614,7 +1613,17 @@ uint8_t RysujEkran(void)
 		break;
 
 
-	case TP_POMIARY_RC:	DaneOdbiornikaRC();
+	case TP_POMIARY_RC:	//DaneOdbiornikaRC();
+		RysujPaskiKanalowRC(STR_DANE_ODBIORNIKA_RC, (uint16_t *)uDaneCM4.dane.sKanalRC);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+		}
+		break;
+
+
+	case TP_POMIARY_SERWA:	RysujPaskiKanalowRC(STR_DANE_WYJSC_RC, (uint16_t *)uDaneCM4.dane.sSerwo);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -1637,7 +1646,6 @@ uint8_t RysujEkran(void)
 
 //*** Nastawy ************************************************
 	case TP_NASTAWY:		//menu skupiające różne kalibracje
-		//Menu((char*)chNapisLcd[STR_MENU_NASTAWY], stMenuNastawy, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_NASTAWY]);
 		Menu(chNapisPodreczny, stMenuNastawy, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
@@ -2330,18 +2338,20 @@ void PomiaryCisnieniowe(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Rysuje okno z damymi odbiornika RC
-// Parametry: brak
+// Rysuje okno z kanałami odbiornika RC albo serw
+// Parametry:
+// [we] chIndeksOpisu - indeks pozycji w zmiennej chNapisLcd zawierającej nazwę okna
+// [we] sDane* - wskaźnik na tablicę zawierajacą dane wyświetlanych kanałów
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void DaneOdbiornikaRC(void)
+void RysujPaskiKanalowRC(uint8_t chIndeksOpisu, uint16_t *sDane)
 {
 	uint16_t y, n, sSkorygowaneRC, sDlugoscPaska, sDlugoscTla;
 
 	if (chRysujRaz)
 	{
 		chRysujRaz = 0;
-		BelkaTytulu("Dane odbiornika RC");
+		BelkaTytulu((char*)chNapisLcd[chIndeksOpisu]);
 		for (n=0; n<KANALY_ODB_RC; n++)
 		{
 			y = n * 17;
@@ -2359,17 +2369,17 @@ void DaneOdbiornikaRC(void)
 	{
 		y = n * 17;
 		setColor(SZARY80);
-		sprintf(chNapis, "%4d ", uDaneCM4.dane.sKanalRC[n]);
+		sprintf(chNapis, "%4d ", sDane[n]);
 		RysujNapis(chNapis, KOL12+8*FONT_SL, y+26);
 
 		//czasami długość kanału jest poza zakresem, więc skoryguj aby nie komplikować obliczeń
-		if (uDaneCM4.dane.sKanalRC[n] < PPM_MIN)
+		if (sDane[n] < PPM_MIN)
 			sSkorygowaneRC = PPM_MIN;
 		else
-		if (uDaneCM4.dane.sKanalRC[n] > PPM_MAX)
+			if (sDane[n] > PPM_MAX)
 			sSkorygowaneRC = PPM_MAX;
 		else
-			sSkorygowaneRC = uDaneCM4.dane.sKanalRC[n];
+			sSkorygowaneRC = sDane[n];
 
 		sDlugoscPaska = (sSkorygowaneRC - PPM_MIN) / ROZDZIECZOSC_PASKA_RC;
 		if (sDlugoscPaska)

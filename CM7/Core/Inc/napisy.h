@@ -75,8 +75,10 @@
 #define STR_EXIF					57
 #define STR_JPEG					58
 #define STR_TESTY					59
+#define STR_DANE_ODBIORNIKA_RC		60
+#define STR_DANE_WYJSC_RC			61
 //#define STR_
-#define MAX_NAPISOW					61	//liczba napisów
+#define MAX_NAPISOW					62	//liczba napisów
 
 
 

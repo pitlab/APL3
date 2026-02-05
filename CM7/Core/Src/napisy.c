@@ -78,6 +78,8 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Exif",								//STR_EXIF
 "JPEG",								//STR_JPEG
 "Testy",							//STR_TESTY
+"Dane odbiornika RC",				//STR_DANE_ODBIORNIKA_RC
+"Kanaly ESC i serw",				//STR_DANE_WYJSC_RC
 };
 
 
