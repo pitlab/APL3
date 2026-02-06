@@ -73,7 +73,6 @@ typedef struct
 #define PK_CZYTAJ_FLASH			13	//odczytaj zawartość Flash 
 #define PK_CZYTAJ_OKRES_TELE	14	//odczytaj okresy telemetrii
 #define PK_ZAPISZ_OKRES_TELE	15	//zapisz okresy telemetrii
-
 #define PK_ZAPISZ_FRAM_U8		16	//Wysyła dane typu uint8_t do zapisu we FRAM w rdzeniu CM4 o podanym rozmiarze liczb uint8_t
 #define PK_ZAPISZ_FRAM_FLOAT	17	//Wysyła dane typu float do zapisu we FRAM w rdzeniu CM4 o podanym rozmiarze liczb float
 #define PK_WYSLIJ_POTW_ZAPISU	18	//wysyła potwierdzenie zapisania danych ERR_OK lub ERR_PROCES_TRWA
@@ -90,8 +89,9 @@ typedef struct
 #define PK_ZAPISZ_WYSTER_NAPEDU	29	//zapsuje nastawy wysterowania napędu dla wartości jałowej, minimalnej, zawisu i maksymalnej
 #define PK_ZAPISZ_TRYB_REG		30	//zapisuje we FRAM i w zmiannych roboczych rodzaj podstawowych 4 regulacji
 #define PK_RESETUJ_CM4			31	//wykonuje reset CM4 po zmianie krytycznej konfiguracji
+#define PK_WSTRZYMAJ_TELEMETRIE	32	//wstrzymuje lub wznawia wysyłnie telemetrii na czas transmisji innych danych
 
-#define PK_ILOSC_POLECEN		32	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
+#define PK_ILOSC_POLECEN		33	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
 #define PK_TELEMETRIA1			96	//ramka telemetryczna 1
 #define PK_TELEMETRIA2			97	//ramka telemetryczna 2

@@ -19,6 +19,7 @@
 #include "flash_nor.h"
 #include "wymiana.h"
 #include "audio.h"
+#include "sample_audio.h"
 #include "protokol_kom.h"
 #include "rejestrator.h"
 #include "wspolne.h"
@@ -429,7 +430,7 @@ uint8_t RysujEkran(void)
 
 	case TP_MREJ:
 		InicjujOdtwarzanieDzwieku();
-		OdtworzProbkeAudioZeSpisu(PRGA_NIECHAJ_NARODO);
+		OdtworzProbkeAudioZeSpisu(PGA_NIECHAJ_NARODO);
 		chNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
 
@@ -494,7 +495,7 @@ uint8_t RysujEkran(void)
 
 	case TP_MM2:
 		InicjujOdtwarzanieDzwieku();
-		PrzepiszProbkeDoDRAM(PRGA_NIECHAJ_NARODO);
+		PrzepiszProbkeDoDRAM(PGA_NIECHAJ_NARODO);
 		chNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
 
@@ -3367,7 +3368,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	if (*chEtap & ZERUJ)
 	{
 		uDaneCM7.dane.chWykonajPolecenie = POL_ZERUJ_EKSTREMA;
-		DodajProbkeDoMalejKolejki(PRGA_00, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat "zero"
+		DodajProbkeDoMalejKolejki(PGA_00, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat "zero"
 		if ( uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_ZERUJ_EKSTREMA)
 		{
 			*chEtap &= ~ZERUJ;
@@ -3425,29 +3426,29 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			if (uDaneCM4.dane.uRozne.f32[2] < fMin[1])	//minimum Y
 			{
 				fMin[1] = uDaneCM4.dane.uRozne.f32[2];
-				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
-				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
+				DodajProbkeDoMalejKolejki(PGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
+				DodajProbkeDoMalejKolejki(PGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
 			else
 			if (uDaneCM4.dane.uRozne.f32[3] > fMax[1])	//maksimum Y
 			{
 				fMax[1] = uDaneCM4.dane.uRozne.f32[3];
-				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
-				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
+				DodajProbkeDoMalejKolejki(PGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
+				DodajProbkeDoMalejKolejki(PGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
 			else
 			if (uDaneCM4.dane.uRozne.f32[4] < fMin[2])	//minimum Z
 			{
 				fMin[2] = uDaneCM4.dane.uRozne.f32[4];
-				DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
-				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
+				DodajProbkeDoMalejKolejki(PGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
+				DodajProbkeDoMalejKolejki(PGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
 			else
 			if (uDaneCM4.dane.uRozne.f32[5] > fMax[2])	//maksimum Z
 			{
 				fMax[2] = uDaneCM4.dane.uRozne.f32[5];
-				DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
-				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
+				DodajProbkeDoMalejKolejki(PGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
+				DodajProbkeDoMalejKolejki(PGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
 
 			//obsłuż ekstrema w osi X ale bez komunkatów o ekstremach
@@ -3483,29 +3484,29 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			if (uDaneCM4.dane.uRozne.f32[0] < fMin[0])	//minimum X
 			{
 				fMin[0] = uDaneCM4.dane.uRozne.f32[0];
-				DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
-				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
+				DodajProbkeDoMalejKolejki(PGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
+				DodajProbkeDoMalejKolejki(PGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
 			else
 			if (uDaneCM4.dane.uRozne.f32[1] > fMax[0])	//maksimum X
 			{
 				fMax[0] = uDaneCM4.dane.uRozne.f32[1];
-				DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
-				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
+				DodajProbkeDoMalejKolejki(PGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
+				DodajProbkeDoMalejKolejki(PGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
 			else
 			if (uDaneCM4.dane.uRozne.f32[4] < fMin[2])	//minimum Z
 			{
 				fMin[2] = uDaneCM4.dane.uRozne.f32[4];
-				DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
-				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
+				DodajProbkeDoMalejKolejki(PGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
+				DodajProbkeDoMalejKolejki(PGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
 			else
 			if (uDaneCM4.dane.uRozne.f32[5] > fMax[2])	//maksimum Z
 			{
 				fMax[2] = uDaneCM4.dane.uRozne.f32[5];
-				DodajProbkeDoMalejKolejki(PRGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
-				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
+				DodajProbkeDoMalejKolejki(PGA_Z, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Z
+				DodajProbkeDoMalejKolejki(PGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
 			fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi
 		}
@@ -3534,29 +3535,29 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			if (uDaneCM4.dane.uRozne.f32[0] < fMin[0])	//minimum X
 			{
 				fMin[0] = uDaneCM4.dane.uRozne.f32[0];
-				DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
-				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
+				DodajProbkeDoMalejKolejki(PGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
+				DodajProbkeDoMalejKolejki(PGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
 			else
 			if (uDaneCM4.dane.uRozne.f32[1] > fMax[0])	//maksimum X
 			{
 				fMax[0] = uDaneCM4.dane.uRozne.f32[1];
-				DodajProbkeDoMalejKolejki(PRGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
-				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
+				DodajProbkeDoMalejKolejki(PGA_X, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//X
+				DodajProbkeDoMalejKolejki(PGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
 			else
 			if (uDaneCM4.dane.uRozne.f32[2] < fMin[1])	//minimum Y
 			{
 				fMin[1] = uDaneCM4.dane.uRozne.f32[2];
-				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
-				DodajProbkeDoMalejKolejki(PRGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
+				DodajProbkeDoMalejKolejki(PGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
+				DodajProbkeDoMalejKolejki(PGA_MIN, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MIN
 			}
 			else
 			if (uDaneCM4.dane.uRozne.f32[3] > fMax[1])	//maksimum Y
 			{
 				fMax[1] = uDaneCM4.dane.uRozne.f32[3];
-				DodajProbkeDoMalejKolejki(PRGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
-				DodajProbkeDoMalejKolejki(PRGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
+				DodajProbkeDoMalejKolejki(PGA_Y, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//Y
+				DodajProbkeDoMalejKolejki(PGA_MAX, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//MAX
 			}
 			fAbsMax = MaximumGlobalne(fMin, fMax);	//znajdź maksimum globalne wszystkich osi
 		}
@@ -3647,7 +3648,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			chStanPrzycisku = 0;	//usuń ststus naciśnięcia
 			sPoprzedX = stWykr.sX1 + SZER_WYKR_MAG/2;	//środek wykresu
 			sPoprzedY = stWykr.sY1 + SZER_WYKR_MAG/2;
-			DodajProbkeDoMalejKolejki(PRGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
+			DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
 		}
 	}
 
@@ -3665,7 +3666,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	{
 		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
 		chErr = ERR_GOTOWE;		//koniec kalibracji
-		DodajProbkeDoMalejKolejki(PRGA_GOTOWE, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat kończący: Gotowe
+		DodajProbkeDoMalejKolejki(PGA_GOTOWE, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat kończący: Gotowe
 	}
 
 	setColor(ZOLTY);
@@ -3824,7 +3825,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		if ((statusDotyku.sY > stPrzycisk.sY1) && (statusDotyku.sY < stPrzycisk.sY2) && (statusDotyku.sX > stPrzycisk.sX1) && (statusDotyku.sX < stPrzycisk.sX2))
 		{
 			chStanPrzycisku = 1;
-			DodajProbkeDoMalejKolejki(PRGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
+			DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
 		}
 		else
 		{

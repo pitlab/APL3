@@ -73,3 +73,5 @@ min.wav
 max.wav
 gotowe.wav
 przycisk.wav
+uzbrojone.wav
+rozbrojone.wav

@@ -12,6 +12,8 @@
 #include "moduly_SPI.h"
 #include "cmsis_os.h"
 #include "rysuj.h"
+#include "sample_audio.h"
+
 
 //Słowniczek:
 //próbka audio - pojedynczy plik wave zapisany we flash
@@ -63,7 +65,7 @@ uint8_t InicjujAudio(void)
 	chGlosnosc = 45;
 	chWskNapKolKom = chWskOprKolKom = 0;
 
-	/*chErr = OdtworzProbkeAudioZeSpisu(PRGA_GOTOWY_SLUZYC);	//komunikat powitalny, sprawdzajacy czy audio działa
+	/*chErr = OdtworzProbkeAudioZeSpisu(PGA_GOTOWY_SLUZYC);	//komunikat powitalny, sprawdzajacy czy audio działa
 	if (chErr == BLAD_OK)*/
 		nZainicjowanoCM7 |= INIT_AUDIO;
 	return chErr;
@@ -100,7 +102,7 @@ uint8_t ObslugaWymowyKomunikatu(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t OdtworzProbkeAudioZeSpisu(uint8_t chNrProbki)
 {
-	if (chNrProbki >= PRGA_MAX_PROBEK)
+	if (chNrProbki >= PGA_MAX_PROBEK)
 		return ERR_BRAK_PROBKI_AUDIO;
 	return OdtworzProbkeAudio( *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 0), *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 4) / 2);
 }
@@ -117,7 +119,7 @@ uint8_t PrzepiszProbkeDoDRAM(uint8_t chNrProbki)
 {
 	uint32_t *sAdres;
 	uint32_t nRozmiar;
-	if (chNrProbki >= PRGA_MAX_PROBEK)
+	if (chNrProbki >= PGA_MAX_PROBEK)
 		return ERR_BRAK_PROBKI_AUDIO;
 
 	sAdres = (uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 0);
@@ -477,11 +479,11 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	//dodaj nagłówek komunikatu
 	switch(chTypKomunikatu)
 	{
-	case KOMG_WYSOKOSC:		chErr = DodajProbkeDoKolejki(PRGA_WYSOKOSC);	break;
-	case KOMG_NAPIECIE:		chErr = DodajProbkeDoKolejki(PRGA_NAPIECIE);	break;
-	case KOMG_TEMPERATURA:	chErr = DodajProbkeDoKolejki(PRGA_TEMPERATURA);	break;
-	case KOMG_PREDKOSC:		chErr = DodajProbkeDoKolejki(PRGA_PREDKOSC);	break;
-	case KOMG_KIERUNEK:		chErr = DodajProbkeDoKolejki(PRGA_KIERUNEK);	break;
+	case KOMG_WYSOKOSC:		chErr = DodajProbkeDoKolejki(PGA_WYSOKOSC);	break;
+	case KOMG_NAPIECIE:		chErr = DodajProbkeDoKolejki(PGA_NAPIECIE);	break;
+	case KOMG_TEMPERATURA:	chErr = DodajProbkeDoKolejki(PGA_TEMPERATURA);	break;
+	case KOMG_PREDKOSC:		chErr = DodajProbkeDoKolejki(PGA_PREDKOSC);	break;
+	case KOMG_KIERUNEK:		chErr = DodajProbkeDoKolejki(PGA_KIERUNEK);	break;
 	default:	break;
 	}
 
@@ -489,7 +491,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	if (fWartosc < 0.0)
 	{
 		fWartosc *= -1.0f;		//zamień na liczbę dodatnią
-		DodajProbkeDoKolejki(PRGA_MINUS);
+		DodajProbkeDoKolejki(PGA_MINUS);
 	}
 
 	//dodaj kolejne cyfry składajace się na liczbę
@@ -497,7 +499,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 		fLiczba = floorf(fWartosc / 100000);
 		chCyfra = (uint8_t)fLiczba;
-		chErr = DodajProbkeDoKolejki(PRGA_100 + chCyfra - 1);
+		chErr = DodajProbkeDoKolejki(PGA_100 + chCyfra - 1);
 		fWartosc -= chCyfra * 100000;
 		chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
 	}
@@ -506,7 +508,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 		fLiczba = floorf(fWartosc / 10000);
 		chCyfra = (uint8_t)fLiczba;
-		chErr = DodajProbkeDoKolejki(PRGA_20 + chCyfra - 2);
+		chErr = DodajProbkeDoKolejki(PGA_20 + chCyfra - 2);
 		fWartosc -= chCyfra * 10000;
 		chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
 	}
@@ -515,7 +517,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 		fLiczba = floorf(fWartosc / 1000);
 		chCyfra = (uint8_t)fLiczba;
-		chErr = DodajProbkeDoKolejki(PRGA_10 + chCyfra - 10);
+		chErr = DodajProbkeDoKolejki(PGA_10 + chCyfra - 10);
  		fWartosc -= chCyfra * 1000;
 		chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
 	}
@@ -525,7 +527,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 		fLiczba = floorf(fWartosc / 1000);
 		chCyfra = (uint8_t)fLiczba;
 		if ((chFormaGramatyczna) || (chCyfra > 1))	//nie dodawaj "jeden" przed "tysiąc", ale tylko gdy nie ma starszych cyfr
-			chErr = DodajProbkeDoKolejki(PRGA_01 + chCyfra - 1);
+			chErr = DodajProbkeDoKolejki(PGA_01 + chCyfra - 1);
 		fWartosc -= chCyfra * 1000;
 		if (chCyfra >= 5)
 			chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
@@ -539,7 +541,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 
 	if (chFormaGramatyczna)		//jeżeli chFormaGramatyczna jest niezerowa to wystąpiły tysiace i trzeba je wymówić w odpowiedniej formie
 	{
-		chErr = DodajProbkeDoKolejki(PRGA_TYSIAC + chFormaGramatyczna - 1);	//dodaj słowo tysiąc w odpowiedniej formie
+		chErr = DodajProbkeDoKolejki(PGA_TYSIAC + chFormaGramatyczna - 1);	//dodaj słowo tysiąc w odpowiedniej formie
 		chFormaGramatyczna = 0;
 	}
 
@@ -547,7 +549,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 		fLiczba = floorf(fWartosc / 100);
 		chCyfra = (uint8_t)fLiczba;
-		chErr = DodajProbkeDoKolejki(PRGA_100 + chCyfra - 1);
+		chErr = DodajProbkeDoKolejki(PGA_100 + chCyfra - 1);
 		fWartosc -= chCyfra * 100;
 		chFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
 	}
@@ -556,7 +558,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 		fLiczba = floorf(fWartosc / 10);
 		chCyfra = (uint8_t)fLiczba;
-		chErr = DodajProbkeDoKolejki(PRGA_20 + chCyfra - 2);
+		chErr = DodajProbkeDoKolejki(PGA_20 + chCyfra - 2);
 		fWartosc -= chCyfra * 10;
 		chFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
 	}
@@ -564,7 +566,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	if (fWartosc >= 10)		//kilkanascie
 	{
 		chCyfra = (uint8_t)fWartosc;
-		chErr = DodajProbkeDoKolejki(PRGA_10 + chCyfra - 10);
+		chErr = DodajProbkeDoKolejki(PGA_10 + chCyfra - 10);
 		fWartosc -= chCyfra;
 		chFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
 	}
@@ -572,7 +574,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	if (fWartosc >= 1.0f)		//jednostki
 	{
 		chCyfra = (uint8_t)fWartosc;
-		chErr = DodajProbkeDoKolejki(PRGA_01 + chCyfra - 1);
+		chErr = DodajProbkeDoKolejki(PGA_01 + chCyfra - 1);
 		fWartosc -= chCyfra;
 		if (chCyfra >= 5)
 			chFormaGramatyczna = 4;		//jednostka w liczbie >=5 woltów, metrów
@@ -588,13 +590,13 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 		uint8_t chFormaDziesiatych;
 
-		chErr = DodajProbkeDoKolejki(PRGA_I);
+		chErr = DodajProbkeDoKolejki(PGA_I);
 		fLiczba = roundf(fWartosc * 10);	//ponieważ to ostatnia znacząca cyfra więc potrzebne zaokrąglenie a nie obcięcie
 		chCyfra = (uint8_t)fLiczba;
 		if (chCyfra > 2)
-			chErr = DodajProbkeDoKolejki(PRGA_01 + chCyfra - 1);
+			chErr = DodajProbkeDoKolejki(PGA_01 + chCyfra - 1);
 		else
-			chErr = DodajProbkeDoKolejki(PRGA_JEDNA + chCyfra - 1);	//specyficzna wymowa dla jedna i dwie dziesiate
+			chErr = DodajProbkeDoKolejki(PGA_JEDNA + chCyfra - 1);	//specyficzna wymowa dla jedna i dwie dziesiate
 
 		if (chCyfra >= 5)
 			chFormaDziesiatych = 2;		//jednostka w liczbie >=5: dziesiatych
@@ -604,19 +606,19 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 			else
 				chFormaDziesiatych = 0;		//jednostka w liczbie == 1: dziesiąta
 
-		chErr = DodajProbkeDoKolejki(PRGA_DZIESIATA + chFormaDziesiatych);
+		chErr = DodajProbkeDoKolejki(PGA_DZIESIATA + chFormaDziesiatych);
 		chFormaGramatyczna = 1;		//jednostka w liczbie <1: wolta, metra
 	}
 
 	//dodaj jednostkę
 	switch(chTypKomunikatu)
 	{
-	case KOMG_WYSOKOSC:		chErr = DodajProbkeDoKolejki(PRGA_METRA + chFormaGramatyczna - 1);	break;
-	case KOMG_NAPIECIE:		chErr = DodajProbkeDoKolejki(PRGA_WOLTA + chFormaGramatyczna - 1);	break;
+	case KOMG_WYSOKOSC:		chErr = DodajProbkeDoKolejki(PGA_METRA + chFormaGramatyczna - 1);	break;
+	case KOMG_NAPIECIE:		chErr = DodajProbkeDoKolejki(PGA_WOLTA + chFormaGramatyczna - 1);	break;
 	case KOMG_KIERUNEK:
-	case KOMG_TEMPERATURA:	chErr = DodajProbkeDoKolejki(PRGA_STOPNIA + chFormaGramatyczna - 1);	break;
-	case KOMG_PREDKOSC:		chErr = DodajProbkeDoKolejki(PRGA_METRA + chFormaGramatyczna - 1);
-							chErr += DodajProbkeDoKolejki(PRGA_NA_SEKUNDE);	break;
+	case KOMG_TEMPERATURA:	chErr = DodajProbkeDoKolejki(PGA_STOPNIA + chFormaGramatyczna - 1);	break;
+	case KOMG_PREDKOSC:		chErr = DodajProbkeDoKolejki(PGA_METRA + chFormaGramatyczna - 1);
+							chErr += DodajProbkeDoKolejki(PGA_NA_SEKUNDE);	break;
 	default:	break;
 	}
 	return chErr;
@@ -670,7 +672,7 @@ uint8_t DodajProbkeDoMalejKolejki(uint8_t chNumerProbki, uint8_t chRozmiarKolejk
 	if (chWskNapKolKom >= chRozmiarKolejki)
 			chWskNapKolKom = 0;
 	for (uint8_t n=chRozmiarKolejki; n<ROZM_KOLEJKI_KOMUNIKATOW; n++)	//pozostałą część kolejki wypełnij komunikatami nie do wymówienia
-		chKolejkaKomunkatow[n] = PRGA_PUSTE_MIEJSCE;
+		chKolejkaKomunkatow[n] = PGA_PUSTE_MIEJSCE;
 
 	return BLAD_OK;
 }

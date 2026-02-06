@@ -26,7 +26,7 @@ uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	
 uint16_t sOkresTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 uint16_t sLicznikTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];
 uint8_t chIndeksNapelnRamki;	//określa która tablica ramki telemetrycznej jest napełniania
-
+uint8_t chWstrzymajTelemetrie;	//wartość niezerowa tymczasowo wstrzymuje działanie telemetrii
 extern unia_wymianyCM4_t uDaneCM4;
 extern uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
 extern UART_HandleTypeDef hlpuart1;
@@ -95,6 +95,9 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 	uint8_t chIndeksAdresow;	//okresla indeks puli adresowej rakmi. Zmienne 0..127 idą w ramce 0, zmienne 128..255 w ramce 1, itd
 	float fZmienna;
 	extern uint8_t chStatusPolaczenia;
+
+	if (chWstrzymajTelemetrie)
+		return;
 
 	//ponieważ ramek telemetri może być kilka i wysyłają się w dłuższej sekwencji, więc indeks następnej ramki zmieniaj na początku cyklu aby był niezmienny w trakcie cyklu
 	chIndeksNapelnRamki++;

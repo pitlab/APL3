@@ -41,7 +41,7 @@ extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZe
 extern uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern stBSP_t stBSP;	//struktura zawierajaca adres i nazwę BSP
 extern uint8_t chStatusPolaczenia;
-
+extern uint8_t chWstrzymajTelemetrie;	//wartość niezerowa tymczasowo wstrzymuje działanie telemetrii
 
 uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDanych, uint8_t chInterfejs, uint8_t chAdresZdalny)
 {
@@ -469,6 +469,12 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		else
 			Wyslij_KodBledu(BLAD_ODMOWA_WYKONANIA, chPolecenie, chInterfejs);
 		break;
+
+	case PK_WSTRZYMAJ_TELEMETRIE:	//wznów lub tymczasowo wstrzymaj wysyłnie telemetrii na czas transmisji innych danych
+		chWstrzymajTelemetrie  = chDane[0];		//wartość niezerowa tymczasowo wstrzymuje działanie telemetrii
+		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
+		break;
+
 	}
     return chErr;
 }

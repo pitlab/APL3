@@ -144,7 +144,7 @@ void PetlaGlowna(void)
 
 	case 9:	chBladPG |= ObslugaRamkiSBus();
 		ZbierajEkstremaWejscRC(&stRC);
-		chBladPG |= AnalizujSygnalRC(&uDaneCM4.dane);
+		chBladPG |= AnalizujSygnalRC(&uDaneCM4.dane, &uDaneCM7.dane);
 		break;
 
 	case 10:	break;

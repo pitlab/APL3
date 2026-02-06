@@ -20,6 +20,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "rejestrator.h"
+#include "sample_audio.h"
+
 
 //deklaracje zmiennych
 extern RTC_HandleTypeDef hrtc;
@@ -171,7 +173,7 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	{
 		*tryb = menu[chMenuSelPos].chMode;
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;	//kasuj flagę naciśnięcia ekranu
-		DodajProbkeDoMalejKolejki(PRGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//odtwórz komunikat audio przycisku
+		DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//odtwórz komunikat audio przycisku
 		return;
 	}
 	*tryb = 0;

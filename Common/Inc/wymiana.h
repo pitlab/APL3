@@ -159,7 +159,8 @@ typedef struct
 typedef struct
 {
 	uint8_t chWykonajPolecenie;
-	uint8_t chOdbiornikRC;			//wybór danych z odbiornika: RC1, RC2, oba zdywersyfikowane
+	uint8_t chOdbiornikRC;			//wybór źródła danych odbiornika RC dla stWymianyCM4.sKanalRC[]: RC1, RC2, oba zdywersyfikowane
+	uint8_t chWymowSampla;
 	uint8_t chRozmiar;				//rozmiar danych przekazywanych w polu fRozne
 	uint16_t sAdres;				//adres danych przekazywanych w polu fRozne
 	float fRozne[ROZMIAR_ROZNE_FLOAT];	//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji lub zapisu FRAM

@@ -13,7 +13,7 @@
 #include "dshot.h"
 #include "GNSS.h"
 #include "kontroler_lotu.h"
-
+#include "sample_audio.h"
 
 //definicje SBus: https://github.com/uzh-rpg/rpg_quadrotor_control/wiki/SBUS-Protocol
 //S-Bus oraz DShot mają rozdzielczość 11-bitów, wiec przyjmuję taką rozdzielczość sterowania
@@ -701,11 +701,6 @@ uint8_t InicjujWyjsciaRC(void)
 	}
 	else
 		chErr |= ERR_BRAK_KONFIG;
-
-	//wstępnie ustaw jakieś wartosci początkowe
-	for (uint16_t n=8; n<KANALY_SERW; n++)
-		uDaneCM4.dane.sSerwo[n] = 1000 + 10 * n;
-
 	return chErr;
 }
 
@@ -1030,10 +1025,11 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 // Analizuje gotowy znormalizowany sygnał z odbiornika RC uruchamiając specjalne funkcje sterowane drążkami aparatury
 // Parametry:
 // [we] *psDaneCM4 - wskaźnik na strukturę danych CM4
+// [wy] *psDaneCM7 - wskaźnik na strukturę danych CM7
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4)
+uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4, stWymianyCM7_t* psDaneCM7)
 {
 	uint8_t chBlad = BLAD_OK;
 
@@ -1041,11 +1037,18 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4)
 
     //sprawdź warunek uzbrojenia silników, czyli gaz na mininum i kierunek w prawo
 	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] < PPM_M90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] > PPM_P90))
+	{
 		chBlad = UzbrojSilniki(psDaneCM4);
+		if (chBlad == BLAD_OK)
+			psDaneCM7->chWymowSampla = PGA_UZBROJONY;
+	}
 
     //sprawdź warunek rozbrojenia silników, czyli gaz na mininum i kierunek w lewo
 	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] < PPM_M90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < PPM_M90))
+	{
 		RozbrojSilniki(psDaneCM4);
+		psDaneCM7->chWymowSampla = PGA_ROZBROJONY;
+	}
 
     //sprawdź warunek ..., czyli gaz na maksimum i kierunek w lewo
 	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] > PPM_P90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < PPM_M90) && ((psDaneCM4->chFlagiLotu & FL_SILN_UZBROJONE) != FL_SILN_UZBROJONE))
