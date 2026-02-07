@@ -26,7 +26,7 @@
 #include "dshot.h"
 #include "mikser.h"
 #include "kontroler_lotu.h"
-
+#include "sample_audio.h"
 
 
 extern TIM_HandleTypeDef htim7;
@@ -144,7 +144,7 @@ void PetlaGlowna(void)
 
 	case 9:	chBladPG |= ObslugaRamkiSBus();
 		ZbierajEkstremaWejscRC(&stRC);
-		chBladPG |= AnalizujSygnalRC(&uDaneCM4.dane, &uDaneCM7.dane);
+		chBladPG |= AnalizujSygnalRC(&uDaneCM4.dane);
 		break;
 
 	case 10:	break;
@@ -468,6 +468,10 @@ void WykonajPolecenieCM7(void)
 		break;
 
 	}
+
+	//jeżeli potwierdzono wymowę sampla to skasuj żądanie wymowy
+	if ((uDaneCM4.dane.chWymowSampla != PGA_PUSTE_MIEJSCE) && (uDaneCM4.dane.chWymowSampla == uDaneCM7.dane.uRozne.U8[31]))
+		uDaneCM4.dane.chWymowSampla = PGA_PUSTE_MIEJSCE;
 }
 
 
@@ -497,9 +501,9 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	switch(chEtapOperacjiI2C)
 	{
 	case 0:
-	case 2:	chBlad = ObslugaIIS2MDC();		break;
+	//case 2:	chBlad = ObslugaIIS2MDC();		break;
 	case 1:
-	case 3:	chBlad = ObslugaMMC3416x();		break;
+	//case 3:	chBlad = ObslugaMMC3416x();		break;
 	default: break;
 	}
 

@@ -132,39 +132,37 @@ typedef struct
 	float fCisnRozn[2];		//0=ND130, 1=MS2545
 	float fPredkosc[2];		//[m/s]
 	float fTemper[6];		//0=MS5611, 1=BMP851, 2=ICM42688 [K], 3=LSM6DSV [K], 4=ND130, 5=MS2545
-	//float fRozne[ROZMIAR_ROZNE];		//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji lub odczytu FRAM
-
 	float fKwaAkc[4];		//kwaternion wektora przyspieszenia
 	float fKwaMag[4];		//kwaternion wektora magnetycznego
 
 	uRozne_t uRozne;		//unia różnych typów danych ogólnego zastosowania
+	uint8_t chRozmiar;		//rozmiar danych przekazywanych w polu fRozne
+	uint16_t sAdres;		//adres danych przekazywanych w polu fRozne
 	stGnss_t stGnss1;		//struktura danych GNSS1
 	stWyjPID_t stWyjPID[LICZBA_PID];		//tablica struktur danych wyjściowych regulatorów PID
 	uint16_t sSerwo[KANALY_SERW];		//wartość wysterowania serwa lub ESC
 	int16_t sKanalRC[KANALY_ODB_RC];
 	uint8_t chTrybLotu;		//tryb lotu jako zestaw funkcjonalności realizowany w danym czasie
 	uint8_t chFlagiLotu;	//bity definiujące parametry lotu
-	uint16_t sAdres;		//adres danych przekazywanych w polu fRozne
 	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
 	uint8_t chErrPetliGlownej;
-	uint8_t chOdpowiedzNaPolecenie;
-	uint8_t chRozmiar;			//rozmiar danych przekazywanych w polu fRozne
+	uint8_t chOdpowiedzNaPolecenie;	//potwierdzenie wykonania polecenia
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
 	uint32_t nBrakCzujnika;		//zestaw flag obecnosci czujników
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
+	uint8_t chWymowSampla;		//indeks sampla głosowego do wymówienia
 } stWymianyCM4_t;
 
 
 //definicja struktury wymiany danych wychodzących z rdzenia CM7
 typedef struct
 {
-	uint8_t chWykonajPolecenie;
 	uint8_t chOdbiornikRC;			//wybór źródła danych odbiornika RC dla stWymianyCM4.sKanalRC[]: RC1, RC2, oba zdywersyfikowane
-	uint8_t chWymowSampla;
+	uint8_t chWykonajPolecenie;		//numer polecenia do wyninania przez CM4
+	uRozne_t uRozne;				//unia różnych typów danych ogólnego zastosowania
 	uint8_t chRozmiar;				//rozmiar danych przekazywanych w polu fRozne
 	uint16_t sAdres;				//adres danych przekazywanych w polu fRozne
-	float fRozne[ROZMIAR_ROZNE_FLOAT];	//różne parametry w zależności od bieżącego kontekstu, główie do kalibracji lub zapisu FRAM
-	uRozne_t uRozne;				//unia różnych typów danych ogólnego zastosowania
+
 } stWymianyCM7_t;
 
 //unie do konwersji struktur na słowa 32-bitowe

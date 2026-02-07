@@ -1029,7 +1029,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4, stWymianyCM7_t* psDaneCM7)
+uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4)
 {
 	uint8_t chBlad = BLAD_OK;
 
@@ -1040,14 +1040,14 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4, stWymianyCM7_t* psDaneCM7)
 	{
 		chBlad = UzbrojSilniki(psDaneCM4);
 		if (chBlad == BLAD_OK)
-			psDaneCM7->chWymowSampla = PGA_UZBROJONY;
+			psDaneCM4->chWymowSampla = PGA_UZBROJONY;
 	}
 
     //sprawdź warunek rozbrojenia silników, czyli gaz na mininum i kierunek w lewo
 	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] < PPM_M90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < PPM_M90))
 	{
 		RozbrojSilniki(psDaneCM4);
-		psDaneCM7->chWymowSampla = PGA_ROZBROJONY;
+		psDaneCM4->chWymowSampla = PGA_ROZBROJONY;
 	}
 
     //sprawdź warunek ..., czyli gaz na maksimum i kierunek w lewo

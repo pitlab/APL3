@@ -13,6 +13,7 @@
 #include "cmsis_os.h"
 #include "rysuj.h"
 #include "sample_audio.h"
+#include "wymiana_CM7.h"
 
 
 //Słowniczek:
@@ -47,8 +48,8 @@ extern SAI_HandleTypeDef hsai_BlockB2;
 extern const uint8_t chAdres_expandera[LICZBA_EXP_SPI_ZEWN];
 extern uint8_t chPort_exp_wysylany[];
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
-uint32_t nLicznikSAI_DMA;	//test
-
+extern unia_wymianyCM4_t uDaneCM4;
+extern unia_wymianyCM7_t uDaneCM7;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonuje inicjalizację zasobów dotwarzania dźwięku. Uruchamiane przy starcie
@@ -74,13 +75,22 @@ uint8_t InicjujAudio(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja procesowana w pętli głównej. Sprawdza czy jest coś do wymówienia i gdy przetwornik jest wolny to umiejszcza w nim kolejną próbkę
+// Funkcja obsługiwana w pętli głównej. Sprawdza czy jest coś do wymówienia i gdy przetwornik jest wolny to umiejszcza w nim kolejną próbkę
 // Parametry: brak
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaWymowyKomunikatu(void)
 {
 	uint8_t chErr;
+
+	//Jeżeli CM4 ma coś do powiedzenia wtedy wstawia to do uDaneCM4.dane.chWymowSampla. Aby nie wymawiać w kółko, wymowa jest potwierdzana w uDaneCM7.dane.uRozne.U8[31]
+	if ((uDaneCM4.dane.chWymowSampla != PGA_PUSTE_MIEJSCE) && (uDaneCM4.dane.chWymowSampla != uDaneCM7.dane.uRozne.U8[31]))
+	{
+		chKolejkaKomunkatow[chWskNapKolKom++] = uDaneCM4.dane.chWymowSampla;
+		uDaneCM7.dane.uRozne.U8[31] = uDaneCM4.dane.chWymowSampla;	//potwierdź wymowę
+		if (chWskNapKolKom >= ROZM_KOLEJKI_KOMUNIKATOW)
+			chWskNapKolKom = 0;
+	}
 
 	if ((chWskNapKolKom == chWskOprKolKom) || chGlosnikJestZajęty || ((nZainicjowanoCM7 & INIT_AUDIO) != INIT_AUDIO))
 		return BLAD_OK;		//nie ma nic do wymówienia lub nie skonfigurowane
@@ -144,7 +154,6 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 	uint8_t chErr;
 	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 
-	nLicznikSAI_DMA = 0;	//test
 	if ((nAdres < ADR_POCZATKU_KOM_AUDIO) || (nAdres > ADR_KONCA_KOM_AUDIO))
 	{
 		chCzasSwieceniaLED[LED_CZER] += 20;	//włącz czerwoną na 2 sekundy
@@ -244,7 +253,6 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 		if (chNumerTonu >= LICZBA_TONOW_WARIO)
 			HAL_SAI_DMAStop(&hsai_BlockB2);
 	}
-	nLicznikSAI_DMA++;	//test
 }
 
 
