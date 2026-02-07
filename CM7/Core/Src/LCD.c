@@ -138,8 +138,7 @@ prostokat_t stWykr;	//wykres biegunowy magnetometru
 uint8_t chHistR[ROZMIAR_HIST_KOLOR], chHistG[ROZMIAR_HIST_KOLOR], chHistB[ROZMIAR_HIST_KOLOR];
 uint8_t chHistCB8[ROZMIAR_HIST_CB8];
 
-extern uint16_t sBuforKamerySRAM[ROZM_BUF_YUV420];
-extern uint16_t sBuforKameryDRAM[ROZM_BUF16_KAM];
+extern uint16_t sBuforKamery[ROZM_BUF_YUV420];
 extern uint8_t chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
 extern uint8_t chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
 extern uint8_t chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];
@@ -556,7 +555,7 @@ uint8_t RysujEkran(void)
 		extern uint16_t sLicznikLiniiKamery;
 		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
 		sLicznikLiniiKamery = 0;
-		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
+		chErr = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		if (chErr)
 		{
 			setColor(MAGENTA);
@@ -566,7 +565,7 @@ uint8_t RysujEkran(void)
 		{
 			setColor(ZIELONY);
 			sprintf(chNapis, "Linii: %d  ", sLicznikLiniiKamery);
-			WyswietlZdjecie(480, 320, sBuforKamerySRAM);
+			WyswietlZdjecie(480, 320, sBuforKamery);
 		}
 		RysujNapis(chNapis, KOL12, 300);
 		FRESULT fres = 0;
@@ -581,7 +580,7 @@ uint8_t RysujEkran(void)
 		fres = f_open(&SDJpegFile, chNapis, FA_OPEN_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
 		{
-			f_puts((char*)sBuforKamerySRAM, &SDJpegFile);	//zapis do pliku
+			f_puts((char*)sBuforKamery, &SDJpegFile);	//zapis do pliku
 			f_close(&SDJpegFile);
 		}
 		osDelay(600);
@@ -594,12 +593,12 @@ uint8_t RysujEkran(void)
 		stKonfOSD.sWysokosc = DISP_Y_SIZE;
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);	//czyść poprzednią zawartość
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
-		chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
-		RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
+		chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamery, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+		RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
 			nCzas = PobierzCzasT6();
-			LiczHistogramRGB565(sBuforKamerySRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);	//licz histogram
+			LiczHistogramRGB565(sBuforKamery, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);	//licz histogram
 			nCzas = MinalCzas(nCzas);
 			nCzasHist = PobierzCzasT6();
 			RysujHistogramOSD_RGB32(chBuforOSD, chHistR, chHistG, chHistB);
@@ -622,12 +621,12 @@ uint8_t RysujEkran(void)
 		stKonfOSD.sWysokosc = DISP_Y_SIZE;
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
 		//chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKameryDRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
-		RozpocznijPraceDCMI(&stKonfKam, sBuforKameryDRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
+		RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
 			//LiczHistogramRGB565(sBuforKameryDRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
 			RysujHistogramOSD_RGB32(chBuforOSD, chHistR, chHistG, chHistB);
-			KonwersjaRGB565doRGB666(sBuforKameryDRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+			KonwersjaRGB565doRGB666(sBuforKamery, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
 			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 
 			//RysujHistogramRGB32(chHistR, chHistG, chHistB);
@@ -644,7 +643,7 @@ uint8_t RysujEkran(void)
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_FILM);
 		if (chErr)
 			break;
-		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 4);
+		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 4);
 		if (chErr)
 			break;
 		do
@@ -654,20 +653,20 @@ uint8_t RysujEkran(void)
 			chObrazKameryGotowy = 0;
 			chWskNapBufKam++;
 			chWskNapBufKam &= MASKA_BUFORA_KAMERY;
-			//utwórz wskaźnik na konkretny bufor w obrębie zmiennej sBuforKamerySRAM wskazujący na kolejną 1/8 zmiennej
-			//uint16_t* sPodBufor = sBuforKamerySRAM + chWskNapBufKam * (DISP_X_SIZE * DISP_Y_SIZE / (4 * 8));
+			//utwórz wskaźnik na konkretny bufor w obrębie zmiennej sBuforKamery wskazujący na kolejną 1/8 zmiennej
+			//uint16_t* sPodBufor = sBuforKamery + chWskNapBufKam * (DISP_X_SIZE * DISP_Y_SIZE / (4 * 8));
 			//chErr = RozpocznijPraceDCMI(stKonfKam, sPodBufor, DISP_X_SIZE * DISP_Y_SIZE / 4);
 			if (chWskNapBufKam & 0x01)		//nieparzyste obrazy kompresuj a parzyste wyświetlaj
 			{
 				nCzas = PobierzCzasT6();
 				//chErr = KompresujY8((uint8_t*)sPodBufor, DISP_X_SIZE, DISP_Y_SIZE);
-				chErr = KompresujY8((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
+				chErr = KompresujY8((uint8_t*)sBuforKamery, DISP_X_SIZE, DISP_Y_SIZE);
 				nCzas = MinalCzas(nCzas);
 			}
 			else
 			{
 				//KonwersjaCB8doRGB666((uint8_t*)sPodBufor, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
-				KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+				KonwersjaCB8doRGB666((uint8_t*)sBuforKamery, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
 				//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 #ifdef 	LCD_ILI9488
 				WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
@@ -689,12 +688,12 @@ uint8_t RysujEkran(void)
 			break;
 		do
 		{
-			chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2 * 3);
+			chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2 * 3);
 			if (chErr)
 				break;
 			chErr = CzekajNaKoniecPracyDCMI(DISP_Y_SIZE);
 			nCzas = PobierzCzasT6();
-			chErr = KompresujYUV420((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
+			chErr = KompresujYUV420((uint8_t*)sBuforKamery, DISP_X_SIZE, DISP_Y_SIZE);
 			if (chErr)
 				break;
 
@@ -720,7 +719,7 @@ uint8_t RysujEkran(void)
 		if (chErr)
 			break;
 
-		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
+		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
 		if (chErr)
 			break;
 		do
@@ -741,7 +740,7 @@ uint8_t RysujEkran(void)
 
 		chErr = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_Y8, KAM_ZDJECIE);
 		nCzas = PobierzCzasT6();
-		chErr = ZrobZdjecie(sBuforKamerySRAM, SZER_ZDJECIA * WYS_ZDJECIA / 4);
+		chErr = ZrobZdjecie(sBuforKamery, SZER_ZDJECIA * WYS_ZDJECIA / 4);
 		if (chErr)
 		{
 			chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -753,7 +752,7 @@ uint8_t RysujEkran(void)
 		printf("Tdcmi=%ldus\r\n", nCzas);
 
 		nCzas = PobierzCzasT6();
-		chErr = KompresujY8((uint8_t*)sBuforKamerySRAM, SZER_ZDJECIA, WYS_ZDJECIA);	//, chBuforJpeg, ROZMIAR_BUF_JPEG);
+		chErr = KompresujY8((uint8_t*)sBuforKamery, SZER_ZDJECIA, WYS_ZDJECIA);	//, chBuforJpeg, ROZMIAR_BUF_JPEG);
 		nCzas = MinalCzas(nCzas);
 		setColor(ZOLTY);
 		if (!chErr)
@@ -771,7 +770,7 @@ uint8_t RysujEkran(void)
 		RysujNapis(chNapis, 0, 30);
 		chStatusRejestratora |= STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
 		//jest ustawiony większy rozmiar, więc nie wyswietlaj obrazu
-		//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBufLCD, SZER_ZDJECIA * WYS_ZDJECIA);
+		//KonwersjaCB8doRGB666((uint8_t*)sBuforKamery, chBufLCD, SZER_ZDJECIA * WYS_ZDJECIA);
 		//WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
 		osDelay(3000);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -786,18 +785,18 @@ uint8_t RysujEkran(void)
 		for (uint32_t m=0; m<SZER_ZDJECIA/4; m++)
 		{
 			for (uint32_t n=0; n<WYS_ZDJECIA; n++)
-				sBuforKamerySRAM[n+m*WYS_ZDJECIA] = (m & 0x0FFF) | 0x4000;
+				sBuforKamery[n+m*WYS_ZDJECIA] = (m & 0x0FFF) | 0x4000;
 		}
 		sprintf((char*)chNazwaPlikuObrazu, "ZdjYUV420");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
 		//chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV420, KAM_ZDJECIE);
-		//chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);	//wynik w sBuforKamerySRAM
+		//chErr = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);	//wynik w sBuforKamery
 		chErr = UstawObrazKamery(60, 40, OBR_YUV420, KAM_ZDJECIE);
-		chErr = ZrobZdjecie(sBuforKamerySRAM, 60 * 40 / 2);	//wynik w sBuforKamerySRAM
+		chErr = ZrobZdjecie(sBuforKamery, 60 * 40 / 2);	//wynik w sBuforKamery
 		nCzas = PobierzCzasT6();
-		//chErr = KompresujYUV420((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
-		chErr = KompresujYUV420((uint8_t*)sBuforKamerySRAM, 60, 40);
-		//KonwersjaCB8doRGB666((uint8_t*)sBuforKamerySRAM, chBufLCD, DISP_X_SIZE * DISP_Y_SIZE);
+		//chErr = KompresujYUV420((uint8_t*)sBuforKamery, DISP_X_SIZE, DISP_Y_SIZE);
+		chErr = KompresujYUV420((uint8_t*)sBuforKamery, 60, 40);
+		//KonwersjaCB8doRGB666((uint8_t*)sBuforKamery, chBufLCD, DISP_X_SIZE * DISP_Y_SIZE);
 		nCzas = MinalCzas(nCzas);
 		setColor(ZOLTY);
 		if (chErr)
@@ -820,9 +819,9 @@ uint8_t RysujEkran(void)
 	case TP_KAM_ZDJ_YUV422:	//Analiza obrazu pokazuje że coś jest nie tak z obrazem YUV444. Dla obrazu o szerokości 480 pix powtarza się biała linia 4x16 bajtów co 2*480 pikseli
 		sprintf((char*)chNazwaPlikuObrazu, "ZdjYUV444");	//początek nazwy pliku ze zdjeciem
 		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV444, KAM_ZDJECIE);
-		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_X_SIZE * 2 / 3);	//rozmiar obrazu to 3 bajty na piksel
+		chErr = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_X_SIZE * 2 / 3);	//rozmiar obrazu to 3 bajty na piksel
 		nCzas = PobierzCzasT6();
-		chErr = KompresujYUV444((uint8_t*)sBuforKamerySRAM, DISP_X_SIZE, DISP_Y_SIZE);
+		chErr = KompresujYUV444((uint8_t*)sBuforKamery, DISP_X_SIZE, DISP_Y_SIZE);
 		nCzas = MinalCzas(nCzas);
 		if (chErr)
 		{
@@ -883,10 +882,10 @@ uint8_t RysujEkran(void)
 		break;
 
 
-	case TPO_ZAPIS_BMP:	//zapisz chrominancję lub luminację z bufora LCD do zmiennej: sBuforKamerySRAM a nastepnie do pliku bmp
-		ZakonczPraceDCMI();	//wyłącz kamerę aby nie nadpisywała obrazu w sBuforKamerySRAM
+	case TPO_ZAPIS_BMP:	//zapisz chrominancję lub luminację z bufora LCD do zmiennej: sBuforKamery a nastepnie do pliku bmp
+		ZakonczPraceDCMI();	//wyłącz kamerę aby nie nadpisywała obrazu w sBuforKamery
 		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
-		TestKonwersjiRGB888doYCbCr(chBuforLCD, (uint8_t*)sBuforKamerySRAM, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+		TestKonwersjiRGB888doYCbCr(chBuforLCD, (uint8_t*)sBuforKamery, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 		sprintf((char*)chNazwaPlikuObrazu, "Luma");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora = STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
 		stKonfKam.chFormatObrazu = OBR_Y8;			//obraz ma sie zapisać jako monochromatyczny
@@ -919,7 +918,7 @@ uint8_t RysujEkran(void)
 			break;
 		hjpeg.Instance->CONFR1 |= JPEG_CONFR1_HDR;	//włącz generowanie nagłówka JPEG
 		stKonfOSD.chOSDWlaczone = 1;
-		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamerySRAM, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
+		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
 		if (chErr)
 			break;
 		do
@@ -951,7 +950,7 @@ uint8_t RysujEkran(void)
 	case TPO_TEST_OSD480:	//obraz na testowym tle
 		stKonfOSD.sSzerokosc = 480;
 		stKonfOSD.sWysokosc = 320;
-		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamerySRAM, SZARY20);
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamery, SZARY20);
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
 		do
 		{

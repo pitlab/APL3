@@ -57,8 +57,7 @@ typedef struct
 #define DLUGOSC_NAZWY		20		//maksymalna długość nazwy BSP, zmiennych telemetrycznych, lub innych nazw
 
 //nazwy poleceń protokołu
-#define PK_OK					0	//akceptacja
-#define PK_BLAD					1
+#define PK_KOD_BLEDU			1	//zwróc kod błędu wykonania polecenia
 #define PK_ZROB_ZDJECIE			2	//polecenie wykonania zdjęcia. We: [0..1] - sSzerokosc zdjecia, [2..3] - wysokość zdjecia
 #define PK_POB_STAT_ZDJECIA		3	//pobierz status gotowości zdjęcia
 #define PK_POBIERZ_ZDJECIE		4	//polecenie przesłania fragmentu zdjecia. We: [0..3] - wskaźnik na pozycje bufora, [4] - rozmiar danych do przesłania

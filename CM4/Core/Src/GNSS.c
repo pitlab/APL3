@@ -6,7 +6,7 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "GNSS.h"
+#include <GNSS.h>
 #include "uBlox.h"
 #include <stdio.h>
 #include "wymiana.h"

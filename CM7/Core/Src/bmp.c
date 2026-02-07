@@ -18,7 +18,7 @@ FIL SDBmpFile;       //struktura pliku z obrazem
 extern RTC_TimeTypeDef stTime;
 extern RTC_DateTypeDef stDate;
 extern char __attribute__ ((aligned (32))) chBufPodreczny[40];
-extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[];
+extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamery[SZER_ZDJECIA * WYS_ZDJECIA];
 extern stKonfKam_t stKonfKam;
 extern uint8_t chNazwaPlikuObrazu[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
 extern volatile uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
@@ -33,11 +33,11 @@ void ObslugaZapisuBmp(void)
 {
 	if (stKonfKam.chFormatObrazu == OBR_Y8)
 	{
-		ZapiszPlikBmp((uint8_t*)sBuforKamerySRAM, BMP_KOLOR_8, (uint16_t)stKonfKam.chSzerWy * KROK_ROZDZ_KAM, (uint16_t)stKonfKam.chWysWy * KROK_ROZDZ_KAM);	//monochromatyczny
+		ZapiszPlikBmp((uint8_t*)sBuforKamery, BMP_KOLOR_8, (uint16_t)stKonfKam.chSzerWy * KROK_ROZDZ_KAM, (uint16_t)stKonfKam.chWysWy * KROK_ROZDZ_KAM);	//monochromatyczny
 	}
 	else
 	{
-		ZapiszPlikBmp((uint8_t*)sBuforKamerySRAM, BMP_KOLOR_24, (uint16_t)stKonfKam.chSzerWy * KROK_ROZDZ_KAM, (uint16_t)stKonfKam.chWysWy * KROK_ROZDZ_KAM);	//kolorowy
+		ZapiszPlikBmp((uint8_t*)sBuforKamery, BMP_KOLOR_24, (uint16_t)stKonfKam.chSzerWy * KROK_ROZDZ_KAM, (uint16_t)stKonfKam.chWysWy * KROK_ROZDZ_KAM);	//kolorowy
 	}
 	chStatusRejestratora &= ~STATREJ_ZAPISZ_BMP;	//wyłącz zapis
 }

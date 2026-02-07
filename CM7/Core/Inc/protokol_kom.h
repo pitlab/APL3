@@ -13,7 +13,6 @@
 
 #define ROZMIAR_BUF_ODB_DMA		256
 #define ROZMIAR_BUF_ANALIZY_ODB	2*ROZMIAR_BUF_ODB_DMA
-//#define ILOSC_ODBIORU_DMA		9	//do metody odbierania małymi porcjami
 
 
 

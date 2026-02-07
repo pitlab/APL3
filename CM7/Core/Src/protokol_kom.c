@@ -43,9 +43,10 @@ stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
 const char* chNazwaSierotki = {"Sierotka Wronia"};	//domyślna nazwa nienazwanego BSP
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chBuforNadDMA[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA+8];
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chRamkaTelemetrii[2*LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla zmiennych 0..127 oraz 128..255
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chBuforTest[256];
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chBuforNadDMA[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chRamkaTelemetrii[2*LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla zmiennych 0..127 oraz 128..255
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chBuforNadRamkiKomTCP[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
 extern uint8_t chIndeksNapelnRamki;	//okresla ktora tablica ramki telemetrycznej jest napełniania
 uint8_t chWyslaneOK = 1;
@@ -205,35 +206,22 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	if (huart->Instance == LPUART1)
 	{
 		//skończyło się wysyłanie, wyczyść flagę zajetości i liczbę rzeczy do wysłania
-		if (st_ZajetoscLPUART.chZajetyPrzez != LPUART_WOLNY)
-			st_ZajetoscLPUART.chZajetyPrzez = LPUART_WOLNY;
+		st_ZajetoscLPUART.sDoWyslania[st_ZajetoscLPUART.chZajetyPrzez] = 0;
+		st_ZajetoscLPUART.chZajetyPrzez = LPUART_WOLNY;
 
 		//port jest wolny, można wysłać rzeczy zaległe
 		for (uint8_t n=0; n< ROZMIAR_KOLEJKI_LPUART; n++)
 		{
 			if (st_ZajetoscLPUART.sDoWyslania[n])
 			{
-				st_ZajetoscLPUART.chZajetyPrzez = n;
 				switch (n)
 				{
-				case RAMKA_POLECEN:
-					HAL_UART_Transmit_DMA(&hlpuart1, chBuforNadDMA, st_ZajetoscLPUART.sDoWyslania[n]);
-					break;
-
-				case RAMKA_TELE1:	//ramkę telemetryczną 1
-					HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[0 + chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[n]);
-					st_ZajetoscLPUART.sDoWyslania[n] = 0;	//nie ma nic wiecej do wysłania
-					break;
-
-				case RAMKA_TELE2:	//ramkę telemetryczną 2
-					HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[2 + chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[n]);
-					st_ZajetoscLPUART.sDoWyslania[n] = 0;	//nie ma nic wiecej do wysłania
-					break;
-
-				default:
-					assert(1);	//tutaj program nigdy nie powinien wskoczyć
-					break;
+				case RAMKA_POLECEN:	HAL_UART_Transmit_DMA(&hlpuart1, chBuforNadDMA, st_ZajetoscLPUART.sDoWyslania[n]);		 break;
+				case RAMKA_TELE1:	HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[0 + chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[n]);		break;
+				case RAMKA_TELE2:	HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[2 + chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[n]);		break;
 				}
+				st_ZajetoscLPUART.chZajetyPrzez = n;
+				st_ZajetoscLPUART.sDoWyslania[n] = 0;	//nie ma nic wiecej do wysłania
 				break;	//zakończ wykonanie petli for po wysłaniu pierwszej transmisji
 			}
 		}
@@ -241,58 +229,12 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 }
 
 
-/*
-void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart)
-{
-	if (huart->Instance == LPUART1);
-}
-
-
-
-
-
-void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
-{
-	if (huart->Instance == LPUART1)
-	{
-		for (uint16_t n=0; n<ILOSC_ODBIORU_DMA; n++)
-		{
-			chBuforKomOdb[sWskNap] = chBuforOdbDMA[n];
-			sWskNap++;
-			//zapętlenie wskaźnika bufora kołowego
-			if (sWskNap >= ROZMIAR_BUF_ANALIZY_ODB)
-				sWskNap = 0;
-		}
-		//ponownie włącz odbiór
-		HAL_UART_Receive_DMA(&hlpuart1, chBuforOdbDMA, ILOSC_ODBIORU_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
-	}
-}
-
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	if (huart->Instance == LPUART1)
-	{
-		for (uint16_t n=0; n<ILOSC_ODBIORU_DMA; n++)
-		{
-			chBuforKomOdb[sWskNap] = chBuforOdbDMA[n];
-			sWskNap++;
-			//zapętlenie wskaźnika bufora kołowego
-			if (sWskNap >= ROZMIAR_BUF_ANALIZY_ODB)
-				sWskNap = 0;
-		}
-		//ponownie włącz odbiór
-		HAL_UART_Receive_DMA(&hlpuart1, chBuforOdbDMA, ILOSC_ODBIORU_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
-	}
-}
-
-*/
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
 	if (huart->Instance == LPUART1)
 	{
-		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
+		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
 		//HAL_UART_Receive_DMA(&hlpuart1, chBuforOdbDMA, ILOSC_ODBIORU_DMA);
 	}
 	chCzasSwieceniaLED[LED_CZER] = 5;
@@ -479,12 +421,12 @@ uint8_t PrzygotujRamke(uint8_t chAdrZdalny, uint8_t chAdrLokalny,  uint8_t chZna
     if ((chPolecenie & ~0x80) > PK_ILOSC_POLECEN)
     	return(ERR_ZLE_POLECENIE);
 
-    *(chRamka++) = NAGLOWEK;
-    *(chRamka++) = chAdrZdalny;		//ADRES ODBIORCY
-    *(chRamka++) = chAdrLokalny;	//ADERS NADAWCY
-    *(chRamka++) = chZnakCzasu;
-    *(chRamka++) = chPolecenie;
-    *(chRamka++) = chRozmDanych;
+    *(chRamka + 0) = NAGLOWEK;
+    *(chRamka + 1) = chAdrZdalny;		//ADRES ODBIORCY
+    *(chRamka + 2) = chAdrLokalny;	//ADERS NADAWCY
+    *(chRamka + 3) = chZnakCzasu;
+    *(chRamka + 4) = chPolecenie;
+    *(chRamka + 5) = chRozmDanych;
 
     //dodać blokadę zasobu CRC
     InicjujCRC16(0, WIELOMIAN_CRC);
@@ -495,14 +437,13 @@ uint8_t PrzygotujRamke(uint8_t chAdrZdalny, uint8_t chAdrLokalny,  uint8_t chZna
 	CRC->DR = chRozmDanych;
 
     for (uint8_t n=0; n<chRozmDanych; n++)
-    	*(chRamka++) = CRC->DR =  *(chDane + n);
+    	*(chRamka + 6 + n) = CRC->DR =  *(chDane + n);
 
     un8_16.dane16 = (uint16_t)CRC->DR;
     //zdjąć blokadę zasobu CRC
 
-    *(chRamka++) = un8_16.dane8[0];	//młodszy
-    *(chRamka++) = un8_16.dane8[1];	//starszy
-
+    *(chRamka + chRozmDanych + 6) = un8_16.dane8[0];	//młodszy
+    *(chRamka + chRozmDanych + 7) = un8_16.dane8[1];	//starszy
     return BLAD_OK;
 }
 
@@ -528,8 +469,10 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
 		chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres, chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chBuforNadDMA);
 		if (chErr == BLAD_OK)
 		{
+			if (chBuforNadDMA[5] == 0xFF)
+				break;
     		st_ZajetoscLPUART.chZajetyPrzez = RAMKA_POLECEN;
-    		st_ZajetoscLPUART.sDoWyslania[RAMKA_POLECEN - 1] = (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI;
+    		st_ZajetoscLPUART.sDoWyslania[RAMKA_POLECEN] = (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI;
     		HAL_UART_Transmit_DMA(&hlpuart1, chBuforNadDMA, (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI);
 		}
 		break;
@@ -564,7 +507,7 @@ uint8_t Wyslij_KodBledu(uint8_t chKodBledu, uint8_t chParametr, uint8_t chInterf
     chDane[0] = chKodBledu;
     chDane[1] = chParametr;
 
-    return WyslijRamke(chAdresZdalny[chInterfejs], PK_BLAD, 2, chDane, chInterfejs);
+    return WyslijRamke(chAdresZdalny[chInterfejs], PK_KOD_BLEDU, 2, chDane, chInterfejs);
 }
 
 
@@ -572,24 +515,6 @@ uint8_t TestKomunikacjiSTD(void)
 {
 	uint8_t chErr = 0;
 	uint16_t sRozmDanych;
-	/*extern char chBuforNapisowCM4[ROZMIAR_BUF_NAPISOW_CM4];
-	extern uint8_t chWskNapBufNapisowCM4;
-	extern uint8_t chWskOprBufNapisowCM4;
-
-	//jeżeli z rdzenia CM4 przyszły jakieś napisy dla konsoli to wyświetl je
-	for (uint8_t n=0; n<ROZMIAR_BUF_NAD_DMA; n++)
-	{
-		sRozmDanych = n;
-		if (chWskNapBufNapisowCM4 != chWskOprBufNapisowCM4)
-		{
-			chBuforNadDMA[n] = chBuforNapisowCM4[chWskOprBufNapisowCM4];
-			chWskOprBufNapisowCM4++;
-			if (chWskOprBufNapisowCM4 == ROZMIAR_BUF_NAPISOW_CM4)
-				chWskOprBufNapisowCM4 = 0;
-		}
-		else
-			break;
-	}*/
 
 	sRozmDanych = sprintf((char*)chBuforNadDMA, "Test komunikacji UART: blokująca\n\r");
 	if (sRozmDanych)

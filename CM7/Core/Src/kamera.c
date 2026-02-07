@@ -39,8 +39,8 @@
 #include "osd.h"
 
 //uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[SZER_ZDJECIA * WYS_ZDJECIA / 2] = {0};
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamerySRAM[SZER_ZDJECIA * WYS_ZDJECIA] = {0};
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamery[SZER_ZDJECIA * WYS_ZDJECIA] = {0};
+//uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};
 extern uint8_t chBuforJpeg[ROZM_BUF_WY_JPEG];
 extern uint8_t chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
 extern uint8_t chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * ROZMIAR_KOLORU_OSD];	//pamięć obrazu OSD
@@ -417,7 +417,7 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 		if (hdma2d.State == HAL_DMA2D_STATE_BUSY)
 			HAL_DMA2D_Abort(&hdma2d);
 		nCzasBlend = DWT->CYCCNT;
-		HAL_DMA2D_BlendingStart_IT(&hdma2d, (uint32_t)chBuforOSD, (uint32_t)sBuforKamerySRAM, (uint32_t)chBuforLCD, stKonfKam.chSzerWy * KROK_ROZDZ_KAM, stKonfKam.chWysWy * KROK_ROZDZ_KAM);
+		HAL_DMA2D_BlendingStart_IT(&hdma2d, (uint32_t)chBuforOSD, (uint32_t)sBuforKamery, (uint32_t)chBuforLCD, stKonfKam.chSzerWy * KROK_ROZDZ_KAM, stKonfKam.chWysWy * KROK_ROZDZ_KAM);
 	}
 }
 
@@ -507,10 +507,7 @@ uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_
 {
 	//wyczyść zmienną obrazu aby zmiany były widoczne
 	for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)
-	{
-		sBuforKamerySRAM[n] = 0;
-		sBuforKameryDRAM[n] = 0;
-	}
+		sBuforKamery[n] = 0;
 
 	stKonfKam.chSzerWy = (uint8_t)(sSzerokosc / KROK_ROZDZ_KAM);
 	stKonfKam.chWysWy = (uint8_t)(sWysokosc / KROK_ROZDZ_KAM);
@@ -957,7 +954,7 @@ uint8_t UstawObrazKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chForm
 void CzyscBufory(void)
 {
 	for (uint32_t n=0; n<ROZM_BUF16_KAM; n++)
-		sBuforKamerySRAM[n] = 0;
+		sBuforKamery[n] = 0;
 
 	for (uint32_t n=0; n<(DISP_X_SIZE * DISP_Y_SIZE * 3); n++)
 		chBuforLCD[n] = 0;

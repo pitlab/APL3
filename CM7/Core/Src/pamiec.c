@@ -57,7 +57,7 @@ uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDTCM")))	
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM")))	sBufor[ROZMIAR16_BUFORA];
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM")))	sBufor2[ROZMIAR16_BUFORA];
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) 	sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
-extern uint16_t __attribute__((section(".SekcjaZewnSRAM")))	sBuforKamerySRAM[ROZM_BUF16_KAM];
+uint16_t __attribute__((section(".SekcjaZewnSRAM")))	sBuforSRAM[ROZM_BUF16_KAM];
 
 uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 volatile uint8_t chKoniecTransferuMDMA;
@@ -457,7 +457,7 @@ void TestPredkosciOdczytuRAM(void)
 	for (y=0; y<1000; y++)
 	{
 		for (x=0; x<ROZMIAR16_BUFORA; x++)
-			 sBufor[x] = sBuforKamerySRAM[x];
+			 sBufor[x] = sBuforSRAM[x];
 	}
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
@@ -474,7 +474,7 @@ void TestPredkosciOdczytuRAM(void)
 	for (y=0; y<1000; y++)
 	{
 		for (x=0; x<ROZMIAR16_BUFORA; x++)
-			sBuforKamerySRAM[x] = sBufor[x];
+			sBuforSRAM[x] = sBufor[x];
 	}
 	nCzas = MinalCzas(nCzas);
 	if (nCzas)
@@ -487,7 +487,7 @@ void TestPredkosciOdczytuRAM(void)
 	/*nCzas = PobierzCzasT6();
 	for (y=0; y<1000; y++)
 	{
-		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBuforKamerySRAM, (uint32_t)sBufor, ROZMIAR16_BUFORA);
+		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBuforSRAM, (uint32_t)sBufor, ROZMIAR16_BUFORA);
 		if (chErr != BLAD_OK)
 		{
 			setColor(RED);
@@ -510,7 +510,7 @@ void TestPredkosciOdczytuRAM(void)
 	nCzas = PobierzCzasT6();
 	for (y=0; y<1000; y++)
 	{
-		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBufor, (uint32_t)sBuforKamerySRAM, ROZMIAR16_BUFORA);
+		chErr = HAL_DMA_Start(&hdma_memtomem_dma1_stream1, (uint32_t)sBufor, (uint32_t)sBuforSRAM, ROZMIAR16_BUFORA);
 		if (chErr != BLAD_OK)
 		{
 			setColor(RED);
@@ -532,7 +532,7 @@ void TestPredkosciOdczytuRAM(void)
 
 	//odczyt z zewnętrznego SRAM przez MDMA
 	nCzas = PobierzCzasT6();
-	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBuforKamerySRAM, (uint32_t)sBufor, ROZMIAR16_BUFORA, 1000);
+	chErr = HAL_MDMA_Start(&hmdma_mdma_channel0_dma1_stream1_tc_0, (uint32_t)sBuforSRAM, (uint32_t)sBufor, ROZMIAR16_BUFORA, 1000);
 	if (chErr != BLAD_OK)
 	{
 		setColor(RED);
@@ -556,8 +556,8 @@ void TestPredkosciOdczytuRAM(void)
 
 	//zapis zewnętrznego SRAM przez MDMA
 	nCzas = PobierzCzasT6();
-	//chErr = HAL_MDMA_Start(&hmdma_mdma_channel1_dma1_stream1_tc_0, (uint32_t)sBufor, (uint32_t)sBuforKamerySRAM, ROZMIAR16_BUFORA, 1000);
-	chErr = HAL_MDMA_Start_IT(&hmdma_mdma_channel1_dma1_stream1_tc_0, (uint32_t)sBufor, (uint32_t)sBuforKamerySRAM, ROZMIAR16_BUFORA, 1);
+	//chErr = HAL_MDMA_Start(&hmdma_mdma_channel1_dma1_stream1_tc_0, (uint32_t)sBufor, (uint32_t)sBuforSRAM, ROZMIAR16_BUFORA, 1000);
+	chErr = HAL_MDMA_Start_IT(&hmdma_mdma_channel1_dma1_stream1_tc_0, (uint32_t)sBufor, (uint32_t)sBuforSRAM, ROZMIAR16_BUFORA, 1);
 	if (chErr != BLAD_OK)
 	{
 		setColor(RED);
@@ -810,7 +810,7 @@ void InicjujMDMA(void)
 	mdmaLinkNodeConfig.Init.SourceBlockAddressOffset  = 0;
 	mdmaLinkNodeConfig.Init.DestBlockAddressOffset    = 0;
 
-	mdmaLinkNodeConfig.SrcAddress      = (uint32_t)sBuforKamerySRAM;
+	mdmaLinkNodeConfig.SrcAddress      = (uint32_t)sBuforSRAM;
 	mdmaLinkNodeConfig.DstAddress      = (uint32_t)sBufor;
 	mdmaLinkNodeConfig.BlockDataLength = (ROZMIAR16_BUFORA);
 	mdmaLinkNodeConfig.BlockCount      = 1;
@@ -834,7 +834,7 @@ void InicjujMDMA(void)
 	mdmaLinkNodeConfig.Init.DestBlockAddressOffset    = 0;
 
 	mdmaLinkNodeConfig.SrcAddress      = (uint32_t)sBufor;
-	mdmaLinkNodeConfig.DstAddress      = (uint32_t)sBuforKamerySRAM;
+	mdmaLinkNodeConfig.DstAddress      = (uint32_t)sBuforSRAM;
 	mdmaLinkNodeConfig.BlockDataLength = (ROZMIAR16_BUFORA);
 	mdmaLinkNodeConfig.BlockCount      = 1;
 

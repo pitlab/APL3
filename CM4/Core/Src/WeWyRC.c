@@ -6,12 +6,12 @@
 // (c) PitLab 2025
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <GNSS.h>
 #include "WeWyRC.h"
 #include "konfig_fram.h"
 #include "petla_glowna.h"
 #include "fram.h"
 #include "dshot.h"
-#include "GNSS.h"
 #include "kontroler_lotu.h"
 #include "sample_audio.h"
 

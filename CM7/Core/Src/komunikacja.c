@@ -37,7 +37,7 @@ extern  uint8_t chRozmDanych;
 extern  uint8_t chDane[ROZMIAR_DANYCH_KOMUNIKACJI];
 extern uint16_t sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
 extern uint8_t chTrybPracy;
-extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[];	//bufor na klatki filmu
+extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamery[SZER_ZDJECIA * WYS_ZDJECIA];
 extern uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern stBSP_t stBSP;	//struktura zawierajaca adres i nazwę BSP
 extern uint8_t chStatusPolaczenia;
@@ -51,16 +51,11 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 
 	switch (chPolecenie)
 	{
-	case PK_OK:	//odeslij polecenie OK
-		chErr = Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
-		break;
+	case PK_KOD_BLEDU:	chErr = Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);		break;	//odeslij kod błędu: OK
 
 	case PK_ZROB_ZDJECIE:		//polecenie wykonania zdjęcia.
-		//chTrybPracy = TP_ZDJECIE;
-		//chStatusZdjecia = SGZ_CZEKA;	//oczekiwania na wykonanie zdjęcia
-		//chStatusZdjecia = SGZ_BLAD;		//dopóki nie ma kamery niech zgłasza bład
 		chStatusZdjecia = SGZ_GOTOWE;
-		chErr = ZrobZdjecie(sBuforKamerySRAM, DISP_X_SIZE * DISP_Y_SIZE / 2);
+		chErr = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		Wyslij_KodBledu(chErr, chPolecenie, chInterfejs);
 		break;
 
@@ -72,9 +67,9 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 			for (uint16_t x=0; x<480; x++)
 			{
 				if (x == 5)
-					sBuforKamerySRAM[y*480 + x] = ZOLTY;
+					sBuforKamery[y*480 + x] = ZOLTY;
 				if (y == 5)
-					sBuforKamerySRAM[y*480 + x] = CZERWONY;
+					sBuforKamery[y*480 + x] = CZERWONY;
 			}
 		}
 		break;
@@ -83,7 +78,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		for (n=0; n<4; n++)
 			un8_32.dane8[n] = chDane[n];
 		nOffsetDanych = un8_32.dane32;
-		chErr = WyslijRamke(chAdresZdalny, PK_POBIERZ_ZDJECIE, chDane[4], (uint8_t*)(sBuforKamerySRAM + nOffsetDanych),  chInterfejs);
+		chErr = WyslijRamke(chAdresZdalny, PK_POBIERZ_ZDJECIE, chDane[4], (uint8_t*)(sBuforKamery + nOffsetDanych),  chInterfejs);
 		break;
 
 	case PK_USTAW_BSP:		//ustawia identyfikator/adres urządzenia

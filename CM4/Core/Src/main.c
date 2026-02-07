@@ -11,13 +11,13 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+#include <GNSS.h>
 #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "petla_glowna.h"
 #include "moduly_wew.h"
-#include "GNSS.h"
 #include "wymiana_CM4.h"
 #include "modul_IiP.h"
 #include "jedn_inercyjna.h"

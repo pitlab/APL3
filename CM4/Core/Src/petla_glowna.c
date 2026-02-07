@@ -6,12 +6,12 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <GNSS.h>
 #include "petla_glowna.h"
 #include "main.h"
 #include "fram.h"
 #include "moduly_wew.h"
 #include "wymiana_CM4.h"
-#include "GNSS.h"
 #include "nmea.h"
 #include "HMC5883.h"
 #include "jedn_inercyjna.h"

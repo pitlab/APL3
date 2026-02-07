@@ -5,8 +5,8 @@
  *      Author: PitLab
  */
 
-#ifndef SRC_GNSS_H_
-#define SRC_GNSS_H_
+#ifndef INC_GNSS_H_
+#define INC_GNSS_H_
 
 #include "sys_def_CM4.h"
 
@@ -28,4 +28,4 @@ uint8_t InicjujGNSS(void);
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size);
 void SumaKontrolnaUBX(uint8_t *chRamka);
 
-#endif /* SRC_GNSS_H_ */
+#endif /* INC_GNSS_H_ */

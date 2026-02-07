@@ -22,7 +22,7 @@
 // Każda ramka ma 2 kopie, gdzie jedna ramka jest napełniana a druga wysyłana.
 
 // LPUART korzysta z BDMA a ono ma dostęp tylko do SRAM4, więc ramka telemetrii musi być zdefiniowana w SRAM4
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chRamkaTelemetrii[2*LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla 16-bitowych zmiennych 0..127 oraz 128..255
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chRamkaTelemetrii[2 * LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla 16-bitowych zmiennych 0..127 oraz 128..255
 uint16_t sOkresTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 uint16_t sLicznikTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];
 uint8_t chIndeksNapelnRamki;	//określa która tablica ramki telemetrycznej jest napełniania
@@ -123,7 +123,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 				if (chIloscDanych[chIndeksAdresow] < (ROZMIAR_RAMKI_KOMUNIKACYJNEJ - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
 				{
 					WstawDaneDoRamkiTele(chIndeksNapelnRamki, chIndeksAdresow, chIloscDanych[chIndeksAdresow], n, fZmienna);
-					chIloscDanych[chIndeksAdresow]++;
+					chIloscDanych[chIndeksNapelnRamki]++;
 				}
 			}
 		}
