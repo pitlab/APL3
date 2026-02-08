@@ -1784,7 +1784,7 @@ void Ekran_Powitalny(uint32_t nZainicjowano)
 		sprintf(chNapis, "Adres: %d, IP: %d.%d.%d.%d, Nazwa: %s", stBSP.chAdres, stBSP.chAdrIP[0], stBSP.chAdrIP[1], stBSP.chAdrIP[2], stBSP.chAdrIP[3],  stBSP.chNazwa);
 		RysujNapis(chNapis, CENTER, 135);
 
-		sprintf(chNapis, "(c) PitLab 2025 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
+		sprintf(chNapis, "(c) PitLab 2026 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
 		RysujNapis(chNapis, CENTER, 155);
 		chRysujRaz = 0;
 	}

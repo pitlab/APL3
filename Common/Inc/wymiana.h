@@ -142,8 +142,8 @@ typedef struct
 	stWyjPID_t stWyjPID[LICZBA_PID];		//tablica struktur danych wyjściowych regulatorów PID
 	uint16_t sSerwo[KANALY_SERW];		//wartość wysterowania serwa lub ESC
 	int16_t sKanalRC[KANALY_ODB_RC];
-	uint8_t chTrybLotu;		//tryb lotu jako zestaw funkcjonalności realizowany w danym czasie
-	uint8_t chFlagiLotu;	//bity definiujące parametry lotu
+	uint8_t chTrybLotu;		//tryb lotu jako zestaw bitów określających funkcjonalności realizowane w danym czasie
+	//uint8_t chFlagiLotu;	//bity definiujące parametry lotu
 	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
 	uint8_t chErrPetliGlownej;
 	uint8_t chOdpowiedzNaPolecenie;	//potwierdzenie wykonania polecenia

@@ -63,8 +63,8 @@ uint8_t InicjujMagnetometrHMC(void)
 
     for (uint16_t n=0; n<3; n++)
     {
-    	chBlad |= CzytajFramZWalidacja(FAH_MAGN3_PRZESX + 4*n, &fPrzesMagn3[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
-    	chBlad |= CzytajFramZWalidacja(FAH_MAGN3_SKALOX + 4*n, &fSkaloMagn3[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDEF_SKALO_MAGN, ERR_ZLA_KONFIG);
+    	chBlad |= CzytajFramZWalidacja(FAH_MAGN3_PRZESX + 4*n, &fPrzesMagn3[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDOM_PRZES_MAGN, ERR_ZLA_KONFIG);
+    	chBlad |= CzytajFramZWalidacja(FAH_MAGN3_SKALOX + 4*n, &fSkaloMagn3[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDOM_SKALO_MAGN, ERR_ZLA_KONFIG);
     }
     return chBlad;
 }

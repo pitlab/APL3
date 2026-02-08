@@ -103,7 +103,7 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 uint8_t UzbrojSilniki(stWymianyCM4_t *dane)
 {
 	uint8_t chBlad = BLAD_OK;
-	dane->chFlagiLotu |= FL_SILN_UZBROJONE;
+	dane->chTrybLotu |= BTR_UZBROJONY;
 	return chBlad;
 }
 
@@ -116,6 +116,6 @@ uint8_t UzbrojSilniki(stWymianyCM4_t *dane)
 ////////////////////////////////////////////////////////////////////////////////
 void RozbrojSilniki(stWymianyCM4_t *dane)
 {
-	dane->chFlagiLotu &= ~FL_SILN_UZBROJONE;
+	dane->chTrybLotu &= ~BTR_UZBROJONY;
 }
 

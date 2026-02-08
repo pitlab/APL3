@@ -501,9 +501,9 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	switch(chEtapOperacjiI2C)
 	{
 	case 0:
-	//case 2:	chBlad = ObslugaIIS2MDC();		break;
+	case 2:	chBlad = ObslugaIIS2MDC();		break;
 	case 1:
-	//case 3:	chBlad = ObslugaMMC3416x();		break;
+	//case 3:	chBlad = ObslugaMMC3416x();		break;	//na egzemplarzu 2 jest problem blokowania się przerwania obsługi tego magnetometru
 	default: break;
 	}
 

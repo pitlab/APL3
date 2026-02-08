@@ -196,16 +196,22 @@
 
 
 
-//definicje trybów lotu
-#define TRLOT_BEZPIECZNY	0	//regulatory i nawigacja wyłączone
-//do wartości 9 tryby naziemne
-#define TRLOT_UZBROJONY		10
-#define TRLOT_WZNOSZENIE	11	//kopter wznosi się na nominalnej prędkości pionowej
-#define TRLOT_LOT_RECZNY	12	//lot sterowany przez pilota
-#define TRLOT_LOT_AUTO		13	//lot autonomiczny
-#define TRLOT_PODEJ_LAD		14	//podejście do lądowania
-#define TRLOT_LADOWANIE		15	//lądowanie autonomiczne
+//definicje Bitów Trybu Lotu składających się na Tryb Lotu, określających zakres włączonej funkcjonalności
+#define BTR_UZBROJONY		0x80	//bit uzbrojenia silników
+#define BTR_NAWIG_AUTO		0x40	//bit autonomicznej nawigacji
+#define BTR_STAB_KATOW		0x20	//bit stabilizacji PID kątów
 
-//definicje flag trybu lotu dotyczących zmiennej stWymianyCM4.chFlagiLotu
-#define FL_SILN_UZBROJONE	0x01	//silniki pracują co najmniej na biegu jałowym
-#define FL_TRWA_LOT			0x02
+
+//definicje Trybów Lotu.
+#define TL_BEZP			0x00	//regulatory i nawigacja wyłączone, silniki zatrzymane
+#define TL_RECZ			BTR_UZBROJONY	//silniki sterowane ręcznie w celach diagnostycznych
+#define TL_AKRO			BTR_UZBROJONY + 1 	//lot akrobacyjny PID steruje tylko prędkościami kątowymi
+#define TL_STAB			BTR_UZBROJONY + BTR_STAB_KATOW 		//lot ze stabilizacją kątów
+#define TL_LAD_STAB		TL_STAB + 1
+#define TL_AUTO			TL_STAB + BTR_NAWIG_AUTO	//lot autonomiczny z nawigają po punktach
+#define TL_LAD_AUTO		TL_AUTO + 1		//lądowanie w trybie autonomicznym
+#define TL_WZN_AUTO		TL_AUTO	+ 2		//kopter wznosi się na nominalnej prędkości pionowej
+
+
+
+

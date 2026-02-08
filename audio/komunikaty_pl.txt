@@ -75,3 +75,4 @@ gotowe.wav
 przycisk.wav
 uzbrojone.wav
 rozbrojone.wav
+gotowy_sluzyc.wav 

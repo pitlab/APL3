@@ -455,7 +455,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		break;
 
 	case PK_RESETUJ_CM4:	//resetuj rdzeń CM4, zwykle po zmianie konfiguracji
-		if ((uDaneCM4.dane.chFlagiLotu & FL_SILN_UZBROJONE) != FL_SILN_UZBROJONE)	//nie pozwalaj na reset gdy silniki są uzbrojone
+		if ((uDaneCM4.dane.chTrybLotu & BTR_UZBROJONY) != BTR_UZBROJONY)	//nie pozwalaj na reset gdy silniki są uzbrojone
 		{
 			Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 			HAL_Delay(10);

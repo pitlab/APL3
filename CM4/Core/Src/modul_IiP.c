@@ -72,22 +72,22 @@ uint8_t InicjujModulI2P(void)
 		//odczytaj kalibrację żyroskopów i licz charakterystykę
 		for (uint16_t n=0; n<3; n++)
 		{
-			chErr |= CzytajFramZWalidacja(FAH_ZYRO1_X_PRZ_ZIM+(4*n), &fOffsetZyro1Z, VMIN_PRZES_ZYRO, VMAX_PRZES_ZYRO, VDEF_PRZES_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu1 na zimno
-			chErr |= CzytajFramZWalidacja(FAH_ZYRO2_X_PRZ_ZIM+(4*n), &fOffsetZyro2Z, VMIN_PRZES_ZYRO, VMAX_PRZES_ZYRO, VDEF_PRZES_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu2 na zimno
+			chErr |= CzytajFramZWalidacja(FAH_ZYRO1_X_PRZ_ZIM+(4*n), &fOffsetZyro1Z, VMIN_PRZES_ZYRO, VMAX_PRZES_ZYRO, VDOM_PRZES_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu1 na zimno
+			chErr |= CzytajFramZWalidacja(FAH_ZYRO2_X_PRZ_ZIM+(4*n), &fOffsetZyro2Z, VMIN_PRZES_ZYRO, VMAX_PRZES_ZYRO, VDOM_PRZES_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu2 na zimno
 
-			chErr |= CzytajFramZWalidacja(FAH_ZYRO1_X_PRZ_POK+(4*n), &fOffsetZyro1P, VMIN_PRZES_ZYRO, VMAX_PRZES_ZYRO, VDEF_PRZES_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu1 w temp pokojowej
-			chErr |= CzytajFramZWalidacja(FAH_ZYRO2_X_PRZ_POK+(4*n), &fOffsetZyro2P, VMIN_PRZES_ZYRO, VMAX_PRZES_ZYRO, VDEF_PRZES_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu1 w temp pokojowej
+			chErr |= CzytajFramZWalidacja(FAH_ZYRO1_X_PRZ_POK+(4*n), &fOffsetZyro1P, VMIN_PRZES_ZYRO, VMAX_PRZES_ZYRO, VDOM_PRZES_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu1 w temp pokojowej
+			chErr |= CzytajFramZWalidacja(FAH_ZYRO2_X_PRZ_POK+(4*n), &fOffsetZyro2P, VMIN_PRZES_ZYRO, VMAX_PRZES_ZYRO, VDOM_PRZES_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu1 w temp pokojowej
 
-			chErr |= CzytajFramZWalidacja(FAH_ZYRO1_X_PRZ_GOR+(4*n), &fOffsetZyro1G, VMIN_PRZES_ZYRO, VMAX_PRZES_ZYRO, VDEF_PRZES_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu1 na gorąco
-			chErr |= CzytajFramZWalidacja(FAH_ZYRO2_X_PRZ_GOR+(4*n), &fOffsetZyro2G, VMIN_PRZES_ZYRO, VMAX_PRZES_ZYRO, VDEF_PRZES_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu2 na gorąco
+			chErr |= CzytajFramZWalidacja(FAH_ZYRO1_X_PRZ_GOR+(4*n), &fOffsetZyro1G, VMIN_PRZES_ZYRO, VMAX_PRZES_ZYRO, VDOM_PRZES_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu1 na gorąco
+			chErr |= CzytajFramZWalidacja(FAH_ZYRO2_X_PRZ_GOR+(4*n), &fOffsetZyro2G, VMIN_PRZES_ZYRO, VMAX_PRZES_ZYRO, VDOM_PRZES_ZYRO, ERR_ZLA_KONFIG);		//offset żyroskopu2 na gorąco
 
 			chErr |= ObliczRownanieFunkcjiTemperatury(fOffsetZyro1Z, fOffsetZyro1P, fTemp1[ZIM], fTemp1[POK], &stWspKalTempZyro1.fAzim[n], &stWspKalTempZyro1.fBzim[n]);	//Żyro 1 na zimno
 			chErr |= ObliczRownanieFunkcjiTemperatury(fOffsetZyro1P, fOffsetZyro1G, fTemp1[POK], fTemp1[GOR], &stWspKalTempZyro1.fAgor[n], &stWspKalTempZyro1.fBgor[n]);	//Żyro 1 na gorąco
 			chErr |= ObliczRownanieFunkcjiTemperatury(fOffsetZyro2Z, fOffsetZyro2P, fTemp2[ZIM], fTemp2[POK], &stWspKalTempZyro2.fAzim[n], &stWspKalTempZyro2.fBzim[n]);	//Żyro 2 na zimno
 			chErr |= ObliczRownanieFunkcjiTemperatury(fOffsetZyro2P, fOffsetZyro2G, fTemp2[POK], fTemp2[GOR], &stWspKalTempZyro2.fAgor[n], &stWspKalTempZyro2.fBgor[n]);	//Żyro 2 na gorąco
 
-			chErr |= CzytajFramZWalidacja(FAH_ZYRO1P_WZMOC+(4*n), &fSkaloZyro1[n], VMIN_SKALO_ZYRO, VMAX_SKALO_ZYRO, VDEF_SKALO_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 1
-			chErr |= CzytajFramZWalidacja(FAH_ZYRO2P_WZMOC+(4*n), &fSkaloZyro2[n], VMIN_SKALO_ZYRO, VMAX_SKALO_ZYRO, VDEF_SKALO_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 2
+			chErr |= CzytajFramZWalidacja(FAH_ZYRO1P_WZMOC+(4*n), &fSkaloZyro1[n], VMIN_SKALO_ZYRO, VMAX_SKALO_ZYRO, VDOM_SKALO_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 1
+			chErr |= CzytajFramZWalidacja(FAH_ZYRO2P_WZMOC+(4*n), &fSkaloZyro2[n], VMIN_SKALO_ZYRO, VMAX_SKALO_ZYRO, VDOM_SKALO_ZYRO, ERR_ZLA_KONFIG);	//wzmocnienie osi żyroskopu 2
 
 			//konfiguracja magnetometrów przesunieta do czujników
 			/*chErr |= CzytajFramZWalidacja(FAH_MAGN1_PRZESX + 4*n, &fPrzesMagn1[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDEF_PRZES_MAGN, ERR_ZLA_KONFIG);
@@ -99,20 +99,20 @@ uint8_t InicjujModulI2P(void)
 		}
 
 		//odczytaj kalibrację czujników ciśnienia różnicowego i licz charakterystykę. Używana jest temperatura żyroskopu 1
-		chErr |= CzytajFramZWalidacja(FAH_CISN_ROZN1_ZIM, &fOffsetCisnRoz1Z, VMIN_PRZES_PDIF, VMAX_PRZES_PDIF, VDEF_PRZES_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 1 na zimno
-		chErr |= CzytajFramZWalidacja(FAH_CISN_ROZN1_POK, &fOffsetCisnRoz1P, VMIN_PRZES_PDIF, VMAX_PRZES_PDIF, VDEF_PRZES_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 1 w temp pokojowej
-		chErr |= CzytajFramZWalidacja(FAH_CISN_ROZN1_GOR, &fOffsetCisnRoz1G, VMIN_PRZES_PDIF, VMAX_PRZES_PDIF, VDEF_PRZES_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 1 na gorąco
+		chErr |= CzytajFramZWalidacja(FAH_CISN_ROZN1_ZIM, &fOffsetCisnRoz1Z, VMIN_PRZES_PDIF, VMAX_PRZES_PDIF, VDOM_PRZES_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 1 na zimno
+		chErr |= CzytajFramZWalidacja(FAH_CISN_ROZN1_POK, &fOffsetCisnRoz1P, VMIN_PRZES_PDIF, VMAX_PRZES_PDIF, VDOM_PRZES_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 1 w temp pokojowej
+		chErr |= CzytajFramZWalidacja(FAH_CISN_ROZN1_GOR, &fOffsetCisnRoz1G, VMIN_PRZES_PDIF, VMAX_PRZES_PDIF, VDOM_PRZES_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 1 na gorąco
 		chErr |= ObliczRownanieFunkcjiTemperatury(fOffsetCisnRoz1Z, fOffsetCisnRoz1P, fTemp1[ZIM], fTemp1[POK], &stWspKalTempCzujnRozn1.fAzim, &stWspKalTempCzujnRozn1.fBzim);	//czujnik cisnienia różnicowego 1 na zimno
 		chErr |= ObliczRownanieFunkcjiTemperatury(fOffsetCisnRoz1P, fOffsetCisnRoz1G, fTemp1[POK], fTemp1[GOR], &stWspKalTempCzujnRozn1.fAgor, &stWspKalTempCzujnRozn1.fBgor);	//czujnik cisnienia różnicowego 1 na gorąco
 
-		chErr |= CzytajFramZWalidacja(FAH_CISN_ROZN2_ZIM, &fOffsetCisnRoz2Z, VMIN_PRZES_PDIF, VMAX_PRZES_PDIF, VDEF_PRZES_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 2 na zimno
-		chErr |= CzytajFramZWalidacja(FAH_CISN_ROZN2_POK, &fOffsetCisnRoz2P, VMIN_PRZES_PDIF, VMAX_PRZES_PDIF, VDEF_PRZES_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 2 w temp pokojowej
-		chErr |= CzytajFramZWalidacja(FAH_CISN_ROZN2_GOR, &fOffsetCisnRoz2G, VMIN_PRZES_PDIF, VMAX_PRZES_PDIF, VDEF_PRZES_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 2 na gorąco
+		chErr |= CzytajFramZWalidacja(FAH_CISN_ROZN2_ZIM, &fOffsetCisnRoz2Z, VMIN_PRZES_PDIF, VMAX_PRZES_PDIF, VDOM_PRZES_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 2 na zimno
+		chErr |= CzytajFramZWalidacja(FAH_CISN_ROZN2_POK, &fOffsetCisnRoz2P, VMIN_PRZES_PDIF, VMAX_PRZES_PDIF, VDOM_PRZES_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 2 w temp pokojowej
+		chErr |= CzytajFramZWalidacja(FAH_CISN_ROZN2_GOR, &fOffsetCisnRoz2G, VMIN_PRZES_PDIF, VMAX_PRZES_PDIF, VDOM_PRZES_PDIF, ERR_ZLA_KONFIG);		//offset czujnika różnicowego 2 na gorąco
 		chErr |= ObliczRownanieFunkcjiTemperatury(fOffsetCisnRoz2Z, fOffsetCisnRoz2P, fTemp1[ZIM], fTemp1[POK], &stWspKalTempCzujnRozn2.fAzim, &stWspKalTempCzujnRozn2.fBzim);	//czujnik cisnienia różnicowego 2 na zimno
 		chErr |= ObliczRownanieFunkcjiTemperatury(fOffsetCisnRoz2P, fOffsetCisnRoz2G, fTemp1[POK], fTemp1[GOR], &stWspKalTempCzujnRozn2.fAgor, &stWspKalTempCzujnRozn2.fBgor);	//czujnik cisnienia różnicowego 2 na gorąco
 
-		chErr |= CzytajFramZWalidacja(FAH_SKALO_CISN_BEZWZGL1, &fSkaloCisn[0], VMIN_SKALO_PABS, VMAX_SKALO_PABS, VDEF_SKALO_PAB, ERR_ZLA_KONFIG);		//skalowanie wartości  czujnika ciśnienia bezwzględnego
-		chErr |= CzytajFramZWalidacja(FAH_SKALO_CISN_BEZWZGL2, &fSkaloCisn[1], VMIN_SKALO_PABS, VMAX_SKALO_PABS, VDEF_SKALO_PAB, ERR_ZLA_KONFIG);		//skalowanie wartości  czujnika ciśnienia bezwzględnego
+		chErr |= CzytajFramZWalidacja(FAH_SKALO_CISN_BEZWZGL1, &fSkaloCisn[0], VMIN_SKALO_PABS, VMAX_SKALO_PABS, VDOM_SKALO_PAB, ERR_ZLA_KONFIG);		//skalowanie wartości  czujnika ciśnienia bezwzględnego
+		chErr |= CzytajFramZWalidacja(FAH_SKALO_CISN_BEZWZGL2, &fSkaloCisn[1], VMIN_SKALO_PABS, VMAX_SKALO_PABS, VDOM_SKALO_PAB, ERR_ZLA_KONFIG);		//skalowanie wartości  czujnika ciśnienia bezwzględnego
 	}
 	while (chErr && --chLiczbaPowtorzen);	//w przypadku jakiegokolwiek błędu powtórz całość
 	return chErr;

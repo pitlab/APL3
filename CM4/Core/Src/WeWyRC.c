@@ -1051,13 +1051,13 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4)
 	}
 
     //sprawdź warunek ..., czyli gaz na maksimum i kierunek w lewo
-	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] > PPM_P90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < PPM_M90) && ((psDaneCM4->chFlagiLotu & FL_SILN_UZBROJONE) != FL_SILN_UZBROJONE))
+	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] > PPM_P90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < PPM_M90) && ((psDaneCM4->chTrybLotu & BTR_UZBROJONY) != BTR_UZBROJONY))
     {
         //obsługa ...
     }
 
     //sprawdź warunek zerowania zużycia energii, czyli gaz na maksimum i kierunek w prawo
-    if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] > PPM_P90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] > PPM_P90) && ((psDaneCM4->chFlagiLotu & FL_SILN_UZBROJONE) != FL_SILN_UZBROJONE))
+    if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] > PPM_P90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] > PPM_P90) && ((psDaneCM4->chTrybLotu & BTR_UZBROJONY) != BTR_UZBROJONY))
     {
         //obsługa resetownia licznika energii
     }

@@ -201,118 +201,75 @@
 //////////////////////////////////////////////////////////////////////////////
 // Definicje validatorów danych konfiguracyjnych
 //////////////////////////////////////////////////////////////////////////////
-/*#define VALM_OFST_UNI    (float)-0.3    //max wartość unwersalnej odchyłki ujemnej offsetu
-#define VALP_OFST_UNI    (float)0.3     //
-#define VALD_OFST_UNI    (float)0.0 
-#define VALM_GAIN0_UNI   (float)-0.3    //max wartość unwersalnej odchyłki ujemnej wzmocnienia dla średniej 0
-#define VALP_GAIN0_UNI   (float)0.3     //
-#define VALD_GAIN0_UNI   (float)1.0
-#define VALM_GAIN1_UNI   (float)0.8     //max wartość unwersalnej odchyłki ujemnej wzmocnienia dla średniej 1
-#define VALP_GAIN1_UNI   (float)1.2     //
-#define VALD_GAIN1_UNI   (float)1.0*/
-
 #define VMIN_OFST_ACEL	-0.5f	//max wartość odchyłki ujemnej przesunięcia akcelerometrów
 #define VMAX_OFST_ACEL  0.5f    //j.w. dodatniej
-#define VDEF_OFST_ACEL  0.0f    //wartość domyślna
+#define VDOM_OFST_ACEL  0.0f    //wartość domyślna
 #define VMIN_PRZES_ZYRO  -2.0f   //max wartość odchyłki ujemnej przesunięcia żyroskopów
 #define VMAX_PRZES_ZYRO  2.0f    //j.w. dodatniej
-#define VDEF_PRZES_ZYRO  0.0f    //wartość domyślna
+#define VDOM_PRZES_ZYRO  0.0f    //wartość domyślna
 
 #define VMIN_SKALO_ACEL  	0.8f    //limity wartości odchyłki ujemnej wzmocnienia akcelerometrów
 #define VMAX_SKALO_ACEL  	1.4f    //limity wartości odchyłki dodatniej
-#define VDEF_SKALO_ACEL  	1.0f    //wartość domyślna
+#define VDOM_SKALO_ACEL  	1.0f    //wartość domyślna
 #define VMIN_SKALO_ZYRO  	0.7f    //limity wartości odchyłki ujemnej wzmocnienia żyroskopów ISZ i IDG
 #define VMAX_SKALO_ZYRO  	1.3f    //limity wartości odchyłki dodatniej
-#define VDEF_SKALO_ZYRO  	1.0f    //wartość domyślna
-
-/*#define VALM_TCOEF_ACEL   (float)-5.0   //minimalna wartość  współczynnika temperaturowego akcelerometru
-#define VALP_TCOEF_ACEL   (float)5.0    //wartość maksymalna
-#define VALD_TCOEF_ACEL   (float)1.0    //wartość domyślna
-
-#define VALM_TCOEF_GYRO   (float)-5.0   //minimalna wartość  współczynnika temperaturowego żyroskopu
-#define VALP_TCOEF_GYRO   (float)5.0    //wartość maksymalna
-#define VALD_TCOEF_GYRO   (float)1.0    //wartość domyślna
-
-#define VALM_TCOEF_MAG   (float)-5.0    //minimalna wartość  współczynnika temperaturowego megnetometru
-#define VALP_TCOEF_MAG   (float)5.0     //wartość maksymalna
-#define VALD_TCOEF_MAG   (float)1.0     //wartość domyślna*/
-
+#define VDOM_SKALO_ZYRO  	1.0f    //wartość domyślna
 
 #define VMIN_SKALO_PABS   0.75f    //dolny limit wartosci skalowania czujnika ciśnienia bezwzględnego
 #define VMAX_SKALO_PABS   1.25f    //
-#define VDEF_SKALO_PAB    1.00f
-
+#define VDOM_SKALO_PAB    1.00f
 
 #define VMIN_PRZES_PDIF    -500.0f    //limity wartości odchyłki offsetu różnicowego czujnika ciśnienia w [Pa]
 #define VMAX_PRZES_PDIF    500.0f    //
-#define VDEF_PRZES_PDIF    0.0f
-/*#define VALM_OFST_VARI    (float)-0.8   //limity wartości odchyłki offsetu wariometru
-#define VALP_OFST_VARI    (float)0.8    //
-#define VALD_OFST_VARI    (float)0.0
-
-#define VALM_GAIN_PDIF    (float)0.8    //limity wartości odchyłki wzmocnienia różnicowego czujnika ciśnienia
-#define VALP_GAIN_PDIF    (float)1.2    //
-#define VALD_GAIN_PDIF    (float)1.0
-#define VALM_GAIN_VARI    (float)0.8    //limity wartości odchyłki wzmocnienia wariometru
-#define VALP_GAIN_VARI    (float)1.2    //
-#define VALD_GAIN_VARI    (float)1.0
-
-#define VALM_OFST_TEMP    (float)-3.0   //limity wartości odchyłki offsetu temperatury normalnych czujników
-#define VALP_OFST_TEMP    (float)3.0    //
-#define VALD_OFST_TEMP    (float)0.0 
-
-#define VALM_OFST_TMPM    (float)-25.0  //limity wartości odchyłki offsetu temperatury przetworników A/C
-#define VALP_OFST_TMPM    (float)25.0   //
-#define VALD_OFST_TMPM    (float)0.0
-
-#define VALM_TCOM_ALTI    (float)-1.2    //limity wartości odchyłki kompensacji temperaturowej wysokościomierzy
-#define VALP_TCOM_ALTI    (float)1.2     //
-#define VALD_TCOM_ALTI    (float)1.0 */
+#define VDOM_PRZES_PDIF    0.0f
 
 #define VMIN_SKALO_MAGN    	0.010f		//limity wartości skalowania pomiaru magnetometru
 #define VMAX_SKALO_MAGN    	100.0f
-#define VDEF_SKALO_MAGN    	1.0f
+#define VDOM_SKALO_MAGN    	1.0f
 
 #define VMIN_PRZES_MAGN    	-0.01f		//limity wartości przesunięcia pomiaru magnetometru +/- 10 mT
 #define VMAX_PRZES_MAGN    	0.01f
-#define VDEF_PRZES_MAGN    	0.0f
+#define VDOM_PRZES_MAGN    	0.0f
 
 #define VMIN_PID_WZMP    	(float)0.0     //limity wartości wzmocnienienia członu P regulatora
 #define VMAX_PID_WZMP    	(float)1000
-#define VDEF_PID_WZMP    	(float)1.0
+#define VDOM_PID_WZMP    	(float)1.0
 
 #define VMIN_PID_WZMI    	(float)0.0     //limity wartości wzmocnienienia członu I regulatora
 #define VMAX_PID_WZMI    	(float)1000
-#define VDEF_PID_WZMI    	(float)0.0
+#define VDOM_PID_WZMI    	(float)0.0
 
 #define VMIN_PID_WZMD    	(float)0.0    //limity wartości wzmocnienienia członu D regulatora
 #define VMAX_PID_WZMD    	(float)1000
-#define VDEF_PID_WZMD    	(float)0.0
+#define VDOM_PID_WZMD    	(float)0.0
 
 #define VMIN_PID_SLEWR   	(float)1.0     //limity prędkości narastania sygnału regulatora 0 [%/s]
 #define VMAX_PID_SLEWR   	(float)10000    //max 100% / 0,01s
-#define VDEF_PID_SLEWR   	(float)10000
+#define VDOM_PID_SLEWR   	(float)10000
 
 #define VMIN_PID_ILIM    	(float)0.0     //limit wartości całki członu całkującego regulatora PID
 #define VMAX_PID_ILIM    	(float)100     //max 100%
-#define VDEF_PID_ILIM    	(float)23
+#define VDOM_PID_ILIM    	(float)23
 
 #define VMIN_PID_MINWY   	(float)-100.0    //minimalna wartość wyjścia
 #define VMAX_PID_MINWY   	(float)100.0
-#define VDEF_PID_MINWY   	(float)-100.0
+#define VDOM_PID_MINWY   	(float)-100.0
 
 #define VMIN_PID_MAXWY   	(float)-100.0    //maksymalna wartość wyjścia
 #define VMAX_PID_MAXWY   	(float)100.0
-#define VDEF_PID_MAXWY   	(float)100.0
+#define VDOM_PID_MAXWY   	(float)100.0
 
 #define VMIN_PID_SKALAWZ 	(float)0.0001    //skalowanie wartości zadanej
 #define VMAX_PID_SKALAWZ 	(float)1000.0
-#define VDEF_PID_SKALAWZ 	(float)0.2
+#define VDOM_PID_SKALAWZ 	(float)0.2
 
-#define VMIN_MIX_PRZE		(float)-100.0    //maksymalna wartość wyjścia
-#define VMAX_MIX_PRZE    	(float)100.0
-#define VDEF_MIX_PRZE    	(float)100.0
+#define VMIN_MIX_PRZEPOCH	-1000.0f    //składowe pochylenia i przechylenia długości ramienia koptera w mikserze [mm], max 1m
+#define VMAX_MIX_PRZEPOCH   1000.0f
+#define VDOM_MIX_PRZEPOCH   0.0f
 
+#define VMIN_MIX_ODCH		-1.0f    //współczynnik wpływu kierunku obrotów silnika na odchylenie
+#define VMAX_MIX_ODCH    	1.0f
+#define VDOM_MIX_ODCH    	0.0f
 
 /*
 #define VALM_SPGAIN       (float)0.0001  //limity wartości  współczynnika wzmocnienia sygnału zadanego z aparatury
