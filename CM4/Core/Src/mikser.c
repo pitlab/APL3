@@ -11,7 +11,7 @@
 #include "fram.h"
 #include "pid.h"
 
-stMikser_t stMikser[KANALY_MIKSERA];	//struktura zmiennych miksera
+stMikser_t stMikser;	//struktura zmiennych miksera
 uint16_t sWysterowanieJalowe;	//wartość wysterowania regulatorów dla uzyskania obrotów jałowych
 uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
 uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
@@ -40,7 +40,7 @@ uint8_t InicjujMikser(void)
 //uint8_t InicjujMikser(stMikser_t* mikser)
 {
 	uint8_t chErr = BLAD_OK;
-	uint8_t chLiczbaSilnikow;
+	//uint8_t chLiczbaSilnikow;
 	float fNormPrze, fNormPoch;
 
 	/*/włącz odbługę timerów do generowania sygnałów serw i dekodowania PPM z odbiorników RC
@@ -63,38 +63,38 @@ uint8_t InicjujMikser(void)
 	for (uint8_t n=0; n<KANALY_SERW; n++)
 		uDaneCM4.dane.sSerwo[n] = 1000 + 50*n;	//sterowane kanałów serw
 	chNumerKanSerw = 8;		//wskaźnik kanału obsługuje dekoder serw, wiec inicjuj go wartoscią pierwszego kanału
-	chLiczbaSilnikow = 0;
+	stMikser.chLiczbaSilnikow = 0;
 	fNormPrze = fNormPoch = 0.0f;
 
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 	{
-		chErr |= CzytajFramZWalidacja(FAU_MIX_PRZECH + 4*n, &stMikser[n].fPrze, VMIN_MIX_PRZEPOCH, VMAX_MIX_PRZEPOCH, VDOM_MIX_PRZEPOCH, ERR_NASTAWA_FRAM);	//8*4F składowa przechylenia długości ramienia koptera w mikserze [mm], max 1m
-		chErr |= CzytajFramZWalidacja(FAU_MIX_POCHYL + 4*n, &stMikser[n].fPoch, VMIN_MIX_PRZEPOCH, VMAX_MIX_PRZEPOCH, VDOM_MIX_PRZEPOCH, ERR_NASTAWA_FRAM);	//8*4F składowa pochylenia długości ramienia koptera w mikserze [mm], max 1m
-		chErr |= CzytajFramZWalidacja(FAU_MIX_ODCHYL + 4*n, &stMikser[n].fOdch, VMIN_MIX_ODCH, VMAX_MIX_ODCH, VDOM_MIX_ODCH, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu kierunku obrotów silnika na odchylenie
+		chErr |= CzytajFramZWalidacja(FAU_MIX_PRZECH + 4*n, &stMikser.fPrze[n], VMIN_MIX_PRZEPOCH, VMAX_MIX_PRZEPOCH, VDOM_MIX_PRZEPOCH, ERR_NASTAWA_FRAM);	//8*4F składowa przechylenia długości ramienia koptera w mikserze [mm], max 1m
+		chErr |= CzytajFramZWalidacja(FAU_MIX_POCHYL + 4*n, &stMikser.fPoch[n], VMIN_MIX_PRZEPOCH, VMAX_MIX_PRZEPOCH, VDOM_MIX_PRZEPOCH, ERR_NASTAWA_FRAM);	//8*4F składowa pochylenia długości ramienia koptera w mikserze [mm], max 1m
+		chErr |= CzytajFramZWalidacja(FAU_MIX_ODCHYL + 4*n, &stMikser.fOdch[n], VMIN_MIX_ODCH, VMAX_MIX_ODCH, VDOM_MIX_ODCH, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu kierunku obrotów silnika na odchylenie
 
 		//suma kwadratów
-		fNormPrze += stMikser[n].fPrze * stMikser[n].fPrze;
-		fNormPoch += stMikser[n].fPoch * stMikser[n].fPoch;
+		fNormPrze += stMikser.fPrze[n] * stMikser.fPrze[n];
+		fNormPoch += stMikser.fPoch[n] * stMikser.fPoch[n];
 
-		if ((stMikser[n].fPrze > 1.0f) || (stMikser[n].fPrze < -1.0f) || (stMikser[n].fPoch > 1.0f) || (stMikser[n].fPoch < -1.0f))
-			chLiczbaSilnikow++;
+		if ((stMikser.fPrze[n] > 1.0f) || (stMikser.fPrze[n] < -1.0f) || (stMikser.fPoch[n] > 1.0f) || (stMikser.fPoch[n] < -1.0f))
+			stMikser.chLiczbaSilnikow++;
 	}
 
 	//normalizuj składowe pochylenia i przechylenia miksera aby pozbyć się długosci ramienia
-	fNormPrze = sqrtf(fNormPrze / (chLiczbaSilnikow / 2));
-	fNormPoch = sqrtf(fNormPoch / (chLiczbaSilnikow / 2));
+	fNormPrze = sqrtf(fNormPrze / (stMikser.chLiczbaSilnikow / 2));
+	fNormPoch = sqrtf(fNormPoch / (stMikser.chLiczbaSilnikow / 2));
 
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 	{
 		if (fNormPrze)
-			stMikser[n].fPrze /= fNormPrze;
+			stMikser.fPrze[n] /= fNormPrze;
 		else
-			stMikser[n].fPrze = 0;
+			stMikser.fPrze[n] = 0;
 
 		if (fNormPoch)
-			stMikser[n].fPoch /= fNormPoch;
+			stMikser.fPoch[n] /= fNormPoch;
 		else
-			stMikser[n].fPoch = 0;
+			stMikser.fPoch[n] = 0;
 	}
 
 	sWysterowanieMin 	= CzytajFramU16(FAU_PWM_MIN);      	//minimalne wysterowanie silników [us]
@@ -144,21 +144,21 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 
 
 		sMaxTmp1 = sMaxTmp2 = -200 * PPM1PROC_BIP; //inicjuj maksima wartością minimalną aby wyłapać wartości ponizej zera
-		for (uint8_t n=0; n<KANALY_MIKSERA; n++)
+		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
 		{
 			//w pierwszej kolejności sumuj pochylenie i przechylenie
-			sTmp1[n] = (mikser + n)->fPoch * dane->stWyjPID[PID_PK_POCH].fWyjsciePID - (mikser + n)->fPrze * dane->stWyjPID[PID_PK_PRZE].fWyjsciePID * PPM1PROC_BIP;
+			sTmp1[n] = mikser->fPoch[n] * dane->stWyjPID[PID_PK_POCH].fWyjsciePID - mikser->fPrze[n] * dane->stWyjPID[PID_PK_PRZE].fWyjsciePID * PPM1PROC_BIP;
 			if (sTmp1[n] > sMaxTmp1)
 				sMaxTmp1 = sTmp1[n];
 
 			//osobno sumuj mniej ważne regulatory ciągu i odchylenia
-			sTmp2[n] = (dane->stWyjPID[PID_WARIO].fWyjsciePID + (mikser + n)->fOdch * dane->stWyjPID[PID_PK_ODCH].fWyjsciePID ) * PPM1PROC_BIP;
+			sTmp2[n] = (dane->stWyjPID[PID_WARIO].fWyjsciePID + mikser->fOdch[n] * dane->stWyjPID[PID_PK_ODCH].fWyjsciePID ) * PPM1PROC_BIP;
 			if (sTmp2[n] > sMaxTmp2)
 				sMaxTmp2 = sTmp2[n];
 		}
 
 		 //jeżeli suma kanałów jest większa niż 100% to najpierw skaluj ważniejsze regulatory odpowiadajace za stabilizację a jeżeli jeszcze jest miejsce do potem mniej ważne
-		for (uint8_t n=0; n<KANALY_MIKSERA; n++)
+		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
 		{
 			if ((sMaxTmp1 + sMaxTmp2 + sPWMGazu) < sWysterowanieMax)     //jeżeli nie przekraczamy zakresu to sumuj wszystkie regulatory
 				sTmpSerwo[n] = sTmp1[n] + sTmp2[n] + sPWMGazu;
@@ -182,12 +182,12 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 	}
 	else	//silniki nie są uzbrojone
 	{
-		for (uint8_t n=0; n<KANALY_MIKSERA; n++)
+		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
 			sTmpSerwo[n] = PPM_MIN;
 	}
 
 	//przepisz roboczą zmienną do zmiennej stanu serw
-	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
+	for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
 		dane->sSerwo[n] = sTmpSerwo[n];
 
 	return chErr;

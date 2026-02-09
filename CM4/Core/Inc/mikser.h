@@ -15,10 +15,10 @@
 //struktura danych miksera
 typedef struct
 {
-	float fPrze;		//składowa przechylenia na każdy silnik
-	float fPoch;		//składowa pochylenia na każdy silnik
-	float fOdch;		//składowa odchylenia na każdy silnik
-
+	float fPrze[KANALY_MIKSERA];		//składowa przechylenia na każdy silnik
+	float fPoch[KANALY_MIKSERA];		//składowa pochylenia na każdy silnik
+	float fOdch[KANALY_MIKSERA];		//składowa odchylenia na każdy silnik
+	uint8_t chLiczbaSilnikow;
 }stMikser_t;
 
 
