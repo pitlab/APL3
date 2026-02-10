@@ -13,6 +13,7 @@
 
 
 uint8_t chTrybRegulacji[LICZBA_REG_PARAM];	//rodzaj regulacji dla podstawowych parametrów
+extern uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC do funkcji drążków aparatury
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wczytuje konfigurację kontrolera lotu
@@ -44,9 +45,9 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 	uint8_t chIndeksPID_Kata, chIndeksPID_Predk;
 	uint8_t chErr = BLAD_OK;
 
-	//sprowadź wartość kanałów wejsciowych z drążków aparatury RC do znormalizowanej wartości symetrycznej wzgledem zera: +-100
+	//sprowadź wartość kanałów wejsciowych z drążków aparatury RC do znormalizowanej wartości symetrycznej wzgledem zera: +-1.0
 	for (uint16_t n=0; n<LICZBA_DRAZKOW; n++)
-		fWeRc[n] = (float)(dane->sKanalRC[n] - PPM_NEUTR) / (PPM_MAX - PPM_NEUTR);
+		fWeRc[n] = (float)(dane->sKanalRC[chKanalDrazkaRC[n]] - PPM_NEUTR) / (PPM_MAX - PPM_NEUTR);
 
 	for (uint16_t n=0; n<LICZBA_REG_PARAM; n++)
 	{
@@ -54,41 +55,77 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 		chIndeksPID_Predk =  2*n + 1;	//indeks regulatora pochodnej: prędkosci kątowych i prędkosci zmiany wysokości
 
 		if (chTrybRegulacji[n] == REG_RECZNA)
-			dane->stWyjPID[chIndeksPID_Predk].fWyjsciePID = fWeRc[n];	//regulatory nie działają, wstaw dane z drążka
+		{
+			//regulatory nie działają, wstaw dane z drążka
+			switch(n)
+			{
+			case PRZE:
+			case POCH:
+			case ODCH:
+			case WYSO:  dane->stWyjPID[chIndeksPID_Predk].fWyjsciePID = fWeRc[n];	break;	//regulator sterowania prędkością zmiany wysokości
+			case POZN:	break;	//regulatory pozycji nie są ustawiane z drążka
+			case POZE:	break;
+			}
+		}
 		else	//regulatory działają
 		{
-			//określ czy regulator kata przechylenia ma pracować
-			if (chTrybRegulacji[n] > REG_AKRO)
-			{
+			if (chTrybRegulacji[n] == REG_WYLACZ)
+				break;
 
-				//określ co ma być wartością zadaną dla regulatora kąta: regulatory nawigacji czy drążek RC
-				if (chTrybRegulacji[n] == REG_AUTO)
-				{
-					//tutaj będzie obsługa regulatora nawigacyjnego
-					//dane->stWyjPID[chIndeksPID_Predk].fZadana = składowa przechylenia z regulatora prędkosci zmiany pozycji geograficznej
-				}
+			if (chTrybRegulacji[n] == REG_AUTO)
+			{
+				//tutaj będzie obsługa regulatora nawigacyjnego produkującego wartości zadane dla regulatorów kątów oraz dla trybów automatycznego startu i lądowania generujacych wartosci zadane dla regulatora wysokości
+
+			}
+
+			if (chTrybRegulacji[n] >= REG_STAB)		//czy ma pracować regulator parametru głównego
+			{
+				//ustaw wartości zadane dla regualtorów parametru głównego
+				if (chTrybRegulacji[n] == REG_STAB)
+					dane->stWyjPID[chIndeksPID_Kata].fZadana = fWeRc[n] * konfig[chIndeksPID_Kata].fSkalaWZadanej;	//wartością zadaną jest drążek aparatury
 				else
 				{
-					dane->stWyjPID[chIndeksPID_Kata].fZadana = fWeRc[n] * konfig[chIndeksPID_Kata].fSkalaWZadanej;
+					if (n < POZN)	//tylko na przechylenia, pochylenia, odchylenia i wysokości
+					{
+						//wykonaj przeliczenie prędkości zmiany położenia na wartość zadaną
+						dane->stWyjPID[chIndeksPID_Kata].fZadana = 0;		//wartoscią zadaną jest wyjście PID nadrzędnego
+					}
 				}
-
-				//regulator kąta
-				dane->stWyjPID[chIndeksPID_Kata].fWejscie = dane->fKatIMU1[n];
-				RegulatorPID(ndT, chIndeksPID_Kata, dane, konfig);
-				dane->stWyjPID[chIndeksPID_Predk].fZadana = dane->stWyjPID[chIndeksPID_Kata].fWyjsciePID;
+				//ustaw parametr wejściowy
+				switch(n)
+				{
+				case PRZE:
+				case POCH:
+				case ODCH:  dane->stWyjPID[chIndeksPID_Kata].fWejscie = dane->fKatIMU1[n];		break;	//regulator sterowania kątami
+				case WYSO:  dane->stWyjPID[chIndeksPID_Kata].fWejscie = dane->fWysokoMSL[0];	break;	//regulator sterowania wysokością
+				case POZN:	dane->stWyjPID[chIndeksPID_Kata].fWejscie = (float)dane->stGnss1.dSzerokoscGeo;	break;	//regulator sterowania zmian położenia północnego
+				case POZE:	dane->stWyjPID[chIndeksPID_Kata].fWejscie = (float)dane->stGnss1.dDlugoscGeo;	break;	//regulator sterowania zmianą położenia wschodniego
+				}
+				RegulatorPID(ndT, chIndeksPID_Kata, dane, konfig);	//licz regulator parametru głównego
 			}
-			else
+
+			if (chTrybRegulacji[n] >= REG_AKRO)		//czy ma pracować regulator pochodnej parametru głównego
 			{
-				//regulatory nawigacyjne i stabilizacyjny nie działają, jesteśmy w trybie akrobacyjnym, wartość zadana prędkości kątowej pochodzi z drążka
-				dane->stWyjPID[chIndeksPID_Predk].fZadana = fWeRc[n] * konfig[chIndeksPID_Predk].fSkalaWZadanej;
-			}
+				//ustaw wartości zadane dla regualtorów pochodnej
+				if (chTrybRegulacji[n] == REG_AKRO)
+					dane->stWyjPID[chIndeksPID_Predk].fZadana = fWeRc[n] * konfig[chIndeksPID_Predk].fSkalaWZadanej;	//wartością zadaną jest drążek aparatury
+				else
+					dane->stWyjPID[chIndeksPID_Predk].fZadana = dane->stWyjPID[chIndeksPID_Kata].fWyjsciePID * konfig[chIndeksPID_Predk].fSkalaWZadanej;	//wartoscią zadaną jest wyjście PID nadrzędnego
 
-			//regulator prędkosci kątowej
-			dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->fZyroKal1[n];
-			RegulatorPID(ndT, chIndeksPID_Predk, dane, konfig);
+				//ustaw parametr wejściowy
+				switch(n)
+				{
+				case PRZE:
+				case POCH:
+				case ODCH:  dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->fKatZyro1[n];	break;	//regulator sterowania prędkościami kątowymi
+				case WYSO:  dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->fWariometr[0];	break;	//regulator sterowania prędkością zmiany wysokości
+				case POZN:	dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->stGnss1.fPredkoscN; break;	//regulator sterowania prędkością zmiany położenia północnego
+				case POZE:	dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->stGnss1.fPredkoscE; break;	//regulator sterowania prędkością zmiany położenia wschodniego
+				}
+				RegulatorPID(ndT, chIndeksPID_Predk, dane, konfig); 	//licz regulator pochodnej parametru głównego
+			}
 		}
 	}
-
 	return chErr;
 }
 

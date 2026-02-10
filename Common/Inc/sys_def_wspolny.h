@@ -184,13 +184,13 @@
 #define REG_AUTO		4		//regulacja automatyczna, steruje wartością nadrzędną czyli nawigacją po wspołrzędnych geograficznych
 
 
-//definicje regulowanych parametrów
+//definicje głwnych regulowanych parametrów (oprócz tego każdy ma regulator pochodnej parametru głównego)
 #define PRZE	0    //regulator sterowania przechyleniem (lotkami w samolocie)
 #define POCH	1    //regulator sterowania pochyleniem (sterem wysokości)
-#define ODCH    2    //regulator sterowania obrotem (sterem kierunku)
+#define ODCH    2    //regulator sterowania odchyleniem (sterem kierunku)
 #define WYSO	3    //regulator sterowania wysokością
-#define POZN	4    //regulator sterowania prędkością i położeniem północnym
-#define POZE	5    //regulator sterowania prędkością i położeniem wschodnim
+#define POZN	4    //regulator sterowania położeniem północnym
+#define POZE	5    //regulator sterowania położeniem wschodnim
 
 #define LICZBA_REG_PARAM  6 //liczba regulowanych parametrów
 

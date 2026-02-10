@@ -123,7 +123,8 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 				if (chIloscDanych[chIndeksAdresow] < (ROZMIAR_RAMKI_KOMUNIKACYJNEJ - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
 				{
 					WstawDaneDoRamkiTele(chIndeksNapelnRamki, chIndeksAdresow, chIloscDanych[chIndeksAdresow], n, fZmienna);
-					chIloscDanych[chIndeksNapelnRamki]++;
+					//chIloscDanych[chIndeksNapelnRamki]++;	//
+					chIloscDanych[chIndeksAdresow]++;
 				}
 			}
 		}

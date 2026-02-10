@@ -88,6 +88,8 @@ typedef struct _GNSS
 	double dSzerokoscGeo;
 	float fPredkoscWzglZiemi;
 	float fKurs;
+	float fPredkoscN;
+	float fPredkoscE;
 	float fWysokoscMSL;
 	float fHdop;
 	float fVdop;
