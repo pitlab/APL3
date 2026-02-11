@@ -130,6 +130,8 @@
 #define RC_PRZEL_P50 3	//plus 50%
 #define RC_PRZEL_PLU 4	//plus 100%
 
+#define NORMA_SYGNALU	100.0f		//do tej wartosci sa normalizowane wejścia RC, wyjścia regualtorów PID
+
 //definicje funkcji uruchamianych kanałem RC
 #define FRC_WLACZ_WYJSCIE_OD1	0
 #define FRC_WLACZ_WYJSCIE_OD2	1

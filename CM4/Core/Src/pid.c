@@ -179,58 +179,6 @@ void ResetujCalkePID(void)
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-// Funkcja łączy regualtory PID kątów i wysokości z regulatorami prędkości katowych i wario realizując sterowanie stabilnością
-// Parametry: brak
-// [i] ndT - czas od ostatniego cyklu [us]
-// [i] *konfig - wskaźnik na strukturę danych regulatorów PID
-// Zwraca: kod błędu
-////////////////////////////////////////////////////////////////////////////////
-//Obecnie nie używane - do usuniecia po uruchomieniu kontrolera lotu
-uint8_t StabilizacjaPID(uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig)
-{
-	//regulacja przechylenia
-	//dane->stWyjPID[PID_PRZE].fZadana = (float)(dane->sKanalRC[PRZE] - PPM_NEUTR) * fSkalaWartosciZadanejStab[PRZE]  / (PPM_MAX - PPM_NEUTR);
-	dane->stWyjPID[PID_PRZE].fWejscie = dane->fKatIMU1[PRZE];
-	RegulatorPID(ndT, PID_PRZE, dane, konfig);
-
-	dane->stWyjPID[PID_PK_PRZE].fWejscie = dane->fZyroKal1[PRZE];
-	dane->stWyjPID[PID_PK_PRZE].fZadana = dane->stWyjPID[PID_PRZE].fWyjsciePID;
-	RegulatorPID(ndT, PID_PK_PRZE, dane, konfig);
-
-	//regulacja pochylenia
-	dane->stWyjPID[PID_POCH].fZadana = (float)(dane->sKanalRC[POCH] - PPM_NEUTR) * MAX_PID  / (PPM_MAX - PPM_NEUTR);
-	dane->stWyjPID[PID_POCH].fWejscie = dane->fKatIMU1[POCH];
-	RegulatorPID(ndT, PID_POCH, dane, konfig);
-
-	dane->stWyjPID[PID_PK_POCH].fWejscie = dane->fZyroKal1[POCH];
-	dane->stWyjPID[PID_PK_POCH].fZadana = dane->stWyjPID[PID_POCH].fWyjsciePID;
-	RegulatorPID(ndT, PID_PK_POCH, dane, konfig);
-
-	//regulacja odchylenia
-	dane->stWyjPID[PID_ODCH].fZadana = (float)(dane->sKanalRC[3] - PPM_NEUTR) * MAX_PID  / (PPM_MAX - PPM_NEUTR);
-	dane->stWyjPID[PID_ODCH].fWejscie = dane->fKatIMU1[ODCH];
-	RegulatorPID(ndT, PID_ODCH, dane, konfig);
-
-	dane->stWyjPID[PID_PK_ODCH].fWejscie = dane->fZyroKal1[ODCH];
-	dane->stWyjPID[PID_PK_ODCH].fZadana = dane->stWyjPID[PID_ODCH].fWyjsciePID;
-	RegulatorPID(ndT, PID_PK_ODCH, dane, konfig);
-
-	//regulacja wysokości
-	//konfig[PID_WYSO].fWejscie = dane->fWysokoMSL[0];
-	ndT = 5000;
-	dane->stWyjPID[PID_WYSO].fZadana = 60;
-	dane->stWyjPID[PID_WYSO].fWejscie = 40;
-	RegulatorPID(ndT, PID_WYSO, dane, konfig);
-
-	dane->stWyjPID[PID_WARIO].fWejscie = dane->fWariometr[0];
-	dane->stWyjPID[PID_WARIO].fZadana = dane->stWyjPID[PID_WYSO].fWyjsciePID;
-	RegulatorPID(ndT, PID_WARIO, dane, konfig);
-	return BLAD_OK;
-}
-
-
-
 #ifdef TESTY		//testy algorytmów
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja testująca regulatory. Sprawdza czy dla wybranych warunków i nastaw uzyskuje się właściwą odpowiedź .

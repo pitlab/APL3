@@ -45,9 +45,9 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 	uint8_t chIndeksPID_Kata, chIndeksPID_Predk;
 	uint8_t chErr = BLAD_OK;
 
-	//sprowadź wartość kanałów wejsciowych z drążków aparatury RC do znormalizowanej wartości symetrycznej wzgledem zera: +-1.0
+	//sprowadź wartość kanałów wejsciowych z drążków aparatury RC do znormalizowanej wartości symetrycznej wzgledem zera: +-NORMA_SYGNALU
 	for (uint16_t n=0; n<LICZBA_DRAZKOW; n++)
-		fWeRc[n] = (float)(dane->sKanalRC[chKanalDrazkaRC[n]] - PPM_NEUTR) / (PPM_MAX - PPM_NEUTR);
+		fWeRc[n] = (float)(dane->sKanalRC[chKanalDrazkaRC[n]] - PPM_NEUTR) / (PPM_MAX - PPM_NEUTR) * NORMA_SYGNALU;
 
 	for (uint16_t n=0; n<LICZBA_REG_PARAM; n++)
 	{
@@ -82,7 +82,7 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 			{
 				//ustaw wartości zadane dla regualtorów parametru głównego
 				if (chTrybRegulacji[n] == REG_STAB)
-					dane->stWyjPID[chIndeksPID_Kata].fZadana = fWeRc[n] * konfig[chIndeksPID_Kata].fSkalaWZadanej;	//wartością zadaną jest drążek aparatury
+					dane->stWyjPID[chIndeksPID_Kata].fZadana = fWeRc[n] * konfig[chIndeksPID_Kata].fSkalaWZadanej / NORMA_SYGNALU;	//wartością zadaną jest drążek aparatury
 				else
 				{
 					if (n < POZN)	//tylko na przechylenia, pochylenia, odchylenia i wysokości
@@ -108,16 +108,16 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 			{
 				//ustaw wartości zadane dla regualtorów pochodnej
 				if (chTrybRegulacji[n] == REG_AKRO)
-					dane->stWyjPID[chIndeksPID_Predk].fZadana = fWeRc[n] * konfig[chIndeksPID_Predk].fSkalaWZadanej;	//wartością zadaną jest drążek aparatury
+					dane->stWyjPID[chIndeksPID_Predk].fZadana = fWeRc[n] * konfig[chIndeksPID_Predk].fSkalaWZadanej / NORMA_SYGNALU;	//wartością zadaną jest drążek aparatury
 				else
-					dane->stWyjPID[chIndeksPID_Predk].fZadana = dane->stWyjPID[chIndeksPID_Kata].fWyjsciePID * konfig[chIndeksPID_Predk].fSkalaWZadanej;	//wartoscią zadaną jest wyjście PID nadrzędnego
+					dane->stWyjPID[chIndeksPID_Predk].fZadana = dane->stWyjPID[chIndeksPID_Kata].fWyjsciePID * konfig[chIndeksPID_Predk].fSkalaWZadanej / NORMA_SYGNALU;	//wartoscią zadaną jest wyjście PID nadrzędnego
 
 				//ustaw parametr wejściowy
 				switch(n)
 				{
 				case PRZE:
 				case POCH:
-				case ODCH:  dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->fKatZyro1[n];	break;	//regulator sterowania prędkościami kątowymi
+				case ODCH:  dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->fZyroKal1[n];	break;	//regulator sterowania prędkościami kątowymi
 				case WYSO:  dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->fWariometr[0];	break;	//regulator sterowania prędkością zmiany wysokości
 				case POZN:	dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->stGnss1.fPredkoscN; break;	//regulator sterowania prędkością zmiany położenia północnego
 				case POZE:	dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->stGnss1.fPredkoscE; break;	//regulator sterowania prędkością zmiany położenia wschodniego
