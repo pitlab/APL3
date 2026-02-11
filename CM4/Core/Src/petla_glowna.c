@@ -99,7 +99,6 @@ void PetlaGlowna(void)
 
 	case ADR_MOD3:		//obsługa modułu w gnieździe 3
 		//chBladPG |= ObslugaModuluIiP(ADR_MOD3);
-		TestyObrotu(ADR_MOD3);
 		break;
 
 	case ADR_MOD4:		//obsługa modułu w gnieździe 4
@@ -139,7 +138,13 @@ void PetlaGlowna(void)
 		chBladPG |= RozdzielniaOperacjiI2C();
 		break;
 
-	case 7:	JednostkaInercyjnaTrygonometria(ndT);	break;	//dane do IMU1
+	case 7:
+		nCzasBiezacy = PobierzCzas();
+		ndT = MinalCzas2(nCzasPoprzedniegoObiegu, nCzasBiezacy);	//licz czas od ostatniego obiegu pętli
+		uDaneCM4.dane.ndT = ndT;
+		nCzasPoprzedniegoObiegu = nCzasBiezacy;
+		JednostkaInercyjnaTrygonometria(ndT);	break;	//dane do IMU1
+
 	case 8:	JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
 
 	case 9:	chBladPG |= ObslugaRamkiSBus();
@@ -180,9 +185,7 @@ void PetlaGlowna(void)
 	default:	break;
 	}
 
-	nCzasBiezacy = PobierzCzas();
-	ndT = MinalCzas2(nCzasPoprzedniegoObiegu, nCzasBiezacy);	//licz czas od ostatniego obiegu pętli
-	nCzasPoprzedniegoObiegu = nCzasBiezacy;
+
 
 	//pomiar czasu zajętego w każdym odcinku
 	nCzasOdcinka[chNrOdcinkaCzasu] = MinalCzas(nCzasOstatniegoOdcinka);

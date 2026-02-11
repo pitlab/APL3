@@ -77,6 +77,10 @@ uint8_t InicjujJednostkeInercyjna(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 {
+	uint8_t chBlad = BLAD_OK;
+	if (ndT > MAX_DT)
+		return BLAD_ZLE_DANE;
+
 	//licz całkę z prędkosci kątowych żyroskopów
 	for (uint16_t n=0; n<3; n++)
 	{
@@ -110,8 +114,8 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 	//filtr komplementarny IMU
 	for (uint16_t n=0; n<3; n++)
 	{
-		uDaneCM4.dane.fKatIMU1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT / 1000000;
-		uDaneCM4.dane.fKatIMU1[n] = 0.05 * uDaneCM4.dane.fKatAkcel1[n] + 0.95 * uDaneCM4.dane.fKatIMU1[n];
+		uDaneCM4.dane.fKatIMU1[n] = 0.02 * uDaneCM4.dane.fKatAkcel1[n] + 0.98 * uDaneCM4.dane.fKatIMU1[n];	//kasowanie dryftu dodatkiem kąta z akceletromtru
+		uDaneCM4.dane.fKatIMU1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT / 1000000;							//przyrost kąta z całki żyroskopu
 	}
 
 	/*/w celu porównania metody policz katy z tych samych danych metodą kwaternionową
@@ -124,7 +128,7 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 	Normalizuj(fQA, fQA, 4);
 	Normalizuj(fQM, fQM, 4);
 	KatyKwaterniona(fQA, fQM, (float*)uDaneCM4.dane.fKatAkcel2); */
-	return BLAD_OK;
+	return chBlad;
 }
 
 
@@ -147,7 +151,7 @@ uint8_t JednostkaInercyjnaKwaterniony(uint32_t ndT, float *fZyro, float *fAkcel,
 	float fQPoch[4], fQprze[4], fQkompens[4];	//kwaterniony obrotu o pochylenie i przechylenie oraz łączny obrót kompensacji magnetometru
 
 
-	//Wyznaczam kwaterniony obrotów w formie algebraicznej korzystając z danych wejściowych wprowadzonych do formy trygonometrycznej
+	//Wyznaczam kwaterniony obrotów w formie algebraicznej korzystając z danych wejściowych sprowadzonych do formy trygonometrycznej
 	//fQz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
 	//fdPsi2 = uDaneCM4.dane.fZyroKal1[2] * ndT[chGniazdo] / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
 	fdPsi2 = *(fZyro+2) * ndT / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
@@ -232,14 +236,6 @@ uint8_t JednostkaInercyjnaKwaterniony(uint32_t ndT, float *fZyro, float *fAkcel,
 
 	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(Y/X) dla X=N, Y=E => atan2(X, Y)
 	uDaneCM4.dane.fKatIMU2[2] = atan2f(fQMagKompens[2], fQMagKompens[1]);
-
-	/*/przepisz kwaterniony do zmiennych wymiany
-	for (uint8_t n=0; n<4; n++)
-	{
-		uDaneCM4.dane.fKwaAkc[n] = fQAcc[n];
-		//uDaneCM4.dane.fKwaAkc[n] = fQMagKompens[n];
-		uDaneCM4.dane.fKwaMag[n] = fQMag[n];
-	}*/
 	return BLAD_OK;
 }
 
@@ -261,7 +257,6 @@ float FiltrAdaptacyjnyAkc(float *fAkcel)
 	for (uint8_t n=0; n<3; n++)
 		fPrzyspRuchu += *(fAkcel+n) * *(fAkcel+n);			//suma kwadratów 3 osi akcelerometru
 	fPrzyspRuchu = sqrtf(fPrzyspRuchu);						//bezwzględna długość wektora przyspieszenia
-	//fPrzyspRuchu = fabs(fPrzyspRuchu - AKCEL1G) / AKCEL1G;	//wartość przyspieszenia wynikającego ze zmiany prędkości [m/s^2]
 	fPrzyspRuchu = fabs(fPrzyspRuchu - AKCEL1G);	//wartość przyspieszenia wynikającego ze zmiany prędkości [m/s^2]
 
 	if (fPrzyspRuchu < PROG_ACC_DOBRY)	//poziom zakłóceń akceptowalny, można w pełni kompensować dryft kątów akcelerometrem
@@ -290,7 +285,6 @@ float FiltrAdaptacyjnyMag(float *fMag)
 	for (uint8_t n=0; n<3; n++)
 		fZaklocenieMag += *(fMag+n) * *(fMag+n);	//suma kwadratów 3 osi magnetometru
 	fZaklocenieMag = sqrtf(fZaklocenieMag);			//bezwzględna długość wektora magnetycznego
-	//fZaklocenieMag = fabs(fZaklocenieMag - NOMINALNE_MAGN) / NOMINALNE_MAGN;				//wartość przyspieszenia wynikającego ze zmiany prędkości [m/s^2]
 	fZaklocenieMag = fabs(fZaklocenieMag - NOMINALNE_MAGN);				//wartość przyspieszenia wynikającego ze zmiany prędkości [m/s^2]
 
 	if (fZaklocenieMag < PROG_MAG_DOBRY)	//poziom zakłóceń akceptowalny, można w pełni kompensować dryft kątów akcelerometrem
@@ -304,45 +298,6 @@ float FiltrAdaptacyjnyMag(float *fMag)
 }
 
 
-
-////////////////////////////////////////////////////////////////////////////////
-// Funkcja do testowania i pomiaru parametrów algorytmów
-// Zwraca: nic
-// Czas trwania: ?
-////////////////////////////////////////////////////////////////////////////////
-void TestyObrotu(uint8_t chGniazdo)
-{
-	//float fS0, fX0, fY0, fZ0;
-/*	float fdPhi2, fdTheta2, fdPsi2;	//połowy przyrostu kąta obrotu
-	float fModul;	//długości osi obracajacej wektor
-	float qx[4], qy[4], qz[4];	//kwaterniony obortów wokół osi XYZ
-	float qv[4], vq[4];	//pośrednie etapy mnożenia
-	float qp[4];	//kwaternion obracanego wektora
-	float qs[4];	//kwaternion sprzężony
-	float p[3], r[3], s[3], t[3];		//punkt obracany i po obrocie
-	//float fOsObr[3];			//oś obrotu
-	uint32_t nCzas;
-	float A[4][4], B[4][4], C[4][4];	//kwaterniony w postaci macierzowej
-	float fQxyz[4];	//kwaternion obrotu o wszystkie 3 osie jednoczesnie */
-
-
-
-	//pomiary czasu
-	/*nCzas = PobierzCzas();
-	JednostkaInercyjna4Kwaterniony(ADR_MOD2);
-	nCzas = MinalCzas(nCzas);
-
-	nCzas = PobierzCzas();
-	for (uint16_t n=0; n<100; n++)
-		KatyKwaterniona(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);
-	nCzas = MinalCzas(nCzas);
-
-	nCzas = PobierzCzas();
-	for (uint16_t n=0; n<100; n++)
-		KatyKwaterniona2(fQAcc, fQMag, (float*)uDaneCM4.dane.fKatIMU2);
-	nCzas = MinalCzas(nCzas); */
-	return;
-}
 
 
 

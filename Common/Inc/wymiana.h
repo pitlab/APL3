@@ -153,6 +153,7 @@ typedef struct
 	uint32_t nBrakCzujnika;		//zestaw flag obecnosci czujników
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
 	uint8_t chWymowSampla;		//indeks sampla głosowego do wymówienia
+	uint32_t ndT;
 } stWymianyCM4_t;
 
 

@@ -104,6 +104,7 @@
 #define TELEID_DOTYK_ADC0	79
 #define TELEID_DOTYK_ADC1	80
 #define TELEID_DOTYK_ADC2	81
+#define TELEID_CZAS_PETLI	82	//czas trwania ostatniej petli głównej w us
 //max do 127
 
 //zmiene telemetryczne w ramce 2

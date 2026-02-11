@@ -290,7 +290,7 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TELEID_DOTYK_ADC0:	fZmiennaTele = statusDotyku.sAdc[0];		break;
 	case TELEID_DOTYK_ADC1:	fZmiennaTele = statusDotyku.sAdc[1];		break;
 	case TELEID_DOTYK_ADC2:	fZmiennaTele = statusDotyku.sAdc[2];		break;
-
+	case TELEID_CZAS_PETLI: fZmiennaTele = uDaneCM4.dane.ndT;			break;
 
 	case TELEID_PID_PRZE_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRZE].fZadana;		break;	//wartość zadana regulatora sterowania przechyleniem
 	case TELEID_PID_PRZE_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRZE].fWyjsciePID;	break;	//wyjście regulatora sterowania przechyleniem

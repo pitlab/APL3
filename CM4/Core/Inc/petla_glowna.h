@@ -11,6 +11,7 @@
 
 #include "sys_def_CM4.h"
 
+#define MAX_DT	10000	//2 obiegi pętli głównej jest akceptowalną granicą czasu trwania pętli
 
 void PetlaGlowna(void);
 uint32_t PobierzCzas(void);
