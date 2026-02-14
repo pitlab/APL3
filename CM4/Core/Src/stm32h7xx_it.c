@@ -305,7 +305,7 @@ void TIM1_CC_IRQHandler(void)
 	if (htim1.Instance->SR & TIM_FLAG_CC1)
 	{
 		chNumerKanSerw++;						//ustaw następny kanał
-		if (chNumerKanSerw == KANALY_SERW)
+		if (chNumerKanSerw == KANALY_WYJSC_RC)
 			chNumerKanSerw = 8;
 		switch (chNumerKanSerw)					//ustaw dekoder
 		{
@@ -351,7 +351,7 @@ void TIM1_CC_IRQHandler(void)
 			break;
 		default:	break;
 		}
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, uDaneCM4.dane.sSerwo[chNumerKanSerw]);
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, uDaneCM4.dane.sWyjscieRC[chNumerKanSerw]);
 		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
 		htim1.Instance->SR &= ~TIM_FLAG_CC1;	//kasuj przerwanie przez zapis zera
 	}

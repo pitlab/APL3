@@ -1623,7 +1623,7 @@ uint8_t RysujEkran(void)
 		break;
 
 
-	case TP_POMIARY_SERWA:	RysujPaskiKanalowRC(STR_DANE_WYJSC_RC, (uint16_t *)uDaneCM4.dane.sSerwo);
+	case TP_POMIARY_SERWA:	RysujPaskiKanalowRC(STR_DANE_WYJSC_RC, (uint16_t *)uDaneCM4.dane.sWyjscieRC);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;

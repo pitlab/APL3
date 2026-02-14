@@ -12,6 +12,7 @@
 #include "wymiana.h"
 #include "WeWyRC.h"
 #include "petla_glowna.h"
+#include "sbus.h"
 
 // Potrzebne informacje znajdują się w następujaących ramkach. Na początek wysarczymi GGA i RMC
 //Ramka	[GGA]	GLL	GSA	GSV	[RMC]	VTG	GRS	GST	ZDA	GBS	PUBX00	PUBX03 PuBX04

@@ -285,7 +285,7 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TELEID_SERWO13:
 	case TELEID_SERWO14:
 	case TELEID_SERWO15:	//aby nie generować zbyt dużo kodu stosuję wzór do obliczenia indeksu zmiennej dla wszystkich kanałów
-	case TELEID_SERWO16:	fZmiennaTele = uDaneCM4.dane.sSerwo[sZmienna - TELEID_SERWO1];	break;
+	case TELEID_SERWO16:	fZmiennaTele = uDaneCM4.dane.sWyjscieRC[sZmienna - TELEID_SERWO1];	break;
 
 	case TELEID_DOTYK_ADC0:	fZmiennaTele = statusDotyku.sAdc[0];		break;
 	case TELEID_DOTYK_ADC1:	fZmiennaTele = statusDotyku.sAdc[1];		break;

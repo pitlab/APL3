@@ -60,8 +60,8 @@ uint8_t InicjujMikser(void)
 	//przeładuj 32-bitowy rejestr compare wartością startową, bo pełen obrót timera to 2^32us = 1,2 godziny. Jeżeli nie będzie zainicjowany, to generowanie impulsów ruszy dopiero po tym czasie
 	//htim2.Instance->CCR1 += 1500;
 
-	for (uint8_t n=0; n<KANALY_SERW; n++)
-		uDaneCM4.dane.sSerwo[n] = 1000 + 50*n;	//sterowane kanałów serw
+	for (uint8_t n=0; n<KANALY_WYJSC_RC; n++)
+		uDaneCM4.dane.sSilnik[n] = 1000 + 50*n;	//sterowane kanałów serw
 	chNumerKanSerw = 8;		//wskaźnik kanału obsługuje dekoder serw, wiec inicjuj go wartoscią pierwszego kanału
 	stMikser.chLiczbaSilnikow = 0;
 	fNormPrze = fNormPoch = 0.0f;
@@ -118,7 +118,7 @@ uint8_t InicjujMikser(void)
 uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 {
 	int16_t sTmp1[KANALY_MIKSERA], sTmp2[KANALY_MIKSERA];	//sumy cząstkowe sygnału wysterowania silnika
-	int16_t sTmpSerwo[KANALY_MIKSERA];
+	int16_t sTmpSilnik[KANALY_MIKSERA];
 	int16_t sMaxTmp1, sMaxTmp2;	//maksymalne wartości sygnału wysterowania
 	int16_t sPWMGazu;
 	float fCosPrze, fCosPoch;
@@ -127,20 +127,21 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 	if(dane->chTrybLotu & BTR_UZBROJONY)
 	{
 		//czy poziom gazu sugeruje że Wron jest w locie
-		if ((dane->sKanalRC[chKanalDrazkaRC[WYSO]] > PPM_JALOWY) || (dane->chTrybLotu == TL_LAD_AUTO) || (dane->chTrybLotu == TL_LAD_STAB))
-		{
-			sPWMGazu = sWysterowanieZawisu - sWysterowanieJalowe;
+//		if ((dane->sKanalRC[chKanalDrazkaRC[WYSO]] > PPM_JALOWY) || (dane->chTrybLotu == TL_LAD_AUTO) || (dane->chTrybLotu == TL_LAD_STAB))
+	//	{
+			//sPWMGazu = sWysterowanieZawisu - sWysterowanieJalowe;
+		sPWMGazu = dane->sKanalRC[chKanalDrazkaRC[WYSO]] - sWysterowanieZawisu;
 			fCosPrze = cosf(dane->fKatIMU1[PRZE]);
 			fCosPoch = cosf(dane->fKatIMU1[POCH]);
 			//pionowa składowa ciągu statycznego ma być niezależna od pochylenia i przechylenia
 			if (fCosPrze &&	fCosPoch)	//kosinusy kątów są niezerowe
 				sPWMGazu /= (fCosPrze * fCosPoch); //skaluj tylko zakres roboczy
 			sPWMGazu += sWysterowanieJalowe;   //resztę "nieregulowalnego" gazu dodaj bez korekcji
-		}
-		else	//gaz zdjęty i nie jest to lądowanie
-		{
-				sPWMGazu = sWysterowanieJalowe;
-		}
+//		}
+	//	else	//gaz zdjęty i nie jest to lądowanie
+//		{
+//				sPWMGazu = sWysterowanieJalowe;
+//		}
 
 
 		sMaxTmp1 = sMaxTmp2 = -200 * PPM1PROC_BIP; //inicjuj maksima wartością minimalną aby wyłapać wartości ponizej zera
@@ -161,34 +162,34 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
 		{
 			if ((sMaxTmp1 + sMaxTmp2 + sPWMGazu) < sWysterowanieMax)     //jeżeli nie przekraczamy zakresu to sumuj wszystkie regulatory
-				sTmpSerwo[n] = sTmp1[n] + sTmp2[n] + sPWMGazu;
+				sTmpSilnik[n] = sTmp1[n] + sTmp2[n] + sPWMGazu;
 			else
 			{
 				if ((sMaxTmp1 + sPWMGazu) < sWysterowanieMax)
-					sTmpSerwo[n] = sTmp1[n] + sPWMGazu + (sTmp2[n] * (sWysterowanieMax - sMaxTmp1 - sPWMGazu) / sMaxTmp2);   //weź Tmp1 + gaz i doskaluj tyle Tmp2 ile jest miejsca
+					sTmpSilnik[n] = sTmp1[n] + sPWMGazu + (sTmp2[n] * (sWysterowanieMax - sMaxTmp1 - sPWMGazu) / sMaxTmp2);   //weź Tmp1 + gaz i doskaluj tyle Tmp2 ile jest miejsca
 				else
 				{
 					if (sMaxTmp1 < sWysterowanieMax)
-						sTmpSerwo[n] = sTmp1[n] + (sWysterowanieMax - sMaxTmp1);  //weź Tmp1 i doskaluj tyle gazu ile jest miejsca
+						sTmpSilnik[n] = sTmp1[n] + (sWysterowanieMax - sMaxTmp1);  //weź Tmp1 i doskaluj tyle gazu ile jest miejsca
 					else
-						sTmpSerwo[n] = sTmp1[n] * sWysterowanieMax / sMaxTmp1; //jeżeli nie mieści sie w zakresie sterowania to przeskaluj
+						sTmpSilnik[n] = sTmp1[n] * sWysterowanieMax / sMaxTmp1; //jeżeli nie mieści sie w zakresie sterowania to przeskaluj
 				}
 			}
 
 			//nie schodź poniżej obrotów jałowych
-			if (sTmpSerwo[n] < sWysterowanieJalowe)
-				sTmpSerwo[n] = sWysterowanieJalowe;
+			if (sTmpSilnik[n] < sWysterowanieJalowe)
+				sTmpSilnik[n] = sWysterowanieJalowe;
 		}
 	}
 	else	//silniki nie są uzbrojone
 	{
 		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
-			sTmpSerwo[n] = PPM_MIN;
+			sTmpSilnik[n] = PPM_MIN;
 	}
 
-	//przepisz roboczą zmienną do zmiennej stanu serw
+	//przepisz roboczą zmienną do zmiennej stanu silników
 	for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
-		dane->sSerwo[n] = sTmpSerwo[n];
+		dane->sSilnik[n] = sTmpSilnik[n];
 
 	return chErr;
 }

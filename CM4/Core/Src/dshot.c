@@ -16,7 +16,7 @@ extern DMA_HandleTypeDef hdma_tim3_ch3;
 extern DMA_HandleTypeDef hdma_tim3_ch4;
 extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
-uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA[KANALY_MIKSERA][DS_BITOW_DANYCH + DS_BITOW_PRZERWY] = {0};
+uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA[KANALY_MIKSERA][DS_BITOW_LACZNIE] = {0};
 stDShot_t stDShot;
 
 

@@ -6,10 +6,11 @@
 // (c) PitLab 2025
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <GNSS.h>
 #include "WeWyRC.h"
+#include "sbus.h"
 #include "konfig_fram.h"
 #include "petla_glowna.h"
+#include "GNSS.h"
 #include "fram.h"
 #include "dshot.h"
 #include "kontroler_lotu.h"
@@ -27,7 +28,6 @@ extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim8;
-UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart4;
 DMA_HandleTypeDef hdma_usart2_rx;
@@ -38,28 +38,17 @@ extern DMA_HandleTypeDef hdma_tim3_ch4;
 extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
 
-extern DMA_HandleTypeDef hdma_uart4_rx;
-extern DMA_HandleTypeDef hdma_uart4_tx;
 
 
-uint8_t chBuforAnalizySBus1[ROZMIAR_BUF_ANA_SBUS];
-uint8_t chBuforAnalizySBus2[ROZMIAR_BUF_ANA_SBUS];
-volatile uint8_t chWskNapBufAnaSBus1, chWskOprBufAnaSBus1; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus1
-volatile uint8_t chWskNapBufAnaSBus2, chWskOprBufAnaSBus2; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus2
-uint8_t chWskNapRamkiSBus1, chWskNapRamkiSBus2;				//wskaźniki napełniania ramek SBus
-uint8_t chBuforOdbioruSBus1[ROZM_BUF_ODB_SBUS];
-uint8_t chBuforOdbioruSBus2[ROZM_BUF_ODB_SBUS];
-uint8_t chRamkaSBus1[ROZMIAR_RAMKI_SBUS];
-uint8_t chRamkaSBus2[ROZMIAR_RAMKI_SBUS];
-uint8_t chBuforNadawczySBus[ROZMIAR_RAMKI_SBUS] =  {0x0f,0x01,0x04,0x20,0x00,0xff,0x07,0x40,0x00,0x02,0x10,0x80,0x2c,0x64,0x21,0x0b,0x59,0x08,0x40,0x00,0x02,0x10,0x80,0x00};
+extern uint8_t chBuforOdbioruSBus1[ROZM_BUF_ODB_SBUS];
+extern uint8_t chBuforOdbioruSBus2[ROZM_BUF_ODB_SBUS];
+
 uint8_t chKonfigWeRC[LICZBA_WEJSC_RC];	//określa jakiego typu sygnał wchodzi z odbiornika
 uint8_t chKonfigWyRC[LICZBA_WYJSC_RC];
-uint8_t chKorektaPoczatkuRamki;
-uint32_t nCzasWysylkiSbus;
 extern uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA[KANALY_MIKSERA][DS_BITOW_DANYCH + DS_BITOW_PRZERWY];
 uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC do funkcji drążków aparatury
-uint8_t chFunkcjaKanaluRC[KANALY_FUNKCYJNE];	//przypisanie funkcji do kanału wejściowego odbiornika RC
-
+uint8_t chFunkcjaKanaluRC[KANALY_FUNKCYJNE];	//funkcje przypisane do kanałów wejściowych odbiornika RC
+uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wyjściowych
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -104,56 +93,7 @@ uint8_t InicjujWejsciaRC(void)
 	else
 	if (chKonfigWeRC[KANAL_RC1] == ODB_RC_SBUS)
 	{
-	    GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
-	    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-		__HAL_RCC_DMA1_CLK_ENABLE();
-	    __HAL_RCC_UART4_CLK_ENABLE();
-
-		huart4.Instance = UART4;
-		huart4.Init.BaudRate = 100000;
-		huart4.Init.WordLength = UART_WORDLENGTH_9B;	//bit parzystości liczy sie jako dane
-		huart4.Init.StopBits = UART_STOPBITS_2;
-		huart4.Init.Parity = UART_PARITY_EVEN;
-		if (huart4.Init.Mode == UART_MODE_TX)//jeżeli właczony jest nadajnik to włącz jeszcze odbiornik a jeżeli nie to tylko odbiornik
-			huart4.Init.Mode = UART_MODE_TX_RX;
-		else
-			huart4.Init.Mode = UART_MODE_RX;
-		huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-		huart4.Init.OverSampling = UART_OVERSAMPLING_16;
-		huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-		huart4.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-		huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
-		huart4.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
-		huart4.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
-		chErr |= HAL_UART_Init(&huart4);
-		chErr |= HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_2);
-		chErr |= HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_2);
-		//chErr |= HAL_UARTEx_EnableFifoMode(&huart4);
-		chErr |= HAL_UARTEx_DisableFifoMode(&huart4);
-
-		// UART4 DMA RX Init
-		hdma_uart4_rx.Instance = DMA1_Stream7;
-		hdma_uart4_rx.Init.Request = DMA_REQUEST_UART4_RX;
-		hdma_uart4_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-		hdma_uart4_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-		hdma_uart4_rx.Init.MemInc = DMA_MINC_ENABLE;
-		hdma_uart4_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-		hdma_uart4_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-		hdma_uart4_rx.Init.Mode = DMA_NORMAL;
-		hdma_uart4_rx.Init.Priority = DMA_PRIORITY_LOW;
-		hdma_uart4_rx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
-		hdma_uart4_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-		hdma_uart4_rx.Init.MemBurst = DMA_MBURST_SINGLE;
-		hdma_uart4_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
-		chErr |= HAL_DMA_Init(&hdma_uart4_rx);
-		__HAL_LINKDMA(&huart4, hdmarx, hdma_uart4_rx);
-
-		// UART4 interrupt Init
-		HAL_NVIC_SetPriority(UART4_IRQn, 0, 0);
-		HAL_NVIC_EnableIRQ(UART4_IRQn);
-		HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
-		HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
-    	HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZM_BUF_ODB_SBUS);	//włącz odbiór pierwszej ramki
+		chErr |= InicjujUart4RxJakoSbus(&GPIO_InitStruct);
 	}
 
 
@@ -178,34 +118,7 @@ uint8_t InicjujWejsciaRC(void)
 	else
 	if (chKonfigWeRC[KANAL_RC2] == ODB_RC_SBUS)
 	{
-	    GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
-	    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-		__HAL_RCC_USART2_CLK_ENABLE();
-
-		huart2.Instance = USART2;
-		huart2.Init.BaudRate = 100000;
-		huart2.Init.WordLength = UART_WORDLENGTH_9B;
-		huart2.Init.StopBits = UART_STOPBITS_2;
-		huart2.Init.Parity = UART_PARITY_EVEN;
-		huart2.Init.Mode = UART_MODE_RX;
-		huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-		huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-		huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-		huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-		huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
-		huart2.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
-		//huart2.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
-		//huart2.AdvancedInit.RxPinLevelInvert = UART_ADVFEATURE_RXINV_ENABLE;
-
-		chErr |= HAL_UART_Init(&huart2);
-		chErr |= HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_2);
-		//chErr |= HAL_UARTEx_EnableFifoMode(&huart2);
-		chErr |= HAL_UARTEx_DisableFifoMode(&huart2);
-
-		//ponieważ nie ma jak zarezerwować kanału DMA w HAL bo dostępna jest tylko część odbiorcza, więc USART2 będzie pracował na przerwaniach
-		HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
-		HAL_NVIC_EnableIRQ(USART2_IRQn);
-		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);	//włącz odbiór pierwszej ramki
+		chErr |= InicjujUart2RxJakoSbus(&GPIO_InitStruct);
 	}
 
 	//odczytaj z FRAM minima i maksima kanałów RC aby móc je znormalizować
@@ -270,6 +183,9 @@ uint8_t InicjujWyjsciaRC(void)
 	}
 	CzytajBuforFRAM(FAU_KONF_SERWA916, &chKonfigWyRC[8], 1);		//konfiguracją ostatniej grupy wyjść jest nietypowa, wiec odczytaj osobno
 
+	//odczytaj konfigurację funkcji pełnionych przez kanały wyjściowe RC
+	CzytajBuforFRAM(FAU_FUNKCJA_WY_RC , chFunkcjaWyjscRC, KANALY_WYJSC_RC);
+
 
 	//**** kanał 1 - konfiguracja portu PB9 TIM4_CH4 **********************************************************
 	__HAL_RCC_GPIOB_CLK_ENABLE();
@@ -298,54 +214,7 @@ uint8_t InicjujWyjsciaRC(void)
 	else
 	if (chKonfigWyRC[KANAL_RC1] == SERWO_SBUS)		//wyjście jako S-Bus 100 kBps, 8E2
 	{
-		GPIO_InitStruct.Alternate = GPIO_AF8_UART4;
-		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-		__HAL_RCC_DMA1_CLK_ENABLE();
-		__HAL_RCC_UART4_CLK_ENABLE();
-
-		huart4.Instance = UART4;
-		huart4.Init.BaudRate = 100000;
-		huart4.Init.WordLength = UART_WORDLENGTH_9B;
-		huart4.Init.StopBits = UART_STOPBITS_2;
-		huart4.Init.Parity = UART_PARITY_EVEN;
-		if (huart4.Init.Mode == UART_MODE_RX)		//jeżeli właczony jest odbiornik to włącz jeszcze nadajnik a jeżeli nie to tylko nadajnik
-			huart4.Init.Mode = UART_MODE_TX_RX;
-		else
-			huart4.Init.Mode = UART_MODE_TX_RX;
-		huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-		huart4.Init.OverSampling = UART_OVERSAMPLING_16;
-		huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-		huart4.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-		huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
-		huart4.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
-		huart4.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
-		chErr |= HAL_UART_Init(&huart4);
-		chErr |= HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_2);
-		chErr |= HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_2);
-		//chErr = HAL_UARTEx_EnableFifoMode(&huart4);
-		chErr |= HAL_UARTEx_DisableFifoMode(&huart4);
-
-		HAL_NVIC_SetPriority(UART4_IRQn, 0, 0);
-		HAL_NVIC_EnableIRQ(UART4_IRQn);
-
-		hdma_uart4_tx.Instance = DMA2_Stream0;
-		hdma_uart4_tx.Init.Request = DMA_REQUEST_UART4_TX;
-		hdma_uart4_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-		hdma_uart4_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-		hdma_uart4_tx.Init.MemInc = DMA_MINC_ENABLE;
-		hdma_uart4_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-		hdma_uart4_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-		hdma_uart4_tx.Init.Mode = DMA_NORMAL;
-		hdma_uart4_tx.Init.Priority = DMA_PRIORITY_LOW;
-		hdma_uart4_tx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
-	    hdma_uart4_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-	    hdma_uart4_tx.Init.MemBurst = DMA_MBURST_SINGLE;
-	    hdma_uart4_tx.Init.PeriphBurst = DMA_PBURST_SINGLE;
-		chErr |= HAL_DMA_Init(&hdma_uart4_tx);
-	    __HAL_LINKDMA(&huart4, hdmatx, hdma_uart4_tx);
-		HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
-		HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+		InicjujUart4TxJakoSbus(&GPIO_InitStruct);
 	}
 	else
 		chErr |= ERR_BRAK_KONFIG;
@@ -707,29 +576,33 @@ uint8_t InicjujWyjsciaRC(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja aktualizuje dane wysyłane na wyjścia RC
+// Funkcja aktualizuje dane wysyłane na wyjścia RC 1..8 w zależności od przypisanej funkcji
 // Parametry: *dane - wskaźnik na strukturę zawierajacą wartości wyjścia regulatorów PID
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
+uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 {
 	uint8_t chErr = BLAD_OK;
+	uint32_t nWyjście;
 
-	//aktualizuj młodsze 8 kanałów serw/ESC. Starsza mogą być tylko PWM
+	//aktualizuj młodsze 8 kanałów serw/ESC. Starsze mogą być tylko PWM
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 	{
+		nWyjście = PobierzFunkcjeWyjsciaRC(n, chFunkcjaWyjscRC, daneCM4);
+		daneCM4->sWyjscieRC[n] = nWyjście;
+
 		//sprawdź rodzaj ustawionego protokołu wyjscia
 		switch (chKonfigWyRC[n])
 		{
 		case SERWO_PWM400:
 			for (uint8_t m=0; m<KANALY_MIKSERA; m++)
-				nBuforTimDMA[n][m] = dane->sSerwo[n] / 2 + 1000;		//przesunięcie z 0..2000 do 1000..2000us
+				nBuforTimDMA[n][m] = nWyjście;
 			break;
 
 		case SERWO_PWM200:	//co drugi w buforze jest kanał, pozostałe są zerami
 			for (uint8_t m=0; m<KANALY_MIKSERA/2; m++)
 			{
-				nBuforTimDMA[n][2*m+0] = dane->sSerwo[n] / 2 + 1000;		//przesunięcie z 0..2000 do 1000..2000us
+				nBuforTimDMA[n][2*m+0] = nWyjście;
 				nBuforTimDMA[n][2*m+1] = 0;
 			}
 			break;
@@ -737,7 +610,7 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
 		case SERWO_PWM100:	//co czwarty w buforze jest kanał, pozostałe są zerami
 			for (uint8_t m=0; m<KANALY_MIKSERA/4; m++)
 			{
-				nBuforTimDMA[n][4*m+0] = dane->sSerwo[n] / 2 + 1000;		//przesunięcie z 0..2000 do 1000..2000us
+				nBuforTimDMA[n][4*m+0] = nWyjście;
 				nBuforTimDMA[n][4*m+1] = 0;
 				nBuforTimDMA[n][4*m+2] = 0;
 				nBuforTimDMA[n][4*m+3] = 0;
@@ -745,7 +618,7 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
 			break;
 
 		case SERWO_PWM50:	//pierwszy w buforze jest kanał, pozostałe są zerami
-			nBuforTimDMA[n][0] = dane->sSerwo[n] / 2 + 1000;		//przesunięcie z 0..2000 do 1000..2000us
+			nBuforTimDMA[n][0] = nWyjście;
 			for (uint8_t m=1; m<KANALY_MIKSERA; m++)
 				nBuforTimDMA[n][m] = 0;
 			break;
@@ -754,13 +627,16 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
 		case SERWO_DSHOT150:
 		case SERWO_DSHOT300:
 		case SERWO_DSHOT600:
-		case SERWO_DSHOT1200:	chErr |= AktualizujDShotDMA(dane->sSerwo[n], n);	break;
+		case SERWO_DSHOT1200:	chErr |= AktualizujDShotDMA(PobierzFunkcjeWyjsciaRC(n, chFunkcjaWyjscRC, daneCM4), n);	break;
 
 		default: chErr = ERR_BRAK_KONFIG;
 		}	//switch
 	}	//for
 
 	//starsze 8 wyjść jest aktualizowanych w obsłudze przerwania TIM1_CC_IRQHandler() w pliku stm32h7xx_it.c
+	//tutaj tylko ustaw wyjscia na podstawie konfiguracji
+	for (uint8_t n=KANALY_MIKSERA; n<KANALY_WYJSC_RC; n++)
+		daneCM4->sWyjscieRC[n] = PobierzFunkcjeWyjsciaRC(n, chFunkcjaWyjscRC, daneCM4);
 
 	//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);	//serwo kanał 7
 	//HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_15);	//serwo kanał 8
@@ -769,74 +645,49 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane)
 
 
 
-//
-void UART4_IRQHandler(void)
-{
-  HAL_UART_IRQHandler(&huart4);
-}
-
-
-
-void USART2_IRQHandler(void)
-{
-  HAL_UART_IRQHandler(&huart2);
-}
-
-
-
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
-{
-	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
-}
-
-
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
-{
-	if (huart->Instance == UART4)		//wysłano ramkę SBUS1
-	{
-
-	}
-}
-
-
-//fizyczny odbiór HAL_UART_RxCpltCallback znajduje się w pliku GNSS.c
-
-
-
 ////////////////////////////////////////////////////////////////////////////////
-// Odbiór danych SBus z bufora kołowego i formowanie ich w ramkę
+// Pobiera wartość do wysterowania kanału wyjściowego zdefiniowaną funkcjonalnością
 // Parametry:
-// [we] *chRamkaSBus - wskaźnik na dane formowanej ramki
-// [we/wy] *chWskNapRamki - wskaźnik na wskaźnik napełniania ramki SBus
-// [we] *chBuforAnalizy - wskaźnik na bufor z danymi wejsciowymi
-// [we] chWskNapBuf - wskaźnik napełniania bufora wejsciowego
-// [wy] *chWskOprBuf - wskaźnik na wskaźnik opróżniania bufora wejściowego
-// Zwraca: kod wykonania operacji: BLAD_GOTOWE gdy jest kompletna ramka, BLAD_OK gdy skończyły się dane ale nie skompetowano jeszcze ramki
-// Czas wykonania:
+//  chNrWyjscia - indeks wyjścia RC
+//  *chFunkcja - wskaźnik na tablicę zawierajacą funkcję dla każdego wyjścia
+//  *daneCM4 - wskaźnik na strukturę danych rdzenia CM4
+// Zwraca: wysterowanie kanału
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t FormowanieRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_t *chBuforAnalizy, uint8_t chWskNapBuf, uint8_t *chWskOprBuf)
+uint32_t PobierzFunkcjeWyjsciaRC(uint8_t chNrWyjscia, uint8_t *chFunkcja, stWymianyCM4_t *daneCM4)
 {
-	uint8_t chDane;
+	uint32_t nWyjście;
+	uint8_t chIndeksFunkcji = chFunkcja[chNrWyjscia];
 
-	while (chWskNapBuf != *chWskOprBuf)
+	switch(chIndeksFunkcji)
 	{
-		chDane = chBuforAnalizy[*chWskOprBuf];
+	case FSER_SILNIK1:
+	case FSER_SILNIK2:
+	case FSER_SILNIK3:
+	case FSER_SILNIK4:
+	case FSER_SILNIK5:
+	case FSER_SILNIK6:
+	case FSER_SILNIK7:
+	case FSER_SILNIK8:	nWyjście = daneCM4->sSilnik[chIndeksFunkcji - FSER_SILNIK1];	break;	//steruj silnikiem 1
+	case FSER_WE_RC1:
+	case FSER_WE_RC2:
+	case FSER_WE_RC3:
+	case FSER_WE_RC4:
+	case FSER_WE_RC5:
+	case FSER_WE_RC6:
+	case FSER_WE_RC7:
+	case FSER_WE_RC8:
+	case FSER_WE_RC9:
+	case FSER_WE_RC10:
+	case FSER_WE_RC11:
+	case FSER_WE_RC12:
+	case FSER_WE_RC13:
+	case FSER_WE_RC14:
+	case FSER_WE_RC15:
+	case FSER_WE_RC16:	nWyjście = daneCM4->sKanalRC[chIndeksFunkcji - FSER_WE_RC1];	break;	//przepisanie wejścia na wyjście
 
-		// detekcja początku ramki po wykryciu nagłówka i poprzedzającej go stopki
-		if ((chDane == SBUS_NAGLOWEK) && (chBuforAnalizy[(*chWskOprBuf - 1) & MASKA_ROZM_BUF_ANA_SBUS] == SBUS_STOPKA))
-			*chWskNapRamki = 0;
-
-		chRamkaSBus[*chWskNapRamki] = chDane;
-		if (*chWskNapRamki < ROZMIAR_RAMKI_SBUS)
-			(*chWskNapRamki)++;
-
-		(*chWskOprBuf)++;
-		(*chWskOprBuf) &= MASKA_ROZM_BUF_ANA_SBUS;	//zapętlenie wskaźnika bufora kołowego
-
-		if ((chDane == SBUS_STOPKA ) && (*chWskNapRamki == ROZMIAR_RAMKI_SBUS))
-			return BLAD_GOTOWE;	//odebrano całą ramkę. Reszta danych będzie obrobiona w następnym przebiegu
+	default:	nWyjście = 0;
 	}
-	return BLAD_OK;
+	return nWyjście;
 }
 
 
@@ -1062,107 +913,6 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4)
         //obsługa resetownia licznika energii
     }
     return chBlad;
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Dekoduje dane z ramki wejściowej odbiorników RC i skaluje je do wygodnego w obsłudze zakresu PPM_MIN..PPM_MAX
-// Parametry:
-// [we] *chRamkaWe - wskaźnik na dane ramki wejsciowej
-// [wy] *sKanaly - wskaźnik na tablicę kanałów RC
-// Zwraca: kod błędu
-// Czas wykonania: ok. 5us
-////////////////////////////////////////////////////////////////////////////////
-uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
-{
-	uint8_t* chNaglowek;
-	uint8_t n;
-
-	//dane mogą być przesunięte wzgledem początku więc znajdź nagłówek i synchronizuj się do niego
-	for (n=0; n<KANALY_ODB_RC; n++)
-	{
-		if (*(chRamkaWe + n) == SBUS_NAGLOWEK)
-		{
-			chNaglowek = chRamkaWe + n;
-			break;
-		}
-	}
-	//ramka S-Bus zaczyna się od nagłówka 0x0F, który powinien być pierwszym odebranym bajtem.
-	//Jeżeli nie trafia na początek, to zmniejsz liczbę odebieranych danych, tak aby przesunął się na początek
-	chKorektaPoczatkuRamki = n;
-	if (n > MAX_PRZESUN_NAGL)
-		return ERR_ZLA_ILOSC_DANYCH;
-
-	*(sKanaly +  0) =  ((((int16_t)*(chNaglowek +  1)       | (((int16_t)*(chNaglowek +  2) << 8) & 0x7E0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  1) = (((((int16_t)*(chNaglowek +  2) >> 3) | (((int16_t)*(chNaglowek +  3) << 5) & 0x7E0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  2) = (((((int16_t)*(chNaglowek +  3) >> 6) | (((int16_t)*(chNaglowek +  4) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 5) << 10) & 0x400)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  3) = (((((int16_t)*(chNaglowek +  5) >> 1) | (((int16_t)*(chNaglowek +  6) << 7) & 0x780)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  4) = (((((int16_t)*(chNaglowek +  6) >> 4) | (((int16_t)*(chNaglowek +  7) << 4) & 0x7F0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN ;
-	*(sKanaly +  5) = (((((int16_t)*(chNaglowek +  7) >> 7) | (((int16_t)*(chNaglowek +  8) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 9) << 9) & 0x600)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  6) = (((((int16_t)*(chNaglowek +  9) >> 2) | (((int16_t)*(chNaglowek + 10) << 6) & 0x7C0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  7) = (((((int16_t)*(chNaglowek + 10) >> 5) | (((int16_t)*(chNaglowek + 11) << 3) & 0x7F8)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  8) = (((((int16_t)*(chNaglowek + 12) >> 0) | (((int16_t)*(chNaglowek + 13) << 8) & 0x700)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  9) = (((((int16_t)*(chNaglowek + 13) >> 3) | (((int16_t)*(chNaglowek + 14) << 5) & 0x7E0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly + 10) = (((((int16_t)*(chNaglowek + 14) >> 6) | (((int16_t)*(chNaglowek + 15) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 16) << 10) & 0x400)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly + 11) = (((((int16_t)*(chNaglowek + 16) >> 1) | (((int16_t)*(chNaglowek + 17) << 7) & 0x780)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly + 12) = (((((int16_t)*(chNaglowek + 17) >> 4) | (((int16_t)*(chNaglowek + 18) << 4) & 0x7F0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly + 13) = (((((int16_t)*(chNaglowek + 18) >> 7) | (((int16_t)*(chNaglowek + 19) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 20) << 9) & 0x600)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly + 14) = (((((int16_t)*(chNaglowek + 20) >> 2) | (((int16_t)*(chNaglowek + 21) << 6) & 0x7C0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly + 15) = (((((int16_t)*(chNaglowek + 21) >> 5) | (((int16_t)*(chNaglowek + 22) << 3) & 0x7F8)) - SBUS_MIN ) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	return BLAD_OK;
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Funkcja nadrzędna wywoływana z pętli głównej, skupiająca w sobie funkcje potrzebne do obsługi ramki S-Bus
-// Parametry: brak
-// Zwraca: kod błędu
-// Czas wykonania:
-////////////////////////////////////////////////////////////////////////////////
-uint8_t ObslugaRamkiSBus(void)
-{
-	uint8_t chBlad;
-
-	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);				//kanał serw 5 skonfigurowany jako IO
-
-	//obsługa kanału 1
-	chBlad = FormowanieRamkiSBus(chRamkaSBus1, &chWskNapRamkiSBus1, chBuforAnalizySBus1, (uint8_t)chWskNapBufAnaSBus1, (uint8_t*)&chWskOprBufAnaSBus1);
-	if (chBlad == BLAD_GOTOWE)
-	{
-		chBlad = DekodowanieRamkiBSBus(chRamkaSBus1, stRC.sOdb1);
-		if (chBlad == BLAD_OK)
-		{
-			stRC.sZdekodowaneKanaly1 = 0xFFFF;
-			stRC.nCzasWe1 = PobierzCzas();
-		}
-	}
-
-	//obsługa kanału 2
-	chBlad = FormowanieRamkiSBus(chRamkaSBus2, &chWskNapRamkiSBus2, chBuforAnalizySBus2, (uint8_t)chWskNapBufAnaSBus2, (uint8_t*)&chWskOprBufAnaSBus2);
-	if (chBlad == BLAD_GOTOWE)
-	{
-		chBlad = DekodowanieRamkiBSBus(chRamkaSBus2, stRC.sOdb2);
-		if (chBlad == BLAD_OK)
-		{
-			stRC.sZdekodowaneKanaly2 = 0xFFFF;
-			stRC.nCzasWe2 = PobierzCzas();
-		}
-	}
-
-	//scalenie obu kanałów w jedne dane dane odbiornika RC
-	chBlad = DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane, &uDaneCM7.dane);
-
-
-	//sprawdź czy trzeba już wysłać nową ramkę Sbus
-	uint32_t nCzasRC = MinalCzas(nCzasWysylkiSbus);
-	if (nCzasRC >= OKRES_RAMKI_SBUS)
-	{
-		nCzasWysylkiSbus = PobierzCzas();
-		HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus, ROZM_BUF_ODB_SBUS);	//wyślij kolejną ramkę
-	}
-	return chBlad;
 }
 
 

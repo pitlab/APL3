@@ -76,10 +76,11 @@
 #define FAU_KONF_SERWA56	0x0303		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 5, bity 4..7 = Wyjście 6
 #define FAU_KONF_SERWA78	0x0304		//1U konfiguracja wyjść: Bity 0..3 = Wyjście 7, bity 4..7 = Wyjście 8
 #define FAU_KONF_SERWA916	0x0305		//1U konfiguracja wyjść: 0=wyjścia 9..16 PWM 50Hz, 1=wyjścia 9..12 PWM 100Hz, 2=wyjścia 9..10 PWM 200Hz, 3=wyjście 9 PWM 400Hz
-#define FAU_LOW_VOLT_WARN   0x0306  	//4F próg ostrzezenia o niskim napięciu
-#define FAU_LOW_VOLT_ALARM  0x030A 		//4F próg alarmu niskiego napięcia
-#define FAU_VOLT_DROP_COMP  0x030E		//4F współczynnik kompensacji spadku napięcia pakietu
-#define FAU_LANDING_SPD     0x0312		//4F prędkość lądowania
+#define FAU_FUNKCJA_WY_RC	0x0306		//16*1U przypisanie funkcji do każdego wyjścia RC
+#define FAU_LOW_VOLT_WARN   0x0316  	//4F próg ostrzezenia o niskim napięciu
+#define FAU_LOW_VOLT_ALARM  0x031A 		//4F próg alarmu niskiego napięcia
+#define FAU_VOLT_DROP_COMP  0x031E		//4F współczynnik kompensacji spadku napięcia pakietu
+#define FAU_LANDING_SPD     0x0322		//4F prędkość lądowania
 
 //wzmocnienia drążków aparatury dla poszczególnych trybów pracy regulatorów
 //#define FAU_ZADANA_AKRO     0x0316		//4x4F wartość zadana z drążków aparatury dla regulatora Akro

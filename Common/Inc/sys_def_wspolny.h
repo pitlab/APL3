@@ -30,12 +30,11 @@
 #define DEKLINACJA_MAG		(6.5f * DEG2RAD)	//deklinacja magnetyczna w radianach. Źródło: https://www.magnetic-declination.com/ lub https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/D.jpg
 #define PROMIEN_ZIEMI		6371008.77f			//promień Ziemi w metrach
 
-#define KANALY_SERW			16	//liczba sterowanych kanałów serw
+#define KANALY_WYJSC_RC		16	//liczba sterowanych kanałów wyjściowych RC
 #define KANALY_ODB_RC		16	//liczba odbieranych kanałów na każdym z dwu wejść odbiorników RC
 #define KANALY_MIKSERA		8	//liczba kanałów wyjściowych, które mogą wchodzić do miksera
 #define KANALY_FUNKCYJNE	(KANALY_ODB_RC - LICZBA_DRAZKOW)	//liczba kanałów mogących uruchamiać funkcje autopilota
 #define LICZBA_DRAZKOW		4	//liczba regulatorów które mają wartość zadaną ustawianą drążkami aparatury
-
 
 //przelicznik liczby mikrosekund sygnału PPM na 1 procent wysterowania kanału RC
 #define PPM1PROC_UNI   8       //1% = 8us unipolarnie, 0%=1,1us 100%=1,9us
@@ -97,7 +96,7 @@
 #define SERWO_DSHOT1200	11	//wyjście DShot1200
 
 
-//definicje Funkcji sygnału wejściowego Odbiornika RC
+/*/definicje Funkcji sygnału wejściowego Odbiornika RC
 #define FORC_CH5		4
 #define FORC_CH6		5
 #define FORC_CH7		6
@@ -109,8 +108,7 @@
 #define FORC_CH13		12
 #define FORC_CH14		13
 #define FORC_CH15		14
-#define FORC_CH16		15
-
+#define FORC_CH16		15 */
 
 //definicje numerów kanałów sygnału wyjściowego
 #define KANAL_RC1	0
@@ -132,12 +130,40 @@
 
 #define NORMA_SYGNALU	100.0f		//do tej wartosci sa normalizowane wejścia RC, wyjścia regualtorów PID
 
-//definicje funkcji uruchamianych kanałem RC
+//definicje funkcji uruchamianych kanałem RC przechowywane w zmiennej chFunkcjaKanaluRC[]
 #define FRC_WLACZ_WYJSCIE_OD1	0
 #define FRC_WLACZ_WYJSCIE_OD2	1
 #define FRC_WYMOW_KOMUNIKAT1	2
 #define FRC_WYMOW_KOMUNIKAT2	3
-#define LICZBA_FUNKCJI_RC		4
+#define LICZBA_FUNKCJI_RC		4	//liczba dostępnych funkcji
+
+//definicje funkcji realizowanych przez kanały wyjściowe RC przechowywane w zmiennej chFunkcjaSerwa[]
+#define FSER_SILNIK1			0	//steruj silnikiem 1
+#define FSER_SILNIK2			1
+#define FSER_SILNIK3			2
+#define FSER_SILNIK4			3
+#define FSER_SILNIK5			4
+#define FSER_SILNIK6			5
+#define FSER_SILNIK7			6
+#define FSER_SILNIK8			7
+#define FSER_WE_RC1				8
+#define FSER_WE_RC2				9
+#define FSER_WE_RC3				10
+#define FSER_WE_RC4				11
+#define FSER_WE_RC5				12
+#define FSER_WE_RC6				13
+#define FSER_WE_RC7				14
+#define FSER_WE_RC8				15
+#define FSER_WE_RC9				16
+#define FSER_WE_RC10			17
+#define FSER_WE_RC11			18
+#define FSER_WE_RC12			19
+#define FSER_WE_RC13			20
+#define FSER_WE_RC14			21
+#define FSER_WE_RC15			22
+#define FSER_WE_RC16			23
+
+#define LICZBA_FUNKCJI_SERW		24	//liczba dostępnych funkcji realizowanych przez kanały wyjsciowe RC
 
 //definicje temperatur kalibracji żyroskopów
 #define TEMP_KAL_ZIMNO		(10.f + KELVIN)

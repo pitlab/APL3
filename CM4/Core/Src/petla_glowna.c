@@ -27,7 +27,7 @@
 #include "mikser.h"
 #include "kontroler_lotu.h"
 #include "sample_audio.h"
-
+#include "sbus.h"
 
 extern TIM_HandleTypeDef htim7;
 extern unia_wymianyCM4_t uDaneCM4;
@@ -179,7 +179,6 @@ void PetlaGlowna(void)
 		break;
 
 	case 17:	chBladPG |= KontrolerLotu(chTrybRegulacji, ndT, &uDaneCM4.dane, stKonfigPID);	break;
-
 	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID);	break;
 	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;
 	default:	break;
