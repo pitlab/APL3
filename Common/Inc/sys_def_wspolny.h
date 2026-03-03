@@ -131,11 +131,12 @@
 #define NORMA_SYGNALU	100.0f		//do tej wartosci sa normalizowane wejścia RC, wyjścia regualtorów PID
 
 //definicje funkcji uruchamianych kanałem RC przechowywane w zmiennej chFunkcjaKanaluRC[]
-#define FRC_WLACZ_WYJSCIE_OD1	0
-#define FRC_WLACZ_WYJSCIE_OD2	1
-#define FRC_WYMOW_KOMUNIKAT1	2
-#define FRC_WYMOW_KOMUNIKAT2	3
-#define LICZBA_FUNKCJI_RC		4	//liczba dostępnych funkcji
+#define FRC_NIE_TOB_NIC			0
+#define FRC_WLACZ_WYJSCIE_OD1	1
+#define FRC_WLACZ_WYJSCIE_OD2	2
+#define FRC_WYMOW_KOMUNIKAT1	3
+#define FRC_WYMOW_KOMUNIKAT2	4
+#define LICZBA_FUNKCJI_RC		5	//liczba dostępnych funkcji
 
 //definicje funkcji realizowanych przez kanały wyjściowe RC przechowywane w zmiennej chFunkcjaSerwa[]
 #define FSER_SILNIK1			0	//steruj silnikiem 1

@@ -71,6 +71,6 @@ void ZapiszEkstremaWejscRC(void);
 void ZbierajEkstremaWejscRC(stRC_t *stRC);
 void NormalizujWejsciaRC(uint16_t sWejscie, uint16_t sMin, uint16_t sMax, uint16_t *sWyjscie);
 uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4);
-uint32_t PobierzFunkcjeWyjsciaRC(uint8_t chNrWyjscia, uint8_t *chFunkcja, stWymianyCM4_t *daneCM4);
+uint32_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM4);
 
 #endif /* INC_ODBIORNIKRC_H_ */

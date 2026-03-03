@@ -47,6 +47,7 @@ volatile uint8_t chNumerKanSerw;
 volatile uint16_t sCzasH;
 extern stRC_t stRC;
 extern unia_wymianyCM4_t uDaneCM4;
+extern uint8_t chKonfigWeRC[LICZBA_WEJSC_RC];	//określa jakiego typu sygnał wchodzi z odbiornika
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -82,7 +83,6 @@ extern DMA_HandleTypeDef hdma_uart4_tx;
 extern DMA_HandleTypeDef hdma_uart8_rx;
 extern DMA_HandleTypeDef hdma_uart8_tx;
 extern UART_HandleTypeDef huart8;
-extern uint8_t chKonfigWeRC[LICZBA_WEJSC_RC];
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */

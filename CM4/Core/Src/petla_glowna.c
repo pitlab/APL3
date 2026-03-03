@@ -170,11 +170,10 @@ void PetlaGlowna(void)
 	case 16:	//pozwól na testowe uruchomienie inicjalizacji
 		if (chBuforAnalizyGNSS[0] == 0xFF)
 		{
-			//InicjujWyjsciaRC();
-			//InicjujWyjsciaRC();
+			InicjujWyjsciaRC();
 			//InicjujModulI2P();
 			//chBuforAnalizyGNSS[0] = 0;
-			InicjujPID();
+			//InicjujPID();
 		}
 		break;
 
