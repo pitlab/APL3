@@ -19,7 +19,7 @@ extern DMA_HandleTypeDef hdma_tim8_ch3;
 uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA[KANALY_MIKSERA][DS_BITOW_LACZNIE] = {0};
 stDShot_t stDShot;
 
-
+extern uint8_t chRozmiarSekwencjiDMA[KANALY_MIKSERA+1];	//rozmiar paczki danych przesyłanych do DMA w zależności od częstotliwości odświezania. Dla 400Hz paczka ma 1 ważną daną, dla 200Hz jedną ważną i jedną nieważną, dla 50Hz jest 1 ważna i 7 pustych
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja inicjuje timer wartościami do generowania protokołu DShot
@@ -296,6 +296,8 @@ uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t chKanal)
 	for (uint8_t n=0; n<DS_BITOW_PRZERWY; n++)
 		nBuforTimDMA[chKanal][n + DS_BITOW_DANYCH] = 0;
 
+
+	chRozmiarSekwencjiDMA[chKanal] = DS_BITOW_LACZNIE;
 
 	//nBuforTimDMA[chKanal][DS_BITOW_LACZNIE - 1] = 0;	//przerwa między ramkami w ostatnim bicie
 

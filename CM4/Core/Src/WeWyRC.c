@@ -184,7 +184,7 @@ uint8_t InicjujWyjsciaRC(void)
 	CzytajBuforFRAM(FAU_KONF_SERWA916, &chKonfigWyRC[8], 1);		//konfiguracją ostatniej grupy wyjść jest nietypowa, wiec odczytaj osobno
 
 	//odczytaj konfigurację funkcji pełnionych przez kanały wyjściowe RC
-	CzytajBuforFRAM(FAU_FUNKCJA_WY_RC , chFunkcjaWyjscRC, KANALY_WYJSC_RC);
+	CzytajBuforFRAM(FAU_FUNKCJA_WY_RC, chFunkcjaWyjscRC, KANALY_WYJSC_RC);
 
 
 	//**** Wyjście 1 - konfiguracja portu PB9 TIM4_CH4 **********************************************************
@@ -203,7 +203,7 @@ uint8_t InicjujWyjsciaRC(void)
 		htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		chErr |= HAL_TIM_PWM_Init(&htim4);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_4, &nBuforTimDMA[KANAL_RC1][0], KANALY_MIKSERA);
+		chErr |= HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_4, &nBuforTimDMA[KANAL_RC1][0], chRozmiarSekwencjiDMA[KANAL_RC1]);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC1] == SERWO_IO)	//wyjście IO do debugowania
@@ -234,6 +234,9 @@ uint8_t InicjujWyjsciaRC(void)
 		htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		chErr |= HAL_TIM_PWM_Init(&htim2);
 
+		sConfigOC.OCMode = TIM_OCMODE_PWM1;
+	  	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+		sConfigOC.Pulse = OKRES_PWM / 2;
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;		//wyjście przechodzi przez inwerter, więc wymaga dodatkowego odwrócenia sygnału aby finalnie było niezmienione
 		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3);
 
@@ -247,8 +250,15 @@ uint8_t InicjujWyjsciaRC(void)
 		hdma_tim2_ch3.Init.Mode = DMA_CIRCULAR;
 		hdma_tim2_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim2_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+		hdma_tim2_ch3.Init.MemBurst = DMA_MBURST_SINGLE;
+		hdma_tim2_ch3.Init.PeriphBurst = DMA_PBURST_SINGLE;
 		HAL_DMA_Init(&hdma_tim2_ch3);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC2][0], chRozmiarSekwencjiDMA[KANAL_RC2]);
+
+//		__HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC3);
+	//	__HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC3], hdma_tim2_ch3);
+		//HAL_TIM_Base_Start(&htim2);
+		//chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC2][0], chRozmiarSekwencjiDMA[KANAL_RC2]);
+		chErr |= HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_3);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC2] == SERWO_DSHOT150)
@@ -318,8 +328,8 @@ uint8_t InicjujWyjsciaRC(void)
 
 	if ((chKonfigWyRC[KANAL_RC3] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
-		__HAL_RCC_TIM2_CLK_ENABLE();
-		__HAL_RCC_DMA2_CLK_ENABLE();
+		//__HAL_RCC_TIM2_CLK_ENABLE();
+		//__HAL_RCC_DMA2_CLK_ENABLE();
 
 		htim2.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -329,6 +339,8 @@ uint8_t InicjujWyjsciaRC(void)
 		//chErr |= HAL_TIM_Base_Init(&htim2);
 		chErr |= HAL_TIM_PWM_Init(&htim2);
 
+		sConfigOC.OCMode = TIM_OCMODE_PWM1;
+	  	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 		sConfigOC.Pulse = OKRES_PWM / 2;
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
@@ -345,11 +357,11 @@ uint8_t InicjujWyjsciaRC(void)
 		hdma_tim2_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		HAL_DMA_Init(&hdma_tim2_ch1);
 
-
-		__HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC3);
-		__HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC3], hdma_tim2_ch3);
-		HAL_TIM_Base_Start(&htim2);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &nBuforTimDMA[KANAL_RC3][0], chRozmiarSekwencjiDMA[KANAL_RC3]);
+		//__HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC1);
+		//__HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC1], hdma_tim2_ch1);
+		//HAL_TIM_Base_Start(&htim2);
+		//chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &nBuforTimDMA[KANAL_RC3][0], chRozmiarSekwencjiDMA[KANAL_RC3]);
+		chErr |= HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_1);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC3] == SERWO_DSHOT150)
@@ -388,6 +400,9 @@ uint8_t InicjujWyjsciaRC(void)
 		htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		chErr |= HAL_TIM_PWM_Init(&htim3);
 
+		sConfigOC.OCMode = TIM_OCMODE_PWM1;
+	  	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+		sConfigOC.Pulse = OKRES_PWM / 2;
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 		chErr |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3);
 
@@ -402,6 +417,10 @@ uint8_t InicjujWyjsciaRC(void)
 		hdma_tim3_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim3_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		HAL_DMA_Init(&hdma_tim3_ch3);
+
+		//__HAL_TIM_ENABLE_DMA(&htim3, TIM_DMA_CC3);
+		//__HAL_LINKDMA(&htim3, hdma[TIM_DMA_ID_CC3], hdma_tim3_ch3);
+		//HAL_TIM_Base_Start(&htim3);
 		chErr |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC4][0], chRozmiarSekwencjiDMA[KANAL_RC4]);
 	}
 	else
@@ -447,7 +466,10 @@ uint8_t InicjujWyjsciaRC(void)
 		htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		chErr |= HAL_TIM_PWM_Init(&htim3);
 
+		sConfigOC.OCMode = TIM_OCMODE_PWM1;
+	  	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+		sConfigOC.Pulse = OKRES_PWM / 2;;
 		chErr |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4);
 
 		hdma_tim3_ch4.Init.Request = DMA_REQUEST_TIM3_CH4;
@@ -460,6 +482,10 @@ uint8_t InicjujWyjsciaRC(void)
 		hdma_tim3_ch4.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim3_ch4.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		HAL_DMA_Init(&hdma_tim3_ch4);
+
+		__HAL_TIM_ENABLE_DMA(&htim3, TIM_DMA_CC4);
+		__HAL_LINKDMA(&htim3, hdma[TIM_DMA_ID_CC4], hdma_tim3_ch4);
+		//HAL_TIM_Base_Start(&htim3);
 		chErr |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, &nBuforTimDMA[KANAL_RC5][0], chRozmiarSekwencjiDMA[KANAL_RC5]);
 	}
 	else
