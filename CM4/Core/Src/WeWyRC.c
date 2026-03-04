@@ -223,7 +223,10 @@ uint8_t InicjujWyjsciaRC(void)
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_10;
 	GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+	TIM2->CCR3 = 1000;
 
 	if ((chKonfigWyRC[KANAL_RC2] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
@@ -258,7 +261,8 @@ uint8_t InicjujWyjsciaRC(void)
 	//	__HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC3], hdma_tim2_ch3);
 		//HAL_TIM_Base_Start(&htim2);
 		//chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC2][0], chRozmiarSekwencjiDMA[KANAL_RC2]);
-		chErr |= HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_3);
+		chErr |= HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+		//chErr |= HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_3);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC2] == SERWO_DSHOT150)
@@ -324,12 +328,13 @@ uint8_t InicjujWyjsciaRC(void)
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_15;
 	GPIO_InitStruct.Alternate = GPIO_AF1_TIM2;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	if ((chKonfigWyRC[KANAL_RC3] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
-		//__HAL_RCC_TIM2_CLK_ENABLE();
-		//__HAL_RCC_DMA2_CLK_ENABLE();
+		__HAL_RCC_TIM2_CLK_ENABLE();
+		__HAL_RCC_DMA2_CLK_ENABLE();
 
 		htim2.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -361,7 +366,8 @@ uint8_t InicjujWyjsciaRC(void)
 		//__HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC1], hdma_tim2_ch1);
 		//HAL_TIM_Base_Start(&htim2);
 		//chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &nBuforTimDMA[KANAL_RC3][0], chRozmiarSekwencjiDMA[KANAL_RC3]);
-		chErr |= HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_1);
+		//chErr |= HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_1);
+		chErr |= HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC3] == SERWO_DSHOT150)
@@ -389,10 +395,15 @@ uint8_t InicjujWyjsciaRC(void)
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_0;
 	GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	TIM3->CCR3 = 1000;
 
 	if ((chKonfigWyRC[KANAL_RC4] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
+		__HAL_RCC_TIM3_CLK_ENABLE();
+		__HAL_RCC_DMA2_CLK_ENABLE();
+
 		htim3.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim3.Init.Period = OKRES_PWM;
@@ -455,10 +466,14 @@ uint8_t InicjujWyjsciaRC(void)
 	__HAL_RCC_GPIOB_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_1;
 	GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 	if ((chKonfigWyRC[KANAL_RC5] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
+		__HAL_RCC_TIM3_CLK_ENABLE();
+		__HAL_RCC_DMA2_CLK_ENABLE();
+
 		htim3.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim3.Init.Period = OKRES_PWM;
@@ -520,10 +535,14 @@ uint8_t InicjujWyjsciaRC(void)
 	__HAL_RCC_GPIOI_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_5;
 	GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
 	if ((chKonfigWyRC[KANAL_RC6] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
+		__HAL_RCC_TIM8_CLK_ENABLE();
+		__HAL_RCC_DMA2_CLK_ENABLE();
+
 		htim8.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim8.Init.Period = OKRES_PWM;
@@ -600,10 +619,14 @@ uint8_t InicjujWyjsciaRC(void)
 	__HAL_RCC_GPIOH_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_15;
 	GPIO_InitStruct.Alternate = GPIO_AF3_TIM8;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);		//domyslnie ma być timer. w przypadku IO lub ADC, konfiguracja będzie nadpisana
 
 	if ((chKonfigWyRC[KANAL_RC8] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
+		__HAL_RCC_TIM8_CLK_ENABLE();
+		__HAL_RCC_DMA2_CLK_ENABLE();
+
 		htim8.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim8.Init.Period = OKRES_PWM;
@@ -654,10 +677,12 @@ uint8_t InicjujWyjsciaRC(void)
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	GPIO_InitStruct.Pin = GPIO_PIN_8;
 	GPIO_InitStruct.Alternate = GPIO_AF1_TIM1;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 	if ((chKonfigWyRC[KANAL_RC916] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
+		__HAL_RCC_TIM1_CLK_ENABLE();
 		HAL_NVIC_SetPriority(TIM1_CC_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(TIM1_CC_IRQn);		//na tym kanale generowanie PWM wymaga przerwań aby przełączyć dekoden kanałów. DMA nie jest używane
 

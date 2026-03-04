@@ -75,7 +75,6 @@ extern DMA_HandleTypeDef hdma_tim3_ch4;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
 extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim7;
 extern DMA_HandleTypeDef hdma_uart4_rx;
@@ -361,51 +360,6 @@ void TIM1_CC_IRQHandler(void)
   /* USER CODE BEGIN TIM1_CC_IRQn 1 */
 
   /* USER CODE END TIM1_CC_IRQn 1 */
-}
-
-/**
-  * @brief This function handles TIM2 global interrupt.
-  */
-void TIM2_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM2_IRQn 0 */
-	uint32_t nTemp;		//Licznik 32-bitowy
-
-	//obsługa wejścia TIM2_CH4 szeregowego sygnału PPM2. Sygnał aktywny niski. Kolejne impulsy zą pomiędzy zboczami narastającymi
-	if (htim2.Instance->SR & TIM_FLAG_CC4)
-	{
-		//przerwania timera interpretuj jako impulsy tylko gdy wejście RC jest skonfigurowane jako CPPM. Gdy jest ustawiony S-Bus to generuje zakłócenia
-		if (chKonfigWeRC[KANAL_RC2] == ODB_RC_CPPM)
-		{
-			if (htim2.Instance->CCR4 > stRC.sPoprzedniaWartoscTimera2)
-				nTemp = htim2.Instance->CCR4 - stRC.sPoprzedniaWartoscTimera2;  //długość impulsu
-			else
-				nTemp = 0xFFFFFFFF - stRC.sPoprzedniaWartoscTimera2 + htim2.Instance->CCR4;  //długość impulsu
-
-			//impuls o długości większej niż 3ms traktowany jest jako przerwa między paczkami impulsów
-			if (nTemp > PRZERWA_PPM)
-			{
-				stRC.nCzasWe2 = PobierzCzas();
-				stRC.chNrKan2 = 0;
-				stRC.chStatus |= STATRC_RAMKA2_OK;
-			}
-			else
-			if ((nTemp > PPM_MIN) && (nTemp < PPM_MAX) && (stRC.chStatus & STATRC_RAMKA2_OK))
-			{
-				stRC.sOdb2[stRC.chNrKan2] = nTemp;
-				stRC.sZdekodowaneKanaly2 |= (1 << stRC.chNrKan2);	//ustaw bit zdekodowanego kanału
-				stRC.chNrKan2++;
-			}
-			else
-				stRC.chStatus &= ~STATRC_RAMKA2_OK;
-		}
-		stRC.sPoprzedniaWartoscTimera2 = htim2.Instance->CCR4;	//odczyt CCRx kasuje przerwanie
-	}
-  /* USER CODE END TIM2_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim2);
-  /* USER CODE BEGIN TIM2_IRQn 1 */
-
-  /* USER CODE END TIM2_IRQn 1 */
 }
 
 /**
