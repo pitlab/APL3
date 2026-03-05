@@ -50,6 +50,9 @@ uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC d
 uint8_t chFunkcjaKanaluRC[KANALY_FUNKCYJNE];	//funkcje przypisane do kanałów wejściowych odbiornika RC
 uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wyjściowych
 uint8_t chRozmiarSekwencjiDMA[KANALY_MIKSERA+1];	//rozmiar paczki danych przesyłanych do DMA w zależności od częstotliwości odświezania. Dla 400Hz paczka ma 1 ważną daną, dla 200Hz jedną ważną i jedną nieważną, dla 50Hz jest 1 ważna i 7 pustych
+uint8_t chBityKonfiguracji = 0;
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja wczytuje z FRAM konfigurację odbiorników RC
@@ -185,6 +188,7 @@ uint8_t InicjujWyjsciaRC(void)
 
 	//odczytaj konfigurację funkcji pełnionych przez kanały wyjściowe RC
 	CzytajBuforFRAM(FAU_FUNKCJA_WY_RC, chFunkcjaWyjscRC, KANALY_WYJSC_RC);
+	AktualizujWyjsciaRC(&uDaneCM4.dane);
 
 
 	//**** Wyjście 1 - konfiguracja portu PB9 TIM4_CH4 **********************************************************
@@ -195,6 +199,7 @@ uint8_t InicjujWyjsciaRC(void)
 
 	if ((chKonfigWyRC[KANAL_RC1] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
+		chBityKonfiguracji |= 0x01;
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;		//wyjście przechodzi przez inwerter, więc wymaga dodatkowego odwrócenia sygnału aby finalnie było niezmienione
 		chErr |= HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4);
 		htim4.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
@@ -228,6 +233,9 @@ uint8_t InicjujWyjsciaRC(void)
 
 	if ((chKonfigWyRC[KANAL_RC2] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
+		__HAL_RCC_TIM2_CLK_ENABLE();
+		__HAL_RCC_DMA2_CLK_ENABLE();
+		chBityKonfiguracji |= 0x02;
 		htim2.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim2.Init.Period = OKRES_PWM;
@@ -258,7 +266,6 @@ uint8_t InicjujWyjsciaRC(void)
 		__HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC3);
 		__HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC3], hdma_tim2_ch3);
 		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC2][0], chRozmiarSekwencjiDMA[KANAL_RC2]);
-		//chErr |= HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC2] == SERWO_DSHOT150)
@@ -329,6 +336,7 @@ uint8_t InicjujWyjsciaRC(void)
 
 	if ((chKonfigWyRC[KANAL_RC3] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
+		chBityKonfiguracji |= 0x04;
 		__HAL_RCC_TIM2_CLK_ENABLE();
 		__HAL_RCC_DMA2_CLK_ENABLE();
 
@@ -360,7 +368,6 @@ uint8_t InicjujWyjsciaRC(void)
 		__HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC1);
 		__HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC1], hdma_tim2_ch1);
 		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &nBuforTimDMA[KANAL_RC3][0], chRozmiarSekwencjiDMA[KANAL_RC3]);
-		//chErr |= HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC3] == SERWO_DSHOT150)
@@ -394,6 +401,7 @@ uint8_t InicjujWyjsciaRC(void)
 
 	if ((chKonfigWyRC[KANAL_RC4] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
+		chBityKonfiguracji |= 0x08;
 		__HAL_RCC_TIM3_CLK_ENABLE();
 		__HAL_RCC_DMA2_CLK_ENABLE();
 

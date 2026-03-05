@@ -297,32 +297,7 @@ uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t chKanal)
 	for (uint8_t n=0; n<DS_BITOW_PRZERWY; n++)
 		nBuforTimDMA[chKanal][n + DS_BITOW_DANYCH] = 0;
 
-
 	chRozmiarSekwencjiDMA[chKanal] = DS_BITOW_LACZNIE;
-
-	//nBuforTimDMA[chKanal][DS_BITOW_LACZNIE - 1] = 0;	//przerwa między ramkami w ostatnim bicie
-
-	//chErr = HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_1);
-	//chErr = HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_3);
-
-	/*sConfigOC.OCMode = TIM_OCMODE_PWM1;
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-	sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-	sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-	sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-
-	sConfigOC.Pulse = stDShot.nT1H;
-	chErr = HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_1);
-
-	sConfigOC.Pulse = stDShot.nT0H;
-	chErr = HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_3);
-
-	//chErr = HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
-	//chErr = HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);*/
-	//chErr = HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, nBuforTimDMA, DS_BITOW_LACZNIE);
-	//chErr = HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_3, nBuforTimDMA, DS_BITOW_LACZNIE);
-
 	return chErr;
 }
 

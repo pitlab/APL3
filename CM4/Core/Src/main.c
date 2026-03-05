@@ -198,7 +198,7 @@ int main(void)
   MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
   uDaneCM4.dane.nZainicjowano = 0;	//za każdym uruchomieniem detekcja i inicjalizacja sprzętu zaczyna się od początku
-  InicjujADC();
+  //InicjujADC();
   InicjujModulyWew();
   InicjujModulI2P();
   InicjujJednostkeInercyjna();
