@@ -96,7 +96,6 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		htim2.Init.Period = stDShot.nBit;
 		htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		//HAL_TIM_Base_Init(&htim2);
 		chErr |= HAL_TIM_PWM_Init(&htim2);
 		AktualizujDShotDMA(1000, chKanal);	//przelicz czas trwania bitów
 		HAL_NVIC_DisableIRQ(TIM2_IRQn);
@@ -104,6 +103,7 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 
 	if (chKanal == KANAL_RC2)		//kanał serw 2 obsługiwany przez Timer2ch3
 	{
+		sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;		//wyjście przechodzi przez inwerter, więc wymaga dodatkowego odwrócenia sygnału aby finalnie było niezmienione
 		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3);
 
 		hdma_tim2_ch3.Instance = DMA2_Stream7;
@@ -227,7 +227,6 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		hdma_tim8_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		chErr |= HAL_DMA_Init(&hdma_tim8_ch1);
 		chErr |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, &nBuforTimDMA[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);
-
 	}
 
 	if (chKanal == KANAL_RC8)	//kanał 8

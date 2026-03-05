@@ -226,8 +226,6 @@ uint8_t InicjujWyjsciaRC(void)
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	TIM2->CCR3 = 1000;
-
 	if ((chKonfigWyRC[KANAL_RC2] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
 		htim2.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
@@ -257,12 +255,10 @@ uint8_t InicjujWyjsciaRC(void)
 		hdma_tim2_ch3.Init.PeriphBurst = DMA_PBURST_SINGLE;
 		HAL_DMA_Init(&hdma_tim2_ch3);
 
-//		__HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC3);
-	//	__HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC3], hdma_tim2_ch3);
-		//HAL_TIM_Base_Start(&htim2);
-		//chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC2][0], chRozmiarSekwencjiDMA[KANAL_RC2]);
-		chErr |= HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
-		//chErr |= HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_3);
+		__HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC3);
+		__HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC3], hdma_tim2_ch3);
+		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC2][0], chRozmiarSekwencjiDMA[KANAL_RC2]);
+		//chErr |= HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC2] == SERWO_DSHOT150)
@@ -341,7 +337,6 @@ uint8_t InicjujWyjsciaRC(void)
 		htim2.Init.Period = OKRES_PWM;
 		htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		//chErr |= HAL_TIM_Base_Init(&htim2);
 		chErr |= HAL_TIM_PWM_Init(&htim2);
 
 		sConfigOC.OCMode = TIM_OCMODE_PWM1;
@@ -362,12 +357,10 @@ uint8_t InicjujWyjsciaRC(void)
 		hdma_tim2_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		HAL_DMA_Init(&hdma_tim2_ch1);
 
-		//__HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC1);
-		//__HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC1], hdma_tim2_ch1);
-		//HAL_TIM_Base_Start(&htim2);
-		//chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &nBuforTimDMA[KANAL_RC3][0], chRozmiarSekwencjiDMA[KANAL_RC3]);
-		//chErr |= HAL_TIM_PWM_Start_IT(&htim2, TIM_CHANNEL_1);
-		chErr |= HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+		__HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC1);
+		__HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC1], hdma_tim2_ch1);
+		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &nBuforTimDMA[KANAL_RC3][0], chRozmiarSekwencjiDMA[KANAL_RC3]);
+		//chErr |= HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC3] == SERWO_DSHOT150)
@@ -431,7 +424,6 @@ uint8_t InicjujWyjsciaRC(void)
 
 		//__HAL_TIM_ENABLE_DMA(&htim3, TIM_DMA_CC3);
 		//__HAL_LINKDMA(&htim3, hdma[TIM_DMA_ID_CC3], hdma_tim3_ch3);
-		//HAL_TIM_Base_Start(&htim3);
 		chErr |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC4][0], chRozmiarSekwencjiDMA[KANAL_RC4]);
 	}
 	else
@@ -500,7 +492,6 @@ uint8_t InicjujWyjsciaRC(void)
 
 		__HAL_TIM_ENABLE_DMA(&htim3, TIM_DMA_CC4);
 		__HAL_LINKDMA(&htim3, hdma[TIM_DMA_ID_CC4], hdma_tim3_ch4);
-		//HAL_TIM_Base_Start(&htim3);
 		chErr |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, &nBuforTimDMA[KANAL_RC5][0], chRozmiarSekwencjiDMA[KANAL_RC5]);
 	}
 	else
