@@ -36,6 +36,11 @@
 #define KANALY_FUNKCYJNE	(KANALY_ODB_RC - LICZBA_DRAZKOW)	//liczba kanałów mogących uruchamiać funkcje autopilota
 #define LICZBA_DRAZKOW		4	//liczba regulatorów które mają wartość zadaną ustawianą drążkami aparatury
 
+//#define PPM10BIT	//tradycyjne wysterowanie w mikrosekundach z zakresu 1000-2000 z neutrum na 1500 i kroku 1000ns
+#define PPM11BIT	//sterowanie PWM serwami i regulatorami w trybie rozszerzonym o dynamice 11 bitów odpowiadajace wspólczesnym protokołom
+
+#ifdef PPM10BIT	//tradycyjne wysterowanie w mikrosekundach z zakresu 1000-2000 z neutrum na 1500 i kroku 1000ns
+#define ZAKRES_RC_MAX	1000
 //przelicznik liczby mikrosekund sygnału PPM na 1 procent wysterowania kanału RC
 #define PPM1PROC_UNI   8       //1% = 8us unipolarnie, 0%=1,1us 100%=1,9us
 #define PPM1PROC_BIP   4       //1% = 4us bipolarnie, -100%=1,1us 0%=1,5us +100%=1,9us
@@ -58,10 +63,37 @@
 #define PPM_P100    	1900    //+100%
 #define PPM_MAX			2000    //wartość maksymalna sygnału +125%
 
-//#define OKRES_PWM		2500	//okres kanału PWM w mikrosekundach
-#define OKRES_PWM		5000	//okres kanału PWM 2,5ms w krokach 500ns
+#define OKRES_PWM		2500	//okres kanału PWM w mikrosekundach
 #define PRZERWA_PPM		3000	//przerwa między paczkami impulsów PPM odbiornika RC
 //#define PPM_SPACE   	20     	//odstęp między kolejnymi impulsami PPM [us]
+
+#else 	//poszerzony zakres o dynamice 11 bitów pomiędzy wartościami 2000-4000 z neutrum w 3000 i kroku 500ns
+#define ZAKRES_RC_MAX	2000
+//przelicznik liczby mikrosekund sygnału PPM na 1 procent wysterowania kanału RC
+#define PPM1PROC_UNI   16       //1% = 8us unipolarnie, 0%=1,1us 100%=1,9us
+#define PPM1PROC_BIP   8       //1% = 4us bipolarnie, -100%=1,1us 0%=1,5us +100%=1,9us
+
+//czasy impulsów PPM dla założenia że 1% to 4us
+#define PPM_MIN			2000    //wartość minimalna sygnału -125%
+#define PPM_M100    	2200    //-100%
+#define PPM_M90     	2280    //-90%
+#define PPM_JALOWY  	2400    //obroty jałowe silników
+#define PPM_M75     	2400    //-75%
+#define PPM_M50     	2600    //-50%
+#define PPM_M25     	2800    //-25%
+#define PPM_M20     	2840    //-20%
+#define PPM_NEUTR   	3000    //neutrum 1500us
+#define PPM_P20     	3160    //+20%
+#define PPM_P25     	3200    //+25%
+#define PPM_P50     	3400    //+50%
+#define PPM_P75     	3600    //+75%
+#define PPM_P90     	3720    //+90%
+#define PPM_P100    	3800    //+100%
+#define PPM_MAX			4000    //wartość maksymalna sygnału +125%
+
+#define OKRES_PWM		5000	//okres kanału PWM 2,5ms w krokach 500ns
+#define PRZERWA_PPM		3000	//przerwa między paczkami impulsów PPM odbiornika RC
+#endif
 
 //definicje żródła sygnału z odbiorników RC
 #define ODB_RC1			1	//pobieramy dane z odbiornika 1
@@ -95,20 +127,6 @@
 #define SERWO_DSHOT600	10	//wyjście DShot300
 #define SERWO_DSHOT1200	11	//wyjście DShot1200
 
-
-/*/definicje Funkcji sygnału wejściowego Odbiornika RC
-#define FORC_CH5		4
-#define FORC_CH6		5
-#define FORC_CH7		6
-#define FORC_CH8		7
-#define FORC_CH9		8
-#define FORC_CH10		9
-#define FORC_CH11		10
-#define FORC_CH12		11
-#define FORC_CH13		12
-#define FORC_CH14		13
-#define FORC_CH15		14
-#define FORC_CH16		15 */
 
 //definicje numerów kanałów sygnału wyjściowego
 #define KANAL_RC1	0

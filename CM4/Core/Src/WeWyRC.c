@@ -17,7 +17,9 @@
 #include "sample_audio.h"
 
 //definicje SBus: https://github.com/uzh-rpg/rpg_quadrotor_control/wiki/SBUS-Protocol
-//S-Bus oraz DShot mają rozdzielczość 11-bitów, wiec przyjmuję taką rozdzielczość sterowania
+//S-Bus oraz DShot mają rozdzielczość 11-bitów, wiec przyjmuję taką rozdzielczość sterowania definiując stałą PPM11BIT
+//Wartości z odbiorników są normalizowane do zakresu 0-2000 (ZAKRES_RC_MAX) z 1000 jako wartością neutralną. Tak są liczone dane w mikserze.
+//Wartości sterujące idące do timera odpowiadają tradycyjnym wyrażonym w mikrosekundach mnożonym przez 2
 
 
 stRC_t stRC;	//struktura danych odbiorników RC
