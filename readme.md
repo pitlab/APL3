@@ -74,7 +74,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Obsługa odbiornika RC w standardzie PPM oraz S-Bus
 - Obsługa 6 wyjść RC z protokołem Digital Shot: DShot150, DShot300, DShot600 i DShot1200 (oprócz standardowego PWM 400Hz i S-Bus). Na razie jednokierunkowe, bez telemetrii.
 - Obsługa wyjść serw PWM: 50, 100 i 200Hz oprócz standardowego 400Hz.
-
+- Normalizacja sygnałów wejsciowych RC do zakresu 0..2000 odpowiadającemu dynamice współczesnych protokołów komunikacyjnych
 
 
  

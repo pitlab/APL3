@@ -305,97 +305,97 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 		return ERR_ZLA_ILOSC_DANYCH;
 
 	sWartoscKanalu = ((uint16_t)*(chNaglowek +  1)       | (((uint16_t)*(chNaglowek +  2) << 8) & 0x7E0));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  0) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  2) >> 3) | (((uint16_t)*(chNaglowek +  3) << 5) & 0x7E0));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  1) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  3) >> 6) | (((uint16_t)*(chNaglowek +  4) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 5) << 10) & 0x400));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  2) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  5) >> 1) | (((uint16_t)*(chNaglowek +  6) << 7) & 0x780));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  3) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  6) >> 4) | (((uint16_t)*(chNaglowek +  7) << 4) & 0x7F0));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  4) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  7) >> 7) | (((uint16_t)*(chNaglowek +  8) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 9) << 9) & 0x600));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  5) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  9) >> 2) | (((uint16_t)*(chNaglowek + 10) << 6) & 0x7C0));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  6) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 10) >> 5) | (((uint16_t)*(chNaglowek + 11) << 3) & 0x7F8));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  7) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 12) >> 0) | (((uint16_t)*(chNaglowek + 13) << 8) & 0x700));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  8) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 13) >> 3) | (((uint16_t)*(chNaglowek + 14) << 5) & 0x7E0));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  9) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 14) >> 6) | (((uint16_t)*(chNaglowek + 15) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 16) << 10) & 0x400));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly + 10) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 16) >> 1) | (((uint16_t)*(chNaglowek + 17) << 7) & 0x780));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly + 11) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 17) >> 4) | (((uint16_t)*(chNaglowek + 18) << 4) & 0x7F0));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly + 12) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 18) >> 7) | (((uint16_t)*(chNaglowek + 19) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 20) << 9) & 0x600));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly + 13) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 20) >> 2) | (((uint16_t)*(chNaglowek + 21) << 6) & 0x7C0));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly + 14) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 21) >> 5) | (((uint16_t)*(chNaglowek + 22) << 3) & 0x7F8));
-	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly + 15) = sWartoscKanalu;
 	else
 		chBlad = ERR_ZLE_DANE;

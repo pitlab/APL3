@@ -40,7 +40,6 @@
 #define PPM11BIT	//sterowanie PWM serwami i regulatorami w trybie rozszerzonym o dynamice 11 bitów odpowiadajace wspólczesnym protokołom
 
 #ifdef PPM10BIT	//tradycyjne wysterowanie w mikrosekundach z zakresu 1000-2000 z neutrum na 1500 i kroku 1000ns
-#define ZAKRES_RC_MAX	1000
 //przelicznik liczby mikrosekund sygnału PPM na 1 procent wysterowania kanału RC
 #define PPM1PROC_UNI   8       //1% = 8us unipolarnie, 0%=1,1us 100%=1,9us
 #define PPM1PROC_BIP   4       //1% = 4us bipolarnie, -100%=1,1us 0%=1,5us +100%=1,9us
@@ -68,10 +67,28 @@
 //#define PPM_SPACE   	20     	//odstęp między kolejnymi impulsami PPM [us]
 
 #else 	//poszerzony zakres o dynamice 11 bitów pomiędzy wartościami 2000-4000 z neutrum w 3000 i kroku 500ns
-#define ZAKRES_RC_MAX	2000
+
 //przelicznik liczby mikrosekund sygnału PPM na 1 procent wysterowania kanału RC
-#define PPM1PROC_UNI   16       //1% = 8us unipolarnie, 0%=1,1us 100%=1,9us
-#define PPM1PROC_BIP   8       //1% = 4us bipolarnie, -100%=1,1us 0%=1,5us +100%=1,9us
+#define PPM1PROC_UNI	16       //1% = 8us unipolarnie, 0%=1,1us 100%=1,9us
+#define PPM1PROC_BIP	8       //1% = 4us bipolarnie, -100%=1,1us 0%=1,5us +100%=1,9us
+
+//definicje zakresów sygnału wejsciowego RC
+#define WE_RC_MIN		0    	//wartość minimalna sygnału -125%
+#define WE_RC_M100    	200    //-100%
+#define WE_RC_M90     	280    //-90%
+#define WE_RC_M75     	400    //-75%
+#define WE_RC_M50     	600    //-50%
+#define WE_RC_M25     	800    //-25%
+#define WE_RC_M20     	840    //-20%
+#define WE_RC_NEUTR   	1000    //neutrum
+#define WE_RC_P20     	1160    //+20%
+#define WE_RC_P25     	1200    //+25%
+#define WE_RC_P50     	1400    //+50%
+#define WE_RC_P75     	1600    //+75%
+#define WE_RC_P90     	1720    //+90%
+#define WE_RC_P100    	1800    //+100%
+#define WE_RC_MAX		2000    //wartość maksymalna sygnału +125%
+
 
 //czasy impulsów PPM dla założenia że 1% to 4us
 #define PPM_MIN			2000    //wartość minimalna sygnału -125%

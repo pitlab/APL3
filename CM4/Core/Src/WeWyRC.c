@@ -18,7 +18,7 @@
 
 //definicje SBus: https://github.com/uzh-rpg/rpg_quadrotor_control/wiki/SBUS-Protocol
 //S-Bus oraz DShot mają rozdzielczość 11-bitów, wiec przyjmuję taką rozdzielczość sterowania definiując stałą PPM11BIT
-//Wartości z odbiorników są normalizowane do zakresu 0-2000 (ZAKRES_RC_MAX) z 1000 jako wartością neutralną. Tak są liczone dane w mikserze.
+//Wartości z odbiorników są normalizowane do zakresu 0-2000 (WE_RC_MAX) z 1000 jako wartością neutralną. Tak są liczone dane w mikserze.
 //Wartości sterujące idące do timera odpowiadają tradycyjnym wyrażonym w mikrosekundach mnożonym przez 2
 
 
@@ -843,10 +843,10 @@ void RozpocznijZbieranieEkstremowWejscRC(void)
 	//inicjuj wartości ekstremalne skrajnymi
 	for (uint16_t n=0; n<KANALY_ODB_RC; n++)
 	{
-		stRC.sMin1[n] = ZAKRES_RC_MAX;
-		stRC.sMax1[n] = 0;
-		stRC.sMin2[n] = ZAKRES_RC_MAX;
-		stRC.sMax2[n] = 0;
+		stRC.sMin1[n] = WE_RC_MAX;
+		stRC.sMax1[n] = WE_RC_MIN;
+		stRC.sMin2[n] = WE_RC_MAX;
+		stRC.sMax2[n] = WE_RC_MIN;
 	}
 
 	//rozpocznij zbieranie gdy jeszcze nie jest rozpoczęte
@@ -934,7 +934,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 						stRC->sMin1[n] = stRC->sOdb1[n];
 					if (stRC->sOdb1[n] > stRC->sMax1[n])
 						stRC->sMax1[n] = stRC->sOdb1[n];
-					if ((stRC->sMin1[n] < ZAKRES_RC_MAX / 2) && (stRC->sMax1[n] > ZAKRES_RC_MAX / 2))
+					if ((stRC->sMin1[n] < WE_RC_M90) && (stRC->sMax1[n] > WE_RC_P90))
 						stRC->chStatus |= STATRC_ZEBRANO_EKSTR1;
 
 					psDaneCM4->sKanalRC[n] = stRC->sOdb1[n];	//podawaj surowe dane bez nomrmalizacji
@@ -945,7 +945,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 				{
 					sRóżnicaMaxMin = stRC->sMax1[n] - stRC->sMin1[n];
 					if (sRóżnicaMaxMin)
-						psDaneCM4->sKanalRC[n] = (stRC->sOdb1[n] - stRC->sMin1[n]) * ZAKRES_RC_MAX / sRóżnicaMaxMin; 	//przepisz znornalizowane kanały
+						psDaneCM4->sKanalRC[n] = (stRC->sOdb1[n] - stRC->sMin1[n]) * WE_RC_MAX / sRóżnicaMaxMin; 	//przepisz znornalizowane kanały
 					else
 						psDaneCM4->sKanalRC[n] = stRC->sOdb1[n];	//surowe dane bez nomrmalizacji
 				}
@@ -974,7 +974,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 						stRC->sMin2[n] = stRC->sOdb2[n];
 					if (stRC->sOdb2[n] > stRC->sMax2[n])
 						stRC->sMax2[n] = stRC->sOdb2[n];
-					if ((stRC->sMin2[n] < ZAKRES_RC_MAX / 2) && (stRC->sMax2[n] > ZAKRES_RC_MAX / 2))
+					if ((stRC->sMin2[n] < WE_RC_M90) && (stRC->sMax2[n] > WE_RC_P90))
 						stRC->chStatus |= STATRC_ZEBRANO_EKSTR2;
 				}
 
@@ -983,7 +983,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 				{
 					sRóżnicaMaxMin = stRC->sMax2[n] - stRC->sMin2[n];
 					if (sRóżnicaMaxMin)
-						psDaneCM4->sKanalRC[n] = (stRC->sOdb2[n] - stRC->sMin2[n]) * ZAKRES_RC_MAX / sRóżnicaMaxMin; 	//przepisz znornalizowane kanały
+						psDaneCM4->sKanalRC[n] = (stRC->sOdb2[n] - stRC->sMin2[n]) * WE_RC_MAX / sRóżnicaMaxMin; 	//przepisz znornalizowane kanały
 				}
 				stRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
@@ -1016,35 +1016,34 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4)
 
 	//Dodać  sprawdzenie czy przyszły nowe dane z odbiornika
 
+    //sprawdź warunek rozbrojenia silników, czyli gaz na mininum i kierunek w lewo
+	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] < WE_RC_M90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < WE_RC_M90))
+	{
+		RozbrojSilniki(psDaneCM4);
+		psDaneCM4->chWymowSampla = PGA_ROZBROJONY;
+	}
+
     //sprawdź warunek uzbrojenia silników, czyli gaz na mininum i kierunek w prawo
-	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] < PPM_M90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] > PPM_P90))
+	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] < WE_RC_M90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] > WE_RC_P90))
 	{
 		chBłąd = UzbrojSilniki(psDaneCM4);
 		if (chBłąd == BLAD_OK)
 			psDaneCM4->chWymowSampla = PGA_UZBROJONY;
 	}
 
-    //sprawdź warunek rozbrojenia silników, czyli gaz na mininum i kierunek w lewo
-	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] < PPM_M90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < PPM_M90))
-	{
-		RozbrojSilniki(psDaneCM4);
-		psDaneCM4->chWymowSampla = PGA_ROZBROJONY;
-	}
-
     //sprawdź warunek ..., czyli gaz na maksimum i kierunek w lewo
-	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] > PPM_P90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < PPM_M90) && ((psDaneCM4->chTrybLotu & BTR_UZBROJONY) != BTR_UZBROJONY))
+	if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] > WE_RC_P90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < WE_RC_M90) && ((psDaneCM4->chTrybLotu & BTR_UZBROJONY) != BTR_UZBROJONY))
     {
         //obsługa ...
     }
 
     //sprawdź warunek zerowania zużycia energii, czyli gaz na maksimum i kierunek w prawo
-    if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] > PPM_P90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] > PPM_P90) && ((psDaneCM4->chTrybLotu & BTR_UZBROJONY) != BTR_UZBROJONY))
+    if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] > WE_RC_P90) && (psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] > WE_RC_P90) && ((psDaneCM4->chTrybLotu & BTR_UZBROJONY) != BTR_UZBROJONY))
     {
         //obsługa resetownia licznika energii
     }
     return chBłąd;
 }
-
 
 
 
