@@ -62,7 +62,6 @@ extern stKonfPID_t stKonfigPID[LICZBA_PID];	//struktura przechowująca dane doty
 extern stMikser_t stMikser[KANALY_MIKSERA];	//struktura zmiennych miksera
 extern float fSkalaWartosciZadanejAkro[LICZBA_DRAZKOW];	//wartość zadana dla pełnego wychylenia drążka aparatury w trybie AKRO
 extern float fSkalaWartosciZadanejStab[LICZBA_DRAZKOW];	//wartość zadana dla pełnego wychylenia drążka aparatury w trybie STAB
-extern uint16_t sWysterowanieJalowe;	//wartość wysterowania regulatorów dla uzyskania obrotów jałowych
 extern uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
 extern uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
 extern uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych
@@ -148,7 +147,6 @@ void PetlaGlowna(void)
 	case 8:	JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
 
 	case 9:	chBladPG |= ObslugaRamkiSBus();
-		ZbierajEkstremaWejscRC(&stRC);
 		chBladPG |= AnalizujSygnalRC(&uDaneCM4.dane);
 		break;
 
@@ -428,7 +426,6 @@ void WykonajPolecenieCM7(void)
 #endif
 		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
 			ZapiszFramU16(FAU_PWM_JALOWY + n*2, uDaneCM7.dane.uRozne.U16[n]);
-		sWysterowanieJalowe = uDaneCM7.dane.uRozne.U16[0];
 		sWysterowanieMin = uDaneCM7.dane.uRozne.U16[1];
 		sWysterowanieZawisu = uDaneCM7.dane.uRozne.U16[2];
 		sWysterowanieMax = uDaneCM7.dane.uRozne.U16[3];

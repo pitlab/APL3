@@ -32,6 +32,7 @@ extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim8;
 UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart4;
+extern UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_tim2_ch1;
 extern DMA_HandleTypeDef hdma_tim2_ch3;
@@ -126,7 +127,7 @@ uint8_t InicjujWejsciaRC(void)
 		chErr |= InicjujUart2RxJakoSbus(&GPIO_InitStruct);
 	}
 
-	//odczytaj z FRAM minima i maksima kanałów RC aby móc je znormalizować
+	//odczytaj z FRAM minima i maksima kanałów RC aby móc je normalizować
     for (uint16_t n=0; n<KANALY_ODB_RC; n++)
     {
     	stRC.sMin1[n] = CzytajFramU16(FAU_WE_RC1_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
@@ -839,47 +840,20 @@ uint32_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM
 ////////////////////////////////////////////////////////////////////////////////
 void RozpocznijZbieranieEkstremowWejscRC(void)
 {
-	//rozpoacznij zbieranie gdy jeszcze nie jest rozpoczęte
+	//inicjuj wartości ekstremalne skrajnymi
+	for (uint16_t n=0; n<KANALY_ODB_RC; n++)
+	{
+		stRC.sMin1[n] = ZAKRES_RC_MAX;
+		stRC.sMax1[n] = 0;
+		stRC.sMin2[n] = ZAKRES_RC_MAX;
+		stRC.sMax2[n] = 0;
+	}
+
+	//rozpocznij zbieranie gdy jeszcze nie jest rozpoczęte
 	if ((stRC.chStatus & STATRC_ZBIERAJ_EKSTREMA) != STATRC_ZBIERAJ_EKSTREMA)
 	{
 		stRC.chStatus |= STATRC_ZBIERAJ_EKSTREMA;
-		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
-		{
-			stRC.sMin1[n] = PPM_MAX;
-			stRC.sMax1[n] = PPM_MIN;
-			stRC.sMin2[n] = PPM_MAX;
-			stRC.sMax2[n] = PPM_MIN;
-		}
-	}
-}
 
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Zbiera ekstremalne wartości wszystkich kanalów z obu odbiorników RC
-// Parametry: [io] *stRC - wskaźnik na strukturę przechowujaca dane odbiorników
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void ZbierajEkstremaWejscRC(stRC_t *stRC)
-{
-	if (stRC->chStatus & STATRC_ZBIERAJ_EKSTREMA)
-	{
-		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
-		{
-			if (stRC->sOdb1[n] < stRC->sMin1[n])
-				stRC->sMin1[n] = stRC->sOdb1[n];
-			if (stRC->sOdb1[n] > stRC->sMax1[n])
-				stRC->sMax1[n] = stRC->sOdb1[n];
-			if ((stRC->sMin1[n] < PPM_M75) && (stRC->sMax1[n] > PPM_P75))
-				stRC->chStatus |= STATRC_ZEBRANO_EKSTR1;
-
-			if (stRC->sOdb2[n] < stRC->sMin2[n])
-				stRC->sMin2[n] = stRC->sOdb2[n];
-			if (stRC->sOdb2[n] > stRC->sMax2[n])
-				stRC->sMax2[n] = stRC->sOdb2[n];
-			if ((stRC->sMin2[n] < PPM_M75) && (stRC->sMax2[n] > PPM_P75))
-				stRC->chStatus |= STATRC_ZEBRANO_EKSTR2;
-		}
 	}
 }
 
@@ -928,27 +902,8 @@ void ZapiszEkstremaWejscRC(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Normalizuje sygnały RC sprowadzajac je do standardowego zakresu 1000..2000
-// Parametry:
-// [i] sWejscie - wejście sygnału odebranego z aparatury
-// [i] sMin, sMax - minimalna i maksymalna wartość kanału
-// [o] *sWyjscie - wskaźnik na wartość kanałów po normalizacji
-// Zwraca: kod błędu
-////////////////////////////////////////////////////////////////////////////////
-void NormalizujWejsciaRC(uint16_t sWejscie, uint16_t sMin, uint16_t sMax, uint16_t *sWyjscie)
-{
-	for (uint16_t n=0; n<KANALY_ODB_RC; n++)
-	{
-
-	}
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Porównuje dane z obu odbiorników RC i wybiera ten lepszy przepisując jego dane do struktury danych CM4
-// Zrobić: Sygnały z róznych typów odbiorników i róznych protokołów powinny zostać znormalizowane przed porównaniem
+// Pobiera dane ze zdefiniowanych odbiorników. Normalizuje dane, jeżeli właczone to zbiera ekstrema
+// Finalne dane przepisuje do struktury danych CM4
 // Parametry:
 // [we] *stRC - wskaźnik na strukturę danych odbiorników RC
 // [wy] *psDaneCM4 - wskaźnik na strukturę danych CM4
@@ -960,50 +915,85 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 	uint8_t chBłąd = BLAD_OK;
 	uint32_t nCzasBiezacy = PobierzCzas();
 	uint32_t nCzasRC1, nCzasRC2;
-	uint8_t n;
+	uint16_t sRóżnicaMaxMin;
 
 	//Sprawdź kiedy przyszły ostatnie dane RC
 	nCzasRC1 = MinalCzas2(stRC->nCzasWe1, nCzasBiezacy);
 	nCzasRC2 = MinalCzas2(stRC->nCzasWe2, nCzasBiezacy);
 
-	//if ((nCzasRC1 < 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC))	//działa odbiornik 1, nie działa 2
 	if (nCzasRC1 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 1
 	{
-		for (n=0; n<KANALY_ODB_RC; n++)
+		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
 		{
 			if (stRC->sZdekodowaneKanaly1 & (1<<n))
 			{
+				//zbieranie ekstremów do obliczenia nowej normalizacji
+				if (stRC->chStatus & STATRC_ZBIERAJ_EKSTREMA)
+				{
+					if (stRC->sOdb1[n] < stRC->sMin1[n])
+						stRC->sMin1[n] = stRC->sOdb1[n];
+					if (stRC->sOdb1[n] > stRC->sMax1[n])
+						stRC->sMax1[n] = stRC->sOdb1[n];
+					if ((stRC->sMin1[n] < ZAKRES_RC_MAX / 2) && (stRC->sMax1[n] > ZAKRES_RC_MAX / 2))
+						stRC->chStatus |= STATRC_ZEBRANO_EKSTR1;
+
+					psDaneCM4->sKanalRC[n] = stRC->sOdb1[n];	//podawaj surowe dane bez nomrmalizacji
+				}
+				else
+				//normalizacja danych
 				if ((psDaneCM7->chOdbiornikRC == ODB_RC1) || (psDaneCM7->chOdbiornikRC == ODB_OBA))
-					psDaneCM4->sKanalRC[n] = stRC->sOdb1[n]; 	//przepisz zdekodowane kanały
+				{
+					sRóżnicaMaxMin = stRC->sMax1[n] - stRC->sMin1[n];
+					if (sRóżnicaMaxMin)
+						psDaneCM4->sKanalRC[n] = (stRC->sOdb1[n] - stRC->sMin1[n]) * ZAKRES_RC_MAX / sRóżnicaMaxMin; 	//przepisz znornalizowane kanały
+					else
+						psDaneCM4->sKanalRC[n] = stRC->sOdb1[n];	//surowe dane bez nomrmalizacji
+				}
 				stRC->sZdekodowaneKanaly1 &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
 		}
 		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);				//kanał serw 5 skonfigurowany jako IO
-	}
-	else
-	//if ((nCzasRC1 > 2*OKRES_RAMKI_PPM_RC) && (nCzasRC2 < 2*OKRES_RAMKI_PPM_RC))	//nie działa odbiornik 1, działa 2
-	if (nCzasRC2 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 2
-	{
-		for (n=0; n<KANALY_ODB_RC; n++)
-		{
-			if (stRC->sZdekodowaneKanaly2 & (1<<n))
-			{
-				if ((psDaneCM7->chOdbiornikRC == ODB_RC2) || (psDaneCM7->chOdbiornikRC == ODB_OBA))
-					psDaneCM4->sKanalRC[n] = stRC->sOdb2[n]; 	//przepisz zdekodowane kanały
-				stRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
-			}
-		}
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	}
 	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
 	if (nCzasRC1 > 2*OKRES_RAMKI_PPM_RC)
 	{
 		HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZM_BUF_ODB_SBUS);
 	}
-	else
+
+
+	if (nCzasRC2 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 2
+	{
+		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
+		{
+			if (stRC->sZdekodowaneKanaly2 & (1<<n))
+			{
+				//zbieranie ekstremów do obliczenia nowej normalizacji
+				if (stRC->chStatus & STATRC_ZBIERAJ_EKSTREMA)
+				{
+					if (stRC->sOdb2[n] < stRC->sMin2[n])
+						stRC->sMin2[n] = stRC->sOdb2[n];
+					if (stRC->sOdb2[n] > stRC->sMax2[n])
+						stRC->sMax2[n] = stRC->sOdb2[n];
+					if ((stRC->sMin2[n] < ZAKRES_RC_MAX / 2) && (stRC->sMax2[n] > ZAKRES_RC_MAX / 2))
+						stRC->chStatus |= STATRC_ZEBRANO_EKSTR2;
+				}
+
+				//normalizacja danych
+				if ((psDaneCM7->chOdbiornikRC == ODB_RC2) || (psDaneCM7->chOdbiornikRC == ODB_OBA))
+				{
+					sRóżnicaMaxMin = stRC->sMax2[n] - stRC->sMin2[n];
+					if (sRóżnicaMaxMin)
+						psDaneCM4->sKanalRC[n] = (stRC->sOdb2[n] - stRC->sMin2[n]) * ZAKRES_RC_MAX / sRóżnicaMaxMin; 	//przepisz znornalizowane kanały
+				}
+				stRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
+			}
+		}
+		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
+	}
+	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
 	if (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC)
 	{
-		HAL_UART_Receive_IT(&huart4, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);
+		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);
 	}
 
 

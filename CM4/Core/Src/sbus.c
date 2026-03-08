@@ -274,7 +274,8 @@ uint8_t FormowanieRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Dekoduje dane z ramki wejściowej odbiorników RC i skaluje je do wygodnego w obsłudze zakresu PPM_MIN..PPM_MAX
+// Dekoduje dane z ramki wejściowej odbiorników RC
+//i skaluje je do wygodnego w obsłudze zakresu PPM_MIN..PPM_MAX
 // Parametry:
 // [we] *chRamkaWe - wskaźnik na dane ramki wejsciowej
 // [wy] *sKanaly - wskaźnik na tablicę kanałów RC
@@ -285,6 +286,8 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 {
 	uint8_t* chNaglowek;
 	uint8_t n;
+	uint16_t sWartoscKanalu;
+	uint8_t chBlad = BLAD_OK;
 
 	//dane mogą być przesunięte wzgledem początku więc znajdź nagłówek i synchronizuj się do niego
 	for (n=0; n<KANALY_ODB_RC; n++)
@@ -301,23 +304,102 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 	if (n > MAX_PRZESUN_NAGL)
 		return ERR_ZLA_ILOSC_DANYCH;
 
-	*(sKanaly +  0) =  ((((int16_t)*(chNaglowek +  1)       | (((int16_t)*(chNaglowek +  2) << 8) & 0x7E0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  1) = (((((int16_t)*(chNaglowek +  2) >> 3) | (((int16_t)*(chNaglowek +  3) << 5) & 0x7E0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  2) = (((((int16_t)*(chNaglowek +  3) >> 6) | (((int16_t)*(chNaglowek +  4) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 5) << 10) & 0x400)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  3) = (((((int16_t)*(chNaglowek +  5) >> 1) | (((int16_t)*(chNaglowek +  6) << 7) & 0x780)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  4) = (((((int16_t)*(chNaglowek +  6) >> 4) | (((int16_t)*(chNaglowek +  7) << 4) & 0x7F0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN ;
-	*(sKanaly +  5) = (((((int16_t)*(chNaglowek +  7) >> 7) | (((int16_t)*(chNaglowek +  8) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 9) << 9) & 0x600)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  6) = (((((int16_t)*(chNaglowek +  9) >> 2) | (((int16_t)*(chNaglowek + 10) << 6) & 0x7C0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  7) = (((((int16_t)*(chNaglowek + 10) >> 5) | (((int16_t)*(chNaglowek + 11) << 3) & 0x7F8)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  8) = (((((int16_t)*(chNaglowek + 12) >> 0) | (((int16_t)*(chNaglowek + 13) << 8) & 0x700)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly +  9) = (((((int16_t)*(chNaglowek + 13) >> 3) | (((int16_t)*(chNaglowek + 14) << 5) & 0x7E0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly + 10) = (((((int16_t)*(chNaglowek + 14) >> 6) | (((int16_t)*(chNaglowek + 15) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 16) << 10) & 0x400)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly + 11) = (((((int16_t)*(chNaglowek + 16) >> 1) | (((int16_t)*(chNaglowek + 17) << 7) & 0x780)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly + 12) = (((((int16_t)*(chNaglowek + 17) >> 4) | (((int16_t)*(chNaglowek + 18) << 4) & 0x7F0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly + 13) = (((((int16_t)*(chNaglowek + 18) >> 7) | (((int16_t)*(chNaglowek + 19) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 20) << 9) & 0x600)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly + 14) = (((((int16_t)*(chNaglowek + 20) >> 2) | (((int16_t)*(chNaglowek + 21) << 6) & 0x7C0)) - SBUS_MIN) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	*(sKanaly + 15) = (((((int16_t)*(chNaglowek + 21) >> 5) | (((int16_t)*(chNaglowek + 22) << 3) & 0x7F8)) - SBUS_MIN ) * (PPM_MAX - PPM_MIN) / (SBUS_MAX - SBUS_MIN)) + PPM_MIN;
-	return BLAD_OK;
+	sWartoscKanalu = ((uint16_t)*(chNaglowek +  1)       | (((uint16_t)*(chNaglowek +  2) << 8) & 0x7E0));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly +  0) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek +  2) >> 3) | (((uint16_t)*(chNaglowek +  3) << 5) & 0x7E0));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly +  1) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek +  3) >> 6) | (((uint16_t)*(chNaglowek +  4) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 5) << 10) & 0x400));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly +  2) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek +  5) >> 1) | (((uint16_t)*(chNaglowek +  6) << 7) & 0x780));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly +  3) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek +  6) >> 4) | (((uint16_t)*(chNaglowek +  7) << 4) & 0x7F0));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly +  4) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek +  7) >> 7) | (((uint16_t)*(chNaglowek +  8) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 9) << 9) & 0x600));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly +  5) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek +  9) >> 2) | (((uint16_t)*(chNaglowek + 10) << 6) & 0x7C0));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly +  6) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek + 10) >> 5) | (((uint16_t)*(chNaglowek + 11) << 3) & 0x7F8));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly +  7) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek + 12) >> 0) | (((uint16_t)*(chNaglowek + 13) << 8) & 0x700));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly +  8) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek + 13) >> 3) | (((uint16_t)*(chNaglowek + 14) << 5) & 0x7E0));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly +  9) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek + 14) >> 6) | (((uint16_t)*(chNaglowek + 15) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 16) << 10) & 0x400));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly + 10) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek + 16) >> 1) | (((uint16_t)*(chNaglowek + 17) << 7) & 0x780));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly + 11) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek + 17) >> 4) | (((uint16_t)*(chNaglowek + 18) << 4) & 0x7F0));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly + 12) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek + 18) >> 7) | (((uint16_t)*(chNaglowek + 19) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 20) << 9) & 0x600));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly + 13) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek + 20) >> 2) | (((uint16_t)*(chNaglowek + 21) << 6) & 0x7C0));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly + 14) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+
+	sWartoscKanalu = (((uint16_t)*(chNaglowek + 21) >> 5) | (((uint16_t)*(chNaglowek + 22) << 3) & 0x7F8));
+	if (sWartoscKanalu < 2 * ZAKRES_RC_MAX)
+		*(sKanaly + 15) = sWartoscKanalu;
+	else
+		chBlad = ERR_ZLE_DANE;
+	return chBlad;
 }
 
 
@@ -368,6 +450,7 @@ uint8_t ObslugaRamkiSBus(void)
 	{
 		nCzasWysylkiSbus = PobierzCzas();
 		HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus, ROZM_BUF_ODB_SBUS);	//wyślij kolejną ramkę
+
 	}
 	return chBlad;
 }

@@ -63,13 +63,8 @@ uint8_t InicjujWejsciaRC(void);	//odbiorniki
 uint8_t InicjujWyjsciaRC(void);	//serwa, ESC
 uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane);
 uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7);
-//uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly);
-//uint8_t FormowanieRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_t *chBuforAnalizy, uint8_t chWskNapBuf, uint8_t *chWskOprBuf);
-//uint8_t ObslugaRamkiSBus(void);
 void RozpocznijZbieranieEkstremowWejscRC(void);
 void ZapiszEkstremaWejscRC(void);
-void ZbierajEkstremaWejscRC(stRC_t *stRC);
-void NormalizujWejsciaRC(uint16_t sWejscie, uint16_t sMin, uint16_t sMax, uint16_t *sWyjscie);
 uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4);
 uint32_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM4);
 

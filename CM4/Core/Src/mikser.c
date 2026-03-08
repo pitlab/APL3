@@ -12,19 +12,17 @@
 #include "pid.h"
 
 stMikser_t stMikser;	//struktura zmiennych miksera
-uint16_t sWysterowanieJalowe;	//wartość wysterowania regulatorów dla uzyskania obrotów jałowych
 uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
 uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
 uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych. Dalsze zwiększanie wysterowania nic nie daje, więc w ten sposób wykluczamy go z zakresu regulacji
 
 
 extern unia_wymianyCM4_t uDaneCM4;
-extern TIM_HandleTypeDef htim1;
+/*extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
-extern TIM_HandleTypeDef htim7;
-//extern TIM_HandleTypeDef htim8;
+extern TIM_HandleTypeDef htim7;*/
 extern volatile uint8_t chNumerKanSerw;
 extern uint8_t chTrybRegulacji[LICZBA_DRAZKOW];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
 extern uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC do funkcji drążków aparatury
@@ -78,10 +76,9 @@ uint8_t InicjujMikser(void)
 			stMikser.fPoch[n] = 0;
 	}
 
-	sWysterowanieMin 	= CzytajFramU16(FAU_PWM_MIN);      	//minimalne wysterowanie silników [us]
-	sWysterowanieJalowe = CzytajFramU16(FAU_PWM_JALOWY);    //wysterowanie silników dla biegu jałowego [us]
-	sWysterowanieZawisu = CzytajFramU16(FAU_WPM_ZAWISU);  	//wysterowanie silników dla zawisu [us]
-	sWysterowanieMax  	= CzytajFramU16(FAU_PWM_MAX);     	//maksymalne wysterowanie silników [us]
+	sWysterowanieMin 	= CzytajFramU16(FAU_PWM_MIN);      	//minimalne wysterowanie silników
+	sWysterowanieZawisu = CzytajFramU16(FAU_WPM_ZAWISU);  	//wysterowanie silników dla zawisu
+	sWysterowanieMax  	= CzytajFramU16(FAU_PWM_MAX);     	//maksymalne wysterowanie silników
 	return chErr;
 }
 
@@ -107,23 +104,14 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 
 	if(dane->chTrybLotu & BTR_UZBROJONY)
 	{
-		//czy poziom gazu sugeruje że Wron jest w locie
-//		if ((dane->sKanalRC[chKanalDrazkaRC[WYSO]] > PPM_JALOWY) || (dane->chTrybLotu == TL_LAD_AUTO) || (dane->chTrybLotu == TL_LAD_STAB))
-	//	{
-			//sPWMGazu = sWysterowanieZawisu - sWysterowanieJalowe;
-		sPWMGazu = dane->sKanalRC[chKanalDrazkaRC[WYSO]] - sWysterowanieZawisu;
-			fCosPrze = cosf(dane->fKatIMU1[PRZE]);
-			fCosPoch = cosf(dane->fKatIMU1[POCH]);
-			//pionowa składowa ciągu statycznego ma być niezależna od pochylenia i przechylenia
-			if (fCosPrze &&	fCosPoch)	//kosinusy kątów są niezerowe
-				sPWMGazu /= (fCosPrze * fCosPoch); //skaluj tylko zakres roboczy
-			sPWMGazu += sWysterowanieJalowe;   //resztę "nieregulowalnego" gazu dodaj bez korekcji
-//		}
-	//	else	//gaz zdjęty i nie jest to lądowanie
-//		{
-//				sPWMGazu = sWysterowanieJalowe;
-//		}
-
+		//sPWMGazu = dane->sKanalRC[chKanalDrazkaRC[WYSO]] - sWysterowanieZawisu;
+		sPWMGazu = dane->sKanalRC[chKanalDrazkaRC[WYSO]] - sWysterowanieMin;
+		fCosPrze = cosf(dane->fKatIMU1[PRZE]);
+		fCosPoch = cosf(dane->fKatIMU1[POCH]);
+		//pionowa składowa ciągu statycznego ma być niezależna od pochylenia i przechylenia
+		if (fCosPrze &&	fCosPoch)	//kosinusy kątów są niezerowe
+			sPWMGazu /= (fCosPrze * fCosPoch); //skaluj tylko zakres roboczy
+		sPWMGazu += sWysterowanieMin;   //resztę "nieregulowalnego" gazu dodaj bez korekcji
 
 		sMaxTmp1 = sMaxTmp2 = -200 * PPM1PROC_BIP; //inicjuj maksima wartością minimalną aby wyłapać wartości ponizej zera
 		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
@@ -158,8 +146,8 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 			}
 
 			//nie schodź poniżej obrotów jałowych
-			if (sTmpSilnik[n] < sWysterowanieJalowe)
-				sTmpSilnik[n] = sWysterowanieJalowe;
+			if (sTmpSilnik[n] < sWysterowanieMin)
+				sTmpSilnik[n] = sWysterowanieMin;
 		}
 	}
 	else	//silniki nie są uzbrojone

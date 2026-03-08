@@ -89,8 +89,9 @@ typedef struct
 #define PK_ZAPISZ_TRYB_REG		30	//zapisuje we FRAM i w zmiannych roboczych rodzaj podstawowych 4 regulacji
 #define PK_RESETUJ_CM4			31	//wykonuje reset CM4 po zmianie krytycznej konfiguracji
 #define PK_WSTRZYMAJ_TELEMETRIE	32	//wstrzymuje lub wznawia wysyłnie telemetrii na czas transmisji innych danych
+#define PK_WYLACZ_POLECENIE_CM4	33	//wykonuje polecenie POL_NIC wyłączajac wykonywanie poprzedniego polecenia
 
-#define PK_ILOSC_POLECEN		33	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
+#define PK_ILOSC_POLECEN		34	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
 #define PK_TELEMETRIA1			96	//ramka telemetryczna 1
 #define PK_TELEMETRIA2			97	//ramka telemetryczna 2

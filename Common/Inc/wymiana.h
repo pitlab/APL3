@@ -64,7 +64,7 @@
 #define POL_ZAPISZ_PWM_NAPEDU	35	//zapsuje nastawy wysterowania napędu dla wartości jałowej, minimalnej, zawisu i maksymalnej
 #define POL_ZAPISZ_TRYB_REG		36	//zapisuje tryb pracy 4 podstawowych regulatorów
 #define POL_RESETUJ_CM4			37	//resetuj rdzeń CM4, zwykle po zmianie konfiguracji
-
+#define POL_NORMALIZUJ_WEJ_RC	38	//normalizuj wskazane wejście RC
 
 #define POL_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony pzez poprzednie polecenie
 

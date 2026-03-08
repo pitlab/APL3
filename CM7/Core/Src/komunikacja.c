@@ -470,6 +470,11 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 
+	case PK_WYLACZ_POLECENIE_CM4:	//wykonuje polecenie POL_NIC wyłączajac wykonywanie poprzedniego polecenia
+		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;
+		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
+		break;
+
 	}
     return chErr;
 }
