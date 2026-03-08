@@ -945,7 +945,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 				{
 					sRóżnicaMaxMin = stRC->sMax1[n] - stRC->sMin1[n];
 					if (sRóżnicaMaxMin)
-						psDaneCM4->sKanalRC[n] = (stRC->sOdb1[n] - stRC->sMin1[n]) * WE_RC_MAX / sRóżnicaMaxMin; 	//przepisz znornalizowane kanały
+						psDaneCM4->sKanalRC[n] = (stRC->sOdb1[n] - stRC->sMin1[n]) * (WE_RC_P100 - WE_RC_M100) / sRóżnicaMaxMin + WE_RC_M100; 	//przepisz znornalizowane kanały
 					else
 						psDaneCM4->sKanalRC[n] = stRC->sOdb1[n];	//surowe dane bez nomrmalizacji
 				}
@@ -983,7 +983,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 				{
 					sRóżnicaMaxMin = stRC->sMax2[n] - stRC->sMin2[n];
 					if (sRóżnicaMaxMin)
-						psDaneCM4->sKanalRC[n] = (stRC->sOdb2[n] - stRC->sMin2[n]) * WE_RC_MAX / sRóżnicaMaxMin; 	//przepisz znornalizowane kanały
+						psDaneCM4->sKanalRC[n] = (stRC->sOdb2[n] - stRC->sMin2[n]) * (WE_RC_P100 - WE_RC_M100) / sRóżnicaMaxMin + WE_RC_M100; 	//przepisz znornalizowane kanały
 				}
 				stRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}

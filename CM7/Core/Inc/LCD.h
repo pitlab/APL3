@@ -24,7 +24,7 @@
 #define KOL22	245	//współrzędne x początku drugiej z dwu kolumn danych
 
 
-#define ROZDZIECZOSC_PASKA_RC		3	//zakres RC = 1000us / szerokość ekranu [us/pixel]
+#define ROZDZIECZOSC_PASKA_RC		5	//zakres WE_RC_MAX = 2000 / szerokość ekranu = 400
 
 
 uint8_t RysujEkran(void);

@@ -2356,10 +2356,10 @@ void RysujPaskiKanalowRC(uint8_t chIndeksOpisu, uint16_t *sDane)
 		{
 			y = n * 17;
 			setColor(SZARY80);
-			sprintf(chNapis, "Kan %2d:", n+1);
+			sprintf(chNapis, "%2d:", n+1);
 			RysujNapis(chNapis, KOL12, y+26);
 			setColor(SZARY40);
-			RysujProstokat(119, y+29, (121 + (PPM_MAX - PPM_MIN) / ROZDZIECZOSC_PASKA_RC), y+29+8);
+			RysujProstokat(77, y+29, (79 + WE_RC_MAX / ROZDZIECZOSC_PASKA_RC), y+29+8);
 		}
 		setColor(SZARY50);
 		RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
@@ -2370,23 +2370,23 @@ void RysujPaskiKanalowRC(uint8_t chIndeksOpisu, uint16_t *sDane)
 		y = n * 17;
 		setColor(SZARY80);
 		sprintf(chNapis, "%4d ", sDane[n]);
-		RysujNapis(chNapis, KOL12+8*FONT_SL, y+26);
+		RysujNapis(chNapis, KOL12+4*FONT_SL, y+26);
 
 		//czasami długość kanału jest poza zakresem, więc skoryguj aby nie komplikować obliczeń
-		if (sDane[n] < PPM_MIN)
-			sSkorygowaneRC = PPM_MIN;
+		if (sDane[n] < WE_RC_MIN)
+			sSkorygowaneRC = WE_RC_MIN;
 		else
-			if (sDane[n] > PPM_MAX)
-			sSkorygowaneRC = PPM_MAX;
+		if (sDane[n] > WE_RC_MAX)
+			sSkorygowaneRC = WE_RC_MAX;
 		else
 			sSkorygowaneRC = sDane[n];
 
-		sDlugoscPaska = (sSkorygowaneRC - PPM_MIN) / ROZDZIECZOSC_PASKA_RC;
+		sDlugoscPaska = sSkorygowaneRC / ROZDZIECZOSC_PASKA_RC;
 		if (sDlugoscPaska)
-			RysujProstokatWypelniony(120, y+30, sDlugoscPaska, 6, NIEBIESKI);
-		sDlugoscTla = ((PPM_MAX - PPM_MIN) / ROZDZIECZOSC_PASKA_RC) - sDlugoscPaska;
+			RysujProstokatWypelniony(78, y+30, sDlugoscPaska, 6, NIEBIESKI);
+		sDlugoscTla = (WE_RC_MAX / ROZDZIECZOSC_PASKA_RC) - sDlugoscPaska;
 		if (sDlugoscTla)
-			RysujProstokatWypelniony(121 + sDlugoscPaska, y+30, sDlugoscTla, 6, CZARNY);
+			RysujProstokatWypelniony(79 + sDlugoscPaska, y+30, sDlugoscTla, 6, CZARNY);
 	}
 }
 
