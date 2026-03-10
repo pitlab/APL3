@@ -62,7 +62,7 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 			case PRZE:
 			case POCH:
 			case ODCH:
-			case WYSO:  dane->stWyjPID[chIndeksPID_Predk].fWyjsciePID = fWeRc[n];	break;	//regulator sterowania prędkością zmiany wysokości
+			case WYSO:  dane->stWyjPID[chIndeksPID_Predk].fWyjsciePID = fWeRc[n];	break;	//regulator sterowania prędkością kątową lub zmiany wysokości
 			case POZN:	break;	//regulatory pozycji nie są ustawiane z drążka
 			case POZE:	break;
 			}
@@ -96,10 +96,10 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 				{
 				case PRZE:
 				case POCH:
-				case ODCH:  dane->stWyjPID[chIndeksPID_Kata].fWejscie = dane->fKatIMU1[n];		break;	//regulator sterowania kątami
-				case WYSO:  dane->stWyjPID[chIndeksPID_Kata].fWejscie = dane->fWysokoMSL[0];	break;	//regulator sterowania wysokością
-				case POZN:	dane->stWyjPID[chIndeksPID_Kata].fWejscie = (float)dane->stGnss1.dSzerokoscGeo;	break;	//regulator sterowania zmian położenia północnego
-				case POZE:	dane->stWyjPID[chIndeksPID_Kata].fWejscie = (float)dane->stGnss1.dDlugoscGeo;	break;	//regulator sterowania zmianą położenia wschodniego
+				case ODCH:  dane->stWyjPID[chIndeksPID_Kata].fWejscie = dane->stBSP.fKatIMU[n];		break;	//regulator sterowania kątami
+				case WYSO:  dane->stWyjPID[chIndeksPID_Kata].fWejscie = dane->stBSP.fWysokoscMSL;	break;	//regulator sterowania wysokością
+				case POZN:	dane->stWyjPID[chIndeksPID_Kata].fWejscie = (float)dane->stBSP.dSzerokoscGeo;	break;	//regulator sterowania zmian położenia północnego
+				case POZE:	dane->stWyjPID[chIndeksPID_Kata].fWejscie = (float)dane->stBSP.dDlugoscGeo;	break;	//regulator sterowania zmianą położenia wschodniego
 				}
 				RegulatorPID(ndT, chIndeksPID_Kata, dane, konfig);	//licz regulator parametru głównego
 			}
@@ -117,10 +117,10 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 				{
 				case PRZE:
 				case POCH:
-				case ODCH:  dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->fZyroKal1[n];	break;	//regulator sterowania prędkościami kątowymi
-				case WYSO:  dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->fWariometr[0];	break;	//regulator sterowania prędkością zmiany wysokości
-				case POZN:	dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->stGnss1.fPredkoscN; break;	//regulator sterowania prędkością zmiany położenia północnego
-				case POZE:	dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->stGnss1.fPredkoscE; break;	//regulator sterowania prędkością zmiany położenia wschodniego
+				case ODCH:  dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->stBSP.fZyro[n];		break;	//regulator sterowania prędkościami kątowymi
+				case WYSO:  dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->stBSP.fPredkoscD;	break;	//regulator sterowania prędkością zmiany wysokości
+				case POZN:	dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->stBSP.fPredkoscN; 	break;	//regulator sterowania prędkością zmiany położenia północnego
+				case POZE:	dane->stWyjPID[chIndeksPID_Predk].fWejscie = dane->stBSP.fPredkoscE; 	break;	//regulator sterowania prędkością zmiany położenia wschodniego
 				}
 				RegulatorPID(ndT, chIndeksPID_Predk, dane, konfig); 	//licz regulator pochodnej parametru głównego
 			}

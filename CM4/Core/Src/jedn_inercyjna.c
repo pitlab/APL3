@@ -81,7 +81,7 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 	if (ndT > MAX_DT)
 		return BLAD_ZLE_DANE;
 
-	//licz całkę z prędkosci kątowych żyroskopów
+	//licz całkę z prędkości kątowych żyroskopów
 	for (uint16_t n=0; n<3; n++)
 	{
 		uDaneCM4.dane.fKatZyro1[n] +=  uDaneCM4.dane.fZyroKal1[n] * ndT / 1000000;		//[rad/s] * [us / 1000000] => [rad]
@@ -118,7 +118,7 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 		uDaneCM4.dane.fKatIMU1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT / 1000000;							//przyrost kąta z całki żyroskopu
 	}
 
-	/*/w celu porównania metody policz katy z tych samych danych metodą kwaternionową
+	/*/w celu porównania metody policz kąty z tych samych danych metodą kwaternionową
 	float fQA[4];	//kwaternion wektora przyspieszenia
 	float fQM[4];
 	//float fAccNorm[3];

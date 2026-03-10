@@ -99,6 +99,22 @@ typedef struct _GNSS
 	uint8_t chDzien, chMies, chRok;
 } stGnss_t;
 
+//definicje struktury zawierajacej syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
+typedef struct _BSP
+{
+	float fAkcel[3];		//[m/s^2]
+	float fZyro[3];			//[rad/s]
+	float fMagne[3];		//[uT]
+	float fKatIMU[3];
+	double dDlugoscGeo;
+	double dSzerokoscGeo;
+	float fWysokoscMSL;
+	float fWysokoscAGL;
+	float fPredkoscN;
+	float fPredkoscE;
+	float fPredkoscD;
+	float fKursGeo;
+} stBSP_t;
 
 typedef union
 {
@@ -155,6 +171,7 @@ typedef struct
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
 	uint8_t chWymowSampla;		//indeks sampla głosowego do wymówienia
 	uint32_t ndT;
+	stBSP_t stBSP;				//struktur zawierajaca syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
 } stWymianyCM4_t;
 
 

@@ -103,16 +103,12 @@ void PetlaGlowna(void)
 	case ADR_MOD4:		//obsługa modułu w gnieździe 4
 		break;
 
-	case 4:
-		break;
-
-	case 5:		//obsługa GNSS na UART8
+	case 4:		//obsługa GNSS na UART8
 		while (chWskNapBaGNSS != chWskOprBaGNSS)
 		{
 			chBladPG |= DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
 			chWskOprBaGNSS++;
 			chWskOprBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
-			//chStanIOwy ^= MIO41;		//Zielona LED
 			chTimeoutGNSS = TIMEOUT_GNSS;
 		}
 		if ((uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY) == 0)
@@ -129,13 +125,30 @@ void PetlaGlowna(void)
 		}
 		break;
 
-	case 6:
-
+	case 5:
 		uDaneCM4.dane.chNowyPomiar = 0;	//unieważnij wszystkie poprzednie pomiary. Flagi nowych pomiarów zostaną ustawnine w funkcji ObslugaCzujnikowI2C()
 		if (chNoweDaneI2C)
 			ObslugaCzujnikowI2C(&chNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C to je obrób
 		chBladPG |= RozdzielniaOperacjiI2C();
 		break;
+
+	case 6:	//przepisz czujniki do struktury BSP - finalnie ma to zrobić filtr kalmana
+		for (uint8_t n=0; n<3; n++)
+		{
+			uDaneCM4.dane.stBSP.fKatIMU[n] = uDaneCM4.dane.fKatIMU1[n];
+			uDaneCM4.dane.stBSP.fAkcel[n] = uDaneCM4.dane.fAkcel1[n];
+			uDaneCM4.dane.stBSP.fZyro[n] = uDaneCM4.dane.fZyroKal1[n];
+			uDaneCM4.dane.stBSP.fMagne[n] = uDaneCM4.dane.fMagne1[n];
+		}
+
+		uDaneCM4.dane.stBSP.fPredkoscN = uDaneCM4.dane.stGnss1.fPredkoscN;
+		uDaneCM4.dane.stBSP.fPredkoscE = uDaneCM4.dane.stGnss1.fPredkoscE;
+		uDaneCM4.dane.stBSP.fPredkoscD = uDaneCM4.dane.fWariometr[0];
+		uDaneCM4.dane.stBSP.dDlugoscGeo = uDaneCM4.dane.stGnss1.dDlugoscGeo;
+		uDaneCM4.dane.stBSP.dSzerokoscGeo = uDaneCM4.dane.stGnss1.dSzerokoscGeo;
+		uDaneCM4.dane.stBSP.fKursGeo = uDaneCM4.dane.stGnss1.fKurs;
+		break;
+
 
 	case 7:
 		nCzasBiezacy = PobierzCzas();

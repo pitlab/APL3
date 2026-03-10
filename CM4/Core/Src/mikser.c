@@ -104,8 +104,8 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 
 	if(dane->chTrybLotu & BTR_UZBROJONY)
 	{
-		//sPWMGazu = dane->sKanalRC[chKanalDrazkaRC[WYSO]] - sWysterowanieZawisu;
-		sPWMGazu = dane->sKanalRC[chKanalDrazkaRC[WYSO]] - sWysterowanieMin;
+		//sPWMGazu = dane->sKanalRC[chKanalDrazkaRC[WYSO]] - WE_RC_M50;	//gaz ma się zaczynać od zera i od razu rosnąć bez martwej strefy, więc odejmij strefę bez regulacji
+		sPWMGazu = dane->sKanalRC[chKanalDrazkaRC[WYSO]];
 		fCosPrze = cosf(dane->fKatIMU1[PRZE]);
 		fCosPoch = cosf(dane->fKatIMU1[POCH]);
 		//pionowa składowa ciągu statycznego ma być niezależna od pochylenia i przechylenia
@@ -113,7 +113,7 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 			sPWMGazu /= (fCosPrze * fCosPoch); //skaluj tylko zakres roboczy
 		sPWMGazu += sWysterowanieMin;   //resztę "nieregulowalnego" gazu dodaj bez korekcji
 
-		sMaxTmp1 = sMaxTmp2 = -200 * PPM1PROC_BIP; //inicjuj maksima wartością minimalną aby wyłapać wartości ponizej zera
+		sMaxTmp1 = sMaxTmp2 = -100 * PPM1PROC_BIP; //inicjuj maksima wartością minimalną aby wyłapać wartości ponizej zera
 		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
 		{
 			//w pierwszej kolejności sumuj pochylenie i przechylenie
