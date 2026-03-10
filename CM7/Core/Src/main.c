@@ -402,8 +402,8 @@ Error_Handler();
   chErr |= InicjalizujJpeg();
 
 
-  extern stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
-  printf("Dzien dobry! APL3 nr %d (%s) zglasza sie gotowy do dzialania.\r\n", stBSP.chAdres, stBSP.chNazwa);		//wyślij komunikat po porcie debugującym
+  extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
+  printf("Dzien dobry! APL3 nr %d (%s) zglasza sie gotowy do dzialania.\r\n", stBSP_ID.chAdres, stBSP_ID.chNazwa);		//wyślij komunikat po porcie debugującym
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */

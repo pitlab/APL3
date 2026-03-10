@@ -39,7 +39,7 @@ extern uint16_t sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NO
 extern uint8_t chTrybPracy;
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamery[SZER_ZDJECIA * WYS_ZDJECIA];
 extern uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
-extern stBSP_t stBSP;	//struktura zawierajaca adres i nazwę BSP
+extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adres i nazwę BSP
 extern uint8_t chStatusPolaczenia;
 extern uint8_t chWstrzymajTelemetrie;	//wartość niezerowa tymczasowo wstrzymuje działanie telemetrii
 
@@ -82,21 +82,21 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		break;
 
 	case PK_USTAW_BSP:		//ustawia identyfikator/adres urządzenia
-		stBSP.chAdres = chDane[0];
+		stBSP_ID.chAdres = chDane[0];
 		for (n=0; n<DLUGOSC_NAZWY; n++)
-			stBSP.chNazwa[n] = chDane[n+1];
+			stBSP_ID.chNazwa[n] = chDane[n+1];
 		for (n=0; n<4; n++)
-			stBSP.chAdrIP[n] = chDane[n+DLUGOSC_NAZWY+1];
-		chErr = ZapiszPaczkeKonfigu(FKON_NAZWA_ID_BSP, (uint8_t*)&stBSP);
+			stBSP_ID.chAdrIP[n] = chDane[n+DLUGOSC_NAZWY+1];
+		chErr = ZapiszPaczkeKonfigu(FKON_NAZWA_ID_BSP, (uint8_t*)&stBSP_ID);
 		Wyslij_KodBledu(chErr, chPolecenie, chInterfejs);
 		break;
 
 	case PK_POBIERZ_BSP:		//pobiera identyfikator/adres urządzenia
-		chDane[0] = stBSP.chAdres;
+		chDane[0] = stBSP_ID.chAdres;
 		for (n=0; n<DLUGOSC_NAZWY; n++)
-			chDane[n+1] = stBSP.chNazwa[n];
+			chDane[n+1] = stBSP_ID.chNazwa[n];
 		for (n=0; n<4; n++)
-			chDane[n+DLUGOSC_NAZWY+1] = stBSP.chAdrIP[n];
+			chDane[n+DLUGOSC_NAZWY+1] = stBSP_ID.chAdrIP[n];
 		chErr = WyslijRamke(chAdresZdalny, PK_POBIERZ_BSP, DLUGOSC_NAZWY+5, chDane, chInterfejs);
 		//polecenie PK_POBIERZ_BSP otwiera połączenie UART, więc zmień stan na otwarty
 		if (chInterfejs == INTERF_UART)

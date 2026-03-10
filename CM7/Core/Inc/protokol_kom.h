@@ -35,7 +35,7 @@ typedef struct		//dobrze aby cała struktura zmieściła się na stronie flasch 
 	uint8_t chAdres;						//własny adres sieciowy
 	uint8_t chNazwa[DLUGOSC_NAZWY];			//nazwa BSP
 	uint8_t chAdrIP[4];						//numer IP
-} stBSP_t;
+} stBSP_ID_t;
 
 //definicje funkcji lokalnych
 uint8_t InicjujProtokol(void);

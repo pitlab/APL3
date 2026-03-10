@@ -47,7 +47,7 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 
 	//sprowadź wartość kanałów wejsciowych z drążków aparatury RC do znormalizowanej wartości symetrycznej wzgledem zera: +-NORMA_SYGNALU
 	for (uint16_t n=0; n<LICZBA_DRAZKOW; n++)
-		fWeRc[n] = (float)(dane->sKanalRC[chKanalDrazkaRC[n]] - PPM_NEUTR) / (PPM_MAX - PPM_NEUTR) * NORMA_SYGNALU;
+		fWeRc[n] = (float)(dane->sKanalRC[chKanalDrazkaRC[n]] - WE_RC_NEUTR) / (WE_RC_MAX - WE_RC_NEUTR) * NORMA_SYGNALU;
 
 	for (uint16_t n=0; n<LICZBA_REG_PARAM; n++)
 	{

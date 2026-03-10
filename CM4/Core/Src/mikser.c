@@ -98,20 +98,34 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 	int16_t sTmp1[KANALY_MIKSERA], sTmp2[KANALY_MIKSERA];	//sumy cząstkowe sygnału wysterowania silnika
 	int16_t sTmpSilnik[KANALY_MIKSERA];
 	int16_t sMaxTmp1, sMaxTmp2;	//maksymalne wartości sygnału wysterowania
-	int16_t sPWMGazu;
+	//int16_t sPWMGazu;
+	int16_t sGaz;
 	float fCosPrze, fCosPoch;
 	uint8_t chErr = BLAD_OK;
 
 	if(dane->chTrybLotu & BTR_UZBROJONY)
 	{
-		//sPWMGazu = dane->sKanalRC[chKanalDrazkaRC[WYSO]] - WE_RC_M50;	//gaz ma się zaczynać od zera i od razu rosnąć bez martwej strefy, więc odejmij strefę bez regulacji
-		sPWMGazu = dane->sKanalRC[chKanalDrazkaRC[WYSO]];
-		fCosPrze = cosf(dane->fKatIMU1[PRZE]);
-		fCosPoch = cosf(dane->fKatIMU1[POCH]);
-		//pionowa składowa ciągu statycznego ma być niezależna od pochylenia i przechylenia
-		if (fCosPrze &&	fCosPoch)	//kosinusy kątów są niezerowe
-			sPWMGazu /= (fCosPrze * fCosPoch); //skaluj tylko zakres roboczy
-		sPWMGazu += sWysterowanieMin;   //resztę "nieregulowalnego" gazu dodaj bez korekcji
+		fCosPrze = cosf(dane->stBSP.fKatIMU[PRZE]);
+		fCosPoch = cosf(dane->stBSP.fKatIMU[POCH]);
+
+		//jeżeli drążek gazu podniesie się powyżej -90% to zaczynamy lot dodając wysterowanie dla zawisu
+		if (dane->sKanalRC[chKanalDrazkaRC[WYSO]] < WE_RC_M90)
+		{
+			dane->chTrybLotu &= ~BTR_TRWA_LOT;
+			sGaz = sWysterowanieMin;
+		}
+		else
+		{
+			dane->chTrybLotu |= BTR_TRWA_LOT;
+			sGaz = sWysterowanieZawisu;
+
+			//pionowa składowa ciągu statycznego potrzebnego do zawisu ma być niezależna od pochylenia i przechylenia
+			if (fCosPrze != 0.0f)	//niezerowy kosinus kąta
+				sGaz /= fCosPrze;
+
+			if (fCosPoch != 0.0f)
+				sGaz /= fCosPoch;
+		}
 
 		sMaxTmp1 = sMaxTmp2 = -100 * PPM1PROC_BIP; //inicjuj maksima wartością minimalną aby wyłapać wartości ponizej zera
 		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
@@ -130,12 +144,12 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 		 //jeżeli suma kanałów jest większa niż 100% to najpierw skaluj ważniejsze regulatory odpowiadajace za stabilizację a jeżeli jeszcze jest miejsce do potem mniej ważne
 		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
 		{
-			if ((sMaxTmp1 + sMaxTmp2 + sPWMGazu) < sWysterowanieMax)     //jeżeli nie przekraczamy zakresu to sumuj wszystkie regulatory
-				sTmpSilnik[n] = sTmp1[n] + sTmp2[n] + sPWMGazu;
+			if ((sMaxTmp1 + sMaxTmp2 + sGaz) < sWysterowanieMax)     //jeżeli nie przekraczamy zakresu to sumuj wszystkie regulatory
+				sTmpSilnik[n] = sTmp1[n] + sTmp2[n] + sGaz;
 			else
 			{
-				if ((sMaxTmp1 + sPWMGazu) < sWysterowanieMax)
-					sTmpSilnik[n] = sTmp1[n] + sPWMGazu + (sTmp2[n] * (sWysterowanieMax - sMaxTmp1 - sPWMGazu) / sMaxTmp2);   //weź Tmp1 + gaz i doskaluj tyle Tmp2 ile jest miejsca
+				if ((sMaxTmp1 + sGaz) < sWysterowanieMax)
+					sTmpSilnik[n] = sTmp1[n] + sGaz + (sTmp2[n] * (sWysterowanieMax - sMaxTmp1 - sGaz) / sMaxTmp2);   //weź Tmp1 + gaz i doskaluj tyle Tmp2 ile jest miejsca
 				else
 				{
 					if (sMaxTmp1 < sWysterowanieMax)

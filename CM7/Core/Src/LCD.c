@@ -1762,7 +1762,7 @@ void Ekran_Powitalny(uint32_t nZainicjowano)
 
 	extern const unsigned short plogo165x80[];
 	extern uint8_t BSP_SD_IsDetected(void);
-	extern stBSP_t stBSP;	//struktura zawierajaca adres i nazwę BSP
+	extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adres i nazwę BSP
 
 	if (chRysujRaz)
 	{
@@ -1781,7 +1781,7 @@ void Ekran_Powitalny(uint32_t nZainicjowano)
 		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO2], ó, ó, ż, ó);	//"By móc zmóc wraże hordy rojem Wronów"	//STR_WITAJ_MOTTO2
 		RysujNapis(chNapis, CENTER, 115);
 
-		sprintf(chNapis, "Adres: %d, IP: %d.%d.%d.%d, Nazwa: %s", stBSP.chAdres, stBSP.chAdrIP[0], stBSP.chAdrIP[1], stBSP.chAdrIP[2], stBSP.chAdrIP[3],  stBSP.chNazwa);
+		sprintf(chNapis, "Adres: %d, IP: %d.%d.%d.%d, Nazwa: %s", stBSP_ID.chAdres, stBSP_ID.chAdrIP[0], stBSP_ID.chAdrIP[1], stBSP_ID.chAdrIP[2], stBSP_ID.chAdrIP[3],  stBSP_ID.chNazwa);
 		RysujNapis(chNapis, CENTER, 135);
 
 		sprintf(chNapis, "(c) PitLab 2026 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);

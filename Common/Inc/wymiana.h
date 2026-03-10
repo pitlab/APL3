@@ -171,7 +171,7 @@ typedef struct
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
 	uint8_t chWymowSampla;		//indeks sampla głosowego do wymówienia
 	uint32_t ndT;
-	stBSP_t stBSP;				//struktur zawierajaca syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
+	stBSP_t stBSP;				//struktura zawierajaca syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
 } stWymianyCM4_t;
 
 

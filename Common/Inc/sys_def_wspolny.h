@@ -264,7 +264,7 @@
 #define BTR_UZBROJONY		0x80	//bit uzbrojenia silników
 #define BTR_NAWIG_AUTO		0x40	//bit autonomicznej nawigacji
 #define BTR_STAB_KATOW		0x20	//bit stabilizacji PID kątów
-
+#define BTR_TRWA_LOT		0x10	//bit trwania lotu, czyli kopter wytwarza ciąg potrzebny do zawisu
 
 //definicje Trybów Lotu.
 #define TL_BEZP			0x00	//regulatory i nawigacja wyłączone, silniki zatrzymane

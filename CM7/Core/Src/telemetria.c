@@ -32,7 +32,7 @@ extern uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
 extern UART_HandleTypeDef hlpuart1;
 static un8_16_t un8_16;		//unia do konwersji między danymi 16 i 8 bit
 extern volatile uint8_t chDoWyslania[1 + LICZBA_RAMEK_TELEMETR];	//lista rzeczy do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
-extern stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
+extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
 extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
 extern struct _statusDotyku statusDotyku;
 extern RTC_TimeTypeDef stTime;
@@ -134,7 +134,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 	{
 		if (chIloscDanych[r] > 0)	//jeżeli jest coś do wysłania
 		{
-			PrzygotujRamkeTele(chIndeksNapelnRamki + r * LICZBA_RAMEK_TELEMETR, chAdresZdalny[chInterfejs], stBSP.chAdres, chIloscDanych[r]);	//utwórz ramkę gotową do wysyłki
+			PrzygotujRamkeTele(chIndeksNapelnRamki + r * LICZBA_RAMEK_TELEMETR, chAdresZdalny[chInterfejs], stBSP_ID.chAdres, chIloscDanych[r]);	//utwórz ramkę gotową do wysyłki
 			st_ZajetoscLPUART.sDoWyslania[r+1] = chIloscDanych[r] * 2 + LICZBA_BAJTOW_ID_TELEMETRII + ROZM_CIALA_RAMKI;
 		}
 	}

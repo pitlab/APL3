@@ -39,7 +39,7 @@ static uint8_t chPolecenie;
 static uint8_t chRozmDanych;
 static uint8_t chDaneRamkiKom[ROZMIAR_DANYCH_KOMUNIKACJI];
 static un8_16_t un8_16;
-stBSP_t stBSP;	//struktura zawierajaca adresy i nazwę BSP
+stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
 const char* chNazwaSierotki = {"Sierotka Wronia"};	//domyślna nazwa nienazwanego BSP
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
@@ -85,19 +85,19 @@ uint8_t InicjujProtokol(void)
 	chOdczytano = CzytajPaczkeKonfigu(chPaczka, FKON_NAZWA_ID_BSP);
 	if (chOdczytano == ROZMIAR_PACZKI_KONFIGU)
 	{
-		stBSP.chAdres = chPaczka[2];
+		stBSP_ID.chAdres = chPaczka[2];
 		for (int16_t n=0; n<DLUGOSC_NAZWY; n++)
-			stBSP.chNazwa[n] = chPaczka[n+3];
+			stBSP_ID.chNazwa[n] = chPaczka[n+3];
 		for (int16_t n=0; n<4; n++)
-			stBSP.chAdrIP[n] = chPaczka[n+3+DLUGOSC_NAZWY];
+			stBSP_ID.chAdrIP[n] = chPaczka[n+3+DLUGOSC_NAZWY];
 	}
 
 	//jeżeli adres jest nieważny to ustaw ostatni możliwy i daj specyficaną nazwę
-	if ((stBSP.chAdres == 0) || (stBSP.chAdres == 0xFF))
+	if ((stBSP_ID.chAdres == 0) || (stBSP_ID.chAdres == 0xFF))
 	{
-		stBSP.chAdres = 0xFE;
+		stBSP_ID.chAdres = 0xFE;
 		for (int16_t n=0; n<strlen(chNazwaSierotki); n++)
-			stBSP.chNazwa[n] = chNazwaSierotki[n];
+			stBSP_ID.chNazwa[n] = chNazwaSierotki[n];
 	}
 
 	for (int16_t n=0; n<ROZMIAR_BUF_ODB_DMA+8; n++)
@@ -291,7 +291,7 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
 		break;
 
     case PR_ADRES_ODB:
-    	if ((chWe == stBSP.chAdres) || (chWe == ADRES_BROADCAST))				//czy odebraliśmy własny adres sieciowy lub adres rozgłoszeniowy
+    	if ((chWe == stBSP_ID.chAdres) || (chWe == ADRES_BROADCAST))				//czy odebraliśmy własny adres sieciowy lub adres rozgłoszeniowy
     	{
     		chAdresPrzychodzacy = chWe;	//zachowaj do liczenia CRC
     		chStanProtokolu[chInterfejs] = PR_ADRES_NAD;
@@ -466,7 +466,7 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
 	switch (chInterfejs)
 	{
 	case INTERF_UART:
-		chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres, chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chBuforNadDMA);
+		chErr = PrzygotujRamke(chAdrZdalny, stBSP_ID.chAdres, chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chBuforNadDMA);
 		if (chErr == BLAD_OK)
 		{
 			if (chBuforNadDMA[5] == 0xFF)
@@ -478,7 +478,7 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
 		break;
 
 	case INTERF_ETH:
-		chErr = PrzygotujRamke(chAdrZdalny, stBSP.chAdres, chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chBuforNadRamkiKomTCP);
+		chErr = PrzygotujRamke(chAdrZdalny, stBSP_ID.chAdres, chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chBuforNadRamkiKomTCP);
 		if (chErr == BLAD_OK)
 		{
 			chRozmiarRamkiNadTCP = chRozmDanych + ROZM_CIALA_RAMKI;		//ustaw rozmiar ramki nadawczej TCP gotowej do wysyłki
