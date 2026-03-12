@@ -144,6 +144,7 @@
 #define SERWO_DSHOT600	10	//wyjście DShot300
 #define SERWO_DSHOT1200	11	//wyjście DShot1200
 
+#define SERWO_WS281X	12	//wyjscie sterujące LED
 
 //definicje numerów kanałów sygnału wyjściowego
 #define KANAL_RC1	0

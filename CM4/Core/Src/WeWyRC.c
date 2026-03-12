@@ -13,6 +13,7 @@
 #include "GNSS.h"
 #include "fram.h"
 #include "dshot.h"
+#include "ws281x.h"
 #include "kontroler_lotu.h"
 #include "sample_audio.h"
 
@@ -327,6 +328,9 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
+	if (chKonfigWyRC[KANAL_RC2] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC2);
+	else
 		chBłąd |= ERR_BRAK_KONFIG;
 
 
@@ -390,6 +394,9 @@ uint8_t InicjujWyjsciaRC(void)
 		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 	}
+	else
+	if (chKonfigWyRC[KANAL_RC3] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC3);
 	else
 		chBłąd |= ERR_BRAK_KONFIG;
 
@@ -462,6 +469,9 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
+	if (chKonfigWyRC[KANAL_RC4] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC4);
+	else
 		chBłąd |= ERR_BRAK_KONFIG;
 
 
@@ -529,6 +539,9 @@ uint8_t InicjujWyjsciaRC(void)
 		GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
+	else
+	if (chKonfigWyRC[KANAL_RC5] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC5);
 	else
 		chBłąd |= ERR_BRAK_KONFIG;
 
@@ -601,6 +614,9 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 	}
 	else
+	if (chKonfigWyRC[KANAL_RC6] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC6);
+	else
 		chBłąd |= ERR_BRAK_KONFIG;
 
 
@@ -670,6 +686,9 @@ uint8_t InicjujWyjsciaRC(void)
 		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 		HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 	}
+	else
+	if (chKonfigWyRC[KANAL_RC8] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC8);
 	else
 		chBłąd |= ERR_BRAK_KONFIG;
 
