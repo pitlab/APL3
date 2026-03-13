@@ -41,7 +41,8 @@ extern DMA_HandleTypeDef hdma_tim3_ch3;
 extern DMA_HandleTypeDef hdma_tim3_ch4;
 extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
-
+extern uint32_t nKolorWS281x[LICZBA_LED_WS281X];
+extern uint8_t chWskaznikSegmentuLed;
 
 
 extern uint8_t chBuforOdbioruSBus1[ROZM_BUF_ODB_SBUS];
@@ -784,11 +785,12 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 				nBuforTimDMA[n][m] = 0;
 			break;
 
-		//if DSHot
 		case SERWO_DSHOT150:
 		case SERWO_DSHOT300:
 		case SERWO_DSHOT600:
 		case SERWO_DSHOT1200:	chBłąd |= AktualizujDShotDMA(nWyjście, n);	break;
+
+		case SERWO_WS281X:		chBłąd |= AktualizujWS281xDMA(nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikSegmentuLed);		break;
 
 		default: chBłąd = ERR_BRAK_KONFIG;
 		}	//switch

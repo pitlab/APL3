@@ -23,6 +23,18 @@
 #define CZAS_WS281X_BIT		4		//4 * 266ns = 1,064us
 #define CZAS_WS281X_RESET	1088	//1088 * 266ns = 289,4us
 
+typedef struct
+{
+	float fWartoscMax;
+	uint8_t chCzerMax;
+	uint8_t chZielMax;
+	uint8_t chNiebMax;
+	float fWartoscMin;
+	uint8_t chCzerMin;
+	uint8_t chZielMin;
+	uint8_t chNiebMin;
+	uint8_t chDzielnikJasnosciTla;
+} stPaletaKolorow_t;
 
 uint8_t UstawTrybWS281x(uint8_t chKanal);
 uint8_t AktualizujWS281xDMA(uint32_t *nKolor, uint8_t chRozmiar, uint8_t *chWskSegmentu);
