@@ -29,7 +29,23 @@
 #define LICZBA_WYJSC_RC		9
 #define LICZBA_KONFIG_WYJSC_RC	5	//pierwsze 8 wyjść zajmują pół bajtu, ostatnie wyjście definiujące grupę 8..16 cały bajt
 
-
+//flagi napełnienia buforów
+#define NAPELNIJ_BUF1_CH1	0x0001
+#define NAPELNIJ_BUF2_CH1	0x0002
+#define NAPELNIJ_BUF1_CH2	0x0004
+#define NAPELNIJ_BUF2_CH2	0x0008
+#define NAPELNIJ_BUF1_CH3	0x0010
+#define NAPELNIJ_BUF2_CH3	0x0020
+#define NAPELNIJ_BUF1_CH4	0x0040
+#define NAPELNIJ_BUF2_CH4	0x0080
+#define NAPELNIJ_BUF1_CH5	0x0100
+#define NAPELNIJ_BUF2_CH5	0x0200
+#define NAPELNIJ_BUF1_CH6	0x0400
+#define NAPELNIJ_BUF2_CH6	0x0800
+#define NAPELNIJ_BUF1_CH7	0x1000
+#define NAPELNIJ_BUF2_CH7	0x2000
+#define NAPELNIJ_BUF1_CH8	0x4000
+#define NAPELNIJ_BUF2_CH8	0x8000
 
 //znaczenia bitów zmiennej chStatus
 #define STATRC_RAMKA1_OK		0x01
@@ -68,4 +84,6 @@ void ZapiszEkstremaWejscRC(void);
 uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4);
 uint32_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM4);
 
+void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim);
+void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim);
 #endif /* INC_ODBIORNIKRC_H_ */

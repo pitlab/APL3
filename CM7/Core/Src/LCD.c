@@ -1049,7 +1049,9 @@ uint8_t RysujEkran(void)
 		extern ip4_addr_t ipaddr;
 		extern ip4_addr_t netmask;
 		extern ip4_addr_t gw;
+#ifdef ETH_WLACZONY
 		extern struct stats_ lwip_stats;
+#endif
 
 		if (chRysujRaz)
 		{
@@ -1065,7 +1067,7 @@ uint8_t RysujEkran(void)
 		RysujNapis(chNapis, 10, 50);
 		sprintf(chNapis, "GateWay: %ld.%ld.%ld.%ld", (gw.addr & 0xFF), (gw.addr & 0xFF00)>>8, (gw.addr & 0xFF0000)>>16, (gw.addr & 0xFF000000)>>24);
 		RysujNapis(chNapis, 10, 70);
-
+#ifdef ETH_WLACZONY
 		sprintf(chNapis, "LINK:    xmit=%d recv=%d drop=%d err=%d", lwip_stats.link.xmit, lwip_stats.link.recv, lwip_stats.link.drop, lwip_stats.link.err);
 		RysujNapis(chNapis, 10, 90);
 		sprintf(chNapis, "ARP:     xmit=%d recv=%d drop=%d err=%d", lwip_stats.etharp.xmit, lwip_stats.etharp.recv, lwip_stats.etharp.drop, lwip_stats.etharp.err);
@@ -1081,6 +1083,9 @@ uint8_t RysujEkran(void)
 		sprintf(chNapis, "MemPoll: avail=%ld used=%ld err=%d illegal=%d", (uint32_t)lwip_stats.memp[1]->avail, (uint32_t)lwip_stats.memp[1]->used, lwip_stats.memp[1]->err, lwip_stats.memp[1]->illegal);
 		RysujNapis(chNapis, 10, 210);
 		sprintf(chNapis, "SYS Err: semafor=%d mutex=%d mbox=%d", lwip_stats.sys.sem.err, lwip_stats.sys.mutex.err, lwip_stats.sys.mbox.err);
+#else
+		sprintf(chNapis, "Uzywanie ethernetu wylaczone");
+#endif
 		RysujNapis(chNapis, 10, 230);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{

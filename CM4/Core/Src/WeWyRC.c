@@ -43,8 +43,6 @@ extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
 extern uint32_t nKolorWS281x[LICZBA_LED_WS281X];
 extern uint8_t chWskaznikSegmentuLed;
-
-
 extern uint8_t chBuforOdbioruSBus1[ROZM_BUF_ODB_SBUS];
 extern uint8_t chBuforOdbioruSBus2[ROZM_BUF_ODB_SBUS];
 
@@ -56,7 +54,7 @@ uint8_t chFunkcjaKanaluRC[KANALY_FUNKCYJNE];	//funkcje przypisane do kanałów w
 uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wyjściowych
 uint8_t chRozmiarSekwencjiDMA[KANALY_MIKSERA+1];	//rozmiar paczki danych przesyłanych do DMA w zależności od częstotliwości odświezania. Dla 400Hz paczka ma 1 ważną daną, dla 200Hz jedną ważną i jedną nieważną, dla 50Hz jest 1 ważna i 7 pustych
 uint8_t chBityKonfiguracji = 0;
-
+uint16_t sFlagiNapelnieniaBuforow;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -68,7 +66,7 @@ uint8_t chBityKonfiguracji = 0;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujWejsciaRC(void)
 {
-	uint8_t chErr = BLAD_OK;
+	uint8_t chBłąd = BLAD_OK;
 	uint8_t chDaneKonfig;
 	TIM_IC_InitTypeDef sConfigIC = {0};
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -96,12 +94,12 @@ uint8_t InicjujWejsciaRC(void)
 		sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
 		sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
 		sConfigIC.ICFilter = 7;
-		chErr |= HAL_TIM_IC_ConfigChannel(&htim4, &sConfigIC, TIM_CHANNEL_3);
+		chBłąd |= HAL_TIM_IC_ConfigChannel(&htim4, &sConfigIC, TIM_CHANNEL_3);
 	}
 	else
 	if (chKonfigWeRC[KANAL_RC1] == ODB_RC_SBUS)
 	{
-		chErr |= InicjujUart4RxJakoSbus(&GPIO_InitStruct);
+		chBłąd |= InicjujUart4RxJakoSbus(&GPIO_InitStruct);
 	}
 
 
@@ -121,12 +119,12 @@ uint8_t InicjujWejsciaRC(void)
 		sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
 		sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
 		sConfigIC.ICFilter = 7;
-		chErr |= HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_4);
+		chBłąd |= HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_4);
 	}
 	else
 	if (chKonfigWeRC[KANAL_RC2] == ODB_RC_SBUS)
 	{
-		chErr |= InicjujUart2RxJakoSbus(&GPIO_InitStruct);
+		chBłąd |= InicjujUart2RxJakoSbus(&GPIO_InitStruct);
 	}
 
 	//odczytaj z FRAM minima i maksima kanałów RC aby móc je normalizować
@@ -155,7 +153,10 @@ uint8_t InicjujWejsciaRC(void)
     	assert(chFunkcjaKanaluRC[n] < LICZBA_FUNKCJI_RC);
 #endif
     }
-	return chErr;
+
+    //ustaw kolor LEDów
+    chBłąd |= InicjujKoloryWS281x();
+	return chBłąd;
 }
 
 
@@ -202,6 +203,9 @@ uint8_t InicjujWyjsciaRC(void)
 	GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+	if (chKonfigWyRC[KANAL_RC2] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC2);
+	else
 	if ((chKonfigWyRC[KANAL_RC1] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
 		chBityKonfiguracji |= 0x01;
@@ -236,6 +240,9 @@ uint8_t InicjujWyjsciaRC(void)
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+	if (chKonfigWyRC[KANAL_RC3] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC3);
+	else
 	if ((chKonfigWyRC[KANAL_RC2] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
 		__HAL_RCC_TIM2_CLK_ENABLE();
@@ -329,9 +336,6 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
-	if (chKonfigWyRC[KANAL_RC2] == SERWO_WS281X)
-		UstawTrybWS281x(KANAL_RC2);
-	else
 		chBłąd |= ERR_BRAK_KONFIG;
 
 
@@ -396,9 +400,6 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 	}
 	else
-	if (chKonfigWyRC[KANAL_RC3] == SERWO_WS281X)
-		UstawTrybWS281x(KANAL_RC3);
-	else
 		chBłąd |= ERR_BRAK_KONFIG;
 
 
@@ -410,6 +411,9 @@ uint8_t InicjujWyjsciaRC(void)
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	TIM3->CCR3 = 1000;
 
+	if (chKonfigWyRC[KANAL_RC4] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC4);
+	else
 	if ((chKonfigWyRC[KANAL_RC4] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
 		chBityKonfiguracji |= 0x08;
@@ -470,9 +474,6 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
-	if (chKonfigWyRC[KANAL_RC4] == SERWO_WS281X)
-		UstawTrybWS281x(KANAL_RC4);
-	else
 		chBłąd |= ERR_BRAK_KONFIG;
 
 
@@ -483,6 +484,9 @@ uint8_t InicjujWyjsciaRC(void)
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+	if (chKonfigWyRC[KANAL_RC5] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC5);
+	else
 	if ((chKonfigWyRC[KANAL_RC5] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
 		__HAL_RCC_TIM3_CLK_ENABLE();
@@ -541,9 +545,6 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
-	if (chKonfigWyRC[KANAL_RC5] == SERWO_WS281X)
-		UstawTrybWS281x(KANAL_RC5);
-	else
 		chBłąd |= ERR_BRAK_KONFIG;
 
 
@@ -554,6 +555,9 @@ uint8_t InicjujWyjsciaRC(void)
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 
+	if (chKonfigWyRC[KANAL_RC6] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC6);
+	else
 	if ((chKonfigWyRC[KANAL_RC6] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
 		__HAL_RCC_TIM8_CLK_ENABLE();
@@ -615,9 +619,6 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 	}
 	else
-	if (chKonfigWyRC[KANAL_RC6] == SERWO_WS281X)
-		UstawTrybWS281x(KANAL_RC6);
-	else
 		chBłąd |= ERR_BRAK_KONFIG;
 
 
@@ -641,6 +642,9 @@ uint8_t InicjujWyjsciaRC(void)
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);		//domyslnie ma być timer. w przypadku IO lub ADC, konfiguracja będzie nadpisana
 
+	if (chKonfigWyRC[KANAL_RC8] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC8);
+	else
 	if ((chKonfigWyRC[KANAL_RC8] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
 		__HAL_RCC_TIM8_CLK_ENABLE();
@@ -688,9 +692,6 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 	}
 	else
-	if (chKonfigWyRC[KANAL_RC8] == SERWO_WS281X)
-		UstawTrybWS281x(KANAL_RC8);
-	else
 		chBłąd |= ERR_BRAK_KONFIG;
 
 
@@ -730,6 +731,88 @@ uint8_t InicjujWyjsciaRC(void)
 	else
 		chBłąd |= ERR_BRAK_KONFIG;
 	return chBłąd;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Callback opróżnienia połowy bufora timerów służy do przeładowania pierwszej połowy bufora
+// Parametry: *hdma - wskaźnik na DMA zgłaszające koniec transmisji
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
+{
+    if(htim->Instance == TIM2)
+    {
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH2;
+
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH3;
+    }
+
+    if(htim->Instance == TIM3)
+    {
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH4;
+
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
+    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH5;
+    }
+
+	if(htim->Instance == TIM8)
+	{
+		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+		    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH6;
+
+		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+		{
+			sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH8;
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+			AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikSegmentuLed);
+		}
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Callback opróżnienia bufora timerów służy do przeładowania drugiej połowy bufora
+// Parametry: *hdma - wskaźnik na DMA zgłaszające koniec transmisji
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
+{
+    if(htim->Instance == TIM2)
+    {
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH2;
+
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH3;
+    }
+
+    if(htim->Instance == TIM3)
+    {
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH4;
+
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
+    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH5;
+    }
+
+	if(htim->Instance == TIM8)
+    {
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH6;
+
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+    	{
+    		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);	//serwo kanał 7
+    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8;
+    		AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikSegmentuLed);
+    	}
+    }
 }
 
 
@@ -790,7 +873,7 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 		case SERWO_DSHOT600:
 		case SERWO_DSHOT1200:	chBłąd |= AktualizujDShotDMA(nWyjście, n);	break;
 
-		case SERWO_WS281X:		chBłąd |= AktualizujWS281xDMA(nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikSegmentuLed);		break;
+		case SERWO_WS281X:	chBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikSegmentuLed);	break;
 
 		default: chBłąd = ERR_BRAK_KONFIG;
 		}	//switch
