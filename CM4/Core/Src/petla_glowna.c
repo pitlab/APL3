@@ -28,6 +28,7 @@
 #include "kontroler_lotu.h"
 #include "sample_audio.h"
 #include "sbus.h"
+#include "ws281x.h"
 
 extern TIM_HandleTypeDef htim7;
 extern unia_wymianyCM4_t uDaneCM4;
@@ -176,6 +177,7 @@ void PetlaGlowna(void)
 		chBladPG  = UstawDaneWymiany_CM4();
 		chBladPG |= PobierzDaneWymiany_CM7();
 		WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
+		AktualizujKolorLedWs821x(uDaneCM4.dane.stBSP.fKatIMU[1]);
 		break;
 
 	case 16:	//pozwól na testowe uruchomienie inicjalizacji

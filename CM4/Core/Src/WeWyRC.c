@@ -745,29 +745,29 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
     if(htim->Instance == TIM2)
     {
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
-    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH2;
+    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH2;
 
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
-    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH3;
+    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH3;
     }
 
     if(htim->Instance == TIM3)
     {
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
-    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH4;
+    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH4;
 
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
-    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH5;
+    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH5;
     }
 
 	if(htim->Instance == TIM8)
 	{
 		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
-		    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH6;
+		    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH6;
 
 		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
 		{
-			sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH8;
+			sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8;
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 			AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikSegmentuLed);
 		}
@@ -786,30 +786,30 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
     if(htim->Instance == TIM2)
     {
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
-    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH2;
+    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH2;
 
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
-    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH3;
+    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH3;
     }
 
     if(htim->Instance == TIM3)
     {
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
-    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH4;
+    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH4;
 
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
-    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH5;
+    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH5;
     }
 
 	if(htim->Instance == TIM8)
     {
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
-    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH6;
+    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH6;
 
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
     	{
     		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);	//serwo kanał 7
-    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8;
+    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH8;
     		AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikSegmentuLed);
     	}
     }

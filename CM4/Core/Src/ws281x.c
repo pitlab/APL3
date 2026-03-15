@@ -41,8 +41,8 @@ uint8_t InicjujKoloryWS281x(void)
 	uint8_t chBłąd = BLAD_OK;
 
 	stPaletaKolorow.chCzerMin = 0;
-	stPaletaKolorow.chCzerMax = 127;
-	stPaletaKolorow.chNiebMin = 127;
+	stPaletaKolorow.chCzerMax = 63;
+	stPaletaKolorow.chNiebMin = 0;
 	stPaletaKolorow.chNiebMax = 0;
 	stPaletaKolorow.chZielMax = 0;
 	stPaletaKolorow.chZielMin = 0;
@@ -51,6 +51,18 @@ uint8_t InicjujKoloryWS281x(void)
 	stPaletaKolorow.fWartoscMin = -0.3f;
 	chBłąd = UstawKolorWS281x(nKolorWS281x, LICZBA_LED_WS281X, &stPaletaKolorow, uDaneCM4.dane.stBSP.fKatIMU[1]);
 	return chBłąd;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Aktualizuje kolor palety w zależnosci od wartosci wizualizowanej zmiennej
+// Parametry: fZmienna - wartość podlegająca wizualizacji na LED-ach
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t AktualizujKolorLedWs821x(float fZmienna)
+{
+	return UstawKolorWS281x(nKolorWS281x, LICZBA_LED_WS281X, &stPaletaKolorow, fZmienna);
 }
 
 
@@ -201,17 +213,10 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		hdma_tim8_ch1.Init.MemInc = DMA_MINC_ENABLE;
 		hdma_tim8_ch1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
 		hdma_tim8_ch1.Init.MemDataAlignment = DMA_PDATAALIGN_WORD;
-		hdma_tim8_ch1.Init.Mode = DMA_CIRCULAR;
+		hdma_tim8_ch1.Init.Mode = DMA_NORMAL;
 		hdma_tim8_ch1.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim8_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		chBłąd |= HAL_DMA_Init(&hdma_tim8_ch1);
-		//if (hdma_tim8_ch1.XferCpltCallback)
-			//HAL_DMA_UnRegisterCallback(&hdma_tim8_ch1, HAL_DMA_XFER_CPLT_CB_ID);
-		//chBłąd |= HAL_DMA_RegisterCallback(&hdma_tim8_ch1, HAL_DMA_XFER_CPLT_CB_ID, &TIM_DMADelayPulseCplt);
-		//if (hdma_tim8_ch1.XferM1CpltCallback)
-			//HAL_DMA_UnRegisterCallback(&hdma_tim8_ch1, HAL_DMA_XFER_M1CPLT_CB_ID);
-		//chBłąd |= HAL_DMA_RegisterCallback(&hdma_tim8_ch1, HAL_DMA_XFER_M1CPLT_CB_ID, &TIM_DMADelayPulseCpltBuf2);
-
 		HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
 		__HAL_DMA_ENABLE_IT(&hdma_tim8_ch1, DMA_IT_HT);
@@ -232,17 +237,10 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		hdma_tim8_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim8_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		chBłąd |= HAL_DMA_Init(&hdma_tim8_ch3);
-		//if (hdma_tim8_ch3.XferCpltCallback)
-			//HAL_DMA_UnRegisterCallback(&hdma_tim8_ch3, HAL_DMA_XFER_CPLT_CB_ID);
-		//chBłąd |= HAL_DMA_RegisterCallback(&hdma_tim8_ch3, HAL_DMA_XFER_CPLT_CB_ID, &TIM_DMADelayPulseNCplt);
-		//if (hdma_tim8_ch3.XferM1CpltCallback)
-			//HAL_DMA_UnRegisterCallback(&hdma_tim8_ch3, HAL_DMA_XFER_M1CPLT_CB_ID);
-		//chBłąd |= HAL_DMA_RegisterCallback(&hdma_tim8_ch3, HAL_DMA_XFER_M1CPLT_CB_ID, &TIM_DMADelayPulseCpltBuf2);
 		HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
-
 		__HAL_DMA_ENABLE_IT(&hdma_tim8_ch3, DMA_IT_HT);
-		chBłąd |= HAL_TIMEx_PWMN_Start_DMA(&htim8, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);	//specjalna funkcja dla kanału komplementarnego
+		chBłąd |= HAL_TIMEx_PWMN_Start_DMA(&htim8, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);	//specjalna funkcja dla kanału komplementarnego N
 	}
 	return chBłąd;
 }
@@ -252,15 +250,17 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja ładuje stan kolejnych 4 LEDów do bufora nBuforTimDMA_WS281X
+// Funkcja ładuje stan kolejnych LEDów do bufora nBuforTimDMA_WS281X. Pracuje z podwójnym buforowaniem, więc
+// w obsłudze przerwania opróżnienia polowy bufora ładuje pierwszą połowę segmentu czyli 2 LEDy a w obsłudze
+// opróżnienia całego bufora ładuje drugą połowę segmentu. Licznik *chWskSegmentu odlicza kolejne połówki segmentów
 // Parametry:
 //	*sFlagi - wskaźnik na flagi konieczności napełnienia buforów
-//  *nKolor - tablica kolorów kolejnych LED
+//  *nTabKoloru - tablica kolorów kolejnych LED
 //  chRozmiar - liczba sterowanych LED
 //  *chWskSegmentu - wskaźnik na kolejny segment 4 LEDów
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nKolor, uint8_t chRozmiar, uint8_t *chWskSegmentu)
+uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskSegmentu)
 {
 	uint8_t chBłąd = BLAD_OK;
 	uint32_t nKolorLED;
@@ -275,9 +275,9 @@ uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nKolor, uint8_t chRozmia
 		}
 		else
 		{
-			for (uint8_t m=0; m<WS_LEDY_SEGMENTU / 2; m++)		//iteracja po LED-ach w segmencie
+			for (uint8_t m=0; m<WS_LEDY_SEGMENTU / 2; m++)		//iteracja po LED-ach w połowie segmentu
 			{
-				nKolorLED = *(nKolor + *chWskSegmentu + m);
+				nKolorLED = *(nTabKoloru + *chWskSegmentu + m);
 				for (uint8_t n=0; n<WS_BITOW_KOLORU; n++)	//iteracja po bitach koloru
 				{
 					if (nKolorLED & 0x800000)	//wysyłany jest najstarszy przodem z 24 bitów
@@ -287,6 +287,9 @@ uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nKolor, uint8_t chRozmia
 					nKolorLED <<= 1;		//wskaż kolejny bit
 				}
 			}
+			//wskaż na następny segment do obsługi w kolejnym cyklu
+			*chWskSegmentu += 2;
+
 		}
 		*sFlagi &= ~NAPELNIJ_BUF1_CH8;
 
@@ -302,9 +305,9 @@ uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nKolor, uint8_t chRozmia
 		}
 		else
 		{
-			for (uint8_t m=WS_LEDY_SEGMENTU / 2; m<WS_LEDY_SEGMENTU; m++)		//iteracja po LED-ach w segmencie
+			for (uint8_t m=0; m<WS_LEDY_SEGMENTU / 2; m++)		//iteracja po LED-ach w połowie segmentu
 			{
-				nKolorLED = *(nKolor + *chWskSegmentu + m);
+				nKolorLED = *(nTabKoloru + *chWskSegmentu + m);
 				for (uint8_t n=0; n<WS_BITOW_KOLORU; n++)	//iteracja po bitach koloru
 				{
 					if (nKolorLED & 0x800000)	//wysyłany jest najstarszy przodem z 24 bitów
@@ -323,11 +326,13 @@ uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nKolor, uint8_t chRozmia
 		if (chLicznikResetu == 0)
 		{
 			//wskaż na następny segment do obsługi w kolejnym cyklu
-			*chWskSegmentu += 4;
-			if (*chWskSegmentu >= chRozmiar)
-				*chWskSegmentu = 0;
+			*chWskSegmentu += 2;
 		}
 	}
+
+
+	if (*chWskSegmentu >= chRozmiar)
+		*chWskSegmentu = 0;
 	return chBłąd;
 }
 
@@ -353,14 +358,21 @@ uint8_t UstawKolorWS281x(uint32_t *nKolor, uint8_t chRozmiar, stPaletaKolorow_t 
 
 	for (uint8_t n=0; n<chRozmiar; n++)
 	{
-		if ((fPomiar > (stPaleta->fWartoscMin + fDeltaPomiaru * n)) && (fPomiar > (stPaleta->fWartoscMin) + fDeltaPomiaru * (n + 1)))
+		//if ((fPomiar > (stPaleta->fWartoscMin + fDeltaPomiaru * n)) && (fPomiar > (stPaleta->fWartoscMin) + fDeltaPomiaru * (n + 1)))
 			chDzielnik = 1;
-		else
-			chDzielnik = stPaleta->chDzielnikJasnosciTla;
-
+		//else
+			//chDzielnik = stPaleta->chDzielnikJasnosciTla;
+#ifdef WS2811	//RGB
 		*(nKolor + n) = ((uint32_t)((stPaleta->chCzerMin + chDeltaCzer * n) / chDzielnik) << 16) +
 						((uint32_t)((stPaleta->chZielMin + chDeltaZiel * n) / chDzielnik) << 8) +
 						 (uint32_t)((stPaleta->chNiebMin + chDeltaNieb * n) / chDzielnik);
+#endif
+#ifdef WS2813	//GRB
+		*(nKolor + n) = ((uint32_t)((stPaleta->chZielMin + chDeltaZiel * n) / chDzielnik) << 16) +
+						((uint32_t)((stPaleta->chCzerMin + chDeltaCzer * n) / chDzielnik) << 8) +
+						 (uint32_t)((stPaleta->chNiebMin + chDeltaNieb * n) / chDzielnik);
+#endif
+
 	}
 	return chBłąd;
 }
