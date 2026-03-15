@@ -42,7 +42,7 @@ extern DMA_HandleTypeDef hdma_tim3_ch4;
 extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
 extern uint32_t nKolorWS281x[LICZBA_LED_WS281X];
-extern uint8_t chWskaznikSegmentuLed;
+extern uint8_t chWskaznikLed;
 extern uint8_t chBuforOdbioruSBus1[ROZM_BUF_ODB_SBUS];
 extern uint8_t chBuforOdbioruSBus2[ROZM_BUF_ODB_SBUS];
 
@@ -768,8 +768,8 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
 		{
 			sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8;
-			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
-			AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikSegmentuLed);
+			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+			AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);
 		}
 	}
 }
@@ -810,7 +810,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
     	{
     		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);	//serwo kanał 7
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH8;
-    		AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikSegmentuLed);
+    		AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);
     	}
     }
 }
@@ -873,7 +873,7 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 		case SERWO_DSHOT600:
 		case SERWO_DSHOT1200:	chBłąd |= AktualizujDShotDMA(nWyjście, n);	break;
 
-		case SERWO_WS281X:	chBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikSegmentuLed);	break;
+		case SERWO_WS281X:	chBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);	break;
 
 		default: chBłąd = ERR_BRAK_KONFIG;
 		}	//switch

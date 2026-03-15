@@ -17,6 +17,7 @@
 #define WS_BITOW_KOLORU		24
 #define WS_LEDY_SEGMENTU	4
 #define WS_BITOW_LACZNIE	(WS_BITOW_KOLORU * WS_LEDY_SEGMENTU)
+#define WS_CZAS_RESETU		12		//czas trwania cyklu resetu odpowiadajacy czasowi obsługi danej liczbie LED-ów
 
 //timery sterowane są zegarem 240 MHz co daje czas cyklu 4,16ns
 #define DZIELNIK_WS281X		64	//220..380 ns / 4,16 = 53..91; 64*4,16 = 266ns
@@ -46,7 +47,7 @@ typedef struct
 uint8_t InicjujKoloryWS281x(void);
 uint8_t AktualizujKolorLedWs821x(float fZmienna);
 uint8_t UstawTrybWS281x(uint8_t chKanal);
-uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskSegmentu);
+uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskLED);
 uint8_t UstawKolorWS281x(uint32_t *nKolor, uint8_t chRozmiar, stPaletaKolorow_t *stPaleta, float fPomiar);
 
 
