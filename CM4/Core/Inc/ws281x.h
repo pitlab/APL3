@@ -41,6 +41,7 @@ typedef struct
 	uint8_t chZielMin;
 	uint8_t chNiebMin;
 	uint8_t chDzielnikJasnosciTla;
+	uint8_t chSzerokoscWskaznika;
 } stPaletaKolorow_t;
 
 

@@ -41,15 +41,16 @@ uint8_t InicjujKoloryWS281x(void)
 	uint8_t chBłąd = BLAD_OK;
 
 	stPaletaKolorow.chCzerMin = 0;
-	stPaletaKolorow.chCzerMax = 63;
-	stPaletaKolorow.chNiebMin = 0;
+	stPaletaKolorow.chCzerMax = 128;
+	stPaletaKolorow.chNiebMin = 128;
 	stPaletaKolorow.chNiebMax = 0;
 	stPaletaKolorow.chZielMax = 0;
 	stPaletaKolorow.chZielMin = 0;
-	stPaletaKolorow.chDzielnikJasnosciTla = 4;
+	stPaletaKolorow.chDzielnikJasnosciTla = 12;
 	stPaletaKolorow.fWartoscMax =  0.3f;
 	stPaletaKolorow.fWartoscMin = -0.3f;
-	chBłąd = UstawKolorWS281x(nKolorWS281x, LICZBA_LED_WS281X, &stPaletaKolorow, uDaneCM4.dane.stBSP.fKatIMU[1]);
+	stPaletaKolorow.chSzerokoscWskaznika = 2;
+	chBłąd = UstawKolorWS281x(nKolorWS281x, LICZBA_LED_WS281X, &stPaletaKolorow, uDaneCM4.dane.stBSP.fKatIMU[0]);
 	return chBłąd;
 }
 
@@ -345,16 +346,35 @@ uint8_t UstawKolorWS281x(uint32_t *nKolor, uint8_t chRozmiar, stPaletaKolorow_t 
 	int8_t chDeltaCzer = (stPaleta->chCzerMax - stPaleta->chCzerMin) / chRozmiar;
 	int8_t chDeltaZiel = (stPaleta->chZielMax - stPaleta->chZielMin) / chRozmiar;
 	int8_t chDeltaNieb = (stPaleta->chNiebMax - stPaleta->chNiebMin) / chRozmiar;
-	float fDeltaPomiaru = (stPaleta->fWartoscMax - stPaleta->fWartoscMin) / chRozmiar;
+	float fDeltaPomiaru = (stPaleta->fWartoscMax - stPaleta->fWartoscMin) / chRozmiar * stPaleta->chSzerokoscWskaznika;
 	uint8_t chDzielnik;
 	uint8_t chBłąd = BLAD_OK;
+	float fRoznica;
+	float fDzielnik;
 
+	//for (uint8_t n=0; n<chRozmiar - stPaleta->chSzerokoscWskaznika; n++)
 	for (uint8_t n=0; n<chRozmiar; n++)
 	{
-		//if ((fPomiar > (stPaleta->fWartoscMin + fDeltaPomiaru * n)) && (fPomiar > (stPaleta->fWartoscMin) + fDeltaPomiaru * (n + 1)))
-			chDzielnik = 1;
-		//else
-			//chDzielnik = stPaleta->chDzielnikJasnosciTla;
+		//if ((fPomiar > (stPaleta->fWartoscMin + fDeltaPomiaru * n)) && (fPomiar < (stPaleta->fWartoscMin) + fDeltaPomiaru * (n + stPaleta->chSzerokoscWskaznika)))
+		if ((fPomiar > (stPaleta->fWartoscMin + fDeltaPomiaru * n)) && (fPomiar < (stPaleta->fWartoscMin) + fDeltaPomiaru * (n + 1)))
+		{
+			//fRoznica = fabs(fPomiar - (stPaleta->fWartoscMin + fDeltaPomiaru * n) + (fDeltaPomiaru / 2));
+			fRoznica = fabs(fPomiar - (stPaleta->fWartoscMin + fDeltaPomiaru * n));	//różnica
+			fRoznica = fabs((fDeltaPomiaru / 2) - fRoznica);	//delta/2 - różnica
+
+			//chDzielnik = (uint8_t)roundf(((fRoznica / fDeltaPomiaru) + 1) * stPaleta->chDzielnikJasnosciTla);
+			//chDzielnik = stPaleta->chDzielnikJasnosciTla - (uint8_t)roundf((fRoznica / fDeltaPomiaru) * stPaleta->chDzielnikJasnosciTla);
+
+			fDzielnik = fRoznica / fDeltaPomiaru;
+			fDzielnik *= (stPaleta->chDzielnikJasnosciTla - 1) * 2;
+			chDzielnik =  (uint8_t)roundf(fDzielnik);
+
+
+			if (chDzielnik < 1)
+				chDzielnik = 1;
+		}
+		else
+			chDzielnik = stPaleta->chDzielnikJasnosciTla;
 #ifdef WS2811	//RGB
 		*(nKolor + n) = ((uint32_t)((stPaleta->chCzerMin + chDeltaCzer * n) / chDzielnik) << 16) +
 						((uint32_t)((stPaleta->chZielMin + chDeltaZiel * n) / chDzielnik) << 8) +
