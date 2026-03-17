@@ -26,6 +26,10 @@ extern uint16_t sFlagiNapelnieniaBuforow;
 uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA_WS281X[WS_BITOW_LACZNIE];
 stDShot_t stWS281x;
 uint32_t nKolorWS281x[LICZBA_LED_WS281X];
+uint8_t chDzielnikTła[LICZBA_LED_WS281X];	//test
+//float fZakresDolny[LICZBA_LED_WS281X];
+//float fZakresSrodka[LICZBA_LED_WS281X];
+//float fZakresGorny[LICZBA_LED_WS281X];
 uint8_t chWskaznikLed;
 stPaletaKolorow_t stPaletaKolorow;
 uint8_t chLicznikResetu;	//liczy do 4. Dla 0 wysyła sekwencję bitów, dla 1..3 wysyła zero będące resetem
@@ -41,12 +45,12 @@ uint8_t InicjujKoloryWS281x(void)
 	uint8_t chBłąd = BLAD_OK;
 
 	stPaletaKolorow.chCzerMin = 0;
-	stPaletaKolorow.chCzerMax = 128;
-	stPaletaKolorow.chNiebMin = 128;
+	stPaletaKolorow.chCzerMax = 192;
+	stPaletaKolorow.chNiebMin = 192;
 	stPaletaKolorow.chNiebMax = 0;
 	stPaletaKolorow.chZielMax = 0;
 	stPaletaKolorow.chZielMin = 0;
-	stPaletaKolorow.chDzielnikJasnosciTla = 12;
+	stPaletaKolorow.chDzielnikJasnosciTla = 16;
 	stPaletaKolorow.fWartoscMax =  0.3f;
 	stPaletaKolorow.fWartoscMin = -0.3f;
 	stPaletaKolorow.chSzerokoscWskaznika = 2;
@@ -346,46 +350,71 @@ uint8_t UstawKolorWS281x(uint32_t *nKolor, uint8_t chRozmiar, stPaletaKolorow_t 
 	int8_t chDeltaCzer = (stPaleta->chCzerMax - stPaleta->chCzerMin) / chRozmiar;
 	int8_t chDeltaZiel = (stPaleta->chZielMax - stPaleta->chZielMin) / chRozmiar;
 	int8_t chDeltaNieb = (stPaleta->chNiebMax - stPaleta->chNiebMin) / chRozmiar;
-	float fDeltaPomiaru = (stPaleta->fWartoscMax - stPaleta->fWartoscMin) / chRozmiar * stPaleta->chSzerokoscWskaznika;
+	//float fDeltaPomiaru = (stPaleta->fWartoscMax - stPaleta->fWartoscMin) / chRozmiar * stPaleta->chSzerokoscWskaznika;	//szerokość przesuwa pomiar w lewo
+	float fDeltaPomiaru = (stPaleta->fWartoscMax - stPaleta->fWartoscMin) / chRozmiar;
 	uint8_t chDzielnik;
 	uint8_t chBłąd = BLAD_OK;
 	float fRoznica;
 	float fDzielnik;
+	uint8_t chSzczytLewy, chSzczytPrawy;
+	uint8_t chZnalezionyLewy;
 
-	//for (uint8_t n=0; n<chRozmiar - stPaleta->chSzerokoscWskaznika; n++)
 	for (uint8_t n=0; n<chRozmiar; n++)
 	{
-		//if ((fPomiar > (stPaleta->fWartoscMin + fDeltaPomiaru * n)) && (fPomiar < (stPaleta->fWartoscMin) + fDeltaPomiaru * (n + stPaleta->chSzerokoscWskaznika)))
-		if ((fPomiar > (stPaleta->fWartoscMin + fDeltaPomiaru * n)) && (fPomiar < (stPaleta->fWartoscMin) + fDeltaPomiaru * (n + 1)))
+		//fZakresDolny[n] = stPaleta->fWartoscMin + fDeltaPomiaru * (n - stPaleta->chSzerokoscWskaznika);
+		//fZakresSrodka[n] = stPaleta->fWartoscMin + fDeltaPomiaru * n;
+		//fZakresGorny[n] = stPaleta->fWartoscMin + fDeltaPomiaru * (n + stPaleta->chSzerokoscWskaznika);
+
+		//if ((fPomiar > (stPaleta->fWartoscMin + fDeltaPomiaru * (n - stPaleta->chSzerokoscWskaznika))) && (fPomiar < (stPaleta->fWartoscMin) + fDeltaPomiaru * (n + stPaleta->chSzerokoscWskaznika)))	//pasek jest 2 krtotnie szerszy
+		//if (((fPomiar > (stPaleta->fWartoscMin + fDeltaPomiaru / 2 * (n - stPaleta->chSzerokoscWskaznika))) && (fPomiar < (stPaleta->fWartoscMin) + fDeltaPomiaru / 2 * (n + stPaleta->chSzerokoscWskaznika))))		//dla szerokości 1 jest hard fault
+		if ((fPomiar > (stPaleta->fWartoscMin + fDeltaPomiaru * ((float)n - (float)stPaleta->chSzerokoscWskaznika / 2))) && (fPomiar < (stPaleta->fWartoscMin) + fDeltaPomiaru * ((float)n + (float)stPaleta->chSzerokoscWskaznika / 2)))	//szerokość jest OK, ale kolejność zaświecania jest zła
 		{
-			//fRoznica = fabs(fPomiar - (stPaleta->fWartoscMin + fDeltaPomiaru * n) + (fDeltaPomiaru / 2));
 			fRoznica = fabs(fPomiar - (stPaleta->fWartoscMin + fDeltaPomiaru * n));	//różnica
-			fRoznica = fabs((fDeltaPomiaru / 2) - fRoznica);	//delta/2 - różnica
-
-			//chDzielnik = (uint8_t)roundf(((fRoznica / fDeltaPomiaru) + 1) * stPaleta->chDzielnikJasnosciTla);
-			//chDzielnik = stPaleta->chDzielnikJasnosciTla - (uint8_t)roundf((fRoznica / fDeltaPomiaru) * stPaleta->chDzielnikJasnosciTla);
-
-			fDzielnik = fRoznica / fDeltaPomiaru;
-			fDzielnik *= (stPaleta->chDzielnikJasnosciTla - 1) * 2;
-			chDzielnik =  (uint8_t)roundf(fDzielnik);
-
-
-			if (chDzielnik < 1)
-				chDzielnik = 1;
+			fRoznica = fabs((fDeltaPomiaru * stPaleta->chSzerokoscWskaznika / 2) - fRoznica);
+			fDzielnik = 2*fRoznica / fDeltaPomiaru / stPaleta->chSzerokoscWskaznika;
+			fDzielnik *= stPaleta->chDzielnikJasnosciTla - 1;
+			chDzielnik =  (uint8_t)roundf(fDzielnik + 1);
 		}
 		else
 			chDzielnik = stPaleta->chDzielnikJasnosciTla;
+		chDzielnikTła[n] = chDzielnik;
+	}
+
+	//korekta maksimum jasności w środku znacznika. Funkcja wyznaczająca jasność znacznika na obu końcach jest trójkątna.
+	//Dwa szczyty trójkątów na brzegach wskaźnika dają ciemną dolinę w środku. Trzeba ją wypełnić wartością nie mniejszą niż szczyty.
+	chZnalezionyLewy = chSzczytLewy = chSzczytPrawy = 0;
+	for (uint8_t n=1; n<chRozmiar-1; n++)
+	{
+		//szukaj pierwszego minimum dzielnika, to będzie lewy szczyt
+		if ((!chZnalezionyLewy) && (chDzielnikTła[n] < chDzielnikTła[n-1]) && chDzielnikTła[n] < chDzielnikTła[n+1])
+		{
+			chSzczytLewy = n;
+			chZnalezionyLewy = 1;
+		}
+
+		if ((chZnalezionyLewy) && (chDzielnikTła[n] < chDzielnikTła[n-1]) && chDzielnikTła[n] < chDzielnikTła[n+1])
+			chSzczytPrawy = n;
+	}
+
+	//wypełnienie doliny między szczytami
+	for (uint8_t n=0; n<chRozmiar; n++)
+	{
+		if ((n > chSzczytLewy) && (n < chSzczytPrawy))
+			chDzielnikTła[n] = 1;
+	}
+
+	for (uint8_t n=0; n<chRozmiar; n++)
+	{
 #ifdef WS2811	//RGB
-		*(nKolor + n) = ((uint32_t)((stPaleta->chCzerMin + chDeltaCzer * n) / chDzielnik) << 16) +
-						((uint32_t)((stPaleta->chZielMin + chDeltaZiel * n) / chDzielnik) << 8) +
-						 (uint32_t)((stPaleta->chNiebMin + chDeltaNieb * n) / chDzielnik);
+		*(nKolor + n) = ((uint32_t)((stPaleta->chCzerMin + chDeltaCzer * n) / chDzielnikTła[n]) << 16) +
+						((uint32_t)((stPaleta->chZielMin + chDeltaZiel * n) / chDzielnikTła[n]) << 8) +
+						 (uint32_t)((stPaleta->chNiebMin + chDeltaNieb * n) / chDzielnikTła[n]);
 #endif
 #ifdef WS2813	//GRB
-		*(nKolor + n) = ((uint32_t)((stPaleta->chZielMin + chDeltaZiel * n) / chDzielnik) << 16) +
-						((uint32_t)((stPaleta->chCzerMin + chDeltaCzer * n) / chDzielnik) << 8) +
-						 (uint32_t)((stPaleta->chNiebMin + chDeltaNieb * n) / chDzielnik);
+		*(nKolor + n) = ((uint32_t)((stPaleta->chZielMin + chDeltaZiel * n) / chDzielnikTła[n]) << 16) +
+						((uint32_t)((stPaleta->chCzerMin + chDeltaCzer * n) / chDzielnikTła[n]) << 8) +
+						 (uint32_t)((stPaleta->chNiebMin + chDeltaNieb * n) / chDzielnikTła[n]);
 #endif
-
 	}
 	return chBłąd;
 }
