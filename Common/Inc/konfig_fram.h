@@ -83,8 +83,43 @@
 #define FAU_LANDING_SPD     0x0322		//4F prędkość lądowania
 
 //wzmocnienia drążków aparatury dla poszczególnych trybów pracy regulatorów
-//#define FAU_ZADANA_AKRO     0x0316		//4x4F wartość zadana z drążków aparatury dla regulatora Akro
-//#define FAU_ZADANA_STAB     0x0326		//4x4F wartość zadana z drążków aparatury dla regulatora Stab
+//#define FAU_ZADANA_AKRO     0x0316	//4x4F wartość zadana z drążków aparatury dla regulatora Akro
+//#define FAU_ZADANA_STAB     0x0326	//4x4F wartość zadana z drążków aparatury dla regulatora Stab
+
+
+//definicje wskaźników LED zrobionych z WS8213
+#define FAU_WSKLED_TYP_LED	0x0336		//1U typ układu WS8211 lub WS8213, ponieważ maja inne definicje kolorów
+#define FAU_WSKLED1			0x0337
+#define FAU_WSKLED1_MIN_ZMIENNEJ	FAU_WSKLED1+0	//4F dolny zakres wizualizacji
+#define FAU_WSKLED1_MAX_ZMIENNEJ	FAU_WSKLED1+4	//4F górny zakres wizualizacji
+#define FAU_WSKLED1_NUM_ZMIENNEJ	FAU_WSKLED1+8	//1U indeks wizualizowanej zmiennej 1
+#define FAU_WSKLED1_SZER_WSKAZNIKA	FAU_WSKLED1+9	//1U liczba LED szerokość plamki wskaźnika
+#define FAU_WSKLED1_DZIELNNIK_TLA	FAU_WSKLED1+10	//1U wskazuje ile razy tło jest ciemniejsze od plamki
+#define FAU_WSKLED1_MIN_CZER		FAU_WSKLED1+11	//1U poziom składowej czerwonej na początku skali1
+#define FAU_WSKLED1_MAX_CZER		FAU_WSKLED1+12	//1U poziom składowej czerwonej na końcu skali1
+#define FAU_WSKLED1_MIN_ZIEL		FAU_WSKLED1+13	//1U poziom składowej zielonej na początku skali1
+#define FAU_WSKLED1_MAX_ZIEL		FAU_WSKLED1+14	//1U poziom składowej zielonej na końcu skali1
+#define FAU_WSKLED1_MIN_NIEB		FAU_WSKLED1+15	//1U poziom składowej niebieskiej na początku skali1
+#define FAU_WSKLED1_MAX_NIEB		FAU_WSKLED1+16	//1U poziom składowej niebieskiej na końcu skali1
+#define FAU_WSKLED1_LICZBA_LED		FAU_WSKLED1+17	//1U liczba LED-ów z których zbudowany jest wskaźnik
+#define ROZMIAR_WSKAZNIKA_LED		18
+#define LICZBA_WSKAZNIKOW_LED		2
+
+#define FAU_WSKLED2			FAU_WSKLED1 + ROZMIAR_WSKAZNIKA_LED
+#define FAU_WSKLED2_MIN_ZMIENNEJ	FAU_WSKLED2+0	//4F dolny zakres wizualizacji
+#define FAU_WSKLED2_MAX_ZMIENNEJ	FAU_WSKLED2+4	//4F górny zakres wizualizacji
+#define FAU_WSKLED2_NUM_ZMIENNEJ	FAU_WSKLED2+8	//1U indeks wizualizowanej zmiennej 2
+#define FAU_WSKLED2_SZER_WSKAZNIKA	FAU_WSKLED2+9	//1U liczba LED szerokość plamki wskaźnika
+#define FAU_WSKLED2_DZIELNNIK_TLA	FAU_WSKLED2+10	//1U wskazuje ile razy tło jest ciemniejsze od plamki
+#define FAU_WSKLED2_MIN_CZER		FAU_WSKLED2+11	//1U definiuje poziom składowej czerwonej na początku skali1
+#define FAU_WSKLED2_MAX_CZER		FAU_WSKLED2+12	//1U definiuje poziom składowej czerwonej na końcu skali1
+#define FAU_WSKLED2_MIN_ZIEL		FAU_WSKLED2+13	//1U definiuje poziom składowej zielonej na początku skali1
+#define FAU_WSKLED2_MAX_ZIEL		FAU_WSKLED2+14	//1U definiuje poziom składowej zielonej na końcu skali1
+#define FAU_WSKLED2_MIN_NIEB		FAU_WSKLED2+15	//1U definiuje poziom składowej niebieskiej na początku skali1
+#define FAU_WSKLED2_MAX_NIEB		FAU_WSKLED2+16	//1U definiuje poziom składowej niebieskiej na końcu skali1
+#define FAU_WSKLED2_LICZBA_LED		FAU_WSKLED2+17	//1U liczba LED-ów z których zbudowany jest wskaźnik
+
+#define FAU_				FAU_WSKLED1 + LICZBA_WSKAZNIKOW_LED * ROZMIAR_WSKAZNIKA_LED
 
 
 

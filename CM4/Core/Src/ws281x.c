@@ -8,6 +8,7 @@
 #include "ws281x.h"
 #include "dshot.h"
 #include "WeWyRC.h"
+#include "fram.h"
 
 //Timer wysyła przez DMA sekwencję bitóe dla segmentu 4 LEDów po 24 bity, Trwa to 1,064us/bit czyli 102,144us na segment
 //Sekwencję resetu majacą trwać minimum 280us generuję przez 3 puste sekwencje danych
@@ -26,13 +27,12 @@ extern uint16_t sFlagiNapelnieniaBuforow;
 uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA_WS281X[WS_BITOW_LACZNIE];
 stDShot_t stWS281x;
 uint32_t nKolorWS281x[LICZBA_LED_WS281X];
-uint8_t chDzielnikTła[LICZBA_LED_WS281X];	//test
-//float fZakresDolny[LICZBA_LED_WS281X];
-//float fZakresSrodka[LICZBA_LED_WS281X];
-//float fZakresGorny[LICZBA_LED_WS281X];
+float fZakresDolny[LICZBA_LED_WS281X];
+float fZakresGorny[LICZBA_LED_WS281X];
 uint8_t chWskaznikLed;
-stPaletaKolorow_t stPaletaKolorow;
-uint8_t chLicznikResetu;	//liczy do 4. Dla 0 wysyła sekwencję bitów, dla 1..3 wysyła zero będące resetem
+uint8_t chTypLed;	//indeks typu układu scalonego: 0=WS8211, 1=WS8513
+stWskaznikLed_t stWskaznikLed[LICZBA_WSKAZNIKOW_LED];
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,18 +43,30 @@ uint8_t chLicznikResetu;	//liczy do 4. Dla 0 wysyła sekwencję bitów, dla 1..3
 uint8_t InicjujKoloryWS281x(void)
 {
 	uint8_t chBłąd = BLAD_OK;
+	uint8_t chDane[ROZMIAR_WSKAZNIKA_LED - 8];
 
-	stPaletaKolorow.chCzerMin = 0;
-	stPaletaKolorow.chCzerMax = 192;
-	stPaletaKolorow.chNiebMin = 192;
-	stPaletaKolorow.chNiebMax = 0;
-	stPaletaKolorow.chZielMax = 0;
-	stPaletaKolorow.chZielMin = 0;
-	stPaletaKolorow.chDzielnikJasnosciTla = 16;
-	stPaletaKolorow.fWartoscMax =  0.3f;
-	stPaletaKolorow.fWartoscMin = -0.3f;
-	stPaletaKolorow.chSzerokoscWskaznika = 2;
-	chBłąd = UstawKolorWS281x(nKolorWS281x, LICZBA_LED_WS281X, &stPaletaKolorow, uDaneCM4.dane.stBSP.fKatIMU[0]);
+	CzytajBuforFRAM(FAU_WSKLED_TYP_LED, &chTypLed, 1);
+
+	for (uint8_t n=0; n<LICZBA_WSKAZNIKOW_LED; n++)
+	{
+		CzytajBuforFRAM(FAU_WSKLED1_NUM_ZMIENNEJ + n*ROZMIAR_WSKAZNIKA_LED, chDane, ROZMIAR_WSKAZNIKA_LED - 8);
+		stWskaznikLed[n].chNumZmiennej = chDane[0];
+		stWskaznikLed[n].chSzerokoscWskaznika =  chDane[1];
+		stWskaznikLed[n].chDzielnikJasnosciTla = chDane[2];
+		stWskaznikLed[n].chCzerMin = chDane[3];
+		stWskaznikLed[n].chCzerMax = chDane[4];
+		stWskaznikLed[n].chNiebMin = chDane[5];
+		stWskaznikLed[n].chNiebMax = chDane[6];
+		stWskaznikLed[n].chZielMax = chDane[7];
+		stWskaznikLed[n].chZielMin = chDane[8];
+		stWskaznikLed[n].chLiczbaLed = chDane[9];
+
+		stWskaznikLed[n].fWartoscMin = CzytajFramFloat(FAU_WSKLED1_MIN_ZMIENNEJ + n*ROZMIAR_WSKAZNIKA_LED);
+		stWskaznikLed[n].fWartoscMax = CzytajFramFloat(FAU_WSKLED1_MAX_ZMIENNEJ + n*ROZMIAR_WSKAZNIKA_LED);
+
+	}
+
+	chBłąd = UstawKolorWS281x(nKolorWS281x, stWskaznikLed, uDaneCM4.dane.stBSP.fKatIMU[0]);
 	return chBłąd;
 }
 
@@ -67,7 +79,7 @@ uint8_t InicjujKoloryWS281x(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t AktualizujKolorLedWs821x(float fZmienna)
 {
-	return UstawKolorWS281x(nKolorWS281x, LICZBA_LED_WS281X, &stPaletaKolorow, fZmienna);
+	return UstawKolorWS281x(nKolorWS281x, stWskaznikLed, fZmienna);
 }
 
 
@@ -337,84 +349,61 @@ uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRo
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja ustawia kolory wszystkich sterowanych LED według zadanej palety
+// Funkcja ustawia kolory wszystkich sterowanych LED liniowo w zależności od zdefiniowanych wartosci skrajnych
+// Oblicza też wartość dzielnika jasności rozjaśniającego grupę LEDów formujących plamkę wskaźnika
 // Parametry: *nKolor - tablica kolorów kolejnych LED
 // chRozmiar - liczba sterowanych LED
 // *chWskSegmentu - wskaźnik na kolejny segment 4 LEDów
 // *stPaleta - wskaźnik na strukturę zawierającą definicje do zbudowania kolorów skali mierzonej wartosci
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t UstawKolorWS281x(uint32_t *nKolor, uint8_t chRozmiar, stPaletaKolorow_t *stPaleta, float fPomiar)
+uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed, float fPomiar)
 {
-	//oblicz różnice składowych koloru między kolejnymi punktami
-	int8_t chDeltaCzer = (stPaleta->chCzerMax - stPaleta->chCzerMin) / chRozmiar;
-	int8_t chDeltaZiel = (stPaleta->chZielMax - stPaleta->chZielMin) / chRozmiar;
-	int8_t chDeltaNieb = (stPaleta->chNiebMax - stPaleta->chNiebMin) / chRozmiar;
-	//float fDeltaPomiaru = (stPaleta->fWartoscMax - stPaleta->fWartoscMin) / chRozmiar * stPaleta->chSzerokoscWskaznika;	//szerokość przesuwa pomiar w lewo
-	float fDeltaPomiaru = (stPaleta->fWartoscMax - stPaleta->fWartoscMin) / chRozmiar;
-	uint8_t chDzielnik;
+	float fDeltaCzer, fDeltaZiel, fDeltaNieb, fDeltaPomiaru;
 	uint8_t chBłąd = BLAD_OK;
+	uint8_t chIndeksTabKoloru = 0;
+	float fZakres;
 	float fRoznica;
 	float fDzielnik;
-	uint8_t chSzczytLewy, chSzczytPrawy;
-	uint8_t chZnalezionyLewy;
+	float fTrojkat;
+	float fWysokoscTrojkata = 20;
 
-	for (uint8_t n=0; n<chRozmiar; n++)
+	for (uint8_t m=0; m<LICZBA_WSKAZNIKOW_LED; m++)
 	{
-		//fZakresDolny[n] = stPaleta->fWartoscMin + fDeltaPomiaru * (n - stPaleta->chSzerokoscWskaznika);
-		//fZakresSrodka[n] = stPaleta->fWartoscMin + fDeltaPomiaru * n;
-		//fZakresGorny[n] = stPaleta->fWartoscMin + fDeltaPomiaru * (n + stPaleta->chSzerokoscWskaznika);
+		fDeltaCzer = (float)(stWskaznikLed[m].chCzerMax - stWskaznikLed[m].chCzerMin) / stWskaznikLed[m].chLiczbaLed;
+		fDeltaZiel = (float)(stWskaznikLed[m].chZielMax - stWskaznikLed[m].chZielMin) / stWskaznikLed[m].chLiczbaLed;
+		fDeltaNieb = (float)(stWskaznikLed[m].chNiebMax - stWskaznikLed[m].chNiebMin) / stWskaznikLed[m].chLiczbaLed;
+		fDeltaPomiaru = (stWskaznikLed[m].fWartoscMax - stWskaznikLed[m].fWartoscMin) / stWskaznikLed[m].chLiczbaLed;
 
-		//if ((fPomiar > (stPaleta->fWartoscMin + fDeltaPomiaru * (n - stPaleta->chSzerokoscWskaznika))) && (fPomiar < (stPaleta->fWartoscMin) + fDeltaPomiaru * (n + stPaleta->chSzerokoscWskaznika)))	//pasek jest 2 krtotnie szerszy
-		//if (((fPomiar > (stPaleta->fWartoscMin + fDeltaPomiaru / 2 * (n - stPaleta->chSzerokoscWskaznika))) && (fPomiar < (stPaleta->fWartoscMin) + fDeltaPomiaru / 2 * (n + stPaleta->chSzerokoscWskaznika))))		//dla szerokości 1 jest hard fault
-		if ((fPomiar > (stPaleta->fWartoscMin + fDeltaPomiaru * ((float)n - (float)stPaleta->chSzerokoscWskaznika / 2))) && (fPomiar < (stPaleta->fWartoscMin) + fDeltaPomiaru * ((float)n + (float)stPaleta->chSzerokoscWskaznika / 2)))	//szerokość jest OK, ale kolejność zaświecania jest zła
+		for (uint8_t n=0; n<stWskaznikLed[m].chLiczbaLed; n++)
 		{
-			fRoznica = fabs(fPomiar - (stPaleta->fWartoscMin + fDeltaPomiaru * n));	//różnica
-			fRoznica = fabs((fDeltaPomiaru * stPaleta->chSzerokoscWskaznika / 2) - fRoznica);
-			fDzielnik = 2*fRoznica / fDeltaPomiaru / stPaleta->chSzerokoscWskaznika;
-			fDzielnik *= stPaleta->chDzielnikJasnosciTla - 1;
-			chDzielnik =  (uint8_t)roundf(fDzielnik + 1);
+			fZakres = stWskaznikLed[m].fWartoscMin + (n+1) * fDeltaPomiaru;
+			fRoznica = fabs(fPomiar - fZakres + fDeltaPomiaru / 2);
+			fTrojkat = fWysokoscTrojkata * fmaxf(0, 1.0 - 2*fRoznica / (fDeltaPomiaru * stWskaznikLed[m].chSzerokoscWskaznika));
+			if (fTrojkat < (float)stWskaznikLed[m].chDzielnikJasnosciTla)
+				fDzielnik = (float)stWskaznikLed[m].chDzielnikJasnosciTla - fTrojkat;
+			else
+				fDzielnik = (float)stWskaznikLed[m].chDzielnikJasnosciTla;
+
+			fZakresDolny[n] = fTrojkat;		//test
+			fZakresGorny[n] = fDzielnik;	//test
+
+			switch (chTypLed)
+			{
+			case WS2811:	//RGB
+			*(nKolor + chIndeksTabKoloru) =
+				((uint32_t)((stWskaznikLed[m].chCzerMin + fDeltaCzer * n) / fDzielnik) << 16) +
+				((uint32_t)((stWskaznikLed[m].chZielMin + fDeltaZiel * n) / fDzielnik) << 8) +
+				 (uint32_t)((stWskaznikLed[m].chNiebMin + fDeltaNieb * n) / fDzielnik);	break;
+
+			case WS2813:	//GRB
+			*(nKolor + chIndeksTabKoloru) =
+				((uint32_t)((stWskaznikLed[m].chZielMin + fDeltaZiel * n) / fDzielnik) << 16) +
+				((uint32_t)((stWskaznikLed[m].chCzerMin + fDeltaCzer * n) / fDzielnik) << 8) +
+				 (uint32_t)((stWskaznikLed[m].chNiebMin + fDeltaNieb * n) / fDzielnik);	break;
+			}
+			chIndeksTabKoloru++;
 		}
-		else
-			chDzielnik = stPaleta->chDzielnikJasnosciTla;
-		chDzielnikTła[n] = chDzielnik;
-	}
-
-	//korekta maksimum jasności w środku znacznika. Funkcja wyznaczająca jasność znacznika na obu końcach jest trójkątna.
-	//Dwa szczyty trójkątów na brzegach wskaźnika dają ciemną dolinę w środku. Trzeba ją wypełnić wartością nie mniejszą niż szczyty.
-	chZnalezionyLewy = chSzczytLewy = chSzczytPrawy = 0;
-	for (uint8_t n=1; n<chRozmiar-1; n++)
-	{
-		//szukaj pierwszego minimum dzielnika, to będzie lewy szczyt
-		if ((!chZnalezionyLewy) && (chDzielnikTła[n] < chDzielnikTła[n-1]) && chDzielnikTła[n] < chDzielnikTła[n+1])
-		{
-			chSzczytLewy = n;
-			chZnalezionyLewy = 1;
-		}
-
-		if ((chZnalezionyLewy) && (chDzielnikTła[n] < chDzielnikTła[n-1]) && chDzielnikTła[n] < chDzielnikTła[n+1])
-			chSzczytPrawy = n;
-	}
-
-	//wypełnienie doliny między szczytami
-	for (uint8_t n=0; n<chRozmiar; n++)
-	{
-		if ((n > chSzczytLewy) && (n < chSzczytPrawy))
-			chDzielnikTła[n] = 1;
-	}
-
-	for (uint8_t n=0; n<chRozmiar; n++)
-	{
-#ifdef WS2811	//RGB
-		*(nKolor + n) = ((uint32_t)((stPaleta->chCzerMin + chDeltaCzer * n) / chDzielnikTła[n]) << 16) +
-						((uint32_t)((stPaleta->chZielMin + chDeltaZiel * n) / chDzielnikTła[n]) << 8) +
-						 (uint32_t)((stPaleta->chNiebMin + chDeltaNieb * n) / chDzielnikTła[n]);
-#endif
-#ifdef WS2813	//GRB
-		*(nKolor + n) = ((uint32_t)((stPaleta->chZielMin + chDeltaZiel * n) / chDzielnikTła[n]) << 16) +
-						((uint32_t)((stPaleta->chCzerMin + chDeltaCzer * n) / chDzielnikTła[n]) << 8) +
-						 (uint32_t)((stPaleta->chNiebMin + chDeltaNieb * n) / chDzielnikTła[n]);
-#endif
 	}
 	return chBłąd;
 }

@@ -9,11 +9,11 @@
 #define INC_WS281X_H_
 #include "sys_def_CM4.h"
 
-//odkomentować właściwy typ układu. Różną się układem kolorów
-//#define WS2811	//RGB
-#define WS2813	//GRB
+//typy układu. Różną się układem kolorów
+#define WS2811		0	//RGB
+#define WS2813		1	//GRB
 
-#define LICZBA_LED_WS281X	20		//taśma ma 30 LED/m, więc 0,7m * 30 = 21. LEDy są w sekcjach po 4, więc ograniczam liczbę do 20
+#define LICZBA_LED_WS281X	40		//taśma ma 30 LED/m, więc 0,7m * 30 = 21. LEDy są w sekcjach po 4, więc ograniczam liczbę do 20 LEDów * 2 wskaźniki
 #define WS_BITOW_KOLORU		24
 #define WS_LEDY_SEGMENTU	4
 #define WS_BITOW_LACZNIE	(WS_BITOW_KOLORU * WS_LEDY_SEGMENTU)
@@ -28,28 +28,28 @@
 #define CZAS_WS281X_RESET	1088	//1088 * 266ns = 289,4us
 
 
-
-
 typedef struct
 {
-	float fWartoscMax;
-	uint8_t chCzerMax;
-	uint8_t chZielMax;
-	uint8_t chNiebMax;
 	float fWartoscMin;
-	uint8_t chCzerMin;
-	uint8_t chZielMin;
-	uint8_t chNiebMin;
-	uint8_t chDzielnikJasnosciTla;
+	float fWartoscMax;
+	uint8_t chNumZmiennej;
 	uint8_t chSzerokoscWskaznika;
-} stPaletaKolorow_t;
+	uint8_t chDzielnikJasnosciTla;
+	uint8_t chCzerMin;
+	uint8_t chCzerMax;
+	uint8_t chZielMin;
+	uint8_t chZielMax;
+	uint8_t chNiebMin;
+	uint8_t chNiebMax;
+	uint8_t chLiczbaLed;
+} stWskaznikLed_t;
 
 
 uint8_t InicjujKoloryWS281x(void);
 uint8_t AktualizujKolorLedWs821x(float fZmienna);
 uint8_t UstawTrybWS281x(uint8_t chKanal);
 uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskLED);
-uint8_t UstawKolorWS281x(uint32_t *nKolor, uint8_t chRozmiar, stPaletaKolorow_t *stPaleta, float fPomiar);
+uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed, float fPomiar);
 
 
 #endif /* INC_WS281X_H_ */
