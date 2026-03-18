@@ -177,7 +177,7 @@ void PetlaGlowna(void)
 		chBladPG  = UstawDaneWymiany_CM4();
 		chBladPG |= PobierzDaneWymiany_CM7();
 		WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
-		AktualizujKolorLedWs821x(uDaneCM4.dane.stBSP.fKatIMU[0]);
+		AktualizujKolorLedWs821x();
 		break;
 
 	case 16:	//pozwól na testowe uruchomienie inicjalizacji

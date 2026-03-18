@@ -27,6 +27,13 @@
 #define CZAS_WS281X_BIT		4		//4 * 266ns = 1,064us
 #define CZAS_WS281X_RESET	1088	//1088 * 266ns = 289,4us
 
+//Definicje wizualizowanych zmiennych
+#define WLZ_POCHYLENIE		0
+#define WLZ_PRZECHYLENIE	1
+#define WLZ_ODCHYLENIE		2
+#define WLZ_WYSOKOSC_AGL	3
+#define WLZ_NAPIECIE_BAT	4
+
 
 typedef struct
 {
@@ -46,10 +53,10 @@ typedef struct
 
 
 uint8_t InicjujKoloryWS281x(void);
-uint8_t AktualizujKolorLedWs821x(float fZmienna);
+uint8_t AktualizujKolorLedWs821x(void);
 uint8_t UstawTrybWS281x(uint8_t chKanal);
 uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskLED);
-uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed, float fPomiar);
+uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed);
 
 
 #endif /* INC_WS281X_H_ */

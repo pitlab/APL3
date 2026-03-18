@@ -66,7 +66,7 @@ uint8_t InicjujKoloryWS281x(void)
 
 	}
 
-	chBłąd = UstawKolorWS281x(nKolorWS281x, stWskaznikLed, uDaneCM4.dane.stBSP.fKatIMU[0]);
+	chBłąd = UstawKolorWS281x(nKolorWS281x, stWskaznikLed);
 	return chBłąd;
 }
 
@@ -77,9 +77,9 @@ uint8_t InicjujKoloryWS281x(void)
 // Parametry: fZmienna - wartość podlegająca wizualizacji na LED-ach
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktualizujKolorLedWs821x(float fZmienna)
+uint8_t AktualizujKolorLedWs821x(void)
 {
-	return UstawKolorWS281x(nKolorWS281x, stWskaznikLed, fZmienna);
+	return UstawKolorWS281x(nKolorWS281x, stWskaznikLed);
 }
 
 
@@ -357,7 +357,7 @@ uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRo
 // *stPaleta - wskaźnik na strukturę zawierającą definicje do zbudowania kolorów skali mierzonej wartosci
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed, float fPomiar)
+uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed)
 {
 	float fDeltaCzer, fDeltaZiel, fDeltaNieb, fDeltaPomiaru;
 	uint8_t chBłąd = BLAD_OK;
@@ -367,6 +367,7 @@ uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed, float
 	float fDzielnik;
 	float fTrojkat;
 	float fWysokoscTrojkata = 20;
+	float fPomiar;
 
 	for (uint8_t m=0; m<LICZBA_WSKAZNIKOW_LED; m++)
 	{
@@ -375,18 +376,27 @@ uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed, float
 		fDeltaNieb = (float)(stWskaznikLed[m].chNiebMax - stWskaznikLed[m].chNiebMin) / stWskaznikLed[m].chLiczbaLed;
 		fDeltaPomiaru = (stWskaznikLed[m].fWartoscMax - stWskaznikLed[m].fWartoscMin) / stWskaznikLed[m].chLiczbaLed;
 
+		switch(stWskaznikLed[m].chNumZmiennej)
+		{
+		case WLZ_POCHYLENIE:	fPomiar = uDaneCM4.dane.stBSP.fKatIMU[0];	break;
+		case WLZ_PRZECHYLENIE:	fPomiar = uDaneCM4.dane.stBSP.fKatIMU[0];	break;
+		case WLZ_ODCHYLENIE:	fPomiar = uDaneCM4.dane.stBSP.fKatIMU[0];	break;
+		case WLZ_WYSOKOSC_AGL:	fPomiar = uDaneCM4.dane.stBSP.fWysokoscAGL;	break;
+		case WLZ_NAPIECIE_BAT:	fPomiar = uDaneCM4.dane.fTemper[0];	break;			//Zrobić: zmienić zmienna gdy już będzie dostępna
+		default:
+		}
+
 		for (uint8_t n=0; n<stWskaznikLed[m].chLiczbaLed; n++)
 		{
 			fZakres = stWskaznikLed[m].fWartoscMin + (n+1) * fDeltaPomiaru;
 			fRoznica = fabs(fPomiar - fZakres + fDeltaPomiaru / 2);
 			fTrojkat = fWysokoscTrojkata * fmaxf(0, 1.0 - 2*fRoznica / (fDeltaPomiaru * stWskaznikLed[m].chSzerokoscWskaznika));
-			if (fTrojkat < (float)stWskaznikLed[m].chDzielnikJasnosciTla)
-				fDzielnik = (float)stWskaznikLed[m].chDzielnikJasnosciTla - fTrojkat;
-			else
-				fDzielnik = (float)stWskaznikLed[m].chDzielnikJasnosciTla;
+			if (fTrojkat > (float)stWskaznikLed[m].chDzielnikJasnosciTla - 1)
+				fTrojkat = (float)stWskaznikLed[m].chDzielnikJasnosciTla - 1;
+			fDzielnik = (float)stWskaznikLed[m].chDzielnikJasnosciTla - fTrojkat;
 
-			fZakresDolny[n] = fTrojkat;		//test
-			fZakresGorny[n] = fDzielnik;	//test
+			fZakresDolny[chIndeksTabKoloru] = fTrojkat;		//test
+			fZakresGorny[chIndeksTabKoloru] = fDzielnik;	//test
 
 			switch (chTypLed)
 			{
