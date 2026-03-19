@@ -475,6 +475,11 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 
+	case PK_PRZELADUJ_WSKAZN_LED:	//odczytaj konfigurację wskaźników LED z pamieci FRAM i załaduj do zmiennych aby wprowadzona zmiana stała się widoczna
+		uDaneCM7.dane.chWykonajPolecenie = POL_PRZELADUJ_WSKAZN_LED;
+		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
+		break;
+
 	}
     return chErr;
 }

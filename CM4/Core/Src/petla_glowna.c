@@ -480,6 +480,8 @@ void WykonajPolecenieCM7(void)
 	    ((void (*)(void))reset_pc)();*/
 		break;
 
+	case POL_PRZELADUJ_WSKAZN_LED: 		InicjujKoloryWS281x();	break;
+
 	}
 
 	//jeżeli potwierdzono wymowę sampla to skasuj żądanie wymowy

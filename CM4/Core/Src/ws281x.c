@@ -55,15 +55,14 @@ uint8_t InicjujKoloryWS281x(void)
 		stWskaznikLed[n].chDzielnikJasnosciTla = chDane[2];
 		stWskaznikLed[n].chCzerMin = chDane[3];
 		stWskaznikLed[n].chCzerMax = chDane[4];
-		stWskaznikLed[n].chNiebMin = chDane[5];
-		stWskaznikLed[n].chNiebMax = chDane[6];
-		stWskaznikLed[n].chZielMax = chDane[7];
-		stWskaznikLed[n].chZielMin = chDane[8];
+		stWskaznikLed[n].chZielMin = chDane[5];
+		stWskaznikLed[n].chZielMax = chDane[6];
+		stWskaznikLed[n].chNiebMin = chDane[7];
+		stWskaznikLed[n].chNiebMax = chDane[8];
 		stWskaznikLed[n].chLiczbaLed = chDane[9];
 
 		stWskaznikLed[n].fWartoscMin = CzytajFramFloat(FAU_WSKLED1_MIN_ZMIENNEJ + n*ROZMIAR_WSKAZNIKA_LED);
 		stWskaznikLed[n].fWartoscMax = CzytajFramFloat(FAU_WSKLED1_MAX_ZMIENNEJ + n*ROZMIAR_WSKAZNIKA_LED);
-
 	}
 
 	chBłąd = UstawKolorWS281x(nKolorWS281x, stWskaznikLed);
@@ -378,9 +377,9 @@ uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed)
 
 		switch(stWskaznikLed[m].chNumZmiennej)
 		{
-		case WLZ_POCHYLENIE:	fPomiar = uDaneCM4.dane.stBSP.fKatIMU[0];	break;
 		case WLZ_PRZECHYLENIE:	fPomiar = uDaneCM4.dane.stBSP.fKatIMU[0];	break;
-		case WLZ_ODCHYLENIE:	fPomiar = uDaneCM4.dane.stBSP.fKatIMU[0];	break;
+		case WLZ_POCHYLENIE:	fPomiar = uDaneCM4.dane.stBSP.fKatIMU[1];	break;
+		case WLZ_ODCHYLENIE:	fPomiar = uDaneCM4.dane.stBSP.fKatIMU[2];	break;
 		case WLZ_WYSOKOSC_AGL:	fPomiar = uDaneCM4.dane.stBSP.fWysokoscAGL;	break;
 		case WLZ_NAPIECIE_BAT:	fPomiar = uDaneCM4.dane.fTemper[0];	break;			//Zrobić: zmienić zmienna gdy już będzie dostępna
 		default:
