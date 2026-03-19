@@ -10,8 +10,8 @@
 #include "WeWyRC.h"
 #include "fram.h"
 
-//Timer wysyła przez DMA sekwencję bitóe dla segmentu 4 LEDów po 24 bity, Trwa to 1,064us/bit czyli 102,144us na segment
-//Sekwencję resetu majacą trwać minimum 280us generuję przez 3 puste sekwencje danych
+//Timer wysyła przez DMA sekwencję bitów dla segmentu 4 LEDów po 24 bity, Trwa to 1,064us/bit czyli 102,144us na segment
+//Sekwencję resetu majacą trwać minimum 280us generuję przez 3 puste sekwencje danych po zakończeniu wysyłki danych do wszystkich LED-ów
 
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
@@ -27,8 +27,6 @@ extern uint16_t sFlagiNapelnieniaBuforow;
 uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA_WS281X[WS_BITOW_LACZNIE];
 stDShot_t stWS281x;
 uint32_t nKolorWS281x[LICZBA_LED_WS281X];
-float fZakresDolny[LICZBA_LED_WS281X];
-float fZakresGorny[LICZBA_LED_WS281X];
 uint8_t chWskaznikLed;
 uint8_t chTypLed;	//indeks typu układu scalonego: 0=WS8211, 1=WS8513
 stWskaznikLed_t stWskaznikLed[LICZBA_WSKAZNIKOW_LED];
@@ -351,9 +349,7 @@ uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRo
 // Funkcja ustawia kolory wszystkich sterowanych LED liniowo w zależności od zdefiniowanych wartosci skrajnych
 // Oblicza też wartość dzielnika jasności rozjaśniającego grupę LEDów formujących plamkę wskaźnika
 // Parametry: *nKolor - tablica kolorów kolejnych LED
-// chRozmiar - liczba sterowanych LED
-// *chWskSegmentu - wskaźnik na kolejny segment 4 LEDów
-// *stPaleta - wskaźnik na strukturę zawierającą definicje do zbudowania kolorów skali mierzonej wartosci
+// *stWskaznikLed - wskaźnik na strukturę danych wskaźników LED
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed)
@@ -361,11 +357,9 @@ uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed)
 	float fDeltaCzer, fDeltaZiel, fDeltaNieb, fDeltaPomiaru;
 	uint8_t chBłąd = BLAD_OK;
 	uint8_t chIndeksTabKoloru = 0;
-	float fZakres;
 	float fRoznica;
 	float fDzielnik;
 	float fTrojkat;
-	float fWysokoscTrojkata = 20;
 	float fPomiar;
 
 	for (uint8_t m=0; m<LICZBA_WSKAZNIKOW_LED; m++)
@@ -381,21 +375,20 @@ uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed)
 		case WLZ_POCHYLENIE:	fPomiar = uDaneCM4.dane.stBSP.fKatIMU[1];	break;
 		case WLZ_ODCHYLENIE:	fPomiar = uDaneCM4.dane.stBSP.fKatIMU[2];	break;
 		case WLZ_WYSOKOSC_AGL:	fPomiar = uDaneCM4.dane.stBSP.fWysokoscAGL;	break;
+		case WLZ_WYSOKOSC_GPS:	fPomiar = uDaneCM4.dane.stGnss1.fWysokoscMSL;	break;
+		case WLZ_PREDKOSC_IAS:	fPomiar = uDaneCM4.dane.stBSP.fIAS;			break;
+		case WLZ_PREDKOSC_GPS:	fPomiar = uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi;	break;
 		case WLZ_NAPIECIE_BAT:	fPomiar = uDaneCM4.dane.fTemper[0];	break;			//Zrobić: zmienić zmienna gdy już będzie dostępna
 		default:
 		}
 
 		for (uint8_t n=0; n<stWskaznikLed[m].chLiczbaLed; n++)
 		{
-			fZakres = stWskaznikLed[m].fWartoscMin + (n+1) * fDeltaPomiaru;
-			fRoznica = fabs(fPomiar - fZakres + fDeltaPomiaru / 2);
-			fTrojkat = fWysokoscTrojkata * fmaxf(0, 1.0 - 2*fRoznica / (fDeltaPomiaru * stWskaznikLed[m].chSzerokoscWskaznika));
+			fRoznica = fabs(fPomiar - (stWskaznikLed[m].fWartoscMin + (n+1) * fDeltaPomiaru) + fDeltaPomiaru / 2);
+			fTrojkat = 2.0f * stWskaznikLed[m].chDzielnikJasnosciTla * fmaxf(0, 1.0 - 2*fRoznica / (fDeltaPomiaru * stWskaznikLed[m].chSzerokoscWskaznika));
 			if (fTrojkat > (float)stWskaznikLed[m].chDzielnikJasnosciTla - 1)
 				fTrojkat = (float)stWskaznikLed[m].chDzielnikJasnosciTla - 1;
 			fDzielnik = (float)stWskaznikLed[m].chDzielnikJasnosciTla - fTrojkat;
-
-			fZakresDolny[chIndeksTabKoloru] = fTrojkat;		//test
-			fZakresGorny[chIndeksTabKoloru] = fDzielnik;	//test
 
 			switch (chTypLed)
 			{

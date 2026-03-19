@@ -107,6 +107,7 @@ typedef struct _BSP
 	float fZyro[3];			//[rad/s]
 	float fMagne[3];		//[uT]
 	float fKatIMU[3];
+	float fIAS;
 	double dDlugoscGeo;
 	double dSzerokoscGeo;
 	float fWysokoscMSL;

@@ -32,7 +32,10 @@
 #define WLZ_PRZECHYLENIE	1
 #define WLZ_ODCHYLENIE		2
 #define WLZ_WYSOKOSC_AGL	3
-#define WLZ_NAPIECIE_BAT	4
+#define WLZ_WYSOKOSC_GPS	4
+#define WLZ_PREDKOSC_IAS	5
+#define WLZ_PREDKOSC_GPS	6
+#define WLZ_NAPIECIE_BAT	7
 
 
 typedef struct
