@@ -99,6 +99,8 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "jpeg.h"
 #include "bmp.h"
 #include "osd.h"
+#include <poleceniaCM4.h>
+
 
 /* USER CODE END Includes */
 
@@ -172,7 +174,7 @@ osThreadId tsSerwerTCPHandle;
 osThreadId tsSerwerRTSPHandle;
 /* USER CODE BEGIN PV */
 uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
-uint8_t chErr1, chErr = ERR_OK;
+uint8_t chBłąd1, chBłąd = BLAD_OK;
 extern uint8_t chPort_exp_wysylany[];
 extern struct _statusDotyku statusDotyku;
 extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
@@ -274,6 +276,7 @@ int main(void)
 /* USER CODE END Boot_Mode_Sequence_0 */
 
   /* MPU Configuration--------------------------------------------------------*/
+
   MPU_Config();
 
   /* Enable the CPU Cache */
@@ -356,38 +359,38 @@ Error_Handler();
 #endif
 
 
-  chErr |= InicjujSPIModZewn();
-  chErr |= InicjujFlashNOR();
-  chErr |= SprawdzMagistrale(0x60000000);	//sprawdź pamięć SRAM
-  chErr |= SprawdzMagistrale(0xC0000000);	//sprawdź pamięć DRAM
-  //chErr |= InicjujFlashQSPI();
-  chErr |= InicjujKonfigFlash();
-  chErr1 = InicjujDotyk();
-  if (chErr1 != ERR_BRAK_DANYCH)		//wyświetlacz inicjalizuj tylko gdy wykryto sterownik panelu dotykowego
+  chBłąd |= InicjujSPIModZewn();
+  chBłąd |= InicjujFlashNOR();
+  chBłąd |= SprawdzMagistrale(0x60000000);	//sprawdź pamięć SRAM
+  chBłąd |= SprawdzMagistrale(0xC0000000);	//sprawdź pamięć DRAM
+  //chBłąd |= InicjujFlashQSPI();
+  chBłąd |= InicjujKonfigFlash();
+  chBłąd = InicjujDotyk();
+  if (chBłąd != ERR_BRAK_DANYCH)		//wyświetlacz inicjalizuj tylko gdy wykryto sterownik panelu dotykowego
 #ifdef LCD_RPI35B
-	  chErr |= InicjujLCD_35B_16bit();
+	  chBłąd |= InicjujLCD_35B_16bit();
 #endif
 #ifdef LCD_RPI35C
-	  //chErr |= InicjujLCD_35C_16bit();
-  	  chErr |= InicjujLCD_35C_8bit();
+	  //chBłąd |= InicjujLCD_35C_16bit();
+  chBłąd |= InicjujLCD_35C_8bit();
 #endif
 #ifdef LCD_ILI9488
-	  chErr = InicjujLCD_ILI9488();
+  chBłąd = InicjujLCD_ILI9488();
 #endif
   else
-	  chErr |= chErr1;
+	  chBłąd |= chBłąd1;
 
-  chErr |= InicjujProtokol();
-  chErr |= InicjujAudio();
+  chBłąd |= InicjujProtokol();
+  chBłąd |= InicjujAudio();
 
-  chErr |= InicjalizujKamere();
-  if (chErr != ERR_OK)
+  chBłąd |= InicjalizujKamere();
+  if (chBłąd != ERR_OK)
   	  chCzasSwieceniaLED[LED_CZER] = 50;	//świeć 5s
-  chErr |= InicjujOSD();
+  chBłąd |= InicjujOSD();
   InicjujMDMA();
   InicjujCAN();
-  chErr = CzytajDotyk();
-  if (chErr == ERR_OK)
+  chBłąd = CzytajDotyk();
+  if (chBłąd == ERR_OK)
   {
 	  if (statusDotyku.sAdc[2] > MIN_Z)			//jeżeli ekran jest dotknięty w czasie uruchamiania
 	  {
@@ -399,7 +402,7 @@ Error_Handler();
 		  chNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
 	  }
   }
-  chErr |= InicjalizujJpeg();
+  chBłąd |= InicjalizujJpeg();
 
 
   extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
@@ -1630,20 +1633,25 @@ void StartDefaultTask(void const * argument)
 		UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
 
 		//obsłuż międzyprocesorową wymianę danych
-		chErr += PobierzDaneWymiany_CM4();
-		chErr += UstawDaneWymiany_CM7();
-		if (chErr)		//sygnalizacja błędów wymiany
+		chBłąd += PobierzDaneWymiany_CM4();
+		chBłąd += UstawDaneWymiany_CM7();
+		if (chBłąd)		//sygnalizacja błędów wymiany
 		{
-			//chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s
-			chErr = ERR_OK;
+			chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s
+			chBłąd = BLAD_OK;
 		}
 
 		//synchronizacja czasu i daty z GNSS tylko dopóki nie są w pełni zsynchroniozwane, później pracuję na RTC. Docelowo również synchronizacja z NTP
 		if (chStanSynchronizacjiCzasu != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
 			SynchronizujCzasDoGNSS(&uDaneCM4.dane.stGnss1);
 
-		//obsłuż wymowę komuniatów głosowych
-		ObslugaWymowyKomunikatu();
+
+		chBłąd = ObslugaPolecenCM4();	//obsłuż polecenia rdzenia CM4
+		if (chBłąd)		//sygnalizacja błędów
+			chCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
+
+		ObslugaWymowyKomunikatu();	//obsłuż wymowę komuniatów głosowych
+
 		osDelay(5);		//ustaw okres z jakim pracuje CM4 (200Hz -> 5ms)
 	}
   /* USER CODE END 5 */
@@ -1662,16 +1670,16 @@ void WatekOdbiorczyLPUART1(void const * argument)
   /* USER CODE BEGIN WatekOdbiorczyLPUART1 */
 	uint32_t nCzasTele, nCzasPoprzedniTele;
 	extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
-	uint8_t chErr;
+	uint8_t chBłąd;
 	uint8_t chLicznikZajetosci = 0;
 	extern uint8_t chStatusPolaczenia;
 	uint8_t chStatusUART;
 
-	chErr = InicjalizacjaWatkuOdbiorczegoLPUART1();
+	chBłąd = InicjalizacjaWatkuOdbiorczegoLPUART1();
 	InicjalizacjaTelemetrii();
 	nCzasPoprzedniTele = PobierzCzasT6();
 
-	if (chErr)
+	if (chBłąd)
 	{
 		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
 		chStatusPolaczenia |= (STAT_POL_NIEAKTYWNY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
@@ -1680,8 +1688,8 @@ void WatekOdbiorczyLPUART1(void const * argument)
 	while(1)
 	{
 		//w pierwszej kolejności obsłuż protokół komunikacyjny
-		chErr = CzekajzTimeoutemPokiZajety(st_ZajetoscLPUART.chZajetyPrzez + 1, 500);		//czekaj [us] jeżeli zajęty przez jeden z typów transmisji. Wartość funkcji ma być zerem a tutaj wolny oznacza -1, stąd obecność +1
-		if (chErr == ERR_OK)
+		chBłąd = CzekajzTimeoutemPokiZajety(st_ZajetoscLPUART.chZajetyPrzez + 1, 500);		//czekaj [us] jeżeli zajęty przez jeden z typów transmisji. Wartość funkcji ma być zerem a tutaj wolny oznacza -1, stąd obecność +1
+		if (chBłąd == ERR_OK)
 		{
 			ObslugaWatkuOdbiorczegoLPUART1();
 			osDelay(2);	//czas na obsługę ramki
@@ -1824,8 +1832,8 @@ void WatekWyswietlacza(void const * argument)
 	{
 		if (nZainicjowanoCM7 & INIT_LCD480x320)		//obsłuż wyświetlacz tylko wtedy jest zainicjowany
 		{
-			chErr = RysujEkran();
-			if (chErr)
+			chBłąd = RysujEkran();
+			if (chBłąd)
 				chCzasSwieceniaLED[LED_ZIEL] = 3;	//x0,1s - sygnalizacja błędów obsługi poleceń
 			//osDelay(1);
 		}

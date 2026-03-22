@@ -358,7 +358,7 @@ uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib)
 
 	switch (chRodzajKalib)
 	{
-	case POL_KALIBRUJ_ZYRO_ZIM:
+	case POL7_KALIBRUJ_ZYRO_ZIM:
 		if (fTemperatura < TEMP_KAL_ZIMNO - TEMP_KAL_ODCHYLKA)
 		{
 			uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZA_ZIMNO;
@@ -374,7 +374,7 @@ uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib)
 			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_ZYRO_ZIM ;	//uruchom kalibrację żyroskopów na zimno w +10°C
 		break;
 
-	case POL_KALIBRUJ_ZYRO_POK:
+	case POL7_KALIBRUJ_ZYRO_POK:
 		if (fTemperatura < TEMP_KAL_POKOJ - TEMP_KAL_ODCHYLKA)
 		{
 			uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZA_ZIMNO;
@@ -390,7 +390,7 @@ uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib)
 			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_ZYRO_POK;		//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
 		break;
 
-	case POL_KALIBRUJ_ZYRO_GOR:
+	case POL7_KALIBRUJ_ZYRO_GOR:
 		if (fTemperatura < TEMP_KAL_GORAC - TEMP_KAL_ODCHYLKA)
 		{
 			uDaneCM4.dane.chOdpowiedzNaPolecenie = ERR_ZA_ZIMNO;
@@ -431,7 +431,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 	//uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_WZM_ZYRO;	//trwa kalibracja, w tym czasie wyłącz zawijanie katów do +-Pi
 	switch (chRodzajKalib)
 	{
-	case POL_KALIBRUJ_ZYRO_WZMP:	//kalibruj wzmocnienia żyroskopów P
+	case POL7_KALIBRUJ_ZYRO_WZMP:	//kalibruj wzmocnienia żyroskopów P
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
 			fSkaloZyro1[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro1[0]);
@@ -465,7 +465,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 		break;
 
 
-	case POL_KALIBRUJ_ZYRO_WZMQ:	//kalibruj wzmocnienia żyroskopów Q
+	case POL7_KALIBRUJ_ZYRO_WZMQ:	//kalibruj wzmocnienia żyroskopów Q
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
 			fSkaloZyro1[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro1[1]);
@@ -498,7 +498,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 		uDaneCM4.dane.uRozne.f32[3] = CzytajFramFloat(FAH_ZYRO2Q_WZMOC);
 		break;
 
-	case POL_KALIBRUJ_ZYRO_WZMR:	//kalibruj wzmocnienia żyroskopów R
+	case POL7_KALIBRUJ_ZYRO_WZMR:	//kalibruj wzmocnienia żyroskopów R
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
 			fSkaloZyro1[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro1[2]);
@@ -531,7 +531,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 		uDaneCM4.dane.uRozne.f32[3] = CzytajFramFloat(FAH_ZYRO2R_WZMOC);
 		break;
 
-	case POL_ZERUJ_CALKE_ZYRO:		//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
+	case POL7_ZERUJ_CALKE_ZYRO:		//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
 		for (uint16_t n=0; n<3; n++)
 		{
 			uDaneCM4.dane.fKatZyro1[n] = 0.0f;

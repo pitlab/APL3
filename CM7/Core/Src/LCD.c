@@ -1232,7 +1232,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_EMU_MAG_CAN:
-		uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN2;	//włącz tryb jak dla kalibracji aby nie uwzględniać w wyniku danych kalibracyjnych
+		uDaneCM7.dane.chWykonajPolecenie = POL7_KAL_ZERO_MAGN2;	//włącz tryb jak dla kalibracji aby nie uwzględniać w wyniku danych kalibracyjnych
 		EmulujMagnetometrWizjerCan((float*)uDaneCM4.dane.fMagne2);
 		UstawCzcionke(BigFont);
 		setColor(KOLOR_X);
@@ -1257,7 +1257,7 @@ uint8_t RysujEkran(void)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
-			uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//zakończ tryb kalibracyjny
+			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//zakończ tryb kalibracyjny
 		}
 	break;
 
@@ -1361,7 +1361,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_KAL_ZYRO_ZIM:
-		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_ZIM;	//uruchom kalibrację żyroskopów na zimno 10°C
+		uDaneCM7.dane.chWykonajPolecenie = POL7_KALIBRUJ_ZYRO_ZIM;	//uruchom kalibrację żyroskopów na zimno 10°C
 		fTemperaturaKalibracji = TEMP_KAL_ZIMNO;
 		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
 			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
@@ -1375,7 +1375,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_KAL_ZYRO_POK:
-		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_POK;	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
+		uDaneCM7.dane.chWykonajPolecenie = POL7_KALIBRUJ_ZYRO_POK;	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
 		fTemperaturaKalibracji = TEMP_KAL_POKOJ;
 		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
 			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
@@ -1389,7 +1389,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_KAL_ZYRO_GOR:
-		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_GOR;	//uruchom kalibrację żyroskopów na gorąco 40°C
+		uDaneCM7.dane.chWykonajPolecenie = POL7_KALIBRUJ_ZYRO_GOR;	//uruchom kalibrację żyroskopów na gorąco 40°C
 		fTemperaturaKalibracji = TEMP_KAL_GORAC;
 		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
 			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
@@ -1403,7 +1403,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_PODGLAD_IMU:
-		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;		//gdy proces się rozpoczął wyłącz dalsze wysyłanie polecenia kalibracji
+		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;		//gdy proces się rozpoczął wyłącz dalsze wysyłanie polecenia kalibracji
 		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_ZIMNO) || (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZA_CIEPLO))
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -1420,7 +1420,7 @@ uint8_t RysujEkran(void)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_KAL_IMU;
-			uDaneCM7.dane.chWykonajPolecenie = POL_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
+			uDaneCM7.dane.chWykonajPolecenie = POL7_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
 		}
 		break;
 
@@ -1436,16 +1436,16 @@ uint8_t RysujEkran(void)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_KAL_IMU;
-			uDaneCM7.dane.chWykonajPolecenie = POL_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
+			uDaneCM7.dane.chWykonajPolecenie = POL7_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
 		}
 		break;
 
 
 	case TP_KASUJ_DRYFT_ZYRO:
-		uDaneCM7.dane.chWykonajPolecenie = POL_KASUJ_DRYFT_ZYRO;
-		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_KASUJ_DRYFT_ZYRO)
+		uDaneCM7.dane.chWykonajPolecenie = POL7_KASUJ_DRYFT_ZYRO;
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL7_KASUJ_DRYFT_ZYRO)
 		{
-			uDaneCM7.dane.chWykonajPolecenie = POL_NIC;
+			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_KAL_IMU;
 		}
@@ -3108,29 +3108,29 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	switch (chEtapKalibracji)
 	{
 	case 0:	//odczyt wartości bieżącej wzmocnienia
-		uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_WZM_ZYROP + *chSekwencer;
+		uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_WZM_ZYROP + *chSekwencer;
 		sprintf(chNapis, "Odczyt");
-		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_CZYTAJ_WZM_ZYROP + *chSekwencer)	//jeżeli nastapił odczyt to przejdź do nastepnego etapu
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL7_CZYTAJ_WZM_ZYROP + *chSekwencer)	//jeżeli nastapił odczyt to przejdź do nastepnego etapu
 			chEtapKalibracji = 1;
 		break;
 
 	case 1:	//zerowanie całki
-		uDaneCM7.dane.chWykonajPolecenie = POL_ZERUJ_CALKE_ZYRO;	//zeruje całkę żyroskopów przed kalibracją
+		uDaneCM7.dane.chWykonajPolecenie = POL7_ZERUJ_CALKE_ZYRO;	//zeruje całkę żyroskopów przed kalibracją
 		sprintf(chNapis, "Start");
-		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_ZERUJ_CALKE_ZYRO)	//jeżeli nastapiło wyzerowanie to nie czekaj na przycisk tylko od razu zacznij całkować
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL7_ZERUJ_CALKE_ZYRO)	//jeżeli nastapiło wyzerowanie to nie czekaj na przycisk tylko od razu zacznij całkować
 		{
 			chEtapKalibracji = 2;
-			uDaneCM7.dane.chWykonajPolecenie = POL_CALKUJ_PRED_KAT;		//wykonaj całkowanie kąta podczas obrotu
+			uDaneCM7.dane.chWykonajPolecenie = POL7_CALKUJ_PRED_KAT;		//wykonaj całkowanie kąta podczas obrotu
 		}
 		break;
 
 	case 2:	//całkowanie
-		uDaneCM7.dane.chWykonajPolecenie = POL_CALKUJ_PRED_KAT;		//wykonaj całkowanie kąta podczas obrotu
+		uDaneCM7.dane.chWykonajPolecenie = POL7_CALKUJ_PRED_KAT;		//wykonaj całkowanie kąta podczas obrotu
 		sprintf(chNapis, "Oblicz");
 		break;
 
 	case 3:	//obliczenie kalibracji
-		uDaneCM7.dane.chWykonajPolecenie = POL_KALIBRUJ_ZYRO_WZMR + *chSekwencer;	//uruchom kalibrację dla scałkowanego kąta R, Q lub P
+		uDaneCM7.dane.chWykonajPolecenie = POL7_KALIBRUJ_ZYRO_WZMR + *chSekwencer;	//uruchom kalibrację dla scałkowanego kąta R, Q lub P
 		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZLE_OBLICZENIA)
 			sprintf(chNapis, "Blad! ");
 		else
@@ -3371,9 +3371,9 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 
 	if (*chEtap & ZERUJ)
 	{
-		uDaneCM7.dane.chWykonajPolecenie = POL_ZERUJ_EKSTREMA;
+		uDaneCM7.dane.chWykonajPolecenie = POL7_ZERUJ_EKSTREMA;
 		DodajProbkeDoMalejKolejki(PGA_00, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat "zero"
-		if ( uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_ZERUJ_EKSTREMA)
+		if ( uDaneCM4.dane.chOdpowiedzNaPolecenie == POL7_ZERUJ_EKSTREMA)
 		{
 			*chEtap &= ~ZERUJ;
 			for (uint16_t n=0; n<3; n++)
@@ -3393,9 +3393,9 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		{
 		case MAG1:
 			if (*chEtap & KALIBRUJ)
-				uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN1;
+				uDaneCM7.dane.chWykonajPolecenie = POL7_KAL_ZERO_MAGN1;
 			else
-				uDaneCM7.dane.chWykonajPolecenie = POL_POBIERZ_KONF_MAGN1;
+				uDaneCM7.dane.chWykonajPolecenie = POL7_POBIERZ_KONF_MAGN1;
 
 			for (uint16_t n=0; n<3; n++)
 				fMag[n] = uDaneCM4.dane.fMagne1[n];
@@ -3403,18 +3403,18 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 
 		case MAG2:
 			if (*chEtap & KALIBRUJ)
-				uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN2;
+				uDaneCM7.dane.chWykonajPolecenie = POL7_KAL_ZERO_MAGN2;
 			else
-				uDaneCM7.dane.chWykonajPolecenie = POL_POBIERZ_KONF_MAGN2;
+				uDaneCM7.dane.chWykonajPolecenie = POL7_POBIERZ_KONF_MAGN2;
 			for (uint16_t n=0; n<3; n++)
 				fMag[n] = uDaneCM4.dane.fMagne2[n];
 			break;
 
 		case MAG3:
 			if (*chEtap & KALIBRUJ)
-				uDaneCM7.dane.chWykonajPolecenie = POL_KAL_ZERO_MAGN3;
+				uDaneCM7.dane.chWykonajPolecenie = POL7_KAL_ZERO_MAGN3;
 			else
-				uDaneCM7.dane.chWykonajPolecenie = POL_POBIERZ_KONF_MAGN3;
+				uDaneCM7.dane.chWykonajPolecenie = POL7_POBIERZ_KONF_MAGN3;
 			for (uint16_t n=0; n<3; n++)
 				fMag[n] = uDaneCM4.dane.fMagne3[n];
 			break;
@@ -3640,7 +3640,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		else
 		{
 			chErr = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
-			uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
+			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
 		}
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 	}
@@ -3660,15 +3660,15 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	if ((*chEtap & MASKA_OSI) == 3)	//czy obsłużone już wszystkie 3 osie i jesteśmy w trybie kalibracji?
 	{
 		if (*chEtap & KALIBRUJ)
-			uDaneCM7.dane.chWykonajPolecenie = POL_ZAPISZ_KONF_MAGN1 + chCzujnik;	//zapisz konfigurację bieżącego magnetometru
+			uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_KONF_MAGN1 + chCzujnik;	//zapisz konfigurację bieżącego magnetometru
 		else
 			chErr = ERR_GOTOWE;		//koniec wertyfikacji
 	}
 
 	//wyjdź dopiero gdy dostanie potwierdzenie zapisu
-	if (((*chEtap & MASKA_OSI) == 3) && (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_ZAPISZ_KONF_MAGN1 + chCzujnik))
+	if (((*chEtap & MASKA_OSI) == 3) && (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL7_ZAPISZ_KONF_MAGN1 + chCzujnik))
 	{
-		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
+		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
 		chErr = ERR_GOTOWE;		//koniec kalibracji
 		DodajProbkeDoMalejKolejki(PGA_GOTOWE, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat kończący: Gotowe
 	}
@@ -3778,15 +3778,15 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 	switch (*chEtap)
 	{
 	case 0:	//czyść zmienne robocze, załaduj bieżacy współczynnik
-		uDaneCM7.dane.chWykonajPolecenie = POL_INICJUJ_USREDN;	//zeruj licznik uśredniania
-		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_INICJUJ_USREDN)
+		uDaneCM7.dane.chWykonajPolecenie = POL7_INICJUJ_USREDN;	//zeruj licznik uśredniania
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL7_INICJUJ_USREDN)
 			(*chEtap)++;
 		break;
 
 	case 1:
 	case 3:
-		uDaneCM7.dane.chWykonajPolecenie = POL_ZERUJ_LICZNIK;	//zeruj licznik uśredniania
-		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL_ZERUJ_LICZNIK)
+		uDaneCM7.dane.chWykonajPolecenie = POL7_ZERUJ_LICZNIK;	//zeruj licznik uśredniania
+		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == POL7_ZERUJ_LICZNIK)
 		{
 			sprintf(chNapis, "Usrednij %d", (*chEtap) / 2 + 1);
 			RysujPrzycisk(stPrzycisk, chNapis, ODSWIEZ);
@@ -3796,19 +3796,19 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		break;
 
 	case 2:
-		uDaneCM7.dane.chWykonajPolecenie = POL_USREDNIJ_CISN1;	//trwa uśrednianie ciśnienia 1
+		uDaneCM7.dane.chWykonajPolecenie = POL7_USREDNIJ_CISN1;	//trwa uśrednianie ciśnienia 1
 		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_GOTOWE)
 			(*chEtap)++;
 		break;
 
 	case 4:
-		uDaneCM7.dane.chWykonajPolecenie = POL_USREDNIJ_CISN2;	//trwa uśrednianie ciśnienia 2
+		uDaneCM7.dane.chWykonajPolecenie = POL7_USREDNIJ_CISN2;	//trwa uśrednianie ciśnienia 2
 		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_GOTOWE)
 			(*chEtap)++;
 		break;
 
 	case 5:
-		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//Zakończ wykonywanie poleceń kalibracyjnych
+		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//Zakończ wykonywanie poleceń kalibracyjnych
 		if (uDaneCM4.dane.chOdpowiedzNaPolecenie == ERR_ZLE_OBLICZENIA)
 			RysujPrzycisk(stPrzycisk, "Blad!", ODSWIEZ);
 		else
@@ -3834,7 +3834,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		else
 		{
 			chErr = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
-			uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//neutralne polecenie
+			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//neutralne polecenie
 		}
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 	}
@@ -4102,7 +4102,7 @@ void NastawyPID(uint8_t chKanal)
 		else
 			chRysujRaz = 1;
 
-		uDaneCM7.dane.chWykonajPolecenie = POL_NIC;	//nie odczytuj więcej danych
+		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//nie odczytuj więcej danych
 	}
 }
 
@@ -4121,7 +4121,7 @@ uint8_t CzytajFramFoat(uint16_t sAdres, uint8_t chRozmiar, float *fDane)
 	chTimeout = 10;
 	uDaneCM7.dane.chRozmiar = chRozmiar;
 	uDaneCM7.dane.sAdres = sAdres;
-	uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_FRAM_FLOAT;
+	uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_FLOAT;
 	do
 	{
 		osDelay(5);
@@ -4151,7 +4151,7 @@ uint8_t CzytajFramChar(uint16_t sAdres, uint8_t chRozmiar, uint8_t *chDane)
 	chTimeout = 10;
 	uDaneCM7.dane.chRozmiar = chRozmiar;
 	uDaneCM7.dane.sAdres = sAdres;
-	uDaneCM7.dane.chWykonajPolecenie = POL_CZYTAJ_FRAM_U8;
+	uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_U8;
 	do
 	{
 		osDelay(5);

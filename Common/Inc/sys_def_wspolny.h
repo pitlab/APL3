@@ -69,10 +69,10 @@
 #else 	//poszerzony zakres o dynamice 11 bitów pomiędzy wartościami 2000-4000 z neutrum w 3000 i kroku 500ns
 
 //przelicznik liczby mikrosekund sygnału PPM na 1 procent wysterowania kanału RC
-#define PPM1PROC_UNI	16       //1% = 8us unipolarnie, 0%=1,1us 100%=1,9us
-#define PPM1PROC_BIP	8       //1% = 4us bipolarnie, -100%=1,1us 0%=1,5us +100%=1,9us
+#define PPM1PROC_UNI	16       //1% unipolarnie (gaz)
+#define PPM1PROC_BIP	8       //1%  bipolarnie
 
-//definicje zakresów sygnału wejsciowego RC
+//definicje zakresów sygnału wejściowego RC
 #define WE_RC_MIN		0    	//wartość minimalna sygnału -125%
 #define WE_RC_M100    	200    //-100%
 #define WE_RC_M90     	280    //-90%
@@ -88,9 +88,9 @@
 #define WE_RC_P90     	1720    //+90%
 #define WE_RC_P100    	1800    //+100%
 #define WE_RC_MAX		2000    //wartość maksymalna sygnału +125%
+#define WE_RC_HISTEREZA	10		//histereza do badania stanu przełacznika
 
-
-//czasy impulsów PPM dla założenia że 1% to 4us
+//czasy impulsów PPM dla założenia że 1% to PPM1PROC_BIP jednostek
 #define PPM_MIN			2000    //wartość minimalna sygnału -125%
 #define PPM_M100    	2200    //-100%
 #define PPM_M90     	2280    //-90%
@@ -166,13 +166,19 @@
 
 #define NORMA_SYGNALU	100.0f		//do tej wartosci sa normalizowane wejścia RC, wyjścia regualtorów PID
 
-//definicje funkcji uruchamianych kanałem RC przechowywane w zmiennej chFunkcjaKanaluRC[]
+//definicje funkcji uruchamianych rozszerzonymi kanałami RC przechowywane w zmiennej chFunkcjaMinKanaluRC[] i chFunkcjaMaxKanaluRC[]
 #define FRC_NIE_TOB_NIC			0
-#define FRC_WLACZ_WYJSCIE_OD1	1
-#define FRC_WLACZ_WYJSCIE_OD2	2
-#define FRC_WYMOW_KOMUNIKAT1	3
-#define FRC_WYMOW_KOMUNIKAT2	4
-#define LICZBA_FUNKCJI_RC		5	//liczba dostępnych funkcji
+#define FRC_WLACZ_OD1			1	//aktywuj wyjście otwarty dren 1 sterowanie przez CM7
+#define FRC_WLACZ_OD2			2	//aktywuj wyjście otwarty dren 2 sterowanie przez CM7
+#define FRC_MOW_WYSOKOSC		3	//mów komunikat o wysokości
+#define FRC_MOW_NAPIECIE		4
+#define FRC_MOW_TEMPERAT		5
+#define FRC_MOW_PREDKOSC		6
+#define FRC_MOW_KIERUNEK		7
+
+
+#define LICZBA_FUNKCJI_RC		8	//liczba dostępnych funkcji
+
 
 //definicje funkcji realizowanych przez kanały wyjściowe RC przechowywane w zmiennej chFunkcjaSerwa[]
 #define FSER_SILNIK1			0	//steruj silnikiem 1

@@ -33,8 +33,8 @@
 #define EXP03_CAM_RESET		0x08	//CAM_RES - reset kamery
 #define EXP04_LOG_CARD_DET	0x10	//LOG_SD1_CDETECT - wejscie detekcji obecności karty
 #define EXP05_USB_HOST_DEV	0x20	//USB_HOST_DEVICE - sposób przedstawiania sie urządzenia po USB jako: 0=Host, 1=Device
-#define EXP06_MOD_OPEN_DR1	0x40	//MOD_OSW_IO1 - wyjście Open Drain 1
-#define EXP07_MOD_OPOE_DR2	0x80	//MOD_OSW_IO2 - wyjście Open Drain 2
+#define EXP06_MOD_OD1		0x40	//MOD_OSW_IO1 - wyjście Otwarty Dren 1
+#define EXP07_MOD_OD2		0x80	//MOD_OSW_IO2 - wyjście Otwarty Dren 2
 
 #define EXP10_USB_OVERCURR	0x01	//USB_OVERCURRENT - wejście wygnalizujące przekroczenie poboru prądu przez USB device
 #define EXP11_USB_POWER		0x02	//USB_POWER - włącznik zasilania dla zewnętrznego Device
@@ -281,7 +281,9 @@
 #define KOMG_TEMPERATURA	3
 #define KOMG_PREDKOSC		4
 #define KOMG_KIERUNEK		5
-#define KOMG_MAX_KOMUNIKAT	5
+#define KOMG_UZBROJONE		6
+#define KOMG_ROZBROJONE		7
+#define KOMG_MAX_KOMUNIKAT	8
 
 //zakres adresów FLASH bank 1 dostępnych dla CM7
 #define POCZATEK_FLASH		0x08000000

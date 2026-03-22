@@ -492,6 +492,10 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	case KOMG_TEMPERATURA:	chErr = DodajProbkeDoKolejki(PGA_TEMPERATURA);	break;
 	case KOMG_PREDKOSC:		chErr = DodajProbkeDoKolejki(PGA_PREDKOSC);	break;
 	case KOMG_KIERUNEK:		chErr = DodajProbkeDoKolejki(PGA_KIERUNEK);	break;
+	case KOMG_UZBROJONE:	chErr = DodajProbkeDoKolejki(PGA_UZBROJONY);	break;
+	case KOMG_ROZBROJONE:	chErr = DodajProbkeDoKolejki(PGA_ROZBROJONY);	break;
+
+
 	default:	break;
 	}
 

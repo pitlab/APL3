@@ -88,7 +88,7 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 		uDaneCM4.dane.fKatZyro2[n] +=  uDaneCM4.dane.fZyroKal2[n] * ndT / 1000000;
 
 		//w czasie kalibracji wzmocnienia nie ograniczaj przyrostu kąta
-		if ((uDaneCM7.dane.chWykonajPolecenie < POL_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.chWykonajPolecenie > POL_KALIBRUJ_ZYRO_WZMP))
+		if ((uDaneCM7.dane.chWykonajPolecenie < POL7_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.chWykonajPolecenie > POL7_KALIBRUJ_ZYRO_WZMP))
 		{
 			//ogranicz przyrost kąta do +-Pi
 			if (uDaneCM4.dane.fKatZyro1[n] > M_PI)

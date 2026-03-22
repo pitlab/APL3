@@ -220,7 +220,7 @@ SECTIONS
 .bufory_SRAM4_AHB_D3 (NOLOAD) :
   {
     *(.BuforyWymianyCM7CM4_SRAM4)	
-    . = ABSOLUTE(0x38000400);		/* Bufor wymiany zajmuje poniżej 1kB */
+    . = ABSOLUTE(0x38000600);		/* Bufor wymiany zajmuje poniżej 1,5kB */
     *(.SekcjaSRAM4_CM4)
     . = ABSOLUTE(0x38008000);		/* CM4 ma dostepne 31kB. Reszta 32kB jest dla CM7 */
     *(.SekcjaSRAM4_CM7)         

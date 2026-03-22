@@ -122,7 +122,7 @@ uint8_t ObslugaICM42688(void)
 			uDaneCM4.dane.fZyroSur1[n] = (float)((int16_t)(chDane[2*n+9] <<8) + chDane[2*n+10]) * (1000.0 * DEG2RAD / 32768.0) * chZnakZyro[n];	//+-1000°/s -> [rad/s]
 
 			//w czasie kalibracji wzmocnienia nie uwzgledniej wzmocnienia, jedynie przesunięcie
-			if ((uDaneCM7.dane.chWykonajPolecenie >= POL_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.chWykonajPolecenie <= POL_KALIBRUJ_ZYRO_WZMP))
+			if ((uDaneCM7.dane.chWykonajPolecenie >= POL7_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.chWykonajPolecenie <= POL7_KALIBRUJ_ZYRO_WZMP))
 				uDaneCM4.dane.fZyroKal1[n] = uDaneCM4.dane.fZyroSur1[n] - fPrzesuniecieZyro[n];		//żyro po kalibracji przesuniecia
 			else
 				uDaneCM4.dane.fZyroKal1[n] = uDaneCM4.dane.fZyroSur1[n] * fSkaloZyro1[n] - fPrzesuniecieZyro[n];		//żyro po kalibracji przesuniecia i skalowania
