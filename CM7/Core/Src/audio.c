@@ -65,10 +65,11 @@ uint8_t InicjujAudio(void)
 	chPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
 	chGlosnosc = 45;
 	chWskNapKolKom = chWskOprKolKom = 0;
+	nZainicjowanoCM7 |= INIT_AUDIO;
 
-	/*chErr = OdtworzProbkeAudioZeSpisu(PGA_GOTOWY_SLUZYC);	//komunikat powitalny, sprawdzajacy czy audio działa
-	if (chErr == BLAD_OK)*/
-		nZainicjowanoCM7 |= INIT_AUDIO;
+	//chErr = OdtworzProbkeAudioZeSpisu(PGA_GOTOWY_SLUZYC);	//komunikat powitalny, sprawdzajacy czy audio działa
+	//if (chErr == BLAD_OK)
+
 	return chErr;
 }
 
@@ -82,15 +83,6 @@ uint8_t InicjujAudio(void)
 uint8_t ObslugaWymowyKomunikatu(void)
 {
 	uint8_t chErr;
-
-	//Jeżeli CM4 ma coś do powiedzenia wtedy wstawia to do uDaneCM4.dane.chWymowSampla. Aby nie wymawiać w kółko, wymowa jest potwierdzana w uDaneCM7.dane.uRozne.U8[31]
-	if ((uDaneCM4.dane.chWymowSampla != PGA_PUSTE_MIEJSCE) && (uDaneCM4.dane.chWymowSampla != uDaneCM7.dane.uRozne.U8[31]))
-	{
-		chKolejkaKomunkatow[chWskNapKolKom++] = uDaneCM4.dane.chWymowSampla;
-		uDaneCM7.dane.uRozne.U8[31] = uDaneCM4.dane.chWymowSampla;	//potwierdź wymowę
-		if (chWskNapKolKom >= ROZM_KOLEJKI_KOMUNIKATOW)
-			chWskNapKolKom = 0;
-	}
 
 	if ((chWskNapKolKom == chWskOprKolKom) || chGlosnikJestZajęty || ((nZainicjowanoCM7 & INIT_AUDIO) != INIT_AUDIO))
 		return BLAD_OK;		//nie ma nic do wymówienia lub nie skonfigurowane

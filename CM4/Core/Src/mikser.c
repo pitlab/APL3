@@ -47,9 +47,9 @@ uint8_t InicjujMikser(void)
 
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 	{
-		chErr |= CzytajFramZWalidacja(FAU_MIX_PRZECH + 4*n, &stMikser.fPrze[n], VMIN_MIX_PRZEPOCH, VMAX_MIX_PRZEPOCH, VDOM_MIX_PRZEPOCH, ERR_NASTAWA_FRAM);	//8*4F składowa przechylenia długości ramienia koptera w mikserze [mm], max 1m
-		chErr |= CzytajFramZWalidacja(FAU_MIX_POCHYL + 4*n, &stMikser.fPoch[n], VMIN_MIX_PRZEPOCH, VMAX_MIX_PRZEPOCH, VDOM_MIX_PRZEPOCH, ERR_NASTAWA_FRAM);	//8*4F składowa pochylenia długości ramienia koptera w mikserze [mm], max 1m
-		chErr |= CzytajFramZWalidacja(FAU_MIX_ODCHYL + 4*n, &stMikser.fOdch[n], VMIN_MIX_ODCH, VMAX_MIX_ODCH, VDOM_MIX_ODCH, ERR_NASTAWA_FRAM);	//8*4F współczynnik wpływu kierunku obrotów silnika na odchylenie
+		chErr |= CzytajFramFloatZWalidacja(FAU_MIX_PRZECH + 4*n, &stMikser.fPrze[n], VMIN_MIX_PRZEPOCH, VMAX_MIX_PRZEPOCH, VDOM_MIX_PRZEPOCH);	//8*4F składowa przechylenia długości ramienia koptera w mikserze [mm], max 1m
+		chErr |= CzytajFramFloatZWalidacja(FAU_MIX_POCHYL + 4*n, &stMikser.fPoch[n], VMIN_MIX_PRZEPOCH, VMAX_MIX_PRZEPOCH, VDOM_MIX_PRZEPOCH);	//8*4F składowa pochylenia długości ramienia koptera w mikserze [mm], max 1m
+		chErr |= CzytajFramFloatZWalidacja(FAU_MIX_ODCHYL + 4*n, &stMikser.fOdch[n], VMIN_MIX_ODCH, VMAX_MIX_ODCH, VDOM_MIX_ODCH);	//8*4F współczynnik wpływu kierunku obrotów silnika na odchylenie
 
 		//suma kwadratów
 		fNormPrze += stMikser.fPrze[n] * stMikser.fPrze[n];

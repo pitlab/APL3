@@ -277,10 +277,10 @@ void ZapiszFramFloat(uint16_t sAdres, float fWartosc)
 // [i] chKodBledu - kod błedu jaki ma zwrócić funkcja w przypadku niespełnienia warunków walidacji
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t CzytajFramZWalidacja(uint16_t sAdres, float *fWartosc, float fWartMin, float fWartMax, float fWartDomyslna, uint8_t chKodBledu)
+uint8_t CzytajFramFloatZWalidacja(uint16_t sAdres, float *fWartosc, float fWartMin, float fWartMax, float fWartDomyslna)
 {
 	uint8_t chLiczbaPowtorzen = 3;
-	uint8_t chErr;
+	uint8_t chBłąd;
 
 	do
 	{
@@ -288,13 +288,46 @@ uint8_t CzytajFramZWalidacja(uint16_t sAdres, float *fWartosc, float fWartMin, f
 		if ((*fWartosc < fWartMin) || (*fWartosc > fWartMax) || isnan(*fWartosc))
 		{
 			*fWartosc = fWartDomyslna;    //gdy poza zakresem, to zwróć przekazaną wartość domyślną
-			chErr = chKodBledu;
+			chBłąd = ERR_ZLA_KONFIG;
 		}
 		else
-			chErr = BLAD_OK;
+			chBłąd = BLAD_OK;
 	}
-	while (chErr && --chLiczbaPowtorzen);	//w przypadku jakiegokolwiek błędu powtórz całość
-    return chErr;
+	while (chBłąd && --chLiczbaPowtorzen);	//w przypadku jakiegokolwiek błędu powtórz całość
+    return chBłąd;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Czyta z pamięci zmienną typu uint8_t i przeprowadza validację
+// Parametry:
+// [i] sAdres - adres pamięci
+// [o] *chWartosc - wskaźnik na zmienną do odczytu
+// [i] chWartMin - wartość minimalna zmiennej
+// [i] chWartMax - wartość maksymalna zmiennej
+// [i] chWartDomyslna - gdy odczytana wartość nie spełnia warunków walidacji to przyjmuje tą wartość domyślną
+// [i] chKodBledu - kod błedu jaki ma zwrócić funkcja w przypadku niespełnienia warunków walidacji
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t CzytajFramU8zWalidacja(uint16_t sAdres, uint8_t *chWartosc, uint8_t chWartMin, uint8_t chWartMax, uint8_t chWartDomyslna)
+{
+	uint8_t chLiczbaPowtorzen = 3;
+	uint8_t chBłąd;
+
+	do
+	{
+		*chWartosc = CzytajFRAM(sAdres);
+		if ((*chWartosc < chWartMin) || (*chWartosc > chWartMax))
+		{
+			*chWartosc = chWartDomyslna;    //gdy poza zakresem, to zwróć przekazaną wartość domyślną
+			chBłąd = ERR_ZLA_KONFIG;
+		}
+		else
+			chBłąd = BLAD_OK;
+	}
+	while (chBłąd && --chLiczbaPowtorzen);	//w przypadku jakiegokolwiek błędu powtórz całość
+	return chBłąd;
 }
 
 
@@ -375,12 +408,12 @@ void TestyFram(void)
 	assert(fTest > 12345.677);
 	assert(fTest < 12345.679);
 
-	chErr = CzytajFramZWalidacja(FAH_TEST, &fTest, -1234.56, 67890.12, 123.456, 0x22);		//poprawny odczyt z walidacją
+	chErr = CzytajFramFloatZWalidacja(FAH_TEST, &fTest, -1234.56, 67890.12, 123.456);		//poprawny odczyt z walidacją
 	assert(chErr == BLAD_OK);
 	assert(fTest > 12345.677);
 	assert(fTest < 12345.679);
-	chErr = CzytajFramZWalidacja(FAH_TEST, &fTest, -1234.56, 1234.12, 123.4567, 0x22);		//korekta odczytu z walidacją
-	assert(chErr == 0x22);
+	chErr = CzytajFramFloatZWalidacja(FAH_TEST, &fTest, -1234.56, 1234.12, 123.4567);		//korekta odczytu z walidacją
+	assert(chErr == ERR_ZLA_KONFIG);
 	assert(fTest > 123.4556);
 	assert(fTest < 123.4568);
 

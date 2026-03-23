@@ -137,10 +137,12 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 // [i] *dane - wskaźnik na dane CM4
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t UzbrojSilniki(stWymianyCM4_t *dane)
+uint8_t UzbrojSilniki(stWymianyCM4_t *daneCM4, stWymianyCM7_t *daneCM7)
 {
 	uint8_t chBlad = BLAD_OK;
-	dane->chTrybLotu |= BTR_UZBROJONY;
+	daneCM4->chTrybLotu |= BTR_UZBROJONY;
+	if (daneCM7->chPotwierdzenieWykonania != POL4_MOW_UZBROJONE)
+		daneCM4->chWykonajPolecenie = POL4_MOW_UZBROJONE;
 	return chBlad;
 }
 
@@ -151,8 +153,10 @@ uint8_t UzbrojSilniki(stWymianyCM4_t *dane)
 // [i] *dane - wskaźnik na dane CM4
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RozbrojSilniki(stWymianyCM4_t *dane)
+void RozbrojSilniki(stWymianyCM4_t *daneCM4, stWymianyCM7_t *daneCM7)
 {
-	dane->chTrybLotu &= ~BTR_UZBROJONY;
+	daneCM4->chTrybLotu &= ~BTR_UZBROJONY;
+	if (daneCM7->chPotwierdzenieWykonania != POL4_MOW_ROZBROJONE)
+		daneCM4->chWykonajPolecenie = POL4_MOW_ROZBROJONE;
 }
 

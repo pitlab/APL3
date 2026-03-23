@@ -189,7 +189,7 @@ typedef struct
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
 	uint32_t nBrakCzujnika;		//zestaw flag obecnosci czujników
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
-	uint8_t chWymowSampla;		//indeks sampla głosowego do wymówienia
+	//uint8_t chWymowSampla;		//indeks sampla głosowego do wymówienia
 	uint8_t chWykonajPolecenie;	//numer polecenia do wykonania przez CM7
 	uint8_t chPotwierdzenieWykonania;	//potwierdza wykonanie polecenia przysłanego przez CM7
 	uint32_t ndT;

@@ -161,7 +161,7 @@ void PetlaGlowna(void)
 	case 8:	JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
 
 	case 9:	chBladPG |= ObslugaRamkiSBus();
-		chBladPG |= AnalizujSygnalRC(&uDaneCM4.dane);
+		chBladPG |= AnalizujSygnalRC(&uDaneCM4.dane, &uDaneCM7.dane);
 		break;
 
 	case 10:	break;
@@ -483,10 +483,6 @@ void WykonajPolecenieCM7(void)
 	case POL7_PRZELADUJ_WSKAZN_LED: 		InicjujKoloryWS281x();	break;
 
 	}
-
-	//jeżeli potwierdzono wymowę sampla to skasuj żądanie wymowy
-	if ((uDaneCM4.dane.chWymowSampla != PGA_PUSTE_MIEJSCE) && (uDaneCM4.dane.chWymowSampla == uDaneCM7.dane.uRozne.U8[31]))
-		uDaneCM4.dane.chWymowSampla = PGA_PUSTE_MIEJSCE;
 }
 
 

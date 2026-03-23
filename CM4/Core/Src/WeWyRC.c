@@ -142,21 +142,14 @@ uint8_t InicjujWejsciaRC(void)
     //odczytaj z FRAM numery kanałów dla 4 drążków RC
     for (uint16_t n=0; n<LICZBA_DRAZKOW; n++)
     {
-    	chKanalDrazkaRC[n] = CzytajFramU16(FAU_KAN_DRAZKA_RC + n);	//4*1U Numer kanału przypisany do funkcji drążka aparatury: przechylenia, pochylenia, odchylenia i wysokości
-#ifdef TESTY
-    	assert(chKanalDrazkaRC[n] < LICZBA_DRAZKOW);
-#endif
+    	chBłąd |= CzytajFramU8zWalidacja(FAU_KAN_DRAZKA_RC + n, &chKanalDrazkaRC[n],  0,  LICZBA_DRAZKOW,  0);	//4*1U Numer kanału przypisany do funkcji drążka aparatury: przechylenia, pochylenia, odchylenia i wysokości
     }
 
     //odczytaj z FRAM numery funkcji dla wyższych niż 4 kanałów RC
     for (uint16_t n=0; n<KANALY_FUNKCYJNE; n++)
     {
-    	chFunkcjaMinKanaluRC[n] = CzytajFramU16(FAU_FUNKCJA_MIN_KAN_RC + n);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na minimum
-    	chFunkcjaMaxKanaluRC[n] = CzytajFramU16(FAU_FUNKCJA_MAX_KAN_RC + n);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na maksimum
-#ifdef TESTY
-    	assert(chFunkcjaMinKanaluRC[n] < LICZBA_FUNKCJI_RC);
-    	assert(chFunkcjaMaxKanaluRC[n] < LICZBA_FUNKCJI_RC);
-#endif
+    	chBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MIN_KAN_RC + n, &chFunkcjaMinKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na minimum
+    	chBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MAX_KAN_RC + n, &chFunkcjaMaxKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na maksimum
     }
 
     //ustaw kolor LEDów
@@ -1119,30 +1112,30 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4)
+uint8_t AnalizujSygnalRC(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
 {
 	uint8_t chBłąd = BLAD_OK;
 
 	//Dodać  sprawdzenie czy przyszły nowe dane z odbiornika
 
 	//aby nie sprawdzać wszystkich warunków za każdym przebiegiem, sprawdzaj kolejno od najmniej prawdopodobnego
-	if (psDaneCM4->sKanalRC[chKanalDrazkaRC[PRZE]] < WE_RC_M90)
+	if (psDaneCM4->sKanalRC[chKanalDrazkaRC[POCH]] < WE_RC_M90)
 	{
 		if (psDaneCM4->sKanalRC[chKanalDrazkaRC[WYSO]] < WE_RC_M90)
 		{
 			//sprawdź warunek rozbrojenia silników, czyli oba drążki w dół na zewnątrz
-			if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < WE_RC_M90) &&	(psDaneCM4->sKanalRC[chKanalDrazkaRC[POCH]] > WE_RC_P90))
+			if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < WE_RC_M90) &&	(psDaneCM4->sKanalRC[chKanalDrazkaRC[PRZE]] > WE_RC_P90))
 			{
-				RozbrojSilniki(psDaneCM4);
-				psDaneCM4->chWymowSampla = PGA_ROZBROJONY;
+				RozbrojSilniki(psDaneCM4, psDaneCM7);
+				//psDaneCM4->chWymowSampla = PGA_ROZBROJONY;
 			}
 
 			//sprawdź warunek uzbrojenia silników, czyli oba drążki w dół do środka
-			if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] > WE_RC_P90) &&	(psDaneCM4->sKanalRC[chKanalDrazkaRC[POCH]] < WE_RC_M90))
+			if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] > WE_RC_P90) &&	(psDaneCM4->sKanalRC[chKanalDrazkaRC[PRZE]] < WE_RC_M90))
 			{
-				chBłąd = UzbrojSilniki(psDaneCM4);
-				if (chBłąd == BLAD_OK)
-					psDaneCM4->chWymowSampla = PGA_UZBROJONY;
+				chBłąd = UzbrojSilniki(psDaneCM4, psDaneCM7);
+				//if (chBłąd == BLAD_OK)
+					//psDaneCM4->chWymowSampla = PGA_UZBROJONY;
 			}
 		}
 	}
@@ -1171,14 +1164,14 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4)
 			{
 				switch (chFunkcjaMinKanaluRC[n])
 				{
-				case FRC_WLACZ_OD1:			psDaneCM4->chWykonajPolecenie = POL4_WLACZ_OD1;			break;	//aktywuj wyjście otwarty dren 1
-				case FRC_WLACZ_OD2:			psDaneCM4->chWykonajPolecenie = POL4_WLACZ_OD2;			break;	//aktywuj wyjście otwarty dren 2
-				case FRC_MOW_WYSOKOSC:	psDaneCM4->chWykonajPolecenie = POL4_MOW_WYSOKOSC;	break;	//mów komunikat 1
-				case FRC_MOW_NAPIECIE:	psDaneCM4->chWykonajPolecenie = POL4_MOW_NAPIECIE;	break;
-				case FRC_MOW_PREDKOSC:	psDaneCM4->chWykonajPolecenie = POL4_MOW_PREDKOSC;	break;
-				case FRC_MOW_KIERUNEK:	psDaneCM4->chWykonajPolecenie = POL4_MOW_KIERUNEK;	break;
-				case FRC_MOW_TEMPERAT:	psDaneCM4->chWykonajPolecenie = POL4_MOW_TEMPERAT;	break;
-				default:					psDaneCM4->chWykonajPolecenie = POL4_NIC;				break;
+				case FRC_WLACZ_OD1:		psDaneCM7->chWykonajPolecenie = POL4_WLACZ_OD1;		break;	//aktywuj wyjście otwarty dren 1
+				case FRC_WLACZ_OD2:		psDaneCM7->chWykonajPolecenie = POL4_WLACZ_OD2;		break;	//aktywuj wyjście otwarty dren 2
+				case FRC_MOW_WYSOKOSC:	psDaneCM7->chWykonajPolecenie = POL4_MOW_WYSOKOSC;	break;	//mów komunikat 1
+				case FRC_MOW_NAPIECIE:	psDaneCM7->chWykonajPolecenie = POL4_MOW_NAPIECIE;	break;
+				case FRC_MOW_PREDKOSC:	psDaneCM7->chWykonajPolecenie = POL4_MOW_PREDKOSC;	break;
+				case FRC_MOW_KIERUNEK:	psDaneCM7->chWykonajPolecenie = POL4_MOW_KIERUNEK;	break;
+				case FRC_MOW_TEMPERAT:	psDaneCM7->chWykonajPolecenie = POL4_MOW_TEMPERAT;	break;
+				default:				psDaneCM7->chWykonajPolecenie = POL4_NIC;			break;
 				}
 			}
 			else
@@ -1186,9 +1179,9 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4)
 			{
 				switch(chFunkcjaMinKanaluRC[n])
 				{
-				case FRC_WLACZ_OD1:			psDaneCM4->chWykonajPolecenie = POL4_WYLACZ_OD1;		break;	//wyłącz wyjście otwarty dren 1
-				case FRC_WLACZ_OD2:			psDaneCM4->chWykonajPolecenie = POL4_WYLACZ_OD2;		break;	//wyłącz wyjście otwarty dren 2
-				default:					psDaneCM4->chWykonajPolecenie = POL4_NIC;				break;
+				case FRC_WLACZ_OD1:		psDaneCM7->chWykonajPolecenie = POL4_WYLACZ_OD1;		break;	//wyłącz wyjście otwarty dren 1
+				case FRC_WLACZ_OD2:		psDaneCM7->chWykonajPolecenie = POL4_WYLACZ_OD2;		break;	//wyłącz wyjście otwarty dren 2
+				default:				psDaneCM7->chWykonajPolecenie = POL4_NIC;				break;
 				}
 			}
 			sPoprzedniStanKanaluRozszerzonego[n] = psDaneCM4->sKanalRC[n];

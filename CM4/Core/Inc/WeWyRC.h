@@ -81,7 +81,7 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane);
 uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7);
 void RozpocznijZbieranieEkstremowWejscRC(void);
 void ZapiszEkstremaWejscRC(void);
-uint8_t AnalizujSygnalRC(stWymianyCM4_t* psDaneCM4);
+uint8_t AnalizujSygnalRC(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7);
 uint32_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM4);
 
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim);
