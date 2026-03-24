@@ -18,10 +18,9 @@ uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) 
 float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[FFT_MAX_ROZMIAR / 2] = {0};	//wartość sygnału wyjściowego
 stZesp_t xWn2;			//wartość stała dla danego rozmiaru wektora N
 stZesp_t xWnk;			//wartość stała dla danego rozmiaru wektora N do potęgi k
-uint16_t sPotega;
-uint16_t sProbekFFT;;
+//uint16_t sPotega;
+//uint16_t sProbekFFT;;
 uint16_t sIndeksProbki;
-uint8_t chNoweDane;
 uint32_t nCzasFFT;
 stFFT_t stKonfigFFT;
 extern unia_wymianyCM4_t uDaneCM4;
@@ -33,14 +32,10 @@ extern unia_wymianyCM4_t uDaneCM4;
 ////////////////////////////////////////////////////////////////////////////////
 void InicjujFFT(void)
 {
-	stKonfigFFT.chIndeksZmiennejWe = 0;
+	stKonfigFFT.chIndeksZmiennejWe = 2;
 	stKonfigFFT.chRodzajOkna = 1;
-	stKonfigFFT.sWykladnikPotegi = FFT_WYKLADNIK_MIN;
-
-	sPotega = FFT_WYKLADNIK_MIN;
-	sProbekFFT = pow(2, sPotega);
-
-
+	stKonfigFFT.sWykladnikPotegi = 9;
+	stKonfigFFT.sLiczbaProbek = (uint16_t)powf(2, stKonfigFFT.sWykladnikPotegi);
 }
 
 
@@ -57,29 +52,31 @@ void PobierzDaneDoFFT(void)
 
 	switch(stKonfigFFT.chRodzajOkna)
 		{
-		case 1: fOkno = 0.53836 - 0.46164 * cos(2 * M_PI * sIndeksProbki / (sProbekFFT - 1));	break;	//Okno_Hamminga
-		case 2: fOkno = 0.5 * (1 - cos(2 * M_PI * sIndeksProbki /(sProbekFFT - 1)));		break;		//Okno Hanna
-		case 3: fOkno = 0.35875 - 0.48829 * cos(2 * M_PI * sIndeksProbki / (sProbekFFT - 1)) +
-								  0.14128 * cos(4 * M_PI * sIndeksProbki / (sProbekFFT - 1)) -
-								  0.01168 * cos(6 * M_PI * sIndeksProbki / (sProbekFFT - 1)); 	break;	//Okno Blackmana-Harrisa
+		case 1: fOkno = 0.53836 - 0.46164 * cos(2 * M_PI * sIndeksProbki / (stKonfigFFT.sLiczbaProbek - 1));	break;	//Okno_Hamminga
+		case 2: fOkno = 0.5 * (1 - cos(2 * M_PI * sIndeksProbki /(stKonfigFFT.sLiczbaProbek - 1)));		break;		//Okno Hanna
+		case 3: fOkno = 0.35875 - 0.48829 * cos(2 * M_PI * sIndeksProbki / (stKonfigFFT.sLiczbaProbek - 1)) +
+								  0.14128 * cos(4 * M_PI * sIndeksProbki / (stKonfigFFT.sLiczbaProbek - 1)) -
+								  0.01168 * cos(6 * M_PI * sIndeksProbki / (stKonfigFFT.sLiczbaProbek - 1)); 	break;	//Okno Blackmana-Harrisa
 		default: fOkno = 1;	break;	//okno prostokątne
 		}
 
 	switch(stKonfigFFT.chIndeksZmiennejWe)
 	{
 	case 0: stWejscie[sIndeksProbki].Re = fOkno * uDaneCM4.dane.fAkcel1[0];	break;	//przemnóż przez okno
-	case 1: stWejscie[sIndeksProbki].Re = fOkno * uDaneCM4.dane.fZyroKal1[0];	break;
+	case 1: stWejscie[sIndeksProbki].Re = fOkno * uDaneCM4.dane.fAkcel1[1];	break;
+	case 2: stWejscie[sIndeksProbki].Re = fOkno * uDaneCM4.dane.fAkcel1[2];	break;
+	case 3: stWejscie[sIndeksProbki].Re = fOkno * uDaneCM4.dane.fZyroKal1[0];	break;
+	case 4: stWejscie[sIndeksProbki].Re = fOkno * uDaneCM4.dane.fZyroKal1[1];	break;
+	case 5: stWejscie[sIndeksProbki].Re = fOkno * uDaneCM4.dane.fZyroKal1[2];	break;
 	}
 	stWejscie[sIndeksProbki].Im = 0.0f;
 
 	sIndeksProbki++;
-	if (sIndeksProbki == sProbekFFT)
+	if (sIndeksProbki == stKonfigFFT.sLiczbaProbek)
 	{
 		sIndeksProbki = 0;
-		chNoweDane = 1;		//mamy komplet danych, można liczyć FFT
+		stKonfigFFT.chStatus |= FFT_NOWE_DANE;		//mamy komplet danych, można liczyć FFT
 	}
-
-
 }
 
 
@@ -95,57 +92,15 @@ void FFT_Drgania(void)
 	//int n, x, y1, y2;
 	float dMod;
 	uint32_t nCzasPoczatku;
-	//float fWspWyp;	//współczynnik wypełnienie ekranu danymi pomiarowymi
-	//float fWypPix;	//wypełnienie piksela danymi
-	//float dPixel;	//wypadkowy piksel
-	//unsigned short sIndexDanych;	//indeky kolejnych pobieranych danych
-	//div_t dres;
 
-	/*if (chRysujRaz)
+	if (stKonfigFFT.chStatus & FFT_NOWE_DANE)
 	{
-		BelkaTytulu("");
-		//LCD_Orient(POZIOMO);
-		//drawBitmap(0, 0, 18, 18, pitlab_logo18);	//logo producenta
-		chRysujRaz = 0;
-		chMenuSelPos = 0;
-		TIM3->CR1 = (0<<0);  				//Bit 0 CEN: Counter enable
-		TIM3->ARR = 1000000/(nFFTFreq[fMenu[DF_SET_FREQ].chVal]) - 1;
-		TIM3->CR1 |= (1<<0);  				//na sam koniec włacz timer
-		DrganiaMenu(RP_DFREQ);
-	}*/
-
-	if (chNoweDane)
-	{
-		chNoweDane = 0;
 		nCzasPoczatku = PobierzCzasT6();
-		/*for (s=0; s<sProbekFFT; s++)
-		{
-			//wybierz rodzaj funkcji okienkowanie sygnał wejściowy: https://pl.wikipedia.org/wiki/Okno_czasowe
-			//switch (fMenu[DF_WINDOW].chVal)
-			switch(1)
-			{
-			case 0:	dMod = 1;	break;	//okno prostokątne
-			case 1: dMod = 0.53836 - 0.46164 * cos(2*M_PI*s/(sProbekFFT-1));	break;	//Okno_Hamminga
-			case 2: dMod = 0.5 * (1 - cos(2*M_PI*s/(sProbekFFT-1)));		break;	//Okno Hanna
-			case 3: dMod = 0.35875 - 0.48829 * cos(2*M_PI*s/(sProbekFFT-1)) + 0.14128 * cos(4*M_PI*s/(sProbekFFT-1)) - 0.01168 * cos(6*M_PI*s/(sProbekFFT-1)); 	break;	//Okno Blackmana-Harrisa
-			default: dMod = 1;	break;	//okno prostokątne
-			}
-
-			//switch (fMenu[DF_CHANNEL].chVal)		//wybór kanału do analizy
-			switch(0)
-			{
-			case 0: xXn[s].Re = dMod * (sDmaBufDrg[2*s+1]-2048);	break;	//odejmij offset zera od danych z osi Z i przemnóż przez okno
-			case 1: xXn[s].Re = dMod * (sDmaBufDrg[2*s]-2048);		break;	//odejmij offset zera od danych z osi X i przemnóż przez okno
-			case 2: xXn[s].Re = dMod * (sqrt(sDmaBufDrg[2*s]*sDmaBufDrg[2*s] + sDmaBufDrg[2*s+1]*sDmaBufDrg[2*s+1])-2896);	break;	// oś X i Z razem
-			default: xXn[s].Re = sDmaBufDrg[2*s]-2048;	break;		//oś X brak okna
-			}
-			xXn[s].Im = 0.0;
-		}*/
-
-		FFT(&stKonfigFFT);		//licz szybką transformatę Fouriera
+		LiczFFT(&stKonfigFFT);		//licz szybką transformatę Fouriera
+		stKonfigFFT.chStatus &= ~FFT_NOWE_DANE;
 
 		//oblicz moduł sygnału i logarytmuj
-		for (s=0; s<sProbekFFT/2; s++)
+		for (s=0; s<stKonfigFFT.sLiczbaProbek/2; s++)
 		{
 			dMod = sqrt(xXomega[s].Re*xXomega[s].Re + xXomega[s].Im*xXomega[s].Im);	//moduł
 			//if (fMenu[DF_SET_SCALE].chVal)	//1 = wykres logarytmiczny
@@ -164,7 +119,7 @@ void FFT_Drgania(void)
 		stKonfigFFT.sPozycjaMax[0] = stKonfigFFT.sPozycjaMax[1] = 0;
 
 		//znajdź maksimum globalne
-		for (s=2; s<sProbekFFT/2; s++)
+		for (s=2; s<stKonfigFFT.sLiczbaProbek/2; s++)
 		{
 			if (fWynikFFT[s] > stKonfigFFT.fWartoscMax[0])
 			{
@@ -174,7 +129,7 @@ void FFT_Drgania(void)
 		}
 
 		//znajdź kolejne maksimum za pierwszym
-		for (s = stKonfigFFT.sPozycjaMax[0]+10; s < sProbekFFT/2; s++)
+		for (s = stKonfigFFT.sPozycjaMax[0]+10; s < stKonfigFFT.sLiczbaProbek/2; s++)
 		{
 			if (fWynikFFT[s] > stKonfigFFT.fWartoscMax[1])
 			{
@@ -317,73 +272,9 @@ void FFT_Drgania(void)
 			sprintf(chNapis, "%dHz/div ", nFFTFreq[fMenu[DF_SET_FREQ].chVal]/20);
 			print(chNapis, 140, 0, 0);
 		}
-
-		setColor(GREEN);
-		sprintf(chNapis, "%dms ", (nTotalTime)/10);
-		print(chNapis, 250, 0, 0);
-		setBackColor(BLACK);
-
-		chNoweDaneADC = 0;
-		DMA1_Channel1->CCR &= ~(1<<0);				//0 EN: Channel disable
-		DMA1_Channel1->CNDTR = 2*pow(2,sPotega);	//15:0 NDT[15:0]: Number of data to transfer
-		DMA1_Channel1->CCR |= (1<<0);				//0 EN: Channel enable
-		ADC1->CR2 |= (1<<20);
 	}
 
-	//wyświetla menu kalibracyjne
-	if (chPressed & ENCODER)
-	{
-		chMode ^= 1;
-		DrganiaMenu(RP_DFREQ);
-		chPressed &= ~ENCODER;
-	}
-
-
-	//obsługa menu
-	if (nEnkoder != nLastEnkoder)
-	{
-
-		if (chMode)	//tryb zmiany parametrów polecenia
-		{
-			//obsługa zmiany kalibracji
-			n = nEnkoder - nLastEnkoder;
-			n += fMenu[chMenuSelPos].chVal;
-			if (n < 0)	//mniejsze niż 0
-				fMenu[chMenuSelPos].chVal = 0;
-			else
-			if (n >= fMenu[chMenuSelPos].chMaxVal)
-				fMenu[chMenuSelPos].chVal =  fMenu[chMenuSelPos].chMaxVal - 1;
-			else
-				fMenu[chMenuSelPos].chVal = n;
-
-			switch (chMenuSelPos)
-			{
-			case DF_SET_FREQ:	//częstotliwość próbkowania
-				TIM3->CR1 = (0<<0);  				//Bit 0 CEN: Counter enable
-				TIM3->ARR = 1000000/(nFFTFreq[fMenu[chMenuSelPos].chVal]) - 1;
-				TIM3->CR1 |= (1<<0);  				//na sam koniec włacz timer
-				break;
-
-			case DF_SET_BASE:	//wielkość FFT
-				sPotega = FFT_START_BASE + fMenu[DF_SET_BASE].chVal;
-				sProbekFFT = pow(2, sPotega);
-				break;
-			case DF_MOTOR: TIM1->CCR2 = 900 + 5*fMenu[chMenuSelPos].chVal;	break;
-			case DF_SET_SCALE: 	break;	//rodzaj podziałki: log/lin
-			}
-			chBylaZmianaKonf |= KONF_FREQ;
-		}
-		else	//tryb wyboru polecenia
-		{
-			chMenuSelPos += nEnkoder - nLastEnkoder;
-			if (chMenuSelPos > SIGNED_8BIT)	//mniejsze niż 0
-				chMenuSelPos = 0;
-			else
-			if (chMenuSelPos > MDFPOS-1)
-				chMenuSelPos = MDFPOS-1;
-		}
-		DrganiaMenu(RP_DFREQ);
-		nLastEnkoder = nEnkoder;*/
+	*/
 	}
 }
 
@@ -432,7 +323,7 @@ void FFT_Motyl(stZesp_t *stWeWyP, stZesp_t *stWeWyN, stZesp_t *stWnk)
 // wyjscie: *xXomega
 // Czas wykonania: 61,7ms @256, 133,1 ms @512
 ////////////////////////////////////////////////////////////////////////////////
-void FFT(stFFT_t *konfig)
+void LiczFFT(stFFT_t *konfig)
 {
 	//struct complex xSumP, xSumN;
 	//unsigned short k, j, N, x, b;
@@ -455,7 +346,6 @@ void FFT(stFFT_t *konfig)
 		xXomega[j].Re = stWejscie[k].Re;
 		xXomega[j].Im = stWejscie[k].Im;
 	}
-
 
 	for (uint16_t x=1; x<konfig->sWykladnikPotegi+1; x++)		//iteracje drzewa podziałów x^2=PROBEK_DRGANIA
 	{
@@ -487,6 +377,7 @@ void FFT(stFFT_t *konfig)
 			}
 		}
 	}
+	konfig->chStatus =  FFT_GOTOWY_WYNIK;	//kasuj bit nowych danych i ustaw gotowość wyniku
 }
 
 

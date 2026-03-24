@@ -161,6 +161,7 @@ uint32_t nCzas, nCzasHist;
 extern uint32_t nCzasBlend, nCzasLCD;
 extern stFFT_t stKonfigFFT;
 extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
+extern stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xXomega[FFT_MAX_ROZMIAR];		//wynik transformaty
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -4245,5 +4246,90 @@ void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sK
 ////////////////////////////////////////////////////////////////////////////////
 void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint16_t sKolor)
 {
+	uint32_t nCzasFFT;
+	float fWspWypX;	//współczynnik wypełnienie ekranu danymi pomiarowymi w poziomie
+	float fProbekNaPiksel;	//wypełnienie piksela danymi
+	float fPixel;
+	float fModuł;
+	int x, y1, y2;
+	uint16_t sIndexDanych;	//indeky kolejnych pobieranych danych
 
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		sprintf(chNapis, "FFT");
+		BelkaTytulu(chNapis);
+	}
+
+	if (stKonfig->chStatus & FFT_NOWE_DANE)
+	{
+		nCzasFFT = PobierzCzasT6();
+		LiczFFT(stKonfig);
+
+		//oblicz moduł sygnału i logarytmuj
+		for (uint16_t n=0; n<stKonfig->sLiczbaProbek/2; n++)
+		{
+			fModuł = sqrt(xXomega[n].Re*xXomega[n].Re + xXomega[n].Im*xXomega[n].Im);	//moduł
+			if (fModuł > 0)
+				fWynikFFT[n] = log10(fModuł);
+			else
+				fWynikFFT[n] = 0;		//nie można liczyć logarytmu z zera i liczb ujemnych
+		}
+
+		nCzasFFT = MinalCzas(nCzasFFT);
+		RysujProstokatWypelniony(0, MENU_NAG_WYS, DISP_X_SIZE, DISP_Y_SIZE, CZARNY);	//czyści ekran
+		setColor(SZARY80);
+		//sprintf(chNapis, "Czas: %ld", nCzasFFT / 1000);
+		sprintf(chNapis, "Czas: %ld us", nCzasFFT);
+		RysujNapis(chNapis, KOL12, 60);
+
+		fWspWypX = (float)(AD_X_SIZE)/((stKonfig->sLiczbaProbek/2)-1);	//współczynnik wypełnienia ekranu danymi pix/słowo
+
+		//wykres FFT
+		for (uint16_t n=0; n<AD_X_SIZE; n++)
+		{
+			if (fWspWypX > 1.0)	//wykresy będą rozciagane do ekranu
+			{
+				fProbekNaPiksel -= 1;	//odejmij piksel obrazu
+				if (fProbekNaPiksel < 0)
+				{
+					fPixel = fWynikFFT[sIndexDanych];	//pobierz słowo danych
+					sIndexDanych++;
+					fProbekNaPiksel += fWspWypX;
+				}
+			}
+			else	//wykresy będą ściskane po wiecej niż jedną liczbę na piksel
+			{
+				do	//pobierz dane z wyliczonych indeksów zmiennej
+				{
+					fProbekNaPiksel += fWspWypX;	//wypełnienie piksela danymi
+					//fPixel = (fPixel + 2*fWynikFFT[sIndexDanych])/4;	//filtr uśredniający
+					fPixel = fWynikFFT[sIndexDanych];
+					sIndexDanych++;
+				}
+				while (fProbekNaPiksel < 1);
+				fProbekNaPiksel -= 1;	//odejmij piksel obrazu
+			}
+
+			y2 = (AD_STARTY + AD_Y_SIZE) - ((uint16_t)fPixel * AD_Y_SIZE) / (AD_Y_DIV * DBDIV);
+			if (y2 > AD_STARTY + AD_Y_SIZE)
+				y2 = AD_STARTY + AD_Y_SIZE;
+			else
+			if (y2 < AD_STARTY)
+				y2 = AD_STARTY;
+
+			//ustaw kolor wykresu X lub Z
+			switch (stKonfig->chIndeksZmiennejWe)
+			{
+			case 0: setColor(KOLOR_X);	break;	//oś X
+			case 1:	setColor(KOLOR_Y);	break;	//oś Y
+			case 2: setColor(KOLOR_Z);	break;	//oś Z
+			}
+
+			x = AD_STARTX + n;
+			RysujLinie(x, y1, x, y2);		//wykres liniowy
+			y1 = y2;
+		}
+
+	}
 }
