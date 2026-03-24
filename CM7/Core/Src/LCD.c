@@ -39,8 +39,7 @@
 #include "LCD_mem.h"
 #include "osd.h"
 #include "bmp.h"
-#include "jpeg_utils_conf.h"
-#include "jpeg_utils.h"
+
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -160,6 +159,8 @@ extern stKonfOsd_t stKonfOSD;
 extern volatile uint8_t chTrybPracyKamery;	//steruje co dalej robić z obrazem pozyskanym przez DCMI
 uint32_t nCzas, nCzasHist;
 extern uint32_t nCzasBlend, nCzasLCD;
+extern stFFT_t stKonfigFFT;
+extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -196,7 +197,7 @@ struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Cisn GNSS",	"Wyniki pom. czujnikow cisnienia i GNSS",	TP_POMIARY_CISN, 	obr_multimetr},
 	{"Odb RC",		"Dane z odbiornika RC",						TP_POMIARY_RC,		obr_aparaturaRC},
 	{"Wyj RC",		"Dane na wyjściach RC: serwa, ESC",			TP_POMIARY_SERWA,	obr_aparaturaRC},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"FFT",			"FFT sygnalow wejsciowych",					TP_POMIARY_FFT,		obr_multimetr},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
@@ -1636,6 +1637,13 @@ uint8_t RysujEkran(void)
 		}
 		break;
 
+	case TP_POMIARY_FFT:	RysujFFT(fWynikFFT, &stKonfigFFT, NIEBIESKI);
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+		}
+		break;
 
 	case TP_WITAJ:
 		if (!chLiczIter)
@@ -4223,4 +4231,19 @@ void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sK
 		RysujLinie(x, y1, x+1, y2);
 		y1 = y2;
 	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wyświetla FFT. Pomiary mieszczące się w szerokości okna przedstawia w postaci słupków, szersze oblina lub interpoluje
+// Parametry:
+// [we] *stWynik - wskaźnik na dane wynikowe FFT
+// [we] *stKonfig - wskaźnik na konfigurację FFT
+// [we] sKolor - kolor słupków
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint16_t sKolor)
+{
+
 }

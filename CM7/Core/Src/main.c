@@ -100,7 +100,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "bmp.h"
 #include "osd.h"
 #include <poleceniaCM4.h>
-
+#include "fft.h"
 
 /* USER CODE END Includes */
 
@@ -403,7 +403,7 @@ Error_Handler();
 	  }
   }
   chBłąd |= InicjalizujJpeg();
-
+  InicjujFFT();
 
   extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
   printf("Dzien dobry! APL3 nr %d (%s) zglasza sie gotowy do dzialania.\r\n", stBSP_ID.chAdres, stBSP_ID.chNazwa);		//wyślij komunikat po porcie debugującym
@@ -1640,6 +1640,8 @@ void StartDefaultTask(void const * argument)
 			chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s
 			chBłąd = BLAD_OK;
 		}
+
+		PobierzDaneDoFFT();
 
 		//synchronizacja czasu i daty z GNSS tylko dopóki nie są w pełni zsynchroniozwane, później pracuję na RTC. Docelowo również synchronizacja z NTP
 		if (chStanSynchronizacjiCzasu != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))

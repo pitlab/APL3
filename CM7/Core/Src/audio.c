@@ -67,9 +67,7 @@ uint8_t InicjujAudio(void)
 	chWskNapKolKom = chWskOprKolKom = 0;
 	nZainicjowanoCM7 |= INIT_AUDIO;
 
-	//chErr = OdtworzProbkeAudioZeSpisu(PGA_GOTOWY_SLUZYC);	//komunikat powitalny, sprawdzajacy czy audio działa
-	//if (chErr == BLAD_OK)
-
+	chErr = OdtworzProbkeAudioZeSpisu(PGA_GOTOWY_SLUZYC);	//komunikat powitalny, sprawdzajacy czy audio działa
 	return chErr;
 }
 

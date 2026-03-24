@@ -10,6 +10,7 @@
 #include "sys_def_CM7.h"
 #include "display.h"
 #include "rysuj.h"
+#include "fft.h"
 
 //#define MIN_MAG_WYKR	NOMINALNE_MAGN / 600		//minimalna wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru
 #define MIN_MAG_WYKR	NOMINALNE_MAGN * 0.8f		//minimalna wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru
@@ -55,4 +56,5 @@ void PlaskiObrotMagnetometrow(void);
 void NastawyPID(uint8_t chKanal);
 uint8_t CzytajFramFoat(uint16_t sAdres, uint8_t chRozmiar, float *fDane);
 uint8_t CzytajFramChar(uint16_t sAdres, uint8_t chRozmiar, uint8_t *chDane);
+void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint16_t sKolor);
 #endif /* INC_LCD_H_ */

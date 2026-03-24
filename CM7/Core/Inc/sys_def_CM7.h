@@ -157,6 +157,7 @@
 #define TP_POMIARY_CISN		91
 #define TP_POMIARY_RC		92	//dane z odbiornika RC
 #define TP_POMIARY_SERWA	93	//stan wyjść RC
+#define TP_POMIARY_FFT		94	//FFT sygnałów wejsciowych
 #define TP_POMIARY_DOTYKU	98
 #define TP_WROC_DO_POMIARY	99
 
