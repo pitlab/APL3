@@ -27,11 +27,10 @@
 
 //wykresy analizatora drgań FFT
 #define AD_STARTX	5							//współrzedna X początku wykresu
-#define AD_STARTY	22							//współrzedna Y początku wykresu
-#define AD_X_SIZE	DISP_X_SIZE					//szerokość wykresu (niezależna od rozmiaru FFT)
+#define AD_STARTY	20							//współrzedna Y początku wykresu
+#define AD_X_SIZE	(DISP_X_SIZE - AD_STARTX)	//szerokość wykresu (niezależna od rozmiaru FFT)
 #define	AD_Y_SIZE	(DISP_Y_SIZE - AD_STARTY)	//wysokość wykresu
-#define AD_X_DIV	10
-#define AD_Y_DIV	6
+#define AD_Y_DIV	6	//skala piskeli na dB
 #define DBDIV		1	//skalowanie: ilość dB/działkę
 
 #define ROZDZIECZOSC_PASKA_RC		5	//zakres WE_RC_MAX = 2000 / szerokość ekranu = 400

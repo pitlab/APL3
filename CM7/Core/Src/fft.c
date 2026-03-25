@@ -18,12 +18,12 @@ uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) 
 float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[FFT_MAX_ROZMIAR / 2] = {0};	//wartość sygnału wyjściowego
 stZesp_t xWn2;			//wartość stała dla danego rozmiaru wektora N
 stZesp_t xWnk;			//wartość stała dla danego rozmiaru wektora N do potęgi k
-//uint16_t sPotega;
-//uint16_t sProbekFFT;;
 uint16_t sIndeksProbki;
 uint32_t nCzasFFT;
 stFFT_t stKonfigFFT;
 extern unia_wymianyCM4_t uDaneCM4;
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizuje sprzet do pomiarów
@@ -34,7 +34,7 @@ void InicjujFFT(void)
 {
 	stKonfigFFT.chIndeksZmiennejWe = 2;
 	stKonfigFFT.chRodzajOkna = 1;
-	stKonfigFFT.sWykladnikPotegi = 9;
+	stKonfigFFT.sWykladnikPotegi = 10;
 	stKonfigFFT.sLiczbaProbek = (uint16_t)powf(2, stKonfigFFT.sWykladnikPotegi);
 }
 
