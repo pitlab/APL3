@@ -80,6 +80,7 @@ uint16_t getBackColor(void);
 void setBackColor(uint16_t color);
 void setBackColorRGB(uint8_t r, uint8_t g, uint8_t b);
 void RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t kolor);
+void RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor);
 void RysujLiniePozioma(int16_t x, int16_t y, int16_t len);
 void RysujLiniePionowa(int16_t x, int16_t y, int16_t len);
 void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2);

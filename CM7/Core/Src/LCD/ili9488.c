@@ -353,6 +353,29 @@ void RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzer
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Rysuje piksel w zadanym kolorze
+// Parametry: x, y współrzędne punktu
+// chKolor - wskaźnik na tablicę kolorów RGB666
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor)
+{
+	setXY(x, y, x, y);
+
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
+		osDelay(1);
+	HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+
+	HAL_SPI_Transmit(&hspi5, chKolor, 3, HAL_MAX_DELAY);
+	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	clrXY();
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje poziomą linią

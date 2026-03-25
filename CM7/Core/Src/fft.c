@@ -13,9 +13,9 @@
 
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xXomega[FFT_MAX_ROZMIAR] = {0};		//wynik transformaty
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xWnk_tab[FFT_MAX_ROZMIAR] = {0};	//raz wyliczona tablica współczynników, stała dla danego rozmiaru wektora N do potęgi k
-stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) stWejscie[FFT_MAX_ROZMIAR] = {0};		//zmiennna wejściowa
-uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sDmaBufDrg[FFT_MAX_ROZMIAR] = {0};		//bufor do przechowywania drgań
-float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[FFT_MAX_ROZMIAR / 2] = {0};	//wartość sygnału wyjściowego
+stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) stWejscie[FFT_MAX_ROZMIAR] = {0};		//zmiennna wejściow
+float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fBuforPomiarow[LICZBA_WYKRESOW_FFT][FFT_MAX_ROZMIAR] = {0};	//bufor do zbierania danych wejściowych
+float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_WYKRESOW_FFT][FFT_MAX_ROZMIAR / 2] = {0};	//wartość sygnału wyjściowego
 stZesp_t xWn2;			//wartość stała dla danego rozmiaru wektora N
 stZesp_t xWnk;			//wartość stała dla danego rozmiaru wektora N do potęgi k
 uint16_t sIndeksProbki;
@@ -48,233 +48,19 @@ void InicjujFFT(void)
 ////////////////////////////////////////////////////////////////////////////////
 void PobierzDaneDoFFT(void)
 {
-	float fOkno;
 
-	switch(stKonfigFFT.chRodzajOkna)
-		{
-		case 1: fOkno = 0.53836 - 0.46164 * cos(2 * M_PI * sIndeksProbki / (stKonfigFFT.sLiczbaProbek - 1));	break;	//Okno_Hamminga
-		case 2: fOkno = 0.5 * (1 - cos(2 * M_PI * sIndeksProbki /(stKonfigFFT.sLiczbaProbek - 1)));		break;		//Okno Hanna
-		case 3: fOkno = 0.35875 - 0.48829 * cos(2 * M_PI * sIndeksProbki / (stKonfigFFT.sLiczbaProbek - 1)) +
-								  0.14128 * cos(4 * M_PI * sIndeksProbki / (stKonfigFFT.sLiczbaProbek - 1)) -
-								  0.01168 * cos(6 * M_PI * sIndeksProbki / (stKonfigFFT.sLiczbaProbek - 1)); 	break;	//Okno Blackmana-Harrisa
-		default: fOkno = 1;	break;	//okno prostokątne
-		}
-
-	switch(stKonfigFFT.chIndeksZmiennejWe)
-	{
-	case 0: stWejscie[sIndeksProbki].Re = fOkno * uDaneCM4.dane.fAkcel1[0];	break;	//przemnóż przez okno
-	case 1: stWejscie[sIndeksProbki].Re = fOkno * uDaneCM4.dane.fAkcel1[1];	break;
-	case 2: stWejscie[sIndeksProbki].Re = fOkno * uDaneCM4.dane.fAkcel1[2];	break;
-	case 3: stWejscie[sIndeksProbki].Re = fOkno * uDaneCM4.dane.fZyroKal1[0];	break;
-	case 4: stWejscie[sIndeksProbki].Re = fOkno * uDaneCM4.dane.fZyroKal1[1];	break;
-	case 5: stWejscie[sIndeksProbki].Re = fOkno * uDaneCM4.dane.fZyroKal1[2];	break;
-	}
-	stWejscie[sIndeksProbki].Im = 0.0f;
+	fBuforPomiarow[0][sIndeksProbki] = uDaneCM4.dane.fAkcel1[0];
+	fBuforPomiarow[1][sIndeksProbki] = uDaneCM4.dane.fAkcel1[1];
+	fBuforPomiarow[2][sIndeksProbki] = uDaneCM4.dane.fAkcel1[2];
+	/*fBuforPomiarow[3][sIndeksProbki] = uDaneCM4.dane.fZyroKal1[0];
+	fBuforPomiarow[4][sIndeksProbki] = uDaneCM4.dane.fZyroKal1[1];
+	fBuforPomiarow[5][sIndeksProbki] = uDaneCM4.dane.fZyroKal1[2];*/
 
 	sIndeksProbki++;
 	if (sIndeksProbki == stKonfigFFT.sLiczbaProbek)
 	{
 		sIndeksProbki = 0;
 		stKonfigFFT.chStatus |= FFT_NOWE_DANE;		//mamy komplet danych, można liczyć FFT
-	}
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Wykonuje pomiary i pokazuje harmoniczne drgań w osiach X i Z
-// Parametry: nic
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void FFT_Drgania(void)
-{
-	unsigned short s;
-	//int n, x, y1, y2;
-	float dMod;
-	uint32_t nCzasPoczatku;
-
-	if (stKonfigFFT.chStatus & FFT_NOWE_DANE)
-	{
-		nCzasPoczatku = PobierzCzasT6();
-		LiczFFT(&stKonfigFFT);		//licz szybką transformatę Fouriera
-		stKonfigFFT.chStatus &= ~FFT_NOWE_DANE;
-
-		//oblicz moduł sygnału i logarytmuj
-		for (s=0; s<stKonfigFFT.sLiczbaProbek/2; s++)
-		{
-			dMod = sqrt(xXomega[s].Re*xXomega[s].Re + xXomega[s].Im*xXomega[s].Im);	//moduł
-			//if (fMenu[DF_SET_SCALE].chVal)	//1 = wykres logarytmiczny
-			{
-				if (dMod > 0)
-					fWynikFFT[s] = log10(dMod);
-				else
-					fWynikFFT[s] = 0;		//nie można liczyć logarytmu z zera i liczb ujemnych
-			}
-			//else
-				//fWynikFFT[s] = dMod / 100000;	//wartość liniowa
-		}
-
-		//inicjuj maksima
-		stKonfigFFT.fWartoscMax[0] = stKonfigFFT.fWartoscMax[1] = 0.0;
-		stKonfigFFT.sPozycjaMax[0] = stKonfigFFT.sPozycjaMax[1] = 0;
-
-		//znajdź maksimum globalne
-		for (s=2; s<stKonfigFFT.sLiczbaProbek/2; s++)
-		{
-			if (fWynikFFT[s] > stKonfigFFT.fWartoscMax[0])
-			{
-				stKonfigFFT.fWartoscMax[0] = fWynikFFT[s];
-				stKonfigFFT.sPozycjaMax[0] = s;
-			}
-		}
-
-		//znajdź kolejne maksimum za pierwszym
-		for (s = stKonfigFFT.sPozycjaMax[0]+10; s < stKonfigFFT.sLiczbaProbek/2; s++)
-		{
-			if (fWynikFFT[s] > stKonfigFFT.fWartoscMax[1])
-			{
-				stKonfigFFT.fWartoscMax[1] = fWynikFFT[s];
-				stKonfigFFT.sPozycjaMax[1] = s;
-			}
-		}
-
-		nCzasFFT = MinalCzas(nCzasPoczatku);
-
-
-		/*/zamaż brzegi wykresów tłem aby nie zostawały tam resztki napisów
-		setColor(BLACK);
-		for (x=0; x<AD_STARTX; x++)
-		{
-			drawVLine(x, AD_STARTY, AD_Y_SIZE);							//lewy brzed
-			drawVLine(x+AD_X_SIZE+AD_STARTX, AD_STARTY, AD_Y_SIZE);		//prawy brzeg
-		}
-
-		//rysuj
-		fWspWyp = (float)(AD_X_SIZE)/((sProbekFFT/2)-1);	//współczynnik wypełnienia ekranu danymi pix/słowo
-		fWypPix = 0;		//sciskanie danych ekranu
-		sIndexDanych = 0;
-		dPixel = 0;
-		y1 = AD_STARTY + AD_Y_SIZE;
-		for (s=0; s<AD_X_SIZE; s++)
-		{
-			x = AD_STARTX + s;
-			setColor(BLACK);	//zamaż stary wykres tłem
-			drawVLine(x, AD_STARTY, AD_Y_SIZE);
-
-			//linie siatki pionowej
-			dres = div(s, AD_X_SIZE/AD_X_DIV);
-			if (!dres.rem)
-			{
-				setColor(GRAY40);	//podziałka w osi x
-				for (n=0; n<30; n++)	//rysuj linie przerywaną
-					drawPixel(x, n*AD_Y_SIZE/30 + AD_STARTY);
-			}
-
-			//linie siatki poziomej, brak reszty z dzielenia oznacza konieczność narysowania linii
-			dres = div(s, AD_X_SIZE/50);
-			if (!dres.rem)		//brak reszty, czyli rysuj kropkę linii pozionych
-			{
-				setColor(GRAY40);
-				for (n=0; n<=AD_Y_DIV; n++)
-					drawPixel(x, n*AD_Y_SIZE/AD_Y_DIV + AD_STARTY);
-			}
-
-			//wykres FFT
-			if (fWspWyp > 1.0)	//wykresy będą rozciagane do ekranu
-			{
-				fWypPix -= 1;	//odejmij piksel obrazu
-				if (fWypPix < 0)
-				{
-					//sIndexDanych++;		//pre-inkrementuj aby pominąć dane [0] oraz aby za pętlą mieć dostęp do ostatniej danej
-					dPixel = fWynikFFT[sIndexDanych];	//pobierz słowo danych
-					sIndexDanych++;
-					fWypPix += fWspWyp;
-				}
-			}
-			else	//wykresy będą ściskale po wiecej niż jedną liczbę na piksel
-			{
-				do	//pobierz dane z wyliczonych indeksów zmiennej
-				{
-					fWypPix += fWspWyp;	//wypełnienie piksela danymi
-					//sIndexDanych++;		//pre-inkrementuj aby pominąć dane [0] oraz aby za pętlą mieć dostęp do ostatniej danej
-					//dPixel = (dPixel + 2*fWynikFFT[sIndexDanych])/4;	//filtr uśredniający
-					dPixel = fWynikFFT[sIndexDanych];
-					sIndexDanych++;
-				}
-				while (fWypPix < 1);
-				fWypPix -= 1;	//odejmij piksel obrazu
-			}
-			y2 = (AD_STARTY + AD_Y_SIZE) - (dPixel * AD_Y_SIZE) / (AD_Y_DIV * DBDIV);
-			if (y2 > AD_STARTY + AD_Y_SIZE)
-				y2 = AD_STARTY + AD_Y_SIZE;
-			else
-			if (y2 < AD_STARTY)
-				y2 = AD_STARTY;
-
-			//ustaw kolor wykresu X lub Z
-			switch (fMenu[DF_CHANNEL].chVal)
-			{
-			case 0: setColor(CYAN);		break;	//oś X
-			case 1:	setColor(MAGENTA);	break;	//oś Z
-			case 2: setColor(YELLOW);	break;	//osie X+Z
-			}
-			drawLine(x, y1, x, y2);		//wykres liniowy
-			y1 = y2;
-		}
-
-		//rysuj znaczniki i opis maksimów
-		fWypPix = (float)nFFTFreq[fMenu[DF_SET_FREQ].chVal] / sProbekFFT;	//współczynnik  do obliczenia częstotliwości w maksimum
-		setColor(WHITE);
-
-		x = AD_STARTX + mLocalMax[0].Pos * fWspWyp;
-		y1 = (AD_STARTY + AD_Y_SIZE) - (mLocalMax[0].Val * AD_Y_SIZE) / (AD_Y_DIV * DBDIV);
-		drawVLine(x, y1-4, 8);
-		drawHLine(x-4, y1, 8);
-		if (y1 < AD_STARTY+14)
-			y1 = AD_STARTY+14;		//obniż napis jeżeli jest za wysoko
-		else
-		if (y1 > AD_STARTY+AD_Y_SIZE-28)
-			y1 = AD_STARTY+AD_Y_SIZE-28;
-		if (fMenu[DF_SET_SCALE].chVal)
-			sprintf(chNapis, "%.2f dB", mLocalMax[0].Val);
-		else
-			sprintf(chNapis, "%.2f", mLocalMax[0].Val);
-		print(chNapis, x+10, y1-14, 0);
-		sprintf(chNapis, "%.0f Hz", fWypPix*mLocalMax[0].Pos);
-		print(chNapis, x+10, y1+2, 0);
-
-		x = AD_STARTX + mLocalMax[1].Pos * fWspWyp;
-		y1 = (AD_STARTY + AD_Y_SIZE) - (mLocalMax[1].Val * AD_Y_SIZE) / (AD_Y_DIV * DBDIV);
-		drawVLine(x, y1-4, 8);
-		drawHLine(x-4, y1, 8);
-		if (y1 < AD_STARTY+14)
-			y1 = AD_STARTY+14;		//obniż napis jeżeli jest za wysoko
-		else
-		if (y1 > AD_STARTY+AD_Y_SIZE-28)
-			y1 = AD_STARTY+AD_Y_SIZE-28;
-		if (fMenu[DF_SET_SCALE].chVal)
-			sprintf(chNapis, "%.2f dB", mLocalMax[1].Val);
-		else
-			sprintf(chNapis, "%.2f", mLocalMax[1].Val);
-		print(chNapis, x+10, y1-14, 0);
-		sprintf(chNapis, "%.0f Hz", fWypPix*mLocalMax[1].Pos);
-		print(chNapis, x+10, y1+2, 0);
-
-		//opis nagłówka
-		setFont(MidFont);
-		setColor(GREEN);
-		setBackColor(MENU_TLO_BAR);
-		sprintf(chNapis, "%ddB/div ", DBDIV);
-		print(chNapis, 30, 0, 0);
-
-		if (sProbekFFT)	//zabezpieczenie przed dzieleniem przez 0
-		{
-			sprintf(chNapis, "%dHz/div ", nFFTFreq[fMenu[DF_SET_FREQ].chVal]/20);
-			print(chNapis, 140, 0, 0);
-		}
-	}
-
-	*/
 	}
 }
 
@@ -323,12 +109,10 @@ void FFT_Motyl(stZesp_t *stWeWyP, stZesp_t *stWeWyN, stZesp_t *stWnk)
 // wyjscie: *xXomega
 // Czas wykonania: 61,7ms @256, 133,1 ms @512
 ////////////////////////////////////////////////////////////////////////////////
-void LiczFFT(stFFT_t *konfig)
+void LiczFFT(stFFT_t *konfig, uint8_t chIndeksWyniku)
 {
-	//struct complex xSumP, xSumN;
-	//unsigned short k, j, N, x, b;
 	uint16_t N, b, j;
-	float dTemp;
+	float fTemp;
 
 	//przepisz dane do struktury wyjściowej w kolejności odwróconego bitu
 	for (uint16_t k=0; k<konfig->sLiczbaProbek; k++)
@@ -349,7 +133,7 @@ void LiczFFT(stFFT_t *konfig)
 
 	for (uint16_t x=1; x<konfig->sWykladnikPotegi+1; x++)		//iteracje drzewa podziałów x^2=PROBEK_DRGANIA
 	{
-		N = pow(2, x);	//oblicz liczbę współczynników Wnk = N = 2^x
+		N = powf(2, x);	//oblicz liczbę współczynników Wnk = N = 2^x
 
 		//Przygotuj współczynniki Wnk dla pierwszej połowy zakresu (druga będzie identyczna ze znakiem minus)
 		for (uint16_t k=0; k<(N/2); k++)
@@ -362,9 +146,9 @@ void LiczFFT(stFFT_t *konfig)
 			else
 			{
 				//licz e^(-j2Pik/N)
-				dTemp = -2*M_PI*k/N;
-				xWnk_tab[k].Re= cos(dTemp);
-				xWnk_tab[k].Im= -sin(dTemp);
+				fTemp = -2*M_PI*k/N;
+				xWnk_tab[k].Re= cosf(fTemp);
+				xWnk_tab[k].Im= -sinf(fTemp);
 			}
 		}
 
@@ -377,6 +161,16 @@ void LiczFFT(stFFT_t *konfig)
 			}
 		}
 	}
+
+	for (uint16_t n=0; n<konfig->sLiczbaProbek/2; n++)
+	{
+		fTemp = sqrtf(xXomega[n].Re * xXomega[n].Re + xXomega[n].Im * xXomega[n].Im);	//moduł liczby zespolonej
+		if (fTemp > 0)
+			fWynikFFT[chIndeksWyniku][n] = log10(fTemp);
+		else
+			fWynikFFT[chIndeksWyniku][n] = 0;		//nie można liczyć logarytmu z zera i liczb ujemnych
+	}
+
 	konfig->chStatus =  FFT_GOTOWY_WYNIK;	//kasuj bit nowych danych i ustaw gotowość wyniku
 }
 

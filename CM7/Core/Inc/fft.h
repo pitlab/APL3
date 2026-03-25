@@ -15,6 +15,7 @@
 #define FFT_WYKLADNIK_MAX	12	//największy wykładnik FFT 2^12 = 4096
 #define FFT_MAX_ROZMIAR	4096	//największy rozmiar danych do liczenia FFT
 
+#define LICZBA_WYKRESOW_FFT	3
 //definicje  bajtu statusu
 #define FFT_NOWE_DANE		1
 #define FFT_GOTOWY_WYNIK	2
@@ -40,7 +41,8 @@ typedef struct
 
 void PobierzDaneDoFFT(void);
 void InicjujFFT(void);
-void LiczFFT(stFFT_t *konfig);
+//void LiczFFT(stFFT_t *konfig);
+void LiczFFT(stFFT_t *konfig, uint8_t chIndeksWyniku);
 void FFT_Motyl(stZesp_t *stWeWyP, stZesp_t *stWeWyN, stZesp_t *stWnk);
 stZesp_t MulComplex(stZesp_t stWejscie1, stZesp_t stWejscie2);
 stZesp_t AddComplex(stZesp_t stWejscie1, stZesp_t stWejscie2);
