@@ -80,6 +80,8 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Testy",							//STR_TESTY
 "Dane odbiornika RC",				//STR_DANE_ODBIORNIKA_RC
 "Kanaly ESC i serw",				//STR_DANE_WYJSC_RC
+"Akcelerometr",						//STR_AKCELETOMETR
+"Zyroskop",							//STR_ZYROSKOP
 };
 
 

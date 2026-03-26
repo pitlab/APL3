@@ -26,9 +26,12 @@
 
 
 //wykresy analizatora drgań FFT
-#define AD_STARTX	5		//współrzedna X początku wykresu
-#define AD_STARTY	22		//współrzedna Y początku wykresu
-#define AD_WSPADY	50		//wysokość wodospadu na dole ekranu
+#define FFT_ACC		0		//przychodzące dane to akceletrometry
+#define FFT_ZYR		1		//przychodzące datne to żyroskopy
+
+#define AD_STARTX	0		//współrzedna X początku wykresu
+#define AD_STARTY	18		//współrzedna Y początku wykresu
+#define AD_WSPADY	100		//wysokość wodospadu na dole ekranu
 #define AD_X_SIZE	(DISP_X_SIZE - AD_STARTX)	//szerokość wykresu (niezależna od rozmiaru FFT)
 #define	AD_Y_SIZE	(DISP_Y_SIZE - AD_STARTY - AD_WSPADY)	//wysokość wykresu
 #define AD_Y_DIV	6	//skala piskeli na dB
@@ -66,5 +69,5 @@ void PlaskiObrotMagnetometrow(void);
 void NastawyPID(uint8_t chKanal);
 uint8_t CzytajFramFoat(uint16_t sAdres, uint8_t chRozmiar, float *fDane);
 uint8_t CzytajFramChar(uint16_t sAdres, uint8_t chRozmiar, uint8_t *chDane);
-void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint16_t sKolor);
+void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych);
 #endif /* INC_LCD_H_ */

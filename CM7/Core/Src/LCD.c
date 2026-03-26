@@ -79,7 +79,7 @@ extern const unsigned short obr_narzedzia[0xFFC];
 extern const unsigned short obr_aparaturaRC[0xFFC];
 extern const unsigned short obr_bmp24[0xFFC];
 extern const unsigned short obr_bmp8[0xFFC];
-
+extern const unsigned short spectrum[0xFFC];
 
 //wygenerowane przez chata GPT
 extern const unsigned short obr_Polaczenie[0xFFC];
@@ -201,8 +201,8 @@ struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Cisn GNSS",	"Wyniki pom. czujnikow cisnienia i GNSS",	TP_POMIARY_CISN, 	obr_multimetr},
 	{"Odb RC",		"Dane z odbiornika RC",						TP_POMIARY_RC,		obr_aparaturaRC},
 	{"Wyj RC",		"Dane na wyjściach RC: serwa, ESC",			TP_POMIARY_SERWA,	obr_aparaturaRC},
-	{"FFT",			"FFT sygnalow wejsciowych",					TP_POMIARY_FFT,		obr_multimetr},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"FFT akcel",	"FFT akceleometrów",						TP_POMIARY_FFT_ACC,	spectrum},
+	{"FFT zyro",	"FFT akceleometrów",						TP_POMIARY_FFT_ZYR,	spectrum},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
 	{"TestDotyk",	"Testy panelu dotykowego",					TP_POMIARY_DOTYKU,			obr_dotyk_zolty},
@@ -1641,7 +1641,15 @@ uint8_t RysujEkran(void)
 		}
 		break;
 
-	case TP_POMIARY_FFT:	RysujFFT(&fWynikFFT[0][0], &stKonfigFFT, NIEBIESKI);
+	case TP_POMIARY_FFT_ACC:	RysujFFT(&fWynikFFT[0][0], &stKonfigFFT, FFT_ACC);	//FFT akcelerometrów
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+		}
+		break;
+
+	case TP_POMIARY_FFT_ZYR:	RysujFFT(&fWynikFFT[0][0], &stKonfigFFT, FFT_ZYR);	//FFT żyroskopów
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -4244,16 +4252,14 @@ void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sK
 // Parametry:
 // [we] *stWynik - wskaźnik na dane wynikowe FFT
 // [we] *stKonfig - wskaźnik na konfigurację FFT
-// [we] sKolor - kolor słupków
+// [we] chRodzajDanych - wskazuje na rodzaj danych z których robione jest FFT: 0 akcelerometry, 1 żyroskopy
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint16_t sKolor)
+void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 {
 	uint32_t nCzasFFT;
 	float fWspWypX;	//współczynnik wypełnienie ekranu danymi pomiarowymi w poziomie
 	float fZajetoscEkranu;		//wypełnienie ekranu danymi dodawanymi jako zmiennoprzecinkowe
-	//float fPixel;
-	//float fModuł;
 	float fOkno;
 	float fMinY, fMaxY;	//ekstrema wyniku FFT potrzebne do skalowania wykresu
 	int x1, x2, y1[LICZBA_WYKRESOW_FFT], y2;
@@ -4263,7 +4269,7 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint16_t sKolor)
 	if (chRysujRaz)
 	{
 		chRysujRaz = 0;
-		sprintf(chNapis, "FFT");
+		sprintf(chNapis, "FFT %sow", chNapisLcd[STR_AKCELETOMETR + (chRodzajDanych & 0x01)]);
 		BelkaTytulu(chNapis);
 	}
 
@@ -4284,7 +4290,7 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint16_t sKolor)
 				default: fOkno = 1;	break;	//okno prostokątne
 				}
 
-				stWejscie[n].Re = fOkno * fBuforPomiarow[w][n];		//przemnóż przez okno
+				stWejscie[n].Re = fOkno * fBuforPomiarow[w + chRodzajDanych * 3][n];		//przemnóż przez okno
 				stWejscie[n].Im = 0.0f;
 			}
 
@@ -4349,8 +4355,8 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint16_t sKolor)
 			for (uint8_t w=0; w<LICZBA_WYKRESOW_FFT; w++)	//iteracja po czujnikach
 			{
 				y2 = (AD_STARTY + AD_Y_SIZE) - (uint16_t)(((fWynikFFT[w][sIndexDanych] + fMinY) * AD_Y_SIZE) / (AD_Y_DIV * DBDIV));
-				if (y2 > AD_STARTY + AD_Y_SIZE)
-					y2 = AD_STARTY + AD_Y_SIZE;
+				if (y2 > AD_STARTY + AD_Y_SIZE - 1)
+					y2 = AD_STARTY + AD_Y_SIZE - 1;
 				else
 				if (y2 < AD_STARTY)
 					y2 = AD_STARTY;
@@ -4366,7 +4372,7 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint16_t sKolor)
 				case 5: setColor(ZOLTY);	break;	//oś Z
 				}
 
-				RysujLinie(x1, y1[w]+w, x2, y2+w);		//wykres liniowy
+				RysujLinie(x1, y1[w], x2, y2);		//wykres FFT
 				y1[w] = y2;
 			}
 

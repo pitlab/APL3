@@ -86,7 +86,7 @@
 #define POL7_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony przez poprzednie polecenie
 
 #define ROZMIAR_BUFORA_IMU	8		//rozmiar bufora kołowego przechowującego ostarnie dane z szybkiego IMU
-#define MASKA_BUFORA_IMU	0x03	//maska do zawijania bufora kołowego
+#define MASKA_BUFORA_IMU	0x07	//maska do zawijania bufora kołowego
 
 //definicje pól zmiennej chNowyPomiar
 #define NP_MAG1		0x01

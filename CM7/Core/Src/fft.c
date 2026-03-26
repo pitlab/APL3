@@ -14,7 +14,7 @@
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xXomega[FFT_MAX_ROZMIAR] = {0};		//wynik transformaty
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xWnk_tab[FFT_MAX_ROZMIAR] = {0};	//raz wyliczona tablica współczynników, stała dla danego rozmiaru wektora N do potęgi k
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) stWejscie[FFT_MAX_ROZMIAR] = {0};		//zmiennna wejściow
-float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fBuforPomiarow[LICZBA_WYKRESOW_FFT+1][FFT_MAX_ROZMIAR] = {0};	//bufor do zbierania danych wejściowych
+float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fBuforPomiarow[2 * LICZBA_WYKRESOW_FFT][FFT_MAX_ROZMIAR] = {0};	//bufor do zbierania danych wejściowych
 float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_WYKRESOW_FFT][FFT_MAX_ROZMIAR / 2] = {0};	//wartość sygnału wyjściowego
 stZesp_t xWn2;			//wartość stała dla danego rozmiaru wektora N
 stZesp_t xWnk;			//wartość stała dla danego rozmiaru wektora N do potęgi k
@@ -51,17 +51,13 @@ void PobierzDaneDoFFT(void)
 	while (uDaneCM4.dane.stSzybkieIMU.chIndeksProbki != chOstatniIndeksSzybkiegoIMU)
 	{
 		for (uint8_t n=0; n<3; n++)
-			fBuforPomiarow[0][sIndeksProbki] = uDaneCM4.dane.stSzybkieIMU.fAkcel[chOstatniIndeksSzybkiegoIMU][n];
-
-		//fBuforPomiarow[1][sIndeksProbki] = uDaneCM4.dane.fAkcel1[1];
-		//fBuforPomiarow[2][sIndeksProbki] = uDaneCM4.dane.fAkcel1[2];
-		/*fBuforPomiarow[3][sIndeksProbki] = uDaneCM4.dane.fZyroKal1[0];
-		fBuforPomiarow[4][sIndeksProbki] = uDaneCM4.dane.fZyroKal1[1];
-		fBuforPomiarow[5][sIndeksProbki] = uDaneCM4.dane.fZyroKal1[2];*/
-
-		fBuforPomiarow[3][sIndeksProbki] = uDaneCM4.dane.stSzybkieIMU.chIndeksProbki;	//test
+		{
+			fBuforPomiarow[n+0][sIndeksProbki] = uDaneCM4.dane.stSzybkieIMU.fAkcel[chOstatniIndeksSzybkiegoIMU][n];
+			fBuforPomiarow[n+3][sIndeksProbki] = uDaneCM4.dane.stSzybkieIMU.fZyro[chOstatniIndeksSzybkiegoIMU][n];
+		}
+		//fBuforPomiarow[3][sIndeksProbki] = uDaneCM4.dane.stSzybkieIMU.chIndeksProbki;	//test
 		chOstatniIndeksSzybkiegoIMU++;
-		chOstatniIndeksSzybkiegoIMU &= ~MASKA_BUFORA_IMU;
+		chOstatniIndeksSzybkiegoIMU &= MASKA_BUFORA_IMU;
 
 		sIndeksProbki++;
 		if (sIndeksProbki == stKonfigFFT.sLiczbaProbek)
@@ -69,6 +65,7 @@ void PobierzDaneDoFFT(void)
 			sIndeksProbki = 0;
 			stKonfigFFT.chStatus |= FFT_NOWE_DANE;		//mamy komplet danych, można liczyć FFT
 		}
+		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
 	}
 }
 

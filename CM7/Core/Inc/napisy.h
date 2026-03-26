@@ -77,8 +77,12 @@
 #define STR_TESTY					59
 #define STR_DANE_ODBIORNIKA_RC		60
 #define STR_DANE_WYJSC_RC			61
+#define STR_AKCELETOMETR			62
+#define STR_ZYROSKOP				63
+
+
 //#define STR_
-#define MAX_NAPISOW					62	//liczba napisów
+#define MAX_NAPISOW					64	//liczba napisów
 
 
 
