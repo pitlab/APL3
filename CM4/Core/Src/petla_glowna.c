@@ -89,6 +89,7 @@ void PetlaGlowna(void)
 	case ADR_MOD1:		//obsługa modułu w gnieździe 1
 		break;
 
+	case 11:	//moduł jest obsługiwany na 2 slotach aby szybciej dostarczać dane dla filtrów  i FFT
 	case ADR_MOD2:		//obsługa modułu w gnieździe 2
 		uint8_t chBlad = ObslugaModuluI2P(ADR_MOD2, &chStanIOwy);
 		if (chBlad)
@@ -164,8 +165,7 @@ void PetlaGlowna(void)
 		chBladPG |= AnalizujSygnalRC(&uDaneCM4.dane, &uDaneCM7.dane);
 		break;
 
-	case 10:	break;
-	case 11:
+	case 10:
 		//chBladPG |= PobierzDaneExpandera(&chStanIOwe);		//wszystkie porty ustawione na wyjściowe, nie ma co pobierać
 		chBladPG |= WyslijDaneExpandera(chStanIOwy); 	break;
 

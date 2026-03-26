@@ -27,7 +27,7 @@
 
 //wykresy analizatora drgań FFT
 #define AD_STARTX	5		//współrzedna X początku wykresu
-#define AD_STARTY	20		//współrzedna Y początku wykresu
+#define AD_STARTY	22		//współrzedna Y początku wykresu
 #define AD_WSPADY	50		//wysokość wodospadu na dole ekranu
 #define AD_X_SIZE	(DISP_X_SIZE - AD_STARTX)	//szerokość wykresu (niezależna od rozmiaru FFT)
 #define	AD_Y_SIZE	(DISP_Y_SIZE - AD_STARTY - AD_WSPADY)	//wysokość wykresu

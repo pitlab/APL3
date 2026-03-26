@@ -85,7 +85,8 @@
 
 #define POL7_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony przez poprzednie polecenie
 
-
+#define ROZMIAR_BUFORA_IMU	8		//rozmiar bufora kołowego przechowującego ostarnie dane z szybkiego IMU
+#define MASKA_BUFORA_IMU	0x03	//maska do zawijania bufora kołowego
 
 //definicje pól zmiennej chNowyPomiar
 #define NP_MAG1		0x01
@@ -133,6 +134,14 @@ typedef struct _BSP
 	float fPredkoscD;
 	float fKursGeo;
 } stBSP_t;
+
+//definicje struktury danych IMU potrzebnych do szybkich obliczeń typu filtry czy FFT
+typedef struct
+{
+	float fAkcel[ROZMIAR_BUFORA_IMU][3];		//[m/s^2]
+	float fZyro[ROZMIAR_BUFORA_IMU][3];			//[rad/s]
+	uint8_t chIndeksProbki;
+} stSzybkieIMU;
 
 typedef union
 {
@@ -182,18 +191,17 @@ typedef struct
 	int16_t sWyjscieRC[KANALY_WYJSC_RC];	//finalne wartość wysterowania serw lub silników po uwzględnieniu konfiguracji wyjść
 	int16_t sKanalRC[KANALY_ODB_RC];
 	uint8_t chTrybLotu;		//tryb lotu jako zestaw bitów określających funkcjonalności realizowane w danym czasie
-	//uint8_t chFlagiLotu;	//bity definiujące parametry lotu
 	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
 	uint8_t chErrPetliGlownej;
 	uint8_t chOdpowiedzNaPolecenie;	//potwierdzenie wykonania polecenia
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
 	uint32_t nBrakCzujnika;		//zestaw flag obecnosci czujników
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
-	//uint8_t chWymowSampla;		//indeks sampla głosowego do wymówienia
 	uint8_t chWykonajPolecenie;	//numer polecenia do wykonania przez CM7
 	uint8_t chPotwierdzenieWykonania;	//potwierdza wykonanie polecenia przysłanego przez CM7
 	uint32_t ndT;
 	stBSP_t stBSP;				//struktura zawierajaca syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
+	stSzybkieIMU stSzybkieIMU;	//struktura zawierajaca bufor kołowy szybkich  i indeks danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
 } stWymianyCM4_t;
 
 

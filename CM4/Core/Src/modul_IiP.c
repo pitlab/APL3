@@ -131,6 +131,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 {
 	uint8_t chErr;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
+	uint8_t chIndeksProbki;
 
 	//Ponieważ zegar SPI = 40MHz a układy mogą pracować z prędkością max 10MHz, przy każdym dostępie przestaw dzielnik zegara na 4
 	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
@@ -160,6 +161,17 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 
 	chErr |= UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres na module A0..1
 	chErr |= ObslugaLSM6DSV();
+
+	//napełnij bufor szybkiego IMU dla FFT
+	chIndeksProbki = uDaneCM4.dane.stSzybkieIMU.chIndeksProbki;
+	for (uint8_t n=0; n<3; n++)
+	{
+		uDaneCM4.dane.stSzybkieIMU.fAkcel[chIndeksProbki][n] = uDaneCM4.dane.fAkcel1[n];
+		uDaneCM4.dane.stSzybkieIMU.fZyro[chIndeksProbki][n] = uDaneCM4.dane.fZyroKal1[n];
+	}
+	chIndeksProbki++;
+	chIndeksProbki &= ~MASKA_BUFORA_IMU;
+	uDaneCM4.dane.stSzybkieIMU.chIndeksProbki = chIndeksProbki;
 
 	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))
 		KalibrujZeroZyroskopu();
