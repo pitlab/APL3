@@ -16,18 +16,14 @@
 #include "kamera.h"
 #include "display.h"
 #include "konfig_fram.h"
-
+#include "fft.h"
 
 uint32_t nOffsetDanych;
 int16_t sSzerZdjecia, sWysZdjecia;
 uint16_t sAdres;
 uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
-
-
 static un8_32_t un8_32;
 static un8_16_t un8_16;
-
-
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 extern stKonfKam_t stKonfKam;
@@ -42,8 +38,21 @@ extern uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adres i nazwę BSP
 extern uint8_t chStatusPolaczenia;
 extern uint8_t chWstrzymajTelemetrie;	//wartość niezerowa tymczasowo wstrzymuje działanie telemetrii
+extern stFFT_t stKonfigFFT;;
 
-uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDanych, uint8_t chInterfejs, uint8_t chAdresZdalny)
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja wykonuje zadania zdefiniowane dla wszystkich poleceń komunikacyjnych
+// Parametry:
+// [we] chPolecenie - indeks poelcenia komunikacyjnego
+// [we/wy] *chDane - wskaźnik na strukturę danych wejściowych lub wyjściowych z danymi do poleceń
+// [we] chRozmDanych - rozmiar danych z parametrami dla poleceń
+// [we] chInterfejs - wskazuje na interfejs komunikacyjny którym przyszło polecenie. Odpowiedź ma pójść tą samą drogą
+// [we] chAdresZdalny - identyfikuje urządzenie wysyłajace dane
+// Zwraca: kod będu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDanych, uint8_t chInterfejs, uint8_t chAdresZdalny)
 {
 	uint8_t n, chErr = BLAD_OK;
 	uint8_t chRozmiar;
@@ -478,6 +487,13 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t* chDane, uint8_t chRozmDan
 	case PK_PRZELADUJ_WSKAZN_LED:	//odczytaj konfigurację wskaźników LED z pamieci FRAM i załaduj do zmiennych aby wprowadzona zmiana stała się widoczna
 		uDaneCM7.dane.chWykonajPolecenie = POL7_PRZELADUJ_WSKAZN_LED;
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
+		break;
+
+	case PK_USTAW_PARAMETRY_FFT:
+		stKonfigFFT.chRodzajOkna =  chDane[0];
+		break;
+
+	case PK_ODCZYTAJ_WYNIKI_FFT:
 		break;
 
 	}

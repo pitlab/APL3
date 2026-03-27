@@ -91,6 +91,8 @@ typedef struct
 #define PK_WSTRZYMAJ_TELEMETRIE	32	//wstrzymuje lub wznawia wysyłnie telemetrii na czas transmisji innych danych
 #define PK_WYLACZ_POLECENIE_CM4	33	//wykonuje polecenie POL_NIC wyłączajac wykonywanie poprzedniego polecenia
 #define PK_PRZELADUJ_WSKAZN_LED	34	//odczytaj konfigurację wskaźników LED z pamieci FRAM i załaduj do zmiennych aby wprowadzona zmiana stała się widoczna
+#define PK_USTAW_PARAMETRY_FFT	35	//definiuje parametry Pracy FFT
+#define PK_ODCZYTAJ_WYNIKI_FFT	36	//odczytaj z pamiędci DRAM wyniki serii testów FFT dla akcelerometrów i żyroskopów
 
 #define PK_ILOSC_POLECEN		35	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
