@@ -33,8 +33,8 @@ void InicjujFFT(void)
 {
 	stKonfigFFT.chIndeksZmiennejWe = 2;
 	stKonfigFFT.chRodzajOkna = 1;
-	stKonfigFFT.sWykladnikPotegi = 10;
-	stKonfigFFT.sLiczbaProbek = (uint16_t)powf(2, stKonfigFFT.sWykladnikPotegi);
+	stKonfigFFT.chWykladnikPotegi = 10;
+	stKonfigFFT.sLiczbaProbek = (uint16_t)powf(2, stKonfigFFT.chWykladnikPotegi);
 }
 
 
@@ -124,7 +124,7 @@ void LiczFFT(stFFT_t *konfig, uint8_t chIndeksWyniku)
 		//odwróć bity w słowie o rozmiarze 2^sPotega
 		j = 0;
 		b = k;
-		for (uint16_t x=0; x<konfig->sWykladnikPotegi; x++)
+		for (uint16_t x=0; x<konfig->chWykladnikPotegi; x++)
 		{
 			j <<= 1;
 			j |= b & 1;
@@ -135,7 +135,7 @@ void LiczFFT(stFFT_t *konfig, uint8_t chIndeksWyniku)
 		xXomega[j].Im = stWejscie[k].Im;
 	}
 
-	for (uint16_t x=1; x<konfig->sWykladnikPotegi+1; x++)		//iteracje drzewa podziałów x^2=PROBEK_DRGANIA
+	for (uint16_t x=1; x<konfig->chWykladnikPotegi+1; x++)		//iteracje drzewa podziałów x^2=PROBEK_DRGANIA
 	{
 		N = powf(2, x);	//oblicz liczbę współczynników Wnk = N = 2^x
 

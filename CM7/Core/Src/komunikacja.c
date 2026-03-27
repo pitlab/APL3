@@ -39,7 +39,7 @@ extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adres i nazwę BSP
 extern uint8_t chStatusPolaczenia;
 extern uint8_t chWstrzymajTelemetrie;	//wartość niezerowa tymczasowo wstrzymuje działanie telemetrii
 extern stFFT_t stKonfigFFT;;
-
+extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_WYKRESOW_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -489,11 +489,46 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 
-	case PK_USTAW_PARAMETRY_FFT:
-		stKonfigFFT.chRodzajOkna =  chDane[0];
+	case PK_CZYTAJ_PARAMETRY_FFT:		//odczytaj parametry pracy FFT z APL3
+		chDane[0] = stKonfigFFT.chWykladnikPotegi;
+		chDane[1] = stKonfigFFT.chRodzajOkna;
+		chDane[2] = stKonfigFFT.chAktywnSilniki;
+		un8_16.dane16 = stKonfigFFT.sMaxWysterowanie;
+		chDane[3] = un8_16.dane8[0];
+		chDane[4] = un8_16.dane8[1];
+		chErr = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, 5, chDane, chInterfejs);
 		break;
 
-	case PK_ODCZYTAJ_WYNIKI_FFT:
+	case PK_ZAPISZ_PARAMETRY_FFT:	//zapisz parametry pracy FFT
+		chErr = WyslijRamke(chAdresZdalny, PK_ZAPISZ_PARAMETRY_FFT, 0, chDane, chInterfejs);
+		if (chErr == BLAD_OK)
+		{
+			stKonfigFFT.chWykladnikPotegi =  chDane[0];
+			stKonfigFFT.chRodzajOkna = chDane[1];
+			stKonfigFFT.chAktywnSilniki = chDane[2];
+
+			un8_16.dane8[0] = chDane[3];
+			un8_16.dane8[1] = chDane[4];
+			stKonfigFFT.sMaxWysterowanie = un8_16.dane16;
+		}
+		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
+		break;
+
+	case PK_CZYTAJ_WYNIKI_FFT:	//odczytaj z pamiędci DRAM wyniki serii testów FFT dla akcelerometrów i żyroskopów
+		uint8_t chTypZmiennej = chDane[0];
+		un8_16.dane8[0] = chDane[1];
+		un8_16.dane8[1] = chDane[2];
+		uint16_t sIndeksWyniku = un8_16.dane16;
+		uint8_t chIndeksPomiaru = chDane[3];
+		uint8_t chRozmiar = chDane[4];
+
+		for (uint8_t n=0; n<chRozmiar; n++)
+		{
+			un8_32.daneFloat = fWynikFFT[sIndeksWyniku][chTypZmiennej][chIndeksPomiaru + n];
+			for (uint8_t m=0; m<4; m++)
+				chDane[n * 4 + m] = un8_32.dane8[m];
+		}
+		chErr = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, chRozmiar * 4, chDane, chInterfejs);
 		break;
 
 	}
