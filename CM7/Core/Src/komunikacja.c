@@ -22,8 +22,8 @@ uint32_t nOffsetDanych;
 int16_t sSzerZdjecia, sWysZdjecia;
 uint16_t sAdres;
 uint8_t chStatusZdjecia;		//status gotowości wykonania zdjęcia
-static un8_32_t un8_32;
-static un8_16_t un8_16;
+static unia8_32_t un8_32;
+//static un8_16_t un8_16;
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 extern stKonfKam_t stKonfKam;
@@ -39,7 +39,7 @@ extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adres i nazwę BSP
 extern uint8_t chStatusPolaczenia;
 extern uint8_t chWstrzymajTelemetrie;	//wartość niezerowa tymczasowo wstrzymuje działanie telemetrii
 extern stFFT_t stKonfigFFT;;
-extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_WYKRESOW_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
+extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -216,15 +216,15 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		break;
 
 	case PK_ZAPISZ_BUFOR:
-		un8_16.dane8[0] = chDane[0];
-		un8_16.dane8[1] = chDane[1];
-		sWskBufSektora = un8_16.dane16;	//adres bezwzględny bufora
+		un8_32.dane8[0] = chDane[0];
+		un8_32.dane8[1] = chDane[1];
+		sWskBufSektora = un8_32.dane16[0];	//adres bezwzględny bufora
 		//przepisz dane 8-bitowe  i zapisz po konwersji w buforze 16-bitowym
 		for (uint8_t n=0; n<chDane[2]; n++)	//chDane[2] - rozmiar wyrażony w słowach
 		{
-			un8_16.dane8[0] = chDane[2*n+3];
-			un8_16.dane8[1] = chDane[2*n+4];
-			sBuforSektoraFlash[sWskBufSektora + n] = un8_16.dane16;
+			un8_32.dane8[0] = chDane[2*n+3];
+			un8_32.dane8[1] = chDane[2*n+4];
+			sBuforSektoraFlash[sWskBufSektora + n] = un8_32.dane16[0];
 		}
 		chErr = Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
@@ -295,10 +295,10 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 			Wyslij_KodBledu(chErr, chPolecenie, chInterfejs);
 			break;
 		}
-		un8_16.dane8[0] = chDane[1];	//adres zapisu
-		un8_16.dane8[1] = chDane[2];
-		sAdres = un8_16.dane16;						//zapamietaj adres do sprawdzenia czy już się zapisało
-		uDaneCM7.dane.sAdres = un8_16.dane16;		//adres zapisu bloku liczb
+		un8_32.dane8[0] = chDane[1];	//adres zapisu
+		un8_32.dane8[1] = chDane[2];
+		sAdres = un8_32.dane16[0];						//zapamietaj adres do sprawdzenia czy już się zapisało
+		uDaneCM7.dane.sAdres = un8_32.dane16[0];		//adres zapisu bloku liczb
 		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_FRAM_U8;
 		uDaneCM7.dane.chRozmiar = chDane[0];		//ilość liczb uint8_t
 		for (n=0; n<chDane[0]; n++)
@@ -313,10 +313,10 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 			Wyslij_KodBledu(chErr, chPolecenie, chInterfejs);
 			break;
 		}
-		un8_16.dane8[0] = chDane[1];	//adres zapisu
-		un8_16.dane8[1] = chDane[2];
-		sAdres = un8_16.dane16;						//zapamietaj adres do sprawdzenia czy już się zapisało
-		uDaneCM7.dane.sAdres = un8_16.dane16;		//adres zapisu bloku liczb
+		un8_32.dane8[0] = chDane[1];	//adres zapisu
+		un8_32.dane8[1] = chDane[2];
+		sAdres = un8_32.dane16[0];						//zapamietaj adres do sprawdzenia czy już się zapisało
+		uDaneCM7.dane.sAdres = un8_32.dane16[0];		//adres zapisu bloku liczb
 		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_FRAM_FLOAT;
 		uDaneCM7.dane.chRozmiar = chDane[0];		//ilość liczb float
 		for (n=0; n<chDane[0]; n++)
@@ -346,10 +346,10 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 			Wyslij_KodBledu(chErr, chPolecenie, chInterfejs);
 			break;
 		}
-		un8_16.dane8[0] = chDane[1];	//adres do odczytu
-		un8_16.dane8[1] = chDane[2];
-		sAdres = un8_16.dane16;			//zapamiętaj adres
-		uDaneCM7.dane.sAdres = un8_16.dane16;
+		un8_32.dane8[0] = chDane[1];	//adres do odczytu
+		un8_32.dane8[1] = chDane[2];
+		sAdres = un8_32.dane16[0];			//zapamiętaj adres
+		uDaneCM7.dane.sAdres = un8_32.dane16[0];
 		uDaneCM7.dane.chRozmiar = chDane[0];
 		uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_U8;
 		Wyslij_KodBledu(chErr, chPolecenie, chInterfejs);
@@ -362,10 +362,10 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 			Wyslij_KodBledu(chErr, chPolecenie, chInterfejs);
 			break;
 		}
-		un8_16.dane8[0] = chDane[1];	//adres do odczytu
-		un8_16.dane8[1] = chDane[2];
-		sAdres = un8_16.dane16;			//zapamiętaj adres
-		uDaneCM7.dane.sAdres = un8_16.dane16;
+		un8_32.dane8[0] = chDane[1];	//adres do odczytu
+		un8_32.dane8[1] = chDane[2];
+		sAdres = un8_32.dane16[0];			//zapamiętaj adres
+		uDaneCM7.dane.sAdres = un8_32.dane16[0];
 		uDaneCM7.dane.chRozmiar = chDane[0];
 		uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_FLOAT;
 		Wyslij_KodBledu(chErr, chPolecenie, chInterfejs);
@@ -493,9 +493,9 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		chDane[0] = stKonfigFFT.chWykladnikPotegi;
 		chDane[1] = stKonfigFFT.chRodzajOkna;
 		chDane[2] = stKonfigFFT.chAktywnSilniki;
-		un8_16.dane16 = stKonfigFFT.sMaxWysterowanie;
-		chDane[3] = un8_16.dane8[0];
-		chDane[4] = un8_16.dane8[1];
+		un8_32.dane16[0] = stKonfigFFT.sMaxWysterowanie;
+		chDane[3] = un8_32.dane8[0];
+		chDane[4] = un8_32.dane8[1];
 		chErr = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, 5, chDane, chInterfejs);
 		break;
 
@@ -507,24 +507,23 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 			stKonfigFFT.chRodzajOkna = chDane[1];
 			stKonfigFFT.chAktywnSilniki = chDane[2];
 
-			un8_16.dane8[0] = chDane[3];
-			un8_16.dane8[1] = chDane[4];
-			stKonfigFFT.sMaxWysterowanie = un8_16.dane16;
+			un8_32.dane8[0] = chDane[3];
+			un8_32.dane8[1] = chDane[4];
+			stKonfigFFT.sMaxWysterowanie = un8_32.dane16[0];
 		}
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 
 	case PK_CZYTAJ_WYNIKI_FFT:	//odczytaj z pamiędci DRAM wyniki serii testów FFT dla akcelerometrów i żyroskopów
-		uint8_t chTypZmiennej = chDane[0];
-		un8_16.dane8[0] = chDane[1];
-		un8_16.dane8[1] = chDane[2];
-		uint16_t sIndeksWyniku = un8_16.dane16;
-		uint8_t chIndeksPomiaru = chDane[3];
-		uint8_t chRozmiar = chDane[4];
+		uint8_t chRozmiar = chDane[0];				//liczba wyników FFT typu float w ramce (32)
+		uint8_t chIndeksRamkiWyniku = chDane[1];	//wskazuje na ramkę danych w ramach jednego FFT [0..63] =[(32/32)-1..(2048/32)-1]
+		uint8_t chIndeksZmiennej = chDane[2];		//indeks kolejnej zmiennej [0..5]
+		uint8_t chLiniaWodospadu = chDane[3];		//numer kolejnego FFT tworzącego wodospad [0..99]
+		uint16_t sIndeksWyniku = (uint16_t)chRozmiar * chIndeksRamkiWyniku;
 
 		for (uint8_t n=0; n<chRozmiar; n++)
 		{
-			un8_32.daneFloat = fWynikFFT[sIndeksWyniku][chTypZmiennej][chIndeksPomiaru + n];
+			un8_32.daneFloat = fWynikFFT[chLiniaWodospadu][chIndeksZmiennej][sIndeksWyniku + n];
 			for (uint8_t m=0; m<4; m++)
 				chDane[n * 4 + m] = un8_32.dane8[m];
 		}

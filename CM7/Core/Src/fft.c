@@ -10,12 +10,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "czas.h"
+#include "flash_konfig.h"
 
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xXomega[FFT_MAX_ROZMIAR] = {0};		//wynik transformaty
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xWnk_tab[FFT_MAX_ROZMIAR] = {0};	//raz wyliczona tablica współczynników, stała dla danego rozmiaru wektora N do potęgi k
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) stWejscie[FFT_MAX_ROZMIAR] = {0};		//zmiennna wejściow
 float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fBuforPomiarow[2 * LICZBA_WYKRESOW_FFT][FFT_MAX_ROZMIAR] = {0};	//bufor do zbierania danych wejściowych
-float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_WYKRESOW_FFT][FFT_MAX_ROZMIAR / 2] = {0};	//wartość sygnału wyjściowego
+float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2] = {0};	//wartość sygnału wyjściowego
 stZesp_t xWn2;			//wartość stała dla danego rozmiaru wektora N
 stZesp_t xWnk;			//wartość stała dla danego rozmiaru wektora N do potęgi k
 uint16_t sIndeksProbki;
@@ -24,6 +25,9 @@ stFFT_t stKonfigFFT;
 extern unia_wymianyCM4_t uDaneCM4;
 uint8_t chOstatniIndeksSzybkiegoIMU;
 
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizuje sprzet do pomiarów
 // Parametry: nic
@@ -31,10 +35,47 @@ uint8_t chOstatniIndeksSzybkiegoIMU;
 ////////////////////////////////////////////////////////////////////////////////
 void InicjujFFT(void)
 {
+	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
+	uint8_t chBłąd;
+	unia8_32_t un8_32;
+
+	chBłąd = CzytajPaczkeKonfigu(chPaczka,  FKON_KONFIGURACJA_FFT);
+	if (chBłąd == BLAD_OK)
+	{
+		stKonfigFFT.chIndeksZmiennejWe = chPaczka[2];
+		stKonfigFFT.chRodzajOkna = chPaczka[3];
+		stKonfigFFT.chWykladnikPotegi = chPaczka[4];
+		un8_32.dane8[0] = chPaczka[5];
+		un8_32.dane8[1] = chPaczka[6];
+		stKonfigFFT.sMaxWysterowanie = un8_32.dane16[0];
+	}
 	stKonfigFFT.chIndeksZmiennejWe = 2;
 	stKonfigFFT.chRodzajOkna = 1;
 	stKonfigFFT.chWykladnikPotegi = 10;
 	stKonfigFFT.sLiczbaProbek = (uint16_t)powf(2, stKonfigFFT.chWykladnikPotegi);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Zapisuje konfigurację FFT do FLASH
+// Parametry: nic
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ZapiszKonfiguracjejFFT(void)
+{
+	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
+	uint8_t chBłąd;
+	unia8_32_t un8_32;
+
+	chPaczka[2] = stKonfigFFT.chIndeksZmiennejWe;
+	chPaczka[3] = stKonfigFFT.chRodzajOkna;
+	chPaczka[4] = stKonfigFFT.chWykladnikPotegi;
+	un8_32.dane16[0] = stKonfigFFT.sMaxWysterowanie;
+	chPaczka[5] = un8_32.dane8[0];
+	chPaczka[6] = un8_32.dane8[1];
+	chBłąd = ZapiszPaczkeKonfigu(FKON_KONFIGURACJA_FFT, chPaczka);
+	return chBłąd;
 }
 
 
@@ -113,7 +154,7 @@ void FFT_Motyl(stZesp_t *stWeWyP, stZesp_t *stWeWyN, stZesp_t *stWnk)
 // wyjscie: *xXomega
 // Czas wykonania: 61,7ms @256, 133,1 ms @512
 ////////////////////////////////////////////////////////////////////////////////
-void LiczFFT(stFFT_t *konfig, uint8_t chIndeksWyniku)
+void LiczFFT(stFFT_t *konfig, uint8_t chCzujnik)
 {
 	uint16_t N, b, j;
 	float fTemp;
@@ -170,9 +211,9 @@ void LiczFFT(stFFT_t *konfig, uint8_t chIndeksWyniku)
 	{
 		fTemp = sqrtf(xXomega[n].Re * xXomega[n].Re + xXomega[n].Im * xXomega[n].Im);	//moduł liczby zespolonej
 		if (fTemp > 0)
-			fWynikFFT[konfig->chIndeksTestu][chIndeksWyniku][n] = log10(fTemp);
+			fWynikFFT[konfig->chIndeksTestu][chCzujnik][n] = log10(fTemp);
 		else
-			fWynikFFT[konfig->chIndeksTestu][chIndeksWyniku][n] = 0;		//nie można liczyć logarytmu z zera i liczb ujemnych
+			fWynikFFT[konfig->chIndeksTestu][chCzujnik][n] = 0;		//nie można liczyć logarytmu z zera i liczb ujemnych
 	}
 
 	konfig->chStatus =  FFT_GOTOWY_WYNIK;	//kasuj bit nowych danych i ustaw gotowość wyniku

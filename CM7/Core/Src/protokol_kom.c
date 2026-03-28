@@ -38,7 +38,7 @@ static uint16_t sCrc16We;
 static uint8_t chPolecenie;
 static uint8_t chRozmDanych;
 static uint8_t chDaneRamkiKom[ROZMIAR_DANYCH_KOMUNIKACJI];
-static un8_16_t un8_16;
+static unia8_32_t un8_32;
 stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
 const char* chNazwaSierotki = {"Sierotka Wronia"};	//domyślna nazwa nienazwanego BSP
 
@@ -439,11 +439,11 @@ uint8_t PrzygotujRamke(uint8_t chAdrZdalny, uint8_t chAdrLokalny,  uint8_t chZna
     for (uint8_t n=0; n<chRozmDanych; n++)
     	*(chRamka + 6 + n) = CRC->DR =  *(chDane + n);
 
-    un8_16.dane16 = (uint16_t)CRC->DR;
+    un8_32.dane16[0] = (uint16_t)CRC->DR;
     //zdjąć blokadę zasobu CRC
 
-    *(chRamka + chRozmDanych + 6) = un8_16.dane8[0];	//młodszy
-    *(chRamka + chRozmDanych + 7) = un8_16.dane8[1];	//starszy
+    *(chRamka + chRozmDanych + 6) = un8_32.dane8[0];	//młodszy
+    *(chRamka + chRozmDanych + 7) = un8_32.dane8[1];	//starszy
     return BLAD_OK;
 }
 

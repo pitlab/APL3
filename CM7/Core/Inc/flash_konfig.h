@@ -38,7 +38,9 @@
 #define FKON_OKRES_TELEMETRI15		0x10	//okresy wysyłania zmiennych telemetrycznych 210
 #define FKON_OKRES_TELEMETRI16		0x11	//okresy wysyłania zmiennych telemetrycznych 225
 #define FKON_OKRES_TELEMETRI17		0x12	//okresy wysyłania zmiennych telemetrycznych 240
-#define LICZBA_TYPOW_PACZEK			0x13
+#define FKON_KONFIGURACJA_FFT		0x13	//konfiguracja FFT
+
+#define LICZBA_TYPOW_PACZEK			0x14
 
 
 uint8_t InicjujKonfigFlash(void);

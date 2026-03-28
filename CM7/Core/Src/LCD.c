@@ -4002,7 +4002,7 @@ void NastawyPID(uint8_t chKanal)
 	float fNastawy[ROZMIAR_REG_PID/4];
 	uint8_t chTrybRegulatora[LICZBA_DRAZKOW];
 	uint8_t chErr;
-	un8_32_t un8_32;
+	unia8_32_t un8_32;
 
 	if (chRysujRaz)
 	{
@@ -4290,7 +4290,8 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 				default: fOkno = 1;	break;	//okno prostokątne
 				}
 
-				stWejscie[n].Re = fOkno * fBuforPomiarow[w + chRodzajDanych * 3][n];		//przemnóż przez okno
+				stWejscie[n].Re = fOkno * fBuforPomiarow[w + chRodzajDanych * LICZBA_WYKRESOW_FFT][n];		//przemnóż przez okno
+				//stWejscie[n].Re = fOkno * fBuforPomiarow[w][n];		//przemnóż przez okno
 				stWejscie[n].Im = 0.0f;
 			}
 

@@ -15,6 +15,7 @@
 #define FFT_WYKLADNIK_MAX	12		//największy wykładnik FFT 2^12 = 4096
 #define FFT_MAX_ROZMIAR		4096	//największy rozmiar danych do liczenia FFT
 #define LICZBA_TESTOW_FFT	100		//liczba warunków pracy dla których zdeto komplet FFT np, różnych wysterowań silników
+#define LICZBA_ZMIENNYCH_FFT	6
 #define LICZBA_WYKRESOW_FFT	3
 //definicje  bajtu statusu
 #define FFT_NOWE_DANE		1
@@ -40,10 +41,11 @@ typedef struct
 	uint16_t sMaxWysterowanie;	//wartość maksymalnego wysterowania silników dla testu rezonansu
 } stFFT_t;
 
+
 void PobierzDaneDoFFT(void);
 void InicjujFFT(void);
-//void LiczFFT(stFFT_t *konfig);
-void LiczFFT(stFFT_t *konfig, uint8_t chIndeksWyniku);
+uint8_t ZapiszKonfiguracjejFFT(void);
+void LiczFFT(stFFT_t *konfig, uint8_t chCzujnik);
 void FFT_Motyl(stZesp_t *stWeWyP, stZesp_t *stWeWyN, stZesp_t *stWnk);
 stZesp_t MulComplex(stZesp_t stWejscie1, stZesp_t stWejscie2);
 stZesp_t AddComplex(stZesp_t stWejscie1, stZesp_t stWejscie2);

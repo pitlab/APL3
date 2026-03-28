@@ -1,3 +1,14 @@
+#ifndef UNIA8_32
+#define UNIA8_32
+typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
+{
+	float daneFloat;
+	uint32_t dane32;
+	uint16_t dane16[2];
+	uint8_t dane8[4];
+} unia8_32_t;
+#endif
+
 //flagi inicjalizacji sprzętu CM4
 #define INIT_WYKR_MTK			0x00000001
 #define INIT_WYKR_UBLOX			0x00000002
@@ -282,7 +293,6 @@
 #define TL_AUTO			TL_STAB + BTR_NAWIG_AUTO	//lot autonomiczny z nawigają po punktach
 #define TL_LAD_AUTO		TL_AUTO + 1		//lądowanie w trybie autonomicznym
 #define TL_WZN_AUTO		TL_AUTO	+ 2		//kopter wznosi się na nominalnej prędkości pionowej
-
 
 
 

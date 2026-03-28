@@ -525,7 +525,7 @@ uint8_t UstawRozdzielczoscKamery(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_
 uint8_t UstawKamere(stKonfKam_t *konf)
 {
 	uint8_t chErr = 0;
-	un8_32_t un8_32;
+	unia8_32_t un8_32;
 
 	chErr = HAL_DCMI_Suspend(&hdcmi);	//zatrzymaj pracę na czas konfiguracji
 	if (konf->chKontrolaISP0 != stPoprzKonfig.chKontrolaISP0)	//zapisz tylko gdy była zmiana
@@ -757,7 +757,7 @@ uint8_t UstawKamere(stKonfKam_t *konf)
 uint8_t UstawKamere2(stKonfKam_t *konf)
 {
 	uint8_t chErr;
-	un8_32_t un8_32;
+	unia8_32_t un8_32;
 
 	//1. Najpierw rejestry kontrolne do grupy 0, bo one właczają ustawiane później funkcjonalności
 	stListaRejestrow[0].sRejestr = 0x5000;				//ISP control 00: [0] Color InterPolation enable

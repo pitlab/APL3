@@ -30,7 +30,7 @@ uint8_t chWstrzymajTelemetrie;	//wartość niezerowa tymczasowo wstrzymuje dzia�
 extern unia_wymianyCM4_t uDaneCM4;
 extern uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
 extern UART_HandleTypeDef hlpuart1;
-static un8_16_t un8_16;		//unia do konwersji między danymi 16 i 8 bit
+static unia8_32_t un8_32;		//unia do konwersji między danymi 16 i 8 bit
 extern volatile uint8_t chDoWyslania[1 + LICZBA_RAMEK_TELEMETR];	//lista rzeczy do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
 extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
 extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
@@ -390,9 +390,9 @@ void PrzygotujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chAdrL
 	for(uint16_t n=0; n < (chRozmDanych * 2 + LICZBA_BAJTOW_ID_TELEMETRII); n++)
 		CRC->DR = chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + n];
 
-	un8_16.dane16 = (uint16_t)CRC->DR;
-	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 0] =  un8_16.dane8[0];	//młodszy przodem
-	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 1] =  un8_16.dane8[1];	//starszy
+	un8_32.dane16[0] = (uint16_t)CRC->DR;
+	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 0] =  un8_32.dane8[0];	//młodszy przodem
+	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 1] =  un8_32.dane8[1];	//starszy
 
 	//return chRozmDanych * 2 + LICZBA_BAJTOW_ID_TELEMETRII + ROZMIAR_NAGLOWKA + ROZMIAR_CRC;
 }

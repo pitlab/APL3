@@ -37,7 +37,6 @@
 
 
 //konfiguracja kamery
-//typedef struct st_KonfKam
 typedef struct
 {
 	uint8_t chSzerWe;			//szerokość patrzenia przetwornika obrazu / KROK_ROZDZ_KAM
