@@ -24,17 +24,19 @@
 #define KOL12	5	//współrzędne x początku pierwszej z dwu kolumn danych
 #define KOL22	245	//współrzędne x początku drugiej z dwu kolumn danych
 
-
-//wykresy analizatora drgań FFT
+//dane do FFT
 #define FFT_ACC		0		//przychodzące dane to akceletrometry
 #define FFT_ZYR		1		//przychodzące datne to żyroskopy
 
-#define AD_STARTX	0		//współrzedna X początku wykresu
-#define AD_STARTY	18		//współrzedna Y początku wykresu
+//wykresy analizatora drgań FFT
+#define AD_STARTX	15		//współrzedna X początku wykresu
+#define AD_STARTY	20		//współrzedna Y początku wykresu
 #define AD_WSPADY	100		//wysokość wodospadu na dole ekranu
 #define AD_X_SIZE	(DISP_X_SIZE - AD_STARTX)	//szerokość wykresu (niezależna od rozmiaru FFT)
 #define	AD_Y_SIZE	(DISP_Y_SIZE - AD_STARTY - AD_WSPADY)	//wysokość wykresu
-#define AD_Y_DIV	6	//skala piskeli na dB
+#define AD_DZIALEK_SKALIY	6	//podziel całą skalę Y na tyle części
+#define AD_DZIALEK_0Y		4	//poziom 0 na skali Y jest na tylu działkach od góry
+#define AD_Y_DIV	4	//skala piskeli na dB
 #define DBDIV		1	//skalowanie: ilość dB/działkę
 #define WODOSPAD_SKALA_KOLORU	20
 

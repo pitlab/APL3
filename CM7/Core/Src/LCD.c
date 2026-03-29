@@ -161,7 +161,7 @@ uint32_t nCzas, nCzasHist;
 extern uint32_t nCzasBlend, nCzasLCD;
 extern stFFT_t stKonfigFFT;
 extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fBuforPomiarow[LICZBA_WYKRESOW_FFT][FFT_MAX_ROZMIAR];	//bufor do zbierania danych wejściowych
-extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_WYKRESOW_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
+extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
 extern stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) stWejscie[FFT_MAX_ROZMIAR];		//zmiennna wejściow
 extern stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xXomega[FFT_MAX_ROZMIAR];		//wynik transformaty
 uint8_t chLiniaWodospaduFFT;	//wskazuje którą linię wodospadu obecnie rysuje
@@ -4259,12 +4259,13 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 {
 	uint32_t nCzasFFT;
 	float fWspWypX;	//współczynnik wypełnienie ekranu danymi pomiarowymi w poziomie
-	float fZajetoscEkranu;		//wypełnienie ekranu danymi dodawanymi jako zmiennoprzecinkowe
+	float fZajetoscEkranu = 0;		//wypełnienie ekranu danymi dodawanymi jako zmiennoprzecinkowe
 	float fOkno;
-	float fMinY, fMaxY;	//ekstrema wyniku FFT potrzebne do skalowania wykresu
+	float fMinY;	//ekstrema wyniku FFT potrzebne do skalowania wykresu
 	int x1, x2, y1[LICZBA_WYKRESOW_FFT], y2;
 	uint16_t sIndexDanych;	//indeky kolejnych pobieranych danych
 	uint8_t chKolorRGB666[3];
+	uint8_t chIndeksWybranychWykresow;	//przy iteracji po 3 wykresach wskazuje na akcelerometry lub żyroskopy
 
 	if (chRysujRaz)
 	{
@@ -4276,7 +4277,7 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 	if (stKonfig->chStatus & FFT_NOWE_DANE)
 	{
 		nCzasFFT = PobierzCzasT6();
-		for (uint8_t w=0; w<LICZBA_WYKRESOW_FFT; w++)	//iteracja po czujnikach
+		for (uint8_t czujnik=0; czujnik<LICZBA_ZMIENNYCH_FFT; czujnik++)	//iteracja po czujnikach a nie po wykresach aby aplkkacja mogła pobrać wszystkie dane
 		{
 			for (uint16_t n=0; n<stKonfig->sLiczbaProbek; n++)
 			{
@@ -4290,30 +4291,18 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 				default: fOkno = 1;	break;	//okno prostokątne
 				}
 
-				stWejscie[n].Re = fOkno * fBuforPomiarow[w + chRodzajDanych * LICZBA_WYKRESOW_FFT][n];		//przemnóż przez okno
-				//stWejscie[n].Re = fOkno * fBuforPomiarow[w][n];		//przemnóż przez okno
+				stWejscie[n].Re = fOkno * fBuforPomiarow[czujnik][n];		//przemnóż przez okno
 				stWejscie[n].Im = 0.0f;
 			}
 
-			LiczFFT(stKonfig, w);
-
-			//znajdź esktrema wyniku aby skalować wykres w pionie. Pomiń 2 pierwsze próbki zawsze wysokie
-			fMinY = fMaxY = 0;
-			for (uint16_t n=2; n<stKonfig->sLiczbaProbek/2; n++)
-			{
-				if (fWynikFFT[stKonfig->chIndeksTestu][w][n] < fMinY)
-					fMinY = fWynikFFT[stKonfig->chIndeksTestu][w][n];
-				if (fWynikFFT[stKonfig->chIndeksTestu][w][n] > fMaxY)
-					fMaxY = fWynikFFT[stKonfig->chIndeksTestu][w][n];
-			}
+			LiczFFT(stKonfig, czujnik);
 		}
-		fMinY = fabs(fMinY);
-		fMinY = 2.5f;
+		fMinY = 2.5f;	//przyjmuję stały punkt odniesienia aby poziom zera był niezmienny
 
 		nCzasFFT = MinalCzas(nCzasFFT);
 		RysujProstokatWypelniony(0, MENU_NAG_WYS, DISP_X_SIZE, DISP_Y_SIZE - AD_WSPADY - AD_STARTY, CZARNY);	//czyści ekran
 		setColor(SZARY80);
-		sprintf(chNapis, "Czas FFT[%d]: %ld us", stKonfig->sLiczbaProbek, nCzasFFT);
+		sprintf(chNapis, "Czas FFT[6*%d]: %ld us", stKonfig->sLiczbaProbek, nCzasFFT);
 		RysujNapis(chNapis, 60, 20);
 
 		fWspWypX = (float)(AD_X_SIZE)/((stKonfig->sLiczbaProbek/2)-1);	//współczynnik wypełnienia ekranu danymi pikseli / wynik
@@ -4322,8 +4311,30 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 		sIndexDanych = 0;
 		x1 = AD_STARTX;
 
-		y2 = (AD_STARTY + AD_Y_SIZE) - (uint16_t)((fMinY * AD_Y_SIZE) / (AD_Y_DIV * DBDIV));
-		RysujLiniePozioma(x1, y2, AD_X_SIZE);	//oś X, poziom 0 dB
+		//rysuj podziałki i skalę pionową
+		for (uint8_t n=0; n<AD_DZIALEK_SKALIY + 1; n++)	//iteracja po liczbie podziałek na skali
+		{
+			y2 = AD_STARTY + n * (AD_Y_SIZE / AD_DZIALEK_SKALIY);
+			if (n == AD_DZIALEK_0Y)
+				setColor(SZARY40);	//kolor podziałki 0
+			else
+				setColor(SZARY20);	//kolor pozostałych podziałek
+			RysujLiniePozioma(x1, y2, AD_X_SIZE);
+
+			sprintf(chNapis, "%d", (int8_t)AD_DZIALEK_SKALIY - (AD_DZIALEK_SKALIY - AD_DZIALEK_0Y) - n);
+			RysujNapis(chNapis, 0, y2 - FONT_SH / 2);
+
+		}
+
+
+		/*y2 = (AD_STARTY + AD_Y_SIZE) - (uint16_t)(((fMinY + 2.0) * AD_Y_SIZE) / (AD_Y_DIV * DBDIV));
+		RysujLiniePozioma(x1, y2, AD_X_SIZE);	//oś X, poziom +2 dB
+
+		y2 = (AD_STARTY + AD_Y_SIZE) - (uint16_t)(((fMinY + 1.0) * AD_Y_SIZE) / (AD_Y_DIV * DBDIV));
+		RysujLiniePozioma(x1, y2, AD_X_SIZE);	//oś X, poziom +1 dB
+
+		y2 = (AD_STARTY + AD_Y_SIZE) - (uint16_t)(((fMinY - 1.0) * AD_Y_SIZE) / (AD_Y_DIV * DBDIV));
+		RysujLiniePozioma(x1, y2, AD_X_SIZE);	//oś X, poziom -1 dB*/
 
 		for (uint8_t w=0; w<LICZBA_WYKRESOW_FFT; w++)	//iteracja po czujnikach
 			y1[w] = AD_STARTY;
@@ -4355,7 +4366,9 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 			x2 = AD_STARTX + n;
 			for (uint8_t w=0; w<LICZBA_WYKRESOW_FFT; w++)	//iteracja po czujnikach
 			{
-				y2 = (AD_STARTY + AD_Y_SIZE) - (uint16_t)(((fWynikFFT[stKonfig->chIndeksTestu][w][sIndexDanych] + fMinY) * AD_Y_SIZE) / (AD_Y_DIV * DBDIV));
+				chIndeksWybranychWykresow = w + chRodzajDanych * LICZBA_WYKRESOW_FFT;
+
+				y2 = (AD_STARTY + AD_Y_SIZE) - (uint16_t)(((fWynikFFT[stKonfig->chIndeksTestu][chIndeksWybranychWykresow][sIndexDanych] + fMinY) * AD_Y_SIZE) / (AD_Y_DIV * DBDIV));
 				if (y2 > AD_STARTY + AD_Y_SIZE - 1)
 					y2 = AD_STARTY + AD_Y_SIZE - 1;
 				else
@@ -4381,9 +4394,9 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 			y2 = AD_STARTY + AD_Y_SIZE + chLiniaWodospaduFFT;
 
 			//ustaw kolor RGB
-			chKolorRGB666[0] = (fWynikFFT[stKonfig->chIndeksTestu][0][sIndexDanych] + fMinY) * WODOSPAD_SKALA_KOLORU;
-			chKolorRGB666[1] = (fWynikFFT[stKonfig->chIndeksTestu][1][sIndexDanych] + fMinY) * WODOSPAD_SKALA_KOLORU;
-			chKolorRGB666[2] = (fWynikFFT[stKonfig->chIndeksTestu][2][sIndexDanych] + fMinY) * WODOSPAD_SKALA_KOLORU;
+			chKolorRGB666[0] = (fWynikFFT[stKonfig->chIndeksTestu][0 + chRodzajDanych * LICZBA_WYKRESOW_FFT][sIndexDanych] + fMinY) * WODOSPAD_SKALA_KOLORU;
+			chKolorRGB666[1] = (fWynikFFT[stKonfig->chIndeksTestu][1 + chRodzajDanych * LICZBA_WYKRESOW_FFT][sIndexDanych] + fMinY) * WODOSPAD_SKALA_KOLORU;
+			chKolorRGB666[2] = (fWynikFFT[stKonfig->chIndeksTestu][2 + chRodzajDanych * LICZBA_WYKRESOW_FFT][sIndexDanych] + fMinY) * WODOSPAD_SKALA_KOLORU;
 			RysujPunkt(x2, y2, chKolorRGB666);
 			x1 = x2;
 		}

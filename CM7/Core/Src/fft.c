@@ -15,7 +15,7 @@
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xXomega[FFT_MAX_ROZMIAR] = {0};		//wynik transformaty
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xWnk_tab[FFT_MAX_ROZMIAR] = {0};	//raz wyliczona tablica współczynników, stała dla danego rozmiaru wektora N do potęgi k
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) stWejscie[FFT_MAX_ROZMIAR] = {0};		//zmiennna wejściow
-float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fBuforPomiarow[2 * LICZBA_WYKRESOW_FFT][FFT_MAX_ROZMIAR] = {0};	//bufor do zbierania danych wejściowych
+float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fBuforPomiarow[LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR] = {0};	//bufor do zbierania danych wejściowych
 float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2] = {0};	//wartość sygnału wyjściowego
 stZesp_t xWn2;			//wartość stała dla danego rozmiaru wektora N
 stZesp_t xWnk;			//wartość stała dla danego rozmiaru wektora N do potęgi k
