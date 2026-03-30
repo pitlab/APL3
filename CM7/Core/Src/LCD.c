@@ -4307,7 +4307,7 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 
 		fWspWypX = (float)(AD_X_SIZE)/((stKonfig->sLiczbaProbek/2)-1);	//współczynnik wypełnienia ekranu danymi pikseli / wynik
 
-		//wykres FFT
+
 		sIndexDanych = 0;
 		x1 = AD_STARTX;
 
@@ -4325,16 +4325,6 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 			RysujNapis(chNapis, 0, y2 - FONT_SH / 2);
 
 		}
-
-
-		/*y2 = (AD_STARTY + AD_Y_SIZE) - (uint16_t)(((fMinY + 2.0) * AD_Y_SIZE) / (AD_Y_DIV * DBDIV));
-		RysujLiniePozioma(x1, y2, AD_X_SIZE);	//oś X, poziom +2 dB
-
-		y2 = (AD_STARTY + AD_Y_SIZE) - (uint16_t)(((fMinY + 1.0) * AD_Y_SIZE) / (AD_Y_DIV * DBDIV));
-		RysujLiniePozioma(x1, y2, AD_X_SIZE);	//oś X, poziom +1 dB
-
-		y2 = (AD_STARTY + AD_Y_SIZE) - (uint16_t)(((fMinY - 1.0) * AD_Y_SIZE) / (AD_Y_DIV * DBDIV));
-		RysujLiniePozioma(x1, y2, AD_X_SIZE);	//oś X, poziom -1 dB*/
 
 		for (uint8_t w=0; w<LICZBA_WYKRESOW_FFT; w++)	//iteracja po czujnikach
 			y1[w] = AD_STARTY;
@@ -4363,12 +4353,13 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 				fZajetoscEkranu -= 1;	//odejmij piksel obrazu
 			}
 
+			//wykres FFT
 			x2 = AD_STARTX + n;
 			for (uint8_t w=0; w<LICZBA_WYKRESOW_FFT; w++)	//iteracja po czujnikach
 			{
 				chIndeksWybranychWykresow = w + chRodzajDanych * LICZBA_WYKRESOW_FFT;
+				y2 = (AD_STARTY + AD_Y_SIZE - AD_POZIOM_0DB) - (int16_t)(fWynikFFT[stKonfig->chIndeksTestu][chIndeksWybranychWykresow][sIndexDanych] * AD_Y_DIV);
 
-				y2 = (AD_STARTY + AD_Y_SIZE) - (uint16_t)(((fWynikFFT[stKonfig->chIndeksTestu][chIndeksWybranychWykresow][sIndexDanych] + fMinY) * AD_Y_SIZE) / (AD_Y_DIV * DBDIV));
 				if (y2 > AD_STARTY + AD_Y_SIZE - 1)
 					y2 = AD_STARTY + AD_Y_SIZE - 1;
 				else
