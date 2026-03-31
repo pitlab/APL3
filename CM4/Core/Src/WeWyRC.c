@@ -926,7 +926,14 @@ uint32_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM
 	case FSER_WE_RC14:
 	case FSER_WE_RC15:
 	case FSER_WE_RC16:	nWyjście = daneCM4->sKanalRC[chIndeksFunkcji - FSER_WE_RC1] + PPM_MIN;	break;	//przepisanie wejścia na wyjście z przesunięciem poziomów
-
+	case FSER_CM7_SILN1:	//dane do silników pochodzą z analizatora drgań w rdzeniu CM7 i są przekazywane przez strukturę unię uRozne
+	case FSER_CM7_SILN2:
+	case FSER_CM7_SILN3:
+	case FSER_CM7_SILN4:
+	case FSER_CM7_SILN5:
+	case FSER_CM7_SILN6:
+	case FSER_CM7_SILN7:
+	case FSER_CM7_SILN8:	nWyjście = uDaneCM7.dane.uRozne.U16[chIndeksFunkcji - FSER_CM7_SILN1];
 	default:	nWyjście = 0;
 	}
 	return nWyjście;
@@ -1126,15 +1133,12 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
 			if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] < WE_RC_M90) &&	(psDaneCM4->sKanalRC[chKanalDrazkaRC[PRZE]] > WE_RC_P90))
 			{
 				RozbrojSilniki(psDaneCM4, psDaneCM7);
-				//psDaneCM4->chWymowSampla = PGA_ROZBROJONY;
 			}
 
 			//sprawdź warunek uzbrojenia silników, czyli oba drążki w dół do środka
 			if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] > WE_RC_P90) &&	(psDaneCM4->sKanalRC[chKanalDrazkaRC[PRZE]] < WE_RC_M90))
 			{
 				chBłąd = UzbrojSilniki(psDaneCM4, psDaneCM7);
-				//if (chBłąd == BLAD_OK)
-					//psDaneCM4->chWymowSampla = PGA_UZBROJONY;
 			}
 		}
 	}

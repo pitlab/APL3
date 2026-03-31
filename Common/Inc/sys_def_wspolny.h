@@ -216,8 +216,17 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define FSER_WE_RC14			21
 #define FSER_WE_RC15			22
 #define FSER_WE_RC16			23
+#define FSER_CM7_SILN1			24	//dane do silników pochodzą z analizatora drgań w rdzeniu CM7 i są przekazywane przez strukturę unię uRozne
+#define FSER_CM7_SILN2			25
+#define FSER_CM7_SILN3			26
+#define FSER_CM7_SILN4			27
+#define FSER_CM7_SILN5			28
+#define FSER_CM7_SILN6			29
+#define FSER_CM7_SILN7			31
+#define FSER_CM7_SILN8			32
 
-#define LICZBA_FUNKCJI_SERW		24	//liczba dostępnych funkcji realizowanych przez kanały wyjsciowe RC
+
+#define LICZBA_FUNKCJI_SERW		33	//liczba dostępnych funkcji realizowanych przez kanały wyjsciowe RC
 
 //definicje temperatur kalibracji żyroskopów
 #define TEMP_KAL_ZIMNO		(10.f + KELVIN)

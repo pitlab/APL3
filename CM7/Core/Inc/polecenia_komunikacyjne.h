@@ -94,6 +94,7 @@ typedef struct
 #define PK_CZYTAJ_PARAMETRY_FFT	35	//odczytaj parametry pracy FFT z APL3
 #define PK_ZAPISZ_PARAMETRY_FFT	36	//zapisz parametry pracy FFT
 #define PK_CZYTAJ_WYNIKI_FFT	37	//odczytaj z pamiędci DRAM wyniki serii testów FFT dla akcelerometrów i żyroskopów
+#define PK_ROZP_ANALIZE_DRGAN	38	//rozpoczyna proces analizy drgań przez wykonywanie serii pomiarów FFT i coraz szybszym kręceniu silnikami
 
 #define PK_ILOSC_POLECEN		38	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 

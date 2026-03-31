@@ -82,7 +82,7 @@
 #define POL7_RESETUJ_CM4			37	//resetuj rdzeń CM4, zwykle po zmianie konfiguracji
 #define POL7_NORMALIZUJ_WEJ_RC		38	//normalizuj wskazane wejście RC
 #define POL7_PRZELADUJ_WSKAZN_LED	39	//odczytaj konfigurację wskaźników LED z pamieci FRAM i załaduj do zmiennych aby wprowadzona zmiana stała się widoczna
-
+#define POL7_WYSTERUJ_SILNIKI		40	//Włącz wysteruj silniki podanymi wartościami
 #define POL7_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony przez poprzednie polecenie
 
 #define ROZMIAR_BUFORA_IMU	8		//rozmiar bufora kołowego przechowującego ostarnie dane z szybkiego IMU

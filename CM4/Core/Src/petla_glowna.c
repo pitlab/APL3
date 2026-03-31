@@ -67,7 +67,7 @@ extern uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzy
 extern uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
 extern uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych
 extern uint8_t chTrybRegulacji[LICZBA_REG_PARAM];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
-
+extern uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wyjściowych
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -477,7 +477,14 @@ void WykonajPolecenieCM7(void)
 		break;
 
 	case POL7_PRZELADUJ_WSKAZN_LED: 		InicjujKoloryWS281x();	break;
+	case POL7_WYSTERUJ_SILNIKI:		//podmień źródło danych do silnika. Po zakonczeniu będzie potrzebne przeładowanie konfiguracj
+		for (uint16_t n=0; n<KANALY_MIKSERA; n++)	//
+		{
+			if (uDaneCM7.dane.uRozne.U8[16] & (0x01 << n))	//jeżeli ustawiony bit aktywacji silnika w teście
+			chFunkcjaWyjscRC[n] = FSER_CM7_SILN1 + n;
+		}
 
+		//nWyjście = PobierzWartoscWyjsciaRC(chFunkcjaWyjscRC[n], daneCM4);
 	}
 }
 

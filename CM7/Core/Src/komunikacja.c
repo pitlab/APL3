@@ -530,6 +530,9 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		chErr = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, chRozmiar * 4, chDane, chInterfejs);
 		break;
 
+	case PK_ROZP_ANALIZE_DRGAN:
+		break;
+
 	}
     return chErr;
 }
