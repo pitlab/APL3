@@ -157,8 +157,9 @@
 #define TP_POMIARY_CISN		91
 #define TP_POMIARY_RC		92	//dane z odbiornika RC
 #define TP_POMIARY_SERWA	93	//stan wyjść RC
-#define TP_POMIARY_FFT_ACC	94	//FFT akcelerometrów
-#define TP_POMIARY_FFT_ZYR	95	//FFT żyroskopów
+#define TP_POMIARY_ANALIZA_DRGAN	94	//obsługuje przechodzenie kolejnych etapów analizy drgań
+#define TP_POMIARY_FFT_ACC	95	//FFT akcelerometrów
+#define TP_POMIARY_FFT_ZYR	96	//FFT żyroskopów
 #define TP_POMIARY_DOTYKU	98
 #define TP_WROC_DO_POMIARY	99
 

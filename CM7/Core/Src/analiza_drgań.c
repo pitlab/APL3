@@ -15,10 +15,11 @@
 #include "czas.h"
 
 
-extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2] = {0};	//wartość sygnału wyjściowego
+extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
 extern stFFT_t stKonfigFFT;
 extern unia_wymianyCM4_t uDaneCM4;
-
+extern unia_wymianyCM7_t uDaneCM7;
+extern uint8_t chRysujRaz;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,17 +31,19 @@ extern unia_wymianyCM4_t uDaneCM4;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 {
+	uint8_t chBłąd = BLAD_OK;
 	//wejdź do trybu FFT akcelerometrów, wyświetl wykres
-	*chTrybPracy = TP_POMIARY_FFT_ACC;
+	*chTrybPracy = TP_POMIARY_ANALIZA_DRGAN;
 	chRysujRaz = 1;
 
-	//przekaź do CM4 wysterowanie wszystkich 8 silników a w ostatnim bajcie informacje który silnik ma pracować
+	//przekaź do CM4 etap testu, informacje który silnik ma pracować i górną granicę wysterwania. CM4 wyliczy sobie z tego wysterowanie dla wszystkich etapów
 	stKonfigFFT->chIndeksTestu = 0;
-	for (uint8_t n=0; n<8; n++)
-		uDaneCM4.dane.uRozne.U16[n] = 0;
+	uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
+	uDaneCM7.dane.uRozne.U8[1] = stKonfigFFT->chAktywnSilniki;
+	uDaneCM7.dane.uRozne.U16[1] = stKonfigFFT->sMaxWysterowanie;
+	uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 
-	uDaneCM4.dane.uRozne.U8[16] = stKonfigFFT->chAktywnSilniki;
-
+	return chBłąd;
 }
 
 
@@ -54,7 +57,20 @@ uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 {
+	uint8_t chBłąd = BLAD_OK;
+
+	if (stKonfigFFT->chIndeksTestu < LICZBA_TESTOW_FFT)
+	{
+		uDaneCM7.dane.uRozne.U8[0] = stKonfigFFT->chIndeksTestu;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
+		uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
+	}
+	else
+	{
+		uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
+		uDaneCM7.dane.uRozne.U8[1] = 0;	//aktywne siliki
+		uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
+	}
 	*chTrybPracy = TP_POMIARY_FFT_ZYR;
 	chRysujRaz = 1;
-
+	return chBłąd;
 }

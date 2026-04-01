@@ -477,7 +477,7 @@ void WykonajPolecenieCM7(void)
 		break;
 
 	case POL7_PRZELADUJ_WSKAZN_LED: 		InicjujKoloryWS281x();	break;
-	case POL7_WYSTERUJ_SILNIKI:		//podmień źródło danych do silnika. Po zakonczeniu będzie potrzebne przeładowanie konfiguracj
+	case POL7_WYSTERUJ_SILNIKI_AD:		//podmień źródło danych do silnika. Po zakonczeniu będzie potrzebne przeładowanie konfiguracj
 		for (uint16_t n=0; n<KANALY_MIKSERA; n++)	//
 		{
 			if (uDaneCM7.dane.uRozne.U8[16] & (0x01 << n))	//jeżeli ustawiony bit aktywacji silnika w teście

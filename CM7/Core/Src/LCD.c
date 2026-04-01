@@ -39,7 +39,7 @@
 #include "LCD_mem.h"
 #include "osd.h"
 #include "bmp.h"
-
+#include "analiza_drgań.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -1641,11 +1641,17 @@ uint8_t RysujEkran(void)
 		}
 		break;
 
+	case TP_POMIARY_ANALIZA_DRGAN:
+		if (stKonfigFFT.chStatus & FFT_NOWE_DANE)
+			KrokAnalizyDrgań(&stKonfigFFT, &chTrybPracy);
+		//intencjonalnie brakuje break, aby po zakończeniu wszedł w obsługę rysowania FFT
+
 	case TP_POMIARY_FFT_ACC:	RysujFFT(&fWynikFFT[0][0][0], &stKonfigFFT, FFT_ACC);	//FFT akcelerometrów
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//kasuj ewentualne polecenie wysterowania silników analizy drgań
 		}
 		break;
 
