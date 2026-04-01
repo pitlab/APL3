@@ -5,8 +5,8 @@
  *      Author: PitLab
  */
 
-#ifndef INC_ANALIZA_DRGAŃ_H_
-#define INC_ANALIZA_DRGAŃ_H_
+#ifndef INC_ANALIZA_DRGAN_H_
+#define INC_ANALIZA_DRGAN_H_
 
 #include "sys_def_CM7.h"
 #include "wymiana.h"
@@ -15,4 +15,4 @@
 uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy);
 uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy);
 
-#endif /* INC_ANALIZA_DRGAŃ_H_ */
+#endif /* INC_ANALIZA_DRGAN_H_ */

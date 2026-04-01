@@ -477,11 +477,13 @@ void WykonajPolecenieCM7(void)
 		break;
 
 	case POL7_PRZELADUJ_WSKAZN_LED: 		InicjujKoloryWS281x();	break;
-	case POL7_WYSTERUJ_SILNIKI_AD:		//podmień źródło danych do silnika. Po zakonczeniu będzie potrzebne przeładowanie konfiguracj
-		for (uint16_t n=0; n<KANALY_MIKSERA; n++)	//
+	case POL7_WYSTERUJ_SILNIKI_AD:
+		for (uint16_t n=0; n<KANALY_MIKSERA; n++)
 		{
-			if (uDaneCM7.dane.uRozne.U8[16] & (0x01 << n))	//jeżeli ustawiony bit aktywacji silnika w teście
-			chFunkcjaWyjscRC[n] = FSER_CM7_SILN1 + n;
+			if (uDaneCM7.dane.uRozne.U8[1] & (1 << n))	//czy jest ustawiony bit aktywacji silnika w teście
+				chFunkcjaWyjscRC[n] = FSER_AN_DRGAN;	//podmień źródło danych do silnika. Po zakonczeniu będzie potrzebne przeładowanie konfiguracji
+			else
+				chFunkcjaWyjscRC[n] = FSER_ZATRZYMANY;	//pozostałe silniki zatrzymaj
 		}
 
 		//nWyjście = PobierzWartoscWyjsciaRC(chFunkcjaWyjscRC[n], daneCM4);

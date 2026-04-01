@@ -37,7 +37,6 @@ void InicjujFFT(void)
 {
 	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
 	uint8_t chBłąd;
-	unia8_32_t un8_32;
 
 	chBłąd = CzytajPaczkeKonfigu(chPaczka,  FKON_KONFIGURACJA_FFT);
 	if (chBłąd == BLAD_OK)
@@ -45,9 +44,7 @@ void InicjujFFT(void)
 		stKonfigFFT.chIndeksZmiennejWe = chPaczka[2];
 		stKonfigFFT.chRodzajOkna = chPaczka[3];
 		stKonfigFFT.chWykladnikPotegi = chPaczka[4];
-		un8_32.dane8[0] = chPaczka[5];
-		un8_32.dane8[1] = chPaczka[6];
-		stKonfigFFT.sMaxWysterowanie = un8_32.dane16[0];
+		stKonfigFFT.chMaxWysterowanie = chPaczka[5];
 	}
 	stKonfigFFT.chIndeksZmiennejWe = 2;
 	stKonfigFFT.chRodzajOkna = 1;
@@ -66,14 +63,11 @@ uint8_t ZapiszKonfiguracjejFFT(void)
 {
 	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
 	uint8_t chBłąd;
-	unia8_32_t un8_32;
 
 	chPaczka[2] = stKonfigFFT.chIndeksZmiennejWe;
 	chPaczka[3] = stKonfigFFT.chRodzajOkna;
 	chPaczka[4] = stKonfigFFT.chWykladnikPotegi;
-	un8_32.dane16[0] = stKonfigFFT.sMaxWysterowanie;
-	chPaczka[5] = un8_32.dane8[0];
-	chPaczka[6] = un8_32.dane8[1];
+	chPaczka[5] = stKonfigFFT.chMaxWysterowanie;
 	chBłąd = ZapiszPaczkeKonfigu(FKON_KONFIGURACJA_FFT, chPaczka);
 	return chBłąd;
 }

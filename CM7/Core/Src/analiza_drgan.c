@@ -7,7 +7,7 @@
 // (c) PitLab 31 marzec 2026
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "analiza_drgań.h"
+#include <analiza_drgan.h>
 #include "fft.h"
 #include <math.h>
 #include <stdio.h>
@@ -40,7 +40,7 @@ uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 	stKonfigFFT->chIndeksTestu = 0;
 	uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 	uDaneCM7.dane.uRozne.U8[1] = stKonfigFFT->chAktywnSilniki;
-	uDaneCM7.dane.uRozne.U16[1] = stKonfigFFT->sMaxWysterowanie;
+	uDaneCM7.dane.uRozne.U8[2] = stKonfigFFT->chMaxWysterowanie;
 	uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 
 	return chBłąd;
@@ -64,13 +64,17 @@ uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 		uDaneCM7.dane.uRozne.U8[0] = stKonfigFFT->chIndeksTestu;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 		uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 	}
-	else
+	if (stKonfigFFT->chIndeksTestu == LICZBA_TESTOW_FFT)
 	{
 		uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 		uDaneCM7.dane.uRozne.U8[1] = 0;	//aktywne siliki
 		uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 	}
-	*chTrybPracy = TP_POMIARY_FFT_ZYR;
-	chRysujRaz = 1;
+	else
+	{
+		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;
+		*chTrybPracy = TP_POMIARY_FFT_ZYR;
+	}
+	//chRysujRaz = 1;
 	return chBłąd;
 }

@@ -6,6 +6,7 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <analiza_drgan.h>
 #include "komunikacja.h"
 #include "flash_konfig.h"
 #include "flash_nor.h"
@@ -493,10 +494,8 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		chDane[0] = stKonfigFFT.chWykladnikPotegi;
 		chDane[1] = stKonfigFFT.chRodzajOkna;
 		chDane[2] = stKonfigFFT.chAktywnSilniki;
-		un8_32.dane16[0] = stKonfigFFT.sMaxWysterowanie;
-		chDane[3] = un8_32.dane8[0];
-		chDane[4] = un8_32.dane8[1];
-		chErr = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, 5, chDane, chInterfejs);
+		chDane[3] = stKonfigFFT.chMaxWysterowanie;
+		chErr = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, 4, chDane, chInterfejs);
 		break;
 
 	case PK_ZAPISZ_PARAMETRY_FFT:	//zapisz parametry pracy FFT
@@ -506,10 +505,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 			stKonfigFFT.chWykladnikPotegi =  chDane[0];
 			stKonfigFFT.chRodzajOkna = chDane[1];
 			stKonfigFFT.chAktywnSilniki = chDane[2];
-
-			un8_32.dane8[0] = chDane[3];
-			un8_32.dane8[1] = chDane[4];
-			stKonfigFFT.sMaxWysterowanie = un8_32.dane16[0];
+			stKonfigFFT.chMaxWysterowanie = chDane[3];
 		}
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
@@ -530,8 +526,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		chErr = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, chRozmiar * 4, chDane, chInterfejs);
 		break;
 
-	case PK_ROZP_ANALIZE_DRGAN:
-		break;
+	case PK_ROZP_ANALIZE_DRGAN:	RozpocznijAnalizęDrgań(&stKonfigFFT, &chTrybPracy);		break;
 
 	}
     return chErr;

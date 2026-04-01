@@ -7,6 +7,7 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <analiza_drgan.h>
 #include "LCD.h"
 #include <stdio.h>
 #include <math.h>
@@ -39,7 +40,6 @@
 #include "LCD_mem.h"
 #include "osd.h"
 #include "bmp.h"
-#include "analiza_drgań.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -203,7 +203,7 @@ struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wyj RC",		"Dane na wyjściach RC: serwa, ESC",			TP_POMIARY_SERWA,	obr_aparaturaRC},
 	{"FFT akcel",	"FFT akceleometrów",						TP_POMIARY_FFT_ACC,	spectrum},
 	{"FFT zyro",	"FFT akceleometrów",						TP_POMIARY_FFT_ZYR,	spectrum},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"Drgania",		"Test rezonansu ramy",						TP_POMIARY_ANALIZA_DRGAN, spectrum},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
 	{"TestDotyk",	"Testy panelu dotykowego",					TP_POMIARY_DOTYKU,			obr_dotyk_zolty},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
