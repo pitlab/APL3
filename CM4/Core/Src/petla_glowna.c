@@ -485,7 +485,7 @@ void WykonajPolecenieCM7(void)
 			else
 				chFunkcjaWyjscRC[n] = FSER_ZATRZYMANY;	//pozostałe silniki zatrzymaj
 		}
-
+		break;
 		//nWyjście = PobierzWartoscWyjsciaRC(chFunkcjaWyjscRC[n], daneCM4);
 	}
 }

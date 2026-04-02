@@ -164,7 +164,7 @@ extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"
 extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
 extern stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) stWejscie[FFT_MAX_ROZMIAR];		//zmiennna wejściow
 extern stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xXomega[FFT_MAX_ROZMIAR];		//wynik transformaty
-uint8_t chLiniaWodospaduFFT;	//wskazuje którą linię wodospadu obecnie rysuje
+
 
 //Definicje ekranów menu
 struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
@@ -1642,9 +1642,11 @@ uint8_t RysujEkran(void)
 		break;
 
 	case TP_POMIARY_ANALIZA_DRGAN:
+		if (chRysujRaz)
+			RozpocznijAnalizęDrgań(&stKonfigFFT, &chTrybPracy);
 		if (stKonfigFFT.chStatus & FFT_NOWE_DANE)
 			KrokAnalizyDrgań(&stKonfigFFT, &chTrybPracy);
-		//intencjonalnie brakuje break, aby po zakończeniu wszedł w obsługę rysowania FFT
+		//intencjonalnie brakuje break; aby po zakończeniu wszedł w obsługę rysowania FFT
 
 	case TP_POMIARY_FFT_ACC:	RysujFFT(&fWynikFFT[0][0][0], &stKonfigFFT, FFT_ACC);	//FFT akcelerometrów
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
@@ -4308,7 +4310,7 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 		nCzasFFT = MinalCzas(nCzasFFT);
 		RysujProstokatWypelniony(0, MENU_NAG_WYS, DISP_X_SIZE, DISP_Y_SIZE - AD_WSPADY - AD_STARTY, CZARNY);	//czyści ekran
 		setColor(SZARY80);
-		sprintf(chNapis, "Czas FFT[6*%d]: %ld us", stKonfig->sLiczbaProbek, nCzasFFT);
+		sprintf(chNapis, "Czas FFT[6*%d]: %ld us, %d/%d", stKonfig->sLiczbaProbek, nCzasFFT, stKonfig->chIndeksTestu, LICZBA_TESTOW_FFT);
 		RysujNapis(chNapis, 60, 20);
 
 		fWspWypX = (float)(AD_X_SIZE)/((stKonfig->sLiczbaProbek/2)-1);	//współczynnik wypełnienia ekranu danymi pikseli / wynik
@@ -4387,8 +4389,8 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 				y1[w] = y2;
 			}
 
-			//rysuj wodospad
-			y2 = AD_STARTY + AD_Y_SIZE + chLiniaWodospaduFFT;
+			//rysuj wodospad o rozmiarze LICZBA_TESTOW_FFT
+			y2 = AD_STARTY + AD_Y_SIZE + stKonfig->chIndeksTestu;
 
 			//ustaw kolor RGB
 			chKolorRGB666[0] = (fWynikFFT[stKonfig->chIndeksTestu][0 + chRodzajDanych * LICZBA_WYKRESOW_FFT][sIndexDanych] + fMinY) * WODOSPAD_SKALA_KOLORU;
@@ -4397,9 +4399,6 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 			RysujPunkt(x2, y2, chKolorRGB666);
 			x1 = x2;
 		}
-		chLiniaWodospaduFFT++;
-		if (chLiniaWodospaduFFT > AD_WSPADY)
-			chLiniaWodospaduFFT = 0;
 		stKonfig->chIndeksTestu++;
 		if (stKonfig->chIndeksTestu > LICZBA_TESTOW_FFT)
 			stKonfig->chIndeksTestu = 0;

@@ -1837,7 +1837,6 @@ void WatekWyswietlacza(void const * argument)
 			chBłąd = RysujEkran();
 			if (chBłąd)
 				chCzasSwieceniaLED[LED_ZIEL] = 3;	//x0,1s - sygnalizacja błędów obsługi poleceń
-			//osDelay(1);
 		}
 		else
 			osDelay(1000);

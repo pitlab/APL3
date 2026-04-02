@@ -913,6 +913,7 @@ uint32_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM
 	case FSER_SILNIK6:
 	case FSER_SILNIK7:
 	case FSER_SILNIK8:	nWyjście = daneCM4->sSilnik[chIndeksFunkcji - FSER_SILNIK1];	break;	//steruj silnikiem 1
+
 	case FSER_WE_RC1:
 	case FSER_WE_RC2:
 	case FSER_WE_RC3:
@@ -929,24 +930,15 @@ uint32_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM
 	case FSER_WE_RC14:
 	case FSER_WE_RC15:
 	case FSER_WE_RC16:	nWyjście = daneCM4->sKanalRC[chIndeksFunkcji - FSER_WE_RC1] + PPM_MIN;	break;	//przepisanie wejścia na wyjście z przesunięciem poziomów
+
 	case FSER_AN_DRGAN:	//dane do silników pochodzą z analizatora drgań w rdzeniu CM7. Wytyczne do ich obliczenia są przekazywane przez strukturę unię uRozne
-						//uDaneCM7.dane.uRozne.U8[0] - indeks etapu badania: 0..LICZBA_TESTOW_FFT
-						//uDaneCM7.dane.uRozne.U8[1] - stKonfigFFT->chAktywnSilniki;
+	 					//uDaneCM7.dane.uRozne.U8[0] - indeks etapu badania: 0..LICZBA_TESTOW_FFT
+	 					//uDaneCM7.dane.uRozne.U8[1] - stKonfigFFT->chAktywnSilniki;
 						//uDaneCM7.dane.uRozne.U8[2] - stKonfigFFT->chMaxWysterowanie; - procentowa wartość wysterowania względem maksimum
+		uint16_t sWysterowanieMaxAD = (sWysterowanieMax - sWysterowanieMin) * uDaneCM7.dane.uRozne.U8[2] / 100;	//pula ograniczonego zakresu sterowania
+		nWyjście = sWysterowanieMin + sWysterowanieMaxAD * uDaneCM7.dane.uRozne.U8[0] / LICZBA_TESTOW_FFT;		//bieżące wysterowanie
+		break;
 
-		if (uDaneCM7.dane.uRozne.U8[1] & (1 << chIndeksFunkcji))	//czy bieżący silnik jest aktywny
-		{
-			uint16_t sWysterowanieMaxAD = (sWysterowanieMax - sWysterowanieMin) * uDaneCM7.dane.uRozne.U8[2] / 100;	//pula ograniczonego zakresu sterowania
-			nWyjście = sWysterowanieMin + sWysterowanieMaxAD * uDaneCM7.dane.uRozne.U8[0] / LICZBA_TESTOW_FFT;		//bieżące wysterowanie
-		}
-
-	/*case FSER_CM7_SILN2:
-	case FSER_CM7_SILN3:
-	case FSER_CM7_SILN4:
-	case FSER_CM7_SILN5:
-	case FSER_CM7_SILN6:
-	case FSER_CM7_SILN7:
-	case FSER_CM7_SILN8:	nWyjście = uDaneCM7.dane.uRozne.U16[chIndeksFunkcji - FSER_CM7_SILN1];*/
 	case FSER_ZATRZYMANY:
 	default:	nWyjście = 0;
 	}

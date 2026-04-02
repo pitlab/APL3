@@ -32,6 +32,7 @@ extern uint8_t chRysujRaz;
 uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 {
 	uint8_t chBłąd = BLAD_OK;
+
 	//wejdź do trybu FFT akcelerometrów, wyświetl wykres
 	*chTrybPracy = TP_POMIARY_ANALIZA_DRGAN;
 	chRysujRaz = 1;
@@ -64,6 +65,7 @@ uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 		uDaneCM7.dane.uRozne.U8[0] = stKonfigFFT->chIndeksTestu;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 		uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 	}
+	else
 	if (stKonfigFFT->chIndeksTestu == LICZBA_TESTOW_FFT)
 	{
 		uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
@@ -73,8 +75,7 @@ uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 	else
 	{
 		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;
-		*chTrybPracy = TP_POMIARY_FFT_ZYR;
+		*chTrybPracy = TP_POMIARY_FFT_ACC;
 	}
-	//chRysujRaz = 1;
 	return chBłąd;
 }

@@ -210,7 +210,7 @@ void LiczFFT(stFFT_t *konfig, uint8_t chCzujnik)
 			fWynikFFT[konfig->chIndeksTestu][chCzujnik][n] = 0;		//nie można liczyć logarytmu z zera i liczb ujemnych
 	}
 
-	konfig->chStatus =  FFT_GOTOWY_WYNIK;	//kasuj bit nowych danych i ustaw gotowość wyniku
+	konfig->chStatus = FFT_GOTOWY_WYNIK;	//kasuj bit nowych danych i ustaw gotowość wyniku
 }
 
 
