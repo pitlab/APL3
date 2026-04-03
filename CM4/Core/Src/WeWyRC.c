@@ -58,6 +58,7 @@ uint8_t chFunkcjaMinKanaluRC[KANALY_FUNKCYJNE];		//funkcje przypisane do rozszer
 uint8_t chFunkcjaMaxKanaluRC[KANALY_FUNKCYJNE];		//funkcje przypisane do rozszerzonych kanałów wejściowych odbiornika RC ustawionych na maksimum
 
 uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wyjściowych
+uint8_t chFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silników: normalna praca lub analiza FFT rezonansu drgań ramy
 uint8_t chRozmiarSekwencjiDMA[KANALY_MIKSERA+1];	//rozmiar paczki danych przesyłanych do DMA w zależności od częstotliwości odświezania. Dla 400Hz paczka ma 1 ważną daną, dla 200Hz jedną ważną i jedną nieważną, dla 50Hz jest 1 ważna i 7 pustych
 uint8_t chBityKonfiguracji = 0;
 uint16_t sFlagiNapelnieniaBuforow;
@@ -154,6 +155,10 @@ uint8_t InicjujWejsciaRC(void)
     	chBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MIN_KAN_RC + n, &chFunkcjaMinKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na minimum
     	chBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MAX_KAN_RC + n, &chFunkcjaMaxKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na maksimum
     }
+
+    //domyślnie silniki pełnią funkcję napedu
+    for (uint16_t n=0; n<KANALY_MIKSERA; n++)
+    	chFunkcjaSilnika[n] = FSIL_NAPED;
 
     //ustaw kolor LEDów
     chBłąd |= InicjujKoloryWS281x();
@@ -905,42 +910,47 @@ uint32_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM
 
 	switch(chIndeksFunkcji)
 	{
-	case FSER_SILNIK1:
-	case FSER_SILNIK2:
-	case FSER_SILNIK3:
-	case FSER_SILNIK4:
-	case FSER_SILNIK5:
-	case FSER_SILNIK6:
-	case FSER_SILNIK7:
-	case FSER_SILNIK8:	nWyjście = daneCM4->sSilnik[chIndeksFunkcji - FSER_SILNIK1];	break;	//steruj silnikiem 1
+	case FWYRC_SILNIK1:
+	case FWYRC_SILNIK2:
+	case FWYRC_SILNIK3:
+	case FWYRC_SILNIK4:
+	case FWYRC_SILNIK5:
+	case FWYRC_SILNIK6:
+	case FWYRC_SILNIK7:
+	case FWYRC_SILNIK8:
+		switch (chFunkcjaSilnika[chIndeksFunkcji - FWYRC_SILNIK1])
+		{
+		case FSIL_NAPED:	nWyjście = daneCM4->sSilnik[chIndeksFunkcji - FWYRC_SILNIK1];	break;				//normalna praca silnika jako napęd
+		case FSIL_AN_DRGAN:		//dane do silników pochodzą z analizatora drgań w rdzeniu CM7. Wytyczne do ich obliczenia są przekazywane przez strukturę unię uRozne
+			 					//uDaneCM7.dane.uRozne.U8[0] - indeks etapu badania: 0..LICZBA_TESTOW_FFT
+			 					//uDaneCM7.dane.uRozne.U8[1] - stKonfigFFT->chAktywnSilniki;
+								//uDaneCM7.dane.uRozne.U8[2] - stKonfigFFT->chMaxWysterowanie; - procentowa wartość wysterowania względem maksimum
+				uint16_t sWysterowanieMaxAD = (sWysterowanieMax - sWysterowanieMin) * uDaneCM7.dane.uRozne.U8[2] / 100;	//pula ograniczonego zakresu sterowania
+				nWyjście = sWysterowanieMin + sWysterowanieMaxAD * uDaneCM7.dane.uRozne.U8[0] / LICZBA_TESTOW_FFT;		//bieżące wysterowanie
+				break;
 
-	case FSER_WE_RC1:
-	case FSER_WE_RC2:
-	case FSER_WE_RC3:
-	case FSER_WE_RC4:
-	case FSER_WE_RC5:
-	case FSER_WE_RC6:
-	case FSER_WE_RC7:
-	case FSER_WE_RC8:
-	case FSER_WE_RC9:
-	case FSER_WE_RC10:
-	case FSER_WE_RC11:
-	case FSER_WE_RC12:
-	case FSER_WE_RC13:
-	case FSER_WE_RC14:
-	case FSER_WE_RC15:
-	case FSER_WE_RC16:	nWyjście = daneCM4->sKanalRC[chIndeksFunkcji - FSER_WE_RC1] + PPM_MIN;	break;	//przepisanie wejścia na wyjście z przesunięciem poziomów
-
-	case FSER_AN_DRGAN:	//dane do silników pochodzą z analizatora drgań w rdzeniu CM7. Wytyczne do ich obliczenia są przekazywane przez strukturę unię uRozne
-	 					//uDaneCM7.dane.uRozne.U8[0] - indeks etapu badania: 0..LICZBA_TESTOW_FFT
-	 					//uDaneCM7.dane.uRozne.U8[1] - stKonfigFFT->chAktywnSilniki;
-						//uDaneCM7.dane.uRozne.U8[2] - stKonfigFFT->chMaxWysterowanie; - procentowa wartość wysterowania względem maksimum
-		uint16_t sWysterowanieMaxAD = (sWysterowanieMax - sWysterowanieMin) * uDaneCM7.dane.uRozne.U8[2] / 100;	//pula ograniczonego zakresu sterowania
-		nWyjście = sWysterowanieMin + sWysterowanieMaxAD * uDaneCM7.dane.uRozne.U8[0] / LICZBA_TESTOW_FFT;		//bieżące wysterowanie
+		case FSIL_ZATRZYMANY:	//silnik jest zatrzymany, bo nie bierze udziału w analizie drgań
+		default:	nWyjście = 0;	break;
+		}
 		break;
 
-	case FSER_ZATRZYMANY:
-	default:	nWyjście = 0;
+	case FWYRC_WE_RC1:
+	case FWYRC_WE_RC2:
+	case FWYRC_WE_RC3:
+	case FWYRC_WE_RC4:
+	case FWYRC_WE_RC5:
+	case FWYRC_WE_RC6:
+	case FWYRC_WE_RC7:
+	case FWYRC_WE_RC8:
+	case FWYRC_WE_RC9:
+	case FWYRC_WE_RC10:
+	case FWYRC_WE_RC11:
+	case FWYRC_WE_RC12:
+	case FWYRC_WE_RC13:
+	case FWYRC_WE_RC14:
+	case FWYRC_WE_RC15:
+	case FWYRC_WE_RC16:	nWyjście = daneCM4->sKanalRC[chIndeksFunkcji - FWYRC_WE_RC1] + PPM_MIN;	break;	//przepisanie wejścia na wyjście z przesunięciem poziomów
+	default:	nWyjście = 0;	break;
 	}
 	return nWyjście;
 }

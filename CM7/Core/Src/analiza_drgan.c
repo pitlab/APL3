@@ -70,12 +70,12 @@ uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 	{
 		uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 		uDaneCM7.dane.uRozne.U8[1] = 0;	//aktywne siliki
-		uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
+		uDaneCM7.dane.chWykonajPolecenie = POL7_PRZYWROC_NAPED;	//przywróć funkcję napędu dla silników po analizie FFT rezonansu ramy
 	}
 	else
 	{
 		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;
-		*chTrybPracy = TP_POMIARY_FFT_ACC;
+		*chTrybPracy = TP_MENU_GLOWNE;
 	}
 	return chBłąd;
 }

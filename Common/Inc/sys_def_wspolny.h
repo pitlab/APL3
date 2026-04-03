@@ -192,34 +192,40 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 
 
 //definicje funkcji realizowanych przez kanały wyjściowe RC przechowywane w zmiennej chFunkcjaSerwa[]
-#define FSER_SILNIK1			0	//steruj silnikiem 1
-#define FSER_SILNIK2			1
-#define FSER_SILNIK3			2
-#define FSER_SILNIK4			3
-#define FSER_SILNIK5			4
-#define FSER_SILNIK6			5
-#define FSER_SILNIK7			6
-#define FSER_SILNIK8			7
-#define FSER_WE_RC1				8
-#define FSER_WE_RC2				9
-#define FSER_WE_RC3				10
-#define FSER_WE_RC4				11
-#define FSER_WE_RC5				12
-#define FSER_WE_RC6				13
-#define FSER_WE_RC7				14
-#define FSER_WE_RC8				15
-#define FSER_WE_RC9				16
-#define FSER_WE_RC10			17
-#define FSER_WE_RC11			18
-#define FSER_WE_RC12			19
-#define FSER_WE_RC13			20
-#define FSER_WE_RC14			21
-#define FSER_WE_RC15			22
-#define FSER_WE_RC16			23
-#define FSER_AN_DRGAN			24	//dane do silników pochodzą z analizatora drgań w rdzeniu CM7. Wytyczne do ich obliczenia są przekazywane przez strukturę unię uRozne
-#define FSER_ZATRZYMANY			25	//silnik jest zatrzymany
+#define FWYRC_SILNIK1			0	//steruj silnikiem 1
+#define FWYRC_SILNIK2			1
+#define FWYRC_SILNIK3			2
+#define FWYRC_SILNIK4			3
+#define FWYRC_SILNIK5			4
+#define FWYRC_SILNIK6			5
+#define FWYRC_SILNIK7			6
+#define FWYRC_SILNIK8			7
+#define FWYRC_WE_RC1			8
+#define FWYRC_WE_RC2			9
+#define FWYRC_WE_RC3			10
+#define FWYRC_WE_RC4			11
+#define FWYRC_WE_RC5			12
+#define FWYRC_WE_RC6			13
+#define FWYRC_WE_RC7			14
+#define FWYRC_WE_RC8			15
+#define FWYRC_WE_RC9			16
+#define FWYRC_WE_RC10			17
+#define FWYRC_WE_RC11			18
+#define FWYRC_WE_RC12			19
+#define FWYRC_WE_RC13			20
+#define FWYRC_WE_RC14			21
+#define FWYRC_WE_RC15			22
+#define FWYRC_WE_RC16			23
+#define LICZBA_FUNKCJI_KANALOW_WYJSCIOWYCH_RC	24	//liczba dostępnych funkcji realizowanych przez kanały wyjsciowe RC
 
-#define LICZBA_FUNKCJI_SERW		26	//liczba dostępnych funkcji realizowanych przez kanały wyjsciowe RC
+
+
+//definicje funkcji silnika
+#define FSIL_NAPED				0	//normalna praca silnika jako napęd
+#define FSIL_AN_DRGAN			1	//dane do silników pochodzą z analizatora drgań w rdzeniu CM7. Wytyczne do ich obliczenia są przekazywane przez strukturę unię uRozne
+#define FSIL_ZATRZYMANY			2	//silnik jest zatrzymany
+
+
 
 //definicje temperatur kalibracji żyroskopów
 #define TEMP_KAL_ZIMNO		(10.f + KELVIN)

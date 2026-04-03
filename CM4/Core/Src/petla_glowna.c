@@ -67,7 +67,10 @@ extern uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzy
 extern uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
 extern uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych
 extern uint8_t chTrybRegulacji[LICZBA_REG_PARAM];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
-extern uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wyjściowych
+extern uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wyjściowych: silnik, LED, retransmisja wejścia RC
+extern uint8_t chFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silników: normalna praca lub analiza FFT rezonansu drgań ramy
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -481,12 +484,16 @@ void WykonajPolecenieCM7(void)
 		for (uint16_t n=0; n<KANALY_MIKSERA; n++)
 		{
 			if (uDaneCM7.dane.uRozne.U8[1] & (1 << n))	//czy jest ustawiony bit aktywacji silnika w teście
-				chFunkcjaWyjscRC[n] = FSER_AN_DRGAN;	//podmień źródło danych do silnika. Po zakonczeniu będzie potrzebne przeładowanie konfiguracji
+				chFunkcjaSilnika[n] = FSIL_AN_DRGAN;	//podmień źródło danych do silnika. Po zakonczeniu będzie potrzebne przeładowanie konfiguracji
 			else
-				chFunkcjaWyjscRC[n] = FSER_ZATRZYMANY;	//pozostałe silniki zatrzymaj
+				chFunkcjaSilnika[n] = FSIL_ZATRZYMANY;	//pozostałe silniki zatrzymaj
 		}
 		break;
-		//nWyjście = PobierzWartoscWyjsciaRC(chFunkcjaWyjscRC[n], daneCM4);
+
+	case POL7_PRZYWROC_NAPED:		//przywróć funkcję napędu dla silników po analizie FFT rezonansu ramy
+		for (uint16_t n=0; n<KANALY_MIKSERA; n++)
+		    chFunkcjaSilnika[n] = FSIL_NAPED;
+		break;
 	}
 }
 
