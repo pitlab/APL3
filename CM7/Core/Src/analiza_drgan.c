@@ -15,7 +15,7 @@
 #include "czas.h"
 
 
-extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
+extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT+1][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
 extern stFFT_t stKonfigFFT;
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -71,11 +71,12 @@ uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 		uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 		uDaneCM7.dane.uRozne.U8[1] = 0;	//aktywne siliki
 		uDaneCM7.dane.chWykonajPolecenie = POL7_PRZYWROC_NAPED;	//przywróć funkcję napędu dla silników po analizie FFT rezonansu ramy
-	}
-	else
-	{
-		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;
 		*chTrybPracy = TP_MENU_GLOWNE;
 	}
+	/*else
+	{
+		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;
+
+	}*/
 	return chBłąd;
 }

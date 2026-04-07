@@ -53,7 +53,7 @@
 #define TELEID_KAT_AKCELY	33
 #define TELEID_KAT_AKCELZ	34
 
-//zmienne barametryczne
+//zmienne barometryczne
 #define TELEID_CISBEZW1		35
 #define TELEID_CISBEZW2		36
 #define TELEID_WYSOKOSC1	37
@@ -106,6 +106,8 @@
 #define TELEID_DOTYK_ADC2	81
 #define TELEID_CZAS_PETLI	82	//czas trwania ostatniej petli głównej w us
 //max do 127
+
+#define TELEID_FFT_ZYRO_AKCEL	127	//wyniki transformaty Fouriera przesyłane w specyficznej szybkiej ramce
 
 //zmiene telemetryczne w ramce 2
 #define TELEID_PID_PRZE_WZAD	128	//wartość zadana regulatora sterowania przechyleniem
@@ -173,6 +175,7 @@
 #define TELEID_PID_PR_NAWE_WY_P	179	//wyjście członu P
 #define TELEID_PID_PR_NAWE_WY_I	180	//wyjście członu I
 #define TELEID_PID_PR_NAWE_WY_D	181	//wyjście członu D
+
 
 #define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	182
 //max do 255

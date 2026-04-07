@@ -511,7 +511,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
 		break;
 
-	case PK_CZYTAJ_WYNIKI_FFT:	//odczytaj z pamiędci DRAM wyniki serii testów FFT dla akcelerometrów i żyroskopów
+	case PK_CZYTAJ_WYNIKI_FFT:	//odczytaj z pamiędci DRAM wyniki serii testów FFT dla akcelerometrów i żyroskopów. Prześlij je jako float o połowie precyzji
 		uint8_t chRozmiar = chDane[0];				//liczba wyników FFT typu float w ramce (32)
 		uint8_t chIndeksRamkiWyniku = chDane[1];	//wskazuje na ramkę danych w ramach jednego FFT [0..63] =[(32/32)-1..(2048/32)-1]
 		uint8_t chIndeksZmiennej = chDane[2];		//indeks kolejnej zmiennej [0..5]
@@ -520,11 +520,12 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 
 		for (uint8_t n=0; n<chRozmiar; n++)
 		{
-			un8_32.daneFloat = fWynikFFT[chLiniaWodospadu][chIndeksZmiennej][sIndeksWyniku + n];
+			Float2Char16(fWynikFFT[chLiniaWodospadu][chIndeksZmiennej][sIndeksWyniku + n], &chDane[n * 2]);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
+			/*un8_32.daneFloat = fWynikFFT[chLiniaWodospadu][chIndeksZmiennej][sIndeksWyniku + n];
 			for (uint8_t m=0; m<4; m++)
-				chDane[n * 4 + m] = un8_32.dane8[m];
+				chDane[n * 4 + m] = un8_32.dane8[m];*/
 		}
-		chBłąd = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, chRozmiar * 4, chDane, chInterfejs);
+		chBłąd = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, chRozmiar * 2, chDane, chInterfejs);
 		break;
 
 	case PK_ROZP_ANALIZE_DRGAN:

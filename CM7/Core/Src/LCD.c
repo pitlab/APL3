@@ -4400,7 +4400,7 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 			x1 = x2;
 		}
 		stKonfig->chIndeksTestu++;
-		if (stKonfig->chIndeksTestu > LICZBA_TESTOW_FFT)
+		if (stKonfig->chIndeksTestu > LICZBA_TESTOW_FFT+1)	//wartość większa o 1 jest potrzebna do detekcji końca testu
 			stKonfig->chIndeksTestu = 0;
 	}
 }

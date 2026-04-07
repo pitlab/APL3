@@ -21,6 +21,10 @@
 // dla KWANT_CZASU_TELEMETRII == 10ms daje to max 100 Hz, min 0,025 Hz (40s)
 // Każda ramka ma 2 kopie, gdzie jedna ramka jest napełniana a druga wysyłana.
 
+// Ramka szybka jest specyficznym rodzajem telemetri, gdzie przesyłane są dane produkowane w ilościach większychch niż można było by przesłać normalną telemetrią. Dotyczy to FFT z
+// żyroskopów i akcelerometrów, które produkowane są w ilości 6 x szerokośćFFT/2 na każdy obieg pętli. Dane są gromadzone w buforze a szybka ramka opróźnia bufor.
+// Zamiast wielobajtowego słowa określającego bity zmiennych są zawarte 16-bitwy indeks numeru próby FFT oraz indeks numeru wyniku w ramach FFT
+
 // LPUART korzysta z BDMA a ono ma dostęp tylko do SRAM4, więc ramka telemetrii musi być zdefiniowana w SRAM4
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chRamkaTelemetrii[2 * LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla 16-bitowych zmiennych 0..127 oraz 128..255
 uint16_t sOkresTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
@@ -37,6 +41,7 @@ extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
 extern struct _statusDotyku statusDotyku;
 extern RTC_TimeTypeDef stTime;
 extern RTC_DateTypeDef stDate;
+extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja inicjalizuje zmienne używane do obsługi telemetrii. Dane są zapisane w porządku cienkokońcówkowym
@@ -189,6 +194,39 @@ uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t 
 
 
 ///////////////////////////////////////////////////////////////////////////////
+// Funkcja wstawia dane do szybkiej ramki telemetrii. Szybka ramka zawiera tylko 1 rodzaj danych pobierany z bufora.
+// Na obecnym etapie dotyczy przesyłania wyników FFT z akcelerometrów i żyroskopów. W ramce są wszystkie 3 osie obu czujników
+// Parametry:
+// 	chIndNapRam - Indeks napełnianych ramek (ramki o przeciwnej parzystości są w tym czasie opróżniane)
+// 	chIndAdresow - indeks puli adresowej zmiennych telemetrycznych. Adresy 0..127 mają indeks 0, adresy 128..255 indeks 1, itp
+// 	chNumerProby - indeks kolejnego FFT [0..99]
+// 	sIndeksFFT - indeks próbki w ramach FFT [0..2047]
+// Zwraca: rozmiar ramki
+////////////////////////////////////////////////////////////////////////////////
+uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t chNumerProby, uint16_t sIndeksFFT)
+{
+	uint8_t chDane[2];
+	uint8_t chIndeksRamki;
+	float fTemp;
+
+	//wstaw dane
+	for (uint8_t n=0; n<ROZMIAR_DANYCH_KOMUNIKACJI/6; n++)
+	{
+		for (uint8_t m=0; m<6; m++)
+		{
+			chIndeksRamki = n * 12 + m * 2;
+			fTemp = fWynikFFT[chNumerProby][m][sIndeksFFT];
+			Float2Char16(fTemp, chDane);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
+			chRamkaTelemetrii[chIndNapRam + chIndAdresow * LICZBA_RAMEK_TELEMETR][chIndeksRamki + 0] = chDane[0];
+			chRamkaTelemetrii[chIndNapRam + chIndAdresow * LICZBA_RAMEK_TELEMETR][chIndeksRamki + 1] = chDane[1];
+		}
+	}
+	return ROZMIAR_DANYCH_KOMUNIKACJI;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
 // Funkcja wstawia do bieżącego bufora telemetrii liczbę do wysłania
 // Parametry: fDane - liczba do wysłania
 // Zwraca: nic
@@ -291,6 +329,8 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TELEID_DOTYK_ADC1:	fZmiennaTele = statusDotyku.sAdc[1];		break;
 	case TELEID_DOTYK_ADC2:	fZmiennaTele = statusDotyku.sAdc[2];		break;
 	case TELEID_CZAS_PETLI: fZmiennaTele = uDaneCM4.dane.ndT;			break;
+
+	case TELEID_FFT_ZYRO_AKCEL:		break;	//wyniki transformaty fouriera przesyłane w specyficznej szybkiej ramce
 
 	case TELEID_PID_PRZE_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRZE].fZadana;		break;	//wartość zadana regulatora sterowania przechyleniem
 	case TELEID_PID_PRZE_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRZE].fWyjsciePID;	break;	//wyjście regulatora sterowania przechyleniem
