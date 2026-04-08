@@ -17,6 +17,13 @@
 #define FFT_NOWE_DANE		1
 #define FFT_GOTOWY_WYNIK	2
 
+//definicje bitów zmiennych FFT
+#define AKCEL_X		0x01
+#define AKCEL_Y		0x02
+#define AKCEL_Z		0x04
+#define ZYRO_X		0x08
+#define ZYRO_Y		0x10
+#define ZYRO_Z		0x20
 
 typedef struct
 {
@@ -39,6 +46,7 @@ typedef struct
 
 
 void PobierzDaneDoFFT(void);
+uint8_t PobierzWynikiFFT(uint8_t *chBufWyniku, uint8_t chBityZmiennej, uint8_t *chIndeksTestu, uint16_t *sIndeksFFT);
 void InicjujFFT(void);
 uint8_t ZapiszKonfiguracjejFFT(void);
 void LiczFFT(stFFT_t *konfig, uint8_t chCzujnik);

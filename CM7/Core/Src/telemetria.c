@@ -13,6 +13,7 @@
 #include "protokol_kom.h"
 #include "polecenia_komunikacyjne.h"
 #include "dotyk.h"
+#include "fft.h"
 
 // Dane telemetryczne są wysyłane w zbiorczej ramce mogącej pomieścić MAX_ZMIENNYCH_TELEMETR_W_RAMCE (115). Dane są z puli adresowej obejmującej MAX_INDEKSOW_TELEMETR_W_RAMCE (128) zmiennych.
 // Ponieważ danych może być więcej, przewodziano 2 lub wiecej rodzajów ramek telemetrii
@@ -30,7 +31,7 @@ uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7"
 uint16_t sOkresTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 uint16_t sLicznikTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];
 uint8_t chIndeksNapelnRamki;	//określa która tablica ramki telemetrycznej jest napełniania
-uint8_t chWstrzymajTelemetrie;	//wartość niezerowa tymczasowo wstrzymuje działanie telemetrii
+uint8_t chStatusTelemetrii;		//określa czy i jaki rodzaj telemetrii ma być wysyłany
 extern unia_wymianyCM4_t uDaneCM4;
 extern uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
 extern UART_HandleTypeDef hlpuart1;
@@ -42,6 +43,10 @@ extern struct _statusDotyku statusDotyku;
 extern RTC_TimeTypeDef stTime;
 extern RTC_DateTypeDef stDate;
 extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
+extern uint16_t sInseksWysyłkiFFT;		//wskazuje na na numer próbki FFT przesyłany telemetrią
+extern uint8_t chIndeksWysyłkiTestu;	//wskazuje na nume testu FFT obecnie wysyłanego telemetrią
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja inicjalizuje zmienne używane do obsługi telemetrii. Dane są zapisane w porządku cienkokońcówkowym
@@ -98,49 +103,62 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 {
 	uint8_t chIloscDanych[LICZBA_RAMEK_TELEMETR] = {0, 0};
 	uint8_t chIndeksAdresow;	//okresla indeks puli adresowej rakmi. Zmienne 0..127 idą w ramce 0, zmienne 128..255 w ramce 1, itd
+	uint8_t chTypRamki;
 	float fZmienna;
 	extern uint8_t chStatusPolaczenia;
 
-	if (chWstrzymajTelemetrie)
+	if (chStatusTelemetrii == TELEM_WSTRZYMAJ)
 		return;
 
 	//ponieważ ramek telemetri może być kilka i wysyłają się w dłuższej sekwencji, więc indeks następnej ramki zmieniaj na początku cyklu aby był niezmienny w trakcie cyklu
 	chIndeksNapelnRamki++;
 	chIndeksNapelnRamki &= 0x01;
 
-	//wyczyść w ramkach pola na bity identyfikujące zmienne, bo kolejne bity będą OR-owane z wartością początkową, więc musi ona na początku być zerem
-	for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
+	if (chStatusTelemetrii == TELEM_SZYBKA)		//jeżeli szybka ramka
 	{
-		for(uint8_t n=0; n<LICZBA_BAJTOW_ID_TELEMETRII; n++)
-			chRamkaTelemetrii[chIndeksNapelnRamki + 2 * r][ROZMIAR_NAGLOWKA + n] = 0;
+		chIloscDanych[0] = WstawDaneDoSzybkiejRamkiTele(chIndeksNapelnRamki, &chIndeksWysyłkiTestu, &sInseksWysyłkiFFT);
+		if (chIndeksWysyłkiTestu == LICZBA_TESTOW_FFT)
+			chStatusTelemetrii = TELEM_WZNOW;	//po wysłaniu wszystkich wyników FFT wróc do normalnej tlemetrii
+		chTypRamki = TELEM_SZYBKA;
 	}
-
-	for(uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
+	else		//normalna telemetria
 	{
-		if (sLicznikTelemetrii[n] != TELEMETRIA_WYLACZONA)	//wartość oznaczająca aby nie wysyłać danych
+		//wyczyść w ramkach pola na bity identyfikujące zmienne, bo kolejne bity będą OR-owane z wartością początkową, więc musi ona na początku być zerem
+		for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
 		{
-			sLicznikTelemetrii[n]--;
-			if (sLicznikTelemetrii[n] == 0)		//licznik zmiennej doszedł do 0 więc trzeba ją wysłać
+			for(uint8_t n=0; n<LICZBA_BAJTOW_ID_TELEMETRII; n++)
+				chRamkaTelemetrii[chIndeksNapelnRamki + 2 * r][ROZMIAR_NAGLOWKA + n] = 0;
+			chIloscDanych[r] = LICZBA_BAJTOW_ID_TELEMETRII;
+		}
+
+		for(uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
+		{
+			if (sLicznikTelemetrii[n] != TELEMETRIA_WYLACZONA)	//wartość oznaczająca aby nie wysyłać danych
 			{
-				sLicznikTelemetrii[n] = sOkresTelemetrii[n];		//przeładuj licznik nowym okresem
-				fZmienna = PobierzZmiennaTele(n);
-				chIndeksAdresow = n >> 7;
-				if (chIloscDanych[chIndeksAdresow] < (ROZMIAR_RAMKI_KOMUNIKACYJNEJ - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
+				sLicznikTelemetrii[n]--;
+				if (sLicznikTelemetrii[n] == 0)		//licznik zmiennej doszedł do 0 więc trzeba ją wysłać
 				{
-					WstawDaneDoRamkiTele(chIndeksNapelnRamki, chIndeksAdresow, chIloscDanych[chIndeksAdresow], n, fZmienna);
-					chIloscDanych[chIndeksAdresow]++;
+					sLicznikTelemetrii[n] = sOkresTelemetrii[n];		//przeładuj licznik nowym okresem
+					fZmienna = PobierzZmiennaTele(n);
+					chIndeksAdresow = n >> 7;
+					if (chIloscDanych[chIndeksAdresow] < (ROZMIAR_RAMKI_KOMUNIKACYJNEJ - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
+					{
+						WstawDaneDoRamkiTele(chIndeksNapelnRamki, chIndeksAdresow, chIloscDanych[chIndeksAdresow], n, fZmienna);
+						chIloscDanych[chIndeksAdresow] += 2;
+					}
 				}
 			}
 		}
+		chTypRamki = TELEM_NORMALNA;
 	}
 
 	//przygotuj ramki do wysłania
 	for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
 	{
-		if (chIloscDanych[r] > 0)	//jeżeli jest coś do wysłania
+		if (chIloscDanych[r] > LICZBA_BAJTOW_ID_TELEMETRII)	//jeżeli jest coś do wysłania
 		{
-			PrzygotujRamkeTele(chIndeksNapelnRamki + r * LICZBA_RAMEK_TELEMETR, chAdresZdalny[chInterfejs], stBSP_ID.chAdres, chIloscDanych[r]);	//utwórz ramkę gotową do wysyłki
-			st_ZajetoscLPUART.sDoWyslania[r+1] = chIloscDanych[r] * 2 + LICZBA_BAJTOW_ID_TELEMETRII + ROZM_CIALA_RAMKI;
+			PrzygotujRamkeTele(chIndeksNapelnRamki + r * LICZBA_RAMEK_TELEMETR, chTypRamki, chAdresZdalny[chInterfejs], stBSP_ID.chAdres, chIloscDanych[r]);	//utwórz ramkę gotową do wysyłki
+			st_ZajetoscLPUART.sDoWyslania[r+1] = chIloscDanych[r] + ROZM_CIALA_RAMKI;
 		}
 	}
 
@@ -167,7 +185,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 // Parametry:
 // 	chIndNapRam - Indeks napełnianych ramek (ramki o przeciwnej parzystości są w tym czasie opróżniane)
 // 	chIndAdresow - indeks puli adresowej zmiennych telemetrycznych. Adresy 0..127 mają indeks 0, adresy 128..255 indeks 1, itp
-// 	chPozycja - kolejny numer zmiennej w ramce
+// 	chPozycja - miejsce zmiennej w ramce bez uwzględnienia nagłówna
 // 	sIdZmiennej - identyfikator typu zmiennej
 // 	fDane - liczba do wysłania
 // Zwraca: rozmiar ramki
@@ -180,7 +198,7 @@ uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t 
 	uint8_t chBajtBitu;	//numer bajtu w ktorym jest bit identyfikacyjny
 
 	//wstaw dane
-	chRozmiar = ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + 2 * chPozycja;
+	chRozmiar = ROZMIAR_NAGLOWKA + chPozycja;
 	Float2Char16(fDane, chDane);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
 	chRamkaTelemetrii[chIndNapRam + chIndAdresow * LICZBA_RAMEK_TELEMETR][chRozmiar + 0] = chDane[0];
     chRamkaTelemetrii[chIndNapRam + chIndAdresow * LICZBA_RAMEK_TELEMETR][chRozmiar + 1] = chDane[1];
@@ -195,33 +213,30 @@ uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t 
 
 ///////////////////////////////////////////////////////////////////////////////
 // Funkcja wstawia dane do szybkiej ramki telemetrii. Szybka ramka zawiera tylko 1 rodzaj danych pobierany z bufora.
-// Na obecnym etapie dotyczy przesyłania wyników FFT z akcelerometrów i żyroskopów. W ramce są wszystkie 3 osie obu czujników
+// Na obecnym etapie dotyczy przesyłania wyników FFT z akcelerometrów i żyroskopów. W ramce są dane ze wszystkich 3 osi obu czujników
 // Parametry:
 // 	chIndNapRam - Indeks napełnianych ramek (ramki o przeciwnej parzystości są w tym czasie opróżniane)
-// 	chIndAdresow - indeks puli adresowej zmiennych telemetrycznych. Adresy 0..127 mają indeks 0, adresy 128..255 indeks 1, itp
-// 	chNumerProby - indeks kolejnego FFT [0..99]
-// 	sIndeksFFT - indeks próbki w ramach FFT [0..2047]
+// 	*chIndeksTestu - wskaźnika na indeks kolejnego FFT [0..99]
+// 	*sIndeksFFT - wskaźnik na indeks próbki w ramach FFT [0..2047]
 // Zwraca: rozmiar ramki
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t chNumerProby, uint16_t sIndeksFFT)
+uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t *chIndeksTestu, uint16_t *sIndeksFFT)
 {
-	uint8_t chDane[2];
-	uint8_t chIndeksRamki;
-	float fTemp;
+	uint8_t chBityZmiennej = AKCEL_X | AKCEL_Y | AKCEL_Z | ZYRO_X | ZYRO_Y | ZYRO_Z;
+	uint8_t chLiczbaDanych = 0;
+
+	//nagłówek ramki zawiera identyfikację danych
+	chRamkaTelemetrii[chIndNapRam][0] = chBityZmiennej;
+	chRamkaTelemetrii[chIndNapRam][1] = *chIndeksTestu;
+	un8_32.dane16[0] = *sIndeksFFT;
+	chRamkaTelemetrii[chIndNapRam][2] = un8_32.dane8[0];
+	chRamkaTelemetrii[chIndNapRam][3] = un8_32.dane8[1];
 
 	//wstaw dane
-	for (uint8_t n=0; n<ROZMIAR_DANYCH_KOMUNIKACJI/6; n++)
-	{
-		for (uint8_t m=0; m<6; m++)
-		{
-			chIndeksRamki = n * 12 + m * 2;
-			fTemp = fWynikFFT[chNumerProby][m][sIndeksFFT];
-			Float2Char16(fTemp, chDane);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
-			chRamkaTelemetrii[chIndNapRam + chIndAdresow * LICZBA_RAMEK_TELEMETR][chIndeksRamki + 0] = chDane[0];
-			chRamkaTelemetrii[chIndNapRam + chIndAdresow * LICZBA_RAMEK_TELEMETR][chIndeksRamki + 1] = chDane[1];
-		}
-	}
-	return ROZMIAR_DANYCH_KOMUNIKACJI;
+	for (uint8_t n=0; n<((ROZMIAR_DANYCH_KOMUNIKACJI - 4) / 12); n++)	//dla uproszczenia zakładam że ramka ma komplet 6 danych 16-bit
+		chLiczbaDanych += PobierzWynikiFFT(&chRamkaTelemetrii[chIndNapRam][n * 12 + 4 + ROZMIAR_NAGLOWKA], chBityZmiennej, chIndeksTestu, sIndeksFFT);
+
+	return chLiczbaDanych;
 }
 
 
@@ -406,33 +421,36 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Tworzy nagłówek ramki telemetrii. Inicjuje CRC
-// Parametry: chIndNapRam - indeks napełnianiej ramki (jedna jest napełniana, druga sie wysyła)
-// chAdrZdalny - adres urządzenia do którego wysyłamy
-// chAdrLokalny - nasz adres
-// lListaZmiennych - zmienna z polam bitowymi okreslającymi przesyłane zmienne
-// chRozmDanych - liczba zmiennych telemetrycznych do wysłania w ramce
+// Parametry:
+//  chIndeksRamki - indeks napełnianiej ramki uwzględniajacy numer ramki i podwójne buforowanie (jedna jest napełniana, druga sie wysyła)
+//  chTypRamki - okresla czy to jest normalna ramka telemetryczna, czy szybka
+//  chAdrZdalny - adres urządzenia do którego wysyłamy
+//  chAdrLokalny - nasz adres
+//  chRozmDanych - liczba bajtw danych uwzględniająca pole bitowe zmiennych w typowej ramce oraz nagłówek w ramce szybkiej
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void PrzygotujRamkeTele(uint8_t chIndNapRam, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint8_t chRozmDanych)
+void PrzygotujRamkeTele(uint8_t chIndeksRamki, uint8_t chTypRamki, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint8_t chRozmDanych)
 {
 	PobierzDateCzas(&stDate, &stTime);
 
 	InicjujCRC16(0, WIELOMIAN_CRC);
-	chRamkaTelemetrii[chIndNapRam][0] = NAGLOWEK;
-	chRamkaTelemetrii[chIndNapRam][1] = CRC->DR = chAdrZdalny;
-	chRamkaTelemetrii[chIndNapRam][2] = CRC->DR = chAdrLokalny;
-	//chRamkaTelemetrii[chIndNapRam][3] = CRC->DR = (PobierzCzasT6() / 10) & 0xFF;
-	chRamkaTelemetrii[chIndNapRam][3] = CRC->DR = (uint8_t)stTime.SubSeconds;	//1/256 cześć sekundy czasu RTC synchronizowanego z GPS
-	chRamkaTelemetrii[chIndNapRam][4] = CRC->DR = PK_TELEMETRIA1 + chIndNapRam / 2;	//indeks ramki wskazuje na zakres zmiennych a to determinuje numer polecenia
-	chRamkaTelemetrii[chIndNapRam][5] = CRC->DR = chRozmDanych * 2 + LICZBA_BAJTOW_ID_TELEMETRII;
+	chRamkaTelemetrii[chIndeksRamki][0] = NAGLOWEK;
+	chRamkaTelemetrii[chIndeksRamki][1] = CRC->DR = chAdrZdalny;
+	chRamkaTelemetrii[chIndeksRamki][2] = CRC->DR = chAdrLokalny;
+	chRamkaTelemetrii[chIndeksRamki][3] = CRC->DR = (uint8_t)stTime.SubSeconds;	//1/256 cześć sekundy czasu RTC synchronizowanego z GPS
+	if (chTypRamki == TELEM_NORMALNA)
+		chRamkaTelemetrii[chIndeksRamki][4] = CRC->DR = PK_TELEMETRIA1 + chIndeksRamki / 2;	//indeks ramki wskazuje na zakres zmiennych a to determinuje numer polecenia
+	else
+		chRamkaTelemetrii[chIndeksRamki][4] = CRC->DR = PK_TELEM_SZYBKA;	//ramka szybk jest na razie tylko jedna
+	chRamkaTelemetrii[chIndeksRamki][5] = CRC->DR = chRozmDanych;
 
 	//policz CRC z danych i listy zmiennych
-	for(uint16_t n=0; n < (chRozmDanych * 2 + LICZBA_BAJTOW_ID_TELEMETRII); n++)
-		CRC->DR = chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + n];
+	for(uint16_t n=0; n < chRozmDanych; n++)
+		CRC->DR = chRamkaTelemetrii[chIndeksRamki][ROZMIAR_NAGLOWKA + n];
 
 	un8_32.dane16[0] = (uint16_t)CRC->DR;
-	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 0] =  un8_32.dane8[0];	//młodszy przodem
-	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + LICZBA_BAJTOW_ID_TELEMETRII + chRozmDanych * 2 + 1] =  un8_32.dane8[1];	//starszy
+	chRamkaTelemetrii[chIndeksRamki][ROZMIAR_NAGLOWKA + chRozmDanych + 0] =  un8_32.dane8[0];	//młodszy przodem
+	chRamkaTelemetrii[chIndeksRamki][ROZMIAR_NAGLOWKA + chRozmDanych + 1] =  un8_32.dane8[1];	//starszy
 
 	//return chRozmDanych * 2 + LICZBA_BAJTOW_ID_TELEMETRII + ROZMIAR_NAGLOWKA + ROZMIAR_CRC;
 }

@@ -98,6 +98,7 @@ typedef struct
 
 #define PK_ILOSC_POLECEN		39	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
+#define PK_TELEM_SZYBKA			95	//szybka ramka telemetryczna do przesyłania wyników FFT
 #define PK_TELEMETRIA1			96	//ramka telemetryczna 1
 #define PK_TELEMETRIA2			97	//ramka telemetryczna 2
 #define PK_TELEMETRIA3			98	//ramka telemetryczna 3 - na razie nie używane

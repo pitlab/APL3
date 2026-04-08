@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include "czas.h"
 #include "flash_konfig.h"
+#include "telemetria.h"
 
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xXomega[FFT_MAX_ROZMIAR] = {0};		//wynik transformaty
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xWnk_tab[FFT_MAX_ROZMIAR] = {0};	//raz wyliczona tablica współczynników, stała dla danego rozmiaru wektora N do potęgi k
@@ -19,7 +20,9 @@ float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fBu
 float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2] = {0};	//wartość sygnału wyjściowego
 stZesp_t xWn2;			//wartość stała dla danego rozmiaru wektora N
 stZesp_t xWnk;			//wartość stała dla danego rozmiaru wektora N do potęgi k
-uint16_t sIndeksProbki;
+uint16_t sIndeksPróbki;			//wskazuje na numer próbki do umieszczenia w pamięci w ramach FFT
+uint16_t sInseksWysyłkiFFT;		//wskazuje na na numer próbki FFT przesyłany telemetrią
+uint8_t chIndeksWysyłkiTestu;	//wskazuje na nume testu FFT obecnie wysyłanego telemetrią
 uint32_t nCzasFFT;
 stFFT_t stKonfigFFT;
 extern unia_wymianyCM4_t uDaneCM4;
@@ -86,21 +89,53 @@ void PobierzDaneDoFFT(void)
 	{
 		for (uint8_t n=0; n<3; n++)
 		{
-			fBuforPomiarow[n+0][sIndeksProbki] = uDaneCM4.dane.stSzybkieIMU.fAkcel[chOstatniIndeksSzybkiegoIMU][n];
-			fBuforPomiarow[n+3][sIndeksProbki] = uDaneCM4.dane.stSzybkieIMU.fZyro[chOstatniIndeksSzybkiegoIMU][n];
+			fBuforPomiarow[n+0][sIndeksPróbki] = uDaneCM4.dane.stSzybkieIMU.fAkcel[chOstatniIndeksSzybkiegoIMU][n];
+			fBuforPomiarow[n+3][sIndeksPróbki] = uDaneCM4.dane.stSzybkieIMU.fZyro[chOstatniIndeksSzybkiegoIMU][n];
 		}
-		//fBuforPomiarow[3][sIndeksProbki] = uDaneCM4.dane.stSzybkieIMU.chIndeksProbki;	//test
+		//fBuforPomiarow[3][sIndeksPróbki] = uDaneCM4.dane.stSzybkieIMU.chIndeksProbki;	//test
 		chOstatniIndeksSzybkiegoIMU++;
 		chOstatniIndeksSzybkiegoIMU &= MASKA_BUFORA_IMU;
 
-		sIndeksProbki++;
-		if (sIndeksProbki == stKonfigFFT.sLiczbaProbek)
+		sIndeksPróbki++;
+		if (sIndeksPróbki == stKonfigFFT.sLiczbaProbek)
 		{
-			sIndeksProbki = 0;
+			sIndeksPróbki = 0;
 			stKonfigFFT.chStatus |= FFT_NOWE_DANE;		//mamy komplet danych, można liczyć FFT
 		}
 		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
 	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Pobiera wyniki obliczeń FFT, konwertuje na float16 i ładuje do bufora.
+// Parametry:
+//  *chBufWyniku - wskaźnik na bufor danych o rozmiarze 2 bajty na wynik
+//	chBityZmiennej - pole 6-bitowe wskazujące na konkretną osie akcelerometru [0..2] i żyroskopu [3..5]
+// 	*chIndeksTestu - wskaźnik na indeks kolejnego FFT [0..99]
+// 	*sIndeksFFT - wskaźnik na indeks próbki w ramach FFT [0..2047]
+// Zwraca: liczba danych wstawiona do bufora
+////////////////////////////////////////////////////////////////////////////////
+uint8_t PobierzWynikiFFT(uint8_t *chBufWyniku, uint8_t chBityZmiennej, uint8_t *chIndeksTestu, uint16_t *sIndeksFFT)
+{
+	uint8_t chLiczbaZmiennych = 0;
+
+	for (uint8_t n=0; n<6; n++)
+	{
+		if (chBityZmiennej & (1 < n))
+		{
+			Float2Char16(fWynikFFT[*chIndeksTestu][n][*sIndeksFFT], &chBufWyniku[chLiczbaZmiennych]);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
+			chLiczbaZmiennych += 2;
+		}
+	}
+	(*sIndeksFFT)++;
+	if (*sIndeksFFT >= stKonfigFFT.sLiczbaProbek)
+	{
+		*sIndeksFFT = 0;
+		(*chIndeksTestu)++;
+	}
+	return chLiczbaZmiennych;
 }
 
 
