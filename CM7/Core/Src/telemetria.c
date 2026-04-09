@@ -118,7 +118,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 	{
 		chIloscDanych[0] = WstawDaneDoSzybkiejRamkiTele(chIndeksNapelnRamki, &chIndeksWysyłkiTestu, &sInseksWysyłkiFFT);
 		if (chIndeksWysyłkiTestu == LICZBA_TESTOW_FFT)
-			chStatusTelemetrii = TELEM_WZNOW;	//po wysłaniu wszystkich wyników FFT wróc do normalnej tlemetrii
+			chStatusTelemetrii = TELEM_NORMALNA;	//po wysłaniu wszystkich wyników FFT wróc do normalnej tlemetrii
 		chTypRamki = TELEM_SZYBKA;
 	}
 	else		//normalna telemetria
@@ -226,11 +226,11 @@ uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t *chIndeksTestu
 	uint8_t chLiczbaDanych = 0;
 
 	//nagłówek ramki zawiera identyfikację danych
-	chRamkaTelemetrii[chIndNapRam][0] = chBityZmiennej;
-	chRamkaTelemetrii[chIndNapRam][1] = *chIndeksTestu;
+	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 0] = chBityZmiennej;
+	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 1] = *chIndeksTestu;
 	un8_32.dane16[0] = *sIndeksFFT;
-	chRamkaTelemetrii[chIndNapRam][2] = un8_32.dane8[0];
-	chRamkaTelemetrii[chIndNapRam][3] = un8_32.dane8[1];
+	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 2] = un8_32.dane8[0];
+	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 3] = un8_32.dane8[1];
 
 	//wstaw dane
 	for (uint8_t n=0; n<((ROZMIAR_DANYCH_KOMUNIKACJI - 4) / 12); n++)	//dla uproszczenia zakładam że ramka ma komplet 6 danych 16-bit
@@ -522,4 +522,16 @@ uint8_t ZapiszKonfiguracjeTelemetrii(uint16_t sPrzesuniecie)
 		chProbZapisu--;
 	}
 	return chErr;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Funkcja włącza lub wyłącza telemetrię w tym telemetrię szybką
+// Parametry: chOperacja - polecenie do ustawienia w zmiennej statusu telemetrii
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void WłączTelemetrię(uint8_t chOperacja)
+{
+	chStatusTelemetrii = chOperacja;
 }

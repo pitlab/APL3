@@ -14,7 +14,7 @@
 //polecenia ramki PK_WSTRZYMAJ_TELEMETRIE służące do zarządzania strumieniem telemetrii
 #define TELEM_SZYBKA	2	//ma być transmitowana szybka ramka telemetryczna z wynikami FFT
 #define TELEM_WSTRZYMAJ	1	//zatrzymaj wysyłanie telemetrii
-#define TELEM_WZNOW		0	//wznów wysyłanie telemetrii
+//#define TELEM_WZNOW		0	//wznów wysyłanie telemetrii
 #define TELEM_NORMALNA	0	//ma być transmitowana ramka normalna (to samo co wznowienie)
 
 #define PROB_ODCZYTU_TELEMETRII		3
@@ -201,5 +201,5 @@ uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t *chIndeksTestu
 void PrzygotujRamkeTele(uint8_t chIndeksRamki, uint8_t chTypRamki, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint8_t chRozmDanych);
 void Float2Char16(float fData, uint8_t* chData);
 uint8_t ZapiszKonfiguracjeTelemetrii(uint16_t sPrzesuniecie);
-
+void WłączTelemetrię(uint8_t chOperacja);
 #endif /* INC_TELEMETRIA_H_ */

@@ -40,6 +40,7 @@
 #include "LCD_mem.h"
 #include "osd.h"
 #include "bmp.h"
+#include "telemetria.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -4280,6 +4281,7 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 		chRysujRaz = 0;
 		sprintf(chNapis, "FFT %sow", chNapisLcd[STR_AKCELETOMETR + (chRodzajDanych & 0x01)]);
 		BelkaTytulu(chNapis);
+		WłączTelemetrię(TELEM_SZYBKA);	//włącz szybką telemetrię. Wyłączy się sama po przesłaniu wszystkich wyników
 	}
 
 	if (stKonfig->chStatus & FFT_NOWE_DANE)
