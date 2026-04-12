@@ -197,7 +197,7 @@ void InicjalizacjaTelemetrii(void);
 void ObslugaTelemetrii(uint8_t chInterfejs);
 float PobierzZmiennaTele(uint16_t sZmienna);
 uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t chPozycja, uint16_t sIdZmiennej, float fDane);
-uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t *chIndeksTestu, uint16_t *sIndeksFFT);
+uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t chIndeksTestu, uint16_t *sIndeksFFT);
 void PrzygotujRamkeTele(uint8_t chIndeksRamki, uint8_t chTypRamki, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint8_t chRozmDanych);
 void Float2Char16(float fData, uint8_t* chData);
 uint8_t ZapiszKonfiguracjeTelemetrii(uint16_t sPrzesuniecie);

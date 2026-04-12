@@ -43,9 +43,9 @@ extern struct _statusDotyku statusDotyku;
 extern RTC_TimeTypeDef stTime;
 extern RTC_DateTypeDef stDate;
 extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
-extern uint16_t sInseksWysyłkiFFT;		//wskazuje na na numer próbki FFT przesyłany telemetrią
-extern uint8_t chIndeksWysyłkiTestu;	//wskazuje na nume testu FFT obecnie wysyłanego telemetrią
-
+extern uint16_t sIndeksWysyłkiFFT;		//wskazuje na na numer próbki FFT przesyłany telemetrią
+extern uint8_t chIndeksWysyłkiTestuFFT;	//wskazuje na nume testu FFT obecnie wysyłanego telemetrią
+extern stFFT_t stKonfigFFT;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -116,10 +116,19 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 
 	if (chStatusTelemetrii == TELEM_SZYBKA)		//jeżeli szybka ramka
 	{
-		chIloscDanych[0] = WstawDaneDoSzybkiejRamkiTele(chIndeksNapelnRamki, &chIndeksWysyłkiTestu, &sInseksWysyłkiFFT);
-		if (chIndeksWysyłkiTestu == LICZBA_TESTOW_FFT)
-			chStatusTelemetrii = TELEM_NORMALNA;	//po wysłaniu wszystkich wyników FFT wróc do normalnej tlemetrii
-		chTypRamki = TELEM_SZYBKA;
+		if (stKonfigFFT.chIndeksTestu > chIndeksWysyłkiTestuFFT)	//czekaj z wysyłką na wyprodukowanie danych przez FFT
+		{
+			//szybka telemetria wykorzystuje tylko jedną ramkę, czyli chIloscDanych[0] oraz chRamkaTelemetrii[0 i 1]
+			chIloscDanych[0] = WstawDaneDoSzybkiejRamkiTele(chIndeksNapelnRamki, chIndeksWysyłkiTestuFFT, &sIndeksWysyłkiFFT);
+			if (sIndeksWysyłkiFFT >= stKonfigFFT.sLiczbaProbek / 2)
+			{
+				sIndeksWysyłkiFFT = 0;
+				chIndeksWysyłkiTestuFFT++;
+				if (chIndeksWysyłkiTestuFFT == LICZBA_TESTOW_FFT)
+					chStatusTelemetrii = TELEM_NORMALNA;	//po wysłaniu wszystkich wyników FFT wróc do normalnej tlemetrii
+			}
+			chTypRamki = TELEM_SZYBKA;
+		}
 	}
 	else		//normalna telemetria
 	{
@@ -152,7 +161,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 		chTypRamki = TELEM_NORMALNA;
 	}
 
-	//przygotuj ramki do wysłania
+	//przygotuj ramki wypełnione danymi  do wysłania
 	for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
 	{
 		if (chIloscDanych[r] > LICZBA_BAJTOW_ID_TELEMETRII)	//jeżeli jest coś do wysłania
@@ -216,27 +225,31 @@ uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t 
 // Na obecnym etapie dotyczy przesyłania wyników FFT z akcelerometrów i żyroskopów. W ramce są dane ze wszystkich 3 osi obu czujników
 // Parametry:
 // 	chIndNapRam - Indeks napełnianych ramek (ramki o przeciwnej parzystości są w tym czasie opróżniane)
-// 	*chIndeksTestu - wskaźnika na indeks kolejnego FFT [0..99]
+// 	chIndeksTestu - indeks kolejnego FFT [0..99]
 // 	*sIndeksFFT - wskaźnik na indeks próbki w ramach FFT [0..2047]
 // Zwraca: rozmiar ramki
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t *chIndeksTestu, uint16_t *sIndeksFFT)
+uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t chIndeksTestu, uint16_t *sIndeksFFT)
 {
 	uint8_t chBityZmiennej = AKCEL_X | AKCEL_Y | AKCEL_Z | ZYRO_X | ZYRO_Y | ZYRO_Z;
-	uint8_t chLiczbaDanych = 0;
+	uint8_t chLiczbaBajtówRamki = 0;
 
-	//nagłówek ramki zawiera identyfikację danych
+	//pierwsza część danych ramki zawiera 4 bajtową identyfikację danych
 	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 0] = chBityZmiennej;
-	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 1] = *chIndeksTestu;
+	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 1] = chIndeksTestu;
 	un8_32.dane16[0] = *sIndeksFFT;
 	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 2] = un8_32.dane8[0];
 	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 3] = un8_32.dane8[1];
 
-	//wstaw dane
-	for (uint8_t n=0; n<((ROZMIAR_DANYCH_KOMUNIKACJI - 4) / 12); n++)	//dla uproszczenia zakładam że ramka ma komplet 6 danych 16-bit
-		chLiczbaDanych += PobierzWynikiFFT(&chRamkaTelemetrii[chIndNapRam][n * 12 + 4 + ROZMIAR_NAGLOWKA], chBityZmiennej, chIndeksTestu, sIndeksFFT);
-
-	return chLiczbaDanych;
+	//wstaw tyle danych FFT aby wypełnić ramkę, ale dane mają pochodzić tylko z jednego FFT, bo indeks testu idzie na początku danych ramki
+	for (uint16_t n=0; n<((ROZMIAR_DANYCH_KOMUNIKACJI - 4) / 12); n++)	//dla uproszczenia zakładam że ramka ma komplet 6 danych 16-bit
+	{
+		chLiczbaBajtówRamki += PobierzWynikiFFT(&chRamkaTelemetrii[chIndNapRam][n * 12 + 4 + ROZMIAR_NAGLOWKA], chBityZmiennej, chIndeksTestu, *sIndeksFFT);
+		(*sIndeksFFT)++;
+		if (*sIndeksFFT >= stKonfigFFT.sLiczbaProbek / 2)	//koniec danych nie musi być równoważny z pełną ramką, więc...
+			break;										//...przerwij napełnianie kiedy zostały przygotowane wszystkie dane
+	}
+	return chLiczbaBajtówRamki;
 }
 
 
@@ -534,4 +547,5 @@ uint8_t ZapiszKonfiguracjeTelemetrii(uint16_t sPrzesuniecie)
 void WłączTelemetrię(uint8_t chOperacja)
 {
 	chStatusTelemetrii = chOperacja;
+	sIndeksWysyłkiFFT = chIndeksWysyłkiTestuFFT = 0;	//resetuj parametry szybkiej telemetrii
 }

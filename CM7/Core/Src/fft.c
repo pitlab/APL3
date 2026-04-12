@@ -21,8 +21,8 @@ float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWy
 stZesp_t xWn2;			//wartość stała dla danego rozmiaru wektora N
 stZesp_t xWnk;			//wartość stała dla danego rozmiaru wektora N do potęgi k
 uint16_t sIndeksPróbki;			//wskazuje na numer próbki do umieszczenia w pamięci w ramach FFT
-uint16_t sInseksWysyłkiFFT;		//wskazuje na na numer próbki FFT przesyłany telemetrią
-uint8_t chIndeksWysyłkiTestu;	//wskazuje na nume testu FFT obecnie wysyłanego telemetrią
+uint16_t sIndeksWysyłkiFFT;		//wskazuje na na numer próbki FFT przesyłany telemetrią
+uint8_t chIndeksWysyłkiTestuFFT;	//wskazuje na nume testu FFT obecnie wysyłanego telemetrią
 uint32_t nCzasFFT;
 stFFT_t stKonfigFFT;
 extern unia_wymianyCM4_t uDaneCM4;
@@ -109,33 +109,27 @@ void PobierzDaneDoFFT(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Pobiera wyniki obliczeń FFT, konwertuje na float16 i ładuje do bufora.
+// Pobiera 1 komplet wyników obliczeń FFT, konwertuje na float16 i ładuje do bufora.
 // Parametry:
 //  *chBufWyniku - wskaźnik na bufor danych o rozmiarze 2 bajty na wynik
-//	chBityZmiennej - pole 6-bitowe wskazujące na konkretną osie akcelerometru [0..2] i żyroskopu [3..5]
-// 	*chIndeksTestu - wskaźnik na indeks kolejnego FFT [0..99]
-// 	*sIndeksFFT - wskaźnik na indeks próbki w ramach FFT [0..2047]
+//	chBityZmiennych - pole 6-bitowe wskazujące na konkretną osie akcelerometru [0..2] i żyroskopu [3..5]
+// 	chIndeksTestu - indeks kolejnego FFT [0..99]
+// 	sIndeksFFT - indeks próbki w ramach FFT [0..2047]
 // Zwraca: liczba danych wstawiona do bufora
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t PobierzWynikiFFT(uint8_t *chBufWyniku, uint8_t chBityZmiennej, uint8_t *chIndeksTestu, uint16_t *sIndeksFFT)
+uint8_t PobierzWynikiFFT(uint8_t *chBufWyniku, uint8_t chBityZmiennych, uint8_t chIndeksTestu, uint16_t sIndeksFFT)
 {
-	uint8_t chLiczbaZmiennych = 0;
+	uint8_t chLiczbaBajtówDanych = 0;
 
-	for (uint8_t n=0; n<6; n++)
+	for (uint8_t n=0; n<LICZBA_ZMIENNYCH_FFT; n++)
 	{
-		if (chBityZmiennej & (1 < n))
+		if (chBityZmiennych & (1 << n))
 		{
-			Float2Char16(fWynikFFT[*chIndeksTestu][n][*sIndeksFFT], &chBufWyniku[chLiczbaZmiennych]);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
-			chLiczbaZmiennych += 2;
+			Float2Char16(fWynikFFT[chIndeksTestu][n][sIndeksFFT], &chBufWyniku[chLiczbaBajtówDanych]);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
+			chLiczbaBajtówDanych += 2;
 		}
 	}
-	(*sIndeksFFT)++;
-	if (*sIndeksFFT >= stKonfigFFT.sLiczbaProbek)
-	{
-		*sIndeksFFT = 0;
-		(*chIndeksTestu)++;
-	}
-	return chLiczbaZmiennych;
+	return chLiczbaBajtówDanych;
 }
 
 

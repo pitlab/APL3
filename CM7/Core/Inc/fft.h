@@ -25,6 +25,7 @@
 #define ZYRO_Y		0x10
 #define ZYRO_Z		0x20
 
+
 typedef struct
 {
 	float Re;
@@ -46,7 +47,7 @@ typedef struct
 
 
 void PobierzDaneDoFFT(void);
-uint8_t PobierzWynikiFFT(uint8_t *chBufWyniku, uint8_t chBityZmiennej, uint8_t *chIndeksTestu, uint16_t *sIndeksFFT);
+uint8_t PobierzWynikiFFT(uint8_t *chBufWyniku, uint8_t chBityZmiennych, uint8_t chIndeksTestu, uint16_t sIndeksFFT);
 void InicjujFFT(void);
 uint8_t ZapiszKonfiguracjejFFT(void);
 void LiczFFT(stFFT_t *konfig, uint8_t chCzujnik);

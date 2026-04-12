@@ -4257,7 +4257,8 @@ void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sK
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wyświetla FFT. Pomiary mieszczące się w szerokości okna przedstawia w postaci słupków, szersze oblina lub interpoluje
+// Liczy 6 FFT z żyroskopów i akcelerometrów ale wyświetla tylko 3 wybrane ze względu na czytelność.
+// Pomiary mieszczące się w szerokości okna przedstawia w postaci wykresów, szersze obcina, węższe rozciaga do szerokości okna wykresu
 // Parametry:
 // [we] *stWynik - wskaźnik na dane wynikowe FFT
 // [we] *stKonfig - wskaźnik na konfigurację FFT
@@ -4287,7 +4288,7 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 	if (stKonfig->chStatus & FFT_NOWE_DANE)
 	{
 		nCzasFFT = PobierzCzasT6();
-		for (uint8_t czujnik=0; czujnik<LICZBA_ZMIENNYCH_FFT; czujnik++)	//iteracja po czujnikach a nie po wykresach aby aplkkacja mogła pobrać wszystkie dane
+		for (uint8_t czujnik=0; czujnik<LICZBA_ZMIENNYCH_FFT; czujnik++)	//iteracja po czujnikach a nie po wykresach aby aplikacja mogła pobrać wszystkie dane
 		{
 			for (uint16_t n=0; n<stKonfig->sLiczbaProbek; n++)
 			{
