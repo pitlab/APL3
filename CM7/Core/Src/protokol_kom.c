@@ -48,7 +48,6 @@ uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7"
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA];
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chRamkaTelemetrii[2*LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla zmiennych 0..127 oraz 128..255
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chBuforNadRamkiKomTCP[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
-extern uint8_t chIndeksNapelnRamki;	//okresla ktora tablica ramki telemetrycznej jest napełniania
 uint8_t chWyslaneOK = 1;
 uint8_t chBuforKomOdb[ROZMIAR_BUF_ANALIZY_ODB];
 volatile uint16_t sWskNap; 		//wskaźnik napełniania bufora kołowego chBuforKomOdb[]
@@ -206,24 +205,28 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	if (huart->Instance == LPUART1)
 	{
 		//skończyło się wysyłanie, wyczyść flagę zajetości i liczbę rzeczy do wysłania
-		st_ZajetoscLPUART.sDoWyslania[st_ZajetoscLPUART.chZajetyPrzez] = 0;
+		//st_ZajetoscLPUART.sDoWyslania[st_ZajetoscLPUART.chZajetyPrzez] = 0;
 		st_ZajetoscLPUART.chZajetyPrzez = LPUART_WOLNY;
 		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);	//serwo kanał 1 - LPUART_WOLNY
 
 		//port jest wolny, można wysłać rzeczy zaległe
 		for (uint8_t n=0; n< ROZMIAR_KOLEJKI_LPUART; n++)
 		{
 			if (st_ZajetoscLPUART.sDoWyslania[n])
 			{
+				//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1 - LPUART_ZAJETY
 				switch (n)
 				{
 				case RAMKA_POLECEN:	HAL_UART_Transmit_DMA(&hlpuart1, chBuforNadDMA, st_ZajetoscLPUART.sDoWyslania[n]);		 break;
-				case RAMKA_TELE1:	HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[0 + chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[n]);		break;
-				case RAMKA_TELE2:	HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[2 + chIndeksNapelnRamki][0], st_ZajetoscLPUART.sDoWyslania[n]);		break;
+				case RAMKA_TELE1:	HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[0 + st_ZajetoscLPUART.chIndeksNapełnianejRamki[n]][0], st_ZajetoscLPUART.sDoWyslania[n]);		break;
+				case RAMKA_TELE2:	HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[2 + st_ZajetoscLPUART.chIndeksNapełnianejRamki[n]][0], st_ZajetoscLPUART.sDoWyslania[n]);		break;
 				}
 				st_ZajetoscLPUART.chZajetyPrzez = n;
-				st_ZajetoscLPUART.sDoWyslania[n] = 0;	//nie ma nic wiecej do wysłania
-				HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+				st_ZajetoscLPUART.sDoWyslania[n] = 0;	//wysłano więc zdejmij z kolejki i zezwól na ponowne napełnienie bufora
+				st_ZajetoscLPUART.chIndeksNapełnianejRamki[n]++;	//przełacz indeks podwójnego buforowania aby można było napełniać drugi bufor
+				st_ZajetoscLPUART.chIndeksNapełnianejRamki[n] &= 0x01;
 				break;	//zakończ wykonanie petli for po wysłaniu pierwszej transmisji
 			}
 		}
@@ -476,6 +479,7 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
     		st_ZajetoscLPUART.chZajetyPrzez = RAMKA_POLECEN;
     		st_ZajetoscLPUART.sDoWyslania[RAMKA_POLECEN] = (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI;
     		HAL_UART_Transmit_DMA(&hlpuart1, chBuforNadDMA, (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI);
+    		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1 - LPUART_ZAJETY
 		}
 		break;
 

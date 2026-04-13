@@ -1705,6 +1705,11 @@ void WatekOdbiorczyLPUART1(void const * argument)
 		}
 		chStatusUART = chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);	//status transmisji ramki
 
+		/*if (st_ZajetoscLPUART.chZajetyPrzez == (int8_t)LPUART_WOLNY)
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
+		else
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);*/
+
 		//w drugiej kolejności telemetrię
 		nCzasTele = MinalCzas(nCzasPoprzedniTele);	//czas w mikrosekundach
 		if ((nCzasTele >= KWANT_CZASU_TELEMETRII * 1000) && (st_ZajetoscLPUART.chZajetyPrzez == (int8_t)LPUART_WOLNY))

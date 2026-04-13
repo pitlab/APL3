@@ -14,15 +14,16 @@
 
 //definicje znaczenia zmiennej chZajetyPrzez. Po zakonczeniu transmisji trzeba wysłać:
 #define RAMKA_POLECEN	0	//ramkę poleceń
-#define RAMKA_TELE1		1	//ramkę telemetryczną 1
-#define RAMKA_TELE2		2	//ramke telemetryczną 2
+#define RAMKA_TELE1		1	//ramkę telemetryczną 1 lub ramkę szybką z danymi FFT
+#define RAMKA_TELE2		2	//ramkę telemetryczną 2
 #define ROZMIAR_KOLEJKI_LPUART	3
 
 #define LPUART_WOLNY	0xFF
 typedef struct
 {
 	int8_t chZajetyPrzez;	//flaga zajętości
-	uint16_t sDoWyslania[ROZMIAR_KOLEJKI_LPUART];	//tablica rozmiarów rzeczy do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
+	uint8_t chIndeksNapełnianejRamki[ROZMIAR_KOLEJKI_LPUART];	//indeks podwójnego buforowania: jeden bufor jest opróżniany przez UART, drugi w tym czasie może być napełniany
+	uint16_t sDoWyslania[ROZMIAR_KOLEJKI_LPUART];	//tablica rozmiarów danych do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
 
 } st_ZajetoscLPUART_t;
 
