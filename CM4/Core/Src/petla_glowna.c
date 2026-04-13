@@ -221,7 +221,6 @@ void PetlaGlowna(void)
 	}
 	while (nCzasJalowy < CZAS_ODCINKA);*/
 	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, RESET);	//kanał serw 2 skonfigurowany jako IO
-	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);				//kanał serw 5 skonfigurowany jako IO
 
 	nCzasOstatniegoOdcinka = PobierzCzas();
 }
@@ -508,8 +507,6 @@ uint8_t RozdzielniaOperacjiI2C(void)
 {
 	uint8_t chBlad = BLAD_OK;
 
-	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);	//kanał serw 2 skonfigurowany jako IO
-	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);		//kanał serw 5 skonfigurowany jako IO
 	//operacje na zewnętrznej magistrali I2C3
 	switch(chEtapOperacjiI2C)
 	{

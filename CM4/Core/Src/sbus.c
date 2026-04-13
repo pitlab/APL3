@@ -47,7 +47,7 @@ void USART2_IRQHandler(void)
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
-	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);
+
 }
 
 
@@ -413,8 +413,6 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 uint8_t ObslugaRamkiSBus(void)
 {
 	uint8_t chBlad;
-
-	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);				//kanał serw 5 skonfigurowany jako IO
 
 	//obsługa kanału 1
 	chBlad = FormowanieRamkiSBus(chRamkaSBus1, &chWskNapRamkiSBus1, chBuforAnalizySBus1, (uint8_t)chWskNapBufAnaSBus1, (uint8_t*)&chWskOprBufAnaSBus1);

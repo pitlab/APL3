@@ -172,7 +172,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	chIndeksProbki++;
 	chIndeksProbki &= MASKA_BUFORA_IMU;
 	uDaneCM4.dane.stSzybkieIMU.chIndeksProbki = chIndeksProbki;
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 
 	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))
 		KalibrujZeroZyroskopu();

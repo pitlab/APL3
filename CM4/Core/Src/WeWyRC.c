@@ -1112,7 +1112,6 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 				stRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
 		}
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	}
 	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
 	if (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC)

@@ -673,10 +673,8 @@ uint8_t RysujEkran(void)
 			{
 				//KonwersjaCB8doRGB666((uint8_t*)sPodBufor, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
 				KonwersjaCB8doRGB666((uint8_t*)sBuforKamery, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
-				//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 #ifdef 	LCD_ILI9488
 				WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
-				//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 #endif
 				sprintf(chNapis, "Tkompr: %ld us, buf: %d", nCzas, chWskNapBufKam);
 				setColor(ZOLTY);
@@ -934,13 +932,10 @@ uint8_t RysujEkran(void)
 			{
 				osDelay(1);
 				chTimeout--;
-				//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 			}
-			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 			chObrazKameryGotowy = 0;*/
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
 
-			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 			nCzasLCD = DWT->CYCCNT;	//start pomiaru
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
 			nCzasLCD = DWT->CYCCNT - nCzasLCD; //koniec pomiaru

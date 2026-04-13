@@ -396,7 +396,6 @@ void HAL_DCMI_LineEventCallback(DCMI_HandleTypeDef *hdcmi)
 void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
 {
 	chBladKamery = hdcmi->ErrorCode;	//1=HAL_DCMI_ERROR_OVR, 2=DCMI_ERROR_SYNC, 3=HAL_DCMI_ERROR_TIMEOUT, 4=HAL_DCMI_ERROR_DMA
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);
 }
 
 
@@ -411,7 +410,6 @@ void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
 	chObrazKameryGotowy = 1;
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 	if (stKonfOSD.chOSDWlaczone)	//czy OSD jest włączone?
 	{
 		if (hdma2d.State == HAL_DMA2D_STATE_BUSY)

@@ -118,16 +118,19 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 	{
 		if (stKonfigFFT.chIndeksTestu > chIndeksWysyłkiTestuFFT)	//czekaj z wysyłką na wyprodukowanie danych przez FFT
 		{
-			//szybka telemetria wykorzystuje tylko jedną ramkę, czyli chIloscDanych[0] oraz chRamkaTelemetrii[0 i 1]
-			chIloscDanych[0] = WstawDaneDoSzybkiejRamkiTele(chIndeksNapelnRamki, chIndeksWysyłkiTestuFFT, &sIndeksWysyłkiFFT);
-			if (sIndeksWysyłkiFFT >= stKonfigFFT.sLiczbaProbek / 2)
+			if (st_ZajetoscLPUART.chZajetyPrzez == (int8_t)LPUART_WOLNY)	//czekaj z wysyłką aż wyśle się poprzednia ramka
 			{
-				sIndeksWysyłkiFFT = 0;
-				chIndeksWysyłkiTestuFFT++;
-				if (chIndeksWysyłkiTestuFFT == LICZBA_TESTOW_FFT)
-					chStatusTelemetrii = TELEM_NORMALNA;	//po wysłaniu wszystkich wyników FFT wróc do normalnej tlemetrii
+				//szybka telemetria wykorzystuje tylko jedną ramkę, czyli chIloscDanych[0] oraz chRamkaTelemetrii[0 i 1]
+				chIloscDanych[0] = WstawDaneDoSzybkiejRamkiTele(chIndeksNapelnRamki, chIndeksWysyłkiTestuFFT, &sIndeksWysyłkiFFT);
+				if (sIndeksWysyłkiFFT >= stKonfigFFT.sLiczbaProbek / 2)
+				{
+					sIndeksWysyłkiFFT = 0;
+					chIndeksWysyłkiTestuFFT++;
+					if (chIndeksWysyłkiTestuFFT == LICZBA_TESTOW_FFT)
+						chStatusTelemetrii = TELEM_NORMALNA;	//po wysłaniu wszystkich wyników FFT wróc do normalnej tlemetrii
+				}
+				chTypRamki = TELEM_SZYBKA;
 			}
-			chTypRamki = TELEM_SZYBKA;
 		}
 	}
 	else		//normalna telemetria
@@ -168,6 +171,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 		{
 			PrzygotujRamkeTele(chIndeksNapelnRamki + r * LICZBA_RAMEK_TELEMETR, chTypRamki, chAdresZdalny[chInterfejs], stBSP_ID.chAdres, chIloscDanych[r]);	//utwórz ramkę gotową do wysyłki
 			st_ZajetoscLPUART.sDoWyslania[r+1] = chIloscDanych[r] + ROZM_CIALA_RAMKI;
+			HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
 		}
 	}
 

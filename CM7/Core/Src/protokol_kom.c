@@ -208,6 +208,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 		//skończyło się wysyłanie, wyczyść flagę zajetości i liczbę rzeczy do wysłania
 		st_ZajetoscLPUART.sDoWyslania[st_ZajetoscLPUART.chZajetyPrzez] = 0;
 		st_ZajetoscLPUART.chZajetyPrzez = LPUART_WOLNY;
+		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 
 		//port jest wolny, można wysłać rzeczy zaległe
 		for (uint8_t n=0; n< ROZMIAR_KOLEJKI_LPUART; n++)
@@ -222,6 +223,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 				}
 				st_ZajetoscLPUART.chZajetyPrzez = n;
 				st_ZajetoscLPUART.sDoWyslania[n] = 0;	//nie ma nic wiecej do wysłania
+				HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 				break;	//zakończ wykonanie petli for po wysłaniu pierwszej transmisji
 			}
 		}

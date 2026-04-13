@@ -330,7 +330,6 @@ uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRo
 		{
 			for (uint8_t n=WS_BITOW_LACZNIE / 2; n<WS_BITOW_LACZNIE; n++)
 				nBuforTimDMA_WS281X[n] = 0;
-			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 		}
 		*sFlagi &= ~NAPELNIJ_BUF2_CH8;
 

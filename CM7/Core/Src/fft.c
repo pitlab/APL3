@@ -102,7 +102,6 @@ void PobierzDaneDoFFT(void)
 			sIndeksPróbki = 0;
 			stKonfigFFT.chStatus |= FFT_NOWE_DANE;		//mamy komplet danych, można liczyć FFT
 		}
-		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
 	}
 }
 
