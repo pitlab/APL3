@@ -37,7 +37,7 @@ extern UART_HandleTypeDef hlpuart1;
 static unia8_32_t un8_32;		//unia do konwersji między danymi 16 i 8 bit
 extern volatile uint8_t chDoWyslania[1 + LICZBA_RAMEK_TELEMETR];	//lista rzeczy do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
 extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
-extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
+extern volatile st_ZajetośćLPUART_t st_ZajetośćLPUART;
 extern struct _statusDotyku statusDotyku;
 extern RTC_TimeTypeDef stTime;
 extern RTC_DateTypeDef stDate;
@@ -114,10 +114,10 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 	{
 		if (stKonfigFFT.chIndeksTestu > chIndeksWysyłkiTestuFFT)	//czekaj z wysyłką na wyprodukowanie danych przez FFT
 		{
-			if ((st_ZajetoscLPUART.sDoWyslania[RAMKA_TELE1] == 0) && (st_ZajetoscLPUART.chZajetyPrzez == (int8_t)LPUART_WOLNY))	//dodaj nowe dane tylko do pustej kolejki
+			if ((st_ZajetośćLPUART.sDoWysłania[RAMKA_TELE1] == 0) && (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY))	//dodaj nowe dane tylko do pustej kolejki
 			{
-				HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
-				chIloscDanych[0] = WstawDaneDoSzybkiejRamkiTele(st_ZajetoscLPUART.chIndeksNapełnianejRamki[RAMKA_TELE1], chIndeksWysyłkiTestuFFT, &sIndeksWysyłkiFFT);
+				//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
+				chIloscDanych[0] = WstawDaneDoSzybkiejRamkiTele(st_ZajetośćLPUART.chIndeksNapełnianejRamki[RAMKA_TELE1], chIndeksWysyłkiTestuFFT, &sIndeksWysyłkiFFT);
 
 				//testuj warunek zakończenia procesu wysyłki FFT
 				if (sIndeksWysyłkiFFT >= stKonfigFFT.sLiczbaProbek / 2)
@@ -137,7 +137,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 		for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
 		{
 			for(uint8_t n=0; n<LICZBA_BAJTOW_ID_TELEMETRII; n++)
-				chRamkaTelemetrii[st_ZajetoscLPUART.chIndeksNapełnianejRamki[r+1] + 2 * r][ROZMIAR_NAGLOWKA + n] = 0;
+				chRamkaTelemetrii[st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1] + 2 * r][ROZMIAR_NAGLOWKA + n] = 0;
 			chIloscDanych[r] = LICZBA_BAJTOW_ID_TELEMETRII;
 		}
 
@@ -153,7 +153,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 					chIndeksAdresow = n >> 7;
 					if (chIloscDanych[chIndeksAdresow] < (ROZMIAR_RAMKI_KOMUNIKACYJNEJ - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
 					{
-						WstawDaneDoRamkiTele(st_ZajetoscLPUART.chIndeksNapełnianejRamki[chIndeksAdresow + 1], chIndeksAdresow, chIloscDanych[chIndeksAdresow], n, fZmienna);
+						WstawDaneDoRamkiTele(st_ZajetośćLPUART.chIndeksNapełnianejRamki[chIndeksAdresow + 1], chIndeksAdresow, chIloscDanych[chIndeksAdresow], n, fZmienna);
 						chIloscDanych[chIndeksAdresow] += 2;
 					}
 				}
@@ -167,30 +167,32 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 	{
 		if (chIloscDanych[r] > LICZBA_BAJTOW_ID_TELEMETRII)	//jeżeli jest coś do wysłania
 		{
-			PrzygotujRamkeTele(st_ZajetoscLPUART.chIndeksNapełnianejRamki[r+1] + r * LICZBA_RAMEK_TELEMETR, chTypRamki, chAdresZdalny[chInterfejs], stBSP_ID.chAdres, chIloscDanych[r]);	//utwórz ramkę gotową do wysyłki
-			st_ZajetoscLPUART.sDoWyslania[r+1] = chIloscDanych[r] + ROZM_CIALA_RAMKI;
+			PrzygotujRamkeTele(st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1] + r * LICZBA_RAMEK_TELEMETR, chTypRamki, chAdresZdalny[chInterfejs], stBSP_ID.chAdres, chIloscDanych[r]);	//utwórz ramkę gotową do wysyłki
+			st_ZajetośćLPUART.sDoWysłania[r+1] = chIloscDanych[r] + ROZM_CIALA_RAMKI;
 		}
 	}
 
 	//rozpocznij fizyczną transmisję danych
-	if (st_ZajetoscLPUART.chZajetyPrzez == (int8_t)LPUART_WOLNY)	//jeżeli LPUART nie jest zajęty to wyślij telemetrię
+	__disable_irq();	//sekcja krytyczna wykonywana przy wyłączonych przerwaniach
+	if (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY)	//jeżeli LPUART nie jest zajęty to wyślij telemetrię
 	{
 		for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
 		{
-			if (st_ZajetoscLPUART.sDoWyslania[r+1])
+			if (st_ZajetośćLPUART.sDoWysłania[r+1])
 			{
 				chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
-				st_ZajetoscLPUART.chZajetyPrzez = RAMKA_TELE1 + r;
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1 - LPUART_ZAJETY
-				HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[st_ZajetoscLPUART.chIndeksNapełnianejRamki[r+1] + r * LICZBA_RAMEK_TELEMETR][0], st_ZajetoscLPUART.sDoWyslania[r+1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
-				st_ZajetoscLPUART.sDoWyslania[r+1] = 0;	//wysłano więc zdejmij z kolejki i zezwól na ponowne napełnienie bufora
-				st_ZajetoscLPUART.chIndeksNapełnianejRamki[r+1]++;	//przełacz indeks podwójnego buforowania aby można było napełniać drugi bufor
-				st_ZajetoscLPUART.chIndeksNapełnianejRamki[r+1] &= 0x01;
+				st_ZajetośćLPUART.chZajętyPrzez = RAMKA_TELE1 + r;
+				//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1 - LPUART_ZAJETY
+				HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1] + r * LICZBA_RAMEK_TELEMETR][0], st_ZajetośćLPUART.sDoWysłania[r+1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
+				st_ZajetośćLPUART.sDoWysłania[r+1] = 0;	//wysłano więc zdejmij z kolejki i zezwól na ponowne napełnienie bufora
+				st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1]++;	//przełacz indeks podwójnego buforowania aby można było napełniać drugi bufor
+				st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1] &= 0x01;
 				//zdjęcie flagi zajetości LPUART następuje w HAL_UART_TxCpltCallback() po fizycznym zakończeniu wysyłki
 				break;	//wyjdź z pętli po wysłaniu pierwszej ramki
 			}
 		}
 	}
+	__enable_irq();		//koniec sekcji krytycznej
 }
 
 

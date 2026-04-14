@@ -1671,9 +1671,8 @@ void WatekOdbiorczyLPUART1(void const * argument)
 {
   /* USER CODE BEGIN WatekOdbiorczyLPUART1 */
 	uint32_t nCzasTele, nCzasPoprzedniTele;
-	extern volatile st_ZajetoscLPUART_t st_ZajetoscLPUART;
+	extern volatile st_ZajetośćLPUART_t st_ZajetośćLPUART;
 	uint8_t chBłąd;
-	uint8_t chLicznikZajetosci = 0;
 	extern uint8_t chStatusPolaczenia;
 	uint8_t chStatusUART;
 
@@ -1689,36 +1688,24 @@ void WatekOdbiorczyLPUART1(void const * argument)
 	else
 	while(1)
 	{
+		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7 - aktywność wątku
+
 		//w pierwszej kolejności obsłuż protokół komunikacyjny
-		chBłąd = CzekajzTimeoutemPokiZajety(st_ZajetoscLPUART.chZajetyPrzez + 1, 500);		//czekaj [us] jeżeli zajęty przez jeden z typów transmisji. Wartość funkcji ma być zerem a tutaj wolny oznacza -1, stąd obecność +1
-		if (chBłąd == ERR_OK)
+		if (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY)
 		{
 			ObslugaWatkuOdbiorczegoLPUART1();
 			osDelay(2);	//czas na obsługę ramki
-			chLicznikZajetosci = 0;
 		}
-		else	//watchdog: jeżeli UART jest zbyt długo zajęty to odblokuj. Trzeba znaleźć co jest przyczyną blokowania
-		{
-			chLicznikZajetosci++;
-			if (chLicznikZajetosci > 5)
-				st_ZajetoscLPUART.chZajetyPrzez = LPUART_WOLNY;
-		}
-		chStatusUART = chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);	//status transmisji ramki
-
-		/*if (st_ZajetoscLPUART.chZajetyPrzez == (int8_t)LPUART_WOLNY)
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
-		else
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);*/
 
 		//w drugiej kolejności telemetrię
 		nCzasTele = MinalCzas(nCzasPoprzedniTele);	//czas w mikrosekundach
-		if ((nCzasTele >= KWANT_CZASU_TELEMETRII * 1000) && (st_ZajetoscLPUART.chZajetyPrzez == (int8_t)LPUART_WOLNY))
+		if ((nCzasTele >= KWANT_CZASU_TELEMETRII * 1000) && (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY))
 		{
 			ObslugaTelemetrii(INTERF_UART);
 			nCzasPoprzedniTele += KWANT_CZASU_TELEMETRII * 1000;
 			osDelay(5);	//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
 		}
-		chStatusUART |= chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);		//suma statusów transmisji ramki i telemetrii
+		chStatusUART |= chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);
 		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
 		if (chStatusUART == (STAT_POL_OTWARTY << STAT_POL_UART))	//jeżeli był ustawiony bit transmisji lub otwartości
 			chStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);	//to wróć do stanu otwartego łącza

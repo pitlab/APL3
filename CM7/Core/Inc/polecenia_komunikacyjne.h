@@ -21,11 +21,11 @@
 #define LPUART_WOLNY	0xFF
 typedef struct
 {
-	int8_t chZajetyPrzez;	//flaga zajętości
+	int8_t chZajętyPrzez;	//flaga zajętości
 	uint8_t chIndeksNapełnianejRamki[ROZMIAR_KOLEJKI_LPUART];	//indeks podwójnego buforowania: jeden bufor jest opróżniany przez UART, drugi w tym czasie może być napełniany
-	uint16_t sDoWyslania[ROZMIAR_KOLEJKI_LPUART];	//tablica rozmiarów danych do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
+	uint16_t sDoWysłania[ROZMIAR_KOLEJKI_LPUART];	//tablica rozmiarów danych do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
 
-} st_ZajetoscLPUART_t;
+} st_ZajetośćLPUART_t;
 
 
 
