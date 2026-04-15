@@ -240,7 +240,7 @@ uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t 
 uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t chIndeksTestu, uint16_t *sIndeksFFT)
 {
 	uint8_t chBityZmiennej = AKCEL_X | AKCEL_Y | AKCEL_Z | ZYRO_X | ZYRO_Y | ZYRO_Z;
-	uint8_t chLiczbaBajtówRamki = 0;
+	uint8_t chLiczbaBajtówRamki = 4;
 
 	//pierwsza część danych ramki zawiera 4 bajtową identyfikację danych
 	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 0] = chBityZmiennej;
