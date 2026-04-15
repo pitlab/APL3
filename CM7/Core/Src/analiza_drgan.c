@@ -37,13 +37,12 @@ uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 	*chTrybPracy = TP_POMIARY_ANALIZA_DRGAN;
 	chRysujRaz = 1;
 
-	//przekaź do CM4 etap testu, informacje który silnik ma pracować i górną granicę wysterwania. CM4 wyliczy sobie z tego wysterowanie dla wszystkich etapów
+	//przekaż do CM4 etap testu, informacje który silnik ma pracować i górną granicę wysterwania. CM4 wyliczy sobie z tego wysterowanie dla wszystkich etapów
 	stKonfigFFT->chIndeksTestu = 0;
 	uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 	uDaneCM7.dane.uRozne.U8[1] = stKonfigFFT->chAktywnSilniki;
 	uDaneCM7.dane.uRozne.U8[2] = stKonfigFFT->chMaxWysterowanie;
 	uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
-
 	return chBłąd;
 }
 
@@ -73,10 +72,5 @@ uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 		uDaneCM7.dane.chWykonajPolecenie = POL7_PRZYWROC_NAPED;	//przywróć funkcję napędu dla silników po analizie FFT rezonansu ramy
 		*chTrybPracy = TP_MENU_GLOWNE;
 	}
-	/*else
-	{
-		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;
-
-	}*/
 	return chBłąd;
 }

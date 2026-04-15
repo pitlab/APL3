@@ -500,14 +500,11 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		break;
 
 	case PK_ZAPISZ_PARAMETRY_FFT:	//zapisz parametry pracy FFT
-		chBłąd = WyslijRamke(chAdresZdalny, PK_ZAPISZ_PARAMETRY_FFT, 0, chDane, chInterfejs);
-		if (chBłąd == BLAD_OK)
-		{
-			stKonfigFFT.chWykladnikPotegi =  chDane[0];
-			stKonfigFFT.chRodzajOkna = chDane[1];
-			stKonfigFFT.chAktywnSilniki = chDane[2];
-			stKonfigFFT.chMaxWysterowanie = chDane[3];
-		}
+		stKonfigFFT.chWykladnikPotegi =  chDane[0];
+		stKonfigFFT.chRodzajOkna = chDane[1];
+		stKonfigFFT.chAktywnSilniki = chDane[2];
+		stKonfigFFT.chMaxWysterowanie = chDane[3];
+		chBłąd = ZapiszKonfiguracjejFFT();
 		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
 		break;
 
@@ -519,12 +516,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		uint16_t sIndeksWyniku = (uint16_t)chRozmiar * chIndeksRamkiWyniku;
 
 		for (uint8_t n=0; n<chRozmiar; n++)
-		{
 			Float2Char16(fWynikFFT[chLiniaWodospadu][chIndeksZmiennej][sIndeksWyniku + n], &chDane[n * 2]);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
-			/*un8_32.daneFloat = fWynikFFT[chLiniaWodospadu][chIndeksZmiennej][sIndeksWyniku + n];
-			for (uint8_t m=0; m<4; m++)
-				chDane[n * 4 + m] = un8_32.dane8[m];*/
-		}
 		chBłąd = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, chRozmiar * 2, chDane, chInterfejs);
 		break;
 
@@ -534,6 +526,13 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
 		break;
 
+	case PK_ZATRZYMAJ_SILNIKI:	//zatrzymuje silniki w trakcie testu FFT
+		uDaneCM7.dane.uRozne.U8[0] = LICZBA_TESTOW_FFT;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
+		uDaneCM7.dane.uRozne.U8[1] = 0;		//stKonfigFFT->chAktywnSilniki: każdy bit zmiennej odpowiada silnikowi. Wartość 0 zatrzymuje wszystko
+		uDaneCM7.dane.uRozne.U8[2] = 0;		//stKonfigFFT->chMaxWysterowanie;
+		uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
+		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
+		break;
 	}
     return chBłąd;
 }

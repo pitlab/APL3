@@ -4278,6 +4278,7 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 		sprintf(chNapis, "FFT %sow", chNapisLcd[STR_AKCELETOMETR + (chRodzajDanych & 0x01)]);
 		BelkaTytulu(chNapis);
 		WłączTelemetrię(TELEM_SZYBKA);	//włącz szybką telemetrię. Wyłączy się sama po przesłaniu wszystkich wyników
+		stKonfig->sLiczbaProbek = 1 << stKonfig->chWykladnikPotegi;	//aktualizuj liczbę próbek
 	}
 
 	if (stKonfig->chStatus & FFT_NOWE_DANE)

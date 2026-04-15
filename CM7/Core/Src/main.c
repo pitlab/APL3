@@ -1688,8 +1688,6 @@ void WatekOdbiorczyLPUART1(void const * argument)
 	else
 	while(1)
 	{
-		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7 - aktywność wątku
-
 		//w pierwszej kolejności obsłuż protokół komunikacyjny
 		if (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY)
 		{

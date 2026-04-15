@@ -493,6 +493,7 @@ void WykonajPolecenieCM7(void)
 		for (uint16_t n=0; n<KANALY_MIKSERA; n++)
 		    chFunkcjaSilnika[n] = FSIL_NAPED;
 		break;
+
 	}
 }
 

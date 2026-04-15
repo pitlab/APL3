@@ -48,11 +48,17 @@ void InicjujFFT(void)
 		stKonfigFFT.chRodzajOkna = chPaczka[3];
 		stKonfigFFT.chWykladnikPotegi = chPaczka[4];
 		stKonfigFFT.chMaxWysterowanie = chPaczka[5];
+		stKonfigFFT.chAktywnSilniki = chPaczka[6];
 	}
-	stKonfigFFT.chIndeksZmiennejWe = 2;
-	stKonfigFFT.chRodzajOkna = 1;
-	stKonfigFFT.chWykladnikPotegi = 10;
-	stKonfigFFT.sLiczbaProbek = (uint16_t)powf(2, stKonfigFFT.chWykladnikPotegi);
+	else
+	{
+		stKonfigFFT.chIndeksZmiennejWe = 2;
+		stKonfigFFT.chRodzajOkna = 1;
+		stKonfigFFT.chWykladnikPotegi = 10;
+	}
+
+	//stKonfigFFT.sLiczbaProbek = (uint16_t)powf(2, stKonfigFFT.chWykladnikPotegi);
+	stKonfigFFT.sLiczbaProbek = 1 << stKonfigFFT.chWykladnikPotegi;	//aktualizuj liczbę próbek
 }
 
 
@@ -71,6 +77,7 @@ uint8_t ZapiszKonfiguracjejFFT(void)
 	chPaczka[3] = stKonfigFFT.chRodzajOkna;
 	chPaczka[4] = stKonfigFFT.chWykladnikPotegi;
 	chPaczka[5] = stKonfigFFT.chMaxWysterowanie;
+	chPaczka[6] = stKonfigFFT.chAktywnSilniki;
 	chBłąd = ZapiszPaczkeKonfigu(FKON_KONFIGURACJA_FFT, chPaczka);
 	return chBłąd;
 }
