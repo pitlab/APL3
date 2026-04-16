@@ -1609,11 +1609,10 @@ static void MX_GPIO_Init(void)
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
-/**
-  * @brief  Function implementing the defaultTask thread.
-  * @param  argument: Not used
-  * @retval None
-  */
+////////////////////////////////////////////////////////////////////////////////
+// Watek uruchmiany co 5ms. Wykonuje krótkie szybkie akcje, wymagające krótkiej reakcji
+// Czas trwania: min. 30us, typ 32us
+////////////////////////////////////////////////////////////////////////////////
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
 {
@@ -1627,6 +1626,7 @@ void StartDefaultTask(void const * argument)
 	uDaneCM7.dane.chOdbiornikRC = ODB_OBA;	//przesyłaj stan obu odbiorników po dywersyfikacji
 	for(;;)
 	{
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 		chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
 		CzytajDotyk();
 		WymienDaneExpanderow();
@@ -1653,7 +1653,7 @@ void StartDefaultTask(void const * argument)
 			chCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
 
 		ObslugaWymowyKomunikatu();	//obsłuż wymowę komuniatów głosowych
-
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 		osDelay(5);		//ustaw okres z jakim pracuje CM4 (200Hz -> 5ms)
 	}
   /* USER CODE END 5 */
@@ -1673,6 +1673,8 @@ void WatekOdbiorczyLPUART1(void const * argument)
 	uint32_t nCzasTele, nCzasPoprzedniTele;
 	extern volatile st_ZajetośćLPUART_t st_ZajetośćLPUART;
 	uint8_t chBłąd;
+	uint8_t chDanychDoWysłania;
+	uint8_t chCzasDrzemki;
 	extern uint8_t chStatusPolaczenia;
 	uint8_t chStatusUART;
 
@@ -1688,20 +1690,34 @@ void WatekOdbiorczyLPUART1(void const * argument)
 	else
 	while(1)
 	{
+		chDanychDoWysłania = 0;
+		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
 		//w pierwszej kolejności obsłuż protokół komunikacyjny
 		if (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY)
 		{
-			ObslugaWatkuOdbiorczegoLPUART1();
-			osDelay(2);	//czas na obsługę ramki
+			chBłąd = ObslugaWatkuOdbiorczegoLPUART1();
+			if (chBłąd != BLAD_NIC_DO_ROBOTY)
+				osDelay(2);	//czas na obsługę ramki tylko wtedy gdy jest coś do wysłania
 		}
 
 		//w drugiej kolejności telemetrię
+		//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
 		nCzasTele = MinalCzas(nCzasPoprzedniTele);	//czas w mikrosekundach
 		if ((nCzasTele >= KWANT_CZASU_TELEMETRII * 1000) && (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY))
 		{
-			ObslugaTelemetrii(INTERF_UART);
+			chDanychDoWysłania = ObslugaTelemetrii(INTERF_UART);
 			nCzasPoprzedniTele += KWANT_CZASU_TELEMETRII * 1000;
-			osDelay(5);	//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
+			//osDelay(10);	//minimalny okres telemetrii to 10ms -> 100Hz
+			if (chDanychDoWysłania)
+			{
+				chCzasDrzemki = (chDanychDoWysłania * 92) / 1000; 	//1 bajt na 115200 bps wysyła się 86,8us, więc nie wracaj wcześniej aż sie wyśle
+				if (chCzasDrzemki < 10)
+					chCzasDrzemki = 10;		//kwant czasu telemetrii 100Hz to 10ms
+			}
+			else
+				chCzasDrzemki = 10;		//kwant czasu telemetrii 100Hz to 10ms
+
+			osDelay(chCzasDrzemki);
 		}
 		chStatusUART |= chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);
 		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
@@ -1709,7 +1725,10 @@ void WatekOdbiorczyLPUART1(void const * argument)
 			chStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);	//to wróć do stanu otwartego łącza
 		else
 			chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
-		taskYIELD();
+		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
+		//taskYIELD();
+
+
 	}
   /* USER CODE END WatekOdbiorczyLPUART1 */
 }

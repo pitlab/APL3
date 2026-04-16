@@ -124,18 +124,18 @@ uint8_t InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 // Funkcja uruchamiana w wątku odbiorczym danych komunikacyjnych po LPUART1
 // Analizuje dane z bufora odebranych komunikatów napełnianego w callbacku przychodzących danych
 // Parametry: nic
-// Zwraca: nic
+// Zwraca: kod błędu informujący również o tym że nie ma nic do wysłania
 ////////////////////////////////////////////////////////////////////////////////
-void ObslugaWatkuOdbiorczegoLPUART1(void)
+uint8_t ObslugaWatkuOdbiorczegoLPUART1(void)
 {
-	uint8_t chErr;
+	uint8_t chBłąd = BLAD_NIC_DO_ROBOTY;  //domyślny błąd oznaczajacy że nie ma nic do wysłania
 	extern uint8_t chStatusPolaczenia;
 
 	while (sWskNap != sWskOpr)
 	{
 		chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
-		chErr = AnalizujDaneKom(chBuforKomOdb[sWskOpr], INTERF_UART);
-		if (chErr)
+		chBłąd = AnalizujDaneKom(chBuforKomOdb[sWskOpr], INTERF_UART);
+		if (chBłąd)
 			chCzasSwieceniaLED[LED_CZER] = 5;
 
 		sWskOpr++;
@@ -161,6 +161,7 @@ void ObslugaWatkuOdbiorczegoLPUART1(void)
 		InicjalizacjaWatkuOdbiorczegoLPUART1();
 		chCzasSwieceniaLED[LED_CZER] = 5;
 	}
+	return chBłąd;
 }
 
 

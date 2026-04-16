@@ -194,7 +194,7 @@
 #define OKRESOW_TELEMETRII_W_RAMCE		120		//w ramce przesyłane jest na raz się tyle 16-bitowych okresów telemetrii (liczba podzialna przez 15, bo tyle danych mieści się na stronie flash)
 
 void InicjalizacjaTelemetrii(void);
-void ObslugaTelemetrii(uint8_t chInterfejs);
+uint8_t ObslugaTelemetrii(uint8_t chInterfejs);
 float PobierzZmiennaTele(uint16_t sZmienna);
 uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t chPozycja, uint16_t sIdZmiennej, float fDane);
 uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t chIndeksTestu, uint16_t *sIndeksFFT);

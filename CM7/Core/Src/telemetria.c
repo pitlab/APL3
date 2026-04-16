@@ -96,18 +96,19 @@ void InicjalizacjaTelemetrii(void)
 ///////////////////////////////////////////////////////////////////////////////
 // Funkcja przygotowuje i rozpoczyna wysyłkę ramek telemetrycznych
 // Parametry: chInterfejs - interfejs komunikacyjny (na razie tylko LPUART)
-// Zwraca: nic
+// Zwraca: ilość wysyłanych danych
 ////////////////////////////////////////////////////////////////////////////////
-void ObslugaTelemetrii(uint8_t chInterfejs)
+uint8_t ObslugaTelemetrii(uint8_t chInterfejs)
 {
 	uint8_t chIloscDanych[LICZBA_RAMEK_TELEMETR] = {0, 0};
 	uint8_t chIndeksAdresow;	//okresla indeks puli adresowej rakmi. Zmienne 0..127 idą w ramce 0, zmienne 128..255 w ramce 1, itd
 	uint8_t chTypRamki;
+	uint8_t chWysyłamTyleDanych = 0;	//parametr zwrotny funkcji
 	float fZmienna;
 	extern uint8_t chStatusPolaczenia;
 
 	if (chStatusTelemetrii == TELEM_WSTRZYMAJ)
-		return;
+		return chWysyłamTyleDanych;
 
 	//szybka telemetria wykorzystuje tylko ramkę RAMKA_TELE1, czyli chIloscDanych[0] oraz chRamkaTelemetrii[0 i 1]
 	if (chStatusTelemetrii == TELEM_SZYBKA)
@@ -184,6 +185,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 				st_ZajetośćLPUART.chZajętyPrzez = RAMKA_TELE1 + r;
 				//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1 - LPUART_ZAJETY
 				HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1] + r * LICZBA_RAMEK_TELEMETR][0], st_ZajetośćLPUART.sDoWysłania[r+1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
+				chWysyłamTyleDanych = st_ZajetośćLPUART.sDoWysłania[r+1];
 				st_ZajetośćLPUART.sDoWysłania[r+1] = 0;	//wysłano więc zdejmij z kolejki i zezwól na ponowne napełnienie bufora
 				st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1]++;	//przełacz indeks podwójnego buforowania aby można było napełniać drugi bufor
 				st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1] &= 0x01;
@@ -193,6 +195,7 @@ void ObslugaTelemetrii(uint8_t chInterfejs)
 		}
 	}
 	__enable_irq();		//koniec sekcji krytycznej
+	return chWysyłamTyleDanych;
 }
 
 

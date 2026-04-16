@@ -36,6 +36,7 @@
 #define ERR_ZWARCIE_VCC			23
 #define ERR_ZAJETY_SEMAFOR		24
 #define BLAD_ZLE_DANE			25
+#define BLAD_NIC_DO_ROBOTY		26	//zadanie nie znalazło nic do wykonania
 
 #define ERR_SRAM_TEST			30 //błąd pamięci SRAM
 #define ERR_BRAK_KAMERY			31	//nie wykryto obecności kamery
