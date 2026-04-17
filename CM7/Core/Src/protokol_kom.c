@@ -10,7 +10,7 @@
 /* Struktura ramki komunikacyjnej
  * NAGLOWEK = 0xAA Strumień danych wejściowych analizujemy pod kątem obecności nagłówka.
  * ADRES ODBIORCY - 0x00 stacja naziemna, 0xFF broadcast, pozostałe to numery BSP w roju.Podczas odbioru w tym miejscu przestajemy analizować jeżeli ramka nas nie dotyczy.Od tego miejsca może zaczynać się szyfrowanie
- * ADERS NADAWCY - aby można było zidentyfikować od kogo pochodzi ramka
+ * ADERS NADAWCY - 0x01..0xFE aby można było zidentyfikować od kogo pochodzi ramka
  * ZNACZNIK CZASU - licznik setnych części sekundy po to aby można było poskładać we właściwej kolejności dane przesyłane w wielu ramkach
  * POLECENIE - kod polecenia do wykonania.
  * ROZMIAR - liczba bajtów danych ramki

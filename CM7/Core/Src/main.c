@@ -53,8 +53,8 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Dodać wyłaczanie przerwań na czas alokacji pamięci przez memalloc()
  - są problemy z dokładnoscią odmierzania czasu telemetrii. np. ramka 10Hz przychodzi z częstotliwością 12Hz. To jest kwestia poprawności zarządzania czasem w wątku LPUART
  - kalibracja żyroskopu powinna kasować całkę kata na wykresie
- - okresowo zmienia się polecenie zmieniajac ekran meny w dane pomiarowe. Sprawdzić co jest przyczyną błędu zasadzic się na zmianę stanu zmiennej chTrybPracy albo chNowyTrybPracy
- - uzbrajanie silników i zwiekszanie ciągu jest rozione drążkiem gazu. Przenieść zwiększanie ciagu na regulator PID aby móc pracowac w trybach autonomicznych
+ - Dodać pomiary analogowe
+ -
 
  //Problemy sprzętowe egzemplarza 1:
   * Nie można uruchomić ETH i kamery

@@ -116,74 +116,104 @@
 
 //zmiene telemetryczne w ramce 2
 #define TELEID_PID_PRZE_WZAD	128	//wartość zadana regulatora sterowania przechyleniem
-#define TELEID_PID_PRZE_WYJ		129	//wyjście regulatora sterowania przechyleniem
-#define TELEID_PID_PRZE_WY_P	130	//wyjście członu P
-#define TELEID_PID_PRZE_WY_I	131	//wyjście członu I
-#define TELEID_PID_PRZE_WY_D	132	//wyjście członu D
+#define TELEID_PID_PRZE_WE_D	129	//wartość wejsciowa członu D po filtrze
+#define TELEID_PID_PRZE_CALK	130	//wartość całki członu I
+#define TELEID_PID_PRZE_WYJ		131	//wyjście regulatora sterowania przechyleniem
+#define TELEID_PID_PRZE_WY_P	132	//wyjście członu P
+#define TELEID_PID_PRZE_WY_I	133	//wyjście członu I
+#define TELEID_PID_PRZE_WY_D	134	//wyjście członu D
 
-#define TELEID_PID_PK_PRZE_WYJ	133	//wyjście regulatora sterowania prędkością kątową przechylenia
-#define TELEID_PID_PK_PRZE_WY_P	134	//wyjście członu P
-#define TELEID_PID_PK_PRZE_WY_I	135	//wyjście członu I
-#define TELEID_PID_PK_PRZE_WY_D	136	//wyjście członu D
+#define TELEID_PID_PK_PRZE_WZAD	135	//wartość zadana regulatora sterowania prędkością kątową przechylenia
+#define TELEID_PID_PK_PRZE_WE_D	136	//wartość wejsciowa członu D po filtrze
+#define TELEID_PID_PK_PRZE_CALK	137	//wartość całki członu I
+#define TELEID_PID_PK_PRZE_WYJ	138	//wyjście regulatora sterowania prędkością kątową przechylenia
+#define TELEID_PID_PK_PRZE_WY_P	139	//wyjście członu P
+#define TELEID_PID_PK_PRZE_WY_I	140	//wyjście członu I
+#define TELEID_PID_PK_PRZE_WY_D	141	//wyjście członu D
 
-#define TELEID_PID_POCH_WZAD	137	//wartość zadana regulatora sterowania pochyleniem
-#define TELEID_PID_POCH_WYJ		138	//wyjście regulatora sterowania pochyleniem
-#define TELEID_PID_POCH_WY_P	139	//wyjście członu P
-#define TELEID_PID_POCH_WY_I	140	//wyjście członu I
-#define TELEID_PID_POCH_WY_D	141	//wyjście członu D
+#define TELEID_PID_POCH_WZAD	142	//wartość zadana regulatora sterowania pochyleniem
+#define TELEID_PID_POCH_WE_D	143	//wartość wejsciowa członu D po filtrze
+#define TELEID_PID_POCH_CALK	144	//wartość całki członu I
+#define TELEID_PID_POCH_WYJ		145	//wyjście regulatora sterowania pochyleniem
+#define TELEID_PID_POCH_WY_P	146	//wyjście członu P
+#define TELEID_PID_POCH_WY_I	147	//wyjście członu I
+#define TELEID_PID_POCH_WY_D	148	//wyjście członu D
 
-#define TELEID_PID_PK_POCH_WYJ	142	//wyjście regulatora sterowania prędkością kątową pochylenia
-#define TELEID_PID_PK_POCH_WY_P	143	//wyjście członu P
-#define TELEID_PID_PK_POCH_WY_I	144	//wyjście członu I
-#define TELEID_PID_PK_POCH_WY_D	145	//wyjście członu D
+#define TELEID_PID_PK_POCH_WZAD	149	//wartość zadana
+#define TELEID_PID_PK_POCH_WE_D	150	//wartość wejsciowa członu D po filtrze
+#define TELEID_PID_PK_POCH_CALK	151	//wartość całki członu I
+#define TELEID_PID_PK_POCH_WYJ	152	//wyjście regulatora sterowania prędkością kątową pochylenia
+#define TELEID_PID_PK_POCH_WY_P	153	//wyjście członu P
+#define TELEID_PID_PK_POCH_WY_I	154	//wyjście członu I
+#define TELEID_PID_PK_POCH_WY_D	155	//wyjście członu D
 
-#define TELEID_PID_ODCH_WZAD	146	//wartość zadana regulatora sterowania odchyleniem
-#define TELEID_PID_ODCH_WYJ		147	//wyjście regulatora sterowania odchyleniem
-#define TELEID_PID_ODCH_WY_P	148	//wyjście członu P
-#define TELEID_PID_ODCH_WY_I	149	//wyjście członu I
-#define TELEID_PID_ODCH_WY_D	150	//wyjście członu D
+#define TELEID_PID_ODCH_WZAD	156	//wartość zadana regulatora sterowania odchyleniem
+#define TELEID_PID_ODCH_WE_D	157	//wartość wejsciowa członu D po filtrze
+#define TELEID_PID_ODCH_CALK	158	//wartość całki członu I
+#define TELEID_PID_ODCH_WYJ		159	//wyjście regulatora sterowania odchyleniem
+#define TELEID_PID_ODCH_WY_P	160	//wyjście członu P
+#define TELEID_PID_ODCH_WY_I	161	//wyjście członu I
+#define TELEID_PID_ODCH_WY_D	162	//wyjście członu D
 
-#define TELEID_PID_PK_ODCH_WYJ	151	//wyjście regulatora sterowania prędkością kątową odchylenia
-#define TELEID_PID_PK_ODCH_WY_P	152	//wyjście członu P
-#define TELEID_PID_PK_ODCH_WY_I	153	//wyjście członu I
-#define TELEID_PID_PK_ODCH_WY_D	154	//wyjście członu D
+#define TELEID_PID_PK_ODCH_WZAD	163	//wartość zadana
+#define TELEID_PID_PK_ODCH_WE_D	164	//wartość wejsciowa członu D po filtrze
+#define TELEID_PID_PK_ODCH_CALK	165	//wartość całki członu I
+#define TELEID_PID_PK_ODCH_WYJ	166	//wyjście regulatora sterowania prędkością kątową odchylenia
+#define TELEID_PID_PK_ODCH_WY_P	167	//wyjście członu P
+#define TELEID_PID_PK_ODCH_WY_I	168	//wyjście członu I
+#define TELEID_PID_PK_ODCH_WY_D	169	//wyjście członu D
 
-#define TELEID_PID_WYSO_WZAD	155	//wartość zadana regulatora sterowania wysokością
-#define TELEID_PID_WYSO_WYJ		156	//wyjście regulatora sterowania odchyleniem
-#define TELEID_PID_WYSO_WY_P	157	//wyjście członu P
-#define TELEID_PID_WYSO_WY_I	158	//wyjście członu I
-#define TELEID_PID_WYSO_WY_D	159	//wyjście członu D
+#define TELEID_PID_WYSO_WZAD	170	//wartość zadana regulatora sterowania wysokością
+#define TELEID_PID_WYSO_WE_D	171	//wartość wejsciowa członu D po filtrze
+#define TELEID_PID_WYSO_CALK	172	//wartość całki członu I
+#define TELEID_PID_WYSO_WYJ		173	//wyjście regulatora sterowania odchyleniem
+#define TELEID_PID_WYSO_WY_P	174	//wyjście członu P
+#define TELEID_PID_WYSO_WY_I	175	//wyjście członu I
+#define TELEID_PID_WYSO_WY_D	176	//wyjście członu D
 
-#define TELEID_PID_PR_WYSO_WYJ	160	//wyjście regulatora sterowania prędkością zmiany wysokości
-#define TELEID_PID_PR_WYSO_WY_P	161	//wyjście członu P
-#define TELEID_PID_PR_WYSO_WY_I	162	//wyjście członu I
-#define TELEID_PID_PR_WYSO_WY_D	163	//wyjście członu D
+#define TELEID_PID_PR_WYSO_WZAD	177	//wartość zadana
+#define TELEID_PID_PR_WYSO_WE_D	178	//wartość wejsciowa członu D po filtrze
+#define TELEID_PID_PR_WYSO_CALK	179	//wartość całki członu I
+#define TELEID_PID_PR_WYSO_WYJ	180	//wyjście regulatora sterowania prędkością zmiany wysokości
+#define TELEID_PID_PR_WYSO_WY_P	181	//wyjście członu P
+#define TELEID_PID_PR_WYSO_WY_I	182	//wyjście członu I
+#define TELEID_PID_PR_WYSO_WY_D	183	//wyjście członu D
 
-#define TELEID_PID_NAWN_WZAD	164	//wartość zadana regulatora sterowania nawigacją w kierunku północnym
-#define TELEID_PID_NAWN_WYJ		165	//wyjście regulatora sterowania nawigacją w kierunku północnym
-#define TELEID_PID_NAWN_WY_P	166	//wyjście członu P
-#define TELEID_PID_NAWN_WY_I	167	//wyjście członu I
-#define TELEID_PID_NAWN_WY_D	168	//wyjście członu D
+#define TELEID_PID_NAWN_WZAD	184	//wartość zadana regulatora sterowania nawigacją w kierunku północnym
+#define TELEID_PID_NAWN_WE_D	185	//wartość wejsciowa członu D po filtrze
+#define TELEID_PID_NAWN_CALK	186	//wartość całki członu I
+#define TELEID_PID_NAWN_WYJ		187	//wyjście regulatora sterowania nawigacją w kierunku północnym
+#define TELEID_PID_NAWN_WY_P	188	//wyjście członu P
+#define TELEID_PID_NAWN_WY_I	189	//wyjście członu I
+#define TELEID_PID_NAWN_WY_D	190	//wyjście członu D
 
-#define TELEID_PID_PR_NAWN_WYJ	169	//wyjście regulatora sterowania prędkością w kierunku północnym
-#define TELEID_PID_PR_NAWN_WY_P	170	//wyjście członu P
-#define TELEID_PID_PR_NAWN_WY_I	171	//wyjście członu I
-#define TELEID_PID_PR_NAWN_WY_D	172	//wyjście członu D
+#define TELEID_PID_PR_NAWN_WZAD	191	//wartość zadana
+#define TELEID_PID_PR_NAWN_WE_D	192	//wartość wejsciowa członu D po filtrze
+#define TELEID_PID_PR_NAWN_CALK	193	//wartość całki członu I
+#define TELEID_PID_PR_NAWN_WYJ	194	//wyjście regulatora sterowania prędkością w kierunku północnym
+#define TELEID_PID_PR_NAWN_WY_P	195	//wyjście członu P
+#define TELEID_PID_PR_NAWN_WY_I	196	//wyjście członu I
+#define TELEID_PID_PR_NAWN_WY_D	197	//wyjście członu D
 
-#define TELEID_PID_NAWE_WZAD	173	//wartość zadana regulatora sterowania nawigacją w kierunku wschodnim
-#define TELEID_PID_NAWE_WYJ		174	//wyjście regulatora sterowania nawigacją w kierunku północnym
-#define TELEID_PID_NAWE_WY_P	175	//wyjście członu P
-#define TELEID_PID_NAWE_WY_I	176	//wyjście członu I
-#define TELEID_PID_NAWE_WY_D	177	//wyjście członu D
+#define TELEID_PID_NAWE_WZAD	198	//wartość zadana regulatora sterowania nawigacją w kierunku wschodnim
+#define TELEID_PID_NAWE_WE_D	199	//wartość wejsciowa członu D po filtrze
+#define TELEID_PID_NAWE_CALK	200	//wartość całki członu I
+#define TELEID_PID_NAWE_WYJ		201	//wyjście regulatora sterowania nawigacją w kierunku północnym
+#define TELEID_PID_NAWE_WY_P	202	//wyjście członu P
+#define TELEID_PID_NAWE_WY_I	203	//wyjście członu I
+#define TELEID_PID_NAWE_WY_D	204	//wyjście członu D
 
-#define TELEID_PID_PR_NAWE_WYJ	178	//wyjście regulatora sterowania prędkością w kierunku wschodnim
-#define TELEID_PID_PR_NAWE_WY_P	179	//wyjście członu P
-#define TELEID_PID_PR_NAWE_WY_I	180	//wyjście członu I
-#define TELEID_PID_PR_NAWE_WY_D	181	//wyjście członu D
+#define TELEID_PID_PR_NAWE_WZAD	205	//wartość zadana
+#define TELEID_PID_PR_NAWE_WE_D	206	//wartość wejsciowa członu D po filtrze
+#define TELEID_PID_PR_NAWE_CALK	207	//wartość całki członu I
+#define TELEID_PID_PR_NAWE_WYJ	208	//wyjście regulatora sterowania prędkością w kierunku wschodnim
+#define TELEID_PID_PR_NAWE_WY_P	209	//wyjście członu P
+#define TELEID_PID_PR_NAWE_WY_I	210	//wyjście członu I
+#define TELEID_PID_PR_NAWE_WY_D	211	//wyjście członu D
 
-
-#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	182
 //max do 255
+
+#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	212
 
 #define MAX_ZMIENNYCH_TELEMETR_W_RAMCE	115		//tyle zmiennych może być przesłanych w jednej ramce telemetrycznej (ramek może być kilka)
 #define MAX_INDEKSOW_TELEMETR_W_RAMCE	128		//zmienne w ramce można wybrać z takiej puli indeksów
