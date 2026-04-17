@@ -33,6 +33,8 @@
 #define DOTYK_ZAPISANO		0x04	//zapisano dane konfiguracyjne
 #define DOTYK_SKALIBROWANY	0x08	//została wykonana kalibracja
 
+#define DLUGOSC_PRZERWY_DETEKCJI_DOTYKU		100	//liczba iteracji odczytu dotyku pomijanych po pierwszej detekcji
+
 struct _statusDotyku
 {
 	uint16_t sAdc[4];

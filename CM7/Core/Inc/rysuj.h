@@ -20,7 +20,8 @@ typedef struct
 
 #define SZER_PASKA_HISTOGRAMU		2		//szerokość paska w pikselach
 
-void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
+//void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
+uint8_t Menu(char *tytul, menu_t *menu);
 void BelkaTytulu(char* chTytul);
 uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObraz);
 uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* chObraz);

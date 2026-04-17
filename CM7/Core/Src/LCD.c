@@ -168,7 +168,7 @@ extern stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDR
 
 
 //Definicje ekranów menu
-struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
+menu_t stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Pomiary",		"Wyniki pomiarow czujnikow",				TP_POMIARY, 		obr_multimetr},
 	{"Kalibracje", 	"Kalibracja czujnikow pokladowych",			TP_KALIBRACJE,		obr_kontrolny},
@@ -183,7 +183,7 @@ struct tmenu stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY]  = {
 
 
 
-struct tmenu stMenuKalibracje[MENU_WIERSZE * MENU_KOLUMNY]  = {
+menu_t stMenuKalibracje[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Kal IMU", 	"Kalibracja czujników IMU",					TP_KAL_IMU,			obr_zyroskop},
 	{"Kal Magn", 	"Kalibracja magnetometrow",					TP_KAL_MAG,			obr_kal_mag_n1},
@@ -196,7 +196,7 @@ struct tmenu stMenuKalibracje[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"HardFault",	"Genruje wystapiene HardFault",				TP_KAL_HARD_FAULT,	obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
-struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
+menu_t stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
 	{"Cisn GNSS",	"Wyniki pom. czujnikow cisnienia i GNSS",	TP_POMIARY_CISN, 	obr_multimetr},
@@ -209,7 +209,7 @@ struct tmenu stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"TestDotyk",	"Testy panelu dotykowego",					TP_POMIARY_DOTYKU,			obr_dotyk_zolty},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
-struct tmenu stMenuNastawy[MENU_WIERSZE * MENU_KOLUMNY]  = {
+menu_t stMenuNastawy[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"PID Pochyl",	"Nastawy PID pochylenia",					TP_NAST_PID_POCH, 	obr_narzedzia},
 	{"PID Przech",	"Nastawy PID przechylenia",					TP_NAST_PID_PRZECH, obr_narzedzia},
@@ -223,7 +223,7 @@ struct tmenu stMenuNastawy[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 
-struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
+menu_t stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,		obr_fraktal},
 	{"Zapis NOR", 	"Test zapisu do flash NOR",					TP_POM_ZAPISU_NOR,	obr_NOR},
@@ -236,7 +236,7 @@ struct tmenu stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Pamiec",		"Status pamieci",							TP_STAN_PAMIECI,	obr_Wydajnosc},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
-struct tmenu stMenuAudio[MENU_WIERSZE * MENU_KOLUMNY]  = {
+menu_t stMenuAudio[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Miki Rej",  	"Deklaracja Mikolaja Reja o APL",			TP_MREJ,	 		obr_Mikołaj_Rey},
 	{"Papuga",		"Rejestrator i odtwarzacz dzwieku",			TP_PAPUGA,			obr_papuga1},
@@ -249,7 +249,7 @@ struct tmenu stMenuAudio[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
-struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
+menu_t stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Kam. SRAM",	"Kamera w trybie ciaglym z pam. SRAM",		TP_KAMERA,			obr_kamera},
 	{"Kam. DRAM",	"Kamera w trybie ciaglym z pam. DRAM",		TP_KAM_DRAM,		obr_kamera},
@@ -262,7 +262,7 @@ struct tmenu stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Status kam",	"Wykonuje diagnostyke kamery",				TP_KAM_DIAG,		obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
-struct tmenu stMenuOsd[MENU_WIERSZE * MENU_KOLUMNY]  = {
+ menu_t stMenuOsd[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Obraz 480", 	"Pokazuje obraz OSD 480x320",				TPO_TEST_OSD480,	obr_kamera},
 	{"Jpeg 444",	"Zapisz plik JPEG w formacie 444",			TPO_JPEG444,		obr_kartaSD},
@@ -275,7 +275,7 @@ struct tmenu stMenuOsd[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"BMP Luma",	"Zapisz luminancji do pliku BMP",			TPO_ZAPIS_BMP,		obr_kartaSD},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
-struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
+menu_t stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Wlacz Rej",   "Wlacza rejestrator",   					TPKS_WLACZ_REJ,		obr_kartaSD},
 	{"Wylacz Rej",  "Wylacza rejestrator",   					TPKS_WYLACZ_REJ,	obr_kartaSD},
@@ -288,7 +288,7 @@ struct tmenu stMenuKartaSD[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"BMP24 480",	"Zapis bufora LCD 240x180 na karte  ",		TPKS_ZAP_BMP24_480,	obr_bmp24},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
-struct tmenu stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY]  = {
+menu_t stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Info",		"Informacje o laczu sieciowym",				TP_ETH_INFO,		obr_Polaczenie},
 	{"Gadu-Gadu",	"Test serwera TCP jako Gadu-Gadu",			TP_ETH_GADU_GADU,	obr_Polaczenie},
@@ -301,7 +301,7 @@ struct tmenu stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										ET_ETH1,			obr_Polaczenie},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
-struct tmenu stMenuTestowe[MENU_WIERSZE * MENU_KOLUMNY]  = {
+menu_t stMenuTestowe[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"nic",			"nic",										TP_TEST1,			obr_narzedzia},
 	{"nic",			"nic",										TP_TEST2,			obr_narzedzia},
@@ -314,7 +314,7 @@ struct tmenu stMenuTestowe[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"nic",			"nic",										TP_TEST9,			obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
-struct tmenu stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY]  = {
+menu_t stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Zyro Zimno", 	"Kalibracja zera zyroskopow w 10C",			TP_KAL_ZYRO_ZIM,	obr_zyroskop},
 	{"Zyro Pokoj", 	"Kalibracja zera zyroskopow w 25C",			TP_KAL_ZYRO_POK,	obr_zyroskop},
@@ -325,10 +325,9 @@ struct tmenu stMenuIMU[MENU_WIERSZE * MENU_KOLUMNY]  = {
 	{"Wzm ZyroQ", 	"Kalibracja wzmocnienia zyroskopow Q",		TP_KAL_WZM_ZYROQ,	obr_zyroskop},
 	{"Wzm ZyroR", 	"Kalibracja wzmocnienia zyroskopow R",		TP_KAL_WZM_ZYROR,	obr_zyroskop},
 	{"ZeroZyro", 	"Kasuj dryft scalkowanego kata z zyro.",	TP_KASUJ_DRYFT_ZYRO,obr_kostka3D},
-	//{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katow IMU",		TP_IMU_KOSTKA,	obr_kostka3D},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
-struct tmenu stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY]  = {
+menu_t stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Kal Magn1", 	"Kalibracja magnetometru 1",				TP_MAG_KAL1,		obr_kal_mag_n1},
 	{"Kal Magn2", 	"Kalibracja magnetometru 2",				TP_MAG_KAL2,		obr_kal_mag_n1},
@@ -358,7 +357,7 @@ uint8_t RysujEkran(void)
 	{
 	case TP_MENU_GLOWNE:	// wyświetla menu główne
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_MENU_MAIN]);
-		Menu(chNapisPodreczny, stMenuGlowne, &chNowyTrybPracy);
+		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuGlowne);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -379,7 +378,7 @@ uint8_t RysujEkran(void)
 	case TP_TESTY:
 		//Menu(strcat((char*)chNapisLcd[STR_TESTY], (char*)chNapisLcd[STR_MENU]), stMenuTestowe, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_TESTY]);
-		Menu(chNapisPodreczny, stMenuTestowe, &chNowyTrybPracy);
+		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuTestowe);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -428,7 +427,7 @@ uint8_t RysujEkran(void)
 	case TP_MEDIA_AUDIO:
 		//Menu(strcat((char*)chNapisLcd[STR_MENU_MEDIA_AUDIO], (char*)chNapisLcd[STR_MENU]), stMenuAudio, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_AUDIO]);
-		Menu(chNapisPodreczny, stMenuAudio, &chNowyTrybPracy);
+		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuAudio);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -553,7 +552,7 @@ uint8_t RysujEkran(void)
 	case TP_MEDIA_KAMERA:			//menu kamera
 		//Menu((char*)chNapisLcd[STR_MENU_KAMERA], stMenuKamera, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KAMERA]);
-		Menu(chNapisPodreczny, stMenuKamera, &chNowyTrybPracy);
+		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuKamera);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -881,7 +880,7 @@ uint8_t RysujEkran(void)
 	case TP_MENU_OSD:
 		//Menu((char*)chNapisLcd[STR_MENU_OSD], stMenuOsd, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_OSD]);
-		Menu(chNapisPodreczny, stMenuOsd, &chNowyTrybPracy);
+		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuOsd);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1041,7 +1040,7 @@ uint8_t RysujEkran(void)
 	case TP_ETHERNET:
 		//Menu((char*)chNapisLcd[STR_MENU_ETHERNET], stMenuEthernet, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_ETHERNET]);
-		Menu(chNapisPodreczny, stMenuEthernet, &chNowyTrybPracy);
+		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuEthernet);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1116,7 +1115,7 @@ uint8_t RysujEkran(void)
 	case TP_WYDAJNOSC:			///menu pomiarów wydajności
 		//Menu((char*)chNapisLcd[STR_MENU_WYDAJNOSC], stMenuWydajnosc, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_WYDAJNOSC]);
-		Menu(chNapisPodreczny, stMenuWydajnosc, &chNowyTrybPracy);
+		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuWydajnosc);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1267,7 +1266,7 @@ uint8_t RysujEkran(void)
 	case TP_KARTA_SD:			///menu Karta SD
 		//Menu((char*)chNapisLcd[STR_MENU_KARTA_SD], stMenuKartaSD, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KARTA_SD]);
-		Menu(chNapisPodreczny, stMenuKartaSD, &chNowyTrybPracy);
+		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuKartaSD);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1356,7 +1355,7 @@ uint8_t RysujEkran(void)
 	case TP_KAL_IMU:			//menu kalibracji IMU
 		//Menu((char*)chNapisLcd[STR_MENU_IMU], stMenuIMU, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KALIBRACJA], chNapisLcd[STR_IMU]);
-		Menu(chNapisPodreczny, stMenuIMU, &chNowyTrybPracy);
+		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuIMU);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1498,7 +1497,7 @@ uint8_t RysujEkran(void)
 	case TP_MAGNETOMETR:	//menu obsługi magnetometru
 		//Menu((char*)chNapisLcd[STR_MENU_MAGNETOMETR], stMenuMagnetometr, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_MAGNETOMETR]);
-		Menu(chNapisPodreczny, stMenuMagnetometr, &chNowyTrybPracy);
+		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuMagnetometr);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		chSekwencerKalibracji = 0;
 		break;
@@ -1579,7 +1578,7 @@ uint8_t RysujEkran(void)
 	case TP_KALIBRACJE:		//menu skupiające różne kalibracje
 		//Menu((char*)chNapisLcd[STR_MENU_KALIBRACJE], stMenuKalibracje, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KALIBRACJE]);
-		Menu(chNapisPodreczny, stMenuKalibracje, &chNowyTrybPracy);
+		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuKalibracje);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1595,7 +1594,7 @@ uint8_t RysujEkran(void)
 //*** Pomiary ************************************************
 	case TP_POMIARY:		//menu skupiające różne kalibracje
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_POMIARY]);
-		Menu(chNapisPodreczny, stMenuPomiary, &chNowyTrybPracy);
+		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuPomiary);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1676,7 +1675,7 @@ uint8_t RysujEkran(void)
 //*** Nastawy ************************************************
 	case TP_NASTAWY:		//menu skupiające różne kalibracje
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_NASTAWY]);
-		Menu(chNapisPodreczny, stMenuNastawy, &chNowyTrybPracy);
+		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuNastawy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -2879,11 +2878,6 @@ uint32_t RysujKostkeObrotu(float *fKat)
 	uint32_t nCzas = PobierzCzasT6();
 	stPlas_t stPla[6];
 	int16_t sWektA[3], sWektB[3];
-	//int16_t sWektor[6][3];
-
-	//int16_t sPunktRzutowania[3] = {0, 0, -500};
-	//int16_t sWektorRzutowania[6][3];
-	//int32_t nIloczynSkalarny[6];	//iloczyn skalarny wektora normalnego płaszczyzny i wektora rzutowania
 
 	for (uint16_t n=0; n<8; n++)
 	{
@@ -3010,7 +3004,6 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	char chNazwaOsi;
 	float fPochylenie, fPrzechylenie;
 	uint8_t chErr = BLAD_OK;
-	//uint8_t chRozmiar;
 
 	if (chRysujRaz)
 	{
@@ -3056,8 +3049,6 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	{
 	case SEKW_KAL_WZM_ZYRO_R:
 		chNazwaOsi = 'Z';
-		//fPochylenie = uDaneCM4.dane.fKatIMU2[1];
-		//fPrzechylenie = uDaneCM4.dane.fKatIMU2[0];
 		fPochylenie = uDaneCM4.dane.fKatAkcel1[1];
 		fPrzechylenie = uDaneCM4.dane.fKatAkcel1[0];
 		Poziomica(-fPrzechylenie, fPochylenie);	//przechylenie, pochylenie
@@ -3214,8 +3205,6 @@ void Poziomica(float fKatAkcelX, float fKatAkcelY)
 
 	if (chRysujRaz)
 	{
-		//setColor(LIBELLA1);
-		//fillRect(0, DISP_Y_SIZE - LIBELLA_BOK, LIBELLA_BOK, DISP_Y_SIZE);	//wypełnienie płynem
 		RysujProstokatWypelniony(0, DISP_Y_SIZE - LIBELLA_BOK, LIBELLA_BOK, LIBELLA_BOK, LIBELLA1);
 		chRysujRaz = 0;
 		x2 = (DISP_Y_SIZE - MENU_NAG_WYS)/2;					//współrzędne "starego" bąbelka do zamazania
@@ -4253,6 +4242,7 @@ void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sK
 
 ////////////////////////////////////////////////////////////////////////////////
 // Liczy 6 FFT z żyroskopów i akcelerometrów ale wyświetla tylko 3 wybrane ze względu na czytelność.
+// Na dole wykresu rysuje 100 linii wodospadu
 // Pomiary mieszczące się w szerokości okna przedstawia w postaci wykresów, szersze obcina, węższe rozciaga do szerokości okna wykresu
 // Parametry:
 // [we] *stWynik - wskaźnik na dane wynikowe FFT

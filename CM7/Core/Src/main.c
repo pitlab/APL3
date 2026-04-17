@@ -33,7 +33,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 0x38800000	4K		CM7														BACKUP
 0x60000000	4M		CM7		-		+		-		+		RW		RW		EXT_SRAM		obecnie nieużywana. Docelowo usunąć jako zbyt drogi
 0x68000000	32M		CM7		+		+		+		-		RW		RW		FLASH_NOR
-0xC0000000	64M		CM7		-		+		-		+		RW		RW		EXT_DRAM		bufor obrazu z kamery
+0xC0000000	64M		CM7		-		+		-		+		RW		RW		EXT_DRAM		bufor obrazu z kamery, wyniki FFT
 
 
  *Zrobić:
@@ -1662,9 +1662,8 @@ void StartDefaultTask(void const * argument)
 /* USER CODE BEGIN Header_WatekOdbiorczyLPUART1 */
 ////////////////////////////////////////////////////////////////////////////////
 // Wątek odbiorczy danych komunikacyjnych po LPUART1
-// Odbiera dane przez DMA i analizuje je
-// Parametry:
-// Zwraca: nic
+// Odbiera dane przez DMA i analizuje je, wysyła telemetrię
+// Czas trwania: typ. 250ns,
 ////////////////////////////////////////////////////////////////////////////////
 /* USER CODE END Header_WatekOdbiorczyLPUART1 */
 void WatekOdbiorczyLPUART1(void const * argument)
@@ -1700,23 +1699,21 @@ void WatekOdbiorczyLPUART1(void const * argument)
 				osDelay(2);	//czas na obsługę ramki tylko wtedy gdy jest coś do wysłania
 		}
 
-		//w drugiej kolejności telemetrię
+		//w drugiej kolejności obsłuż telemetrię
 		//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
 		nCzasTele = MinalCzas(nCzasPoprzedniTele);	//czas w mikrosekundach
 		if ((nCzasTele >= KWANT_CZASU_TELEMETRII * 1000) && (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY))
 		{
 			chDanychDoWysłania = ObslugaTelemetrii(INTERF_UART);
 			nCzasPoprzedniTele += KWANT_CZASU_TELEMETRII * 1000;
-			//osDelay(10);	//minimalny okres telemetrii to 10ms -> 100Hz
 			if (chDanychDoWysłania)
 			{
-				chCzasDrzemki = (chDanychDoWysłania * 92) / 1000; 	//1 bajt na 115200 bps wysyła się 86,8us, więc nie wracaj wcześniej aż sie wyśle
+				chCzasDrzemki = (chDanychDoWysłania * 92) / 1000; 	//1 bajt na 115200 bps wysyła się 86,8us, więc nie wracaj wcześniej aż sie wyśle. Po optymalizacji potrzebna jest trochę większa wartość
 				if (chCzasDrzemki < 10)
 					chCzasDrzemki = 10;		//kwant czasu telemetrii 100Hz to 10ms
 			}
 			else
 				chCzasDrzemki = 10;		//kwant czasu telemetrii 100Hz to 10ms
-
 			osDelay(chCzasDrzemki);
 		}
 		chStatusUART |= chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);
@@ -1726,9 +1723,6 @@ void WatekOdbiorczyLPUART1(void const * argument)
 		else
 			chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
 		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
-		//taskYIELD();
-
-
 	}
   /* USER CODE END WatekOdbiorczyLPUART1 */
 }

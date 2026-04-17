@@ -53,13 +53,14 @@ uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy 
 // [i] *menu - wskaźnik na strukturę menu
 // [i] *napisy - wskaźnik na zmienną zawierajacą napisy
 // [o] *tryb - wskaźnik na zwracany numer pozycji menu
-// Zwraca: nic
+// Zwraca: numer pozycji menu
 ////////////////////////////////////////////////////////////////////////////////
-void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
+uint8_t Menu(char *tytul, menu_t *menu)
 {
-	unsigned char chStarySelPos;
-	unsigned char n, m;			//zapętlacze
-	int x, x2, y;	//pomocnicze współrzędne ekranowe
+	uint8_t chStarySelPos;
+	uint8_t chPozycjaMenu;
+	uint8_t chRząd;
+	uint16_t x, x2, y;	//pomocnicze współrzędne ekranowe
 
 	if (chRysujRaz)
 	{
@@ -70,9 +71,9 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 
 		//rysuj ikony poleceń
 		UstawCzcionke(MidFont);
-		for (m=0; m<MENU_WIERSZE; m++)
+		for (uint8_t m=0; m<MENU_WIERSZE; m++)
 		{
-			for (n=0; n<MENU_KOLUMNY; n++)
+			for (uint8_t n=0; n<MENU_KOLUMNY; n++)
 			{
 				//licz współrzedne środka ikony
 				x = (DISP_X_SIZE/(2*MENU_KOLUMNY)) + n * (DISP_X_SIZE/MENU_KOLUMNY);
@@ -96,23 +97,23 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		chStarySelPos = chMenuSelPos;
 
 		if (statusDotyku.sY < (DISP_Y_SIZE - MENU_NAG_WYS)/2)	//czy naciśniety górny rząd
-			m = 0;
+			chRząd = 0;
 		else	//czy naciśniety dolny rząd
-			m = 1;
+			chRząd = 1;
 
-		for (n=0; n<MENU_KOLUMNY; n++)
+		for (uint8_t n=0; n<MENU_KOLUMNY; n++)
 		{
 			if ((statusDotyku.sX > n*(DISP_X_SIZE / MENU_KOLUMNY)) && (statusDotyku.sX < (n+1)*(DISP_X_SIZE / MENU_KOLUMNY)))
-				chMenuSelPos = m * MENU_KOLUMNY + n;
+				chMenuSelPos = chRząd * MENU_KOLUMNY + n;
 		}
 
 
 		if (chStarySelPos != chMenuSelPos)	//zamaż tylko gdy stara ramka jest inna od wybranej
 		{
 			//zamaż starą ramkę kolorem nieaktywnym
-			for (m=0; m<MENU_WIERSZE; m++)
+			for (uint8_t m=0; m<MENU_WIERSZE; m++)
 			{
-				for (n=0; n<MENU_KOLUMNY; n++)
+				for (uint8_t n=0; n<MENU_KOLUMNY; n++)
 				{
 					if (chStarySelPos == m*MENU_KOLUMNY+n)
 					{
@@ -128,16 +129,13 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 					}
 				}
 			}
-			//setColor(SZARY20);
-			//fillRect(0, DISP_X_SIZE-MENU_PASOP_WYS, DISP_Y_SIZE, DISP_X_SIZE);		//zamaż pasek podpowiedzi
 			RysujProstokatWypelniony(0, DISP_Y_SIZE-MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, SZARY20);		//zamaż pasek podpowiedzi
-
 		}
 
 		//rysuj nową zaznaczoną ramkę
-		for (m=0; m<MENU_WIERSZE; m++)
+		for (uint8_t m=0; m<MENU_WIERSZE; m++)
 		{
-			for (n=0; n<MENU_KOLUMNY; n++)
+			for (uint8_t n=0; n<MENU_KOLUMNY; n++)
 			{
 				if (chMenuSelPos == m*MENU_KOLUMNY+n)
 				{
@@ -171,12 +169,12 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 	//czy był naciśniety enkoder lub ekran
 	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 	{
-		*tryb = menu[chMenuSelPos].chMode;
+		chPozycjaMenu = menu[chMenuSelPos].chMode;
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;	//kasuj flagę naciśnięcia ekranu
 		DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//odtwórz komunikat audio przycisku
-		return;
+		return chPozycjaMenu;
 	}
-	*tryb = 0;
+	chPozycjaMenu = 0;
 
 	//rysuj czas
 	PobierzDateCzas(&stDate, &stTime);
@@ -256,15 +254,14 @@ void Menu(char *tytul, tmenu *menu, unsigned char *tryb)
 		RysujNapis("Brak SD! ", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 	}
 
-
 	//wypisz rozmiar sterty
 	size_t stosWHM = uxTaskGetStackHighWaterMark(NULL);
 	size_t freeHeap = xPortGetFreeHeapSize();
-	//size_t minEverFreeHeap = xPortGetMinimumEverFreeHeapSize();
 	setColor(CYJAN);
 	sprintf(chNapis, " %d/%d ", freeHeap, stosWHM);
 	RysujNapis(chNapis, DISP_X_SIZE - 39*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 	setBackColor(CZARNY);
+	return chPozycjaMenu;
 }
 
 

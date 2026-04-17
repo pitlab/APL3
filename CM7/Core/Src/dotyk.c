@@ -31,6 +31,7 @@ uint16_t sYd[PKT_KAL];	//surowy pomiar panelu rezystancyjnego dla danego punktu 
 uint16_t sXe[PKT_KAL];	//współrzędne ekranowe dla danego punktu kalibracyjnego X
 uint16_t sYe[PKT_KAL];	//współrzędne ekranowe dla danego punktu kalibracyjnego Z
 uint8_t chLicznikDotkniec;
+uint8_t chLicznikPrzerwyPoDotyku;	//po naciśnięciu ekranu nastepuje przerwa w odczycie, po to aby w wielopoziomowym menu nie było fałszywych uruchomień
 //deklaracje zmiennych
 extern uint8_t MidFont[];
 extern char chNapis[50];
@@ -84,6 +85,12 @@ uint8_t CzytajDotyk(void)
 	if (nCzasDotyku < 50000)	//50ms -> 20Hz
 		return BLAD_OK;
 
+	//sprawdź czy upłyneło wystarczająco dużo czasu po ostatnim dotyku
+	if (chLicznikPrzerwyPoDotyku)
+	{
+		chLicznikPrzerwyPoDotyku--;
+		return BLAD_OK;
+	}
 
 	//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI5
 	nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
@@ -131,8 +138,9 @@ uint8_t CzytajDotyk(void)
 			//po nadpisaniu danych zdarzało się że wyliczane współrzędne wynosiły (0,0). W takiej sytuacji wymuś ponowną kalibrację
 			if ((statusDotyku.sX == 0) && (statusDotyku.sY == 0))
 				statusDotyku.chFlagi &= ~DOTYK_SKALIBROWANY;
-		}
 
+			chLicznikPrzerwyPoDotyku = DLUGOSC_PRZERWY_DETEKCJI_DOTYKU;	//po detekcji dotyku zrób przerwę w odczycie aby zapobiegać wielokrotnemu uruchomieniu poleceń
+		}
 	}
 	else
 		statusDotyku.chFlagi |= DOTYK_ZWOLNONO;

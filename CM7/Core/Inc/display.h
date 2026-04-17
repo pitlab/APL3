@@ -101,22 +101,22 @@
 
 typedef struct current_font
 {
-	unsigned char* font;
-	unsigned char x_size;
-	unsigned char y_size;
-	unsigned char offset;
-	unsigned char numchars;
+	uint8_t *font;
+	uint8_t x_size;
+	uint8_t y_size;
+	uint8_t offset;
+	uint8_t numchars;
 } current_font_t;
 
 
 //menu obrazkowe na środku ekranu
 typedef struct tmenu
 {
-	const char* chOpis;				//wskaźnik na opis pod menu
-	const char* chPomoc;			//wskaźnik na tekst pomocy wyświetlany w pasku statusu
-	unsigned char chMode;			//numer trybu pracy obsługujący funkcję
-	const unsigned short* sIkona;	//wskaźnika na ikonę menu
-} tmenu;
+	const char *chOpis;	//wskaźnik na opis pod menu
+	const char *chPomoc;	//wskaźnik na tekst pomocy wyświetlany w pasku statusu
+	uint8_t chMode;			//numer trybu pracy obsługujący funkcję
+	const unsigned short *sIkona;	//wskaźnik na ikonę menu
+} menu_t;
 
 
 #define BABEL			24		//promień bąbelka powietrza w libelli
