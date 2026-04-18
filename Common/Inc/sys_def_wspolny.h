@@ -181,14 +181,14 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define FRC_NIE_TOB_NIC			0
 #define FRC_WLACZ_OD1			1	//aktywuj wyjście otwarty dren 1 sterowanie przez CM7
 #define FRC_WLACZ_OD2			2	//aktywuj wyjście otwarty dren 2 sterowanie przez CM7
-#define FRC_MOW_WYSOKOSC		3	//mów komunikat o wysokości
-#define FRC_MOW_NAPIECIE		4
-#define FRC_MOW_TEMPERAT		5
-#define FRC_MOW_PREDKOSC		6
-#define FRC_MOW_KIERUNEK		7
-
-
-#define LICZBA_FUNKCJI_RC		8	//liczba dostępnych funkcji
+#define FRC_STROJ_PID_PARAM1	3	//kanał służy do zmiany wybranego parametru 1 regulatorów PID
+#define FRC_STROJ_PID_PARAM2	4	//kanał służy do zmiany wybranego parametru 2 regulatorów PID
+#define FRC_MOW_WYSOKOSC		5	//mów komunikat o wysokości
+#define FRC_MOW_NAPIECIE		6
+#define FRC_MOW_TEMPERAT		7
+#define FRC_MOW_PREDKOSC		8
+#define FRC_MOW_KIERUNEK		9
+#define LICZBA_FUNKCJI_RC		10	//liczba dostępnych funkcji
 
 
 //definicje funkcji realizowanych przez kanały wyjściowe RC przechowywane w zmiennej chFunkcjaSerwa[]
@@ -225,7 +225,46 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define FSIL_AN_DRGAN			1	//dane do silników pochodzą z analizatora drgań w rdzeniu CM7. Wytyczne do ich obliczenia są przekazywane przez strukturę unię uRozne
 #define FSIL_ZATRZYMANY			2	//silnik jest zatrzymany
 
+//definicje strojonych parametrów regulatorów PID
+#define STRP_NIC				0	//strojenie wyłączone
+#define STRP_KATA_PRZE_KP		1	//strojenie wzmocnienia w regulatorze przechylenia
+#define STRP_KATA_PRZE_TI		2	//strojenie członu całkujacego w regulatorze przechylenia
+#define STRP_KATA_PRZE_TD		3	//strojenie członu różniczkującego w regulatorze przechylenia
+#define STRP_PRED_PRZE_KP		4	//strojenie wzmocnienia w regulatorze prędkości kątowej przechylenia
+#define STRP_PRED_PRZE_TI		5	//strojenie członu całkujacego w regulatorze prędkości kątowej przechylenia
+#define STRP_PRED_PRZE_TD		6	//strojenie członu różniczkującego w regulatorze prędkości kątowej przechylenia
+#define STRP_KATA_POCH_KP		7	//strojenie wzmocnienia w regulatorze pochylenia
+#define STRP_KATA_POCH_TI		8	//strojenie członu całkujacego w regulatorze pochylenia
+#define STRP_KATA_POCH_TD		9	//strojenie członu różniczkującego w regulatorze pochylenia
+#define STRP_PRED_POCH_KP		10	//strojenie wzmocnienia w regulatorze prędkości kątowej pochylenia
+#define STRP_PRED_POCH_TI		11	//strojenie członu całkujacego w regulatorze prędkości kątowej pochylenia
+#define STRP_PRED_POCH_TD		12	//strojenie członu różniczkującego w regulatorze prędkości kątowej pochylenia
+#define STRP_KATA_ODCH_KP		13	//strojenie wzmocnienia w regulatorze odchylenia
+#define STRP_KATA_ODCH_TI		14	//strojenie członu całkujacego w regulatorze odchylenia
+#define STRP_KATA_ODCH_TD		15	//strojenie członu różniczkującego w regulatorze odchylenia
+#define STRP_PRED_ODCH_KP		16	//strojenie wzmocnienia w regulatorze prędkości kątowej odchylenia
+#define STRP_PRED_ODCH_TI		17	//strojenie członu całkujacego w regulatorze prędkości kątowej odchylenia
+#define STRP_PRED_ODCH_TD		18	//strojenie członu różniczkującego w regulatorze prędkości kątowej odchylenia
+#define STRP_WYSOK_KP			19	//strojenie wzmocnienia w regulatorze wysokości
+#define STRP_WYSOK_TI			20	//strojenie członu całkujacego w regulatorze wysokości
+#define STRP_WYSOK_TD			21	//strojenie członu różniczkującego w regulatorze wysokości
+#define STRP_WARIO_KP			22	//strojenie wzmocnienia w regulatorze prędkości zmiany wysokości
+#define STRP_WARIO_TI			23	//strojenie członu całkujacego w regulatorze prędkości zmiany wysokości
+#define STRP_WARIO_TD			24	//strojenie członu różniczkującego w regulatorze prędkości zmiany wysokości
+#define STRP_NAWI_N_KP			25	//strojenie wzmocnienia w regulatorze nawigacji w kierunku północnym
+#define STRP_NAWI_N_TI			26	//strojenie członu całkujacego w regulatorze nawigacji w kierunku północnym
+#define STRP_NAWI_N_TD			27	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku północnym
+#define STRP_PRED_N_KP			28	//strojenie wzmocnienia w regulatorze prędkości w kierunku północnym
+#define STRP_PRED_N_TI			29	//strojenie członu całkujacego w regulatorze prędkości w kierunku północnym
+#define STRP_PRED_N_TD			30	//strojenie członu różniczkującego w regulatorze prędkości w kierunku północnym
+#define STRP_NAWI_E_KP			31	//strojenie wzmocnienia w regulatorze nawigacji w kierunku wschodnim
+#define STRP_NAWI_E_TI			32	//strojenie członu całkujacego w regulatorze nawigacji w kierunku wschodnim
+#define STRP_NAWI_E_TD			33	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku wschodnim
+#define STRP_PRED_E_KP			34	//strojenie wzmocnienia w regulatorze prędkości w kierunku wschodnim
+#define STRP_PRED_E_TI			35	//strojenie członu całkujacego w regulatorze prędkości w kierunku wschodnim
+#define STRP_PRED_E_TD			36	//strojenie członu różniczkującego w regulatorze prędkości w kierunku wschodnim
 
+#define LICZBA_STROJONYCH_PARAMETROW_PID	37
 
 //definicje temperatur kalibracji żyroskopów
 #define TEMP_KAL_ZIMNO		(10.f + KELVIN)

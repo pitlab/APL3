@@ -1681,7 +1681,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_NAST_PID_PRZECH:		//regulator sterowania przechyleniem (lotkami w samolocie)
-		NastawyPID(PID_PRZE);
+		NastawyPID(PID_KATA_PRZE);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -1691,7 +1691,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_NAST_PID_POCH:	//regulator sterowania pochyleniem (sterem wysokości)
-		NastawyPID(PID_POCH);
+		NastawyPID(PID_KATA_POCH);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -1701,7 +1701,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_NAST_PID_ODCH:		//regulator sterowania odchyleniem (sterem kierunku)
-		NastawyPID(PID_ODCH);
+		NastawyPID(PID_KATA_ODCH);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -1711,7 +1711,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_NAST_PID_WYSOK:		//regulator sterowania wysokością
-		NastawyPID(PID_WYSO);
+		NastawyPID(PID_WYSOKOSCI);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -1721,7 +1721,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_NAST_PID_NAW_N:		//regulator sterowania nawigacją w kierunku północnym
-		NastawyPID(PID_NAW_N);
+		NastawyPID(PID_NAWIG_N);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -1731,7 +1731,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_NAST_PID_NAW_E:		//regulator sterowania nawigacją w kierunku wschodnim
-		NastawyPID(PID_NAW_E);
+		NastawyPID(PID_NAWIG_E);
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;

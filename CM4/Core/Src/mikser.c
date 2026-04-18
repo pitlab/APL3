@@ -131,12 +131,12 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
 		{
 			//w pierwszej kolejności sumuj pochylenie i przechylenie
-			sTmp1[n] = mikser->fPoch[n] * dane->stWyjPID[PID_PK_POCH].fWyjsciePID - mikser->fPrze[n] * dane->stWyjPID[PID_PK_PRZE].fWyjsciePID * PPM1PROC_BIP;
+			sTmp1[n] = mikser->fPoch[n] * dane->stWyjPID[PID_PRED_POCH].fWyjsciePID - mikser->fPrze[n] * dane->stWyjPID[PID_PRED_PRZE].fWyjsciePID * PPM1PROC_BIP;
 			if (sTmp1[n] > sMaxTmp1)
 				sMaxTmp1 = sTmp1[n];
 
 			//osobno sumuj mniej ważne regulatory ciągu i odchylenia
-			sTmp2[n] = (dane->stWyjPID[PID_WARIO].fWyjsciePID + mikser->fOdch[n] * dane->stWyjPID[PID_PK_ODCH].fWyjsciePID ) * PPM1PROC_BIP;
+			sTmp2[n] = (dane->stWyjPID[PID_WARIO].fWyjsciePID + mikser->fOdch[n] * dane->stWyjPID[PID_PRED_ODCH].fWyjsciePID ) * PPM1PROC_BIP;
 			if (sTmp2[n] > sMaxTmp2)
 				sMaxTmp2 = sTmp2[n];
 		}

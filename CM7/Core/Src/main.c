@@ -51,7 +51,6 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - sprawdzić dlaczego wywala się hard fault na ethernet_input()
  - Dodać synchronizację czasu z serwerem RTC
  - Dodać wyłaczanie przerwań na czas alokacji pamięci przez memalloc()
- - są problemy z dokładnoscią odmierzania czasu telemetrii. np. ramka 10Hz przychodzi z częstotliwością 12Hz. To jest kwestia poprawności zarządzania czasem w wątku LPUART
  - kalibracja żyroskopu powinna kasować całkę kata na wykresie
  - Dodać pomiary analogowe
  -

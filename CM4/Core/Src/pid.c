@@ -18,6 +18,7 @@
 
 //definicje zmiennych
 stKonfPID_t stKonfigPID[LICZBA_PID];
+stStrojPID_t stStrojPID[LICZBA_KAN_RC_DO_STROJENIA_PID];
 
 //deklaracje zmiennych zewnętrznych
 extern unia_wymianyCM4_t uDaneCM4;
@@ -33,7 +34,7 @@ extern unia_wymianyCM4_t uDaneCM4;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujPID(void)
 {
-	uint8_t chErr = BLAD_OK;
+	uint8_t chBłąd = BLAD_OK;
 	uint8_t chTemp;
 	uint16_t sAdrOffset;
 
@@ -41,31 +42,31 @@ uint8_t InicjujPID(void)
     {
     	sAdrOffset = (n * ROZMIAR_REG_PID);	//offset danych kolejnego kanału regulatora
         //odczytaj wartość wzmocnienienia członu P regulatora
-        chErr |= CzytajFramFloatZWalidacja(FAU_PID_P0 + sAdrOffset, &stKonfigPID[n].fWzmP, VMIN_PID_WZMP, VMAX_PID_WZMP, VDOM_PID_WZMP);
+    	chBłąd |= CzytajFramFloatZWalidacja(FAU_PID_P0 + sAdrOffset, &stKonfigPID[n].fWzmP, VMIN_PID_WZMP, VMAX_PID_WZMP, VDOM_PID_WZMP);
         assert(stKonfigPID[n].fWzmP >= 0.0);
 
         //odczytaj wartość wzmocnienienia członu I regulatora
-        chErr |= CzytajFramFloatZWalidacja(FAU_PID_I0 + sAdrOffset, &stKonfigPID[n].fWzmI, VMIN_PID_WZMI, VMAX_PID_WZMI, VDOM_PID_WZMI);
+        chBłąd |= CzytajFramFloatZWalidacja(FAU_PID_I0 + sAdrOffset, &stKonfigPID[n].fWzmI, VMIN_PID_WZMI, VMAX_PID_WZMI, VDOM_PID_WZMI);
         assert(stKonfigPID[n].fWzmI >= 0.0);
 
         //odczytaj wartość wzmocnienienia członu D regulatora
-        chErr |= CzytajFramFloatZWalidacja(FAU_PID_D0 + sAdrOffset, &stKonfigPID[n].fWzmD, VMIN_PID_WZMD, VMAX_PID_WZMD, VDOM_PID_WZMD);
+        chBłąd |= CzytajFramFloatZWalidacja(FAU_PID_D0 + sAdrOffset, &stKonfigPID[n].fWzmD, VMIN_PID_WZMD, VMAX_PID_WZMD, VDOM_PID_WZMD);
         assert(stKonfigPID[n].fWzmD >= 0.0);
 
         //odczytaj granicę nasycenia członu całkującego
-        chErr |= CzytajFramFloatZWalidacja(FAU_PID_OGR_I0 + sAdrOffset, &stKonfigPID[n].fOgrCalki, VMIN_PID_ILIM, VMAX_PID_ILIM, VDOM_PID_ILIM);
+        chBłąd |= CzytajFramFloatZWalidacja(FAU_PID_OGR_I0 + sAdrOffset, &stKonfigPID[n].fOgrCalki, VMIN_PID_ILIM, VMAX_PID_ILIM, VDOM_PID_ILIM);
         assert(stKonfigPID[n].fOgrCalki >= 0.0);
 
         //odczytaj minimalną wartość wyjścia
-        chErr |= CzytajFramFloatZWalidacja(FAU_PID_MIN_WY0 + sAdrOffset, &stKonfigPID[n].fMinWyj, VMIN_PID_MINWY, VMAX_PID_MINWY, VDOM_PID_MINWY);
+        chBłąd |= CzytajFramFloatZWalidacja(FAU_PID_MIN_WY0 + sAdrOffset, &stKonfigPID[n].fMinWyj, VMIN_PID_MINWY, VMAX_PID_MINWY, VDOM_PID_MINWY);
         assert(stKonfigPID[n].fMinWyj >=-100.0);
 
         //odczytaj maksymalną wartość wyjścia
-        chErr |= CzytajFramFloatZWalidacja(FAU_PID_MAX_WY0 + sAdrOffset, &stKonfigPID[n].fMaxWyj, VMIN_PID_MAXWY, VMAX_PID_MAXWY, VDOM_PID_MAXWY);
+        chBłąd |= CzytajFramFloatZWalidacja(FAU_PID_MAX_WY0 + sAdrOffset, &stKonfigPID[n].fMaxWyj, VMIN_PID_MAXWY, VMAX_PID_MAXWY, VDOM_PID_MAXWY);
         assert(stKonfigPID[n].fMaxWyj <= 100.0);
 
         //odczytaj skalowanie wartości zadanej
-        chErr |= CzytajFramFloatZWalidacja(FAU_SKALA_WZADANEJ0 + sAdrOffset, &stKonfigPID[n].fSkalaWZadanej, VMIN_PID_SKALAWZ, VMAX_PID_SKALAWZ, VDOM_PID_SKALAWZ);
+        chBłąd |= CzytajFramFloatZWalidacja(FAU_SKALA_WZADANEJ0 + sAdrOffset, &stKonfigPID[n].fSkalaWZadanej, VMIN_PID_SKALAWZ, VMAX_PID_SKALAWZ, VDOM_PID_SKALAWZ);
         assert(stKonfigPID[n].fSkalaWZadanej <= 1000.0);
         assert(stKonfigPID[n].fSkalaWZadanej >= 0.0001);
 
@@ -76,10 +77,18 @@ uint8_t InicjujPID(void)
 
         //zeruj integrator
         uDaneCM4.dane.stWyjPID[n].fCalka = 0.0f;   	//zmienna przechowująca całkę z błędu
-        uDaneCM4.dane.stWyjPID[n].fFiltrWePoprz = 0.0f;	//poprzednia wartość błędu
+        uDaneCM4.dane.stWyjPID[n].fFiltrWeD = 0.0f;	//poprzednia wartość błędu
     }
 
-    return chErr;
+    for (uint16_t n=0; n<LICZBA_KAN_RC_DO_STROJENIA_PID; n++)
+    {
+    	chBłąd |= CzytajFramU8zWalidacja(FAU_STROJ1_KANAL_RC + n,  &stStrojPID[n].chNrKanałuRC,  VMIN_STRPID_KRC,  VMAX_STRPID_KRC,  VDOM_STRPID_KRC);	//numer kanału RC używany do strojenia parametru
+    	chBłąd |= CzytajFramU8zWalidacja(FAU_STROJ1_PARAMETR + n,  &stStrojPID[n].chNrParametru,  VMIN_STRPID_PAR,  VMAX_STRPID_PAR,  VDOM_STRPID_PAR);	//numer strojonego parametru
+
+    	chBłąd |= CzytajFramFloatZWalidacja(FAU_STROJ1_WART_MIN + n*sizeof(float), &stStrojPID[n].fWartośćMin, VMIN_STRPID_MIN, VMAX_STRPID_MIN, VDOM_STRPID_MIN);	//minimalna wartość parametru dla minimalnej wartości kanału
+    	chBłąd |= CzytajFramFloatZWalidacja(FAU_STROJ1_WART_MAX + n*sizeof(float), &stStrojPID[n].fWartośćMax, VMIN_STRPID_MAX, VMAX_STRPID_MAX, VDOM_STRPID_MAX);	//maksymalna wartość parametru dla maksymalnej wartości kanału
+    }
+    return chBłąd;
 }
 
 
@@ -137,7 +146,7 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
     //człon różniczkujący
     if (konfig[chKanal].fWzmD > MIN_WZM_ROZN)
     {
-        fTemp = (dane->stWyjPID[chKanal].fWejscie - dane->stWyjPID[chKanal].fFiltrWePoprz) * konfig[chKanal].fWzmD / fdT;
+        fTemp = (dane->stWyjPID[chKanal].fWejscie - dane->stWyjPID[chKanal].fFiltrWeD) * konfig[chKanal].fWzmD / fdT;
         fWyjscieReg += fTemp;
         if (fTemp > MAX_PID)
         	fTemp = MAX_PID;
@@ -146,7 +155,7 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
 		   fTemp = -MAX_PID;
 
         //filtruj wartość wejścia aby uzyskać gładką akcję różniczkującą
-        dane->stWyjPID[chKanal].fFiltrWePoprz = (konfig[chKanal].chPodstFiltraD * dane->stWyjPID[chKanal].fFiltrWePoprz + dane->stWyjPID[chKanal].fWejscie) / (konfig[chKanal].chPodstFiltraD + 1);
+        dane->stWyjPID[chKanal].fFiltrWeD = (konfig[chKanal].chPodstFiltraD * dane->stWyjPID[chKanal].fFiltrWeD + dane->stWyjPID[chKanal].fWejscie) / (konfig[chKanal].chPodstFiltraD + 1);
     }
     else
         fTemp = 0.0f;
@@ -179,6 +188,72 @@ void ResetujCalkePID(void)
 
 
 
+////////////////////////////////////////////////////////////////////////////////
+// Zmiana wartości kanału RC nadpisuje wartości nastawy wybrnego parametru regulatora PID
+// Parametry:
+//   *Stroj - wskaźnik na strukture strojenia PID kanałem RC
+//   *Konf - wskaźnik na strukturę konfiguracji PID
+//   *WymianaCM4 - wskaźnik na strukturę wymiany danych rdzenia CM4 zawierajacą dane autopilota
+// Zwraca: nic
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+void StrojeniePID_KanałemRC(stStrojPID_t *Stroj, stKonfPID_t *Konf, stWymianyCM4_t *WymianaCM4)
+{
+	float fKanalNorm, fParametr;
+
+	//policz wartość parametru
+	fKanalNorm = (float)WymianaCM4->sKanalRC[Stroj->chNrKanałuRC] / (WE_RC_P100 - WE_RC_M100);	//wartość kanału RC znormalizowana do zakresu 0..1
+	fParametr = Stroj->fWartośćMin + fKanalNorm * (Stroj->fWartośćMax - Stroj->fWartośćMin);
+
+	switch(Stroj->chNrParametru)
+	{
+	case STRP_NIC:			break;		//strojenie wyłączone
+	case STRP_KATA_PRZE_KP:	Konf[PID_KATA_PRZE].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze przechylenia
+	case STRP_KATA_PRZE_TI:	Konf[PID_KATA_PRZE].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze przechylenia
+	case STRP_KATA_PRZE_TD:	Konf[PID_KATA_PRZE].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze przechylenia
+	case STRP_PRED_PRZE_KP:	Konf[PID_PRED_PRZE].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości kątowej przechylenia
+	case STRP_PRED_PRZE_TI:	Konf[PID_PRED_PRZE].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej przechylenia
+	case STRP_PRED_PRZE_TD:	Konf[PID_PRED_PRZE].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej przechylenia
+
+	case STRP_KATA_POCH_KP:	Konf[PID_KATA_POCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze pochylenia
+	case STRP_KATA_POCH_TI:	Konf[PID_KATA_POCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze pochylenia
+	case STRP_KATA_POCH_TD:	Konf[PID_KATA_POCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze pochylenia
+	case STRP_PRED_POCH_KP:	Konf[PID_PRED_POCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości kątowej pochylenia
+	case STRP_PRED_POCH_TI:	Konf[PID_PRED_POCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej pochylenia
+	case STRP_PRED_POCH_TD:	Konf[PID_PRED_POCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej pochylenia
+
+	case STRP_KATA_ODCH_KP:	Konf[PID_KATA_ODCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze odchylenia
+	case STRP_KATA_ODCH_TI:	Konf[PID_KATA_ODCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze odchylenia
+	case STRP_KATA_ODCH_TD:	Konf[PID_KATA_ODCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze odchylenia
+	case STRP_PRED_ODCH_KP:	Konf[PID_PRED_ODCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości kątowej odchylenia
+	case STRP_PRED_ODCH_TI:	Konf[PID_PRED_ODCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej odchylenia
+	case STRP_PRED_ODCH_TD:	Konf[PID_PRED_ODCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej odchylenia
+
+	case STRP_WYSOK_KP:		Konf[PID_WYSOKOSCI].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze wysokości
+	case STRP_WYSOK_TI:		Konf[PID_WYSOKOSCI].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze wysokości
+	case STRP_WYSOK_TD:		Konf[PID_WYSOKOSCI].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze wysokości
+	case STRP_WARIO_KP:		Konf[PID_WARIO].fWzmP = fParametr;		break;	//strojenie wzmocnienia w regulatorze prędkości zmiany wysokości
+	case STRP_WARIO_TI:		Konf[PID_WARIO].fWzmI = fParametr;		break;	//strojenie członu całkujacego w regulatorze prędkości zmiany wysokości
+	case STRP_WARIO_TD:		Konf[PID_WARIO].fWzmD = fParametr;		break;	//strojenie członu różniczkującego w regulatorze prędkości zmiany wysokości
+
+	case STRP_NAWI_N_KP:	Konf[PID_NAWIG_N].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze nawigacji w kierunku północnym
+	case STRP_NAWI_N_TI:	Konf[PID_NAWIG_N].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze nawigacji w kierunku północnym
+	case STRP_NAWI_N_TD:	Konf[PID_NAWIG_N].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku północnym
+	case STRP_PRED_N_KP:	Konf[PID_PREDK_N].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości w kierunku północnym
+	case STRP_PRED_N_TI:	Konf[PID_PREDK_N].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości w kierunku północnym
+	case STRP_PRED_N_TD:	Konf[PID_PREDK_N].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości w kierunku północnym
+
+	case STRP_NAWI_E_KP:	Konf[PID_NAWIG_E].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze nawigacji w kierunku wschodnim
+	case STRP_NAWI_E_TI:	Konf[PID_NAWIG_E].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze nawigacji w kierunku wschodnim
+	case STRP_NAWI_E_TD:	Konf[PID_NAWIG_E].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku wschodnim
+	case STRP_PRED_E_KP:	Konf[PID_PREDK_E].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości w kierunku wschodnim
+	case STRP_PRED_E_TI:	Konf[PID_PREDK_E].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości w kierunku wschodnim
+	case STRP_PRED_E_TD:	Konf[PID_PREDK_E].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości w kierunku wschodnim
+	}
+}
+
+
+
 #ifdef TESTY		//testy algorytmów
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja testująca regulatory. Sprawdza czy dla wybranych warunków i nastaw uzyskuje się właściwą odpowiedź .
@@ -193,29 +268,29 @@ void TestPID(void)
 	float fProgGor, fProgDol;	//progi testowania wartosci górny i dolny
 
 	//sprawdź odpowiedź członu proporcjonalnego regulatora kątowego na zawijanie kątów wokół 2Pi
-	uDaneCM4.dane.stWyjPID[PID_POCH].fZadana = 370 * DEG2RAD;	//odpowiada +10°
-	uDaneCM4.dane.stWyjPID[PID_POCH].fWejscie = -5 * DEG2RAD;
-	RegulatorPID(ndT, PID_POCH, &uDaneCM4.dane, stKonfigPID);
+	uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fZadana = 370 * DEG2RAD;	//odpowiada +10°
+	uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fWejscie = -5 * DEG2RAD;
+	RegulatorPID(ndT, PID_KATA_POCH, &uDaneCM4.dane, stKonfigPID);
 
-	assert(uDaneCM4.dane.stWyjPID[PID_POCH].fWyjscieP < 15.001 * DEG2RAD * stKonfigPID[PID_POCH].fWzmP);
-	assert(uDaneCM4.dane.stWyjPID[PID_POCH].fWyjscieP > 14.999 * DEG2RAD * stKonfigPID[PID_POCH].fWzmP);
+	assert(uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fWyjscieP < 15.001 * DEG2RAD * stKonfigPID[PID_KATA_POCH].fWzmP);
+	assert(uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fWyjscieP > 14.999 * DEG2RAD * stKonfigPID[PID_KATA_POCH].fWzmP);
 
 	//sprawdź działanie członu całkującego regulatora wysokości. Całka to czas zdwojenia, więc przy wzmocnieniu Kp=1 i Ti=1 całka po sekundzie osiaga dwukrotność uchybu.
 	//czas trwania testu=10*5ms, błąd=20m, więc przyrost powinien wynosić 50/1000 * (20 * Kp) / Ti
-	if (stKonfigPID[PID_WYSO].fWzmI)	//zapobiegnie dzieleniu przez zero
+	if (stKonfigPID[PID_WYSOKOSCI].fWzmI)	//zapobiegnie dzieleniu przez zero
 	{
-		uDaneCM4.dane.stWyjPID[PID_WYSO].fZadana = 60;
-		uDaneCM4.dane.stWyjPID[PID_WYSO].fWejscie = 40;
-		uDaneCM4.dane.stWyjPID[PID_WYSO].fCalka = 0;
+		uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fZadana = 60;
+		uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fWejscie = 40;
+		uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fCalka = 0;
 		for (uint8_t n=0; n<10; n++)
-			RegulatorPID(ndT, PID_WYSO, &uDaneCM4.dane, stKonfigPID);
+			RegulatorPID(ndT, PID_WYSOKOSCI, &uDaneCM4.dane, stKonfigPID);
 
-		fOdpowiedzNominalna = 0.005 * 10 * 20 * stKonfigPID[PID_WYSO].fWzmP / stKonfigPID[PID_WYSO].fWzmI;
+		fOdpowiedzNominalna = 0.005 * 10 * 20 * stKonfigPID[PID_WYSOKOSCI].fWzmP / stKonfigPID[PID_WYSOKOSCI].fWzmI;
 		fProgGor = fOdpowiedzNominalna + 0.001;
 		fProgDol = fOdpowiedzNominalna - 0.001;
-		assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI < fProgGor);
-		assert(uDaneCM4.dane.stWyjPID[PID_WYSO].fWyjscieI > fProgDol);
-		uDaneCM4.dane.stWyjPID[PID_WYSO].fCalka = 0;	//wyczyść całkę po teście
+		assert(uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fWyjscieI < fProgGor);
+		assert(uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fWyjscieI > fProgDol);
+		uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fCalka = 0;	//wyczyść całkę po teście
 	}
 }
 #endif

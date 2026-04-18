@@ -1,21 +1,22 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// Definicje zmiennych konfguracyjnych trzymanych w pamięci FRAM FM25CL64
+// Definicje zmiennych konfguracyjnych dlaCM4 trzymanych w pamięci FRAM FM25CL64
 // Zakres adresów do 0x7FF
 //
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include "sys_def_wspolny.h"
 //adresy zmiennych konfiguracyjnych w zakresie 0..0x2000  (FA == Fram Address)
 //Indeksy w komentarzu oznaczaja rozmiar (liczba) i typ (litera) zmiennej
 //Typy zmiennych: 
 //FAU - zmienna użytkownika, zawiera jego nastawy
-//FAS - zmienna systemowa lub dynamiczna, nie dotykać sama się modyfikuje
-//FAH - zmienna zawierająca parametry sprzetu - chronić przed przypadkową zmianą
+//FAS - zmienna systemowa lub dynamiczna, nie dotykać sama się modyfikuje, moze być przenoszona na inne urządzenia
+//FAH - zmienna zawierająca indywidualne parametry sprzetu - chronić przed przypadkową zmianą, nie zamieniać między urządzeniami
 //
 //Formaty liczb. Cyfra przed literą oznacza rozmiar w bajtach:
-// U - liczba całkowita bez znaku.
-// S - liczba całkowita ze znakiem.
+// U - liczba 8-bitowa całkowita bez znaku.
+// S - liczba 8-bitowa całkowita ze znakiem.
 // CH - znak alfanumeryczny
 // F - liczba float
 
@@ -67,7 +68,15 @@
 //12 regulatorów zajmuje 336 bajtów - 0x180
 #define FAU_TRYB_REG	    0x0280		//6*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków i 2 regulatorów pozycji N i E
 #define FAU_KAN_DRAZKA_RC	0x0286		//4*1U Numer kanału przypisany do funkcji drążka aparatury: przechylenia, pochylenia, odchylenia i wysokości
-//wolne 12 bajtów
+#define FAU_STROJ1_KANAL_RC	0x028A		//2*1U numer kanału RC używany do strojenia parametru
+#define FAU_STROJ2_KANAL_RC	0x028B
+#define FAU_STROJ1_PARAMETR	0x028C		//2*1U numer strojonego parametru
+#define FAU_STROJ2_PARAMETR	0x028D
+#define FAU_STROJ1_WART_MIN	0x028E		//2*4F minimalna wartość parametru dla minimalnej wartości kanału
+#define FAU_STROJ2_WART_MIN	0x0292
+#define FAU_STROJ1_WART_MAX	0x0296		//2*4F maksymalna wartość parametru dla maksymalnej wartości kanału
+#define FAU_STROJ2_WART_MAX	0x029A
+//wolne 2 bajty
 
 //konfiguracja odbiorników RC i wyjść serw/ESC zdefiniowane w sys_def_wspolnych.h
 #define FAU_KONF_ODB_RC		0x0300		//1U konfiguracja odbiorników RC: Bity 0..3 = RC1, bity 4..7 = RC2: 0=PPM, 1=S-Bus
@@ -308,6 +317,22 @@
 #define VMIN_MIX_ODCH		-1.0f    //współczynnik wpływu kierunku obrotów silnika na odchylenie
 #define VMAX_MIX_ODCH    	1.0f
 #define VDOM_MIX_ODCH    	0.0f
+
+#define VMIN_STRPID_MIN 	(float)0.0001    //minimalna wartość parametru do strojenia PID
+#define VMAX_STRPID_MIN 	(float)100.0
+#define VDOM_STRPID_MIN 	(float)0.01
+
+#define VMIN_STRPID_MAX 	(float)1.0    //maksymalna wartość parametru do strojenia PID
+#define VMAX_STRPID_MAX 	(float)1000.0
+#define VDOM_STRPID_MAX 	(float)100.0
+
+#define VMIN_STRPID_KRC		4    //numer kanału RC do strojenia PID
+#define VMAX_STRPID_KRC 	KANALY_ODB_RC
+#define VDOM_STRPID_KRC 	5
+
+#define VMIN_STRPID_PAR		STRP_NIC    //numer strojonego parametru PID
+#define VMAX_STRPID_PAR		LICZBA_STROJONYCH_PARAMETROW_PID
+#define VDOM_STRPID_PAR		STRP_NIC
 
 /*
 #define VALM_SPGAIN       (float)0.0001  //limity wartości  współczynnika wzmocnienia sygnału zadanego z aparatury

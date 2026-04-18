@@ -16,6 +16,8 @@
 #include "ws281x.h"
 #include "kontroler_lotu.h"
 #include "sample_audio.h"
+#include "pid_kanaly.h"
+#include "pid.h"
 
 //definicje SBus: https://github.com/uzh-rpg/rpg_quadrotor_control/wiki/SBUS-Protocol
 //S-Bus oraz DShot mają rozdzielczość 11-bitów, wiec przyjmuję taką rozdzielczość sterowania definiując stałą PPM11BIT
@@ -47,13 +49,14 @@ extern uint8_t chBuforOdbioruSBus1[ROZM_BUF_ODB_SBUS];
 extern uint8_t chBuforOdbioruSBus2[ROZM_BUF_ODB_SBUS];
 extern uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
 extern uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych. Dalsze zwiększanie wysterowania nic nie daje, więc w ten sposób wykluczamy go z zakresu regulacji
-
+extern stKonfPID_t stKonfigPID[LICZBA_PID];
+extern stStrojPID_t stStrojPID[LICZBA_KAN_RC_DO_STROJENIA_PID];
 
 uint8_t chKonfigWeRC[LICZBA_WEJSC_RC];	//określa jakiego typu sygnał wchodzi z odbiornika
 uint8_t chKonfigWyRC[LICZBA_WYJSC_RC];
 extern uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA[KANALY_MIKSERA][DS_BITOW_DANYCH + DS_BITOW_PRZERWY];
 uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC do funkcji drążków aparatury
-//uint8_t chFunkcjaKanaluRC[KANALY_FUNKCYJNE];	//funkcje przypisane do kanałów wejściowych odbiornika RC
+uint8_t chFunkcjaLinKanaluRC[KANALY_FUNKCYJNE];		//funkcje przypisane do kanałów wejściowych odbiornika RC pracujacych liniowo
 uint8_t chFunkcjaMinKanaluRC[KANALY_FUNKCYJNE];		//funkcje przypisane do rozszerzonych kanałów wejściowych odbiornika RC ustawionych na minimum
 uint8_t chFunkcjaMaxKanaluRC[KANALY_FUNKCYJNE];		//funkcje przypisane do rozszerzonych kanałów wejściowych odbiornika RC ustawionych na maksimum
 
@@ -1195,7 +1198,7 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
 			else
 			if ((psDaneCM4->sKanalRC[n + LICZBA_DRAZKOW] > WE_RC_M25 + WE_RC_HISTEREZA) && (psDaneCM4->sKanalRC[n + LICZBA_DRAZKOW] < WE_RC_P25 - WE_RC_HISTEREZA))	//czy wrócił do pozycji neutralnej
 			{
-				switch(chFunkcjaMinKanaluRC[n])
+				switch(chFunkcjaMaxKanaluRC[n])
 				{
 				case FRC_WLACZ_OD1:		psDaneCM7->chWykonajPolecenie = POL4_WYLACZ_OD1;		break;	//wyłącz wyjście otwarty dren 1
 				case FRC_WLACZ_OD2:		psDaneCM7->chWykonajPolecenie = POL4_WYLACZ_OD2;		break;	//wyłącz wyjście otwarty dren 2
@@ -1203,6 +1206,15 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
 				}
 			}
 			sPoprzedniStanKanaluRozszerzonego[n] = psDaneCM4->sKanalRC[n];
+    	}
+
+    	//funkcjonalność liniowa
+    	switch(chFunkcjaLinKanaluRC[n])
+    	{
+    	case FRC_STROJ_PID_PARAM1:	StrojeniePID_KanałemRC(&stStrojPID[0], stKonfigPID, psDaneCM4);	break;
+    	case FRC_STROJ_PID_PARAM2:	StrojeniePID_KanałemRC(&stStrojPID[1], stKonfigPID, psDaneCM4);	break;
+
+    	default:	break;
     	}
     }
     return chBłąd;

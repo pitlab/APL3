@@ -13,21 +13,21 @@
 
 
 //definicje nazw regulatorów
-#define PID_PRZE 	0   //regulator sterowania przechyleniem (lotkami w samolocie)
-#define PID_PK_PRZE 1   //regulator sterowania prędkością kątową przechylenia (żyroskop P)
-#define PID_POCH 	2   //regulator sterowania pochyleniem (sterem wysokości)
-#define PID_PK_POCH 3   //regulator sterowania prędkością kątową pochylenia (żyroskop Q)
-#define PID_ODCH 	4  	//regulator sterowania odchyleniem (sterem kierunku)
-#define PID_PK_ODCH	5   //regulator sterowania prędkością kątową odchylenia (żyroskop R)
-#define PID_WYSO 	6   //regulator sterowania wysokością
-#define PID_WARIO 	7   //regulator sterowani prędkością wznoszenia (wario)
-#define PID_NAW_N 	8   //regulator sterowania nawigacją w kierunku północnym
-#define PID_PRE_N	9  	//regulator sterowania prędkością w kierunku północnym
-#define PID_NAW_E 	10  //regulator sterowania nawigacją w kierunku wschodnim
-#define PID_PRE_E	11 	//regulator sterowania prędkością w kierunku wschodnim
+#define PID_KATA_PRZE 	0   //regulator sterowania przechyleniem (lotkami w samolocie)
+#define PID_PRED_PRZE 	1   //regulator sterowania prędkością kątową przechylenia (żyroskop P)
+#define PID_KATA_POCH 	2   //regulator sterowania pochyleniem (sterem wysokości)
+#define PID_PRED_POCH 	3   //regulator sterowania prędkością kątową pochylenia (żyroskop Q)
+#define PID_KATA_ODCH 	4  	//regulator sterowania odchyleniem (sterem kierunku)
+#define PID_PRED_ODCH	5   //regulator sterowania prędkością kątową odchylenia (żyroskop R)
+#define PID_WYSOKOSCI 	6   //regulator sterowania wysokością
+#define PID_WARIO 		7   //regulator sterowani prędkością zmiany wysokości (wario)
+#define PID_NAWIG_N 	8   //regulator sterowania nawigacją w kierunku północnym
+#define PID_PREDK_N		9  	//regulator sterowania prędkością w kierunku północnym
+#define PID_NAWIG_E 	10  //regulator sterowania nawigacją w kierunku wschodnim
+#define PID_PREDK_E		11 	//regulator sterowania prędkością w kierunku wschodnim
 
 #define LICZBA_PID  12 //liczba regulatorów
-
+#define LICZBA_KAN_RC_DO_STROJENIA_PID	2	//tyle kanałów RC jest używanych do strojenia wybranych parametrów PID
 
 //definicje trybów pracy regulatora
 #define REG_OFF           0   //wyłączony regulator
@@ -75,5 +75,15 @@ typedef struct	//struktura danych roboczych regulatora PID
 	float fWyjscieI;  		//wartość wyjściowa z członu I
 	float fWyjscieD;  		//wartość wyjściowa z członu D
 } stWyjPID_t;
+
+
+typedef struct	//struktura przechowujaca konfigurację strojenia parametru PID kanałem RC
+{
+	uint8_t chNrKanałuRC;	//numer kanału RC używany do strojenia parametru
+	uint8_t chNrParametru;	//numer strojonego parametru
+	float fWartośćMin;	//minimalna wartość parametru dla minimalnej wartości kanału
+	float fWartośćMax;	//maksymalna wartość parametru dla maksymalnej wartości kanału
+} stStrojPID_t;
+
 
 #endif

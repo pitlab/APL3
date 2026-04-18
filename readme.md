@@ -47,6 +47,9 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 ![OSD](obrazki/zdj_20251109_081718.bmp) 
 - Zapisuje pliki jpeg w monochromatycznym formacie Y8, oraz kolorowych YUV444, YUV420 i YUV420. 
 - W pliku jpeg zapisuje strukturę Exif zawierajacą między innymi współrzędne GNSS 
+- Steruje programowalnumi LED, w szczególności wyswietla wskaźnik liniowy wybranej zmiennej.
+- Liczy FFT z danych akcelerometru i żyroskopu, rysuje wodoshad historii pomiarów, przechowuje pomiary w pamieci.
+- Specjalnym rodzajem telemetrii przesyła historię pomiarów FFT do NSK
 
 
 ### Rdzeń CM4:
