@@ -82,9 +82,7 @@ uint8_t InicjujPID(void)
 
     for (uint16_t n=0; n<LICZBA_KAN_RC_DO_STROJENIA_PID; n++)
     {
-    	chBłąd |= CzytajFramU8zWalidacja(FAU_STROJ1_KANAL_RC + n,  &stStrojPID[n].chNrKanałuRC,  VMIN_STRPID_KRC,  VMAX_STRPID_KRC,  VDOM_STRPID_KRC);	//numer kanału RC używany do strojenia parametru
     	chBłąd |= CzytajFramU8zWalidacja(FAU_STROJ1_PARAMETR + n,  &stStrojPID[n].chNrParametru,  VMIN_STRPID_PAR,  VMAX_STRPID_PAR,  VDOM_STRPID_PAR);	//numer strojonego parametru
-
     	chBłąd |= CzytajFramFloatZWalidacja(FAU_STROJ1_WART_MIN + n*sizeof(float), &stStrojPID[n].fWartośćMin, VMIN_STRPID_MIN, VMAX_STRPID_MIN, VDOM_STRPID_MIN);	//minimalna wartość parametru dla minimalnej wartości kanału
     	chBłąd |= CzytajFramFloatZWalidacja(FAU_STROJ1_WART_MAX + n*sizeof(float), &stStrojPID[n].fWartośćMax, VMIN_STRPID_MAX, VMAX_STRPID_MAX, VDOM_STRPID_MAX);	//maksymalna wartość parametru dla maksymalnej wartości kanału
     }
@@ -192,17 +190,18 @@ void ResetujCalkePID(void)
 // Zmiana wartości kanału RC nadpisuje wartości nastawy wybrnego parametru regulatora PID
 // Parametry:
 //   *Stroj - wskaźnik na strukture strojenia PID kanałem RC
+//	 chNrKan - numer kanału RC zdefiniowanego do strojenia bieżącego parametru
 //   *Konf - wskaźnik na strukturę konfiguracji PID
 //   *WymianaCM4 - wskaźnik na strukturę wymiany danych rdzenia CM4 zawierajacą dane autopilota
 // Zwraca: nic
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-void StrojeniePID_KanałemRC(stStrojPID_t *Stroj, stKonfPID_t *Konf, stWymianyCM4_t *WymianaCM4)
+void StrojeniePID_KanałemRC(stStrojPID_t *Stroj, uint8_t chNrKan, stKonfPID_t *Konf, stWymianyCM4_t *WymianaCM4)
 {
 	float fKanalNorm, fParametr;
 
 	//policz wartość parametru
-	fKanalNorm = (float)WymianaCM4->sKanalRC[Stroj->chNrKanałuRC] / (WE_RC_P100 - WE_RC_M100);	//wartość kanału RC znormalizowana do zakresu 0..1
+	fKanalNorm = (float)WymianaCM4->sKanalRC[chNrKan] / (WE_RC_P100 - WE_RC_M100);	//wartość kanału RC znormalizowana do zakresu 0..1
 	fParametr = Stroj->fWartośćMin + fKanalNorm * (Stroj->fWartośćMax - Stroj->fWartośćMin);
 
 	switch(Stroj->chNrParametru)

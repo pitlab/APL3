@@ -479,6 +479,7 @@ void WykonajPolecenieCM7(void)
 		break;
 
 	case POL7_PRZELADUJ_WSKAZN_LED: 		InicjujKoloryWS281x();	break;
+
 	case POL7_WYSTERUJ_SILNIKI_AD:
 		for (uint16_t n=0; n<KANALY_MIKSERA; n++)
 		{
@@ -494,6 +495,7 @@ void WykonajPolecenieCM7(void)
 		    chFunkcjaSilnika[n] = FSIL_NAPED;
 		break;
 
+	case POL7_PRZELADUJ_PID:	InicjujPID();	break;	//ponownie załaduj konfigurację PID aby odświeżyć ustawienia po zmianie konfiguracji
 	}
 }
 

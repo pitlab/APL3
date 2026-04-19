@@ -56,9 +56,7 @@ uint8_t chKonfigWeRC[LICZBA_WEJSC_RC];	//określa jakiego typu sygnał wchodzi z
 uint8_t chKonfigWyRC[LICZBA_WYJSC_RC];
 extern uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA[KANALY_MIKSERA][DS_BITOW_DANYCH + DS_BITOW_PRZERWY];
 uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC do funkcji drążków aparatury
-uint8_t chFunkcjaLinKanaluRC[KANALY_FUNKCYJNE];		//funkcje przypisane do kanałów wejściowych odbiornika RC pracujacych liniowo
-uint8_t chFunkcjaMinKanaluRC[KANALY_FUNKCYJNE];		//funkcje przypisane do rozszerzonych kanałów wejściowych odbiornika RC ustawionych na minimum
-uint8_t chFunkcjaMaxKanaluRC[KANALY_FUNKCYJNE];		//funkcje przypisane do rozszerzonych kanałów wejściowych odbiornika RC ustawionych na maksimum
+uint8_t chFunkcjaKanaluRC[KANALY_FUNKCYJNE];		//funkcje przypisane do rozszerzonych kanałów wejściowych odbiornika RC
 
 uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wyjściowych
 uint8_t chFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silników: normalna praca lub analiza FFT rezonansu drgań ramy
@@ -155,8 +153,11 @@ uint8_t InicjujWejsciaRC(void)
     //odczytaj z FRAM numery funkcji dla wyższych niż 4 kanałów RC
     for (uint16_t n=0; n<KANALY_FUNKCYJNE; n++)
     {
-    	chBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MIN_KAN_RC + n, &chFunkcjaMinKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na minimum
-    	chBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MAX_KAN_RC + n, &chFunkcjaMaxKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na maksimum
+    	//chBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MIN_KAN_RC + n, &chFunkcjaMinKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na minimum
+    	//chBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MAX_KAN_RC + n, &chFunkcjaMaxKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na maksimum
+    	chBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_KAN_RC + n, &chFunkcjaKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16)
+
+
     }
 
     //domyślnie silniki pełnią funkcję napedu
@@ -1183,7 +1184,7 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
 			if ((psDaneCM4->sKanalRC[n + LICZBA_DRAZKOW] < WE_RC_M25 - WE_RC_HISTEREZA) ||	//sprawdź czy stan 3-położeniowego przełącznika  został przestawiony w dół
 				(psDaneCM4->sKanalRC[n + LICZBA_DRAZKOW] > WE_RC_P25 - WE_RC_HISTEREZA))	//lub czy został przestawiony w górę
 			{
-				switch (chFunkcjaMinKanaluRC[n])
+				switch (chFunkcjaKanaluRC[n])
 				{
 				case FRC_WLACZ_OD1:		psDaneCM7->chWykonajPolecenie = POL4_WLACZ_OD1;		break;	//aktywuj wyjście otwarty dren 1
 				case FRC_WLACZ_OD2:		psDaneCM7->chWykonajPolecenie = POL4_WLACZ_OD2;		break;	//aktywuj wyjście otwarty dren 2
@@ -1198,7 +1199,7 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
 			else
 			if ((psDaneCM4->sKanalRC[n + LICZBA_DRAZKOW] > WE_RC_M25 + WE_RC_HISTEREZA) && (psDaneCM4->sKanalRC[n + LICZBA_DRAZKOW] < WE_RC_P25 - WE_RC_HISTEREZA))	//czy wrócił do pozycji neutralnej
 			{
-				switch(chFunkcjaMaxKanaluRC[n])
+				switch(chFunkcjaKanaluRC[n])
 				{
 				case FRC_WLACZ_OD1:		psDaneCM7->chWykonajPolecenie = POL4_WYLACZ_OD1;		break;	//wyłącz wyjście otwarty dren 1
 				case FRC_WLACZ_OD2:		psDaneCM7->chWykonajPolecenie = POL4_WYLACZ_OD2;		break;	//wyłącz wyjście otwarty dren 2
@@ -1209,10 +1210,10 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
     	}
 
     	//funkcjonalność liniowa
-    	switch(chFunkcjaLinKanaluRC[n])
+    	switch(chFunkcjaKanaluRC[n])
     	{
-    	case FRC_STROJ_PID_PARAM1:	StrojeniePID_KanałemRC(&stStrojPID[0], stKonfigPID, psDaneCM4);	break;
-    	case FRC_STROJ_PID_PARAM2:	StrojeniePID_KanałemRC(&stStrojPID[1], stKonfigPID, psDaneCM4);	break;
+    	case FRC_STROJ_PID_PARAM1:	StrojeniePID_KanałemRC(&stStrojPID[0], n + LICZBA_DRAZKOW, stKonfigPID, psDaneCM4);	break;
+    	case FRC_STROJ_PID_PARAM2:	StrojeniePID_KanałemRC(&stStrojPID[1], n + LICZBA_DRAZKOW, stKonfigPID, psDaneCM4);	break;
 
     	default:	break;
     	}

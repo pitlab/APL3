@@ -533,6 +533,12 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
+
+
+	case PK_PRZELADUJ_KONF_PID:	//przeładuj konfigurację PID po zmianie
+		uDaneCM7.dane.chWykonajPolecenie = POL7_PRZELADUJ_PID;
+		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
+		break;
 	}
     return chBłąd;
 }

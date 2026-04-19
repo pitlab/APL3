@@ -79,7 +79,7 @@ typedef struct	//struktura danych roboczych regulatora PID
 
 typedef struct	//struktura przechowujaca konfigurację strojenia parametru PID kanałem RC
 {
-	uint8_t chNrKanałuRC;	//numer kanału RC używany do strojenia parametru
+	//uint8_t chNrKanałuRC;	//numer kanału RC używany do strojenia parametru
 	uint8_t chNrParametru;	//numer strojonego parametru
 	float fWartośćMin;	//minimalna wartość parametru dla minimalnej wartości kanału
 	float fWartośćMax;	//maksymalna wartość parametru dla maksymalnej wartości kanału

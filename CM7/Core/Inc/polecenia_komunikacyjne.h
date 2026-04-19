@@ -97,8 +97,9 @@ typedef struct
 #define PK_CZYTAJ_WYNIKI_FFT	37	//odczytaj z pamiędci DRAM wyniki serii testów FFT dla akcelerometrów i żyroskopów
 #define PK_ROZP_ANALIZE_DRGAN	38	//rozpoczyna proces analizy drgań przez wykonywanie serii pomiarów FFT i coraz szybszym kręceniu silnikami
 #define PK_ZATRZYMAJ_SILNIKI	39	//zatrzymuje silniki w trakcie testu FFT
+#define PK_PRZELADUJ_KONF_PID	40	//przeładuj konfigurację PID po zmianie
 
-#define PK_ILOSC_POLECEN		40	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
+#define PK_ILOSC_POLECEN		41	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
 
 #define PK_TELEM_SZYBKA			95	//szybka ramka telemetryczna do przesyłania wyników FFT

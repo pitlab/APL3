@@ -68,15 +68,13 @@
 //12 regulatorów zajmuje 336 bajtów - 0x180
 #define FAU_TRYB_REG	    0x0280		//6*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków i 2 regulatorów pozycji N i E
 #define FAU_KAN_DRAZKA_RC	0x0286		//4*1U Numer kanału przypisany do funkcji drążka aparatury: przechylenia, pochylenia, odchylenia i wysokości
-#define FAU_STROJ1_KANAL_RC	0x028A		//2*1U numer kanału RC używany do strojenia parametru
-#define FAU_STROJ2_KANAL_RC	0x028B
-#define FAU_STROJ1_PARAMETR	0x028C		//2*1U numer strojonego parametru
-#define FAU_STROJ2_PARAMETR	0x028D
-#define FAU_STROJ1_WART_MIN	0x028E		//2*4F minimalna wartość parametru dla minimalnej wartości kanału
-#define FAU_STROJ2_WART_MIN	0x0292
-#define FAU_STROJ1_WART_MAX	0x0296		//2*4F maksymalna wartość parametru dla maksymalnej wartości kanału
-#define FAU_STROJ2_WART_MAX	0x029A
-//wolne 2 bajty
+#define FAU_STROJ1_PARAMETR	0x028A		//2*1U numer strojonego parametru
+#define FAU_STROJ2_PARAMETR	0x028B
+#define FAU_STROJ1_WART_MIN	0x028C		//2*4F minimalna wartość parametru dla minimalnej wartości kanału
+#define FAU_STROJ2_WART_MIN	0x0290
+#define FAU_STROJ1_WART_MAX	0x0294		//2*4F maksymalna wartość parametru dla maksymalnej wartości kanału
+#define FAU_STROJ2_WART_MAX	0x0298
+//wolne 4 bajty
 
 //konfiguracja odbiorników RC i wyjść serw/ESC zdefiniowane w sys_def_wspolnych.h
 #define FAU_KONF_ODB_RC		0x0300		//1U konfiguracja odbiorników RC: Bity 0..3 = RC1, bity 4..7 = RC2: 0=PPM, 1=S-Bus
@@ -131,8 +129,8 @@
 #define FAU_				FAU_WSKLED1 + LICZBA_WSKAZNIKOW_LED * ROZMIAR_WSKAZNIKA_LED
 //miejsce na trzeci wskaźnik
 
-#define FAU_FUNKCJA_MIN_KAN_RC		0x036C		//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na minimum
-#define FAU_FUNKCJA_MAX_KAN_RC		0x0378		//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na maksimum
+#define FAU_FUNKCJA_KAN_RC			0x036C		//12*1U Numer funkcji przypisanej do kanału RC (5..16)
+//wolne 12 bajtów
 
 #define FA_SYS_VAR	    	0x0400	    //zmienne systemowe i dynamiczne
 #define	FAS_NUMER_SESJI	  	0x0400		//1U Numer sesji

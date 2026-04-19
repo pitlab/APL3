@@ -84,6 +84,7 @@
 #define POL7_PRZELADUJ_WSKAZN_LED	39	//odczytaj konfigurację wskaźników LED z pamieci FRAM i załaduj do zmiennych aby wprowadzona zmiana stała się widoczna
 #define POL7_WYSTERUJ_SILNIKI_AD	40	//Włącz wysteruj silniki podanymi wartościami podczas Analizy Drgań
 #define POL7_PRZYWROC_NAPED			41	//przywróć funkcję napędu dla silników po analizie FFT rezonansu ramy
+#define POL7_PRZELADUJ_PID			42	//ponownie załaduj konfigurację PID aby odświeżyć usyawienia po zmianie
 
 #define POL7_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony przez poprzednie polecenie
 
