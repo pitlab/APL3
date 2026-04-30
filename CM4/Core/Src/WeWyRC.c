@@ -1212,8 +1212,8 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
     	//funkcjonalność liniowa
     	switch(chFunkcjaKanaluRC[n])
     	{
-    	case FRC_STROJ_PID_PARAM1:	StrojeniePID_KanałemRC(&stStrojPID[0], n + LICZBA_DRAZKOW, stKonfigPID, psDaneCM4);	break;
-    	case FRC_STROJ_PID_PARAM2:	StrojeniePID_KanałemRC(&stStrojPID[1], n + LICZBA_DRAZKOW, stKonfigPID, psDaneCM4);	break;
+    	case FRC_STROJ_PID_PARAM1:	psDaneCM4->fStrojenie[0] = StrojeniePID_KanałemRC(&stStrojPID[0], n + LICZBA_DRAZKOW, stKonfigPID, psDaneCM4);	break;
+    	case FRC_STROJ_PID_PARAM2:	psDaneCM4->fStrojenie[1] = StrojeniePID_KanałemRC(&stStrojPID[1], n + LICZBA_DRAZKOW, stKonfigPID, psDaneCM4);	break;
 
     	default:	break;
     	}

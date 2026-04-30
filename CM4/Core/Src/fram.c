@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // AutoPitLot v3.0
-// Moduł obsługi pamięci FRAM FM25V02-G
+// Moduł obsługi pamięci FRAM FM25V02-G 32kx8bit
 //
 // (c) Pit Lab 2004
 // http://www.pitlab.pl

@@ -179,6 +179,7 @@ void PetlaGlowna(void)
 		AktualizujKolorLedWs821x();
 		break;
 
+	case 13: 	break;
 	case 16:	//pozwól na testowe uruchomienie inicjalizacji
 		if (chBuforAnalizyGNSS[0] == 0xFF)
 		{

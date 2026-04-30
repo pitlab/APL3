@@ -193,10 +193,10 @@ void ResetujCalkePID(void)
 //	 chNrKan - numer kanału RC zdefiniowanego do strojenia bieżącego parametru
 //   *Konf - wskaźnik na strukturę konfiguracji PID
 //   *WymianaCM4 - wskaźnik na strukturę wymiany danych rdzenia CM4 zawierajacą dane autopilota
-// Zwraca: nic
+// Zwraca: wartość parametru strojącego
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-void StrojeniePID_KanałemRC(stStrojPID_t *Stroj, uint8_t chNrKan, stKonfPID_t *Konf, stWymianyCM4_t *WymianaCM4)
+float StrojeniePID_KanałemRC(stStrojPID_t *Stroj, uint8_t chNrKan, stKonfPID_t *Konf, stWymianyCM4_t *WymianaCM4)
 {
 	float fKanalNorm, fParametr;
 
@@ -249,6 +249,7 @@ void StrojeniePID_KanałemRC(stStrojPID_t *Stroj, uint8_t chNrKan, stKonfPID_t *
 	case STRP_PRED_E_TI:	Konf[PID_PREDK_E].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości w kierunku wschodnim
 	case STRP_PRED_E_TD:	Konf[PID_PREDK_E].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości w kierunku wschodnim
 	}
+	return fParametr;
 }
 
 

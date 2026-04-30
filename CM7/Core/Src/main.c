@@ -53,7 +53,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Dodać wyłaczanie przerwań na czas alokacji pamięci przez memalloc()
  - kalibracja żyroskopu powinna kasować całkę kata na wykresie
  - Dodać pomiary analogowe
- -
+ - Znaleźć przyczynę cyknięcia silnikami przy starcie. Silniki powinny być martwe przy starcie firmware
 
  //Problemy sprzętowe egzemplarza 1:
   * Nie można uruchomić ETH i kamery
@@ -275,7 +275,6 @@ int main(void)
 /* USER CODE END Boot_Mode_Sequence_0 */
 
   /* MPU Configuration--------------------------------------------------------*/
-
   MPU_Config();
 
   /* Enable the CPU Cache */
@@ -383,13 +382,13 @@ Error_Handler();
   chBłąd |= InicjujAudio();
 
   chBłąd |= InicjalizujKamere();
-  if (chBłąd != ERR_OK)
+  if (chBłąd != BLAD_OK)
   	  chCzasSwieceniaLED[LED_CZER] = 50;	//świeć 5s
   chBłąd |= InicjujOSD();
   InicjujMDMA();
   InicjujCAN();
   chBłąd = CzytajDotyk();
-  if (chBłąd == ERR_OK)
+  if (chBłąd == BLAD_OK)
   {
 	  if (statusDotyku.sAdc[2] > MIN_Z)			//jeżeli ekran jest dotknięty w czasie uruchamiania
 	  {

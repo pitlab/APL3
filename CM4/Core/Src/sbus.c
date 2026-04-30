@@ -30,6 +30,10 @@ extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 extern DMA_HandleTypeDef hdma_uart4_rx;
 extern DMA_HandleTypeDef hdma_uart4_tx;
+extern uint8_t chKonfigWyRC[LICZBA_WYJSC_RC];
+
+
+
 //
 void UART4_IRQHandler(void)
 {
@@ -441,14 +445,16 @@ uint8_t ObslugaRamkiSBus(void)
 	//scalenie obu kanałów w jedne dane dane odbiornika RC
 	chBlad = DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane, &uDaneCM7.dane);
 
-
-	//sprawdź czy trzeba już wysłać nową ramkę Sbus
-	uint32_t nCzasRC = MinalCzas(nCzasWysylkiSbus);
-	if (nCzasRC >= OKRES_RAMKI_SBUS)
+	//Jeżeli wyjscie RC1 jest ustawione jako S-Bus
+	if (chKonfigWyRC[KANAL_RC1] == SERWO_SBUS)
 	{
-		nCzasWysylkiSbus = PobierzCzas();
-		HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus, ROZM_BUF_ODB_SBUS);	//wyślij kolejną ramkę
-
+		//sprawdź czy trzeba już wysłać nową ramkę Sbus
+		uint32_t nCzasRC = MinalCzas(nCzasWysylkiSbus);
+		if (nCzasRC >= OKRES_RAMKI_SBUS)
+		{
+			nCzasWysylkiSbus = PobierzCzas();
+			HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus, ROZM_BUF_ODB_SBUS);	//wyślij kolejną ramkę
+		}
 	}
 	return chBlad;
 }

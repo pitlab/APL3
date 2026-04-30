@@ -211,9 +211,11 @@
 #define TELEID_PID_PR_NAWE_WY_I	210	//wyjście członu I
 #define TELEID_PID_PR_NAWE_WY_D	211	//wyjście członu D
 
+#define TELEID_PID_STROJENIE1	212	//wartość parametru strojącego 1
+#define TELEID_PID_STROJENIE2	213	//wartość parametru strojącego 2
 //max do 255
 
-#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	212
+#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	214
 
 #define MAX_ZMIENNYCH_TELEMETR_W_RAMCE	115		//tyle zmiennych może być przesłanych w jednej ramce telemetrycznej (ramek może być kilka)
 #define MAX_INDEKSOW_TELEMETR_W_RAMCE	128		//zmienne w ramce można wybrać z takiej puli indeksów

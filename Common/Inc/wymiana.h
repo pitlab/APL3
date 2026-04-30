@@ -143,7 +143,7 @@ typedef struct
 {
 	float fAkcel[ROZMIAR_BUFORA_IMU][3];		//[m/s^2]
 	float fZyro[ROZMIAR_BUFORA_IMU][3];			//[rad/s]
-	uint8_t chIndeksProbki;
+	uint8_t chIndeksProbki;						//bieżący wskaźnik pozycji w buforze pomiarów żyro i akcel w zakresie 0..ROZMIAR_BUFORA_IMU
 } stSzybkieIMU;
 
 typedef union
@@ -185,6 +185,7 @@ typedef struct
 	float fNapiecieBat[2];	//napięcie baterii podłączonych do obu wejść zasilania
 	float fPradBat[2];		//prąd pobierany z obu baterii
 	float fEnergiaPobr[2];	//energia pobrana z obu baterii
+	float fStrojenie[LICZBA_KAN_RC_DO_STROJENIA_PID];	//wartość bieżacych parametrów używanych do strojenia PID
 	uRozne_t uRozne;		//unia różnych typów danych ogólnego zastosowania
 	uint8_t chRozmiar;		//rozmiar danych przekazywanych w polu fRozne
 	uint16_t sAdres;		//adres danych przekazywanych w polu fRozne

@@ -467,6 +467,9 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TELEID_PID_PR_NAWE_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_E].fWyjscieI;		break;	//wyjście członu I
 	case TELEID_PID_PR_NAWE_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_E].fWyjscieD;		break;	//wyjście członu D
 
+	case TELEID_PID_STROJENIE1:		fZmiennaTele = uDaneCM4.dane.fStrojenie[0];							break;	//wartość parametru strojącego 1
+	case TELEID_PID_STROJENIE2:		fZmiennaTele = uDaneCM4.dane.fStrojenie[1];							break;	//wartość parametru strojącego 2
+
 	default:	fZmiennaTele = -1.0f;
 	}
 	return fZmiennaTele;

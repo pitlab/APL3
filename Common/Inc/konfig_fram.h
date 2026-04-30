@@ -1,9 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// Definicje zmiennych konfguracyjnych dlaCM4 trzymanych w pamięci FRAM FM25CL64
-// Zakres adresów do 0x7FF
+// Definicje zmiennych konfguracyjnych dla CM4 trzymanych w pamięci FRAM FM25V02-G 32k x 8bit
+// Zakres adresów do 0x7FFF
 //
-// (c) PitLab 2024
+// (c) PitLab 2024-26
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "sys_def_wspolny.h"
@@ -192,7 +192,6 @@
 #define	FAH_ZYRO2_TEMP_POK     	FAH_ZYRO_TEMP+16	//4F temperatura kalibracji w temperaturze pokojowej żyroskopu 2
 #define	FAH_ZYRO2_TEMP_GOR     	FAH_ZYRO_TEMP+20	//4F temperatura kalibracji na gotąco żyroskopu 2
 
-
 #define	FAH_MOD_CIS_ROZ	    	FAH_ZYRO_TEMP+24    //czujniki ciśnienia różnicowego
 #define	FAH_CISN_ROZN1_ZIM 		FAH_MOD_CIS_ROZ+0	//4F korekcja czujnika ciśnienia różnicowego 1 na zimno
 #define	FAH_CISN_ROZN1_POK 		FAH_MOD_CIS_ROZ+4	//4F korekcja czujnika ciśnienia różnicowego 1 w 25°C
@@ -230,18 +229,18 @@
 
 #define	FAH_SKALO_CISN_BEZWZGL1	FAH_MAGN3+24    //współczynnik skalowania ciśnienia bezwzględnego czujnika 1
 #define	FAH_SKALO_CISN_BEZWZGL2	FAH_MAGN3+28    //współczynnik skalowania ciśnienia bezwzględnego czujnika 2
-#define FAH_TEST				FAH_MAGN3+32	//4H testowy zapis do pamięci w celu sprawdzenia poprawnosci
+#define FAH_TEST				FAH_MAGN3+32	//4H testowy zapis do pamięci w celu sprawdzenia poprawności
 
 
 
 
 
-//Waypointy. Każdy zajmuje 12 bajtów. Do końca pamięci jest miejsca na 2581 waypointów
-#define FA_USER_WAYPOINTS    0x0700
+//Waypointy. Każdy zajmuje 12 bajtów. Do końca pamięci jest miejsca na 2389 waypointów
+#define FA_USER_WAYPOINTS    0x1000
 #define FAU_WP00_
 
 
-#define FA_END      0x1FFF  //ostatni bajt pamięci konfiguracji (FM25CL64 - 64kb)
+#define FA_END      0x7FFF  //ostatni bajt pamięci konfiguracji (FM25V02 - 256kb)
 
 //////////////////////////////////////////////////////////////////////////////
 // Definicje validatorów danych konfiguracyjnych
@@ -320,7 +319,7 @@
 #define VMAX_STRPID_MIN 	(float)100.0
 #define VDOM_STRPID_MIN 	(float)0.01
 
-#define VMIN_STRPID_MAX 	(float)1.0    //maksymalna wartość parametru do strojenia PID
+#define VMIN_STRPID_MAX 	(float)0.001    //maksymalna wartość parametru do strojenia PID
 #define VMAX_STRPID_MAX 	(float)1000.0
 #define VDOM_STRPID_MAX 	(float)100.0
 
