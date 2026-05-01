@@ -198,7 +198,7 @@ int main(void)
   MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
   uDaneCM4.dane.nZainicjowano = 0;	//za każdym uruchomieniem detekcja i inicjalizacja sprzętu zaczyna się od początku
-  //InicjujADC();
+  InicjujADC();
   InicjujModulyWew();
   InicjujModulI2P();
   InicjujJednostkeInercyjna();
@@ -239,10 +239,9 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_FMC|RCC_PERIPHCLK_I2C4
                               |RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_I2C2
                               |RCC_PERIPHCLK_I2C3|RCC_PERIPHCLK_SDMMC
-                              |RCC_PERIPHCLK_SAI2|RCC_PERIPHCLK_SPI2
-                              |RCC_PERIPHCLK_SPI5|RCC_PERIPHCLK_UART8
-                              |RCC_PERIPHCLK_UART7|RCC_PERIPHCLK_UART4
-                              |RCC_PERIPHCLK_LPUART1;
+                              |RCC_PERIPHCLK_SPI2|RCC_PERIPHCLK_SPI5
+                              |RCC_PERIPHCLK_UART8|RCC_PERIPHCLK_UART7
+                              |RCC_PERIPHCLK_UART4|RCC_PERIPHCLK_LPUART1;
   PeriphClkInitStruct.PLL2.PLL2M = 5;
   PeriphClkInitStruct.PLL2.PLL2N = 90;
   PeriphClkInitStruct.PLL2.PLL2P = 47;
@@ -261,7 +260,6 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL3.PLL3FRACN = 0;
   PeriphClkInitStruct.FmcClockSelection = RCC_FMCCLKSOURCE_PLL2;
   PeriphClkInitStruct.SdmmcClockSelection = RCC_SDMMCCLKSOURCE_PLL2;
-  PeriphClkInitStruct.Sai23ClockSelection = RCC_SAI23CLKSOURCE_PLL2;
   PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL3;
   PeriphClkInitStruct.Spi45ClockSelection = RCC_SPI45CLKSOURCE_PLL3;
   PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_PLL2;
@@ -321,7 +319,7 @@ static void MX_ADC2_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_19;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_387CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
@@ -331,6 +329,11 @@ static void MX_ADC2_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN ADC2_Init 2 */
+
+  /*if (HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED) != HAL_OK)
+   {
+     Error_Handler();
+   }*/
 
   /* USER CODE END ADC2_Init 2 */
 
@@ -381,7 +384,7 @@ static void MX_ADC3_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_6;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_387CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
@@ -391,7 +394,10 @@ static void MX_ADC3_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN ADC3_Init 2 */
-
+  if (HAL_ADCEx_Calibration_Start(&hadc3, ADC_CALIB_OFFSET_LINEARITY, ADC_SINGLE_ENDED) != HAL_OK)
+     {
+       Error_Handler();
+     }
   /* USER CODE END ADC3_Init 2 */
 
 }

@@ -82,10 +82,9 @@ void PetlaGlowna(void)
 	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetwornika A/C
 	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
 	if (chNrOdcinkaCzasu < 8)
-	{
 		chBladPG |= UstawDekoderModulow(chNrOdcinkaCzasu);
+	if (chNrOdcinkaCzasu < 11)		//Dodatkowo wykonaj 3 pomiary napięć wewnętrznych na kanałach 8..10
 		PomiarADC(chNrOdcinkaCzasu);
-	}
 
 	switch (chNrOdcinkaCzasu)
 	{

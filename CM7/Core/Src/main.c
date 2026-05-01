@@ -24,6 +24,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 0x00000000	64K		CM7				 				 						ITCMRAM
 0x08000000	1024K	CM7		+		-		+		-		RO		RO		FLASH			kod programu dla CM7
 0x08100000	1024K	CM4		+		-		+		-		RO		RO		FLASH			kod programu dla CM4
+0x1FF1E810 	64B		CM4		-		-		-		-		RO		RO		TEMPSENSOR_CAL1_ADDR	dane kalibracyjne czujnika temperatury nie mogą być cacheowane
 0x20000000	128K	CM7														DTCMRAM
 0x24000000	512K	CM7		-		+		+		+		RW		RW		SRAM_AXI_D1		stos i dane dla CM7 - obecnie przestawione
 0x30000000  128K	CM4		-		+		-		+		RW		RW		SRAM1_AHB_D2	stos i dane dla CM4
@@ -547,10 +548,9 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_FMC|RCC_PERIPHCLK_I2C4
                               |RCC_PERIPHCLK_ADC|RCC_PERIPHCLK_I2C2
                               |RCC_PERIPHCLK_I2C3|RCC_PERIPHCLK_SDMMC
-                              |RCC_PERIPHCLK_SAI2|RCC_PERIPHCLK_SPI2
-                              |RCC_PERIPHCLK_SPI5|RCC_PERIPHCLK_UART8
-                              |RCC_PERIPHCLK_UART7|RCC_PERIPHCLK_UART4
-                              |RCC_PERIPHCLK_LPUART1;
+                              |RCC_PERIPHCLK_SPI2|RCC_PERIPHCLK_SPI5
+                              |RCC_PERIPHCLK_UART8|RCC_PERIPHCLK_UART7
+                              |RCC_PERIPHCLK_UART4|RCC_PERIPHCLK_LPUART1;
   PeriphClkInitStruct.PLL2.PLL2M = 5;
   PeriphClkInitStruct.PLL2.PLL2N = 90;
   PeriphClkInitStruct.PLL2.PLL2P = 47;
@@ -569,7 +569,6 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL3.PLL3FRACN = 0;
   PeriphClkInitStruct.FmcClockSelection = RCC_FMCCLKSOURCE_PLL2;
   PeriphClkInitStruct.SdmmcClockSelection = RCC_SDMMCCLKSOURCE_PLL2;
-  PeriphClkInitStruct.Sai23ClockSelection = RCC_SAI23CLKSOURCE_PLL2;
   PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL3;
   PeriphClkInitStruct.Spi45ClockSelection = RCC_SPI45CLKSOURCE_PLL3;
   PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_PLL2;
@@ -1985,6 +1984,17 @@ void MPU_Config(void)
   MPU_InitStruct.BaseAddress = 0xC0000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_64MB;
   MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Number = MPU_REGION_NUMBER8;
+  MPU_InitStruct.BaseAddress = 0x1FF1E810;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_64B;
+  MPU_InitStruct.AccessPermission = MPU_REGION_PRIV_RO_URO;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
   /* Enables the MPU */
