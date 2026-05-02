@@ -39,9 +39,10 @@ uint32_t nCzasPoprzedniegoObiegu;	//czas [us] poprzedniego obiegu pętli główn
 uint32_t ndT;						//czas [us] jaki upłynął od poprzeniego obiegu pętli
 uint32_t nCzasBiezacy;
 uint8_t chNrOdcinkaCzasu;
-uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU + 1];		//zmierzony czas obsługo odcinka. Na ostatniej pozycji jest czas jałowy
+uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU + 1];		//zmierzony czas obsługi odcinka. Na ostatniej pozycji jest czas jałowy
 uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
 uint32_t nCzasJalowy;
+uint32_t nCzasStartuADC;
 
 uint8_t chBladPG = BLAD_OK;		//błąd petli głównej
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
@@ -70,7 +71,7 @@ extern uint8_t chTrybRegulacji[LICZBA_REG_PARAM];	//rodzaj regulacji dla 4 podst
 extern uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wyjściowych: silnik, LED, retransmisja wejścia RC
 extern uint8_t chFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silników: normalna praca lub analiza FFT rezonansu drgań ramy
 extern uint16_t sTS_CAL1, sTS_CAL2;	//wspólczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
-
+extern uint8_t chWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC2, bit1 = ADC3
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -81,10 +82,23 @@ void PetlaGlowna(void)
 {
 	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetwornika A/C
 	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
-	if (chNrOdcinkaCzasu < 8)
-		chBladPG |= UstawDekoderModulow(chNrOdcinkaCzasu);
+
 	if (chNrOdcinkaCzasu < 11)		//Dodatkowo wykonaj 3 pomiary napięć wewnętrznych na kanałach 8..10
+	{
+		uint32_t nCzasADC;
+		do
+		{
+			//__WFI();	//uśpij kontroler w oczekwianiu na przerwanie
+			nCzasADC = MinalCzas(nCzasStartuADC);
+		}
+		while ((chWykonanoPomiarADC != (WYKONANO_POMIAR_ADC2 | WYKONANO_POMIAR_ADC3)) && (nCzasADC < TIMEOUT_ADC));	//czekaj na wykonanie zainicjowanego w poprzednim cyklu pomiaru ADC lub timeout
+		chWykonanoPomiarADC = 0;
+		if (chNrOdcinkaCzasu < 8)
+			chBladPG |= UstawDekoderModulow(chNrOdcinkaCzasu);
+
 		PomiarADC(chNrOdcinkaCzasu);
+		nCzasStartuADC = PobierzCzas();
+	}
 
 	switch (chNrOdcinkaCzasu)
 	{

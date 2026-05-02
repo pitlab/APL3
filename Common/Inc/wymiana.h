@@ -183,11 +183,17 @@ typedef struct
 	float fCisnRozn[2];		//0=ND130, 1=MS2545
 	float fPredkosc[2];		//[m/s]
 	float fTemper[6];		//0=MS5611, 1=BMP851, 2=ICM42688 [K], 3=LSM6DSV [K], 4=ND130, 5=MS2545
+	float fTemperCPU;		//temperatura rdzeni kontrolera
 	float fKwaAkc[4];		//kwaternion wektora przyspieszenia
 	float fKwaMag[4];		//kwaternion wektora magnetycznego
-	float fNapiecieBat[2];	//napięcie baterii podłączonych do obu wejść zasilania
-	float fPradBat[2];		//prąd pobierany z obu baterii
+	float fNapiecieWej[2];	//napięcie wejsciowe na gnieździe zasilajacym autopilota
+	float fNapiecieUSB;		//napięcie na szynie zasilania USB
+	float fNapiecieSerw;	//napięcie na magistrali serw
+	float fNapiecieBatRTC;	//napięcie baterii RTC
+	float fNapiecieAku[2];	//napięcie obu pakietów z czujników prądu i napiecia
+	float fPradAku[2];		//prąd pobierany z obu pakietów odczytany z czujników prądu i napiecia
 	float fEnergiaPobr[2];	//energia pobrana z obu baterii
+	float fNapCzujZewn[4];	//napięcie czujników zewnętrznych podłaćzanych do gniazd APL3
 	float fStrojenie[LICZBA_KAN_RC_DO_STROJENIA_PID];	//wartość bieżacych parametrów używanych do strojenia PID
 	uRozne_t uRozne;		//unia różnych typów danych ogólnego zastosowania
 	uint8_t chRozmiar;		//rozmiar danych przekazywanych w polu fRozne

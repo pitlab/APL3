@@ -198,8 +198,8 @@ menu_t stMenuKalibracje[MENU_WIERSZE * MENU_KOLUMNY] = {
 
 menu_t stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Dane IMU",	"Wyniki pomiarow czujnikow IMU",			TP_POMIARY_IMU, 	obr_multimetr},
-	{"Cisn GNSS",	"Wyniki pom. czujnikow cisnienia i GNSS",	TP_POMIARY_CISN, 	obr_multimetr},
+	{"Dane AHRS",	"Wyniki pomiarow IMU i obliczeń AHRS",		TP_POMIARY_AHRS, 	obr_multimetr},
+	{"Czujniki",	"Wyniki pomiarow pozostalych czujnikow ",	TP_POMIARY_CZUJN, 	obr_multimetr},
 	{"Odb RC",		"Dane z odbiornika RC",						TP_POMIARY_RC,		obr_aparaturaRC},
 	{"Wyj RC",		"Dane na wyjściach RC: serwa, ESC",			TP_POMIARY_SERWA,	obr_aparaturaRC},
 	{"FFT akcel",	"FFT akceleometrów",						TP_POMIARY_FFT_ACC,	spectrum},
@@ -1411,7 +1411,7 @@ uint8_t RysujEkran(void)
 		}
 		else
 		{
-			PomiaryIMU();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
+			PomiaryAHRS();		//wyświetlaj wyniki pomiarów AHRS pobrane z CM4
 			if (uDaneCM4.dane.sPostepProcesu)
 				chCzasSwieceniaLED[LED_NIEB] = 5;	//świeć niebieskim LED w trakcie kalibracji
 		}
@@ -1599,7 +1599,7 @@ uint8_t RysujEkran(void)
 		break;
 
 
-	case TP_POMIARY_IMU:	PomiaryIMU();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
+	case TP_POMIARY_AHRS:	PomiaryAHRS();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chNowyTrybPracy = TP_WROC_DO_POMIARY;
@@ -1608,8 +1608,7 @@ uint8_t RysujEkran(void)
 		break;
 
 
-	case TP_POMIARY_CISN:	PomiaryCisnieniowe();
-
+	case TP_POMIARY_CZUJN:	PomiaryCzujnikow();
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			chTrybPracy = chWrocDoTrybu;
@@ -1975,7 +1974,7 @@ void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fP
 // Parametry: brak
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void PomiaryIMU(void)
+void PomiaryAHRS(void)
 {
 	int8_t chTon;
 	float fDlugosc;
@@ -2258,12 +2257,12 @@ void PomiaryIMU(void)
 // Parametry: brak
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void PomiaryCisnieniowe(void)
+void PomiaryCzujnikow(void)
 {
 	if (chRysujRaz)
 	{
 		chRysujRaz = 0;
-		BelkaTytulu("Dane czujnikow cisnienia");
+		BelkaTytulu("Dane czujnikow");
 
 		setColor(SZARY80);
 		sprintf(chNapis, "Ci%cn 1:             AGL1:", ś);
@@ -2276,11 +2275,23 @@ void PomiaryCisnieniowe(void)
 		RysujNapis(chNapis, KOL12, 90);
 
 		sprintf(chNapis, "GNSS D%cug:             Szer:             HDOP:", ł);
-		RysujNapis(chNapis, KOL12, 140);
+		RysujNapis(chNapis, KOL12, 120);
 		sprintf(chNapis, "GNSS WysMSL:           Pred:             Kurs:");
-		RysujNapis(chNapis, KOL12, 160);
+		RysujNapis(chNapis, KOL12, 140);
 		sprintf(chNapis, "GNSS Czas:             Data:              Sat:");
-		RysujNapis(chNapis, KOL12, 180);
+		RysujNapis(chNapis, KOL12, 160);
+
+		sprintf(chNapis, "Uaku 1:            Iaku 1:            Eaku 1:");
+		RysujNapis(chNapis, KOL12, 190);
+		sprintf(chNapis, "Uaku 2:            Iaku 2:            Eaku 2:");
+		RysujNapis(chNapis, KOL12, 210);
+		sprintf(chNapis, "Uz.ser:            Uz.usb:            Ub.zeg:");
+		RysujNapis(chNapis, KOL12, 230);
+		sprintf(chNapis, "Ucz1.1:            Ucz1.2:            TmpCPU:");
+		RysujNapis(chNapis, KOL12, 260);
+		sprintf(chNapis, "Ucz2.1:            Ucz2.2:");
+		RysujNapis(chNapis, KOL12, 280);
+
 
 		setColor(SZARY50);
 		RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
@@ -2330,34 +2341,73 @@ void PomiaryCisnieniowe(void)
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2] - KELVIN , ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
 	RysujNapis(chNapis, KOL12+40*FONT_SL, 90);
 
-
+	//dane z GNSS
 	if (uDaneCM4.dane.stGnss1.chFix)
 		setColor(BIALY);	//jest fix
 	else
 		setColor(SZARY70);	//nie ma fixa
 
 	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dDlugoscGeo);
-	RysujNapis(chNapis, KOL12+11*FONT_SL, 140);
+	RysujNapis(chNapis, KOL12+11*FONT_SL, 120);
 	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
-	RysujNapis(chNapis, KOL12+29*FONT_SL, 140);
+	RysujNapis(chNapis, KOL12+29*FONT_SL, 120);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.stGnss1.fHdop);
-	RysujNapis(chNapis, KOL12+47*FONT_SL, 140);
+	RysujNapis(chNapis, KOL12+47*FONT_SL, 120);
 
 	sprintf(chNapis, "%.1fm ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
-	RysujNapis(chNapis, KOL12+13*FONT_SL, 160);
+	RysujNapis(chNapis, KOL12+13*FONT_SL, 140);
 	sprintf(chNapis, "%.3fm/s ", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
-	RysujNapis(chNapis, KOL12+29*FONT_SL, 160);
+	RysujNapis(chNapis, KOL12+29*FONT_SL, 140);
 	sprintf(chNapis, "%3.2f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+47*FONT_SL, 160);
+	RysujNapis(chNapis, KOL12+47*FONT_SL, 140);
 
 	sprintf(chNapis, "%02d:%02d:%02d ", uDaneCM4.dane.stGnss1.chGodz, uDaneCM4.dane.stGnss1.chMin, uDaneCM4.dane.stGnss1.chSek);
-	RysujNapis(chNapis, KOL12+12*FONT_SL, 180);
+	RysujNapis(chNapis, KOL12+12*FONT_SL, 160);
 	if  (uDaneCM4.dane.stGnss1.chMies > 12)	//ograniczenie aby nie pobierało nazwy miesiaca spoza tablicy chNazwyMies3Lit[]
 		uDaneCM4.dane.stGnss1.chMies = 0;	//zerowy indeks jest pustą nazwą "---"
 	sprintf(chNapis, "%02d %s %04d ", uDaneCM4.dane.stGnss1.chDzien, chNazwyMies3Lit[uDaneCM4.dane.stGnss1.chMies], uDaneCM4.dane.stGnss1.chRok + 2000);
-	RysujNapis(chNapis, KOL12+29*FONT_SL, 180);
+	RysujNapis(chNapis, KOL12+29*FONT_SL, 160);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.stGnss1.chLiczbaSatelit);
-	RysujNapis(chNapis, KOL12+47*FONT_SL, 180);
+	RysujNapis(chNapis, KOL12+47*FONT_SL, 160);
+
+	//napięcie, prąd i energia obu pakietów
+	setColor(BIALY);
+	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieAku[0]);
+	RysujNapis(chNapis, KOL12+8*FONT_SL, 190);
+	sprintf(chNapis, "%.2f A ", uDaneCM4.dane.fPradAku[0]);
+	RysujNapis(chNapis, KOL12+27*FONT_SL, 190);
+	sprintf(chNapis, "%.1f mAh ", uDaneCM4.dane.fEnergiaPobr[0]);
+	RysujNapis(chNapis, KOL12+46*FONT_SL, 190);
+
+	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieAku[1]);
+	RysujNapis(chNapis, KOL12+8*FONT_SL, 210);
+	sprintf(chNapis, "%.2f A ", uDaneCM4.dane.fPradAku[1]);
+	RysujNapis(chNapis, KOL12+27*FONT_SL, 210);
+	sprintf(chNapis, "%.1f mAh ", uDaneCM4.dane.fEnergiaPobr[1]);
+	RysujNapis(chNapis, KOL12+46*FONT_SL, 210);
+
+	//napięcia pomocnicze
+	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieSerw);
+	RysujNapis(chNapis, KOL12+8*FONT_SL, 230);
+	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapiecieUSB);
+	RysujNapis(chNapis, KOL12+27*FONT_SL, 230);
+	sprintf(chNapis, "%.3f V " , uDaneCM4.dane.fNapiecieBatRTC);
+	RysujNapis(chNapis, KOL12+46*FONT_SL, 230);
+
+	//napięcie czujników zewnętrznych
+	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[0]);
+	RysujNapis(chNapis, KOL12+8*FONT_SL, 260);
+	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[1]);
+	RysujNapis(chNapis, KOL12+27*FONT_SL, 260);
+	setColor(ZOLTY);
+	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemperCPU, ZNAK_STOPIEN);
+	RysujNapis(chNapis, KOL12+46*FONT_SL, 260);
+
+	setColor(BIALY);
+	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[2]);
+	RysujNapis(chNapis, KOL12+8*FONT_SL, 280);
+	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[3]);
+	RysujNapis(chNapis, KOL12+27*FONT_SL, 280);
 
 	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI do zera
 	RysujPasekPostepu(CZAS_KALIBRACJI);

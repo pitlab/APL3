@@ -51,8 +51,8 @@ void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fP
 void HSV2RGB(float hue, float sat, float val, float *red, float *grn, float *blu);
 void MenuGlowne(uint8_t *chTryb);
 
-void PomiaryIMU(void);
-void PomiaryCisnieniowe(void);
+void PomiaryAHRS(void);
+void PomiaryCzujnikow(void);
 //void DaneOdbiornikaRC(void);
 void RysujPaskiKanalowRC(uint8_t chIndeksOpisu, uint16_t *sDane);
 void TestTonuAudio(void);

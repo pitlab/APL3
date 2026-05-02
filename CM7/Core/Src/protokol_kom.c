@@ -479,7 +479,7 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
 			st_ZajetośćLPUART.sDoWysłania[RAMKA_POLECEN] = (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI;
     		HAL_UART_Transmit_DMA(&hlpuart1, chBuforNadDMA, st_ZajetośćLPUART.sDoWysłania[RAMKA_POLECEN]);
     		st_ZajetośćLPUART.sDoWysłania[RAMKA_POLECEN]  = 0;
-    		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1 - LPUART_ZAJETY
+    		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1 - LPUART_ZAJETY
 		}
 		break;
 

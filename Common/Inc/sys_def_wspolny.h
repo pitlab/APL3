@@ -349,10 +349,5 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define LICZBA_ZMIENNYCH_FFT	6		//z tylu zmiennych są liczone FFT
 #define LICZB_FLOAT_WRAMCE		96
 
-//wartości dzielników napiecia używanych przy pomiarach analogowych
-#define DZIELNIK_UWE_ZASIL	16.0f	//górny opornik 30k 1%, dolny 2k 1%
-#define DZIELNIK_USERWO		3.9375f	//górny opornik 47k 1%, dolny 16k 1%
-#define DZIELNIK_UCZUJNIK	16.0f	//górny opornik 30k 1%, dolny 2k 1%
-#define DZIELNIK_ICZUJNIK	16.0f	//górny opornik 30k 1%, dolny 2k 1%
-#define DZIELNIK_VBAT		4.0f	//wewnętrzny dzielnik /4
+
 

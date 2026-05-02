@@ -1592,7 +1592,7 @@ void StartDefaultTask(void const * argument)
 	uDaneCM7.dane.chOdbiornikRC = ODB_OBA;	//przesyłaj stan obu odbiorników po dywersyfikacji
 	for(;;)
 	{
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 		chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
 		CzytajDotyk();
 		WymienDaneExpanderow();
@@ -1619,7 +1619,7 @@ void StartDefaultTask(void const * argument)
 			chCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
 
 		ObslugaWymowyKomunikatu();	//obsłuż wymowę komuniatów głosowych
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 		osDelay(5);		//ustaw okres z jakim pracuje CM4 (200Hz -> 5ms)
 	}
   /* USER CODE END 5 */
@@ -1656,7 +1656,7 @@ void WatekOdbiorczyLPUART1(void const * argument)
 	while(1)
 	{
 		chDanychDoWysłania = 0;
-		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
+		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
 		//w pierwszej kolejności obsłuż protokół komunikacyjny
 		if (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY)
 		{
@@ -1688,7 +1688,7 @@ void WatekOdbiorczyLPUART1(void const * argument)
 			chStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);	//to wróć do stanu otwartego łącza
 		else
 			chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
-		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
+		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
 	}
   /* USER CODE END WatekOdbiorczyLPUART1 */
 }
@@ -1956,13 +1956,6 @@ void MPU_Config(void)
   MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
-  MPU_InitStruct.Number = MPU_REGION_NUMBER8;
-  MPU_InitStruct.BaseAddress = 0x1FF1E800;
-  MPU_InitStruct.Size = MPU_REGION_SIZE_256B;
-  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-
   /* Enables the MPU */
   HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 

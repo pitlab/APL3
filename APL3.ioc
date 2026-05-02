@@ -1,22 +1,22 @@
 #MicroXplorer Configuration settings - do not modify
 ADC2.Channel-0\#ChannelRegularConversion=ADC_CHANNEL_19
-ADC2.ContinuousConvMode=ENABLE
+ADC2.ContinuousConvMode=DISABLE
 ADC2.IPParameters=Rank-0\#ChannelRegularConversion,Channel-0\#ChannelRegularConversion,SamplingTime-0\#ChannelRegularConversion,OffsetNumber-0\#ChannelRegularConversion,OffsetSignedSaturation-0\#ChannelRegularConversion,NbrOfConversionFlag,ContinuousConvMode,Overrun
 ADC2.NbrOfConversionFlag=1
 ADC2.OffsetNumber-0\#ChannelRegularConversion=ADC_OFFSET_NONE
 ADC2.OffsetSignedSaturation-0\#ChannelRegularConversion=DISABLE
 ADC2.Overrun=ADC_OVR_DATA_OVERWRITTEN
 ADC2.Rank-0\#ChannelRegularConversion=1
-ADC2.SamplingTime-0\#ChannelRegularConversion=ADC_SAMPLETIME_1CYCLE_5
+ADC2.SamplingTime-0\#ChannelRegularConversion=ADC_SAMPLETIME_387CYCLES_5
 ADC3.Channel-1\#ChannelRegularConversion=ADC_CHANNEL_6
-ADC3.ContinuousConvMode=ENABLE
+ADC3.ContinuousConvMode=DISABLE
 ADC3.IPParameters=Rank-1\#ChannelRegularConversion,Channel-1\#ChannelRegularConversion,SamplingTime-1\#ChannelRegularConversion,OffsetNumber-1\#ChannelRegularConversion,OffsetSignedSaturation-1\#ChannelRegularConversion,NbrOfConversionFlag,ContinuousConvMode,Overrun
 ADC3.NbrOfConversionFlag=1
 ADC3.OffsetNumber-1\#ChannelRegularConversion=ADC_OFFSET_NONE
 ADC3.OffsetSignedSaturation-1\#ChannelRegularConversion=DISABLE
 ADC3.Overrun=ADC_OVR_DATA_OVERWRITTEN
 ADC3.Rank-1\#ChannelRegularConversion=1
-ADC3.SamplingTime-1\#ChannelRegularConversion=ADC_SAMPLETIME_1CYCLE_5
+ADC3.SamplingTime-1\#ChannelRegularConversion=ADC_SAMPLETIME_387CYCLES_5
 Bdma.I2C4_RX.2.Direction=DMA_PERIPH_TO_MEMORY
 Bdma.I2C4_RX.2.EventEnable=DISABLE
 Bdma.I2C4_RX.2.Instance=BDMA_Channel2

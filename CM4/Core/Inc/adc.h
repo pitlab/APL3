@@ -13,6 +13,18 @@
 
 #define VREF	3.0f	//napiecie referencyjne przetwornika a/c
 
+#define WYKONANO_POMIAR_ADC2	1
+#define WYKONANO_POMIAR_ADC3	2
+
+#define TIMEOUT_ADC		250	//maksymalny czas w mikrosekundach potrzebny na wykonanie pomiaru ADC
+
+
+//wartości dzielników napiecia używanych przy pomiarach analogowych
+#define DZIELNIK_UWE_ZASIL	16.0f	//górny opornik 30k 1%, dolny 2k 1%
+#define DZIELNIK_USERWO		3.9375f	//górny opornik 47k 1%, dolny 16k 1%
+#define DZIELNIK_UCZUJNIK	1.0f	//
+#define DZIELNIK_ICZUJNIK	1.0f	//
+#define DZIELNIK_VBAT		4.0f	//wewnętrzny dzielnik /4
 
 uint8_t InicjujADC(void);
 uint8_t PomiarADC(uint8_t chKanal);

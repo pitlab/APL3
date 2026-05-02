@@ -41,7 +41,7 @@ uint8_t ObslugaPolecenCM4(void)
 		case POL4_MOW_UZBROJONE:	chBłąd = PrzygotujKomunikat(KOMG_UZBROJONE, 0.0f);	break;	//rozpocznij wymowę komunikatu silniki uzbrojone
 		case POL4_MOW_ROZBROJONE:	chBłąd = PrzygotujKomunikat(KOMG_ROZBROJONE, 0.0f);break;			//rozpocznij wymowę komunikatu silniki rozbrojone
 		case POL4_MOW_WYSOKOSC:		chBłąd = PrzygotujKomunikat(KOMG_WYSOKOSC, uDaneCM4.dane.stBSP.fWysokoscMSL);	break;
-		case POL4_MOW_NAPIECIE:		chBłąd = PrzygotujKomunikat(KOMG_NAPIECIE, uDaneCM4.dane.fNapiecieBat[0]);	break;
+		case POL4_MOW_NAPIECIE:		chBłąd = PrzygotujKomunikat(KOMG_NAPIECIE, uDaneCM4.dane.fNapiecieAku[0]);	break;
 		case POL4_MOW_TEMPERAT:		chBłąd = PrzygotujKomunikat(KOMG_TEMPERATURA, uDaneCM4.dane.fTemper[0]);	break;
 		case POL4_MOW_PREDKOSC:		chBłąd = PrzygotujKomunikat(KOMG_PREDKOSC, uDaneCM4.dane.stBSP.fIAS);		break;
 		case POL4_MOW_KIERUNEK:		chBłąd = PrzygotujKomunikat(KOMG_KIERUNEK, uDaneCM4.dane.stBSP.fKursGeo);	break;
