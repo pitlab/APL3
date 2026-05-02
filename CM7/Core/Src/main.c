@@ -12,22 +12,21 @@
  0x30040000..0x300401FF - 512  (0x200) tablica deskryptorów DMA ETH (SRAM3)
  0x30040200..0x30047FFF - reszta z 32k  deskryptory DMA ETH, bufory testowe,  USB
  0x30040200..0x38000000 - 130k (0x7FBEFE00) wolne
+ 0x38000000..0x38000600 - 1,5k bufor wymiany z CM7
+ 0x38008000..0x3800FFFF - 32k
  0x68000000..0x6803FFFF - 2*128k pamięć konfiguracji
  0x68040000..0x680FFFFF - 30*128k pamięć komunikatów słownych 16-bit, 16kHz
  0x68400000..0x687FFFFF - 32*128 (4MB) próby umieszczenia czcionek i obrazków
  0x68800000..0x687FFFFF - 24MB reszta
  0xC0000000..0xC3FFFFFF
 
-
- * 								Pozwolenia dla MPU			Prawa dostępu
+ * Obszary MPU					Pozwolenia dla MPU			Prawa dostępu
 Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 0x00000000	64K		CM7				 				 						ITCMRAM
 0x08000000	1024K	CM7		+		-		+		-		RO		RO		FLASH			kod programu dla CM7
-0x08100000	1024K	CM4		+		-		+		-		RO		RO		FLASH			kod programu dla CM4
-0x1FF1E810 	64B		CM4		-		-		-		-		RO		RO		TEMPSENSOR_CAL1_ADDR	dane kalibracyjne czujnika temperatury nie mogą być cacheowane
+0x1FF1E810 	64B		CM7		-		-		-		-		RO		RO		TEMPSENSOR_CAL1_ADDR	dane kalibracyjne czujnika temperatury nie mogą być cacheowane
 0x20000000	128K	CM7														DTCMRAM
 0x24000000	512K	CM7		-		+		+		+		RW		RW		SRAM_AXI_D1		stos i dane dla CM7 - obecnie przestawione
-0x30000000  128K	CM4		-		+		-		+		RW		RW		SRAM1_AHB_D2	stos i dane dla CM4
 0x30020000	128K	CM7		-		-		-		-   	RW		RW		SRAM2_AHB_D2	sterta LwIP
 0x30040000	32K		CM7		-		+		-		+  		RW		RW		SRAM3_AHB_D2    deskryptory ethernet (nie mogą być cache'owalne) i bufor [12*MTU]
 0x38000000	64K		CM4+7	-		+		-		-		RW		RW		SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2
@@ -160,7 +159,6 @@ TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim12;
 
 MDMA_HandleTypeDef hmdma_mdma_channel5_sdmmc1_end_data_0;
-SRAM_HandleTypeDef hsram1;
 NOR_HandleTypeDef hnor3;
 SDRAM_HandleTypeDef hsdram1;
 
@@ -342,7 +340,6 @@ Error_Handler();
   MX_CRC_Init();
   MX_RNG_Init();
   MX_SDMMC1_SD_Init();
-  MX_FATFS_Init();
   MX_RTC_Init();
   MX_FDCAN2_Init();
   MX_UART7_Init();
@@ -351,6 +348,7 @@ Error_Handler();
   MX_TIM12_Init();
   MX_JPEG_Init();
   MX_DMA2D_Init();
+  MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
 
 #ifdef TESTY		//testy algorytmów
@@ -360,7 +358,7 @@ Error_Handler();
 
   chBłąd |= InicjujSPIModZewn();
   chBłąd |= InicjujFlashNOR();
-  chBłąd |= SprawdzMagistrale(0x60000000);	//sprawdź pamięć SRAM
+  //chBłąd |= SprawdzMagistrale(0x60000000);	//sprawdź pamięć SRAM - wyłączony od wersji 475
   chBłąd |= SprawdzMagistrale(0xC0000000);	//sprawdź pamięć DRAM
   //chBłąd |= InicjujFlashQSPI();
   chBłąd |= InicjujKonfigFlash();
@@ -1374,41 +1372,6 @@ void MX_FMC_Init(void)
 
   /* USER CODE END FMC_Init 1 */
 
-  /** Perform the SRAM1 memory initialization sequence
-  */
-  hsram1.Instance = FMC_NORSRAM_DEVICE;
-  hsram1.Extended = FMC_NORSRAM_EXTENDED_DEVICE;
-  /* hsram1.Init */
-  hsram1.Init.NSBank = FMC_NORSRAM_BANK1;
-  hsram1.Init.DataAddressMux = FMC_DATA_ADDRESS_MUX_DISABLE;
-  hsram1.Init.MemoryType = FMC_MEMORY_TYPE_SRAM;
-  hsram1.Init.MemoryDataWidth = FMC_NORSRAM_MEM_BUS_WIDTH_16;
-  hsram1.Init.BurstAccessMode = FMC_BURST_ACCESS_MODE_DISABLE;
-  hsram1.Init.WaitSignalPolarity = FMC_WAIT_SIGNAL_POLARITY_LOW;
-  hsram1.Init.WaitSignalActive = FMC_WAIT_TIMING_BEFORE_WS;
-  hsram1.Init.WriteOperation = FMC_WRITE_OPERATION_ENABLE;
-  hsram1.Init.WaitSignal = FMC_WAIT_SIGNAL_DISABLE;
-  hsram1.Init.ExtendedMode = FMC_EXTENDED_MODE_DISABLE;
-  hsram1.Init.AsynchronousWait = FMC_ASYNCHRONOUS_WAIT_DISABLE;
-  hsram1.Init.WriteBurst = FMC_WRITE_BURST_DISABLE;
-  hsram1.Init.ContinuousClock = FMC_CONTINUOUS_CLOCK_SYNC_ONLY;
-  hsram1.Init.WriteFifo = FMC_WRITE_FIFO_ENABLE;
-  hsram1.Init.PageSize = FMC_PAGE_SIZE_NONE;
-  /* Timing */
-  Timing.AddressSetupTime = 1;
-  Timing.AddressHoldTime = 15;
-  Timing.DataSetupTime = 10;
-  Timing.BusTurnAroundDuration = 2;
-  Timing.CLKDivision = 16;
-  Timing.DataLatency = 17;
-  Timing.AccessMode = FMC_ACCESS_MODE_A;
-  /* ExtTiming */
-
-  if (HAL_SRAM_Init(&hsram1, &Timing, NULL) != HAL_OK)
-  {
-    Error_Handler( );
-  }
-
   /** Perform the NOR3 memory initialization sequence
   */
   hnor3.Instance = FMC_NORSRAM_DEVICE;
@@ -1591,6 +1554,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOJ, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : KARTA_SD_OBECNA_Pin */
+  GPIO_InitStruct.Pin = KARTA_SD_OBECNA_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(KARTA_SD_OBECNA_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : TP_INT_Pin */
   GPIO_InitStruct.Pin = TP_INT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
@@ -1769,7 +1738,8 @@ void WatekRejestratora(void const * argument)
 
 				//hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
 				//hsd1.ErrorCode = 0;							//zacznij pracę bez kodu błędu
-				status = SD_initialize(0);
+				//status = SD_initialize(0);
+				status = disk_initialize(0);
 				if (status == RES_OK)
 				{
 					fres = BSP_SD_Init();
@@ -1987,16 +1957,12 @@ void MPU_Config(void)
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
-  /** Initializes and configures the Region and the memory to be protected
-  */
   MPU_InitStruct.Number = MPU_REGION_NUMBER8;
-  MPU_InitStruct.BaseAddress = 0x1FF1E810;
-  MPU_InitStruct.Size = MPU_REGION_SIZE_64B;
-  MPU_InitStruct.AccessPermission = MPU_REGION_PRIV_RO_URO;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+  MPU_InitStruct.BaseAddress = 0x1FF1E800;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_256B;
   MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
-
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
   /* Enables the MPU */
   HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
 

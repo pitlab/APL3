@@ -21,7 +21,7 @@
 
 
 
-extern SRAM_HandleTypeDef hsram1;
+//extern SRAM_HandleTypeDef hsram1;
 extern NOR_HandleTypeDef hnor3;
 extern SDRAM_HandleTypeDef hsdram1;
 

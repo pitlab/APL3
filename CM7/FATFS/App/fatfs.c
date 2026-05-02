@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -15,11 +15,6 @@
   *
   ******************************************************************************
   */
-#include <string.h>
-#include <stdio.h>
-#include "ff_gen_drv.h"
-#include "sd_diskio.h"
-#include "czas.h"
 /* USER CODE END Header */
 #include "fatfs.h"
 
@@ -30,7 +25,6 @@ FIL SDFile;       /* File object for SD */
 
 /* USER CODE BEGIN Variables */
 
-
 /* USER CODE END Variables */
 
 void MX_FATFS_Init(void)
@@ -39,9 +33,7 @@ void MX_FATFS_Init(void)
   retSD = FATFS_LinkDriver(&SD_Driver, SDPath);
 
   /* USER CODE BEGIN Init */
-
-
-
+  /* additional user code for init */
   /* USER CODE END Init */
 }
 
@@ -53,7 +45,7 @@ void MX_FATFS_Init(void)
 DWORD get_fattime(void)
 {
   /* USER CODE BEGIN get_fattime */
-	return PobierzCzasFAT();
+  return 0;
   /* USER CODE END get_fattime */
 }
 

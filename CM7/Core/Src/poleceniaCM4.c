@@ -2,7 +2,7 @@
 //
 // Moduł obsługi poleceń rdzenia CM4
 //
-// (c) PitLab 2025
+// (c) PitLab 2025..26
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include <poleceniaCM4.h>
@@ -11,7 +11,7 @@
 #include "moduly_SPI.h"
 #include "sample_audio.h"
 #include "wymiana_CM7.h"
-
+#include <stm32h7xx_ll_adc.h>
 
 
 extern unia_wymianyCM4_t uDaneCM4;
@@ -40,11 +40,19 @@ uint8_t ObslugaPolecenCM4(void)
 		case POL4_WYLACZ_OD2:	chPort_exp_wysylany[0] &= ~EXP07_MOD_OD2;	break;	//wyłącz wyjście otwarty dren 2
 		case POL4_MOW_UZBROJONE:	chBłąd = PrzygotujKomunikat(KOMG_UZBROJONE, 0.0f);	break;	//rozpocznij wymowę komunikatu silniki uzbrojone
 		case POL4_MOW_ROZBROJONE:	chBłąd = PrzygotujKomunikat(KOMG_ROZBROJONE, 0.0f);break;			//rozpocznij wymowę komunikatu silniki rozbrojone
-		case POL4_MOW_WYSOKOSC:	chBłąd = PrzygotujKomunikat(KOMG_WYSOKOSC, uDaneCM4.dane.stBSP.fWysokoscMSL);	break;
-		case POL4_MOW_NAPIECIE:	chBłąd = PrzygotujKomunikat(KOMG_NAPIECIE, uDaneCM4.dane.fNapiecieBat[0]);	break;
-		case POL4_MOW_TEMPERAT:	chBłąd = PrzygotujKomunikat(KOMG_TEMPERATURA, uDaneCM4.dane.fTemper[0]);	break;
-		case POL4_MOW_PREDKOSC:	chBłąd = PrzygotujKomunikat(KOMG_PREDKOSC, uDaneCM4.dane.stBSP.fIAS);		break;
-		case POL4_MOW_KIERUNEK:	chBłąd = PrzygotujKomunikat(KOMG_KIERUNEK, uDaneCM4.dane.stBSP.fKursGeo);	break;
+		case POL4_MOW_WYSOKOSC:		chBłąd = PrzygotujKomunikat(KOMG_WYSOKOSC, uDaneCM4.dane.stBSP.fWysokoscMSL);	break;
+		case POL4_MOW_NAPIECIE:		chBłąd = PrzygotujKomunikat(KOMG_NAPIECIE, uDaneCM4.dane.fNapiecieBat[0]);	break;
+		case POL4_MOW_TEMPERAT:		chBłąd = PrzygotujKomunikat(KOMG_TEMPERATURA, uDaneCM4.dane.fTemper[0]);	break;
+		case POL4_MOW_PREDKOSC:		chBłąd = PrzygotujKomunikat(KOMG_PREDKOSC, uDaneCM4.dane.stBSP.fIAS);		break;
+		case POL4_MOW_KIERUNEK:		chBłąd = PrzygotujKomunikat(KOMG_KIERUNEK, uDaneCM4.dane.stBSP.fKursGeo);	break;
+		case POL4_CZYTAJ_KALIBR_TEMP:
+			volatile uint16_t TS_CAL1 = *TEMPSENSOR_CAL1_ADDR;	//Internal temperature sensor, address of parameter TS_CAL1: On STM32H7, temperature sensor ADC raw data acquired at temperature  30 DegC (tolerance: +-5 DegC), Vref+ = 3.3 V (tolerance: +-10 mV).
+			volatile uint16_t TS_CAL2 = *TEMPSENSOR_CAL2_ADDR;
+			uDaneCM7.dane.uRozne.U16[0] = TS_CAL1;
+			uDaneCM7.dane.uRozne.U16[1] = TS_CAL2;
+			uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_KALIBR_TEMP;
+			break;
+
 		}
 		uDaneCM7.dane.chPotwierdzenieWykonania = uDaneCM4.dane.chWykonajPolecenie;	//potwierdź wykonanie polecenia
 	}

@@ -69,7 +69,7 @@ extern uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzy
 extern uint8_t chTrybRegulacji[LICZBA_REG_PARAM];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
 extern uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wyjściowych: silnik, LED, retransmisja wejścia RC
 extern uint8_t chFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silników: normalna praca lub analiza FFT rezonansu drgań ramy
-
+extern uint16_t sTS_CAL1, sTS_CAL2;	//wspólczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -285,217 +285,227 @@ uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nKoniec)
 ////////////////////////////////////////////////////////////////////////////////
 void WykonajPolecenieCM7(void)
 {
-	uDaneCM4.dane.chOdpowiedzNaPolecenie = uDaneCM7.dane.chWykonajPolecenie;	//domyślnie odeślij to co przyszło aby potwierdzić otrzymanie
-	switch(uDaneCM7.dane.chWykonajPolecenie)
+	if (uDaneCM7.dane.chWykonajPolecenie != uDaneCM4.dane.chPotwierdzenieWykonania)
 	{
-	case POL7_NIC:	break;		//polecenie neutralne
-	case POL7_KALIBRUJ_ZYRO_ZIM:	RozpocznijKalibracjeZeraZyroskopu(POL7_KALIBRUJ_ZYRO_ZIM);	break;		//uruchom kalibrację żyroskopów na zimno 10°C
-	case POL7_KALIBRUJ_ZYRO_POK:	RozpocznijKalibracjeZeraZyroskopu(POL7_KALIBRUJ_ZYRO_POK);	break;		//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
-	case POL7_KALIBRUJ_ZYRO_GOR:	RozpocznijKalibracjeZeraZyroskopu(POL7_KALIBRUJ_ZYRO_GOR);	break;		//uruchom kalibrację żyroskopów na gorąco 40°C
-
-	case POL7_KALIBRUJ_ZYRO_WZMP:		//uruchom kalibrację wzmocnienia żyroskopów P
-	case POL7_KALIBRUJ_ZYRO_WZMQ:		//uruchom kalibrację wzmocnienia żyroskopów Q
-	case POL7_KALIBRUJ_ZYRO_WZMR:		//uruchom kalibrację wzmocnienia żyroskopów R
-	case POL7_ZERUJ_CALKE_ZYRO:	KalibracjaWzmocnieniaZyro(uDaneCM7.dane.chWykonajPolecenie);	break;	//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
-
-	case POL7_CZYTAJ_WZM_ZYROP:	//odczytaj wzmocnienia żyroskopów P
-		uDaneCM4.dane.uRozne.f32[2] = CzytajFramFloat(FAH_ZYRO1P_WZMOC);
-		uDaneCM4.dane.uRozne.f32[3] = CzytajFramFloat(FAH_ZYRO2P_WZMOC);
-		break;
-
-	case POL7_CZYTAJ_WZM_ZYROQ:	//odczytaj wzmocnienia żyroskopów Q
-		uDaneCM4.dane.uRozne.f32[2] = CzytajFramFloat(FAH_ZYRO1Q_WZMOC);
-		uDaneCM4.dane.uRozne.f32[3] = CzytajFramFloat(FAH_ZYRO2Q_WZMOC);
-		break;
-
-	case POL7_CZYTAJ_WZM_ZYROR:	//odczytaj wzmocnienia żyroskopów R
-		uDaneCM4.dane.uRozne.f32[2] = CzytajFramFloat(FAH_ZYRO1R_WZMOC);
-		uDaneCM4.dane.uRozne.f32[3] = CzytajFramFloat(FAH_ZYRO2R_WZMOC);
-		break;
-
-	case POL7_KAL_ZERO_MAGN1:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne1);	break;	//uruchom kalibrację zera magnetometru 1
-	case POL7_KAL_ZERO_MAGN2:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne2);	break;	//uruchom kalibrację zera magnetometru 2
-	case POL7_KAL_ZERO_MAGN3:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne3);	break;	//uruchom kalibrację zera magnetometru 3
-
-	case POL7_ZAPISZ_KONF_MAGN1:	ZapiszKalibracjeMagnetometru(MAG1);	break;
-	case POL7_ZAPISZ_KONF_MAGN2:	ZapiszKalibracjeMagnetometru(MAG2);	break;
-	case POL7_ZAPISZ_KONF_MAGN3:	ZapiszKalibracjeMagnetometru(MAG3);	break;
-
-	case POL7_POBIERZ_KONF_MAGN1: PobierzKalibracjeMagnetometru(MAG1);	break;
-	case POL7_POBIERZ_KONF_MAGN2: PobierzKalibracjeMagnetometru(MAG2);	break;
-	case POL7_POBIERZ_KONF_MAGN3: PobierzKalibracjeMagnetometru(MAG3);	break;
-
-	case POL7_ZERUJ_EKSTREMA:
-		if (ZerujEkstremaMagnetometru())
+		uDaneCM4.dane.chPotwierdzenieWykonania = uDaneCM7.dane.chWykonajPolecenie;	//domyślnie odeślij to co przyszło aby potwierdzić wykonanie
+		switch(uDaneCM7.dane.chWykonajPolecenie)
 		{
-			uDaneCM4.dane.chOdpowiedzNaPolecenie = POL7_NIC;	//jeżeli dane nie są jeszcze wyzerowane to zwróć inną odpowiedź niż numer polecenia
-			//chStanIOwy &= ~MIO40;	//zaświeć czerwoną LED
-			//chStanIOwy |= MIO41;	//zgaś zieloną LED
-		}
-		else
-		{
-			//chStanIOwy |= MIO40;	//zgaś czerwoną LED
-			//chStanIOwy &= ~MIO41;	//zaświeć zieloną LED
-		}
-		break;
+		case POL7_NIC:	break;		//polecenie neutralne
+		case POL7_KALIBRUJ_ZYRO_ZIM:	RozpocznijKalibracjeZeraZyroskopu(POL7_KALIBRUJ_ZYRO_ZIM);	break;		//uruchom kalibrację żyroskopów na zimno 10°C
+		case POL7_KALIBRUJ_ZYRO_POK:	RozpocznijKalibracjeZeraZyroskopu(POL7_KALIBRUJ_ZYRO_POK);	break;		//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
+		case POL7_KALIBRUJ_ZYRO_GOR:	RozpocznijKalibracjeZeraZyroskopu(POL7_KALIBRUJ_ZYRO_GOR);	break;		//uruchom kalibrację żyroskopów na gorąco 40°C
 
-	case POL7_INICJUJ_USREDN:	KalibrujCisnienie(0, 0, 0, CZAS_KALIBRACJI, 0xFF);	break;	//inicjalizacja
-	case POL7_ZERUJ_LICZNIK:
-		sLicznikCzasuKalibracji = 0;
-		break;
+		case POL7_KALIBRUJ_ZYRO_WZMP:		//uruchom kalibrację wzmocnienia żyroskopów P
+		case POL7_KALIBRUJ_ZYRO_WZMQ:		//uruchom kalibrację wzmocnienia żyroskopów Q
+		case POL7_KALIBRUJ_ZYRO_WZMR:		//uruchom kalibrację wzmocnienia żyroskopów R
+		case POL7_ZERUJ_CALKE_ZYRO:	KalibracjaWzmocnieniaZyro(uDaneCM7.dane.chWykonajPolecenie);	break;	//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
 
-	case POL7_USREDNIJ_CISN1:
-		uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
-		if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
-			uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
-		break;
+		case POL7_CZYTAJ_WZM_ZYROP:	//odczytaj wzmocnienia żyroskopów P
+			uDaneCM4.dane.uRozne.f32[2] = CzytajFramFloat(FAH_ZYRO1P_WZMOC);
+			uDaneCM4.dane.uRozne.f32[3] = CzytajFramFloat(FAH_ZYRO2P_WZMOC);
+			break;
 
-	case POL7_USREDNIJ_CISN2:
-		uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
-		if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
-			uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
-		break;
+		case POL7_CZYTAJ_WZM_ZYROQ:	//odczytaj wzmocnienia żyroskopów Q
+			uDaneCM4.dane.uRozne.f32[2] = CzytajFramFloat(FAH_ZYRO1Q_WZMOC);
+			uDaneCM4.dane.uRozne.f32[3] = CzytajFramFloat(FAH_ZYRO2Q_WZMOC);
+			break;
 
-	case POL7_CZYTAJ_FRAM_U8:
-		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_CHAR)
-			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_CHAR;
-		CzytajBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM4.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
-		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
-		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie odczytu
-		break;
+		case POL7_CZYTAJ_WZM_ZYROR:	//odczytaj wzmocnienia żyroskopów R
+			uDaneCM4.dane.uRozne.f32[2] = CzytajFramFloat(FAH_ZYRO1R_WZMOC);
+			uDaneCM4.dane.uRozne.f32[3] = CzytajFramFloat(FAH_ZYRO2R_WZMOC);
+			break;
 
-	case POL7_CZYTAJ_FRAM_FLOAT:			//odczytaj i wyślij zawartość FRAM spod podanego adresu
-		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_FLOAT)
-			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_FLOAT;
-		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
-			uDaneCM4.dane.uRozne.f32[n] = CzytajFramFloat(uDaneCM7.dane.sAdres + n*4);
-		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
-		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie odczytu
-		break;
+		case POL7_KAL_ZERO_MAGN1:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne1);	break;	//uruchom kalibrację zera magnetometru 1
+		case POL7_KAL_ZERO_MAGN2:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne2);	break;	//uruchom kalibrację zera magnetometru 2
+		case POL7_KAL_ZERO_MAGN3:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne3);	break;	//uruchom kalibrację zera magnetometru 3
 
-	case POL7_ZAPISZ_FRAM_U8:	//zapisz dane uint8_t pod podany adres
-		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_CHAR)
-			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_CHAR;
-		ZapiszBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM7.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
-		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
-		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
-		break;
+		case POL7_ZAPISZ_KONF_MAGN1:	ZapiszKalibracjeMagnetometru(MAG1);	break;
+		case POL7_ZAPISZ_KONF_MAGN2:	ZapiszKalibracjeMagnetometru(MAG2);	break;
+		case POL7_ZAPISZ_KONF_MAGN3:	ZapiszKalibracjeMagnetometru(MAG3);	break;
 
-	case POL7_ZAPISZ_FRAM_FLOAT:			//zapisz przekazane dane typu float do FRAM pod podany adres
-		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_FLOAT)
-			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_FLOAT;
-		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
-			ZapiszFramFloat(uDaneCM7.dane.sAdres + n*4, uDaneCM7.dane.uRozne.f32[n]);
-		uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
-		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
-		break;
+		case POL7_POBIERZ_KONF_MAGN1: PobierzKalibracjeMagnetometru(MAG1);	break;
+		case POL7_POBIERZ_KONF_MAGN2: PobierzKalibracjeMagnetometru(MAG2);	break;
+		case POL7_POBIERZ_KONF_MAGN3: PobierzKalibracjeMagnetometru(MAG3);	break;
 
-	case POL7_KASUJ_DRYFT_ZYRO:
-		for (uint16_t n=0; n<3; n++)
-		{
-			uDaneCM4.dane.fKatZyro1[n] = uDaneCM4.dane.fKatAkcel1[n];
-			uDaneCM4.dane.fKatZyro2[n] = uDaneCM4.dane.fKatAkcel2[n];
-		}
-		break;
-
-	case POL7_REKONFIG_SERWA_RC:
-		InicjujWejsciaRC();
-		InicjujWyjsciaRC();
-		break;
-
-	case POL7_CZYSC_BLEDY:	uDaneCM4.dane.chOdpowiedzNaPolecenie = BLAD_OK;	break;	//nadpisz poprzednio zwrócony błąd
-	case POL7_ZBIERAJ_EKSTREMA_RC:	RozpocznijZbieranieEkstremowWejscRC();	break;	//rozpoczyna zbieranie ekstremalnych wartości kanałów obu odbiorników RC
-	case POL7_ZAPISZ_EKSTREMA_RC:	ZapiszEkstremaWejscRC();	break;	//kończy zbieranie ekstremalnych wartości kanałów obu odbiorników RC i zapisuje wyniki do FRAM
-
-	case POL7_ZAPISZ_KONFIG_PID:
-#ifdef TESTY
-		assert(uDaneCM7.dane.chRozmiar == ROZMIAR_REG_PID / sizeof(float));
-#endif
-		if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_FLOAT)
-			uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_FLOAT;
-		uint8_t chIndeksRegulatora = (uint8_t)uDaneCM7.dane.sAdres;
-		uint16_t sAdresFram = FA_USER_PID +  chIndeksRegulatora * ROZMIAR_REG_PID;
-
-		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar-1; n++)
-			ZapiszFramFloat(sAdresFram + n*4, uDaneCM7.dane.uRozne.f32[n]);
-		stKonfigPID[chIndeksRegulatora].fWzmP = uDaneCM7.dane.uRozne.f32[0];
-		stKonfigPID[chIndeksRegulatora].fWzmI = uDaneCM7.dane.uRozne.f32[1];
-		stKonfigPID[chIndeksRegulatora].fWzmD = uDaneCM7.dane.uRozne.f32[2];
-		stKonfigPID[chIndeksRegulatora].fOgrCalki = uDaneCM7.dane.uRozne.f32[3];
-		stKonfigPID[chIndeksRegulatora].fMinWyj = uDaneCM7.dane.uRozne.f32[4];
-		stKonfigPID[chIndeksRegulatora].fMaxWyj = uDaneCM7.dane.uRozne.f32[5];
-		stKonfigPID[chIndeksRegulatora].fSkalaWZadanej = uDaneCM7.dane.uRozne.f32[6];
-
-		uint8_t chStalaCzasowaD_flagi = uDaneCM7.dane.uRozne.U8[4 * (uDaneCM7.dane.chRozmiar - 1) + 0];
-		ZapiszBuforFRAM(sAdresFram + 4 * (uDaneCM7.dane.chRozmiar - 1), &chStalaCzasowaD_flagi, 1);	//stała czasowa filtra D
-		stKonfigPID[chIndeksRegulatora].chPodstFiltraD = chStalaCzasowaD_flagi & PID_MASKA_FILTRA_D;
-		stKonfigPID[chIndeksRegulatora].chFlagi = chStalaCzasowaD_flagi & ~PID_MASKA_FILTRA_D;
-		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
-		break;
-
-	case POL7_ZAPISZ_PWM_NAPEDU:
-#ifdef TESTY
-		assert(uDaneCM7.dane.chRozmiar == 2*LICZBA_DRAZKOW);
-#endif
-		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
-			ZapiszFramU16(FAU_PWM_JALOWY + n*2, uDaneCM7.dane.uRozne.U16[n]);
-		sWysterowanieMin = uDaneCM7.dane.uRozne.U16[1];
-		sWysterowanieZawisu = uDaneCM7.dane.uRozne.U16[2];
-		sWysterowanieMax = uDaneCM7.dane.uRozne.U16[3];
-		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
-		break;
-
-	case POL7_ZAPISZ_TRYB_REG:	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
-#ifdef TESTY
-		assert(uDaneCM7.dane.chRozmiar == LICZBA_REG_PARAM);
-#endif
-		ZapiszBuforFRAM(FAU_TRYB_REG, uDaneCM7.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
-		for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
-			chTrybRegulacji[n] = uDaneCM7.dane.uRozne.U8[n];
-		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
-		break;
-
-	case POL7_RESETUJ_CM4:
-		//uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
-		//SCB->AIRCR |= SCB_AIRCR_SYSRESETREQ_Msk;
-
-	   /* __disable_irq();
-
-	    // Deinit peryferiów
-	    HAL_DeInit();
-
-	    // Wyłącz przerwania NVIC
-	    for (int i = 0; i < 8; i++)
-	        NVIC->ICER[i] = 0xFFFFFFFF;
-
-	    // Ustaw MSP na wartość z wektora resetu
-	    uint32_t reset_sp = *(uint32_t *)FLASH_BANK2_BASE;
-	    uint32_t reset_pc = *(uint32_t *)(FLASH_BANK2_BASE + 4);
-
-	    __set_MSP(reset_sp);
-
-	    // Skok do Reset_Handler
-	    ((void (*)(void))reset_pc)();*/
-		break;
-
-	case POL7_PRZELADUJ_WSKAZN_LED: 		InicjujKoloryWS281x();	break;
-
-	case POL7_WYSTERUJ_SILNIKI_AD:
-		for (uint16_t n=0; n<KANALY_MIKSERA; n++)
-		{
-			if (uDaneCM7.dane.uRozne.U8[1] & (1 << n))	//czy jest ustawiony bit aktywacji silnika w teście
-				chFunkcjaSilnika[n] = FSIL_AN_DRGAN;	//podmień źródło danych do silnika. Po zakonczeniu będzie potrzebne przeładowanie konfiguracji
+		case POL7_ZERUJ_EKSTREMA:
+			if (ZerujEkstremaMagnetometru())
+			{
+				//uDaneCM4.dane.chOdpowiedzNaPolecenie = POL7_NIC;	//jeżeli dane nie są jeszcze wyzerowane to zwróć inną odpowiedź niż numer polecenia
+				uDaneCM4.dane.chPotwierdzenieWykonania = POL7_NIC;	//jeżeli dane nie są jeszcze wyzerowane to zwróć inną odpowiedź niż numer polecenia
+				//chStanIOwy &= ~MIO40;	//zaświeć czerwoną LED
+				//chStanIOwy |= MIO41;	//zgaś zieloną LED
+			}
 			else
-				chFunkcjaSilnika[n] = FSIL_ZATRZYMANY;	//pozostałe silniki zatrzymaj
-		}
-		break;
+			{
+				//chStanIOwy |= MIO40;	//zgaś czerwoną LED
+				//chStanIOwy &= ~MIO41;	//zaświeć zieloną LED
+			}
+			break;
 
-	case POL7_PRZYWROC_NAPED:		//przywróć funkcję napędu dla silników po analizie FFT rezonansu ramy
-		for (uint16_t n=0; n<KANALY_MIKSERA; n++)
-		    chFunkcjaSilnika[n] = FSIL_NAPED;
-		break;
+		case POL7_INICJUJ_USREDN:	KalibrujCisnienie(0, 0, 0, CZAS_KALIBRACJI, 0xFF);	break;	//inicjalizacja
+		case POL7_ZERUJ_LICZNIK:
+			sLicznikCzasuKalibracji = 0;
+			break;
 
-	case POL7_PRZELADUJ_PID:	InicjujPID();	break;	//ponownie załaduj konfigurację PID aby odświeżyć ustawienia po zmianie konfiguracji
+		case POL7_USREDNIJ_CISN1:
+			//uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
+			uDaneCM4.dane.uRozne.U8[0] = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
+			if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
+				uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
+			break;
+
+		case POL7_USREDNIJ_CISN2:
+			//uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
+			uDaneCM4.dane.uRozne.U8[0] = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
+			if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
+				uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
+			break;
+
+		case POL7_CZYTAJ_FRAM_U8:
+			if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_CHAR)
+				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_CHAR;
+			CzytajBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM4.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
+			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
+			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie odczytu
+			break;
+
+		case POL7_CZYTAJ_FRAM_FLOAT:			//odczytaj i wyślij zawartość FRAM spod podanego adresu
+			if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_FLOAT)
+				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_FLOAT;
+			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
+				uDaneCM4.dane.uRozne.f32[n] = CzytajFramFloat(uDaneCM7.dane.sAdres + n*4);
+			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
+			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie odczytu
+			break;
+
+		case POL7_ZAPISZ_FRAM_U8:	//zapisz dane uint8_t pod podany adres
+			if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_CHAR)
+				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_CHAR;
+			ZapiszBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM7.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
+			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
+			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
+			break;
+
+		case POL7_ZAPISZ_FRAM_FLOAT:			//zapisz przekazane dane typu float do FRAM pod podany adres
+			if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_FLOAT)
+				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_FLOAT;
+			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
+				ZapiszFramFloat(uDaneCM7.dane.sAdres + n*4, uDaneCM7.dane.uRozne.f32[n]);
+			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
+			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
+			break;
+
+		case POL7_KASUJ_DRYFT_ZYRO:
+			for (uint16_t n=0; n<3; n++)
+			{
+				uDaneCM4.dane.fKatZyro1[n] = uDaneCM4.dane.fKatAkcel1[n];
+				uDaneCM4.dane.fKatZyro2[n] = uDaneCM4.dane.fKatAkcel2[n];
+			}
+			break;
+
+		case POL7_REKONFIG_SERWA_RC:
+			InicjujWejsciaRC();
+			InicjujWyjsciaRC();
+			break;
+
+		case POL7_CZYSC_BLEDY:	uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_OK;	break;	//nadpisz poprzednio zwrócony błąd
+		case POL7_ZBIERAJ_EKSTREMA_RC:	RozpocznijZbieranieEkstremowWejscRC();	break;	//rozpoczyna zbieranie ekstremalnych wartości kanałów obu odbiorników RC
+		case POL7_ZAPISZ_EKSTREMA_RC:	ZapiszEkstremaWejscRC();	break;	//kończy zbieranie ekstremalnych wartości kanałów obu odbiorników RC i zapisuje wyniki do FRAM
+
+		case POL7_ZAPISZ_KONFIG_PID:
+	#ifdef TESTY
+			assert(uDaneCM7.dane.chRozmiar == ROZMIAR_REG_PID / sizeof(float));
+	#endif
+			if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_FLOAT)
+				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_FLOAT;
+			uint8_t chIndeksRegulatora = (uint8_t)uDaneCM7.dane.sAdres;
+			uint16_t sAdresFram = FA_USER_PID +  chIndeksRegulatora * ROZMIAR_REG_PID;
+
+			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar-1; n++)
+				ZapiszFramFloat(sAdresFram + n*4, uDaneCM7.dane.uRozne.f32[n]);
+			stKonfigPID[chIndeksRegulatora].fWzmP = uDaneCM7.dane.uRozne.f32[0];
+			stKonfigPID[chIndeksRegulatora].fWzmI = uDaneCM7.dane.uRozne.f32[1];
+			stKonfigPID[chIndeksRegulatora].fWzmD = uDaneCM7.dane.uRozne.f32[2];
+			stKonfigPID[chIndeksRegulatora].fOgrCalki = uDaneCM7.dane.uRozne.f32[3];
+			stKonfigPID[chIndeksRegulatora].fMinWyj = uDaneCM7.dane.uRozne.f32[4];
+			stKonfigPID[chIndeksRegulatora].fMaxWyj = uDaneCM7.dane.uRozne.f32[5];
+			stKonfigPID[chIndeksRegulatora].fSkalaWZadanej = uDaneCM7.dane.uRozne.f32[6];
+
+			uint8_t chStalaCzasowaD_flagi = uDaneCM7.dane.uRozne.U8[4 * (uDaneCM7.dane.chRozmiar - 1) + 0];
+			ZapiszBuforFRAM(sAdresFram + 4 * (uDaneCM7.dane.chRozmiar - 1), &chStalaCzasowaD_flagi, 1);	//stała czasowa filtra D
+			stKonfigPID[chIndeksRegulatora].chPodstFiltraD = chStalaCzasowaD_flagi & PID_MASKA_FILTRA_D;
+			stKonfigPID[chIndeksRegulatora].chFlagi = chStalaCzasowaD_flagi & ~PID_MASKA_FILTRA_D;
+			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
+			break;
+
+		case POL7_ZAPISZ_PWM_NAPEDU:
+	#ifdef TESTY
+			assert(uDaneCM7.dane.chRozmiar == 2*LICZBA_DRAZKOW);
+	#endif
+			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
+				ZapiszFramU16(FAU_PWM_JALOWY + n*2, uDaneCM7.dane.uRozne.U16[n]);
+			sWysterowanieMin = uDaneCM7.dane.uRozne.U16[1];
+			sWysterowanieZawisu = uDaneCM7.dane.uRozne.U16[2];
+			sWysterowanieMax = uDaneCM7.dane.uRozne.U16[3];
+			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
+			break;
+
+		case POL7_ZAPISZ_TRYB_REG:	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
+	#ifdef TESTY
+			assert(uDaneCM7.dane.chRozmiar == LICZBA_REG_PARAM);
+	#endif
+			ZapiszBuforFRAM(FAU_TRYB_REG, uDaneCM7.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
+			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
+				chTrybRegulacji[n] = uDaneCM7.dane.uRozne.U8[n];
+			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
+			break;
+
+		case POL7_RESETUJ_CM4:
+			//uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
+			//SCB->AIRCR |= SCB_AIRCR_SYSRESETREQ_Msk;
+
+		   /* __disable_irq();
+
+			// Deinit peryferiów
+			HAL_DeInit();
+
+			// Wyłącz przerwania NVIC
+			for (int i = 0; i < 8; i++)
+				NVIC->ICER[i] = 0xFFFFFFFF;
+
+			// Ustaw MSP na wartość z wektora resetu
+			uint32_t reset_sp = *(uint32_t *)FLASH_BANK2_BASE;
+			uint32_t reset_pc = *(uint32_t *)(FLASH_BANK2_BASE + 4);
+
+			__set_MSP(reset_sp);
+
+			// Skok do Reset_Handler
+			((void (*)(void))reset_pc)();*/
+			break;
+
+		case POL7_PRZELADUJ_WSKAZN_LED: 		InicjujKoloryWS281x();	break;
+
+		case POL7_WYSTERUJ_SILNIKI_AD:
+			for (uint16_t n=0; n<KANALY_MIKSERA; n++)
+			{
+				if (uDaneCM7.dane.uRozne.U8[1] & (1 << n))	//czy jest ustawiony bit aktywacji silnika w teście
+					chFunkcjaSilnika[n] = FSIL_AN_DRGAN;	//podmień źródło danych do silnika. Po zakonczeniu będzie potrzebne przeładowanie konfiguracji
+				else
+					chFunkcjaSilnika[n] = FSIL_ZATRZYMANY;	//pozostałe silniki zatrzymaj
+			}
+			break;
+
+		case POL7_PRZYWROC_NAPED:		//przywróć funkcję napędu dla silników po analizie FFT rezonansu ramy
+			for (uint16_t n=0; n<KANALY_MIKSERA; n++)
+				chFunkcjaSilnika[n] = FSIL_NAPED;
+			break;
+
+		case POL7_PRZELADUJ_PID:	InicjujPID();	break;	//ponownie załaduj konfigurację PID aby odświeżyć ustawienia po zmianie konfiguracji
+		case POL7_CZYTAJ_KALIBR_TEMP:
+			sTS_CAL1 = uDaneCM7.dane.uRozne.U16[0];
+			sTS_CAL2 = uDaneCM7.dane.uRozne.U16[1];	//wspólczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
+			break;
+		}	//switch
 	}
 }
 

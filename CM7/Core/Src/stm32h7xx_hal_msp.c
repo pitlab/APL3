@@ -69,6 +69,18 @@ void HAL_MspInit(void)
   */
   HAL_PWR_EnablePVD();
 
+  /** Enable the VREF clock
+  */
+  __HAL_RCC_VREF_CLK_ENABLE();
+
+  /** Disable the Internal Voltage Reference buffer
+  */
+  HAL_SYSCFG_DisableVREFBUF();
+
+  /** Configure the internal voltage reference buffer high impedance mode
+  */
+  HAL_SYSCFG_VREFBUF_HighImpedanceConfig(SYSCFG_VREFBUF_HIGH_IMPEDANCE_ENABLE);
+
   /* USER CODE BEGIN MspInit 1 */
   /* USER CODE END MspInit 1 */
 }
@@ -1201,7 +1213,6 @@ static void HAL_FMC_MspInit(void){
   PD1   ------> FMC_D3
   PD4   ------> FMC_NOE
   PD5   ------> FMC_NWE
-  PD7   ------> FMC_NE1
   PG15   ------> FMC_SDNCAS
   PE0   ------> FMC_NBL0
   PE1   ------> FMC_NBL1
@@ -1243,8 +1254,7 @@ static void HAL_FMC_MspInit(void){
 
   GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
                           |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15
-                          |GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5
-                          |GPIO_PIN_7;
+                          |GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -1260,16 +1270,6 @@ static void HAL_FMC_MspInit(void){
 
   /* USER CODE BEGIN FMC_MspInit 1 */
   /* USER CODE END FMC_MspInit 1 */
-}
-
-void HAL_SRAM_MspInit(SRAM_HandleTypeDef* hsram){
-  /* USER CODE BEGIN SRAM_MspInit 0 */
-
-  /* USER CODE END SRAM_MspInit 0 */
-  HAL_FMC_MspInit();
-  /* USER CODE BEGIN SRAM_MspInit 1 */
-
-  /* USER CODE END SRAM_MspInit 1 */
 }
 
 void HAL_NOR_MspInit(NOR_HandleTypeDef* hnor){
@@ -1354,7 +1354,6 @@ static void HAL_FMC_MspDeInit(void){
   PD1   ------> FMC_D3
   PD4   ------> FMC_NOE
   PD5   ------> FMC_NWE
-  PD7   ------> FMC_NE1
   PG15   ------> FMC_SDNCAS
   PE0   ------> FMC_NBL0
   PE1   ------> FMC_NBL1
@@ -1376,21 +1375,10 @@ static void HAL_FMC_MspDeInit(void){
 
   HAL_GPIO_DeInit(GPIOD, GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
                           |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15
-                          |GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5
-                          |GPIO_PIN_7);
+                          |GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_4|GPIO_PIN_5);
 
   /* USER CODE BEGIN FMC_MspDeInit 1 */
   /* USER CODE END FMC_MspDeInit 1 */
-}
-
-void HAL_SRAM_MspDeInit(SRAM_HandleTypeDef* hsram){
-  /* USER CODE BEGIN SRAM_MspDeInit 0 */
-
-  /* USER CODE END SRAM_MspDeInit 0 */
-  HAL_FMC_MspDeInit();
-  /* USER CODE BEGIN SRAM_MspDeInit 1 */
-
-  /* USER CODE END SRAM_MspDeInit 1 */
 }
 
 void HAL_NOR_MspDeInit(NOR_HandleTypeDef* hnor){

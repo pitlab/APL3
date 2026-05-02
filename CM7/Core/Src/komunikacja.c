@@ -331,7 +331,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		break;
 
 	case PK_WYSLIJ_POTW_ZAPISU:	//jeżeli dane się zapisały to odeslij BLAD_OK. jeeli jeszcze nie to ERR_PROCES_TRWA
-		if ((uDaneCM4.dane.chOdpowiedzNaPolecenie != POL7_ZAPISZ_FRAM_FLOAT) || (uDaneCM4.dane.sAdres != sAdres))
+		if ((uDaneCM4.dane.chPotwierdzenieWykonania != POL7_ZAPISZ_FRAM_FLOAT) || (uDaneCM4.dane.sAdres != sAdres))
 		{
 			chBłąd = ERR_PROCES_TRWA;		//dane jeszcze nie przyszły
 			Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);

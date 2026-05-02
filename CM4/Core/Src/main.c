@@ -5,9 +5,24 @@
 // AutoPitLot v3.0
 // Moduł pętli głównej autopilota na rdzeniu Cortex-M4
 //
-// (c) PitLab 2024
+// (c) PitLab 2024..26
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+ Pamięć (adresowanie bajtami):
+ 0x08100000..0x081FFFFF - 1024k Flash: kod programu CM4
+ 0x10000000..0x1001FFFF - 128k Stos, sterta i dane dla CM4
+ 0x38000000..0x380005FF - 1,5k bufor wymiany z CM7
+ 0x38000600..0x38007FFF - 30,5k
+
+
+ * Obszary MPU					Pozwolenia dla MPU			Prawa dostępu
+Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
+0x08100000	1024K	CM4		+		-		+		-		RO		RO		FLASH			kod programu dla CM4
+0x30000000  128K	CM4		-		+		-		+		RW		RW		SRAM1_AHB_D2	stos i dane dla CM4
+0x38000000	64K		CM4		-		+		-		-		RW		RW		SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2
+
+ *
+ *
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -1245,6 +1260,15 @@ void MPU_Config(void)
   MPU_InitStruct.Size = MPU_REGION_SIZE_64KB;
   MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
   MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Number = MPU_REGION_NUMBER3;
+  MPU_InitStruct.BaseAddress = 0x1FF1E800;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_256B;
+  //MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_ENABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
   /* Enables the MPU */

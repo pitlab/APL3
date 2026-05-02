@@ -7,16 +7,18 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "adc.h"
+#include "wymiana_CM4.h"
 
 extern ADC_HandleTypeDef hadc2;
 extern ADC_HandleTypeDef hadc3;
+extern unia_wymianyCM4_t uDaneCM4;
 
 float fNapieciaZasilania[8];
 float fNapiecieCzujnikaZewn[4];
 float fNapiecieIdModuluWewn[4];
 float fNapiecieCzujnikaWewn[3];		//VRef, Temp, VBat
 uint8_t chIndeksPomiaruADC;
-
+uint16_t sTS_CAL1, sTS_CAL2;	//wspólczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjuje pracę przetworników ADC2 i ADC3
@@ -26,6 +28,9 @@ uint8_t chIndeksPomiaruADC;
 uint8_t InicjujADC(void)
 {
 	uint8_t chBłąd = BLAD_OK;
+
+	//wyślij polecenie odczytania współczynników kalibracyjnych temperatury
+	uDaneCM4.dane.chWykonajPolecenie = POL4_CZYTAJ_KALIBR_TEMP;
 
 	chBłąd  = HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
 	//chBłąd |= HAL_ADCEx_Calibration_Start(&hadc3, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
@@ -135,8 +140,10 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 	{
 		uint32_t nOdczytADC = HAL_ADC_GetValue(&hadc3);
 		float fNapiecie = nOdczytADC * VREF / 0x10000;
-		uint16_t TS_CAL1 = *TEMPSENSOR_CAL1_ADDR;	//Internal temperature sensor, address of parameter TS_CAL1: On STM32H7, temperature sensor ADC raw data acquired at temperature  30 DegC (tolerance: +-5 DegC), Vref+ = 3.3 V (tolerance: +-10 mV).
-		uint16_t TS_CAL2 = *TEMPSENSOR_CAL2_ADDR;
+		//uint16_t TS_CAL1 = *TEMPSENSOR_CAL1_ADDR;	//Internal temperature sensor, address of parameter TS_CAL1: On STM32H7, temperature sensor ADC raw data acquired at temperature  30 DegC (tolerance: +-5 DegC), Vref+ = 3.3 V (tolerance: +-10 mV).
+		//uint16_t TS_CAL2 = *TEMPSENSOR_CAL2_ADDR;
+		//volatile uint16_t TS_CAL1 = *(uint16_t*)0x1FF1E820;
+		//volatile uint16_t TS_CAL2 = *(uint16_t*)0x1FF1E840;
 
 		switch (chIndeksPomiaruADC)
 		{
@@ -149,7 +156,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 		case 6:	fNapieciaZasilania[chIndeksPomiaruADC] = fNapiecie * DZIELNIK_UCZUJNIK;		break;	//Uczujn2
 		case 7:	fNapieciaZasilania[chIndeksPomiaruADC] = fNapiecie * DZIELNIK_ICZUJNIK;		break;	//Iczujn2
 		case 8:	fNapiecieCzujnikaWewn[chIndeksPomiaruADC - 8] = fNapiecie * DZIELNIK_VBAT;	break;	//Vbat/4
-		case 9:	fNapiecieCzujnikaWewn[chIndeksPomiaruADC - 8] = (TEMPSENSOR_CAL2_TEMP - TEMPSENSOR_CAL1_TEMP) / (TS_CAL2 - TS_CAL1)  * (nOdczytADC - TS_CAL1) + TEMPSENSOR_CAL1_TEMP;	//Vsense - temperatura
+		case 9:	fNapiecieCzujnikaWewn[chIndeksPomiaruADC - 8] = (TEMPSENSOR_CAL2_TEMP - TEMPSENSOR_CAL1_TEMP) / (sTS_CAL2 - sTS_CAL1)  * (nOdczytADC - sTS_CAL1) + TEMPSENSOR_CAL1_TEMP;	//Vsense - temperatura
 		case 10: fNapiecieCzujnikaWewn[chIndeksPomiaruADC - 8] = fNapiecie;	break;	//Vrefin
 		default: break;
 		}

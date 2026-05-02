@@ -64,7 +64,7 @@ volatile uint8_t chKoniecTransferuMDMA;
 volatile uint8_t chBladTransferuMDMA;
 MDMA_LinkNodeTypeDef  __attribute__ ((aligned (32))) Xfer_Node1;
 MDMA_LinkNodeTypeDef  __attribute__ ((aligned (32))) Xfer_Node2;
-extern SRAM_HandleTypeDef hsram1;
+//extern SRAM_HandleTypeDef hsram1;
 extern NOR_HandleTypeDef hnor3;
 extern SDRAM_HandleTypeDef hsdram1;
 /*extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;

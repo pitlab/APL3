@@ -37,7 +37,7 @@
 #define POL4_MOW_TEMPERAT			9
 #define POL4_MOW_PREDKOSC			10
 #define POL4_MOW_KIERUNEK			11
-
+#define POL4_CZYTAJ_KALIBR_TEMP		12	//odczytaj kalibrację czujnik temperatury CPU
 
 
 //definicje poleceń przekazywanych z CM7 do CM4
@@ -85,6 +85,7 @@
 #define POL7_WYSTERUJ_SILNIKI_AD	40	//Włącz wysteruj silniki podanymi wartościami podczas Analizy Drgań
 #define POL7_PRZYWROC_NAPED			41	//przywróć funkcję napędu dla silników po analizie FFT rezonansu ramy
 #define POL7_PRZELADUJ_PID			42	//ponownie załaduj konfigurację PID aby odświeżyć usyawienia po zmianie
+#define POL7_CZYTAJ_KALIBR_TEMP		43	//przesyła odczytaną kalibrację czujnika temperatury CPU
 
 #define POL7_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony przez poprzednie polecenie
 
@@ -154,6 +155,8 @@ typedef union
 	uint8_t U8[ROZMIAR_ROZNE_CHAR];
 }  uRozne_t;
 
+
+#define ODPOWIEDZ_U8	31	//komórka tablicy U8 odpowiedzialna za przekazywanie odpowiedzi na polecenia kalibracyjne
 //definicja struktury wymiany danych wychodzących z rdzenia CM4
 //typedef struct _stWymianyCM4
 typedef struct
@@ -197,7 +200,7 @@ typedef struct
 	uint8_t chTrybLotu;		//tryb lotu jako zestaw bitów określających funkcjonalności realizowane w danym czasie
 	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
 	uint8_t chErrPetliGlownej;
-	uint8_t chOdpowiedzNaPolecenie;	//potwierdzenie wykonania polecenia
+	//uint8_t chOdpowiedzNaPolecenie;	//potwierdzenie wykonania polecenia
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
 	uint32_t nBrakCzujnika;		//zestaw flag obecnosci czujników
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
