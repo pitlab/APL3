@@ -30,6 +30,11 @@ uint8_t InicjujADC(void)
 {
 	uint8_t chBłąd = BLAD_OK;
 
+	LL_ADC_DisableDeepPowerDown(ADC3);
+	LL_ADC_EnableInternalRegulator(ADC3);
+	HAL_Delay(1);
+
+
 	//wyślij polecenie odczytania współczynników kalibracyjnych temperatury
 	uDaneCM4.dane.chWykonajPolecenie = POL4_CZYTAJ_KALIBR_TEMP;
 
@@ -46,6 +51,7 @@ uint8_t InicjujADC(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj pomiar przetwornikami ADC2 i ADC3 na bieżącym kanale zewnętrznego multipleksera
+// Pomiary ADC2 wykonuje na kanałach 0..7, pomiary na ADC3 na kanałach 0..9 gdyż na starszych pozycjach są vbat i Tempsens
 // Przełacz mutiplekser na kolejny kanał
 // Parametry: brak
 // Zwraca: kod błędu HAL
@@ -57,34 +63,34 @@ uint8_t PomiarADC(uint8_t chKanal)
 
 	sConfig.Rank = ADC_REGULAR_RANK_1;
 	//sConfig.SamplingTime = ADC_SAMPLETIME_16CYCLES_5;	//pomiar co 22,8us
-	//sConfig.SamplingTime = ADC_SAMPLETIME_64CYCLES_5;	//pomiar co 28us
-	sConfig.SamplingTime = ADC_SAMPLETIME_387CYCLES_5;	//pomiar co 170us
+	sConfig.SamplingTime = ADC_SAMPLETIME_64CYCLES_5;	//pomiar co 28us
+	//sConfig.SamplingTime = ADC_SAMPLETIME_387CYCLES_5;	//pomiar co 170us
 	sConfig.SingleDiff = ADC_SINGLE_ENDED;
 	sConfig.OffsetNumber = ADC_OFFSET_NONE;
 	sConfig.Offset = 0;
 	sConfig.OffsetSignedSaturation = DISABLE;
 
 	chIndeksPomiaruADC = chKanal;	//ustaw w zmiennej numer kanału aby w przerwaniu wiedziało gdzie przypisać wynik pomiaru
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 
 	//zmierz napięcia na zewnętrznych wejściach ADC
 	if (chKanal < 8)
 	{
-		sConfig.Channel = ADC_CHANNEL_6;
-		HAL_ADC_ConfigChannel(&hadc3, &sConfig);
-		chBłąd |= HAL_ADC_Start_IT(&hadc2);
+		chBłąd |= HAL_ADC_Start_IT(&hadc2);		//pomiar ADC2 tylko dla 8 pierwszych kanałów
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1
 	}
-	else	//przetwornika ADC3 może mierzyć czujniki wewnętrzne: Temp, VBat. Mierz je na kanałach 8..9
+
+	//przetwornik ADC3 może mierzyć czujniki wewnętrzne: Temp, VBat na kanałach 8..9
+	switch (chKanal)	//ustawienia ADC3 na czujniki wewnętrzne
 	{
-		switch (chKanal)
-		{
-		case 8:		sConfig.Channel = ADC_CHANNEL_VBAT;		break;
-		case 9: 	sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;	break;
-		default: return chBłąd;
-		}
-		HAL_ADC_ConfigChannel(&hadc3, &sConfig);
+	case 8:		sConfig.Channel = ADC_CHANNEL_VBAT;			break;
+	case 9: 	sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;	break;
+	case 10: 	sConfig.Channel = ADC_CHANNEL_VREFINT;		break;
+	default: sConfig.Channel = ADC_CHANNEL_6;		//ustawienie ADC3 na wyjscie multipleksera
 	}
+	HAL_ADC_ConfigChannel(&hadc3, &sConfig);
 	chBłąd |= HAL_ADC_Start_IT(&hadc3);
+	HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_SET);	//serwo kanał 7
 	return chBłąd;
 }
 
@@ -124,18 +130,19 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 	if (hadc->Instance == ADC2)
 	{
 		uint32_t nOdczytADC = HAL_ADC_GetValue(&hadc2);
-		float fNapiecie = nOdczytADC * VREF / 0x10000;
+		float fNapiecie = nOdczytADC * VREF / 0xFFFF;
 		if (chIndeksPomiaruADC < 4)
 			fNapiecieIdModuluWewn[chIndeksPomiaruADC] = fNapiecie;
 		else
 			uDaneCM4.dane.fNapCzujZewn[chIndeksPomiaruADC - 4] = fNapiecie;
 		chWykonanoPomiarADC |= WYKONANO_POMIAR_ADC2;
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);	//serwo kanał 1
 	}
 
 	if (hadc->Instance == ADC3)
 	{
 		uint32_t nOdczytADC = HAL_ADC_GetValue(&hadc3);
-		float fNapiecie = nOdczytADC * VREF / 0x10000;
+		float fNapiecie = nOdczytADC * VREF / 0xFFFF;
 		switch (chIndeksPomiaruADC)
 		{
 		case 0:	//Uwe1
@@ -149,12 +156,17 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 
 		case 8:	uDaneCM4.dane.fNapiecieBatRTC = fNapiecie * DZIELNIK_VBAT;	break;	//Vbat/4
 		case 9:	if (sTS_CAL1 && sTS_CAL2)	//jest dzielenie przez te zmienne, więc nie mogą być zerowe
-			uDaneCM4.dane.fTemperCPU = (TEMPSENSOR_CAL2_TEMP - TEMPSENSOR_CAL1_TEMP) / (sTS_CAL2 - sTS_CAL1)  * (nOdczytADC - sTS_CAL1) + TEMPSENSOR_CAL1_TEMP;	//Vsense - temperatura
+			{
+				//int32_t nSkorygowanaTemparatura = nOdczytADC * VREFINT_CAL_VREF / (VREF * 1000);
+				int32_t nSkorygowanaTemparatura = nOdczytADC * (VREF * 1000) / VREFINT_CAL_VREF;
+				uDaneCM4.dane.fTemperCPU = (float)(TEMPSENSOR_CAL2_TEMP - TEMPSENSOR_CAL1_TEMP) / (sTS_CAL2 - sTS_CAL1)  * (nSkorygowanaTemparatura - sTS_CAL1) + TEMPSENSOR_CAL1_TEMP;	//Vsense - temperatura
+			}
 			break;
 		default: break;
 		}
 		chWykonanoPomiarADC |= WYKONANO_POMIAR_ADC3;
-		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);	//serwo kanał 7
+		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);	//serwo kanał 7
+		HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_RESET);	//serwo kanał 7
 	}
 }
 

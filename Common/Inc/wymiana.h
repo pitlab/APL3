@@ -72,7 +72,7 @@
 #define POL7_ZAPISZ_FRAM_U8			27	//zapisz przekazane dane do FRAM pod podany adres
 #define POL7_CZYTAJ_FRAM_FLOAT		28	//odczytaj i wyślij zawartość FRAM spod podanego adresu
 #define POL7_ZAPISZ_FRAM_FLOAT		29	//zapisz przekazane dane do FRAM pod podany adres
-#define POL7_KASUJ_DRYFT_ZYRO		30	//kasuje druft katów z żyroskopu sprowadzajac je do wartości z akcelerometru
+#define POL7_KASUJ_DRYFT_ZYRO		30	//kasuje dryft kątów z żyroskopu sprowadzajac je do wartości z akcelerometru
 #define POL7_REKONFIG_SERWA_RC		31	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie konfiguracji we FRAM
 #define POL7_ZAPISZ_KONFIG_PID		32	//zapisuje konfogurację PID do FRAM oraz do zmiennych roboczych
 #define POL7_ZBIERAJ_EKSTREMA_RC	33	//rozpoczyna zbieranie ekstremalnych wartości kanałów obu odbiorników RC

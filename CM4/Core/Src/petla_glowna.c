@@ -83,19 +83,28 @@ void PetlaGlowna(void)
 	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetwornika A/C
 	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
 
-	if (chNrOdcinkaCzasu < 11)		//Dodatkowo wykonaj 3 pomiary napięć wewnętrznych na kanałach 8..10
+	if (chNrOdcinkaCzasu < 10)		//Dodatkowo wykonaj pomiary napięć wewnętrznych na kanałach 8..9
 	{
 		uint32_t nCzasADC;
-		do
+		/*do
 		{
-			//__WFI();	//uśpij kontroler w oczekwianiu na przerwanie
+			//__WFI();	//uśpij kontroler w oczekiwaniu na przerwanie
 			nCzasADC = MinalCzas(nCzasStartuADC);
 		}
-		while ((chWykonanoPomiarADC != (WYKONANO_POMIAR_ADC2 | WYKONANO_POMIAR_ADC3)) && (nCzasADC < TIMEOUT_ADC));	//czekaj na wykonanie zainicjowanego w poprzednim cyklu pomiaru ADC lub timeout
-		chWykonanoPomiarADC = 0;
+		while ((chWykonanoPomiarADC != (WYKONANO_POMIAR_ADC2 | WYKONANO_POMIAR_ADC3)) && (nCzasADC < TIMEOUT_ADC));	//czekaj na wykonanie zainicjowanego w poprzednim cyklu pomiaru ADC lub timeout*/
+
+		nCzasADC = MinalCzas(nCzasStartuADC);
+		while ((chWykonanoPomiarADC != (WYKONANO_POMIAR_ADC2 | WYKONANO_POMIAR_ADC3)) && (nCzasADC < TIMEOUT_ADC))	//czekaj na wykonanie zainicjowanego w poprzednim cyklu pomiaru ADC lub timeout
+		{
+			__WFI();	//uśpij kontroler w oczekiwaniu na przerwanie
+			nCzasADC = MinalCzas(nCzasStartuADC);
+		}
+
+		//ustaw dekoder adresów i jednocześnie multiplekser analogowy na zadany kanał
 		if (chNrOdcinkaCzasu < 8)
 			chBladPG |= UstawDekoderModulow(chNrOdcinkaCzasu);
 
+		chWykonanoPomiarADC = 0;
 		PomiarADC(chNrOdcinkaCzasu);
 		nCzasStartuADC = PobierzCzas();
 	}
@@ -230,7 +239,7 @@ void PetlaGlowna(void)
 	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, SET);	//kanał serw 2 skonfigurowany jako IO
 	/*do
 	{
-		__WFI();	//uśpij kontroler w oczekwianiu na przerwanie od czegokolwiek np. timera 7 mierzącego czas
+		__WFI();	//uśpij kontroler w oczekiwaniu na przerwanie od czegokolwiek np. timera 7 mierzącego czas
 		nCzasJalowy += PobierzCzas() - nCzasOstatniegoOdcinka;
 	}
 	while (nCzasJalowy < CZAS_ODCINKA);*/

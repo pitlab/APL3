@@ -271,7 +271,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define TEMP_KAL_POKOJ		(25.f + KELVIN)
 #define TEMP_KAL_GORAC		(40.f + KELVIN)
 #define TEMP_KAL_ODCHYLKA	5.f
-#define OBR_KAL_WZM			3	//liczba obrótów podczas kalibrcji wzmocnienia żyroskopów
+#define OBR_KAL_WZM			3	//liczba obrótów podczas kalibracji wzmocnienia żyroskopów
 
 //indeksy pola temperatura w uni wymiany CM4
 //temepratury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
@@ -284,7 +284,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 
 #define CZAS_KALIBRACJI		1000	//obiegów pętli głównej po 5ms
 
-//definicje sekwencera kalibracji wzmocnienia żyro
+//definicje sekwencera kalibracji wzmocnienia żyroskopów
 #define SEKW_KAL_WZM_ZYRO_R		0
 #define SEKW_KAL_WZM_ZYRO_Q		1
 #define SEKW_KAL_WZM_ZYRO_P		2
@@ -295,8 +295,8 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define MAG1			0x10
 #define MAG2			0x20
 #define MAG3			0x30
-#define KALIBRUJ		0x08	//sygnalizuje trwanie kalibracji w przeciwieństwie do etapu sprawdzenia
-#define ZERUJ			0x04	//sygnalizuje potrzebę wyzerowania ekstremów wskazań magnetometru przed pomiarem
+#define KALIBRUJ		0x08		//sygnalizuje trwanie kalibracji w przeciwieństwie do etapu sprawdzenia
+#define ZERUJ			0x04		//sygnalizuje potrzebę wyzerowania ekstremów wskazań magnetometru przed pomiarem
 #define MASKA_OSI		0x03
 #define MASKA_CZUJNIKA	0xF0
 //#define NORM_AMPL_MAG	1000		//znormalizowana długość wektora magnetometru
@@ -346,7 +346,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define FFT_WYKLADNIK_MAX	12		//największy wykładnik FFT 2^12 = 4096
 #define FFT_MAX_ROZMIAR		4096	//największy rozmiar danych do liczenia FFT
 #define LICZBA_TESTOW_FFT	100		//liczba warunków pracy dla których zdeto komplet FFT np, różnych wysterowań silników
-#define LICZBA_ZMIENNYCH_FFT	6		//z tylu zmiennych są liczone FFT
+#define LICZBA_ZMIENNYCH_FFT	6	//z tylu zmiennych są liczone FFT
 #define LICZB_FLOAT_WRAMCE		96
 
 

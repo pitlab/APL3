@@ -2376,14 +2376,16 @@ void PomiaryCzujnikow(void)
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 190);
 	sprintf(chNapis, "%.2f A ", uDaneCM4.dane.fPradAku[0]);
 	RysujNapis(chNapis, KOL12+27*FONT_SL, 190);
-	sprintf(chNapis, "%.1f mAh ", uDaneCM4.dane.fEnergiaPobr[0]);
+	//sprintf(chNapis, "%.1f mAh ", uDaneCM4.dane.fEnergiaPobr[0]);
+	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieWej[0]);			//tymczasowo pokaż napięcie wejściowe z własnego dzielnika
 	RysujNapis(chNapis, KOL12+46*FONT_SL, 190);
 
 	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieAku[1]);
 	RysujNapis(chNapis, KOL12+8*FONT_SL, 210);
 	sprintf(chNapis, "%.2f A ", uDaneCM4.dane.fPradAku[1]);
 	RysujNapis(chNapis, KOL12+27*FONT_SL, 210);
-	sprintf(chNapis, "%.1f mAh ", uDaneCM4.dane.fEnergiaPobr[1]);
+	//sprintf(chNapis, "%.1f mAh ", uDaneCM4.dane.fEnergiaPobr[1]);
+	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieWej[1]);			//tymczasowo pokaż napięcie wejściowe z własnego dzielnika
 	RysujNapis(chNapis, KOL12+46*FONT_SL, 210);
 
 	//napięcia pomocnicze
