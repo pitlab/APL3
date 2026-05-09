@@ -226,7 +226,7 @@ int main(void)
 
 #ifdef TESTY		//testy algorytmów
   TestyFram();
-  TestPID();
+  //TestPID();
   nCzasOstatniegoOdcinka = PobierzCzas();
 #endif
   /* USER CODE END 2 */

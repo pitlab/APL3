@@ -48,15 +48,17 @@
 
 typedef struct	//struktura konfiguracji regulatora PID
 {
-	float fWzmP;   			//wzmocnienie członu P
-	float fWzmI;   			//wzmocnienie członu I
-	float fWzmD;   			//wzmocnienie członu D
-	float fOgrCalki; 		//ogranicznik wartości całki członu I
-	float fMaxWyj;			//maksymalna wartość wyjściowa regulatora
-	float fMinWyj;			//minimalna wartość wyjściowa regulatora
-	float fSkalaWZadanej;	//skalowanie wartosci zadanej
-	uint8_t chPodstFiltraD; //podstawa różniczkującego filtra błędu o nieskończonej odpowiedzi impulsowej IIR
-	uint8_t chFlagi;		//0x80 - regulator katowy, 0x40 - regulator wyłączony
+	float fWzmP;   				//wzmocnienie członu P
+	float fWzmI;   				//wzmocnienie członu I
+	float fWzmD;   				//wzmocnienie członu D
+	float fOgrCalki; 			//ogranicznik wartości całki członu I
+	float fMaxWyj;				//maksymalna wartość wyjściowa regulatora
+	float fMinWyj;				//minimalna wartość wyjściowa regulatora
+	float fStałeWyprzedzenie;	//stała wartość podawana na wejście wyprzedzajace (umożliwia lot pod niezerowym kątem)
+	float fSkalaWartZadanej;	//skalowanie wartosci zadanej
+	uint8_t chPodstFiltraD; 	//podstawa różniczkującego filtra błędu o nieskończonej odpowiedzi impulsowej IIR
+	uint8_t chFlagi;			//0x80 - regulator katowy, 0x40 - regulator wyłączony
+	uint8_t chProcWartZadWyprz;	//procent zmiany wartości zadanej podawany na wejsście wyprzedzające
 } stKonfPID_t;
 
 typedef struct	//struktura danych roboczych regulatora PID
@@ -64,16 +66,19 @@ typedef struct	//struktura danych roboczych regulatora PID
 	//wartości wejsciowe
 	float fWejscie;  		//wartość mierzona regulowanego parametru
 	float fZadana;  		//wartość zadana
+	float fWyprzedzenie;	//wartość wyprzedzajacą (feedforward)
 
 	//zmienne robocze członów dynamicznych
 	float fCalka;  			//zmianna przechowująca całkę z błędu
 	float fFiltrWeD;	 	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
+	float fPoprzWartZad;	//poprzednia wartość zadana do liczenia wartosci wyprzedzającej
 
 	//zmienne wyjściowe
 	float fWyjsciePID; 		//wartość wyjściowa z całego regulatora
 	float fWyjscieP;  		//wartość wyjściowa z członu P
 	float fWyjscieI;  		//wartość wyjściowa z członu I
 	float fWyjscieD;  		//wartość wyjściowa z członu D
+	float fWyjscieWyprz;	//wartość wyprzedzająca
 } stWyjPID_t;
 
 

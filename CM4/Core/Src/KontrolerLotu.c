@@ -13,6 +13,7 @@
 
 uint8_t chTrybRegulacji[LICZBA_REG_PARAM];	//rodzaj regulacji dla podstawowych parametrów
 extern uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC do funkcji drążków aparatury
+uint8_t cNumerSesji;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wczytuje konfigurację kontrolera lotu
@@ -22,6 +23,11 @@ extern uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiorni
 uint8_t InicjujKontrolerLotu(void)
 {
 	uint8_t cBłąd = BLAD_OK;
+
+	//odczytaj i aktualizuj numer sesji
+	cNumerSesji = CzytajFRAM(FAS_NUMER_SESJI);
+	cNumerSesji++;
+	ZapiszFRAM(FAS_NUMER_SESJI, cNumerSesji);
 
 	CzytajBuforFRAM(FAU_TRYB_REG, chTrybRegulacji, LICZBA_REG_PARAM);	//6*1U Tryb pracy regulatorów 4 podstawowych wartości przypisanych do drążków i 2 regulatorów pozycji N i E
 	return cBłąd;
@@ -81,7 +87,7 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 			{
 				//ustaw wartości zadane dla regualtorów parametru głównego
 				if (chTrybRegulacji[n] == REG_STAB)
-					dane->stWyjPID[chIndeksPID_Kata].fZadana = fWeRc[n] * konfig[chIndeksPID_Kata].fSkalaWZadanej / NORMA_SYGNALU;	//wartością zadaną jest drążek aparatury
+					dane->stWyjPID[chIndeksPID_Kata].fZadana = fWeRc[n] * konfig[chIndeksPID_Kata].fSkalaWartZadanej / NORMA_SYGNALU;	//wartością zadaną jest drążek aparatury
 				else
 				{
 					if (n < POZN)	//tylko na przechylenia, pochylenia, odchylenia i wysokości
@@ -107,9 +113,9 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 			{
 				//ustaw wartości zadane dla regualtorów pochodnej
 				if (chTrybRegulacji[n] == REG_AKRO)
-					dane->stWyjPID[chIndeksPID_Predk].fZadana = fWeRc[n] * konfig[chIndeksPID_Predk].fSkalaWZadanej / NORMA_SYGNALU;	//wartością zadaną jest drążek aparatury
+					dane->stWyjPID[chIndeksPID_Predk].fZadana = fWeRc[n] * konfig[chIndeksPID_Predk].fSkalaWartZadanej / NORMA_SYGNALU;	//wartością zadaną jest drążek aparatury
 				else
-					dane->stWyjPID[chIndeksPID_Predk].fZadana = dane->stWyjPID[chIndeksPID_Kata].fWyjsciePID * konfig[chIndeksPID_Predk].fSkalaWZadanej / NORMA_SYGNALU;	//wartoscią zadaną jest wyjście PID nadrzędnego
+					dane->stWyjPID[chIndeksPID_Predk].fZadana = dane->stWyjPID[chIndeksPID_Kata].fWyjsciePID * konfig[chIndeksPID_Predk].fSkalaWartZadanej / NORMA_SYGNALU;	//wartoscią zadaną jest wyjście PID nadrzędnego
 
 				//ustaw parametr wejściowy
 				switch(n)

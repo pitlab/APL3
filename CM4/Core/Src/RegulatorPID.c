@@ -10,9 +10,9 @@
 #include "FRAM.h"
 
 //Przyjmuję że regulator będzie mógł być szeregowy lub równoległy z preferencja szeregowego
-//Człon różniczkujący jest zasilany ujemnym sygnałem wejsciowym a nie błędem aby uniknąć zmiany odpowiedzi od zmiany wartosci zadanej.
-// w klasycznym członie: błąd = wartość zadana - wejscie
-// w układzie zmodyfikowanym u usuwamy wartość zadaną, wiec: błąd = - wejscie
+//Człon różniczkujący jest zasilany ujemnym sygnałem wejściowym a nie błędem, aby uniknąć zmiany odpowiedzi od zmiany wartości zadanej.
+// w klasycznym członie: błąd = wartość zadana - wejście
+// w układzie zmodyfikowanym usuwamy wartość zadaną, wiec: błąd = - wejscie
 //Człon różniczkujący bazuje na różnicy między wartością bieżącą i poprzednią sygnału wejsciowego. Aby zmniejszyć szum regulacji, wartość poprzednia
 // jest przefiltrowaną wartością n poprzednich pomiarów gdzie n jest regulowaną nastawą filtra D
 
@@ -43,37 +43,35 @@ uint8_t InicjujPID(void)
     	sAdrOffset = (n * ROZMIAR_REG_PID);	//offset danych kolejnego kanału regulatora
         //odczytaj wartość wzmocnienienia członu P regulatora
     	cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_P0 + sAdrOffset, &stKonfigPID[n].fWzmP, VMIN_PID_WZMP, VMAX_PID_WZMP, VDOM_PID_WZMP);
-        assert(stKonfigPID[n].fWzmP >= 0.0);
 
         //odczytaj wartość wzmocnienienia członu I regulatora
         cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_I0 + sAdrOffset, &stKonfigPID[n].fWzmI, VMIN_PID_WZMI, VMAX_PID_WZMI, VDOM_PID_WZMI);
-        assert(stKonfigPID[n].fWzmI >= 0.0);
 
         //odczytaj wartość wzmocnienienia członu D regulatora
         cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_D0 + sAdrOffset, &stKonfigPID[n].fWzmD, VMIN_PID_WZMD, VMAX_PID_WZMD, VDOM_PID_WZMD);
-        assert(stKonfigPID[n].fWzmD >= 0.0);
 
         //odczytaj granicę nasycenia członu całkującego
         cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_OGR_I0 + sAdrOffset, &stKonfigPID[n].fOgrCalki, VMIN_PID_ILIM, VMAX_PID_ILIM, VDOM_PID_ILIM);
-        assert(stKonfigPID[n].fOgrCalki >= 0.0);
 
         //odczytaj minimalną wartość wyjścia
         cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_MIN_WY0 + sAdrOffset, &stKonfigPID[n].fMinWyj, VMIN_PID_MINWY, VMAX_PID_MINWY, VDOM_PID_MINWY);
-        assert(stKonfigPID[n].fMinWyj >=-100.0);
 
         //odczytaj maksymalną wartość wyjścia
         cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_MAX_WY0 + sAdrOffset, &stKonfigPID[n].fMaxWyj, VMIN_PID_MAXWY, VMAX_PID_MAXWY, VDOM_PID_MAXWY);
-        assert(stKonfigPID[n].fMaxWyj <= 100.0);
 
-        //odczytaj skalowanie wartości zadanej
-        cBłąd |= CzytajFramFloatZWalidacja(FAU_SKALA_WZADANEJ0 + sAdrOffset, &stKonfigPID[n].fSkalaWZadanej, VMIN_PID_SKALAWZ, VMAX_PID_SKALAWZ, VDOM_PID_SKALAWZ);
-        assert(stKonfigPID[n].fSkalaWZadanej <= 1000.0);
-        assert(stKonfigPID[n].fSkalaWZadanej >= 0.0001);
+        //odczytaj mnożnik wartości zadanej
+        cBłąd |= CzytajFramFloatZWalidacja(FAU_MNOZN_WZAD + sAdrOffset, &stKonfigPID[n].fSkalaWartZadanej, VMIN_PID_MNOZWZ, VMAX_PID_MNOZWZ, VDOM_PID_MNOZWZ);
+
+        //odczytaj stałą wartość podawaną na wejście wyprzedzajace (Feed Forward)
+        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_STALE_WYPRZ + sAdrOffset, &stKonfigPID[n].fStałeWyprzedzenie, VMIN_PID_STWYPRZ, VMAX_PID_STWYPRZ, VDOM_PID_STWYPRZ);
 
         //odczytaj stałą czasową filtru członu różniczkowania (bity 0..5), właczony (bit 6) i to czy regulator jest kątowy (bit 7)
         chTemp = CzytajFRAM(FAU_FILTRD_TYP + sAdrOffset);
         stKonfigPID[n].chPodstFiltraD = chTemp & PID_MASKA_FILTRA_D;
         stKonfigPID[n].chFlagi = chTemp & PID_KATOWY;
+
+        //odczytaj jaki procent pochodnej wartości zadanej ma wchodzić na wejście wyprzedzające
+        stKonfigPID[n].chProcWartZadWyprz = CzytajFRAM(FAU_PID_PROC_WYPRZ + sAdrOffset);
 
         //zeruj integrator
         uDaneCM4.dane.stWyjPID[n].fCalka = 0.0f;   	//zmienna przechowująca całkę z błędu
@@ -159,6 +157,18 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
         fTemp = 0.0f;
     dane->stWyjPID[chKanal].fWyjscieD = fTemp;  //wartość wyjściowa z członu D
   
+    //dodanie stałej wartości wyprzedzenia umożliwijącej lot pod niezerowym kątem
+   	fWyjscieReg += konfig[chKanal].fStałeWyprzedzenie;
+
+    //oblicz pochodną wartości zadanej
+    float fPochodnaWartZadanej = dane->stWyjPID[chKanal].fZadana - dane->stWyjPID[chKanal].fPoprzWartZad  / fdT;
+    dane->stWyjPID[chKanal].fPoprzWartZad = (konfig[chKanal].chPodstFiltraD * dane->stWyjPID[chKanal].fPoprzWartZad + dane->stWyjPID[chKanal].fZadana) / (konfig[chKanal].chPodstFiltraD + 1);
+
+    //dodanie pierwszej pochodnej wartości zadanej do wejścia wyprzedzającego
+	fTemp = fPochodnaWartZadanej * konfig[chKanal].chProcWartZadWyprz / 100.0f;
+	dane->stWyjPID[chKanal].fWyjscieWyprz  = fTemp;
+    fWyjscieReg += fTemp;
+
     //ograniczenie wartości wyjściowej
     if (fWyjscieReg > konfig[chKanal].fMaxWyj)
     	fWyjscieReg = konfig[chKanal].fMaxWyj;

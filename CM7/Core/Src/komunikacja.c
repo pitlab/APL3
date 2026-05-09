@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #include <AnalizaDrgan.h>
 #include <KonfigFram.h>
-#include "komunikacja.h"
+#include "Komunikacja.h"
 #include "FlashKonfig.h"
 #include "FlashNOR.h"
 #include "telemetria.h"
