@@ -67,8 +67,8 @@ uint8_t InicjujIIS2MDC(void)
 
 				for (uint16_t n=0; n<3; n++)
 				{
-					chBlad |= CzytajFramFloatZWalidacja(FAH_MAGN1_PRZESX + 4*n, &fPrzesMagn1[n], VMIN_PRZES_MAGN, VMAX_PRZES_MAGN, VDOM_PRZES_MAGN);
-					chBlad |= CzytajFramFloatZWalidacja(FAH_MAGN1_SKALOX + 4*n, &fSkaloMagn1[n], VMIN_SKALO_MAGN, VMAX_SKALO_MAGN, VDOM_SKALO_MAGN);
+					chBlad |= CzytajFramFloatZWalidacja(FAH_MAGN1_SKLADNIK_X + 4*n, &fPrzesMagn1[n], VMIN_SKLADNIK_MAGN, VMAX_SKLADNIK_MAGN, VDOM_SKLADNIK_MAGN);
+					chBlad |= CzytajFramFloatZWalidacja(FAH_MAGN1_MNOZNIK_X + 4*n, &fSkaloMagn1[n], VMIN_MNOZNIK_MAGN, VMAX_MNOZNIK_MAGN, VDOM_MNOZNIK_MAGN);
 				}
 			}
 			else

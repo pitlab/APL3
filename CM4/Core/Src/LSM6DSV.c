@@ -19,7 +19,7 @@ extern SPI_HandleTypeDef hspi2;
 extern int8_t chZnakZyro[3];	//korekcja znaku prędkości żyroskopów
 extern int8_t chZnakAkcel[3];	//korekcja znaku akcelerometrów
 extern WspRownProstej3_t stWspKalTempZyro2;		//współczynniki równania prostych do estymacji przesunęcia zera w funkcji temperatury
-extern float fSkaloZyro2[3];
+extern float fMnożnikŻyro2[3];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z EEPROMu
@@ -115,7 +115,7 @@ uint8_t ObslugaLSM6DSV(void)
 			if ((uDaneCM7.dane.chWykonajPolecenie >= POL7_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.chWykonajPolecenie <= POL7_KALIBRUJ_ZYRO_WZMP))
 				uDaneCM4.dane.fZyroKal2[n] = uDaneCM4.dane.fZyroSur2[n] - fPrzesuniecieZyro[n];	//żyro po kalibracji przesuniecia
 			else
-				uDaneCM4.dane.fZyroKal2[n] = uDaneCM4.dane.fZyroSur2[n] * fSkaloZyro2[n] - fPrzesuniecieZyro[n];	//żyro po kalibracji przesuniecia i skalowania
+				uDaneCM4.dane.fZyroKal2[n] = uDaneCM4.dane.fZyroSur2[n] * fMnożnikŻyro2[n] - fPrzesuniecieZyro[n];	//żyro po kalibracji przesuniecia i wzmocnienia
 		}
 	}
 	return chErr;

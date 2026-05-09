@@ -52,8 +52,8 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Dodać synchronizację czasu z serwerem RTC
  - Dodać wyłaczanie przerwań na czas alokacji pamięci przez memalloc()
  - kalibracja żyroskopu powinna kasować całkę kata na wykresie
- - Dodać pomiary analogowe
  - Znaleźć przyczynę cyknięcia silnikami przy starcie. Silniki powinny być martwe przy starcie firmware
+ - Uruchomić WiFi na module WT8266
 
  //Problemy sprzętowe egzemplarza 1:
   * Nie można uruchomić ETH i kamery

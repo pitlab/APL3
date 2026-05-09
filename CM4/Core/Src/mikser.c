@@ -7,7 +7,6 @@
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "mikser.h"
-#include "konfig_fram.h"
 #include "fram.h"
 #include "pid.h"
 

@@ -9,7 +9,7 @@
 #include "fram.h"
 #include "moduly_wew.h"
 #include "main.h"
-#include "konfig_fram.h"
+
 
 extern SPI_HandleTypeDef hspi2;
 extern uint8_t chAdresModulu;	//bieżący adres ustawiony na dekoderze

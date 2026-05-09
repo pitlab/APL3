@@ -10,6 +10,7 @@
 //Max zegar to 40MHz
 
 #include "sys_def_CM4.h"
+#include "konfig_fram.h"
 
 //opcody operacji
 #define FRAM_WREN	0x06	//Set Write Enable Latch

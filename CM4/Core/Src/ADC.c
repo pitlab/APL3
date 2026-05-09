@@ -9,12 +9,16 @@
 #include "adc.h"
 #include "wymiana_CM4.h"
 #include "petla_glowna.h"
+#include "fram.h"
+
 
 extern ADC_HandleTypeDef hadc2;
 extern ADC_HandleTypeDef hadc3;
 extern unia_wymianyCM4_t uDaneCM4;
 extern uint32_t nCzasStartuADC;
 float fNapiecieIdModuluWewn[4];
+float fMnożnikCzujnWeAnalog[4] = {1.0f, 1.0f, 1.0f, 1.0f};		//mnożniki do obliczenia finalnej wartości czujników odłaczonych do wejsć analogoweych
+float fSkładnikCzujnWeAnalog[4];	//składniki dodawane do iloczynu wyniki poniaru napiecia czujnika ADC i mnożnika ab uzyskać właściwy wynik
 uint8_t chIndeksPomiaruADC;
 uint16_t sTS_CAL1, sTS_CAL2;	//wspólczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
 uint8_t chWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC2, bit1 = ADC3
@@ -30,10 +34,15 @@ uint8_t InicjujADC(void)
 {
 	uint8_t chBłąd = BLAD_OK;
 
-	LL_ADC_DisableDeepPowerDown(ADC3);
-	LL_ADC_EnableInternalRegulator(ADC3);
-	HAL_Delay(1);
+	//LL_ADC_DisableDeepPowerDown(ADC3);
+	//LL_ADC_EnableInternalRegulator(ADC3);
+	//HAL_Delay(1);
 
+	for (uint8_t n=0; n<ILOSC_ZEWN_WE_ANALOG; n++)
+	{
+		chBłąd |= CzytajFramFloatZWalidacja(FAG_MNOZNIK_CZUJ_ZEWN + 4*n, &fMnożnikCzujnWeAnalog[n], VMIN_MNOZNIK_WE_ADC, VMAX_MNOZNIK_WE_ADC, VDOM_MNOZNIK_WE_ADC);	//4*4F współczynnik mnożenia analogowego napęcia czujnika zewnętrznego
+		chBłąd |= CzytajFramFloatZWalidacja(FAG_SKLADNIK_CZUJ_ZEWN + 4*n, &fSkładnikCzujnWeAnalog[n], VMIN_SKLADNIK_WE_ADC, VMAX_SKLADNIK_WE_ADC, VDOM_SKLADNIK_WE_ADC);	//4*4F współczynnik dodawany do analogowego napęcia czujnika zewnętrznego
+	}
 
 	//wyślij polecenie odczytania współczynników kalibracyjnych temperatury
 	uDaneCM4.dane.chWykonajPolecenie = POL4_CZYTAJ_KALIBR_TEMP;
@@ -62,7 +71,6 @@ uint8_t PomiarADC(uint8_t chKanal)
 	ADC_ChannelConfTypeDef sConfig = {0};
 
 	sConfig.Rank = ADC_REGULAR_RANK_1;
-	//sConfig.SamplingTime = ADC_SAMPLETIME_16CYCLES_5;	//pomiar co 22,8us
 	sConfig.SamplingTime = ADC_SAMPLETIME_64CYCLES_5;	//pomiar co 28us
 	//sConfig.SamplingTime = ADC_SAMPLETIME_387CYCLES_5;	//pomiar co 170us
 	sConfig.SingleDiff = ADC_SINGLE_ENDED;
@@ -71,13 +79,12 @@ uint8_t PomiarADC(uint8_t chKanal)
 	sConfig.OffsetSignedSaturation = DISABLE;
 
 	chIndeksPomiaruADC = chKanal;	//ustaw w zmiennej numer kanału aby w przerwaniu wiedziało gdzie przypisać wynik pomiaru
-	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 
 	//zmierz napięcia na zewnętrznych wejściach ADC
 	if (chKanal < 8)
 	{
 		chBłąd |= HAL_ADC_Start_IT(&hadc2);		//pomiar ADC2 tylko dla 8 pierwszych kanałów
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1
+		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1
 	}
 
 	//przetwornik ADC3 może mierzyć czujniki wewnętrzne: Temp, VBat na kanałach 8..9
@@ -90,7 +97,7 @@ uint8_t PomiarADC(uint8_t chKanal)
 	}
 	HAL_ADC_ConfigChannel(&hadc3, &sConfig);
 	chBłąd |= HAL_ADC_Start_IT(&hadc3);
-	HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_SET);	//serwo kanał 7
+	//HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_SET);	//serwo kanał 7
 	return chBłąd;
 }
 
@@ -134,9 +141,10 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 		if (chIndeksPomiaruADC < 4)
 			fNapiecieIdModuluWewn[chIndeksPomiaruADC] = fNapiecie;
 		else
-			uDaneCM4.dane.fNapCzujZewn[chIndeksPomiaruADC - 4] = fNapiecie;
+			uDaneCM4.dane.fNapCzujZewn[chIndeksPomiaruADC - 4] = fNapiecie * fMnożnikCzujnWeAnalog[chIndeksPomiaruADC - 4] + fSkładnikCzujnWeAnalog[chIndeksPomiaruADC - 4];
+
 		chWykonanoPomiarADC |= WYKONANO_POMIAR_ADC2;
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);	//serwo kanał 1
+		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);	//serwo kanał 1
 	}
 
 	if (hadc->Instance == ADC3)
@@ -166,7 +174,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 		}
 		chWykonanoPomiarADC |= WYKONANO_POMIAR_ADC3;
 		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);	//serwo kanał 7
-		HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_RESET);	//serwo kanał 7
+		//HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_RESET);	//serwo kanał 7
 	}
 }
 

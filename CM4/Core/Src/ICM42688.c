@@ -20,7 +20,7 @@ extern SPI_HandleTypeDef hspi2;
 const int8_t chZnakZyro[3] = {-1, 1, -1};	//korekcja znaku prędkości żyroskopów
 const int8_t chZnakAkcel[3] = {-1, 1, 1};	//korekcja znaku akcelerometrów
 extern WspRownProstej3_t stWspKalTempZyro1;		//współczynniki równania prostych do estymacji przesunęcia zera w funkcji temperatury
-extern float fSkaloZyro1[3];
+extern float fMnożnikŻyro1[3];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z EEPROMu
@@ -125,7 +125,7 @@ uint8_t ObslugaICM42688(void)
 			if ((uDaneCM7.dane.chWykonajPolecenie >= POL7_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.chWykonajPolecenie <= POL7_KALIBRUJ_ZYRO_WZMP))
 				uDaneCM4.dane.fZyroKal1[n] = uDaneCM4.dane.fZyroSur1[n] - fPrzesuniecieZyro[n];		//żyro po kalibracji przesuniecia
 			else
-				uDaneCM4.dane.fZyroKal1[n] = uDaneCM4.dane.fZyroSur1[n] * fSkaloZyro1[n] - fPrzesuniecieZyro[n];		//żyro po kalibracji przesuniecia i skalowania
+				uDaneCM4.dane.fZyroKal1[n] = uDaneCM4.dane.fZyroSur1[n] * fMnożnikŻyro1[n] - fPrzesuniecieZyro[n];		//żyro po kalibracji przesuniecia i skalowania
 		}
 	}
 	return chErr;

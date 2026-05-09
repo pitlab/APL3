@@ -16,6 +16,8 @@
 #define WYKONANO_POMIAR_ADC2	1
 #define WYKONANO_POMIAR_ADC3	2
 
+#define ILOSC_ZEWN_WE_ANALOG	4
+
 #define TIMEOUT_ADC		250	//maksymalny czas w mikrosekundach potrzebny na wykonanie pomiaru ADC
 
 

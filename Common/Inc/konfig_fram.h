@@ -58,7 +58,7 @@
 #define FAU_PID_OGR_I0      FA_USER_PID+12  //4F ograniczenie wartości całki członu I regulatora 0
 #define FAU_PID_MIN_WY0		FA_USER_PID+16  //4F minimalna wartość wyjścia
 #define FAU_PID_MAX_WY0		FA_USER_PID+20  //4F maksymalna wartość wyjścia
-#define FAU_SKALA_WZADANEJ0 FA_USER_PID+24	//4F skalowanie wartości zadanej
+#define FAU_SKALA_WZADANEJ0 FA_USER_PID+24	//4F MNOZNIKwanie wartości zadanej
 #define FAU_FILTRD_TYP 		FA_USER_PID+28  //1U Stała czasowa filtru członu różniczkującego (bity 0..5), wyłączony (bit 6), Regulator kątowy (bit 7)
 #define FAU_PID1	        FA_USER_PID+29  //1U nic
 #define FAU_PID2			FA_USER_PID+30	//1U nic
@@ -146,15 +146,15 @@
 #define	FAH_AKCEL1_X_PRZES   	FAH_MOD_AKCEL+0   	//4F korekcja przesuniecia w osi X akcelerometru 1
 #define	FAH_AKCEL1_Y_PRZES   	FAH_MOD_AKCEL+4   	//4F korekcja przesuniecia w osi Y akcelerometru 1
 #define	FAH_AKCEL1_Z_PRZES  	FAH_MOD_AKCEL+8   	//4F korekcja przesuniecia w osi Z akcelerometru 1
-#define	FAH_AKCEL1_X_WZMOC     	FAH_MOD_AKCEL+12  	//4F korekcja skalowanie w osi X akcelerometru 1
-#define	FAH_AKCEL1_Y_WZMOC     	FAH_MOD_AKCEL+16  	//4F korekcja skalowanie w osi Y akcelerometru 1
-#define	FAH_AKCEL1_Z_WZMOC		FAH_MOD_AKCEL+20  	//4F korekcja skalowanie w osi Z akcelerometru 1
+#define	FAH_AKCEL1_X_WZMOC     	FAH_MOD_AKCEL+12  	//4F korekcja MNOZNIKwanie w osi X akcelerometru 1
+#define	FAH_AKCEL1_Y_WZMOC     	FAH_MOD_AKCEL+16  	//4F korekcja MNOZNIKwanie w osi Y akcelerometru 1
+#define	FAH_AKCEL1_Z_WZMOC		FAH_MOD_AKCEL+20  	//4F korekcja MNOZNIKwanie w osi Z akcelerometru 1
 #define	FAH_AKCEL2_X_PRZES   	FAH_MOD_AKCEL+24   	//4F korekcja przesuniecia w osi X akcelerometru 2
 #define	FAH_AKCEL2_Y_PRZES   	FAH_MOD_AKCEL+28   	//4F korekcja przesuniecia w osi Y akcelerometru 2
 #define	FAH_AKCEL2_Z_PRZES  	FAH_MOD_AKCEL+32   	//4F korekcja przesuniecia w osi Z akcelerometru 2
-#define	FAH_AKCEL2_X_WZMOC     	FAH_MOD_AKCEL+36  	//4F korekcja skalowanie w osi X akcelerometru 2
-#define	FAH_AKCEL2_Y_WZMOC     	FAH_MOD_AKCEL+40  	//4F korekcja skalowanie w osi Y akcelerometru 2
-#define	FAH_AKCEL2_Z_WZMOC		FAH_MOD_AKCEL+44  	//4F korekcja skalowanie w osi Z akcelerometru 2
+#define	FAH_AKCEL2_X_WZMOC     	FAH_MOD_AKCEL+36  	//4F korekcja MNOZNIKwanie w osi X akcelerometru 2
+#define	FAH_AKCEL2_Y_WZMOC     	FAH_MOD_AKCEL+40  	//4F korekcja MNOZNIKwanie w osi Y akcelerometru 2
+#define	FAH_AKCEL2_Z_WZMOC		FAH_MOD_AKCEL+44  	//4F korekcja MNOZNIKwanie w osi Z akcelerometru 2
 
 #define	FAH_MOD_ZYRO1      		FAH_MOD_AKCEL+48    //moduł inercyjny dowolnego typu (wspólna konfiguracja)
 #define	FAH_ZYRO1_X_PRZ_ZIM 	FAH_MOD_ZYRO1+0  	//4F korekcja przesuniecia w osi X żyroskopu 1 na zimno
@@ -166,9 +166,9 @@
 #define	FAH_ZYRO1_X_PRZ_GOR 	FAH_MOD_ZYRO1+24  	//4F korekcja przesuniecia w osi X żyroskopu 1 na gorąco
 #define	FAH_ZYRO1_Y_PRZ_GOR 	FAH_MOD_ZYRO1+28  	//4F korekcja przesuniecia w osi Y żyroskopu 1 na gorąco
 #define	FAH_ZYRO1_Z_PRZ_GOR 	FAH_MOD_ZYRO1+32  	//4F korekcja przesuniecia w osi Z żyroskopu 1 na gorąco
-#define	FAH_ZYRO1P_WZMOC     	FAH_MOD_ZYRO1+36  	//4F korekcja skalowanie żyroskopu 1P
-#define	FAH_ZYRO1Q_WZMOC     	FAH_MOD_ZYRO1+40  	//4F korekcja skalowanie żyroskopu 1Q
-#define	FAH_ZYRO1R_WZMOC     	FAH_MOD_ZYRO1+44  	//4F korekcja skalowanie żyroskopu 1R
+#define	FAH_ZYRO1P_WZMOC     	FAH_MOD_ZYRO1+36  	//4F korekcja MNOZNIKwanie żyroskopu 1P
+#define	FAH_ZYRO1Q_WZMOC     	FAH_MOD_ZYRO1+40  	//4F korekcja MNOZNIKwanie żyroskopu 1Q
+#define	FAH_ZYRO1R_WZMOC     	FAH_MOD_ZYRO1+44  	//4F korekcja MNOZNIKwanie żyroskopu 1R
 
 #define	FAH_MOD_ZYRO2      		FAH_MOD_ZYRO1+48    //moduł inercyjny dowolnego typu (wspólna konfiguracja)
 #define	FAH_ZYRO2_X_PRZ_ZIM 	FAH_MOD_ZYRO2+0  	//4F korekcja przesuniecia w osi X żyroskopu 2 na zimno
@@ -180,9 +180,9 @@
 #define	FAH_ZYRO2_X_PRZ_GOR 	FAH_MOD_ZYRO2+24  	//4F korekcja przesuniecia w osi X żyroskopu 2 na gorąco
 #define	FAH_ZYRO2_Y_PRZ_GOR 	FAH_MOD_ZYRO2+28  	//4F korekcja przesuniecia w osi Y żyroskopu 2 na gorąco
 #define	FAH_ZYRO2_Z_PRZ_GOR 	FAH_MOD_ZYRO2+32  	//4F korekcja przesuniecia w osi Z żyroskopu 2 na gorąco
-#define	FAH_ZYRO2P_WZMOC     	FAH_MOD_ZYRO2+36  	//4F korekcja skalowanie żyroskopu 2P
-#define	FAH_ZYRO2Q_WZMOC     	FAH_MOD_ZYRO2+40  	//4F korekcja skalowanie żyroskopu 2Q
-#define	FAH_ZYRO2R_WZMOC     	FAH_MOD_ZYRO2+44  	//4F korekcja skalowanie żyroskopu 2R
+#define	FAH_ZYRO2P_WZMOC     	FAH_MOD_ZYRO2+36  	//4F korekcja MNOZNIKwanie żyroskopu 2P
+#define	FAH_ZYRO2Q_WZMOC     	FAH_MOD_ZYRO2+40  	//4F korekcja MNOZNIKwanie żyroskopu 2Q
+#define	FAH_ZYRO2R_WZMOC     	FAH_MOD_ZYRO2+44  	//4F korekcja MNOZNIKwanie żyroskopu 2R
 
 #define	FAH_ZYRO_TEMP 			FAH_MOD_ZYRO2+48
 #define	FAH_ZYRO1_TEMP_ZIM     	FAH_ZYRO_TEMP+0		//4F temperatura kalibracji na zimno żyroskopu 1
@@ -201,39 +201,39 @@
 #define	FAH_CISN_ROZN2_GOR 		FAH_MOD_CIS_ROZ+20	//4F korekcja czujnika ciśnienia różnicowego 2 na gorąco
 
 //współczynniki kalibracji magnetometru 1 na module inercyjnym
-#define	FAH_MAGN1        		FAH_MOD_CIS_ROZ+24
-#define	FAH_MAGN1_PRZESX  		FAH_MAGN1+0 //4H przesunięcie magnetometru w osi X
-#define	FAH_MAGN1_PRZESY  		FAH_MAGN1+4 //4H przesunięcie magnetometru w osi Y
-#define	FAH_MAGN1_PRZESZ  		FAH_MAGN1+8 //4H przesunięcie magnetometru w osi Z
-#define	FAH_MAGN1_SKALOX  		FAH_MAGN1+12 //4H skalowanie w osi X
-#define	FAH_MAGN1_SKALOY  		FAH_MAGN1+16 //4H skalowanie w osi Y
-#define	FAH_MAGN1_SKALOZ  		FAH_MAGN1+20 //4H skalowanie w osi Z
+#define	FAH_MAGN1        			FAH_MOD_CIS_ROZ+24
+#define	FAH_MAGN1_SKLADNIK_X  		FAH_MAGN1+0 //4F przesunięcie magnetometru w osi X
+#define	FAH_MAGN1_SKLADNIK_Y  		FAH_MAGN1+4 //4F przesunięcie magnetometru w osi Y
+#define	FAH_MAGN1_SKLADNIK_Z  		FAH_MAGN1+8 //4F przesunięcie magnetometru w osi Z
+#define	FAH_MAGN1_MNOZNIK_X  		FAH_MAGN1+12 //4F MNOZNIKwanie w osi X
+#define	FAH_MAGN1_MNOZNIK_Y  		FAH_MAGN1+16 //4F MNOZNIKwanie w osi Y
+#define	FAH_MAGN1_MNOZNIK_Z  		FAH_MAGN1+20 //4F MNOZNIKwanie w osi Z
 
 //współczynniki kalibracji magnetometru 2 na module inercyjnym
-#define	FAH_MAGN2        		FAH_MAGN1+24
-#define	FAH_MAGN2_PRZESX  		FAH_MAGN2+0 //4H przesunięcie magnetometru w osi X
-#define	FAH_MAGN2_PRZESY  		FAH_MAGN2+4 //4H przesunięcie magnetometru w osi Y
-#define	FAH_MAGN2_PRZESZ  		FAH_MAGN2+8 //4H przesunięcie magnetometru w osi Z
-#define	FAH_MAGN2_SKALOX  		FAH_MAGN2+12 //4H skalowanie w osi X
-#define	FAH_MAGN2_SKALOY  		FAH_MAGN2+16 //4H skalowanie w osi Y
-#define	FAH_MAGN2_SKALOZ  		FAH_MAGN2+20 //4H skalowanie w osi Z
+#define	FAH_MAGN2        			FAH_MAGN1+24
+#define	FAH_MAGN2_SKLADNIK_X  		FAH_MAGN2+0 //4F przesunięcie magnetometru w osi X
+#define	FAH_MAGN2_SKLADNIK_Y  		FAH_MAGN2+4 //4F przesunięcie magnetometru w osi Y
+#define	FAH_MAGN2_SKLADNIK_Z  		FAH_MAGN2+8 //4F przesunięcie magnetometru w osi Z
+#define	FAH_MAGN2_MNOZNIK_X  		FAH_MAGN2+12 //4F MNOZNIKwanie w osi X
+#define	FAH_MAGN2_MNOZNIK_Y  		FAH_MAGN2+16 //4F MNOZNIKwanie w osi Y
+#define	FAH_MAGN2_MNOZNIK_Z  		FAH_MAGN2+20 //4F MNOZNIKwanie w osi Z
 
 //współczynniki kalibracji magnetometru 3 na module GNSS
-#define	FAH_MAGN3        		FAH_MAGN2+24
-#define	FAH_MAGN3_PRZESX  		FAH_MAGN3+0 //4H przesunięcie magnetometru w osi X
-#define	FAH_MAGN3_PRZESY  		FAH_MAGN3+4 //4H przesunięcie magnetometru w osi Y
-#define	FAH_MAGN3_PRZESZ  		FAH_MAGN3+8 //4H przesunięcie magnetometru w osi Z
-#define	FAH_MAGN3_SKALOX  		FAH_MAGN3+12 //4H skalowanie w osi X
-#define	FAH_MAGN3_SKALOY  		FAH_MAGN3+16 //4H skalowanie w osi Y
-#define	FAH_MAGN3_SKALOZ  		FAH_MAGN3+20 //4H skalowanie w osi Z
+#define	FAH_MAGN3        			FAH_MAGN2+24
+#define	FAH_MAGN3_SKLADNIK_X  		FAH_MAGN3+0 //4F przesunięcie magnetometru w osi X
+#define	FAH_MAGN3_SKLADNIK_Y  		FAH_MAGN3+4 //4F przesunięcie magnetometru w osi Y
+#define	FAH_MAGN3_SKLADNIK_Z  		FAH_MAGN3+8 //4F przesunięcie magnetometru w osi Z
+#define	FAH_MAGN3_MNOZNIK_X  		FAH_MAGN3+12 //4F MNOZNIKwanie w osi X
+#define	FAH_MAGN3_MNOZNIK_Y  		FAH_MAGN3+16 //4F MNOZNIKwanie w osi Y
+#define	FAH_MAGN3_MNOZNIK_Z  		FAH_MAGN3+20 //4F MNOZNIKwanie w osi Z
 
-#define	FAH_SKALO_CISN_BEZWZGL1	FAH_MAGN3+24    //współczynnik skalowania ciśnienia bezwzględnego czujnika 1
-#define	FAH_SKALO_CISN_BEZWZGL2	FAH_MAGN3+28    //współczynnik skalowania ciśnienia bezwzględnego czujnika 2
-#define FAH_TEST				FAH_MAGN3+32	//4H testowy zapis do pamięci w celu sprawdzenia poprawności
+#define	FAH_MNOZNIK_CISN_BEZWZGL1	FAH_MAGN3+24    //współczynnik MNOZNIKwania ciśnienia bezwzględnego czujnika 1
+#define	FAH_MNOZNIK_CISN_BEZWZGL2	FAH_MAGN3+28    //współczynnik MNOZNIKwania ciśnienia bezwzględnego czujnika 2
+#define FAH_TEST					FAH_MAGN3+32	//4H testowy zapis do pamięci w celu sprawdzenia poprawności
 
-
-
-
+#define FAG_CZUJ_ZEWN				FAH_MAGN3+32	//zewnętrzne czujniki analogowe
+#define FAG_MNOZNIK_CZUJ_ZEWN		FAG_CZUJ_ZEWN+0		//4*4F współczynnik mnożenia analogowego napęcia czujnika zewnętrznego
+#define FAG_SKLADNIK_CZUJ_ZEWN		FAG_CZUJ_ZEWN+16	//4*4F współczynnik dodawany do analogowego napęcia czujnika zewnętrznego
 
 //Waypointy. Każdy zajmuje 12 bajtów. Do końca pamięci jest miejsca na 2389 waypointów
 #define FA_USER_WAYPOINTS    0x1000
@@ -245,35 +245,35 @@
 //////////////////////////////////////////////////////////////////////////////
 // Definicje validatorów danych konfiguracyjnych
 //////////////////////////////////////////////////////////////////////////////
-#define VMIN_OFST_ACEL	-0.5f	//max wartość odchyłki ujemnej przesunięcia akcelerometrów
-#define VMAX_OFST_ACEL  0.5f    //j.w. dodatniej
-#define VDOM_OFST_ACEL  0.0f    //wartość domyślna
-#define VMIN_PRZES_ZYRO  -2.0f   //max wartość odchyłki ujemnej przesunięcia żyroskopów
-#define VMAX_PRZES_ZYRO  2.0f    //j.w. dodatniej
-#define VDOM_PRZES_ZYRO  0.0f    //wartość domyślna
+//#define VMIN_PRZES_ACEL		-0.5f	//max wartość odchyłki ujemnej przesunięcia akcelerometrów
+//#define VMAX_PRZES_ACEL  	0.5f    //j.w. dodatniej
+//#define VDOM_PRZES_ACEL  	0.0f    //wartość domyślna
+#define VMIN_PRZES_ZYRO  	-2.0f   //max wartość odchyłki ujemnej przesunięcia żyroskopów
+#define VMAX_PRZES_ZYRO  	2.0f    //j.w. dodatniej
+#define VDOM_PRZES_ZYRO  	0.0f    //wartość domyślna
 
-#define VMIN_SKALO_ACEL  	0.8f    //limity wartości odchyłki ujemnej wzmocnienia akcelerometrów
-#define VMAX_SKALO_ACEL  	1.4f    //limity wartości odchyłki dodatniej
-#define VDOM_SKALO_ACEL  	1.0f    //wartość domyślna
-#define VMIN_SKALO_ZYRO  	0.7f    //limity wartości odchyłki ujemnej wzmocnienia żyroskopów ISZ i IDG
-#define VMAX_SKALO_ZYRO  	1.3f    //limity wartości odchyłki dodatniej
-#define VDOM_SKALO_ZYRO  	1.0f    //wartość domyślna
+#define VMIN_MNOZNIK_ACEL  	0.8f    //limity wartości odchyłki ujemnej wzmocnienia akcelerometrów
+#define VMAX_MNOZNIK_ACEL  	1.4f    //limity wartości odchyłki dodatniej
+#define VDOM_MNOZNIK_ACEL  	1.0f    //wartość domyślna
+#define VMIN_MNOZNIK_ZYRO  	0.7f    //limity wartości odchyłki ujemnej wzmocnienia żyroskopów ISZ i IDG
+#define VMAX_MNOZNIK_ZYRO  	1.3f    //limity wartości odchyłki dodatniej
+#define VDOM_MNOZNIK_ZYRO  	1.0f    //wartość domyślna
 
-#define VMIN_SKALO_PABS   0.75f    //dolny limit wartosci skalowania czujnika ciśnienia bezwzględnego
-#define VMAX_SKALO_PABS   1.25f    //
-#define VDOM_SKALO_PAB    1.00f
+#define VMIN_MNOZNIK_PABS   0.75f    //dolny limit wartosci MNOZNIKwania czujnika ciśnienia bezwzględnego
+#define VMAX_MNOZNIK_PABS   1.25f    //
+#define VDOM_MNOZNIK_PAB    1.00f
 
-#define VMIN_PRZES_PDIF    -500.0f    //limity wartości odchyłki offsetu różnicowego czujnika ciśnienia w [Pa]
-#define VMAX_PRZES_PDIF    500.0f    //
-#define VDOM_PRZES_PDIF    0.0f
+#define VMIN_SKLADNIK_PDIF	-500.0f    //limity wartości odchyłki offsetu różnicowego czujnika ciśnienia w [Pa]
+#define VMAX_SKLADNIK_PDIF	500.0f    //
+#define VDOM_SKLADNIK_PDIF	0.0f
 
-#define VMIN_SKALO_MAGN    	0.010f		//limity wartości skalowania pomiaru magnetometru
-#define VMAX_SKALO_MAGN    	100.0f
-#define VDOM_SKALO_MAGN    	1.0f
+#define VMIN_MNOZNIK_MAGN	0.010f		//limity wartości MNOZNIKwania pomiaru magnetometru
+#define VMAX_MNOZNIK_MAGN	100.0f
+#define VDOM_MNOZNIK_MAGN	1.0f
 
-#define VMIN_PRZES_MAGN    	-0.01f		//limity wartości przesunięcia pomiaru magnetometru +/- 10 mT
-#define VMAX_PRZES_MAGN    	0.01f
-#define VDOM_PRZES_MAGN    	0.0f
+#define VMIN_SKLADNIK_MAGN	-0.01f		//limity wartości przesunięcia pomiaru magnetometru +/- 10 mT
+#define VMAX_SKLADNIK_MAGN	0.01f
+#define VDOM_SKLADNIK_MAGN	0.0f
 
 #define VMIN_PID_WZMP    	(float)0.0     //limity wartości wzmocnienienia członu P regulatora
 #define VMAX_PID_WZMP    	(float)1000
@@ -303,7 +303,7 @@
 #define VMAX_PID_MAXWY   	(float)100.0
 #define VDOM_PID_MAXWY   	(float)100.0
 
-#define VMIN_PID_SKALAWZ 	(float)0.0001    //skalowanie wartości zadanej
+#define VMIN_PID_SKALAWZ 	(float)0.0001    //MNOZNIKwanie wartości zadanej
 #define VMAX_PID_SKALAWZ 	(float)1000.0
 #define VDOM_PID_SKALAWZ 	(float)0.2
 
@@ -335,3 +335,12 @@
 #define VALM_SPGAIN       (float)0.0001  //limity wartości  współczynnika wzmocnienia sygnału zadanego z aparatury
 #define VALP_SPGAIN       (float)100.0
 #define VALD_SPGAIN       (float)1.0    //wartość domyślna*/
+
+
+#define VMIN_MNOZNIK_WE_ADC		0.0001f   //mnożnik napiecia z czujników analogowych
+#define VMAX_MNOZNIK_WE_ADC 	100.0f
+#define VDOM_MNOZNIK_WE_ADC 	1.0f
+
+#define VMIN_SKLADNIK_WE_ADC	-1000.0f   //składnik napiecia z czujników analogowych
+#define VMAX_SKLADNIK_WE_ADC	1000.0f
+#define VDOM_SKLADNIK_WE_ADC	0.0f
