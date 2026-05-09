@@ -7,11 +7,11 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "MS5611.h"
-#include "wymiana_CM4.h"
-#include "petla_glowna.h"
+#include "WymianaCM4.h"
+#include "PetlaGlowna.h"
 #include "main.h"
 #include "spi.h"
-#include "modul_IiP.h"
+#include "Modul_I2P.h"
 
 extern SPI_HandleTypeDef hspi2;
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -30,18 +30,18 @@ static uint16_t sLicznikUsrednianiaP0 = 0;			//licznik uśredniania ciśnienia z
 uint8_t InicjujMS5611(void)
 {
 	uint32_t nCzasStart;
-	uint8_t chErr;
+	uint8_t cBłąd;
 
     nCzasStart = PobierzCzas();
     do
     {
     	chBuf5611[0] = PMS_RESET;
     	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-    	chErr = HAL_SPI_Transmit(&hspi2, chBuf5611, 1, 5);	//typowy czas wykonania operacji to 2,8ms
+    	cBłąd = HAL_SPI_Transmit(&hspi2, chBuf5611, 1, 5);	//typowy czas wykonania operacji to 2,8ms
     	HAL_Delay(3);
     	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
-    	if (chErr)
-    		return chErr;
+    	if (cBłąd)
+    		return cBłąd;
 
     	for (uint16_t n=0; n<6; n++)
     		sKonfig[n] = CzytajSPIu16mp(PMS_PROM_READ_C1 + 2*n);
@@ -53,17 +53,17 @@ uint8_t InicjujMS5611(void)
         for (uint16_t n=0; n<6; n++)
         {
         	if ((sKonfig[n] == 0) || (sKonfig[n] == 0xFFFF))
-        		chErr = ERR_ZLE_DANE;
+        		cBłąd = ERR_ZLE_DANE;
         }
     }
-    while (chErr);
+    while (cBłąd);
 
-    if (chErr == BLAD_OK)
+    if (cBłąd == BLAD_OK)
     {
     	uDaneCM4.dane.nZainicjowano |= INIT_MS5611;
     	sLicznikUsrednianiaP0 = LICZBA_PROBEK_USREDNIANIA;	//rozpocznij przygotowanie P0
     }
-    return chErr;
+    return cBłąd;
 }
 
 
@@ -168,15 +168,15 @@ float MS5611_LiczCisnienie(uint32_t nKonwersja, int32_t ndTemp)
 uint8_t ObslugaMS5611(void)
 {
 	uint32_t nKonwersja;
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	float fCisnienie = 0;
 	static int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia. Zmienna statyczna aby istniała poza czasem życia funkcji
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_MS5611) != INIT_MS5611)	//jeżeli czujnik nie jest zainicjowany
 	{
-		chErr = InicjujMS5611();
-		if (chErr)
-			return chErr;
+		cBłąd = InicjujMS5611();
+		if (cBłąd)
+			return cBłąd;
 		else
 		{
 			chBuf5611[0] = PMS_CONV_D2_OSR2048;
@@ -232,5 +232,5 @@ uint8_t ObslugaMS5611(void)
 				uDaneCM4.dane.fWysokoMSL[0] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[0], fP0_MS5611, uDaneCM4.dane.fTemper[TEMP_BARO1]);	//P0 gotowe więc oblicz wysokość
 		}
 	}
-	return chErr;
+	return cBłąd;
 }

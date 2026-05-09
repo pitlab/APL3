@@ -7,9 +7,9 @@
 
 #ifndef INC_DSHOT_H_
 #define INC_DSHOT_H_
-#include "sys_def_CM4.h"
-#include "wymiana.h"
-#include "konfig_fram.h"
+#include "SysDefCM4.h"
+#include "Wymiana.h"
+#include "KonfigFram.h"
 
 
 //definicje timingu

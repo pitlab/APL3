@@ -5,7 +5,7 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "dshot.h"
+#include "DShot.h"
 
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
@@ -30,7 +30,7 @@ extern uint8_t chRozmiarSekwencjiDMA[KANALY_MIKSERA+1];	//rozmiar paczki danych 
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 {
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	uint32_t nDzielnik;
 	TIM_OC_InitTypeDef sConfigOC = {0};
 
@@ -96,7 +96,7 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		htim2.Init.Period = stDShot.nBit;
 		htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		chErr |= HAL_TIM_PWM_Init(&htim2);
+		cBłąd |= HAL_TIM_PWM_Init(&htim2);
 		AktualizujDShotDMA(1000, chKanal);	//przelicz czas trwania bitów
 		HAL_NVIC_DisableIRQ(TIM2_IRQn);
 	}
@@ -104,7 +104,7 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 	if (chKanal == KANAL_RC2)		//kanał serw 2 obsługiwany przez Timer2ch3
 	{
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;		//wyjście przechodzi przez inwerter, więc wymaga dodatkowego odwrócenia sygnału aby finalnie było niezmienione
-		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3);
 
 		hdma_tim2_ch3.Instance = DMA2_Stream7;
 		hdma_tim2_ch3.Init.Request = DMA_REQUEST_TIM2_CH3;
@@ -117,12 +117,12 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		hdma_tim2_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim2_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		HAL_DMA_Init(&hdma_tim2_ch3);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, &nBuforTimDMA[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, &nBuforTimDMA[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);
 	}
 
 	if (chKanal == KANAL_RC3)		//kanał serw 3 obsługiwany przez Timer2ch1
 	{
-		chErr |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
 
 		hdma_tim2_ch1.Instance = DMA2_Stream6;
 		hdma_tim2_ch1.Init.Request = DMA_REQUEST_TIM2_CH1;
@@ -135,7 +135,7 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		hdma_tim2_ch1.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim2_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		HAL_DMA_Init(&hdma_tim2_ch1);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &nBuforTimDMA[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &nBuforTimDMA[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);
 	}
 
 
@@ -147,14 +147,14 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		htim3.Init.Period = stDShot.nBit;
 		htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		chErr |= HAL_TIM_PWM_Init(&htim3);
+		cBłąd |= HAL_TIM_PWM_Init(&htim3);
 		AktualizujDShotDMA(1000, chKanal);	//przelicz czas trwania bitów
 		//HAL_NVIC_DisableIRQ(TIM3_IRQn);	//generowanie PWM dla DShot nie wymaga przerwań
 	}
 
 	if (chKanal == KANAL_RC4)		//kanał 4
 	{
-		chErr |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3);
 
 		hdma_tim3_ch3.Instance = DMA2_Stream4;
 		hdma_tim3_ch3.Init.Request = DMA_REQUEST_TIM3_CH3;
@@ -167,12 +167,12 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		hdma_tim3_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim3_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		HAL_DMA_Init(&hdma_tim3_ch3);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_3, &nBuforTimDMA[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_3, &nBuforTimDMA[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);
 	}
 
 	if (chKanal == KANAL_RC5)		//kanał 5
 	{
-		chErr |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4);
 
 		hdma_tim3_ch4.Init.Request = DMA_REQUEST_TIM3_CH4;
 		hdma_tim3_ch4.Init.Direction = DMA_MEMORY_TO_PERIPH;
@@ -184,7 +184,7 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		hdma_tim3_ch4.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim3_ch4.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		HAL_DMA_Init(&hdma_tim3_ch4);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, &nBuforTimDMA[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, &nBuforTimDMA[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);
 	}
 
 
@@ -200,7 +200,7 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim8.Init.RepetitionCounter = 0;
 		htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-		chErr |= HAL_TIM_PWM_Init(&htim8);
+		cBłąd |= HAL_TIM_PWM_Init(&htim8);
 		AktualizujDShotDMA(1000, chKanal);	//przelicz czas trwania bitów
 
 		HAL_NVIC_DisableIRQ(TIM8_CC_IRQn);	//generowanie PWM dla DShot nie wymaga przerwań
@@ -213,7 +213,7 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 
 	if (chKanal == KANAL_RC6)		//kanał 6
 	{
-		chErr |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_1);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_1);
 
 		hdma_tim8_ch1.Instance = DMA2_Stream3;
 		hdma_tim8_ch1.Init.Request = DMA_REQUEST_TIM8_CH1;
@@ -225,13 +225,13 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		hdma_tim8_ch1.Init.Mode = DMA_CIRCULAR;
 		hdma_tim8_ch1.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim8_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-		chErr |= HAL_DMA_Init(&hdma_tim8_ch1);
-		chErr |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, &nBuforTimDMA[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);
+		cBłąd |= HAL_DMA_Init(&hdma_tim8_ch1);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, &nBuforTimDMA[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);
 	}
 
 	if (chKanal == KANAL_RC8)	//kanał 8
 	{
-		chErr |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_3);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_3);
 
 		hdma_tim8_ch3.Instance = DMA2_Stream2;
 		hdma_tim8_ch3.Init.Request = DMA_REQUEST_TIM8_CH3;
@@ -243,10 +243,10 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 		hdma_tim8_ch3.Init.Mode = DMA_CIRCULAR;
 		hdma_tim8_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim8_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-		chErr |= HAL_DMA_Init(&hdma_tim8_ch3);
-		chErr |= HAL_TIMEx_PWMN_Start_DMA(&htim8, TIM_CHANNEL_3, &nBuforTimDMA[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);	//specjalna funkcja dla kanału komplementarnego
+		cBłąd |= HAL_DMA_Init(&hdma_tim8_ch3);
+		cBłąd |= HAL_TIMEx_PWMN_Start_DMA(&htim8, TIM_CHANNEL_3, &nBuforTimDMA[chKanal][0], DS_BITOW_DANYCH + DS_BITOW_PRZERWY);	//specjalna funkcja dla kanału komplementarnego
 	}
-	return chErr;
+	return cBłąd;
 }
 
 
@@ -259,12 +259,12 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t chKanal)
 {
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	uint16_t sCRC;
 	if (sWysterowanie > DS_MAX_DANE)
 	{
 		sWysterowanie = DS_MAX_DANE;
-		chErr = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 	}
 
 	sWysterowanie += DS_OFFSET_DANYCH;
@@ -298,7 +298,7 @@ uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t chKanal)
 		nBuforTimDMA[chKanal][n + DS_BITOW_DANYCH] = 0;
 
 	chRozmiarSekwencjiDMA[chKanal] = DS_BITOW_LACZNIE;
-	return chErr;
+	return cBłąd;
 }
 
 

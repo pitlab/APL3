@@ -7,11 +7,11 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "telemetria.h"
-#include "wymiana_CM7.h"
+#include "WymianaCM7.h"
 #include "czas.h"
-#include "flash_konfig.h"
-#include "protokol_kom.h"
-#include "polecenia_komunikacyjne.h"
+#include "FlashKonfig.h"
+#include "ProtokolKomunikacyjny.h"
+#include "PoleceniaKomunikacyjne.h"
 #include "dotyk.h"
 #include "fft.h"
 
@@ -563,12 +563,12 @@ uint8_t ZapiszKonfiguracjeTelemetrii(uint16_t sPrzesuniecie)
 	uint8_t chDoZapisu = OKRESOW_TELEMETRII_W_RAMCE;
 	uint16_t sIndeksPaczki = (sPrzesuniecie * 2) / ROZMIAR_DANYCH_WPACZCE;
 	uint8_t chProbZapisu = 3;
-	uint8_t chErr;
+	uint8_t cBłąd;
 
 	while (chDoZapisu && chProbZapisu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
 	{
-		chErr = ZapiszPaczkeKonfigu(FKON_OKRES_TELEMETRI1 + sIndeksPaczki, (uint8_t*)&sOkresTelemetrii[sIndeksPaczki * ROZMIAR_DANYCH_WPACZCE / 2]);
-		if (chErr == BLAD_OK)
+		cBłąd = ZapiszPaczkeKonfigu(FKON_OKRES_TELEMETRI1 + sIndeksPaczki, (uint8_t*)&sOkresTelemetrii[sIndeksPaczki * ROZMIAR_DANYCH_WPACZCE / 2]);
+		if (cBłąd == BLAD_OK)
 		{
 			sIndeksPaczki++;
 			chProbZapisu = 3;
@@ -579,7 +579,7 @@ uint8_t ZapiszKonfiguracjeTelemetrii(uint16_t sPrzesuniecie)
 		}
 		chProbZapisu--;
 	}
-	return chErr;
+	return cBłąd;
 }
 
 

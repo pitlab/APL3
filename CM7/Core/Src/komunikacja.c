@@ -6,17 +6,17 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <analiza_drgan.h>
+#include <AnalizaDrgan.h>
+#include <KonfigFram.h>
 #include "komunikacja.h"
-#include "flash_konfig.h"
-#include "flash_nor.h"
+#include "FlashKonfig.h"
+#include "FlashNOR.h"
 #include "telemetria.h"
-#include "protokol_kom.h"
-#include "polecenia_komunikacyjne.h"
-#include "wymiana_CM7.h"
+#include "ProtokolKomunikacyjny.h"
+#include "PoleceniaKomunikacyjne.h"
+#include "WymianaCM7.h"
 #include "kamera.h"
-#include "display.h"
-#include "konfig_fram.h"
+#include "Ekran.h"
 #include "fft.h"
 #include "ili9488.h"
 
@@ -56,23 +56,23 @@ extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDanych, uint8_t chInterfejs, uint8_t chAdresZdalny)
 {
-	uint8_t n, chBłąd = BLAD_OK;
+	uint8_t n, cBłąd = BLAD_OK;
 	uint8_t chRozmiar;
 	uint16_t sPrzesuniecie;
 
 	switch (chPolecenie)
 	{
-	case PK_KOD_BLEDU:	chBłąd = Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);		break;	//odeslij kod błędu: OK
+	case PK_KOD_BLEDU:	cBłąd = Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);		break;	//odeslij kod błędu: OK
 
 	case PK_ZROB_ZDJECIE:		//polecenie wykonania zdjęcia.
 		chStatusZdjecia = SGZ_GOTOWE;
-		chBłąd = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		cBłąd = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_POB_STAT_ZDJECIA:	//pobierz status gotowości zdjęcia - trzeba dopracować metodę ustawiania stautus po wykonaniu zdjecia w jakims callbacku
 		chDane[0] = chStatusZdjecia;
-		chBłąd = WyslijRamke(chAdresZdalny, PK_POB_STAT_ZDJECIA, 1, chDane, chInterfejs);
+		cBłąd = WyslijRamke(chAdresZdalny, PK_POB_STAT_ZDJECIA, 1, chDane, chInterfejs);
 		for (uint16_t y=0; y<320; y++)
 		{
 			for (uint16_t x=0; x<480; x++)
@@ -89,7 +89,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		for (n=0; n<4; n++)
 			un8_32.dane8[n] = chDane[n];
 		nOffsetDanych = un8_32.dane32;
-		chBłąd = WyslijRamke(chAdresZdalny, PK_POBIERZ_ZDJECIE, chDane[4], (uint8_t*)(sBuforKamery + nOffsetDanych),  chInterfejs);
+		cBłąd = WyslijRamke(chAdresZdalny, PK_POBIERZ_ZDJECIE, chDane[4], (uint8_t*)(sBuforKamery + nOffsetDanych),  chInterfejs);
 		break;
 
 	case PK_USTAW_BSP:		//ustawia identyfikator/adres urządzenia
@@ -98,8 +98,8 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 			stBSP_ID.chNazwa[n] = chDane[n+1];
 		for (n=0; n<4; n++)
 			stBSP_ID.chAdrIP[n] = chDane[n+DLUGOSC_NAZWY+1];
-		chBłąd = ZapiszPaczkeKonfigu(FKON_NAZWA_ID_BSP, (uint8_t*)&stBSP_ID);
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		cBłąd = ZapiszPaczkeKonfigu(FKON_NAZWA_ID_BSP, (uint8_t*)&stBSP_ID);
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_POBIERZ_BSP:		//pobiera identyfikator/adres urządzenia
@@ -108,7 +108,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 			chDane[n+1] = stBSP_ID.chNazwa[n];
 		for (n=0; n<4; n++)
 			chDane[n+DLUGOSC_NAZWY+1] = stBSP_ID.chAdrIP[n];
-		chBłąd = WyslijRamke(chAdresZdalny, PK_POBIERZ_BSP, DLUGOSC_NAZWY+5, chDane, chInterfejs);
+		cBłąd = WyslijRamke(chAdresZdalny, PK_POBIERZ_BSP, DLUGOSC_NAZWY+5, chDane, chInterfejs);
 		//polecenie PK_POBIERZ_BSP otwiera połączenie UART, więc zmień stan na otwarty
 		if (chInterfejs == INTERF_UART)
 		{
@@ -119,7 +119,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 
 	case PK_UST_TR_PRACY:	//ustaw tryb pracy
 		chTrybPracy = chDane[0];
-		chBłąd = Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
+		cBłąd = Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 
 	case PK_POB_PAR_KAMERY:	//pobierz parametry pracy kamery
@@ -153,7 +153,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		chDane[27] = (uint8_t)(stKonfKam.sAGCAdjust >> 8);
 		chDane[28] = (uint8_t)(stKonfKam.sAGCAdjust & 0xFF);
 		chDane[29] = stKonfKam.chPoziomEkspozycji;
-		chBłąd = WyslijRamke(chAdresZdalny, PK_POB_PAR_KAMERY, 30, chDane, chInterfejs);
+		cBłąd = WyslijRamke(chAdresZdalny, PK_POB_PAR_KAMERY, 30, chDane, chInterfejs);
 		break;
 
 	case PK_UST_PAR_KAMERY:	//ustaw parametry pracy kamery
@@ -180,8 +180,8 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		stKonfKam.chProgUsuwania = chDane[26];		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
 		stKonfKam.sAGCAdjust = ((uint16_t)chDane[27] << 8) + chDane[28];
 		stKonfKam.chPoziomEkspozycji = chDane[29];
-		chBłąd = UstawKamere(&stKonfKam);	//wersja z rejestrami osobno
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		cBłąd = UstawKamere(&stKonfKam);	//wersja z rejestrami osobno
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_UST_PAR_KAMERY_GRUP:	//ustaw parametry pracy kamery grupowo
@@ -208,13 +208,13 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		stKonfKam.chProgUsuwania = chDane[26];		//0x5080 Even CTRL 00 Treshold for even odd  cancelling
 		stKonfKam.sAGCAdjust = ((uint16_t)chDane[27] << 8) + chDane[28];
 		stKonfKam.chPoziomEkspozycji = chDane[29];
-		chBłąd = UstawKamere2(&stKonfKam);	//wersja z grupami rejestrów
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		cBłąd = UstawKamere2(&stKonfKam);	//wersja z grupami rejestrów
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_RESETUJ_KAMERE:
-		chBłąd = InicjalizujKamere();
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		cBłąd = InicjalizujKamere();
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_ZAPISZ_BUFOR:
@@ -234,16 +234,16 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 	case PK_ZAPISZ_FLASH: 	//zapisz bufor 256 słów do sektora flash NOR o przekazanym adresie
 		for (n=0; n<4; n++)
 			un8_32.dane8[n] = chDane[n];	//adres sektora
-		chBłąd = ZapiszDaneFlashNOR(un8_32.dane32, sBuforSektoraFlash, ROZMIAR16_BUF_SEKT);
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		cBłąd = ZapiszDaneFlashNOR(un8_32.dane32, sBuforSektoraFlash, ROZMIAR16_BUF_SEKT);
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		sWskBufSektora = 0;
 		break;
 
 	case PK_KASUJ_FLASH:	//kasuj sektor 128kB flash
 		for (n=0; n<4; n++)
 			un8_32.dane8[n] = chDane[n];
-		chBłąd = KasujSektorFlashNOR(un8_32.dane32);
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		cBłąd = KasujSektorFlashNOR(un8_32.dane32);
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_CZYTAJ_FLASH:	//odczytaj zawartość Flash
@@ -252,20 +252,20 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 
 		if (chDane[4] > ROZMIAR16_BUF_SEKT)	//jeżeli zażądano odczytu więcej niż pomieści bufor sektora to zwróc błąd
 		{
-			chBłąd = ERR_ZLA_ILOSC_DANYCH;
-			Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 			break;
 		}
 		if (2* chDane[4] > ROZMIAR_DANYCH_KOMUNIKACJI)	//jeżeli zażądano odczytu więcej niż pomieści ramka komunikacyjna to zwróc błąd
 		{
-			chBłąd = ERR_ZLA_ILOSC_DANYCH;
-			Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 			break;
 		}
 
 		CzytajDaneFlashNOR(un8_32.dane32, sBuforSektoraFlash, chDane[4]);
-		chBłąd = WyslijRamke(chAdresZdalny, PK_CZYTAJ_FLASH, 2*chDane[4], (uint8_t*)sBuforSektoraFlash, chInterfejs);
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		cBłąd = WyslijRamke(chAdresZdalny, PK_CZYTAJ_FLASH, 2*chDane[4], (uint8_t*)sBuforSektoraFlash, chInterfejs);
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_CZYTAJ_OKRES_TELE:	//odczytaj a APL3 okresy telemetrii: chDane[0] == liczba pozycji okresu telemetrii  do odczytania, chDane[1] == numer zmiennej względen początku
@@ -276,7 +276,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 			chDane[2*n+0] = (uint8_t)(sOkresTelemetrii[sPrzesuniecie+n] & 0x00FF);	//młodszy przodem
 			chDane[2*n+1] = (uint8_t)(sOkresTelemetrii[sPrzesuniecie+n] >> 8);
 		}
-		chBłąd = WyslijRamke(chAdresZdalny, PK_CZYTAJ_OKRES_TELE, 2*chRozmiar, chDane, chInterfejs);
+		cBłąd = WyslijRamke(chAdresZdalny, PK_CZYTAJ_OKRES_TELE, 2*chRozmiar, chDane, chInterfejs);
 		break;
 
 	case PK_ZAPISZ_OKRES_TELE:	//zapisz okresy telemetrii
@@ -284,17 +284,17 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		chRozmiar = (chRozmDanych - 2) / 2;
 		for (uint8_t n=0; n<chRozmiar; n++)
 			sOkresTelemetrii[n + sPrzesuniecie] = chDane[2*n+2] + chDane[2*n+3] * 0x100;	//kolejnne okresy telemetrii, młodszy przodem
-		chBłąd = ZapiszKonfiguracjeTelemetrii(sPrzesuniecie);
-		if (chBłąd == BLAD_OK)
+		cBłąd = ZapiszKonfiguracjeTelemetrii(sPrzesuniecie);
+		if (cBłąd == BLAD_OK)
 			InicjalizacjaTelemetrii();
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_ZAPISZ_FRAM_U8:	//zapisuje bajty do FRAM
 		if (chDane[0] > ROZMIAR_ROZNE_CHAR)	//liczba danych uint8_t
 		{
-			chBłąd = ERR_ZLA_ILOSC_DANYCH;
-			Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 			break;
 		}
 		un8_32.dane8[0] = chDane[1];	//adres zapisu
@@ -311,8 +311,8 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 	case PK_ZAPISZ_FRAM_FLOAT:				//Wysyła dane typu float do zapisu we FRAM w rdzeniu CM4 o rozmiarze ROZMIAR_ROZNE_FLOAT
 		if (chDane[0] > ROZMIAR_ROZNE_FLOAT)	//liczba danych float (nie uint8_t)
 		{
-			chBłąd = ERR_ZLA_ILOSC_DANYCH;
-			Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 			break;
 		}
 		un8_32.dane8[0] = chDane[1];	//adres zapisu
@@ -327,25 +327,25 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 				un8_32.dane8[i] = chDane[3+n*4+i];
 			uDaneCM7.dane.uRozne.f32[n] = un8_32.daneFloat;
 		}
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_WYSLIJ_POTW_ZAPISU:	//jeżeli dane się zapisały to odeslij BLAD_OK. jeeli jeszcze nie to ERR_PROCES_TRWA
 		if ((uDaneCM4.dane.chPotwierdzenieWykonania != POL7_ZAPISZ_FRAM_FLOAT) || (uDaneCM4.dane.sAdres != sAdres))
 		{
-			chBłąd = ERR_PROCES_TRWA;		//dane jeszcze nie przyszły
-			Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+			cBłąd = ERR_PROCES_TRWA;		//dane jeszcze nie przyszły
+			Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 			break;
 		}
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//wyłącz wykonywanie polecenia POL7_ZAPISZ_FRAM_FLOAT
 		break;
 
 	case PK_CZYTAJ_FRAM_U8:
 		if (chDane[0] > ROZMIAR_ROZNE_CHAR)
 		{
-			chBłąd = ERR_ZLA_ILOSC_DANYCH;
-			Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 			break;
 		}
 		un8_32.dane8[0] = chDane[1];	//adres do odczytu
@@ -354,14 +354,14 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		uDaneCM7.dane.sAdres = un8_32.dane16[0];
 		uDaneCM7.dane.chRozmiar = chDane[0];
 		uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_U8;
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_CZYTAJ_FRAM_FLOAT:			//odczytaj i wyślij do bufora fRozne[] zawartość FRAM spod podanego adresu w chDane[1..2] o rozmiarze podanym w chDane[0]
 		if (chDane[0] > ROZMIAR_ROZNE_FLOAT)
 		{
-			chBłąd = ERR_ZLA_ILOSC_DANYCH;
-			Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 			break;
 		}
 		un8_32.dane8[0] = chDane[1];	//adres do odczytu
@@ -370,21 +370,21 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		uDaneCM7.dane.sAdres = un8_32.dane16[0];
 		uDaneCM7.dane.chRozmiar = chDane[0];
 		uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_FLOAT;
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_WYSLIJ_ODCZYT_FRAM:	//wysyła odczytane wcześniej dane o rozmiarze podanym w chDane[0]
 		if (uDaneCM4.dane.sAdres != sAdres)
 		{
-			chBłąd = ERR_PROCES_TRWA;		//dane jeszcze nie przyszły
-			Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+			cBłąd = ERR_PROCES_TRWA;		//dane jeszcze nie przyszły
+			Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 			break;
 		}
 		chRozmiar = chDane[0];	//zapamiętaj w zmiennej, bo dane będą nadpisane;
 		for (n=0; n<chRozmiar; n++)
 			chDane[n] = uDaneCM4.dane.uRozne.U8[n];
 
-		chBłąd = WyslijRamke(chAdresZdalny, PK_WYSLIJ_ODCZYT_FRAM, chRozmiar, chDane, chInterfejs);
+		cBłąd = WyslijRamke(chAdresZdalny, PK_WYSLIJ_ODCZYT_FRAM, chRozmiar, chDane, chInterfejs);
 		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//wyłącz wykonywanie polecenia PK_WYSLIJ_ODCZYT_FRAM
 		break;
 
@@ -398,14 +398,14 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		{
 			chStatusPolaczenia &= ~(STAT_POL_MASKA_GOT << STAT_POL_UART);
 		}
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_ZAPISZ_KONFIG_PID:			//Wysyła dane do zapisu we FRAM w rdzeniu CM4 oraz zapisania do zmienych regulatora
 		if ((chDane[0] >= LICZBA_PID) || (chRozmDanych > ROZMIAR_ROZNE_CHAR))	//indeks kanału regulatora nie powinien przekraczać liczby regulatorów i nie powinna zostać przepełniona struktura danych przekazywanych
 		{
-			chBłąd = ERR_ZLA_ILOSC_DANYCH;
-			Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 			break;
 		}
 #ifdef TESTY
@@ -496,7 +496,7 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		chDane[1] = stKonfigFFT.chRodzajOkna;
 		chDane[2] = stKonfigFFT.chAktywnSilniki;
 		chDane[3] = stKonfigFFT.chMaxWysterowanie;
-		chBłąd = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, 4, chDane, chInterfejs);
+		cBłąd = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, 4, chDane, chInterfejs);
 		break;
 
 	case PK_ZAPISZ_PARAMETRY_FFT:	//zapisz parametry pracy FFT
@@ -504,8 +504,8 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		stKonfigFFT.chRodzajOkna = chDane[1];
 		stKonfigFFT.chAktywnSilniki = chDane[2];
 		stKonfigFFT.chMaxWysterowanie = chDane[3];
-		chBłąd = ZapiszKonfiguracjejFFT();
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		cBłąd = ZapiszKonfiguracjejFFT();
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_CZYTAJ_WYNIKI_FFT:	//odczytaj z pamiędci DRAM wyniki serii testów FFT dla akcelerometrów i żyroskopów. Prześlij je jako float o połowie precyzji
@@ -517,13 +517,13 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 
 		for (uint8_t n=0; n<chRozmiar; n++)
 			Float2Char16(fWynikFFT[chLiniaWodospadu][chIndeksZmiennej][sIndeksWyniku + n], &chDane[n * 2]);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
-		chBłąd = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, chRozmiar * 2, chDane, chInterfejs);
+		cBłąd = WyslijRamke(chAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, chRozmiar * 2, chDane, chInterfejs);
 		break;
 
 	case PK_ROZP_ANALIZE_DRGAN:
 		RysujProstokatWypelniony(0, 0, DISP_X_SIZE, DISP_Y_SIZE, CZARNY);	//czyści ekran
-		chBłąd = RozpocznijAnalizęDrgań(&stKonfigFFT, &chTrybPracy);
-		Wyslij_KodBledu(chBłąd, chPolecenie, chInterfejs);
+		cBłąd = RozpocznijAnalizęDrgań(&stKonfigFFT, &chTrybPracy);
+		Wyslij_KodBledu(cBłąd, chPolecenie, chInterfejs);
 		break;
 
 	case PK_ZATRZYMAJ_SILNIKI:	//zatrzymuje silniki w trakcie testu FFT
@@ -540,5 +540,5 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 	}
-    return chBłąd;
+    return cBłąd;
 }

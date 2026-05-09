@@ -7,7 +7,7 @@
 
 #ifndef INC_SPI_H_
 #define INC_SPI_H_
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 #define READ_SPI		0x80
 

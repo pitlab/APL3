@@ -64,26 +64,26 @@ void InicjujCAN(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t EmulujMagnetometrWizjerCan(float *fDaneMagn)
 {
-	uint8_t chErr;
+	uint8_t cBłąd;
 
 	//dane pomiarowe osi X
 	chDaneCanWych[0] = 1;
 	//FormatujMag2Can(uDaneCM4.dane.fMagne2[0], &chDaneCanWych[1]);
 	FormatujMag2Can(*(fDaneMagn+0), &chDaneCanWych[1]);
-	chErr = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
+	cBłąd = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
 
 	//dane pomiarowe osi Y
 	chDaneCanWych[0] = 2;
 	//FormatujMag2Can(uDaneCM4.dane.fMagne2[1], &chDaneCanWych[1]);
 	FormatujMag2Can(*(fDaneMagn+1), &chDaneCanWych[1]);
-	chErr = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
+	cBłąd = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
 
 	//dane pomiarowe osi Z
 	chDaneCanWych[0] = 3;
 	//FormatujMag2Can(uDaneCM4.dane.fMagne2[2], &chDaneCanWych[1]);
 	FormatujMag2Can(*(fDaneMagn+2), &chDaneCanWych[1]);
-	chErr = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
-	return chErr;
+	cBłąd = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
+	return cBłąd;
 }
 
 

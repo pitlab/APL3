@@ -7,12 +7,11 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "BMP581.h"
-#include "wymiana_CM4.h"
-#include "petla_glowna.h"
+#include "WymianaCM4.h"
+#include "PetlaGlowna.h"
 #include "spi.h"
-#include "petla_glowna.h"
 #include "main.h"
-#include "modul_IiP.h"
+#include "Modul_I2P.h"
 
 // Dopuszczalna prędkość magistrali 1..12MHz
 extern SPI_HandleTypeDef hspi2;
@@ -80,14 +79,14 @@ uint8_t InicjujBMP581(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaBMP581(void)
 {
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	float fCisnienie = 0;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_BMP581) != INIT_BMP581)	//jeżeli czujnik nie jest zainicjowany
 	{
-		chErr = InicjujBMP581();
-		if (chErr)
-			return chErr;
+		cBłąd = InicjujBMP581();
+		if (cBłąd)
+			return cBłąd;
 	}
 	else	//czujnik jest zainicjowany
 	{
@@ -117,5 +116,5 @@ uint8_t ObslugaBMP581(void)
 				uDaneCM4.dane.fWysokoMSL[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[1], fP0_BMP581, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//P0 gotowe więc oblicz wysokość
 		}
 	}
-	return chErr;
+	return cBłąd;
 }

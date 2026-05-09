@@ -7,7 +7,7 @@
 
 #ifndef INC_ND130_H_
 #define INC_ND130_H_
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 #define PASKALI_NA_INH2O					249.082f	//1 cal H2O to tyle Paskali
 #define ZAKRES_POMIAROWY_CISNIENIA_ND130	30			//+-tyle [cali H2O]

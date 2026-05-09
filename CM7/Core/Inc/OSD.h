@@ -7,9 +7,9 @@
 
 #ifndef INC_OSD_H_
 #define INC_OSD_H_
-#include "sys_def_CM7.h"
-#include "wymiana.h"
-#include "rysuj.h"
+#include "SysDefCM7.h"
+#include "Wymiana.h"
+#include "Rysuj.h"
 
 #define ROZMIAR_KOLORU_OSD	2
 

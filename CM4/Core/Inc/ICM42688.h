@@ -7,7 +7,7 @@
 
 #ifndef INC_ICM42688_H_
 #define INC_ICM42688_H_
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 
 

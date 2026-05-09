@@ -7,7 +7,7 @@
 
 #ifndef INC_WS281X_H_
 #define INC_WS281X_H_
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 //typy układu. Różną się układem kolorów
 #define WS2811		0	//RGB

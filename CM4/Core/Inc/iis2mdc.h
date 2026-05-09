@@ -7,7 +7,7 @@
 
 #ifndef INC_IIS2MDC_H_
 #define INC_IIS2MDC_H_
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 #define IIS2MDC_I2C_ADR		0x3C
 #define READ				0x01

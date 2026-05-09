@@ -8,11 +8,11 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "MS4525.h"
-#include "wymiana_CM4.h"
-#include "petla_glowna.h"
+#include "WymianaCM4.h"
+#include "PetlaGlowna.h"
 #include "main.h"
 #include "spi.h"
-#include "modul_IiP.h"
+#include "Modul_I2P.h"
 
 
 
@@ -32,11 +32,11 @@ uint16_t sLicznikZerowaniaMS4525 = MAX_PROB_INICJALIZACJI;	//odlicza czas uśred
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujMS4525(void)
 {
-	uint8_t chBlad;
+	uint8_t cBłąd;
 
 	//wyślij adres i sprawdź czy odpowie ACK-iem
-	chBlad = HAL_I2C_Master_Transmit(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 2, I2C_TIMOUT);
-	if (chBlad == BLAD_OK)
+	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 2, I2C_TIMOUT);
+	if (cBłąd == BLAD_OK)
 	{
 		uDaneCM4.dane.nZainicjowano |= INIT_MS4525;
 		KalibrujZeroMS4525();
@@ -47,7 +47,7 @@ uint8_t InicjujMS4525(void)
 		if (!sLicznikZerowaniaMS4525)
 			uDaneCM4.dane.nBrakCzujnika |= INIT_MS4525;
 	}
-	return chBlad;
+	return cBłąd;
 }
 
 
@@ -61,7 +61,7 @@ uint8_t InicjujMS4525(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaMS4525(void)
 {
-	uint8_t chBlad;
+	uint8_t cBłąd;
 
 	//po MAX_PROB_INICJALIZACJI ustawiany jest bit braku czujnika. Taki czujnik nie jest dłużej obsługiwany
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_MS4525)
@@ -69,9 +69,9 @@ uint8_t ObslugaMS4525(void)
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_MS4525) != INIT_MS4525)	//jeżeli czujnik nie jest zainicjowany
 	{
-		chBlad = InicjujMS4525();
-		if (chBlad)
-			return chBlad;
+		cBłąd = InicjujMS4525();
+		if (cBłąd)
+			return cBłąd;
 	}
 	else	//czujnik jest zainicjowany
 	{
@@ -79,18 +79,18 @@ uint8_t ObslugaMS4525(void)
 		{
 		case 0:
 			chCzujnikOdczytywanyNaI2CExt = CISN_ROZN_MS2545;	//odczytaj ciśnienie różnicowe i temepraturę
-			chBlad = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 4);
+			cBłąd = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 4);
 			break;
 
 		default:
 			chCzujnikOdczytywanyNaI2CExt = CISN_TEMP_MS2545;	//odczytaj ciśnienie różnicowe
-			chBlad = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 2);
+			cBłąd = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 2);
 			break;
 		}
 		chProporcjaPomiarow++;
 		chProporcjaPomiarow &= 0x0F;
 	}
-	return chBlad;
+	return cBłąd;
 }
 
 

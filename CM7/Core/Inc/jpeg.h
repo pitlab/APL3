@@ -8,7 +8,7 @@
 #ifndef INC_JPEG_H_
 #define INC_JPEG_H_
 
-#include "sys_def_CM7.h"
+#include "SysDefCM7.h"
 
 
 #define ROZM_BUF_WY_JPEG	8192	//16 sektorów, 1 jednostka alokacji FAT32

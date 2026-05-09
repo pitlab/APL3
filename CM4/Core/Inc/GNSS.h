@@ -8,7 +8,7 @@
 #ifndef INC_GNSS_H_
 #define INC_GNSS_H_
 
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 #define ROZMIAR_BUF_NAD_GNSS	55	//najdłuższy komunikat ma 55 bajtów
 #define ROZMIAR_BUF_ODB_GNSS	15	//ma być nieparzysty aby mozna było migać LEDem

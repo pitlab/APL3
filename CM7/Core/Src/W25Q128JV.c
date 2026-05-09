@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include "W25Q128JV.h"
 #include "LCD.h"
-#include "flash_nor.h"
+#include "FlashNOR.h"
 #include "czas.h"
 
 #ifdef UZYWAJ_QSPI	//aby użyć QSPI w cube MX trzeba zmienić definicje portu PB10 na QUADSPI_CS, ponieważ bez CS nkod się nie skompiluje
@@ -72,12 +72,12 @@ can be configured to be skipped, but at least one of the instruction, address, a
 
 uint8_t InicjujFlashQSPI(void)
 {
-	HAL_StatusTypeDef chErr = 0;
+	HAL_StatusTypeDef cBłąd = 0;
 	extern uint32_t nZainicjowano[2];		//flagi inicjalizacji sprzętu
 
 	if (W25_SprawdzObecnoscFlashQSPI() == ERR_OK)
 		nZainicjowano[0] |= INIT0_FLASH_QSPI;
-	return chErr;
+	return cBłąd;
 
 }
 
@@ -88,7 +88,7 @@ uint8_t InicjujFlashQSPI(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t W25_SprawdzObecnoscFlashQSPI(void)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 	QSPI_CommandTypeDef cmd;
 	uint8_t chBufor[2];
 
@@ -117,18 +117,18 @@ uint8_t W25_SprawdzObecnoscFlashQSPI(void)
 	cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
 	cmd.DdrHoldHalfCycle = 0;
 
-	chErr = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
-	if (chErr == HAL_OK)
+	cBłąd = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	if (cBłąd == HAL_OK)
 	{
 		//Teraz trzeba odczytać 2 bajty:	(MF7-0) (ID7-0)
-		chErr = HAL_QSPI_Receive(&hqspi, chBufor, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
-		if (chErr == HAL_OK)
+		cBłąd = HAL_QSPI_Receive(&hqspi, chBufor, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+		if (cBłąd == HAL_OK)
 		{
 			if ((chBufor[0] != 0xEF) || (chBufor[1] != 0x17))		//pdf str 22
-				chErr = ERR_BRAK_FLASH_NOR;
+				cBłąd = ERR_BRAK_FLASH_NOR;
 		}
 	}
-	return chErr;
+	return cBłąd;
 }
 
 
@@ -142,7 +142,7 @@ uint8_t W25_SprawdzObecnoscFlashQSPI(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t W25_CzytajStatus(uint8_t chTypStatusu, uint8_t* chStatus)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 		QSPI_CommandTypeDef cmd;
 
 		//faza instrukcji - obecna
@@ -174,15 +174,15 @@ uint8_t W25_CzytajStatus(uint8_t chTypStatusu, uint8_t* chStatus)
 		cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
 		cmd.DdrHoldHalfCycle = 0;
 
-		chErr = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
-		if (chErr == HAL_OK)
+		cBłąd = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+		if (cBłąd == HAL_OK)
 		{
 			//Teraz trzeba odczytać 1 bajt
-			chErr = HAL_QSPI_Receive(&hqspi, chStatus, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+			cBłąd = HAL_QSPI_Receive(&hqspi, chStatus, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
 		}
 
 		//HAL_Delay(20);
-		return chErr;
+		return cBłąd;
 }
 
 
@@ -197,7 +197,7 @@ uint8_t W25_CzytajStatus(uint8_t chTypStatusu, uint8_t* chStatus)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t W25_CzytajDane1A1D(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 	QSPI_CommandTypeDef cmd;
 
 	//faza instrukcji - obecna
@@ -225,10 +225,10 @@ uint8_t W25_CzytajDane1A1D(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 	cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
 	cmd.DdrHoldHalfCycle = 0;
 
-	chErr = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
-	if (chErr == HAL_OK)
-		chErr = HAL_QSPI_Receive(&hqspi, dane, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
-	return chErr;
+	cBłąd = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	if (cBłąd == HAL_OK)
+		cBłąd = HAL_QSPI_Receive(&hqspi, dane, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	return cBłąd;
 }
 
 
@@ -242,7 +242,7 @@ uint8_t W25_CzytajDane1A1D(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t W25_CzytajDane4A4D(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 	QSPI_CommandTypeDef cmd;
 
 	//faza instrukcji - obecna
@@ -270,10 +270,10 @@ uint8_t W25_CzytajDane4A4D(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 	cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
 	cmd.DdrHoldHalfCycle = 0;
 
-	chErr = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
-	if (chErr == HAL_OK)
-		chErr = HAL_QSPI_Receive(&hqspi, dane, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
-	return chErr;
+	cBłąd = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	if (cBłąd == HAL_OK)
+		cBłąd = HAL_QSPI_Receive(&hqspi, dane, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	return cBłąd;
 }
 
 
@@ -289,7 +289,7 @@ uint8_t W25_CzytajDane4A4D(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t W25_UstawWriteEnable(void)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 	QSPI_CommandTypeDef cmd;
 
 	//faza instrukcji - obecna
@@ -317,8 +317,8 @@ uint8_t W25_UstawWriteEnable(void)
 	cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
 	cmd.DdrHoldHalfCycle = 0;
 
-	chErr = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
-	return chErr;
+	cBłąd = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	return cBłąd;
 }
 
 
@@ -333,7 +333,7 @@ uint8_t W25_UstawWriteEnable(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t W25_ProgramujStrone256B(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 	QSPI_CommandTypeDef cmd;
 	uint8_t chStatus;
 	uint32_t nCzas;
@@ -369,12 +369,12 @@ uint8_t W25_ProgramujStrone256B(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 	cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
 	cmd.DdrHoldHalfCycle = 0;
 
-	chErr = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
-	if (chErr == HAL_OK)
+	cBłąd = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	if (cBłąd == HAL_OK)
 	{
-		chErr = HAL_QSPI_Transmit(&hqspi, dane, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
-		if (chErr != HAL_OK)
-			return chErr;
+		cBłąd = HAL_QSPI_Transmit(&hqspi, dane, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+		if (cBłąd != HAL_OK)
+			return cBłąd;
 	}
 
 	//po zapisaniu czytaj status dopuki jest ustawiony bit Busy lub wystąpi timeout max 3ms
@@ -383,11 +383,11 @@ uint8_t W25_ProgramujStrone256B(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 	{
 		W25_CzytajStatus(1, &chStatus);
 		if (MinalCzas(nCzas) > TOUT_PAGE_PROGRAM)
-			chErr = ERR_TIMEOUT;
+			cBłąd = ERR_TIMEOUT;
 	}
-	while ((chStatus & STATUS1_BUSY) && (!chErr));
+	while ((chStatus & STATUS1_BUSY) && (!cBłąd));
 
-	return chErr;
+	return cBłąd;
 }
 
 
@@ -400,7 +400,7 @@ uint8_t W25_ProgramujStrone256B(uint32_t nAdres, uint8_t* dane, uint16_t ilosc)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t W25_KasujSektor4kB(uint32_t nAdres)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 	QSPI_CommandTypeDef cmd;
 	uint8_t chStatus;
 	uint32_t nCzas;
@@ -436,12 +436,12 @@ uint8_t W25_KasujSektor4kB(uint32_t nAdres)
 	cmd.DdrMode = QSPI_DDR_MODE_DISABLE;
 	cmd.DdrHoldHalfCycle = 0;
 
-	chErr = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
-	//if (chErr == HAL_OK)
+	cBłąd = HAL_QSPI_Command(&hqspi, &cmd, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+	//if (cBłąd == HAL_OK)
 	//{
-		//chErr = HAL_QSPI_Transmit(&hqspi, dane, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
-		//if (chErr != HAL_OK)
-			//return chErr;
+		//cBłąd = HAL_QSPI_Transmit(&hqspi, dane, HAL_QSPI_TIMEOUT_DEFAULT_VALUE);
+		//if (cBłąd != HAL_OK)
+			//return cBłąd;
 	//}
 
 	//po zapisaniu czytaj status dopuki jest ustawiony bit Busy lub wystąpi timeout max 400ms
@@ -450,11 +450,11 @@ uint8_t W25_KasujSektor4kB(uint32_t nAdres)
 	{
 		W25_CzytajStatus(1, &chStatus);
 		if (MinalCzas(nCzas) > TOUT_SECTOR4K_ERASE)
-			chErr = ERR_TIMEOUT;
+			cBłąd = ERR_TIMEOUT;
 	}
-	while ((chStatus & STATUS1_BUSY) && (!chErr));
+	while ((chStatus & STATUS1_BUSY) && (!cBłąd));
 
-	return chErr;
+	return cBłąd;
 }
 
 
@@ -466,7 +466,7 @@ uint8_t W25_KasujSektor4kB(uint32_t nAdres)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t W25_TestTransferu(void)
 {
-	uint8_t chErr;
+	uint8_t cBłąd;
 	uint16_t y;
 	extern uint16_t sBufor[ROZMIAR16_BUFORA];
 	uint32_t nCzas;
@@ -490,12 +490,12 @@ uint8_t W25_TestTransferu(void)
 	nCzas = PobierzCzasT6();
 	for (y=0; y<16; y++)
 	{
-		chErr = W25_ProgramujStrone256B(0x5000 + y*0x100, (uint8_t*)sBufor, ROZMIAR16_BUFORA/2);
-		if (chErr != ERR_OK)
+		cBłąd = W25_ProgramujStrone256B(0x5000 + y*0x100, (uint8_t*)sBufor, ROZMIAR16_BUFORA/2);
+		if (cBłąd != ERR_OK)
 		{
 			sprintf(chNapis, "B%c%cd programowania", ł, ą);
 			print(chNapis, 10, 80);
-			return chErr;
+			return cBłąd;
 		}
 	}
 	nCzas = MinalCzas(nCzas);
@@ -508,12 +508,12 @@ uint8_t W25_TestTransferu(void)
 	nCzas = PobierzCzasT6();
 	for (y=0; y<512; y++)
 	{
-		chErr = W25_CzytajDane1A1D(0x5000, (uint8_t*)sBufor, ROZMIAR16_BUFORA/2);
-		if (chErr != ERR_OK)
+		cBłąd = W25_CzytajDane1A1D(0x5000, (uint8_t*)sBufor, ROZMIAR16_BUFORA/2);
+		if (cBłąd != ERR_OK)
 		{
 			sprintf(chNapis, "B%c%cd odczytu", ł, ą);
 			print(chNapis, 10, 100);
-			return chErr;
+			return cBłąd;
 		}
 	}
 	nCzas = MinalCzas(nCzas);
@@ -526,12 +526,12 @@ uint8_t W25_TestTransferu(void)
 	nCzas = PobierzCzasT6();
 	for (y=0; y<512; y++)
 	{
-		chErr = W25_CzytajDane4A4D(0x5000, (uint8_t*)sBufor, ROZMIAR16_BUFORA/2);
-		if (chErr != ERR_OK)
+		cBłąd = W25_CzytajDane4A4D(0x5000, (uint8_t*)sBufor, ROZMIAR16_BUFORA/2);
+		if (cBłąd != ERR_OK)
 		{
 			sprintf(chNapis, "B%c%cd odczytu", ł, ą);
 			print(chNapis, 10, 120);
-			return chErr;
+			return cBłąd;
 		}
 	}
 	nCzas = MinalCzas(nCzas);
@@ -544,12 +544,12 @@ uint8_t W25_TestTransferu(void)
 	nCzas = PobierzCzasT6();
 	for (y=0; y<1; y++)
 	{
-		chErr = W25_KasujSektor4kB(0x5000);
-		if (chErr != ERR_OK)
+		cBłąd = W25_KasujSektor4kB(0x5000);
+		if (cBłąd != ERR_OK)
 		{
 			sprintf(chNapis, "B%c%cd kasowania", ł, ą);
 			print(chNapis, 10, 140);
-			return chErr;
+			return cBłąd;
 		}
 	}
 	nCzas = MinalCzas(nCzas);
@@ -557,7 +557,7 @@ uint8_t W25_TestTransferu(void)
 		sprintf(chNapis, "KasujSektor4kB() t = %ld us => %.2f MB/s ", nCzas, (float)(4096) /  (float)(nCzas * 1.048576f));
 	print(chNapis, 10, 140);
 
-	return chErr;
+	return cBłąd;
 }
 #endif
 

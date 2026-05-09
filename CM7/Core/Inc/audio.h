@@ -8,7 +8,7 @@
 #ifndef INC_AUDIO_H_
 #define INC_AUDIO_H_
 
-#include "sys_def_CM7.h"
+#include "SysDefCM7.h"
 
 #define CZESTOTLIWOSC_AUDIO		16000
 #define ROZMIAR_BUFORA_AUDIO	256

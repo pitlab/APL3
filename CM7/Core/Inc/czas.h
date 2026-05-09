@@ -8,7 +8,7 @@
 #ifndef INC_CZAS_H_
 #define INC_CZAS_H_
 
-#include "sys_def_CM7.h"
+#include "SysDefCM7.h"
 #include "wymiana.h"
 #include "integer.h"
 

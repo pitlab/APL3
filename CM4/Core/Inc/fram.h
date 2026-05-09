@@ -9,8 +9,8 @@
 //Pamięć pracuje w trybach SPI 0 i 3 z 8-bitowymi transferami.
 //Max zegar to 40MHz
 
-#include "sys_def_CM4.h"
-#include "konfig_fram.h"
+#include "SysDefCM4.h"
+#include "KonfigFram.h"
 
 //opcody operacji
 #define FRAM_WREN	0x06	//Set Write Enable Latch

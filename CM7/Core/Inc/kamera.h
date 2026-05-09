@@ -8,10 +8,10 @@
 #ifndef INC_KONFIGURACJA_H_
 #define INC_KONFIGURACJA_H_
 
-#include "sys_def_CM7.h"
+#include "SysDefCM7.h"
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx_hal_rcc.h"
-#include "ov5642_regs.h"
+#include "RejestryOV5642.h"
 
 #define OV5642_I2C_ADR	0x78
 #define OV5642_ID		0x5642

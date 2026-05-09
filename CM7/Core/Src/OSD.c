@@ -7,11 +7,11 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "osd.h"
-#include "display.h"
+#include "Ekran.h"
 #include "LCD_mem.h"
 #include "cmsis_os.h"
 #include <math.h>
-#include "jpeg.h"
+#include "Jpeg.h"
 #include "czas.h"
 
 //uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * ROZMIAR_KOLORU_OSD];	//pamięć obrazu OSD
@@ -38,7 +38,7 @@ uint32_t nCzasBlend, nCzasLCD;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujOSD(void)
 {
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 
 	//wstępna konfiguracja. Właściwa będzie kiedyś odczytana z pamieci konfiguracji
 	stKonfOSD.stHoryzont.sKolorObiektu = KOLOSD_CZER0 + PRZEZR_60;	//czerwony 50% przezroczystości
@@ -179,10 +179,10 @@ uint8_t InicjujOSD(void)
 	hdma2d.LayerCfg[0].InputColorMode = DMA2D_INPUT_RGB565;
 	hdma2d.LayerCfg[0].AlphaMode = DMA2D_REPLACE_ALPHA;
 	hdma2d.LayerCfg[0].InputAlpha = 0xFF;		//nieprzezroczysty
-	chErr |= HAL_DMA2D_Init(&hdma2d);
-	chErr |= HAL_DMA2D_ConfigLayer(&hdma2d, 0);
-	chErr |= HAL_DMA2D_ConfigLayer(&hdma2d, 1);
-	return chErr;
+	cBłąd |= HAL_DMA2D_Init(&hdma2d);
+	cBłąd |= HAL_DMA2D_ConfigLayer(&hdma2d, 0);
+	cBłąd |= HAL_DMA2D_ConfigLayer(&hdma2d, 1);
+	return cBłąd;
 }
 
 
@@ -199,14 +199,14 @@ uint8_t InicjujOSD(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PolaczBuforOSDzObrazem(uint8_t *chObrazFront, uint8_t *chObrazTlo, uint8_t *chBuforWyjsciowy, uint16_t sSzerokosc, uint16_t sWysokosc)
 {
-	uint8_t chErr;
+	uint8_t cBłąd;
 	uint8_t chTimeout = 100;
 	uint32_t nErr;
 
 	if (hdma2d.State == HAL_DMA2D_STATE_BUSY)
 		HAL_DMA2D_Abort(&hdma2d);
 	chTransferDMA2DZakonczony = 0;
-	chErr = HAL_DMA2D_BlendingStart_IT(&hdma2d, (uint32_t)chObrazFront, (uint32_t)chObrazTlo, (uint32_t)chBuforWyjsciowy, (uint32_t)sSzerokosc, (uint32_t)sWysokosc);
+	cBłąd = HAL_DMA2D_BlendingStart_IT(&hdma2d, (uint32_t)chObrazFront, (uint32_t)chObrazTlo, (uint32_t)chBuforWyjsciowy, (uint32_t)sSzerokosc, (uint32_t)sWysokosc);
 	do
 	{
 		osDelay(1);
@@ -215,12 +215,12 @@ uint8_t PolaczBuforOSDzObrazem(uint8_t *chObrazFront, uint8_t *chObrazTlo, uint8
 	while (!chTransferDMA2DZakonczony && chTimeout);
 	if (chTimeout == 0)
 	{
-		//chErr = BLAD_TIMEOUT;
+		//cBłąd = BLAD_TIMEOUT;
 		nErr = HAL_DMA2D_GetError(&hdma2d);
-		chErr = nErr & 0xFF;
+		cBłąd = nErr & 0xFF;
 	}
 
-	return chErr;
+	return cBłąd;
 }
 
 

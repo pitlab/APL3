@@ -7,13 +7,13 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "LCD_SPI.h"
-#include "display.h"
+#include "Ekran.h"
 #include "main.h"
-#include "moduly_SPI.h"
+#include "ModulySPI.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include "semafory.h"
+#include "Semafory.h"
 #include "cmsis_os.h"
 //deklaracje zmiennych
 extern SPI_HandleTypeDef hspi5;

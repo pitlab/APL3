@@ -7,10 +7,10 @@
 
 #ifndef INC_LCD_H_
 #define INC_LCD_H_
-#include "sys_def_CM7.h"
-#include "display.h"
-#include "rysuj.h"
-#include "fft.h"
+#include "SysDefCM7.h"
+#include "Ekran.h"
+#include "Rysuj.h"
+#include "FFT.h"
 
 //#define MIN_MAG_WYKR	NOMINALNE_MAGN / 600		//minimalna wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru
 #define MIN_MAG_WYKR	NOMINALNE_MAGN * 0.8f		//minimalna wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru

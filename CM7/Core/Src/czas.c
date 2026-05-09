@@ -28,7 +28,7 @@ extern TIM_HandleTypeDef htim6;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 {
-	uint8_t chErr = ERR_PROCES_TRWA;
+	uint8_t cBłąd = ERR_PROCES_TRWA;
 
 	//synchronizację robię tylko wraz z pojawieniem się nowego odczytu czasu
 	if (stGnss->chSek != chPoprzedniaSekunda)
@@ -50,7 +50,7 @@ uint8_t SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 					{
 						stTime.Hours = stGnss->chGodz;
 						chStanSynchronizacjiCzasu |= SSC_GODZ_SYNCHR;
-						chErr = HAL_RTC_SetTime(&hrtc, &stTime, RTC_FORMAT_BIN);		//ustaw czas gdy wszystko poprawne
+						cBłąd = HAL_RTC_SetTime(&hrtc, &stTime, RTC_FORMAT_BIN);		//ustaw czas gdy wszystko poprawne
 					}
 				}
 			}
@@ -70,13 +70,13 @@ uint8_t SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 					{
 						stDate.Year = stGnss->chRok;
 						chStanSynchronizacjiCzasu |= SSC_ROK_SYNCHR;
-						chErr = HAL_RTC_SetDate(&hrtc, &stDate, RTC_FORMAT_BIN);		//ustaw datę gdy wszystko jest poprawne
+						cBłąd = HAL_RTC_SetDate(&hrtc, &stDate, RTC_FORMAT_BIN);		//ustaw datę gdy wszystko jest poprawne
 					}
 				}
 			}
 		}
 	}
-	return chErr;
+	return cBłąd;
 }
 
 
@@ -88,11 +88,11 @@ uint8_t SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 ////////////////////////////////////////////////////////////////////////////////
 HAL_StatusTypeDef PobierzDateCzas(RTC_DateTypeDef *stData, RTC_TimeTypeDef *stCzas)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 
-	chErr  = HAL_RTC_GetTime(&hrtc, stCzas, RTC_FORMAT_BIN);
-	chErr |= HAL_RTC_GetDate(&hrtc, stData, RTC_FORMAT_BIN);		// Uwaga: GetDate MUSI być po GetTime ze względu na shadow registers
-	return chErr;
+	cBłąd  = HAL_RTC_GetTime(&hrtc, stCzas, RTC_FORMAT_BIN);
+	cBłąd |= HAL_RTC_GetDate(&hrtc, stData, RTC_FORMAT_BIN);		// Uwaga: GetDate MUSI być po GetTime ze względu na shadow registers
+	return cBłąd;
 }
 
 

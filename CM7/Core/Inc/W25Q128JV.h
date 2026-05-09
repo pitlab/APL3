@@ -9,7 +9,7 @@
 #define INC_W25Q128JV_H_
 
 
-#include "sys_def_CM7.h"
+#include "SysDefCM7.h"
 
 
 

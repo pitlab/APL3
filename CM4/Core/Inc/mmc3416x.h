@@ -1,5 +1,5 @@
 /*
- * mmc3416x.h
+ * MMC3416x.h
  *
  *  Created on: Feb 1, 2025
  *      Author: PitLab
@@ -7,7 +7,7 @@
 
 #ifndef INC_MMC3416X_H_
 #define INC_MMC3416X_H_
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 
 #define CZULOSC_MMC34160	4.88e-7	//0,488 mGauss na bit a 1 mGauss to 100nT

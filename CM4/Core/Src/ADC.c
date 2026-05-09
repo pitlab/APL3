@@ -6,9 +6,9 @@
 // (c) PitLab 2026
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "adc.h"
-#include "wymiana_CM4.h"
-#include "petla_glowna.h"
+#include "ADC.h"
+#include "WymianaCM4.h"
+#include "PetlaGlowna.h"
 #include "fram.h"
 
 
@@ -32,7 +32,7 @@ uint8_t chWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC2, bit1
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujADC(void)
 {
-	uint8_t chBłąd = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 
 	//LL_ADC_DisableDeepPowerDown(ADC3);
 	//LL_ADC_EnableInternalRegulator(ADC3);
@@ -40,20 +40,20 @@ uint8_t InicjujADC(void)
 
 	for (uint8_t n=0; n<ILOSC_ZEWN_WE_ANALOG; n++)
 	{
-		chBłąd |= CzytajFramFloatZWalidacja(FAG_MNOZNIK_CZUJ_ZEWN + 4*n, &fMnożnikCzujnWeAnalog[n], VMIN_MNOZNIK_WE_ADC, VMAX_MNOZNIK_WE_ADC, VDOM_MNOZNIK_WE_ADC);	//4*4F współczynnik mnożenia analogowego napęcia czujnika zewnętrznego
-		chBłąd |= CzytajFramFloatZWalidacja(FAG_SKLADNIK_CZUJ_ZEWN + 4*n, &fSkładnikCzujnWeAnalog[n], VMIN_SKLADNIK_WE_ADC, VMAX_SKLADNIK_WE_ADC, VDOM_SKLADNIK_WE_ADC);	//4*4F współczynnik dodawany do analogowego napęcia czujnika zewnętrznego
+		cBłąd |= CzytajFramFloatZWalidacja(FAG_MNOZNIK_CZUJ_ZEWN + 4*n, &fMnożnikCzujnWeAnalog[n], VMIN_MNOZNIK_WE_ADC, VMAX_MNOZNIK_WE_ADC, VDOM_MNOZNIK_WE_ADC);	//4*4F współczynnik mnożenia analogowego napęcia czujnika zewnętrznego
+		cBłąd |= CzytajFramFloatZWalidacja(FAG_SKLADNIK_CZUJ_ZEWN + 4*n, &fSkładnikCzujnWeAnalog[n], VMIN_SKLADNIK_WE_ADC, VMAX_SKLADNIK_WE_ADC, VDOM_SKLADNIK_WE_ADC);	//4*4F współczynnik dodawany do analogowego napęcia czujnika zewnętrznego
 	}
 
 	//wyślij polecenie odczytania współczynników kalibracyjnych temperatury
 	uDaneCM4.dane.chWykonajPolecenie = POL4_CZYTAJ_KALIBR_TEMP;
 
-	chBłąd  = HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
-	chBłąd |= HAL_ADCEx_Calibration_Start(&hadc3, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
+	cBłąd  = HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
+	cBłąd |= HAL_ADCEx_Calibration_Start(&hadc3, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
 
-	chBłąd |= HAL_ADC_Start_IT(&hadc2);
-	chBłąd |= HAL_ADC_Start_IT(&hadc3);
+	cBłąd |= HAL_ADC_Start_IT(&hadc2);
+	cBłąd |= HAL_ADC_Start_IT(&hadc3);
 	nCzasStartuADC = PobierzCzas();
-	return chBłąd;
+	return cBłąd;
 }
 
 
@@ -67,7 +67,7 @@ uint8_t InicjujADC(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PomiarADC(uint8_t chKanal)
 {
-	uint8_t chBłąd = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	ADC_ChannelConfTypeDef sConfig = {0};
 
 	sConfig.Rank = ADC_REGULAR_RANK_1;
@@ -83,7 +83,7 @@ uint8_t PomiarADC(uint8_t chKanal)
 	//zmierz napięcia na zewnętrznych wejściach ADC
 	if (chKanal < 8)
 	{
-		chBłąd |= HAL_ADC_Start_IT(&hadc2);		//pomiar ADC2 tylko dla 8 pierwszych kanałów
+		cBłąd |= HAL_ADC_Start_IT(&hadc2);		//pomiar ADC2 tylko dla 8 pierwszych kanałów
 		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1
 	}
 
@@ -96,9 +96,9 @@ uint8_t PomiarADC(uint8_t chKanal)
 	default: sConfig.Channel = ADC_CHANNEL_6;		//ustawienie ADC3 na wyjscie multipleksera
 	}
 	HAL_ADC_ConfigChannel(&hadc3, &sConfig);
-	chBłąd |= HAL_ADC_Start_IT(&hadc3);
+	cBłąd |= HAL_ADC_Start_IT(&hadc3);
 	//HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_SET);	//serwo kanał 7
-	return chBłąd;
+	return cBłąd;
 }
 
 

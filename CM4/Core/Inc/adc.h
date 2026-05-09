@@ -8,7 +8,7 @@
 #ifndef INC_ADC_H_
 #define INC_ADC_H_
 
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 
 #define VREF	3.0f	//napiecie referencyjne przetwornika a/c

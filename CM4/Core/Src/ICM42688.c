@@ -7,11 +7,10 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "ICM42688.h"
-#include "wymiana_CM4.h"
-#include "petla_glowna.h"
+#include "WymianaCM4.h"
+#include "PetlaGlowna.h"
 #include "main.h"
-#include "petla_glowna.h"
-#include "modul_IiP.h"
+#include "Modul_I2P.h"
 #include "spi.h"
 
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -98,13 +97,13 @@ uint8_t InicjujICM42688(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaICM42688(void)
 {
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	uint8_t chDane[15];
 	float fPrzesuniecieZyro[3];
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_ICM42688) != INIT_ICM42688)	//jeżeli czujnik nie jest zainicjowany
 	{
-		chErr = InicjujICM42688();
+		cBłąd = InicjujICM42688();
 	}
 	else	//odczytaj hurtem wszystkie 7 16-bitowych rejestrów
 	{
@@ -128,5 +127,5 @@ uint8_t ObslugaICM42688(void)
 				uDaneCM4.dane.fZyroKal1[n] = uDaneCM4.dane.fZyroSur1[n] * fMnożnikŻyro1[n] - fPrzesuniecieZyro[n];		//żyro po kalibracji przesuniecia i skalowania
 		}
 	}
-	return chErr;
+	return cBłąd;
 }

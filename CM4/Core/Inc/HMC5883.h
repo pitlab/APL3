@@ -1,7 +1,7 @@
 #ifndef INC_HMC5883_H_
 #define INC_HMC5883_H_
 
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 #define CONF_A  00  //R/W Configuration Register A
 #define CONF_B  01  //R/W Configuration Register B

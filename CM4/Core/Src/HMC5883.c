@@ -7,9 +7,9 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "HMC5883.h"
-#include "wymiana_CM4.h"
-#include "fram.h"
-#include "konfig_fram.h"
+#include "WymianaCM4.h"
+#include "Fram.h"
+#include "KonfigFram.h"
 
 //definicje zmiennych
 
@@ -38,12 +38,12 @@ float fPrzesMagn3[3], fSkaloMagn3[3];
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujMagnetometrHMC(void)
 {
-	uint8_t chBlad;
+	uint8_t cBłąd;
 
     //sprawdź obecność magnetometru na magistrali I2C
-	chBlad = SprawdzObecnoscHMC5883();
-    if (chBlad)
-    	return chBlad;
+	cBłąd = SprawdzObecnoscHMC5883();
+    if (cBłąd)
+    	return cBłąd;
 
     chDaneMagHMC[0] = CONF_A;
     //Ustaw tryb pracy na 30Hz
@@ -57,16 +57,16 @@ uint8_t InicjujMagnetometrHMC(void)
     //Mode Register
     chDaneMagHMC[3] = 	(0 << 0)|   //Mode Select:0=Continuous-Measurement Mode, 1=Single-Measurement Mode, 2-3=Idle Mode.
               	  	  	(0 << 2);   //Bits 2-7 must be cleared for correct operation.
-    chBlad = HAL_I2C_Master_Transmit(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 4, MAG_TIMEOUT);		//zapisz 3 rejestry jedną transmisją
-    if (chBlad)
-    	return chBlad;
+    cBłąd = HAL_I2C_Master_Transmit(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 4, MAG_TIMEOUT);		//zapisz 3 rejestry jedną transmisją
+    if (cBłąd)
+    	return cBłąd;
 
     for (uint16_t n=0; n<3; n++)
     {
-    	chBlad |= CzytajFramFloatZWalidacja(FAH_MAGN3_SKLADNIK_X + 4*n, &fPrzesMagn3[n], VMIN_SKLADNIK_MAGN, VMAX_SKLADNIK_MAGN, VDOM_SKLADNIK_MAGN);
-    	chBlad |= CzytajFramFloatZWalidacja(FAH_MAGN3_MNOZNIK_X + 4*n, &fSkaloMagn3[n], VMIN_MNOZNIK_MAGN, VMAX_MNOZNIK_MAGN, VDOM_MNOZNIK_MAGN);
+    	cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN3_SKLADNIK_X + 4*n, &fPrzesMagn3[n], VMIN_SKLADNIK_MAGN, VMAX_SKLADNIK_MAGN, VDOM_SKLADNIK_MAGN);
+    	cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN3_MNOZNIK_X + 4*n, &fSkaloMagn3[n], VMIN_MNOZNIK_MAGN, VMAX_MNOZNIK_MAGN, VDOM_MNOZNIK_MAGN);
     }
-    return chBlad;
+    return cBłąd;
 }
 
 
@@ -80,14 +80,14 @@ uint8_t InicjujMagnetometrHMC(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t SprawdzObecnoscHMC5883(void)
 {
-	uint8_t chBlad;
+	uint8_t cBłąd;
 
 	chDaneMagHMC[0] = ID_A;
-	chBlad = HAL_I2C_Master_Transmit(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 1, MAG_TIMEOUT);	//wyślij polecenie odczytu rejestrów identyfikacyjnych
-    if (!chBlad)
+	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 1, MAG_TIMEOUT);	//wyślij polecenie odczytu rejestrów identyfikacyjnych
+    if (!cBłąd)
     {
-    	chBlad =  HAL_I2C_Master_Receive(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 3, MAG_TIMEOUT);		//odczytaj dane
-        if (!chBlad)
+    	cBłąd =  HAL_I2C_Master_Receive(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 3, MAG_TIMEOUT);		//odczytaj dane
+        if (!cBłąd)
         {
         	if ((chDaneMagHMC[0] == 'H') && (chDaneMagHMC[1] == '4') && (chDaneMagHMC[2] == '3'))
         	{
@@ -110,7 +110,7 @@ uint8_t SprawdzObecnoscHMC5883(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaHMC5883(void)
 {
-	uint8_t chBlad = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_HMC5883)
 		return BLAD_BRAK_MAGETOMETRU;
@@ -121,8 +121,8 @@ uint8_t ObslugaHMC5883(void)
 		if (chSekwencjaPomiaruHMC < MAX_PROB_INICJALIZACJI)
 		{
 			chSekwencjaPomiaruHMC++;
-			chBlad = InicjujMagnetometrHMC();
-			if (chBlad == BLAD_OK)
+			cBłąd = InicjujMagnetometrHMC();
+			if (cBłąd == BLAD_OK)
 			{
 				uDaneCM4.dane.nZainicjowano |= INIT_HMC5883;
 				chSekwencjaPomiaruHMC = 0;
@@ -131,9 +131,9 @@ uint8_t ObslugaHMC5883(void)
 		else
 		{
 			uDaneCM4.dane.nBrakCzujnika |= INIT_HMC5883;
-			chBlad = BLAD_BRAK_MAGETOMETRU;
+			cBłąd = BLAD_BRAK_MAGETOMETRU;
 		}
-		return chBlad;
+		return cBłąd;
 	}
 
 	switch (chSekwencjaPomiaruHMC)
@@ -141,16 +141,16 @@ uint8_t ObslugaHMC5883(void)
 	case 0:		//startuj pomiar
 		chPoleceniaHMC[0] = MODE;
 		chPoleceniaHMC[1] = (1 << 0);   //Mode Select:0=Continuous-Measurement Mode, 1=Single-Measurement Mode, 2-3=Idle Mode.
-		chBlad = HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chPoleceniaHMC, 2);
+		cBłąd = HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chPoleceniaHMC, 2);
 	    break;
 
 	case 1:	//startuj odczyt
 		chPoleceniaHMC[0] = DATA_XH;
-		chBlad = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chPoleceniaHMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
+		cBłąd = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chPoleceniaHMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
 		break;
 
 	case 2:
-		chBlad = HAL_I2C_Master_Seq_Receive_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 6, I2C_LAST_FRAME);		//odczytaj status i zakończ STOP
+		cBłąd = HAL_I2C_Master_Seq_Receive_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 6, I2C_LAST_FRAME);		//odczytaj status i zakończ STOP
 		chCzujnikOdczytywanyNaI2CExt = MAG_HMC;		//informacja o tym jak mają być interpretowane dane odebrane w HAL_I2C_MasterRxCpltCallback()
 		break;
 
@@ -159,6 +159,6 @@ uint8_t ObslugaHMC5883(void)
 	chSekwencjaPomiaruHMC++;
 	if (chSekwencjaPomiaruHMC >= 3)
 		chSekwencjaPomiaruHMC = 0;
-	return chBlad;
+	return cBłąd;
 }
 

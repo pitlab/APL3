@@ -7,11 +7,10 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include <MMC3416x.h>
-#include "wymiana_CM4.h"
-#include "petla_glowna.h"
+#include "WymianaCM4.h"
+#include "PetlaGlowna.h"
 #include "main.h"
-#include "fram.h"
-#include "konfig_fram.h"
+#include "Fram.h"
 
 
 
@@ -41,14 +40,14 @@ float fPrzesMagn2[3], fSkaloMagn2[3];
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujMMC3416x(void)
 {
-	uint8_t chBlad;
+	uint8_t cBłąd;
 
 	chPolWychMagMMC[0] = PMMC3416_PRODUCT_ID;
-	chBlad = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 1, TOUT_I2C4_2B);	//wyślij polecenie odczytu rejestru identyfikacyjnego
-	if (!chBlad)
+	cBłąd = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 1, TOUT_I2C4_2B);	//wyślij polecenie odczytu rejestru identyfikacyjnego
+	if (!cBłąd)
 	{
-		chBlad =  HAL_I2C_Master_Receive(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 1, TOUT_I2C4_2B);		//odczytaj dane
-		if (!chBlad)
+		cBłąd =  HAL_I2C_Master_Receive(&hi2c4, MMC34160_I2C_ADR + READ, chDaneMagMMC, 1, TOUT_I2C4_2B);		//odczytaj dane
+		if (!cBłąd)
 		{
 			if (chDaneMagMMC[0] == 0x06)	//czy zgadza się ID
 			{
@@ -60,9 +59,9 @@ uint8_t InicjujMMC3416x(void)
 								  (0 << 5) |	//SET
 								  (0 << 6) |	//RESET
 								  (0 << 7);		//Refill Cap Writing “1” will recharge the capacitor at CAP pin, it is requested to be issued before SET/RESET command.
-				chBlad = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 2, TOUT_I2C4_2B);	//wyślij polecenie wykonania pomiaru
-				if (chBlad)
-					return chBlad;
+				cBłąd = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 2, TOUT_I2C4_2B);	//wyślij polecenie wykonania pomiaru
+				if (cBłąd)
+					return cBłąd;
 
 				chPolWychMagMMC[0] = PMMC3416_INT_CTRL1;
 				chPolWychMagMMC[1] = (0 << 0) |	//BW0..1 Output resolution:	0=16 bits, 7.92 mS; 1=16 bits, 4.08 mS; 2=14 bits, 2.16 mS; 3= 12 bits, 1.20 mS
@@ -72,21 +71,21 @@ uint8_t InicjujMMC3416x(void)
 								  (0 << 5) |	//ST_XYZ Selftest check, write “1” to this bit and execute a TM command, after TM is completed the result can be read as bit ST_XYZ_OK.
 								  (0 << 6) |	//Temp_tst - Factory-use Register
 								  (0 << 7);		//SW_RST Writing “1”will cause the part to reset, similar to power-up. It will clear all registers and also re-read OTP as part of its startup routine.
-				chBlad = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 2, TOUT_I2C4_2B);	//wyślij polecenie wykonania pomiaru
-				if (!chBlad)
-					return chBlad;
+				cBłąd = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 2, TOUT_I2C4_2B);	//wyślij polecenie wykonania pomiaru
+				if (!cBłąd)
+					return cBłąd;
 
 				for (uint16_t n=0; n<3; n++)
 				{
-					chBlad |= CzytajFramFloatZWalidacja(FAH_MAGN2_SKLADNIK_X + 4*n, &fPrzesMagn2[n], VMIN_SKLADNIK_MAGN, VMAX_SKLADNIK_MAGN, VDOM_SKLADNIK_MAGN);
-					chBlad |= CzytajFramFloatZWalidacja(FAH_MAGN2_MNOZNIK_X + 4*n, &fSkaloMagn2[n], VMIN_MNOZNIK_MAGN, VMAX_MNOZNIK_MAGN, VDOM_MNOZNIK_MAGN);
+					cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN2_SKLADNIK_X + 4*n, &fPrzesMagn2[n], VMIN_SKLADNIK_MAGN, VMAX_SKLADNIK_MAGN, VDOM_SKLADNIK_MAGN);
+					cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN2_MNOZNIK_X + 4*n, &fSkaloMagn2[n], VMIN_MNOZNIK_MAGN, VMAX_MNOZNIK_MAGN, VDOM_MNOZNIK_MAGN);
 				}
 			}
 			else
-				chBlad = ERR_BRAK_MMC34160;
+				cBłąd = ERR_BRAK_MMC34160;
 		}
 	}
-	return chBlad;
+	return cBłąd;
 }
 
 
@@ -101,7 +100,7 @@ uint8_t InicjujMMC3416x(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaMMC3416x(void)
 {
-	uint8_t chBlad = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 
 	//po MAX_PROB_INICJALIZACJI ustawiany jest bit braku czujnika. Taki czujnik nie jest dłużej obsługiwany
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_MMC34160)
@@ -112,8 +111,8 @@ uint8_t ObslugaMMC3416x(void)
 		if (chSekwencjaPomiaruMMC < MAX_PROB_INICJALIZACJI)		//W trakcie inicjalizacji chSekwencjaPomiaruMMC pełni rolę licznika prób inicjalizacji
 		{
 			chSekwencjaPomiaruMMC++;
-			chBlad = InicjujMMC3416x();
-			if (chBlad == BLAD_OK)
+			cBłąd = InicjujMMC3416x();
+			if (cBłąd == BLAD_OK)
 			{
 				uDaneCM4.dane.nZainicjowano |= INIT_MMC34160;
 				chSekwencjaPomiaruMMC = 0;
@@ -122,16 +121,16 @@ uint8_t ObslugaMMC3416x(void)
 		else
 		{
 			uDaneCM4.dane.nBrakCzujnika |= INIT_MMC34160;
-			chBlad = ERR_BRAK_MMC34160;
+			cBłąd = ERR_BRAK_MMC34160;
 		}
-		return chBlad;
+		return cBłąd;
 	}
 
 	switch (chSekwencjaPomiaruMMC)
 	{
 	case SPMMC3416_REFIL_SET:		//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia SET
 	case SPMMC3416_REFIL_RESET:		//wyślij polecenie rozpoczęcia ładowania kondensatora do polecenia RESET
-		chBlad = PolecenieMMC3416x(POL_REFILL);
+		cBłąd = PolecenieMMC3416x(POL_REFILL);
 		chLicznikOczekiwania = 10;
 		break;
 
@@ -143,21 +142,21 @@ uint8_t ObslugaMMC3416x(void)
 		break;
 
 	case SPMMC3416_SET:				//wyślij polecenie SET
-		chBlad = PolecenieMMC3416x(POL_SET);
+		cBłąd = PolecenieMMC3416x(POL_SET);
 		chLicznikOczekiwania = CYKLI_PRZEMAGNSOWANIA_MMC;
 		break;
 
 	case SPMMC3416_START_POM_HP:	//wyślij polecenie wykonania pomiaru H+
 	case SPMMC3416_START_POM_HM:	//wyślij polecenie wykonania pomiaru H-
 		chRodzajPomiaruMMC = chSekwencjaPomiaruMMC;
-		chBlad = PolecenieMMC3416x(POL_TM);
+		cBłąd = PolecenieMMC3416x(POL_TM);
 		break;
 
 	case SPMMC3416_START_STAT_P:	//wyślij polecenie odczytania statusu
 	case SPMMC3416_START_STAT_M:	//wyślij polecenie odczytania statusu
 		chPolWychMagMMC[0] = PMMC3416_STATUS;
 		chCzujnikZapisywanyNaI2CInt = MAG_MMC_STATUS;	//po zakończeniu uruchom drugą część transmisji dzielonej
-		chBlad = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu statusu nie kończąc transferu STOP-em
+		cBłąd = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu statusu nie kończąc transferu STOP-em
 		break;
 
 	case SPMMC3416_START_CZYT_HP:	//wyślij polecenie odczytu pomiaru H+
@@ -166,7 +165,7 @@ uint8_t ObslugaMMC3416x(void)
 		{
 			chPolWychMagMMC[0] = PMMC3416_XOUT_L;
 			chCzujnikZapisywanyNaI2CInt = MAG_MMC;	//po zakończeniu uruchom drugą część transmisji dzielonej
-			chBlad = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu danych nie kończąc transferu STOP-em
+			cBłąd = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu danych nie kończąc transferu STOP-em
 			chLicznikOczekiwania--;
 			if (chLicznikOczekiwania)		//wykonaj serię pomiarów między przemagnesowaniami
 				chSekwencjaPomiaruMMC -= 3;
@@ -186,7 +185,7 @@ uint8_t ObslugaMMC3416x(void)
 	if (chSekwencjaPomiaruMMC >= SPMMC3416_LICZ_OPERACJI)
 		chSekwencjaPomiaruMMC = 0;
 
-	return chBlad;
+	return cBłąd;
 }
 
 
@@ -199,7 +198,7 @@ uint8_t ObslugaMMC3416x(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PolecenieMMC3416x(uint8_t chPolecenie)
 {
-	uint8_t chBlad = ERR_BRAK_MMC34160;
+	uint8_t cBłąd = ERR_BRAK_MMC34160;
 
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)
 	{
@@ -207,9 +206,9 @@ uint8_t PolecenieMMC3416x(uint8_t chPolecenie)
 		chPolWychMagMMC[1] = chPolecenie |	//bit zdefiniowany w pliku h
 						 (0 << 1) |	//Continuous Measurement Mode On
 						 (3 << 2);	//CM Freq0..1 How often the chip will take measurements in Continuous Measurement Mode: 0=1,5Hz, 1=13Hz, 2=25Hz, 3=50Hz
-		chBlad = HAL_I2C_Master_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 2);	//wyślij polecenie wykonania pomiaru
+		cBłąd = HAL_I2C_Master_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, chPolWychMagMMC, 2);	//wyślij polecenie wykonania pomiaru
 	}
-	return chBlad;
+	return cBłąd;
 }
 
 

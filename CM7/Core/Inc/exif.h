@@ -8,9 +8,9 @@
 #ifndef INC_EXIF_H_
 #define INC_EXIF_H_
 
-#include "sys_def_CM7.h"
+#include "SysDefCM7.h"
 #include "kamera.h"
-#include "wymiana.h"
+#include "Wymiana.h"
 
 
 

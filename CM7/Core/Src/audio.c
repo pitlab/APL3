@@ -6,14 +6,14 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include <RPi35B_480x320.h>
-#include "audio.h"
+#include "Audio.h"
 #include "LCD.h"
 #include <stdio.h>
-#include "moduly_SPI.h"
+#include "ModulySPI.h"
 #include "cmsis_os.h"
 #include "rysuj.h"
-#include "sample_audio.h"
-#include "wymiana_CM7.h"
+#include "SampleAudio.h"
+#include "WymianaCM7.h"
 
 
 //Słowniczek:
@@ -58,7 +58,7 @@ extern unia_wymianyCM7_t uDaneCM7;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujAudio(void)
 {
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 
 	//domyslnie ustaw wejscia ShutDown tak aby aktywny był wzmacniacz
 	//chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
@@ -67,8 +67,8 @@ uint8_t InicjujAudio(void)
 	chWskNapKolKom = chWskOprKolKom = 0;
 	nZainicjowanoCM7 |= INIT_AUDIO;
 
-	chErr = OdtworzProbkeAudioZeSpisu(PGA_GOTOWY_SLUZYC);	//komunikat powitalny, sprawdzajacy czy audio działa
-	return chErr;
+	cBłąd = OdtworzProbkeAudioZeSpisu(PGA_GOTOWY_SLUZYC);	//komunikat powitalny, sprawdzajacy czy audio działa
+	return cBłąd;
 }
 
 
@@ -80,17 +80,17 @@ uint8_t InicjujAudio(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaWymowyKomunikatu(void)
 {
-	uint8_t chErr;
+	uint8_t cBłąd;
 
 	if ((chWskNapKolKom == chWskOprKolKom) || chGlosnikJestZajęty || ((nZainicjowanoCM7 & INIT_AUDIO) != INIT_AUDIO))
 		return BLAD_OK;		//nie ma nic do wymówienia lub nie skonfigurowane
 
 	//pobierz kolejną próbkę do wymówienia i zacznij wymowę
-	chErr = OdtworzProbkeAudioZeSpisu(chKolejkaKomunkatow[chWskOprKolKom++]);
+	cBłąd = OdtworzProbkeAudioZeSpisu(chKolejkaKomunkatow[chWskOprKolKom++]);
 	if (chWskOprKolKom >= ROZM_KOLEJKI_KOMUNIKATOW)
 		chWskOprKolKom = 0;
 
-	return chErr;
+	return cBłąd;
 }
 
 
@@ -141,7 +141,7 @@ uint8_t PrzepiszProbkeDoDRAM(uint8_t chNrProbki)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 {
-	uint8_t chErr;
+	uint8_t cBłąd;
 	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 
 	if ((nAdres < ADR_POCZATKU_KOM_AUDIO) || (nAdres > ADR_KONCA_KOM_AUDIO))
@@ -166,8 +166,8 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 	}
 	nRozmiarProbki -= nRozmiar;
 
-	chErr = HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, (uint16_t)ROZMIAR_BUFORA_AUDIO);
-	return chErr;
+	cBłąd = HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, (uint16_t)ROZMIAR_BUFORA_AUDIO);
+	return cBłąd;
 }
 
 
@@ -329,14 +329,14 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujOdtwarzanieDzwieku(void)
 {
-	uint8_t chErr;
+	uint8_t cBłąd;
 
 	if (chPort_exp_wysylany[1] & EXP13_AUDIO_IN_SD)		//jeżeli aktywny jest mikrofon
 	{
 		//Włącza wzmacniacz, wyłącza mikrofon
 		chPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - ShutDown wzmacniacza audio, aktywny niski
 		chPort_exp_wysylany[1] &= ~EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD  - ShutDown mikrofonu, aktywny niskii
-		chErr = WyslijDaneExpandera(chAdres_expandera[1], chPort_exp_wysylany[1]);
+		cBłąd = WyslijDaneExpandera(chAdres_expandera[1], chPort_exp_wysylany[1]);
 	}
 
 	hsai_BlockB2.Instance = SAI2_Block_B;
@@ -351,8 +351,8 @@ uint8_t InicjujOdtwarzanieDzwieku(void)
 	hsai_BlockB2.Init.MonoStereoMode = SAI_MONOMODE;
 	hsai_BlockB2.Init.CompandingMode = SAI_NOCOMPANDING;
 	hsai_BlockB2.Init.TriState = SAI_OUTPUT_RELEASED;
-	chErr = HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BIT, 2);
-	return chErr;
+	cBłąd = HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BIT, 2);
+	return cBłąd;
 }
 
 
@@ -363,14 +363,14 @@ uint8_t InicjujOdtwarzanieDzwieku(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujRejestracjeDzwieku(void)
 {
-	uint8_t chErr;
+	uint8_t cBłąd;
 
 	if (chPort_exp_wysylany[1] & EXP14_AUDIO_OUT_SD)	//jeżeli aktywny jest wzmacniacz
 	{
 		//Włącza mikrofon wyłącza wzmacniacz
 		chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - ShutDown mikrofonu, aktywny niski
 		chPort_exp_wysylany[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - ShutDown wzmacniacza audio, aktywny niski
-		chErr = WyslijDaneExpandera(chAdres_expandera[1], chPort_exp_wysylany[1]);
+		cBłąd = WyslijDaneExpandera(chAdres_expandera[1], chPort_exp_wysylany[1]);
 	}
 	osDelay(10);	//czas na stabilizcję napięcia na mikrofonie
 
@@ -384,18 +384,18 @@ uint8_t InicjujRejestracjeDzwieku(void)
 	hsai_BlockB2.Init.SynchroExt = SAI_SYNCEXT_DISABLE;
 	hsai_BlockB2.Init.MonoStereoMode = SAI_MONOMODE;
 	hsai_BlockB2.Init.CompandingMode = SAI_NOCOMPANDING;
-	chErr = HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BITEXTENDED, 2);	//dane w 2 słowach
-	//chErr = HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_24BIT, 2);
-	return chErr;
+	cBłąd = HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_16BITEXTENDED, 2);	//dane w 2 słowach
+	//cBłąd = HAL_SAI_InitProtocol(&hsai_BlockB2, SAI_I2S_STANDARD, SAI_PROTOCOL_DATASIZE_24BIT, 2);
+	return cBłąd;
 }
 
 
 
 uint8_t NapelnijBuforDzwieku(int16_t *sBufor, uint16_t sRozmiar)
 {
-	uint8_t chErr;
-	chErr = HAL_SAI_Receive(&hsai_BlockB2, (uint8_t*)sBufor, sRozmiar, 100+sRozmiar/16);
-	return chErr;
+	uint8_t cBłąd;
+	cBłąd = HAL_SAI_Receive(&hsai_BlockB2, (uint8_t*)sBufor, sRozmiar, 100+sRozmiar/16);
+	return cBłąd;
 }
 //void HAL_SAI_RxCpltCallback(SAI_HandleTypeDef *hsai)
 
@@ -466,7 +466,7 @@ void ZatrzymajTon(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 {
-	uint8_t chErr;
+	uint8_t cBłąd;
 	float fLiczba;
 	uint8_t chCyfra;
 	uint8_t chFormaGramatyczna = 0;
@@ -477,13 +477,13 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	//dodaj nagłówek komunikatu
 	switch(chTypKomunikatu)
 	{
-	case KOMG_WYSOKOSC:		chErr = DodajProbkeDoKolejki(PGA_WYSOKOSC);	break;
-	case KOMG_NAPIECIE:		chErr = DodajProbkeDoKolejki(PGA_NAPIECIE);	break;
-	case KOMG_TEMPERATURA:	chErr = DodajProbkeDoKolejki(PGA_TEMPERATURA);	break;
-	case KOMG_PREDKOSC:		chErr = DodajProbkeDoKolejki(PGA_PREDKOSC);	break;
-	case KOMG_KIERUNEK:		chErr = DodajProbkeDoKolejki(PGA_KIERUNEK);	break;
-	case KOMG_UZBROJONE:	chErr = DodajProbkeDoKolejki(PGA_UZBROJONY);	break;
-	case KOMG_ROZBROJONE:	chErr = DodajProbkeDoKolejki(PGA_ROZBROJONY);	break;
+	case KOMG_WYSOKOSC:		cBłąd = DodajProbkeDoKolejki(PGA_WYSOKOSC);	break;
+	case KOMG_NAPIECIE:		cBłąd = DodajProbkeDoKolejki(PGA_NAPIECIE);	break;
+	case KOMG_TEMPERATURA:	cBłąd = DodajProbkeDoKolejki(PGA_TEMPERATURA);	break;
+	case KOMG_PREDKOSC:		cBłąd = DodajProbkeDoKolejki(PGA_PREDKOSC);	break;
+	case KOMG_KIERUNEK:		cBłąd = DodajProbkeDoKolejki(PGA_KIERUNEK);	break;
+	case KOMG_UZBROJONE:	cBłąd = DodajProbkeDoKolejki(PGA_UZBROJONY);	break;
+	case KOMG_ROZBROJONE:	cBłąd = DodajProbkeDoKolejki(PGA_ROZBROJONY);	break;
 
 
 	default:	break;
@@ -501,7 +501,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 		fLiczba = floorf(fWartosc / 100000);
 		chCyfra = (uint8_t)fLiczba;
-		chErr = DodajProbkeDoKolejki(PGA_100 + chCyfra - 1);
+		cBłąd = DodajProbkeDoKolejki(PGA_100 + chCyfra - 1);
 		fWartosc -= chCyfra * 100000;
 		chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
 	}
@@ -510,7 +510,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 		fLiczba = floorf(fWartosc / 10000);
 		chCyfra = (uint8_t)fLiczba;
-		chErr = DodajProbkeDoKolejki(PGA_20 + chCyfra - 2);
+		cBłąd = DodajProbkeDoKolejki(PGA_20 + chCyfra - 2);
 		fWartosc -= chCyfra * 10000;
 		chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
 	}
@@ -519,7 +519,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 		fLiczba = floorf(fWartosc / 1000);
 		chCyfra = (uint8_t)fLiczba;
-		chErr = DodajProbkeDoKolejki(PGA_10 + chCyfra - 10);
+		cBłąd = DodajProbkeDoKolejki(PGA_10 + chCyfra - 10);
  		fWartosc -= chCyfra * 1000;
 		chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
 	}
@@ -529,7 +529,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 		fLiczba = floorf(fWartosc / 1000);
 		chCyfra = (uint8_t)fLiczba;
 		if ((chFormaGramatyczna) || (chCyfra > 1))	//nie dodawaj "jeden" przed "tysiąc", ale tylko gdy nie ma starszych cyfr
-			chErr = DodajProbkeDoKolejki(PGA_01 + chCyfra - 1);
+			cBłąd = DodajProbkeDoKolejki(PGA_01 + chCyfra - 1);
 		fWartosc -= chCyfra * 1000;
 		if (chCyfra >= 5)
 			chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
@@ -543,7 +543,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 
 	if (chFormaGramatyczna)		//jeżeli chFormaGramatyczna jest niezerowa to wystąpiły tysiace i trzeba je wymówić w odpowiedniej formie
 	{
-		chErr = DodajProbkeDoKolejki(PGA_TYSIAC + chFormaGramatyczna - 1);	//dodaj słowo tysiąc w odpowiedniej formie
+		cBłąd = DodajProbkeDoKolejki(PGA_TYSIAC + chFormaGramatyczna - 1);	//dodaj słowo tysiąc w odpowiedniej formie
 		chFormaGramatyczna = 0;
 	}
 
@@ -551,7 +551,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 		fLiczba = floorf(fWartosc / 100);
 		chCyfra = (uint8_t)fLiczba;
-		chErr = DodajProbkeDoKolejki(PGA_100 + chCyfra - 1);
+		cBłąd = DodajProbkeDoKolejki(PGA_100 + chCyfra - 1);
 		fWartosc -= chCyfra * 100;
 		chFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
 	}
@@ -560,7 +560,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 		fLiczba = floorf(fWartosc / 10);
 		chCyfra = (uint8_t)fLiczba;
-		chErr = DodajProbkeDoKolejki(PGA_20 + chCyfra - 2);
+		cBłąd = DodajProbkeDoKolejki(PGA_20 + chCyfra - 2);
 		fWartosc -= chCyfra * 10;
 		chFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
 	}
@@ -568,7 +568,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	if (fWartosc >= 10)		//kilkanascie
 	{
 		chCyfra = (uint8_t)fWartosc;
-		chErr = DodajProbkeDoKolejki(PGA_10 + chCyfra - 10);
+		cBłąd = DodajProbkeDoKolejki(PGA_10 + chCyfra - 10);
 		fWartosc -= chCyfra;
 		chFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
 	}
@@ -576,7 +576,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	if (fWartosc >= 1.0f)		//jednostki
 	{
 		chCyfra = (uint8_t)fWartosc;
-		chErr = DodajProbkeDoKolejki(PGA_01 + chCyfra - 1);
+		cBłąd = DodajProbkeDoKolejki(PGA_01 + chCyfra - 1);
 		fWartosc -= chCyfra;
 		if (chCyfra >= 5)
 			chFormaGramatyczna = 4;		//jednostka w liczbie >=5 woltów, metrów
@@ -592,13 +592,13 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	{
 		uint8_t chFormaDziesiatych;
 
-		chErr = DodajProbkeDoKolejki(PGA_I);
+		cBłąd = DodajProbkeDoKolejki(PGA_I);
 		fLiczba = roundf(fWartosc * 10);	//ponieważ to ostatnia znacząca cyfra więc potrzebne zaokrąglenie a nie obcięcie
 		chCyfra = (uint8_t)fLiczba;
 		if (chCyfra > 2)
-			chErr = DodajProbkeDoKolejki(PGA_01 + chCyfra - 1);
+			cBłąd = DodajProbkeDoKolejki(PGA_01 + chCyfra - 1);
 		else
-			chErr = DodajProbkeDoKolejki(PGA_JEDNA + chCyfra - 1);	//specyficzna wymowa dla jedna i dwie dziesiate
+			cBłąd = DodajProbkeDoKolejki(PGA_JEDNA + chCyfra - 1);	//specyficzna wymowa dla jedna i dwie dziesiate
 
 		if (chCyfra >= 5)
 			chFormaDziesiatych = 2;		//jednostka w liczbie >=5: dziesiatych
@@ -608,22 +608,22 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 			else
 				chFormaDziesiatych = 0;		//jednostka w liczbie == 1: dziesiąta
 
-		chErr = DodajProbkeDoKolejki(PGA_DZIESIATA + chFormaDziesiatych);
+		cBłąd = DodajProbkeDoKolejki(PGA_DZIESIATA + chFormaDziesiatych);
 		chFormaGramatyczna = 1;		//jednostka w liczbie <1: wolta, metra
 	}
 
 	//dodaj jednostkę
 	switch(chTypKomunikatu)
 	{
-	case KOMG_WYSOKOSC:		chErr = DodajProbkeDoKolejki(PGA_METRA + chFormaGramatyczna - 1);	break;
-	case KOMG_NAPIECIE:		chErr = DodajProbkeDoKolejki(PGA_WOLTA + chFormaGramatyczna - 1);	break;
+	case KOMG_WYSOKOSC:		cBłąd = DodajProbkeDoKolejki(PGA_METRA + chFormaGramatyczna - 1);	break;
+	case KOMG_NAPIECIE:		cBłąd = DodajProbkeDoKolejki(PGA_WOLTA + chFormaGramatyczna - 1);	break;
 	case KOMG_KIERUNEK:
-	case KOMG_TEMPERATURA:	chErr = DodajProbkeDoKolejki(PGA_STOPNIA + chFormaGramatyczna - 1);	break;
-	case KOMG_PREDKOSC:		chErr = DodajProbkeDoKolejki(PGA_METRA + chFormaGramatyczna - 1);
-							chErr += DodajProbkeDoKolejki(PGA_NA_SEKUNDE);	break;
+	case KOMG_TEMPERATURA:	cBłąd = DodajProbkeDoKolejki(PGA_STOPNIA + chFormaGramatyczna - 1);	break;
+	case KOMG_PREDKOSC:		cBłąd = DodajProbkeDoKolejki(PGA_METRA + chFormaGramatyczna - 1);
+							cBłąd += DodajProbkeDoKolejki(PGA_NA_SEKUNDE);	break;
 	default:	break;
 	}
-	return chErr;
+	return cBłąd;
 }
 
 

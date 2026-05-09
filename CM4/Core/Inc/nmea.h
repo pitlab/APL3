@@ -3,7 +3,7 @@
 
 
 
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 #define ST_ERR				0   //błąd w dekodowaniu, szukaj dalej
 #define ST_NAGLOWEK1		0   //wykryj znak $

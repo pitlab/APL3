@@ -5,8 +5,8 @@
  *      Author: PitLab
  */
 
-#include "pid_kanaly.h"
-#include "sys_def_CM4.h"
+#include "KanalyPID.h"
+#include "SysDefCM4.h"
 #include "wymiana.h"
 
 #ifndef INC_MIKSER_H_

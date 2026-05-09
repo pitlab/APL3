@@ -7,7 +7,7 @@
 
 #ifndef INC_MS4525_H_
 #define INC_MS4525_H_
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 
 //Adres I2C czujnika jest okreslony w nazwie symbolu 4525DO 5Ax gdzie x może być literą: I=0x28, J=0x36, K=0x46

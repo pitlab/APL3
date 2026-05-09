@@ -5,18 +5,18 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "dotyk.h"
+#include "Dotyk.h"
 #include <rysuj.h>
 #include <ili9488.h>
 #include <RPi35B_480x320.h>
-#include "moduly_SPI.h"
-#include "errcode.h"
+#include "ModulySPI.h"
+#include "KodyBledow.h"
 #include "LCD.h"
-#include "display.h"
-#include "sys_def_CM7.h"
+#include "Ekran.h"
+#include "SysDefCM7.h"
 #include <stdio.h>
 #include <string.h>
-#include "flash_konfig.h"
+#include "FlashKonfig.h"
 #include "semafory.h"
 #include "czas.h"
 #include "napisy.h"
@@ -95,7 +95,7 @@ uint8_t CzytajDotyk(void)
 	//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI5
 	nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
 	if (nStanSemaforaSPI)
-		return ERR_ZAJETY_SEMAFOR;
+		return BLAD_SEMAFOR_ZAJETY;
 	else
 	{
 		if (HAL_HSEM_Take(HSEM_SPI5_WYSW, 0) == BLAD_OK)
@@ -156,7 +156,7 @@ uint8_t CzytajDotyk(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibrujDotyk(void)
 {
-	uint8_t chErr = BLAD_OK;	//domyślny kod błedu;
+	uint8_t cBłąd = BLAD_OK;	//domyślny kod błedu;
 	uint16_t sKolor;
 
 	switch(chEtapKalibr)
@@ -233,8 +233,8 @@ uint8_t KalibrujDotyk(void)
 				KonwFloat2Char(kalibDotyku.fBx, &chDane[12]);
 				KonwFloat2Char(kalibDotyku.fBy, &chDane[16]);
 				KonwFloat2Char(kalibDotyku.fDeltaY, &chDane[20]);
-				chErr = ZapiszPaczkeKonfigu(FKON_KALIBRACJA_DOTYKU, chDane);
-				if (chErr == BLAD_OK)
+				cBłąd = ZapiszPaczkeKonfigu(FKON_KALIBRACJA_DOTYKU, chDane);
+				if (cBłąd == BLAD_OK)
 					statusDotyku.chFlagi |= DOTYK_ZAPISANO;
 				chEtapKalibr = 0;
 				WypelnijEkran(CZARNY);
@@ -263,7 +263,7 @@ uint8_t KalibrujDotyk(void)
 	sprintf(chNapis, "Z = %d   ", statusDotyku.sAdc[2]);
 	RysujNapis(chNapis, 80, 200);
 	setColor(sKolor);	//przywróć kolor
-	return chErr;
+	return cBłąd;
 }
 
 
@@ -521,7 +521,7 @@ uint8_t TestDotyku(void)
 uint8_t InicjujDotyk(void)
 {
 	uint8_t n, chPaczka[ROZMIAR_PACZKI_KONFIGU];
-	uint8_t chErr = ERR_BRAK_KONFIG;
+	uint8_t cBłąd = ERR_BRAK_KONFIG;
 	extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 
 	for (n=0; n<4; n++)
@@ -542,7 +542,7 @@ uint8_t InicjujDotyk(void)
 		kalibDotyku.fDeltaY = KonwChar2Float(&chPaczka[22]);
 
 		statusDotyku.chFlagi |= DOTYK_SKALIBROWANY;
-		chErr = BLAD_OK;
+		cBłąd = BLAD_OK;
 	}
 
 	//sprawdź obecność panelu dotykowego
@@ -550,12 +550,12 @@ uint8_t InicjujDotyk(void)
 	if (statusDotyku.sAdc[0] == 0x1FFF)		//taką wartość zwraca gdy nie ma podłączonego ekranu
 	{
 		nZainicjowanoCM7 &= ~INIT_DOTYK;
-		chErr = ERR_BRAK_DANYCH;
+		cBłąd = ERR_BRAK_DANYCH;
 	}
 	else
 		nZainicjowanoCM7 |= INIT_DOTYK;
 
-	return chErr;
+	return cBłąd;
 }
 
 

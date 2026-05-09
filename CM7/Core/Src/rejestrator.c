@@ -6,9 +6,9 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 
-#include "rejestrator.h"
+#include "Rejestrator.h"
 #include "bsp_driver_sd.h"
-#include "moduly_SPI.h"
+#include "ModulySPI.h"
 #include "wymiana.h"
 #include "kamera.h"
 #include "ff_gen_drv.h"
@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <jpeg.h>
 #include "czas.h"
-#include "display.h"
+#include "Ekran.h"
 #include "LCD.h"
 #include <ili9488.h>
 #include "exif.h"
@@ -83,7 +83,7 @@ void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 {
 	extern uint8_t chPort_exp_wysylany[];
 	extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
-	uint8_t chErr;
+	uint8_t cBłąd;
 
 	//Może być wywoływany przez inicjalizacją Expanderów, więc sprawdź czy expandery są zainicjowane a jeżeli nie to najpierw je inicjalizuj
 	if ((nZainicjowanoCM7 & INIT_EXPANDER_IO) == 0)
@@ -97,11 +97,11 @@ void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 	//wysyłaj aż dane do ekspandera do skutku
 	do
 	{
-		chErr = WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
-		if (chErr == ERR_ZAJETY_SEMAFOR)	//czy SPi jest zajęte przez inny proces?
+		cBłąd = WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+		if (cBłąd == BLAD_SEMAFOR_ZAJETY)	//czy SPi jest zajęte przez inny proces?
 			osDelay(1);						//jeżeli tak to czekaj aż inny proces zakończy pracę
 	}
-	while (chErr != BLAD_OK);
+	while (cBłąd != BLAD_OK);
 }
 
 

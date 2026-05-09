@@ -8,7 +8,7 @@
 #ifndef INC_KWATERNIONY_H_
 #define INC_KWATERNIONY_H_
 
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 void MnozenieKwaternionow(float *q, float *p, float *wynik);
 void KwaternionNaMacierz(float *q, float *m);

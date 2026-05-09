@@ -8,8 +8,8 @@
 #ifndef INC_ODBIORNIKRC_H_
 #define INC_ODBIORNIKRC_H_
 
-#include "sys_def_CM4.h"
-#include "wymiana.h"
+#include "SysDefCM4.h"
+#include "Wymiana.h"
 
 
 #define OKRES_RAMKI_PPM_RC	30000	//Czas między kolejnymi ramkami PPM odbiornika RC [us]

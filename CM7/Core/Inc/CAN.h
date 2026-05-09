@@ -7,7 +7,7 @@
 
 #ifndef INC_CAN_H_
 #define INC_CAN_H_
-#include "sys_def_CM7.h"
+#include "SysDefCM7.h"
 
 
 #define ID_MAGNETOMETR	210

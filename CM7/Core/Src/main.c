@@ -74,18 +74,18 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "sys_def_CM7.h"
+#include "SysDefCM7.h"
 #include "LCD.h"
 #include "dotyk.h"
 #include "W25Q128JV.h"
-#include "flash_nor.h"
-#include "flash_konfig.h"
-#include "wymiana_CM7.h"
-#include "protokol_kom.h"
-#include "moduly_SPI.h"
-#include "audio.h"
+#include "FlashNOR.h"
+#include "FlashKonfig.h"
+#include "WymianaCM7.h"
+#include "ProtokolKomunikacyjny.h"
+#include "ModulySPI.h"
+#include "Audio.h"
 #include "rejestrator.h"
-#include "czas.h"
+#include "Czas.h"
 #include "can.h"
 #include "telemetria.h"
 #include "kamera.h"
@@ -93,13 +93,13 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include <RPi35B_480x320.h>
 #include <ili9488.h>
 #include <osd.h>
-#include "siec/serwer_tcp.h"
-#include "siec/serwerRTSP.h"
-#include "jpeg.h"
+#include "siec/SerwerTCP.h"
+#include "siec/SerwerRTSP.h"
+#include "Jpeg.h"
 #include "bmp.h"
 #include "osd.h"
 #include <poleceniaCM4.h>
-#include "fft.h"
+#include "FFT.h"
 
 /* USER CODE END Includes */
 
@@ -172,7 +172,7 @@ osThreadId tsSerwerTCPHandle;
 osThreadId tsSerwerRTSPHandle;
 /* USER CODE BEGIN PV */
 uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
-uint8_t chBłąd1, chBłąd = BLAD_OK;
+uint8_t cBłąd1, cBłąd = BLAD_OK;
 extern uint8_t chPort_exp_wysylany[];
 extern struct _statusDotyku statusDotyku;
 extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
@@ -356,38 +356,38 @@ Error_Handler();
 #endif
 
 
-  chBłąd |= InicjujSPIModZewn();
-  chBłąd |= InicjujFlashNOR();
-  //chBłąd |= SprawdzMagistrale(0x60000000);	//sprawdź pamięć SRAM - wyłączony od wersji 475
-  chBłąd |= SprawdzMagistrale(0xC0000000);	//sprawdź pamięć DRAM
-  //chBłąd |= InicjujFlashQSPI();
-  chBłąd |= InicjujKonfigFlash();
-  chBłąd = InicjujDotyk();
-  if (chBłąd != ERR_BRAK_DANYCH)		//wyświetlacz inicjalizuj tylko gdy wykryto sterownik panelu dotykowego
+  cBłąd |= InicjujSPIModZewn();
+  cBłąd |= InicjujFlashNOR();
+  //cBłąd |= SprawdzMagistrale(0x60000000);	//sprawdź pamięć SRAM - wyłączony od wersji 475
+  cBłąd |= SprawdzMagistrale(0xC0000000);	//sprawdź pamięć DRAM
+  //cBłąd |= InicjujFlashQSPI();
+  cBłąd |= InicjujKonfigFlash();
+  cBłąd = InicjujDotyk();
+  if (cBłąd != ERR_BRAK_DANYCH)		//wyświetlacz inicjalizuj tylko gdy wykryto sterownik panelu dotykowego
 #ifdef LCD_RPI35B
-	  chBłąd |= InicjujLCD_35B_16bit();
+	  cBłąd |= InicjujLCD_35B_16bit();
 #endif
 #ifdef LCD_RPI35C
-	  //chBłąd |= InicjujLCD_35C_16bit();
-  chBłąd |= InicjujLCD_35C_8bit();
+	  //cBłąd |= InicjujLCD_35C_16bit();
+  cBłąd |= InicjujLCD_35C_8bit();
 #endif
 #ifdef LCD_ILI9488
-  chBłąd = InicjujLCD_ILI9488();
+  cBłąd = InicjujLCD_ILI9488();
 #endif
   else
-	  chBłąd |= chBłąd1;
+	  cBłąd |= cBłąd1;
 
-  chBłąd |= InicjujProtokol();
-  chBłąd |= InicjujAudio();
+  cBłąd |= InicjujProtokol();
+  cBłąd |= InicjujAudio();
 
-  chBłąd |= InicjalizujKamere();
-  if (chBłąd != BLAD_OK)
+  cBłąd |= InicjalizujKamere();
+  if (cBłąd != BLAD_OK)
   	  chCzasSwieceniaLED[LED_CZER] = 50;	//świeć 5s
-  chBłąd |= InicjujOSD();
+  cBłąd |= InicjujOSD();
   InicjujMDMA();
   InicjujCAN();
-  chBłąd = CzytajDotyk();
-  if (chBłąd == BLAD_OK)
+  cBłąd = CzytajDotyk();
+  if (cBłąd == BLAD_OK)
   {
 	  if (statusDotyku.sAdc[2] > MIN_Z)			//jeżeli ekran jest dotknięty w czasie uruchamiania
 	  {
@@ -399,7 +399,7 @@ Error_Handler();
 		  chNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
 	  }
   }
-  chBłąd |= InicjalizujJpeg();
+  cBłąd |= InicjalizujJpeg();
   InicjujFFT();
 
   extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
@@ -1599,12 +1599,12 @@ void StartDefaultTask(void const * argument)
 		UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
 
 		//obsłuż międzyprocesorową wymianę danych
-		chBłąd += PobierzDaneWymiany_CM4();
-		chBłąd += UstawDaneWymiany_CM7();
-		if (chBłąd)		//sygnalizacja błędów wymiany
+		cBłąd += PobierzDaneWymiany_CM4();
+		cBłąd += UstawDaneWymiany_CM7();
+		if (cBłąd)		//sygnalizacja błędów wymiany
 		{
 			chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s
-			chBłąd = BLAD_OK;
+			cBłąd = BLAD_OK;
 		}
 
 		PobierzDaneDoFFT();
@@ -1614,8 +1614,8 @@ void StartDefaultTask(void const * argument)
 			SynchronizujCzasDoGNSS(&uDaneCM4.dane.stGnss1);
 
 
-		chBłąd = ObslugaPolecenCM4();	//obsłuż polecenia rdzenia CM4
-		if (chBłąd)		//sygnalizacja błędów
+		cBłąd = ObslugaPolecenCM4();	//obsłuż polecenia rdzenia CM4
+		if (cBłąd)		//sygnalizacja błędów
 			chCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
 
 		ObslugaWymowyKomunikatu();	//obsłuż wymowę komuniatów głosowych
@@ -1637,17 +1637,17 @@ void WatekOdbiorczyLPUART1(void const * argument)
   /* USER CODE BEGIN WatekOdbiorczyLPUART1 */
 	uint32_t nCzasTele, nCzasPoprzedniTele;
 	extern volatile st_ZajetośćLPUART_t st_ZajetośćLPUART;
-	uint8_t chBłąd;
+	uint8_t cBłąd;
 	uint8_t chDanychDoWysłania;
 	uint8_t chCzasDrzemki;
 	extern uint8_t chStatusPolaczenia;
 	uint8_t chStatusUART;
 
-	chBłąd = InicjalizacjaWatkuOdbiorczegoLPUART1();
+	cBłąd = InicjalizacjaWatkuOdbiorczegoLPUART1();
 	InicjalizacjaTelemetrii();
 	nCzasPoprzedniTele = PobierzCzasT6();
 
-	if (chBłąd)
+	if (cBłąd)
 	{
 		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
 		chStatusPolaczenia |= (STAT_POL_NIEAKTYWNY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
@@ -1660,8 +1660,8 @@ void WatekOdbiorczyLPUART1(void const * argument)
 		//w pierwszej kolejności obsłuż protokół komunikacyjny
 		if (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY)
 		{
-			chBłąd = ObslugaWatkuOdbiorczegoLPUART1();
-			if (chBłąd != BLAD_NIC_DO_ROBOTY)
+			cBłąd = ObslugaWatkuOdbiorczegoLPUART1();
+			if (cBłąd != BLAD_NIC_DO_ROBOTY)
 				osDelay(2);	//czas na obsługę ramki tylko wtedy gdy jest coś do wysłania
 		}
 
@@ -1804,8 +1804,8 @@ void WatekWyswietlacza(void const * argument)
 	{
 		if (nZainicjowanoCM7 & INIT_LCD480x320)		//obsłuż wyświetlacz tylko wtedy jest zainicjowany
 		{
-			chBłąd = RysujEkran();
-			if (chBłąd)
+			cBłąd = RysujEkran();
+			if (cBłąd)
 				chCzasSwieceniaLED[LED_ZIEL] = 3;	//x0,1s - sygnalizacja błędów obsługi poleceń
 		}
 		else
@@ -1845,9 +1845,9 @@ void WatekSerweraRTSP(void const * argument)
   /* USER CODE BEGIN WatekSerweraRTSP */
 	int nDeskryptorGniazdaPolaczenia;
 
-	err_t nErr;
-	nErr = OtworzPolaczenieSerweraRTSP(&nDeskryptorGniazdaPolaczenia);
-	if (nErr)
+	err_t cBłąd;
+	cBłąd = OtworzPolaczenieSerweraRTSP(&nDeskryptorGniazdaPolaczenia);
+	if (cBłąd)
 		return;
 
 	for(;;)

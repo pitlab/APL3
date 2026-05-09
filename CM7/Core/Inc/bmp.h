@@ -7,7 +7,7 @@
 
 #ifndef INC_BMP_H_
 #define INC_BMP_H_
-#include "sys_def_CM7.h"
+#include "SysDefCM7.h"
 
 //#define ROZMIAR_NAGLOWKA_BMP	54
 #define ROZMIAR_NAGLOWKA_BMP	64

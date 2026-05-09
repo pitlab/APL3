@@ -9,13 +9,13 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include <RPi35B_480x320.h>
-#include "display.h"
+#include "Ekran.h"
 #include "main.h"
-#include "moduly_SPI.h"
+#include "ModulySPI.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include "semafory.h"
+#include "Semafory.h"
 #include "cmsis_os.h"
 #include "LCD_SPI.h"
 

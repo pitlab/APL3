@@ -8,8 +8,8 @@
 #ifndef INC_TELEMETRIA_H_
 #define INC_TELEMETRIA_H_
 
-#include "sys_def_CM7.h"
-#include "polecenia_komunikacyjne.h"
+#include "SysDefCM7.h"
+#include "PoleceniaKomunikacyjne.h"
 
 //polecenia ramki PK_WSTRZYMAJ_TELEMETRIE służące do zarządzania strumieniem telemetrii
 #define TELEM_SZYBKA	2	//ma być transmitowana szybka ramka telemetryczna z wynikami FFT

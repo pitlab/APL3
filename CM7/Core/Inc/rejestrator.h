@@ -8,7 +8,7 @@
 #ifndef INC_REJESTRATOR_H_
 #define INC_REJESTRATOR_H_
 
-#include "sys_def_CM7.h"
+#include "SysDefCM7.h"
 
 #define DATA_SIZE              ((uint32_t)0x0640000U)
 #define BUFFER_SIZE            ((uint32_t)_MAX_SS)

@@ -8,8 +8,8 @@
 #ifndef INC_SBUS_H_
 #define INC_SBUS_H_
 
-#include "sys_def_CM4.h"
-#include "wymiana.h"
+#include "SysDefCM4.h"
+#include "Wymiana.h"
 
 #define ROZMIAR_BUF_ANA_SBUS	64
 #define MASKA_ROZM_BUF_ANA_SBUS	0x3F

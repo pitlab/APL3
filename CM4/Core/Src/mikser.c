@@ -6,9 +6,9 @@
 // (c) PitLab 2025
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "mikser.h"
-#include "fram.h"
-#include "pid.h"
+#include "Mikser.h"
+#include "FRAM.h"
+#include "RegulatorPID.h"
 
 stMikser_t stMikser;	//struktura zmiennych miksera
 uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
@@ -35,7 +35,7 @@ extern uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiorni
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujMikser(void)
 {
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	float fNormPrze, fNormPoch;
 
 	for (uint8_t n=0; n<KANALY_WYJSC_RC; n++)
@@ -46,9 +46,9 @@ uint8_t InicjujMikser(void)
 
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 	{
-		chErr |= CzytajFramFloatZWalidacja(FAU_MIX_PRZECH + 4*n, &stMikser.fPrze[n], VMIN_MIX_PRZEPOCH, VMAX_MIX_PRZEPOCH, VDOM_MIX_PRZEPOCH);	//8*4F składowa przechylenia długości ramienia koptera w mikserze [mm], max 1m
-		chErr |= CzytajFramFloatZWalidacja(FAU_MIX_POCHYL + 4*n, &stMikser.fPoch[n], VMIN_MIX_PRZEPOCH, VMAX_MIX_PRZEPOCH, VDOM_MIX_PRZEPOCH);	//8*4F składowa pochylenia długości ramienia koptera w mikserze [mm], max 1m
-		chErr |= CzytajFramFloatZWalidacja(FAU_MIX_ODCHYL + 4*n, &stMikser.fOdch[n], VMIN_MIX_ODCH, VMAX_MIX_ODCH, VDOM_MIX_ODCH);	//8*4F współczynnik wpływu kierunku obrotów silnika na odchylenie
+		cBłąd |= CzytajFramFloatZWalidacja(FAU_MIX_PRZECH + 4*n, &stMikser.fPrze[n], VMIN_MIX_PRZEPOCH, VMAX_MIX_PRZEPOCH, VDOM_MIX_PRZEPOCH);	//8*4F składowa przechylenia długości ramienia koptera w mikserze [mm], max 1m
+		cBłąd |= CzytajFramFloatZWalidacja(FAU_MIX_POCHYL + 4*n, &stMikser.fPoch[n], VMIN_MIX_PRZEPOCH, VMAX_MIX_PRZEPOCH, VDOM_MIX_PRZEPOCH);	//8*4F składowa pochylenia długości ramienia koptera w mikserze [mm], max 1m
+		cBłąd |= CzytajFramFloatZWalidacja(FAU_MIX_ODCHYL + 4*n, &stMikser.fOdch[n], VMIN_MIX_ODCH, VMAX_MIX_ODCH, VDOM_MIX_ODCH);	//8*4F współczynnik wpływu kierunku obrotów silnika na odchylenie
 
 		//suma kwadratów
 		fNormPrze += stMikser.fPrze[n] * stMikser.fPrze[n];
@@ -78,7 +78,7 @@ uint8_t InicjujMikser(void)
 	sWysterowanieMin 	= CzytajFramU16(FAU_PWM_MIN);      	//minimalne wysterowanie silników
 	sWysterowanieZawisu = CzytajFramU16(FAU_WPM_ZAWISU);  	//wysterowanie silników dla zawisu
 	sWysterowanieMax  	= CzytajFramU16(FAU_PWM_MAX);     	//maksymalne wysterowanie silników
-	return chErr;
+	return cBłąd;
 }
 
 
@@ -100,7 +100,7 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 	//int16_t sPWMGazu;
 	int16_t sGaz;
 	float fCosPrze, fCosPoch;
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 
 	if(dane->chTrybLotu & BTR_UZBROJONY)
 	{
@@ -173,7 +173,7 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 	for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
 		dane->sSilnik[n] = sTmpSilnik[n];
 
-	return chErr;
+	return cBłąd;
 }
 
 

@@ -9,8 +9,8 @@
 #define INC_WYMIANA_H_
 #include "stm32h7xx_hal.h"
 #include "semafory.h"
-#include "pid_kanaly.h"
-#include "sys_def_wspolny.h"
+#include "KanalyPID.h"
+#include "SysDefWspolny.h"
 
 #define ROWNAJ_DO32B(adres)				((adres + 3) & 0xFFFFFFFC)
 

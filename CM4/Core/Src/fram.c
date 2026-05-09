@@ -6,8 +6,8 @@
 // (c) Pit Lab 2004
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "fram.h"
-#include "moduly_wew.h"
+#include "FRAM.h"
+#include "ModulyWew.h"
 #include "main.h"
 
 

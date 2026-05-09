@@ -22,8 +22,8 @@
 #include "stm32h7xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "sys_def_CM7.h"
-#include "moduly_SPI.h"
+#include "SysDefCM7.h"
+#include "ModulySPI.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

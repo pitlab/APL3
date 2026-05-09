@@ -7,8 +7,8 @@
 
 #ifndef INC_FRAKTALE_H_
 #define INC_FRAKTALE_H_
-#include "sys_def_CM7.h"
-#include "display.h"
+#include "SysDefCM7.h"
+#include "Ekran.h"
 
 #define	START_FRAKTAL	1
 

@@ -8,13 +8,13 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "LCD_mem.h"
-#include "display.h"
+#include "Ekran.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include "osd.h"
-#include "rysuj.h"
-#include "analiza_obrazu.h"
+#include "OSD.h"
+#include "Rysuj.h"
+#include "AnalizaObrazu.h"
 
 //uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[SZER_BUFORA * WYS_BUFORA * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[SZER_BUFORA * WYS_BUFORA * 3];	//pamięć obrazu wyświetlacza w formacie RGB888

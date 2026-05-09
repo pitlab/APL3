@@ -8,7 +8,7 @@
 #ifndef INC_PAMIEC_H_
 #define INC_PAMIEC_H_
 
-#include "sys_def_CM7.h"
+#include "SysDefCM7.h"
 
 void TestPredkosciOdczytuNOR(void);
 void TestPredkosciOdczytuRAM(void);

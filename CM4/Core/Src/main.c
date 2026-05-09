@@ -30,17 +30,17 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "petla_glowna.h"
-#include "moduly_wew.h"
-#include "wymiana_CM4.h"
-#include "modul_IiP.h"
-#include "jedn_inercyjna.h"
-#include "pid.h"
-#include "mikser.h"
+#include "PetlaGlowna.h"
+#include "ModulyWew.h"
+#include "WymianaCM4.h"
+#include "Modul_I2P.h"
+#include "JednostkaInercyjna.h"
+#include "RegulatorPID.h"
+#include "Mikser.h"
 #include "WeWyRC.h"
-#include "adc.h"
-#include "fram.h"
-#include "kontroler_lotu.h"
+#include "ADC.h"
+#include "FRAM.h"
+#include "KontrolerLotu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

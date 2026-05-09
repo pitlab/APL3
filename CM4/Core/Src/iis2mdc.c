@@ -6,12 +6,11 @@
 // (c) Pit Lab 2025-26
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <IIS2MDC.h>
-#include "wymiana_CM4.h"
-#include "petla_glowna.h"
+#include "IIS2MDC.h"
+#include "WymianaCM4.h"
+#include "PetlaGlowna.h"
 #include "main.h"
-#include "fram.h"
-#include "konfig_fram.h"
+#include "Fram.h"
 
 //Zmienne przesyłane przez I2C4 we współpracy z BDMA a on ma dostęp tylko SRAM4
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chDaneMagIIS[6];		//dane pomiarowe magnetometru IIS
@@ -35,14 +34,14 @@ float fPrzesMagn1[3], fSkaloMagn1[3];
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujIIS2MDC(void)
 {
-	uint8_t chBlad;
+	uint8_t cBłąd;
 
 	chPolWychMagIIS[0] = PIIS2MDS_WHO_AM_I;
-	chBlad = HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 1, TOUT_I2C4_2B);	//wyślij polecenie odczytu rejestru identyfikacyjnego
-	if (!chBlad)
+	cBłąd = HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 1, TOUT_I2C4_2B);	//wyślij polecenie odczytu rejestru identyfikacyjnego
+	if (!cBłąd)
 	{
-		chBlad =  HAL_I2C_Master_Receive(&hi2c4, IIS2MDC_I2C_ADR + READ, chDaneMagIIS, 1, TOUT_I2C4_2B);		//odczytaj dane
-		if (!chBlad)
+		cBłąd =  HAL_I2C_Master_Receive(&hi2c4, IIS2MDC_I2C_ADR + READ, chDaneMagIIS, 1, TOUT_I2C4_2B);		//odczytaj dane
+		if (!cBłąd)
 		{
 			if (chDaneMagIIS[0] == 0x40)
 			{
@@ -53,7 +52,7 @@ uint8_t InicjujIIS2MDC(void)
 								  (0 << 5) |	//SOFT_RST: When this bit is set, the configuration registers and user registers are reset. Flash registers keep their values.
 								  (0 << 6) |	//REBOOT: Reboot magnetometer memory content.
 								  (1 << 7);		//COMP_TEMP_EN: Enables the magnetometer temperature compensation. For proper operation, this bit must be set to '1'.
-				chBlad = HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 2, TOUT_I2C4_2B);	//wyślij polecenie zapisu konfiguracji
+				cBłąd = HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 2, TOUT_I2C4_2B);	//wyślij polecenie zapisu konfiguracji
 
 				chPolWychMagIIS[0] = PIIS2MDS_CFG_REG_B;
 				chPolWychMagIIS[1] = (1 << 0) |	//LPF Enables low-pass filter: 0=ODR/2, 1=ODR/4
@@ -61,21 +60,21 @@ uint8_t InicjujIIS2MDC(void)
 								  (0 << 2) |	//Set_FREQ Selects the frequency of the set pulse: 0=0: set pulse is released every 63 ODR, 1: set pulse is released only at power-on after PD condition)
 								  (0 << 3) |	//INT_on_DataOFF If ‘1’, the interrupt block recognition checks data after the hard-iron correction to discover the interrupt
 								  (0 << 4);		//OFF_CANC_ONE_SHOT Enables offset cancellation in single measurement mode. The OFF_CANC bit must be set to 1 when enabling offset cancellation in single measurement mode.
-				chBlad |= HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 2, TOUT_I2C4_2B);	//wyślij polecenie zapisu konfiguracji
-				if (chBlad)
-					return chBlad;
+				cBłąd |= HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 2, TOUT_I2C4_2B);	//wyślij polecenie zapisu konfiguracji
+				if (cBłąd)
+					return cBłąd;
 
 				for (uint16_t n=0; n<3; n++)
 				{
-					chBlad |= CzytajFramFloatZWalidacja(FAH_MAGN1_SKLADNIK_X + 4*n, &fPrzesMagn1[n], VMIN_SKLADNIK_MAGN, VMAX_SKLADNIK_MAGN, VDOM_SKLADNIK_MAGN);
-					chBlad |= CzytajFramFloatZWalidacja(FAH_MAGN1_MNOZNIK_X + 4*n, &fSkaloMagn1[n], VMIN_MNOZNIK_MAGN, VMAX_MNOZNIK_MAGN, VDOM_MNOZNIK_MAGN);
+					cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN1_SKLADNIK_X + 4*n, &fPrzesMagn1[n], VMIN_SKLADNIK_MAGN, VMAX_SKLADNIK_MAGN, VDOM_SKLADNIK_MAGN);
+					cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN1_MNOZNIK_X + 4*n, &fSkaloMagn1[n], VMIN_MNOZNIK_MAGN, VMAX_MNOZNIK_MAGN, VDOM_MNOZNIK_MAGN);
 				}
 			}
 			else
-				chBlad = ERR_BRAK_IIS2MDC;
+				cBłąd = ERR_BRAK_IIS2MDC;
 		}
 	}
-	return chBlad;
+	return cBłąd;
 }
 
 
@@ -90,7 +89,7 @@ uint8_t InicjujIIS2MDC(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaIIS2MDC(void)
 {
-	uint8_t chBlad = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_IIS2MDC)
 		return ERR_BRAK_IIS2MDC;
@@ -100,8 +99,8 @@ uint8_t ObslugaIIS2MDC(void)
 		if (chSekwencjaPomiaruIIS < MAX_PROB_INICJALIZACJI)
 		{
 			chSekwencjaPomiaruIIS++;
-			chBlad = InicjujIIS2MDC();
-			if (chBlad == BLAD_OK)
+			cBłąd = InicjujIIS2MDC();
+			if (cBłąd == BLAD_OK)
 			{
 				uDaneCM4.dane.nZainicjowano |= INIT_IIS2MDC;
 				chSekwencjaPomiaruIIS = 0;
@@ -110,16 +109,16 @@ uint8_t ObslugaIIS2MDC(void)
 		else
 		{
 			uDaneCM4.dane.nBrakCzujnika |= INIT_IIS2MDC;
-			chBlad = ERR_BRAK_IIS2MDC;
+			cBłąd = ERR_BRAK_IIS2MDC;
 		}
-		return chBlad;
+		return cBłąd;
 	}
 
 	switch (chSekwencjaPomiaruIIS)
 	{
 	case 0:
 		chPolWychMagIIS[0] = PIIS2MDS_STATUS_REG;
-		chBlad = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu statusu nie kończąc transferu STOP-em
+		cBłąd = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu statusu nie kończąc transferu STOP-em
 		chCzujnikZapisywanyNaI2CInt = MAG_IIS_STATUS;	//po zapisie wykonaj operację odczytu
 		break;
 
@@ -127,7 +126,7 @@ uint8_t ObslugaIIS2MDC(void)
 		if (chStatusIIS & 0x08)	//3 najmłodsze bity statusu to: new data available dla każdej osi, bit 4 to komplet nowych danych - sprawdzamy komplet
 		{
 			chPolWychMagIIS[0] = PIIS2MDS_OUTX_L_REG;	//;
-			chBlad = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
+			cBłąd = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
 			chCzujnikZapisywanyNaI2CInt = MAG_IIS;	//po zapisie wykonaj operację odczytu
 		}
 		else
@@ -138,7 +137,7 @@ uint8_t ObslugaIIS2MDC(void)
 	}
 	chSekwencjaPomiaruIIS++;
 	chSekwencjaPomiaruIIS &= 0x01;
-	return chBlad;
+	return cBłąd;
 }
 
 

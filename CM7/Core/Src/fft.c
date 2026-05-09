@@ -5,12 +5,12 @@
 // (c) PitLab 23 maj 2019-2026
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "fft.h"
+#include "FFT.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "czas.h"
-#include "flash_konfig.h"
+#include "FlashKonfig.h"
 #include "telemetria.h"
 
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xXomega[FFT_MAX_ROZMIAR] = {0};		//wynik transformaty
@@ -39,10 +39,10 @@ uint8_t chOstatniIndeksSzybkiegoIMU;
 void InicjujFFT(void)
 {
 	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
-	uint8_t chBłąd;
+	uint8_t cBłąd;
 
-	chBłąd = CzytajPaczkeKonfigu(chPaczka,  FKON_KONFIGURACJA_FFT);
-	if (chBłąd == BLAD_OK)
+	cBłąd = CzytajPaczkeKonfigu(chPaczka,  FKON_KONFIGURACJA_FFT);
+	if (cBłąd == BLAD_OK)
 	{
 		stKonfigFFT.chIndeksZmiennejWe = chPaczka[2];
 		stKonfigFFT.chRodzajOkna = chPaczka[3];
@@ -71,15 +71,15 @@ void InicjujFFT(void)
 uint8_t ZapiszKonfiguracjejFFT(void)
 {
 	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
-	uint8_t chBłąd;
+	uint8_t cBłąd;
 
 	chPaczka[2] = stKonfigFFT.chIndeksZmiennejWe;
 	chPaczka[3] = stKonfigFFT.chRodzajOkna;
 	chPaczka[4] = stKonfigFFT.chWykladnikPotegi;
 	chPaczka[5] = stKonfigFFT.chMaxWysterowanie;
 	chPaczka[6] = stKonfigFFT.chAktywnSilniki;
-	chBłąd = ZapiszPaczkeKonfigu(FKON_KONFIGURACJA_FFT, chPaczka);
-	return chBłąd;
+	cBłąd = ZapiszPaczkeKonfigu(FKON_KONFIGURACJA_FFT, chPaczka);
+	return cBłąd;
 }
 
 

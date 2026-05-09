@@ -20,7 +20,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 //#include "sys_def_CM4.h"
-#include "sys_def_wspolny.h"
+#include "SysDefWspolny.h"
 #include "WeWyRC.h"
 /* USER CODE END Includes */
 

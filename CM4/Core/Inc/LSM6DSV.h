@@ -7,7 +7,7 @@
 
 #ifndef INC_LSM6DSV_H_
 #define INC_LSM6DSV_H_
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 //definicje rejestrów
 

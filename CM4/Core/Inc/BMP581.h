@@ -2,7 +2,7 @@
 
 #ifndef INC_BMP581_H_
 #define INC_BMP581_H_
-#include "sys_def_CM4.h"
+#include "SysDefCM4.h"
 
 
 

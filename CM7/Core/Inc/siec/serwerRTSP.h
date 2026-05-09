@@ -7,7 +7,7 @@
 
 #ifndef INC_SIEC_SERWERRTSP_H_
 #define INC_SIEC_SERWERRTSP_H_
-#include "sys_def_CM7.h"
+#include "SysDefCM7.h"
 #include <lwip/altcp.h>
 #include <lwip/tcp.h>
 

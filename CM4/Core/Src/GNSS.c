@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include "wymiana.h"
 #include "WeWyRC.h"
-#include "petla_glowna.h"
+#include "PetlaGlowna.h"
 #include "sbus.h"
 
 // Potrzebne informacje znajdują się w następujaących ramkach. Na początek wysarczymi GGA i RMC
@@ -58,7 +58,7 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t InicjujGNSS(void)
 {
 	uint8_t n, chRozmiar = 0;
-    uint8_t chErr = BLAD_OK;
+    uint8_t cBłąd = BLAD_OK;
 
     switch (sCzasInicjalizacjiGNSS)	//zlicza kolejne uruchomienia co 1 obieg pętli głównej
     {
@@ -69,7 +69,7 @@ uint8_t InicjujGNSS(void)
 	//od tego czasu co 50ms wykonaj serię zapisów zmian prędkości  transmitowanych na 9600, 19200, 38400, 75600 i 115200
     case CYKL_STARTU_ZMIAN_PREDK + 0:	//ustaw 9600bps
     	huart8.Init.BaudRate = 9600;
-    	chErr = UART_SetConfig(&huart8);
+    	cBłąd = UART_SetConfig(&huart8);
     	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
     	break;
 
@@ -89,7 +89,7 @@ uint8_t InicjujGNSS(void)
 
     case CYKL_STARTU_ZMIAN_PREDK + 20:	//ustaw 19200bps
        	huart8.Init.BaudRate = 19200;
-       	chErr = UART_SetConfig(&huart8);
+       	cBłąd = UART_SetConfig(&huart8);
        	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
        	break;
 
@@ -103,7 +103,7 @@ uint8_t InicjujGNSS(void)
 
     case CYKL_STARTU_ZMIAN_PREDK + 40:
        	huart8.Init.BaudRate = 38400;
-       	chErr = UART_SetConfig(&huart8);
+       	cBłąd = UART_SetConfig(&huart8);
        	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
        	break;
 
@@ -117,7 +117,7 @@ uint8_t InicjujGNSS(void)
 
     case CYKL_STARTU_ZMIAN_PREDK + 60:
        	huart8.Init.BaudRate = 57600;
-       	chErr = UART_SetConfig(&huart8);
+       	cBłąd = UART_SetConfig(&huart8);
        	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
        	break;
 
@@ -131,7 +131,7 @@ uint8_t InicjujGNSS(void)
 
     case CYKL_STARTU_ZMIAN_PREDK + 80:
        	huart8.Init.BaudRate = 115200;
-       	chErr = UART_SetConfig(&huart8);
+       	cBłąd = UART_SetConfig(&huart8);
        	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
        	break;
 
@@ -148,7 +148,7 @@ uint8_t InicjujGNSS(void)
     case 950:							//po konfguracji uBlox
     case CYKL_STARTU_INI_MTK + 0:		//po konfiguracji MTK
     	huart8.Init.BaudRate = 57600;
-    	chErr = UART_SetConfig(&huart8);
+    	cBłąd = UART_SetConfig(&huart8);
     	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
     	chRozmiar=0;
     	break;
@@ -190,7 +190,7 @@ uint8_t InicjujGNSS(void)
 		//U-BLOX
 	case CYKL_STARTU_INI_UBLOX-1:
 		huart8.Init.BaudRate = 9600;		//ustaw domyślną prędkość, gdyż wcześniej została podniesiona dla MTK
-		chErr = UART_SetConfig(&huart8);
+		cBłąd = UART_SetConfig(&huart8);
 		HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
 		break;
 
@@ -278,7 +278,7 @@ uint8_t InicjujGNSS(void)
 
     if (chRozmiar)
     {
-    	chErr = HAL_UART_Transmit_DMA(&huart8, chBuforNadawczyGNSS, chRozmiar);	 //wyślij dane do modułu GNSS
+    	cBłąd = HAL_UART_Transmit_DMA(&huart8, chBuforNadawczyGNSS, chRozmiar);	 //wyślij dane do modułu GNSS
     }
 
     /*/licz sumę kontrolną ramek, po to aby wstawić właściwą sumę do polecenia
@@ -296,7 +296,7 @@ uint8_t InicjujGNSS(void)
         if (ch == '*')
             break;
     }*/
-    return chErr;  //inicjalizacja nie zakończona
+    return cBłąd;  //inicjalizacja nie zakończona
 }
 
 

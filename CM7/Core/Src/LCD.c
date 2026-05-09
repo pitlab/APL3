@@ -7,40 +7,40 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <analiza_drgan.h>
+#include <AnalizaDrgan.h>
 #include "LCD.h"
 #include <stdio.h>
 #include <math.h>
 #include <RPi35B_480x320.h>
 #include <ili9488.h>
+#include <KonfigFram.h>
 #include <string.h>
 #include <W25Q128JV.h>
-#include "dotyk.h"
-#include "napisy.h"
-#include "flash_nor.h"
-#include "wymiana.h"
-#include "audio.h"
-#include "sample_audio.h"
-#include "protokol_kom.h"
-#include "rejestrator.h"
-#include "wspolne.h"
+#include "Dotyk.h"
+#include "Napisy.h"
+#include "FlashNOR.h"
+#include "Wymiana.h"
+#include "Audio.h"
+#include "SampleAudio.h"
+#include "ProtokolKomunikacyjny.h"
+#include "Rejestrator.h"
+#include "Wspolne.h"
 #include <stdlib.h>
 #include "CAN.h"
-#include "czas.h"
-#include "fraktale.h"
-#include "konfig_fram.h"
-#include "pid_kanaly.h"
+#include "Czas.h"
+#include "Fraktale.h"
+#include "KanalyPID.h"
 #include "kamera.h"
 #include "pamiec.h"
-#include "analiza_obrazu.h"
+#include "AnalizaObrazu.h"
 #include "ip4_addr.h"
 #include "ff.h"
 #include "lwip/stats.h"
-#include "jpeg.h"
+#include "Jpeg.h"
 #include "LCD_mem.h"
-#include "osd.h"
-#include "bmp.h"
-#include "telemetria.h"
+#include "OSD.h"
+#include "Bmp.h"
+#include "Telemetria.h"
 
 //deklaracje zmiennych
 extern uint8_t MidFont[];
@@ -105,7 +105,7 @@ uint8_t chNowyTrybPracy;
 uint8_t chWrocDoTrybu;
 uint8_t chRysujRaz;
 uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
-static uint8_t chErr;	//zmienna obowiązuje lokalnie
+static uint8_t cBłąd;	//zmienna obowiązuje lokalnie
 char chNapis[100], chNapisPodreczny[30];
 float fTemperaturaKalibracji;
 uint8_t chLiczIter;		//licznik iteracji wyświetlania
@@ -560,11 +560,11 @@ uint8_t RysujEkran(void)
 		extern uint16_t sLicznikLiniiKamery;
 		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
 		sLicznikLiniiKamery = 0;
-		chErr = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);
-		if (chErr)
+		cBłąd = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);
+		if (cBłąd)
 		{
 			setColor(MAGENTA);
-			sprintf(chNapis, "Blad: %d  ", chErr);
+			sprintf(chNapis, "Blad: %d  ", cBłąd);
 		}
 		else
 		{
@@ -597,8 +597,8 @@ uint8_t RysujEkran(void)
 		stKonfOSD.sSzerokosc = DISP_X_SIZE;
 		stKonfOSD.sWysokosc = DISP_Y_SIZE;
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);	//czyść poprzednią zawartość
-		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
-		chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamery, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+		cBłąd = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
+		cBłąd = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamery, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 		RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
@@ -624,8 +624,8 @@ uint8_t RysujEkran(void)
 		//stKonfOSD.chOSDWlaczone = 1;	//włacz OSD z histogramem
 		stKonfOSD.sSzerokosc = DISP_X_SIZE;
 		stKonfOSD.sWysokosc = DISP_Y_SIZE;
-		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
-		//chErr = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKameryDRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+		cBłąd = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
+		//cBłąd = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKameryDRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 		RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
@@ -645,11 +645,11 @@ uint8_t RysujEkran(void)
 	case TP_KAM_Y8:	//praca z obrazem czarno-białym
 		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
 		//ponieważ bufor obrazu 1280x960 jest 8 razy większy niż 480x320 wiec dzielę go na 8 części i w nich zapisuję kolejne klatki
-		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_FILM);
-		if (chErr)
+		cBłąd = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_Y8, KAM_FILM);
+		if (cBłąd)
 			break;
-		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 4);
-		if (chErr)
+		cBłąd = RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 4);
+		if (cBłąd)
 			break;
 		do
 		{
@@ -660,12 +660,12 @@ uint8_t RysujEkran(void)
 			chWskNapBufKam &= MASKA_BUFORA_KAMERY;
 			//utwórz wskaźnik na konkretny bufor w obrębie zmiennej sBuforKamery wskazujący na kolejną 1/8 zmiennej
 			//uint16_t* sPodBufor = sBuforKamery + chWskNapBufKam * (DISP_X_SIZE * DISP_Y_SIZE / (4 * 8));
-			//chErr = RozpocznijPraceDCMI(stKonfKam, sPodBufor, DISP_X_SIZE * DISP_Y_SIZE / 4);
+			//cBłąd = RozpocznijPraceDCMI(stKonfKam, sPodBufor, DISP_X_SIZE * DISP_Y_SIZE / 4);
 			if (chWskNapBufKam & 0x01)		//nieparzyste obrazy kompresuj a parzyste wyświetlaj
 			{
 				nCzas = PobierzCzasT6();
-				//chErr = KompresujY8((uint8_t*)sPodBufor, DISP_X_SIZE, DISP_Y_SIZE);
-				chErr = KompresujY8((uint8_t*)sBuforKamery, DISP_X_SIZE, DISP_Y_SIZE);
+				//cBłąd = KompresujY8((uint8_t*)sPodBufor, DISP_X_SIZE, DISP_Y_SIZE);
+				cBłąd = KompresujY8((uint8_t*)sBuforKamery, DISP_X_SIZE, DISP_Y_SIZE);
 				nCzas = MinalCzas(nCzas);
 			}
 			else
@@ -686,21 +686,21 @@ uint8_t RysujEkran(void)
 
 
 	case TP_KAM_YUV420:	//kompresja obrazu kolorowego
-		chErr = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_YUV420, KAM_ZDJECIE);
-		if (chErr)
+		cBłąd = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_YUV420, KAM_ZDJECIE);
+		if (cBłąd)
 			break;
 		do
 		{
-			chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2 * 3);
-			if (chErr)
+			cBłąd = RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2 * 3);
+			if (cBłąd)
 				break;
-			chErr = CzekajNaKoniecPracyDCMI(DISP_Y_SIZE);
+			cBłąd = CzekajNaKoniecPracyDCMI(DISP_Y_SIZE);
 			nCzas = PobierzCzasT6();
-			chErr = KompresujYUV420((uint8_t*)sBuforKamery, DISP_X_SIZE, DISP_Y_SIZE);
-			if (chErr)
+			cBłąd = KompresujYUV420((uint8_t*)sBuforKamery, DISP_X_SIZE, DISP_Y_SIZE);
+			if (cBłąd)
 				break;
 
-			chErr = CzekajNaKoniecPracyJPEG();
+			cBłąd = CzekajNaKoniecPracyJPEG();
 			nCzas = MinalCzas(nCzas);
 			sprintf(chNapis, "%.2f fps, kompr: %.1f", (float)1000000.0/nCzas, (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);	//Sprawdzić: hard fault
 			setColor(ZOLTY);
@@ -718,18 +718,18 @@ uint8_t RysujEkran(void)
 		hjpeg.Instance->CONFR1 &= ~JPEG_CONFR1_HDR;		//wyłącz generowanie nagłówka JPEG
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
 
-		chErr = UstawObrazKamery(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, OBR_RGB565, KAM_FILM);		//kolor
-		if (chErr)
+		cBłąd = UstawObrazKamery(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, OBR_RGB565, KAM_FILM);		//kolor
+		if (cBłąd)
 			break;
 
-		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
-		if (chErr)
+		cBłąd = RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
+		if (cBłąd)
 			break;
 		do
 		{
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
-			chErr = KompresujRGB888doYUV422(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, 30);
+			cBłąd = KompresujRGB888doYUV422(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, 30);
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -741,10 +741,10 @@ uint8_t RysujEkran(void)
 		sprintf((char*)chNazwaPlikuObrazu, "ZdjY8");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
 
-		chErr = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_Y8, KAM_ZDJECIE);
+		cBłąd = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_Y8, KAM_ZDJECIE);
 		nCzas = PobierzCzasT6();
-		chErr = ZrobZdjecie(sBuforKamery, SZER_ZDJECIA * WYS_ZDJECIA / 4);
-		if (chErr)
+		cBłąd = ZrobZdjecie(sBuforKamery, SZER_ZDJECIA * WYS_ZDJECIA / 4);
+		if (cBłąd)
 		{
 			chNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
@@ -755,14 +755,14 @@ uint8_t RysujEkran(void)
 		printf("Tdcmi=%ldus\r\n", nCzas);
 
 		nCzas = PobierzCzasT6();
-		chErr = KompresujY8((uint8_t*)sBuforKamery, SZER_ZDJECIA, WYS_ZDJECIA);	//, chBuforJpeg, ROZMIAR_BUF_JPEG);
+		cBłąd = KompresujY8((uint8_t*)sBuforKamery, SZER_ZDJECIA, WYS_ZDJECIA);	//, chBuforJpeg, ROZMIAR_BUF_JPEG);
 		nCzas = MinalCzas(nCzas);
 		setColor(ZOLTY);
-		if (!chErr)
+		if (!cBłąd)
 			printf("Tjpeg=%ldus\r\n", nCzas);
 		else
 		{
-			sprintf(chNapis, "Blad: %d ", chErr);
+			sprintf(chNapis, "Blad: %d ", cBłąd);
 			RysujNapis(chNapis, 10, 30);
 			if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
 				chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -792,20 +792,20 @@ uint8_t RysujEkran(void)
 		}
 		sprintf((char*)chNazwaPlikuObrazu, "ZdjYUV420");	//początek nazwy pliku ze zdjeciem
 		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
-		//chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV420, KAM_ZDJECIE);
-		//chErr = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);	//wynik w sBuforKamery
-		chErr = UstawObrazKamery(60, 40, OBR_YUV420, KAM_ZDJECIE);
-		chErr = ZrobZdjecie(sBuforKamery, 60 * 40 / 2);	//wynik w sBuforKamery
+		//cBłąd = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV420, KAM_ZDJECIE);
+		//cBłąd = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);	//wynik w sBuforKamery
+		cBłąd = UstawObrazKamery(60, 40, OBR_YUV420, KAM_ZDJECIE);
+		cBłąd = ZrobZdjecie(sBuforKamery, 60 * 40 / 2);	//wynik w sBuforKamery
 		nCzas = PobierzCzasT6();
-		//chErr = KompresujYUV420((uint8_t*)sBuforKamery, DISP_X_SIZE, DISP_Y_SIZE);
-		chErr = KompresujYUV420((uint8_t*)sBuforKamery, 60, 40);
+		//cBłąd = KompresujYUV420((uint8_t*)sBuforKamery, DISP_X_SIZE, DISP_Y_SIZE);
+		cBłąd = KompresujYUV420((uint8_t*)sBuforKamery, 60, 40);
 		//KonwersjaCB8doRGB666((uint8_t*)sBuforKamery, chBufLCD, DISP_X_SIZE * DISP_Y_SIZE);
 		nCzas = MinalCzas(nCzas);
 		setColor(ZOLTY);
-		if (chErr)
+		if (cBłąd)
 		{
 			setColor(ZOLTY);
-			sprintf(chNapis, "Blad: %d", chErr);
+			sprintf(chNapis, "Blad: %d", cBłąd);
 			RysujNapis(chNapis, 10, 30);
 			if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
 				chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -821,15 +821,15 @@ uint8_t RysujEkran(void)
 
 	case TP_KAM_ZDJ_YUV422:	//Analiza obrazu pokazuje że coś jest nie tak z obrazem YUV444. Dla obrazu o szerokości 480 pix powtarza się biała linia 4x16 bajtów co 2*480 pikseli
 		sprintf((char*)chNazwaPlikuObrazu, "ZdjYUV444");	//początek nazwy pliku ze zdjeciem
-		chErr = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV444, KAM_ZDJECIE);
-		chErr = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_X_SIZE * 2 / 3);	//rozmiar obrazu to 3 bajty na piksel
+		cBłąd = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV444, KAM_ZDJECIE);
+		cBłąd = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_X_SIZE * 2 / 3);	//rozmiar obrazu to 3 bajty na piksel
 		nCzas = PobierzCzasT6();
-		chErr = KompresujYUV444((uint8_t*)sBuforKamery, DISP_X_SIZE, DISP_Y_SIZE);
+		cBłąd = KompresujYUV444((uint8_t*)sBuforKamery, DISP_X_SIZE, DISP_Y_SIZE);
 		nCzas = MinalCzas(nCzas);
-		if (chErr)
+		if (cBłąd)
 		{
 			setColor(ZOLTY);
-			sprintf(chNapis, "Blad: %d", chErr);
+			sprintf(chNapis, "Blad: %d", cBłąd);
 			RysujNapis(chNapis, 10, 30);
 			if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
 				chNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -916,13 +916,13 @@ uint8_t RysujEkran(void)
 			stKonfOSD.sWysokosc = 320;
 		}
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
-		chErr = UstawObrazKamery(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, OBR_RGB565, KAM_FILM);		//kolor
-		if (chErr)
+		cBłąd = UstawObrazKamery(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, OBR_RGB565, KAM_FILM);		//kolor
+		if (cBłąd)
 			break;
 		hjpeg.Instance->CONFR1 |= JPEG_CONFR1_HDR;	//włącz generowanie nagłówka JPEG
 		stKonfOSD.chOSDWlaczone = 1;
-		chErr = RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
-		if (chErr)
+		cBłąd = RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, stKonfOSD.sSzerokosc * stKonfOSD.sWysokosc / 2);	//kolor
+		if (cBłąd)
 			break;
 		do
 		{
@@ -940,7 +940,7 @@ uint8_t RysujEkran(void)
 			nCzasLCD = DWT->CYCCNT - nCzasLCD; //koniec pomiaru
 		}
 		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-		chErr = ZakonczPraceDCMI();
+		cBłąd = ZakonczPraceDCMI();
 		chNowyTrybPracy = TP_WROC_DO_OSD;
 		stKonfOSD.chOSDWlaczone = 0;	//wyłącz OSD
 		break;
@@ -972,7 +972,7 @@ uint8_t RysujEkran(void)
 			printf("Obraz %d%%: ", n*10);
 			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)chNazwaPlikuObrazu, "YUV420_%d", n*10);	//początek nazwy pliku ze zdjeciem
-			chErr = KompresujRGB888doYUV420(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
+			cBłąd = KompresujRGB888doYUV420(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
 			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
 			{
 				printf("Sync, ");
@@ -990,7 +990,7 @@ uint8_t RysujEkran(void)
 			printf("Obraz %d%%: ", n*10);
 			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)chNazwaPlikuObrazu, "YUV422_%d", n*10);	//początek nazwy pliku ze zdjeciem
-			chErr = KompresujRGB888doYUV422(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
+			cBłąd = KompresujRGB888doYUV422(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
 			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
 			{
 				printf("Sync, ");
@@ -1008,7 +1008,7 @@ uint8_t RysujEkran(void)
 			printf("Obraz %d%%: ", n*10);
 			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)chNazwaPlikuObrazu, "YUV444_%d", n*10);	//początek nazwy pliku ze zdjeciem
-			chErr = KompresujRGB888doYUV444(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
+			cBłąd = KompresujRGB888doYUV444(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
 			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
 			{
 				printf("Sync, ");
@@ -1026,7 +1026,7 @@ uint8_t RysujEkran(void)
 			printf("Obraz %d%%: ", n*10);
 			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)chNazwaPlikuObrazu, "Y8_%d", n*10);	//początek nazwy pliku ze zdjeciem
-			chErr = KompresujRGB888doY8(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
+			cBłąd = KompresujRGB888doY8(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
 			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
 			{
 				printf("Sync, ");
@@ -1314,38 +1314,38 @@ uint8_t RysujEkran(void)
 				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 2] = (y >> 8) & 0xFF;;
 			}
 		}
-		chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
-		chErr = ZapiszPlikBin(chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
+		cBłąd = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
+		cBłąd = ZapiszPlikBin(chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
 		chTrybPracy = chWrocDoTrybu;
 		chNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
 
-	case TPKS_ZAPISZ_BIN:	chErr = ZapiszPlikBin(chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
+	case TPKS_ZAPISZ_BIN:	cBłąd = ZapiszPlikBin(chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
 		chTrybPracy = chWrocDoTrybu;
 		chNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
 
-	case TPKS_ZAPISZ_BMP8:	chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_8, DISP_X_SIZE, DISP_Y_SIZE);
+	case TPKS_ZAPISZ_BMP8:	cBłąd = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_8, DISP_X_SIZE, DISP_Y_SIZE);
 		chTrybPracy = chWrocDoTrybu;
 		chNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
 
-	case TPKS_ZAP_BMP24_480:	chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
+	case TPKS_ZAP_BMP24_480:	cBłąd = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
 		chTrybPracy = chWrocDoTrybu;
 		chNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
 
-	case TPKS_ZAP_BMP24_320:	chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, 320, 240);
+	case TPKS_ZAP_BMP24_320:	cBłąd = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, 320, 240);
 		chTrybPracy = chWrocDoTrybu;
 		chNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
 
-	case TPKS_ZAP_BMP24_240:	chErr = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, 240, 160);
+	case TPKS_ZAP_BMP24_240:	cBłąd = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, 240, 160);
 		chTrybPracy = chWrocDoTrybu;
 		chNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
@@ -1772,7 +1772,7 @@ uint8_t RysujEkran(void)
 		statusDotyku.chFlagi &= ~(DOTYK_DOTKNIETO | DOTYK_ZWOLNONO);	//czyść flagi ekranu dotykowego aby móc reagować na nie w trakcie pracy danego trybu
 		chRysujRaz = 1;		//jednorazowo rysuj statyczne elementy nowego ekranu
 	}
-	return chErr;
+	return cBłąd;
 }
 
 
@@ -3055,7 +3055,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 {
 	char chNazwaOsi;
 	float fPochylenie, fPrzechylenie;
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 
 	if (chRysujRaz)
 	{
@@ -3206,7 +3206,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 
 	default:	//wyjście lub przejscie do kalibracji kolejnej osi
 		sprintf(chNapis, "Wyjdz ");
-		chErr = ERR_GOTOWE;	//zakończ kalibrację
+		cBłąd = ERR_GOTOWE;	//zakończ kalibrację
 		break;
 	}
 
@@ -3227,7 +3227,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 			RysujPrzycisk(stPrzycisk, chNapis, ODSWIEZ);
 		}
 		else
-			chErr = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
+			cBłąd = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
 
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 	}
@@ -3240,7 +3240,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 			chStanPrzycisku = 0;
 		}
 	}
-	return chErr;
+	return cBłąd;
 }
 
 
@@ -3351,7 +3351,7 @@ void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc)
 uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 {
 	char chNazwaOsi;
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	float fWspSkal;		//współczynnik skalowania wykresu
 	float fMag[3];		//dane bieżącego magnetometru
 	uint16_t sX, sY;	//bieżace współrzędne na wykresie
@@ -3704,7 +3704,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			chStanPrzycisku = 1;
 		else
 		{
-			chErr = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
+			cBłąd = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
 			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
 		}
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
@@ -3727,21 +3727,21 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		if (*chEtap & KALIBRUJ)
 			uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_KONF_MAGN1 + chCzujnik;	//zapisz konfigurację bieżącego magnetometru
 		else
-			chErr = ERR_GOTOWE;		//koniec wertyfikacji
+			cBłąd = ERR_GOTOWE;		//koniec wertyfikacji
 	}
 
 	//wyjdź dopiero gdy dostanie potwierdzenie zapisu
 	if (((*chEtap & MASKA_OSI) == 3) && (uDaneCM4.dane.chPotwierdzenieWykonania == POL7_ZAPISZ_KONF_MAGN1 + chCzujnik))
 	{
 		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
-		chErr = ERR_GOTOWE;		//koniec kalibracji
+		cBłąd = ERR_GOTOWE;		//koniec kalibracji
 		DodajProbkeDoMalejKolejki(PGA_GOTOWE, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat kończący: Gotowe
 	}
 
 	setColor(ZOLTY);
 	sprintf(chNapis, "Ustaw UAV osi%c %c w kier. Wsch%cd-Zach%cd i obracaj wok%c%c %c", ą, chNazwaOsi, ó, ó, ó, ł, chNazwaOsi);
 	RysujNapis(chNapis, CENTER, 25);
-	return chErr;
+	return cBłąd;
 }
 
 
@@ -3780,7 +3780,7 @@ float MaximumGlobalne(float* fMin, float* fMax)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibrujBaro(uint8_t *chEtap)
 {
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 
 	if (chRysujRaz)
 	{
@@ -3883,7 +3883,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		sprintf(chNapis, "dP2 = %.2f Pa", fabs(uDaneCM4.dane.uRozne.f32[1] - uDaneCM4.dane.uRozne.f32[3]));	//Rożnica ciśnień czujnika 2
 		RysujNapis(chNapis, 10 + stPrzycisk.sX2, 260);
 		if (chStanPrzycisku == 1)
-			chErr = ERR_GOTOWE;	//zakończ
+			cBłąd = ERR_GOTOWE;	//zakończ
 		break;
 	}
 
@@ -3898,7 +3898,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		}
 		else
 		{
-			chErr = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
+			cBłąd = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
 			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//neutralne polecenie
 		}
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
@@ -3910,7 +3910,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 	}
 
 	RysujPasekPostepu(CZAS_KALIBRACJI);
-	return chErr;
+	return cBłąd;
 }
 
 
@@ -4046,7 +4046,7 @@ void NastawyPID(uint8_t chKanal)
 {
 	float fNastawy[ROZMIAR_REG_PID/4];
 	uint8_t chTrybRegulatora[LICZBA_DRAZKOW];
-	uint8_t chErr;
+	uint8_t cBłąd;
 	unia8_32_t un8_32;
 
 	if (chRysujRaz)
@@ -4100,12 +4100,12 @@ void NastawyPID(uint8_t chKanal)
 		RysujNapis(chNapis, CENTER, 30);
 
 		//odczytaj tryb pracy regulatorów
-		chErr = CzytajFramChar(FAU_TRYB_REG, LICZBA_REG_PARAM, chTrybRegulatora);
+		cBłąd = CzytajFramChar(FAU_TRYB_REG, LICZBA_REG_PARAM, chTrybRegulatora);
 
 
 		//odczytaj nastawy regulatorów
-		chErr = CzytajFramFoat(FAU_PID_P0 + (chKanal + 0) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
-		if (chErr == BLAD_OK)
+		cBłąd = CzytajFramFoat(FAU_PID_P0 + (chKanal + 0) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
+		if (cBłąd == BLAD_OK)
 		{
 			if (chTrybRegulatora[chKanal/2] > REG_AKRO)
 				setColor(BIALY);	//regulator pracuje
@@ -4138,8 +4138,8 @@ void NastawyPID(uint8_t chKanal)
 		else
 			chRysujRaz = 1;	//jeżeli się nie odczytało to wyświetl jeszcze raz
 
-		chErr = CzytajFramFoat(FAU_PID_P0 + (chKanal + 1) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
-		if (chErr == BLAD_OK)
+		cBłąd = CzytajFramFoat(FAU_PID_P0 + (chKanal + 1) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
+		if (cBłąd == BLAD_OK)
 		{
 			if (chTrybRegulatora[chKanal/2] > REG_RECZNA)
 				setColor(BIALY);	//regulator pracuje

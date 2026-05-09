@@ -9,9 +9,9 @@
 #include "ND130.h"
 #include "main.h"
 #include "spi.h"
-#include "petla_glowna.h"
-#include "wymiana_CM4.h"
-#include "modul_IiP.h"
+#include "PetlaGlowna.h"
+#include "WymianaCM4.h"
+#include "Modul_I2P.h"
 
 extern SPI_HandleTypeDef hspi2;
 extern volatile unia_wymianyCM4_t uDaneCM4;
@@ -33,7 +33,7 @@ extern WspRownProstej1_t stWspKalTempCzujnRozn1;
 uint8_t InicjujND130(void)
 {
 	uint32_t nCzasStart;
-	uint8_t chErr;
+	uint8_t cBłąd;
 
     nCzasStart = PobierzCzas();
     do
@@ -42,26 +42,26 @@ uint8_t InicjujND130(void)
     	chBufND130[0] = 0xF7;	//mode byte: 30 in H2O, BW=200Hz, Notch enabled
     	chBufND130[1] = 0x02;	//rate = 222Hz
     	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-    	chErr = HAL_SPI_TransmitReceive(&hspi2, chBufND130, chBufND130, 13, 5);
+    	cBłąd = HAL_SPI_TransmitReceive(&hspi2, chBufND130, chBufND130, 13, 5);
     	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
-    	if (chErr)
-    		return chErr;
+    	if (cBłąd)
+    		return cBłąd;
 
     	//sprawdź czy układ przedstawił się jako "ND130"
        	if ((chBufND130[4] == 'N') && (chBufND130[5] == 'D') && (chBufND130[6] == '1') && (chBufND130[7] == '3') && (chBufND130[8] == '0'))
-        	chErr = BLAD_OK;
+        	cBłąd = BLAD_OK;
 
     	if (MinalCzas(nCzasStart) > 5000)   //czekaj maksymalnie 5000us
     		return BLAD_TIMEOUT;
     }
-    while (chErr);
+    while (cBłąd);
 
-    if (chErr == BLAD_OK)
+    if (cBłąd == BLAD_OK)
     {
     	uDaneCM4.dane.nZainicjowano |= INIT_ND130;
     	sLicznikZerowaniaND130 = LICZBA_PROBEK_USREDNIANIA_ND130;
     }
-    return chErr;
+    return cBłąd;
 }
 
 
@@ -74,14 +74,14 @@ uint8_t InicjujND130(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaND130(void)
 {
-	uint8_t chErr;
+	uint8_t cBłąd;
 	int16_t sCisnienie;
 	float fCisnienie;
 	float fPrzesuniecieZera;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_ND130) != INIT_ND130)	//jeżeli czujnik nie jest zainicjowany
 	{
-		chErr = InicjujND130();
+		cBłąd = InicjujND130();
 	}
 	else
 	{
@@ -136,7 +136,7 @@ uint8_t ObslugaND130(void)
 		uDaneCM4.dane.fTemper[TEMP_CISR1] = (float)((int8_t)chBufND130[2]) + ((float)chBufND130[3] / 2550) + KELVIN;	//starszy bajt to stopnie, młodszy to ułamek będący częścią po przecinku
 		uDaneCM4.dane.fPredkosc[0] = PredkoscRurkiPrantla(fCisnienie, 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 	}
-	return chErr;
+	return cBłąd;
 }
 
 

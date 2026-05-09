@@ -6,18 +6,18 @@
 // (c) PitLab 2025
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <KanalyPID.h>
 #include "WeWyRC.h"
-#include "sbus.h"
-#include "konfig_fram.h"
-#include "petla_glowna.h"
+#include "SBus.h"
+#include "KonfigFram.h"
+#include "PetlaGlowna.h"
 #include "GNSS.h"
-#include "fram.h"
-#include "dshot.h"
-#include "ws281x.h"
-#include "kontroler_lotu.h"
-#include "sample_audio.h"
-#include "pid_kanaly.h"
-#include "pid.h"
+#include "FRAM.h"
+#include "DShot.h"
+#include "WS281x.h"
+#include "KontrolerLotu.h"
+#include "SampleAudio.h"
+#include "RegulatorPID.h"
 
 //definicje SBus: https://github.com/uzh-rpg/rpg_quadrotor_control/wiki/SBUS-Protocol
 //S-Bus oraz DShot mają rozdzielczość 11-bitów, wiec przyjmuję taką rozdzielczość sterowania definiując stałą PPM11BIT
@@ -74,7 +74,7 @@ uint16_t sPoprzedniStanKanaluRozszerzonego[KANALY_FUNKCYJNE];	//poprzedni stan d
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujWejsciaRC(void)
 {
-	uint8_t chBłąd = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	uint8_t chDaneKonfig;
 	TIM_IC_InitTypeDef sConfigIC = {0};
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -102,12 +102,12 @@ uint8_t InicjujWejsciaRC(void)
 		sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
 		sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
 		sConfigIC.ICFilter = 7;
-		chBłąd |= HAL_TIM_IC_ConfigChannel(&htim4, &sConfigIC, TIM_CHANNEL_3);
+		cBłąd |= HAL_TIM_IC_ConfigChannel(&htim4, &sConfigIC, TIM_CHANNEL_3);
 	}
 	else
 	if (chKonfigWeRC[KANAL_RC1] == ODB_RC_SBUS)
 	{
-		chBłąd |= InicjujUart4RxJakoSbus(&GPIO_InitStruct);
+		cBłąd |= InicjujUart4RxJakoSbus(&GPIO_InitStruct);
 	}
 
 
@@ -127,12 +127,12 @@ uint8_t InicjujWejsciaRC(void)
 		sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
 		sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
 		sConfigIC.ICFilter = 7;
-		chBłąd |= HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_4);
+		cBłąd |= HAL_TIM_IC_ConfigChannel(&htim2, &sConfigIC, TIM_CHANNEL_4);
 	}
 	else
 	if (chKonfigWeRC[KANAL_RC2] == ODB_RC_SBUS)
 	{
-		chBłąd |= InicjujUart2RxJakoSbus(&GPIO_InitStruct);
+		cBłąd |= InicjujUart2RxJakoSbus(&GPIO_InitStruct);
 	}
 
 	//odczytaj z FRAM minima i maksima kanałów RC aby móc je normalizować
@@ -147,15 +147,15 @@ uint8_t InicjujWejsciaRC(void)
     //odczytaj z FRAM numery kanałów dla 4 drążków RC
     for (uint16_t n=0; n<LICZBA_DRAZKOW; n++)
     {
-    	chBłąd |= CzytajFramU8zWalidacja(FAU_KAN_DRAZKA_RC + n, &chKanalDrazkaRC[n],  0,  LICZBA_DRAZKOW,  0);	//4*1U Numer kanału przypisany do funkcji drążka aparatury: przechylenia, pochylenia, odchylenia i wysokości
+    	cBłąd |= CzytajFramU8zWalidacja(FAU_KAN_DRAZKA_RC + n, &chKanalDrazkaRC[n],  0,  LICZBA_DRAZKOW,  0);	//4*1U Numer kanału przypisany do funkcji drążka aparatury: przechylenia, pochylenia, odchylenia i wysokości
     }
 
     //odczytaj z FRAM numery funkcji dla wyższych niż 4 kanałów RC
     for (uint16_t n=0; n<KANALY_FUNKCYJNE; n++)
     {
-    	//chBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MIN_KAN_RC + n, &chFunkcjaMinKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na minimum
-    	//chBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MAX_KAN_RC + n, &chFunkcjaMaxKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na maksimum
-    	chBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_KAN_RC + n, &chFunkcjaKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16)
+    	//cBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MIN_KAN_RC + n, &chFunkcjaMinKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na minimum
+    	//cBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MAX_KAN_RC + n, &chFunkcjaMaxKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na maksimum
+    	cBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_KAN_RC + n, &chFunkcjaKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16)
 
 
     }
@@ -165,8 +165,8 @@ uint8_t InicjujWejsciaRC(void)
     	chFunkcjaSilnika[n] = FSIL_NAPED;
 
     //ustaw kolor LEDów
-    chBłąd |= InicjujKoloryWS281x();
-	return chBłąd;
+    cBłąd |= InicjujKoloryWS281x();
+	return cBłąd;
 }
 
 
@@ -179,7 +179,7 @@ uint8_t InicjujWejsciaRC(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujWyjsciaRC(void)
 {
-	uint8_t chBłąd = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	uint8_t chDaneKonfig;
 	TIM_OC_InitTypeDef sConfigOC = {0};
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -220,14 +220,14 @@ uint8_t InicjujWyjsciaRC(void)
 	{
 		chBityKonfiguracji |= 0x01;
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;		//wyjście przechodzi przez inwerter, więc wymaga dodatkowego odwrócenia sygnału aby finalnie było niezmienione
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4);
 		htim4.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim4.Init.Period = OKRES_PWM;
 		htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		chBłąd |= HAL_TIM_PWM_Init(&htim4);
-		chBłąd |= HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_4, &nBuforTimDMA[KANAL_RC1][0], chRozmiarSekwencjiDMA[KANAL_RC1]);
+		cBłąd |= HAL_TIM_PWM_Init(&htim4);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_4, &nBuforTimDMA[KANAL_RC1][0], chRozmiarSekwencjiDMA[KANAL_RC1]);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC1] == SERWO_IO)	//wyjście IO do debugowania
@@ -241,7 +241,7 @@ uint8_t InicjujWyjsciaRC(void)
 		InicjujUart4TxJakoSbus(&GPIO_InitStruct);
 	}
 	else
-		chBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= ERR_BRAK_KONFIG;
 
 	//**** Wyjście 2 - konfiguracja portu PB10 - TIM2_CH3, USART3_TX, MOD_QSPI_CS **********************************************************
 	__HAL_RCC_GPIOB_CLK_ENABLE();
@@ -263,13 +263,13 @@ uint8_t InicjujWyjsciaRC(void)
 		htim2.Init.Period = OKRES_PWM;
 		htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		chBłąd |= HAL_TIM_PWM_Init(&htim2);
+		cBłąd |= HAL_TIM_PWM_Init(&htim2);
 
 		sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	  	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 		sConfigOC.Pulse = OKRES_PWM / 2;
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;		//wyjście przechodzi przez inwerter, więc wymaga dodatkowego odwrócenia sygnału aby finalnie było niezmienione
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3);
 
 		hdma_tim2_ch3.Instance = DMA2_Stream7;
 		hdma_tim2_ch3.Init.Request = DMA_REQUEST_TIM2_CH3;
@@ -287,20 +287,20 @@ uint8_t InicjujWyjsciaRC(void)
 
 		__HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC3);
 		__HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC3], hdma_tim2_ch3);
-		chBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC2][0], chRozmiarSekwencjiDMA[KANAL_RC2]);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC2][0], chRozmiarSekwencjiDMA[KANAL_RC2]);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC2] == SERWO_DSHOT150)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC2);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC2);
 	else
 	if (chKonfigWyRC[KANAL_RC2] == SERWO_DSHOT300)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC2);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC2);
 	else
 	if (chKonfigWyRC[KANAL_RC2] == SERWO_DSHOT600)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC2);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC2);
 	else
 	if (chKonfigWyRC[KANAL_RC2] == SERWO_DSHOT1200)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC2);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC2);
 	else
 	if (chKonfigWyRC[KANAL_RC2] == SERWO_IO)
 	{
@@ -330,11 +330,11 @@ uint8_t InicjujWyjsciaRC(void)
 		huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
 		huart3.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
 		huart3.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
-		chBłąd |= HAL_UART_Init(&huart3);
-		chBłąd |= HAL_UARTEx_SetRxFifoThreshold(&huart3, UART_RXFIFO_THRESHOLD_1_2);
-		chBłąd |= HAL_UARTEx_SetTxFifoThreshold(&huart3, UART_TXFIFO_THRESHOLD_1_2);
-		//chBłąd |= HAL_UARTEx_EnableFifoMode(&huart3);
-		chBłąd |= HAL_UARTEx_DisableFifoMode(&huart3);
+		cBłąd |= HAL_UART_Init(&huart3);
+		cBłąd |= HAL_UARTEx_SetRxFifoThreshold(&huart3, UART_RXFIFO_THRESHOLD_1_2);
+		cBłąd |= HAL_UARTEx_SetTxFifoThreshold(&huart3, UART_TXFIFO_THRESHOLD_1_2);
+		//cBłąd |= HAL_UARTEx_EnableFifoMode(&huart3);
+		cBłąd |= HAL_UARTEx_DisableFifoMode(&huart3);
 
 		HAL_NVIC_SetPriority(USART3_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(USART3_IRQn);
@@ -346,7 +346,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
-		chBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= ERR_BRAK_KONFIG;
 
 
 	//**** Wyjście RC 3 - konfiguracja portu PA15, TIM2_CH1 **********************************************************W
@@ -367,13 +367,13 @@ uint8_t InicjujWyjsciaRC(void)
 		htim2.Init.Period = OKRES_PWM;
 		htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		chBłąd |= HAL_TIM_PWM_Init(&htim2);
+		cBłąd |= HAL_TIM_PWM_Init(&htim2);
 
 		sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	  	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 		sConfigOC.Pulse = OKRES_PWM / 2;
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
 
 		hdma_tim2_ch1.Instance = DMA2_Stream6;
 		hdma_tim2_ch1.Init.Request = DMA_REQUEST_TIM2_CH1;
@@ -389,20 +389,20 @@ uint8_t InicjujWyjsciaRC(void)
 
 		__HAL_TIM_ENABLE_DMA(&htim2, TIM_DMA_CC1);
 		__HAL_LINKDMA(&htim2, hdma[TIM_DMA_ID_CC1], hdma_tim2_ch1);
-		chBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &nBuforTimDMA[KANAL_RC3][0], chRozmiarSekwencjiDMA[KANAL_RC3]);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, &nBuforTimDMA[KANAL_RC3][0], chRozmiarSekwencjiDMA[KANAL_RC3]);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC3] == SERWO_DSHOT150)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC3);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC3);
 	else
 	if (chKonfigWyRC[KANAL_RC3] == SERWO_DSHOT300)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC3);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC3);
 	else
 	if (chKonfigWyRC[KANAL_RC3] == SERWO_DSHOT600)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC3);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC3);
 	else
 	if (chKonfigWyRC[KANAL_RC3] == SERWO_DSHOT1200)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC3);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC3);
 	else
 	if (chKonfigWyRC[KANAL_RC3] == SERWO_IO)	//wyjście IO do debugowania
 	{
@@ -410,7 +410,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 	}
 	else
-		chBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= ERR_BRAK_KONFIG;
 
 
 	//**** Wyjście 4 - konfiguracja portu PB0, TIM3_CH3 **********************************************************
@@ -435,13 +435,13 @@ uint8_t InicjujWyjsciaRC(void)
 		htim3.Init.Period = OKRES_PWM;
 		htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		chBłąd |= HAL_TIM_PWM_Init(&htim3);
+		cBłąd |= HAL_TIM_PWM_Init(&htim3);
 
 		sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	  	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 		sConfigOC.Pulse = OKRES_PWM / 2;
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3);
 
 		hdma_tim3_ch3.Instance = DMA2_Stream4;
 		hdma_tim3_ch3.Init.Request = DMA_REQUEST_TIM3_CH3;
@@ -457,20 +457,20 @@ uint8_t InicjujWyjsciaRC(void)
 
 		//__HAL_TIM_ENABLE_DMA(&htim3, TIM_DMA_CC3);
 		//__HAL_LINKDMA(&htim3, hdma[TIM_DMA_ID_CC3], hdma_tim3_ch3);
-		chBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC4][0], chRozmiarSekwencjiDMA[KANAL_RC4]);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC4][0], chRozmiarSekwencjiDMA[KANAL_RC4]);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC4] == SERWO_DSHOT150)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC4);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC4);
 	else
 	if (chKonfigWyRC[KANAL_RC4] == SERWO_DSHOT300)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC4);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC4);
 	else
 	if (chKonfigWyRC[KANAL_RC4] == SERWO_DSHOT600)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC4);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC4);
 	else
 	if (chKonfigWyRC[KANAL_RC4] == SERWO_DSHOT1200)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC4);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC4);
 	else
 	if (chKonfigWyRC[KANAL_RC4] == SERWO_IO)
 	{
@@ -484,7 +484,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
-		chBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= ERR_BRAK_KONFIG;
 
 
 	//**** Wyjście 5 - konfiguracja portu PB1 TIM3_CH4 **********************************************************
@@ -507,13 +507,13 @@ uint8_t InicjujWyjsciaRC(void)
 		htim3.Init.Period = OKRES_PWM;
 		htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		chBłąd |= HAL_TIM_PWM_Init(&htim3);
+		cBłąd |= HAL_TIM_PWM_Init(&htim3);
 
 		sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	  	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 		sConfigOC.Pulse = OKRES_PWM / 2;;
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4);
 
 		hdma_tim3_ch4.Init.Request = DMA_REQUEST_TIM3_CH4;
 		hdma_tim3_ch4.Init.Direction = DMA_MEMORY_TO_PERIPH;
@@ -528,20 +528,20 @@ uint8_t InicjujWyjsciaRC(void)
 
 		__HAL_TIM_ENABLE_DMA(&htim3, TIM_DMA_CC4);
 		__HAL_LINKDMA(&htim3, hdma[TIM_DMA_ID_CC4], hdma_tim3_ch4);
-		chBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, &nBuforTimDMA[KANAL_RC5][0], chRozmiarSekwencjiDMA[KANAL_RC5]);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, &nBuforTimDMA[KANAL_RC5][0], chRozmiarSekwencjiDMA[KANAL_RC5]);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC5] == SERWO_DSHOT150)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC5);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC5);
 	else
 	if (chKonfigWyRC[KANAL_RC5] == SERWO_DSHOT300)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC5);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC5);
 	else
 	if (chKonfigWyRC[KANAL_RC5] == SERWO_DSHOT600)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC5);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC5);
 	else
 	if (chKonfigWyRC[KANAL_RC5] == SERWO_DSHOT1200)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC5);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC5);
 	else
 	if (chKonfigWyRC[KANAL_RC5] == SERWO_IO)	//wyjście IO do debugowania
 	{
@@ -555,7 +555,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
-		chBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= ERR_BRAK_KONFIG;
 
 
 	//**** Wyjście 6 - konfiguracja portu PI5, TIM8_CH1 **********************************************************
@@ -578,10 +578,10 @@ uint8_t InicjujWyjsciaRC(void)
 		htim8.Init.Period = OKRES_PWM;
 		htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		chBłąd |= HAL_TIM_PWM_Init(&htim8);
+		cBłąd |= HAL_TIM_PWM_Init(&htim8);
 
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_1);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_1);
 
 		hdma_tim8_ch1.Instance = DMA2_Stream3;
 		hdma_tim8_ch1.Init.Request = DMA_REQUEST_TIM8_CH1;
@@ -593,28 +593,28 @@ uint8_t InicjujWyjsciaRC(void)
 		hdma_tim8_ch1.Init.Mode = DMA_CIRCULAR;
 		hdma_tim8_ch1.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim8_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-		chBłąd |= HAL_DMA_Init(&hdma_tim8_ch1);
-		chBłąd |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, &nBuforTimDMA[KANAL_RC6][0], chRozmiarSekwencjiDMA[KANAL_RC6]);
+		cBłąd |= HAL_DMA_Init(&hdma_tim8_ch1);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, &nBuforTimDMA[KANAL_RC6][0], chRozmiarSekwencjiDMA[KANAL_RC6]);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC6] == SERWO_DSHOT150)
 	{
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC6);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC6);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC6] == SERWO_DSHOT300)
 	{
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC6);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC6);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC6] == SERWO_DSHOT600)
 	{
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC6);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC6);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC6] == SERWO_DSHOT1200)
 	{
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC6);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC6);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC6] == SERWO_IO)
@@ -629,7 +629,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 	}
 	else
-		chBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= ERR_BRAK_KONFIG;
 
 
 	//**** Wyjście 7 - konfiguracja portu PI10  - brak timera na porcie **********************************************************
@@ -642,7 +642,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 	}
 	else
-		chBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= ERR_BRAK_KONFIG;
 
 
 	//**** Wyjście 8 - konfiguracja portu PH15 TIM8_CH3N **********************************************************
@@ -665,10 +665,10 @@ uint8_t InicjujWyjsciaRC(void)
 		htim8.Init.Period = OKRES_PWM;
 		htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		chBłąd |= HAL_TIM_PWM_Init(&htim8);
+		cBłąd |= HAL_TIM_PWM_Init(&htim8);
 
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_3);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_3);
 
 		hdma_tim8_ch3.Instance = DMA2_Stream3;
 		hdma_tim8_ch3.Init.Request = DMA_REQUEST_TIM8_CH1;
@@ -680,21 +680,21 @@ uint8_t InicjujWyjsciaRC(void)
 		hdma_tim8_ch3.Init.Mode = DMA_CIRCULAR;
 		hdma_tim8_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim8_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-		chBłąd |= HAL_DMA_Init(&hdma_tim8_ch3);
-		chBłąd |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC8][0], chRozmiarSekwencjiDMA[KANAL_RC8]);
+		cBłąd |= HAL_DMA_Init(&hdma_tim8_ch3);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC8][0], chRozmiarSekwencjiDMA[KANAL_RC8]);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC8] == SERWO_DSHOT150)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC8);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT150, KANAL_RC8);
 	else
 	if (chKonfigWyRC[KANAL_RC8] == SERWO_DSHOT300)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC8);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT300, KANAL_RC8);
 	else
 	if (chKonfigWyRC[KANAL_RC8] == SERWO_DSHOT600)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC8);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT600, KANAL_RC8);
 	else
 	if (chKonfigWyRC[KANAL_RC8] == SERWO_DSHOT1200)
-		chBłąd |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC8);
+		cBłąd |= UstawTrybDShot(PROTOKOL_DSHOT1200, KANAL_RC8);
 	else
 	if (chKonfigWyRC[KANAL_RC8] == SERWO_IO)
 	{
@@ -702,7 +702,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 	}
 	else
-		chBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= ERR_BRAK_KONFIG;
 
 
 	//**** Wyjście 9-16 - konfiguracja portu PA8 TIM1_CH1 **********************************************************
@@ -722,15 +722,15 @@ uint8_t InicjujWyjsciaRC(void)
 		sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
 		sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
 		sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_1);
 
 		htim1.Init.Prescaler = (nHCLK / ZEGAR_PWM) - 1;	//finalnie trzeba uzyskać zegar 2 MHz aby PWM miał taką samą rozdzielczość 2000 kroków co DShot
 		htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
 		htim1.Init.Period = OKRES_PWM;
 		htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		chBłąd |= HAL_TIM_PWM_Init(&htim1);
-		chBłąd |= HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
+		cBłąd |= HAL_TIM_PWM_Init(&htim1);
+		cBłąd |= HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC916] == SERWO_IO)
@@ -739,8 +739,8 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 	}
 	else
-		chBłąd |= ERR_BRAK_KONFIG;
-	return chBłąd;
+		cBłąd |= ERR_BRAK_KONFIG;
+	return cBłąd;
 }
 
 
@@ -833,7 +833,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 {
-	uint8_t chBłąd = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	uint32_t nWyjście;
 
 	//aktualizuj pierwsze 8 kanałów wyjściowych RC sterownych swobodnymi kanałami timera
@@ -880,11 +880,11 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 		case SERWO_DSHOT150:
 		case SERWO_DSHOT300:
 		case SERWO_DSHOT600:
-		case SERWO_DSHOT1200:	chBłąd |= AktualizujDShotDMA(nWyjście, n);	break;
+		case SERWO_DSHOT1200:	cBłąd |= AktualizujDShotDMA(nWyjście, n);	break;
 
-		case SERWO_WS281X:	chBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);	break;
+		case SERWO_WS281X:	cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);	break;
 
-		default: chBłąd = ERR_BRAK_KONFIG;
+		default: cBłąd = ERR_BRAK_KONFIG;
 		}	//switch
 	}	//for
 
@@ -895,7 +895,7 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 
 	//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);	//serwo kanał 7
 	//HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_15);	//serwo kanał 8
-	return chBłąd;
+	return cBłąd;
 }
 
 
@@ -1040,7 +1040,7 @@ void ZapiszEkstremaWejscRC(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
 {
-	uint8_t chBłąd = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	uint32_t nCzasBiezacy = PobierzCzas();
 	uint32_t nCzasRC1, nCzasRC2;
 	uint16_t sRóżnicaMaxMin;
@@ -1124,7 +1124,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 	}
 
 
-	return chBłąd;
+	return cBłąd;
 }
 
 
@@ -1139,7 +1139,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t AnalizujSygnalRC(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
 {
-	uint8_t chBłąd = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 
 	//Dodać  sprawdzenie czy przyszły nowe dane z odbiornika
 
@@ -1157,7 +1157,7 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
 			//sprawdź warunek uzbrojenia silników, czyli oba drążki w dół do środka
 			if ((psDaneCM4->sKanalRC[chKanalDrazkaRC[ODCH]] > WE_RC_P90) &&	(psDaneCM4->sKanalRC[chKanalDrazkaRC[PRZE]] < WE_RC_M90))
 			{
-				chBłąd = UzbrojSilniki(psDaneCM4, psDaneCM7);
+				cBłąd = UzbrojSilniki(psDaneCM4, psDaneCM7);
 			}
 		}
 	}
@@ -1218,7 +1218,7 @@ uint8_t AnalizujSygnalRC(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
     	default:	break;
     	}
     }
-    return chBłąd;
+    return cBłąd;
 }
 
 

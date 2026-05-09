@@ -6,9 +6,9 @@
 // (c) PitLab 2026
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "sbus.h"
+#include "SBus.h"
 #include "WeWyRC.h"
-#include "petla_glowna.h"
+#include "PetlaGlowna.h"
 
 uint8_t chBuforNadawczySBus[ROZMIAR_RAMKI_SBUS] =  {0x0f,0x01,0x04,0x20,0x00,0xff,0x07,0x40,0x00,0x02,0x10,0x80,0x2c,0x64,0x21,0x0b,0x59,0x08,0x40,0x00,0x02,0x10,0x80,0x00};
 uint8_t chBuforAnalizySBus1[ROZMIAR_BUF_ANA_SBUS];
@@ -76,7 +76,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujUart2RxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 {
-	uint8_t chBlad;
+	uint8_t cBłąd;
 
 	InitGPIO->Alternate = GPIO_AF7_USART2;
 	HAL_GPIO_Init(GPIOA, InitGPIO);
@@ -97,16 +97,16 @@ uint8_t InicjujUart2RxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 	//huart2.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
 	//huart2.AdvancedInit.RxPinLevelInvert = UART_ADVFEATURE_RXINV_ENABLE;
 
-	chBlad  = HAL_UART_Init(&huart2);
-	chBlad |= HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_2);
-	//chBlad |= HAL_UARTEx_EnableFifoMode(&huart2);
-	chBlad |= HAL_UARTEx_DisableFifoMode(&huart2);
+	cBłąd  = HAL_UART_Init(&huart2);
+	cBłąd |= HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_2);
+	//cBłąd |= HAL_UARTEx_EnableFifoMode(&huart2);
+	cBłąd |= HAL_UARTEx_DisableFifoMode(&huart2);
 
 	//ponieważ nie ma jak zarezerwować kanału DMA w HAL bo dostępna jest tylko część odbiorcza, więc USART2 będzie pracował na przerwaniach
 	HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(USART2_IRQn);
 	HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);	//włącz odbiór pierwszej ramki
-	return chBlad;
+	return cBłąd;
 }
 
 
@@ -119,7 +119,7 @@ uint8_t InicjujUart2RxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujUart4RxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 {
-	uint8_t chBlad;
+	uint8_t cBłąd;
 
 	InitGPIO->Alternate = GPIO_AF8_UART4;
 	HAL_GPIO_Init(GPIOB, InitGPIO);
@@ -142,11 +142,11 @@ uint8_t InicjujUart4RxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 	huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
 	huart4.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
 	huart4.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
-	chBlad = HAL_UART_Init(&huart4);
-	chBlad |= HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_2);
-	chBlad |= HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_2);
-	//chBlad |= HAL_UARTEx_EnableFifoMode(&huart4);
-	chBlad |= HAL_UARTEx_DisableFifoMode(&huart4);
+	cBłąd = HAL_UART_Init(&huart4);
+	cBłąd |= HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_2);
+	cBłąd |= HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_2);
+	//cBłąd |= HAL_UARTEx_EnableFifoMode(&huart4);
+	cBłąd |= HAL_UARTEx_DisableFifoMode(&huart4);
 
 	// UART4 DMA RX Init
 	hdma_uart4_rx.Instance = DMA1_Stream7;
@@ -162,7 +162,7 @@ uint8_t InicjujUart4RxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 	hdma_uart4_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
 	hdma_uart4_rx.Init.MemBurst = DMA_MBURST_SINGLE;
 	hdma_uart4_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
-	chBlad |= HAL_DMA_Init(&hdma_uart4_rx);
+	cBłąd |= HAL_DMA_Init(&hdma_uart4_rx);
 	__HAL_LINKDMA(&huart4, hdmarx, hdma_uart4_rx);
 
 	// UART4 interrupt Init
@@ -171,7 +171,7 @@ uint8_t InicjujUart4RxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 	HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
 	HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZM_BUF_ODB_SBUS);	//włącz odbiór pierwszej ramki
-	return chBlad;
+	return cBłąd;
 }
 
 
@@ -184,7 +184,7 @@ uint8_t InicjujUart4RxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujUart4TxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 {
-	uint8_t chBlad;
+	uint8_t cBłąd;
 
 	InitGPIO->Alternate = GPIO_AF8_UART4;
 	HAL_GPIO_Init(GPIOB, InitGPIO);
@@ -208,11 +208,11 @@ uint8_t InicjujUart4TxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 	huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
 	huart4.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
 	huart4.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
-	chBlad = HAL_UART_Init(&huart4);
-	chBlad |= HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_2);
-	chBlad |= HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_2);
-	//chBlad = HAL_UARTEx_EnableFifoMode(&huart4);
-	chBlad |= HAL_UARTEx_DisableFifoMode(&huart4);
+	cBłąd = HAL_UART_Init(&huart4);
+	cBłąd |= HAL_UARTEx_SetRxFifoThreshold(&huart4, UART_RXFIFO_THRESHOLD_1_2);
+	cBłąd |= HAL_UARTEx_SetTxFifoThreshold(&huart4, UART_TXFIFO_THRESHOLD_1_2);
+	//cBłąd = HAL_UARTEx_EnableFifoMode(&huart4);
+	cBłąd |= HAL_UARTEx_DisableFifoMode(&huart4);
 
 	HAL_NVIC_SetPriority(UART4_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(UART4_IRQn);
@@ -230,11 +230,11 @@ uint8_t InicjujUart4TxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 	hdma_uart4_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
 	hdma_uart4_tx.Init.MemBurst = DMA_MBURST_SINGLE;
 	hdma_uart4_tx.Init.PeriphBurst = DMA_PBURST_SINGLE;
-	chBlad |= HAL_DMA_Init(&hdma_uart4_tx);
+	cBłąd |= HAL_DMA_Init(&hdma_uart4_tx);
 	__HAL_LINKDMA(&huart4, hdmatx, hdma_uart4_tx);
 	HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-	return chBlad;
+	return cBłąd;
 }
 
 
@@ -291,7 +291,7 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 	uint8_t* chNaglowek;
 	uint8_t n;
 	uint16_t sWartoscKanalu;
-	uint8_t chBlad = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 
 	//dane mogą być przesunięte wzgledem początku więc znajdź nagłówek i synchronizuj się do niego
 	for (n=0; n<KANALY_ODB_RC; n++)
@@ -312,98 +312,98 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  0) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  2) >> 3) | (((uint16_t)*(chNaglowek +  3) << 5) & 0x7E0));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  1) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  3) >> 6) | (((uint16_t)*(chNaglowek +  4) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 5) << 10) & 0x400));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  2) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  5) >> 1) | (((uint16_t)*(chNaglowek +  6) << 7) & 0x780));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  3) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  6) >> 4) | (((uint16_t)*(chNaglowek +  7) << 4) & 0x7F0));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  4) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  7) >> 7) | (((uint16_t)*(chNaglowek +  8) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 9) << 9) & 0x600));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  5) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  9) >> 2) | (((uint16_t)*(chNaglowek + 10) << 6) & 0x7C0));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  6) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 10) >> 5) | (((uint16_t)*(chNaglowek + 11) << 3) & 0x7F8));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  7) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 12) >> 0) | (((uint16_t)*(chNaglowek + 13) << 8) & 0x700));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  8) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 13) >> 3) | (((uint16_t)*(chNaglowek + 14) << 5) & 0x7E0));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly +  9) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 14) >> 6) | (((uint16_t)*(chNaglowek + 15) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 16) << 10) & 0x400));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly + 10) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 16) >> 1) | (((uint16_t)*(chNaglowek + 17) << 7) & 0x780));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly + 11) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 17) >> 4) | (((uint16_t)*(chNaglowek + 18) << 4) & 0x7F0));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly + 12) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 18) >> 7) | (((uint16_t)*(chNaglowek + 19) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 20) << 9) & 0x600));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly + 13) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 20) >> 2) | (((uint16_t)*(chNaglowek + 21) << 6) & 0x7C0));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly + 14) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
+		cBłąd = ERR_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 21) >> 5) | (((uint16_t)*(chNaglowek + 22) << 3) & 0x7F8));
 	if (sWartoscKanalu < WE_RC_MAX)
 		*(sKanaly + 15) = sWartoscKanalu;
 	else
-		chBlad = ERR_ZLE_DANE;
-	return chBlad;
+		cBłąd = ERR_ZLE_DANE;
+	return cBłąd;
 }
 
 
@@ -416,14 +416,14 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaRamkiSBus(void)
 {
-	uint8_t chBlad;
+	uint8_t cBłąd;
 
 	//obsługa kanału 1
-	chBlad = FormowanieRamkiSBus(chRamkaSBus1, &chWskNapRamkiSBus1, chBuforAnalizySBus1, (uint8_t)chWskNapBufAnaSBus1, (uint8_t*)&chWskOprBufAnaSBus1);
-	if (chBlad == BLAD_GOTOWE)
+	cBłąd = FormowanieRamkiSBus(chRamkaSBus1, &chWskNapRamkiSBus1, chBuforAnalizySBus1, (uint8_t)chWskNapBufAnaSBus1, (uint8_t*)&chWskOprBufAnaSBus1);
+	if (cBłąd == BLAD_GOTOWE)
 	{
-		chBlad = DekodowanieRamkiBSBus(chRamkaSBus1, stRC.sOdb1);
-		if (chBlad == BLAD_OK)
+		cBłąd = DekodowanieRamkiBSBus(chRamkaSBus1, stRC.sOdb1);
+		if (cBłąd == BLAD_OK)
 		{
 			stRC.sZdekodowaneKanaly1 = 0xFFFF;
 			stRC.nCzasWe1 = PobierzCzas();
@@ -431,11 +431,11 @@ uint8_t ObslugaRamkiSBus(void)
 	}
 
 	//obsługa kanału 2
-	chBlad = FormowanieRamkiSBus(chRamkaSBus2, &chWskNapRamkiSBus2, chBuforAnalizySBus2, (uint8_t)chWskNapBufAnaSBus2, (uint8_t*)&chWskOprBufAnaSBus2);
-	if (chBlad == BLAD_GOTOWE)
+	cBłąd = FormowanieRamkiSBus(chRamkaSBus2, &chWskNapRamkiSBus2, chBuforAnalizySBus2, (uint8_t)chWskNapBufAnaSBus2, (uint8_t*)&chWskOprBufAnaSBus2);
+	if (cBłąd == BLAD_GOTOWE)
 	{
-		chBlad = DekodowanieRamkiBSBus(chRamkaSBus2, stRC.sOdb2);
-		if (chBlad == BLAD_OK)
+		cBłąd = DekodowanieRamkiBSBus(chRamkaSBus2, stRC.sOdb2);
+		if (cBłąd == BLAD_OK)
 		{
 			stRC.sZdekodowaneKanaly2 = 0xFFFF;
 			stRC.nCzasWe2 = PobierzCzas();
@@ -443,7 +443,7 @@ uint8_t ObslugaRamkiSBus(void)
 	}
 
 	//scalenie obu kanałów w jedne dane dane odbiornika RC
-	chBlad = DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane, &uDaneCM7.dane);
+	cBłąd = DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane, &uDaneCM7.dane);
 
 	//Jeżeli wyjscie RC1 jest ustawione jako S-Bus
 	if (chKonfigWyRC[KANAL_RC1] == SERWO_SBUS)
@@ -456,7 +456,7 @@ uint8_t ObslugaRamkiSBus(void)
 			HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus, ROZM_BUF_ODB_SBUS);	//wyślij kolejną ramkę
 		}
 	}
-	return chBlad;
+	return cBłąd;
 }
 
 

@@ -8,19 +8,19 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 //#include <RPi35B_480x320.h>
-#include "rysuj.h"
+#include "Rysuj.h"
 #include <string.h>
 #include <stdio.h>
-#include "dotyk.h"
-#include "audio.h"
+#include "Dotyk.h"
+#include "Audio.h"
 #include <RPi35B_480x320.h>
 #include <ili9488.h>
-#include "czas.h"
-#include "analiza_obrazu.h"
+#include "Czas.h"
+#include "AnalizaObrazu.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "rejestrator.h"
-#include "sample_audio.h"
+#include "Rejestrator.h"
+#include "SampleAudio.h"
 
 
 //deklaracje zmiennych
@@ -299,14 +299,14 @@ void BelkaTytulu(char* chTytul)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObraz)
 {
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 
 	if (sSzerokosc > DISP_X_SIZE)
 		sSzerokosc = DISP_X_SIZE;
 	if (sWysokosc > DISP_Y_SIZE)
 		sWysokosc = DISP_Y_SIZE;
 	RysujBitmape(0, 0, sSzerokosc, sWysokosc, sObraz);
-	return chErr;
+	return cBłąd;
 }
 
 
@@ -321,7 +321,7 @@ uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObra
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* chObraz)
 {
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	//uint32_t nCzas;
 	//extern uint32_t nRozmiarObrazuJPEG;
 	//extern uint32_t nRozmiarObrazuKamery;
@@ -338,7 +338,7 @@ uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* 
 	//sprintf(chNapis, "%.2f fps, kompr: %.1f", 1.0/(nCzas/1000000.0), (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);
 	//setColor(ZOLTY);
 	//RysujNapis(chNapis, 0, DISP_Y_SIZE - FONT_BH);
-	return chErr;
+	return cBłąd;
 }
 
 

@@ -7,11 +7,11 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "LSM6DSV.h"
-#include "wymiana_CM4.h"
-#include "petla_glowna.h"
+#include "WymianaCM4.h"
+#include "PetlaGlowna.h"
 #include "main.h"
-#include "modul_IiP.h"
-#include "spi.h"
+#include "Modul_I2P.h"
+#include "SPI.h"
 
 extern volatile unia_wymianyCM4_t uDaneCM4;
 extern volatile unia_wymianyCM7_t uDaneCM7;
@@ -88,13 +88,13 @@ uint8_t InicjujLSM6DSV(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaLSM6DSV(void)
 {
-	uint8_t chErr = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	uint8_t chDane[15];
 	float fPrzesuniecieZyro[3];
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV) != INIT_LSM6DSV)	//jeżeli czujnik nie jest zainicjowany
 	{
-		chErr = InicjujLSM6DSV();
+		cBłąd = InicjujLSM6DSV();
 	}
 	else
 	{
@@ -118,7 +118,7 @@ uint8_t ObslugaLSM6DSV(void)
 				uDaneCM4.dane.fZyroKal2[n] = uDaneCM4.dane.fZyroSur2[n] * fMnożnikŻyro2[n] - fPrzesuniecieZyro[n];	//żyro po kalibracji przesuniecia i wzmocnienia
 		}
 	}
-	return chErr;
+	return cBłąd;
 }
 
 

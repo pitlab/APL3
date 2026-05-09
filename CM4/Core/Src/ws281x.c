@@ -40,7 +40,7 @@ stWskaznikLed_t stWskaznikLed[LICZBA_WSKAZNIKOW_LED];
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujKoloryWS281x(void)
 {
-	uint8_t chBłąd = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	uint8_t chDane[ROZMIAR_WSKAZNIKA_LED - 8];
 
 	CzytajBuforFRAM(FAU_WSKLED_TYP_LED, &chTypLed, 1);
@@ -63,8 +63,8 @@ uint8_t InicjujKoloryWS281x(void)
 		stWskaznikLed[n].fWartoscMax = CzytajFramFloat(FAU_WSKLED1_MAX_ZMIENNEJ + n*ROZMIAR_WSKAZNIKA_LED);
 	}
 
-	chBłąd = UstawKolorWS281x(nKolorWS281x, stWskaznikLed);
-	return chBłąd;
+	cBłąd = UstawKolorWS281x(nKolorWS281x, stWskaznikLed);
+	return cBłąd;
 }
 
 
@@ -88,7 +88,7 @@ uint8_t AktualizujKolorLedWs821x(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawTrybWS281x(uint8_t chKanal)
 {
-	uint8_t chBłąd = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	TIM_OC_InitTypeDef sConfigOC = {0};
 
 	//oblicz długość impulsów do ustawienia w CC timera: czas impulsu / okres zegara => czas impulsu * częstotliwość zegara
@@ -111,14 +111,14 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		htim2.Init.Period = stWS281x.nBit;
 		htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		chBłąd |= HAL_TIM_PWM_Init(&htim2);
+		cBłąd |= HAL_TIM_PWM_Init(&htim2);
 		HAL_NVIC_DisableIRQ(TIM2_IRQn);
 	}
 
 	if (chKanal == KANAL_RC2)		//kanał serw 2 obsługiwany przez Timer2ch3
 	{
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;		//wyjście przechodzi przez inwerter, więc wymaga dodatkowego odwrócenia sygnału aby finalnie było niezmienione
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3);
 		hdma_tim2_ch3.Instance = DMA2_Stream7;
 		hdma_tim2_ch3.Init.Request = DMA_REQUEST_TIM2_CH3;
 		hdma_tim2_ch3.Init.Direction = DMA_MEMORY_TO_PERIPH;
@@ -129,13 +129,13 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		hdma_tim2_ch3.Init.Mode = DMA_CIRCULAR;
 		hdma_tim2_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim2_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-		chBłąd |= HAL_DMA_Init(&hdma_tim2_ch3);
-		chBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+		cBłąd |= HAL_DMA_Init(&hdma_tim2_ch3);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 
 	if (chKanal == KANAL_RC3)		//kanał serw 3 obsługiwany przez Timer2ch1
 	{
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
 		hdma_tim2_ch1.Instance = DMA2_Stream6;
 		hdma_tim2_ch1.Init.Request = DMA_REQUEST_TIM2_CH1;
 		hdma_tim2_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
@@ -146,8 +146,8 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		hdma_tim2_ch1.Init.Mode = DMA_CIRCULAR;
 		hdma_tim2_ch1.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim2_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-		chBłąd |= HAL_DMA_Init(&hdma_tim2_ch1);
-		chBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+		cBłąd |= HAL_DMA_Init(&hdma_tim2_ch1);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 
 	if ((chKanal == KANAL_RC4) || (chKanal == KANAL_RC5))	//timer 3 obsluguje kanały 4 i 5
@@ -158,13 +158,13 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		htim3.Init.Period = stWS281x.nBit;
 		htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-		chBłąd |= HAL_TIM_PWM_Init(&htim3);
+		cBłąd |= HAL_TIM_PWM_Init(&htim3);
 		HAL_NVIC_DisableIRQ(TIM3_IRQn);	//generowanie PWM dla DShot nie wymaga przerwań
 	}
 
 	if (chKanal == KANAL_RC4)		//kanał 4
 	{
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_3);
 		hdma_tim3_ch3.Instance = DMA2_Stream4;
 		hdma_tim3_ch3.Init.Request = DMA_REQUEST_TIM3_CH3;
 		hdma_tim3_ch3.Init.Direction = DMA_MEMORY_TO_PERIPH;
@@ -175,13 +175,13 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		hdma_tim3_ch3.Init.Mode = DMA_CIRCULAR;
 		hdma_tim3_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim3_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-		chBłąd |= HAL_DMA_Init(&hdma_tim3_ch3);
-		chBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+		cBłąd |= HAL_DMA_Init(&hdma_tim3_ch3);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 
 	if (chKanal == KANAL_RC5)		//kanał 5
 	{
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4);
 		hdma_tim3_ch4.Init.Request = DMA_REQUEST_TIM3_CH4;
 		hdma_tim3_ch4.Init.Direction = DMA_MEMORY_TO_PERIPH;
 		hdma_tim3_ch4.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -191,8 +191,8 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		hdma_tim3_ch4.Init.Mode = DMA_CIRCULAR;
 		hdma_tim3_ch4.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim3_ch4.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-		chBłąd |= HAL_DMA_Init(&hdma_tim3_ch4);
-		chBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+		cBłąd |= HAL_DMA_Init(&hdma_tim3_ch4);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 
 
@@ -208,7 +208,7 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim8.Init.RepetitionCounter = 0;
 		htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-		chBłąd |= HAL_TIM_PWM_Init(&htim8);
+		cBłąd |= HAL_TIM_PWM_Init(&htim8);
 		HAL_NVIC_DisableIRQ(TIM8_CC_IRQn);	//generowanie PWM dla DShot nie wymaga przerwań
 
 		//wspólna konfiguracja dla kanałów 1 i 3
@@ -219,7 +219,7 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 
 	if (chKanal == KANAL_RC6)		//kanał 6
 	{
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_1);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_1);
 		hdma_tim8_ch1.Instance = DMA2_Stream3;
 		hdma_tim8_ch1.Init.Request = DMA_REQUEST_TIM8_CH1;
 		hdma_tim8_ch1.Init.Direction = DMA_MEMORY_TO_PERIPH;
@@ -230,16 +230,16 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		hdma_tim8_ch1.Init.Mode = DMA_NORMAL;
 		hdma_tim8_ch1.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim8_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-		chBłąd |= HAL_DMA_Init(&hdma_tim8_ch1);
+		cBłąd |= HAL_DMA_Init(&hdma_tim8_ch1);
 		HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
 		__HAL_DMA_ENABLE_IT(&hdma_tim8_ch1, DMA_IT_HT);
-		chBłąd |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 
 	if (chKanal == KANAL_RC8)	//kanał 8
 	{
-		chBłąd |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_3);
+		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_3);
 		hdma_tim8_ch3.Instance = DMA2_Stream2;
 		hdma_tim8_ch3.Init.Request = DMA_REQUEST_TIM8_CH3;
 		hdma_tim8_ch3.Init.Direction = DMA_MEMORY_TO_PERIPH;
@@ -250,13 +250,13 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		hdma_tim8_ch3.Init.Mode = DMA_CIRCULAR;
 		hdma_tim8_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim8_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-		chBłąd |= HAL_DMA_Init(&hdma_tim8_ch3);
+		cBłąd |= HAL_DMA_Init(&hdma_tim8_ch3);
 		HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
 		__HAL_DMA_ENABLE_IT(&hdma_tim8_ch3, DMA_IT_HT);
-		chBłąd |= HAL_TIMEx_PWMN_Start_DMA(&htim8, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);	//specjalna funkcja dla kanału komplementarnego N
+		cBłąd |= HAL_TIMEx_PWMN_Start_DMA(&htim8, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);	//specjalna funkcja dla kanału komplementarnego N
 	}
-	return chBłąd;
+	return cBłąd;
 }
 
 
@@ -277,7 +277,7 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskLED)
 {
-	uint8_t chBłąd = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	uint32_t nKolorLED;
 	uint8_t chIndeksBitu;
 
@@ -339,7 +339,7 @@ uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRo
 		*chWskLED = 0;
 	}
 
-	return chBłąd;
+	return cBłąd;
 }
 
 
@@ -354,7 +354,7 @@ uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRo
 uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed)
 {
 	float fDeltaCzer, fDeltaZiel, fDeltaNieb, fDeltaPomiaru;
-	uint8_t chBłąd = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	uint8_t chIndeksTabKoloru = 0;
 	float fRoznica;
 	float fDzielnik;
@@ -406,6 +406,6 @@ uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed)
 			chIndeksTabKoloru++;
 		}
 	}
-	return chBłąd;
+	return cBłąd;
 }
 
