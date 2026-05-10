@@ -409,21 +409,21 @@ uint8_t UruchomPolecenie(uint8_t chPolecenie, uint8_t *chDane, uint8_t chRozmDan
 			break;
 		}
 #ifdef TESTY
-		assert(chRozmDanych == ROZMIAR_REG_PID);
+		assert(chRozmDanych == ROZMIAR_REG_PID + 2);
 #endif
 		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_KONFIG_PID;
-		uDaneCM7.dane.chRozmiar = (chRozmDanych / sizeof(float)) - 1;		//ilość liczb float zawierających konfigurację regulatora, ostatnia liczba zawiera flagi
+		uDaneCM7.dane.chRozmiar = (chRozmDanych - 3) / sizeof(float);		//ilość zmiennych regulatora typu float
 		uDaneCM7.dane.sAdres = chDane[0];	//indeks regulatora
-		//chDane[2] i chDane[3] są wolne do wykorzystania
+		//chDane[3] są wolne do wykorzystania
 		for (n=0; n<uDaneCM7.dane.chRozmiar; n++)
 		{
 			for (uint8_t i=0; i<sizeof(float); i++)
 				un8_32.dane8[i] = chDane[4 + n*sizeof(float) + i];
 			uDaneCM7.dane.uRozne.f32[n] = un8_32.daneFloat;
 		}
-		//w ostatnich 4 bajtach zamiast float przeslij konfigurację zawartą w bajtach
-		uDaneCM7.dane.uRozne.U8[sizeof(float) * uDaneCM7.dane.chRozmiar] = chDane[1];	//stała czasowa filtra D
-		uDaneCM7.dane.chRozmiar++;
+		//w ostatnich polach zamiast float przeslij konfigurację zawartą w bajtach
+		uDaneCM7.dane.uRozne.U8[sizeof(float) * uDaneCM7.dane.chRozmiar + 0] = chDane[1];	//stała czasowa filtra D
+		uDaneCM7.dane.uRozne.U8[sizeof(float) * uDaneCM7.dane.chRozmiar + 1] = chDane[2];	//procent wartości wyprzedzającej
 		Wyslij_KodBledu(BLAD_OK, chPolecenie, chInterfejs);
 		break;
 

@@ -444,8 +444,10 @@ void WykonajPolecenieCM7(void)
 			uint8_t chIndeksRegulatora = (uint8_t)uDaneCM7.dane.sAdres;
 			uint16_t sAdresFram = FA_USER_PID +  chIndeksRegulatora * ROZMIAR_REG_PID;
 
-			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar-1; n++)
+			//na początek zapisz 10 floatów i  wstaw je do pamięci
+			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
 				ZapiszFramFloat(sAdresFram + n*4, uDaneCM7.dane.uRozne.f32[n]);
+
 			stKonfigPID[chIndeksRegulatora].fWzmP = uDaneCM7.dane.uRozne.f32[0];
 			stKonfigPID[chIndeksRegulatora].fWzmI = uDaneCM7.dane.uRozne.f32[1];
 			stKonfigPID[chIndeksRegulatora].fWzmD = uDaneCM7.dane.uRozne.f32[2];
@@ -453,15 +455,16 @@ void WykonajPolecenieCM7(void)
 			stKonfigPID[chIndeksRegulatora].fMinWyj = uDaneCM7.dane.uRozne.f32[4];
 			stKonfigPID[chIndeksRegulatora].fMaxWyj = uDaneCM7.dane.uRozne.f32[5];
 			stKonfigPID[chIndeksRegulatora].fSkalaWartZadanej = uDaneCM7.dane.uRozne.f32[6];
-			stKonfigPID[chIndeksRegulatora].fStałeWyprzedzenie = uDaneCM7.dane.uRozne.f32[7];
+			stKonfigPID[chIndeksRegulatora].fPrzesunięcieWyjscia = uDaneCM7.dane.uRozne.f32[7];
 
-			uint8_t chStalaCzasowaD_flagi = uDaneCM7.dane.uRozne.U8[4 * (uDaneCM7.dane.chRozmiar - 1) + 0];
-			ZapiszFRAM(sAdresFram + 4 * (uDaneCM7.dane.chRozmiar - 1), chStalaCzasowaD_flagi);	//stała czasowa filtra D
+			//finalnie zapisz dane zawarte w bajtach i wstaw je do pamieci
+			uint8_t chStalaCzasowaD_flagi = uDaneCM7.dane.uRozne.U8[4 * uDaneCM7.dane.chRozmiar + 0];
+			ZapiszFRAM(sAdresFram + 4 * uDaneCM7.dane.chRozmiar + 0, chStalaCzasowaD_flagi);	//stała czasowa filtra D
 			stKonfigPID[chIndeksRegulatora].chPodstFiltraD = chStalaCzasowaD_flagi & PID_MASKA_FILTRA_D;
 			stKonfigPID[chIndeksRegulatora].chFlagi = chStalaCzasowaD_flagi & ~PID_MASKA_FILTRA_D;
 
-			stKonfigPID[chIndeksRegulatora].chProcWartZadWyprz = uDaneCM7.dane.uRozne.U8[4 * (uDaneCM7.dane.chRozmiar - 1) + 1];
-			ZapiszFRAM(sAdresFram + 4 * (uDaneCM7.dane.chRozmiar - 1) + 1, stKonfigPID[chIndeksRegulatora].chProcWartZadWyprz);
+			stKonfigPID[chIndeksRegulatora].chProcWartZadWyprz = uDaneCM7.dane.uRozne.U8[4 * uDaneCM7.dane.chRozmiar + 1];
+			ZapiszFRAM(sAdresFram + 4 * uDaneCM7.dane.chRozmiar + 1, stKonfigPID[chIndeksRegulatora].chProcWartZadWyprz);
 			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 			break;
 

@@ -42,28 +42,28 @@ uint8_t InicjujPID(void)
     {
     	sAdrOffset = (n * ROZMIAR_REG_PID);	//offset danych kolejnego kanału regulatora
         //odczytaj wartość wzmocnienienia członu P regulatora
-    	cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_P0 + sAdrOffset, &stKonfigPID[n].fWzmP, VMIN_PID_WZMP, VMAX_PID_WZMP, VDOM_PID_WZMP);
+    	cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_KP + sAdrOffset, &stKonfigPID[n].fWzmP, VMIN_PID_WZMP, VMAX_PID_WZMP, VDOM_PID_WZMP);
 
         //odczytaj wartość wzmocnienienia członu I regulatora
-        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_I0 + sAdrOffset, &stKonfigPID[n].fWzmI, VMIN_PID_WZMI, VMAX_PID_WZMI, VDOM_PID_WZMI);
+        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_TI + sAdrOffset, &stKonfigPID[n].fWzmI, VMIN_PID_WZMI, VMAX_PID_WZMI, VDOM_PID_WZMI);
 
         //odczytaj wartość wzmocnienienia członu D regulatora
-        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_D0 + sAdrOffset, &stKonfigPID[n].fWzmD, VMIN_PID_WZMD, VMAX_PID_WZMD, VDOM_PID_WZMD);
+        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_TD + sAdrOffset, &stKonfigPID[n].fWzmD, VMIN_PID_WZMD, VMAX_PID_WZMD, VDOM_PID_WZMD);
 
         //odczytaj granicę nasycenia członu całkującego
-        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_OGR_I0 + sAdrOffset, &stKonfigPID[n].fOgrCalki, VMIN_PID_ILIM, VMAX_PID_ILIM, VDOM_PID_ILIM);
+        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_OGR_CALK + sAdrOffset, &stKonfigPID[n].fOgrCalki, VMIN_PID_ILIM, VMAX_PID_ILIM, VDOM_PID_ILIM);
 
         //odczytaj minimalną wartość wyjścia
-        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_MIN_WY0 + sAdrOffset, &stKonfigPID[n].fMinWyj, VMIN_PID_MINWY, VMAX_PID_MINWY, VDOM_PID_MINWY);
+        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_MIN_WY + sAdrOffset, &stKonfigPID[n].fMinWyj, VMIN_PID_MINWY, VMAX_PID_MINWY, VDOM_PID_MINWY);
 
         //odczytaj maksymalną wartość wyjścia
-        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_MAX_WY0 + sAdrOffset, &stKonfigPID[n].fMaxWyj, VMIN_PID_MAXWY, VMAX_PID_MAXWY, VDOM_PID_MAXWY);
+        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_MAX_WY + sAdrOffset, &stKonfigPID[n].fMaxWyj, VMIN_PID_MAXWY, VMAX_PID_MAXWY, VDOM_PID_MAXWY);
 
         //odczytaj mnożnik wartości zadanej
-        cBłąd |= CzytajFramFloatZWalidacja(FAU_MNOZN_WZAD + sAdrOffset, &stKonfigPID[n].fSkalaWartZadanej, VMIN_PID_MNOZWZ, VMAX_PID_MNOZWZ, VDOM_PID_MNOZWZ);
+        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_MNOZN_WZAD + sAdrOffset, &stKonfigPID[n].fSkalaWartZadanej, VMIN_PID_MNOZWZ, VMAX_PID_MNOZWZ, VDOM_PID_MNOZWZ);
 
         //odczytaj stałą wartość podawaną na wejście wyprzedzajace (Feed Forward)
-        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_STALE_WYPRZ + sAdrOffset, &stKonfigPID[n].fStałeWyprzedzenie, VMIN_PID_STWYPRZ, VMAX_PID_STWYPRZ, VDOM_PID_STWYPRZ);
+        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_STALE_WYPRZ + sAdrOffset, &stKonfigPID[n].fPrzesunięcieWyjscia, VMIN_PID_STWYPRZ, VMAX_PID_STWYPRZ, VDOM_PID_STWYPRZ);
 
         //odczytaj stałą czasową filtru członu różniczkowania (bity 0..5), właczony (bit 6) i to czy regulator jest kątowy (bit 7)
         chTemp = CzytajFRAM(FAU_FILTRD_TYP + sAdrOffset);
@@ -158,7 +158,7 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
     dane->stWyjPID[chKanal].fWyjscieD = fTemp;  //wartość wyjściowa z członu D
   
     //dodanie stałej wartości wyprzedzenia umożliwijącej lot pod niezerowym kątem
-   	fWyjscieReg += konfig[chKanal].fStałeWyprzedzenie;
+   	fWyjscieReg += konfig[chKanal].fPrzesunięcieWyjscia;
 
     //oblicz pochodną wartości zadanej
     float fPochodnaWartZadanej = dane->stWyjPID[chKanal].fZadana - dane->stWyjPID[chKanal].fPoprzWartZad  / fdT;

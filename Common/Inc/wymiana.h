@@ -18,11 +18,9 @@
 #define ROZMIAR_BUF8_WYMIANY_CM7		ROWNAJ_DO32B(sizeof(stWymianyCM7_t))
 #define ROZMIAR_BUF32_WYMIANY_CM4		ROZMIAR_BUF8_WYMIANY_CM4 / 4
 #define ROZMIAR_BUF32_WYMIANY_CM7		ROZMIAR_BUF8_WYMIANY_CM7 / 4
-#define ROZMIAR_BUF_NAPISU_WYMIANY		32
-//#define ROZMIAR_ROZNE					8
-#define ROZMIAR_ROZNE_FLOAT				8
-#define ROZMIAR_ROZNE_SHORT				16
-#define ROZMIAR_ROZNE_CHAR				32
+#define ROZMIAR_ROZNE_FLOAT				12
+#define ROZMIAR_ROZNE_SHORT				24
+#define ROZMIAR_ROZNE_CHAR				48
 
 //definicje poleceń przekazywanych z CM4 do CM7
 #define POL4_NIC					0	//nic nie rób

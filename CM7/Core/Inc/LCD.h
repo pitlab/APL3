@@ -70,7 +70,7 @@ float MaximumGlobalne(float *fMin, float *fMax);
 uint8_t KalibrujBaro(uint8_t *chEtap);
 void PlaskiObrotMagnetometrow(void);
 void NastawyPID(uint8_t chKanal);
-uint8_t CzytajFramFoat(uint16_t sAdres, uint8_t chRozmiar, float *fDane);
+uint8_t CzytajFramFloat(uint16_t sAdres, uint8_t chRozmiar, float *fDane);
 uint8_t CzytajFramChar(uint16_t sAdres, uint8_t chRozmiar, uint8_t *chDane);
 void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych);
 #endif /* INC_LCD_H_ */

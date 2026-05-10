@@ -52,13 +52,13 @@
 
 //regulatory PID
 #define FA_USER_PID	    	0x0100
-#define FAU_PID_P0          FA_USER_PID+0   //4F wzmocnienienie członu P regulatora 0
-#define FAU_PID_I0          FA_USER_PID+4   //4F wzmocnienienie członu I regulatora 0
-#define FAU_PID_D0          FA_USER_PID+8   //4F wzmocnienienie członu D regulatora 0
-#define FAU_PID_OGR_I0      FA_USER_PID+12  //4F ograniczenie wartości całki członu I regulatora 0
-#define FAU_PID_MIN_WY0		FA_USER_PID+16  //4F minimalna wartość wyjścia
-#define FAU_PID_MAX_WY0		FA_USER_PID+20  //4F maksymalna wartość wyjścia
-#define FAU_MNOZN_WZAD 		FA_USER_PID+24	//4F mnożnik wartości zadanej
+#define FAU_PID_KP          FA_USER_PID+0   //4F wzmocnienienie członu P regulatora
+#define FAU_PID_TI          FA_USER_PID+4   //4F wzmocnienienie członu I regulatora
+#define FAU_PID_TD          FA_USER_PID+8   //4F wzmocnienienie członu D regulatora
+#define FAU_PID_OGR_CALK    FA_USER_PID+12  //4F ograniczenie wartości całki członu I regulatora
+#define FAU_PID_MIN_WY		FA_USER_PID+16  //4F minimalna wartość wyjścia
+#define FAU_PID_MAX_WY		FA_USER_PID+20  //4F maksymalna wartość wyjścia
+#define FAU_PID_MNOZN_WZAD 	FA_USER_PID+24	//4F mnożnik wartości zadanej
 #define FAU_PID_STALE_WYPRZ	FA_USER_PID+28 	//4F stała wartość podawana na wejście wyprzedzające (umożliwia lot pod niezerowym kątem)
 #define FAU_PID1			FA_USER_PID+32	//4F wolne
 #define FAU_PID2			FA_USER_PID+36	//4F wolne

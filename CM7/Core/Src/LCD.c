@@ -211,8 +211,8 @@ menu_t stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY] = {
 
 menu_t stMenuNastawy[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"PID Pochyl",	"Nastawy PID pochylenia",					TP_NAST_PID_POCH, 	obr_narzedzia},
 	{"PID Przech",	"Nastawy PID przechylenia",					TP_NAST_PID_PRZECH, obr_narzedzia},
+	{"PID Pochyl",	"Nastawy PID pochylenia",					TP_NAST_PID_POCH, 	obr_narzedzia},
 	{"PID Odchyl",	"Nastawy PID odchylenia",					TP_NAST_PID_ODCH,	obr_narzedzia},
 	{"PID Wysoko",	"Nastawy PID wysokosci",					TP_NAST_PID_WYSOK,	obr_narzedzia},
 	{"PID NawigN",	"Nastawy PID nawigacji północnej",			TP_NAST_PID_NAW_N,	obr_narzedzia},
@@ -4044,7 +4044,7 @@ void PlaskiObrotMagnetometrow(void)
 ////////////////////////////////////////////////////////////////////////////////
 void NastawyPID(uint8_t chKanal)
 {
-	float fNastawy[ROZMIAR_REG_PID/4];
+	float fNastawy[ROZMIAR_REG_PID/4 + 2];
 	uint8_t chTrybRegulatora[LICZBA_DRAZKOW];
 	uint8_t cBłąd;
 	unia8_32_t un8_32;
@@ -4072,10 +4072,14 @@ void NastawyPID(uint8_t chKanal)
 		RysujNapis(chNapis, KOL12, 180);
 		sprintf(chNapis, "SkWzad:");
 		RysujNapis(chNapis, KOL12, 200);
-		sprintf(chNapis, "Filtr D:");
+		sprintf(chNapis, "PresWy:");
 		RysujNapis(chNapis, KOL12, 220);
-		sprintf(chNapis, "k%ctowy:", ą);
+		sprintf(chNapis, "Filtr D:");
 		RysujNapis(chNapis, KOL12, 240);
+		sprintf(chNapis, "%% wyprz:");
+		RysujNapis(chNapis, KOL12, 260);
+		sprintf(chNapis, "k%ctowy:", ą);
+		RysujNapis(chNapis, KOL12, 280);
 
 		sprintf(chNapis, "Regulator pochodnej");
 		RysujNapis(chNapis, KOL22, 60);
@@ -4093,8 +4097,14 @@ void NastawyPID(uint8_t chKanal)
 		RysujNapis(chNapis, KOL22, 180);
 		sprintf(chNapis, "SkWzad:");
 		RysujNapis(chNapis, KOL22, 200);
-		sprintf(chNapis, "Filtr D:");
+		sprintf(chNapis, "PresWy:");
 		RysujNapis(chNapis, KOL22, 220);
+		sprintf(chNapis, "Filtr D:");
+		RysujNapis(chNapis, KOL22, 240);
+		sprintf(chNapis, "%% wyprz:");
+		RysujNapis(chNapis, KOL22, 260);
+		sprintf(chNapis, "k%ctowy:", ą);
+		RysujNapis(chNapis, KOL22, 280);
 		setColor(SZARY60);
 		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
 		RysujNapis(chNapis, CENTER, 30);
@@ -4104,9 +4114,12 @@ void NastawyPID(uint8_t chKanal)
 
 
 		//odczytaj nastawy regulatorów
-		cBłąd = CzytajFramFoat(FAU_PID_P0 + (chKanal + 0) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
+		cBłąd = CzytajFramFloat(FAU_PID_KP + (chKanal + 0) * ROZMIAR_REG_PID, (ROZMIAR_REG_PID + 2) / 4, fNastawy);
 		if (cBłąd == BLAD_OK)
 		{
+			//CM4 reaguje na zmianę polecenia, więc zmień na polecenie neutralne, aby można było ponowić odczyt drugiego regulatora
+			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//nie odczytuj więcej danych
+			osDelay(5);										//czas na propagację polecenia w innym wątku
 			if (chTrybRegulatora[chKanal/2] > REG_AKRO)
 				setColor(BIALY);	//regulator pracuje
 			else
@@ -4126,21 +4139,29 @@ void NastawyPID(uint8_t chKanal)
 			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 180);
 			sprintf(chNapis, "%.6f ", fNastawy[6]);	//skalowanie wartości zadanej
 			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 200);
-			un8_32.daneFloat =  fNastawy[7];
+			sprintf(chNapis, "%.4f ", fNastawy[7]);	//stałe wyprzedzenie
+			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 220);
+			//miejsce na 2 zmienne rezerwowe
+
+			un8_32.daneFloat =  fNastawy[10];
 			sprintf(chNapis, "%d", un8_32.dane8[0] & PID_MASKA_FILTRA_D);
-			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 220);	//filtr D
+			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 240);	//filtr D
 			if (un8_32.dane8[0] & PID_KATOWY)
 				sprintf(chNapis, "Tak");
 			else
 				sprintf(chNapis, "Nie");
-			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 240);	//kątowy
+			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 280);	//kątowy
+			sprintf(chNapis, "%d", un8_32.dane8[1]);
+			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 260);	//procent wyprzedzenia
 		}
 		else
 			chRysujRaz = 1;	//jeżeli się nie odczytało to wyświetl jeszcze raz
 
-		cBłąd = CzytajFramFoat(FAU_PID_P0 + (chKanal + 1) * ROZMIAR_REG_PID, ROZMIAR_REG_PID/4, fNastawy);
+		cBłąd = CzytajFramFloat(FAU_PID_KP + (chKanal + 1) * ROZMIAR_REG_PID, (ROZMIAR_REG_PID + 2) / 4, fNastawy);
 		if (cBłąd == BLAD_OK)
 		{
+			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//nie odczytuj więcej danych
+			osDelay(5);
 			if (chTrybRegulatora[chKanal/2] > REG_RECZNA)
 				setColor(BIALY);	//regulator pracuje
 			else
@@ -4158,16 +4179,26 @@ void NastawyPID(uint8_t chKanal)
 			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 160);
 			sprintf(chNapis, "%.3f ", fNastawy[5]);	//max wyjścia
 			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 180);
-			sprintf(chNapis, "%.3f ", fNastawy[6]);	//skalowanie wartości zadanej
+			printf(chNapis, "%.6f ", fNastawy[6]);	//skalowanie wartości zadanej
 			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 200);
-			un8_32.daneFloat =  fNastawy[7];
+			sprintf(chNapis, "%.4f ", fNastawy[7]);	//stałe wyprzedzenie
+			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 220);
+			//miejsce na 2 zmienne rezerwowe
+
+			un8_32.daneFloat =  fNastawy[10];
 			sprintf(chNapis, "%d", un8_32.dane8[0] & PID_MASKA_FILTRA_D);
-			RysujNapis(chNapis, KOL22 + 9*FONT_SL, 220);	//filtr D
+			RysujNapis(chNapis, KOL22 + 9*FONT_SL, 240);	//filtr D
+			if (un8_32.dane8[0] & PID_KATOWY)
+				sprintf(chNapis, "Tak");
+			else
+				sprintf(chNapis, "Nie");
+			RysujNapis(chNapis, KOL22 + 9*FONT_SL, 280);	//kątowy
+			sprintf(chNapis, "%d", un8_32.dane8[1]);
+			RysujNapis(chNapis, KOL22 + 9*FONT_SL, 260);	//procent wyprzedzenia
+			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//nie odczytuj więcej danych
 		}
 		else
 			chRysujRaz = 1;
-
-		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//nie odczytuj więcej danych
 	}
 }
 
@@ -4181,7 +4212,7 @@ void NastawyPID(uint8_t chKanal)
 // [wy] *fDane - wskaźnik na odczytywaną strukturę danych float
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t CzytajFramFoat(uint16_t sAdres, uint8_t chRozmiar, float *fDane)
+uint8_t CzytajFramFloat(uint16_t sAdres, uint8_t chRozmiar, float *fDane)
 {
 	chTimeout = 10;
 	uDaneCM7.dane.chRozmiar = chRozmiar;
