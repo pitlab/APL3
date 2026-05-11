@@ -225,7 +225,6 @@ typedef struct
 	uRozne_t uRozne;				//unia różnych typów danych ogólnego zastosowania
 	uint8_t chRozmiar;				//rozmiar danych przekazywanych w polu fRozne
 	uint16_t sAdres;				//adres danych przekazywanych w polu fRozne
-
 } stWymianyCM7_t;
 
 //unie do konwersji struktur na słowa 32-bitowe

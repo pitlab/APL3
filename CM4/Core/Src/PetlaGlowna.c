@@ -308,9 +308,10 @@ uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nKoniec)
 ////////////////////////////////////////////////////////////////////////////////
 void WykonajPolecenieCM7(void)
 {
-	if (uDaneCM7.dane.chWykonajPolecenie != uDaneCM4.dane.chPotwierdzenieWykonania)
+	if ((uDaneCM7.dane.chWykonajPolecenie != uDaneCM4.dane.chPotwierdzenieWykonania) | (uDaneCM7.dane.sAdres != uDaneCM4.dane.sAdres))
 	{
 		uDaneCM4.dane.chPotwierdzenieWykonania = uDaneCM7.dane.chWykonajPolecenie;	//domyślnie odeślij to co przyszło aby potwierdzić wykonanie
+		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;	//potwierdź wykonanie operacji na tym adresie aby można było wykonać kolejną operację
 		switch(uDaneCM7.dane.chWykonajPolecenie)
 		{
 		case POL7_NIC:	break;		//polecenie neutralne
