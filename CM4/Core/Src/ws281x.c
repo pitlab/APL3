@@ -363,10 +363,6 @@ uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed)
 
 	for (uint8_t m=0; m<LICZBA_WSKAZNIKOW_LED; m++)
 	{
-		fDeltaCzer = (float)(stWskaznikLed[m].chCzerMax - stWskaznikLed[m].chCzerMin) / stWskaznikLed[m].chLiczbaLed;
-		fDeltaZiel = (float)(stWskaznikLed[m].chZielMax - stWskaznikLed[m].chZielMin) / stWskaznikLed[m].chLiczbaLed;
-		fDeltaNieb = (float)(stWskaznikLed[m].chNiebMax - stWskaznikLed[m].chNiebMin) / stWskaznikLed[m].chLiczbaLed;
-		fDeltaPomiaru = (stWskaznikLed[m].fWartoscMax - stWskaznikLed[m].fWartoscMin) / stWskaznikLed[m].chLiczbaLed;
 
 		switch(stWskaznikLed[m].chNumZmiennej)
 		{
@@ -378,8 +374,14 @@ uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed)
 		case WLZ_PREDKOSC_IAS:	fPomiar = uDaneCM4.dane.stBSP.fIAS;			break;
 		case WLZ_PREDKOSC_GPS:	fPomiar = uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi;	break;
 		case WLZ_NAPIECIE_BAT:	fPomiar = uDaneCM4.dane.fTemper[0];	break;			//Zrobić: zmienić zmienna gdy już będzie dostępna
-		default:
+		default:	return BLAD_ZLE_DANE;	//wyjdź jeżeli dane są niespójne, np. brak konfiguracji
 		}
+
+		fDeltaCzer = (float)(stWskaznikLed[m].chCzerMax - stWskaznikLed[m].chCzerMin) / stWskaznikLed[m].chLiczbaLed;
+		fDeltaZiel = (float)(stWskaznikLed[m].chZielMax - stWskaznikLed[m].chZielMin) / stWskaznikLed[m].chLiczbaLed;
+		fDeltaNieb = (float)(stWskaznikLed[m].chNiebMax - stWskaznikLed[m].chNiebMin) / stWskaznikLed[m].chLiczbaLed;
+		fDeltaPomiaru = (stWskaznikLed[m].fWartoscMax - stWskaznikLed[m].fWartoscMin) / stWskaznikLed[m].chLiczbaLed;
+
 
 		for (uint8_t n=0; n<stWskaznikLed[m].chLiczbaLed; n++)
 		{

@@ -96,7 +96,7 @@ uint8_t ObslugaND130(void)
 		for (uint16_t n=0; n<4; n++)
 		{
 			if ((chBufND130[n] == 0) || (chBufND130[n] == 0xFF))
-				return ERR_ZLE_DANE;
+				return BLAD_ZLE_DANE;
 		}
 
 		//czujnik zwraca liczbę 15-bitową, najstarszy bit jest zawsze zerem, więc aby uzyskać liczby ujemne kopiuję bit 14 na pozycję 15

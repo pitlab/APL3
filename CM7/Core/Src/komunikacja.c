@@ -19,6 +19,7 @@
 #include "Ekran.h"
 #include "fft.h"
 #include "ili9488.h"
+#include "cmsis_os.h"
 
 uint32_t nOffsetDanych;
 int16_t sSzerZdjecia, sWysZdjecia;
@@ -379,6 +380,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		{
 			cBłąd = ERR_PROCES_TRWA;		//dane jeszcze nie przyszły
 			Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
+			osDelay(1);	//przełącz wątek aby pozwolić CM4 wykonać polecenie
 			break;
 		}
 		chRozmiar = cDane[0];	//zapamiętaj w zmiennej, bo dane będą nadpisane;

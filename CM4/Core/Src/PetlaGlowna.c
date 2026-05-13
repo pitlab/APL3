@@ -83,16 +83,9 @@ void PetlaGlowna(void)
 	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetwornika A/C
 	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
 
-	if (chNrOdcinkaCzasu < 10)		//Dodatkowo wykonaj pomiary napięć wewnętrznych na kanałach 8..9
+/*	if (chNrOdcinkaCzasu < 10)		//Dodatkowo wykonaj pomiary napięć wewnętrznych na kanałach 8..9
 	{
 		uint32_t nCzasADC;
-		/*do
-		{
-			//__WFI();	//uśpij kontroler w oczekiwaniu na przerwanie
-			nCzasADC = MinalCzas(nCzasStartuADC);
-		}
-		while ((chWykonanoPomiarADC != (WYKONANO_POMIAR_ADC2 | WYKONANO_POMIAR_ADC3)) && (nCzasADC < TIMEOUT_ADC));	//czekaj na wykonanie zainicjowanego w poprzednim cyklu pomiaru ADC lub timeout*/
-
 		nCzasADC = MinalCzas(nCzasStartuADC);
 		while ((chWykonanoPomiarADC != (WYKONANO_POMIAR_ADC2 | WYKONANO_POMIAR_ADC3)) && (nCzasADC < TIMEOUT_ADC))	//czekaj na wykonanie zainicjowanego w poprzednim cyklu pomiaru ADC lub timeout
 		{
@@ -107,7 +100,7 @@ void PetlaGlowna(void)
 		chWykonanoPomiarADC = 0;
 		PomiarADC(chNrOdcinkaCzasu);
 		nCzasStartuADC = PobierzCzas();
-	}
+	} */
 
 	switch (chNrOdcinkaCzasu)
 	{
@@ -194,11 +187,18 @@ void PetlaGlowna(void)
 		cBłądPG |= WyslijDaneExpandera(chStanIOwy); 	break;
 
 	case 12:	//wymień dane między rdzeniami
+		uint32_t nCzas1, nCzas2, nCzas3, nCzas4, nCzas5, nStart;
+		nStart = PobierzCzas();
 		uDaneCM4.dane.chErrPetliGlownej = cBłądPG;
+		nCzas1 = MinalCzas(nStart);
 		cBłądPG  = UstawDaneWymiany_CM4();
+		nCzas2 = MinalCzas(nStart);
 		cBłądPG |= PobierzDaneWymiany_CM7();
+		nCzas3 = MinalCzas(nStart);
 		WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
+		nCzas4 = MinalCzas(nStart);
 		AktualizujKolorLedWs821x();
+		nCzas5 = MinalCzas(nStart);
 		break;
 
 	case 13: 	break;

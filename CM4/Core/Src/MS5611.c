@@ -53,7 +53,7 @@ uint8_t InicjujMS5611(void)
         for (uint16_t n=0; n<6; n++)
         {
         	if ((sKonfig[n] == 0) || (sKonfig[n] == 0xFFFF))
-        		cBłąd = ERR_ZLE_DANE;
+        		cBłąd = BLAD_ZLE_DANE;
         }
     }
     while (cBłąd);

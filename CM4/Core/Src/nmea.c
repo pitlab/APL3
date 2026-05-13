@@ -1002,7 +1002,7 @@ uint8_t DecodeFloat(uint8_t *chDaneIn, uint8_t chLiczbaZnakow, float *fResult)
             nLiczba *= 10;  
             chIn = (*chDaneIn - '0');
             if ((chIn < 0) || (chIn > 9))   //sprawdź czy to liczba
-                return ERR_ZLE_DANE;
+                return BLAD_ZLE_DANE;
             else
                 nLiczba += chIn;
         }
@@ -1019,7 +1019,7 @@ uint8_t DecodeFloat(uint8_t *chDaneIn, uint8_t chLiczbaZnakow, float *fResult)
         {
             chIn = (*chDaneIn - '0');
             if ((chIn < 0) || (chIn > 9))   //sprawdź czy to liczba
-                return ERR_ZLE_DANE;
+                return BLAD_ZLE_DANE;
             else
                 *fResult += (float)chIn/nDzielnik;
               //fLiczba += (float)chIn/nDzielnik;

@@ -250,7 +250,7 @@ uint8_t ObliczRownanieFunkcjiTemperatury(float fPrzes1, float fPrzes2, float fTe
 	if ((fdTemp == 0.0f) || (isnan(fdTemp)) || (isnan(fdPrzes)))
 	{
 		*fA = 0.0f;
-		cBłąd = ERR_ZLE_DANE;
+		cBłąd = BLAD_ZLE_DANE;
 	}
 	else
 		//*fA = (fPrzes1 - fPrzes2) / (fTemp1 - fTemp2);
@@ -260,7 +260,7 @@ uint8_t ObliczRownanieFunkcjiTemperatury(float fPrzes1, float fPrzes2, float fTe
 	if ((fTemp1 == 0.0f) || (isnan(fTemp1)))
 	{
 		*fB = 0.0f;
-		cBłąd = ERR_ZLE_DANE;
+		cBłąd = BLAD_ZLE_DANE;
 	}
 	else
 		*fB = fPrzes1 - (*fA * fTemp1);
@@ -820,7 +820,7 @@ uint8_t ZapiszKalibracjeMagnetometru(uint8_t chMagn)
 			ZapiszFramFloat(FAH_MAGN3_MNOZNIK_X + 4*n, fSkaloMagn3[n]);
 			break;
 
-		default: cBłąd = ERR_ZLE_DANE; 	break;
+		default: cBłąd = BLAD_ZLE_DANE; 	break;
 		}
 	}
 	return cBłąd;

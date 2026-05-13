@@ -264,7 +264,7 @@ uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t chKanal)
 	if (sWysterowanie > DS_MAX_DANE)
 	{
 		sWysterowanie = DS_MAX_DANE;
-		cBłąd = ERR_ZLE_DANE;
+		cBłąd = BLAD_ZLE_DANE;
 	}
 
 	sWysterowanie += DS_OFFSET_DANYCH;

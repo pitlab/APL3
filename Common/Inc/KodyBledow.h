@@ -27,7 +27,7 @@
 #define ERR_ZLY_STAN_PROT		15
 #define ERR_ZLE_POLECENIE		16
 #define ERR_ZLY_INTERFEJS		17	//nieobsługiwany interfejs komunikacyjny
-#define ERR_ZLE_DANE			18
+#define BLAD_ZLE_DANE			18
 #define BLAD_ZLY_ADRES			19
 
 #define ERR_ZWARCIE_NIZ			20
@@ -35,7 +35,7 @@
 #define ERR_ZWARCIE_GND			22
 #define ERR_ZWARCIE_VCC			23
 //#define ERR_ZAJETY_SEMAFOR		24
-#define BLAD_ZLE_DANE			25
+//#define 			25
 #define BLAD_NIC_DO_ROBOTY		26	//zadanie nie znalazło nic do wykonania
 
 #define ERR_SRAM_TEST			30 //błąd pamięci SRAM
