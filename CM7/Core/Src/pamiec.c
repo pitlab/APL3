@@ -907,7 +907,7 @@ uint8_t SprawdzMagistrale(uint32_t nAdresBazowy)
 		}
 	}
 	if (sLicznikBledow)
-		return ERR_ZLE_DANE;
+		return BLAD_ZLE_DANE;
 	else
 		return BLAD_OK;
 }

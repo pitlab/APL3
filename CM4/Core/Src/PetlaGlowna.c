@@ -83,7 +83,7 @@ void PetlaGlowna(void)
 	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetwornika A/C
 	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
 
-/*	if (chNrOdcinkaCzasu < 10)		//Dodatkowo wykonaj pomiary napięć wewnętrznych na kanałach 8..9
+	if (chNrOdcinkaCzasu < 10)		//Dodatkowo wykonaj pomiary napięć wewnętrznych na kanałach 8..9
 	{
 		uint32_t nCzasADC;
 		nCzasADC = MinalCzas(nCzasStartuADC);
@@ -100,7 +100,7 @@ void PetlaGlowna(void)
 		chWykonanoPomiarADC = 0;
 		PomiarADC(chNrOdcinkaCzasu);
 		nCzasStartuADC = PobierzCzas();
-	} */
+	}
 
 	switch (chNrOdcinkaCzasu)
 	{
@@ -109,15 +109,14 @@ void PetlaGlowna(void)
 
 	case 11:	//moduł jest obsługiwany na 2 slotach aby szybciej dostarczać dane dla filtrów  i FFT
 	case ADR_MOD2:		//obsługa modułu w gnieździe 2
-		uint8_t cBłąd = ObslugaModuluI2P(ADR_MOD2, &chStanIOwy);
-		if (cBłąd)
+		cBłądPG = ObslugaModuluI2P(ADR_MOD2, &chStanIOwy);
+		if (cBłądPG)
 			chStanIOwy &= ~MIO40;	//zaświeć czerwoną LED
 		else
 			chStanIOwy |= MIO40;	//zgaś czerwoną LED
 		break;
 
 	case ADR_MOD3:		//obsługa modułu w gnieździe 3
-		//cBłądPG |= ObslugaModuluIiP(ADR_MOD3);
 		break;
 
 	case ADR_MOD4:		//obsługa modułu w gnieździe 4
@@ -187,7 +186,7 @@ void PetlaGlowna(void)
 		cBłądPG |= WyslijDaneExpandera(chStanIOwy); 	break;
 
 	case 12:	//wymień dane między rdzeniami
-		uint32_t nCzas1, nCzas2, nCzas3, nCzas4, nCzas5, nStart;
+		uint32_t nCzas1, nCzas2, nCzas3, nStart;
 		nStart = PobierzCzas();
 		uDaneCM4.dane.chErrPetliGlownej = cBłądPG;
 		nCzas1 = MinalCzas(nStart);
@@ -195,13 +194,13 @@ void PetlaGlowna(void)
 		nCzas2 = MinalCzas(nStart);
 		cBłądPG |= PobierzDaneWymiany_CM7();
 		nCzas3 = MinalCzas(nStart);
-		WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
-		nCzas4 = MinalCzas(nStart);
-		AktualizujKolorLedWs821x();
-		nCzas5 = MinalCzas(nStart);
 		break;
 
-	case 13: 	break;
+	case 13:
+		WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
+		AktualizujKolorLedWs821x();
+		break;
+
 	case 16:	//pozwól na testowe uruchomienie inicjalizacji
 		if (chBuforAnalizyGNSS[0] == 0xFF)
 		{

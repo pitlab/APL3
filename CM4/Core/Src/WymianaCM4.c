@@ -6,27 +6,26 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-
-/* Do wymiany danych używam bufora pamięci SRAM4 w domenie D3. Dostęp do pamięci może być 8, 16 lub 32 bitowy, więc
- * bufor wymiany deklaruję z jednej jako unię słów 32-bitowych z drugiej struktuje taką jaką będzie trzeba
- *
- * */
-
 #include "WymianaCM4.h"
 #include "KodyBledow.h"
 
-
+/* Do wymiany danych używam bufora pamięci SRAM4 w domenie D3. Dostęp do pamięci może być 8, 16 lub 32 bitowy, więc
+ * bufor wymiany deklaruję z jednej strony jako unię słów 32-bitowych z drugiej strukturę taką jaką będzie trzeba
+ * */
 
 volatile uint32_t nBuforWymianyCM4[ROZMIAR_BUF32_WYMIANY_CM4]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 volatile uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 volatile unia_wymianyCM4_t uDaneCM4;
 volatile unia_wymianyCM7_t uDaneCM7;
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Pobiera dane rdzenia CM7 ze wspólnej pamięci
 // Parametry: nic
 // Zwraca: kod błędu
 // Czas wykonania: 3,68us na 17 słów -> 0,22us/słowo
+// Czas wykonania: 2,8ms na 14 słów -> 200us/słowo wersja 485
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PobierzDaneWymiany_CM7(void)
 {
@@ -56,6 +55,7 @@ uint8_t PobierzDaneWymiany_CM7(void)
 // Parametry: nic
 // Zwraca: kod błędu
 // Czas wykonania: 27,4us na 186 słów -> 0,15us/słowo
+// Czas wykonania: 44ms na 350 słów -> 126us/słowo	wersja 485
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawDaneWymiany_CM4(void)
 {

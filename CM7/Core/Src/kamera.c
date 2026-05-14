@@ -466,7 +466,7 @@ uint8_t UtworzGrupeRejestrowKamery(uint8_t chNrGrupy, struct sensor_reg *stLista
 		return cBłąd;	//jeżeli na początku jest już błąd to nie brnij dalej
 
 	if (chLiczbaRejestrow >= ROZMIAR_STRUKTURY_REJESTROW_KAMERY)
-		return ERR_ZLE_DANE;
+		return BLAD_ZLE_DANE;
 
 	for (uint8_t n=0; n<chLiczbaRejestrow; n++)	//zapisz kolejne rejestry
 		cBłąd |= Wyslij_I2C_Kamera(stListaRejestrow[n].sRejestr, stListaRejestrow[n].chWartosc);

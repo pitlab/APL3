@@ -472,7 +472,7 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	uint8_t chFormaGramatyczna = 0;
 
 	if (fWartosc > 999999)
-			return ERR_ZLE_DANE;	//nie obsługuję wymowy większych liczb
+			return BLAD_ZLE_DANE;	//nie obsługuję wymowy większych liczb
 
 	//dodaj nagłówek komunikatu
 	switch(chTypKomunikatu)

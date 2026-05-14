@@ -19,6 +19,8 @@ uint8_t chBufND130[13];
 float fCiśnienieZerowaniaND130;		//ciśnienie zmierzone podczas kalibracji czujnika. Należy odjać je od bieżących wskazań
 uint16_t sLicznikZerowaniaND130;	//odlicza czas uśredniania danych z czujnika
 extern WspRownProstej1_t stWspKalTempCzujnRozn1;
+static uint8_t cLiczbaPróbInicjalizacji;
+
 
 
 // Układ ND130 pracujacy na magistrali SPI ma okres zegara 6us co odpowiada częstotliwości 166kHz
@@ -74,14 +76,33 @@ uint8_t InicjujND130(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaND130(void)
 {
-	uint8_t cBłąd;
+	uint8_t cBłąd = BLAD_OK;
 	int16_t sCisnienie;
 	float fCisnienie;
 	float fPrzesuniecieZera;
 
+	if (uDaneCM4.dane.nBrakCzujnika & INIT_ND130)
+		return ERR_BRAK_CZUJNIKA;
+
 	if ((uDaneCM4.dane.nZainicjowano & INIT_ND130) != INIT_ND130)	//jeżeli czujnik nie jest zainicjowany
 	{
-		cBłąd = InicjujND130();
+		//ogranicz liczbę prób inicjalizacji aby w przypadku braku czujnika nie blokować innych zadań
+		if (cLiczbaPróbInicjalizacji < MAX_PROB_INICJALIZACJI)
+		{
+			cLiczbaPróbInicjalizacji++;
+			cBłąd = InicjujND130();
+			if (cBłąd == BLAD_OK)
+			{
+				uDaneCM4.dane.nZainicjowano |= INIT_ND130;
+				cLiczbaPróbInicjalizacji = 0;
+			}
+		}
+		else
+		{
+			uDaneCM4.dane.nBrakCzujnika |= INIT_ND130;
+			cBłąd = ERR_BRAK_CZUJNIKA;
+		}
+		return cBłąd;
 	}
 	else
 	{
