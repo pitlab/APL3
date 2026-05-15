@@ -110,6 +110,7 @@
 #define TID_DOTYK_ADC1	80
 #define TID_DOTYK_ADC2	81
 #define TID_CZAS_PETLI	82	//czas trwania ostatniej petli głównej w us
+#define TID_ROZNE_F11	83	//zmienna debugująca fRóżne[11]
 //max do 127
 
 #define TID_FFT_ZYRO_AKCEL	127	//wyniki transformaty Fouriera przesyłane w specyficznej szybkiej ramce

@@ -89,7 +89,7 @@ void PetlaGlowna(void)
 		nCzasADC = MinalCzas(nCzasStartuADC);
 		while ((chWykonanoPomiarADC != (WYKONANO_POMIAR_ADC2 | WYKONANO_POMIAR_ADC3)) && (nCzasADC < TIMEOUT_ADC))	//czekaj na wykonanie zainicjowanego w poprzednim cyklu pomiaru ADC lub timeout
 		{
-			__WFI();	//uśpij kontroler w oczekiwaniu na przerwanie
+			//__WFI();	//uśpij kontroler w oczekiwaniu na przerwanie
 			nCzasADC = MinalCzas(nCzasStartuADC);
 		}
 
@@ -105,9 +105,11 @@ void PetlaGlowna(void)
 	switch (chNrOdcinkaCzasu)
 	{
 	case ADR_MOD1:		//obsługa modułu w gnieździe 1
+		uDaneCM4.dane.uRozne.f32[11] += 0.5f;
 		break;
 
 	case 11:	//moduł jest obsługiwany na 2 slotach aby szybciej dostarczać dane dla filtrów  i FFT
+
 	case ADR_MOD2:		//obsługa modułu w gnieździe 2
 		cBłądPG = ObslugaModuluI2P(ADR_MOD2, &chStanIOwy);
 		if (cBłądPG)
@@ -186,14 +188,14 @@ void PetlaGlowna(void)
 		cBłądPG |= WyslijDaneExpandera(chStanIOwy); 	break;
 
 	case 12:	//wymień dane między rdzeniami
-		uint32_t nCzas1, nCzas2, nCzas3, nStart;
-		nStart = PobierzCzas();
+		//uint32_t nCzas1, nCzas2, nCzas3, nStart;
+		//nStart = PobierzCzas();
 		uDaneCM4.dane.chErrPetliGlownej = cBłądPG;
-		nCzas1 = MinalCzas(nStart);
+		//nCzas1 = MinalCzas(nStart);
 		cBłądPG  = UstawDaneWymiany_CM4();
-		nCzas2 = MinalCzas(nStart);
+		//nCzas2 = MinalCzas(nStart);
 		cBłądPG |= PobierzDaneWymiany_CM7();
-		nCzas3 = MinalCzas(nStart);
+		//nCzas3 = MinalCzas(nStart);
 		break;
 
 	case 13:

@@ -367,8 +367,8 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_DOTYK_ADC0:	fZmiennaTele = statusDotyku.sAdc[0];		break;
 	case TID_DOTYK_ADC1:	fZmiennaTele = statusDotyku.sAdc[1];		break;
 	case TID_DOTYK_ADC2:	fZmiennaTele = statusDotyku.sAdc[2];		break;
-	case TID_CZAS_PETLI: fZmiennaTele = uDaneCM4.dane.ndT;			break;
-
+	case TID_CZAS_PETLI: 	fZmiennaTele = uDaneCM4.dane.ndT;			break;
+	case TID_ROZNE_F11:		fZmiennaTele = uDaneCM4.dane.uRozne.f32[11];			break;
 	case TID_FFT_ZYRO_AKCEL:		break;	//wyniki transformaty fouriera przesyłane w specyficznej szybkiej ramce
 
 	case TID_PID_PRZE_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_PRZE].fZadana;		break;	//wartość zadana regulatora sterowania przechyleniem

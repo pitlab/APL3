@@ -204,7 +204,6 @@ typedef struct
 	uint8_t chTrybLotu;		//tryb lotu jako zestaw bitów określających funkcjonalności realizowane w danym czasie
 	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
 	uint8_t chErrPetliGlownej;
-	//uint8_t chOdpowiedzNaPolecenie;	//potwierdzenie wykonania polecenia
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
 	uint32_t nBrakCzujnika;		//zestaw flag obecnosci czujników
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
