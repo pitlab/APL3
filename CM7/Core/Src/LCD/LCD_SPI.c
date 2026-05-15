@@ -6,7 +6,7 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "LCD_SPI.h"
+#include "LCD/LCD_SPI.h"
 #include "Ekran.h"
 #include "main.h"
 #include "ModulySPI.h"

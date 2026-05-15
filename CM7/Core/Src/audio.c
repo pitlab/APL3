@@ -5,7 +5,7 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <RPi35B_480x320.h>
+#include <LCD/RPi35B_480x320.h>
 #include "Audio.h"
 #include "LCD.h"
 #include <stdio.h>

@@ -6,7 +6,7 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 
-#include <RPi35B_480x320.h>
+#include <LCD/RPi35B_480x320.h>
 #include <stdio.h>
 #include "W25Q128JV.h"
 #include "LCD.h"

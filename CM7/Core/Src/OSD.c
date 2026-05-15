@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "osd.h"
 #include "Ekran.h"
-#include "LCD_mem.h"
+#include "LCD/LCD_mem.h"
 #include "cmsis_os.h"
 #include <math.h>
 #include "Jpeg.h"

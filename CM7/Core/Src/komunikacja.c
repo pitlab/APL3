@@ -18,7 +18,7 @@
 #include "kamera.h"
 #include "Ekran.h"
 #include "fft.h"
-#include "ili9488.h"
+#include "LCD/ILI9488.h"
 #include "cmsis_os.h"
 
 uint32_t nOffsetDanych;

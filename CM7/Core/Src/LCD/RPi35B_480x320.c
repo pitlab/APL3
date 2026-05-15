@@ -8,7 +8,7 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <RPi35B_480x320.h>
+#include <LCD/RPi35B_480x320.h>
 #include "Ekran.h"
 #include "main.h"
 #include "ModulySPI.h"
@@ -17,7 +17,7 @@
 #include <string.h>
 #include "Semafory.h"
 #include "cmsis_os.h"
-#include "LCD_SPI.h"
+#include "LCD/LCD_SPI.h"
 
 // Wyświetlacz pracował na 25MHz ale później zaczął śmiecić na ekranie. Próbuję na 22,2MHz - jest OK
 

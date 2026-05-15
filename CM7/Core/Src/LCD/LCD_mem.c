@@ -7,7 +7,7 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "LCD_mem.h"
+#include "LCD/LCD_mem.h"
 #include "Ekran.h"
 #include <math.h>
 #include <stdio.h>
@@ -423,4 +423,3 @@ void RysujHistogramOSD_RGB32(uint8_t *chOSD, uint8_t *histR, uint8_t *histG, uin
 		RysujProstokatWypelnionywBuforze(sPoczatekX, DISP_Y_SIZE - 255, SZER_PASKA_HISTOGRAMU, 255 - sWysokosc, chOSD, (uint8_t*)&sKolorTla, ROZMIAR_KOLORU_OSD);
 	}
 }
-;

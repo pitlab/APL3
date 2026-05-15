@@ -13,8 +13,8 @@
 #include <stdio.h>
 #include "Dotyk.h"
 #include "Audio.h"
-#include <RPi35B_480x320.h>
-#include <ili9488.h>
+#include <LCD/RPi35B_480x320.h>
+#include <LCD/ILI9488.h>
 #include "Czas.h"
 #include "AnalizaObrazu.h"
 #include "FreeRTOS.h"

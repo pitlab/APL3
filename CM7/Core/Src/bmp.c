@@ -22,7 +22,8 @@ extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDR
 extern stKonfKam_t stKonfKam;
 extern uint8_t chNazwaPlikuObrazu[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
 extern volatile uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-//uint8_t chBuforWiersza[DISP_X_SIZE * 3 * 2];	//bufor na 2 wiersze
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // zapisuje obraz z kamery do pliku bmp. Ponieważ jest wywoływana w wątku rejestratora, jest bezparametrowa

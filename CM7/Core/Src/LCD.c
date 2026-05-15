@@ -11,8 +11,8 @@
 #include "LCD.h"
 #include <stdio.h>
 #include <math.h>
-#include <RPi35B_480x320.h>
-#include <ili9488.h>
+#include <LCD/RPi35B_480x320.h>
+#include <LCD/ILI9488.h>
 #include <KonfigFram.h>
 #include <string.h>
 #include <W25Q128JV.h>
@@ -37,7 +37,7 @@
 #include "ff.h"
 #include "lwip/stats.h"
 #include "Jpeg.h"
-#include "LCD_mem.h"
+#include "LCD/LCD_mem.h"
 #include "OSD.h"
 #include "Bmp.h"
 #include "Telemetria.h"

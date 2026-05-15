@@ -19,7 +19,7 @@
 #include "czas.h"
 #include "Ekran.h"
 #include "LCD.h"
-#include <ili9488.h>
+#include <LCD/ILI9488.h>
 #include "exif.h"
 
 extern SD_HandleTypeDef hsd1;

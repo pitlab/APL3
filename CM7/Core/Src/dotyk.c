@@ -7,8 +7,8 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "Dotyk.h"
 #include <rysuj.h>
-#include <ili9488.h>
-#include <RPi35B_480x320.h>
+#include <LCD/ILI9488.h>
+#include <LCD/RPi35B_480x320.h>
 #include "ModulySPI.h"
 #include "KodyBledow.h"
 #include "LCD.h"

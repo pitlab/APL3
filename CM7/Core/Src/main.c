@@ -76,7 +76,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 /* USER CODE BEGIN Includes */
 #include "SysDefCM7.h"
 #include "LCD.h"
-#include "dotyk.h"
+#include "Dotyk.h"
 #include "W25Q128JV.h"
 #include "FlashNOR.h"
 #include "FlashKonfig.h"
@@ -84,21 +84,20 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "ProtokolKomunikacyjny.h"
 #include "ModulySPI.h"
 #include "Audio.h"
-#include "rejestrator.h"
+#include "Rejestrator.h"
 #include "Czas.h"
-#include "can.h"
-#include "telemetria.h"
-#include "kamera.h"
-#include "pamiec.h"
-#include <RPi35B_480x320.h>
-#include <ili9488.h>
-#include <osd.h>
+#include "CAN.h"
+#include "Telemetria.h"
+#include "Kamera.h"
+#include "Pamiec.h"
+#include <LCD/RPi35B_480x320.h>
+#include <LCD/ILI9488.h>
 #include "siec/SerwerTCP.h"
 #include "siec/SerwerRTSP.h"
 #include "Jpeg.h"
-#include "bmp.h"
-#include "osd.h"
-#include <poleceniaCM4.h>
+#include "Bmp.h"
+#include "OSD.h"
+#include <PoleceniaCM4.h>
 #include "FFT.h"
 
 /* USER CODE END Includes */
@@ -440,12 +439,12 @@ Error_Handler();
   tsObslugaWyswieHandle = osThreadCreate(osThread(tsObslugaWyswie), NULL);
 
   /* definition and creation of tsSerwerTCP */
-  //osThreadDef(tsSerwerTCP, WatekSerweraTCP, osPriorityBelowNormal, 0, 512);
-  //tsSerwerTCPHandle = osThreadCreate(osThread(tsSerwerTCP), NULL);
+  osThreadDef(tsSerwerTCP, WatekSerweraTCP, osPriorityBelowNormal, 0, 512);
+  tsSerwerTCPHandle = osThreadCreate(osThread(tsSerwerTCP), NULL);
 
   /* definition and creation of tsSerwerRTSP */
-  //osThreadDef(tsSerwerRTSP, WatekSerweraRTSP, osPriorityBelowNormal, 0, 1024);
-  //tsSerwerRTSPHandle = osThreadCreate(osThread(tsSerwerRTSP), NULL);
+  osThreadDef(tsSerwerRTSP, WatekSerweraRTSP, osPriorityBelowNormal, 0, 1024);
+  tsSerwerRTSPHandle = osThreadCreate(osThread(tsSerwerRTSP), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -1583,7 +1582,7 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void const * argument)
 {
   /* init code for LWIP */
-  //MX_LWIP_Init();
+  MX_LWIP_Init();
 
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();

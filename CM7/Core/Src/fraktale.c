@@ -9,8 +9,8 @@
 #include "rysuj.h"
 #include "fraktale.h"
 #include "czas.h"
-#include <RPi35B_480x320.h>
-#include <ili9488.h>
+#include <LCD/RPi35B_480x320.h>
+#include <LCD/ILI9488.h>
 
 float fZoom, fX, fY;
 float fReal, fImag;

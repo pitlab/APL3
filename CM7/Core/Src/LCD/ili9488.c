@@ -9,10 +9,10 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <ili9488.h>
+#include <LCD/ili9488.h>
 #include "ModulySPI.h"
 #include "cmsis_os.h"
-#include "LCD_SPI.h"
+#include "LCD/LCD_SPI.h"
 #include "Ekran.h"
 #include "Rysuj.h"
 #include "main.h"
