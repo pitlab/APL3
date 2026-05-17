@@ -135,6 +135,7 @@ uint8_t PobierzDaneExpandera(uint8_t* daneWe)
 // Adres jesyt ustawiony na portach PK2, PK1 i PI8
 // Parametry: modul - adres modułu
 // Zwraca: kod błędu
+// czas wykonania : ~1500us. Sama operacja 3 x HAL_GPIO_WritePin zajmuje do 1200us
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawDekoderModulow(uint8_t modul)
 {
@@ -193,6 +194,7 @@ uint8_t UstawDekoderModulow(uint8_t modul)
 
 	return cBłąd;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

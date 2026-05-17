@@ -439,12 +439,12 @@ Error_Handler();
   tsObslugaWyswieHandle = osThreadCreate(osThread(tsObslugaWyswie), NULL);
 
   /* definition and creation of tsSerwerTCP */
-  osThreadDef(tsSerwerTCP, WatekSerweraTCP, osPriorityBelowNormal, 0, 512);
-  tsSerwerTCPHandle = osThreadCreate(osThread(tsSerwerTCP), NULL);
+  //osThreadDef(tsSerwerTCP, WatekSerweraTCP, osPriorityBelowNormal, 0, 512);
+  //tsSerwerTCPHandle = osThreadCreate(osThread(tsSerwerTCP), NULL);
 
   /* definition and creation of tsSerwerRTSP */
-  osThreadDef(tsSerwerRTSP, WatekSerweraRTSP, osPriorityBelowNormal, 0, 1024);
-  tsSerwerRTSPHandle = osThreadCreate(osThread(tsSerwerRTSP), NULL);
+  //osThreadDef(tsSerwerRTSP, WatekSerweraRTSP, osPriorityBelowNormal, 0, 1024);
+  //tsSerwerRTSPHandle = osThreadCreate(osThread(tsSerwerRTSP), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -560,7 +560,7 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL3.PLL3N = 125;
   PeriphClkInitStruct.PLL3.PLL3P = 5;
   PeriphClkInitStruct.PLL3.PLL3Q = 4;
-  PeriphClkInitStruct.PLL3.PLL3R = 100;
+  PeriphClkInitStruct.PLL3.PLL3R = 70;
   PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_2;
   PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;
   PeriphClkInitStruct.PLL3.PLL3FRACN = 0;
@@ -777,7 +777,7 @@ static void MX_I2C2_Init(void)
 
   /* USER CODE END I2C2_Init 1 */
   hi2c2.Instance = I2C2;
-  hi2c2.Init.Timing = 0x00101319;
+  hi2c2.Init.Timing = 0x00101E23;
   hi2c2.Init.OwnAddress1 = 0;
   hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -1582,7 +1582,7 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void const * argument)
 {
   /* init code for LWIP */
-  MX_LWIP_Init();
+  //MX_LWIP_Init();
 
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();

@@ -41,9 +41,6 @@ uint32_t nCzasBiezacy;
 uint8_t chNrOdcinkaCzasu;
 uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU + 1];		//zmierzony czas obsługi odcinka. Na ostatniej pozycji jest czas jałowy
 uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
-uint32_t nCzasJalowy;
-uint32_t nCzasStartuADC;
-
 uint8_t cBłądPG = BLAD_OK;		//błąd petli głównej
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
@@ -72,6 +69,9 @@ extern uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kana�
 extern uint8_t chFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silników: normalna praca lub analiza FFT rezonansu drgań ramy
 extern uint16_t sTS_CAL1, sTS_CAL2;	//wspólczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
 extern uint8_t chWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC2, bit1 = ADC3
+uint8_t cBityPozwoleniaNaPomiarADC;	//pole bitowe informujące który pomiar można wykonać w danym obiegu pętli
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -80,27 +80,13 @@ extern uint8_t chWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC
 ////////////////////////////////////////////////////////////////////////////////
 void PetlaGlowna(void)
 {
+	uint32_t nCzasStartuADC, nCzasADC;
 	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetwornika A/C
 	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
 
-	if (chNrOdcinkaCzasu < 10)		//Dodatkowo wykonaj pomiary napięć wewnętrznych na kanałach 8..9
-	{
-		uint32_t nCzasADC;
-		nCzasADC = MinalCzas(nCzasStartuADC);
-		while ((chWykonanoPomiarADC != (WYKONANO_POMIAR_ADC2 | WYKONANO_POMIAR_ADC3)) && (nCzasADC < TIMEOUT_ADC))	//czekaj na wykonanie zainicjowanego w poprzednim cyklu pomiaru ADC lub timeout
-		{
-			//__WFI();	//uśpij kontroler w oczekiwaniu na przerwanie
-			nCzasADC = MinalCzas(nCzasStartuADC);
-		}
-
-		//ustaw dekoder adresów i jednocześnie multiplekser analogowy na zadany kanał
-		if (chNrOdcinkaCzasu < 8)
-			cBłądPG |= UstawDekoderModulow(chNrOdcinkaCzasu);
-
-		chWykonanoPomiarADC = 0;
-		PomiarADC(chNrOdcinkaCzasu);
-		nCzasStartuADC = PobierzCzas();
-	}
+	nCzasStartuADC = PobierzCzas();
+	cBłądPG |= ObsługaADC(chNrOdcinkaCzasu, cBityPozwoleniaNaPomiarADC);	//zarządza rozpoczęciem pomiaru ADC i pobraniem wyników, przełacza dekoder modułów
+	nCzasADC = MinalCzas(nCzasStartuADC);
 
 	switch (chNrOdcinkaCzasu)
 	{
@@ -225,28 +211,16 @@ void PetlaGlowna(void)
 	nCzasOdcinka[chNrOdcinkaCzasu] = MinalCzas(nCzasOstatniegoOdcinka);
 	if (nCzasOdcinka[chNrOdcinkaCzasu] > nMaxCzasOdcinka[chNrOdcinkaCzasu])   //przechwyć wartość maksymalną
 		nMaxCzasOdcinka[chNrOdcinkaCzasu] = nCzasOdcinka[chNrOdcinkaCzasu];
+	nCzasOstatniegoOdcinka = PobierzCzas();
 
 	chNrOdcinkaCzasu++;
 	if (chNrOdcinkaCzasu == LICZBA_ODCINKOW_CZASU)
 	{
 		chNrOdcinkaCzasu = 0;
-		nCzasOdcinka[LICZBA_ODCINKOW_CZASU] = nCzasJalowy;	//na ostatnia pozycję zapisz sumę czasu jałowego całego obiegu głównej pętli
-		nCzasJalowy = 0;
+		cBityPozwoleniaNaPomiarADC <<= 1;
+		if (cBityPozwoleniaNaPomiarADC == 0)
+			cBityPozwoleniaNaPomiarADC = 1;
 	}
-
-
-	//nadwyżkę czasu odcinka wytrać w jałowej petli
-	//Zrobić: Trzeba obliczyć czas i ustawić timer generujący przerwanie budzące. Obecnie śpi zbyt długo
-	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, SET);	//kanał serw 2 skonfigurowany jako IO
-	/*do
-	{
-		__WFI();	//uśpij kontroler w oczekiwaniu na przerwanie od czegokolwiek np. timera 7 mierzącego czas
-		nCzasJalowy += PobierzCzas() - nCzasOstatniegoOdcinka;
-	}
-	while (nCzasJalowy < CZAS_ODCINKA);*/
-	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, RESET);	//kanał serw 2 skonfigurowany jako IO
-
-	nCzasOstatniegoOdcinka = PobierzCzas();
 }
 
 

@@ -15,10 +15,14 @@
 
 #define WYKONANO_POMIAR_ADC2	1
 #define WYKONANO_POMIAR_ADC3	2
-
 #define ILOSC_ZEWN_WE_ANALOG	4
 
-#define TIMEOUT_ADC		250	//maksymalny czas w mikrosekundach potrzebny na wykonanie pomiaru ADC
+#define LICZBA_POMIAROW_ADC2	8
+#define LICZBA_POMIAROW_ADC3	10
+
+#define DZIELNIK_CZASU_POMIAROW_WEWN	1000	//co tyle cyklu pomiarów wykonywane są pomiary czujników wewnętrznych: VBat i TempSens
+
+#define TIMEOUT_ADC		2500	//maksymalny czas w mikrosekundach potrzebny na wykonanie pomiaru ADC
 
 
 //wartości dzielników napiecia używanych przy pomiarach analogowych
@@ -29,6 +33,7 @@
 #define DZIELNIK_VBAT		4.0f	//wewnętrzny dzielnik /4
 
 uint8_t InicjujADC(void);
-uint8_t PomiarADC(uint8_t chKanal);
+uint8_t PomiarADC(uint8_t chKanal, uint8_t cBityPozwoleniaNaPomiar);
+uint8_t ObsługaADC(uint8_t cOdcinekCzasu, uint8_t cBityPozwoleniaNaPomiar);
 
 #endif /* INC_ADC_H_ */

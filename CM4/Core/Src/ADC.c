@@ -10,18 +10,23 @@
 #include "WymianaCM4.h"
 #include "PetlaGlowna.h"
 #include "fram.h"
+#include "ModulyWew.h"
 
 
 extern ADC_HandleTypeDef hadc2;
 extern ADC_HandleTypeDef hadc3;
 extern unia_wymianyCM4_t uDaneCM4;
-extern uint32_t nCzasStartuADC;
+//uint32_t nCzas;
+uint16_t sObiegowPetliCzekaniaNaADC[LICZBA_POMIAROW_ADC3];
 float fNapiecieIdModuluWewn[4];
 float fMnożnikCzujnWeAnalog[4] = {1.0f, 1.0f, 1.0f, 1.0f};		//mnożniki do obliczenia finalnej wartości czujników odłaczonych do wejsć analogoweych
 float fSkładnikCzujnWeAnalog[4];	//składniki dodawane do iloczynu wyniki poniaru napiecia czujnika ADC i mnożnika ab uzyskać właściwy wynik
 uint8_t chIndeksPomiaruADC;
 uint16_t sTS_CAL1, sTS_CAL2;	//wspólczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
 uint8_t chWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC2, bit1 = ADC3
+ADC_ChannelConfTypeDef sConfigADC3 = {0};
+uint16_t sDzielnikCzasuPomiarowWewn = LICZBA_POMIAROW_ADC3;	//odlicza czas do okresowego wykonania pomiarów wewnętrznych wymagających rekonfiguracji przetwornika
+
 
 
 
@@ -34,25 +39,31 @@ uint8_t InicjujADC(void)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	//LL_ADC_DisableDeepPowerDown(ADC3);
-	//LL_ADC_EnableInternalRegulator(ADC3);
-	//HAL_Delay(1);
-
 	for (uint8_t n=0; n<ILOSC_ZEWN_WE_ANALOG; n++)
 	{
 		cBłąd |= CzytajFramFloatZWalidacja(FAG_MNOZNIK_CZUJ_ZEWN + 4*n, &fMnożnikCzujnWeAnalog[n], VMIN_MNOZNIK_WE_ADC, VMAX_MNOZNIK_WE_ADC, VDOM_MNOZNIK_WE_ADC);	//4*4F współczynnik mnożenia analogowego napęcia czujnika zewnętrznego
 		cBłąd |= CzytajFramFloatZWalidacja(FAG_SKLADNIK_CZUJ_ZEWN + 4*n, &fSkładnikCzujnWeAnalog[n], VMIN_SKLADNIK_WE_ADC, VMAX_SKLADNIK_WE_ADC, VDOM_SKLADNIK_WE_ADC);	//4*4F współczynnik dodawany do analogowego napęcia czujnika zewnętrznego
 	}
 
-	//wyślij polecenie odczytania współczynników kalibracyjnych temperatury
+	//wyślij polecenie do CM7 odczytania współczynników kalibracyjnych temperatury, gdyż tylko CM7 ma do nich dostęp
 	uDaneCM4.dane.chWykonajPolecenie = POL4_CZYTAJ_KALIBR_TEMP;
 
 	cBłąd  = HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
 	cBłąd |= HAL_ADCEx_Calibration_Start(&hadc3, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
 
+	//konfiguracjia ADC3 będzie zmieniana, więc wstępnie ustaw ją tutaj aby nie budować od nowa przy każdym pomiarze
+	sConfigADC3.Channel = ADC_CHANNEL_6;
+	sConfigADC3.Rank = ADC_REGULAR_RANK_1;
+	//sConfigADC3.SamplingTime = ADC_SAMPLETIME_16CYCLES_5;	//wystarczajaco szybko, nie trzeba czekać na pomiar
+	//sConfigADC3.SamplingTime = ADC_SAMPLETIME_64CYCLES_5;	//pomiar co 28us, wystarczajaco szybko, nie trzeba czekać na pomiar
+	sConfigADC3.SamplingTime = ADC_SAMPLETIME_387CYCLES_5;	//pomiar co 170us - wystarczajaco szybko, nie trzeba czekać na pomiar
+	sConfigADC3.SingleDiff = ADC_SINGLE_ENDED;
+	sConfigADC3.OffsetNumber = ADC_OFFSET_NONE;
+	sConfigADC3.Offset = 0;
+	sConfigADC3.OffsetSignedSaturation = DISABLE;
+
 	cBłąd |= HAL_ADC_Start_IT(&hadc2);
 	cBłąd |= HAL_ADC_Start_IT(&hadc3);
-	nCzasStartuADC = PobierzCzas();
 	return cBłąd;
 }
 
@@ -60,44 +71,96 @@ uint8_t InicjujADC(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj pomiar przetwornikami ADC2 i ADC3 na bieżącym kanale zewnętrznego multipleksera
-// Pomiary ADC2 wykonuje na kanałach 0..7, pomiary na ADC3 na kanałach 0..9 gdyż na starszych pozycjach są vbat i Tempsens
+// Dla zegara ADC = 7MHz i ustawionego BOOST = 1, maksymalny czas próbkowania jest wciąż wystarczająco szybki aby nie czekać na zakończenia pomiaru
+// Pomiary ADC2 wykonuje na kanałach 0..7, pomiary na ADC3 na kanałach 0..9 gdyż na starszych pozycjach są VBat i TempSens
+// Aby zoptymalizować powolną zmianę kanału, pomiary VBat i TempSens są wykonywane co DZIELNIK_CZASU_POMIAROW_WEWN
 // Przełacz mutiplekser na kolejny kanał
-// Parametry: brak
+// Parametry: chKanal - indeks slotu czasowego odpowiadajacy indeksowi kanału multipleksera
 // Zwraca: kod błędu HAL
+// Czas wykonania: 5..6ms - strasznie długo. Same 2x HAL_ADC_Start_IT zajmują ok 4600us
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t PomiarADC(uint8_t chKanal)
+uint8_t PomiarADC(uint8_t chKanal, uint8_t cBityPozwoleniaNaPomiar)
 {
 	uint8_t cBłąd = BLAD_OK;
-	ADC_ChannelConfTypeDef sConfig = {0};
-
-	sConfig.Rank = ADC_REGULAR_RANK_1;
-	sConfig.SamplingTime = ADC_SAMPLETIME_64CYCLES_5;	//pomiar co 28us
-	//sConfig.SamplingTime = ADC_SAMPLETIME_387CYCLES_5;	//pomiar co 170us
-	sConfig.SingleDiff = ADC_SINGLE_ENDED;
-	sConfig.OffsetNumber = ADC_OFFSET_NONE;
-	sConfig.Offset = 0;
-	sConfig.OffsetSignedSaturation = DISABLE;
+	//uint32_t nCzas;
 
 	chIndeksPomiaruADC = chKanal;	//ustaw w zmiennej numer kanału aby w przerwaniu wiedziało gdzie przypisać wynik pomiaru
 
-	//zmierz napięcia na zewnętrznych wejściach ADC
-	if (chKanal < 8)
+	if (sDzielnikCzasuPomiarowWewn < LICZBA_POMIAROW_ADC3 + 1)
 	{
-		cBłąd |= HAL_ADC_Start_IT(&hadc2);		//pomiar ADC2 tylko dla 8 pierwszych kanałów
-		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1
-	}
+		//ustaw ADC3 na właściwy kanał, ale tylko wtedy kiedy trzeba, gdyż konfiguracja zajmuje duuużo czasu, ok. 3000us
+		if ((chKanal == 0) || (chKanal >= LICZBA_POMIAROW_ADC2))
+		{
+			//przetwornik ADC3 może również mierzyć czujniki wewnętrzne: Temp, VBat na kanałach 8..9
+			switch (chKanal)	//ustawienia ADC3 na czujniki wewnętrzne
+			{
+			case 8:		sConfigADC3.Channel = ADC_CHANNEL_VBAT;			break;
+			case 9: 	sConfigADC3.Channel = ADC_CHANNEL_TEMPSENSOR;	break;
+			default: 	sConfigADC3.Channel = ADC_CHANNEL_6;		//ustawienie ADC3 na wyjscie multipleksera
+			}
 
-	//przetwornik ADC3 może mierzyć czujniki wewnętrzne: Temp, VBat na kanałach 8..9
-	switch (chKanal)	//ustawienia ADC3 na czujniki wewnętrzne
-	{
-	case 8:		sConfig.Channel = ADC_CHANNEL_VBAT;			break;
-	case 9: 	sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;	break;
-	case 10: 	sConfig.Channel = ADC_CHANNEL_VREFINT;		break;
-	default: sConfig.Channel = ADC_CHANNEL_6;		//ustawienie ADC3 na wyjscie multipleksera
+			//ADC3 powinien wyjść ustawiony na ADC_CHANNEL_6, więc jeżeli licznik kończy się w okolicy 8..9 to zwiększ go aby wyszedł z bezpiecznymi ustawieniami
+			if ((chKanal == 8) && (sDzielnikCzasuPomiarowWewn < 3))
+				sDzielnikCzasuPomiarowWewn += 3;
+
+			//nCzas = PobierzCzas();
+			HAL_ADC_ConfigChannel(&hadc3, &sConfigADC3);
+			//nCzas = MinalCzas(nCzas);
+
+			//wykonaj pomiary wewnętrzne
+			if (chKanal >= LICZBA_POMIAROW_ADC2)
+				cBłąd |= HAL_ADC_Start_IT(&hadc3);
+		}
 	}
-	HAL_ADC_ConfigChannel(&hadc3, &sConfig);
-	cBłąd |= HAL_ADC_Start_IT(&hadc3);
-	//HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_SET);	//serwo kanał 7
+	sDzielnikCzasuPomiarowWewn--;
+	if (sDzielnikCzasuPomiarowWewn == 0)
+		sDzielnikCzasuPomiarowWewn = DZIELNIK_CZASU_POMIAROW_WEWN;
+
+	//zmierz napięcia na zewnętrznych wejściach ADC dla 8 pierwszych kanałów
+	if ((chKanal < LICZBA_POMIAROW_ADC2) && (cBityPozwoleniaNaPomiar == (1 << chKanal)))
+	{
+		//nCzas = PobierzCzas();
+		cBłąd |= HAL_ADC_Start_IT(&hadc2);
+		cBłąd |= HAL_ADC_Start_IT(&hadc3);
+		//nCzas = MinalCzas(nCzas);
+	}
+	return cBłąd;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wykonaj pomiary przetwornikami ADC2 i ADC3 wętli głównej
+// Startuje nowy kanał, przełacza dekoder modułów i odbiera wyniki z poprzedniego pomiaru
+// Parametry: brak
+// Zwraca: kod błędu HAL
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ObsługaADC(uint8_t cOdcinekCzasu, uint8_t cBityPozwoleniaNaPomiar)
+{
+	uint8_t cBłąd = BLAD_OK;
+
+	if (cOdcinekCzasu < LICZBA_POMIAROW_ADC3)
+	{
+		/*sObiegowPetliCzekaniaNaADC[cOdcinekCzasu] = 0;
+		do	//czekaj na wykonanie zainicjowanego w poprzednim cyklu pomiaru ADC lub timeout
+		{
+			sObiegowPetliCzekaniaNaADC[cOdcinekCzasu]++;	//licznik sprawdzajacy czy w tym miejscu czekamy na gotowość pomiaru ADC
+		}
+		while (!chWykonanoPomiarADC && (sObiegowPetliCzekaniaNaADC[cOdcinekCzasu] < TIMEOUT_ADC));*/
+
+		//ustaw dekoder adresów i jednocześnie multiplekser analogowy na zadany kanał
+		if (cOdcinekCzasu < LICZBA_POMIAROW_ADC2)
+		{
+			//nCzas = PobierzCzas();
+			cBłąd |= UstawDekoderModulow(cOdcinekCzasu);
+			//nCzas = MinalCzas(nCzas);
+		}
+
+		chWykonanoPomiarADC = 0;
+		//nCzas = PobierzCzas();
+		PomiarADC(cOdcinekCzasu, cBityPozwoleniaNaPomiar);
+		//nCzas = MinalCzas(nCzas);
+	}
 	return cBłąd;
 }
 
