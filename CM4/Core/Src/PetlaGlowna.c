@@ -70,7 +70,7 @@ extern uint8_t chFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silnik
 extern uint16_t sTS_CAL1, sTS_CAL2;	//wspólczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
 extern uint8_t chWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC2, bit1 = ADC3
 uint8_t cBityPozwoleniaNaPomiarADC;	//pole bitowe informujące który pomiar można wykonać w danym obiegu pętli
-
+uint8_t cDzielnikAktualizacjiLED;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -80,13 +80,13 @@ uint8_t cBityPozwoleniaNaPomiarADC;	//pole bitowe informujące który pomiar mo�
 ////////////////////////////////////////////////////////////////////////////////
 void PetlaGlowna(void)
 {
-	uint32_t nCzasStartuADC, nCzasADC;
+	uint32_t nCzasStartuADC;
 	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetwornika A/C
 	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
 
 	nCzasStartuADC = PobierzCzas();
 	cBłądPG |= ObsługaADC(chNrOdcinkaCzasu, cBityPozwoleniaNaPomiarADC);	//zarządza rozpoczęciem pomiaru ADC i pobraniem wyników, przełacza dekoder modułów
-	nCzasADC = MinalCzas(nCzasStartuADC);
+	nCzasOdcinka[20] = MinalCzas(nCzasStartuADC);
 
 	switch (chNrOdcinkaCzasu)
 	{
@@ -186,13 +186,19 @@ void PetlaGlowna(void)
 
 	case 13:
 		WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
-		AktualizujKolorLedWs821x();
+		if (cDzielnikAktualizacjiLED)
+			cDzielnikAktualizacjiLED--;
+		else
+		{
+			cDzielnikAktualizacjiLED = DZIELNIK_AKTUALIZACJI_LED;
+			AktualizujKolorLedWs821x();
+		}
 		break;
 
 	case 16:	//pozwól na testowe uruchomienie inicjalizacji
 		if (chBuforAnalizyGNSS[0] == 0xFF)
 		{
-			InicjujWyjsciaRC();
+			//InicjujWyjsciaRC();
 			//InicjujModulI2P();
 			//chBuforAnalizyGNSS[0] = 0;
 			//InicjujPID();

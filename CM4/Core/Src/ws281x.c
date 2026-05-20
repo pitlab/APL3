@@ -5,8 +5,8 @@
 // (c) PitLab 2026
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "ws281x.h"
-#include "dshot.h"
+#include "WS281x.h"
+#include "DShot.h"
 #include "WeWyRC.h"
 #include "fram.h"
 

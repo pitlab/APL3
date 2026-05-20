@@ -845,6 +845,7 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 		//sprawdź rodzaj ustawionego protokołu wyjscia
 		switch (chKonfigWyRC[n])
 		{
+		case SERWO_IO:		break;	//nie rób nic - kanał jest portem IO sterowanym niezależnie z poziomu kodu, zwykle jako debug
 		case SERWO_PWM400:
 			chRozmiarSekwencjiDMA[n] = 1;
 			nBuforTimDMA[n][0] = nWyjście;
@@ -877,7 +878,7 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 				nBuforTimDMA[n][m] = 0;
 			break;
 
-		case SERWO_DSHOT150:
+		case SERWO_DSHOT150:	//wszystkie typy DShot mają wspólną obsługę
 		case SERWO_DSHOT300:
 		case SERWO_DSHOT600:
 		case SERWO_DSHOT1200:	cBłąd |= AktualizujDShotDMA(nWyjście, n);	break;

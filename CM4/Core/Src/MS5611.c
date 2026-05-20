@@ -29,7 +29,7 @@ static uint16_t sLicznikUsrednianiaP0 = 0;			//licznik uśredniania ciśnienia z
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujMS5611(void)
 {
-	uint32_t nCzasStart;
+	uint32_t nCzasStart, nCzas;
 	uint8_t cBłąd;
 
     nCzasStart = PobierzCzas();
@@ -37,7 +37,7 @@ uint8_t InicjujMS5611(void)
     {
     	chBuf5611[0] = PMS_RESET;
     	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-    	cBłąd = HAL_SPI_Transmit(&hspi2, chBuf5611, 1, 5);	//typowy czas wykonania operacji to 2,8ms
+    	cBłąd = HAL_SPI_Transmit(&hspi2, chBuf5611, 1, SPI_DELAY);	//typowy czas wykonania operacji to 2,8ms
     	HAL_Delay(3);
     	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
     	if (cBłąd)
@@ -46,7 +46,8 @@ uint8_t InicjujMS5611(void)
     	for (uint16_t n=0; n<6; n++)
     		sKonfig[n] = CzytajSPIu16mp(PMS_PROM_READ_C1 + 2*n);
 
-        if (MinalCzas(nCzasStart) > 5000)   //czekaj maksymalnie 5000us
+    	nCzas = MinalCzas(nCzasStart);
+    	if (nCzas > 5000)   //czekaj maksymalnie 5000us
             return BLAD_TIMEOUT;
 
         //sprawdź czy odczytana konfiguracja nie jest samymi zerami ani jedynkami
@@ -80,7 +81,7 @@ uint32_t CzytajWynikKonwersjiMS5611(void)
 
 	chBuf5611[0] = PMS_ADC_READ;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_TransmitReceive(&hspi2, chBuf5611, chBuf5611, 4, 5);
+	HAL_SPI_TransmitReceive(&hspi2, chBuf5611, chBuf5611, 4, SPI_DELAY);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	nWynik = ((uint32_t)chBuf5611[1] <<16) + ((uint32_t)chBuf5611[2] <<8) + chBuf5611[3];
 	return nWynik;

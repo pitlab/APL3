@@ -16,6 +16,7 @@
 #include "ND130.h"
 #include "fram.h"
 #include "WymianaCM4.h"
+#include "PetlaGlowna.h"
 
 extern SPI_HandleTypeDef hspi2;
 extern uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
@@ -131,6 +132,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	uint8_t cBłąd;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 	uint8_t chIndeksProbki;
+	uint32_t nCzas;
 
 	//Ponieważ zegar SPI = 40MHz a układy mogą pracować z prędkością max 10MHz, przy każdym dostępie przestaw dzielnik zegara na 4
 	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
@@ -147,19 +149,30 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	case ADR_MOD4:	*pchStanIOwy &= ~MIO41;	break;
 	}
 
-	cBłąd = WyslijDaneExpandera(*pchStanIOwy);
+	nCzas = PobierzCzas();
+	cBłąd = WyslijDaneExpandera(*pchStanIOwy);	//czas 4800-6200us
+	nCzas = MinalCzas(nCzas);
+
+	nCzas = PobierzCzas();
 	cBłąd |= UstawDekoderModulow(gniazdo);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
 	cBłąd |= UstawAdresNaModule(ADR_MIIP_MS5611);				//ustaw adres na module A0..1
 	cBłąd |= ObslugaMS5611();
+	nCzas = MinalCzas(nCzas);		//czas 44,3-47,7ms
 
+	nCzas = PobierzCzas();
 	cBłąd |= UstawAdresNaModule(ADR_MIIP_BMP581);				//ustaw adres na module A0..1
 	cBłąd |= ObslugaBMP581();
+	nCzas = MinalCzas(nCzas);		//czas 5800-6500us
 
+	nCzas = PobierzCzas();
 	cBłąd |= UstawAdresNaModule(ADR_MIIP_ICM42688);				//ustaw adres na module A0..1
 	cBłąd |= ObslugaICM42688();
+	nCzas = MinalCzas(nCzas);		//czas 29800-33900us
 
+	nCzas = PobierzCzas();
 	cBłąd |= UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres na module A0..1
 	cBłąd |= ObslugaLSM6DSV();
+	nCzas = MinalCzas(nCzas);		//czas 26800-28900us
 
 	//napełnij bufor szybkiego IMU dla FFT
 	chIndeksProbki = uDaneCM4.dane.stSzybkieIMU.chIndeksProbki;
@@ -176,6 +189,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))
 		KalibrujZeroZyroskopu();
 
+	nCzas = PobierzCzas();
 	//termostatuj moduł uśrednioną temperaturą obu czujników IMU a jezeli nie ma obu to chociaż jednego
 	uint8_t chLiczbaTermometrow = 0;
 	float fTemeratura = 0.0f;
@@ -204,6 +218,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	case ADR_MOD4:	*pchStanIOwy |= MIO41;	break;
 	}
 	cBłąd = WyslijDaneExpandera(*pchStanIOwy);	//ustaw stan linii A2 i grzałki
+	nCzas = MinalCzas(nCzas);		//czas 6600-8800us
 
 	// Układ ND130 pracujacy na magistrali SPI ma okres zegara 6us co odpowiada częstotliwości 166kHz
 	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_256;	//przestaw zegar na 40MHz / 256 = 156kHz

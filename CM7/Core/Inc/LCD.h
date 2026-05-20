@@ -12,6 +12,8 @@
 #include "Rysuj.h"
 #include "FFT.h"
 
+#define configTASK_RETURN_ADDRESS NULL	//https://community.st.com/t5/stm32cubeide-mcus/freertos-backtrace-problem/td-p/858548
+
 //#define MIN_MAG_WYKR	NOMINALNE_MAGN / 600		//minimalna wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru
 #define MIN_MAG_WYKR	NOMINALNE_MAGN * 0.8f		//minimalna wartość danych w danej osi aby zacząć rysować wykres biegunowy magnetometru
 

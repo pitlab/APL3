@@ -20,11 +20,12 @@
 #define WS_CZAS_RESETU		12		//czas trwania cyklu resetu odpowiadajacy czasowi obsługi danej liczbie LED-ów
 
 //timery sterowane są zegarem 240 MHz co daje czas cyklu 4,16ns
-#define DZIELNIK_WS281X		64	//220..380 ns / 4,16 = 53..91; 64*4,16 = 266ns
+//#define DZIELNIK_WS281X		64	//220..380 ns / 4,16 = 53..91; impuls0 = 64 * 4,16 = 266ns
+#define DZIELNIK_WS281X		84	//220..380 ns / 4,16 = 53..91; impuls0 = 84 * 4,16 = 350ns - wolniej, więc mniejsze obciażenie dla kontrolera
 #define ZEGAR_WS281X		3750000	//Hz
-#define CZAS_WS281X_0H		1		//1 * 266ns
-#define CZAS_WS281X_1H		3		//3 * 266ns = 799ns
-#define CZAS_WS281X_BIT		4		//4 * 266ns = 1,064us
+#define CZAS_WS281X_0H		1		//1 * bit
+#define CZAS_WS281X_1H		3		//3 * bit = (799ns) 1050ns
+#define CZAS_WS281X_BIT		4		//4 * bit = (1,064us) 1,4us
 #define CZAS_WS281X_RESET	1088	//1088 * 266ns = 289,4us
 
 //Definicje wizualizowanych zmiennych
@@ -37,7 +38,7 @@
 #define WLZ_PREDKOSC_GPS	6
 #define WLZ_NAPIECIE_BAT	7
 
-
+#define DZIELNIK_AKTUALIZACJI_LED	20	//co tyle obiegów pętli aktualizowany jest stan LED-ów
 typedef struct
 {
 	float fWartoscMin;

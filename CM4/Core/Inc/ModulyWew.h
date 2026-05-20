@@ -11,6 +11,7 @@
 #include "SysDefCM4.h"
 
 
+
 #define SPI_EXTIO		0x40	//Adres SPI układu extendera IO
 #define SPI_EXTIO_RD	1		//odczyt
 #define SPI_EXTIO_WR	0		//zapis

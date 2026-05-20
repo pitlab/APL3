@@ -41,7 +41,7 @@ uint8_t InicjujModulyWew(void)
 					   (0 << 2)	|	//bit 2 ODR: This bit configures the INT pin as an open-drain output:  1 = Open-drain output (overrides the INTPOL bit), 0 = Active driver output (INTPOL bit sets the polarity).
 					   (0 << 1);	//bit 1 INTPOL: This bit sets the polarity of the INT output pin: 1 = Active-high, 0 = Active-low.
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	cBłąd = HAL_SPI_Transmit(&hspi2, dane_wysylane, 3, HAL_MAX_DELAY);
+	cBłąd = HAL_SPI_Transmit(&hspi2, dane_wysylane, 3, SPI_DELAY);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 
 	//ustaw rejestr kierunku portów układu exandera
@@ -55,7 +55,7 @@ uint8_t InicjujModulyWew(void)
 					   (0 << 6) |	//MOD_IO41
 					   (0 << 7);	//MOD_IO42
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	cBłąd |= HAL_SPI_Transmit(&hspi2, dane_wysylane, 3, HAL_MAX_DELAY);
+	cBłąd |= HAL_SPI_Transmit(&hspi2, dane_wysylane, 3, SPI_DELAY);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 	return cBłąd;
@@ -75,7 +75,6 @@ uint8_t WyslijDaneExpandera(uint8_t daneWy)
 {
 	HAL_StatusTypeDef cBłąd;
 	uint8_t dane_wysylane[3];
-	//uint8_t dane_odbierane[3];
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 
 	//Ponieważ zegar SPI = 80MHz a układ może pracować z prędkością max 10MHz, przy każdym dostępie przestaw dzielnik zegara na 8
@@ -88,7 +87,7 @@ uint8_t WyslijDaneExpandera(uint8_t daneWy)
 	dane_wysylane[1] = MCP23S08_GPIO;				//rejestr
 	dane_wysylane[2] = daneWy;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	cBłąd = HAL_SPI_Transmit(&hspi2, dane_wysylane, 3, HAL_MAX_DELAY);
+	cBłąd = HAL_SPI_Transmit(&hspi2, dane_wysylane, 3, SPI_DELAY);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 	return cBłąd;
@@ -121,7 +120,7 @@ uint8_t PobierzDaneExpandera(uint8_t* daneWe)
 	dane_wysylane[1] = MCP23S08_GPIO;
 	dane_wysylane[2] = 0;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	cBłąd = HAL_SPI_TransmitReceive(&hspi2, dane_wysylane, dane_odbierane, 3, HAL_MAX_DELAY);
+	cBłąd = HAL_SPI_TransmitReceive(&hspi2, dane_wysylane, dane_odbierane, 3, SPI_DELAY);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	*daneWe = dane_odbierane[2];
 	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
