@@ -41,6 +41,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "ADC.h"
 #include "FRAM.h"
 #include "KontrolerLotu.h"
+#include "Crossfire.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -223,6 +224,7 @@ int main(void)
   InicjujPID();
   InicjujMikser();
   InicjujKontrolerLotu();
+  InicjujCrossfire();
 
 #ifdef TESTY		//testy algorytmów
   TestyFram();

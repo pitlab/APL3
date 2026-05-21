@@ -111,7 +111,7 @@ void PetlaGlowna(void)
 		break;
 
 	case 4:		//obsługa GNSS na UART8
-		while (chWskNapBaGNSS != chWskOprBaGNSS)
+		/*while (chWskNapBaGNSS != chWskOprBaGNSS)
 		{
 			cBłądPG |= DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
 			chWskOprBaGNSS++;
@@ -129,7 +129,8 @@ void PetlaGlowna(void)
 			chTimeoutGNSS = TIMEOUT_GNSS;
 			uDaneCM4.dane.nZainicjowano &= ~MASKA_INIT_GNSS;	//wyczyść wszystkie bity używane przez GNSS
 			uDaneCM4.dane.stGnss1.chFix = 0;
-		}
+		}*/
+		cBłądPG |= AnalizujSygnalCrossfire(&uDaneCM4.dane, &uDaneCM7.dane);
 		break;
 
 	case 5:

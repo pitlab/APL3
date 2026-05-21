@@ -1036,6 +1036,7 @@ void ZapiszEkstremaWejscRC(void)
 // Parametry:
 // [we] *stRC - wskaźnik na strukturę danych odbiorników RC
 // [wy] *psDaneCM4 - wskaźnik na strukturę danych CM4
+// [wy] *psDaneCM7 - wskaźnik na strukturę danych CM7
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
