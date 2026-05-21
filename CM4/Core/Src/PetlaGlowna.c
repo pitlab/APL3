@@ -29,6 +29,8 @@
 #include "SampleAudio.h"
 #include "SBus.h"
 #include "WS281x.h"
+#include "Crossfire.h"
+
 
 extern TIM_HandleTypeDef htim7;
 extern unia_wymianyCM4_t uDaneCM4;
@@ -130,7 +132,6 @@ void PetlaGlowna(void)
 			uDaneCM4.dane.nZainicjowano &= ~MASKA_INIT_GNSS;	//wyczyść wszystkie bity używane przez GNSS
 			uDaneCM4.dane.stGnss1.chFix = 0;
 		}*/
-		cBłądPG |= AnalizujSygnalCrossfire(&uDaneCM4.dane, &uDaneCM7.dane);
 		break;
 
 	case 5:
@@ -166,7 +167,9 @@ void PetlaGlowna(void)
 
 	case 8:	JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
 
-	case 9:	cBłądPG |= ObslugaRamkiSBus();
+	case 9:	//obsługa odbiorników RC
+		cBłądPG |= ObsługaRamkiSBus();
+		cBłądPG |= ObsługaRamkiCrossfire();
 		cBłądPG |= AnalizujSygnalRC(&uDaneCM4.dane, &uDaneCM7.dane);
 		break;
 

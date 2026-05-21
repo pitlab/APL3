@@ -250,7 +250,7 @@ uint8_t InicjujUart4TxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 // Zwraca: kod wykonania operacji: BLAD_GOTOWE gdy jest kompletna ramka, BLAD_OK gdy skończyły się dane ale nie skompetowano jeszcze ramki
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t FormowanieRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_t *chBuforAnalizy, uint8_t chWskNapBuf, uint8_t *chWskOprBuf)
+uint8_t OdbiórRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_t *chBuforAnalizy, uint8_t chWskNapBuf, uint8_t *chWskOprBuf)
 {
 	uint8_t chDane;
 
@@ -414,12 +414,12 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ObslugaRamkiSBus(void)
+uint8_t ObsługaRamkiSBus(void)
 {
 	uint8_t cBłąd;
 
 	//obsługa kanału 1
-	cBłąd = FormowanieRamkiSBus(chRamkaSBus1, &chWskNapRamkiSBus1, chBuforAnalizySBus1, (uint8_t)chWskNapBufAnaSBus1, (uint8_t*)&chWskOprBufAnaSBus1);
+	cBłąd = OdbiórRamkiSBus(chRamkaSBus1, &chWskNapRamkiSBus1, chBuforAnalizySBus1, (uint8_t)chWskNapBufAnaSBus1, (uint8_t*)&chWskOprBufAnaSBus1);
 	if (cBłąd == BLAD_GOTOWE)
 	{
 		cBłąd = DekodowanieRamkiBSBus(chRamkaSBus1, stRC.sOdb1);
@@ -431,7 +431,7 @@ uint8_t ObslugaRamkiSBus(void)
 	}
 
 	//obsługa kanału 2
-	cBłąd = FormowanieRamkiSBus(chRamkaSBus2, &chWskNapRamkiSBus2, chBuforAnalizySBus2, (uint8_t)chWskNapBufAnaSBus2, (uint8_t*)&chWskOprBufAnaSBus2);
+	cBłąd = OdbiórRamkiSBus(chRamkaSBus2, &chWskNapRamkiSBus2, chBuforAnalizySBus2, (uint8_t)chWskNapBufAnaSBus2, (uint8_t*)&chWskOprBufAnaSBus2);
 	if (cBłąd == BLAD_GOTOWE)
 	{
 		cBłąd = DekodowanieRamkiBSBus(chRamkaSBus2, stRC.sOdb2);

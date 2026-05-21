@@ -36,8 +36,8 @@
 uint8_t InicjujUart2RxJakoSbus(GPIO_InitTypeDef *InitGPIO);
 uint8_t InicjujUart4RxJakoSbus(GPIO_InitTypeDef *InitGPIO);
 uint8_t InicjujUart4TxJakoSbus(GPIO_InitTypeDef *InitGPIO);
+uint8_t OdbiórRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_t *chBuforAnalizy, uint8_t chWskNapBuf, uint8_t *chWskOprBuf);
 uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly);
-uint8_t FormowanieRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_t *chBuforAnalizy, uint8_t chWskNapBuf, uint8_t *chWskOprBuf);
-uint8_t ObslugaRamkiSBus(void);
+uint8_t ObsługaRamkiSBus(void);
 
 #endif /* INC_SBUS_H_ */
