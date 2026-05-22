@@ -8,16 +8,18 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "Crossfire.h"
 #include "WeWyRC.h"
+#include <GNSS.h>
 
 extern UART_HandleTypeDef huart8;
 extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
 extern stRC_t stRC;	//struktura danych odbiorników RC
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
+extern uint8_t chBuforOdbioruUart8[ROZMIAR_BUF_ODB_GNSS];
 
-//uint8_t chBuforAnalizyCrossfire[ROZMIAR_BUF_ANA_CRSF];
-//volatile uint8_t chWskNapBufAnaSRSF, chWskOprBufAnaCRSF; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych Crossfire
-uint8_t chBuforOdbioruCRSFS[ROZMIAR_BUF_ODB_CRSF];
+
+uint8_t chBuforAnalizyCrossfire[ROZMIAR_BUF_ANA_CRSF];
+volatile uint8_t chWskNapBufAnaSRSF, chWskOprBufAnaCRSF; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych Crossfire
 uint8_t chRamkaCRSF[ROZMIAR_RAMKI_CRSF];
 uint8_t cEtapOdbioruRamki;	//wskazuje która część ramki jest odbierana
 uint8_t cLicznikDanych;	//zlicza dane w polu payload
@@ -52,9 +54,10 @@ uint8_t InicjujCrossfire(void)
 	uint8_t cBłąd = BLAD_OK;
 
 	chWskNapBaGNSS = chWskOprBaGNSS = 0;	//inicjuj wskaźniki napełniania i opróżniania buforma kołowego analizy danych z UART8
+	cEtapOdbioruRamki = EORC_ADRES;
 	huart8.Init.BaudRate = 416666;
 	cBłąd = UART_SetConfig(&huart8);
-
+	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruUart8, ROZMIAR_BUF_ODB_GNSS);	//Upewnij się że nie jest uruchamiana funcka inicjalizacji GNSS
 	return cBłąd;
 }
 
@@ -79,11 +82,13 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 	while (chWskNapBuf != *chWskOprBuf)
 	{
 		cDane = chBufor[*chWskOprBuf];
+		(*chWskOprBuf)++;
 
 		switch (*cEtapOdbioru)
 		{
 		case EORC_ADRES:	//odbierany jest SyncByte będący adresem urządzenia. Reaguję na CRSF_ADR_FLIGHT_CTRL oraz na CRSF_ADR_BROADCAST
-			if ((cDane == CRSF_ADR_FLIGHT_CTRL) || (cDane == CRSF_ADR_BROADCAST))
+			//if ((cDane == CRSF_ADR_FLIGHT_CTRL) || (cDane == CRSF_ADR_BROADCAST))
+			if (cDane == CRSF_ADR_FLIGHT_CTRL)
 			{
 				chRamka[0] = cDane;
 				(*cEtapOdbioru)++;
@@ -91,8 +96,13 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 			break;
 
 		case EORC_DLUGOSC:
-			chRamka[EORC_DLUGOSC] = cDane;
-			(*cEtapOdbioru)++;
+			if (cDane)	//jeżeli długość jest niezerowa
+			{
+				chRamka[EORC_DLUGOSC] = cDane;
+				(*cEtapOdbioru)++;
+			}
+			else
+				*cEtapOdbioru = EORC_ADRES;
 			break;
 
 		case EORC_TYP:
@@ -105,7 +115,7 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 			chRamka[EORC_DANE + *cLicznikDanych] = cDane;
 			(*cLicznikDanych)++;
 			if (*cLicznikDanych == chRamka[EORC_DLUGOSC])
-				(*cEtapOdbioru)++;
+				*cEtapOdbioru = EORC_CRC;
 			break;
 
 		case EORC_CRC:
@@ -120,6 +130,8 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 
 			//for (uint8_t n=EORC_TYP; n<; n++)
 		default:	cBłąd = BLAD_ZLE_DANE;
+			*cEtapOdbioru = EORC_ADRES;	//napraw automat stanu jeżeli wypadł z synchronizmu
+			break;
 		}
 	}
 	return cBłąd;
@@ -173,7 +185,7 @@ uint8_t ObsługaRamkiCrossfire(void)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	cBłąd |= OdbiórRamkiCrossfire(chRamkaCRSF, &cEtapOdbioruRamki, &cLicznikDanych, chBuforOdbioruCRSFS, chWskNapBaGNSS, (uint8_t*)&chWskOprBaGNSS);
+	cBłąd |= OdbiórRamkiCrossfire(chRamkaCRSF, &cEtapOdbioruRamki, &cLicznikDanych, chBuforAnalizyCrossfire, chWskNapBufAnaSRSF, (uint8_t*)&chWskOprBufAnaCRSF);
 	cBłąd |= AnalizujCrossfire(&uDaneCM4.dane, &uDaneCM7.dane);
 
 	return cBłąd;

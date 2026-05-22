@@ -71,7 +71,7 @@ uint8_t InicjujIIS2MDC(void)
 				}
 			}
 			else
-				cBłąd = ERR_BRAK_IIS2MDC;
+				cBłąd = BLAD_BRAK_CZUJNIKA;
 		}
 	}
 	return cBłąd;
@@ -92,7 +92,7 @@ uint8_t ObslugaIIS2MDC(void)
 	uint8_t cBłąd = BLAD_OK;
 
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_IIS2MDC)
-		return ERR_BRAK_IIS2MDC;
+		return BLAD_BRAK_CZUJNIKA;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC) != INIT_IIS2MDC)
 	{
@@ -109,7 +109,7 @@ uint8_t ObslugaIIS2MDC(void)
 		else
 		{
 			uDaneCM4.dane.nBrakCzujnika |= INIT_IIS2MDC;
-			cBłąd = ERR_BRAK_IIS2MDC;
+			cBłąd = BLAD_BRAK_CZUJNIKA;
 		}
 		return cBłąd;
 	}

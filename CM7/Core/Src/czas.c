@@ -28,7 +28,7 @@ extern TIM_HandleTypeDef htim6;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 {
-	uint8_t cBłąd = ERR_PROCES_TRWA;
+	uint8_t cBłąd = BLAD_PROCES_TRWA;
 
 	//synchronizację robię tylko wraz z pojawieniem się nowego odczytu czasu
 	if (stGnss->chSek != chPoprzedniaSekunda)

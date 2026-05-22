@@ -10,9 +10,8 @@
 #include "uBlox.h"
 #include <stdio.h>
 #include "wymiana.h"
-#include "WeWyRC.h"
 #include "PetlaGlowna.h"
-#include "sbus.h"
+#include "Uarty.h"
 
 // Potrzebne informacje znajdują się w następujaących ramkach. Na początek wysarczymi GGA i RMC
 //Ramka	[GGA]	GLL	GSA	GSV	[RMC]	VTG	GRS	GST	ZDA	GBS	PUBX00	PUBX03 PuBX04
@@ -30,18 +29,10 @@
 //TDOP												+
 
 
-uint8_t chBuforNadawczyGNSS[ROZMIAR_BUF_NAD_GNSS];
-uint8_t chBuforOdbioruGNSS[ROZMIAR_BUF_ODB_GNSS];
-uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
-extern uint8_t chBuforAnalizySBus1[ROZMIAR_BUF_ANA_SBUS];
-extern uint8_t chBuforAnalizySBus2[ROZMIAR_BUF_ANA_SBUS];
-extern uint8_t chBuforOdbioruSBus1[ROZM_BUF_ODB_SBUS];
-extern uint8_t chBuforOdbioruSBus2[ROZM_BUF_ODB_SBUS];
-extern UART_HandleTypeDef huart2;
-extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart8;
+uint8_t chBuforNadawczyGNSS[ROZMIAR_BUF_NAD_GNSS];
+uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
-extern volatile uint8_t chWskNapBufAnaSBus1, chWskNapBufAnaSBus2; 	//wskaźniki napełniania kołowego bufora odbiorczego analizy danych S-Bus1 i S-Bus2
 uint16_t sCzasInicjalizacjiGNSS = 0;	//licznik czasu	inicjalizacji wyrażony w obiegach pętli 1/200Hz = 5ms
 extern volatile unia_wymianyCM4_t uDaneCM4;
 
@@ -49,9 +40,9 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjuje pracę odbiornika GNSS do pracy na 5Hz z ograniczoną liczbą komunikatów
-// Każde kolejne uruchomienie realizuje fragment procesu rociągniętego w czasie. Trzeba uruchamiać go dotąd, aż zwróci ERR_DONE
+// Każde kolejne uruchomienie realizuje fragment procesu rozciągniętego w czasie. Trzeba uruchamiać go dotąd, aż zwróci ERR_DONE
 // Pierwsze 2 sekundy czeka na prezentację modułu na prędkości 9600 i jezeli go wykryje to zaczyna jego inicjalizację.
-// Jeżeli nie wykryje to wymusza prędkosć docelową i wywyła konfigurację, bo zakłada że moduł jest podtrzymany bateryjnie trzyma swoją konfigurację i prędkość transmisji
+// Jeżeli nie wykryje to wymusza prędkosć docelową i wysyła konfigurację, bo zakłada że moduł jest podtrzymany bateryjnie trzyma swoją konfigurację i prędkość transmisji
 // Parametry: brak
 // Zwraca: kod zakończenia inicjalizacji: ERR_DONE = zakończono, BLAD_OK - w trakcie
 ////////////////////////////////////////////////////////////////////////////////
@@ -70,6 +61,7 @@ uint8_t InicjujGNSS(void)
     case CYKL_STARTU_ZMIAN_PREDK + 0:	//ustaw 9600bps
     	huart8.Init.BaudRate = 9600;
     	cBłąd = UART_SetConfig(&huart8);
+    	WłączOdbiórUART8();	//ustawia odbiornik gotowy na przyjęcie danych
     	break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 1:	//wyślij polecenie zmiany prędkości dla GPS
@@ -270,8 +262,7 @@ uint8_t InicjujGNSS(void)
 
     if (chRozmiar)
     {
-    	//cBłąd = HAL_UART_Transmit_DMA(&huart8, chBuforNadawczyGNSS, chRozmiar);	 //wyślij dane do modułu GNSS przez DMA
-    	//cBłąd = HAL_UART_Transmit(&huart8, chBuforNadawczyGNSS, chRozmiar, 5);	 //wyślij dane do modułu GNSS w poolingu
+    	cBłąd = HAL_UART_Transmit_DMA(&huart8, chBuforNadawczyGNSS, chRozmiar);	 //wyślij dane do modułu GNSS przez DMA
     }
 
     /*/licz sumę kontrolną ramek, po to aby wstawić właściwą sumę do polecenia
@@ -290,95 +281,6 @@ uint8_t InicjujGNSS(void)
             break;
     }*/
     return cBłąd;  //inicjalizacja nie zakończona
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Callback odbiorczy UART - obecnie nie używane
-// Parametry: brak
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
-{
-	//odbiór GPS
-	if (huart->Instance == UART8)
-	{
-		//przepisz dane odebrane do większego bufora kołowego analizy danych
-		for (uint8_t n=0; n<Size; n++)
-		{
-			chBuforAnalizyGNSS[chWskNapBaGNSS] = chBuforOdbioruGNSS[n];
-			chWskNapBaGNSS++;
-			chWskNapBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
-		}
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);	//wznów odbiór
-	}
-
-	//odbiór SBus2
-	if (huart->Instance == USART2)
-	{
-
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);	//wznów odbiór
-	}
-
-	//odbiór SBus1
-	if (huart->Instance == UART4)
-	{
-
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart4, chBuforOdbioruSBus1, ROZM_BUF_ODB_SBUS);	//wznów odbiór
-	}
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Callback przerwania UARTA.
-// Parametry:
-// *huart - uchwyt uarta
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	extern stRC_t stRC;	//struktura danych odbiorników RC
-
-	//Przepisuje odebrane dane GNSS z małego bufora do większego bufora kołowego analizy protokołu
-	if (huart->Instance == UART8)
-	{
-		for (uint8_t n=0; n<ROZMIAR_BUF_ODB_GNSS; n++)
-		{
-			chBuforAnalizyGNSS[chWskNapBaGNSS] = chBuforOdbioruGNSS[n];
-			chWskNapBaGNSS++;
-			chWskNapBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;	//zapętlenie wskaźnika bufora kołowego
-		}
-		//HAL_UART_Receive_DMA(&huart8, chBuforOdbioruGNSS, ROZMIAR_BUF_ODB_GNSS);
-	}
-
-	//dane z SBUS1
-	if (huart->Instance == UART4)
-	{
-		stRC.nCzasWe1 = PobierzCzas();	//czas przyjścia ramki SBus1
-		for (uint8_t n=0; n<ROZM_BUF_ODB_SBUS; n++)
-		{
-			chBuforAnalizySBus1[chWskNapBufAnaSBus1] = chBuforOdbioruSBus1[n];
-			chWskNapBufAnaSBus1++;
-			chWskNapBufAnaSBus1 &= MASKA_ROZM_BUF_ANA_SBUS;	//zapętlenie wskaźnika bufora kołowego
-		}
-		//HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZM_BUF_ODB_SBUS);
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);			//kanał serw 2 skonfigurowany jako IO
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);				//kanał serw 4 skonfigurowany jako IO
-	}
-
-	if (huart->Instance == USART2)		//dane z SBUS2
-	{
-		stRC.nCzasWe2 = PobierzCzas();	//czas przyjścia ramki SBus2
-		for (uint8_t n=0; n<ROZM_BUF_ODB_SBUS; n++)
-		{
-			chBuforAnalizySBus2[chWskNapBufAnaSBus2] = chBuforOdbioruSBus2[n];
-			chWskNapBufAnaSBus2++;
-			chWskNapBufAnaSBus2 &= MASKA_ROZM_BUF_ANA_SBUS;	//zapętlenie wskaźnika bufora kołowego
-		}
-		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);
-	}
 }
 
 

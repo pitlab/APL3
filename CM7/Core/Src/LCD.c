@@ -362,7 +362,8 @@ uint8_t RysujEkran(void)
 		break;
 
 	case TP_KAL_BARO:	//kalibracja ciśnienia według wzorca
-		if (KalibrujBaro(&chSekwencerKalibracji) == ERR_GOTOWE)
+
+		if (KalibrujBaro(&chSekwencerKalibracji) == BLAD_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_MENU;
@@ -370,7 +371,7 @@ uint8_t RysujEkran(void)
 		break;
 
 	case TP_POMIARY_DOTYKU:
-		if (TestDotyku() == ERR_GOTOWE)
+		if (TestDotyku() == BLAD_GOTOWE)
 			chNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
@@ -1366,7 +1367,7 @@ uint8_t RysujEkran(void)
 		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
 			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
-		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_ZA_CIEPLO))
+		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO))
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WYSWIETL_BLAD;
@@ -1380,7 +1381,7 @@ uint8_t RysujEkran(void)
 		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
 			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
-		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_ZA_CIEPLO))
+		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO))
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WYSWIETL_BLAD;
@@ -1394,7 +1395,7 @@ uint8_t RysujEkran(void)
 		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
 			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
-		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_ZA_CIEPLO))
+		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO))
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WYSWIETL_BLAD;
@@ -1404,7 +1405,7 @@ uint8_t RysujEkran(void)
 
 	case TP_PODGLAD_IMU:
 		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;		//gdy proces się rozpoczął wyłącz dalsze wysyłanie polecenia kalibracji
-		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_ZA_CIEPLO))
+		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO))
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WYSWIETL_BLAD;
@@ -1426,10 +1427,10 @@ uint8_t RysujEkran(void)
 
 
 	case TP_WYSWIETL_BLAD:
-		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_ZA_ZIMNO)
+		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_ZIMNO)
 			WyswietlKomunikatBledu(KOMUNIKAT_ZA_ZIMNO, (uDaneCM4.dane.fTemper[TEMP_IMU1] + uDaneCM4.dane.fTemper[TEMP_IMU2])/2, fTemperaturaKalibracji, TEMP_KAL_ODCHYLKA);	//Wyświetl komunikat  o tym że jest za zimno i nominalna temperatura kalibracji to TEMP_KAL_POKOJ z odchyłką TEMP_KAL_ODCHYLKA
 		else
-		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_ZA_CIEPLO)
+		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO)
 			WyswietlKomunikatBledu(KOMUNIKAT_ZA_CIEPLO, (uDaneCM4.dane.fTemper[TEMP_IMU1] + uDaneCM4.dane.fTemper[TEMP_IMU2])/2, fTemperaturaKalibracji, TEMP_KAL_ODCHYLKA);	//Wyświetl komunikat  o tym że jest za ciepło i nominalna temperatura kalibracji to TEMP_KAL_POKOJ z odchyłką TEMP_KAL_ODCHYLKA
 
 		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
@@ -1454,7 +1455,7 @@ uint8_t RysujEkran(void)
 
 	case TP_KAL_WZM_ZYROR:
 		chSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_R;
-		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == ERR_GOTOWE)
+		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == BLAD_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_KAL_IMU;
@@ -1464,7 +1465,7 @@ uint8_t RysujEkran(void)
 
 	case TP_KAL_WZM_ZYROQ:
 		chSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_Q;
-		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == ERR_GOTOWE)
+		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == BLAD_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_KAL_IMU;
@@ -1474,7 +1475,7 @@ uint8_t RysujEkran(void)
 
 	case TP_KAL_WZM_ZYROP:
 		chSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_P;
-		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == ERR_GOTOWE)
+		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == BLAD_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_KAL_IMU;
@@ -1505,7 +1506,7 @@ uint8_t RysujEkran(void)
 
 	case TP_MAG_KAL1:
 		chSekwencerKalibracji |= MAG1 + KALIBRUJ;
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == BLAD_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_MAG;
@@ -1515,7 +1516,7 @@ uint8_t RysujEkran(void)
 
 	case TP_MAG_KAL2:
 		chSekwencerKalibracji |= MAG2 + KALIBRUJ;
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == BLAD_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_MAG;
@@ -1525,7 +1526,7 @@ uint8_t RysujEkran(void)
 
 	case TP_MAG_KAL3:
 		chSekwencerKalibracji |= MAG3 + KALIBRUJ;
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == BLAD_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_MAG;
@@ -1546,7 +1547,7 @@ uint8_t RysujEkran(void)
 
 	case TP_SPR_MAG1:
 		chSekwencerKalibracji |= MAG1;	//sprawdzenie, bez kalibracji
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == BLAD_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_MAG;
@@ -1556,7 +1557,7 @@ uint8_t RysujEkran(void)
 
 	case TP_SPR_MAG2:
 		chSekwencerKalibracji |= MAG2;	//sprawdzenie, bez kalibracji
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == BLAD_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_MAG;
@@ -1566,7 +1567,7 @@ uint8_t RysujEkran(void)
 
 	case TP_SPR_MAG3:
 		chSekwencerKalibracji |= MAG3;	//sprawdzenie, bez kalibracji
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == ERR_GOTOWE)
+		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == BLAD_GOTOWE)
 		{
 			chTrybPracy = chWrocDoTrybu;
 			chNowyTrybPracy = TP_WROC_DO_MAG;
@@ -1586,7 +1587,7 @@ uint8_t RysujEkran(void)
 	case TP_KAL_DOTYK:
 		chNowyTrybPracy = 0;			//nowy tryb jest ustawiany po starcie dla normalnej pracy ze skalibrowanym panelem. Jednak w przypadku potrzeby kalobracji,
 										//powoduje to wyczyszczenie opisu i pierwszego krzyżyka i nie wiadomo o co chodzi, więc kasuję chNowyTrybPracy
-		if (KalibrujDotyk() == ERR_GOTOWE)
+		if (KalibrujDotyk() == BLAD_GOTOWE)
 			chTrybPracy = TP_POMIARY_DOTYKU;
 		break;
 
@@ -3049,7 +3050,7 @@ uint32_t RysujKostkeObrotu(float *fKat)
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran dla kalibracji wzmocnienia żyroskopów
 // Parametry: *chSekwencer	- zmiennaWskazująca na kalibracje konktretnej osi
-// Zwraca: ERR_GOTOWE / BLAD_OK - informację o tym czy wyjść z trybu kalibracji czy nie
+// Zwraca: BLAD_GOTOWE / BLAD_OK - informację o tym czy wyjść z trybu kalibracji czy nie
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 {
@@ -3198,7 +3199,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 
 	case 3:	//obliczenie kalibracji
 		uDaneCM7.dane.chWykonajPolecenie = POL7_KALIBRUJ_ZYRO_WZMR + *chSekwencer;	//uruchom kalibrację dla scałkowanego kąta R, Q lub P
-		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_ZLE_OBLICZENIA)
+		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZLE_OBLICZENIA)
 			sprintf(chNapis, "Blad! ");
 		else
 			sprintf(chNapis, "Gotowe");
@@ -3206,7 +3207,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 
 	default:	//wyjście lub przejscie do kalibracji kolejnej osi
 		sprintf(chNapis, "Wyjdz ");
-		cBłąd = ERR_GOTOWE;	//zakończ kalibrację
+		cBłąd = BLAD_GOTOWE;	//zakończ kalibrację
 		break;
 	}
 
@@ -3227,7 +3228,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 			RysujPrzycisk(stPrzycisk, chNapis, ODSWIEZ);
 		}
 		else
-			cBłąd = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
+			cBłąd = BLAD_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
 
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 	}
@@ -3346,7 +3347,7 @@ void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc)
 // Wykres jest skalowany do maksimum wartosci bezwzględnej obu zmiennych
 // Parametry: *chEtap	- wskaźnik na zmienną wskazującą na kalibracje konktretnej osi w konkretnym magnetometrze. Starszy półbajt koduje numer magnetometru, najmłodsze 2 bity oś obracaną a bit 4 procedurę kalibracji
 // uDaneCM4.dane.uRozne.f32[6] - minima i maksima magnetometrów zbierana przez CM4
-// Zwraca: ERR_GOTOWE / BLAD_OK - informację o tym czy wyjść z trybu kalibracji czy nie
+// Zwraca: BLAD_GOTOWE / BLAD_OK - informację o tym czy wyjść z trybu kalibracji czy nie
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 {
@@ -3704,7 +3705,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 			chStanPrzycisku = 1;
 		else
 		{
-			cBłąd = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
+			cBłąd = BLAD_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
 			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
 		}
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
@@ -3727,14 +3728,14 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		if (*chEtap & KALIBRUJ)
 			uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_KONF_MAGN1 + chCzujnik;	//zapisz konfigurację bieżącego magnetometru
 		else
-			cBłąd = ERR_GOTOWE;		//koniec wertyfikacji
+			cBłąd = BLAD_GOTOWE;		//koniec wertyfikacji
 	}
 
 	//wyjdź dopiero gdy dostanie potwierdzenie zapisu
 	if (((*chEtap & MASKA_OSI) == 3) && (uDaneCM4.dane.chPotwierdzenieWykonania == POL7_ZAPISZ_KONF_MAGN1 + chCzujnik))
 	{
 		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
-		cBłąd = ERR_GOTOWE;		//koniec kalibracji
+		cBłąd = BLAD_GOTOWE;		//koniec kalibracji
 		DodajProbkeDoMalejKolejki(PGA_GOTOWE, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat kończący: Gotowe
 	}
 
@@ -3862,19 +3863,19 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 
 	case 2:
 		uDaneCM7.dane.chWykonajPolecenie = POL7_USREDNIJ_CISN1;	//trwa uśrednianie ciśnienia 1
-		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_GOTOWE)
+		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_GOTOWE)
 			(*chEtap)++;
 		break;
 
 	case 4:
 		uDaneCM7.dane.chWykonajPolecenie = POL7_USREDNIJ_CISN2;	//trwa uśrednianie ciśnienia 2
-		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_GOTOWE)
+		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_GOTOWE)
 			(*chEtap)++;
 		break;
 
 	case 5:
 		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//Zakończ wykonywanie poleceń kalibracyjnych
-		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == ERR_ZLE_OBLICZENIA)
+		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZLE_OBLICZENIA)
 			RysujPrzycisk(stPrzycisk, "Blad!", ODSWIEZ);
 		else
 			RysujPrzycisk(stPrzycisk, "Gotowe", ODSWIEZ);
@@ -3883,7 +3884,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		sprintf(chNapis, "dP2 = %.2f Pa", fabs(uDaneCM4.dane.uRozne.f32[1] - uDaneCM4.dane.uRozne.f32[3]));	//Rożnica ciśnień czujnika 2
 		RysujNapis(chNapis, 10 + stPrzycisk.sX2, 260);
 		if (chStanPrzycisku == 1)
-			cBłąd = ERR_GOTOWE;	//zakończ
+			cBłąd = BLAD_GOTOWE;	//zakończ
 		break;
 	}
 
@@ -3898,7 +3899,7 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		}
 		else
 		{
-			cBłąd = ERR_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
+			cBłąd = BLAD_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
 			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//neutralne polecenie
 		}
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;

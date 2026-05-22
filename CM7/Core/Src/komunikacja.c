@@ -253,13 +253,13 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 
 		if (cDane[4] > ROZMIAR16_BUF_SEKT)	//jeżeli zażądano odczytu więcej niż pomieści bufor sektora to zwróc błąd
 		{
-			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			cBłąd = BLAD_ZLA_ILOSC_DANYCH;
 			Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 			break;
 		}
 		if (2* cDane[4] > ROZMIAR_DANYCH_KOMUNIKACJI)	//jeżeli zażądano odczytu więcej niż pomieści ramka komunikacyjna to zwróc błąd
 		{
-			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			cBłąd = BLAD_ZLA_ILOSC_DANYCH;
 			Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 			break;
 		}
@@ -294,7 +294,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 	case PK_ZAPISZ_FRAM_U8:	//zapisuje bajty do FRAM
 		if (cDane[0] > ROZMIAR_ROZNE_CHAR)	//liczba danych uint8_t
 		{
-			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			cBłąd = BLAD_ZLA_ILOSC_DANYCH;
 			Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 			break;
 		}
@@ -312,7 +312,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 	case PK_ZAPISZ_FRAM_FLOAT:				//Wysyła dane typu float do zapisu we FRAM w rdzeniu CM4 o rozmiarze ROZMIAR_ROZNE_FLOAT
 		if (cDane[0] > ROZMIAR_ROZNE_FLOAT)	//liczba danych float (nie uint8_t)
 		{
-			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			cBłąd = BLAD_ZLA_ILOSC_DANYCH;
 			Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 			break;
 		}
@@ -334,7 +334,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 	case PK_WYSLIJ_POTW_ZAPISU:	//jeżeli dane się zapisały to odeslij BLAD_OK. jeeli jeszcze nie to ERR_PROCES_TRWA
 		if ((uDaneCM4.dane.chPotwierdzenieWykonania != POL7_ZAPISZ_FRAM_FLOAT) || (uDaneCM4.dane.sAdres != sAdres))
 		{
-			cBłąd = ERR_PROCES_TRWA;		//dane jeszcze nie przyszły
+			cBłąd = BLAD_PROCES_TRWA;		//dane jeszcze nie przyszły
 			Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 			break;
 		}
@@ -345,7 +345,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 	case PK_CZYTAJ_FRAM_U8:
 		if (cDane[0] > ROZMIAR_ROZNE_CHAR)
 		{
-			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			cBłąd = BLAD_ZLA_ILOSC_DANYCH;
 			Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 			break;
 		}
@@ -361,7 +361,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 	case PK_CZYTAJ_FRAM_FLOAT:			//odczytaj i wstaw do bufora fRozne[] zawartość FRAM spod podanego adresu w cDane[1..2] o rozmiarze podanym w cDane[0]
 		if (cDane[0] > ROZMIAR_ROZNE_FLOAT)
 		{
-			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			cBłąd = BLAD_ZLA_ILOSC_DANYCH;
 			Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 			break;
 		}
@@ -378,7 +378,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//wyłącz wykonywanie polecenia PK_WYSLIJ_ODCZYT_FRAM
 		if (uDaneCM4.dane.sAdres != sAdres)
 		{
-			cBłąd = ERR_PROCES_TRWA;		//dane jeszcze nie przyszły
+			cBłąd = BLAD_PROCES_TRWA;		//dane jeszcze nie przyszły
 			Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 			osDelay(1);	//przełącz wątek aby pozwolić CM4 wykonać polecenie
 			break;
@@ -405,7 +405,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 	case PK_ZAPISZ_KONFIG_PID:			//Wysyła dane do zapisu we FRAM w rdzeniu CM4 oraz zapisania do zmienych regulatora
 		if ((cDane[0] >= LICZBA_PID) || (chRozmDanych > ROZMIAR_ROZNE_CHAR))	//indeks kanału regulatora nie powinien przekraczać liczby regulatorów i nie powinna zostać przepełniona struktura danych przekazywanych
 		{
-			cBłąd = ERR_ZLA_ILOSC_DANYCH;
+			cBłąd = BLAD_ZLA_ILOSC_DANYCH;
 			Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 			break;
 		}

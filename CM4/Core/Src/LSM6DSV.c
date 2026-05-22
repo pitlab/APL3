@@ -33,7 +33,7 @@ uint8_t InicjujLSM6DSV(void)
 
 	chDane[0] = CzytajSPIu8(PLSC6DSV_WHO_AM_I);		//sprawdź obecność układu
 	if (chDane[0] != 0x70)
-		return ERR_BRAK_LSM6DSV;
+		return BLAD_BRAK_CZUJNIKA;
 
 
 	chDane[0] = PLSC6DSV_CTRL1;

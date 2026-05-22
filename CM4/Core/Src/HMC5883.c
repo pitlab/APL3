@@ -97,7 +97,7 @@ uint8_t SprawdzObecnoscHMC5883(void)
         }
         uDaneCM4.dane.nZainicjowano &= ~INIT_HMC5883;
     }
-    return BLAD_BRAK_MAGETOMETRU;
+    return BLAD_BRAK_CZUJNIKA;
 }
 
 
@@ -113,7 +113,7 @@ uint8_t ObslugaHMC5883(void)
 	uint8_t cBłąd = BLAD_OK;
 
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_HMC5883)
-		return BLAD_BRAK_MAGETOMETRU;
+		return BLAD_BRAK_CZUJNIKA;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_HMC5883) != INIT_HMC5883)
 	{
@@ -131,7 +131,7 @@ uint8_t ObslugaHMC5883(void)
 		else
 		{
 			uDaneCM4.dane.nBrakCzujnika |= INIT_HMC5883;
-			cBłąd = BLAD_BRAK_MAGETOMETRU;
+			cBłąd = BLAD_BRAK_CZUJNIKA;
 		}
 		return cBłąd;
 	}

@@ -82,7 +82,7 @@ uint8_t InicjujMMC3416x(void)
 				}
 			}
 			else
-				cBłąd = ERR_BRAK_MMC34160;
+				cBłąd = BLAD_BRAK_CZUJNIKA;
 		}
 	}
 	return cBłąd;
@@ -104,7 +104,7 @@ uint8_t ObslugaMMC3416x(void)
 
 	//po MAX_PROB_INICJALIZACJI ustawiany jest bit braku czujnika. Taki czujnik nie jest dłużej obsługiwany
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_MMC34160)
-		return ERR_BRAK_MMC34160;
+		return BLAD_BRAK_CZUJNIKA;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_MMC34160) != INIT_MMC34160)
 	{
@@ -121,7 +121,7 @@ uint8_t ObslugaMMC3416x(void)
 		else
 		{
 			uDaneCM4.dane.nBrakCzujnika |= INIT_MMC34160;
-			cBłąd = ERR_BRAK_MMC34160;
+			cBłąd = BLAD_BRAK_CZUJNIKA;
 		}
 		return cBłąd;
 	}
@@ -198,7 +198,7 @@ uint8_t ObslugaMMC3416x(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PolecenieMMC3416x(uint8_t chPolecenie)
 {
-	uint8_t cBłąd = ERR_BRAK_MMC34160;
+	uint8_t cBłąd = BLAD_BRAK_CZUJNIKA;
 
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)
 	{

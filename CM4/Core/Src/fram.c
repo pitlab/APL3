@@ -288,7 +288,7 @@ uint8_t CzytajFramFloatZWalidacja(uint16_t sAdres, float *fWartosc, float fWartM
 		if ((*fWartosc < fWartMin) || (*fWartosc > fWartMax) || isnan(*fWartosc))
 		{
 			*fWartosc = fWartDomyslna;    //gdy poza zakresem, to zwróć przekazaną wartość domyślną
-			chBłąd = ERR_ZLA_KONFIG;
+			chBłąd = BLAD_ZLA_KONFIG;
 		}
 		else
 			chBłąd = BLAD_OK;
@@ -321,7 +321,7 @@ uint8_t CzytajFramU8zWalidacja(uint16_t sAdres, uint8_t *chWartosc, uint8_t chWa
 		if ((*chWartosc < chWartMin) || (*chWartosc > chWartMax))
 		{
 			*chWartosc = chWartDomyslna;    //gdy poza zakresem, to zwróć przekazaną wartość domyślną
-			chBłąd = ERR_ZLA_KONFIG;
+			chBłąd = BLAD_ZLA_KONFIG;
 		}
 		else
 			chBłąd = BLAD_OK;
@@ -413,7 +413,7 @@ void TestyFram(void)
 	assert(fTest > 12345.677);
 	assert(fTest < 12345.679);
 	chErr = CzytajFramFloatZWalidacja(FAH_TEST, &fTest, -1234.56, 1234.12, 123.4567);		//korekta odczytu z walidacją
-	assert(chErr == ERR_ZLA_KONFIG);
+	assert(chErr == BLAD_ZLA_KONFIG);
 	assert(fTest > 123.4556);
 	assert(fTest < 123.4568);
 

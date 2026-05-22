@@ -73,11 +73,11 @@ uint8_t SprawdzObecnoscFlashNOR(void)
 				(norID.Device_Code2 != 0x2222) &&	//256Mb		S29GL256S90
 				(norID.Device_Code2 != 0x2221))		//128Mb
 			{
-				cBłąd = ERR_BRAK_FLASH_NOR;
+				cBłąd = BLAD_BRAK_FLASH_NOR;
 			}
 		}
 		else
-			cBłąd = ERR_BRAK_FLASH_NOR;
+			cBłąd = BLAD_BRAK_FLASH_NOR;
 	}
 	return cBłąd;
 }

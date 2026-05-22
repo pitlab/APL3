@@ -18,6 +18,7 @@
 #include "KontrolerLotu.h"
 #include "SampleAudio.h"
 #include "RegulatorPID.h"
+#include "Uarty.h"
 
 //definicje SBus: https://github.com/uzh-rpg/rpg_quadrotor_control/wiki/SBUS-Protocol
 //S-Bus oraz DShot mają rozdzielczość 11-bitów, wiec przyjmuję taką rozdzielczość sterowania definiując stałą PPM11BIT
@@ -45,8 +46,6 @@ extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
 extern uint32_t nKolorWS281x[LICZBA_LED_WS281X];
 extern uint8_t chWskaznikLed;
-extern uint8_t chBuforOdbioruSBus1[ROZM_BUF_ODB_SBUS];
-extern uint8_t chBuforOdbioruSBus2[ROZM_BUF_ODB_SBUS];
 extern uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
 extern uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych. Dalsze zwiększanie wysterowania nic nie daje, więc w ten sposób wykluczamy go z zakresu regulacji
 extern stKonfPID_t stKonfigPID[LICZBA_PID];
@@ -241,7 +240,7 @@ uint8_t InicjujWyjsciaRC(void)
 		InicjujUart4TxJakoSbus(&GPIO_InitStruct);
 	}
 	else
-		cBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= BLAD_BRAK_KONFIG;
 
 	//**** Wyjście 2 - konfiguracja portu PB10 - TIM2_CH3, USART3_TX, MOD_QSPI_CS **********************************************************
 	__HAL_RCC_GPIOB_CLK_ENABLE();
@@ -346,7 +345,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
-		cBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= BLAD_BRAK_KONFIG;
 
 
 	//**** Wyjście RC 3 - konfiguracja portu PA15, TIM2_CH1 **********************************************************W
@@ -410,7 +409,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 	}
 	else
-		cBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= BLAD_BRAK_KONFIG;
 
 
 	//**** Wyjście 4 - konfiguracja portu PB0, TIM3_CH3 **********************************************************
@@ -484,7 +483,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
-		cBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= BLAD_BRAK_KONFIG;
 
 
 	//**** Wyjście 5 - konfiguracja portu PB1 TIM3_CH4 **********************************************************
@@ -555,7 +554,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	}
 	else
-		cBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= BLAD_BRAK_KONFIG;
 
 
 	//**** Wyjście 6 - konfiguracja portu PI5, TIM8_CH1 **********************************************************
@@ -629,7 +628,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 	}
 	else
-		cBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= BLAD_BRAK_KONFIG;
 
 
 	//**** Wyjście 7 - konfiguracja portu PI10  - brak timera na porcie **********************************************************
@@ -642,7 +641,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOI, &GPIO_InitStruct);
 	}
 	else
-		cBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= BLAD_BRAK_KONFIG;
 
 
 	//**** Wyjście 8 - konfiguracja portu PH15 TIM8_CH3N **********************************************************
@@ -702,7 +701,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
 	}
 	else
-		cBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= BLAD_BRAK_KONFIG;
 
 
 	//**** Wyjście 9-16 - konfiguracja portu PA8 TIM1_CH1 **********************************************************
@@ -739,7 +738,7 @@ uint8_t InicjujWyjsciaRC(void)
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 	}
 	else
-		cBłąd |= ERR_BRAK_KONFIG;
+		cBłąd |= BLAD_BRAK_KONFIG;
 	return cBłąd;
 }
 
@@ -885,7 +884,7 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 
 		case SERWO_WS281X:	cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);	break;
 
-		default: cBłąd = ERR_BRAK_KONFIG;
+		default: cBłąd = BLAD_BRAK_KONFIG;
 		}	//switch
 	}	//for
 
@@ -1087,7 +1086,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
 	if (nCzasRC1 > 2*OKRES_RAMKI_PPM_RC)
 	{
-		HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZM_BUF_ODB_SBUS);
+		WłączOdbiórUART4();	//ustawia odbiornik gotowy na przyjęcie danych
 	}
 
 
@@ -1122,7 +1121,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
 	if (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC)
 	{
-		HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);
+		WłączOdbiórUART2();	//ustawia odbiornik gotowy na przyjęcie danych
 	}
 
 

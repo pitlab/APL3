@@ -388,14 +388,14 @@ uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib)
 	case POL7_KALIBRUJ_ZYRO_ZIM:
 		if (fTemperatura < TEMP_KAL_ZIMNO - TEMP_KAL_ODCHYLKA)
 		{
-			uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = ERR_ZA_ZIMNO;
-			return ERR_ZA_ZIMNO;
+			uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_ZA_ZIMNO;
+			return BLAD_ZA_ZIMNO;
 		}
 		else
 		if (fTemperatura > TEMP_KAL_ZIMNO + TEMP_KAL_ODCHYLKA)
 		{
-			uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = ERR_ZA_CIEPLO;
-			return ERR_ZA_CIEPLO;
+			uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_ZA_CIEPLO;
+			return BLAD_ZA_CIEPLO;
 		}
 		else
 			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_ZYRO_ZIM ;	//uruchom kalibrację żyroskopów na zimno w +10°C
@@ -404,14 +404,14 @@ uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib)
 	case POL7_KALIBRUJ_ZYRO_POK:
 		if (fTemperatura < TEMP_KAL_POKOJ - TEMP_KAL_ODCHYLKA)
 		{
-			uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = ERR_ZA_ZIMNO;
-			return ERR_ZA_ZIMNO;
+			uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_ZA_ZIMNO;
+			return BLAD_ZA_ZIMNO;
 		}
 		else
 		if (fTemperatura > TEMP_KAL_POKOJ + TEMP_KAL_ODCHYLKA)
 		{
-			uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = ERR_ZA_CIEPLO;
-			return ERR_ZA_CIEPLO;
+			uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_ZA_CIEPLO;
+			return BLAD_ZA_CIEPLO;
 		}
 		else
 			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_ZYRO_POK;		//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
@@ -420,20 +420,20 @@ uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib)
 	case POL7_KALIBRUJ_ZYRO_GOR:
 		if (fTemperatura < TEMP_KAL_GORAC - TEMP_KAL_ODCHYLKA)
 		{
-			uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = ERR_ZA_ZIMNO;
-			return ERR_ZA_ZIMNO;
+			uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_ZA_ZIMNO;
+			return BLAD_ZA_ZIMNO;
 		}
 		else
 		if (fTemperatura > TEMP_KAL_GORAC + TEMP_KAL_ODCHYLKA)
 		{
-			uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = ERR_ZA_CIEPLO;
-			return ERR_ZA_CIEPLO;
+			uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_ZA_CIEPLO;
+			return BLAD_ZA_CIEPLO;
 		}
 		else
 			uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_ZYRO_GOR;		//uruchom kalibrację żyroskopów na gorąco 40°C
 		break;
 
-	default: return ERR_ZLE_POLECENIE;
+	default: return BLAD_ZLE_POLECENIE;
 	}
 
 	for (uint8_t n=0; n<3; n++)
@@ -470,7 +470,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 			else
 			{
-				uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = ERR_ZLE_OBLICZENIA;
+				uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_ZLE_OBLICZENIA;
 				return BLAD_OK;
 			}
 
@@ -483,7 +483,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 			else
 			{
-				uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = ERR_ZLE_OBLICZENIA;
+				uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_ZLE_OBLICZENIA;
 				return BLAD_OK;
 			}
 			uDaneCM4.dane.uRozne.f32[2] = CzytajFramFloat(FAH_ZYRO1P_WZMOC);	//przekaż wartości bieżącej kalibracji
@@ -504,7 +504,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 			else
 			{
-				uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = ERR_ZLE_OBLICZENIA;
+				uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_ZLE_OBLICZENIA;
 				return BLAD_OK;
 			}
 
@@ -517,7 +517,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 			else
 			{
-				uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = ERR_ZLE_OBLICZENIA;
+				uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_ZLE_OBLICZENIA;
 				return BLAD_OK;
 			}
 		}
@@ -537,7 +537,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 			else
 			{
-				uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = ERR_ZLE_OBLICZENIA;
+				uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_ZLE_OBLICZENIA;
 				return BLAD_OK;
 			}
 
@@ -550,7 +550,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 			}
 			else
 			{
-				uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = ERR_ZLE_OBLICZENIA;
+				uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_ZLE_OBLICZENIA;
 				return BLAD_OK;
 			}
 		}
@@ -569,7 +569,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
 		uDaneCM4.dane.nZainicjowano &= ~INIT_WYK_KAL_WZM_ZYRO;	//nie jest zainicjowane
 		break;
 
-	default: return ERR_ZLE_POLECENIE;
+	default: return BLAD_ZLE_POLECENIE;
 	}
 
 	//uDaneCM4.dane.uRozne.U8[30] = chRodzajKalib;	//zwróć potwierdzenie że znajduje się w danym etapie
@@ -748,7 +748,7 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 				 ZapiszFramFloat(FAH_MNOZNIK_CISN_BEZWZGL1 + n*4, fMnożnikCiśn[n]);			//zapisz do FRAM
 			}
 			else
-				cBłąd = ERR_ZLE_OBLICZENIA;
+				cBłąd = BLAD_ZLE_OBLICZENIA;
 			uDaneCM4.dane.uRozne.f32[n+4] = fMnożnikCiśn[n];	//odeślij ewentualnie zmodyfikowany współczynnik globalny
 		}
 	}

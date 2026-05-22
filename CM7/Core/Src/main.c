@@ -362,7 +362,7 @@ Error_Handler();
   //cBłąd |= InicjujFlashQSPI();
   cBłąd |= InicjujKonfigFlash();
   cBłąd = InicjujDotyk();
-  if (cBłąd != ERR_BRAK_DANYCH)		//wyświetlacz inicjalizuj tylko gdy wykryto sterownik panelu dotykowego
+  if (cBłąd != BLAD_BRAK_DANYCH)		//wyświetlacz inicjalizuj tylko gdy wykryto sterownik panelu dotykowego
 #ifdef LCD_RPI35B
 	  cBłąd |= InicjujLCD_35B_16bit();
 #endif

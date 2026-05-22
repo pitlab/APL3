@@ -41,7 +41,7 @@ uint8_t InicjujBMP581(void)
 
 	chDane = CzytajSPIu8(PBMP5_CHIP_ID);	//sprawdź obecność układu
 	if (chDane != 0x50)
-		return ERR_BRAK_BMP581;
+		return BLAD_BRAK_CZUJNIKA;
 
 	chBufBMP581[0] = PBMP5_DRIVE_CONFIG;
 	chBufBMP581[1] = 0x00;
@@ -49,7 +49,7 @@ uint8_t InicjujBMP581(void)
 
 	chDane = CzytajSPIu8(PBMP5_CHIP_STATUS);	//sprawdź status konfiguracji magistrali
 	if (chDane != 0x03)							//SPI MODE0 lub MODE3
-		return ERR_BRAK_BMP581;
+		return BLAD_BRAK_CZUJNIKA;
 
 	chBufBMP581[0] = PBMP5_OVERSAMLING_RATE;
 	chBufBMP581[1] = (6 << 0)|	//oversampling temperatury: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128

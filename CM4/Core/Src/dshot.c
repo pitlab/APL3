@@ -41,7 +41,7 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 	case PROTOKOL_DSHOT150:
 		nDzielnik = nHCLK / DS150_ZEGAR;	//6000000 Hz
 		if ((nDzielnik * DS150_ZEGAR) != nHCLK)	//jeżeli dzielnik nie jest liczbą całkowitą to wyjdź z kodem błędu
-			return ERR_ZLY_STAN_PROT;
+			return BLAD_ZLY_STAN_PROT;
 
 		//oblicz długość impulsów do ustawienia w CC timera: czas impulsu / okres zegara => czas impulsu * częstotliwość zegara
 		stDShot.nBit = (uint32_t)(6666e-9 * DS150_ZEGAR + 0.5f);	//ns * MHz + zaokrąglenie
@@ -52,7 +52,7 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 	case PROTOKOL_DSHOT300:
 		nDzielnik = nHCLK / DS300_ZEGAR;	//12000000 Hz
 		if ((nDzielnik * DS300_ZEGAR) != nHCLK)
-			return ERR_ZLY_STAN_PROT;
+			return BLAD_ZLY_STAN_PROT;
 
 		stDShot.nBit = (uint32_t)(3333e-9 * DS300_ZEGAR + 0.5f);	//ns * MHz + zaokrąglenie
 		stDShot.nT1H = (uint32_t)(2500e-9 * DS300_ZEGAR + 0.5f);
@@ -62,7 +62,7 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 	case PROTOKOL_DSHOT600:
 		nDzielnik = nHCLK / DS600_ZEGAR;	//24000000 Hz
 		if ((nDzielnik * DS600_ZEGAR) != nHCLK)
-			return ERR_ZLY_STAN_PROT;
+			return BLAD_ZLY_STAN_PROT;
 
 		stDShot.nBit = (uint32_t)(1666e-9 * DS600_ZEGAR + 0.5f);
 		stDShot.nT1H = (uint32_t)(1250e-9 * DS600_ZEGAR + 0.5f);
@@ -72,14 +72,14 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 	case PROTOKOL_DSHOT1200:
 		nDzielnik = nHCLK / DS1200_ZEGAR;	//48000000 Hz
 		if ((nDzielnik * DS1200_ZEGAR) != nHCLK)
-			return ERR_ZLY_STAN_PROT;
+			return BLAD_ZLY_STAN_PROT;
 
 		stDShot.nBit = (uint32_t)(833e-9 * DS1200_ZEGAR + 0.5f);
 		stDShot.nT1H = (uint32_t)(625e-9 * DS1200_ZEGAR + 0.5f);
 		stDShot.nT0H = (uint32_t)(313e-9 * DS1200_ZEGAR + 0.5f);
 		break;
 
-	default:	return ERR_ZLE_POLECENIE;
+	default:	return BLAD_ZLE_POLECENIE;
 	}
 
 	//wspólna konfiguracja dla wszystkich kanałów

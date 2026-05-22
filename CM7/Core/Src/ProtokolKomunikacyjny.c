@@ -257,7 +257,7 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
     uint8_t cBłąd;
 
     cBłąd = DekodujRamke(chWe, &chAdresZdalny[chInterfejs], &chZnakCzasu[chInterfejs], &chPolecenie, &chRozmDanych, chDaneRamkiKom, chInterfejs);
-    if (cBłąd == ERR_RAMKA_GOTOWA)
+    if (cBłąd == BLAD_GOTOWE)
     	cBłąd = UruchomPolecenie(chPolecenie, chDaneRamkiKom, chRozmDanych, chInterfejs, chAdresZdalny[chInterfejs]);
 
     return cBłąd;
@@ -289,7 +289,7 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
 			chStanProtokolu[chInterfejs] = PR_ADRES_ODB;
 		else
 		{
-			cBłąd = ERR_ZLY_NAGL;
+			cBłąd = BLAD_ZLY_NAGL;
 			printf("n");
 		}
 		break;
@@ -360,16 +360,16 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
 
 		if (sCrc16We == sCrc16Obl)
 		{
-			cBłąd = ERR_RAMKA_GOTOWA;
+			cBłąd = BLAD_GOTOWE;
 			printf("c,");
 		}
 		else
-			cBłąd = ERR_CRC;
+			cBłąd = BLAD_CRC;
 		break;
 
     default:
     	chStanProtokolu[chInterfejs] = PR_ODBIOR_NAGL;
-    	cBłąd = ERR_ZLY_STAN_PROT;
+    	cBłąd = BLAD_ZLY_STAN_PROT;
     	break;
     }
 
@@ -420,10 +420,10 @@ uint16_t LiczCRC16(uint8_t chDane)
 uint8_t PrzygotujRamke(uint8_t chAdrZdalny, uint8_t chAdrLokalny,  uint8_t chZnakCzasu, uint8_t chPolecenie, uint8_t chRozmDanych, uint8_t *chDane, uint8_t *chRamka)
 {
     if (chRozmDanych > ROZMIAR_DANYCH_KOMUNIKACJI)
-    	return(ERR_ZLA_ILOSC_DANYCH);
+    	return(BLAD_ZLA_ILOSC_DANYCH);
 
     if ((chPolecenie & ~0x80) > PK_ILOSC_POLECEN)
-    	return(ERR_ZLE_POLECENIE);
+    	return(BLAD_ZLE_POLECENIE);
 
     *(chRamka + 0) = NAGLOWEK;
     *(chRamka + 1) = chAdrZdalny;		//ADRES ODBIORCY
@@ -492,7 +492,7 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
     	break;
 
     case INTERF_USB:	break;
-    default: cBłąd = ERR_ZLY_INTERFEJS;	break;
+    default: cBłąd = BLAD_ZLY_INTERFEJS;	break;
     }
     return cBłąd;
 }

@@ -33,7 +33,7 @@ uint8_t InicjujICM42688(void)
 
 	chDane[0] = CzytajSPIu8(PICM4268_WHO_I_AM);		//sprawdź obecność układu
 	if (chDane[0] != 0xDB)
-		return ERR_BRAK_ICM42688;
+		return BLAD_BRAK_CZUJNIKA;
 
 
 	//włącz żyroskopu i akcelerometry w tryb Low Noise

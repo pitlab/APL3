@@ -82,7 +82,7 @@ uint8_t ObslugaND130(void)
 	float fPrzesuniecieZera;
 
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_ND130)
-		return ERR_BRAK_CZUJNIKA;
+		return BLAD_BRAK_CZUJNIKA;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_ND130) != INIT_ND130)	//jeżeli czujnik nie jest zainicjowany
 	{
@@ -100,7 +100,7 @@ uint8_t ObslugaND130(void)
 		else
 		{
 			uDaneCM4.dane.nBrakCzujnika |= INIT_ND130;
-			cBłąd = ERR_BRAK_CZUJNIKA;
+			cBłąd = BLAD_BRAK_CZUJNIKA;
 		}
 		return cBłąd;
 	}

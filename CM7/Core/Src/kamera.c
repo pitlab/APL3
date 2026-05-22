@@ -227,7 +227,7 @@ uint8_t Wyslij_Blok_Kamera(const struct sensor_reg reglist[])
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t	SprawdzKamere(void)
 {
-	uint8_t cBłąd = ERR_BRAK_KAMERY;
+	uint8_t cBłąd = BLAD_BRAK_KAMERY;
 	uint16_t sDaneH;
 	uint8_t chDaneL, chPowtorz = 10;
 
@@ -364,7 +364,7 @@ uint8_t ZrobZdjecie(uint16_t* sBufor, uint32_t nRozmiarObrazu32bit)
 
 	default:
 		cBłąd = HAL_DCMI_Stop(&hdcmi);
-		return ERR_BRAK_KAMERY;	//jeżeli nie typowy stan to zwróc bład
+		return BLAD_BRAK_KAMERY;	//jeżeli nie typowy stan to zwróc bład
 	}
 
 	//wyczyść obraz

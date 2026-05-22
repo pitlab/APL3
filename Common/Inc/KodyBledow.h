@@ -9,72 +9,65 @@
 #define ERRCODE_H_
 
 #define BLAD_OK					0	//wszystko w porządku
-#define ERR_HAL					1	//błąd HAL
-#define ERR_HAL_BUSY			2	//
-//#define ERR_GOTOWE				3	//zadanie wykonane
+//#define BLAD_HAL				1	//błąd HAL
+//#define BLAD_HAL_BUSY			2	//
 #define BLAD_GOTOWE				3	//zadanie wykonane
 #define BLAD_TIMEOUT			4
-#define ERR_ZLA_ILOSC_DANYCH	5
-#define ERR_PARITY				6
+#define BLAD_ZLA_ILOSC_DANYCH	5
+//#define BLAD_PARZYSTOSCI		6
 #define BLAD_CRC				7	//błędne CRC z danych
 #define BLAD_ODMOWA_WYKONANIA	8	//odmowa wykonania polecenia ze wzgledu na bezpieczeństwo lotu
-#define ERR_PROCES_TRWA			9
-#define ERR_BUF_OVERRUN			10
-#define ERR_ZAPIS_KONFIG		11	//błąd zapisu konfiguracji
-#define ERR_BRAK_KONFIG			12	//brak konfiguracji
-#define ERR_RAMKA_GOTOWA		13	//ramka telekomunikacyjna całkowicie zdekodowana
-#define ERR_ZLY_NAGL			14
-#define ERR_ZLY_STAN_PROT		15
-#define ERR_ZLE_POLECENIE		16
-#define ERR_ZLY_INTERFEJS		17	//nieobsługiwany interfejs komunikacyjny
+#define BLAD_PROCES_TRWA		9
+#define BLAD_BUF_OVERRUN		10
+//#define BLAD_ZAPIS_KONFIG		11	//błąd zapisu konfiguracji
+#define BLAD_BRAK_KONFIG		12	//brak konfiguracji
+#define BLAD_BRAK_DANYCH		13
+#define BLAD_ZLY_NAGL			14
+#define BLAD_ZLY_STAN_PROT		15
+#define BLAD_ZLE_POLECENIE		16
+#define BLAD_ZLY_INTERFEJS		17	//nieobsługiwany interfejs komunikacyjny
 #define BLAD_ZLE_DANE			18
 #define BLAD_ZLY_ADRES			19
 
-#define ERR_ZWARCIE_NIZ			20
-#define ERR_ZWARCIE_WYZ			21
-#define ERR_ZWARCIE_GND			22
-#define ERR_ZWARCIE_VCC			23
+//#define ERR_ZWARCIE_NIZ			20
+//#define ERR_ZWARCIE_WYZ			21
+//#define ERR_ZWARCIE_GND			22
+//#define ERR_ZWARCIE_VCC			23
 //#define ERR_ZAJETY_SEMAFOR		24
 //#define 			25
 #define BLAD_NIC_DO_ROBOTY		26	//zadanie nie znalazło nic do wykonania
 
-#define ERR_SRAM_TEST			30 //błąd pamięci SRAM
-#define ERR_BRAK_KAMERY			31	//nie wykryto obecności kamery
-#define ERR_BRAK_CZUJNIKA		32	//ogólny błąd dotyczący czujników które normalnie zawsze powinny być sprawne
-#define BLAD_BRAK_MAGETOMETRU	32	//nie wykryto obecności magnetometru
-#define ERR_BRAK_FLASH_NOR		33
-#define ERR_BRAK_BMP581			34
-#define ERR_BRAK_ICM42688		35
-#define ERR_BRAK_LSM6DSV		36
-#define ERR_BRAK_MMC34160		37
-#define ERR_BRAK_IIS2MDC		38
-#define ERR_BRAK_MS4525			39
-#define ERR_BRAK_KARTY_SD		40
-#define ERR_BRAK_WYSWIETLACZA	41
+//#define BLAD_SRAM_TEST			30 //błąd pamięci SRAM
+#define BLAD_BRAK_KAMERY			31	//nie wykryto obecności kamery
+#define BLAD_BRAK_CZUJNIKA		32	//ogólny błąd dotyczący czujników które normalnie zawsze powinny być sprawne
+//#define BLAD_BRAK_MAGETOMETRU	32	//nie wykryto obecności magnetometru
+#define BLAD_BRAK_FLASH_NOR		33
+
+//#define BLAD_BRAK_KARTY_SD		40
+#define BLAD_BRAK_WYSWIETLACZA	41
 
 
-#define ERR_BRAK_POZW_ZAPISU	50	//brak pozwolenia zapisu dla obszaru pamieci Flash
+//#define BLAD_BRAK_POZW_ZAPISU	50	//brak pozwolenia zapisu dla obszaru pamieci Flash
 #define BLAD_SEMAFOR_ZAJETY		51
-#define ERR_BRAK_PROBKI_AUDIO	52
-#define ERR_PELEN_BUF_KOM		53	//bufor próbek głosowych do wypowiedzenie jest pełen
+#define BLAD_BRAK_PROBKI_AUDIO	52
+#define BLAD_PELEN_BUF_KOM		53	//bufor próbek głosowych do wypowiedzenie jest pełen
 
-#define ERR_BRAK_DANYCH			60
-#define ERR_DLUGOSC_LONLAT		61	//niewłaściwa długość znaków do zdekodowania długosci i szerokości geogragicznej w sygnale NMEA
-#define ERR_ZLY_STAN_NMEA		62	//zły stan dekodera protokołu NMEA
+#define BLAD_DLUGOSC_LONLAT		61	//niewłaściwa długość znaków do zdekodowania długosci i szerokości geogragicznej w sygnale NMEA
+#define BLAD_ZLY_STAN_NMEA		62	//zły stan dekodera protokołu NMEA
 
-#define ERR_ZA_ZIMNO			63
-#define ERR_ZA_CIEPLO			64
-#define ERR_ZLA_KONFIG			65	//zła konfiguracja, została nadpisana dwartoscią domyślną
-#define ERR_ZLE_OBLICZENIA		66	//zła wartość kalibracji, zbytnio obdiega od tego co ma zostać wyliczone
-#define ERR_ZA_DLUGO			67	//czas potrzebny do obróbki danych np. całkowania zbytnio odbiega od normy
+#define BLAD_ZA_ZIMNO			63
+#define BLAD_ZA_CIEPLO			64
+#define BLAD_ZLA_KONFIG			65	//zła konfiguracja, została nadpisana dwartoscią domyślną
+#define BLAD_ZLE_OBLICZENIA		66	//zła wartość kalibracji, zbytnio obdiega od tego co ma zostać wyliczone
+//#define BLAD_ZA_DLUGO			67	//czas potrzebny do obróbki danych np. całkowania zbytnio odbiega od normy
 
 //#define ERR_NASTAWA_PID			68	//niewłaściwa wartość nastawy regulatora PID
-#define ERR_NASTAWA_FRAM		68	//niewłaściwa wartość nastawy odczytanaj z FRAM
+//#define BLAD_NASTAWA_FRAM		68	//niewłaściwa wartość nastawy odczytanaj z FRAM
 #define BLAD_OTWARCIA_GNIAZDA	69	//bład otwarcia gniazda TCP
 #define BLAD_ZAJETY_JPEG		70	//kompresor, który powinien czekać na dane nie jest dostępny
 //#define BLAD_BRAK_ZNACZN_JPEG	71	//nie znalezino danego znacznika w skompresowanych danych
 
-#define ERR_NIE_ZAINICJOWANY	0xFF
+//#define BLAD_NIE_ZAINICJOWANY	0xFF
 
 
 

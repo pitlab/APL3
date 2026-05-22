@@ -9,6 +9,8 @@
 #include "SBus.h"
 #include "WeWyRC.h"
 #include "PetlaGlowna.h"
+#include "Uarty.h"
+
 
 uint8_t chBuforNadawczySBus[ROZMIAR_RAMKI_SBUS] =  {0x0f,0x01,0x04,0x20,0x00,0xff,0x07,0x40,0x00,0x02,0x10,0x80,0x2c,0x64,0x21,0x0b,0x59,0x08,0x40,0x00,0x02,0x10,0x80,0x00};
 uint8_t chBuforAnalizySBus1[ROZMIAR_BUF_ANA_SBUS];
@@ -16,8 +18,6 @@ uint8_t chBuforAnalizySBus2[ROZMIAR_BUF_ANA_SBUS];
 volatile uint8_t chWskNapBufAnaSBus1, chWskOprBufAnaSBus1; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus1
 volatile uint8_t chWskNapBufAnaSBus2, chWskOprBufAnaSBus2; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus2
 uint8_t chWskNapRamkiSBus1, chWskNapRamkiSBus2;				//wskaźniki napełniania ramek SBus
-uint8_t chBuforOdbioruSBus1[ROZM_BUF_ODB_SBUS];
-uint8_t chBuforOdbioruSBus2[ROZM_BUF_ODB_SBUS];
 uint8_t chRamkaSBus1[ROZMIAR_RAMKI_SBUS];
 uint8_t chRamkaSBus2[ROZMIAR_RAMKI_SBUS];
 uint8_t chKorektaPoczatkuRamki;
@@ -105,7 +105,7 @@ uint8_t InicjujUart2RxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 	//ponieważ nie ma jak zarezerwować kanału DMA w HAL bo dostępna jest tylko część odbiorcza, więc USART2 będzie pracował na przerwaniach
 	HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(USART2_IRQn);
-	HAL_UART_Receive_IT(&huart2, chBuforOdbioruSBus2, ROZM_BUF_ODB_SBUS);	//włącz odbiór pierwszej ramki
+	WłączOdbiórUART2();	//ustawia odbiornik gotowy na przyjęcie pierwszej ramki
 	return cBłąd;
 }
 
@@ -170,7 +170,7 @@ uint8_t InicjujUart4RxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 	HAL_NVIC_EnableIRQ(UART4_IRQn);
 	HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
-	HAL_UART_Receive_DMA(&huart4, chBuforOdbioruSBus1, ROZM_BUF_ODB_SBUS);	//włącz odbiór pierwszej ramki
+	WłączOdbiórUART4();	//ustawia odbiornik gotowy na przyjęcie pierwszej ramki
 	return cBłąd;
 }
 
@@ -306,7 +306,7 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 	//Jeżeli nie trafia na początek, to zmniejsz liczbę odebieranych danych, tak aby przesunął się na początek
 	chKorektaPoczatkuRamki = n;
 	if (n > MAX_PRZESUN_NAGL)
-		return ERR_ZLA_ILOSC_DANYCH;
+		return BLAD_ZLA_ILOSC_DANYCH;
 
 	sWartoscKanalu = ((uint16_t)*(chNaglowek +  1)       | (((uint16_t)*(chNaglowek +  2) << 8) & 0x7E0));
 	if (sWartoscKanalu < WE_RC_MAX)

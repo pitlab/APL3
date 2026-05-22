@@ -387,7 +387,7 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 			{
 				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
-				return ERR_BUF_OVERRUN;
+				return BLAD_BUF_OVERRUN;
 			}
 
 			//używam podwójnego buforowania, więc dzielę bufor na 2 części. Jedna jest napełnianam druga opróżniana
@@ -502,7 +502,7 @@ uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 			{
 				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
-				return ERR_BUF_OVERRUN;
+				return BLAD_BUF_OVERRUN;
 			}
 
 			//kompresja jednego MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie, niech się kompresuje na bieżąco
@@ -627,7 +627,7 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 			{
 				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
-				return ERR_BUF_OVERRUN;
+				return BLAD_BUF_OVERRUN;
 			}
 
 			//kompresja jednego MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie, niech się kompresuje na bieżąco
@@ -730,7 +730,7 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 			{
 				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
-				return ERR_BUF_OVERRUN;
+				return BLAD_BUF_OVERRUN;
 			}
 
 			//używam podwójnego buforowania, więc dzielę bufor na 2 części. Jedna jest napełnianam tutaj, druga opróżniana przez MDMA Jpega
@@ -893,7 +893,7 @@ uint8_t KompresujRGB888doYUV444(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 			{
 				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
-				return ERR_BUF_OVERRUN;
+				return BLAD_BUF_OVERRUN;
 			}
 
 			//używam podwójnego buforowania, więc dzielę bufor na 2 części. Jedna jest napełnianam tutaj, druga opróżniana przez MDMA Jpega
@@ -1041,7 +1041,7 @@ uint8_t KompresujRGB888doYUV422(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 			{
 				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
-				return ERR_BUF_OVERRUN;
+				return BLAD_BUF_OVERRUN;
 			}
 
 			//używam podwójnego buforowania, więc dzielę bufor na 2 części. Jedna jest napełnianam tutaj, druga opróżniana przez MDMA Jpega
@@ -1206,7 +1206,7 @@ uint8_t KompresujRGB888doYUV420(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 			{
 				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
-				return ERR_BUF_OVERRUN;
+				return BLAD_BUF_OVERRUN;
 			}
 
 			//Używam podwójnego buforowania, więc dzielę bufor na 2 części: jedna jest napełniana tutaj, druga opróżniana przez MDMA Jpega

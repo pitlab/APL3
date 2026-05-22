@@ -10,13 +10,12 @@
 
 #include "SysDefCM4.h"
 #include "wymiana.h"
-#include "SBus.h"
 
 
-#define ROZMIAR_BUF_ANA_CRSF		ROZMIAR_BUF_ANA_SBUS
-#define MASKA_ROZM_BUF_ANA_CRSF		ROZMIAR_BUF_ANA_SBUS
+#define ROZMIAR_BUF_ANA_CRSF		64
+#define MASKA_ROZM_BUF_ANA_CRSF		0x3F
 #define ROZMIAR_RAMKI_CRSF		64	//żadna ramka nie może być dłuższa niż tyle
-#define ROZMIAR_BUF_ODB_CRSF	25
+
 
 
 //Etapy Odbioru Ramki Crossfire

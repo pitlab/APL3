@@ -123,7 +123,7 @@ uint8_t CzytajDotyk(void)
 	if (statusDotyku.sAdc[2] > MIN_Z)	//czy siła nacisku jest wystarczająca
 	{
 		if (statusDotyku.sAdc[2] == 0x1FFF) //czy jest to brak sterownika dotyku
-			return ERR_BRAK_WYSWIETLACZA;
+			return BLAD_BRAK_WYSWIETLACZA;
 
 		statusDotyku.chFlagi |= DOTYK_DOTKNIETO;
 		if (statusDotyku.chFlagi & DOTYK_SKALIBROWANY)
@@ -238,7 +238,7 @@ uint8_t KalibrujDotyk(void)
 					statusDotyku.chFlagi |= DOTYK_ZAPISANO;
 				chEtapKalibr = 0;
 				WypelnijEkran(CZARNY);
-				return ERR_GOTOWE;	//kod wyjścia z procedury kalibracji
+				return BLAD_GOTOWE;	//kod wyjścia z procedury kalibracji
 			}
 			statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 		}
@@ -500,7 +500,7 @@ uint8_t TestDotyku(void)
 		{
 			WypelnijEkran(CZARNY);
 			chLicznikDotkniec = 0;
-			return ERR_GOTOWE;
+			return BLAD_GOTOWE;
 		}
 	}
 
@@ -521,7 +521,7 @@ uint8_t TestDotyku(void)
 uint8_t InicjujDotyk(void)
 {
 	uint8_t n, chPaczka[ROZMIAR_PACZKI_KONFIGU];
-	uint8_t cBłąd = ERR_BRAK_KONFIG;
+	uint8_t cBłąd = BLAD_BRAK_KONFIG;
 	extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 
 	for (n=0; n<4; n++)
@@ -550,7 +550,7 @@ uint8_t InicjujDotyk(void)
 	if (statusDotyku.sAdc[0] == 0x1FFF)		//taką wartość zwraca gdy nie ma podłączonego ekranu
 	{
 		nZainicjowanoCM7 &= ~INIT_DOTYK;
-		cBłąd = ERR_BRAK_DANYCH;
+		cBłąd = BLAD_BRAK_DANYCH;
 	}
 	else
 		nZainicjowanoCM7 |= INIT_DOTYK;

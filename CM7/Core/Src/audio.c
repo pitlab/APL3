@@ -103,7 +103,7 @@ uint8_t ObslugaWymowyKomunikatu(void)
 uint8_t OdtworzProbkeAudioZeSpisu(uint8_t chNrProbki)
 {
 	if (chNrProbki >= PGA_MAX_PROBEK)
-		return ERR_BRAK_PROBKI_AUDIO;
+		return BLAD_BRAK_PROBKI_AUDIO;
 	return OdtworzProbkeAudio( *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 0), *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 4) / 2);
 }
 
@@ -120,7 +120,7 @@ uint8_t PrzepiszProbkeDoDRAM(uint8_t chNrProbki)
 	uint32_t *sAdres;
 	uint32_t nRozmiar;
 	if (chNrProbki >= PGA_MAX_PROBEK)
-		return ERR_BRAK_PROBKI_AUDIO;
+		return BLAD_BRAK_PROBKI_AUDIO;
 
 	sAdres = (uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 0);
 	nRozmiar = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 4) / 2;
@@ -148,7 +148,7 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 	{
 		chCzasSwieceniaLED[LED_CZER] += 20;	//włącz czerwoną na 2 sekundy
 		if ((nAdres < POCZATEK_FLASH) || (nAdres > KONIEC_FLASH))	//jeżeli we flash programu to tylko sygnalizuj
-			return ERR_BRAK_PROBKI_AUDIO;
+			return BLAD_BRAK_PROBKI_AUDIO;
 	}
 
 	chGlosnikJestZajęty = 1;		//zajęcie zasobu "głośnika"
@@ -642,7 +642,7 @@ uint8_t DodajProbkeDoKolejki(uint8_t chNumerProbki)
 	if (chNapelnianie >= ROZM_KOLEJKI_KOMUNIKATOW)
 		chNapelnianie = 0;
 	if (chNapelnianie == chWskOprKolKom)
-		return ERR_PELEN_BUF_KOM;
+		return BLAD_PELEN_BUF_KOM;
 
 	chKolejkaKomunkatow[chWskNapKolKom++] = chNumerProbki;
 	if (chWskNapKolKom >= ROZM_KOLEJKI_KOMUNIKATOW)
@@ -668,7 +668,7 @@ uint8_t DodajProbkeDoMalejKolejki(uint8_t chNumerProbki, uint8_t chRozmiarKolejk
 	if (chNapelnianie >= chRozmiarKolejki)
 		chNapelnianie = 0;
 	if (chNapelnianie == chWskOprKolKom)
-		return ERR_PELEN_BUF_KOM;
+		return BLAD_PELEN_BUF_KOM;
 
 	chKolejkaKomunkatow[chWskNapKolKom++] = chNumerProbki;
 	if (chWskNapKolKom >= chRozmiarKolejki)
