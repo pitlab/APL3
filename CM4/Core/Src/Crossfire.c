@@ -24,7 +24,7 @@ uint8_t chRamkaCRSF[ROZMIAR_RAMKI_CRSF];
 uint8_t cEtapOdbioruRamki;	//wskazuje która część ramki jest odbierana
 uint8_t cLicznikDanych;	//zlicza dane w polu payload
 
-unsigned char crc8tab[256] = {
+uint8_t crc8tab[256] = {
     0x00, 0xD5, 0x7F, 0xAA, 0xFE, 0x2B, 0x81, 0x54, 0x29, 0xFC, 0x56, 0x83, 0xD7, 0x02, 0xA8, 0x7D,
     0x52, 0x87, 0x2D, 0xF8, 0xAC, 0x79, 0xD3, 0x06, 0x7B, 0xAE, 0x04, 0xD1, 0x85, 0x50, 0xFA, 0x2F,
     0xA4, 0x71, 0xDB, 0x0E, 0x5A, 0x8F, 0x25, 0xF0, 0x8D, 0x58, 0xF2, 0x27, 0x73, 0xA6, 0x0C, 0xD9,
@@ -55,7 +55,8 @@ uint8_t InicjujCrossfire(void)
 
 	chWskNapBaGNSS = chWskOprBaGNSS = 0;	//inicjuj wskaźniki napełniania i opróżniania buforma kołowego analizy danych z UART8
 	cEtapOdbioruRamki = EORC_ADRES;
-	huart8.Init.BaudRate = 416666;
+	//huart8.Init.BaudRate = 416666;	//wg. https://github.com/tbs-fpv/tbs-crsf-spec/blob/main/crsf.md#frame-details
+	huart8.Init.BaudRate = 420000; 		//według dokumentacji TBS iNAV
 	cBłąd = UART_SetConfig(&huart8);
 	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruUart8, ROZMIAR_BUF_ODB_GNSS);	//Upewnij się że nie jest uruchamiana funcka inicjalizacji GNSS
 	return cBłąd;
@@ -83,6 +84,7 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 	{
 		cDane = chBufor[*chWskOprBuf];
 		(*chWskOprBuf)++;
+		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 
 		switch (*cEtapOdbioru)
 		{
@@ -121,9 +123,11 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 		case EORC_CRC:
 			*cEtapOdbioru = EORC_ADRES;
 			chRamka[EORC_DANE + *cLicznikDanych] = cDane;
-			uint8_t cCrc = crc8(&chRamka[EORC_TYP], chRamka[EORC_DLUGOSC]);
+			uint8_t cCrc = crc8(&chRamka[EORC_TYP], chRamka[EORC_DLUGOSC] - 1);	//CRC nie jest liczone z 2 pierwszych bajtów nagłówka i długości oraz z CRC
 			if (cDane == cCrc)
+			{
 				cBłąd = BLAD_GOTOWE;
+			}
 			else
 				cBłąd = BLAD_CRC;
 			break;

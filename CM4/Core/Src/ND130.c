@@ -35,7 +35,7 @@ static uint8_t cLiczbaPróbInicjalizacji;
 uint8_t InicjujND130(void)
 {
 	uint32_t nCzasStart;
-	uint8_t cBłąd;
+	uint8_t cBłąd = BLAD_BRAK_CZUJNIKA;	//domyślnie brak czujnika
 
     nCzasStart = PobierzCzas();
     do
@@ -44,12 +44,12 @@ uint8_t InicjujND130(void)
     	chBufND130[0] = 0xF7;	//mode byte: 30 in H2O, BW=200Hz, Notch enabled
     	chBufND130[1] = 0x02;	//rate = 222Hz
     	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-    	cBłąd = HAL_SPI_TransmitReceive(&hspi2, chBufND130, chBufND130, 13, 5);
+    	cBłąd |= HAL_SPI_TransmitReceive(&hspi2, chBufND130, chBufND130, 13, 5);
     	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
     	if (cBłąd)
     		return cBłąd;
 
-    	//sprawdź czy układ przedstawił się jako "ND130"
+    	//sprawdź czy układ przedstawił się jako "ND130" dopiero wtedy można wyjść z pętli bez kodu błędu
        	if ((chBufND130[4] == 'N') && (chBufND130[5] == 'D') && (chBufND130[6] == '1') && (chBufND130[7] == '3') && (chBufND130[8] == '0'))
         	cBłąd = BLAD_OK;
 

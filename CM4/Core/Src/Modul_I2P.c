@@ -209,7 +209,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	if (fTemeraturaTermostatu > 0.0f)
 		Termostat(gniazdo, pchStanIOwy, fTemeraturaTermostatu);	//termostat zwraca stan linii grzałki ale sam jej nie ustawia
 
-	//ustaw adres A2 = 1 zrobiony z linii Ix1 modułu
+	//ustaw linię grzałki i adres A2 = 1 zrobiony z linii Ix1 modułu
 	switch (gniazdo)
 	{
 	case ADR_MOD1: 	*pchStanIOwy |= MIO11;	break;

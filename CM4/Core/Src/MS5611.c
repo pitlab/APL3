@@ -47,7 +47,7 @@ uint8_t InicjujMS5611(void)
     		sKonfig[n] = CzytajSPIu16mp(PMS_PROM_READ_C1 + 2*n);
 
     	nCzas = MinalCzas(nCzasStart);
-    	if (nCzas > 5000)   //czekaj maksymalnie 5000us
+    	if (nCzas > 15000)   //czekaj maksymalnie 5000us
             return BLAD_TIMEOUT;
 
         //sprawdź czy odczytana konfiguracja nie jest samymi zerami ani jedynkami
@@ -173,15 +173,24 @@ uint8_t ObslugaMS5611(void)
 	float fCisnienie = 0;
 	static int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia. Zmienna statyczna aby istniała poza czasem życia funkcji
 
+	if (uDaneCM4.dane.nBrakCzujnika & INIT_MS5611)
+		return BLAD_BRAK_CZUJNIKA;
+
 	if ((uDaneCM4.dane.nZainicjowano & INIT_MS5611) != INIT_MS5611)	//jeżeli czujnik nie jest zainicjowany
 	{
+		sLicznikUsrednianiaP0++;	//na tym etapie zmienna zlicza próby inicjalizacji
+		if (sLicznikUsrednianiaP0 > MAX_PROB_INICJALIZACJI)
+			uDaneCM4.dane.nBrakCzujnika |= INIT_MS5611;
+		else
+			sLicznikUsrednianiaP0 = 0;	//od tej pory zmienna pracuje jako licznik uśredniania
+
 		cBłąd = InicjujMS5611();
 		if (cBłąd)
 			return cBłąd;
 		else
 		{
 			chBuf5611[0] = PMS_CONV_D2_OSR2048;
-			ZapiszSPIu8(chBuf5611, 1);	//uruchom konwersję temperatury nie trwajacą dłużej niż obieg pętli, czymi max 2048
+			ZapiszSPIu8(chBuf5611, 1);	//uruchom konwersję temperatury nie trwajacą dłużej niż obieg pętli, czyli max 2048
 		}
 	}
 	else

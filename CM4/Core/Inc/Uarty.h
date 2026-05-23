@@ -12,7 +12,7 @@
 
 #define ROZMIAR_BUF_ODB_UART2	16	//RC1
 #define ROZMIAR_BUF_ODB_UART4	16	//RC2
-#define ROZMIAR_BUF_ODB_UART8	16	//GNSS / Crossfire
+#define ROZMIAR_BUF_ODB_UART8	32	//GNSS / Crossfire
 
 //definicje trybów pracy UART-ów
 #define U_GNSS1		1

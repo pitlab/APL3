@@ -60,7 +60,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		switch (cKonfiguracjaUart8)
 		{
 		case U_GNSS1:
-			for (uint8_t n=0; n<ROZMIAR_BUF_ODB_GNSS; n++)
+			for (uint8_t n=0; n<ROZMIAR_BUF_ODB_UART8; n++)
 			{
 				chBuforAnalizyGNSS[chWskNapBaGNSS] = chBuforOdbioruUart8[n];
 				chWskNapBaGNSS++;
@@ -69,12 +69,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			break;
 
 		case U_CRSF1:
-			for (uint8_t n=0; n<ROZMIAR_BUF_ODB_GNSS; n++)
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);			//kanał serw 1 skonfigurowany jako IO
+			for (uint8_t n=0; n<ROZMIAR_BUF_ODB_UART8; n++)
 			{
 				chBuforAnalizyCrossfire[chWskNapBufAnaSRSF] = chBuforOdbioruUart8[n];
 				chWskNapBufAnaSRSF++;
 				chWskNapBufAnaSRSF &= MASKA_ROZM_BUF_ANA_CRSF;
 			}
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);			//kanał serw 1 skonfigurowany jako IO
 			break;
 		}
 		WłączOdbiórUART8();	//uzbraja odbiór następnej porcji danych
