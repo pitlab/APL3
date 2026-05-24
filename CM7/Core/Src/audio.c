@@ -62,10 +62,16 @@ uint8_t InicjujAudio(void)
 
 	//domyslnie ustaw wejscia ShutDown tak aby aktywny był wzmacniacz
 	//chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
-	chPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
-	chGlosnosc = 45;
+	//chPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włącznik ShutDown wzmacniacza audio
+	chGlosnosc = 50;
 	chWskNapKolKom = chWskOprKolKom = 0;
 	nZainicjowanoCM7 |= INIT_AUDIO;
+
+	//ustaw mikrofon aby InicjujOdtwarzanieDzwieku() przełaczyło na wzmacniacz
+	chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;
+	cBłąd = InicjujOdtwarzanieDzwieku();
+	if (cBłąd)
+		return cBłąd;
 
 	cBłąd = OdtworzProbkeAudioZeSpisu(PGA_GOTOWY_SLUZYC);	//komunikat powitalny, sprawdzajacy czy audio działa
 	return cBłąd;
@@ -335,7 +341,7 @@ uint8_t InicjujOdtwarzanieDzwieku(void)
 	{
 		//Włącza wzmacniacz, wyłącza mikrofon
 		chPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - ShutDown wzmacniacza audio, aktywny niski
-		chPort_exp_wysylany[1] &= ~EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD  - ShutDown mikrofonu, aktywny niskii
+		chPort_exp_wysylany[1] &= ~EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD  - ShutDown mikrofonu, aktywny niski
 		cBłąd = WyslijDaneExpandera(chAdres_expandera[1], chPort_exp_wysylany[1]);
 	}
 

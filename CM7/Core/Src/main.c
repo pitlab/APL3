@@ -7,18 +7,18 @@
 // (c) PitLab 2024-26
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-/* Pamięć (adresowanie bajtami):
- 0x30020000..0x30040000 - 128k (0x20000)stos lwIP
- 0x30040000..0x300401FF - 512  (0x200) tablica deskryptorów DMA ETH (SRAM3)
- 0x30040200..0x30047FFF - reszta z 32k  deskryptory DMA ETH, bufory testowe,  USB
- 0x30040200..0x38000000 - 130k (0x7FBEFE00) wolne
- 0x38000000..0x38000600 - 1,5k bufor wymiany z CM7
- 0x38008000..0x3800FFFF - 32k
- 0x68000000..0x6803FFFF - 2*128k pamięć konfiguracji
- 0x68040000..0x680FFFFF - 30*128k pamięć komunikatów słownych 16-bit, 16kHz
- 0x68400000..0x687FFFFF - 32*128 (4MB) próby umieszczenia czcionek i obrazków
- 0x68800000..0x687FFFFF - 24MB reszta
- 0xC0000000..0xC3FFFFFF
+/* Pamięć dostępna dla rdzenia CM7 (adresowanie bajtami):
+ 0x30020000..0x30040000 - SRAM2 128k (0x20000)stos lwIP
+ 0x30040000..0x300401FF - SRAM3 512  (0x200) tablica deskryptorów DMA ETH (SRAM3)
+ 0x30040200..0x30047FFF - SRAM3 reszta z 32k  deskryptory DMA ETH, bufory testowe,  USB
+ 0x30040200..0x38000000 - SRAM3 130k (0x7FBEFE00) wolne
+ 0x38000000..0x38000800 - SRAM4 2k bufor wymiany z CM7
+ 0x38008000..0x3800FFFF - SRAM4 32k
+ 0x68000000..0x6803FFFF - Flash 2*128k pamięć konfiguracji
+ 0x68040000..0x680FFFFF - Flash 30*128k pamięć komunikatów słownych 16-bit, 16kHz
+ 0x68400000..0x687FFFFF - Flash 32*128 (4MB) próby umieszczenia czcionek i obrazków
+ 0x68800000..0x687FFFFF - Flash 24MB reszta
+ 0xC0000000..0xC3FFFFFF - DRAM
 
  * Obszary MPU					Pozwolenia dla MPU			Prawa dostępu
 Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
@@ -29,7 +29,9 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 0x24000000	512K	CM7		-		+		+		+		RW		RW		SRAM_AXI_D1		stos i dane dla CM7 - obecnie przestawione
 0x30020000	128K	CM7		-		-		-		-   	RW		RW		SRAM2_AHB_D2	sterta LwIP
 0x30040000	32K		CM7		-		+		-		+  		RW		RW		SRAM3_AHB_D2    deskryptory ethernet (nie mogą być cache'owalne) i bufor [12*MTU]
-0x38000000	64K		CM4+7	-		+		-		-		RW		RW		SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2
+0x38000000	2K		CM4+7	-		+		-		-		RW		RW		SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2
+
+0x38000800	32K		CM7		-		-		+		+		RW		RW		SRAM4_AHB_D3	ogólna pamięć rdzenia CM7
 0x38800000	4K		CM7														BACKUP
 0x60000000	4M		CM7		-		+		-		+		RW		RW		EXT_SRAM		obecnie nieużywana. Docelowo usunąć jako zbyt drogi
 0x68000000	32M		CM7		+		+		+		-		RW		RW		FLASH_NOR
@@ -53,7 +55,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Dodać wyłaczanie przerwań na czas alokacji pamięci przez memalloc()
  - kalibracja żyroskopu powinna kasować całkę kata na wykresie
  - Znaleźć przyczynę cyknięcia silnikami przy starcie. Silniki powinny być martwe przy starcie firmware
- - Uruchomić WiFi na module WT8266
+
 
  //Problemy sprzętowe egzemplarza 1:
   * Nie można uruchomić ETH i kamery
@@ -61,8 +63,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
   *
  //Problemy sprzętowe egzemplarza 2:
   * Problemy z inicjalajuzacją USB
-  * Dodać wzmacniacz i głośnik
-  *
+  * Problemy wydajnościowe związane z niezidentyfikowanym blokowaniem zasobów rdzenia
  * */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -1926,7 +1927,7 @@ void MPU_Config(void)
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER5;
   MPU_InitStruct.BaseAddress = 0x38000000;
-  MPU_InitStruct.Size = MPU_REGION_SIZE_64KB;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_2KB;
   MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
@@ -1947,6 +1948,16 @@ void MPU_Config(void)
   MPU_InitStruct.BaseAddress = 0xC0000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_64MB;
   MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
+
+  HAL_MPU_ConfigRegion(&MPU_InitStruct);
+
+  /** Initializes and configures the Region and the memory to be protected
+  */
+  MPU_InitStruct.Number = MPU_REGION_NUMBER8;
+  MPU_InitStruct.BaseAddress = 0x38000800;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_32KB;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
+  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
   /* Enables the MPU */

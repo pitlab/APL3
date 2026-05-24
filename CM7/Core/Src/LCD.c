@@ -243,8 +243,8 @@ menu_t stMenuAudio[MENU_WIERSZE * MENU_KOLUMNY] = {
 	{"Miki DRAM",	"Test wymowy z DRAM",						TP_MM2,				obr_glosnik2},
 	{"Test Tonu",	"Test tonu wario",							TP_TEST_TONU,		obr_glosnik2},
 	{"FFT Audio",	"FFT sygnału z mikrofonu",					TP_AUDIO_FFT,		obr_fft},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"Gotowy by",	"Wymowa komunikatu",						TP_MM_KOM1,			obr_narzedzia},
+	{"Alleluja",	"Wymowa komunikatu",						TP_MM_KOM2,			obr_narzedzia},
 	{"Test kom.",	"Test komunikatow audio",					TP_MM_KOM,			obr_glosnik2},
 	{"nic",			"nic",										TP_W3,				obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
@@ -504,6 +504,17 @@ uint8_t RysujEkran(void)
 		chNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
 
+	case TP_MM_KOM1:
+		InicjujOdtwarzanieDzwieku();
+		OdtworzProbkeAudioZeSpisu(PGA_GOTOWY_SLUZYC);
+		chNowyTrybPracy = TP_WROC_DO_AUDIO;
+		break;
+
+	case TP_MM_KOM2:
+		InicjujOdtwarzanieDzwieku();
+		OdtworzProbkeAudioZeSpisu(PGA_ALLELUJA);
+		chNowyTrybPracy = TP_WROC_DO_AUDIO;
+		break;
 
 	case TP_TEST_TONU:
 		InicjujOdtwarzanieDzwieku();
@@ -535,7 +546,6 @@ uint8_t RysujEkran(void)
 		chTrybPracy = chWrocDoTrybu;
 		chNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
-
 
 
 	case TP_MM_KOM:

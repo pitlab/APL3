@@ -73,7 +73,7 @@ uint8_t UstawDaneWymiany_CM4(void)
 		if (cBłąd == BLAD_OK)
 		{
 			//HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_SET);			//kanał serw 7 skonfigurowany jako IO
-			if ((nFlagiMiedzyrdzeniowe & FMR_SA_DANE_CM4) != FMR_SA_DANE_CM4)	//ustaw tylko gdy poprzednie zostały odczytane
+			//if ((nFlagiMiedzyrdzeniowe & FMR_SA_DANE_CM4) != FMR_SA_DANE_CM4)	//ustaw tylko gdy poprzednie zostały odczytane - blokuje LCD
 			{
 				for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
 					nBuforWymianyCM4[n] = uDaneCM4.nSlowa[n];

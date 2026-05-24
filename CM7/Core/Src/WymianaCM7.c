@@ -68,7 +68,7 @@ uint8_t UstawDaneWymiany_CM7(void)
 		cBłąd = HAL_HSEM_Take(HSEM_CM7_TO_CM4, 0);
 		if (cBłąd == BLAD_OK)
 		{
-			if ((nFlagiMiedzyrdzeniowe & FMR_SA_DANE_CM7) != FMR_SA_DANE_CM7)	//ustaw tylko gdy porpzednie są odczytane
+			//if ((nFlagiMiedzyrdzeniowe & FMR_SA_DANE_CM7) != FMR_SA_DANE_CM7)	//ustaw tylko gdy porpzednie są odczytane - blokuje LCD
 			{
 				for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM7; n++)
 					nBuforWymianyCM7[n] = uDaneCM7.nSlowa[n];

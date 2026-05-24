@@ -882,7 +882,7 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 		case SERWO_DSHOT600:
 		case SERWO_DSHOT1200:	cBłąd |= AktualizujDShotDMA(nWyjście, n);	break;
 
-		case SERWO_WS281X:	cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);	break;
+		case SERWO_WS281X:	//cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);	break;
 
 		default: cBłąd = BLAD_BRAK_KONFIG;
 		}	//switch

@@ -11,18 +11,9 @@
  Pamięć (adresowanie bajtami):
  0x08100000..0x081FFFFF - 1024k Flash: kod programu CM4
  0x10000000..0x1001FFFF - 128k Stos, sterta i dane dla CM4
- 0x38000000..0x380005FF - 1,5k bufor wymiany z CM7
- 0x38000600..0x38007FFF - 30,5k
 
-
- * Obszary MPU					Pozwolenia dla MPU			Prawa dostępu
-Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
-0x08100000	1024K	CM4		+		-		+		-		RO		RO		FLASH			kod programu dla CM4
-0x30000000  128K	CM4		-		+		-		+		RW		RW		SRAM1_AHB_D2	stos i dane dla CM4
-0x38000000	64K		CM4		-		+		-		-		RW		RW		SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2
-
- *
- *
+ 0x38000000..0x380007FF - 2k bufor wymiany z CM7
+ 0x38000800..0x38007FFF - 30k gólna pamięć rdzenia CM4
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
