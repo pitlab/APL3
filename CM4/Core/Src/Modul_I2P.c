@@ -150,29 +150,29 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	}
 
 	nCzas = PobierzCzas();
-	cBłąd = WyslijDaneExpandera(*pchStanIOwy);	//czas 4800-6200us
+	cBłąd = WyslijDaneExpandera(*pchStanIOwy);	//czas 4800-6200us;	930-1250us
 	nCzas = MinalCzas(nCzas);
 
 	nCzas = PobierzCzas();
 	cBłąd |= UstawDekoderModulow(gniazdo);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
 	cBłąd |= UstawAdresNaModule(ADR_MIIP_MS5611);				//ustaw adres na module A0..1
 	cBłąd |= ObslugaMS5611();
-	nCzas = MinalCzas(nCzas);		//czas 44,3-47,7ms
+	nCzas = MinalCzas(nCzas);		//czas 44,3-47,7ms;	3360-4161us
 
 	nCzas = PobierzCzas();
 	cBłąd |= UstawAdresNaModule(ADR_MIIP_BMP581);				//ustaw adres na module A0..1
 	cBłąd |= ObslugaBMP581();
-	nCzas = MinalCzas(nCzas);		//czas 5800-6500us
+	nCzas = MinalCzas(nCzas);		//czas 5800-6500us;	2383-2702us
 
 	nCzas = PobierzCzas();
 	cBłąd |= UstawAdresNaModule(ADR_MIIP_ICM42688);				//ustaw adres na module A0..1
 	cBłąd |= ObslugaICM42688();
-	nCzas = MinalCzas(nCzas);		//czas 29800-33900us
+	nCzas = MinalCzas(nCzas);		//czas 29800-33900us;	6985-7387us
 
 	nCzas = PobierzCzas();
 	cBłąd |= UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres na module A0..1
 	cBłąd |= ObslugaLSM6DSV();
-	nCzas = MinalCzas(nCzas);		//czas 26800-28900us
+	nCzas = MinalCzas(nCzas);		//czas 26800-28900us;	6083-6501us
 
 	//napełnij bufor szybkiego IMU dla FFT
 	chIndeksProbki = uDaneCM4.dane.stSzybkieIMU.chIndeksProbki;
@@ -218,7 +218,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	case ADR_MOD4:	*pchStanIOwy |= MIO41;	break;
 	}
 	cBłąd = WyslijDaneExpandera(*pchStanIOwy);	//ustaw stan linii A2 i grzałki
-	nCzas = MinalCzas(nCzas);		//czas 6600-8800us
+	nCzas = MinalCzas(nCzas);		//czas 6600-8800us;	1498-1729us
 
 	// Układ ND130 pracujacy na magistrali SPI ma okres zegara 6us co odpowiada częstotliwości 166kHz
 	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_256;	//przestaw zegar na 40MHz / 256 = 156kHz

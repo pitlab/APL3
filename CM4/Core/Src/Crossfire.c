@@ -85,7 +85,6 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 		cDane = chBufor[*chWskOprBuf];
 		(*chWskOprBuf)++;
 		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
-
 		switch (*cEtapOdbioru)
 		{
 		case EORC_ADRES:	//odbierany jest SyncByte będący adresem urządzenia. Reaguję na CRSF_ADR_FLIGHT_CTRL oraz na CRSF_ADR_BROADCAST
@@ -116,7 +115,7 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 		case EORC_DANE:
 			chRamka[EORC_DANE + *cLicznikDanych] = cDane;
 			(*cLicznikDanych)++;
-			if (*cLicznikDanych == chRamka[EORC_DLUGOSC])
+			if (*cLicznikDanych == chRamka[EORC_DLUGOSC] - 2)	// pole długość zawiera liczbę danych + Typ + CRC
 				*cEtapOdbioru = EORC_CRC;
 			break;
 
@@ -187,10 +186,11 @@ uint8_t AnalizujCrossfire(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObsługaRamkiCrossfire(void)
 {
-	uint8_t cBłąd = BLAD_OK;
+	uint8_t cBłąd;
 
-	cBłąd |= OdbiórRamkiCrossfire(chRamkaCRSF, &cEtapOdbioruRamki, &cLicznikDanych, chBuforAnalizyCrossfire, chWskNapBufAnaSRSF, (uint8_t*)&chWskOprBufAnaCRSF);
-	cBłąd |= AnalizujCrossfire(&uDaneCM4.dane, &uDaneCM7.dane);
+	cBłąd = OdbiórRamkiCrossfire(chRamkaCRSF, &cEtapOdbioruRamki, &cLicznikDanych, chBuforAnalizyCrossfire, chWskNapBufAnaSRSF, (uint8_t*)&chWskOprBufAnaCRSF);
+	if (cBłąd == BLAD_GOTOWE)
+		cBłąd = AnalizujCrossfire(&uDaneCM4.dane, &uDaneCM7.dane);
 
 	return cBłąd;
 }

@@ -86,6 +86,34 @@ void PetlaGlowna(void)
 	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetwornika A/C
 	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
 
+	//testy --------------------------------------------------------------------
+	/*uint32_t pclk1 = HAL_RCC_GetPCLK1Freq();	//120MHz
+	uint32_t pclk2 = HAL_RCC_GetPCLK2Freq();	//120MHz
+	uint32_t core = SystemCoreClock;
+	uint32_t hclk = HAL_RCC_GetHCLKFreq();
+
+	RCC_OscInitTypeDef RCC_OscInitStruct;
+	HAL_RCC_GetOscConfig(&RCC_OscInitStruct);
+
+	//benchmark RAM
+	//volatile uint32_t t = DWT->CYCCNT;
+	nCzasStartuADC = PobierzCzas();
+
+	for(volatile uint32_t i=0;i<1000000;i++);
+
+	nCzasStartuADC = MinalCzas(nCzasStartuADC);
+	//uint32_t dtRam = DWT->CYCCNT - t;
+
+	//benchmark flash
+	volatile uint32_t s=0;
+	//t = DWT->CYCCNT;
+	nCzasStartuADC = PobierzCzas();
+	for(volatile uint32_t i=0;i<100000;i++)
+	    s += *(volatile uint32_t*)(0x08100000 + (i&0xFFF));
+	nCzasStartuADC = MinalCzas(nCzasStartuADC);
+	//uint32_t dtFlash = DWT->CYCCNT - t;*/
+	//testy --------------------------------------------------------------------
+
 	nCzasStartuADC = PobierzCzas();
 	cBłądPG |= ObsługaADC(chNrOdcinkaCzasu, cBityPozwoleniaNaPomiarADC);	//zarządza rozpoczęciem pomiaru ADC i pobraniem wyników, przełacza dekoder modułów
 	nCzasOdcinka[20] = MinalCzas(nCzasStartuADC);
