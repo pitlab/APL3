@@ -32,7 +32,7 @@ uint8_t InicjujMS5611(void)
 	uint32_t nCzasStart, nCzas;
 	uint8_t cBłąd;
 
-    nCzasStart = PobierzCzas();
+    nCzasStart = PobierzCzasT7();
     do
     {
     	chBuf5611[0] = PMS_RESET;
@@ -46,7 +46,7 @@ uint8_t InicjujMS5611(void)
     	for (uint16_t n=0; n<6; n++)
     		sKonfig[n] = CzytajSPIu16mp(PMS_PROM_READ_C1 + 2*n);
 
-    	nCzas = MinalCzas(nCzasStart);
+    	nCzas = MinalCzasT7(nCzasStart);
     	if (nCzas > 15000)   //czekaj maksymalnie 5000us
             return BLAD_TIMEOUT;
 

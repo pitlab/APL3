@@ -229,7 +229,7 @@ int main(void)
 #ifdef TESTY		//testy algorytmów
   TestyFram();
   //TestPID();
-  nCzasOstatniegoOdcinka = PobierzCzas();
+  nCzasOstatniegoOdcinka = PobierzCzasT7();
 #endif
   /* USER CODE END 2 */
 

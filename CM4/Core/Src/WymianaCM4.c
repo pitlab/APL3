@@ -13,6 +13,7 @@
  * bufor wymiany deklaruję z jednej strony jako unię słów 32-bitowych z drugiej strukturę taką jaką będzie trzeba
  * */
 
+volatile uint32_t nFlagiMiedzyrdzeniowe  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 volatile uint32_t nBuforWymianyCM4[ROZMIAR_BUF32_WYMIANY_CM4]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 volatile uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 volatile unia_wymianyCM4_t uDaneCM4;
@@ -38,9 +39,11 @@ uint8_t PobierzDaneWymiany_CM7(void)
 		cBłąd = HAL_HSEM_Take(HSEM_CM7_TO_CM4, 0);
 		if (cBłąd == BLAD_OK)
 		{
-			for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM7; n++)
+			if (nFlagiMiedzyrdzeniowe & FMR_SA_DANE_CM7)
 			{
-				uDaneCM7.nSlowa[n] = nBuforWymianyCM7[n];
+				for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM7; n++)
+					uDaneCM7.nSlowa[n] = nBuforWymianyCM7[n];
+				nFlagiMiedzyrdzeniowe &= ~FMR_SA_DANE_CM7;
 			}
 			HAL_HSEM_Release(HSEM_CM7_TO_CM4, 0);
 		}
@@ -56,6 +59,7 @@ uint8_t PobierzDaneWymiany_CM7(void)
 // Zwraca: kod błędu
 // Czas wykonania: 27,4us na 186 słów -> 0,15us/słowo
 // Czas wykonania: 44ms na 350 słów -> 126us/słowo	wersja 485
+// Czas wykonania: 10,5ms na 350 słów -> 126us/słowo	wersja 497
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawDaneWymiany_CM4(void)
 {
@@ -68,11 +72,15 @@ uint8_t UstawDaneWymiany_CM4(void)
 		cBłąd = HAL_HSEM_Take(HSEM_CM4_TO_CM7, 0);
 		if (cBłąd == BLAD_OK)
 		{
-			for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
+			//HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_SET);			//kanał serw 7 skonfigurowany jako IO
+			if ((nFlagiMiedzyrdzeniowe & FMR_SA_DANE_CM4) != FMR_SA_DANE_CM4)	//ustaw tylko gdy poprzednie zostały odczytane
 			{
-				nBuforWymianyCM4[n] = uDaneCM4.nSlowa[n];
+				for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
+					nBuforWymianyCM4[n] = uDaneCM4.nSlowa[n];
+				nFlagiMiedzyrdzeniowe |= FMR_SA_DANE_CM4;	//ustaw flagę obecności nowych danych
 			}
 			HAL_HSEM_Release(HSEM_CM4_TO_CM7, 0);
+			//HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_RESET);			//kanał serw 7 skonfigurowany jako IO
 		}
 	}
 	return cBłąd;

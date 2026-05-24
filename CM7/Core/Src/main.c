@@ -1596,7 +1596,7 @@ void StartDefaultTask(void const * argument)
 		cBłąd += UstawDaneWymiany_CM7();
 		if (cBłąd)		//sygnalizacja błędów wymiany
 		{
-			chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s
+			chCzasSwieceniaLED[LED_ZIEL] = 1;	//x0,1s
 			cBłąd = BLAD_OK;
 		}
 

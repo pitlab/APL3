@@ -84,7 +84,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 	if (huart->Instance == UART4)	//dane z SBUS1
 	{
-		stRC.nCzasWe1 = PobierzCzas();	//czas przyjścia ramki SBus1
+		stRC.nCzasWe1 = PobierzCzasT7();	//czas przyjścia ramki SBus1
 		for (uint8_t n=0; n<ROZMIAR_BUF_ODB_UART4; n++)
 		{
 			chBuforAnalizySBus1[chWskNapBufAnaSBus1] = chBuforOdbioruUart4[n];
@@ -98,7 +98,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 	if (huart->Instance == USART2)		//dane z SBUS2
 	{
-		stRC.nCzasWe2 = PobierzCzas();	//czas przyjścia ramki SBus2
+		stRC.nCzasWe2 = PobierzCzasT7();	//czas przyjścia ramki SBus2
 		for (uint8_t n=0; n<ROZMIAR_BUF_ODB_UART2; n++)
 		{
 			chBuforAnalizySBus2[chWskNapBufAnaSBus2] = chBuforOdbioruUart2[n];

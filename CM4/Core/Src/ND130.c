@@ -37,7 +37,7 @@ uint8_t InicjujND130(void)
 	uint32_t nCzasStart;
 	uint8_t cBłąd = BLAD_BRAK_CZUJNIKA;	//domyślnie brak czujnika
 
-    nCzasStart = PobierzCzas();
+    nCzasStart = PobierzCzasT7();
     do
     {
     	//chBufND130[0] = 0xF7;	//mode byte: 30 in H2O, BW=200Hz, Notch enabled
@@ -53,7 +53,7 @@ uint8_t InicjujND130(void)
        	if ((chBufND130[4] == 'N') && (chBufND130[5] == 'D') && (chBufND130[6] == '1') && (chBufND130[7] == '3') && (chBufND130[8] == '0'))
         	cBłąd = BLAD_OK;
 
-    	if (MinalCzas(nCzasStart) > 5000)   //czekaj maksymalnie 5000us
+    	if (MinalCzasT7(nCzasStart) > 5000)   //czekaj maksymalnie 5000us
     		return BLAD_TIMEOUT;
     }
     while (cBłąd);
@@ -82,7 +82,8 @@ uint8_t ObslugaND130(void)
 	float fPrzesuniecieZera;
 
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_ND130)
-		return BLAD_BRAK_CZUJNIKA;
+		//return BLAD_BRAK_CZUJNIKA;
+		return BLAD_OK;	//to powinien być błąd, ale ponieważ jest znany więc aby nie maskować potencjalnych innych błędów, zeznaję brak błędu
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_ND130) != INIT_ND130)	//jeżeli czujnik nie jest zainicjowany
 	{

@@ -205,7 +205,7 @@ void WypelnijEkran(uint16_t sKolor565)
 		for(uint16_t y=0; y<320; y++)
 		{
 			for(uint16_t x=0; x<480/4; x++)
-				HAL_SPI_Transmit(&hspi5, chDane, 12, HAL_MAX_DELAY);
+				HAL_SPI_Transmit(&hspi5, chDane, 12, HAL_DELAY_SPI);
 		}
 			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 	}
@@ -369,7 +369,7 @@ void RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor)
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 
-	HAL_SPI_Transmit(&hspi5, chKolor, 3, HAL_MAX_DELAY);
+	HAL_SPI_Transmit(&hspi5, chKolor, 3, HAL_DELAY_SPI);
 	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	clrXY();
@@ -398,7 +398,7 @@ void RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 	for (uint16_t n=0; n<len+1; n++)
-		HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
+		HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
 	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	//LCD_WrData(chKolor666, 3 * (len + 1));
@@ -427,7 +427,7 @@ void RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 	for (uint16_t n=0; n<len+1; n++)
-		HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
+		HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
 	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	//LCD_WrData(chKolor666, 3 * (len + 1));
@@ -604,10 +604,10 @@ void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 				{
 					if ((ch&(1<<(7-i))) != 0)
 						//LCD_WrData(chKolor666, 3);
-						HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
+						HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
 					else
 						//LCD_WrData(chTlo666, 3);
-						HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_MAX_DELAY);
+						HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_DELAY_SPI);
 				}
 				temp++;
 			}
@@ -633,10 +633,10 @@ void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 					{
 						if((ch&(1<<i))!=0)
 							//LCD_WrData(chKolor666, 3);
-							HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
+							HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
 						else
 							//LCD_WrData(chTlo666, 3);
-							HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_MAX_DELAY);
+							HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_DELAY_SPI);
 					}
 				}
 				UstawDekoderZewn(CS_NIC);										//LCD_CS=1
@@ -693,7 +693,7 @@ void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16
 		for (tc=0; tc<(sx*sy); tc++)
 		{
 			setColor(obraz[tc]);
-			HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
+			HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
 		}
 		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 		HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
@@ -711,7 +711,7 @@ void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16
 			for (tx=sx-1; tx>=0; tx--)
 			{
 				setColor(obraz[(ty*sx)+tx]);
-				HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
+				HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
 			}
 			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
@@ -743,10 +743,10 @@ void RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_t* 
 		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 //		for (uint16_t n=0; n<sy; n++)
-//			HAL_SPI_Transmit(&hspi5, chObraz + n*3*sx, sx*3, HAL_MAX_DELAY);	//wyślij cały wiersz gdzie piksel zajmuje 3 bajty
+//			HAL_SPI_Transmit(&hspi5, chObraz + n*3*sx, sx*3, HAL_DELAY_SPI);	//wyślij cały wiersz gdzie piksel zajmuje 3 bajty
 
 		for (uint16_t n=0; n<sy/32; n++)
-			HAL_SPI_Transmit(&hspi5, chObraz + n*32*3*sx, sx*32*3, HAL_MAX_DELAY);	//w jednym transferze wyślij 32 wiersze, gdzie piksel zajmuje 3 bajty
+			HAL_SPI_Transmit(&hspi5, chObraz + n*32*3*sx, sx*32*3, HAL_DELAY_SPI);	//w jednym transferze wyślij 32 wiersze, gdzie piksel zajmuje 3 bajty
 		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 		HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 	}
@@ -765,7 +765,7 @@ void RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_t* 
 				col  = (uint16_t)chObraz[(ty*sx)+tx + 0] << 8;
 				col |= (uint16_t)chObraz[(ty*sx)+tx + 1];
 				setColor(col);
-				HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_MAX_DELAY);
+				HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
 			}
 			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);

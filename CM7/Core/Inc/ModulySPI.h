@@ -26,6 +26,9 @@
 
 #define LICZBA_EXP_SPI_ZEWN	3		//liczba ekspanderów IO na magistrali SPI modułów zewnętrznych
 
+
+#define HAL_DELAY_SPI	2
+
 //rejestry układu MCP23S08
 #define MCP23S08_IODIR		0x00	//I/O DIRECTION (IODIR) REGISTER: 1=input, 0=output
 #define MCP23S08_IOPL		0x01	//INPUT POLARITY (IPOL) REGISTER: 1 = GPIO register bit will reflect the opposite logic state of the input pin, 0= the same

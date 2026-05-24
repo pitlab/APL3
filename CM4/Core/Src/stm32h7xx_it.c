@@ -31,7 +31,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-extern uint32_t PobierzCzas(void);
+extern uint32_t PobierzCzasT7(void);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -384,7 +384,7 @@ void TIM4_IRQHandler(void)
 			//impuls o długości większej niż 3ms traktowany jest jako przerwa między paczkami impulsów
 			if (sTemp > PRZERWA_PPM)
 			{
-				stRC.nCzasWe1 = PobierzCzas();
+				stRC.nCzasWe1 = PobierzCzasT7();
 				stRC.chNrKan1 = 0;
 				stRC.chStatus |= STATRC_RAMKA1_OK;
 			}

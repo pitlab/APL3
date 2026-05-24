@@ -55,8 +55,8 @@ uint16_t CzytajKanalDotyku(uint8_t  chKanal)
 			   (1<<7);	//S Start Bit.
 
 	UstawDekoderZewn(CS_TP);											//TP_CS=0
-	HAL_SPI_Transmit(&hspi5, &chKonfig, 1, HAL_MAX_DELAY);
-	HAL_SPI_Receive(&hspi5, chDane, 2, HAL_MAX_DELAY);
+	HAL_SPI_Transmit(&hspi5, &chKonfig, 1, HAL_DELAY_SPI);
+	HAL_SPI_Receive(&hspi5, chDane, 2, HAL_DELAY_SPI);
 	UstawDekoderZewn(CS_NIC);							//TP_CS=1
 
 	//złóż liczbę 12-bitową i wyrównaj do lewej

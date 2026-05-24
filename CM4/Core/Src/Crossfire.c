@@ -23,7 +23,10 @@ volatile uint8_t chWskNapBufAnaSRSF, chWskOprBufAnaCRSF; 	//wskaźniki napełnia
 uint8_t chRamkaCRSF[ROZMIAR_RAMKI_CRSF];
 uint8_t cEtapOdbioruRamki;	//wskazuje która część ramki jest odbierana
 uint8_t cLicznikDanych;	//zlicza dane w polu payload
-
+union {
+	stSpakowaneKanalyCRSF_t stSpakowaneKanalyCRSF;
+	uint8_t cRamkaCRSF[22];
+} uSpakowaneKanalyCRSF;
 uint8_t crc8tab[256] = {
     0x00, 0xD5, 0x7F, 0xAA, 0xFE, 0x2B, 0x81, 0x54, 0x29, 0xFC, 0x56, 0x83, 0xD7, 0x02, 0xA8, 0x7D,
     0x52, 0x87, 0x2D, 0xF8, 0xAC, 0x79, 0xD3, 0x06, 0x7B, 0xAE, 0x04, 0xD1, 0x85, 0x50, 0xFA, 0x2F,
@@ -84,7 +87,7 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 	{
 		cDane = chBufor[*chWskOprBuf];
 		(*chWskOprBuf)++;
-		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 		switch (*cEtapOdbioru)
 		{
 		case EORC_ADRES:	//odbierany jest SyncByte będący adresem urządzenia. Reaguję na CRSF_ADR_FLIGHT_CTRL oraz na CRSF_ADR_BROADCAST
@@ -166,12 +169,27 @@ uint8_t crc8(const uint8_t * ptr, uint8_t len)
 // [wy] *psDaneCM7 - wskaźnik na strukturę danych CM7
 // Zwraca: kod zakończenia inicjalizacji: ERR_DONE = zakończono, BLAD_OK - w trakcie
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AnalizujCrossfire(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
+uint8_t AnalizujCrossfire(uint8_t *chRamka, stRC_t *stRC)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-
-
+	switch(chRamka[EORC_TYP])
+	{
+	case TYPCRSF_LINK_STAT:		 	//0x14 Link Statistics
+	case TYPCRSF_CHAN_PACKED:	 	//0x16 RC Channels Packed Payload
+		for (uint8_t n=0; n<ROZMIAR_SPAKOWANYCH_KANALOW_CROSSFIRE; n++)
+			uSpakowaneKanalyCRSF.cRamkaCRSF[n] = chRamka[n];
+		//for (uint8_t n=0; n<LICZBA_KANALOW_CROSSFIRE; n++)
+		stRC->sOdb2[0] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_01;
+		stRC->sOdb2[1] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_02;
+		stRC->sOdb2[2] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_03;
+		stRC->sOdb2[3] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_04;
+		stRC->sOdb2[4] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_05;
+		stRC->sOdb2[5] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_06;
+		stRC->sOdb2[6] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_07;
+		stRC->sOdb2[7] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_08;
+		break;
+	}
 
 	return cBłąd;
 }
@@ -190,7 +208,7 @@ uint8_t ObsługaRamkiCrossfire(void)
 
 	cBłąd = OdbiórRamkiCrossfire(chRamkaCRSF, &cEtapOdbioruRamki, &cLicznikDanych, chBuforAnalizyCrossfire, chWskNapBufAnaSRSF, (uint8_t*)&chWskOprBufAnaCRSF);
 	if (cBłąd == BLAD_GOTOWE)
-		cBłąd = AnalizujCrossfire(&uDaneCM4.dane, &uDaneCM7.dane);
+		cBłąd = AnalizujCrossfire(chRamkaCRSF, &stRC);
 
 	return cBłąd;
 }

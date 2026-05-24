@@ -90,6 +90,10 @@
 #define ROZMIAR_BUFORA_IMU	8		//rozmiar bufora kołowego przechowującego ostarnie dane z szybkiego IMU
 #define MASKA_BUFORA_IMU	0x07	//maska do zawijania bufora kołowego
 
+//definicje bitów zmiennej nFlagiMiedzyrdzeniowe
+#define FMR_SA_DANE_CM4		0x01
+#define FMR_SA_DANE_CM7		0x02
+
 //definicje pól zmiennej chNowyPomiar
 #define NP_MAG1		0x01
 #define NP_MAG2		0x02

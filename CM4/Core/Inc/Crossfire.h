@@ -10,6 +10,7 @@
 
 #include "SysDefCM4.h"
 #include "wymiana.h"
+#include "WeWyRC.h"
 
 
 #define ROZMIAR_BUF_ANA_CRSF		128
@@ -62,12 +63,38 @@
 #define CRSF_ADR_RES6			0xF2 	//reserved
 
 
+//definicje obsługiwanych typów ramek crossfire
+#define TYPCRSF_LINK_STAT		0x14 	//Link Statistics
+#define TYPCRSF_CHAN_PACKED		0x16 	//RC Channels Packed Payload
+
+#define ROZMIAR_SPAKOWANYCH_KANALOW_CROSSFIRE	22
+#define LICZBA_KANALOW_CROSSFIRE				16
+typedef struct
+{
+	uint16_t channel_01: 11;
+	uint16_t channel_02: 11;
+	uint16_t channel_03: 11;
+	uint16_t channel_04: 11;
+	uint16_t channel_05: 11;
+	uint16_t channel_06: 11;
+	uint16_t channel_07: 11;
+	uint16_t channel_08: 11;
+	uint16_t channel_09: 11;
+	uint16_t channel_10: 11;
+	uint16_t channel_11: 11;
+	uint16_t channel_12: 11;
+	uint16_t channel_13: 11;
+	uint16_t channel_14: 11;
+	uint16_t channel_15: 11;
+	uint16_t channel_16: 11;
+} stSpakowaneKanalyCRSF_t;
+
 #define CRSF_ADRES_URZADZENIA	CRSF_ADR_FLIGHT_CTRL	//pierwszy bajt ramki zawierający adres urządzenia
 
 
 uint8_t InicjujCrossfire(void);
 uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *cLicznikDanych, uint8_t *chBufor, uint8_t chWskNapBuf, uint8_t *chWskOprBuf);
-uint8_t AnalizujCrossfire(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7);
+uint8_t AnalizujCrossfire(uint8_t *chRamka, stRC_t *stRC);
 uint8_t crc8(const uint8_t * ptr, uint8_t len);
 uint8_t ObsługaRamkiCrossfire(void);
 

@@ -14,6 +14,7 @@
 #include "WymianaCM7.h"
 #include "KodyBledow.h"
 
+volatile uint32_t nFlagiMiedzyrdzeniowe  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 volatile uint32_t nBuforWymianyCM4[ROZMIAR_BUF32_WYMIANY_CM4]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 volatile uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 unia_wymianyCM4_t uDaneCM4;
@@ -37,9 +38,12 @@ uint8_t PobierzDaneWymiany_CM4(void)
 		cBłąd = HAL_HSEM_Take(HSEM_CM4_TO_CM7, 0);
 		if (cBłąd == BLAD_OK)
 		{
-			for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
+			//Pobierz dane tylko gdy są ustawione nowe
+			if (nFlagiMiedzyrdzeniowe & FMR_SA_DANE_CM4)
 			{
-				uDaneCM4.nSlowa[n] = nBuforWymianyCM4[n];
+				for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
+					uDaneCM4.nSlowa[n] = nBuforWymianyCM4[n];
+				nFlagiMiedzyrdzeniowe &= ~FMR_SA_DANE_CM4;
 			}
 			HAL_HSEM_Release(HSEM_CM4_TO_CM7, 0);
 		}
@@ -64,9 +68,11 @@ uint8_t UstawDaneWymiany_CM7(void)
 		cBłąd = HAL_HSEM_Take(HSEM_CM7_TO_CM4, 0);
 		if (cBłąd == BLAD_OK)
 		{
-			for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM7; n++)
+			if ((nFlagiMiedzyrdzeniowe & FMR_SA_DANE_CM7) != FMR_SA_DANE_CM7)	//ustaw tylko gdy porpzednie są odczytane
 			{
-				nBuforWymianyCM7[n] = uDaneCM7.nSlowa[n];
+				for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM7; n++)
+					nBuforWymianyCM7[n] = uDaneCM7.nSlowa[n];
+				nFlagiMiedzyrdzeniowe |= FMR_SA_DANE_CM7;
 			}
 			HAL_HSEM_Release(HSEM_CM7_TO_CM4, 0);
 		}

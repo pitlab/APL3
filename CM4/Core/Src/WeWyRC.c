@@ -778,7 +778,7 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 		{
 			sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8;
 			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
-			AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);
+			//AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);
 		}
 	}
 }
@@ -1042,13 +1042,13 @@ void ZapiszEkstremaWejscRC(void)
 uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
 {
 	uint8_t cBłąd = BLAD_OK;
-	uint32_t nCzasBiezacy = PobierzCzas();
+	uint32_t nCzasBiezacy = PobierzCzasT7();
 	uint32_t nCzasRC1, nCzasRC2;
 	uint16_t sRóżnicaMaxMin;
 
 	//Sprawdź kiedy przyszły ostatnie dane RC
-	nCzasRC1 = MinalCzas2(stRC->nCzasWe1, nCzasBiezacy);
-	nCzasRC2 = MinalCzas2(stRC->nCzasWe2, nCzasBiezacy);
+	nCzasRC1 = MinalCzas2T7(stRC->nCzasWe1, nCzasBiezacy);
+	nCzasRC2 = MinalCzas2T7(stRC->nCzasWe2, nCzasBiezacy);
 
 	if (nCzasRC1 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 1
 	{

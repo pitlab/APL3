@@ -426,7 +426,7 @@ uint8_t ObsługaRamkiSBus(void)
 		if (cBłąd == BLAD_OK)
 		{
 			stRC.sZdekodowaneKanaly1 = 0xFFFF;
-			stRC.nCzasWe1 = PobierzCzas();
+			stRC.nCzasWe1 = PobierzCzasT7();
 		}
 	}
 
@@ -438,7 +438,7 @@ uint8_t ObsługaRamkiSBus(void)
 		if (cBłąd == BLAD_OK)
 		{
 			stRC.sZdekodowaneKanaly2 = 0xFFFF;
-			stRC.nCzasWe2 = PobierzCzas();
+			stRC.nCzasWe2 = PobierzCzasT7();
 		}
 	}
 
@@ -449,10 +449,10 @@ uint8_t ObsługaRamkiSBus(void)
 	if (chKonfigWyRC[KANAL_RC1] == SERWO_SBUS)
 	{
 		//sprawdź czy trzeba już wysłać nową ramkę Sbus
-		uint32_t nCzasRC = MinalCzas(nCzasWysylkiSbus);
+		uint32_t nCzasRC = MinalCzasT7(nCzasWysylkiSbus);
 		if (nCzasRC >= OKRES_RAMKI_SBUS)
 		{
-			nCzasWysylkiSbus = PobierzCzas();
+			nCzasWysylkiSbus = PobierzCzasT7();
 			HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus, ROZM_BUF_ODB_SBUS);	//wyślij kolejną ramkę
 		}
 	}

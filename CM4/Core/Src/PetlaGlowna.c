@@ -97,26 +97,26 @@ void PetlaGlowna(void)
 
 	//benchmark RAM
 	//volatile uint32_t t = DWT->CYCCNT;
-	nCzasStartuADC = PobierzCzas();
+	nCzasStartuADC = PobierzCzasT7();
 
 	for(volatile uint32_t i=0;i<1000000;i++);
 
-	nCzasStartuADC = MinalCzas(nCzasStartuADC);
+	nCzasStartuADC = MinalCzasT7(nCzasStartuADC);
 	//uint32_t dtRam = DWT->CYCCNT - t;
 
 	//benchmark flash
 	volatile uint32_t s=0;
 	//t = DWT->CYCCNT;
-	nCzasStartuADC = PobierzCzas();
+	nCzasStartuADC = PobierzCzasT7();
 	for(volatile uint32_t i=0;i<100000;i++)
 	    s += *(volatile uint32_t*)(0x08100000 + (i&0xFFF));
-	nCzasStartuADC = MinalCzas(nCzasStartuADC);
+	nCzasStartuADC = MinalCzasT7(nCzasStartuADC);
 	//uint32_t dtFlash = DWT->CYCCNT - t;*/
 	//testy --------------------------------------------------------------------
 
-	nCzasStartuADC = PobierzCzas();
+	nCzasStartuADC = PobierzCzasT7();
 	cBłądPG |= ObsługaADC(chNrOdcinkaCzasu, cBityPozwoleniaNaPomiarADC);	//zarządza rozpoczęciem pomiaru ADC i pobraniem wyników, przełacza dekoder modułów
-	nCzasOdcinka[20] = MinalCzas(nCzasStartuADC);
+	nCzasOdcinka[20] = MinalCzasT7(nCzasStartuADC);
 
 	switch (chNrOdcinkaCzasu)
 	{
@@ -187,8 +187,8 @@ void PetlaGlowna(void)
 		break;
 
 	case 7:
-		nCzasBiezacy = PobierzCzas();
-		ndT = MinalCzas2(nCzasPoprzedniegoObiegu, nCzasBiezacy);	//licz czas od ostatniego obiegu pętli
+		nCzasBiezacy = PobierzCzasT7();
+		ndT = MinalCzas2T7(nCzasPoprzedniegoObiegu, nCzasBiezacy);	//licz czas od ostatniego obiegu pętli
 		uDaneCM4.dane.ndT = ndT;
 		nCzasPoprzedniegoObiegu = nCzasBiezacy;
 		JednostkaInercyjnaTrygonometria(ndT);	break;	//dane do IMU1
@@ -207,13 +207,13 @@ void PetlaGlowna(void)
 
 	case 12:	//wymień dane między rdzeniami
 		//uint32_t nCzas1, nCzas2, nCzas3, nStart;
-		//nStart = PobierzCzas();
+		//nStart = PobierzCzasT7();
 		uDaneCM4.dane.chErrPetliGlownej = cBłądPG;
-		//nCzas1 = MinalCzas(nStart);
+		//nCzas1 = MinalCzasT7(nStart);
 		cBłądPG  = UstawDaneWymiany_CM4();
-		//nCzas2 = MinalCzas(nStart);
+		//nCzas2 = MinalCzasT7(nStart);
 		cBłądPG |= PobierzDaneWymiany_CM7();
-		//nCzas3 = MinalCzas(nStart);
+		//nCzas3 = MinalCzasT7(nStart);
 		break;
 
 	case 13:
@@ -246,10 +246,10 @@ void PetlaGlowna(void)
 
 
 	//pomiar czasu zajętego w każdym odcinku
-	nCzasOdcinka[chNrOdcinkaCzasu] = MinalCzas(nCzasOstatniegoOdcinka);
+	nCzasOdcinka[chNrOdcinkaCzasu] = MinalCzasT7(nCzasOstatniegoOdcinka);
 	if (nCzasOdcinka[chNrOdcinkaCzasu] > nMaxCzasOdcinka[chNrOdcinkaCzasu])   //przechwyć wartość maksymalną
 		nMaxCzasOdcinka[chNrOdcinkaCzasu] = nCzasOdcinka[chNrOdcinkaCzasu];
-	nCzasOstatniegoOdcinka = PobierzCzas();
+	nCzasOstatniegoOdcinka = PobierzCzasT7();
 
 	chNrOdcinkaCzasu++;
 	if (chNrOdcinkaCzasu == LICZBA_ODCINKOW_CZASU)
@@ -268,7 +268,7 @@ void PetlaGlowna(void)
 // Parametry: brak
 // Zwraca: stan licznika w mikrosekundach
 ////////////////////////////////////////////////////////////////////////////////
-uint32_t PobierzCzas(void)
+uint32_t PobierzCzasT7(void)
 {
 	extern volatile uint16_t sCzasH;
 	return htim7.Instance->CNT + ((uint32_t)sCzasH<<16);
@@ -282,12 +282,12 @@ uint32_t PobierzCzas(void)
 // Parametry: nPoczatek - licznik czasu na na początku pomiaru
 // Zwraca: ilość czasu w mikrosekundach jaki upłynął do podanego czasu początkowego
 ////////////////////////////////////////////////////////////////////////////////
-uint32_t MinalCzas(uint32_t nPoczatek)
+uint32_t MinalCzasT7(uint32_t nPoczatek)
 {
 	uint32_t nCzasAkt;
 
-	nCzasAkt = PobierzCzas();
-	return MinalCzas2(nPoczatek, nCzasAkt);
+	nCzasAkt = PobierzCzasT7();
+	return MinalCzas2T7(nPoczatek, nCzasAkt);
 }
 
 
@@ -300,7 +300,7 @@ uint32_t MinalCzas(uint32_t nPoczatek)
 // [we] nKoniec - licznik czasu na na końcu pomiaru
 // Zwraca: ilość czasu w mikrosekundach jaki upłynął do podanego czasu początkowego
 ////////////////////////////////////////////////////////////////////////////////
-uint32_t MinalCzas2(uint32_t nPoczatek, uint32_t nKoniec)
+uint32_t MinalCzas2T7(uint32_t nPoczatek, uint32_t nKoniec)
 {
 	uint32_t nCzas;
 
