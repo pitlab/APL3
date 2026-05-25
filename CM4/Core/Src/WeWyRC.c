@@ -6,15 +6,15 @@
 // (c) PitLab 2025
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <DShot.h>
+#include <Fram.h>
 #include <KanalyPID.h>
+#include <SBus.h>
+#include <WS281x.h>
 #include "WeWyRC.h"
-#include "SBus.h"
 #include "KonfigFram.h"
 #include "PetlaGlowna.h"
 #include "GNSS.h"
-#include "FRAM.h"
-#include "DShot.h"
-#include "WS281x.h"
 #include "KontrolerLotu.h"
 #include "SampleAudio.h"
 #include "RegulatorPID.h"
@@ -61,7 +61,7 @@ uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wy
 uint8_t chFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silników: normalna praca lub analiza FFT rezonansu drgań ramy
 uint8_t chRozmiarSekwencjiDMA[KANALY_MIKSERA+1];	//rozmiar paczki danych przesyłanych do DMA w zależności od częstotliwości odświezania. Dla 400Hz paczka ma 1 ważną daną, dla 200Hz jedną ważną i jedną nieważną, dla 50Hz jest 1 ważna i 7 pustych
 uint8_t chBityKonfiguracji = 0;
-uint16_t sFlagiNapelnieniaBuforow;
+volatile uint16_t sFlagiNapelnieniaBuforow;		//flagi inforujące pętlę główną o potrzebie napełnienia podwójnego bufora DMA: DShot lub programowalnych LEDów
 uint16_t sPoprzedniStanKanaluRozszerzonego[KANALY_FUNKCYJNE];	//poprzedni stan do detekcji uruchomiania funkcji wywoływanych kanałami wejsciowymi RC
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -155,8 +155,6 @@ uint8_t InicjujWejsciaRC(void)
     	//cBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MIN_KAN_RC + n, &chFunkcjaMinKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na minimum
     	//cBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MAX_KAN_RC + n, &chFunkcjaMaxKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na maksimum
     	cBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_KAN_RC + n, &chFunkcjaKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16)
-
-
     }
 
     //domyślnie silniki pełnią funkcję napedu
@@ -196,9 +194,12 @@ uint8_t InicjujWyjsciaRC(void)
 	for (uint8_t n=0; n<LICZBA_KONFIG_WYJSC_RC-1; n++)
 	{
 		CzytajBuforFRAM(FAU_KONF_SERWA12 + n, &chDaneKonfig, 1);
-		chKonfigWyRC[KANAL_RC1 + 2*n] = chDaneKonfig & MASKA_TYPU_RC1;
-		chKonfigWyRC[KANAL_RC2 + 2*n] = chDaneKonfig >> 4;
+		//chKonfigWyRC[KANAL_RC1 + 2*n] = chDaneKonfig & MASKA_TYPU_RC1;
+		//chKonfigWyRC[KANAL_RC2 + 2*n] = chDaneKonfig >> 4;
+		chKonfigWyRC[KANAL_RC1 + 2*n] = SERWO_IO;	//TEST Tymczasowo wyłącz konfigurację
+		chKonfigWyRC[KANAL_RC2 + 2*n] = SERWO_IO;
 	}
+	//chKonfigWyRC[KANAL_RC8] = SERWO_WS281X;	//TEST
 	CzytajBuforFRAM(FAU_KONF_SERWA916, &chKonfigWyRC[8], 1);		//konfiguracją ostatniej grupy wyjść jest nietypowa, wiec odczytaj osobno
 
 	//odczytaj konfigurację funkcji pełnionych przez kanały wyjściowe RC
@@ -745,7 +746,8 @@ uint8_t InicjujWyjsciaRC(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Callback opróżnienia połowy bufora timerów służy do przeładowania pierwszej połowy bufora
+// Callback opróżnienia połowy bufora timerów służy do ustawienie informacji
+// o potrzebie przeładowania pierwszej połowy bufora
 // Parametry: *hdma - wskaźnik na DMA zgłaszające koniec transmisji
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -778,7 +780,6 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 		{
 			sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8;
 			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
-			//AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);
 		}
 	}
 }
@@ -786,7 +787,8 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Callback opróżnienia bufora timerów służy do przeładowania drugiej połowy bufora
+// Callback opróżnienia bufora timerów służy do ustawienie informacji
+// o potrzebie przeładowania drugiej połowy bufora
 // Parametry: *hdma - wskaźnik na DMA zgłaszające koniec transmisji
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -816,10 +818,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH6;
 
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
-    	{
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH8;
-    		AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);
-    	}
     }
 }
 
@@ -882,7 +881,8 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 		case SERWO_DSHOT600:
 		case SERWO_DSHOT1200:	cBłąd |= AktualizujDShotDMA(nWyjście, n);	break;
 
-		case SERWO_WS281X:	//cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);	break;
+		case SERWO_WS281X:	//sFlagiNapelnieniaBuforow wskazują która połowę bufora należy wypełnić. Druga obecnie jest opróżniana
+			cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);	break;
 
 		default: cBłąd = BLAD_BRAK_KONFIG;
 		}	//switch

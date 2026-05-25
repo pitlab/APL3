@@ -131,7 +131,7 @@ uint8_t PrzepiszProbkeDoDRAM(uint8_t chNrProbki)
 	sAdres = (uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 0);
 	nRozmiar = *(uint32_t*)(ADR_SPISU_KOM_AUDIO + chNrProbki * ROZM_WPISU_AUDIO + 4) / 2;
 
-	for (uint32_t n=0; n<nRozmiar; n++)
+	for (uint16_t n=0; n<nRozmiar; n++)
 		sBuforPapuga[n] = (uint16_t)*(sAdres + n);
 	return OdtworzProbkeAudio((uint32_t)sBuforPapuga, nRozmiar);
 }
@@ -164,7 +164,7 @@ uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 		nRozmiar = ROZMIAR_BUFORA_AUDIO;
 
 	//napełnij pierwszy cały bufor, reszta będzie dopełniana połówkami w callbackach od opróżnienia połowy i całego bufora
-	for (uint32_t n=0; n<nRozmiar; n++)
+	for (uint16_t n=0; n<nRozmiar; n++)
 	{
 		//sBuforAudioWy[n] =  *(int16_t*)nAdresProbki;
 		sBuforAudioWy[n] = (*(int16_t*)nAdresProbki * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
@@ -199,15 +199,15 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 	}
 
 	//napełnij pierwszą połowę bufora
-	for (uint8_t n=0; n<nRozmiar; n++)
+	for (uint16_t n=0; n<nRozmiar; n++)
 	{
 		sProbka = 0;
 		if (nRozmiarProbki > 0)					//czy jest komunikat
 		{
 			sProbka += (*(int16_t*)nAdresProbki * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
 			nAdresProbki += 2;
-			nRozmiarProbki--;
 		}
+
 
 		if (chNumerTonu < LICZBA_TONOW_WARIO)		//czy jest ton
 		{
@@ -241,6 +241,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 		}
 		sBuforAudioWy[n] = sProbka;		//suma komunikatu i tonu do bufora
 	}
+	nRozmiarProbki -= nRozmiar;
 
 	//gdy nie ma nic do roboty to wyłącz
 	if (nRozmiarProbki <= 0)
@@ -281,7 +282,7 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 		{
 			sProbka += (*(int16_t*)nAdresProbki * chGlosnosc) / SKALA_GLOSNOSCI_AUDIO;
 			nAdresProbki += 2;
-			nRozmiarProbki--;
+			//nRozmiarProbki--;
 		}
 
 		if (chNumerTonu < LICZBA_TONOW_WARIO)		//czy jest ton
@@ -316,6 +317,7 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 		}
 		sBuforAudioWy[n+ROZMIAR_BUFORA_AUDIO/2] = sProbka;		//suma komunikatu i tonu do bufora
 	}
+	nRozmiarProbki -= nRozmiar;
 
 	//gdy nie ma nic do roboty to wyłącz
 	if (nRozmiarProbki <= 0)

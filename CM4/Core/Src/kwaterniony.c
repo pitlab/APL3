@@ -6,7 +6,7 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "Kwaterniony.h"
+#include <Kwaterniony.h>
 //Lektura obowiązkowa:
 //https://youtu.be/HMDb9zJ2BdA?si=NFm44BkfRmKqpYiF - dr. Tomasz Miller - Historia i wyjaśnienie właściwości kwaternionów
 //https://youtu.be/ZgOmCYfw6os?si=fDKRwn95x-n1le50 - Mateusz Kowalski - Algortym obrotu w przestrzeni 3D przy użyciu kwaternionów

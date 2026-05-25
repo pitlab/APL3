@@ -6,18 +6,18 @@
 // (c) Pit Lab 2025-26
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <Fram.h>
+#include <Main.h>
 #include <MMC3416x.h>
 #include "WymianaCM4.h"
 #include "PetlaGlowna.h"
-#include "main.h"
-#include "Fram.h"
 
 
 
 //Zmienne przesyłane przez I2C4 we współpracy z BDMA a on ma dostęp tylko SRAM4
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chDaneMagMMC[6];		//dane pomiarowe magnetometru MMC
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chStatusMagMMC;		//ststus magnetometru MMC
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4")))	chPolWychMagMMC[3];	//polecenia i dane wysyłane do magnetometru MMC w osobnej zmiennej aby nie kolidowały z danymi przychodzącymi
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	chDaneMagMMC[6];		//dane pomiarowe magnetometru MMC
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	chStatusMagMMC;		//ststus magnetometru MMC
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	chPolWychMagMMC[3];	//polecenia i dane wysyłane do magnetometru MMC w osobnej zmiennej aby nie kolidowały z danymi przychodzącymi
 extern I2C_HandleTypeDef hi2c4;
 extern DMA_HandleTypeDef hdma_i2c4_rx;
 extern DMA_HandleTypeDef hdma_i2c4_tx;

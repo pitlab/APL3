@@ -59,7 +59,7 @@ typedef struct
 uint8_t InicjujKoloryWS281x(void);
 uint8_t AktualizujKolorLedWs821x(void);
 uint8_t UstawTrybWS281x(uint8_t chKanal);
-uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskLED);
+uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskLED);
 uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed);
 
 

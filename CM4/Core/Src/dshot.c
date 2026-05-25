@@ -5,7 +5,7 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "DShot.h"
+#include <DShot.h>
 
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;

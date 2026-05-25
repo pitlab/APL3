@@ -6,15 +6,15 @@
 // (c) Pit Lab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <Fram.h>
+#include <Main.h>
 #include "Modul_I2P.h"
-#include "main.h"
 #include "ModulyWew.h"
 #include "BMP581.h"
 #include "MS5611.h"
 #include "ICM42688.h"
 #include "LSM6DSV.h"
 #include "ND130.h"
-#include "fram.h"
 #include "WymianaCM4.h"
 #include "PetlaGlowna.h"
 

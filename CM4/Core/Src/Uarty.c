@@ -16,9 +16,9 @@
 #include "Uarty.h"
 #include <GNSS.h>
 #include <stdio.h>
+#include <SBus.h>
 #include "WeWyRC.h"
 #include "PetlaGlowna.h"
-#include "SBus.h"
 #include "Crossfire.h"
 
 

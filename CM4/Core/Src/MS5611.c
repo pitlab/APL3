@@ -6,11 +6,11 @@
 // (c) Pit Lab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <Main.h>
+#include <Spi.h>
 #include "MS5611.h"
 #include "WymianaCM4.h"
 #include "PetlaGlowna.h"
-#include "main.h"
-#include "spi.h"
 #include "Modul_I2P.h"
 
 extern SPI_HandleTypeDef hspi2;

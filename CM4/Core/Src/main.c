@@ -17,20 +17,17 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
-
-/* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
+#include <Adc.h>
+#include <Fram.h>
+#include <Main.h>
+#include <Mikser.h>
 #include "PetlaGlowna.h"
 #include "ModulyWew.h"
 #include "WymianaCM4.h"
 #include "Modul_I2P.h"
 #include "JednostkaInercyjna.h"
 #include "RegulatorPID.h"
-#include "Mikser.h"
 #include "WeWyRC.h"
-#include "ADC.h"
-#include "FRAM.h"
 #include "KontrolerLotu.h"
 #include "Crossfire.h"
 /* USER CODE END Includes */
@@ -90,6 +87,9 @@ DMA_HandleTypeDef hdma_uart8_tx;
 /* USER CODE BEGIN PV */
 extern volatile unia_wymianyCM4_t uDaneCM4;
 extern uint32_t nCzasOstatniegoOdcinka;	//przechowuje czas uruchomienia ostatniego odcinka
+//tern volatile uint32_t nFlagiMiedzyrdzeniowe __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
+extern volatile uint16_t sFlagiCM4 __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
+extern volatile uint16_t sFlagiCM7 __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -118,10 +118,10 @@ static void MX_ADC3_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-int __io_putchar(int ch)
+/*int __io_putchar(int ch)
 {
 	return ITM_SendChar(ch);
-}
+}*/
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -164,6 +164,9 @@ int main(void)
   __HAL_RCC_HSEM_CLK_ENABLE();
   /* Activate HSEM notification for Cortex-M4*/
   HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_ID_0));
+  HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_CM4_TO_CM7));
+  HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_CM7_TO_CM4));
+  HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_SPI5_WYSW));
   /*
   Domain D2 goes to STOP mode (Cortex-M4 in deep-sleep) waiting for Cortex-M7 to
   perform system initialization (system clock config, external memory configuration.. )
@@ -206,6 +209,7 @@ int main(void)
   MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
   uDaneCM4.dane.nZainicjowano = 0;	//za każdym uruchomieniem detekcja i inicjalizacja sprzętu zaczyna się od początku
+  sFlagiCM4 = sFlagiCM7 = 0;
   InicjujADC();
   InicjujModulyWew();
   InicjujModulI2P();
@@ -231,7 +235,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  PetlaGlowna();
+	  PetlaGlowna();	//właściwy program w osobnym pliku PetlaGlowna.c
   }
   /* USER CODE END 3 */
 }

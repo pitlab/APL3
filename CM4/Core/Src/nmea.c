@@ -6,7 +6,7 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "NMEA.h"
+#include <Nmea.h>
 #include <stdio.h>
 #include "wymiana.h"
 

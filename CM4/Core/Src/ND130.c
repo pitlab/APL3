@@ -6,9 +6,9 @@
 // (c) Pit Lab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <Main.h>
+#include <Spi.h>
 #include "ND130.h"
-#include "main.h"
-#include "spi.h"
 #include "PetlaGlowna.h"
 #include "WymianaCM4.h"
 #include "Modul_I2P.h"

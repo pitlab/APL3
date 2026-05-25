@@ -6,29 +6,29 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <Adc.h>
+#include <DShot.h>
+#include <Fram.h>
 #include <GNSS.h>
 #include <KonfigFram.h>
+#include <Main.h>
+#include <Mikser.h>
+#include <Nmea.h>
 #include "PetlaGlowna.h"
-#include "main.h"
-#include "FRAM.h"
 #include "ModulyWew.h"
 #include "WymianaCM4.h"
-#include "NMEA.h"
 #include "HMC5883.h"
 #include "JednostkaInercyjna.h"
 #include <stdio.h>
+#include <SBus.h>
+#include <WS281x.h>
 #include "Modul_I2P.h"
 #include "MS4525.h"
 #include "ND130.h"
 #include "RegulatorPID.h"
 #include "WeWyRC.h"
-#include "ADC.h"
-#include "DShot.h"
-#include "Mikser.h"
 #include "KontrolerLotu.h"
 #include "SampleAudio.h"
-#include "SBus.h"
-#include "WS281x.h"
 #include "Crossfire.h"
 
 
@@ -239,7 +239,7 @@ void PetlaGlowna(void)
 
 	case 17:	cBłądPG |= KontrolerLotu(chTrybRegulacji, ndT, &uDaneCM4.dane, stKonfigPID);	break;
 	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID);	break;
-	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;
+	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;	//zrobić podwójne buforowanie, tak aby nie modyfikowac bufora w trakcie pracy. W callbacku ma przełaczyć się na nowy bufor
 	default:	break;
 	}
 

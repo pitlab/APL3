@@ -6,9 +6,9 @@
 // (c) Pit Lab 2004
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "FRAM.h"
+#include <Fram.h>
+#include <Main.h>
 #include "ModulyWew.h"
-#include "main.h"
 
 
 extern SPI_HandleTypeDef hspi2;

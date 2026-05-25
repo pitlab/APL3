@@ -180,7 +180,7 @@ extern uint8_t chStanSynchronizacjiCzasu;
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 
-//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM2"))) chBuforSD[512];
+//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM2"))) chBuforSD[512];
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforSD[512];
 /* USER CODE END PV */
 

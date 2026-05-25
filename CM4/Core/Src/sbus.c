@@ -6,7 +6,7 @@
 // (c) PitLab 2026
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "SBus.h"
+#include <SBus.h>
 #include "WeWyRC.h"
 #include "PetlaGlowna.h"
 #include "Uarty.h"

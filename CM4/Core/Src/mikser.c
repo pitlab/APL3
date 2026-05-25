@@ -6,8 +6,8 @@
 // (c) PitLab 2025
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "Mikser.h"
-#include "FRAM.h"
+#include <Fram.h>
+#include <Mikser.h>
 #include "RegulatorPID.h"
 
 stMikser_t stMikser;	//struktura zmiennych miksera

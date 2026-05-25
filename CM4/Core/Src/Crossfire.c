@@ -165,8 +165,8 @@ uint8_t crc8(const uint8_t * ptr, uint8_t len)
 ////////////////////////////////////////////////////////////////////////////////
 // Analizuje dane odebrane z odbiornika, dekoduje je i wstawia do struktury danych
 // Parametry:
-// [wy] *psDaneCM4 - wskaźnik na strukturę danych CM4
-// [wy] *psDaneCM7 - wskaźnik na strukturę danych CM7
+// [we] *chRamka - wskaźnik na odebraną ramkę Crossfire
+// [wy] *stRC - wskaźnik na strukturę danych odbiorników RC zawierajacą stan kanałów
 // Zwraca: kod zakończenia inicjalizacji: ERR_DONE = zakończono, BLAD_OK - w trakcie
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t AnalizujCrossfire(uint8_t *chRamka, stRC_t *stRC)

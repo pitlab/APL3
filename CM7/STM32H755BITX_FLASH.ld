@@ -50,7 +50,9 @@ MEMORY
   SRAM_AXI_D1	(xrw)  : ORIGIN = 0x24000000, LENGTH = 512K  	/* AXI-SRAM D1: stos, sterta i dane dla CM7, bufory,  rozmiar=0x80000 */
   SRAM2_AHB_D2 	(xrw)  : ORIGIN = 0x30020000, LENGTH = 128K 	/* AHB-SRAM2 D2: bufory DMA, FAT */
   SRAM3_AHB_D2	(xrw)  : ORIGIN = 0x30040000, LENGTH = 32K		/* AHB-SRAM3 D2: bufory ethernet, USB */
-  SRAM4_AHB_D3	(xrw)  : ORIGIN = 0x38000000, LENGTH = 64K		/* AHB-SRAM4 D3: współdzielenie danych między rdzeniami, rozmiar=0x10000 */
+  SRAM4_AHB_D3_WYM (xrw) : ORIGIN = 0x38000000, LENGTH = 2K		/* Bufor wymiany danych między rdzeniami */
+  SRAM4_AHB_D3_CM4 (xrw) : ORIGIN = 0x38000800, LENGTH = 30K	/* Pamięć rdzenia CM4 */
+  SRAM4_AHB_D3_CM7 (xrw) : ORIGIN = 0x38008000, LENGTH = 32K	/* Pamięć rdzenia CM7 */
   BACKUP  		(rw)   : ORIGIN = 0x38800000, LENGTH = 4K
   EXT_SRAM		(rw)   : ORIGIN = 0x60000000, LENGTH = 2M		/* zewnętrzny SRAM 2Mbx16  bank1 CS1*/
   FLASH_NOR		(rxw)  : ORIGIN = 0x68000000, LENGTH = 32M		/* zewnętrzny flash 256Mb  bank1 CS3*/
@@ -216,15 +218,20 @@ SECTIONS
     *(.SekcjaSRAM3) 
   } >SRAM3_AHB_D2
 
-/* Sekcja buforów w pamięci SRAM4_AHB_D3 aktywnych również w standby, 64k */
-.bufory_SRAM4_AHB_D3 (NOLOAD) :
+  
+  /* Sekcja bufora wymiany międzyrdzeniowej w pamięci SRAM4_AHB_D3 aktywny również w standby, 2k */
+.bufor_wymiany_SRAM4_AHB_D3 (NOLOAD) :
   {
     *(.BuforyWymianyCM7CM4_SRAM4)	
-    . = ABSOLUTE(0x38000800);		/* Bufor wymiany zajmuje poniżej 2kB */
-    *(.SekcjaSRAM4_CM4)
-    . = ABSOLUTE(0x38008000);		/* CM4 ma dostepne 30kB. Reszta 32kB jest dla CM7 */
-    *(.SekcjaSRAM4_CM7)         
-  } >SRAM4_AHB_D3  
+  } > SRAM4_AHB_D3_WYM
+  
+  
+/* Sekcja bufora ogólnego zastosowania rdzenia CM4 w pamięci SRAM4_AHB_D3 aktywny również w standby, 32k */  
+.bufor_CM4_SRAM4_AHB_D3 (NOLOAD) :
+  {
+    *(.SekcjaSRAM4_CM7)	
+  } > SRAM4_AHB_D3_CM7
+   
   
  /* Sekcja backup podtrzymywana baterią, 4k*/
 .backup (NOLOAD) :

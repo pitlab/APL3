@@ -13,9 +13,11 @@
  * bufor wymiany deklaruję z jednej strony jako unię słów 32-bitowych z drugiej strukturę taką jaką będzie trzeba
  * */
 
-volatile uint32_t nFlagiMiedzyrdzeniowe  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
-volatile uint32_t nBuforWymianyCM4[ROZMIAR_BUF32_WYMIANY_CM4]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
-volatile uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7]  __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
+//volatile uint32_t nFlagiMiedzyrdzeniowe __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
+volatile uint16_t sFlagiCM4 __attribute__((section(".BuforyWymianyCM7CM4_SRAM4"), used));
+volatile uint16_t sFlagiCM7 __attribute__((section(".BuforyWymianyCM7CM4_SRAM4"), used));
+volatile uint32_t nBuforWymianyCM4[ROZMIAR_BUF32_WYMIANY_CM4] __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
+volatile uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7] __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 volatile unia_wymianyCM4_t uDaneCM4;
 volatile unia_wymianyCM7_t uDaneCM7;
 
@@ -39,11 +41,15 @@ uint8_t PobierzDaneWymiany_CM7(void)
 		cBłąd = HAL_HSEM_Take(HSEM_CM7_TO_CM4, 0);
 		if (cBłąd == BLAD_OK)
 		{
-			if (nFlagiMiedzyrdzeniowe & FMR_SA_DANE_CM7)
+			__DMB();	//Data Memory Barrier. Ensures the apparent order of the explicit memory operations before and after the instruction, without ensuring their completion.
+			if (sFlagiCM7 & FMR_SA_DANE_CM7)
 			{
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);			//kanał serw 1 skonfigurowany jako IO
 				for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM7; n++)
 					uDaneCM7.nSlowa[n] = nBuforWymianyCM7[n];
-				nFlagiMiedzyrdzeniowe &= ~FMR_SA_DANE_CM7;
+				sFlagiCM7 &= ~FMR_SA_DANE_CM7;
+				__DSB();	//Data Synchronization Barrier. Acts as a special kind of Data Memory Barrier. It completes when all explicit memory accesses before this instruction complete.
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);		//kanał serw 1 skonfigurowany jako IO
 			}
 			HAL_HSEM_Release(HSEM_CM7_TO_CM4, 0);
 		}
@@ -72,15 +78,18 @@ uint8_t UstawDaneWymiany_CM4(void)
 		cBłąd = HAL_HSEM_Take(HSEM_CM4_TO_CM7, 0);
 		if (cBłąd == BLAD_OK)
 		{
-			//HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_SET);			//kanał serw 7 skonfigurowany jako IO
-			//if ((nFlagiMiedzyrdzeniowe & FMR_SA_DANE_CM4) != FMR_SA_DANE_CM4)	//ustaw tylko gdy poprzednie zostały odczytane - blokuje LCD
+
+			__DMB();	//Data Memory Barrier. Ensures the apparent order of the explicit memory operations before and after the instruction, without ensuring their completion.
+			//if ((sFlagiCM4 & FMR_SA_DANE_CM4) != FMR_SA_DANE_CM4)	//ustaw tylko gdy poprzednie zostały odczytane - nie czyta stanu zmiennej
 			{
+				HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_SET);			//kanał serw 7 skonfigurowany jako IO
 				for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
 					nBuforWymianyCM4[n] = uDaneCM4.nSlowa[n];
-				nFlagiMiedzyrdzeniowe |= FMR_SA_DANE_CM4;	//ustaw flagę obecności nowych danych
+				sFlagiCM4 |= FMR_SA_DANE_CM4;	//ustaw flagę obecności nowych danych
+				__DSB();	//Data Synchronization Barrier. Acts as a special kind of Data Memory Barrier. It completes when all explicit memory accesses before this instruction complete.
+				HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_RESET);			//kanał serw 7 skonfigurowany jako IO
 			}
 			HAL_HSEM_Release(HSEM_CM4_TO_CM7, 0);
-			//HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_RESET);			//kanał serw 7 skonfigurowany jako IO
 		}
 	}
 	return cBłąd;

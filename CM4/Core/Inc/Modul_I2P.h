@@ -7,9 +7,9 @@
 
 #ifndef INC_MODUL_IIP_H_
 #define INC_MODUL_IIP_H_
-#include "SysDefCM4.h"
-#include <IIS2MDC.h>
+#include <IIS2mdc.h>
 #include <MMC3416x.h>
+#include "SysDefCM4.h"
 
 //definicje adresów na module
 #define ADR_MIIP_ICM42688	0

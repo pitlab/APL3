@@ -5,10 +5,10 @@
 // (c) PitLab 2026
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "WS281x.h"
-#include "DShot.h"
+#include <DShot.h>
+#include <Fram.h>
+#include <WS281x.h>
 #include "WeWyRC.h"
-#include "fram.h"
 
 //Timer wysyła przez DMA sekwencję bitów dla segmentu 4 LEDów po 24 bity, Trwa to 1,064us/bit czyli 102,144us na segment
 //Sekwencję resetu majacą trwać minimum 280us generuję przez 3 puste sekwencje danych po zakończeniu wysyłki danych do wszystkich LED-ów
@@ -275,7 +275,7 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 //  *chWskLED - wskaźnik na kolejny LED, inkrementowane po 2 czyli po połowie bufora DMA
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktualizujWS281xDMA(uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskLED)
+uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskLED)
 {
 	uint8_t cBłąd = BLAD_OK;
 	uint32_t nKolorLED;
@@ -363,7 +363,6 @@ uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed)
 
 	for (uint8_t m=0; m<LICZBA_WSKAZNIKOW_LED; m++)
 	{
-
 		switch(stWskaznikLed[m].chNumZmiennej)
 		{
 		case WLZ_PRZECHYLENIE:	fPomiar = uDaneCM4.dane.stBSP.fKatIMU[0];	break;
