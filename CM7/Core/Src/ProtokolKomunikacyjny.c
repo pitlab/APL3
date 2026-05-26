@@ -17,15 +17,15 @@
  * DANE - opcjonalne dane
  * CRC16 - suma kontrolna ramki od nagłówka do CRC16. młodszy przodem */
 
+#include <Czas.h>
+#include <Komunikacja.h>
 #include "cmsis_os.h"
 #include "ProtokolKomunikacyjny.h"
 #include <stdio.h>
 #include "WymianaCM7.h"
-#include "telemetria.h"
-#include "komunikacja.h"
 #include "FlashKonfig.h"
 #include <string.h>
-#include "czas.h"
+#include <Telemetria.h>
 
 //definicje zmiennych
 static uint8_t chStanProtokolu[ILOSC_INTERF_KOM];

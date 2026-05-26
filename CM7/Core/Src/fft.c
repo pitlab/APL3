@@ -5,13 +5,13 @@
 // (c) PitLab 23 maj 2019-2026
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "FFT.h"
+#include <Czas.h>
+#include <FFT.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "czas.h"
+#include <Telemetria.h>
 #include "FlashKonfig.h"
-#include "telemetria.h"
 
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xXomega[FFT_MAX_ROZMIAR] = {0};		//wynik transformaty
 stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xWnk_tab[FFT_MAX_ROZMIAR] = {0};	//raz wyliczona tablica współczynników, stała dla danego rozmiaru wektora N do potęgi k

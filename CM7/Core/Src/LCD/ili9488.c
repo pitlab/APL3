@@ -9,13 +9,13 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <LCD/ili9488.h>
+#include <LCD/ILI9488.h>
+#include <Main.h>
+#include <Rysuj.h>
 #include "ModulySPI.h"
 #include "cmsis_os.h"
 #include "LCD/LCD_SPI.h"
 #include "Ekran.h"
-#include "Rysuj.h"
-#include "main.h"
 #include "Semafory.h"
 #include "cmsis_os.h"
 // Wyświetlacz pracował na 25MHz ale później zaczął śmiecić na ekranie. Próbuję na 22,2MHz - jest OK

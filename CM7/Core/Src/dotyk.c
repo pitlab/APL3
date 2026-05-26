@@ -5,10 +5,12 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "Dotyk.h"
-#include <rysuj.h>
+#include <Czas.h>
+#include <Dotyk.h>
 #include <LCD/ILI9488.h>
 #include <LCD/RPi35B_480x320.h>
+#include <Napisy.h>
+#include <Rysuj.h>
 #include "ModulySPI.h"
 #include "KodyBledow.h"
 #include "LCD.h"
@@ -18,8 +20,6 @@
 #include <string.h>
 #include "FlashKonfig.h"
 #include "semafory.h"
-#include "czas.h"
-#include "napisy.h"
 
 //deklaracje zmiennych
 extern SPI_HandleTypeDef hspi5;

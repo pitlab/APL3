@@ -8,9 +8,9 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "LCD/LCD_SPI.h"
 #include "Ekran.h"
-#include "main.h"
 #include "ModulySPI.h"
 #include <math.h>
+#include <Main.h>
 #include <stdio.h>
 #include <string.h>
 #include "Semafory.h"

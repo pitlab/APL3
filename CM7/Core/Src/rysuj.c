@@ -8,18 +8,18 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 //#include <RPi35B_480x320.h>
-#include "Rysuj.h"
+#include <Audio.h>
+#include <Czas.h>
+#include <Dotyk.h>
+#include <LCD/ILI9488.h>
 #include <string.h>
 #include <stdio.h>
-#include "Dotyk.h"
-#include "Audio.h"
 #include <LCD/RPi35B_480x320.h>
-#include <LCD/ILI9488.h>
-#include "Czas.h"
+#include <Rejestrator.h>
+#include <Rysuj.h>
 #include "AnalizaObrazu.h"
 #include "FreeRTOS.h"
 #include "task.h"
-#include "Rejestrator.h"
 #include "SampleAudio.h"
 
 

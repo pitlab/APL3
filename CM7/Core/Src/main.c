@@ -77,33 +77,33 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 /* USER CODE BEGIN Includes */
 #include "SysDefCM7.h"
 #include "LCD.h"
-#include "Dotyk.h"
 #include "W25Q128JV.h"
 #include "FlashNOR.h"
 #include "FlashKonfig.h"
 #include "WymianaCM7.h"
 #include "ProtokolKomunikacyjny.h"
 #include "ModulySPI.h"
-#include "Audio.h"
-#include "Rejestrator.h"
-#include "Czas.h"
 #include "CAN.h"
-#include "Telemetria.h"
-#include "Kamera.h"
-#include "Pamiec.h"
 #include <LCD/RPi35B_480x320.h>
-#include <LCD/ILI9488.h>
-#include "siec/SerwerTCP.h"
-#include "siec/SerwerRTSP.h"
-#include "Jpeg.h"
-#include "Bmp.h"
-#include "OSD.h"
+#include <Pamiec.h>
 #include <PoleceniaCM4.h>
+#include <Rejestrator.h>
+#include <siec/SerwerRTSP.h>
+#include <Telemetria.h>
+#include "siec/SerwerTCP.h"
+#include "OSD.h"
 #include "FFT.h"
-
+#include <Dotyk.h>
+#include <Czas.h>
+#include <LCD/ILI9488.h>
+#include <Bmp.h>
+#include <Jpeg.h>
+#include <Audio.h>
+#include <Kamera.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
+typedef StaticTask_t osStaticThreadDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -162,14 +162,53 @@ MDMA_HandleTypeDef hmdma_mdma_channel5_sdmmc1_end_data_0;
 NOR_HandleTypeDef hnor3;
 SDRAM_HandleTypeDef hsdram1;
 
-osThreadId defaultTaskHandle;
-osThreadId tsOdbiorLPUART1Handle;
-osThreadId tsRejestratorHandle;
+/* Definitions for defaultTask */
+osThreadId_t defaultTaskHandle;
+const osThreadAttr_t defaultTask_attributes = {
+  .name = "defaultTask",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for tsOdbiorLPUART1 */
+osThreadId_t tsOdbiorLPUART1Handle;
+const osThreadAttr_t tsOdbiorLPUART1_attributes = {
+  .name = "tsOdbiorLPUART1",
+  .stack_size = 192 * 4,
+  .priority = (osPriority_t) osPriorityAboveNormal,
+};
+/* Definitions for tsRejestrator */
+osThreadId_t tsRejestratorHandle;
 uint32_t tsRejestratorBuffer[ 512 ];
 osStaticThreadDef_t tsRejestratorControlBlock;
-osThreadId tsObslugaWyswieHandle;
-osThreadId tsSerwerTCPHandle;
-osThreadId tsSerwerRTSPHandle;
+const osThreadAttr_t tsRejestrator_attributes = {
+  .name = "tsRejestrator",
+  .cb_mem = &tsRejestratorControlBlock,
+  .cb_size = sizeof(tsRejestratorControlBlock),
+  .stack_mem = &tsRejestratorBuffer[0],
+  .stack_size = sizeof(tsRejestratorBuffer),
+  .priority = (osPriority_t) osPriorityHigh,
+};
+/* Definitions for tsObslugaWyswie */
+osThreadId_t tsObslugaWyswieHandle;
+const osThreadAttr_t tsObslugaWyswie_attributes = {
+  .name = "tsObslugaWyswie",
+  .stack_size = 384 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for tsSerwerTCP */
+osThreadId_t tsSerwerTCPHandle;
+const osThreadAttr_t tsSerwerTCP_attributes = {
+  .name = "tsSerwerTCP",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityBelowNormal,
+};
+/* Definitions for tsSerwerRTSP */
+osThreadId_t tsSerwerRTSPHandle;
+const osThreadAttr_t tsSerwerRTSP_attributes = {
+  .name = "tsSerwerRTSP",
+  .stack_size = 1024 * 4,
+  .priority = (osPriority_t) osPriorityBelowNormal,
+};
 /* USER CODE BEGIN PV */
 uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 uint8_t cBłąd1, cBłąd = BLAD_OK;
@@ -208,12 +247,12 @@ static void MX_I2C2_Init(void);
 static void MX_TIM12_Init(void);
 static void MX_JPEG_Init(void);
 static void MX_DMA2D_Init(void);
-void StartDefaultTask(void const * argument);
-void WatekOdbiorczyLPUART1(void const * argument);
-void WatekRejestratora(void const * argument);
-void WatekWyswietlacza(void const * argument);
-void WatekSerweraTCP(void const * argument);
-void WatekSerweraRTSP(void const * argument);
+void StartDefaultTask(void *argument);
+void WatekOdbiorczyLPUART1(void *argument);
+void WatekRejestratora(void *argument);
+void WatekWyswietlacza(void *argument);
+void WatekSerweraTCP(void *argument);
+void WatekSerweraRTSP(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -406,6 +445,9 @@ Error_Handler();
   printf("Dzien dobry! APL3 nr %d (%s) zglasza sie gotowy do dzialania.\r\n", stBSP_ID.chAdres, stBSP_ID.chNazwa);		//wyślij komunikat po porcie debugującym
   /* USER CODE END 2 */
 
+  /* Init scheduler */
+  osKernelInitialize();
+
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
@@ -423,33 +465,31 @@ Error_Handler();
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 512);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* creation of defaultTask */
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
-  /* definition and creation of tsOdbiorLPUART1 */
-  osThreadDef(tsOdbiorLPUART1, WatekOdbiorczyLPUART1, osPriorityAboveNormal, 0, 192);
-  tsOdbiorLPUART1Handle = osThreadCreate(osThread(tsOdbiorLPUART1), NULL);
+  /* creation of tsOdbiorLPUART1 */
+  tsOdbiorLPUART1Handle = osThreadNew(WatekOdbiorczyLPUART1, NULL, &tsOdbiorLPUART1_attributes);
 
-  /* definition and creation of tsRejestrator */
-  osThreadStaticDef(tsRejestrator, WatekRejestratora, osPriorityHigh, 0, 512, tsRejestratorBuffer, &tsRejestratorControlBlock);
-  tsRejestratorHandle = osThreadCreate(osThread(tsRejestrator), NULL);
+  /* creation of tsRejestrator */
+  tsRejestratorHandle = osThreadNew(WatekRejestratora, NULL, &tsRejestrator_attributes);
 
-  /* definition and creation of tsObslugaWyswie */
-  osThreadDef(tsObslugaWyswie, WatekWyswietlacza, osPriorityLow, 0, 384);
-  tsObslugaWyswieHandle = osThreadCreate(osThread(tsObslugaWyswie), NULL);
+  /* creation of tsObslugaWyswie */
+  tsObslugaWyswieHandle = osThreadNew(WatekWyswietlacza, NULL, &tsObslugaWyswie_attributes);
 
-  /* definition and creation of tsSerwerTCP */
-  //osThreadDef(tsSerwerTCP, WatekSerweraTCP, osPriorityBelowNormal, 0, 512);
-  //tsSerwerTCPHandle = osThreadCreate(osThread(tsSerwerTCP), NULL);
+  /* creation of tsSerwerTCP */
+  tsSerwerTCPHandle = osThreadNew(WatekSerweraTCP, NULL, &tsSerwerTCP_attributes);
 
-  /* definition and creation of tsSerwerRTSP */
-  //osThreadDef(tsSerwerRTSP, WatekSerweraRTSP, osPriorityBelowNormal, 0, 1024);
-  //tsSerwerRTSPHandle = osThreadCreate(osThread(tsSerwerRTSP), NULL);
+  /* creation of tsSerwerRTSP */
+  tsSerwerRTSPHandle = osThreadNew(WatekSerweraRTSP, NULL, &tsSerwerRTSP_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
 
   /* Start scheduler */
   osKernelStart();
@@ -560,7 +600,7 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL3.PLL3M = 3;
   PeriphClkInitStruct.PLL3.PLL3N = 125;
   PeriphClkInitStruct.PLL3.PLL3P = 13;
-  PeriphClkInitStruct.PLL3.PLL3Q = 4;
+  PeriphClkInitStruct.PLL3.PLL3Q = 6;
   PeriphClkInitStruct.PLL3.PLL3R = 70;
   PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_2;
   PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;
@@ -1574,10 +1614,10 @@ static void MX_GPIO_Init(void)
 // Czas trwania: min. 30us, typ 32us
 ////////////////////////////////////////////////////////////////////////////////
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void const * argument)
+void StartDefaultTask(void *argument)
 {
   /* init code for LWIP */
-  //MX_LWIP_Init();
+  MX_LWIP_Init();
 
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
@@ -1626,7 +1666,7 @@ void StartDefaultTask(void const * argument)
 // Czas trwania: typ. 250ns,
 ////////////////////////////////////////////////////////////////////////////////
 /* USER CODE END Header_WatekOdbiorczyLPUART1 */
-void WatekOdbiorczyLPUART1(void const * argument)
+void WatekOdbiorczyLPUART1(void *argument)
 {
   /* USER CODE BEGIN WatekOdbiorczyLPUART1 */
 	uint32_t nCzasTele, nCzasPoprzedniTele;
@@ -1694,7 +1734,7 @@ void WatekOdbiorczyLPUART1(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_WatekRejestratora */
-void WatekRejestratora(void const * argument)
+void WatekRejestratora(void *argument)
 {
   /* USER CODE BEGIN WatekRejestratora */
 	extern volatile uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
@@ -1790,7 +1830,7 @@ void WatekRejestratora(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_WatekWyswietlacza */
-void WatekWyswietlacza(void const * argument)
+void WatekWyswietlacza(void *argument)
 {
   /* USER CODE BEGIN WatekWyswietlacza */
 	/* Infinite loop */
@@ -1815,7 +1855,7 @@ void WatekWyswietlacza(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_WatekSerweraTCP */
-void WatekSerweraTCP(void const * argument)
+void WatekSerweraTCP(void *argument)
 {
   /* USER CODE BEGIN WatekSerweraTCP */
 	OtworzPortSertweraTCP();
@@ -1834,7 +1874,7 @@ void WatekSerweraTCP(void const * argument)
 * @retval None
 */
 /* USER CODE END Header_WatekSerweraRTSP */
-void WatekSerweraRTSP(void const * argument)
+void WatekSerweraRTSP(void *argument)
 {
   /* USER CODE BEGIN WatekSerweraRTSP */
 	int nDeskryptorGniazdaPolaczenia;

@@ -6,8 +6,8 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <Main.h>
 #include "CAN.h"
-#include "main.h"
 #include "wymiana.h"
 
 //konfiguracja prametrów czasowych według https://kvaser.com/support/calculators/can-fd-bit-timing-calculator/

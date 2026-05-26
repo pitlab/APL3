@@ -6,11 +6,11 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "rysuj.h"
-#include "fraktale.h"
-#include "czas.h"
-#include <LCD/RPi35B_480x320.h>
+#include <Czas.h>
+#include <Fraktale.h>
 #include <LCD/ILI9488.h>
+#include <LCD/RPi35B_480x320.h>
+#include <Rysuj.h>
 
 float fZoom, fX, fY;
 float fReal, fImag;

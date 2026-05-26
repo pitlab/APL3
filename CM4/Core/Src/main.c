@@ -17,19 +17,22 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <Adc.h>
-#include <Fram.h>
-#include <Main.h>
-#include <Mikser.h>
-#include "PetlaGlowna.h"
-#include "ModulyWew.h"
+#include "main.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 #include "WymianaCM4.h"
+#include "PetlaGlowna.h"
+#include "ADC.h"
+#include "ModulyWew.h"
 #include "Modul_I2P.h"
-#include "JednostkaInercyjna.h"
 #include "RegulatorPID.h"
 #include "WeWyRC.h"
-#include "KontrolerLotu.h"
+#include "JednostkaInercyjna.h"
+#include <Fram.h>
+#include <Mikser.h>
 #include "Crossfire.h"
+#include "KontrolerLotu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -267,7 +270,7 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL3.PLL3M = 3;
   PeriphClkInitStruct.PLL3.PLL3N = 125;
   PeriphClkInitStruct.PLL3.PLL3P = 13;
-  PeriphClkInitStruct.PLL3.PLL3Q = 4;
+  PeriphClkInitStruct.PLL3.PLL3Q = 6;
   PeriphClkInitStruct.PLL3.PLL3R = 70;
   PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_2;
   PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;

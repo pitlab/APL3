@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2025 STMicroelectronics.
+  * Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -27,12 +27,12 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN Includes */
-#include "ModulySPI.h"
+
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-extern uint8_t chPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN];
+
 /* USER CODE END PV */
 
 /* USER CODE BEGIN PFP */
@@ -64,8 +64,7 @@ USBD_HandleTypeDef hUsbDeviceHS;
 void MX_USB_DEVICE_Init(void)
 {
   /* USER CODE BEGIN USB_DEVICE_Init_PreTreatment */
-	chPort_exp_wysylany[0] &= ~EXP05_USB_HOST_DEV;	//USB_HOST_DEVICE - sposób przedstawiania sie urządzenia po USB jako: 0=Host, 1=Device
-	WymienDaneExpanderow();
+
   /* USER CODE END USB_DEVICE_Init_PreTreatment */
 
   /* Init Device Library, add supported class and start the library. */

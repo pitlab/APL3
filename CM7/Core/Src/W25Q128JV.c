@@ -6,12 +6,12 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 
+#include <Czas.h>
 #include <LCD/RPi35B_480x320.h>
 #include <stdio.h>
 #include "W25Q128JV.h"
 #include "LCD.h"
 #include "FlashNOR.h"
-#include "czas.h"
 
 #ifdef UZYWAJ_QSPI	//aby użyć QSPI w cube MX trzeba zmienić definicje portu PB10 na QUADSPI_CS, ponieważ bez CS nkod się nie skompiluje
 extern QSPI_HandleTypeDef hqspi;

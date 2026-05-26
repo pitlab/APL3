@@ -28,12 +28,12 @@
 // 19 DOUT1				---
 // 20 DOUT0				---
 //////////////////////////////////////////////////////////////////////////////
-#include "Kamera.h"
+#include <Jpeg.h>
+#include <Kamera.h>
 #include "PoleceniaKomunikacyjne.h"
 #include "ModulySPI.h"
 #include "ProtokolKomunikacyjny.h"
 #include "Ekran.h"
-#include "Jpeg.h"
 #include "AnalizaObrazu.h"
 #include "cmsis_os.h"
 #include "OSD.h"

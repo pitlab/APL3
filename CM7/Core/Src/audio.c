@@ -5,13 +5,13 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <Audio.h>
 #include <LCD/RPi35B_480x320.h>
-#include "Audio.h"
+#include <Rysuj.h>
 #include "LCD.h"
 #include <stdio.h>
 #include "ModulySPI.h"
 #include "cmsis_os.h"
-#include "rysuj.h"
 #include "SampleAudio.h"
 #include "WymianaCM7.h"
 

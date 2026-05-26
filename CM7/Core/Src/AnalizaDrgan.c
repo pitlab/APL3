@@ -7,12 +7,12 @@
 // (c) PitLab 31 marzec 2026
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <Czas.h>
+#include <FFT.h>
 #include "AnalizaDrgan.h"
-#include "fft.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "czas.h"
 
 
 extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT+1][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego

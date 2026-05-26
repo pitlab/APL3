@@ -6,21 +6,21 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 
-#include "Rejestrator.h"
+#include <Czas.h>
+#include <Exif.h>
+#include <Jpeg.h>
+#include <Kamera.h>
+#include <LCD/ILI9488.h>
 #include "bsp_driver_sd.h"
 #include "ModulySPI.h"
 #include "wymiana.h"
-#include "kamera.h"
 #include "ff_gen_drv.h"
 #include "sd_diskio.h"
 #include <string.h>
 #include <stdio.h>
-#include <jpeg.h>
-#include "czas.h"
 #include "Ekran.h"
 #include "LCD.h"
-#include <LCD/ILI9488.h>
-#include "exif.h"
+#include <Rejestrator.h>
 
 extern SD_HandleTypeDef hsd1;
 extern uint8_t retSD;    /* Return value for SD */

@@ -5,8 +5,8 @@
 // (c) PitLab 2025..26
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <poleceniaCM4.h>
-#include "audio.h"
+#include <Audio.h>
+#include <PoleceniaCM4.h>
 #include <stdio.h>
 #include "ModulySPI.h"
 #include "SampleAudio.h"

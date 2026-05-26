@@ -8,8 +8,8 @@
 #ifndef INC_EXIF_H_
 #define INC_EXIF_H_
 
+#include <Kamera.h>
 #include "SysDefCM7.h"
-#include "kamera.h"
 #include "Wymiana.h"
 
 

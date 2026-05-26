@@ -6,13 +6,13 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <Czas.h>
+#include <Jpeg.h>
 #include "osd.h"
 #include "Ekran.h"
 #include "LCD/LCD_mem.h"
 #include "cmsis_os.h"
 #include <math.h>
-#include "Jpeg.h"
-#include "czas.h"
 
 //uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * ROZMIAR_KOLORU_OSD];	//pamięć obrazu OSD
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * ROZMIAR_KOLORU_OSD];	//pamięć obrazu OSD

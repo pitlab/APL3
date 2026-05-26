@@ -7,18 +7,18 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include <AnalizaDrgan.h>
+#include <FFT.h>
+#include <Kamera.h>
+#include <Komunikacja.h>
 #include <KonfigFram.h>
-#include "Komunikacja.h"
+#include <LCD/ILI9488.h>
+#include <Telemetria.h>
 #include "FlashKonfig.h"
 #include "FlashNOR.h"
-#include "telemetria.h"
 #include "ProtokolKomunikacyjny.h"
 #include "PoleceniaKomunikacyjne.h"
 #include "WymianaCM7.h"
-#include "kamera.h"
 #include "Ekran.h"
-#include "fft.h"
-#include "LCD/ILI9488.h"
 #include "cmsis_os.h"
 
 uint32_t nOffsetDanych;

@@ -8,9 +8,9 @@
 #ifndef INC_ANALIZA_DRGAN_H_
 #define INC_ANALIZA_DRGAN_H_
 
+#include <FFT.h>
 #include "SysDefCM7.h"
 #include "Wymiana.h"
-#include "fft.h"
 
 uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy);
 uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy);

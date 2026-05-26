@@ -6,14 +6,14 @@
 // (c) PitLab 2025-26
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "telemetria.h"
+#include <Czas.h>
+#include <Dotyk.h>
+#include <FFT.h>
+#include <Telemetria.h>
 #include "WymianaCM7.h"
-#include "czas.h"
 #include "FlashKonfig.h"
 #include "ProtokolKomunikacyjny.h"
 #include "PoleceniaKomunikacyjne.h"
-#include "dotyk.h"
-#include "fft.h"
 
 // Dane telemetryczne są wysyłane w zbiorczej ramce mogącej pomieścić MAX_ZMIENNYCH_TELEMETR_W_RAMCE (115). Dane są z puli adresowej obejmującej MAX_INDEKSOW_TELEMETR_W_RAMCE (128) zmiennych.
 // Ponieważ danych może być więcej, przewodziano 2 lub wiecej rodzajów ramek telemetrii

@@ -9,12 +9,12 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <Czas.h>
 #include <LCD/RPi35B_480x320.h>
-#include "Pamiec.h"
+#include <Pamiec.h>
+#include <Rysuj.h>
 #include <stdio.h>
-#include "Czas.h"
 #include "FlashNOR.h"
-#include "rysuj.h"
 
 //Dobry opis SDRAM https://community.st.com/t5/stm32-mcus/how-to-set-up-the-fmc-peripheral-to-interface-with-the-sdram/ta-p/49457
 /*  hsdram1.Init.SDBank = FMC_SDRAM_BANK1;

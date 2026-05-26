@@ -8,8 +8,8 @@
 #include "AnalizaObrazu.h"
 #include "stdlib.h"
 #include <cmsis_gcc.h>	//
-#include "czas.h"
-#include "jpeg.h"
+#include <Czas.h>
+#include <Jpeg.h>
 
 static uint32_t nSumaR[ROZMIAR_HIST_KOLOR];
 static uint32_t nSumaG[ROZMIAR_HIST_KOLOR];

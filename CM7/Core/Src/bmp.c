@@ -5,14 +5,14 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "Bmp.h"
-#include "Kamera.h"
+#include <Bmp.h>
+#include <Czas.h>
+#include <Kamera.h>
+#include <Rejestrator.h>
 #include "ff.h"
 #include <string.h>
 #include <stdlib.h>
 #include "Ekran.h"
-#include "Rejestrator.h"
-#include "Czas.h"
 
 FIL SDBmpFile;       //struktura pliku z obrazem
 extern RTC_TimeTypeDef stTime;

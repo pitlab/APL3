@@ -5,8 +5,8 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "EXIF.h"
-#include "Napisy.h"
+#include <Exif.h>
+#include <Napisy.h>
 
 uint8_t chNaglJpegExif[ROZMIAR_EXIF];
 extern const char *chNapisLcd[MAX_NAPISOW];

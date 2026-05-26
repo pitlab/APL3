@@ -6,14 +6,14 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "Jpeg.h"
-#include "exif.h"
+#include <Czas.h>
+#include <Exif.h>
+#include <Jpeg.h>
+#include <Kamera.h>
+#include <Rejestrator.h>
 #include "cmsis_os.h"
 #include "ff.h"
-#include "czas.h"
-#include "rejestrator.h"
 #include "AnalizaObrazu.h"
-#include "kamera.h"
 
 
 

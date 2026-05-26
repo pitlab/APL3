@@ -7,9 +7,9 @@
 
 #ifndef INC_LCD_H_
 #define INC_LCD_H_
+#include <Rysuj.h>
 #include "SysDefCM7.h"
 #include "Ekran.h"
-#include "Rysuj.h"
 #include "FFT.h"
 
 #define configTASK_RETURN_ADDRESS NULL	//https://community.st.com/t5/stm32cubeide-mcus/freertos-backtrace-problem/td-p/858548

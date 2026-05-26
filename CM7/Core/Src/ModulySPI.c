@@ -6,9 +6,9 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <Main.h>
 #include "ModulySPI.h"
 #include "KodyBledow.h"
-#include "main.h"
 #include "semafory.h"
 
 //deklaracje zmiennych
