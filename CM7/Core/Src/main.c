@@ -350,6 +350,8 @@ int main(void)
 /* When system initialization is finished, Cortex-M7 will release Cortex-M4 by means of HSEM notification */
 /*HW semaphore Clock enable*/
 __HAL_RCC_HSEM_CLK_ENABLE();
+//for(int i=0;i<32;i++)
+    //HAL_HSEM_Release(i,0);
 /*Take HSEM */
 HAL_HSEM_FastTake(HSEM_ID_0);
 /*Release HSEM in order to notify the CPU2(CM4)*/
@@ -364,6 +366,12 @@ Error_Handler();
 /* USER CODE END Boot_Mode_Sequence_2 */
 
   /* USER CODE BEGIN SysInit */
+
+// Sprawdzenie zegara SPI5 taktujacego LCD (max ok 20MHz), extender IO (max 10MHz) i panel dotykowy (max 2,5MHz)
+// Podstawa zegara to 500MHz / 10..13 co daje: 50 MHz, 45,5 MHz, 41,6 MHz, 38,5 MHz
+// Bezpieczna wartość zegara jest dla podzielnika 13 i dzielnika /2 dla LCD, /4 dla extendera i /16 dla panelu dotykowego
+  uint32_t nZegarSPI5 = HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SPI5);
+  assert(nZegarSPI5 == 38461540);
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -478,10 +486,10 @@ Error_Handler();
   tsObslugaWyswieHandle = osThreadNew(WatekWyswietlacza, NULL, &tsObslugaWyswie_attributes);
 
   /* creation of tsSerwerTCP */
-  tsSerwerTCPHandle = osThreadNew(WatekSerweraTCP, NULL, &tsSerwerTCP_attributes);
+  //tsSerwerTCPHandle = osThreadNew(WatekSerweraTCP, NULL, &tsSerwerTCP_attributes);
 
   /* creation of tsSerwerRTSP */
-  tsSerwerRTSPHandle = osThreadNew(WatekSerweraRTSP, NULL, &tsSerwerRTSP_attributes);
+  //tsSerwerRTSPHandle = osThreadNew(WatekSerweraRTSP, NULL, &tsSerwerRTSP_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -600,7 +608,7 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL3.PLL3M = 3;
   PeriphClkInitStruct.PLL3.PLL3N = 125;
   PeriphClkInitStruct.PLL3.PLL3P = 13;
-  PeriphClkInitStruct.PLL3.PLL3Q = 6;
+  PeriphClkInitStruct.PLL3.PLL3Q = 13;
   PeriphClkInitStruct.PLL3.PLL3R = 70;
   PeriphClkInitStruct.PLL3.PLL3RGE = RCC_PLL3VCIRANGE_2;
   PeriphClkInitStruct.PLL3.PLL3VCOSEL = RCC_PLL3VCOWIDE;
@@ -1196,7 +1204,7 @@ static void MX_SPI5_Init(void)
   hspi5.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi5.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi5.Init.NSS = SPI_NSS_SOFT;
-  hspi5.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+  hspi5.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
   hspi5.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi5.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi5.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -1617,7 +1625,7 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void *argument)
 {
   /* init code for LWIP */
-  MX_LWIP_Init();
+  //MX_LWIP_Init();
 
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();

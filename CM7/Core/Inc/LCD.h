@@ -47,7 +47,7 @@
 
 
 uint8_t RysujEkran(void);
-void Ekran_Powitalny(uint32_t nZainicjowano);
+uint8_t Ekran_Powitalny(uint32_t nZainicjowano);
 void Wykrycie(uint16_t x, uint16_t y, uint8_t dopelnij_znakow, uint8_t wynik);
 void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fParametr2, float fParametr3);
 void HSV2RGB(float hue, float sat, float val, float *red, float *grn, float *blu);

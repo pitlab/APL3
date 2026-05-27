@@ -1,7 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // Niskopoziomowe funkcje sterujące wyświetlaczem na magistrali SPI
-//
+// Niezależne od sterownika wyświetlacza
+// Przyjmuję że są zbyt niskopoziomowe aby chronić je semaforami, gdyż byłoby to
+// zbyt kosztowne czasowo ze względy na to że funkcje są wywyoływane w w dużych pętlach.
+// Semaforami shronione są funkcje ich używajace.
 //
 // (c) PitLab 2024
 // http://www.pitlab.pl
@@ -13,10 +16,13 @@
 #include <Main.h>
 #include <stdio.h>
 #include <string.h>
-#include "Semafory.h"
-#include "cmsis_os.h"
+
+
+
 //deklaracje zmiennych
 extern SPI_HandleTypeDef hspi5;
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wysyła polecenie do wyświetlacza LCD
@@ -26,47 +32,31 @@ extern SPI_HandleTypeDef hspi5;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t LCD_write_command16(uint8_t chDane)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 	uint8_t dane_nadawane[2];
 
 	dane_nadawane[0] = 0x00;
 	dane_nadawane[1] = chDane;
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-		osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	if (chErr == BLAD_OK)
-	{
-		UstawDekoderZewn(CS_LCD);											//LCD_CS=0
-		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
-		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
-		UstawDekoderZewn(CS_NIC);											//LCD_CS=1
-	}
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	return chErr;
+	UstawDekoderZewn(CS_LCD);											//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
+	cBłąd = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_DELAY_SPI);
+	UstawDekoderZewn(CS_NIC);											//LCD_CS=1
+	return cBłąd;
 }
 
 uint8_t LCD_write_command8(uint8_t chDane)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-		osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	if (chErr == BLAD_OK)
-	{
-		//Ponieważ zegar SPI = 50MHz a wyświetlacz może pracować z prędkością max 20MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 8 => 6,25MHz
-		//nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
-		hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
-		hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;
+	//Ponieważ zegar SPI = 38,46 MHz a wyświetlacz może pracować z prędkością max 20MHz więc przy każdym poleceniu ustaw dzielnik zegara na 2 => 19,23 MHz
+	hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
+	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;
 
-
-		UstawDekoderZewn(CS_LCD);											//LCD_CS=0
-		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
-		chErr = HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
-		UstawDekoderZewn(CS_NIC);											//LCD_CS=1
-	}
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	return chErr;
+	UstawDekoderZewn(CS_LCD);											//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
+	cBłąd = HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_DELAY_SPI);
+	UstawDekoderZewn(CS_NIC);											//LCD_CS=1
+	return cBłąd;
 }
 
 
@@ -78,20 +68,13 @@ uint8_t LCD_write_command8(uint8_t chDane)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t LCD_WrData(uint8_t* chDane, uint16_t sIlosc)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-		osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	if (chErr == BLAD_OK)
-	{
-		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-		chErr = HAL_SPI_Transmit(&hspi5, chDane, sIlosc, HAL_MAX_DELAY);
-		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-	}
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	return chErr;
+	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+	cBłąd = HAL_SPI_Transmit(&hspi5, chDane, sIlosc, HAL_DELAY_SPI);
+	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+	return cBłąd;
 }
 
 
@@ -122,23 +105,16 @@ uint8_t LCD_WrDataDMA(uint8_t* chDane, uint16_t sIlosc)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t LCD_write_data16(uint8_t chDane1, uint8_t chDane2)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 	uint8_t dane_nadawane[2];
 
 	dane_nadawane[0] = chDane1;
 	dane_nadawane[1] = chDane2;
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-			osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	if (chErr == BLAD_OK)
-	{
-		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
-		UstawDekoderZewn(CS_NIC);
-	}
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	return chErr;
+	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+	cBłąd = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_DELAY_SPI);
+	UstawDekoderZewn(CS_NIC);
+	return cBłąd;
 }
 
 
@@ -151,40 +127,27 @@ uint8_t LCD_write_data16(uint8_t chDane1, uint8_t chDane2)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t LCD_write_dat_jed16(uint8_t chDane)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 	uint8_t dane_nadawane[2];
 
 	dane_nadawane[0] = 0x00;
 	dane_nadawane[1] = chDane;
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-			osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	if (chErr == BLAD_OK)
-	{
-		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
-		UstawDekoderZewn(CS_NIC);
-	}
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	return chErr;
+	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+	cBłąd = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_DELAY_SPI);
+	UstawDekoderZewn(CS_NIC);
+	return cBłąd;
 }
+
 
 uint8_t LCD_write_dat_jed8(uint8_t chDane)
 {
-	HAL_StatusTypeDef chErr;
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-			osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	if (chErr == BLAD_OK)
-	{
-		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-		chErr = HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
-		UstawDekoderZewn(CS_NIC);
-	}
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	return chErr;
+	HAL_StatusTypeDef cBłąd;
+	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+	cBłąd = HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_DELAY_SPI);
+	UstawDekoderZewn(CS_NIC);
+	return cBłąd;
 }
 
 
@@ -197,41 +160,27 @@ uint8_t LCD_write_dat_jed8(uint8_t chDane)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t LCD_write_dat_pie16(uint8_t chDane)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 	uint8_t dane_nadawane[2];
 
 	dane_nadawane[0] = 0x00;
 	dane_nadawane[1] = chDane;
 
-
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-			osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	if (chErr == BLAD_OK)
-	{
-		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-		chErr = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
-	}
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	return chErr;
+	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+	cBłąd = HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_DELAY_SPI);
+	return cBłąd;
 }
+
 
 uint8_t LCD_write_dat_pie8(uint8_t chDane)
 {
-	HAL_StatusTypeDef chErr;
+	HAL_StatusTypeDef cBłąd;
 
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-			osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	if (chErr == BLAD_OK)
-	{
-		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-		chErr = HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
-	}
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	return chErr;
+	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+	cBłąd = HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_DELAY_SPI);
+	return cBłąd;
 }
 
 
@@ -245,29 +194,16 @@ uint8_t LCD_write_dat_pie8(uint8_t chDane)
 void LCD_write_dat_sro16(uint8_t chDane)
 {
 	uint8_t dane_nadawane[2];
-	HAL_StatusTypeDef chErr;
-
 	dane_nadawane[0] = 0x00;
 	dane_nadawane[1] = chDane;
 
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-			osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	if (chErr == BLAD_OK)
-		HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_DELAY_SPI);
 }
+
 
 void LCD_write_dat_sro8(uint8_t chDane)
 {
-	HAL_StatusTypeDef chErr;
-
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-			osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	if (chErr == BLAD_OK)
-		HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_DELAY_SPI);
 }
 
 
@@ -281,35 +217,18 @@ void LCD_write_dat_sro8(uint8_t chDane)
 void LCD_write_dat_ost16(uint8_t chDane)
 {
 	uint8_t dane_nadawane[2];
-	HAL_StatusTypeDef chErr;
-
 	dane_nadawane[0] = 0x00;
 	dane_nadawane[1] = chDane;
 
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-		osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	if (chErr == BLAD_OK)
-	{
-		HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_MAX_DELAY);
-		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-	}
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	HAL_SPI_Transmit(&hspi5, dane_nadawane, 2, HAL_DELAY_SPI);
+	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 }
+
 
 void LCD_write_dat_ost8(uint8_t chDane)
 {
-	HAL_StatusTypeDef chErr;
-
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-		osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	if (chErr == BLAD_OK)
-	{
-		HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_MAX_DELAY);
-		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-	}
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	HAL_SPI_Transmit(&hspi5, &chDane, 1, HAL_DELAY_SPI);
+	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 }
 
 
@@ -322,19 +241,10 @@ void LCD_write_dat_ost8(uint8_t chDane)
 ////////////////////////////////////////////////////////////////////////////////
 void LCD_data_read(uint8_t *chDane, uint8_t chIlosc)
 {
-	HAL_StatusTypeDef chErr;
-
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-			osDelay(1);
-	chErr = HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	if (chErr == BLAD_OK)
-	{
-		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-		HAL_SPI_Receive(&hspi5, chDane, chIlosc, 2);
-		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-	}
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+	HAL_SPI_Receive(&hspi5, chDane, chIlosc, 2);
+	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 }
 
 

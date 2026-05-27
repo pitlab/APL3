@@ -38,7 +38,7 @@ uint8_t PobierzDaneWymiany_CM7(void)
 	nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM7_TO_CM4);
 	if (!nStanSemafora)
 	{
-		cBłąd = HAL_HSEM_Take(HSEM_CM7_TO_CM4, 0);
+		cBłąd = HAL_HSEM_Take(HSEM_CM7_TO_CM4, HSEM_CM4);
 		if (cBłąd == BLAD_OK)
 		{
 			__DMB();	//Data Memory Barrier. Ensures the apparent order of the explicit memory operations before and after the instruction, without ensuring their completion.
@@ -51,7 +51,7 @@ uint8_t PobierzDaneWymiany_CM7(void)
 				__DSB();	//Data Synchronization Barrier. Acts as a special kind of Data Memory Barrier. It completes when all explicit memory accesses before this instruction complete.
 				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);		//kanał serw 1 skonfigurowany jako IO
 			}
-			HAL_HSEM_Release(HSEM_CM7_TO_CM4, 0);
+			HAL_HSEM_Release(HSEM_CM7_TO_CM4, HSEM_CM4);
 		}
 	}
 	return cBłąd;
@@ -75,10 +75,9 @@ uint8_t UstawDaneWymiany_CM4(void)
 	nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM4_TO_CM7);
 	if (!nStanSemafora)
 	{
-		cBłąd = HAL_HSEM_Take(HSEM_CM4_TO_CM7, 0);
+		cBłąd = HAL_HSEM_Take(HSEM_CM4_TO_CM7, HSEM_CM4);
 		if (cBłąd == BLAD_OK)
 		{
-
 			__DMB();	//Data Memory Barrier. Ensures the apparent order of the explicit memory operations before and after the instruction, without ensuring their completion.
 			//if ((sFlagiCM4 & FMR_SA_DANE_CM4) != FMR_SA_DANE_CM4)	//ustaw tylko gdy poprzednie zostały odczytane - nie czyta stanu zmiennej
 			{
@@ -89,7 +88,7 @@ uint8_t UstawDaneWymiany_CM4(void)
 				__DSB();	//Data Synchronization Barrier. Acts as a special kind of Data Memory Barrier. It completes when all explicit memory accesses before this instruction complete.
 				HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_RESET);			//kanał serw 7 skonfigurowany jako IO
 			}
-			HAL_HSEM_Release(HSEM_CM4_TO_CM7, 0);
+			HAL_HSEM_Release(HSEM_CM4_TO_CM7, HSEM_CM4);
 		}
 	}
 	return cBłąd;

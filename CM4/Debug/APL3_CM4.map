@@ -725,7 +725,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/BMP581.o
  .debug_macro   0x00000000      0x146 ./Core/Src/BMP581.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/BMP581.o
- .debug_macro   0x00000000       0x1c ./Core/Src/BMP581.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/BMP581.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/BMP581.o
  .debug_macro   0x00000000      0x645 ./Core/Src/BMP581.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/BMP581.o
@@ -890,7 +890,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/Crossfire.o
  .debug_macro   0x00000000      0x146 ./Core/Src/Crossfire.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/Crossfire.o
- .debug_macro   0x00000000       0x1c ./Core/Src/Crossfire.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/Crossfire.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/Crossfire.o
  .debug_macro   0x00000000      0x645 ./Core/Src/Crossfire.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/Crossfire.o
@@ -1053,7 +1053,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/DShot.o
  .debug_macro   0x00000000      0x146 ./Core/Src/DShot.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/DShot.o
- .debug_macro   0x00000000       0x1c ./Core/Src/DShot.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/DShot.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/DShot.o
  .debug_macro   0x00000000      0x645 ./Core/Src/DShot.o
  .debug_macro   0x00000000      0x69f ./Core/Src/DShot.o
@@ -1414,7 +1414,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/GNSS.o
  .debug_macro   0x00000000      0x146 ./Core/Src/GNSS.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/GNSS.o
- .debug_macro   0x00000000       0x1c ./Core/Src/GNSS.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/GNSS.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/GNSS.o
  .debug_macro   0x00000000      0x645 ./Core/Src/GNSS.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/GNSS.o
@@ -1579,7 +1579,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/HMC5883.o
  .debug_macro   0x00000000      0x146 ./Core/Src/HMC5883.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/HMC5883.o
- .debug_macro   0x00000000       0x1c ./Core/Src/HMC5883.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/HMC5883.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/HMC5883.o
  .debug_macro   0x00000000      0x645 ./Core/Src/HMC5883.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/HMC5883.o
@@ -1749,7 +1749,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/ICM42688.o
  .debug_macro   0x00000000      0x146 ./Core/Src/ICM42688.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/ICM42688.o
- .debug_macro   0x00000000       0x1c ./Core/Src/ICM42688.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/ICM42688.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/ICM42688.o
  .debug_macro   0x00000000      0x645 ./Core/Src/ICM42688.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/ICM42688.o
@@ -1926,7 +1926,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x40 ./Core/Src/IIS2mdc.o
  .debug_macro   0x00000000       0xa6 ./Core/Src/IIS2mdc.o
  .debug_macro   0x00000000       0x8e ./Core/Src/IIS2mdc.o
- .debug_macro   0x00000000       0x1c ./Core/Src/IIS2mdc.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/IIS2mdc.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/IIS2mdc.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/IIS2mdc.o
  .debug_macro   0x00000000       0x10 ./Core/Src/IIS2mdc.o
@@ -2091,7 +2091,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/JednostkaInercyjna.o
  .debug_macro   0x00000000      0x146 ./Core/Src/JednostkaInercyjna.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/JednostkaInercyjna.o
- .debug_macro   0x00000000       0x1c ./Core/Src/JednostkaInercyjna.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/JednostkaInercyjna.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/JednostkaInercyjna.o
  .debug_macro   0x00000000      0x645 ./Core/Src/JednostkaInercyjna.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/JednostkaInercyjna.o
@@ -2258,7 +2258,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/KontrolerLotu.o
  .debug_macro   0x00000000      0x146 ./Core/Src/KontrolerLotu.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/KontrolerLotu.o
- .debug_macro   0x00000000       0x1c ./Core/Src/KontrolerLotu.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/KontrolerLotu.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/KontrolerLotu.o
  .debug_macro   0x00000000      0x645 ./Core/Src/KontrolerLotu.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/KontrolerLotu.o
@@ -2596,7 +2596,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/LSM6DSV.o
  .debug_macro   0x00000000      0x146 ./Core/Src/LSM6DSV.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/LSM6DSV.o
- .debug_macro   0x00000000       0x1c ./Core/Src/LSM6DSV.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/LSM6DSV.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/LSM6DSV.o
  .debug_macro   0x00000000      0x645 ./Core/Src/LSM6DSV.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/LSM6DSV.o
@@ -2782,7 +2782,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x40 ./Core/Src/MMC3416x.o
  .debug_macro   0x00000000       0x8e ./Core/Src/MMC3416x.o
  .debug_macro   0x00000000       0xe2 ./Core/Src/MMC3416x.o
- .debug_macro   0x00000000       0x1c ./Core/Src/MMC3416x.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/MMC3416x.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/MMC3416x.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/MMC3416x.o
  .debug_macro   0x00000000       0x10 ./Core/Src/MMC3416x.o
@@ -2950,7 +2950,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/MS4525.o
  .debug_macro   0x00000000      0x146 ./Core/Src/MS4525.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/MS4525.o
- .debug_macro   0x00000000       0x1c ./Core/Src/MS4525.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/MS4525.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/MS4525.o
  .debug_macro   0x00000000      0x645 ./Core/Src/MS4525.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/MS4525.o
@@ -3123,7 +3123,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/MS5611.o
  .debug_macro   0x00000000      0x146 ./Core/Src/MS5611.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/MS5611.o
- .debug_macro   0x00000000       0x1c ./Core/Src/MS5611.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/MS5611.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/MS5611.o
  .debug_macro   0x00000000      0x645 ./Core/Src/MS5611.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/MS5611.o
@@ -3295,7 +3295,7 @@ Discarded input sections
  .debug_macro   0x00000000      0x69f ./Core/Src/Mikser.o
  .debug_macro   0x00000000       0x40 ./Core/Src/Mikser.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/Mikser.o
- .debug_macro   0x00000000       0x1c ./Core/Src/Mikser.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/Mikser.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/Mikser.o
  .debug_macro   0x00000000       0x16 ./Core/Src/Mikser.o
  .group         0x00000000        0xc ./Core/Src/Modul_I2P.o
@@ -3483,7 +3483,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x7c ./Core/Src/Modul_I2P.o
  .debug_macro   0x00000000       0x5e ./Core/Src/Modul_I2P.o
  .debug_macro   0x00000000       0x76 ./Core/Src/Modul_I2P.o
- .debug_macro   0x00000000       0x1c ./Core/Src/Modul_I2P.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/Modul_I2P.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/Modul_I2P.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/Modul_I2P.o
  .debug_macro   0x00000000       0x10 ./Core/Src/Modul_I2P.o
@@ -3813,7 +3813,7 @@ Discarded input sections
  .debug_macro   0x00000000       0xc4 ./Core/Src/ND130.o
  .debug_macro   0x00000000       0x1c ./Core/Src/ND130.o
  .debug_macro   0x00000000       0x10 ./Core/Src/ND130.o
- .debug_macro   0x00000000       0x1c ./Core/Src/ND130.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/ND130.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/ND130.o
  .debug_macro   0x00000000      0x645 ./Core/Src/ND130.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/ND130.o
@@ -4217,12 +4217,12 @@ Discarded input sections
  .debug_macro   0x00000000      0x146 ./Core/Src/Nmea.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/Nmea.o
  .debug_macro   0x00000000      0x166 ./Core/Src/Nmea.o
- .debug_macro   0x00000000       0x1c ./Core/Src/Nmea.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/Nmea.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/Nmea.o
  .debug_macro   0x00000000      0x645 ./Core/Src/Nmea.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/Nmea.o
  .debug_line    0x00000000     0x150b ./Core/Src/Nmea.o
- .debug_str     0x00000000   0x19a552 ./Core/Src/Nmea.o
+ .debug_str     0x00000000   0x19a586 ./Core/Src/Nmea.o
  .comment       0x00000000       0x44 ./Core/Src/Nmea.o
  .debug_frame   0x00000000      0x108 ./Core/Src/Nmea.o
  .ARM.attributes
@@ -4416,7 +4416,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/PetlaGlowna.o
  .debug_macro   0x00000000      0x146 ./Core/Src/PetlaGlowna.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/PetlaGlowna.o
- .debug_macro   0x00000000       0x1c ./Core/Src/PetlaGlowna.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/PetlaGlowna.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/PetlaGlowna.o
  .debug_macro   0x00000000      0x645 ./Core/Src/PetlaGlowna.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/PetlaGlowna.o
@@ -4599,7 +4599,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/RegulatorPID.o
  .debug_macro   0x00000000      0x146 ./Core/Src/RegulatorPID.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/RegulatorPID.o
- .debug_macro   0x00000000       0x1c ./Core/Src/RegulatorPID.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/RegulatorPID.o
  .debug_macro   0x00000000      0x645 ./Core/Src/RegulatorPID.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/RegulatorPID.o
  .debug_macro   0x00000000      0x69f ./Core/Src/RegulatorPID.o
@@ -4766,7 +4766,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/SBus.o
  .debug_macro   0x00000000      0x146 ./Core/Src/SBus.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/SBus.o
- .debug_macro   0x00000000       0x1c ./Core/Src/SBus.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/SBus.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/SBus.o
  .debug_macro   0x00000000      0x645 ./Core/Src/SBus.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/SBus.o
@@ -5094,7 +5094,7 @@ Discarded input sections
  .debug_macro   0x00000000      0x146 ./Core/Src/Uarty.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/Uarty.o
  .debug_macro   0x00000000       0x3a ./Core/Src/Uarty.o
- .debug_macro   0x00000000       0x1c ./Core/Src/Uarty.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/Uarty.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/Uarty.o
  .debug_macro   0x00000000      0x645 ./Core/Src/Uarty.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/Uarty.o
@@ -5264,7 +5264,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/WS281x.o
  .debug_macro   0x00000000      0x146 ./Core/Src/WS281x.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/WS281x.o
- .debug_macro   0x00000000       0x1c ./Core/Src/WS281x.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/WS281x.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/WS281x.o
  .debug_macro   0x00000000      0x645 ./Core/Src/WS281x.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/WS281x.o
@@ -5444,7 +5444,7 @@ Discarded input sections
  .debug_macro   0x00000000       0x16 ./Core/Src/WeWyRC.o
  .debug_macro   0x00000000      0x146 ./Core/Src/WeWyRC.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/WeWyRC.o
- .debug_macro   0x00000000       0x1c ./Core/Src/WeWyRC.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/WeWyRC.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/WeWyRC.o
  .debug_macro   0x00000000      0x645 ./Core/Src/WeWyRC.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/WeWyRC.o
@@ -5599,7 +5599,7 @@ Discarded input sections
  .debug_macro   0x00000000      0x69a ./Core/Src/WymianaCM4.o
  .debug_macro   0x00000000       0xa6 ./Core/Src/WymianaCM4.o
  .debug_macro   0x00000000      0x7a4 ./Core/Src/WymianaCM4.o
- .debug_macro   0x00000000       0x1c ./Core/Src/WymianaCM4.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/WymianaCM4.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/WymianaCM4.o
  .debug_macro   0x00000000      0x64b ./Core/Src/WymianaCM4.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/WymianaCM4.o
@@ -5766,7 +5766,7 @@ Discarded input sections
  .debug_macro   0x00000000      0x69a ./Core/Src/main.o
  .debug_macro   0x00000000       0xa6 ./Core/Src/main.o
  .debug_macro   0x00000000      0x7a4 ./Core/Src/main.o
- .debug_macro   0x00000000       0x1c ./Core/Src/main.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/main.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/main.o
  .debug_macro   0x00000000      0x64b ./Core/Src/main.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/main.o
@@ -6100,7 +6100,7 @@ Discarded input sections
  .debug_macro   0x00000000      0x146 ./Core/Src/stm32h7xx_it.o
  .debug_macro   0x00000000       0xc4 ./Core/Src/stm32h7xx_it.o
  .debug_macro   0x00000000      0x645 ./Core/Src/stm32h7xx_it.o
- .debug_macro   0x00000000       0x1c ./Core/Src/stm32h7xx_it.o
+ .debug_macro   0x00000000       0x3a ./Core/Src/stm32h7xx_it.o
  .debug_macro   0x00000000       0xa0 ./Core/Src/stm32h7xx_it.o
  .debug_macro   0x00000000      0x1d9 ./Core/Src/stm32h7xx_it.o
  .debug_macro   0x00000000       0xa6 ./Core/Src/stm32h7xx_it.o
@@ -14269,7 +14269,7 @@ LOAD C:/ST/STM32CubeIDE_2.0.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.exte
  .debug_rnglists
                 0x00001baf       0x7f ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_uart_ex.o
 
-.debug_macro    0x00000000    0x48c41
+.debug_macro    0x00000000    0x48c5f
  .debug_macro   0x00000000      0x2e7 ./Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o
  .debug_macro   0x000002e7      0xae4 ./Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o
  .debug_macro   0x00000dcb       0x2e ./Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o
@@ -14348,137 +14348,137 @@ LOAD C:/ST/STM32CubeIDE_2.0.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.exte
  .debug_macro   0x0003a81f      0x146 ./Core/Src/ADC.o
  .debug_macro   0x0003a965       0xc4 ./Core/Src/ADC.o
  .debug_macro   0x0003aa29       0x52 ./Core/Src/ADC.o
- .debug_macro   0x0003aa7b       0x1c ./Core/Src/ADC.o
- .debug_macro   0x0003aa97       0xa0 ./Core/Src/ADC.o
- .debug_macro   0x0003ab37      0x645 ./Core/Src/ADC.o
- .debug_macro   0x0003b17c      0x1d9 ./Core/Src/ADC.o
- .debug_macro   0x0003b355       0x10 ./Core/Src/ADC.o
- .debug_macro   0x0003b365      0x69f ./Core/Src/ADC.o
- .debug_macro   0x0003ba04       0x40 ./Core/Src/ADC.o
- .debug_macro   0x0003ba44       0x5e ./Core/Src/ADC.o
- .debug_macro   0x0003baa2      0x3bf ./Core/Src/BMP581.o
- .debug_macro   0x0003be61       0x5e ./Core/Src/BMP581.o
- .debug_macro   0x0003bebf       0x10 ./Core/Src/BMP581.o
- .debug_macro   0x0003becf       0x8e ./Core/Src/BMP581.o
- .debug_macro   0x0003bf5d       0xa6 ./Core/Src/BMP581.o
- .debug_macro   0x0003c003       0xe2 ./Core/Src/BMP581.o
- .debug_macro   0x0003c0e5       0x7c ./Core/Src/BMP581.o
- .debug_macro   0x0003c161      0x399 ./Core/Src/Crossfire.o
- .debug_macro   0x0003c4fa       0xa6 ./Core/Src/Crossfire.o
- .debug_macro   0x0003c5a0      0x118 ./Core/Src/Crossfire.o
- .debug_macro   0x0003c6b8       0x3a ./Core/Src/Crossfire.o
- .debug_macro   0x0003c6f2      0x38b ./Core/Src/DShot.o
- .debug_macro   0x0003ca7d      0x1d9 ./Core/Src/DShot.o
- .debug_macro   0x0003cc56       0x64 ./Core/Src/DShot.o
- .debug_macro   0x0003ccba      0x36d ./Core/Src/Fram.o
- .debug_macro   0x0003d027       0x40 ./Core/Src/Fram.o
- .debug_macro   0x0003d067       0x8e ./Core/Src/Fram.o
- .debug_macro   0x0003d0f5      0x394 ./Core/Src/GNSS.o
- .debug_macro   0x0003d489       0x34 ./Core/Src/GNSS.o
- .debug_macro   0x0003d4bd       0x58 ./Core/Src/GNSS.o
- .debug_macro   0x0003d515       0x40 ./Core/Src/GNSS.o
- .debug_macro   0x0003d555      0x3b0 ./Core/Src/HMC5883.o
- .debug_macro   0x0003d905       0x64 ./Core/Src/HMC5883.o
- .debug_macro   0x0003d969      0x3bf ./Core/Src/ICM42688.o
- .debug_macro   0x0003dd28      0x18a ./Core/Src/ICM42688.o
- .debug_macro   0x0003deb2      0x3aa ./Core/Src/IIS2mdc.o
- .debug_macro   0x0003e25c      0x3b9 ./Core/Src/JednostkaInercyjna.o
- .debug_macro   0x0003e615       0x22 ./Core/Src/JednostkaInercyjna.o
- .debug_macro   0x0003e637      0x3ae ./Core/Src/KontrolerLotu.o
- .debug_macro   0x0003e9e5       0x40 ./Core/Src/KontrolerLotu.o
- .debug_macro   0x0003ea25       0x16 ./Core/Src/KontrolerLotu.o
- .debug_macro   0x0003ea3b      0x34a ./Core/Src/Kwaterniony.o
- .debug_macro   0x0003ed85      0x3bf ./Core/Src/LSM6DSV.o
- .debug_macro   0x0003f144      0x2f9 ./Core/Src/LSM6DSV.o
- .debug_macro   0x0003f43d       0x10 ./Core/Src/LSM6DSV.o
- .debug_macro   0x0003f44d      0x3aa ./Core/Src/MMC3416x.o
- .debug_macro   0x0003f7f7      0x3bf ./Core/Src/MS4525.o
- .debug_macro   0x0003fbb6       0x1c ./Core/Src/MS4525.o
- .debug_macro   0x0003fbd2      0x3c6 ./Core/Src/MS5611.o
- .debug_macro   0x0003ff98       0x88 ./Core/Src/MS5611.o
- .debug_macro   0x00040020       0x76 ./Core/Src/MS5611.o
- .debug_macro   0x00040096      0x3b2 ./Core/Src/Mikser.o
- .debug_macro   0x00040448      0x3f8 ./Core/Src/Modul_I2P.o
- .debug_macro   0x00040840       0x64 ./Core/Src/Modul_I2P.o
- .debug_macro   0x000408a4      0x190 ./Core/Src/Modul_I2P.o
- .debug_macro   0x00040a34      0x2ff ./Core/Src/Modul_I2P.o
- .debug_macro   0x00040d33       0x1c ./Core/Src/Modul_I2P.o
- .debug_macro   0x00040d4f      0x358 ./Core/Src/ModulyWew.o
- .debug_macro   0x000410a7       0x58 ./Core/Src/ModulyWew.o
- .debug_macro   0x000410ff      0x3e2 ./Core/Src/ND130.o
- .debug_macro   0x000414e1      0x4b1 ./Core/Src/PetlaGlowna.o
- .debug_macro   0x00041992       0x52 ./Core/Src/PetlaGlowna.o
- .debug_macro   0x000419e4      0x16c ./Core/Src/PetlaGlowna.o
- .debug_macro   0x00041b50       0x6a ./Core/Src/PetlaGlowna.o
- .debug_macro   0x00041bba       0x28 ./Core/Src/PetlaGlowna.o
- .debug_macro   0x00041be2       0x52 ./Core/Src/PetlaGlowna.o
- .debug_macro   0x00041c34       0x8e ./Core/Src/PetlaGlowna.o
- .debug_macro   0x00041cc2       0x22 ./Core/Src/PetlaGlowna.o
- .debug_macro   0x00041ce4       0xac ./Core/Src/PetlaGlowna.o
- .debug_macro   0x00041d90      0x1e4 ./Core/Src/PetlaGlowna.o
- .debug_macro   0x00041f74      0x3aa ./Core/Src/RegulatorPID.o
- .debug_macro   0x0004231e       0x9a ./Core/Src/RegulatorPID.o
- .debug_macro   0x000423b8      0x394 ./Core/Src/SBus.o
- .debug_macro   0x0004274c       0x4c ./Core/Src/SBus.o
- .debug_macro   0x00042798      0x359 ./Core/Src/SPI.o
- .debug_macro   0x00042af1      0x3ba ./Core/Src/Uarty.o
- .debug_macro   0x00042eab       0x3a ./Core/Src/Uarty.o
- .debug_macro   0x00042ee5      0x3b8 ./Core/Src/WS281x.o
- .debug_macro   0x0004329d      0x420 ./Core/Src/WeWyRC.o
- .debug_macro   0x000436bd      0x324 ./Core/Src/WymianaCM4.o
- .debug_macro   0x000439e1      0x443 ./Core/Src/main.o
- .debug_macro   0x00043e24       0x88 ./Core/Src/main.o
- .debug_macro   0x00043eac       0x58 ./Core/Src/main.o
- .debug_macro   0x00043f04      0x2f6 ./Core/Src/stm32h7xx_hal_msp.o
- .debug_macro   0x000441fa      0x3a0 ./Core/Src/stm32h7xx_it.o
- .debug_macro   0x0004459a       0x10 ./Core/Src/stm32h7xx_it.o
- .debug_macro   0x000445aa      0x274 ./Core/Src/syscalls.o
- .debug_macro   0x0004481e       0x5b ./Core/Src/syscalls.o
- .debug_macro   0x00044879       0x94 ./Core/Src/syscalls.o
- .debug_macro   0x0004490d       0x57 ./Core/Src/syscalls.o
- .debug_macro   0x00044964       0x10 ./Core/Src/syscalls.o
- .debug_macro   0x00044974       0x10 ./Core/Src/syscalls.o
- .debug_macro   0x00044984       0x10 ./Core/Src/syscalls.o
- .debug_macro   0x00044994       0x10 ./Core/Src/syscalls.o
- .debug_macro   0x000449a4       0x1c ./Core/Src/syscalls.o
- .debug_macro   0x000449c0       0x52 ./Core/Src/syscalls.o
- .debug_macro   0x00044a12       0x22 ./Core/Src/syscalls.o
- .debug_macro   0x00044a34       0x10 ./Core/Src/syscalls.o
- .debug_macro   0x00044a44       0x52 ./Core/Src/syscalls.o
- .debug_macro   0x00044a96       0xcf ./Core/Src/syscalls.o
- .debug_macro   0x00044b65       0x1c ./Core/Src/syscalls.o
- .debug_macro   0x00044b81       0x3d ./Core/Src/syscalls.o
- .debug_macro   0x00044bbe       0x35 ./Core/Src/syscalls.o
- .debug_macro   0x00044bf3      0x12c ./Core/Src/syscalls.o
- .debug_macro   0x00044d1f       0x16 ./Core/Src/syscalls.o
- .debug_macro   0x00044d35       0x16 ./Core/Src/syscalls.o
- .debug_macro   0x00044d4b       0x29 ./Core/Src/syscalls.o
- .debug_macro   0x00044d74       0x10 ./Core/Src/syscalls.o
- .debug_macro   0x00044d84      0x242 ./Core/Src/syscalls.o
- .debug_macro   0x00044fc6       0x10 ./Core/Src/syscalls.o
- .debug_macro   0x00044fd6      0x18a ./Core/Src/syscalls.o
- .debug_macro   0x00045160       0x16 ./Core/Src/syscalls.o
- .debug_macro   0x00045176       0xce ./Core/Src/syscalls.o
- .debug_macro   0x00045244      0x112 ./Core/Src/sysmem.o
- .debug_macro   0x00045356      0x23c ./Core/Src/sysmem.o
- .debug_macro   0x00045592      0x311 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal.o
- .debug_macro   0x000458a3      0x30b ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_adc.o
- .debug_macro   0x00045bae      0x2f3 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_adc_ex.o
- .debug_macro   0x00045ea1      0x2e7 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_cortex.o
- .debug_macro   0x00046188      0x33b ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_dma.o
- .debug_macro   0x000464c3      0x2fb ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_gpio.o
- .debug_macro   0x000467be      0x2f9 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_hsem.o
- .debug_macro   0x00046ab7      0x3b3 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_i2c.o
- .debug_macro   0x00046e6a      0x2e7 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_i2c_ex.o
- .debug_macro   0x00047151      0x2fd ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pwr.o
- .debug_macro   0x0004744e      0x320 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pwr_ex.o
- .debug_macro   0x0004776e      0x30b ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_rcc.o
- .debug_macro   0x00047a79      0x305 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_rcc_ex.o
- .debug_macro   0x00047d7e      0x2ef ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_spi.o
- .debug_macro   0x0004806d      0x2e8 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_tim.o
- .debug_macro   0x00048355      0x2e7 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_tim_ex.o
- .debug_macro   0x0004863c      0x312 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_uart.o
- .debug_macro   0x0004894e      0x2f3 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_uart_ex.o
+ .debug_macro   0x0003aa7b       0x3a ./Core/Src/ADC.o
+ .debug_macro   0x0003aab5       0xa0 ./Core/Src/ADC.o
+ .debug_macro   0x0003ab55      0x645 ./Core/Src/ADC.o
+ .debug_macro   0x0003b19a      0x1d9 ./Core/Src/ADC.o
+ .debug_macro   0x0003b373       0x10 ./Core/Src/ADC.o
+ .debug_macro   0x0003b383      0x69f ./Core/Src/ADC.o
+ .debug_macro   0x0003ba22       0x40 ./Core/Src/ADC.o
+ .debug_macro   0x0003ba62       0x5e ./Core/Src/ADC.o
+ .debug_macro   0x0003bac0      0x3bf ./Core/Src/BMP581.o
+ .debug_macro   0x0003be7f       0x5e ./Core/Src/BMP581.o
+ .debug_macro   0x0003bedd       0x10 ./Core/Src/BMP581.o
+ .debug_macro   0x0003beed       0x8e ./Core/Src/BMP581.o
+ .debug_macro   0x0003bf7b       0xa6 ./Core/Src/BMP581.o
+ .debug_macro   0x0003c021       0xe2 ./Core/Src/BMP581.o
+ .debug_macro   0x0003c103       0x7c ./Core/Src/BMP581.o
+ .debug_macro   0x0003c17f      0x399 ./Core/Src/Crossfire.o
+ .debug_macro   0x0003c518       0xa6 ./Core/Src/Crossfire.o
+ .debug_macro   0x0003c5be      0x118 ./Core/Src/Crossfire.o
+ .debug_macro   0x0003c6d6       0x3a ./Core/Src/Crossfire.o
+ .debug_macro   0x0003c710      0x38b ./Core/Src/DShot.o
+ .debug_macro   0x0003ca9b      0x1d9 ./Core/Src/DShot.o
+ .debug_macro   0x0003cc74       0x64 ./Core/Src/DShot.o
+ .debug_macro   0x0003ccd8      0x36d ./Core/Src/Fram.o
+ .debug_macro   0x0003d045       0x40 ./Core/Src/Fram.o
+ .debug_macro   0x0003d085       0x8e ./Core/Src/Fram.o
+ .debug_macro   0x0003d113      0x394 ./Core/Src/GNSS.o
+ .debug_macro   0x0003d4a7       0x34 ./Core/Src/GNSS.o
+ .debug_macro   0x0003d4db       0x58 ./Core/Src/GNSS.o
+ .debug_macro   0x0003d533       0x40 ./Core/Src/GNSS.o
+ .debug_macro   0x0003d573      0x3b0 ./Core/Src/HMC5883.o
+ .debug_macro   0x0003d923       0x64 ./Core/Src/HMC5883.o
+ .debug_macro   0x0003d987      0x3bf ./Core/Src/ICM42688.o
+ .debug_macro   0x0003dd46      0x18a ./Core/Src/ICM42688.o
+ .debug_macro   0x0003ded0      0x3aa ./Core/Src/IIS2mdc.o
+ .debug_macro   0x0003e27a      0x3b9 ./Core/Src/JednostkaInercyjna.o
+ .debug_macro   0x0003e633       0x22 ./Core/Src/JednostkaInercyjna.o
+ .debug_macro   0x0003e655      0x3ae ./Core/Src/KontrolerLotu.o
+ .debug_macro   0x0003ea03       0x40 ./Core/Src/KontrolerLotu.o
+ .debug_macro   0x0003ea43       0x16 ./Core/Src/KontrolerLotu.o
+ .debug_macro   0x0003ea59      0x34a ./Core/Src/Kwaterniony.o
+ .debug_macro   0x0003eda3      0x3bf ./Core/Src/LSM6DSV.o
+ .debug_macro   0x0003f162      0x2f9 ./Core/Src/LSM6DSV.o
+ .debug_macro   0x0003f45b       0x10 ./Core/Src/LSM6DSV.o
+ .debug_macro   0x0003f46b      0x3aa ./Core/Src/MMC3416x.o
+ .debug_macro   0x0003f815      0x3bf ./Core/Src/MS4525.o
+ .debug_macro   0x0003fbd4       0x1c ./Core/Src/MS4525.o
+ .debug_macro   0x0003fbf0      0x3c6 ./Core/Src/MS5611.o
+ .debug_macro   0x0003ffb6       0x88 ./Core/Src/MS5611.o
+ .debug_macro   0x0004003e       0x76 ./Core/Src/MS5611.o
+ .debug_macro   0x000400b4      0x3b2 ./Core/Src/Mikser.o
+ .debug_macro   0x00040466      0x3f8 ./Core/Src/Modul_I2P.o
+ .debug_macro   0x0004085e       0x64 ./Core/Src/Modul_I2P.o
+ .debug_macro   0x000408c2      0x190 ./Core/Src/Modul_I2P.o
+ .debug_macro   0x00040a52      0x2ff ./Core/Src/Modul_I2P.o
+ .debug_macro   0x00040d51       0x1c ./Core/Src/Modul_I2P.o
+ .debug_macro   0x00040d6d      0x358 ./Core/Src/ModulyWew.o
+ .debug_macro   0x000410c5       0x58 ./Core/Src/ModulyWew.o
+ .debug_macro   0x0004111d      0x3e2 ./Core/Src/ND130.o
+ .debug_macro   0x000414ff      0x4b1 ./Core/Src/PetlaGlowna.o
+ .debug_macro   0x000419b0       0x52 ./Core/Src/PetlaGlowna.o
+ .debug_macro   0x00041a02      0x16c ./Core/Src/PetlaGlowna.o
+ .debug_macro   0x00041b6e       0x6a ./Core/Src/PetlaGlowna.o
+ .debug_macro   0x00041bd8       0x28 ./Core/Src/PetlaGlowna.o
+ .debug_macro   0x00041c00       0x52 ./Core/Src/PetlaGlowna.o
+ .debug_macro   0x00041c52       0x8e ./Core/Src/PetlaGlowna.o
+ .debug_macro   0x00041ce0       0x22 ./Core/Src/PetlaGlowna.o
+ .debug_macro   0x00041d02       0xac ./Core/Src/PetlaGlowna.o
+ .debug_macro   0x00041dae      0x1e4 ./Core/Src/PetlaGlowna.o
+ .debug_macro   0x00041f92      0x3aa ./Core/Src/RegulatorPID.o
+ .debug_macro   0x0004233c       0x9a ./Core/Src/RegulatorPID.o
+ .debug_macro   0x000423d6      0x394 ./Core/Src/SBus.o
+ .debug_macro   0x0004276a       0x4c ./Core/Src/SBus.o
+ .debug_macro   0x000427b6      0x359 ./Core/Src/SPI.o
+ .debug_macro   0x00042b0f      0x3ba ./Core/Src/Uarty.o
+ .debug_macro   0x00042ec9       0x3a ./Core/Src/Uarty.o
+ .debug_macro   0x00042f03      0x3b8 ./Core/Src/WS281x.o
+ .debug_macro   0x000432bb      0x420 ./Core/Src/WeWyRC.o
+ .debug_macro   0x000436db      0x324 ./Core/Src/WymianaCM4.o
+ .debug_macro   0x000439ff      0x443 ./Core/Src/main.o
+ .debug_macro   0x00043e42       0x88 ./Core/Src/main.o
+ .debug_macro   0x00043eca       0x58 ./Core/Src/main.o
+ .debug_macro   0x00043f22      0x2f6 ./Core/Src/stm32h7xx_hal_msp.o
+ .debug_macro   0x00044218      0x3a0 ./Core/Src/stm32h7xx_it.o
+ .debug_macro   0x000445b8       0x10 ./Core/Src/stm32h7xx_it.o
+ .debug_macro   0x000445c8      0x274 ./Core/Src/syscalls.o
+ .debug_macro   0x0004483c       0x5b ./Core/Src/syscalls.o
+ .debug_macro   0x00044897       0x94 ./Core/Src/syscalls.o
+ .debug_macro   0x0004492b       0x57 ./Core/Src/syscalls.o
+ .debug_macro   0x00044982       0x10 ./Core/Src/syscalls.o
+ .debug_macro   0x00044992       0x10 ./Core/Src/syscalls.o
+ .debug_macro   0x000449a2       0x10 ./Core/Src/syscalls.o
+ .debug_macro   0x000449b2       0x10 ./Core/Src/syscalls.o
+ .debug_macro   0x000449c2       0x1c ./Core/Src/syscalls.o
+ .debug_macro   0x000449de       0x52 ./Core/Src/syscalls.o
+ .debug_macro   0x00044a30       0x22 ./Core/Src/syscalls.o
+ .debug_macro   0x00044a52       0x10 ./Core/Src/syscalls.o
+ .debug_macro   0x00044a62       0x52 ./Core/Src/syscalls.o
+ .debug_macro   0x00044ab4       0xcf ./Core/Src/syscalls.o
+ .debug_macro   0x00044b83       0x1c ./Core/Src/syscalls.o
+ .debug_macro   0x00044b9f       0x3d ./Core/Src/syscalls.o
+ .debug_macro   0x00044bdc       0x35 ./Core/Src/syscalls.o
+ .debug_macro   0x00044c11      0x12c ./Core/Src/syscalls.o
+ .debug_macro   0x00044d3d       0x16 ./Core/Src/syscalls.o
+ .debug_macro   0x00044d53       0x16 ./Core/Src/syscalls.o
+ .debug_macro   0x00044d69       0x29 ./Core/Src/syscalls.o
+ .debug_macro   0x00044d92       0x10 ./Core/Src/syscalls.o
+ .debug_macro   0x00044da2      0x242 ./Core/Src/syscalls.o
+ .debug_macro   0x00044fe4       0x10 ./Core/Src/syscalls.o
+ .debug_macro   0x00044ff4      0x18a ./Core/Src/syscalls.o
+ .debug_macro   0x0004517e       0x16 ./Core/Src/syscalls.o
+ .debug_macro   0x00045194       0xce ./Core/Src/syscalls.o
+ .debug_macro   0x00045262      0x112 ./Core/Src/sysmem.o
+ .debug_macro   0x00045374      0x23c ./Core/Src/sysmem.o
+ .debug_macro   0x000455b0      0x311 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal.o
+ .debug_macro   0x000458c1      0x30b ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_adc.o
+ .debug_macro   0x00045bcc      0x2f3 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_adc_ex.o
+ .debug_macro   0x00045ebf      0x2e7 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_cortex.o
+ .debug_macro   0x000461a6      0x33b ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_dma.o
+ .debug_macro   0x000464e1      0x2fb ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_gpio.o
+ .debug_macro   0x000467dc      0x2f9 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_hsem.o
+ .debug_macro   0x00046ad5      0x3b3 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_i2c.o
+ .debug_macro   0x00046e88      0x2e7 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_i2c_ex.o
+ .debug_macro   0x0004716f      0x2fd ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pwr.o
+ .debug_macro   0x0004746c      0x320 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pwr_ex.o
+ .debug_macro   0x0004778c      0x30b ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_rcc.o
+ .debug_macro   0x00047a97      0x305 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_rcc_ex.o
+ .debug_macro   0x00047d9c      0x2ef ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_spi.o
+ .debug_macro   0x0004808b      0x2e8 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_tim.o
+ .debug_macro   0x00048373      0x2e7 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_tim_ex.o
+ .debug_macro   0x0004865a      0x312 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_uart.o
+ .debug_macro   0x0004896c      0x2f3 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_uart_ex.o
 
 .debug_line     0x00000000    0x3e82f
  .debug_line    0x00000000      0xb08 ./Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o
@@ -14535,112 +14535,112 @@ LOAD C:/ST/STM32CubeIDE_2.0.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.exte
  .debug_line    0x00039cc7     0x3c73 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_uart.o
  .debug_line    0x0003d93a      0xef5 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_uart_ex.o
 
-.debug_str      0x00000000   0x1addcb
- .debug_str     0x00000000   0x1addcb ./Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o
+.debug_str      0x00000000   0x1addff
+ .debug_str     0x00000000   0x1addff ./Common/Src/system_stm32h7xx_dualcore_boot_cm4_cm7.o
                              0x1979e6 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/ADC.o
-                             0x19c947 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/BMP581.o
-                             0x19aba1 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/Crossfire.o
-                             0x19ac5a (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/DShot.o
-                             0x19cdd2 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/Fram.o
+ .debug_str     0x001addff        0x0 ./Core/Src/ADC.o
+                             0x19c97b (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/BMP581.o
+                             0x19abd5 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/Crossfire.o
+                             0x19ac8e (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/DShot.o
+                             0x19ce06 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/Fram.o
                              0x19bbb6 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/GNSS.o
-                             0x19a9c2 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/HMC5883.o
-                             0x19c4bf (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/ICM42688.o
-                             0x19b836 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/IIS2mdc.o
-                             0x19c921 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/JednostkaInercyjna.o
-                             0x19bf87 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/KontrolerLotu.o
-                             0x19be93 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/Kwaterniony.o
+ .debug_str     0x001addff        0x0 ./Core/Src/GNSS.o
+                             0x19a9f6 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/HMC5883.o
+                             0x19c4f3 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/ICM42688.o
+                             0x19b86a (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/IIS2mdc.o
+                             0x19c955 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/JednostkaInercyjna.o
+                             0x19bfbb (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/KontrolerLotu.o
+                             0x19bec7 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/Kwaterniony.o
                              0x19933b (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/LSM6DSV.o
-                             0x19bea3 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/MMC3416x.o
-                             0x19ca0e (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/MS4525.o
-                             0x19b0e4 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/MS5611.o
-                             0x19b38a (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/Mikser.o
-                             0x19bedd (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/Modul_I2P.o
-                             0x19ec6e (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/ModulyWew.o
+ .debug_str     0x001addff        0x0 ./Core/Src/LSM6DSV.o
+                             0x19bed7 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/MMC3416x.o
+                             0x19ca42 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/MS4525.o
+                             0x19b118 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/MS5611.o
+                             0x19b3be (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/Mikser.o
+                             0x19bf11 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/Modul_I2P.o
+                             0x19eca2 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/ModulyWew.o
                              0x199d00 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/ND130.o
-                             0x19b2d2 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/PetlaGlowna.o
-                             0x19f37b (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/RegulatorPID.o
-                             0x19bf2e (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/SBus.o
-                             0x19ba00 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/SPI.o
+ .debug_str     0x001addff        0x0 ./Core/Src/ND130.o
+                             0x19b306 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/PetlaGlowna.o
+                             0x19f3af (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/RegulatorPID.o
+                             0x19bf62 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/SBus.o
+                             0x19ba34 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/SPI.o
                              0x199bc0 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/Uarty.o
-                             0x19ad99 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/WS281x.o
-                             0x19d8ff (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/WeWyRC.o
-                             0x19e87d (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/WymianaCM4.o
-                             0x199893 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/main.o
-                             0x19fdad (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/stm32h7xx_hal_msp.o
+ .debug_str     0x001addff        0x0 ./Core/Src/Uarty.o
+                             0x19adcd (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/WS281x.o
+                             0x19d933 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/WeWyRC.o
+                             0x19e8b1 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/WymianaCM4.o
+                             0x1998c7 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/main.o
+                             0x19fde1 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/stm32h7xx_hal_msp.o
                              0x199b59 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/stm32h7xx_it.o
-                             0x19bc4e (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/syscalls.o
+ .debug_str     0x001addff        0x0 ./Core/Src/stm32h7xx_it.o
+                             0x19bc82 (size before relaxing)
+ .debug_str     0x001addff        0x0 ./Core/Src/syscalls.o
                                0x99f3 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Src/sysmem.o
+ .debug_str     0x001addff        0x0 ./Core/Src/sysmem.o
                                0x7791 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Core/Startup/startup_stm32h755bitx.o
+ .debug_str     0x001addff        0x0 ./Core/Startup/startup_stm32h755bitx.o
                                  0x68 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal.o
                              0x198d16 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_adc.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_adc.o
                              0x198c84 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_adc_ex.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_adc_ex.o
                              0x198af2 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_cortex.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_cortex.o
                              0x19849c (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_dma.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_dma.o
                              0x198304 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_gpio.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_gpio.o
                              0x197bf5 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_hsem.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_hsem.o
                              0x197880 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_i2c.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_i2c.o
                              0x198c20 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_i2c_ex.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_i2c_ex.o
                              0x197fc4 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pwr.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pwr.o
                              0x197ac5 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pwr_ex.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pwr_ex.o
                              0x19804b (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_rcc.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_rcc.o
                              0x197f76 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_rcc_ex.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_rcc_ex.o
                              0x1984ab (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_spi.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_spi.o
                              0x198287 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_tim.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_tim.o
                              0x199399 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_tim_ex.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_tim_ex.o
                              0x198895 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_uart.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_uart.o
                              0x198e16 (size before relaxing)
- .debug_str     0x001addcb        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_uart_ex.o
+ .debug_str     0x001addff        0x0 ./Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_uart_ex.o
                              0x19817f (size before relaxing)
 
 .comment        0x00000000       0x43

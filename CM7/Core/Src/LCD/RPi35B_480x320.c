@@ -588,10 +588,11 @@ uint16_t getBackColor(void)
 // Zwraca: nic
 // Czas rysowania pełnego ekranu: 372ms @25MHz
 ////////////////////////////////////////////////////////////////////////////////
-void RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t kolor)
+uint8_t RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t kolor)
 {
 	uint16_t i, j, k;
 	uint8_t n, dane[8];
+	uint8_t cBłąd = BLAD_OK;
 
 	for (n=0; n<8; n++)
 		dane[n] = 0;
@@ -630,6 +631,7 @@ void RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzer
 				LCD_WrData(dane, 2);	//dopełnij reszte
 		}
 	}
+	return cBłąd;
 }
 
 

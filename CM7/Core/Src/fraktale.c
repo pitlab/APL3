@@ -17,7 +17,7 @@ float fReal, fImag;
 uint16_t sMnozPalety;
 uint8_t chDemoMode = START_FRAKTAL;	//zacznij od rotacji palety Mandelbrota
 extern uint8_t chLiczIter;		//licznik iteracji fraktala
-extern uint8_t chBuforLCD[];	//rozmiar bufora zależy od typu wyświetlacza
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
 extern char chNapis[100];
 extern uint8_t MidFont[];
 

@@ -20,7 +20,7 @@
 #include "cmsis_os.h"
 // Wyświetlacz pracował na 25MHz ale później zaczął śmiecić na ekranie. Próbuję na 22,2MHz - jest OK
 
-#ifdef LCD_ILI9488
+
 //deklaracje zmiennych
 extern SPI_HandleTypeDef hspi5;
 extern uint8_t chRysujRaz;
@@ -30,9 +30,7 @@ extern uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy ry
 extern struct current_font cfont;
 uint8_t chKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
 uint8_t chTlo666[3];		//kolory tła w formacie RGB 6-6-6
-//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
-
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
 
 
 
@@ -165,9 +163,11 @@ void OrientacjaEkranu(uint8_t orientacja)
 // Zwraca: nic
 // Czas czyszczenia ekranu: 378ms @25MHz
 ////////////////////////////////////////////////////////////////////////////////
-void WypelnijEkran(uint16_t sKolor565)
+uint8_t WypelnijEkran(uint16_t sKolor565)
 {
 	uint8_t chDane[12];
+	uint8_t cBłąd = BLAD_OK;
+	uint8_t cLicznikProbOdblokowania = 10;
 
 	if (!sKolor565)
 		sKolor565 = CZARNY;
@@ -176,30 +176,36 @@ void WypelnijEkran(uint16_t sKolor565)
 	setColor(sKolor565);		//wykonuje konwersję z RGB565 na RGB666
 	setBackColor(sKolor565);
 
-	LCD_write_command8(ILI9488_CASET);	//Column Address Set
-	for (uint8_t x=0; x<2; x++)
-		chDane[x] = 0;
-	chDane[2] = 0x01;
-	chDane[3] = 0xDF;		//479 = 0x1DF
-	LCD_WrData(chDane, 4);
-
-	LCD_write_command8(ILI9488_PASET);	//Page Address Set
-	chDane[2] = 0x01;
-	chDane[3] = 0x3F;		//319 = 0x13F
-	LCD_WrData(chDane, 4);
-
-	for (uint8_t x=0; x<4; x++)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
 	{
-		chDane[3*x + 0] = chKolor666[0];
-		chDane[3*x + 1] = chKolor666[1];
-		chDane[3*x + 2] = chKolor666[2];
-	}
-	LCD_write_command8(ILI9488_RAMWR);	//Memory Write
-
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
 		osDelay(1);
-	HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+		if (cLicznikProbOdblokowania)
+			cLicznikProbOdblokowania--;
+		else
+			return BLAD_SEMAFOR_ZAJETY;
+	}
+	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
+		LCD_write_command8(ILI9488_CASET);	//Column Address Set
+		for (uint8_t x=0; x<2; x++)
+			chDane[x] = 0;
+		chDane[2] = 0x01;
+		chDane[3] = 0xDF;		//479 = 0x1DF
+		LCD_WrData(chDane, 4);
+
+		LCD_write_command8(ILI9488_PASET);	//Page Address Set
+		chDane[2] = 0x01;
+		chDane[3] = 0x3F;		//319 = 0x13F
+		LCD_WrData(chDane, 4);
+
+		for (uint8_t x=0; x<4; x++)
+		{
+			chDane[3*x + 0] = chKolor666[0];
+			chDane[3*x + 1] = chKolor666[1];
+			chDane[3*x + 2] = chKolor666[2];
+		}
+		LCD_write_command8(ILI9488_RAMWR);	//Memory Write
+
 		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 		for(uint16_t y=0; y<320; y++)
@@ -207,10 +213,12 @@ void WypelnijEkran(uint16_t sKolor565)
 			for(uint16_t x=0; x<480/4; x++)
 				HAL_SPI_Transmit(&hspi5, chDane, 12, HAL_DELAY_SPI);
 		}
-			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+	return cBłąd;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -224,7 +232,6 @@ void setColorRGB(uint8_t r, uint8_t g, uint8_t b)
 	chKolor666[1] = g;
 	chKolor666[2] = b;
 }
-
 
 
 
@@ -295,7 +302,6 @@ void setBackColor(uint16_t sKolor565)
 ////////////////////////////////////////////////////////////////////////////////
 uint16_t getBackColor(void)
 {
-	//return ((uint16_t)(chTlo666[0] & 0xF8) << 11) + ((uint16_t)(chTlo666[1] & 0xFC) << 5) + (chTlo666[2] & 0xF8);
 	return ((uint16_t)(chTlo666[0] & 0xF8)  << 8) + ((uint16_t)(chTlo666[1] & 0xFC) << 3) + ((chTlo666[2] & 0xF8) >>3);
 }
 
@@ -308,49 +314,65 @@ uint16_t getBackColor(void)
 // Zwraca: nic
 // Czas rysowania pełnego ekranu: 372ms @25MHz
 ////////////////////////////////////////////////////////////////////////////////
-void RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t sKolor565)
+uint8_t RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t sKolor565)
 {
 	uint16_t i, j, k;
 	uint8_t n, dane[12];
+	uint8_t cLicznikProbOdblokowania = 10;
+	uint8_t cBłąd = BLAD_OK;
 
-	LCD_write_command8(ILI9488_CASET);	//Column Address Set
-	dane[0] = sStartX >> 8;
-	dane[1] = sStartX;
-	dane[2] = (sStartX + sSzerokosc - 1) >> 8;
-	dane[3] = sStartX + sSzerokosc - 1;
-	LCD_WrData(dane, 4);
-
-	LCD_write_command8(ILI9488_PASET);	//Page Address Set
-	dane[0] = sStartY >> 8;
-	dane[1] = sStartY;
-	dane[2] = (sStartY +  sWysokosc - 1) >> 8;
-	dane[3] =  sStartY + sWysokosc - 1;
-	LCD_WrData(dane, 4);
-
-	setColor(sKolor565);
-	LCD_write_command8(ILI9488_RAMWR);	//Memory Write
-	for(n=0; n<4; n++)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
 	{
-		LCD_WrData(chKolor666, 3);
-		dane[3*n + 0] = chKolor666[0];
-		dane[3*n + 1] = chKolor666[1];
-		dane[3*n + 2] = chKolor666[2];
+		osDelay(1);
+		if (cLicznikProbOdblokowania)
+			cLicznikProbOdblokowania--;
+		else
+			return BLAD_SEMAFOR_ZAJETY;
 	}
-
-	for(i=0; i<sWysokosc; i++)
+	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
-		for(j=0; j<sSzerokosc/4; j++)
-			LCD_WrData(dane, 12);
+		LCD_write_command8(ILI9488_CASET);	//Column Address Set
+		dane[0] = sStartX >> 8;
+		dane[1] = sStartX;
+		dane[2] = (sStartX + sSzerokosc - 1) >> 8;
+		dane[3] = sStartX + sSzerokosc - 1;
+		LCD_WrData(dane, 4);
 
-		//ponieważ wypełnianie odbywa się paczkami po 4 pixele, może zdarzyć się że nie dopełni wszystkich danych
-		k = sSzerokosc - j * 4;	//policz czy jest reszta
-		if (k)
+		LCD_write_command8(ILI9488_PASET);	//Page Address Set
+		dane[0] = sStartY >> 8;
+		dane[1] = sStartY;
+		dane[2] = (sStartY +  sWysokosc - 1) >> 8;
+		dane[3] =  sStartY + sWysokosc - 1;
+		LCD_WrData(dane, 4);
+
+		setColor(sKolor565);
+		LCD_write_command8(ILI9488_RAMWR);	//Memory Write
+		for(n=0; n<4; n++)
 		{
-			for(j=0; j<k; j++)
-				LCD_WrData(dane, 3);	//dopełnij reszte
+			LCD_WrData(chKolor666, 3);
+			dane[3*n + 0] = chKolor666[0];
+			dane[3*n + 1] = chKolor666[1];
+			dane[3*n + 2] = chKolor666[2];
 		}
+
+		for(i=0; i<sWysokosc; i++)
+		{
+			for(j=0; j<sSzerokosc/4; j++)
+				LCD_WrData(dane, 12);
+
+			//ponieważ wypełnianie odbywa się paczkami po 4 pixele, może zdarzyć się że nie dopełni wszystkich danych
+			k = sSzerokosc - j * 4;	//policz czy jest reszta
+			if (k)
+			{
+				for(j=0; j<k; j++)
+					LCD_WrData(dane, 3);	//dopełnij reszte
+			}
+		}
+		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	return cBłąd;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -361,18 +383,20 @@ void RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzer
 ////////////////////////////////////////////////////////////////////////////////
 void RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor)
 {
-	setXY(x, y, x, y);
-
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
 		osDelay(1);
-	HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
+	{
+		setXY(x, y, x, y);
 
-	HAL_SPI_Transmit(&hspi5, chKolor, 3, HAL_DELAY_SPI);
-	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	clrXY();
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+
+		HAL_SPI_Transmit(&hspi5, chKolor, 3, HAL_DELAY_SPI);
+		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+		clrXY();
+		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
+	}
 }
 
 
@@ -385,24 +409,25 @@ void RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor)
 ////////////////////////////////////////////////////////////////////////////////
 void RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 {
-	if (len < 0)
-	{
-		len = -len;
-		x -= len;
-	}
-	setXY(x, y, x+len, y);
-
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
 		osDelay(1);
-	HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-	for (uint16_t n=0; n<len+1; n++)
-		HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
-	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	//LCD_WrData(chKolor666, 3 * (len + 1));
-	clrXY();
+	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
+	{
+		if (len < 0)
+		{
+			len = -len;
+			x -= len;
+		}
+		setXY(x, y, x+len, y);
+
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+		for (uint16_t n=0; n<len+1; n++)
+			HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+		clrXY();
+		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
+	}
 }
 
 
@@ -415,23 +440,24 @@ void RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 ////////////////////////////////////////////////////////////////////////////////
 void RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 {
-	if (len < 0)
-	{
-		len = -len;
-		y -= len;
-	}
-	setXY(x, y, x, y+len);
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
 		osDelay(1);
-	HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-	UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-	for (uint16_t n=0; n<len+1; n++)
-		HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
-	UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-	HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	//LCD_WrData(chKolor666, 3 * (len + 1));
-	clrXY();
+	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
+	{
+		if (len < 0)
+		{
+			len = -len;
+			y -= len;
+		}
+		setXY(x, y, x, y+len);
+		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+		for (uint16_t n=0; n<len+1; n++)
+			HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+		clrXY();
+		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
+	}
 }
 
 
@@ -455,51 +481,58 @@ void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 		int16_t		ystep =  y2 > y1 ? 1 : -1;
 		int16_t	col = x1, row = y1;
 
-		if (dx < dy)
+		while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
+			osDelay(1);
+		if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 		{
-			int16_t t = - (dy >> 1);
-			while (1)
+			if (dx < dy)
 			{
-				setXY (col, row, col, row);
-				LCD_WrData(chKolor666, 3);
+				int16_t t = - (dy >> 1);
+				while (1)
+				{
+					setXY (col, row, col, row);
+					LCD_WrData(chKolor666, 3);
 
-				if (row == y2)
-					return;
-				row += ystep;
-				t += dx;
-				if (t >= 0)
-				{
-					col += xstep;
-					t   -= dy;
-				}
-			}
-		}
-		else
-		{
-			int16_t t = - (dx >> 1);
-			while (1)
-			{
-				setXY (col, row, col, row);
-				LCD_WrData(chKolor666, 3);
-				if (col == x2)
-					return;
-				col += xstep;
-				t += dy;
-				if (t >= 0)
-				{
+					if (row == y2)
+						return;
 					row += ystep;
-					t   -= dx;
+					t += dx;
+					if (t >= 0)
+					{
+						col += xstep;
+						t   -= dy;
+					}
+				}
+			}
+			else
+			{
+				int16_t t = - (dx >> 1);
+				while (1)
+				{
+					setXY (col, row, col, row);
+					LCD_WrData(chKolor666, 3);
+					if (col == x2)
+						return;
+					col += xstep;
+					t += dy;
+					if (t >= 0)
+					{
+						row += ystep;
+						t   -= dx;
+					}
 				}
 			}
 		}
+		clrXY();
+		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
-	clrXY();
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
 // ustawia parametry pamięci do rysowania linii
+// Funkcja używana wewnętrz obszaru chronionego semaforem. Nie ma potrzeby chronić jej osobno
 // Parametry:
 // x1, y1 współrzędne początku obszaru
 // x2, y2 współrzędne końca obszaru
@@ -546,6 +579,7 @@ void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 
 ////////////////////////////////////////////////////////////////////////////////
 // zeruje parametry pamięci do rysowania linii
+// Funkcja używana wewnętrz obszaru chronionego semaforem. Nie ma potrzeby chronić jej osobno
 // Parametry:nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -564,11 +598,11 @@ void clrXY(void)
 // Parametry: x, y - współrzędne
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void drawPixel(uint16_t x, uint16_t y)
+/*void drawPixel(uint16_t x, uint16_t y)
 {
 	setXY(x, y, x, y);
 	LCD_WrData(chKolor666, 3);
-}
+}*/
 
 
 
@@ -584,88 +618,84 @@ void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 	uint16_t temp;
 	uint16_t zz;
 
-	if (!_transparent)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
+		osDelay(1);
+	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
-		if (chOrientacja == POZIOMO)
+		if (!_transparent)
 		{
-			setXY(x, y, x + cfont.x_size - 1, y + cfont.y_size -  1);
-			while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-				osDelay(1);
-			HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-			UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-			HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-
-
-			temp=((c - cfont.offset) * ((cfont.x_size / 8) * cfont.y_size)) + 4;
-			for(j=0; j<((cfont.x_size / 8) * cfont.y_size); j++)
+			if (chOrientacja == POZIOMO)
 			{
-				ch = cfont.font[temp];
-				for(i=0; i<8; i++)
+				setXY(x, y, x + cfont.x_size - 1, y + cfont.y_size -  1);
+
+				UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+				HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+
+
+				temp=((c - cfont.offset) * ((cfont.x_size / 8) * cfont.y_size)) + 4;
+				for(j=0; j<((cfont.x_size / 8) * cfont.y_size); j++)
 				{
-					if ((ch&(1<<(7-i))) != 0)
-						//LCD_WrData(chKolor666, 3);
-						HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
-					else
-						//LCD_WrData(chTlo666, 3);
-						HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_DELAY_SPI);
+					ch = cfont.font[temp];
+					for(i=0; i<8; i++)
+					{
+						if ((ch&(1<<(7-i))) != 0)
+							HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+						else
+							HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_DELAY_SPI);
+					}
+					temp++;
 				}
-				temp++;
+				UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 			}
-			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
+			else
+			{
+				temp=((c-cfont.offset)*((cfont.x_size/8)*cfont.y_size))+4;
+
+				for(j=0;j<((cfont.x_size/8)*cfont.y_size);j+=(cfont.x_size/8))
+				{
+					setXY(x,y+(j/(cfont.x_size/8)),x+cfont.x_size-1,y+(j/(cfont.x_size/8)));
+					UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+					HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+					for (zz=(cfont.x_size/8)-1; zz>=0; zz--)
+					{
+						ch=cfont.font[temp+zz];
+						for(i=0;i<8;i++)
+						{
+							if((ch&(1<<i))!=0)
+								HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+							else
+								HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_DELAY_SPI);
+						}
+					}
+					UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+
+					temp+=(cfont.x_size/8);
+				}
+			}
 		}
 		else
 		{
 			temp=((c-cfont.offset)*((cfont.x_size/8)*cfont.y_size))+4;
-
-			for(j=0;j<((cfont.x_size/8)*cfont.y_size);j+=(cfont.x_size/8))
+			for(j=0;j<cfont.y_size;j++)
 			{
-				setXY(x,y+(j/(cfont.x_size/8)),x+cfont.x_size-1,y+(j/(cfont.x_size/8)));
-				while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-					osDelay(1);
-				HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-				UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-				HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-				for (zz=(cfont.x_size/8)-1; zz>=0; zz--)
+				for (zz=0; zz<(cfont.x_size/8); zz++)
 				{
-					ch=cfont.font[temp+zz];
+					ch = cfont.font[temp+zz];
 					for(i=0;i<8;i++)
 					{
-						if((ch&(1<<i))!=0)
-							//LCD_WrData(chKolor666, 3);
-							HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
-						else
-							//LCD_WrData(chTlo666, 3);
-							HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_DELAY_SPI);
+						if((ch&(1<<(7-i)))!=0)
+						{
+							setXY(x+i+(zz*8),y+j,x+i+(zz*8)+1,y+j+1);
+							LCD_WrData(chKolor666, 3);
+						}
 					}
 				}
-				UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-				HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 				temp+=(cfont.x_size/8);
 			}
 		}
+		clrXY();
+		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
-	else
-	{
-		temp=((c-cfont.offset)*((cfont.x_size/8)*cfont.y_size))+4;
-		for(j=0;j<cfont.y_size;j++)
-		{
-			for (zz=0; zz<(cfont.x_size/8); zz++)
-			{
-				ch = cfont.font[temp+zz];
-				for(i=0;i<8;i++)
-				{
-					if((ch&(1<<(7-i)))!=0)
-					{
-						setXY(x+i+(zz*8),y+j,x+i+(zz*8)+1,y+j+1);
-						LCD_WrData(chKolor666, 3);
-					}
-				}
-			}
-			temp+=(cfont.x_size/8);
-		}
-	}
-	clrXY();
 }
 
 
@@ -679,48 +709,46 @@ void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 ////////////////////////////////////////////////////////////////////////////////
 void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* obraz)
 {
-	//uint16_t col;
 	uint32_t tx, ty, tc;
 
-	if (chOrientacja == POZIOMO)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
+		osDelay(1);
+	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
-		setXY(x, y, x+sx-1, y+sy-1);
-		while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-			osDelay(1);
-		HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-		for (tc=0; tc<(sx*sy); tc++)
+		if (chOrientacja == POZIOMO)
 		{
-			setColor(obraz[tc]);
-			HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
-		}
-		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-		HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	}
-	else
-	{
-		for (ty=0; ty<sy; ty++)
-		{
-			setXY(x, y+ty, x+sx-1, y+ty);
-			while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-				osDelay(1);
-			HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+			setXY(x, y, x+sx-1, y+sy-1);
 			UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 			HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-			for (tx=sx-1; tx>=0; tx--)
+			for (tc=0; tc<(sx*sy); tc++)
 			{
-				setColor(obraz[(ty*sx)+tx]);
+				setColor(obraz[tc]);
 				HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
 			}
 			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 		}
+		else
+		{
+			for (ty=0; ty<sy; ty++)
+			{
+				setXY(x, y+ty, x+sx-1, y+ty);
+				UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+				HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+				for (tx=sx-1; tx>=0; tx--)
+				{
+					setColor(obraz[(ty*sx)+tx]);
+					HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+				}
+				UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+			}
+		}
+		clrXY();
+		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
-	clrXY();
 }
 
-#ifdef LCD_ILI9488
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // wyświetla bitmapę po jednym pikselu z pamięci gdzie każdy z kolorów RGB zajmuje 1 bajt
 // Parametry:
@@ -734,46 +762,42 @@ void RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_t* 
 	uint16_t col;
 	uint32_t tx, ty;
 
-	if (chOrientacja == POZIOMO)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
+		osDelay(1);
+	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
-		setXY(x, y, x+sx-1, y+sy-1);
-		while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-			osDelay(1);
-		HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
-		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
-		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-//		for (uint16_t n=0; n<sy; n++)
-//			HAL_SPI_Transmit(&hspi5, chObraz + n*3*sx, sx*3, HAL_DELAY_SPI);	//wyślij cały wiersz gdzie piksel zajmuje 3 bajty
-
-		for (uint16_t n=0; n<sy/32; n++)
-			HAL_SPI_Transmit(&hspi5, chObraz + n*32*3*sx, sx*32*3, HAL_DELAY_SPI);	//w jednym transferze wyślij 32 wiersze, gdzie piksel zajmuje 3 bajty
-		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-		HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-	}
-	else
-	{
-		for (ty=0; ty<sy; ty++)
+		if (chOrientacja == POZIOMO)
 		{
-			setXY(x, y+ty, x+sx-1, y+ty);
-			while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
-				osDelay(1);
-			HAL_HSEM_Take(HSEM_SPI5_WYSW, 0);
+			setXY(x, y, x+sx-1, y+sy-1);
 			UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 			HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-			for (tx=sx-1; tx>=0; tx--)
-			{
-				col  = (uint16_t)chObraz[(ty*sx)+tx + 0] << 8;
-				col |= (uint16_t)chObraz[(ty*sx)+tx + 1];
-				setColor(col);
-				HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
-			}
+			for (uint16_t n=0; n<sy/32; n++)
+				HAL_SPI_Transmit(&hspi5, chObraz + n*32*3*sx, sx*32*3, HAL_DELAY_SPI);	//w jednym transferze wyślij 32 wiersze, gdzie piksel zajmuje 3 bajty
 			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
 		}
+		else
+		{
+			for (ty=0; ty<sy; ty++)
+			{
+				setXY(x, y+ty, x+sx-1, y+ty);
+				UstawDekoderZewn(CS_LCD);										//LCD_CS=0
+				HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
+				for (tx=sx-1; tx>=0; tx--)
+				{
+					col  = (uint16_t)chObraz[(ty*sx)+tx + 0] << 8;
+					col |= (uint16_t)chObraz[(ty*sx)+tx + 1];
+					setColor(col);
+					HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+				}
+				UstawDekoderZewn(CS_NIC);										//LCD_CS=1
+			}
+		}
+		clrXY();
+		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
-	clrXY();
 }
-#endif
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // rysuje okrąg
@@ -790,58 +814,61 @@ void RysujOkrag(uint16_t x, uint16_t y, uint16_t promien)
 	int16_t x1 = 0;
 	int16_t y1 = promien;
 
-	//cbi(P_CS, B_CS);
-	setXY(x, y + promien, x, y + promien);
-	LCD_WrData(chKolor666, 3);
-
-	setXY(x, y - promien, x, y - promien);
-	LCD_WrData(chKolor666, 3);
-
-	setXY(x + promien, y, x + promien, y);
-	LCD_WrData(chKolor666, 3);
-
-	setXY(x - promien, y, x - promien, y);
-	LCD_WrData(chKolor666, 3);
-
-	while(x1 < y1)
+	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
+		osDelay(1);
+	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
-		if(f >= 0)
+		setXY(x, y + promien, x, y + promien);
+		LCD_WrData(chKolor666, 3);
+
+		setXY(x, y - promien, x, y - promien);
+		LCD_WrData(chKolor666, 3);
+
+		setXY(x + promien, y, x + promien, y);
+		LCD_WrData(chKolor666, 3);
+
+		setXY(x - promien, y, x - promien, y);
+		LCD_WrData(chKolor666, 3);
+
+		while(x1 < y1)
 		{
-			y1--;
-			ddF_y += 2;
-			f += ddF_y;
+			if(f >= 0)
+			{
+				y1--;
+				ddF_y += 2;
+				f += ddF_y;
+			}
+			x1++;
+			ddF_x += 2;
+			f += ddF_x;
+			setXY(x + x1, y + y1, x + x1, y + y1);
+			LCD_WrData(chKolor666, 3);
+
+			setXY(x - x1, y + y1, x - x1, y + y1);
+			LCD_WrData(chKolor666, 3);
+
+			setXY(x + x1, y - y1, x + x1, y - y1);
+			LCD_WrData(chKolor666, 3);
+
+			setXY(x - x1, y - y1, x - x1, y - y1);
+			LCD_WrData(chKolor666, 3);
+
+			setXY(x + y1, y + x1, x + y1, y + x1);
+			LCD_WrData(chKolor666, 3);
+
+			setXY(x - y1, y + x1, x - y1, y + x1);
+			LCD_WrData(chKolor666, 3);
+
+			setXY(x + y1, y - x1, x + y1, y - x1);
+			LCD_WrData(chKolor666, 3);
+
+			setXY(x - y1, y - x1, x - y1, y - x1);
+			LCD_WrData(chKolor666, 3);
 		}
-		x1++;
-		ddF_x += 2;
-		f += ddF_x;
-		setXY(x + x1, y + y1, x + x1, y + y1);
-		LCD_WrData(chKolor666, 3);
-
-		setXY(x - x1, y + y1, x - x1, y + y1);
-		LCD_WrData(chKolor666, 3);
-
-		setXY(x + x1, y - y1, x + x1, y - y1);
-		LCD_WrData(chKolor666, 3);
-
-		setXY(x - x1, y - y1, x - x1, y - y1);
-		LCD_WrData(chKolor666, 3);
-
-		setXY(x + y1, y + x1, x + y1, y + x1);
-		LCD_WrData(chKolor666, 3);
-
-		setXY(x - y1, y + x1, x - y1, y + x1);
-		LCD_WrData(chKolor666, 3);
-
-		setXY(x + y1, y - x1, x + y1, y - x1);
-		LCD_WrData(chKolor666, 3);
-
-		setXY(x - y1, y - x1, x - y1, y - x1);
-		LCD_WrData(chKolor666, 3);
+		clrXY();
+		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
-	//sbi(P_CS, B_CS);
-	clrXY();
 }
-#endif
 
 
 

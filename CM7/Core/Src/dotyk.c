@@ -37,6 +37,8 @@ extern uint8_t MidFont[];
 extern char chNapis[50];
 extern const char *chNapisLcd[];
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Czyta dane ze sterownika ekranu dotykowego
 // Parametry: chChannel - kod kanału X, Y, Z1, Z2
@@ -47,14 +49,13 @@ uint16_t CzytajKanalDotyku(uint8_t  chKanal)
 	uint8_t chKonfig, chDane[2];
 	uint16_t sDotyk;
 
-
 	chKonfig = (3<<0)|	//PD1-PD0 Power-Down Mode Select Bits: 0=Power-Down Between Conversions, 1=Reference is off and ADC is on, 2=Reference is on and ADC is off, 3=Device is always powered.
 			   (0<<2)|	//SER/DFR 1=Single-Ended 0=Differential Reference Select Bit
 			   (0<<3)|	//MODE 12-Bit/8-Bit Conversion Select Bit. This bit controls the number of bits for the next conversion: 0=12-bits, 1=8-bits
 			   (chKanal<<4)|	//A2-A0 Channel Select Bits
 			   (1<<7);	//S Start Bit.
 
-	UstawDekoderZewn(CS_TP);											//TP_CS=0
+	UstawDekoderZewn(CS_TP);							//TP_CS=0
 	HAL_SPI_Transmit(&hspi5, &chKonfig, 1, HAL_DELAY_SPI);
 	HAL_SPI_Receive(&hspi5, chDane, 2, HAL_DELAY_SPI);
 	UstawDekoderZewn(CS_NIC);							//TP_CS=1
@@ -92,18 +93,19 @@ uint8_t CzytajDotyk(void)
 		return BLAD_OK;
 	}
 
-	//użyj sprzętowego semafora HSEM_SPI5_WYSW do określenia dostępu do SPI5
-	nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW);
+	//użyj sprzętowego semafora HSEM_SPI5 do określenia dostępu do SPI5
+	nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5);
 	if (nStanSemaforaSPI)
 		return BLAD_SEMAFOR_ZAJETY;
 	else
 	{
-		if (HAL_HSEM_Take(HSEM_SPI5_WYSW, 0) == BLAD_OK)
+		if (HAL_HSEM_Take(HSEM_SPI5, HSEM_DOTYK) == BLAD_OK)
 		{
-			//Ponieważ zegar SPI = 125MHz a układ może pracować z prędkością max 2,5MHz a jest na tej samej magistrali co TFT przy każdym odczytcie przestaw dzielnik zegara z 4 na 64
+			//Ponieważ zegar SPI = 38,46 MHz a układ ADC panelu dotykowego  może pracować z prędkością max 2,5MHz a jest na tej samej magistrali co TFT,
+			//więc przy każdym dostępie do extendera przestaw dzielnik zegara z 2 na 16 => 2,4 MHz
 			nZastanaKonfiguracja_SPI_CFG1 = hspi5.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
 			hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
-			hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_64;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/64
+			hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_16;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/16
 
 			//domyslnie używam innej orientacji, więc zaimeń osie X i Y
 			statusDotyku.sAdc[0] = CzytajKanalDotyku(TPCHY);	//najlepiej się zmienia dla osi X.
@@ -114,9 +116,9 @@ uint8_t CzytajDotyk(void)
 #endif
 			statusDotyku.sAdc[2] = CzytajKanalDotyku(TPCHZ1);
 			statusDotyku.sAdc[3] = CzytajKanalDotyku(TPCHZ2);
-			HAL_HSEM_Release(HSEM_SPI5_WYSW, 0);
-			hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 			statusDotyku.nOstCzasPomiaru = PobierzCzasT6();
+			hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
+			HAL_HSEM_Release(HSEM_SPI5, HSEM_DOTYK);
 		}
 	}
 

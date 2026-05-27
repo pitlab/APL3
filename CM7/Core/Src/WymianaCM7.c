@@ -38,7 +38,7 @@ uint8_t PobierzDaneWymiany_CM4(void)
 	nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM4_TO_CM7);
 	if (!nStanSemafora)
 	{
-		cBłąd = HAL_HSEM_Take(HSEM_CM4_TO_CM7, 0);
+		cBłąd = HAL_HSEM_Take(HSEM_CM4_TO_CM7, HSEM_CM7);
 		if (cBłąd == BLAD_OK)
 		{
 			//Pobierz dane tylko gdy są ustawione nowe
@@ -50,7 +50,7 @@ uint8_t PobierzDaneWymiany_CM4(void)
 				sFlagiCM4 &= ~FMR_SA_DANE_CM4;
 				__DSB();	//Data Synchronization Barrier. Acts as a special kind of Data Memory Barrier. It completes when all explicit memory accesses before this instruction complete.
 			}
-			HAL_HSEM_Release(HSEM_CM4_TO_CM7, 0);
+			HAL_HSEM_Release(HSEM_CM4_TO_CM7, HSEM_CM7);
 		}
 	}
 	return cBłąd;
@@ -70,7 +70,7 @@ uint8_t UstawDaneWymiany_CM7(void)
 	nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM7_TO_CM4);
 	if (!nStanSemafora)
 	{
-		cBłąd = HAL_HSEM_Take(HSEM_CM7_TO_CM4, 0);
+		cBłąd = HAL_HSEM_Take(HSEM_CM7_TO_CM4, HSEM_CM7);
 		if (cBłąd == BLAD_OK)
 		{
 			__DMB();	//Data Memory Barrier. Ensures the apparent order of the explicit memory operations before and after the instruction, without ensuring their completion.
@@ -79,7 +79,7 @@ uint8_t UstawDaneWymiany_CM7(void)
 				for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM7; n++)
 					nBuforWymianyCM7[n] = uDaneCM7.nSlowa[n];
 				__DSB();	//Data Synchronization Barrier. Acts as a special kind of Data Memory Barrier. It completes when all explicit memory accesses before this instruction complete.
-				HAL_HSEM_Release(HSEM_CM7_TO_CM4, 0);
+				HAL_HSEM_Release(HSEM_CM7_TO_CM4, HSEM_CM7);
 			}
 			sFlagiCM7 |= FMR_SA_DANE_CM7;
 

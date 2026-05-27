@@ -38,11 +38,9 @@
 #include "cmsis_os.h"
 #include "OSD.h"
 
-//uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforKamerySRAM[SZER_ZDJECIA * WYS_ZDJECIA / 2] = {0};
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamery[SZER_ZDJECIA * WYS_ZDJECIA] = {0};
-//uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKameryDRAM[ROZM_BUF16_KAM] = {0};
 extern uint8_t chBuforJpeg[ROZM_BUF_WY_JPEG];
-extern uint8_t chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
 extern uint8_t chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * ROZMIAR_KOLORU_OSD];	//pamięć obrazu OSD
 stKonfKam_t stKonfKam;
 static stKonfKam_t stPoprzKonfig;
@@ -67,6 +65,8 @@ uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
 volatile uint8_t chBladKamery;	//1=HAL_DCMI_ERROR_OVR, 2=DCMI_ERROR_SYNC, 3=HAL_DCMI_ERROR_TIMEOUT, 4=HAL_DCMI_ERROR_DMA
 extern uint32_t nCzasBlend, nCzasLCD;
 extern stKonfOsd_t stKonfOSD;
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizacja pracy kamery

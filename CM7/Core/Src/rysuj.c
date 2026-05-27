@@ -2,7 +2,7 @@
 //
 // Biblioteka funkcju rysujących na ekranie 480x320
 // Abstrahuje od sprzętu, może przynajmniej teoretycznie pracować z różnymi wyświetlaczami
-//
+// Nie wymaga ochrony semaforem SPI, gdyż używa wyłącznie funkcji chronionych
 //
 // (c) PitLab 2025
 // http://www.pitlab.pl
@@ -35,15 +35,15 @@ extern char chNapis[];
 extern struct _statusDotyku statusDotyku;
 extern uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
 static uint8_t chOstatniCzas;
-//uint16_t sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
-extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforLCD[DISP_X_SIZE * DISP_Y_SIZE];
 extern volatile uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 extern uint8_t chPort_exp_odbierany[];
-uint8_t chStatusPolaczenia;		//każe 2 kolejne bity oznaczają status połaczenia: LPUART, USB, TCP, RTSP
+uint8_t chStatusPolaczenia;		//każde 2 kolejne bity oznaczają status połaczenia: LPUART, USB, TCP, RTSP
 static uint8_t chPoprzedniStatusPolaczenia = 0xFF;	//sluży do wykrycia zmiany statusu
 uint8_t chOrientacja;
-uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
 uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
+extern uint8_t chKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
+extern uint8_t chTlo666[3];		//kolory tła w formacie RGB 6-6-6
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +106,6 @@ uint8_t Menu(char *tytul, menu_t *menu)
 			if ((statusDotyku.sX > n*(DISP_X_SIZE / MENU_KOLUMNY)) && (statusDotyku.sX < (n+1)*(DISP_X_SIZE / MENU_KOLUMNY)))
 				chMenuSelPos = chRząd * MENU_KOLUMNY + n;
 		}
-
 
 		if (chStarySelPos != chMenuSelPos)	//zamaż tylko gdy stara ramka jest inna od wybranej
 		{
@@ -464,24 +463,25 @@ void RysujProstokatZaokraglony(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y
 {
 	uint16_t nTemp;
 
-	if (x1>x2)
+	if (x1 > x2)
 	{
 		nTemp = x1;
 		x1 = x2;
 		x2 = nTemp;
 	}
-	if (y1>y2)
+	if (y1 > y2)
 	{
 		nTemp = y1;
 		y1 = y2;
 		y2 = nTemp;
 	}
-	if ((x2-x1)>4 && (y2-y1)>4)
+	if ((x2-x1) > 4 && (y2-y1) > 4)
 	{
-		drawPixel(x1+1,y1+1);
-		drawPixel(x2-1,y1+1);
-		drawPixel(x1+1,y2-1);
-		drawPixel(x2-1,y2-1);
+		RysujPunkt(x1+1, y1+1, chKolor666);
+		RysujPunkt(x2-1, y1+1, chKolor666);
+		RysujPunkt(x1+1, y2-1, chKolor666);
+		RysujPunkt(x2-1, y2-1, chKolor666);
+
 		RysujLiniePozioma(x1+2, y1, x2-x1-4);
 		RysujLiniePozioma(x1+2, y2, x2-x1-4);
 		RysujLiniePionowa(x1, y1+2, y2-y1-4);

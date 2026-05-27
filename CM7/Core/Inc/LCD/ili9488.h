@@ -70,7 +70,7 @@
 
 uint8_t InicjujLCD_ILI9488(void);
 void OrientacjaEkranu(uint8_t orientacja);
-void WypelnijEkran(uint16_t sKolor565);
+uint8_t WypelnijEkran(uint16_t sKolor565);
 void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2);
 void clrXY(void);
 uint16_t getColor(void);
@@ -79,7 +79,7 @@ void setColorRGB(uint8_t r, uint8_t g, uint8_t b);
 uint16_t getBackColor(void);
 void setBackColor(uint16_t color);
 void setBackColorRGB(uint8_t r, uint8_t g, uint8_t b);
-void RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t kolor);
+uint8_t RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t kolor);
 void RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor);
 void RysujLiniePozioma(int16_t x, int16_t y, int16_t len);
 void RysujLiniePionowa(int16_t x, int16_t y, int16_t len);

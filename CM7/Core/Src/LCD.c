@@ -1793,9 +1793,9 @@ uint8_t RysujEkran(void)
 // Parametry: zainicjowano - wskaźnik na tablicę bitów z flagami zainicjowanego sprzętu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void Ekran_Powitalny(uint32_t nZainicjowano)
+uint8_t Ekran_Powitalny(uint32_t nZainicjowano)
 {
-	uint8_t n;
+	uint8_t n, cBłąd;
 	uint16_t x, y;
 
 	extern const unsigned short plogo165x80[];
@@ -1804,7 +1804,7 @@ void Ekran_Powitalny(uint32_t nZainicjowano)
 
 	if (chRysujRaz)
 	{
-		WypelnijEkran(BIALY);
+		cBłąd = WypelnijEkran(BIALY);
 		RysujBitmape((DISP_X_SIZE-165)/2, 5, 165, 80, plogo165x80);
 
 		setColor(SZARY20);
@@ -1903,6 +1903,7 @@ void Ekran_Powitalny(uint32_t nZainicjowano)
 
 	osDelay(200);
 	chLiczIter--;
+	return cBłąd;
 }
 
 
