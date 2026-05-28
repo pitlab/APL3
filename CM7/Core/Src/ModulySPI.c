@@ -296,6 +296,7 @@ uint8_t WymienDaneExpanderow(void)
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 	uint32_t nStanSemaforaSPI;
 	uint8_t dane_wysylane[3];
+	uint8_t dane_odbierane[3];
 
 	//użyj sprzętowego semafora HSEM_SPI5 do określenia dostępu do SPI5
 	nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5);
@@ -326,6 +327,8 @@ uint8_t WymienDaneExpanderow(void)
 				chPort_exp_wysylany[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
 
 			//wyślij dane do expanderów I/O
+			//W pętli nie używam funkcji WyslijDaneExpandera() i PobierzDaneExpandera(), gdyż one
+			//są zabezpieczone semaformem i tutaj wewnątrz kolejnego semafora zakleszczyły by się.
 			for (uint8_t x=0; x<LICZBA_EXP_SPI_ZEWN; x++)
 			{
 				dane_wysylane[0] = chAdres_expandera[x];
@@ -334,11 +337,16 @@ uint8_t WymienDaneExpanderow(void)
 				UstawDekoderZewn(CS_IO);
 				cBłąd = HAL_SPI_Transmit(&hspi5, dane_wysylane, 3, HAL_DELAY_SPI);
 				UstawDekoderZewn(CS_NIC);
-
-
 				if (cBłąd != BLAD_OK)
 					return cBłąd;
-				cBłąd = PobierzDaneExpandera(chAdres_expandera[x], &chPort_exp_odbierany[x]);
+
+				dane_wysylane[0] = chAdres_expandera[x] + SPI_EXTIO_RD;
+				dane_wysylane[1] = MCP23S08_GPIO;
+				dane_wysylane[2] = 0;
+				UstawDekoderZewn(CS_IO);
+				cBłąd = HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_DELAY_SPI);
+				UstawDekoderZewn(CS_NIC);
+				chPort_exp_odbierany[x] = dane_odbierane[2];
 				if (cBłąd != BLAD_OK)
 					return cBłąd;
 			}

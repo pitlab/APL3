@@ -50,7 +50,7 @@ uint8_t LCD_write_command8(uint8_t chDane)
 
 	//Ponieważ zegar SPI = 38,46 MHz a wyświetlacz może pracować z prędkością max 20MHz więc przy każdym poleceniu ustaw dzielnik zegara na 2 => 19,23 MHz
 	hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
-	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;
+	hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_2;
 
 	UstawDekoderZewn(CS_LCD);											//LCD_CS=0
 	HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_RESET);	//LCD_RS=0
