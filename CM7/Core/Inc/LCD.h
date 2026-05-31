@@ -45,7 +45,7 @@
 
 #define ROZDZIECZOSC_PASKA_RC		5	//zakres WE_RC_MAX = 2000 / szerokość ekranu = 400
 
-
+void WatekWyswietlacza(void *argument);
 uint8_t RysujEkran(void);
 uint8_t Ekran_Powitalny(uint32_t nZainicjowano);
 void Wykrycie(uint16_t x, uint16_t y, uint8_t dopelnij_znakow, uint8_t wynik);

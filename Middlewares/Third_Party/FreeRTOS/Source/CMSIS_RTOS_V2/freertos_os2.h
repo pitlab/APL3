@@ -29,7 +29,7 @@
 #include "FreeRTOS.h"                   // ARM.FreeRTOS::RTOS:Core
 
 #include CMSIS_device_header
-
+#define INCLUDE_vTaskDelayUntil 1
 /*
   CMSIS-RTOS2 FreeRTOS image size optimization definitions.
 

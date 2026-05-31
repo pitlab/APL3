@@ -382,7 +382,7 @@ void TIM17_IRQHandler(void)
   /* USER CODE BEGIN TIM17_IRQn 1 */
   ulHighFrequencyTimerTicks++;
 
-  	//odmierzej czas obsługi interfejsu użytkownika w dziesiętnych sekundy aby można było przechowywać rosądny czas (25,5s) w 8 bitach
+  	//odmierzaj czas obsługi interfejsu użytkownika w dziesiętnych sekundy aby można było przechowywać rozsądny czas (25,5s) w 8 bitach
   	if (chDzielnikDziesietnychSekundy)
   	  chDzielnikDziesietnychSekundy--;
   	else

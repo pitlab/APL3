@@ -5,10 +5,11 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-
+#include <Rejestrator.h>
 #include <Czas.h>
 #include <Exif.h>
 #include <Jpeg.h>
+#include <Bmp.h>
 #include <Kamera.h>
 #include <LCD/ILI9488.h>
 #include "bsp_driver_sd.h"
@@ -20,7 +21,7 @@
 #include <stdio.h>
 #include "Ekran.h"
 #include "LCD.h"
-#include <Rejestrator.h>
+
 
 extern SD_HandleTypeDef hsd1;
 extern uint8_t retSD;    /* Return value for SD */
@@ -56,6 +57,103 @@ extern const uint8_t chNaglJpegEOI[ROZMIAR_ZNACZ_xOI];	//EOI (End Of Image)
 extern const uint8_t chNaglJpegExif[ROZMIAR_EXIF];
 extern stKonfKam_t stKonfKam;
 extern JPEG_ConfTypeDef stKonfJpeg;	//struktura konfiguracyjna JPEGa
+extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wątek rejestratora na karcie SD
+// Parametry: argument* ?
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void WatekRejestratora(void *argument)
+{
+	extern volatile uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+	extern uint8_t chPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
+	extern uint8_t chKodBleduFAT;
+
+	for(;;)
+	{
+		if ((chPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty, aktywny niski
+		{
+			if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
+			{
+				if (chStatusRejestratora & STATREJ_WLACZONY)
+				{
+					ObslugaPetliRejestratora();
+				}
+				else
+				if (chStatusRejestratora & STATREJ_ZAPISZ_JPG)
+				{
+					ObslugaZapisuJpeg();
+				}
+				else
+				if (chStatusRejestratora & STATREJ_ZAPISZ_BMP)
+				{
+					ObslugaZapisuBmp();
+				}
+				else
+					osDelay(5);	//jeżeli nie ma nic do zapisu to wstrzymaj wątek na tyle czasu
+					//taskYIELD();
+			}
+			else	//jeżeli FAT nie jest gotowy to go zamontuj
+			{
+				DSTATUS status;
+				FRESULT fres;
+
+				//hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
+				//hsd1.ErrorCode = 0;							//zacznij pracę bez kodu błędu
+				//status = SD_initialize(0);
+				status = disk_initialize(0);
+				if (status == RES_OK)
+				{
+					fres = BSP_SD_Init();
+					if (fres == FR_OK)
+					{
+						fres = f_mount(&SDFatFS, SDPath, 1);		//1=montuj teraz, 0=przy próbie zapisu
+						if (fres == FR_OK)
+						{
+							chStatusRejestratora |= STATREJ_FAT_GOTOWY;
+							//fres = f_open(&SDFile, "abc.txt", FA_OPEN_EXISTING | FA_READ | FA_WRITE);
+							//if (fres == FR_OK)
+							//{
+								//f_gets(chBufZapisuKarty, ROZMIAR_BUFORA_LOGU, &SDFile);
+								//f_close(&SDFile);
+							//}
+						}
+						else
+						{
+							//jeżeli nie udało sie zamontować FAT to utwórz go ponownie
+							DWORD au = _MAX_SS;
+							fres = f_mkfs(SDPath, FM_FAT32, au, NULL, _MAX_SS);	//sprawdzić czy tak może być
+						}
+						chKodBleduFAT = fres;
+					}
+					else
+						chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s - sygnalizacja błędu montowania woluminu karty
+				}
+				if (fres != FR_OK)
+					osDelay(1000);	//ponawiaj próbę inicjalizacji co tyle czasu
+			}
+		}
+		else	//jeżeli nie ma karty
+		{
+			if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
+			{
+				if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
+					f_close(&SDFile);
+				f_mount(NULL, "", 1);		//zdemontuj system plików
+				chStatusRejestratora = 0;
+			}
+			else
+				chCzasSwieceniaLED[LED_CZER] = 1;	//x0,1s - sygnalizacja braku karty
+			osDelay(2000);	//sprawdź czy jest karta co tyle czasu
+
+		}
+	}
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Zwraca obecność karty w gnieździe. Wymaga wcześniejszego odczytania stanu expanderów I/O, ktore czytane są w każdym obiegu pętli StartDefaultTask()

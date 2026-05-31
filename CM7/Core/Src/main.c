@@ -104,6 +104,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
+typedef StaticTask_t osStaticThreadDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -164,10 +165,51 @@ SDRAM_HandleTypeDef hsdram1;
 
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
+uint32_t tsBufferWatkuDomyslnego[ 512 ];
+osStaticThreadDef_t tsControlBlockWatkuDomyslnego;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 128 * 4,
+  .cb_mem = &tsControlBlockWatkuDomyslnego,
+  .cb_size = sizeof(tsControlBlockWatkuDomyslnego),
+  .stack_mem = &tsBufferWatkuDomyslnego[0],
+  .stack_size = sizeof(tsBufferWatkuDomyslnego),
   .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for tsOdbiorLPUART1 */
+osThreadId_t tsOdbiorLPUART1Handle;
+uint32_t tsBuforOdbioruLPUART1[ 192 ];
+osStaticThreadDef_t tsControlBlockOdbioruLPUART1;
+const osThreadAttr_t tsOdbiorLPUART1_attributes = {
+  .name = "tsOdbiorLPUART1",
+  .cb_mem = &tsControlBlockOdbioruLPUART1,
+  .cb_size = sizeof(tsControlBlockOdbioruLPUART1),
+  .stack_mem = &tsBuforOdbioruLPUART1[0],
+  .stack_size = sizeof(tsBuforOdbioruLPUART1),
+  .priority = (osPriority_t) osPriorityAboveNormal1,
+};
+/* Definitions for tsRejestrator */
+osThreadId_t tsRejestratorHandle;
+uint32_t tsBuforRejestratora[ 512 ];
+osStaticThreadDef_t tsControlBlockRejestratora;
+const osThreadAttr_t tsRejestrator_attributes = {
+  .name = "tsRejestrator",
+  .cb_mem = &tsControlBlockRejestratora,
+  .cb_size = sizeof(tsControlBlockRejestratora),
+  .stack_mem = &tsBuforRejestratora[0],
+  .stack_size = sizeof(tsBuforRejestratora),
+  .priority = (osPriority_t) osPriorityBelowNormal1,
+};
+/* Definitions for tsObslugaWyswie */
+osThreadId_t tsObslugaWyswieHandle;
+uint32_t tsBuforWatkuWyswietlacza[ 384 ];
+osStaticThreadDef_t tsControlBlockWatkuWyswietlacza;
+const osThreadAttr_t tsObslugaWyswie_attributes = {
+  .name = "tsObslugaWyswie",
+  .cb_mem = &tsControlBlockWatkuWyswietlacza,
+  .cb_size = sizeof(tsControlBlockWatkuWyswietlacza),
+  .stack_mem = &tsBuforWatkuWyswietlacza[0],
+  .stack_size = sizeof(tsBuforWatkuWyswietlacza),
+  .priority = (osPriority_t) osPriorityLow,
 };
 /* USER CODE BEGIN PV */
 uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
@@ -208,6 +250,9 @@ static void MX_TIM12_Init(void);
 static void MX_JPEG_Init(void);
 static void MX_DMA2D_Init(void);
 void StartDefaultTask(void *argument);
+extern void WatekOdbiorczyLPUART1(void *argument);
+extern void WatekRejestratora(void *argument);
+extern void WatekWyswietlacza(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -264,7 +309,6 @@ int main(void)
   /* USER CODE END 1 */
 /* USER CODE BEGIN Boot_Mode_Sequence_0 */
   int32_t timeout;
-
 /* USER CODE END Boot_Mode_Sequence_0 */
 
   /* MPU Configuration--------------------------------------------------------*/
@@ -286,6 +330,7 @@ int main(void)
   {
   Error_Handler();
   }
+
 /* USER CODE END Boot_Mode_Sequence_1 */
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -305,9 +350,8 @@ int main(void)
 /* When system initialization is finished, Cortex-M7 will release Cortex-M4 by means of HSEM notification */
 /*HW semaphore Clock enable*/
 __HAL_RCC_HSEM_CLK_ENABLE();
-//for(int i=0;i<32;i++)
-    //HAL_HSEM_Release(i,0);
 /*Take HSEM */
+uint32_t n =__HAL_RCC_GET_FLAG(RCC_FLAG_D2CKRDY);
 HAL_HSEM_FastTake(HSEM_ID_0);
 /*Release HSEM in order to notify the CPU2(CM4)*/
 HAL_HSEM_Release(HSEM_ID_0,0);
@@ -431,6 +475,15 @@ Error_Handler();
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of tsOdbiorLPUART1 */
+  tsOdbiorLPUART1Handle = osThreadNew(WatekOdbiorczyLPUART1, NULL, &tsOdbiorLPUART1_attributes);
+
+  /* creation of tsRejestrator */
+  tsRejestratorHandle = osThreadNew(WatekRejestratora, NULL, &tsRejestrator_attributes);
+
+  /* creation of tsObslugaWyswie */
+  tsObslugaWyswieHandle = osThreadNew(WatekWyswietlacza, NULL, &tsObslugaWyswie_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -1578,10 +1631,39 @@ void StartDefaultTask(void *argument)
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
-  /* Infinite loop */
+  uint8_t chStanDekodera;
+  uDaneCM7.dane.chOdbiornikRC = ODB_OBA;	//przesyłaj stan obu odbiorników po dywersyfikacji
   for(;;)
   {
-    osDelay(1);
+	  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+		chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
+		CzytajDotyk();
+		WymienDaneExpanderow();
+		UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
+
+		//obsłuż międzyprocesorową wymianę danych
+		cBłąd += PobierzDaneWymiany_CM4();
+		cBłąd += UstawDaneWymiany_CM7();
+		if (cBłąd)		//sygnalizacja błędów wymiany
+		{
+			chCzasSwieceniaLED[LED_ZIEL] = 1;	//x0,1s
+			cBłąd = BLAD_OK;
+		}
+
+		PobierzDaneDoFFT();
+
+		//synchronizacja czasu i daty z GNSS tylko dopóki nie są w pełni zsynchroniozwane, później pracuję na RTC. Docelowo również synchronizacja z NTP
+		if (chStanSynchronizacjiCzasu != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
+			SynchronizujCzasDoGNSS(&uDaneCM4.dane.stGnss1);
+
+
+		cBłąd = ObslugaPolecenCM4();	//obsłuż polecenia rdzenia CM4
+		if (cBłąd)		//sygnalizacja błędów
+			chCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
+
+		ObslugaWymowyKomunikatu();	//obsłuż wymowę komuniatów głosowych
+		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+		osDelay(5);		//ustaw okres z jakim pracuje CM4 (200Hz -> 5ms)
   }
   /* USER CODE END 5 */
 }

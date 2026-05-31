@@ -167,6 +167,70 @@ uint8_t ObslugaWatkuOdbiorczegoLPUART1(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Wątek odbiorczy
+// Parametry: argument* ?
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void WatekOdbiorczyLPUART1(void *argument)
+{
+	uint32_t nCzasTele, nCzasPoprzedniTele;
+	extern volatile st_ZajetośćLPUART_t st_ZajetośćLPUART;
+	uint8_t cBłąd;
+	uint8_t chDanychDoWysłania;
+	uint8_t chCzasDrzemki;
+	extern uint8_t chStatusPolaczenia;
+	uint8_t chStatusUART;
+
+	cBłąd = InicjalizacjaWatkuOdbiorczegoLPUART1();
+	InicjalizacjaTelemetrii();
+	nCzasPoprzedniTele = PobierzCzasT6();
+
+	if (cBłąd)
+	{
+		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
+		chStatusPolaczenia |= (STAT_POL_NIEAKTYWNY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
+	}
+	else
+	while(1)
+	{
+		chDanychDoWysłania = 0;
+		//w pierwszej kolejności obsłuż protokół komunikacyjny
+		if (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY)
+		{
+			cBłąd = ObslugaWatkuOdbiorczegoLPUART1();
+			if (cBłąd != BLAD_NIC_DO_ROBOTY)
+				osDelay(2);	//czas na obsługę ramki tylko wtedy gdy jest coś do wysłania
+		}
+
+		//w drugiej kolejności obsłuż telemetrię
+		//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
+		nCzasTele = MinalCzas(nCzasPoprzedniTele);	//czas w mikrosekundach
+		if ((nCzasTele >= KWANT_CZASU_TELEMETRII * 1000) && (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY))
+		{
+			chDanychDoWysłania = ObslugaTelemetrii(INTERF_UART);
+			nCzasPoprzedniTele += KWANT_CZASU_TELEMETRII * 1000;
+			if (chDanychDoWysłania)
+			{
+				chCzasDrzemki = (chDanychDoWysłania * 92) / 1000; 	//1 bajt na 115200 bps wysyła się 86,8us, więc nie wracaj wcześniej aż sie wyśle. Po optymalizacji potrzebna jest trochę większa wartość
+				if (chCzasDrzemki < 10)
+					chCzasDrzemki = 10;		//kwant czasu telemetrii 100Hz to 10ms
+			}
+			else
+				chCzasDrzemki = 10;		//kwant czasu telemetrii 100Hz to 10ms
+			osDelay(chCzasDrzemki);
+		}
+		chStatusUART |= chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);
+		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
+		if (chStatusUART == (STAT_POL_OTWARTY << STAT_POL_UART))	//jeżeli był ustawiony bit transmisji lub otwartości
+			chStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);	//to wróć do stanu otwartego łącza
+		else
+			chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Callback przerwania UARTA pracujacego w trybie DMA z obsługą detekcji IDLE.
 // Przepisuje odebrane dane z małego bufora odbiorczego DMA do większego bufora kołowego analizy protokołu
 // Parametry:

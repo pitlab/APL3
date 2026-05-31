@@ -7,6 +7,7 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include "LCD.h"
 #include <AnalizaDrgan.h>
 #include <Audio.h>
 #include <Bmp.h>
@@ -15,7 +16,6 @@
 #include <Fraktale.h>
 #include <Jpeg.h>
 #include <Kamera.h>
-#include "LCD.h"
 #include <stdio.h>
 #include <math.h>
 #include <LCD/RPi35B_480x320.h>
@@ -339,6 +339,28 @@ menu_t stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY] = {
 	{"Spr Magn3",	"Sprawdz kalibracje magnetometru 3",		TP_SPR_MAG3,		obr_kal_mag_n1},
 	{"Spr Mag 2D",	"Sprawdz płaski obrotu dla 3 magnetom.",	TP_SPR_PLASKI,		obr_okregi},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wątek wyświetlacza
+// Parametry: argument* ?
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void WatekWyswietlacza(void *argument)
+{
+	for(;;)
+	{
+		if (nZainicjowanoCM7 & INIT_LCD480x320)		//obsłuż wyświetlacz tylko wtedy jest zainicjowany
+		{
+			cBłąd = RysujEkran();
+			if (cBłąd)
+				chCzasSwieceniaLED[LED_ZIEL] = 3;	//x0,1s - sygnalizacja błędów obsługi poleceń
+		}
+		else
+			osDelay(1000);
+	}
+}
 
 
 
