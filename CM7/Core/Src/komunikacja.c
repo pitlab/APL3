@@ -214,7 +214,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		break;
 
 	case PK_RESETUJ_KAMERE:
-		cBłąd = InicjalizujKamere();
+		cBłąd = InicjujKamere();
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 		break;
 

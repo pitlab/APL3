@@ -177,7 +177,7 @@ static const uint8_t chNaglJpeg_480x320_yuv420[] = {
 // Parametry: brak
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-  uint8_t InicjalizujJpeg(void)
+  uint8_t InicjujJpeg(void)
 {
 	uint8_t cBłąd;
 

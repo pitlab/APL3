@@ -87,7 +87,7 @@ typedef struct st_DiagKam
 	uint16_t sRozmiarPio_VTS;		//0x380E..0F
 } stDiagKam_t;
 
-uint8_t InicjalizujKamere(void);
+uint8_t InicjujKamere(void);
 uint8_t Wyslij_I2C_Kamera(uint16_t rejestr, uint8_t dane);
 uint8_t Czytaj_I2C_Kamera(uint16_t rejestr, uint8_t *dane);
 uint8_t	SprawdzKamere(void);

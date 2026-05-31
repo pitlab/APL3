@@ -91,8 +91,10 @@
 #define MASKA_BUFORA_IMU	0x07	//maska do zawijania bufora kołowego
 
 //definicje bitów zmiennej nFlagiMiedzyrdzeniowe
-#define FMR_SA_DANE_CM4		0x01
-#define FMR_SA_DANE_CM7		0x02
+#define FMR_SA_DANE_CM4		0x0001
+#define FMR_SA_DANE_CM7		0x0002
+#define FMR_SPRAWDZ_CM4		0x0100
+#define FMR_SPRAWDZ_CM7		0x0200
 
 //definicje pól zmiennej chNowyPomiar
 #define NP_MAG1		0x01
@@ -207,15 +209,15 @@ typedef struct
 	int16_t sKanalRC[KANALY_ODB_RC];
 	uint8_t chTrybLotu;		//tryb lotu jako zestaw bitów określających funkcjonalności realizowane w danym czasie
 	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
-	uint8_t chErrPetliGlownej;
+	uint8_t cBladPetliGlownej;
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
-	uint32_t nBrakCzujnika;		//zestaw flag obecnosci czujników
-	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji
+	uint32_t nBrakCzujnika;		//zestaw flag obecnosci czujników   ZROBIC: przenieść do Różne
+	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji   ZROBIC: przenieść do Różne
 	uint8_t chWykonajPolecenie;	//numer polecenia do wykonania przez CM7
 	uint8_t chPotwierdzenieWykonania;	//potwierdza wykonanie polecenia przysłanego przez CM7
 	uint32_t ndT;
 	stBSP_t stBSP;				//struktura zawierajaca syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
-	stSzybkieIMU stSzybkieIMU;	//struktura zawierajaca bufor kołowy szybkich  i indeks danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
+	//stSzybkieIMU stSzybkieIMU;	//struktura zawierajaca bufor kołowy szybkich  i indeks danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
 } stWymianyCM4_t;
 
 

@@ -169,9 +169,9 @@ int main(void)
     //  HAL_HSEM_Release(i,0);
   /* Activate HSEM notification for Cortex-M4*/
   HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_ID_0));
-  HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_CM4_TO_CM7));
-  HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_CM7_TO_CM4));
-  HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_SPI5));
+  //HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_CM4_TO_CM7));
+  //HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_CM7_TO_CM4));
+  //HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_SPI5));
   /*
   Domain D2 goes to STOP mode (Cortex-M4 in deep-sleep) waiting for Cortex-M7 to
   perform system initialization (system clock config, external memory configuration.. )
@@ -224,7 +224,8 @@ int main(void)
   InicjujPID();
   InicjujMikser();
   InicjujKontrolerLotu();
-  InicjujCrossfire();
+  //InicjujCrossfire();
+  InicjujWymiane();
 
 #ifdef TESTY		//testy algorytmów
   TestyFram();
@@ -1172,12 +1173,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(ADR_SER2_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : SERWO7_IO_Pin */
-  GPIO_InitStruct.Pin = SERWO7_IO_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(SERWO7_IO_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PA3 */
   GPIO_InitStruct.Pin = GPIO_PIN_3;

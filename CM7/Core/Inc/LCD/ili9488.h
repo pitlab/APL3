@@ -80,13 +80,13 @@ uint16_t getBackColor(void);
 void setBackColor(uint16_t color);
 void setBackColorRGB(uint8_t r, uint8_t g, uint8_t b);
 uint8_t RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t kolor);
-void RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor);
-void RysujLiniePozioma(int16_t x, int16_t y, int16_t len);
-void RysujLiniePionowa(int16_t x, int16_t y, int16_t len);
-void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
-void RysujPixel(uint16_t x, uint16_t y);
-void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* data);
-void RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_t* chObraz);
-void RysujOkrag(uint16_t x, uint16_t y, uint16_t promien);
-void RysujZnak(uint8_t c, uint16_t x, uint16_t y);
+uint8_t RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor);
+uint8_t RysujLiniePozioma(int16_t x, int16_t y, int16_t len);
+uint8_t RysujLiniePionowa(int16_t x, int16_t y, int16_t len);
+uint8_t RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
+uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y);
+uint8_t RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* data);
+uint8_t RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_t* chObraz);
+uint8_t RysujOkrag(uint16_t x, uint16_t y, uint16_t promien);
+
 #endif /* INC_LCD_ILI9488_H_ */

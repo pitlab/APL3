@@ -199,7 +199,6 @@ void DMA1_Stream6_IRQHandler(void)
   /* USER CODE BEGIN DMA1_Stream6_IRQn 0 */
 
   /* USER CODE END DMA1_Stream6_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_sai2_b);
   /* USER CODE BEGIN DMA1_Stream6_IRQn 1 */
 
   /* USER CODE END DMA1_Stream6_IRQn 1 */
@@ -269,7 +268,6 @@ void DMA2_Stream1_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
 
   /* USER CODE END DMA2_Stream1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_dcmi);
   /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
 
   /* USER CODE END DMA2_Stream1_IRQn 1 */
@@ -318,7 +316,7 @@ void OTG_HS_EP1_IN_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles USB On The Go HS global interrupt.
+  * @brief This function handles USB OTG HS global interrupt.
   */
 void OTG_HS_IRQHandler(void)
 {
@@ -381,7 +379,6 @@ void TIM17_IRQHandler(void)
   /* USER CODE BEGIN TIM17_IRQn 0 */
 
   /* USER CODE END TIM17_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim17);
   /* USER CODE BEGIN TIM17_IRQn 1 */
   ulHighFrequencyTimerTicks++;
 
@@ -423,12 +420,23 @@ void MDMA_IRQHandler(void)
   /* USER CODE BEGIN MDMA_IRQn 0 */
 
   /* USER CODE END MDMA_IRQn 0 */
-  HAL_MDMA_IRQHandler(&hmdma_jpeg_infifo_th);
-  HAL_MDMA_IRQHandler(&hmdma_jpeg_outfifo_th);
-  HAL_MDMA_IRQHandler(&hmdma_mdma_channel5_sdmmc1_end_data_0);
   /* USER CODE BEGIN MDMA_IRQn 1 */
 
   /* USER CODE END MDMA_IRQn 1 */
+}
+
+/**
+  * @brief This function handles HSEM1 global interrupt.
+  */
+void HSEM1_IRQHandler(void)
+{
+  /* USER CODE BEGIN HSEM1_IRQn 0 */
+
+  /* USER CODE END HSEM1_IRQn 0 */
+  HAL_HSEM_IRQHandler();
+  /* USER CODE BEGIN HSEM1_IRQn 1 */
+
+  /* USER CODE END HSEM1_IRQn 1 */
 }
 
 /**
@@ -439,7 +447,6 @@ void BDMA_Channel0_IRQHandler(void)
   /* USER CODE BEGIN BDMA_Channel0_IRQn 0 */
 
   /* USER CODE END BDMA_Channel0_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_lpuart1_tx);
   /* USER CODE BEGIN BDMA_Channel0_IRQn 1 */
 
   /* USER CODE END BDMA_Channel0_IRQn 1 */
@@ -453,7 +460,6 @@ void BDMA_Channel1_IRQHandler(void)
   /* USER CODE BEGIN BDMA_Channel1_IRQn 0 */
 
   /* USER CODE END BDMA_Channel1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_lpuart1_rx);
   /* USER CODE BEGIN BDMA_Channel1_IRQn 1 */
 
   /* USER CODE END BDMA_Channel1_IRQn 1 */

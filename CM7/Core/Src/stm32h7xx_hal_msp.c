@@ -1,6 +1,5 @@
 /* USER CODE BEGIN Header */
 /* USER CODE END Header */
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 /* USER CODE BEGIN Includes */
@@ -58,6 +57,11 @@ void HAL_MspInit(void)
   /* System interrupt init*/
   /* PendSV_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(PendSV_IRQn, 15, 0);
+
+  /* Peripheral interrupt init */
+  /* HSEM1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(HSEM1_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(HSEM1_IRQn);
 
   /** PVD Configuration
   */

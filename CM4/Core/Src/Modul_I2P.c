@@ -175,7 +175,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	nCzas = MinalCzasT7(nCzas);		//czas 26800-28900us;	6083-6501us
 
 	//napełnij bufor szybkiego IMU dla FFT
-	chIndeksProbki = uDaneCM4.dane.stSzybkieIMU.chIndeksProbki;
+	/*chIndeksProbki = uDaneCM4.dane.stSzybkieIMU.chIndeksProbki;
 	for (uint8_t n=0; n<3; n++)
 	{
 		uDaneCM4.dane.stSzybkieIMU.fAkcel[chIndeksProbki][n] = uDaneCM4.dane.fAkcel1[n];
@@ -183,7 +183,7 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	}
 	chIndeksProbki++;
 	chIndeksProbki &= MASKA_BUFORA_IMU;
-	uDaneCM4.dane.stSzybkieIMU.chIndeksProbki = chIndeksProbki;
+	uDaneCM4.dane.stSzybkieIMU.chIndeksProbki = chIndeksProbki;*/
 	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 
 	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))

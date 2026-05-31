@@ -93,7 +93,7 @@ uint8_t ZapiszKonfiguracjejFFT(void)
 void PobierzDaneDoFFT(void)
 {
 	//czasami gdy coś sie dzieje złego w CM4, chIndeksProbki wskazuje na próbkę zpoza zakresu. Nie brnij w takie sytuacje
-	if (uDaneCM4.dane.stSzybkieIMU.chIndeksProbki >= ROZMIAR_BUFORA_IMU)
+	/*if (uDaneCM4.dane.stSzybkieIMU.chIndeksProbki >= ROZMIAR_BUFORA_IMU)
 		return;
 
 	while (uDaneCM4.dane.stSzybkieIMU.chIndeksProbki != chOstatniIndeksSzybkiegoIMU)
@@ -113,7 +113,7 @@ void PobierzDaneDoFFT(void)
 			sIndeksPróbki = 0;
 			stKonfigFFT.chStatus |= FFT_NOWE_DANE;		//mamy komplet danych, można liczyć FFT
 		}
-	}
+	}*/
 }
 
 

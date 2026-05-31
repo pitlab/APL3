@@ -208,7 +208,7 @@ void PetlaGlowna(void)
 	case 12:	//wymień dane między rdzeniami
 		//uint32_t nCzas1, nCzas2, nCzas3, nStart;
 		//nStart = PobierzCzasT7();
-		uDaneCM4.dane.chErrPetliGlownej = cBłądPG;
+		uDaneCM4.dane.cBladPetliGlownej = cBłądPG;
 		//nCzas1 = MinalCzasT7(nStart);
 		cBłądPG  = UstawDaneWymiany_CM4();
 		//nCzas2 = MinalCzasT7(nStart);
@@ -216,7 +216,7 @@ void PetlaGlowna(void)
 		//nCzas3 = MinalCzasT7(nStart);
 		break;
 
-	case 13:
+	case 14:
 		WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
 		if (cDzielnikAktualizacjiLED)
 			cDzielnikAktualizacjiLED--;

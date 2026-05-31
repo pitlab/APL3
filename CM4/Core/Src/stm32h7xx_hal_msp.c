@@ -17,7 +17,6 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
-
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 /* USER CODE BEGIN Includes */
@@ -100,6 +99,11 @@ void HAL_MspInit(void)
   __HAL_RCC_SYSCFG_CLK_ENABLE();
 
   /* System interrupt init*/
+
+  /* Peripheral interrupt init */
+  /* HSEM2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(HSEM2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(HSEM2_IRQn);
 
   /** PVD Configuration
   */

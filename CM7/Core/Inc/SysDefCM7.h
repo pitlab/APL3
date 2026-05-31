@@ -322,4 +322,5 @@
 #define STAT_JPG_GOTOWY			0x80	//kompresor skończył pracę
 
 
+
 #endif /* INC_SYS_DEF_CM7_H_ */

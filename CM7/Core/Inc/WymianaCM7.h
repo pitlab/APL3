@@ -12,7 +12,7 @@
 
 #define ROZMIAR_BUF_NAPISOW_CM4		4*ROZMIAR_BUF_NAPISU_WYMIANY
 
-
+void InicjujWymiane(void);
 uint8_t PobierzDaneWymiany_CM4(void);
 uint8_t UstawDaneWymiany_CM7(void);
 

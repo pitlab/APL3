@@ -79,6 +79,7 @@ void I2C3_EV_IRQHandler(void);
 void UART8_IRQHandler(void);
 void I2C4_EV_IRQHandler(void);
 void I2C4_ER_IRQHandler(void);
+void HSEM2_IRQHandler(void);
 void ADC3_IRQHandler(void);
 void BDMA_Channel2_IRQHandler(void);
 void BDMA_Channel3_IRQHandler(void);

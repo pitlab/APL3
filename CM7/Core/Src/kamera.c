@@ -73,7 +73,7 @@ extern stKonfOsd_t stKonfOSD;
 // Parametry: brak
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjalizujKamere(void)
+uint8_t InicjujKamere(void)
 {
 	uint8_t cBłąd;
 	uint32_t nHCLK = HAL_RCC_GetHCLKFreq();

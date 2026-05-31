@@ -68,7 +68,8 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
+#include "FreeRTOS.h"
+#include "cmsis_os2.h"
 #include "fatfs.h"
 #include "lwip.h"
 #include "usb_device.h"
@@ -103,7 +104,6 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
-typedef StaticTask_t osStaticThreadDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -166,48 +166,8 @@ SDRAM_HandleTypeDef hsdram1;
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .stack_size = 512 * 4,
+  .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
-};
-/* Definitions for tsOdbiorLPUART1 */
-osThreadId_t tsOdbiorLPUART1Handle;
-const osThreadAttr_t tsOdbiorLPUART1_attributes = {
-  .name = "tsOdbiorLPUART1",
-  .stack_size = 192 * 4,
-  .priority = (osPriority_t) osPriorityAboveNormal,
-};
-/* Definitions for tsRejestrator */
-osThreadId_t tsRejestratorHandle;
-uint32_t tsRejestratorBuffer[ 512 ];
-osStaticThreadDef_t tsRejestratorControlBlock;
-const osThreadAttr_t tsRejestrator_attributes = {
-  .name = "tsRejestrator",
-  .cb_mem = &tsRejestratorControlBlock,
-  .cb_size = sizeof(tsRejestratorControlBlock),
-  .stack_mem = &tsRejestratorBuffer[0],
-  .stack_size = sizeof(tsRejestratorBuffer),
-  .priority = (osPriority_t) osPriorityHigh,
-};
-/* Definitions for tsObslugaWyswie */
-osThreadId_t tsObslugaWyswieHandle;
-const osThreadAttr_t tsObslugaWyswie_attributes = {
-  .name = "tsObslugaWyswie",
-  .stack_size = 384 * 4,
-  .priority = (osPriority_t) osPriorityLow,
-};
-/* Definitions for tsSerwerTCP */
-osThreadId_t tsSerwerTCPHandle;
-const osThreadAttr_t tsSerwerTCP_attributes = {
-  .name = "tsSerwerTCP",
-  .stack_size = 512 * 4,
-  .priority = (osPriority_t) osPriorityBelowNormal,
-};
-/* Definitions for tsSerwerRTSP */
-osThreadId_t tsSerwerRTSPHandle;
-const osThreadAttr_t tsSerwerRTSP_attributes = {
-  .name = "tsSerwerRTSP",
-  .stack_size = 1024 * 4,
-  .priority = (osPriority_t) osPriorityBelowNormal,
 };
 /* USER CODE BEGIN PV */
 uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
@@ -248,11 +208,6 @@ static void MX_TIM12_Init(void);
 static void MX_JPEG_Init(void);
 static void MX_DMA2D_Init(void);
 void StartDefaultTask(void *argument);
-void WatekOdbiorczyLPUART1(void *argument);
-void WatekRejestratora(void *argument);
-void WatekWyswietlacza(void *argument);
-void WatekSerweraTCP(void *argument);
-void WatekSerweraRTSP(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -427,7 +382,7 @@ Error_Handler();
   cBłąd |= InicjujProtokol();
   cBłąd |= InicjujAudio();
 
-  cBłąd |= InicjalizujKamere();
+  cBłąd |= InicjujKamere();
   if (cBłąd != BLAD_OK)
   	  chCzasSwieceniaLED[LED_CZER] = 50;	//świeć 5s
   cBłąd |= InicjujOSD();
@@ -446,7 +401,8 @@ Error_Handler();
 		  chNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
 	  }
   }
-  cBłąd |= InicjalizujJpeg();
+  InicjujWymiane();
+  cBłąd |= InicjujJpeg();
   InicjujFFT();
 
   extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
@@ -475,21 +431,6 @@ Error_Handler();
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
-  /* creation of tsOdbiorLPUART1 */
-  tsOdbiorLPUART1Handle = osThreadNew(WatekOdbiorczyLPUART1, NULL, &tsOdbiorLPUART1_attributes);
-
-  /* creation of tsRejestrator */
-  tsRejestratorHandle = osThreadNew(WatekRejestratora, NULL, &tsRejestrator_attributes);
-
-  /* creation of tsObslugaWyswie */
-  tsObslugaWyswieHandle = osThreadNew(WatekWyswietlacza, NULL, &tsObslugaWyswie_attributes);
-
-  /* creation of tsSerwerTCP */
-  //tsSerwerTCPHandle = osThreadNew(WatekSerweraTCP, NULL, &tsSerwerTCP_attributes);
-
-  /* creation of tsSerwerRTSP */
-  //tsSerwerRTSPHandle = osThreadNew(WatekSerweraRTSP, NULL, &tsSerwerRTSP_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -1541,12 +1482,12 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOI_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOI_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOJ_CLK_ENABLE();
@@ -1557,6 +1498,12 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOJ, MODZ_ADR0_Pin|MODZ_ADR1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : SERWO7_IO_Pin */
+  GPIO_InitStruct.Pin = SERWO7_IO_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(SERWO7_IO_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PF6 PF7 */
   GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
@@ -1617,287 +1564,26 @@ static void MX_GPIO_Init(void)
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
-////////////////////////////////////////////////////////////////////////////////
-// Watek uruchmiany co 5ms. Wykonuje krótkie szybkie akcje, wymagające krótkiej reakcji
-// Czas trwania: min. 30us, typ 32us
-////////////////////////////////////////////////////////////////////////////////
+/**
+  * @brief  Function implementing the defaultTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument)
 {
   /* init code for LWIP */
-  //MX_LWIP_Init();
+  MX_LWIP_Init();
 
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
-	uint8_t chStanDekodera;
-	uDaneCM7.dane.chOdbiornikRC = ODB_OBA;	//przesyłaj stan obu odbiorników po dywersyfikacji
-	for(;;)
-	{
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
-		chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
-		CzytajDotyk();
-		WymienDaneExpanderow();
-		UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
-
-		//obsłuż międzyprocesorową wymianę danych
-		cBłąd += PobierzDaneWymiany_CM4();
-		cBłąd += UstawDaneWymiany_CM7();
-		if (cBłąd)		//sygnalizacja błędów wymiany
-		{
-			chCzasSwieceniaLED[LED_ZIEL] = 1;	//x0,1s
-			cBłąd = BLAD_OK;
-		}
-
-		PobierzDaneDoFFT();
-
-		//synchronizacja czasu i daty z GNSS tylko dopóki nie są w pełni zsynchroniozwane, później pracuję na RTC. Docelowo również synchronizacja z NTP
-		if (chStanSynchronizacjiCzasu != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
-			SynchronizujCzasDoGNSS(&uDaneCM4.dane.stGnss1);
-
-
-		cBłąd = ObslugaPolecenCM4();	//obsłuż polecenia rdzenia CM4
-		if (cBłąd)		//sygnalizacja błędów
-			chCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
-
-		ObslugaWymowyKomunikatu();	//obsłuż wymowę komuniatów głosowych
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
-		osDelay(5);		//ustaw okres z jakim pracuje CM4 (200Hz -> 5ms)
-	}
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
   /* USER CODE END 5 */
-}
-
-/* USER CODE BEGIN Header_WatekOdbiorczyLPUART1 */
-////////////////////////////////////////////////////////////////////////////////
-// Wątek odbiorczy danych komunikacyjnych po LPUART1
-// Odbiera dane przez DMA i analizuje je, wysyła telemetrię
-// Czas trwania: typ. 250ns,
-////////////////////////////////////////////////////////////////////////////////
-/* USER CODE END Header_WatekOdbiorczyLPUART1 */
-void WatekOdbiorczyLPUART1(void *argument)
-{
-  /* USER CODE BEGIN WatekOdbiorczyLPUART1 */
-	uint32_t nCzasTele, nCzasPoprzedniTele;
-	extern volatile st_ZajetośćLPUART_t st_ZajetośćLPUART;
-	uint8_t cBłąd;
-	uint8_t chDanychDoWysłania;
-	uint8_t chCzasDrzemki;
-	extern uint8_t chStatusPolaczenia;
-	uint8_t chStatusUART;
-
-	cBłąd = InicjalizacjaWatkuOdbiorczegoLPUART1();
-	InicjalizacjaTelemetrii();
-	nCzasPoprzedniTele = PobierzCzasT6();
-
-	if (cBłąd)
-	{
-		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
-		chStatusPolaczenia |= (STAT_POL_NIEAKTYWNY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
-	}
-	else
-	while(1)
-	{
-		chDanychDoWysłania = 0;
-		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
-		//w pierwszej kolejności obsłuż protokół komunikacyjny
-		if (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY)
-		{
-			cBłąd = ObslugaWatkuOdbiorczegoLPUART1();
-			if (cBłąd != BLAD_NIC_DO_ROBOTY)
-				osDelay(2);	//czas na obsługę ramki tylko wtedy gdy jest coś do wysłania
-		}
-
-		//w drugiej kolejności obsłuż telemetrię
-		//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
-		nCzasTele = MinalCzas(nCzasPoprzedniTele);	//czas w mikrosekundach
-		if ((nCzasTele >= KWANT_CZASU_TELEMETRII * 1000) && (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY))
-		{
-			chDanychDoWysłania = ObslugaTelemetrii(INTERF_UART);
-			nCzasPoprzedniTele += KWANT_CZASU_TELEMETRII * 1000;
-			if (chDanychDoWysłania)
-			{
-				chCzasDrzemki = (chDanychDoWysłania * 92) / 1000; 	//1 bajt na 115200 bps wysyła się 86,8us, więc nie wracaj wcześniej aż sie wyśle. Po optymalizacji potrzebna jest trochę większa wartość
-				if (chCzasDrzemki < 10)
-					chCzasDrzemki = 10;		//kwant czasu telemetrii 100Hz to 10ms
-			}
-			else
-				chCzasDrzemki = 10;		//kwant czasu telemetrii 100Hz to 10ms
-			osDelay(chCzasDrzemki);
-		}
-		chStatusUART |= chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);
-		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
-		if (chStatusUART == (STAT_POL_OTWARTY << STAT_POL_UART))	//jeżeli był ustawiony bit transmisji lub otwartości
-			chStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);	//to wróć do stanu otwartego łącza
-		else
-			chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
-		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
-	}
-  /* USER CODE END WatekOdbiorczyLPUART1 */
-}
-
-/* USER CODE BEGIN Header_WatekRejestratora */
-/**
-* @brief Function implementing the tsRejestrator thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_WatekRejestratora */
-void WatekRejestratora(void *argument)
-{
-  /* USER CODE BEGIN WatekRejestratora */
-	extern volatile uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-	extern uint8_t chPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
-	extern uint8_t chKodBleduFAT;
-
-	for(;;)
-	{
-		if ((chPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty, aktywny niski
-		{
-			if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
-			{
-				if (chStatusRejestratora & STATREJ_WLACZONY)
-				{
-					ObslugaPetliRejestratora();
-				}
-				else
-				if (chStatusRejestratora & STATREJ_ZAPISZ_JPG)
-				{
-					ObslugaZapisuJpeg();
-				}
-				else
-				if (chStatusRejestratora & STATREJ_ZAPISZ_BMP)
-				{
-					ObslugaZapisuBmp();
-				}
-				else
-					osDelay(5);	//jeżeli nie ma nic do zapisu to wstrzymaj wątek na tyle czasu
-					//taskYIELD();
-			}
-			else	//jeżeli FAT nie jest gotowy to go zamontuj
-			{
-				DSTATUS status;
-				FRESULT fres;
-
-				//hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
-				//hsd1.ErrorCode = 0;							//zacznij pracę bez kodu błędu
-				//status = SD_initialize(0);
-				status = disk_initialize(0);
-				if (status == RES_OK)
-				{
-					fres = BSP_SD_Init();
-					if (fres == FR_OK)
-					{
-						fres = f_mount(&SDFatFS, SDPath, 1);		//1=montuj teraz, 0=przy próbie zapisu
-						if (fres == FR_OK)
-						{
-							chStatusRejestratora |= STATREJ_FAT_GOTOWY;
-							//fres = f_open(&SDFile, "abc.txt", FA_OPEN_EXISTING | FA_READ | FA_WRITE);
-							//if (fres == FR_OK)
-							//{
-								//f_gets(chBufZapisuKarty, ROZMIAR_BUFORA_LOGU, &SDFile);
-								//f_close(&SDFile);
-							//}
-						}
-						else
-						{
-							//jeżeli nie udało sie zamontować FAT to utwórz go ponownie
-							DWORD au = _MAX_SS;
-							fres = f_mkfs(SDPath, FM_FAT32, au, NULL, _MAX_SS);	//sprawdzić czy tak może być
-						}
-						chKodBleduFAT = fres;
-					}
-					else
-						chCzasSwieceniaLED[LED_CZER] = 3;	//x0,1s - sygnalizacja błędu montowania woluminu karty
-				}
-				if (fres != FR_OK)
-					osDelay(1000);	//ponawiaj próbę inicjalizacji co tyle czasu
-			}
-		}
-		else	//jeżeli nie ma karty
-		{
-			if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
-			{
-				if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
-					f_close(&SDFile);
-				f_mount(NULL, "", 1);		//zdemontuj system plików
-				chStatusRejestratora = 0;
-			}
-			else
-				chCzasSwieceniaLED[LED_CZER] = 1;	//x0,1s - sygnalizacja braku karty
-			osDelay(2000);	//sprawdź czy jest karta co tyle czasu
-
-		}
-	}
-  /* USER CODE END WatekRejestratora */
-}
-
-/* USER CODE BEGIN Header_WatekWyswietlacza */
-/**
-* @brief Function implementing the tsObslugaWyswie thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_WatekWyswietlacza */
-void WatekWyswietlacza(void *argument)
-{
-  /* USER CODE BEGIN WatekWyswietlacza */
-	/* Infinite loop */
-	for(;;)
-	{
-		if (nZainicjowanoCM7 & INIT_LCD480x320)		//obsłuż wyświetlacz tylko wtedy jest zainicjowany
-		{
-			cBłąd = RysujEkran();
-			if (cBłąd)
-				chCzasSwieceniaLED[LED_ZIEL] = 3;	//x0,1s - sygnalizacja błędów obsługi poleceń
-		}
-		else
-			osDelay(1000);
-	}
-  /* USER CODE END WatekWyswietlacza */
-}
-
-/* USER CODE BEGIN Header_WatekSerweraTCP */
-/**
-* @brief Function implementing the tsSerwerTCP thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_WatekSerweraTCP */
-void WatekSerweraTCP(void *argument)
-{
-  /* USER CODE BEGIN WatekSerweraTCP */
-	OtworzPortSertweraTCP();
-	for(;;)
-	{
-		ObslugaSerweraTCP();
-		osDelay(1);
-	}
-  /* USER CODE END WatekSerweraTCP */
-}
-
-/* USER CODE BEGIN Header_WatekSerweraRTSP */
-/**
-* @brief Function implementing the tsSerwerRTSP thread.
-* @param argument: Not used
-* @retval None
-*/
-/* USER CODE END Header_WatekSerweraRTSP */
-void WatekSerweraRTSP(void *argument)
-{
-  /* USER CODE BEGIN WatekSerweraRTSP */
-	int nDeskryptorGniazdaPolaczenia;
-
-	err_t cBłąd;
-	cBłąd = OtworzPolaczenieSerweraRTSP(&nDeskryptorGniazdaPolaczenia);
-	if (cBłąd)
-		return;
-
-	for(;;)
-	{
-		ObslugaSerweraRTSP(nDeskryptorGniazdaPolaczenia);
-		osDelay(1);
-	}
-  /* USER CODE END WatekSerweraRTSP */
 }
 
  /* MPU Configuration */

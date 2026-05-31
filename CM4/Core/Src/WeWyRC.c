@@ -64,6 +64,9 @@ uint8_t chBityKonfiguracji = 0;
 volatile uint16_t sFlagiNapelnieniaBuforow;		//flagi inforujące pętlę główną o potrzebie napełnienia podwójnego bufora DMA: DShot lub programowalnych LEDów
 uint16_t sPoprzedniStanKanaluRozszerzonego[KANALY_FUNKCYJNE];	//poprzedni stan do detekcji uruchomiania funkcji wywoływanych kanałami wejsciowymi RC
 
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja wczytuje z FRAM konfigurację odbiorników RC
 // Parametry Sbus 100kBps, 8E2

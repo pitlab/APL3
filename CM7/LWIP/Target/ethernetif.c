@@ -38,7 +38,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* The time to block waiting for input. */
-#define TIME_WAITING_FOR_INPUT ( portMAX_DELAY )
+#define TIME_WAITING_FOR_INPUT ( osWaitForever )
 /* Time to block waiting for transmissions to finish */
 #define ETHIF_TX_TIMEOUT (2000U)
 /* USER CODE BEGIN OS_THREAD_STACK_SIZE_WITH_RTOS */
@@ -95,27 +95,27 @@ typedef struct
 } RxBuff_t;
 
 /* Memory Pool Declaration */
-#define ETH_RX_BUFFER_CNT             20U
+#define ETH_RX_BUFFER_CNT             12U
 LWIP_MEMPOOL_DECLARE(RX_POOL, ETH_RX_BUFFER_CNT, sizeof(RxBuff_t), "Zero-copy RX PBUF pool");
 
 /* Variable Definitions */
 static uint8_t RxAllocStatus;
 #if defined ( __ICCARM__ ) /*!< IAR Compiler */
 
-#pragma location=0x30040000
+#pragma location=0x30000000
 ETH_DMADescTypeDef  DMARxDscrTab[ETH_RX_DESC_CNT]; /* Ethernet Rx DMA Descriptors */
 #pragma location=0x30040100
 ETH_DMADescTypeDef  DMATxDscrTab[ETH_TX_DESC_CNT]; /* Ethernet Tx DMA Descriptors */
 
 #elif defined ( __CC_ARM )  /* MDK ARM Compiler */
 
-__attribute__((at(0x30040000))) ETH_DMADescTypeDef  DMARxDscrTab[ETH_RX_DESC_CNT]; /* Ethernet Rx DMA Descriptors */
+__attribute__((at(0x30000000))) ETH_DMADescTypeDef  DMARxDscrTab[ETH_RX_DESC_CNT]; /* Ethernet Rx DMA Descriptors */
 __attribute__((at(0x30040100))) ETH_DMADescTypeDef  DMATxDscrTab[ETH_TX_DESC_CNT]; /* Ethernet Tx DMA Descriptors */
 
 #elif defined ( __GNUC__ ) /* GNU Compiler */
 
-ETH_DMADescTypeDef DMARxDscrTab[ETH_RX_DESC_CNT] __attribute__((section(".RxDecripSection"))); /* Ethernet Rx DMA Descriptors */
-ETH_DMADescTypeDef DMATxDscrTab[ETH_TX_DESC_CNT] __attribute__((section(".TxDecripSection")));   /* Ethernet Tx DMA Descriptors */
+ETH_DMADescTypeDef DMARxDscrTab[ETH_RX_DESC_CNT] __attribute__((section(".RxDescripSection"))); /* Ethernet Rx DMA Descriptors */
+ETH_DMADescTypeDef DMATxDscrTab[ETH_TX_DESC_CNT] __attribute__((section(".TxDescripSection")));   /* Ethernet Tx DMA Descriptors */
 
 #endif
 
@@ -131,16 +131,14 @@ __attribute__((section(".Rx_PoolSection"))) extern u8_t memp_memory_RX_POOL_base
 #endif
 
 /* USER CODE BEGIN 2 */
-
+ETH_TxPacketConfig TxConfig = {0};
 /* USER CODE END 2 */
 
-osSemaphoreId RxPktSemaphore = NULL;   /* Semaphore to signal incoming packets */
-osSemaphoreId TxPktSemaphore = NULL;   /* Semaphore to signal transmit packet complete */
+osSemaphoreId_t RxPktSemaphore = NULL;   /* Semaphore to signal incoming packets */
+osSemaphoreId_t TxPktSemaphore = NULL;   /* Semaphore to signal transmit packet complete */
 
 /* Global Ethernet handle */
 ETH_HandleTypeDef heth;
-
-ETH_TxPacketConfig TxConfig;
 
 /* Private function prototypes -----------------------------------------------*/
 int32_t ETH_PHY_IO_Init(void);
@@ -385,8 +383,15 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
   struct pbuf *q = NULL;
   err_t errval = ERR_OK;
   ETH_BufferTypeDef Txbuffer[ETH_TX_DESC_CNT] = {0};
+  ETH_TxPacketConfig tx_config;
 
   memset(Txbuffer, 0 , ETH_TX_DESC_CNT*sizeof(ETH_BufferTypeDef));
+
+  /* Set Tx packet config common parameters */
+  memset(&tx_config, 0 , sizeof(ETH_TxPacketConfig));
+  tx_config.Attributes = ETH_TX_PACKETS_FEATURES_CSUM | ETH_TX_PACKETS_FEATURES_CRCPAD;
+  tx_config.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
+  tx_config.CRCPadCtrl = ETH_CRC_PAD_INSERT;
 
   for(q = p; q != NULL; q = q->next)
   {
@@ -409,15 +414,15 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
     i++;
   }
 
-  TxConfig.Length = p->tot_len;
-  TxConfig.TxBuffer = Txbuffer;
-  TxConfig.pData = p;
+  tx_config.Length = p->tot_len;
+  tx_config.TxBuffer = Txbuffer;
+  tx_config.pData = p;
 
   pbuf_ref(p);
 
   do
   {
-    if(HAL_ETH_Transmit_IT(&heth, &TxConfig) == HAL_OK)
+    if(HAL_ETH_Transmit_IT(&heth, &tx_config) == HAL_OK)
     {
       errval = ERR_OK;
     }

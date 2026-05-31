@@ -8,6 +8,12 @@
 #ifndef INC_SEMAFORY_H_
 #define INC_SEMAFORY_H_
 
+//definicje portów prezentujących się w rejestrach semaforów (RO)
+#define PORT_AP0_CM7	0
+#define PORT_AP1_D3		1
+#define PORT_AP2_SYSTEM	2
+#define PORT_AP3_CM4	3
+
 //definicje procesów obsługiwanych przez semafory
 #define HSEM_LCD	1	//semafor HSEM_SPI5_WYSW przejęty przez wyświetlacz
 #define HSEM_DOTYK	2	//semafor HSEM_SPI5_WYSW przejęty przez panel dotykowy

@@ -68,6 +68,7 @@ void DMA2D_IRQHandler(void);
 void TIM17_IRQHandler(void);
 void JPEG_IRQHandler(void);
 void MDMA_IRQHandler(void);
+void HSEM1_IRQHandler(void);
 void BDMA_Channel0_IRQHandler(void);
 void BDMA_Channel1_IRQHandler(void);
 void LPUART1_IRQHandler(void);

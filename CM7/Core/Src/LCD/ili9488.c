@@ -381,10 +381,19 @@ uint8_t RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sS
 // chKolor - wskaźnik na tablicę kolorów RGB666
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor)
+uint8_t RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor)
 {
+	uint8_t cLicznikProbOdblokowania = 10;
+	uint8_t cBłąd = BLAD_OK;
+
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
+	{
 		osDelay(1);
+		if (cLicznikProbOdblokowania)
+			cLicznikProbOdblokowania--;
+		else
+			return BLAD_SEMAFOR_ZAJETY;
+	}
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		setXY(x, y, x, y);
@@ -397,6 +406,7 @@ void RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor)
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	return cBłąd;
 }
 
 
@@ -407,10 +417,19 @@ void RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor)
 // len - długośc linii
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
+uint8_t RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 {
+	uint8_t cLicznikProbOdblokowania = 10;
+	uint8_t cBłąd = BLAD_OK;
+
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
+	{
 		osDelay(1);
+		if (cLicznikProbOdblokowania)
+			cLicznikProbOdblokowania--;
+		else
+			return BLAD_SEMAFOR_ZAJETY;
+	}
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		if (len < 0)
@@ -428,6 +447,7 @@ void RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	return cBłąd;
 }
 
 
@@ -438,10 +458,19 @@ void RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 // len - długość linii
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
+uint8_t RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 {
+	uint8_t cLicznikProbOdblokowania = 10;
+	uint8_t cBłąd = BLAD_OK;
+
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
+	{
 		osDelay(1);
+		if (cLicznikProbOdblokowania)
+			cLicznikProbOdblokowania--;
+		else
+			return BLAD_SEMAFOR_ZAJETY;
+	}
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		if (len < 0)
@@ -458,6 +487,7 @@ void RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	return cBłąd;
 }
 
 
@@ -467,8 +497,11 @@ void RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 // Parametry: x, y - współrzędne
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
+uint8_t RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 {
+	uint8_t cLicznikProbOdblokowania = 10;
+	uint8_t cBłąd = BLAD_OK;
+
 	if (y1==y2)
 		RysujLiniePozioma(x1, y1, x2-x1);
 	else if (x1==x2)
@@ -482,7 +515,13 @@ void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 		int16_t	col = x1, row = y1;
 
 		while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
+		{
 			osDelay(1);
+			if (cLicznikProbOdblokowania)
+				cLicznikProbOdblokowania--;
+			else
+				return BLAD_SEMAFOR_ZAJETY;
+		}
 		if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 		{
 			if (dx < dy)
@@ -494,7 +533,7 @@ void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 					LCD_WrData(chKolor666, 3);
 
 					if (row == y2)
-						return;
+						return cBłąd;
 					row += ystep;
 					t += dx;
 					if (t >= 0)
@@ -512,7 +551,7 @@ void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 					setXY (col, row, col, row);
 					LCD_WrData(chKolor666, 3);
 					if (col == x2)
-						return;
+						return cBłąd;
 					col += xstep;
 					t += dy;
 					if (t >= 0)
@@ -526,6 +565,7 @@ void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	return cBłąd;
 }
 
 
@@ -611,15 +651,23 @@ void clrXY(void)
 // Parametry: c - znak; x, y - współrzędne
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
+uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 {
 	uint8_t i, ch;
 	uint16_t j;
 	uint16_t temp;
 	uint16_t zz;
+	uint8_t cLicznikProbOdblokowania = 10;
+	uint8_t cBłąd = BLAD_OK;
 
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
+	{
 		osDelay(1);
+		if (cLicznikProbOdblokowania)
+			cLicznikProbOdblokowania--;
+		else
+			return BLAD_SEMAFOR_ZAJETY;
+	}
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		if (!_transparent)
@@ -696,6 +744,7 @@ void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	return cBłąd;
 }
 
 
@@ -707,12 +756,20 @@ void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 //  sx, sy - rozmiar bitmapy
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* obraz)
+uint8_t RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* obraz)
 {
 	uint32_t tx, ty, tc;
+	uint8_t cLicznikProbOdblokowania = 10;
+	uint8_t cBłąd = BLAD_OK;
 
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
+	{
 		osDelay(1);
+		if (cLicznikProbOdblokowania)
+			cLicznikProbOdblokowania--;
+		else
+			return BLAD_SEMAFOR_ZAJETY;
+	}
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		if (chOrientacja == POZIOMO)
@@ -745,6 +802,7 @@ void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	return cBłąd;
 }
 
 
@@ -757,13 +815,21 @@ void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16
 // chObraz - wskaźnik na obraz
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_t* chObraz)
+uint8_t RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_t* chObraz)
 {
 	uint16_t col;
 	uint32_t tx, ty;
+	uint8_t cLicznikProbOdblokowania = 10;
+	uint8_t cBłąd = BLAD_OK;
 
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
+	{
 		osDelay(1);
+		if (cLicznikProbOdblokowania)
+			cLicznikProbOdblokowania--;
+		else
+			return BLAD_SEMAFOR_ZAJETY;
+	}
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		if (chOrientacja == POZIOMO)
@@ -795,6 +861,7 @@ void RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_t* 
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	return cBłąd;
 }
 
 
@@ -806,16 +873,24 @@ void RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_t* 
 //  radius - promień
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujOkrag(uint16_t x, uint16_t y, uint16_t promien)
+uint8_t RysujOkrag(uint16_t x, uint16_t y, uint16_t promien)
 {
 	int16_t f = 1 - promien;
 	int16_t ddF_x = 1;
 	int16_t ddF_y = -2 * promien;
 	int16_t x1 = 0;
 	int16_t y1 = promien;
+	uint8_t cLicznikProbOdblokowania = 10;
+	uint8_t cBłąd = BLAD_OK;
 
 	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
+	{
 		osDelay(1);
+		if (cLicznikProbOdblokowania)
+			cLicznikProbOdblokowania--;
+		else
+			return BLAD_SEMAFOR_ZAJETY;
+	}
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		setXY(x, y + promien, x, y + promien);
@@ -868,6 +943,7 @@ void RysujOkrag(uint16_t x, uint16_t y, uint16_t promien)
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	return cBłąd;
 }
 
 

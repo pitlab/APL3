@@ -26,7 +26,7 @@
 #define ROZMIAR_ZNACZ_xOI	2
 
 
-uint8_t InicjalizujJpeg(void);
+uint8_t InicjujJpeg(void);
 uint8_t KonfigurujKompresjeJpeg(JPEG_ConfTypeDef *stKonfJpeg, uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t chTypKoloru, uint8_t chTypChrominancji, uint8_t chJakoscObrazu);
 uint8_t CzekajNaKoniecPracyJPEG(void);
 uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc);

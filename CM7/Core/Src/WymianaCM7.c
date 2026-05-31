@@ -25,6 +25,21 @@ uint32_t nLicznikSynchronizacji = 0;
 
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Inicjalizacja miedzyrdzeniowej wymiany danych
+// Parametry: nic
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+void InicjujWymiane(void)
+{
+	HAL_NVIC_SetPriority(HSEM1_IRQn, 5, 0);
+	HAL_NVIC_EnableIRQ(HSEM1_IRQn);
+	HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_CM4_TO_CM7));
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Pobiera dane z rdzenia CM4
 // Parametry: nic
@@ -32,23 +47,27 @@ uint32_t nLicznikSynchronizacji = 0;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PobierzDaneWymiany_CM4(void)
 {
-	uint32_t nStanSemafora;
+	//uint32_t nStanSemafora;
 	HAL_StatusTypeDef cBłąd = BLAD_SEMAFOR_ZAJETY;
 
-	nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM4_TO_CM7);
-	if (!nStanSemafora)
+	//nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM4_TO_CM7);
+	//if (!nStanSemafora)
+	if (sFlagiCM4 & FMR_SPRAWDZ_CM4)
 	{
+		 sFlagiCM4 &= ~FMR_SPRAWDZ_CM4;
 		cBłąd = HAL_HSEM_Take(HSEM_CM4_TO_CM7, HSEM_CM7);
 		if (cBłąd == BLAD_OK)
 		{
 			//Pobierz dane tylko gdy są ustawione nowe
-			__DMB();	//Data Memory Barrier. Ensures the apparent order of the explicit memory operations before and after the instruction, without ensuring their completion.
-			if (sFlagiCM4 & FMR_SA_DANE_CM4)
+			//__DMB();	//Data Memory Barrier. Ensures the apparent order of the explicit memory operations before and after the instruction, without ensuring their completion.
+			//if (sFlagiCM4 & FMR_SA_DANE_CM4)
 			{
+				HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_SET);			//kanał serw 7 skonfigurowany jako IO
 				for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
 					uDaneCM4.nSlowa[n] = nBuforWymianyCM4[n];
 				sFlagiCM4 &= ~FMR_SA_DANE_CM4;
-				__DSB();	//Data Synchronization Barrier. Acts as a special kind of Data Memory Barrier. It completes when all explicit memory accesses before this instruction complete.
+				HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_RESET);			//kanał serw 7 skonfigurowany jako IO
+				//__DSB();	//Data Synchronization Barrier. Acts as a special kind of Data Memory Barrier. It completes when all explicit memory accesses before this instruction complete.
 			}
 			HAL_HSEM_Release(HSEM_CM4_TO_CM7, HSEM_CM7);
 		}
@@ -65,25 +84,39 @@ uint8_t PobierzDaneWymiany_CM4(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawDaneWymiany_CM7(void)
 {
-	uint32_t nStanSemafora;
+	//uint32_t nStanSemafora;
 	HAL_StatusTypeDef cBłąd = BLAD_SEMAFOR_ZAJETY;
-	nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM7_TO_CM4);
-	if (!nStanSemafora)
+	//nStanSemafora = HAL_HSEM_IsSemTaken(HSEM_CM7_TO_CM4);
+	//if (!nStanSemafora)
 	{
 		cBłąd = HAL_HSEM_Take(HSEM_CM7_TO_CM4, HSEM_CM7);
 		if (cBłąd == BLAD_OK)
 		{
-			__DMB();	//Data Memory Barrier. Ensures the apparent order of the explicit memory operations before and after the instruction, without ensuring their completion.
-			//if ((sFlagiCM7 & FMR_SA_DANE_CM7) != FMR_SA_DANE_CM7)	//ustaw tylko gdy poprzednie są odczytane - blokuje LCD
+			//__DMB();	//Data Memory Barrier. Ensures the apparent order of the explicit memory operations before and after the instruction, without ensuring their completion.
+			//if ((sFlagiCM7 & FMR_SA_DANE_CM7) != FMR_SA_DANE_CM7)	//ustaw tylko gdy poprzednie są odczytane
 			{
 				for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM7; n++)
 					nBuforWymianyCM7[n] = uDaneCM7.nSlowa[n];
-				__DSB();	//Data Synchronization Barrier. Acts as a special kind of Data Memory Barrier. It completes when all explicit memory accesses before this instruction complete.
+				sFlagiCM7 |= FMR_SA_DANE_CM7;
+//				__DSB();	//Data Synchronization Barrier. Acts as a special kind of Data Memory Barrier. It completes when all explicit memory accesses before this instruction complete.
 				HAL_HSEM_Release(HSEM_CM7_TO_CM4, HSEM_CM7);
 			}
-			sFlagiCM7 |= FMR_SA_DANE_CM7;
-
 		}
 	}
 	return cBłąd;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Callback uruchamiany gdy został zwolniony semafor
+// Parametry: SemMask
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void HAL_HSEM_FreeCallback(uint32_t SemMask)
+{
+      /* Reactivate the HSEM notification for Semaphore 0 */
+      HAL_HSEM_ActivateNotification(__HAL_HSEM_SEMID_TO_MASK(HSEM_CM4_TO_CM7));
+      sFlagiCM4 |= FMR_SPRAWDZ_CM4;
+
 }

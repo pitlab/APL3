@@ -642,7 +642,7 @@ uint8_t RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sS
 // len - długośc linii
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
+uint8_t RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 {
 	int i;
 
@@ -666,7 +666,7 @@ void RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 // len - długość linii
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
+uint8_t RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 {
 	int i;
 
@@ -688,7 +688,7 @@ void RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 // Parametry: x, y - współrzędne
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
+uint8_t RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 {
 	if (y1==y2)
 		RysujLiniePionowa(x1, y1, x2-x1);
@@ -829,7 +829,7 @@ void drawPixel(uint16_t x, uint16_t y)
 // Parametry: c - znak; x, y - współrzędne
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
+uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 {
 	uint8_t i,ch;
 	uint16_t j;
@@ -913,7 +913,7 @@ void RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 //  radius - promień
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujOkrag(uint16_t x, uint16_t y, uint16_t promien)
+uint8_t RysujOkrag(uint16_t x, uint16_t y, uint16_t promien)
 {
 	int16_t f = 1 - promien;
 	int16_t ddF_x = 1;

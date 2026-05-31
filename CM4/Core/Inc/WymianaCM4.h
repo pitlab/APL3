@@ -10,6 +10,7 @@
 
 #include "wymiana.h"
 
+void InicjujWymiane(void);
 uint8_t PobierzDaneWymiany_CM7(void);
 uint8_t UstawDaneWymiany_CM4(void);
 
