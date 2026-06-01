@@ -351,7 +351,6 @@ int main(void)
 /*HW semaphore Clock enable*/
 __HAL_RCC_HSEM_CLK_ENABLE();
 /*Take HSEM */
-uint32_t n =__HAL_RCC_GET_FLAG(RCC_FLAG_D2CKRDY);
 HAL_HSEM_FastTake(HSEM_ID_0);
 /*Release HSEM in order to notify the CPU2(CM4)*/
 HAL_HSEM_Release(HSEM_ID_0,0);
@@ -405,7 +404,7 @@ Error_Handler();
   cBłąd |= InicjujSPIModZewn();
   cBłąd |= InicjujFlashNOR();
   //cBłąd |= SprawdzMagistrale(0x60000000);	//sprawdź pamięć SRAM - wyłączony od wersji 475
-  cBłąd |= SprawdzMagistrale(0xC0000000);	//sprawdź pamięć DRAM
+  //cBłąd |= SprawdzMagistrale(0xC0000000);	//sprawdź pamięć DRAM
   //cBłąd |= InicjujFlashQSPI();
   cBłąd |= InicjujKonfigFlash();
   cBłąd = InicjujDotyk();
@@ -595,7 +594,7 @@ void PeriphCommonClock_Config(void)
   PeriphClkInitStruct.PLL2.PLL2N = 90;
   PeriphClkInitStruct.PLL2.PLL2P = 47;
   PeriphClkInitStruct.PLL2.PLL2Q = 17;
-  PeriphClkInitStruct.PLL2.PLL2R = 1;
+  PeriphClkInitStruct.PLL2.PLL2R = 4;
   PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_1;
   PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
   PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
@@ -1344,7 +1343,7 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA1_Stream6_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
   /* DMA2_Stream1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 5, 0);
