@@ -1648,6 +1648,8 @@ void StartDefaultTask(void *argument)
 			chCzasSwieceniaLED[LED_ZIEL] = 1;	//x0,1s
 			cBłąd = BLAD_OK;
 		}
+		if (uDaneCM4.dane.cBladPetliGlownej)
+			chCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
 
 		PobierzDaneDoFFT();
 
@@ -1658,11 +1660,12 @@ void StartDefaultTask(void *argument)
 
 		cBłąd = ObslugaPolecenCM4();	//obsłuż polecenia rdzenia CM4
 		if (cBłąd)		//sygnalizacja błędów
-			chCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
+			chCzasSwieceniaLED[LED_NIEB] = 5;	//x0,1s
 
 		ObslugaWymowyKomunikatu();	//obsłuż wymowę komuniatów głosowych
 		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
-		osDelay(5);		//ustaw okres z jakim pracuje CM4 (200Hz -> 5ms)
+		//osDelay(5);		//ustaw okres z jakim pracuje CM4 (200Hz -> 5ms)
+		osDelay(10);		//maksymalna prędkość telemetrii to 100Hz wiec ustaw okres wymiany na 10ms
   }
   /* USER CODE END 5 */
 }
@@ -1743,6 +1746,7 @@ void MPU_Config(void)
   MPU_InitStruct.Number = MPU_REGION_NUMBER5;
   MPU_InitStruct.BaseAddress = 0x38000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_2KB;
+  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
   MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);

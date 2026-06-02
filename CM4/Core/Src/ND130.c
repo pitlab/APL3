@@ -44,7 +44,7 @@ uint8_t InicjujND130(void)
     	chBufND130[0] = 0xF7;	//mode byte: 30 in H2O, BW=200Hz, Notch enabled
     	chBufND130[1] = 0x02;	//rate = 222Hz
     	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-    	cBłąd |= HAL_SPI_TransmitReceive(&hspi2, chBufND130, chBufND130, 13, 5);
+    	cBłąd |= HAL_SPI_TransmitReceive(&hspi2, chBufND130, chBufND130, 13, SPI_DELAY);
     	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
     	if (cBłąd)
     		return cBłąd;
@@ -111,7 +111,7 @@ uint8_t ObslugaND130(void)
 		chBufND130[1] = 0x02;	//rate = 222Hz
 		chBufND130[2] = chBufND130[3] = 0x00;
 		HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-		HAL_SPI_TransmitReceive(&hspi2, chBufND130, chBufND130, 4, 5);
+		HAL_SPI_TransmitReceive(&hspi2, chBufND130, chBufND130, 4, SPI_DELAY);
 		HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 
 		//walidacja poprawności danych

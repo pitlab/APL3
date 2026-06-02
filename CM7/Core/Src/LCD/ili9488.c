@@ -838,7 +838,7 @@ uint8_t RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_
 			UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 			HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 			for (uint16_t n=0; n<sy/32; n++)
-				HAL_SPI_Transmit(&hspi5, chObraz + n*32*3*sx, sx*32*3, HAL_DELAY_SPI);	//w jednym transferze wyślij 32 wiersze, gdzie piksel zajmuje 3 bajty
+				HAL_SPI_Transmit(&hspi5, chObraz + n*32*3*sx, sx*32*3, 480*HAL_DELAY_SPI);	//w jednym transferze wyślij 32 wiersze, gdzie piksel zajmuje 3 bajty
 			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 		}
 		else
