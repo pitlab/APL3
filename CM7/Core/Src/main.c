@@ -29,7 +29,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 0x24000000	512K	CM7		-		+		+		+		RW		RW		SRAM_AXI_D1		stos i dane dla CM7 - obecnie przestawione
 0x30020000	128K	CM7		-		-		-		-   	RW		RW		SRAM2_AHB_D2	sterta LwIP
 0x30040000	32K		CM7		-		+		-		+  		RW		RW		SRAM3_AHB_D2    deskryptory ethernet (nie mogą być cache'owalne) i bufor [12*MTU]
-0x38000000	2K		CM4+7	-		+		-		-		RW		RW		SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2
+0x38000000	2K		CM4+7	-		+		-		-		RW		RW		SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2. Musi być shareable
 
 0x38000800	32K		CM7		-		-		+		+		RW		RW		SRAM4_AHB_D3	ogólna pamięć rdzenia CM7
 0x38800000	4K		CM7														BACKUP
@@ -197,7 +197,7 @@ const osThreadAttr_t tsRejestrator_attributes = {
   .cb_size = sizeof(tsControlBlockRejestratora),
   .stack_mem = &tsBuforRejestratora[0],
   .stack_size = sizeof(tsBuforRejestratora),
-  .priority = (osPriority_t) osPriorityBelowNormal1,
+  .priority = (osPriority_t) osPriorityAboveNormal2,
 };
 /* Definitions for tsObslugaWyswie */
 osThreadId_t tsObslugaWyswieHandle;
@@ -1746,8 +1746,7 @@ void MPU_Config(void)
   MPU_InitStruct.Number = MPU_REGION_NUMBER5;
   MPU_InitStruct.BaseAddress = 0x38000000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_2KB;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+  //MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 

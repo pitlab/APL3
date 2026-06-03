@@ -13,10 +13,10 @@
  * bufor wymiany deklaruję z jednej strony jako unię słów 32-bitowych z drugiej strukturę taką jaką będzie trzeba
  * */
 
-volatile uint16_t sFlagiCM4 __attribute__((section(".BuforyWymianyCM7CM4_SRAM4"), used));
-volatile uint16_t sFlagiCM7 __attribute__((section(".BuforyWymianyCM7CM4_SRAM4"), used));
-volatile uint32_t nBuforWymianyCM4[ROZMIAR_BUF32_WYMIANY_CM4] __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
-volatile uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7] __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
+volatile uint16_t sFlagiCM4 __attribute__((section(".SekcjaWymiany_SRAM4"), used));
+volatile uint16_t sFlagiCM7 __attribute__((section(".SekcjaWymiany_SRAM4"), used));
+volatile uint32_t nBuforWymianyCM4[ROZMIAR_BUF32_WYMIANY_CM4] __attribute__((section(".SekcjaWymiany_SRAM4")));
+volatile uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7] __attribute__((section(".SekcjaWymiany_SRAM4")));
 volatile unia_wymianyCM4_t uDaneCM4;
 volatile unia_wymianyCM7_t uDaneCM7;
 uint8_t cLicznikOdswiezaniaCM4;

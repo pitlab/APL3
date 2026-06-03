@@ -15,10 +15,10 @@
 #include "KodyBledow.h"
 
 //volatile uint32_t nFlagiMiedzyrdzeniowe __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
-volatile uint16_t sFlagiCM4 __attribute__((section(".BuforyWymianyCM7CM4_SRAM4"), used));
-volatile uint16_t sFlagiCM7 __attribute__((section(".BuforyWymianyCM7CM4_SRAM4"), used));
-volatile uint32_t nBuforWymianyCM4[ROZMIAR_BUF32_WYMIANY_CM4] __attribute__((section(".BuforyWymianyCM7CM4_SRAM4"), used));
-volatile uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7] __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
+volatile uint16_t sFlagiCM4 __attribute__((section(".SekcjaWymiany_SRAM4"), used));
+volatile uint16_t sFlagiCM7 __attribute__((section(".SekcjaWymiany_SRAM4"), used));
+volatile uint32_t nBuforWymianyCM4[ROZMIAR_BUF32_WYMIANY_CM4] __attribute__((section(".SekcjaWymiany_SRAM4"), used));
+volatile uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7] __attribute__((section(".SekcjaWymiany_SRAM4")));
 unia_wymianyCM4_t uDaneCM4;
 unia_wymianyCM7_t uDaneCM7;
 uint32_t nLicznikSynchronizacji = 0;
@@ -43,7 +43,7 @@ void InicjujWymiane(void)
 // Pobiera dane z rdzenia CM4
 // Parametry: nic
 // Zwraca: kod błędu
-// Czas trwania 12us v506
+// Czas trwania 12,0us dla 350 słów v506. Bez ustawionego MPU_ACCESS_SHAREABLE trwa 10,4 ale nie działa.
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PobierzDaneWymiany_CM4(void)
 {

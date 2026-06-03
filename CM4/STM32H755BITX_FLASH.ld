@@ -174,7 +174,7 @@ SECTIONS
 /* Sekcja bufora wymiany międzyrdzeniowej w pamięci SRAM4_AHB_D3 aktywny również w standby, 2k */
 .bufor_wymiany_SRAM4_AHB_D3 (NOLOAD) :
   {
-    *(.BuforyWymianyCM7CM4_SRAM4)	
+    *(.SekcjaWymiany_SRAM4)	
   } > SRAM4_AHB_D3_WYM
   
   
