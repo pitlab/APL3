@@ -29,9 +29,8 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 0x24000000	512K	CM7		-		+		+		+		RW		RW		SRAM_AXI_D1		stos i dane dla CM7 - obecnie przestawione
 0x30020000	128K	CM7		-		-		-		-   	RW		RW		SRAM2_AHB_D2	sterta LwIP
 0x30040000	32K		CM7		-		+		-		+  		RW		RW		SRAM3_AHB_D2    deskryptory ethernet (nie mogą być cache'owalne) i bufor [12*MTU]
-0x38000000	2K		CM4+7	-		+		-		-		RW		RW		SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2. Musi być shareable
-
-0x38000800	32K		CM7		-		-		+		+		RW		RW		SRAM4_AHB_D3	ogólna pamięć rdzenia CM7
+0x38000000	32K		CM4+7	-		+		-		-		RW		RW		SRAM4_AHB_D3	współdzielenie danych między rdzeniami, sterowane HSEM1 i HSEM2 oraz pamięć rdzenia CM4. Musi być shareable
+0x38000800	32K		CM7		-		-		-		-		RW		RW		SRAM4_AHB_D3	ogólna pamięć rdzenia CM7
 0x38800000	4K		CM7														BACKUP
 0x60000000	4M		CM7		-		+		-		+		RW		RW		EXT_SRAM		obecnie nieużywana. Docelowo usunąć jako zbyt drogi
 0x68000000	32M		CM7		+		+		+		-		RW		RW		FLASH_NOR
@@ -197,7 +196,7 @@ const osThreadAttr_t tsRejestrator_attributes = {
   .cb_size = sizeof(tsControlBlockRejestratora),
   .stack_mem = &tsBuforRejestratora[0],
   .stack_size = sizeof(tsBuforRejestratora),
-  .priority = (osPriority_t) osPriorityAboveNormal2,
+  .priority = (osPriority_t) osPriorityBelowNormal1,
 };
 /* Definitions for tsObslugaWyswie */
 osThreadId_t tsObslugaWyswieHandle;
@@ -1343,7 +1342,7 @@ static void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA1_Stream6_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
   /* DMA2_Stream1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 5, 0);
@@ -1745,8 +1744,8 @@ void MPU_Config(void)
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER5;
   MPU_InitStruct.BaseAddress = 0x38000000;
-  MPU_InitStruct.Size = MPU_REGION_SIZE_2KB;
-  //MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
+  MPU_InitStruct.Size = MPU_REGION_SIZE_32KB;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
 
@@ -1772,10 +1771,10 @@ void MPU_Config(void)
   /** Initializes and configures the Region and the memory to be protected
   */
   MPU_InitStruct.Number = MPU_REGION_NUMBER8;
-  MPU_InitStruct.BaseAddress = 0x38000800;
+  MPU_InitStruct.BaseAddress = 0x38008000;
   MPU_InitStruct.Size = MPU_REGION_SIZE_32KB;
   MPU_InitStruct.IsShareable = MPU_ACCESS_NOT_SHAREABLE;
-  MPU_InitStruct.IsCacheable = MPU_ACCESS_CACHEABLE;
+  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
 
   HAL_MPU_ConfigRegion(&MPU_InitStruct);
   /* Enables the MPU */

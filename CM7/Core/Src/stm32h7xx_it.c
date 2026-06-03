@@ -423,9 +423,9 @@ void MDMA_IRQHandler(void)
   /* USER CODE BEGIN MDMA_IRQn 0 */
 
   /* USER CODE END MDMA_IRQn 0 */
-	  HAL_MDMA_IRQHandler(&hmdma_jpeg_infifo_th);
-	  HAL_MDMA_IRQHandler(&hmdma_jpeg_outfifo_th);
-	  HAL_MDMA_IRQHandler(&hmdma_mdma_channel5_sdmmc1_end_data_0);
+	 HAL_MDMA_IRQHandler(&hmdma_jpeg_infifo_th);
+	 HAL_MDMA_IRQHandler(&hmdma_jpeg_outfifo_th);
+	 HAL_MDMA_IRQHandler(&hmdma_mdma_channel5_sdmmc1_end_data_0);
   /* USER CODE BEGIN MDMA_IRQn 1 */
 
   /* USER CODE END MDMA_IRQn 1 */
