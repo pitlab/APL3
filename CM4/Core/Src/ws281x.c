@@ -5,12 +5,12 @@
 // (c) PitLab 2026
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <WS281x.h>
 #include <DShot.h>
 #include <Fram.h>
-#include <WS281x.h>
 #include "WeWyRC.h"
 
-//Timer wysyła przez DMA sekwencję bitów dla segmentu 4 LEDów po 24 bity, Trwa to 1,064us/bit czyli 102,144us na segment
+//Timer wysyła przez DMA sekwencję bitów dla segmentu 4 LEDów po 24 bity, Trwa to 1,5 us/bit czyli 144 us na segment
 //Sekwencję resetu majacą trwać minimum 280us generuję przez 3 puste sekwencje danych po zakończeniu wysyłki danych do wszystkich LED-ów
 
 extern TIM_HandleTypeDef htim2;
@@ -27,7 +27,7 @@ extern uint16_t sFlagiNapelnieniaBuforow;
 uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA_WS281X[WS_BITOW_LACZNIE];
 stDShot_t stWS281x;
 uint32_t nKolorWS281x[LICZBA_LED_WS281X];
-uint8_t chWskaznikLed;
+uint8_t cWskaznikLed;	//indeks  LED-a obsługiwanego przez DMA
 uint8_t chTypLed;	//indeks typu układu scalonego: 0=WS8211, 1=WS8513
 stWskaznikLed_t stWskaznikLed[LICZBA_WSKAZNIKOW_LED];
 
@@ -76,7 +76,14 @@ uint8_t InicjujKoloryWS281x(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t AktualizujKolorLedWs821x(void)
 {
-	return UstawKolorWS281x(nKolorWS281x, stWskaznikLed);
+	uint8_t cBłąd = BLAD_OK;
+
+	cWskaznikLed = 0;	//zacznij od pierwszego LED-a
+	sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8 | NAPELNIJ_BUF2_CH8;	//napełnij oba bufory
+	cBłąd |= UstawKolorWS281x(nKolorWS281x, stWskaznikLed);
+	cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//przelicz czas trwania bitów i wstaw do bufora DMA
+	cBłąd |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+	return cBłąd;
 }
 
 
@@ -91,12 +98,15 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 	uint8_t cBłąd = BLAD_OK;
 	TIM_OC_InitTypeDef sConfigOC = {0};
 
-	//oblicz długość impulsów do ustawienia w CC timera: czas impulsu / okres zegara => czas impulsu * częstotliwość zegara
-	stWS281x.nBit = (uint32_t)(800e-9 * ZEGAR_WS281X + 0.5f);		//ns * MHz + zaokrąglenie
-	stWS281x.nT1H = (uint32_t)(580e-9 * ZEGAR_WS281X + 0.5f);
-	stWS281x.nT0H = (uint32_t)(220e-9 * ZEGAR_WS281X + 0.5f);
+	//ustaw długość impulsów do ustawienia w CC timera
+	stWS281x.nT0H = CZAS_WS281X_0H;		//1 cyknięcie timera
+	stWS281x.nT1H = CZAS_WS281X_1H;		//3 cyknięcia
+	stWS281x.nBit = CZAS_WS281X_BIT;	//4 cyknięcia
 
-	AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);	//przelicz czas trwania bitów
+	cWskaznikLed = 0;	//zacznij od pierwszego LED-a
+	sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8 | NAPELNIJ_BUF2_CH8;	//napełnij oba bufory
+	cBłąd |= UstawKolorWS281x(nKolorWS281x, stWskaznikLed);		//ustaw tablicę kolorów dla wszystkich LED-ów
+	cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//przelicz czas trwania bitów i wstaw do bufora DMA
 
 	//wspólna konfiguracja dla wszystkich kanałów
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
@@ -261,8 +271,6 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 
 
 
-
-
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja ładuje stan kolejnych LEDów do bufora nBuforTimDMA_WS281X. Pracuje z podwójnym buforowaniem, więc
 // w obsłudze przerwania opróżnienia polowy bufora ładuje pierwszą połowę segmentu czyli 2 LEDy a w obsłudze
@@ -281,6 +289,10 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 	uint8_t cBłąd = BLAD_OK;
 	uint32_t nKolorLED;
 	uint8_t chIndeksBitu;
+
+	//wyjdź jeżeli cały wskaźnik jest odświeżony
+	if (*chWskLED > chRozmiar + WS_CZAS_RESETU)
+		return BLAD_NIC_DO_ROBOTY;
 
 	if (*sFlagi & NAPELNIJ_BUF1_CH8)	//napełnij pierwszą połowę bufora
 	{
@@ -301,6 +313,7 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 			}
 		}
 		else	//generuj sygnał resetu, czyli same zera
+		if (*chWskLED < chRozmiar + WS_CZAS_RESETU)
 		{
 			for (uint8_t n=0; n<WS_BITOW_LACZNIE / 2; n++)
 				nBuforTimDMA_WS281X[n] = 0;
@@ -328,6 +341,7 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 			}
 		}
 		else	//generuj sygnał resetu, czyli same zera
+		if (*chWskLED < chRozmiar + WS_CZAS_RESETU)
 		{
 			for (uint8_t n=WS_BITOW_LACZNIE / 2; n<WS_BITOW_LACZNIE; n++)
 				nBuforTimDMA_WS281X[n] = 0;
@@ -335,8 +349,8 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 		*sFlagi &= ~NAPELNIJ_BUF2_CH8;
 		*chWskLED += 4;		//wskaż na następne LED do obsługi w kolejnym cyklu
 	}
-	if (*chWskLED > chRozmiar + WS_CZAS_RESETU)
-		*chWskLED = 0;
+	//if (*chWskLED > chRozmiar + WS_CZAS_RESETU)
+		//*chWskLED = 0;
 	return cBłąd;
 }
 
@@ -345,8 +359,9 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja ustawia kolory wszystkich sterowanych LED liniowo w zależności od zdefiniowanych wartosci skrajnych
 // Oblicza też wartość dzielnika jasności rozjaśniającego grupę LEDów formujących plamkę wskaźnika
-// Parametry: *nKolor - tablica kolorów kolejnych LED
-// *stWskaznikLed - wskaźnik na strukturę danych wskaźników LED
+// Parametry:
+//  *nKolor - tablica kolorów kolejnych LED
+//  *stWskaznikLed - wskaźnik na strukturę danych wskaźników LED
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed)

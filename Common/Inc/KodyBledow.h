@@ -14,12 +14,10 @@
 #define BLAD_GOTOWE				3	//zadanie wykonane
 #define BLAD_TIMEOUT			4
 #define BLAD_ZLA_ILOSC_DANYCH	5
-//#define BLAD_PARZYSTOSCI		6
 #define BLAD_CRC				7	//błędne CRC z danych
 #define BLAD_ODMOWA_WYKONANIA	8	//odmowa wykonania polecenia ze wzgledu na bezpieczeństwo lotu
 #define BLAD_PROCES_TRWA		9
 #define BLAD_BUF_OVERRUN		10
-//#define BLAD_ZAPIS_KONFIG		11	//błąd zapisu konfiguracji
 #define BLAD_BRAK_KONFIG		12	//brak konfiguracji
 #define BLAD_BRAK_DANYCH		13
 #define BLAD_ZLY_NAGL			14
@@ -29,23 +27,13 @@
 #define BLAD_ZLE_DANE			18
 #define BLAD_ZLY_ADRES			19
 
-//#define ERR_ZWARCIE_NIZ			20
-//#define ERR_ZWARCIE_WYZ			21
-//#define ERR_ZWARCIE_GND			22
-//#define ERR_ZWARCIE_VCC			23
-//#define ERR_ZAJETY_SEMAFOR		24
-//#define 			25
 #define BLAD_NIC_DO_ROBOTY		26	//zadanie nie znalazło nic do wykonania
 
 //#define BLAD_SRAM_TEST			30 //błąd pamięci SRAM
 #define BLAD_BRAK_KAMERY			31	//nie wykryto obecności kamery
 #define BLAD_BRAK_CZUJNIKA		32	//ogólny błąd dotyczący czujników które normalnie zawsze powinny być sprawne
-//#define BLAD_BRAK_MAGETOMETRU	32	//nie wykryto obecności magnetometru
 #define BLAD_BRAK_FLASH_NOR		33
-
-//#define BLAD_BRAK_KARTY_SD		40
 #define BLAD_BRAK_WYSWIETLACZA	41
-
 
 //#define BLAD_BRAK_POZW_ZAPISU	50	//brak pozwolenia zapisu dla obszaru pamieci Flash
 #define BLAD_SEMAFOR_ZAJETY		51

@@ -45,7 +45,7 @@ extern DMA_HandleTypeDef hdma_tim3_ch4;
 extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
 extern uint32_t nKolorWS281x[LICZBA_LED_WS281X];
-extern uint8_t chWskaznikLed;
+extern uint8_t cWskaznikLed;
 extern uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
 extern uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych. Dalsze zwiększanie wysterowania nic nie daje, więc w ten sposób wykluczamy go z zakresu regulacji
 extern stKonfPID_t stKonfigPID[LICZBA_PID];
@@ -653,7 +653,9 @@ uint8_t InicjujWyjsciaRC(void)
 	HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);		//domyslnie ma być timer. w przypadku IO lub ADC, konfiguracja będzie nadpisana
 
 	if (chKonfigWyRC[KANAL_RC8] == SERWO_WS281X)
+	{
 		UstawTrybWS281x(KANAL_RC8);
+	}
 	else
 	if ((chKonfigWyRC[KANAL_RC8] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
@@ -782,7 +784,11 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
 		{
 			sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8;
-			AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);
+			uint8_t cBłąd = AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);
+			//gdy skończone to zatrzymaj timer aby nie obciążać CPU
+			if (cBłąd == BLAD_NIC_DO_ROBOTY)
+				cBłąd = HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_3);
+
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 		}
 	}
@@ -824,7 +830,10 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
     	{
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH8;
-    		AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);
+    		uint8_t cBłąd = AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);
+    		//gdy skończone to zatrzymaj timer aby nie obciążać CPU
+			if (cBłąd == BLAD_NIC_DO_ROBOTY)
+				cBłąd = HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_3);
     		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
     	}
     }
