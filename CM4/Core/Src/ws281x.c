@@ -272,8 +272,9 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 //	*sFlagi - wskaźnik na flagi konieczności napełnienia buforów
 //  *nTabKoloru - tablica kolorów kolejnych LED
 //  chRozmiar - liczba sterowanych LED
-//  *chWskLED - wskaźnik na kolejny LED, inkrementowane po 2 czyli po połowie bufora DMA
+//  *chWskLED - wskaźnik na kolejny LED, inkrementowane po 4 czyli po rozmiarze bufora DMA
 // Zwraca: kod błędu
+// Czas wykonanie 5us (jedna połowa) / 9,4us (obie). Wywoływane jest co 67us co może stanowić istotne obciążenie
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskLED)
 {
@@ -285,7 +286,7 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 	{
 		if (*chWskLED < chRozmiar)
 		{
-			for (uint8_t m=0; m<WS_LEDY_SEGMENTU / 2; m++)		//iteracja po LED-ach w pierwszej połowie segmentu
+			for (uint8_t m=0; m<WS_LEDY_SEGMENTU / 2; m++)		//iteracja po LED-ach w nieparzstym segmencie
 			{
 				nKolorLED = *(nTabKoloru + *chWskLED + m);
 				chIndeksBitu = m * WS_BITOW_KOLORU;
@@ -303,16 +304,16 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 		{
 			for (uint8_t n=0; n<WS_BITOW_LACZNIE / 2; n++)
 				nBuforTimDMA_WS281X[n] = 0;
-			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 		}
 		*sFlagi &= ~NAPELNIJ_BUF1_CH8;
+		*chWskLED += 4;		//wskaż na następne LED do obsługi w kolejnym cyklu
 	}
 
 	if (*sFlagi & NAPELNIJ_BUF2_CH8)	//napełnij drugą połowę bufora
 	{
 		if (*chWskLED < chRozmiar)
 		{
-			for (uint8_t m=WS_LEDY_SEGMENTU / 2; m<WS_LEDY_SEGMENTU; m++)		//iteracja po LED-ach w drugiej połowie segmentu
+			for (uint8_t m=WS_LEDY_SEGMENTU / 2; m<WS_LEDY_SEGMENTU; m++)		//iteracja po LED-ach w parzystym segmencie
 			{
 				nKolorLED = *(nTabKoloru + *chWskLED + m);
 				chIndeksBitu = m * WS_BITOW_KOLORU;
@@ -332,13 +333,10 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 				nBuforTimDMA_WS281X[n] = 0;
 		}
 		*sFlagi &= ~NAPELNIJ_BUF2_CH8;
-
-	//wskaż na następne LED do obsługi w kolejnym cyklu
-	*chWskLED += 4;
+		*chWskLED += 4;		//wskaż na następne LED do obsługi w kolejnym cyklu
+	}
 	if (*chWskLED > chRozmiar + WS_CZAS_RESETU)
 		*chWskLED = 0;
-	}
-
 	return cBłąd;
 }
 

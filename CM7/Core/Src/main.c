@@ -61,8 +61,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
   * Nie działa wejscie 2 odbiornika RC - prawdopodobnie problem lutowniczy
   *
  //Problemy sprzętowe egzemplarza 2:
-  * Problemy z inicjalajuzacją USB
-  * Problemy wydajnościowe związane z niezidentyfikowanym blokowaniem zasobów rdzenia
+  * Problemy z inicjalizacją USB
  * */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
@@ -1533,12 +1532,12 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOE_CLK_ENABLE();
-  __HAL_RCC_GPIOI_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOI_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOJ_CLK_ENABLE();
@@ -1549,12 +1548,6 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOJ, MODZ_ADR0_Pin|MODZ_ADR1_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : SERWO7_IO_Pin */
-  GPIO_InitStruct.Pin = SERWO7_IO_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(SERWO7_IO_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PF6 PF7 */
   GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
@@ -1624,7 +1617,7 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void *argument)
 {
   /* init code for LWIP */
-  MX_LWIP_Init();
+  //MX_LWIP_Init();
 
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();

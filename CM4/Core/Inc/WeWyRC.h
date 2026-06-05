@@ -29,7 +29,7 @@
 #define LICZBA_WYJSC_RC		9
 #define LICZBA_KONFIG_WYJSC_RC	5	//pierwsze 8 wyjść zajmują pół bajtu, ostatnie wyjście definiujące grupę 8..16 cały bajt
 
-//flagi napełnienia buforów
+//flagi informujące o potrzebie napełnienia buforów DMA
 #define NAPELNIJ_BUF1_CH1	0x0001
 #define NAPELNIJ_BUF2_CH1	0x0002
 #define NAPELNIJ_BUF1_CH2	0x0004

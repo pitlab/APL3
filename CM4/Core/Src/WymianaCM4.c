@@ -80,22 +80,20 @@ uint8_t UstawDaneWymiany_CM4(void)
 	cBłąd = HAL_HSEM_Take(HSEM_CM4_TO_CM7, HSEM_CM4);
 	if (cBłąd == BLAD_OK)
 	{
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);			//kanał serw 1 skonfigurowany jako IO
-		//__DMB();	//Data Memory Barrier. Ensures the apparent order of the explicit memory operations before and after the instruction, without ensuring their completion.
+		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);			//kanał serw 1 skonfigurowany jako IO
 		if (((sFlagiCM4 & FMR_SA_DANE_CM4) != FMR_SA_DANE_CM4) || (cLicznikOdswiezaniaCM4 == 0))	//ustaw tylko gdy poprzednie zostały odczytane
 		{
 			for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
 				nBuforWymianyCM4[n] = uDaneCM4.nSlowa[n];
 			sFlagiCM4 |= FMR_SA_DANE_CM4;	//ustaw flagę obecności nowych danych
-			//__DSB();	//Data Synchronization Barrier. Acts as a special kind of Data Memory Barrier. It completes when all explicit memory accesses before this instruction complete.
 		}
 		HAL_HSEM_Release(HSEM_CM4_TO_CM7, HSEM_CM4);
 
 		//Rdzeń CM7 pobiera dane z częstotliwością 100Hz (10ms).
-		//Rdzeń CM4 produkuje dane co ok. 0,5ms, więc jeżeli nie będzie flagi od CM7, to 16 okresów wstaw nowe dane
+		//Rdzeń CM4 produkuje dane co ok. 0,5ms, więc jeżeli nie będzie flagi od CM7, to co 32 okresy wstaw nowe dane
 		cLicznikOdswiezaniaCM4++;
-		cLicznikOdswiezaniaCM4 &= 0x0F;
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);		//kanał serw 1 skonfigurowany jako IO
+		cLicznikOdswiezaniaCM4 &= 0x1F;
+		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);		//kanał serw 1 skonfigurowany jako IO
 	}
 	return cBłąd;
 }

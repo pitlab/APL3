@@ -197,12 +197,9 @@ uint8_t InicjujWyjsciaRC(void)
 	for (uint8_t n=0; n<LICZBA_KONFIG_WYJSC_RC-1; n++)
 	{
 		CzytajBuforFRAM(FAU_KONF_SERWA12 + n, &chDaneKonfig, 1);
-		//chKonfigWyRC[KANAL_RC1 + 2*n] = chDaneKonfig & MASKA_TYPU_RC1;
-		//chKonfigWyRC[KANAL_RC2 + 2*n] = chDaneKonfig >> 4;
-		chKonfigWyRC[KANAL_RC1 + 2*n] = SERWO_IO;	//TEST Tymczasowo wyłącz konfigurację
-		chKonfigWyRC[KANAL_RC2 + 2*n] = SERWO_IO;
+		chKonfigWyRC[KANAL_RC1 + 2*n] = chDaneKonfig & MASKA_TYPU_RC1;
+		chKonfigWyRC[KANAL_RC2 + 2*n] = chDaneKonfig >> 4;
 	}
-	//chKonfigWyRC[KANAL_RC8] = SERWO_WS281X;	//TEST
 	CzytajBuforFRAM(FAU_KONF_SERWA916, &chKonfigWyRC[8], 1);		//konfiguracją ostatniej grupy wyjść jest nietypowa, wiec odczytaj osobno
 
 	//odczytaj konfigurację funkcji pełnionych przez kanały wyjściowe RC
@@ -777,12 +774,16 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 	if(htim->Instance == TIM8)
 	{
 		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+		{
 		    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH6;
+		    HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+		}
 
 		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
 		{
 			sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8;
-			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+			AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);
+			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 		}
 	}
 }
@@ -821,7 +822,11 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH6;
 
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+    	{
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH8;
+    		AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);
+    		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+    	}
     }
 }
 
@@ -885,7 +890,8 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 		case SERWO_DSHOT1200:	cBłąd |= AktualizujDShotDMA(nWyjście, n);	break;
 
 		case SERWO_WS281X:	//sFlagiNapelnieniaBuforow wskazują która połowę bufora należy wypełnić. Druga obecnie jest opróżniana
-			cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &chWskaznikLed);	break;
+
+				break;
 
 		default: cBłąd = BLAD_BRAK_KONFIG;
 		}	//switch

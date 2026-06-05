@@ -239,7 +239,7 @@ void PetlaGlowna(void)
 
 	case 17:	cBłądPG |= KontrolerLotu(chTrybRegulacji, ndT, &uDaneCM4.dane, stKonfigPID);	break;
 	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID);	break;
-	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;	//zrobić podwójne buforowanie, tak aby nie modyfikowac bufora w trakcie pracy. W callbacku ma przełaczyć się na nowy bufor
+	case 19:	//AktualizujWyjsciaRC(&uDaneCM4.dane);	break;	//zrobić podwójne buforowanie, tak aby nie modyfikowac bufora w trakcie pracy. W callbacku ma przełaczyć się na nowy bufor
 	default:	break;
 	}
 

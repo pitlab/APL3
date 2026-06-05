@@ -66,6 +66,8 @@ void MX_PWR_Init(void);
 #define ADR_SER2_GPIO_Port GPIOC
 #define ADR_SER0_Pin GPIO_PIN_9
 #define ADR_SER0_GPIO_Port GPIOI
+#define SERWO7_IO_Pin GPIO_PIN_10
+#define SERWO7_IO_GPIO_Port GPIOI
 #define ADR_SER1_Pin GPIO_PIN_11
 #define ADR_SER1_GPIO_Port GPIOI
 #define MODW_ADR1_Pin GPIO_PIN_1

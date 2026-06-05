@@ -47,7 +47,6 @@ FLASH (rx)     		: ORIGIN = 0x08100000, LENGTH = 1024K	/* Flash: kod programu CM
 SRAM1_AHB_D2 (xrw)	: ORIGIN = 0x10000000, LENGTH = 128K	/* Stos, sterta i dane dla CM4 */
 SRAM4_AHB_D3_WYM (xrw) : ORIGIN = 0x38000000, LENGTH = 2K	/* Bufor wymiany danych między rdzeniami */
 SRAM4_AHB_D3_CM4 (xrw) : ORIGIN = 0x38000800, LENGTH = 30K	/* Pamięć rdzenia CM4 */
-SRAM4_AHB_D3_CM7 (xrw) : ORIGIN = 0x38008000, LENGTH = 32K	/* Pamięć rdzenia CM7 */
 }
 
 /* Define output sections */

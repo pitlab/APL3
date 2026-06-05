@@ -15,18 +15,18 @@
 
 #define LICZBA_LED_WS281X	40		//taśma ma 30 LED/m, więc 0,7m * 30 = 21. LEDy są w sekcjach po 4, więc ograniczam liczbę do 20 LEDów * 2 wskaźniki
 #define WS_BITOW_KOLORU		24
-#define WS_LEDY_SEGMENTU	4
+#define WS_LEDY_SEGMENTU	4 * 2	//bo podwójne buforowanie
 #define WS_BITOW_LACZNIE	(WS_BITOW_KOLORU * WS_LEDY_SEGMENTU)
 #define WS_CZAS_RESETU		12		//czas trwania cyklu resetu odpowiadajacy czasowi obsługi danej liczbie LED-ów
 
 //timery sterowane są zegarem 240 MHz co daje czas cyklu 4,16ns
-//#define DZIELNIK_WS281X		64	//220..380 ns / 4,16 = 53..91; impuls0 = 64 * 4,16 = 266ns
-#define DZIELNIK_WS281X		84	//220..380 ns / 4,16 = 53..91; impuls0 = 84 * 4,16 = 350ns - wolniej, więc mniejsze obciażenie dla kontrolera
-#define ZEGAR_WS281X		3750000	//Hz
+#define DZIELNIK_WS281X		90	//220..380 ns / 4,16 = 53..91; impuls0 = 90 * 4,16 = 374,40ns - najwolniej jak się da aby minimalizować obciażenie dla kontrolera
+#define ZEGAR_WS281X		2666666	//Hz -> bit = 375ns
+
 #define CZAS_WS281X_0H		1		//1 * bit
-#define CZAS_WS281X_1H		3		//3 * bit = (799ns) 1050ns
-#define CZAS_WS281X_BIT		4		//4 * bit = (1,064us) 1,4us
-#define CZAS_WS281X_RESET	1088	//1088 * 266ns = 289,4us
+#define CZAS_WS281X_1H		3		//3 * bit = 1125ns
+#define CZAS_WS281X_BIT		4		//4 * bit = 1500us
+#define CZAS_WS281X_RESET	1088	//1088 * 375ns = 408us
 
 //Definicje wizualizowanych zmiennych
 #define WLZ_POCHYLENIE		0
