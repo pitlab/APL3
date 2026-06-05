@@ -9,6 +9,8 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 } unia8_32_t;
 #endif
 
+#define LICZBA_ODCINKOW_CZASU	20			//liczba odcinków czasu na jakie jest dzielony czas pełnego obiegu pętli głównej
+
 //flagi inicjalizacji sprzętu CM4
 #define INIT_WYKR_MTK			0x00000001
 #define INIT_WYKR_UBLOX			0x00000002

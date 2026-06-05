@@ -548,7 +548,7 @@ uint8_t InicjujDotyk(void)
 	}
 
 	//sprawdź obecność panelu dotykowego
-	CzytajDotyk();
+	cBłąd = CzytajDotyk();
 	if (statusDotyku.sAdc[0] == 0x1FFF)		//taką wartość zwraca gdy nie ma podłączonego ekranu
 	{
 		nZainicjowanoCM7 &= ~INIT_DOTYK;

@@ -20,9 +20,8 @@ typedef struct
 
 #define SZER_PASKA_HISTOGRAMU		2		//szerokość paska w pikselach
 
-//void Menu(char *tytul, tmenu *menu, unsigned char *tryb);
-uint8_t Menu(char *tytul, menu_t *menu);
-void BelkaTytulu(char* chTytul);
+uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu);
+uint8_t BelkaTytulu(char* chTytul);
 uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObraz);
 uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* chObraz);
 void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sKolor);
@@ -33,7 +32,7 @@ void RysujProstokatZaokraglony(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y
 void UstawCzcionke(uint8_t* chCzcionka);
 uint8_t GetFontX(void);
 uint8_t GetFontY(void);
-void RysujNapis(char *st, uint16_t x, uint16_t y);
+uint8_t RysujNapis(char *st, uint16_t x, uint16_t y);
 void RysujNapiswRamce(char *str, uint16_t x, uint16_t y, uint16_t sx, uint16_t sy);
 void RysujKolo(uint16_t x, uint16_t y, uint16_t promien);
 #endif /* INC_RYSUJ_H_ */

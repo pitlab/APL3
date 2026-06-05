@@ -216,8 +216,11 @@ void PetlaGlowna(void)
 		//nCzas3 = MinalCzasT7(nStart);
 		break;
 
-	case 14:
+	case 13:
 		WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
+		break;
+
+	case 14:
 		if (cDzielnikAktualizacjiLED)
 			cDzielnikAktualizacjiLED--;
 		else
@@ -548,6 +551,13 @@ void WykonajPolecenieCM7(void)
 		case POL7_CZYTAJ_KALIBR_TEMP:
 			sTS_CAL1 = uDaneCM7.dane.uRozne.U16[0];
 			sTS_CAL2 = uDaneCM7.dane.uRozne.U16[1];	//wspólczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
+			break;
+
+		case POL7_CZYTAJ_CZAS_PETLI_GL:	//odczytuje czas wykonania fragmentów petli głównej
+			assert(ROZMIAR_ROZNE_SHORT >= LICZBA_ODCINKOW_CZASU+1);	//zatrzymaj gdyby bufor Różne danych był mniejszy niż liczba odcinków
+			for (uint8_t n=0; n<LICZBA_ODCINKOW_CZASU+1; n++)
+				//uDaneCM4.dane.uRozne.U16[n] = nCzasOdcinka[n];	//przepisz czasy wprost
+				uDaneCM4.dane.uRozne.U16[n] = (nCzasOdcinka[n] + uDaneCM4.dane.uRozne.U16[n] * 3) / 4;	//przepisz czasy z filtrowaniem
 			break;
 		}	//switch
 	}

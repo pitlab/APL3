@@ -111,7 +111,7 @@ uint8_t InicjujWejsciaRC(void)
 	{
 		cBłąd |= InicjujUart4RxJakoSbus(&GPIO_InitStruct);
 	}
-
+	chKonfigWyRC[KANAL_RC6] = SERWO_IO;	//kanał 8 pracuje jako LED, więc wyłącz resztę timera
 
 	//ustaw Port PA3 jako UART2_RX lub TIM2_CH4
 	__HAL_RCC_GPIOA_CLK_ENABLE();

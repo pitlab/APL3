@@ -43,77 +43,83 @@ uint8_t InicjujLCD_ILI9488(void)
 {
 	extern uint8_t chPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN];
 	uint8_t chBuf[4];
+	uint8_t cBłąd = BLAD_OK;
 
 	// LCD_RESET 1 - 0 - 1
 	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
-	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+	cBłąd |= WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
 	HAL_Delay(10);
 
 	chPort_exp_wysylany[0] &= ~EXP01_LCD_RESET;	//RES=0
-	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+	cBłąd |= WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
 	HAL_Delay(20);
 
 	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
-	WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+	cBłąd |= WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
 	HAL_Delay(120);
 
-	LCD_write_command8(ILI9488_RDDID);	//Read display identification information
+	//to polecenie niczemu nie służy, nie ma fizycznej możliwości odczytania danych, ale bez niego nie działa
+	cBłąd |= LCD_write_command8(ILI9488_RDDID);	//Read display identification information
 	LCD_data_read(chBuf, 4);
 
-	LCD_write_command8(ILI9488_GMCTRP1);
-	LCD_WrData((uint8_t *)"\x00\x03\x09\x08\x16\x0A\x3F\x78\x4C\x09\x0A\x08\x16\x1A\x0F", 15);
+	cBłąd |= LCD_write_command8(ILI9488_GMCTRP1);
+	cBłąd |= LCD_WrData((uint8_t *)"\x00\x03\x09\x08\x16\x0A\x3F\x78\x4C\x09\x0A\x08\x16\x1A\x0F", 15);
 
-	LCD_write_command8(ILI9488_GMCTRN1);
-	LCD_WrData((uint8_t *)"\x00\x16\x19\x03\x0F\x05\x32\x45\x46\x04\x0E\x0D\x35\x37\x0F", 15);
+	cBłąd |= LCD_write_command8(ILI9488_GMCTRN1);
+	cBłąd |= LCD_WrData((uint8_t *)"\x00\x16\x19\x03\x0F\x05\x32\x45\x46\x04\x0E\x0D\x35\x37\x0F", 15);
 
-	LCD_write_command8(ILI9488_PWCTR1);	//Power Control 1
-	LCD_WrData((uint8_t *)"\x17\x15", 2);		//Vreg1out, Verg2out
+	cBłąd |= LCD_write_command8(ILI9488_PWCTR1);	//Power Control 1
+	cBłąd |= LCD_WrData((uint8_t *)"\x17\x15", 2);		//Vreg1out, Verg2out
 
-	LCD_write_command8(ILI9488_PWCTR1); 	//Power Control 2
-	LCD_write_dat_jed8(0x41);   //VGH,VGL
+	cBłąd |= LCD_write_command8(ILI9488_PWCTR1); 	//Power Control 2
+	cBłąd |= LCD_write_dat_jed8(0x41);   //VGH,VGL
 
-	LCD_write_command8(ILI9488_VMCTR1);   //Power Control 3
-	LCD_WrData((uint8_t *)"\x00\x12\x80", 3);	//Vcom
+	cBłąd |= LCD_write_command8(ILI9488_VMCTR1);   //Power Control 3
+	cBłąd |= LCD_WrData((uint8_t *)"\x00\x12\x80", 3);	//Vcom
 
 	OrientacjaEkranu(POZIOMO);
 
-	LCD_write_command8(ILI9488_PIXFMT);	// Interface Pixel Format
-	LCD_write_dat_jed8(0x66);	//18 bit/*
+	cBłąd |= LCD_write_command8(ILI9488_PIXFMT);	// Interface Pixel Format
+	cBłąd |= 	LCD_write_dat_jed8(0x66);	//18 bit/*
 
-	LCD_write_command8(0xB0);      // Interface Mode Control
-	LCD_write_dat_jed8(
+	cBłąd |= LCD_write_command8(0xB0);      // Interface Mode Control
+	cBłąd |= LCD_write_dat_jed8(
 		(0 << 7)|	//SDA_EN: 3/4 wire serial interface selection: 0=DIN and SDO pins are used, 1=DIN/SDA pin is used for 3/4 wire serial interface and SDO pin is not used.
 		(0 << 3)|	//VSPL: VSYNC polarity (0 = Low level sync clock, 1 = High level sync clock)
 		(0 << 2)|	//HSPL: HSYNC polarity (0 = Low level sync clock, 1 = High level sync clock)
 		(0 << 1)|	//DPL: DOTCLK polarity set (0 = data fetched at the rising time, 1 = data fetched at the falling time)
 		(0 << 0));	//EPL: ENABLE polarity (0 = High enable for RGB interface, 1 = Low enable for RGB interface)
 
-	LCD_write_command8(ILI9488_FRMCTR1);      //Frame rate
-	LCD_write_dat_jed8(0xA0);    //60Hz
+	cBłąd |= LCD_write_command8(ILI9488_FRMCTR1);      //Frame rate
+	cBłąd |= LCD_write_dat_jed8(0xA0);    //60Hz
 	//powiny być 2 parametry
 
-	LCD_write_command8(ILI9488_INVCTR);      //Display Inversion Control
-	LCD_write_dat_jed8(0x02);    //2-dot
+	cBłąd |= LCD_write_command8(ILI9488_INVCTR);      //Display Inversion Control
+	cBłąd |= LCD_write_dat_jed8(0x02);    //2-dot
 
-	LCD_write_command8(ILI9488_DFUNCTR);      //Display Function Control  RGB/MCU Interface Control
-	LCD_WrData((uint8_t *)"\x02\x02", 2);		 //MCU, Source,Gate scan dieection
+	cBłąd |= LCD_write_command8(ILI9488_DFUNCTR);      //Display Function Control  RGB/MCU Interface Control
+	cBłąd |= LCD_WrData((uint8_t *)"\x02\x02", 2);		 //MCU, Source,Gate scan dieection
 
-	LCD_write_command8(0xE9);      // Set Image Functio
-	LCD_write_dat_jed8(0x00);    // Disable 24 bit data
+	cBłąd |= LCD_write_command8(0xE9);      // Set Image Functio
+	cBłąd |= LCD_write_dat_jed8(0x00);    // Disable 24 bit data
 
-	LCD_write_command8(0xF7);      // Adjust Control
-	LCD_WrData((uint8_t *)"\xA9\x51\x2C\x82", 4);	// D7 stream, loose */
+	cBłąd |= LCD_write_command8(0xF7);      // Adjust Control
+	cBłąd |= LCD_WrData((uint8_t *)"\xA9\x51\x2C\x82", 4);	// D7 stream, loose */
 
-	LCD_write_command8(ILI9488_SLPOUT);    //Exit Sleep
+	cBłąd |= LCD_write_command8(ILI9488_SLPOUT);    //Exit Sleep
 	HAL_Delay(120);
-	LCD_write_command8(ILI9488_DISPON);    //Display on
+	cBłąd |= LCD_write_command8(ILI9488_DISPON);    //Display on
 
-	LCD_write_command8(ILI9488_RDDID);	//Read display identification information
+	//to polecenie niczemu nie służy, nie ma fizycznej możliwości odczytania danych, ale bez niego nie działa
+	cBłąd |= LCD_write_command8(ILI9488_RDDID);	//Read display identification information
 	LCD_data_read(chBuf, 4);
 
-	chRysujRaz = 1;
-	nZainicjowanoCM7 |= INIT_LCD480x320;
-	return BLAD_OK;
+	if (cBłąd == BLAD_OK)
+	{
+		chRysujRaz = 1;
+		nZainicjowanoCM7 |= INIT_LCD480x320;
+	}
+	return cBłąd;
 }
 
 
@@ -311,7 +317,7 @@ uint16_t getBackColor(void)
 // Rysuj prostokąt wypełniony kolorem
 // Parametry:
 //  sKolor565 - kolor w formacie RGB 5-6-5
-// Zwraca: nic
+// Zwraca: kod błędu
 // Czas rysowania pełnego ekranu: 372ms @25MHz
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t sKolor565)
@@ -687,9 +693,9 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 					for(i=0; i<8; i++)
 					{
 						if ((ch&(1<<(7-i))) != 0)
-							HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+							cBłąd |= HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
 						else
-							HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_DELAY_SPI);
+							cBłąd |= HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_DELAY_SPI);
 					}
 					temp++;
 				}
@@ -710,9 +716,9 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 						for(i=0;i<8;i++)
 						{
 							if((ch&(1<<i))!=0)
-								HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+								cBłąd |= HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
 							else
-								HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_DELAY_SPI);
+								cBłąd |= HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_DELAY_SPI);
 						}
 					}
 					UstawDekoderZewn(CS_NIC);										//LCD_CS=1
@@ -754,7 +760,7 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 // Parametry:
 //  x, y - współrzędne ekranu
 //  sx, sy - rozmiar bitmapy
-// Zwraca: nic
+// Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_t* obraz)
 {
@@ -780,7 +786,7 @@ uint8_t RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uin
 			for (tc=0; tc<(sx*sy); tc++)
 			{
 				setColor(obraz[tc]);
-				HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+				cBłąd |= HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
 			}
 			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 		}
@@ -794,7 +800,7 @@ uint8_t RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uin
 				for (tx=sx-1; tx>=0; tx--)
 				{
 					setColor(obraz[(ty*sx)+tx]);
-					HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+					cBłąd |= HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
 				}
 				UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 			}

@@ -75,4 +75,5 @@ void NastawyPID(uint8_t chKanal);
 uint8_t CzytajFramFloat(uint16_t sAdres, uint8_t chRozmiar, float *fDane);
 uint8_t CzytajFramChar(uint16_t sAdres, uint8_t chRozmiar, uint8_t *chDane);
 void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych);
+void PokazCzasOdcinkowPGAP(uint16_t *sCzasy);
 #endif /* INC_LCD_H_ */

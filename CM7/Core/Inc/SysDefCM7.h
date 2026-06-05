@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	3
 #define WER_PODRZ	0
-#define WER_REPO	510		//numer commitu w repozytorium
+#define WER_REPO	512		//numer commitu w repozytorium
 
 //wybór typu wyświetlacza
 #define LCD_ILI9488		//https://sklep.msalamon.pl/produkt/wyswietlacz-tft-lcd-35%E2%80%B3-ili9488-320x480/?srsltid=AfmBOopUr_Ot4ZQNoDns7QPYb-sgwqNSRUYaUR1s1TTm1hDWmuxMRWXO lub https://pl.aliexpress.com/item/1005008606165384.html?spm=a2g0o.productlist.main.1.236d39e0dslaJU&algo_pvid=7c8e747e-899a-49cd-bec1-53d6e396e7f9&algo_exp_id=7c8e747e-899a-49cd-bec1-53d6e396e7f9-0&pdp_ext_f=%7B%22order%22%3A%222%22%2C%22eval%22%3A%221%22%2C%22fromPage%22%3A%22search%22%7D&pdp_npi=6%40dis%21PLN%2183.38%2139.19%21%21%2122.47%2110.56%21%402103917f17584357494216126eaa8c%2112000045923645614%21sea%21PL%210%21ABX%211%210%21n_tag%3A-29910%3Bd%3Af9771149%3Bm03_new_user%3A-29895&curPageLogUid=dILRVszJHv9D&utparam-url=scene%3Asearch%7Cquery_from%3A%7Cx_object_id%3A1005008606165384%7C_p_origin_prod%3A
@@ -84,7 +84,6 @@
 #define TP_TEST_OSD			21
 #define TP_TESTY			22	//menu testy
 
-
 //polecenia menu Wydajność
 #define TP_FRAKTALE			30	//wyświetla benchmark fraktalowy
 #define TP_POM_ZAPISU_NOR	31
@@ -93,7 +92,7 @@
 #define TP_POMIAR_FQSPI		34
 #define TP_EMU_MAG_CAN		35
 #define TP_IMU_KOSTKA		36
-#define TP_W3				37
+#define TP_POMIAR_PGAP		37	//czasy Pętli Głównj AP
 #define TP_STAN_PAMIECI		38
 #define TP_WROC_DO_WYDAJN	39
 
@@ -106,9 +105,8 @@
 #define TP_MM_KOM1			45
 #define TP_MM_KOM2			46
 #define TP_MM_KOM			47	//generator komunikatów audio
+#define TP_MM8				48
 #define TP_WROC_DO_AUDIO	49
-
-
 
 //polecenia menu TP_KARTA_SD
 #define TPKS_WLACZ_REJ		50
@@ -151,6 +149,7 @@
 #define TP_KAL_MAG			82
 #define TP_KAL_DOTYK		83	//kalibracja panelu dotykowego
 #define TP_KAL_HARD_FAULT	84
+#define TP_KAL1				85
 #define TP_WROC_DO_KALIBR	89
 
 //podmenu TP_POMIARY
@@ -167,11 +166,12 @@
 //podmenu TP_NASTAWY
 #define TP_NAST_PID_POCH	100
 #define TP_NAST_PID_PRZECH	101
-#define TP_NAST_PID_ODCH	103
-#define TP_NAST_PID_WYSOK	104
-#define TP_NAST_PID_NAW_N	105
-#define TP_NAST_PID_NAW_E	106
-#define TP_NAST_MIKSERA		107
+#define TP_NAST_PID_ODCH	102
+#define TP_NAST_PID_WYSOK	103
+#define TP_NAST_PID_NAW_N	104
+#define TP_NAST_PID_NAW_E	105
+#define TP_NAST_MIKSERA		106
+#define TP_NAST7			107
 #define TP_WROC_DO_NASTAWY	109
 
 //polecenia menu kamera
@@ -191,7 +191,6 @@
 #define TP_ETH_GADU_GADU	121
 #define ET_ETH1				122
 #define TP_WROC_DO_ETH		129
-
 
 //polecenia menu: TP_MENU_OSD
 #define TPO_TEST_OSD480		130
@@ -216,6 +215,7 @@
 #define TP_TEST7			147
 #define TP_TEST8			148
 #define TP_TEST9			149
+
 
 //flagi inicjalizacj sprzetu na płytce
 #define INIT_FLASH_NOR		0x00000001

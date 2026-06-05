@@ -51,20 +51,19 @@ extern uint8_t chTlo666[3];		//kolory tła w formacie RGB 6-6-6
 // Parametry:
 // [i] *tytul - napis z nazwą menu wyświetlaną w górnym pasku
 // [i] *menu - wskaźnik na strukturę menu
-// [i] *napisy - wskaźnik na zmienną zawierajacą napisy
-// [o] *tryb - wskaźnik na zwracany numer pozycji menu
-// Zwraca: numer pozycji menu
+// [o] *cPozycjaMenu - wskaźnik na zwracany numer pozycji menu
+// Zwraca: kod błądu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t Menu(char *tytul, menu_t *menu)
+uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 {
 	uint8_t chStarySelPos;
-	uint8_t chPozycjaMenu;
 	uint8_t chRząd;
 	uint16_t x, x2, y;	//pomocnicze współrzędne ekranowe
+	uint8_t cBłąd = BLAD_OK;
 
 	if (chRysujRaz)
 	{
-		BelkaTytulu(tytul);		//rysuje belkę tytułu ekranu
+		cBłąd |= BelkaTytulu(tytul);		//rysuje belkę tytułu ekranu
 		RysujProstokatWypelniony(0, MENU_NAG_WYS, DISP_X_SIZE, DISP_Y_SIZE - MENU_PASOP_WYS - MENU_NAG_WYS, CZARNY);	//czyści ekran
 		RysujProstokatWypelniony(0, DISP_Y_SIZE - MENU_PASOP_WYS, DISP_X_SIZE, MENU_PASOP_WYS, SZARY20);	//rysuje pasek podpowiedzi na dole ekranu
 		setBackColor(CZARNY);
@@ -85,7 +84,7 @@ uint8_t Menu(char *tytul, menu_t *menu)
 				setColor(SZARY60);
 				x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
 				strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
-				RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
+				cBłąd |= RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 			}
 		}
 		chPoprzedniStatusPolaczenia = 0xFF;	//wymuś przerysowanie statusu połączenia
@@ -124,7 +123,7 @@ uint8_t Menu(char *tytul, menu_t *menu)
 						setColor(SZARY60);
 						x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
 						strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
-						RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
+						cBłąd |= RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 					}
 				}
 			}
@@ -149,7 +148,7 @@ uint8_t Menu(char *tytul, menu_t *menu)
 					setColor(SZARY80);
 					x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
 					strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
-					RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
+					cBłąd |= RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 				}
 			}
 		}
@@ -159,7 +158,7 @@ uint8_t Menu(char *tytul, menu_t *menu)
 			setColor(MENU_RAM_AKT);
 			setBackColor(SZARY20);
 			strcpy(chNapis, menu[chMenuSelPos].chPomoc);
-			RysujNapis(chNapis, DW_SPACE, DISP_Y_SIZE - 2 * (DW_SPACE - FONT_SH));
+			cBłąd |= RysujNapis(chNapis, DW_SPACE, DISP_Y_SIZE - 2 * (DW_SPACE - FONT_SH));
 			setBackColor(CZARNY);
 			chRysujRaz = 0;
 		}
@@ -168,12 +167,12 @@ uint8_t Menu(char *tytul, menu_t *menu)
 	//czy był naciśniety enkoder lub ekran
 	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)
 	{
-		chPozycjaMenu = menu[chMenuSelPos].chMode;
+		*cPozycjaMenu = menu[chMenuSelPos].chMode;
 		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;	//kasuj flagę naciśnięcia ekranu
 		DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//odtwórz komunikat audio przycisku
-		return chPozycjaMenu;
+		return cBłąd;
 	}
-	chPozycjaMenu = 0;
+	*cPozycjaMenu = 0;
 
 	//rysuj czas
 	PobierzDateCzas(&stDate, &stTime);
@@ -192,7 +191,7 @@ uint8_t Menu(char *tytul, menu_t *menu)
 
 		setBackColor(SZARY20);
 		sprintf(chNapis, "%02d:%02d:%02d", stTime.Hours,  stTime.Minutes,  stTime.Seconds);
-		RysujNapis(chNapis, DISP_X_SIZE - 8*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+		cBłąd |= RysujNapis(chNapis, DISP_X_SIZE - 8*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		chOstatniCzas = stTime.Seconds;
 		setBackColor(CZARNY);
 	}
@@ -218,10 +217,10 @@ uint8_t Menu(char *tytul, menu_t *menu)
 			//w wybranym kolorze napisz nazwe interfejsu
 			switch (n)
 			{
-			case 0:	RysujNapis(" USB", DISP_X_SIZE - 27*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;	//napis zaczyna się od spacji aby nie zlewało się z poprzednią treścią
-			case 1:	RysujNapis("UART", DISP_X_SIZE - 22*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
-			case 2:	RysujNapis("TCP",  DISP_X_SIZE - 17*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
-			case 3:	RysujNapis("RTSP", DISP_X_SIZE - 13*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
+			case 0:	cBłąd |= RysujNapis(" USB", DISP_X_SIZE - 27*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;	//napis zaczyna się od spacji aby nie zlewało się z poprzednią treścią
+			case 1:	cBłąd |= RysujNapis("UART", DISP_X_SIZE - 22*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
+			case 2:	cBłąd |= RysujNapis("TCP",  DISP_X_SIZE - 17*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
+			case 3:	cBłąd |= RysujNapis("RTSP", DISP_X_SIZE - 13*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);	break;
 			}
 		}
 	}
@@ -233,24 +232,24 @@ uint8_t Menu(char *tytul, menu_t *menu)
 		if (chStatusRejestratora & STATREJ_WLACZONY)
 		{
 			setColor(ZIELONY);
-			RysujNapis("SD Loguje", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+			cBłąd |= RysujNapis("SD Loguje", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		}
 		else
 		if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
 		{
 			setColor(ZOLTY);
-			RysujNapis("SD Gotowe", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+			cBłąd |= RysujNapis("SD Gotowe", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		}
 		else
 		{
 			setColor(BLAD);
-			RysujNapis("Blad SD! ", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+			cBłąd |= RysujNapis("Blad SD! ", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		}
 	}
 	else
 	{
 		setColor(POMARANCZ);
-		RysujNapis("Brak SD! ", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+		cBłąd |= RysujNapis("Brak SD! ", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 	}
 
 	//wypisz rozmiar sterty
@@ -258,9 +257,9 @@ uint8_t Menu(char *tytul, menu_t *menu)
 	size_t freeHeap = xPortGetFreeHeapSize();
 	setColor(CYJAN);
 	sprintf(chNapis, " %d/%d ", freeHeap, stosWHM);
-	RysujNapis(chNapis, DISP_X_SIZE - 39*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+	cBłąd |= RysujNapis(chNapis, DISP_X_SIZE - 39*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 	setBackColor(CZARNY);
-	return chPozycjaMenu;
+	return cBłąd;
 }
 
 
@@ -269,21 +268,23 @@ uint8_t Menu(char *tytul, menu_t *menu)
 // Rysuje belkę menu z logo i tytułem w poziomej orientacji ekranu
 // Wychodzi z ustawionym czarnym tłem, białym kolorem i śCZERWONYnia czcionką
 // Parametry: wskaźnik na zmienną z tytułem okna
-// Zwraca: nic
+// Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-void BelkaTytulu(char* chTytul)
+uint8_t BelkaTytulu(char* chTytul)
 {
 	extern const unsigned short pitlab_logo18[];
+	uint8_t cBłąd = BLAD_OK;
 
-	RysujProstokatWypelniony(18, 0, DISP_X_SIZE, MENU_NAG_WYS, MENU_TLO_BAR);
-	RysujBitmape(0, 0, 18, 18, pitlab_logo18);	//logo PitLab
+	cBłąd |= RysujProstokatWypelniony(18, 0, DISP_X_SIZE, MENU_NAG_WYS, MENU_TLO_BAR);
+	cBłąd |= RysujBitmape(0, 0, 18, 18, pitlab_logo18);	//logo PitLab
 	setColor(ZOLTY);
 	setBackColor(MENU_TLO_BAR);
 	UstawCzcionke(BigFont);
-	RysujNapis(chTytul, CENTER, UP_SPACE);
+	cBłąd |= RysujNapis(chTytul, CENTER, UP_SPACE);
 	setColor(BIALY);
 	UstawCzcionke(MidFont);
 	setBackColor(CZARNY);
+	return cBłąd;
 }
 
 
@@ -536,11 +537,12 @@ uint8_t GetFontY(void)
 // Parametry:
 // *st - ciąg do wypisania
 //  x, y - współrzędne
-// Zwraca: nic
+// Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-void RysujNapis(char *str, uint16_t x, uint16_t y)
+uint8_t RysujNapis(char *str, uint16_t x, uint16_t y)
 {
 	int stl;
+	uint8_t cBłąd = BLAD_OK;;
 
 	stl = strlen((char*)str);
 
@@ -560,7 +562,8 @@ void RysujNapis(char *str, uint16_t x, uint16_t y)
 	}
 
 	for (uint16_t i=0; i<stl; i++)
-		RysujZnak(*str++, x + (i*(cfont.x_size)), y);
+		cBłąd |= RysujZnak(*str++, x + (i*(cfont.x_size)), y);
+	return cBłąd;
 }
 
 
@@ -625,11 +628,15 @@ void RysujKolo(uint16_t x, uint16_t y, uint16_t promien)
 	int16_t y1, x1;
 
 	for(y1=-promien; y1<=0; y1++)
+	{
 		for(x1=-promien; x1<=0; x1++)
+		{
 			if(x1*x1+y1*y1 <= promien*promien)
 			{
 				RysujLiniePozioma(x+x1, y+y1, 2*(-x1));
 				RysujLiniePozioma(x+x1, y-y1, 2*(-x1));
 				break;
 			}
+		}
+	}
 }

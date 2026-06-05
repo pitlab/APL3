@@ -84,6 +84,7 @@
 #define POL7_PRZYWROC_NAPED			41	//przywróć funkcję napędu dla silników po analizie FFT rezonansu ramy
 #define POL7_PRZELADUJ_PID			42	//ponownie załaduj konfigurację PID aby odświeżyć usyawienia po zmianie
 #define POL7_CZYTAJ_KALIBR_TEMP		43	//przesyła odczytaną kalibrację czujnika temperatury CPU
+#define POL7_CZYTAJ_CZAS_PETLI_GL	44	//odczytuje czas wykonania fragmentów petli głównej
 
 #define POL7_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony przez poprzednie polecenie
 

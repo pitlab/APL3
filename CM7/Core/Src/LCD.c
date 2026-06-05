@@ -105,7 +105,7 @@ uint8_t chNowyTrybPracy;
 uint8_t chWrocDoTrybu;
 uint8_t chRysujRaz;
 uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
-static uint8_t cBłąd;	//zmienna obowiązuje lokalnie
+//static uint8_t cBłąd;	//zmienna obowiązuje lokalnie
 char chNapis[100], chNapisPodreczny[30];
 float fTemperaturaKalibracji;
 uint8_t chLiczIter;		//licznik iteracji wyświetlania
@@ -189,10 +189,10 @@ menu_t stMenuKalibracje[MENU_WIERSZE * MENU_KOLUMNY] = {
 	{"Kal Magn", 	"Kalibracja magnetometrow",					TP_KAL_MAG,			obr_kal_mag_n1},
 	{"Kal Baro", 	"Kalibracja cisnienia wg wzorca 10 pieter",	TP_KAL_BARO,		obr_cisnienie},
 	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_KAL_DOTYK,		obr_KonfigDotyk},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_KAL1,			obr_narzedzia},
+	{"nic",			"nic",										TP_KAL1,			obr_narzedzia},
+	{"nic",			"nic",										TP_KAL1,			obr_narzedzia},
+	{"nic",			"nic",										TP_KAL1,			obr_narzedzia},
 	{"HardFault",	"Genruje wystapiene HardFault",				TP_KAL_HARD_FAULT,	obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
@@ -218,21 +218,21 @@ menu_t stMenuNastawy[MENU_WIERSZE * MENU_KOLUMNY] = {
 	{"PID NawigN",	"Nastawy PID nawigacji północnej",			TP_NAST_PID_NAW_N,	obr_narzedzia},
 	{"PID NawigE",	"Nastawy PID nawigacji wschodniej",			TP_NAST_PID_NAW_E,	obr_narzedzia},
 	{"Mikser",		"Nastawy miksera silnikow",					TP_NAST_MIKSERA,	obr_narzedzia},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_NAST7,			obr_narzedzia},
+	{"nic",			"nic",										TP_NAST7,			obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 
 menu_t stMenuWydajnosc[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Fraktale",	"Benchmark fraktalowy"	,					TP_FRAKTALE,		obr_fraktal},
+	{"Petla AP",	"Wydajnosc petli glownej autopilota",		TP_POMIAR_PGAP,		obr_Wydajnosc},
 	{"Zapis NOR", 	"Test zapisu do flash NOR",					TP_POM_ZAPISU_NOR,	obr_NOR},
 	{"Trans NOR", 	"Pomiar predkosci flasha NOR 16-bit",		TP_POMIAR_FNOR,		obr_NOR},
 	{"Trans QSPI",	"Pomiar predkosci flasha QSPI 4-bit",		TP_POMIAR_FQSPI,	obr_QSPI},
 	{"Trans RAM",	"Pomiar predkosci SRAM i DRAM 16-bit",		TP_POMIAR_SRAM,		obr_RAM},
 	{"EmuMagCAN",	"Emulator magnetometru na magistrali CAN",	TP_EMU_MAG_CAN,		obr_kal_mag_n1},
 	{"Kostka 3D", 	"Rysuje kostke 3D w funkcji katow IMU",		TP_IMU_KOSTKA,		obr_kostka3D},
-	{"Magistrala",	"Test magistrali danych i adresowej",		TP_W3,				obr_Wydajnosc},
 	{"Pamiec",		"Status pamieci",							TP_STAN_PAMIECI,	obr_Wydajnosc},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
@@ -246,7 +246,7 @@ menu_t stMenuAudio[MENU_WIERSZE * MENU_KOLUMNY] = {
 	{"Gotowy by",	"Wymowa komunikatu",						TP_MM_KOM1,			obr_narzedzia},
 	{"Alleluja",	"Wymowa komunikatu",						TP_MM_KOM2,			obr_narzedzia},
 	{"Test kom.",	"Test komunikatow audio",					TP_MM_KOM,			obr_glosnik2},
-	{"nic",			"nic",										TP_W3,				obr_narzedzia},
+	{"nic",			"nic",										TP_MM8,				obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 menu_t stMenuKamera[MENU_WIERSZE * MENU_KOLUMNY] = {
@@ -349,6 +349,7 @@ menu_t stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY] = {
 ////////////////////////////////////////////////////////////////////////////////
 void WatekWyswietlacza(void *argument)
 {
+	uint8_t cBłąd;
 	for(;;)
 	{
 		if (nZainicjowanoCM7 & INIT_LCD480x320)		//obsłuż wyświetlacz tylko wtedy jest zainicjowany
@@ -372,6 +373,8 @@ void WatekWyswietlacza(void *argument)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t RysujEkran(void)
 {
+	uint8_t cBłąd = BLAD_OK;
+
 	if ((statusDotyku.chFlagi & DOTYK_SKALIBROWANY) != DOTYK_SKALIBROWANY)		//sprawdź czy ekran dotykowy jest skalibrowany
 		chTrybPracy = TP_KAL_DOTYK;
 
@@ -379,7 +382,7 @@ uint8_t RysujEkran(void)
 	{
 	case TP_MENU_GLOWNE:	// wyświetla menu główne
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_MENU_MAIN]);
-		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuGlowne);
+		cBłąd |= Menu(chNapisPodreczny, stMenuGlowne, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -401,7 +404,7 @@ uint8_t RysujEkran(void)
 	case TP_TESTY:
 		//Menu(strcat((char*)chNapisLcd[STR_TESTY], (char*)chNapisLcd[STR_MENU]), stMenuTestowe, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_TESTY]);
-		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuTestowe);
+		cBłąd = Menu(chNapisPodreczny, stMenuTestowe, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -450,7 +453,7 @@ uint8_t RysujEkran(void)
 	case TP_MEDIA_AUDIO:
 		//Menu(strcat((char*)chNapisLcd[STR_MENU_MEDIA_AUDIO], (char*)chNapisLcd[STR_MENU]), stMenuAudio, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_AUDIO]);
-		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuAudio);
+		cBłąd = Menu(chNapisPodreczny, stMenuAudio, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -585,7 +588,7 @@ uint8_t RysujEkran(void)
 	case TP_MEDIA_KAMERA:			//menu kamera
 		//Menu((char*)chNapisLcd[STR_MENU_KAMERA], stMenuKamera, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KAMERA]);
-		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuKamera);
+		cBłąd = Menu(chNapisPodreczny, stMenuKamera, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -913,7 +916,7 @@ uint8_t RysujEkran(void)
 	case TP_MENU_OSD:
 		//Menu((char*)chNapisLcd[STR_MENU_OSD], stMenuOsd, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_OSD]);
-		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuOsd);
+		cBłąd = Menu(chNapisPodreczny, stMenuOsd, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1073,7 +1076,7 @@ uint8_t RysujEkran(void)
 	case TP_ETHERNET:
 		//Menu((char*)chNapisLcd[STR_MENU_ETHERNET], stMenuEthernet, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_ETHERNET]);
-		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuEthernet);
+		cBłąd = Menu(chNapisPodreczny, stMenuEthernet, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1148,7 +1151,7 @@ uint8_t RysujEkran(void)
 	case TP_WYDAJNOSC:			///menu pomiarów wydajności
 		//Menu((char*)chNapisLcd[STR_MENU_WYDAJNOSC], stMenuWydajnosc, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_WYDAJNOSC]);
-		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuWydajnosc);
+		cBłąd = Menu(chNapisPodreczny, stMenuWydajnosc, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1228,19 +1231,6 @@ uint8_t RysujEkran(void)
 		}
 		break;
 
-
-	///LOG_SD1_VSEL - H=3,3V L=1,8V
-	//case TP_W3:		chPort_exp_wysylany[0] |=  EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - H=3,3V
-	//case TP_W4:		chPort_exp_wysylany[0] &= ~EXP02_LOG_VSELECT;	chTrybPracy = TP_WYDAJNOSC;	break;	//LOG_SD1_VSEL - L=1,8V
-	case TP_W3: SprawdzMagistrale(0xC0000000);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
-		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
-		}
-		break;
-
-
 	case TP_STAN_PAMIECI:
 		setColor(ZOLTY);
 		sprintf(chNapis, "Wolna sterta: %d", xPortGetFreeHeapSize());
@@ -1262,7 +1252,6 @@ uint8_t RysujEkran(void)
 			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
 		}
 		break;
-
 
 	case TP_EMU_MAG_CAN:
 		uDaneCM7.dane.chWykonajPolecenie = POL7_KAL_ZERO_MAGN2;	//włącz tryb jak dla kalibracji aby nie uwzględniać w wyniku danych kalibracyjnych
@@ -1292,14 +1281,29 @@ uint8_t RysujEkran(void)
 			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
 			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//zakończ tryb kalibracyjny
 		}
-	break;
+		break;
+
+	case TP_POMIAR_PGAP:
+		uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_CZAS_PETLI_GL;
+		if ((uDaneCM4.dane.chPotwierdzenieWykonania == POL7_CZYTAJ_CZAS_PETLI_GL) && (uDaneCM4.dane.sAdres == uDaneCM7.dane.sAdres))
+		{
+			PokazCzasOdcinkowPGAP((uint16_t*)&uDaneCM4.dane.uRozne.U16[0]);
+			uDaneCM7.dane.sAdres++;	//inkrementacja adresu zapewnia unikalność polecenia. CM4 nie wykonuje powtórzonych poleceń
+		}
+		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		{
+			chTrybPracy = chWrocDoTrybu;
+			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;
+		}
+		break;
 
 
 	//*** Karta SD ************************************************
 	case TP_KARTA_SD:			///menu Karta SD
 		//Menu((char*)chNapisLcd[STR_MENU_KARTA_SD], stMenuKartaSD, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KARTA_SD]);
-		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuKartaSD);
+		cBłąd = Menu(chNapisPodreczny, stMenuKartaSD, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1388,7 +1392,7 @@ uint8_t RysujEkran(void)
 	case TP_KAL_IMU:			//menu kalibracji IMU
 		//Menu((char*)chNapisLcd[STR_MENU_IMU], stMenuIMU, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KALIBRACJA], chNapisLcd[STR_IMU]);
-		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuIMU);
+		cBłąd = Menu(chNapisPodreczny, stMenuIMU, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1530,7 +1534,7 @@ uint8_t RysujEkran(void)
 	case TP_MAGNETOMETR:	//menu obsługi magnetometru
 		//Menu((char*)chNapisLcd[STR_MENU_MAGNETOMETR], stMenuMagnetometr, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_MAGNETOMETR]);
-		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuMagnetometr);
+		cBłąd = Menu(chNapisPodreczny, stMenuMagnetometr, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		chSekwencerKalibracji = 0;
 		break;
@@ -1611,7 +1615,7 @@ uint8_t RysujEkran(void)
 	case TP_KALIBRACJE:		//menu skupiające różne kalibracje
 		//Menu((char*)chNapisLcd[STR_MENU_KALIBRACJE], stMenuKalibracje, &chNowyTrybPracy);
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KALIBRACJE]);
-		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuKalibracje);
+		cBłąd = Menu(chNapisPodreczny, stMenuKalibracje, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1627,7 +1631,7 @@ uint8_t RysujEkran(void)
 //*** Pomiary ************************************************
 	case TP_POMIARY:		//menu skupiające różne kalibracje
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_POMIARY]);
-		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuPomiary);
+		cBłąd = Menu(chNapisPodreczny, stMenuPomiary, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -1707,7 +1711,7 @@ uint8_t RysujEkran(void)
 //*** Nastawy ************************************************
 	case TP_NASTAWY:		//menu skupiające różne kalibracje
 		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_NASTAWY]);
-		chNowyTrybPracy = Menu(chNapisPodreczny, stMenuNastawy);
+		cBłąd = Menu(chNapisPodreczny, stMenuNastawy, &chNowyTrybPracy);
 		chWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -4510,3 +4514,98 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 			stKonfig->chIndeksTestu = 0;
 	}
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wyśwetla czasy wykonania elementów skłądowych Petli Głównej AutoPilota
+// Parametry:
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void PokazCzasOdcinkowPGAP(uint16_t *sCzasy)
+{
+	uint32_t nSuma = 0;
+	float fCzestotliwosc;
+
+	if (chRysujRaz)
+	{
+		chRysujRaz = 0;
+		BelkaTytulu("Czasy Petli Glownej AP");
+		setColor(SZARY80);
+		for (uint8_t n=0; n<4; n++)
+		{
+			sprintf(chNapis, "Modul %d:", n+1);
+			RysujNapis(chNapis, 0, 30 + n*20);
+		}
+		sprintf(chNapis, "Odb. GNSS:");
+		RysujNapis(chNapis, 0, 110);
+		sprintf(chNapis, "Oper. I2C:");
+		RysujNapis(chNapis, 0, 130);
+		sprintf(chNapis, "f Kalmana:");
+		RysujNapis(chNapis, 0, 150);
+		sprintf(chNapis, "IMU trygon:");
+		RysujNapis(chNapis, 0, 170);
+		sprintf(chNapis, "IMU kwater:");
+		RysujNapis(chNapis, 0, 190);
+		sprintf(chNapis, "Odbiorn RC:");
+		RysujNapis(chNapis, 0, 210);
+		sprintf(chNapis, "Rozsz. I/O:");
+		RysujNapis(chNapis, 0, 230);
+		sprintf(chNapis, "Modul IMU:");
+		RysujNapis(chNapis, 0, 250);
+		sprintf(chNapis, "Wymiana:");
+		RysujNapis(chNapis, 0, 270);
+		sprintf(chNapis, "PolCM7:");
+		RysujNapis(chNapis, 0, 290);
+
+		//druga kolumna danych
+		sprintf(chNapis, "LED WS2813:");
+		RysujNapis(chNapis, KOL22, 30);
+		sprintf(chNapis, "--15--");
+		RysujNapis(chNapis, KOL22, 50);
+		sprintf(chNapis, "--16--");
+		RysujNapis(chNapis, KOL22, 70);
+		sprintf(chNapis, "Kontr.Lotu:");
+		RysujNapis(chNapis, KOL22, 90);
+		sprintf(chNapis, "Mikser:");
+		RysujNapis(chNapis, KOL22, 110);
+		sprintf(chNapis, "Wyjscia RC:");
+		RysujNapis(chNapis, KOL22, 130);
+		sprintf(chNapis, "ADC:");
+		RysujNapis(chNapis, KOL22, 150);
+		sprintf(chNapis, "Suma Czasu:");
+		RysujNapis(chNapis, KOL22, 170);
+		sprintf(chNapis, "f Petli Gl:");
+		RysujNapis(chNapis, KOL22, 190);
+	}
+
+	setColor(ZOLTY);
+	for (uint8_t n=0; n<14; n++)
+	{
+		sprintf(chNapis, "%d ", sCzasy[n]);
+		RysujNapis(chNapis, 12*FONT_SL, 30 + n*20);
+	}
+
+	for (uint8_t n=0; n<7; n++)
+	{
+		sprintf(chNapis, "%d ", sCzasy[n+14]);
+		RysujNapis(chNapis, KOL22 + 12*FONT_SL, 30 + n*20);
+	}
+
+	setColor(ZIELONY);
+	//licz sumę czasów
+	for (uint8_t n=0; n<LICZBA_ODCINKOW_CZASU; n++)
+		nSuma += sCzasy[n];
+	sprintf(chNapis, "%ld us ", nSuma);
+	RysujNapis(chNapis, KOL22 + 12*FONT_SL, 170);
+
+	if (nSuma)
+		fCzestotliwosc = 1000000.0f / nSuma;
+	else
+		fCzestotliwosc = 0;
+	sprintf(chNapis, "%.1f Hz ", fCzestotliwosc);
+	RysujNapis(chNapis, KOL22 + 12*FONT_SL, 190);
+
+
+}
+
