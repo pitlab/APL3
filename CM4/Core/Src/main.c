@@ -218,7 +218,7 @@ int main(void)
   InicjujPID();
   InicjujMikser();
   InicjujKontrolerLotu();
-  //InicjujCrossfire();
+  InicjujCrossfire();
   InicjujWymiane();
 
 #ifdef TESTY		//testy algorytmów

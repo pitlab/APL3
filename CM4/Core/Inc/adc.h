@@ -34,6 +34,6 @@
 
 uint8_t InicjujADC(void);
 uint8_t PomiarADC(uint8_t chKanal, uint8_t cBityPozwoleniaNaPomiar);
-uint8_t ObsługaADC(uint8_t cOdcinekCzasu, uint8_t cBityPozwoleniaNaPomiar);
+uint8_t ObsługaDekoderaiADC(uint8_t cOdcinekCzasu, uint8_t cBityPozwoleniaNaPomiar);
 
 #endif /* INC_ADC_H_ */

@@ -41,7 +41,7 @@ extern volatile uint8_t chWskNapBufAnaSBus2, chWskOprBufAnaSBus2; 	//wskaźniki 
 extern uint8_t chBuforAnalizyCrossfire[ROZMIAR_BUF_ANA_CRSF];
 extern volatile uint8_t chWskNapBufAnaSRSF, chWskOprBufAnaCRSF;
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
-extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
+extern volatile uint8_t chWskNapBufAnaGNSS, chWskOprBaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -62,9 +62,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		case U_GNSS1:
 			for (uint8_t n=0; n<ROZMIAR_BUF_ODB_UART8; n++)
 			{
-				chBuforAnalizyGNSS[chWskNapBaGNSS] = chBuforOdbioruUart8[n];
-				chWskNapBaGNSS++;
-				chWskNapBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;	//zapętlenie wskaźnika bufora kołowego
+				chBuforAnalizyGNSS[chWskNapBufAnaGNSS] = chBuforOdbioruUart8[n];
+				chWskNapBufAnaGNSS++;
+				chWskNapBufAnaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;	//zapętlenie wskaźnika bufora kołowego
 			}
 			break;
 
@@ -92,8 +92,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 			chWskNapBufAnaSBus1 &= MASKA_ROZM_BUF_ANA_SBUS;	//zapętlenie wskaźnika bufora kołowego
 		}
 		WłączOdbiórUART4();	//uzbraja odbiór następnej porcji danych
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);			//kanał serw 2 skonfigurowany jako IO
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);				//kanał serw 4 skonfigurowany jako IO
 	}
 
 	if (huart->Instance == USART2)		//dane z SBUS2
@@ -161,9 +159,9 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		//przepisz dane odebrane do większego bufora kołowego analizy danych
 		for (uint8_t n=0; n<Size; n++)
 		{
-			chBuforAnalizyGNSS[chWskNapBaGNSS] = chBuforOdbioruUart8[n];
-			chWskNapBaGNSS++;
-			chWskNapBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
+			chBuforAnalizyGNSS[chWskNapBufAnaGNSS] = chBuforOdbioruUart8[n];
+			chWskNapBufAnaGNSS++;
+			chWskNapBufAnaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
 		}
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart8, chBuforOdbioruUart8, ROZMIAR_BUF_ODB_GNSS);	//wznów odbiór
 	}

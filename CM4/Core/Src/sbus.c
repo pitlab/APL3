@@ -443,7 +443,7 @@ uint8_t ObsługaRamkiSBus(void)
 	}
 
 	//scalenie obu kanałów w jedne dane dane odbiornika RC
-	cBłąd = DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane, &uDaneCM7.dane);
+	//cBłąd = DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane, &uDaneCM7.dane);
 
 	//Jeżeli wyjscie RC1 jest ustawione jako S-Bus
 	if (chKonfigWyRC[KANAL_RC1] == SERWO_SBUS)

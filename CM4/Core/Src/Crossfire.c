@@ -9,9 +9,10 @@
 #include "Crossfire.h"
 #include "WeWyRC.h"
 #include <GNSS.h>
+#include "Uarty.h"
+#include "PetlaGlowna.h"
 
 extern UART_HandleTypeDef huart8;
-extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
 extern stRC_t stRC;	//struktura danych odbiorników RC
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -56,12 +57,12 @@ uint8_t InicjujCrossfire(void)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	chWskNapBaGNSS = chWskOprBaGNSS = 0;	//inicjuj wskaźniki napełniania i opróżniania buforma kołowego analizy danych z UART8
+	chWskNapBufAnaSRSF = chWskOprBufAnaCRSF = 0;	//inicjuj wskaźniki napełniania i opróżniania buforma kołowego analizy danych z UART8
 	cEtapOdbioruRamki = EORC_ADRES;
 	//huart8.Init.BaudRate = 416666;	//wg. https://github.com/tbs-fpv/tbs-crsf-spec/blob/main/crsf.md#frame-details
 	huart8.Init.BaudRate = 420000; 		//według dokumentacji TBS iNAV
 	cBłąd = UART_SetConfig(&huart8);
-	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruUart8, ROZMIAR_BUF_ODB_GNSS);	//Upewnij się że nie jest uruchamiana funcka inicjalizacji GNSS
+	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruUart8, ROZMIAR_BUF_ODB_UART8);	//Upewnij się że nie jest uruchamiana funcka inicjalizacji GNSS
 	return cBłąd;
 }
 
@@ -87,7 +88,6 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 	{
 		cDane = chBufor[*chWskOprBuf];
 		(*chWskOprBuf)++;
-		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 		switch (*cEtapOdbioru)
 		{
 		case EORC_ADRES:	//odbierany jest SyncByte będący adresem urządzenia. Reaguję na CRSF_ADR_FLIGHT_CTRL oraz na CRSF_ADR_BROADCAST
@@ -129,6 +129,7 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 			if (cDane == cCrc)
 			{
 				cBłąd = BLAD_GOTOWE;
+				HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 			}
 			else
 				cBłąd = BLAD_CRC;
@@ -176,10 +177,11 @@ uint8_t AnalizujCrossfire(uint8_t *chRamka, stRC_t *stRC)
 	switch(chRamka[EORC_TYP])
 	{
 	case TYPCRSF_LINK_STAT:		 	//0x14 Link Statistics
+		break;
+
 	case TYPCRSF_CHAN_PACKED:	 	//0x16 RC Channels Packed Payload
 		for (uint8_t n=0; n<ROZMIAR_SPAKOWANYCH_KANALOW_CROSSFIRE; n++)
 			uSpakowaneKanalyCRSF.cRamkaCRSF[n] = chRamka[n];
-		//for (uint8_t n=0; n<LICZBA_KANALOW_CROSSFIRE; n++)
 		stRC->sOdb2[0] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_01;
 		stRC->sOdb2[1] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_02;
 		stRC->sOdb2[2] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_03;
@@ -188,9 +190,21 @@ uint8_t AnalizujCrossfire(uint8_t *chRamka, stRC_t *stRC)
 		stRC->sOdb2[5] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_06;
 		stRC->sOdb2[6] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_07;
 		stRC->sOdb2[7] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_08;
+		stRC->sOdb2[8] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_09;
+		stRC->sOdb2[9] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_10;
+		stRC->sOdb2[10] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_11;
+		stRC->sOdb2[11] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_12;
+		stRC->sOdb2[12] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_13;
+		stRC->sOdb2[13] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_14;
+		stRC->sOdb2[14] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_15;
+		stRC->sOdb2[15] = uSpakowaneKanalyCRSF.stSpakowaneKanalyCRSF.channel_16;
+		stRC->sZdekodowaneKanaly2 = 0xFFFF;
 		break;
+
+	default:	return BLAD_ZLE_DANE;
 	}
 
+	stRC->nCzasWe2 = PobierzCzasT7();
 	return cBłąd;
 }
 

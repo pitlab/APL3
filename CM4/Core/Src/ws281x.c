@@ -15,6 +15,7 @@
 
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim4;
 extern TIM_HandleTypeDef htim8;
 extern DMA_HandleTypeDef hdma_tim2_ch1;
 extern DMA_HandleTypeDef hdma_tim2_ch3;
@@ -22,6 +23,7 @@ extern DMA_HandleTypeDef hdma_tim3_ch3;
 extern DMA_HandleTypeDef hdma_tim3_ch4;
 extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
+DMA_HandleTypeDef hdma_tim4_ch4;
 extern unia_wymianyCM4_t uDaneCM4;
 extern uint16_t sFlagiNapelnieniaBuforow;
 uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA_WS281X[WS_BITOW_LACZNIE];
@@ -78,8 +80,7 @@ uint8_t AktualizujKolorLedWs821x(void)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
-	//nie aktualizuj dopóki nie skończy wyświetlać całej swojej zawartosci
+	//nie aktualizuj dopóki nie skończy wyświetlać całej swojej zawartości
 	if (cWskaznikLed < LICZBA_LED_WS281X + WS_CZAS_RESETU)
 		return cBłąd;
 
@@ -128,11 +129,36 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 	sConfigOC.Pulse = stWS281x.nT1H;
 
+	//CubeMX nie może dodać obsługi kanału DMA dla TIM4.ch4 ponieważ jest używany jako UART, wiec robię to ręcznie
+	if (chKanal == KANAL_RC1)	//timer 4 kanał 4 - wyjście 5V
+	{
+		htim4.Init.Prescaler = DZIELNIK_WS281X - 1;
+		htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+		htim4.Init.Period = stWS281x.nBit - 1;
+		htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+		htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+		cBłąd |= HAL_TIM_PWM_Init(&htim4);
+		HAL_NVIC_DisableIRQ(TIM4_IRQn);
+
+		hdma_tim4_ch4.Instance = DMA1_Stream0;
+		hdma_tim4_ch4.Init.Request = DMA_REQUEST_TIM8_CH3;
+		hdma_tim4_ch4.Init.Direction = DMA_MEMORY_TO_PERIPH;
+		hdma_tim4_ch4.Init.PeriphInc = DMA_PINC_DISABLE;
+		hdma_tim4_ch4.Init.MemInc = DMA_MINC_ENABLE;
+		hdma_tim4_ch4.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+		hdma_tim4_ch4.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+		hdma_tim4_ch4.Init.Mode = DMA_CIRCULAR;
+		hdma_tim4_ch4.Init.Priority = DMA_PRIORITY_MEDIUM;
+		hdma_tim4_ch4.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+	    cBłąd |= HAL_DMA_Init(&hdma_tim4_ch4);
+	    cBłąd |= HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_4, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+	}
+
 	if ((chKanal == KANAL_RC2) || (chKanal == KANAL_RC3))	//timer 2 obsluguje kanały 2 i 3
 	{
 		htim2.Init.Prescaler = DZIELNIK_WS281X - 1;
 		htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-		htim2.Init.Period = stWS281x.nBit;
+		htim2.Init.Period = stWS281x.nBit - 1;
 		htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		cBłąd |= HAL_TIM_PWM_Init(&htim2);
@@ -179,7 +205,7 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		htim3.Instance = TIM3;
 		htim3.Init.Prescaler = DZIELNIK_WS281X - 1;
 		htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-		htim3.Init.Period = stWS281x.nBit;
+		htim3.Init.Period = stWS281x.nBit - 1;
 		htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		cBłąd |= HAL_TIM_PWM_Init(&htim3);
@@ -228,17 +254,12 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		htim8.Instance = TIM8;
 		htim8.Init.Prescaler = DZIELNIK_WS281X - 1;
 		htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
-		htim8.Init.Period = stWS281x.nBit;
+		htim8.Init.Period = stWS281x.nBit - 1;
 		htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 		htim8.Init.RepetitionCounter = 0;
 		htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
 		cBłąd |= HAL_TIM_PWM_Init(&htim8);
 		HAL_NVIC_DisableIRQ(TIM8_CC_IRQn);	//generowanie PWM dla DShot nie wymaga przerwań
-
-		//wspólna konfiguracja dla kanałów 1 i 3
-		//sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
-		//sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
-		//sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
 	}
 
 	if (chKanal == KANAL_RC6)		//kanał 6

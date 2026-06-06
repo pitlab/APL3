@@ -135,32 +135,16 @@ uint8_t PomiarADC(uint8_t chKanal, uint8_t cBityPozwoleniaNaPomiar)
 // Parametry: brak
 // Zwraca: kod błędu HAL
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ObsługaADC(uint8_t cOdcinekCzasu, uint8_t cBityPozwoleniaNaPomiar)
+uint8_t ObsługaDekoderaiADC(uint8_t cOdcinekCzasu, uint8_t cBityPozwoleniaNaPomiar)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	if (cOdcinekCzasu < LICZBA_POMIAROW_ADC3)
-	{
-		/*sObiegowPetliCzekaniaNaADC[cOdcinekCzasu] = 0;
-		do	//czekaj na wykonanie zainicjowanego w poprzednim cyklu pomiaru ADC lub timeout
-		{
-			sObiegowPetliCzekaniaNaADC[cOdcinekCzasu]++;	//licznik sprawdzajacy czy w tym miejscu czekamy na gotowość pomiaru ADC
-		}
-		while (!chWykonanoPomiarADC && (sObiegowPetliCzekaniaNaADC[cOdcinekCzasu] < TIMEOUT_ADC));*/
+	//ustaw dekoder adresów i jednocześnie multiplekser analogowy na zadany kanał
+	if (cOdcinekCzasu < LICZBA_POMIAROW_ADC2)
+		cBłąd |= UstawDekoderModulow(cOdcinekCzasu);
 
-		//ustaw dekoder adresów i jednocześnie multiplekser analogowy na zadany kanał
-		if (cOdcinekCzasu < LICZBA_POMIAROW_ADC2)
-		{
-			//nCzas = PobierzCzas();
-			cBłąd |= UstawDekoderModulow(cOdcinekCzasu);
-			//nCzas = MinalCzas(nCzas);
-		}
-
-		chWykonanoPomiarADC = 0;
-		//nCzas = PobierzCzas();
-		PomiarADC(cOdcinekCzasu, cBityPozwoleniaNaPomiar);
-		//nCzas = MinalCzas(nCzas);
-	}
+	chWykonanoPomiarADC = 0;
+	PomiarADC(cOdcinekCzasu, cBityPozwoleniaNaPomiar);
 	return cBłąd;
 }
 
@@ -207,7 +191,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 			uDaneCM4.dane.fNapCzujZewn[chIndeksPomiaruADC - 4] = fNapiecie * fMnożnikCzujnWeAnalog[chIndeksPomiaruADC - 4] + fSkładnikCzujnWeAnalog[chIndeksPomiaruADC - 4];
 
 		chWykonanoPomiarADC |= WYKONANO_POMIAR_ADC2;
-		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);	//serwo kanał 1
 	}
 
 	if (hadc->Instance == ADC3)
@@ -236,8 +219,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 		default: break;
 		}
 		chWykonanoPomiarADC |= WYKONANO_POMIAR_ADC3;
-		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);	//serwo kanał 7
-		//HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_RESET);	//serwo kanał 7
 	}
 }
 

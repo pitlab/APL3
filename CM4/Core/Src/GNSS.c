@@ -32,7 +32,7 @@
 extern UART_HandleTypeDef huart8;
 uint8_t chBuforNadawczyGNSS[ROZMIAR_BUF_NAD_GNSS];
 uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
-volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
+volatile uint8_t chWskNapBufAnaGNSS, chWskOprBufAnaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
 uint16_t sCzasInicjalizacjiGNSS = 0;	//licznik czasu	inicjalizacji wyrażony w obiegach pętli 1/200Hz = 5ms
 extern volatile unia_wymianyCM4_t uDaneCM4;
 
@@ -54,7 +54,7 @@ uint8_t InicjujGNSS(void)
     switch (sCzasInicjalizacjiGNSS)	//zlicza kolejne uruchomienia co 1 obieg pętli głównej
     {
     case 1:
-    	chWskNapBaGNSS = chWskOprBaGNSS = 0;	//inicjuj wskaźniki napełniania i opróżniania buforma kołowego analizy danych z GNSS
+    	chWskNapBufAnaGNSS = chWskOprBufAnaGNSS = 0;	//inicjuj wskaźniki napełniania i opróżniania buforma kołowego analizy danych z GNSS
 		break;
 
 	//od tego czasu co 50ms wykonaj serię zapisów zmian prędkości  transmitowanych na 9600, 19200, 38400, 75600 i 115200

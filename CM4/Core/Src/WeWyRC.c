@@ -212,8 +212,8 @@ uint8_t InicjujWyjsciaRC(void)
 	GPIO_InitStruct.Alternate = GPIO_AF2_TIM4;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	if (chKonfigWyRC[KANAL_RC2] == SERWO_WS281X)
-		UstawTrybWS281x(KANAL_RC2);
+	if (chKonfigWyRC[KANAL_RC1] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC1);
 	else
 	if ((chKonfigWyRC[KANAL_RC1] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
@@ -249,8 +249,8 @@ uint8_t InicjujWyjsciaRC(void)
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	if (chKonfigWyRC[KANAL_RC3] == SERWO_WS281X)
-		UstawTrybWS281x(KANAL_RC3);
+	if (chKonfigWyRC[KANAL_RC2] == SERWO_WS281X)
+		UstawTrybWS281x(KANAL_RC2);
 	else
 	if ((chKonfigWyRC[KANAL_RC2] & SERWO_PWMXXX) == SERWO_PWMXXX)	//dotyczy całej rodziny prędkości PWM
 	{
@@ -779,7 +779,7 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 		    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH6;
 		    if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
 		        HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_1);
-		    HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+		    //HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 		}
 
 		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
@@ -787,7 +787,7 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 			sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8;
 			if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
 				HAL_TIMEx_PWMN_Stop_DMA(&htim8, TIM_CHANNEL_3);		//specjalna funkcja dla kanału zanegownego
-			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 		}
 	}
 }
@@ -827,7 +827,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH6;
     		if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
     			HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_1);
-    		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+    		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
     	}
 
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
@@ -835,7 +835,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH8;
     		if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
     			HAL_TIMEx_PWMN_Stop_DMA(&htim8, TIM_CHANNEL_3);		//specjalna funkcja dla kanału zanegownego
-    		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+    		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
     	}
     }
 }
@@ -1069,7 +1069,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 	nCzasRC1 = MinalCzas2T7(stRC->nCzasWe1, nCzasBiezacy);
 	nCzasRC2 = MinalCzas2T7(stRC->nCzasWe2, nCzasBiezacy);
 
-	if (nCzasRC1 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 1
+/*	if (nCzasRC1 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 1
 	{
 		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
 		{
@@ -1095,19 +1095,18 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 					if (sRóżnicaMaxMin)
 						psDaneCM4->sKanalRC[n] = (stRC->sOdb1[n] - stRC->sMin1[n]) * (WE_RC_P100 - WE_RC_M100) / sRóżnicaMaxMin + WE_RC_M100; 	//przepisz znornalizowane kanały
 					else
-						psDaneCM4->sKanalRC[n] = stRC->sOdb1[n];	//surowe dane bez nomrmalizacji
+						psDaneCM4->sKanalRC[n] = stRC->sOdb1[n];	//surowe dane bez normalizacji
 				}
 				stRC->sZdekodowaneKanaly1 &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
 		}
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);				//kanał serw 5 skonfigurowany jako IO
 	}
 	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
 	if (nCzasRC1 > 2*OKRES_RAMKI_PPM_RC)
 	{
 		WłączOdbiórUART4();	//ustawia odbiornik gotowy na przyjęcie danych
 	}
-
+*/
 
 	if (nCzasRC2 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 2
 	{
@@ -1125,13 +1124,15 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 					if ((stRC->sMin2[n] < WE_RC_M90) && (stRC->sMax2[n] > WE_RC_P90))
 						stRC->chStatus |= STATRC_ZEBRANO_EKSTR2;
 				}
-
+				else
 				//normalizacja danych
 				if ((psDaneCM7->chOdbiornikRC == ODB_RC2) || (psDaneCM7->chOdbiornikRC == ODB_OBA))
 				{
 					sRóżnicaMaxMin = stRC->sMax2[n] - stRC->sMin2[n];
 					if (sRóżnicaMaxMin)
 						psDaneCM4->sKanalRC[n] = (stRC->sOdb2[n] - stRC->sMin2[n]) * (WE_RC_P100 - WE_RC_M100) / sRóżnicaMaxMin + WE_RC_M100; 	//przepisz znornalizowane kanały
+					else
+						psDaneCM4->sKanalRC[n] = stRC->sOdb2[n];	//surowe dane bez normalizacji
 				}
 				stRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}

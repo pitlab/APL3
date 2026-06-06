@@ -40,7 +40,7 @@ uint32_t nCzasOstatniegoOdcinka;	//przechowuje czas uruchomienia ostatniego odci
 uint32_t nCzasPoprzedniegoObiegu;	//czas [us] poprzedniego obiegu pętli głównej
 uint32_t ndT;						//czas [us] jaki upłynął od poprzeniego obiegu pętli
 uint32_t nCzasBiezacy;
-uint8_t chNrOdcinkaCzasu;
+uint8_t cNrOdcinkaCzasu;
 uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU + 1];		//zmierzony czas obsługi odcinka. Na ostatniej pozycji jest czas jałowy
 uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
 uint8_t cBłądPG = BLAD_OK;		//błąd petli głównej
@@ -83,42 +83,26 @@ uint8_t cDzielnikAktualizacjiLED;
 void PetlaGlowna(void)
 {
 	uint32_t nCzasStartuADC;
+
+	//przykłady machania pinami IO
+	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//kanał serw 1 skonfigurowany jako IO
+	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);	//kanał serw 2 skonfigurowany jako IO
+	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);	//kanał serw 4 skonfigurowany jako IO
+	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);	//kanał serw 5 skonfigurowany jako IO
+	//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);	//kanał serw 7 skonfigurowany jako IO
+
+
+
 	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetwornika A/C
 	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
+	if (cNrOdcinkaCzasu < LICZBA_POMIAROW_ADC3)
+	{
+		nCzasStartuADC = PobierzCzasT7();
+		cBłądPG |= ObsługaDekoderaiADC(cNrOdcinkaCzasu, cBityPozwoleniaNaPomiarADC);	//zarządza rozpoczęciem pomiaru ADC i pobraniem wyników, przełacza dekoder modułów
+		nCzasOdcinka[20] = MinalCzasT7(nCzasStartuADC);		//czas konwersji ADC
+	}
 
-	//testy --------------------------------------------------------------------
-	/*uint32_t pclk1 = HAL_RCC_GetPCLK1Freq();	//120MHz
-	uint32_t pclk2 = HAL_RCC_GetPCLK2Freq();	//120MHz
-	uint32_t core = SystemCoreClock;
-	uint32_t hclk = HAL_RCC_GetHCLKFreq();
-
-	RCC_OscInitTypeDef RCC_OscInitStruct;
-	HAL_RCC_GetOscConfig(&RCC_OscInitStruct);
-
-	//benchmark RAM
-	//volatile uint32_t t = DWT->CYCCNT;
-	nCzasStartuADC = PobierzCzasT7();
-
-	for(volatile uint32_t i=0;i<1000000;i++);
-
-	nCzasStartuADC = MinalCzasT7(nCzasStartuADC);
-	//uint32_t dtRam = DWT->CYCCNT - t;
-
-	//benchmark flash
-	volatile uint32_t s=0;
-	//t = DWT->CYCCNT;
-	nCzasStartuADC = PobierzCzasT7();
-	for(volatile uint32_t i=0;i<100000;i++)
-	    s += *(volatile uint32_t*)(0x08100000 + (i&0xFFF));
-	nCzasStartuADC = MinalCzasT7(nCzasStartuADC);
-	//uint32_t dtFlash = DWT->CYCCNT - t;*/
-	//testy --------------------------------------------------------------------
-
-	nCzasStartuADC = PobierzCzasT7();
-	cBłądPG |= ObsługaADC(chNrOdcinkaCzasu, cBityPozwoleniaNaPomiarADC);	//zarządza rozpoczęciem pomiaru ADC i pobraniem wyników, przełacza dekoder modułów
-	nCzasOdcinka[20] = MinalCzasT7(nCzasStartuADC);
-
-	switch (chNrOdcinkaCzasu)
+	switch (cNrOdcinkaCzasu)
 	{
 	case ADR_MOD1:		//obsługa modułu w gnieździe 1
 		uDaneCM4.dane.uRozne.f32[11] += 0.5f;
@@ -198,6 +182,7 @@ void PetlaGlowna(void)
 	case 9:	//obsługa odbiorników RC
 		cBłądPG |= ObsługaRamkiSBus();
 		cBłądPG |= ObsługaRamkiCrossfire();
+		cBłądPG |= DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane, &uDaneCM7.dane);	//scalenie obu kanałów w jedne dane dane odbiornika RC
 		cBłądPG |= AnalizujSygnalRC(&uDaneCM4.dane, &uDaneCM7.dane);
 		break;
 
@@ -249,15 +234,15 @@ void PetlaGlowna(void)
 
 
 	//pomiar czasu zajętego w każdym odcinku
-	nCzasOdcinka[chNrOdcinkaCzasu] = MinalCzasT7(nCzasOstatniegoOdcinka);
-	if (nCzasOdcinka[chNrOdcinkaCzasu] > nMaxCzasOdcinka[chNrOdcinkaCzasu])   //przechwyć wartość maksymalną
-		nMaxCzasOdcinka[chNrOdcinkaCzasu] = nCzasOdcinka[chNrOdcinkaCzasu];
+	nCzasOdcinka[cNrOdcinkaCzasu] = MinalCzasT7(nCzasOstatniegoOdcinka);
+	if (nCzasOdcinka[cNrOdcinkaCzasu] > nMaxCzasOdcinka[cNrOdcinkaCzasu])   //przechwyć wartość maksymalną
+		nMaxCzasOdcinka[cNrOdcinkaCzasu] = nCzasOdcinka[cNrOdcinkaCzasu];
 	nCzasOstatniegoOdcinka = PobierzCzasT7();
 
-	chNrOdcinkaCzasu++;
-	if (chNrOdcinkaCzasu == LICZBA_ODCINKOW_CZASU)
+	cNrOdcinkaCzasu++;
+	if (cNrOdcinkaCzasu == LICZBA_ODCINKOW_CZASU)
 	{
-		chNrOdcinkaCzasu = 0;
+		cNrOdcinkaCzasu = 0;
 		cBityPozwoleniaNaPomiarADC <<= 1;
 		if (cBityPozwoleniaNaPomiarADC == 0)
 			cBityPozwoleniaNaPomiarADC = 1;

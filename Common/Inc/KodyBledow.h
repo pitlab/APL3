@@ -26,6 +26,7 @@
 #define BLAD_ZLY_INTERFEJS		17	//nieobsługiwany interfejs komunikacyjny
 #define BLAD_ZLE_DANE			18
 #define BLAD_ZLY_ADRES			19
+#define BLAD_ZLY_
 
 #define BLAD_NIC_DO_ROBOTY		26	//zadanie nie znalazło nic do wykonania
 
