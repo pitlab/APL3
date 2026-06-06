@@ -333,7 +333,6 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 				nBuforTimDMA_WS281X[n] = 0;
 		}
 		*sFlagi &= ~(NAPELNIJ_BUF1_CH6 | NAPELNIJ_BUF1_CH8);
-		*chWskLED += 4;		//wskaż na następne LED do obsługi w kolejnym cyklu
 	}
 
 	if (*sFlagi & (NAPELNIJ_BUF2_CH6 | NAPELNIJ_BUF2_CH8))	//napełnij drugą połowę bufora
@@ -361,7 +360,7 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 				nBuforTimDMA_WS281X[n] = 0;
 		}
 		*sFlagi &= ~(NAPELNIJ_BUF2_CH6 | NAPELNIJ_BUF2_CH8);
-		*chWskLED += 4;		//wskaż na następne LED do obsługi w kolejnym cyklu
+		*chWskLED += WS_LEDY_SEGMENTU;		//wskaż na następne LED do obsługi w kolejnym cyklu
 	}
 	return cBłąd;
 }

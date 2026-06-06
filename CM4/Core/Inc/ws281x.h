@@ -20,8 +20,8 @@
 #define WS_CZAS_RESETU		12		//czas trwania cyklu resetu odpowiadajacy czasowi obsługi danej liczbie LED-ów
 
 //timery sterowane są zegarem 240 MHz co daje czas cyklu 4,16ns
-//#define DZIELNIK_WS281X		90	//220..380 ns / 4,16 = 53..91 -> okres =  -> okres = 375ns - najwolniej jak się da aby minimalizować obciażenie dla kontrolera
-#define DZIELNIK_WS281X		80	//220..380 ns / 4,16 = 53..91  -> okres = 333ns
+#define DZIELNIK_WS281X		90	//220..380 ns / 4,16 = 53..91 -> okres =  -> okres = 375ns - najwolniej jak się da aby minimalizować obciażenie dla kontrolera
+//#define DZIELNIK_WS281X		80	//220..380 ns / 4,16 = 53..91  -> okres = 333ns
 #define ZEGAR_WS281X		(240000000 / DZIELNIK_WS281X)
 
 #define CZAS_WS281X_0H		1		//1 * cyknięcie = 375ns
