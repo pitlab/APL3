@@ -9,8 +9,8 @@
 #define ERRCODE_H_
 
 #define BLAD_OK					0	//wszystko w porządku
-//#define BLAD_HAL				1	//błąd HAL
-//#define BLAD_HAL_BUSY			2	//
+#define BLAD_HAL				1	//błąd HAL
+#define BLAD_HAL_BUSY			2	//
 #define BLAD_GOTOWE				3	//zadanie wykonane
 #define BLAD_TIMEOUT			4
 #define BLAD_ZLA_ILOSC_DANYCH	5

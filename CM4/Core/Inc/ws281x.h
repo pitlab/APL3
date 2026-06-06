@@ -39,7 +39,7 @@
 #define WLZ_PREDKOSC_GPS	6
 #define WLZ_NAPIECIE_BAT	7
 
-#define DZIELNIK_AKTUALIZACJI_LED	20	//co tyle obiegów pętli aktualizowany jest stan LED-ów
+#define DZIELNIK_AKTUALIZACJI_LED	40	//co tyle obiegów pętli aktualizowany jest stan LED-ów
 
 typedef struct
 {
@@ -62,7 +62,7 @@ uint8_t InicjujKoloryWS281x(void);
 uint8_t AktualizujKolorLedWs821x(void);
 uint8_t UstawTrybWS281x(uint8_t chKanal);
 uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskLED);
-uint8_t UstawKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed);
+uint8_t ObliczKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed);
 
 
 #endif /* INC_WS281X_H_ */

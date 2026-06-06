@@ -80,7 +80,6 @@ uint8_t UstawDaneWymiany_CM4(void)
 	cBłąd = HAL_HSEM_Take(HSEM_CM4_TO_CM7, HSEM_CM4);
 	if (cBłąd == BLAD_OK)
 	{
-		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);			//kanał serw 1 skonfigurowany jako IO
 		if (((sFlagiCM4 & FMR_SA_DANE_CM4) != FMR_SA_DANE_CM4) || (cLicznikOdswiezaniaCM4 == 0))	//ustaw tylko gdy poprzednie zostały odczytane
 		{
 			for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
@@ -93,7 +92,6 @@ uint8_t UstawDaneWymiany_CM4(void)
 		//Rdzeń CM4 produkuje dane co ok. 0,5ms, więc jeżeli nie będzie flagi od CM7, to co 32 okresy wstaw nowe dane
 		cLicznikOdswiezaniaCM4++;
 		cLicznikOdswiezaniaCM4 &= 0x1F;
-		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);		//kanał serw 1 skonfigurowany jako IO
 	}
 	return cBłąd;
 }

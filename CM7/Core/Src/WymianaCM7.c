@@ -56,10 +56,8 @@ uint8_t PobierzDaneWymiany_CM4(void)
 		cBłąd = HAL_HSEM_Take(HSEM_CM4_TO_CM7, HSEM_CM7);
 		if (cBłąd == BLAD_OK)
 		{
-			//HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_SET);			//kanał serw 7 skonfigurowany jako IO
 			for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
 				uDaneCM4.nSlowa[n] = nBuforWymianyCM4[n];
-			//HAL_GPIO_WritePin(GPIOI, GPIO_PIN_10, GPIO_PIN_RESET);			//kanał serw 7 skonfigurowany jako IO
 			sFlagiCM4 &= ~(FMR_SA_DANE_CM4 | FMR_SPRAWDZ_CM4);		//flagi zdejmij dopiero po udanym odczycie
 			HAL_HSEM_Release(HSEM_CM4_TO_CM7, HSEM_CM7);
 		}

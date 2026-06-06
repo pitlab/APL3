@@ -111,7 +111,6 @@ uint8_t InicjujWejsciaRC(void)
 	{
 		cBłąd |= InicjujUart4RxJakoSbus(&GPIO_InitStruct);
 	}
-	chKonfigWyRC[KANAL_RC6] = SERWO_IO;	//kanał 8 pracuje jako LED, więc wyłącz resztę timera
 
 	//ustaw Port PA3 jako UART2_RX lub TIM2_CH4
 	__HAL_RCC_GPIOA_CLK_ENABLE();
@@ -683,7 +682,7 @@ uint8_t InicjujWyjsciaRC(void)
 		hdma_tim8_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim8_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		cBłąd |= HAL_DMA_Init(&hdma_tim8_ch3);
-		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC8][0], chRozmiarSekwencjiDMA[KANAL_RC8]);
+		cBłąd |= HAL_TIMEx_PWMN_Start_DMA(&htim8, TIM_CHANNEL_3, &nBuforTimDMA[KANAL_RC8][0], chRozmiarSekwencjiDMA[KANAL_RC8]);	//specjalna funkcja dla kanału komplementarnego N
 	}
 	else
 	if (chKonfigWyRC[KANAL_RC8] == SERWO_DSHOT150)
@@ -778,17 +777,16 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
 		{
 		    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH6;
+		    if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+		        HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_1);
 		    HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 		}
 
 		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
 		{
 			sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8;
-			uint8_t cBłąd = AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);
-			//gdy skończone to zatrzymaj timer aby nie obciążać CPU
-			if (cBłąd == BLAD_NIC_DO_ROBOTY)
-				cBłąd = HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_3);
-
+			if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+				HAL_TIMEx_PWMN_Stop_DMA(&htim8, TIM_CHANNEL_3);		//specjalna funkcja dla kanału zanegownego
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 		}
 	}
@@ -825,15 +823,18 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 	if(htim->Instance == TIM8)
     {
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+    	{
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH6;
+    		if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+    			HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_1);
+    		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+    	}
 
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
     	{
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH8;
-    		uint8_t cBłąd = AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);
-    		//gdy skończone to zatrzymaj timer aby nie obciążać CPU
-			if (cBłąd == BLAD_NIC_DO_ROBOTY)
-				cBłąd = HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_3);
+    		if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+    			HAL_TIMEx_PWMN_Stop_DMA(&htim8, TIM_CHANNEL_3);		//specjalna funkcja dla kanału zanegownego
     		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
     	}
     }
