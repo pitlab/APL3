@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////////
 #include <SBus.h>
 #include "WeWyRC.h"
-#include "PetlaGlowna.h"
+#include "Czas.h"
 #include "Uarty.h"
 
 
@@ -23,7 +23,7 @@ uint8_t chRamkaSBus2[ROZMIAR_RAMKI_SBUS];
 uint8_t chKorektaPoczatkuRamki;
 uint32_t nCzasWysylkiSbus;
 
-extern stRC_t stRC;	//struktura danych odbiorników RC
+extern stRC2_t stRC;	//struktura danych odbiorników RC
 UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart4;
 extern unia_wymianyCM4_t uDaneCM4;
@@ -403,6 +403,12 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 		*(sKanaly + 15) = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
+
+	//ostatni bajt 23 z flagami:
+	//bit 0 = kanał 17
+	//bit 1 = kanał 18
+	//bit 2 = Frame Lost
+	//bit 3 = FailSafe
 	return cBłąd;
 }
 
@@ -443,7 +449,7 @@ uint8_t ObsługaRamkiSBus(void)
 	}
 
 	//scalenie obu kanałów w jedne dane dane odbiornika RC
-	//cBłąd = DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane, &uDaneCM7.dane);
+	//cBłąd = DywersyfikacjaOdbiornikowRC(&stRC2, &uDaneCM4.dane, &uDaneCM7.dane);
 
 	//Jeżeli wyjscie RC1 jest ustawione jako S-Bus
 	if (chKonfigWyRC[KANAL_RC1] == SERWO_SBUS)

@@ -1623,7 +1623,7 @@ void StartDefaultTask(void *argument)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
   uint8_t chStanDekodera;
-  uDaneCM7.dane.chOdbiornikRC = ODB_OBA;	//przesyłaj stan obu odbiorników po dywersyfikacji
+  uDaneCM7.dane.cWyborOdbiornikaRC = ODB_OBA;	//przesyłaj stan obu odbiorników po dywersyfikacji
   for(;;)
   {
 	  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1

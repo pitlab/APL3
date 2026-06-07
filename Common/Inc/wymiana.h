@@ -208,6 +208,8 @@ typedef struct
 	int16_t sSilnik[KANALY_MIKSERA];	//wartości wysterowania silników wychodzące z miksera
 	int16_t sWyjscieRC[KANALY_WYJSC_RC];	//finalne wartość wysterowania serw lub silników po uwzględnieniu konfiguracji wyjść
 	int16_t sKanalRC[KANALY_ODB_RC];
+	uint8_t cJakoscUpLinkuRC;	//procentowo przedstawiona jakość łącza do aktywnego odbiornika
+	uint8_t cJakoscDnLinkuRC;	//procentowo przedstawiona jakość łącza z aktywnego odbiornika (telemetrii)
 	uint8_t chTrybLotu;		//tryb lotu jako zestaw bitów określających funkcjonalności realizowane w danym czasie
 	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
 	uint8_t cBladPetliGlownej;
@@ -225,7 +227,7 @@ typedef struct
 //definicja struktury wymiany danych wychodzących z rdzenia CM7
 typedef struct
 {
-	uint8_t chOdbiornikRC;			//wybór źródła danych odbiornika RC dla stWymianyCM4.sKanalRC[]: RC1, RC2, oba zdywersyfikowane
+	uint8_t cWyborOdbiornikaRC;		//wybór źródła danych odbiornika RC dla stWymianyCM4.sKanalRC[]: RC1, RC2, oba zdywersyfikowane
 	uint8_t chWykonajPolecenie;		//numer polecenia do wykonania przez CM4
 	uint8_t chPotwierdzenieWykonania;	//potwierdza wykonanie polecenia przysłanego przez CM4
 	uRozne_t uRozne;				//unia różnych typów danych ogólnego zastosowania

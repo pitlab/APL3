@@ -23,6 +23,7 @@
 /* USER CODE BEGIN Includes */
 #include "WymianaCM4.h"
 #include "PetlaGlowna.h"
+#include "Czas.h"
 #include "ADC.h"
 #include "ModulyWew.h"
 #include "Modul_I2P.h"

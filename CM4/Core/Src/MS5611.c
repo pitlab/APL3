@@ -10,7 +10,7 @@
 #include <Spi.h>
 #include "MS5611.h"
 #include "WymianaCM4.h"
-#include "PetlaGlowna.h"
+#include "Czas.h"
 #include "Modul_I2P.h"
 
 extern SPI_HandleTypeDef hspi2;

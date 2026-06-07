@@ -9,7 +9,7 @@
 #include <Main.h>
 #include <Spi.h>
 #include "ND130.h"
-#include "PetlaGlowna.h"
+#include "Czas.h"
 #include "WymianaCM4.h"
 #include "Modul_I2P.h"
 

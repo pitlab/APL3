@@ -16,7 +16,7 @@
 #include "LSM6DSV.h"
 #include "ND130.h"
 #include "WymianaCM4.h"
-#include "PetlaGlowna.h"
+#include "Czas.h"
 
 extern SPI_HandleTypeDef hspi2;
 extern uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych

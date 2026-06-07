@@ -62,23 +62,51 @@ typedef struct
 	int16_t sMin2[KANALY_ODB_RC];	//esktrema: minimalne wartości kanałów odbiornika 2
 	int16_t sMax1[KANALY_ODB_RC];	//esktrema: maksymalne wartości kanałów odbiornika 1
 	int16_t sMax2[KANALY_ODB_RC];	//esktrema: maksymalne wartości kanałów odbiornika 2
-	uint8_t chStatus;				//określaja stan odbiorników
-	uint8_t chNrKan1;						//wskaźnik numeru kanału odbiornika 1
-	uint8_t chNrKan2;						//wskaźnik numeru kanału odbiornika 2
-	uint32_t nCzasWe1;						//czas początku dekodowania  ostatniego pakietu danych z odbiornika 1
-	uint32_t nCzasWe2;						//czas początku dekodowania  ostatniego pakietu danych z odbiornika 2
-	uint16_t sZdekodowaneKanaly1;			//bity zdekodowanych kanałów odbiornika 1
-	uint16_t sZdekodowaneKanaly2;			//bity zdekodowanych kanałów odbiornika 2
+	uint8_t chStatus;				//określaja stan odbiorników, patrz stałe STATRC_
+	uint8_t chNrKan1;				//wskaźnik numeru kanału odbiornika 1
+	uint8_t chNrKan2;				//wskaźnik numeru kanału odbiornika 2
+	uint32_t nCzasWe1;				//czas początku dekodowania  ostatniego pakietu danych z odbiornika 1
+	uint32_t nCzasWe2;				//czas początku dekodowania  ostatniego pakietu danych z odbiornika 2
+	uint16_t sZdekodowaneKanaly1;	//bity zdekodowanych kanałów odbiornika 1
+	uint16_t sZdekodowaneKanaly2;	//bity zdekodowanych kanałów odbiornika 2
 	volatile uint16_t sPoprzedniaWartoscTimera1;	//zapamiętuje wartość timera wejścia odbiornika 1 dla poprzedniego zbocza aby z tego policzyć czas
 	volatile uint16_t sPoprzedniaWartoscTimera2;	//zapamiętuje wartość timera wejścia odbiornika 2 dla poprzedniego zbocza aby z tego policzyć czas
-} stRC_t;
+} stRC2_t;
 
+
+//znaczenia bitów zmiennej cFlagi struktury stRC_t
+#define FRC_RAMKA_OK		0x01
+#define FRC_FAILSAFE		0x02
+#define FRC_FRAME_LOST		0x04
+#define FRC_ZBIERAJ_EKSTR	0x10
+#define FRC_ZEBRANO_EKSTR	0x20
+
+//struktura danych odbiornika RC dedykowana pod Crossfire
+typedef struct
+{
+	int16_t sKanaly[KANALY_ODB_RC];	//zdekodowane kanały odbiornika RC
+	int16_t sKanMin[KANALY_ODB_RC];	//esktrema: minimalne wartości kanałów odbiornika
+	int16_t sKanMax[KANALY_ODB_RC];	//esktrema: maksymalne wartości kanałów odbiornika
+	uint8_t chNrKan;				//wskaźnik numeru kanału odbiornika
+	uint16_t sZdekodowaneKanaly;	//bity zdekodowanych kanałów odbiornika
+	uint8_t cFlagi;					//określaja stan odbiorników, patrz stałe FRC_
+	uint32_t nCzasOdOstatniejRamki;	//czas od dekodowania poprzedniego pakietu danych z odbiornika
+	uint8_t cRSSI_Up1;				//RSSI up-linku anteny 1
+	uint8_t cRSSI_Up2;				//RSSI up-linku anteny 2
+	uint8_t cRSSI_Down;				//RSSI down-linku
+	uint8_t cJakoscUpLinku;			//procentowo wyrażona jakość up-linku, czyli sterowania
+	uint8_t cJakoscDnLinku;			//procentowo wyrażona jakość down-linku, czyli telemetrii
+	int8_t  cSNR_UpLinku;			//stosunek sygnału do szumu w up-linku
+	int8_t  cSNR_DnLinku;			//stosunek sygnału do szumu w down-linku
+	uint8_t cMocRF;					// enum {0mW = 0, 10mW, 25mW, 100mW, 500mW, 1000mW, 2000mW, 250mW, 50mW}
+} stRC_t;
 
 //deklaracja funkcji
 uint8_t InicjujWejsciaRC(void);	//odbiorniki
 uint8_t InicjujWyjsciaRC(void);	//serwa, ESC
 uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane);
-uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7);
+uint8_t DywersyfikacjaOdbiornikowRC2(stRC2_t *stRC, stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7);	//stara wersja
+uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC1, stRC_t *stRC2, uint8_t cUzywajRC, stWymianyCM4_t *psDaneCM4);	//nowa
 void RozpocznijZbieranieEkstremowWejscRC(void);
 void ZapiszEkstremaWejscRC(void);
 uint8_t AnalizujSygnalRC(stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7);

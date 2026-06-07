@@ -6,6 +6,8 @@
 // (c) PitLab 2024
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include "PetlaGlowna.h"
+#include "Czas.h"
 #include <Adc.h>
 #include <DShot.h>
 #include <Fram.h>
@@ -14,7 +16,6 @@
 #include <Main.h>
 #include <Mikser.h>
 #include <Nmea.h>
-#include "PetlaGlowna.h"
 #include "ModulyWew.h"
 #include "WymianaCM4.h"
 #include "HMC5883.h"
@@ -32,7 +33,6 @@
 #include "Crossfire.h"
 
 
-extern TIM_HandleTypeDef htim7;
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 uint16_t sGenerator;
@@ -58,7 +58,8 @@ uint8_t chNoweDaneI2C;	//zestaw flag informujący o pojawieniu sie nowych danych
 extern uint16_t sLicznikCzasuKalibracji;
 uint8_t chPoprzedniRodzajPomiaru;	//okresla czy poprzedni pomiar magnetometrem MMC był ze zmianą przemagnesowania czy bez
 float fPoleCzujnkaMMC[3];
-extern stRC_t stRC;					//struktura przechowująca dane odbiorników RC
+extern stRC2_t stRC;		//struktura przechowująca dane odbiorników RC
+extern stRC_t stRC1, stRC2;	//struktura danych odbiorników RC1 i RC2
 extern stKonfPID_t stKonfigPID[LICZBA_PID];	//struktura przechowująca dane dotyczące konfiguracji regulatora PID
 extern stMikser_t stMikser[KANALY_MIKSERA];	//struktura zmiennych miksera
 extern float fSkalaWartosciZadanejAkro[LICZBA_DRAZKOW];	//wartość zadana dla pełnego wychylenia drążka aparatury w trybie AKRO
@@ -182,7 +183,8 @@ void PetlaGlowna(void)
 	case 9:	//obsługa odbiorników RC
 		cBłądPG |= ObsługaRamkiSBus();
 		cBłądPG |= ObsługaRamkiCrossfire();
-		cBłądPG |= DywersyfikacjaOdbiornikowRC(&stRC, &uDaneCM4.dane, &uDaneCM7.dane);	//scalenie obu kanałów w jedne dane dane odbiornika RC
+		//cBłądPG |= DywersyfikacjaOdbiornikowRC2(&stRC, &uDaneCM4.dane, &uDaneCM7.dane);	//scalenie obu kanałów w jedne dane dane odbiornika RC
+		cBłądPG |= DywersyfikacjaOdbiornikowRC(&stRC1, &stRC2, uDaneCM7.dane.cWyborOdbiornikaRC, &uDaneCM4.dane);
 		cBłądPG |= AnalizujSygnalRC(&uDaneCM4.dane, &uDaneCM7.dane);
 		break;
 
@@ -247,56 +249,6 @@ void PetlaGlowna(void)
 		if (cBityPozwoleniaNaPomiarADC == 0)
 			cBityPozwoleniaNaPomiarADC = 1;
 	}
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Pobiera stan licznika pracującego na 200MHz/200
-// Parametry: brak
-// Zwraca: stan licznika w mikrosekundach
-////////////////////////////////////////////////////////////////////////////////
-uint32_t PobierzCzasT7(void)
-{
-	extern volatile uint16_t sCzasH;
-	return htim7.Instance->CNT + ((uint32_t)sCzasH<<16);
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Liczy upływ czasu mierzony timerem T7 z rozdzieczością 1us
-// Wersja z wewnetrznym czasem bieżącym
-// Parametry: nPoczatek - licznik czasu na na początku pomiaru
-// Zwraca: ilość czasu w mikrosekundach jaki upłynął do podanego czasu początkowego
-////////////////////////////////////////////////////////////////////////////////
-uint32_t MinalCzasT7(uint32_t nPoczatek)
-{
-	uint32_t nCzasAkt;
-
-	nCzasAkt = PobierzCzasT7();
-	return MinalCzas2T7(nPoczatek, nCzasAkt);
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Liczy upływ czasu mierzony timerem T7 z rozdzieczością 1us
-// Wersja z zewnetrznym czasem bieżącym
-// Parametry:
-// [we] nPoczatek - licznik czasu na na początku pomiaru
-// [we] nKoniec - licznik czasu na na końcu pomiaru
-// Zwraca: ilość czasu w mikrosekundach jaki upłynął do podanego czasu początkowego
-////////////////////////////////////////////////////////////////////////////////
-uint32_t MinalCzas2T7(uint32_t nPoczatek, uint32_t nKoniec)
-{
-	uint32_t nCzas;
-
-	if (nKoniec >= nPoczatek)
-		nCzas = nKoniec - nPoczatek;
-	else
-		nCzas = 0xFFFFFFFF - nPoczatek + nKoniec;
-	return nCzas;
 }
 
 

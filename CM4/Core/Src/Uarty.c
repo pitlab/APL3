@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <SBus.h>
 #include "WeWyRC.h"
-#include "PetlaGlowna.h"
+#include "Czas.h"
 #include "Crossfire.h"
 
 
@@ -52,7 +52,7 @@ extern volatile uint8_t chWskNapBufAnaGNSS, chWskOprBaGNSS;		//wskaźniki napeł
 ////////////////////////////////////////////////////////////////////////////////
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	extern stRC_t stRC;	//struktura danych odbiorników RC
+	extern stRC2_t stRC;	//struktura danych odbiorników RC
 
 	//Przepisuje odebrane dane GNSS z małego bufora do większego bufora kołowego analizy protokołu
 	if (huart->Instance == UART8)

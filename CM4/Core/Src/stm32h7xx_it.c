@@ -45,7 +45,7 @@ extern uint32_t PobierzCzasT7(void);
 volatile uint32_t nPoprzedniStanTimera2;	//timer 32 bitowy
 volatile uint8_t chNumerKanSerw;
 volatile uint16_t sCzasH;
-extern stRC_t stRC;
+extern stRC2_t stRC;
 extern unia_wymianyCM4_t uDaneCM4;
 extern uint8_t chKonfigWeRC[LICZBA_WEJSC_RC];	//określa jakiego typu sygnał wchodzi z odbiornika
 /* USER CODE END PV */

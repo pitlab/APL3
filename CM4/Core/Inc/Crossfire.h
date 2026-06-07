@@ -71,22 +71,22 @@
 #define LICZBA_KANALOW_CROSSFIRE				16
 typedef struct
 {
-	uint16_t channel_01: 11;
-	uint16_t channel_02: 11;
-	uint16_t channel_03: 11;
-	uint16_t channel_04: 11;
-	uint16_t channel_05: 11;
-	uint16_t channel_06: 11;
-	uint16_t channel_07: 11;
-	uint16_t channel_08: 11;
-	uint16_t channel_09: 11;
-	uint16_t channel_10: 11;
-	uint16_t channel_11: 11;
-	uint16_t channel_12: 11;
-	uint16_t channel_13: 11;
-	uint16_t channel_14: 11;
-	uint16_t channel_15: 11;
-	uint16_t channel_16: 11;
+	int channel_01: 11;
+	int channel_02: 11;
+	int channel_03: 11;
+	int channel_04: 11;
+	int channel_05: 11;
+	int channel_06: 11;
+	int channel_07: 11;
+	int channel_08: 11;
+	int channel_09: 11;
+	int channel_10: 11;
+	int channel_11: 11;
+	int channel_12: 11;
+	int channel_13: 11;
+	int channel_14: 11;
+	int channel_15: 11;
+	int channel_16: 11;
 } stSpakowaneKanalyCRSF_t;
 
 #define CRSF_ADRES_URZADZENIA	CRSF_ADR_FLIGHT_CTRL	//pierwszy bajt ramki zawierający adres urządzenia

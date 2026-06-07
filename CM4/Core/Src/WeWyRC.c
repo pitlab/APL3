@@ -13,7 +13,7 @@
 #include <WS281x.h>
 #include "WeWyRC.h"
 #include "KonfigFram.h"
-#include "PetlaGlowna.h"
+#include "Czas.h"
 #include "GNSS.h"
 #include "KontrolerLotu.h"
 #include "SampleAudio.h"
@@ -26,7 +26,8 @@
 //Wartości sterujące idące do timera odpowiadają tradycyjnym wyrażonym w mikrosekundach mnożonym przez 2
 
 
-stRC_t stRC;	//struktura danych odbiorników RC
+stRC2_t stRC;	//struktura danych odbiorników RC	//stara
+stRC_t stRC1, stRC2;	//struktura danych odbiorników RC1 i RC2
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 extern TIM_HandleTypeDef htim1;
@@ -1058,7 +1059,7 @@ void ZapiszEkstremaWejscRC(void)
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
+uint8_t DywersyfikacjaOdbiornikowRC2(stRC2_t *stRC, stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
 {
 	uint8_t cBłąd = BLAD_OK;
 	uint32_t nCzasBiezacy = PobierzCzasT7();
@@ -1069,7 +1070,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 	nCzasRC1 = MinalCzas2T7(stRC->nCzasWe1, nCzasBiezacy);
 	nCzasRC2 = MinalCzas2T7(stRC->nCzasWe2, nCzasBiezacy);
 
-/*	if (nCzasRC1 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 1
+	if (nCzasRC1 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 1
 	{
 		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
 		{
@@ -1089,7 +1090,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 				}
 				else
 				//normalizacja danych
-				if ((psDaneCM7->chOdbiornikRC == ODB_RC1) || (psDaneCM7->chOdbiornikRC == ODB_OBA))
+				if ((psDaneCM7->cWyborOdbiornikaRC == ODB_RC1) || (psDaneCM7->cWyborOdbiornikaRC == ODB_OBA))
 				{
 					sRóżnicaMaxMin = stRC->sMax1[n] - stRC->sMin1[n];
 					if (sRóżnicaMaxMin)
@@ -1106,7 +1107,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 	{
 		WłączOdbiórUART4();	//ustawia odbiornik gotowy na przyjęcie danych
 	}
-*/
+
 
 	if (nCzasRC2 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 2
 	{
@@ -1126,7 +1127,7 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 				}
 				else
 				//normalizacja danych
-				if ((psDaneCM7->chOdbiornikRC == ODB_RC2) || (psDaneCM7->chOdbiornikRC == ODB_OBA))
+				if ((psDaneCM7->cWyborOdbiornikaRC == ODB_RC2) || (psDaneCM7->cWyborOdbiornikaRC == ODB_OBA))
 				{
 					sRóżnicaMaxMin = stRC->sMax2[n] - stRC->sMin2[n];
 					if (sRóżnicaMaxMin)
@@ -1143,8 +1144,107 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC, stWymianyCM4_t *psDaneCM4, stW
 	{
 		WłączOdbiórUART2();	//ustawia odbiornik gotowy na przyjęcie danych
 	}
+	return cBłąd;
+}
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Pobiera dane z 2 odbiorników i wybiera aktywny lub lepszy.
+// Normalizuje dane, jeżeli właczone to zbiera ekstrema
+// Finalne dane przepisuje do struktury danych odbiornika CM4
+// Parametry:
+// [we] *stRC1 - wskaźnik na strukturę danych odbiornika RC1
+// [we] *stRC2 - wskaźnik na strukturę danych odbiornika RC2
+// [we] cUzywajRC - zmienna mówiąca których odbiorników używać: ODB_RC1, ODB_RC2, ODB_OBA
+// [wy] *psDaneCM4 - wskaźnik na strukturę danych CM4
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC1, stRC_t *stRC2, uint8_t cUzywajRC, stWymianyCM4_t *psDaneCM4)
+{
+	uint8_t cBłąd = BLAD_OK;
+	uint32_t nCzasBiezacy = PobierzCzasT7();
+	uint32_t nCzasRC1, nCzasRC2;
+	uint16_t sRóżnicaMaxMin;
+
+	//Sprawdź kiedy przyszły ostatnie dane RC
+	nCzasRC1 = MinalCzas2T7(stRC1->nCzasOdOstatniejRamki, nCzasBiezacy);
+	nCzasRC2 = MinalCzas2T7(stRC2->nCzasOdOstatniejRamki, nCzasBiezacy);
+
+	if (nCzasRC1 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 1
+	{
+		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
+		{
+			if (stRC1->sZdekodowaneKanaly & (1<<n))
+			{
+				//zbieranie ekstremów do obliczenia nowej normalizacji
+				if (stRC1->cFlagi & FRC_ZBIERAJ_EKSTR)
+				{
+					if (stRC1->sKanaly[n] < stRC1->sKanMin[n])
+						stRC1->sKanMin[n] = stRC1->sKanaly[n];
+					if (stRC1->sKanaly[n] > stRC1->sKanMax[n])
+						stRC1->sKanMax[n] = stRC1->sKanaly[n];
+					if ((stRC1->sKanMin[n] < WE_RC_M90) && (stRC1->sKanMax[n] > WE_RC_P90))
+						stRC1->cFlagi |= FRC_ZEBRANO_EKSTR;
+
+					psDaneCM4->sKanalRC[n] = stRC1->sKanaly[n];	//podawaj surowe dane bez normalizacji
+				}
+				else
+				//normalizacja danych
+				if (cUzywajRC & ODB_RC1)
+				{
+					sRóżnicaMaxMin = stRC1->sKanMax[n] - stRC1->sKanMin[n];
+					if (sRóżnicaMaxMin)
+						psDaneCM4->sKanalRC[n] = (stRC1->sKanaly[n] - stRC1->sKanMin[n]) * (WE_RC_P100 - WE_RC_M100) / sRóżnicaMaxMin + WE_RC_M100; 	//przepisz znornalizowane kanały
+					else
+						psDaneCM4->sKanalRC[n] = stRC1->sKanaly[n];	//surowe dane bez normalizacji
+				}
+				stRC1->sZdekodowaneKanaly &= ~(1<<n);		//kasuj bit obrobionego kanału
+			}
+		}
+	}
+	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
+	if (nCzasRC1 > 2*OKRES_RAMKI_PPM_RC)
+	{
+		WłączOdbiórUART4();	//ustawia odbiornik gotowy na przyjęcie danych
+	}
+
+
+	if (nCzasRC2 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 2
+	{
+		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
+		{
+			if (stRC2->sZdekodowaneKanaly & (1<<n))
+			{
+				//zbieranie ekstremów do obliczenia nowej normalizacji
+				if (stRC2->cFlagi & FRC_ZBIERAJ_EKSTR)
+				{
+					if (stRC2->sKanaly[n] < stRC2->sKanMin[n])
+						stRC2->sKanMin[n] = stRC2->sKanaly[n];
+					if (stRC2->sKanaly[n] > stRC2->sKanMax[n])
+						stRC2->sKanMax[n] = stRC2->sKanaly[n];
+					if ((stRC2->sKanMin[n] < WE_RC_M90) && (stRC2->sKanMax[n] > WE_RC_P90))
+						stRC2->cFlagi |= FRC_ZEBRANO_EKSTR;
+				}
+				else
+				//normalizacja danych
+				if (cUzywajRC & ODB_RC2)
+				{
+					if (stRC2->sKanMax[n] > stRC2->sKanMin[n])
+						psDaneCM4->sKanalRC[n] = (stRC2->sKanaly[n] - stRC2->sKanMin[n]) * (WE_RC_P100 - WE_RC_M100) / sRóżnicaMaxMin + WE_RC_M100; 	//przepisz znornalizowane kanały
+					else
+						psDaneCM4->sKanalRC[n] = stRC2->sKanaly[n];	//surowe dane bez normalizacji
+				}
+				stRC2->sZdekodowaneKanaly &= ~(1<<n);		//kasuj bit obrobionego kanału
+			}
+		}
+	}
+	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
+	if (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC)
+	{
+		WłączOdbiórUART2();	//ustawia odbiornik gotowy na przyjęcie danych
+	}
 	return cBłąd;
 }
 

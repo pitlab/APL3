@@ -17,12 +17,12 @@
 
 #define WER_GLOWNA	3
 #define WER_PODRZ	0
-#define WER_REPO	516		//numer commitu w repozytorium
+#define WER_REPO	517		//numer commitu w repozytorium
 
 //wybór typu wyświetlacza
 #define LCD_ILI9488		//https://sklep.msalamon.pl/produkt/wyswietlacz-tft-lcd-35%E2%80%B3-ili9488-320x480/?srsltid=AfmBOopUr_Ot4ZQNoDns7QPYb-sgwqNSRUYaUR1s1TTm1hDWmuxMRWXO lub https://pl.aliexpress.com/item/1005008606165384.html?spm=a2g0o.productlist.main.1.236d39e0dslaJU&algo_pvid=7c8e747e-899a-49cd-bec1-53d6e396e7f9&algo_exp_id=7c8e747e-899a-49cd-bec1-53d6e396e7f9-0&pdp_ext_f=%7B%22order%22%3A%222%22%2C%22eval%22%3A%221%22%2C%22fromPage%22%3A%22search%22%7D&pdp_npi=6%40dis%21PLN%2183.38%2139.19%21%21%2122.47%2110.56%21%402103917f17584357494216126eaa8c%2112000045923645614%21sea%21PL%210%21ABX%211%210%21n_tag%3A-29910%3Bd%3Af9771149%3Bm03_new_user%3A-29895&curPageLogUid=dILRVszJHv9D&utparam-url=scene%3Asearch%7Cquery_from%3A%7Cx_object_id%3A1005008606165384%7C_p_origin_prod%3A
 //#define LCD_RPI35B	//https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(B)
-//#define LCD_RPI35C	//https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(C) ten niestety jeszcze nie działa
+//#define LCD_RPI35C	//https://www.waveshare.com/wiki/3.5inch_RPi_LCD_(C) ten niestety jeszcze nie działa. Jest za szybki aby go zdebugować
 
 //#undef ETH_WLACZONY		//w APL3 nr 1 nie działa ethernet, więc nie kompiluj kodu zwiazanego z ethernetem
 
@@ -36,7 +36,7 @@
 #define EXP06_MOD_OD1		0x40	//MOD_OSW_IO1 - wyjście Otwarty Dren 1
 #define EXP07_MOD_OD2		0x80	//MOD_OSW_IO2 - wyjście Otwarty Dren 2
 
-#define EXP10_USB_OVERCURR	0x01	//USB_OVERCURRENT - wejście wygnalizujące przekroczenie poboru prądu przez USB device
+#define EXP10_USB_OVERCURR	0x01	//USB_OVERCURRENT - wejście wsygnalizujące przekroczenie poboru prądu przez USB device
 #define EXP11_USB_POWER		0x02	//USB_POWER - włącznik zasilania dla zewnętrznego Device
 #define EXP12_CAN_STANDBY	0x04	//MODZ_CAN_STBY - włącznie Standby sterownika CAN
 #define EXP13_AUDIO_IN_SD	0x08	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
