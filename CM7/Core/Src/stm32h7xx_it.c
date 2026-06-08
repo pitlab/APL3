@@ -424,7 +424,6 @@ void MDMA_IRQHandler(void)
   /* USER CODE BEGIN MDMA_IRQn 0 */
 
   /* USER CODE END MDMA_IRQn 0 */
-
   /* USER CODE BEGIN MDMA_IRQn 1 */
 	//powinno być dodane przez CubeMX ale nie jest więc wstawiam ręcznie
 	 HAL_MDMA_IRQHandler(&hmdma_jpeg_infifo_th);
@@ -456,7 +455,6 @@ void BDMA_Channel0_IRQHandler(void)
   /* USER CODE BEGIN BDMA_Channel0_IRQn 0 */
 
   /* USER CODE END BDMA_Channel0_IRQn 0 */
-
   /* USER CODE BEGIN BDMA_Channel0_IRQn 1 */
 	//powinno być dodane przez CubeMX ale nie jest więc wstawiam ręcznie
 	HAL_DMA_IRQHandler(&hdma_lpuart1_tx);
@@ -471,7 +469,6 @@ void BDMA_Channel1_IRQHandler(void)
   /* USER CODE BEGIN BDMA_Channel1_IRQn 0 */
 
   /* USER CODE END BDMA_Channel1_IRQn 0 */
-
   /* USER CODE BEGIN BDMA_Channel1_IRQn 1 */
 	//powinno być dodane przez CubeMX ale nie jest więc wstawiam ręcznie
 	HAL_DMA_IRQHandler(&hdma_lpuart1_rx);

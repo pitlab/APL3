@@ -1203,11 +1203,15 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC1, stRC_t *stRC2, uint8_t cUzywa
 				stRC1->sZdekodowaneKanaly &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
 		}
+		psDaneCM4->cJakoscDnLinkuRC = stRC2->cJakoscDnLinku;
+		psDaneCM4->cJakoscUpLinkuRC1 = stRC2->cJakoscUpLinku;
 	}
 	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
 	if (nCzasRC1 > 2*OKRES_RAMKI_PPM_RC)
 	{
 		WłączOdbiórUART4();	//ustawia odbiornik gotowy na przyjęcie danych
+		psDaneCM4->cJakoscDnLinkuRC = 0;
+		psDaneCM4->cJakoscUpLinkuRC1 = 0;
 	}
 
 
@@ -1239,11 +1243,15 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC1, stRC_t *stRC2, uint8_t cUzywa
 				stRC2->sZdekodowaneKanaly &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
 		}
+		psDaneCM4->cJakoscDnLinkuRC = stRC2->cJakoscDnLinku;
+		psDaneCM4->cJakoscUpLinkuRC2 = stRC2->cJakoscUpLinku;
 	}
 	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
 	if (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC)
 	{
 		WłączOdbiórUART2();	//ustawia odbiornik gotowy na przyjęcie danych
+		psDaneCM4->cJakoscDnLinkuRC = 0;
+		psDaneCM4->cJakoscUpLinkuRC2 = 0;
 	}
 	return cBłąd;
 }

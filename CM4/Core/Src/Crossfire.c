@@ -16,18 +16,18 @@ extern UART_HandleTypeDef huart8;
 extern stRC_t stRC1, stRC2;	//struktura danych odbiorników RC1 i RC2
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
-extern uint8_t chBuforOdbioruUart8[ROZMIAR_BUF_ODB_GNSS];
+extern uint8_t chBuforOdbioruUart8[ROZMIAR_BUF_ODB_UART8];
 
 
 uint8_t chBuforAnalizyCrossfire[ROZMIAR_BUF_ANA_CRSF];
-volatile uint8_t chWskNapBufAnaSRSF, chWskOprBufAnaCRSF; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych Crossfire
+volatile uint8_t chWskNapBufAnaCRSF, chWskOprBufAnaCRSF; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych Crossfire
 uint8_t chRamkaCRSF[ROZMIAR_RAMKI_CRSF];
 uint8_t cEtapOdbioruRamki;	//wskazuje która część ramki jest odbierana
 uint8_t cLicznikDanych;	//zlicza dane w polu payload
-union {
-	stSpakowaneKanalyCRSF_t stSpakowaneKanalyCRSF;
-	uint8_t cRamkaCRSF[22];
-} uSpakowaneKanalyCRSF;
+//union {
+//	stSpakowaneKanalyCRSF_t stSpakowaneKanalyCRSF;
+//	uint8_t cRamkaCRSF[22];
+//} uSpakowaneKanalyCRSF;
 
 uint8_t crc8tab[256] = {
     0x00, 0xD5, 0x7F, 0xAA, 0xFE, 0x2B, 0x81, 0x54, 0x29, 0xFC, 0x56, 0x83, 0xD7, 0x02, 0xA8, 0x7D,
@@ -58,12 +58,11 @@ uint8_t InicjujCrossfire(void)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	chWskNapBufAnaSRSF = chWskOprBufAnaCRSF = 0;	//inicjuj wskaźniki napełniania i opróżniania buforma kołowego analizy danych z UART8
+	chWskNapBufAnaCRSF = chWskOprBufAnaCRSF = 0;	//inicjuj wskaźniki napełniania i opróżniania buforma kołowego analizy danych z UART8
 	cEtapOdbioruRamki = EORC_ADRES;
-	//huart8.Init.BaudRate = 416666;	//wg. https://github.com/tbs-fpv/tbs-crsf-spec/blob/main/crsf.md#frame-details
 	huart8.Init.BaudRate = 420000; 		//według dokumentacji TBS iNAV
 	cBłąd = UART_SetConfig(&huart8);
-	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruUart8, ROZMIAR_BUF_ODB_UART8);	//Upewnij się że nie jest uruchamiana funcka inicjalizacji GNSS
+	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruUart8, ROZMIAR_BUF_ODB_UART8);	//Upewnij się że nie jest uruchamiana funckja inicjalizacji GNSS
 	return cBłąd;
 }
 
@@ -89,6 +88,9 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 	{
 		cDane = chBufor[*chWskOprBuf];
 		(*chWskOprBuf)++;
+		if (*chWskOprBuf >= ROZMIAR_BUF_ANA_CRSF)
+			*chWskOprBuf = 0;
+
 		switch (*cEtapOdbioru)
 		{
 		case EORC_ADRES:	//odbierany jest SyncByte będący adresem urządzenia. Reaguję na CRSF_ADR_FLIGHT_CTRL oraz na CRSF_ADR_BROADCAST
@@ -188,10 +190,11 @@ uint8_t AnalizujCrossfire(uint8_t *cRamka, stRC_t *stRC)
 		stRC->cMocRF = cRamka[EORC_DANE + 6];			// enum {0mW = 0, 10mW, 25mW, 100mW, 500mW, 1000mW, 2000mW, 250mW, 50mW}
 		stRC->cRSSI_Down = cRamka[EORC_DANE + 7];		// Downlink RSSI (dBm * -1)
 		stRC->cJakoscDnLinku = cRamka[EORC_DANE + 8];	// Downlink Package success rate / Link quality (%)
-		stRC->cSNR_DnLinku = cRamka[EORC_DANE + 9];	// Downlink SNR (dB)
+		stRC->cSNR_DnLinku = cRamka[EORC_DANE + 9];		// Downlink SNR (dB)
 		break;
 
 	case TYPCRSF_CHAN_PACKED:	 	//0x16 RC Channels Packed Payload
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);			//kanał serw 1 skonfigurowany jako IO
 		sWartoscKanalu = ((uint16_t)cRamka[EORC_DANE + 0] | (((uint16_t)cRamka[EORC_DANE + 1]  << 8) & 0x7E0));
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
@@ -357,7 +360,7 @@ uint8_t ObsługaRamkiCrossfire(void)
 {
 	uint8_t cBłąd;
 
-	cBłąd = OdbiórRamkiCrossfire(chRamkaCRSF, &cEtapOdbioruRamki, &cLicznikDanych, chBuforAnalizyCrossfire, chWskNapBufAnaSRSF, (uint8_t*)&chWskOprBufAnaCRSF);
+	cBłąd = OdbiórRamkiCrossfire(chRamkaCRSF, &cEtapOdbioruRamki, &cLicznikDanych, chBuforAnalizyCrossfire, chWskNapBufAnaCRSF, (uint8_t*)&chWskOprBufAnaCRSF);
 	if (cBłąd == BLAD_GOTOWE)
 		cBłąd = AnalizujCrossfire(chRamkaCRSF, &stRC2);
 

@@ -361,15 +361,18 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_SERWO12:
 	case TID_SERWO13:
 	case TID_SERWO14:
-	case TID_SERWO15:	//aby nie generować zbyt dużo kodu stosuję wzór do obliczenia indeksu zmiennej dla wszystkich kanałów
-	case TID_SERWO16:	fZmiennaTele = uDaneCM4.dane.sWyjscieRC[sZmienna - TID_SERWO1];	break;
+	case TID_SERWO15:			//aby nie generować zbyt dużo kodu stosuję wzór do obliczenia indeksu zmiennej dla wszystkich kanałów
+	case TID_SERWO16:			fZmiennaTele = uDaneCM4.dane.sWyjscieRC[sZmienna - TID_SERWO1];	break;
 
-	case TID_DOTYK_ADC0:	fZmiennaTele = statusDotyku.sAdc[0];		break;
-	case TID_DOTYK_ADC1:	fZmiennaTele = statusDotyku.sAdc[1];		break;
-	case TID_DOTYK_ADC2:	fZmiennaTele = statusDotyku.sAdc[2];		break;
-	case TID_CZAS_PETLI: 	fZmiennaTele = uDaneCM4.dane.ndT;			break;
-	case TID_ROZNE_F11:		fZmiennaTele = uDaneCM4.dane.uRozne.f32[11];			break;
-	case TID_FFT_ZYRO_AKCEL:		break;	//wyniki transformaty fouriera przesyłane w specyficznej szybkiej ramce
+	case TID_DOTYK_ADC0:		fZmiennaTele = statusDotyku.sAdc[0];		break;
+	case TID_DOTYK_ADC1:		fZmiennaTele = statusDotyku.sAdc[1];		break;
+	case TID_DOTYK_ADC2:		fZmiennaTele = statusDotyku.sAdc[2];		break;
+	case TID_CZAS_PETLI: 		fZmiennaTele = uDaneCM4.dane.ndT;			break;
+	case TID_ROZNE_F11:			fZmiennaTele = uDaneCM4.dane.uRozne.f32[11];	break;
+	case TID_JAKOSC_UP_RC1:		fZmiennaTele = uDaneCM4.dane.cJakoscUpLinkuRC1;	break;
+	case TID_JAKOSC_UP_RC2:		fZmiennaTele = uDaneCM4.dane.cJakoscUpLinkuRC2;	break;
+	case TID_JAKOSC_DOWN_RC:	fZmiennaTele = uDaneCM4.dane.cJakoscDnLinkuRC;	break;
+	case TID_FFT_ZYRO_AKCEL:	break;	//wyniki transformaty fouriera przesyłane w specyficznej szybkiej ramce
 
 	case TID_PID_PRZE_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_PRZE].fZadana;		break;	//wartość zadana regulatora sterowania przechyleniem
 	case TID_PID_PRZE_WE_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_PRZE].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
@@ -384,7 +387,6 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_PID_PK_PRZE_CALK:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PRZE].fCalka;		break;	//wartość całki członu I
 	case TID_PID_PK_PRZE_WYJ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PRZE].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością kątową przechylenia
 	case TID_PID_PK_PRZE_WY_P:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PRZE].fWyjscieP;		break;	//wyjście członu P
-	//case TID_PID_PK_PRZE_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PRZE].fWyjscieI;		break;	//wyjście członu I
 	case TID_PID_PK_PRZE_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PRZE].fWyjscieD;		break;	//wyjście członu D
 	case TID_PID_PK_PRZE_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PRZE].fWyprzedzenie;	break;	//wyjście wartości wyprzedzającej
 
@@ -401,7 +403,6 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_PID_PK_POCH_CALK:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_POCH].fCalka;		break;	//wartość całki członu I
 	case TID_PID_PK_POCH_WYJ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_POCH].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością kątową pochylenia
 	case TID_PID_PK_POCH_WY_P:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_POCH].fWyjscieP;		break;	//wyjście członu P
-	//case TID_PID_PK_POCH_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_POCH].fWyjscieI;		break;	//wyjście członu I
 	case TID_PID_PK_POCH_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_POCH].fWyjscieD;		break;	//wyjście członu D
 	case TID_PID_PK_POCH_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_POCH].fWyprzedzenie;	break;	//wyjście wartości wyprzedzającej
 
@@ -418,7 +419,6 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_PID_PK_ODCH_CALK:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ODCH].fCalka;		break;	//wartość całki członu I
 	case TID_PID_PK_ODCH_WYJ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ODCH].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością kątową odchylenia
 	case TID_PID_PK_ODCH_WY_P:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ODCH].fWyjscieP;		break;	//wyjście członu P
-	//case TID_PID_PK_ODCH_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ODCH].fWyjscieI;		break;	//wyjście członu I
 	case TID_PID_PK_ODCH_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ODCH].fWyjscieD;		break;	//wyjście członu D
 	case TID_PID_PK_ODCH_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ODCH].fWyprzedzenie;	break;	//wyjście wartości wyprzedzającej
 
@@ -435,7 +435,6 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_PID_PR_WYSO_CALK:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fCalka;			break;	//wartość całki członu I
 	case TID_PID_PR_WYSO_WYJ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fWyjsciePID;		break;	//wyjście regulatora sterowania prędkością zmiany wysokości
 	case TID_PID_PR_WYSO_WY_P:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fWyjscieP;			break;	//wyjście członu P
-	//case TID_PID_PR_WYSO_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fWyjscieI;			break;	//wyjście członu I
 	case TID_PID_PR_WYSO_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fWyjscieD;			break;	//wyjście członu D
 	case TID_PID_PR_WYSO_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fWyprzedzenie;		break;	//wyjście wartości wyprzedzającej
 
@@ -472,8 +471,8 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_PID_PR_NAWE_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_E].fWyjscieI;		break;	//wyjście członu I
 	case TID_PID_PR_NAWE_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_E].fWyjscieD;		break;	//wyjście członu D
 
-	case TID_PID_STROJENIE1:		fZmiennaTele = uDaneCM4.dane.fStrojenie[0];							break;	//wartość parametru strojącego 1
-	case TID_PID_STROJENIE2:		fZmiennaTele = uDaneCM4.dane.fStrojenie[1];							break;	//wartość parametru strojącego 2
+	case TID_PID_STROJENIE1:	fZmiennaTele = uDaneCM4.dane.fStrojenie[0];							break;	//wartość parametru strojącego 1
+	case TID_PID_STROJENIE2:	fZmiennaTele = uDaneCM4.dane.fStrojenie[1];							break;	//wartość parametru strojącego 2
 
 	default:	fZmiennaTele = -1.0f;
 	}

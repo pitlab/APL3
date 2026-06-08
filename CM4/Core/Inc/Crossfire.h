@@ -13,8 +13,8 @@
 #include "WeWyRC.h"
 
 
-#define ROZMIAR_BUF_ANA_CRSF		128
-#define MASKA_ROZM_BUF_ANA_CRSF		0x7F
+//#define ROZMIAR_BUF_ANA_CRSF	192
+#define ROZMIAR_BUF_ANA_CRSF	128
 #define ROZMIAR_RAMKI_CRSF		64	//żadna ramka nie może być dłuższa niż tyle
 
 
@@ -67,9 +67,9 @@
 #define TYPCRSF_LINK_STAT		0x14 	//Link Statistics
 #define TYPCRSF_CHAN_PACKED		0x16 	//RC Channels Packed Payload
 
-#define ROZMIAR_SPAKOWANYCH_KANALOW_CROSSFIRE	22
-#define LICZBA_KANALOW_CROSSFIRE				16
-typedef struct
+//#define ROZMIAR_SPAKOWANYCH_KANALOW_CROSSFIRE	22
+//#define LICZBA_KANALOW_CROSSFIRE				16
+/*typedef struct
 {
 	int channel_01: 11;
 	int channel_02: 11;
@@ -87,7 +87,7 @@ typedef struct
 	int channel_14: 11;
 	int channel_15: 11;
 	int channel_16: 11;
-} stSpakowaneKanalyCRSF_t;
+} stSpakowaneKanalyCRSF_t;*/
 
 #define CRSF_ADRES_URZADZENIA	CRSF_ADR_FLIGHT_CTRL	//pierwszy bajt ramki zawierający adres urządzenia
 

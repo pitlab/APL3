@@ -139,19 +139,6 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 		cBłąd |= HAL_TIM_PWM_Init(&htim4);
 		HAL_NVIC_DisableIRQ(TIM4_IRQn);
-
-		hdma_tim4_ch4.Instance = DMA1_Stream0;
-		hdma_tim4_ch4.Init.Request = DMA_REQUEST_TIM8_CH3;
-		hdma_tim4_ch4.Init.Direction = DMA_MEMORY_TO_PERIPH;
-		hdma_tim4_ch4.Init.PeriphInc = DMA_PINC_DISABLE;
-		hdma_tim4_ch4.Init.MemInc = DMA_MINC_ENABLE;
-		hdma_tim4_ch4.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-		hdma_tim4_ch4.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-		hdma_tim4_ch4.Init.Mode = DMA_CIRCULAR;
-		hdma_tim4_ch4.Init.Priority = DMA_PRIORITY_MEDIUM;
-		hdma_tim4_ch4.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-	    cBłąd |= HAL_DMA_Init(&hdma_tim4_ch4);
-	    cBłąd |= HAL_TIM_PWM_Start_DMA(&htim4, TIM_CHANNEL_4, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 
 	if ((chKanal == KANAL_RC2) || (chKanal == KANAL_RC3))	//timer 2 obsluguje kanały 2 i 3

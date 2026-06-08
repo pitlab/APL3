@@ -25,6 +25,8 @@ uint32_t nCzasWysylkiSbus;
 
 extern stRC2_t stRC;	//struktura danych odbiorników RC
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_uart2_rx;
+
 extern UART_HandleTypeDef huart4;
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -102,9 +104,25 @@ uint8_t InicjujUart2RxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 	//cBłąd |= HAL_UARTEx_EnableFifoMode(&huart2);
 	cBłąd |= HAL_UARTEx_DisableFifoMode(&huart2);
 
+	//ponieważ UART jest współdzielony z timerem a część TC jest wyłączona, więc nie da się go skonfigurować w cube
+	hdma_uart2_rx.Instance = DMA1_Stream0;				//UWAGA! zasób przydziony ręcznie, może wystąpić konflikt
+	hdma_uart2_rx.Init.Request = DMA_REQUEST_USART2_RX;
+	hdma_uart2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+	hdma_uart2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+	hdma_uart2_rx.Init.MemInc = DMA_MINC_ENABLE;
+	hdma_uart2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+	hdma_uart2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+	hdma_uart2_rx.Init.Mode = DMA_CIRCULAR;
+	hdma_uart2_rx.Init.Priority = DMA_PRIORITY_LOW;
+	hdma_uart2_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+	cBłąd |= HAL_DMA_Init(&hdma_uart2_rx);
+
+    __HAL_LINKDMA(&huart2, hdmarx, hdma_uart2_rx);
+
 	//ponieważ nie ma jak zarezerwować kanału DMA w HAL bo dostępna jest tylko część odbiorcza, więc USART2 będzie pracował na przerwaniach
 	HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(USART2_IRQn);
+
 	WłączOdbiórUART2();	//ustawia odbiornik gotowy na przyjęcie pierwszej ramki
 	return cBłąd;
 }
@@ -148,23 +166,6 @@ uint8_t InicjujUart4RxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 	//cBłąd |= HAL_UARTEx_EnableFifoMode(&huart4);
 	cBłąd |= HAL_UARTEx_DisableFifoMode(&huart4);
 
-	// UART4 DMA RX Init
-	hdma_uart4_rx.Instance = DMA1_Stream7;
-	hdma_uart4_rx.Init.Request = DMA_REQUEST_UART4_RX;
-	hdma_uart4_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-	hdma_uart4_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-	hdma_uart4_rx.Init.MemInc = DMA_MINC_ENABLE;
-	hdma_uart4_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-	hdma_uart4_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-	hdma_uart4_rx.Init.Mode = DMA_NORMAL;
-	hdma_uart4_rx.Init.Priority = DMA_PRIORITY_LOW;
-	hdma_uart4_rx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
-	hdma_uart4_rx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-	hdma_uart4_rx.Init.MemBurst = DMA_MBURST_SINGLE;
-	hdma_uart4_rx.Init.PeriphBurst = DMA_PBURST_SINGLE;
-	cBłąd |= HAL_DMA_Init(&hdma_uart4_rx);
-	__HAL_LINKDMA(&huart4, hdmarx, hdma_uart4_rx);
-
 	// UART4 interrupt Init
 	HAL_NVIC_SetPriority(UART4_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(UART4_IRQn);
@@ -205,7 +206,8 @@ uint8_t InicjujUart4TxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 	huart4.Init.OverSampling = UART_OVERSAMPLING_16;
 	huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
 	huart4.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-	huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
+	//huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT|UART_ADVFEATURE_DMADISABLEONERROR_INIT;
+	huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
 	huart4.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
 	huart4.AdvancedInit.DMADisableonRxError = UART_ADVFEATURE_DMA_DISABLEONRXERROR;
 	cBłąd = HAL_UART_Init(&huart4);
@@ -216,24 +218,6 @@ uint8_t InicjujUart4TxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 
 	HAL_NVIC_SetPriority(UART4_IRQn, 0, 0);
 	HAL_NVIC_EnableIRQ(UART4_IRQn);
-
-	hdma_uart4_tx.Instance = DMA2_Stream0;
-	hdma_uart4_tx.Init.Request = DMA_REQUEST_UART4_TX;
-	hdma_uart4_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-	hdma_uart4_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-	hdma_uart4_tx.Init.MemInc = DMA_MINC_ENABLE;
-	hdma_uart4_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-	hdma_uart4_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-	hdma_uart4_tx.Init.Mode = DMA_NORMAL;
-	hdma_uart4_tx.Init.Priority = DMA_PRIORITY_LOW;
-	hdma_uart4_tx.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
-	hdma_uart4_tx.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-	hdma_uart4_tx.Init.MemBurst = DMA_MBURST_SINGLE;
-	hdma_uart4_tx.Init.PeriphBurst = DMA_PBURST_SINGLE;
-	cBłąd |= HAL_DMA_Init(&hdma_uart4_tx);
-	__HAL_LINKDMA(&huart4, hdmatx, hdma_uart4_tx);
-	HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 	return cBłąd;
 }
 
