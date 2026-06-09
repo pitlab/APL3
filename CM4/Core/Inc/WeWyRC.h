@@ -47,32 +47,6 @@
 #define NAPELNIJ_BUF1_CH8	0x4000
 #define NAPELNIJ_BUF2_CH8	0x8000
 
-//znaczenia bitów zmiennej chStatus
-#define STATRC_RAMKA1_OK		0x01
-#define STATRC_RAMKA2_OK		0x02
-#define STATRC_ZBIERAJ_EKSTREMA	0x04
-#define STATRC_ZEBRANO_EKSTR1	0x08
-#define STATRC_ZEBRANO_EKSTR2	0x10
-
-typedef struct
-{
-	int16_t sOdb1[KANALY_ODB_RC];	//dane z odbiornika RC1
-	int16_t sOdb2[KANALY_ODB_RC];	//dane z odbiornika RC2
-	int16_t sMin1[KANALY_ODB_RC];	//esktrema: minimalne wartości kanałów odbiornika 1
-	int16_t sMin2[KANALY_ODB_RC];	//esktrema: minimalne wartości kanałów odbiornika 2
-	int16_t sMax1[KANALY_ODB_RC];	//esktrema: maksymalne wartości kanałów odbiornika 1
-	int16_t sMax2[KANALY_ODB_RC];	//esktrema: maksymalne wartości kanałów odbiornika 2
-	uint8_t chStatus;				//określaja stan odbiorników, patrz stałe STATRC_
-	uint8_t chNrKan1;				//wskaźnik numeru kanału odbiornika 1
-	uint8_t chNrKan2;				//wskaźnik numeru kanału odbiornika 2
-	uint32_t nCzasWe1;				//czas początku dekodowania  ostatniego pakietu danych z odbiornika 1
-	uint32_t nCzasWe2;				//czas początku dekodowania  ostatniego pakietu danych z odbiornika 2
-	uint16_t sZdekodowaneKanaly1;	//bity zdekodowanych kanałów odbiornika 1
-	uint16_t sZdekodowaneKanaly2;	//bity zdekodowanych kanałów odbiornika 2
-	volatile uint16_t sPoprzedniaWartoscTimera1;	//zapamiętuje wartość timera wejścia odbiornika 1 dla poprzedniego zbocza aby z tego policzyć czas
-	volatile uint16_t sPoprzedniaWartoscTimera2;	//zapamiętuje wartość timera wejścia odbiornika 2 dla poprzedniego zbocza aby z tego policzyć czas
-} stRC2_t;
-
 
 //znaczenia bitów zmiennej cFlagi struktury stRC_t
 #define FRC_RAMKA_OK		0x01
@@ -87,7 +61,7 @@ typedef struct
 	int16_t sKanaly[KANALY_ODB_RC];	//zdekodowane kanały odbiornika RC
 	int16_t sKanMin[KANALY_ODB_RC];	//esktrema: minimalne wartości kanałów odbiornika
 	int16_t sKanMax[KANALY_ODB_RC];	//esktrema: maksymalne wartości kanałów odbiornika
-	uint8_t chNrKan;				//wskaźnik numeru kanału odbiornika
+	uint8_t cNrKan;					//wskaźnik numeru kanału odbiornika
 	uint16_t sZdekodowaneKanaly;	//bity zdekodowanych kanałów odbiornika
 	uint8_t cFlagi;					//określaja stan odbiorników, patrz stałe FRC_
 	uint32_t nCzasOdOstatniejRamki;	//czas od dekodowania poprzedniego pakietu danych z odbiornika
@@ -99,13 +73,13 @@ typedef struct
 	int8_t  cSNR_UpLinku;			//stosunek sygnału do szumu w up-linku
 	int8_t  cSNR_DnLinku;			//stosunek sygnału do szumu w down-linku
 	uint8_t cMocRF;					// enum {0mW = 0, 10mW, 25mW, 100mW, 500mW, 1000mW, 2000mW, 250mW, 50mW}
+	uint16_t sPoprzedniaWartoscTimera;	//potrzebna do dekodowaniaPPM
 } stRC_t;
 
 //deklaracja funkcji
 uint8_t InicjujWejsciaRC(void);	//odbiorniki
 uint8_t InicjujWyjsciaRC(void);	//serwa, ESC
 uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *dane);
-uint8_t DywersyfikacjaOdbiornikowRC2(stRC2_t *stRC, stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7);	//stara wersja
 uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC1, stRC_t *stRC2, uint8_t cUzywajRC, stWymianyCM4_t *psDaneCM4);	//nowa
 void RozpocznijZbieranieEkstremowWejscRC(void);
 void ZapiszEkstremaWejscRC(void);

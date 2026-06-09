@@ -26,7 +26,7 @@
 //Wartości sterujące idące do timera odpowiadają tradycyjnym wyrażonym w mikrosekundach mnożonym przez 2
 
 
-stRC2_t stRC;	//struktura danych odbiorników RC	//stara
+//stRC2_t stRC;	//struktura danych odbiorników RC	//stara
 stRC_t stRC1, stRC2;	//struktura danych odbiorników RC1 i RC2
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -140,10 +140,10 @@ uint8_t InicjujWejsciaRC(void)
 	//odczytaj z FRAM minima i maksima kanałów RC aby móc je normalizować
     for (uint16_t n=0; n<KANALY_ODB_RC; n++)
     {
-    	stRC.sMin1[n] = CzytajFramU16(FAU_WE_RC1_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
-    	stRC.sMax1[n] = CzytajFramU16(FAU_WE_RC1_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
-    	stRC.sMin2[n] = CzytajFramU16(FAU_WE_RC2_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
-    	stRC.sMax2[n] = CzytajFramU16(FAU_WE_RC2_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
+    	stRC1.sKanMin[n] = CzytajFramU16(FAU_WE_RC1_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
+    	stRC1.sKanMax[n] = CzytajFramU16(FAU_WE_RC1_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
+    	stRC2.sKanMin[n] = CzytajFramU16(FAU_WE_RC2_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
+    	stRC2.sKanMax[n] = CzytajFramU16(FAU_WE_RC2_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
     }
 
     //odczytaj z FRAM numery kanałów dla 4 drążków RC
@@ -991,21 +991,22 @@ void RozpocznijZbieranieEkstremowWejscRC(void)
 	//inicjuj wartości ekstremalne skrajnymi
 	for (uint16_t n=0; n<KANALY_ODB_RC; n++)
 	{
-		stRC.sMin1[n] = WE_RC_MAX;
-		stRC.sMax1[n] = WE_RC_MIN;
-		stRC.sMin2[n] = WE_RC_MAX;
-		stRC.sMax2[n] = WE_RC_MIN;
+		stRC1.sKanMin[n] = WE_RC_MAX;
+		stRC1.sKanMax[n] = WE_RC_MIN;
+		stRC2.sKanMin[n] = WE_RC_MAX;
+		stRC2.sKanMax[n] = WE_RC_MIN;
 	}
 
 	//rozpocznij zbieranie gdy jeszcze nie jest rozpoczęte
-	if ((stRC.chStatus & STATRC_ZBIERAJ_EKSTREMA) != STATRC_ZBIERAJ_EKSTREMA)
-	{
-		stRC.chStatus |= STATRC_ZBIERAJ_EKSTREMA;
+	if ((stRC1.cFlagi & FRC_ZBIERAJ_EKSTR) != FRC_ZBIERAJ_EKSTR)
+		stRC1.cFlagi |= FRC_ZBIERAJ_EKSTR;
 
-	}
+	if ((stRC2.cFlagi & FRC_ZBIERAJ_EKSTR) != FRC_ZBIERAJ_EKSTR)
+		stRC2.cFlagi |= FRC_ZBIERAJ_EKSTR;
 }
 
-
+#define FRC_ZBIERAJ_EKSTR	0x10
+#define FRC_ZEBRANO_EKSTR	0x20
 
 ////////////////////////////////////////////////////////////////////////////////
 // Kończy zbiór ekstremalnych wartości wszystkich kanalów z obu odbiorników RC
@@ -1015,136 +1016,43 @@ void RozpocznijZbieranieEkstremowWejscRC(void)
 ////////////////////////////////////////////////////////////////////////////////
 void ZapiszEkstremaWejscRC(void)
 {
-	if ((stRC.chStatus & STATRC_ZEBRANO_EKSTR1) || (stRC.chStatus & STATRC_ZEBRANO_EKSTR2))
+	if (stRC1.cFlagi & FRC_ZEBRANO_EKSTR)
 	{
+		//odbiornik 1
 		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
 		{
-			//odbiornik 1
-			if (stRC.chStatus & STATRC_ZEBRANO_EKSTR1)
+			if (stRC1.cFlagi & FRC_ZEBRANO_EKSTR)
 			{
-				ZapiszFramU16(FAU_WE_RC1_MIN + n*2, stRC.sMin1[n]);		//16*2U minimalna wartość sygnału RC dla każego kanału
-				ZapiszFramU16(FAU_WE_RC1_MAX + n*2, stRC.sMax1[n]);		//16*2U maksymalna wartość sygnału RC dla każego kanału
+				ZapiszFramU16(FAU_WE_RC1_MIN + n*2, stRC1.sKanMin[n]);		//16*2U minimalna wartość sygnału RC dla każego kanału
+				ZapiszFramU16(FAU_WE_RC1_MAX + n*2, stRC1.sKanMax[n]);		//16*2U maksymalna wartość sygnału RC dla każego kanału
 			}
 			else	//jeżeli nie zebrano danych, bo np. nie ma podłączonego odbiornika to przywróć ostatnio zapisane wartosci
 			{
-				stRC.sMin1[n] = CzytajFramU16(FAU_WE_RC1_MIN + n*2);
-				stRC.sMax1[n] = CzytajFramU16(FAU_WE_RC1_MAX + n*2);
+				stRC1.sKanMin[n] = CzytajFramU16(FAU_WE_RC1_MIN + n*2);
+				stRC1.sKanMax[n] = CzytajFramU16(FAU_WE_RC1_MAX + n*2);
 			}
+			stRC1.cFlagi &= ~(FRC_ZBIERAJ_EKSTR | FRC_ZEBRANO_EKSTR);
+		}
+	}
 
-			//odbiornik 2
-			if (stRC.chStatus & STATRC_ZEBRANO_EKSTR2)
+	//odbiornik 2
+	if (stRC2.cFlagi & FRC_ZEBRANO_EKSTR)
+	{
+		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
+		{
+			if (stRC2.cFlagi & FRC_ZEBRANO_EKSTR)
 			{
-				ZapiszFramU16(FAU_WE_RC2_MIN + n*2, stRC.sMin2[n]);
-				ZapiszFramU16(FAU_WE_RC2_MAX + n*2, stRC.sMin2[n]);
+				ZapiszFramU16(FAU_WE_RC2_MIN + n*2, stRC2.sKanMin[n]);
+				ZapiszFramU16(FAU_WE_RC2_MAX + n*2, stRC2.sKanMax[n]);
 			}
 			else
 			{
-				stRC.sMin2[n] = CzytajFramU16(FAU_WE_RC2_MIN + n*2);
-				stRC.sMax2[n] = CzytajFramU16(FAU_WE_RC2_MAX + n*2);
+				stRC2.sKanMin[n] = CzytajFramU16(FAU_WE_RC2_MIN + n*2);
+				stRC2.sKanMax[n] = CzytajFramU16(FAU_WE_RC2_MAX + n*2);
 			}
-		}
-		stRC.chStatus &= ~(STATRC_ZBIERAJ_EKSTREMA | STATRC_ZEBRANO_EKSTR1 | STATRC_ZEBRANO_EKSTR2);
-	}
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Pobiera dane ze zdefiniowanych odbiorników. Normalizuje dane, jeżeli właczone to zbiera ekstrema
-// Finalne dane przepisuje do struktury danych CM4
-// Parametry:
-// [we] *stRC - wskaźnik na strukturę danych odbiorników RC
-// [wy] *psDaneCM4 - wskaźnik na strukturę danych CM4
-// [wy] *psDaneCM7 - wskaźnik na strukturę danych CM7
-// Zwraca: kod błędu
-// Czas wykonania:
-////////////////////////////////////////////////////////////////////////////////
-uint8_t DywersyfikacjaOdbiornikowRC2(stRC2_t *stRC, stWymianyCM4_t *psDaneCM4, stWymianyCM7_t *psDaneCM7)
-{
-	uint8_t cBłąd = BLAD_OK;
-	uint32_t nCzasBiezacy = PobierzCzasT7();
-	uint32_t nCzasRC1, nCzasRC2;
-	uint16_t sRóżnicaMaxMin;
-
-	//Sprawdź kiedy przyszły ostatnie dane RC
-	nCzasRC1 = MinalCzas2T7(stRC->nCzasWe1, nCzasBiezacy);
-	nCzasRC2 = MinalCzas2T7(stRC->nCzasWe2, nCzasBiezacy);
-
-	if (nCzasRC1 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 1
-	{
-		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
-		{
-			if (stRC->sZdekodowaneKanaly1 & (1<<n))
-			{
-				//zbieranie ekstremów do obliczenia nowej normalizacji
-				if (stRC->chStatus & STATRC_ZBIERAJ_EKSTREMA)
-				{
-					if (stRC->sOdb1[n] < stRC->sMin1[n])
-						stRC->sMin1[n] = stRC->sOdb1[n];
-					if (stRC->sOdb1[n] > stRC->sMax1[n])
-						stRC->sMax1[n] = stRC->sOdb1[n];
-					if ((stRC->sMin1[n] < WE_RC_M90) && (stRC->sMax1[n] > WE_RC_P90))
-						stRC->chStatus |= STATRC_ZEBRANO_EKSTR1;
-
-					psDaneCM4->sKanalRC[n] = stRC->sOdb1[n];	//podawaj surowe dane bez nomrmalizacji
-				}
-				else
-				//normalizacja danych
-				if ((psDaneCM7->cWyborOdbiornikaRC == ODB_RC1) || (psDaneCM7->cWyborOdbiornikaRC == ODB_OBA))
-				{
-					sRóżnicaMaxMin = stRC->sMax1[n] - stRC->sMin1[n];
-					if (sRóżnicaMaxMin)
-						psDaneCM4->sKanalRC[n] = (stRC->sOdb1[n] - stRC->sMin1[n]) * (WE_RC_P100 - WE_RC_M100) / sRóżnicaMaxMin + WE_RC_M100; 	//przepisz znornalizowane kanały
-					else
-						psDaneCM4->sKanalRC[n] = stRC->sOdb1[n];	//surowe dane bez normalizacji
-				}
-				stRC->sZdekodowaneKanaly1 &= ~(1<<n);		//kasuj bit obrobionego kanału
-			}
+			stRC2.cFlagi &= ~(FRC_ZBIERAJ_EKSTR | FRC_ZEBRANO_EKSTR);
 		}
 	}
-	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
-	if (nCzasRC1 > 2*OKRES_RAMKI_PPM_RC)
-	{
-		WłączOdbiórUART4();	//ustawia odbiornik gotowy na przyjęcie danych
-	}
-
-
-	if (nCzasRC2 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 2
-	{
-		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
-		{
-			if (stRC->sZdekodowaneKanaly2 & (1<<n))
-			{
-				//zbieranie ekstremów do obliczenia nowej normalizacji
-				if (stRC->chStatus & STATRC_ZBIERAJ_EKSTREMA)
-				{
-					if (stRC->sOdb2[n] < stRC->sMin2[n])
-						stRC->sMin2[n] = stRC->sOdb2[n];
-					if (stRC->sOdb2[n] > stRC->sMax2[n])
-						stRC->sMax2[n] = stRC->sOdb2[n];
-					if ((stRC->sMin2[n] < WE_RC_M90) && (stRC->sMax2[n] > WE_RC_P90))
-						stRC->chStatus |= STATRC_ZEBRANO_EKSTR2;
-				}
-				else
-				//normalizacja danych
-				if ((psDaneCM7->cWyborOdbiornikaRC == ODB_RC2) || (psDaneCM7->cWyborOdbiornikaRC == ODB_OBA))
-				{
-					sRóżnicaMaxMin = stRC->sMax2[n] - stRC->sMin2[n];
-					if (sRóżnicaMaxMin)
-						psDaneCM4->sKanalRC[n] = (stRC->sOdb2[n] - stRC->sMin2[n]) * (WE_RC_P100 - WE_RC_M100) / sRóżnicaMaxMin + WE_RC_M100; 	//przepisz znornalizowane kanały
-					else
-						psDaneCM4->sKanalRC[n] = stRC->sOdb2[n];	//surowe dane bez normalizacji
-				}
-				stRC->sZdekodowaneKanaly2 &= ~(1<<n);		//kasuj bit obrobionego kanału
-			}
-		}
-	}
-	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
-	if (nCzasRC2 > 2*OKRES_RAMKI_PPM_RC)
-	{
-		WłączOdbiórUART2();	//ustawia odbiornik gotowy na przyjęcie danych
-	}
-	return cBłąd;
 }
 
 

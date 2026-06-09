@@ -58,7 +58,7 @@ uint8_t chNoweDaneI2C;	//zestaw flag informujący o pojawieniu sie nowych danych
 extern uint16_t sLicznikCzasuKalibracji;
 uint8_t chPoprzedniRodzajPomiaru;	//okresla czy poprzedni pomiar magnetometrem MMC był ze zmianą przemagnesowania czy bez
 float fPoleCzujnkaMMC[3];
-extern stRC2_t stRC;		//struktura przechowująca dane odbiorników RC
+//extern stRC2_t stRC;		//struktura przechowująca dane odbiorników RC
 extern stRC_t stRC1, stRC2;	//struktura danych odbiorników RC1 i RC2
 extern stKonfPID_t stKonfigPID[LICZBA_PID];	//struktura przechowująca dane dotyczące konfiguracji regulatora PID
 extern stMikser_t stMikser[KANALY_MIKSERA];	//struktura zmiennych miksera
@@ -183,8 +183,7 @@ void PetlaGlowna(void)
 	case 9:	//obsługa odbiorników RC
 		cBłądPG |= ObsługaRamkiSBus();
 		cBłądPG |= ObsługaRamkiCrossfire();
-		//cBłądPG |= DywersyfikacjaOdbiornikowRC2(&stRC, &uDaneCM4.dane, &uDaneCM7.dane);	//scalenie obu kanałów w jedne dane dane odbiornika RC
-		cBłądPG |= DywersyfikacjaOdbiornikowRC(&stRC1, &stRC2, uDaneCM7.dane.cWyborOdbiornikaRC, &uDaneCM4.dane);
+		cBłądPG |= DywersyfikacjaOdbiornikowRC(&stRC1, &stRC2, uDaneCM7.dane.cWyborOdbiornikaRC, &uDaneCM4.dane);	//scalenie obu kanałów w jedne dane dane odbiornika RC
 		cBłądPG |= AnalizujSygnalRC(&uDaneCM4.dane, &uDaneCM7.dane);
 		break;
 
@@ -193,14 +192,9 @@ void PetlaGlowna(void)
 		cBłądPG |= WyslijDaneExpandera(chStanIOwy); 	break;
 
 	case 12:	//wymień dane między rdzeniami
-		//uint32_t nCzas1, nCzas2, nCzas3, nStart;
-		//nStart = PobierzCzasT7();
 		uDaneCM4.dane.cBladPetliGlownej = cBłądPG;
-		//nCzas1 = MinalCzasT7(nStart);
 		cBłądPG  = UstawDaneWymiany_CM4();
-		//nCzas2 = MinalCzasT7(nStart);
 		cBłądPG |= PobierzDaneWymiany_CM7();
-		//nCzas3 = MinalCzasT7(nStart);
 		break;
 
 	case 13:

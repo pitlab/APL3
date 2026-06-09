@@ -17,6 +17,7 @@
 #define ROZMIAR_BUF_ANA_CRSF	128
 #define ROZMIAR_RAMKI_CRSF		64	//żadna ramka nie może być dłuższa niż tyle
 
+#define OFFSET_ZERA_CROSSFIRE	(1000 - 992)	//protokół ma zero na wartosci 992 a w naszym standardzie jest to 1000, więc dodaj offset do zdekodowanych wartosci
 
 
 //Etapy Odbioru Ramki Crossfire

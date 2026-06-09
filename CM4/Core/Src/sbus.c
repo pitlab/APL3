@@ -7,7 +7,6 @@
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include <SBus.h>
-#include "WeWyRC.h"
 #include "Czas.h"
 #include "Uarty.h"
 
@@ -22,8 +21,7 @@ uint8_t chRamkaSBus1[ROZMIAR_RAMKI_SBUS];
 uint8_t chRamkaSBus2[ROZMIAR_RAMKI_SBUS];
 uint8_t chKorektaPoczatkuRamki;
 uint32_t nCzasWysylkiSbus;
-
-extern stRC2_t stRC;	//struktura danych odbiorników RC
+extern stRC_t stRC1, stRC2;	//struktura danych odbiorników RC1 i RC2
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_uart2_rx;
 
@@ -270,7 +268,7 @@ uint8_t OdbiórRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_t *
 // Zwraca: kod błędu
 // Czas wykonania: ok. 5us
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
+uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, stRC_t *stRC)
 {
 	uint8_t* chNaglowek;
 	uint8_t n;
@@ -294,105 +292,107 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, int16_t *sKanaly)
 
 	sWartoscKanalu = ((uint16_t)*(chNaglowek +  1)       | (((uint16_t)*(chNaglowek +  2) << 8) & 0x7E0));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly +  0) = sWartoscKanalu;
+		stRC->sKanaly[0] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  2) >> 3) | (((uint16_t)*(chNaglowek +  3) << 5) & 0x7E0));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly +  1) = sWartoscKanalu;
+		stRC->sKanaly[1] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  3) >> 6) | (((uint16_t)*(chNaglowek +  4) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 5) << 10) & 0x400));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly +  2) = sWartoscKanalu;
+		stRC->sKanaly[2] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  5) >> 1) | (((uint16_t)*(chNaglowek +  6) << 7) & 0x780));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly +  3) = sWartoscKanalu;
+		stRC->sKanaly[3] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  6) >> 4) | (((uint16_t)*(chNaglowek +  7) << 4) & 0x7F0));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly +  4) = sWartoscKanalu;
+		stRC->sKanaly[4] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  7) >> 7) | (((uint16_t)*(chNaglowek +  8) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 9) << 9) & 0x600));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly +  5) = sWartoscKanalu;
+		stRC->sKanaly[5] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek +  9) >> 2) | (((uint16_t)*(chNaglowek + 10) << 6) & 0x7C0));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly +  6) = sWartoscKanalu;
+		stRC->sKanaly[6] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 10) >> 5) | (((uint16_t)*(chNaglowek + 11) << 3) & 0x7F8));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly +  7) = sWartoscKanalu;
+		stRC->sKanaly[7] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 12) >> 0) | (((uint16_t)*(chNaglowek + 13) << 8) & 0x700));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly +  8) = sWartoscKanalu;
+		stRC->sKanaly[8] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 13) >> 3) | (((uint16_t)*(chNaglowek + 14) << 5) & 0x7E0));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly +  9) = sWartoscKanalu;
+		stRC->sKanaly[9] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 14) >> 6) | (((uint16_t)*(chNaglowek + 15) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 16) << 10) & 0x400));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly + 10) = sWartoscKanalu;
+		stRC->sKanaly[10] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 16) >> 1) | (((uint16_t)*(chNaglowek + 17) << 7) & 0x780));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly + 11) = sWartoscKanalu;
+		stRC->sKanaly[11] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 17) >> 4) | (((uint16_t)*(chNaglowek + 18) << 4) & 0x7F0));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly + 12) = sWartoscKanalu;
+		stRC->sKanaly[12] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 18) >> 7) | (((uint16_t)*(chNaglowek + 19) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 20) << 9) & 0x600));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly + 13) = sWartoscKanalu;
+		stRC->sKanaly[13] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 20) >> 2) | (((uint16_t)*(chNaglowek + 21) << 6) & 0x7C0));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly + 14) = sWartoscKanalu;
+		stRC->sKanaly[14] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	sWartoscKanalu = (((uint16_t)*(chNaglowek + 21) >> 5) | (((uint16_t)*(chNaglowek + 22) << 3) & 0x7F8));
 	if (sWartoscKanalu < WE_RC_MAX)
-		*(sKanaly + 15) = sWartoscKanalu;
+		stRC->sKanaly[15] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
 	//ostatni bajt 23 z flagami:
 	//bit 0 = kanał 17
 	//bit 1 = kanał 18
-	//bit 2 = Frame Lost
-	//bit 3 = FailSafe
+	if (*(chNaglowek + 23) & 0x04)	//bit 2 = Frame Lost
+		stRC->cFlagi = FRC_FAILSAFE;
+	if (*(chNaglowek + 23) & 0x08)	//bit 3 = FailSafe
+		stRC->cFlagi = FRC_FRAME_LOST;
 	return cBłąd;
 }
 
@@ -412,11 +412,11 @@ uint8_t ObsługaRamkiSBus(void)
 	cBłąd = OdbiórRamkiSBus(chRamkaSBus1, &chWskNapRamkiSBus1, chBuforAnalizySBus1, (uint8_t)chWskNapBufAnaSBus1, (uint8_t*)&chWskOprBufAnaSBus1);
 	if (cBłąd == BLAD_GOTOWE)
 	{
-		cBłąd = DekodowanieRamkiBSBus(chRamkaSBus1, stRC.sOdb1);
+		cBłąd = DekodowanieRamkiBSBus(chRamkaSBus1, &stRC1);
 		if (cBłąd == BLAD_OK)
 		{
-			stRC.sZdekodowaneKanaly1 = 0xFFFF;
-			stRC.nCzasWe1 = PobierzCzasT7();
+			stRC1.sZdekodowaneKanaly = 0xFFFF;
+			stRC1.nCzasOdOstatniejRamki = PobierzCzasT7();
 		}
 	}
 
@@ -424,16 +424,13 @@ uint8_t ObsługaRamkiSBus(void)
 	cBłąd = OdbiórRamkiSBus(chRamkaSBus2, &chWskNapRamkiSBus2, chBuforAnalizySBus2, (uint8_t)chWskNapBufAnaSBus2, (uint8_t*)&chWskOprBufAnaSBus2);
 	if (cBłąd == BLAD_GOTOWE)
 	{
-		cBłąd = DekodowanieRamkiBSBus(chRamkaSBus2, stRC.sOdb2);
+		cBłąd = DekodowanieRamkiBSBus(chRamkaSBus2, &stRC2);
 		if (cBłąd == BLAD_OK)
 		{
-			stRC.sZdekodowaneKanaly2 = 0xFFFF;
-			stRC.nCzasWe2 = PobierzCzasT7();
+			stRC2.sZdekodowaneKanaly = 0xFFFF;
+			stRC2.nCzasOdOstatniejRamki = PobierzCzasT7();
 		}
 	}
-
-	//scalenie obu kanałów w jedne dane dane odbiornika RC
-	//cBłąd = DywersyfikacjaOdbiornikowRC(&stRC2, &uDaneCM4.dane, &uDaneCM7.dane);
 
 	//Jeżeli wyjscie RC1 jest ustawione jako S-Bus
 	if (chKonfigWyRC[KANAL_RC1] == SERWO_SBUS)

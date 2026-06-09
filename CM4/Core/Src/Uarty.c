@@ -26,8 +26,6 @@ extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart8;
 uint8_t cKonfiguracjaUart8 = U_CRSF1;		//Tymczasowo zamiast GNSS jest Crossfire
-extern stRC2_t stRC;	//struktura danych odbiorników RC	//stara
-
 //uint8_t chBuforNadawczyUART8[ROZMIAR_BUF_NAD_UART8];
 uint8_t chBuforOdbioruUart8[ROZMIAR_BUF_ODB_UART8];
 uint8_t chBuforOdbioruUart2[ROZMIAR_BUF_ODB_UART2];
@@ -35,13 +33,13 @@ uint8_t chBuforOdbioruUart4[ROZMIAR_BUF_ODB_UART4];
 
 
 extern uint8_t chBuforAnalizySBus1[ROZMIAR_BUF_ANA_SBUS];
-extern volatile uint8_t chWskNapBufAnaSBus1; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus1
+extern volatile uint8_t chWskNapBufAnaSBus1; 	//wskaźniki napełniania kołowego bufora odbiorczego analizy danych S-Bus1
 extern uint8_t chBuforAnalizySBus2[ROZMIAR_BUF_ANA_SBUS];
-extern volatile uint8_t chWskNapBufAnaSBus2; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus2
+extern volatile uint8_t chWskNapBufAnaSBus2; 	//wskaźniki napełniania kołowego bufora odbiorczego analizy danych S-Bus2
 extern uint8_t chBuforAnalizyCrossfire[ROZMIAR_BUF_ANA_CRSF];
 extern volatile uint8_t chWskNapBufAnaCRSF;
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
-extern volatile uint8_t chWskNapBufAnaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
+extern volatile uint8_t chWskNapBufAnaGNSS;		//wskaźnik napełniania kołowego bufora odbiorczego analizy danych GNSS
 
 
 
@@ -82,7 +80,6 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
 
 	if (huart->Instance == UART4)	//dane z SBUS1
 	{
-		stRC.nCzasWe1 = PobierzCzasT7();	//czas przyjścia ramki SBus1
 		for (uint8_t n = 0; n < ROZMIAR_BUF_ODB_UART4 / 2; n++)
 		{
 			chBuforAnalizySBus1[chWskNapBufAnaSBus1] = chBuforOdbioruUart4[n];
@@ -94,7 +91,6 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
 
 	if (huart->Instance == USART2)		//dane z SBUS2
 	{
-		stRC.nCzasWe2 = PobierzCzasT7();	//czas przyjścia ramki SBus2
 		for (uint8_t n = 0;  n < ROZMIAR_BUF_ODB_UART2 / 2; n++)
 		{
 			chBuforAnalizySBus2[chWskNapBufAnaSBus2] = chBuforOdbioruUart2[n];
@@ -115,8 +111,6 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
 ////////////////////////////////////////////////////////////////////////////////
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	extern stRC2_t stRC;	//struktura danych odbiorników RC
-
 	//Przepisuje odebrane dane GNSS z małego bufora do większego bufora kołowego analizy protokołu
 	if (huart->Instance == UART8)
 	{
@@ -147,7 +141,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 	if (huart->Instance == UART4)	//dane z SBUS1
 	{
-		stRC.nCzasWe1 = PobierzCzasT7();	//czas przyjścia ramki SBus1
 		for (uint8_t n = 0;  n<ROZMIAR_BUF_ODB_UART4 / 2; n++)
 		{
 			chBuforAnalizySBus1[chWskNapBufAnaSBus1] = chBuforOdbioruUart4[n + ROZMIAR_BUF_ODB_UART4 / 2];
@@ -159,7 +152,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 	if (huart->Instance == USART2)		//dane z SBUS2
 	{
-		stRC.nCzasWe2 = PobierzCzasT7();	//czas przyjścia ramki SBus2
 		for (uint8_t n = 0;  n<ROZMIAR_BUF_ODB_UART2 / 2; n++)
 		{
 			chBuforAnalizySBus2[chWskNapBufAnaSBus2] = chBuforOdbioruUart2[n + ROZMIAR_BUF_ODB_UART2 / 2];

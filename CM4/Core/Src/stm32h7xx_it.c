@@ -45,7 +45,7 @@ extern uint32_t PobierzCzasT7(void);
 volatile uint32_t nPoprzedniStanTimera2;	//timer 32 bitowy
 volatile uint8_t chNumerKanSerw;
 volatile uint16_t sCzasH;
-extern stRC2_t stRC;
+extern stRC_t stRC1;
 extern unia_wymianyCM4_t uDaneCM4;
 extern uint8_t chKonfigWeRC[LICZBA_WEJSC_RC];	//określa jakiego typu sygnał wchodzi z odbiornika
 /* USER CODE END PV */
@@ -360,29 +360,29 @@ void TIM4_IRQHandler(void)
 		//przerwania timera interpretuj jako impulsy tylko gdy wejście RC jest skonfigurowane jako CPPM. Gdy jest ustawiony S-Bus to generuje zakłócenia
 		if (chKonfigWeRC[KANAL_RC1] == ODB_RC_CPPM)
 		{
-			if (htim4.Instance->CCR3 > stRC.sPoprzedniaWartoscTimera1)
-				sTemp = htim4.Instance->CCR3 - stRC.sPoprzedniaWartoscTimera1;  //długość impulsu
+			if (htim4.Instance->CCR3 > stRC1.sPoprzedniaWartoscTimera)
+				sTemp = htim4.Instance->CCR3 - stRC1.sPoprzedniaWartoscTimera;  //długość impulsu
 			else
-				sTemp = 0xFFFF - stRC.sPoprzedniaWartoscTimera1 + htim4.Instance->CCR3;  //długość impulsu
+				sTemp = 0xFFFF - stRC1.sPoprzedniaWartoscTimera + htim4.Instance->CCR3;  //długość impulsu
 
 			//impuls o długości większej niż 3ms traktowany jest jako przerwa między paczkami impulsów
 			if (sTemp > PRZERWA_PPM)
 			{
-				stRC.nCzasWe1 = PobierzCzasT7();
-				stRC.chNrKan1 = 0;
-				stRC.chStatus |= STATRC_RAMKA1_OK;
+				stRC1.nCzasOdOstatniejRamki = PobierzCzasT7();
+				stRC1.cNrKan = 0;
+				stRC1.cFlagi |= FRC_RAMKA_OK;
 			}
 			else
-			if ((sTemp > PPM_MIN) && (sTemp < PPM_MAX) && (stRC.chStatus & STATRC_RAMKA1_OK))
+			if ((sTemp > PPM_MIN) && (sTemp < PPM_MAX) && (stRC1.cFlagi & FRC_RAMKA_OK))
 			{
-				stRC.sOdb1[stRC.chNrKan1] = sTemp;
-				stRC.sZdekodowaneKanaly1 |= (1 << stRC.chNrKan1);	//ustaw bit zdekodowanego kanału
-				stRC.chNrKan1++;
+				stRC1.sKanaly[stRC1.cNrKan] = sTemp;
+				stRC1.sZdekodowaneKanaly |= (1 << stRC1.cNrKan);	//ustaw bit zdekodowanego kanału
+				stRC1.cNrKan++;
 			}
 			else
-				stRC.chStatus &= ~STATRC_RAMKA1_OK;
+				stRC1.cFlagi &= ~FRC_RAMKA_OK;
 		}
-		stRC.sPoprzedniaWartoscTimera1 = htim4.Instance->CCR3;	//odczyt CCRx kasuje przerwanie
+		stRC1.sPoprzedniaWartoscTimera = htim4.Instance->CCR3;	//odczyt CCRx kasuje przerwanie
 	}
   /* USER CODE END TIM4_IRQn 0 */
   HAL_TIM_IRQHandler(&htim4);
