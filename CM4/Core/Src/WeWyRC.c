@@ -62,7 +62,7 @@ uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wy
 uint8_t chFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silników: normalna praca lub analiza FFT rezonansu drgań ramy
 uint8_t chRozmiarSekwencjiDMA[KANALY_MIKSERA+1];	//rozmiar paczki danych przesyłanych do DMA w zależności od częstotliwości odświezania. Dla 400Hz paczka ma 1 ważną daną, dla 200Hz jedną ważną i jedną nieważną, dla 50Hz jest 1 ważna i 7 pustych
 uint8_t chBityKonfiguracji = 0;
-volatile uint16_t sFlagiNapelnieniaBuforow;		//flagi inforujące pętlę główną o potrzebie napełnienia podwójnego bufora DMA: DShot lub programowalnych LEDów
+//volatile uint16_t sFlagiNapelnieniaBuforow;		//flagi inforujące pętlę główną o potrzebie napełnienia podwójnego bufora DMA: DShot lub programowalnych LEDów
 uint16_t sPoprzedniStanKanaluRozszerzonego[KANALY_FUNKCYJNE];	//poprzedni stan do detekcji uruchomiania funkcji wywoływanych kanałami wejsciowymi RC
 uint8_t cDzielnikAktualizacjiLED;
 
@@ -750,7 +750,7 @@ uint8_t InicjujWyjsciaRC(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Callback opróżnienia połowy bufora timerów służy do ustawienie informacji
-// o potrzebie przeładowania pierwszej połowy bufora
+// o potrzebie przeładowania pierwszej połowy bufora kołowego. Używane do sterowania LED-ami
 // Parametry: *hdma - wskaźnik na DMA zgłaszające koniec transmisji
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -758,42 +758,47 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 {
     if(htim->Instance == TIM2)
     {
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)	//kanał 2 serw
+    	if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3) && (chKonfigWyRC[KANAL_RC2] == SERWO_WS281X))	//kanał 2 serw
     	{
-    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH2;
+    		if (AktualizujWS281xDMA(NAPELNIJ_BUF1_CH2, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+    			HAL_TIM_PWM_Stop_DMA(&htim2, TIM_CHANNEL_3);
     		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
     	}
 
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)	//kanał 3 serw
+    	if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) && (chKonfigWyRC[KANAL_RC3] == SERWO_WS281X))	//kanał 3 serw
     	{
-    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH3;
-
+    	    if (AktualizujWS281xDMA(NAPELNIJ_BUF1_CH3, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+    	    	HAL_TIM_PWM_Stop_DMA(&htim2, TIM_CHANNEL_1);
     	}
     }
 
     if(htim->Instance == TIM3)
     {
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)	//kanał 4 serw
-    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH4;
+    	if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3) && (chKonfigWyRC[KANAL_RC4] == SERWO_WS281X))	//kanał 4 serw
+    	{
+    	    if (AktualizujWS281xDMA(NAPELNIJ_BUF1_CH4, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+    	    	HAL_TIM_PWM_Stop_DMA(&htim3, TIM_CHANNEL_3);
+    	}
 
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)	//kanał 5 serw
-    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH5;
+    	if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) && (chKonfigWyRC[KANAL_RC5] == SERWO_WS281X))	//kanał 5 serw
+    	{
+    	    if (AktualizujWS281xDMA(NAPELNIJ_BUF1_CH5, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+    	    	HAL_TIM_PWM_Stop_DMA(&htim3, TIM_CHANNEL_4);
+    	}
     }
 
 	if(htim->Instance == TIM8)
 	{
-		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)	//kanał 6 serw
+		if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) && (chKonfigWyRC[KANAL_RC6] == SERWO_WS281X))	//kanał 6 serw
 		{
-		    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH6;
-		    if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+			if (AktualizujWS281xDMA(NAPELNIJ_BUF1_CH6, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
 		        HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_1);
 		    HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 		}
 
-		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)	//kanał 8 serw
+		if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3) && (chKonfigWyRC[KANAL_RC8] == SERWO_WS281X))	//kanał 8 serw
 		{
-			sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8;
-			if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+			if (AktualizujWS281xDMA(NAPELNIJ_BUF1_CH8, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
 				HAL_TIMEx_PWMN_Stop_DMA(&htim8, TIM_CHANNEL_3);		//specjalna funkcja dla kanału zanegownego
 			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
 		}
@@ -812,41 +817,47 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 {
     if(htim->Instance == TIM2)
     {
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+    	if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3) && (chKonfigWyRC[KANAL_RC2] == SERWO_WS281X))
     	{
-    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH2;
+    		if (AktualizujWS281xDMA(NAPELNIJ_BUF2_CH2, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+    		    HAL_TIM_PWM_Stop_DMA(&htim2, TIM_CHANNEL_3);
     		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
     	}
 
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+    	if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) && (chKonfigWyRC[KANAL_RC3] == SERWO_WS281X))
     	{
-    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH3;
+    	    if (AktualizujWS281xDMA(NAPELNIJ_BUF2_CH3, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+    	       	   HAL_TIM_PWM_Stop_DMA(&htim2, TIM_CHANNEL_1);
     	}
     }
 
     if(htim->Instance == TIM3)
     {
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
-    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH4;
+    	if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3) && (chKonfigWyRC[KANAL_RC4] == SERWO_WS281X))	//kanał 4 serw
+    	{
+    	    if (AktualizujWS281xDMA(NAPELNIJ_BUF2_CH4, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+    	    	HAL_TIM_PWM_Stop_DMA(&htim3, TIM_CHANNEL_3);
+    	}
 
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
-    	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH5;
+    	if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4) && (chKonfigWyRC[KANAL_RC5] == SERWO_WS281X))	//kanał 5 serw
+    	{
+    	    if (AktualizujWS281xDMA(NAPELNIJ_BUF2_CH5, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+    	    	HAL_TIM_PWM_Stop_DMA(&htim3, TIM_CHANNEL_4);
+    	}
     }
 
 	if(htim->Instance == TIM8)
     {
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+    	if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) && (chKonfigWyRC[KANAL_RC6] == SERWO_WS281X))
     	{
-    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH6;
-    		if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+    		if (AktualizujWS281xDMA(NAPELNIJ_BUF2_CH6, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
     			HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_1);
     		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
     	}
 
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+    	if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3) && (chKonfigWyRC[KANAL_RC8] == SERWO_WS281X))
     	{
-    		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH8;
-    		if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
+    		if (AktualizujWS281xDMA(NAPELNIJ_BUF2_CH8, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
     			HAL_TIMEx_PWMN_Stop_DMA(&htim8, TIM_CHANNEL_3);		//specjalna funkcja dla kanału zanegownego
     		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
     	}

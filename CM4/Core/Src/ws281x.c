@@ -29,7 +29,6 @@ extern DMA_HandleTypeDef hdma_tim8_ch1;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
 DMA_HandleTypeDef hdma_tim4_ch4;
 extern unia_wymianyCM4_t uDaneCM4;
-extern uint16_t sFlagiNapelnieniaBuforow;
 uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA_WS281X[WS_BITOW_LACZNIE];
 stDShot_t stWS281x;
 uint32_t nKolorWS281x[LICZBA_LED_WS281X];
@@ -94,28 +93,36 @@ uint8_t AktualizujKolorLedWs821x(void)
 	//kanał z inwerterem 5V może być przydatny w przypadku problemów ze sterowaniem pierwszego LED-a napieciem 3,3V
 	if (chKonfigWyRC[KANAL_RC2] == SERWO_WS281X)
 	{
-		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH2 | NAPELNIJ_BUF2_CH2;	//napełnij oba bufory
-		cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//wstaw do bufora DMA czas trwania bitów
+		cBłąd |= AktualizujWS281xDMA(NAPELNIJ_BUF1_CH2 | NAPELNIJ_BUF2_CH2, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//napełnij oba bufory DMA czasem trwania bitów
 		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 
 	if (chKonfigWyRC[KANAL_RC3] == SERWO_WS281X)
 	{
-		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH3 | NAPELNIJ_BUF2_CH3;	//napełnij oba bufory
-		cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//wstaw do bufora DMA czas trwania bitów
+		cBłąd |= AktualizujWS281xDMA(NAPELNIJ_BUF1_CH3 | NAPELNIJ_BUF2_CH3, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//napełnij oba bufory DMA czasem trwania bitów
 		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+	}
+
+	if (chKonfigWyRC[KANAL_RC4] == SERWO_WS281X)
+	{
+		cBłąd |= AktualizujWS281xDMA(NAPELNIJ_BUF1_CH4 | NAPELNIJ_BUF2_CH4, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//napełnij oba bufory DMA czasem trwania bitów
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+	}
+
+	if (chKonfigWyRC[KANAL_RC5] == SERWO_WS281X)
+	{
+		cBłąd |= AktualizujWS281xDMA(NAPELNIJ_BUF1_CH5 | NAPELNIJ_BUF2_CH5, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//napełnij oba bufory DMA czasem trwania bitów
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 
 	if (chKonfigWyRC[KANAL_RC6] == SERWO_WS281X)
 	{
-		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH6 | NAPELNIJ_BUF2_CH6;	//napełnij oba bufory
-		cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//wstaw do bufora DMA czas trwania bitów
+		cBłąd |= AktualizujWS281xDMA(NAPELNIJ_BUF1_CH6 | NAPELNIJ_BUF2_CH6, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//napełnij oba bufory DMA czasem trwania bitów
 		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 	if (chKonfigWyRC[KANAL_RC8] == SERWO_WS281X)
 	{
-		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8 | NAPELNIJ_BUF2_CH8;	//napełnij oba bufory
-		cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//wstaw do bufora DMA czas trwania bitów
+		cBłąd |= AktualizujWS281xDMA(NAPELNIJ_BUF1_CH8 | NAPELNIJ_BUF2_CH8, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//napełnij oba bufory DMA czasem trwania bitów
 		cBłąd |= HAL_TIMEx_PWMN_Start_DMA(&htim8, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);	//specjalna funkcja dla kanału komplementarnego N
 	}
 	return cBłąd;
@@ -138,10 +145,8 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 	stWS281x.nT1H = CZAS_WS281X_1H;		//3 cyknięcia
 	stWS281x.nBit = CZAS_WS281X_BIT;	//4 cyknięcia
 
-	cWskaznikLed = 0;	//zacznij od pierwszego LED-a
-	sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH6 | NAPELNIJ_BUF2_CH6 | NAPELNIJ_BUF1_CH8 | NAPELNIJ_BUF2_CH8;	//napełnij oba bufory
+	cWskaznikLed =  LICZBA_LED_WS281X + WS_CZAS_RESETU;	//warunek rozpoczecia nowego cyklu, czyli zakończenie poprzedniego
 	cBłąd |= ObliczKolorWS281x(nKolorWS281x, stWskaznikLed);		//ustaw tablicę kolorów dla wszystkich LED-ów
-	cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//przelicz czas trwania bitów i wstaw do bufora DMA
 
 	//wspólna konfiguracja dla wszystkich kanałów
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
@@ -187,7 +192,7 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		hdma_tim2_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim2_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		cBłąd |= HAL_DMA_Init(&hdma_tim2_ch3);
-		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+		//cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 
 	if (chKanal == KANAL_RC3)		//kanał serw 3 obsługiwany przez Timer2ch1
@@ -204,7 +209,7 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		hdma_tim2_ch1.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim2_ch1.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		cBłąd |= HAL_DMA_Init(&hdma_tim2_ch1);
-		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+		//cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 
 	if ((chKanal == KANAL_RC4) || (chKanal == KANAL_RC5))	//timer 3 obsluguje kanały 4 i 5
@@ -233,7 +238,7 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		hdma_tim3_ch3.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim3_ch3.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		cBłąd |= HAL_DMA_Init(&hdma_tim3_ch3);
-		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+		//cBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 
 	if (chKanal == KANAL_RC5)		//kanał 5
@@ -249,7 +254,7 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		hdma_tim3_ch4.Init.Priority = DMA_PRIORITY_MEDIUM;
 		hdma_tim3_ch4.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 		cBłąd |= HAL_DMA_Init(&hdma_tim3_ch4);
-		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+		//cBłąd |= HAL_TIM_PWM_Start_DMA(&htim3, TIM_CHANNEL_4, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 
 
@@ -286,7 +291,7 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
 		__HAL_DMA_ENABLE_IT(&hdma_tim8_ch1, DMA_IT_HT);
-		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+		//cBłąd |= HAL_TIM_PWM_Start_DMA(&htim8, TIM_CHANNEL_1, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
 	}
 
 	if (chKanal == KANAL_RC8)	//kanał 8
@@ -306,7 +311,7 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 		HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
 		__HAL_DMA_ENABLE_IT(&hdma_tim8_ch3, DMA_IT_HT);
-		cBłąd |= HAL_TIMEx_PWMN_Start_DMA(&htim8, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);	//specjalna funkcja dla kanału komplementarnego N
+		//cBłąd |= HAL_TIMEx_PWMN_Start_DMA(&htim8, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);	//specjalna funkcja dla kanału komplementarnego N
 	}
 	return cBłąd;
 }
@@ -326,7 +331,7 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 // Zwraca: kod błędu
 // Czas wykonanie 5us (jedna połowa) / 9,4us (obie). Wywoływane jest co 67us co może stanowić istotne obciążenie
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskLED)
+uint8_t AktualizujWS281xDMA(volatile uint16_t sFlagi, uint32_t *nTabKoloru, uint8_t chRozmiar, uint8_t *chWskLED)
 {
 	uint8_t cBłąd = BLAD_OK;
 	uint32_t nKolorLED;
@@ -336,8 +341,7 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 	if (*chWskLED > chRozmiar + WS_CZAS_RESETU)
 		return BLAD_NIC_DO_ROBOTY;
 
-	//if (*sFlagi & (NAPELNIJ_BUF1_CH2 | NAPELNIJ_BUF1_CH3 | NAPELNIJ_BUF1_CH6 | NAPELNIJ_BUF1_CH8))	//napełnij pierwszą połowę bufora
-	if (*sFlagi & (NAPELNIJ_BUF1_CH6 | NAPELNIJ_BUF1_CH8))	//napełnij pierwszą połowę bufora
+	if (sFlagi & (NAPELNIJ_BUF1_CH2 | NAPELNIJ_BUF1_CH3 | NAPELNIJ_BUF1_CH4 | NAPELNIJ_BUF1_CH5 | NAPELNIJ_BUF1_CH6 | NAPELNIJ_BUF1_CH8))	//napełnij pierwszą połowę bufora
 	{
 		if (*chWskLED < chRozmiar)
 		{
@@ -361,11 +365,9 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 			for (uint8_t n=0; n<WS_BITOW_LACZNIE / 2; n++)
 				nBuforTimDMA_WS281X[n] = 0;
 		}
-		*sFlagi &= ~(NAPELNIJ_BUF1_CH6 | NAPELNIJ_BUF1_CH8);
 	}
 
-	//if (*sFlagi & (NAPELNIJ_BUF2_CH2 | NAPELNIJ_BUF2_CH3 | NAPELNIJ_BUF2_CH6 | NAPELNIJ_BUF2_CH8))	//napełnij drugą połowę bufora
-	if (*sFlagi & (NAPELNIJ_BUF2_CH6 | NAPELNIJ_BUF2_CH8))	//napełnij drugą połowę bufora
+	if (sFlagi & (NAPELNIJ_BUF2_CH2 | NAPELNIJ_BUF2_CH3 | NAPELNIJ_BUF2_CH4 | NAPELNIJ_BUF2_CH5 | NAPELNIJ_BUF2_CH6 | NAPELNIJ_BUF2_CH8))	//napełnij drugą połowę bufora
 	{
 		if (*chWskLED < chRozmiar)
 		{
@@ -389,7 +391,6 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 			for (uint8_t n=WS_BITOW_LACZNIE / 2; n<WS_BITOW_LACZNIE; n++)
 				nBuforTimDMA_WS281X[n] = 0;
 		}
-		*sFlagi &= ~(NAPELNIJ_BUF2_CH6 | NAPELNIJ_BUF2_CH8);
 		*chWskLED += WS_LEDY_SEGMENTU;		//wskaż na następne LED do obsługi w kolejnym cyklu
 	}
 	return cBłąd;
