@@ -515,6 +515,7 @@ uint8_t InicjujWyjsciaRC(void)
 		sConfigOC.Pulse = OKRES_PWM / 2;;
 		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4);
 
+		hdma_tim3_ch4.Instance = DMA2_Stream5;
 		hdma_tim3_ch4.Init.Request = DMA_REQUEST_TIM3_CH4;
 		hdma_tim3_ch4.Init.Direction = DMA_MEMORY_TO_PERIPH;
 		hdma_tim3_ch4.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -672,7 +673,7 @@ uint8_t InicjujWyjsciaRC(void)
 		sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 		cBłąd |= HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_3);
 
-		hdma_tim8_ch3.Instance = DMA2_Stream3;
+		hdma_tim8_ch3.Instance = DMA2_Stream2;
 		hdma_tim8_ch3.Init.Request = DMA_REQUEST_TIM8_CH1;
 		hdma_tim8_ch3.Init.Direction = DMA_MEMORY_TO_PERIPH;
 		hdma_tim8_ch3.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -757,33 +758,39 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 {
     if(htim->Instance == TIM2)
     {
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)	//kanał 2 serw
+    	{
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH2;
+    		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+    	}
 
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)	//kanał 3 serw
+    	{
     	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH3;
+
+    	}
     }
 
     if(htim->Instance == TIM3)
     {
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)	//kanał 4 serw
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH4;
 
-    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)
+    	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_4)	//kanał 5 serw
     	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH5;
     }
 
 	if(htim->Instance == TIM8)
 	{
-		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)
+		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)	//kanał 6 serw
 		{
 		    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH6;
 		    if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
 		        HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_1);
-		    //HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+		    //
 		}
 
-		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)	//kanał 8 serw
 		{
 			sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH8;
 			if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
@@ -806,10 +813,15 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
     if(htim->Instance == TIM2)
     {
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
+    	{
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH2;
+    		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+    	}
 
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
+    	{
     	    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH3;
+    	}
     }
 
     if(htim->Instance == TIM3)

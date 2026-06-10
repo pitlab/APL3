@@ -278,7 +278,7 @@ uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t chKanal)
 	}
 	nBuforTimDMA[chKanal][11] = stDShot.nT0H;	//brak telemetrii = 0
 
-	//CRC
+	//CRC - sprawdzić czy użycie CRC nie jest źródłem konfliktu
 	sCRC = sWysterowanie >> 4;
 	sWysterowanie ^= sCRC;
 	sCRC = sWysterowanie >> 8;

@@ -137,7 +137,7 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 			else
 			{
 				cBłąd = BLAD_CRC;
-				HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+				//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 			}
 			break;
 
@@ -212,7 +212,7 @@ uint8_t AnalizujCrossfire(uint8_t *cRamka, stRC_t *stRC)
 			stRC->sKanaly[1] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
 			stRC->sZdekodowaneKanaly |= 0x0002;
 			if (sWartoscKanalu != sPoprzedniKanal)
-				HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);			//kanał serw 1 skonfigurowany jako IO
+				//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);			//kanał serw 1 skonfigurowany jako IO
 			sPoprzedniKanal = sWartoscKanalu;
 		}
 		else

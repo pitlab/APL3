@@ -440,7 +440,7 @@ uint8_t ObsługaRamkiSBus(void)
 		if (nCzasRC >= OKRES_RAMKI_SBUS)
 		{
 			nCzasWysylkiSbus = PobierzCzasT7();
-			HAL_UART_Transmit_DMA(&huart4, chBuforNadawczySBus, ROZM_BUF_ODB_SBUS);	//wyślij kolejną ramkę
+			HAL_UART_Transmit_IT(&huart4, chBuforNadawczySBus, ROZM_BUF_ODB_SBUS);	//wyślij kolejną ramkę
 		}
 	}
 	return cBłąd;
