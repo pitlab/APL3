@@ -1,6 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // Moduł sterowania programowalnymi LED WS2811 i WS2813
+// Używa timera sterwoanego przez DMA w trybie kołowym po to aby małymi kawałkami przesłać długą
+// sekwencję bitów. Przesłanie całosci w trybie liniowym wymagało by wielkiego bufora danych
+// Po zakonczonym tranferze DMA jest zatrzymywane a transfer wznawiany ręcznie po upływie czasu odświeżania.
+// Uwaga! Użycie kanału timera do sterowania LED blokuje cały timer
 //
 // (c) PitLab 2026
 // http://www.pitlab.pl
@@ -86,6 +90,22 @@ uint8_t AktualizujKolorLedWs821x(void)
 
 	cBłąd |= ObliczKolorWS281x(nKolorWS281x, stWskaznikLed);
 	cWskaznikLed = 0;	//zacznij od pierwszego LED-a
+
+	//kanał z inwerterem 5V może być przydatny w przypadku problemów ze sterowaniem pierwszego LED-a napieciem 3,3V
+	if (chKonfigWyRC[KANAL_RC2] == SERWO_WS281X)
+	{
+		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH2 | NAPELNIJ_BUF2_CH2;	//napełnij oba bufory
+		cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//wstaw do bufora DMA czas trwania bitów
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_3, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+	}
+
+	if (chKonfigWyRC[KANAL_RC3] == SERWO_WS281X)
+	{
+		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH3 | NAPELNIJ_BUF2_CH3;	//napełnij oba bufory
+		cBłąd |= AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed);	//wstaw do bufora DMA czas trwania bitów
+		cBłąd |= HAL_TIM_PWM_Start_DMA(&htim2, TIM_CHANNEL_1, nBuforTimDMA_WS281X, WS_BITOW_LACZNIE);
+	}
+
 	if (chKonfigWyRC[KANAL_RC6] == SERWO_WS281X)
 	{
 		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH6 | NAPELNIJ_BUF2_CH6;	//napełnij oba bufory
@@ -129,7 +149,7 @@ uint8_t UstawTrybWS281x(uint8_t chKanal)
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 	sConfigOC.Pulse = stWS281x.nT1H;
 
-	//CubeMX nie może dodać obsługi kanału DMA dla TIM4.ch4 ponieważ jest używany jako UART, wiec robię to ręcznie
+	//TIM4.ch4 nie ma swojego kanału DMA - w następnej wersji sprzetu zmienić na inny kanał
 	if (chKanal == KANAL_RC1)	//timer 4 kanał 4 - wyjście 5V
 	{
 		htim4.Init.Prescaler = DZIELNIK_WS281X - 1;
@@ -316,6 +336,7 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 	if (*chWskLED > chRozmiar + WS_CZAS_RESETU)
 		return BLAD_NIC_DO_ROBOTY;
 
+	//if (*sFlagi & (NAPELNIJ_BUF1_CH2 | NAPELNIJ_BUF1_CH3 | NAPELNIJ_BUF1_CH6 | NAPELNIJ_BUF1_CH8))	//napełnij pierwszą połowę bufora
 	if (*sFlagi & (NAPELNIJ_BUF1_CH6 | NAPELNIJ_BUF1_CH8))	//napełnij pierwszą połowę bufora
 	{
 		if (*chWskLED < chRozmiar)
@@ -343,6 +364,7 @@ uint8_t AktualizujWS281xDMA(volatile uint16_t *sFlagi, uint32_t *nTabKoloru, uin
 		*sFlagi &= ~(NAPELNIJ_BUF1_CH6 | NAPELNIJ_BUF1_CH8);
 	}
 
+	//if (*sFlagi & (NAPELNIJ_BUF2_CH2 | NAPELNIJ_BUF2_CH3 | NAPELNIJ_BUF2_CH6 | NAPELNIJ_BUF2_CH8))	//napełnij drugą połowę bufora
 	if (*sFlagi & (NAPELNIJ_BUF2_CH6 | NAPELNIJ_BUF2_CH8))	//napełnij drugą połowę bufora
 	{
 		if (*chWskLED < chRozmiar)

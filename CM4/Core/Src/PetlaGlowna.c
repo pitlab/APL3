@@ -73,7 +73,7 @@ extern uint8_t chFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silnik
 extern uint16_t sTS_CAL1, sTS_CAL2;	//wspólczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
 extern uint8_t chWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC2, bit1 = ADC3
 uint8_t cBityPozwoleniaNaPomiarADC;	//pole bitowe informujące który pomiar można wykonać w danym obiegu pętli
-uint8_t cDzielnikAktualizacjiLED;
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -201,17 +201,7 @@ void PetlaGlowna(void)
 		WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
 		break;
 
-	case 14:
-		if (cDzielnikAktualizacjiLED)
-			cDzielnikAktualizacjiLED--;
-		else
-		{
-			cDzielnikAktualizacjiLED = DZIELNIK_AKTUALIZACJI_LED;
-			AktualizujKolorLedWs821x();
-		}
-		break;
-
-	case 16:	//pozwól na testowe uruchomienie inicjalizacji
+	case 15:	//pozwól na testowe uruchomienie inicjalizacji
 		if (chBuforAnalizyGNSS[0] == 0xFF)
 		{
 			//InicjujWyjsciaRC();
@@ -221,9 +211,22 @@ void PetlaGlowna(void)
 		}
 		break;
 
+	case 16:
+		/*if (cDzielnikAktualizacjiLED)
+		{
+			cDzielnikAktualizacjiLED--;
+
+		}
+		else
+		{
+			cDzielnikAktualizacjiLED = DZIELNIK_AKTUALIZACJI_LED;
+			AktualizujKolorLedWs821x();
+		}*/
+		break;
+
 	case 17:	cBłądPG |= KontrolerLotu(chTrybRegulacji, ndT, &uDaneCM4.dane, stKonfigPID);	break;
 	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID);	break;
-	case 19:	//AktualizujWyjsciaRC(&uDaneCM4.dane);	break;	//zrobić podwójne buforowanie, tak aby nie modyfikowac bufora w trakcie pracy. W callbacku ma przełaczyć się na nowy bufor
+	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;
 	default:	break;
 	}
 

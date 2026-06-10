@@ -64,7 +64,7 @@ uint8_t chRozmiarSekwencjiDMA[KANALY_MIKSERA+1];	//rozmiar paczki danych przesy�
 uint8_t chBityKonfiguracji = 0;
 volatile uint16_t sFlagiNapelnieniaBuforow;		//flagi inforujące pętlę główną o potrzebie napełnienia podwójnego bufora DMA: DShot lub programowalnych LEDów
 uint16_t sPoprzedniStanKanaluRozszerzonego[KANALY_FUNKCYJNE];	//poprzedni stan do detekcji uruchomiania funkcji wywoływanych kanałami wejsciowymi RC
-
+uint8_t cDzielnikAktualizacjiLED;
 
 
 
@@ -761,7 +761,7 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)	//kanał 2 serw
     	{
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH2;
-    		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+    		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
     	}
 
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)	//kanał 3 serw
@@ -787,7 +787,7 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 		    sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF1_CH6;
 		    if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
 		        HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_1);
-		    //
+		    HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 		}
 
 		if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)	//kanał 8 serw
@@ -815,7 +815,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
     	{
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH2;
-    		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+    		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
     	}
 
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2)
@@ -840,7 +840,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
     		sFlagiNapelnieniaBuforow |= NAPELNIJ_BUF2_CH6;
     		if (AktualizujWS281xDMA(&sFlagiNapelnieniaBuforow, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
     			HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_1);
-    		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+    		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
     	}
 
     	if(htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3)
@@ -864,6 +864,10 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 {
 	uint8_t cBłąd = BLAD_OK;
 	uint32_t nWyjście;
+
+	//ponieważ odświeżanie LED-ów trwa długo, więc rób je co DZIELNIK_AKTUALIZACJI_LED okresów
+	if (cDzielnikAktualizacjiLED)
+		cDzielnikAktualizacjiLED--;
 
 	//aktualizuj pierwsze 8 kanałów wyjściowych RC sterownych swobodnymi kanałami timera
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
@@ -912,9 +916,13 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 		case SERWO_DSHOT600:
 		case SERWO_DSHOT1200:	cBłąd |= AktualizujDShotDMA(nWyjście, n);	break;
 
-		case SERWO_WS281X:	//sFlagiNapelnieniaBuforow wskazują która połowę bufora należy wypełnić. Druga obecnie jest opróżniana
-
-				break;
+		case SERWO_WS281X:
+			if (cDzielnikAktualizacjiLED == 0)
+			{
+				cDzielnikAktualizacjiLED = DZIELNIK_AKTUALIZACJI_LED;
+				AktualizujKolorLedWs821x();
+			}
+			break;
 
 		default: cBłąd = BLAD_BRAK_KONFIG;
 		}	//switch
