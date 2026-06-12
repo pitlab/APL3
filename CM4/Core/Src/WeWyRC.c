@@ -3,7 +3,7 @@
 // AutoPitLot v3.0
 // Moduł ubsługi wejść odbiorników RC i wyjść serw/ESC
 //
-// (c) PitLab 2025
+// (c) PitLab 2025-26
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include <DShot.h>
@@ -20,10 +20,15 @@
 #include "RegulatorPID.h"
 #include "Uarty.h"
 
-//definicje SBus: https://github.com/uzh-rpg/rpg_quadrotor_control/wiki/SBUS-Protocol
+//Wartości z odbiorników są normalizowane do zakresu 0-1000-2000 (WE_RC_MIN - WE_RC_NEUTR - WE_RC_MAX). Tak są liczone dane w mikserze.
 //S-Bus oraz DShot mają rozdzielczość 11-bitów, wiec przyjmuję taką rozdzielczość sterowania definiując stałą PPM11BIT
-//Wartości z odbiorników są normalizowane do zakresu 0-2000 (WE_RC_MAX) z 1000 jako wartością neutralną. Tak są liczone dane w mikserze.
-//Wartości sterujące idące do timera odpowiadają tradycyjnym wyrażonym w mikrosekundach mnożonym przez 2
+//Surowy sygnał SBus przed normalizacją ma zakres 192-992-1792  patrz: https://github.com/uzh-rpg/rpg_quadrotor_control/wiki/SBUS-Protocol
+//Surowy sygnał Crossfire przed normalizacją ma zakres ?-992-? patrz: https://github.com/tbs-fpv/tbs-crsf-spec/blob/main/crsf.md#0x320x0a-general
+
+//Definicje parametrów wyjściowych
+//Sygnał PWM dla serw i regulatorów w tradycyjnym zakresie 1000-1500-2000us jest sterowany z rozdzielczoscią 0,5us, więc finalne wartości wynoszą 2000-3000-4000
+//Sygnał DShot jest z zakresu 48-1048-2048, więc jest przesunięty o wartość DS_OFFSET_DSHOT względem standardu
+
 
 
 //stRC2_t stRC;	//struktura danych odbiorników RC	//stara

@@ -41,7 +41,7 @@
 //timeouty w milisekundach dla magistrali I2C zależące od ilości przesyłanych danych. Dla 100kHz czas przesłania 1 bajtu to 0,1ms, dla 25kHz to 0,4ms
 #define TOUT_I2C4_2B		1
 #define TOUT_I2C4_7B		2
-#define SPI_DELAY			3		//czas oczekiwania na operację na szynie w ms
+#define TOUT_SPI			3		//czas oczekiwania na operację na szynie w ms
 
 //definicje kanałów IO
 #define MIO10	(1 << 0) 	//MOD_IO10

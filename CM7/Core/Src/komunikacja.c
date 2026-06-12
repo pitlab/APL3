@@ -438,11 +438,11 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
-	case PK_ZAPISZ_WYSTER_NAPEDU:		//zapisuje nastawy wysterowania napędu dla wartości jałowej, minimalnej, zawisu i maksymalnej
+	case PK_ZAPISZ_WYSTER_NAPEDU:		//zapisuje znormalizowane nastawy wysterowania napędu dla wartości minimalnej, zawisu i maksymalnej
 #ifdef TESTY
-		assert(chRozmDanych == 2*LICZBA_DRAZKOW);
+		assert(chRozmDanych == 2*LICZBA_DANYCH_NAPEDU);	//Rozmiar danych jest liczbą przeslanych bajtów a mamy zapisać 3 słowa 16-bitowe
 #endif
-		for (n=0; n<chRozmDanych; n++)
+		for (n=0; n<chRozmDanych / 2; n++)
 		{
 			for (uint8_t i=0; i<2; i++)
 				un8_32.dane8[i] = cDane[n*2+i];
@@ -450,7 +450,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		}
 		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_PWM_NAPEDU;
 		uDaneCM7.dane.sAdres = PK_ZAPISZ_WYSTER_NAPEDU;	//fejkowy adres wysyłany w celu uzyskania potwierdzenia zapisu
-		uDaneCM7.dane.chRozmiar = chRozmDanych;
+		uDaneCM7.dane.chRozmiar = chRozmDanych / 2;
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 

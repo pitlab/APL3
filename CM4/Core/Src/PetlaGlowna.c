@@ -421,13 +421,13 @@ void WykonajPolecenieCM7(void)
 
 		case POL7_ZAPISZ_PWM_NAPEDU:
 	#ifdef TESTY
-			assert(uDaneCM7.dane.chRozmiar == 2*LICZBA_DRAZKOW);
+			assert(uDaneCM7.dane.chRozmiar == LICZBA_DANYCH_NAPEDU);	//zapisz 3 słowa 16-bitowe
 	#endif
 			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
-				ZapiszFramU16(FAU_PWM_JALOWY + n*2, uDaneCM7.dane.uRozne.U16[n]);
-			sWysterowanieMin = uDaneCM7.dane.uRozne.U16[1];
+				ZapiszFramU16(FAU_RC_WY_MIN + n*2, uDaneCM7.dane.uRozne.U16[n]);
+			sWysterowanieMin = uDaneCM7.dane.uRozne.U16[0];
+			sWysterowanieMax = uDaneCM7.dane.uRozne.U16[1];
 			sWysterowanieZawisu = uDaneCM7.dane.uRozne.U16[2];
-			sWysterowanieMax = uDaneCM7.dane.uRozne.U16[3];
 			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 			break;
 

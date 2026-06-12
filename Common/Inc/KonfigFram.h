@@ -33,17 +33,11 @@
 #define FAU_CH7_MAX         0x008D      //4F maksymalna wartość regulowanej zmiennej
 #define FAU_CH7_FUNCT       0x0091      //1U funkcja kanału 7: rodzaj zmiennej do regulacji
 
-#define FAU_PWM_JALOWY      0x0092     	//2U wysterowanie regulatorów na biegu jałowym [us]
-#define FAU_PWM_MIN      	0x0094 		//2U minimalne wysterowanie regulatorów w trakcie lotu [us]
-#define FAU_WPM_ZAWISU      0x0096   	//2U wysterowanie regulatorów w zawisie [us]
-#define FAU_PWM_MAX         0x0098  	//2U maksymalne wysterowanie silników w trakcie lotu [us]
-
-#define FAU_TSYNC_MON       0x009A     	//1U miesiąc ostatniej synchronizacji
-#define FAU_TSYNC_DAY       0x009B 		//1U dzień ostatniej synchronizacji
-#define FAU_TSYNC_HOU       0x009C		//1U
-#define FAU_TSYNC_MIN       0x009D
-#define FAU_TSYNC_SEC       0x009E
-#define FAU_TSYNC_DIF       0x009F 		//1U ostatnia różnica czasu synchronizacji
+#define FAU_RC_WY_MIN   	0x0092     	//2U minimalne wysterowanie regulatorów w trakcie lotu w jednostkach standardowych 0-2000
+#define FAU_RC_WY_MAX      	0x0094 		//2U maksymalne wysterowanie silników w trakcie lotu w jednostkach standardowych 0-2000
+#define FAU_RC_WY_ZAWISU   	0x0096   	//2U wysterowanie regulatorów w zawisie w jednostkach standardowych 0-2000
+#define LICZBA_DANYCH_NAPEDU	3
+//8 bajtów wolne
 
 //mikser
 #define FAU_MIX_PRZECH		0x00A0		//8*4F współczynnik wpływu przechylenia na dany silnik
@@ -67,9 +61,9 @@
 
 #define ROZMIAR_REG_PID		42
 
-//12 regulatorów zajmuje 432 bajtów - 0x1B0
+//12 regulatorów zajmuje 504 bajtów - 0x1F8
 
-//wolne 4 bajty
+//wolne 8 bajtów
 
 //konfiguracja odbiorników RC i wyjść serw/ESC zdefiniowane w sys_def_wspolnych.h
 #define FAU_KONF_ODB_RC		0x0300		//1U konfiguracja odbiorników RC: Bity 0..3 = RC1, bity 4..7 = RC2: 0=PPM, 1=S-Bus
@@ -204,33 +198,33 @@
 
 //współczynniki kalibracji magnetometru 1 na module inercyjnym
 #define	FAH_MAGN1        			FAH_MOD_CIS_ROZ+24
-#define	FAH_MAGN1_SKLADNIK_X  		FAH_MAGN1+0 //4F przesunięcie magnetometru w osi X
-#define	FAH_MAGN1_SKLADNIK_Y  		FAH_MAGN1+4 //4F przesunięcie magnetometru w osi Y
-#define	FAH_MAGN1_SKLADNIK_Z  		FAH_MAGN1+8 //4F przesunięcie magnetometru w osi Z
-#define	FAH_MAGN1_MNOZNIK_X  		FAH_MAGN1+12 //4F MNOZNIKwanie w osi X
-#define	FAH_MAGN1_MNOZNIK_Y  		FAH_MAGN1+16 //4F MNOZNIKwanie w osi Y
-#define	FAH_MAGN1_MNOZNIK_Z  		FAH_MAGN1+20 //4F MNOZNIKwanie w osi Z
+#define	FAH_MAGN1_SKLADNIK_X  		FAH_MAGN1+0 	//4F przesunięcie magnetometru w osi X
+#define	FAH_MAGN1_SKLADNIK_Y  		FAH_MAGN1+4 	//4F przesunięcie magnetometru w osi Y
+#define	FAH_MAGN1_SKLADNIK_Z  		FAH_MAGN1+8 	//4F przesunięcie magnetometru w osi Z
+#define	FAH_MAGN1_MNOZNIK_X  		FAH_MAGN1+12 	//4F mnożnik w osi X
+#define	FAH_MAGN1_MNOZNIK_Y  		FAH_MAGN1+16 	//4F mnożnik w osi Y
+#define	FAH_MAGN1_MNOZNIK_Z  		FAH_MAGN1+20 	//4F mnożnik w osi Z
 
 //współczynniki kalibracji magnetometru 2 na module inercyjnym
 #define	FAH_MAGN2        			FAH_MAGN1+24
-#define	FAH_MAGN2_SKLADNIK_X  		FAH_MAGN2+0 //4F przesunięcie magnetometru w osi X
-#define	FAH_MAGN2_SKLADNIK_Y  		FAH_MAGN2+4 //4F przesunięcie magnetometru w osi Y
-#define	FAH_MAGN2_SKLADNIK_Z  		FAH_MAGN2+8 //4F przesunięcie magnetometru w osi Z
-#define	FAH_MAGN2_MNOZNIK_X  		FAH_MAGN2+12 //4F MNOZNIKwanie w osi X
-#define	FAH_MAGN2_MNOZNIK_Y  		FAH_MAGN2+16 //4F MNOZNIKwanie w osi Y
-#define	FAH_MAGN2_MNOZNIK_Z  		FAH_MAGN2+20 //4F MNOZNIKwanie w osi Z
+#define	FAH_MAGN2_SKLADNIK_X  		FAH_MAGN2+0 	//4F przesunięcie magnetometru w osi X
+#define	FAH_MAGN2_SKLADNIK_Y  		FAH_MAGN2+4 	//4F przesunięcie magnetometru w osi Y
+#define	FAH_MAGN2_SKLADNIK_Z  		FAH_MAGN2+8 	//4F przesunięcie magnetometru w osi Z
+#define	FAH_MAGN2_MNOZNIK_X  		FAH_MAGN2+12 	//4F mnożnik w osi X
+#define	FAH_MAGN2_MNOZNIK_Y  		FAH_MAGN2+16 	//4F mnożnik w osi Y
+#define	FAH_MAGN2_MNOZNIK_Z  		FAH_MAGN2+20 	//4F mnożnik w osi Z
 
 //współczynniki kalibracji magnetometru 3 na module GNSS
 #define	FAH_MAGN3        			FAH_MAGN2+24
-#define	FAH_MAGN3_SKLADNIK_X  		FAH_MAGN3+0 //4F przesunięcie magnetometru w osi X
-#define	FAH_MAGN3_SKLADNIK_Y  		FAH_MAGN3+4 //4F przesunięcie magnetometru w osi Y
-#define	FAH_MAGN3_SKLADNIK_Z  		FAH_MAGN3+8 //4F przesunięcie magnetometru w osi Z
-#define	FAH_MAGN3_MNOZNIK_X  		FAH_MAGN3+12 //4F MNOZNIKwanie w osi X
-#define	FAH_MAGN3_MNOZNIK_Y  		FAH_MAGN3+16 //4F MNOZNIKwanie w osi Y
-#define	FAH_MAGN3_MNOZNIK_Z  		FAH_MAGN3+20 //4F MNOZNIKwanie w osi Z
+#define	FAH_MAGN3_SKLADNIK_X  		FAH_MAGN3+0 	//4F przesunięcie magnetometru w osi X
+#define	FAH_MAGN3_SKLADNIK_Y  		FAH_MAGN3+4 	//4F przesunięcie magnetometru w osi Y
+#define	FAH_MAGN3_SKLADNIK_Z  		FAH_MAGN3+8 	//4F przesunięcie magnetometru w osi Z
+#define	FAH_MAGN3_MNOZNIK_X  		FAH_MAGN3+12 	//4F mnożnik w osi X
+#define	FAH_MAGN3_MNOZNIK_Y  		FAH_MAGN3+16 	//4F mnożnik w osi Y
+#define	FAH_MAGN3_MNOZNIK_Z  		FAH_MAGN3+20 	//4F mnożnik w osi Z
 
-#define	FAH_MNOZNIK_CISN_BEZWZGL1	FAH_MAGN3+24    //współczynnik MNOZNIKwania ciśnienia bezwzględnego czujnika 1
-#define	FAH_MNOZNIK_CISN_BEZWZGL2	FAH_MAGN3+28    //współczynnik MNOZNIKwania ciśnienia bezwzględnego czujnika 2
+#define	FAH_MNOZNIK_CISN_BEZWZGL1	FAH_MAGN3+24    //mnożnik ciśnienia bezwzględnego czujnika 1
+#define	FAH_MNOZNIK_CISN_BEZWZGL2	FAH_MAGN3+28    //mnożnik ciśnienia bezwzględnego czujnika 2
 
 
 #define FAG_CZUJ_ZEWN				FAH_MAGN3+32	//zewnętrzne czujniki analogowe
@@ -243,10 +237,18 @@
 //zmienne systemowe i dynamiczne
 #define FA_SYS_VAR	    			0x0FF0
 #define	FAS_NUMER_SESJI	  			FA_SYS_VAR		//1U Numer sesji
-#define	FAS_ENERGIA1	    		FA_SYS_VAR+1    //4D energia pobrana z pakietu 1
-#define	FAS_ENERGIA2        		FA_SYS_VAR+5   	//4D energia pobrana z pakietu 2
-#define	FAS_CISN_01	    			FA_SYS_VAR+9    //4D ciśnienie zerowe czujnika bezwzględnego 1
-#define	FAS_CISN_02	    			FA_SYS_VAR+13   //4D ciśnienie zerowe czujnika bezwzględnego 2
+#define FAS_TSYNC_MON       		FA_SYS_VAR+1   	//1U miesiąc ostatniej synchronizacji
+#define FAS_TSYNC_DAY       		FA_SYS_VAR+2	//1U dzień ostatniej synchronizacji
+#define FAS_TSYNC_HOU       		FA_SYS_VAR+3	//1U
+#define FAS_TSYNC_MIN				FA_SYS_VAR+4
+#define FAS_TSYNC_SEC       		FA_SYS_VAR+5
+#define FAS_TSYNC_DIF       		FA_SYS_VAR+6	//1U ostatnia różnica czasu synchronizacji
+#define	FAS_ENERGIA1	    		FA_SYS_VAR+7    //4D energia pobrana z pakietu 1
+#define	FAS_ENERGIA2        		FA_SYS_VAR+11  	//4D energia pobrana z pakietu 2
+#define	FAS_CISN_01	    			FA_SYS_VAR+15   //4D ciśnienie zerowe czujnika bezwzględnego 1
+#define	FAS_CISN_02	    			FA_SYS_VAR+19   //4D ciśnienie zerowe czujnika bezwzględnego 2
+
+
 
 
 //Waypointy. Każdy zajmuje 12 bajtów. Do końca pamięci jest miejsca na 2389 waypointów

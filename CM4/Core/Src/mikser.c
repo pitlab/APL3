@@ -14,6 +14,7 @@ stMikser_t stMikser;	//struktura zmiennych miksera
 uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
 uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
 uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych. Dalsze zwiększanie wysterowania nic nie daje, więc w ten sposób wykluczamy go z zakresu regulacji
+//uint16_t sWysterowanieJalowe;	//wartość wysterowania regulatorów dla uzyskania obrotów jałowych po uzbrojeniu
 
 
 extern unia_wymianyCM4_t uDaneCM4;
@@ -75,9 +76,14 @@ uint8_t InicjujMikser(void)
 			stMikser.fPoch[n] = 0;
 	}
 
-	sWysterowanieMin 	= CzytajFramU16(FAU_PWM_MIN);      	//minimalne wysterowanie silników
-	sWysterowanieZawisu = CzytajFramU16(FAU_WPM_ZAWISU);  	//wysterowanie silników dla zawisu
-	sWysterowanieMax  	= CzytajFramU16(FAU_PWM_MAX);     	//maksymalne wysterowanie silników
+	/*/testowo zapisz konfigurację
+	ZapiszFramU16(FAU_RC_WY_MIN, 200);
+	ZapiszFramU16(FAU_RC_WY_ZAWISU, 600);
+	ZapiszFramU16(FAU_RC_WY_MAX, 1800);*/
+
+	sWysterowanieMin 	= CzytajFramU16(FAU_RC_WY_MIN);      	//minimalne wysterowanie regulatorów w trakcie lotu w jednostkach standardowych 0-2000
+	sWysterowanieZawisu = CzytajFramU16(FAU_RC_WY_ZAWISU);  	//wysterowanie silników dla zawisu
+	sWysterowanieMax  	= CzytajFramU16(FAU_RC_WY_MAX);     	//maksymalne wysterowanie silników w trakcie lotu w jednostkach standardowych 0-2000
 	return cBłąd;
 }
 

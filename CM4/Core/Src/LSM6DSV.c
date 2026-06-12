@@ -100,7 +100,7 @@ uint8_t ObslugaLSM6DSV(void)
 	{
 		chDane[0] = PLSC6DSV_OUT_TEMP_L | READ_SPI;
 		HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-		HAL_SPI_TransmitReceive(&hspi2, chDane, chDane, 15, SPI_DELAY);
+		HAL_SPI_TransmitReceive(&hspi2, chDane, chDane, 15, TOUT_SPI);
 		HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 
 		uDaneCM4.dane.fTemper[TEMP_IMU2] = (int16_t)((chDane[2] <<8) + chDane[1]) / 256.0f + 25.0f + KELVIN;		//temperatura w K

@@ -29,8 +29,8 @@ uint8_t CzytajStatusFRAM(void)
 		UstawDekoderModulow(ADR_FRAM);			//Ustaw dekoder adresów /CS.
 
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-    HAL_SPI_Transmit(&hspi2, &chStatus, 1, SPI_DELAY);					//zapisz opcode
-    HAL_SPI_Receive(&hspi2, &chStatus, 1, SPI_DELAY);					//czytaj dane
+    HAL_SPI_Transmit(&hspi2, &chStatus, 1, TOUT_SPI);					//zapisz opcode
+    HAL_SPI_Receive(&hspi2, &chStatus, 1, TOUT_SPI);					//czytaj dane
     HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
     return chStatus;
 }
@@ -52,7 +52,7 @@ void ZapiszStatusFRAM(uint8_t chStatus)
 	chDaneWew[0] = FRAM_WRSR;				//opcode
 	chDaneWew[1] = chStatus;				//dane
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-    HAL_SPI_Transmit(&hspi2, chDaneWew, 2, SPI_DELAY);					//zapisz opcode i dane
+    HAL_SPI_Transmit(&hspi2, chDaneWew, 2, TOUT_SPI);					//zapisz opcode i dane
     HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
 }
 
@@ -82,8 +82,8 @@ uint8_t CzytajFRAM(uint16_t sAdres)
 	chDaneWew[2] = (uint8_t)(sAdres & 0x00FF);	//adres L
 
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-    HAL_SPI_Transmit(&hspi2, chDaneWew, 3, SPI_DELAY);
-    HAL_SPI_Receive(&hspi2, chDaneWew, 1, SPI_DELAY);						//czytaj dane
+    HAL_SPI_Transmit(&hspi2, chDaneWew, 3, TOUT_SPI);
+    HAL_SPI_Receive(&hspi2, chDaneWew, 1, TOUT_SPI);						//czytaj dane
     HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
     hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
     return chDaneWew[0];
@@ -118,8 +118,8 @@ void CzytajBuforFRAM(uint16_t sAdres, uint8_t* chDaneWyj, uint16_t sIlosc)
 	chDaneWew[2] = (uint8_t)(sAdres & 0x00FF);	//adres L
 
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-    HAL_SPI_Transmit(&hspi2, chDaneWew, 3, SPI_DELAY);						//zapisz opcode i adres
-    HAL_SPI_Receive(&hspi2, chDaneWyj, sIlosc, SPI_DELAY);					//czytaj dane
+    HAL_SPI_Transmit(&hspi2, chDaneWew, 3, TOUT_SPI);						//zapisz opcode i adres
+    HAL_SPI_Receive(&hspi2, chDaneWyj, sIlosc, TOUT_SPI);					//czytaj dane
     HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
     hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 }
@@ -148,7 +148,7 @@ void ZapiszFRAM(unsigned short sAdres, uint8_t chDane)
 
 	chDaneWew[0] = FRAM_WREN;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_Transmit(&hspi2, chDaneWew, 1, SPI_DELAY);					//zapisz opcode
+	HAL_SPI_Transmit(&hspi2, chDaneWew, 1, TOUT_SPI);					//zapisz opcode
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);		//CS = 1
 
 	chDaneWew[0] = FRAM_WRITE;					//opcode
@@ -156,7 +156,7 @@ void ZapiszFRAM(unsigned short sAdres, uint8_t chDane)
 	chDaneWew[2] = (uint8_t)(sAdres & 0x00FF);	//adres L
 	chDaneWew[3] = chDane;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_Transmit(&hspi2, chDaneWew, 4, SPI_DELAY);						//zapisz opcode i dane
+	HAL_SPI_Transmit(&hspi2, chDaneWew, 4, TOUT_SPI);						//zapisz opcode i dane
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 }
@@ -187,15 +187,15 @@ void ZapiszBuforFRAM(uint16_t sAdres, uint8_t* chDane, uint16_t sIlosc)
 
 	chDaneWew[0] = FRAM_WREN;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_Transmit(&hspi2, chDaneWew, 1, SPI_DELAY);						//zapisz opcode
+	HAL_SPI_Transmit(&hspi2, chDaneWew, 1, TOUT_SPI);						//zapisz opcode
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 
 	chDaneWew[0] = FRAM_WRITE;					//opcode
 	chDaneWew[1] = (uint8_t)(sAdres >>8);		//adres H
 	chDaneWew[2] = (uint8_t)(sAdres & 0x00FF);	//adres L
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_Transmit(&hspi2, chDaneWew, 3, SPI_DELAY);						//zapisz opcode i adres
-	HAL_SPI_Transmit(&hspi2, chDane, sIlosc, SPI_DELAY);					//zapisz dane
+	HAL_SPI_Transmit(&hspi2, chDaneWew, 3, TOUT_SPI);						//zapisz opcode i adres
+	HAL_SPI_Transmit(&hspi2, chDane, sIlosc, TOUT_SPI);					//zapisz dane
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	hspi2.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 }
@@ -217,8 +217,8 @@ void CzytajIdFRAM(uint8_t* chDaneID)
 		UstawDekoderModulow(ADR_FRAM);			//Ustaw dekoder adresów /CS.
 
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-    HAL_SPI_Transmit(&hspi2, &chID, 1, SPI_DELAY);							//zapisz opcode
-    HAL_SPI_Receive(&hspi2, chDaneID, 9, SPI_DELAY);						//czytaj dane
+    HAL_SPI_Transmit(&hspi2, &chID, 1, TOUT_SPI);							//zapisz opcode
+    HAL_SPI_Receive(&hspi2, chDaneID, 9, TOUT_SPI);						//czytaj dane
     HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 }
 

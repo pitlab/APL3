@@ -24,7 +24,7 @@ uint8_t CzytajSPIu8(uint8_t chAdres)
 	chBufSPIWy[0] = chAdres | READ_SPI;
 	chBufSPIWy[1] = 0;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_TransmitReceive(&hspi2, chBufSPIWy, chBufSPIWe, 2, SPI_DELAY);
+	HAL_SPI_TransmitReceive(&hspi2, chBufSPIWy, chBufSPIWe, 2, TOUT_SPI);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	return chBufSPIWe[1];
 }
@@ -40,7 +40,7 @@ uint8_t CzytajSPIu8(uint8_t chAdres)
 void ZapiszSPIu8(uint8_t *chDane, uint8_t chIlosc)
 {
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_Transmit(&hspi2, chDane, chIlosc, SPI_DELAY);
+	HAL_SPI_Transmit(&hspi2, chDane, chIlosc, TOUT_SPI);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 }
 
@@ -58,7 +58,7 @@ uint16_t CzytajSPIu16mp(uint8_t chAdres)
 
 	chBufSPIWy[0] = chAdres | READ_SPI;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_TransmitReceive(&hspi2, chBufSPIWy, chBufSPIWe, 3, SPI_DELAY);
+	HAL_SPI_TransmitReceive(&hspi2, chBufSPIWy, chBufSPIWe, 3, TOUT_SPI);
 	//HAL_SPI_Transmit(&hspi2, chBufSPIWy, 32, SPI_DELAY);
 	//HAL_SPI_Receive(&hspi2, &chBufSPIWe[1], 2, SPI_DELAY);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
@@ -82,7 +82,7 @@ int32_t CzytajSPIs24sp(uint8_t chAdres)
 
 	chBufSPIWy[0] = chAdres | READ_SPI;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_TransmitReceive(&hspi2, chBufSPIWy, chBufSPIWe, 4, SPI_DELAY);
+	HAL_SPI_TransmitReceive(&hspi2, chBufSPIWy, chBufSPIWe, 4, TOUT_SPI);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	nWartosc = ((uint32_t)chBufSPIWe[1] <<16) + ((uint32_t)chBufSPIWe[2] <<8) + chBufSPIWe[3];
 	return nWartosc;
@@ -102,7 +102,7 @@ int32_t CzytajSPIs24mp(uint8_t chAdres)
 	int32_t nWartosc;
 	chBufSPIWy[0] = chAdres | READ_SPI;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	HAL_SPI_TransmitReceive(&hspi2, chBufSPIWy, chBufSPIWe, 4, SPI_DELAY);
+	HAL_SPI_TransmitReceive(&hspi2, chBufSPIWy, chBufSPIWe, 4, TOUT_SPI);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 
 	nWartosc = (int32_t)chBufSPIWe[3];

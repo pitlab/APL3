@@ -251,13 +251,13 @@ uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t chKanal)
 {
 	uint8_t cBłąd = BLAD_OK;
 	uint16_t sCRC;
-	if (sWysterowanie > DS_MAX_DANE)
+	if (sWysterowanie > WE_RC_MAX)
 	{
-		sWysterowanie = DS_MAX_DANE;
+		sWysterowanie = WE_RC_MAX;
 		cBłąd = BLAD_ZLE_DANE;
 	}
 
-	sWysterowanie += DS_OFFSET_DANYCH;
+	sWysterowanie += DS_OFFSET_DSHOT;
 	for (uint8_t n=0; n<11; n++)
 	{
 		if (sWysterowanie & 0x400)	//wysyłany jest najstarszy przodem z 11 bitów - sprawdzić
