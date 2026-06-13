@@ -18,7 +18,7 @@
 #define ADDRESS                ((uint32_t)0x00004000U) /* SD Address to write/read data */
 #define DATA_PATTERN           ((uint32_t)0xB5F3A5F3U) /* Data pattern to write */
 
-#define ROZMIAR_BUFORA_LOGU		(2*512)
+#define ROZMIAR_BUFORA_LOGU		(3*512)
 #define MAX_ROZMIAR_WPISU_LOGU	20
 #define WPISOW_NA_SYNC			100		//po tylu zapisach linii robiony jest SYNC na karcie
 
@@ -37,70 +37,60 @@
 #define STATREJ_ZAPISZ_BMP		0x40
 #define STATREJ_ZAPISZ_JPG		0x80
 
+
 //definicje bitów konfiguracji logera
 #define KLOG1_CZAS      0x00000001	    //czas
 #define KLOG1_PRES1     0x00000002	    //ciśnienie atmosferyczne z czujnika ciśnienia 1
 #define KLOG1_PRES2		0x00000004	    //ciśnienie atmosferyczne z czujnika ciśnienia 2
 #define KLOG1_AMSL1    	0x00000008	    //wysokość barometryczna z czujnika ciśnienia 1
 #define KLOG1_AMSL2    	0x00000010	    //wysokość barometryczna z czujnika ciśnienia 2
+#define KLOG1_VARIO1    0x00000080	    //wskazania wariometru 1
+#define KLOG1_VARIO2    0x00000100	    //wskazania wariometru 2
 
-#define KLOG1_IAS1      0x00000020	    //prędkość wzgledem powietrza z czujnika różnicowego 1
-#define KLOG1_IAS2      0x00000040	    //prędkość wzgledem powietrza z czujnika różnicowego 2
-#define KLOG1_VARIO     0x00000080	    //wskazania wariometru
+#define KLOG1_CISROZ1	0x00000200		//ciśnienie czujnika różnicowego 1
+#define KLOG1_CISROZ2	0x00000400		//ciśnienie czujnika różnicowego 2
+#define KLOG1_IAS1      0x00000800	    //prędkość wzgledem powietrza z czujnika różnicowego 1
+#define KLOG1_IAS2      0x00001000	    //prędkość wzgledem powietrza z czujnika różnicowego 2
 
-#define KLOG1_ZYRO1P    0x00000100	    //skaliborwana prędkość obrotowa P żyroskopu 1
-#define KLOG1_ZYRO1Q    0x00000200	    //skaliborwana prędkość obrotowa Q żyroskopu 1
-#define KLOG1_ZYRO1R    0x00000400	    //skaliborwana prędkość obrotowa R żyroskopu 1
-#define KLOG1_ZYRO2P    0x00000800	    //skaliborwana prędkość obrotowa P żyroskopu 2
-#define KLOG1_ZYRO2Q    0x00001000	    //skaliborwana prędkość obrotowa Q żyroskopu 2
-#define KLOG1_ZYRO2R    0x00002000	    //skaliborwana prędkość obrotowa R żyroskopu 2
+#define KLOG1_TEMPBARO1	0x00002000	    //temperatura czujnika ciśnienia 1
+#define KLOG1_TEMPCISR1	0x00004000	    //temperatura czujnika ciśnienia różnicowego 1
+#define KLOG1_TEMPCISR2	0x00008000	    //temperatura czujnika ciśnienia różnicowego 2
 
-#define KLOG1_AKCEL1X   0x00004000	    //przyspieszenie w osi X akcelerometru 1
-#define KLOG1_AKCEL1Y   0x00008000	    //przyspieszenie w osi Y akcelerometru 1
-#define KLOG1_AKCEL1Z   0x00010000	    //przyspieszenie w osi Z akcelerometru 1
-#define KLOG1_AKCEL2X   0x00020000	    //przyspieszenie w osi X akcelerometru 2
-#define KLOG1_AKCEL2Y   0x00040000	    //przyspieszenie w osi Y akcelerometru 2
-#define KLOG1_AKCEL2Z   0x00080000	    //przyspieszenie w osi Z akcelerometru 2
-
-#define KLOG1_MAG1X     0x00100000	    //składowa magnetyczna w osi X magnetometru 1
-#define KLOG1_MAG1Y     0x00200000	    //składowa magnetyczna w osi Y magnetometru 1
-#define KLOG1_MAG1Z     0x00400000	    //składowa magnetyczna w osi Z magnetometru 1
-#define KLOG1_MAG2X     0x00800000	    //składowa magnetyczna w osi X magnetometru 2
-#define KLOG1_MAG2Y     0x01000000	    //składowa magnetyczna w osi Y magnetometru 2
-#define KLOG1_MAG2Z     0x02000000	    //składowa magnetyczna w osi Z magnetometru 2
-#define KLOG1_MAG3X     0x04000000	    //składowa magnetyczna w osi X magnetometru 3
-#define KLOG1_MAG3Y     0x08000000	    //składowa magnetyczna w osi Y magnetometru 3
-#define KLOG1_MAG3Z     0x10000000	    //składowa magnetyczna w osi Z magnetometru 3
-
-#define KLOG1_TEMPBARO1	0x20000000	    //temperatura czujnika ciśnienia 1
-#define KLOG1_TEMPIMU1	0x40000000	    //temperatura IMU1
-#define KLOG1_TEMPIMU2	0x80000000	    //temperatura IMU2
 
 //drugie słowo konfiguracji logera
-#define KLOG2_GLONG     0x00000001	    //szerokość geograficzna z GPS
-#define KLOG2_GLATI     0x00000002	    //długość geograficzna z GPS
-#define KLOG2_GALTI     0x00000004	    //wysokość n.p.m. z GPS
-#define KLOG2_GSPED     0x00000008	    //prędkość wzgledem ziemi z GPS
-#define KLOG2_GCURS     0x00000010	    //kurs względem ziemi z GPS
-#define KLOG2_GSATS     0x00000020	    //liczba widocznych satelitów
-#define KLOG2_GVDOP     0x00000040	    //Vertical Dilution of Precision
-#define KLOG2_GHDOP     0x00000080	    //Horizontal Dilution of Precision
+#define KLOG2_ZYROSUR1P 0x00000001	    //surowa prędkość obrotowa P żyroskopu 1
+#define KLOG2_ZYROSUR1Q 0x00000002	    //surowa prędkość obrotowa Q żyroskopu 1
+#define KLOG2_ZYROSUR1R 0x00000004	    //surowa prędkość obrotowa R żyroskopu 1
+#define KLOG2_ZYROSUR2P 0x00000008	    //surowa prędkość obrotowa P żyroskopu 2
+#define KLOG2_ZYROSUR2Q 0x00000010	    //surowa prędkość obrotowa Q żyroskopu 2
+#define KLOG2_ZYROSUR2R 0x00000020	    //surowa prędkość obrotowa R żyroskopu 2
 
-#define KLOG2_GSPD_E    0x00000100	    //niefiltrowana prędkość z GPS w kierunku wschodnim
-#define KLOG2_GSPD_N    0x00000200	    //niefiltrowana prędkość z GPS w kierunku północnym
+#define KLOG2_ZYRO1P    0x00000040	    //skalibrowana prędkość obrotowa P żyroskopu 1
+#define KLOG2_ZYRO1Q    0x00000080	    //skalibrowana prędkość obrotowa Q żyroskopu 1
+#define KLOG2_ZYRO1R    0x00000100	    //skalibrowana prędkość obrotowa R żyroskopu 1
+#define KLOG2_ZYRO2P    0x00000200	    //skalibrowana prędkość obrotowa P żyroskopu 2
+#define KLOG2_ZYRO2Q    0x00000400	    //skalibrowana prędkość obrotowa Q żyroskopu 2
+#define KLOG2_ZYRO2R    0x00000800	    //skalibrowana prędkość obrotowa R żyroskopu 2
 
-#define KLOG2_TEMPCISR1	0x00400000	    //temperatura czujnika ciśnienia różnicowego 1
-#define KLOG2_TEMPCISR2	0x00800000	    //temperatura czujnika ciśnienia różnicowego 2
+#define KLOG2_AKCEL1X   0x00001000	    //przyspieszenie w osi X akcelerometru 1
+#define KLOG2_AKCEL1Y   0x00002000	    //przyspieszenie w osi Y akcelerometru 1
+#define KLOG2_AKCEL1Z   0x00004000	    //przyspieszenie w osi Z akcelerometru 1
+#define KLOG2_AKCEL2X   0x00008000	    //przyspieszenie w osi X akcelerometru 2
+#define KLOG2_AKCEL2Y   0x00010000	    //przyspieszenie w osi Y akcelerometru 2
+#define KLOG2_AKCEL2Z   0x00020000	    //przyspieszenie w osi Z akcelerometru 2
 
-#define KLOG2_ZYROSUR1P 0x01000000	    //surowa prędkość obrotowa P żyroskopu 1
-#define KLOG2_ZYROSUR1Q 0x02000000	    //surowa prędkość obrotowa Q żyroskopu 1
-#define KLOG2_ZYROSUR1R 0x04000000	    //surowa prędkość obrotowa R żyroskopu 1
-#define KLOG2_ZYROSUR2P 0x08000000	    //surowa prędkość obrotowa P żyroskopu 2
-#define KLOG2_ZYROSUR2Q 0x10000000	    //surowa prędkość obrotowa Q żyroskopu 2
-#define KLOG2_ZYROSUR2R 0x20000000	    //surowa prędkość obrotowa R żyroskopu 2
+#define KLOG2_MAG1X     0x00040000	    //składowa magnetyczna w osi X magnetometru 1
+#define KLOG2_MAG1Y     0x00080000	    //składowa magnetyczna w osi Y magnetometru 1
+#define KLOG2_MAG1Z     0x00100000	    //składowa magnetyczna w osi Z magnetometru 1
+#define KLOG2_MAG2X     0x00200000	    //składowa magnetyczna w osi X magnetometru 2
+#define KLOG2_MAG2Y     0x00400000	    //składowa magnetyczna w osi Y magnetometru 2
+#define KLOG2_MAG2Z     0x00800000	    //składowa magnetyczna w osi Z magnetometru 2
+#define KLOG2_MAG3X     0x01000000	    //składowa magnetyczna w osi X magnetometru 3
+#define KLOG2_MAG3Y     0x02000000	    //składowa magnetyczna w osi Y magnetometru 3
+#define KLOG2_MAG3Z     0x04000000	    //składowa magnetyczna w osi Z magnetometru 3
 
-#define KLOG2_CISROZ1	0x40000000		//ciśnienie czujnika różnicowego 1
-#define KLOG2_CISROZ2	0x80000000		//ciśnienie czujnika różnicowego 2
+#define KLOG2_TEMPIMU1	0x08000000	    //temperatura IMU1
+#define KLOG2_TEMPIMU2	0x10000000	    //temperatura IMU2
 
 
 //trzecie słowo konfiguracji logera
@@ -113,6 +103,23 @@
 #define KLOG3_KATPHIZ   0x00000040	    //kąt phi obliczony jako całka prędkości P z żyroskopu
 #define KLOG3_KATTHEZ   0x00000080	    //kąt theta obliczony jako całka prędkości Q z żyroskopu
 #define KLOG3_KATPSIZ   0x00000100	    //kąt psi obliczony jako całka prędkości R z żyroskopu
+
+#define KLOG3_GLONG     0x00010000	    //szerokość geograficzna z GPS
+#define KLOG3_GLATI     0x00020000	    //długość geograficzna z GPS
+#define KLOG3_GALTI     0x00040000	    //wysokość n.p.m. z GPS
+#define KLOG3_GSPED     0x00080000	    //prędkość wzgledem ziemi z GPS
+#define KLOG3_GCURS     0x00100000	    //kurs względem ziemi z GPS
+#define KLOG3_GSATS     0x00200000	    //liczba widocznych satelitów
+#define KLOG3_GVDOP     0x00400000	    //Vertical Dilution of Precision
+#define KLOG3_GHDOP     0x00800000	    //Horizontal Dilution of Precision
+
+#define KLOG3_GSPD_E    0x01000000	    //niefiltrowana prędkość z GPS w kierunku wschodnim
+#define KLOG3_GSPD_N    0x02000000	    //niefiltrowana prędkość z GPS w kierunku północnym
+
+
+
+
+
 
 /*
 #define LOG1CONF_VOLT1      0x00004000	    //napięcie z sondy pomiaru mocy 1

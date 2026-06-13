@@ -2303,9 +2303,9 @@ void PomiaryCzujnikow(void)
 		BelkaTytulu("Dane czujnikow");
 
 		setColor(SZARY80);
-		sprintf(chNapis, "Ci%cn 1:             AGL1:", ś);
+		sprintf(chNapis, "Ci%cn1:           AGL1:           V1:            T:", ś);
 		RysujNapis(chNapis, KOL12, 30);
-		sprintf(chNapis, "Ci%cn 2:             AGL2:", ś);
+		sprintf(chNapis, "Ci%cn2:           AGL2:           V2:            T:", ś);
 		RysujNapis(chNapis, KOL12, 50);
 		sprintf(chNapis, "Ci%cR%c%cn 1:          IAS1:", ś, ó, ż);
 		RysujNapis(chNapis, KOL12, 70);
@@ -2338,46 +2338,50 @@ void PomiaryCzujnikow(void)
 	//MS5611
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(BIALY); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnieBzw[0]);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 30);
+	RysujNapis(chNapis, KOL12 + 7*FONT_SL, 30);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(CYJAN); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysokoMSL[0]);
-	RysujNapis(chNapis, KOL12+26*FONT_SL, 30);
+	RysujNapis(chNapis, KOL12 + 23*FONT_SL, 30);
+	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fWariometr[0]);
+	RysujNapis(chNapis, KOL12 + 37*FONT_SL, 30);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(ZOLTY); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
-	RysujNapis(chNapis, KOL12+40*FONT_SL, 30);
+	RysujNapis(chNapis, KOL12 + 51*FONT_SL, 30);
 
 	//BMP581
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(BIALY); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnieBzw[1]);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 50);
+	RysujNapis(chNapis, KOL12 + 7*FONT_SL, 50);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(CYJAN); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysokoMSL[1]);
-	RysujNapis(chNapis, KOL12+26*FONT_SL, 50);
+	RysujNapis(chNapis, KOL12 + 23*FONT_SL, 50);
+	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fWariometr[1]);
+	RysujNapis(chNapis, KOL12 + 37*FONT_SL, 50);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(ZOLTY); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
-	RysujNapis(chNapis, KOL12+40*FONT_SL, 50);
+	RysujNapis(chNapis, KOL12 + 51*FONT_SL, 50);
 
 	//ND130
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(BIALY); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[0]);
-	RysujNapis(chNapis, KOL12+11*FONT_SL, 70);
+	RysujNapis(chNapis, KOL12 + 11*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(MAGENTA); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[0]);
-	RysujNapis(chNapis, KOL12+26*FONT_SL, 70);
+	RysujNapis(chNapis, KOL12 + 26*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(ZOLTY); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
-	RysujNapis(chNapis, KOL12+40*FONT_SL, 70);
+	RysujNapis(chNapis, KOL12 + 40*FONT_SL, 70);
 
 	//MS4525
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(BIALY); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
 	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[1]);
-	RysujNapis(chNapis, KOL12+11*FONT_SL, 90);
+	RysujNapis(chNapis, KOL12 + 11*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(MAGENTA); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[1]);
-	RysujNapis(chNapis, KOL12+26*FONT_SL, 90);
+	RysujNapis(chNapis, KOL12 + 26*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(ZOLTY); 	else	setColor(SZARY50);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2] - KELVIN , ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
-	RysujNapis(chNapis, KOL12+40*FONT_SL, 90);
+	RysujNapis(chNapis, KOL12 + 40*FONT_SL, 90);
 
 	//dane z GNSS
 	if (uDaneCM4.dane.stGnss1.chFix)
@@ -2386,68 +2390,68 @@ void PomiaryCzujnikow(void)
 		setColor(SZARY70);	//nie ma fixa
 
 	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dDlugoscGeo);
-	RysujNapis(chNapis, KOL12+11*FONT_SL, 120);
+	RysujNapis(chNapis, KOL12 + 11*FONT_SL, 120);
 	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
-	RysujNapis(chNapis, KOL12+29*FONT_SL, 120);
+	RysujNapis(chNapis, KOL12 + 29*FONT_SL, 120);
 	sprintf(chNapis, "%.2f ", uDaneCM4.dane.stGnss1.fHdop);
-	RysujNapis(chNapis, KOL12+47*FONT_SL, 120);
+	RysujNapis(chNapis, KOL12 + 47*FONT_SL, 120);
 
-	sprintf(chNapis, "%.1fm ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
-	RysujNapis(chNapis, KOL12+13*FONT_SL, 140);
-	sprintf(chNapis, "%.3fm/s ", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
-	RysujNapis(chNapis, KOL12+29*FONT_SL, 140);
+	sprintf(chNapis, "%.1f m ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
+	RysujNapis(chNapis, KOL12 + 13*FONT_SL, 140);
+	sprintf(chNapis, "%.3f m/s ", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
+	RysujNapis(chNapis, KOL12 + 29*FONT_SL, 140);
 	sprintf(chNapis, "%3.2f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+47*FONT_SL, 140);
+	RysujNapis(chNapis, KOL12 + 47*FONT_SL, 140);
 
 	sprintf(chNapis, "%02d:%02d:%02d ", uDaneCM4.dane.stGnss1.chGodz, uDaneCM4.dane.stGnss1.chMin, uDaneCM4.dane.stGnss1.chSek);
-	RysujNapis(chNapis, KOL12+12*FONT_SL, 160);
+	RysujNapis(chNapis, KOL12 + 12*FONT_SL, 160);
 	if  (uDaneCM4.dane.stGnss1.chMies > 12)	//ograniczenie aby nie pobierało nazwy miesiaca spoza tablicy chNazwyMies3Lit[]
 		uDaneCM4.dane.stGnss1.chMies = 0;	//zerowy indeks jest pustą nazwą "---"
 	sprintf(chNapis, "%02d %s %04d ", uDaneCM4.dane.stGnss1.chDzien, chNazwyMies3Lit[uDaneCM4.dane.stGnss1.chMies], uDaneCM4.dane.stGnss1.chRok + 2000);
-	RysujNapis(chNapis, KOL12+29*FONT_SL, 160);
+	RysujNapis(chNapis, KOL12 + 29*FONT_SL, 160);
 	sprintf(chNapis, "%d ", uDaneCM4.dane.stGnss1.chLiczbaSatelit);
-	RysujNapis(chNapis, KOL12+47*FONT_SL, 160);
+	RysujNapis(chNapis, KOL12 + 47*FONT_SL, 160);
 
 	//napięcie, prąd i energia obu pakietów
 	setColor(BIALY);
 	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieAku[0]);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 190);
+	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 190);
 	sprintf(chNapis, "%.2f A ", uDaneCM4.dane.fPradAku[0]);
-	RysujNapis(chNapis, KOL12+27*FONT_SL, 190);
+	RysujNapis(chNapis, KOL12 + 27*FONT_SL, 190);
 	//sprintf(chNapis, "%.1f mAh ", uDaneCM4.dane.fEnergiaPobr[0]);
 	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieWej[0]);			//tymczasowo pokaż napięcie wejściowe z własnego dzielnika
-	RysujNapis(chNapis, KOL12+46*FONT_SL, 190);
+	RysujNapis(chNapis, KOL12 + 46*FONT_SL, 190);
 
 	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieAku[1]);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 210);
+	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 210);
 	sprintf(chNapis, "%.2f A ", uDaneCM4.dane.fPradAku[1]);
-	RysujNapis(chNapis, KOL12+27*FONT_SL, 210);
+	RysujNapis(chNapis, KOL12 + 27*FONT_SL, 210);
 	//sprintf(chNapis, "%.1f mAh ", uDaneCM4.dane.fEnergiaPobr[1]);
 	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieWej[1]);			//tymczasowo pokaż napięcie wejściowe z własnego dzielnika
-	RysujNapis(chNapis, KOL12+46*FONT_SL, 210);
+	RysujNapis(chNapis, KOL12 + 46*FONT_SL, 210);
 
 	//napięcia pomocnicze
 	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieSerw);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 230);
+	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 230);
 	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapiecieUSB);
-	RysujNapis(chNapis, KOL12+27*FONT_SL, 230);
+	RysujNapis(chNapis, KOL12 + 27*FONT_SL, 230);
 	sprintf(chNapis, "%.3f V " , uDaneCM4.dane.fNapiecieBatRTC);
-	RysujNapis(chNapis, KOL12+46*FONT_SL, 230);
+	RysujNapis(chNapis, KOL12 + 46*FONT_SL, 230);
 
 	//napięcie czujników zewnętrznych
 	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[0]);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 260);
+	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 260);
 	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[1]);
-	RysujNapis(chNapis, KOL12+27*FONT_SL, 260);
+	RysujNapis(chNapis, KOL12 + 27*FONT_SL, 260);
 	setColor(ZOLTY);
 	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemperCPU, ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+46*FONT_SL, 260);
+	RysujNapis(chNapis, KOL12 + 46*FONT_SL, 260);
 
 	setColor(BIALY);
 	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[2]);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 280);
+	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 280);
 	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[3]);
-	RysujNapis(chNapis, KOL12+27*FONT_SL, 280);
+	RysujNapis(chNapis, KOL12 + 27*FONT_SL, 280);
 
 	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI do zera
 	RysujPasekPostepu(CZAS_KALIBRACJI);
@@ -2802,14 +2806,21 @@ void WyswietlRejestratorKartySD(void)
 	{
 		chRysujRaz = 0;
 		BelkaTytulu("Rejestrator na karcie SD");
+
+		setColor(SZARY80);
+		sprintf(chNapis, "Karta SD: ");
+		RysujNapis(chNapis, KOL12, 30);
+		sprintf(chNapis, "Stan FATu: ");
+		RysujNapis(chNapis, KOL12, 50);
+		sprintf(chNapis, "Plik logu: ");
+		RysujNapis(chNapis, KOL12, 70);
+		sprintf(chNapis, "Rejestrator: ");
+		RysujNapis(chNapis, KOL12, 90);
+		sprintf(chNapis, "Zape%cnienie: ", ł);
+		RysujNapis(chNapis, KOL12, 110);
 	}
 
 	sPozY = 30;
-	setColor(SZARY80);
-
-	sprintf(chNapis, "Karta SD: ");
-	RysujNapis(chNapis, KOL12, sPozY);
-	setColor(ZOLTY);
 	if ((chPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty
 	{
 		setColor(KOLOR_Y);
@@ -2822,11 +2833,6 @@ void WyswietlRejestratorKartySD(void)
 	}
 	RysujNapis(chNapis, KOL12 + 11*FONT_SL, sPozY);
 	sPozY += 20;
-
-
-	setColor(SZARY80);
-	sprintf(chNapis, "Stan FATu: ");
-	RysujNapis(chNapis, KOL12, sPozY);
 
 	if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
 	{
@@ -2841,10 +2847,6 @@ void WyswietlRejestratorKartySD(void)
 	}
 	RysujNapis(chNapis, KOL12 + 11*FONT_SL, sPozY);
 	sPozY += 20;
-
-	setColor(SZARY80);
-	sprintf(chNapis, "Plik logu: ");
-	RysujNapis(chNapis, KOL12, sPozY);
 
 	if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
 	{
@@ -2862,10 +2864,6 @@ void WyswietlRejestratorKartySD(void)
 	RysujNapis(chNapis, KOL12 + 11*FONT_SL, sPozY);
 	sPozY += 20;
 
-	setColor(SZARY80);
-	sprintf(chNapis, "Rejestrator: ");
-	RysujNapis(chNapis, KOL12, sPozY);
-	setColor(ZOLTY);
 	if (chStatusRejestratora & STATREJ_WLACZONY)
 	{
 		setColor(KOLOR_Y);
@@ -2879,9 +2877,7 @@ void WyswietlRejestratorKartySD(void)
 	RysujNapis(chNapis, KOL12 + 13*FONT_SL, sPozY);
 	sPozY += 20;
 
-	setColor(SZARY80);
-	sprintf(chNapis, "Zapelnienie: ");
-	RysujNapis(chNapis, KOL12, sPozY);
+
 	float fZapelnienie = (float)sMaxDlugoscWierszaLogu / ROZMIAR_BUFORA_LOGU;
 	if (fZapelnienie < 0.75)
 		setColor(KOLOR_Y);	//zielony
@@ -2890,7 +2886,7 @@ void WyswietlRejestratorKartySD(void)
 		setColor(ZOLTY);
 	else
 		setColor(KOLOR_X);	//czerwony
-	sprintf(chNapis, "%d/%d ", sMaxDlugoscWierszaLogu, ROZMIAR_BUFORA_LOGU);
+	sprintf(chNapis, "%d / %d ", sMaxDlugoscWierszaLogu, ROZMIAR_BUFORA_LOGU);
 	RysujNapis(chNapis, KOL12 + 13*FONT_SL, sPozY);
 	sPozY += 20;
 }

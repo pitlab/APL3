@@ -242,7 +242,7 @@ uint8_t ObslugaMS5611(void)
 		chProporcjaPomiarow &= 0x07;
 
 		//przygotuj P0
-		if (fCisnienie > 0)		//wykonaj tylko dla cykli pomiaru ciśnienia, pomiń cykle pomiary tempertury
+		if (fCisnienie > 0)		//wykonaj tylko dla cykli pomiaru ciśnienia, pomiń cykle pomiary temperatury
 		{
 			if (sLicznikUsrednianiaP0)	//czy przygotowanie ciśnienia P0 jeszcze trwa
 			{
