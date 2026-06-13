@@ -29,6 +29,7 @@
 #define BLAD_ZLY_
 
 #define BLAD_NIC_DO_ROBOTY		26	//zadanie nie znalazło nic do wykonania
+#define BLAD_ZA_KROTKI_CZAS		27	//upłyneło za mało czasu aby zadaie mogło zostać zrealizowane
 
 //#define BLAD_SRAM_TEST			30 //błąd pamięci SRAM
 #define BLAD_BRAK_KAMERY			31	//nie wykryto obecności kamery

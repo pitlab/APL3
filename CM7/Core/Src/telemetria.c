@@ -276,37 +276,37 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 
 	switch (sZmienna)
 	{
-	case TID_AKCEL1X:	fZmiennaTele = uDaneCM4.dane.fAkcel1[0];		break;
-	case TID_AKCEL1Y:	fZmiennaTele = uDaneCM4.dane.fAkcel1[1];		break;
-	case TID_AKCEL1Z:	fZmiennaTele = uDaneCM4.dane.fAkcel1[2];		break;
-	case TID_AKCEL2X:	fZmiennaTele = uDaneCM4.dane.fAkcel2[0];		break;
-	case TID_AKCEL2Y:	fZmiennaTele = uDaneCM4.dane.fAkcel2[1];		break;
-	case TID_AKCEL2Z:	fZmiennaTele = uDaneCM4.dane.fAkcel2[2];		break;
+	case TID_AKCEL1X:	fZmiennaTele = uDaneCM4.dane.fAkcel1[0];			break;
+	case TID_AKCEL1Y:	fZmiennaTele = uDaneCM4.dane.fAkcel1[1];			break;
+	case TID_AKCEL1Z:	fZmiennaTele = uDaneCM4.dane.fAkcel1[2];			break;
+	case TID_AKCEL2X:	fZmiennaTele = uDaneCM4.dane.fAkcel2[0];			break;
+	case TID_AKCEL2Y:	fZmiennaTele = uDaneCM4.dane.fAkcel2[1];			break;
+	case TID_AKCEL2Z:	fZmiennaTele = uDaneCM4.dane.fAkcel2[2];			break;
 	case TID_ZYRO1P:		fZmiennaTele = uDaneCM4.dane.fZyroKal1[0];		break;
 	case TID_ZYRO1Q:		fZmiennaTele = uDaneCM4.dane.fZyroKal1[1];		break;
 	case TID_ZYRO1R:		fZmiennaTele = uDaneCM4.dane.fZyroKal1[2];		break;
 	case TID_ZYRO2P:		fZmiennaTele = uDaneCM4.dane.fZyroKal2[0];		break;
 	case TID_ZYRO2Q:		fZmiennaTele = uDaneCM4.dane.fZyroKal2[1];		break;
 	case TID_ZYRO2R:		fZmiennaTele = uDaneCM4.dane.fZyroKal2[2];		break;
-	case TID_MAGNE1X:	fZmiennaTele = uDaneCM4.dane.fMagne1[0];		break;
-	case TID_MAGNE1Y:	fZmiennaTele = uDaneCM4.dane.fMagne1[1];		break;
-	case TID_MAGNE1Z:	fZmiennaTele = uDaneCM4.dane.fMagne1[2];		break;
-	case TID_MAGNE2X:	fZmiennaTele = uDaneCM4.dane.fMagne2[0];		break;
-	case TID_MAGNE2Y:	fZmiennaTele = uDaneCM4.dane.fMagne2[1];		break;
-	case TID_MAGNE2Z:	fZmiennaTele = uDaneCM4.dane.fMagne2[2];		break;
-	case TID_MAGNE3X:	fZmiennaTele = uDaneCM4.dane.fMagne3[0];		break;
-	case TID_MAGNE3Y:	fZmiennaTele = uDaneCM4.dane.fMagne3[1];		break;
-	case TID_MAGNE3Z:	fZmiennaTele = uDaneCM4.dane.fMagne3[2];		break;
-	case TID_TEMPIMU1:	fZmiennaTele = uDaneCM4.dane.fTemper[TEMP_IMU1];		break;
-	case TID_TEMPIMU2:	fZmiennaTele = uDaneCM4.dane.fTemper[TEMP_IMU1];		break;
+	case TID_MAGNE1X:	fZmiennaTele = uDaneCM4.dane.fMagne1[0];			break;
+	case TID_MAGNE1Y:	fZmiennaTele = uDaneCM4.dane.fMagne1[1];			break;
+	case TID_MAGNE1Z:	fZmiennaTele = uDaneCM4.dane.fMagne1[2];			break;
+	case TID_MAGNE2X:	fZmiennaTele = uDaneCM4.dane.fMagne2[0];			break;
+	case TID_MAGNE2Y:	fZmiennaTele = uDaneCM4.dane.fMagne2[1];			break;
+	case TID_MAGNE2Z:	fZmiennaTele = uDaneCM4.dane.fMagne2[2];			break;
+	case TID_MAGNE3X:	fZmiennaTele = uDaneCM4.dane.fMagne3[0];			break;
+	case TID_MAGNE3Y:	fZmiennaTele = uDaneCM4.dane.fMagne3[1];			break;
+	case TID_MAGNE3Z:	fZmiennaTele = uDaneCM4.dane.fMagne3[2];			break;
+	case TID_TEMPIMU1:	fZmiennaTele = uDaneCM4.dane.fTemper[TEMP_IMU1];	break;
+	case TID_TEMPIMU2:	fZmiennaTele = uDaneCM4.dane.fTemper[TEMP_IMU1];	break;
 
 	//zmienne AHRS
-	case TID_KAT_IMU1X:	fZmiennaTele = uDaneCM4.dane.fKatIMU1[0];		break;
-	case TID_KAT_IMU1Y:	fZmiennaTele = uDaneCM4.dane.fKatIMU1[1];		break;
-	case TID_KAT_IMU1Z:	fZmiennaTele = uDaneCM4.dane.fKatIMU1[2];		break;
-	case TID_KAT_IMU2X:	fZmiennaTele = uDaneCM4.dane.fKatIMU2[0];		break;
-	case TID_KAT_IMU2Y:	fZmiennaTele = uDaneCM4.dane.fKatIMU2[1];		break;
-	case TID_KAT_IMU2Z:	fZmiennaTele = uDaneCM4.dane.fKatIMU2[2];		break;
+	case TID_KAT_IMU1X:	fZmiennaTele = uDaneCM4.dane.fKatIMU1[0];			break;
+	case TID_KAT_IMU1Y:	fZmiennaTele = uDaneCM4.dane.fKatIMU1[1];			break;
+	case TID_KAT_IMU1Z:	fZmiennaTele = uDaneCM4.dane.fKatIMU1[2];			break;
+	case TID_KAT_IMU2X:	fZmiennaTele = uDaneCM4.dane.fKatIMU2[0];			break;
+	case TID_KAT_IMU2Y:	fZmiennaTele = uDaneCM4.dane.fKatIMU2[1];			break;
+	case TID_KAT_IMU2Z:	fZmiennaTele = uDaneCM4.dane.fKatIMU2[2];			break;
 	case TID_KAT_ZYRO1X:	fZmiennaTele = uDaneCM4.dane.fKatZyro1[0];		break;
 	case TID_KAT_ZYRO1Y:	fZmiennaTele = uDaneCM4.dane.fKatZyro1[1];		break;
 	case TID_KAT_ZYRO1Z:	fZmiennaTele = uDaneCM4.dane.fKatZyro1[2];		break;
@@ -315,18 +315,21 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_KAT_AKCELZ:	fZmiennaTele = uDaneCM4.dane.fKatAkcel1[2];		break;
 
 	//zmienne barametryczne
-	case TID_CISBEZW1:	fZmiennaTele = uDaneCM4.dane.fCisnieBzw[0];		break;
-	case TID_CISBEZW2:	fZmiennaTele = uDaneCM4.dane.fCisnieBzw[1];		break;
-	case TID_WYSOKOSC1:	fZmiennaTele = uDaneCM4.dane.fWysokoMSL[0];		break;
-	case TID_WYSOKOSC2:	fZmiennaTele = uDaneCM4.dane.fWysokoMSL[1];		break;
-	case TID_CISROZN1:	fZmiennaTele = uDaneCM4.dane.fCisnRozn[0];		break;
-	case TID_CISROZN2:	fZmiennaTele = uDaneCM4.dane.fCisnRozn[1];		break;
-	case TID_PREDIAS1:	fZmiennaTele = uDaneCM4.dane.fPredkosc[0];		break;
-	case TID_PREDIAS2:	fZmiennaTele = uDaneCM4.dane.fPredkosc[1];		break;
-	case TID_TEMPCISB1:	fZmiennaTele = uDaneCM4.dane.fTemper[TEMP_BARO1];		break;
-	case TID_TEMPCISB2:	fZmiennaTele = uDaneCM4.dane.fTemper[TEMP_BARO2];		break;
-	case TID_TEMPCISR1:	fZmiennaTele = uDaneCM4.dane.fTemper[TEMP_CISR1];		break;
-	case TID_TEMPCISR2:	fZmiennaTele = uDaneCM4.dane.fTemper[TEMP_CISR2];		break;
+	case TID_CISBEZW1:	fZmiennaTele = uDaneCM4.dane.fCisnieBzw[0];			break;
+	case TID_CISBEZW2:	fZmiennaTele = uDaneCM4.dane.fCisnieBzw[1];			break;
+	case TID_WYSOKOSC1:	fZmiennaTele = uDaneCM4.dane.fWysokoMSL[0];			break;
+	case TID_WYSOKOSC2:	fZmiennaTele = uDaneCM4.dane.fWysokoMSL[1];			break;
+	case TID_CISROZN1:	fZmiennaTele = uDaneCM4.dane.fCisnRozn[0];			break;
+	case TID_CISROZN2:	fZmiennaTele = uDaneCM4.dane.fCisnRozn[1];			break;
+	case TID_PREDIAS1:	fZmiennaTele = uDaneCM4.dane.fPredkosc[0];			break;
+	case TID_PREDIAS2:	fZmiennaTele = uDaneCM4.dane.fPredkosc[1];			break;
+
+	case TID_WARIO1:	fZmiennaTele = uDaneCM4.dane.fWariometr[0];			break;
+	case TID_WARIO2:	fZmiennaTele = uDaneCM4.dane.fWariometr[1];			break;
+	case TID_TEMPCISB1:	fZmiennaTele = uDaneCM4.dane.fTemper[TEMP_BARO1];	break;
+	case TID_TEMPCISB2:	fZmiennaTele = uDaneCM4.dane.fTemper[TEMP_BARO2];	break;
+	case TID_TEMPCISR1:	fZmiennaTele = uDaneCM4.dane.fTemper[TEMP_CISR1];	break;
+	case TID_TEMPCISR2:	fZmiennaTele = uDaneCM4.dane.fTemper[TEMP_CISR2];	break;
 
 	//odbiorniki RC
 	case TID_RC_KAN1:
@@ -364,23 +367,23 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_SERWO15:			//aby nie generować zbyt dużo kodu stosuję wzór do obliczenia indeksu zmiennej dla wszystkich kanałów
 	case TID_SERWO16:			fZmiennaTele = uDaneCM4.dane.sWyjscieRC[sZmienna - TID_SERWO1];	break;
 
-	case TID_DOTYK_ADC0:		fZmiennaTele = statusDotyku.sAdc[0];		break;
-	case TID_DOTYK_ADC1:		fZmiennaTele = statusDotyku.sAdc[1];		break;
-	case TID_DOTYK_ADC2:		fZmiennaTele = statusDotyku.sAdc[2];		break;
-	case TID_CZAS_PETLI: 		fZmiennaTele = uDaneCM4.dane.ndT;			break;
+	case TID_DOTYK_ADC0:		fZmiennaTele = statusDotyku.sAdc[0];			break;
+	case TID_DOTYK_ADC1:		fZmiennaTele = statusDotyku.sAdc[1];			break;
+	case TID_DOTYK_ADC2:		fZmiennaTele = statusDotyku.sAdc[2];			break;
+	case TID_CZAS_PETLI: 		fZmiennaTele = uDaneCM4.dane.ndT;				break;
 	case TID_ROZNE_F11:			fZmiennaTele = uDaneCM4.dane.uRozne.f32[11];	break;
 	case TID_JAKOSC_UP_RC1:		fZmiennaTele = uDaneCM4.dane.cJakoscUpLinkuRC1;	break;
 	case TID_JAKOSC_UP_RC2:		fZmiennaTele = uDaneCM4.dane.cJakoscUpLinkuRC2;	break;
 	case TID_JAKOSC_DOWN_RC:	fZmiennaTele = uDaneCM4.dane.cJakoscDnLinkuRC;	break;
 	case TID_FFT_ZYRO_AKCEL:	break;	//wyniki transformaty fouriera przesyłane w specyficznej szybkiej ramce
 
-	case TID_PID_PRZE_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_PRZE].fZadana;		break;	//wartość zadana regulatora sterowania przechyleniem
-	case TID_PID_PRZE_WE_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_PRZE].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
-	case TID_PID_PRZE_CALK:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_PRZE].fCalka;		break;	//wartość całki członu I
-	case TID_PID_PRZE_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_PRZE].fWyjsciePID;	break;	//wyjście regulatora sterowania przechyleniem
-	case TID_PID_PRZE_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_PRZE].fWyjscieP;		break;	//wyjście członu P
-	case TID_PID_PRZE_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_PRZE].fWyjscieI;		break;	//wyjście członu I
-	case TID_PID_PRZE_WY_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_PRZE].fWyjscieD;		break;	//wyjście członu D
+	case TID_PID_PRZE_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_PRZE].fZadana;		break;	//wartość zadana regulatora sterowania przechyleniem
+	case TID_PID_PRZE_WE_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_PRZE].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
+	case TID_PID_PRZE_CALK:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_PRZE].fCalka;		break;	//wartość całki członu I
+	case TID_PID_PRZE_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_PRZE].fWyjsciePID;	break;	//wyjście regulatora sterowania przechyleniem
+	case TID_PID_PRZE_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_PRZE].fWyjscieP;		break;	//wyjście członu P
+	case TID_PID_PRZE_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_PRZE].fWyjscieI;		break;	//wyjście członu I
+	case TID_PID_PRZE_WY_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_PRZE].fWyjscieD;		break;	//wyjście członu D
 
 	case TID_PID_PK_PRZE_WZAD:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PRZE].fZadana;		break;	//wartość zadana regulatora sterowania prędkością kątową przechylenia
 	case TID_PID_PK_PRZE_WE_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PRZE].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
@@ -390,13 +393,13 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_PID_PK_PRZE_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PRZE].fWyjscieD;		break;	//wyjście członu D
 	case TID_PID_PK_PRZE_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PRZE].fWyprzedzenie;	break;	//wyjście wartości wyprzedzającej
 
-	case TID_PID_POCH_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fZadana;		break;	//wartość zadana regulatora sterowania pochyleniem
-	case TID_PID_POCH_WE_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
-	case TID_PID_POCH_CALK:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fCalka;		break;	//wartość całki członu I
-	case TID_PID_POCH_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fWyjsciePID;	break;	//wyjście regulatora sterowania pochyleniem
-	case TID_PID_POCH_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fWyjscieP;		break;	//wyjście członu P
-	case TID_PID_POCH_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fWyjscieI;		break;	//wyjście członu I
-	case TID_PID_POCH_WY_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fWyjscieD;		break;	//wyjście członu D
+	case TID_PID_POCH_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fZadana;		break;	//wartość zadana regulatora sterowania pochyleniem
+	case TID_PID_POCH_WE_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
+	case TID_PID_POCH_CALK:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fCalka;		break;	//wartość całki członu I
+	case TID_PID_POCH_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fWyjsciePID;	break;	//wyjście regulatora sterowania pochyleniem
+	case TID_PID_POCH_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fWyjscieP;		break;	//wyjście członu P
+	case TID_PID_POCH_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fWyjscieI;		break;	//wyjście członu I
+	case TID_PID_POCH_WY_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fWyjscieD;		break;	//wyjście członu D
 
 	case TID_PID_PK_POCH_WZAD:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_POCH].fZadana;		break;	//wartość zadana
 	case TID_PID_PK_POCH_WE_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_POCH].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
@@ -406,13 +409,13 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_PID_PK_POCH_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_POCH].fWyjscieD;		break;	//wyjście członu D
 	case TID_PID_PK_POCH_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_POCH].fWyprzedzenie;	break;	//wyjście wartości wyprzedzającej
 
-	case TID_PID_ODCH_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_ODCH].fZadana;		break;	//wartość zadana regulatora sterowania odchyleniem
-	case TID_PID_ODCH_WE_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_ODCH].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
-	case TID_PID_ODCH_CALK:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_ODCH].fCalka;		break;	//wartość całki członu I
-	case TID_PID_ODCH_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_ODCH].fWyjsciePID;	break;	//wyjście regulatora sterowania odchyleniem
-	case TID_PID_ODCH_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_ODCH].fWyjscieP;		break;	//wyjście członu P
-	case TID_PID_ODCH_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_ODCH].fWyjscieI;		break;	//wyjście członu I
-	case TID_PID_ODCH_WY_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KATA_ODCH].fWyjscieD;		break;	//wyjście członu D
+	case TID_PID_ODCH_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_ODCH].fZadana;		break;	//wartość zadana regulatora sterowania odchyleniem
+	case TID_PID_ODCH_WE_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_ODCH].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
+	case TID_PID_ODCH_CALK:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_ODCH].fCalka;		break;	//wartość całki członu I
+	case TID_PID_ODCH_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_ODCH].fWyjsciePID;	break;	//wyjście regulatora sterowania odchyleniem
+	case TID_PID_ODCH_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_ODCH].fWyjscieP;		break;	//wyjście członu P
+	case TID_PID_ODCH_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_ODCH].fWyjscieI;		break;	//wyjście członu I
+	case TID_PID_ODCH_WY_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_KĄTA_ODCH].fWyjscieD;		break;	//wyjście członu D
 
 	case TID_PID_PK_ODCH_WZAD:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ODCH].fZadana;		break;	//wartość zadana
 	case TID_PID_PK_ODCH_WE_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ODCH].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
@@ -430,46 +433,46 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_PID_WYSO_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fWyjscieI;		break;	//wyjście członu I
 	case TID_PID_WYSO_WY_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fWyjscieD;		break;	//wyjście członu D
 
-	case TID_PID_PR_WYSO_WZAD:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fZadana;			break;	//wartość zadana
-	case TID_PID_PR_WYSO_WE_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fFiltrWeD;			break;	//wartość wejsciowa członu D po filtrze
-	case TID_PID_PR_WYSO_CALK:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fCalka;			break;	//wartość całki członu I
-	case TID_PID_PR_WYSO_WYJ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fWyjsciePID;		break;	//wyjście regulatora sterowania prędkością zmiany wysokości
-	case TID_PID_PR_WYSO_WY_P:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fWyjscieP;			break;	//wyjście członu P
-	case TID_PID_PR_WYSO_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fWyjscieD;			break;	//wyjście członu D
-	case TID_PID_PR_WYSO_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_WARIO].fWyprzedzenie;		break;	//wyjście wartości wyprzedzającej
+	case TID_PID_PR_WYSO_WZAD:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ZWYS].fZadana;		break;	//wartość zadana
+	case TID_PID_PR_WYSO_WE_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ZWYS].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
+	case TID_PID_PR_WYSO_CALK:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ZWYS].fCalka;		break;	//wartość całki członu I
+	case TID_PID_PR_WYSO_WYJ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ZWYS].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością zmiany wysokości
+	case TID_PID_PR_WYSO_WY_P:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ZWYS].fWyjscieP;		break;	//wyjście członu P
+	case TID_PID_PR_WYSO_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ZWYS].fWyjscieD;		break;	//wyjście członu D
+	case TID_PID_PR_WYSO_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_ZWYS].fWyprzedzenie;	break;	//wyjście wartości wyprzedzającej
 
-	case TID_PID_NAWN_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_N].fZadana;			break;	//wartość zadana regulatora sterowania nawigacją w kierunku północnym
-	case TID_PID_NAWN_WE_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_N].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
-	case TID_PID_NAWN_CALK:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_N].fCalka;			break;	//wartość całki członu I
-	case TID_PID_NAWN_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_N].fWyjsciePID;		break;	//wyjście regulatora sterowania nawigacją w kierunku północnym
-	case TID_PID_NAWN_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_N].fWyjscieP;		break;	//wyjście członu P
-	case TID_PID_NAWN_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_N].fWyjscieI;		break;	//wyjście członu I
-	case TID_PID_NAWN_WY_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_N].fWyjscieD;		break;	//wyjście członu D
+	case TID_PID_NAWN_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_PÓŁN].fZadana;		break;	//wartość zadana regulatora sterowania nawigacją w kierunku północnym
+	case TID_PID_NAWN_WE_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_PÓŁN].fFiltrWeD;	break;	//wartość wejsciowa członu D po filtrze
+	case TID_PID_NAWN_CALK:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_PÓŁN].fCalka;		break;	//wartość całki członu I
+	case TID_PID_NAWN_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_PÓŁN].fWyjsciePID;	break;	//wyjście regulatora sterowania nawigacją w kierunku północnym
+	case TID_PID_NAWN_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_PÓŁN].fWyjscieP;	break;	//wyjście członu P
+	case TID_PID_NAWN_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_PÓŁN].fWyjscieI;	break;	//wyjście członu I
+	case TID_PID_NAWN_WY_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_PÓŁN].fWyjscieD;	break;	//wyjście członu D
 
 
-	case TID_PID_PR_NAWN_WZAD:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_N].fZadana;			break;	//wartość zadana
-	case TID_PID_PR_NAWN_WE_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_N].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
-	case TID_PID_PR_NAWN_CALK:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_N].fCalka;			break;	//wartość całki członu I
-	case TID_PID_PR_NAWN_WYJ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_N].fWyjsciePID;		break;	//wyjście regulatora sterowania prędkością w kierunku północnym
-	case TID_PID_PR_NAWN_WY_P:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_N].fWyjscieP;		break;	//wyjście członu P
-	case TID_PID_PR_NAWN_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_N].fWyjscieI;		break;	//wyjście członu I
-	case TID_PID_PR_NAWN_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_N].fWyjscieD;		break;	//wyjście członu D
+	case TID_PID_PR_NAWN_WZAD:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PÓŁN].fZadana;		break;	//wartość zadana
+	case TID_PID_PR_NAWN_WE_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PÓŁN].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
+	case TID_PID_PR_NAWN_CALK:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PÓŁN].fCalka;		break;	//wartość całki członu I
+	case TID_PID_PR_NAWN_WYJ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PÓŁN].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością w kierunku północnym
+	case TID_PID_PR_NAWN_WY_P:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PÓŁN].fWyjscieP;		break;	//wyjście członu P
+	case TID_PID_PR_NAWN_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PÓŁN].fWyjscieI;		break;	//wyjście członu I
+	case TID_PID_PR_NAWN_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_PÓŁN].fWyjscieD;		break;	//wyjście członu D
 
-	case TID_PID_NAWE_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_E].fZadana;			break;	//wartość zadana regulatora sterowania nawigacją w kierunku wschodnim
-	case TID_PID_NAWE_WE_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_E].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
-	case TID_PID_NAWE_CALK:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_E].fCalka;			break;	//wartość całki członu I
-	case TID_PID_NAWE_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_E].fWyjsciePID;		break;	//wyjście regulatora sterowania nawigacją w kierunku północnym
-	case TID_PID_NAWE_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_E].fWyjscieP;		break;	//wyjście członu P
-	case TID_PID_NAWE_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_E].fWyjscieI;		break;	//wyjście członu I
-	case TID_PID_NAWE_WY_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_E].fWyjscieD;		break;	//wyjście członu D
+	case TID_PID_NAWE_WZAD:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_WSCH].fZadana;		break;	//wartość zadana regulatora sterowania nawigacją w kierunku wschodnim
+	case TID_PID_NAWE_WE_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_WSCH].fFiltrWeD;	break;	//wartość wejsciowa członu D po filtrze
+	case TID_PID_NAWE_CALK:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_WSCH].fCalka;		break;	//wartość całki członu I
+	case TID_PID_NAWE_WYJ:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_WSCH].fWyjsciePID;	break;	//wyjście regulatora sterowania nawigacją w kierunku północnym
+	case TID_PID_NAWE_WY_P:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_WSCH].fWyjscieP;	break;	//wyjście członu P
+	case TID_PID_NAWE_WY_I:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_WSCH].fWyjscieI;	break;	//wyjście członu I
+	case TID_PID_NAWE_WY_D:		fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_NAWIG_WSCH].fWyjscieD;	break;	//wyjście członu D
 
-	case TID_PID_PR_NAWE_WZAD:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_E].fZadana;			break;	//wartość zadana
-	case TID_PID_PR_NAWE_WE_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_E].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
-	case TID_PID_PR_NAWE_CALK:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_E].fCalka;			break;	//wartość całki członu I
-	case TID_PID_PR_NAWE_WYJ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_E].fWyjsciePID;		break;	//wyjście regulatora sterowania prędkością w kierunku wschodnim
-	case TID_PID_PR_NAWE_WY_P:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_E].fWyjscieP;		break;	//wyjście członu P
-	case TID_PID_PR_NAWE_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_E].fWyjscieI;		break;	//wyjście członu I
-	case TID_PID_PR_NAWE_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PREDK_E].fWyjscieD;		break;	//wyjście członu D
+	case TID_PID_PR_NAWE_WZAD:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_WSCH].fZadana;		break;	//wartość zadana
+	case TID_PID_PR_NAWE_WE_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_WSCH].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
+	case TID_PID_PR_NAWE_CALK:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_WSCH].fCalka;		break;	//wartość całki członu I
+	case TID_PID_PR_NAWE_WYJ:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_WSCH].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością w kierunku wschodnim
+	case TID_PID_PR_NAWE_WY_P:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_WSCH].fWyjscieP;		break;	//wyjście członu P
+	case TID_PID_PR_NAWE_WY_I:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_WSCH].fWyjscieI;		break;	//wyjście członu I
+	case TID_PID_PR_NAWE_WY_D:	fZmiennaTele = uDaneCM4.dane.stWyjPID[PID_PRED_WSCH].fWyjscieD;		break;	//wyjście członu D
 
 	case TID_PID_STROJENIE1:	fZmiennaTele = uDaneCM4.dane.fStrojenie[0];							break;	//wartość parametru strojącego 1
 	case TID_PID_STROJENIE2:	fZmiennaTele = uDaneCM4.dane.fStrojenie[1];							break;	//wartość parametru strojącego 2

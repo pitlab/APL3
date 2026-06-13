@@ -13,18 +13,18 @@
 
 
 //definicje nazw regulatorów
-#define PID_KATA_PRZE 	0   //regulator sterowania przechyleniem (lotkami w samolocie)
+#define PID_KĄTA_PRZE 	0   //regulator sterowania przechyleniem (lotkami w samolocie)
 #define PID_PRED_PRZE 	1   //regulator sterowania prędkością kątową przechylenia (żyroskop P)
-#define PID_KATA_POCH 	2   //regulator sterowania pochyleniem (sterem wysokości)
+#define PID_KĄTA_POCH 	2   //regulator sterowania pochyleniem (sterem wysokości)
 #define PID_PRED_POCH 	3   //regulator sterowania prędkością kątową pochylenia (żyroskop Q)
-#define PID_KATA_ODCH 	4  	//regulator sterowania odchyleniem (sterem kierunku)
+#define PID_KĄTA_ODCH 	4  	//regulator sterowania odchyleniem (sterem kierunku)
 #define PID_PRED_ODCH	5   //regulator sterowania prędkością kątową odchylenia (żyroskop R)
 #define PID_WYSOKOSCI 	6   //regulator sterowania wysokością
-#define PID_WARIO 		7   //regulator sterowani prędkością zmiany wysokości (wario)
-#define PID_NAWIG_N 	8   //regulator sterowania nawigacją w kierunku północnym
-#define PID_PREDK_N		9  	//regulator sterowania prędkością w kierunku północnym
-#define PID_NAWIG_E 	10  //regulator sterowania nawigacją w kierunku wschodnim
-#define PID_PREDK_E		11 	//regulator sterowania prędkością w kierunku wschodnim
+#define PID_PRED_ZWYS	7   //regulator sterowani prędkością zmiany wysokości (wario)
+#define PID_NAWIG_PÓŁN 	8   //regulator sterowania nawigacją w kierunku północnym
+#define PID_PRED_PÓŁN	9  	//regulator sterowania prędkością w kierunku północnym
+#define PID_NAWIG_WSCH 	10  //regulator sterowania nawigacją w kierunku wschodnim
+#define PID_PRED_WSCH	11 	//regulator sterowania prędkością w kierunku wschodnim
 
 #define LICZBA_PID  12 //liczba regulatorów
 #define LICZBA_KAN_RC_DO_STROJENIA_PID	2	//tyle kanałów RC jest używanych do strojenia wybranych parametrów PID
@@ -58,7 +58,7 @@ typedef struct	//struktura konfiguracji regulatora PID
 	float fSkalaWartZadanej;	//skalowanie wartosci zadanej
 	uint8_t chPodstFiltraD; 	//podstawa różniczkującego filtra błędu o nieskończonej odpowiedzi impulsowej IIR
 	uint8_t chFlagi;			//0x80 - regulator katowy, 0x40 - regulator wyłączony
-	uint8_t chProcWartZadWyprz;	//procent zmiany wartości zadanej podawany na wejsście wyprzedzające
+	uint8_t chProcWartZadWyprz;	//procent zmiany wartości zadanej podawany na wejście wyprzedzające
 } stKonfPID_t;
 
 typedef struct	//struktura danych roboczych regulatora PID

@@ -217,47 +217,47 @@ float StrojeniePID_KanałemRC(stStrojPID_t *Stroj, uint8_t chNrKan, stKonfPID_t 
 	switch(Stroj->chNrParametru)
 	{
 	case STRP_NIC:			break;		//strojenie wyłączone
-	case STRP_KATA_PRZE_KP:	Konf[PID_KATA_PRZE].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze przechylenia
-	case STRP_KATA_PRZE_TI:	Konf[PID_KATA_PRZE].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze przechylenia
-	case STRP_KATA_PRZE_TD:	Konf[PID_KATA_PRZE].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze przechylenia
+	case STRP_KATA_PRZE_KP:	Konf[PID_KĄTA_PRZE].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze przechylenia
+	case STRP_KATA_PRZE_TI:	Konf[PID_KĄTA_PRZE].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze przechylenia
+	case STRP_KATA_PRZE_TD:	Konf[PID_KĄTA_PRZE].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze przechylenia
 	case STRP_PRED_PRZE_KP:	Konf[PID_PRED_PRZE].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości kątowej przechylenia
 	case STRP_PRED_PRZE_TI:	Konf[PID_PRED_PRZE].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej przechylenia
 	case STRP_PRED_PRZE_TD:	Konf[PID_PRED_PRZE].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej przechylenia
 
-	case STRP_KATA_POCH_KP:	Konf[PID_KATA_POCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze pochylenia
-	case STRP_KATA_POCH_TI:	Konf[PID_KATA_POCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze pochylenia
-	case STRP_KATA_POCH_TD:	Konf[PID_KATA_POCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze pochylenia
+	case STRP_KATA_POCH_KP:	Konf[PID_KĄTA_POCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze pochylenia
+	case STRP_KATA_POCH_TI:	Konf[PID_KĄTA_POCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze pochylenia
+	case STRP_KATA_POCH_TD:	Konf[PID_KĄTA_POCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze pochylenia
 	case STRP_PRED_POCH_KP:	Konf[PID_PRED_POCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości kątowej pochylenia
 	case STRP_PRED_POCH_TI:	Konf[PID_PRED_POCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej pochylenia
 	case STRP_PRED_POCH_TD:	Konf[PID_PRED_POCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej pochylenia
 
-	case STRP_KATA_ODCH_KP:	Konf[PID_KATA_ODCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze odchylenia
-	case STRP_KATA_ODCH_TI:	Konf[PID_KATA_ODCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze odchylenia
-	case STRP_KATA_ODCH_TD:	Konf[PID_KATA_ODCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze odchylenia
+	case STRP_KATA_ODCH_KP:	Konf[PID_KĄTA_ODCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze odchylenia
+	case STRP_KATA_ODCH_TI:	Konf[PID_KĄTA_ODCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze odchylenia
+	case STRP_KATA_ODCH_TD:	Konf[PID_KĄTA_ODCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze odchylenia
 	case STRP_PRED_ODCH_KP:	Konf[PID_PRED_ODCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości kątowej odchylenia
 	case STRP_PRED_ODCH_TI:	Konf[PID_PRED_ODCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej odchylenia
 	case STRP_PRED_ODCH_TD:	Konf[PID_PRED_ODCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej odchylenia
 
-	case STRP_WYSOK_KP:		Konf[PID_WYSOKOSCI].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze wysokości
-	case STRP_WYSOK_TI:		Konf[PID_WYSOKOSCI].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze wysokości
-	case STRP_WYSOK_TD:		Konf[PID_WYSOKOSCI].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze wysokości
-	case STRP_WARIO_KP:		Konf[PID_WARIO].fWzmP = fParametr;		break;	//strojenie wzmocnienia w regulatorze prędkości zmiany wysokości
-	case STRP_WARIO_TI:		Konf[PID_WARIO].fWzmI = fParametr;		break;	//strojenie członu całkujacego w regulatorze prędkości zmiany wysokości
-	case STRP_WARIO_TD:		Konf[PID_WARIO].fWzmD = fParametr;		break;	//strojenie członu różniczkującego w regulatorze prędkości zmiany wysokości
+	case STRP_WYSOKOSCI_KP:	Konf[PID_WYSOKOSCI].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze wysokości
+	case STRP_WYSOKOSCI_TI:	Konf[PID_WYSOKOSCI].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze wysokości
+	case STRP_WYSOKOSCI_TD:	Konf[PID_WYSOKOSCI].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze wysokości
+	case STRP_PRED_ZWYS_KP:	Konf[PID_PRED_ZWYS].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości zmiany wysokości
+	case STRP_PRED_ZWYS_TI:	Konf[PID_PRED_ZWYS].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości zmiany wysokości
+	case STRP_PRED_ZWYS_TD:	Konf[PID_PRED_ZWYS].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości zmiany wysokości
 
-	case STRP_NAWI_N_KP:	Konf[PID_NAWIG_N].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze nawigacji w kierunku północnym
-	case STRP_NAWI_N_TI:	Konf[PID_NAWIG_N].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze nawigacji w kierunku północnym
-	case STRP_NAWI_N_TD:	Konf[PID_NAWIG_N].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku północnym
-	case STRP_PRED_N_KP:	Konf[PID_PREDK_N].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości w kierunku północnym
-	case STRP_PRED_N_TI:	Konf[PID_PREDK_N].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości w kierunku północnym
-	case STRP_PRED_N_TD:	Konf[PID_PREDK_N].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości w kierunku północnym
+	case STRP_NAWI_PÓŁN_KP:	Konf[PID_NAWIG_PÓŁN].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze nawigacji w kierunku północnym
+	case STRP_NAWI_PÓŁN_TI:	Konf[PID_NAWIG_PÓŁN].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze nawigacji w kierunku północnym
+	case STRP_NAWI_PÓŁN_TD:	Konf[PID_NAWIG_PÓŁN].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku północnym
+	case STRP_PRED_PÓŁN_KP:	Konf[PID_PRED_PÓŁN].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości w kierunku północnym
+	case STRP_PRED_PÓŁN_TI:	Konf[PID_PRED_PÓŁN].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości w kierunku północnym
+	case STRP_PRED_PÓŁN_TD:	Konf[PID_PRED_PÓŁN].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości w kierunku północnym
 
-	case STRP_NAWI_E_KP:	Konf[PID_NAWIG_E].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze nawigacji w kierunku wschodnim
-	case STRP_NAWI_E_TI:	Konf[PID_NAWIG_E].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze nawigacji w kierunku wschodnim
-	case STRP_NAWI_E_TD:	Konf[PID_NAWIG_E].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku wschodnim
-	case STRP_PRED_E_KP:	Konf[PID_PREDK_E].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości w kierunku wschodnim
-	case STRP_PRED_E_TI:	Konf[PID_PREDK_E].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości w kierunku wschodnim
-	case STRP_PRED_E_TD:	Konf[PID_PREDK_E].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości w kierunku wschodnim
+	case STRP_NAWI_WSCH_KP:	Konf[PID_NAWIG_WSCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze nawigacji w kierunku wschodnim
+	case STRP_NAWI_WSCH_TI:	Konf[PID_NAWIG_WSCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze nawigacji w kierunku wschodnim
+	case STRP_NAWI_WSCH_TD:	Konf[PID_NAWIG_WSCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku wschodnim
+	case STRP_PRED_WSCH_KP:	Konf[PID_PRED_WSCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości w kierunku wschodnim
+	case STRP_PRED_WSCH_TI:	Konf[PID_PRED_WSCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości w kierunku wschodnim
+	case STRP_PRED_WSCH_TD:	Konf[PID_PRED_WSCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości w kierunku wschodnim
 	}
 	return fParametr;
 }
@@ -278,12 +278,12 @@ void TestPID(void)
 	float fProgGor, fProgDol;	//progi testowania wartosci górny i dolny
 
 	//sprawdź odpowiedź członu proporcjonalnego regulatora kątowego na zawijanie kątów wokół 2Pi
-	uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fZadana = 370 * DEG2RAD;	//odpowiada +10°
-	uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fWejscie = -5 * DEG2RAD;
-	RegulatorPID(ndT, PID_KATA_POCH, &uDaneCM4.dane, stKonfigPID);
+	uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fZadana = 370 * DEG2RAD;	//odpowiada +10°
+	uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fWejscie = -5 * DEG2RAD;
+	RegulatorPID(ndT, PID_KĄTA_POCH, &uDaneCM4.dane, stKonfigPID);
 
-	assert(uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fWyjscieP < 15.001 * DEG2RAD * stKonfigPID[PID_KATA_POCH].fWzmP);
-	assert(uDaneCM4.dane.stWyjPID[PID_KATA_POCH].fWyjscieP > 14.999 * DEG2RAD * stKonfigPID[PID_KATA_POCH].fWzmP);
+	assert(uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fWyjscieP < 15.001 * DEG2RAD * stKonfigPID[PID_KĄTA_POCH].fWzmP);
+	assert(uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fWyjscieP > 14.999 * DEG2RAD * stKonfigPID[PID_KĄTA_POCH].fWzmP);
 
 	//sprawdź działanie członu całkującego regulatora wysokości. Całka to czas zdwojenia, więc przy wzmocnieniu Kp=1 i Ti=1 całka po sekundzie osiaga dwukrotność uchybu.
 	//czas trwania testu=10*5ms, błąd=20m, więc przyrost powinien wynosić 50/1000 * (20 * Kp) / Ti

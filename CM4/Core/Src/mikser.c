@@ -11,21 +11,14 @@
 #include "RegulatorPID.h"
 
 stMikser_t stMikser;	//struktura zmiennych miksera
-uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
-uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
+uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu i na ziemi po uzbrojeniu
 uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych. Dalsze zwiększanie wysterowania nic nie daje, więc w ten sposób wykluczamy go z zakresu regulacji
-//uint16_t sWysterowanieJalowe;	//wartość wysterowania regulatorów dla uzyskania obrotów jałowych po uzbrojeniu
-
-
+uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
 extern unia_wymianyCM4_t uDaneCM4;
-/*extern TIM_HandleTypeDef htim1;
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim3;
-extern TIM_HandleTypeDef htim4;
-extern TIM_HandleTypeDef htim7;*/
 extern volatile uint8_t chNumerKanSerw;
 extern uint8_t chTrybRegulacji[LICZBA_DRAZKOW];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
 extern uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC do funkcji drążków aparatury
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -40,7 +33,7 @@ uint8_t InicjujMikser(void)
 	float fNormPrze, fNormPoch;
 
 	for (uint8_t n=0; n<KANALY_WYJSC_RC; n++)
-		uDaneCM4.dane.sSilnik[n] = 1000 + 50*n;	//sterowane kanałów serw
+		uDaneCM4.dane.sSilnik[n] = 10 * n;	//sterowane kanałów serw
 	chNumerKanSerw = 8;		//wskaźnik kanału obsługuje dekoder serw, wiec inicjuj go wartoscią pierwszego kanału
 	stMikser.chLiczbaSilnikow = 0;
 	fNormPrze = fNormPoch = 0.0f;
@@ -76,14 +69,9 @@ uint8_t InicjujMikser(void)
 			stMikser.fPoch[n] = 0;
 	}
 
-	/*/testowo zapisz konfigurację
-	ZapiszFramU16(FAU_RC_WY_MIN, 200);
-	ZapiszFramU16(FAU_RC_WY_ZAWISU, 600);
-	ZapiszFramU16(FAU_RC_WY_MAX, 1800);*/
-
 	sWysterowanieMin 	= CzytajFramU16(FAU_RC_WY_MIN);      	//minimalne wysterowanie regulatorów w trakcie lotu w jednostkach standardowych 0-2000
-	sWysterowanieZawisu = CzytajFramU16(FAU_RC_WY_ZAWISU);  	//wysterowanie silników dla zawisu
 	sWysterowanieMax  	= CzytajFramU16(FAU_RC_WY_MAX);     	//maksymalne wysterowanie silników w trakcie lotu w jednostkach standardowych 0-2000
+	sWysterowanieZawisu = CzytajFramU16(FAU_RC_WY_ZAWISU);  	//wysterowanie silników dla zawisu
 	return cBłąd;
 }
 
@@ -103,7 +91,6 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 	int16_t sTmp1[KANALY_MIKSERA], sTmp2[KANALY_MIKSERA];	//sumy cząstkowe sygnału wysterowania silnika
 	int16_t sTmpSilnik[KANALY_MIKSERA];
 	int16_t sMaxTmp1, sMaxTmp2;	//maksymalne wartości sygnału wysterowania
-	//int16_t sPWMGazu;
 	int16_t sGaz;
 	float fCosPrze, fCosPoch;
 	uint8_t cBłąd = BLAD_OK;
@@ -136,12 +123,12 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
 		{
 			//w pierwszej kolejności sumuj pochylenie i przechylenie
-			sTmp1[n] = mikser->fPoch[n] * dane->stWyjPID[PID_PRED_POCH].fWyjsciePID - mikser->fPrze[n] * dane->stWyjPID[PID_PRED_PRZE].fWyjsciePID * PPM1PROC_BIP;
+			sTmp1[n] = (mikser->fPoch[n] * dane->stWyjPID[PID_PRED_POCH].fWyjsciePID - mikser->fPrze[n] * dane->stWyjPID[PID_PRED_PRZE].fWyjsciePID) * PPM1PROC_BIP;
 			if (sTmp1[n] > sMaxTmp1)
 				sMaxTmp1 = sTmp1[n];
 
 			//osobno sumuj mniej ważne regulatory ciągu i odchylenia
-			sTmp2[n] = (dane->stWyjPID[PID_WARIO].fWyjsciePID + mikser->fOdch[n] * dane->stWyjPID[PID_PRED_ODCH].fWyjsciePID ) * PPM1PROC_BIP;
+			sTmp2[n] = (dane->stWyjPID[PID_PRED_ZWYS].fWyjsciePID + mikser->fOdch[n] * dane->stWyjPID[PID_PRED_ODCH].fWyjsciePID ) * PPM1PROC_BIP;
 			if (sTmp2[n] > sMaxTmp2)
 				sMaxTmp2 = sTmp2[n];
 		}
@@ -172,7 +159,7 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 	else	//silniki nie są uzbrojone
 	{
 		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
-			sTmpSilnik[n] = PPM_MIN;
+			sTmpSilnik[n] = WE_RC_MIN;
 	}
 
 	//przepisz roboczą zmienną do zmiennej stanu silników

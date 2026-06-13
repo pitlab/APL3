@@ -129,16 +129,14 @@ uint8_t InicjujModulI2P(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 {
-	uint8_t cBłąd;
+	uint8_t cBłąd, cBłądRoboczy;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
 	uint8_t chIndeksProbki;
-	uint32_t nCzas;
 
 	//Ponieważ zegar SPI = 40MHz a układy mogą pracować z prędkością max 10MHz, przy każdym dostępie przestaw dzielnik zegara na 4
 	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
 	hspi2.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;		//maska preskalera
 	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;
-	//hspi2.Instance->CFG2 |= SPI_POLARITY_HIGH | SPI_PHASE_2EDGE;	//testowo ustaw mode 3
 
 	//ustaw adres A2 = 0 zrobiony z linii MOD_IOx1 modułu
 	switch (gniazdo)
@@ -149,30 +147,22 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	case ADR_MOD4:	*pchStanIOwy &= ~MIO41;	break;
 	}
 
-	nCzas = PobierzCzasT7();
 	cBłąd = WyslijDaneExpandera(*pchStanIOwy);	//czas 4800-6200us;	930-1250us
-	nCzas = MinalCzasT7(nCzas);
+	cBłąd |= UstawDekoderModulow(gniazdo);			//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
+	cBłąd |= UstawAdresNaModule(ADR_MIIP_MS5611);	//ustaw adres na module A0..1
+	cBłądRoboczy = ObslugaMS5611();
+	if (cBłądRoboczy != BLAD_ZA_KROTKI_CZAS)		//kod błędu BLAD_ZA_KROTKI_CZAS nie jest błędem, więc nie raportuj go w górę
+		cBłąd |= cBłądRoboczy;
 
-	nCzas = PobierzCzasT7();
-	cBłąd |= UstawDekoderModulow(gniazdo);				//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
-	cBłąd |= UstawAdresNaModule(ADR_MIIP_MS5611);				//ustaw adres na module A0..1
-	cBłąd |= ObslugaMS5611();
-	nCzas = MinalCzasT7(nCzas);		//czas 44,3-47,7ms;	3360-4161us
-
-	nCzas = PobierzCzasT7();
 	cBłąd |= UstawAdresNaModule(ADR_MIIP_BMP581);				//ustaw adres na module A0..1
-	cBłąd |= ObslugaBMP581();
-	nCzas = MinalCzasT7(nCzas);		//czas 5800-6500us;	2383-2702us
+	cBłądRoboczy = ObslugaBMP581();
+	if (cBłądRoboczy != BLAD_ZA_KROTKI_CZAS)		//kod błędu BLAD_ZA_KROTKI_CZAS nie jest błędem, więc nie raportuj go w górę
+		cBłąd |= cBłądRoboczy;
 
-	nCzas = PobierzCzasT7();
 	cBłąd |= UstawAdresNaModule(ADR_MIIP_ICM42688);				//ustaw adres na module A0..1
 	cBłąd |= ObslugaICM42688();
-	nCzas = MinalCzasT7(nCzas);		//czas 29800-33900us;	6985-7387us
-
-	nCzas = PobierzCzasT7();
 	cBłąd |= UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres na module A0..1
 	cBłąd |= ObslugaLSM6DSV();
-	nCzas = MinalCzasT7(nCzas);		//czas 26800-28900us;	6083-6501us
 
 	//napełnij bufor szybkiego IMU dla FFT
 	chIndeksProbki = uDaneCM4.dane.stSzybkieIMU.chIndeksProbki;
@@ -188,7 +178,6 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))
 		KalibrujZeroZyroskopu();
 
-	nCzas = PobierzCzasT7();
 	//termostatuj moduł uśrednioną temperaturą obu czujników IMU a jezeli nie ma obu to chociaż jednego
 	uint8_t chLiczbaTermometrow = 0;
 	float fTemeratura = 0.0f;
@@ -217,7 +206,6 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	case ADR_MOD4:	*pchStanIOwy |= MIO41;	break;
 	}
 	cBłąd = WyslijDaneExpandera(*pchStanIOwy);	//ustaw stan linii A2 i grzałki
-	nCzas = MinalCzasT7(nCzas);		//czas 6600-8800us;	1498-1729us
 
 	// Układ ND130 pracujacy na magistrali SPI ma okres zegara 6us co odpowiada częstotliwości 166kHz
 	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_256;	//przestaw zegar na 40MHz / 256 = 156kHz

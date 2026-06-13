@@ -2,6 +2,9 @@
 //
 // AutoPitLot v3.0
 // Obsługa czujnika ciśnienia MS5611 na magistrali SPI
+// Z góry zakładam czas konwersji z uśrednianiem 1024 pomiarów wynoszący maksymalnie 2,28 ms.
+// Jeżeli polecenie wykonania pomiaru uruchamiane jest szybciej niż mogla zakonczyć sie
+// konwersja, to takie polecenie wychodzi z kodem błędu BLAD_ZA_KROTKI_CZAS
 //
 // (c) Pit Lab 2025
 // http://www.pitlab.pl
@@ -20,6 +23,9 @@ static uint8_t chBuf5611[4];
 static uint8_t chProporcjaPomiarow;
 float fP0_MS5611 = 0.0f;	//ciśnienie zerowe do obliczeń wysokości [Pa]
 static uint16_t sLicznikUsrednianiaP0 = 0;			//licznik uśredniania ciśnienia zerowego do obliczeń wysokości
+static float fWysokoscUsredniona;		//średnia z ostatnich pomiarów wysokości potrzebna do liczenia wariometru
+static uint32_t nCzasOstatniejKonwersjiSM5611;
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z PROMu
@@ -35,9 +41,9 @@ uint8_t InicjujMS5611(void)
     nCzasStart = PobierzCzasT7();
     do
     {
-    	chBuf5611[0] = PMS_RESET;
+    	chBuf5611[0] = PMS_RESET;		//typowy czas wykonania operacji to 2,8ms
     	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-    	cBłąd = HAL_SPI_Transmit(&hspi2, chBuf5611, 1, TOUT_SPI);	//typowy czas wykonania operacji to 2,8ms
+    	cBłąd = HAL_SPI_Transmit(&hspi2, chBuf5611, 1, TOUT_SPI);
     	HAL_Delay(3);
     	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
     	if (cBłąd)
@@ -142,13 +148,13 @@ float MS5611_LiczCisnienie(uint32_t nKonwersja, int32_t ndTemp)
     	lTempKwadrat = (nTemp - 2000) * (nTemp - 2000);		//kwadrat temperatury
     	llOffset2 = 5 * lTempKwadrat / 2;
     	llSens2 = 5 * lTempKwadrat / 4;
-	}
 
-    if (nTemp < -1500)		//jeżeli temepratura < -15°C
-	{
-    	lTempKwadrat = (nTemp + 1500) * (nTemp + 1500);		//kwadrat temperatury
-		llOffset2 += 7 * lTempKwadrat;
-		llSens2 += 11 * lTempKwadrat / 2;
+		if (nTemp < -1500)		//jeżeli temepratura < -15°C
+		{
+			lTempKwadrat = (nTemp + 1500) * (nTemp + 1500);		//kwadrat temperatury
+			llOffset2 += 7 * lTempKwadrat;
+			llSens2 += 11 * lTempKwadrat / 2;
+		}
 	}
 
     llOffset -= llOffset2;
@@ -173,6 +179,7 @@ uint8_t ObslugaMS5611(void)
 	float fCisnienie = 0;
 	static int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia. Zmienna statyczna aby istniała poza czasem życia funkcji
 
+
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_MS5611)
 		return BLAD_BRAK_CZUJNIKA;
 
@@ -189,19 +196,27 @@ uint8_t ObslugaMS5611(void)
 			return cBłąd;
 		else
 		{
-			chBuf5611[0] = PMS_CONV_D2_OSR2048;
-			ZapiszSPIu8(chBuf5611, 1);	//uruchom konwersję temperatury nie trwajacą dłużej niż obieg pętli, czyli max 2048
+			chBuf5611[0] = PMS_CONV_D2_OSR1024;
+			ZapiszSPIu8(chBuf5611, 1);	//uruchom konwersję temperatury
+			nCzasOstatniejKonwersjiSM5611 = PobierzCzasT7();
 		}
 	}
 	else
 	{
+		//sprawdź ile czasu upłyneło od ostatniego pomiaru. Jeżeli było to mniej niż czas potrzebny na konwersję to pomiń to uruchomienie
+		uint32_t nCzas = MinalCzasT7(nCzasOstatniejKonwersjiSM5611);
+		if (nCzas < 2280)
+			return BLAD_ZA_KROTKI_CZAS;
+
+		//konwersja miała szansę się zakonczyć, więc oczytaj pomiar i uruchom następny
+		nCzasOstatniejKonwersjiSM5611 = PobierzCzasT7();
 		switch (chProporcjaPomiarow)
 		{
 		case 0:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
 			if (nKonwersja)
 				uDaneCM4.dane.fTemper[TEMP_BARO1] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO1] + MS5611_LiczTemperature(nKonwersja, &ndT)) / 8;	//filtruj temepraturę
-			chBuf5611[0] = PMS_CONV_D1_OSR2048;
+			chBuf5611[0] = PMS_CONV_D1_OSR1024;
 			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję ciśnienia
 			break;
 
@@ -210,8 +225,7 @@ uint8_t ObslugaMS5611(void)
 			if (nKonwersja)
 				fCisnienie = MS5611_LiczCisnienie(nKonwersja, ndT);
 			uDaneCM4.dane.fCisnieBzw[0] = (7 * uDaneCM4.dane.fCisnieBzw[0] + fCisnienie) / 8;
-
-			chBuf5611[0] = PMS_CONV_D2_OSR256;
+			chBuf5611[0] = PMS_CONV_D2_OSR1024;
 			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję temperatury
 			break;
 
@@ -220,7 +234,7 @@ uint8_t ObslugaMS5611(void)
 			if (nKonwersja)
 				fCisnienie = MS5611_LiczCisnienie(nKonwersja, ndT);
 			uDaneCM4.dane.fCisnieBzw[0] = (7 * uDaneCM4.dane.fCisnieBzw[0] + fCisnienie) / 8;
-			chBuf5611[0] = PMS_CONV_D1_OSR2048;
+			chBuf5611[0] = PMS_CONV_D1_OSR1024;
 			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję ciśnienia
 			break;
 		}
@@ -239,7 +253,12 @@ uint8_t ObslugaMS5611(void)
 					uDaneCM4.dane.nZainicjowano |= INIT_P0_MS5611;
 			}
 			else
+			{
 				uDaneCM4.dane.fWysokoMSL[0] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[0], fP0_MS5611, uDaneCM4.dane.fTemper[TEMP_BARO1]);	//P0 gotowe więc oblicz wysokość
+				fWysokoscUsredniona = (1023 * fWysokoscUsredniona + uDaneCM4.dane.fWysokoMSL[0]) / 1024;
+				float fWariometr = (fWysokoscUsredniona - uDaneCM4.dane.fWysokoMSL[0]) * 1000 / uDaneCM4.dane.ndT;	//dH [m] * 1e6 / t [1e-6 s]
+				uDaneCM4.dane.fWariometr[0] = (999 * uDaneCM4.dane.fWariometr[0] + fWariometr) / 1000;
+			}
 		}
 	}
 	return cBłąd;

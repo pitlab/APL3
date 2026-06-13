@@ -24,6 +24,10 @@
 #define PMS_PROM_READ_C6	0xAC
 
 
+#define PMS_CISNIENIE		1
+#define PMS_TEMPERATURA		2
+
+
 
 uint8_t InicjujMS5611(void);
 uint16_t CzytajKonfiguracjeMS5611(uint8_t chAdres);
@@ -32,3 +36,4 @@ uint32_t CzytajWynikKonwersjiMS5611(void);
 float MS5611_LiczTemperature(uint32_t nKonwersja, int32_t* ndTemp);
 float MS5611_LiczCisnienie(uint32_t nKonwersja, int32_t ndTemp);
 uint8_t ObslugaMS5611(void);
+uint8_t WybierzPolecenieKonwersji(uint8_t cTypKonwersji, uint32_t nCzasPomiaru);

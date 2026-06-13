@@ -247,24 +247,25 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define STRP_PRED_ODCH_KP		16	//strojenie wzmocnienia w regulatorze prędkości kątowej odchylenia
 #define STRP_PRED_ODCH_TI		17	//strojenie członu całkujacego w regulatorze prędkości kątowej odchylenia
 #define STRP_PRED_ODCH_TD		18	//strojenie członu różniczkującego w regulatorze prędkości kątowej odchylenia
-#define STRP_WYSOK_KP			19	//strojenie wzmocnienia w regulatorze wysokości
-#define STRP_WYSOK_TI			20	//strojenie członu całkujacego w regulatorze wysokości
-#define STRP_WYSOK_TD			21	//strojenie członu różniczkującego w regulatorze wysokości
-#define STRP_WARIO_KP			22	//strojenie wzmocnienia w regulatorze prędkości zmiany wysokości
-#define STRP_WARIO_TI			23	//strojenie członu całkujacego w regulatorze prędkości zmiany wysokości
-#define STRP_WARIO_TD			24	//strojenie członu różniczkującego w regulatorze prędkości zmiany wysokości
-#define STRP_NAWI_N_KP			25	//strojenie wzmocnienia w regulatorze nawigacji w kierunku północnym
-#define STRP_NAWI_N_TI			26	//strojenie członu całkujacego w regulatorze nawigacji w kierunku północnym
-#define STRP_NAWI_N_TD			27	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku północnym
-#define STRP_PRED_N_KP			28	//strojenie wzmocnienia w regulatorze prędkości w kierunku północnym
-#define STRP_PRED_N_TI			29	//strojenie członu całkujacego w regulatorze prędkości w kierunku północnym
-#define STRP_PRED_N_TD			30	//strojenie członu różniczkującego w regulatorze prędkości w kierunku północnym
-#define STRP_NAWI_E_KP			31	//strojenie wzmocnienia w regulatorze nawigacji w kierunku wschodnim
-#define STRP_NAWI_E_TI			32	//strojenie członu całkujacego w regulatorze nawigacji w kierunku wschodnim
-#define STRP_NAWI_E_TD			33	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku wschodnim
-#define STRP_PRED_E_KP			34	//strojenie wzmocnienia w regulatorze prędkości w kierunku wschodnim
-#define STRP_PRED_E_TI			35	//strojenie członu całkujacego w regulatorze prędkości w kierunku wschodnim
-#define STRP_PRED_E_TD			36	//strojenie członu różniczkującego w regulatorze prędkości w kierunku wschodnim
+#define STRP_WYSOKOSCI_KP		19	//strojenie wzmocnienia w regulatorze wysokości
+#define STRP_WYSOKOSCI_TI		20	//strojenie członu całkujacego w regulatorze wysokości
+#define STRP_WYSOKOSCI_TD		21	//strojenie członu różniczkującego w regulatorze wysokości
+#define STRP_PRED_ZWYS_KP		22	//strojenie wzmocnienia w regulatorze prędkości zmiany wysokości
+#define STRP_PRED_ZWYS_TI		23	//strojenie członu całkujacego w regulatorze prędkości zmiany wysokości
+#define STRP_PRED_ZWYS_TD		24	//strojenie członu różniczkującego w regulatorze prędkości zmiany wysokości
+#define STRP_NAWI_PÓŁN_KP		25	//strojenie wzmocnienia w regulatorze nawigacji w kierunku północnym
+#define STRP_NAWI_PÓŁN_TI		26	//strojenie członu całkujacego w regulatorze nawigacji w kierunku północnym
+#define STRP_NAWI_PÓŁN_TD		27	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku północnym
+#define STRP_PRED_PÓŁN_KP		28	//strojenie wzmocnienia w regulatorze prędkości w kierunku północnym
+#define STRP_PRED_PÓŁN_TI		29	//strojenie członu całkujacego w regulatorze prędkości w kierunku północnym
+#define STRP_PRED_PÓŁN_TD		30	//strojenie członu różniczkującego w regulatorze prędkości w kierunku północnym
+#define STRP_NAWI_WSCH_KP		31	//strojenie wzmocnienia w regulatorze nawigacji w kierunku wschodnim
+#define STRP_NAWI_WSCH_TI		32	//strojenie członu całkujacego w regulatorze nawigacji w kierunku wschodnim
+#define STRP_NAWI_WSCH_TD		33	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku wschodnim
+#define STRP_PRED_WSCH_KP		34	//strojenie wzmocnienia w regulatorze prędkości w kierunku wschodnim
+#define STRP_PRED_WSCH_TI		35	//strojenie członu całkujacego w regulatorze prędkości w kierunku wschodnim
+#define STRP_PRED_WSCH_TD		36	//strojenie członu różniczkującego w regulatorze prędkości w kierunku wschodnim
+
 
 #define LICZBA_STROJONYCH_PARAMETROW_PID	37
 

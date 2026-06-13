@@ -20,100 +20,102 @@
 #define PROB_ODCZYTU_TELEMETRII		3
 //definicje zmiennych telemetrycznych
 //zmienne IMU
-#define TID_AKCEL1X		0
-#define TID_AKCEL1Y		1
-#define TID_AKCEL1Z		2
-#define TID_AKCEL2X		3
-#define TID_AKCEL2Y		4
-#define TID_AKCEL2Z		5
-#define TID_ZYRO1P		6
-#define TID_ZYRO1Q		7
-#define TID_ZYRO1R		8
-#define TID_ZYRO2P		9
-#define TID_ZYRO2Q		10
-#define TID_ZYRO2R		11
-#define TID_MAGNE1X		12
-#define TID_MAGNE1Y		13
-#define TID_MAGNE1Z		14
-#define TID_MAGNE2X		15
-#define TID_MAGNE2Y		16
-#define TID_MAGNE2Z		17
-#define TID_MAGNE3X		18
-#define TID_MAGNE3Y		19
-#define TID_MAGNE3Z		20
-#define TID_TEMPIMU1		21
-#define TID_TEMPIMU2		22
+#define TID_AKCEL1X				0
+#define TID_AKCEL1Y				1
+#define TID_AKCEL1Z				2
+#define TID_AKCEL2X				3
+#define TID_AKCEL2Y				4
+#define TID_AKCEL2Z				5
+#define TID_ZYRO1P				6
+#define TID_ZYRO1Q				7
+#define TID_ZYRO1R				8
+#define TID_ZYRO2P				9
+#define TID_ZYRO2Q				10
+#define TID_ZYRO2R				11
+#define TID_MAGNE1X				12
+#define TID_MAGNE1Y				13
+#define TID_MAGNE1Z				14
+#define TID_MAGNE2X				15
+#define TID_MAGNE2Y				16
+#define TID_MAGNE2Z				17
+#define TID_MAGNE3X				18
+#define TID_MAGNE3Y				19
+#define TID_MAGNE3Z				20
+#define TID_TEMPIMU1			21
+#define TID_TEMPIMU2			22
 
 //zmienne AHRS
-#define TID_KAT_IMU1X	23
-#define TID_KAT_IMU1Y	24
-#define TID_KAT_IMU1Z	25
-#define TID_KAT_IMU2X	26
-#define TID_KAT_IMU2Y	27
-#define TID_KAT_IMU2Z	28
-#define TID_KAT_ZYRO1X	29
-#define TID_KAT_ZYRO1Y	30
-#define TID_KAT_ZYRO1Z	31
-#define TID_KAT_AKCELX	32
-#define TID_KAT_AKCELY	33
-#define TID_KAT_AKCELZ	34
+#define TID_KAT_IMU1X			23
+#define TID_KAT_IMU1Y			24
+#define TID_KAT_IMU1Z			25
+#define TID_KAT_IMU2X			26
+#define TID_KAT_IMU2Y			27
+#define TID_KAT_IMU2Z			28
+#define TID_KAT_ZYRO1X			29
+#define TID_KAT_ZYRO1Y			30
+#define TID_KAT_ZYRO1Z			31
+#define TID_KAT_AKCELX			32
+#define TID_KAT_AKCELY			33
+#define TID_KAT_AKCELZ			34
 
 //zmienne barometryczne
-#define TID_CISBEZW1		35
-#define TID_CISBEZW2		36
-#define TID_WYSOKOSC1	37
-#define TID_WYSOKOSC2	38
-#define TID_CISROZN1		39
-#define TID_CISROZN2		40
-#define TID_PREDIAS1		41
-#define TID_PREDIAS2		42
-#define TID_TEMPCISB1	43
-#define TID_TEMPCISB2	44
-#define TID_TEMPCISR1	45
-#define TID_TEMPCISR2	46
+#define TID_CISBEZW1			35
+#define TID_CISBEZW2			36
+#define TID_WYSOKOSC1			37
+#define TID_WYSOKOSC2			38
+#define TID_CISROZN1			39
+#define TID_CISROZN2			40
+#define TID_PREDIAS1			41
+#define TID_PREDIAS2			42
+#define TID_WARIO1				43
+#define TID_WARIO2				44
+#define TID_TEMPCISB1			45
+#define TID_TEMPCISB2			46
+#define TID_TEMPCISR1			47
+#define TID_TEMPCISR2			48
 
-#define TID_RC_KAN1		47		//kanał 1 odbiorników RC
-#define TID_RC_KAN2		48
-#define TID_RC_KAN3		49
-#define TID_RC_KAN4		50
-#define TID_RC_KAN5		51
-#define TID_RC_KAN6		52
-#define TID_RC_KAN7		53
-#define TID_RC_KAN8		54
-#define TID_RC_KAN9		55
-#define TID_RC_KAN10		56
-#define TID_RC_KAN11		57
-#define TID_RC_KAN12		58
-#define TID_RC_KAN13		59
-#define TID_RC_KAN14		60
-#define TID_RC_KAN15		61
-#define TID_RC_KAN16		62
+#define TID_RC_KAN1				49		//kanał 1 odbiorników RC
+#define TID_RC_KAN2				50
+#define TID_RC_KAN3				51
+#define TID_RC_KAN4				52
+#define TID_RC_KAN5				53
+#define TID_RC_KAN6				54
+#define TID_RC_KAN7				55
+#define TID_RC_KAN8				56
+#define TID_RC_KAN9				57
+#define TID_RC_KAN10			58
+#define TID_RC_KAN11			59
+#define TID_RC_KAN12			60
+#define TID_RC_KAN13			61
+#define TID_RC_KAN14			62
+#define TID_RC_KAN15			63
+#define TID_RC_KAN16			64
 
-#define TID_SERWO1		63		//serwo 1
-#define TID_SERWO2		64
-#define TID_SERWO3		65
-#define TID_SERWO4		66
-#define TID_SERWO5		67
-#define TID_SERWO6		68
-#define TID_SERWO7		69
-#define TID_SERWO8		70
-#define TID_SERWO9		71
-#define TID_SERWO10		72
-#define TID_SERWO11		73
-#define TID_SERWO12		74
-#define TID_SERWO13		75
-#define TID_SERWO14		76
-#define TID_SERWO15		77
-#define TID_SERWO16		78
+#define TID_SERWO1				65		//serwo 1
+#define TID_SERWO2				66
+#define TID_SERWO3				67
+#define TID_SERWO4				68
+#define TID_SERWO5				69
+#define TID_SERWO6				70
+#define TID_SERWO7				71
+#define TID_SERWO8				72
+#define TID_SERWO9				73
+#define TID_SERWO10				74
+#define TID_SERWO11				75
+#define TID_SERWO12				76
+#define TID_SERWO13				77
+#define TID_SERWO14				78
+#define TID_SERWO15				79
+#define TID_SERWO16				80
 
-#define TID_DOTYK_ADC0	79
-#define TID_DOTYK_ADC1	80
-#define TID_DOTYK_ADC2	81
-#define TID_CZAS_PETLI	82	//czas trwania ostatniej petli głównej w us
-#define TID_ROZNE_F11	83	//zmienna debugująca fRóżne[11]
-#define TID_JAKOSC_UP_RC1	84
-#define TID_JAKOSC_UP_RC2	85
-#define TID_JAKOSC_DOWN_RC	86
+#define TID_DOTYK_ADC0			81
+#define TID_DOTYK_ADC1			82
+#define TID_DOTYK_ADC2			83
+#define TID_CZAS_PETLI			84	//czas trwania ostatniej petli głównej w us
+#define TID_ROZNE_F11			85	//zmienna debugująca fRóżne[11]
+#define TID_JAKOSC_UP_RC1		86
+#define TID_JAKOSC_UP_RC2		87
+#define TID_JAKOSC_DOWN_RC		88
 //max do 127
 
 #define TID_FFT_ZYRO_AKCEL	127	//wyniki transformaty Fouriera przesyłane w specyficznej szybkiej ramce

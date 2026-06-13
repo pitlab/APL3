@@ -2,6 +2,9 @@
 //
 // AutoPitLot v3.0
 // Obsługa czujnika ciśnienia BMP581 na magistrali SPI
+// Z góry zakładam czas konwersji z uśrednianiem 4 pomiarów ciśnienia wynoszący maksymalnie 2,9 + 5% = 3,045 ms.
+// Jeżeli polecenie wykonania pomiaru uruchamiane jest szybciej niż mogla zakonczyć sie
+// konwersja, to takie polecenie wychodzi z kodem błędu BLAD_ZA_KROTKI_CZAS
 //
 // (c) Pit Lab 2025
 // http://www.pitlab.pl
@@ -12,6 +15,7 @@
 #include "spi.h"
 #include "main.h"
 #include "Modul_I2P.h"
+#include "Czas.h"
 
 // Dopuszczalna prędkość magistrali 1..12MHz
 extern SPI_HandleTypeDef hspi2;
@@ -20,6 +24,10 @@ static uint8_t chProporcjaPomiarow;
 static float fP0_BMP581 = 0.0f;	//ciśnienie P0 do obliczeń wysokości [Pa]
 static uint8_t chBufBMP581[4];
 static uint16_t sLicznikUsrednianiaP0 = 0;			//licznik uśredniania ciśnienia zerowego do obliczeń wysokości
+static float fWysokoscUsredniona;		//średnia z ostatnich pomiarów wysokości potrzebna do liczenia wariometru
+static uint32_t nCzasOstatniejKonwersjiBMP581;
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z EEPROMu
@@ -52,13 +60,13 @@ uint8_t InicjujBMP581(void)
 		return BLAD_BRAK_CZUJNIKA;
 
 	chBufBMP581[0] = PBMP5_OVERSAMLING_RATE;
-	chBufBMP581[1] = (6 << 0)|	//oversampling temperatury: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
-					 (6 << 3)|	//oversampling ciśnienia: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
+	chBufBMP581[1] = (3 << 0)|	//oversampling temperatury: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
+					 (2 << 3)|	//oversampling ciśnienia: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
 					 (1 << 6);	//enable pressure sensor measurements
 	ZapiszSPIu8(chBufBMP581, 2);
 
 	chBufBMP581[0] = PBMP5_OUTPUT_DATA_RATE;
-	chBufBMP581[1] = (1 << 0)|	//pwr_mode: 0=standby, 1=normal mode in fonfigured ODR grid, 2=forced one time mode mrasurement, 3=non stop mode, measurement wothout further duty cycling
+	chBufBMP581[1] = (1 << 0)|	//pwr_mode: 0=standby, 1=normal mode in configured ODR grid, 2=forced one time mode measurement, 3=non stop mode, measurement wothout further duty cycling
 					 (1 << 2)|	//ODR: 0=240Hz, 1=218,5Hz, 2=199,11Hz, 3=179,2Hz, 4=160Hz,, A=100,3Hz
 					 (1 << 7);	//deep_dis - disable deep standby
 	ZapiszSPIu8(chBufBMP581, 2);
@@ -87,9 +95,18 @@ uint8_t ObslugaBMP581(void)
 		cBłąd = InicjujBMP581();
 		if (cBłąd)
 			return cBłąd;
+		nCzasOstatniejKonwersjiBMP581 = PobierzCzasT7();
 	}
 	else	//czujnik jest zainicjowany
 	{
+
+		//sprawdź ile czasu upłyneło od ostatniego pomiaru. Jeżeli było to mniej niż czas potrzebny na konwersję to pomiń to uruchomienie
+		uint32_t nCzas = MinalCzasT7(nCzasOstatniejKonwersjiBMP581);
+		if (nCzas < 3045)
+			return BLAD_ZA_KROTKI_CZAS;
+
+		//konwersja miała szansę się zakonczyć, więc oczytaj pomiar i uruchom następny
+		nCzasOstatniejKonwersjiBMP581 = PobierzCzasT7();
 		switch (chProporcjaPomiarow)
 		{
 		case 0:	uDaneCM4.dane.fTemper[TEMP_BARO2] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO2] + (float)(CzytajSPIs24mp(PBMP5_TEMP_DATA_XLSB) / 65536) + KELVIN) / 8;	break;
@@ -113,7 +130,12 @@ uint8_t ObslugaBMP581(void)
 					uDaneCM4.dane.nZainicjowano |= INIT_P0_BMP851;
 			}
 			else
+			{
 				uDaneCM4.dane.fWysokoMSL[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[1], fP0_BMP581, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//P0 gotowe więc oblicz wysokość
+				fWysokoscUsredniona = (1023 * fWysokoscUsredniona + uDaneCM4.dane.fWysokoMSL[1]) / 1024;
+				float fWariometr = (fWysokoscUsredniona - uDaneCM4.dane.fWysokoMSL[1]) * 1000 / uDaneCM4.dane.ndT;	//dH [m] * 1e3 / t [1e-6 s]
+				uDaneCM4.dane.fWariometr[1] = (999 * uDaneCM4.dane.fWariometr[1] + fWariometr) / 1000;				//dH / 1e-3
+			}
 		}
 	}
 	return cBłąd;
