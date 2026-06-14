@@ -56,7 +56,8 @@ typedef struct	//struktura konfiguracji regulatora PID
 	float fMinWyj;				//minimalna wartość wyjściowa regulatora
 	float fPrzesunWyjscie;		//wartość dodawana do wyjścia regulatora (umożliwia lot pod niezerowym kątem)
 	float fSkalaWartZadanej;	//skalowanie wartosci zadanej
-	uint8_t chPodstFiltraD; 	//podstawa różniczkującego filtra błędu o nieskończonej odpowiedzi impulsowej IIR
+	uint8_t chPodstFiltraD; 	//podstawa filtra IIR błędu
+	uint8_t chPodstFiltraWZad; 	//podstawa filtra IIR wartości zadanej
 	uint8_t chFlagi;			//0x80 - regulator katowy, 0x40 - regulator wyłączony
 	uint8_t chProcWartZadWyprz;	//procent zmiany wartości zadanej podawany na wejście wyprzedzające
 } stKonfPID_t;

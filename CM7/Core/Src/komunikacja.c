@@ -415,16 +415,12 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_KONFIG_PID;
 		uDaneCM7.dane.chRozmiar = (chRozmDanych - 3) / sizeof(float);		//ilość zmiennych regulatora typu float
 		uDaneCM7.dane.sAdres = cDane[0];	//indeks regulatora
-		//cDane[3] są wolne do wykorzystania
 		for (n=0; n<uDaneCM7.dane.chRozmiar; n++)
 		{
 			for (uint8_t i=0; i<sizeof(float); i++)
-				un8_32.dane8[i] = cDane[4 + n*sizeof(float) + i];
+				un8_32.dane8[i] = cDane[1 + n*sizeof(float) + i];
 			uDaneCM7.dane.uRozne.f32[n] = un8_32.daneFloat;
 		}
-		//w ostatnich polach zamiast float przeslij konfigurację zawartą w bajtach
-		uDaneCM7.dane.uRozne.U8[sizeof(float) * uDaneCM7.dane.chRozmiar + 0] = cDane[1];	//stała czasowa filtra D
-		uDaneCM7.dane.uRozne.U8[sizeof(float) * uDaneCM7.dane.chRozmiar + 1] = cDane[2];	//procent wartości wyprzedzającej
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 

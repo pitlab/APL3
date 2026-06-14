@@ -35,7 +35,6 @@ extern unia_wymianyCM4_t uDaneCM4;
 uint8_t InicjujPID(void)
 {
 	uint8_t cBłąd = BLAD_OK;
-	uint8_t chTemp;
 	uint16_t sAdrOffset;
 
     for (uint16_t n=0; n<LICZBA_PID; n++)
@@ -65,10 +64,14 @@ uint8_t InicjujPID(void)
         //odczytaj stałą wartość dodawaną do wyjścia regulatora
         cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_STAŁE_PRZES + sAdrOffset, &stKonfigPID[n].fPrzesunWyjscie, VMIN_PID_STWYPRZ, VMAX_PID_STWYPRZ, VDOM_PID_STWYPRZ);
 
-        //odczytaj stałą czasową filtru członu różniczkowania (bity 0..5), właczony (bit 6) i to czy regulator jest kątowy (bit 7)
-        chTemp = CzytajFRAM(FAU_FILTRD_TYP + sAdrOffset);
-        stKonfigPID[n].chPodstFiltraD = chTemp & PID_MASKA_FILTRA_D;
-        stKonfigPID[n].chFlagi = chTemp & PID_KATOWY;
+        //odczytaj flagi regulatora: regulator wyłączony (bit 6), Regulator kątowy (bit 7)
+        stKonfigPID[n].chFlagi = CzytajFRAM(FAU_PID_FLAGI + sAdrOffset);
+
+        //odczytaj podstawę filtra członu różniczkowania (bity 0..5), właczony (bit 6) i to czy regulator jest kątowy (bit 7)
+        stKonfigPID[n].chPodstFiltraD = CzytajFRAM(FAU_PID_FILTR_D + sAdrOffset);
+
+        // Podstawa filtra IIR wartości zadanej do liczenia członu wyprzedzajacego
+        stKonfigPID[n].chPodstFiltraWZad = CzytajFRAM(FAU_PID_FILTR_WZ + sAdrOffset);
 
         //odczytaj jaki procent pochodnej wartości zadanej ma wchodzić na wejście wyprzedzające
         stKonfigPID[n].chProcWartZadWyprz = CzytajFRAM(FAU_PID_PROC_WYPRZ + sAdrOffset);

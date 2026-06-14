@@ -409,14 +409,11 @@ void WykonajPolecenieCM7(void)
 			stKonfigPID[chIndeksRegulatora].fSkalaWartZadanej = uDaneCM7.dane.uRozne.f32[6];
 			stKonfigPID[chIndeksRegulatora].fPrzesunWyjscie = uDaneCM7.dane.uRozne.f32[7];
 
-			//finalnie zapisz dane zawarte w bajtach i wstaw je do pamieci
-			uint8_t chStalaCzasowaD_flagi = uDaneCM7.dane.uRozne.U8[4 * uDaneCM7.dane.chRozmiar + 0];
-			ZapiszFRAM(sAdresFram + 4 * uDaneCM7.dane.chRozmiar + 0, chStalaCzasowaD_flagi);	//stała czasowa filtra D
-			stKonfigPID[chIndeksRegulatora].chPodstFiltraD = chStalaCzasowaD_flagi & PID_MASKA_FILTRA_D;
-			stKonfigPID[chIndeksRegulatora].chFlagi = chStalaCzasowaD_flagi & ~PID_MASKA_FILTRA_D;
-
-			stKonfigPID[chIndeksRegulatora].chProcWartZadWyprz = uDaneCM7.dane.uRozne.U8[4 * uDaneCM7.dane.chRozmiar + 1];
-			ZapiszFRAM(sAdresFram + 4 * uDaneCM7.dane.chRozmiar + 1, stKonfigPID[chIndeksRegulatora].chProcWartZadWyprz);
+			//ostatni float zawiera flagi i nastawy 3 filtrów
+			stKonfigPID[chIndeksRegulatora].chFlagi = uDaneCM7.dane.uRozne.U8[8*4+0];
+			stKonfigPID[chIndeksRegulatora].chPodstFiltraD = uDaneCM7.dane.uRozne.U8[8*4+1];
+			stKonfigPID[chIndeksRegulatora].chPodstFiltraWZad = uDaneCM7.dane.uRozne.U8[8*4+2];
+			stKonfigPID[chIndeksRegulatora].chProcWartZadWyprz = uDaneCM7.dane.uRozne.U8[8*4+3];
 			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 			break;
 
