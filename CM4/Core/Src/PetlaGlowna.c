@@ -407,7 +407,7 @@ void WykonajPolecenieCM7(void)
 			stKonfigPID[chIndeksRegulatora].fMinWyj = uDaneCM7.dane.uRozne.f32[4];
 			stKonfigPID[chIndeksRegulatora].fMaxWyj = uDaneCM7.dane.uRozne.f32[5];
 			stKonfigPID[chIndeksRegulatora].fSkalaWartZadanej = uDaneCM7.dane.uRozne.f32[6];
-			stKonfigPID[chIndeksRegulatora].fPrzesunięcieWyjscia = uDaneCM7.dane.uRozne.f32[7];
+			stKonfigPID[chIndeksRegulatora].fPrzesunWyjscie = uDaneCM7.dane.uRozne.f32[7];
 
 			//finalnie zapisz dane zawarte w bajtach i wstaw je do pamieci
 			uint8_t chStalaCzasowaD_flagi = uDaneCM7.dane.uRozne.U8[4 * uDaneCM7.dane.chRozmiar + 0];

@@ -53,7 +53,7 @@
 #define FAU_PID_MIN_WY		FA_USER_PID+16  //4F minimalna wartość wyjścia
 #define FAU_PID_MAX_WY		FA_USER_PID+20  //4F maksymalna wartość wyjścia
 #define FAU_PID_MNOZN_WZAD 	FA_USER_PID+24	//4F mnożnik wartości zadanej
-#define FAU_PID_STALE_WYPRZ	FA_USER_PID+28 	//4F stała wartość podawana na wejście wyprzedzające (umożliwia lot pod niezerowym kątem)
+#define FAU_PID_STAŁE_PRZES	FA_USER_PID+28 	//4F stała wartość dodawana do wyjścia regulatora (umożliwia lot pod niezerowym kątem)
 #define FAU_PID1			FA_USER_PID+32	//4F wolne
 #define FAU_PID2			FA_USER_PID+36	//4F wolne
 #define FAU_FILTRD_TYP 		FA_USER_PID+40  //1U Stała czasowa filtru członu różniczkującego (bity 0..5), wyłączony (bit 6), Regulator kątowy (bit 7)
@@ -362,6 +362,6 @@
 #define VDOM_SKLADNIK_WE_ADC	0.0f
 
 
-#define VMIN_PID_STWYPRZ		-1.0f 		//stała wartość podawana na wejscie wyprzedzające. Domyślnie jest to kąt w radianach stałego pochylenia
-#define VMAX_PID_STWYPRZ 		1.0f
+#define VMIN_PID_STWYPRZ		-100.0f 		//stała wartość podawana na wejscie wyprzedzające. Domyślnie jest to kąt w radianach stałego pochylenia lub wysokość
+#define VMAX_PID_STWYPRZ 		100.0f
 #define VDOM_PID_STWYPRZ		0.0f

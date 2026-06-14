@@ -54,7 +54,7 @@ typedef struct	//struktura konfiguracji regulatora PID
 	float fOgrCalki; 			//ogranicznik wartości całki członu I
 	float fMaxWyj;				//maksymalna wartość wyjściowa regulatora
 	float fMinWyj;				//minimalna wartość wyjściowa regulatora
-	float fPrzesunięcieWyjscia;	//wartość podawana na wejście wyprzedzające (umożliwia lot pod niezerowym kątem)
+	float fPrzesunWyjscie;		//wartość dodawana do wyjścia regulatora (umożliwia lot pod niezerowym kątem)
 	float fSkalaWartZadanej;	//skalowanie wartosci zadanej
 	uint8_t chPodstFiltraD; 	//podstawa różniczkującego filtra błędu o nieskończonej odpowiedzi impulsowej IIR
 	uint8_t chFlagi;			//0x80 - regulator katowy, 0x40 - regulator wyłączony
@@ -71,7 +71,7 @@ typedef struct	//struktura danych roboczych regulatora PID
 	//zmienne robocze członów dynamicznych
 	float fCalka;  			//zmianna przechowująca całkę z błędu
 	float fFiltrWeD;	 	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	float fPoprzWartZad;	//poprzednia wartość zadana do liczenia wartosci wyprzedzającej
+	float fFiltrWartZad;	//przefiltrowana wartość zadana do liczenia wartosci wyprzedzającej
 
 	//zmienne wyjściowe
 	float fWyjsciePID; 		//wartość wyjściowa z całego regulatora
@@ -79,7 +79,7 @@ typedef struct	//struktura danych roboczych regulatora PID
 	float fWyjscieI;  		//wartość wyjściowa z członu I
 	float fWyjscieD;  		//wartość wyjściowa z członu D
 	float fWyjscieWyprz;	//wartość wyprzedzająca
-} stWyjPID_t;
+} stPID_t;
 
 
 typedef struct	//struktura przechowujaca konfigurację strojenia parametru PID kanałem RC

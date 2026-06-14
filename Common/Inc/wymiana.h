@@ -204,7 +204,7 @@ typedef struct
 	uint8_t chRozmiar;		//rozmiar danych przekazywanych w polu fRozne
 	uint16_t sAdres;		//adres danych przekazywanych w polu fRozne
 	stGnss_t stGnss1;		//struktura danych GNSS1
-	stWyjPID_t stWyjPID[LICZBA_PID];	//tablica struktur danych wyjściowych regulatorów PID
+	stPID_t stPID[LICZBA_PID];	//tablica struktur danych regulatorów PID
 	int16_t sSilnik[KANALY_MIKSERA];	//wartości wysterowania silników wychodzące z miksera
 	int16_t sWyjscieRC[KANALY_WYJSC_RC];	//finalne wartość wysterowania serw lub silników po uwzględnieniu konfiguracji wyjść
 	int16_t sKanalRC[KANALY_ODB_RC];

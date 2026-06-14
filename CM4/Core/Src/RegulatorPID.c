@@ -62,8 +62,8 @@ uint8_t InicjujPID(void)
         //odczytaj mnożnik wartości zadanej
         cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_MNOZN_WZAD + sAdrOffset, &stKonfigPID[n].fSkalaWartZadanej, VMIN_PID_MNOZWZ, VMAX_PID_MNOZWZ, VDOM_PID_MNOZWZ);
 
-        //odczytaj stałą wartość podawaną na wejście wyprzedzajace (Feed Forward)
-        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_STALE_WYPRZ + sAdrOffset, &stKonfigPID[n].fPrzesunięcieWyjscia, VMIN_PID_STWYPRZ, VMAX_PID_STWYPRZ, VDOM_PID_STWYPRZ);
+        //odczytaj stałą wartość dodawaną do wyjścia regulatora
+        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_STAŁE_PRZES + sAdrOffset, &stKonfigPID[n].fPrzesunWyjscie, VMIN_PID_STWYPRZ, VMAX_PID_STWYPRZ, VDOM_PID_STWYPRZ);
 
         //odczytaj stałą czasową filtru członu różniczkowania (bity 0..5), właczony (bit 6) i to czy regulator jest kątowy (bit 7)
         chTemp = CzytajFRAM(FAU_FILTRD_TYP + sAdrOffset);
@@ -74,8 +74,8 @@ uint8_t InicjujPID(void)
         stKonfigPID[n].chProcWartZadWyprz = CzytajFRAM(FAU_PID_PROC_WYPRZ + sAdrOffset);
 
         //zeruj integrator
-        uDaneCM4.dane.stWyjPID[n].fCalka = 0.0f;   	//zmienna przechowująca całkę z błędu
-        uDaneCM4.dane.stWyjPID[n].fFiltrWeD = 0.0f;	//poprzednia wartość błędu
+        uDaneCM4.dane.stPID[n].fCalka = 0.0f;   	//zmienna przechowująca całkę z błędu
+        uDaneCM4.dane.stPID[n].fFiltrWeD = 0.0f;	//poprzednia wartość błędu
     }
 
     for (uint16_t n=0; n<LICZBA_KAN_RC_DO_STROJENIA_PID; n++)
@@ -104,8 +104,8 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
 
     fdT = (float)ndT/1000000;    //czas obiegu petli w sekundach (optymalizacja kilkukrotnie wykorzystywanej zmiennej)
 
-    //człon proporcjonalny
-    fOdchylka = dane->stWyjPID[chKanal].fZadana - dane->stWyjPID[chKanal].fWejscie;
+    //Człon proporcjonalny.
+    fOdchylka = dane->stPID[chKanal].fZadana - dane->stPID[chKanal].fWejscie;
     if (konfig[chKanal].chFlagi & PID_KATOWY)  //czy regulator pracuje na wartościach kątowych?
     {
         if (fOdchylka > M_PI)
@@ -119,55 +119,61 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
     else
     if (fWyjscieReg < -MAX_PID)
     	fWyjscieReg = -MAX_PID;
-    dane->stWyjPID[chKanal].fWyjscieP = fWyjscieReg;  //debugowanie: wartość wyjściowa z członu P
+    dane->stPID[chKanal].fWyjscieP = fWyjscieReg;  //debugowanie: wartość wyjściowa z członu P
 
     //człon całkujący - liczy sumę błędu od początku do teraz
     if (konfig[chKanal].fWzmI > MIN_WZM_CALK)    //sprawdź warunek !=0 ze wzglądu na dzielenie przez fWzmI[] oraz ogranicz zbyt szybkie całkowanie nastawione pomyłkowo jako 0 a będące bardzo małą liczbą
     {
-    	dane->stWyjPID[chKanal].fCalka += fWyjscieReg * fdT / konfig[chKanal].fWzmI;   //całkowanie wzmocnionego wejścia - regulator szeregowy
+    	dane->stPID[chKanal].fCalka += fWyjscieReg * fdT / konfig[chKanal].fWzmI;   //całkowanie odchyłki po wzmocnieniu - regulator szeregowy
 
         //ogranicznik wartości całki
-        if (dane->stWyjPID[chKanal].fCalka > konfig[chKanal].fOgrCalki)
-        	dane->stWyjPID[chKanal].fCalka = konfig[chKanal].fOgrCalki;
-        if (dane->stWyjPID[chKanal].fCalka < -konfig[chKanal].fOgrCalki)
-        	dane->stWyjPID[chKanal].fCalka = -konfig[chKanal].fOgrCalki;
+        if (dane->stPID[chKanal].fCalka > konfig[chKanal].fOgrCalki)
+        	dane->stPID[chKanal].fCalka = konfig[chKanal].fOgrCalki;
+        if (dane->stPID[chKanal].fCalka < -konfig[chKanal].fOgrCalki)
+        	dane->stPID[chKanal].fCalka = -konfig[chKanal].fOgrCalki;
 
-        fWyjscieReg += dane->stWyjPID[chKanal].fCalka;
-        dane->stWyjPID[chKanal].fWyjscieI = dane->stWyjPID[chKanal].fCalka;  //debugowanie: wartość wyjściowa z członu I
+        fWyjscieReg += dane->stPID[chKanal].fCalka;
+        dane->stPID[chKanal].fWyjscieI = dane->stPID[chKanal].fCalka;  //debugowanie: wartość wyjściowa z członu I
     }
     else
-    	dane->stWyjPID[chKanal].fWyjscieI = 0.0f;  //debugowanie: wartość wyjściowa z członu I
+    	dane->stPID[chKanal].fWyjscieI = 0.0f;  //debugowanie: wartość wyjściowa z członu I
 
 
     //człon różniczkujący
     if (konfig[chKanal].fWzmD > MIN_WZM_ROZN)
     {
-        fTemp = (dane->stWyjPID[chKanal].fWejscie - dane->stWyjPID[chKanal].fFiltrWeD) * konfig[chKanal].fWzmD / fdT;
-        fWyjscieReg += fTemp;
+        fTemp = (dane->stPID[chKanal].fWejscie - dane->stPID[chKanal].fFiltrWeD) * konfig[chKanal].fWzmD / fdT;
         if (fTemp > MAX_PID)
         	fTemp = MAX_PID;
 	   else
 	   if (fTemp < -MAX_PID)
 		   fTemp = -MAX_PID;
+        fWyjscieReg += fTemp;
 
         //filtruj wartość wejścia aby uzyskać gładką akcję różniczkującą
-        dane->stWyjPID[chKanal].fFiltrWeD = (konfig[chKanal].chPodstFiltraD * dane->stWyjPID[chKanal].fFiltrWeD + dane->stWyjPID[chKanal].fWejscie) / (konfig[chKanal].chPodstFiltraD + 1);
+        dane->stPID[chKanal].fFiltrWeD = (konfig[chKanal].chPodstFiltraD * dane->stPID[chKanal].fFiltrWeD + dane->stPID[chKanal].fWejscie) / (konfig[chKanal].chPodstFiltraD + 1);
     }
     else
         fTemp = 0.0f;
-    dane->stWyjPID[chKanal].fWyjscieD = fTemp;  //wartość wyjściowa z członu D
+    dane->stPID[chKanal].fWyjscieD = fTemp;  //wartość wyjściowa z członu D
   
-    //dodanie stałej wartości wyprzedzenia umożliwijącej lot pod niezerowym kątem
-   	fWyjscieReg += konfig[chKanal].fPrzesunięcieWyjscia;
+    //sprawdź czy kanał dotyczy regulatora wartości podstawowej (kąta, wysokości, pozycji) czyli wartosci parzystej czy też jego pochodnej będąca liczbą nieparzystą
+    if (chKanal & 0x01)
+    {
+    	//liczba nieparzysta, czyli regulator pochodnej. Oblicz pochodną wartości zadanej
+        float fPochodnaWartZadanej = (dane->stPID[chKanal].fZadana - dane->stPID[chKanal].fFiltrWartZad)  / fdT;
+        dane->stPID[chKanal].fFiltrWartZad = (konfig[chKanal].chPodstFiltraD * dane->stPID[chKanal].fFiltrWartZad + dane->stPID[chKanal].fZadana) / (konfig[chKanal].chPodstFiltraD + 1);
 
-    //oblicz pochodną wartości zadanej
-    float fPochodnaWartZadanej = dane->stWyjPID[chKanal].fZadana - dane->stWyjPID[chKanal].fPoprzWartZad  / fdT;
-    dane->stWyjPID[chKanal].fPoprzWartZad = (konfig[chKanal].chPodstFiltraD * dane->stWyjPID[chKanal].fPoprzWartZad + dane->stWyjPID[chKanal].fZadana) / (konfig[chKanal].chPodstFiltraD + 1);
-
-    //dodanie pierwszej pochodnej wartości zadanej do wejścia wyprzedzającego
-	fTemp = fPochodnaWartZadanej * konfig[chKanal].chProcWartZadWyprz / 100.0f;
-	dane->stWyjPID[chKanal].fWyjscieWyprz  = fTemp;
-    fWyjscieReg += fTemp;
+        //dodanie pierwszej pochodnej wartości zadanej do wejścia wyprzedzającego
+    	fTemp = fPochodnaWartZadanej * konfig[chKanal].chProcWartZadWyprz / 100.0f;
+    	dane->stPID[chKanal].fWyjscieWyprz  = fTemp;
+        fWyjscieReg += fTemp;
+    }
+    else
+    {
+    	//Dla regulatorów wartosci podstawowych jest możliwe stałe przesunięcie odpowiedzi regulatora
+	    fWyjscieReg += konfig[chKanal].fPrzesunWyjscie;
+    }
 
     //ograniczenie wartości wyjściowej
     if (fWyjscieReg > konfig[chKanal].fMaxWyj)
@@ -176,7 +182,7 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
     if (fWyjscieReg < konfig[chKanal].fMinWyj)
     	fWyjscieReg = konfig[chKanal].fMinWyj;
 
-    dane->stWyjPID[chKanal].fWyjsciePID = fWyjscieReg;    //wartość wyjściowa z całego regulatora
+    dane->stPID[chKanal].fWyjsciePID = fWyjscieReg;    //wartość wyjściowa z całego regulatora
     return fWyjscieReg;
 }
 
@@ -191,7 +197,7 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
 void ResetujCalkePID(void)
 {
     for (uint8_t n=0; n<LICZBA_PID; n++)
-    	uDaneCM4.dane.stWyjPID[n].fCalka = 0.0f;   //zmianna przechowująca całka z błędu
+    	uDaneCM4.dane.stPID[n].fCalka = 0.0f;   //zmianna przechowująca całka z błędu
 }
 
 
@@ -278,29 +284,29 @@ void TestPID(void)
 	float fProgGor, fProgDol;	//progi testowania wartosci górny i dolny
 
 	//sprawdź odpowiedź członu proporcjonalnego regulatora kątowego na zawijanie kątów wokół 2Pi
-	uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fZadana = 370 * DEG2RAD;	//odpowiada +10°
-	uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fWejscie = -5 * DEG2RAD;
+	uDaneCM4.dane.stPID[PID_KĄTA_POCH].fZadana = 370 * DEG2RAD;	//odpowiada +10°
+	uDaneCM4.dane.stPID[PID_KĄTA_POCH].fWejscie = -5 * DEG2RAD;
 	RegulatorPID(ndT, PID_KĄTA_POCH, &uDaneCM4.dane, stKonfigPID);
 
-	assert(uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fWyjscieP < 15.001 * DEG2RAD * stKonfigPID[PID_KĄTA_POCH].fWzmP);
-	assert(uDaneCM4.dane.stWyjPID[PID_KĄTA_POCH].fWyjscieP > 14.999 * DEG2RAD * stKonfigPID[PID_KĄTA_POCH].fWzmP);
+	assert(uDaneCM4.dane.stPID[PID_KĄTA_POCH].fWyjscieP < 15.001 * DEG2RAD * stKonfigPID[PID_KĄTA_POCH].fWzmP);
+	assert(uDaneCM4.dane.stPID[PID_KĄTA_POCH].fWyjscieP > 14.999 * DEG2RAD * stKonfigPID[PID_KĄTA_POCH].fWzmP);
 
 	//sprawdź działanie członu całkującego regulatora wysokości. Całka to czas zdwojenia, więc przy wzmocnieniu Kp=1 i Ti=1 całka po sekundzie osiaga dwukrotność uchybu.
 	//czas trwania testu=10*5ms, błąd=20m, więc przyrost powinien wynosić 50/1000 * (20 * Kp) / Ti
 	if (stKonfigPID[PID_WYSOKOSCI].fWzmI)	//zapobiegnie dzieleniu przez zero
 	{
-		uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fZadana = 60;
-		uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fWejscie = 40;
-		uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fCalka = 0;
+		uDaneCM4.dane.stPID[PID_WYSOKOSCI].fZadana = 60;
+		uDaneCM4.dane.stPID[PID_WYSOKOSCI].fWejscie = 40;
+		uDaneCM4.dane.stPID[PID_WYSOKOSCI].fCalka = 0;
 		for (uint8_t n=0; n<10; n++)
 			RegulatorPID(ndT, PID_WYSOKOSCI, &uDaneCM4.dane, stKonfigPID);
 
 		fOdpowiedzNominalna = 0.005 * 10 * 20 * stKonfigPID[PID_WYSOKOSCI].fWzmP / stKonfigPID[PID_WYSOKOSCI].fWzmI;
 		fProgGor = fOdpowiedzNominalna + 0.001;
 		fProgDol = fOdpowiedzNominalna - 0.001;
-		assert(uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fWyjscieI < fProgGor);
-		assert(uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fWyjscieI > fProgDol);
-		uDaneCM4.dane.stWyjPID[PID_WYSOKOSCI].fCalka = 0;	//wyczyść całkę po teście
+		assert(uDaneCM4.dane.stPID[PID_WYSOKOSCI].fWyjscieI < fProgGor);
+		assert(uDaneCM4.dane.stPID[PID_WYSOKOSCI].fWyjscieI > fProgDol);
+		uDaneCM4.dane.stPID[PID_WYSOKOSCI].fCalka = 0;	//wyczyść całkę po teście
 	}
 }
 #endif
