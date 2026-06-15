@@ -71,7 +71,10 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
 				chBuforAnalizyCrossfire[chWskNapBufAnaCRSF] = chBuforOdbioruUart8[n];
 				chWskNapBufAnaCRSF++;
 				if (chWskNapBufAnaCRSF >= ROZMIAR_BUF_ANA_CRSF)
+				{
 					chWskNapBufAnaCRSF = 0;		//zapętlenie wskaźnika bufora kołowego
+					//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+				}
 			}
 			//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);		//kanał serw 1 skonfigurowany jako IO
 			break;
@@ -132,7 +135,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 				chBuforAnalizyCrossfire[chWskNapBufAnaCRSF] = chBuforOdbioruUart8[n + ROZMIAR_BUF_ODB_UART8 / 2];
 				chWskNapBufAnaCRSF++;
 				if (chWskNapBufAnaCRSF >= ROZMIAR_BUF_ANA_CRSF)
+				{
 					chWskNapBufAnaCRSF = 0;
+					//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+				}
 			}
 			//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);			//kanał serw 1 skonfigurowany jako IO
 			break;

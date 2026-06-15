@@ -798,7 +798,7 @@ void HAL_TIM_PWM_PulseFinishedHalfCpltCallback(TIM_HandleTypeDef *htim)
 		{
 			if (AktualizujWS281xDMA(NAPELNIJ_BUF1_CH6, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
 		        HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_1);
-		    HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+		    //HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 		}
 
 		if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3) && (chKonfigWyRC[KANAL_RC8] == SERWO_WS281X))	//kanał 8 serw
@@ -857,7 +857,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
     	{
     		if (AktualizujWS281xDMA(NAPELNIJ_BUF2_CH6, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
     			HAL_TIM_PWM_Stop_DMA(&htim8, TIM_CHANNEL_1);
-    		HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+    		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
     	}
 
     	if ((htim->Channel == HAL_TIM_ACTIVE_CHANNEL_3) && (chKonfigWyRC[KANAL_RC8] == SERWO_WS281X))
@@ -1041,8 +1041,7 @@ void RozpocznijZbieranieEkstremowWejscRC(void)
 		stRC2.cFlagi |= FRC_ZBIERAJ_EKSTR;
 }
 
-#define FRC_ZBIERAJ_EKSTR	0x10
-#define FRC_ZEBRANO_EKSTR	0x20
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Kończy zbiór ekstremalnych wartości wszystkich kanalów z obu odbiorników RC
@@ -1067,8 +1066,8 @@ void ZapiszEkstremaWejscRC(void)
 				stRC1.sKanMin[n] = CzytajFramU16(FAU_WE_RC1_MIN + n*2);
 				stRC1.sKanMax[n] = CzytajFramU16(FAU_WE_RC1_MAX + n*2);
 			}
-			stRC1.cFlagi &= ~(FRC_ZBIERAJ_EKSTR | FRC_ZEBRANO_EKSTR);
 		}
+		stRC1.cFlagi &= ~(FRC_ZBIERAJ_EKSTR | FRC_ZEBRANO_EKSTR);
 	}
 
 	//odbiornik 2
@@ -1086,8 +1085,8 @@ void ZapiszEkstremaWejscRC(void)
 				stRC2.sKanMin[n] = CzytajFramU16(FAU_WE_RC2_MIN + n*2);
 				stRC2.sKanMax[n] = CzytajFramU16(FAU_WE_RC2_MAX + n*2);
 			}
-			stRC2.cFlagi &= ~(FRC_ZBIERAJ_EKSTR | FRC_ZEBRANO_EKSTR);
 		}
+		stRC2.cFlagi &= ~(FRC_ZBIERAJ_EKSTR | FRC_ZEBRANO_EKSTR);
 	}
 }
 
@@ -1179,7 +1178,8 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC1, stRC_t *stRC2, uint8_t cUzywa
 				//normalizacja danych
 				if (cUzywajRC & ODB_RC2)
 				{
-					if (stRC2->sKanMax[n] > stRC2->sKanMin[n])
+					sRóżnicaMaxMin = stRC2->sKanMax[n] - stRC2->sKanMin[n];
+					if (sRóżnicaMaxMin)
 						psDaneCM4->sKanalRC[n] = (stRC2->sKanaly[n] - stRC2->sKanMin[n]) * (WE_RC_P100 - WE_RC_M100) / sRóżnicaMaxMin + WE_RC_M100; 	//przepisz znornalizowane kanały
 					else
 						psDaneCM4->sKanalRC[n] = stRC2->sKanaly[n];	//surowe dane bez normalizacji
