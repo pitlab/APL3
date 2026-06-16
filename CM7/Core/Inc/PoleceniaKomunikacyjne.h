@@ -79,7 +79,7 @@ typedef struct
 #define PK_CZYTAJ_FRAM_U8		19	//Wysyła  polecenie odczytu zawartości FRAM typu uint8_t
 #define PK_CZYTAJ_FRAM_FLOAT	20	//wysyła polecenie odczytu zawartości FRAM typu float
 #define PK_WYSLIJ_ODCZYT_FRAM	21	//pobiera odczytane wcześniej dane lub zwraca ERR_PROCES_TRWA
-#define PK_REKONFIG_SERWA_RC	22	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie zawartosci FRAM
+//#define PK_REKONFIG_SERWA_RC	22	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie zawartosci FRAM
 #define PK_UST_PAR_KAMERY_GRUP	23	//ustaw parametry pracy kamery grupowo
 #define PK_RESETUJ_KAMERE		24	//sprzetowo resetuje kamerę i ładuje domyślne ustawienia
 #define PK_ZAMKNIJ_POLACZENIE	25	//NSK kończy pracę i zatrzymuje transmisję danych
@@ -98,8 +98,10 @@ typedef struct
 #define PK_ROZP_ANALIZE_DRGAN	38	//rozpoczyna proces analizy drgań przez wykonywanie serii pomiarów FFT i coraz szybszym kręceniu silnikami
 #define PK_ZATRZYMAJ_SILNIKI	39	//zatrzymuje silniki w trakcie testu FFT
 #define PK_PRZELADUJ_KONF_PID	40	//przeładuj konfigurację PID po zmianie
+#define PK_REKONFIG_WEJSCIA_RC	41	//wykonuje ponowną konfigurację wejść RC po zmianie konfiguracji we FRAM
+#define PK_REKONFIG_WYJSCIA_RC	42	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
 
-#define PK_ILOSC_POLECEN		41	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
+#define PK_ILOSC_POLECEN		43	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
 
 #define PK_TELEM_SZYBKA			95	//szybka ramka telemetryczna do przesyłania wyników FFT

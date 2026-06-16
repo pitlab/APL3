@@ -71,7 +71,7 @@
 #define POL7_CZYTAJ_FRAM_FLOAT		28	//odczytaj i wyślij zawartość FRAM spod podanego adresu
 #define POL7_ZAPISZ_FRAM_FLOAT		29	//zapisz przekazane dane do FRAM pod podany adres
 #define POL7_KASUJ_DRYFT_ZYRO		30	//kasuje dryft kątów z żyroskopu sprowadzajac je do wartości z akcelerometru
-#define POL7_REKONFIG_SERWA_RC		31	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie konfiguracji we FRAM
+//
 #define POL7_ZAPISZ_KONFIG_PID		32	//zapisuje konfogurację PID do FRAM oraz do zmiennych roboczych
 #define POL7_ZBIERAJ_EKSTREMA_RC	33	//rozpoczyna zbieranie ekstremalnych wartości kanałów obu odbiorników RC
 #define POL7_ZAPISZ_EKSTREMA_RC		34	//kończy zbieranie ekstremalnych wartości kanałów obu odbiorników RC i zapisuje wyniki do FRAM
@@ -85,6 +85,8 @@
 #define POL7_PRZELADUJ_PID			42	//ponownie załaduj konfigurację PID aby odświeżyć usyawienia po zmianie
 #define POL7_CZYTAJ_KALIBR_TEMP		43	//przesyła odczytaną kalibrację czujnika temperatury CPU
 #define POL7_CZYTAJ_CZAS_PETLI_GL	44	//odczytuje czas wykonania fragmentów petli głównej
+#define POL7_REKONFIG_WEJSCIA_RC	45	//wykonuje ponowną konfigurację wejść RC po zmianie konfiguracji we FRAM
+#define POL7_REKONFIG_WYJSCIA_RC	46	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
 
 #define POL7_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony przez poprzednie polecenie
 

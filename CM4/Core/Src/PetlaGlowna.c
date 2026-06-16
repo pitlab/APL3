@@ -378,10 +378,10 @@ void WykonajPolecenieCM7(void)
 			}
 			break;
 
-		case POL7_REKONFIG_SERWA_RC:
+		/*case POL7_REKONFIG_SERWA_RC:
 			InicjujWejsciaRC();
 			InicjujWyjsciaRC();
-			break;
+			break;*/
 
 		case POL7_CZYSC_BLEDY:	uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] = BLAD_OK;	break;	//nadpisz poprzednio zwrócony błąd
 		case POL7_ZBIERAJ_EKSTREMA_RC:	RozpocznijZbieranieEkstremowWejscRC();	break;	//rozpoczyna zbieranie ekstremalnych wartości kanałów obu odbiorników RC
@@ -491,6 +491,11 @@ void WykonajPolecenieCM7(void)
 				//uDaneCM4.dane.uRozne.U16[n] = nCzasOdcinka[n];	//przepisz czasy wprost
 				uDaneCM4.dane.uRozne.U16[n] = (nCzasOdcinka[n] + uDaneCM4.dane.uRozne.U16[n] * 3) / 4;	//przepisz czasy z filtrowaniem
 			break;
+
+		case POL7_REKONFIG_WEJSCIA_RC:	InicjujWejsciaRC();	break;	//wykonuje ponowną konfigurację wejść RC po zmianie konfiguracji we FRAM
+		case POL7_REKONFIG_WYJSCIA_RC:	InicjujWyjsciaRC();	break;	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
+
+
 		}	//switch
 	}
 }

@@ -389,10 +389,10 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		cBłąd = WyslijRamke(cAdresZdalny, PK_WYSLIJ_ODCZYT_FRAM, chRozmiar, cDane, cInterfejs);
 		break;
 
-	case PK_REKONFIG_SERWA_RC:	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie zawartosci FRAM
+	/*case PK_REKONFIG_SERWA_RC:	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie zawartosci FRAM
 		uDaneCM7.dane.chWykonajPolecenie = POL7_REKONFIG_SERWA_RC;
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
-		break;
+		break;*/
 
 	case PK_ZAMKNIJ_POLACZENIE:	// zamyka połączenie UART, więc zmień stan na STAT_POL_GOTOWY
 		if (cInterfejs == INTERF_UART)
@@ -531,11 +531,21 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
-
 	case PK_PRZELADUJ_KONF_PID:	//przeładuj konfigurację PID po zmianie
 		uDaneCM7.dane.chWykonajPolecenie = POL7_PRZELADUJ_PID;
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
+
+	case PK_REKONFIG_WEJSCIA_RC:	//wykonuje ponowną konfigurację wejść RC po zmianie konfiguracji we FRAM
+		uDaneCM7.dane.chWykonajPolecenie = POL7_REKONFIG_WEJSCIA_RC;
+		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
+		break;
+
+	case PK_REKONFIG_WYJSCIA_RC:	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
+		uDaneCM7.dane.chWykonajPolecenie = POL7_REKONFIG_WYJSCIA_RC;
+		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
+		break;
+
 	}
     return cBłąd;
 }
