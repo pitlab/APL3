@@ -1009,7 +1009,8 @@ uint32_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM
 	case FWYRC_WE_RC13:
 	case FWYRC_WE_RC14:
 	case FWYRC_WE_RC15:
-	case FWYRC_WE_RC16:	nWyjście = daneCM4->sKanalRC[chIndeksFunkcji - FWYRC_WE_RC1] + PPM_MIN;	break;	//przepisanie wejścia na wyjście z przesunięciem poziomów
+	//case FWYRC_WE_RC16:	nWyjście = daneCM4->sKanalRC[chIndeksFunkcji - FWYRC_WE_RC1] + PPM_MIN;	break;	//przepisanie wejścia na wyjście z przesunięciem poziomów
+	case FWYRC_WE_RC16:	nWyjście = daneCM4->sKanalRC[chIndeksFunkcji - FWYRC_WE_RC1];	break;	//przepisanie wejścia na wyjście
 	default:	nWyjście = 0;	break;
 	}
 	return nWyjście;
