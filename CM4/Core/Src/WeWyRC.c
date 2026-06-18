@@ -879,7 +879,8 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
 uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 {
 	uint8_t cBłąd = BLAD_OK;
-	uint32_t nWyjście;
+	//uint32_t nWyjście;
+	uint16_t sWyjście;
 
 	//ponieważ odświeżanie LED-ów trwa długo, więc rób je co DZIELNIK_AKTUALIZACJI_LED okresów
 	if (cDzielnikAktualizacjiLED)
@@ -888,8 +889,10 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 	//aktualizuj pierwsze 8 kanałów wyjściowych RC sterownych swobodnymi kanałami timera
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 	{
-		nWyjście = PobierzWartoscWyjsciaRC(chFunkcjaWyjscRC[n], daneCM4);
-		daneCM4->sWyjscieRC[n] = nWyjście;
+		//nWyjście = PobierzWartoscWyjsciaRC(chFunkcjaWyjscRC[n], daneCM4);
+		//daneCM4->sWyjscieRC[n] = (uint16_t)nWyjście;
+		sWyjście = PobierzWartoscWyjsciaRC(chFunkcjaWyjscRC[n], daneCM4);
+		daneCM4->sWyjscieRC[n] = sWyjście;
 
 		//sprawdź rodzaj ustawionego protokołu wyjscia
 		switch (chKonfigWyRC[n])
@@ -897,14 +900,16 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 		case SERWO_IO:		break;	//nie rób nic - kanał jest portem IO sterowanym niezależnie z poziomu kodu, zwykle jako debug
 		case SERWO_PWM400:
 			chRozmiarSekwencjiDMA[n] = 1;
-			nBuforTimDMA[n][0] = nWyjście;
+			//nBuforTimDMA[n][0] = nWyjście;
+			nBuforTimDMA[n][0] = (uint32_t)sWyjście;
 			break;
 
 		case SERWO_PWM200:	//co drugi w buforze jest kanał, pozostałe są zerami
 			chRozmiarSekwencjiDMA[n] = 2;
 			for (uint8_t m=0; m<2; m++)
 			{
-				nBuforTimDMA[n][2*m+0] = nWyjście;
+				//nBuforTimDMA[n][2*m+0] = nWyjście;
+				nBuforTimDMA[n][2*m+0] = (uint32_t)sWyjście;
 				nBuforTimDMA[n][2*m+1] = 0;
 			}
 			break;
@@ -913,7 +918,8 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 			chRozmiarSekwencjiDMA[n] = 4;
 			for (uint8_t m=0; m<4; m++)
 			{
-				nBuforTimDMA[n][4*m+0] = nWyjście;
+				//nBuforTimDMA[n][4*m+0] = nWyjście;
+				nBuforTimDMA[n][4*m+0] = (uint32_t)sWyjście;
 				nBuforTimDMA[n][4*m+1] = 0;
 				nBuforTimDMA[n][4*m+2] = 0;
 				nBuforTimDMA[n][4*m+3] = 0;
@@ -922,7 +928,8 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 
 		case SERWO_PWM50:	//pierwszy w buforze jest kanał, pozostałe są zerami
 			chRozmiarSekwencjiDMA[n] = 8;
-			nBuforTimDMA[n][0] = nWyjście;
+			//nBuforTimDMA[n][0] = nWyjście;
+			nBuforTimDMA[n][0] = (uint32_t)sWyjście;
 			for (uint8_t m=1; m<KANALY_MIKSERA; m++)
 				nBuforTimDMA[n][m] = 0;
 			break;
@@ -930,7 +937,8 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 		case SERWO_DSHOT150:	//wszystkie typy DShot mają wspólną obsługę
 		case SERWO_DSHOT300:
 		case SERWO_DSHOT600:
-		case SERWO_DSHOT1200:	cBłąd |= AktualizujDShotDMA(nWyjście, n);	break;
+		//case SERWO_DSHOT1200:	cBłąd |= AktualizujDShotDMA(nWyjście, n);	break;
+		case SERWO_DSHOT1200:	cBłąd |= AktualizujDShotDMA(sWyjście, daneCM4->cPolecenieDShot, n);	break;
 
 		case SERWO_WS281X:
 			if (cDzielnikAktualizacjiLED == 0)
@@ -964,9 +972,9 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 //  *daneCM4 - wskaźnik na strukturę danych rdzenia CM4
 // Zwraca: wysterowanie kanału
 ////////////////////////////////////////////////////////////////////////////////
-uint32_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM4)
+uint16_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM4)
 {
-	uint32_t nWyjście;
+	uint16_t sWyjście;
 
 	switch(chIndeksFunkcji)
 	{
@@ -980,17 +988,17 @@ uint32_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM
 	case FWYRC_SILNIK8:
 		switch (chFunkcjaSilnika[chIndeksFunkcji - FWYRC_SILNIK1])
 		{
-		case FSIL_NAPED:	nWyjście = daneCM4->sSilnik[chIndeksFunkcji - FWYRC_SILNIK1];	break;				//normalna praca silnika jako napęd
+		case FSIL_NAPED:	sWyjście = daneCM4->sSilnik[chIndeksFunkcji - FWYRC_SILNIK1];	break;				//normalna praca silnika jako napęd
 		case FSIL_AN_DRGAN:		//dane do silników pochodzą z analizatora drgań w rdzeniu CM7. Wytyczne do ich obliczenia są przekazywane przez strukturę unię uRozne
 			 					//uDaneCM7.dane.uRozne.U8[0] - indeks etapu badania: 0..LICZBA_TESTOW_FFT
 			 					//uDaneCM7.dane.uRozne.U8[1] - stKonfigFFT->chAktywnSilniki;
 								//uDaneCM7.dane.uRozne.U8[2] - stKonfigFFT->chMaxWysterowanie; - procentowa wartość wysterowania względem maksimum
 				uint16_t sWysterowanieMaxAD = (sWysterowanieMax - sWysterowanieMin) * uDaneCM7.dane.uRozne.U8[2] / 100;	//pula ograniczonego zakresu sterowania
-				nWyjście = sWysterowanieMin + sWysterowanieMaxAD * uDaneCM7.dane.uRozne.U8[0] / LICZBA_TESTOW_FFT;		//bieżące wysterowanie
+				sWyjście = sWysterowanieMin + sWysterowanieMaxAD * uDaneCM7.dane.uRozne.U8[0] / LICZBA_TESTOW_FFT;		//bieżące wysterowanie
 				break;
 
 		case FSIL_ZATRZYMANY:	//silnik jest zatrzymany, bo nie bierze udziału w analizie drgań
-		default:	nWyjście = 0;	break;
+		default:	sWyjście = 0;	break;
 		}
 		break;
 
@@ -1009,11 +1017,10 @@ uint32_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM
 	case FWYRC_WE_RC13:
 	case FWYRC_WE_RC14:
 	case FWYRC_WE_RC15:
-	//case FWYRC_WE_RC16:	nWyjście = daneCM4->sKanalRC[chIndeksFunkcji - FWYRC_WE_RC1] + PPM_MIN;	break;	//przepisanie wejścia na wyjście z przesunięciem poziomów
-	case FWYRC_WE_RC16:	nWyjście = daneCM4->sKanalRC[chIndeksFunkcji - FWYRC_WE_RC1];	break;	//przepisanie wejścia na wyjście
-	default:	nWyjście = 0;	break;
+	case FWYRC_WE_RC16:	sWyjście = daneCM4->sKanalRC[chIndeksFunkcji - FWYRC_WE_RC1];	break;	//przepisanie wejścia na wyjście
+	default:	sWyjście = 0;	break;
 	}
-	return nWyjście;
+	return sWyjście;
 }
 
 

@@ -86,7 +86,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define PPM1PROC_BIP	8       //1%  bipolarnie
 
 //definicje zakresów sygnału wejściowego RC
-#define WE_RC_MIN		0    	//wartość minimalna sygnału -125%
+/*#define WE_RC_MIN		0    	//wartość minimalna sygnału -125%
 #define WE_RC_M100    	200    //-100%
 #define WE_RC_M90     	280    //-90%
 #define WE_RC_M75     	400    //-75%
@@ -101,6 +101,23 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define WE_RC_P90     	1720    //+90%
 #define WE_RC_P100    	1800    //+100%
 #define WE_RC_MAX		2000    //wartość maksymalna sygnału +125%
+#define WE_RC_HISTEREZA	10		//histereza do badania stanu przełacznika */
+
+#define WE_RC_MIN		0    	//wartość minimalna sygnału -125%
+#define WE_RC_M100    	199    //-100%
+#define WE_RC_M90     	279    //-90%
+#define WE_RC_M75     	399    //-75%
+#define WE_RC_M50     	599    //-50%
+#define WE_RC_M25     	799    //-25%
+#define WE_RC_M20     	839    //-20%
+#define WE_RC_NEUTR   	999    //neutrum
+#define WE_RC_P20     	1159    //+20%
+#define WE_RC_P25     	1199    //+25%
+#define WE_RC_P50     	1399    //+50%
+#define WE_RC_P75     	1599    //+75%
+#define WE_RC_P90     	1719    //+90%
+#define WE_RC_P100    	1799    //+100%
+#define WE_RC_MAX		1999    //wartość maksymalna sygnału +125%
 #define WE_RC_HISTEREZA	10		//histereza do badania stanu przełacznika
 
 //czasy impulsów PPM dla założenia że 1% to PPM1PROC_BIP jednostek

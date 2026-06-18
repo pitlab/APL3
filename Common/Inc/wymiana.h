@@ -210,6 +210,7 @@ typedef struct
 	int16_t sSilnik[KANALY_MIKSERA];	//wartości wysterowania silników wychodzące z miksera
 	int16_t sWyjscieRC[KANALY_WYJSC_RC];	//finalne wartość wysterowania serw lub silników po uwzględnieniu konfiguracji wyjść
 	int16_t sKanalRC[KANALY_ODB_RC];
+	uint8_t cPolecenieDShot;
 	uint8_t cJakoscUpLinkuRC1;	//procentowo przedstawiona jakość łącza do aktywnego odbiornika
 	uint8_t cJakoscUpLinkuRC2;	//procentowo przedstawiona jakość łącza do aktywnego odbiornika
 	uint8_t cJakoscDnLinkuRC;	//procentowo przedstawiona jakość łącza z aktywnego odbiornika (telemetrii)

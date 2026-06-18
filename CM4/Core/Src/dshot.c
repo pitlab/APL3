@@ -243,11 +243,13 @@ uint8_t UstawTrybDShot(uint8_t chProtokol, uint8_t chKanal)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja aktualizuje dane wysyłane cyklicznie do regulatora
-// Parametry: sWysterowanie - wartość jaka ma być wysłana do regulatora z zakresu 0..1999
-// chKanal - numer kanału w jakim są aktualizowane dane
+// Parametry:
+// [we] sWysterowanie - wartość jaka ma być wysłana do regulatora z zakresu 0..1999
+// [we] cPolecenie - numer polecenia 0..47 ustawiany na najmłodszych wartosciach danych
+// [we ]chKanal - numer kanału w jakim są aktualizowane dane
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t chKanal)
+uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t cPolecenie, uint8_t chKanal)
 {
 	uint8_t cBłąd = BLAD_OK;
 	uint16_t sCRC;
@@ -258,6 +260,7 @@ uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t chKanal)
 	}
 
 	sWysterowanie += DS_OFFSET_DSHOT;
+	sWysterowanie |= cPolecenie;
 	for (uint8_t n=0; n<11; n++)
 	{
 		if (sWysterowanie & 0x400)	//wysyłany jest najstarszy przodem z 11 bitów - sprawdzić
@@ -268,6 +271,7 @@ uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t chKanal)
 	}
 	nBuforTimDMA[chKanal][11] = stDShot.nT0H;	//brak telemetrii = 0
 
+	sWysterowanie <<= 1;		//dodaj bit telemetrii, bo jest uwzględniany przy liczeniu CRC
 	sCRC = sWysterowanie >> 4;
 	sWysterowanie ^= sCRC;
 	sCRC = sWysterowanie >> 8;

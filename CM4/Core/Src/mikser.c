@@ -6,9 +6,10 @@
 // (c) PitLab 2025
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <Fram.h>
 #include <Mikser.h>
+#include <Fram.h>
 #include "RegulatorPID.h"
+#include <DShot.h>
 
 stMikser_t stMikser;	//struktura zmiennych miksera
 uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu i na ziemi po uzbrojeniu
@@ -109,7 +110,8 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 		else
 		{
 			dane->chTrybLotu |= BTR_TRWA_LOT;
-			sGaz = sWysterowanieZawisu;
+			//sGaz = sWysterowanieZawisu;
+			sGaz = dane->sKanalRC[chKanalDrazkaRC[WYSO]];
 
 			//pionowa składowa ciągu statycznego potrzebnego do zawisu ma być niezależna od pochylenia i przechylenia
 			if (fCosPrze != 0.0f)	//niezerowy kosinus kąta
@@ -136,7 +138,7 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 		 //jeżeli suma kanałów jest większa niż 100% to najpierw skaluj ważniejsze regulatory odpowiadajace za stabilizację a jeżeli jeszcze jest miejsce do potem mniej ważne
 		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
 		{
-			if ((sMaxTmp1 + sMaxTmp2 + sGaz) < sWysterowanieMax)     //jeżeli nie przekraczamy zakresu to sumuj wszystkie regulatory
+			if ((sMaxTmp1 + sMaxTmp2 + sGaz) < sWysterowanieMax)     //jeżeli nie przekraczamy zakresu, to sumuj wszystkie regulatory
 				sTmpSilnik[n] = sTmp1[n] + sTmp2[n] + sGaz;
 			else
 			{
@@ -154,12 +156,16 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 			//nie schodź poniżej obrotów jałowych
 			if (sTmpSilnik[n] < sWysterowanieMin)
 				sTmpSilnik[n] = sWysterowanieMin;
+
+			if (sTmpSilnik[n] > sWysterowanieMax)	//tymczasowa pułapka
+				sTmpSilnik[n] = sWysterowanieMax;
 		}
 	}
 	else	//silniki nie są uzbrojone
 	{
 		for (uint8_t n=0; n<stMikser.chLiczbaSilnikow; n++)
 			sTmpSilnik[n] = WE_RC_MIN;
+		dane->cPolecenieDShot = DSHOT_CMD_MOTOR_STOP;
 	}
 
 	//przepisz roboczą zmienną do zmiennej stanu silników
