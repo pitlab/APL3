@@ -159,6 +159,8 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 
 			if (sTmpSilnik[n] > sWysterowanieMax)	//tymczasowa pułapka
 				sTmpSilnik[n] = sWysterowanieMax;
+
+			dane->cPolecenieDShot = DSHOT_CMD_NORMALNA_PRACA;
 		}
 	}
 	else	//silniki nie są uzbrojone

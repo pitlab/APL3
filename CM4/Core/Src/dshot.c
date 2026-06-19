@@ -253,29 +253,31 @@ uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t cPolecenie, uint8_t c
 {
 	uint8_t cBłąd = BLAD_OK;
 	uint16_t sCRC;
+	uint16_t sRoboczeWysterowanie;	//zmienna robocza
+
 	if (sWysterowanie > WE_RC_MAX)
 	{
 		sWysterowanie = WE_RC_MAX;
-		cBłąd = BLAD_ZLE_DANE;
+		return BLAD_ZLE_DANE;
 	}
 
-	sWysterowanie += DS_OFFSET_DSHOT;
-	sWysterowanie |= cPolecenie;
+	sRoboczeWysterowanie = sWysterowanie + cPolecenie;	//po uzbrojeniu silników polecenie DSHOT_CMD_NORMALNA_PRACA = 48
 	for (uint8_t n=0; n<11; n++)
 	{
-		if (sWysterowanie & 0x400)	//wysyłany jest najstarszy przodem z 11 bitów - sprawdzić
+		if (sRoboczeWysterowanie & 0x400)	//wysyłany jest najstarszy przodem z 11 bitów - sprawdzić
 			nBuforTimDMA[chKanal][n] = stDShot.nT1H;	//wysyłany bit 1
 		else
 			nBuforTimDMA[chKanal][n] = stDShot.nT0H;	//wysyłany bit 0
-		sWysterowanie <<= 1;		//wskaż kolejny bit
+		sRoboczeWysterowanie <<= 1;		//wskaż kolejny bit
 	}
 	nBuforTimDMA[chKanal][11] = stDShot.nT0H;	//brak telemetrii = 0
 
-	sWysterowanie <<= 1;		//dodaj bit telemetrii, bo jest uwzględniany przy liczeniu CRC
-	sCRC = sWysterowanie >> 4;
-	sWysterowanie ^= sCRC;
-	sCRC = sWysterowanie >> 8;
-	sCRC ^= sWysterowanie;
+	sRoboczeWysterowanie = sWysterowanie + cPolecenie;
+	sRoboczeWysterowanie <<= 1;		//dodaj bit telemetrii, bo jest uwzględniany przy liczeniu CRC
+	sCRC = sRoboczeWysterowanie >> 4;
+	sRoboczeWysterowanie ^= sCRC;
+	sCRC = sRoboczeWysterowanie >> 8;
+	sCRC ^= sRoboczeWysterowanie;
 	sCRC &= 0x000F;
 	for (uint8_t n=0; n<4; n++)
 	{
