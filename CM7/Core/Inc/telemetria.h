@@ -108,19 +108,43 @@
 #define TID_SERWO15				79
 #define TID_SERWO16				80
 
-#define TID_DOTYK_ADC0			81
-#define TID_DOTYK_ADC1			82
-#define TID_DOTYK_ADC2			83
-#define TID_CZAS_PETLI			84	//czas trwania ostatniej petli głównej w us
-#define TID_ROZNE_F11			85	//zmienna debugująca fRóżne[11]
-#define TID_JAKOSC_UP_RC1		86
-#define TID_JAKOSC_UP_RC2		87
-#define TID_JAKOSC_DOWN_RC		88
+#define TID_BSP_AKCELX			81
+#define TID_BSP_AKCELY			82
+#define TID_BSP_AKCELZ			83
+#define TID_BSP_ZYROP			84
+#define TID_BSP_ZYROQ			85
+#define TID_BSP_ZYROR			86
+#define TID_BSP_MAGNEX			87
+#define TID_BSP_MAGNEY			88
+#define TID_BSP_MAGNEZ			89
+
+#define TID_BSP_IMUX			90
+#define TID_BSP_IMUY			91
+#define TID_BSP_IMUZ			92
+#define TID_BSP_AGL				93
+#define TID_BSP_AMSL			94
+#define TID_BSP_IAS				95
+#define TID_BSP_KURS			96
+
+#define TID_BSP_PRED_PÓŁN		97
+#define TID_BSP_PRED_WSCH		98
+#define TID_BSP_PRED_WDÓŁ		99
+#define TID_BSP_SZER_GEO		100
+#define TID_BSP_DŁUG_GEO		101
+
+#define TID_DOTYK_ADC0			102
+#define TID_DOTYK_ADC1			103
+#define TID_DOTYK_ADC2			104
+#define TID_CZAS_PETLI			105	//czas trwania ostatniej petli głównej w us
+#define TID_JAKOSC_UP_RC1		106
+#define TID_JAKOSC_UP_RC2		107
+#define TID_JAKOSC_DOWN_RC		108
+
 //max do 127
 
 #define TID_FFT_ZYRO_AKCEL	127	//wyniki transformaty Fouriera przesyłane w specyficznej szybkiej ramce
 
-//zmiene telemetryczne w ramce 2
+//--- zmienne telemetryczne w ramce 2 -----------------------------------------------
 #define TID_PID_PRZE_WZAD		128	//wartość zadana regulatora sterowania przechyleniem
 #define TID_PID_PRZE_FWEJ		129	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
 #define TID_PID_PRZE_CALK		130	//wartość całki członu I

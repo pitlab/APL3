@@ -364,14 +364,37 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_SERWO12:
 	case TID_SERWO13:
 	case TID_SERWO14:
-	case TID_SERWO15:			//aby nie generować zbyt dużo kodu stosuję wzór do obliczenia indeksu zmiennej dla wszystkich kanałów
-	case TID_SERWO16:			fZmiennaTele = uDaneCM4.dane.sWyjscieRC[sZmienna - TID_SERWO1];	break;
+	case TID_SERWO15:		//aby nie generować zbyt dużo kodu stosuję wzór do obliczenia indeksu zmiennej dla wszystkich kanałów
+	case TID_SERWO16:		fZmiennaTele = uDaneCM4.dane.sWyjscieRC[sZmienna - TID_SERWO1];	break;
+
+	case TID_BSP_AKCELX:	fZmiennaTele = uDaneCM4.dane.stBSP.fAkcel[0];	break;
+	case TID_BSP_AKCELY:	fZmiennaTele = uDaneCM4.dane.stBSP.fAkcel[1];	break;
+	case TID_BSP_AKCELZ:	fZmiennaTele = uDaneCM4.dane.stBSP.fAkcel[2];	break;
+	case TID_BSP_ZYROP:		fZmiennaTele = uDaneCM4.dane.stBSP.fZyro[0];	break;
+	case TID_BSP_ZYROQ:		fZmiennaTele = uDaneCM4.dane.stBSP.fZyro[1];	break;
+	case TID_BSP_ZYROR:		fZmiennaTele = uDaneCM4.dane.stBSP.fZyro[2];	break;
+	case TID_BSP_MAGNEX:	fZmiennaTele = uDaneCM4.dane.stBSP.fMagne[0];	break;
+	case TID_BSP_MAGNEY:	fZmiennaTele = uDaneCM4.dane.stBSP.fMagne[1];	break;
+	case TID_BSP_MAGNEZ:	fZmiennaTele = uDaneCM4.dane.stBSP.fMagne[2];	break;
+
+	case TID_BSP_IMUX:		fZmiennaTele = uDaneCM4.dane.stBSP.fKatIMU[0];	break;
+	case TID_BSP_IMUY:		fZmiennaTele = uDaneCM4.dane.stBSP.fKatIMU[1];	break;
+	case TID_BSP_IMUZ:		fZmiennaTele = uDaneCM4.dane.stBSP.fKatIMU[2];	break;
+	case TID_BSP_AGL:		fZmiennaTele = uDaneCM4.dane.stBSP.fWysokoscAGL;	break;
+	case TID_BSP_AMSL:		fZmiennaTele = uDaneCM4.dane.stBSP.fWysokoscMSL;	break;
+	case TID_BSP_IAS:		fZmiennaTele = uDaneCM4.dane.stBSP.fIAS;		break;
+	case TID_BSP_KURS:		fZmiennaTele = uDaneCM4.dane.stBSP.fKursGeo;	break;
+
+	case TID_BSP_PRED_PÓŁN:	fZmiennaTele = uDaneCM4.dane.stBSP.fPredkoscN;	break;
+	case TID_BSP_PRED_WSCH:	fZmiennaTele = uDaneCM4.dane.stBSP.fPredkoscE;	break;
+	case TID_BSP_PRED_WDÓŁ:	fZmiennaTele = uDaneCM4.dane.stBSP.fPredkoscD;	break;
+	case TID_BSP_SZER_GEO:	fZmiennaTele = uDaneCM4.dane.stBSP.dSzerokoscGeo;	break;
+	case TID_BSP_DŁUG_GEO:	fZmiennaTele = uDaneCM4.dane.stBSP.dDlugoscGeo;	break;
 
 	case TID_DOTYK_ADC0:		fZmiennaTele = statusDotyku.sAdc[0];			break;
 	case TID_DOTYK_ADC1:		fZmiennaTele = statusDotyku.sAdc[1];			break;
 	case TID_DOTYK_ADC2:		fZmiennaTele = statusDotyku.sAdc[2];			break;
 	case TID_CZAS_PETLI: 		fZmiennaTele = uDaneCM4.dane.ndT;				break;
-	case TID_ROZNE_F11:			fZmiennaTele = uDaneCM4.dane.uRozne.f32[11];	break;
 	case TID_JAKOSC_UP_RC1:		fZmiennaTele = uDaneCM4.dane.cJakoscUpLinkuRC1;	break;
 	case TID_JAKOSC_UP_RC2:		fZmiennaTele = uDaneCM4.dane.cJakoscUpLinkuRC2;	break;
 	case TID_JAKOSC_DOWN_RC:	fZmiennaTele = uDaneCM4.dane.cJakoscDnLinkuRC;	break;

@@ -41,8 +41,7 @@
 
 
 //definicje bitów konfiguracji PID
-#define PID_MASKA_FILTRA_D		0x3F
-#define PID_KATOWY				0x80
+#define PID_KATOWY				0x01
 
 
 
