@@ -184,8 +184,9 @@ typedef struct
 	float fKatAkcel1[3];	//[rad]
 	float fKatAkcel2[3];
 	float fKatKwater[3];
-	float fCisnieBzw[2];	//Ciśnienie bezwzgleędne [Pa]
+	float fCisnieBzw[2];	//Ciśnienie bezwzględne [Pa]
 	float fWysokoMSL[2];	//Wysokość nad poziomem morza [m]
+	float fWysokoAGL[2];	//Wysokość nad poziomem startu [m]
 	float fWariometr[2];	//prędkość pionowa [m/s]
 	float fCisnRozn[2];		//0=ND130, 1=MS2545
 	float fPredkosc[2];		//[m/s]

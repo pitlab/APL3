@@ -410,10 +410,10 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 			break;
 		}
 #ifdef TESTY
-		assert(chRozmDanych == ROZMIAR_REG_PID + 2);
+		assert(chRozmDanych == ROZMIAR_REG_PID - 1);	//przesyłane są liczby float + 1 początkowy bajt będący indeksem regulatora
 #endif
 		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_KONFIG_PID;
-		uDaneCM7.dane.chRozmiar = (chRozmDanych - 3) / sizeof(float);		//ilość zmiennych regulatora typu float
+		uDaneCM7.dane.chRozmiar = (chRozmDanych - 1) / sizeof(float);		//ilość zmiennych regulatora typu float
 		uDaneCM7.dane.sAdres = cDane[0];	//indeks regulatora
 		for (n=0; n<uDaneCM7.dane.chRozmiar; n++)
 		{

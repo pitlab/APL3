@@ -31,7 +31,7 @@
 #include "KontrolerLotu.h"
 #include "SampleAudio.h"
 #include "Crossfire.h"
-
+#include <Kalman.h>
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -154,21 +154,8 @@ void PetlaGlowna(void)
 		cBłądPG |= RozdzielniaOperacjiI2C();
 		break;
 
-	case 6:	//przepisz czujniki do struktury BSP - finalnie ma to zrobić filtr kalmana
-		for (uint8_t n=0; n<3; n++)
-		{
-			uDaneCM4.dane.stBSP.fKatIMU[n] = uDaneCM4.dane.fKatIMU1[n];
-			uDaneCM4.dane.stBSP.fAkcel[n] = uDaneCM4.dane.fAkcel1[n];
-			uDaneCM4.dane.stBSP.fZyro[n] = uDaneCM4.dane.fZyroKal1[n];
-			uDaneCM4.dane.stBSP.fMagne[n] = uDaneCM4.dane.fMagne1[n];
-		}
-
-		uDaneCM4.dane.stBSP.fPredkoscN = uDaneCM4.dane.stGnss1.fPredkoscN;
-		uDaneCM4.dane.stBSP.fPredkoscE = uDaneCM4.dane.stGnss1.fPredkoscE;
-		uDaneCM4.dane.stBSP.fPredkoscD = uDaneCM4.dane.fWariometr[0];
-		uDaneCM4.dane.stBSP.dDlugoscGeo = uDaneCM4.dane.stGnss1.dDlugoscGeo;
-		uDaneCM4.dane.stBSP.dSzerokoscGeo = uDaneCM4.dane.stGnss1.dSzerokoscGeo;
-		uDaneCM4.dane.stBSP.fKursGeo = uDaneCM4.dane.stGnss1.fKurs;
+	case 6:	//przepisz czujniki do struktury BSP - finalnie ma to zrobić filtr Kalmana
+		FiltrDanychIMUiWysokosci(&uDaneCM4.dane);
 		break;
 
 	case 7:

@@ -476,8 +476,9 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 {
 	uint8_t cBłąd;
 	float fLiczba;
-	uint8_t chCyfra;
-	uint8_t chFormaGramatyczna = 0;
+	uint8_t cCyfra;
+	uint8_t cFormaGramatyczna = 0;
+	uint8_t cByłyStarsze = 0;	//informuje czy występowały starsze cyfry
 
 	if (fWartosc > 999999)
 			return BLAD_ZLE_DANE;	//nie obsługuję wymowy większych liczb
@@ -490,110 +491,127 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 	case KOMG_TEMPERATURA:	cBłąd = DodajProbkeDoKolejki(PGA_TEMPERATURA);	break;
 	case KOMG_PREDKOSC:		cBłąd = DodajProbkeDoKolejki(PGA_PREDKOSC);	break;
 	case KOMG_KIERUNEK:		cBłąd = DodajProbkeDoKolejki(PGA_KIERUNEK);	break;
-	case KOMG_UZBROJONE:	cBłąd = DodajProbkeDoKolejki(PGA_UZBROJONY);	break;
-	case KOMG_ROZBROJONE:	cBłąd = DodajProbkeDoKolejki(PGA_ROZBROJONY);	break;
-
-
+	case KOMG_UZBROJONE:	cBłąd = DodajProbkeDoKolejki(PGA_UZBROJONY);	return BLAD_OK;	//nie wymawiaj nic wiecej
+	case KOMG_ROZBROJONE:	cBłąd = DodajProbkeDoKolejki(PGA_ROZBROJONY);	return BLAD_OK;	//nie wymawiaj nic wiecej
 	default:	break;
 	}
+
+	//wymawiamy z rozdzielczością jednej dziesiatej części, więc zaokrągl liczbę do dziesiatych części
+	fWartosc = roundf(fWartosc * 10) / 10;
 
 	//dodaj znak jeżeli liczba ujemna
 	if (fWartosc < 0.0)
 	{
 		fWartosc *= -1.0f;		//zamień na liczbę dodatnią
-		DodajProbkeDoKolejki(PGA_MINUS);
+
+		//minus wymawiaj tylko, gdy liczba ma ujemne cyfry znaczące
+		if (fWartosc > 0.1)
+			DodajProbkeDoKolejki(PGA_MINUS);
 	}
 
 	//dodaj kolejne cyfry składajace się na liczbę
 	if (fWartosc >= 100000)		//setki tysięcy
 	{
 		fLiczba = floorf(fWartosc / 100000);
-		chCyfra = (uint8_t)fLiczba;
-		cBłąd = DodajProbkeDoKolejki(PGA_100 + chCyfra - 1);
-		fWartosc -= chCyfra * 100000;
-		chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
+		cCyfra = (uint8_t)fLiczba;
+		cBłąd = DodajProbkeDoKolejki(PGA_100 + cCyfra - 1);
+		fWartosc -= cCyfra * 100000;
+		cFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
+		cByłyStarsze = 1;
 	}
 
 	if (fWartosc >= 20000)		//dziesiątki tysięcy >=20k
 	{
 		fLiczba = floorf(fWartosc / 10000);
-		chCyfra = (uint8_t)fLiczba;
-		cBłąd = DodajProbkeDoKolejki(PGA_20 + chCyfra - 2);
-		fWartosc -= chCyfra * 10000;
-		chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
+		cCyfra = (uint8_t)fLiczba;
+		cBłąd = DodajProbkeDoKolejki(PGA_20 + cCyfra - 2);
+		fWartosc -= cCyfra * 10000;
+		cFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
+		cByłyStarsze = 1;
 	}
 
 	if (fWartosc >= 10000)		//kilkanaście tysięcy
 	{
 		fLiczba = floorf(fWartosc / 1000);
-		chCyfra = (uint8_t)fLiczba;
-		cBłąd = DodajProbkeDoKolejki(PGA_10 + chCyfra - 10);
- 		fWartosc -= chCyfra * 1000;
-		chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
+		cCyfra = (uint8_t)fLiczba;
+		cBłąd = DodajProbkeDoKolejki(PGA_10 + cCyfra - 10);
+ 		fWartosc -= cCyfra * 1000;
+		cFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
+		cByłyStarsze = 1;
 	}
 
 	if (fWartosc >= 1000)		//jednostki tysięcy
 	{
 		fLiczba = floorf(fWartosc / 1000);
-		chCyfra = (uint8_t)fLiczba;
-		if ((chFormaGramatyczna) || (chCyfra > 1))	//nie dodawaj "jeden" przed "tysiąc", ale tylko gdy nie ma starszych cyfr
-			cBłąd = DodajProbkeDoKolejki(PGA_01 + chCyfra - 1);
-		fWartosc -= chCyfra * 1000;
-		if (chCyfra >= 5)
-			chFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
+		cCyfra = (uint8_t)fLiczba;
+		if ((cFormaGramatyczna) || (cCyfra > 1))	//nie dodawaj "jeden" przed "tysiąc", ale tylko gdy nie ma starszych cyfr
+			cBłąd = DodajProbkeDoKolejki(PGA_01 + cCyfra - 1);
+		fWartosc -= cCyfra * 1000;
+		if (cCyfra >= 5)
+			cFormaGramatyczna = 3;		//użyj trzeciej formy: tysięcy
 		else
-		if (chCyfra > 1)
-			chFormaGramatyczna = 2;		//użyj drugiej formy: tysiące
+		if (cCyfra > 1)
+			cFormaGramatyczna = 2;		//użyj drugiej formy: tysiące
 		else
-			if (!chFormaGramatyczna)		//jezeli są starsze cyfry to forma odnosi się do nich, jeżeli nie to jest specyficzna dla jednego tysiaca
-				chFormaGramatyczna = 1;		//użyj pierwszej formy: tysiąc
+			if (!cFormaGramatyczna)		//jezeli są starsze cyfry to forma odnosi się do nich, jeżeli nie to jest specyficzna dla jednego tysiaca
+				cFormaGramatyczna = 1;		//użyj pierwszej formy: tysiąc
+		cByłyStarsze = 1;
 	}
 
-	if (chFormaGramatyczna)		//jeżeli chFormaGramatyczna jest niezerowa to wystąpiły tysiace i trzeba je wymówić w odpowiedniej formie
+	if (cFormaGramatyczna)		//jeżeli cFormaGramatyczna jest niezerowa to wystąpiły tysiace i trzeba je wymówić w odpowiedniej formie
 	{
-		cBłąd = DodajProbkeDoKolejki(PGA_TYSIAC + chFormaGramatyczna - 1);	//dodaj słowo tysiąc w odpowiedniej formie
-		chFormaGramatyczna = 0;
+		cBłąd = DodajProbkeDoKolejki(PGA_TYSIAC + cFormaGramatyczna - 1);	//dodaj słowo tysiąc w odpowiedniej formie
+		cFormaGramatyczna = 0;
 	}
 
 	if (fWartosc >= 100)		//setki
 	{
 		fLiczba = floorf(fWartosc / 100);
-		chCyfra = (uint8_t)fLiczba;
-		cBłąd = DodajProbkeDoKolejki(PGA_100 + chCyfra - 1);
-		fWartosc -= chCyfra * 100;
-		chFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
+		cCyfra = (uint8_t)fLiczba;
+		cBłąd = DodajProbkeDoKolejki(PGA_100 + cCyfra - 1);
+		fWartosc -= cCyfra * 100;
+		cFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
+		cByłyStarsze = 1;
 	}
 
 	if (fWartosc >= 20)		//dziesiątki >=20
 	{
 		fLiczba = floorf(fWartosc / 10);
-		chCyfra = (uint8_t)fLiczba;
-		cBłąd = DodajProbkeDoKolejki(PGA_20 + chCyfra - 2);
-		fWartosc -= chCyfra * 10;
-		chFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
+		cCyfra = (uint8_t)fLiczba;
+		cBłąd = DodajProbkeDoKolejki(PGA_20 + cCyfra - 2);
+		fWartosc -= cCyfra * 10;
+		cFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
+		cByłyStarsze = 1;
 	}
 
 	if (fWartosc >= 10)		//kilkanascie
 	{
-		chCyfra = (uint8_t)fWartosc;
-		cBłąd = DodajProbkeDoKolejki(PGA_10 + chCyfra - 10);
-		fWartosc -= chCyfra;
-		chFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
+		cCyfra = (uint8_t)fWartosc;
+		cBłąd = DodajProbkeDoKolejki(PGA_10 + cCyfra - 10);
+		fWartosc -= cCyfra;
+		cFormaGramatyczna = 4;		//jednostka w liczbie >=5: woltów, metrów
+		cByłyStarsze = 1;
 	}
 
 	if (fWartosc >= 1.0f)		//jednostki
 	{
-		chCyfra = (uint8_t)fWartosc;
-		cBłąd = DodajProbkeDoKolejki(PGA_01 + chCyfra - 1);
-		fWartosc -= chCyfra;
-		if (chCyfra >= 5)
-			chFormaGramatyczna = 4;		//jednostka w liczbie >=5 woltów, metrów
+		cCyfra = (uint8_t)fWartosc;
+		cBłąd = DodajProbkeDoKolejki(PGA_01 + cCyfra - 1);
+		fWartosc -= cCyfra;
+		if (cCyfra >= 5)
+			cFormaGramatyczna = 4;		//jednostka w liczbie >=5 woltów, metrów
 		else
-			if (chCyfra > 1)
-				chFormaGramatyczna = 3;		//jednostka w liczbie >=5: wolty, metry
+			if (cCyfra > 1)
+				cFormaGramatyczna = 3;		//jednostka w liczbie >=5: wolty, metry
 			else
-				if (!chFormaGramatyczna)	//jeżeli nie było starszych cyfr dla których okreslono formę to użyj formy dla jedynki
-					chFormaGramatyczna = 2;		//jednostka w liczbie >=5: wolt, metr
+				if (!cFormaGramatyczna)	//jeżeli nie było starszych cyfr dla których okreslono formę to użyj formy dla jedynki
+					cFormaGramatyczna = 2;		//jednostka w liczbie >=5: wolt, metr
+	}
+	else
+	if (!cByłyStarsze)		//wymów zero tylko gdy nie było starszych cyfr
+	{
+		DodajProbkeDoKolejki(PGA_00);
+		cFormaGramatyczna = 4;		//jednostka w liczbie >=5 woltów, metrów
 	}
 
 	if (fWartosc >= 0.1f)		//dziesiąte części
@@ -601,33 +619,34 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 		uint8_t chFormaDziesiatych;
 
 		cBłąd = DodajProbkeDoKolejki(PGA_I);
-		fLiczba = roundf(fWartosc * 10);	//ponieważ to ostatnia znacząca cyfra więc potrzebne zaokrąglenie a nie obcięcie
-		chCyfra = (uint8_t)fLiczba;
-		if (chCyfra > 2)
-			cBłąd = DodajProbkeDoKolejki(PGA_01 + chCyfra - 1);
+		//	//ponieważ to ostatnia znacząca cyfra więc potrzebne zaokrąglenie a nie obcięcie-  jest źle: xx,99 wymawia jako 10 dziesiątych ...
+		fLiczba = fWartosc * 10;
+		cCyfra = (uint8_t)fLiczba;
+		if (cCyfra > 2)
+			cBłąd = DodajProbkeDoKolejki(PGA_01 + cCyfra - 1);
 		else
-			cBłąd = DodajProbkeDoKolejki(PGA_JEDNA + chCyfra - 1);	//specyficzna wymowa dla jedna i dwie dziesiate
+			cBłąd = DodajProbkeDoKolejki(PGA_JEDNA + cCyfra - 1);	//specyficzna wymowa dla jedna i dwie dziesiate
 
-		if (chCyfra >= 5)
+		if (cCyfra >= 5)
 			chFormaDziesiatych = 2;		//jednostka w liczbie >=5: dziesiatych
 		else
-			if (chCyfra > 1)
+			if (cCyfra > 1)
 				chFormaDziesiatych = 1;		//jednostka w liczbie >1: dziesiąte
 			else
 				chFormaDziesiatych = 0;		//jednostka w liczbie == 1: dziesiąta
 
 		cBłąd = DodajProbkeDoKolejki(PGA_DZIESIATA + chFormaDziesiatych);
-		chFormaGramatyczna = 1;		//jednostka w liczbie <1: wolta, metra
+		cFormaGramatyczna = 1;		//jednostka w liczbie <1: wolta, metra
 	}
 
 	//dodaj jednostkę
 	switch(chTypKomunikatu)
 	{
-	case KOMG_WYSOKOSC:		cBłąd = DodajProbkeDoKolejki(PGA_METRA + chFormaGramatyczna - 1);	break;
-	case KOMG_NAPIECIE:		cBłąd = DodajProbkeDoKolejki(PGA_WOLTA + chFormaGramatyczna - 1);	break;
+	case KOMG_WYSOKOSC:		cBłąd = DodajProbkeDoKolejki(PGA_METRA + cFormaGramatyczna - 1);	break;
+	case KOMG_NAPIECIE:		cBłąd = DodajProbkeDoKolejki(PGA_WOLTA + cFormaGramatyczna - 1);	break;
 	case KOMG_KIERUNEK:
-	case KOMG_TEMPERATURA:	cBłąd = DodajProbkeDoKolejki(PGA_STOPNIA + chFormaGramatyczna - 1);	break;
-	case KOMG_PREDKOSC:		cBłąd = DodajProbkeDoKolejki(PGA_METRA + chFormaGramatyczna - 1);
+	case KOMG_TEMPERATURA:	cBłąd = DodajProbkeDoKolejki(PGA_STOPNIA + cFormaGramatyczna - 1);	break;
+	case KOMG_PREDKOSC:		cBłąd = DodajProbkeDoKolejki(PGA_METRA + cFormaGramatyczna - 1);
 							cBłąd += DodajProbkeDoKolejki(PGA_NA_SEKUNDE);	break;
 	default:	break;
 	}

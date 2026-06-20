@@ -40,8 +40,9 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define AKCEL1G				9.80665f			//przelicznik z [g] na [m/s^2]
 #define NOMINALNE_MAGN		50.0e-6f			//nominalna wartość natężenia pola magnetycznego w Teslach dla Polski centralnej. Źródło: https://www.magnetic-declination.com/ oraz https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/F.jpg
 #define INKLINACJA_MAG		(68.f * DEG2RAD)	//inklinacja magnetyczna w radianach. Źródło: https://www.magnetic-declination.com/ lub https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/I.jpg
-#define DEKLINACJA_MAG		(6.5f * DEG2RAD)	//deklinacja magnetyczna w radianach. Źródło: https://www.magnetic-declination.com/ lub https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/D.jpg
+#define DEKLINACJA_MAG		(6.59f * DEG2RAD)	//deklinacja magnetyczna w radianach. Źródło: https://www.magnetic-declination.com/ lub https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/D.jpg
 #define PROMIEN_ZIEMI		6371008.77f			//promień Ziemi w metrach
+#define CISNIENIE_QNE		101325.0f			//ciśnienie standardowe [Pa]
 
 #define KANALY_WYJSC_RC		16	//liczba sterowanych kanałów wyjściowych RC
 #define KANALY_ODB_RC		16	//liczba odbieranych kanałów na każdym z dwu wejść odbiorników RC

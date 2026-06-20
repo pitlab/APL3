@@ -59,7 +59,8 @@
 #define FAU_PID_FILTR_D 	FA_USER_PID+37  //1U Podstawa filtra IIR błędu do liczenia członu różniczkującego
 #define FAU_PID_FILTR_WZ	FA_USER_PID+38  //1U Podstawa filtra IIR wartości zadanej do liczenia członu wyprzedzajacego
 #define FAU_PID_PROC_WYPRZ  FA_USER_PID+39  //1U procentowa wartość zmiany wartości zadanej podawana na wejście wyprzedzenia
-//#define FAU_FILTRD_TYP 		FA_USER_PID+40  //1U Stała czasowa filtra członu różniczkującego (bity 0..5),
+#define FAU_PID2			FA_USER_PID+40	//1U wolne
+#define FAU_PID3			FA_USER_PID+41	//1U wolne
 #define ROZMIAR_REG_PID		42
 
 //12 regulatorów zajmuje 504 bajtów - 0x1F8

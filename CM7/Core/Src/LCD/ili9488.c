@@ -42,25 +42,20 @@ extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRA
 uint8_t InicjujLCD_ILI9488(void)
 {
 	extern uint8_t chPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN];
-	uint8_t chBuf[4];
 	uint8_t cBłąd = BLAD_OK;
 
 	// LCD_RESET 1 - 0 - 1
 	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
 	cBłąd |= WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
-	HAL_Delay(10);
+	HAL_Delay(2);
 
 	chPort_exp_wysylany[0] &= ~EXP01_LCD_RESET;	//RES=0
 	cBłąd |= WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
-	HAL_Delay(20);
+	HAL_Delay(2);
 
 	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
 	cBłąd |= WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
-	HAL_Delay(120);
-
-	//to polecenie niczemu nie służy, nie ma fizycznej możliwości odczytania danych, ale bez niego nie działa
-	cBłąd |= LCD_write_command8(ILI9488_RDDID);	//Read display identification information
-	LCD_data_read(chBuf, 4);
+	HAL_Delay(120);									//czas powrotu z resetu max 120ms
 
 	cBłąd |= LCD_write_command8(ILI9488_GMCTRP1);
 	cBłąd |= LCD_WrData((uint8_t *)"\x00\x03\x09\x08\x16\x0A\x3F\x78\x4C\x09\x0A\x08\x16\x1A\x0F", 15);
@@ -91,8 +86,8 @@ uint8_t InicjujLCD_ILI9488(void)
 		(0 << 0));	//EPL: ENABLE polarity (0 = High enable for RGB interface, 1 = Low enable for RGB interface)
 
 	cBłąd |= LCD_write_command8(ILI9488_FRMCTR1);      //Frame rate
-	cBłąd |= LCD_write_dat_jed8(0xA0);    //60Hz
-	//powiny być 2 parametry
+	cBłąd |= LCD_write_dat_pie8(0xA0);   	//60Hz
+	LCD_write_dat_ost8(0x11);		//17 clocks per line
 
 	cBłąd |= LCD_write_command8(ILI9488_INVCTR);      //Display Inversion Control
 	cBłąd |= LCD_write_dat_jed8(0x02);    //2-dot
@@ -107,13 +102,8 @@ uint8_t InicjujLCD_ILI9488(void)
 	cBłąd |= LCD_WrData((uint8_t *)"\xA9\x51\x2C\x82", 4);	// D7 stream, loose */
 
 	cBłąd |= LCD_write_command8(ILI9488_SLPOUT);    //Exit Sleep
-	HAL_Delay(120);
+	HAL_Delay(120);									//czas powrotu z resetu max 120ms
 	cBłąd |= LCD_write_command8(ILI9488_DISPON);    //Display on
-
-	//to polecenie niczemu nie służy, nie ma fizycznej możliwości odczytania danych, ale bez niego nie działa
-	cBłąd |= LCD_write_command8(ILI9488_RDDID);	//Read display identification information
-	LCD_data_read(chBuf, 4);
-
 	if (cBłąd == BLAD_OK)
 	{
 		chRysujRaz = 1;

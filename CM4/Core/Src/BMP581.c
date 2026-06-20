@@ -123,7 +123,7 @@ uint8_t ObslugaBMP581(void)
 		{
 			if (sLicznikUsrednianiaP0)	//czy przygotowanie ciśnienia P0 jeszcze trwa
 			{
-				uDaneCM4.dane.fWysokoMSL[1] = 0.0f;
+				fWysokoscUsredniona = (127 * fWysokoscUsredniona + uDaneCM4.dane.fWysokoMSL[1]) / 128;
 				fP0_BMP581 = (127 * fP0_BMP581 + fCisnienie) / 128;
 				sLicznikUsrednianiaP0--;
 				if (sLicznikUsrednianiaP0 == 0)
@@ -131,11 +131,12 @@ uint8_t ObslugaBMP581(void)
 			}
 			else
 			{
-				uDaneCM4.dane.fWysokoMSL[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[1], fP0_BMP581, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//P0 gotowe więc oblicz wysokość
+				uDaneCM4.dane.fWysokoAGL[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[1], fP0_BMP581, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//P0 gotowe więc oblicz wysokość
 				fWysokoscUsredniona = (1023 * fWysokoscUsredniona + uDaneCM4.dane.fWysokoMSL[1]) / 1024;
 				float fWariometr = (fWysokoscUsredniona - uDaneCM4.dane.fWysokoMSL[1]) * 1000 / uDaneCM4.dane.ndT;	//dH [m] * 1e3 / t [1e-6 s]
 				uDaneCM4.dane.fWariometr[1] = (999 * uDaneCM4.dane.fWariometr[1] + fWariometr) / 1000;				//dH / 1e-3
 			}
+			uDaneCM4.dane.fWysokoMSL[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[1], CISNIENIE_QNE, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//wartość bwzezględna, nie wymaga uśredniania P0
 		}
 	}
 	return cBłąd;
