@@ -46,13 +46,22 @@ uint8_t InicjujKontrolerLotu(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 {
-	float fWeRc[LICZBA_DRAZKOW];
+	float fZnormalizowaneRC, fPodstawa;
 	uint8_t chIndeksPID_Kata, chIndeksPID_Predk;
 	uint8_t cBłąd = BLAD_OK;
 
 	//sprowadź wartość kanałów wejsciowych z drążków aparatury RC do znormalizowanej wartości symetrycznej wzgledem zera: +-NORMA_SYGNALU
 	for (uint16_t n=0; n<LICZBA_DRAZKOW; n++)
-		fWeRc[n] = (float)(dane->sKanalRC[chKanalDrazkaRC[n]] - WE_RC_NEUTR) / (WE_RC_MAX - WE_RC_NEUTR) * NORMA_SYGNALU;
+	{
+		fZnormalizowaneRC = (float)(dane->sKanalRC[chKanalDrazkaRC[n]] - WE_RC_NEUTR) / (WE_RC_MAX - WE_RC_NEUTR) * NORMA_SYGNALU;
+		//filtruj wejście aby uzyskać płynność zmian sygnału RC między kolejnymi ramkami (50 Hz dla Sbus, 150 Hz dla Crossfire). Istotne dla akcji wyprzedzającej
+		if (chTrybRegulacji[n] >= REG_STAB)
+			fPodstawa = (float)konfig[2*n+0].chPodstFiltraWZad;	//podstawa filtra dla regulatora podstawowego
+		else
+			fPodstawa = (float)konfig[2*n+1].chPodstFiltraWZad;	//podstawa filtra dla regulatora pochodnej
+
+		dane->fFiltrowaneKanalyRC[n] = ((fPodstawa * dane->fFiltrowaneKanalyRC[n]) + fZnormalizowaneRC) / (fPodstawa + 1.0);
+	}
 
 	for (uint16_t n=0; n<LICZBA_REG_PARAM; n++)
 	{
@@ -67,7 +76,7 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 			case PRZE:
 			case POCH:
 			case ODCH:
-			case WYSO:  dane->stPID[chIndeksPID_Predk].fWyjsciePID = fWeRc[n];	break;	//regulator sterowania prędkością kątową lub zmiany wysokości
+			case WYSO:  dane->stPID[chIndeksPID_Predk].fWyjsciePID = dane->fFiltrowaneKanalyRC[n];	break;	//regulator sterowania prędkością kątową lub zmiany wysokości
 			case POZN:	break;	//regulatory pozycji nie są ustawiane z drążka
 			case POZE:	break;
 			}
@@ -80,14 +89,13 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 			if (chTrybRegulacji[n] == REG_AUTO)
 			{
 				//tutaj będzie obsługa regulatora nawigacyjnego produkującego wartości zadane dla regulatorów kątów oraz dla trybów automatycznego startu i lądowania generujacych wartosci zadane dla regulatora wysokości
-
 			}
 
 			if (chTrybRegulacji[n] >= REG_STAB)		//czy ma pracować regulator parametru głównego
 			{
 				//ustaw wartości zadane dla regualtorów parametru głównego
 				if (chTrybRegulacji[n] == REG_STAB)
-					dane->stPID[chIndeksPID_Kata].fZadana = fWeRc[n] * konfig[chIndeksPID_Kata].fSkalaWartZadanej / NORMA_SYGNALU;	//wartością zadaną jest drążek aparatury
+					dane->stPID[chIndeksPID_Kata].fZadana = dane->fFiltrowaneKanalyRC[n] * konfig[chIndeksPID_Kata].fSkalaWartZadanej / NORMA_SYGNALU;	//wartością zadaną jest drążek aparatury
 				else
 				{
 					if (n < POZN)	//tylko na przechylenia, pochylenia, odchylenia i wysokości
@@ -113,7 +121,7 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 			{
 				//ustaw wartości zadane dla regualtorów pochodnej
 				if (chTrybRegulacji[n] == REG_AKRO)
-					dane->stPID[chIndeksPID_Predk].fZadana = fWeRc[n] * konfig[chIndeksPID_Predk].fSkalaWartZadanej / NORMA_SYGNALU;	//wartością zadaną jest drążek aparatury
+					dane->stPID[chIndeksPID_Predk].fZadana = dane->fFiltrowaneKanalyRC[n] * konfig[chIndeksPID_Predk].fSkalaWartZadanej / NORMA_SYGNALU;	//wartością zadaną jest drążek aparatury
 				else
 					dane->stPID[chIndeksPID_Predk].fZadana = dane->stPID[chIndeksPID_Kata].fWyjsciePID * konfig[chIndeksPID_Predk].fSkalaWartZadanej / NORMA_SYGNALU;	//wartoscią zadaną jest wyjście PID nadrzędnego
 
@@ -127,7 +135,7 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 				case POZN:	dane->stPID[chIndeksPID_Predk].fWejscie = dane->stBSP.fPredkoscN; 	break;	//regulator sterowania prędkością zmiany położenia północnego
 				case POZE:	dane->stPID[chIndeksPID_Predk].fWejscie = dane->stBSP.fPredkoscE; 	break;	//regulator sterowania prędkością zmiany położenia wschodniego
 				}
-				RegulatorPID(ndT, chIndeksPID_Predk, dane, konfig); 	//licz regulator pochodnej parametru głównego
+				RegulatorPID(ndT, chIndeksPID_Predk, dane, konfig); 	//licz regulator pochodnej
 			}
 		}
 	}

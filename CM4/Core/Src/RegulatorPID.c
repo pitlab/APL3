@@ -169,7 +169,12 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
 
         //dodanie pierwszej pochodnej wartości zadanej do wejścia wyprzedzającego
     	fTemp = fPochodnaWartZadanej * konfig[chKanal].chProcWartZadWyprz / 100.0f;
-    	dane->stPID[chKanal].fWyjscieWyprz  = fTemp;
+        if (fTemp > MAX_PID)
+        	fTemp = MAX_PID;
+	   else
+	   if (fTemp < -MAX_PID)
+		   fTemp = -MAX_PID;
+    	dane->stPID[chKanal].fWyjscieWyprz  = (3 * dane->stPID[chKanal].fWyjscieWyprz + fTemp) / 4;	//lekko odfiltrowane wyjście wyprzedzające
         fWyjscieReg += fTemp;
     }
     else

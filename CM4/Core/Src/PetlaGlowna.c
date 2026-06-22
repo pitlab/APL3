@@ -395,12 +395,12 @@ void WykonajPolecenieCM7(void)
 			stKonfigPID[chIndeksRegulatora].fMaxWyj = uDaneCM7.dane.uRozne.f32[5];
 			stKonfigPID[chIndeksRegulatora].fSkalaWartZadanej = uDaneCM7.dane.uRozne.f32[6];
 			stKonfigPID[chIndeksRegulatora].fPrzesunWyjscie = uDaneCM7.dane.uRozne.f32[7];
-
-			//ostatni float zawiera flagi i nastawy 3 filtrów
-			stKonfigPID[chIndeksRegulatora].chFlagi = uDaneCM7.dane.uRozne.U8[8*4+0];
-			stKonfigPID[chIndeksRegulatora].chPodstFiltraD = uDaneCM7.dane.uRozne.U8[8*4+1];
-			stKonfigPID[chIndeksRegulatora].chPodstFiltraWZad = uDaneCM7.dane.uRozne.U8[8*4+2];
-			stKonfigPID[chIndeksRegulatora].chProcWartZadWyprz = uDaneCM7.dane.uRozne.U8[8*4+3];
+			//float[8] jest zarezerowowany
+			//ostatni float[9] zawiera flagi i nastawy 3 filtrów
+			stKonfigPID[chIndeksRegulatora].chFlagi = uDaneCM7.dane.uRozne.U8[9*4+0];
+			stKonfigPID[chIndeksRegulatora].chPodstFiltraD = uDaneCM7.dane.uRozne.U8[9*4+1];
+			stKonfigPID[chIndeksRegulatora].chPodstFiltraWZad = uDaneCM7.dane.uRozne.U8[9*4+2];
+			stKonfigPID[chIndeksRegulatora].chProcWartZadWyprz = uDaneCM7.dane.uRozne.U8[9*4+3];
 			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 			break;
 

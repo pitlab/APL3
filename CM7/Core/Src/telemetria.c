@@ -414,7 +414,7 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_PID_PK_PRZE_WYJ:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_PRZE].fWyjsciePID;		break;	//wyjście regulatora sterowania prędkością kątową przechylenia
 	case TID_PID_PK_PRZE_WY_P:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_PRZE].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PK_PRZE_WY_D:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_PRZE].fWyjscieD;		break;	//wyjście członu D
-	case TID_PID_PK_PRZE_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_PRZE].fWyprzedzenie;	break;	//wyjście akcji wyprzedzającej
+	case TID_PID_PK_PRZE_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_PRZE].fWyjscieWyprz;	break;	//wyjście akcji wyprzedzającej
 
 	case TID_PID_POCH_WZAD:		fZmiennaTele = uDaneCM4.dane.stPID[PID_KĄTA_POCH].fZadana;			break;	//wartość zadana regulatora sterowania pochyleniem
 	case TID_PID_POCH_FWEJ:		fZmiennaTele = uDaneCM4.dane.stPID[PID_KĄTA_POCH].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
@@ -430,7 +430,7 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_PID_PK_POCH_WYJ:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_POCH].fWyjsciePID;		break;	//wyjście regulatora sterowania prędkością kątową pochylenia
 	case TID_PID_PK_POCH_WY_P:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_POCH].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PK_POCH_WY_D:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_POCH].fWyjscieD;		break;	//wyjście członu D
-	case TID_PID_PK_POCH_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_POCH].fWyprzedzenie;	break;	//wyjście akcji wyprzedzającej
+	case TID_PID_PK_POCH_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_POCH].fWyjscieWyprz;	break;	//wyjście akcji wyprzedzającej
 
 	case TID_PID_ODCH_WZAD:		fZmiennaTele = uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fZadana;			break;	//wartość zadana regulatora sterowania odchyleniem
 	case TID_PID_ODCH_FWEJ:		fZmiennaTele = uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
@@ -446,7 +446,7 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_PID_PK_ODCH_WYJ:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_ODCH].fWyjsciePID;		break;	//wyjście regulatora sterowania prędkością kątową odchylenia
 	case TID_PID_PK_ODCH_WY_P:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_ODCH].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PK_ODCH_WY_D:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_ODCH].fWyjscieD;		break;	//wyjście członu D
-	case TID_PID_PK_ODCH_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_ODCH].fWyprzedzenie;	break;	//wyjście akcji wyprzedzającej
+	case TID_PID_PK_ODCH_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_ODCH].fWyjscieWyprz;	break;	//wyjście akcji wyprzedzającej
 
 	case TID_PID_WYSO_WZAD:		fZmiennaTele = uDaneCM4.dane.stPID[PID_WYSOKOSCI].fZadana;			break;	//wartość zadana regulatora sterowania wysokością
 	case TID_PID_WYSO_FWEJ:		fZmiennaTele = uDaneCM4.dane.stPID[PID_WYSOKOSCI].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
@@ -462,7 +462,7 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_PID_PR_WYSO_WYJ:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_ZWYS].fWyjsciePID;		break;	//wyjście regulatora sterowania prędkością zmiany wysokości
 	case TID_PID_PR_WYSO_WY_P:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_ZWYS].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PR_WYSO_WY_D:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_ZWYS].fWyjscieD;		break;	//wyjście członu D
-	case TID_PID_PR_WYSO_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_ZWYS].fWyprzedzenie;	break;	//wyjście akcji wyprzedzającej
+	case TID_PID_PR_WYSO_WYPRZ:	fZmiennaTele = uDaneCM4.dane.stPID[PID_PRED_ZWYS].fWyjscieWyprz;	break;	//wyjście akcji wyprzedzającej
 
 	case TID_PID_NAWN_WZAD:		fZmiennaTele = uDaneCM4.dane.stPID[PID_NAWIG_PÓŁN].fZadana;			break;	//wartość zadana regulatora sterowania nawigacją w kierunku północnym
 	case TID_PID_NAWN_FWEJ:		fZmiennaTele = uDaneCM4.dane.stPID[PID_NAWIG_PÓŁN].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej

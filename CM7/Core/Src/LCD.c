@@ -4073,12 +4073,12 @@ void PlaskiObrotMagnetometrow(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran Nastaw regulatora PID
-// Parametry:
+// Parametry: chKanal - numer kanału 0..11
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 void NastawyPID(uint8_t chKanal)
 {
-	float fNastawy[ROZMIAR_REG_PID/4 + 2];
+	float fNastawy[ROZMIAR_REG_PID/4];
 	uint8_t chTrybRegulatora[LICZBA_DRAZKOW];
 	uint8_t cBłąd;
 	unia8_32_t un8_32;
@@ -4152,7 +4152,7 @@ void NastawyPID(uint8_t chKanal)
 
 
 		//odczytaj nastawy regulatorów
-		cBłąd = CzytajFramFloat(FAU_PID_KP + (chKanal + 0) * ROZMIAR_REG_PID, (ROZMIAR_REG_PID + 2) / 4, fNastawy);
+		cBłąd = CzytajFramFloat(FAU_PID_KP + (chKanal + 0) * ROZMIAR_REG_PID, ROZMIAR_REG_PID / 4, fNastawy);
 		if (cBłąd == BLAD_OK)
 		{
 			//CM4 reaguje na zmianę polecenia, więc zmień na polecenie neutralne, aby można było ponowić odczyt drugiego regulatora
@@ -4162,7 +4162,6 @@ void NastawyPID(uint8_t chKanal)
 				setColor(BIALY);	//regulator pracuje
 			else
 				setColor(SZARY60);	//regulator wyłączony
-
 			sprintf(chNapis, "%.3f ", fNastawy[0]);	//Kp
 			RysujNapis(chNapis, KOL12 + 4*FONT_SL, 50);
 			sprintf(chNapis, "%.4f ", fNastawy[1]);	//Ti
@@ -4179,9 +4178,9 @@ void NastawyPID(uint8_t chKanal)
 			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 170);
 			sprintf(chNapis, "%.4f ", fNastawy[7]);	//stałe wyprzedzenie
 			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 190);
-			//miejsce na 1 zmienną rezerwową
+			//fNastawy[8] = miejsce na 1 zmienną rezerwową
 
-			un8_32.daneFloat =  fNastawy[10];
+			un8_32.daneFloat =  fNastawy[9];
 			if (un8_32.dane8[0] & PID_KATOWY)
 				sprintf(chNapis, "Tak");
 			else
@@ -4197,16 +4196,15 @@ void NastawyPID(uint8_t chKanal)
 		else
 			chRysujRaz = 1;	//jeżeli się nie odczytało to wyświetl jeszcze raz
 
-		cBłąd = CzytajFramFloat(FAU_PID_KP + (chKanal + 1) * ROZMIAR_REG_PID, (ROZMIAR_REG_PID + 2) / 4, fNastawy);
+		cBłąd = CzytajFramFloat(FAU_PID_KP + (chKanal + 1) * ROZMIAR_REG_PID, ROZMIAR_REG_PID / 4, fNastawy);
 		if (cBłąd == BLAD_OK)
 		{
-			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//nie odczytuj więcej danych
+			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//nie odczytuj więcej danych - potrzebna zmiana polecenia aby mógł wykonać kolejne
 			osDelay(5);
 			if (chTrybRegulatora[chKanal/2] > REG_RECZNA)
 				setColor(BIALY);	//regulator pracuje
 			else
 				setColor(SZARY60);	//regulator wyłączony
-
 			sprintf(chNapis, "%.3f ", fNastawy[0]);	//Kp
 			RysujNapis(chNapis, KOL22 + 4*FONT_SL, 50);
 			sprintf(chNapis, "%.3f ", fNastawy[1]);	//Ti
@@ -4223,9 +4221,9 @@ void NastawyPID(uint8_t chKanal)
 			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 170);
 			sprintf(chNapis, "%.4f ", fNastawy[7]);	//stałe wyprzedzenie
 			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 190);
-			//miejsce na 1 zmienną rezerwową
+			//fNastawy[8] = miejsce na 1 zmienną rezerwową
 
-			un8_32.daneFloat =  fNastawy[10];
+			un8_32.daneFloat =  fNastawy[9];
 			if (un8_32.dane8[0] & PID_KATOWY)
 				sprintf(chNapis, "Tak");
 			else
@@ -4238,7 +4236,6 @@ void NastawyPID(uint8_t chKanal)
 
 			sprintf(chNapis, "%d", un8_32.dane8[3]);
 			RysujNapis(chNapis, KOL22 + 9*FONT_SL, 270);	//procent wyprzedzenia
-			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//nie odczytuj więcej danych - potrzebna zmiana polecenia aby mógł wykonać kolejne
 		}
 		else
 			chRysujRaz = 1;
@@ -4275,6 +4272,7 @@ uint8_t CzytajFramFloat(uint16_t sAdres, uint8_t chRozmiar, float *fDane)
 	else
 		return BLAD_TIMEOUT;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -4429,7 +4427,6 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 		RysujNapis(chNapis, 60, 20);
 
 		fWspWypX = (float)(AD_X_SIZE)/((stKonfig->sLiczbaProbek/2)-1);	//współczynnik wypełnienia ekranu danymi pikseli / wynik
-
 
 		sIndexDanych = 0;
 		x1 = AD_STARTX;
