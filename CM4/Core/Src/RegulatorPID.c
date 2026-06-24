@@ -223,6 +223,7 @@ void ResetujCalkePID(void)
 float StrojeniePID_KanałemRC(stStrojPID_t *Stroj, uint8_t chNrKan, stKonfPID_t *Konf, stWymianyCM4_t *WymianaCM4)
 {
 	float fKanalNorm, fParametr;
+	uint16_t sParam;
 
 	//policz wartość parametru
 	fKanalNorm = (float)WymianaCM4->sKanalRC[chNrKan] / (WE_RC_P100 - WE_RC_M100);	//wartość kanału RC znormalizowana do zakresu 0..1
@@ -240,48 +241,128 @@ float StrojeniePID_KanałemRC(stStrojPID_t *Stroj, uint8_t chNrKan, stKonfPID_t 
 	case STRP_PRED_PRZE_KP:		Konf[PID_PRED_PRZE].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości kątowej przechylenia
 	case STRP_PRED_PRZE_TI:		Konf[PID_PRED_PRZE].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej przechylenia
 	case STRP_PRED_PRZE_TD:		Konf[PID_PRED_PRZE].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej przechylenia
-	case STRP_PRED_PRZE_FD:		Konf[PID_PRED_PRZE].chPodstFiltraD = (uint8_t)fParametr;	break;//Strojenie filtra sygnału różniczkowanego
-	case STRP_PRED_PRZE_FWZ:	Konf[PID_PRED_PRZE].chPodstFiltraWZad = (uint8_t)fParametr;	break;	//Strojenie filtra wartości zadanej
-	case STRP_PRED_PRZE_WYPRZ:	Konf[PID_PRED_PRZE].chProcWartZadWyprz = (uint8_t)fParametr;	break;//strojenie wielkości akcji wyprzedzającej
+	case STRP_PRED_PRZE_FD:		sParam = (uint16_t)fParametr;
+		if (sParam > MAX_FILTR_CZLONU_D)
+			sParam = MAX_FILTR_CZLONU_D;
+		Konf[PID_PRED_PRZE].chPodstFiltraD = (uint8_t)sParam;		break;//Strojenie filtra sygnału różniczkowanego
+
+	case STRP_PRED_PRZE_FWZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_FILTR_WART_ZAD)
+			sParam = MAX_FILTR_WART_ZAD;
+		Konf[PID_PRED_PRZE].chPodstFiltraWZad = sParam;		break;	//Strojenie filtra wartości zadanej
+
+	case STRP_PRED_PRZE_WYPRZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_PROC_WYPRZEDZENIA)
+			sParam = MAX_PROC_WYPRZEDZENIA;
+		Konf[PID_PRED_PRZE].chProcWartZadWyprz = (uint8_t)sParam;	break;//strojenie wielkości akcji wyprzedzającej
 
 	case STRP_KATA_POCH_KP:		Konf[PID_KĄTA_POCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze pochylenia
 	case STRP_KATA_POCH_TI:		Konf[PID_KĄTA_POCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze pochylenia
 	case STRP_KATA_POCH_TD:		Konf[PID_KĄTA_POCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze pochylenia
-	case STRP_KATA_POCH_FD:		Konf[PID_KĄTA_POCH].chPodstFiltraD = (uint8_t)fParametr;	break;	//Strojenie filtra sygnału różniczkowanego
-	case STRP_KATA_POCH_FWZ:	Konf[PID_KĄTA_POCH].chPodstFiltraWZad = (uint8_t)fParametr;	break;	//Strojenie filtra wartości zadanej
-	case STRP_KATA_POCH_WYPRZ:	Konf[PID_KĄTA_POCH].chProcWartZadWyprz = (uint8_t)fParametr;	break;		//strojenie wielkości akcji wyprzedzającej
+	case STRP_KATA_POCH_FD:		sParam = (uint16_t)fParametr;
+		if (sParam > MAX_FILTR_CZLONU_D)
+			sParam = MAX_FILTR_CZLONU_D;
+		Konf[PID_KĄTA_POCH].chPodstFiltraD =(uint8_t) sParam;	break;	//Strojenie filtra sygnału różniczkowanego
+
+	case STRP_KATA_POCH_FWZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_FILTR_WART_ZAD)
+			sParam = MAX_FILTR_WART_ZAD;
+		Konf[PID_KĄTA_POCH].chPodstFiltraWZad = (uint8_t)sParam;	break;	//Strojenie filtra wartości zadanej
+
+	case STRP_KATA_POCH_WYPRZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_PROC_WYPRZEDZENIA)
+			sParam = MAX_PROC_WYPRZEDZENIA;
+		Konf[PID_KĄTA_POCH].chProcWartZadWyprz = (uint8_t)sParam;	break;		//strojenie wielkości akcji wyprzedzającej
+
 	case STRP_PRED_POCH_KP:		Konf[PID_PRED_POCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości kątowej pochylenia
 	case STRP_PRED_POCH_TI:		Konf[PID_PRED_POCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej pochylenia
 	case STRP_PRED_POCH_TD:		Konf[PID_PRED_POCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej pochylenia
-	case STRP_PRED_POCH_FD:		Konf[PID_PRED_POCH].chPodstFiltraD = (uint8_t)fParametr;	break;	//Strojenie filtra sygnału różniczkowanego
-	case STRP_PRED_POCH_FWZ:	Konf[PID_PRED_POCH].chPodstFiltraWZad = (uint8_t)fParametr;	break;		//Strojenie filtra wartości zadanej
-	case STRP_PRED_POCH_WYPRZ:	Konf[PID_PRED_POCH].chProcWartZadWyprz = (uint8_t)fParametr;	break;	//strojenie wielkości akcji wyprzedzającej
+	case STRP_PRED_POCH_FD:		sParam = (uint16_t)fParametr;
+		if (sParam > MAX_FILTR_CZLONU_D)
+			sParam = MAX_FILTR_CZLONU_D;
+		Konf[PID_PRED_POCH].chPodstFiltraD = (uint8_t)sParam;	break;	//Strojenie filtra sygnału różniczkowanego
+
+	case STRP_PRED_POCH_FWZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_FILTR_WART_ZAD)
+			sParam = MAX_FILTR_WART_ZAD;
+		Konf[PID_PRED_POCH].chPodstFiltraWZad = (uint8_t)sParam;	break;		//Strojenie filtra wartości zadanej
+
+	case STRP_PRED_POCH_WYPRZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_PROC_WYPRZEDZENIA)
+			sParam = MAX_PROC_WYPRZEDZENIA;
+		Konf[PID_PRED_POCH].chProcWartZadWyprz = (uint8_t)sParam;	break;	//strojenie wielkości akcji wyprzedzającej
 
 	case STRP_KATA_ODCH_KP:		Konf[PID_KĄTA_ODCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze odchylenia
 	case STRP_KATA_ODCH_TI:		Konf[PID_KĄTA_ODCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze odchylenia
 	case STRP_KATA_ODCH_TD:		Konf[PID_KĄTA_ODCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze odchylenia
-	case STRP_KATA_ODCH_FD:		Konf[PID_KĄTA_ODCH].chPodstFiltraD = (uint8_t)fParametr;	break;	//Strojenie filtra sygnału różniczkowanego
-	case STRP_KATA_ODCH_FWZ:	Konf[PID_KĄTA_ODCH].chPodstFiltraWZad = (uint8_t)fParametr;	break;		//Strojenie filtra wartości zadanej
-	case STRP_KATA_ODCH_WYPRZ:	Konf[PID_KĄTA_ODCH].chProcWartZadWyprz = (uint8_t)fParametr;	break;		//strojenie wielkości akcji wyprzedzającej
+	case STRP_KATA_ODCH_FD:		sParam = (uint16_t)fParametr;
+		if (sParam > MAX_FILTR_CZLONU_D)
+			sParam = MAX_FILTR_CZLONU_D;
+		Konf[PID_KĄTA_ODCH].chPodstFiltraD = (uint8_t)sParam;	break;	//Strojenie filtra sygnału różniczkowanego
+
+	case STRP_KATA_ODCH_FWZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_FILTR_WART_ZAD)
+			sParam = MAX_FILTR_WART_ZAD;
+		Konf[PID_KĄTA_ODCH].chPodstFiltraWZad = (uint8_t)sParam;	break;		//Strojenie filtra wartości zadanej
+
+	case STRP_KATA_ODCH_WYPRZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_PROC_WYPRZEDZENIA)
+			sParam = MAX_PROC_WYPRZEDZENIA;
+		Konf[PID_KĄTA_ODCH].chProcWartZadWyprz = (uint8_t)sParam;	break;		//strojenie wielkości akcji wyprzedzającej
+
 	case STRP_PRED_ODCH_KP:		Konf[PID_PRED_ODCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości kątowej odchylenia
 	case STRP_PRED_ODCH_TI:		Konf[PID_PRED_ODCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej odchylenia
 	case STRP_PRED_ODCH_TD:		Konf[PID_PRED_ODCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej odchylenia
-	case STRP_PRED_ODCH_FD:		Konf[PID_PRED_ODCH].chPodstFiltraD = (uint8_t)fParametr;	break;	//Strojenie filtra sygnału różniczkowanego
-	case STRP_PRED_ODCH_FWZ:	Konf[PID_PRED_ODCH].chPodstFiltraWZad = (uint8_t)fParametr;	break;		//Strojenie filtra wartości zadanej
-	case STRP_PRED_ODCH_WYPRZ:	Konf[PID_PRED_ODCH].chProcWartZadWyprz = (uint8_t)fParametr;	break;	//strojenie wielkości akcji wyprzedzającej
+	case STRP_PRED_ODCH_FD:		sParam = (uint16_t)fParametr;
+		if (sParam > MAX_FILTR_CZLONU_D)
+			sParam = MAX_FILTR_CZLONU_D;
+		Konf[PID_PRED_ODCH].chPodstFiltraD = (uint8_t)sParam;	break;	//Strojenie filtra sygnału różniczkowanego
+
+	case STRP_PRED_ODCH_FWZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_FILTR_WART_ZAD)
+			sParam = MAX_FILTR_WART_ZAD;
+		Konf[PID_PRED_ODCH].chPodstFiltraWZad = (uint8_t)sParam;	break;		//Strojenie filtra wartości zadanej
+
+	case STRP_PRED_ODCH_WYPRZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_PROC_WYPRZEDZENIA)
+			sParam = MAX_PROC_WYPRZEDZENIA;
+		Konf[PID_PRED_ODCH].chProcWartZadWyprz = (uint8_t)sParam;	break;	//strojenie wielkości akcji wyprzedzającej
 
 	case STRP_WYSOKOSCI_KP:		Konf[PID_WYSOKOSCI].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze wysokości
 	case STRP_WYSOKOSCI_TI:		Konf[PID_WYSOKOSCI].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze wysokości
 	case STRP_WYSOKOSCI_TD:		Konf[PID_WYSOKOSCI].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze wysokości
-	case STRP_WYSOKOSCI_FD:		Konf[PID_WYSOKOSCI].chPodstFiltraD = (uint8_t)fParametr;	break;		//Strojenie filtra sygnału różniczkowanego
-	case STRP_WYSOKOSCI_FWZ:	Konf[PID_WYSOKOSCI].chPodstFiltraWZad = (uint8_t)fParametr;	break;		//Strojenie filtra wartości zadanej
-	case STRP_WYSOKOSCI_WYPRZ:	Konf[PID_WYSOKOSCI].chProcWartZadWyprz = (uint8_t)fParametr;	break;	//strojenie wielkości akcji wyprzedzającej
+	case STRP_WYSOKOSCI_FD:		sParam = (uint16_t)fParametr;
+		if (sParam > MAX_FILTR_CZLONU_D)
+			sParam = MAX_FILTR_CZLONU_D;
+		Konf[PID_WYSOKOSCI].chPodstFiltraD = (uint8_t)sParam;	break;		//Strojenie filtra sygnału różniczkowanego
+
+	case STRP_WYSOKOSCI_FWZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_FILTR_WART_ZAD)
+			sParam = MAX_FILTR_WART_ZAD;
+		Konf[PID_WYSOKOSCI].chPodstFiltraWZad = (uint8_t)sParam;	break;		//Strojenie filtra wartości zadanej
+
+	case STRP_WYSOKOSCI_WYPRZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_PROC_WYPRZEDZENIA)
+			sParam = MAX_PROC_WYPRZEDZENIA;
+		Konf[PID_WYSOKOSCI].chProcWartZadWyprz = (uint8_t)sParam;	break;	//strojenie wielkości akcji wyprzedzającej
+
 	case STRP_PRED_ZWYS_KP:		Konf[PID_PRED_ZWYS].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości zmiany wysokości
 	case STRP_PRED_ZWYS_TI:		Konf[PID_PRED_ZWYS].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości zmiany wysokości
 	case STRP_PRED_ZWYS_TD:		Konf[PID_PRED_ZWYS].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości zmiany wysokości
-	case STRP_PRED_ZWYS_FD:		Konf[PID_PRED_ZWYS].chPodstFiltraD = (uint8_t)fParametr;	break;	//Strojenie filtra sygnału różniczkowanego
-	case STRP_PRED_ZWYS_FWZ:	Konf[PID_PRED_ZWYS].chPodstFiltraWZad = (uint8_t)fParametr;	break;	//Strojenie filtra wartości zadanej
-	case STRP_PRED_ZWYS_WYPRZ:	Konf[PID_PRED_ZWYS].chProcWartZadWyprz = (uint8_t)fParametr;	break;	//strojenie wielkości akcji wyprzedzającej
+	case STRP_PRED_ZWYS_FD:		sParam = (uint16_t)fParametr;
+		if (sParam)
+			sParam = MAX_FILTR_CZLONU_D;
+		Konf[PID_PRED_ZWYS].chPodstFiltraD = (uint8_t)sParam;	break;	//Strojenie filtra sygnału różniczkowanego
+
+	case STRP_PRED_ZWYS_FWZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_FILTR_WART_ZAD)
+			sParam = MAX_FILTR_WART_ZAD;
+		Konf[PID_PRED_ZWYS].chPodstFiltraWZad = (uint8_t)sParam;	break;	//Strojenie filtra wartości zadanej
+
+	case STRP_PRED_ZWYS_WYPRZ:	sParam = (uint16_t)fParametr;
+		if (sParam > MAX_PROC_WYPRZEDZENIA)
+			sParam = MAX_PROC_WYPRZEDZENIA;
+		Konf[PID_PRED_ZWYS].chProcWartZadWyprz = (uint8_t)sParam;	break;	//strojenie wielkości akcji wyprzedzającej
 
 	case STRP_NAWI_PÓŁN_KP:	Konf[PID_NAWIG_PÓŁN].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze nawigacji w kierunku północnym
 	case STRP_NAWI_PÓŁN_TI:	Konf[PID_NAWIG_PÓŁN].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze nawigacji w kierunku północnym

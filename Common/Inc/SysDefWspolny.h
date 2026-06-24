@@ -311,10 +311,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define STRP_PRED_WSCH_KP		58	//strojenie wzmocnienia w regulatorze prędkości w kierunku wschodnim
 #define STRP_PRED_WSCH_TI		59	//strojenie członu całkujacego w regulatorze prędkości w kierunku wschodnim
 #define STRP_PRED_WSCH_TD		60	//strojenie członu różniczkującego w regulatorze prędkości w kierunku wschodnim
-
-
-
-#define LICZBA_STROJONYCH_PARAMETROW_PID	37
+#define LICZBA_STROJONYCH_PARAMETROW_PID	61
 
 //definicje temperatur kalibracji żyroskopów
 #define TEMP_KAL_ZIMNO		(10.f + KELVIN)
@@ -382,22 +379,24 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define BTR_TRWA_LOT		0x10	//bit trwania lotu, czyli kopter wytwarza ciąg potrzebny do zawisu
 
 //definicje Trybów Lotu.
-#define TL_BEZP			0x00	//regulatory i nawigacja wyłączone, silniki zatrzymane
-#define TL_RECZ			BTR_UZBROJONY	//silniki sterowane ręcznie w celach diagnostycznych
-#define TL_AKRO			BTR_UZBROJONY + 1 	//lot akrobacyjny PID steruje tylko prędkościami kątowymi
-#define TL_STAB			BTR_UZBROJONY + BTR_STAB_KATOW 		//lot ze stabilizacją kątów
-#define TL_LAD_STAB		TL_STAB + 1
-#define TL_AUTO			TL_STAB + BTR_NAWIG_AUTO	//lot autonomiczny z nawigają po punktach
-#define TL_LAD_AUTO		TL_AUTO + 1		//lądowanie w trybie autonomicznym
-#define TL_WZN_AUTO		TL_AUTO	+ 2		//kopter wznosi się na nominalnej prędkości pionowej
+#define TL_BEZP				0x00	//regulatory i nawigacja wyłączone, silniki zatrzymane
+#define TL_RECZ				BTR_UZBROJONY	//silniki sterowane ręcznie w celach diagnostycznych
+#define TL_AKRO				BTR_UZBROJONY + 1 	//lot akrobacyjny PID steruje tylko prędkościami kątowymi
+#define TL_STAB				BTR_UZBROJONY + BTR_STAB_KATOW 		//lot ze stabilizacją kątów
+#define TL_LAD_STAB			TL_STAB + 1
+#define TL_AUTO				TL_STAB + BTR_NAWIG_AUTO	//lot autonomiczny z nawigają po punktach
+#define TL_LAD_AUTO			TL_AUTO + 1		//lądowanie w trybie autonomicznym
+#define TL_WZN_AUTO			TL_AUTO	+ 2		//kopter wznosi się na nominalnej prędkości pionowej
 
 //analiza rezonansu drgań konstrukcji na bazie FFT
-#define FFT_WYKLADNIK_MIN	6		//najmniejszy wykładnik FFT 2^6 = 64
-#define FFT_WYKLADNIK_MAX	12		//największy wykładnik FFT 2^12 = 4096
-#define FFT_MAX_ROZMIAR		4096	//największy rozmiar danych do liczenia FFT
-#define LICZBA_TESTOW_FFT	100		//liczba warunków pracy dla których zdeto komplet FFT np, różnych wysterowań silników
+#define FFT_WYKLADNIK_MIN		6		//najmniejszy wykładnik FFT 2^6 = 64
+#define FFT_WYKLADNIK_MAX		12		//największy wykładnik FFT 2^12 = 4096
+#define FFT_MAX_ROZMIAR			4096	//największy rozmiar danych do liczenia FFT
+#define LICZBA_TESTOW_FFT		100		//liczba warunków pracy dla których zdeto komplet FFT np, różnych wysterowań silników
 #define LICZBA_ZMIENNYCH_FFT	6	//z tylu zmiennych są liczone FFT
 #define LICZB_FLOAT_WRAMCE		96
 
-
-
+//definicje wielkości filtrów
+#define MAX_FILTR_CZLONU_D		255		//maksymalna wartość podstawy filtra czonu różniczkującego PID
+#define MAX_FILTR_WART_ZAD		255		//maksymalna wartość podstawy filtra wartości zadanej
+#define MAX_PROC_WYPRZEDZENIA	100		//maksymalna wartość procentowej wartosci wyprzedzenia regulatora PID
