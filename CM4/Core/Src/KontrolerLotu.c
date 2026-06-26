@@ -13,6 +13,8 @@
 
 uint8_t chTrybRegulacji[LICZBA_REG_PARAM];	//rodzaj regulacji dla podstawowych parametrów
 extern uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC do funkcji drążków aparatury
+extern stStrojPID_t stStrojPID[LICZBA_KAN_RC_DO_STROJENIA_PID];
+extern stKonfPID_t stKonfigPID[LICZBA_PID];
 uint8_t cNumerSesji;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -152,11 +154,11 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UzbrojSilniki(stWymianyCM4_t *daneCM4, stWymianyCM7_t *daneCM7)
 {
-	uint8_t chBlad = BLAD_OK;
+	uint8_t cBłąd = BLAD_OK;
 	daneCM4->chTrybLotu |= BTR_UZBROJONY;
 	if (daneCM7->chPotwierdzenieWykonania != POL4_MOW_UZBROJONE)
 		daneCM4->chWykonajPolecenie = POL4_MOW_UZBROJONE;
-	return chBlad;
+	return cBłąd;
 }
 
 
@@ -166,10 +168,17 @@ uint8_t UzbrojSilniki(stWymianyCM4_t *daneCM4, stWymianyCM7_t *daneCM7)
 // [i] *dane - wskaźnik na dane CM4
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RozbrojSilniki(stWymianyCM4_t *daneCM4, stWymianyCM7_t *daneCM7)
+uint8_t RozbrojSilniki(stWymianyCM4_t *daneCM4, stWymianyCM7_t *daneCM7)
 {
+	uint8_t cBłąd = BLAD_OK;
+
 	daneCM4->chTrybLotu &= ~BTR_UZBROJONY;
 	if (daneCM7->chPotwierdzenieWykonania != POL4_MOW_ROZBROJONE)
 		daneCM4->chWykonajPolecenie = POL4_MOW_ROZBROJONE;
+
+	//Zapisz wartość strojenia kanałem RC jeżeli ta funkcja jest włączona
+	cBłąd |= ZapiszWartośćStrojeniaPID_KanałemRC(&stStrojPID[0], stKonfigPID, daneCM4);
+	cBłąd |= ZapiszWartośćStrojeniaPID_KanałemRC(&stStrojPID[1], stKonfigPID, daneCM4);
+	return cBłąd;
 }
 

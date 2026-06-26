@@ -53,12 +53,13 @@
 #define FAU_PID_MIN_WY		FA_USER_PID+16  //4F minimalna wartość wyjścia
 #define FAU_PID_MAX_WY		FA_USER_PID+20  //4F maksymalna wartość wyjścia
 #define FAU_PID_MNOZN_WZAD 	FA_USER_PID+24	//4F mnożnik wartości zadanej
-#define FAU_PID_STAŁE_PRZES	FA_USER_PID+28 	//4F stała wartość dodawana do wyjścia regulatora (umożliwia lot pod niezerowym kątem)
+#define FAU_PID_PRZES		FA_USER_PID+28 	//4F stała wartość dodawana do wyjścia regulatora (umożliwia lot pod niezerowym kątem)
 #define FAU_PID1			FA_USER_PID+32	//4F wolne
 #define FAU_PID_FLAGI		FA_USER_PID+36	//1U regulator wyłączony (bit 6), Regulator kątowy (bit 7)
-#define FAU_PID_FILTR_D 	FA_USER_PID+37  //1U Podstawa filtra IIR błędu do liczenia członu różniczkującego
-#define FAU_PID_FILTR_WZ	FA_USER_PID+38  //1U Podstawa filtra IIR wartości zadanej do liczenia członu wyprzedzajacego
-#define FAU_PID_PROC_WYPRZ  FA_USER_PID+39  //1U procentowa wartość zmiany wartości zadanej podawana na wejście wyprzedzenia
+//#define FAU_PID_FILTR_D 	FA_USER_PID+37  //1U Podstawa filtra IIR błędu do liczenia członu różniczkującego
+#define FAU_PID_FD 			FA_USER_PID+37  //1U Podstawa filtra IIR błędu do liczenia członu różniczkującego
+#define FAU_PID_F_WZ		FA_USER_PID+38  //1U Podstawa filtra IIR wartości zadanej do liczenia członu wyprzedzajacego
+#define FAU_PID_WYPRZ  		FA_USER_PID+39  //1U procentowa wartość zmiany wartości zadanej podawana na wejście wyprzedzenia
 #define FAU_PID2			FA_USER_PID+40	//1U wolne
 #define FAU_PID3			FA_USER_PID+41	//1U wolne
 #define ROZMIAR_REG_PID		42
