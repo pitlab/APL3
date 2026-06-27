@@ -226,7 +226,7 @@ typedef struct
 	uint8_t chPotwierdzenieWykonania;	//potwierdza wykonanie polecenia przysłanego przez CM7
 	uint32_t ndT;
 	stBSP_t stBSP;				//struktura zawierajaca syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
-	stSzybkieIMU stSzybkieIMU;	//struktura zawierajaca bufor kołowy szybkich  i indeks danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
+	stSzybkieIMU stSzybkieIMU;	//struktura zawierajaca bufor kołowy i indeks szybkich danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
 } stWymianyCM4_t;
 
 

@@ -864,7 +864,7 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim)
     	{
     		if (AktualizujWS281xDMA(NAPELNIJ_BUF2_CH8, nKolorWS281x, LICZBA_LED_WS281X, &cWskaznikLed) == BLAD_NIC_DO_ROBOTY)
     			HAL_TIMEx_PWMN_Stop_DMA(&htim8, TIM_CHANNEL_3);		//specjalna funkcja dla kanału zanegownego
-    		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
+    		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//kanał serw 1 skonfigurowany jako IO
     	}
     }
 }
@@ -990,11 +990,11 @@ uint16_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM
 		{
 		case FSIL_NAPED:	sWyjście = daneCM4->sSilnik[chIndeksFunkcji - FWYRC_SILNIK1];	break;				//normalna praca silnika jako napęd
 		case FSIL_AN_DRGAN:		//dane do silników pochodzą z analizatora drgań w rdzeniu CM7. Wytyczne do ich obliczenia są przekazywane przez strukturę unię uRozne
-			 					//uDaneCM7.dane.uRozne.U8[0] - indeks etapu badania: 0..LICZBA_TESTOW_FFT
+			 					//uDaneCM7.dane.sAdres - indeks etapu badania: 0..LICZBA_TESTOW_FFT
 			 					//uDaneCM7.dane.uRozne.U8[1] - stKonfigFFT->chAktywnSilniki;
 								//uDaneCM7.dane.uRozne.U8[2] - stKonfigFFT->chMaxWysterowanie; - procentowa wartość wysterowania względem maksimum
 				uint16_t sWysterowanieMaxAD = (sWysterowanieMax - sWysterowanieMin) * uDaneCM7.dane.uRozne.U8[2] / 100;	//pula ograniczonego zakresu sterowania
-				sWyjście = sWysterowanieMin + sWysterowanieMaxAD * uDaneCM7.dane.uRozne.U8[0] / LICZBA_TESTOW_FFT;		//bieżące wysterowanie
+				sWyjście = sWysterowanieMin + sWysterowanieMaxAD * uDaneCM7.dane.sAdres / LICZBA_TESTOW_FFT;		//bieżące wysterowanie
 				break;
 
 		case FSIL_ZATRZYMANY:	//silnik jest zatrzymany, bo nie bierze udziału w analizie drgań

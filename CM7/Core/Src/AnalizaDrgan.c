@@ -39,7 +39,8 @@ uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 
 	//przekaż do CM4 etap testu, informacje który silnik ma pracować i górną granicę wysterwania. CM4 wyliczy sobie z tego wysterowanie dla wszystkich etapów
 	stKonfigFFT->chIndeksTestu = 0;
-	uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
+	//uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
+	uDaneCM7.dane.sAdres = stKonfigFFT->chIndeksTestu;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 	uDaneCM7.dane.uRozne.U8[1] = stKonfigFFT->chAktywnSilniki;
 	uDaneCM7.dane.uRozne.U8[2] = stKonfigFFT->chMaxWysterowanie;
 	uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
@@ -61,7 +62,7 @@ uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 
 	if (stKonfigFFT->chIndeksTestu < LICZBA_TESTOW_FFT)
 	{
-		uDaneCM7.dane.uRozne.U8[0] = stKonfigFFT->chIndeksTestu;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
+		uDaneCM7.dane.sAdres = stKonfigFFT->chIndeksTestu;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 		uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 	}
 	else

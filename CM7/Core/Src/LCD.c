@@ -4391,6 +4391,7 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 		chRysujRaz = 0;
 		sprintf(chNapis, "FFT %sow", chNapisLcd[STR_AKCELETOMETR + (chRodzajDanych & 0x01)]);
 		BelkaTytulu(chNapis);
+		RysujProstokatWypelniony(0, AD_STARTY + AD_Y_SIZE, DISP_X_SIZE, AD_WSPADY, CZARNY);	//czyści ekran wodospadu
 		WłączTelemetrię(TELEM_SZYBKA);	//włącz szybką telemetrię. Wyłączy się sama po przesłaniu wszystkich wyników
 		stKonfig->sLiczbaProbek = 1 << stKonfig->chWykladnikPotegi;	//aktualizuj liczbę próbek
 	}
@@ -4421,7 +4422,7 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 		fMinY = 2.5f;	//przyjmuję stały punkt odniesienia aby poziom zera był niezmienny
 
 		nCzasFFT = MinalCzas(nCzasFFT);
-		RysujProstokatWypelniony(0, MENU_NAG_WYS, DISP_X_SIZE, DISP_Y_SIZE - AD_WSPADY - AD_STARTY, CZARNY);	//czyści ekran
+		RysujProstokatWypelniony(0, MENU_NAG_WYS, DISP_X_SIZE, DISP_Y_SIZE - AD_WSPADY - AD_STARTY, CZARNY);	//czyści ekran wykresów
 		setColor(SZARY80);
 		sprintf(chNapis, "Czas FFT[6*%d]: %ld us, %d/%d", stKonfig->sLiczbaProbek, nCzasFFT, stKonfig->chIndeksTestu, LICZBA_TESTOW_FFT);
 		RysujNapis(chNapis, 60, 20);

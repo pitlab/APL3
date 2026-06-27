@@ -1623,15 +1623,11 @@ void StartDefaultTask(void *argument)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
   uint8_t chStanDekodera;
+  uint8_t cDzielnikCzasu = 0;
+
   uDaneCM7.dane.cWyborOdbiornikaRC = ODB_OBA;	//przesyłaj stan obu odbiorników po dywersyfikacji
   for(;;)
   {
-	  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
-		chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
-		CzytajDotyk();
-		WymienDaneExpanderow();
-		UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
-
 		//obsłuż międzyprocesorową wymianę danych
 		cBłąd += PobierzDaneWymiany_CM4();
 		cBłąd += UstawDaneWymiany_CM7();
@@ -1644,20 +1640,34 @@ void StartDefaultTask(void *argument)
 			chCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
 
 		PobierzDaneDoFFT();
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//kanał serw 1 skonfigurowany jako IO
 
-		//synchronizacja czasu i daty z GNSS tylko dopóki nie są w pełni zsynchroniozwane, później pracuję na RTC. Docelowo również synchronizacja z NTP
-		if (chStanSynchronizacjiCzasu != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
-			SynchronizujCzasDoGNSS(&uDaneCM4.dane.stGnss1);
+		//pozostałe czynności mogą być uruchamiane z mniejszą częstotliwością 50 Hz
+		cDzielnikCzasu++;
+		if (cDzielnikCzasu >= 10)
+		{
+			cDzielnikCzasu = 0;
+			chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
+			CzytajDotyk();
+			WymienDaneExpanderow();
+			UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
+
+			//synchronizacja czasu i daty z GNSS tylko dopóki nie są w pełni zsynchroniozwane, później pracuję na RTC. Docelowo również synchronizacja z NTP
+			if (chStanSynchronizacjiCzasu != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
+				SynchronizujCzasDoGNSS(&uDaneCM4.dane.stGnss1);
 
 
-		cBłąd = ObslugaPolecenCM4();	//obsłuż polecenia rdzenia CM4
-		if (cBłąd)		//sygnalizacja błędów
-			chCzasSwieceniaLED[LED_NIEB] = 5;	//x0,1s
+			cBłąd = ObslugaPolecenCM4();	//obsłuż polecenia rdzenia CM4
+			if (cBłąd)		//sygnalizacja błędów
+				chCzasSwieceniaLED[LED_NIEB] = 5;	//x0,1s
 
-		ObslugaWymowyKomunikatu();	//obsłuż wymowę komuniatów głosowych
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//serwo kanał 1
-		//osDelay(5);		//ustaw okres z jakim pracuje CM4 (200Hz -> 5ms)
-		osDelay(10);		//maksymalna prędkość telemetrii to 100Hz wiec ustaw okres wymiany na 10ms
+			ObslugaWymowyKomunikatu();	//obsłuż wymowę komuniatów głosowych
+			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//kanał serw 1 skonfigurowany jako IO
+		}
+
+		//rdzeń CM4 pracuje z okresem max 2kHz i ma bufor na szybkie dane FFT wynoszący ROZMIAR_BUFORA_IMU (8) i jest napełniany dwukrotnie w trakcie obiegu
+		//można pozwolić sobie na odbiór danychnie rzadziej niż ROZMIAR_BUFORA_IMU / 2 ~= 500 Hz
+		osDelay(2);
   }
   /* USER CODE END 5 */
 }

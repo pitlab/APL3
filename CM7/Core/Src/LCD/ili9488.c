@@ -529,7 +529,10 @@ uint8_t RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 					LCD_WrData(chKolor666, 3);
 
 					if (row == y2)
+					{
+						HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 						return cBłąd;
+					}
 					row += ystep;
 					t += dx;
 					if (t >= 0)
@@ -547,7 +550,10 @@ uint8_t RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 					setXY (col, row, col, row);
 					LCD_WrData(chKolor666, 3);
 					if (col == x2)
+					{
+						HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 						return cBłąd;
+					}
 					col += xstep;
 					t += dy;
 					if (t >= 0)
