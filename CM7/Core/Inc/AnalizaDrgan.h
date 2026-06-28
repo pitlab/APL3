@@ -14,5 +14,6 @@
 
 uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy);
 uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy);
+uint8_t IdentyfikacjaSilników(void);
 
 #endif /* INC_ANALIZA_DRGAN_H_ */

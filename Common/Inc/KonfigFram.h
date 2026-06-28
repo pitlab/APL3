@@ -37,7 +37,10 @@
 #define FAU_RC_WY_MAX      	0x0094 		//2U maksymalne wysterowanie silników w trakcie lotu w jednostkach standardowych 0-2000
 #define FAU_RC_WY_ZAWISU   	0x0096   	//2U wysterowanie regulatorów w zawisie w jednostkach standardowych 0-2000
 #define LICZBA_DANYCH_NAPEDU	3
-//8 bajtów wolne
+
+#define FAU_RC_WY_IDENT		0x0098		//2U wysterowanie regulatorów podczas identyfikacji w jednostkach standardowych [0..1999]
+#define FAU_CZAS_IDENT		0x009A		//2U czas identyfikacji każdego silnika w milisekundach
+//4 bajtów wolne
 
 //mikser
 #define FAU_MIX_PRZECH		0x00A0		//8*4F współczynnik wpływu przechylenia na dany silnik

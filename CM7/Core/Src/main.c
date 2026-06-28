@@ -1640,7 +1640,7 @@ void StartDefaultTask(void *argument)
 			chCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
 
 		PobierzDaneDoFFT();
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//kanał serw 1 skonfigurowany jako IO
+		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//kanał serw 1 skonfigurowany jako IO
 
 		//pozostałe czynności mogą być uruchamiane z mniejszą częstotliwością 50 Hz
 		cDzielnikCzasu++;
