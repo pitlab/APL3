@@ -482,6 +482,9 @@ void WykonajPolecenieCM7(void)
 		case POL7_REKONFIG_WEJSCIA_RC:	InicjujWejsciaRC();	break;	//wykonuje ponowną konfigurację wejść RC po zmianie konfiguracji we FRAM
 		case POL7_REKONFIG_WYJSCIA_RC:	InicjujWyjsciaRC();	break;	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
 
+		case POL7_URUCHOM_INDENT_SILN:
+			uDaneCM4.dane.uRozne.U16[0]
+			break;
 
 		}	//switch
 	}

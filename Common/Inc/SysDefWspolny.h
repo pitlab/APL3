@@ -395,6 +395,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define LICZBA_TESTOW_FFT		100		//liczba warunków pracy dla których zdeto komplet FFT np, różnych wysterowań silników
 #define LICZBA_ZMIENNYCH_FFT	6	//z tylu zmiennych są liczone FFT
 #define LICZB_FLOAT_WRAMCE		96
+#define LICZNIK_PREDKOSCI_HAMOWANIA	2	//co tyle obiegów pętli głównej zmniesz wysterowanie rozpędzonego silnika po teście
 
 //definicje wielkości filtrów
 #define MAX_FILTR_CZLONU_D		255		//maksymalna wartość podstawy filtra czonu różniczkującego PID

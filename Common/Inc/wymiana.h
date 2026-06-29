@@ -87,7 +87,7 @@
 #define POL7_CZYTAJ_CZAS_PETLI_GL	44	//odczytuje czas wykonania fragmentów petli głównej
 #define POL7_REKONFIG_WEJSCIA_RC	45	//wykonuje ponowną konfigurację wejść RC po zmianie konfiguracji we FRAM
 #define POL7_REKONFIG_WYJSCIA_RC	46	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
-
+#define POL7_URUCHOM_INDENT_SILN	47	//uruchamia identyfikację silników
 #define POL7_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony przez poprzednie polecenie
 
 #define ROZMIAR_BUFORA_IMU	8		//rozmiar bufora kołowego przechowującego ostarnie dane z szybkiego IMU

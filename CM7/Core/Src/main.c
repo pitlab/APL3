@@ -54,6 +54,7 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
  - Dodać wyłaczanie przerwań na czas alokacji pamięci przez memalloc()
  - kalibracja żyroskopu powinna kasować całkę kata na wykresie
  - Znaleźć przyczynę cyknięcia silnikami przy starcie. Silniki powinny być martwe przy starcie firmware
+ - Narysować ekran konfiguracji miksera i identyfikacji silników
 
 
  //Problemy sprzętowe egzemplarza 1:

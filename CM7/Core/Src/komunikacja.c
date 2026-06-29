@@ -41,7 +41,8 @@ extern uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adres i nazwę BSP
 extern uint8_t chStatusPolaczenia;
 extern uint8_t chStatusTelemetrii;		//określa czy i jaki rodzaj telemetrii ma być wysyłany
-extern stFFT_t stKonfigFFT;;
+extern stFFT_t stKonfigFFT;
+extern stIdentyfikacjaSilnikow_t stIdentSiln;
 extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
 
 
@@ -543,6 +544,15 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 
 	case PK_REKONFIG_WYJSCIA_RC:	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
 		uDaneCM7.dane.chWykonajPolecenie = POL7_REKONFIG_WYJSCIA_RC;
+		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
+		break;
+
+	case PK_URUCHOM_INDENT_SILN:	//uruchamia proces identyfikacji silników, kręcąc kolejno każdym z nich
+		for (uint8_t n=0; n<4; n++)	//dane 0..1 zawierają wartość wysterowania silników, dane 2..3 czas pracy
+			uDaneCM7.dane.uRozne.U8[n] = cDane[n];
+		stIdentSiln.sWysterowanie = uDaneCM7.dane.uRozne.U16[0];
+		stIdentSiln.sCzasIdent = uDaneCM7.dane.uRozne.U16[1];
+		cBłąd = RozpocznijIdentyfikacjęSilników(&stIdentSiln, &chTrybPracy);
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 

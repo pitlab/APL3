@@ -12,8 +12,17 @@
 #include "SysDefCM7.h"
 #include "Wymiana.h"
 
+typedef struct
+{
+	uint16_t sWysterowanie;
+	uint16_t sCzasIdent;
+	uint8_t cLiczbaSilnikow;
+	float fKatSilnika[KANALY_MIKSERA];	//kąt między osią X a ramieniem silnika [rad]
+} stIdentyfikacjaSilnikow_t;
+
 uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy);
 uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy);
-uint8_t IdentyfikacjaSilników(void);
+uint8_t RozpocznijIdentyfikacjęSilników(stIdentyfikacjaSilnikow_t *stIdentSiln, uint8_t *chTrybPracy);
+uint8_t IdentyfikacjaSilników(stIdentyfikacjaSilnikow_t *stIdentSiln);
 
 #endif /* INC_ANALIZA_DRGAN_H_ */

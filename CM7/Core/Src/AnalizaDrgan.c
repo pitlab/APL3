@@ -24,6 +24,7 @@ extern stFFT_t stKonfigFFT;
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 extern uint8_t chRysujRaz;
+stIdentyfikacjaSilnikow_t stIdentSiln;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -70,7 +71,7 @@ uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 		uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 	}
 	else
-	if (stKonfigFFT->chIndeksTestu == LICZBA_TESTOW_FFT)
+	if (stKonfigFFT->chIndeksTestu >= LICZBA_TESTOW_FFT)
 	{
 		uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 		uDaneCM7.dane.uRozne.U8[1] = 0;	//aktywne siliki
@@ -83,16 +84,20 @@ uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wykonuje identyfikację silników wysterowując po kolei każdy z nich do określonej wartosci przez określony czas
-// Parametry: brak
+// Inicjalizuje sprzet do pomiarów
+// Parametry:
+//  *stKonfigFFT - wskaźnik na strukturę zawierającą konfigurację FFT, a konkretnie silniki do uruchomienia i górny zakres pracy
+//  *chTrybPracy - wskaźnik na tryb pracy wyświetlania danych na LCD
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t IdentyfikacjaSilników(void)
+uint8_t RozpocznijIdentyfikacjęSilników(stIdentyfikacjaSilnikow_t *stIdentSiln, uint8_t *chTrybPracy)
 {
 	float fSkladowaPrzechylenia[KANALY_MIKSERA];
 	float fSkladowaPochylenia[KANALY_MIKSERA];
-	uint16_t sWysterowanie, sCzasIdent;
-	uint8_t cLiczbaSilników = 0;
+	uint8_t cBłąd = BLAD_OK;
+
+	*chTrybPracy = TP_NAST_IDENT_SILN;
+	chRysujRaz = 1;
 
 	//odczytaj nastawy miksera aby wiedziec ile jest silników i jak są ułożone
 	//silniki zawsze są ułożone zgodnie z tarczą zegara. Pierwszy silnik jest w okolicy godziny pierwszej, kolejne rosną w stronę ruchu wskazówek.
@@ -115,10 +120,12 @@ uint8_t IdentyfikacjaSilników(void)
 		fSkladowaPochylenia[n] = uDaneCM4.dane.uRozne.f32[n];
 
 	//policz skonfigurowane silniki
+	stIdentSiln->cLiczbaSilnikow = 0;
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 	{
 		if ((fSkladowaPrzechylenia[n] > 1.0f) || (fSkladowaPrzechylenia[n] < -1.0f) || (fSkladowaPochylenia[n] > 1.0f) || (fSkladowaPochylenia[n] < -1.0f))
-			cLiczbaSilników++;
+			stIdentSiln->cLiczbaSilnikow++;
+		stIdentSiln->fKatSilnika[n] = atan2f(fSkladowaPrzechylenia[n], fSkladowaPochylenia[n]);
 	}
 
 	uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_U8;
@@ -126,9 +133,24 @@ uint8_t IdentyfikacjaSilników(void)
 	uDaneCM7.dane.sAdres = FAU_RC_WY_IDENT;		//wysterowanie regulatorów podczas identyfikacji i następne po niej FAU_CZAS_IDENT
 	do osDelay(5);		//czekaj aż zostanie odczytana konfiguracja
 	while (uDaneCM4.dane.sAdres != uDaneCM7.dane.sAdres);
-	sWysterowanie = uDaneCM4.dane.uRozne.U16[0];
-	sCzasIdent = uDaneCM4.dane.uRozne.U16[1];
+	stIdentSiln->sWysterowanie = uDaneCM4.dane.uRozne.U16[0];
+	stIdentSiln->sCzasIdent = uDaneCM4.dane.uRozne.U16[1];
+	return cBłąd;
+}
 
 
-	//
+
+////////////////////////////////////////////////////////////////////////////////
+// Wykonuje identyfikację silników wysterowując po kolei każdy z nich do określonej wartosci przez określony czas
+// Parametry: brak
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t IdentyfikacjaSilników(stIdentyfikacjaSilnikow_t *stIdentSiln)
+{
+	uint8_t cBłąd = BLAD_OK;
+
+
+
+
+	return cBłąd;
 }

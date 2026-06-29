@@ -100,8 +100,9 @@ typedef struct
 #define PK_PRZELADUJ_KONF_PID	40	//przeładuj konfigurację PID po zmianie
 #define PK_REKONFIG_WEJSCIA_RC	41	//wykonuje ponowną konfigurację wejść RC po zmianie konfiguracji we FRAM
 #define PK_REKONFIG_WYJSCIA_RC	42	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
+#define PK_URUCHOM_INDENT_SILN	43	//uruchamia proces identyfikacji silników, kręcąc kolejno każdym z nich
 
-#define PK_ILOSC_POLECEN		43	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
+#define PK_ILOSC_POLECEN		44	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
 
 #define PK_TELEM_SZYBKA			95	//szybka ramka telemetryczna do przesyłania wyników FFT

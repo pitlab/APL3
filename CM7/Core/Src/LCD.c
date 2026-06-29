@@ -218,8 +218,8 @@ menu_t stMenuNastawy[MENU_WIERSZE * MENU_KOLUMNY] = {
 	{"PID NawigN",	"Nastawy PID nawigacji polnocnej",			TP_NAST_PID_NAWIG_PÓŁN,	obr_narzedzia},
 	{"PID NawigE",	"Nastawy PID nawigacji wschodniej",			TP_NAST_PID_NAWIG_WSCH,	obr_narzedzia},
 	{"Mikser",		"Nastawy miksera silnikow",					TP_NAST_MIKSERA,	obr_narzedzia},
-	{"nic",			"nic",										TP_NAST7,			obr_narzedzia},
-	{"nic",			"nic",										TP_NAST7,			obr_narzedzia},
+	{"Silniki",		"Identyfikacja silnikow",					TP_NAST_IDENT_SILN,	obr_narzedzia},
+	{"nic",			"nic",										TP_NAST8,			obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 
@@ -1777,6 +1777,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_NAST_MIKSERA:		break;
+	case TP_NAST_IDENT_SILN:	break;
 
 	default:
 		printf("zly tryb pracy\n\r");

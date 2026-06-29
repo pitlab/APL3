@@ -993,9 +993,28 @@ uint16_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM
 			 					//uDaneCM7.dane.sAdres - indeks etapu badania: 0..LICZBA_TESTOW_FFT
 			 					//uDaneCM7.dane.uRozne.U8[1] - stKonfigFFT->chAktywnSilniki;
 								//uDaneCM7.dane.uRozne.U8[2] - stKonfigFFT->chMaxWysterowanie; - procentowa wartość wysterowania względem maksimum
+								//uDaneCM7.dane.uRozne.U8[3] - licznik opóźnienia przy wyhamowaniu
+								//uDaneCM7.dane.uRozne.U16[4] - wartość wysterowania zmniejszająca się do zera
+			if (uDaneCM7.dane.sAdres < LICZBA_TESTOW_FFT - 1)
+			{
 				uint16_t sWysterowanieMaxAD = (sWysterowanieMax - sWysterowanieMin) * uDaneCM7.dane.uRozne.U8[2] / 100;	//pula ograniczonego zakresu sterowania
 				sWyjście = sWysterowanieMin + sWysterowanieMaxAD * uDaneCM7.dane.sAdres / LICZBA_TESTOW_FFT;		//bieżące wysterowanie
-				break;
+				uDaneCM7.dane.uRozne.U16[4] = sWyjście;
+				uDaneCM7.dane.uRozne.U8[3] = LICZNIK_PREDKOSCI_HAMOWANIA;	//co tyle obiegów pętli glłównej zmniejsz wartość wysterowania
+			}
+			else	//po dojściu do maksymalnej wartości wyhamuj płynnie do zera
+			{
+				if (uDaneCM7.dane.uRozne.U8[3])
+					uDaneCM7.dane.uRozne.U8[3]--;
+				else
+				{
+					if (uDaneCM7.dane.uRozne.U16[4])
+						uDaneCM7.dane.uRozne.U16[4]--;
+					uDaneCM7.dane.uRozne.U8[3] = LICZNIK_PREDKOSCI_HAMOWANIA;
+				}
+				sWyjście = uDaneCM7.dane.uRozne.U16[4];
+			}
+			break;
 
 		case FSIL_ZATRZYMANY:	//silnik jest zatrzymany, bo nie bierze udziału w analizie drgań
 		default:	sWyjście = 0;	break;
