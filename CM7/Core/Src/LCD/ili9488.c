@@ -636,19 +636,6 @@ void clrXY(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// rysuje piksel o współprzędnych x,y we wcześniej zdefiniowanym kolorze
-// Parametry: x, y - współrzędne
-// Zwraca: nic
-////////////////////////////////////////////////////////////////////////////////
-/*void drawPixel(uint16_t x, uint16_t y)
-{
-	setXY(x, y, x, y);
-	LCD_WrData(chKolor666, 3);
-}*/
-
-
-
-////////////////////////////////////////////////////////////////////////////////
 // pisze znak na miejscu o podanych współrzędnych
 // Parametry: c - znak; x, y - współrzędne
 // Zwraca: nic
@@ -677,11 +664,8 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 			if (chOrientacja == POZIOMO)
 			{
 				setXY(x, y, x + cfont.x_size - 1, y + cfont.y_size -  1);
-
 				UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 				HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-
-
 				temp=((c - cfont.offset) * ((cfont.x_size / 8) * cfont.y_size)) + 4;
 				for(j=0; j<((cfont.x_size / 8) * cfont.y_size); j++)
 				{
@@ -700,7 +684,6 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 			else
 			{
 				temp=((c-cfont.offset)*((cfont.x_size/8)*cfont.y_size))+4;
-
 				for(j=0;j<((cfont.x_size/8)*cfont.y_size);j+=(cfont.x_size/8))
 				{
 					setXY(x,y+(j/(cfont.x_size/8)),x+cfont.x_size-1,y+(j/(cfont.x_size/8)));
@@ -718,7 +701,6 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 						}
 					}
 					UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-
 					temp+=(cfont.x_size/8);
 				}
 			}

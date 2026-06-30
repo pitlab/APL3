@@ -40,7 +40,7 @@
 
 #define FAU_RC_WY_IDENT		0x0098		//2U wysterowanie regulatorów podczas identyfikacji w jednostkach standardowych [0..1999]
 #define FAU_CZAS_IDENT		0x009A		//2U czas identyfikacji każdego silnika w milisekundach
-//4 bajtów wolne
+//4 bajty wolne
 
 //mikser
 #define FAU_MIX_PRZECH		0x00A0		//8*4F współczynnik wpływu przechylenia na dany silnik
@@ -59,7 +59,6 @@
 #define FAU_PID_PRZES		FA_USER_PID+28 	//4F stała wartość dodawana do wyjścia regulatora (umożliwia lot pod niezerowym kątem)
 #define FAU_PID1			FA_USER_PID+32	//4F wolne
 #define FAU_PID_FLAGI		FA_USER_PID+36	//1U regulator wyłączony (bit 6), Regulator kątowy (bit 7)
-//#define FAU_PID_FILTR_D 	FA_USER_PID+37  //1U Podstawa filtra IIR błędu do liczenia członu różniczkującego
 #define FAU_PID_FD 			FA_USER_PID+37  //1U Podstawa filtra IIR błędu do liczenia członu różniczkującego
 #define FAU_PID_F_WZ		FA_USER_PID+38  //1U Podstawa filtra IIR wartości zadanej do liczenia członu wyprzedzajacego
 #define FAU_PID_WYPRZ  		FA_USER_PID+39  //1U procentowa wartość zmiany wartości zadanej podawana na wejście wyprzedzenia

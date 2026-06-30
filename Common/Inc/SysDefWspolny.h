@@ -244,6 +244,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define FSIL_NAPED				0	//normalna praca silnika jako napęd
 #define FSIL_AN_DRGAN			1	//dane do silników pochodzą z analizatora drgań w rdzeniu CM7. Wytyczne do ich obliczenia są przekazywane przez strukturę unię uRozne
 #define FSIL_ZATRZYMANY			2	//silnik jest zatrzymany
+#define FSIL_IDENTYFIKACJA		3	//trwa identyfikacja silnika, kręć kolejnymi silnikami z zadanym wysterowaniem przez zadany czas
 
 //definicje strojonych parametrów regulatorów PID
 #define STRP_NIC				0	//strojenie wyłączone

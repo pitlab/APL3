@@ -1667,7 +1667,7 @@ void StartDefaultTask(void *argument)
 		}
 
 		//rdzeń CM4 pracuje z okresem max 2kHz i ma bufor na szybkie dane FFT wynoszący ROZMIAR_BUFORA_IMU (8) i jest napełniany dwukrotnie w trakcie obiegu
-		//można pozwolić sobie na odbiór danychnie rzadziej niż ROZMIAR_BUFORA_IMU / 2 ~= 500 Hz
+		//można pozwolić sobie na odbiór danych nie rzadziej niż ROZMIAR_BUFORA_IMU / 2 ~= 500 Hz
 		osDelay(2);
   }
   /* USER CODE END 5 */

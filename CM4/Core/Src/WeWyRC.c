@@ -1016,6 +1016,8 @@ uint16_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM
 			}
 			break;
 
+		case FSIL_IDENTYFIKACJA:	sWyjście = stIdentSiln.sWysterowanie;	break;
+
 		case FSIL_ZATRZYMANY:	//silnik jest zatrzymany, bo nie bierze udziału w analizie drgań
 		default:	sWyjście = 0;	break;
 		}

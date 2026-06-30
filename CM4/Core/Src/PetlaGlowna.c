@@ -328,7 +328,6 @@ void WykonajPolecenieCM7(void)
 				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_CHAR;
 			CzytajBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM4.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
 			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
-			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie odczytu
 			break;
 
 		case POL7_CZYTAJ_FRAM_FLOAT:			//odczytaj i wyślij zawartość FRAM spod podanego adresu
@@ -337,7 +336,6 @@ void WykonajPolecenieCM7(void)
 			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
 				uDaneCM4.dane.uRozne.f32[n] = CzytajFramFloat(uDaneCM7.dane.sAdres + n*4);
 			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
-			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie odczytu
 			break;
 
 		case POL7_ZAPISZ_FRAM_U8:	//zapisz dane uint8_t pod podany adres
@@ -345,7 +343,6 @@ void WykonajPolecenieCM7(void)
 				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_CHAR;
 			ZapiszBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM7.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
 			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
-			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 			break;
 
 		case POL7_ZAPISZ_FRAM_FLOAT:			//zapisz przekazane dane typu float do FRAM pod podany adres
@@ -354,7 +351,6 @@ void WykonajPolecenieCM7(void)
 			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
 				ZapiszFramFloat(uDaneCM7.dane.sAdres + n*4, uDaneCM7.dane.uRozne.f32[n]);
 			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
-			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 			break;
 
 		case POL7_KASUJ_DRYFT_ZYRO:
@@ -401,7 +397,6 @@ void WykonajPolecenieCM7(void)
 			stKonfigPID[chIndeksRegulatora].chPodstFiltraD = uDaneCM7.dane.uRozne.U8[9*4+1];
 			stKonfigPID[chIndeksRegulatora].chPodstFiltraWZad = uDaneCM7.dane.uRozne.U8[9*4+2];
 			stKonfigPID[chIndeksRegulatora].chProcWartZadWyprz = uDaneCM7.dane.uRozne.U8[9*4+3];
-			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 			break;
 
 		case POL7_ZAPISZ_PWM_NAPEDU:
@@ -413,7 +408,6 @@ void WykonajPolecenieCM7(void)
 			sWysterowanieMin = uDaneCM7.dane.uRozne.U16[0];
 			sWysterowanieMax = uDaneCM7.dane.uRozne.U16[1];
 			sWysterowanieZawisu = uDaneCM7.dane.uRozne.U16[2];
-			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 			break;
 
 		case POL7_ZAPISZ_TRYB_REG:	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
@@ -423,7 +417,6 @@ void WykonajPolecenieCM7(void)
 			ZapiszBuforFRAM(FAU_TRYB_REG, uDaneCM7.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
 			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
 				chTrybRegulacji[n] = uDaneCM7.dane.uRozne.U8[n];
-			uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;		//odeślij adres jako potwierdzenie zapisu
 			break;
 
 		case POL7_RESETUJ_CM4:
@@ -469,7 +462,7 @@ void WykonajPolecenieCM7(void)
 		case POL7_PRZELADUJ_PID:	InicjujPID();	break;	//ponownie załaduj konfigurację PID aby odświeżyć ustawienia po zmianie konfiguracji
 		case POL7_CZYTAJ_KALIBR_TEMP:
 			sTS_CAL1 = uDaneCM7.dane.uRozne.U16[0];
-			sTS_CAL2 = uDaneCM7.dane.uRozne.U16[1];	//wspólczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
+			sTS_CAL2 = uDaneCM7.dane.uRozne.U16[1];	//współczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
 			break;
 
 		case POL7_CZYTAJ_CZAS_PETLI_GL:	//odczytuje czas wykonania fragmentów petli głównej
@@ -483,7 +476,7 @@ void WykonajPolecenieCM7(void)
 		case POL7_REKONFIG_WYJSCIA_RC:	InicjujWyjsciaRC();	break;	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
 
 		case POL7_URUCHOM_INDENT_SILN:
-			uDaneCM4.dane.uRozne.U16[0]
+			//uDaneCM4.dane.uRozne.U16[0]
 			break;
 
 		}	//switch

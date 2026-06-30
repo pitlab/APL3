@@ -103,18 +103,24 @@ uint8_t RozpocznijIdentyfikacjęSilników(stIdentyfikacjaSilnikow_t *stIdentSiln
 	//silniki zawsze są ułożone zgodnie z tarczą zegara. Pierwszy silnik jest w okolicy godziny pierwszej, kolejne rosną w stronę ruchu wskazówek.
 	//Jeżeli składowa przechylenia jest zerowa, to znaczy że silnik jest z przodu lub tyłu i nie bierze udziału w przechylaniu. Jeżeli skladowa
 	//ma wartość maksymalną, to silnik jest pod kątem prostym na prawo lub lewo.
-	uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_FLOAT;
-	uDaneCM7.dane.chRozmiar = KANALY_MIKSERA;
-	uDaneCM7.dane.sAdres = FAU_MIX_PRZECH;		//
-	do osDelay(5);		//czekaj aż zostanie odczytana konfiguracja
+	do
+	{
+ 		uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_FLOAT;
+		uDaneCM7.dane.chRozmiar = KANALY_MIKSERA;
+		uDaneCM7.dane.sAdres = FAU_MIX_PRZECH;		//
+		osDelay(5);		//czekaj aż zostanie odczytana konfiguracja
+	}
 	while (uDaneCM4.dane.sAdres != uDaneCM7.dane.sAdres);
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 		fSkladowaPrzechylenia[n] = uDaneCM4.dane.uRozne.f32[n];
 
-	uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_FLOAT;
-	uDaneCM7.dane.chRozmiar = KANALY_MIKSERA;
-	uDaneCM7.dane.sAdres = FAU_MIX_PRZECH;		//
-	do osDelay(5);		//czekaj aż zostanie odczytana konfiguracja
+	do
+	{
+		uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_FLOAT;
+		uDaneCM7.dane.chRozmiar = KANALY_MIKSERA;
+		uDaneCM7.dane.sAdres = FAU_MIX_PRZECH;		//
+		osDelay(5);		//czekaj aż zostanie odczytana konfiguracja
+	}
 	while (uDaneCM4.dane.sAdres != uDaneCM7.dane.sAdres);
 	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 		fSkladowaPochylenia[n] = uDaneCM4.dane.uRozne.f32[n];
@@ -128,13 +134,18 @@ uint8_t RozpocznijIdentyfikacjęSilników(stIdentyfikacjaSilnikow_t *stIdentSiln
 		stIdentSiln->fKatSilnika[n] = atan2f(fSkladowaPrzechylenia[n], fSkladowaPochylenia[n]);
 	}
 
-	uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_U8;
-	uDaneCM7.dane.chRozmiar = 4;
-	uDaneCM7.dane.sAdres = FAU_RC_WY_IDENT;		//wysterowanie regulatorów podczas identyfikacji i następne po niej FAU_CZAS_IDENT
-	do osDelay(5);		//czekaj aż zostanie odczytana konfiguracja
+	do
+	{
+		uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_U8;
+		uDaneCM7.dane.chRozmiar = 4;
+		uDaneCM7.dane.sAdres = FAU_RC_WY_IDENT;		//wysterowanie regulatorów podczas identyfikacji i następne po niej FAU_CZAS_IDENT
+		osDelay(5);		//czekaj aż zostanie odczytana konfiguracja
+	}
 	while (uDaneCM4.dane.sAdres != uDaneCM7.dane.sAdres);
 	stIdentSiln->sWysterowanie = uDaneCM4.dane.uRozne.U16[0];
 	stIdentSiln->sCzasIdent = uDaneCM4.dane.uRozne.U16[1];
+	stIdentSiln->nCzasPoprzedniegoEtapu = PobierzCzasT6();
+	stIdentSiln->cNumerEtapu = 0;
 	return cBłąd;
 }
 

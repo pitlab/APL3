@@ -16,7 +16,9 @@ typedef struct
 {
 	uint16_t sWysterowanie;
 	uint16_t sCzasIdent;
+	uint32_t nCzasPoprzedniegoEtapu;
 	uint8_t cLiczbaSilnikow;
+	uint8_t cNumerEtapu;
 	float fKatSilnika[KANALY_MIKSERA];	//kąt między osią X a ramieniem silnika [rad]
 } stIdentyfikacjaSilnikow_t;
 

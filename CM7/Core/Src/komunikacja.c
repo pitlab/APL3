@@ -553,7 +553,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		stIdentSiln.sWysterowanie = uDaneCM7.dane.uRozne.U16[0];
 		stIdentSiln.sCzasIdent = uDaneCM7.dane.uRozne.U16[1];
 		cBłąd = RozpocznijIdentyfikacjęSilników(&stIdentSiln, &chTrybPracy);
-		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
+		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 		break;
 
 	}

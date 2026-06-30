@@ -165,7 +165,7 @@ extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"
 extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
 extern stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) stWejscie[FFT_MAX_ROZMIAR];		//zmiennna wejściowa
 extern stZesp_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) xXomega[FFT_MAX_ROZMIAR];		//wynik transformaty
-
+extern stIdentyfikacjaSilnikow_t stIdentSiln;
 
 //Definicje ekranów menu
 menu_t stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY] = {
@@ -1777,7 +1777,29 @@ uint8_t RysujEkran(void)
 
 
 	case TP_NAST_MIKSERA:		break;
-	case TP_NAST_IDENT_SILN:	break;
+	case TP_NAST_IDENT_SILN:
+		if (chRysujRaz)
+		{
+			chRysujRaz = 0;
+			BelkaTytulu("Identyfikacja silnikow");
+		}
+		nCzas = MinalCzas(stIdentSiln.nCzasPoprzedniegoEtapu);
+		if ((uint16_t)(nCzas / 1000) >= stIdentSiln.sCzasIdent)
+		{
+			stIdentSiln.nCzasPoprzedniegoEtapu = PobierzCzasT6();
+			stIdentSiln.cNumerEtapu++;
+			if (stIdentSiln.cNumerEtapu > stIdentSiln.cLiczbaSilnikow)
+			{
+				chTrybPracy = chWrocDoTrybu;
+				chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+			}
+			else
+			{
+				uDaneCM7.dane.uRozne.U8[1] = (1 << (stIdentSiln.cNumerEtapu - 1));	//bit numeru silnika
+				uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
+			}
+		}
+		break;
 
 	default:
 		printf("zly tryb pracy\n\r");
