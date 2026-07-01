@@ -70,7 +70,7 @@ uint8_t chBityKonfiguracji = 0;
 //volatile uint16_t sFlagiNapelnieniaBuforow;		//flagi inforujące pętlę główną o potrzebie napełnienia podwójnego bufora DMA: DShot lub programowalnych LEDów
 uint16_t sPoprzedniStanKanaluRozszerzonego[KANALY_FUNKCYJNE];	//poprzedni stan do detekcji uruchomiania funkcji wywoływanych kanałami wejsciowymi RC
 uint8_t cDzielnikAktualizacjiLED;
-
+uint16_t sWysterowanieIdentSiln;	//wysterowanie silników podczas procesu identfikacji
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1016,7 +1016,7 @@ uint16_t PobierzWartoscWyjsciaRC(uint8_t chIndeksFunkcji, stWymianyCM4_t *daneCM
 			}
 			break;
 
-		case FSIL_IDENTYFIKACJA:	sWyjście = stIdentSiln.sWysterowanie;	break;
+		case FSIL_IDENTYFIKACJA:	sWyjście = sWysterowanieIdentSiln;	break;
 
 		case FSIL_ZATRZYMANY:	//silnik jest zatrzymany, bo nie bierze udziału w analizie drgań
 		default:	sWyjście = 0;	break;

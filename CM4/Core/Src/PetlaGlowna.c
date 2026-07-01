@@ -73,7 +73,7 @@ extern uint8_t chFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silnik
 extern uint16_t sTS_CAL1, sTS_CAL2;	//wspólczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
 extern uint8_t chWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC2, bit1 = ADC3
 uint8_t cBityPozwoleniaNaPomiarADC;	//pole bitowe informujące który pomiar można wykonać w danym obiegu pętli
-
+extern uint16_t sWysterowanieIdentSiln;	//wysterowanie silników podczas procesu identfikacji
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -476,7 +476,7 @@ void WykonajPolecenieCM7(void)
 		case POL7_REKONFIG_WYJSCIA_RC:	InicjujWyjsciaRC();	break;	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
 
 		case POL7_URUCHOM_INDENT_SILN:
-			//uDaneCM4.dane.uRozne.U16[0]
+			sWysterowanieIdentSiln = uDaneCM4.dane.uRozne.U16[0];	//wysterowanie silników podczas procesu identfikacji
 			break;
 
 		}	//switch

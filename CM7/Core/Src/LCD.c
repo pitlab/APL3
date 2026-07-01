@@ -1781,6 +1781,7 @@ uint8_t RysujEkran(void)
 		if (chRysujRaz)
 		{
 			chRysujRaz = 0;
+			RysujProstokatWypelniony(0, 0, DISP_X_SIZE, DISP_Y_SIZE, CZARNY);	//czyści ekran
 			BelkaTytulu("Identyfikacja silnikow");
 		}
 		nCzas = MinalCzas(stIdentSiln.nCzasPoprzedniegoEtapu);
@@ -1798,6 +1799,10 @@ uint8_t RysujEkran(void)
 				uDaneCM7.dane.uRozne.U8[1] = (1 << (stIdentSiln.cNumerEtapu - 1));	//bit numeru silnika
 				uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 			}
+			sprintf(chNapis, "Silnik: %d", stIdentSiln.cNumerEtapu - 1);
+			RysujNapis(chNapis, 1, 30);
+			sprintf(chNapis, "Wysterowanie: %d",stIdentSiln.sWysterowanie);
+			RysujNapis(chNapis, 1, 50);
 		}
 		break;
 
