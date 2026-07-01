@@ -97,7 +97,7 @@ uint8_t RozpocznijIdentyfikacjęSilników(stIdentyfikacjaSilnikow_t *stIdentSiln
 	float fSkladowaPochylenia[KANALY_MIKSERA];
 	uint8_t cBłąd = BLAD_OK;
 
-	*chTrybPracy = TP_NAST_IDENT_SILN;
+	*chTrybPracy = TP_PROCES_IDENT_SILN;
 	chRysujRaz = 1;
 
 	//odczytaj nastawy miksera aby wiedziec ile jest silników i jak są ułożone
@@ -113,13 +113,15 @@ uint8_t RozpocznijIdentyfikacjęSilników(stIdentyfikacjaSilnikow_t *stIdentSiln
 	{
 		if ((fSkladowaPrzechylenia[n] > 1.0f) || (fSkladowaPrzechylenia[n] < -1.0f) || (fSkladowaPochylenia[n] > 1.0f) || (fSkladowaPochylenia[n] < -1.0f))
 			stIdentSiln->cLiczbaSilnikow++;
-		stIdentSiln->fKatSilnika[n] = atan2f(fSkladowaPrzechylenia[n], fSkladowaPochylenia[n]);
+		//stIdentSiln->fKatSilnika[n] = atan2f(fSkladowaPrzechylenia[n], fSkladowaPochylenia[n]);
+		stIdentSiln->fSkładowaPrzechylenia[n] = fSkladowaPrzechylenia[n];
+		stIdentSiln->fSkładowaPochylenia[n] = fSkladowaPochylenia[n];
 	}
 
 	cBłąd = CzytajFramChar(FAU_RC_WY_IDENT, 4, &uDaneCM4.dane.uRozne.U8[0]);
 	stIdentSiln->sWysterowanie = uDaneCM4.dane.uRozne.U16[0];
 	stIdentSiln->sCzasIdent = uDaneCM4.dane.uRozne.U16[1];
-	stIdentSiln->nCzasPoprzedniegoEtapu = PobierzCzasT6();
+	stIdentSiln->nCzasPoprzedniegoEtapu = PobierzCzasT6() - (uint32_t)stIdentSiln->sCzasIdent * 1000;//Pobierz ujemny czas aby proces rozpoczał się od razu
 	stIdentSiln->cNumerEtapu = 0;
 	return cBłąd;
 }

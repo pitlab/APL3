@@ -66,17 +66,24 @@
 #define	PGA_KIERUNEK		64	//kierunek.wav
 #define	PGA_ALLELUJA		65	//Alleluja_i_do_gory.wav
 #define	PGA_NIECHAJ_NARODO	66	//niechaj_narodowie.wav
-#define PGA_OS				67
-#define PGA_X				68
-#define PGA_Y				69
-#define PGA_Z				70
-#define PGA_MIN				71
-#define PGA_MAX				72
-#define PGA_GOTOWE			73
-#define PGA_PRZYCISK		74
-#define PGA_UZBROJONY		75
-#define PGA_ROZBROJONY		76
-#define PGA_GOTOWY_SLUZYC	77
+#define PGA_OS				67	//os.wav
+#define PGA_X				68	//x.wav
+#define PGA_Y				69	//y.wav
+#define PGA_Z				70	//z.wav
+#define PGA_MIN				71	//min.wav
+#define PGA_MAX				72	//max.wav
+#define PGA_GOTOWE			73	//gotowe.wav
+#define PGA_PRZYCISK		74	//przycisk.wav
+#define PGA_UZBROJONY		75	//uzbrojone.wav
+#define PGA_ROZBROJONY		76	//rozbrojone.wav
+#define PGA_GOTOWY_SLUZYC	77	//gotowy_sluzyc.wav
+#define PGA_UWAGA			78	//uwaga!.wav
+#define PGA_LADUJE			79	//laduje.wav
+#define PGA_SILNIK			80	//silnik.wav
+#define PGA_PRZEDNI			81	//przedni.wav
+#define PGA_TYLNY			82	//tylny.wav
+#define PGA_PRAWY			83	//prawy.wav
+#define PGA_LEWY			84	//lewy.wav
 
-#define PGA_MAX_PROBEK		78	//maksymalna liczba dostępnych próbek
+#define PGA_MAX_PROBEK		85	//maksymalna liczba dostępnych próbek
 #define PGA_PUSTE_MIEJSCE	255	//puste miejsce bez żadnej próbki

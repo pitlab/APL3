@@ -39,10 +39,10 @@ static uint16_t sAmpl1Harm = AMPLITUDA_1HARM;			//amplituda pierwszej harmoniczn
 static uint16_t sAmpl3Harm = AMPLITUDA_3HARM;			//amplituda trzeciej harmonicznej sygnału
 uint8_t chKolejkaKomunkatow[ROZM_KOLEJKI_KOMUNIKATOW];	//bufor kołowy do przechowywania próbek głosu do wymówienia
 static uint8_t chWskNapKolKom, chWskOprKolKom;		//wskaźniki napełniania i opróżniania kolejki komunikatów audio
-uint8_t chNumerTonu = 0xFF;		//ton domyślnie wyłączony
-static uint32_t nAdresProbki;	//adres w pamieci flash skąd pobierany jest kolejny fragment próbki audio
+uint8_t chNumerTonu = 0xFF;			//ton domyślnie wyłączony
+static uint32_t nAdresProbki;		//adres w pamieci flash skąd pobierany jest kolejny fragment próbki audio
 uint32_t nRozmiarProbki;			//pozostały do pobrania rozmiar próbki audio
-uint8_t chGlosnosc;				//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI_AUDIO
+uint8_t chGlosnosc;					//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI_AUDIO
 
 extern SAI_HandleTypeDef hsai_BlockB2;
 extern const uint8_t chAdres_expandera[LICZBA_EXP_SPI_ZEWN];
@@ -50,6 +50,9 @@ extern uint8_t chPort_exp_wysylany[];
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonuje inicjalizację zasobów dotwarzania dźwięku. Uruchamiane przy starcie

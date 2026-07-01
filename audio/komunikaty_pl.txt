@@ -78,3 +78,8 @@ rozbrojone.wav
 gotowy_sluzyc.wav 
 uwaga!.wav 
 laduje.wav 
+silnik.wav
+przedni.wav
+tylny.wav
+prawy.wav
+lewy.wav

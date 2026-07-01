@@ -171,7 +171,7 @@
 #define TP_NAST_PID_NAWIG_PÓŁN	104
 #define TP_NAST_PID_NAWIG_WSCH	105
 #define TP_NAST_MIKSERA		106
-#define TP_NAST_IDENT_SILN	107	//identyfikacja silników
+#define TP_NAST_IDENT_SILN	107	//rozpoczęcie procesu identyfikacji silników
 #define TP_NAST8			108
 #define TP_WROC_DO_NASTAWY	109
 
@@ -217,6 +217,7 @@
 #define TP_TEST8			148
 #define TP_TEST9			149
 
+#define TP_PROCES_IDENT_SILN	150	//prezentacja procesu identyfikacji silników
 
 //flagi inicjalizacj sprzetu na płytce
 #define INIT_FLASH_NOR		0x00000001

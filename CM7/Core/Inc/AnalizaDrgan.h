@@ -19,7 +19,9 @@ typedef struct
 	uint32_t nCzasPoprzedniegoEtapu;
 	uint8_t cLiczbaSilnikow;
 	uint8_t cNumerEtapu;
-	float fKatSilnika[KANALY_MIKSERA];	//kąt między osią X a ramieniem silnika [rad]
+	//float fKatSilnika[KANALY_MIKSERA];	//kąt między osią X a ramieniem silnika [rad]
+	float fSkładowaPochylenia[KANALY_MIKSERA];
+	float fSkładowaPrzechylenia[KANALY_MIKSERA];
 } stIdentyfikacjaSilnikow_t;
 
 uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy);

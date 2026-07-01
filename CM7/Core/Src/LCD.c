@@ -1777,7 +1777,9 @@ uint8_t RysujEkran(void)
 
 
 	case TP_NAST_MIKSERA:		break;
-	case TP_NAST_IDENT_SILN:
+	case TP_NAST_IDENT_SILN:	RozpocznijIdentyfikacjęSilników(&stIdentSiln, &chTrybPracy); break;
+
+	case TP_PROCES_IDENT_SILN:
 		if (chRysujRaz)
 		{
 			chRysujRaz = 0;
@@ -1788,21 +1790,39 @@ uint8_t RysujEkran(void)
 		if ((uint16_t)(nCzas / 1000) >= stIdentSiln.sCzasIdent)
 		{
 			stIdentSiln.nCzasPoprzedniegoEtapu = PobierzCzasT6();
-			stIdentSiln.cNumerEtapu++;
-			if (stIdentSiln.cNumerEtapu > stIdentSiln.cLiczbaSilnikow)
+			stIdentSiln.cNumerEtapu++;		//etap jest inicjowany zerem, więc w pętli zaczyna się od 1
+
+			sprintf(chNapis, "Silnik: %d", stIdentSiln.cNumerEtapu);
+			RysujNapis(chNapis, 1, 30);
+			sprintf(chNapis, "Wysterowanie: %d",stIdentSiln.sWysterowanie);
+			RysujNapis(chNapis, 1, 50);
+
+			cBłąd = DodajProbkeDoKolejki(PGA_SILNIK);
+			cBłąd = DodajProbkeDoKolejki(PGA_00 + stIdentSiln.cNumerEtapu);	//cyfra 1..8
+
+			if (stIdentSiln.fSkładowaPrzechylenia[stIdentSiln.cNumerEtapu - 1] > 1.0)
+				cBłąd = DodajProbkeDoKolejki(PGA_PRAWY);
+			else
+			if (stIdentSiln.fSkładowaPrzechylenia[stIdentSiln.cNumerEtapu - 1] < -1.0)
+				cBłąd = DodajProbkeDoKolejki(PGA_LEWY);
+
+			if (stIdentSiln.fSkładowaPochylenia[stIdentSiln.cNumerEtapu - 1] > 1.0)
+				cBłąd = DodajProbkeDoKolejki(PGA_PRZEDNI);
+			else
+			if (stIdentSiln.fSkładowaPochylenia[stIdentSiln.cNumerEtapu - 1] < -1.0)
+				cBłąd = DodajProbkeDoKolejki(PGA_TYLNY);
+
+			if (stIdentSiln.cNumerEtapu >= stIdentSiln.cLiczbaSilnikow)
 			{
 				chTrybPracy = chWrocDoTrybu;
 				chNowyTrybPracy = TP_WROC_DO_NASTAWY;
 			}
 			else
 			{
-				uDaneCM7.dane.uRozne.U8[1] = (1 << (stIdentSiln.cNumerEtapu - 1));	//bit numeru silnika
-				uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
+				uDaneCM7.dane.uRozne.U8[0] = (1 << (stIdentSiln.cNumerEtapu - 1));	//bit numeru silnika
+				uDaneCM7.dane.uRozne.U16[1] = stIdentSiln.sWysterowanie;
+				uDaneCM7.dane.chWykonajPolecenie = POL7_URUCHOM_INDENT_SILN;
 			}
-			sprintf(chNapis, "Silnik: %d", stIdentSiln.cNumerEtapu - 1);
-			RysujNapis(chNapis, 1, 30);
-			sprintf(chNapis, "Wysterowanie: %d",stIdentSiln.sWysterowanie);
-			RysujNapis(chNapis, 1, 50);
 		}
 		break;
 
