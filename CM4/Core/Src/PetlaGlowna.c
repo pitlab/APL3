@@ -476,13 +476,11 @@ void WykonajPolecenieCM7(void)
 		case POL7_REKONFIG_WYJSCIA_RC:	InicjujWyjsciaRC();	break;	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
 
 		case POL7_URUCHOM_INDENT_SILN:
+			sWysterowanieIdentSiln = uDaneCM4.dane.uRozne.U16[0];	//wysterowanie silników podczas procesu identyfikacji
 			for (uint16_t n=0; n<KANALY_MIKSERA; n++)
 			{
-				if (uDaneCM7.dane.uRozne.U8[0] & (1 << n))	//czy jest ustawiony bit aktywacji silnika
-				{
-					chFunkcjaSilnika[n] = FSIL_IDENTYFIKACJA;	//podmień źródło danych do silnika. Po zakonczeniu będzie potrzebne przeładowanie konfiguracji
-					sWysterowanieIdentSiln = uDaneCM4.dane.uRozne.U16[1];	//wysterowanie silników podczas procesu identfikacji
-				}
+				if (uDaneCM7.dane.sAdres & (1 << n))	//czy jest ustawiony bit aktywacji silnika
+					chFunkcjaSilnika[n] = FSIL_IDENTYFIKACJA;	//podmień źródło danych do silnika. Po zakonńczeniu będzie potrzebne przeładowanie konfiguracji
 				else
 					chFunkcjaSilnika[n] = FSIL_ZATRZYMANY;	//pozostałe silniki zatrzymaj
 			}

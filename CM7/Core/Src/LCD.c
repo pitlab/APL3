@@ -93,6 +93,11 @@ extern const unsigned short obr_papuga1[0xFFC];
 extern const unsigned short obr_powrot1[0xFFC];
 extern const unsigned short obr_glosnik1[0xFFC];
 extern const unsigned short obr_zyroskop[0xFFC];
+extern const unsigned short obr_pid[0xFFC];
+extern const unsigned short obr_pid4[0xFFC];
+extern const unsigned short obr_silnik[0xFFC];
+extern const unsigned short obr_mikser[0xFFC];
+
 
 extern const char *chNapisLcd[MAX_NAPISOW];
 extern const char *chOpisBledow[MAX_KOMUNIKATOW];
@@ -206,19 +211,19 @@ menu_t stMenuPomiary[MENU_WIERSZE * MENU_KOLUMNY] = {
 	{"FFT zyro",	"FFT akceleometrów",						TP_POMIARY_FFT_ZYR,	spectrum},
 	{"Drgania",		"Test rezonansu ramy",						TP_POMIARY_ANALIZA_DRGAN, spectrum},
 	{"Startowy",	"Ekran startowy",							TP_WITAJ,			obr_kontrolny},
-	{"TestDotyk",	"Testy panelu dotykowego",					TP_POMIARY_DOTYKU,			obr_dotyk_zolty},
+	{"TestDotyk",	"Testy panelu dotykowego",					TP_POMIARY_DOTYKU,	obr_dotyk_zolty},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
 menu_t stMenuNastawy[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"PID Przech",	"Nastawy PID przechylenia",					TP_NAST_PID_PRZECH, obr_narzedzia},
-	{"PID Pochyl",	"Nastawy PID pochylenia",					TP_NAST_PID_POCH, 	obr_narzedzia},
-	{"PID Odchyl",	"Nastawy PID odchylenia",					TP_NAST_PID_ODCH,	obr_narzedzia},
-	{"PID Wysoko",	"Nastawy PID wysokosci",					TP_NAST_PID_WYSOK,	obr_narzedzia},
-	{"PID NawigN",	"Nastawy PID nawigacji polnocnej",			TP_NAST_PID_NAWIG_PÓŁN,	obr_narzedzia},
-	{"PID NawigE",	"Nastawy PID nawigacji wschodniej",			TP_NAST_PID_NAWIG_WSCH,	obr_narzedzia},
-	{"Mikser",		"Nastawy miksera silnikow",					TP_NAST_MIKSERA,	obr_narzedzia},
-	{"Silniki",		"Identyfikacja silnikow",					TP_NAST_IDENT_SILN,	obr_narzedzia},
+	{"PID Przech",	"Nastawy PID przechylenia",					TP_NAST_PID_PRZECH, obr_pid},
+	{"PID Pochyl",	"Nastawy PID pochylenia",					TP_NAST_PID_POCH, 	obr_pid},
+	{"PID Odchyl",	"Nastawy PID odchylenia",					TP_NAST_PID_ODCH,	obr_pid},
+	{"PID Wysoko",	"Nastawy PID wysokosci",					TP_NAST_PID_WYSOK,	obr_pid},
+	{"PID NawigN",	"Nastawy PID nawigacji polnocnej",			TP_NAST_PID_NAWIG_PÓŁN,	obr_pid4},
+	{"PID NawigE",	"Nastawy PID nawigacji wschodniej",			TP_NAST_PID_NAWIG_WSCH,	obr_pid4},
+	{"Mikser",		"Nastawy miksera silnikow",					TP_NAST_MIKSERA,	obr_mikser},
+	{"Silniki",		"Identyfikacja silnikow",					TP_NAST_IDENT_SILN,	obr_silnik},
 	{"nic",			"nic",										TP_NAST8,			obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
@@ -1792,36 +1797,39 @@ uint8_t RysujEkran(void)
 			stIdentSiln.nCzasPoprzedniegoEtapu = PobierzCzasT6();
 			stIdentSiln.cNumerEtapu++;		//etap jest inicjowany zerem, więc w pętli zaczyna się od 1
 
-			sprintf(chNapis, "Silnik: %d", stIdentSiln.cNumerEtapu);
-			RysujNapis(chNapis, 1, 30);
-			sprintf(chNapis, "Wysterowanie: %d",stIdentSiln.sWysterowanie);
-			RysujNapis(chNapis, 1, 50);
-
-			cBłąd = DodajProbkeDoKolejki(PGA_SILNIK);
-			cBłąd = DodajProbkeDoKolejki(PGA_00 + stIdentSiln.cNumerEtapu);	//cyfra 1..8
-
-			if (stIdentSiln.fSkładowaPrzechylenia[stIdentSiln.cNumerEtapu - 1] > 1.0)
-				cBłąd = DodajProbkeDoKolejki(PGA_PRAWY);
-			else
-			if (stIdentSiln.fSkładowaPrzechylenia[stIdentSiln.cNumerEtapu - 1] < -1.0)
-				cBłąd = DodajProbkeDoKolejki(PGA_LEWY);
-
-			if (stIdentSiln.fSkładowaPochylenia[stIdentSiln.cNumerEtapu - 1] > 1.0)
-				cBłąd = DodajProbkeDoKolejki(PGA_PRZEDNI);
-			else
-			if (stIdentSiln.fSkładowaPochylenia[stIdentSiln.cNumerEtapu - 1] < -1.0)
-				cBłąd = DodajProbkeDoKolejki(PGA_TYLNY);
-
-			if (stIdentSiln.cNumerEtapu >= stIdentSiln.cLiczbaSilnikow)
+			if (stIdentSiln.cNumerEtapu > stIdentSiln.cLiczbaSilnikow)
 			{
 				chTrybPracy = chWrocDoTrybu;
 				chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+				uDaneCM7.dane.sAdres = 0;	//dowolna liczba inna niż poprzednie
+				uDaneCM7.dane.chWykonajPolecenie = POL7_PRZYWROC_NAPED;
 			}
 			else
 			{
-				uDaneCM7.dane.uRozne.U8[0] = (1 << (stIdentSiln.cNumerEtapu - 1));	//bit numeru silnika
-				uDaneCM7.dane.uRozne.U16[1] = stIdentSiln.sWysterowanie;
+				//aby CM4 przyjął kolejne takie samo polecenie, musi zmienić się zmienna sAdres, więc pomimo różnicy rozmiaru wykorzystuję ją do przesyłania nr silnika
+				uDaneCM7.dane.sAdres = (1 << (stIdentSiln.cNumerEtapu - 1));	//bit numeru silnika
+				uDaneCM7.dane.uRozne.U16[0] = stIdentSiln.sWysterowanie;
 				uDaneCM7.dane.chWykonajPolecenie = POL7_URUCHOM_INDENT_SILN;
+
+				sprintf(chNapis, "Silnik: %d", stIdentSiln.cNumerEtapu);
+				RysujNapis(chNapis, 1, 30);
+				sprintf(chNapis, "Wysterowanie: %d",stIdentSiln.sWysterowanie);
+				RysujNapis(chNapis, 1, 50);
+
+				cBłąd = DodajProbkeDoKolejki(PGA_SILNIK);
+				cBłąd = DodajProbkeDoKolejki(PGA_00 + stIdentSiln.cNumerEtapu);	//cyfra 1..8
+
+				if (stIdentSiln.fSkładowaPochylenia[stIdentSiln.cNumerEtapu - 1] > 1.0)
+					cBłąd = DodajProbkeDoKolejki(PGA_PRZEDNI);
+				else
+				if (stIdentSiln.fSkładowaPochylenia[stIdentSiln.cNumerEtapu - 1] < -1.0)
+					cBłąd = DodajProbkeDoKolejki(PGA_TYLNY);
+
+				if (stIdentSiln.fSkładowaPrzechylenia[stIdentSiln.cNumerEtapu - 1] > 1.0)
+					cBłąd = DodajProbkeDoKolejki(PGA_PRAWY);
+				else
+				if (stIdentSiln.fSkładowaPrzechylenia[stIdentSiln.cNumerEtapu - 1] < -1.0)
+					cBłąd = DodajProbkeDoKolejki(PGA_LEWY);
 			}
 		}
 		break;
