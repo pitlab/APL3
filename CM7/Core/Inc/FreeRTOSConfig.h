@@ -76,6 +76,7 @@ extern uint32_t SystemCoreClock;
 #define configUSE_16_BIT_TICKS                   0
 #define configUSE_MUTEXES                        1
 #define configQUEUE_REGISTRY_SIZE                8
+#define configCHECK_FOR_STACK_OVERFLOW           1
 #define configUSE_RECURSIVE_MUTEXES              1
 #define configUSE_COUNTING_SEMAPHORES            1
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION  0
@@ -113,17 +114,20 @@ to exclude the API function. */
 #define INCLUDE_vTaskPrioritySet             1
 #define INCLUDE_uxTaskPriorityGet            1
 #define INCLUDE_vTaskDelete                  1
-#define INCLUDE_vTaskCleanUpResources        0
+#define INCLUDE_vTaskCleanUpResources        1
 #define INCLUDE_vTaskSuspend                 1
-#define INCLUDE_xTaskDelayUntil              1
+#define INCLUDE_vTaskDelayUntil              1
 #define INCLUDE_vTaskDelay                   1
 #define INCLUDE_xTaskGetSchedulerState       1
 #define INCLUDE_xTimerPendFunctionCall       1
 #define INCLUDE_xQueueGetMutexHolder         1
+#define INCLUDE_pcTaskGetTaskName            1
 #define INCLUDE_uxTaskGetStackHighWaterMark  1
 #define INCLUDE_uxTaskGetStackHighWaterMark2 1
 #define INCLUDE_xTaskGetCurrentTaskHandle    1
 #define INCLUDE_eTaskGetState                1
+#define INCLUDE_xTaskAbortDelay              1
+#define INCLUDE_xTaskGetHandle               1
 
 /*
  * The CMSIS-RTOS V2 FreeRTOS wrapper is dependent on the heap implementation used

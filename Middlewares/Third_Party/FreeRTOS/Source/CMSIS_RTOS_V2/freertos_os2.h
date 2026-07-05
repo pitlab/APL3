@@ -27,7 +27,7 @@
 #include <stdint.h>
 
 #include "FreeRTOS.h"                   // ARM.FreeRTOS::RTOS:Core
-#define INCLUDE_vTaskDelayUntil 1
+
 #include CMSIS_device_header
 
 /*

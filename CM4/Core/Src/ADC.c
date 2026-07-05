@@ -54,9 +54,9 @@ uint8_t InicjujADC(void)
 	//konfiguracjia ADC3 będzie zmieniana, więc wstępnie ustaw ją tutaj aby nie budować od nowa przy każdym pomiarze
 	sConfigADC3.Channel = ADC_CHANNEL_6;
 	sConfigADC3.Rank = ADC_REGULAR_RANK_1;
-	//sConfigADC3.SamplingTime = ADC_SAMPLETIME_16CYCLES_5;	//wystarczajaco szybko, nie trzeba czekać na pomiar
+	sConfigADC3.SamplingTime = ADC_SAMPLETIME_16CYCLES_5;	//wystarczajaco szybko, nie trzeba czekać na pomiar
 	//sConfigADC3.SamplingTime = ADC_SAMPLETIME_64CYCLES_5;	//pomiar co 28us, wystarczajaco szybko, nie trzeba czekać na pomiar
-	sConfigADC3.SamplingTime = ADC_SAMPLETIME_387CYCLES_5;	//pomiar co 170us - wystarczajaco szybko, nie trzeba czekać na pomiar
+	//sConfigADC3.SamplingTime = ADC_SAMPLETIME_387CYCLES_5;	//pomiar co 170us - wystarczajaco szybko, nie trzeba czekać na pomiar
 	sConfigADC3.SingleDiff = ADC_SINGLE_ENDED;
 	sConfigADC3.OffsetNumber = ADC_OFFSET_NONE;
 	sConfigADC3.Offset = 0;
@@ -139,12 +139,13 @@ uint8_t ObsługaDekoderaiADC(uint8_t cOdcinekCzasu, uint8_t cBityPozwoleniaNaPom
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	//ustaw dekoder adresów i jednocześnie multiplekser analogowy na zadany kanał
+	//ustaw dekoder adresów i jednocześnie multiplekser analogowy na zadany kanał w zakresie 0..7
 	if (cOdcinekCzasu < LICZBA_POMIAROW_ADC2)
 		cBłąd |= UstawDekoderModulow(cOdcinekCzasu);
 
 	chWykonanoPomiarADC = 0;
-	PomiarADC(cOdcinekCzasu, cBityPozwoleniaNaPomiar);
+	cBłąd |= PomiarADC(cOdcinekCzasu, cBityPozwoleniaNaPomiar);
+
 	return cBłąd;
 }
 
@@ -209,13 +210,17 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 		case 7:	uDaneCM4.dane.fPradAku[1] = fNapiecie * DZIELNIK_ICZUJNIK;		break;	//Iczujn2
 
 		case 8:	uDaneCM4.dane.fNapiecieBatRTC = fNapiecie * DZIELNIK_VBAT;	break;	//Vbat/4
-		case 9:	if (sTS_CAL1 && sTS_CAL2)	//jest dzielenie przez te zmienne, więc nie mogą być zerowe
+		case 9:
+			if (sTS_CAL1 && sTS_CAL2)	//jest dzielenie przez te zmienne, więc nie mogą być zerowe
 			{
 				//int32_t nSkorygowanaTemparatura = nOdczytADC * VREFINT_CAL_VREF / (VREF * 1000);
 				int32_t nSkorygowanaTemparatura = nOdczytADC * (VREF * 1000) / VREFINT_CAL_VREF;
 				uDaneCM4.dane.fTemperCPU = (float)(TEMPSENSOR_CAL2_TEMP - TEMPSENSOR_CAL1_TEMP) / (sTS_CAL2 - sTS_CAL1)  * (nSkorygowanaTemparatura - sTS_CAL1) + TEMPSENSOR_CAL1_TEMP;	//Vsense - temperatura
 			}
+			else
+				uDaneCM4.dane.chWykonajPolecenie = POL4_CZYTAJ_KALIBR_TEMP;
 			break;
+		case 10:	uDaneCM4.dane.fNapiecieVref = fNapiecie;	break;
 		default: break;
 		}
 		chWykonanoPomiarADC |= WYKONANO_POMIAR_ADC3;

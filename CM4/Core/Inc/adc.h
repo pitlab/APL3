@@ -11,14 +11,14 @@
 #include "SysDefCM4.h"
 
 
-#define VREF	3.0f	//napiecie referencyjne przetwornika a/c
+#define VREF	3.3f	//napiecie referencyjne przetwornika a/c
 
 #define WYKONANO_POMIAR_ADC2	1
 #define WYKONANO_POMIAR_ADC3	2
 #define ILOSC_ZEWN_WE_ANALOG	4
 
 #define LICZBA_POMIAROW_ADC2	8
-#define LICZBA_POMIAROW_ADC3	10
+#define LICZBA_POMIAROW_ADC3	11
 
 #define DZIELNIK_CZASU_POMIAROW_WEWN	1000	//co tyle cyklu pomiarów wykonywane są pomiary czujników wewnętrznych: VBat i TempSens
 

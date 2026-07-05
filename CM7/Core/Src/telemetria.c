@@ -398,6 +398,21 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_JAKOSC_UP_RC1:		fZmiennaTele = uDaneCM4.dane.cJakoscUpLinkuRC1;	break;
 	case TID_JAKOSC_UP_RC2:		fZmiennaTele = uDaneCM4.dane.cJakoscUpLinkuRC2;	break;
 	case TID_JAKOSC_DOWN_RC:	fZmiennaTele = uDaneCM4.dane.cJakoscDnLinkuRC;	break;
+
+	case TID_ADC1_1:			fZmiennaTele = uDaneCM4.dane.fNapCzujZewn[0];	break;
+	case TID_ADC1_2:			fZmiennaTele = uDaneCM4.dane.fNapCzujZewn[1];	break;
+	case TID_ADC2_1:			fZmiennaTele = uDaneCM4.dane.fNapCzujZewn[2];	break;
+	case TID_ADC2_2:			fZmiennaTele = uDaneCM4.dane.fNapCzujZewn[3];	break;
+	case TID_BAT1_NAPIECIE:		fZmiennaTele = uDaneCM4.dane.fNapiecieAku[0];	break;
+	case TID_BAT1_PRAD:			fZmiennaTele = uDaneCM4.dane.fPradAku[0];		break;
+	case TID_BAT1_ENERGIA:		fZmiennaTele = uDaneCM4.dane.fEnergiaPobr[0];	break;
+	case TID_BAT2_NAPIECIE:		fZmiennaTele = uDaneCM4.dane.fNapiecieAku[1];	break;
+	case TID_BAT2_PRAD:			fZmiennaTele = uDaneCM4.dane.fPradAku[1];		break;
+	case TID_BAT2_ENERGIA:		fZmiennaTele = uDaneCM4.dane.fEnergiaPobr[1];	break;
+	case TID_BAT_RTC_NAPIECIE:	fZmiennaTele = uDaneCM4.dane.fNapiecieBatRTC;	break;
+	case TID_TEMPERATURA_CPU:	fZmiennaTele = uDaneCM4.dane.fTemperCPU;		break;
+	case TID_VREF_ADC:			fZmiennaTele = uDaneCM4.dane.fNapiecieVref;		break;
+
 	case TID_FFT_ZYRO_AKCEL:	break;	//wyniki transformaty fouriera przesyłane w specyficznej szybkiej ramce
 
 	case TID_PID_PRZE_WZAD:		fZmiennaTele = uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fZadana;			break;	//wartość zadana regulatora sterowania przechyleniem

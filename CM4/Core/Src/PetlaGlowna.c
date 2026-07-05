@@ -46,7 +46,7 @@ uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu od
 uint8_t cBłądPG = BLAD_OK;		//błąd petli głównej
 uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
-extern volatile uint8_t chWskNapBaGNSS, chWskOprBaGNSS;
+extern volatile uint8_t chWskNapBufAnaGNSS, chWskOprBufAnaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
 uint16_t chTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po timeoucie inicjalizuje moduł.
 static uint8_t chEtapOperacjiI2C;
 uint8_t chGeneratorNapisow, chLicznikKomunikatow;
@@ -107,6 +107,7 @@ void PetlaGlowna(void)
 	{
 	case ADR_MOD1:		//obsługa modułu w gnieździe 1
 		uDaneCM4.dane.uRozne.f32[11] += 0.5f;
+		//do; while (( chWykonanoPomiarADC != WYKONANO_POMIAR_ADC2) || (chWykonanoPomiarADC != WYKONANO_POMIAR_ADC3));	//czekaj na wykonanie pomiarów ADC
 		break;
 
 	case 11:	//moduł jest obsługiwany na 2 slotach aby szybciej dostarczać dane dla filtrów  i FFT
@@ -120,17 +121,19 @@ void PetlaGlowna(void)
 		break;
 
 	case ADR_MOD3:		//obsługa modułu w gnieździe 3
+		//do; while (( chWykonanoPomiarADC != WYKONANO_POMIAR_ADC2) || (chWykonanoPomiarADC != WYKONANO_POMIAR_ADC3));	//czekaj na wykonanie pomiarów ADC
 		break;
 
 	case ADR_MOD4:		//obsługa modułu w gnieździe 4
+		//do; while (( chWykonanoPomiarADC != WYKONANO_POMIAR_ADC2) || (chWykonanoPomiarADC != WYKONANO_POMIAR_ADC3));	//czekaj na wykonanie pomiarów ADC
 		break;
 
 	case 4:		//obsługa GNSS na UART8
-		/*while (chWskNapBaGNSS != chWskOprBaGNSS)
+		while (chWskNapBufAnaGNSS != chWskOprBufAnaGNSS)
 		{
-			cBłądPG |= DekodujNMEA(chBuforAnalizyGNSS[chWskOprBaGNSS]);	//analizuj dane z GNSS
-			chWskOprBaGNSS++;
-			chWskOprBaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
+			cBłądPG |= DekodujNMEA(chBuforAnalizyGNSS[chWskOprBufAnaGNSS]);	//analizuj dane z GNSS
+			chWskOprBufAnaGNSS++;
+			chWskOprBufAnaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
 			chTimeoutGNSS = TIMEOUT_GNSS;
 		}
 		if ((uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY) == 0)
@@ -144,7 +147,7 @@ void PetlaGlowna(void)
 			chTimeoutGNSS = TIMEOUT_GNSS;
 			uDaneCM4.dane.nZainicjowano &= ~MASKA_INIT_GNSS;	//wyczyść wszystkie bity używane przez GNSS
 			uDaneCM4.dane.stGnss1.chFix = 0;
-		}*/
+		}
 		break;
 
 	case 5:

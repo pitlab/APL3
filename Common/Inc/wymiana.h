@@ -198,6 +198,7 @@ typedef struct
 	float fNapiecieUSB;		//napięcie na szynie zasilania USB
 	float fNapiecieSerw;	//napięcie na magistrali serw
 	float fNapiecieBatRTC;	//napięcie baterii RTC
+	float fNapiecieVref;	//napięcie odniesienia ADC
 	float fNapiecieAku[2];	//napięcie obu pakietów z czujników prądu i napiecia
 	float fPradAku[2];		//prąd pobierany z obu pakietów odczytany z czujników prądu i napiecia
 	float fEnergiaPobr[2];	//energia pobrana z obu baterii

@@ -140,6 +140,19 @@
 #define TID_JAKOSC_UP_RC2		107
 #define TID_JAKOSC_DOWN_RC		108
 
+#define TID_ADC1_1				109
+#define TID_ADC1_2				110
+#define TID_ADC2_1				111
+#define TID_ADC2_2				112
+#define TID_BAT1_NAPIECIE		113
+#define TID_BAT1_PRAD			114
+#define TID_BAT1_ENERGIA		115
+#define TID_BAT2_NAPIECIE		116
+#define TID_BAT2_PRAD			117
+#define TID_BAT2_ENERGIA		118
+#define TID_BAT_RTC_NAPIECIE	119
+#define TID_TEMPERATURA_CPU		120
+#define TID_VREF_ADC			121
 //max do 127
 
 #define TID_FFT_ZYRO_AKCEL	127	//wyniki transformaty Fouriera przesyłane w specyficznej szybkiej ramce
