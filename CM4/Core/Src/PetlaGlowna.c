@@ -329,7 +329,7 @@ void WykonajPolecenieCM7(void)
 		case POL7_CZYTAJ_FRAM_U8:
 			if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_CHAR)
 				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_CHAR;
-			CzytajBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM4.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
+			CzytajBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM4.dane.uRozne.U8, (uint16_t)uDaneCM7.dane.chRozmiar);
 			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
 			break;
 
@@ -344,7 +344,7 @@ void WykonajPolecenieCM7(void)
 		case POL7_ZAPISZ_FRAM_U8:	//zapisz dane uint8_t pod podany adres
 			if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_CHAR)
 				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_CHAR;
-			ZapiszBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM7.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
+			ZapiszBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM7.dane.uRozne.U8, (uint16_t)uDaneCM7.dane.chRozmiar);
 			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
 			break;
 

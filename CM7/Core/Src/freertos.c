@@ -53,7 +53,7 @@
 /* USER CODE END FunctionPrototypes */
 
 /* Hook prototypes */
-//void vApplicationStackOverflowHook(xTaskHandle xTask, char *pcTaskName);
+void vApplicationStackOverflowHook(xTaskHandle xTask, char *pcTaskName);
 
 /* USER CODE BEGIN 4 */
 //void vApplicationStackOverflowHook(xTaskHandle xTask, char *pcTaskName)

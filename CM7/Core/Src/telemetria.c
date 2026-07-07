@@ -399,6 +399,7 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_JAKOSC_UP_RC2:		fZmiennaTele = uDaneCM4.dane.cJakoscUpLinkuRC2;	break;
 	case TID_JAKOSC_DOWN_RC:	fZmiennaTele = uDaneCM4.dane.cJakoscDnLinkuRC;	break;
 
+	//pomiary analogowe
 	case TID_ADC1_1:			fZmiennaTele = uDaneCM4.dane.fNapCzujZewn[0];	break;
 	case TID_ADC1_2:			fZmiennaTele = uDaneCM4.dane.fNapCzujZewn[1];	break;
 	case TID_ADC2_1:			fZmiennaTele = uDaneCM4.dane.fNapCzujZewn[2];	break;
@@ -412,6 +413,10 @@ float PobierzZmiennaTele(uint16_t sZmienna)
 	case TID_BAT_RTC_NAPIECIE:	fZmiennaTele = uDaneCM4.dane.fNapiecieBatRTC;	break;
 	case TID_TEMPERATURA_CPU:	fZmiennaTele = uDaneCM4.dane.fTemperCPU;		break;
 	case TID_VREF_ADC:			fZmiennaTele = uDaneCM4.dane.fNapiecieVref;		break;
+	case TID_NAPIECIE_WE1:		fZmiennaTele = uDaneCM4.dane.fNapiecieWej[0];	break;
+	case TID_NAPIECIE_WE2:		fZmiennaTele = uDaneCM4.dane.fNapiecieWej[1];	break;
+	case TID_NAPIECIE_SERW:		fZmiennaTele = uDaneCM4.dane.fNapiecieSerw;		break;
+	case TID_NAPIECIE_USB:		fZmiennaTele = uDaneCM4.dane.fNapiecieUSB;		break;
 
 	case TID_FFT_ZYRO_AKCEL:	break;	//wyniki transformaty fouriera przesyłane w specyficznej szybkiej ramce
 

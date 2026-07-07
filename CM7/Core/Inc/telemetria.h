@@ -153,6 +153,10 @@
 #define TID_BAT_RTC_NAPIECIE	119
 #define TID_TEMPERATURA_CPU		120
 #define TID_VREF_ADC			121
+#define TID_NAPIECIE_WE1		122
+#define TID_NAPIECIE_WE2		123
+#define TID_NAPIECIE_SERW		124
+#define TID_NAPIECIE_USB		125
 //max do 127
 
 #define TID_FFT_ZYRO_AKCEL	127	//wyniki transformaty Fouriera przesyłane w specyficznej szybkiej ramce

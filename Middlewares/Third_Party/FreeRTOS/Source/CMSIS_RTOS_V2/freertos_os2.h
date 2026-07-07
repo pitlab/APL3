@@ -22,7 +22,7 @@
 
 #ifndef FREERTOS_OS2_H_
 #define FREERTOS_OS2_H_
-
+#define INCLUDE_vTaskDelayUntil 1
 #include <string.h>
 #include <stdint.h>
 

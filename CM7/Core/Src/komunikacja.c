@@ -58,8 +58,8 @@ extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanych, uint8_t cInterfejs, uint8_t cAdresZdalny)
 {
-	uint8_t n, cBłąd = BLAD_OK;
-	uint8_t chRozmiar;
+	uint8_t cBłąd = BLAD_OK;
+	uint8_t cRozmiar;
 	uint16_t sPrzesuniecie;
 
 	switch (cPolecenie)
@@ -88,7 +88,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		break;
 
 	case PK_POBIERZ_ZDJECIE:		//polecenie przesłania fragmentu zdjecia. We: [0..3] - wskaźnik na pozycje bufora, [4] - rozmiar danych do przesłania
-		for (n=0; n<4; n++)
+		for (uint8_t n=0; n<4; n++)
 			un8_32.dane8[n] = cDane[n];
 		nOffsetDanych = un8_32.dane32;
 		cBłąd = WyslijRamke(cAdresZdalny, PK_POBIERZ_ZDJECIE, cDane[4], (uint8_t*)(sBuforKamery + nOffsetDanych),  cInterfejs);
@@ -96,9 +96,9 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 
 	case PK_USTAW_BSP:		//ustawia identyfikator/adres urządzenia
 		stBSP_ID.chAdres = cDane[0];
-		for (n=0; n<DLUGOSC_NAZWY; n++)
+		for (uint8_t n=0; n<DLUGOSC_NAZWY; n++)
 			stBSP_ID.chNazwa[n] = cDane[n+1];
-		for (n=0; n<4; n++)
+		for (uint8_t n=0; n<4; n++)
 			stBSP_ID.chAdrIP[n] = cDane[n+DLUGOSC_NAZWY+1];
 		cBłąd = ZapiszPaczkeKonfigu(FKON_NAZWA_ID_BSP, (uint8_t*)&stBSP_ID);
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
@@ -106,9 +106,9 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 
 	case PK_POBIERZ_BSP:		//pobiera identyfikator/adres urządzenia
 		cDane[0] = stBSP_ID.chAdres;
-		for (n=0; n<DLUGOSC_NAZWY; n++)
+		for (uint8_t n=0; n<DLUGOSC_NAZWY; n++)
 			cDane[n+1] = stBSP_ID.chNazwa[n];
-		for (n=0; n<4; n++)
+		for (uint8_t n=0; n<4; n++)
 			cDane[n+DLUGOSC_NAZWY+1] = stBSP_ID.chAdrIP[n];
 		cBłąd = WyslijRamke(cAdresZdalny, PK_POBIERZ_BSP, DLUGOSC_NAZWY+5, cDane, cInterfejs);
 		//polecenie PK_POBIERZ_BSP otwiera połączenie UART, więc zmień stan na otwarty
@@ -234,7 +234,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		break;
 
 	case PK_ZAPISZ_FLASH: 	//zapisz bufor 256 słów do sektora flash NOR o przekazanym adresie
-		for (n=0; n<4; n++)
+		for (uint8_t n=0; n<4; n++)
 			un8_32.dane8[n] = cDane[n];	//adres sektora
 		cBłąd = ZapiszDaneFlashNOR(un8_32.dane32, sBuforSektoraFlash, ROZMIAR16_BUF_SEKT);
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
@@ -242,7 +242,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		break;
 
 	case PK_KASUJ_FLASH:	//kasuj sektor 128kB flash
-		for (n=0; n<4; n++)
+		for (uint8_t n=0; n<4; n++)
 			un8_32.dane8[n] = cDane[n];
 		cBłąd = KasujSektorFlashNOR(un8_32.dane32);
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
@@ -271,20 +271,20 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		break;
 
 	case PK_CZYTAJ_OKRES_TELE:	//odczytaj a APL3 okresy telemetrii: cDane[0] == liczba pozycji okresu telemetrii  do odczytania, cDane[1] == numer zmiennej względen początku
-		chRozmiar = cDane[0];
+		cRozmiar = cDane[0];
 		sPrzesuniecie = cDane[1] + cDane[2] * 0x100;	//indeks pierwszej zmiennej, młodszy przodem
-		for (uint8_t n=0; n<chRozmiar; n++)
+		for (uint8_t n=0; n<cRozmiar; n++)
 		{
 			cDane[2*n+0] = (uint8_t)(sOkresTelemetrii[sPrzesuniecie+n] & 0x00FF);	//młodszy przodem
 			cDane[2*n+1] = (uint8_t)(sOkresTelemetrii[sPrzesuniecie+n] >> 8);
 		}
-		cBłąd = WyslijRamke(cAdresZdalny, PK_CZYTAJ_OKRES_TELE, 2*chRozmiar, cDane, cInterfejs);
+		cBłąd = WyslijRamke(cAdresZdalny, PK_CZYTAJ_OKRES_TELE, 2*cRozmiar, cDane, cInterfejs);
 		break;
 
 	case PK_ZAPISZ_OKRES_TELE:	//zapisz okresy telemetrii
 		sPrzesuniecie = cDane[0] + cDane[1] * 0x100;	//indeks pierwszej zmiennej, młodszy przodem
-		chRozmiar = (chRozmDanych - 2) / 2;
-		for (uint8_t n=0; n<chRozmiar; n++)
+		cRozmiar = (chRozmDanych - 2) / 2;
+		for (uint8_t n=0; n<cRozmiar; n++)
 			sOkresTelemetrii[n + sPrzesuniecie] = cDane[2*n+2] + cDane[2*n+3] * 0x100;	//kolejnne okresy telemetrii, młodszy przodem
 		cBłąd = ZapiszKonfiguracjeTelemetrii(sPrzesuniecie);
 		if (cBłąd == BLAD_OK)
@@ -305,7 +305,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		uDaneCM7.dane.sAdres = un8_32.dane16[0];		//adres zapisu bloku liczb
 		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_FRAM_U8;
 		uDaneCM7.dane.chRozmiar = cDane[0];		//ilość liczb uint8_t
-		for (n=0; n<cDane[0]; n++)
+		for (uint8_t n=0; n<cDane[0]; n++)
 			uDaneCM7.dane.uRozne.U8[n] = cDane[3+n];
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
@@ -322,7 +322,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		sAdres = un8_32.dane16[0];					//zapamietaj adres do sprawdzenia czy już się zapisało
 		uDaneCM7.dane.sAdres = un8_32.dane16[0];	//adres zapisu bloku liczb
 		uDaneCM7.dane.chRozmiar = cDane[0];			//ilość liczb float
-		for (n=0; n<cDane[0]; n++)
+		for (uint8_t n=0; n<cDane[0]; n++)
 		{
 			for (uint8_t i=0; i<4; i++)
 				un8_32.dane8[i] = cDane[3+n*4+i];
@@ -384,10 +384,10 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 			osDelay(1);	//przełącz wątek aby pozwolić CM4 wykonać polecenie
 			break;
 		}
-		chRozmiar = cDane[0];	//zapamiętaj w zmiennej, bo dane będą nadpisane;
-		for (n=0; n<chRozmiar; n++)
+		cRozmiar = cDane[0];	//zapamiętaj w zmiennej, bo dane będą nadpisane;
+		for (uint8_t n=0; n<cRozmiar; n++)
 			cDane[n] = uDaneCM4.dane.uRozne.U8[n];
-		cBłąd = WyslijRamke(cAdresZdalny, PK_WYSLIJ_ODCZYT_FRAM, chRozmiar, cDane, cInterfejs);
+		cBłąd = WyslijRamke(cAdresZdalny, PK_WYSLIJ_ODCZYT_FRAM, cRozmiar, cDane, cInterfejs);
 		break;
 
 	/*case PK_REKONFIG_SERWA_RC:	//wykonuje ponowną konfigurację wejść i wyjść RC po zmianie zawartosci FRAM
@@ -416,7 +416,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_KONFIG_PID;
 		uDaneCM7.dane.chRozmiar = (chRozmDanych - 1) / sizeof(float);		//ilość zmiennych regulatora typu float
 		uDaneCM7.dane.sAdres = cDane[0];	//indeks regulatora
-		for (n=0; n<uDaneCM7.dane.chRozmiar; n++)
+		for (uint8_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
 		{
 			for (uint8_t i=0; i<sizeof(float); i++)
 				un8_32.dane8[i] = cDane[1 + n*sizeof(float) + i];
@@ -439,7 +439,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 #ifdef TESTY
 		assert(chRozmDanych == 2*LICZBA_DANYCH_NAPEDU);	//Rozmiar danych jest liczbą przeslanych bajtów a mamy zapisać 3 słowa 16-bitowe
 #endif
-		for (n=0; n<chRozmDanych / 2; n++)
+		for (uint8_t n=0; n<chRozmDanych / 2; n++)
 		{
 			for (uint8_t i=0; i<2; i++)
 				un8_32.dane8[i] = cDane[n*2+i];
@@ -455,7 +455,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 #ifdef TESTY
 		assert(chRozmDanych == LICZBA_REG_PARAM);
 #endif
-		for (n=0; n<chRozmDanych; n++)
+		for (uint8_t n=0; n<chRozmDanych; n++)
 			uDaneCM7.dane.uRozne.U8[n] = cDane[n];
 		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_TRYB_REG;
 		uDaneCM7.dane.sAdres = PK_ZAPISZ_TRYB_REG;	//fejkowy adres wysyłany w celu uzyskania potwierdzenia zapisu
@@ -507,15 +507,15 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		break;
 
 	case PK_CZYTAJ_WYNIKI_FFT:	//odczytaj z pamiędci DRAM wyniki serii testów FFT dla akcelerometrów i żyroskopów. Prześlij je jako float o połowie precyzji
-		uint8_t chRozmiar = cDane[0];				//liczba wyników FFT typu float w ramce (32)
+		cRozmiar = cDane[0];				//liczba wyników FFT typu float w ramce (32)
 		uint8_t chIndeksRamkiWyniku = cDane[1];	//wskazuje na ramkę danych w ramach jednego FFT [0..63] =[(32/32)-1..(2048/32)-1]
 		uint8_t chIndeksZmiennej = cDane[2];		//indeks kolejnej zmiennej [0..5]
 		uint8_t chLiniaWodospadu = cDane[3];		//numer kolejnego FFT tworzącego wodospad [0..99]
-		uint16_t sIndeksWyniku = (uint16_t)chRozmiar * chIndeksRamkiWyniku;
+		uint16_t sIndeksWyniku = (uint16_t)cRozmiar * chIndeksRamkiWyniku;
 
-		for (uint8_t n=0; n<chRozmiar; n++)
+		for (uint8_t n=0; n<cRozmiar; n++)
 			Float2Char16(fWynikFFT[chLiniaWodospadu][chIndeksZmiennej][sIndeksWyniku + n], &cDane[n * 2]);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
-		cBłąd = WyslijRamke(cAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, chRozmiar * 2, cDane, cInterfejs);
+		cBłąd = WyslijRamke(cAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, cRozmiar * 2, cDane, cInterfejs);
 		break;
 
 	case PK_ROZP_ANALIZE_DRGAN:

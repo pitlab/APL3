@@ -11,7 +11,7 @@
 #include "SysDefCM4.h"
 
 
-#define VREF	3.3f	//napiecie referencyjne przetwornika a/c
+#define VREF	2.5f	//napiecie referencyjne przetwornika a/c
 
 #define WYKONANO_POMIAR_ADC2	1
 #define WYKONANO_POMIAR_ADC3	2

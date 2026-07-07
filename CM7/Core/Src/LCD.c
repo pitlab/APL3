@@ -2375,9 +2375,11 @@ void PomiaryCzujnikow(void)
 		sprintf(chNapis, "GNSS Czas:             Data:              Sat:");
 		RysujNapis(chNapis, KOL12, 160);
 
-		sprintf(chNapis, "Uaku 1:            Iaku 1:            Eaku 1:");
+		//sprintf(chNapis, "Uaku 1:            Iaku 1:            Eaku 1:");
+		sprintf(chNapis, "Uaku 1:            Iaku 1:            Vin 1:");
 		RysujNapis(chNapis, KOL12, 190);
-		sprintf(chNapis, "Uaku 2:            Iaku 2:            Eaku 2:");
+		//sprintf(chNapis, "Uaku 2:            Iaku 2:            Eaku 2:");
+		sprintf(chNapis, "Uaku 2:            Iaku 2:            Vin 2:");
 		RysujNapis(chNapis, KOL12, 210);
 		sprintf(chNapis, "Uz.ser:            Uz.usb:            Ub.zeg:");
 		RysujNapis(chNapis, KOL12, 230);

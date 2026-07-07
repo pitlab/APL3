@@ -54,8 +54,8 @@ uint8_t InicjujADC(void)
 	//konfiguracjia ADC3 będzie zmieniana, więc wstępnie ustaw ją tutaj aby nie budować od nowa przy każdym pomiarze
 	sConfigADC3.Channel = ADC_CHANNEL_6;
 	sConfigADC3.Rank = ADC_REGULAR_RANK_1;
-	sConfigADC3.SamplingTime = ADC_SAMPLETIME_16CYCLES_5;	//wystarczajaco szybko, nie trzeba czekać na pomiar
-	//sConfigADC3.SamplingTime = ADC_SAMPLETIME_64CYCLES_5;	//pomiar co 28us, wystarczajaco szybko, nie trzeba czekać na pomiar
+	//sConfigADC3.SamplingTime = ADC_SAMPLETIME_16CYCLES_5;	//wystarczajaco szybko, nie trzeba czekać na pomiar
+	sConfigADC3.SamplingTime = ADC_SAMPLETIME_32CYCLES_5;	//pomiar co 28us, wystarczajaco szybko, nie trzeba czekać na pomiar
 	//sConfigADC3.SamplingTime = ADC_SAMPLETIME_387CYCLES_5;	//pomiar co 170us - wystarczajaco szybko, nie trzeba czekać na pomiar
 	sConfigADC3.SingleDiff = ADC_SINGLE_ENDED;
 	sConfigADC3.OffsetNumber = ADC_OFFSET_NONE;
@@ -94,8 +94,9 @@ uint8_t PomiarADC(uint8_t chKanal, uint8_t cBityPozwoleniaNaPomiar)
 			//przetwornik ADC3 może również mierzyć czujniki wewnętrzne: Temp, VBat na kanałach 8..9
 			switch (chKanal)	//ustawienia ADC3 na czujniki wewnętrzne
 			{
-			case 8:		sConfigADC3.Channel = ADC_CHANNEL_VBAT;			break;
+			case 8:		sConfigADC3.Channel = ADC_CHANNEL_VREFINT;		break;
 			case 9: 	sConfigADC3.Channel = ADC_CHANNEL_TEMPSENSOR;	break;
+			case 10:	sConfigADC3.Channel = ADC_CHANNEL_VBAT;			break;
 			default: 	sConfigADC3.Channel = ADC_CHANNEL_6;		//ustawienie ADC3 na wyjscie multipleksera
 			}
 
@@ -189,8 +190,10 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 		if (chIndeksPomiaruADC < 4)
 			fNapiecieIdModuluWewn[chIndeksPomiaruADC] = fNapiecie;
 		else
-			uDaneCM4.dane.fNapCzujZewn[chIndeksPomiaruADC - 4] = fNapiecie * fMnożnikCzujnWeAnalog[chIndeksPomiaruADC - 4] + fSkładnikCzujnWeAnalog[chIndeksPomiaruADC - 4];
-
+		{
+			if (chIndeksPomiaruADC < 8)
+				uDaneCM4.dane.fNapCzujZewn[chIndeksPomiaruADC - 4] = fNapiecie * fMnożnikCzujnWeAnalog[chIndeksPomiaruADC - 4] + fSkładnikCzujnWeAnalog[chIndeksPomiaruADC - 4];
+		}
 		chWykonanoPomiarADC |= WYKONANO_POMIAR_ADC2;
 	}
 

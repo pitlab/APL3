@@ -145,10 +145,10 @@ uint8_t InicjujWejsciaRC(void)
 	//odczytaj z FRAM minima i maksima kanałów RC aby móc je normalizować
     for (uint16_t n=0; n<KANALY_ODB_RC; n++)
     {
-    	stRC1.sKanMin[n] = CzytajFramU16(FAU_WE_RC1_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
-    	stRC1.sKanMax[n] = CzytajFramU16(FAU_WE_RC1_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
-    	stRC2.sKanMin[n] = CzytajFramU16(FAU_WE_RC2_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każego kanału
-    	stRC2.sKanMax[n] = CzytajFramU16(FAU_WE_RC2_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każego kanału
+    	stRC1.sKanMin[n] = CzytajFramU16(FAU_WE_RC1_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każdego kanału
+    	stRC1.sKanMax[n] = CzytajFramU16(FAU_WE_RC1_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każdego kanału
+    	stRC2.sKanMin[n] = CzytajFramU16(FAU_WE_RC2_MIN + n*2);	//16*2U minimalna wartość sygnału RC dla każdego kanału
+    	stRC2.sKanMax[n] = CzytajFramU16(FAU_WE_RC2_MAX + n*2);	//16*2U maksymalna wartość sygnału RC dla każdego kanału
     }
 
     //odczytaj z FRAM numery kanałów dla 4 drążków RC
