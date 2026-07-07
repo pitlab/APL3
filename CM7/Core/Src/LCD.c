@@ -4162,17 +4162,17 @@ void NastawyPID(uint8_t chKanal)
 		RysujNapis(chNapis, KOL12, 130);
 		sprintf(chNapis, "Max Wy:");
 		RysujNapis(chNapis, KOL12, 150);
-		sprintf(chNapis, "SkWzad:");
+		sprintf(chNapis, "Skala w.zad:");
 		RysujNapis(chNapis, KOL12, 170);
-		sprintf(chNapis, "PresWy:");
+		sprintf(chNapis, "Przes w.zad:");
 		RysujNapis(chNapis, KOL12, 190);
 		sprintf(chNapis, "Filtr D:");
 		RysujNapis(chNapis, KOL12, 210);
 		sprintf(chNapis, "Filtr w.zad:");
-		RysujNapis(chNapis, KOL22, 230);
-		sprintf(chNapis, "%% wyprz:");
+		RysujNapis(chNapis, KOL12, 230);
+		sprintf(chNapis, "Akcja wyprz:");
 		RysujNapis(chNapis, KOL12, 250);
-		sprintf(chNapis, "k%ctowy:", ą);
+		sprintf(chNapis, "Reg k%ctowy:", ą);
 		RysujNapis(chNapis, KOL12, 270);
 
 		sprintf(chNapis, "Regulator pochodnej");
@@ -4189,21 +4189,20 @@ void NastawyPID(uint8_t chKanal)
 		RysujNapis(chNapis, KOL22, 130);
 		sprintf(chNapis, "Max Wy:");
 		RysujNapis(chNapis, KOL22, 150);
-		sprintf(chNapis, "SkWzad:");
+		sprintf(chNapis, "Skala w.zad:");
 		RysujNapis(chNapis, KOL22, 170);
-		sprintf(chNapis, "PresWy:");
+		sprintf(chNapis, "Przes w.zad:");
 		RysujNapis(chNapis, KOL22, 190);
 		sprintf(chNapis, "Filtr D:");
 		RysujNapis(chNapis, KOL22, 210);
 		sprintf(chNapis, "Filtr w.zad:");
 		RysujNapis(chNapis, KOL22, 230);
-		sprintf(chNapis, "%% wyprz:");
+		sprintf(chNapis, "Akcja wyprz:");
 		RysujNapis(chNapis, KOL22, 250);
-		sprintf(chNapis, "k%ctowy:", ą);
+		sprintf(chNapis, "Reg k%ctowy:", ą);
 		RysujNapis(chNapis, KOL22, 270);
 		setColor(SZARY60);
-		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
-		RysujNapis(chNapis, CENTER, 300);
+		RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);
 
 		//odczytaj tryb pracy regulatorów
 		cBłąd = CzytajFramChar(FAU_TRYB_REG, LICZBA_REG_PARAM, chTrybRegulatora);
@@ -4226,30 +4225,30 @@ void NastawyPID(uint8_t chKanal)
 			RysujNapis(chNapis, KOL12 + 4*FONT_SL, 70);
 			sprintf(chNapis, "%.4f ", fNastawy[2]);	//Td
 			RysujNapis(chNapis, KOL12 + 4*FONT_SL, 90);
-			sprintf(chNapis, "%.0f ", fNastawy[3]);	//max całki
+			sprintf(chNapis, "%.1f ", fNastawy[3]);	//max całki
 			RysujNapis(chNapis, KOL12 + 7*FONT_SL, 110);
-			sprintf(chNapis, "%.0f ", fNastawy[4]);	//min wyjścia
+			sprintf(chNapis, "%.1f ", fNastawy[4]);	//min wyjścia
 			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 130);
-			sprintf(chNapis, "%.0f ", fNastawy[5]);	//max wyjścia
+			sprintf(chNapis, "%.1f ", fNastawy[5]);	//max wyjścia
 			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 150);
 			sprintf(chNapis, "%.4f ", fNastawy[6]);	//skalowanie wartości zadanej
-			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 170);
-			sprintf(chNapis, "%.4f ", fNastawy[7]);	//stałe wyprzedzenie
-			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 190);
+			RysujNapis(chNapis, KOL12 + 13*FONT_SL, 170);
+			sprintf(chNapis, "%.4f ", fNastawy[7]);	//stałe przesunięcie wartości zadanej
+			RysujNapis(chNapis, KOL12 + 13*FONT_SL, 190);
 			//fNastawy[8] = miejsce na 1 zmienną rezerwową
-
 			un8_32.daneFloat =  fNastawy[9];
-			if (un8_32.dane8[0] & PID_KATOWY)
-				sprintf(chNapis, "Tak");
-			else
-				sprintf(chNapis, "Nie");
-			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 210);	//flagi: kątowy
 			sprintf(chNapis, "%d", un8_32.dane8[1]);
-			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 230);	//filtr D
+			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 210);	//filtr D
 			sprintf(chNapis, "%d", un8_32.dane8[2]);
-			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 250);	//filtr wartości zadanej
+			RysujNapis(chNapis, KOL12 + 13*FONT_SL, 230);	//filtr wartości zadanej
 			sprintf(chNapis, "%d", un8_32.dane8[3]);
-			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 270);	//procent wyprzedzenia
+			RysujNapis(chNapis, KOL12 + 13*FONT_SL, 250);	//procent wyprzedzenia
+
+			if (un8_32.dane8[0] & PID_KATOWY)
+				sprintf(chNapis, chNapisLcd[STR_TAK]);
+			else
+				sprintf(chNapis, chNapisLcd[STR_NIE]);
+			RysujNapis(chNapis, KOL12 + 13*FONT_SL, 270);	//flagi: kątowy
 		}
 		else
 			chRysujRaz = 1;	//jeżeli się nie odczytało to wyświetl jeszcze raz
@@ -4265,35 +4264,33 @@ void NastawyPID(uint8_t chKanal)
 				setColor(SZARY60);	//regulator wyłączony
 			sprintf(chNapis, "%.3f ", fNastawy[0]);	//Kp
 			RysujNapis(chNapis, KOL22 + 4*FONT_SL, 50);
-			sprintf(chNapis, "%.3f ", fNastawy[1]);	//Ti
+			sprintf(chNapis, "%.4f ", fNastawy[1]);	//Ti
 			RysujNapis(chNapis, KOL22 + 4*FONT_SL, 70);
-			sprintf(chNapis, "%.3f ", fNastawy[2]);	//Td
+			sprintf(chNapis, "%.4f ", fNastawy[2]);	//Td
 			RysujNapis(chNapis, KOL22 + 4*FONT_SL, 90);
-			sprintf(chNapis, "%.3f ", fNastawy[3]);	//max całki
+			sprintf(chNapis, "%.1f ", fNastawy[3]);	//max całki
 			RysujNapis(chNapis, KOL22 + 7*FONT_SL, 110);
-			sprintf(chNapis, "%.3f ", fNastawy[4]);	//min wyjścia
+			sprintf(chNapis, "%.1f ", fNastawy[4]);	//min wyjścia
 			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 130);
-			sprintf(chNapis, "%.3f ", fNastawy[5]);	//max wyjścia
+			sprintf(chNapis, "%.1f ", fNastawy[5]);	//max wyjścia
 			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 150);
-			printf(chNapis, "%.4f ", fNastawy[6]);	//skalowanie wartości zadanej
-			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 170);
-			sprintf(chNapis, "%.4f ", fNastawy[7]);	//stałe wyprzedzenie
-			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 190);
+			sprintf(chNapis, "%.4f ", fNastawy[6]);	//skalowanie wartości zadanej
+			RysujNapis(chNapis, KOL22 + 13*FONT_SL, 170);
+			sprintf(chNapis, "%.4f ", fNastawy[7]);	//stałe przesunięcie wartości zadanej
+			RysujNapis(chNapis, KOL22 + 13*FONT_SL, 190);
 			//fNastawy[8] = miejsce na 1 zmienną rezerwową
-
 			un8_32.daneFloat =  fNastawy[9];
-			if (un8_32.dane8[0] & PID_KATOWY)
-				sprintf(chNapis, "Tak");
-			else
-				sprintf(chNapis, "Nie");
-			RysujNapis(chNapis, KOL22 + 9*FONT_SL, 210);	//flagi: kątowy
 			sprintf(chNapis, "%d", un8_32.dane8[1]);
-			RysujNapis(chNapis, KOL22 + 9*FONT_SL, 230);	//filtr D
+			RysujNapis(chNapis, KOL22 + 9*FONT_SL, 210);	//filtr D
 			sprintf(chNapis, "%d", un8_32.dane8[2]);
-			RysujNapis(chNapis, KOL22 + 9*FONT_SL, 250);	//filtr wzmocnienia
-
+			RysujNapis(chNapis, KOL22 + 13*FONT_SL, 230);	//filtr wzmocnienia
 			sprintf(chNapis, "%d", un8_32.dane8[3]);
-			RysujNapis(chNapis, KOL22 + 9*FONT_SL, 270);	//procent wyprzedzenia
+			RysujNapis(chNapis, KOL22 + 13*FONT_SL, 250);	//procent wyprzedzenia
+			if (un8_32.dane8[0] & PID_KATOWY)
+				sprintf(chNapis, chNapisLcd[STR_TAK]);
+			else
+				sprintf(chNapis, chNapisLcd[STR_NIE]);
+			RysujNapis(chNapis, KOL22 + 13*FONT_SL, 270);	//flagi: kątowy
 		}
 		else
 			chRysujRaz = 1;

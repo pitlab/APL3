@@ -61,8 +61,8 @@ uint8_t InicjujPID(void)
         //odczytaj mnożnik wartości zadanej
         cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_MNOZN_WZAD + sAdrOffset, &stKonfigPID[n].fSkalaWartZadanej, VMIN_PID_MNOZWZ, VMAX_PID_MNOZWZ, VDOM_PID_MNOZWZ);
 
-        //odczytaj stałą wartość dodawaną do wyjścia regulatora
-        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_PRZES + sAdrOffset, &stKonfigPID[n].fPrzesunWyjscie, VMIN_PID_STWYPRZ, VMAX_PID_STWYPRZ, VDOM_PID_STWYPRZ);
+        //odczytaj stałą wartość dodawaną do wartości zadanej regulatora
+        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_PRZES + sAdrOffset, &stKonfigPID[n].fPrzesunWartZadanej, VMIN_PID_STWYPRZ, VMAX_PID_STWYPRZ, VDOM_PID_STWYPRZ);
 
         //odczytaj flagi regulatora: regulator wyłączony (bit 6), Regulator kątowy (bit 7)
         stKonfigPID[n].chFlagi = CzytajFRAM(FAU_PID_FLAGI + sAdrOffset);
@@ -108,7 +108,7 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
     fdT = (float)ndT/1000000;    //czas obiegu petli w sekundach (optymalizacja kilkukrotnie wykorzystywanej zmiennej)
 
     //Człon proporcjonalny.
-    fOdchylka = dane->stPID[chKanal].fZadana - dane->stPID[chKanal].fWejscie;
+   	fOdchylka = dane->stPID[chKanal].fZadana - dane->stPID[chKanal].fWejscie + konfig[chKanal].fPrzesunWartZadanej;
     if (konfig[chKanal].chFlagi & PID_KATOWY)  //czy regulator pracuje na wartościach kątowych?
     {
         if (fOdchylka > M_PI)
@@ -176,11 +176,6 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
 		   fTemp = -MAX_PID;
     	dane->stPID[chKanal].fWyjscieWyprz  = (3 * dane->stPID[chKanal].fWyjscieWyprz + fTemp) / 4;	//lekko odfiltrowane wyjście wyprzedzające
         fWyjscieReg += fTemp;
-    }
-    else
-    {
-    	//Dla regulatorów wartosci podstawowych jest możliwe stałe przesunięcie odpowiedzi regulatora
-	    fWyjscieReg += konfig[chKanal].fPrzesunWyjscie;
     }
 
     //ograniczenie wartości wyjściowej

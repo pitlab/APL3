@@ -82,6 +82,8 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 "Kanaly ESC i serw",				//STR_DANE_WYJSC_RC
 "Akcelerometr",						//STR_AKCELETOMETR
 "Zyroskop",							//STR_ZYROSKOP
+"Tak",								//STR_TAK
+"Nie", 								//STR_NIE
 };
 
 

@@ -53,8 +53,8 @@ typedef struct	//struktura konfiguracji regulatora PID
 	float fOgrCalki; 			//ogranicznik wartości całki członu I
 	float fMaxWyj;				//maksymalna wartość wyjściowa regulatora
 	float fMinWyj;				//minimalna wartość wyjściowa regulatora
-	float fPrzesunWyjscie;		//wartość dodawana do wyjścia regulatora (umożliwia lot pod niezerowym kątem)
-	float fSkalaWartZadanej;	//skalowanie wartosci zadanej
+	float fPrzesunWartZadanej;	//wartość dodawana do wartości zadanej (umożliwia lot pod niezerowym kątem)
+	float fSkalaWartZadanej;	//skalowanie wartości zadanej
 	uint8_t chPodstFiltraD; 	//podstawa filtra IIR błędu
 	uint8_t chPodstFiltraWZad; 	//podstawa filtra IIR wartości zadanej
 	uint8_t chFlagi;			//0x80 - regulator katowy, 0x40 - regulator wyłączony

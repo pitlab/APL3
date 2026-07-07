@@ -79,10 +79,11 @@
 #define STR_DANE_WYJSC_RC			61
 #define STR_AKCELETOMETR			62
 #define STR_ZYROSKOP				63
-
+#define STR_TAK						64
+#define STR_NIE						65
 
 //#define STR_
-#define MAX_NAPISOW					64	//liczba napisów
+#define MAX_NAPISOW					66	//liczba napisów
 
 
 
