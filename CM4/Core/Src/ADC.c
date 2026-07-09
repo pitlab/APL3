@@ -223,7 +223,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 			else
 				uDaneCM4.dane.chWykonajPolecenie = POL4_CZYTAJ_KALIBR_TEMP;
 			break;
-		case 10:	uDaneCM4.dane.fNapiecieVref = fNapiecie;	break;
 		default: break;
 		}
 		chWykonanoPomiarADC |= WYKONANO_POMIAR_ADC3;

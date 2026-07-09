@@ -97,7 +97,8 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 			{
 				//ustaw wartości zadane dla regualtorów parametru głównego
 				if (chTrybRegulacji[n] == REG_STAB)
-					dane->stPID[chIndeksPID_Kata].fZadana = dane->fFiltrowaneKanalyRC[n] * konfig[chIndeksPID_Kata].fSkalaWartZadanej / NORMA_SYGNALU;	//wartością zadaną jest drążek aparatury
+					//dane->stPID[chIndeksPID_Kata].fZadana = dane->fFiltrowaneKanalyRC[n] * konfig[chIndeksPID_Kata].fSkalaWartZadanej / NORMA_SYGNALU;	//wartością zadaną jest drążek aparatury
+					dane->stPID[chIndeksPID_Kata].fZadana = (dane->fFiltrowaneKanalyRC[n] * konfig[chIndeksPID_Kata].fSkalaWartZadanej / NORMA_SYGNALU) + konfig[chIndeksPID_Kata].fPrzesunWartZadanej;	//wartością zadaną jest drążek aparatury
 				else
 				{
 					if (n < POZN)	//tylko na przechylenia, pochylenia, odchylenia i wysokości
@@ -113,7 +114,7 @@ uint8_t KontrolerLotu(uint8_t *chTrybRegulacji, uint32_t ndT, stWymianyCM4_t *da
 				case POCH:
 				case ODCH:  dane->stPID[chIndeksPID_Kata].fWejscie = dane->stBSP.fKatIMU[n];		break;	//regulator sterowania kątami
 				case WYSO:  dane->stPID[chIndeksPID_Kata].fWejscie = dane->stBSP.fWysokoscMSL;	break;	//regulator sterowania wysokością
-				case POZN:	dane->stPID[chIndeksPID_Kata].fWejscie = (float)dane->stBSP.dSzerokoscGeo;	break;	//regulator sterowania zmian położenia północnego
+				case POZN:	dane->stPID[chIndeksPID_Kata].fWejscie = (float)dane->stBSP.dSzerokoscGeo;	break;	//regulator sterowania zmianą położenia północnego
 				case POZE:	dane->stPID[chIndeksPID_Kata].fWejscie = (float)dane->stBSP.dDlugoscGeo;	break;	//regulator sterowania zmianą położenia wschodniego
 				}
 				RegulatorPID(ndT, chIndeksPID_Kata, dane, konfig);	//licz regulator parametru głównego

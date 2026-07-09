@@ -61,105 +61,104 @@
 //zmienne barometryczne
 #define TID_CISBEZW1			35
 #define TID_CISBEZW2			36
-#define TID_WYSOKOSC1			37
-#define TID_WYSOKOSC2			38
-#define TID_CISROZN1			39
-#define TID_CISROZN2			40
-#define TID_PREDIAS1			41
-#define TID_PREDIAS2			42
-#define TID_WARIO1				43
-#define TID_WARIO2				44
-#define TID_TEMPCISB1			45
-#define TID_TEMPCISB2			46
-#define TID_TEMPCISR1			47
-#define TID_TEMPCISR2			48
+#define TID_WYSOKOSC_AGL1		37
+#define TID_WYSOKOSC_AGL2		38
+#define TID_WYSOKOSC_MSL1		39
+#define TID_WYSOKOSC_MSL2		40
+#define TID_CISROZN1			41
+#define TID_CISROZN2			42
+#define TID_PREDIAS1			43
+#define TID_PREDIAS2			44
+#define TID_WARIO1				45
+#define TID_WARIO2				46
+#define TID_TEMPCISB1			47
+#define TID_TEMPCISB2			48
+#define TID_TEMPCISR1			49
+#define TID_TEMPCISR2			50
 
-#define TID_RC_KAN1				49		//kanał 1 odbiorników RC
-#define TID_RC_KAN2				50
-#define TID_RC_KAN3				51
-#define TID_RC_KAN4				52
-#define TID_RC_KAN5				53
-#define TID_RC_KAN6				54
-#define TID_RC_KAN7				55
-#define TID_RC_KAN8				56
-#define TID_RC_KAN9				57
-#define TID_RC_KAN10			58
-#define TID_RC_KAN11			59
-#define TID_RC_KAN12			60
-#define TID_RC_KAN13			61
-#define TID_RC_KAN14			62
-#define TID_RC_KAN15			63
-#define TID_RC_KAN16			64
+#define TID_RC_KAN1				51		//kanał 1 odbiorników RC
+#define TID_RC_KAN2				52
+#define TID_RC_KAN3				53
+#define TID_RC_KAN4				54
+#define TID_RC_KAN5				55
+#define TID_RC_KAN6				56
+#define TID_RC_KAN7				57
+#define TID_RC_KAN8				58
+#define TID_RC_KAN9				59
+#define TID_RC_KAN10			60
+#define TID_RC_KAN11			61
+#define TID_RC_KAN12			62
+#define TID_RC_KAN13			63
+#define TID_RC_KAN14			64
+#define TID_RC_KAN15			65
+#define TID_RC_KAN16			66
 
-#define TID_SERWO1				65		//serwo 1
-#define TID_SERWO2				66
-#define TID_SERWO3				67
-#define TID_SERWO4				68
-#define TID_SERWO5				69
-#define TID_SERWO6				70
-#define TID_SERWO7				71
-#define TID_SERWO8				72
-#define TID_SERWO9				73
-#define TID_SERWO10				74
-#define TID_SERWO11				75
-#define TID_SERWO12				76
-#define TID_SERWO13				77
-#define TID_SERWO14				78
-#define TID_SERWO15				79
-#define TID_SERWO16				80
+#define TID_SERWO1				67		//serwo 1
+#define TID_SERWO2				68
+#define TID_SERWO3				69
+#define TID_SERWO4				70
+#define TID_SERWO5				71
+#define TID_SERWO6				72
+#define TID_SERWO7				73
+#define TID_SERWO8				74
+#define TID_SERWO9				75
+#define TID_SERWO10				76
+#define TID_SERWO11				77
+#define TID_SERWO12				78
+#define TID_SERWO13				79
+#define TID_SERWO14				80
+#define TID_SERWO15				81
+#define TID_SERWO16				82
 
-#define TID_BSP_AKCELX			81
-#define TID_BSP_AKCELY			82
-#define TID_BSP_AKCELZ			83
-#define TID_BSP_ZYROP			84
-#define TID_BSP_ZYROQ			85
-#define TID_BSP_ZYROR			86
-#define TID_BSP_MAGNEX			87
-#define TID_BSP_MAGNEY			88
-#define TID_BSP_MAGNEZ			89
+#define TID_BSP_AKCELX			83
+#define TID_BSP_AKCELY			84
+#define TID_BSP_AKCELZ			85
+#define TID_BSP_ZYROP			86
+#define TID_BSP_ZYROQ			87
+#define TID_BSP_ZYROR			88
+#define TID_BSP_MAGNEX			89
+#define TID_BSP_MAGNEY			90
+#define TID_BSP_MAGNEZ			91
 
-#define TID_BSP_IMUX			90
-#define TID_BSP_IMUY			91
-#define TID_BSP_IMUZ			92
-#define TID_BSP_AGL				93
-#define TID_BSP_AMSL			94
-#define TID_BSP_IAS				95
-#define TID_BSP_KURS			96
+#define TID_BSP_IMUX			92
+#define TID_BSP_IMUY			93
+#define TID_BSP_IMUZ			94
+#define TID_BSP_AGL				95
+#define TID_BSP_AMSL			96
+#define TID_BSP_IAS				97
+#define TID_BSP_KURS			98
 
-#define TID_BSP_PRED_PÓŁN		97
-#define TID_BSP_PRED_WSCH		98
-#define TID_BSP_PRED_WDÓŁ		99
-#define TID_BSP_SZER_GEO		100
-#define TID_BSP_DŁUG_GEO		101
+#define TID_BSP_PRED_POLN		99
+#define TID_BSP_PRED_WSCH		100
+#define TID_BSP_PRED_WDOL		101
+#define TID_BSP_SZER_GEO		102
+#define TID_BSP_DLUG_GEO		103
 
-#define TID_DOTYK_ADC0			102
-#define TID_DOTYK_ADC1			103
-#define TID_DOTYK_ADC2			104
-#define TID_CZAS_PETLI			105	//czas trwania ostatniej petli głównej w us
-#define TID_JAKOSC_UP_RC1		106
-#define TID_JAKOSC_UP_RC2		107
-#define TID_JAKOSC_DOWN_RC		108
+#define TID_DOTYK_ADC0			104
+#define TID_DOTYK_ADC1			105
+#define TID_DOTYK_ADC2			106
+#define TID_CZAS_PETLI			107	//czas trwania ostatniej petli głównej w us
+#define TID_JAKOSC_UP_RC1		108
+#define TID_JAKOSC_UP_RC2		109
+#define TID_JAKOSC_DOWN_RC		110
 
-#define TID_ADC1_1				109
-#define TID_ADC1_2				110
-#define TID_ADC2_1				111
-#define TID_ADC2_2				112
-#define TID_BAT1_NAPIECIE		113
-#define TID_BAT1_PRAD			114
-#define TID_BAT1_ENERGIA		115
-#define TID_BAT2_NAPIECIE		116
-#define TID_BAT2_PRAD			117
-#define TID_BAT2_ENERGIA		118
-#define TID_BAT_RTC_NAPIECIE	119
-#define TID_TEMPERATURA_CPU		120
-#define TID_VREF_ADC			121
-#define TID_NAPIECIE_WE1		122
-#define TID_NAPIECIE_WE2		123
-#define TID_NAPIECIE_SERW		124
-#define TID_NAPIECIE_USB		125
-//max do 127
-
-#define TID_FFT_ZYRO_AKCEL	127	//wyniki transformaty Fouriera przesyłane w specyficznej szybkiej ramce
+#define TID_ADC1_1				111
+#define TID_ADC1_2				112
+#define TID_ADC2_1				113
+#define TID_ADC2_2				114
+#define TID_BAT1_NAPIECIE		115
+#define TID_BAT1_PRAD			116
+#define TID_BAT1_ENERGIA		117
+#define TID_BAT2_NAPIECIE		118
+#define TID_BAT2_PRAD			119
+#define TID_BAT2_ENERGIA		120
+#define TID_BAT_RTC_NAPIECIE	121
+#define TID_TEMPERATURA_CPU		122
+#define TID_NAPIECIE_WE1		123
+#define TID_NAPIECIE_WE2		124
+#define TID_NAPIECIE_SERW		125
+#define TID_NAPIECIE_USB		126
+#define TID_FFT_ZYRO_AKCEL		127	//wyniki transformaty Fouriera przesyłane w specyficznej szybkiej ramce
 
 //--- zmienne telemetryczne w ramce 2 -----------------------------------------------
 #define TID_PID_PRZE_WZAD		128	//wartość zadana regulatora sterowania przechyleniem
@@ -274,7 +273,7 @@
 
 void InicjalizacjaTelemetrii(void);
 uint8_t ObslugaTelemetrii(uint8_t chInterfejs);
-float PobierzZmiennaTele(uint16_t sZmienna);
+float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane);
 uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t chPozycja, uint16_t sIdZmiennej, float fDane);
 uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t chIndeksTestu, uint16_t *sIndeksFFT);
 void PrzygotujRamkeTele(uint8_t chIndeksRamki, uint8_t chTypRamki, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint8_t chRozmDanych);

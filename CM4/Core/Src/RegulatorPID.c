@@ -108,7 +108,7 @@ float RegulatorPID(uint32_t ndT, uint8_t chKanal, stWymianyCM4_t *dane, stKonfPI
     fdT = (float)ndT/1000000;    //czas obiegu petli w sekundach (optymalizacja kilkukrotnie wykorzystywanej zmiennej)
 
     //Człon proporcjonalny.
-   	fOdchylka = dane->stPID[chKanal].fZadana - dane->stPID[chKanal].fWejscie + konfig[chKanal].fPrzesunWartZadanej;
+   	fOdchylka = dane->stPID[chKanal].fZadana - dane->stPID[chKanal].fWejscie;
     if (konfig[chKanal].chFlagi & PID_KATOWY)  //czy regulator pracuje na wartościach kątowych?
     {
         if (fOdchylka > M_PI)
