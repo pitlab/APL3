@@ -24,8 +24,9 @@ static uint8_t chProporcjaPomiarow;
 float fP0_MS5611 = 0.0f;	//ciśnienie zerowe do obliczeń wysokości [Pa]
 static uint16_t sLicznikUsrednianiaP0 = 0;			//licznik uśredniania ciśnienia zerowego do obliczeń wysokości
 static float fWysokoscUsredniona;		//średnia z ostatnich pomiarów wysokości potrzebna do liczenia wariometru
+static int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia.
 static uint32_t nCzasOstatniejKonwersjiSM5611;
-
+float fPoprzednieCisnienie;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z PROMu
@@ -89,7 +90,7 @@ uint32_t CzytajWynikKonwersjiMS5611(void)
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 	HAL_SPI_TransmitReceive(&hspi2, chBuf5611, chBuf5611, 4, TOUT_SPI);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
-	nWynik = ((uint32_t)chBuf5611[1] <<16) + ((uint32_t)chBuf5611[2] <<8) + chBuf5611[3];
+	nWynik = ((uint32_t)chBuf5611[1] << 16) | ((uint32_t)chBuf5611[2] << 8) | chBuf5611[3];
 	return nWynik;
 }
 
@@ -98,24 +99,24 @@ uint32_t CzytajWynikKonwersjiMS5611(void)
 // Oblicza wartość konwersji temperatury
 // dT = D2 - TREF = D2 - C5 * 2^8
 // TEMP = 20°C + dT * TEMPSENS = 2000 + dT * C6 / 2^23
-// Parametry: nKonwersja - wynik konwersji
+// Parametry:
+//  nKonwersja - wynik konwersji
+//  *ndTemp - dT - różnica między temperaturą odniesienia Tref=20°C a bieżącą
 // Zwraca: temepratura [K]
 // Czas wykonania: 
 ////////////////////////////////////////////////////////////////////////////////
-float MS5611_LiczTemperature(uint32_t nKonwersja, int32_t* ndTemp)
+float MS5611_LiczTemperature(uint32_t nKonwersja, int32_t *ndTemp)
 {
     int32_t nTemp;
-    int64_t lTemp, lTemp2 = 0;
+    int64_t lT2 = 0;
 
-    *ndTemp = nKonwersja - (int32_t)sKonfig[4] * 0x100;
-    nTemp = 2000 + (*ndTemp * sKonfig[5]) / 0x800000;
-    lTemp = (int64_t)*ndTemp * sKonfig[5];
-    lTemp /= 0x800000;
-    nTemp = 2000 + (int32_t)lTemp;
+    *ndTemp = nKonwersja - (int32_t)sKonfig[4] * 0x100;		//dT = D2 - TREF = D2 - C5 * 2^8
+    nTemp = 2000 + (int32_t)(((int64_t)*ndTemp * sKonfig[5]) / 0x800000);
 
+    //kompensacja temperatury
 	if (nTemp < 2000)	//jeżeli temepratura < 20°C
-		lTemp2 = (*ndTemp * *ndTemp) / 0x80000000;
-	return (float)((nTemp - lTemp2) / 100) + KELVIN;
+		lT2 = ((int64_t)*ndTemp * (int64_t)*ndTemp) / 0x80000000;	//T2 = dT^2 / 2^31
+	return (float)(((int64_t)nTemp - lT2) / 100) + KELVIN;
 }
 
 
@@ -133,33 +134,36 @@ float MS5611_LiczTemperature(uint32_t nKonwersja, int32_t* ndTemp)
 ////////////////////////////////////////////////////////////////////////////////
 float MS5611_LiczCisnienie(uint32_t nKonwersja, int32_t ndTemp)
 {
-    int64_t llOffset, llOffset2 = 0;
-    int64_t llSens, llSens2 = 0;
+    int64_t lOffset, lOffset2 = 0;
+    int64_t lSens, lSens2 = 0;
     int32_t nTemp;
 	float fCisnienie;
 	uint64_t lTempKwadrat;
 
-    llOffset = ((int64_t)sKonfig[1] * 65536) + (((int64_t)sKonfig[3] * ndTemp) / 128);
-    llSens =   ((int64_t)sKonfig[0] * 32768) + (((int64_t)sKonfig[2] * ndTemp) / 256);
+    lOffset = ((int64_t)sKonfig[1] * 65536) + (((int64_t)sKonfig[3] * ndTemp) / 128);
+    lSens =   ((int64_t)sKonfig[0] * 32768) + (((int64_t)sKonfig[2] * ndTemp) / 256);
     nTemp = 2000.0 + ((float)ndTemp * sKonfig[5]) / 8388608;
 
     if (nTemp < 2000)	//jeżeli temepratura < 20°C
 	{
     	lTempKwadrat = (nTemp - 2000) * (nTemp - 2000);		//kwadrat temperatury
-    	llOffset2 = 5 * lTempKwadrat / 2;
-    	llSens2 = 5 * lTempKwadrat / 4;
+    	lOffset2 = 5 * lTempKwadrat / 2;
+    	lSens2 = 5 * lTempKwadrat / 4;
 
 		if (nTemp < -1500)		//jeżeli temepratura < -15°C
 		{
 			lTempKwadrat = (nTemp + 1500) * (nTemp + 1500);		//kwadrat temperatury
-			llOffset2 += 7 * lTempKwadrat;
-			llSens2 += 11 * lTempKwadrat / 2;
+			lOffset2 += 7 * lTempKwadrat;
+			lSens2 += 11 * lTempKwadrat / 2;
 		}
 	}
 
-    llOffset -= llOffset2;
-    llSens -= llSens2;
-    fCisnienie = (float)(((int64_t)nKonwersja * llSens / 2097152) - llOffset) / 32768.0f;
+    lOffset -= lOffset2;
+    lSens -= lSens2;
+    fCisnienie = (float)(((int64_t)nKonwersja * lSens / 2097152) - lOffset) / 32768.0f;
+
+    if ((fCisnienie > (fPoprzednieCisnienie + 150)) || (fCisnienie < (fPoprzednieCisnienie - 150)))
+    	fPoprzednieCisnienie = fCisnienie;
     return fCisnienie; //wynik w Pa
 }
 
@@ -167,7 +171,7 @@ float MS5611_LiczCisnienie(uint32_t nKonwersja, int32_t ndTemp)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Realizuje sekwencję obsługową czujnika do wywołania w wyższej warstwie
-// Wykonuje w pętli 1 pomiar temepratury i 7 pomiarów ciśnienia
+// Pracuje w pętli wykonując 1 pomiar temepratury i 7 pomiarów ciśnienia
 // Parametry: nic
 // Zwraca: kod błędu
 // Czas wykonania:
@@ -177,8 +181,6 @@ uint8_t ObslugaMS5611(void)
 	uint32_t nKonwersja;
 	uint8_t cBłąd = BLAD_OK;
 	float fCisnienie = 0;
-	static int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia. Zmienna statyczna aby istniała poza czasem życia funkcji
-
 
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_MS5611)
 		return BLAD_BRAK_CZUJNIKA;
@@ -205,7 +207,7 @@ uint8_t ObslugaMS5611(void)
 	{
 		//sprawdź ile czasu upłyneło od ostatniego pomiaru. Jeżeli było to mniej niż czas potrzebny na konwersję to pomiń to uruchomienie
 		uint32_t nCzas = MinalCzasT7(nCzasOstatniejKonwersjiSM5611);
-		if (nCzas < 2280)
+		if (nCzas < 2500)	//typowy czas konwersji to 2,28ms
 			return BLAD_ZA_KROTKI_CZAS;
 
 		//konwersja miała szansę się zakonczyć, więc oczytaj pomiar i uruchom następny
@@ -215,9 +217,9 @@ uint8_t ObslugaMS5611(void)
 		case 0:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
 			if (nKonwersja)
-				uDaneCM4.dane.fTemper[TEMP_BARO1] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO1] + MS5611_LiczTemperature(nKonwersja, &ndT)) / 8;	//filtruj temepraturę
-			chBuf5611[0] = PMS_CONV_D1_OSR1024;
-			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję ciśnienia
+				uDaneCM4.dane.fTemper[TEMP_BARO1] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO1] + MS5611_LiczTemperature(nKonwersja, &ndT)) / 8;	//filtruj temperaturę
+			chBuf5611[0] = PMS_CONV_D1_OSR1024;		//uruchom konwersję ciśnienia
+			ZapiszSPIu8(chBuf5611, 1);
 			break;
 
 		case 7:
@@ -225,8 +227,8 @@ uint8_t ObslugaMS5611(void)
 			if (nKonwersja)
 				fCisnienie = MS5611_LiczCisnienie(nKonwersja, ndT);
 			uDaneCM4.dane.fCisnieBzw[0] = (7 * uDaneCM4.dane.fCisnieBzw[0] + fCisnienie) / 8;
-			chBuf5611[0] = PMS_CONV_D2_OSR1024;
-			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję temperatury
+			chBuf5611[0] = PMS_CONV_D2_OSR1024;		//uruchom konwersję temperatury
+			ZapiszSPIu8(chBuf5611, 1);
 			break;
 
 		default:
@@ -234,21 +236,21 @@ uint8_t ObslugaMS5611(void)
 			if (nKonwersja)
 				fCisnienie = MS5611_LiczCisnienie(nKonwersja, ndT);
 			uDaneCM4.dane.fCisnieBzw[0] = (7 * uDaneCM4.dane.fCisnieBzw[0] + fCisnienie) / 8;
-			chBuf5611[0] = PMS_CONV_D1_OSR1024;
-			ZapiszSPIu8(chBuf5611, 1);		//uruchom konwersję ciśnienia
+			chBuf5611[0] = PMS_CONV_D1_OSR1024;		//uruchom konwersję ciśnienia
+			ZapiszSPIu8(chBuf5611, 1);
 			break;
 		}
 		chProporcjaPomiarow++;
 		chProporcjaPomiarow &= 0x07;
 
 		//przygotuj P0
+		fWysokoscUsredniona = ((PODSTAWA_FILTRA_IIR_P0 - 1) * fWysokoscUsredniona + uDaneCM4.dane.fWysokoMSL[0]) / PODSTAWA_FILTRA_IIR_P0;
 		if (fCisnienie > 0)		//wykonaj tylko dla cykli pomiaru ciśnienia, pomiń cykle pomiary temperatury
 		{
 			if (sLicznikUsrednianiaP0)	//czy przygotowanie ciśnienia P0 jeszcze trwa
 			{
 				uDaneCM4.dane.fWysokoMSL[1] = 0.0f;
-				fWysokoscUsredniona = (127 * fWysokoscUsredniona + uDaneCM4.dane.fWysokoMSL[0]) / 128;
-				fP0_MS5611 = (127 * fP0_MS5611 + fCisnienie) / 128;
+				fP0_MS5611 = ((PODSTAWA_FILTRA_IIR_P0 - 1) * fP0_MS5611 + fCisnienie) / PODSTAWA_FILTRA_IIR_P0;
 				sLicznikUsrednianiaP0--;
 				if (sLicznikUsrednianiaP0 == 0)
 					uDaneCM4.dane.nZainicjowano |= INIT_P0_MS5611;
@@ -256,9 +258,9 @@ uint8_t ObslugaMS5611(void)
 			else
 			{
 				uDaneCM4.dane.fWysokoAGL[0] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[0], fP0_MS5611, uDaneCM4.dane.fTemper[TEMP_BARO1]);	//P0 gotowe więc oblicz wysokość
-				fWysokoscUsredniona = (1023 * fWysokoscUsredniona + uDaneCM4.dane.fWysokoMSL[0]) / 1024;
+
 				float fWariometr = (fWysokoscUsredniona - uDaneCM4.dane.fWysokoMSL[0]) * 1000 / uDaneCM4.dane.ndT;	//dH [m] * 1e6 / t [1e-6 s]
-				uDaneCM4.dane.fWariometr[0] = (999 * uDaneCM4.dane.fWariometr[0] + fWariometr) / 1000;
+				uDaneCM4.dane.fWariometr[0] = ((PODSTAWA_FILTRA_IIR_WARIOMETRU - 1) * uDaneCM4.dane.fWariometr[0] + fWariometr) / PODSTAWA_FILTRA_IIR_WARIOMETRU;
 			}
 			uDaneCM4.dane.fWysokoMSL[0] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[0], CISNIENIE_QNE, uDaneCM4.dane.fTemper[TEMP_BARO1]);	//wartość bezwzgledna, nie wymaga uśredniania P0
 		}

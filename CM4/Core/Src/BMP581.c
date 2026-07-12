@@ -20,7 +20,7 @@
 // Dopuszczalna prędkość magistrali 1..12MHz
 extern SPI_HandleTypeDef hspi2;
 extern volatile unia_wymianyCM4_t uDaneCM4;
-static uint8_t chProporcjaPomiarow;
+//static uint8_t chProporcjaPomiarow;
 static float fP0_BMP581 = 0.0f;	//ciśnienie P0 do obliczeń wysokości [Pa]
 static uint8_t chBufBMP581[4];
 static uint16_t sLicznikUsrednianiaP0 = 0;			//licznik uśredniania ciśnienia zerowego do obliczeń wysokości
@@ -47,29 +47,48 @@ uint8_t InicjujBMP581(void)
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
 	chDane = chBufBMP581[1];*/
 
-	chDane = CzytajSPIu8(PBMP5_CHIP_ID);	//sprawdź obecność układu
+	HAL_Delay(2);		//Power-up time 2ms - czas jaki musi upłynąć od pojawienia się VCC do pierwszej komunikacji
+	chDane = CzytajSPIu8(BMP5_REG_CHIP_ID);	//sprawdź obecność układu
 	if (chDane != 0x50)
 		return BLAD_BRAK_CZUJNIKA;
 
-	chBufBMP581[0] = PBMP5_DRIVE_CONFIG;
+	chBufBMP581[0] = BMP5_REG_DRIVE_CONFIG;
 	chBufBMP581[1] = 0x00;
 	ZapiszSPIu8(chBufBMP581, 2);
 
-	chDane = CzytajSPIu8(PBMP5_CHIP_STATUS);	//sprawdź status konfiguracji magistrali
+	chDane = CzytajSPIu8(BMP5_REG_CHIP_STATUS);	//sprawdź status konfiguracji magistrali
 	if (chDane != 0x03)							//SPI MODE0 lub MODE3
 		return BLAD_BRAK_CZUJNIKA;
 
-	chBufBMP581[0] = PBMP5_OVERSAMLING_RATE;
-	chBufBMP581[1] = (3 << 0)|	//oversampling temperatury: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
-					 (2 << 3)|	//oversampling ciśnienia: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
+	chBufBMP581[0] = BMP5_REG_OSR_CONFIG;
+	 chBufBMP581[1] = (2 << 0)|	//oversampling temperatury: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
+			 	 	 (2 << 3)|	//oversampling ciśnienia: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
 					 (1 << 6);	//enable pressure sensor measurements
 	ZapiszSPIu8(chBufBMP581, 2);
 
-	chBufBMP581[0] = PBMP5_OUTPUT_DATA_RATE;
-	chBufBMP581[1] = (1 << 0)|	//pwr_mode: 0=standby, 1=normal mode in configured ODR grid, 2=forced one time mode measurement, 3=non stop mode, measurement wothout further duty cycling
-					 (1 << 2)|	//ODR: 0=240Hz, 1=218,5Hz, 2=199,11Hz, 3=179,2Hz, 4=160Hz,, A=100,3Hz
+	chBufBMP581[0] = BMP5_REG_ODR_CONFIG;
+	chBufBMP581[1] = (3 << 0)|	//pwr_mode: 0=standby, 1=normal mode in configured ODR grid, 2=forced one time mode measurement, 3=non stop mode, measurement without further duty cycling
+					 (0 << 2)|	//ODR: 0=240Hz, 1=218,5Hz, 2=199,11Hz, 3=179,2Hz, 4=160Hz,, A=100,3Hz
 					 (1 << 7);	//deep_dis - disable deep standby
 	ZapiszSPIu8(chBufBMP581, 2);
+
+	chBufBMP581[0] = BMP5_REG_DSP_CONFIG;
+	chBufBMP581[1] = (2 << 0)|	//kompensacja ciśnienia i temepratury: 0=bez kompensacji cośnienia i temepratury; 1=komp. temepratury; 2=3=kompensacja ciśnienia i temperatury
+			 	 	 (1 << 2)|	//IIR flush in FORCED mode
+					 (0 << 3)|	//Temperature Data Registers IIR selection temeprature data: 0=before IIR filter; 1=after IIR filter
+					 (0 << 4)|	//FIFO IIR selection temperature data: 0=before IIR filter; 1=after IIR filter
+					 (0 << 5)|	//Shadow Registers IIR selection pressure data: 0=before IIR filter; 1=after IIR filter
+					 (0 << 6)|	//FIFO IIR selection pressure data: 0=before IIR filter; 1=after IIR filter
+					 (0 << 7);	//Out Of Range IIR selection: 0=before IIR filter; 1=after IIR filter
+	ZapiszSPIu8(chBufBMP581, 2);
+
+	/*chBufBMP581[0] = BMP5_REG_FIFO_SEL;
+	chBufBMP581[1] = (3 << 0)|	//FIFO frame sel: 0=FIFO not enabled; 1=Temperature data; 2=Pressure data; 3 pressure and temperature data
+					 (0 << 2);	//FIFO decimation level
+	ZapiszSPIu8(chBufBMP581, 2);*/
+
+
+	HAL_Delay(4);		//Re-configuration time 4ms
 
 	sLicznikUsrednianiaP0 = LICZBA_PROBEK_USREDNIANIA;	//rozpocznij filtrowanie P0
 	uDaneCM4.dane.nZainicjowano |= INIT_BMP581;
@@ -88,7 +107,9 @@ uint8_t InicjujBMP581(void)
 uint8_t ObslugaBMP581(void)
 {
 	uint8_t cBłąd = BLAD_OK;
-	float fCisnienie = 0;
+	//uint8_t chDane;
+	//float fCisnienie = 0;
+	int32_t nWartosc[2];
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_BMP581) != INIT_BMP581)	//jeżeli czujnik nie jest zainicjowany
 	{
@@ -102,29 +123,42 @@ uint8_t ObslugaBMP581(void)
 
 		//sprawdź ile czasu upłyneło od ostatniego pomiaru. Jeżeli było to mniej niż czas potrzebny na konwersję to pomiń to uruchomienie
 		uint32_t nCzas = MinalCzasT7(nCzasOstatniejKonwersjiBMP581);
-		if (nCzas < 3045)
+		if (nCzas < 3045)	//OSRx4 = 2,9ms + 5%
+		//if (nCzas < 1050)	//OSRx1 = 1,0ms + 5%
 			return BLAD_ZA_KROTKI_CZAS;
+
+		/*chDane = CzytajSPIu8(BMP5_REG_INT_STATUS);
+		if ((chDane & 0x01) != 0x01)	//data_ready
+			return BLAD_ZA_KROTKI_CZAS;*/
 
 		//konwersja miała szansę się zakonczyć, więc oczytaj pomiar i uruchom następny
 		nCzasOstatniejKonwersjiBMP581 = PobierzCzasT7();
-		switch (chProporcjaPomiarow)
+/*		switch (chProporcjaPomiarow)
 		{
-		case 0:	uDaneCM4.dane.fTemper[TEMP_BARO2] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO2] + (float)(CzytajSPIs24mp(PBMP5_TEMP_DATA_XLSB) / 65536) + KELVIN) / 8;	break;
+		case 0:	uDaneCM4.dane.fTemper[TEMP_BARO2] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO2] + (float)(CzytajSPIs24mp(BMP5_REG_TEMP_DATA_XLSB) / 65536) + KELVIN) / 8;	break;
 		default:
-			fCisnienie = (float)(CzytajSPIs24mp(PBMP5_PRESS_DATA_XLSB) / 64);
+			fCisnienie = (float)CzytajSPIs24mp(BMP5_REG_PRESS_DATA_XLSB) / 64.0f;
 			uDaneCM4.dane.fCisnieBzw[1] = (7 * uDaneCM4.dane.fCisnieBzw[1] + fCisnienie) / 8;
 			break;
 		}
 		chProporcjaPomiarow++;
-		chProporcjaPomiarow &= 0x0F;
+		chProporcjaPomiarow &= 0x0F;*/
+
+
+		CzytajBuforSPIsmp(BMP5_REG_TEMP_DATA_XLSB, nWartosc, 2);	//odczyt z rejestrów
+		//CzytajBuforSPIsmp(BMP5_REG_FIFO_DATA, nWartosc, 2);			//odczyt z FIFO
+		uDaneCM4.dane.fTemper[TEMP_BARO2] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO2] + (float)(nWartosc[0] / 65536) + KELVIN) / 8;
+		uDaneCM4.dane.fCisnieBzw[1] = (7 * uDaneCM4.dane.fCisnieBzw[1] + (float)nWartosc[1] / 64.0f) / 8;
 
 		//przygotuj P0
-		if (fCisnienie > 0)		//wykonaj tylko dla cykli pomiaru ciśnienia, pomiń cykle pomiary tempertury
-		{
+		fWysokoscUsredniona = (1023 * fWysokoscUsredniona + uDaneCM4.dane.fWysokoMSL[1]) / 1024;
+		//if (uDaneCM4.dane.fCisnieBzw[1] > 0)		//wykonaj tylko dla cykli pomiaru ciśnienia, pomiń cykle pomiary tempertury
+		//{
 			if (sLicznikUsrednianiaP0)	//czy przygotowanie ciśnienia P0 jeszcze trwa
 			{
-				fWysokoscUsredniona = (127 * fWysokoscUsredniona + uDaneCM4.dane.fWysokoMSL[1]) / 128;
-				fP0_BMP581 = (127 * fP0_BMP581 + fCisnienie) / 128;
+				//fWysokoscUsredniona = (127 * fWysokoscUsredniona + uDaneCM4.dane.fWysokoMSL[1]) / 128;
+				//fP0_BMP581 = (127 * fP0_BMP581 + uDaneCM4.dane.fCisnieBzw[1]) / 128;
+				fP0_BMP581 = ((PODSTAWA_FILTRA_IIR_P0 - 1) * fP0_BMP581 + uDaneCM4.dane.fCisnieBzw[1]) / PODSTAWA_FILTRA_IIR_P0;
 				sLicznikUsrednianiaP0--;
 				if (sLicznikUsrednianiaP0 == 0)
 					uDaneCM4.dane.nZainicjowano |= INIT_P0_BMP851;
@@ -132,12 +166,11 @@ uint8_t ObslugaBMP581(void)
 			else
 			{
 				uDaneCM4.dane.fWysokoAGL[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[1], fP0_BMP581, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//P0 gotowe więc oblicz wysokość
-				fWysokoscUsredniona = (1023 * fWysokoscUsredniona + uDaneCM4.dane.fWysokoMSL[1]) / 1024;
 				float fWariometr = (fWysokoscUsredniona - uDaneCM4.dane.fWysokoMSL[1]) * 1000 / uDaneCM4.dane.ndT;	//dH [m] * 1e3 / t [1e-6 s]
-				uDaneCM4.dane.fWariometr[1] = (999 * uDaneCM4.dane.fWariometr[1] + fWariometr) / 1000;				//dH / 1e-3
+				uDaneCM4.dane.fWariometr[1] = ((PODSTAWA_FILTRA_IIR_WARIOMETRU - 1) * uDaneCM4.dane.fWariometr[1] + fWariometr) / PODSTAWA_FILTRA_IIR_WARIOMETRU;
 			}
 			uDaneCM4.dane.fWysokoMSL[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[1], CISNIENIE_QNE, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//wartość bwzezględna, nie wymaga uśredniania P0
-		}
+		//}
 	}
 	return cBłąd;
 }

@@ -9,7 +9,7 @@
 #include "SPI.h"
 #include "main.h"
 
-static uint8_t chBufSPIWy[35], chBufSPIWe[5];	//bufor transmisji SPI układów
+static uint8_t chBufSPIWy[35], chBufSPIWe[8];	//bufor transmisji SPI układów
 extern SPI_HandleTypeDef hspi2;
 
 
@@ -97,10 +97,10 @@ int32_t CzytajSPIs24sp(uint8_t chAdres)
 // Zwraca: odczytana wartość
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-int32_t CzytajSPIs24mp(uint8_t chAdres)
+int32_t CzytajSPIs24mp(uint8_t cAdres)
 {
 	int32_t nWartosc;
-	chBufSPIWy[0] = chAdres | READ_SPI;
+	chBufSPIWy[0] = cAdres | READ_SPI;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
 	HAL_SPI_TransmitReceive(&hspi2, chBufSPIWy, chBufSPIWe, 4, TOUT_SPI);
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
@@ -110,5 +110,39 @@ int32_t CzytajSPIs24mp(uint8_t chAdres)
 	nWartosc += chBufSPIWe[2];
 	nWartosc <<= 8;
 	nWartosc += chBufSPIWe[1];
+
+	if (nWartosc & 0x800000)		//jeżeli liczba ujemna - znak na najstarszym bicie liczby 24-bitowej
+				nWartosc |= 0xFF000000;	//to przenieś znak na liczbę 32-bitową
 	return nWartosc;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Odczytuje blok liczb 24 bity ze znakiem, młodszy przodem
+// Parametry:
+//  cAddress - adres najmłodszego rejestru
+//	*nDane - wskaźnik na odczytane dane
+//  cIlosc - liczba danych do odczytania (obecnie max 2 - patrz rozmiar buforów: chBufSPIWe[] i chBufSPIWe[])
+// Zwraca: odczytana wartość
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+void CzytajBuforSPIsmp(uint8_t cAdres, int32_t *nDane, uint8_t cIlosc)
+{
+	chBufSPIWy[0] = cAdres | READ_SPI;
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
+	HAL_SPI_TransmitReceive(&hspi2, chBufSPIWy, chBufSPIWe, 1 + cIlosc * 3, TOUT_SPI);
+	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
+
+	for (uint8_t n=0; n<cIlosc; n++)
+	{
+		*nDane = (int32_t)chBufSPIWe[3 + n * 3];
+		*nDane <<= 8;
+		*nDane += chBufSPIWe[2 + n * 3];
+		*nDane <<= 8;
+		*nDane += chBufSPIWe[1 + n * 3];
+		if (*nDane & 0x800000)		//jeżeli liczba ujemna - znak na najstarszym bicie liczby 24-bitowej
+			*nDane |= 0xFF000000;	//to przenieś znak na liczbę 32-bitową
+		nDane++;
+	}
 }

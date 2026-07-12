@@ -149,20 +149,38 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 
 	cBłąd = WyslijDaneExpandera(*pchStanIOwy);	//czas 4800-6200us;	930-1250us
 	cBłąd |= UstawDekoderModulow(gniazdo);			//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
-	cBłąd |= UstawAdresNaModule(ADR_MIIP_MS5611);	//ustaw adres na module A0..1
-	cBłądRoboczy = ObslugaMS5611();
-	if (cBłądRoboczy != BLAD_ZA_KROTKI_CZAS)		//kod błędu BLAD_ZA_KROTKI_CZAS nie jest błędem, więc nie raportuj go w górę
+
+	cBłądRoboczy = UstawAdresNaModule(ADR_MIIP_MS5611);		//ustaw adres na module A0..1
+	if (cBłądRoboczy == BLAD_OK)
+	{
+		cBłądRoboczy = ObslugaMS5611();
+		if (cBłądRoboczy != BLAD_ZA_KROTKI_CZAS)			//kod błędu BLAD_ZA_KROTKI_CZAS nie jest formalnym błędem, więc nie raportuj go w górę
+			cBłąd |= cBłądRoboczy;
+	}
+	else
 		cBłąd |= cBłądRoboczy;
 
-	cBłąd |= UstawAdresNaModule(ADR_MIIP_BMP581);				//ustaw adres na module A0..1
-	cBłądRoboczy = ObslugaBMP581();
-	if (cBłądRoboczy != BLAD_ZA_KROTKI_CZAS)		//kod błędu BLAD_ZA_KROTKI_CZAS nie jest błędem, więc nie raportuj go w górę
+	cBłądRoboczy = UstawAdresNaModule(ADR_MIIP_BMP581);		//ustaw adres na module A0..1
+	if (cBłądRoboczy == BLAD_OK)
+	{
+		cBłądRoboczy = ObslugaBMP581();
+		if (cBłądRoboczy != BLAD_ZA_KROTKI_CZAS)			//kod błędu BLAD_ZA_KROTKI_CZAS nie jest formalnym błędem, więc nie raportuj go w górę
+			cBłąd |= cBłądRoboczy;
+	}
+	else
 		cBłąd |= cBłądRoboczy;
 
-	cBłąd |= UstawAdresNaModule(ADR_MIIP_ICM42688);				//ustaw adres na module A0..1
-	cBłąd |= ObslugaICM42688();
-	cBłąd |= UstawAdresNaModule(ADR_MIIP_LSM6DSV);				//ustaw adres na module A0..1
-	cBłąd |= ObslugaLSM6DSV();
+	cBłądRoboczy = UstawAdresNaModule(ADR_MIIP_ICM42688);	//ustaw adres na module A0..1
+	if (cBłądRoboczy == BLAD_OK)
+		cBłąd |= ObslugaICM42688();
+	else
+		cBłąd |= cBłądRoboczy;
+
+	cBłądRoboczy = UstawAdresNaModule(ADR_MIIP_LSM6DSV);	//ustaw adres na module A0..1
+	if (cBłądRoboczy == BLAD_OK)
+		cBłąd |= ObslugaLSM6DSV();
+	else
+		cBłąd |= cBłądRoboczy;
 
 	//napełnij bufor szybkiego IMU dla FFT
 	chIndeksProbki = uDaneCM4.dane.stSzybkieIMU.chIndeksProbki;
@@ -321,11 +339,11 @@ float ObliczWspTemperaturowy1(WspRownProstej1_t stWsp, float fTemp)
 // Liczy wysokość barometryczną na podstawie ciśnienia i temperatury
 // Parametry:
 //  fP - ciśnienie na mierzonej wysokości [Pa]	jednostka ciśnienia jest dowolna, byle taka sama dla obu ciśnień
-//  fP0 - ciśnienie na poziome odniesienia [Pa]
+//  fP0 - ciśnienie na poziomie odniesienia [Pa]
 //  fTemp - temperatura [K)
 // Zwraca: obliczoną wysokość
 ////////////////////////////////////////////////////////////////////////////////
-float WysokoscBarometryczna(float fP, float fP0, float fTemp)
+float WysokoscBarometryczna(float fP, float fP0, float fTempK)
 {
 	//funkcja bazuje na wzorze barometrycznym: https://pl.wikipedia.org/wiki/Wz%C3%B3r_barometryczny
 	//P = P0 * e^(-(u*g*h)/(R*T))	/:P0
@@ -334,7 +352,7 @@ float WysokoscBarometryczna(float fP, float fP0, float fTemp)
 	//ln(P/P0) * R*T = -u*g*h		/:-u*g
 	//h = ln(P/P0) * R*T / (-u*g)
 
-	return logf(fP/fP0) * STALA_GAZOWA_R * fTemp / (-1 * MASA_MOLOWA_POWIETRZA * PRZYSPIESZENIE_ZIEMSKIE);
+	return logf(fP/fP0) * STALA_GAZOWA_R * fTempK / (-1 * MASA_MOLOWA_POWIETRZA * PRZYSPIESZENIE_ZIEMSKIE);
 }
 
 

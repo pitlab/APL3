@@ -34,9 +34,9 @@ uint8_t FiltrDanychIMUiWysokosci(stWymianyCM4_t *dane)
 	}
 
 	if (dane->stGnss1.fWysokoscMSL)
-		dane->stBSP.fWysokoscMSL = (dane->stGnss1.fWysokoscMSL + 8 * dane->fWysokoMSL[0] + dane->fWysokoMSL[1]) / 10;
+		dane->stBSP.fWysokoscMSL = (3 * dane->stGnss1.fWysokoscMSL + 12 * dane->fWysokoMSL[0] + dane->fWysokoMSL[1]) / 16;
 	else
-		dane->stBSP.fWysokoscMSL = (7 * dane->fWysokoMSL[0] + dane->fWysokoMSL[1]) / 8;
+		dane->stBSP.fWysokoscMSL = (15 * dane->fWysokoMSL[0] + dane->fWysokoMSL[1]) / 16;
 	dane->stBSP.fWysokoscAGL = (7 * dane->fWysokoAGL[0] + dane->fWysokoAGL[1]) / 8;
 
 	dane->stBSP.fPredkoscN = dane->stGnss1.fPredkoscN;
