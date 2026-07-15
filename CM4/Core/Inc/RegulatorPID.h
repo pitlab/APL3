@@ -8,7 +8,7 @@
 #define MAX_PID   		NORMA_SYGNALU  	//maksymalna wartość wyjściowa regulatora PID = odpowiada znormalizowanemu sygnałowi
 #define MIN_WZM_CALK	0.001f		//minimalna wartość wzmocnienia członu całkowania
 #define MIN_WZM_ROZN	0.0001f		//minimalna wartość wzmocnienia członu różniczkowania
-
+#define PODSTAWA_FILTRA_WEJSCIOWEGO_PD	6
 
 //definicje funkcji
 uint8_t InicjujPID(void);

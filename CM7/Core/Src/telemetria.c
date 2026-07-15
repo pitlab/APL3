@@ -422,7 +422,6 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 
 	case TID_PID_PRZE_WZAD:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fZadana;		break;	//wartość zadana regulatora sterowania przechyleniem
 	case TID_PID_PRZE_FWEJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_PRZE_CALK:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fCalka;			break;	//wartość całki członu I
 	case TID_PID_PRZE_WYJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fWyjsciePID;	break;	//wyjście regulatora sterowania przechyleniem
 	case TID_PID_PRZE_WY_P:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PRZE_WY_I:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fWyjscieI;		break;	//wyjście członu I
@@ -438,7 +437,6 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 
 	case TID_PID_POCH_WZAD:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fZadana;		break;	//wartość zadana regulatora sterowania pochyleniem
 	case TID_PID_POCH_FWEJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_POCH_CALK:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fCalka;			break;	//wartość całki członu I
 	case TID_PID_POCH_WYJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fWyjsciePID;	break;	//wyjście regulatora sterowania pochyleniem
 	case TID_PID_POCH_WY_P:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_POCH_WY_I:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fWyjscieI;		break;	//wyjście członu I
@@ -454,7 +452,6 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 
 	case TID_PID_ODCH_WZAD:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fZadana;		break;	//wartość zadana regulatora sterowania odchyleniem
 	case TID_PID_ODCH_FWEJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_ODCH_CALK:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fCalka;			break;	//wartość całki członu I
 	case TID_PID_ODCH_WYJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fWyjsciePID;	break;	//wyjście regulatora sterowania odchyleniem
 	case TID_PID_ODCH_WY_P:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_ODCH_WY_I:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fWyjscieI;		break;	//wyjście członu I
@@ -470,7 +467,6 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 
 	case TID_PID_WYSO_WZAD:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fZadana;		break;	//wartość zadana regulatora sterowania wysokością
 	case TID_PID_WYSO_FWEJ:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
-	case TID_PID_WYSO_CALK:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fCalka;			break;	//wartość całki członu I
 	case TID_PID_WYSO_WYJ:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fWyjsciePID;	break;	//wyjście regulatora sterowania odchyleniem
 	case TID_PID_WYSO_WY_P:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_WYSO_WY_I:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fWyjscieI;		break;	//wyjście członu I
@@ -486,7 +482,6 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 
 	case TID_PID_NAWN_WZAD:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fZadana;		break;	//wartość zadana regulatora sterowania nawigacją w kierunku północnym
 	case TID_PID_NAWN_FWEJ:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_NAWN_CALK:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fCalka;		break;	//wartość całki członu I
 	case TID_PID_NAWN_WYJ:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fWyjsciePID;	break;	//wyjście regulatora sterowania nawigacją w kierunku północnym
 	case TID_PID_NAWN_WY_P:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_NAWN_WY_I:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fWyjscieI;		break;	//wyjście członu I
@@ -494,7 +489,6 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 
 	case TID_PID_PR_NAWN_WZAD:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fZadana;		break;	//wartość zadana
 	case TID_PID_PR_NAWN_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_PR_NAWN_CALK:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fCalka;			break;	//wartość całki członu I
 	case TID_PID_PR_NAWN_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością w kierunku północnym
 	case TID_PID_PR_NAWN_WY_P:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PR_NAWN_WY_I:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fWyjscieI;		break;	//wyjście członu I
@@ -502,7 +496,6 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 
 	case TID_PID_NAWE_WZAD:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fZadana;		break;	//wartość zadana regulatora sterowania nawigacją w kierunku wschodnim
 	case TID_PID_NAWE_FWEJ:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_NAWE_CALK:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fCalka;		break;	//wartość całki członu I
 	case TID_PID_NAWE_WYJ:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fWyjsciePID;	break;	//wyjście regulatora sterowania nawigacją w kierunku północnym
 	case TID_PID_NAWE_WY_P:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_NAWE_WY_I:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fWyjscieI;		break;	//wyjście członu I
@@ -510,7 +503,6 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 
 	case TID_PID_PR_NAWE_WZAD:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fZadana;		break;	//wartość zadana
 	case TID_PID_PR_NAWE_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_PR_NAWE_CALK:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fCalka;			break;	//wartość całki członu I
 	case TID_PID_PR_NAWE_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością w kierunku wschodnim
 	case TID_PID_PR_NAWE_WY_P:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PR_NAWE_WY_I:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fWyjscieI;		break;	//wyjście członu I
