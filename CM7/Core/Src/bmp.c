@@ -17,11 +17,11 @@
 FIL SDBmpFile;       //struktura pliku z obrazem
 extern RTC_TimeTypeDef stTime;
 extern RTC_DateTypeDef stDate;
-extern char __attribute__ ((aligned (32))) chBufPodreczny[40];
+extern char __attribute__ ((aligned (32))) cBufPodreczny[40];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamery[SZER_ZDJECIA * WYS_ZDJECIA];
 extern stKonfKam_t stKonfKam;
-extern uint8_t chNazwaPlikuObrazu[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
-extern volatile uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+extern uint8_t cNazwaPlikuObrazu[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
+extern volatile uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 
 
 
@@ -40,7 +40,7 @@ void ObslugaZapisuBmp(void)
 	{
 		ZapiszPlikBmp((uint8_t*)sBuforKamery, BMP_KOLOR_24, (uint16_t)stKonfKam.chSzerWy * KROK_ROZDZ_KAM, (uint16_t)stKonfKam.chWysWy * KROK_ROZDZ_KAM);	//kolorowy
 	}
-	chStatusRejestratora &= ~STATREJ_ZAPISZ_BMP;	//wyłącz zapis
+	cStatusRejestratora &= ~STATREJ_ZAPISZ_BMP;	//wyłącz zapis
 }
 
 
@@ -56,7 +56,7 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 {
 	FRESULT fres = 0;
 	UINT nZapisanoBajtow;
-	uint8_t chNaglowek[ROZMIAR_NAGLOWKA_BMP] = {'B','M'};
+	uint8_t cNaglowek[ROZMIAR_NAGLOWKA_BMP] = {'B','M'};
 	uint32_t nRozmiarDanych;
 	uint32_t nRozmiarPliku;
 	uint32_t nOffsetWiersza, nOffsetPiksela;
@@ -74,14 +74,14 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 		nRozmiarPliku = ROZMIAR_NAGLOWKA_BMP + nRozmiarDanych;
 	}
 
-	chNaglowek[2] = (uint8_t)(nRozmiarPliku);
-	chNaglowek[3] = (uint8_t)(nRozmiarPliku >> 8);
-	chNaglowek[4] = (uint8_t)(nRozmiarPliku >> 16);
-	chNaglowek[5] = (uint8_t)(nRozmiarPliku >> 24);
-	chNaglowek[6] = 0;	//reserved
-	chNaglowek[7] = 0;
-	chNaglowek[8] = 0;	//reserved
-	chNaglowek[9] = 0;
+	cNaglowek[2] = (uint8_t)(nRozmiarPliku);
+	cNaglowek[3] = (uint8_t)(nRozmiarPliku >> 8);
+	cNaglowek[4] = (uint8_t)(nRozmiarPliku >> 16);
+	cNaglowek[5] = (uint8_t)(nRozmiarPliku >> 24);
+	cNaglowek[6] = 0;	//reserved
+	cNaglowek[7] = 0;
+	cNaglowek[8] = 0;	//reserved
+	cNaglowek[9] = 0;
 
 	//ustal rozmiar offsety danych. Dla trybu 8 bitowego za nagłówkiem jest paleta kolorów
 	if (chFormatKoloru == BMP_KOLOR_8)
@@ -89,61 +89,61 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 	else
 		nOffsetWiersza = ROZMIAR_NAGLOWKA_BMP;						//tryby z kolorem 24-bitowym
 
-	chNaglowek[10] = (uint8_t)(nOffsetWiersza);
-	chNaglowek[11] = (uint8_t)(nOffsetWiersza >> 8);
-	chNaglowek[12] = (uint8_t)(nOffsetWiersza >> 16);
-	chNaglowek[13] = (uint8_t)(nOffsetWiersza >> 24);
+	cNaglowek[10] = (uint8_t)(nOffsetWiersza);
+	cNaglowek[11] = (uint8_t)(nOffsetWiersza >> 8);
+	cNaglowek[12] = (uint8_t)(nOffsetWiersza >> 16);
+	cNaglowek[13] = (uint8_t)(nOffsetWiersza >> 24);
 
 	// Nagłówek DIB (BITMAPINFOHEADER)
-	chNaglowek[14] = 50; 							// rozmiar nagłówka, offset na początek obrazu lub palety
-	chNaglowek[15] = 0;
-	chNaglowek[16] = 0;
-	chNaglowek[17] = 0;
-	chNaglowek[18] = (uint8_t)(sSzerokosc);
-	chNaglowek[19] = (uint8_t)(sSzerokosc >> 8);
-	chNaglowek[20] = (uint8_t)(sSzerokosc >> 16);
-	chNaglowek[21] = (uint8_t)(sSzerokosc >> 24);
-	chNaglowek[22] = (uint8_t)(sWysokosc);
-	chNaglowek[23] = (uint8_t)(sWysokosc >> 8);
-	chNaglowek[24] = (uint8_t)(sWysokosc >> 16);
-	chNaglowek[25] = (uint8_t)(sWysokosc >> 24);
-	chNaglowek[26] = 1; 							// liczba płaszczyzn
-	chNaglowek[27] = 0;
-	chNaglowek[28] = chFormatKoloru; 				//liczba bitów na piksel: 8 lub 24 BGR
-	chNaglowek[29] = 0;								//algorytm kompresji: 0=brak
-	chNaglowek[30] = 0;
-	chNaglowek[31] = 0;
-	chNaglowek[32] = 0;
-	chNaglowek[34] = (uint8_t)(nRozmiarDanych);		//rozmiar rysunku
-	chNaglowek[35] = (uint8_t)(nRozmiarDanych >> 8);
-	chNaglowek[36] = (uint8_t)(nRozmiarDanych >> 16);
-	chNaglowek[37] = (uint8_t)(nRozmiarDanych >> 24);
+	cNaglowek[14] = 50; 							// rozmiar nagłówka, offset na początek obrazu lub palety
+	cNaglowek[15] = 0;
+	cNaglowek[16] = 0;
+	cNaglowek[17] = 0;
+	cNaglowek[18] = (uint8_t)(sSzerokosc);
+	cNaglowek[19] = (uint8_t)(sSzerokosc >> 8);
+	cNaglowek[20] = (uint8_t)(sSzerokosc >> 16);
+	cNaglowek[21] = (uint8_t)(sSzerokosc >> 24);
+	cNaglowek[22] = (uint8_t)(sWysokosc);
+	cNaglowek[23] = (uint8_t)(sWysokosc >> 8);
+	cNaglowek[24] = (uint8_t)(sWysokosc >> 16);
+	cNaglowek[25] = (uint8_t)(sWysokosc >> 24);
+	cNaglowek[26] = 1; 							// liczba płaszczyzn
+	cNaglowek[27] = 0;
+	cNaglowek[28] = chFormatKoloru; 				//liczba bitów na piksel: 8 lub 24 BGR
+	cNaglowek[29] = 0;								//algorytm kompresji: 0=brak
+	cNaglowek[30] = 0;
+	cNaglowek[31] = 0;
+	cNaglowek[32] = 0;
+	cNaglowek[34] = (uint8_t)(nRozmiarDanych);		//rozmiar rysunku
+	cNaglowek[35] = (uint8_t)(nRozmiarDanych >> 8);
+	cNaglowek[36] = (uint8_t)(nRozmiarDanych >> 16);
+	cNaglowek[37] = (uint8_t)(nRozmiarDanych >> 24);
 	//biXPelsPerMeter - rozdzielczość w pixelach na metr dla osi OX;
 	//biYPelsPerMeter - analogicznie j.w. dla osi OY,
 	//biClrUsed - ilość kolorów która faktycznie została użyta,
 	//biClrImportant - ilość kolorów znaczących.
 	//biClrRotation - flaga rotacji palety
 	for (uint8_t n=38; n<ROZMIAR_NAGLOWKA_BMP; n++)
-		chNaglowek[n] = 0;
+		cNaglowek[n] = 0;
 
-	chNaglowek[56] = 'A';
-	chNaglowek[57] = 'P';
-	chNaglowek[58] = 'L';
-	chNaglowek[59] = 'v';
-	chNaglowek[60] = '0' + WER_GLOWNA;
-	chNaglowek[61] = '.';
-	chNaglowek[62] = '0' + WER_PODRZ;
-	chNaglowek[63] = 0;
+	cNaglowek[56] = 'A';
+	cNaglowek[57] = 'P';
+	cNaglowek[58] = 'L';
+	cNaglowek[59] = 'v';
+	cNaglowek[60] = '0' + WER_GLOWNA;
+	cNaglowek[61] = '.';
+	cNaglowek[62] = '0' + WER_PODRZ;
+	cNaglowek[63] = 0;
 
 	PobierzDateCzas(&stDate, &stTime);
-	sprintf(chBufPodreczny, "%s_%04d%02d%02d_%02d%02d%02d.bmp", chNazwaPlikuObrazu, stDate.Year+2000, stDate.Month, stDate.Date, stTime.Hours, stTime.Minutes, stTime.Seconds);
+	sprintf(cBufPodreczny, "%s_%04d%02d%02d_%02d%02d%02d.bmp", cNazwaPlikuObrazu, stDate.Year+2000, stDate.Month, stDate.Date, stTime.Hours, stTime.Minutes, stTime.Seconds);
 
-	fres = f_open(&SDBmpFile, chBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
+	fres = f_open(&SDBmpFile, cBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
 	if (fres != FR_OK)
 		return (uint8_t)fres;
 
 	//zapisz nagłówek do pliku
-	fres = f_write(&SDBmpFile, chNaglowek, ROZMIAR_NAGLOWKA_BMP, &nZapisanoBajtow);
+	fres = f_write(&SDBmpFile, cNaglowek, ROZMIAR_NAGLOWKA_BMP, &nZapisanoBajtow);
 	if (fres != FR_OK)
 	{
 		f_close(&SDBmpFile);
@@ -157,12 +157,12 @@ uint8_t ZapiszPlikBmp(uint8_t *chObrazWe, uint8_t chFormatKoloru, uint16_t sSzer
 		{
 			for (uint8_t n=0; n<8; n++)
 			{
-				chNaglowek[n * 4 + 0] = n + m * 8; // Blue
-				chNaglowek[n * 4 + 1] = n + m * 8; // Green
-				chNaglowek[n * 4 + 2] = n + m * 8; // Red
-				chNaglowek[n * 4 + 3] = 0; // Alfa
+				cNaglowek[n * 4 + 0] = n + m * 8; // Blue
+				cNaglowek[n * 4 + 1] = n + m * 8; // Green
+				cNaglowek[n * 4 + 2] = n + m * 8; // Red
+				cNaglowek[n * 4 + 3] = 0; // Alfa
 			}
-			fres = f_write(&SDBmpFile, chNaglowek, 8*4, &nZapisanoBajtow);
+			fres = f_write(&SDBmpFile, cNaglowek, 8*4, &nZapisanoBajtow);
 			if (fres != FR_OK)
 			{
 				f_close(&SDBmpFile);
@@ -288,9 +288,9 @@ uint8_t ZapiszPlikBin(uint8_t *chDaneWe, uint32_t nRozmiar)
 	UINT nZapisanoBajtow;
 
 	PobierzDateCzas(&stDate, &stTime);
-	sprintf(chBufPodreczny, "dane_%04d%02d%02d_%02d%02d%02d.bin", stDate.Year+2000, stDate.Month, stDate.Date, stTime.Hours, stTime.Minutes, stTime.Seconds);
+	sprintf(cBufPodreczny, "dane_%04d%02d%02d_%02d%02d%02d.bin", stDate.Year+2000, stDate.Month, stDate.Date, stTime.Hours, stTime.Minutes, stTime.Seconds);
 
-	fres = f_open(&SDBmpFile, chBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
+	fres = f_open(&SDBmpFile, cBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
 	if (fres != FR_OK)
 		return (uint8_t)fres;
 

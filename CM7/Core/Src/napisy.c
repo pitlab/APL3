@@ -14,7 +14,7 @@
 #ifdef JEZYK_POLSKI
 
 
-const char *chNapisLcd[MAX_NAPISOW]  = {
+const char *cNapisLcd[MAX_NAPISOW]  = {
 "AutoPitLot hv3.0",				//STR_WITAJ_TYTUL		max 17 znaków
 "By m%cc mie%c w r%cj Wron%cw na pohybel wra%cym hordom",		//STR_WITAJ_MOTTO: %c będą podmieniane na polskie znaki diakrytyczne
 "pl",								//STR_WITAJ_DOMENA		max 3 znaki
@@ -87,13 +87,13 @@ const char *chNapisLcd[MAX_NAPISOW]  = {
 };
 
 
-const char *chOpisBledow[MAX_KOMUNIKATOW] = {
+const char *cOpisBledow[MAX_KOMUNIKATOW] = {
 "Blad wykonania polecenia!",
 "Wdus ekran i trzymaj aby zakonczyc",
 "Zbyt niska temeratura zyroskopow wynoszaca %.0f%cC. Musi miescic sie w granicach od %.0f%cC do %.0f%cC",
 "Zbyt wysoka temeratura zyroskopow wynoszaca %.0f%cC. Musi miescic sie w granicach od %.0f%cC do %.0f%cC",
 };
 
-const char *chNazwyMies3Lit[13]  = {"---", "Sty","Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paz", "Lis", "Gru"};
+const char *cNazwyMies3Lit[13]  = {"---", "Sty","Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paz", "Lis", "Gru"};
 
 #endif //JEZYK_POLSKI

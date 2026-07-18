@@ -213,9 +213,9 @@ const osThreadAttr_t tsObslugaWyswie_attributes = {
 /* USER CODE BEGIN PV */
 uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 uint8_t cBłąd1, cBłąd = BLAD_OK;
-extern uint8_t chPort_exp_wysylany[];
-extern struct _statusDotyku statusDotyku;
-extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+extern uint8_t cPort_exp_wysylany[];
+extern stStatusDotyku_t stStatusDotyku;
+extern volatile uint8_t cCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 extern uint8_t chStanSynchronizacjiCzasu;
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -303,8 +303,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-	extern uint8_t chTrybPracy;
-	extern uint8_t chNowyTrybPracy;
+	extern uint8_t cTrybPracy;
+	extern uint8_t cNowyTrybPracy;
   /* USER CODE END 1 */
 /* USER CODE BEGIN Boot_Mode_Sequence_0 */
   int32_t timeout;
@@ -426,21 +426,21 @@ Error_Handler();
 
   cBłąd |= InicjujKamere();
   if (cBłąd != BLAD_OK)
-  	  chCzasSwieceniaLED[LED_CZER] = 50;	//świeć 5s
+  	  cCzasSwieceniaLED[LED_CZER] = 50;	//świeć 5s
   cBłąd |= InicjujOSD();
   InicjujMDMA();
   InicjujCAN();
   cBłąd = CzytajDotyk();
   if (cBłąd == BLAD_OK)
   {
-	  if (statusDotyku.sAdc[2] > MIN_Z)			//jeżeli ekran jest dotknięty w czasie uruchamiania
+	  if (stStatusDotyku.sAdc[2] > MIN_Z)			//jeżeli ekran jest dotknięty w czasie uruchamiania
 	  {
-		  statusDotyku.chFlagi &= ~DOTYK_SKALIBROWANY;		//wymuś ponowną kalibrację przez odjęcie statusu skalibrowania
+		  stStatusDotyku.chFlagi &= ~DOTYK_SKALIBROWANY;		//wymuś ponowną kalibrację przez odjęcie statusu skalibrowania
 	  }
 	  else
 	  {
-		  chTrybPracy = TP_WITAJ;				//w wątku wyświetlającym zacznij od trybu powitalnego. Ważne aby tryb był inny od TP_MENU_GLOWNE bo on nadpisuje chNowyTrybPracy
-		  chNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
+		  cTrybPracy = TP_WITAJ;				//w wątku wyświetlającym zacznij od trybu powitalnego. Ważne aby tryb był inny od TP_MENU_GLOWNE bo on nadpisuje chNowyTrybPracy
+		  cNowyTrybPracy = TP_WROC_DO_MENU;	//wyczyść ekran i wróc do menu głównego
 	  }
   }
   InicjujWymiane();
@@ -1634,11 +1634,11 @@ void StartDefaultTask(void *argument)
 		cBłąd += UstawDaneWymiany_CM7();
 		if (cBłąd)		//sygnalizacja błędów wymiany
 		{
-			chCzasSwieceniaLED[LED_ZIEL] = 1;	//x0,1s
+			cCzasSwieceniaLED[LED_ZIEL] = 1;	//x0,1s
 			cBłąd = BLAD_OK;
 		}
 		if (uDaneCM4.dane.cBladPetliGlownej)
-			chCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
+			cCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
 
 		PobierzDaneDoFFT();
 		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//kanał serw 1 skonfigurowany jako IO
@@ -1660,7 +1660,7 @@ void StartDefaultTask(void *argument)
 
 			cBłąd = ObslugaPolecenCM4();	//obsłuż polecenia rdzenia CM4
 			if (cBłąd)		//sygnalizacja błędów
-				chCzasSwieceniaLED[LED_NIEB] = 5;	//x0,1s
+				cCzasSwieceniaLED[LED_NIEB] = 5;	//x0,1s
 
 			ObslugaWymowyKomunikatu();	//obsłuż wymowę komuniatów głosowych
 			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//kanał serw 1 skonfigurowany jako IO
@@ -1818,10 +1818,10 @@ void Error_Handler(void)
 	//włącz czerwoną LED sygnalizując bład
 	if ((nZainicjowanoCM7 & INIT_EXPANDER_IO) == 0)
 		InicjujSPIModZewn();
-	chPort_exp_wysylany[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
-	chPort_exp_wysylany[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
-	chPort_exp_wysylany[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
-	WyslijDaneExpandera(SPI_EXTIO_2, chPort_exp_wysylany[2]);
+	cPort_exp_wysylany[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
+	cPort_exp_wysylany[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
+	cPort_exp_wysylany[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
+	WyslijDaneExpandera(SPI_EXTIO_2, cPort_exp_wysylany[2]);
   __disable_irq();
   while (1)
   {

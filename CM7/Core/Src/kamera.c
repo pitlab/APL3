@@ -39,9 +39,9 @@
 #include "OSD.h"
 
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamery[SZER_ZDJECIA * WYS_ZDJECIA] = {0};
-extern uint8_t chBuforJpeg[ROZM_BUF_WY_JPEG];
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
-extern uint8_t chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * ROZMIAR_KOLORU_OSD];	//pamięć obrazu OSD
+//extern uint8_t chBuforJpeg[ROZM_BUF_WY_JPEG];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) cBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
+extern uint8_t cBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * ROZMIAR_KOLORU_OSD];	//pamięć obrazu OSD
 stKonfKam_t stKonfKam;
 static stKonfKam_t stPoprzKonfig;
 struct sensor_reg stListaRejestrow[ROZMIAR_STRUKTURY_REJESTROW_KAMERY];
@@ -54,15 +54,15 @@ extern DMA2D_HandleTypeDef hdma2d;
 extern TIM_HandleTypeDef htim12;
 extern I2C_HandleTypeDef hi2c2;
 extern const struct sensor_reg OV5642_RGB_QVGA[];
-extern const uint8_t chAdres_expandera[];
-extern uint8_t chPort_exp_wysylany[];
+extern const uint8_t cAdres_expandera[];
+extern uint8_t cPort_exp_wysylany[];
 extern JPEG_HandleTypeDef hjpeg;
 extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint32_t nRozmiarObrazuKamery;	//w bajtach
-volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
+volatile uint8_t cObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
 stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
-uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
-volatile uint8_t chBladKamery;	//1=HAL_DCMI_ERROR_OVR, 2=DCMI_ERROR_SYNC, 3=HAL_DCMI_ERROR_TIMEOUT, 4=HAL_DCMI_ERROR_DMA
+uint8_t cWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
+volatile uint8_t cBladKamery;	//1=HAL_DCMI_ERROR_OVR, 2=DCMI_ERROR_SYNC, 3=HAL_DCMI_ERROR_TIMEOUT, 4=HAL_DCMI_ERROR_DMA
 extern uint32_t nCzasBlend, nCzasLCD;
 extern stKonfOsd_t stKonfOSD;
 
@@ -87,8 +87,8 @@ uint8_t InicjujKamere(void)
 	HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
 
 	//Zresetuj kamerę. Power Down jest cały czas nieaktywny = L
-	chPort_exp_wysylany[0] &= ~EXP03_CAM_RESET;		//CAM_RES - reset kamery ustaw aktywny niski
-	cBłąd = WyslijDaneExpandera(chAdres_expandera[0], chPort_exp_wysylany[0]);	//wyślij dane do expandera I/O
+	cPort_exp_wysylany[0] &= ~EXP03_CAM_RESET;		//CAM_RES - reset kamery ustaw aktywny niski
+	cBłąd = WyslijDaneExpandera(cAdres_expandera[0], cPort_exp_wysylany[0]);	//wyślij dane do expandera I/O
 	if (cBłąd)
 		return cBłąd;
 
@@ -234,8 +234,8 @@ uint8_t	SprawdzKamere(void)
 	do
 	{
 		//pnieważ moduły kamer OV5042 i OV5040 mają unaczej ułożone piny RESET i POWER_DOWN a mamy możliwość sterowania tylko jednym pinem, sprawdź obecność kamery w obu stanach
-		chPort_exp_wysylany[0] ^= EXP03_CAM_RESET;		//CAM_RES - zmień stan linii resetu kamery
-		cBłąd = WyslijDaneExpandera(chAdres_expandera[0], chPort_exp_wysylany[0]);	//wyślij dane do expandera I/O
+		cPort_exp_wysylany[0] ^= EXP03_CAM_RESET;		//CAM_RES - zmień stan linii resetu kamery
+		cBłąd = WyslijDaneExpandera(cAdres_expandera[0], cPort_exp_wysylany[0]);	//wyślij dane do expandera I/O
 		if (cBłąd)
 			return cBłąd;
 		HAL_Delay(2);	//nie używać osDelay ponieważ w czasie inicjalizacji system jeszcze nie działa
@@ -290,7 +290,7 @@ uint8_t RozpocznijPraceDCMI(stKonfKam_t* konfig, uint16_t* sBufor, uint32_t nRoz
 
 	//bez względu na format danych RGB565 lub YCbCr, kamera zwraca tą samą liczbę danych: 16 bitów na piksel
 	//nRozmiarObrazu32bit = (konfig.chSzerWy * KROK_ROZDZ_KAM) * (konfig.chWysWy * KROK_ROZDZ_KAM) / 2;
-	chObrazKameryGotowy = 0;	//flaga jest ustawiana w callbacku: HAL_DCMI_FrameEventCallback
+	cObrazKameryGotowy = 0;	//flaga jest ustawiana w callbacku: HAL_DCMI_FrameEventCallback
 
 	//Konfiguracja transferu DMA z DCMI do pamięci
 	if (konfig->chTrybPracy == KAM_ZDJECIE)		//KAM_ZDJECIE=1 lub KAM_FILM=0
@@ -371,7 +371,7 @@ uint8_t ZrobZdjecie(uint16_t* sBufor, uint32_t nRozmiarObrazu32bit)
 	for (uint32_t n=0; n<nRozmiarObrazu32bit; n++)
 		*((uint32_t*)sBufor + n) = 0;
 
-	chObrazKameryGotowy = 0;
+	cObrazKameryGotowy = 0;
 	sLicznikLiniiKamery = 0;
 	sLicznikRamekKamery = 0;
 
@@ -395,7 +395,7 @@ void HAL_DCMI_LineEventCallback(DCMI_HandleTypeDef *hdcmi)
 
 void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
 {
-	chBladKamery = hdcmi->ErrorCode;	//1=HAL_DCMI_ERROR_OVR, 2=DCMI_ERROR_SYNC, 3=HAL_DCMI_ERROR_TIMEOUT, 4=HAL_DCMI_ERROR_DMA
+	cBladKamery = hdcmi->ErrorCode;	//1=HAL_DCMI_ERROR_OVR, 2=DCMI_ERROR_SYNC, 3=HAL_DCMI_ERROR_TIMEOUT, 4=HAL_DCMI_ERROR_DMA
 }
 
 
@@ -409,13 +409,13 @@ void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
 ////////////////////////////////////////////////////////////////////////////////
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
-	chObrazKameryGotowy = 1;
+	cObrazKameryGotowy = 1;
 	if (stKonfOSD.chOSDWlaczone)	//czy OSD jest włączone?
 	{
 		if (hdma2d.State == HAL_DMA2D_STATE_BUSY)
 			HAL_DMA2D_Abort(&hdma2d);
 		nCzasBlend = DWT->CYCCNT;
-		HAL_DMA2D_BlendingStart_IT(&hdma2d, (uint32_t)chBuforOSD, (uint32_t)sBuforKamery, (uint32_t)chBuforLCD, stKonfKam.chSzerWy * KROK_ROZDZ_KAM, stKonfKam.chWysWy * KROK_ROZDZ_KAM);
+		HAL_DMA2D_BlendingStart_IT(&hdma2d, (uint32_t)cBuforOSD, (uint32_t)sBuforKamery, (uint32_t)cBuforLCD, stKonfKam.chSzerWy * KROK_ROZDZ_KAM, stKonfKam.chWysWy * KROK_ROZDZ_KAM);
 	}
 }
 
@@ -955,7 +955,7 @@ void CzyscBufory(void)
 		sBuforKamery[n] = 0;
 
 	for (uint32_t n=0; n<(DISP_X_SIZE * DISP_Y_SIZE * 3); n++)
-		chBuforLCD[n] = 0;
+		cBuforLCD[n] = 0;
 }
 
 

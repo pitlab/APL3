@@ -26,20 +26,20 @@ extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart8;
 uint8_t cKonfiguracjaUart8 = U_CRSF1;		//Tymczasowo zamiast GNSS jest Crossfire
-//uint8_t chBuforNadawczyUART8[ROZMIAR_BUF_NAD_UART8];
-uint8_t chBuforOdbioruUart8[ROZMIAR_BUF_ODB_UART8];
-uint8_t chBuforOdbioruUart2[ROZMIAR_BUF_ODB_UART2];
-uint8_t chBuforOdbioruUart4[ROZMIAR_BUF_ODB_UART4];
+//uint8_t cBuforNadawczyUART8[ROZMIAR_BUF_NAD_UART8];
+uint8_t cBuforOdbioruUart8[ROZMIAR_BUF_ODB_UART8];
+uint8_t cBuforOdbioruUart2[ROZMIAR_BUF_ODB_UART2];
+uint8_t cBuforOdbioruUart4[ROZMIAR_BUF_ODB_UART4];
 
 
-extern uint8_t chBuforAnalizySBus1[ROZMIAR_BUF_ANA_SBUS];
-extern volatile uint8_t chWskNapBufAnaSBus1; 	//wskaźniki napełniania kołowego bufora odbiorczego analizy danych S-Bus1
-extern uint8_t chBuforAnalizySBus2[ROZMIAR_BUF_ANA_SBUS];
-extern volatile uint8_t chWskNapBufAnaSBus2; 	//wskaźniki napełniania kołowego bufora odbiorczego analizy danych S-Bus2
-extern uint8_t chBuforAnalizyCrossfire[ROZMIAR_BUF_ANA_CRSF];
-extern volatile uint8_t chWskNapBufAnaCRSF;
-extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
-extern volatile uint8_t chWskNapBufAnaGNSS;		//wskaźnik napełniania kołowego bufora odbiorczego analizy danych GNSS
+extern uint8_t cBuforAnalizySBus1[ROZMIAR_BUF_ANA_SBUS];
+extern volatile uint8_t cWskNapBufAnaSBus1; 	//wskaźniki napełniania kołowego bufora odbiorczego analizy danych S-Bus1
+extern uint8_t cBuforAnalizySBus2[ROZMIAR_BUF_ANA_SBUS];
+extern volatile uint8_t cWskNapBufAnaSBus2; 	//wskaźniki napełniania kołowego bufora odbiorczego analizy danych S-Bus2
+extern uint8_t cBuforAnalizyCrossfire[ROZMIAR_BUF_ANA_CRSF];
+extern volatile uint8_t cWskNapBufAnaCRSF;
+extern uint8_t cBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
+extern volatile uint8_t cWskNapBufAnaGNSS;		//wskaźnik napełniania kołowego bufora odbiorczego analizy danych GNSS
 
 
 
@@ -58,21 +58,21 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
 		case U_GNSS1:
 			for (uint8_t n = 0; n < ROZMIAR_BUF_ODB_UART8 / 2; n++)
 			{
-				chBuforAnalizyGNSS[chWskNapBufAnaGNSS] = chBuforOdbioruUart8[n];
-				chWskNapBufAnaGNSS++;
-				if (chWskNapBufAnaGNSS >= ROZMIAR_BUF_ANA_GNSS)
-					chWskNapBufAnaGNSS = 0;		//zapętlenie wskaźnika bufora kołowego
+				cBuforAnalizyGNSS[cWskNapBufAnaGNSS] = cBuforOdbioruUart8[n];
+				cWskNapBufAnaGNSS++;
+				if (cWskNapBufAnaGNSS >= ROZMIAR_BUF_ANA_GNSS)
+					cWskNapBufAnaGNSS = 0;		//zapętlenie wskaźnika bufora kołowego
 			}
 			break;
 
 		case U_CRSF1:
 			for (uint8_t n = 0; n < ROZMIAR_BUF_ODB_UART8 / 2; n++)
 			{
-				chBuforAnalizyCrossfire[chWskNapBufAnaCRSF] = chBuforOdbioruUart8[n];
-				chWskNapBufAnaCRSF++;
-				if (chWskNapBufAnaCRSF >= ROZMIAR_BUF_ANA_CRSF)
+				cBuforAnalizyCrossfire[cWskNapBufAnaCRSF] = cBuforOdbioruUart8[n];
+				cWskNapBufAnaCRSF++;
+				if (cWskNapBufAnaCRSF >= ROZMIAR_BUF_ANA_CRSF)
 				{
-					chWskNapBufAnaCRSF = 0;		//zapętlenie wskaźnika bufora kołowego
+					cWskNapBufAnaCRSF = 0;		//zapętlenie wskaźnika bufora kołowego
 					//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 				}
 			}
@@ -85,10 +85,10 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
 	{
 		for (uint8_t n = 0; n < ROZMIAR_BUF_ODB_UART4 / 2; n++)
 		{
-			chBuforAnalizySBus1[chWskNapBufAnaSBus1] = chBuforOdbioruUart4[n];
-			chWskNapBufAnaSBus1++;
-			if (chWskNapBufAnaSBus1 >= ROZMIAR_BUF_ANA_SBUS)
-				chWskNapBufAnaSBus1 = 0;	//zapętlenie wskaźnika bufora kołowego
+			cBuforAnalizySBus1[cWskNapBufAnaSBus1] = cBuforOdbioruUart4[n];
+			cWskNapBufAnaSBus1++;
+			if (cWskNapBufAnaSBus1 >= ROZMIAR_BUF_ANA_SBUS)
+				cWskNapBufAnaSBus1 = 0;	//zapętlenie wskaźnika bufora kołowego
 		}
 	}
 
@@ -96,10 +96,10 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
 	{
 		for (uint8_t n = 0;  n < ROZMIAR_BUF_ODB_UART2 / 2; n++)
 		{
-			chBuforAnalizySBus2[chWskNapBufAnaSBus2] = chBuforOdbioruUart2[n];
-			chWskNapBufAnaSBus2++;
-			if (chWskNapBufAnaSBus2 >= ROZMIAR_BUF_ANA_SBUS)
-				chWskNapBufAnaSBus2 = 0;		//zapętlenie wskaźnika bufora kołowego
+			cBuforAnalizySBus2[cWskNapBufAnaSBus2] = cBuforOdbioruUart2[n];
+			cWskNapBufAnaSBus2++;
+			if (cWskNapBufAnaSBus2 >= ROZMIAR_BUF_ANA_SBUS)
+				cWskNapBufAnaSBus2 = 0;		//zapętlenie wskaźnika bufora kołowego
 		}
 	}
 }
@@ -122,21 +122,21 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		case U_GNSS1:
 			for (uint8_t n = 0; n < ROZMIAR_BUF_ODB_UART8 / 2; n++)
 			{
-				chBuforAnalizyGNSS[chWskNapBufAnaGNSS] = chBuforOdbioruUart8[n + ROZMIAR_BUF_ODB_UART8 / 2];
-				chWskNapBufAnaGNSS++;
-				if (chWskNapBufAnaGNSS >= ROZMIAR_BUF_ANA_GNSS)
-					chWskNapBufAnaGNSS = 0;		//zapętlenie wskaźnika bufora kołowego
+				cBuforAnalizyGNSS[cWskNapBufAnaGNSS] = cBuforOdbioruUart8[n + ROZMIAR_BUF_ODB_UART8 / 2];
+				cWskNapBufAnaGNSS++;
+				if (cWskNapBufAnaGNSS >= ROZMIAR_BUF_ANA_GNSS)
+					cWskNapBufAnaGNSS = 0;		//zapętlenie wskaźnika bufora kołowego
 			}
 			break;
 
 		case U_CRSF1:
 			for (uint8_t n = 0; n < ROZMIAR_BUF_ODB_UART8 / 2; n++)
 			{
-				chBuforAnalizyCrossfire[chWskNapBufAnaCRSF] = chBuforOdbioruUart8[n + ROZMIAR_BUF_ODB_UART8 / 2];
-				chWskNapBufAnaCRSF++;
-				if (chWskNapBufAnaCRSF >= ROZMIAR_BUF_ANA_CRSF)
+				cBuforAnalizyCrossfire[cWskNapBufAnaCRSF] = cBuforOdbioruUart8[n + ROZMIAR_BUF_ODB_UART8 / 2];
+				cWskNapBufAnaCRSF++;
+				if (cWskNapBufAnaCRSF >= ROZMIAR_BUF_ANA_CRSF)
 				{
-					chWskNapBufAnaCRSF = 0;
+					cWskNapBufAnaCRSF = 0;
 					//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 				}
 			}
@@ -149,10 +149,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	{
 		for (uint8_t n = 0;  n<ROZMIAR_BUF_ODB_UART4 / 2; n++)
 		{
-			chBuforAnalizySBus1[chWskNapBufAnaSBus1] = chBuforOdbioruUart4[n + ROZMIAR_BUF_ODB_UART4 / 2];
-			chWskNapBufAnaSBus1++;
-			if (chWskNapBufAnaSBus1 >= ROZMIAR_BUF_ANA_SBUS)
-				chWskNapBufAnaSBus1 = 0;		//zapętlenie wskaźnika bufora kołowego
+			cBuforAnalizySBus1[cWskNapBufAnaSBus1] = cBuforOdbioruUart4[n + ROZMIAR_BUF_ODB_UART4 / 2];
+			cWskNapBufAnaSBus1++;
+			if (cWskNapBufAnaSBus1 >= ROZMIAR_BUF_ANA_SBUS)
+				cWskNapBufAnaSBus1 = 0;		//zapętlenie wskaźnika bufora kołowego
 		}
 	}
 
@@ -160,10 +160,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	{
 		for (uint8_t n = 0;  n<ROZMIAR_BUF_ODB_UART2 / 2; n++)
 		{
-			chBuforAnalizySBus2[chWskNapBufAnaSBus2] = chBuforOdbioruUart2[n + ROZMIAR_BUF_ODB_UART2 / 2];
-			chWskNapBufAnaSBus2++;
-			if (chWskNapBufAnaSBus2 >= ROZMIAR_BUF_ANA_SBUS)
-				chWskNapBufAnaSBus2 = 0;		//zapętlenie wskaźnika bufora kołowego
+			cBuforAnalizySBus2[cWskNapBufAnaSBus2] = cBuforOdbioruUart2[n + ROZMIAR_BUF_ODB_UART2 / 2];
+			cWskNapBufAnaSBus2++;
+			if (cWskNapBufAnaSBus2 >= ROZMIAR_BUF_ANA_SBUS)
+				cWskNapBufAnaSBus2 = 0;		//zapętlenie wskaźnika bufora kołowego
 		}
 	}
 }
@@ -179,7 +179,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 void WłączOdbiórUART2(void)
 {
 	//HAL_UART_Receive_IT(&huart2, chBuforOdbioruUart2, ROZMIAR_BUF_ODB_UART2);
-	HAL_UART_Receive_DMA(&huart2, chBuforOdbioruUart2, ROZMIAR_BUF_ODB_UART2);
+	HAL_UART_Receive_DMA(&huart2, cBuforOdbioruUart2, ROZMIAR_BUF_ODB_UART2);
 }
 
 
@@ -191,7 +191,7 @@ void WłączOdbiórUART2(void)
 ////////////////////////////////////////////////////////////////////////////////
 void WłączOdbiórUART4(void)
 {
-	HAL_UART_Receive_DMA(&huart4, chBuforOdbioruUart4, ROZMIAR_BUF_ODB_UART4);
+	HAL_UART_Receive_DMA(&huart4, cBuforOdbioruUart4, ROZMIAR_BUF_ODB_UART4);
 }
 
 
@@ -203,7 +203,7 @@ void WłączOdbiórUART4(void)
 ////////////////////////////////////////////////////////////////////////////////
 void WłączOdbiórUART8(void)
 {
-	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruUart8, ROZMIAR_BUF_ODB_UART8);
+	HAL_UART_Receive_DMA(&huart8, cBuforOdbioruUart8, ROZMIAR_BUF_ODB_UART8);
 }
 
 

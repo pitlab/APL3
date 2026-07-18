@@ -21,22 +21,22 @@ extern JPEG_HandleTypeDef hjpeg;
 extern MDMA_HandleTypeDef hmdma_jpeg_outfifo_th;
 extern MDMA_HandleTypeDef hmdma_jpeg_infifo_th;
 
-//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM2"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};	//są problemy z zapisem na kartę
-//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};
-//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM2"))) chBuforMCU[ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU] = {0}; - wywala się ethernet, być może dane wchodzą na stos
-//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chBuforMCU[ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU] = {0};	- błąd DMA
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM")))chBuforMCU[ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU] = {0};
+//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM2"))) cBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};	//są problemy z zapisem na kartę
+//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) cBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) cBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};
+//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM2"))) cBuforMCU[ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU] = {0}; - wywala się ethernet, być może dane wchodzą na stos
+//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) cBuforMCU[ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU] = {0};	- błąd DMA
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM")))cBuforMCU[ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU] = {0};
 
-volatile uint8_t chStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych z bufora danych skompresowanych
-volatile uint8_t chWskNapBufJpeg, chWskOprBufJpeg;	// wskazuje do którego bufora obecnie są zapisywane dane i z którego są odczytywane
+volatile uint8_t cStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych z bufora danych skompresowanych
+volatile uint8_t cWskNapBufJpeg, cWskOprBufJpeg;	// wskazuje do którego bufora obecnie są zapisywane dane i z którego są odczytywane
 uint32_t nRozmiarObrazuJPEG;	//w bajtach
-uint8_t chWynikKompresji;		//flagi ustawiane w callbackach, określajace postęp przepływu danych przez enkoder JPEG
-uint8_t chWskNapBufMcu;			//wskaźnik napełniania buforów MCU
+//uint8_t chWynikKompresji;		//flagi ustawiane w callbackach, określajace postęp przepływu danych przez enkoder JPEG
+uint8_t cWskNapBufMcu;			//wskaźnik napełniania buforów MCU
 volatile uint16_t sZajetoscBuforaWeJpeg, sZajetoscBuforaWyJpeg;		//liczba bajtów w buforach wejściowym i wyjściowym kompresora
 extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 JPEG_ConfTypeDef stKonfJpeg;	//struktura konfiguracyjna JPEGa
-const uint8_t chNaglJpegEOI[ROZMIAR_ZNACZ_xOI] = {0xFF, 0xD9};	//EOI (End Of Image) - zapisywany na końcu pliku jpeg
+const uint8_t cNaglJpegEOI[ROZMIAR_ZNACZ_xOI] = {0xFF, 0xD9};	//EOI (End Of Image) - zapisywany na końcu pliku jpeg
 
 
 
@@ -215,7 +215,7 @@ uint8_t KonfigurujKompresjeJpeg(JPEG_ConfTypeDef *stKonfJpeg, uint16_t sSzerokos
 ////////////////////////////////////////////////////////////////////////////////
 void HAL_JPEG_EncodeCpltCallback(JPEG_HandleTypeDef *hjpeg)
 {
-	chStatusBufJpeg |= STAT_JPG_GOTOWY;		//podany obraz właśnie został skompresowany
+	cStatusBufJpeg |= STAT_JPG_GOTOWY;		//podany obraz właśnie został skompresowany
 }
 
 
@@ -245,13 +245,13 @@ void HAL_JPEG_GetDataCallback(JPEG_HandleTypeDef *hjpeg, uint32_t NbDecodedData)
 	sZajetoscBuforaWeJpeg -= NbDecodedData;
 	if (sZajetoscBuforaWeJpeg)	//jeżeli po pobraniu danych w buforze wejściowym są jeszcze dane, to kompresuj je
 	{
-		HAL_JPEG_ConfigInputBuffer(hjpeg, chBuforMCU + NbDecodedData, sZajetoscBuforaWeJpeg);
+		HAL_JPEG_ConfigInputBuffer(hjpeg, cBuforMCU + NbDecodedData, sZajetoscBuforaWeJpeg);
 		printf("Kont ");
 	}
 	else	//jeżeli kompresor zużył wszystkie dane jakie były przygotowane
 	{
 		HAL_JPEG_Pause(hjpeg, JPEG_PAUSE_RESUME_INPUT);
-		chStatusBufJpeg |= STAT_JPG_ZATRZYMANE_WE;
+		cStatusBufJpeg |= STAT_JPG_ZATRZYMANE_WE;
 		//printf("PauWe, ");
 	}
 }
@@ -266,17 +266,17 @@ void HAL_JPEG_DataReadyCallback(JPEG_HandleTypeDef *hjpeg, uint8_t *pDataOut, ui
 {
 	if (sZajetoscBuforaWyJpeg < ILOSC_BUF_JPEG * ROZM_BUF_WY_JPEG)
 	{
-		chWskNapBufJpeg++;							//przełącz bufor danych skompresowanych na następny
-		chWskNapBufJpeg &= MASKA_LICZBY_BUF;
+		cWskNapBufJpeg++;							//przełącz bufor danych skompresowanych na następny
+		cWskNapBufJpeg &= MASKA_LICZBY_BUF;
 		sZajetoscBuforaWyJpeg += OutDataLength;
 		nRozmiarObrazuJPEG += OutDataLength;
-		printf("Rozm: %ld wsk: %d buf: %d\r\n",  nRozmiarObrazuJPEG, chWskNapBufJpeg, sZajetoscBuforaWyJpeg);
-		HAL_JPEG_ConfigOutputBuffer(hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);	//ustaw następny bufor
+		printf("Rozm: %ld wsk: %d buf: %d\r\n",  nRozmiarObrazuJPEG, cWskNapBufJpeg, sZajetoscBuforaWyJpeg);
+		HAL_JPEG_ConfigOutputBuffer(hjpeg, &cBuforJpeg[cWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);	//ustaw następny bufor
 	}
 	else
 	{
 		HAL_JPEG_Pause(hjpeg, JPEG_PAUSE_RESUME_OUTPUT);
-		chStatusBufJpeg |= STAT_JPG_ZATRZYMANE_WY;
+		cStatusBufJpeg |= STAT_JPG_ZATRZYMANE_WY;
 		printf("PauWy, ");
 	}
 }
@@ -291,21 +291,21 @@ void HAL_JPEG_DataReadyCallback(JPEG_HandleTypeDef *hjpeg, uint8_t *pDataOut, ui
 uint8_t CzekajNaKoniecPracyJPEG(void)
 {
 	uint8_t cBłąd = BLAD_OK;
-	uint8_t chLicznikTimeoutu = 200;
+	uint8_t cLicznikTimeoutu = 200;
 
-	while (((chStatusBufJpeg & STAT_JPG_GOTOWY) != STAT_JPG_GOTOWY) && chLicznikTimeoutu)
+	while (((cStatusBufJpeg & STAT_JPG_GOTOWY) != STAT_JPG_GOTOWY) && cLicznikTimeoutu)
 	{
 		osDelay(5);		//przełącz na inny wątek
-		chLicznikTimeoutu--;
+		cLicznikTimeoutu--;
 	}
 
-	if (chLicznikTimeoutu == 0)
+	if (cLicznikTimeoutu == 0)
 	{
 		HAL_JPEG_Abort(&hjpeg);
 		cBłąd = BLAD_TIMEOUT;
 	}
 	else
-		printf("Czekano %dms, ", (200 - chLicznikTimeoutu) * 5);
+		printf("Czekano %dms, ", (200 - cLicznikTimeoutu) * 5);
 	return cBłąd;
 }
 
@@ -318,30 +318,30 @@ uint8_t CzekajNaKoniecPracyJPEG(void)
 // Pomiary pokazują że kolejne 6 MCU 8x8 pobierane są co 136us. Pełen obraz 1280x960 zawiera 160x120 = 19200 MCU stąd kompresja obrazu 19200/6*136us zajmuje 436,2ms
 // Aby uzyskać strumień przynajmniej 15fps czas kompresji musi być mniejszy niż 66,6(6)ms co odpowiada 2941 MCU czyli np. 77x38 MCU = 616x304
 // Parametry:
-// [we] *chObrazWe - wskaźnik na czarno-biały obraz wejsciowy Y8
+// [we] *cObrazWe - wskaźnik na czarno-biały obraz wejsciowy Y8
 // [we] sSzerokosc, sWysokosc - rozmiary obrazu. Muszą być podzielne przez 8
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
+uint8_t KompresujY8(uint8_t *cObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t cBłąd = BLAD_OK;
 	uint32_t nOffsetMCU_wzgObrazu;	//przesuniecie bloku wzgledem początku obrazu
 	uint32_t nOffsetMCU_wzgWiersza;
 	uint32_t nOffset_wzgMCU;		//przesunęcie obrazu wejściowego względem początku MCU
-	uint8_t chLiczbaMCU_Szer = sSzerokosc / SZEROKOSC_BLOKU;	//liczba MCU luminancji po szerokosci obrazu
-	uint8_t chLiczbaMCU_Wys = sWysokosc / WYSOKOSC_BLOKU;	//liczba MCU luminancji po wysokosci obrazu
+	uint8_t cLiczbaMCU_Szer = sSzerokosc / SZEROKOSC_BLOKU;	//liczba MCU luminancji po szerokosci obrazu
+	uint8_t cLiczbaMCU_Wys = sWysokosc / WYSOKOSC_BLOKU;	//liczba MCU luminancji po wysokosci obrazu
 
 	for (uint8_t m=0; m<ILOSC_BUF_JPEG; m++)
 	{
 		for (uint16_t n=0; n<ROZM_BUF_WY_JPEG; n++)
-			chBuforJpeg[m][n] = 0;
+			cBuforJpeg[m][n] = 0;
 	}
-	chWskNapBufJpeg = chWskOprBufJpeg = 0;
+	cWskNapBufJpeg = cWskOprBufJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
 	sZajetoscBuforaWeJpeg = 0;
-	chWskNapBufMcu = 0;
-	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
-	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
+	cWskNapBufMcu = 0;
+	cStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
+	cStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
 	cBłąd = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_GRAYSCALE_COLORSPACE, JPEG_444_SUBSAMPLING, 80);
 	if (cBłąd)
@@ -349,16 +349,16 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
 		printf("Blad konf JPEG: %ld\r\n", hjpeg.ErrorCode);
-		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+		cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 		return cBłąd;
 	}
-	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
+	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &cBuforJpeg[cWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 
 
-	for (uint16_t my=0; my<chLiczbaMCU_Wys; my++)	//pętla pracująca na MCU wysokości obrazu
+	for (uint16_t my=0; my<cLiczbaMCU_Wys; my++)	//pętla pracująca na MCU wysokości obrazu
 	{
-		nOffsetMCU_wzgObrazu = my * chLiczbaMCU_Szer * ROZMIAR_BLOKU;
-		for (uint16_t mx=0; mx<chLiczbaMCU_Szer; mx++)	//pętla pracująca na MCU szerokości obrazu
+		nOffsetMCU_wzgObrazu = my * cLiczbaMCU_Szer * ROZMIAR_BLOKU;
+		for (uint16_t mx=0; mx<cLiczbaMCU_Szer; mx++)	//pętla pracująca na MCU szerokości obrazu
 		{
 			//rozpocznij formowanie MCU
 
@@ -373,48 +373,48 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 			nOffsetMCU_wzgWiersza = mx * SZEROKOSC_BLOKU;					//przesunięcie o liczbę MCU w bieżącym wierszu
 			for (uint16_t y=0; y<WYSOKOSC_BLOKU; y++)	//pętla pracująca na wysokosci wewnątrz MCU
 			{
-				nOffset_wzgMCU = (y * chLiczbaMCU_Szer * SZEROKOSC_BLOKU);	//przesunięcie pełnych wierszy obrazu
+				nOffset_wzgMCU = (y * cLiczbaMCU_Szer * SZEROKOSC_BLOKU);	//przesunięcie pełnych wierszy obrazu
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)	//pętla pracująca na szerokości wewnątrz MCU
-					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + chWskNapBufMcu * ROZMIAR_BLOKU] = *(chObrazWe + x + nOffset_wzgMCU + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+					cBuforMCU[x + (y * SZEROKOSC_BLOKU) + cWskNapBufMcu * ROZMIAR_BLOKU] = *(cObrazWe + x + nOffset_wzgMCU + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
 			}
 			//MCU gotowe
 			sZajetoscBuforaWeJpeg += ROZMIAR_BLOKU;
-			//printf("in%d:%d, ", sZajetoscBuforaWeJpeg, chWskNapBufMcu);
-			chWskNapBufMcu++;
+			//printf("in%d:%d, ", sZajetoscBuforaWeJpeg, cWskNapBufMcu);
+			cWskNapBufMcu++;
 
 			//jeżeli bufor wejściowy jest przepełniony, to przerwij pracę i posprzątaj po sobie
 			if (sZajetoscBuforaWeJpeg > (ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU))
 			{
-				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
+				cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
 				return BLAD_BUF_OVERRUN;
 			}
 
 			//używam podwójnego buforowania, więc dzielę bufor na 2 części. Jedna jest napełnianam druga opróżniana
-			if ((chWskNapBufMcu == ILOSC_BUF_WE_MCU/2) || (chWskNapBufMcu == ILOSC_BUF_WE_MCU))		//czy mamy już połowę bufora lub cały bufor? Dla Y8 1 blok = 1 MCU
+			if ((cWskNapBufMcu == ILOSC_BUF_WE_MCU/2) || (cWskNapBufMcu == ILOSC_BUF_WE_MCU))		//czy mamy już połowę bufora lub cały bufor? Dla Y8 1 blok = 1 MCU
 			{
-				//printf("in%d:%d, ", sZajetoscBuforaWeJpeg, chWskNapBufMcu);
+				//printf("in%d:%d, ", sZajetoscBuforaWeJpeg, cWskNapBufMcu);
 
 				//wskaż na źródło danych w pierwszej lub drugiej połowie bufora
-				if (chWskNapBufMcu == ILOSC_BUF_WE_MCU/2)
-					HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//pierwsza połowa bufora
+				if (cWskNapBufMcu == ILOSC_BUF_WE_MCU/2)
+					HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//pierwsza połowa bufora
 				else
 				{
-					HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU + ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//druga połowa
-					chWskNapBufMcu = 0;	//zacznij napełniać od początku
+					HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU + ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//druga połowa
+					cWskNapBufMcu = 0;	//zacznij napełniać od początku
 				}
 
 				if (hjpeg.State == HAL_JPEG_STATE_READY)	//tylko dla pierwszego uruchomienia
 				{
-					cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+					cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, cBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, cBuforJpeg[cWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
 					printf("Start1, ");
 				}
 				else
 				{
-					if (chStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
+					if (cStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
 					{
 						cBłąd = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wzów kompresję
-						chStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
+						cStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
 						printf("Wzn1, ");
 					}
 					else
@@ -425,7 +425,7 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 	}
 
 	cBłąd = CzekajNaKoniecPracyJPEG();		//czekaj aż ostatnie MCU zostanie skompresowane
-	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+	cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	printf("Koniec.\r\n");
 	return cBłąd;
 }
@@ -437,31 +437,31 @@ uint8_t KompresujY8(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 // Format YUV444 zawiera pełną informację o chrominancji przez co zapewnia najlepsze odwzorowanie kolorów
 // Skompresowane dane są pakowane do bufora aby wątek obsługi rejestratora mógł zapisać je do pliku
 // Parametry:
-// [we] *chObrazWe - wskaźnik na kolorowy obraz wejciowy YUV444
+// [we] *cObrazWe - wskaźnik na kolorowy obraz wejciowy YUV444
 // [we] sSzerokosc, sWysokosc - rozmiary obrazu. Muszą być podzielne przez 8
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
+uint8_t KompresujYUV444(uint8_t *cObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t cBłąd = BLAD_OK;
 	uint32_t nOffsetMCU_wzgObrazu;	//przesuniecie bloku wzgledem początku obrazu
 	uint32_t nOffsetMCU_wzgWiersza;
 	uint32_t nOffset_wzgMCU;		//przesunęcie obrazu wejściowego względem początku MCU
-	uint8_t chLiczbaMCU_Szer = sSzerokosc / SZEROKOSC_BLOKU;	//liczba MCU luminancji po szerokosci obrazu
-	uint8_t chLiczbaMCU_Wys = sWysokosc / WYSOKOSC_BLOKU;	//liczba MCU luminancji po wysokosci obrazu
+	uint8_t cLiczbaMCU_Szer = sSzerokosc / SZEROKOSC_BLOKU;	//liczba MCU luminancji po szerokosci obrazu
+	uint8_t cLiczbaMCU_Wys = sWysokosc / WYSOKOSC_BLOKU;	//liczba MCU luminancji po wysokosci obrazu
 
 	for (uint8_t m=0; m<MASKA_LICZBY_BUF; m++)
 	{
 		for (uint16_t n=0; n<ROZM_BUF_WY_JPEG; n++)
-			chBuforJpeg[m][n] = 0;
+			cBuforJpeg[m][n] = 0;
 	}
 
-	chWskNapBufJpeg = chWskOprBufJpeg = 0;
+	cWskNapBufJpeg = cWskOprBufJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
 	sZajetoscBuforaWeJpeg = 0;
-	chWskNapBufMcu = 0;
-	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
-	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
+	cWskNapBufMcu = 0;
+	cStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
+	cStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
 	cBłąd = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_444_SUBSAMPLING, 80);
 	if (cBłąd)
@@ -469,38 +469,38 @@ uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
 		printf("Blad konf JPEG: %ld\r\n", hjpeg.ErrorCode);
-		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+		cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 		return cBłąd;
 	}
-	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
+	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &cBuforJpeg[cWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 
-	for (uint16_t my=0; my<chLiczbaMCU_Wys; my++)	//pętla pracująca na MCU wysokości obrazu
+	for (uint16_t my=0; my<cLiczbaMCU_Wys; my++)	//pętla pracująca na MCU wysokości obrazu
 	{
-		nOffsetMCU_wzgObrazu = my * chLiczbaMCU_Szer * 3 * ROZMIAR_BLOKU;
-		for (uint16_t mx=0; mx<chLiczbaMCU_Szer; mx++)	//pętla pracująca na MCU szerokości obrazu
+		nOffsetMCU_wzgObrazu = my * cLiczbaMCU_Szer * 3 * ROZMIAR_BLOKU;
+		for (uint16_t mx=0; mx<cLiczbaMCU_Szer; mx++)	//pętla pracująca na MCU szerokości obrazu
 		{
 			//rozpocznij formowanie MCU składajacego sie z 3 bloków 8x8: Y, Cr, i Cb z danych ułożonych sekwencyjnie: YUVYUV (U=Cb, V=Cr)
 			nOffsetMCU_wzgWiersza = mx * 3 * SZEROKOSC_BLOKU;					//przesunięcie o liczbę MCU w bieżącym wierszu
 			for (uint16_t y=0; y<WYSOKOSC_BLOKU; y++)	//pętla pracująca na wysokosci wewnątrz MCU
 			{
-				nOffset_wzgMCU = (y * chLiczbaMCU_Szer * 3 * SZEROKOSC_BLOKU);	//przesunięcie pełnych wierszy obrazu
+				nOffset_wzgMCU = (y * cLiczbaMCU_Szer * 3 * SZEROKOSC_BLOKU);	//przesunięcie pełnych wierszy obrazu
 
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)	//pętla pracująca na szerokości wewnątrz MCU
 				{
-					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + 0 * ROZMIAR_BLOKU] = *(chObrazWe + 3 * x + 0 + nOffset_wzgMCU + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);	//Y
-					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + 1 * ROZMIAR_BLOKU] = *(chObrazWe + 3 * x + 1 + nOffset_wzgMCU + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);	//U=Cb
-					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + 2 * ROZMIAR_BLOKU] = *(chObrazWe + 3 * x + 2 + nOffset_wzgMCU + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);	//V=Cr
+					cBuforMCU[x + (y * SZEROKOSC_BLOKU) + 0 * ROZMIAR_BLOKU] = *(cObrazWe + 3 * x + 0 + nOffset_wzgMCU + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);	//Y
+					cBuforMCU[x + (y * SZEROKOSC_BLOKU) + 1 * ROZMIAR_BLOKU] = *(cObrazWe + 3 * x + 1 + nOffset_wzgMCU + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);	//U=Cb
+					cBuforMCU[x + (y * SZEROKOSC_BLOKU) + 2 * ROZMIAR_BLOKU] = *(cObrazWe + 3 * x + 2 + nOffset_wzgMCU + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);	//V=Cr
 				}
 			}
 
 			//MCU gotowe
-			chWskNapBufMcu += 3;
+			cWskNapBufMcu += 3;
 			sZajetoscBuforaWeJpeg += 3 * ROZMIAR_BLOKU;
 
 			//jeżeli bufor wejściowy jest przepełniony, to przerwij pracę i posprzątaj po sobie
 			if (sZajetoscBuforaWeJpeg > (ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU))
 			{
-				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
+				cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
 				return BLAD_BUF_OVERRUN;
 			}
@@ -508,19 +508,19 @@ uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 			//kompresja jednego MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie, niech się kompresuje na bieżąco
 			if (hjpeg.State == HAL_JPEG_STATE_READY)
 			{
-				HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, 3 * ROZMIAR_BLOKU);	//przekaż bufor z nowymi danymi
-				cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, 3 * ROZMIAR_BLOKU, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+				HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU, 3 * ROZMIAR_BLOKU);	//przekaż bufor z nowymi danymi
+				cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, cBuforMCU, 3 * ROZMIAR_BLOKU, cBuforJpeg[cWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
 			}
 			else
 				cBłąd = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wzów kompresję
 
-			if (chStatusBufJpeg & STAT_JPG_OTWORZ)
+			if (cStatusBufJpeg & STAT_JPG_OTWORZ)
 				osDelay(5);	//daj czas na otwarcie pliku
 		}
 	}
 
 	cBłąd = CzekajNaKoniecPracyJPEG();		//czekaj aż ostatnie MCU zostanie skompresowane
-	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+	cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	return cBłąd;
 }
 
@@ -534,27 +534,27 @@ uint8_t KompresujYUV444(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 // W MCU znjdują się 4 sąsiadujace ze sobą bloki chrominancji, czyli obszar (2x2) x (8x8). Odpowiada obszarowi 16x16 ale nie liniowo tylko w kratkę.
 // Kolejne MCU są brane aż do końca wiersza MCU, potem kolejny wiersz MCU i tak aż do konca obrazu i podawane na bieżąco do enkodera
 // Parametry:
-// [we] *chObrazWe - wskaźnik na kolorowy obraz wejsciowy YUV420 na razie kompresowany jako czarno-biały z pominięciem chrominancji
+// [we] *cObrazWe - wskaźnik na kolorowy obraz wejsciowy YUV420 na razie kompresowany jako czarno-biały z pominięciem chrominancji
 // [we] sSzerokosc, sWysokosc - rozmiary obrazu. Muszą być podzielne przez 16
 // [wy] *chDaneSkompresowane - wskaźnik na bufor danych skompresowanych
 // [we] nRozmiarBuforaJPEG - wielkość bufora na dane wyjsciowe
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
+uint8_t KompresujYUV420(uint8_t *cObrazWe, uint16_t sSzerokosc, uint16_t sWysokosc)
 {
 	uint8_t cBłąd = BLAD_OK;
 	uint32_t nOffsetMCU_wzgObrazu;	//przesuniecie bloku wzgledem początku obrazu
 	uint32_t nOffsetMCU_wzgWiersza;	//przesunięcie obrazu wejsciowego wzgledem początku bieżącego wiersza MCU
 	uint32_t nOffsetObrazuWe;		//przesunęcie obrazu wejściowego względem początku MCU
-	uint8_t chLiczbaMCU_Szer = sSzerokosc / (2 * SZEROKOSC_BLOKU);	//liczba MCU luminancji (czwórek bloków) po szerokosci obrazu
-	uint8_t chLiczbaMCU_Wys = sWysokosc / (2 * WYSOKOSC_BLOKU);	//liczba MCU luminancji (czwórek bloków) po wysokosci obrazu
+	uint8_t cLiczbaMCU_Szer = sSzerokosc / (2 * SZEROKOSC_BLOKU);	//liczba MCU luminancji (czwórek bloków) po szerokosci obrazu
+	uint8_t cLiczbaMCU_Wys = sWysokosc / (2 * WYSOKOSC_BLOKU);	//liczba MCU luminancji (czwórek bloków) po wysokosci obrazu
 
-	chWskNapBufJpeg = chWskOprBufJpeg = 0;
+	cWskNapBufJpeg = cWskOprBufJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
 	sZajetoscBuforaWeJpeg = 0;
-	chWskNapBufMcu = 0;
-	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
-	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
+	cWskNapBufMcu = 0;
+	cStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
+	cStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
 	cBłąd = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_420_SUBSAMPLING, 60);
 	if (cBłąd)
@@ -562,70 +562,70 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
 		printf("Blad konf JPEG: %ld\r\n", hjpeg.ErrorCode);
-		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+		cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 		return cBłąd;
 	}
-	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
+	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &cBuforJpeg[cWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 
-	for (uint16_t my=0; my<chLiczbaMCU_Wys; my++)	//pętla pracująca na wysokości obrazu
+	for (uint16_t my=0; my<cLiczbaMCU_Wys; my++)	//pętla pracująca na wysokości obrazu
 	{
-		nOffsetMCU_wzgObrazu = my * chLiczbaMCU_Szer * 4 * ROZMIAR_BLOKU;
-		for (uint16_t mx=0; mx<chLiczbaMCU_Szer; mx++)	//pętla pracująca na szerokości obrazu
+		nOffsetMCU_wzgObrazu = my * cLiczbaMCU_Szer * 4 * ROZMIAR_BLOKU;
+		for (uint16_t mx=0; mx<cLiczbaMCU_Szer; mx++)	//pętla pracująca na szerokości obrazu
 		{
 			//rozpocznij formowanie MCU
 			nOffsetMCU_wzgWiersza = (mx * 2 * SZEROKOSC_BLOKU);					//przesunięcie o liczbę MCU w bieżącym wierszu
 			for (uint16_t y=0; y<WYSOKOSC_BLOKU; y++)	//pętla pracująca na wysokosci bloków wewnątrz całego MCU
 			{
 				//pierwszy blok luminancji Y
-				nOffsetObrazuWe = (y * chLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
+				nOffsetObrazuWe = (y * cLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
 								+ (0 * SZEROKOSC_BLOKU);						//przesunięcie wzgledem początku MCU
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
-					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + (0 * ROZMIAR_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+					cBuforMCU[x + (y * SZEROKOSC_BLOKU) + (0 * ROZMIAR_BLOKU)] = *(cObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
 
 				//następny z prawej blok luminancji Y
-				nOffsetObrazuWe = (y * chLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
+				nOffsetObrazuWe = (y * cLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
 								+ (1 * SZEROKOSC_BLOKU);						//przesunięcie wzgledem początku MCU
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
-					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + (1 * ROZMIAR_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+					cBuforMCU[x + (y * SZEROKOSC_BLOKU) + (1 * ROZMIAR_BLOKU)] = *(cObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
 
 				//trzeci blok luminancji Y poniżej pierwszego, przesuniety o 2 bloki i liczbę MCU w szerokości obrazu
-				nOffsetObrazuWe = (y * chLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
-								+ (chLiczbaMCU_Szer * 2 * ROZMIAR_BLOKU)		//przesunięcie o pierwszy wiersz bloków
+				nOffsetObrazuWe = (y * cLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
+								+ (cLiczbaMCU_Szer * 2 * ROZMIAR_BLOKU)		//przesunięcie o pierwszy wiersz bloków
 								+ (0 * SZEROKOSC_BLOKU);						//przesunięcie wzgledem początku MCU
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
-					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + (2 * ROZMIAR_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+					cBuforMCU[x + (y * SZEROKOSC_BLOKU) + (2 * ROZMIAR_BLOKU)] = *(cObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
 
 				//czwarty blok luminancji Y
-				nOffsetObrazuWe = (y * chLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
-								+ (chLiczbaMCU_Szer * 2 * ROZMIAR_BLOKU)		//przesunięcie o pierwszy wiersz bloków
+				nOffsetObrazuWe = (y * cLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
+								+ (cLiczbaMCU_Szer * 2 * ROZMIAR_BLOKU)		//przesunięcie o pierwszy wiersz bloków
 								+ (1 * SZEROKOSC_BLOKU);						//przesunięcie wzgledem początku MCU
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
-					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + (3 * ROZMIAR_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+					cBuforMCU[x + (y * SZEROKOSC_BLOKU) + (3 * ROZMIAR_BLOKU)] = *(cObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
 
 
 				//blok chrominancji Cb
-				nOffsetObrazuWe = (y * chLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
+				nOffsetObrazuWe = (y * cLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
 								+ (0 * SZEROKOSC_BLOKU);						//przesunięcie wzgledem początku MCU
 
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
-					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + (4 * ROZMIAR_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+					cBuforMCU[x + (y * SZEROKOSC_BLOKU) + (4 * ROZMIAR_BLOKU)] = *(cObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
 
 				//blok chrominancji Cr
-				nOffsetObrazuWe = (y * chLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
+				nOffsetObrazuWe = (y * cLiczbaMCU_Szer * 2 * SZEROKOSC_BLOKU)	//przesunięcie pełnych wierszy obrazu
 								+ (0 * SZEROKOSC_BLOKU);						//przesunięcie wzgledem początku MCU
 
 				for (uint16_t x=0; x<SZEROKOSC_BLOKU; x++)
-					chBuforMCU[x + (y * SZEROKOSC_BLOKU) + (5 * ROZMIAR_BLOKU)] = *(chObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
+					cBuforMCU[x + (y * SZEROKOSC_BLOKU) + (5 * ROZMIAR_BLOKU)] = *(cObrazWe + x + nOffsetObrazuWe + nOffsetMCU_wzgWiersza + nOffsetMCU_wzgObrazu);
 			}
 
 			//MCU gotowe
-			chWskNapBufMcu += 6;
+			cWskNapBufMcu += 6;
 			sZajetoscBuforaWeJpeg += 6 * ROZMIAR_BLOKU;
 
 			//jeżeli bufor wejściowy jest przepełniony, to przerwij pracę i posprzątaj po sobie
 			if (sZajetoscBuforaWeJpeg > (ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU))
 			{
-				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
+				cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
 				return BLAD_BUF_OVERRUN;
 			}
@@ -633,19 +633,19 @@ uint8_t KompresujYUV420(uint8_t *chObrazWe, uint16_t sSzerokosc, uint16_t sWysok
 			//kompresja jednego MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie, niech się kompresuje na bieżąco
 			if (hjpeg.State == HAL_JPEG_STATE_READY)
 			{
-				HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, 6 * ROZMIAR_BLOKU);	//przekaż bufor z nowymi danymi
-				cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, 6 * ROZMIAR_BLOKU, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+				HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU, 6 * ROZMIAR_BLOKU);	//przekaż bufor z nowymi danymi
+				cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, cBuforMCU, 6 * ROZMIAR_BLOKU, cBuforJpeg[cWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
 			}
 			else
 				cBłąd = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wzów kompresję
 
-			if (chStatusBufJpeg & STAT_JPG_OTWORZ)
+			if (cStatusBufJpeg & STAT_JPG_OTWORZ)
 				osDelay(5);	//daj czas na otwarcie pliku
 		}
 	}
 
 	cBłąd = CzekajNaKoniecPracyJPEG();		//czekaj aż ostatnie MCU zostanie skompresowane
-	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+	cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	return cBłąd;
 }
 
@@ -668,15 +668,15 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 	uint8_t chR, chG, chB;
 	uint8_t chY1, chY2;
 	int8_t chCb1, chCr1, chCb2, chCr2;
-	uint8_t cBłąd, chDaneDoZapisu;
-	uint8_t chLicznikTimeoutu = 0;
+	uint8_t cBłąd, cDaneDoZapisu;
+	uint8_t cLicznikTimeoutu = 0;
 
-	chWskNapBufJpeg = chWskOprBufJpeg = 0;
+	cWskNapBufJpeg = cWskOprBufJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
 	sZajetoscBuforaWeJpeg = 0;
-	chWskNapBufMcu = 0;
-	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
-	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
+	cWskNapBufMcu = 0;
+	cStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
+	cStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
 	cBłąd = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_GRAYSCALE_COLORSPACE, JPEG_444_SUBSAMPLING, chJakosc);
 	if (cBłąd)
@@ -684,10 +684,10 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
 		printf("Blad konf JPEG: %ld\r\n", hjpeg.ErrorCode);
-		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+		cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 		return cBłąd;
 	}
-	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
+	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &cBuforJpeg[cWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 
 	for (uint16_t by=0; by<sIloscBlokowPionowo; by++)	//pętla po parze wierszy bloków 8x8 na wysokości obrazu
 	{
@@ -716,103 +716,103 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 					KonwersjaRGB888doYCbCr(chR, chG, chB, &chY2, &chCb2, &chCr2);
 
 					//Formowanie MCU
-					nOffsetWyjscia = (chWskNapBufMcu * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU) + x;
-					chBuforMCU[nOffsetWyjscia + 0 * ROZMIAR_BLOKU] = chY1;
-					chBuforMCU[nOffsetWyjscia + 1 * ROZMIAR_BLOKU] = chY2;
+					nOffsetWyjscia = (cWskNapBufMcu * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU) + x;
+					cBuforMCU[nOffsetWyjscia + 0 * ROZMIAR_BLOKU] = chY1;
+					cBuforMCU[nOffsetWyjscia + 1 * ROZMIAR_BLOKU] = chY2;
 				}		//pętla po  kolumnach bloku
 			} 		//pętla po wierszach bloku
 
-			chWskNapBufMcu += 2;	//produkowane są jednocześnie po 2 bloki wejściowe
+			cWskNapBufMcu += 2;	//produkowane są jednocześnie po 2 bloki wejściowe
 			sZajetoscBuforaWeJpeg += 2 * ROZMIAR_BLOKU;
 
 			//jeżeli bufor wejściowy jest przepełniony, to przerwij pracę i posprzątaj po sobie
 			if (sZajetoscBuforaWeJpeg > (ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU))
 			{
-				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
+				cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
 				return BLAD_BUF_OVERRUN;
 			}
 
 			//używam podwójnego buforowania, więc dzielę bufor na 2 części. Jedna jest napełnianam tutaj, druga opróżniana przez MDMA Jpega
-			if ((chWskNapBufMcu == ILOSC_BUF_WE_MCU/2) || (chWskNapBufMcu == ILOSC_BUF_WE_MCU))		//czy mamy już połowę bufora lub cały bufor? Dla Y8 1 blok = 1 MCU
+			if ((cWskNapBufMcu == ILOSC_BUF_WE_MCU/2) || (cWskNapBufMcu == ILOSC_BUF_WE_MCU))		//czy mamy już połowę bufora lub cały bufor? Dla Y8 1 blok = 1 MCU
 			{
 				//wskaż na źródło danych w pierwszej lub drugiej połowie bufora
-				if (chWskNapBufMcu == ILOSC_BUF_WE_MCU/2)
-					HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//pierwsza połowa bufora
+				if (cWskNapBufMcu == ILOSC_BUF_WE_MCU/2)
+					HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//pierwsza połowa bufora
 				else
 				{
-					HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU + ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//druga połowa
-					chWskNapBufMcu = 0;	//zacznij napełniać od początku
+					HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU + ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//druga połowa
+					cWskNapBufMcu = 0;	//zacznij napełniać od początku
 				}
 
 				//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
-				chDaneDoZapisu = 1;
+				cDaneDoZapisu = 1;
 				do
 				{
 					if (hjpeg.State == HAL_JPEG_STATE_READY)
 					{
-						cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, ROZMIAR_BLOKU * ILOSC_BUF_WE_MCU / 2, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
-						chDaneDoZapisu = 0;
+						cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, cBuforMCU, ROZMIAR_BLOKU * ILOSC_BUF_WE_MCU / 2, cBuforJpeg[cWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+						cDaneDoZapisu = 0;
 						printf("Start, ");
 					}
 					else
 					{
-						if (chStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
+						if (cStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
 						{
 							cBłąd = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję
-							chStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
-							chDaneDoZapisu = 0;
+							cStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
+							cDaneDoZapisu = 0;
 							//printf("Wzn, ");
 						}
 						else
 						{
 							printf("Cze, ");
 							osDelay(2);
-							chLicznikTimeoutu++;
-							if (chLicznikTimeoutu > 100)
+							cLicznikTimeoutu++;
+							if (cLicznikTimeoutu > 100)
 							{
 								printf("Timeout\r\n");
-								chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+								cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 								return BLAD_TIMEOUT;
 							}
 						}
 					}
-					if (chStatusBufJpeg & STAT_JPG_OTWORZ)
+					if (cStatusBufJpeg & STAT_JPG_OTWORZ)
 						osDelay(5);	//daj czas na otwarcie pliku
-				} while (chDaneDoZapisu);
+				} while (cDaneDoZapisu);
 
 			}		// czy połowa lub cały bufor
 		}		//petla po połowie bloków na szerokosci obrazu
 	}		//pętla po wierszu bloków 8x8 na wysokości obrazu
 
 	//Obsługa końcówki obrazu jeżeli nie jest podzielna przez ILOSC_BUF_WE_MCU / 2
-	if (chWskNapBufMcu)
+	if (cWskNapBufMcu)
 	{
-		if (chWskNapBufMcu <= ILOSC_BUF_WE_MCU/2)
-			HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, chWskNapBufMcu * ROZMIAR_BLOKU);	//pierwsza połowa bufora
+		if (cWskNapBufMcu <= ILOSC_BUF_WE_MCU/2)
+			HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU, cWskNapBufMcu * ROZMIAR_BLOKU);	//pierwsza połowa bufora
 		else
 		{
-			HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU + ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, (ILOSC_BUF_WE_MCU - chWskNapBufMcu) * ROZMIAR_BLOKU);	//druga połowa
-			chWskNapBufMcu = 0;	//zacznij napełniać od początku
+			HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU + ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, (ILOSC_BUF_WE_MCU - cWskNapBufMcu) * ROZMIAR_BLOKU);	//druga połowa
+			cWskNapBufMcu = 0;	//zacznij napełniać od początku
 		}
 
-		chDaneDoZapisu = 1;
+		cDaneDoZapisu = 1;
 		do
 		{
-			if (chStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
+			if (cStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
 			{
 				cBłąd = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję
-				chStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
-				chDaneDoZapisu = 0;
-				printf("Ostatnia porcja %d MCU, ", chWskNapBufMcu);
+				cStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
+				cDaneDoZapisu = 0;
+				printf("Ostatnia porcja %d MCU, ", cWskNapBufMcu);
 			}
 			else
 				osDelay(1);
-		} while (chDaneDoZapisu);
+		} while (cDaneDoZapisu);
 	}
 
 	cBłąd = CzekajNaKoniecPracyJPEG();
-	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+	cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	return cBłąd;
 }
 
@@ -830,20 +830,20 @@ uint8_t KompresujRGB888doYUV444(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 	uint32_t nOffsetWiersza, nOffsetBloku, nOffsetWierszaBlokow;
 	uint32_t nOfsetWe ;
 	uint32_t nOffsetWyjscia;
-	uint16_t chLiczbaBlokow = sSzerokosc / 8;
+	uint16_t cLiczbaBlokow = sSzerokosc / 8;
 	uint8_t chR, chG, chB;
 	uint8_t chY;
 	int8_t chCb, chCr;
-	uint8_t cBłąd, chDaneDoZapisu;
+	uint8_t cBłąd, cDaneDoZapisu;
 	uint16_t sIloscBlokowPionowo = sWysokosc / 8;
-	uint8_t chLicznikTimeoutu = 0;
+	uint8_t cLicznikTimeoutu = 0;
 
-	chWskNapBufJpeg = chWskOprBufJpeg = 0;
+	cWskNapBufJpeg = cWskOprBufJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
 	sZajetoscBuforaWeJpeg = 0;
-	chWskNapBufMcu = 0;
-	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
-	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
+	cWskNapBufMcu = 0;
+	cStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
+	cStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
 	cBłąd = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_444_SUBSAMPLING, chJakosc);
 	if (cBłąd)
@@ -851,15 +851,15 @@ uint8_t KompresujRGB888doYUV444(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
 		printf("Blad konf JPEG: %ld\r\n", hjpeg.ErrorCode);
-		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+		cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 		return cBłąd;
 	}
-	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
+	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &cBuforJpeg[cWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 
 	for (uint16_t by=0; by<sIloscBlokowPionowo; by++)	//pętla po wierszu bloków 8x8 na wysokości obrazu
 	{
-		nOffsetWierszaBlokow = by * chLiczbaBlokow * LICZBA_KOLOR_RGB888 * ROZMIAR_BLOKU;
-		for (uint8_t bx=0; bx<chLiczbaBlokow; bx++)	//petla blokach na szerokosci obrazu
+		nOffsetWierszaBlokow = by * cLiczbaBlokow * LICZBA_KOLOR_RGB888 * ROZMIAR_BLOKU;
+		for (uint8_t bx=0; bx<cLiczbaBlokow; bx++)	//petla blokach na szerokosci obrazu
 		{
 			//rozpocznij formowanie MCU
 			nOffsetBloku =  bx * SZEROKOSC_BLOKU * LICZBA_KOLOR_RGB888;
@@ -877,83 +877,83 @@ uint8_t KompresujRGB888doYUV444(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 					KonwersjaRGB888doYCbCr(chR, chG, chB, &chY, &chCb, &chCr);
 
 					//Formowanie MCU
-					nOffsetWyjscia = (chWskNapBufMcu * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU) + x;
-					chBuforMCU[nOffsetWyjscia + 0 * ROZMIAR_BLOKU] = chY;
-					chBuforMCU[nOffsetWyjscia + 1 * ROZMIAR_BLOKU] = chCb;
-					chBuforMCU[nOffsetWyjscia + 2 * ROZMIAR_BLOKU] = chCr;
+					nOffsetWyjscia = (cWskNapBufMcu * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU) + x;
+					cBuforMCU[nOffsetWyjscia + 0 * ROZMIAR_BLOKU] = chY;
+					cBuforMCU[nOffsetWyjscia + 1 * ROZMIAR_BLOKU] = chCb;
+					cBuforMCU[nOffsetWyjscia + 2 * ROZMIAR_BLOKU] = chCr;
 				}
 			}
 
 			//MCU gotowe
-			chWskNapBufMcu += 3;
+			cWskNapBufMcu += 3;
 			sZajetoscBuforaWeJpeg += 3 * ROZMIAR_BLOKU;
 
 			//jeżeli bufor wejściowy jest przepełniony, to przerwij pracę i posprzątaj po sobie
 			if (sZajetoscBuforaWeJpeg > (ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU))
 			{
-				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
+				cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
 				return BLAD_BUF_OVERRUN;
 			}
 
 			//używam podwójnego buforowania, więc dzielę bufor na 2 części. Jedna jest napełnianam tutaj, druga opróżniana przez MDMA Jpega
-			if ((chWskNapBufMcu == ILOSC_BUF_WE_MCU/2) || (chWskNapBufMcu == ILOSC_BUF_WE_MCU))		//czy mamy już połowę bufora lub cały bufor? Dla Y8 1 blok = 1 MCU
+			if ((cWskNapBufMcu == ILOSC_BUF_WE_MCU/2) || (cWskNapBufMcu == ILOSC_BUF_WE_MCU))		//czy mamy już połowę bufora lub cały bufor? Dla Y8 1 blok = 1 MCU
 			{
 				//wskaż na źródło danych w pierwszej lub drugiej połowie bufora
-				if (chWskNapBufMcu == ILOSC_BUF_WE_MCU/2)
-					HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//pierwsza połowa bufora
+				if (cWskNapBufMcu == ILOSC_BUF_WE_MCU/2)
+					HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//pierwsza połowa bufora
 				else
 				{
-					HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU + ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//druga połowa
-					chWskNapBufMcu = 0;	//zacznij napełniać od początku
+					HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU + ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//druga połowa
+					cWskNapBufMcu = 0;	//zacznij napełniać od początku
 				}
 
 				//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
-				chDaneDoZapisu = 1;
+				cDaneDoZapisu = 1;
 				do
 				{
 					if (hjpeg.State == HAL_JPEG_STATE_READY)
 					{
 						//czyść cache
-						SCB_CleanInvalidateDCache_by_Addr((uint32_t*)chBuforMCU, ROZMIAR_BLOKU * ILOSC_BUF_WE_MCU / 4);
-						SCB_CleanInvalidateDCache_by_Addr((uint32_t*)chBuforJpeg, ROZM_BUF_WY_JPEG);
-						cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, ROZMIAR_BLOKU * ILOSC_BUF_WE_MCU / 2, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
-						chDaneDoZapisu = 0;
+						SCB_CleanInvalidateDCache_by_Addr((uint32_t*)cBuforMCU, ROZMIAR_BLOKU * ILOSC_BUF_WE_MCU / 4);
+						SCB_CleanInvalidateDCache_by_Addr((uint32_t*)cBuforJpeg, ROZM_BUF_WY_JPEG);
+						cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, cBuforMCU, ROZMIAR_BLOKU * ILOSC_BUF_WE_MCU / 2, cBuforJpeg[cWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+						cDaneDoZapisu = 0;
 						printf("Start, ");
 					}
 					else
 					{
-						if (chStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
+						if (cStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
 						{
 							cBłąd = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję
-							chStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
-							chDaneDoZapisu = 0;
-							chLicznikTimeoutu = 0;
+							cStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
+							cDaneDoZapisu = 0;
+							cLicznikTimeoutu = 0;
 							//printf("Wzn, ");
 						}
 						else
 						{
 							printf("Cze, ");
 							osDelay(2);
-							chLicznikTimeoutu++;
-							if (chLicznikTimeoutu > 100)
+							cLicznikTimeoutu++;
+							if (cLicznikTimeoutu > 100)
 							{
 								printf("Timeout\r\n");
-								chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+								cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 								return BLAD_TIMEOUT;
 							}
 						}
 					}
-					if (chStatusBufJpeg & STAT_JPG_OTWORZ)
+					if (cStatusBufJpeg & STAT_JPG_OTWORZ)
 						osDelay(5);	//daj czas na otwarcie pliku
-				} while (chDaneDoZapisu);
+				} while (cDaneDoZapisu);
 
 			}	// czy połowa lub cały bufor
 		}	//bx
 	}	//by
 
 	cBłąd = CzekajNaKoniecPracyJPEG();
-	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+	cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	return cBłąd;
 }
 
@@ -975,16 +975,16 @@ uint8_t KompresujRGB888doYUV422(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 	uint8_t chR, chG, chB;
 	uint8_t chY1, chY2;
 	int8_t chCb, chCr;
-	uint8_t cBłąd, chDaneDoZapisu;
+	uint8_t cBłąd, cDaneDoZapisu;
 	uint16_t sIloscBlokowPionowo = sWysokosc / 8;
-	uint8_t chLicznikTimeoutu = 0;
+	uint8_t cLicznikTimeoutu = 0;
 
-	chWskNapBufJpeg = chWskOprBufJpeg = 0;
+	cWskNapBufJpeg = cWskOprBufJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
 	sZajetoscBuforaWeJpeg = 0;
-	chWskNapBufMcu = 0;
-	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
-	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
+	cWskNapBufMcu = 0;
+	cStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
+	cStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
 	cBłąd = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_422_SUBSAMPLING, chJakosc);
 	if (cBłąd)
@@ -992,10 +992,10 @@ uint8_t KompresujRGB888doYUV422(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
 		printf("Blad konf JPEG: %ld\r\n", hjpeg.ErrorCode);
-		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+		cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 		return cBłąd;
 	}
-	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
+	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &cBuforJpeg[cWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 
 	for (uint16_t by=0; by<sIloscBlokowPionowo; by++)	//pętla po wierszu bloków 8x8 na wysokości obrazu
 	{
@@ -1024,81 +1024,81 @@ uint8_t KompresujRGB888doYUV422(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 					KonwersjaRGB888doYCbCr(chR, chG, chB, &chY2, NULL, NULL);
 
 					//Formowanie MCU
-					nOffsetWyjscia = (chWskNapBufMcu * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU) + x;
-					chBuforMCU[nOffsetWyjscia + 0 * ROZMIAR_BLOKU] = chY1;
-					chBuforMCU[nOffsetWyjscia + 1 * ROZMIAR_BLOKU] = chY2;
-					chBuforMCU[nOffsetWyjscia + 2 * ROZMIAR_BLOKU] = chCb;
-					chBuforMCU[nOffsetWyjscia + 3 * ROZMIAR_BLOKU] = chCr;
+					nOffsetWyjscia = (cWskNapBufMcu * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU) + x;
+					cBuforMCU[nOffsetWyjscia + 0 * ROZMIAR_BLOKU] = chY1;
+					cBuforMCU[nOffsetWyjscia + 1 * ROZMIAR_BLOKU] = chY2;
+					cBuforMCU[nOffsetWyjscia + 2 * ROZMIAR_BLOKU] = chCb;
+					cBuforMCU[nOffsetWyjscia + 3 * ROZMIAR_BLOKU] = chCr;
 				}
 			}
 
 			//MCU gotowe
-			chWskNapBufMcu += 4;
+			cWskNapBufMcu += 4;
 			sZajetoscBuforaWeJpeg += 4 * ROZMIAR_BLOKU;
 
 			//jeżeli bufor wejściowy jest przepełniony, to przerwij pracę i posprzątaj po sobie
 			if (sZajetoscBuforaWeJpeg > (ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU))
 			{
-				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
+				cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
 				return BLAD_BUF_OVERRUN;
 			}
 
 			//używam podwójnego buforowania, więc dzielę bufor na 2 części. Jedna jest napełnianam tutaj, druga opróżniana przez MDMA Jpega
-			if ((chWskNapBufMcu == ILOSC_BUF_WE_MCU/2) || (chWskNapBufMcu == ILOSC_BUF_WE_MCU))		//czy mamy już połowę bufora lub cały bufor? Dla Y8 1 blok = 1 MCU
+			if ((cWskNapBufMcu == ILOSC_BUF_WE_MCU/2) || (cWskNapBufMcu == ILOSC_BUF_WE_MCU))		//czy mamy już połowę bufora lub cały bufor? Dla Y8 1 blok = 1 MCU
 			{
 				//wskaż na źródło danych w pierwszej lub drugiej połowie bufora
-				if (chWskNapBufMcu == ILOSC_BUF_WE_MCU/2)
-					HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//pierwsza połowa bufora
+				if (cWskNapBufMcu == ILOSC_BUF_WE_MCU/2)
+					HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//pierwsza połowa bufora
 				else
 				{
-					HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU + ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//druga połowa
-					chWskNapBufMcu = 0;	//zacznij napełniać od początku
+					HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU + ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//druga połowa
+					cWskNapBufMcu = 0;	//zacznij napełniać od początku
 				}
 
 				//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
-				chDaneDoZapisu = 1;
+				cDaneDoZapisu = 1;
 				do
 				{
 					if (hjpeg.State == HAL_JPEG_STATE_READY)
 					{
-						cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, ROZMIAR_BLOKU * ILOSC_BUF_WE_MCU / 2, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
-						chDaneDoZapisu = 0;
+						cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, cBuforMCU, ROZMIAR_BLOKU * ILOSC_BUF_WE_MCU / 2, cBuforJpeg[cWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+						cDaneDoZapisu = 0;
 						printf("Start, ");
 					}
 					else
 					{
-						if (chStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
+						if (cStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
 						{
 							cBłąd = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję
-							chStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
-							chDaneDoZapisu = 0;
-							chLicznikTimeoutu = 0;
+							cStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
+							cDaneDoZapisu = 0;
+							cLicznikTimeoutu = 0;
 							//printf("Wzn, ");
 						}
 						else
 						{
 							printf("Cze, ");
 							osDelay(2);
-							chLicznikTimeoutu++;
-							if (chLicznikTimeoutu > 100)
+							cLicznikTimeoutu++;
+							if (cLicznikTimeoutu > 100)
 							{
 								printf("Timeout\r\n");
-								chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+								cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 								return BLAD_TIMEOUT;
 							}
 						}
 					}
-					if (chStatusBufJpeg & STAT_JPG_OTWORZ)
+					if (cStatusBufJpeg & STAT_JPG_OTWORZ)
 						osDelay(5);	//daj czas na otwarcie pliku
-				} while (chDaneDoZapisu);
+				} while (cDaneDoZapisu);
 
 			}	// czy połowa lub cały bufor
 		}	//bx
 	}	//by
 
 	cBłąd = CzekajNaKoniecPracyJPEG();
-	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+	cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	return cBłąd;
 }
 
@@ -1123,15 +1123,15 @@ uint8_t KompresujRGB888doYUV420(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 	uint8_t chR, chG, chB;
 	uint8_t chY1, chY2, chY3, chY4;	//luminancja 4 pikseli
 	int8_t chCb, chCr;				//chrominancja niebieska i czerwona
-	uint8_t cBłąd, chDaneDoZapisu;
-	uint8_t chLicznikTimeoutu = 0;
+	uint8_t cBłąd, cDaneDoZapisu;
+	uint8_t cLicznikTimeoutu = 0;
 
-	chWskNapBufJpeg = chWskOprBufJpeg = 0;
+	cWskNapBufJpeg = cWskOprBufJpeg = 0;
 	nRozmiarObrazuJPEG = 0;
 	sZajetoscBuforaWeJpeg = 0;
-	chWskNapBufMcu = 0;
-	chStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
-	chStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
+	cWskNapBufMcu = 0;
+	cStatusBufJpeg |= STAT_JPG_OTWORZ;		//ustaw flagę otwarcia pliku
+	cStatusBufJpeg &= ~(STAT_JPG_ZATRZYMANE_WE + STAT_JPG_ZATRZYMANE_WY + STAT_JPG_GOTOWY);	//kasuj flagi, które będą ustawiane w procesie
 
 	cBłąd = KonfigurujKompresjeJpeg(&stKonfJpeg, sSzerokosc, sWysokosc, JPEG_YCBCR_COLORSPACE, JPEG_420_SUBSAMPLING, chJakosc);
 	if (cBłąd)
@@ -1139,10 +1139,10 @@ uint8_t KompresujRGB888doYUV420(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 		if (hjpeg.State == HAL_JPEG_STATE_BUSY_ENCODING)
 			HAL_JPEG_Abort(&hjpeg);
 		printf("Blad konf JPEG: %ld\r\n", hjpeg.ErrorCode);
-		chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+		cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 		return cBłąd;
 	}
-	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &chBuforJpeg[chWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
+	HAL_JPEG_ConfigOutputBuffer(&hjpeg, &cBuforJpeg[cWskNapBufJpeg][0], ROZM_BUF_WY_JPEG);
 
 	for (uint16_t by=0; by<chLiczbaParBlokowY; by++)	//pętla po parze wierszy bloków 8x8 na wysokości obrazu
 	{
@@ -1187,83 +1187,83 @@ uint8_t KompresujRGB888doYUV420(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint1
 					KonwersjaRGB888doYCbCr(chR, chG, chB, &chY4, NULL, NULL);
 
 					//Formowanie MCU
-					nOffsetWyjscia = (chWskNapBufMcu * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU) + x;
-					chBuforMCU[nOffsetWyjscia + 0 * ROZMIAR_BLOKU] = chY1;
-					chBuforMCU[nOffsetWyjscia + 1 * ROZMIAR_BLOKU] = chY2;
-					chBuforMCU[nOffsetWyjscia + 2 * ROZMIAR_BLOKU] = chY3;
-					chBuforMCU[nOffsetWyjscia + 3 * ROZMIAR_BLOKU] = chY4;
-					chBuforMCU[nOffsetWyjscia + 4 * ROZMIAR_BLOKU] = chCb;
-					chBuforMCU[nOffsetWyjscia + 5 * ROZMIAR_BLOKU] = chCr;
+					nOffsetWyjscia = (cWskNapBufMcu * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU) + x;
+					cBuforMCU[nOffsetWyjscia + 0 * ROZMIAR_BLOKU] = chY1;
+					cBuforMCU[nOffsetWyjscia + 1 * ROZMIAR_BLOKU] = chY2;
+					cBuforMCU[nOffsetWyjscia + 2 * ROZMIAR_BLOKU] = chY3;
+					cBuforMCU[nOffsetWyjscia + 3 * ROZMIAR_BLOKU] = chY4;
+					cBuforMCU[nOffsetWyjscia + 4 * ROZMIAR_BLOKU] = chCb;
+					cBuforMCU[nOffsetWyjscia + 5 * ROZMIAR_BLOKU] = chCr;
 				}
 			}
 
 			//MCU gotowe
-			chWskNapBufMcu += 6;
+			cWskNapBufMcu += 6;
 			sZajetoscBuforaWeJpeg += 6 * ROZMIAR_BLOKU;
 
 			//jeżeli bufor wejściowy jest przepełniony, to przerwij pracę i posprzątaj po sobie
 			if (sZajetoscBuforaWeJpeg > (ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU))
 			{
-				chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
+				cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//wymuś zamknięcie otwartego pliku
 				printf("Zatrzymano, ");
 				return BLAD_BUF_OVERRUN;
 			}
 
 			//Używam podwójnego buforowania, więc dzielę bufor na 2 części: jedna jest napełniana tutaj, druga opróżniana przez MDMA Jpega
-			if ((chWskNapBufMcu == ILOSC_BUF_WE_MCU/2) || (chWskNapBufMcu == ILOSC_BUF_WE_MCU))		//czy mamy już połowę bufora lub cały bufor? Dla Y8 1 blok = 1 MCU
+			if ((cWskNapBufMcu == ILOSC_BUF_WE_MCU/2) || (cWskNapBufMcu == ILOSC_BUF_WE_MCU))		//czy mamy już połowę bufora lub cały bufor? Dla Y8 1 blok = 1 MCU
 			{
 				//Wskaż na źródło danych w pierwszej lub drugiej połowie bufora
-				if (chWskNapBufMcu == ILOSC_BUF_WE_MCU/2)
-					HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//pierwsza połowa bufora
+				if (cWskNapBufMcu == ILOSC_BUF_WE_MCU/2)
+					HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//pierwsza połowa bufora
 				else
 				{
-					HAL_JPEG_ConfigInputBuffer(&hjpeg, chBuforMCU + ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//druga połowa
-					chWskNapBufMcu = 0;	//zacznij napełniać od początku
+					HAL_JPEG_ConfigInputBuffer(&hjpeg, cBuforMCU + ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU, ILOSC_BUF_WE_MCU / 2 * ROZMIAR_BLOKU);	//druga połowa
+					cWskNapBufMcu = 0;	//zacznij napełniać od początku
 				}
 
 				//kompresja bufora MCU na bieżąco aby nie przechowywać danych i nie czekać później na zakończenie
-				chDaneDoZapisu = 1;
+				cDaneDoZapisu = 1;
 				do
 				{
 					if (hjpeg.State == HAL_JPEG_STATE_READY)
 					{
-						cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, chBuforMCU, ROZMIAR_BLOKU * ILOSC_BUF_WE_MCU / 2, chBuforJpeg[chWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
-						chDaneDoZapisu = 0;
+						cBłąd = HAL_JPEG_Encode_DMA(&hjpeg, cBuforMCU, ROZMIAR_BLOKU * ILOSC_BUF_WE_MCU / 2, cBuforJpeg[cWskNapBufJpeg], ROZM_BUF_WY_JPEG);	//rozpocznij kompresję
+						cDaneDoZapisu = 0;
 						printf("Start, ");
 					}
 					else
 					{
-						if (chStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
+						if (cStatusBufJpeg & STAT_JPG_ZATRZYMANE_WE)
 						{
 							cBłąd = HAL_JPEG_Resume(&hjpeg, JPEG_PAUSE_RESUME_INPUT);		//wznów kompresję
-							chStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
-							chDaneDoZapisu = 0;
-							chLicznikTimeoutu = 0;
+							cStatusBufJpeg &= ~STAT_JPG_ZATRZYMANE_WE;
+							cDaneDoZapisu = 0;
+							cLicznikTimeoutu = 0;
 							//printf("Wzn, ");
 						}
 						else
 						{
 							printf("Cze, ");
 							osDelay(2);
-							chLicznikTimeoutu++;
-							if (chLicznikTimeoutu > 100)
+							cLicznikTimeoutu++;
+							if (cLicznikTimeoutu > 100)
 							{
 								printf("Timeout\r\n");
-								chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+								cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 								return BLAD_TIMEOUT;
 							}
 						}
 					}
-					if (chStatusBufJpeg & STAT_JPG_OTWORZ)
+					if (cStatusBufJpeg & STAT_JPG_OTWORZ)
 						osDelay(5);	//daj czas na otwarcie pliku
-				} while (chDaneDoZapisu);
+				} while (cDaneDoZapisu);
 
 			}	// czy połowa lub cały bufor
 		}	//bx
 	}	//by
 
 	cBłąd = CzekajNaKoniecPracyJPEG();
-	chStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
+	cStatusBufJpeg |= STAT_JPG_ZAMKNIJ;	//ustaw polecenia zamknięcia pliku
 	return cBłąd;
 }
 

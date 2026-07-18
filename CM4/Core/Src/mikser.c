@@ -17,8 +17,7 @@ uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania 
 uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
 extern unia_wymianyCM4_t uDaneCM4;
 extern volatile uint8_t chNumerKanSerw;
-extern uint8_t chTrybRegulacji[LICZBA_DRAZKOW];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
-extern uint8_t chKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC do funkcji drążków aparatury
+extern uint8_t cKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC do funkcji drążków aparatury
 
 
 
@@ -96,22 +95,22 @@ uint8_t LiczMikser(stMikser_t *mikser, stWymianyCM4_t *dane, stKonfPID_t *konfig
 	float fCosPrze, fCosPoch;
 	uint8_t cBłąd = BLAD_OK;
 
-	if(dane->chTrybLotu & BTR_UZBROJONY)
+	if(dane->cTrybLotu & BTR_UZBROJONY)
 	{
 		fCosPrze = cosf(dane->stBSP.fKatIMU[PRZE]);
 		fCosPoch = cosf(dane->stBSP.fKatIMU[POCH]);
 
 		//jeżeli drążek gazu podniesie się powyżej -90% to zaczynamy lot dodając wysterowanie dla zawisu
-		if (dane->sKanalRC[chKanalDrazkaRC[WYSO]] < WE_RC_M90)
+		if (dane->sKanalRC[cKanalDrazkaRC[WYSO]] < WE_RC_M90)
 		{
-			dane->chTrybLotu &= ~BTR_TRWA_LOT;
+			dane->cTrybLotu &= ~BTR_TRWA_LOT;
 			sGaz = sWysterowanieMin;
 		}
 		else
 		{
-			dane->chTrybLotu |= BTR_TRWA_LOT;
+			dane->cTrybLotu |= BTR_TRWA_LOT;
 			//sGaz = sWysterowanieZawisu;
-			sGaz = dane->sKanalRC[chKanalDrazkaRC[WYSO]];
+			sGaz = dane->sKanalRC[cKanalDrazkaRC[WYSO]];
 
 			//pionowa składowa ciągu statycznego potrzebnego do zawisu ma być niezależna od pochylenia i przechylenia
 			if (fCosPrze != 0.0f)	//niezerowy kosinus kąta

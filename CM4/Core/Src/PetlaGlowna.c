@@ -44,19 +44,19 @@ uint8_t cNrOdcinkaCzasu;
 uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU + 1];		//zmierzony czas obsługi odcinka. Na ostatniej pozycji jest czas jałowy
 uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
 uint8_t cBłądPG = BLAD_OK;		//błąd petli głównej
-uint8_t chStanIOwy, chStanIOwe;	//stan wejść IO modułów wewnetrznych
-extern uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
-extern volatile uint8_t chWskNapBufAnaGNSS, chWskOprBufAnaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
-uint16_t chTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po timeoucie inicjalizuje moduł.
-static uint8_t chEtapOperacjiI2C;
-uint8_t chGeneratorNapisow, chLicznikKomunikatow;
+uint8_t cStanIOwy, cStanIOwe;	//stan wejść IO modułów wewnetrznych
+extern uint8_t cBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
+extern volatile uint8_t cWskNapBufAnaGNSS, cWskOprBufAnaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
+uint16_t sTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po timeoucie inicjalizuje moduł.
+static uint8_t cEtapOperacjiI2C;
+uint8_t cGeneratorNapisow, cLicznikKomunikatow;
 extern I2C_HandleTypeDef hi2c3;
-volatile uint8_t chCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika obsługiwanego na zewntrznej magistrali I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
-volatile uint8_t chCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
-volatile uint8_t chCzujnikZapisywanyNaI2CInt;
-uint8_t chNoweDaneI2C;	//zestaw flag informujący o pojawieniu sie nowych danych odebranych na magistrali I2C
+volatile uint8_t cCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika obsługiwanego na zewntrznej magistrali I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
+volatile uint8_t cCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
+volatile uint8_t cCzujnikZapisywanyNaI2CInt;
+uint8_t cNoweDaneI2C;	//zestaw flag informujący o pojawieniu sie nowych danych odebranych na magistrali I2C
 extern uint16_t sLicznikCzasuKalibracji;
-uint8_t chPoprzedniRodzajPomiaru;	//okresla czy poprzedni pomiar magnetometrem MMC był ze zmianą przemagnesowania czy bez
+uint8_t cPoprzedniRodzajPomiaru;	//okresla czy poprzedni pomiar magnetometrem MMC był ze zmianą przemagnesowania czy bez
 float fPoleCzujnkaMMC[3];
 //extern stRC2_t stRC;		//struktura przechowująca dane odbiorników RC
 extern stRC_t stRC1, stRC2;	//struktura danych odbiorników RC1 i RC2
@@ -67,11 +67,11 @@ extern float fSkalaWartosciZadanejStab[LICZBA_DRAZKOW];	//wartość zadana dla p
 extern uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania obrotów minimalnych w trakcie lotu
 extern uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
 extern uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych
-extern uint8_t chTrybRegulacji[LICZBA_REG_PARAM];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
-extern uint8_t chFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wyjściowych: silnik, LED, retransmisja wejścia RC
-extern uint8_t chFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silników: normalna praca lub analiza FFT rezonansu drgań ramy
+extern uint8_t cTrybRegulacji[LICZBA_REG_PARAM];	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
+extern uint8_t cFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wyjściowych: silnik, LED, retransmisja wejścia RC
+extern uint8_t cFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silników: normalna praca lub analiza FFT rezonansu drgań ramy
 extern uint16_t sTS_CAL1, sTS_CAL2;	//wspólczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
-extern uint8_t chWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC2, bit1 = ADC3
+extern uint8_t cWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC2, bit1 = ADC3
 uint8_t cBityPozwoleniaNaPomiarADC;	//pole bitowe informujące który pomiar można wykonać w danym obiegu pętli
 extern uint16_t sWysterowanieIdentSiln;	//wysterowanie silników podczas procesu identfikacji
 
@@ -113,11 +113,11 @@ void PetlaGlowna(void)
 	case 11:	//moduł jest obsługiwany na 2 slotach aby szybciej dostarczać dane dla filtrów  i FFT
 
 	case ADR_MOD2:		//obsługa modułu w gnieździe 2
-		cBłądPG = ObslugaModuluI2P(ADR_MOD2, &chStanIOwy);
+		cBłądPG = ObslugaModuluI2P(ADR_MOD2, &cStanIOwy);
 		if (cBłądPG)
-			chStanIOwy &= ~MIO40;	//zaświeć czerwoną LED
+			cStanIOwy &= ~MIO40;	//zaświeć czerwoną LED
 		else
-			chStanIOwy |= MIO40;	//zgaś czerwoną LED
+			cStanIOwy |= MIO40;	//zgaś czerwoną LED
 		break;
 
 	case ADR_MOD3:		//obsługa modułu w gnieździe 3
@@ -129,31 +129,31 @@ void PetlaGlowna(void)
 		break;
 
 	case 4:		//obsługa GNSS na UART8
-		while (chWskNapBufAnaGNSS != chWskOprBufAnaGNSS)
+		while (cWskNapBufAnaGNSS != cWskOprBufAnaGNSS)
 		{
-			cBłądPG |= DekodujNMEA(chBuforAnalizyGNSS[chWskOprBufAnaGNSS]);	//analizuj dane z GNSS
-			chWskOprBufAnaGNSS++;
-			chWskOprBufAnaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
-			chTimeoutGNSS = TIMEOUT_GNSS;
+			cBłądPG |= DekodujNMEA(cBuforAnalizyGNSS[cWskOprBufAnaGNSS]);	//analizuj dane z GNSS
+			cWskOprBufAnaGNSS++;
+			cWskOprBufAnaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
+			sTimeoutGNSS = TIMEOUT_GNSS;
 		}
 		if ((uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY) == 0)
 		{
 			InicjujGNSS();		//gdy nie jest zainicjowany to przeprowadź odbiornik przez kolejne etapy inicjalizacji
 		}
-		if (chTimeoutGNSS)
-			chTimeoutGNSS--;
+		if (sTimeoutGNSS)
+			sTimeoutGNSS--;
 		else
 		{
-			chTimeoutGNSS = TIMEOUT_GNSS;
+			sTimeoutGNSS = TIMEOUT_GNSS;
 			uDaneCM4.dane.nZainicjowano &= ~MASKA_INIT_GNSS;	//wyczyść wszystkie bity używane przez GNSS
 			uDaneCM4.dane.stGnss1.chFix = 0;
 		}
 		break;
 
 	case 5:
-		uDaneCM4.dane.chNowyPomiar = 0;	//unieważnij wszystkie poprzednie pomiary. Flagi nowych pomiarów zostaną ustawnine w funkcji ObslugaCzujnikowI2C()
-		if (chNoweDaneI2C)
-			ObslugaCzujnikowI2C(&chNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C to je obrób
+		uDaneCM4.dane.cNowyPomiar = 0;	//unieważnij wszystkie poprzednie pomiary. Flagi nowych pomiarów zostaną ustawnine w funkcji ObslugaCzujnikowI2C()
+		if (cNoweDaneI2C)
+			ObslugaCzujnikowI2C(&cNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C to je obrób
 		cBłądPG |= RozdzielniaOperacjiI2C();
 		break;
 
@@ -179,7 +179,7 @@ void PetlaGlowna(void)
 
 	case 10:
 		//cBłądPG |= PobierzDaneExpandera(&chStanIOwe);		//wszystkie porty ustawione na wyjściowe, nie ma co pobierać
-		cBłądPG |= WyslijDaneExpandera(chStanIOwy); 	break;
+		cBłądPG |= WyslijDaneExpandera(cStanIOwy); 	break;
 
 	case 12:	//wymień dane między rdzeniami
 		uDaneCM4.dane.cBladPetliGlownej = cBłądPG;
@@ -192,7 +192,7 @@ void PetlaGlowna(void)
 		break;
 
 	case 15:	//pozwól na testowe uruchomienie inicjalizacji
-		if (chBuforAnalizyGNSS[0] == 0xFF)
+		if (cBuforAnalizyGNSS[0] == 0xFF)
 		{
 			InicjujMikser();
 			//InicjujWyjsciaRC();
@@ -215,7 +215,7 @@ void PetlaGlowna(void)
 		}*/
 		break;
 
-	case 17:	cBłądPG |= KontrolerLotu(chTrybRegulacji, ndT, &uDaneCM4.dane, stKonfigPID);	break;
+	case 17:	cBłądPG |= KontrolerLotu(cTrybRegulacji, ndT, &uDaneCM4.dane, stKonfigPID);	break;
 	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID);	break;
 	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;
 	default:	break;
@@ -249,11 +249,11 @@ void PetlaGlowna(void)
 ////////////////////////////////////////////////////////////////////////////////
 void WykonajPolecenieCM7(void)
 {
-	if ((uDaneCM7.dane.chWykonajPolecenie != uDaneCM4.dane.chPotwierdzenieWykonania) | (uDaneCM7.dane.sAdres != uDaneCM4.dane.sAdres))
+	if ((uDaneCM7.dane.cWykonajPolecenie != uDaneCM4.dane.cPotwierdzenieWykonania) | (uDaneCM7.dane.sAdres != uDaneCM4.dane.sAdres))
 	{
-		uDaneCM4.dane.chPotwierdzenieWykonania = uDaneCM7.dane.chWykonajPolecenie;	//domyślnie odeślij to co przyszło aby potwierdzić wykonanie
+		uDaneCM4.dane.cPotwierdzenieWykonania = uDaneCM7.dane.cWykonajPolecenie;	//domyślnie odeślij to co przyszło aby potwierdzić wykonanie
 		uDaneCM4.dane.sAdres = uDaneCM7.dane.sAdres;	//potwierdź wykonanie operacji na tym adresie aby można było wykonać kolejną operację
-		switch(uDaneCM7.dane.chWykonajPolecenie)
+		switch(uDaneCM7.dane.cWykonajPolecenie)
 		{
 		case POL7_NIC:	break;		//polecenie neutralne
 		case POL7_KALIBRUJ_ZYRO_ZIM:	RozpocznijKalibracjeZeraZyroskopu(POL7_KALIBRUJ_ZYRO_ZIM);	break;		//uruchom kalibrację żyroskopów na zimno 10°C
@@ -263,7 +263,7 @@ void WykonajPolecenieCM7(void)
 		case POL7_KALIBRUJ_ZYRO_WZMP:		//uruchom kalibrację wzmocnienia żyroskopów P
 		case POL7_KALIBRUJ_ZYRO_WZMQ:		//uruchom kalibrację wzmocnienia żyroskopów Q
 		case POL7_KALIBRUJ_ZYRO_WZMR:		//uruchom kalibrację wzmocnienia żyroskopów R
-		case POL7_ZERUJ_CALKE_ZYRO:	KalibracjaWzmocnieniaZyro(uDaneCM7.dane.chWykonajPolecenie);	break;	//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
+		case POL7_ZERUJ_CALKE_ZYRO:	KalibracjaWzmocnieniaZyro(uDaneCM7.dane.cWykonajPolecenie);	break;	//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
 
 		case POL7_CZYTAJ_WZM_ZYROP:	//odczytaj wzmocnienia żyroskopów P
 			uDaneCM4.dane.uRozne.f32[2] = CzytajFramFloat(FAH_ZYRO1P_WZMOC);
@@ -296,14 +296,14 @@ void WykonajPolecenieCM7(void)
 			if (ZerujEkstremaMagnetometru())
 			{
 				//uDaneCM4.dane.chOdpowiedzNaPolecenie = POL7_NIC;	//jeżeli dane nie są jeszcze wyzerowane to zwróć inną odpowiedź niż numer polecenia
-				uDaneCM4.dane.chPotwierdzenieWykonania = POL7_NIC;	//jeżeli dane nie są jeszcze wyzerowane to zwróć inną odpowiedź niż numer polecenia
-				//chStanIOwy &= ~MIO40;	//zaświeć czerwoną LED
-				//chStanIOwy |= MIO41;	//zgaś zieloną LED
+				uDaneCM4.dane.cPotwierdzenieWykonania = POL7_NIC;	//jeżeli dane nie są jeszcze wyzerowane to zwróć inną odpowiedź niż numer polecenia
+				//cStanIOwy &= ~MIO40;	//zaświeć czerwoną LED
+				//cStanIOwy |= MIO41;	//zgaś zieloną LED
 			}
 			else
 			{
-				//chStanIOwy |= MIO40;	//zgaś czerwoną LED
-				//chStanIOwy &= ~MIO41;	//zaświeć zieloną LED
+				//cStanIOwy |= MIO40;	//zgaś czerwoną LED
+				//cStanIOwy &= ~MIO41;	//zaświeć zieloną LED
 			}
 			break;
 
@@ -327,33 +327,33 @@ void WykonajPolecenieCM7(void)
 			break;
 
 		case POL7_CZYTAJ_FRAM_U8:
-			if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_CHAR)
-				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_CHAR;
-			CzytajBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM4.dane.uRozne.U8, (uint16_t)uDaneCM7.dane.chRozmiar);
-			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
+			if (uDaneCM7.dane.cRozmiar > ROZMIAR_ROZNE_CHAR)
+				uDaneCM7.dane.cRozmiar = ROZMIAR_ROZNE_CHAR;
+			CzytajBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM4.dane.uRozne.U8, (uint16_t)uDaneCM7.dane.cRozmiar);
+			uDaneCM4.dane.cRozmiar = uDaneCM7.dane.cRozmiar;	//odeślij skorygowany rozmiar
 			break;
 
 		case POL7_CZYTAJ_FRAM_FLOAT:			//odczytaj i wyślij zawartość FRAM spod podanego adresu
-			if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_FLOAT)
-				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_FLOAT;
-			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
+			if (uDaneCM7.dane.cRozmiar > ROZMIAR_ROZNE_FLOAT)
+				uDaneCM7.dane.cRozmiar = ROZMIAR_ROZNE_FLOAT;
+			for (uint16_t n=0; n<uDaneCM7.dane.cRozmiar; n++)
 				uDaneCM4.dane.uRozne.f32[n] = CzytajFramFloat(uDaneCM7.dane.sAdres + n*4);
-			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
+			uDaneCM4.dane.cRozmiar = uDaneCM7.dane.cRozmiar;	//odeślij skorygowany rozmiar
 			break;
 
 		case POL7_ZAPISZ_FRAM_U8:	//zapisz dane uint8_t pod podany adres
-			if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_CHAR)
-				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_CHAR;
-			ZapiszBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM7.dane.uRozne.U8, (uint16_t)uDaneCM7.dane.chRozmiar);
-			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
+			if (uDaneCM7.dane.cRozmiar > ROZMIAR_ROZNE_CHAR)
+				uDaneCM7.dane.cRozmiar = ROZMIAR_ROZNE_CHAR;
+			ZapiszBuforFRAM(uDaneCM7.dane.sAdres, uDaneCM7.dane.uRozne.U8, (uint16_t)uDaneCM7.dane.cRozmiar);
+			uDaneCM4.dane.cRozmiar = uDaneCM7.dane.cRozmiar;	//odeślij skorygowany rozmiar
 			break;
 
 		case POL7_ZAPISZ_FRAM_FLOAT:			//zapisz przekazane dane typu float do FRAM pod podany adres
-			if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_FLOAT)
-				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_FLOAT;
-			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
+			if (uDaneCM7.dane.cRozmiar > ROZMIAR_ROZNE_FLOAT)
+				uDaneCM7.dane.cRozmiar = ROZMIAR_ROZNE_FLOAT;
+			for (uint16_t n=0; n<uDaneCM7.dane.cRozmiar; n++)
 				ZapiszFramFloat(uDaneCM7.dane.sAdres + n*4, uDaneCM7.dane.uRozne.f32[n]);
-			uDaneCM4.dane.chRozmiar = uDaneCM7.dane.chRozmiar;	//odeślij skorygowany rozmiar
+			uDaneCM4.dane.cRozmiar = uDaneCM7.dane.cRozmiar;	//odeślij skorygowany rozmiar
 			break;
 
 		case POL7_KASUJ_DRYFT_ZYRO:
@@ -375,15 +375,15 @@ void WykonajPolecenieCM7(void)
 
 		case POL7_ZAPISZ_KONFIG_PID:
 	#ifdef TESTY
-			assert(uDaneCM7.dane.chRozmiar == ROZMIAR_REG_PID / sizeof(float));
+			assert(uDaneCM7.dane.cRozmiar == ROZMIAR_REG_PID / sizeof(float));
 	#endif
-			if (uDaneCM7.dane.chRozmiar > ROZMIAR_ROZNE_FLOAT)
-				uDaneCM7.dane.chRozmiar = ROZMIAR_ROZNE_FLOAT;
+			if (uDaneCM7.dane.cRozmiar > ROZMIAR_ROZNE_FLOAT)
+				uDaneCM7.dane.cRozmiar = ROZMIAR_ROZNE_FLOAT;
 			uint8_t chIndeksRegulatora = (uint8_t)uDaneCM7.dane.sAdres;
 			uint16_t sAdresFram = FA_USER_PID +  chIndeksRegulatora * ROZMIAR_REG_PID;
 
 			//na początek zapisz 10 floatów i  wstaw je do pamięci
-			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
+			for (uint16_t n=0; n<uDaneCM7.dane.cRozmiar; n++)
 				ZapiszFramFloat(sAdresFram + n*4, uDaneCM7.dane.uRozne.f32[n]);
 
 			stKonfigPID[chIndeksRegulatora].fWzmP = uDaneCM7.dane.uRozne.f32[0];
@@ -394,19 +394,19 @@ void WykonajPolecenieCM7(void)
 			stKonfigPID[chIndeksRegulatora].fMaxWyj = uDaneCM7.dane.uRozne.f32[5];
 			stKonfigPID[chIndeksRegulatora].fSkalaWartZadanej = uDaneCM7.dane.uRozne.f32[6];
 			stKonfigPID[chIndeksRegulatora].fPrzesunWartZadanej = uDaneCM7.dane.uRozne.f32[7];
-			//float[8] jest zarezerowowany
+			stKonfigPID[chIndeksRegulatora].fWzmWyprz = uDaneCM7.dane.uRozne.f32[8];
 			//ostatni float[9] zawiera flagi i nastawy 3 filtrów
-			stKonfigPID[chIndeksRegulatora].chFlagi = uDaneCM7.dane.uRozne.U8[9*4+0];
-			stKonfigPID[chIndeksRegulatora].chPodstFiltraD = uDaneCM7.dane.uRozne.U8[9*4+1];
-			stKonfigPID[chIndeksRegulatora].chPodstFiltraWZad = uDaneCM7.dane.uRozne.U8[9*4+2];
-			stKonfigPID[chIndeksRegulatora].chProcWartZadWyprz = uDaneCM7.dane.uRozne.U8[9*4+3];
+			stKonfigPID[chIndeksRegulatora].cFlagi = uDaneCM7.dane.uRozne.U8[9*4+0];
+			stKonfigPID[chIndeksRegulatora].cPodstFiltraD = uDaneCM7.dane.uRozne.U8[9*4+1];
+			stKonfigPID[chIndeksRegulatora].cPodstFiltraWZad = uDaneCM7.dane.uRozne.U8[9*4+2];
+			stKonfigPID[chIndeksRegulatora].cPodstFiltraWej = uDaneCM7.dane.uRozne.U8[9*4+3];
 			break;
 
 		case POL7_ZAPISZ_PWM_NAPEDU:
 	#ifdef TESTY
-			assert(uDaneCM7.dane.chRozmiar == LICZBA_DANYCH_NAPEDU);	//zapisz 3 słowa 16-bitowe
+			assert(uDaneCM7.dane.cRozmiar == LICZBA_DANYCH_NAPEDU);	//zapisz 3 słowa 16-bitowe
 	#endif
-			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
+			for (uint16_t n=0; n<uDaneCM7.dane.cRozmiar; n++)
 				ZapiszFramU16(FAU_RC_WY_MIN + n*2, uDaneCM7.dane.uRozne.U16[n]);
 			sWysterowanieMin = uDaneCM7.dane.uRozne.U16[0];
 			sWysterowanieMax = uDaneCM7.dane.uRozne.U16[1];
@@ -415,11 +415,11 @@ void WykonajPolecenieCM7(void)
 
 		case POL7_ZAPISZ_TRYB_REG:	//rodzaj regulacji dla 4 podstawowych parametrów sterowanych z aparatury
 	#ifdef TESTY
-			assert(uDaneCM7.dane.chRozmiar == LICZBA_REG_PARAM);
+			assert(uDaneCM7.dane.cRozmiar == LICZBA_REG_PARAM);
 	#endif
-			ZapiszBuforFRAM(FAU_TRYB_REG, uDaneCM7.dane.uRozne.U8, uDaneCM7.dane.chRozmiar);
-			for (uint16_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
-				chTrybRegulacji[n] = uDaneCM7.dane.uRozne.U8[n];
+			ZapiszBuforFRAM(FAU_TRYB_REG, uDaneCM7.dane.uRozne.U8, uDaneCM7.dane.cRozmiar);
+			for (uint16_t n=0; n<uDaneCM7.dane.cRozmiar; n++)
+				cTrybRegulacji[n] = uDaneCM7.dane.uRozne.U8[n];
 			break;
 
 		case POL7_RESETUJ_CM4:
@@ -451,15 +451,15 @@ void WykonajPolecenieCM7(void)
 			for (uint16_t n=0; n<KANALY_MIKSERA; n++)
 			{
 				if (uDaneCM7.dane.uRozne.U8[1] & (1 << n))	//czy jest ustawiony bit aktywacji silnika w teście
-					chFunkcjaSilnika[n] = FSIL_AN_DRGAN;	//podmień źródło danych do silnika. Po zakonczeniu będzie potrzebne przeładowanie konfiguracji
+					cFunkcjaSilnika[n] = FSIL_AN_DRGAN;	//podmień źródło danych do silnika. Po zakonczeniu będzie potrzebne przeładowanie konfiguracji
 				else
-					chFunkcjaSilnika[n] = FSIL_ZATRZYMANY;	//pozostałe silniki zatrzymaj
+					cFunkcjaSilnika[n] = FSIL_ZATRZYMANY;	//pozostałe silniki zatrzymaj
 			}
 			break;
 
 		case POL7_PRZYWROC_NAPED:		//przywróć funkcję napędu dla silników po analizie FFT rezonansu ramy
 			for (uint16_t n=0; n<KANALY_MIKSERA; n++)
-				chFunkcjaSilnika[n] = FSIL_NAPED;
+				cFunkcjaSilnika[n] = FSIL_NAPED;
 			break;
 
 		case POL7_PRZELADUJ_PID:	InicjujPID();	break;	//ponownie załaduj konfigurację PID aby odświeżyć ustawienia po zmianie konfiguracji
@@ -483,9 +483,9 @@ void WykonajPolecenieCM7(void)
 			for (uint16_t n=0; n<KANALY_MIKSERA; n++)
 			{
 				if (uDaneCM7.dane.sAdres & (1 << n))	//czy jest ustawiony bit aktywacji silnika
-					chFunkcjaSilnika[n] = FSIL_IDENTYFIKACJA;	//podmień źródło danych do silnika. Po zakonńczeniu będzie potrzebne przeładowanie konfiguracji
+					cFunkcjaSilnika[n] = FSIL_IDENTYFIKACJA;	//podmień źródło danych do silnika. Po zakonńczeniu będzie potrzebne przeładowanie konfiguracji
 				else
-					chFunkcjaSilnika[n] = FSIL_ZATRZYMANY;	//pozostałe silniki zatrzymaj
+					cFunkcjaSilnika[n] = FSIL_ZATRZYMANY;	//pozostałe silniki zatrzymaj
 			}
 			break;
 
@@ -505,7 +505,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	uint8_t cBłąd = BLAD_OK;
 
 	//operacje na zewnętrznej magistrali I2C3
-	switch(chEtapOperacjiI2C)
+	switch(cEtapOperacjiI2C)
 	{
 	case 0:
 	case 2: cBłąd = ObslugaMS4525();		break;
@@ -515,7 +515,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	}
 
 	//operacje na wewnętrznej magistrali I2C4
-	switch(chEtapOperacjiI2C)
+	switch(cEtapOperacjiI2C)
 	{
 	case 0:
 	case 2:	cBłąd = ObslugaIIS2MDC();		break;
@@ -524,8 +524,8 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	default: break;
 	}
 
-	chEtapOperacjiI2C++;
-	chEtapOperacjiI2C &= 0x03;
+	cEtapOperacjiI2C++;
+	cEtapOperacjiI2C &= 0x03;
 	return cBłąd;
 }
 
@@ -540,20 +540,20 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
 	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych
 	{
-		if (chCzujnikZapisywanyNaI2CInt == MAG_IIS_STATUS)	//po zapisie wykonaj operację odczytu
+		if (cCzujnikZapisywanyNaI2CInt == MAG_IIS_STATUS)	//po zapisie wykonaj operację odczytu
 			MagIIS_CzytajStatus();
 
-		if (chCzujnikZapisywanyNaI2CInt == MAG_IIS)	//po zapisie wykonaj operację odczytu
+		if (cCzujnikZapisywanyNaI2CInt == MAG_IIS)	//po zapisie wykonaj operację odczytu
 			MagIIS_CzytajDane();
 
-		if (chCzujnikZapisywanyNaI2CInt == MAG_MMC_STATUS)	//po zapisie wykonaj operację odczytu
+		if (cCzujnikZapisywanyNaI2CInt == MAG_MMC_STATUS)	//po zapisie wykonaj operację odczytu
 			MagMMC_CzytajStatus();
 
-		if (chCzujnikZapisywanyNaI2CInt == MAG_MMC)	//po zapisie wykonaj operację odczytu
+		if (cCzujnikZapisywanyNaI2CInt == MAG_MMC)	//po zapisie wykonaj operację odczytu
 			MagMMC_CzytajDane();
 
 
-		chCzujnikZapisywanyNaI2CInt = 0;
+		cCzujnikZapisywanyNaI2CInt = 0;
 	}
 
 
@@ -570,27 +570,27 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
 	if (hi2c->Instance == I2C3)	//magistrala I2C modułów zewnętrznych
 	{
-		if (chCzujnikOdczytywanyNaI2CExt == MAG_HMC)	//magnetometr HMC5883
-			chNoweDaneI2C |= MAG_HMC;
+		if (cCzujnikOdczytywanyNaI2CExt == MAG_HMC)	//magnetometr HMC5883
+			cNoweDaneI2C |= MAG_HMC;
 		else
-		if (chCzujnikOdczytywanyNaI2CExt == CISN_ROZN_MS2545)	//ciśnienie różnicowe czujnika MS2545DO
-			chNoweDaneI2C |= CISN_ROZN_MS2545;
+		if (cCzujnikOdczytywanyNaI2CExt == CISN_ROZN_MS2545)	//ciśnienie różnicowe czujnika MS2545DO
+			cNoweDaneI2C |= CISN_ROZN_MS2545;
 		else
-		if (chCzujnikOdczytywanyNaI2CExt == CISN_TEMP_MS2545)	//ciśnienie różnicowe i temperatura czujnika MS2545DO
-			chNoweDaneI2C |= CISN_TEMP_MS2545;
+		if (cCzujnikOdczytywanyNaI2CExt == CISN_TEMP_MS2545)	//ciśnienie różnicowe i temperatura czujnika MS2545DO
+			cNoweDaneI2C |= CISN_TEMP_MS2545;
 
-		chCzujnikOdczytywanyNaI2CExt = 0;
+		cCzujnikOdczytywanyNaI2CExt = 0;
 	}
 
 	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych
 	{
-		if (chCzujnikOdczytywanyNaI2CInt == MAG_IIS)
-			chNoweDaneI2C |= MAG_IIS;
+		if (cCzujnikOdczytywanyNaI2CInt == MAG_IIS)
+			cNoweDaneI2C |= MAG_IIS;
 		else
-		if (chCzujnikOdczytywanyNaI2CInt == MAG_MMC)
-			chNoweDaneI2C |= MAG_MMC;
+		if (cCzujnikOdczytywanyNaI2CInt == MAG_MMC)
+			cNoweDaneI2C |= MAG_MMC;
 
-		chCzujnikOdczytywanyNaI2CInt = 0;
+		cCzujnikOdczytywanyNaI2CInt = 0;
 	}
 }
 
@@ -604,95 +604,95 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 {
-	extern uint8_t chDaneMagHMC[6];
-	extern uint8_t chDaneMagMMC[6];
-	extern uint8_t chDaneMagIIS[6];
-	extern uint8_t chDaneMS4525[5];
+	extern uint8_t cDaneMagHMC[6];
+	extern uint8_t cDaneMagMMC[6];
+	extern uint8_t cDaneMagIIS[6];
+	extern uint8_t cDaneMS4525[5];
 	extern int16_t sPomiarMMCH[3], sPomiarMMCL[3];	//wyniki pomiarów dla dodatniego i ujemnego namagnesowania czujnika
-	extern uint8_t chRodzajPomiaruMMC;
+	extern uint8_t cRodzajPomiaruMMC;
 	extern float fPrzesMagn1[3], fSkaloMagn1[3];
 	extern float fPrzesMagn2[3], fSkaloMagn2[3];
 	extern float fPrzesMagn3[3], fSkaloMagn3[3];
 	uint8_t cBłąd = BLAD_OK;
 	int16_t sZeZnakiem;	//zmiena robocza do konwersji dnych 8-bitowych bez znaku na liczbę 16-bitową ze znakiem
 	float fZeZnakiem;
-	const int8_t chZnakIIS[3] = {1, -1, -1};	//magnetometr 1: odwrotnie jest oś Z, ale żeby ją odwrócić, trzeba zmienić też znak w osi X lub Y. Zmieniam w Y: OK
-	//const int8_t chZnakMMC[3] = {-1, 1, -1};	//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z - zle
-	const int8_t chZnakMMC[3] = {-1, -1, 1};		//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z
-	const int8_t chZnakHMC[3] = {1, -1, 1};	//magnetometr 3: jest OK
+	const int8_t cZnakIIS[3] = {1, -1, -1};	//magnetometr 1: odwrotnie jest oś Z, ale żeby ją odwrócić, trzeba zmienić też znak w osi X lub Y. Zmieniam w Y: OK
+	//const int8_t cZnakMMC[3] = {-1, 1, -1};	//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z - zle
+	const int8_t cZnakMMC[3] = {-1, -1, 1};		//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z
+	const int8_t cZnakHMC[3] = {1, -1, 1};	//magnetometr 3: jest OK
 
 	if (*chCzujniki & MAG_HMC)
 	{
 		//Uwaga! Czujnik HMS5883L ma osie w nietypowej kolejności XZY, więc konwersję trzeba wykonać ręcznie poza pętlą
-		sZeZnakiem = ((int16_t)chDaneMagHMC[0] * 0x100 + chDaneMagHMC[1]) * chZnakHMC[0];	//oś X
-		if ((uDaneCM7.dane.chWykonajPolecenie == POL7_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.chWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
+		sZeZnakiem = ((int16_t)cDaneMagHMC[0] * 0x100 + cDaneMagHMC[1]) * cZnakHMC[0];	//oś X
+		if ((uDaneCM7.dane.cWykonajPolecenie == POL7_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.cWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
 			uDaneCM4.dane.fMagne3[0] = (float)sZeZnakiem * CZULOSC_HMC5883;			//dane surowe podczas kalibracji magnetometru wyrażone w Teslach
 		else
 			uDaneCM4.dane.fMagne3[0] = ((float)sZeZnakiem * CZULOSC_HMC5883 - fPrzesMagn3[0]) * fSkaloMagn3[0];	//dane skalibrowane
 
-		sZeZnakiem = ((int16_t)chDaneMagHMC[4] * 0x100 + chDaneMagHMC[5]) * chZnakHMC[1];	//oś Y
-		if ((uDaneCM7.dane.chWykonajPolecenie == POL7_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.chWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
+		sZeZnakiem = ((int16_t)cDaneMagHMC[4] * 0x100 + cDaneMagHMC[5]) * cZnakHMC[1];	//oś Y
+		if ((uDaneCM7.dane.cWykonajPolecenie == POL7_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.cWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
 			uDaneCM4.dane.fMagne3[1] = (float)sZeZnakiem * CZULOSC_HMC5883;			//dane surowe podczas kalibracji magnetometru
 		else
 			uDaneCM4.dane.fMagne3[1] = ((float)sZeZnakiem * CZULOSC_HMC5883 - fPrzesMagn3[1]) * fSkaloMagn3[1];	//dane skalibrowane
 
-		sZeZnakiem = ((int16_t)chDaneMagHMC[2] * 0x100 + chDaneMagHMC[3]) * chZnakHMC[2];	//oś Z
-		if ((uDaneCM7.dane.chWykonajPolecenie == POL7_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.chWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
+		sZeZnakiem = ((int16_t)cDaneMagHMC[2] * 0x100 + cDaneMagHMC[3]) * cZnakHMC[2];	//oś Z
+		if ((uDaneCM7.dane.cWykonajPolecenie == POL7_KAL_ZERO_MAGN3) ||  (uDaneCM7.dane.cWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
 			uDaneCM4.dane.fMagne3[2] = (float)sZeZnakiem * CZULOSC_HMC5883;			//dane surowe podczas kalibracji magnetometru
 		else
 			uDaneCM4.dane.fMagne3[2] = ((float)sZeZnakiem * CZULOSC_HMC5883 - fPrzesMagn3[2]) * fSkaloMagn3[2];	//dane skalibrowane
 		*chCzujniki &= ~MAG_HMC;	//dane obsłużone
-		uDaneCM4.dane.chNowyPomiar |= NP_MAG3;	//jest nowy pomiar
+		uDaneCM4.dane.cNowyPomiar |= NP_MAG3;	//jest nowy pomiar
 	}
 
 	if (*chCzujniki & CISN_ROZN_MS2545)
 	{
-		uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(chDaneMS4525);
+		uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(cDaneMS4525);
 		uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 		*chCzujniki &= ~CISN_ROZN_MS2545;	//dane obsłużone
-		uDaneCM4.dane.chNowyPomiar |= NP_EXT_IAS;	//jest nowy pomiar
+		uDaneCM4.dane.cNowyPomiar |= NP_EXT_IAS;	//jest nowy pomiar
 	}
 
 	if (*chCzujniki & CISN_TEMP_MS2545)
 	{
-		uDaneCM4.dane.fTemper[6] = TemperaturaMS2545(chDaneMS4525);
-		uDaneCM4.dane.fCisnRozn[1] = (15 * uDaneCM4.dane.fCisnRozn[1] + CisnienieMS2545(chDaneMS4525)) / 16;
+		uDaneCM4.dane.fTemper[6] = TemperaturaMS2545(cDaneMS4525);
+		uDaneCM4.dane.fCisnRozn[1] = (15 * uDaneCM4.dane.fCisnRozn[1] + CisnienieMS2545(cDaneMS4525)) / 16;
 		uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 		*chCzujniki &= ~CISN_TEMP_MS2545;	//dane obsłużone
-		uDaneCM4.dane.chNowyPomiar |= NP_EXT_IAS;	//jest nowy pomiar
+		uDaneCM4.dane.cNowyPomiar |= NP_EXT_IAS;	//jest nowy pomiar
 	}
 
 	if (*chCzujniki & MAG_IIS)
 	{
 		for (uint8_t n=0; n<3; n++)
 		{
-			sZeZnakiem = ((int16_t)chDaneMagIIS[2*n+1] * 0x100 + chDaneMagIIS[2*n]) * chZnakIIS[n];
-			if ((uDaneCM7.dane.chWykonajPolecenie == POL7_KAL_ZERO_MAGN1) || (uDaneCM7.dane.chWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
+			sZeZnakiem = ((int16_t)cDaneMagIIS[2*n+1] * 0x100 + cDaneMagIIS[2*n]) * cZnakIIS[n];
+			if ((uDaneCM7.dane.cWykonajPolecenie == POL7_KAL_ZERO_MAGN1) || (uDaneCM7.dane.cWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
 				uDaneCM4.dane.fMagne1[n] = (float)sZeZnakiem * CZULOSC_IIS2MDC;			//dane surowe podczas kalibracji magnetometru
 			else
 				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
 				//uDaneCM4.dane.fMagne1[n] = (uDaneCM4.dane.fMagne1[n] + ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n]) / 2;	//filtruj pomiar bo jest mocno zaszumiony a jest wystarczajaco szybki żeby filtracja nie przesuwała istotnie fazy
 		}
 		*chCzujniki &= ~MAG_IIS;	//dane obsłużone
-		uDaneCM4.dane.chNowyPomiar |= NP_MAG1;	//jest nowy pomiar
+		uDaneCM4.dane.cNowyPomiar |= NP_MAG1;	//jest nowy pomiar
 	}
 
 	if (*chCzujniki & MAG_MMC)
 	{
 		for (uint8_t n=0; n<3; n++)
 		{
-			if (chRodzajPomiaruMMC < SPMMC3416_REFIL_RESET)	//poniżej SPMMC3416_REFIL_RESET będzie obsługa dla SET, powyżej dla RESET
-				sPomiarMMCH[n] = (((int16_t)chDaneMagMMC[2*n+1] * 0x100 + chDaneMagMMC[2*n]) - 32768) * chZnakMMC[n];	//czujnik zwraca liczby unsigned z 32768 dla zera
+			if (cRodzajPomiaruMMC < SPMMC3416_REFIL_RESET)	//poniżej SPMMC3416_REFIL_RESET będzie obsługa dla SET, powyżej dla RESET
+				sPomiarMMCH[n] = (((int16_t)cDaneMagMMC[2*n+1] * 0x100 + cDaneMagMMC[2*n]) - 32768) * cZnakMMC[n];	//czujnik zwraca liczby unsigned z 32768 dla zera
 			else
-				sPomiarMMCL[n] = (((int16_t)chDaneMagMMC[2*n+1] * 0x100 + chDaneMagMMC[2*n]) - 32768) * chZnakMMC[n];
+				sPomiarMMCL[n] = (((int16_t)cDaneMagMMC[2*n+1] * 0x100 + cDaneMagMMC[2*n]) - 32768) * cZnakMMC[n];
 
 			//dla zmiany przemagnesowania czyli świeżych pomiarów H+ i H- policz nateżenie pola ziemi bezpośrednio odejmując je od siebie
-			if (chRodzajPomiaruMMC != chPoprzedniRodzajPomiaru)
+			if (cRodzajPomiaruMMC != cPoprzedniRodzajPomiaru)
 			{
 				float fBiezacePoleCzujnika;
 
 				fZeZnakiem = (float)(sPomiarMMCH[n] - sPomiarMMCL[n]) / 2;
-				if (chRodzajPomiaruMMC < SPMMC3416_REFIL_RESET)
+				if (cRodzajPomiaruMMC < SPMMC3416_REFIL_RESET)
 					fBiezacePoleCzujnika = fZeZnakiem - sPomiarMMCH[n];	//licz pole namagnesowania czujnika
 				else
 					fBiezacePoleCzujnika = -fZeZnakiem - sPomiarMMCL[n];
@@ -700,20 +700,20 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 			}
 			else	//dla ciagłego pomiaru z jednym typem magnesowania, natężenie pola ziemi licz odejmując obliczone wcześniej pole czujnika
 			{
-				if (chRodzajPomiaruMMC < SPMMC3416_REFIL_RESET)
+				if (cRodzajPomiaruMMC < SPMMC3416_REFIL_RESET)
 					fZeZnakiem = sPomiarMMCH[n] + fPoleCzujnkaMMC[n];
 				else
 					fZeZnakiem = (sPomiarMMCL[n] + fPoleCzujnkaMMC[n]) * -1;
 			}
 
-			if ((uDaneCM7.dane.chWykonajPolecenie == POL7_KAL_ZERO_MAGN2) || (uDaneCM7.dane.chWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
+			if ((uDaneCM7.dane.cWykonajPolecenie == POL7_KAL_ZERO_MAGN2) || (uDaneCM7.dane.cWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
 				uDaneCM4.dane.fMagne2[n] = fZeZnakiem * CZULOSC_MMC34160;	//dane surowe podczas kalibracji magnetometru
 			else
 				uDaneCM4.dane.fMagne2[n] = (fZeZnakiem * CZULOSC_MMC34160 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
 		}
-		chPoprzedniRodzajPomiaru = chRodzajPomiaruMMC;
+		cPoprzedniRodzajPomiaru = cRodzajPomiaruMMC;
 		*chCzujniki &= ~MAG_MMC;	//dane obsłużone
-		uDaneCM4.dane.chNowyPomiar |= NP_MAG2;	//jest nowy pomiar
+		uDaneCM4.dane.cNowyPomiar |= NP_MAG2;	//jest nowy pomiar
 	}
 	return cBłąd;
 }

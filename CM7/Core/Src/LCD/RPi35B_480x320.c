@@ -31,7 +31,7 @@ extern uint8_t chRysujRaz;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 extern SPI_HandleTypeDef hspi5;
 
-extern uint8_t chOrientacja;
+extern uint8_t cOrientacja;
 extern uint8_t fch, fcl, bch, bcl;	//kolory czcionki i tła (bajt starszy i młodszy)
 extern uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
 volatile uint8_t chDMAgotowe;
@@ -447,7 +447,7 @@ void OrientacjaEkranu(uint8_t orientacja)
 			(1<<6)|	//MX Column Address Order
 			(1<<7));	//MY Row Address Order
 	}
-	chOrientacja = orientacja;
+	cOrientacja = orientacja;
 }
 
 
@@ -759,7 +759,7 @@ void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 	for (x=0; x<8; x++)
 		dane[x] = 0;
 
-	if (chOrientacja == PIONOWO)
+	if (cOrientacja == PIONOWO)
 	{
 		sTemp = x1;
 		x1 = y1;
@@ -801,7 +801,7 @@ void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 ////////////////////////////////////////////////////////////////////////////////
 void clrXY(void)
 {
-	if (chOrientacja == PIONOWO)
+	if (cOrientacja == PIONOWO)
 		setXY(0, 0, DISP_X_SIZE, DISP_Y_SIZE);
 	else
 		setXY(0, 0, DISP_Y_SIZE, DISP_X_SIZE);
@@ -838,7 +838,7 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 
 	if (!_transparent)
 	{
-		if (chOrientacja==POZIOMO)
+		if (cOrientacja==POZIOMO)
 		{
 			setXY(x,y,x+cfont.x_size-1,y+cfont.y_size-1);
 
@@ -988,7 +988,7 @@ void RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16
 	uint8_t chTabKol[4] = {0};
 	uint32_t tx, ty, tc;
 
-	if (chOrientacja == POZIOMO)
+	if (cOrientacja == POZIOMO)
 	{
 		setXY(x, y, x+sx-1, y+sy-1);
 		while (HAL_HSEM_IsSemTaken(HSEM_SPI5_WYSW) != BLAD_OK)
@@ -1044,7 +1044,7 @@ void drawBitmap2(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint16_t* dat
 //	uint16_t col;
 	uint32_t tc;
 
-	if (chOrientacja == POZIOMO)
+	if (cOrientacja == POZIOMO)
 	{
 		setXY(x, y, x+sx-1, y+sy-1);
 		for (tc=0; tc<(sx*sy/8); tc++)
@@ -1072,7 +1072,7 @@ void drawBitmap3(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_
 	uint32_t tc;
 	uint8_t n, bufor[8];
 
-	if (chOrientacja == POZIOMO)
+	if (cOrientacja == POZIOMO)
 	{
 		setXY(x, y, x+sx-1, y+sy-1);
 		for (tc=0; tc<(sx*sy/4); tc++)
@@ -1105,7 +1105,7 @@ void drawBitmap4(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uint16_
 	uint8_t n, bufor[16];
 
 	chDMAgotowe = 1;
-	if (chOrientacja == POZIOMO)
+	if (cOrientacja == POZIOMO)
 	{
 		setXY(x, y, x+sx-1, y+sy-1);
 		for (tc=0; tc<(sx*sy/8); tc++)

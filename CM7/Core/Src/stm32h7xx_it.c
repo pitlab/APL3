@@ -392,11 +392,11 @@ void TIM17_IRQHandler(void)
   	else
   	{
   		chDzielnikDziesietnychSekundy = 100;		//0,1s = 100ms
-  		extern volatile uint8_t chCzasSwieceniaLED[3];
+  		extern volatile uint8_t cCzasSwieceniaLED[3];
   		for (uint8_t n=0; n<LICZBA_LED; n++)
   		{
-  			if (chCzasSwieceniaLED[n])
-  				chCzasSwieceniaLED[n]--;
+  			if (cCzasSwieceniaLED[n])
+  				cCzasSwieceniaLED[n]--;
   		}
   	}
   /* USER CODE END TIM17_IRQn 1 */

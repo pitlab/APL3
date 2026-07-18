@@ -99,28 +99,26 @@ extern const unsigned short obr_silnik[0xFFC];
 extern const unsigned short obr_mikser[0xFFC];
 
 
-extern const char *chNapisLcd[MAX_NAPISOW];
-extern const char *chOpisBledow[MAX_KOMUNIKATOW];
-extern const char *chNazwyMies3Lit[13];
+extern const char *cNapisLcd[MAX_NAPISOW];
+extern const char *cOpisBledow[MAX_KOMUNIKATOW];
+extern const char *cNazwyMies3Lit[13];
 extern int16_t sBuforPapuga[ROZMIAR_BUFORA_PAPUGI];
-extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+extern volatile uint8_t cCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 
-uint8_t chTrybPracy;
-uint8_t chNowyTrybPracy;
-uint8_t chWrocDoTrybu;
-uint8_t chRysujRaz;
-uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
-//static uint8_t cBłąd;	//zmienna obowiązuje lokalnie
-char chNapis[100], chNapisPodreczny[30];
+uint8_t cTrybPracy;
+uint8_t cNowyTrybPracy;
+uint8_t cWrocDoTrybu;
+uint8_t cRysujRaz;
+char cNapis[100], cNapisPodreczny[30];
 float fTemperaturaKalibracji;
 uint8_t chLiczIter;		//licznik iteracji wyświetlania
-extern struct _statusDotyku statusDotyku;
+extern stStatusDotyku_t stStatusDotyku;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
-extern uint8_t chPort_exp_wysylany[];
-extern uint8_t chPort_exp_odbierany[];
-extern uint8_t chGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
+extern uint8_t cPort_exp_wysylany[];
+extern uint8_t cPort_exp_odbierany[];
+//extern uint8_t cGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
 extern SD_HandleTypeDef hsd1;
-extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+extern uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 extern unia_wymianyCM7_t uDaneCM7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 float fKostka[8][3] = {		//załóżmy wstępnie że kostka będzie miała rozmiar połowy wyświetlacza i umieszczona centralnie na wyswietlaczu. Dla kątów zerowych będzie widzana z góry
@@ -135,32 +133,32 @@ float fKostka[8][3] = {		//załóżmy wstępnie że kostka będzie miała rozmia
 
 float fSymKatKostki[3];	//zmienna do przechowywania wyników symulacji ruchu kostki
 int16_t sKostkaPoprzednia[8][2];	//poprzednia pozycja kostki 3D: [wierzchołki][x,y]
-uint8_t chSekwencerKalibracji;		//wskazuje na daną oś jako kolejny etap kalibracji
+uint8_t cSekwencerKalibracji;		//wskazuje na daną oś jako kolejny etap kalibracji
 prostokat_t stPrzycisk;
-uint8_t chStanPrzycisku;
-uint8_t chEtapKalibracji;
+uint8_t cStanPrzycisku;
+uint8_t cEtapKalibracji;
 prostokat_t stWykr;	//wykres biegunowy magnetometru
-uint8_t chHistR[ROZMIAR_HIST_KOLOR], chHistG[ROZMIAR_HIST_KOLOR], chHistB[ROZMIAR_HIST_KOLOR];
-uint8_t chHistCB8[ROZMIAR_HIST_CB8];
+uint8_t cHistR[ROZMIAR_HIST_KOLOR], cHistG[ROZMIAR_HIST_KOLOR], cHistB[ROZMIAR_HIST_KOLOR];
+//uint8_t chHistCB8[ROZMIAR_HIST_CB8];
 
 extern uint16_t sBuforKamery[ROZM_BUF_YUV420];
-extern uint8_t chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
-extern uint8_t chBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
-extern uint8_t chBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforTestowyDRAM[100];
+extern uint8_t cBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];
+extern uint8_t cBuforOSD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu OSD w formacie RGB888
+//extern uint8_t cBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG];
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) cBuforTestowyDRAM[100];
 extern stKonfKam_t stKonfKam;
 extern uint32_t nRozmiarObrazuKamery;
 extern stDiagKam_t stDiagKam;	//diagnostyka stanu kamery
 extern JPEG_HandleTypeDef hjpeg;
 extern uint32_t nRozmiarObrazuJPEG;	//w bajtach
 extern const uint8_t chNaglJpegSOI[20];
-extern const uint8_t chNaglJpegEOI[2];
+extern const uint8_t cNaglJpegEOI[2];
 extern FIL SDJpegFile;       //struktura pliku z obrazem
-extern uint8_t chNazwaPlikuObrazu[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
+extern uint8_t cNazwaPlikuObrazu[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
 
-extern uint8_t chWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
-extern volatile uint8_t chObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
-uint8_t chTimeout;
+extern uint8_t cWskNapBufKam;	//wskaźnik napełnaniania bufora kamery
+extern volatile uint8_t cObrazKameryGotowy;	//flaga gotowości obrazu, ustawiana w callbacku
+uint8_t cTimeout;
 extern stKonfOsd_t stKonfOSD;
 extern volatile uint8_t chTrybPracyKamery;	//steruje co dalej robić z obrazem pozyskanym przez DCMI
 uint32_t nCzas, nCzasHist;
@@ -361,7 +359,7 @@ void WatekWyswietlacza(void *argument)
 		{
 			cBłąd = RysujEkran();
 			if (cBłąd)
-				chCzasSwieceniaLED[LED_ZIEL] = 3;	//x0,1s - sygnalizacja błędów obsługi poleceń
+				cCzasSwieceniaLED[LED_ZIEL] = 3;	//x0,1s - sygnalizacja błędów obsługi poleceń
 		}
 		else
 			osDelay(1000);
@@ -380,69 +378,69 @@ uint8_t RysujEkran(void)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	if ((statusDotyku.chFlagi & DOTYK_SKALIBROWANY) != DOTYK_SKALIBROWANY)		//sprawdź czy ekran dotykowy jest skalibrowany
-		chTrybPracy = TP_KAL_DOTYK;
+	if ((stStatusDotyku.chFlagi & DOTYK_SKALIBROWANY) != DOTYK_SKALIBROWANY)		//sprawdź czy ekran dotykowy jest skalibrowany
+		cTrybPracy = TP_KAL_DOTYK;
 
-	switch (chTrybPracy)
+	switch (cTrybPracy)
 	{
 	case TP_MENU_GLOWNE:	// wyświetla menu główne
-		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_MENU_MAIN]);
-		cBłąd |= Menu(chNapisPodreczny, stMenuGlowne, &chNowyTrybPracy);
-		chWrocDoTrybu = TP_MENU_GLOWNE;
+		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_MENU_MAIN]);
+		cBłąd |= Menu(cNapisPodreczny, stMenuGlowne, &cNowyTrybPracy);
+		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
 	case TP_KAL_BARO:	//kalibracja ciśnienia według wzorca
 
-		if (KalibrujBaro(&chSekwencerKalibracji) == BLAD_GOTOWE)
+		if (KalibrujBaro(&cSekwencerKalibracji) == BLAD_GOTOWE)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MENU;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_MENU;
 		}
 		break;
 
 	case TP_POMIARY_DOTYKU:
 		if (TestDotyku() == BLAD_GOTOWE)
-			chNowyTrybPracy = TP_WROC_DO_MENU;
+			cNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
 
 	//*** Menu Testy ************************************************
 	case TP_TESTY:
-		//Menu(strcat((char*)chNapisLcd[STR_TESTY], (char*)chNapisLcd[STR_MENU]), stMenuTestowe, &chNowyTrybPracy);
-		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_TESTY]);
-		cBłąd = Menu(chNapisPodreczny, stMenuTestowe, &chNowyTrybPracy);
-		chWrocDoTrybu = TP_MENU_GLOWNE;
+		//Menu(strcat((char*)cNapisLcd[STR_TESTY], (char*)cNapisLcd[STR_MENU]), stMenuTestowe, &cNowyTrybPracy);
+		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_TESTY]);
+		cBłąd = Menu(cNapisPodreczny, stMenuTestowe, &cNowyTrybPracy);
+		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
 	case TP_TEST1:
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_TESTY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_TESTY;
 		}
 		break;
 
 	case TP_TEST2:
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_TESTY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_TESTY;
 		}
 		break;
 
 	case TP_TEST3:
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_TESTY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_TESTY;
 		}
 		break;
 
 	case TP_TEST4:
 	case TP_TEST5:
 		for (uint8_t n=0; n<100; n++)
-			chBuforTestowyDRAM[n] = n;
-		chTrybPracy = chWrocDoTrybu;
-		chNowyTrybPracy = TP_WROC_DO_TESTY;
+			cBuforTestowyDRAM[n] = n;
+		cTrybPracy = cWrocDoTrybu;
+		cNowyTrybPracy = TP_WROC_DO_TESTY;
 		break;
 
 	case TP_TEST6:
@@ -456,17 +454,17 @@ uint8_t RysujEkran(void)
 
 	//*** Audio ************************************************
 	case TP_MEDIA_AUDIO:
-		//Menu(strcat((char*)chNapisLcd[STR_MENU_MEDIA_AUDIO], (char*)chNapisLcd[STR_MENU]), stMenuAudio, &chNowyTrybPracy);
-		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_AUDIO]);
-		cBłąd = Menu(chNapisPodreczny, stMenuAudio, &chNowyTrybPracy);
-		chWrocDoTrybu = TP_MENU_GLOWNE;
+		//Menu(strcat((char*)cNapisLcd[STR_MENU_MEDIA_AUDIO], (char*)cNapisLcd[STR_MENU]), stMenuAudio, &chNowyTrybPracy);
+		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_AUDIO]);
+		cBłąd = Menu(cNapisPodreczny, stMenuAudio, &cNowyTrybPracy);
+		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
 
 	case TP_MREJ:
 		InicjujOdtwarzanieDzwieku();
 		OdtworzProbkeAudioZeSpisu(PGA_NIECHAJ_NARODO);
-		chNowyTrybPracy = TP_WROC_DO_AUDIO;
+		cNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
 
 
@@ -481,8 +479,8 @@ uint8_t RysujEkran(void)
 		{
 			RysujProstokatWypelniony(n*DISP_Y_SIZE/20, DISP_Y_SIZE - WYS_PASKA_POSTEPU, (n+1)*DISP_Y_SIZE/5, WYS_PASKA_POSTEPU, NIEBIESKI);
 			NapelnijBuforDzwieku(sBuforPapuga, DISP_X_SIZE);
-			sprintf(chNapis, "Inicjalizacja: %d/%d", n, 5);
-			RysujNapis(chNapis, 10, 5);
+			sprintf(cNapis, "Inicjalizacja: %d/%d", n, 5);
+			RysujNapis(cNapis, 10, 5);
 			RysujPrzebieg(0, sBuforPapuga, SZARY80);
 		}
 		//znajdź minimum z ostatniej próbki rozbiegowej
@@ -503,8 +501,8 @@ uint8_t RysujEkran(void)
 		for (uint16_t n=0; n<sLiczbaBuforowNagrania; n++)
 		{
 			NapelnijBuforDzwieku((sBuforPapuga + n*64), 64);
-			sprintf(chNapis, "Rejestracja: %d/%d", n, sLiczbaBuforowNagrania);
-			RysujNapis(chNapis, 10, 20);
+			sprintf(cNapis, "Rejestracja: %d/%d", n, sLiczbaBuforowNagrania);
+			RysujNapis(cNapis, 10, 20);
 			RysujProstokatWypelniony(n*DISP_Y_SIZE/sLiczbaBuforowNagrania, DISP_Y_SIZE - WYS_PASKA_POSTEPU, (n+1)*DISP_Y_SIZE/sLiczbaBuforowNagrania, WYS_PASKA_POSTEPU, NIEBIESKI);
 
 			y2 = sBuforPapuga[n*64] - sMin;
@@ -520,40 +518,40 @@ uint8_t RysujEkran(void)
 		RysujProstokatWypelniony(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE, WYS_PASKA_POSTEPU, CZARNY);//pasek postępu
 
 		NormalizujDzwiek(sBuforPapuga, ROZMIAR_BUFORA_PAPUGI, 100);	//normalizuj dźwięk do ustalonej gośności
-		sprintf(chNapis, "Odtwarzanie      ");
-		RysujNapis(chNapis, 10, 20);
+		sprintf(cNapis, "Odtwarzanie      ");
+		RysujNapis(cNapis, 10, 20);
 		InicjujOdtwarzanieDzwieku();
 		OdtworzProbkeAudio((uint32_t)sBuforPapuga, ROZMIAR_BUFORA_PAPUGI * 2);	//*2 bo rozmiar komunikatu jest w bajtach
-		chNowyTrybPracy = TP_WROC_DO_AUDIO;
+		cNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
 
 
 	case TP_MM2:
 		InicjujOdtwarzanieDzwieku();
 		PrzepiszProbkeDoDRAM(PGA_NIECHAJ_NARODO);
-		chNowyTrybPracy = TP_WROC_DO_AUDIO;
+		cNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
 
 	case TP_MM_KOM1:
 		InicjujOdtwarzanieDzwieku();
 		OdtworzProbkeAudioZeSpisu(PGA_GOTOWY_SLUZYC);
-		chNowyTrybPracy = TP_WROC_DO_AUDIO;
+		cNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
 
 	case TP_MM_KOM2:
 		InicjujOdtwarzanieDzwieku();
 		OdtworzProbkeAudioZeSpisu(PGA_ALLELUJA);
-		chNowyTrybPracy = TP_WROC_DO_AUDIO;
+		cNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
 
 	case TP_TEST_TONU:
 		InicjujOdtwarzanieDzwieku();
 		TestTonuAudio();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
 			ZatrzymajTon();
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_AUDIO;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_AUDIO;
 		}
 		break;
 
@@ -561,40 +559,40 @@ uint8_t RysujEkran(void)
 	case TP_AUDIO_FFT:			//FFT sygnału z mikrofonu
 		//extern int32_t nBuforAudioWe[ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
 		extern int16_t sBuforAudioWe[2][2*ROZMIAR_BUFORA_AUDIO_WE];	//bufor komunikatów przychodzących
-		extern uint8_t chWskaznikBuforaAudio;
-		uint8_t chWskKasowania;
+		extern uint8_t cWskaznikBuforaAudio;
+		uint8_t cWskKasowania;
 		InicjujRejestracjeDzwieku();
 		do
 		{
-			chWskKasowania = chWskaznikBuforaAudio;
-			chWskaznikBuforaAudio ^= 0x01;
-			chWskaznikBuforaAudio &= 0x01;
-			NapelnijBuforDzwieku(&sBuforAudioWe[chWskaznikBuforaAudio][0], 2*ROZMIAR_BUFORA_AUDIO_WE);
-			RysujPrzebieg(sBuforAudioWe[chWskKasowania], sBuforAudioWe[chWskaznikBuforaAudio], BIALY);
+			cWskKasowania = cWskaznikBuforaAudio;
+			cWskaznikBuforaAudio ^= 0x01;
+			cWskaznikBuforaAudio &= 0x01;
+			NapelnijBuforDzwieku(&sBuforAudioWe[cWskaznikBuforaAudio][0], 2*ROZMIAR_BUFORA_AUDIO_WE);
+			RysujPrzebieg(sBuforAudioWe[cWskKasowania], sBuforAudioWe[cWskaznikBuforaAudio], BIALY);
 		}
-		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-		chTrybPracy = chWrocDoTrybu;
-		chNowyTrybPracy = TP_WROC_DO_AUDIO;
+		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		cTrybPracy = cWrocDoTrybu;
+		cNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
 
 
 	case TP_MM_KOM:
 		InicjujOdtwarzanieDzwieku();
 		TestKomunikatow();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_AUDIO;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_AUDIO;
 		}
 		break;
 
 
 	//*** Kamera ************************************************
 	case TP_MEDIA_KAMERA:			//menu kamera
-		//Menu((char*)chNapisLcd[STR_MENU_KAMERA], stMenuKamera, &chNowyTrybPracy);
-		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KAMERA]);
-		cBłąd = Menu(chNapisPodreczny, stMenuKamera, &chNowyTrybPracy);
-		chWrocDoTrybu = TP_MENU_GLOWNE;
+		//Menu((char*)cNapisLcd[STR_MENU_KAMERA], stMenuKamera, &cNowyTrybPracy);
+		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_KAMERA]);
+		cBłąd = Menu(cNapisPodreczny, stMenuKamera, &cNowyTrybPracy);
+		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
 	/*case TP_ZDJECIE:	//wykonaj pojedyncze zdjęcie i zapisz je w pliku binarnym txt
@@ -605,15 +603,15 @@ uint8_t RysujEkran(void)
 		if (cBłąd)
 		{
 			setColor(MAGENTA);
-			sprintf(chNapis, "Blad: %d  ", cBłąd);
+			sprintf(cNapis, "Blad: %d  ", cBłąd);
 		}
 		else
 		{
 			setColor(ZIELONY);
-			sprintf(chNapis, "Linii: %d  ", sLicznikLiniiKamery);
+			sprintf(cNapis, "Linii: %d  ", sLicznikLiniiKamery);
 			WyswietlZdjecie(480, 320, sBuforKamery);
 		}
-		RysujNapis(chNapis, KOL12, 300);
+		RysujNapis(cNapis, KOL12, 300);
 		FRESULT fres = 0;
 		extern RTC_HandleTypeDef hrtc;
 		extern RTC_TimeTypeDef sTime;
@@ -621,42 +619,42 @@ uint8_t RysujEkran(void)
 
 		HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 		HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-		sprintf(chNapis, "Zdjecie%04d%02d%02d_%02d%02d%02d.txt",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
+		sprintf(cNapis, "Zdjecie%04d%02d%02d_%02d%02d%02d.txt",sDate.Year+2000, sDate.Month, sDate.Date, sTime.Hours, sTime.Minutes, sTime.Seconds);
 
-		fres = f_open(&SDJpegFile, chNapis, FA_OPEN_ALWAYS | FA_WRITE);
+		fres = f_open(&SDJpegFile, cNapis, FA_OPEN_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
 		{
 			f_puts((char*)sBuforKamery, &SDJpegFile);	//zapis do pliku
 			f_close(&SDJpegFile);
 		}
 		osDelay(600);
-		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;*/
 
 	case TP_KAMERA:	//ciagła praca kamery z pamięcią SRAM
 		stKonfOSD.chOSDWlaczone = 1;	//włacz OSD z histogramem
 		stKonfOSD.sSzerokosc = DISP_X_SIZE;
 		stKonfOSD.sWysokosc = DISP_Y_SIZE;
-		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);	//czyść poprzednią zawartość
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, cBuforOSD, PRZEZR_100);	//czyść poprzednią zawartość
 		cBłąd = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
-		cBłąd = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKamery, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+		cBłąd = PolaczBuforOSDzObrazem(cBuforOSD, (uint8_t*)sBuforKamery, cBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 		RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
 			nCzas = PobierzCzasT6();
-			LiczHistogramRGB565(sBuforKamery, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);	//licz histogram
+			LiczHistogramRGB565(sBuforKamery, STD_OBRAZU_DVGA, cHistR, cHistG, cHistB);	//licz histogram
 			nCzas = MinalCzas(nCzas);
 			nCzasHist = PobierzCzasT6();
-			RysujHistogramOSD_RGB32(chBuforOSD, chHistR, chHistG, chHistB);
+			RysujHistogramOSD_RGB32(cBuforOSD, cHistR, cHistG, cHistB);
 			nCzasHist = MinalCzas(nCzasHist);
-			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
+			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, cBuforLCD);
 			nCzasLCD = MinalCzas(nCzasLCD);
-			sprintf(chNapis, "Tobl: %ld ms, Trys: %ld ms, %ld fps", nCzas / 1000, nCzasHist / 1000, 1000000 / nCzasLCD);
-			RysujNapiswBuforze(chNapis, 0, DISP_Y_SIZE - FONT_BH, DISP_X_SIZE, chBuforOSD, (uint8_t*)(KOLOSD_ZOLTY0 + PRZEZR_20), (uint8_t*)PRZEZR_80, ROZMIAR_KOLORU_OSD);
+			sprintf(cNapis, "Tobl: %ld ms, Trys: %ld ms, %ld fps", nCzas / 1000, nCzasHist / 1000, 1000000 / nCzasLCD);
+			RysujNapiswBuforze(cNapis, 0, DISP_Y_SIZE - FONT_BH, DISP_X_SIZE, cBuforOSD, (uint8_t*)(KOLOSD_ZOLTY0 + PRZEZR_20), (uint8_t*)PRZEZR_80, ROZMIAR_KOLORU_OSD);
 			nCzasLCD = PobierzCzasT6();
 		}
-		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 		stKonfOSD.chOSDWlaczone = 0;	//wyłącz OSD
 		break;
 
@@ -666,19 +664,19 @@ uint8_t RysujEkran(void)
 		stKonfOSD.sSzerokosc = DISP_X_SIZE;
 		stKonfOSD.sWysokosc = DISP_Y_SIZE;
 		cBłąd = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_RGB565, KAM_FILM);
-		//cBłąd = PolaczBuforOSDzObrazem(chBuforOSD, (uint8_t*)sBuforKameryDRAM, chBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
+		//cBłąd = PolaczBuforOSDzObrazem(cBuforOSD, (uint8_t*)sBuforKameryDRAM, cBuforLCD, DISP_X_SIZE, DISP_Y_SIZE);
 		RozpocznijPraceDCMI(&stKonfKam, sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);
 		do
 		{
-			//LiczHistogramRGB565(sBuforKameryDRAM, STD_OBRAZU_DVGA, chHistR, chHistG, chHistB);
-			RysujHistogramOSD_RGB32(chBuforOSD, chHistR, chHistG, chHistB);
-			KonwersjaRGB565doRGB666(sBuforKamery, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
-			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
+			//LiczHistogramRGB565(sBuforKameryDRAM, STD_OBRAZU_DVGA, chHistR, cHistG, cHistB);
+			RysujHistogramOSD_RGB32(cBuforOSD, cHistR, cHistG, cHistB);
+			KonwersjaRGB565doRGB666(sBuforKamery, cBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+			WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, cBuforLCD);
 
-			//RysujHistogramRGB32(chHistR, chHistG, chHistB);
+			//RysujHistogramRGB32(cHistR, cHistG, cHistB);
 		}
-		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 		stKonfOSD.chOSDWlaczone = 0;	//wyłącz OSD
 		break;
 
@@ -694,15 +692,15 @@ uint8_t RysujEkran(void)
 			break;
 		do
 		{
-			while (!chObrazKameryGotowy)	//synchronizuj się do początku nowej klatki obrazu
+			while (!cObrazKameryGotowy)	//synchronizuj się do początku nowej klatki obrazu
 				osDelay(1);
-			chObrazKameryGotowy = 0;
-			chWskNapBufKam++;
-			chWskNapBufKam &= MASKA_BUFORA_KAMERY;
+			cObrazKameryGotowy = 0;
+			cWskNapBufKam++;
+			cWskNapBufKam &= MASKA_BUFORA_KAMERY;
 			//utwórz wskaźnik na konkretny bufor w obrębie zmiennej sBuforKamery wskazujący na kolejną 1/8 zmiennej
 			//uint16_t* sPodBufor = sBuforKamery + chWskNapBufKam * (DISP_X_SIZE * DISP_Y_SIZE / (4 * 8));
 			//cBłąd = RozpocznijPraceDCMI(stKonfKam, sPodBufor, DISP_X_SIZE * DISP_Y_SIZE / 4);
-			if (chWskNapBufKam & 0x01)		//nieparzyste obrazy kompresuj a parzyste wyświetlaj
+			if (cWskNapBufKam & 0x01)		//nieparzyste obrazy kompresuj a parzyste wyświetlaj
 			{
 				nCzas = PobierzCzasT6();
 				//cBłąd = KompresujY8((uint8_t*)sPodBufor, DISP_X_SIZE, DISP_Y_SIZE);
@@ -711,18 +709,18 @@ uint8_t RysujEkran(void)
 			}
 			else
 			{
-				//KonwersjaCB8doRGB666((uint8_t*)sPodBufor, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
-				KonwersjaCB8doRGB666((uint8_t*)sBuforKamery, chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+				//KonwersjaCB8doRGB666((uint8_t*)sPodBufor, cBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
+				KonwersjaCB8doRGB666((uint8_t*)sBuforKamery, cBuforLCD, DISP_X_SIZE * DISP_Y_SIZE);
 #ifdef 	LCD_ILI9488
-				WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
+				WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, cBuforLCD);
 #endif
-				sprintf(chNapis, "Tkompr: %ld us, buf: %d", nCzas, chWskNapBufKam);
+				sprintf(cNapis, "Tkompr: %ld us, buf: %d", nCzas, cWskNapBufKam);
 				setColor(ZOLTY);
-				RysujNapis(chNapis, 0, DISP_Y_SIZE - 2*FONT_BH);
+				RysujNapis(cNapis, 0, DISP_Y_SIZE - 2*FONT_BH);
 			}
 		}
-		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
 
 
@@ -743,21 +741,21 @@ uint8_t RysujEkran(void)
 
 			cBłąd = CzekajNaKoniecPracyJPEG();
 			nCzas = MinalCzas(nCzas);
-			sprintf(chNapis, "%.2f fps, kompr: %.1f", (float)1000000.0/nCzas, (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);	//Sprawdzić: hard fault
+			sprintf(cNapis, "%.2f fps, kompr: %.1f", (float)1000000.0/nCzas, (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);	//Sprawdzić: hard fault
 			setColor(ZOLTY);
-			RysujNapis(chNapis, 0, DISP_Y_SIZE - FONT_BH);
+			RysujNapis(cNapis, 0, DISP_Y_SIZE - FONT_BH);
 		}
-		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
 	case TP_RTSP_YUV422:	//kamera generuje standarowy obraz na ekran, DMA2D nakłada OSD i zamienia na format RGB888, obraz jest kompresowany bez nagłówka JPEG
 		stKonfOSD.sSzerokosc = 480;
 		stKonfOSD.sWysokosc = 320;
 		stKonfOSD.chOSDWlaczone = 1;
-		chStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;	//wyłącz rejestrację na karcie
+		cStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;	//wyłącz rejestrację na karcie
 		hjpeg.Instance->CONFR1 &= ~JPEG_CONFR1_HDR;		//wyłącz generowanie nagłówka JPEG
-		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, cBuforOSD, PRZEZR_100);
 
 		cBłąd = UstawObrazKamery(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, OBR_RGB565, KAM_FILM);		//kolor
 		if (cBłąd)
@@ -769,55 +767,55 @@ uint8_t RysujEkran(void)
 		do
 		{
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
-			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
-			cBłąd = KompresujRGB888doYUV422(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, 30);
+			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, cBuforLCD);	//wyświetla połączone obrazy na LCD
+			cBłąd = KompresujRGB888doYUV422(cBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, 30);
 		}
-		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
 
 	case TP_KAM_ZDJ_Y8:	//wykonuje zdjecie Y8 jpg
 		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
-		sprintf((char*)chNazwaPlikuObrazu, "ZdjY8");	//początek nazwy pliku ze zdjeciem
-		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
+		sprintf((char*)cNazwaPlikuObrazu, "ZdjY8");	//początek nazwy pliku ze zdjeciem
+		cStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
 
 		cBłąd = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_Y8, KAM_ZDJECIE);
 		nCzas = PobierzCzasT6();
 		cBłąd = ZrobZdjecie(sBuforKamery, SZER_ZDJECIA * WYS_ZDJECIA / 4);
 		if (cBłąd)
 		{
-			chNowyTrybPracy = TP_WROC_DO_KAMERA;
+			cNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
 		}
-		RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
+		RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 		CzekajNaKoniecPracyDCMI(WYS_ZDJECIA);
 		nCzas = MinalCzas(nCzas);
 		printf("Tdcmi=%ldus\r\n", nCzas);
 
 		nCzas = PobierzCzasT6();
-		cBłąd = KompresujY8((uint8_t*)sBuforKamery, SZER_ZDJECIA, WYS_ZDJECIA);	//, chBuforJpeg, ROZMIAR_BUF_JPEG);
+		cBłąd = KompresujY8((uint8_t*)sBuforKamery, SZER_ZDJECIA, WYS_ZDJECIA);	//, cBuforJpeg, ROZMIAR_BUF_JPEG);
 		nCzas = MinalCzas(nCzas);
 		setColor(ZOLTY);
 		if (!cBłąd)
 			printf("Tjpeg=%ldus\r\n", nCzas);
 		else
 		{
-			sprintf(chNapis, "Blad: %d ", cBłąd);
-			RysujNapis(chNapis, 10, 30);
-			if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
-				chNowyTrybPracy = TP_WROC_DO_KAMERA;
+			sprintf(cNapis, "Blad: %d ", cBłąd);
+			RysujNapis(cNapis, 10, 30);
+			if ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
+				cNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
 		}
 
-		sprintf(chNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f ", nCzas, nRozmiarObrazuJPEG, (float)(SZER_ZDJECIA*WYS_ZDJECIA) / nRozmiarObrazuJPEG);
-		RysujNapis(chNapis, 0, 30);
-		chStatusRejestratora |= STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
+		sprintf(cNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f ", nCzas, nRozmiarObrazuJPEG, (float)(SZER_ZDJECIA*WYS_ZDJECIA) / nRozmiarObrazuJPEG);
+		RysujNapis(cNapis, 0, 30);
+		cStatusRejestratora |= STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
 		//jest ustawiony większy rozmiar, więc nie wyswietlaj obrazu
 		//KonwersjaCB8doRGB666((uint8_t*)sBuforKamery, chBufLCD, SZER_ZDJECIA * WYS_ZDJECIA);
-		//WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
+		//WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, cBuforLCD);
 		osDelay(3000);
-		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
 
@@ -831,8 +829,8 @@ uint8_t RysujEkran(void)
 			for (uint32_t n=0; n<WYS_ZDJECIA; n++)
 				sBuforKamery[n+m*WYS_ZDJECIA] = (m & 0x0FFF) | 0x4000;
 		}
-		sprintf((char*)chNazwaPlikuObrazu, "ZdjYUV420");	//początek nazwy pliku ze zdjeciem
-		chStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
+		sprintf((char*)cNazwaPlikuObrazu, "ZdjYUV420");	//początek nazwy pliku ze zdjeciem
+		cStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
 		//cBłąd = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV420, KAM_ZDJECIE);
 		//cBłąd = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);	//wynik w sBuforKamery
 		cBłąd = UstawObrazKamery(60, 40, OBR_YUV420, KAM_ZDJECIE);
@@ -846,22 +844,22 @@ uint8_t RysujEkran(void)
 		if (cBłąd)
 		{
 			setColor(ZOLTY);
-			sprintf(chNapis, "Blad: %d", cBłąd);
-			RysujNapis(chNapis, 10, 30);
-			if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
-				chNowyTrybPracy = TP_WROC_DO_KAMERA;
+			sprintf(cNapis, "Blad: %d", cBłąd);
+			RysujNapis(cNapis, 10, 30);
+			if ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
+				cNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
 		}
 
-		sprintf(chNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f", nCzas, nRozmiarObrazuJPEG, (float)(DISP_X_SIZE*DISP_Y_SIZE) / nRozmiarObrazuJPEG);
-		RysujNapis(chNapis, 0, 30);
+		sprintf(cNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f", nCzas, nRozmiarObrazuJPEG, (float)(DISP_X_SIZE*DISP_Y_SIZE) / nRozmiarObrazuJPEG);
+		RysujNapis(cNapis, 0, 30);
 		osDelay(3000);
-		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
 
 	case TP_KAM_ZDJ_YUV422:	//Analiza obrazu pokazuje że coś jest nie tak z obrazem YUV444. Dla obrazu o szerokości 480 pix powtarza się biała linia 4x16 bajtów co 2*480 pikseli
-		sprintf((char*)chNazwaPlikuObrazu, "ZdjYUV444");	//początek nazwy pliku ze zdjeciem
+		sprintf((char*)cNazwaPlikuObrazu, "ZdjYUV444");	//początek nazwy pliku ze zdjeciem
 		cBłąd = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV444, KAM_ZDJECIE);
 		cBłąd = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_X_SIZE * 2 / 3);	//rozmiar obrazu to 3 bajty na piksel
 		nCzas = PobierzCzasT6();
@@ -870,93 +868,93 @@ uint8_t RysujEkran(void)
 		if (cBłąd)
 		{
 			setColor(ZOLTY);
-			sprintf(chNapis, "Blad: %d", cBłąd);
-			RysujNapis(chNapis, 10, 30);
-			if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
-				chNowyTrybPracy = TP_WROC_DO_KAMERA;
+			sprintf(cNapis, "Blad: %d", cBłąd);
+			RysujNapis(cNapis, 10, 30);
+			if ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
+				cNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
 		}
-		chNowyTrybPracy = TP_WROC_DO_KAMERA;
+		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
 
 	case TP_KAM_DIAG:
-		if (chRysujRaz)
+		if (cRysujRaz)
 		{
 			BelkaTytulu("Diagnostyka kamery");
-			chRysujRaz = 0;
+			cRysujRaz = 0;
 		}
 
 		setColor(BIALY);
 		UstawCzcionke(MidFont);
 		WykonajDiagnostykeKamery(&stDiagKam);
 
-		sprintf(chNapis, "AVG: 0x%X, Prog AEC: 0x%X..0x%X, stab: 0x%X..0x%X", stDiagKam.chSredniaJasnoscAVG, stDiagKam.chProgAEC_H, stDiagKam.chProgAEC_L, stDiagKam.chProgStabAEC_H, stDiagKam.chProgStabAEC_L);
-		RysujNapis(chNapis, 0, 30);
+		sprintf(cNapis, "AVG: 0x%X, Prog AEC: 0x%X..0x%X, stab: 0x%X..0x%X", stDiagKam.chSredniaJasnoscAVG, stDiagKam.chProgAEC_H, stDiagKam.chProgAEC_L, stDiagKam.chProgStabAEC_H, stDiagKam.chProgStabAEC_L);
+		RysujNapis(cNapis, 0, 30);
 
-		sprintf(chNapis, "AEC/AGC: 0x%X, VTS: %d", stDiagKam.chTrybEAC_EAG, stDiagKam.sMaxCzasEkspoVTS);
-		RysujNapis(chNapis, 0, 50);
+		sprintf(cNapis, "AEC/AGC: 0x%X, VTS: %d", stDiagKam.chTrybEAC_EAG, stDiagKam.sMaxCzasEkspoVTS);
+		RysujNapis(cNapis, 0, 50);
 
-		sprintf(chNapis, "okno AVG X: %d..%d, Y: %d..%d", stDiagKam.sPoczatOknaAVG_X, stDiagKam.sKoniecOknaAVG_X, stDiagKam.sPoczatOknaAVG_Y, stDiagKam.sKoniecOknaAVG_Y);
-		RysujNapis(chNapis, 0, 70);
+		sprintf(cNapis, "okno AVG X: %d..%d, Y: %d..%d", stDiagKam.sPoczatOknaAVG_X, stDiagKam.sKoniecOknaAVG_X, stDiagKam.sPoczatOknaAVG_Y, stDiagKam.sKoniecOknaAVG_Y);
+		RysujNapis(cNapis, 0, 70);
 
-		sprintf(chNapis, "Poczatek okna obrazu X: %d, Y: %d", stDiagKam.sPoczatOknaObrazu_X, stDiagKam.sPoczatOknaObrazu_Y);
-		RysujNapis(chNapis, 0, 90);
+		sprintf(cNapis, "Poczatek okna obrazu X: %d, Y: %d", stDiagKam.sPoczatOknaObrazu_X, stDiagKam.sPoczatOknaObrazu_Y);
+		RysujNapis(cNapis, 0, 90);
 
-		sprintf(chNapis, "Rozmiar okna obrazu X: %d, Y: %d", stDiagKam.sRozmiarOknaObrazu_X, stDiagKam.sRozmiarOknaObrazu_Y);
-		RysujNapis(chNapis, 0, 110);
+		sprintf(cNapis, "Rozmiar okna obrazu X: %d, Y: %d", stDiagKam.sRozmiarOknaObrazu_X, stDiagKam.sRozmiarOknaObrazu_Y);
+		RysujNapis(cNapis, 0, 110);
 
-		sprintf(chNapis, "Rozmiar obrazu X (HTS): %d, Y (VTS): %d", stDiagKam.sRozmiarPoz_HTS, stDiagKam.sRozmiarPio_VTS);
-		RysujNapis(chNapis, 0, 130);
+		sprintf(cNapis, "Rozmiar obrazu X (HTS): %d, Y (VTS): %d", stDiagKam.sRozmiarPoz_HTS, stDiagKam.sRozmiarPio_VTS);
+		RysujNapis(cNapis, 0, 130);
 
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_KAMERA;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_KAMERA;
 		}
 		break;
 
 
 	//*** OSD ************************************************
 	case TP_MENU_OSD:
-		//Menu((char*)chNapisLcd[STR_MENU_OSD], stMenuOsd, &chNowyTrybPracy);
-		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_OSD]);
-		cBłąd = Menu(chNapisPodreczny, stMenuOsd, &chNowyTrybPracy);
-		chWrocDoTrybu = TP_MENU_GLOWNE;
+		//Menu((char*)cNapisLcd[STR_MENU_OSD], stMenuOsd, &cNowyTrybPracy);
+		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_OSD]);
+		cBłąd = Menu(cNapisPodreczny, stMenuOsd, &cNowyTrybPracy);
+		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
 
 	case TPO_ZAPIS_BMP:	//zapisz chrominancję lub luminację z bufora LCD do zmiennej: sBuforKamery a nastepnie do pliku bmp
 		ZakonczPraceDCMI();	//wyłącz kamerę aby nie nadpisywała obrazu w sBuforKamery
 		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
-		TestKonwersjiRGB888doYCbCr(chBuforLCD, (uint8_t*)sBuforKamery, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
-		sprintf((char*)chNazwaPlikuObrazu, "Luma");	//początek nazwy pliku ze zdjeciem
-		chStatusRejestratora = STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
+		TestKonwersjiRGB888doYCbCr(cBuforLCD, (uint8_t*)sBuforKamery, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
+		sprintf((char*)cNazwaPlikuObrazu, "Luma");	//początek nazwy pliku ze zdjeciem
+		cStatusRejestratora = STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
 		stKonfKam.chFormatObrazu = OBR_Y8;			//obraz ma sie zapisać jako monochromatyczny
-		chNowyTrybPracy = TP_WROC_DO_OSD;
+		cNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
 	case TPO_OSD240:
 	case TPO_OSD320:
 	case TPO_OSD480:	//obraz a rzeczywistym tle
-		if (chTrybPracy == TPO_OSD240)
+		if (cTrybPracy == TPO_OSD240)
 		{
 			stKonfOSD.sSzerokosc = 240;
 			stKonfOSD.sWysokosc = 160;
 		}
 		else
-		if (chTrybPracy == TPO_OSD320)
+		if (cTrybPracy == TPO_OSD320)
 		{
 			stKonfOSD.sSzerokosc = 320;
 			stKonfOSD.sWysokosc = 240;
 		}
 		else
-		if (chTrybPracy == TPO_OSD480)
+		if (cTrybPracy == TPO_OSD480)
 		{
 			stKonfOSD.sSzerokosc = 480;
 			stKonfOSD.sWysokosc = 320;
 		}
-		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, cBuforOSD, PRZEZR_100);
 		cBłąd = UstawObrazKamery(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, OBR_RGB565, KAM_FILM);		//kolor
 		if (cBłąd)
 			break;
@@ -967,22 +965,22 @@ uint8_t RysujEkran(void)
 			break;
 		do
 		{
-			/*chTimeout = 60;
-			while (!chObrazKameryGotowy && chTimeout)	//synchronizuj się do początku nowej klatki obrazu
+			/*cTimeout = 60;
+			while (!cObrazKameryGotowy && cTimeout)	//synchronizuj się do początku nowej klatki obrazu
 			{
 				osDelay(1);
-				chTimeout--;
+				cTimeout--;
 			}
-			chObrazKameryGotowy = 0;*/
+			cObrazKameryGotowy = 0;*/
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
 
 			nCzasLCD = DWT->CYCCNT;	//start pomiaru
-			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
+			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, cBuforLCD);	//wyświetla połączone obrazy na LCD
 			nCzasLCD = DWT->CYCCNT - nCzasLCD; //koniec pomiaru
 		}
-		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		cBłąd = ZakonczPraceDCMI();
-		chNowyTrybPracy = TP_WROC_DO_OSD;
+		cNowyTrybPracy = TP_WROC_DO_OSD;
 		stKonfOSD.chOSDWlaczone = 0;	//wyłącz OSD
 		break;
 
@@ -992,16 +990,16 @@ uint8_t RysujEkran(void)
 		stKonfOSD.sSzerokosc = 480;
 		stKonfOSD.sWysokosc = 320;
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, (uint8_t*)sBuforKamery, SZARY20);
-		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforOSD, PRZEZR_100);
+		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, cBuforOSD, PRZEZR_100);
 		do
 		{
 			RysujOSD(&stKonfOSD, &uDaneCM4.dane);
 			nCzasLCD = DWT->CYCCNT;	//start pomiaru
-			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, chBuforLCD);	//wyświetla połączone obrazy na LCD
+			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, cBuforLCD);	//wyświetla połączone obrazy na LCD
 			nCzasLCD = DWT->CYCCNT - nCzasLCD; //koniec pomiaru
 		}
-		while ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
-			chNowyTrybPracy = TP_WROC_DO_OSD;
+		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+			cNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
 
@@ -1011,16 +1009,16 @@ uint8_t RysujEkran(void)
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			printf("Obraz %d%%: ", n*10);
-			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
-			sprintf((char*)chNazwaPlikuObrazu, "YUV420_%d", n*10);	//początek nazwy pliku ze zdjeciem
-			cBłąd = KompresujRGB888doYUV420(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
+			cStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+			sprintf((char*)cNazwaPlikuObrazu, "YUV420_%d", n*10);	//początek nazwy pliku ze zdjeciem
+			cBłąd = KompresujRGB888doYUV420(cBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
+			while (cStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
 			{
 				printf("Sync, ");
 				osDelay(5);
 			}
 		}
-		chNowyTrybPracy = TP_WROC_DO_OSD;
+		cNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
 	case TPO_JPEG422:		//kompresja jpeg obrazu OSD
@@ -1029,16 +1027,16 @@ uint8_t RysujEkran(void)
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			printf("Obraz %d%%: ", n*10);
-			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
-			sprintf((char*)chNazwaPlikuObrazu, "YUV422_%d", n*10);	//początek nazwy pliku ze zdjeciem
-			cBłąd = KompresujRGB888doYUV422(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
+			cStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+			sprintf((char*)cNazwaPlikuObrazu, "YUV422_%d", n*10);	//początek nazwy pliku ze zdjeciem
+			cBłąd = KompresujRGB888doYUV422(cBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
+			while (cStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
 			{
 				printf("Sync, ");
 				osDelay(5);
 			}
 		}
-		chNowyTrybPracy = TP_WROC_DO_OSD;
+		cNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
 	case TPO_JPEG444:
@@ -1047,16 +1045,16 @@ uint8_t RysujEkran(void)
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			printf("Obraz %d%%: ", n*10);
-			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
-			sprintf((char*)chNazwaPlikuObrazu, "YUV444_%d", n*10);	//początek nazwy pliku ze zdjeciem
-			cBłąd = KompresujRGB888doYUV444(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
+			cStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+			sprintf((char*)cNazwaPlikuObrazu, "YUV444_%d", n*10);	//początek nazwy pliku ze zdjeciem
+			cBłąd = KompresujRGB888doYUV444(cBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
+			while (cStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
 			{
 				printf("Sync, ");
 				osDelay(5);
 			}
 		}
-		chNowyTrybPracy = TP_WROC_DO_OSD;
+		cNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
 	case TPO_JPEG_Y8:
@@ -1065,24 +1063,24 @@ uint8_t RysujEkran(void)
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			printf("Obraz %d%%: ", n*10);
-			chStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
-			sprintf((char*)chNazwaPlikuObrazu, "Y8_%d", n*10);	//początek nazwy pliku ze zdjeciem
-			cBłąd = KompresujRGB888doY8(chBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			while (chStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
+			cStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+			sprintf((char*)cNazwaPlikuObrazu, "Y8_%d", n*10);	//początek nazwy pliku ze zdjeciem
+			cBłąd = KompresujRGB888doY8(cBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
+			while (cStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
 			{
 				printf("Sync, ");
 				osDelay(5);
 			}
 		}
-		chNowyTrybPracy = TP_WROC_DO_OSD;
+		cNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
 	//*** Ethernet ************************************************
 	case TP_ETHERNET:
-		//Menu((char*)chNapisLcd[STR_MENU_ETHERNET], stMenuEthernet, &chNowyTrybPracy);
-		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_ETHERNET]);
-		cBłąd = Menu(chNapisPodreczny, stMenuEthernet, &chNowyTrybPracy);
-		chWrocDoTrybu = TP_MENU_GLOWNE;
+		//Menu((char*)cNapisLcd[STR_MENU_ETHERNET], stMenuEthernet, &cNowyTrybPracy);
+		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_ETHERNET]);
+		cBłąd = Menu(cNapisPodreczny, stMenuEthernet, &cNowyTrybPracy);
+		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
 
@@ -1094,114 +1092,114 @@ uint8_t RysujEkran(void)
 		extern struct stats_ lwip_stats;
 #endif
 
-		if (chRysujRaz)
+		if (cRysujRaz)
 		{
 			BelkaTytulu("Statystyki Internetowe");
-			chRysujRaz = 0;
+			cRysujRaz = 0;
 		}
 
 		setColor(BIALY);
 		UstawCzcionke(MidFont);
-		sprintf(chNapis, "NumerIP: %ld.%ld.%ld.%ld",(ipaddr.addr & 0xFF), (ipaddr.addr & 0xFF00)>>8, (ipaddr.addr & 0xFF0000)>>16, (ipaddr.addr & 0xFF000000)>>24);
-		RysujNapis(chNapis, 10, 30);
-		sprintf(chNapis, "Maska:   %ld.%ld.%ld.%ld", (netmask.addr & 0xFF), (netmask.addr & 0xFF00)>>8, (netmask.addr & 0xFF0000)>>16, (netmask.addr & 0xFF000000)>>24);
-		RysujNapis(chNapis, 10, 50);
-		sprintf(chNapis, "GateWay: %ld.%ld.%ld.%ld", (gw.addr & 0xFF), (gw.addr & 0xFF00)>>8, (gw.addr & 0xFF0000)>>16, (gw.addr & 0xFF000000)>>24);
-		RysujNapis(chNapis, 10, 70);
+		sprintf(cNapis, "NumerIP: %ld.%ld.%ld.%ld",(ipaddr.addr & 0xFF), (ipaddr.addr & 0xFF00)>>8, (ipaddr.addr & 0xFF0000)>>16, (ipaddr.addr & 0xFF000000)>>24);
+		RysujNapis(cNapis, 10, 30);
+		sprintf(cNapis, "Maska:   %ld.%ld.%ld.%ld", (netmask.addr & 0xFF), (netmask.addr & 0xFF00)>>8, (netmask.addr & 0xFF0000)>>16, (netmask.addr & 0xFF000000)>>24);
+		RysujNapis(cNapis, 10, 50);
+		sprintf(cNapis, "GateWay: %ld.%ld.%ld.%ld", (gw.addr & 0xFF), (gw.addr & 0xFF00)>>8, (gw.addr & 0xFF0000)>>16, (gw.addr & 0xFF000000)>>24);
+		RysujNapis(cNapis, 10, 70);
 #ifdef ETH_WLACZONY
-		sprintf(chNapis, "LINK:    xmit=%d recv=%d drop=%d err=%d", lwip_stats.link.xmit, lwip_stats.link.recv, lwip_stats.link.drop, lwip_stats.link.err);
-		RysujNapis(chNapis, 10, 90);
-		sprintf(chNapis, "ARP:     xmit=%d recv=%d drop=%d err=%d", lwip_stats.etharp.xmit, lwip_stats.etharp.recv, lwip_stats.etharp.drop, lwip_stats.etharp.err);
-		RysujNapis(chNapis, 10, 110);
-		sprintf(chNapis, "UDP:     xmit=%d recv=%d drop=%d err=%d", lwip_stats.udp.xmit, lwip_stats.udp.recv, lwip_stats.udp.drop, lwip_stats.udp.err);
-		RysujNapis(chNapis, 10, 130);
-		sprintf(chNapis, "TCP:     xmit=%d recv=%d drop=%d err=%d", lwip_stats.tcp.xmit, lwip_stats.tcp.recv, lwip_stats.tcp.drop, lwip_stats.tcp.err);
-		RysujNapis(chNapis, 10, 150);
-		sprintf(chNapis, "TCP Err: checksum=%d length=%d options=%d protocol=%d", lwip_stats.tcp.chkerr, lwip_stats.tcp.lenerr, lwip_stats.tcp.opterr, lwip_stats.tcp.proterr);
-		RysujNapis(chNapis, 10, 170);
-		sprintf(chNapis, "MemHeap: avail=%ld used=%ld err=%d illegal=%d", (uint32_t)lwip_stats.mem.avail, (uint32_t)lwip_stats.mem.used, lwip_stats.mem.err, lwip_stats.mem.illegal);
-		RysujNapis(chNapis, 10, 190);
-		sprintf(chNapis, "MemPoll: avail=%ld used=%ld err=%d illegal=%d", (uint32_t)lwip_stats.memp[1]->avail, (uint32_t)lwip_stats.memp[1]->used, lwip_stats.memp[1]->err, lwip_stats.memp[1]->illegal);
-		RysujNapis(chNapis, 10, 210);
-		sprintf(chNapis, "SYS Err: semafor=%d mutex=%d mbox=%d", lwip_stats.sys.sem.err, lwip_stats.sys.mutex.err, lwip_stats.sys.mbox.err);
+		sprintf(cNapis, "LINK:    xmit=%d recv=%d drop=%d err=%d", lwip_stats.link.xmit, lwip_stats.link.recv, lwip_stats.link.drop, lwip_stats.link.err);
+		RysujNapis(cNapis, 10, 90);
+		sprintf(cNapis, "ARP:     xmit=%d recv=%d drop=%d err=%d", lwip_stats.etharp.xmit, lwip_stats.etharp.recv, lwip_stats.etharp.drop, lwip_stats.etharp.err);
+		RysujNapis(cNapis, 10, 110);
+		sprintf(cNapis, "UDP:     xmit=%d recv=%d drop=%d err=%d", lwip_stats.udp.xmit, lwip_stats.udp.recv, lwip_stats.udp.drop, lwip_stats.udp.err);
+		RysujNapis(cNapis, 10, 130);
+		sprintf(cNapis, "TCP:     xmit=%d recv=%d drop=%d err=%d", lwip_stats.tcp.xmit, lwip_stats.tcp.recv, lwip_stats.tcp.drop, lwip_stats.tcp.err);
+		RysujNapis(cNapis, 10, 150);
+		sprintf(cNapis, "TCP Err: checksum=%d length=%d options=%d protocol=%d", lwip_stats.tcp.chkerr, lwip_stats.tcp.lenerr, lwip_stats.tcp.opterr, lwip_stats.tcp.proterr);
+		RysujNapis(cNapis, 10, 170);
+		sprintf(cNapis, "MemHeap: avail=%ld used=%ld err=%d illegal=%d", (uint32_t)lwip_stats.mem.avail, (uint32_t)lwip_stats.mem.used, lwip_stats.mem.err, lwip_stats.mem.illegal);
+		RysujNapis(cNapis, 10, 190);
+		sprintf(cNapis, "MemPoll: avail=%ld used=%ld err=%d illegal=%d", (uint32_t)lwip_stats.memp[1]->avail, (uint32_t)lwip_stats.memp[1]->used, lwip_stats.memp[1]->err, lwip_stats.memp[1]->illegal);
+		RysujNapis(cNapis, 10, 210);
+		sprintf(cNapis, "SYS Err: semafor=%d mutex=%d mbox=%d", lwip_stats.sys.sem.err, lwip_stats.sys.mutex.err, lwip_stats.sys.mbox.err);
 #else
-		sprintf(chNapis, "Uzywanie ethernetu wylaczone");
+		sprintf(cNapis, "Uzywanie ethernetu wylaczone");
 #endif
-		RysujNapis(chNapis, 10, 230);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		RysujNapis(cNapis, 10, 230);
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_ETH;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_ETH;
 		}
 		osDelay(100);	//pozwól pracować innym wątkom
 		break;
 
 
 	case TP_ETH_GADU_GADU:
-		if (chRysujRaz)
+		if (cRysujRaz)
 		{
 			BelkaTytulu("Gadu-Gadu port:4000");
-			chRysujRaz = 0;
+			cRysujRaz = 0;
 		}
 
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_ETH;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_ETH;
 		}
 		break;
 
 
 	//*** Wydajność ************************************************
 	case TP_WYDAJNOSC:			///menu pomiarów wydajności
-		//Menu((char*)chNapisLcd[STR_MENU_WYDAJNOSC], stMenuWydajnosc, &chNowyTrybPracy);
-		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_WYDAJNOSC]);
-		cBłąd = Menu(chNapisPodreczny, stMenuWydajnosc, &chNowyTrybPracy);
-		chWrocDoTrybu = TP_MENU_GLOWNE;
+		//Menu((char*)cNapisLcd[STR_MENU_WYDAJNOSC], stMenuWydajnosc, &cNowyTrybPracy);
+		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_WYDAJNOSC]);
+		cBłąd = Menu(cNapisPodreczny, stMenuWydajnosc, &cNowyTrybPracy);
+		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
 
 	case TP_FRAKTALE:		FraktalDemo();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
 		}
 		break;
 
 
 	case TP_POMIAR_SRAM:	TestPredkosciOdczytuRAM();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
 		}
 		break;
 
 
 	case TP_POM_ZAPISU_NOR:		TestPredkosciZapisuNOR();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
 		}
 		break;
 
 
 	case TP_POMIAR_FNOR:	TestPredkosciOdczytuNOR();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
 		}
 		break;
 
 
 	case TP_POMIAR_FQSPI:	//W25_TestTransferu();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
 		}
 		break;
 
@@ -1211,10 +1209,10 @@ uint8_t RysujEkran(void)
 		for (uint8_t n=0; n<3; n++)
 			fKat[n] = -1 *uDaneCM4.dane.fKatZyro2[n];	//do rysowania przyjmij kąty z przeciwnym znakiem - jest OK
 		RysujKostkeObrotu(fKat);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
 		}
 		break;
 
@@ -1229,118 +1227,118 @@ uint8_t RysujEkran(void)
 				fSymKatKostki[n] = -M_PI;
 		}
 		RysujKostkeObrotu(fSymKatKostki);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
 		}
 		break;
 
 	case TP_STAN_PAMIECI:
 		setColor(ZOLTY);
-		sprintf(chNapis, "Wolna sterta: %d", xPortGetFreeHeapSize());
-		RysujNapis(chNapis, KOL12, 40);
+		sprintf(cNapis, "Wolna sterta: %d", xPortGetFreeHeapSize());
+		RysujNapis(cNapis, KOL12, 40);
 
-		sprintf(chNapis, "Minimalna wolna pamiec: %d", xPortGetMinimumEverFreeHeapSize());
-		RysujNapis(chNapis, KOL12, 70);
+		sprintf(cNapis, "Minimalna wolna pamiec: %d", xPortGetMinimumEverFreeHeapSize());
+		RysujNapis(cNapis, KOL12, 70);
 
 		/*struct mallinfo mi;
 		memset(&mi,0,sizeof(struct mallinfo));
 		mi = mallinfo();
 
-		sprintf(chNapis, "mallinfo: Arena %ld, Free %ld, Used %ls", mi.arena, mi.fordblks, mi.uordblks);
-		RysujNapis(chNapis, KOL12, 100);*/
+		sprintf(cNapis, "mallinfo: Arena %ld, Free %ld, Used %ls", mi.arena, mi.fordblks, mi.uordblks);
+		RysujNapis(cNapis, KOL12, 100);*/
 
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
 		}
 		break;
 
 	case TP_EMU_MAG_CAN:
-		uDaneCM7.dane.chWykonajPolecenie = POL7_KAL_ZERO_MAGN2;	//włącz tryb jak dla kalibracji aby nie uwzględniać w wyniku danych kalibracyjnych
+		uDaneCM7.dane.cWykonajPolecenie = POL7_KAL_ZERO_MAGN2;	//włącz tryb jak dla kalibracji aby nie uwzględniać w wyniku danych kalibracyjnych
 		EmulujMagnetometrWizjerCan((float*)uDaneCM4.dane.fMagne2);
 		UstawCzcionke(BigFont);
 		setColor(KOLOR_X);
-		sprintf(chNapis, "Mag X: %.3f uT ", uDaneCM4.dane.fMagne2[0] * 1e6);
-		RysujNapis(chNapis, KOL12, 40);
+		sprintf(cNapis, "Mag X: %.3f uT ", uDaneCM4.dane.fMagne2[0] * 1e6);
+		RysujNapis(cNapis, KOL12, 40);
 		setColor(KOLOR_Y);
-		sprintf(chNapis, "Mag Y: %.3f uT ", uDaneCM4.dane.fMagne2[1] * 1e6);
-		RysujNapis(chNapis, KOL12, 70);
+		sprintf(cNapis, "Mag Y: %.3f uT ", uDaneCM4.dane.fMagne2[1] * 1e6);
+		RysujNapis(cNapis, KOL12, 70);
 		setColor(KOLOR_Z);
-		sprintf(chNapis, "Mag Z: %.3f uT ", uDaneCM4.dane.fMagne2[2] * 1e6);
-		RysujNapis(chNapis, KOL12, 100);
+		sprintf(cNapis, "Mag Z: %.3f uT ", uDaneCM4.dane.fMagne2[2] * 1e6);
+		RysujNapis(cNapis, KOL12, 100);
 
-		if (chRysujRaz)
+		if (cRysujRaz)
 		{
 			BelkaTytulu("Emulacja magnetometru CAN");
-			chRysujRaz = 0;
+			cRysujRaz = 0;
 			setColor(SZARY50);
-			RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
+			RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 		}
 
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
-			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//zakończ tryb kalibracyjny
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
+			uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;	//zakończ tryb kalibracyjny
 		}
 		break;
 
 	case TP_POMIAR_PGAP:
-		uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_CZAS_PETLI_GL;
-		if ((uDaneCM4.dane.chPotwierdzenieWykonania == POL7_CZYTAJ_CZAS_PETLI_GL) && (uDaneCM4.dane.sAdres == uDaneCM7.dane.sAdres))
+		uDaneCM7.dane.cWykonajPolecenie = POL7_CZYTAJ_CZAS_PETLI_GL;
+		if ((uDaneCM4.dane.cPotwierdzenieWykonania == POL7_CZYTAJ_CZAS_PETLI_GL) && (uDaneCM4.dane.sAdres == uDaneCM7.dane.sAdres))
 		{
 			PokazCzasOdcinkowPGAP((uint16_t*)&uDaneCM4.dane.uRozne.U16[0]);
 			uDaneCM7.dane.sAdres++;	//inkrementacja adresu zapewnia unikalność polecenia. CM4 nie wykonuje powtórzonych poleceń
 		}
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_WYDAJN;
-			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
+			uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;
 		}
 		break;
 
 
 	//*** Karta SD ************************************************
 	case TP_KARTA_SD:			///menu Karta SD
-		//Menu((char*)chNapisLcd[STR_MENU_KARTA_SD], stMenuKartaSD, &chNowyTrybPracy);
-		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KARTA_SD]);
-		cBłąd = Menu(chNapisPodreczny, stMenuKartaSD, &chNowyTrybPracy);
-		chWrocDoTrybu = TP_MENU_GLOWNE;
+		//Menu((char*)cNapisLcd[STR_MENU_KARTA_SD], stMenuKartaSD, &cNowyTrybPracy);
+		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_KARTA_SD]);
+		cBłąd = Menu(cNapisPodreczny, stMenuKartaSD, &cNowyTrybPracy);
+		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
 
 	case TPKS_WLACZ_REJ:
-		chStatusRejestratora|= STATREJ_WLACZONY;
+		cStatusRejestratora|= STATREJ_WLACZONY;
 		WyswietlRejestratorKartySD();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_KARTA;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_KARTA;
 		}
 		break;
 
 
 	case TPKS_WYLACZ_REJ:	//najpierw zakmnij plik a potem wyłacz rejestrator
-		chStatusRejestratora|= STATREJ_ZAMKNIJ_PLIK | STATREJ_BYL_OTWARTY;
+		cStatusRejestratora|= STATREJ_ZAMKNIJ_PLIK | STATREJ_BYL_OTWARTY;
 		WyswietlRejestratorKartySD();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_KARTA;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_KARTA;
 		}
 		break;
 
 
 	case TPKS_PARAMETRY:
 		WyswietlParametryKartySD();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_KARTA;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_KARTA;
 		}
 		break;
 
@@ -1351,118 +1349,118 @@ uint8_t RysujEkran(void)
 		{
 			for (uint32_t x=0; x<DISP_X_SIZE; x++)
 			{
-				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 0] = x & 0xFF;
-				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 1] = y & 0xFF;
-				chBuforLCD[y*DISP_X_SIZE*3 + x*3 + 2] = (y >> 8) & 0xFF;;
+				cBuforLCD[y*DISP_X_SIZE*3 + x*3 + 0] = x & 0xFF;
+				cBuforLCD[y*DISP_X_SIZE*3 + x*3 + 1] = y & 0xFF;
+				cBuforLCD[y*DISP_X_SIZE*3 + x*3 + 2] = (y >> 8) & 0xFF;;
 			}
 		}
-		cBłąd = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
-		cBłąd = ZapiszPlikBin(chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
-		chTrybPracy = chWrocDoTrybu;
-		chNowyTrybPracy = TP_WROC_DO_KARTA;
+		cBłąd = ZapiszPlikBmp(cBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
+		cBłąd = ZapiszPlikBin(cBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
+		cTrybPracy = cWrocDoTrybu;
+		cNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
 
-	case TPKS_ZAPISZ_BIN:	cBłąd = ZapiszPlikBin(chBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
-		chTrybPracy = chWrocDoTrybu;
-		chNowyTrybPracy = TP_WROC_DO_KARTA;
+	case TPKS_ZAPISZ_BIN:	cBłąd = ZapiszPlikBin(cBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
+		cTrybPracy = cWrocDoTrybu;
+		cNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
 
-	case TPKS_ZAPISZ_BMP8:	cBłąd = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_8, DISP_X_SIZE, DISP_Y_SIZE);
-		chTrybPracy = chWrocDoTrybu;
-		chNowyTrybPracy = TP_WROC_DO_KARTA;
+	case TPKS_ZAPISZ_BMP8:	cBłąd = ZapiszPlikBmp(cBuforLCD, BMP_KOLOR_8, DISP_X_SIZE, DISP_Y_SIZE);
+		cTrybPracy = cWrocDoTrybu;
+		cNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
 
-	case TPKS_ZAP_BMP24_480:	cBłąd = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
-		chTrybPracy = chWrocDoTrybu;
-		chNowyTrybPracy = TP_WROC_DO_KARTA;
+	case TPKS_ZAP_BMP24_480:	cBłąd = ZapiszPlikBmp(cBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
+		cTrybPracy = cWrocDoTrybu;
+		cNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
 
-	case TPKS_ZAP_BMP24_320:	cBłąd = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, 320, 240);
-		chTrybPracy = chWrocDoTrybu;
-		chNowyTrybPracy = TP_WROC_DO_KARTA;
+	case TPKS_ZAP_BMP24_320:	cBłąd = ZapiszPlikBmp(cBuforLCD, BMP_KOLOR_24, 320, 240);
+		cTrybPracy = cWrocDoTrybu;
+		cNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
 
-	case TPKS_ZAP_BMP24_240:	cBłąd = ZapiszPlikBmp(chBuforLCD, BMP_KOLOR_24, 240, 160);
-		chTrybPracy = chWrocDoTrybu;
-		chNowyTrybPracy = TP_WROC_DO_KARTA;
+	case TPKS_ZAP_BMP24_240:	cBłąd = ZapiszPlikBmp(cBuforLCD, BMP_KOLOR_24, 240, 160);
+		cTrybPracy = cWrocDoTrybu;
+		cNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
 
 
 //*** IMU ************************************************
 	case TP_KAL_IMU:			//menu kalibracji IMU
-		//Menu((char*)chNapisLcd[STR_MENU_IMU], stMenuIMU, &chNowyTrybPracy);
-		sprintf(chNapisPodreczny, "%s %s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KALIBRACJA], chNapisLcd[STR_IMU]);
-		cBłąd = Menu(chNapisPodreczny, stMenuIMU, &chNowyTrybPracy);
-		chWrocDoTrybu = TP_MENU_GLOWNE;
+		//Menu((char*)cNapisLcd[STR_MENU_IMU], stMenuIMU, &cNowyTrybPracy);
+		sprintf(cNapisPodreczny, "%s %s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_KALIBRACJA], cNapisLcd[STR_IMU]);
+		cBłąd = Menu(cNapisPodreczny, stMenuIMU, &cNowyTrybPracy);
+		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
 
 	case TP_KAL_ZYRO_ZIM:
-		uDaneCM7.dane.chWykonajPolecenie = POL7_KALIBRUJ_ZYRO_ZIM;	//uruchom kalibrację żyroskopów na zimno 10°C
+		uDaneCM7.dane.cWykonajPolecenie = POL7_KALIBRUJ_ZYRO_ZIM;	//uruchom kalibrację żyroskopów na zimno 10°C
 		fTemperaturaKalibracji = TEMP_KAL_ZIMNO;
 		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
-			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
+			cTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
 		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO))
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WYSWIETL_BLAD;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WYSWIETL_BLAD;
 		}
 		break;
 
 
 	case TP_KAL_ZYRO_POK:
-		uDaneCM7.dane.chWykonajPolecenie = POL7_KALIBRUJ_ZYRO_POK;	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
+		uDaneCM7.dane.cWykonajPolecenie = POL7_KALIBRUJ_ZYRO_POK;	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
 		fTemperaturaKalibracji = TEMP_KAL_POKOJ;
 		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
-			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
+			cTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
 		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO))
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WYSWIETL_BLAD;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WYSWIETL_BLAD;
 		}
 		break;
 
 
 	case TP_KAL_ZYRO_GOR:
-		uDaneCM7.dane.chWykonajPolecenie = POL7_KALIBRUJ_ZYRO_GOR;	//uruchom kalibrację żyroskopów na gorąco 40°C
+		uDaneCM7.dane.cWykonajPolecenie = POL7_KALIBRUJ_ZYRO_GOR;	//uruchom kalibrację żyroskopów na gorąco 40°C
 		fTemperaturaKalibracji = TEMP_KAL_GORAC;
 		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
-			chTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
+			cTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
 		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO))
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WYSWIETL_BLAD;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WYSWIETL_BLAD;
 		}
 		break;
 
 
 	case TP_PODGLAD_IMU:
-		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;		//gdy proces się rozpoczął wyłącz dalsze wysyłanie polecenia kalibracji
+		uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;		//gdy proces się rozpoczął wyłącz dalsze wysyłanie polecenia kalibracji
 		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO))
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WYSWIETL_BLAD;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WYSWIETL_BLAD;
 		}
 		else
 		{
 			PomiaryAHRS();		//wyświetlaj wyniki pomiarów AHRS pobrane z CM4
 			if (uDaneCM4.dane.sPostepProcesu)
-				chCzasSwieceniaLED[LED_NIEB] = 5;	//świeć niebieskim LED w trakcie kalibracji
+				cCzasSwieceniaLED[LED_NIEB] = 5;	//świeć niebieskim LED w trakcie kalibracji
 		}
 
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_KAL_IMU;
-			uDaneCM7.dane.chWykonajPolecenie = POL7_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_KAL_IMU;
+			uDaneCM7.dane.cWykonajPolecenie = POL7_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
 		}
 		break;
 
@@ -1474,52 +1472,52 @@ uint8_t RysujEkran(void)
 		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO)
 			WyswietlKomunikatBledu(KOMUNIKAT_ZA_CIEPLO, (uDaneCM4.dane.fTemper[TEMP_IMU1] + uDaneCM4.dane.fTemper[TEMP_IMU2])/2, fTemperaturaKalibracji, TEMP_KAL_ODCHYLKA);	//Wyświetl komunikat  o tym że jest za ciepło i nominalna temperatura kalibracji to TEMP_KAL_POKOJ z odchyłką TEMP_KAL_ODCHYLKA
 
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_KAL_IMU;
-			uDaneCM7.dane.chWykonajPolecenie = POL7_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_KAL_IMU;
+			uDaneCM7.dane.cWykonajPolecenie = POL7_CZYSC_BLEDY;	//po zakończeniu wczyść zwrócony kod błędu
 		}
 		break;
 
 
 	case TP_KASUJ_DRYFT_ZYRO:
-		uDaneCM7.dane.chWykonajPolecenie = POL7_KASUJ_DRYFT_ZYRO;
-		if (uDaneCM4.dane.chPotwierdzenieWykonania == POL7_KASUJ_DRYFT_ZYRO)
+		uDaneCM7.dane.cWykonajPolecenie = POL7_KASUJ_DRYFT_ZYRO;
+		if (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_KASUJ_DRYFT_ZYRO)
 		{
-			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_KAL_IMU;
+			uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_KAL_IMU;
 		}
 		break;
 
 
 	case TP_KAL_WZM_ZYROR:
-		chSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_R;
-		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == BLAD_GOTOWE)
+		cSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_R;
+		if (KalibracjaWzmocnieniaZyroskopow(&cSekwencerKalibracji) == BLAD_GOTOWE)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_KAL_IMU;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_KAL_IMU;
 		}
 		break;
 
 
 	case TP_KAL_WZM_ZYROQ:
-		chSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_Q;
-		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == BLAD_GOTOWE)
+		cSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_Q;
+		if (KalibracjaWzmocnieniaZyroskopow(&cSekwencerKalibracji) == BLAD_GOTOWE)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_KAL_IMU;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_KAL_IMU;
 		}
 		break;
 
 
 	case TP_KAL_WZM_ZYROP:
-		chSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_P;
-		if (KalibracjaWzmocnieniaZyroskopow(&chSekwencerKalibracji) == BLAD_GOTOWE)
+		cSekwencerKalibracji = SEKW_KAL_WZM_ZYRO_P;
+		if (KalibracjaWzmocnieniaZyroskopow(&cSekwencerKalibracji) == BLAD_GOTOWE)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_KAL_IMU;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_KAL_IMU;
 		}
 		break;
 
@@ -1537,40 +1535,40 @@ uint8_t RysujEkran(void)
 
 //*** Magnetometr ************************************************
 	case TP_MAGNETOMETR:	//menu obsługi magnetometru
-		//Menu((char*)chNapisLcd[STR_MENU_MAGNETOMETR], stMenuMagnetometr, &chNowyTrybPracy);
-		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_MAGNETOMETR]);
-		cBłąd = Menu(chNapisPodreczny, stMenuMagnetometr, &chNowyTrybPracy);
-		chWrocDoTrybu = TP_MENU_GLOWNE;
-		chSekwencerKalibracji = 0;
+		//Menu((char*)cNapisLcd[STR_MENU_MAGNETOMETR], stMenuMagnetometr, &cNowyTrybPracy);
+		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_MAGNETOMETR]);
+		cBłąd = Menu(cNapisPodreczny, stMenuMagnetometr, &cNowyTrybPracy);
+		cWrocDoTrybu = TP_MENU_GLOWNE;
+		cSekwencerKalibracji = 0;
 		break;
 
 
 	case TP_MAG_KAL1:
-		chSekwencerKalibracji |= MAG1 + KALIBRUJ;
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == BLAD_GOTOWE)
+		cSekwencerKalibracji |= MAG1 + KALIBRUJ;
+		if (KalibracjaZeraMagnetometru(&cSekwencerKalibracji) == BLAD_GOTOWE)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MAG;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
 
 
 	case TP_MAG_KAL2:
-		chSekwencerKalibracji |= MAG2 + KALIBRUJ;
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == BLAD_GOTOWE)
+		cSekwencerKalibracji |= MAG2 + KALIBRUJ;
+		if (KalibracjaZeraMagnetometru(&cSekwencerKalibracji) == BLAD_GOTOWE)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MAG;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
 
 
 	case TP_MAG_KAL3:
-		chSekwencerKalibracji |= MAG3 + KALIBRUJ;
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == BLAD_GOTOWE)
+		cSekwencerKalibracji |= MAG3 + KALIBRUJ;
+		if (KalibracjaZeraMagnetometru(&cSekwencerKalibracji) == BLAD_GOTOWE)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MAG;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
 
@@ -1578,126 +1576,126 @@ uint8_t RysujEkran(void)
 	case TP_MAG1:	break;
 	case TP_MAG2:	break;
 	case TP_SPR_PLASKI:	PlaskiObrotMagnetometrow();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MAG;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
 
 
 	case TP_SPR_MAG1:
-		chSekwencerKalibracji |= MAG1;	//sprawdzenie, bez kalibracji
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == BLAD_GOTOWE)
+		cSekwencerKalibracji |= MAG1;	//sprawdzenie, bez kalibracji
+		if (KalibracjaZeraMagnetometru(&cSekwencerKalibracji) == BLAD_GOTOWE)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MAG;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
 
 
 	case TP_SPR_MAG2:
-		chSekwencerKalibracji |= MAG2;	//sprawdzenie, bez kalibracji
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == BLAD_GOTOWE)
+		cSekwencerKalibracji |= MAG2;	//sprawdzenie, bez kalibracji
+		if (KalibracjaZeraMagnetometru(&cSekwencerKalibracji) == BLAD_GOTOWE)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MAG;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
 
 
 	case TP_SPR_MAG3:
-		chSekwencerKalibracji |= MAG3;	//sprawdzenie, bez kalibracji
-		if (KalibracjaZeraMagnetometru(&chSekwencerKalibracji) == BLAD_GOTOWE)
+		cSekwencerKalibracji |= MAG3;	//sprawdzenie, bez kalibracji
+		if (KalibracjaZeraMagnetometru(&cSekwencerKalibracji) == BLAD_GOTOWE)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_MAG;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_MAG;
 		}
 		break;
 
 
 //*** Kalibracje ************************************************
 	case TP_KALIBRACJE:		//menu skupiające różne kalibracje
-		//Menu((char*)chNapisLcd[STR_MENU_KALIBRACJE], stMenuKalibracje, &chNowyTrybPracy);
-		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_KALIBRACJE]);
-		cBłąd = Menu(chNapisPodreczny, stMenuKalibracje, &chNowyTrybPracy);
-		chWrocDoTrybu = TP_MENU_GLOWNE;
+		//Menu((char*)cNapisLcd[STR_MENU_KALIBRACJE], stMenuKalibracje, &cNowyTrybPracy);
+		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_KALIBRACJE]);
+		cBłąd = Menu(cNapisPodreczny, stMenuKalibracje, &cNowyTrybPracy);
+		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
 
 	case TP_KAL_DOTYK:
-		chNowyTrybPracy = 0;			//nowy tryb jest ustawiany po starcie dla normalnej pracy ze skalibrowanym panelem. Jednak w przypadku potrzeby kalobracji,
+		cNowyTrybPracy = 0;			//nowy tryb jest ustawiany po starcie dla normalnej pracy ze skalibrowanym panelem. Jednak w przypadku potrzeby kalobracji,
 										//powoduje to wyczyszczenie opisu i pierwszego krzyżyka i nie wiadomo o co chodzi, więc kasuję chNowyTrybPracy
 		if (KalibrujDotyk() == BLAD_GOTOWE)
-			chTrybPracy = TP_POMIARY_DOTYKU;
+			cTrybPracy = TP_POMIARY_DOTYKU;
 		break;
 
 
 //*** Pomiary ************************************************
 	case TP_POMIARY:		//menu skupiające różne kalibracje
-		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_POMIARY]);
-		cBłąd = Menu(chNapisPodreczny, stMenuPomiary, &chNowyTrybPracy);
-		chWrocDoTrybu = TP_MENU_GLOWNE;
+		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_POMIARY]);
+		cBłąd = Menu(cNapisPodreczny, stMenuPomiary, &cNowyTrybPracy);
+		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
 
 	case TP_POMIARY_AHRS:	PomiaryAHRS();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+			cNowyTrybPracy = TP_WROC_DO_POMIARY;
 			ZatrzymajTon();
 		}
 		break;
 
 
 	case TP_POMIARY_CZUJN:	PomiaryCzujnikow();
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_POMIARY;
 		}
 		break;
 
 
 	case TP_POMIARY_RC:	//DaneOdbiornikaRC();
 		RysujPaskiKanalowRC(STR_DANE_ODBIORNIKA_RC, (uint16_t *)uDaneCM4.dane.sKanalRC);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_POMIARY;
 		}
 		break;
 
 
 	case TP_POMIARY_SERWA:	RysujPaskiKanalowRC(STR_DANE_WYJSC_RC, (uint16_t *)uDaneCM4.dane.sWyjscieRC);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_POMIARY;
 		}
 		break;
 
 	case TP_POMIARY_ANALIZA_DRGAN:
-		if (chRysujRaz)
-			RozpocznijAnalizęDrgań(&stKonfigFFT, &chTrybPracy);
+		if (cRysujRaz)
+			RozpocznijAnalizęDrgań(&stKonfigFFT, &cTrybPracy);
 		if (stKonfigFFT.chStatus & FFT_NOWE_DANE)
-			KrokAnalizyDrgań(&stKonfigFFT, &chTrybPracy);
+			KrokAnalizyDrgań(&stKonfigFFT, &cTrybPracy);
 		//intencjonalnie brakuje break; aby po zakończeniu wszedł w obsługę rysowania FFT
 
 	case TP_POMIARY_FFT_ACC:	RysujFFT(&fWynikFFT[0][0][0], &stKonfigFFT, FFT_ACC);	//FFT akcelerometrów
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_POMIARY;
-			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//kasuj ewentualne polecenie wysterowania silników analizy drgań
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_POMIARY;
+			uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;	//kasuj ewentualne polecenie wysterowania silników analizy drgań
 		}
 		break;
 
 	case TP_POMIARY_FFT_ZYR:	RysujFFT(&fWynikFFT[0][0][0], &stKonfigFFT, FFT_ZYR);	//FFT żyroskopów
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_POMIARY;
 		}
 		break;
 
@@ -1707,87 +1705,87 @@ uint8_t RysujEkran(void)
 		Ekran_Powitalny(nZainicjowanoCM7);	//przywitaj użytkownika i prezentuj wykryty sprzęt
 		if (!chLiczIter)				//jeżeli koniec odliczania to wyjdź
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_POMIARY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_POMIARY;
 		}
 		break;
 
 
 //*** Nastawy ************************************************
 	case TP_NASTAWY:		//menu skupiające różne kalibracje
-		sprintf(chNapisPodreczny, "%s %s", chNapisLcd[STR_MENU], chNapisLcd[STR_NASTAWY]);
-		cBłąd = Menu(chNapisPodreczny, stMenuNastawy, &chNowyTrybPracy);
-		chWrocDoTrybu = TP_MENU_GLOWNE;
+		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_NASTAWY]);
+		cBłąd = Menu(cNapisPodreczny, stMenuNastawy, &cNowyTrybPracy);
+		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
 
 	case TP_NAST_PID_PRZECH:		//regulator sterowania przechyleniem (lotkami w samolocie)
 		NastawyPID(PID_KĄTA_PRZE);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_NASTAWY;
 		}
 		break;
 
 
 	case TP_NAST_PID_POCH:	//regulator sterowania pochyleniem (sterem wysokości)
 		NastawyPID(PID_KĄTA_POCH);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_NASTAWY;
 		}
 		break;
 
 
 	case TP_NAST_PID_ODCH:		//regulator sterowania odchyleniem (sterem kierunku)
 		NastawyPID(PID_KĄTA_ODCH);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_NASTAWY;
 		}
 		break;
 
 
 	case TP_NAST_PID_WYSOK:		//regulator sterowania wysokością
 		NastawyPID(PID_WYSOKOSCI);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_NASTAWY;
 		}
 		break;
 
 
 	case TP_NAST_PID_NAWIG_PÓŁN:		//regulator sterowania nawigacją w kierunku północnym
 		NastawyPID(PID_NAWIG_PÓŁN);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_NASTAWY;
 		}
 		break;
 
 
 	case TP_NAST_PID_NAWIG_WSCH:		//regulator sterowania nawigacją w kierunku wschodnim
 		NastawyPID(PID_NAWIG_WSCH);
-		if(statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 		{
-			chTrybPracy = chWrocDoTrybu;
-			chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_NASTAWY;
 		}
 		break;
 
 
 	case TP_NAST_MIKSERA:		break;
-	case TP_NAST_IDENT_SILN:	RozpocznijIdentyfikacjęSilników(&stIdentSiln, &chTrybPracy); break;
+	case TP_NAST_IDENT_SILN:	RozpocznijIdentyfikacjęSilników(&stIdentSiln, &cTrybPracy); break;
 
 	case TP_PROCES_IDENT_SILN:
-		if (chRysujRaz)
+		if (cRysujRaz)
 		{
-			chRysujRaz = 0;
+			cRysujRaz = 0;
 			RysujProstokatWypelniony(0, 0, DISP_X_SIZE, DISP_Y_SIZE, CZARNY);	//czyści ekran
 			BelkaTytulu("Identyfikacja silnikow");
 		}
@@ -1799,22 +1797,22 @@ uint8_t RysujEkran(void)
 
 			if (stIdentSiln.cNumerEtapu > stIdentSiln.cLiczbaSilnikow)
 			{
-				chTrybPracy = chWrocDoTrybu;
-				chNowyTrybPracy = TP_WROC_DO_NASTAWY;
+				cTrybPracy = cWrocDoTrybu;
+				cNowyTrybPracy = TP_WROC_DO_NASTAWY;
 				uDaneCM7.dane.sAdres = 0;	//dowolna liczba inna niż poprzednie
-				uDaneCM7.dane.chWykonajPolecenie = POL7_PRZYWROC_NAPED;
+				uDaneCM7.dane.cWykonajPolecenie = POL7_PRZYWROC_NAPED;
 			}
 			else
 			{
 				//aby CM4 przyjął kolejne takie samo polecenie, musi zmienić się zmienna sAdres, więc pomimo różnicy rozmiaru wykorzystuję ją do przesyłania nr silnika
 				uDaneCM7.dane.sAdres = (1 << (stIdentSiln.cNumerEtapu - 1));	//bit numeru silnika
 				uDaneCM7.dane.uRozne.U16[0] = stIdentSiln.sWysterowanie;
-				uDaneCM7.dane.chWykonajPolecenie = POL7_URUCHOM_INDENT_SILN;
+				uDaneCM7.dane.cWykonajPolecenie = POL7_URUCHOM_INDENT_SILN;
 
-				sprintf(chNapis, "Silnik: %d", stIdentSiln.cNumerEtapu);
-				RysujNapis(chNapis, 1, 30);
-				sprintf(chNapis, "Wysterowanie: %d",stIdentSiln.sWysterowanie);
-				RysujNapis(chNapis, 1, 50);
+				sprintf(cNapis, "Silnik: %d", stIdentSiln.cNumerEtapu);
+				RysujNapis(cNapis, 1, 30);
+				sprintf(cNapis, "Wysterowanie: %d",stIdentSiln.sWysterowanie);
+				RysujNapis(cNapis, 1, 50);
 
 				cBłąd = DodajProbkeDoKolejki(PGA_SILNIK);
 				cBłąd = DodajProbkeDoKolejki(PGA_00 + stIdentSiln.cNumerEtapu);	//cyfra 1..8
@@ -1840,30 +1838,30 @@ uint8_t RysujEkran(void)
 
 
 	//rzeczy do wykonania podczas uruchamiania nowego trybu pracy
-	if (chNowyTrybPracy)
+	if (cNowyTrybPracy)
 	{
-		switch(chNowyTrybPracy)
+		switch(cNowyTrybPracy)
 		{
-		case TP_WROC_DO_MENU:		chTrybPracy = TP_MENU_GLOWNE;	break;	//powrót do menu głównego
-		case TP_WROC_DO_AUDIO:		chTrybPracy = TP_MEDIA_AUDIO;	break;	//powrót do menu Audio
-		case TP_WROC_DO_KAMERA:		chTrybPracy = TP_MEDIA_KAMERA;	break;	//powrót do menu Kamera
-		case TP_WROC_DO_OSD:		chTrybPracy = TP_MENU_OSD;		break;	//powrót do menu OSD
-		case TP_WROC_DO_WYDAJN:		chTrybPracy = TP_WYDAJNOSC;		break;	//powrót do menu Wydajność
-		case TP_WROC_DO_KARTA:		chTrybPracy = TP_KARTA_SD;		break;	//powrót do menu Karta SD
-		case TP_WROC_KAL_IMU:		chTrybPracy = TP_KAL_IMU;		break;	//powrót do menu IMU
-		case TP_WROC_DO_MAG:		chTrybPracy = TP_MAGNETOMETR;	break;	//powrót do menu Magnetometr
-		case TP_WROC_DO_POMIARY:	chTrybPracy = TP_POMIARY;		break;	//powrót do menu Pomiary
-		case TP_WROC_DO_NASTAWY:	chTrybPracy = TP_NASTAWY;		break;	//powrót do menu Nastawy
-		case TP_FRAKTALE:			InitFraktal(START_FRAKTAL);		chTrybPracy = TP_FRAKTALE;	break;
-		case TP_WROC_DO_ETH:		chTrybPracy = TP_ETHERNET;		break;	//powrót do menu Ethernet
-		case TP_WROC_DO_TESTY:		chTrybPracy = TP_TESTY;			break;	//powrót do menu Testy
+		case TP_WROC_DO_MENU:		cTrybPracy = TP_MENU_GLOWNE;	break;	//powrót do menu głównego
+		case TP_WROC_DO_AUDIO:		cTrybPracy = TP_MEDIA_AUDIO;	break;	//powrót do menu Audio
+		case TP_WROC_DO_KAMERA:		cTrybPracy = TP_MEDIA_KAMERA;	break;	//powrót do menu Kamera
+		case TP_WROC_DO_OSD:		cTrybPracy = TP_MENU_OSD;		break;	//powrót do menu OSD
+		case TP_WROC_DO_WYDAJN:		cTrybPracy = TP_WYDAJNOSC;		break;	//powrót do menu Wydajność
+		case TP_WROC_DO_KARTA:		cTrybPracy = TP_KARTA_SD;		break;	//powrót do menu Karta SD
+		case TP_WROC_KAL_IMU:		cTrybPracy = TP_KAL_IMU;		break;	//powrót do menu IMU
+		case TP_WROC_DO_MAG:		cTrybPracy = TP_MAGNETOMETR;	break;	//powrót do menu Magnetometr
+		case TP_WROC_DO_POMIARY:	cTrybPracy = TP_POMIARY;		break;	//powrót do menu Pomiary
+		case TP_WROC_DO_NASTAWY:	cTrybPracy = TP_NASTAWY;		break;	//powrót do menu Nastawy
+		case TP_FRAKTALE:			InitFraktal(START_FRAKTAL);		cTrybPracy = TP_FRAKTALE;	break;
+		case TP_WROC_DO_ETH:		cTrybPracy = TP_ETHERNET;		break;	//powrót do menu Ethernet
+		case TP_WROC_DO_TESTY:		cTrybPracy = TP_TESTY;			break;	//powrót do menu Testy
 		default:
 			RysujProstokatWypelniony(0, 0, DISP_X_SIZE, DISP_Y_SIZE, CZARNY);	//czyści ekran
-			chTrybPracy = chNowyTrybPracy;	break;	//typowe wywołanie pozycji z menu
+			cTrybPracy = cNowyTrybPracy;	break;	//typowe wywołanie pozycji z menu
 		}
-		chNowyTrybPracy = 0;
-		statusDotyku.chFlagi &= ~(DOTYK_DOTKNIETO | DOTYK_ZWOLNONO);	//czyść flagi ekranu dotykowego aby móc reagować na nie w trakcie pracy danego trybu
-		chRysujRaz = 1;		//jednorazowo rysuj statyczne elementy nowego ekranu
+		cNowyTrybPracy = 0;
+		stStatusDotyku.chFlagi &= ~(DOTYK_DOTKNIETO | DOTYK_ZWOLNONO);	//czyść flagi ekranu dotykowego aby móc reagować na nie w trakcie pracy danego trybu
+		cRysujRaz = 1;		//jednorazowo rysuj statyczne elementy nowego ekranu
 	}
 	return cBłąd;
 }
@@ -1884,7 +1882,7 @@ uint8_t Ekran_Powitalny(uint32_t nZainicjowano)
 	extern uint8_t BSP_SD_IsDetected(void);
 	extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adres i nazwę BSP
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
 		cBłąd = WypelnijEkran(BIALY);
 		RysujBitmape((DISP_X_SIZE-165)/2, 5, 165, 80, plogo165x80);
@@ -1892,95 +1890,95 @@ uint8_t Ekran_Powitalny(uint32_t nZainicjowano)
 		setColor(SZARY20);
 		setBackColor(BIALY);
 		UstawCzcionke(BigFont);
-		sprintf(chNapis, "%s @%luMHz", (char*)chNapisLcd[STR_WITAJ_TYTUL], HAL_RCC_GetSysClockFreq()/1000000);
-		RysujNapis(chNapis, CENTER, 90);
+		sprintf(cNapis, "%s @%luMHz", (char*)cNapisLcd[STR_WITAJ_TYTUL], HAL_RCC_GetSysClockFreq()/1000000);
+		RysujNapis(cNapis, CENTER, 90);
 
 		setColor(SZARY30);
 		UstawCzcionke(MidFont);
-		//sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO], ó, ć, ó, ó, ż);	//"By móc mieć w rój Wronów na pohybel wrażym hordom""
-		sprintf(chNapis, (char*)chNapisLcd[STR_WITAJ_MOTTO2], ó, ó, ż, ó);	//"By móc zmóc wraże hordy rojem Wronów"	//STR_WITAJ_MOTTO2
-		RysujNapis(chNapis, CENTER, 115);
+		//sprintf(cNapis, (char*)cNapisLcd[STR_WITAJ_MOTTO], ó, ć, ó, ó, ż);	//"By móc mieć w rój Wronów na pohybel wrażym hordom""
+		sprintf(cNapis, (char*)cNapisLcd[STR_WITAJ_MOTTO2], ó, ó, ż, ó);	//"By móc zmóc wraże hordy rojem Wronów"	//STR_WITAJ_MOTTO2
+		RysujNapis(cNapis, CENTER, 115);
 
-		sprintf(chNapis, "Adres: %d, IP: %d.%d.%d.%d, Nazwa: %s", stBSP_ID.chAdres, stBSP_ID.chAdrIP[0], stBSP_ID.chAdrIP[1], stBSP_ID.chAdrIP[2], stBSP_ID.chAdrIP[3],  stBSP_ID.chNazwa);
-		RysujNapis(chNapis, CENTER, 135);
+		sprintf(cNapis, "Adres: %d, IP: %d.%d.%d.%d, Nazwa: %s", stBSP_ID.chAdres, stBSP_ID.chAdrIP[0], stBSP_ID.chAdrIP[1], stBSP_ID.chAdrIP[2], stBSP_ID.chAdrIP[3],  stBSP_ID.chNazwa);
+		RysujNapis(cNapis, CENTER, 135);
 
-		sprintf(chNapis, "(c) PitLab 2026 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
-		RysujNapis(chNapis, CENTER, 155);
-		chRysujRaz = 0;
+		sprintf(cNapis, "(c) PitLab 2026 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
+		RysujNapis(cNapis, CENTER, 155);
+		cRysujRaz = 0;
 	}
 
 	//pierwsza kolumna sprzętu wewnętrznego
 	x = KOL12;
 	y = WYKRYJ_GORA;
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_NOR]);		//"pamięć Flash NOR"
-	RysujNapis(chNapis, x, y);
+	n = sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_FLASH_NOR]);		//"pamięć Flash NOR"
+	RysujNapis(cNapis, x, y);
 	Wykrycie(x, y, n, (nZainicjowano & INIT_FLASH_NOR) == INIT_FLASH_NOR);
 
 	y += WYKRYJ_WIERSZ;
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_FLASH_QSPI]);	//"pamięć Flash QSPI"
-	RysujNapis(chNapis, x, y);
+	n = sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_FLASH_QSPI]);	//"pamięć Flash QSPI"
+	RysujNapis(cNapis, x, y);
 	Wykrycie(x, y, n, (nZainicjowano & INIT_FLASH_QSPI) == INIT_FLASH_QSPI);
 
 	y += WYKRYJ_WIERSZ;
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KARTA_SD]);		//"Karta SD"
-	RysujNapis(chNapis, x, y);
+	n = sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_KARTA_SD]);		//"Karta SD"
+	RysujNapis(cNapis, x, y);
 	Wykrycie(x, y, n, BSP_SD_IsDetected());
 
 	y += WYKRYJ_WIERSZ;
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_KAMERA_OV5642]);	//"kamera "
-	RysujNapis(chNapis, x, y);
+	n = sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_KAMERA_OV5642]);	//"kamera "
+	RysujNapis(cNapis, x, y);
 	Wykrycie(x, y, n, (nZainicjowano & INIT_KAMERA) == INIT_KAMERA);
 
 	//dane z CM4
 	y += WYKRYJ_WIERSZ;
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_GNSS]);		//GNSS
+	n = sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_GNSS]);		//GNSS
 	if (uDaneCM4.dane.nZainicjowano & INIT_WYKR_UBLOX)
-		n = sprintf(chNapis, "%s -> %s", (char*)chNapisLcd[STR_SPRAWDZ_GNSS], (char*)chNapisLcd[STR_SPRAWDZ_UBLOX]);	//GNSS -> uBlox
+		n = sprintf(cNapis, "%s -> %s", (char*)cNapisLcd[STR_SPRAWDZ_GNSS], (char*)cNapisLcd[STR_SPRAWDZ_UBLOX]);	//GNSS -> uBlox
 	if (uDaneCM4.dane.nZainicjowano & INIT_WYKR_MTK)
-		n = sprintf(chNapis, "%s -> %s", (char*)chNapisLcd[STR_SPRAWDZ_GNSS], (char*)chNapisLcd[STR_SPRAWDZ_MTK]);		//GNSS -> MTK
-	RysujNapis(chNapis, x, y);
+		n = sprintf(cNapis, "%s -> %s", (char*)cNapisLcd[STR_SPRAWDZ_GNSS], (char*)cNapisLcd[STR_SPRAWDZ_MTK]);		//GNSS -> MTK
+	RysujNapis(cNapis, x, y);
 	Wykrycie(x, y, n,  (uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY) == INIT_GNSS_GOTOWY);
 
 	y += WYKRYJ_WIERSZ;
-	n = sprintf(chNapis, "%s -> %s", (char*)chNapisLcd[STR_SPRAWDZ_GNSS], (char*)chNapisLcd[STR_SPRAWDZ_HMC5883]);	//GNSS -> HMC5883
-	RysujNapis(chNapis, x, y);
+	n = sprintf(cNapis, "%s -> %s", (char*)cNapisLcd[STR_SPRAWDZ_GNSS], (char*)cNapisLcd[STR_SPRAWDZ_HMC5883]);	//GNSS -> HMC5883
+	RysujNapis(cNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_HMC5883) == INIT_HMC5883);
 
 	//druga kolumna sprzętu zewnętrznego
 	x = KOL22;
 	y = WYKRYJ_GORA;
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_MS5611]);		//moduł IMU -> MS5611
-	RysujNapis(chNapis, x, y);
+	n = sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_IMU1_MS5611]);		//moduł IMU -> MS5611
+	RysujNapis(cNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_MS5611) == INIT_MS5611);
 
 	y += WYKRYJ_WIERSZ;
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_BMP581]);		//moduł IMU -> BMP581
-	RysujNapis(chNapis, x, y);
+	n = sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_IMU1_BMP581]);		//moduł IMU -> BMP581
+	RysujNapis(cNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_BMP581) == INIT_BMP581);
 
 	y += WYKRYJ_WIERSZ;
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_ICM42688]);		//moduł IMU -> ICM42688
-	RysujNapis(chNapis, x, y);
+	n = sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_IMU1_ICM42688]);		//moduł IMU -> ICM42688
+	RysujNapis(cNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_ICM42688) == INIT_ICM42688);
 
 	y += WYKRYJ_WIERSZ;
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_LSM6DSV]);		//moduł IMU -> LSM6DSV
-	RysujNapis(chNapis, x, y);
+	n = sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_IMU1_LSM6DSV]);		//moduł IMU -> LSM6DSV
+	RysujNapis(cNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV) == INIT_LSM6DSV);
 
 	y += WYKRYJ_WIERSZ;
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_MMC34160]);		//moduł IMU -> MMC34160
-	RysujNapis(chNapis, x, y);
+	n = sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_IMU1_MMC34160]);		//moduł IMU -> MMC34160
+	RysujNapis(cNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_MMC34160) == INIT_MMC34160);
 
 	y += WYKRYJ_WIERSZ;
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_IIS2MDC]);		//moduł IMU -> IIS2MDC
-	RysujNapis(chNapis, x, y);
+	n = sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_IMU1_IIS2MDC]);		//moduł IMU -> IIS2MDC
+	RysujNapis(cNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC) == INIT_IIS2MDC);
 
 	y += WYKRYJ_WIERSZ;
-	n = sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_IMU1_ND130]);		//moduł IMU -> ND130
-	RysujNapis(chNapis, x, y);
+	n = sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_IMU1_ND130]);		//moduł IMU -> ND130
+	RysujNapis(cNapis, x, y);
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_ND130) == INIT_ND130);
 
 	osDelay(200);
@@ -2009,15 +2007,15 @@ void Wykrycie(uint16_t x, uint16_t y, uint8_t znakow, uint8_t wykryto)
 	if (wykryto)
 	{
 		setColor(TEAL);
-		sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_WYKR]);	//"wykryto"
+		sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_WYKR]);	//"wykryto"
 	}
 	else
 	{
 		setColor(KOLOR_X);	//czerwony
-		sprintf(chNapis, (char*)chNapisLcd[STR_SPRAWDZ_BRAK]);	//"brakuje"
+		sprintf(cNapis, (char*)cNapisLcd[STR_SPRAWDZ_BRAK]);	//"brakuje"
 	}
 	x += kropek * szer_fontu;
-	RysujNapis(chNapis, x , y);
+	RysujNapis(cNapis, x , y);
 	setColor(SZARY30);
 }
 
@@ -2032,23 +2030,23 @@ void Wykrycie(uint16_t x, uint16_t y, uint8_t znakow, uint8_t wykryto)
 ////////////////////////////////////////////////////////////////////////////////
 void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fParametr2, float fParametr3)
 {
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
 		WypelnijEkran(CZARNY);
-		chRysujRaz = 0;
+		cRysujRaz = 0;
 	}
 //		setBackColor(CZARNY);
 
 	//nagłówek komunikatu
 	setColor(CZERWONY);
 	UstawCzcionke(BigFont);
-	sprintf(chNapis, (char*)chOpisBledow[KOMUNIKAT_NAGLOWEK]);	//"Blad wykonania polecenia!",
-	RysujNapis(chNapis, CENTER, 70);
+	sprintf(cNapis, (char*)cOpisBledow[KOMUNIKAT_NAGLOWEK]);	//"Blad wykonania polecenia!",
+	RysujNapis(cNapis, CENTER, 70);
 
 	//stopka komunikatu
 	UstawCzcionke(MidFont);
 	setColor(SZARY50);
-	RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 250);	//"Wdus ekran i trzymaj aby zakonczyc"
+	RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 250);	//"Wdus ekran i trzymaj aby zakonczyc"
 
 	//treść komunikatu
 	setColor(ZOLTY);
@@ -2056,9 +2054,9 @@ void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fP
 	{
 	case KOMUNIKAT_ZA_ZIMNO:	//sposób formatowania komunikatu taki sam jak dla BLAD_ZA_CIEPLO
 	case KOMUNIKAT_ZA_CIEPLO:	//parametr1 to bieżąca temperatura, parametr 2 to nominalna temperatura kalibracji, parametr 3 to zakres tolerancji odchyłki temperatury
-		sprintf(chNapis, (const char*)chOpisBledow[chKomunikatBledu], fParametr1 - KELVIN, ZNAK_STOPIEN, fParametr2 - fParametr3 - KELVIN, ZNAK_STOPIEN, fParametr2 + fParametr3 -  KELVIN, ZNAK_STOPIEN);	break;	//"Zbyt niska temeratura zyroskopow wynoszaca %d%cC. Musi miescic sie w granicach od %d%cC do %d%cC",
+		sprintf(cNapis, (const char*)cOpisBledow[chKomunikatBledu], fParametr1 - KELVIN, ZNAK_STOPIEN, fParametr2 - fParametr3 - KELVIN, ZNAK_STOPIEN, fParametr2 + fParametr3 -  KELVIN, ZNAK_STOPIEN);	break;	//"Zbyt niska temeratura zyroskopow wynoszaca %d%cC. Musi miescic sie w granicach od %d%cC do %d%cC",
 	}
-	RysujNapiswRamce(chNapis, 20, 90, 440, 200);
+	RysujNapiswRamce(cNapis, 20, 90, 440, 200);
 }
 
 
@@ -2073,172 +2071,172 @@ void PomiaryAHRS(void)
 	int8_t chTon;
 	float fDlugosc;
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		chRysujRaz = 0;
+		cRysujRaz = 0;
 		BelkaTytulu("Dane pomiarowe AHRS");
 
 		setColor(SZARY80);
-		sprintf(chNapis, "Akcel1:");
-		RysujNapis(chNapis, KOL12, 30);
-		sprintf(chNapis, "[m/s^2]");
-		RysujNapis(chNapis, KOL12+40*FONT_SL, 30);
+		sprintf(cNapis, "Akcel1:");
+		RysujNapis(cNapis, KOL12, 30);
+		sprintf(cNapis, "[m/s^2]");
+		RysujNapis(cNapis, KOL12+40*FONT_SL, 30);
 
-		sprintf(chNapis, "Akcel2:");
-		RysujNapis(chNapis, KOL12, 50);
-		sprintf(chNapis, "[m/s^2]");
-		RysujNapis(chNapis, KOL12+40*FONT_SL, 50);
+		sprintf(cNapis, "Akcel2:");
+		RysujNapis(cNapis, KOL12, 50);
+		sprintf(cNapis, "[m/s^2]");
+		RysujNapis(cNapis, KOL12+40*FONT_SL, 50);
 
-		sprintf(chNapis, "Zyro 1:");
-		RysujNapis(chNapis, KOL12, 70);
-		sprintf(chNapis, "[rad/s]");
-		RysujNapis(chNapis, KOL12+40*FONT_SL, 70);
+		sprintf(cNapis, "Zyro 1:");
+		RysujNapis(cNapis, KOL12, 70);
+		sprintf(cNapis, "[rad/s]");
+		RysujNapis(cNapis, KOL12+40*FONT_SL, 70);
 
-		sprintf(chNapis, "Zyro 2:");
-		RysujNapis(chNapis, KOL12, 90);
-		sprintf(chNapis, "[rad/s]");
-		RysujNapis(chNapis, KOL12+40*FONT_SL, 90);
+		sprintf(cNapis, "Zyro 2:");
+		RysujNapis(cNapis, KOL12, 90);
+		sprintf(cNapis, "[rad/s]");
+		RysujNapis(cNapis, KOL12+40*FONT_SL, 90);
 
-		sprintf(chNapis, "Magn 1:");
-		RysujNapis(chNapis, KOL12, 110);
-		sprintf(chNapis, "[uT]");
-		RysujNapis(chNapis, KOL12+40*FONT_SL, 110);
+		sprintf(cNapis, "Magn 1:");
+		RysujNapis(cNapis, KOL12, 110);
+		sprintf(cNapis, "[uT]");
+		RysujNapis(cNapis, KOL12+40*FONT_SL, 110);
 
-		sprintf(chNapis, "Magn 2:");
-		RysujNapis(chNapis, KOL12, 130);
-		sprintf(chNapis, "[uT]");
-		RysujNapis(chNapis, KOL12+40*FONT_SL, 130);
+		sprintf(cNapis, "Magn 2:");
+		RysujNapis(cNapis, KOL12, 130);
+		sprintf(cNapis, "[uT]");
+		RysujNapis(cNapis, KOL12+40*FONT_SL, 130);
 
-		sprintf(chNapis, "Magn 3:");
-		RysujNapis(chNapis, KOL12, 150);
-		sprintf(chNapis, "[uT]");
-		RysujNapis(chNapis, KOL12+40*FONT_SL, 150);
+		sprintf(cNapis, "Magn 3:");
+		RysujNapis(cNapis, KOL12, 150);
+		sprintf(cNapis, "[uT]");
+		RysujNapis(cNapis, KOL12+40*FONT_SL, 150);
 
-		sprintf(chNapis, "K%cty 1:", ą);
-		RysujNapis(chNapis, KOL12, 170);
-		sprintf(chNapis, "[%c]", ZNAK_STOPIEN);
-		RysujNapis(chNapis, KOL12+40*FONT_SL, 170);
+		sprintf(cNapis, "K%cty 1:", ą);
+		RysujNapis(cNapis, KOL12, 170);
+		sprintf(cNapis, "[%c]", ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12+40*FONT_SL, 170);
 
-		sprintf(chNapis, "K%cty 2:", ą);
-		RysujNapis(chNapis, KOL12, 190);
-		sprintf(chNapis, "[%c]", ZNAK_STOPIEN);
-		RysujNapis(chNapis, KOL12+40*FONT_SL, 190);
+		sprintf(cNapis, "K%cty 2:", ą);
+		RysujNapis(cNapis, KOL12, 190);
+		sprintf(cNapis, "[%c]", ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12+40*FONT_SL, 190);
 
-		sprintf(chNapis, "K%cty Akc1:", ą);
-		RysujNapis(chNapis, KOL12, 210);
-		sprintf(chNapis, "[%c]", ZNAK_STOPIEN);
-		RysujNapis(chNapis, KOL12+46*FONT_SL, 210);
+		sprintf(cNapis, "K%cty Akc1:", ą);
+		RysujNapis(cNapis, KOL12, 210);
+		sprintf(cNapis, "[%c]", ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12+46*FONT_SL, 210);
 
-		sprintf(chNapis, "K%cty Akc2:", ą);
-		RysujNapis(chNapis, KOL12, 230);
-		sprintf(chNapis, "[%c]", ZNAK_STOPIEN);
-		RysujNapis(chNapis, KOL12+46*FONT_SL, 230);
+		sprintf(cNapis, "K%cty Akc2:", ą);
+		RysujNapis(cNapis, KOL12, 230);
+		sprintf(cNapis, "[%c]", ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12+46*FONT_SL, 230);
 
-		//sprintf(chNapis, "K%cty %cyro 1:", ą, ż);
-		sprintf(chNapis, "Kwaternion Akc:");
-		RysujNapis(chNapis, KOL12, 250);
-		//sprintf(chNapis, "K%cty %cyro 2:", ą, ż);
-		sprintf(chNapis, "Kwaternion Mag:");
-		RysujNapis(chNapis, KOL12, 270);
+		//sprintf(cNapis, "K%cty %cyro 1:", ą, ż);
+		sprintf(cNapis, "Kwaternion Akc:");
+		RysujNapis(cNapis, KOL12, 250);
+		//sprintf(cNapis, "K%cty %cyro 2:", ą, ż);
+		sprintf(cNapis, "Kwaternion Mag:");
+		RysujNapis(cNapis, KOL12, 270);
 
 		setColor(SZARY50);
-		RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
+		RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 	}
 
 	//ICM42688
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fAkcel1[0]);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 30);
+	sprintf(cNapis, "%.3f ", uDaneCM4.dane.fAkcel1[0]);
+	RysujNapis(cNapis, KOL12+8*FONT_SL, 30);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fAkcel1[1]);
-	RysujNapis(chNapis, KOL12+20*FONT_SL, 30);
+	sprintf(cNapis, "%.3f ", uDaneCM4.dane.fAkcel1[1]);
+	RysujNapis(cNapis, KOL12+20*FONT_SL, 30);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fAkcel1[2]);
-	RysujNapis(chNapis, KOL12+32*FONT_SL, 30);
+	sprintf(cNapis, "%.3f ", uDaneCM4.dane.fAkcel1[2]);
+	RysujNapis(cNapis, KOL12+32*FONT_SL, 30);
 
 	//LSM6DSV
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fAkcel2[0]);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 50);
+	sprintf(cNapis, "%.3f ", uDaneCM4.dane.fAkcel2[0]);
+	RysujNapis(cNapis, KOL12+8*FONT_SL, 50);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fAkcel2[1]);
-	RysujNapis(chNapis, KOL12+20*FONT_SL, 50);
+	sprintf(cNapis, "%.3f ", uDaneCM4.dane.fAkcel2[1]);
+	RysujNapis(cNapis, KOL12+20*FONT_SL, 50);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.3f ", uDaneCM4.dane.fAkcel2[2]);
-	RysujNapis(chNapis, KOL12+32*FONT_SL, 50);
+	sprintf(cNapis, "%.3f ", uDaneCM4.dane.fAkcel2[2]);
+	RysujNapis(cNapis, KOL12+32*FONT_SL, 50);
 
 	//ICM42688
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fZyroKal1[0]);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 70);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fZyroKal1[0]);
+	RysujNapis(cNapis, KOL12+8*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fZyroKal1[1]);
-	RysujNapis(chNapis, KOL12+20*FONT_SL, 70);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fZyroKal1[1]);
+	RysujNapis(cNapis, KOL12+20*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fZyroKal1[2]);
-	RysujNapis(chNapis, KOL12+32*FONT_SL, 70);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fZyroKal1[2]);
+	RysujNapis(cNapis, KOL12+32*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_ICM42688)	setColor(ZOLTY); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	RysujNapis(chNapis, KOL12+49*FONT_SL, 70);
+	sprintf(cNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	RysujNapis(cNapis, KOL12+49*FONT_SL, 70);
 
 	//LSM6DSV
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fZyroKal2[0]);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 90);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fZyroKal2[0]);
+	RysujNapis(cNapis, KOL12+8*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fZyroKal2[1]);
-	RysujNapis(chNapis, KOL12+20*FONT_SL, 90);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fZyroKal2[1]);
+	RysujNapis(cNapis, KOL12+20*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fZyroKal2[2]);
-	RysujNapis(chNapis, KOL12+32*FONT_SL, 90);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fZyroKal2[2]);
+	RysujNapis(cNapis, KOL12+32*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_LSM6DSV)	setColor(ZOLTY); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU2] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
-	RysujNapis(chNapis, KOL12+49*FONT_SL, 90);
+	sprintf(cNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_IMU2] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=IIS2MDC, 5=ND130, 6=MS4525
+	RysujNapis(cNapis, KOL12+49*FONT_SL, 90);
 
 	//IIS2MDC
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[0]*1e6);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 110);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne1[0]*1e6);
+	RysujNapis(cNapis, KOL12+8*FONT_SL, 110);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[1]*1e6);
-	RysujNapis(chNapis, KOL12+20*FONT_SL, 110);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne1[1]*1e6);
+	RysujNapis(cNapis, KOL12+20*FONT_SL, 110);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne1[2]*1e6);
-	RysujNapis(chNapis, KOL12+32*FONT_SL, 110);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne1[2]*1e6);
+	RysujNapis(cNapis, KOL12+32*FONT_SL, 110);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(SZARY50);
 	fDlugosc = sqrtf(uDaneCM4.dane.fMagne1[0] * uDaneCM4.dane.fMagne1[0] + uDaneCM4.dane.fMagne1[1] * uDaneCM4.dane.fMagne1[1] + uDaneCM4.dane.fMagne1[2] * uDaneCM4.dane.fMagne1[2]);
-	sprintf(chNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
-	RysujNapis(chNapis, KOL12+49*FONT_SL, 110);
+	sprintf(cNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
+	RysujNapis(cNapis, KOL12+49*FONT_SL, 110);
 
 	//MMC34160
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[0]*1e6);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 130);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne2[0]*1e6);
+	RysujNapis(cNapis, KOL12+8*FONT_SL, 130);
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[1]*1e6);
-	RysujNapis(chNapis, KOL12+20*FONT_SL, 130);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne2[1]*1e6);
+	RysujNapis(cNapis, KOL12+20*FONT_SL, 130);
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne2[2]*1e6);
-	RysujNapis(chNapis, KOL12+32*FONT_SL, 130);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne2[2]*1e6);
+	RysujNapis(cNapis, KOL12+32*FONT_SL, 130);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(SZARY50);
 	fDlugosc = sqrtf(uDaneCM4.dane.fMagne2[0] * uDaneCM4.dane.fMagne2[0] + uDaneCM4.dane.fMagne2[1] * uDaneCM4.dane.fMagne2[1] + uDaneCM4.dane.fMagne2[2] * uDaneCM4.dane.fMagne2[2]);
-	sprintf(chNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
-	RysujNapis(chNapis, KOL12+49*FONT_SL, 130);
+	sprintf(cNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
+	RysujNapis(cNapis, KOL12+49*FONT_SL, 130);
 
 	//HMC5883
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[0]*1e6);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 150);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne3[0]*1e6);
+	RysujNapis(cNapis, KOL12+8*FONT_SL, 150);
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[1]*1e6);
-	RysujNapis(chNapis, KOL12+20*FONT_SL, 150);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne3[1]*1e6);
+	RysujNapis(cNapis, KOL12+20*FONT_SL, 150);
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.fMagne3[2]*1e6);
-	RysujNapis(chNapis, KOL12+32*FONT_SL, 150);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne3[2]*1e6);
+	RysujNapis(cNapis, KOL12+32*FONT_SL, 150);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(SZARY50);
 	fDlugosc = sqrtf(uDaneCM4.dane.fMagne3[0] * uDaneCM4.dane.fMagne3[0] + uDaneCM4.dane.fMagne3[1] * uDaneCM4.dane.fMagne3[1] + uDaneCM4.dane.fMagne3[2] * uDaneCM4.dane.fMagne3[2]);
-	sprintf(chNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
-	RysujNapis(chNapis, KOL12+49*FONT_SL, 150);
+	sprintf(cNapis, "%.1f %% ", fDlugosc / NOMINALNE_MAGN * 100);	//długość wektora [%]
+	RysujNapis(cNapis, KOL12+49*FONT_SL, 150);
 
 	//sygnalizacja tonem wartości osi Z magnetometru
 	chTon = LICZBA_TONOW_WARIO/2 - (uDaneCM4.dane.fMagne3[2] / (NOMINALNE_MAGN / (LICZBA_TONOW_WARIO/2)));
@@ -2249,96 +2247,96 @@ void PomiaryAHRS(void)
 	//UstawTon(chTon, 80);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU1[0]);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 170);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU1[0]);
+	RysujNapis(cNapis, KOL12+8*FONT_SL, 170);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU1[1]);
-	RysujNapis(chNapis, KOL12+20*FONT_SL, 170);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU1[1]);
+	RysujNapis(cNapis, KOL12+20*FONT_SL, 170);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU1[2]);
-	RysujNapis(chNapis, KOL12+32*FONT_SL, 170);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU1[2]);
+	RysujNapis(cNapis, KOL12+32*FONT_SL, 170);
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0]);
-	RysujNapis(chNapis, KOL12+8*FONT_SL, 190);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0]);
+	RysujNapis(cNapis, KOL12+8*FONT_SL, 190);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1]);
-	RysujNapis(chNapis, KOL12+20*FONT_SL, 190);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1]);
+	RysujNapis(cNapis, KOL12+20*FONT_SL, 190);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU2[2]);
-	RysujNapis(chNapis, KOL12+32*FONT_SL, 190);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU2[2]);
+	RysujNapis(cNapis, KOL12+32*FONT_SL, 190);
 
 	//kąty z akcelrometru 1
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[0]);
-	RysujNapis(chNapis, KOL12+11*FONT_SL, 210);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[0]);
+	RysujNapis(cNapis, KOL12+11*FONT_SL, 210);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[1]);
-	RysujNapis(chNapis, KOL12+24*FONT_SL, 210);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[1]);
+	RysujNapis(cNapis, KOL12+24*FONT_SL, 210);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[2]);
-	RysujNapis(chNapis, KOL12+36*FONT_SL, 210);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[2]);
+	RysujNapis(cNapis, KOL12+36*FONT_SL, 210);
 
 	//kąty z akcelrometru 2
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[0]);
-	RysujNapis(chNapis, KOL12+11*FONT_SL, 230);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[0]);
+	RysujNapis(cNapis, KOL12+11*FONT_SL, 230);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[1]);
-	RysujNapis(chNapis, KOL12+24*FONT_SL, 230);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[1]);
+	RysujNapis(cNapis, KOL12+24*FONT_SL, 230);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[2]);
-	RysujNapis(chNapis, KOL12+36*FONT_SL, 230);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[2]);
+	RysujNapis(cNapis, KOL12+36*FONT_SL, 230);
 
 	/*/kąty z żyroskopu 1
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[0], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+13*FONT_SL, 250);
+	sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[0], ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12+13*FONT_SL, 250);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[1], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+25*FONT_SL, 250);
+	sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[1], ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12+25*FONT_SL, 250);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[2], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+37*FONT_SL, 250);
+	sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[2], ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12+37*FONT_SL, 250);
 
 	//kąty z żyroskopu 2
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[0], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+13*FONT_SL, 270);
+	sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[0], ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12+13*FONT_SL, 270);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[1], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+25*FONT_SL, 270);
+	sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[1], ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12+25*FONT_SL, 270);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[2], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12+37*FONT_SL, 270); */
+	sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[2], ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12+37*FONT_SL, 270); */
 
 	//kwaternion wektora przyspieszenia
 	setColor(POMARANCZ);
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaAkc[0]);
-	RysujNapis(chNapis, KOL12+16*FONT_SL, 250);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fKwaAkc[0]);
+	RysujNapis(cNapis, KOL12+16*FONT_SL, 250);
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaAkc[1]);
-	RysujNapis(chNapis, KOL12+26*FONT_SL, 250);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fKwaAkc[1]);
+	RysujNapis(cNapis, KOL12+26*FONT_SL, 250);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaAkc[2]);
-	RysujNapis(chNapis, KOL12+36*FONT_SL, 250);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fKwaAkc[2]);
+	RysujNapis(cNapis, KOL12+36*FONT_SL, 250);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaAkc[3]);
-	RysujNapis(chNapis, KOL12+46*FONT_SL, 250);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fKwaAkc[3]);
+	RysujNapis(cNapis, KOL12+46*FONT_SL, 250);
 
 	//kwaternion wektora magnetycznego
 	setColor(POMARANCZ);
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaMag[0]);
-	RysujNapis(chNapis, KOL12+16*FONT_SL, 270);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fKwaMag[0]);
+	RysujNapis(cNapis, KOL12+16*FONT_SL, 270);
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaMag[1]);
-	RysujNapis(chNapis, KOL12+26*FONT_SL, 270);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fKwaMag[1]);
+	RysujNapis(cNapis, KOL12+26*FONT_SL, 270);
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaMag[2]);
-	RysujNapis(chNapis, KOL12+36*FONT_SL, 270);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fKwaMag[2]);
+	RysujNapis(cNapis, KOL12+36*FONT_SL, 270);
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.4f ", uDaneCM4.dane.fKwaMag[3]);
-	RysujNapis(chNapis, KOL12+46*FONT_SL, 270);
+	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fKwaMag[3]);
+	RysujNapis(cNapis, KOL12+46*FONT_SL, 270);
 
 	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI do zera
 	RysujPasekPostepu(CZAS_KALIBRACJI);
@@ -2353,93 +2351,93 @@ void PomiaryAHRS(void)
 ////////////////////////////////////////////////////////////////////////////////
 void PomiaryCzujnikow(void)
 {
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		chRysujRaz = 0;
+		cRysujRaz = 0;
 		BelkaTytulu("Dane czujnikow");
 
 		setColor(SZARY80);
-		sprintf(chNapis, "Ci%cn1:           AGL1:           V1:            T:", ś);
-		RysujNapis(chNapis, KOL12, 30);
-		sprintf(chNapis, "Ci%cn2:           AGL2:           V2:            T:", ś);
-		RysujNapis(chNapis, KOL12, 50);
-		sprintf(chNapis, "Ci%cR%c%cn 1:          IAS1:", ś, ó, ż);
-		RysujNapis(chNapis, KOL12, 70);
-		sprintf(chNapis, "Ci%cR%c%cn 2:          IAS2:", ś, ó, ż);
-		RysujNapis(chNapis, KOL12, 90);
+		sprintf(cNapis, "Ci%cn1:           AGL1:           V1:            T:", ś);
+		RysujNapis(cNapis, KOL12, 30);
+		sprintf(cNapis, "Ci%cn2:           AGL2:           V2:            T:", ś);
+		RysujNapis(cNapis, KOL12, 50);
+		sprintf(cNapis, "Ci%cR%c%cn 1:          IAS1:", ś, ó, ż);
+		RysujNapis(cNapis, KOL12, 70);
+		sprintf(cNapis, "Ci%cR%c%cn 2:          IAS2:", ś, ó, ż);
+		RysujNapis(cNapis, KOL12, 90);
 
-		sprintf(chNapis, "GNSS D%cug:             Szer:             HDOP:", ł);
-		RysujNapis(chNapis, KOL12, 120);
-		sprintf(chNapis, "GNSS WysMSL:           Pred:             Kurs:");
-		RysujNapis(chNapis, KOL12, 140);
-		sprintf(chNapis, "GNSS Czas:             Data:              Sat:");
-		RysujNapis(chNapis, KOL12, 160);
+		sprintf(cNapis, "GNSS D%cug:             Szer:             HDOP:", ł);
+		RysujNapis(cNapis, KOL12, 120);
+		sprintf(cNapis, "GNSS WysMSL:           Pred:             Kurs:");
+		RysujNapis(cNapis, KOL12, 140);
+		sprintf(cNapis, "GNSS Czas:             Data:              Sat:");
+		RysujNapis(cNapis, KOL12, 160);
 
-		//sprintf(chNapis, "Uaku 1:            Iaku 1:            Eaku 1:");
-		sprintf(chNapis, "Uaku 1:            Iaku 1:            Vin 1:");
-		RysujNapis(chNapis, KOL12, 190);
-		//sprintf(chNapis, "Uaku 2:            Iaku 2:            Eaku 2:");
-		sprintf(chNapis, "Uaku 2:            Iaku 2:            Vin 2:");
-		RysujNapis(chNapis, KOL12, 210);
-		sprintf(chNapis, "Uz.ser:            Uz.usb:            Ub.zeg:");
-		RysujNapis(chNapis, KOL12, 230);
-		sprintf(chNapis, "Ucz1.1:            Ucz1.2:            TmpCPU:");
-		RysujNapis(chNapis, KOL12, 260);
-		sprintf(chNapis, "Ucz2.1:            Ucz2.2:");
-		RysujNapis(chNapis, KOL12, 280);
+		//sprintf(cNapis, "Uaku 1:            Iaku 1:            Eaku 1:");
+		sprintf(cNapis, "Uaku 1:            Iaku 1:            Vin 1:");
+		RysujNapis(cNapis, KOL12, 190);
+		//sprintf(cNapis, "Uaku 2:            Iaku 2:            Eaku 2:");
+		sprintf(cNapis, "Uaku 2:            Iaku 2:            Vin 2:");
+		RysujNapis(cNapis, KOL12, 210);
+		sprintf(cNapis, "Uz.ser:            Uz.usb:            Ub.zeg:");
+		RysujNapis(cNapis, KOL12, 230);
+		sprintf(cNapis, "Ucz1.1:            Ucz1.2:            TmpCPU:");
+		RysujNapis(cNapis, KOL12, 260);
+		sprintf(cNapis, "Ucz2.1:            Ucz2.2:");
+		RysujNapis(cNapis, KOL12, 280);
 
 
 		setColor(SZARY50);
-		RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
+		RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 	}
 
 	//MS5611
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(BIALY); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnieBzw[0]);
-	RysujNapis(chNapis, KOL12 + 7*FONT_SL, 30);
+	sprintf(cNapis, "%.0f Pa ", uDaneCM4.dane.fCisnieBzw[0]);
+	RysujNapis(cNapis, KOL12 + 7*FONT_SL, 30);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(CYJAN); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysokoMSL[0]);
-	RysujNapis(chNapis, KOL12 + 23*FONT_SL, 30);
-	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fWariometr[0]);
-	RysujNapis(chNapis, KOL12 + 37*FONT_SL, 30);
+	sprintf(cNapis, "%.2f m ", uDaneCM4.dane.fWysokoMSL[0]);
+	RysujNapis(cNapis, KOL12 + 23*FONT_SL, 30);
+	sprintf(cNapis, "%.2f m/s ", uDaneCM4.dane.fWariometr[0]);
+	RysujNapis(cNapis, KOL12 + 37*FONT_SL, 30);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS5611)	setColor(ZOLTY); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
-	RysujNapis(chNapis, KOL12 + 51*FONT_SL, 30);
+	sprintf(cNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
+	RysujNapis(cNapis, KOL12 + 51*FONT_SL, 30);
 
 	//BMP581
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(BIALY); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnieBzw[1]);
-	RysujNapis(chNapis, KOL12 + 7*FONT_SL, 50);
+	sprintf(cNapis, "%.0f Pa ", uDaneCM4.dane.fCisnieBzw[1]);
+	RysujNapis(cNapis, KOL12 + 7*FONT_SL, 50);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(CYJAN); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.2f m ", uDaneCM4.dane.fWysokoMSL[1]);
-	RysujNapis(chNapis, KOL12 + 23*FONT_SL, 50);
-	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fWariometr[1]);
-	RysujNapis(chNapis, KOL12 + 37*FONT_SL, 50);
+	sprintf(cNapis, "%.2f m ", uDaneCM4.dane.fWysokoMSL[1]);
+	RysujNapis(cNapis, KOL12 + 23*FONT_SL, 50);
+	sprintf(cNapis, "%.2f m/s ", uDaneCM4.dane.fWariometr[1]);
+	RysujNapis(cNapis, KOL12 + 37*FONT_SL, 50);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_BMP851)	setColor(ZOLTY); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
-	RysujNapis(chNapis, KOL12 + 51*FONT_SL, 50);
+	sprintf(cNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_BARO2] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
+	RysujNapis(cNapis, KOL12 + 51*FONT_SL, 50);
 
 	//ND130
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(BIALY); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[0]);
-	RysujNapis(chNapis, KOL12 + 11*FONT_SL, 70);
+	sprintf(cNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[0]);
+	RysujNapis(cNapis, KOL12 + 11*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(MAGENTA); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[0]);
-	RysujNapis(chNapis, KOL12 + 26*FONT_SL, 70);
+	sprintf(cNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[0]);
+	RysujNapis(cNapis, KOL12 + 26*FONT_SL, 70);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_ND140)	setColor(ZOLTY); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
-	RysujNapis(chNapis, KOL12 + 40*FONT_SL, 70);
+	sprintf(cNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR1] - KELVIN, ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
+	RysujNapis(cNapis, KOL12 + 40*FONT_SL, 70);
 
 	//MS4525
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(BIALY); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(chNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[1]);
-	RysujNapis(chNapis, KOL12 + 11*FONT_SL, 90);
+	sprintf(cNapis, "%.0f Pa ", uDaneCM4.dane.fCisnRozn[1]);
+	RysujNapis(cNapis, KOL12 + 11*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(MAGENTA); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[1]);
-	RysujNapis(chNapis, KOL12 + 26*FONT_SL, 90);
+	sprintf(cNapis, "%.2f m/s ", uDaneCM4.dane.fPredkosc[1]);
+	RysujNapis(cNapis, KOL12 + 26*FONT_SL, 90);
 	if (uDaneCM4.dane.nZainicjowano & INIT_P0_MS4525)	setColor(ZOLTY); 	else	setColor(SZARY50);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2] - KELVIN , ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
-	RysujNapis(chNapis, KOL12 + 40*FONT_SL, 90);
+	sprintf(cNapis, "%.1f %cC ", uDaneCM4.dane.fTemper[TEMP_CISR2] - KELVIN , ZNAK_STOPIEN);	//temperatury:	0=MS5611, 1=BMP851, 2=ICM42688, 3=LSM6DSV, 4=ND130, 5=MS4525
+	RysujNapis(cNapis, KOL12 + 40*FONT_SL, 90);
 
 	//dane z GNSS
 	if (uDaneCM4.dane.stGnss1.chFix)
@@ -2447,69 +2445,69 @@ void PomiaryCzujnikow(void)
 	else
 		setColor(SZARY70);	//nie ma fixa
 
-	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dDlugoscGeo);
-	RysujNapis(chNapis, KOL12 + 11*FONT_SL, 120);
-	sprintf(chNapis, "%.7f ", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
-	RysujNapis(chNapis, KOL12 + 29*FONT_SL, 120);
-	sprintf(chNapis, "%.2f ", uDaneCM4.dane.stGnss1.fHdop);
-	RysujNapis(chNapis, KOL12 + 47*FONT_SL, 120);
+	sprintf(cNapis, "%.7f ", uDaneCM4.dane.stGnss1.dDlugoscGeo);
+	RysujNapis(cNapis, KOL12 + 11*FONT_SL, 120);
+	sprintf(cNapis, "%.7f ", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
+	RysujNapis(cNapis, KOL12 + 29*FONT_SL, 120);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.stGnss1.fHdop);
+	RysujNapis(cNapis, KOL12 + 47*FONT_SL, 120);
 
-	sprintf(chNapis, "%.1f m ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
-	RysujNapis(chNapis, KOL12 + 13*FONT_SL, 140);
-	sprintf(chNapis, "%.3f m/s ", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
-	RysujNapis(chNapis, KOL12 + 29*FONT_SL, 140);
-	sprintf(chNapis, "%3.2f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12 + 47*FONT_SL, 140);
+	sprintf(cNapis, "%.1f m ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
+	RysujNapis(cNapis, KOL12 + 13*FONT_SL, 140);
+	sprintf(cNapis, "%.3f m/s ", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
+	RysujNapis(cNapis, KOL12 + 29*FONT_SL, 140);
+	sprintf(cNapis, "%3.2f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12 + 47*FONT_SL, 140);
 
-	sprintf(chNapis, "%02d:%02d:%02d ", uDaneCM4.dane.stGnss1.chGodz, uDaneCM4.dane.stGnss1.chMin, uDaneCM4.dane.stGnss1.chSek);
-	RysujNapis(chNapis, KOL12 + 12*FONT_SL, 160);
-	if  (uDaneCM4.dane.stGnss1.chMies > 12)	//ograniczenie aby nie pobierało nazwy miesiaca spoza tablicy chNazwyMies3Lit[]
+	sprintf(cNapis, "%02d:%02d:%02d ", uDaneCM4.dane.stGnss1.chGodz, uDaneCM4.dane.stGnss1.chMin, uDaneCM4.dane.stGnss1.chSek);
+	RysujNapis(cNapis, KOL12 + 12*FONT_SL, 160);
+	if  (uDaneCM4.dane.stGnss1.chMies > 12)	//ograniczenie aby nie pobierało nazwy miesiaca spoza tablicy cNazwyMies3Lit[]
 		uDaneCM4.dane.stGnss1.chMies = 0;	//zerowy indeks jest pustą nazwą "---"
-	sprintf(chNapis, "%02d %s %04d ", uDaneCM4.dane.stGnss1.chDzien, chNazwyMies3Lit[uDaneCM4.dane.stGnss1.chMies], uDaneCM4.dane.stGnss1.chRok + 2000);
-	RysujNapis(chNapis, KOL12 + 29*FONT_SL, 160);
-	sprintf(chNapis, "%d ", uDaneCM4.dane.stGnss1.chLiczbaSatelit);
-	RysujNapis(chNapis, KOL12 + 47*FONT_SL, 160);
+	sprintf(cNapis, "%02d %s %04d ", uDaneCM4.dane.stGnss1.chDzien, cNazwyMies3Lit[uDaneCM4.dane.stGnss1.chMies], uDaneCM4.dane.stGnss1.chRok + 2000);
+	RysujNapis(cNapis, KOL12 + 29*FONT_SL, 160);
+	sprintf(cNapis, "%d ", uDaneCM4.dane.stGnss1.chLiczbaSatelit);
+	RysujNapis(cNapis, KOL12 + 47*FONT_SL, 160);
 
 	//napięcie, prąd i energia obu pakietów
 	setColor(BIALY);
-	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieAku[0]);
-	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 190);
-	sprintf(chNapis, "%.2f A ", uDaneCM4.dane.fPradAku[0]);
-	RysujNapis(chNapis, KOL12 + 27*FONT_SL, 190);
-	//sprintf(chNapis, "%.1f mAh ", uDaneCM4.dane.fEnergiaPobr[0]);
-	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieWej[0]);			//tymczasowo pokaż napięcie wejściowe z własnego dzielnika
-	RysujNapis(chNapis, KOL12 + 46*FONT_SL, 190);
+	sprintf(cNapis, "%.2f V ", uDaneCM4.dane.fNapiecieAku[0]);
+	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 190);
+	sprintf(cNapis, "%.2f A ", uDaneCM4.dane.fPradAku[0]);
+	RysujNapis(cNapis, KOL12 + 27*FONT_SL, 190);
+	//sprintf(cNapis, "%.1f mAh ", uDaneCM4.dane.fEnergiaPobr[0]);
+	sprintf(cNapis, "%.2f V ", uDaneCM4.dane.fNapiecieWej[0]);			//tymczasowo pokaż napięcie wejściowe z własnego dzielnika
+	RysujNapis(cNapis, KOL12 + 46*FONT_SL, 190);
 
-	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieAku[1]);
-	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 210);
-	sprintf(chNapis, "%.2f A ", uDaneCM4.dane.fPradAku[1]);
-	RysujNapis(chNapis, KOL12 + 27*FONT_SL, 210);
-	//sprintf(chNapis, "%.1f mAh ", uDaneCM4.dane.fEnergiaPobr[1]);
-	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieWej[1]);			//tymczasowo pokaż napięcie wejściowe z własnego dzielnika
-	RysujNapis(chNapis, KOL12 + 46*FONT_SL, 210);
+	sprintf(cNapis, "%.2f V ", uDaneCM4.dane.fNapiecieAku[1]);
+	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 210);
+	sprintf(cNapis, "%.2f A ", uDaneCM4.dane.fPradAku[1]);
+	RysujNapis(cNapis, KOL12 + 27*FONT_SL, 210);
+	//sprintf(cNapis, "%.1f mAh ", uDaneCM4.dane.fEnergiaPobr[1]);
+	sprintf(cNapis, "%.2f V ", uDaneCM4.dane.fNapiecieWej[1]);			//tymczasowo pokaż napięcie wejściowe z własnego dzielnika
+	RysujNapis(cNapis, KOL12 + 46*FONT_SL, 210);
 
 	//napięcia pomocnicze
-	sprintf(chNapis, "%.2f V ", uDaneCM4.dane.fNapiecieSerw);
-	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 230);
-	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapiecieUSB);
-	RysujNapis(chNapis, KOL12 + 27*FONT_SL, 230);
-	sprintf(chNapis, "%.3f V " , uDaneCM4.dane.fNapiecieBatRTC);
-	RysujNapis(chNapis, KOL12 + 46*FONT_SL, 230);
+	sprintf(cNapis, "%.2f V ", uDaneCM4.dane.fNapiecieSerw);
+	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 230);
+	sprintf(cNapis, "%.3f V ", uDaneCM4.dane.fNapiecieUSB);
+	RysujNapis(cNapis, KOL12 + 27*FONT_SL, 230);
+	sprintf(cNapis, "%.3f V " , uDaneCM4.dane.fNapiecieBatRTC);
+	RysujNapis(cNapis, KOL12 + 46*FONT_SL, 230);
 
 	//napięcie czujników zewnętrznych
-	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[0]);
-	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 260);
-	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[1]);
-	RysujNapis(chNapis, KOL12 + 27*FONT_SL, 260);
+	sprintf(cNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[0]);
+	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 260);
+	sprintf(cNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[1]);
+	RysujNapis(cNapis, KOL12 + 27*FONT_SL, 260);
 	setColor(ZOLTY);
-	sprintf(chNapis, "%.1f %cC ", uDaneCM4.dane.fTemperCPU, ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12 + 46*FONT_SL, 260);
+	sprintf(cNapis, "%.1f %cC ", uDaneCM4.dane.fTemperCPU, ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12 + 46*FONT_SL, 260);
 
 	setColor(BIALY);
-	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[2]);
-	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 280);
-	sprintf(chNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[3]);
-	RysujNapis(chNapis, KOL12 + 27*FONT_SL, 280);
+	sprintf(cNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[2]);
+	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 280);
+	sprintf(cNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[3]);
+	RysujNapis(cNapis, KOL12 + 27*FONT_SL, 280);
 
 	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI do zera
 	RysujPasekPostepu(CZAS_KALIBRACJI);
@@ -2520,7 +2518,7 @@ void PomiaryCzujnikow(void)
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje okno z kanałami odbiornika RC albo serw
 // Parametry:
-// [we] chIndeksOpisu - indeks pozycji w zmiennej chNapisLcd zawierającej nazwę okna
+// [we] chIndeksOpisu - indeks pozycji w zmiennej cNapisLcd zawierającej nazwę okna
 // [we] sDane* - wskaźnik na tablicę zawierajacą dane wyświetlanych kanałów
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
@@ -2528,29 +2526,29 @@ void RysujPaskiKanalowRC(uint8_t chIndeksOpisu, uint16_t *sDane)
 {
 	uint16_t y, n, sSkorygowaneRC, sDlugoscPaska, sDlugoscTla;
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		chRysujRaz = 0;
-		BelkaTytulu((char*)chNapisLcd[chIndeksOpisu]);
+		cRysujRaz = 0;
+		BelkaTytulu((char*)cNapisLcd[chIndeksOpisu]);
 		for (n=0; n<KANALY_ODB_RC; n++)
 		{
 			y = n * 17;
 			setColor(SZARY80);
-			sprintf(chNapis, "%2d:", n+1);
-			RysujNapis(chNapis, KOL12, y+26);
+			sprintf(cNapis, "%2d:", n+1);
+			RysujNapis(cNapis, KOL12, y+26);
 			setColor(SZARY40);
 			RysujProstokat(77, y+29, (79 + WE_RC_MAX / ROZDZIECZOSC_PASKA_RC), y+29+8);
 		}
 		setColor(SZARY50);
-		RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
+		RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 	}
 
 	for (n=0; n<KANALY_ODB_RC; n++)
 	{
 		y = n * 17;
 		setColor(SZARY80);
-		sprintf(chNapis, "%4d ", sDane[n]);
-		RysujNapis(chNapis, KOL12+4*FONT_SL, y+26);
+		sprintf(cNapis, "%4d ", sDane[n]);
+		RysujNapis(cNapis, KOL12+4*FONT_SL, y+26);
 
 		//czasami długość kanału jest poza zakresem, więc skoryguj aby nie komplikować obliczeń
 		if (sDane[n] < WE_RC_MIN)
@@ -2594,38 +2592,38 @@ void RysujPasekPostepu(uint16_t sPelenZakres)
 ////////////////////////////////////////////////////////////////////////////////
 void TestTonuAudio(void)
 {
-	extern uint8_t chNumerTonu;
+	extern uint8_t cNumerTonu;
 	static uint16_t sLicznikTonu;
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		chRysujRaz = 0;
+		cRysujRaz = 0;
 		BelkaTytulu("Test tonu wario");
 
 		setColor(SZARY80);
-		sprintf(chNapis, "Numer tonu:");
-		RysujNapis(chNapis, KOL12, 30);
-		sprintf(chNapis, "Czest. 1 harm.:");
-		RysujNapis(chNapis, KOL12, 50);
-		sprintf(chNapis, "Czest. 3 harm.:");
-		RysujNapis(chNapis, KOL12, 70);
+		sprintf(cNapis, "Numer tonu:");
+		RysujNapis(cNapis, KOL12, 30);
+		sprintf(cNapis, "Czest. 1 harm.:");
+		RysujNapis(cNapis, KOL12, 50);
+		sprintf(cNapis, "Czest. 3 harm.:");
+		RysujNapis(cNapis, KOL12, 70);
 	}
 
 	sLicznikTonu++;
 	if (sLicznikTonu > 900)
 	{
 		sLicznikTonu = 0;
-		chNumerTonu++;
-		if (chNumerTonu >= LICZBA_TONOW_WARIO)
-			chNumerTonu = 0;
+		cNumerTonu++;
+		if (cNumerTonu >= LICZBA_TONOW_WARIO)
+			cNumerTonu = 0;
 
 		setColor(BIALY);
-		sprintf(chNapis, "%d ", chNumerTonu);
-		RysujNapis(chNapis, KOL12+16*FONT_SL, 30);
-		sprintf(chNapis, "%.1f Hz ", 1.0f * CZESTOTLIWOSC_AUDIO / (MIN_OKRES_TONU + chNumerTonu * SKOK_TONU));
-		RysujNapis(chNapis, KOL12+16*FONT_SL, 50);
-		sprintf(chNapis, "%.1f Hz ", 3.0f * CZESTOTLIWOSC_AUDIO / (MIN_OKRES_TONU + chNumerTonu * SKOK_TONU));
-		RysujNapis(chNapis, KOL12+16*FONT_SL, 70);
-		UstawTon(chNumerTonu, 80);
+		sprintf(cNapis, "%d ", cNumerTonu);
+		RysujNapis(cNapis, KOL12+16*FONT_SL, 30);
+		sprintf(cNapis, "%.1f Hz ", 1.0f * CZESTOTLIWOSC_AUDIO / (MIN_OKRES_TONU + cNumerTonu * SKOK_TONU));
+		RysujNapis(cNapis, KOL12+16*FONT_SL, 50);
+		sprintf(cNapis, "%.1f Hz ", 3.0f * CZESTOTLIWOSC_AUDIO / (MIN_OKRES_TONU + cNumerTonu * SKOK_TONU));
+		RysujNapis(cNapis, KOL12+16*FONT_SL, 70);
+		UstawTon(cNumerTonu, 80);
 	}
 
 }
@@ -2645,20 +2643,20 @@ void WyswietlParametryKartySD(void)
 	HAL_SD_CardCSDTypedef pCSD;
 	HAL_SD_CardStatusTypeDef pStatus;
 	char chOEM[2];
-	extern uint8_t chPort_exp_wysylany[];
+	extern uint8_t cPort_exp_wysylany[];
 	float fNapiecie;
 	uint16_t sPozY;
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		chRysujRaz = 0;
+		cRysujRaz = 0;
 		BelkaTytulu("Parametry karty SD");
 
 		//zamaż ewentualną pozostałość napisu o braku karty
 		UstawCzcionke(BigFont);
 		setColor(CZARNY);
-		sprintf(chNapis, "                             ");
-		RysujNapis(chNapis, CENTER, 50);
+		sprintf(cNapis, "                             ");
+		RysujNapis(cNapis, CENTER, 50);
 		UstawCzcionke(MidFont);
 	}
 
@@ -2671,58 +2669,58 @@ void WyswietlParametryKartySD(void)
 		sPozY = 30;
 
 		setColor(SZARY70);
-		sprintf(chNapis, "Typ: %ld ", CardInfo.CardType);
-		RysujNapis(chNapis, KOL12, sPozY);
+		sprintf(cNapis, "Typ: %ld ", CardInfo.CardType);
+		RysujNapis(cNapis, KOL12, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "Pojemnosc: ");
-		RysujNapis(chNapis, KOL12, sPozY);
+		sprintf(cNapis, "Pojemnosc: ");
+		RysujNapis(cNapis, KOL12, sPozY);
 		switch(pCSD.CSDStruct)
 		{
-		case 0:	sprintf(chNapis, "Standard");	break;
-		case 1:	sprintf(chNapis, "Wysoka  ");	break;
-		default:sprintf(chNapis, "Nieznana");	break;
+		case 0:	sprintf(cNapis, "Standard");	break;
+		case 1:	sprintf(cNapis, "Wysoka  ");	break;
+		default:sprintf(cNapis, "Nieznana");	break;
 		}
-		RysujNapis(chNapis, KOL12 + 11*FONT_SL, sPozY);
+		RysujNapis(cNapis, KOL12 + 11*FONT_SL, sPozY);
 
 		sPozY += 20;
-		//sprintf(chNapis, "Klasy: %ld (0x%lX) ", CardInfo.Class, CardInfo.Class);
-		sprintf(chNapis, "CCC: ");
-		RysujNapis(chNapis, KOL12, sPozY);
+		//sprintf(cNapis, "Klasy: %ld (0x%lX) ", CardInfo.Class, CardInfo.Class);
+		sprintf(cNapis, "CCC: ");
+		RysujNapis(cNapis, KOL12, sPozY);
 		for (uint16_t n=0; n<12; n++)
 		{
 			if (CardInfo.Class & (1<<n))
 				setColor(SZARY80);
 			else
 				setColor(SZARY40);
-			sprintf(chNapis, "%X", n);
-			RysujNapis(chNapis, KOL12 + ((5+n)*FONT_SL), sPozY);
+			sprintf(cNapis, "%X", n);
+			RysujNapis(cNapis, KOL12 + ((5+n)*FONT_SL), sPozY);
 		}
 		sPozY += 20;
 
 		setColor(SZARY70);
-		sprintf(chNapis, "Klasa predk: %d ", pStatus.SpeedClass);
-		RysujNapis(chNapis, KOL12, sPozY);
+		sprintf(cNapis, "Klasa predk: %d ", pStatus.SpeedClass);
+		RysujNapis(cNapis, KOL12, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "Klasa UHS: %d ", pStatus.UhsSpeedGrade);
-		RysujNapis(chNapis, KOL12, sPozY);
+		sprintf(cNapis, "Klasa UHS: %d ", pStatus.UhsSpeedGrade);
+		RysujNapis(cNapis, KOL12, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "Klasa Video: %d ", pStatus.VideoSpeedClass);
-		RysujNapis(chNapis, KOL12, sPozY);
+		sprintf(cNapis, "Klasa Video: %d ", pStatus.VideoSpeedClass);
+		RysujNapis(cNapis, KOL12, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "PerformanceMove: %d MB/s", pStatus.PerformanceMove);
-		RysujNapis(chNapis, KOL12, sPozY);
-		sPozY += 20;
-
-		sprintf(chNapis, "Wsp pred. O/Z: %d ", pCSD.WrSpeedFact);
-		RysujNapis(chNapis, KOL12, sPozY);
+		sprintf(cNapis, "PerformanceMove: %d MB/s", pStatus.PerformanceMove);
+		RysujNapis(cNapis, KOL12, sPozY);
 		sPozY += 20;
 
-		if (chPort_exp_wysylany[0] & EXP02_LOG_VSELECT)	//LOG_SD1_VSEL: H=3,3V
+		sprintf(cNapis, "Wsp pred. O/Z: %d ", pCSD.WrSpeedFact);
+		RysujNapis(cNapis, KOL12, sPozY);
+		sPozY += 20;
+
+		if (cPort_exp_wysylany[0] & EXP02_LOG_VSELECT)	//LOG_SD1_VSEL: H=3,3V
 			fNapiecie = 3.3;
 		else
 			fNapiecie = 1.8;
-		sprintf(chNapis, "Napi%ccie I/O: %.1fV ", ę, fNapiecie);
-		RysujNapis(chNapis, KOL12, sPozY);
+		sprintf(cNapis, "Napi%ccie I/O: %.1fV ", ę, fNapiecie);
+		RysujNapis(cNapis, KOL12, sPozY);
 		sPozY += 20;
 
 		float fPodstawaCzasu, fMnoznik;
@@ -2748,92 +2746,92 @@ void WyswietlParametryKartySD(void)
 		case 15: fMnoznik = 8.0f;	break;
 		default: fMnoznik = 0.0f;
 		}
-		sprintf(chNapis, "Czas dost. async: %.1e s ", fPodstawaCzasu*fMnoznik);
-		RysujNapis(chNapis, KOL12, sPozY);
+		sprintf(cNapis, "Czas dost. async: %.1e s ", fPodstawaCzasu*fMnoznik);
+		RysujNapis(cNapis, KOL12, sPozY);
 		sPozY += 20;
 
-		sprintf(chNapis, "Czas dost. sync: %d cyk.zeg ", pCSD.NSAC);
-		RysujNapis(chNapis, KOL12, sPozY);
+		sprintf(cNapis, "Czas dost. sync: %d cyk.zeg ", pCSD.NSAC);
+		RysujNapis(cNapis, KOL12, sPozY);
 		sPozY += 20;
 
-		sprintf(chNapis, "MaxBusClkFrec: %d", pCSD.MaxBusClkFrec);
-		RysujNapis(chNapis, KOL12, sPozY);
+		sprintf(cNapis, "MaxBusClkFrec: %d", pCSD.MaxBusClkFrec);
+		RysujNapis(cNapis, KOL12, sPozY);
 		sPozY += 20;
 
 
 		//druga kolumna
 		sPozY = 30;
-		sprintf(chNapis, "Liczba sektor%cw: %ld ", ó, CardInfo.BlockNbr);		//Specifies the Card Capacity in blocks
-		RysujNapis(chNapis, KOL22, sPozY);
+		sprintf(cNapis, "Liczba sektor%cw: %ld ", ó, CardInfo.BlockNbr);		//Specifies the Card Capacity in blocks
+		RysujNapis(cNapis, KOL22, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "Rozmiar sektora: %ld B ", CardInfo.BlockSize);		//Specifies one block size in bytes
-		RysujNapis(chNapis, KOL22, sPozY);
+		sprintf(cNapis, "Rozmiar sektora: %ld B ", CardInfo.BlockSize);		//Specifies one block size in bytes
+		RysujNapis(cNapis, KOL22, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "Pojemno%c%c karty: %ld MB ", ś, ć, CardInfo.BlockNbr * (CardInfo.BlockSize / 512) / 2048);		//Specifies one block size in bytes
-		RysujNapis(chNapis, KOL22, sPozY);
+		sprintf(cNapis, "Pojemno%c%c karty: %ld MB ", ś, ć, CardInfo.BlockNbr * (CardInfo.BlockSize / 512) / 2048);		//Specifies one block size in bytes
+		RysujNapis(cNapis, KOL22, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "Rozm Jedn Alok: %d kB", (8<<pStatus.AllocationUnitSize));		//Specifies one block size in bytes
-		RysujNapis(chNapis, KOL22, sPozY);
+		sprintf(cNapis, "Rozm Jedn Alok: %d kB", (8<<pStatus.AllocationUnitSize));		//Specifies one block size in bytes
+		RysujNapis(cNapis, KOL22, sPozY);
 		sPozY += 20;
-		//sprintf(chNapis, "Liczba blok%cw log.: %ld ", ó, CardInfo.LogBlockNbr);		//Specifies the Card logical Capacity in blocks
-		//RysujNapis(chNapis, KOL22, sPozY);
+		//sprintf(cNapis, "Liczba blok%cw log.: %ld ", ó, CardInfo.LogBlockNbr);		//Specifies the Card logical Capacity in blocks
+		//RysujNapis(cNapis, KOL22, sPozY);
 		//sPozY += 20;
-		sprintf(chNapis, "RdBlockLen: %d ", (2<<pCSD.RdBlockLen));
-		RysujNapis(chNapis, KOL22, sPozY);
+		sprintf(cNapis, "RdBlockLen: %d ", (2<<pCSD.RdBlockLen));
+		RysujNapis(cNapis, KOL22, sPozY);
 		sPozY += 20;
-		//sprintf(chNapis, "Rozmiar karty log: %ld MB ", CardInfo.LogBlockNbr * (CardInfo.LogBlockSize / 512) / 2048);		//Specifies one block size in bytes
-		//RysujNapis(chNapis, KOL22, sPozY);
+		//sprintf(cNapis, "Rozmiar karty log: %ld MB ", CardInfo.LogBlockNbr * (CardInfo.LogBlockSize / 512) / 2048);		//Specifies one block size in bytes
+		//RysujNapis(cNapis, KOL22, sPozY);
 		//sPozY += 20;
 
 		setColor(SZARY70);
-		sprintf(chNapis, "Format: ");
-		RysujNapis(chNapis, KOL22, sPozY);
+		sprintf(cNapis, "Format: ");
+		RysujNapis(cNapis, KOL22, sPozY);
 		switch (pCSD.FileFormat)
 		{
-		case 0: sprintf(chNapis, "HDD z partycja ");	break;
-		case 1: sprintf(chNapis, "DOS FAT ");			break;
-		case 2: sprintf(chNapis, "UnivFileFormat ");	break;
-		default: sprintf(chNapis, "Nieznany ");			break;
+		case 0: sprintf(cNapis, "HDD z partycja ");	break;
+		case 1: sprintf(cNapis, "DOS FAT ");			break;
+		case 2: sprintf(cNapis, "UnivFileFormat ");	break;
+		default: sprintf(cNapis, "Nieznany ");			break;
 		}
 		setColor(SZARY80);
-		RysujNapis(chNapis, KOL22+8*FONT_SL, sPozY);
+		RysujNapis(cNapis, KOL22+8*FONT_SL, sPozY);
 		sPozY += 20;
 
 		setColor(SZARY70);
-		sprintf(chNapis, "Manuf ID: ");
-		RysujNapis(chNapis, KOL22, sPozY);
+		sprintf(cNapis, "Manuf ID: ");
+		RysujNapis(cNapis, KOL22, sPozY);
 		switch (pCID.ManufacturerID)
 		{
-		case 0x02:	sprintf(chNapis, "Goodram/Toshiba ");	break;
-		case 0x03:	sprintf(chNapis, "SandDisk ");	break;
+		case 0x02:	sprintf(cNapis, "Goodram/Toshiba ");	break;
+		case 0x03:	sprintf(cNapis, "SandDisk ");	break;
 		case 0xdF:
-		case 0x05:	sprintf(chNapis, "Lenovo ");	break;
-		case 0x09:	sprintf(chNapis, "APT ");	break;
-		case 0x1B:	sprintf(chNapis, "Samsung ");	break;
-		case 0x1D:	sprintf(chNapis, "ADATA ");	break;
+		case 0x05:	sprintf(cNapis, "Lenovo ");	break;
+		case 0x09:	sprintf(cNapis, "APT ");	break;
+		case 0x1B:	sprintf(cNapis, "Samsung ");	break;
+		case 0x1D:	sprintf(cNapis, "ADATA ");	break;
 		case 0x1F:
-		case 0x41:	sprintf(chNapis, "Kingstone ");	break;
-		case 0x6F:	sprintf(chNapis, "Kodak ");	break;
-		case 0x74:	sprintf(chNapis, "Trnasced ");	break;
-		case 0x82:	sprintf(chNapis, "Sony ");	break;
-		default:	sprintf(chNapis, "%X ", pCID.ManufacturerID);
+		case 0x41:	sprintf(cNapis, "Kingstone ");	break;
+		case 0x6F:	sprintf(cNapis, "Kodak ");	break;
+		case 0x74:	sprintf(cNapis, "Trnasced ");	break;
+		case 0x82:	sprintf(cNapis, "Sony ");	break;
+		default:	sprintf(cNapis, "%X ", pCID.ManufacturerID);
 		}
 		setColor(SZARY80);
-		RysujNapis(chNapis, KOL22+10*FONT_SL, sPozY);
+		RysujNapis(cNapis, KOL22+10*FONT_SL, sPozY);
 		sPozY += 20;
 
 		setColor(SZARY70);
 		chOEM[0] = (pCID.OEM_AppliID & 0xFF00)>>8;
 		chOEM[1] = pCID.OEM_AppliID & 0x00FF;
-		sprintf(chNapis, "OEM_AppliID: %c%c ", chOEM[0], chOEM[1]);
-		RysujNapis(chNapis, KOL22, sPozY);
+		sprintf(cNapis, "OEM_AppliID: %c%c ", chOEM[0], chOEM[1]);
+		RysujNapis(cNapis, KOL22, sPozY);
 		sPozY += 20;
 
-		sprintf(chNapis, "Nr seryjny: %ld ", pCID.ProdSN);
-		RysujNapis(chNapis, KOL22, sPozY);
+		sprintf(cNapis, "Nr seryjny: %ld ", pCID.ProdSN);
+		RysujNapis(cNapis, KOL22, sPozY);
 		sPozY += 20;
-		sprintf(chNapis, "Data prod: %s %d ", chNazwyMies3Lit[(pCID.ManufactDate & 0xF)], ((pCID.ManufactDate>>4) & 0xFF) + 2000);
-		RysujNapis(chNapis, KOL22, sPozY);
+		sprintf(cNapis, "Data prod: %s %d ", cNazwyMies3Lit[(pCID.ManufactDate & 0xF)], ((pCID.ManufactDate>>4) & 0xFF) + 2000);
+		RysujNapis(cNapis, KOL22, sPozY);
 		sPozY += 20;
 
 	}
@@ -2841,9 +2839,9 @@ void WyswietlParametryKartySD(void)
 	{
 		UstawCzcionke(BigFont);
 		setColor(CZERWONY);
-		sprintf(chNapis, "Wolne %carty, tu brak karty! ", ż);
-		RysujNapis(chNapis, CENTER, 50);
-		chRysujRaz = 1;
+		sprintf(cNapis, "Wolne %carty, tu brak karty! ", ż);
+		RysujNapis(cNapis, CENTER, 50);
+		cRysujRaz = 1;
 	}
 }
 
@@ -2856,83 +2854,83 @@ void WyswietlParametryKartySD(void)
 ////////////////////////////////////////////////////////////////////////////////
 void WyswietlRejestratorKartySD(void)
 {
-	extern uint8_t chKodBleduFAT;
+	extern uint8_t cKodBleduFAT;
 	extern uint16_t sMaxDlugoscWierszaLogu;
 	uint16_t sPozY;
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		chRysujRaz = 0;
+		cRysujRaz = 0;
 		BelkaTytulu("Rejestrator na karcie SD");
 
 		setColor(SZARY80);
-		sprintf(chNapis, "Karta SD: ");
-		RysujNapis(chNapis, KOL12, 30);
-		sprintf(chNapis, "Stan FATu: ");
-		RysujNapis(chNapis, KOL12, 50);
-		sprintf(chNapis, "Plik logu: ");
-		RysujNapis(chNapis, KOL12, 70);
-		sprintf(chNapis, "Rejestrator: ");
-		RysujNapis(chNapis, KOL12, 90);
-		sprintf(chNapis, "Zape%cnienie: ", ł);
-		RysujNapis(chNapis, KOL12, 110);
+		sprintf(cNapis, "Karta SD: ");
+		RysujNapis(cNapis, KOL12, 30);
+		sprintf(cNapis, "Stan FATu: ");
+		RysujNapis(cNapis, KOL12, 50);
+		sprintf(cNapis, "Plik logu: ");
+		RysujNapis(cNapis, KOL12, 70);
+		sprintf(cNapis, "Rejestrator: ");
+		RysujNapis(cNapis, KOL12, 90);
+		sprintf(cNapis, "Zape%cnienie: ", ł);
+		RysujNapis(cNapis, KOL12, 110);
 	}
 
 	sPozY = 30;
-	if ((chPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty
+	if ((cPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty
 	{
 		setColor(KOLOR_Y);
-		sprintf(chNapis, "Obecna");
+		sprintf(cNapis, "Obecna");
 	}
 	else
 	{
 		setColor(KOLOR_X);
-		sprintf(chNapis, "Brak! ");
+		sprintf(cNapis, "Brak! ");
 	}
-	RysujNapis(chNapis, KOL12 + 11*FONT_SL, sPozY);
+	RysujNapis(cNapis, KOL12 + 11*FONT_SL, sPozY);
 	sPozY += 20;
 
-	if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
+	if (cStatusRejestratora & STATREJ_FAT_GOTOWY)
 	{
 		setColor(KOLOR_Y);
-		sprintf(chNapis, "Gotowy                ");	//długością ma przykryć nadłuższy komunikat o błędzie
+		sprintf(cNapis, "Gotowy                ");	//długością ma przykryć nadłuższy komunikat o błędzie
 	}
 	else
 	{
 		setColor(KOLOR_X);
-		PobierzKodBleduFAT(chKodBleduFAT, chNapis);
+		PobierzKodBleduFAT(cKodBleduFAT, cNapis);
 
 	}
-	RysujNapis(chNapis, KOL12 + 11*FONT_SL, sPozY);
+	RysujNapis(cNapis, KOL12 + 11*FONT_SL, sPozY);
 	sPozY += 20;
 
-	if (chStatusRejestratora & STATREJ_OTWARTY_PLIK)
+	if (cStatusRejestratora & STATREJ_OTWARTY_PLIK)
 	{
 		setColor(KOLOR_Y);
-		sprintf(chNapis, "Otwarty   ");
+		sprintf(cNapis, "Otwarty   ");
 	}
 	else
 	{
 		setColor(ZOLTY);
-		if (chStatusRejestratora & STATREJ_BYL_OTWARTY)
-			sprintf(chNapis, "Zatrzymany");
+		if (cStatusRejestratora & STATREJ_BYL_OTWARTY)
+			sprintf(cNapis, "Zatrzymany");
 		else
-			sprintf(chNapis, "Brak ");
+			sprintf(cNapis, "Brak ");
 	}
-	RysujNapis(chNapis, KOL12 + 11*FONT_SL, sPozY);
+	RysujNapis(cNapis, KOL12 + 11*FONT_SL, sPozY);
 	sPozY += 20;
 
-	if (chStatusRejestratora & STATREJ_WLACZONY)
+	if (cStatusRejestratora & STATREJ_WLACZONY)
 	{
 		setColor(KOLOR_Y);
-		sprintf(chNapis, "W%c%cczony  ", ł, ą);
+		sprintf(cNapis, "W%c%cczony  ", ł, ą);
 	}
 	else
 	{
 		setColor(ZOLTY);
-		sprintf(chNapis, "Zatrzymany");
+		sprintf(cNapis, "Zatrzymany");
 	}
-	RysujNapis(chNapis, KOL12 + 13*FONT_SL, sPozY);
+	RysujNapis(cNapis, KOL12 + 13*FONT_SL, sPozY);
 	sPozY += 20;
 
 
@@ -2944,21 +2942,21 @@ void WyswietlRejestratorKartySD(void)
 		setColor(ZOLTY);
 	else
 		setColor(KOLOR_X);	//czerwony
-	sprintf(chNapis, "%d / %d ", sMaxDlugoscWierszaLogu, ROZMIAR_BUFORA_LOGU);
-	RysujNapis(chNapis, KOL12 + 13*FONT_SL, sPozY);
+	sprintf(cNapis, "%d / %d ", sMaxDlugoscWierszaLogu, ROZMIAR_BUFORA_LOGU);
+	RysujNapis(cNapis, KOL12 + 13*FONT_SL, sPozY);
 	sPozY += 20;
 }
 
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Parametry: chKodBleduFAT - numer kodu błędu typu FRESULT
+// Parametry: cKodBleduFAT - numer kodu błędu typu FRESULT
 // Zwraca: wskaźnik na string z kodem błędu FAT
 ////////////////////////////////////////////////////////////////////////////////
-void PobierzKodBleduFAT(uint8_t chKodBledu, char* napis)
+void PobierzKodBleduFAT(uint8_t cKodBledu, char* napis)
 {
 	//wersja krótsza z nazwą błędu
-	switch (chKodBledu)
+	switch (cKodBledu)
 	{
 	case FR_DISK_ERR: 			sprintf(napis, "FR_DISK_ERR");			break;
 	case FR_INT_ERR:			sprintf(napis, "FR_INT_ERR");				break;
@@ -2983,27 +2981,27 @@ void PobierzKodBleduFAT(uint8_t chKodBledu, char* napis)
 	}
 
 	//wersja dłuższa  opisem błędu
-	/*switch (chKodBleduFAT)
+	/*switch (cKodBleduFAT)
 	{
-	case FR_DISK_ERR: 			sprintf(chNapis, "A hard error in low level disk I/O layer");	break;
-	case FR_INT_ERR:			sprintf(chNapis, "Assertion failed");							break;
-	case FR_NOT_READY: 			sprintf(chNapis, "The physical drive cannot work");				break;
-	case FR_NO_FILE:			sprintf(chNapis, "Could not find the file");					break;
-	case FR_NO_PATH:			sprintf(chNapis, "Could not find the path");					break;
-	case FR_INVALID_NAME:		sprintf(chNapis, "The path name format is invalid");			break;
-	case FR_DENIED:				sprintf(chNapis, "Access denied or directory full");			break;
-	case FR_EXIST:				sprintf(chNapis, "Access denied due to prohibited access");		break;
-	case FR_INVALID_OBJECT:		sprintf(chNapis, "The file/directory object is invalid");		break;
-	case FR_WRITE_PROTECTED:	sprintf(chNapis, "The physical drive is write protected");		break;
-	case FR_INVALID_DRIVE:		sprintf(chNapis, "The logical drive number is invalid");		break;
-	case FR_NOT_ENABLED:		sprintf(chNapis, "The volume has no work area");				break;
-	case FR_NO_FILESYSTEM:		sprintf(chNapis, "There is no valid FAT volume");				break;
-	case FR_MKFS_ABORTED:		sprintf(chNapis, "The f_mkfs() aborted due to any problem");	break;
-	case FR_TIMEOUT:			sprintf(chNapis, "Could not get a grant to access the volume");	break;
-	case FR_LOCKED:				sprintf(chNapis, "Operation rejected due file sharing policy");	break;
-	case FR_NOT_ENOUGH_CORE:	sprintf(chNapis, "LFN working buffer could not be allocated");	break;
-	case FR_TOO_MANY_OPEN_FILES:sprintf(chNapis, "Number of open files > _FS_LOCK");			break;
-	case FR_INVALID_PARAMETER:	sprintf(chNapis, "Given parameter is invalid");					break;
+	case FR_DISK_ERR: 			sprintf(cNapis, "A hard error in low level disk I/O layer");	break;
+	case FR_INT_ERR:			sprintf(cNapis, "Assertion failed");							break;
+	case FR_NOT_READY: 			sprintf(cNapis, "The physical drive cannot work");				break;
+	case FR_NO_FILE:			sprintf(cNapis, "Could not find the file");					break;
+	case FR_NO_PATH:			sprintf(cNapis, "Could not find the path");					break;
+	case FR_INVALID_NAME:		sprintf(cNapis, "The path name format is invalid");			break;
+	case FR_DENIED:				sprintf(cNapis, "Access denied or directory full");			break;
+	case FR_EXIST:				sprintf(cNapis, "Access denied due to prohibited access");		break;
+	case FR_INVALID_OBJECT:		sprintf(cNapis, "The file/directory object is invalid");		break;
+	case FR_WRITE_PROTECTED:	sprintf(cNapis, "The physical drive is write protected");		break;
+	case FR_INVALID_DRIVE:		sprintf(cNapis, "The logical drive number is invalid");		break;
+	case FR_NOT_ENABLED:		sprintf(cNapis, "The volume has no work area");				break;
+	case FR_NO_FILESYSTEM:		sprintf(cNapis, "There is no valid FAT volume");				break;
+	case FR_MKFS_ABORTED:		sprintf(cNapis, "The f_mkfs() aborted due to any problem");	break;
+	case FR_TIMEOUT:			sprintf(cNapis, "Could not get a grant to access the volume");	break;
+	case FR_LOCKED:				sprintf(cNapis, "Operation rejected due file sharing policy");	break;
+	case FR_NOT_ENOUGH_CORE:	sprintf(cNapis, "LFN working buffer could not be allocated");	break;
+	case FR_TOO_MANY_OPEN_FILES:sprintf(cNapis, "Number of open files > _FS_LOCK");			break;
+	case FR_INVALID_PARAMETER:	sprintf(cNapis, "Given parameter is invalid");					break;
 	}*/
 
 }
@@ -3131,8 +3129,8 @@ uint32_t RysujKostkeObrotu(float *fKat)
 			sKostkaPoprzednia[n][m] = sKostka[n][m];
 	}
 	setColor(SZARY50);
-	sprintf(chNapis, "t=%ldus, phi=%.1f, theta=%.1f, psi=%.1f ", nCzas, fKat[0]*RAD2DEG, fKat[1]*RAD2DEG, fKat[2]*RAD2DEG);
-	RysujNapis(chNapis, 0, 0);
+	sprintf(cNapis, "t=%ldus, phi=%.1f, theta=%.1f, psi=%.1f ", nCzas, fKat[0]*RAD2DEG, fKat[1]*RAD2DEG, fKat[2]*RAD2DEG);
+	RysujNapis(cNapis, 0, 0);
 	return nCzas;
 }
 
@@ -3145,30 +3143,30 @@ uint32_t RysujKostkeObrotu(float *fKat)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 {
-	char chNazwaOsi;
+	char cNazwaOsi;
 	float fPochylenie, fPrzechylenie;
 	uint8_t cBłąd = BLAD_OK;
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		//chRysujRaz = 0;	będzie wyzerowane w funkcji rysowania poziomicy
+		//cRysujRaz = 0;	będzie wyzerowane w funkcji rysowania poziomicy
 		BelkaTytulu("Kalibr. wzmocnienia zyro");
 		setColor(SZARY80);
 
-		sprintf(chNapis, "Ca%cka %cyro 1:", ł, ż);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK, 100);
-		sprintf(chNapis, "Ca%cka %cyro 2:", ł, ż);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK, 120);
-		sprintf(chNapis, "K%cty w p%caszczy%cnie kalibracji", ą, ł, ź);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK, 140);
-		sprintf(chNapis, "Pochylenie:");
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK, 160);
-		sprintf(chNapis, "Przechylenie:");
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK, 180);
-		sprintf(chNapis, "WspKal %cyro1:", ż);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK, 200);
-		sprintf(chNapis, "WspKal %cyro2:", ż);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK, 220);
+		sprintf(cNapis, "Ca%cka %cyro 1:", ł, ż);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK, 100);
+		sprintf(cNapis, "Ca%cka %cyro 2:", ł, ż);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK, 120);
+		sprintf(cNapis, "K%cty w p%caszczy%cnie kalibracji", ą, ł, ź);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK, 140);
+		sprintf(cNapis, "Pochylenie:");
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK, 160);
+		sprintf(cNapis, "Przechylenie:");
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK, 180);
+		sprintf(cNapis, "WspKal %cyro1:", ż);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK, 200);
+		sprintf(cNapis, "WspKal %cyro2:", ż);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK, 220);
 
 		setColor(SZARY40);
 		stPrzycisk.sX1 = 10 + LIBELLA_BOK;
@@ -3177,159 +3175,159 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		stPrzycisk.sY2 = stPrzycisk.sY1 + 75;
 		RysujPrzycisk(stPrzycisk, "Odczyt", RYSUJ);
 
-		chEtapKalibracji = 0;
-		chStanPrzycisku = 0;
+		cEtapKalibracji = 0;
+		cStanPrzycisku = 0;
 		setColor(ZOLTY);
-		sprintf(chNapis, "B%cbelek powinien by%c w %crodku poziomicy", ą, ć, ś);
-		RysujNapis(chNapis, CENTER, 50);
+		sprintf(cNapis, "B%cbelek powinien by%c w %crodku poziomicy", ą, ć, ś);
+		RysujNapis(cNapis, CENTER, 50);
 		setColor(SZARY60);
-		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
-		RysujNapis(chNapis, CENTER, 70);
-		statusDotyku.chFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
+		sprintf(cNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
+		RysujNapis(cNapis, CENTER, 70);
+		stStatusDotyku.chFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
 	}
 
 	//sekwencer kalibracji
 	switch (*chSekwencer)
 	{
 	case SEKW_KAL_WZM_ZYRO_R:
-		chNazwaOsi = 'Z';
+		cNazwaOsi = 'Z';
 		fPochylenie = uDaneCM4.dane.fKatAkcel1[1];
 		fPrzechylenie = uDaneCM4.dane.fKatAkcel1[0];
 		Poziomica(-fPrzechylenie, fPochylenie);	//przechylenie, pochylenie
 		setColor(KOLOR_Z);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[2], ZNAK_STOPIEN);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 100);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[2], ZNAK_STOPIEN);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 120);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * fPochylenie, ZNAK_STOPIEN);	//pochylenie
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 160);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * fPrzechylenie, ZNAK_STOPIEN);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 180);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[2], ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 100);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[2], ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 120);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * fPochylenie, ZNAK_STOPIEN);	//pochylenie
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 160);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * fPrzechylenie, ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 180);
 		break;
 
 	case SEKW_KAL_WZM_ZYRO_Q:
-		chNazwaOsi = 'Y';
+		cNazwaOsi = 'Y';
 		fPochylenie = atan2f(uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[0]) + 90 * DEG2RAD;	//atan(y/x)
 		fPrzechylenie = atan2f(uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]) + 90 * DEG2RAD;	//atan(y/z)
 		Poziomica(fPrzechylenie, -fPochylenie);	//przechylenie, pochylenie
 		setColor(KOLOR_Y);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[1], ZNAK_STOPIEN);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 100);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[1], ZNAK_STOPIEN);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 120);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * fPochylenie, ZNAK_STOPIEN);	//pochylenie
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 160);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * fPrzechylenie, ZNAK_STOPIEN);	//przechylenie
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 180);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[1], ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 100);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[1], ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 120);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * fPochylenie, ZNAK_STOPIEN);	//pochylenie
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 160);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * fPrzechylenie, ZNAK_STOPIEN);	//przechylenie
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 180);
 		break;
 
 	case SEKW_KAL_WZM_ZYRO_P:
-		chNazwaOsi = 'X';
+		cNazwaOsi = 'X';
 		fPochylenie = atan2f(uDaneCM4.dane.fAkcel1[2], uDaneCM4.dane.fAkcel1[0]);	//atan(z/x)
 		fPrzechylenie = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[1]) - 90 * DEG2RAD;	//atan(x/y)
 		Poziomica(-fPrzechylenie, fPochylenie);	//przechylenie, pochylenie
 		setColor(KOLOR_X);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[0], ZNAK_STOPIEN);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 100);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[0], ZNAK_STOPIEN);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 120);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * fPochylenie, ZNAK_STOPIEN);	//pochylenie
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 160);
-		sprintf(chNapis, "%.2f %c ", RAD2DEG * fPrzechylenie, ZNAK_STOPIEN);	//przechylenie:
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 180);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[0], ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 100);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[0], ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 120);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * fPochylenie, ZNAK_STOPIEN);	//pochylenie
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 160);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * fPrzechylenie, ZNAK_STOPIEN);	//przechylenie:
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 180);
 		break;
 	}
 
 	setColor(ZOLTY);
-	sprintf(chNapis, "Skieruj osia %c do dolu i wykonaj %d obroty w dowolna strone", chNazwaOsi, OBR_KAL_WZM);
-	RysujNapis(chNapis, CENTER, 30);
+	sprintf(cNapis, "Skieruj osia %c do dolu i wykonaj %d obroty w dowolna strone", cNazwaOsi, OBR_KAL_WZM);
+	RysujNapis(cNapis, CENTER, 30);
 
 	//wyświetl współczynnik kalibracji
-	if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) && (chEtapKalibracji >= 2))
+	if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) && (cEtapKalibracji >= 2))
 	{
 		setColor(BIALY);										//nowy współczynnik
-		sprintf(chNapis, "%.3f", uDaneCM4.dane.uRozne.f32[0]);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 200);
-		sprintf(chNapis, "%.3f", uDaneCM4.dane.uRozne.f32[1]);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 220);
+		sprintf(cNapis, "%.3f", uDaneCM4.dane.uRozne.f32[0]);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 200);
+		sprintf(cNapis, "%.3f", uDaneCM4.dane.uRozne.f32[1]);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 220);
 	}
 	else
 	{
 		setColor(SZARY80);										//stary współczynnik
-		sprintf(chNapis, "%.3f", uDaneCM4.dane.uRozne.f32[2]);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 200);
-		sprintf(chNapis, "%.3f", uDaneCM4.dane.uRozne.f32[3]);
-		RysujNapis(chNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 220);
+		sprintf(cNapis, "%.3f", uDaneCM4.dane.uRozne.f32[2]);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 200);
+		sprintf(cNapis, "%.3f", uDaneCM4.dane.uRozne.f32[3]);
+		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 220);
 	}
 
 	//napis dla przycisku
 	setColor(ZOLTY);
-	switch (chEtapKalibracji)
+	switch (cEtapKalibracji)
 	{
 	case 0:	//odczyt wartości bieżącej wzmocnienia
-		uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_WZM_ZYROP + *chSekwencer;
-		sprintf(chNapis, "Odczyt");
-		if (uDaneCM4.dane.chPotwierdzenieWykonania == POL7_CZYTAJ_WZM_ZYROP + *chSekwencer)	//jeżeli nastapił odczyt to przejdź do nastepnego etapu
-			chEtapKalibracji = 1;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_CZYTAJ_WZM_ZYROP + *chSekwencer;
+		sprintf(cNapis, "Odczyt");
+		if (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_CZYTAJ_WZM_ZYROP + *chSekwencer)	//jeżeli nastapił odczyt to przejdź do nastepnego etapu
+			cEtapKalibracji = 1;
 		break;
 
 	case 1:	//zerowanie całki
-		uDaneCM7.dane.chWykonajPolecenie = POL7_ZERUJ_CALKE_ZYRO;	//zeruje całkę żyroskopów przed kalibracją
-		sprintf(chNapis, "Start");
-		if (uDaneCM4.dane.chPotwierdzenieWykonania == POL7_ZERUJ_CALKE_ZYRO)	//jeżeli nastapiło wyzerowanie to nie czekaj na przycisk tylko od razu zacznij całkować
+		uDaneCM7.dane.cWykonajPolecenie = POL7_ZERUJ_CALKE_ZYRO;	//zeruje całkę żyroskopów przed kalibracją
+		sprintf(cNapis, "Start");
+		if (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_ZERUJ_CALKE_ZYRO)	//jeżeli nastapiło wyzerowanie to nie czekaj na przycisk tylko od razu zacznij całkować
 		{
-			chEtapKalibracji = 2;
-			uDaneCM7.dane.chWykonajPolecenie = POL7_CALKUJ_PRED_KAT;		//wykonaj całkowanie kąta podczas obrotu
+			cEtapKalibracji = 2;
+			uDaneCM7.dane.cWykonajPolecenie = POL7_CALKUJ_PRED_KAT;		//wykonaj całkowanie kąta podczas obrotu
 		}
 		break;
 
 	case 2:	//całkowanie
-		uDaneCM7.dane.chWykonajPolecenie = POL7_CALKUJ_PRED_KAT;		//wykonaj całkowanie kąta podczas obrotu
-		sprintf(chNapis, "Oblicz");
+		uDaneCM7.dane.cWykonajPolecenie = POL7_CALKUJ_PRED_KAT;		//wykonaj całkowanie kąta podczas obrotu
+		sprintf(cNapis, "Oblicz");
 		break;
 
 	case 3:	//obliczenie kalibracji
-		uDaneCM7.dane.chWykonajPolecenie = POL7_KALIBRUJ_ZYRO_WZMR + *chSekwencer;	//uruchom kalibrację dla scałkowanego kąta R, Q lub P
+		uDaneCM7.dane.cWykonajPolecenie = POL7_KALIBRUJ_ZYRO_WZMR + *chSekwencer;	//uruchom kalibrację dla scałkowanego kąta R, Q lub P
 		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZLE_OBLICZENIA)
-			sprintf(chNapis, "Blad! ");
+			sprintf(cNapis, "Blad! ");
 		else
-			sprintf(chNapis, "Gotowe");
+			sprintf(cNapis, "Gotowe");
 		break;
 
 	default:	//wyjście lub przejscie do kalibracji kolejnej osi
-		sprintf(chNapis, "Wyjdz ");
+		sprintf(cNapis, "Wyjdz ");
 		cBłąd = BLAD_GOTOWE;	//zakończ kalibrację
 		break;
 	}
 
 	/*setBackColor(SZARY40);	//kolor tła napisu kolorem przycisku
 	UstawCzcionke(BigFont);
-	RysujNapis(chNapis, stPrzycisk.sX1 + (stPrzycisk.sX2 - stPrzycisk.sX1)/2 - chRozmiar*FONT_BL/2 , stPrzycisk.sY1 + (stPrzycisk.sY2 - stPrzycisk.sY1)/2 - FONT_BH/2);
+	RysujNapis(cNapis, stPrzycisk.sX1 + (stPrzycisk.sX2 - stPrzycisk.sX1)/2 - cRozmiar*FONT_BL/2 , stPrzycisk.sY1 + (stPrzycisk.sY2 - stPrzycisk.sY1)/2 - FONT_BH/2);
 	setBackColor(CZARNY);
 	UstawCzcionke(MidFont);*/
 
 
 	//sprawdź czy jest naciskany przycisk
-	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+	if (stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 	{
 		//czy naciśnięto na przycisk?
-		if ((statusDotyku.sY > stPrzycisk.sY1) && (statusDotyku.sY < stPrzycisk.sY2) && (statusDotyku.sX > stPrzycisk.sX1) && (statusDotyku.sX < stPrzycisk.sX2))
+		if ((stStatusDotyku.sY > stPrzycisk.sY1) && (stStatusDotyku.sY < stPrzycisk.sY2) && (stStatusDotyku.sX > stPrzycisk.sX1) && (stStatusDotyku.sX < stPrzycisk.sX2))
 		{
-			chStanPrzycisku = 1;
-			RysujPrzycisk(stPrzycisk, chNapis, ODSWIEZ);
+			cStanPrzycisku = 1;
+			RysujPrzycisk(stPrzycisk, cNapis, ODSWIEZ);
 		}
 		else
 			cBłąd = BLAD_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
 
-		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
+		stStatusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 	}
 	else	//DOTYK_DOTKNIETO
 	{
-		if (chStanPrzycisku)
+		if (cStanPrzycisku)
 		{
-			chEtapKalibracji++;
-			chEtapKalibracji &= 0x07;
-			chStanPrzycisku = 0;
+			cEtapKalibracji++;
+			cEtapKalibracji &= 0x07;
+			cStanPrzycisku = 0;
 		}
 	}
 	return cBłąd;
@@ -3347,10 +3345,10 @@ void Poziomica(float fKatAkcelX, float fKatAkcelY)
 	static uint16_t x2, y2;
 	uint16_t x, y;
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
 		RysujProstokatWypelniony(0, DISP_Y_SIZE - LIBELLA_BOK, LIBELLA_BOK, LIBELLA_BOK, LIBELLA1);
-		chRysujRaz = 0;
+		cRysujRaz = 0;
 		x2 = (DISP_Y_SIZE - MENU_NAG_WYS)/2;					//współrzędne "starego" bąbelka do zamazania
 		y2 = MENU_NAG_WYS + (DISP_Y_SIZE - MENU_NAG_WYS)/2;
 	}
@@ -3406,16 +3404,16 @@ void Poziomica(float fKatAkcelX, float fKatAkcelY)
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje przycisk ekranowy z napisem
 // Parametry: prost - współrzędne przycisku
-// chNapis - tekst do wymisania na środku
+// cNapis - tekst do wymisania na środku
 // chCzynnosc - definiuje operacje: RYSUJ - pełne narysowanie przycisku, lub ODSWIEZ - podmianę samego napisu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc)
+void RysujPrzycisk(prostokat_t prost, char *cNapis, uint8_t cCzynnosc)
 {
-	uint8_t chRozmiar;
+	uint8_t cRozmiar;
 
-	chRozmiar = strlen(chNapis);
-	if (chCzynnosc == RYSUJ)
+	cRozmiar = strlen(cNapis);
+	if (cCzynnosc == RYSUJ)
 	{
 		//setColor(SZARY40);
 		//fillRect(prost.sX1, prost.sY1 ,prost.sX2, prost.sY2);	//rysuj przycisk
@@ -3425,7 +3423,7 @@ void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc)
 	setColor(ZOLTY);
 	setBackColor(SZARY40);	//kolor tła napisu kolorem przycisku
 	UstawCzcionke(BigFont);
-	RysujNapis(chNapis, prost.sX1 + (prost.sX2 - prost.sX1)/2 - chRozmiar*FONT_BL/2 , prost.sY1 + (prost.sY2 - prost.sY1)/2 - FONT_BH/2);
+	RysujNapis(cNapis, prost.sX1 + (prost.sX2 - prost.sX1)/2 - cRozmiar*FONT_BL/2 , prost.sY1 + (prost.sY2 - prost.sY1)/2 - FONT_BH/2);
 	setBackColor(CZARNY);
 	UstawCzcionke(MidFont);
 }
@@ -3436,13 +3434,13 @@ void RysujPrzycisk(prostokat_t prost, char *chNapis, uint8_t chCzynnosc)
 // Rysuje ekran dla kalibracji zera (offsetu) magnetometru. Dla obrotu wokół X rysuje wykres YZ, dla obrotu wokół Y rysuje XZ dla Z rysuje XY
 // Analizuje dane przekazane w zmiennej uDaneCM4.dane.uRozne.f32[6] przez CM4. Funkcja znajjduje i sygnalizuje znalezienia ich maksimów poprzez komunikaty głosowe: 1-minX, 2-maxX, 3-minY, 4-maxY, 5-minZ, 6-maxZ
 // Wykres jest skalowany do maksimum wartosci bezwzględnej obu zmiennych
-// Parametry: *chEtap	- wskaźnik na zmienną wskazującą na kalibracje konktretnej osi w konkretnym magnetometrze. Starszy półbajt koduje numer magnetometru, najmłodsze 2 bity oś obracaną a bit 4 procedurę kalibracji
+// Parametry: *cEtap	- wskaźnik na zmienną wskazującą na kalibracje konktretnej osi w konkretnym magnetometrze. Starszy półbajt koduje numer magnetometru, najmłodsze 2 bity oś obracaną a bit 4 procedurę kalibracji
 // uDaneCM4.dane.uRozne.f32[6] - minima i maksima magnetometrów zbierana przez CM4
 // Zwraca: BLAD_GOTOWE / BLAD_OK - informację o tym czy wyjść z trybu kalibracji czy nie
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
+uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 {
-	char chNazwaOsi;
+	char cNazwaOsi;
 	uint8_t cBłąd = BLAD_OK;
 	float fWspSkal;		//współczynnik skalowania wykresu
 	float fMag[3];		//dane bieżącego magnetometru
@@ -3450,51 +3448,51 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	static uint16_t sPoprzedX, sPoprzedY;	//poprzednie współrzędne na wykresie
 	static float fMin[3], fMax[3];	//minimum i  maksimum wskazań
 	float fAbsMax;		//maksimum z wartości bezwzględnej minimum i maksimum
-	uint8_t chCzujnik;
+	uint8_t cCzujnik;
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		chRysujRaz = 0;
-		if (*chEtap & KALIBRUJ)
-			sprintf(chNapis, "%s %s %d", chNapisLcd[STR_KALIBRACJA], chNapisLcd[STR_MAGNETOMETRU], (*chEtap & MASKA_CZUJNIKA)>>4);
+		cRysujRaz = 0;
+		if (*cEtap & KALIBRUJ)
+			sprintf(cNapis, "%s %s %d", cNapisLcd[STR_KALIBRACJA], cNapisLcd[STR_MAGNETOMETRU], (*cEtap & MASKA_CZUJNIKA)>>4);
 		else
-			sprintf(chNapis, "%s %s %d", chNapisLcd[STR_WERYFIKACJA], chNapisLcd[STR_MAGNETOMETRU], (*chEtap & MASKA_CZUJNIKA)>>4);
-		BelkaTytulu(chNapis);
+			sprintf(cNapis, "%s %s %d", cNapisLcd[STR_WERYFIKACJA], cNapisLcd[STR_MAGNETOMETRU], (*cEtap & MASKA_CZUJNIKA)>>4);
+		BelkaTytulu(cNapis);
 
 		setColor(SZARY80);
-		sprintf(chNapis, "%s X:", chNapisLcd[STR_MAGN]);
-		RysujNapis(chNapis, KOL12, 80);
-		sprintf(chNapis, "%s Y:", chNapisLcd[STR_MAGN]);
-		RysujNapis(chNapis, KOL12, 100);
-		sprintf(chNapis, "%s Z:", chNapisLcd[STR_MAGN]);
-		RysujNapis(chNapis, KOL12, 120);
-		sprintf(chNapis, "Pochylenie:");
-		RysujNapis(chNapis, KOL12, 140);
-		sprintf(chNapis, "Przechylenie:");
-		RysujNapis(chNapis, KOL12, 160);
-		if (*chEtap & KALIBRUJ)
+		sprintf(cNapis, "%s X:", cNapisLcd[STR_MAGN]);
+		RysujNapis(cNapis, KOL12, 80);
+		sprintf(cNapis, "%s Y:", cNapisLcd[STR_MAGN]);
+		RysujNapis(cNapis, KOL12, 100);
+		sprintf(cNapis, "%s Z:", cNapisLcd[STR_MAGN]);
+		RysujNapis(cNapis, KOL12, 120);
+		sprintf(cNapis, "Pochylenie:");
+		RysujNapis(cNapis, KOL12, 140);
+		sprintf(cNapis, "Przechylenie:");
+		RysujNapis(cNapis, KOL12, 160);
+		if (*cEtap & KALIBRUJ)
 		{
-			sprintf(chNapis, "%s X:", chNapisLcd[STR_EKSTREMA]);
-			RysujNapis(chNapis, KOL12, 180);
-			sprintf(chNapis, "%s Y:", chNapisLcd[STR_EKSTREMA]);
-			RysujNapis(chNapis, KOL12, 200);
-			sprintf(chNapis, "%s Z:", chNapisLcd[STR_EKSTREMA]);
-			RysujNapis(chNapis, KOL12, 220);
+			sprintf(cNapis, "%s X:", cNapisLcd[STR_EKSTREMA]);
+			RysujNapis(cNapis, KOL12, 180);
+			sprintf(cNapis, "%s Y:", cNapisLcd[STR_EKSTREMA]);
+			RysujNapis(cNapis, KOL12, 200);
+			sprintf(cNapis, "%s Z:", cNapisLcd[STR_EKSTREMA]);
+			RysujNapis(cNapis, KOL12, 220);
 		}
 		else
 		{
-			sprintf(chNapis, "%s X:", chNapisLcd[STR_KAL]);
-			RysujNapis(chNapis, KOL12, 180);
-			sprintf(chNapis, "%s Y:", chNapisLcd[STR_KAL]);
-			RysujNapis(chNapis, KOL12, 200);
-			sprintf(chNapis, "%s Z:", chNapisLcd[STR_KAL]);
-			RysujNapis(chNapis, KOL12, 220);
+			sprintf(cNapis, "%s X:", cNapisLcd[STR_KAL]);
+			RysujNapis(cNapis, KOL12, 180);
+			sprintf(cNapis, "%s Y:", cNapisLcd[STR_KAL]);
+			RysujNapis(cNapis, KOL12, 200);
+			sprintf(cNapis, "%s Z:", cNapisLcd[STR_KAL]);
+			RysujNapis(cNapis, KOL12, 220);
 		}
 
 
 		setColor(SZARY60);
-		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
-		RysujNapis(chNapis, CENTER, 45);
+		sprintf(cNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
+		RysujNapis(cNapis, CENTER, 45);
 
 		setColor(SZARY40);
 		stPrzycisk.sX1 = 10;
@@ -3511,10 +3509,10 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		RysujProstokat(stWykr.sX1, stWykr.sY1, stWykr.sX2, stWykr.sY2);	//rysuj ramkę wykresu
 		sPoprzedX = stWykr.sX1 + SZER_WYKR_MAG/2;	//środek wykresu
 		sPoprzedY = stWykr.sY1 + SZER_WYKR_MAG/2;
-		chStanPrzycisku = 0;
+		cStanPrzycisku = 0;
 		for (uint16_t n=0; n<3; n++)
 		{
-			if (*chEtap & KALIBRUJ)
+			if (*cEtap & KALIBRUJ)
 				fMin[n] = fMax[n] = 0;		//podczas kalibracji zbieraj wartosci minimów i maksimów
 			else
 			{
@@ -3522,17 +3520,17 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 				fMax[n] =  NOMINALNE_MAGN;		//podczas sprawdzenia pracuj na stałym współczynniku
 			}
 		}
-		*chEtap |= ZERUJ;	//przed pomiarem wystaw potrzebę wyzerowania znalezionych ekstemów magnetometru
-		statusDotyku.chFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
+		*cEtap |= ZERUJ;	//przed pomiarem wystaw potrzebę wyzerowania znalezionych ekstemów magnetometru
+		stStatusDotyku.chFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
 	}
 
-	if (*chEtap & ZERUJ)
+	if (*cEtap & ZERUJ)
 	{
-		uDaneCM7.dane.chWykonajPolecenie = POL7_ZERUJ_EKSTREMA;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_ZERUJ_EKSTREMA;
 		DodajProbkeDoMalejKolejki(PGA_00, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat "zero"
-		if ( uDaneCM4.dane.chPotwierdzenieWykonania == POL7_ZERUJ_EKSTREMA)
+		if ( uDaneCM4.dane.cPotwierdzenieWykonania == POL7_ZERUJ_EKSTREMA)
 		{
-			*chEtap &= ~ZERUJ;
+			*cEtap &= ~ZERUJ;
 			for (uint16_t n=0; n<3; n++)
 			{
 				fMin[n] = 0.0f;
@@ -3544,34 +3542,34 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	}
 
 	//pobierz dane z konkretnego magnetometru
-	if ((*chEtap & MASKA_OSI) < 3)	//pobieraj dane tylko dla konkretnych osi. Gdy obsłużone wszystkie to zakończ
+	if ((*cEtap & MASKA_OSI) < 3)	//pobieraj dane tylko dla konkretnych osi. Gdy obsłużone wszystkie to zakończ
 	{
-		switch (*chEtap & MASKA_CZUJNIKA)		//rodzaj magnetometru
+		switch (*cEtap & MASKA_CZUJNIKA)		//rodzaj magnetometru
 		{
 		case MAG1:
-			if (*chEtap & KALIBRUJ)
-				uDaneCM7.dane.chWykonajPolecenie = POL7_KAL_ZERO_MAGN1;
+			if (*cEtap & KALIBRUJ)
+				uDaneCM7.dane.cWykonajPolecenie = POL7_KAL_ZERO_MAGN1;
 			else
-				uDaneCM7.dane.chWykonajPolecenie = POL7_POBIERZ_KONF_MAGN1;
+				uDaneCM7.dane.cWykonajPolecenie = POL7_POBIERZ_KONF_MAGN1;
 
 			for (uint16_t n=0; n<3; n++)
 				fMag[n] = uDaneCM4.dane.fMagne1[n];
 			break;
 
 		case MAG2:
-			if (*chEtap & KALIBRUJ)
-				uDaneCM7.dane.chWykonajPolecenie = POL7_KAL_ZERO_MAGN2;
+			if (*cEtap & KALIBRUJ)
+				uDaneCM7.dane.cWykonajPolecenie = POL7_KAL_ZERO_MAGN2;
 			else
-				uDaneCM7.dane.chWykonajPolecenie = POL7_POBIERZ_KONF_MAGN2;
+				uDaneCM7.dane.cWykonajPolecenie = POL7_POBIERZ_KONF_MAGN2;
 			for (uint16_t n=0; n<3; n++)
 				fMag[n] = uDaneCM4.dane.fMagne2[n];
 			break;
 
 		case MAG3:
-			if (*chEtap & KALIBRUJ)
-				uDaneCM7.dane.chWykonajPolecenie = POL7_KAL_ZERO_MAGN3;
+			if (*cEtap & KALIBRUJ)
+				uDaneCM7.dane.cWykonajPolecenie = POL7_KAL_ZERO_MAGN3;
 			else
-				uDaneCM7.dane.chWykonajPolecenie = POL7_POBIERZ_KONF_MAGN3;
+				uDaneCM7.dane.cWykonajPolecenie = POL7_POBIERZ_KONF_MAGN3;
 			for (uint16_t n=0; n<3; n++)
 				fMag[n] = uDaneCM4.dane.fMagne3[n];
 			break;
@@ -3579,10 +3577,10 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	}
 
 	//znajdowanie ekstremów, rysowanie wykresu i generowanie komunikatów głosowych
-	switch (*chEtap & MASKA_OSI)		//rodzaj osi
+	switch (*cEtap & MASKA_OSI)		//rodzaj osi
 	{
-	case 0:	chNazwaOsi = 'X';
-		if (*chEtap & KALIBRUJ)
+	case 0:	cNazwaOsi = 'X';
+		if (*cEtap & KALIBRUJ)
 		{
 			if (uDaneCM4.dane.uRozne.f32[2] < fMin[1])	//minimum Y
 			{
@@ -3639,8 +3637,8 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		}
 		break;
 
-	case 1: chNazwaOsi = 'Y';
-		if (*chEtap & KALIBRUJ)
+	case 1: cNazwaOsi = 'Y';
+		if (*cEtap & KALIBRUJ)
 		{
 			if (uDaneCM4.dane.uRozne.f32[0] < fMin[0])	//minimum X
 			{
@@ -3690,8 +3688,8 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 		}
 		break;
 
-	case 2: chNazwaOsi = 'Z';
-		if (*chEtap & KALIBRUJ)
+	case 2: cNazwaOsi = 'Z';
+		if (*cEtap & KALIBRUJ)
 		{
 			if (uDaneCM4.dane.uRozne.f32[0] < fMin[0])	//minimum X
 			{
@@ -3743,96 +3741,96 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *chEtap)
 	}
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f [uT] ", fMag[0]*1e6);
-	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 80);
-	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12 + 12*FONT_SL, 140);
-	if (*chEtap & KALIBRUJ)
+	sprintf(cNapis, "%.2f [uT] ", fMag[0]*1e6);
+	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 80);
+	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0], ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12 + 12*FONT_SL, 140);
+	if (*cEtap & KALIBRUJ)
 	{
-		sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.f32[0]*1e6, uDaneCM4.dane.uRozne.f32[1]*1e6);	//ekstrema X
-		RysujNapis(chNapis, KOL12 + 12*FONT_SL, 180);
+		sprintf(cNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.f32[0]*1e6, uDaneCM4.dane.uRozne.f32[1]*1e6);	//ekstrema X
+		RysujNapis(cNapis, KOL12 + 12*FONT_SL, 180);
 	}
 	else
 	{
-		sprintf(chNapis, "%.3e, %.4f ", uDaneCM4.dane.uRozne.f32[0], uDaneCM4.dane.uRozne.f32[1]);	//przesunięcie i skalowanie X
-		RysujNapis(chNapis, KOL12 + 7*FONT_SL, 180);
+		sprintf(cNapis, "%.3e, %.4f ", uDaneCM4.dane.uRozne.f32[0], uDaneCM4.dane.uRozne.f32[1]);	//przesunięcie i skalowanie X
+		RysujNapis(cNapis, KOL12 + 7*FONT_SL, 180);
 	}
 
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f [uT] ", fMag[1]*1e6);
-	RysujNapis(chNapis, 10 + 8*FONT_SL, 100);
-	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12 + 14*FONT_SL, 160);
-	if (*chEtap & KALIBRUJ)
+	sprintf(cNapis, "%.2f [uT] ", fMag[1]*1e6);
+	RysujNapis(cNapis, 10 + 8*FONT_SL, 100);
+	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 160);
+	if (*cEtap & KALIBRUJ)
 	{
-		sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.f32[2]*1e6, uDaneCM4.dane.uRozne.f32[3]*1e6);	//ekstrema Y
-		RysujNapis(chNapis, KOL12 + 12*FONT_SL, 200);
+		sprintf(cNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.f32[2]*1e6, uDaneCM4.dane.uRozne.f32[3]*1e6);	//ekstrema Y
+		RysujNapis(cNapis, KOL12 + 12*FONT_SL, 200);
 	}
 	else
 	{
-		sprintf(chNapis, "%.3e, %.4f ", uDaneCM4.dane.uRozne.f32[2], uDaneCM4.dane.uRozne.f32[3]);		//przesunięcie i skalowanie Y
-		RysujNapis(chNapis, KOL12 + 7*FONT_SL, 200);
+		sprintf(cNapis, "%.3e, %.4f ", uDaneCM4.dane.uRozne.f32[2], uDaneCM4.dane.uRozne.f32[3]);		//przesunięcie i skalowanie Y
+		RysujNapis(cNapis, KOL12 + 7*FONT_SL, 200);
 	}
 
 	setColor(KOLOR_Z);
-	sprintf(chNapis, "%.2f [uT] ", fMag[2]*1e6);
-	RysujNapis(chNapis, 10 + 8*FONT_SL, 120);
-	if (*chEtap & KALIBRUJ)
+	sprintf(cNapis, "%.2f [uT] ", fMag[2]*1e6);
+	RysujNapis(cNapis, 10 + 8*FONT_SL, 120);
+	if (*cEtap & KALIBRUJ)
 	{
-		sprintf(chNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.f32[4]*1e6, uDaneCM4.dane.uRozne.f32[5]*1e6);	//ekstrema Z
-		RysujNapis(chNapis, KOL12 + 12*FONT_SL, 220);
+		sprintf(cNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.f32[4]*1e6, uDaneCM4.dane.uRozne.f32[5]*1e6);	//ekstrema Z
+		RysujNapis(cNapis, KOL12 + 12*FONT_SL, 220);
 	}
 	else
 	{
-		sprintf(chNapis, "%.3e, %.4f ", uDaneCM4.dane.uRozne.f32[4], uDaneCM4.dane.uRozne.f32[5]);		//przesunięcie i skalowanie Z
-		RysujNapis(chNapis, KOL12 + 7*FONT_SL, 220);
+		sprintf(cNapis, "%.3e, %.4f ", uDaneCM4.dane.uRozne.f32[4], uDaneCM4.dane.uRozne.f32[5]);		//przesunięcie i skalowanie Z
+		RysujNapis(cNapis, KOL12 + 7*FONT_SL, 220);
 	}
 
 	//sprawdź czy jest naciskany przycisk
-	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+	if (stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 	{
 		//czy naciśnięto na przycisk?
-		if ((statusDotyku.sY > stPrzycisk.sY1) && (statusDotyku.sY < stPrzycisk.sY2) && (statusDotyku.sX > stPrzycisk.sX1) && (statusDotyku.sX < stPrzycisk.sX2))
-			chStanPrzycisku = 1;
+		if ((stStatusDotyku.sY > stPrzycisk.sY1) && (stStatusDotyku.sY < stPrzycisk.sY2) && (stStatusDotyku.sX > stPrzycisk.sX1) && (stStatusDotyku.sX < stPrzycisk.sX2))
+			cStanPrzycisku = 1;
 		else
 		{
 			cBłąd = BLAD_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
-			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
+			uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
 		}
-		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
+		stStatusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 	}
 	else	//DOTYK_DOTKNIETO
 	{
-		if (chStanPrzycisku)	//został naciśniety
+		if (cStanPrzycisku)	//został naciśniety
 		{
-			(*chEtap)++;
-			chStanPrzycisku = 0;	//usuń ststus naciśnięcia
+			(*cEtap)++;
+			cStanPrzycisku = 0;	//usuń ststus naciśnięcia
 			sPoprzedX = stWykr.sX1 + SZER_WYKR_MAG/2;	//środek wykresu
 			sPoprzedY = stWykr.sY1 + SZER_WYKR_MAG/2;
 			DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
 		}
 	}
 
-	chCzujnik = ((*chEtap & MASKA_CZUJNIKA) >> 4) - 1;	//oblicz indeks czujnika
-	if ((*chEtap & MASKA_OSI) == 3)	//czy obsłużone już wszystkie 3 osie i jesteśmy w trybie kalibracji?
+	cCzujnik = ((*cEtap & MASKA_CZUJNIKA) >> 4) - 1;	//oblicz indeks czujnika
+	if ((*cEtap & MASKA_OSI) == 3)	//czy obsłużone już wszystkie 3 osie i jesteśmy w trybie kalibracji?
 	{
-		if (*chEtap & KALIBRUJ)
-			uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_KONF_MAGN1 + chCzujnik;	//zapisz konfigurację bieżącego magnetometru
+		if (*cEtap & KALIBRUJ)
+			uDaneCM7.dane.cWykonajPolecenie = POL7_ZAPISZ_KONF_MAGN1 + cCzujnik;	//zapisz konfigurację bieżącego magnetometru
 		else
 			cBłąd = BLAD_GOTOWE;		//koniec wertyfikacji
 	}
 
 	//wyjdź dopiero gdy dostanie potwierdzenie zapisu
-	if (((*chEtap & MASKA_OSI) == 3) && (uDaneCM4.dane.chPotwierdzenieWykonania == POL7_ZAPISZ_KONF_MAGN1 + chCzujnik))
+	if (((*cEtap & MASKA_OSI) == 3) && (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_ZAPISZ_KONF_MAGN1 + cCzujnik))
 	{
-		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
+		uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
 		cBłąd = BLAD_GOTOWE;		//koniec kalibracji
 		DodajProbkeDoMalejKolejki(PGA_GOTOWE, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat kończący: Gotowe
 	}
 
 	setColor(ZOLTY);
-	sprintf(chNapis, "Ustaw UAV osi%c %c w kier. Wsch%cd-Zach%cd i obracaj wok%c%c %c", ą, chNazwaOsi, ó, ó, ó, ł, chNazwaOsi);
-	RysujNapis(chNapis, CENTER, 25);
+	sprintf(cNapis, "Ustaw UAV osi%c %c w kier. Wsch%cd-Zach%cd i obracaj wok%c%c %c", ą, cNazwaOsi, ó, ó, ó, ł, cNazwaOsi);
+	RysujNapis(cNapis, CENTER, 25);
 	return cBłąd;
 }
 
@@ -3861,7 +3859,7 @@ float MaximumGlobalne(float* fMin, float* fMax)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran kalibracji barometru
-// Parametry: *chEtap - wskaźnik na zmienną zawierającą bieżący etap procesu kalibracji
+// Parametry: *cEtap - wskaźnik na zmienną zawierającą bieżący etap procesu kalibracji
 // uDaneCM4.dane.uRozne.fRozne[0] - pierwsze uśrednione ciśnienie czujnika 1
 // uDaneCM4.dane.uRozne.fRozne[1] - pierwsze uśrednione ciśnienie czujnika 2
 // uDaneCM4.dane.uRozne.fRozne[2] - drugie uśrednione ciśnienie czujnika 1
@@ -3870,37 +3868,37 @@ float MaximumGlobalne(float* fMin, float* fMax)
 // uDaneCM4.dane.uRozne.fRozne[5] - współczynnik skalowania czujnika 2
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KalibrujBaro(uint8_t *chEtap)
+uint8_t KalibrujBaro(uint8_t *cEtap)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		chRysujRaz = 0;
+		cRysujRaz = 0;
 		BelkaTytulu("Kalibr. pomiaru cisnienia");
 
 		setColor(ZOLTY);
-		sprintf(chNapis, "U%crednij ci%cn. pocz. Pokonaj wys=27m i ponownie u%crednij", ś, ś, ś);
-		RysujNapis(chNapis, CENTER, 30);
+		sprintf(cNapis, "U%crednij ci%cn. pocz. Pokonaj wys=27m i ponownie u%crednij", ś, ś, ś);
+		RysujNapis(cNapis, CENTER, 30);
 
 		setColor(SZARY60);
-		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
-		RysujNapis(chNapis, CENTER, 50);
+		sprintf(cNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
+		RysujNapis(cNapis, CENTER, 50);
 
 		setColor(SZARY80);
-		sprintf(chNapis, "Czujnik 1");
-		RysujNapis(chNapis, KOL12 + 15*FONT_SL, 80);
-		sprintf(chNapis, "Czujnik 2");
-		RysujNapis(chNapis, KOL12 + 30*FONT_SL, 80);
+		sprintf(cNapis, "Czujnik 1");
+		RysujNapis(cNapis, KOL12 + 15*FONT_SL, 80);
+		sprintf(cNapis, "Czujnik 2");
+		RysujNapis(cNapis, KOL12 + 30*FONT_SL, 80);
 
-		sprintf(chNapis, "Biezace cisn:");
-		RysujNapis(chNapis, KOL12, 100);
-		sprintf(chNapis, "Sredn cisn 1:");
-		RysujNapis(chNapis, KOL12, 120);
-		sprintf(chNapis, "Sredn.cisn 2:");
-		RysujNapis(chNapis, KOL12, 140);
-		sprintf(chNapis, "Skalowanie:");
-		RysujNapis(chNapis, KOL12, 160);
+		sprintf(cNapis, "Biezace cisn:");
+		RysujNapis(cNapis, KOL12, 100);
+		sprintf(cNapis, "Sredn cisn 1:");
+		RysujNapis(cNapis, KOL12, 120);
+		sprintf(cNapis, "Sredn.cisn 2:");
+		RysujNapis(cNapis, KOL12, 140);
+		sprintf(cNapis, "Skalowanie:");
+		RysujNapis(cNapis, KOL12, 160);
 
 
 		setColor(SZARY40);
@@ -3909,96 +3907,96 @@ uint8_t KalibrujBaro(uint8_t *chEtap)
 		stPrzycisk.sX2 = stPrzycisk.sX1 + 250;
 		stPrzycisk.sY2 = DISP_Y_SIZE - WYS_PASKA_POSTEPU - 1;
 		RysujPrzycisk(stPrzycisk, "Start", RYSUJ);
-		chStanPrzycisku = 0;
-		*chEtap = 0;
+		cStanPrzycisku = 0;
+		*cEtap = 0;
 	}
 
 	// Zwraca: kod błędu
 	setColor(BIALY);
-	sprintf(chNapis, "%.0f Pa", uDaneCM4.dane.fCisnieBzw[0]);
-	RysujNapis(chNapis, KOL12 + 14*FONT_SL, 100);
-	sprintf(chNapis, "%.0f Pa", uDaneCM4.dane.fCisnieBzw[1]);
-	RysujNapis(chNapis, KOL12 + 30*FONT_SL, 100);
-	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[0]);	//pierwsze uśrednione ciśnienie czujnika 1
-	RysujNapis(chNapis, KOL12 + 14*FONT_SL, 120);
-	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[1]);	//pierwsze uśrednione ciśnienie czujnika 2
-	RysujNapis(chNapis, KOL12 + 30*FONT_SL, 120);
-	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[2]);	//drugie uśrednione ciśnienie czujnika 1
-	RysujNapis(chNapis, KOL12 + 14*FONT_SL, 140);
-	sprintf(chNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[3]);	//drugie uśrednione ciśnienie czujnika 2
-	RysujNapis(chNapis, KOL12 + 30*FONT_SL, 140);
-	sprintf(chNapis, "%.6f ", uDaneCM4.dane.uRozne.f32[4]);	//współczynnik skalowania czujnika 1
-	RysujNapis(chNapis, KOL12 + 14*FONT_SL, 160);
-	sprintf(chNapis, "%.6f ", uDaneCM4.dane.uRozne.f32[5]);	//współczynnik skalowania czujnika 2
-	RysujNapis(chNapis, KOL12 + 30*FONT_SL, 160);
+	sprintf(cNapis, "%.0f Pa", uDaneCM4.dane.fCisnieBzw[0]);
+	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 100);
+	sprintf(cNapis, "%.0f Pa", uDaneCM4.dane.fCisnieBzw[1]);
+	RysujNapis(cNapis, KOL12 + 30*FONT_SL, 100);
+	sprintf(cNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[0]);	//pierwsze uśrednione ciśnienie czujnika 1
+	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 120);
+	sprintf(cNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[1]);	//pierwsze uśrednione ciśnienie czujnika 2
+	RysujNapis(cNapis, KOL12 + 30*FONT_SL, 120);
+	sprintf(cNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[2]);	//drugie uśrednione ciśnienie czujnika 1
+	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 140);
+	sprintf(cNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[3]);	//drugie uśrednione ciśnienie czujnika 2
+	RysujNapis(cNapis, KOL12 + 30*FONT_SL, 140);
+	sprintf(cNapis, "%.6f ", uDaneCM4.dane.uRozne.f32[4]);	//współczynnik skalowania czujnika 1
+	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 160);
+	sprintf(cNapis, "%.6f ", uDaneCM4.dane.uRozne.f32[5]);	//współczynnik skalowania czujnika 2
+	RysujNapis(cNapis, KOL12 + 30*FONT_SL, 160);
 
-	switch (*chEtap)
+	switch (*cEtap)
 	{
 	case 0:	//czyść zmienne robocze, załaduj bieżacy współczynnik
-		uDaneCM7.dane.chWykonajPolecenie = POL7_INICJUJ_USREDN;	//zeruj licznik uśredniania
-		if (uDaneCM4.dane.chPotwierdzenieWykonania == POL7_INICJUJ_USREDN)
-			(*chEtap)++;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_INICJUJ_USREDN;	//zeruj licznik uśredniania
+		if (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_INICJUJ_USREDN)
+			(*cEtap)++;
 		break;
 
 	case 1:
 	case 3:
-		uDaneCM7.dane.chWykonajPolecenie = POL7_ZERUJ_LICZNIK;	//zeruj licznik uśredniania
-		if (uDaneCM4.dane.chPotwierdzenieWykonania == POL7_ZERUJ_LICZNIK)
+		uDaneCM7.dane.cWykonajPolecenie = POL7_ZERUJ_LICZNIK;	//zeruj licznik uśredniania
+		if (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_ZERUJ_LICZNIK)
 		{
-			sprintf(chNapis, "Usrednij %d", (*chEtap) / 2 + 1);
-			RysujPrzycisk(stPrzycisk, chNapis, ODSWIEZ);
-			if (chStanPrzycisku == 1)
-				(*chEtap)++;	//wyzerowało się wiec przejdź do nastepnego etapu
+			sprintf(cNapis, "Usrednij %d", (*cEtap) / 2 + 1);
+			RysujPrzycisk(stPrzycisk, cNapis, ODSWIEZ);
+			if (cStanPrzycisku == 1)
+				(*cEtap)++;	//wyzerowało się wiec przejdź do nastepnego etapu
 		}
 		break;
 
 	case 2:
-		uDaneCM7.dane.chWykonajPolecenie = POL7_USREDNIJ_CISN1;	//trwa uśrednianie ciśnienia 1
+		uDaneCM7.dane.cWykonajPolecenie = POL7_USREDNIJ_CISN1;	//trwa uśrednianie ciśnienia 1
 		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_GOTOWE)
-			(*chEtap)++;
+			(*cEtap)++;
 		break;
 
 	case 4:
-		uDaneCM7.dane.chWykonajPolecenie = POL7_USREDNIJ_CISN2;	//trwa uśrednianie ciśnienia 2
+		uDaneCM7.dane.cWykonajPolecenie = POL7_USREDNIJ_CISN2;	//trwa uśrednianie ciśnienia 2
 		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_GOTOWE)
-			(*chEtap)++;
+			(*cEtap)++;
 		break;
 
 	case 5:
-		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//Zakończ wykonywanie poleceń kalibracyjnych
+		uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;	//Zakończ wykonywanie poleceń kalibracyjnych
 		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZLE_OBLICZENIA)
 			RysujPrzycisk(stPrzycisk, "Blad!", ODSWIEZ);
 		else
 			RysujPrzycisk(stPrzycisk, "Gotowe", ODSWIEZ);
-		sprintf(chNapis, "dP1 = %.2f Pa", fabs(uDaneCM4.dane.uRozne.f32[0] - uDaneCM4.dane.uRozne.f32[2]));	//Rożnica ciśnień czujnika 1
-		RysujNapis(chNapis, 10 + stPrzycisk.sX2, 240);
-		sprintf(chNapis, "dP2 = %.2f Pa", fabs(uDaneCM4.dane.uRozne.f32[1] - uDaneCM4.dane.uRozne.f32[3]));	//Rożnica ciśnień czujnika 2
-		RysujNapis(chNapis, 10 + stPrzycisk.sX2, 260);
-		if (chStanPrzycisku == 1)
+		sprintf(cNapis, "dP1 = %.2f Pa", fabs(uDaneCM4.dane.uRozne.f32[0] - uDaneCM4.dane.uRozne.f32[2]));	//Rożnica ciśnień czujnika 1
+		RysujNapis(cNapis, 10 + stPrzycisk.sX2, 240);
+		sprintf(cNapis, "dP2 = %.2f Pa", fabs(uDaneCM4.dane.uRozne.f32[1] - uDaneCM4.dane.uRozne.f32[3]));	//Rożnica ciśnień czujnika 2
+		RysujNapis(cNapis, 10 + stPrzycisk.sX2, 260);
+		if (cStanPrzycisku == 1)
 			cBłąd = BLAD_GOTOWE;	//zakończ
 		break;
 	}
 
 	//sprawdź czy jest naciskany przycisk
-	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+	if (stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 	{
 		//czy naciśnięto na przycisk?
-		if ((statusDotyku.sY > stPrzycisk.sY1) && (statusDotyku.sY < stPrzycisk.sY2) && (statusDotyku.sX > stPrzycisk.sX1) && (statusDotyku.sX < stPrzycisk.sX2))
+		if ((stStatusDotyku.sY > stPrzycisk.sY1) && (stStatusDotyku.sY < stPrzycisk.sY2) && (stStatusDotyku.sX > stPrzycisk.sX1) && (stStatusDotyku.sX < stPrzycisk.sX2))
 		{
-			chStanPrzycisku = 1;
+			cStanPrzycisku = 1;
 			DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);	//komunikat audio naciśnięcia przycisku
 		}
 		else
 		{
 			cBłąd = BLAD_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
-			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//neutralne polecenie
+			uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;	//neutralne polecenie
 		}
-		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
+		stStatusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
 	}
 	else	//DOTYK_DOTKNIETO
 	{
-		if (chStanPrzycisku)
-			chStanPrzycisku = 0;
+		if (cStanPrzycisku)
+			cStanPrzycisku = 0;
 	}
 
 	RysujPasekPostepu(CZAS_KALIBRACJI);
@@ -4020,33 +4018,33 @@ void PlaskiObrotMagnetometrow(void)
 	uint16_t sX, sY;
 	float fWspSkal;
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		chRysujRaz = 0;
-		sprintf(chNapis, "%s 2D %s", chNapisLcd[STR_WERYFIKACJA], chNapisLcd[STR_MAGNETOMETRU]);
-		BelkaTytulu(chNapis);
+		cRysujRaz = 0;
+		sprintf(cNapis, "%s 2D %s", cNapisLcd[STR_WERYFIKACJA], cNapisLcd[STR_MAGNETOMETRU]);
+		BelkaTytulu(cNapis);
 
 		setColor(SZARY80);
-		sprintf(chNapis, "Przechylenie:");
-		RysujNapis(chNapis, KOL12, 80);
-		sprintf(chNapis, "Pochylenie:");
-		RysujNapis(chNapis, KOL12, 100);
+		sprintf(cNapis, "Przechylenie:");
+		RysujNapis(cNapis, KOL12, 80);
+		sprintf(cNapis, "Pochylenie:");
+		RysujNapis(cNapis, KOL12, 100);
 
-		sprintf(chNapis, "%s 1:", chNapisLcd[STR_MAGN]);
-		RysujNapis(chNapis, KOL12, 120);
-		sprintf(chNapis, "%s 2:", chNapisLcd[STR_MAGN]);
-		RysujNapis(chNapis, KOL12, 140);
-		sprintf(chNapis, "%s 3:", chNapisLcd[STR_MAGN]);
-		RysujNapis(chNapis, KOL12, 160);
+		sprintf(cNapis, "%s 1:", cNapisLcd[STR_MAGN]);
+		RysujNapis(cNapis, KOL12, 120);
+		sprintf(cNapis, "%s 2:", cNapisLcd[STR_MAGN]);
+		RysujNapis(cNapis, KOL12, 140);
+		sprintf(cNapis, "%s 3:", cNapisLcd[STR_MAGN]);
+		RysujNapis(cNapis, KOL12, 160);
 
-		sprintf(chNapis, "Inklinacja: %.2f %c", INKLINACJA_MAG * RAD2DEG, ZNAK_STOPIEN);
-		RysujNapis(chNapis, KOL12, 180);
-		sprintf(chNapis, "Deklinacja: %.2f %c", DEKLINACJA_MAG * RAD2DEG, ZNAK_STOPIEN);
-		RysujNapis(chNapis, KOL12, 200);
+		sprintf(cNapis, "Inklinacja: %.2f %c", INKLINACJA_MAG * RAD2DEG, ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12, 180);
+		sprintf(cNapis, "Deklinacja: %.2f %c", DEKLINACJA_MAG * RAD2DEG, ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12, 200);
 
 		setColor(SZARY60);
-		sprintf(chNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
-		RysujNapis(chNapis, CENTER, 30);
+		sprintf(cNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
+		RysujNapis(cNapis, CENTER, 30);
 
 		setColor(SZARY40);
 		stWykr.sX1 = DISP_X_SIZE - SZER_WYKR_MAG;
@@ -4106,25 +4104,25 @@ void PlaskiObrotMagnetometrow(void)
 	}
 
 	setColor(KOLOR_X);
-	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12 + 14*FONT_SL, 80);
+	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0], ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 80);
 
 	setColor(KOLOR_Y);
-	sprintf(chNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
-	RysujNapis(chNapis, KOL12 + 12*FONT_SL, 100);
+	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12 + 12*FONT_SL, 100);
 
 
 	setColor(CYJAN);
-	sprintf(chNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne1[0]*1000, uDaneCM4.dane.fMagne1[1]*1e6f);
-	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 120);
+	sprintf(cNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne1[0]*1000, uDaneCM4.dane.fMagne1[1]*1e6f);
+	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 120);
 
 	setColor(MAGENTA);
-	sprintf(chNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne2[0]*1000, uDaneCM4.dane.fMagne2[1]*1e6f);
-	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 140);
+	sprintf(cNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne2[0]*1000, uDaneCM4.dane.fMagne2[1]*1e6f);
+	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 140);
 
 	setColor(ZOLTY);
-	sprintf(chNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne3[0]*1000, uDaneCM4.dane.fMagne3[1]*1e6f);
-	RysujNapis(chNapis, KOL12 + 8*FONT_SL, 160);
+	sprintf(cNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne3[0]*1000, uDaneCM4.dane.fMagne3[1]*1e6f);
+	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 160);
 }
 
 
@@ -4141,68 +4139,68 @@ void NastawyPID(uint8_t chKanal)
 	uint8_t cBłąd;
 	unia8_32_t un8_32;
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		chRysujRaz = 0;
-		sprintf(chNapis, "%s %s", chNapisLcd[STR_NASTAWY_PID], chNapisLcd[STR_PRZECHYLENIA + chKanal/2]);
-		BelkaTytulu(chNapis);
+		cRysujRaz = 0;
+		sprintf(cNapis, "%s %s", cNapisLcd[STR_NASTAWY_PID], cNapisLcd[STR_PRZECHYLENIA + chKanal/2]);
+		BelkaTytulu(cNapis);
 
 		setColor(SZARY80);
-		sprintf(chNapis, "Regulator g%c%cwny", ł, ó);
-		RysujNapis(chNapis, KOL12, 30);
-		sprintf(chNapis, "Kp:");
-		RysujNapis(chNapis, KOL12, 50);
-		sprintf(chNapis, "Ti:");
-		RysujNapis(chNapis, KOL12, 70);
-		sprintf(chNapis, "Td:");
-		RysujNapis(chNapis, KOL12, 90);
-		sprintf(chNapis, "Max I:");
-		RysujNapis(chNapis, KOL12, 110);
-		sprintf(chNapis, "Min Wy:");
-		RysujNapis(chNapis, KOL12, 130);
-		sprintf(chNapis, "Max Wy:");
-		RysujNapis(chNapis, KOL12, 150);
-		sprintf(chNapis, "Skala w.zad:");
-		RysujNapis(chNapis, KOL12, 170);
-		sprintf(chNapis, "Przes w.zad:");
-		RysujNapis(chNapis, KOL12, 190);
-		sprintf(chNapis, "Filtr D:");
-		RysujNapis(chNapis, KOL12, 210);
-		sprintf(chNapis, "Filtr w.zad:");
-		RysujNapis(chNapis, KOL12, 230);
-		sprintf(chNapis, "Akcja wyprz:");
-		RysujNapis(chNapis, KOL12, 250);
-		sprintf(chNapis, "Reg k%ctowy:", ą);
-		RysujNapis(chNapis, KOL12, 270);
+		sprintf(cNapis, "Regulator g%c%cwny", ł, ó);
+		RysujNapis(cNapis, KOL12, 30);
+		sprintf(cNapis, "Kp:");
+		RysujNapis(cNapis, KOL12, 50);
+		sprintf(cNapis, "Ti:");
+		RysujNapis(cNapis, KOL12, 70);
+		sprintf(cNapis, "Td:");
+		RysujNapis(cNapis, KOL12, 90);
+		sprintf(cNapis, "Max I:");
+		RysujNapis(cNapis, KOL12, 110);
+		sprintf(cNapis, "Min Wy:");
+		RysujNapis(cNapis, KOL12, 130);
+		sprintf(cNapis, "Max Wy:");
+		RysujNapis(cNapis, KOL12, 150);
+		sprintf(cNapis, "Skala w.zad:");
+		RysujNapis(cNapis, KOL12, 170);
+		sprintf(cNapis, "Przes w.zad:");
+		RysujNapis(cNapis, KOL12, 190);
+		sprintf(cNapis, "Filtr D:");
+		RysujNapis(cNapis, KOL12, 210);
+		sprintf(cNapis, "Filtr w.zad:");
+		RysujNapis(cNapis, KOL12, 230);
+		sprintf(cNapis, "Akcja wyprz:");
+		RysujNapis(cNapis, KOL12, 250);
+		sprintf(cNapis, "Reg k%ctowy:", ą);
+		RysujNapis(cNapis, KOL12, 270);
 
-		sprintf(chNapis, "Regulator pochodnej");
-		RysujNapis(chNapis, KOL22, 30);
-		sprintf(chNapis, "Kp:");
-		RysujNapis(chNapis, KOL22, 50);
-		sprintf(chNapis, "Ti:");
-		RysujNapis(chNapis, KOL22, 70);
-		sprintf(chNapis, "Td:");
-		RysujNapis(chNapis, KOL22, 90);
-		sprintf(chNapis, "Max I:");
-		RysujNapis(chNapis, KOL22, 110);
-		sprintf(chNapis, "Min Wy:");
-		RysujNapis(chNapis, KOL22, 130);
-		sprintf(chNapis, "Max Wy:");
-		RysujNapis(chNapis, KOL22, 150);
-		sprintf(chNapis, "Skala w.zad:");
-		RysujNapis(chNapis, KOL22, 170);
-		sprintf(chNapis, "Przes w.zad:");
-		RysujNapis(chNapis, KOL22, 190);
-		sprintf(chNapis, "Filtr D:");
-		RysujNapis(chNapis, KOL22, 210);
-		sprintf(chNapis, "Filtr w.zad:");
-		RysujNapis(chNapis, KOL22, 230);
-		sprintf(chNapis, "Akcja wyprz:");
-		RysujNapis(chNapis, KOL22, 250);
-		sprintf(chNapis, "Reg k%ctowy:", ą);
-		RysujNapis(chNapis, KOL22, 270);
+		sprintf(cNapis, "Regulator pochodnej");
+		RysujNapis(cNapis, KOL22, 30);
+		sprintf(cNapis, "Kp:");
+		RysujNapis(cNapis, KOL22, 50);
+		sprintf(cNapis, "Ti:");
+		RysujNapis(cNapis, KOL22, 70);
+		sprintf(cNapis, "Td:");
+		RysujNapis(cNapis, KOL22, 90);
+		sprintf(cNapis, "Max I:");
+		RysujNapis(cNapis, KOL22, 110);
+		sprintf(cNapis, "Min Wy:");
+		RysujNapis(cNapis, KOL22, 130);
+		sprintf(cNapis, "Max Wy:");
+		RysujNapis(cNapis, KOL22, 150);
+		sprintf(cNapis, "Skala w.zad:");
+		RysujNapis(cNapis, KOL22, 170);
+		sprintf(cNapis, "Przes w.zad:");
+		RysujNapis(cNapis, KOL22, 190);
+		sprintf(cNapis, "Filtr D:");
+		RysujNapis(cNapis, KOL22, 210);
+		sprintf(cNapis, "Filtr w.zad:");
+		RysujNapis(cNapis, KOL22, 230);
+		sprintf(cNapis, "Akcja wyprz:");
+		RysujNapis(cNapis, KOL22, 250);
+		sprintf(cNapis, "Reg k%ctowy:", ą);
+		RysujNapis(cNapis, KOL22, 270);
 		setColor(SZARY60);
-		RysujNapis((char*)chOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);
+		RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);
 
 		//odczytaj tryb pracy regulatorów
 		cBłąd = CzytajFramChar(FAU_TRYB_REG, LICZBA_REG_PARAM, chTrybRegulatora);
@@ -4213,87 +4211,87 @@ void NastawyPID(uint8_t chKanal)
 		if (cBłąd == BLAD_OK)
 		{
 			//CM4 reaguje na zmianę polecenia, więc zmień na polecenie neutralne, aby można było ponowić odczyt drugiego regulatora
-			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//nie odczytuj więcej danych
+			uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;	//nie odczytuj więcej danych
 			osDelay(5);										//czas na propagację polecenia w innym wątku
 			if (chTrybRegulatora[chKanal/2] > REG_AKRO)
 				setColor(BIALY);	//regulator pracuje
 			else
 				setColor(SZARY60);	//regulator wyłączony
-			sprintf(chNapis, "%.3f ", fNastawy[0]);	//Kp
-			RysujNapis(chNapis, KOL12 + 4*FONT_SL, 50);
-			sprintf(chNapis, "%.4f ", fNastawy[1]);	//Ti
-			RysujNapis(chNapis, KOL12 + 4*FONT_SL, 70);
-			sprintf(chNapis, "%.4f ", fNastawy[2]);	//Td
-			RysujNapis(chNapis, KOL12 + 4*FONT_SL, 90);
-			sprintf(chNapis, "%.1f ", fNastawy[3]);	//max całki
-			RysujNapis(chNapis, KOL12 + 7*FONT_SL, 110);
-			sprintf(chNapis, "%.1f ", fNastawy[4]);	//min wyjścia
-			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 130);
-			sprintf(chNapis, "%.1f ", fNastawy[5]);	//max wyjścia
-			RysujNapis(chNapis, KOL12 + 8*FONT_SL, 150);
-			sprintf(chNapis, "%.4f ", fNastawy[6]);	//skalowanie wartości zadanej
-			RysujNapis(chNapis, KOL12 + 13*FONT_SL, 170);
-			sprintf(chNapis, "%.4f ", fNastawy[7]);	//stałe przesunięcie wartości zadanej
-			RysujNapis(chNapis, KOL12 + 13*FONT_SL, 190);
+			sprintf(cNapis, "%.3f ", fNastawy[0]);	//Kp
+			RysujNapis(cNapis, KOL12 + 4*FONT_SL, 50);
+			sprintf(cNapis, "%.4f ", fNastawy[1]);	//Ti
+			RysujNapis(cNapis, KOL12 + 4*FONT_SL, 70);
+			sprintf(cNapis, "%.4f ", fNastawy[2]);	//Td
+			RysujNapis(cNapis, KOL12 + 4*FONT_SL, 90);
+			sprintf(cNapis, "%.1f ", fNastawy[3]);	//max całki
+			RysujNapis(cNapis, KOL12 + 7*FONT_SL, 110);
+			sprintf(cNapis, "%.1f ", fNastawy[4]);	//min wyjścia
+			RysujNapis(cNapis, KOL12 + 8*FONT_SL, 130);
+			sprintf(cNapis, "%.1f ", fNastawy[5]);	//max wyjścia
+			RysujNapis(cNapis, KOL12 + 8*FONT_SL, 150);
+			sprintf(cNapis, "%.4f ", fNastawy[6]);	//skalowanie wartości zadanej
+			RysujNapis(cNapis, KOL12 + 13*FONT_SL, 170);
+			sprintf(cNapis, "%.4f ", fNastawy[7]);	//stałe przesunięcie wartości zadanej
+			RysujNapis(cNapis, KOL12 + 13*FONT_SL, 190);
 			//fNastawy[8] = miejsce na 1 zmienną rezerwową
 			un8_32.daneFloat =  fNastawy[9];
-			sprintf(chNapis, "%d", un8_32.dane8[1]);
-			RysujNapis(chNapis, KOL12 + 9*FONT_SL, 210);	//filtr D
-			sprintf(chNapis, "%d", un8_32.dane8[2]);
-			RysujNapis(chNapis, KOL12 + 13*FONT_SL, 230);	//filtr wartości zadanej
-			sprintf(chNapis, "%d", un8_32.dane8[3]);
-			RysujNapis(chNapis, KOL12 + 13*FONT_SL, 250);	//procent wyprzedzenia
+			sprintf(cNapis, "%d", un8_32.dane8[1]);
+			RysujNapis(cNapis, KOL12 + 9*FONT_SL, 210);	//filtr D
+			sprintf(cNapis, "%d", un8_32.dane8[2]);
+			RysujNapis(cNapis, KOL12 + 13*FONT_SL, 230);	//filtr wartości zadanej
+			sprintf(cNapis, "%d", un8_32.dane8[3]);
+			RysujNapis(cNapis, KOL12 + 13*FONT_SL, 250);	//procent wyprzedzenia
 
 			if (un8_32.dane8[0] & PID_KATOWY)
-				sprintf(chNapis, chNapisLcd[STR_TAK]);
+				sprintf(cNapis, cNapisLcd[STR_TAK]);
 			else
-				sprintf(chNapis, chNapisLcd[STR_NIE]);
-			RysujNapis(chNapis, KOL12 + 13*FONT_SL, 270);	//flagi: kątowy
+				sprintf(cNapis, cNapisLcd[STR_NIE]);
+			RysujNapis(cNapis, KOL12 + 13*FONT_SL, 270);	//flagi: kątowy
 		}
 		else
-			chRysujRaz = 1;	//jeżeli się nie odczytało to wyświetl jeszcze raz
+			cRysujRaz = 1;	//jeżeli się nie odczytało to wyświetl jeszcze raz
 
 		cBłąd = CzytajFramFloat(FAU_PID_KP + (chKanal + 1) * ROZMIAR_REG_PID, ROZMIAR_REG_PID / 4, fNastawy);
 		if (cBłąd == BLAD_OK)
 		{
-			uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//nie odczytuj więcej danych - potrzebna zmiana polecenia aby mógł wykonać kolejne
+			uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;	//nie odczytuj więcej danych - potrzebna zmiana polecenia aby mógł wykonać kolejne
 			osDelay(5);
 			if (chTrybRegulatora[chKanal/2] > REG_RECZNA)
 				setColor(BIALY);	//regulator pracuje
 			else
 				setColor(SZARY60);	//regulator wyłączony
-			sprintf(chNapis, "%.3f ", fNastawy[0]);	//Kp
-			RysujNapis(chNapis, KOL22 + 4*FONT_SL, 50);
-			sprintf(chNapis, "%.4f ", fNastawy[1]);	//Ti
-			RysujNapis(chNapis, KOL22 + 4*FONT_SL, 70);
-			sprintf(chNapis, "%.4f ", fNastawy[2]);	//Td
-			RysujNapis(chNapis, KOL22 + 4*FONT_SL, 90);
-			sprintf(chNapis, "%.1f ", fNastawy[3]);	//max całki
-			RysujNapis(chNapis, KOL22 + 7*FONT_SL, 110);
-			sprintf(chNapis, "%.1f ", fNastawy[4]);	//min wyjścia
-			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 130);
-			sprintf(chNapis, "%.1f ", fNastawy[5]);	//max wyjścia
-			RysujNapis(chNapis, KOL22 + 8*FONT_SL, 150);
-			sprintf(chNapis, "%.4f ", fNastawy[6]);	//skalowanie wartości zadanej
-			RysujNapis(chNapis, KOL22 + 13*FONT_SL, 170);
-			sprintf(chNapis, "%.4f ", fNastawy[7]);	//stałe przesunięcie wartości zadanej
-			RysujNapis(chNapis, KOL22 + 13*FONT_SL, 190);
+			sprintf(cNapis, "%.3f ", fNastawy[0]);	//Kp
+			RysujNapis(cNapis, KOL22 + 4*FONT_SL, 50);
+			sprintf(cNapis, "%.4f ", fNastawy[1]);	//Ti
+			RysujNapis(cNapis, KOL22 + 4*FONT_SL, 70);
+			sprintf(cNapis, "%.4f ", fNastawy[2]);	//Td
+			RysujNapis(cNapis, KOL22 + 4*FONT_SL, 90);
+			sprintf(cNapis, "%.1f ", fNastawy[3]);	//max całki
+			RysujNapis(cNapis, KOL22 + 7*FONT_SL, 110);
+			sprintf(cNapis, "%.1f ", fNastawy[4]);	//min wyjścia
+			RysujNapis(cNapis, KOL22 + 8*FONT_SL, 130);
+			sprintf(cNapis, "%.1f ", fNastawy[5]);	//max wyjścia
+			RysujNapis(cNapis, KOL22 + 8*FONT_SL, 150);
+			sprintf(cNapis, "%.4f ", fNastawy[6]);	//skalowanie wartości zadanej
+			RysujNapis(cNapis, KOL22 + 13*FONT_SL, 170);
+			sprintf(cNapis, "%.4f ", fNastawy[7]);	//stałe przesunięcie wartości zadanej
+			RysujNapis(cNapis, KOL22 + 13*FONT_SL, 190);
 			//fNastawy[8] = miejsce na 1 zmienną rezerwową
 			un8_32.daneFloat =  fNastawy[9];
-			sprintf(chNapis, "%d", un8_32.dane8[1]);
-			RysujNapis(chNapis, KOL22 + 9*FONT_SL, 210);	//filtr D
-			sprintf(chNapis, "%d", un8_32.dane8[2]);
-			RysujNapis(chNapis, KOL22 + 13*FONT_SL, 230);	//filtr wzmocnienia
-			sprintf(chNapis, "%d", un8_32.dane8[3]);
-			RysujNapis(chNapis, KOL22 + 13*FONT_SL, 250);	//procent wyprzedzenia
+			sprintf(cNapis, "%d", un8_32.dane8[1]);
+			RysujNapis(cNapis, KOL22 + 9*FONT_SL, 210);	//filtr D
+			sprintf(cNapis, "%d", un8_32.dane8[2]);
+			RysujNapis(cNapis, KOL22 + 13*FONT_SL, 230);	//filtr wzmocnienia
+			sprintf(cNapis, "%d", un8_32.dane8[3]);
+			RysujNapis(cNapis, KOL22 + 13*FONT_SL, 250);	//procent wyprzedzenia
 			if (un8_32.dane8[0] & PID_KATOWY)
-				sprintf(chNapis, chNapisLcd[STR_TAK]);
+				sprintf(cNapis, cNapisLcd[STR_TAK]);
 			else
-				sprintf(chNapis, chNapisLcd[STR_NIE]);
-			RysujNapis(chNapis, KOL22 + 13*FONT_SL, 270);	//flagi: kątowy
+				sprintf(cNapis, cNapisLcd[STR_NIE]);
+			RysujNapis(cNapis, KOL22 + 13*FONT_SL, 270);	//flagi: kątowy
 		}
 		else
-			chRysujRaz = 1;
+			cRysujRaz = 1;
 	}
 }
 
@@ -4303,26 +4301,26 @@ void NastawyPID(uint8_t chKanal)
 // Odczytuje zawartość pamieci FRAM z CM4 jako liczby float
 // Parametry:
 // [we] sAdres - adres komórki pamieci FRAM
-// [we] chRozmiar - ilość liczb float do odczytu
+// [we] cRozmiar - ilość liczb float do odczytu
 // [wy] *fDane - wskaźnik na odczytywaną strukturę danych float
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t CzytajFramFloat(uint16_t sAdres, uint8_t chRozmiar, float *fDane)
+uint8_t CzytajFramFloat(uint16_t sAdres, uint8_t cRozmiar, float *fDane)
 {
-	chTimeout = 10;
-	uDaneCM7.dane.chRozmiar = chRozmiar;
+	cTimeout = 10;
+	uDaneCM7.dane.cRozmiar = cRozmiar;
 	uDaneCM7.dane.sAdres = sAdres;
-	uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_FLOAT;
+	uDaneCM7.dane.cWykonajPolecenie = POL7_CZYTAJ_FRAM_FLOAT;
 	do
 	{
 		osDelay(5);
-		chTimeout--;
+		cTimeout--;
 	}
-	while ((uDaneCM4.dane.sAdres != uDaneCM7.dane.sAdres) && (chTimeout));
-	for (uint8_t n=0; n<uDaneCM4.dane.chRozmiar; n++)
+	while ((uDaneCM4.dane.sAdres != uDaneCM7.dane.sAdres) && (cTimeout));
+	for (uint8_t n=0; n<uDaneCM4.dane.cRozmiar; n++)
 		*(fDane + n) = uDaneCM4.dane.uRozne.f32[n];
 
-	if (chTimeout)
+	if (cTimeout)
 		return BLAD_OK;
 	else
 		return BLAD_TIMEOUT;
@@ -4334,26 +4332,26 @@ uint8_t CzytajFramFloat(uint16_t sAdres, uint8_t chRozmiar, float *fDane)
 // Odczytuje zawartość pamieci FRAM z CM4 jako liczby unsigned char
 // Parametry:
 // [we] sAdres - adres komórki pamieci FRAM
-// [we] chRozmiar - ilość liczb float do odczytu
+// [we] cRozmiar - ilość liczb float do odczytu
 // [wy] *fDane - wskaźnik na odczytywaną strukturę danych float
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t CzytajFramChar(uint16_t sAdres, uint8_t chRozmiar, uint8_t *chDane)
+uint8_t CzytajFramChar(uint16_t sAdres, uint8_t cRozmiar, uint8_t *chDane)
 {
-	chTimeout = 10;
-	uDaneCM7.dane.chRozmiar = chRozmiar;
+	cTimeout = 10;
+	uDaneCM7.dane.cRozmiar = cRozmiar;
 	uDaneCM7.dane.sAdres = sAdres;
-	uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_U8;
+	uDaneCM7.dane.cWykonajPolecenie = POL7_CZYTAJ_FRAM_U8;
 	do
 	{
 		osDelay(5);
-		chTimeout--;
+		cTimeout--;
 	}
-	while ((uDaneCM4.dane.sAdres != uDaneCM7.dane.sAdres) && (chTimeout));
-	for (uint8_t n=0; n<uDaneCM4.dane.chRozmiar; n++)
+	while ((uDaneCM4.dane.sAdres != uDaneCM7.dane.sAdres) && (cTimeout));
+	for (uint8_t n=0; n<uDaneCM4.dane.cRozmiar; n++)
 		*(chDane + n) = uDaneCM4.dane.uRozne.U8[n];
 
-	if (chTimeout)
+	if (cTimeout)
 		return BLAD_OK;
 	else
 		return BLAD_TIMEOUT;
@@ -4441,11 +4439,11 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 	uint8_t chKolorRGB666[3];
 	uint8_t chIndeksWybranychWykresow;	//przy iteracji po 3 wykresach wskazuje na akcelerometry lub żyroskopy
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		chRysujRaz = 0;
-		sprintf(chNapis, "FFT %sow", chNapisLcd[STR_AKCELETOMETR + (chRodzajDanych & 0x01)]);
-		BelkaTytulu(chNapis);
+		cRysujRaz = 0;
+		sprintf(cNapis, "FFT %sow", cNapisLcd[STR_AKCELETOMETR + (chRodzajDanych & 0x01)]);
+		BelkaTytulu(cNapis);
 		RysujProstokatWypelniony(0, AD_STARTY + AD_Y_SIZE, DISP_X_SIZE, AD_WSPADY, CZARNY);	//czyści ekran wodospadu
 		WłączTelemetrię(TELEM_SZYBKA);	//włącz szybką telemetrię. Wyłączy się sama po przesłaniu wszystkich wyników
 		stKonfig->sLiczbaProbek = 1 << stKonfig->chWykladnikPotegi;	//aktualizuj liczbę próbek
@@ -4479,8 +4477,8 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 		nCzasFFT = MinalCzas(nCzasFFT);
 		RysujProstokatWypelniony(0, MENU_NAG_WYS, DISP_X_SIZE, DISP_Y_SIZE - AD_WSPADY - AD_STARTY, CZARNY);	//czyści ekran wykresów
 		setColor(SZARY80);
-		sprintf(chNapis, "Czas FFT[6*%d]: %ld us, %d/%d", stKonfig->sLiczbaProbek, nCzasFFT, stKonfig->chIndeksTestu, LICZBA_TESTOW_FFT);
-		RysujNapis(chNapis, 60, 20);
+		sprintf(cNapis, "Czas FFT[6*%d]: %ld us, %d/%d", stKonfig->sLiczbaProbek, nCzasFFT, stKonfig->chIndeksTestu, LICZBA_TESTOW_FFT);
+		RysujNapis(cNapis, 60, 20);
 
 		fWspWypX = (float)(AD_X_SIZE)/((stKonfig->sLiczbaProbek/2)-1);	//współczynnik wypełnienia ekranu danymi pikseli / wynik
 
@@ -4497,8 +4495,8 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 				setColor(SZARY20);	//kolor pozostałych podziałek
 			RysujLiniePozioma(x1, y2, AD_X_SIZE);
 
-			sprintf(chNapis, "%d", (int8_t)AD_DZIALEK_SKALIY - (AD_DZIALEK_SKALIY - AD_DZIALEK_0Y) - n);
-			RysujNapis(chNapis, 0, y2 - FONT_SH / 2);
+			sprintf(cNapis, "%d", (int8_t)AD_DZIALEK_SKALIY - (AD_DZIALEK_SKALIY - AD_DZIALEK_0Y) - n);
+			RysujNapis(cNapis, 0, y2 - FONT_SH / 2);
 
 		}
 
@@ -4585,84 +4583,84 @@ void PokazCzasOdcinkowPGAP(uint16_t *sCzasy)
 	uint32_t nSuma = 0;
 	float fCzestotliwosc;
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		chRysujRaz = 0;
+		cRysujRaz = 0;
 		BelkaTytulu("Czasy Petli Glownej AP");
 		setColor(SZARY80);
 		for (uint8_t n=0; n<4; n++)
 		{
-			sprintf(chNapis, "Modul %d:", n+1);
-			RysujNapis(chNapis, 0, 30 + n*20);
+			sprintf(cNapis, "Modul %d:", n+1);
+			RysujNapis(cNapis, 0, 30 + n*20);
 		}
-		sprintf(chNapis, "Odb. GNSS:");
-		RysujNapis(chNapis, 0, 110);
-		sprintf(chNapis, "Oper. I2C:");
-		RysujNapis(chNapis, 0, 130);
-		sprintf(chNapis, "f Kalmana:");
-		RysujNapis(chNapis, 0, 150);
-		sprintf(chNapis, "IMU trygon:");
-		RysujNapis(chNapis, 0, 170);
-		sprintf(chNapis, "IMU kwater:");
-		RysujNapis(chNapis, 0, 190);
-		sprintf(chNapis, "Odbiorn RC:");
-		RysujNapis(chNapis, 0, 210);
-		sprintf(chNapis, "Rozsz. I/O:");
-		RysujNapis(chNapis, 0, 230);
-		sprintf(chNapis, "Modul IMU:");
-		RysujNapis(chNapis, 0, 250);
-		sprintf(chNapis, "Wymiana:");
-		RysujNapis(chNapis, 0, 270);
-		sprintf(chNapis, "PolCM7:");
-		RysujNapis(chNapis, 0, 290);
+		sprintf(cNapis, "Odb. GNSS:");
+		RysujNapis(cNapis, 0, 110);
+		sprintf(cNapis, "Oper. I2C:");
+		RysujNapis(cNapis, 0, 130);
+		sprintf(cNapis, "f Kalmana:");
+		RysujNapis(cNapis, 0, 150);
+		sprintf(cNapis, "IMU trygon:");
+		RysujNapis(cNapis, 0, 170);
+		sprintf(cNapis, "IMU kwater:");
+		RysujNapis(cNapis, 0, 190);
+		sprintf(cNapis, "Odbiorn RC:");
+		RysujNapis(cNapis, 0, 210);
+		sprintf(cNapis, "Rozsz. I/O:");
+		RysujNapis(cNapis, 0, 230);
+		sprintf(cNapis, "Modul IMU:");
+		RysujNapis(cNapis, 0, 250);
+		sprintf(cNapis, "Wymiana:");
+		RysujNapis(cNapis, 0, 270);
+		sprintf(cNapis, "PolCM7:");
+		RysujNapis(cNapis, 0, 290);
 
 		//druga kolumna danych
-		sprintf(chNapis, "LED WS2813:");
-		RysujNapis(chNapis, KOL22, 30);
-		sprintf(chNapis, "--15--");
-		RysujNapis(chNapis, KOL22, 50);
-		sprintf(chNapis, "--16--");
-		RysujNapis(chNapis, KOL22, 70);
-		sprintf(chNapis, "Kontr.Lotu:");
-		RysujNapis(chNapis, KOL22, 90);
-		sprintf(chNapis, "Mikser:");
-		RysujNapis(chNapis, KOL22, 110);
-		sprintf(chNapis, "Wyjscia RC:");
-		RysujNapis(chNapis, KOL22, 130);
-		sprintf(chNapis, "ADC:");
-		RysujNapis(chNapis, KOL22, 150);
-		sprintf(chNapis, "Suma Czasu:");
-		RysujNapis(chNapis, KOL22, 170);
-		sprintf(chNapis, "f Petli Gl:");
-		RysujNapis(chNapis, KOL22, 190);
+		sprintf(cNapis, "LED WS2813:");
+		RysujNapis(cNapis, KOL22, 30);
+		sprintf(cNapis, "--15--");
+		RysujNapis(cNapis, KOL22, 50);
+		sprintf(cNapis, "--16--");
+		RysujNapis(cNapis, KOL22, 70);
+		sprintf(cNapis, "Kontr.Lotu:");
+		RysujNapis(cNapis, KOL22, 90);
+		sprintf(cNapis, "Mikser:");
+		RysujNapis(cNapis, KOL22, 110);
+		sprintf(cNapis, "Wyjscia RC:");
+		RysujNapis(cNapis, KOL22, 130);
+		sprintf(cNapis, "ADC:");
+		RysujNapis(cNapis, KOL22, 150);
+		sprintf(cNapis, "Suma Czasu:");
+		RysujNapis(cNapis, KOL22, 170);
+		sprintf(cNapis, "f Petli Gl:");
+		RysujNapis(cNapis, KOL22, 190);
 	}
 
 	setColor(ZOLTY);
 	for (uint8_t n=0; n<14; n++)
 	{
-		sprintf(chNapis, "%d ", sCzasy[n]);
-		RysujNapis(chNapis, 12*FONT_SL, 30 + n*20);
+		sprintf(cNapis, "%d ", sCzasy[n]);
+		RysujNapis(cNapis, 12*FONT_SL, 30 + n*20);
 	}
 
 	for (uint8_t n=0; n<7; n++)
 	{
-		sprintf(chNapis, "%d ", sCzasy[n+14]);
-		RysujNapis(chNapis, KOL22 + 12*FONT_SL, 30 + n*20);
+		sprintf(cNapis, "%d ", sCzasy[n+14]);
+		RysujNapis(cNapis, KOL22 + 12*FONT_SL, 30 + n*20);
 	}
 
 	setColor(ZIELONY);
 	//licz sumę czasów
 	for (uint8_t n=0; n<LICZBA_ODCINKOW_CZASU; n++)
 		nSuma += sCzasy[n];
-	sprintf(chNapis, "%ld us ", nSuma);
-	RysujNapis(chNapis, KOL22 + 12*FONT_SL, 170);
+	sprintf(cNapis, "%ld us ", nSuma);
+	RysujNapis(cNapis, KOL22 + 12*FONT_SL, 170);
 
 	if (nSuma)
 		fCzestotliwosc = 1000000.0f / nSuma;
 	else
 		fCzestotliwosc = 0;
-	sprintf(chNapis, "%.1f Hz ", fCzestotliwosc);
-	RysujNapis(chNapis, KOL22 + 12*FONT_SL, 190);
+	sprintf(cNapis, "%.1f Hz ", fCzestotliwosc);
+	RysujNapis(cNapis, KOL22 + 12*FONT_SL, 190);
 
 
 }

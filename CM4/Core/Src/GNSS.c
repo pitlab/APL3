@@ -30,9 +30,9 @@
 
 
 extern UART_HandleTypeDef huart8;
-uint8_t chBuforNadawczyGNSS[ROZMIAR_BUF_NAD_GNSS];
-uint8_t chBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
-volatile uint8_t chWskNapBufAnaGNSS, chWskOprBufAnaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
+uint8_t cBuforNadawczyGNSS[ROZMIAR_BUF_NAD_GNSS];
+uint8_t cBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
+volatile uint8_t cWskNapBufAnaGNSS, cWskOprBufAnaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
 uint16_t sCzasInicjalizacjiGNSS = 0;	//licznik czasu	inicjalizacji wyrażony w obiegach pętli 1/200Hz = 5ms
 extern volatile unia_wymianyCM4_t uDaneCM4;
 
@@ -48,13 +48,13 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujGNSS(void)
 {
-	uint8_t n, chRozmiar = 0;
+	uint8_t n, cRozmiar = 0;
     uint8_t cBłąd = BLAD_OK;
 
     switch (sCzasInicjalizacjiGNSS)	//zlicza kolejne uruchomienia co 1 obieg pętli głównej
     {
     case 1:
-    	chWskNapBufAnaGNSS = chWskOprBufAnaGNSS = 0;	//inicjuj wskaźniki napełniania i opróżniania buforma kołowego analizy danych z GNSS
+    	cWskNapBufAnaGNSS = cWskOprBufAnaGNSS = 0;	//inicjuj wskaźniki napełniania i opróżniania buforma kołowego analizy danych z GNSS
 		break;
 
 	//od tego czasu co 50ms wykonaj serię zapisów zmian prędkości  transmitowanych na 9600, 19200, 38400, 75600 i 115200
@@ -65,17 +65,17 @@ uint8_t InicjujGNSS(void)
     	break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 1:	//wyślij polecenie zmiany prędkości dla GPS
-    	//chRozmiar  = sprintf((char*)hDane, "$PMTK251,9600*17\r\n");  //baudrate 9600
-		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, " $PMTK251,19200*22\r\n");  //baudrate 19200
-		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,38400*27\r\n");  //baudrate 38400
-		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
-		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,115200*1F\r\n");  //baudrate 115200
+    	//cRozmiar  = sprintf((char*)hDane, "$PMTK251,9600*17\r\n");  //baudrate 9600
+		//cRozmiar  = sprintf((char*)chBuforNadawczyGNSS, " $PMTK251,19200*22\r\n");  //baudrate 19200
+		//cRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,38400*27\r\n");  //baudrate 38400
+		cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
+		//cRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,115200*1F\r\n");  //baudrate 115200
     	break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 10:	//wyślij polecenie zmiany prędkości dla u-Blox
-		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,19200,0*20\r\n");  //baudrate 19200
-		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,38400,0*25\r\n");  //baudrate 38400
-		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
+		//cRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,19200,0*20\r\n");  //baudrate 19200
+		//cRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,38400,0*25\r\n");  //baudrate 38400
+		cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
 		break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 20:	//ustaw 19200bps
@@ -84,11 +84,11 @@ uint8_t InicjujGNSS(void)
        	break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 21:	//wyślij polecenie zmiany prędkości dla GPS
-       	chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
+       	cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
        	break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 30:
-		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
+		cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
 		break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 40:
@@ -97,11 +97,11 @@ uint8_t InicjujGNSS(void)
        	break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 41:
-       	chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
+       	cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
        	break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 50:
-		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
+		cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
 		break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 60:
@@ -110,11 +110,11 @@ uint8_t InicjujGNSS(void)
        	break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 61:
-       	chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
+       	cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
        	break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 70:
-		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
+		cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
 		break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 80:
@@ -123,11 +123,11 @@ uint8_t InicjujGNSS(void)
        	break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 81:
-       	chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
+       	cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PMTK251,57600*2C\r\n");  //baudrate 57600
        	break;
 
     case CYKL_STARTU_ZMIAN_PREDK + 90:
-		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
+		cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PUBX,41,1,0003,0002,57600,0*2E\r\n");  //baudrate 57600
 		break;
 
 
@@ -135,16 +135,16 @@ uint8_t InicjujGNSS(void)
     case CYKL_STARTU_INI_MTK + 0:		//po konfiguracji MTK
     	huart8.Init.BaudRate = 57600;
     	cBłąd = UART_SetConfig(&huart8);
-    	chRozmiar=0;
+    	cRozmiar=0;
     	break;
 
     //case 13: chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK286,1*23\r\n"); break; //Active Interference Cancelation
     case CYKL_STARTU_INI_MTK + 20:
-		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK286,1*23\r\n");  //Active Interference Cancelation
+		cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PMTK286,1*23\r\n");  //Active Interference Cancelation
 		break;
 
     case CYKL_STARTU_INI_MTK + 30:
-		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK314,0,1,10,2,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0*1F\r\n");  //wysyłaj RMC, GGA/2, GSA/5, VTG/10
+		cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PMTK314,0,1,10,2,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0*1F\r\n");  //wysyłaj RMC, GGA/2, GSA/5, VTG/10
 		//chRozmiar  = sprintf(chBuforNadawczyGNSS, "$PMTK314,0,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0*29\r\n");  //wysyłaj RMC, GGA, GSA
 		//chRozmiar  = sprintf(chBuforNadawczyGNSS, "$PMTK314,0,1,0,2,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0*2E\r\n"); break; //wysyłaj RMC, GGA/2, GSA/5
 		break;
@@ -158,18 +158,18 @@ uint8_t InicjujGNSS(void)
 
 
     case CYKL_STARTU_INI_MTK + 40:
-		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK313,1*2E\r\n");  //Enable to search a SBAS satellite
+		cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PMTK313,1*2E\r\n");  //Enable to search a SBAS satellite
 		break;
 
     case CYKL_STARTU_INI_MTK + 50:
-		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK301,2*2E\r\n");  //DGPS data source mode: WAAS
+		cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PMTK301,2*2E\r\n");  //DGPS data source mode: WAAS
 		break;
 
     case CYKL_STARTU_INI_MTK + 60:
-		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK220,500*2B\r\n");  //2Hz
-		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK220,250*29\r\n");  //4Hz
-		chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK220,200*2C\r\n");  //5Hz
-		//chRozmiar  = sprintf((char*)chBuforNadawczyGNSS, "$PMTK220,100*2F\r\n");  //10Hz
+		//cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PMTK220,500*2B\r\n");  //2Hz
+		//cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PMTK220,250*29\r\n");  //4Hz
+		cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PMTK220,200*2C\r\n");  //5Hz
+		//cRozmiar  = sprintf((char*)cBuforNadawczyGNSS, "$PMTK220,100*2F\r\n");  //10Hz
 		break;
 
 		//U-BLOX
@@ -180,44 +180,44 @@ uint8_t InicjujGNSS(void)
 
 	case CYKL_STARTU_INI_UBLOX + 200:
 		for (n=0; n<CFG_SBAS_LEN; n++)
-			chBuforNadawczyGNSS[n] = CFG_SBAS[n];	// --- CFG-SBAS ---
-		chRozmiar = CFG_SBAS_LEN;
+			cBuforNadawczyGNSS[n] = CFG_SBAS[n];	// --- CFG-SBAS ---
+		cRozmiar = CFG_SBAS_LEN;
 		break;
 
 	case CYKL_STARTU_INI_UBLOX + 210:
 		for (n=0; n<CFG_NAV_LEN; n++)
-			chBuforNadawczyGNSS[n] = CFG_NAV[n];	// --- CFG-NAV ---
-		chRozmiar = CFG_NAV_LEN;
+			cBuforNadawczyGNSS[n] = CFG_NAV[n];	// --- CFG-NAV ---
+		cRozmiar = CFG_NAV_LEN;
 		break;
 
 	case CYKL_STARTU_INI_UBLOX + 230:
 		for (n=0; n<CFG_NAV2_LEN; n++)
-			chBuforNadawczyGNSS[n] = CFG_NAV2[n];	// --- CFG-NAV2 ---
-		chRozmiar = CFG_NAV2_LEN;
+			cBuforNadawczyGNSS[n] = CFG_NAV2[n];	// --- CFG-NAV2 ---
+		cRozmiar = CFG_NAV2_LEN;
 		break;
 
 	case CYKL_STARTU_INI_UBLOX + 250:
 		for (n=0; n<CFG_NAV5_LEN; n++)
-			chBuforNadawczyGNSS[n] = CFG_NAV5[n];	// --- CFG-NAV5 ---
-		chRozmiar = CFG_NAV5_LEN;
+			cBuforNadawczyGNSS[n] = CFG_NAV5[n];	// --- CFG-NAV5 ---
+		cRozmiar = CFG_NAV5_LEN;
 		break;
 
 	case CYKL_STARTU_INI_UBLOX + 270:
 		for (n=0; n<CFG_NMEA_LEN; n++)
-			chBuforNadawczyGNSS[n] = CFG_NMEA[n];	// --- CFG-NMEA --- - ustawienie wersji protokołu
-		chRozmiar = CFG_NMEA_LEN;
+			cBuforNadawczyGNSS[n] = CFG_NMEA[n];	// --- CFG-NMEA --- - ustawienie wersji protokołu
+		cRozmiar = CFG_NMEA_LEN;
 		break;
 
 	case CYKL_STARTU_INI_UBLOX + 280:
 		for (n=0; n<CFG_RATE_LEN; n++)
-			chBuforNadawczyGNSS[n] = CFG_RATE[n];	// --- CFG-RATE --- - pomiar 5 Hz
-		chRozmiar = CFG_RATE_LEN;
+			cBuforNadawczyGNSS[n] = CFG_RATE[n];	// --- CFG-RATE --- - pomiar 5 Hz
+		cRozmiar = CFG_RATE_LEN;
 		break;
 
 	case CYKL_STARTU_INI_UBLOX + 290:
 		for (n=0; n<CFG_RXM_LEN; n++)
-			chBuforNadawczyGNSS[n] = CFG_RXM[n];	// --- CFG-RXM --- - Performance Mode
-		chRozmiar = CFG_RXM_LEN;
+			cBuforNadawczyGNSS[n] = CFG_RXM[n];	// --- CFG-RXM --- - Performance Mode
+		cRozmiar = CFG_RXM_LEN;
 		break;
 
     default:
@@ -228,10 +228,10 @@ uint8_t InicjujGNSS(void)
 
         	//za do drugim wywołaniem co 10ms wyślij jedno polecenie
 			for (n=0; n<CFG_MSG_PREAMB_LEN; n++)	//wyślij preambułę
-				chBuforNadawczyGNSS[n] = CFG_MSG_PREAMB[n];
+				cBuforNadawczyGNSS[n] = CFG_MSG_PREAMB[n];
 			for (n=0; n<CFG_MSG_LEN; n++)			//następnie właściwe polecenie
-				chBuforNadawczyGNSS[CFG_MSG_PREAMB_LEN+n] = CFG_MSG_LIST[(sCzasInicjalizacjiGNSS - CYKL_STARTU_INI_UBLOX)/4][n];
-			chRozmiar = CFG_MSG_PREAMB_LEN + CFG_MSG_LEN;
+				cBuforNadawczyGNSS[CFG_MSG_PREAMB_LEN+n] = CFG_MSG_LIST[(sCzasInicjalizacjiGNSS - CYKL_STARTU_INI_UBLOX)/4][n];
+			cRozmiar = CFG_MSG_PREAMB_LEN + CFG_MSG_LEN;
 			break;
         }
 
@@ -241,8 +241,8 @@ uint8_t InicjujGNSS(void)
         		break;		//nie wysyłaj na nieczwórkowych obiegach
 
         	for (n=0; n<CFG_PRT_LEN; n++)
-				chBuforNadawczyGNSS[n] = CFG_PRT_LIST[(sCzasInicjalizacjiGNSS - (CYKL_STARTU_INI_UBLOX + 300))/8][n];
-			chRozmiar = CFG_PRT_LEN;
+				cBuforNadawczyGNSS[n] = CFG_PRT_LIST[(sCzasInicjalizacjiGNSS - (CYKL_STARTU_INI_UBLOX + 300))/8][n];
+			cRozmiar = CFG_PRT_LEN;
 			break;
         }
 
@@ -260,9 +260,9 @@ uint8_t InicjujGNSS(void)
     }
     sCzasInicjalizacjiGNSS++;
 
-    if (chRozmiar)
+    if (cRozmiar)
     {
-    	cBłąd = HAL_UART_Transmit_DMA(&huart8, chBuforNadawczyGNSS, chRozmiar);	 //wyślij dane do modułu GNSS przez DMA
+    	cBłąd = HAL_UART_Transmit_DMA(&huart8, cBuforNadawczyGNSS, cRozmiar);	 //wyślij dane do modułu GNSS przez DMA
     }
 
     /*/licz sumę kontrolną ramek, po to aby wstawić właściwą sumę do polecenia
@@ -291,17 +291,17 @@ uint8_t InicjujGNSS(void)
 // *chRamka - wskaźnik na ramkę
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void SumaKontrolnaUBX(uint8_t *chRamka)
+void SumaKontrolnaUBX(uint8_t *cRamka)
 {
-	uint16_t rozmiar = *(chRamka+5) * 0x100 + *(chRamka+4);
-	uint8_t chCK_A = 0;
-	uint8_t chCK_B = 0;
+	uint16_t rozmiar = *(cRamka+5) * 0x100 + *(cRamka+4);
+	uint8_t cCK_A = 0;
+	uint8_t cCK_B = 0;
 
 	for (uint16_t n=0; n<rozmiar+4; n++)
 	{
-		chCK_A += chRamka[n+2];
-		chCK_B += chCK_A;
+		cCK_A += cRamka[n+2];
+		cCK_B += cCK_A;
 	}
-	*(chRamka + rozmiar + 6) = chCK_A;
-	*(chRamka + rozmiar + 7) = chCK_B;
+	*(cRamka + rozmiar + 6) = cCK_A;
+	*(cRamka + rozmiar + 7) = cCK_B;
 }

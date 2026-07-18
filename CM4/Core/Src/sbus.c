@@ -11,15 +11,15 @@
 #include "Uarty.h"
 
 
-uint8_t chBuforNadawczySBus[ROZMIAR_RAMKI_SBUS] =  {0x0f,0x01,0x04,0x20,0x00,0xff,0x07,0x40,0x00,0x02,0x10,0x80,0x2c,0x64,0x21,0x0b,0x59,0x08,0x40,0x00,0x02,0x10,0x80,0x00};
-uint8_t chBuforAnalizySBus1[ROZMIAR_BUF_ANA_SBUS];
-uint8_t chBuforAnalizySBus2[ROZMIAR_BUF_ANA_SBUS];
-volatile uint8_t chWskNapBufAnaSBus1, chWskOprBufAnaSBus1; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus1
-volatile uint8_t chWskNapBufAnaSBus2, chWskOprBufAnaSBus2; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus2
-uint8_t chWskNapRamkiSBus1, chWskNapRamkiSBus2;				//wskaźniki napełniania ramek SBus
-uint8_t chRamkaSBus1[ROZMIAR_RAMKI_SBUS];
-uint8_t chRamkaSBus2[ROZMIAR_RAMKI_SBUS];
-uint8_t chKorektaPoczatkuRamki;
+uint8_t cBuforNadawczySBus[ROZMIAR_RAMKI_SBUS] =  {0x0f,0x01,0x04,0x20,0x00,0xff,0x07,0x40,0x00,0x02,0x10,0x80,0x2c,0x64,0x21,0x0b,0x59,0x08,0x40,0x00,0x02,0x10,0x80,0x00};
+uint8_t cBuforAnalizySBus1[ROZMIAR_BUF_ANA_SBUS];
+uint8_t cBuforAnalizySBus2[ROZMIAR_BUF_ANA_SBUS];
+volatile uint8_t cWskNapBufAnaSBus1, cWskOprBufAnaSBus1; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus1
+volatile uint8_t cWskNapBufAnaSBus2, cWskOprBufAnaSBus2; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych S-Bus2
+uint8_t cWskNapRamkiSBus1, cWskNapRamkiSBus2;				//wskaźniki napełniania ramek SBus
+uint8_t cRamkaSBus1[ROZMIAR_RAMKI_SBUS];
+uint8_t cRamkaSBus2[ROZMIAR_RAMKI_SBUS];
+uint8_t cKorektaPoczatkuRamki;
 uint32_t nCzasWysylkiSbus;
 extern stRC_t stRC1, stRC2;	//struktura danych odbiorników RC1 i RC2
 UART_HandleTypeDef huart2;
@@ -30,7 +30,7 @@ extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 extern DMA_HandleTypeDef hdma_uart4_rx;
 extern DMA_HandleTypeDef hdma_uart4_tx;
-extern uint8_t chKonfigWyRC[LICZBA_WYJSC_RC];
+extern uint8_t cKonfigWyRC[LICZBA_WYJSC_RC];
 
 
 
@@ -286,7 +286,7 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, stRC_t *stRC)
 	}
 	//ramka S-Bus zaczyna się od nagłówka 0x0F, który powinien być pierwszym odebranym bajtem.
 	//Jeżeli nie trafia na początek, to zmniejsz liczbę odebieranych danych, tak aby przesunął się na początek
-	chKorektaPoczatkuRamki = n;
+	cKorektaPoczatkuRamki = n;
 	if (n > MAX_PRZESUN_NAGL)
 		return BLAD_ZLA_ILOSC_DANYCH;
 
@@ -409,10 +409,10 @@ uint8_t ObsługaRamkiSBus(void)
 	uint8_t cBłąd;
 
 	//obsługa kanału 1
-	cBłąd = OdbiórRamkiSBus(chRamkaSBus1, &chWskNapRamkiSBus1, chBuforAnalizySBus1, (uint8_t)chWskNapBufAnaSBus1, (uint8_t*)&chWskOprBufAnaSBus1);
+	cBłąd = OdbiórRamkiSBus(cRamkaSBus1, &cWskNapRamkiSBus1, cBuforAnalizySBus1, (uint8_t)cWskNapBufAnaSBus1, (uint8_t*)&cWskOprBufAnaSBus1);
 	if (cBłąd == BLAD_GOTOWE)
 	{
-		cBłąd = DekodowanieRamkiBSBus(chRamkaSBus1, &stRC1);
+		cBłąd = DekodowanieRamkiBSBus(cRamkaSBus1, &stRC1);
 		if (cBłąd == BLAD_OK)
 		{
 			stRC1.sZdekodowaneKanaly = 0xFFFF;
@@ -421,10 +421,10 @@ uint8_t ObsługaRamkiSBus(void)
 	}
 
 	//obsługa kanału 2
-	cBłąd = OdbiórRamkiSBus(chRamkaSBus2, &chWskNapRamkiSBus2, chBuforAnalizySBus2, (uint8_t)chWskNapBufAnaSBus2, (uint8_t*)&chWskOprBufAnaSBus2);
+	cBłąd = OdbiórRamkiSBus(cRamkaSBus2, &cWskNapRamkiSBus2, cBuforAnalizySBus2, (uint8_t)cWskNapBufAnaSBus2, (uint8_t*)&cWskOprBufAnaSBus2);
 	if (cBłąd == BLAD_GOTOWE)
 	{
-		cBłąd = DekodowanieRamkiBSBus(chRamkaSBus2, &stRC2);
+		cBłąd = DekodowanieRamkiBSBus(cRamkaSBus2, &stRC2);
 		if (cBłąd == BLAD_OK)
 		{
 			stRC2.sZdekodowaneKanaly = 0xFFFF;
@@ -433,14 +433,14 @@ uint8_t ObsługaRamkiSBus(void)
 	}
 
 	//Jeżeli wyjscie RC1 jest ustawione jako S-Bus
-	if (chKonfigWyRC[KANAL_RC1] == SERWO_SBUS)
+	if (cKonfigWyRC[KANAL_RC1] == SERWO_SBUS)
 	{
 		//sprawdź czy trzeba już wysłać nową ramkę Sbus
 		uint32_t nCzasRC = MinalCzasT7(nCzasWysylkiSbus);
 		if (nCzasRC >= OKRES_RAMKI_SBUS)
 		{
 			nCzasWysylkiSbus = PobierzCzasT7();
-			HAL_UART_Transmit_IT(&huart4, chBuforNadawczySBus, ROZM_BUF_ODB_SBUS);	//wyślij kolejną ramkę
+			HAL_UART_Transmit_IT(&huart4, cBuforNadawczySBus, ROZM_BUF_ODB_SBUS);	//wyślij kolejną ramkę
 		}
 	}
 	return cBłąd;

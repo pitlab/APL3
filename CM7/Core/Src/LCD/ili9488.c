@@ -23,14 +23,14 @@
 
 //deklaracje zmiennych
 extern SPI_HandleTypeDef hspi5;
-extern uint8_t chRysujRaz;
+extern uint8_t cRysujRaz;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
-extern uint8_t chOrientacja;
+extern uint8_t cOrientacja;
 extern uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
 extern struct current_font cfont;
-uint8_t chKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
-uint8_t chTlo666[3];		//kolory tła w formacie RGB 6-6-6
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
+uint8_t cKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
+uint8_t cTlo666[3];		//kolory tła w formacie RGB 6-6-6
+//extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) cBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
 
 
 
@@ -41,20 +41,20 @@ extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRA
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujLCD_ILI9488(void)
 {
-	extern uint8_t chPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN];
+	extern uint8_t cPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN];
 	uint8_t cBłąd = BLAD_OK;
 
 	// LCD_RESET 1 - 0 - 1
-	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
-	cBłąd |= WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+	cPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
+	cBłąd |= WyslijDaneExpandera(SPI_EXTIO_0, cPort_exp_wysylany[0]);
 	HAL_Delay(2);
 
-	chPort_exp_wysylany[0] &= ~EXP01_LCD_RESET;	//RES=0
-	cBłąd |= WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+	cPort_exp_wysylany[0] &= ~EXP01_LCD_RESET;	//RES=0
+	cBłąd |= WyslijDaneExpandera(SPI_EXTIO_0, cPort_exp_wysylany[0]);
 	HAL_Delay(2);
 
-	chPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
-	cBłąd |= WyslijDaneExpandera(SPI_EXTIO_0, chPort_exp_wysylany[0]);
+	cPort_exp_wysylany[0] |= EXP01_LCD_RESET;	//RES=1
+	cBłąd |= WyslijDaneExpandera(SPI_EXTIO_0, cPort_exp_wysylany[0]);
 	HAL_Delay(120);									//czas powrotu z resetu max 120ms
 
 	cBłąd |= LCD_write_command8(ILI9488_GMCTRP1);
@@ -106,7 +106,7 @@ uint8_t InicjujLCD_ILI9488(void)
 	cBłąd |= LCD_write_command8(ILI9488_DISPON);    //Display on
 	if (cBłąd == BLAD_OK)
 	{
-		chRysujRaz = 1;
+		cRysujRaz = 1;
 		nZainicjowanoCM7 |= INIT_LCD480x320;
 	}
 	return cBłąd;
@@ -148,7 +148,7 @@ void OrientacjaEkranu(uint8_t orientacja)
 			(1<<6)|	//MX Column Address Order
 			(1<<7));	//MY Row Address Order
 	}
-	chOrientacja = orientacja;
+	cOrientacja = orientacja;
 }
 
 
@@ -168,7 +168,7 @@ uint8_t WypelnijEkran(uint16_t sKolor565)
 	if (!sKolor565)
 		sKolor565 = CZARNY;
 
-	chRysujRaz = 1;
+	cRysujRaz = 1;
 	setColor(sKolor565);		//wykonuje konwersję z RGB565 na RGB666
 	setBackColor(sKolor565);
 
@@ -196,9 +196,9 @@ uint8_t WypelnijEkran(uint16_t sKolor565)
 
 		for (uint8_t x=0; x<4; x++)
 		{
-			chDane[3*x + 0] = chKolor666[0];
-			chDane[3*x + 1] = chKolor666[1];
-			chDane[3*x + 2] = chKolor666[2];
+			chDane[3*x + 0] = cKolor666[0];
+			chDane[3*x + 1] = cKolor666[1];
+			chDane[3*x + 2] = cKolor666[2];
 		}
 		LCD_write_command8(ILI9488_RAMWR);	//Memory Write
 
@@ -224,9 +224,9 @@ uint8_t WypelnijEkran(uint16_t sKolor565)
 ////////////////////////////////////////////////////////////////////////////////
 void setColorRGB(uint8_t r, uint8_t g, uint8_t b)
 {
-	chKolor666[0] = r;
-	chKolor666[1] = g;
-	chKolor666[2] = b;
+	cKolor666[0] = r;
+	cKolor666[1] = g;
+	cKolor666[2] = b;
 }
 
 
@@ -238,9 +238,9 @@ void setColorRGB(uint8_t r, uint8_t g, uint8_t b)
 ////////////////////////////////////////////////////////////////////////////////
 void setColor(uint16_t sKolor565)
 {
-	chKolor666[0] = (uint8_t)((sKolor565 & 0xF800) >> 8);
-	chKolor666[1] = (uint8_t)((sKolor565 & 0x07E0) >> 3);
-	chKolor666[2] = (uint8_t) (sKolor565 & 0x001F) << 3;
+	cKolor666[0] = (uint8_t)((sKolor565 & 0xF800) >> 8);
+	cKolor666[1] = (uint8_t)((sKolor565 & 0x07E0) >> 3);
+	cKolor666[2] = (uint8_t) (sKolor565 & 0x001F) << 3;
 }
 
 
@@ -252,7 +252,7 @@ void setColor(uint16_t sKolor565)
 ////////////////////////////////////////////////////////////////////////////////
 uint16_t getColor(void)
 {
-	return ((uint16_t)(chKolor666[0] & 0xF8)  << 8) + ((uint16_t)(chKolor666[1] & 0xFC) << 3) + ((chKolor666[2] & 0xF8) >>3);
+	return ((uint16_t)(cKolor666[0] & 0xF8)  << 8) + ((uint16_t)(cKolor666[1] & 0xFC) << 3) + ((cKolor666[2] & 0xF8) >>3);
 }
 
 
@@ -264,9 +264,9 @@ uint16_t getColor(void)
 ////////////////////////////////////////////////////////////////////////////////
 void setBackColorRGB(uint8_t r, uint8_t g, uint8_t b)
 {
-	chTlo666[0] = r;
-	chTlo666[1] = g;
-	chTlo666[2] = b;
+	cTlo666[0] = r;
+	cTlo666[1] = g;
+	cTlo666[2] = b;
 }
 
 
@@ -282,9 +282,9 @@ void setBackColor(uint16_t sKolor565)
 		_transparent = 1;
 	else
 	{
-		chTlo666[0] = (uint8_t)((sKolor565 & 0xF800) >> 8);
-		chTlo666[1] = (uint8_t)((sKolor565 & 0x07E0) >> 3);
-		chTlo666[2] = (uint8_t) (sKolor565 & 0x001F) << 3;
+		cTlo666[0] = (uint8_t)((sKolor565 & 0xF800) >> 8);
+		cTlo666[1] = (uint8_t)((sKolor565 & 0x07E0) >> 3);
+		cTlo666[2] = (uint8_t) (sKolor565 & 0x001F) << 3;
 		_transparent = 0;
 	}
 }
@@ -298,7 +298,7 @@ void setBackColor(uint16_t sKolor565)
 ////////////////////////////////////////////////////////////////////////////////
 uint16_t getBackColor(void)
 {
-	return ((uint16_t)(chTlo666[0] & 0xF8)  << 8) + ((uint16_t)(chTlo666[1] & 0xFC) << 3) + ((chTlo666[2] & 0xF8) >>3);
+	return ((uint16_t)(cTlo666[0] & 0xF8)  << 8) + ((uint16_t)(cTlo666[1] & 0xFC) << 3) + ((cTlo666[2] & 0xF8) >>3);
 }
 
 
@@ -345,10 +345,10 @@ uint8_t RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sS
 		LCD_write_command8(ILI9488_RAMWR);	//Memory Write
 		for(n=0; n<4; n++)
 		{
-			LCD_WrData(chKolor666, 3);
-			dane[3*n + 0] = chKolor666[0];
-			dane[3*n + 1] = chKolor666[1];
-			dane[3*n + 2] = chKolor666[2];
+			LCD_WrData(cKolor666, 3);
+			dane[3*n + 0] = cKolor666[0];
+			dane[3*n + 1] = cKolor666[1];
+			dane[3*n + 2] = cKolor666[2];
 		}
 
 		for(i=0; i<sWysokosc; i++)
@@ -438,7 +438,7 @@ uint8_t RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 		for (uint16_t n=0; n<len+1; n++)
-			HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+			HAL_SPI_Transmit(&hspi5, cKolor666, 3, HAL_DELAY_SPI);
 		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
@@ -478,7 +478,7 @@ uint8_t RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 		UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 		for (uint16_t n=0; n<len+1; n++)
-			HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+			HAL_SPI_Transmit(&hspi5, cKolor666, 3, HAL_DELAY_SPI);
 		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
@@ -526,7 +526,7 @@ uint8_t RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 				while (1)
 				{
 					setXY (col, row, col, row);
-					LCD_WrData(chKolor666, 3);
+					LCD_WrData(cKolor666, 3);
 
 					if (row == y2)
 					{
@@ -548,7 +548,7 @@ uint8_t RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 				while (1)
 				{
 					setXY (col, row, col, row);
-					LCD_WrData(chKolor666, 3);
+					LCD_WrData(cKolor666, 3);
 					if (col == x2)
 					{
 						HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
@@ -585,7 +585,7 @@ void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 	uint16_t sTemp;
 	uint8_t dane[4];
 
-	if (chOrientacja == PIONOWO)
+	if (cOrientacja == PIONOWO)
 	{
 		sTemp = x1;
 		x1 = y1;
@@ -627,7 +627,7 @@ void setXY(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
 ////////////////////////////////////////////////////////////////////////////////
 void clrXY(void)
 {
-	if (chOrientacja == PIONOWO)
+	if (cOrientacja == PIONOWO)
 		setXY(0, 0, DISP_X_SIZE, DISP_Y_SIZE);
 	else
 		setXY(0, 0, DISP_Y_SIZE, DISP_X_SIZE);
@@ -661,7 +661,7 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 	{
 		if (!_transparent)
 		{
-			if (chOrientacja == POZIOMO)
+			if (cOrientacja == POZIOMO)
 			{
 				setXY(x, y, x + cfont.x_size - 1, y + cfont.y_size -  1);
 				UstawDekoderZewn(CS_LCD);										//LCD_CS=0
@@ -673,9 +673,9 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 					for(i=0; i<8; i++)
 					{
 						if ((ch&(1<<(7-i))) != 0)
-							cBłąd |= HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+							cBłąd |= HAL_SPI_Transmit(&hspi5, cKolor666, 3, HAL_DELAY_SPI);
 						else
-							cBłąd |= HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_DELAY_SPI);
+							cBłąd |= HAL_SPI_Transmit(&hspi5, cTlo666, 3, HAL_DELAY_SPI);
 					}
 					temp++;
 				}
@@ -695,9 +695,9 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 						for(i=0;i<8;i++)
 						{
 							if((ch&(1<<i))!=0)
-								cBłąd |= HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+								cBłąd |= HAL_SPI_Transmit(&hspi5, cKolor666, 3, HAL_DELAY_SPI);
 							else
-								cBłąd |= HAL_SPI_Transmit(&hspi5, chTlo666, 3, HAL_DELAY_SPI);
+								cBłąd |= HAL_SPI_Transmit(&hspi5, cTlo666, 3, HAL_DELAY_SPI);
 						}
 					}
 					UstawDekoderZewn(CS_NIC);										//LCD_CS=1
@@ -718,7 +718,7 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 						if((ch&(1<<(7-i)))!=0)
 						{
 							setXY(x+i+(zz*8),y+j,x+i+(zz*8)+1,y+j+1);
-							LCD_WrData(chKolor666, 3);
+							LCD_WrData(cKolor666, 3);
 						}
 					}
 				}
@@ -756,7 +756,7 @@ uint8_t RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uin
 	}
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
-		if (chOrientacja == POZIOMO)
+		if (cOrientacja == POZIOMO)
 		{
 			setXY(x, y, x+sx-1, y+sy-1);
 			UstawDekoderZewn(CS_LCD);										//LCD_CS=0
@@ -764,7 +764,7 @@ uint8_t RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uin
 			for (tc=0; tc<(sx*sy); tc++)
 			{
 				setColor(obraz[tc]);
-				cBłąd |= HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+				cBłąd |= HAL_SPI_Transmit(&hspi5, cKolor666, 3, HAL_DELAY_SPI);
 			}
 			UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 		}
@@ -778,7 +778,7 @@ uint8_t RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uin
 				for (tx=sx-1; tx>=0; tx--)
 				{
 					setColor(obraz[(ty*sx)+tx]);
-					cBłąd |= HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+					cBłąd |= HAL_SPI_Transmit(&hspi5, cKolor666, 3, HAL_DELAY_SPI);
 				}
 				UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 			}
@@ -816,7 +816,7 @@ uint8_t RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_
 	}
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
-		if (chOrientacja == POZIOMO)
+		if (cOrientacja == POZIOMO)
 		{
 			setXY(x, y, x+sx-1, y+sy-1);
 			UstawDekoderZewn(CS_LCD);										//LCD_CS=0
@@ -837,7 +837,7 @@ uint8_t RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_
 					col  = (uint16_t)chObraz[(ty*sx)+tx + 0] << 8;
 					col |= (uint16_t)chObraz[(ty*sx)+tx + 1];
 					setColor(col);
-					HAL_SPI_Transmit(&hspi5, chKolor666, 3, HAL_DELAY_SPI);
+					HAL_SPI_Transmit(&hspi5, cKolor666, 3, HAL_DELAY_SPI);
 				}
 				UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 			}
@@ -878,16 +878,16 @@ uint8_t RysujOkrag(uint16_t x, uint16_t y, uint16_t promien)
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		setXY(x, y + promien, x, y + promien);
-		LCD_WrData(chKolor666, 3);
+		LCD_WrData(cKolor666, 3);
 
 		setXY(x, y - promien, x, y - promien);
-		LCD_WrData(chKolor666, 3);
+		LCD_WrData(cKolor666, 3);
 
 		setXY(x + promien, y, x + promien, y);
-		LCD_WrData(chKolor666, 3);
+		LCD_WrData(cKolor666, 3);
 
 		setXY(x - promien, y, x - promien, y);
-		LCD_WrData(chKolor666, 3);
+		LCD_WrData(cKolor666, 3);
 
 		while(x1 < y1)
 		{
@@ -901,28 +901,28 @@ uint8_t RysujOkrag(uint16_t x, uint16_t y, uint16_t promien)
 			ddF_x += 2;
 			f += ddF_x;
 			setXY(x + x1, y + y1, x + x1, y + y1);
-			LCD_WrData(chKolor666, 3);
+			LCD_WrData(cKolor666, 3);
 
 			setXY(x - x1, y + y1, x - x1, y + y1);
-			LCD_WrData(chKolor666, 3);
+			LCD_WrData(cKolor666, 3);
 
 			setXY(x + x1, y - y1, x + x1, y - y1);
-			LCD_WrData(chKolor666, 3);
+			LCD_WrData(cKolor666, 3);
 
 			setXY(x - x1, y - y1, x - x1, y - y1);
-			LCD_WrData(chKolor666, 3);
+			LCD_WrData(cKolor666, 3);
 
 			setXY(x + y1, y + x1, x + y1, y + x1);
-			LCD_WrData(chKolor666, 3);
+			LCD_WrData(cKolor666, 3);
 
 			setXY(x - y1, y + x1, x - y1, y + x1);
-			LCD_WrData(chKolor666, 3);
+			LCD_WrData(cKolor666, 3);
 
 			setXY(x + y1, y - x1, x + y1, y - x1);
-			LCD_WrData(chKolor666, 3);
+			LCD_WrData(cKolor666, 3);
 
 			setXY(x - y1, y - x1, x - y1, y - x1);
-			LCD_WrData(chKolor666, 3);
+			LCD_WrData(cKolor666, 3);
 		}
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);

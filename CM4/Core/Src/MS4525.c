@@ -18,9 +18,9 @@
 
 extern I2C_HandleTypeDef hi2c3;
 extern volatile unia_wymianyCM4_t uDaneCM4;
-static uint8_t chProporcjaPomiarow;
-extern uint8_t chCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
-uint8_t chDaneMS4525[5];
+static uint8_t cProporcjaPomiarow;
+extern uint8_t cCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
+uint8_t cDaneMS4525[5];
 float fCiśnienieZerowaniaMS4525;	//ciśnienie zmierzone podczas kalibracji czujnika. Należy odjać je od bieżących wskazań
 uint16_t sLicznikZerowaniaMS4525 = MAX_PROB_INICJALIZACJI;	//odlicza czas uśredniania danych z czujnika. Podczas inicjalizacji zlicza próby nieudanej inicjalizacji
 
@@ -35,7 +35,7 @@ uint8_t InicjujMS4525(void)
 	uint8_t cBłąd;
 
 	//wyślij adres i sprawdź czy odpowie ACK-iem
-	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 2, I2C_TIMOUT);
+	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, MS2545_I2C_ADR, cDaneMS4525, 2, I2C_TIMOUT);
 	if (cBłąd == BLAD_OK)
 	{
 		uDaneCM4.dane.nZainicjowano |= INIT_MS4525;
@@ -75,20 +75,20 @@ uint8_t ObslugaMS4525(void)
 	}
 	else	//czujnik jest zainicjowany
 	{
-		switch (chProporcjaPomiarow)
+		switch (cProporcjaPomiarow)
 		{
 		case 0:
-			chCzujnikOdczytywanyNaI2CExt = CISN_ROZN_MS2545;	//odczytaj ciśnienie różnicowe i temepraturę
-			cBłąd = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 4);
+			cCzujnikOdczytywanyNaI2CExt = CISN_ROZN_MS2545;	//odczytaj ciśnienie różnicowe i temepraturę
+			cBłąd = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, cDaneMS4525, 4);
 			break;
 
 		default:
-			chCzujnikOdczytywanyNaI2CExt = CISN_TEMP_MS2545;	//odczytaj ciśnienie różnicowe
-			cBłąd = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, chDaneMS4525, 2);
+			cCzujnikOdczytywanyNaI2CExt = CISN_TEMP_MS2545;	//odczytaj ciśnienie różnicowe
+			cBłąd = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, cDaneMS4525, 2);
 			break;
 		}
-		chProporcjaPomiarow++;
-		chProporcjaPomiarow &= 0x0F;
+		cProporcjaPomiarow++;
+		cProporcjaPomiarow &= 0x0F;
 	}
 	return cBłąd;
 }

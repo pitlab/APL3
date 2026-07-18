@@ -24,7 +24,7 @@ extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"
 extern stFFT_t stKonfigFFT;
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
-extern uint8_t chRysujRaz;
+extern uint8_t cRysujRaz;
 stIdentyfikacjaSilnikow_t stIdentSiln;
 
 
@@ -41,7 +41,7 @@ uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 
 	//wejdź do trybu FFT akcelerometrów, wyświetl wykres
 	*chTrybPracy = TP_POMIARY_ANALIZA_DRGAN;
-	chRysujRaz = 1;
+	cRysujRaz = 1;
 
 	//przekaż do CM4 etap testu, informacje który silnik ma pracować i górną granicę wysterwania. CM4 wyliczy sobie z tego wysterowanie dla wszystkich etapów
 	stKonfigFFT->chIndeksTestu = 0;
@@ -49,7 +49,7 @@ uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 	uDaneCM7.dane.sAdres = stKonfigFFT->chIndeksTestu;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 	uDaneCM7.dane.uRozne.U8[1] = stKonfigFFT->chAktywnSilniki;
 	uDaneCM7.dane.uRozne.U8[2] = stKonfigFFT->chMaxWysterowanie;
-	uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
+	uDaneCM7.dane.cWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 	return cBłąd;
 }
 
@@ -69,14 +69,14 @@ uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 	if (stKonfigFFT->chIndeksTestu < LICZBA_TESTOW_FFT)
 	{
 		uDaneCM7.dane.sAdres = stKonfigFFT->chIndeksTestu;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
-		uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 	}
 	else
 	if (stKonfigFFT->chIndeksTestu >= LICZBA_TESTOW_FFT)
 	{
 		uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 		uDaneCM7.dane.uRozne.U8[1] = 0;	//aktywne siliki
-		uDaneCM7.dane.chWykonajPolecenie = POL7_PRZYWROC_NAPED;	//przywróć funkcję napędu dla silników po analizie FFT rezonansu ramy
+		uDaneCM7.dane.cWykonajPolecenie = POL7_PRZYWROC_NAPED;	//przywróć funkcję napędu dla silników po analizie FFT rezonansu ramy
 		*chTrybPracy = TP_MENU_GLOWNE;
 	}
 	return cBłąd;
@@ -98,7 +98,7 @@ uint8_t RozpocznijIdentyfikacjęSilników(stIdentyfikacjaSilnikow_t *stIdentSiln
 	uint8_t cBłąd = BLAD_OK;
 
 	*chTrybPracy = TP_PROCES_IDENT_SILN;
-	chRysujRaz = 1;
+	cRysujRaz = 1;
 
 	//odczytaj nastawy miksera aby wiedziec ile jest silników i jak są ułożone
 	//silniki zawsze są ułożone zgodnie z tarczą zegara. Pierwszy silnik jest w okolicy godziny pierwszej, kolejne rosną w stronę ruchu wskazówek.

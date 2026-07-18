@@ -205,7 +205,7 @@ typedef struct
 	float fNapCzujZewn[4];	//napięcie czujników zewnętrznych podłaćzanych do gniazd APL3
 	float fStrojenie[LICZBA_KAN_RC_DO_STROJENIA_PID];	//wartość bieżacych parametrów używanych do strojenia PID
 	uRozne_t uRozne;		//unia różnych typów danych ogólnego zastosowania
-	uint8_t chRozmiar;		//rozmiar danych przekazywanych w polu fRozne
+	uint8_t cRozmiar;		//rozmiar danych przekazywanych w polu fRozne
 	uint16_t sAdres;		//adres danych przekazywanych w polu fRozne
 	stGnss_t stGnss1;		//struktura danych GNSS1
 	stPID_t stPID[LICZBA_PID];	//tablica struktur danych regulatorów PID
@@ -217,14 +217,14 @@ typedef struct
 	uint8_t cJakoscUpLinkuRC1;	//procentowo przedstawiona jakość łącza do aktywnego odbiornika
 	uint8_t cJakoscUpLinkuRC2;	//procentowo przedstawiona jakość łącza do aktywnego odbiornika
 	uint8_t cJakoscDnLinkuRC;	//procentowo przedstawiona jakość łącza z aktywnego odbiornika (telemetrii)
-	uint8_t chTrybLotu;		//tryb lotu jako zestaw bitów określających funkcjonalności realizowane w danym czasie
-	uint8_t chNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
+	uint8_t cTrybLotu;		//tryb lotu jako zestaw bitów określających funkcjonalności realizowane w danym czasie
+	uint8_t cNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
 	uint8_t cBladPetliGlownej;
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
 	uint32_t nBrakCzujnika;		//zestaw flag obecnosci czujników   ZROBIC: przenieść do Różne
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji   ZROBIC: przenieść do Różne
-	uint8_t chWykonajPolecenie;	//numer polecenia do wykonania przez CM7
-	uint8_t chPotwierdzenieWykonania;	//potwierdza wykonanie polecenia przysłanego przez CM7
+	uint8_t cWykonajPolecenie;	//numer polecenia do wykonania przez CM7
+	uint8_t cPotwierdzenieWykonania;	//potwierdza wykonanie polecenia przysłanego przez CM7
 	uint32_t ndT;
 	stBSP_t stBSP;				//struktura zawierajaca syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
 	stSzybkieIMU stSzybkieIMU;	//struktura zawierajaca bufor kołowy i indeks szybkich danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
@@ -235,10 +235,10 @@ typedef struct
 typedef struct
 {
 	uint8_t cWyborOdbiornikaRC;		//wybór źródła danych odbiornika RC dla stWymianyCM4.sKanalRC[]: RC1, RC2, oba zdywersyfikowane
-	uint8_t chWykonajPolecenie;		//numer polecenia do wykonania przez CM4
-	uint8_t chPotwierdzenieWykonania;	//potwierdza wykonanie polecenia przysłanego przez CM4
+	uint8_t cWykonajPolecenie;		//numer polecenia do wykonania przez CM4
+	uint8_t cPotwierdzenieWykonania;	//potwierdza wykonanie polecenia przysłanego przez CM4
 	uRozne_t uRozne;				//unia różnych typów danych ogólnego zastosowania
-	uint8_t chRozmiar;				//rozmiar danych przekazywanych w polu fRozne
+	uint8_t cRozmiar;				//rozmiar danych przekazywanych w polu fRozne
 	uint16_t sAdres;				//adres danych przekazywanych w polu fRozne
 } stWymianyCM7_t;
 

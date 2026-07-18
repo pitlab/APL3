@@ -30,19 +30,18 @@ extern RTC_DateTypeDef stDate;
 struct current_font cfont;
 extern uint8_t MidFont[];
 extern uint8_t BigFont[];
-extern uint8_t chRysujRaz;
-extern char chNapis[];
-extern struct _statusDotyku statusDotyku;
-extern uint8_t chMenuSelPos, chStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
-static uint8_t chOstatniCzas;
-extern volatile uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-extern uint8_t chPort_exp_odbierany[];
-uint8_t chStatusPolaczenia;		//każde 2 kolejne bity oznaczają status połaczenia: LPUART, USB, TCP, RTSP
-static uint8_t chPoprzedniStatusPolaczenia = 0xFF;	//sluży do wykrycia zmiany statusu
-uint8_t chOrientacja;
+extern uint8_t cRysujRaz;
+extern char cNapis[];
+extern stStatusDotyku_t stStatusDotyku;
+uint8_t cMenuSelPos, cStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
+static uint8_t cOstatniCzas;
+extern volatile uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+extern uint8_t cPort_exp_odbierany[];
+uint8_t cStatusPolaczenia;		//każde 2 kolejne bity oznaczają status połaczenia: LPUART, USB, TCP, RTSP
+static uint8_t cPoprzedniStatusPolaczenia = 0xFF;	//sluży do wykrycia zmiany statusu
+uint8_t cOrientacja;
 uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
-extern uint8_t chKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
-extern uint8_t chTlo666[3];		//kolory tła w formacie RGB 6-6-6
+extern uint8_t cKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
 
 
 
@@ -56,12 +55,13 @@ extern uint8_t chTlo666[3];		//kolory tła w formacie RGB 6-6-6
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 {
-	uint8_t chStarySelPos;
+	uint8_t cStarySelPos;
 	uint8_t chRząd;
 	uint16_t x, x2, y;	//pomocnicze współrzędne ekranowe
 	uint8_t cBłąd = BLAD_OK;
+	uint8_t cStatus;
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
 		cBłąd |= BelkaTytulu(tytul);		//rysuje belkę tytułu ekranu
 		RysujProstokatWypelniony(0, MENU_NAG_WYS, DISP_X_SIZE, DISP_Y_SIZE - MENU_PASOP_WYS - MENU_NAG_WYS, CZARNY);	//czyści ekran
@@ -83,37 +83,37 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 
 				setColor(SZARY60);
 				x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
-				strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
-				cBłąd |= RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
+				strcpy(cNapis, menu[m*MENU_KOLUMNY+n].chOpis);
+				cBłąd |= RysujNapis(cNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 			}
 		}
-		chPoprzedniStatusPolaczenia = 0xFF;	//wymuś przerysowanie statusu połączenia
+		cPoprzedniStatusPolaczenia = 0xFF;	//wymuś przerysowanie statusu połączenia
 	}
 
 	//sprawdź czy jest naciskany ekran
-	if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) || chRysujRaz)
+	if ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) || cRysujRaz)
 	{
-		chStarySelPos = chMenuSelPos;
+		cStarySelPos = cMenuSelPos;
 
-		if (statusDotyku.sY < (DISP_Y_SIZE - MENU_NAG_WYS)/2)	//czy naciśniety górny rząd
+		if (stStatusDotyku.sY < (DISP_Y_SIZE - MENU_NAG_WYS)/2)	//czy naciśniety górny rząd
 			chRząd = 0;
 		else	//czy naciśniety dolny rząd
 			chRząd = 1;
 
 		for (uint8_t n=0; n<MENU_KOLUMNY; n++)
 		{
-			if ((statusDotyku.sX > n*(DISP_X_SIZE / MENU_KOLUMNY)) && (statusDotyku.sX < (n+1)*(DISP_X_SIZE / MENU_KOLUMNY)))
-				chMenuSelPos = chRząd * MENU_KOLUMNY + n;
+			if ((stStatusDotyku.sX > n*(DISP_X_SIZE / MENU_KOLUMNY)) && (stStatusDotyku.sX < (n+1)*(DISP_X_SIZE / MENU_KOLUMNY)))
+				cMenuSelPos = chRząd * MENU_KOLUMNY + n;
 		}
 
-		if (chStarySelPos != chMenuSelPos)	//zamaż tylko gdy stara ramka jest inna od wybranej
+		if (cStarySelPos != cMenuSelPos)	//zamaż tylko gdy stara ramka jest inna od wybranej
 		{
 			//zamaż starą ramkę kolorem nieaktywnym
 			for (uint8_t m=0; m<MENU_WIERSZE; m++)
 			{
 				for (uint8_t n=0; n<MENU_KOLUMNY; n++)
 				{
-					if (chStarySelPos == m*MENU_KOLUMNY+n)
+					if (cStarySelPos == m*MENU_KOLUMNY+n)
 					{
 						//licz współrzedne środka ikony
 						x = (DISP_X_SIZE /(2*MENU_KOLUMNY)) + n * (DISP_X_SIZE / MENU_KOLUMNY);
@@ -122,8 +122,8 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 						RysujProstokatZaokraglony(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
 						setColor(SZARY60);
 						x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
-						strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
-						cBłąd |= RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
+						strcpy(cNapis, menu[m*MENU_KOLUMNY+n].chOpis);
+						cBłąd |= RysujNapis(cNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 					}
 				}
 			}
@@ -135,40 +135,40 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 		{
 			for (uint8_t n=0; n<MENU_KOLUMNY; n++)
 			{
-				if (chMenuSelPos == m*MENU_KOLUMNY+n)
+				if (cMenuSelPos == m*MENU_KOLUMNY+n)
 				{
 					//licz współrzedne środka ikony
 					x = (DISP_X_SIZE/(2*MENU_KOLUMNY)) + n * (DISP_X_SIZE/MENU_KOLUMNY);
 					y = ((DISP_Y_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/(2*MENU_WIERSZE)) + m * ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS)/MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
-					if  (statusDotyku.chFlagi == DOTYK_DOTKNIETO)	//czy naciśnięty ekran
+					if  (stStatusDotyku.chFlagi == DOTYK_DOTKNIETO)	//czy naciśnięty ekran
 						setColor(MENU_RAM_WYB);
 					else
 						setColor(MENU_RAM_AKT);
 					RysujProstokatZaokraglony(x-MENU_ICO_DLG/2, y-MENU_ICO_WYS/2-2, x+MENU_ICO_DLG/2+2, y+MENU_ICO_WYS/2);
 					setColor(SZARY80);
 					x2 = FONT_SLEN * strlen(menu[m*MENU_KOLUMNY+n].chOpis);
-					strcpy(chNapis, menu[m*MENU_KOLUMNY+n].chOpis);
-					cBłąd |= RysujNapis(chNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
+					strcpy(cNapis, menu[m*MENU_KOLUMNY+n].chOpis);
+					cBłąd |= RysujNapis(cNapis, x-x2/2, y+MENU_ICO_WYS/2+MENU_OPIS_WYS);
 				}
 			}
 		}
 		//rysuj pasek podpowiedzi
-		if ((chStarySelPos != chMenuSelPos) || chRysujRaz)
+		if ((cStarySelPos != cMenuSelPos) || cRysujRaz)
 		{
 			setColor(MENU_RAM_AKT);
 			setBackColor(SZARY20);
-			strcpy(chNapis, menu[chMenuSelPos].chPomoc);
-			cBłąd |= RysujNapis(chNapis, DW_SPACE, DISP_Y_SIZE - 2 * (DW_SPACE - FONT_SH));
+			strcpy(cNapis, menu[cMenuSelPos].chPomoc);
+			cBłąd |= RysujNapis(cNapis, DW_SPACE, DISP_Y_SIZE - 2 * (DW_SPACE - FONT_SH));
 			setBackColor(CZARNY);
-			chRysujRaz = 0;
+			cRysujRaz = 0;
 		}
 	}
 
 	//czy był naciśniety enkoder lub ekran
-	if (statusDotyku.chFlagi & DOTYK_DOTKNIETO)
+	if (stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
 	{
-		*cPozycjaMenu = menu[chMenuSelPos].chMode;
-		statusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;	//kasuj flagę naciśnięcia ekranu
+		*cPozycjaMenu = menu[cMenuSelPos].chMode;
+		stStatusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;	//kasuj flagę naciśnięcia ekranu
 		DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//odtwórz komunikat audio przycisku
 		return cBłąd;
 	}
@@ -176,7 +176,7 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 
 	//rysuj czas
 	PobierzDateCzas(&stDate, &stTime);
-	if (stTime.Seconds != chOstatniCzas)
+	if (stTime.Seconds != cOstatniCzas)
 	{
 		extern uint8_t chStanSynchronizacjiCzasu;
 		if (chStanSynchronizacjiCzasu == (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
@@ -190,23 +190,21 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 		}
 
 		setBackColor(SZARY20);
-		sprintf(chNapis, "%02d:%02d:%02d", stTime.Hours,  stTime.Minutes,  stTime.Seconds);
-		cBłąd |= RysujNapis(chNapis, DISP_X_SIZE - 8*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
-		chOstatniCzas = stTime.Seconds;
+		sprintf(cNapis, "%02d:%02d:%02d", stTime.Hours,  stTime.Minutes,  stTime.Seconds);
+		cBłąd |= RysujNapis(cNapis, DISP_X_SIZE - 8*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+		cOstatniCzas = stTime.Seconds;
 		setBackColor(CZARNY);
 	}
 
 	//odśwież status połączenia jeżeli się zmieniło
-	uint8_t chStatus;
-
 	setBackColor(SZARY20);
 	for (uint8_t n=0; n<4; n++)		//rozpatruj każde połaczenie osobno
 	{
-		chStatus = (chStatusPolaczenia >> (2*n)) & 0x03;		//wyodrebnij bity danego połączenia
-		if (chStatus != ((chPoprzedniStatusPolaczenia >> (2*n)) & 0x03))
+		cStatus = (cStatusPolaczenia >> (2*n)) & 0x03;		//wyodrebnij bity danego połączenia
+		if (cStatus != ((cPoprzedniStatusPolaczenia >> (2*n)) & 0x03))
 		{
 			//Połączenie może mieć max 4 stany: 0=brak gotowości do odbioru, 1=gotowe do odbioru, 2=połączone, 3=aktywnie transmituje lub odbiera
-			switch (chStatus)
+			switch (cStatus)
 			{
 			case 0: setColor(SZARY60);	break;
 			case 1: setColor(ZOLTY);	break;
@@ -224,18 +222,18 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 			}
 		}
 	}
-	chPoprzedniStatusPolaczenia = chStatusPolaczenia;
+	cPoprzedniStatusPolaczenia = cStatusPolaczenia;
 
 	//status karty
-	if ((chPort_exp_odbierany[0] & EXP04_LOG_CARD_DET) == 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty, aktywny niski
+	if ((cPort_exp_odbierany[0] & EXP04_LOG_CARD_DET) == 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty, aktywny niski
 	{
-		if (chStatusRejestratora & STATREJ_WLACZONY)
+		if (cStatusRejestratora & STATREJ_WLACZONY)
 		{
 			setColor(ZIELONY);
 			cBłąd |= RysujNapis("SD Loguje", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		}
 		else
-		if (chStatusRejestratora & STATREJ_FAT_GOTOWY)
+		if (cStatusRejestratora & STATREJ_FAT_GOTOWY)
 		{
 			setColor(ZOLTY);
 			cBłąd |= RysujNapis("SD Gotowe", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
@@ -256,8 +254,8 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 	size_t stosWHM = uxTaskGetStackHighWaterMark(NULL);
 	size_t freeHeap = xPortGetFreeHeapSize();
 	setColor(CYJAN);
-	sprintf(chNapis, " %d/%d ", freeHeap, stosWHM);
-	cBłąd |= RysujNapis(chNapis, DISP_X_SIZE - 39*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+	sprintf(cNapis, " %d/%d ", freeHeap, stosWHM);
+	cBłąd |= RysujNapis(cNapis, DISP_X_SIZE - 39*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 	setBackColor(CZARNY);
 	return cBłąd;
 }
@@ -335,9 +333,9 @@ uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* 
 	RysujBitmape888(0, 0, sSzerokosc, sWysokosc, chObraz);
 #endif
 	//nCzas = MinalCzas(nCzas);
-	//sprintf(chNapis, "%.2f fps, kompr: %.1f", 1.0/(nCzas/1000000.0), (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);
+	//sprintf(cNapis, "%.2f fps, kompr: %.1f", 1.0/(nCzas/1000000.0), (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);
 	//setColor(ZOLTY);
-	//RysujNapis(chNapis, 0, DISP_Y_SIZE - FONT_BH);
+	//RysujNapis(cNapis, 0, DISP_Y_SIZE - FONT_BH);
 	return cBłąd;
 }
 
@@ -478,10 +476,10 @@ void RysujProstokatZaokraglony(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y
 	}
 	if ((x2-x1) > 4 && (y2-y1) > 4)
 	{
-		RysujPunkt(x1+1, y1+1, chKolor666);
-		RysujPunkt(x2-1, y1+1, chKolor666);
-		RysujPunkt(x1+1, y2-1, chKolor666);
-		RysujPunkt(x2-1, y2-1, chKolor666);
+		RysujPunkt(x1+1, y1+1, cKolor666);
+		RysujPunkt(x2-1, y1+1, cKolor666);
+		RysujPunkt(x1+1, y2-1, cKolor666);
+		RysujPunkt(x2-1, y2-1, cKolor666);
 
 		RysujLiniePozioma(x1+2, y1, x2-x1-4);
 		RysujLiniePozioma(x1+2, y2, x2-x1-4);
@@ -546,7 +544,7 @@ uint8_t RysujNapis(char *str, uint16_t x, uint16_t y)
 
 	stl = strlen((char*)str);
 
-	if (chOrientacja == POZIOMO)
+	if (cOrientacja == POZIOMO)
 	{
 	if (x == RIGHT)
 		x = (DISP_X_SIZE+1)-(stl*cfont.x_size);
@@ -599,7 +597,7 @@ void RysujNapiswRamce(char *str, uint16_t x, uint16_t y, uint16_t sx, uint16_t s
 			dlugoscWiersza = dlugoscNapisu;
 
 
-		//if (chOrientacja == POZIOMO)		//na razie obsługuję tylko poziomo
+		//if (cOrientacja == POZIOMO)		//na razie obsługuję tylko poziomo
 		{
 			if (x == RIGHT)
 				x = (DISP_X_SIZE - sx + 1) - (dlugoscWiersza * cfont.x_size);

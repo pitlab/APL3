@@ -17,8 +17,8 @@ float fReal, fImag;
 uint16_t sMnozPalety;
 uint8_t chDemoMode = START_FRAKTAL;	//zacznij od rotacji palety Mandelbrota
 extern uint8_t chLiczIter;		//licznik iteracji fraktala
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) chBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
-extern char chNapis[100];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) cBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
+extern char cNapis[100];
 extern uint8_t MidFont[];
 
 
@@ -114,50 +114,50 @@ void FraktalTest(uint8_t chTyp)
 	nCzas = PobierzCzasT6();
 	switch (chTyp)
 	{
-	case 0:	GenerateJulia(DISP_X_SIZE, DISP_Y_SIZE, 135, fReal, fImag, sMnozPalety, chBuforLCD);
+	case 0:	GenerateJulia(DISP_X_SIZE, DISP_Y_SIZE, 135, fReal, fImag, sMnozPalety, cBuforLCD);
 		nCzas = MinalCzas(nCzas);
-		sprintf(chNapis, "Julia: t=%.2fms, c=%.3f ", nCzas/1000.0, fImag);
+		sprintf(cNapis, "Julia: t=%.2fms, c=%.3f ", nCzas/1000.0, fImag);
 		fImag -= 0.002;
 		break;
 
 			//cały fraktal - rotacja palety
-	case 1: GenerateMandelbrot(fX, fY, fZoom, 30, sMnozPalety, chBuforLCD);
+	case 1: GenerateMandelbrot(fX, fY, fZoom, 30, sMnozPalety, cBuforLCD);
 		nCzas = MinalCzas(nCzas);
-		sprintf(chNapis, "Mandelbrot: t=%.2fms z=%.1f, p=%d", nCzas/1000.0, fZoom, sMnozPalety);
+		sprintf(cNapis, "Mandelbrot: t=%.2fms z=%.1f, p=%d", nCzas/1000.0, fZoom, sMnozPalety);
 		sMnozPalety += 0x1042;
 		break;
 
 			//dolina konika x=-0,75, y=0,1
-	case 2: GenerateMandelbrot(fX, fY, fZoom, 30, sMnozPalety, chBuforLCD);
+	case 2: GenerateMandelbrot(fX, fY, fZoom, 30, sMnozPalety, cBuforLCD);
 		nCzas = MinalCzas(nCzas);
-		sprintf(chNapis, "Mandelbrot: t=%.2fms z=%.1f, p=%d", nCzas/1000.0, fZoom, sMnozPalety);
+		sprintf(cNapis, "Mandelbrot: t=%.2fms z=%.1f, p=%d", nCzas/1000.0, fZoom, sMnozPalety);
 		fZoom /= 0.9;
 		break;
 
 			//dolina słonia x=0,25-0,35, y=0,05, zoom=-0,6..-40
-	case 3: GenerateMandelbrot(fX, fY, fZoom, 30, sMnozPalety, chBuforLCD);
+	case 3: GenerateMandelbrot(fX, fY, fZoom, 30, sMnozPalety, cBuforLCD);
 		nCzas = MinalCzas(nCzas);
-		sprintf(chNapis, "Mandelbrot: t=%.2fms z=%.1f, p=%d", nCzas/1000.0, fZoom, sMnozPalety);
+		sprintf(cNapis, "Mandelbrot: t=%.2fms z=%.1f, p=%d", nCzas/1000.0, fZoom, sMnozPalety);
 		fZoom /= 0.9;
 		break;
 	}
 #ifdef LCD_RPI35B
 	//RysujBitmape2(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wywyła większymi paczkami - zła kolejność ale szybciej
-	RysujBitmape(0, 0, DISP_X_SIZE, DISP_Y_SIZE, (uint16_t*)chBuforLCD);		//wysyła bajty parami we właściwej kolejności
+	RysujBitmape(0, 0, DISP_X_SIZE, DISP_Y_SIZE, (uint16_t*)cBuforLCD);		//wysyła bajty parami we właściwej kolejności
 	//RysujBitmape3(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wyświetla bitmapę po 4 piksele z rotacją bajtów w wewnętrznym buforze. Dobre kolory i trochę szybciej niż po jednym pikselu
 	//RysujBitmape4(0, 0, DISP_X_SIZE, DISP_Y_SIZE, sBuforLCD);		//wyświetla bitmapę po 4 piksele przez DMA z rotacją bajtów w wewnętrznym buforze - nie działa
 #endif
 #ifdef LCD_ILI9488
 	nCzasRysowania = PobierzCzasT6();
-	RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, chBuforLCD);
+	RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, cBuforLCD);
 	nCzasRysowania = MinalCzas(nCzasRysowania);
 #endif
 	UstawCzcionke(MidFont);
 	setColor(ZIELONY);
-	RysujNapis(chNapis, 0, 304);
+	RysujNapis(cNapis, 0, 304);
 
-	sprintf(chNapis, "trys=%.2fms", nCzasRysowania/1000.0);
-	RysujNapis(chNapis, 0, 290);
+	sprintf(cNapis, "trys=%.2fms", nCzasRysowania/1000.0);
+	RysujNapis(cNapis, 0, 290);
 }
 
 

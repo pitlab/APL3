@@ -46,7 +46,7 @@ uint8_t InicjujADC(void)
 	}
 
 	//wyślij polecenie do CM7 odczytania współczynników kalibracyjnych temperatury, gdyż tylko CM7 ma do nich dostęp
-	uDaneCM4.dane.chWykonajPolecenie = POL4_CZYTAJ_KALIBR_TEMP;
+	uDaneCM4.dane.cWykonajPolecenie = POL4_CZYTAJ_KALIBR_TEMP;
 
 	cBłąd  = HAL_ADCEx_Calibration_Start(&hadc2, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
 	cBłąd |= HAL_ADCEx_Calibration_Start(&hadc3, ADC_CALIB_OFFSET, ADC_SINGLE_ENDED);
@@ -221,7 +221,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 				uDaneCM4.dane.fTemperCPU = (float)(TEMPSENSOR_CAL2_TEMP - TEMPSENSOR_CAL1_TEMP) / (sTS_CAL2 - sTS_CAL1)  * (nSkorygowanaTemparatura - sTS_CAL1) + TEMPSENSOR_CAL1_TEMP;	//Vsense - temperatura
 			}
 			else
-				uDaneCM4.dane.chWykonajPolecenie = POL4_CZYTAJ_KALIBR_TEMP;
+				uDaneCM4.dane.cWykonajPolecenie = POL4_CZYTAJ_KALIBR_TEMP;
 			break;
 		default: break;
 		}

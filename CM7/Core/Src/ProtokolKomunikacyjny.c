@@ -62,7 +62,7 @@ extern uint16_t sBuforKamery[ROZM_BUF16_KAM];
 extern UART_HandleTypeDef hlpuart1;
 extern DMA_HandleTypeDef hdma_lpuart1_tx;
 extern UART_HandleTypeDef huart7;
-extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+extern volatile uint8_t cCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 extern void CzytajPamiecObrazu(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t* bufor);
 extern void Error_Handler(void);
 extern uint8_t chRozmiarRamkiNadTCP;		//rozmiar ramki nadawczej TCP. Jest zerowany po wysłaniu i ustawioany gdy gotowy do wysyłki
@@ -129,21 +129,21 @@ uint8_t InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 uint8_t ObslugaWatkuOdbiorczegoLPUART1(void)
 {
 	uint8_t cBłąd = BLAD_NIC_DO_ROBOTY;  //domyślny błąd oznaczajacy że nie ma nic do wysłania
-	extern uint8_t chStatusPolaczenia;
+	extern uint8_t cStatusPolaczenia;
 
 	while (sWskNap != sWskOpr)
 	{
-		chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
+		cStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
 		cBłąd = AnalizujDaneKom(chBuforKomOdb[sWskOpr], INTERF_UART);
 		if (cBłąd)
-			chCzasSwieceniaLED[LED_CZER] = 5;
+			cCzasSwieceniaLED[LED_CZER] = 5;
 
 		sWskOpr++;
 		//zapętlenie wskaźnika bufora kołowego
 		if (sWskOpr >= ROZMIAR_BUF_ANALIZY_ODB)
 			sWskOpr = 0;
 		chTimeoutOdbioru = 5;	//x osDelay(2); [ms] w głównym wątku
-		chStatusPolaczenia &= ~(STAT_POL_MASKA_OTW << STAT_POL_UART);	//sygnalizuj powrót do stanu otwartości
+		cStatusPolaczenia &= ~(STAT_POL_MASKA_OTW << STAT_POL_UART);	//sygnalizuj powrót do stanu otwartości
 	}
 
 	//po upływie timeoutu resetuj stan protokołu aby następną ramkę zaczął dekodować od nagłówka
@@ -159,7 +159,7 @@ uint8_t ObslugaWatkuOdbiorczegoLPUART1(void)
 	if ((hlpuart1.Instance->CR1 & USART_CR1_IDLEIE) == 0)
 	{
 		InicjalizacjaWatkuOdbiorczegoLPUART1();
-		chCzasSwieceniaLED[LED_CZER] = 5;
+		cCzasSwieceniaLED[LED_CZER] = 5;
 	}
 	return cBłąd;
 }
@@ -178,8 +178,8 @@ void WatekOdbiorczyLPUART1(void *argument)
 	uint8_t cBłąd;
 	uint8_t chDanychDoWysłania;
 	uint8_t chCzasDrzemki;
-	extern uint8_t chStatusPolaczenia;
-	uint8_t chStatusUART;
+	extern uint8_t cStatusPolaczenia;
+	uint8_t cStatusUART;
 
 	cBłąd = InicjalizacjaWatkuOdbiorczegoLPUART1();
 	InicjalizacjaTelemetrii();
@@ -187,8 +187,8 @@ void WatekOdbiorczyLPUART1(void *argument)
 
 	if (cBłąd)
 	{
-		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
-		chStatusPolaczenia |= (STAT_POL_NIEAKTYWNY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
+		cStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
+		cStatusPolaczenia |= (STAT_POL_NIEAKTYWNY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
 	}
 	else
 	while(1)
@@ -219,12 +219,12 @@ void WatekOdbiorczyLPUART1(void *argument)
 				chCzasDrzemki = 10;		//kwant czasu telemetrii 100Hz to 10ms
 			osDelay(chCzasDrzemki);
 		}
-		chStatusUART |= chStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);
-		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
-		if (chStatusUART == (STAT_POL_OTWARTY << STAT_POL_UART))	//jeżeli był ustawiony bit transmisji lub otwartości
-			chStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);	//to wróć do stanu otwartego łącza
+		cStatusUART |= cStatusPolaczenia & (STAT_POL_MASKA << STAT_POL_UART);
+		cStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
+		if (cStatusUART == (STAT_POL_OTWARTY << STAT_POL_UART))	//jeżeli był ustawiony bit transmisji lub otwartości
+			cStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);	//to wróć do stanu otwartego łącza
 		else
-			chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
+			cStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_UART);	//a jeżeli nie to do stanu gotowosci
 	}
 }
 
@@ -305,7 +305,7 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
 		//HAL_UART_Receive_DMA(&hlpuart1, chBuforOdbDMA, ILOSC_ODBIORU_DMA);
 	}
-	chCzasSwieceniaLED[LED_CZER] = 5;
+	cCzasSwieceniaLED[LED_CZER] = 5;
 }
 
 

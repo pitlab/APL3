@@ -26,27 +26,27 @@ int16_t __attribute__ ((aligned (16))) __attribute__((section(".SekcjaDRAM"))) s
 //int16_t __attribute__ ((aligned (16))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforPapuga[ROZMIAR_BUFORA_PAPUGI];
 //int16_t __attribute__ ((aligned (16))) __attribute__((section(".SekcjaZewnSRAM"))) sBuforAudioWe[2][2*ROZMIAR_BUFORA_AUDIO_WE];
 static volatile int16_t sBuforAudioWy[ROZMIAR_BUFORA_AUDIO];	//bufor komunikatów wychodzących
-uint8_t chWskaznikBuforaAudio;
+uint8_t cWskaznikBuforaAudio;
 static volatile int16_t sBuforTonuWario[ROZMIAR_BUFORA_TONU];	//bufor do przechowywania podstawowego tonu wario
 static volatile int16_t sBuforNowegoTonuWario[ROZMIAR_BUFORA_TONU];	//bufor nowego tonu wario, który ma się zsynchronizować z podstawowym buforem w chwili przejścia przez zero aby uniknąć zakłóceń
-static uint8_t chJestNowyTon;			//flaga informująca o tym że pojawił się nowy ton i trzeba go synchronicznie przepisać to podstawowego bufora tonu
-static uint8_t chGlosnikJestZajęty;		//flaga informująca że zasób "głośnika" jest zajety odtwarzaniem próbki
+static uint8_t cJestNowyTon;			//flaga informująca o tym że pojawił się nowy ton i trzeba go synchronicznie przepisać to podstawowego bufora tonu
+static uint8_t cGlosnikJestZajęty;		//flaga informująca że zasób "głośnika" jest zajety odtwarzaniem próbki
 static uint16_t sWskTonu;				//wskazuje na bieżącą próbkę w tablicy tonu
 static uint16_t sRozmiarTonu;			//długość tablicy pełnego sinusa
 static uint16_t sRozmiarNowegoTonu;		//długość tablicy nowego tonu do zsynchronizowania się z sRozmiarTonu w chwili przejscia przez zero
 static uint32_t nPrzerywaczTonu;		//robi przerwy w dźwięku sygnalizacji wznoszenia
 static uint16_t sAmpl1Harm = AMPLITUDA_1HARM;			//amplituda pierwszej harmonicznej sygnału
 static uint16_t sAmpl3Harm = AMPLITUDA_3HARM;			//amplituda trzeciej harmonicznej sygnału
-uint8_t chKolejkaKomunkatow[ROZM_KOLEJKI_KOMUNIKATOW];	//bufor kołowy do przechowywania próbek głosu do wymówienia
-static uint8_t chWskNapKolKom, chWskOprKolKom;		//wskaźniki napełniania i opróżniania kolejki komunikatów audio
-uint8_t chNumerTonu = 0xFF;			//ton domyślnie wyłączony
+uint8_t cKolejkaKomunkatow[ROZM_KOLEJKI_KOMUNIKATOW];	//bufor kołowy do przechowywania próbek głosu do wymówienia
+static uint8_t cWskNapKolKom, cWskOprKolKom;		//wskaźniki napełniania i opróżniania kolejki komunikatów audio
+uint8_t cNumerTonu = 0xFF;			//ton domyślnie wyłączony
 static uint32_t nAdresProbki;		//adres w pamieci flash skąd pobierany jest kolejny fragment próbki audio
 uint32_t nRozmiarProbki;			//pozostały do pobrania rozmiar próbki audio
 uint8_t chGlosnosc;					//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI_AUDIO
 
 extern SAI_HandleTypeDef hsai_BlockB2;
-extern const uint8_t chAdres_expandera[LICZBA_EXP_SPI_ZEWN];
-extern uint8_t chPort_exp_wysylany[];
+extern const uint8_t cAdres_expandera[LICZBA_EXP_SPI_ZEWN];
+extern uint8_t cPort_exp_wysylany[];
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -64,14 +64,14 @@ uint8_t InicjujAudio(void)
 	uint8_t cBłąd = BLAD_OK;
 
 	//domyslnie ustaw wejscia ShutDown tak aby aktywny był wzmacniacz
-	//chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
-	//chPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włącznik ShutDown wzmacniacza audio
+	//cPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
+	//cPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - włącznik ShutDown wzmacniacza audio
 	chGlosnosc = 50;
-	chWskNapKolKom = chWskOprKolKom = 0;
+	cWskNapKolKom = cWskOprKolKom = 0;
 	nZainicjowanoCM7 |= INIT_AUDIO;
 
 	//ustaw mikrofon aby InicjujOdtwarzanieDzwieku() przełaczyło na wzmacniacz
-	chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;
+	cPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;
 	cBłąd = InicjujOdtwarzanieDzwieku();
 	if (cBłąd)
 		return cBłąd;
@@ -91,13 +91,13 @@ uint8_t ObslugaWymowyKomunikatu(void)
 {
 	uint8_t cBłąd;
 
-	if ((chWskNapKolKom == chWskOprKolKom) || chGlosnikJestZajęty || ((nZainicjowanoCM7 & INIT_AUDIO) != INIT_AUDIO))
+	if ((cWskNapKolKom == cWskOprKolKom) || cGlosnikJestZajęty || ((nZainicjowanoCM7 & INIT_AUDIO) != INIT_AUDIO))
 		return BLAD_OK;		//nie ma nic do wymówienia lub nie skonfigurowane
 
 	//pobierz kolejną próbkę do wymówienia i zacznij wymowę
-	cBłąd = OdtworzProbkeAudioZeSpisu(chKolejkaKomunkatow[chWskOprKolKom++]);
-	if (chWskOprKolKom >= ROZM_KOLEJKI_KOMUNIKATOW)
-		chWskOprKolKom = 0;
+	cBłąd = OdtworzProbkeAudioZeSpisu(cKolejkaKomunkatow[cWskOprKolKom++]);
+	if (cWskOprKolKom >= ROZM_KOLEJKI_KOMUNIKATOW)
+		cWskOprKolKom = 0;
 
 	return cBłąd;
 }
@@ -151,16 +151,16 @@ uint8_t PrzepiszProbkeDoDRAM(uint8_t chNrProbki)
 uint8_t OdtworzProbkeAudio(uint32_t nAdres, uint32_t nRozmiar)
 {
 	uint8_t cBłąd;
-	extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+	extern volatile uint8_t cCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 
 	if ((nAdres < ADR_POCZATKU_KOM_AUDIO) || (nAdres > ADR_KONCA_KOM_AUDIO))
 	{
-		chCzasSwieceniaLED[LED_CZER] += 20;	//włącz czerwoną na 2 sekundy
+		cCzasSwieceniaLED[LED_CZER] += 20;	//włącz czerwoną na 2 sekundy
 		if ((nAdres < POCZATEK_FLASH) || (nAdres > KONIEC_FLASH))	//jeżeli we flash programu to tylko sygnalizuj
 			return BLAD_BRAK_PROBKI_AUDIO;
 	}
 
-	chGlosnikJestZajęty = 1;		//zajęcie zasobu "głośnika"
+	cGlosnikJestZajęty = 1;		//zajęcie zasobu "głośnika"
 	nAdresProbki   = nAdres;	//przepisz do zmiennych globalnych
 	nRozmiarProbki = nRozmiar;
 	if (nRozmiar > ROZMIAR_BUFORA_AUDIO)
@@ -191,7 +191,7 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 	uint32_t nRozmiar;
 	int16_t sProbka;
 
-	if (chNumerTonu < LICZBA_TONOW_WARIO)		//jeżeli generuje ton
+	if (cNumerTonu < LICZBA_TONOW_WARIO)		//jeżeli generuje ton
 		nRozmiar = ROZMIAR_BUFORA_AUDIO/2;		//to zawsze pracuj na pełnym buforze
 	else
 	{
@@ -212,10 +212,10 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 		}
 
 
-		if (chNumerTonu < LICZBA_TONOW_WARIO)		//czy jest ton
+		if (cNumerTonu < LICZBA_TONOW_WARIO)		//czy jest ton
 		{
-			if (chNumerTonu < LICZBA_TONOW_WARIO/2)	//przerywanie dźwięku dla wyższych tonów
-				nPrzerywaczTonu += LICZBA_TONOW_WARIO - chNumerTonu;
+			if (cNumerTonu < LICZBA_TONOW_WARIO/2)	//przerywanie dźwięku dla wyższych tonów
+				nPrzerywaczTonu += LICZBA_TONOW_WARIO - cNumerTonu;
 			else
 				nPrzerywaczTonu = 0;
 
@@ -231,9 +231,9 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 				if (sWskTonu >= sRozmiarTonu)
 				{
 					sWskTonu = 0;
-					if (chJestNowyTon)	//jeżeli pojawił się nowy ton, to przepisz go synchronicznie do bufora tonu teraz kiedy jesteśmy w zerze na początku okresu
+					if (cJestNowyTon)	//jeżeli pojawił się nowy ton, to przepisz go synchronicznie do bufora tonu teraz kiedy jesteśmy w zerze na początku okresu
 					{
-						chJestNowyTon = 0;
+						cJestNowyTon = 0;
 						for (uint16_t x=0; x<sRozmiarNowegoTonu; x++)
 							sBuforTonuWario[x] = sBuforNowegoTonuWario[x];
 
@@ -249,8 +249,8 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 	//gdy nie ma nic do roboty to wyłącz
 	if (nRozmiarProbki <= 0)
 	{
-		chGlosnikJestZajęty = 0;		//zwolnienie zasobu
-		if (chNumerTonu >= LICZBA_TONOW_WARIO)
+		cGlosnikJestZajęty = 0;		//zwolnienie zasobu
+		if (cNumerTonu >= LICZBA_TONOW_WARIO)
 			HAL_SAI_DMAStop(&hsai_BlockB2);
 	}
 }
@@ -267,7 +267,7 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 	uint32_t nRozmiar;
 	int16_t sProbka;
 
-	if (chNumerTonu < LICZBA_TONOW_WARIO)		//jeżeli generuje ton
+	if (cNumerTonu < LICZBA_TONOW_WARIO)		//jeżeli generuje ton
 		nRozmiar = ROZMIAR_BUFORA_AUDIO/2;		//to zawsze pracuj na pełnym buforze
 	else
 	{
@@ -288,10 +288,10 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 			//nRozmiarProbki--;
 		}
 
-		if (chNumerTonu < LICZBA_TONOW_WARIO)		//czy jest ton
+		if (cNumerTonu < LICZBA_TONOW_WARIO)		//czy jest ton
 		{
-			if (chNumerTonu < LICZBA_TONOW_WARIO/2)	//przerywanie dźwięku dla wyższych tonów
-				nPrzerywaczTonu += LICZBA_TONOW_WARIO - chNumerTonu;
+			if (cNumerTonu < LICZBA_TONOW_WARIO/2)	//przerywanie dźwięku dla wyższych tonów
+				nPrzerywaczTonu += LICZBA_TONOW_WARIO - cNumerTonu;
 			else
 				nPrzerywaczTonu = 0;
 
@@ -307,9 +307,9 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 				if (sWskTonu >= sRozmiarTonu)
 				{
 					sWskTonu = 0;
-					if (chJestNowyTon)	//jeżeli pojawił się nowy ton, to przepisz go synchronicznie do bufora tonu teraz kiedy jesteśmy w zerze na początku okresu
+					if (cJestNowyTon)	//jeżeli pojawił się nowy ton, to przepisz go synchronicznie do bufora tonu teraz kiedy jesteśmy w zerze na początku okresu
 					{
-						chJestNowyTon = 0;
+						cJestNowyTon = 0;
 						for (uint16_t x=0; x<sRozmiarNowegoTonu; x++)
 							sBuforTonuWario[x] = sBuforNowegoTonuWario[x];
 
@@ -325,8 +325,8 @@ void HAL_SAI_TxCpltCallback(SAI_HandleTypeDef *hsai)
 	//gdy nie ma nic do roboty to wyłącz
 	if (nRozmiarProbki <= 0)
 	{
-		chGlosnikJestZajęty = 0;		//zwolnienie zasobu
-		if (chNumerTonu >= LICZBA_TONOW_WARIO)
+		cGlosnikJestZajęty = 0;		//zwolnienie zasobu
+		if (cNumerTonu >= LICZBA_TONOW_WARIO)
 			HAL_SAI_DMAStop(&hsai_BlockB2);
 	}
 }
@@ -342,12 +342,12 @@ uint8_t InicjujOdtwarzanieDzwieku(void)
 {
 	uint8_t cBłąd;
 
-	if (chPort_exp_wysylany[1] & EXP13_AUDIO_IN_SD)		//jeżeli aktywny jest mikrofon
+	if (cPort_exp_wysylany[1] & EXP13_AUDIO_IN_SD)		//jeżeli aktywny jest mikrofon
 	{
 		//Włącza wzmacniacz, wyłącza mikrofon
-		chPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - ShutDown wzmacniacza audio, aktywny niski
-		chPort_exp_wysylany[1] &= ~EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD  - ShutDown mikrofonu, aktywny niski
-		cBłąd = WyslijDaneExpandera(chAdres_expandera[1], chPort_exp_wysylany[1]);
+		cPort_exp_wysylany[1] |= EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - ShutDown wzmacniacza audio, aktywny niski
+		cPort_exp_wysylany[1] &= ~EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD  - ShutDown mikrofonu, aktywny niski
+		cBłąd = WyslijDaneExpandera(cAdres_expandera[1], cPort_exp_wysylany[1]);
 	}
 
 	hsai_BlockB2.Instance = SAI2_Block_B;
@@ -376,12 +376,12 @@ uint8_t InicjujRejestracjeDzwieku(void)
 {
 	uint8_t cBłąd;
 
-	if (chPort_exp_wysylany[1] & EXP14_AUDIO_OUT_SD)	//jeżeli aktywny jest wzmacniacz
+	if (cPort_exp_wysylany[1] & EXP14_AUDIO_OUT_SD)	//jeżeli aktywny jest wzmacniacz
 	{
 		//Włącza mikrofon wyłącza wzmacniacz
-		chPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - ShutDown mikrofonu, aktywny niski
-		chPort_exp_wysylany[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - ShutDown wzmacniacza audio, aktywny niski
-		cBłąd = WyslijDaneExpandera(chAdres_expandera[1], chPort_exp_wysylany[1]);
+		cPort_exp_wysylany[1] |= EXP13_AUDIO_IN_SD;	//AUDIO_IN_SD - ShutDown mikrofonu, aktywny niski
+		cPort_exp_wysylany[1] &= ~EXP14_AUDIO_OUT_SD;	//AUDIO_OUT_SD - ShutDown wzmacniacza audio, aktywny niski
+		cBłąd = WyslijDaneExpandera(cAdres_expandera[1], cPort_exp_wysylany[1]);
 	}
 	osDelay(10);	//czas na stabilizcję napięcia na mikrofonie
 
@@ -427,7 +427,7 @@ void UstawTon(uint8_t chNrTonu, uint8_t chGlosnosc)
 	uint16_t sWskBufora = 0;
 	//ustaw zmienne globalne
 	sRozmiarNowegoTonu = MIN_OKRES_TONU + SKOK_TONU * chNrTonu;
-	chJestNowyTon = 1;
+	cJestNowyTon = 1;
 
 	for (uint16_t n=0; n<sRozmiarNowegoTonu; n++)
 	{
@@ -436,7 +436,7 @@ void UstawTon(uint8_t chNrTonu, uint8_t chGlosnosc)
 		sBuforNowegoTonuWario[n] = (int16_t)((chGlosnosc * (sAmpl1Harm * sinf(2 * M_PI * n / sRozmiarNowegoTonu) + sAmpl3Harm * (sinf(6 * M_PI * n / sRozmiarNowegoTonu))))/ SKALA_GLOSNOSCI_TONU);
 	}
 
-	if (chNumerTonu >= LICZBA_TONOW_WARIO)		//jeżeli wcześniej nie generował tonu to napełnij obie połowy bufora audio, bo nie wiemy od której zacznie się odtwarzanie
+	if (cNumerTonu >= LICZBA_TONOW_WARIO)		//jeżeli wcześniej nie generował tonu to napełnij obie połowy bufora audio, bo nie wiemy od której zacznie się odtwarzanie
 	{
 		for (uint16_t n=0; n<ROZMIAR_BUFORA_AUDIO/2; n++)
 		{
@@ -450,7 +450,7 @@ void UstawTon(uint8_t chNrTonu, uint8_t chGlosnosc)
 			sBuforTonuWario[n] = sBuforNowegoTonuWario[n];
 
 	}
-	chNumerTonu = chNrTonu;
+	cNumerTonu = chNrTonu;
 	HAL_SAI_Transmit_DMA(&hsai_BlockB2, (uint8_t*)sBuforAudioWy, (uint16_t)ROZMIAR_BUFORA_AUDIO);
 }
 
@@ -463,7 +463,7 @@ void UstawTon(uint8_t chNrTonu, uint8_t chGlosnosc)
 ////////////////////////////////////////////////////////////////////////////////
 void ZatrzymajTon(void)
 {
-	chNumerTonu = 255;
+	cNumerTonu = 255;
 }
 
 
@@ -660,23 +660,23 @@ uint8_t PrzygotujKomunikat(uint8_t chTypKomunikatu, float fWartosc)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Dodaje kolejną próbkę do dużej kolejki komunikatów o rozmiarze ROZM_KOLEJKI_KOMUNIKATOW
-// Parametry: chNumerProbki - identyfikator próbki w spisie treści
+// Parametry: cNumerProbki - identyfikator próbki w spisie treści
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t DodajProbkeDoKolejki(uint8_t chNumerProbki)
+uint8_t DodajProbkeDoKolejki(uint8_t cNumerProbki)
 {
-	uint8_t chNapelnianie = chWskNapKolKom;
+	uint8_t cNapelnianie = cWskNapKolKom;
 
 	//sprawdź czy jest miejsce w kolejce
-	chNapelnianie++;
-	if (chNapelnianie >= ROZM_KOLEJKI_KOMUNIKATOW)
-		chNapelnianie = 0;
-	if (chNapelnianie == chWskOprKolKom)
+	cNapelnianie++;
+	if (cNapelnianie >= ROZM_KOLEJKI_KOMUNIKATOW)
+		cNapelnianie = 0;
+	if (cNapelnianie == cWskOprKolKom)
 		return BLAD_PELEN_BUF_KOM;
 
-	chKolejkaKomunkatow[chWskNapKolKom++] = chNumerProbki;
-	if (chWskNapKolKom >= ROZM_KOLEJKI_KOMUNIKATOW)
-			chWskNapKolKom = 0;
+	cKolejkaKomunkatow[cWskNapKolKom++] = cNumerProbki;
+	if (cWskNapKolKom >= ROZM_KOLEJKI_KOMUNIKATOW)
+			cWskNapKolKom = 0;
 
 	return BLAD_OK;
 }
@@ -686,25 +686,25 @@ uint8_t DodajProbkeDoKolejki(uint8_t chNumerProbki)
 ////////////////////////////////////////////////////////////////////////////////
 // Dodaje kolejną próbkę do małej kolejki komunikatów o definiowanym
 // Chodzi o to aby generujac dużą liczbę komunikatów do wymówienia nie zapychać kolejki na długi czas. Nadmiarowe komunikaty nie będą wypowiedziane
-// Parametry: chNumerProbki - identyfikator próbki w spisie treści
+// Parametry: cNumerProbki - identyfikator próbki w spisie treści
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t DodajProbkeDoMalejKolejki(uint8_t chNumerProbki, uint8_t chRozmiarKolejki)
+uint8_t DodajProbkeDoMalejKolejki(uint8_t cNumerProbki, uint8_t cRozmiarKolejki)
 {
-	uint8_t chNapelnianie = chWskNapKolKom;
+	uint8_t cNapelnianie = cWskNapKolKom;
 
 	//sprawdź czy jest miejsce w kolejce
-	chNapelnianie++;
-	if (chNapelnianie >= chRozmiarKolejki)
-		chNapelnianie = 0;
-	if (chNapelnianie == chWskOprKolKom)
+	cNapelnianie++;
+	if (cNapelnianie >= cRozmiarKolejki)
+		cNapelnianie = 0;
+	if (cNapelnianie == cWskOprKolKom)
 		return BLAD_PELEN_BUF_KOM;
 
-	chKolejkaKomunkatow[chWskNapKolKom++] = chNumerProbki;
-	if (chWskNapKolKom >= chRozmiarKolejki)
-			chWskNapKolKom = 0;
-	for (uint8_t n=chRozmiarKolejki; n<ROZM_KOLEJKI_KOMUNIKATOW; n++)	//pozostałą część kolejki wypełnij komunikatami nie do wymówienia
-		chKolejkaKomunkatow[n] = PGA_PUSTE_MIEJSCE;
+	cKolejkaKomunkatow[cWskNapKolKom++] = cNumerProbki;
+	if (cWskNapKolKom >= cRozmiarKolejki)
+			cWskNapKolKom = 0;
+	for (uint8_t n=cRozmiarKolejki; n<ROZM_KOLEJKI_KOMUNIKATOW; n++)	//pozostałą część kolejki wypełnij komunikatami nie do wymówienia
+		cKolejkaKomunkatow[n] = PGA_PUSTE_MIEJSCE;
 
 	return BLAD_OK;
 }
@@ -722,32 +722,32 @@ void TestKomunikatow(void)
 	uint8_t chTypKomunikatu;
 	uint8_t chDlugosc;
 	float fWartosc;
-	extern uint8_t chRysujRaz;
-	extern char chNapis[60];
+	extern uint8_t cRysujRaz;
+	extern char cNapis[60];
 	char chKomunikat[13];
 	char chJednostka[4];
 	uint16_t n;
 
-	if (chRysujRaz)
+	if (cRysujRaz)
 	{
-		chRysujRaz = 0;
+		cRysujRaz = 0;
 		BelkaTytulu("Generator komunikatow");
 
 		setColor(SZARY80);
-		sprintf(chNapis, "Rozmiar kolejki komunikat%cw:", ó);
-		RysujNapis(chNapis, 10, 60);
-		sprintf(chNapis, "Wymawiam:");
-		RysujNapis(chNapis, 10, 40);
+		sprintf(cNapis, "Rozmiar kolejki komunikat%cw:", ó);
+		RysujNapis(cNapis, 10, 60);
+		sprintf(cNapis, "Wymawiam:");
+		RysujNapis(cNapis, 10, 40);
 
 		setColor(SZARY60);
-		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
-		RysujNapis(chNapis, CENTER, 300);
+		sprintf(cNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
+		RysujNapis(cNapis, CENTER, 300);
 	}
 
 	setColor(BIALY);
 	chDlugosc = DlugoscKolejkiKomunikatow();
-	sprintf(chNapis, "%d/%d  ",chDlugosc, ROZM_KOLEJKI_KOMUNIKATOW);
-	RysujNapis(chNapis, 10+29*FONT_SL, 60);
+	sprintf(cNapis, "%d/%d  ",chDlugosc, ROZM_KOLEJKI_KOMUNIKATOW);
+	RysujNapis(cNapis, 10+29*FONT_SL, 60);
 	if (!chDlugosc)	//gdy kolejka komunikatów się opróżni
 	{
 
@@ -772,11 +772,11 @@ void TestKomunikatow(void)
 		if (!(nRrandom32 & 0x1800000))	//te 2 bity będzie wylosowanym znakiem z prawdopodobieństwem 1/4 dla minusa
 			fWartosc *= -1.0;
 
-		chDlugosc = sprintf(chNapis, "%s %.1f%s", chKomunikat, fWartosc, chJednostka);
+		chDlugosc = sprintf(cNapis, "%s %.1f%s", chKomunikat, fWartosc, chJednostka);
 		for (n=chDlugosc; n<50; n++)
-			chNapis[n] = ' ';	//dopełnij spacjami aby zamazać wczesniejsze napisy
-		chNapis[n] = 0;
-		RysujNapis(chNapis, 10+10*FONT_SL, 40);
+			cNapis[n] = ' ';	//dopełnij spacjami aby zamazać wczesniejsze napisy
+		cNapis[n] = 0;
+		RysujNapis(cNapis, 10+10*FONT_SL, 40);
 
 		PrzygotujKomunikat(chTypKomunikatu, fWartosc);
 	}
@@ -791,10 +791,10 @@ void TestKomunikatow(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t DlugoscKolejkiKomunikatow(void)
 {
-	if (chWskNapKolKom >= chWskOprKolKom)
-		return chWskNapKolKom - chWskOprKolKom;
+	if (cWskNapKolKom >= cWskOprKolKom)
+		return cWskNapKolKom - cWskOprKolKom;
 	else
-		return ROZM_KOLEJKI_KOMUNIKATOW + chWskNapKolKom - chWskOprKolKom;
+		return ROZM_KOLEJKI_KOMUNIKATOW + cWskNapKolKom - cWskOprKolKom;
 }
 
 

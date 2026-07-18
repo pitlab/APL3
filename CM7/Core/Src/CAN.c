@@ -18,11 +18,11 @@ uint32_t RxLocation;
 uint32_t BufferIndex;
 FDCAN_RxHeaderTypeDef RxHeader;
 FDCAN_TxHeaderTypeDef TxHeader;
-uint8_t chDaneCanWych[12];
-uint8_t chDaneCanPrzych[12];
+uint8_t cDaneCanWych[12];
+uint8_t cDaneCanPrzych[12];
 
 extern volatile unia_wymianyCM4_t uDaneCM4;
-extern uint8_t chPort_exp_wysylany[];
+extern uint8_t cPort_exp_wysylany[];
 
 
 
@@ -33,7 +33,7 @@ extern uint8_t chPort_exp_wysylany[];
 ////////////////////////////////////////////////////////////////////////////////
 void InicjujCAN(void)
 {
-	chPort_exp_wysylany[1] &= ~EXP12_CAN_STANDBY;	//wyłącz standby ustawiając stan niski na wejściu STB
+	cPort_exp_wysylany[1] &= ~EXP12_CAN_STANDBY;	//wyłącz standby ustawiając stan niski na wejściu STB
 	if (HAL_FDCAN_Start(&hfdcan2) != HAL_OK)
 	{
 		Error_Handler();
@@ -67,22 +67,22 @@ uint8_t EmulujMagnetometrWizjerCan(float *fDaneMagn)
 	uint8_t cBłąd;
 
 	//dane pomiarowe osi X
-	chDaneCanWych[0] = 1;
-	//FormatujMag2Can(uDaneCM4.dane.fMagne2[0], &chDaneCanWych[1]);
-	FormatujMag2Can(*(fDaneMagn+0), &chDaneCanWych[1]);
-	cBłąd = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
+	cDaneCanWych[0] = 1;
+	//FormatujMag2Can(uDaneCM4.dane.fMagne2[0], &cDaneCanWych[1]);
+	FormatujMag2Can(*(fDaneMagn+0), &cDaneCanWych[1]);
+	cBłąd = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, cDaneCanWych);
 
 	//dane pomiarowe osi Y
-	chDaneCanWych[0] = 2;
-	//FormatujMag2Can(uDaneCM4.dane.fMagne2[1], &chDaneCanWych[1]);
-	FormatujMag2Can(*(fDaneMagn+1), &chDaneCanWych[1]);
-	cBłąd = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
+	cDaneCanWych[0] = 2;
+	//FormatujMag2Can(uDaneCM4.dane.fMagne2[1], &cDaneCanWych[1]);
+	FormatujMag2Can(*(fDaneMagn+1), &cDaneCanWych[1]);
+	cBłąd = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, cDaneCanWych);
 
 	//dane pomiarowe osi Z
-	chDaneCanWych[0] = 3;
-	//FormatujMag2Can(uDaneCM4.dane.fMagne2[2], &chDaneCanWych[1]);
-	FormatujMag2Can(*(fDaneMagn+2), &chDaneCanWych[1]);
-	cBłąd = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, chDaneCanWych);
+	cDaneCanWych[0] = 3;
+	//FormatujMag2Can(uDaneCM4.dane.fMagne2[2], &cDaneCanWych[1]);
+	FormatujMag2Can(*(fDaneMagn+2), &cDaneCanWych[1]);
+	cBłąd = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &TxHeader, cDaneCanWych);
 	return cBłąd;
 }
 
@@ -147,7 +147,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
 	if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET)
 	{
-		if (HAL_FDCAN_GetRxMessage(&hfdcan2, FDCAN_RX_FIFO0, &RxHeader, chDaneCanPrzych) != HAL_OK)
+		if (HAL_FDCAN_GetRxMessage(&hfdcan2, FDCAN_RX_FIFO0, &RxHeader, cDaneCanPrzych) != HAL_OK)
 		{
 		  Error_Handler();
 		}

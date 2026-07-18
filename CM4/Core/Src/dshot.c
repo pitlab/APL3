@@ -22,7 +22,7 @@ extern DMA_HandleTypeDef hdma_tim8_ch3;
 uint32_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM1"))) nBuforTimDMA[KANALY_MIKSERA][DS_BITOW_LACZNIE] = {0};
 stDShot_t stDShot;
 
-extern uint8_t chRozmiarSekwencjiDMA[KANALY_MIKSERA+1];	//rozmiar paczki danych timera przesyłanych do DMA
+extern uint8_t cRozmiarSekwencjiDMA[KANALY_MIKSERA+1];	//rozmiar paczki danych timera przesyłanych do DMA
 
 
 
@@ -292,7 +292,7 @@ uint8_t AktualizujDShotDMA(uint16_t sWysterowanie, uint8_t cPolecenie, uint8_t c
 	for (uint8_t n=0; n<DS_BITOW_PRZERWY; n++)
 		nBuforTimDMA[chKanal][n + DS_BITOW_DANYCH] = 0;
 
-	chRozmiarSekwencjiDMA[chKanal] = DS_BITOW_LACZNIE;
+	cRozmiarSekwencjiDMA[chKanal] = DS_BITOW_LACZNIE;
 
 	//uruchom transmisję
 	switch(chKanal)

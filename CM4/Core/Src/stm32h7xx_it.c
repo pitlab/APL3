@@ -47,7 +47,7 @@ volatile uint8_t chNumerKanSerw;
 volatile uint16_t sCzasH;
 extern stRC_t stRC1;
 extern unia_wymianyCM4_t uDaneCM4;
-extern uint8_t chKonfigWeRC[LICZBA_WEJSC_RC];	//określa jakiego typu sygnał wchodzi z odbiornika
+extern uint8_t cKonfigWeRC[LICZBA_WEJSC_RC];	//określa jakiego typu sygnał wchodzi z odbiornika
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -358,7 +358,7 @@ void TIM4_IRQHandler(void)
 	if (htim4.Instance->SR & TIM_FLAG_CC3)
 	{
 		//przerwania timera interpretuj jako impulsy tylko gdy wejście RC jest skonfigurowane jako CPPM. Gdy jest ustawiony S-Bus to generuje zakłócenia
-		if (chKonfigWeRC[KANAL_RC1] == ODB_RC_CPPM)
+		if (cKonfigWeRC[KANAL_RC1] == ODB_RC_CPPM)
 		{
 			if (htim4.Instance->CCR3 > stRC1.sPoprzedniaWartoscTimera)
 				sTemp = htim4.Instance->CCR3 - stRC1.sPoprzedniaWartoscTimera;  //długość impulsu

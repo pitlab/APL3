@@ -32,15 +32,15 @@ extern unia_wymianyCM7_t uDaneCM7;
 extern stKonfKam_t stKonfKam;
 extern uint16_t sOkresTelemetrii[LICZBA_RAMEK_TELEMETR * OKRESOW_TELEMETRII_W_RAMCE];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 extern  uint8_t cPolecenie;
-extern  uint8_t chRozmDanych;
+extern  uint8_t cRozmDanych;
 extern  uint8_t cDane[ROZMIAR_DANYCH_KOMUNIKACJI];
 extern uint16_t sBuforSektoraFlash[ROZMIAR16_BUF_SEKT];	//Bufor sektora Flash NOR umieszczony w AXI-SRAM
-extern uint8_t chTrybPracy;
+extern uint8_t cTrybPracy;
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamery[SZER_ZDJECIA * WYS_ZDJECIA];
 extern uint16_t sWskBufSektora;	//wskazuje na poziom zapełnienia bufora
 extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adres i nazwę BSP
-extern uint8_t chStatusPolaczenia;
-extern uint8_t chStatusTelemetrii;		//określa czy i jaki rodzaj telemetrii ma być wysyłany
+extern uint8_t cStatusPolaczenia;
+extern uint8_t cStatusTelemetrii;		//określa czy i jaki rodzaj telemetrii ma być wysyłany
 extern stFFT_t stKonfigFFT;
 extern stIdentyfikacjaSilnikow_t stIdentSiln;
 extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
@@ -51,12 +51,12 @@ extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"
 // Parametry:
 // [we] cPolecenie - indeks poelcenia komunikacyjnego
 // [we/wy] *cDane - wskaźnik na strukturę danych wejściowych lub wyjściowych z danymi do poleceń
-// [we] chRozmDanych - rozmiar danych z parametrami dla poleceń
+// [we] cRozmDanych - rozmiar danych z parametrami dla poleceń
 // [we] cInterfejs - wskazuje na interfejs komunikacyjny którym przyszło polecenie. Odpowiedź ma pójść tą samą drogą
 // [we] cAdresZdalny - identyfikuje urządzenie wysyłajace dane
 // Zwraca: kod będu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanych, uint8_t cInterfejs, uint8_t cAdresZdalny)
+uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t cRozmDanych, uint8_t cInterfejs, uint8_t cAdresZdalny)
 {
 	uint8_t cBłąd = BLAD_OK;
 	uint8_t cRozmiar;
@@ -114,13 +114,13 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		//polecenie PK_POBIERZ_BSP otwiera połączenie UART, więc zmień stan na otwarty
 		if (cInterfejs == INTERF_UART)
 		{
-			chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
-			chStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);
+			cStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_UART);
+			cStatusPolaczenia |= (STAT_POL_OTWARTY << STAT_POL_UART);
 		}
 		break;
 
 	case PK_UST_TR_PRACY:	//ustaw tryb pracy
-		chTrybPracy = cDane[0];
+		cTrybPracy = cDane[0];
 		cBłąd = Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
@@ -283,7 +283,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 
 	case PK_ZAPISZ_OKRES_TELE:	//zapisz okresy telemetrii
 		sPrzesuniecie = cDane[0] + cDane[1] * 0x100;	//indeks pierwszej zmiennej, młodszy przodem
-		cRozmiar = (chRozmDanych - 2) / 2;
+		cRozmiar = (cRozmDanych - 2) / 2;
 		for (uint8_t n=0; n<cRozmiar; n++)
 			sOkresTelemetrii[n + sPrzesuniecie] = cDane[2*n+2] + cDane[2*n+3] * 0x100;	//kolejnne okresy telemetrii, młodszy przodem
 		cBłąd = ZapiszKonfiguracjeTelemetrii(sPrzesuniecie);
@@ -303,8 +303,8 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		un8_32.dane8[1] = cDane[2];
 		sAdres = un8_32.dane16[0];						//zapamietaj adres do sprawdzenia czy już się zapisało
 		uDaneCM7.dane.sAdres = un8_32.dane16[0];		//adres zapisu bloku liczb
-		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_FRAM_U8;
-		uDaneCM7.dane.chRozmiar = cDane[0];		//ilość liczb uint8_t
+		uDaneCM7.dane.cWykonajPolecenie = POL7_ZAPISZ_FRAM_U8;
+		uDaneCM7.dane.cRozmiar = cDane[0];		//ilość liczb uint8_t
 		for (uint8_t n=0; n<cDane[0]; n++)
 			uDaneCM7.dane.uRozne.U8[n] = cDane[3+n];
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
@@ -321,26 +321,26 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		un8_32.dane8[1] = cDane[2];
 		sAdres = un8_32.dane16[0];					//zapamietaj adres do sprawdzenia czy już się zapisało
 		uDaneCM7.dane.sAdres = un8_32.dane16[0];	//adres zapisu bloku liczb
-		uDaneCM7.dane.chRozmiar = cDane[0];			//ilość liczb float
+		uDaneCM7.dane.cRozmiar = cDane[0];			//ilość liczb float
 		for (uint8_t n=0; n<cDane[0]; n++)
 		{
 			for (uint8_t i=0; i<4; i++)
 				un8_32.dane8[i] = cDane[3+n*4+i];
 			uDaneCM7.dane.uRozne.f32[n] = un8_32.daneFloat;
 		}
-		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_FRAM_FLOAT;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_ZAPISZ_FRAM_FLOAT;
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 		break;
 
 	case PK_WYSLIJ_POTW_ZAPISU:	//jeżeli dane się zapisały to odeslij BLAD_OK. jeeli jeszcze nie to ERR_PROCES_TRWA
-		if ((uDaneCM4.dane.chPotwierdzenieWykonania != POL7_ZAPISZ_FRAM_FLOAT) || (uDaneCM4.dane.sAdres != sAdres))
+		if ((uDaneCM4.dane.cPotwierdzenieWykonania != POL7_ZAPISZ_FRAM_FLOAT) || (uDaneCM4.dane.sAdres != sAdres))
 		{
 			cBłąd = BLAD_PROCES_TRWA;		//dane jeszcze nie przyszły
 			Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 			break;
 		}
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
-		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//wyłącz wykonywanie polecenia POL7_ZAPISZ_FRAM_FLOAT
+		uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;	//wyłącz wykonywanie polecenia POL7_ZAPISZ_FRAM_FLOAT
 		break;
 
 	case PK_CZYTAJ_FRAM_U8:
@@ -354,8 +354,8 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		un8_32.dane8[1] = cDane[2];
 		sAdres = un8_32.dane16[0];			//zapamiętaj adres
 		uDaneCM7.dane.sAdres = un8_32.dane16[0];
-		uDaneCM7.dane.chRozmiar = cDane[0];
-		uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_U8;
+		uDaneCM7.dane.cRozmiar = cDane[0];
+		uDaneCM7.dane.cWykonajPolecenie = POL7_CZYTAJ_FRAM_U8;
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 		break;
 
@@ -370,13 +370,13 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		un8_32.dane8[1] = cDane[2];
 		sAdres = un8_32.dane16[0];			//zapamiętaj adres
 		uDaneCM7.dane.sAdres = un8_32.dane16[0];
-		uDaneCM7.dane.chRozmiar = cDane[0];
-		uDaneCM7.dane.chWykonajPolecenie = POL7_CZYTAJ_FRAM_FLOAT;
+		uDaneCM7.dane.cRozmiar = cDane[0];
+		uDaneCM7.dane.cWykonajPolecenie = POL7_CZYTAJ_FRAM_FLOAT;
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 		break;
 
 	case PK_WYSLIJ_ODCZYT_FRAM:	//wysyła odczytane wcześniej dane o rozmiarze podanym w cDane[0]
-		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;	//wyłącz wykonywanie polecenia PK_WYSLIJ_ODCZYT_FRAM
+		uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;	//wyłącz wykonywanie polecenia PK_WYSLIJ_ODCZYT_FRAM
 		if (uDaneCM4.dane.sAdres != sAdres)
 		{
 			cBłąd = BLAD_PROCES_TRWA;		//dane jeszcze nie przyszły
@@ -398,25 +398,25 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 	case PK_ZAMKNIJ_POLACZENIE:	// zamyka połączenie UART, więc zmień stan na STAT_POL_GOTOWY
 		if (cInterfejs == INTERF_UART)
 		{
-			chStatusPolaczenia &= ~(STAT_POL_MASKA_GOT << STAT_POL_UART);
+			cStatusPolaczenia &= ~(STAT_POL_MASKA_GOT << STAT_POL_UART);
 		}
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 		break;
 
 	case PK_ZAPISZ_KONFIG_PID:			//Wysyła dane do zapisu we FRAM w rdzeniu CM4 oraz zapisania do zmienych regulatora
-		if ((cDane[0] >= LICZBA_PID) || (chRozmDanych > ROZMIAR_ROZNE_CHAR))	//indeks kanału regulatora nie powinien przekraczać liczby regulatorów i nie powinna zostać przepełniona struktura danych przekazywanych
+		if ((cDane[0] >= LICZBA_PID) || (cRozmDanych > ROZMIAR_ROZNE_CHAR))	//indeks kanału regulatora nie powinien przekraczać liczby regulatorów i nie powinna zostać przepełniona struktura danych przekazywanych
 		{
 			cBłąd = BLAD_ZLA_ILOSC_DANYCH;
 			Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 			break;
 		}
 #ifdef TESTY
-		assert(chRozmDanych == ROZMIAR_REG_PID - 1);	//przesyłane są liczby float + 1 początkowy bajt będący indeksem regulatora
+		assert(cRozmDanych == ROZMIAR_REG_PID - 1);	//przesyłane są liczby float + 1 początkowy bajt będący indeksem regulatora
 #endif
-		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_KONFIG_PID;
-		uDaneCM7.dane.chRozmiar = (chRozmDanych - 1) / sizeof(float);		//ilość zmiennych regulatora typu float
+		uDaneCM7.dane.cWykonajPolecenie = POL7_ZAPISZ_KONFIG_PID;
+		uDaneCM7.dane.cRozmiar = (cRozmDanych - 1) / sizeof(float);		//ilość zmiennych regulatora typu float
 		uDaneCM7.dane.sAdres = cDane[0];	//indeks regulatora
-		for (uint8_t n=0; n<uDaneCM7.dane.chRozmiar; n++)
+		for (uint8_t n=0; n<uDaneCM7.dane.cRozmiar; n++)
 		{
 			for (uint8_t i=0; i<sizeof(float); i++)
 				un8_32.dane8[i] = cDane[1 + n*sizeof(float) + i];
@@ -426,45 +426,45 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		break;
 
 	case PK_ZBIERAJ_EKSTREMA_RC:	//rozpoczyna zbieranie ekstremalnych wartości kanałów obu odbiorników RC
-		uDaneCM7.dane.chWykonajPolecenie = POL7_ZBIERAJ_EKSTREMA_RC;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_ZBIERAJ_EKSTREMA_RC;
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
 	case PK_ZAPISZ_EKSTREMA_RC:		//kończy zbieranie ekstremalnych wartości kanałów obu odbiorników RC i zapisuje wyniki do FRAM
-		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_EKSTREMA_RC;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_ZAPISZ_EKSTREMA_RC;
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
 	case PK_ZAPISZ_WYSTER_NAPEDU:		//zapisuje znormalizowane nastawy wysterowania napędu dla wartości minimalnej, zawisu i maksymalnej
 #ifdef TESTY
-		assert(chRozmDanych == 2*LICZBA_DANYCH_NAPEDU);	//Rozmiar danych jest liczbą przeslanych bajtów a mamy zapisać 3 słowa 16-bitowe
+		assert(cRozmDanych == 2*LICZBA_DANYCH_NAPEDU);	//Rozmiar danych jest liczbą przeslanych bajtów a mamy zapisać 3 słowa 16-bitowe
 #endif
-		for (uint8_t n=0; n<chRozmDanych / 2; n++)
+		for (uint8_t n=0; n<cRozmDanych / 2; n++)
 		{
 			for (uint8_t i=0; i<2; i++)
 				un8_32.dane8[i] = cDane[n*2+i];
 			uDaneCM7.dane.uRozne.U16[n] = un8_32.dane16[0];
 		}
-		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_PWM_NAPEDU;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_ZAPISZ_PWM_NAPEDU;
 		uDaneCM7.dane.sAdres = PK_ZAPISZ_WYSTER_NAPEDU;	//fejkowy adres wysyłany w celu uzyskania potwierdzenia zapisu
-		uDaneCM7.dane.chRozmiar = chRozmDanych / 2;
+		uDaneCM7.dane.cRozmiar = cRozmDanych / 2;
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
 	case PK_ZAPISZ_TRYB_REG:
 #ifdef TESTY
-		assert(chRozmDanych == LICZBA_REG_PARAM);
+		assert(cRozmDanych == LICZBA_REG_PARAM);
 #endif
-		for (uint8_t n=0; n<chRozmDanych; n++)
+		for (uint8_t n=0; n<cRozmDanych; n++)
 			uDaneCM7.dane.uRozne.U8[n] = cDane[n];
-		uDaneCM7.dane.chWykonajPolecenie = POL7_ZAPISZ_TRYB_REG;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_ZAPISZ_TRYB_REG;
 		uDaneCM7.dane.sAdres = PK_ZAPISZ_TRYB_REG;	//fejkowy adres wysyłany w celu uzyskania potwierdzenia zapisu
-		uDaneCM7.dane.chRozmiar = chRozmDanych;
+		uDaneCM7.dane.cRozmiar = cRozmDanych;
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
 	case PK_RESETUJ_CM4:	//resetuj rdzeń CM4, zwykle po zmianie konfiguracji
-		if ((uDaneCM4.dane.chTrybLotu & BTR_UZBROJONY) != BTR_UZBROJONY)	//nie pozwalaj na reset gdy silniki są uzbrojone
+		if ((uDaneCM4.dane.cTrybLotu & BTR_UZBROJONY) != BTR_UZBROJONY)	//nie pozwalaj na reset gdy silniki są uzbrojone
 		{
 			Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 			HAL_Delay(10);
@@ -475,17 +475,17 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		break;
 
 	case PK_WSTRZYMAJ_TELEMETRIE:	//wznów lub tymczasowo wstrzymaj wysyłnie telemetrii na czas transmisji innych danych
-		chStatusTelemetrii  = cDane[0];		//wartość niezerowa tymczasowo wstrzymuje działanie telemetrii
+		cStatusTelemetrii  = cDane[0];		//wartość niezerowa tymczasowo wstrzymuje działanie telemetrii
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
 	case PK_WYLACZ_POLECENIE_CM4:	//wykonuje polecenie POL7_NIC wyłączajac wykonywanie poprzedniego polecenia
-		uDaneCM7.dane.chWykonajPolecenie = POL7_NIC;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
 	case PK_PRZELADUJ_WSKAZN_LED:	//odczytaj konfigurację wskaźników LED z pamieci FRAM i załaduj do zmiennych aby wprowadzona zmiana stała się widoczna
-		uDaneCM7.dane.chWykonajPolecenie = POL7_PRZELADUJ_WSKAZN_LED;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_PRZELADUJ_WSKAZN_LED;
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
@@ -520,7 +520,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 
 	case PK_ROZP_ANALIZE_DRGAN:
 		RysujProstokatWypelniony(0, 0, DISP_X_SIZE, DISP_Y_SIZE, CZARNY);	//czyści ekran
-		cBłąd = RozpocznijAnalizęDrgań(&stKonfigFFT, &chTrybPracy);
+		cBłąd = RozpocznijAnalizęDrgań(&stKonfigFFT, &cTrybPracy);
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 		break;
 
@@ -528,22 +528,22 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 		uDaneCM7.dane.uRozne.U8[0] = LICZBA_TESTOW_FFT;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 		uDaneCM7.dane.uRozne.U8[1] = 0;		//stKonfigFFT->chAktywnSilniki: każdy bit zmiennej odpowiada silnikowi. Wartość 0 zatrzymuje wszystko
 		uDaneCM7.dane.uRozne.U8[2] = 0;		//stKonfigFFT->chMaxWysterowanie;
-		uDaneCM7.dane.chWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
 	case PK_PRZELADUJ_KONF_PID:	//przeładuj konfigurację PID po zmianie
-		uDaneCM7.dane.chWykonajPolecenie = POL7_PRZELADUJ_PID;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_PRZELADUJ_PID;
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
 	case PK_REKONFIG_WEJSCIA_RC:	//wykonuje ponowną konfigurację wejść RC po zmianie konfiguracji we FRAM
-		uDaneCM7.dane.chWykonajPolecenie = POL7_REKONFIG_WEJSCIA_RC;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_REKONFIG_WEJSCIA_RC;
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
 	case PK_REKONFIG_WYJSCIA_RC:	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
-		uDaneCM7.dane.chWykonajPolecenie = POL7_REKONFIG_WYJSCIA_RC;
+		uDaneCM7.dane.cWykonajPolecenie = POL7_REKONFIG_WYJSCIA_RC;
 		Wyslij_KodBledu(BLAD_OK, cPolecenie, cInterfejs);
 		break;
 
@@ -552,7 +552,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t chRozmDanyc
 			uDaneCM7.dane.uRozne.U8[n] = cDane[n];
 		stIdentSiln.sWysterowanie = uDaneCM7.dane.uRozne.U16[0];
 		stIdentSiln.sCzasIdent = uDaneCM7.dane.uRozne.U16[1];
-		cBłąd = RozpocznijIdentyfikacjęSilników(&stIdentSiln, &chTrybPracy);
+		cBłąd = RozpocznijIdentyfikacjęSilników(&stIdentSiln, &cTrybPracy);
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 		break;
 

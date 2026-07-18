@@ -16,13 +16,13 @@ extern UART_HandleTypeDef huart8;
 extern stRC_t stRC1, stRC2;	//struktura danych odbiorników RC1 i RC2
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
-extern uint8_t chBuforOdbioruUart8[ROZMIAR_BUF_ODB_UART8];
+extern uint8_t cBuforOdbioruUart8[ROZMIAR_BUF_ODB_UART8];
 uint16_t sPoprzedniKanal;
 uint8_t cBladNaKanale;
 
-uint8_t chBuforAnalizyCrossfire[ROZMIAR_BUF_ANA_CRSF];
-volatile uint8_t chWskNapBufAnaCRSF, chWskOprBufAnaCRSF; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych Crossfire
-uint8_t chRamkaCRSF[ROZMIAR_RAMKI_CRSF];
+uint8_t cBuforAnalizyCrossfire[ROZMIAR_BUF_ANA_CRSF];
+volatile uint8_t cWskNapBufAnaCRSF, cWskOprBufAnaCRSF; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych Crossfire
+uint8_t cRamkaCRSF[ROZMIAR_RAMKI_CRSF];
 uint8_t cEtapOdbioruRamki;	//wskazuje która część ramki jest odbierana
 uint8_t cLicznikDanych;	//zlicza dane w polu payload
 //union {
@@ -59,11 +59,11 @@ uint8_t InicjujCrossfire(void)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	chWskNapBufAnaCRSF = chWskOprBufAnaCRSF = 0;	//inicjuj wskaźniki napełniania i opróżniania buforma kołowego analizy danych z UART8
+	cWskNapBufAnaCRSF = cWskOprBufAnaCRSF = 0;	//inicjuj wskaźniki napełniania i opróżniania buforma kołowego analizy danych z UART8
 	cEtapOdbioruRamki = EORC_ADRES;
 	huart8.Init.BaudRate = 420000; 		//według dokumentacji TBS iNAV
 	cBłąd = UART_SetConfig(&huart8);
-	HAL_UART_Receive_DMA(&huart8, chBuforOdbioruUart8, ROZMIAR_BUF_ODB_UART8);	//Upewnij się że nie jest uruchamiana funckja inicjalizacji GNSS
+	HAL_UART_Receive_DMA(&huart8, cBuforOdbioruUart8, ROZMIAR_BUF_ODB_UART8);	//Upewnij się że nie jest uruchamiana funckja inicjalizacji GNSS
 	return cBłąd;
 }
 
@@ -72,25 +72,25 @@ uint8_t InicjujCrossfire(void)
 ////////////////////////////////////////////////////////////////////////////////
 // Odbiór danych Crossfire z bufora kołowego i formowanie ich w ramkę
 // Parametry:
-// [we] *chRamka - wskaźnik na dane formowanej ramki
+// [we] *cRamka - wskaźnik na dane formowanej ramki
 // [we/wy] *cEtapOdbioru - wskazuje na bieżacy etap odbioru części ramki
 // [we] *chBuforAnalizy - wskaźnik na bufor z danymi wejsciowymi
-// [we] chWskNapBuf - wskaźnik napełniania bufora wejsciowego
-// [wy] *chWskOprBuf - wskaźnik na wskaźnik opróżniania bufora wejściowego
+// [we] cWskNapBuf - wskaźnik napełniania bufora wejsciowego
+// [wy] *cWskOprBuf - wskaźnik na wskaźnik opróżniania bufora wejściowego
 // Zwraca: kod wykonania operacji: BLAD_GOTOWE gdy jest kompletna ramka, BLAD_OK gdy skończyły się dane ale nie skompetowano jeszcze ramki
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *cLicznikDanych, uint8_t *chBufor, uint8_t chWskNapBuf, uint8_t *chWskOprBuf)
+uint8_t OdbiórRamkiCrossfire(uint8_t *cRamka, uint8_t *cEtapOdbioru, uint8_t *cLicznikDanych, uint8_t *cBufor, uint8_t cWskNapBuf, uint8_t *cWskOprBuf)
 {
 	uint8_t cDane;
 	uint8_t cBłąd = BLAD_OK;
 
-	while (chWskNapBuf != *chWskOprBuf)
+	while (cWskNapBuf != *cWskOprBuf)
 	{
-		cDane = chBufor[*chWskOprBuf];
-		(*chWskOprBuf)++;
-		if (*chWskOprBuf >= ROZMIAR_BUF_ANA_CRSF)
-			*chWskOprBuf = 0;
+		cDane = cBufor[*cWskOprBuf];
+		(*cWskOprBuf)++;
+		if (*cWskOprBuf >= ROZMIAR_BUF_ANA_CRSF)
+			*cWskOprBuf = 0;
 
 		switch (*cEtapOdbioru)
 		{
@@ -98,7 +98,7 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 			//if ((cDane == CRSF_ADR_FLIGHT_CTRL) || (cDane == CRSF_ADR_BROADCAST))
 			if (cDane == CRSF_ADR_FLIGHT_CTRL)
 			{
-				chRamka[0] = cDane;
+				cRamka[0] = cDane;
 				(*cEtapOdbioru)++;
 			}
 			break;
@@ -106,7 +106,7 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 		case EORC_DLUGOSC:
 			if (cDane)	//jeżeli długość jest niezerowa
 			{
-				chRamka[EORC_DLUGOSC] = cDane;
+				cRamka[EORC_DLUGOSC] = cDane;
 				(*cEtapOdbioru)++;
 			}
 			else
@@ -114,22 +114,22 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *chRamka, uint8_t *cEtapOdbioru, uint8_t *
 			break;
 
 		case EORC_TYP:
-			chRamka[EORC_TYP] = cDane;
+			cRamka[EORC_TYP] = cDane;
 			*cLicznikDanych = 0;
 			(*cEtapOdbioru)++;
 			break;
 
 		case EORC_DANE:
-			chRamka[EORC_DANE + *cLicznikDanych] = cDane;
+			cRamka[EORC_DANE + *cLicznikDanych] = cDane;
 			(*cLicznikDanych)++;
-			if (*cLicznikDanych == chRamka[EORC_DLUGOSC] - 2)	// pole długość zawiera liczbę danych + Typ + CRC
+			if (*cLicznikDanych == cRamka[EORC_DLUGOSC] - 2)	// pole długość zawiera liczbę danych + Typ + CRC
 				*cEtapOdbioru = EORC_CRC;
 			break;
 
 		case EORC_CRC:
 			*cEtapOdbioru = EORC_ADRES;
-			chRamka[EORC_DANE + *cLicznikDanych] = cDane;
-			uint8_t cCrc = crc8(&chRamka[EORC_TYP], chRamka[EORC_DLUGOSC] - 1);	//CRC nie jest liczone z 2 pierwszych bajtów nagłówka i długości oraz z CRC
+			cRamka[EORC_DANE + *cLicznikDanych] = cDane;
+			uint8_t cCrc = crc8(&cRamka[EORC_TYP], cRamka[EORC_DLUGOSC] - 1);	//CRC nie jest liczone z 2 pierwszych bajtów nagłówka i długości oraz z CRC
 			if (cDane == cCrc)
 			{
 				cBłąd = BLAD_GOTOWE;
@@ -173,7 +173,7 @@ uint8_t crc8(const uint8_t * ptr, uint8_t len)
 ////////////////////////////////////////////////////////////////////////////////
 // Analizuje dane odebrane z odbiornika, dekoduje je i wstawia do struktury danych
 // Parametry:
-// [we] *chRamka - wskaźnik na odebraną ramkę Crossfire
+// [we] *cRamka - wskaźnik na odebraną ramkę Crossfire
 // [wy] *stRC - wskaźnik na strukturę danych odbiorników RC zawierajacą stan kanałów
 // Zwraca: kod zakończenia inicjalizacji: ERR_DONE = zakończono, BLAD_OK - w trakcie
 ////////////////////////////////////////////////////////////////////////////////
@@ -411,8 +411,8 @@ uint8_t ObsługaRamkiCrossfire(void)
 {
 	uint8_t cBłąd;
 
-	cBłąd = OdbiórRamkiCrossfire(chRamkaCRSF, &cEtapOdbioruRamki, &cLicznikDanych, chBuforAnalizyCrossfire, chWskNapBufAnaCRSF, (uint8_t*)&chWskOprBufAnaCRSF);
+	cBłąd = OdbiórRamkiCrossfire(cRamkaCRSF, &cEtapOdbioruRamki, &cLicznikDanych, cBuforAnalizyCrossfire, cWskNapBufAnaCRSF, (uint8_t*)&cWskOprBufAnaCRSF);
 	if (cBłąd == BLAD_GOTOWE)
-		cBłąd = AnalizujCrossfire(chRamkaCRSF, &stRC2);
+		cBłąd = AnalizujCrossfire(cRamkaCRSF, &stRC2);
 	return cBłąd;
 }

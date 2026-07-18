@@ -15,10 +15,10 @@
 
 extern volatile unia_wymianyCM4_t uDaneCM4;
 extern I2C_HandleTypeDef hi2c3;
-uint8_t chDaneMagHMC[6];
-uint8_t chPoleceniaHMC[2];
-uint8_t chSekwencjaPomiaruHMC;		//w trakcie pracy wyznacza kolejność sekwencji pomiarowych, w trakcie inicjalizacj pełni rolę licznika prób inicjalizacji
-extern uint8_t chCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
+uint8_t cDaneMagHMC[6];
+uint8_t cPoleceniaHMC[2];
+uint8_t cSekwencjaPomiaruHMC;		//w trakcie pracy wyznacza kolejność sekwencji pomiarowych, w trakcie inicjalizacj pełni rolę licznika prób inicjalizacji
+extern uint8_t cCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
 float fPrzesMagn3[3], fSkaloMagn3[3];
 
 // Obsługa magnetometru wymaga wykonania kilku czynności rozłożonych w czasie
@@ -45,19 +45,19 @@ uint8_t InicjujMagnetometrHMC(void)
     if (cBłąd)
     	return cBłąd;
 
-    chDaneMagHMC[0] = CONF_A;
+    cDaneMagHMC[0] = CONF_A;
     //Ustaw tryb pracy na 30Hz
     //Configuration Register A
-    chDaneMagHMC[1] = 	(0 << 0)|   //Measurement Configuration: 0=Normal measurement configuration, 1=Positive bias configuration, 2=Negative bias configuration
+    cDaneMagHMC[1] = 	(0 << 0)|   //Measurement Configuration: 0=Normal measurement configuration, 1=Positive bias configuration, 2=Negative bias configuration
     					(5 << 2)|   //Data Output Rate:6=75Hz, 5=30, 4=15, 3=7,5, 2=3
 						(2 << 5)|   //Select number of samples averaged per measurement output: 00 = 1; 01 = 2; 10 = 4; 11 = 8
 						(0 << 7);   //This bit must be cleared for correct operation.
     //Configuration Register B
-    chDaneMagHMC[2] = 	(1 << 5);   //Gain Configuration: 0=0,88 Gaussa, 1=1,3; 2=1,9; , 3=2,5; 4=4; 5=4,7; 6=5,6; 7=8,1 Gaussa
+    cDaneMagHMC[2] = 	(1 << 5);   //Gain Configuration: 0=0,88 Gaussa, 1=1,3; 2=1,9; , 3=2,5; 4=4; 5=4,7; 6=5,6; 7=8,1 Gaussa
     //Mode Register
-    chDaneMagHMC[3] = 	(0 << 0)|   //Mode Select:0=Continuous-Measurement Mode, 1=Single-Measurement Mode, 2-3=Idle Mode.
+    cDaneMagHMC[3] = 	(0 << 0)|   //Mode Select:0=Continuous-Measurement Mode, 1=Single-Measurement Mode, 2-3=Idle Mode.
               	  	  	(0 << 2);   //Bits 2-7 must be cleared for correct operation.
-    cBłąd = HAL_I2C_Master_Transmit(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 4, MAG_TIMEOUT);		//zapisz 3 rejestry jedną transmisją
+    cBłąd = HAL_I2C_Master_Transmit(&hi2c3, HMC_I2C_ADR, cDaneMagHMC, 4, MAG_TIMEOUT);		//zapisz 3 rejestry jedną transmisją
     if (cBłąd)
     	return cBłąd;
 
@@ -82,14 +82,14 @@ uint8_t SprawdzObecnoscHMC5883(void)
 {
 	uint8_t cBłąd;
 
-	chDaneMagHMC[0] = ID_A;
-	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 1, MAG_TIMEOUT);	//wyślij polecenie odczytu rejestrów identyfikacyjnych
+	cDaneMagHMC[0] = ID_A;
+	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, HMC_I2C_ADR, cDaneMagHMC, 1, MAG_TIMEOUT);	//wyślij polecenie odczytu rejestrów identyfikacyjnych
     if (!cBłąd)
     {
-    	cBłąd =  HAL_I2C_Master_Receive(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 3, MAG_TIMEOUT);		//odczytaj dane
+    	cBłąd =  HAL_I2C_Master_Receive(&hi2c3, HMC_I2C_ADR, cDaneMagHMC, 3, MAG_TIMEOUT);		//odczytaj dane
         if (!cBłąd)
         {
-        	if ((chDaneMagHMC[0] == 'H') && (chDaneMagHMC[1] == '4') && (chDaneMagHMC[2] == '3'))
+        	if ((cDaneMagHMC[0] == 'H') && (cDaneMagHMC[1] == '4') && (cDaneMagHMC[2] == '3'))
         	{
 
         		return BLAD_OK;
@@ -118,14 +118,14 @@ uint8_t ObslugaHMC5883(void)
 	if ((uDaneCM4.dane.nZainicjowano & INIT_HMC5883) != INIT_HMC5883)
 	{
 		//ogranicz liczbę prób inicjalizacji aby w przypadku braku magnetometru nie blokować innych zadań
-		if (chSekwencjaPomiaruHMC < MAX_PROB_INICJALIZACJI)
+		if (cSekwencjaPomiaruHMC < MAX_PROB_INICJALIZACJI)
 		{
-			chSekwencjaPomiaruHMC++;
+			cSekwencjaPomiaruHMC++;
 			cBłąd = InicjujMagnetometrHMC();
 			if (cBłąd == BLAD_OK)
 			{
 				uDaneCM4.dane.nZainicjowano |= INIT_HMC5883;
-				chSekwencjaPomiaruHMC = 0;
+				cSekwencjaPomiaruHMC = 0;
 			}
 		}
 		else
@@ -136,29 +136,29 @@ uint8_t ObslugaHMC5883(void)
 		return cBłąd;
 	}
 
-	switch (chSekwencjaPomiaruHMC)
+	switch (cSekwencjaPomiaruHMC)
 	{
 	case 0:		//startuj pomiar
-		chPoleceniaHMC[0] = MODE;
-		chPoleceniaHMC[1] = (1 << 0);   //Mode Select:0=Continuous-Measurement Mode, 1=Single-Measurement Mode, 2-3=Idle Mode.
-		cBłąd = HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chPoleceniaHMC, 2);
+		cPoleceniaHMC[0] = MODE;
+		cPoleceniaHMC[1] = (1 << 0);   //Mode Select:0=Continuous-Measurement Mode, 1=Single-Measurement Mode, 2-3=Idle Mode.
+		cBłąd = HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, cPoleceniaHMC, 2);
 	    break;
 
 	case 1:	//startuj odczyt
-		chPoleceniaHMC[0] = DATA_XH;
-		cBłąd = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c3, HMC_I2C_ADR, chPoleceniaHMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
+		cPoleceniaHMC[0] = DATA_XH;
+		cBłąd = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c3, HMC_I2C_ADR, cPoleceniaHMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
 		break;
 
 	case 2:
-		cBłąd = HAL_I2C_Master_Seq_Receive_DMA(&hi2c3, HMC_I2C_ADR, chDaneMagHMC, 6, I2C_LAST_FRAME);		//odczytaj status i zakończ STOP
-		chCzujnikOdczytywanyNaI2CExt = MAG_HMC;		//informacja o tym jak mają być interpretowane dane odebrane w HAL_I2C_MasterRxCpltCallback()
+		cBłąd = HAL_I2C_Master_Seq_Receive_DMA(&hi2c3, HMC_I2C_ADR, cDaneMagHMC, 6, I2C_LAST_FRAME);		//odczytaj status i zakończ STOP
+		cCzujnikOdczytywanyNaI2CExt = MAG_HMC;		//informacja o tym jak mają być interpretowane dane odebrane w HAL_I2C_MasterRxCpltCallback()
 		break;
 
 	default: break;
 	}
-	chSekwencjaPomiaruHMC++;
-	if (chSekwencjaPomiaruHMC >= 3)
-		chSekwencjaPomiaruHMC = 0;
+	cSekwencjaPomiaruHMC++;
+	if (cSekwencjaPomiaruHMC >= 3)
+		cSekwencjaPomiaruHMC = 0;
 	return cBłąd;
 }
 

@@ -30,7 +30,7 @@
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chRamkaTelemetrii[2 * LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla 16-bitowych zmiennych 0..127 oraz 128..255
 uint16_t sOkresTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 uint16_t sLicznikTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];
-uint8_t chStatusTelemetrii;		//określa czy i jaki rodzaj telemetrii ma być wysyłany
+uint8_t cStatusTelemetrii;		//określa czy i jaki rodzaj telemetrii ma być wysyłany
 extern unia_wymianyCM4_t uDaneCM4;
 extern uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
 extern UART_HandleTypeDef hlpuart1;
@@ -38,7 +38,7 @@ static unia8_32_t un8_32;		//unia do konwersji między danymi 16 i 8 bit
 extern volatile uint8_t chDoWyslania[1 + LICZBA_RAMEK_TELEMETR];	//lista rzeczy do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
 extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
 extern volatile st_ZajetośćLPUART_t st_ZajetośćLPUART;
-extern struct _statusDotyku statusDotyku;
+extern stStatusDotyku_t stStatusDotyku;
 extern RTC_TimeTypeDef stTime;
 extern RTC_DateTypeDef stDate;
 extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
@@ -105,13 +105,13 @@ uint8_t ObslugaTelemetrii(uint8_t chInterfejs)
 	uint8_t chTypRamki;
 	uint8_t chWysyłamTyleDanych = 0;	//parametr zwrotny funkcji
 	float fZmienna;
-	extern uint8_t chStatusPolaczenia;
+	extern uint8_t cStatusPolaczenia;
 
-	if (chStatusTelemetrii == TELEM_WSTRZYMAJ)
+	if (cStatusTelemetrii == TELEM_WSTRZYMAJ)
 		return chWysyłamTyleDanych;
 
 	//szybka telemetria wykorzystuje tylko ramkę RAMKA_TELE1, czyli chIloscDanych[0] oraz chRamkaTelemetrii[0 i 1]
-	if (chStatusTelemetrii == TELEM_SZYBKA)
+	if (cStatusTelemetrii == TELEM_SZYBKA)
 	{
 		if (stKonfigFFT.chIndeksTestu > chIndeksWysyłkiTestuFFT)	//czekaj z wysyłką na wyprodukowanie danych przez FFT
 		{
@@ -126,7 +126,7 @@ uint8_t ObslugaTelemetrii(uint8_t chInterfejs)
 					sIndeksWysyłkiFFT = 0;
 					chIndeksWysyłkiTestuFFT++;
 					if (chIndeksWysyłkiTestuFFT == LICZBA_TESTOW_FFT)
-						chStatusTelemetrii = TELEM_NORMALNA;	//po wysłaniu wszystkich wyników FFT wróc do normalnej tlemetrii
+						cStatusTelemetrii = TELEM_NORMALNA;	//po wysłaniu wszystkich wyników FFT wróc do normalnej tlemetrii
 				}
 				chTypRamki = TELEM_SZYBKA;
 			}
@@ -181,7 +181,7 @@ uint8_t ObslugaTelemetrii(uint8_t chInterfejs)
 		{
 			if (st_ZajetośćLPUART.sDoWysłania[r+1])
 			{
-				chStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
+				cStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
 				st_ZajetośćLPUART.chZajętyPrzez = RAMKA_TELE1 + r;
 				//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1 - LPUART_ZAJETY
 				HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1] + r * LICZBA_RAMEK_TELEMETR][0], st_ZajetośćLPUART.sDoWysłania[r+1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
@@ -392,9 +392,9 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_BSP_SZER_GEO:	fZmiennaTele = stDane->stBSP.dSzerokoscGeo;	break;
 	case TID_BSP_DLUG_GEO:	fZmiennaTele = stDane->stBSP.dDlugoscGeo;	break;
 
-	case TID_DOTYK_ADC0:		fZmiennaTele = statusDotyku.sAdc[0];		break;
-	case TID_DOTYK_ADC1:		fZmiennaTele = statusDotyku.sAdc[1];		break;
-	case TID_DOTYK_ADC2:		fZmiennaTele = statusDotyku.sAdc[2];		break;
+	case TID_DOTYK_ADC0:		fZmiennaTele = stStatusDotyku.sAdc[0];		break;
+	case TID_DOTYK_ADC1:		fZmiennaTele = stStatusDotyku.sAdc[1];		break;
+	case TID_DOTYK_ADC2:		fZmiennaTele = stStatusDotyku.sAdc[2];		break;
 	case TID_CZAS_PETLI: 		fZmiennaTele = stDane->ndT;					break;
 	case TID_JAKOSC_UP_RC1:		fZmiennaTele = stDane->cJakoscUpLinkuRC1;	break;
 	case TID_JAKOSC_UP_RC2:		fZmiennaTele = stDane->cJakoscUpLinkuRC2;	break;
@@ -632,6 +632,6 @@ uint8_t ZapiszKonfiguracjeTelemetrii(uint16_t sPrzesuniecie)
 ////////////////////////////////////////////////////////////////////////////////
 void WłączTelemetrię(uint8_t chOperacja)
 {
-	chStatusTelemetrii = chOperacja;
+	cStatusTelemetrii = chOperacja;
 	sIndeksWysyłkiFFT = chIndeksWysyłkiTestuFFT = 0;	//resetuj parametry szybkiej telemetrii
 }

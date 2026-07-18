@@ -13,17 +13,17 @@
 #include "PetlaGlowna.h"
 
 //Zmienne przesyłane przez I2C4 we współpracy z BDMA a on ma dostęp tylko SRAM4
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	chDaneMagIIS[6];		//dane pomiarowe magnetometru IIS
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	chStatusIIS;			//ststus magnetometru IIS
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	chPolWychMagIIS[2];	//dane wychodzące aby nie kolidowały z przychodzącymi
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	cDaneMagIIS[6];		//dane pomiarowe magnetometru IIS
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	cStatusIIS;			//ststus magnetometru IIS
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	cPolWychMagIIS[2];	//dane wychodzące aby nie kolidowały z przychodzącymi
 
 extern I2C_HandleTypeDef hi2c4;
 extern DMA_HandleTypeDef hdma_i2c4_rx;
 extern DMA_HandleTypeDef hdma_i2c4_tx;
 extern volatile unia_wymianyCM4_t uDaneCM4;
-uint8_t chSekwencjaPomiaruIIS;		//w trakcie tracy wyznacza bieżącą operację w sekwencji pomairowej, w trakcie inicjkalizacji pełni rolę licznika prób inicjalizacji
-extern volatile uint8_t chCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
-extern volatile uint8_t chCzujnikZapisywanyNaI2CInt;
+uint8_t cSekwencjaPomiaruIIS;		//w trakcie tracy wyznacza bieżącą operację w sekwencji pomairowej, w trakcie inicjkalizacji pełni rolę licznika prób inicjalizacji
+extern volatile uint8_t cCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
+extern volatile uint8_t cCzujnikZapisywanyNaI2CInt;
 float fPrzesMagn1[3], fSkaloMagn1[3];
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -36,31 +36,31 @@ uint8_t InicjujIIS2MDC(void)
 {
 	uint8_t cBłąd;
 
-	chPolWychMagIIS[0] = PIIS2MDS_WHO_AM_I;
-	cBłąd = HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 1, TOUT_I2C4_2B);	//wyślij polecenie odczytu rejestru identyfikacyjnego
+	cPolWychMagIIS[0] = PIIS2MDS_WHO_AM_I;
+	cBłąd = HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, cPolWychMagIIS, 1, TOUT_I2C4_2B);	//wyślij polecenie odczytu rejestru identyfikacyjnego
 	if (!cBłąd)
 	{
-		cBłąd =  HAL_I2C_Master_Receive(&hi2c4, IIS2MDC_I2C_ADR + READ, chDaneMagIIS, 1, TOUT_I2C4_2B);		//odczytaj dane
+		cBłąd =  HAL_I2C_Master_Receive(&hi2c4, IIS2MDC_I2C_ADR + READ, cDaneMagIIS, 1, TOUT_I2C4_2B);		//odczytaj dane
 		if (!cBłąd)
 		{
-			if (chDaneMagIIS[0] == 0x40)
+			if (cDaneMagIIS[0] == 0x40)
 			{
-				chPolWychMagIIS[0] = PIIS2MDS_CFG_REG_A;
-				chPolWychMagIIS[1] = (0 << 0) |	//MD: Mode of operation of the device: 0=Continuous mode, 1=Single mode, 2 i 3 = Idle mode.
+				cPolWychMagIIS[0] = PIIS2MDS_CFG_REG_A;
+				cPolWychMagIIS[1] = (0 << 0) |	//MD: Mode of operation of the device: 0=Continuous mode, 1=Single mode, 2 i 3 = Idle mode.
 								  (3 << 2) |	//ODR: Output data rate: 0=10Hz, 1=20Hz, 2=50Hz, 3=100Hz
 								  (0 << 4) |	//LP: Enables low-power mode: 0=high-resolution mode, 1=low-power mode enabled
 								  (0 << 5) |	//SOFT_RST: When this bit is set, the configuration registers and user registers are reset. Flash registers keep their values.
 								  (0 << 6) |	//REBOOT: Reboot magnetometer memory content.
 								  (1 << 7);		//COMP_TEMP_EN: Enables the magnetometer temperature compensation. For proper operation, this bit must be set to '1'.
-				cBłąd = HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 2, TOUT_I2C4_2B);	//wyślij polecenie zapisu konfiguracji
+				cBłąd = HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, cPolWychMagIIS, 2, TOUT_I2C4_2B);	//wyślij polecenie zapisu konfiguracji
 
-				chPolWychMagIIS[0] = PIIS2MDS_CFG_REG_B;
-				chPolWychMagIIS[1] = (1 << 0) |	//LPF Enables low-pass filter: 0=ODR/2, 1=ODR/4
+				cPolWychMagIIS[0] = PIIS2MDS_CFG_REG_B;
+				cPolWychMagIIS[1] = (1 << 0) |	//LPF Enables low-pass filter: 0=ODR/2, 1=ODR/4
 								  (1 << 1) |	//OFF_CANC Enables offset cancellation - patrz nota AN5080
 								  (0 << 2) |	//Set_FREQ Selects the frequency of the set pulse: 0=0: set pulse is released every 63 ODR, 1: set pulse is released only at power-on after PD condition)
 								  (0 << 3) |	//INT_on_DataOFF If ‘1’, the interrupt block recognition checks data after the hard-iron correction to discover the interrupt
 								  (0 << 4);		//OFF_CANC_ONE_SHOT Enables offset cancellation in single measurement mode. The OFF_CANC bit must be set to 1 when enabling offset cancellation in single measurement mode.
-				cBłąd |= HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 2, TOUT_I2C4_2B);	//wyślij polecenie zapisu konfiguracji
+				cBłąd |= HAL_I2C_Master_Transmit(&hi2c4, IIS2MDC_I2C_ADR, cPolWychMagIIS, 2, TOUT_I2C4_2B);	//wyślij polecenie zapisu konfiguracji
 				if (cBłąd)
 					return cBłąd;
 
@@ -96,14 +96,14 @@ uint8_t ObslugaIIS2MDC(void)
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC) != INIT_IIS2MDC)
 	{
-		if (chSekwencjaPomiaruIIS < MAX_PROB_INICJALIZACJI)
+		if (cSekwencjaPomiaruIIS < MAX_PROB_INICJALIZACJI)
 		{
-			chSekwencjaPomiaruIIS++;
+			cSekwencjaPomiaruIIS++;
 			cBłąd = InicjujIIS2MDC();
 			if (cBłąd == BLAD_OK)
 			{
 				uDaneCM4.dane.nZainicjowano |= INIT_IIS2MDC;
-				chSekwencjaPomiaruIIS = 0;
+				cSekwencjaPomiaruIIS = 0;
 			}
 		}
 		else
@@ -114,29 +114,29 @@ uint8_t ObslugaIIS2MDC(void)
 		return cBłąd;
 	}
 
-	switch (chSekwencjaPomiaruIIS)
+	switch (cSekwencjaPomiaruIIS)
 	{
 	case 0:
-		chPolWychMagIIS[0] = PIIS2MDS_STATUS_REG;
-		cBłąd = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu statusu nie kończąc transferu STOP-em
-		chCzujnikZapisywanyNaI2CInt = MAG_IIS_STATUS;	//po zapisie wykonaj operację odczytu
+		cPolWychMagIIS[0] = PIIS2MDS_STATUS_REG;
+		cBłąd = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, IIS2MDC_I2C_ADR, cPolWychMagIIS, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu statusu nie kończąc transferu STOP-em
+		cCzujnikZapisywanyNaI2CInt = MAG_IIS_STATUS;	//po zapisie wykonaj operację odczytu
 		break;
 
 	case 1:
-		if (chStatusIIS & 0x08)	//3 najmłodsze bity statusu to: new data available dla każdej osi, bit 4 to komplet nowych danych - sprawdzamy komplet
+		if (cStatusIIS & 0x08)	//3 najmłodsze bity statusu to: new data available dla każdej osi, bit 4 to komplet nowych danych - sprawdzamy komplet
 		{
-			chPolWychMagIIS[0] = PIIS2MDS_OUTX_L_REG;	//;
-			cBłąd = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, IIS2MDC_I2C_ADR, chPolWychMagIIS, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
-			chCzujnikZapisywanyNaI2CInt = MAG_IIS;	//po zapisie wykonaj operację odczytu
+			cPolWychMagIIS[0] = PIIS2MDS_OUTX_L_REG;	//;
+			cBłąd = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c4, IIS2MDC_I2C_ADR, cPolWychMagIIS, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
+			cCzujnikZapisywanyNaI2CInt = MAG_IIS;	//po zapisie wykonaj operację odczytu
 		}
 		else
-			chSekwencjaPomiaruIIS -= 2;	//wróć do odczytu statusu
+			cSekwencjaPomiaruIIS -= 2;	//wróć do odczytu statusu
 		break;
 
 	default: break;
 	}
-	chSekwencjaPomiaruIIS++;
-	chSekwencjaPomiaruIIS &= 0x01;
+	cSekwencjaPomiaruIIS++;
+	cSekwencjaPomiaruIIS &= 0x01;
 	return cBłąd;
 }
 
@@ -151,8 +151,8 @@ uint8_t ObslugaIIS2MDC(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t MagIIS_CzytajStatus(void)
 {
-	chCzujnikOdczytywanyNaI2CInt = 0;	//nie interpretuj odczytanych danych jako wyniku pomiaru
-	return HAL_I2C_Master_Seq_Receive_DMA(&hi2c4, IIS2MDC_I2C_ADR + READ, &chStatusIIS, 1, I2C_LAST_FRAME);		//odczytaj status i zakończ STOP
+	cCzujnikOdczytywanyNaI2CInt = 0;	//nie interpretuj odczytanych danych jako wyniku pomiaru
+	return HAL_I2C_Master_Seq_Receive_DMA(&hi2c4, IIS2MDC_I2C_ADR + READ, &cStatusIIS, 1, I2C_LAST_FRAME);		//odczytaj status i zakończ STOP
 }
 
 
@@ -166,6 +166,6 @@ uint8_t MagIIS_CzytajStatus(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t MagIIS_CzytajDane(void)
 {
-	chCzujnikOdczytywanyNaI2CInt = MAG_IIS;		//w callbacku interpretuj odczytane dane jako pomiar magnetometru IIS
-	return HAL_I2C_Master_Seq_Receive_DMA(&hi2c4, IIS2MDC_I2C_ADR + READ, chDaneMagIIS, 6, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
+	cCzujnikOdczytywanyNaI2CInt = MAG_IIS;		//w callbacku interpretuj odczytane dane jako pomiar magnetometru IIS
+	return HAL_I2C_Master_Seq_Receive_DMA(&hi2c4, IIS2MDC_I2C_ADR + READ, cDaneMagIIS, 6, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
 }

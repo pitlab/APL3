@@ -35,16 +35,16 @@
 
 #define DLUGOSC_PRZERWY_DETEKCJI_DOTYKU		20	//liczba iteracji odczytu dotyku pomijanych po pierwszej detekcji
 
-struct _statusDotyku
+typedef struct
 {
 	uint16_t sAdc[4];
 	uint16_t sX;
 	uint16_t sY;
 	uint8_t chFlagi;			//flagi określające naciśnięcie i zwolnienie przycisku ekranowego
 	uint32_t nOstCzasPomiaru;	//ostatni pomiar czasu między kolejnymi dotknięciami ekranu
-};
+} stStatusDotyku_t;
 
-struct _kalibracjaDotyku
+typedef struct
 {
 	float fAx;
 	float fBx;
@@ -52,7 +52,7 @@ struct _kalibracjaDotyku
 	float fBy;
 	float fDeltaX;
 	float fDeltaY;
-};
+} stKalibracjaDotyku_t;
 
 
 uint16_t CzytajKanalDotyku(uint8_t  chKanal);

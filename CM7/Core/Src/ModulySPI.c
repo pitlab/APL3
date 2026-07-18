@@ -12,12 +12,12 @@
 #include "semafory.h"
 
 //deklaracje zmiennych
-uint8_t chPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN] = {0x04, 0x00, 0xE0};
-uint8_t chPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
-uint8_t chStanDekoderaSPI;
-volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+uint8_t cPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN] = {0x04, 0x00, 0xE0};
+uint8_t cPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
+uint8_t cStanDekoderaSPI;
+volatile uint8_t cCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 extern SPI_HandleTypeDef hspi5;
-const uint8_t chAdres_expandera[LICZBA_EXP_SPI_ZEWN] = {SPI_EXTIO_0, SPI_EXTIO_1, SPI_EXTIO_2};
+const uint8_t cAdres_expandera[LICZBA_EXP_SPI_ZEWN] = {SPI_EXTIO_0, SPI_EXTIO_1, SPI_EXTIO_2};
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -128,12 +128,12 @@ uint8_t InicjujSPIModZewn(void)
 			cBłąd |= UstawDekoderZewn(CS_NIC);
 
 			//włącz niebieskiego LEDa sygnalizujacego konfigurację lub kalibracje
-			chPort_exp_wysylany[2] |= EXP27_LED_CZER | EXP26_LED_ZIEL;		//wyłącz LED_CZER, wyłącz LED_ZIEL
-			chPort_exp_wysylany[2] &= ~EXP25_LED_NIEB;		//włącz LED_NIEB
+			cPort_exp_wysylany[2] |= EXP27_LED_CZER | EXP26_LED_ZIEL;		//wyłącz LED_CZER, wyłącz LED_ZIEL
+			cPort_exp_wysylany[2] &= ~EXP25_LED_NIEB;		//włącz LED_NIEB
 
 			dane_wysylane[0] = SPI_EXTIO_2;
 			dane_wysylane[1] = MCP23S08_GPIO;
-			dane_wysylane[2] = chPort_exp_wysylany[2];
+			dane_wysylane[2] = cPort_exp_wysylany[2];
 			UstawDekoderZewn(CS_IO);
 			cBłąd |= HAL_SPI_Transmit(&hspi5, dane_wysylane, 3, HAL_DELAY_SPI);
 			cBłąd |= UstawDekoderZewn(CS_NIC);
@@ -163,7 +163,7 @@ uint8_t InicjujSPIModZewn(void)
 uint8_t UstawDekoderZewn(uint8_t uklad)
 {
 	uint8_t cBłąd = BLAD_OK;
-	chStanDekoderaSPI = uklad;
+	cStanDekoderaSPI = uklad;
 	switch (uklad)
 	{
 		case CS_TP: 	//Panel dotykowy,
@@ -200,7 +200,7 @@ uint8_t UstawDekoderZewn(uint8_t uklad)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PobierzStanDekoderaZewn(void)
 {
-	return chStanDekoderaSPI;
+	return cStanDekoderaSPI;
 }
 
 
@@ -311,42 +311,42 @@ uint8_t WymienDaneExpanderow(void)
 			hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_8;	//Bits 30:28 MBR[2:0]: master baud rate: 011: SPI master clock/16
 
 			//ustaw bieżący stan LED-ów
-			if (chCzasSwieceniaLED[LED_CZER])
-				chPort_exp_wysylany[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
+			if (cCzasSwieceniaLED[LED_CZER])
+				cPort_exp_wysylany[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
 			else
-				chPort_exp_wysylany[2] |= EXP27_LED_CZER;		//wyłącz LED_CZER
+				cPort_exp_wysylany[2] |= EXP27_LED_CZER;		//wyłącz LED_CZER
 
-			if (chCzasSwieceniaLED[LED_ZIEL])
-				chPort_exp_wysylany[2] &= ~EXP26_LED_ZIEL;		//włącz LED_ZIEL
+			if (cCzasSwieceniaLED[LED_ZIEL])
+				cPort_exp_wysylany[2] &= ~EXP26_LED_ZIEL;		//włącz LED_ZIEL
 			else
-				chPort_exp_wysylany[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
+				cPort_exp_wysylany[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
 
-			if (chCzasSwieceniaLED[LED_NIEB])
-				chPort_exp_wysylany[2] &= ~EXP25_LED_NIEB;		//włącz LED_NIEB
+			if (cCzasSwieceniaLED[LED_NIEB])
+				cPort_exp_wysylany[2] &= ~EXP25_LED_NIEB;		//włącz LED_NIEB
 			else
-				chPort_exp_wysylany[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
+				cPort_exp_wysylany[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB
 
 			//wyślij dane do expanderów I/O
 			//W pętli nie używam funkcji WyslijDaneExpandera() i PobierzDaneExpandera(), gdyż one
 			//są zabezpieczone semaformem i tutaj wewnątrz kolejnego semafora zakleszczyły by się.
 			for (uint8_t x=0; x<LICZBA_EXP_SPI_ZEWN; x++)
 			{
-				dane_wysylane[0] = chAdres_expandera[x];
+				dane_wysylane[0] = cAdres_expandera[x];
 				dane_wysylane[1] = MCP23S08_GPIO;
-				dane_wysylane[2] = chPort_exp_wysylany[x];
+				dane_wysylane[2] = cPort_exp_wysylany[x];
 				UstawDekoderZewn(CS_IO);
 				cBłąd = HAL_SPI_Transmit(&hspi5, dane_wysylane, 3, HAL_DELAY_SPI);
 				UstawDekoderZewn(CS_NIC);
 				if (cBłąd != BLAD_OK)
 					return cBłąd;
 
-				dane_wysylane[0] = chAdres_expandera[x] + SPI_EXTIO_RD;
+				dane_wysylane[0] = cAdres_expandera[x] + SPI_EXTIO_RD;
 				dane_wysylane[1] = MCP23S08_GPIO;
 				dane_wysylane[2] = 0;
 				UstawDekoderZewn(CS_IO);
 				cBłąd = HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_DELAY_SPI);
 				UstawDekoderZewn(CS_NIC);
-				chPort_exp_odbierany[x] = dane_odbierane[2];
+				cPort_exp_odbierany[x] = dane_odbierane[2];
 				if (cBłąd != BLAD_OK)
 					return cBłąd;
 			}

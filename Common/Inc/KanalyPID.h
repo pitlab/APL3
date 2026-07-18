@@ -50,15 +50,16 @@ typedef struct	//struktura konfiguracji regulatora PID
 	float fWzmP;   				//wzmocnienie członu P
 	float fWzmI;   				//wzmocnienie członu I
 	float fWzmD;   				//wzmocnienie członu D
+	float fWzmWyprz;			//wzmocnienia wyprzedzenia
 	float fOgrCalki; 			//ogranicznik wartości całki członu I
 	float fMaxWyj;				//maksymalna wartość wyjściowa regulatora
 	float fMinWyj;				//minimalna wartość wyjściowa regulatora
 	float fPrzesunWartZadanej;	//wartość dodawana do wartości zadanej (umożliwia lot pod niezerowym kątem)
 	float fSkalaWartZadanej;	//skalowanie wartości zadanej
-	uint8_t chPodstFiltraD; 	//podstawa filtra IIR błędu
-	uint8_t chPodstFiltraWZad; 	//podstawa filtra IIR wartości zadanej
-	uint8_t chFlagi;			//0x80 - regulator katowy, 0x40 - regulator wyłączony
-	uint8_t chProcWartZadWyprz;	//procent zmiany wartości zadanej podawany na wejście wyprzedzające
+	uint8_t cPodstFiltraWej;	//podstawa filtra IIR wartości wejściowej
+	uint8_t cPodstFiltraD; 		//podstawa filtra IIR błędu
+	uint8_t cPodstFiltraWZad; 	//podstawa filtra IIR wartości zadanej
+	uint8_t cFlagi;				//0x80 - regulator kątowy, 0x40 - regulator wyłączony
 } stKonfPID_t;
 
 typedef struct	//struktura danych roboczych regulatora PID
@@ -84,8 +85,8 @@ typedef struct	//struktura danych roboczych regulatora PID
 
 typedef struct	//struktura przechowujaca konfigurację strojenia parametru PID kanałem RC
 {
-	uint8_t chNrKanałuRC;	//numer kanału RC używany do strojenia parametru
-	uint8_t chNrParametru;	//numer strojonego parametru
+	uint8_t cNrKanałuRC;	//numer kanału RC używany do strojenia parametru
+	uint8_t cNrParametru;	//numer strojonego parametru
 	float fWartośćMin;	//minimalna wartość parametru dla minimalnej wartości kanału
 	float fWartośćMax;	//maksymalna wartość parametru dla maksymalnej wartości kanału
 } stStrojPID_t;
