@@ -102,12 +102,12 @@ uint8_t ObslugaMS4525(void)
 // Parametry: *dane - wskaźnik na odczytane dane
 // Zwraca: obliczone ciśnienie różnicowe w Pa
 ////////////////////////////////////////////////////////////////////////////////
-float CisnienieMS2545(uint8_t * dane)
+float CisnienieMS2545(uint8_t * cDane)
 {
 	float fCisnienie;
 	int16_t sCisnienie;
 
-	sCisnienie = (uint16_t)(0x100 * *(dane+0) + *(dane+1));
+	sCisnienie = (uint16_t)(0x100 * *(cDane + 0) + *(cDane + 1));
 	fCisnienie =  ((float)sCisnienie - 1638.3f) * (2*ZAKRES_POMIAROWY_CISNIENIA) / (0.8f * 16383) - ZAKRES_POMIAROWY_CISNIENIA;	//wynik w [psi]
 	fCisnienie *= PASKAL_NA_PSI;	//wynik w [Pa]
 
@@ -134,11 +134,11 @@ float CisnienieMS2545(uint8_t * dane)
 // Parametry: *dane - wskaźnik na odczytane dane
 // Zwraca: obliczona temepratura
 ////////////////////////////////////////////////////////////////////////////////
-float TemperaturaMS2545(uint8_t * dane)
+float TemperaturaMS2545(uint8_t * cDane)
 {
 	uint16_t sTemperatura;
 
-	sTemperatura = (int16_t)(0x100 * *(dane+2) + *(dane+3));
+	sTemperatura = (int16_t)(0x100 * *(cDane + 2) + *(cDane + 3));
 	return (float)(sTemperatura>>5) * 200.f / 2047.f - 50.f;
 }
 

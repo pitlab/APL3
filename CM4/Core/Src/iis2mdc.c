@@ -26,6 +26,8 @@ extern volatile uint8_t cCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika ob
 extern volatile uint8_t cCzujnikZapisywanyNaI2CInt;
 float fPrzesMagn1[3], fSkaloMagn1[3];
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika IIS2MDC
 // Parametry: nic

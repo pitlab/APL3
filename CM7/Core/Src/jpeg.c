@@ -20,18 +20,11 @@
 extern JPEG_HandleTypeDef hjpeg;
 extern MDMA_HandleTypeDef hmdma_jpeg_outfifo_th;
 extern MDMA_HandleTypeDef hmdma_jpeg_infifo_th;
-
-//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM2"))) cBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};	//są problemy z zapisem na kartę
-//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) cBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) cBuforJpeg[ILOSC_BUF_JPEG][ROZM_BUF_WY_JPEG] = {0};
-//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM2"))) cBuforMCU[ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU] = {0}; - wywala się ethernet, być może dane wchodzą na stos
-//uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) cBuforMCU[ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU] = {0};	- błąd DMA
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM")))cBuforMCU[ILOSC_BUF_WE_MCU * ROZMIAR_BLOKU] = {0};
-
 volatile uint8_t cStatusBufJpeg;	//przechowyje bity okreslające status procesu przepływu danych z bufora danych skompresowanych
 volatile uint8_t cWskNapBufJpeg, cWskOprBufJpeg;	// wskazuje do którego bufora obecnie są zapisywane dane i z którego są odczytywane
 uint32_t nRozmiarObrazuJPEG;	//w bajtach
-//uint8_t chWynikKompresji;		//flagi ustawiane w callbackach, określajace postęp przepływu danych przez enkoder JPEG
 uint8_t cWskNapBufMcu;			//wskaźnik napełniania buforów MCU
 volatile uint16_t sZajetoscBuforaWeJpeg, sZajetoscBuforaWyJpeg;		//liczba bajtów w buforach wejściowym i wyjściowym kompresora
 extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
@@ -665,9 +658,9 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 	uint32_t nOffsetWyjscia;
 	uint16_t chLiczbaParBlokow = sSzerokosc / 16;
 	uint16_t sIloscBlokowPionowo = sWysokosc / 8;
-	uint8_t chR, chG, chB;
-	uint8_t chY1, chY2;
-	int8_t chCb1, chCr1, chCb2, chCr2;
+	uint8_t cR, cG, cB;
+	uint8_t cY1, cY2;
+	int8_t cCb1, cCr1, cCb2, cCr2;
 	uint8_t cBłąd, cDaneDoZapisu;
 	uint8_t cLicznikTimeoutu = 0;
 
@@ -704,21 +697,21 @@ uint8_t KompresujRGB888doY8(uint8_t *obrazRGB888, uint16_t sSzerokosc, uint16_t 
 				for (uint8_t x=0; x<SZEROKOSC_BLOKU; x++)			//pętla po  kolumnach bloku
 				{
 					nOfsetWe = nOffsetWiersza + LICZBA_KOLOR_RGB888 * x;
-					chR = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku lewego
-					chG = *(obrazRGB888 + nOfsetWe + 1);
-					chB = *(obrazRGB888 + nOfsetWe + 2);
-					KonwersjaRGB888doYCbCr(chR, chG, chB, &chY1, &chCb1, &chCr1);
+					cR = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku lewego
+					cG = *(obrazRGB888 + nOfsetWe + 1);
+					cB = *(obrazRGB888 + nOfsetWe + 2);
+					KonwersjaRGB888doYCbCr(cR, cG, cB, &cY1, &cCb1, &cCr1);
 
 					nOfsetWe += SZEROKOSC_BLOKU * LICZBA_KOLOR_RGB888;
-					chR = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku prawego
-					chG = *(obrazRGB888 + nOfsetWe + 1);
-					chB = *(obrazRGB888 + nOfsetWe + 2);
-					KonwersjaRGB888doYCbCr(chR, chG, chB, &chY2, &chCb2, &chCr2);
+					cR = *(obrazRGB888 + nOfsetWe + 0);		//piksele bloku prawego
+					cG = *(obrazRGB888 + nOfsetWe + 1);
+					cB = *(obrazRGB888 + nOfsetWe + 2);
+					KonwersjaRGB888doYCbCr(cR, cG, cB, &cY2, &cCb2, &cCr2);
 
 					//Formowanie MCU
 					nOffsetWyjscia = (cWskNapBufMcu * ROZMIAR_BLOKU) + (y * SZEROKOSC_BLOKU) + x;
-					cBuforMCU[nOffsetWyjscia + 0 * ROZMIAR_BLOKU] = chY1;
-					cBuforMCU[nOffsetWyjscia + 1 * ROZMIAR_BLOKU] = chY2;
+					cBuforMCU[nOffsetWyjscia + 0 * ROZMIAR_BLOKU] = cY1;
+					cBuforMCU[nOffsetWyjscia + 1 * ROZMIAR_BLOKU] = cY2;
 				}		//pętla po  kolumnach bloku
 			} 		//pętla po wierszach bloku
 

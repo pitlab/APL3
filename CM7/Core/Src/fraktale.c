@@ -15,11 +15,11 @@
 float fZoom, fX, fY;
 float fReal, fImag;
 uint16_t sMnozPalety;
-uint8_t chDemoMode = START_FRAKTAL;	//zacznij od rotacji palety Mandelbrota
-extern uint8_t chLiczIter;		//licznik iteracji fraktala
+uint8_t cDemoMode = START_FRAKTAL;	//zacznij od rotacji palety Mandelbrota
+extern uint8_t cLiczIter;		//licznik iteracji fraktala
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) cBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
 extern char cNapis[100];
-extern uint8_t MidFont[];
+extern uint8_t cMidFont[];
 
 
 
@@ -28,13 +28,13 @@ extern uint8_t MidFont[];
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void InitFraktal(unsigned char chTyp)
+void InitFraktal(unsigned char cTyp)
 {
 #define ITERATION	80
 #define IMG_CONSTANT	-0.1
 #define REAL_CONSTANT	0.65
 
-	switch (chTyp)
+	switch (cTyp)
 	{
 	case 0:	fReal = 0.38; 	fImag = -0.1;	sMnozPalety = 0x400;	break;	//Julia Ladne palety: 0xEEE, 0xEEEE
 	case 1:	fX=-0.70; 	fY=0.60;	fZoom = -0.6;	sMnozPalety = 20;	break;		//cały fraktal - rotacja palety -0.7, 0.6, -0.6,
@@ -53,51 +53,51 @@ void InitFraktal(unsigned char chTyp)
 ////////////////////////////////////////////////////////////////////////////////
 void FraktalDemo(void)
 {
-	switch (chDemoMode)
+	switch (cDemoMode)
 	{
 	case 0:	FraktalTest(0);		//rysuj fraktala Julii
-		if (chLiczIter > 40)
+		if (cLiczIter > 40)
 		{
-			chLiczIter = 0;
-			chDemoMode++;
+			cLiczIter = 0;
+			cDemoMode++;
 			InitFraktal(1);
 		}
 		break;
 
 	case 1:	FraktalTest(1);		//rysuj fraktala Mandelbrota - cały fraktal rotacja kolorów
-		if (chLiczIter > 60)
+		if (cLiczIter > 60)
 		{
-			chLiczIter = 0;
-			chDemoMode++;
+			cLiczIter = 0;
+			cDemoMode++;
 			InitFraktal(2);
 		}
 		break;
 
 	case 2:	FraktalTest(2);		//rysuj fraktala Mandelbrota - dolina konika
-		if (chLiczIter > 20)
+		if (cLiczIter > 20)
 		{
-			chLiczIter = 0;
-			chDemoMode++;
+			cLiczIter = 0;
+			cDemoMode++;
 			InitFraktal(3);
 		}
 		break;
 
 	case 3:	FraktalTest(3);		//rysuj fraktala Mandelbrota - dolina słonia
-		if (chLiczIter > 20)
+		if (cLiczIter > 20)
 		{
-			chLiczIter = 0;
-			chDemoMode++;
+			cLiczIter = 0;
+			cDemoMode++;
 			InitFraktal(2);
 		}
 		break;
 
-	case 4:	chDemoMode++;	break;
+	case 4:	cDemoMode++;	break;
 
 	case 5:	//LCD_Test();		chMode++;
 		InitFraktal(0);
-		chDemoMode = 0;	break;
+		cDemoMode = 0;	break;
 	}
-	chLiczIter++;
+	cLiczIter++;
 }
 
 
@@ -107,12 +107,12 @@ void FraktalDemo(void)
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void FraktalTest(uint8_t chTyp)
+void FraktalTest(uint8_t cTyp)
 {
 	uint32_t nCzas, nCzasRysowania = 0;
 
 	nCzas = PobierzCzasT6();
-	switch (chTyp)
+	switch (cTyp)
 	{
 	case 0:	GenerateJulia(DISP_X_SIZE, DISP_Y_SIZE, 135, fReal, fImag, sMnozPalety, cBuforLCD);
 		nCzas = MinalCzas(nCzas);
@@ -152,7 +152,7 @@ void FraktalTest(uint8_t chTyp)
 	RysujBitmape888(0, 0, DISP_X_SIZE, DISP_Y_SIZE, cBuforLCD);
 	nCzasRysowania = MinalCzas(nCzasRysowania);
 #endif
-	UstawCzcionke(MidFont);
+	UstawCzcionke(cMidFont);
 	setColor(ZIELONY);
 	RysujNapis(cNapis, 0, 304);
 
@@ -171,7 +171,7 @@ void FraktalTest(uint8_t chTyp)
 // chBufor = wskaźnik na bufor obrazu
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void GenerateJulia(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t sZoom, float fZespRzecz, float fZespUroj, uint16_t sPaleta, uint8_t* chBufor)
+void GenerateJulia(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t sZoom, float fZespRzecz, float fZespUroj, uint16_t sPaleta, uint8_t* cBufor)
 {
 	float tmp1, tmp2;
 	float num_real, num_img;
@@ -207,9 +207,9 @@ void GenerateJulia(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t sZoom, floa
 			nPaleta = i * sPaleta;
 			nOffset = 3 * (x + y * sSzerokosc);
 
-			chBufor[nOffset + 0] = (uint8_t)((nPaleta & 0xFF0000) >> 16);	//R
-			chBufor[nOffset + 1] = (uint8_t)((nPaleta & 0x00FF00) >> 8);	//G
-			chBufor[nOffset + 2] = (uint8_t)((nPaleta & 0x0000FF));			//B
+			cBufor[nOffset + 0] = (uint8_t)((nPaleta & 0xFF0000) >> 16);	//R
+			cBufor[nOffset + 1] = (uint8_t)((nPaleta & 0x00FF00) >> 8);	//G
+			cBufor[nOffset + 2] = (uint8_t)((nPaleta & 0x0000FF));			//B
 		}
 	}
 }
@@ -222,7 +222,7 @@ void GenerateJulia(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t sZoom, floa
 // sMaxIteracji - maksymalna liczba iteracji algorytmu dla pixela
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void GenerateMandelbrot(float fSrodekX, float fSrodekY, float Zoom, uint16_t sMaxIteracji, uint16_t sPaleta, uint8_t* chBufor)
+void GenerateMandelbrot(float fSrodekX, float fSrodekY, float Zoom, uint16_t sMaxIteracji, uint16_t sPaleta, uint8_t* cBufor)
 {
 	double X_Min = fSrodekX - 1.0/Zoom;
 	double X_Max = fSrodekX + 1.0/Zoom;
@@ -259,9 +259,9 @@ void GenerateMandelbrot(float fSrodekX, float fSrodekY, float Zoom, uint16_t sMa
 			//nPaleta = (n * chPaleta) << 2;
 			nPaleta = n * sPaleta;
 			nOffset = 3 * (i + j*DISP_X_SIZE);
-			chBufor[nOffset + 0] = (uint8_t)((nPaleta & 0xFF0000) >> 16);	//R
-			chBufor[nOffset + 1] = (uint8_t)((nPaleta & 0x00FF00) >> 8);	//G
-			chBufor[nOffset + 2] = (uint8_t)((nPaleta & 0x0000FF));			//B
+			cBufor[nOffset + 0] = (uint8_t)((nPaleta & 0xFF0000) >> 16);	//R
+			cBufor[nOffset + 1] = (uint8_t)((nPaleta & 0x00FF00) >> 8);	//G
+			cBufor[nOffset + 2] = (uint8_t)((nPaleta & 0x0000FF));			//B
 		}
 		y += dy;
 	}

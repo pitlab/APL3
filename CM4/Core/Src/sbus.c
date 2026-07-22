@@ -224,34 +224,34 @@ uint8_t InicjujUart4TxJakoSbus(GPIO_InitTypeDef *InitGPIO)
 ////////////////////////////////////////////////////////////////////////////////
 // Odbiór danych SBus z bufora kołowego i formowanie ich w ramkę
 // Parametry:
-// [we] *chRamkaSBus - wskaźnik na dane formowanej ramki
-// [we/wy] *chWskNapRamki - wskaźnik na wskaźnik napełniania ramki SBus
-// [we] *chBuforAnalizy - wskaźnik na bufor z danymi wejsciowymi
-// [we] chWskNapBuf - wskaźnik napełniania bufora wejsciowego
-// [wy] *chWskOprBuf - wskaźnik na wskaźnik opróżniania bufora wejściowego
+// [we] *cRamkaSBus - wskaźnik na dane formowanej ramki
+// [we/wy] *cWskNapRamki - wskaźnik na wskaźnik napełniania ramki SBus
+// [we] *cBuforAnalizy - wskaźnik na bufor z danymi wejsciowymi
+// [we] cWskNapBuf - wskaźnik napełniania bufora wejsciowego
+// [wy] *cWskOprBuf - wskaźnik na wskaźnik opróżniania bufora wejściowego
 // Zwraca: kod wykonania operacji: BLAD_GOTOWE gdy jest kompletna ramka, BLAD_OK gdy skończyły się dane ale nie skompetowano jeszcze ramki
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t OdbiórRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_t *chBuforAnalizy, uint8_t chWskNapBuf, uint8_t *chWskOprBuf)
+uint8_t OdbiórRamkiSBus(uint8_t *cRamkaSBus, uint8_t *cWskNapRamki, uint8_t *cBuforAnalizy, uint8_t cWskNapBuf, uint8_t *cWskOprBuf)
 {
-	uint8_t chDane;
+	uint8_t cDane;
 
-	while (chWskNapBuf != *chWskOprBuf)
+	while (cWskNapBuf != *cWskOprBuf)
 	{
-		chDane = chBuforAnalizy[*chWskOprBuf];
+		cDane = cBuforAnalizy[*cWskOprBuf];
 
 		// detekcja początku ramki po wykryciu nagłówka i poprzedzającej go stopki
-		if ((chDane == SBUS_NAGLOWEK) && (chBuforAnalizy[(*chWskOprBuf - 1) & MASKA_ROZM_BUF_ANA_SBUS] == SBUS_STOPKA))
-			*chWskNapRamki = 0;
+		if ((cDane == SBUS_NAGLOWEK) && (cBuforAnalizy[(*cWskOprBuf - 1) & MASKA_ROZM_BUF_ANA_SBUS] == SBUS_STOPKA))
+			*cWskNapRamki = 0;
 
-		chRamkaSBus[*chWskNapRamki] = chDane;
-		if (*chWskNapRamki < ROZMIAR_RAMKI_SBUS)
-			(*chWskNapRamki)++;
+		cRamkaSBus[*cWskNapRamki] = cDane;
+		if (*cWskNapRamki < ROZMIAR_RAMKI_SBUS)
+			(*cWskNapRamki)++;
 
-		(*chWskOprBuf)++;
-		(*chWskOprBuf) &= MASKA_ROZM_BUF_ANA_SBUS;	//zapętlenie wskaźnika bufora kołowego
+		(*cWskOprBuf)++;
+		(*cWskOprBuf) &= MASKA_ROZM_BUF_ANA_SBUS;	//zapętlenie wskaźnika bufora kołowego
 
-		if ((chDane == SBUS_STOPKA ) && (*chWskNapRamki == ROZMIAR_RAMKI_SBUS))
+		if ((cDane == SBUS_STOPKA ) && (*cWskNapRamki == ROZMIAR_RAMKI_SBUS))
 			return BLAD_GOTOWE;	//odebrano całą ramkę. Reszta danych będzie obrobiona w następnym przebiegu
 	}
 	return BLAD_OK;
@@ -263,14 +263,14 @@ uint8_t OdbiórRamkiSBus(uint8_t *chRamkaSBus, uint8_t *chWskNapRamki, uint8_t *
 // Dekoduje dane z ramki wejściowej odbiorników RC
 //i skaluje je do wygodnego w obsłudze zakresu PPM_MIN..PPM_MAX
 // Parametry:
-// [we] *chRamkaWe - wskaźnik na dane ramki wejsciowej
+// [we] *cRamkaWe - wskaźnik na dane ramki wejsciowej
 // [wy] *sKanaly - wskaźnik na tablicę kanałów RC
 // Zwraca: kod błędu
 // Czas wykonania: ok. 5us
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, stRC_t *stRC)
+uint8_t DekodowanieRamkiBSBus(uint8_t* cRamkaWe, stRC_t *stRC)
 {
-	uint8_t* chNaglowek;
+	uint8_t* cNaglowek;
 	uint8_t n;
 	uint16_t sWartoscKanalu;
 	uint8_t cBłąd = BLAD_OK;
@@ -278,9 +278,9 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, stRC_t *stRC)
 	//dane mogą być przesunięte wzgledem początku więc znajdź nagłówek i synchronizuj się do niego
 	for (n=0; n<KANALY_ODB_RC; n++)
 	{
-		if (*(chRamkaWe + n) == SBUS_NAGLOWEK)
+		if (*(cRamkaWe + n) == SBUS_NAGLOWEK)
 		{
-			chNaglowek = chRamkaWe + n;
+			cNaglowek = cRamkaWe + n;
 			break;
 		}
 	}
@@ -290,97 +290,97 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, stRC_t *stRC)
 	if (n > MAX_PRZESUN_NAGL)
 		return BLAD_ZLA_ILOSC_DANYCH;
 
-	sWartoscKanalu = ((uint16_t)*(chNaglowek +  1)       | (((uint16_t)*(chNaglowek +  2) << 8) & 0x7E0));
+	sWartoscKanalu = ((uint16_t)*(cNaglowek +  1)       | (((uint16_t)*(cNaglowek +  2) << 8) & 0x7E0));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[0] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek +  2) >> 3) | (((uint16_t)*(chNaglowek +  3) << 5) & 0x7E0));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek +  2) >> 3) | (((uint16_t)*(cNaglowek +  3) << 5) & 0x7E0));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[1] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek +  3) >> 6) | (((uint16_t)*(chNaglowek +  4) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 5) << 10) & 0x400));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek +  3) >> 6) | (((uint16_t)*(cNaglowek +  4) << 2) & 0x3FC) | (((uint16_t)*(cNaglowek + 5) << 10) & 0x400));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[2] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek +  5) >> 1) | (((uint16_t)*(chNaglowek +  6) << 7) & 0x780));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek +  5) >> 1) | (((uint16_t)*(cNaglowek +  6) << 7) & 0x780));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[3] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek +  6) >> 4) | (((uint16_t)*(chNaglowek +  7) << 4) & 0x7F0));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek +  6) >> 4) | (((uint16_t)*(cNaglowek +  7) << 4) & 0x7F0));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[4] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek +  7) >> 7) | (((uint16_t)*(chNaglowek +  8) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 9) << 9) & 0x600));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek +  7) >> 7) | (((uint16_t)*(cNaglowek +  8) << 1) & 0x1FE) | (((uint16_t)*(cNaglowek + 9) << 9) & 0x600));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[5] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek +  9) >> 2) | (((uint16_t)*(chNaglowek + 10) << 6) & 0x7C0));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek +  9) >> 2) | (((uint16_t)*(cNaglowek + 10) << 6) & 0x7C0));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[6] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek + 10) >> 5) | (((uint16_t)*(chNaglowek + 11) << 3) & 0x7F8));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek + 10) >> 5) | (((uint16_t)*(cNaglowek + 11) << 3) & 0x7F8));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[7] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek + 12) >> 0) | (((uint16_t)*(chNaglowek + 13) << 8) & 0x700));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek + 12) >> 0) | (((uint16_t)*(cNaglowek + 13) << 8) & 0x700));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[8] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek + 13) >> 3) | (((uint16_t)*(chNaglowek + 14) << 5) & 0x7E0));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek + 13) >> 3) | (((uint16_t)*(cNaglowek + 14) << 5) & 0x7E0));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[9] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek + 14) >> 6) | (((uint16_t)*(chNaglowek + 15) << 2) & 0x3FC) | (((uint16_t)*(chNaglowek + 16) << 10) & 0x400));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek + 14) >> 6) | (((uint16_t)*(cNaglowek + 15) << 2) & 0x3FC) | (((uint16_t)*(cNaglowek + 16) << 10) & 0x400));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[10] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek + 16) >> 1) | (((uint16_t)*(chNaglowek + 17) << 7) & 0x780));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek + 16) >> 1) | (((uint16_t)*(cNaglowek + 17) << 7) & 0x780));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[11] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek + 17) >> 4) | (((uint16_t)*(chNaglowek + 18) << 4) & 0x7F0));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek + 17) >> 4) | (((uint16_t)*(cNaglowek + 18) << 4) & 0x7F0));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[12] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek + 18) >> 7) | (((uint16_t)*(chNaglowek + 19) << 1) & 0x1FE) | (((uint16_t)*(chNaglowek + 20) << 9) & 0x600));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek + 18) >> 7) | (((uint16_t)*(cNaglowek + 19) << 1) & 0x1FE) | (((uint16_t)*(cNaglowek + 20) << 9) & 0x600));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[13] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek + 20) >> 2) | (((uint16_t)*(chNaglowek + 21) << 6) & 0x7C0));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek + 20) >> 2) | (((uint16_t)*(cNaglowek + 21) << 6) & 0x7C0));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[14] = sWartoscKanalu;
 	else
 		cBłąd = BLAD_ZLE_DANE;
 
-	sWartoscKanalu = (((uint16_t)*(chNaglowek + 21) >> 5) | (((uint16_t)*(chNaglowek + 22) << 3) & 0x7F8));
+	sWartoscKanalu = (((uint16_t)*(cNaglowek + 21) >> 5) | (((uint16_t)*(cNaglowek + 22) << 3) & 0x7F8));
 	if (sWartoscKanalu < WE_RC_MAX)
 		stRC->sKanaly[15] = sWartoscKanalu;
 	else
@@ -389,9 +389,9 @@ uint8_t DekodowanieRamkiBSBus(uint8_t* chRamkaWe, stRC_t *stRC)
 	//ostatni bajt 23 z flagami:
 	//bit 0 = kanał 17
 	//bit 1 = kanał 18
-	if (*(chNaglowek + 23) & 0x04)	//bit 2 = Frame Lost
+	if (*(cNaglowek + 23) & 0x04)	//bit 2 = Frame Lost
 		stRC->cFlagi = FRC_FAILSAFE;
-	if (*(chNaglowek + 23) & 0x08)	//bit 3 = FailSafe
+	if (*(cNaglowek + 23) & 0x08)	//bit 3 = FailSafe
 		stRC->cFlagi = FRC_FRAME_LOST;
 	return cBłąd;
 }

@@ -19,7 +19,7 @@
 //definicje zmiennych
 stKonfPID_t stKonfigPID[LICZBA_PID];
 stStrojPID_t stStrojPID[LICZBA_KAN_RC_DO_STROJENIA_PID];
-float fFiltrWePD[LICZBA_PID];	//stały filtr wartości wejściowej członu proporcjonalnego i różniczkującego mający zmniejszyć szum procesu
+//float fFiltrWePD[LICZBA_PID];	//stały filtr wartości wejściowej członu proporcjonalnego i różniczkującego mający zmniejszyć szum procesu
 //deklaracje zmiennych zewnętrznych
 extern unia_wymianyCM4_t uDaneCM4;
 
@@ -81,8 +81,8 @@ uint8_t InicjujPID(void)
 
         //zeruj zmienne robocze
         uDaneCM4.dane.stPID[n].fCalka = 0.0f;   	//zmienna przechowująca całkę z błędu
-        uDaneCM4.dane.stPID[n].fFiltrWeD = 0.0f;	//poprzednia wartość błędu
-        uDaneCM4.dane.stPID[n].fFiltrWartZad = 0.0f;
+        uDaneCM4.dane.stPID[n].fFiltrRóżn = 0.0f;	//poprzednia wartość błędu
+        uDaneCM4.dane.stPID[n].fFiltrWZad = 0.0f;
     }
 
     for (uint16_t n=0; n<LICZBA_KAN_RC_DO_STROJENIA_PID; n++)
@@ -106,22 +106,26 @@ uint8_t InicjujPID(void)
 ////////////////////////////////////////////////////////////////////////////////
 float RegulatorPID(uint32_t ndT, uint8_t cKanal, stWymianyCM4_t *dane, stKonfPID_t *konfig)
 {
-    float fWyjscieReg, fOdchylka;   //wartość wyjściowa i błąd sterowania (odchyłka)
+    float fWyjscieReg, fOdchyłka;   //wartość wyjściowa i błąd sterowania (odchyłka)
     float fTemp, fdT;
 
     fdT = (float)ndT/1000000;    //czas obiegu petli w sekundach (optymalizacja kilkukrotnie wykorzystywanej zmiennej)
-    fFiltrWePD[cKanal] = ((konfig[cKanal].cPodstFiltraWej - 1) * fFiltrWePD[cKanal] + dane->stPID[cKanal].fWejscie) / konfig[cKanal].cPodstFiltraWej;	//filtr wartosci wejściowej
+    if (konfig[cKanal].cPodstFiltraWej)
+    	dane->stPID[cKanal].fFiltrWWej = ((konfig[cKanal].cPodstFiltraWej - 1) * dane->stPID[cKanal].fFiltrWWej + dane->stPID[cKanal].fWejscie) / konfig[cKanal].cPodstFiltraWej;	//filtr wartosci wejściowej
+    else
+    	dane->stPID[cKanal].fFiltrWWej = dane->stPID[cKanal].fWejscie;	//podstawa filtra ma wartość 0, więc filtr jest wyłączony
+
 
     //Człon proporcjonalny.
-    fOdchylka = dane->stPID[cKanal].fZadana - fFiltrWePD[cKanal];
+    fOdchyłka = dane->stPID[cKanal].fZadana - dane->stPID[cKanal].fFiltrWWej;
     if (konfig[cKanal].cFlagi & PID_KATOWY)  //czy regulator pracuje na wartościach kątowych?
     {
-        if (fOdchylka > M_PI)
-        	fOdchylka -= 2*M_PI;
-        if (fOdchylka < -M_PI)
-        	fOdchylka += 2*M_PI;
+        if (fOdchyłka > M_PI)
+        	fOdchyłka -= 2*M_PI;
+        if (fOdchyłka < -M_PI)
+        	fOdchyłka += 2*M_PI;
     }
-    fWyjscieReg = fOdchylka * konfig[cKanal].fWzmP;
+    fWyjscieReg = fOdchyłka * konfig[cKanal].fWzmP;
     if (fWyjscieReg > MAX_PID)
     	fWyjscieReg = MAX_PID;
     else
@@ -132,7 +136,7 @@ float RegulatorPID(uint32_t ndT, uint8_t cKanal, stWymianyCM4_t *dane, stKonfPID
     //człon całkujący - liczy sumę błędu od początku do teraz
     if (konfig[cKanal].fWzmI > MIN_WZM_CALK)    //sprawdź warunek !=0 ze wzglądu na dzielenie przez fWzmI[] oraz ogranicz zbyt szybkie całkowanie nastawione pomyłkowo jako 0 a będące bardzo małą liczbą
     {
-    	dane->stPID[cKanal].fCalka += fWyjscieReg * fdT / konfig[cKanal].fWzmI;   //całkowanie odchyłki po wzmocnieniu - regulator szeregowy
+    	dane->stPID[cKanal].fCalka += fWyjscieReg * fdT * konfig[cKanal].fWzmI;   //całkowanie odchyłki po wzmocnieniu - regulator szeregowy
 
         //ogranicznik wartości całki
         if (dane->stPID[cKanal].fCalka > konfig[cKanal].fOgrCalki)
@@ -146,33 +150,36 @@ float RegulatorPID(uint32_t ndT, uint8_t cKanal, stWymianyCM4_t *dane, stKonfPID
     else
     	dane->stPID[cKanal].fWyjscieI = 0.0f;  //debugowanie: wartość wyjściowa z członu I
 
-
     //człon różniczkujący
     if (konfig[cKanal].fWzmD > MIN_WZM_ROZN)
     {
-        //fTemp = (dane->stPID[cKanal].fWejscie - dane->stPID[cKanal].fFiltrWeD) * konfig[cKanal].fWzmD / fdT;
-		fTemp = (fFiltrWePD[cKanal] - dane->stPID[cKanal].fFiltrWeD) * konfig[cKanal].fWzmD / fdT;
+		fTemp = (dane->stPID[cKanal].fFiltrWWej - dane->stPID[cKanal].fFiltrRóżn) * konfig[cKanal].fWzmD / fdT;
         if (fTemp > MAX_PID)
         	fTemp = MAX_PID;
 	   else
 	   if (fTemp < -MAX_PID)
 		   fTemp = -MAX_PID;
         fWyjscieReg += fTemp;
-
-        //filtruj wartość wejścia aby móc porównać dane bieżące z danymi z chwili poprzedniej
-        //dane->stPID[cKanal].fFiltrWeD = (konfig[cKanal].chPodstFiltraD * dane->stPID[cKanal].fFiltrWeD + dane->stPID[cKanal].fWejscie) / (konfig[cKanal].chPodstFiltraD + 1);
-        dane->stPID[cKanal].fFiltrWeD = ((konfig[cKanal].cPodstFiltraD - 1) * dane->stPID[cKanal].fFiltrWeD + fFiltrWePD[cKanal]) / konfig[cKanal].cPodstFiltraD;
     }
     else
         fTemp = 0.0f;
     dane->stPID[cKanal].fWyjscieD = fTemp;  //wartość wyjściowa z członu D
+
+    //aktualizuj filtr różniczkujący
+	if (konfig[cKanal].cPodstFiltraD)
+		dane->stPID[cKanal].fFiltrRóżn = ((konfig[cKanal].cPodstFiltraD - 1) * dane->stPID[cKanal].fFiltrRóżn + dane->stPID[cKanal].fFiltrWWej) / konfig[cKanal].cPodstFiltraD;
+	else
+		dane->stPID[cKanal].fFiltrRóżn = fOdchyłka;
   
     //sprawdź czy kanał dotyczy regulatora wartości podstawowej (kąta, wysokości, pozycji) czyli wartosci parzystej czy też jego pochodnej będąca liczbą nieparzystą
     if (cKanal & 0x01)
     {
     	//liczba nieparzysta, czyli regulator pochodnej. Oblicz pochodną wartości zadanej
-        float fPochodnaWartZadanej = (dane->stPID[cKanal].fZadana - dane->stPID[cKanal].fFiltrWartZad)  / fdT;
-        dane->stPID[cKanal].fFiltrWartZad = ((konfig[cKanal].cPodstFiltraD - 1) * dane->stPID[cKanal].fFiltrWartZad + dane->stPID[cKanal].fZadana) / konfig[cKanal].cPodstFiltraD;
+        float fPochodnaWartZadanej = (dane->stPID[cKanal].fZadana - dane->stPID[cKanal].fFiltrWZad)  / fdT;
+        if (konfig[cKanal].cPodstFiltraWZad)
+        	dane->stPID[cKanal].fFiltrWZad = ((konfig[cKanal].cPodstFiltraWZad - 1) * dane->stPID[cKanal].fFiltrWZad + dane->stPID[cKanal].fZadana) / konfig[cKanal].cPodstFiltraWZad;
+        else
+        	dane->stPID[cKanal].fFiltrWZad = dane->stPID[cKanal].fZadana;	//filtr wyłączony
 
         //dodanie pierwszej pochodnej wartości zadanej do wejścia wyprzedzającego
     	fTemp = fPochodnaWartZadanej * konfig[cKanal].fWzmWyprz;
@@ -181,7 +188,7 @@ float RegulatorPID(uint32_t ndT, uint8_t cKanal, stWymianyCM4_t *dane, stKonfPID
 	   else
 	   if (fTemp < -MAX_PID)
 		   fTemp = -MAX_PID;
-    	dane->stPID[cKanal].fWyjscieWyprz  = (3 * dane->stPID[cKanal].fWyjscieWyprz + fTemp) / 4;	//lekko odfiltrowane wyjście wyprzedzające
+    	dane->stPID[cKanal].fWyjscieWyprz = (3 * dane->stPID[cKanal].fWyjscieWyprz + fTemp) / 4;	//lekko odfiltrowane wyjście wyprzedzające
         fWyjscieReg += fTemp;
     }
 

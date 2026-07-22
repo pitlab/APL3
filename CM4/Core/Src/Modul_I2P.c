@@ -38,8 +38,8 @@ extern float fPrzesMagn1[3], fSkaloMagn1[3];
 extern float fPrzesMagn2[3], fSkaloMagn2[3];
 extern float fPrzesMagn3[3], fSkaloMagn3[3];
 float fWzmocRegTermostatu = WZMOCNIENIE_REGULATORA_TERMOSTATU;
-static uint8_t chLicznikOkresuPWMTermostatu;
-static uint8_t chWypelnieniePWM;
+static uint8_t cLicznikOkresuPWMTermostatu;
+static uint8_t cWypelnieniePWM;
 float fTemeraturaTermostatu;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -127,11 +127,11 @@ uint8_t InicjujModulI2P(void)
 // Zwraca: kod błędu
 // Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
+uint8_t ObslugaModuluI2P(uint8_t cGniazdo, uint8_t* cStanIOwy)
 {
 	uint8_t cBłąd, cBłądRoboczy;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
-	uint8_t chIndeksProbki;
+	uint8_t cIndeksProbki;
 
 	//Ponieważ zegar SPI = 40MHz a układy mogą pracować z prędkością max 10MHz, przy każdym dostępie przestaw dzielnik zegara na 4
 	nZastanaKonfiguracja_SPI_CFG1 = hspi2.Instance->CFG1;	//zachowaj nastawy konfiguracji SPI
@@ -139,16 +139,16 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;
 
 	//ustaw adres A2 = 0 zrobiony z linii MOD_IOx1 modułu
-	switch (gniazdo)
+	switch (cGniazdo)
 	{
-	case ADR_MOD1: 	*pchStanIOwy &= ~MIO11;	break;
-	case ADR_MOD2:	*pchStanIOwy &= ~MIO21;	break;
-	case ADR_MOD3:	*pchStanIOwy &= ~MIO31;	break;
-	case ADR_MOD4:	*pchStanIOwy &= ~MIO41;	break;
+	case ADR_MOD1: 	*cStanIOwy &= ~MIO11;	break;
+	case ADR_MOD2:	*cStanIOwy &= ~MIO21;	break;
+	case ADR_MOD3:	*cStanIOwy &= ~MIO31;	break;
+	case ADR_MOD4:	*cStanIOwy &= ~MIO41;	break;
 	}
 
-	cBłąd = WyslijDaneExpandera(*pchStanIOwy);	//czas 4800-6200us;	930-1250us
-	cBłąd |= UstawDekoderModulow(gniazdo);			//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
+	cBłąd = WyslijDaneExpandera(*cStanIOwy);	//czas 4800-6200us;	930-1250us
+	cBłąd |= UstawDekoderModulow(cGniazdo);			//ustaw adres dekodera modułów, ponieważ użycie expandera przestawia adres
 
 	cBłądRoboczy = UstawAdresNaModule(ADR_MIIP_MS5611);		//ustaw adres na module A0..1
 	if (cBłądRoboczy == BLAD_OK)
@@ -183,22 +183,22 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 		cBłąd |= cBłądRoboczy;
 
 	//napełnij bufor szybkiego IMU dla FFT
-	chIndeksProbki = uDaneCM4.dane.stSzybkieIMU.chIndeksProbki;
+	cIndeksProbki = uDaneCM4.dane.stSzybkieIMU.cIndeksProbki;
 	for (uint8_t n=0; n<3; n++)
 	{
-		uDaneCM4.dane.stSzybkieIMU.fAkcel[chIndeksProbki][n] = uDaneCM4.dane.fAkcel1[n];
-		uDaneCM4.dane.stSzybkieIMU.fZyro[chIndeksProbki][n] = uDaneCM4.dane.fZyroKal1[n];
+		uDaneCM4.dane.stSzybkieIMU.fAkcel[cIndeksProbki][n] = uDaneCM4.dane.fAkcel1[n];
+		uDaneCM4.dane.stSzybkieIMU.fZyro[cIndeksProbki][n] = uDaneCM4.dane.fZyroKal1[n];
 	}
-	chIndeksProbki++;
-	chIndeksProbki &= MASKA_BUFORA_IMU;
-	uDaneCM4.dane.stSzybkieIMU.chIndeksProbki = chIndeksProbki;
+	cIndeksProbki++;
+	cIndeksProbki &= MASKA_BUFORA_IMU;
+	uDaneCM4.dane.stSzybkieIMU.cIndeksProbki = cIndeksProbki;
 	//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 
 	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))
 		KalibrujZeroZyroskopu();
 
 	//termostatuj moduł uśrednioną temperaturą obu czujników IMU a jezeli nie ma obu to chociaż jednego
-	uint8_t chLiczbaTermometrow = 0;
+	uint8_t cLiczbaTermometrow = 0;
 	float fTemeratura = 0.0f;
 
 	for (uint8_t n=TEMP_IMU1; n<=TEMP_IMU2; n++)
@@ -206,25 +206,25 @@ uint8_t ObslugaModuluI2P(uint8_t gniazdo, uint8_t* pchStanIOwy)
 		if ((uDaneCM4.dane.fTemper[n] > TEMPERATURA_MIN_OK) && (uDaneCM4.dane.fTemper[n] < TEMPERATURA_MAX_OK))
 		{
 			fTemeratura += uDaneCM4.dane.fTemper[n];
-			chLiczbaTermometrow++;
+			cLiczbaTermometrow++;
 		}
 	}
-	if (chLiczbaTermometrow > 1)
-		fTemeratura /= chLiczbaTermometrow;
+	if (cLiczbaTermometrow > 1)
+		fTemeratura /= cLiczbaTermometrow;
 
 	fTemeraturaTermostatu = (3*fTemeraturaTermostatu + fTemeratura)/4;
 	if (fTemeraturaTermostatu > 0.0f)
-		Termostat(gniazdo, pchStanIOwy, fTemeraturaTermostatu);	//termostat zwraca stan linii grzałki ale sam jej nie ustawia
+		Termostat(cGniazdo, cStanIOwy, fTemeraturaTermostatu);	//termostat zwraca stan linii grzałki ale sam jej nie ustawia
 
 	//ustaw linię grzałki i adres A2 = 1 zrobiony z linii Ix1 modułu
-	switch (gniazdo)
+	switch (cGniazdo)
 	{
-	case ADR_MOD1: 	*pchStanIOwy |= MIO11;	break;
-	case ADR_MOD2:	*pchStanIOwy |= MIO21;	break;
-	case ADR_MOD3:	*pchStanIOwy |= MIO31;	break;
-	case ADR_MOD4:	*pchStanIOwy |= MIO41;	break;
+	case ADR_MOD1: 	*cStanIOwy |= MIO11;	break;
+	case ADR_MOD2:	*cStanIOwy |= MIO21;	break;
+	case ADR_MOD3:	*cStanIOwy |= MIO31;	break;
+	case ADR_MOD4:	*cStanIOwy |= MIO41;	break;
 	}
-	cBłąd = WyslijDaneExpandera(*pchStanIOwy);	//ustaw stan linii A2 i grzałki
+	cBłąd = WyslijDaneExpandera(*cStanIOwy);	//ustaw stan linii A2 i grzałki
 
 	// Układ ND130 pracujacy na magistrali SPI ma okres zegara 6us co odpowiada częstotliwości 166kHz
 	hspi2.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_256;	//przestaw zegar na 40MHz / 256 = 156kHz
@@ -459,10 +459,10 @@ uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib)
 // Parametry: chRodzajKalib - rodzaj kalibracji
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib)
+uint8_t KalibracjaWzmocnieniaZyro(uint8_t cRodzajKalib)
 {
 	//uDaneCM4.dane.nZainicjowano |= INIT_TRWA_KAL_WZM_ZYRO;	//trwa kalibracja, w tym czasie wyłącz zawijanie katów do +-Pi
-	switch (chRodzajKalib)
+	switch (cRodzajKalib)
 	{
 	case POL7_KALIBRUJ_ZYRO_WZMP:	//kalibruj wzmocnienia żyroskopów P
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
@@ -674,13 +674,13 @@ uint8_t KalibrujZeroZyroskopu(void)
 // uDaneCM4.dane.uRozne.f32[5] - współczynnik skalowania czujnika 2
 // Zwraca: kod błędu ERR_DONE gdy gotowe, BLAD_OK w trakcie pracy
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uint16_t sLicznik, uint8_t chPrzebieg)
+uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uint16_t sLicznik, uint8_t cPrzebieg)
 {
 	uint8_t cBłąd = BLAD_OK;
 	float fSredCisn1[LICZBA_CZUJ_CISN], fSredCisn2[LICZBA_CZUJ_CISN];
 
 	//wstępne inicjowanie procesu
-	if (chPrzebieg == 0xFF)
+	if (cPrzebieg == 0xFF)
 	{
 		for (uint8_t n=0; n<4; n++)
 			uDaneCM4.dane.uRozne.f32[n] = 0;	//wyczyść ewentualne wcześniejsze dane
@@ -698,7 +698,7 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 	//dopóki proces nie jest skończony to sumuj pomiary w zmiennej po podwójnej precyzji
 	if (sLicznik < CZAS_KALIBRACJI)
 	{
-		if (chPrzebieg)
+		if (cPrzebieg)
 		{
 			dSuma2[0] += (double)fCisnienie1;
 			dSuma2[1] += (double)fCisnienie2;
@@ -719,7 +719,7 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 		cBłąd = BLAD_GOTOWE;		//jeżeli zebrano tyle co trzeba to przestań sumować i zwróć kod zakończenia
 
 	//za drugim przebiegiem gdy są już uśrednione oba ciśnienia można policzyć finalne współczynniki skalowania kalibracji
-	if ((sLicznik == CZAS_KALIBRACJI - 1) && chPrzebieg)
+	if ((sLicznik == CZAS_KALIBRACJI - 1) && cPrzebieg)
 	{
 		float fCisnWzorcowe[LICZBA_CZUJ_CISN];	//teoretyczne ciśnienie P1 na wysokości 27m względem obecnego P0
 		float fdCisn, fdWzorc;	//różnica ciśnień rzeczywistych i wzorcowych
@@ -812,13 +812,13 @@ uint8_t ZerujEkstremaMagnetometru(void)
 // Parametry: chMagn - indeks układu magnetometru
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ZapiszKalibracjeMagnetometru(uint8_t chMagn)
+uint8_t ZapiszKalibracjeMagnetometru(uint8_t cMagn)
 {
 	uint8_t cBłąd = BLAD_OK;
 
 	for (uint16_t n=0; n<3; n++)
 	{
-		switch (chMagn)
+		switch (cMagn)
 		{
 		case MAG1:
 			fPrzesMagn1[n] = (stMagn.fMax[n] + stMagn.fMin[n]) / 2;
@@ -854,9 +854,9 @@ uint8_t ZapiszKalibracjeMagnetometru(uint8_t chMagn)
 // Parametry: chMagn - indeks układu magnetometru
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void PobierzKalibracjeMagnetometru(uint8_t chMagn)
+void PobierzKalibracjeMagnetometru(uint8_t cMagn)
 {
-	switch (chMagn)
+	switch (cMagn)
 	{
 	case MAG1:
 		for (uint16_t n=0; n<3; n++)
@@ -895,41 +895,41 @@ void PobierzKalibracjeMagnetometru(uint8_t chMagn)
 // [we] fTemeratura - bieżąca temperatura modułu
 // Zwraca: stan linii IO sterującej grzałką
 ////////////////////////////////////////////////////////////////////////////////
-void Termostat(uint8_t chGniazdo, uint8_t* pchStanIOwy, float fTemeratura)
+void Termostat(uint8_t cGniazdo, uint8_t* cStanIOwy, float fTemeratura)
 {
-	if (chLicznikOkresuPWMTermostatu >= OKRES_PWM_TERMOSTATU)	//czy jest początek okresu PWM
+	if (cLicznikOkresuPWMTermostatu >= OKRES_PWM_TERMOSTATU)	//czy jest początek okresu PWM
 	{
-		chLicznikOkresuPWMTermostatu = 0;
+		cLicznikOkresuPWMTermostatu = 0;
 		float fWypelnieniePWM = fWzmocRegTermostatu * (TEMPERATURA_ZADANA_TERMOSTATU - fTemeratura);
 
 		if (fWypelnieniePWM > OKRES_PWM_TERMOSTATU)
 			fWypelnieniePWM = OKRES_PWM_TERMOSTATU;
 		if (fWypelnieniePWM < 0)	//nie ma akcji chłodzenia
 			fWypelnieniePWM = 0;
-		chWypelnieniePWM = (int8_t)fWypelnieniePWM;
+		cWypelnieniePWM = (int8_t)fWypelnieniePWM;
 	}
 
-	if (chLicznikOkresuPWMTermostatu < chWypelnieniePWM)
+	if (cLicznikOkresuPWMTermostatu < cWypelnieniePWM)
 	{
 		//włącz grzałkę na linii Ix0 modułu
-		switch (chGniazdo)
+		switch (cGniazdo)
 		{
-		case ADR_MOD1: 	*pchStanIOwy |= MIO10;	break;
-		case ADR_MOD2:	*pchStanIOwy |= MIO20;	break;
-		case ADR_MOD3:	*pchStanIOwy |= MIO30;	break;
-		case ADR_MOD4:	*pchStanIOwy |= MIO40;	break;
+		case ADR_MOD1: 	*cStanIOwy |= MIO10;	break;
+		case ADR_MOD2:	*cStanIOwy |= MIO20;	break;
+		case ADR_MOD3:	*cStanIOwy |= MIO30;	break;
+		case ADR_MOD4:	*cStanIOwy |= MIO40;	break;
 		}
 	}
 	else
 	{
 		//wyłącz grzałkę na linii Ix0 modułu
-		switch (chGniazdo)
+		switch (cGniazdo)
 		{
-		case ADR_MOD1: 	*pchStanIOwy &= ~MIO10;	break;
-		case ADR_MOD2:	*pchStanIOwy &= ~MIO20;	break;
-		case ADR_MOD3:	*pchStanIOwy &= ~MIO30;	break;
-		case ADR_MOD4:	*pchStanIOwy &= ~MIO40;	break;
+		case ADR_MOD1: 	*cStanIOwy &= ~MIO10;	break;
+		case ADR_MOD2:	*cStanIOwy &= ~MIO20;	break;
+		case ADR_MOD3:	*cStanIOwy &= ~MIO30;	break;
+		case ADR_MOD4:	*cStanIOwy &= ~MIO40;	break;
 		}
 	}
-	chLicznikOkresuPWMTermostatu++;
+	cLicznikOkresuPWMTermostatu++;
 }

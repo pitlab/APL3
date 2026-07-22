@@ -18,7 +18,7 @@ float fDeklinacjaMagnetyczna = DEKLINACJA_MAG;	//https://www.magnetic-declinatio
 // Wymawia komunikat słowny dotyczący jednego z predefiniowanych parametrów
 // Parametry: chTypKomunikatu - predefiniowany typ: 1=wysokość, 2=napięcie, 3=temperatura, 4=prędkość
 // fWartosc - liczba do wymówienia
-// chPrezyzja - okresla ile miejsc po przecinku należy wymówić. Obecnie 0 lub 1
+// chPrezyzja - określa ile miejsc po przecinku należy wymówić. Obecnie 0 lub 1
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t FiltrDanychIMUiWysokosci(stWymianyCM4_t *dane)
@@ -34,10 +34,10 @@ uint8_t FiltrDanychIMUiWysokosci(stWymianyCM4_t *dane)
 	}
 
 	if (dane->stGnss1.fWysokoscMSL)
-		dane->stBSP.fWysokoscMSL = (3 * dane->stGnss1.fWysokoscMSL + 12 * dane->fWysokoMSL[0] + dane->fWysokoMSL[1]) / 16;
+		dane->stBSP.fWysokoscMSL = (4 * dane->stGnss1.fWysokoscMSL + 12 * dane->fWysokoMSL[0]) / 16;
 	else
-		dane->stBSP.fWysokoscMSL = (15 * dane->fWysokoMSL[0] + dane->fWysokoMSL[1]) / 16;
-	dane->stBSP.fWysokoscAGL = (7 * dane->fWysokoAGL[0] + dane->fWysokoAGL[1]) / 8;
+		dane->stBSP.fWysokoscMSL = dane->fWysokoMSL[0];
+	dane->stBSP.fWysokoscAGL = dane->fWysokoAGL[0];
 
 	dane->stBSP.fPredkoscN = dane->stGnss1.fPredkoscN;
 	dane->stBSP.fPredkoscE = dane->stGnss1.fPredkoscE;

@@ -22,11 +22,11 @@ stZesp_t xWn2;			//wartość stała dla danego rozmiaru wektora N
 stZesp_t xWnk;			//wartość stała dla danego rozmiaru wektora N do potęgi k
 uint16_t sIndeksPróbki;			//wskazuje na numer próbki do umieszczenia w pamięci w ramach FFT
 uint16_t sIndeksWysyłkiFFT;		//wskazuje na na numer próbki FFT przesyłany telemetrią
-uint8_t chIndeksWysyłkiTestuFFT;	//wskazuje na nume testu FFT obecnie wysyłanego telemetrią
+uint8_t cIndeksWysyłkiTestuFFT;	//wskazuje na nume testu FFT obecnie wysyłanego telemetrią
 uint32_t nCzasFFT;
 stFFT_t stKonfigFFT;
 extern unia_wymianyCM4_t uDaneCM4;
-uint8_t chOstatniIndeksSzybkiegoIMU;
+uint8_t cOstatniIndeksSzybkiegoIMU;
 
 
 
@@ -44,21 +44,21 @@ void InicjujFFT(void)
 	cBłąd = CzytajPaczkeKonfigu(chPaczka,  FKON_KONFIGURACJA_FFT);
 	if (cBłąd == BLAD_OK)
 	{
-		stKonfigFFT.chIndeksZmiennejWe = chPaczka[2];
-		stKonfigFFT.chRodzajOkna = chPaczka[3];
-		stKonfigFFT.chWykladnikPotegi = chPaczka[4];
-		stKonfigFFT.chMaxWysterowanie = chPaczka[5];
-		stKonfigFFT.chAktywnSilniki = chPaczka[6];
+		stKonfigFFT.cIndeksZmiennejWe = chPaczka[2];
+		stKonfigFFT.cRodzajOkna = chPaczka[3];
+		stKonfigFFT.cWykladnikPotegi = chPaczka[4];
+		stKonfigFFT.cMaxWysterowanie = chPaczka[5];
+		stKonfigFFT.cAktywnSilniki = chPaczka[6];
 	}
 	else
 	{
-		stKonfigFFT.chIndeksZmiennejWe = 2;
-		stKonfigFFT.chRodzajOkna = 1;
-		stKonfigFFT.chWykladnikPotegi = 10;
+		stKonfigFFT.cIndeksZmiennejWe = 2;
+		stKonfigFFT.cRodzajOkna = 1;
+		stKonfigFFT.cWykladnikPotegi = 10;
 	}
 
 	//stKonfigFFT.sLiczbaProbek = (uint16_t)powf(2, stKonfigFFT.chWykladnikPotegi);
-	stKonfigFFT.sLiczbaProbek = 1 << stKonfigFFT.chWykladnikPotegi;	//aktualizuj liczbę próbek
+	stKonfigFFT.sLiczbaProbek = 1 << stKonfigFFT.cWykladnikPotegi;	//aktualizuj liczbę próbek
 }
 
 
@@ -73,11 +73,11 @@ uint8_t ZapiszKonfiguracjejFFT(void)
 	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
 	uint8_t cBłąd;
 
-	chPaczka[2] = stKonfigFFT.chIndeksZmiennejWe;
-	chPaczka[3] = stKonfigFFT.chRodzajOkna;
-	chPaczka[4] = stKonfigFFT.chWykladnikPotegi;
-	chPaczka[5] = stKonfigFFT.chMaxWysterowanie;
-	chPaczka[6] = stKonfigFFT.chAktywnSilniki;
+	chPaczka[2] = stKonfigFFT.cIndeksZmiennejWe;
+	chPaczka[3] = stKonfigFFT.cRodzajOkna;
+	chPaczka[4] = stKonfigFFT.cWykladnikPotegi;
+	chPaczka[5] = stKonfigFFT.cMaxWysterowanie;
+	chPaczka[6] = stKonfigFFT.cAktywnSilniki;
 	cBłąd = ZapiszPaczkeKonfigu(FKON_KONFIGURACJA_FFT, chPaczka);
 	return cBłąd;
 }
@@ -93,25 +93,25 @@ uint8_t ZapiszKonfiguracjejFFT(void)
 void PobierzDaneDoFFT(void)
 {
 	//czasami gdy coś sie dzieje złego w CM4, chIndeksProbki wskazuje na próbkę zpoza zakresu. Nie brnij w takie sytuacje
-	if (uDaneCM4.dane.stSzybkieIMU.chIndeksProbki >= ROZMIAR_BUFORA_IMU)
+	if (uDaneCM4.dane.stSzybkieIMU.cIndeksProbki >= ROZMIAR_BUFORA_IMU)
 		return;
 
-	while (uDaneCM4.dane.stSzybkieIMU.chIndeksProbki != chOstatniIndeksSzybkiegoIMU)
+	while (uDaneCM4.dane.stSzybkieIMU.cIndeksProbki != cOstatniIndeksSzybkiegoIMU)
 	{
 		for (uint8_t n=0; n<3; n++)
 		{
-			fBuforPomiarow[n+0][sIndeksPróbki] = uDaneCM4.dane.stSzybkieIMU.fAkcel[chOstatniIndeksSzybkiegoIMU][n];
-			fBuforPomiarow[n+3][sIndeksPróbki] = uDaneCM4.dane.stSzybkieIMU.fZyro[chOstatniIndeksSzybkiegoIMU][n];
+			fBuforPomiarow[n+0][sIndeksPróbki] = uDaneCM4.dane.stSzybkieIMU.fAkcel[cOstatniIndeksSzybkiegoIMU][n];
+			fBuforPomiarow[n+3][sIndeksPróbki] = uDaneCM4.dane.stSzybkieIMU.fZyro[cOstatniIndeksSzybkiegoIMU][n];
 		}
 		//fBuforPomiarow[3][sIndeksPróbki] = uDaneCM4.dane.stSzybkieIMU.chIndeksProbki;	//test
-		chOstatniIndeksSzybkiegoIMU++;
-		chOstatniIndeksSzybkiegoIMU &= MASKA_BUFORA_IMU;
+		cOstatniIndeksSzybkiegoIMU++;
+		cOstatniIndeksSzybkiegoIMU &= MASKA_BUFORA_IMU;
 
 		sIndeksPróbki++;
 		if (sIndeksPróbki == stKonfigFFT.sLiczbaProbek)
 		{
 			sIndeksPróbki = 0;
-			stKonfigFFT.chStatus |= FFT_NOWE_DANE;		//mamy komplet danych, można liczyć FFT
+			stKonfigFFT.cStatus |= FFT_NOWE_DANE;		//mamy komplet danych, można liczyć FFT
 		}
 	}
 }
@@ -198,7 +198,7 @@ void LiczFFT(stFFT_t *konfig, uint8_t chCzujnik)
 		//odwróć bity w słowie o rozmiarze 2^sPotega
 		j = 0;
 		b = k;
-		for (uint16_t x=0; x<konfig->chWykladnikPotegi; x++)
+		for (uint16_t x=0; x<konfig->cWykladnikPotegi; x++)
 		{
 			j <<= 1;
 			j |= b & 1;
@@ -209,7 +209,7 @@ void LiczFFT(stFFT_t *konfig, uint8_t chCzujnik)
 		xXomega[j].Im = stWejscie[k].Im;
 	}
 
-	for (uint16_t x=1; x<konfig->chWykladnikPotegi+1; x++)		//iteracje drzewa podziałów x^2=PROBEK_DRGANIA
+	for (uint16_t x=1; x<konfig->cWykladnikPotegi+1; x++)		//iteracje drzewa podziałów x^2=PROBEK_DRGANIA
 	{
 		N = powf(2, x);	//oblicz liczbę współczynników Wnk = N = 2^x
 
@@ -244,12 +244,12 @@ void LiczFFT(stFFT_t *konfig, uint8_t chCzujnik)
 	{
 		fTemp = sqrtf(xXomega[n].Re * xXomega[n].Re + xXomega[n].Im * xXomega[n].Im);	//moduł liczby zespolonej
 		if (fTemp > 0)
-			fWynikFFT[konfig->chIndeksTestu][chCzujnik][n] = log10(fTemp);
+			fWynikFFT[konfig->cIndeksTestu][chCzujnik][n] = log10(fTemp);
 		else
-			fWynikFFT[konfig->chIndeksTestu][chCzujnik][n] = 0;		//nie można liczyć logarytmu z zera i liczb ujemnych
+			fWynikFFT[konfig->cIndeksTestu][chCzujnik][n] = 0;		//nie można liczyć logarytmu z zera i liczb ujemnych
 	}
 
-	konfig->chStatus = FFT_GOTOWY_WYNIK;	//kasuj bit nowych danych i ustaw gotowość wyniku
+	konfig->cStatus = FFT_GOTOWY_WYNIK;	//kasuj bit nowych danych i ustaw gotowość wyniku
 }
 
 

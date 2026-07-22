@@ -12,11 +12,11 @@
 extern RTC_HandleTypeDef hrtc;
 
 //pole bitowe określające stan synchronizacji lokalnego zegara z GNSS. Wartość 1 gdy jest zsynchronizowana
-uint8_t chStanSynchronizacjiCzasu = 0;
-static uint8_t chPoprzedniaSekunda;
+uint8_t cStanSynchronizacjiCzasu = 0;
+static uint8_t cPoprzedniaSekunda;
 RTC_TimeTypeDef stTime;
 RTC_DateTypeDef stDate;
-uint8_t chMinuta, chPoprzedniaMinuta;		//zmienne potrzebne do detekcji zmiany czasu przy jego wyświetlaniu
+uint8_t cMinuta, cPoprzedniaMinuta;		//zmienne potrzebne do detekcji zmiany czasu przy jego wyświetlaniu
 extern TIM_HandleTypeDef htim6;
 
 
@@ -31,45 +31,45 @@ uint8_t SynchronizujCzasDoGNSS(stGnss_t *stGnss)
 	uint8_t cBłąd = BLAD_PROCES_TRWA;
 
 	//synchronizację robię tylko wraz z pojawieniem się nowego odczytu czasu
-	if (stGnss->chSek != chPoprzedniaSekunda)
+	if (stGnss->cSek != cPoprzedniaSekunda)
 	{
-		chPoprzedniaSekunda = stGnss->chSek;
-		if ((chStanSynchronizacjiCzasu & SSC_MASKA_CZASU) != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR))	//gdy brak pełnej synchronizacji czasu
+		cPoprzedniaSekunda = stGnss->cSek;
+		if ((cStanSynchronizacjiCzasu & SSC_MASKA_CZASU) != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR))	//gdy brak pełnej synchronizacji czasu
 		{
 			//synchronizacja tylko w niezerowych sekundach lub gdy sekundy już wcześniej były zsynchronizowane
-			if (((stGnss->chSek != 0) && (stGnss->chSek < 60)) || ((chStanSynchronizacjiCzasu & SSC_SEK_SYNCHR) == 0))
+			if (((stGnss->cSek != 0) && (stGnss->cSek < 60)) || ((cStanSynchronizacjiCzasu & SSC_SEK_SYNCHR) == 0))
 			{
-				stTime.Seconds = stGnss->chSek;
-				chStanSynchronizacjiCzasu |= SSC_SEK_SYNCHR;	//ustaw flagę synchronizacji
-				if ((stGnss->chMin != 0) && (stGnss->chMin < 60))	//synchronizacja tylko w niezerowych minutach
+				stTime.Seconds = stGnss->cSek;
+				cStanSynchronizacjiCzasu |= SSC_SEK_SYNCHR;	//ustaw flagę synchronizacji
+				if ((stGnss->cMin != 0) && (stGnss->cMin < 60))	//synchronizacja tylko w niezerowych minutach
 				{
-					stTime.Minutes = stGnss->chMin;
-					chStanSynchronizacjiCzasu |= SSC_MIN_SYNCHR;	//ustaw flagę synchronizacji
+					stTime.Minutes = stGnss->cMin;
+					cStanSynchronizacjiCzasu |= SSC_MIN_SYNCHR;	//ustaw flagę synchronizacji
 					//godzina == 0 to zwykle brak poprawnego czasu, ale jeżeli minuta i sekundą są niezerowe to może być czas między północą a pierwszą
-					if (stGnss->chGodz < 24)
+					if (stGnss->cGodz < 24)
 					{
-						stTime.Hours = stGnss->chGodz;
-						chStanSynchronizacjiCzasu |= SSC_GODZ_SYNCHR;
+						stTime.Hours = stGnss->cGodz;
+						cStanSynchronizacjiCzasu |= SSC_GODZ_SYNCHR;
 						cBłąd = HAL_RTC_SetTime(&hrtc, &stTime, RTC_FORMAT_BIN);		//ustaw czas gdy wszystko poprawne
 					}
 				}
 			}
 		}
 
-		if ((chStanSynchronizacjiCzasu & SSC_MASKA_DATY) != (SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))	//gdy brak pełnej synchronizacji daty
+		if ((cStanSynchronizacjiCzasu & SSC_MASKA_DATY) != (SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))	//gdy brak pełnej synchronizacji daty
 		{
-			if ((stGnss->chDzien != 0) && (stGnss->chDzien <= 31))
+			if ((stGnss->cDzien != 0) && (stGnss->cDzien <= 31))
 			{
-				stDate.Date = stGnss->chDzien;
-				chStanSynchronizacjiCzasu |= SSC_DZIEN_SYNCHR;	//ustaw flagę synchronizacji
-				if ((stGnss->chMies != 0) && (stGnss->chMies <= 12))
+				stDate.Date = stGnss->cDzien;
+				cStanSynchronizacjiCzasu |= SSC_DZIEN_SYNCHR;	//ustaw flagę synchronizacji
+				if ((stGnss->cMies != 0) && (stGnss->cMies <= 12))
 				{
-					stDate.Month = stGnss->chMies;
-					chStanSynchronizacjiCzasu |= SSC_MIES_SYNCHR;	//ustaw flagę synchronizacji
-					if ((stGnss->chRok != 0) && (stGnss->chRok < 50))
+					stDate.Month = stGnss->cMies;
+					cStanSynchronizacjiCzasu |= SSC_MIES_SYNCHR;	//ustaw flagę synchronizacji
+					if ((stGnss->cRok != 0) && (stGnss->cRok < 50))
 					{
-						stDate.Year = stGnss->chRok;
-						chStanSynchronizacjiCzasu |= SSC_ROK_SYNCHR;
+						stDate.Year = stGnss->cRok;
+						cStanSynchronizacjiCzasu |= SSC_ROK_SYNCHR;
 						cBłąd = HAL_RTC_SetDate(&hrtc, &stDate, RTC_FORMAT_BIN);		//ustaw datę gdy wszystko jest poprawne
 					}
 				}

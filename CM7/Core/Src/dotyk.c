@@ -33,7 +33,7 @@ uint16_t sYe[PKT_KAL];	//współrzędne ekranowe dla danego punktu kalibracyjneg
 uint8_t cLicznikDotkniec;
 uint8_t cLicznikPrzerwyPoDotyku;	//po naciśnięciu ekranu nastepuje przerwa w odczycie, po to aby w wielopoziomowym menu nie było fałszywych uruchomień
 //deklaracje zmiennych
-extern uint8_t MidFont[];
+extern uint8_t cMidFont[];
 extern char cNapis[50];
 extern const char *cNapisLcd[];
 
@@ -44,26 +44,26 @@ extern const char *cNapisLcd[];
 // Parametry: chChannel - kod kanału X, Y, Z1, Z2
 // Zwraca: wartość rezystancji
 ////////////////////////////////////////////////////////////////////////////////
-uint16_t CzytajKanalDotyku(uint8_t  chKanal)
+uint16_t CzytajKanalDotyku(uint8_t  cKanal)
 {
-	uint8_t chKonfig, chDane[2];
+	uint8_t cKonfig, cDane[2];
 	uint16_t sDotyk;
 
-	chKonfig = (3<<0)|	//PD1-PD0 Power-Down Mode Select Bits: 0=Power-Down Between Conversions, 1=Reference is off and ADC is on, 2=Reference is on and ADC is off, 3=Device is always powered.
+	cKonfig = (3<<0)|	//PD1-PD0 Power-Down Mode Select Bits: 0=Power-Down Between Conversions, 1=Reference is off and ADC is on, 2=Reference is on and ADC is off, 3=Device is always powered.
 			   (0<<2)|	//SER/DFR 1=Single-Ended 0=Differential Reference Select Bit
 			   (0<<3)|	//MODE 12-Bit/8-Bit Conversion Select Bit. This bit controls the number of bits for the next conversion: 0=12-bits, 1=8-bits
-			   (chKanal<<4)|	//A2-A0 Channel Select Bits
+			   (cKanal<<4)|	//A2-A0 Channel Select Bits
 			   (1<<7);	//S Start Bit.
 
 	UstawDekoderZewn(CS_TP);							//TP_CS=0
-	HAL_SPI_Transmit(&hspi5, &chKonfig, 1, HAL_DELAY_SPI);
-	HAL_SPI_Receive(&hspi5, chDane, 2, HAL_DELAY_SPI);
+	HAL_SPI_Transmit(&hspi5, &cKonfig, 1, HAL_DELAY_SPI);
+	HAL_SPI_Receive(&hspi5, cDane, 2, HAL_DELAY_SPI);
 	UstawDekoderZewn(CS_NIC);							//TP_CS=1
 
 	//złóż liczbę 12-bitową i wyrównaj do lewej
-	sDotyk = chDane[0];
+	sDotyk = cDane[0];
 	sDotyk <<= 8;
-	sDotyk |= chDane[1];
+	sDotyk |= cDane[1];
 	sDotyk >>= 3;
 	return sDotyk;
 }
@@ -127,8 +127,8 @@ uint8_t CzytajDotyk(void)
 		if (stStatusDotyku.sAdc[2] == 0x1FFF) //czy jest to brak sterownika dotyku
 			return BLAD_BRAK_WYSWIETLACZA;
 
-		stStatusDotyku.chFlagi |= DOTYK_DOTKNIETO;
-		if (stStatusDotyku.chFlagi & DOTYK_SKALIBROWANY)
+		stStatusDotyku.cFlagi |= DOTYK_DOTKNIETO;
+		if (stStatusDotyku.cFlagi & DOTYK_SKALIBROWANY)
 		{
 			//oblicz współrzędne ekranowe
 			float fTemp;
@@ -139,13 +139,13 @@ uint8_t CzytajDotyk(void)
 
 			//po nadpisaniu danych zdarzało się że wyliczane współrzędne wynosiły (0,0). W takiej sytuacji wymuś ponowną kalibrację
 			if ((stStatusDotyku.sX == 0) && (stStatusDotyku.sY == 0))
-				stStatusDotyku.chFlagi &= ~DOTYK_SKALIBROWANY;
+				stStatusDotyku.cFlagi &= ~DOTYK_SKALIBROWANY;
 
 			cLicznikPrzerwyPoDotyku = DLUGOSC_PRZERWY_DETEKCJI_DOTYKU;	//po detekcji dotyku zrób przerwę w odczycie aby zapobiegać wielokrotnemu uruchomieniu poleceń
 		}
 	}
 	else
-		stStatusDotyku.chFlagi |= DOTYK_ZWOLNONO;
+		stStatusDotyku.cFlagi |= DOTYK_ZWOLNONO;
 	return BLAD_OK;
 }
 
@@ -166,9 +166,9 @@ uint8_t KalibrujDotyk(void)
 	case 0:	//inicjalizacja zmiennych
 		WypelnijEkran(CZARNY);
 		setColor(BIALY);
-		UstawCzcionke(MidFont);
+		UstawCzcionke(cMidFont);
 		RysujNapis((char*)cNapisLcd[STR_DOTKNIJ_ABY_SKALIBROWAC], CENTER, 70);
-		stStatusDotyku.chFlagi = 0;
+		stStatusDotyku.cFlagi = 0;
 		cEtapKalibr++;
 		break;
 
@@ -201,8 +201,8 @@ uint8_t KalibrujDotyk(void)
 	//czekaj na naciśnięcie
 	if (stStatusDotyku.sAdc[2] > MIN_Z)		//czy siła nacisku jest wystarczająca
 	{
-		//if ((statusDotyku.chFlagi & DOTYK_DOTKNIETO) && (!(statusDotyku.chFlagi & DOTYK_ZAPISANO)))
-		if (stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		//if ((statusDotyku.cFlagi & DOTYK_DOTKNIETO) && (!(statusDotyku.cFlagi & DOTYK_ZAPISANO)))
+		if (stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			sXd[cEtapKalibr-1] = stStatusDotyku.sAdc[0];
 			sYd[cEtapKalibr-1] = stStatusDotyku.sAdc[1];
@@ -213,7 +213,7 @@ uint8_t KalibrujDotyk(void)
 	}
 	else	//ekran nie dotknięty
 	{
-		if (stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)		//jeżeli był dotknięty
+		if (stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)		//jeżeli był dotknięty
 		{
 			setColor(BIALY);	//ponownie rysuj krzyzyk na biało
 			cEtapKalibr++;
@@ -221,7 +221,7 @@ uint8_t KalibrujDotyk(void)
 			{
 				ObliczKalibracjeDotyku3Punktowa();		//OK
 				//ObliczKalibracjeDotykuWielopunktowa();	//Źle
-				stStatusDotyku.chFlagi |= DOTYK_SKALIBROWANY;
+				stStatusDotyku.cFlagi |= DOTYK_SKALIBROWANY;
 
 				uint8_t chDane[ROZMIAR_PACZKI_KONFIGU-2];
 
@@ -237,12 +237,12 @@ uint8_t KalibrujDotyk(void)
 				KonwFloat2Char(stKalibDotyku.fDeltaY, &chDane[20]);
 				cBłąd = ZapiszPaczkeKonfigu(FKON_KALIBRACJA_DOTYKU, chDane);
 				if (cBłąd == BLAD_OK)
-					stStatusDotyku.chFlagi |= DOTYK_ZAPISANO;
+					stStatusDotyku.cFlagi |= DOTYK_ZAPISANO;
 				cEtapKalibr = 0;
 				WypelnijEkran(CZARNY);
 				return BLAD_GOTOWE;	//kod wyjścia z procedury kalibracji
 			}
-			stStatusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
+			stStatusDotyku.cFlagi &= ~DOTYK_DOTKNIETO;
 		}
 	}
 
@@ -484,7 +484,7 @@ uint8_t TestDotyku(void)
 		RysujNapis(cNapis, CENTER, 80);
 	}
 
-	if (stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)		//jeżeli był dotknięty
+	if (stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)		//jeżeli był dotknięty
 	{
 		setColor(BIALY);
 		RysujLiniePozioma(stStatusDotyku.sX - KRZYZ/2, stStatusDotyku.sY, KRZYZ);
@@ -497,7 +497,7 @@ uint8_t TestDotyku(void)
 		RysujNapis(cNapis, 80, 140);
 
 		setColor(sKolor);	//przywróć kolor
-		stStatusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
+		stStatusDotyku.cFlagi &= ~DOTYK_DOTKNIETO;
 		if (cLicznikDotkniec++ == 6)		//gdy licznik dotknięć doliczy do zadanej wartosci wtedy zakończ test
 		{
 			WypelnijEkran(CZARNY);
@@ -528,7 +528,7 @@ uint8_t InicjujDotyk(void)
 
 	for (n=0; n<4; n++)
 		stStatusDotyku.sAdc[n] = 0;
-	stStatusDotyku.chFlagi = 0;
+	stStatusDotyku.cFlagi = 0;
 	stStatusDotyku.sX = 0;
 	stStatusDotyku.sY = 0;
 	stStatusDotyku.nOstCzasPomiaru = 0;
@@ -543,7 +543,7 @@ uint8_t InicjujDotyk(void)
 		stKalibDotyku.fBy = KonwChar2Float(&cPaczka[18]);
 		stKalibDotyku.fDeltaY = KonwChar2Float(&cPaczka[22]);
 
-		stStatusDotyku.chFlagi |= DOTYK_SKALIBROWANY;
+		stStatusDotyku.cFlagi |= DOTYK_SKALIBROWANY;
 		cBłąd = BLAD_OK;
 	}
 

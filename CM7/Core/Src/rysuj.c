@@ -27,9 +27,9 @@
 extern RTC_HandleTypeDef hrtc;
 extern RTC_TimeTypeDef stTime;
 extern RTC_DateTypeDef stDate;
-struct current_font cfont;
-extern uint8_t MidFont[];
-extern uint8_t BigFont[];
+struct current_font stCzcionka;
+extern uint8_t cMidFont[];
+extern uint8_t cBigFont[];
 extern uint8_t cRysujRaz;
 extern char cNapis[];
 extern stStatusDotyku_t stStatusDotyku;
@@ -40,7 +40,7 @@ extern uint8_t cPort_exp_odbierany[];
 uint8_t cStatusPolaczenia;		//każde 2 kolejne bity oznaczają status połaczenia: LPUART, USB, TCP, RTSP
 static uint8_t cPoprzedniStatusPolaczenia = 0xFF;	//sluży do wykrycia zmiany statusu
 uint8_t cOrientacja;
-uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
+uint8_t cTransparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
 extern uint8_t cKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
 
 
@@ -60,6 +60,7 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 	uint16_t x, x2, y;	//pomocnicze współrzędne ekranowe
 	uint8_t cBłąd = BLAD_OK;
 	uint8_t cStatus;
+	extern uint8_t cStanSynchronizacjiCzasu;
 
 	if (cRysujRaz)
 	{
@@ -69,7 +70,7 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 		setBackColor(CZARNY);
 
 		//rysuj ikony poleceń
-		UstawCzcionke(MidFont);
+		UstawCzcionke(cMidFont);
 		for (uint8_t m=0; m<MENU_WIERSZE; m++)
 		{
 			for (uint8_t n=0; n<MENU_KOLUMNY; n++)
@@ -91,7 +92,7 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 	}
 
 	//sprawdź czy jest naciskany ekran
-	if ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) || cRysujRaz)
+	if ((stStatusDotyku.cFlagi & DOTYK_DOTKNIETO) || cRysujRaz)
 	{
 		cStarySelPos = cMenuSelPos;
 
@@ -140,7 +141,7 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 					//licz współrzedne środka ikony
 					x = (DISP_X_SIZE/(2*MENU_KOLUMNY)) + n * (DISP_X_SIZE/MENU_KOLUMNY);
 					y = ((DISP_Y_SIZE-MENU_NAG_WYS-MENU_PASOP_WYS)/(2*MENU_WIERSZE)) + m * ((DISP_Y_SIZE - MENU_NAG_WYS - MENU_PASOP_WYS)/MENU_WIERSZE) - MENU_OPIS_WYS + MENU_NAG_WYS;
-					if  (stStatusDotyku.chFlagi == DOTYK_DOTKNIETO)	//czy naciśnięty ekran
+					if  (stStatusDotyku.cFlagi == DOTYK_DOTKNIETO)	//czy naciśnięty ekran
 						setColor(MENU_RAM_WYB);
 					else
 						setColor(MENU_RAM_AKT);
@@ -165,10 +166,10 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 	}
 
 	//czy był naciśniety enkoder lub ekran
-	if (stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+	if (stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 	{
 		*cPozycjaMenu = menu[cMenuSelPos].chMode;
-		stStatusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;	//kasuj flagę naciśnięcia ekranu
+		stStatusDotyku.cFlagi &= ~DOTYK_DOTKNIETO;	//kasuj flagę naciśnięcia ekranu
 		DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//odtwórz komunikat audio przycisku
 		return cBłąd;
 	}
@@ -178,12 +179,11 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 	PobierzDateCzas(&stDate, &stTime);
 	if (stTime.Seconds != cOstatniCzas)
 	{
-		extern uint8_t chStanSynchronizacjiCzasu;
-		if (chStanSynchronizacjiCzasu == (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
+		if (cStanSynchronizacjiCzasu == (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
 			setColor(BIALY);	//czas i data zsynchroniozwane
 		else
 		{
-			if (chStanSynchronizacjiCzasu == (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR))
+			if (cStanSynchronizacjiCzasu == (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR))
 					setColor(SZARY70);	//tylko czas jest zsynchroniozwany
 			else
 				setColor(SZARY50);	//czas i data niezsynchronizowane
@@ -265,10 +265,10 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje belkę menu z logo i tytułem w poziomej orientacji ekranu
 // Wychodzi z ustawionym czarnym tłem, białym kolorem i śCZERWONYnia czcionką
-// Parametry: wskaźnik na zmienną z tytułem okna
+// Parametry: *cTytul - wskaźnik na zmienną z tytułem okna
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t BelkaTytulu(char* chTytul)
+uint8_t BelkaTytulu(char* cTytul)
 {
 	extern const unsigned short pitlab_logo18[];
 	uint8_t cBłąd = BLAD_OK;
@@ -277,10 +277,10 @@ uint8_t BelkaTytulu(char* chTytul)
 	cBłąd |= RysujBitmape(0, 0, 18, 18, pitlab_logo18);	//logo PitLab
 	setColor(ZOLTY);
 	setBackColor(MENU_TLO_BAR);
-	UstawCzcionke(BigFont);
-	cBłąd |= RysujNapis(chTytul, CENTER, UP_SPACE);
+	UstawCzcionke(cBigFont);
+	cBłąd |= RysujNapis(cTytul, CENTER, UP_SPACE);
 	setColor(BIALY);
-	UstawCzcionke(MidFont);
+	UstawCzcionke(cMidFont);
 	setBackColor(CZARNY);
 	return cBłąd;
 }
@@ -314,28 +314,20 @@ uint8_t WyswietlZdjecie(uint16_t sSzerokosc, uint16_t sWysokosc, uint16_t* sObra
 // Parametry:
 // [we] sSzerokosc - szerokość obrazu do wyświetlenia
 // [we] sWysokosc - wysokość obrazu do wyświetlenia
-// [we] *sObraz - wskaźnik na bufor obrazu
+// [we] *cObraz - wskaźnik na bufor obrazu
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* chObraz)
+uint8_t WyswietlZdjecieRGB666(uint16_t sSzerokosc, uint16_t sWysokosc, uint8_t* cObraz)
 {
 	uint8_t cBłąd = BLAD_OK;
-	//uint32_t nCzas;
-	//extern uint32_t nRozmiarObrazuJPEG;
-	//extern uint32_t nRozmiarObrazuKamery;
 
-	//nCzas = PobierzCzasT6();
 	if (sSzerokosc > DISP_X_SIZE)
 		sSzerokosc = DISP_X_SIZE;
 	if (sWysokosc > DISP_Y_SIZE)
 		sWysokosc = DISP_Y_SIZE;
 #ifdef 	LCD_ILI9488
-	RysujBitmape888(0, 0, sSzerokosc, sWysokosc, chObraz);
+	RysujBitmape888(0, 0, sSzerokosc, sWysokosc, cObraz);
 #endif
-	//nCzas = MinalCzas(nCzas);
-	//sprintf(cNapis, "%.2f fps, kompr: %.1f", 1.0/(nCzas/1000000.0), (float)nRozmiarObrazuKamery / nRozmiarObrazuJPEG);
-	//setColor(ZOLTY);
-	//RysujNapis(cNapis, 0, DISP_Y_SIZE - FONT_BH);
 	return cBłąd;
 }
 
@@ -492,16 +484,16 @@ void RysujProstokatZaokraglony(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y
 
 ////////////////////////////////////////////////////////////////////////////////
 // ustawia aktualną czcionkę
-// Parametry: *chCzcionka - wskaźnik na tablicę znaków z nagłówkiem identyfikującym czcionkę
+// Parametry: *cCzcionka - wskaźnik na tablicę znaków z nagłówkiem identyfikującym czcionkę
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void UstawCzcionke(uint8_t* chCzcionka)
+void UstawCzcionke(uint8_t* cCzcionka)
 {
-	cfont.font = chCzcionka;
-	cfont.x_size = *(chCzcionka + 0);
-	cfont.y_size = *(chCzcionka + 1);
-	cfont.offset = *(chCzcionka + 2);
-	cfont.numchars = *(chCzcionka + 3);
+	stCzcionka.font = cCzcionka;
+	stCzcionka.x_size = *(cCzcionka + 0);
+	stCzcionka.y_size = *(cCzcionka + 1);
+	stCzcionka.offset = *(cCzcionka + 2);
+	stCzcionka.numchars = *(cCzcionka + 3);
 }
 
 
@@ -513,7 +505,7 @@ void UstawCzcionke(uint8_t* chCzcionka)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t GetFontX(void)
 {
-	return cfont.x_size;
+	return stCzcionka.x_size;
 }
 
 
@@ -525,7 +517,7 @@ uint8_t GetFontX(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t GetFontY(void)
 {
-	return cfont.y_size;
+	return stCzcionka.y_size;
 }
 
 
@@ -547,20 +539,20 @@ uint8_t RysujNapis(char *str, uint16_t x, uint16_t y)
 	if (cOrientacja == POZIOMO)
 	{
 	if (x == RIGHT)
-		x = (DISP_X_SIZE+1)-(stl*cfont.x_size);
+		x = (DISP_X_SIZE+1)-(stl * stCzcionka.x_size);
 	if (x == CENTER)
-		x = ((DISP_X_SIZE+1)-(stl*cfont.x_size))/2;
+		x = ((DISP_X_SIZE+1)-(stl * stCzcionka.x_size))/2;
 	}
 	else	//wersja dla pionowego układu ekranu
 	{
 	if (x == RIGHT)
-		x = (DISP_VX_SIZE+1)-(stl*cfont.x_size);
+		x = (DISP_VX_SIZE+1)-(stl * stCzcionka.x_size);
 	if (x == CENTER)
-		x = ((DISP_VX_SIZE+1)-(stl*cfont.x_size))/2;
+		x = ((DISP_VX_SIZE+1)-(stl * stCzcionka.x_size))/2;
 	}
 
 	for (uint16_t i=0; i<stl; i++)
-		cBłąd |= RysujZnak(*str++, x + (i*(cfont.x_size)), y);
+		cBłąd |= RysujZnak(*str++, x + (i * (stCzcionka.x_size)), y);
 	return cBłąd;
 }
 
@@ -575,41 +567,40 @@ uint8_t RysujNapis(char *str, uint16_t x, uint16_t y)
 ////////////////////////////////////////////////////////////////////////////////
 void RysujNapiswRamce(char *str, uint16_t x, uint16_t y, uint16_t sx, uint16_t sy)
 {
-	int dlugoscNapisu, dlugoscWiersza;
+	int nDlugoscNapisu, nDlugoscWiersza;
 
-	dlugoscNapisu = strlen((char*)str);
+	nDlugoscNapisu = strlen((char*)str);
 
 	do
 	{
-		if ((dlugoscNapisu * cfont.x_size) > sx)	//czy napis dłuższy niż szerokość ramki
+		if ((nDlugoscNapisu * stCzcionka.x_size) > sx)	//czy napis dłuższy niż szerokość ramki
 		{
 			//znajdź spację czyli miejsce do złamania napisu zaczynając od ostatniego znaku mieszcząceogo się w ramce
-			for (uint16_t n = sx / cfont.x_size; n > 0; n--)
+			for (uint16_t n = sx / stCzcionka.x_size; n > 0; n--)
 			{
 				if (*(str+n) == ' ')
 				{
-					dlugoscWiersza = n;
+					nDlugoscWiersza = n;
 					break;
 				}
 			}
 		}
 		else
-			dlugoscWiersza = dlugoscNapisu;
-
+			nDlugoscWiersza = nDlugoscNapisu;
 
 		//if (cOrientacja == POZIOMO)		//na razie obsługuję tylko poziomo
 		{
 			if (x == RIGHT)
-				x = (DISP_X_SIZE - sx + 1) - (dlugoscWiersza * cfont.x_size);
+				x = (DISP_X_SIZE - sx + 1) - (nDlugoscWiersza * stCzcionka.x_size);
 			if (x == CENTER)
-				x = ((DISP_X_SIZE - sx) / 2)  + (sx - (dlugoscWiersza * cfont.x_size)) / 2;
+				x = ((DISP_X_SIZE - sx) / 2)  + (sx - (nDlugoscWiersza * stCzcionka.x_size)) / 2;
 		}
-		for (uint16_t i=0; i<dlugoscWiersza; i++)
-			RysujZnak(*str++, x + (i*(cfont.x_size)), y);
+		for (uint16_t i=0; i<nDlugoscWiersza; i++)
+			RysujZnak(*str++, x + (i*(stCzcionka.x_size)), y);
 
-		dlugoscNapisu -= dlugoscWiersza;
-		y += cfont.y_size;
-	} 	while  (dlugoscNapisu && (y < (y + sy)));
+		nDlugoscNapisu -= nDlugoscWiersza;
+		y += stCzcionka.y_size;
+	} 	while  (nDlugoscNapisu && (y < (y + sy)));
 }
 
 
@@ -621,18 +612,18 @@ void RysujNapiswRamce(char *str, uint16_t x, uint16_t y, uint16_t sx, uint16_t s
 //  radius - promień
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujKolo(uint16_t x, uint16_t y, uint16_t promien)
+void RysujKolo(uint16_t x, uint16_t y, uint16_t sPromien)
 {
 	int16_t y1, x1;
 
-	for(y1=-promien; y1<=0; y1++)
+	for(y1=-sPromien; y1<=0; y1++)
 	{
-		for(x1=-promien; x1<=0; x1++)
+		for(x1=-sPromien; x1<=0; x1++)
 		{
-			if(x1*x1+y1*y1 <= promien*promien)
+			if(x1 * x1 + y1 * y1 <= sPromien * sPromien)
 			{
-				RysujLiniePozioma(x+x1, y+y1, 2*(-x1));
-				RysujLiniePozioma(x+x1, y-y1, 2*(-x1));
+				RysujLiniePozioma(x + x1, y + y1, 2 * (-x1));
+				RysujLiniePozioma(x + x1, y - y1, 2 * (-x1));
 				break;
 			}
 		}

@@ -16,8 +16,8 @@
 extern volatile unia_wymianyCM4_t uDaneCM4;
 extern volatile unia_wymianyCM7_t uDaneCM7;
 extern SPI_HandleTypeDef hspi2;
-extern int8_t chZnakZyro[3];	//korekcja znaku prędkości żyroskopów
-extern int8_t chZnakAkcel[3];	//korekcja znaku akcelerometrów
+extern int8_t cZnakZyro[3];	//korekcja znaku prędkości żyroskopów
+extern int8_t cZnakAkcel[3];	//korekcja znaku akcelerometrów
 extern WspRownProstej3_t stWspKalTempZyro2;		//współczynniki równania prostych do estymacji przesunęcia zera w funkcji temperatury
 extern float fMnożnikŻyro2[3];
 
@@ -108,8 +108,8 @@ uint8_t ObslugaLSM6DSV(void)
 
 		for (uint16_t n=0; n<3; n++)
 		{
-			uDaneCM4.dane.fAkcel2[n] = (float)((int16_t)(chDane[2*n+10] <<8) + chDane[2*n+9]) * (8.0 * AKCEL1G / 32768.0) * chZnakAkcel[n];		//+-8g -> [m/s^2]
-			uDaneCM4.dane.fZyroSur2[n] = (float)((int16_t)(chDane[2*n+4] <<8)  + chDane[2*n+3]) * (1000.0 * DEG2RAD / 32768.0) * chZnakZyro[n];	//+-1000°/s -> [rad/s]
+			uDaneCM4.dane.fAkcel2[n] = (float)((int16_t)(chDane[2*n+10] <<8) + chDane[2*n+9]) * (8.0 * AKCEL1G / 32768.0) * cZnakAkcel[n];		//+-8g -> [m/s^2]
+			uDaneCM4.dane.fZyroSur2[n] = (float)((int16_t)(chDane[2*n+4] <<8)  + chDane[2*n+3]) * (1000.0 * DEG2RAD / 32768.0) * cZnakZyro[n];	//+-1000°/s -> [rad/s]
 
 			//w czasie kalibracji wzmocnienia nie uwzgledniej wzmocnienia, jedynie przesunięcie
 			if ((uDaneCM7.dane.cWykonajPolecenie >= POL7_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.cWykonajPolecenie <= POL7_KALIBRUJ_ZYRO_WZMP))

@@ -27,15 +27,15 @@
 // Zamiast wielobajtowego słowa określającego bity zmiennych są zawarte 16-bitwy indeks numeru próby FFT oraz indeks numeru wyniku w ramach FFT
 
 // LPUART korzysta z BDMA a ono ma dostęp tylko do SRAM4, więc ramka telemetrii musi być zdefiniowana w SRAM4
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chRamkaTelemetrii[2 * LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla 16-bitowych zmiennych 0..127 oraz 128..255
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	cRamkaTelemetrii[2 * LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla 16-bitowych zmiennych 0..127 oraz 128..255
 uint16_t sOkresTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 uint16_t sLicznikTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];
 uint8_t cStatusTelemetrii;		//określa czy i jaki rodzaj telemetrii ma być wysyłany
 extern unia_wymianyCM4_t uDaneCM4;
-extern uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
+extern uint8_t cAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
 extern UART_HandleTypeDef hlpuart1;
 static unia8_32_t un8_32;		//unia do konwersji między danymi 16 i 8 bit
-extern volatile uint8_t chDoWyslania[1 + LICZBA_RAMEK_TELEMETR];	//lista rzeczy do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
+extern volatile uint8_t cDoWyslania[1 + LICZBA_RAMEK_TELEMETR];	//lista rzeczy do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
 extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
 extern volatile st_ZajetośćLPUART_t st_ZajetośćLPUART;
 extern stStatusDotyku_t stStatusDotyku;
@@ -43,7 +43,7 @@ extern RTC_TimeTypeDef stTime;
 extern RTC_DateTypeDef stDate;
 extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
 extern uint16_t sIndeksWysyłkiFFT;		//wskazuje na na numer próbki FFT przesyłany telemetrią
-extern uint8_t chIndeksWysyłkiTestuFFT;	//wskazuje na nume testu FFT obecnie wysyłanego telemetrią
+extern uint8_t cIndeksWysyłkiTestuFFT;	//wskazuje na nume testu FFT obecnie wysyłanego telemetrią
 extern stFFT_t stKonfigFFT;
 
 
@@ -54,11 +54,11 @@ extern stFFT_t stKonfigFFT;
 ////////////////////////////////////////////////////////////////////////////////
 void InicjalizacjaTelemetrii(void)
 {
-	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
+	uint8_t cPaczka[ROZMIAR_PACZKI_KONFIGU];
 	uint8_t chOdczytano;
-	uint8_t chDoOdczytu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
-	uint8_t chIndeksPaczki = 0;
-	uint8_t chProbOdczytu = PROB_ODCZYTU_TELEMETRII;
+	uint8_t cDoOdczytu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
+	uint8_t cIndeksPaczki = 0;
+	uint8_t cProbOdczytu = PROB_ODCZYTU_TELEMETRII;
 	uint16_t sOkres;
 
 	//Inicjuj zmienne wartościa wyłączoną gdyby nie dało się odczytać konfiguracji.
@@ -66,24 +66,24 @@ void InicjalizacjaTelemetrii(void)
 	for (uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
 		sOkresTelemetrii[n] = TELEMETRIA_WYLACZONA;
 
-	while (chDoOdczytu && chProbOdczytu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
+	while (cDoOdczytu && cProbOdczytu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
 	{
-		chOdczytano = CzytajPaczkeKonfigu(chPaczka, FKON_OKRES_TELEMETRI1 + chIndeksPaczki);		//odczytaj 30 bajtów danych + identyfikator i CRC
+		chOdczytano = CzytajPaczkeKonfigu(cPaczka, FKON_OKRES_TELEMETRI1 + cIndeksPaczki);		//odczytaj 30 bajtów danych + identyfikator i CRC
 		if (chOdczytano == ROZMIAR_PACZKI_KONFIGU)
 		{
 			for (uint16_t n=0; n<((ROZMIAR_PACZKI_KONFIGU - 2) / 2); n++)
 			{
-				if (chDoOdczytu)	//nie czytaj wiecej niż trzeba aby nie przepełnić zmiennej
+				if (cDoOdczytu)	//nie czytaj wiecej niż trzeba aby nie przepełnić zmiennej
 				{
-					sOkres = chPaczka[2*n+2] + chPaczka[2*n+3] * 0x100;
-					sOkresTelemetrii[n + chIndeksPaczki * ROZMIAR_DANYCH_WPACZCE /2] = sOkres;
-					chDoOdczytu--;
+					sOkres = cPaczka[2*n+2] + cPaczka[2*n+3] * 0x100;
+					sOkresTelemetrii[n + cIndeksPaczki * ROZMIAR_DANYCH_WPACZCE /2] = sOkres;
+					cDoOdczytu--;
 				}
 			}
-			chIndeksPaczki++;
-			chProbOdczytu = PROB_ODCZYTU_TELEMETRII;
+			cIndeksPaczki++;
+			cProbOdczytu = PROB_ODCZYTU_TELEMETRII;
 		}
-		chProbOdczytu--;
+		cProbOdczytu--;
 	}
 
 	//inicjuj licznik okresem wysyłania
@@ -95,40 +95,40 @@ void InicjalizacjaTelemetrii(void)
 
 ///////////////////////////////////////////////////////////////////////////////
 // Funkcja przygotowuje i rozpoczyna wysyłkę ramek telemetrycznych
-// Parametry: chInterfejs - interfejs komunikacyjny (na razie tylko LPUART)
+// Parametry: cInterfejs - interfejs komunikacyjny (na razie tylko LPUART)
 // Zwraca: ilość wysyłanych danych
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ObslugaTelemetrii(uint8_t chInterfejs)
+uint8_t ObslugaTelemetrii(uint8_t cInterfejs)
 {
-	uint8_t chIloscDanych[LICZBA_RAMEK_TELEMETR] = {0, 0};
-	uint8_t chIndeksAdresow;	//okresla indeks puli adresowej rakmi. Zmienne 0..127 idą w ramce 0, zmienne 128..255 w ramce 1, itd
-	uint8_t chTypRamki;
-	uint8_t chWysyłamTyleDanych = 0;	//parametr zwrotny funkcji
+	uint8_t cIloscDanych[LICZBA_RAMEK_TELEMETR] = {0, 0};
+	uint8_t cIndeksAdresow;	//okresla indeks puli adresowej rakmi. Zmienne 0..127 idą w ramce 0, zmienne 128..255 w ramce 1, itd
+	uint8_t cTypRamki;
+	uint8_t cWysyłamTyleDanych = 0;	//parametr zwrotny funkcji
 	float fZmienna;
 	extern uint8_t cStatusPolaczenia;
 
 	if (cStatusTelemetrii == TELEM_WSTRZYMAJ)
-		return chWysyłamTyleDanych;
+		return cWysyłamTyleDanych;
 
-	//szybka telemetria wykorzystuje tylko ramkę RAMKA_TELE1, czyli chIloscDanych[0] oraz chRamkaTelemetrii[0 i 1]
+	//szybka telemetria wykorzystuje tylko ramkę RAMKA_TELE1, czyli chIloscDanych[0] oraz cRamkaTelemetrii[0 i 1]
 	if (cStatusTelemetrii == TELEM_SZYBKA)
 	{
-		if (stKonfigFFT.chIndeksTestu > chIndeksWysyłkiTestuFFT)	//czekaj z wysyłką na wyprodukowanie danych przez FFT
+		if (stKonfigFFT.cIndeksTestu > cIndeksWysyłkiTestuFFT)	//czekaj z wysyłką na wyprodukowanie danych przez FFT
 		{
-			if ((st_ZajetośćLPUART.sDoWysłania[RAMKA_TELE1] == 0) && (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY))	//dodaj nowe dane tylko do pustej kolejki
+			if ((st_ZajetośćLPUART.sDoWysłania[RAMKA_TELE1] == 0) && (st_ZajetośćLPUART.cZajętyPrzez == (int8_t)LPUART_WOLNY))	//dodaj nowe dane tylko do pustej kolejki
 			{
 				//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
-				chIloscDanych[0] = WstawDaneDoSzybkiejRamkiTele(st_ZajetośćLPUART.chIndeksNapełnianejRamki[RAMKA_TELE1], chIndeksWysyłkiTestuFFT, &sIndeksWysyłkiFFT);
+				cIloscDanych[0] = WstawDaneDoSzybkiejRamkiTele(st_ZajetośćLPUART.cIndeksNapełnianejRamki[RAMKA_TELE1], cIndeksWysyłkiTestuFFT, &sIndeksWysyłkiFFT);
 
 				//testuj warunek zakończenia procesu wysyłki FFT
 				if (sIndeksWysyłkiFFT >= stKonfigFFT.sLiczbaProbek / 2)
 				{
 					sIndeksWysyłkiFFT = 0;
-					chIndeksWysyłkiTestuFFT++;
-					if (chIndeksWysyłkiTestuFFT == LICZBA_TESTOW_FFT)
+					cIndeksWysyłkiTestuFFT++;
+					if (cIndeksWysyłkiTestuFFT == LICZBA_TESTOW_FFT)
 						cStatusTelemetrii = TELEM_NORMALNA;	//po wysłaniu wszystkich wyników FFT wróc do normalnej tlemetrii
 				}
-				chTypRamki = TELEM_SZYBKA;
+				cTypRamki = TELEM_SZYBKA;
 			}
 		}
 	}
@@ -138,8 +138,8 @@ uint8_t ObslugaTelemetrii(uint8_t chInterfejs)
 		for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
 		{
 			for(uint8_t n=0; n<LICZBA_BAJTOW_ID_TELEMETRII; n++)
-				chRamkaTelemetrii[st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1] + 2 * r][ROZMIAR_NAGLOWKA + n] = 0;
-			chIloscDanych[r] = LICZBA_BAJTOW_ID_TELEMETRII;
+				cRamkaTelemetrii[st_ZajetośćLPUART.cIndeksNapełnianejRamki[r+1] + 2 * r][ROZMIAR_NAGLOWKA + n] = 0;
+			cIloscDanych[r] = LICZBA_BAJTOW_ID_TELEMETRII;
 		}
 
 		for(uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
@@ -151,51 +151,51 @@ uint8_t ObslugaTelemetrii(uint8_t chInterfejs)
 				{
 					sLicznikTelemetrii[n] = sOkresTelemetrii[n];		//przeładuj licznik nowym okresem
 					fZmienna = PobierzZmiennaTele(n, &uDaneCM4.dane);
-					chIndeksAdresow = n >> 7;
-					if (chIloscDanych[chIndeksAdresow] < (ROZMIAR_RAMKI_KOMUNIKACYJNEJ - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
+					cIndeksAdresow = n >> 7;
+					if (cIloscDanych[cIndeksAdresow] < (ROZMIAR_RAMKI_KOMUNIKACYJNEJ - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
 					{
-						WstawDaneDoRamkiTele(st_ZajetośćLPUART.chIndeksNapełnianejRamki[chIndeksAdresow + 1], chIndeksAdresow, chIloscDanych[chIndeksAdresow], n, fZmienna);
-						chIloscDanych[chIndeksAdresow] += 2;
+						WstawDaneDoRamkiTele(st_ZajetośćLPUART.cIndeksNapełnianejRamki[cIndeksAdresow + 1], cIndeksAdresow, cIloscDanych[cIndeksAdresow], n, fZmienna);
+						cIloscDanych[cIndeksAdresow] += 2;
 					}
 				}
 			}
 		}
-		chTypRamki = TELEM_NORMALNA;
+		cTypRamki = TELEM_NORMALNA;
 	}
 
 	//przygotuj ramki wypełnione danymi  do wysłania dodając nagłówek, taki sam dla każdego typu ramki
 	for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
 	{
-		if (chIloscDanych[r] > LICZBA_BAJTOW_ID_TELEMETRII)	//jeżeli jest coś do wysłania
+		if (cIloscDanych[r] > LICZBA_BAJTOW_ID_TELEMETRII)	//jeżeli jest coś do wysłania
 		{
-			PrzygotujRamkeTele(st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1] + r * LICZBA_RAMEK_TELEMETR, chTypRamki, chAdresZdalny[chInterfejs], stBSP_ID.chAdres, chIloscDanych[r]);	//utwórz ramkę gotową do wysyłki
-			st_ZajetośćLPUART.sDoWysłania[r+1] = chIloscDanych[r] + ROZM_CIALA_RAMKI;
+			PrzygotujRamkeTele(st_ZajetośćLPUART.cIndeksNapełnianejRamki[r+1] + r * LICZBA_RAMEK_TELEMETR, cTypRamki, cAdresZdalny[cInterfejs], stBSP_ID.cAdres, cIloscDanych[r]);	//utwórz ramkę gotową do wysyłki
+			st_ZajetośćLPUART.sDoWysłania[r+1] = cIloscDanych[r] + ROZM_CIALA_RAMKI;
 		}
 	}
 
 	//rozpocznij fizyczną transmisję danych
 	__disable_irq();	//sekcja krytyczna wykonywana przy wyłączonych przerwaniach
-	if (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY)	//jeżeli LPUART nie jest zajęty to wyślij telemetrię
+	if (st_ZajetośćLPUART.cZajętyPrzez == (int8_t)LPUART_WOLNY)	//jeżeli LPUART nie jest zajęty to wyślij telemetrię
 	{
 		for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
 		{
 			if (st_ZajetośćLPUART.sDoWysłania[r+1])
 			{
 				cStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
-				st_ZajetośćLPUART.chZajętyPrzez = RAMKA_TELE1 + r;
+				st_ZajetośćLPUART.cZajętyPrzez = RAMKA_TELE1 + r;
 				//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1 - LPUART_ZAJETY
-				HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1] + r * LICZBA_RAMEK_TELEMETR][0], st_ZajetośćLPUART.sDoWysłania[r+1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
-				chWysyłamTyleDanych = st_ZajetośćLPUART.sDoWysłania[r+1];
+				HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[st_ZajetośćLPUART.cIndeksNapełnianejRamki[r+1] + r * LICZBA_RAMEK_TELEMETR][0], st_ZajetośćLPUART.sDoWysłania[r+1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
+				cWysyłamTyleDanych = st_ZajetośćLPUART.sDoWysłania[r+1];
 				st_ZajetośćLPUART.sDoWysłania[r+1] = 0;	//wysłano więc zdejmij z kolejki i zezwól na ponowne napełnienie bufora
-				st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1]++;	//przełacz indeks podwójnego buforowania aby można było napełniać drugi bufor
-				st_ZajetośćLPUART.chIndeksNapełnianejRamki[r+1] &= 0x01;
+				st_ZajetośćLPUART.cIndeksNapełnianejRamki[r+1]++;	//przełacz indeks podwójnego buforowania aby można było napełniać drugi bufor
+				st_ZajetośćLPUART.cIndeksNapełnianejRamki[r+1] &= 0x01;
 				//zdjęcie flagi zajetości LPUART następuje w HAL_UART_TxCpltCallback() po fizycznym zakończeniu wysyłki
 				break;	//wyjdź z pętli po wysłaniu pierwszej ramki
 			}
 		}
 	}
 	__enable_irq();		//koniec sekcji krytycznej
-	return chWysyłamTyleDanych;
+	return cWysyłamTyleDanych;
 }
 
 
@@ -210,23 +210,23 @@ uint8_t ObslugaTelemetrii(uint8_t chInterfejs)
 // 	fDane - liczba do wysłania
 // Zwraca: rozmiar ramki
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t chPozycja, uint16_t sIdZmiennej, float fDane)
+uint8_t WstawDaneDoRamkiTele(uint8_t cIndNapRam, uint8_t cIndAdresow, uint8_t cPozycja, uint16_t sIdZmiennej, float fDane)
 {
-	uint8_t chDane[2];
-	uint8_t chRozmiar;
-	uint8_t chIdZmiennej = sIdZmiennej & 0x7F;
-	uint8_t chBajtBitu;	//numer bajtu w ktorym jest bit identyfikacyjny
+	uint8_t cDane[2];
+	uint8_t cRozmiar;
+	uint8_t cIdZmiennej = sIdZmiennej & 0x7F;
+	uint8_t cBajtBitu;	//numer bajtu w ktorym jest bit identyfikacyjny
 
 	//wstaw dane
-	chRozmiar = ROZMIAR_NAGLOWKA + chPozycja;
-	Float2Char16(fDane, chDane);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
-	chRamkaTelemetrii[chIndNapRam + chIndAdresow * LICZBA_RAMEK_TELEMETR][chRozmiar + 0] = chDane[0];
-    chRamkaTelemetrii[chIndNapRam + chIndAdresow * LICZBA_RAMEK_TELEMETR][chRozmiar + 1] = chDane[1];
+	cRozmiar = ROZMIAR_NAGLOWKA + cPozycja;
+	Float2Char16(fDane, cDane);	//konwertuj liczbę float na liczbę o połowie precyzji i zapisz w 2 bajtach
+	cRamkaTelemetrii[cIndNapRam + cIndAdresow * LICZBA_RAMEK_TELEMETR][cRozmiar + 0] = cDane[0];
+    cRamkaTelemetrii[cIndNapRam + cIndAdresow * LICZBA_RAMEK_TELEMETR][cRozmiar + 1] = cDane[1];
 
     //wstaw bit identyfikatora zmiennej
-    chBajtBitu = chIdZmiennej / 8;
-    chRamkaTelemetrii[chIndNapRam + chIndAdresow * LICZBA_RAMEK_TELEMETR][ROZMIAR_NAGLOWKA + chBajtBitu] |= 1 << (chIdZmiennej - (chBajtBitu * 8));
-    return chRozmiar + 2;
+    cBajtBitu = cIdZmiennej / 8;
+    cRamkaTelemetrii[cIndNapRam + cIndAdresow * LICZBA_RAMEK_TELEMETR][ROZMIAR_NAGLOWKA + cBajtBitu] |= 1 << (cIdZmiennej - (cBajtBitu * 8));
+    return cRozmiar + 2;
 }
 
 
@@ -240,27 +240,27 @@ uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t 
 // 	*sIndeksFFT - wskaźnik na indeks próbki w ramach FFT [0..2047]
 // Zwraca: rozmiar ramki
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t chIndeksTestu, uint16_t *sIndeksFFT)
+uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t cIndNapRam, uint8_t cIndeksTestu, uint16_t *sIndeksFFT)
 {
-	uint8_t chBityZmiennej = AKCEL_X | AKCEL_Y | AKCEL_Z | ZYRO_X | ZYRO_Y | ZYRO_Z;
-	uint8_t chLiczbaBajtówRamki = 4;
+	uint8_t cBityZmiennej = AKCEL_X | AKCEL_Y | AKCEL_Z | ZYRO_X | ZYRO_Y | ZYRO_Z;
+	uint8_t cLiczbaBajtówRamki = 4;
 
 	//pierwsza część danych ramki zawiera 4 bajtową identyfikację danych
-	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 0] = chBityZmiennej;
-	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 1] = chIndeksTestu;
+	cRamkaTelemetrii[cIndNapRam][ROZMIAR_NAGLOWKA + 0] = cBityZmiennej;
+	cRamkaTelemetrii[cIndNapRam][ROZMIAR_NAGLOWKA + 1] = cIndeksTestu;
 	un8_32.dane16[0] = *sIndeksFFT;
-	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 2] = un8_32.dane8[0];
-	chRamkaTelemetrii[chIndNapRam][ROZMIAR_NAGLOWKA + 3] = un8_32.dane8[1];
+	cRamkaTelemetrii[cIndNapRam][ROZMIAR_NAGLOWKA + 2] = un8_32.dane8[0];
+	cRamkaTelemetrii[cIndNapRam][ROZMIAR_NAGLOWKA + 3] = un8_32.dane8[1];
 
 	//wstaw tyle danych FFT aby wypełnić ramkę, ale dane mają pochodzić tylko z jednego FFT, bo indeks testu idzie na początku danych ramki
 	for (uint16_t n=0; n<((ROZMIAR_DANYCH_KOMUNIKACJI - 4) / 12); n++)	//dla uproszczenia zakładam że ramka ma komplet 6 danych 16-bit
 	{
-		chLiczbaBajtówRamki += PobierzWynikiFFT(&chRamkaTelemetrii[chIndNapRam][n * 12 + 4 + ROZMIAR_NAGLOWKA], chBityZmiennej, chIndeksTestu, *sIndeksFFT);
+		cLiczbaBajtówRamki += PobierzWynikiFFT(&cRamkaTelemetrii[cIndNapRam][n * 12 + 4 + ROZMIAR_NAGLOWKA], cBityZmiennej, cIndeksTestu, *sIndeksFFT);
 		(*sIndeksFFT)++;
 		if (*sIndeksFFT >= stKonfigFFT.sLiczbaProbek / 2)	//koniec danych nie musi być równoważny z pełną ramką, więc...
 			break;										//...przerwij napełnianie kiedy zostały przygotowane wszystkie dane
 	}
-	return chLiczbaBajtówRamki;
+	return cLiczbaBajtówRamki;
 }
 
 
@@ -420,93 +420,110 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 
 	case TID_FFT_ZYRO_AKCEL:	break;	//wyniki transformaty fouriera przesyłane w specyficznej szybkiej ramce
 
+	//--- zmienne telemetryczne w ramce 2 -----------------------------------------------
 	case TID_PID_PRZE_WZAD:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fZadana;		break;	//wartość zadana regulatora sterowania przechyleniem
-	case TID_PID_PRZE_FWEJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_PRZE_WYJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fWyjsciePID;	break;	//wyjście regulatora sterowania przechyleniem
+	case TID_PID_PRZE_FZAD:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fFiltrWZad;		break;	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+	case TID_PID_PRZE_FWEJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fFiltrWWej;		break;	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+	case TID_PID_PRZE_FROZ:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fFiltrRóżn;		break;	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 	case TID_PID_PRZE_WY_P:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PRZE_WY_I:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fWyjscieI;		break;	//wyjście członu I
 	case TID_PID_PRZE_WY_D:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fWyjscieD;		break;	//wyjście członu D
-
+	case TID_PID_PRZE_WYPRZ:	fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fWyjscieWyprz;	break;	//wyjście członu wyprzedzającego
+	case TID_PID_PRZE_WYJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fWyjsciePID;	break;	//wyjście regulatora sterowania przechyleniem
 	case TID_PID_PK_PRZE_WZAD:	fZmiennaTele = stDane->stPID[PID_PRED_PRZE].fZadana;		break;	//wartość zadana regulatora sterowania prędkością kątową przechylenia
-	case TID_PID_PK_PRZE_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_PRZE].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_PK_PRZE_FZAD:	fZmiennaTele = stDane->stPID[PID_PRED_PRZE].fFiltrWartZad;	break;	//przefiltrowana wartość zadana do liczenia wartosci wyprzedzającej
-	case TID_PID_PK_PRZE_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_PRZE].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością kątową przechylenia
+	case TID_PID_PK_PRZE_FZAD:	fZmiennaTele = stDane->stPID[PID_PRED_PRZE].fFiltrWZad;		break;	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+	case TID_PID_PK_PRZE_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_PRZE].fFiltrWWej;		break;	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+	case TID_PID_PK_PRZE_FROZ:	fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fFiltrRóżn;		break;	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 	case TID_PID_PK_PRZE_WY_P:	fZmiennaTele = stDane->stPID[PID_PRED_PRZE].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PK_PRZE_WY_D:	fZmiennaTele = stDane->stPID[PID_PRED_PRZE].fWyjscieD;		break;	//wyjście członu D
-	case TID_PID_PK_PRZE_WYPRZ:	fZmiennaTele = stDane->stPID[PID_PRED_PRZE].fWyjscieWyprz;	break;	//wyjście akcji wyprzedzającej
+	case TID_PID_PK_PRZE_WYPRZ:	fZmiennaTele = stDane->stPID[PID_PRED_PRZE].fWyjscieWyprz;	break;	//wyjście członu wyprzedzającego
+	case TID_PID_PK_PRZE_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_PRZE].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością kątową przechylenia
 
 	case TID_PID_POCH_WZAD:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fZadana;		break;	//wartość zadana regulatora sterowania pochyleniem
-	case TID_PID_POCH_FWEJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_POCH_WYJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fWyjsciePID;	break;	//wyjście regulatora sterowania pochyleniem
+	case TID_PID_POCH_FZAD:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fFiltrWZad;		break;	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+	case TID_PID_POCH_FWEJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fFiltrWWej;		break;	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+	case TID_PID_POCH_FROZ:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fFiltrRóżn;		break;	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 	case TID_PID_POCH_WY_P:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_POCH_WY_I:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fWyjscieI;		break;	//wyjście członu I
 	case TID_PID_POCH_WY_D:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fWyjscieD;		break;	//wyjście członu D
-
+	case TID_PID_POCH_WYPRZ:	fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fWyjscieWyprz;	break;	//wyjście członu wyprzedzającego
+	case TID_PID_POCH_WYJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_POCH].fWyjsciePID;	break;	//wyjście regulatora sterowania pochyleniem
 	case TID_PID_PK_POCH_WZAD:	fZmiennaTele = stDane->stPID[PID_PRED_POCH].fZadana;		break;	//wartość zadana
-	case TID_PID_PK_POCH_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_POCH].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
-	case TID_PID_PK_POCH_FZAD:	fZmiennaTele = stDane->stPID[PID_PRED_POCH].fFiltrWartZad;	break;	//przefiltrowana wartość zadana do liczenia wartosci wyprzedzającej
-	case TID_PID_PK_POCH_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_POCH].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością kątową pochylenia
+	case TID_PID_PK_POCH_FZAD:	fZmiennaTele = stDane->stPID[PID_PRED_POCH].fFiltrWZad;		break;	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+	case TID_PID_PK_POCH_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_POCH].fFiltrWWej;		break;	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+	case TID_PID_PK_POCH_FROZ:	fZmiennaTele = stDane->stPID[PID_PRED_POCH].fFiltrRóżn;		break;	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 	case TID_PID_PK_POCH_WY_P:	fZmiennaTele = stDane->stPID[PID_PRED_POCH].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PK_POCH_WY_D:	fZmiennaTele = stDane->stPID[PID_PRED_POCH].fWyjscieD;		break;	//wyjście członu D
-	case TID_PID_PK_POCH_WYPRZ:	fZmiennaTele = stDane->stPID[PID_PRED_POCH].fWyjscieWyprz;	break;	//wyjście akcji wyprzedzającej
+	case TID_PID_PK_POCH_WYPRZ:	fZmiennaTele = stDane->stPID[PID_PRED_POCH].fWyjscieWyprz;	break;	//wyjście członu wyprzedzającego
+	case TID_PID_PK_POCH_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_POCH].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością kątową pochylenia
 
 	case TID_PID_ODCH_WZAD:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fZadana;		break;	//wartość zadana regulatora sterowania odchyleniem
-	case TID_PID_ODCH_FWEJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_ODCH_WYJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fWyjsciePID;	break;	//wyjście regulatora sterowania odchyleniem
+	case TID_PID_ODCH_FZAD:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fFiltrWZad;		break;	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+	case TID_PID_ODCH_FWEJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fFiltrWWej;		break;	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+	case TID_PID_ODCH_FROZ:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fFiltrRóżn;		break;	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 	case TID_PID_ODCH_WY_P:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_ODCH_WY_I:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fWyjscieI;		break;	//wyjście członu I
 	case TID_PID_ODCH_WY_D:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fWyjscieD;		break;	//wyjście członu D
-
+	case TID_PID_ODCH_WYPRZ:	fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fWyjscieWyprz;	break;	//wyjście członu wyprzedzającego
+	case TID_PID_ODCH_WYJ:		fZmiennaTele = stDane->stPID[PID_KĄTA_ODCH].fWyjsciePID;	break;	//wyjście regulatora sterowania odchyleniem
 	case TID_PID_PK_ODCH_WZAD:	fZmiennaTele = stDane->stPID[PID_PRED_ODCH].fZadana;		break;	//wartość zadana
-	case TID_PID_PK_ODCH_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_ODCH].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_PK_ODCH_FZAD:	fZmiennaTele = stDane->stPID[PID_PRED_ODCH].fFiltrWartZad;	break;	//przefiltrowana wartość zadana do liczenia wartosci wyprzedzającej
-	case TID_PID_PK_ODCH_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_ODCH].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością kątową odchylenia
+	case TID_PID_PK_ODCH_FZAD:	fZmiennaTele = stDane->stPID[PID_PRED_ODCH].fFiltrWZad;		break;	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+	case TID_PID_PK_ODCH_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_ODCH].fFiltrWWej;		break;	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+	case TID_PID_PK_ODCH_FROZ:	fZmiennaTele = stDane->stPID[PID_PRED_ODCH].fFiltrRóżn;		break;	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 	case TID_PID_PK_ODCH_WY_P:	fZmiennaTele = stDane->stPID[PID_PRED_ODCH].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PK_ODCH_WY_D:	fZmiennaTele = stDane->stPID[PID_PRED_ODCH].fWyjscieD;		break;	//wyjście członu D
-	case TID_PID_PK_ODCH_WYPRZ:	fZmiennaTele = stDane->stPID[PID_PRED_ODCH].fWyjscieWyprz;	break;	//wyjście akcji wyprzedzającej
+	case TID_PID_PK_ODCH_WYPRZ:	fZmiennaTele = stDane->stPID[PID_PRED_ODCH].fWyjscieWyprz;	break;	//wyjście członu wyprzedzającego
+	case TID_PID_PK_ODCH_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_ODCH].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością kątową odchylenia
 
 	case TID_PID_WYSO_WZAD:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fZadana;		break;	//wartość zadana regulatora sterowania wysokością
-	case TID_PID_WYSO_FWEJ:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fFiltrWeD;		break;	//wartość wejsciowa członu D po filtrze
-	case TID_PID_WYSO_WYJ:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fWyjsciePID;	break;	//wyjście regulatora sterowania odchyleniem
+	case TID_PID_WYSO_FZAD:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fFiltrWZad;		break;	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+	case TID_PID_WYSO_FWEJ:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fFiltrWWej;		break;	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+	case TID_PID_WYSO_FROZ:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fFiltrRóżn;		break;	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 	case TID_PID_WYSO_WY_P:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_WYSO_WY_I:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fWyjscieI;		break;	//wyjście członu I
 	case TID_PID_WYSO_WY_D:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fWyjscieD;		break;	//wyjście członu D
-
+	case TID_PID_WYSO_WYPRZ:	fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fWyjscieWyprz;	break;	//wyjście członu wyprzedzającego
+	case TID_PID_WYSO_WYJ:		fZmiennaTele = stDane->stPID[PID_WYSOKOSCI].fWyjsciePID;	break;	//wyjście regulatora sterowania odchyleniem
 	case TID_PID_PR_WYSO_WZAD:	fZmiennaTele = stDane->stPID[PID_PRED_ZWYS].fZadana;		break;	//wartość zadana
-	case TID_PID_PR_WYSO_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_ZWYS].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_PR_WYSO_FZAD:	fZmiennaTele = stDane->stPID[PID_PRED_ZWYS].fFiltrWartZad;	break;	//przefiltrowana wartość zadana do liczenia wartosci wyprzedzającej
-	case TID_PID_PR_WYSO_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_ZWYS].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością zmiany wysokości
+	case TID_PID_PR_WYSO_FZAD:	fZmiennaTele = stDane->stPID[PID_PRED_ZWYS].fFiltrWZad;		break;	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+	case TID_PID_PR_WYSO_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_ZWYS].fFiltrWWej;		break;	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+	case TID_PID_PK_WYSO_FROZ:	fZmiennaTele = stDane->stPID[PID_PRED_ZWYS].fFiltrRóżn;		break;	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 	case TID_PID_PR_WYSO_WY_P:	fZmiennaTele = stDane->stPID[PID_PRED_ZWYS].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PR_WYSO_WY_D:	fZmiennaTele = stDane->stPID[PID_PRED_ZWYS].fWyjscieD;		break;	//wyjście członu D
-	case TID_PID_PR_WYSO_WYPRZ:	fZmiennaTele = stDane->stPID[PID_PRED_ZWYS].fWyjscieWyprz;	break;	//wyjście akcji wyprzedzającej
+	case TID_PID_PR_WYSO_WYPRZ:	fZmiennaTele = stDane->stPID[PID_PRED_ZWYS].fWyjscieWyprz;	break;	//wyjście członu wyprzedzającego
+	case TID_PID_PR_WYSO_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_ZWYS].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością zmiany wysokości
 
 	case TID_PID_NAWN_WZAD:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fZadana;		break;	//wartość zadana regulatora sterowania nawigacją w kierunku północnym
-	case TID_PID_NAWN_FWEJ:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_NAWN_WYJ:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fWyjsciePID;	break;	//wyjście regulatora sterowania nawigacją w kierunku północnym
+	case TID_PID_NAWN_FWEJ:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fFiltrWWej;	break;	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+	case TID_PID_NAWN_FROZ:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fFiltrRóżn;	break;	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 	case TID_PID_NAWN_WY_P:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_NAWN_WY_I:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fWyjscieI;		break;	//wyjście członu I
 	case TID_PID_NAWN_WY_D:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fWyjscieD;		break;	//wyjście członu D
+	case TID_PID_NAWN_WYJ:		fZmiennaTele = stDane->stPID[PID_NAWIG_PÓŁN].fWyjsciePID;	break;	//wyjście regulatora sterowania nawigacją w kierunku północnym
 
 	case TID_PID_PR_NAWN_WZAD:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fZadana;		break;	//wartość zadana
-	case TID_PID_PR_NAWN_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_PR_NAWN_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością w kierunku północnym
+	case TID_PID_PR_NAWN_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fFiltrWWej;		break;	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+	case TID_PID_PR_NAWN_FROZ:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fFiltrRóżn;		break;	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 	case TID_PID_PR_NAWN_WY_P:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PR_NAWN_WY_I:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fWyjscieI;		break;	//wyjście członu I
 	case TID_PID_PR_NAWN_WY_D:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fWyjscieD;		break;	//wyjście członu D
+	case TID_PID_PR_NAWN_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_PÓŁN].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością w kierunku północnym
 
 	case TID_PID_NAWE_WZAD:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fZadana;		break;	//wartość zadana regulatora sterowania nawigacją w kierunku wschodnim
-	case TID_PID_NAWE_FWEJ:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_NAWE_WYJ:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fWyjsciePID;	break;	//wyjście regulatora sterowania nawigacją w kierunku północnym
+	case TID_PID_NAWE_FWEJ:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fFiltrWWej;	break;	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+	case TID_PID_NAWE_FROZ:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fFiltrRóżn;	break;	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 	case TID_PID_NAWE_WY_P:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_NAWE_WY_I:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fWyjscieI;		break;	//wyjście członu I
 	case TID_PID_NAWE_WY_D:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fWyjscieD;		break;	//wyjście członu D
+	case TID_PID_NAWE_WYJ:		fZmiennaTele = stDane->stPID[PID_NAWIG_WSCH].fWyjsciePID;	break;	//wyjście regulatora sterowania nawigacją w kierunku północnym
 
 	case TID_PID_PR_NAWE_WZAD:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fZadana;		break;	//wartość zadana
-	case TID_PID_PR_NAWE_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fFiltrWeD;		break;	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	case TID_PID_PR_NAWE_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością w kierunku wschodnim
+	case TID_PID_PR_NAWE_FWEJ:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fFiltrWWej;		break;	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+	case TID_PID_PR_NAWE_FROZ:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fFiltrRóżn;		break;	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 	case TID_PID_PR_NAWE_WY_P:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fWyjscieP;		break;	//wyjście członu P
 	case TID_PID_PR_NAWE_WY_I:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fWyjscieI;		break;	//wyjście członu I
 	case TID_PID_PR_NAWE_WY_D:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fWyjscieD;		break;	//wyjście członu D
+	case TID_PID_PR_NAWE_WYJ:	fZmiennaTele = stDane->stPID[PID_PRED_WSCH].fWyjsciePID;	break;	//wyjście regulatora sterowania prędkością w kierunku wschodnim
 
 	case TID_PID_STROJENIE1:	fZmiennaTele = stDane->fStrojenie[0];						break;	//wartość parametru strojącego 1
 	case TID_PID_STROJENIE2:	fZmiennaTele = stDane->fStrojenie[1];						break;	//wartość parametru strojącego 2
@@ -521,35 +538,35 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 ///////////////////////////////////////////////////////////////////////////////
 // Tworzy nagłówek ramki telemetrii. Inicjuje CRC
 // Parametry:
-//  chIndeksRamki - indeks napełnianiej ramki uwzględniajacy numer ramki i podwójne buforowanie (jedna jest napełniana, druga sie wysyła)
-//  chTypRamki - okresla czy to jest normalna ramka telemetryczna, czy szybka
-//  chAdrZdalny - adres urządzenia do którego wysyłamy
-//  chAdrLokalny - nasz adres
-//  chRozmDanych - liczba bajtw danych uwzględniająca pole bitowe zmiennych w typowej ramce oraz nagłówek w ramce szybkiej
+//  cIndeksRamki - indeks napełnianiej ramki uwzględniajacy numer ramki i podwójne buforowanie (jedna jest napełniana, druga sie wysyła)
+//  cTypRamki - okresla czy to jest normalna ramka telemetryczna, czy szybka
+//  cAdrZdalny - adres urządzenia do którego wysyłamy
+//  cAdrLokalny - nasz adres
+//  cRozmDanych - liczba bajtw danych uwzględniająca pole bitowe zmiennych w typowej ramce oraz nagłówek w ramce szybkiej
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void PrzygotujRamkeTele(uint8_t chIndeksRamki, uint8_t chTypRamki, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint8_t chRozmDanych)
+void PrzygotujRamkeTele(uint8_t cIndeksRamki, uint8_t cTypRamki, uint8_t cAdrZdalny, uint8_t cAdrLokalny, uint8_t cRozmDanych)
 {
 	PobierzDateCzas(&stDate, &stTime);
 
 	InicjujCRC16(0, WIELOMIAN_CRC);
-	chRamkaTelemetrii[chIndeksRamki][0] = NAGLOWEK;
-	chRamkaTelemetrii[chIndeksRamki][1] = CRC->DR = chAdrZdalny;
-	chRamkaTelemetrii[chIndeksRamki][2] = CRC->DR = chAdrLokalny;
-	chRamkaTelemetrii[chIndeksRamki][3] = CRC->DR = (uint8_t)stTime.SubSeconds;	//1/256 cześć sekundy czasu RTC synchronizowanego z GPS
-	if (chTypRamki == TELEM_NORMALNA)
-		chRamkaTelemetrii[chIndeksRamki][4] = CRC->DR = PK_TELEMETRIA1 + chIndeksRamki / 2;	//indeks ramki wskazuje na zakres zmiennych a to determinuje numer polecenia
+	cRamkaTelemetrii[cIndeksRamki][0] = NAGLOWEK;
+	cRamkaTelemetrii[cIndeksRamki][1] = CRC->DR = cAdrZdalny;
+	cRamkaTelemetrii[cIndeksRamki][2] = CRC->DR = cAdrLokalny;
+	cRamkaTelemetrii[cIndeksRamki][3] = CRC->DR = (uint8_t)stTime.SubSeconds;	//1/256 cześć sekundy czasu RTC synchronizowanego z GPS
+	if (cTypRamki == TELEM_NORMALNA)
+		cRamkaTelemetrii[cIndeksRamki][4] = CRC->DR = PK_TELEMETRIA1 + cIndeksRamki / 2;	//indeks ramki wskazuje na zakres zmiennych a to determinuje numer polecenia
 	else
-		chRamkaTelemetrii[chIndeksRamki][4] = CRC->DR = PK_TELEM_SZYBKA;	//ramka szybk jest na razie tylko jedna
-	chRamkaTelemetrii[chIndeksRamki][5] = CRC->DR = chRozmDanych;
+		cRamkaTelemetrii[cIndeksRamki][4] = CRC->DR = PK_TELEM_SZYBKA;	//ramka szybk jest na razie tylko jedna
+	cRamkaTelemetrii[cIndeksRamki][5] = CRC->DR = cRozmDanych;
 
 	//policz CRC z danych i listy zmiennych
-	for(uint16_t n=0; n < chRozmDanych; n++)
-		CRC->DR = chRamkaTelemetrii[chIndeksRamki][ROZMIAR_NAGLOWKA + n];
+	for(uint16_t n=0; n < cRozmDanych; n++)
+		CRC->DR = cRamkaTelemetrii[cIndeksRamki][ROZMIAR_NAGLOWKA + n];
 
 	un8_32.dane16[0] = (uint16_t)CRC->DR;
-	chRamkaTelemetrii[chIndeksRamki][ROZMIAR_NAGLOWKA + chRozmDanych + 0] =  un8_32.dane8[0];	//młodszy przodem
-	chRamkaTelemetrii[chIndeksRamki][ROZMIAR_NAGLOWKA + chRozmDanych + 1] =  un8_32.dane8[1];	//starszy
+	cRamkaTelemetrii[cIndeksRamki][ROZMIAR_NAGLOWKA + cRozmDanych + 0] =  un8_32.dane8[0];	//młodszy przodem
+	cRamkaTelemetrii[cIndeksRamki][ROZMIAR_NAGLOWKA + cRozmDanych + 1] =  un8_32.dane8[1];	//starszy
 
 	//return chRozmDanych * 2 + LICZBA_BAJTOW_ID_TELEMETRII + ROZMIAR_NAGLOWKA + ROZMIAR_CRC;
 }
@@ -567,7 +584,7 @@ void PrzygotujRamkeTele(uint8_t chIndeksRamki, uint8_t chTypRamki, uint8_t chAdr
 // [o] *chData - wskaźnik na tablicę znaków
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void Float2Char16(float fData, uint8_t* chData)
+void Float2Char16(float fData, uint8_t* cData)
 {
     typedef union
     {
@@ -575,21 +592,21 @@ void Float2Char16(float fData, uint8_t* chData)
 	float fuData;
     } fUnion;
     fUnion temp;
-    volatile uint8_t chCecha;
+    volatile uint8_t cCecha;
 
     temp.fuData = fData;
-    *(chData+1) = temp.array[3] & 0x80;   //znak liczby
-    chCecha = ((temp.array[3] & 0x7F)<<1) + ((temp.array[2] & 0x80)>>7);
-    chCecha -= (127-15);
-    if (chCecha > 127)
-      chCecha = 1;          //gdy cecha poza zakresem
+    *(cData+1) = temp.array[3] & 0x80;   //znak liczby
+    cCecha = ((temp.array[3] & 0x7F)<<1) + ((temp.array[2] & 0x80)>>7);
+    cCecha -= (127-15);
+    if (cCecha > 127)
+      cCecha = 1;          //gdy cecha poza zakresem
     else
-      chCecha &= 0x1F;
-    *(chData+1) += chCecha<<2;
-    *(chData+1) += (temp.array[2] & 0x60)>>5;   //mantysa
+      cCecha &= 0x1F;
+    *(cData+1) += cCecha<<2;
+    *(cData+1) += (temp.array[2] & 0x60)>>5;   //mantysa
 
-    *(chData+0) =  (temp.array[2] & 0x1F)<<3;
-    *(chData+0) += (temp.array[1] & 0xE0)>>5;
+    *(cData+0) =  (temp.array[2] & 0x1F)<<3;
+    *(cData+0) += (temp.array[1] & 0xE0)>>5;
  }
 
 
@@ -601,24 +618,24 @@ void Float2Char16(float fData, uint8_t* chData)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZapiszKonfiguracjeTelemetrii(uint16_t sPrzesuniecie)
 {
-	uint8_t chDoZapisu = OKRESOW_TELEMETRII_W_RAMCE;
+	uint8_t cDoZapisu = OKRESOW_TELEMETRII_W_RAMCE;
 	uint16_t sIndeksPaczki = (sPrzesuniecie * 2) / ROZMIAR_DANYCH_WPACZCE;
-	uint8_t chProbZapisu = 3;
+	uint8_t cProbZapisu = 3;
 	uint8_t cBłąd;
 
-	while (chDoZapisu && chProbZapisu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
+	while (cDoZapisu && cProbZapisu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
 	{
 		cBłąd = ZapiszPaczkeKonfigu(FKON_OKRES_TELEMETRI1 + sIndeksPaczki, (uint8_t*)&sOkresTelemetrii[sIndeksPaczki * ROZMIAR_DANYCH_WPACZCE / 2]);
 		if (cBłąd == BLAD_OK)
 		{
 			sIndeksPaczki++;
-			chProbZapisu = 3;
-			if (chDoZapisu > ROZMIAR_DANYCH_WPACZCE / 2)
-				chDoZapisu -= ROZMIAR_DANYCH_WPACZCE / 2;
+			cProbZapisu = 3;
+			if (cDoZapisu > ROZMIAR_DANYCH_WPACZCE / 2)
+				cDoZapisu -= ROZMIAR_DANYCH_WPACZCE / 2;
 			else
-				chDoZapisu = 0;
+				cDoZapisu = 0;
 		}
-		chProbZapisu--;
+		cProbZapisu--;
 	}
 	return cBłąd;
 }
@@ -630,8 +647,8 @@ uint8_t ZapiszKonfiguracjeTelemetrii(uint16_t sPrzesuniecie)
 // Parametry: chOperacja - polecenie do ustawienia w zmiennej statusu telemetrii
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void WłączTelemetrię(uint8_t chOperacja)
+void WłączTelemetrię(uint8_t cOperacja)
 {
-	cStatusTelemetrii = chOperacja;
-	sIndeksWysyłkiFFT = chIndeksWysyłkiTestuFFT = 0;	//resetuj parametry szybkiej telemetrii
+	cStatusTelemetrii = cOperacja;
+	sIndeksWysyłkiFFT = cIndeksWysyłkiTestuFFT = 0;	//resetuj parametry szybkiej telemetrii
 }

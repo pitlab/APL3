@@ -43,7 +43,7 @@ extern uint32_t PobierzCzasT7(void);
 /* USER CODE BEGIN PV */
 //volatile uint8_t chZbocze[8];	//flaga określająca na które zbocze mamy reagować dla wszystkich kanałow wyjściowych serw
 volatile uint32_t nPoprzedniStanTimera2;	//timer 32 bitowy
-volatile uint8_t chNumerKanSerw;
+volatile uint8_t cNumerKanSerw;
 volatile uint16_t sCzasH;
 extern stRC_t stRC1;
 extern unia_wymianyCM4_t uDaneCM4;
@@ -288,10 +288,10 @@ void TIM1_CC_IRQHandler(void)
 	//obsługa wyjścia TIM1_CH1 jako PWM do generowania kanałów 50Hz [8..15]
 	if (htim1.Instance->SR & TIM_FLAG_CC1)
 	{
-		chNumerKanSerw++;						//ustaw następny kanał
-		if (chNumerKanSerw == KANALY_WYJSC_RC)
-			chNumerKanSerw = 8;
-		switch (chNumerKanSerw)					//ustaw dekoder
+		cNumerKanSerw++;						//ustaw następny kanał
+		if (cNumerKanSerw == KANALY_WYJSC_RC)
+			cNumerKanSerw = 8;
+		switch (cNumerKanSerw)					//ustaw dekoder
 		{
 		case 8:
 			HAL_GPIO_WritePin(ADR_SER0_GPIO_Port, ADR_SER0_Pin, GPIO_PIN_RESET);
@@ -335,7 +335,7 @@ void TIM1_CC_IRQHandler(void)
 			break;
 		default:	break;
 		}
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, uDaneCM4.dane.sWyjscieRC[chNumerKanSerw]);
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, uDaneCM4.dane.sWyjscieRC[cNumerKanSerw]);
 		htim1.Instance->SR &= ~TIM_FLAG_CC1;	//kasuj przerwanie przez zapis zera
 	}
 

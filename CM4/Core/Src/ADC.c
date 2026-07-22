@@ -16,7 +16,6 @@
 extern ADC_HandleTypeDef hadc2;
 extern ADC_HandleTypeDef hadc3;
 extern unia_wymianyCM4_t uDaneCM4;
-//uint32_t nCzas;
 uint16_t sObiegowPetliCzekaniaNaADC[LICZBA_POMIAROW_ADC3];
 float fNapiecieIdModuluWewn[4];
 float fMnożnikCzujnWeAnalog[4] = {1.0f, 1.0f, 1.0f, 1.0f};		//mnożniki do obliczenia finalnej wartości czujników odłaczonych do wejsć analogoweych
@@ -54,9 +53,7 @@ uint8_t InicjujADC(void)
 	//konfiguracjia ADC3 będzie zmieniana, więc wstępnie ustaw ją tutaj aby nie budować od nowa przy każdym pomiarze
 	sConfigADC3.Channel = ADC_CHANNEL_6;
 	sConfigADC3.Rank = ADC_REGULAR_RANK_1;
-	//sConfigADC3.SamplingTime = ADC_SAMPLETIME_16CYCLES_5;	//wystarczajaco szybko, nie trzeba czekać na pomiar
 	sConfigADC3.SamplingTime = ADC_SAMPLETIME_32CYCLES_5;	//pomiar co 28us, wystarczajaco szybko, nie trzeba czekać na pomiar
-	//sConfigADC3.SamplingTime = ADC_SAMPLETIME_387CYCLES_5;	//pomiar co 170us - wystarczajaco szybko, nie trzeba czekać na pomiar
 	sConfigADC3.SingleDiff = ADC_SINGLE_ENDED;
 	sConfigADC3.OffsetNumber = ADC_OFFSET_NONE;
 	sConfigADC3.Offset = 0;
@@ -79,20 +76,19 @@ uint8_t InicjujADC(void)
 // Zwraca: kod błędu HAL
 // Czas wykonania: 5..6ms - strasznie długo. Same 2x HAL_ADC_Start_IT zajmują ok 4600us
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t PomiarADC(uint8_t chKanal, uint8_t cBityPozwoleniaNaPomiar)
+uint8_t PomiarADC(uint8_t cKanal, uint8_t cBityPozwoleniaNaPomiar)
 {
 	uint8_t cBłąd = BLAD_OK;
-	//uint32_t nCzas;
 
-	chIndeksPomiaruADC = chKanal;	//ustaw w zmiennej numer kanału aby w przerwaniu wiedziało gdzie przypisać wynik pomiaru
+	chIndeksPomiaruADC = cKanal;	//ustaw w zmiennej numer kanału aby w przerwaniu wiedziało gdzie przypisać wynik pomiaru
 
 	if (sDzielnikCzasuPomiarowWewn < LICZBA_POMIAROW_ADC3 + 1)
 	{
 		//ustaw ADC3 na właściwy kanał, ale tylko wtedy kiedy trzeba, gdyż konfiguracja zajmuje duuużo czasu, ok. 3000us
-		if ((chKanal == 0) || (chKanal >= LICZBA_POMIAROW_ADC2))
+		if ((cKanal == 0) || (cKanal >= LICZBA_POMIAROW_ADC2))
 		{
 			//przetwornik ADC3 może również mierzyć czujniki wewnętrzne: Temp, VBat na kanałach 8..9
-			switch (chKanal)	//ustawienia ADC3 na czujniki wewnętrzne
+			switch (cKanal)	//ustawienia ADC3 na czujniki wewnętrzne
 			{
 			case 8:		sConfigADC3.Channel = ADC_CHANNEL_VREFINT;		break;
 			case 9: 	sConfigADC3.Channel = ADC_CHANNEL_TEMPSENSOR;	break;
@@ -101,15 +97,13 @@ uint8_t PomiarADC(uint8_t chKanal, uint8_t cBityPozwoleniaNaPomiar)
 			}
 
 			//ADC3 powinien wyjść ustawiony na ADC_CHANNEL_6, więc jeżeli licznik kończy się w okolicy 8..9 to zwiększ go aby wyszedł z bezpiecznymi ustawieniami
-			if ((chKanal == 8) && (sDzielnikCzasuPomiarowWewn < 3))
+			if ((cKanal == 8) && (sDzielnikCzasuPomiarowWewn < 3))
 				sDzielnikCzasuPomiarowWewn += 3;
 
-			//nCzas = PobierzCzas();
 			HAL_ADC_ConfigChannel(&hadc3, &sConfigADC3);
-			//nCzas = MinalCzas(nCzas);
 
 			//wykonaj pomiary wewnętrzne
-			if (chKanal >= LICZBA_POMIAROW_ADC2)
+			if (cKanal >= LICZBA_POMIAROW_ADC2)
 				cBłąd |= HAL_ADC_Start_IT(&hadc3);
 		}
 	}
@@ -118,12 +112,10 @@ uint8_t PomiarADC(uint8_t chKanal, uint8_t cBityPozwoleniaNaPomiar)
 		sDzielnikCzasuPomiarowWewn = DZIELNIK_CZASU_POMIAROW_WEWN;
 
 	//zmierz napięcia na zewnętrznych wejściach ADC dla 8 pierwszych kanałów
-	if ((chKanal < LICZBA_POMIAROW_ADC2) && (cBityPozwoleniaNaPomiar == (1 << chKanal)))
+	if ((cKanal < LICZBA_POMIAROW_ADC2) && (cBityPozwoleniaNaPomiar == (1 << cKanal)))
 	{
-		//nCzas = PobierzCzas();
 		cBłąd |= HAL_ADC_Start_IT(&hadc2);
 		cBłąd |= HAL_ADC_Start_IT(&hadc3);
-		//nCzas = MinalCzas(nCzas);
 	}
 	return cBłąd;
 }

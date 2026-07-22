@@ -35,14 +35,14 @@ typedef struct
 
 typedef struct
 {
-	uint8_t chStatus;	//pole boitowe do testowania przepl=ływem danych wejściowych i wyjściowych
-	uint8_t chRodzajOkna;		//indeks okna FFT
-	uint8_t chIndeksZmiennejWe;
-	uint8_t chWykladnikPotegi;	//wykładnik potęgi 2 okreslajacy rozmiar FFT
+	uint8_t cStatus;	//pole boitowe do testowania przepl=ływem danych wejściowych i wyjściowych
+	uint8_t cRodzajOkna;		//indeks okna FFT
+	uint8_t cIndeksZmiennejWe;
+	uint8_t cWykladnikPotegi;	//wykładnik potęgi 2 okreslajacy rozmiar FFT
 	uint16_t sLiczbaProbek;
-	uint8_t chIndeksTestu;		//licznik testów dla kompletu FFT w różnych warunkach pracy np dla różnego wysterowania napędu. Max = LICZBA_TESTOW_FFT
-	uint8_t chAktywnSilniki;	//maska bitowa określająca które silniki maja być aktywne w trakcie testu rezonansu ramy
-	uint8_t chMaxWysterowanie;	//procentowa wartość maksymalnego wysterowania silników dla testu rezonansu drgań
+	uint8_t cIndeksTestu;		//licznik testów dla kompletu FFT w różnych warunkach pracy np dla różnego wysterowania napędu. Max = LICZBA_TESTOW_FFT
+	uint8_t cAktywnSilniki;	//maska bitowa określająca które silniki maja być aktywne w trakcie testu rezonansu ramy
+	uint8_t cMaxWysterowanie;	//procentowa wartość maksymalnego wysterowania silników dla testu rezonansu drgań
 } stFFT_t;
 
 

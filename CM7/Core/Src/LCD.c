@@ -43,10 +43,10 @@
 #include "OSD.h"
 
 //deklaracje zmiennych
-extern uint8_t MidFont[];
-extern uint8_t BigFont[];
-const char *build_date = __DATE__;
-const char *build_time = __TIME__;
+extern uint8_t cMidFont[];
+extern uint8_t cBigFont[];
+const char *cDataKompilacji= __DATE__;
+const char *cCzasKompilacji = __TIME__;
 extern const unsigned short obr_multimetr[];
 extern const unsigned short obr_multitool[];
 extern const unsigned short obr_mmedia[];
@@ -111,7 +111,7 @@ uint8_t cWrocDoTrybu;
 uint8_t cRysujRaz;
 char cNapis[100], cNapisPodreczny[30];
 float fTemperaturaKalibracji;
-uint8_t chLiczIter;		//licznik iteracji wyświetlania
+uint8_t cLiczIter;		//licznik iteracji wyświetlania
 extern stStatusDotyku_t stStatusDotyku;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 extern uint8_t cPort_exp_wysylany[];
@@ -378,7 +378,7 @@ uint8_t RysujEkran(void)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	if ((stStatusDotyku.chFlagi & DOTYK_SKALIBROWANY) != DOTYK_SKALIBROWANY)		//sprawdź czy ekran dotykowy jest skalibrowany
+	if ((stStatusDotyku.cFlagi & DOTYK_SKALIBROWANY) != DOTYK_SKALIBROWANY)		//sprawdź czy ekran dotykowy jest skalibrowany
 		cTrybPracy = TP_KAL_DOTYK;
 
 	switch (cTrybPracy)
@@ -412,7 +412,7 @@ uint8_t RysujEkran(void)
 		break;
 
 	case TP_TEST1:
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_TESTY;
@@ -420,7 +420,7 @@ uint8_t RysujEkran(void)
 		break;
 
 	case TP_TEST2:
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_TESTY;
@@ -428,7 +428,7 @@ uint8_t RysujEkran(void)
 		break;
 
 	case TP_TEST3:
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_TESTY;
@@ -547,7 +547,7 @@ uint8_t RysujEkran(void)
 	case TP_TEST_TONU:
 		InicjujOdtwarzanieDzwieku();
 		TestTonuAudio();
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			ZatrzymajTon();
 			cTrybPracy = cWrocDoTrybu;
@@ -570,7 +570,7 @@ uint8_t RysujEkran(void)
 			NapelnijBuforDzwieku(&sBuforAudioWe[cWskaznikBuforaAudio][0], 2*ROZMIAR_BUFORA_AUDIO_WE);
 			RysujPrzebieg(sBuforAudioWe[cWskKasowania], sBuforAudioWe[cWskaznikBuforaAudio], BIALY);
 		}
-		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		while ((stStatusDotyku.cFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		cTrybPracy = cWrocDoTrybu;
 		cNowyTrybPracy = TP_WROC_DO_AUDIO;
 		break;
@@ -579,7 +579,7 @@ uint8_t RysujEkran(void)
 	case TP_MM_KOM:
 		InicjujOdtwarzanieDzwieku();
 		TestKomunikatow();
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_AUDIO;
@@ -653,7 +653,7 @@ uint8_t RysujEkran(void)
 			RysujNapiswBuforze(cNapis, 0, DISP_Y_SIZE - FONT_BH, DISP_X_SIZE, cBuforOSD, (uint8_t*)(KOLOSD_ZOLTY0 + PRZEZR_20), (uint8_t*)PRZEZR_80, ROZMIAR_KOLORU_OSD);
 			nCzasLCD = PobierzCzasT6();
 		}
-		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		while ((stStatusDotyku.cFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 		stKonfOSD.chOSDWlaczone = 0;	//wyłącz OSD
 		break;
@@ -675,7 +675,7 @@ uint8_t RysujEkran(void)
 
 			//RysujHistogramRGB32(cHistR, cHistG, cHistB);
 		}
-		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		while ((stStatusDotyku.cFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 		stKonfOSD.chOSDWlaczone = 0;	//wyłącz OSD
 		break;
@@ -719,7 +719,7 @@ uint8_t RysujEkran(void)
 				RysujNapis(cNapis, 0, DISP_Y_SIZE - 2*FONT_BH);
 			}
 		}
-		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		while ((stStatusDotyku.cFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
 
@@ -745,7 +745,7 @@ uint8_t RysujEkran(void)
 			setColor(ZOLTY);
 			RysujNapis(cNapis, 0, DISP_Y_SIZE - FONT_BH);
 		}
-		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		while ((stStatusDotyku.cFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
@@ -770,7 +770,7 @@ uint8_t RysujEkran(void)
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, cBuforLCD);	//wyświetla połączone obrazy na LCD
 			cBłąd = KompresujRGB888doYUV422(cBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, 30);
 		}
-		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		while ((stStatusDotyku.cFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		cNowyTrybPracy = TP_WROC_DO_KAMERA;
 		break;
 
@@ -803,7 +803,7 @@ uint8_t RysujEkran(void)
 		{
 			sprintf(cNapis, "Blad: %d ", cBłąd);
 			RysujNapis(cNapis, 10, 30);
-			if ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
+			if ((stStatusDotyku.cFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
 				cNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
 		}
@@ -846,7 +846,7 @@ uint8_t RysujEkran(void)
 			setColor(ZOLTY);
 			sprintf(cNapis, "Blad: %d", cBłąd);
 			RysujNapis(cNapis, 10, 30);
-			if ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
+			if ((stStatusDotyku.cFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
 				cNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
 		}
@@ -870,7 +870,7 @@ uint8_t RysujEkran(void)
 			setColor(ZOLTY);
 			sprintf(cNapis, "Blad: %d", cBłąd);
 			RysujNapis(cNapis, 10, 30);
-			if ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
+			if ((stStatusDotyku.cFlagi & DOTYK_DOTKNIETO) == DOTYK_DOTKNIETO)
 				cNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
 		}
@@ -886,7 +886,7 @@ uint8_t RysujEkran(void)
 		}
 
 		setColor(BIALY);
-		UstawCzcionke(MidFont);
+		UstawCzcionke(cMidFont);
 		WykonajDiagnostykeKamery(&stDiagKam);
 
 		sprintf(cNapis, "AVG: 0x%X, Prog AEC: 0x%X..0x%X, stab: 0x%X..0x%X", stDiagKam.chSredniaJasnoscAVG, stDiagKam.chProgAEC_H, stDiagKam.chProgAEC_L, stDiagKam.chProgStabAEC_H, stDiagKam.chProgStabAEC_L);
@@ -907,7 +907,7 @@ uint8_t RysujEkran(void)
 		sprintf(cNapis, "Rozmiar obrazu X (HTS): %d, Y (VTS): %d", stDiagKam.sRozmiarPoz_HTS, stDiagKam.sRozmiarPio_VTS);
 		RysujNapis(cNapis, 0, 130);
 
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_KAMERA;
@@ -978,7 +978,7 @@ uint8_t RysujEkran(void)
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, cBuforLCD);	//wyświetla połączone obrazy na LCD
 			nCzasLCD = DWT->CYCCNT - nCzasLCD; //koniec pomiaru
 		}
-		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		while ((stStatusDotyku.cFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 		cBłąd = ZakonczPraceDCMI();
 		cNowyTrybPracy = TP_WROC_DO_OSD;
 		stKonfOSD.chOSDWlaczone = 0;	//wyłącz OSD
@@ -998,7 +998,7 @@ uint8_t RysujEkran(void)
 			RysujBitmape888(0, 0, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, cBuforLCD);	//wyświetla połączone obrazy na LCD
 			nCzasLCD = DWT->CYCCNT - nCzasLCD; //koniec pomiaru
 		}
-		while ((stStatusDotyku.chFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
+		while ((stStatusDotyku.cFlagi & DOTYK_DOTKNIETO) != DOTYK_DOTKNIETO);
 			cNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
 
@@ -1099,7 +1099,7 @@ uint8_t RysujEkran(void)
 		}
 
 		setColor(BIALY);
-		UstawCzcionke(MidFont);
+		UstawCzcionke(cMidFont);
 		sprintf(cNapis, "NumerIP: %ld.%ld.%ld.%ld",(ipaddr.addr & 0xFF), (ipaddr.addr & 0xFF00)>>8, (ipaddr.addr & 0xFF0000)>>16, (ipaddr.addr & 0xFF000000)>>24);
 		RysujNapis(cNapis, 10, 30);
 		sprintf(cNapis, "Maska:   %ld.%ld.%ld.%ld", (netmask.addr & 0xFF), (netmask.addr & 0xFF00)>>8, (netmask.addr & 0xFF0000)>>16, (netmask.addr & 0xFF000000)>>24);
@@ -1126,7 +1126,7 @@ uint8_t RysujEkran(void)
 		sprintf(cNapis, "Uzywanie ethernetu wylaczone");
 #endif
 		RysujNapis(cNapis, 10, 230);
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_ETH;
@@ -1142,7 +1142,7 @@ uint8_t RysujEkran(void)
 			cRysujRaz = 0;
 		}
 
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_ETH;
@@ -1160,7 +1160,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_FRAKTALE:		FraktalDemo();
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
@@ -1169,7 +1169,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_POMIAR_SRAM:	TestPredkosciOdczytuRAM();
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
@@ -1178,7 +1178,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_POM_ZAPISU_NOR:		TestPredkosciZapisuNOR();
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
@@ -1187,7 +1187,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_POMIAR_FNOR:	TestPredkosciOdczytuNOR();
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
@@ -1196,7 +1196,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_POMIAR_FQSPI:	//W25_TestTransferu();
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
@@ -1209,7 +1209,7 @@ uint8_t RysujEkran(void)
 		for (uint8_t n=0; n<3; n++)
 			fKat[n] = -1 *uDaneCM4.dane.fKatZyro2[n];	//do rysowania przyjmij kąty z przeciwnym znakiem - jest OK
 		RysujKostkeObrotu(fKat);
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
@@ -1227,7 +1227,7 @@ uint8_t RysujEkran(void)
 				fSymKatKostki[n] = -M_PI;
 		}
 		RysujKostkeObrotu(fSymKatKostki);
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
@@ -1249,7 +1249,7 @@ uint8_t RysujEkran(void)
 		sprintf(cNapis, "mallinfo: Arena %ld, Free %ld, Used %ls", mi.arena, mi.fordblks, mi.uordblks);
 		RysujNapis(cNapis, KOL12, 100);*/
 
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
@@ -1259,7 +1259,7 @@ uint8_t RysujEkran(void)
 	case TP_EMU_MAG_CAN:
 		uDaneCM7.dane.cWykonajPolecenie = POL7_KAL_ZERO_MAGN2;	//włącz tryb jak dla kalibracji aby nie uwzględniać w wyniku danych kalibracyjnych
 		EmulujMagnetometrWizjerCan((float*)uDaneCM4.dane.fMagne2);
-		UstawCzcionke(BigFont);
+		UstawCzcionke(cBigFont);
 		setColor(KOLOR_X);
 		sprintf(cNapis, "Mag X: %.3f uT ", uDaneCM4.dane.fMagne2[0] * 1e6);
 		RysujNapis(cNapis, KOL12, 40);
@@ -1278,7 +1278,7 @@ uint8_t RysujEkran(void)
 			RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 		}
 
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
@@ -1293,7 +1293,7 @@ uint8_t RysujEkran(void)
 			PokazCzasOdcinkowPGAP((uint16_t*)&uDaneCM4.dane.uRozne.U16[0]);
 			uDaneCM7.dane.sAdres++;	//inkrementacja adresu zapewnia unikalność polecenia. CM4 nie wykonuje powtórzonych poleceń
 		}
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_WYDAJN;
@@ -1314,7 +1314,7 @@ uint8_t RysujEkran(void)
 	case TPKS_WLACZ_REJ:
 		cStatusRejestratora|= STATREJ_WLACZONY;
 		WyswietlRejestratorKartySD();
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_KARTA;
@@ -1325,7 +1325,7 @@ uint8_t RysujEkran(void)
 	case TPKS_WYLACZ_REJ:	//najpierw zakmnij plik a potem wyłacz rejestrator
 		cStatusRejestratora|= STATREJ_ZAMKNIJ_PLIK | STATREJ_BYL_OTWARTY;
 		WyswietlRejestratorKartySD();
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_KARTA;
@@ -1335,7 +1335,7 @@ uint8_t RysujEkran(void)
 
 	case TPKS_PARAMETRY:
 		WyswietlParametryKartySD();
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_KARTA;
@@ -1456,7 +1456,7 @@ uint8_t RysujEkran(void)
 				cCzasSwieceniaLED[LED_NIEB] = 5;	//świeć niebieskim LED w trakcie kalibracji
 		}
 
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_KAL_IMU;
@@ -1472,7 +1472,7 @@ uint8_t RysujEkran(void)
 		if (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO)
 			WyswietlKomunikatBledu(KOMUNIKAT_ZA_CIEPLO, (uDaneCM4.dane.fTemper[TEMP_IMU1] + uDaneCM4.dane.fTemper[TEMP_IMU2])/2, fTemperaturaKalibracji, TEMP_KAL_ODCHYLKA);	//Wyświetl komunikat  o tym że jest za ciepło i nominalna temperatura kalibracji to TEMP_KAL_POKOJ z odchyłką TEMP_KAL_ODCHYLKA
 
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_KAL_IMU;
@@ -1576,7 +1576,7 @@ uint8_t RysujEkran(void)
 	case TP_MAG1:	break;
 	case TP_MAG2:	break;
 	case TP_SPR_PLASKI:	PlaskiObrotMagnetometrow();
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_MAG;
@@ -1640,7 +1640,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_POMIARY_AHRS:	PomiaryAHRS();		//wyświetlaj wyniki pomiarów IMU pobrane z CM4
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cNowyTrybPracy = TP_WROC_DO_POMIARY;
 			ZatrzymajTon();
@@ -1649,7 +1649,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_POMIARY_CZUJN:	PomiaryCzujnikow();
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_POMIARY;
@@ -1659,7 +1659,7 @@ uint8_t RysujEkran(void)
 
 	case TP_POMIARY_RC:	//DaneOdbiornikaRC();
 		RysujPaskiKanalowRC(STR_DANE_ODBIORNIKA_RC, (uint16_t *)uDaneCM4.dane.sKanalRC);
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_POMIARY;
@@ -1668,7 +1668,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_POMIARY_SERWA:	RysujPaskiKanalowRC(STR_DANE_WYJSC_RC, (uint16_t *)uDaneCM4.dane.sWyjscieRC);
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_POMIARY;
@@ -1678,12 +1678,12 @@ uint8_t RysujEkran(void)
 	case TP_POMIARY_ANALIZA_DRGAN:
 		if (cRysujRaz)
 			RozpocznijAnalizęDrgań(&stKonfigFFT, &cTrybPracy);
-		if (stKonfigFFT.chStatus & FFT_NOWE_DANE)
+		if (stKonfigFFT.cStatus & FFT_NOWE_DANE)
 			KrokAnalizyDrgań(&stKonfigFFT, &cTrybPracy);
 		//intencjonalnie brakuje break; aby po zakończeniu wszedł w obsługę rysowania FFT
 
 	case TP_POMIARY_FFT_ACC:	RysujFFT(&fWynikFFT[0][0][0], &stKonfigFFT, FFT_ACC);	//FFT akcelerometrów
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_POMIARY;
@@ -1692,7 +1692,7 @@ uint8_t RysujEkran(void)
 		break;
 
 	case TP_POMIARY_FFT_ZYR:	RysujFFT(&fWynikFFT[0][0][0], &stKonfigFFT, FFT_ZYR);	//FFT żyroskopów
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_POMIARY;
@@ -1700,10 +1700,10 @@ uint8_t RysujEkran(void)
 		break;
 
 	case TP_WITAJ:
-		if (!chLiczIter)
-			chLiczIter = 15;			//ustaw czas wyświetlania x 200ms
+		if (!cLiczIter)
+			cLiczIter = 15;			//ustaw czas wyświetlania x 200ms
 		Ekran_Powitalny(nZainicjowanoCM7);	//przywitaj użytkownika i prezentuj wykryty sprzęt
-		if (!chLiczIter)				//jeżeli koniec odliczania to wyjdź
+		if (!cLiczIter)				//jeżeli koniec odliczania to wyjdź
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_POMIARY;
@@ -1721,7 +1721,7 @@ uint8_t RysujEkran(void)
 
 	case TP_NAST_PID_PRZECH:		//regulator sterowania przechyleniem (lotkami w samolocie)
 		NastawyPID(PID_KĄTA_PRZE);
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_NASTAWY;
@@ -1731,7 +1731,7 @@ uint8_t RysujEkran(void)
 
 	case TP_NAST_PID_POCH:	//regulator sterowania pochyleniem (sterem wysokości)
 		NastawyPID(PID_KĄTA_POCH);
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_NASTAWY;
@@ -1741,7 +1741,7 @@ uint8_t RysujEkran(void)
 
 	case TP_NAST_PID_ODCH:		//regulator sterowania odchyleniem (sterem kierunku)
 		NastawyPID(PID_KĄTA_ODCH);
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_NASTAWY;
@@ -1751,7 +1751,7 @@ uint8_t RysujEkran(void)
 
 	case TP_NAST_PID_WYSOK:		//regulator sterowania wysokością
 		NastawyPID(PID_WYSOKOSCI);
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_NASTAWY;
@@ -1761,7 +1761,7 @@ uint8_t RysujEkran(void)
 
 	case TP_NAST_PID_NAWIG_PÓŁN:		//regulator sterowania nawigacją w kierunku północnym
 		NastawyPID(PID_NAWIG_PÓŁN);
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_NASTAWY;
@@ -1771,7 +1771,7 @@ uint8_t RysujEkran(void)
 
 	case TP_NAST_PID_NAWIG_WSCH:		//regulator sterowania nawigacją w kierunku wschodnim
 		NastawyPID(PID_NAWIG_WSCH);
-		if(stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_NASTAWY;
@@ -1860,7 +1860,7 @@ uint8_t RysujEkran(void)
 			cTrybPracy = cNowyTrybPracy;	break;	//typowe wywołanie pozycji z menu
 		}
 		cNowyTrybPracy = 0;
-		stStatusDotyku.chFlagi &= ~(DOTYK_DOTKNIETO | DOTYK_ZWOLNONO);	//czyść flagi ekranu dotykowego aby móc reagować na nie w trakcie pracy danego trybu
+		stStatusDotyku.cFlagi &= ~(DOTYK_DOTKNIETO | DOTYK_ZWOLNONO);	//czyść flagi ekranu dotykowego aby móc reagować na nie w trakcie pracy danego trybu
 		cRysujRaz = 1;		//jednorazowo rysuj statyczne elementy nowego ekranu
 	}
 	return cBłąd;
@@ -1889,20 +1889,20 @@ uint8_t Ekran_Powitalny(uint32_t nZainicjowano)
 
 		setColor(SZARY20);
 		setBackColor(BIALY);
-		UstawCzcionke(BigFont);
+		UstawCzcionke(cBigFont);
 		sprintf(cNapis, "%s @%luMHz", (char*)cNapisLcd[STR_WITAJ_TYTUL], HAL_RCC_GetSysClockFreq()/1000000);
 		RysujNapis(cNapis, CENTER, 90);
 
 		setColor(SZARY30);
-		UstawCzcionke(MidFont);
+		UstawCzcionke(cMidFont);
 		//sprintf(cNapis, (char*)cNapisLcd[STR_WITAJ_MOTTO], ó, ć, ó, ó, ż);	//"By móc mieć w rój Wronów na pohybel wrażym hordom""
 		sprintf(cNapis, (char*)cNapisLcd[STR_WITAJ_MOTTO2], ó, ó, ż, ó);	//"By móc zmóc wraże hordy rojem Wronów"	//STR_WITAJ_MOTTO2
 		RysujNapis(cNapis, CENTER, 115);
 
-		sprintf(cNapis, "Adres: %d, IP: %d.%d.%d.%d, Nazwa: %s", stBSP_ID.chAdres, stBSP_ID.chAdrIP[0], stBSP_ID.chAdrIP[1], stBSP_ID.chAdrIP[2], stBSP_ID.chAdrIP[3],  stBSP_ID.chNazwa);
+		sprintf(cNapis, "Adres: %d, IP: %d.%d.%d.%d, Nazwa: %s", stBSP_ID.cAdres, stBSP_ID.cAdrIP[0], stBSP_ID.cAdrIP[1], stBSP_ID.cAdrIP[2], stBSP_ID.cAdrIP[3],  stBSP_ID.cNazwa);
 		RysujNapis(cNapis, CENTER, 135);
 
-		sprintf(cNapis, "(c) PitLab 2026 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, build_date, build_time);
+		sprintf(cNapis, "(c) PitLab 2026 sv%d.%d.%d @ %s %s", WER_GLOWNA, WER_PODRZ, WER_REPO, cDataKompilacji, cCzasKompilacji);
 		RysujNapis(cNapis, CENTER, 155);
 		cRysujRaz = 0;
 	}
@@ -1982,7 +1982,7 @@ uint8_t Ekran_Powitalny(uint32_t nZainicjowano)
 	Wykrycie(x, y, n, (uDaneCM4.dane.nZainicjowano & INIT_ND130) == INIT_ND130);
 
 	osDelay(200);
-	chLiczIter--;
+	cLiczIter--;
 	return cBłąd;
 }
 
@@ -2039,12 +2039,12 @@ void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fP
 
 	//nagłówek komunikatu
 	setColor(CZERWONY);
-	UstawCzcionke(BigFont);
+	UstawCzcionke(cBigFont);
 	sprintf(cNapis, (char*)cOpisBledow[KOMUNIKAT_NAGLOWEK]);	//"Blad wykonania polecenia!",
 	RysujNapis(cNapis, CENTER, 70);
 
 	//stopka komunikatu
-	UstawCzcionke(MidFont);
+	UstawCzcionke(cMidFont);
 	setColor(SZARY50);
 	RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 250);	//"Wdus ekran i trzymaj aby zakonczyc"
 
@@ -2440,7 +2440,7 @@ void PomiaryCzujnikow(void)
 	RysujNapis(cNapis, KOL12 + 40*FONT_SL, 90);
 
 	//dane z GNSS
-	if (uDaneCM4.dane.stGnss1.chFix)
+	if (uDaneCM4.dane.stGnss1.cFix)
 		setColor(BIALY);	//jest fix
 	else
 		setColor(SZARY70);	//nie ma fixa
@@ -2459,13 +2459,13 @@ void PomiaryCzujnikow(void)
 	sprintf(cNapis, "%3.2f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
 	RysujNapis(cNapis, KOL12 + 47*FONT_SL, 140);
 
-	sprintf(cNapis, "%02d:%02d:%02d ", uDaneCM4.dane.stGnss1.chGodz, uDaneCM4.dane.stGnss1.chMin, uDaneCM4.dane.stGnss1.chSek);
+	sprintf(cNapis, "%02d:%02d:%02d ", uDaneCM4.dane.stGnss1.cGodz, uDaneCM4.dane.stGnss1.cMin, uDaneCM4.dane.stGnss1.cSek);
 	RysujNapis(cNapis, KOL12 + 12*FONT_SL, 160);
-	if  (uDaneCM4.dane.stGnss1.chMies > 12)	//ograniczenie aby nie pobierało nazwy miesiaca spoza tablicy cNazwyMies3Lit[]
-		uDaneCM4.dane.stGnss1.chMies = 0;	//zerowy indeks jest pustą nazwą "---"
-	sprintf(cNapis, "%02d %s %04d ", uDaneCM4.dane.stGnss1.chDzien, cNazwyMies3Lit[uDaneCM4.dane.stGnss1.chMies], uDaneCM4.dane.stGnss1.chRok + 2000);
+	if  (uDaneCM4.dane.stGnss1.cMies > 12)	//ograniczenie aby nie pobierało nazwy miesiaca spoza tablicy cNazwyMies3Lit[]
+		uDaneCM4.dane.stGnss1.cMies = 0;	//zerowy indeks jest pustą nazwą "---"
+	sprintf(cNapis, "%02d %s %04d ", uDaneCM4.dane.stGnss1.cDzien, cNazwyMies3Lit[uDaneCM4.dane.stGnss1.cMies], uDaneCM4.dane.stGnss1.cRok + 2000);
 	RysujNapis(cNapis, KOL12 + 29*FONT_SL, 160);
-	sprintf(cNapis, "%d ", uDaneCM4.dane.stGnss1.chLiczbaSatelit);
+	sprintf(cNapis, "%d ", uDaneCM4.dane.stGnss1.cLiczbaSatelit);
 	RysujNapis(cNapis, KOL12 + 47*FONT_SL, 160);
 
 	//napięcie, prąd i energia obu pakietów
@@ -2653,11 +2653,11 @@ void WyswietlParametryKartySD(void)
 		BelkaTytulu("Parametry karty SD");
 
 		//zamaż ewentualną pozostałość napisu o braku karty
-		UstawCzcionke(BigFont);
+		UstawCzcionke(cBigFont);
 		setColor(CZARNY);
 		sprintf(cNapis, "                             ");
 		RysujNapis(cNapis, CENTER, 50);
-		UstawCzcionke(MidFont);
+		UstawCzcionke(cMidFont);
 	}
 
 	if (BSP_SD_IsDetected())
@@ -2837,7 +2837,7 @@ void WyswietlParametryKartySD(void)
 	}
 	else
 	{
-		UstawCzcionke(BigFont);
+		UstawCzcionke(cBigFont);
 		setColor(CZERWONY);
 		sprintf(cNapis, "Wolne %carty, tu brak karty! ", ż);
 		RysujNapis(cNapis, CENTER, 50);
@@ -3183,7 +3183,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		setColor(SZARY60);
 		sprintf(cNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
 		RysujNapis(cNapis, CENTER, 70);
-		stStatusDotyku.chFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
+		stStatusDotyku.cFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
 	}
 
 	//sekwencer kalibracji
@@ -3308,7 +3308,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 
 
 	//sprawdź czy jest naciskany przycisk
-	if (stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+	if (stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 	{
 		//czy naciśnięto na przycisk?
 		if ((stStatusDotyku.sY > stPrzycisk.sY1) && (stStatusDotyku.sY < stPrzycisk.sY2) && (stStatusDotyku.sX > stPrzycisk.sX1) && (stStatusDotyku.sX < stPrzycisk.sX2))
@@ -3319,7 +3319,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		else
 			cBłąd = BLAD_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
 
-		stStatusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
+		stStatusDotyku.cFlagi &= ~DOTYK_DOTKNIETO;
 	}
 	else	//DOTYK_DOTKNIETO
 	{
@@ -3422,10 +3422,10 @@ void RysujPrzycisk(prostokat_t prost, char *cNapis, uint8_t cCzynnosc)
 
 	setColor(ZOLTY);
 	setBackColor(SZARY40);	//kolor tła napisu kolorem przycisku
-	UstawCzcionke(BigFont);
+	UstawCzcionke(cBigFont);
 	RysujNapis(cNapis, prost.sX1 + (prost.sX2 - prost.sX1)/2 - cRozmiar*FONT_BL/2 , prost.sY1 + (prost.sY2 - prost.sY1)/2 - FONT_BH/2);
 	setBackColor(CZARNY);
-	UstawCzcionke(MidFont);
+	UstawCzcionke(cMidFont);
 }
 
 
@@ -3521,7 +3521,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 			}
 		}
 		*cEtap |= ZERUJ;	//przed pomiarem wystaw potrzebę wyzerowania znalezionych ekstemów magnetometru
-		stStatusDotyku.chFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
+		stStatusDotyku.cFlagi &= ~(DOTYK_ZWOLNONO | DOTYK_DOTKNIETO);	//czyść flagi ekranu dotykowego
 	}
 
 	if (*cEtap & ZERUJ)
@@ -3787,7 +3787,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 	}
 
 	//sprawdź czy jest naciskany przycisk
-	if (stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+	if (stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 	{
 		//czy naciśnięto na przycisk?
 		if ((stStatusDotyku.sY > stPrzycisk.sY1) && (stStatusDotyku.sY < stPrzycisk.sY2) && (stStatusDotyku.sX > stPrzycisk.sX1) && (stStatusDotyku.sX < stPrzycisk.sX2))
@@ -3797,7 +3797,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 			cBłąd = BLAD_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
 			uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;	//neutralne polecenie kończy szukanie ekstremów w CM4
 		}
-		stStatusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
+		stStatusDotyku.cFlagi &= ~DOTYK_DOTKNIETO;
 	}
 	else	//DOTYK_DOTKNIETO
 	{
@@ -3978,7 +3978,7 @@ uint8_t KalibrujBaro(uint8_t *cEtap)
 	}
 
 	//sprawdź czy jest naciskany przycisk
-	if (stStatusDotyku.chFlagi & DOTYK_DOTKNIETO)
+	if (stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 	{
 		//czy naciśnięto na przycisk?
 		if ((stStatusDotyku.sY > stPrzycisk.sY1) && (stStatusDotyku.sY < stPrzycisk.sY2) && (stStatusDotyku.sX > stPrzycisk.sX1) && (stStatusDotyku.sX < stPrzycisk.sX2))
@@ -3991,7 +3991,7 @@ uint8_t KalibrujBaro(uint8_t *cEtap)
 			cBłąd = BLAD_GOTOWE;	//zakończ kabrację gdy nacięnięto poza przyciskiem
 			uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;	//neutralne polecenie
 		}
-		stStatusDotyku.chFlagi &= ~DOTYK_DOTKNIETO;
+		stStatusDotyku.cFlagi &= ~DOTYK_DOTKNIETO;
 	}
 	else	//DOTYK_DOTKNIETO
 	{
@@ -4424,10 +4424,10 @@ void RysujPrzebieg(int16_t *sDaneKasowania, int16_t *sDaneRysowania, uint16_t sK
 // Parametry:
 // [we] *stWynik - wskaźnik na dane wynikowe FFT
 // [we] *stKonfig - wskaźnik na konfigurację FFT
-// [we] chRodzajDanych - wskazuje na rodzaj danych z których robione jest FFT: 0 akcelerometry, 1 żyroskopy
+// [we] cRodzajDanych - wskazuje na rodzaj danych z których robione jest FFT: 0 akcelerometry, 1 żyroskopy
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
+void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t cRodzajDanych)
 {
 	uint32_t nCzasFFT;
 	float fWspWypX;	//współczynnik wypełnienie ekranu danymi pomiarowymi w poziomie
@@ -4437,26 +4437,26 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 	int x1, x2, y1[LICZBA_WYKRESOW_FFT], y2;
 	uint16_t sIndexDanych;	//indeky kolejnych pobieranych danych
 	uint8_t chKolorRGB666[3];
-	uint8_t chIndeksWybranychWykresow;	//przy iteracji po 3 wykresach wskazuje na akcelerometry lub żyroskopy
+	uint8_t cIndeksWybranychWykresow;	//przy iteracji po 3 wykresach wskazuje na akcelerometry lub żyroskopy
 
 	if (cRysujRaz)
 	{
 		cRysujRaz = 0;
-		sprintf(cNapis, "FFT %sow", cNapisLcd[STR_AKCELETOMETR + (chRodzajDanych & 0x01)]);
+		sprintf(cNapis, "FFT %sow", cNapisLcd[STR_AKCELETOMETR + (cRodzajDanych & 0x01)]);
 		BelkaTytulu(cNapis);
 		RysujProstokatWypelniony(0, AD_STARTY + AD_Y_SIZE, DISP_X_SIZE, AD_WSPADY, CZARNY);	//czyści ekran wodospadu
 		WłączTelemetrię(TELEM_SZYBKA);	//włącz szybką telemetrię. Wyłączy się sama po przesłaniu wszystkich wyników
-		stKonfig->sLiczbaProbek = 1 << stKonfig->chWykladnikPotegi;	//aktualizuj liczbę próbek
+		stKonfig->sLiczbaProbek = 1 << stKonfig->cWykladnikPotegi;	//aktualizuj liczbę próbek
 	}
 
-	if (stKonfig->chStatus & FFT_NOWE_DANE)
+	if (stKonfig->cStatus & FFT_NOWE_DANE)
 	{
 		nCzasFFT = PobierzCzasT6();
 		for (uint8_t czujnik=0; czujnik<LICZBA_ZMIENNYCH_FFT; czujnik++)	//iteracja po czujnikach a nie po wykresach aby aplikacja mogła pobrać wszystkie dane
 		{
 			for (uint16_t n=0; n<stKonfig->sLiczbaProbek; n++)
 			{
-				switch(stKonfigFFT.chRodzajOkna)
+				switch(stKonfigFFT.cRodzajOkna)
 				{
 				case 1: fOkno = 0.53836 - 0.46164 * cos(2 * M_PI * n / (stKonfig->sLiczbaProbek - 1));	break;	//Okno_Hamminga
 				case 2: fOkno = 0.5 * (1 - cos(2 * M_PI * n /(stKonfig->sLiczbaProbek - 1)));		break;		//Okno Hanna
@@ -4477,7 +4477,7 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 		nCzasFFT = MinalCzas(nCzasFFT);
 		RysujProstokatWypelniony(0, MENU_NAG_WYS, DISP_X_SIZE, DISP_Y_SIZE - AD_WSPADY - AD_STARTY, CZARNY);	//czyści ekran wykresów
 		setColor(SZARY80);
-		sprintf(cNapis, "Czas FFT[6*%d]: %ld us, %d/%d", stKonfig->sLiczbaProbek, nCzasFFT, stKonfig->chIndeksTestu, LICZBA_TESTOW_FFT);
+		sprintf(cNapis, "Czas FFT[6*%d]: %ld us, %d/%d", stKonfig->sLiczbaProbek, nCzasFFT, stKonfig->cIndeksTestu, LICZBA_TESTOW_FFT);
 		RysujNapis(cNapis, 60, 20);
 
 		fWspWypX = (float)(AD_X_SIZE)/((stKonfig->sLiczbaProbek/2)-1);	//współczynnik wypełnienia ekranu danymi pikseli / wynik
@@ -4531,8 +4531,8 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 			x2 = AD_STARTX + n;
 			for (uint8_t w=0; w<LICZBA_WYKRESOW_FFT; w++)	//iteracja po czujnikach
 			{
-				chIndeksWybranychWykresow = w + chRodzajDanych * LICZBA_WYKRESOW_FFT;
-				y2 = (AD_STARTY + AD_Y_SIZE - AD_POZIOM_0DB) - (int16_t)(fWynikFFT[stKonfig->chIndeksTestu][chIndeksWybranychWykresow][sIndexDanych] * AD_Y_DIV);
+				cIndeksWybranychWykresow = w + cRodzajDanych * LICZBA_WYKRESOW_FFT;
+				y2 = (AD_STARTY + AD_Y_SIZE - AD_POZIOM_0DB) - (int16_t)(fWynikFFT[stKonfig->cIndeksTestu][cIndeksWybranychWykresow][sIndexDanych] * AD_Y_DIV);
 
 				if (y2 > AD_STARTY + AD_Y_SIZE - 1)
 					y2 = AD_STARTY + AD_Y_SIZE - 1;
@@ -4556,18 +4556,18 @@ void RysujFFT(float *stWynik, stFFT_t *stKonfig, uint8_t chRodzajDanych)
 			}
 
 			//rysuj wodospad o rozmiarze LICZBA_TESTOW_FFT
-			y2 = AD_STARTY + AD_Y_SIZE + stKonfig->chIndeksTestu;
+			y2 = AD_STARTY + AD_Y_SIZE + stKonfig->cIndeksTestu;
 
 			//ustaw kolor RGB
-			chKolorRGB666[0] = (fWynikFFT[stKonfig->chIndeksTestu][0 + chRodzajDanych * LICZBA_WYKRESOW_FFT][sIndexDanych] + fMinY) * WODOSPAD_SKALA_KOLORU;
-			chKolorRGB666[1] = (fWynikFFT[stKonfig->chIndeksTestu][1 + chRodzajDanych * LICZBA_WYKRESOW_FFT][sIndexDanych] + fMinY) * WODOSPAD_SKALA_KOLORU;
-			chKolorRGB666[2] = (fWynikFFT[stKonfig->chIndeksTestu][2 + chRodzajDanych * LICZBA_WYKRESOW_FFT][sIndexDanych] + fMinY) * WODOSPAD_SKALA_KOLORU;
+			chKolorRGB666[0] = (fWynikFFT[stKonfig->cIndeksTestu][0 + cRodzajDanych * LICZBA_WYKRESOW_FFT][sIndexDanych] + fMinY) * WODOSPAD_SKALA_KOLORU;
+			chKolorRGB666[1] = (fWynikFFT[stKonfig->cIndeksTestu][1 + cRodzajDanych * LICZBA_WYKRESOW_FFT][sIndexDanych] + fMinY) * WODOSPAD_SKALA_KOLORU;
+			chKolorRGB666[2] = (fWynikFFT[stKonfig->cIndeksTestu][2 + cRodzajDanych * LICZBA_WYKRESOW_FFT][sIndexDanych] + fMinY) * WODOSPAD_SKALA_KOLORU;
 			RysujPunkt(x2, y2, chKolorRGB666);
 			x1 = x2;
 		}
-		stKonfig->chIndeksTestu++;
-		if (stKonfig->chIndeksTestu > LICZBA_TESTOW_FFT+1)	//wartość większa o 1 jest potrzebna do detekcji końca testu
-			stKonfig->chIndeksTestu = 0;
+		stKonfig->cIndeksTestu++;
+		if (stKonfig->cIndeksTestu > LICZBA_TESTOW_FFT+1)	//wartość większa o 1 jest potrzebna do detekcji końca testu
+			stKonfig->cIndeksTestu = 0;
 	}
 }
 

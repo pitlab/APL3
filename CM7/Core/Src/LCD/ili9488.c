@@ -26,8 +26,8 @@ extern SPI_HandleTypeDef hspi5;
 extern uint8_t cRysujRaz;
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 extern uint8_t cOrientacja;
-extern uint8_t _transparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
-extern struct current_font cfont;
+extern uint8_t cTransparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
+extern struct current_font stCzcionka;
 uint8_t cKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
 uint8_t cTlo666[3];		//kolory tła w formacie RGB 6-6-6
 //extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) cBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
@@ -279,13 +279,13 @@ void setBackColorRGB(uint8_t r, uint8_t g, uint8_t b)
 void setBackColor(uint16_t sKolor565)
 {
 	if (sKolor565 == TRANSPARENT)
-		_transparent = 1;
+		cTransparent = 1;
 	else
 	{
 		cTlo666[0] = (uint8_t)((sKolor565 & 0xF800) >> 8);
 		cTlo666[1] = (uint8_t)((sKolor565 & 0x07E0) >> 3);
 		cTlo666[2] = (uint8_t) (sKolor565 & 0x001F) << 3;
-		_transparent = 0;
+		cTransparent = 0;
 	}
 }
 
@@ -337,7 +337,7 @@ uint8_t RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sS
 		LCD_write_command8(ILI9488_PASET);	//Page Address Set
 		dane[0] = sStartY >> 8;
 		dane[1] = sStartY;
-		dane[2] = (sStartY +  sWysokosc - 1) >> 8;
+		dane[2] = (sStartY + sWysokosc - 1) >> 8;
 		dane[3] =  sStartY + sWysokosc - 1;
 		LCD_WrData(dane, 4);
 
@@ -659,17 +659,17 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 	}
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
-		if (!_transparent)
+		if (!cTransparent)
 		{
 			if (cOrientacja == POZIOMO)
 			{
-				setXY(x, y, x + cfont.x_size - 1, y + cfont.y_size -  1);
+				setXY(x, y, x + stCzcionka.x_size - 1, y + stCzcionka.y_size -  1);
 				UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 				HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-				temp=((c - cfont.offset) * ((cfont.x_size / 8) * cfont.y_size)) + 4;
-				for(j=0; j<((cfont.x_size / 8) * cfont.y_size); j++)
+				temp=((c - stCzcionka.offset) * ((stCzcionka.x_size / 8) * stCzcionka.y_size)) + 4;
+				for(j=0; j<((stCzcionka.x_size / 8) * stCzcionka.y_size); j++)
 				{
-					ch = cfont.font[temp];
+					ch = stCzcionka.font[temp];
 					for(i=0; i<8; i++)
 					{
 						if ((ch&(1<<(7-i))) != 0)
@@ -683,15 +683,15 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 			}
 			else
 			{
-				temp=((c-cfont.offset)*((cfont.x_size/8)*cfont.y_size))+4;
-				for(j=0;j<((cfont.x_size/8)*cfont.y_size);j+=(cfont.x_size/8))
+				temp=((c-stCzcionka.offset)*((stCzcionka.x_size/8)*stCzcionka.y_size))+4;
+				for(j=0;j<((stCzcionka.x_size/8)*stCzcionka.y_size);j+=(stCzcionka.x_size/8))
 				{
-					setXY(x,y+(j/(cfont.x_size/8)),x+cfont.x_size-1,y+(j/(cfont.x_size/8)));
+					setXY(x,y+(j/(stCzcionka.x_size/8)),x+stCzcionka.x_size-1,y+(j/(stCzcionka.x_size/8)));
 					UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 					HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-					for (zz=(cfont.x_size/8)-1; zz>=0; zz--)
+					for (zz=(stCzcionka.x_size/8)-1; zz>=0; zz--)
 					{
-						ch=cfont.font[temp+zz];
+						ch=stCzcionka.font[temp+zz];
 						for(i=0;i<8;i++)
 						{
 							if((ch&(1<<i))!=0)
@@ -701,19 +701,19 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 						}
 					}
 					UstawDekoderZewn(CS_NIC);										//LCD_CS=1
-					temp+=(cfont.x_size/8);
+					temp+=(stCzcionka.x_size/8);
 				}
 			}
 		}
 		else
 		{
-			temp=((c-cfont.offset)*((cfont.x_size/8)*cfont.y_size))+4;
-			for(j=0;j<cfont.y_size;j++)
+			temp=((c-stCzcionka.offset)*((stCzcionka.x_size/8)*stCzcionka.y_size))+4;
+			for(j=0; j<stCzcionka.y_size; j++)
 			{
-				for (zz=0; zz<(cfont.x_size/8); zz++)
+				for (zz=0; zz<(stCzcionka.x_size/8); zz++)
 				{
-					ch = cfont.font[temp+zz];
-					for(i=0;i<8;i++)
+					ch = stCzcionka.font[temp+zz];
+					for (i=0; i<8; i++)
 					{
 						if((ch&(1<<(7-i)))!=0)
 						{
@@ -722,7 +722,7 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 						}
 					}
 				}
-				temp+=(cfont.x_size/8);
+				temp+=(stCzcionka.x_size/8);
 			}
 		}
 		clrXY();

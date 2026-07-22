@@ -370,7 +370,7 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_ALTITUDE, EXIF_TYPE_RATIONAL, cBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//RATIONAL x1
 
 	//timestamp GPS
-	cBufor[0] = stDane->stGnss1.chGodz;
+	cBufor[0] = stDane->stGnss1.cGodz;
 	cBufor[1] = 0;
 	cBufor[2] = 0;
 	cBufor[3] = 0;
@@ -378,7 +378,7 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 	cBufor[5] = 0;
 	cBufor[6] = 0;
 	cBufor[7] = 0;
-	cBufor[8] = stDane->stGnss1.chMin;
+	cBufor[8] = stDane->stGnss1.cMin;
 	cBufor[9] = 0;
 	cBufor[10] = 0;
 	cBufor[11] = 0;
@@ -386,7 +386,7 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 	cBufor[13] = 0;
 	cBufor[14] = 0;
 	cBufor[15] = 0;
-	cBufor[16] = stDane->stGnss1.chSek;
+	cBufor[16] = stDane->stGnss1.cSek;
 	cBufor[17] = 0;
 	cBufor[18] = 0;
 	cBufor[19] = 0;

@@ -216,7 +216,7 @@ uint8_t cBłąd1, cBłąd = BLAD_OK;
 extern uint8_t cPort_exp_wysylany[];
 extern stStatusDotyku_t stStatusDotyku;
 extern volatile uint8_t cCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
-extern uint8_t chStanSynchronizacjiCzasu;
+extern uint8_t cStanSynchronizacjiCzasu;
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 
@@ -435,7 +435,7 @@ Error_Handler();
   {
 	  if (stStatusDotyku.sAdc[2] > MIN_Z)			//jeżeli ekran jest dotknięty w czasie uruchamiania
 	  {
-		  stStatusDotyku.chFlagi &= ~DOTYK_SKALIBROWANY;		//wymuś ponowną kalibrację przez odjęcie statusu skalibrowania
+		  stStatusDotyku.cFlagi &= ~DOTYK_SKALIBROWANY;		//wymuś ponowną kalibrację przez odjęcie statusu skalibrowania
 	  }
 	  else
 	  {
@@ -448,7 +448,7 @@ Error_Handler();
   InicjujFFT();
 
   extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
-  printf("Dzien dobry! APL3 nr %d (%s) zglasza sie gotowy do dzialania.\r\n", stBSP_ID.chAdres, stBSP_ID.chNazwa);		//wyślij komunikat po porcie debugującym
+  printf("Dzien dobry! APL3 nr %d (%s) zglasza sie gotowy do dzialania.\r\n", stBSP_ID.cAdres, stBSP_ID.cNazwa);		//wyślij komunikat po porcie debugującym
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -1623,7 +1623,7 @@ void StartDefaultTask(void *argument)
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
-  uint8_t chStanDekodera;
+  uint8_t cStanDekodera;
   uint8_t cDzielnikCzasu = 0;
 
   uDaneCM7.dane.cWyborOdbiornikaRC = ODB_OBA;	//przesyłaj stan obu odbiorników po dywersyfikacji
@@ -1648,13 +1648,13 @@ void StartDefaultTask(void *argument)
 		if (cDzielnikCzasu >= 10)
 		{
 			cDzielnikCzasu = 0;
-			chStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
+			cStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
 			CzytajDotyk();
 			WymienDaneExpanderow();
-			UstawDekoderZewn(chStanDekodera);		//odtwórz stan dekodera
+			UstawDekoderZewn(cStanDekodera);		//odtwórz stan dekodera
 
 			//synchronizacja czasu i daty z GNSS tylko dopóki nie są w pełni zsynchroniozwane, później pracuję na RTC. Docelowo również synchronizacja z NTP
-			if (chStanSynchronizacjiCzasu != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
+			if (cStanSynchronizacjiCzasu != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
 				SynchronizujCzasDoGNSS(&uDaneCM4.dane.stGnss1);
 
 

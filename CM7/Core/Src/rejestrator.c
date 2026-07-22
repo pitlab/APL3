@@ -155,12 +155,12 @@ void WatekRejestratora(void *argument)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t BSP_SD_IsDetected(void)
 {
-	uint8_t status = SD_PRESENT;
+	uint8_t cStatus = SD_PRESENT;
 	extern uint8_t cPort_exp_odbierany[3];
 
 	if (cPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)		//styk detekcji karty zwiera do masy gdy karta jest obecna a pulllup wystawia 1 gdy jest nieobecna w gnieździe
-		status = SD_NOT_PRESENT;
-	return status;
+		cStatus = SD_NOT_PRESENT;
+	return cStatus;
 }
 
 
@@ -972,7 +972,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "LiczbaSat/Fix;", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%d/%d;", uDaneCM4.dane.stGnss1.chLiczbaSatelit, uDaneCM4.dane.stGnss1.chFix);
+				sprintf(cBufPodreczny, "%d/%d;", uDaneCM4.dane.stGnss1.cLiczbaSatelit, uDaneCM4.dane.stGnss1.cFix);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -1121,11 +1121,11 @@ uint8_t Wait_SDCARD_Ready(void)
 ////////////////////////////////////////////////////////////////////////////////
 void TestKartySD(void)
 {
-	uint32_t index = 0;
+	uint32_t nIndex = 0;
 	__IO uint8_t step = 0;
 	uint32_t start_time = 0;
 	uint32_t stop_time = 0;
-	char chNapis[60];
+	char cNapis[60];
 	//extern uint8_t cPort_exp_wysylany[];
 	//float fNapiecie;
 
@@ -1140,12 +1140,12 @@ void TestKartySD(void)
 		else
 			fNapiecie = 1.8;
 		setColor(YELLOW);
-		sprintf(chNapis, "Karta pracuje z napi%cciem: %.1fV ", ę, fNapiecie);
-		print(chNapis, 10, 30);
+		sprintf(cNapis, "Karta pracuje z napi%cciem: %.1fV ", ę, fNapiecie);
+		print(cNapis, 10, 30);
 
 		setColor(GRAY40);
-		sprintf(chNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
-		print(chNapis, CENTER, 300);
+		sprintf(cNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
+		print(cNapis, CENTER, 300);
 	}*/
 
 
@@ -1160,10 +1160,10 @@ void TestKartySD(void)
 		switch(step)
 	    {
 	    	case 0:	// Initialize Transmission buffer
-	    		for (index = 0; index < BUFFER_SIZE; index++)
-	    			aTxBuffer[index] = DATA_PATTERN + index;
+	    		for (nIndex = 0; nIndex < BUFFER_SIZE; nIndex++)
+	    			aTxBuffer[nIndex] = DATA_PATTERN + nIndex;
 	    		SCB_CleanDCache_by_Addr((uint32_t*)aTxBuffer, BUFFER_SIZE);
-	    		index = 0;
+	    		nIndex = 0;
 	    		start_time = HAL_GetTick();
 	    		step++;
 	    		break;
@@ -1180,27 +1180,27 @@ void TestKartySD(void)
 	    	case 2:
 	    		if(TxCplt != 0)
 	    		{
-	    			index++;
-	    			if(index < NB_BUFFER)
+	    			nIndex++;
+	    			if(nIndex < NB_BUFFER)
 	    				step--;
 	    			else
 					{
 						stop_time = HAL_GetTick();
-						printf(chNapis, "Czas zapisu: %lums, transfer %02.2f MB/s  ", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
+						printf(cNapis, "Czas zapisu: %lums, transfer %02.2f MB/s  ", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
 						//setColor(GRAY80);
-						//sprintf(chNapis, "Czas zapisu: %lums, transfer %02.2f MB/s  ", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
-						//print(chNapis, 10, 50);
+						//sprintf(cNapis, "Czas zapisu: %lums, transfer %02.2f MB/s  ", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
+						//print(cNapis, 10, 50);
 						step++;
 					}
 				}
 	    		break;
 
 	    	case 3:	//Initialize Reception buffer
-	    		for (index = 0; index < BUFFER_SIZE; index++)
-	    			aRxBuffer[index] = 0;
+	    		for (nIndex = 0; nIndex < BUFFER_SIZE; nIndex++)
+	    			aRxBuffer[nIndex] = 0;
 	    		SCB_CleanDCache_by_Addr((uint32_t*)aRxBuffer, BUFFER_SIZE);
 	    		start_time = HAL_GetTick();
-	    		index = 0;
+	    		nIndex = 0;
 	    		step++;
 	    		break;
 
@@ -1217,37 +1217,37 @@ void TestKartySD(void)
 	    	case 5:
 	    		if(RxCplt != 0)
 	    		{
-	    			index++;
-	    			if(index<NB_BUFFER)
+	    			nIndex++;
+	    			if(nIndex < NB_BUFFER)
 	    				step--;
 	    			else
 	    			{
 	    				stop_time = HAL_GetTick();
-	    				printf(chNapis, "Czas odczytu: %lums, transfer %02.2f MB/s  ", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
+	    				printf(cNapis, "Czas odczytu: %lums, transfer %02.2f MB/s  ", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
 	    				//setColor(GRAY80);
-	    				//sprintf(chNapis, "Czas odczytu: %lums, transfer %02.2f MB/s  ", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
-	    				//print(chNapis, 10, 70);
+	    				//sprintf(cNapis, "Czas odczytu: %lums, transfer %02.2f MB/s  ", stop_time - start_time, (float)((float)(DATA_SIZE>>10)/(float)(stop_time - start_time)));
+	    				//print(cNapis, 10, 70);
 	    				step++;
 	    			}
 	    		}
 	    		break;
 
 	    	case 6:	//Check Reception buffer
-	    		index=0;
-	    		while((index<BUFFER_SIZE) && (aRxBuffer[index] == aTxBuffer[index]))
-	    			index++;
+	    		nIndex = 0;
+	    		while((nIndex < BUFFER_SIZE) && (aRxBuffer[nIndex] == aTxBuffer[nIndex]))
+	    			nIndex++;
 
-	    		if (index != BUFFER_SIZE)
+	    		if (nIndex != BUFFER_SIZE)
 	    		{
 	    			//setColor(RED);
-	    			//sprintf(chNapis, "B%c%cd weryfikacji!", ł, ą);
-	    			//print(chNapis, 10, 90);
+	    			//sprintf(cNapis, "B%c%cd weryfikacji!", ł, ą);
+	    			//print(cNapis, 10, 90);
 	    			Error_Handler();
 	    		}
 
 	    		//setColor(GREEN);
-	    		//sprintf(chNapis, "Weryfikacja OK");
-	    		//print(chNapis, 10, 90);
+	    		//sprintf(cNapis, "Weryfikacja OK");
+	    		//print(cNapis, 10, 90);
 	    		step = 0;
 	    		break;
 

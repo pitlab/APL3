@@ -16,7 +16,7 @@ uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzyskania 
 uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych. Dalsze zwiększanie wysterowania nic nie daje, więc w ten sposób wykluczamy go z zakresu regulacji
 uint16_t sWysterowanieZawisu;	//wartość wysterowania regulatorów dla uzyskania obrotów pozwalajacych na zawis
 extern unia_wymianyCM4_t uDaneCM4;
-extern volatile uint8_t chNumerKanSerw;
+extern volatile uint8_t cNumerKanSerw;
 extern uint8_t cKanalDrazkaRC[LICZBA_DRAZKOW];	//przypisanie kanałów odbiornika RC do funkcji drążków aparatury
 
 
@@ -34,7 +34,7 @@ uint8_t InicjujMikser(void)
 
 	for (uint8_t n=0; n<KANALY_WYJSC_RC; n++)
 		uDaneCM4.dane.sSilnik[n] = 10 * n;	//sterowane kanałów serw
-	chNumerKanSerw = 8;		//wskaźnik kanału obsługuje dekoder serw, wiec inicjuj go wartoscią pierwszego kanału
+	cNumerKanSerw = 8;		//wskaźnik kanału obsługuje dekoder serw, wiec inicjuj go wartoscią pierwszego kanału
 	stMikser.chLiczbaSilnikow = 0;
 	fNormPrze = fNormPoch = 0.0f;
 

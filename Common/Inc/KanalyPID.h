@@ -59,7 +59,7 @@ typedef struct	//struktura konfiguracji regulatora PID
 	uint8_t cPodstFiltraWej;	//podstawa filtra IIR wartości wejściowej
 	uint8_t cPodstFiltraD; 		//podstawa filtra IIR błędu
 	uint8_t cPodstFiltraWZad; 	//podstawa filtra IIR wartości zadanej
-	uint8_t cFlagi;				//0x80 - regulator kątowy, 0x40 - regulator wyłączony
+	uint8_t cFlagi;				//0x80 - regulator kątowy
 } stKonfPID_t;
 
 typedef struct	//struktura danych roboczych regulatora PID
@@ -67,19 +67,19 @@ typedef struct	//struktura danych roboczych regulatora PID
 	//wartości wejsciowe
 	float fWejscie;  		//wartość mierzona regulowanego parametru
 	float fZadana;  		//wartość zadana
-	float fWyprzedzenie;	//wartość wyprzedzajacą (feedforward)
 
 	//zmienne robocze członów dynamicznych
+	float fFiltrWZad;		//przefiltrowana wartość zadana do liczenia wartosci wyprzedzającej
+	float fFiltrWWej;		//przefiltrowana wartość wejściowa dla wszystkich członów
+	float fFiltrRóżn;		//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
 	float fCalka;  			//zmianna przechowująca całkę z błędu
-	float fFiltrWeD;	 	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
-	float fFiltrWartZad;	//przefiltrowana wartość zadana do liczenia wartosci wyprzedzającej
 
 	//zmienne wyjściowe
-	float fWyjsciePID; 		//wartość wyjściowa z całego regulatora
 	float fWyjscieP;  		//wartość wyjściowa z członu P
 	float fWyjscieI;  		//wartość wyjściowa z członu I
 	float fWyjscieD;  		//wartość wyjściowa z członu D
 	float fWyjscieWyprz;	//wartość wyprzedzająca
+	float fWyjsciePID; 		//wartość wyjściowa z całego regulatora
 } stPID_t;
 
 

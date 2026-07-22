@@ -95,21 +95,21 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t cRozmDanych
 		break;
 
 	case PK_USTAW_BSP:		//ustawia identyfikator/adres urządzenia
-		stBSP_ID.chAdres = cDane[0];
+		stBSP_ID.cAdres = cDane[0];
 		for (uint8_t n=0; n<DLUGOSC_NAZWY; n++)
-			stBSP_ID.chNazwa[n] = cDane[n+1];
+			stBSP_ID.cNazwa[n] = cDane[n+1];
 		for (uint8_t n=0; n<4; n++)
-			stBSP_ID.chAdrIP[n] = cDane[n+DLUGOSC_NAZWY+1];
+			stBSP_ID.cAdrIP[n] = cDane[n+DLUGOSC_NAZWY+1];
 		cBłąd = ZapiszPaczkeKonfigu(FKON_NAZWA_ID_BSP, (uint8_t*)&stBSP_ID);
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 		break;
 
 	case PK_POBIERZ_BSP:		//pobiera identyfikator/adres urządzenia
-		cDane[0] = stBSP_ID.chAdres;
+		cDane[0] = stBSP_ID.cAdres;
 		for (uint8_t n=0; n<DLUGOSC_NAZWY; n++)
-			cDane[n+1] = stBSP_ID.chNazwa[n];
+			cDane[n+1] = stBSP_ID.cNazwa[n];
 		for (uint8_t n=0; n<4; n++)
-			cDane[n+DLUGOSC_NAZWY+1] = stBSP_ID.chAdrIP[n];
+			cDane[n+DLUGOSC_NAZWY+1] = stBSP_ID.cAdrIP[n];
 		cBłąd = WyslijRamke(cAdresZdalny, PK_POBIERZ_BSP, DLUGOSC_NAZWY+5, cDane, cInterfejs);
 		//polecenie PK_POBIERZ_BSP otwiera połączenie UART, więc zmień stan na otwarty
 		if (cInterfejs == INTERF_UART)
@@ -490,18 +490,18 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t cRozmDanych
 		break;
 
 	case PK_CZYTAJ_PARAMETRY_FFT:		//odczytaj parametry pracy FFT z APL3
-		cDane[0] = stKonfigFFT.chWykladnikPotegi;
-		cDane[1] = stKonfigFFT.chRodzajOkna;
-		cDane[2] = stKonfigFFT.chAktywnSilniki;
-		cDane[3] = stKonfigFFT.chMaxWysterowanie;
+		cDane[0] = stKonfigFFT.cWykladnikPotegi;
+		cDane[1] = stKonfigFFT.cRodzajOkna;
+		cDane[2] = stKonfigFFT.cAktywnSilniki;
+		cDane[3] = stKonfigFFT.cMaxWysterowanie;
 		cBłąd = WyslijRamke(cAdresZdalny, PK_CZYTAJ_PARAMETRY_FFT, 4, cDane, cInterfejs);
 		break;
 
 	case PK_ZAPISZ_PARAMETRY_FFT:	//zapisz parametry pracy FFT
-		stKonfigFFT.chWykladnikPotegi =  cDane[0];
-		stKonfigFFT.chRodzajOkna = cDane[1];
-		stKonfigFFT.chAktywnSilniki = cDane[2];
-		stKonfigFFT.chMaxWysterowanie = cDane[3];
+		stKonfigFFT.cWykladnikPotegi =  cDane[0];
+		stKonfigFFT.cRodzajOkna = cDane[1];
+		stKonfigFFT.cAktywnSilniki = cDane[2];
+		stKonfigFFT.cMaxWysterowanie = cDane[3];
 		cBłąd = ZapiszKonfiguracjejFFT();
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 		break;

@@ -196,14 +196,14 @@ uint8_t ObslugaMMC3416x(void)
 // Zwraca: kod błędu HAL
 // Czas zajęcia magistrali I2C: 420us przy zegarze 100kHz
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t PolecenieMMC3416x(uint8_t chPolecenie)
+uint8_t PolecenieMMC3416x(uint8_t cPolecenie)
 {
 	uint8_t cBłąd = BLAD_BRAK_CZUJNIKA;
 
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)
 	{
 		cPolWychMagMMC[0] = PMMC3416_INT_CTRL0;
-		cPolWychMagMMC[1] = chPolecenie |	//bit zdefiniowany w pliku h
+		cPolWychMagMMC[1] = cPolecenie |	//bit zdefiniowany w pliku h
 						 (0 << 1) |	//Continuous Measurement Mode On
 						 (3 << 2);	//CM Freq0..1 How often the chip will take measurements in Continuous Measurement Mode: 0=1,5Hz, 1=13Hz, 2=25Hz, 3=50Hz
 		cBłąd = HAL_I2C_Master_Transmit_DMA(&hi2c4, MMC34160_I2C_ADR, cPolWychMagMMC, 2);	//wyślij polecenie wykonania pomiaru

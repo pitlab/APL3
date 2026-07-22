@@ -267,16 +267,16 @@ uint8_t InicjujGNSS(void)
 
     /*/licz sumę kontrolną ramek, po to aby wstawić właściwą sumę do polecenia
     uint8_t x, ch;
-    volatile uint8_t chSum = 0;
+    volatile uint8_t cSum = 0;
 
-    //chRozmiar  = sprintf(chBuforNadawczyGNSS, "$PMTK220,200*2C\r\n");
+    //cRozmiar  = sprintf(chBuforNadawczyGNSS, "$PMTK220,200*2C\r\n");
     //sprintf(chBuforNadawczyGNSS, "$PMTK314,0,1,0,2,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0*2E\r\n");
-    //chRozmiar = sprintf(chBuforNadawczyGNSS, "$PMTK314,0,1,0,1,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0*2D\r\n");   //OK
-    chRozmiar = sprintf(chBuforNadawczyGNSS, "$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*2F\r\n\r\n");
-    for (x=1; x<chRozmiar-5;x++)
+    //cRozmiar = sprintf(chBuforNadawczyGNSS, "$PMTK314,0,1,0,1,0,5,0,0,0,0,0,0,0,0,0,0,0,0,0*2D\r\n");   //OK
+    cRozmiar = sprintf(chBuforNadawczyGNSS, "$PMTK314,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0*2F\r\n\r\n");
+    for (x=1; x<cRozmiar-5;x++)
     {
         ch = chBuforNadawczyGNSS[x];
-        chSum ^= ch;
+        cSum ^= ch;
         if (ch == '*')
             break;
     }*/

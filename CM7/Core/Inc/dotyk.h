@@ -40,7 +40,7 @@ typedef struct
 	uint16_t sAdc[4];
 	uint16_t sX;
 	uint16_t sY;
-	uint8_t chFlagi;			//flagi określające naciśnięcie i zwolnienie przycisku ekranowego
+	uint8_t cFlagi;			//flagi określające naciśnięcie i zwolnienie przycisku ekranowego
 	uint32_t nOstCzasPomiaru;	//ostatni pomiar czasu między kolejnymi dotknięciami ekranu
 } stStatusDotyku_t;
 
@@ -55,7 +55,7 @@ typedef struct
 } stKalibracjaDotyku_t;
 
 
-uint16_t CzytajKanalDotyku(uint8_t  chKanal);
+uint16_t CzytajKanalDotyku(uint8_t  cKanal);
 uint8_t CzytajDotyk(void);
 uint8_t KalibrujDotyk(void);
 void ObliczKalibracjeDotykuWielopunktowa(void);

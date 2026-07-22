@@ -44,11 +44,11 @@ uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 	cRysujRaz = 1;
 
 	//przekaż do CM4 etap testu, informacje który silnik ma pracować i górną granicę wysterwania. CM4 wyliczy sobie z tego wysterowanie dla wszystkich etapów
-	stKonfigFFT->chIndeksTestu = 0;
+	stKonfigFFT->cIndeksTestu = 0;
 	//uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
-	uDaneCM7.dane.sAdres = stKonfigFFT->chIndeksTestu;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
-	uDaneCM7.dane.uRozne.U8[1] = stKonfigFFT->chAktywnSilniki;
-	uDaneCM7.dane.uRozne.U8[2] = stKonfigFFT->chMaxWysterowanie;
+	uDaneCM7.dane.sAdres = stKonfigFFT->cIndeksTestu;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
+	uDaneCM7.dane.uRozne.U8[1] = stKonfigFFT->cAktywnSilniki;
+	uDaneCM7.dane.uRozne.U8[2] = stKonfigFFT->cMaxWysterowanie;
 	uDaneCM7.dane.cWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 	return cBłąd;
 }
@@ -62,22 +62,22 @@ uint8_t RozpocznijAnalizęDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 //  *chTrybPracy - wskaźnik na tryb pracy wyświetlania danych na LCD
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
+uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *cTrybPracy)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	if (stKonfigFFT->chIndeksTestu < LICZBA_TESTOW_FFT)
+	if (stKonfigFFT->cIndeksTestu < LICZBA_TESTOW_FFT)
 	{
-		uDaneCM7.dane.sAdres = stKonfigFFT->chIndeksTestu;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
+		uDaneCM7.dane.sAdres = stKonfigFFT->cIndeksTestu;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 		uDaneCM7.dane.cWykonajPolecenie = POL7_WYSTERUJ_SILNIKI_AD;
 	}
 	else
-	if (stKonfigFFT->chIndeksTestu >= LICZBA_TESTOW_FFT)
+	if (stKonfigFFT->cIndeksTestu >= LICZBA_TESTOW_FFT)
 	{
 		uDaneCM7.dane.uRozne.U8[0] = 0;	//bieżące etap badania: 0..LICZBA_TESTOW_FFT
 		uDaneCM7.dane.uRozne.U8[1] = 0;	//aktywne siliki
 		uDaneCM7.dane.cWykonajPolecenie = POL7_PRZYWROC_NAPED;	//przywróć funkcję napędu dla silników po analizie FFT rezonansu ramy
-		*chTrybPracy = TP_MENU_GLOWNE;
+		*cTrybPracy = TP_MENU_GLOWNE;
 	}
 	return cBłąd;
 }
@@ -91,13 +91,13 @@ uint8_t KrokAnalizyDrgań(stFFT_t *stKonfigFFT, uint8_t *chTrybPracy)
 //  *chTrybPracy - wskaźnik na tryb pracy wyświetlania danych na LCD
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t RozpocznijIdentyfikacjęSilników(stIdentyfikacjaSilnikow_t *stIdentSiln, uint8_t *chTrybPracy)
+uint8_t RozpocznijIdentyfikacjęSilników(stIdentyfikacjaSilnikow_t *stIdentSiln, uint8_t *cTrybPracy)
 {
 	float fSkladowaPrzechylenia[KANALY_MIKSERA];
 	float fSkladowaPochylenia[KANALY_MIKSERA];
 	uint8_t cBłąd = BLAD_OK;
 
-	*chTrybPracy = TP_PROCES_IDENT_SILN;
+	*cTrybPracy = TP_PROCES_IDENT_SILN;
 	cRysujRaz = 1;
 
 	//odczytaj nastawy miksera aby wiedziec ile jest silników i jak są ułożone

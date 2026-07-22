@@ -13,13 +13,13 @@
 #include "PoleceniaKomunikacyjne.h"
 
 
-extern volatile uint8_t chCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
+extern volatile uint8_t cCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 struct netconn *DeskryptorPolaczeniaPasywnego, *DeskryptorPolaczeniaAktywnego, *DeskryptorNadawczy;	//połączenia serwera i klienta
 struct netbuf *bufor;
 err_t nErr;
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chBuforNadRamkiKomTCP[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
-uint8_t chRozmiarRamkiNadTCP;		//rozmiar ramki nadawczej TCP. Jest zerowany po wysłaniu i ustawioany gdy gotowy do wysyłki
-extern uint8_t chStatusPolaczenia;
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) cBuforNadRamkiKomTCP[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
+uint8_t cRozmiarRamkiNadTCP;		//rozmiar ramki nadawczej TCP. Jest zerowany po wysłaniu i ustawioany gdy gotowy do wysyłki
+extern uint8_t cStatusPolaczenia;
 
 
 
@@ -32,7 +32,7 @@ uint8_t OtworzPortSertweraTCP(void)
 {
 	err_t nErr;
 
-	chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
+	cStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
 	DeskryptorPolaczeniaPasywnego = netconn_new(NETCONN_TCP);
 	if (DeskryptorPolaczeniaPasywnego == NULL)
 		return BLAD_OTWARCIA_GNIAZDA;
@@ -50,8 +50,8 @@ uint8_t OtworzPortSertweraTCP(void)
 		netconn_delete(DeskryptorPolaczeniaPasywnego);
 	}
 
-	chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
-	chStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_TCP);
+	cStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
+	cStatusPolaczenia |= (STAT_POL_GOTOWY << STAT_POL_TCP);
 	return (uint8_t)(nErr & 0xFF);
 }
 
@@ -65,12 +65,12 @@ uint8_t OtworzPortSertweraTCP(void)
 uint8_t ObslugaSerweraTCP(void)
 {
 	err_t nErr;
-	uint8_t chErr;
+	uint8_t cErr;
 	nErr = netconn_accept(DeskryptorPolaczeniaPasywnego, &DeskryptorPolaczeniaAktywnego);
 	if (nErr == ERR_OK)
 	{
-		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
-		chStatusPolaczenia |= STAT_POL_OTWARTY << STAT_POL_TCP;
+		cStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
+		cStatusPolaczenia |= STAT_POL_OTWARTY << STAT_POL_TCP;
 		while ((nErr = netconn_recv(DeskryptorPolaczeniaAktywnego, &bufor)) == ERR_OK)
 		{
 			void* chDane;
@@ -80,30 +80,30 @@ uint8_t ObslugaSerweraTCP(void)
 			{
 				for (uint16_t n=0; n<sDlugosc; n++)
 				{
-					chErr = AnalizujDaneKom(*((uint8_t*)chDane + n), INTERF_ETH);
-					if (chErr)
-						chCzasSwieceniaLED[LED_CZER] = 5;	//ewentualne problemy komunikacyjne sygnalizuj czerwonym LED-em przez wielokrotność 100ms
+					cErr = AnalizujDaneKom(*((uint8_t*)chDane + n), INTERF_ETH);
+					if (cErr)
+						cCzasSwieceniaLED[LED_CZER] = 5;	//ewentualne problemy komunikacyjne sygnalizuj czerwonym LED-em przez wielokrotność 100ms
 
-					if (chRozmiarRamkiNadTCP > 0)	//czy jest odpowiedź do odesłania
+					if (cRozmiarRamkiNadTCP > 0)	//czy jest odpowiedź do odesłania
 					{
-						chStatusPolaczenia |= STAT_POL_PRZESYLA << STAT_POL_TCP;
-						nErr = netconn_write(DeskryptorPolaczeniaAktywnego, chBuforNadRamkiKomTCP, chRozmiarRamkiNadTCP, NETCONN_COPY);
-						chRozmiarRamkiNadTCP = 0;
-						chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
-						chStatusPolaczenia |= STAT_POL_OTWARTY << STAT_POL_TCP;
+						cStatusPolaczenia |= STAT_POL_PRZESYLA << STAT_POL_TCP;
+						nErr = netconn_write(DeskryptorPolaczeniaAktywnego, cBuforNadRamkiKomTCP, cRozmiarRamkiNadTCP, NETCONN_COPY);
+						cRozmiarRamkiNadTCP = 0;
+						cStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
+						cStatusPolaczenia |= STAT_POL_OTWARTY << STAT_POL_TCP;
 					}
 				}
 			}
 			netbuf_delete(bufor);
 		}
 		netconn_delete(DeskryptorPolaczeniaAktywnego);
-		chStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
-		chStatusPolaczenia |= STAT_POL_GOTOWY << STAT_POL_TCP;
+		cStatusPolaczenia &= ~(STAT_POL_MASKA << STAT_POL_TCP);
+		cStatusPolaczenia |= STAT_POL_GOTOWY << STAT_POL_TCP;
 	}
 	else
-		chErr = (uint8_t)(nErr & 0xFF);
+		cErr = (uint8_t)(nErr & 0xFF);
 
-	return chErr;
+	return cErr;
 }
 
 

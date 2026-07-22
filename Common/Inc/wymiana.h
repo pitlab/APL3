@@ -122,10 +122,10 @@ typedef struct _GNSS
 	float fWysokoscMSL;
 	float fHdop;
 	float fVdop;
-	uint8_t chLiczbaSatelit;
-	uint8_t chFix;
-	uint8_t chGodz, chMin, chSek;
-	uint8_t chDzien, chMies, chRok;
+	uint8_t cLiczbaSatelit;
+	uint8_t cFix;
+	uint8_t cGodz, cMin, cSek;
+	uint8_t cDzien, cMies, cRok;
 } stGnss_t;
 
 //definicje struktury zawierajacej syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
@@ -151,7 +151,7 @@ typedef struct
 {
 	float fAkcel[ROZMIAR_BUFORA_IMU][3];		//[m/s^2]
 	float fZyro[ROZMIAR_BUFORA_IMU][3];			//[rad/s]
-	uint8_t chIndeksProbki;						//bieżący wskaźnik pozycji w buforze pomiarów żyro i akcel w zakresie 0..ROZMIAR_BUFORA_IMU
+	uint8_t cIndeksProbki;						//bieżący wskaźnik pozycji w buforze pomiarów żyro i akcel w zakresie 0..ROZMIAR_BUFORA_IMU
 } stSzybkieIMU;
 
 typedef union

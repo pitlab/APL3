@@ -28,34 +28,31 @@
 #include <Telemetria.h>
 
 //definicje zmiennych
-static uint8_t chStanProtokolu[ILOSC_INTERF_KOM];
-uint8_t chAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
-static uint8_t chAdresPrzychodzacy;	//może to być adres BSP lub broadcast
-static uint8_t chLicznikDanych[ILOSC_INTERF_KOM];
-static uint8_t chZnakCzasu[ILOSC_INTERF_KOM];
+static uint8_t cStanProtokolu[ILOSC_INTERF_KOM];
+uint8_t cAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
+static uint8_t cAdresPrzychodzacy;	//może to być adres BSP lub broadcast
+static uint8_t cLicznikDanych[ILOSC_INTERF_KOM];
+static uint8_t cZnakCzasu[ILOSC_INTERF_KOM];
 static uint16_t sCrc16We;
-//volatile uint32_t nCzasSystemowy;
-static uint8_t chPolecenie;
-static uint8_t chRozmDanych;
-static uint8_t chDaneRamkiKom[ROZMIAR_DANYCH_KOMUNIKACJI];
+static uint8_t cPolecenie;
+static uint8_t cRozmDanych;
+static uint8_t cDaneRamkiKom[ROZMIAR_DANYCH_KOMUNIKACJI];
 static unia8_32_t un8_32;
 stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
-const char* chNazwaSierotki = {"Sierotka Wronia"};	//domyślna nazwa nienazwanego BSP
+const char* cNazwaSierotki = {"Sierotka Wronia"};	//domyślna nazwa nienazwanego BSP
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chBuforTest[256];
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chBuforNadDMA[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chBuforOdbDMA[ROZMIAR_BUF_ODB_DMA];
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	chRamkaTelemetrii[2*LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla zmiennych 0..127 oraz 128..255
-extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) chBuforNadRamkiKomTCP[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
-uint8_t chWyslaneOK = 1;
-uint8_t chBuforKomOdb[ROZMIAR_BUF_ANALIZY_ODB];
-volatile uint16_t sWskNap; 		//wskaźnik napełniania bufora kołowego chBuforKomOdb[]
-volatile uint16_t sWskOpr;		//wskaźnik opróżniania bufora kołowego chBuforKomOdb[]
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	cBuforNadDMA[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	cBuforOdbDMA[ROZMIAR_BUF_ODB_DMA];
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	cRamkaTelemetrii[2*LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla zmiennych 0..127 oraz 128..255
+extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".Bufory_SRAM3"))) cBuforNadRamkiKomTCP[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
+uint8_t cBuforKomOdb[ROZMIAR_BUF_ANALIZY_ODB];
+volatile uint16_t sWskNap; 		//wskaźnik napełniania bufora kołowego cBuforKomOdb[]
+volatile uint16_t sWskOpr;		//wskaźnik opróżniania bufora kołowego cBuforKomOdb[]
 //volatile uint8_t chUartKomunikacjiZajety;	//wskazuje na wysyłanie ramki z poniższej listy
 //volatile uint8_t chDoWyslaniaLPUART[1 + LICZBA_RAMEK_TELEMETR];	//lista rzeczy do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
 volatile st_ZajetośćLPUART_t st_ZajetośćLPUART;
-uint8_t chTimeoutOdbioru;
+uint8_t cTimeoutOdbioru;
 
 //deklaracje zmiennych zewnętrznych
 extern uint16_t sBuforKamery[ROZM_BUF16_KAM];
@@ -65,42 +62,40 @@ extern UART_HandleTypeDef huart7;
 extern volatile uint8_t cCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 extern void CzytajPamiecObrazu(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t* bufor);
 extern void Error_Handler(void);
-extern uint8_t chRozmiarRamkiNadTCP;		//rozmiar ramki nadawczej TCP. Jest zerowany po wysłaniu i ustawioany gdy gotowy do wysyłki
+extern uint8_t cRozmiarRamkiNadTCP;		//rozmiar ramki nadawczej TCP. Jest zerowany po wysłaniu i ustawioany gdy gotowy do wysyłki
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Odbiera dane przychodzące z interfejsów kmunikacyjnych w trybie: pytanie - odpowiedź
-// Parametry:
-// chIn - odbierany bajt
-// chInterfejs - identyfikator interfejsu odbierająceg znak
+// Inicjalizacja protokołu komunikacyjnego UART
+// Parametry: nrak
 //Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujProtokol(void)
 {
-	uint8_t chPaczka[ROZMIAR_PACZKI_KONFIGU];
-	uint8_t chOdczytano;
+	uint8_t cPaczka[ROZMIAR_PACZKI_KONFIGU];
+	uint8_t cOdczytano;
 
 	//odczytaj z konfiguracji i ustaw własny adres sieciowy
-	chOdczytano = CzytajPaczkeKonfigu(chPaczka, FKON_NAZWA_ID_BSP);
-	if (chOdczytano == ROZMIAR_PACZKI_KONFIGU)
+	cOdczytano = CzytajPaczkeKonfigu(cPaczka, FKON_NAZWA_ID_BSP);
+	if (cOdczytano == ROZMIAR_PACZKI_KONFIGU)
 	{
-		stBSP_ID.chAdres = chPaczka[2];
+		stBSP_ID.cAdres = cPaczka[2];
 		for (int16_t n=0; n<DLUGOSC_NAZWY; n++)
-			stBSP_ID.chNazwa[n] = chPaczka[n+3];
+			stBSP_ID.cNazwa[n] = cPaczka[n+3];
 		for (int16_t n=0; n<4; n++)
-			stBSP_ID.chAdrIP[n] = chPaczka[n+3+DLUGOSC_NAZWY];
+			stBSP_ID.cAdrIP[n] = cPaczka[n+3+DLUGOSC_NAZWY];
 	}
 
 	//jeżeli adres jest nieważny to ustaw ostatni możliwy i daj specyficaną nazwę
-	if ((stBSP_ID.chAdres == 0) || (stBSP_ID.chAdres == 0xFF))
+	if ((stBSP_ID.cAdres == 0) || (stBSP_ID.cAdres == 0xFF))
 	{
-		stBSP_ID.chAdres = 0xFE;
-		for (int16_t n=0; n<strlen(chNazwaSierotki); n++)
-			stBSP_ID.chNazwa[n] = chNazwaSierotki[n];
+		stBSP_ID.cAdres = 0xFE;
+		for (int16_t n=0; n<strlen(cNazwaSierotki); n++)
+			stBSP_ID.cNazwa[n] = cNazwaSierotki[n];
 	}
 
 	for (int16_t n=0; n<ROZMIAR_BUF_ODB_DMA+8; n++)
-		chBuforOdbDMA[n] = 0x55;	//wypełnij wzorcem do analizy
+		cBuforOdbDMA[n] = 0x55;	//wypełnij wzorcem do analizy
 	return BLAD_OK;
 }
 
@@ -114,8 +109,8 @@ uint8_t InicjujProtokol(void)
 uint8_t InicjalizacjaWatkuOdbiorczegoLPUART1(void)
 {
 	sWskNap = sWskOpr = 0;
-	st_ZajetośćLPUART.chZajętyPrzez = (int8_t)LPUART_WOLNY;
-	return HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
+	st_ZajetośćLPUART.cZajętyPrzez = (int8_t)LPUART_WOLNY;
+	return HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, cBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
 }
 
 
@@ -134,7 +129,7 @@ uint8_t ObslugaWatkuOdbiorczegoLPUART1(void)
 	while (sWskNap != sWskOpr)
 	{
 		cStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
-		cBłąd = AnalizujDaneKom(chBuforKomOdb[sWskOpr], INTERF_UART);
+		cBłąd = AnalizujDaneKom(cBuforKomOdb[sWskOpr], INTERF_UART);
 		if (cBłąd)
 			cCzasSwieceniaLED[LED_CZER] = 5;
 
@@ -142,17 +137,17 @@ uint8_t ObslugaWatkuOdbiorczegoLPUART1(void)
 		//zapętlenie wskaźnika bufora kołowego
 		if (sWskOpr >= ROZMIAR_BUF_ANALIZY_ODB)
 			sWskOpr = 0;
-		chTimeoutOdbioru = 5;	//x osDelay(2); [ms] w głównym wątku
+		cTimeoutOdbioru = 5;	//x osDelay(2); [ms] w głównym wątku
 		cStatusPolaczenia &= ~(STAT_POL_MASKA_OTW << STAT_POL_UART);	//sygnalizuj powrót do stanu otwartości
 	}
 
 	//po upływie timeoutu resetuj stan protokołu aby następną ramkę zaczął dekodować od nagłówka
-	if (chTimeoutOdbioru)
+	if (cTimeoutOdbioru)
 	{
-		chTimeoutOdbioru--;
-		if (!chTimeoutOdbioru)
+		cTimeoutOdbioru--;
+		if (!cTimeoutOdbioru)
 		{
-			chStanProtokolu[INTERF_UART] = PR_ODBIOR_NAGL;
+			cStanProtokolu[INTERF_UART] = PR_ODBIOR_NAGL;
 		}
 	}
 	//sprawdź czy jest właczony bit zezwolenia na przerwanie Idle, bo po wystąpienie błędów potrafi się wyłączyć co uniemożliwia odbiór
@@ -195,7 +190,7 @@ void WatekOdbiorczyLPUART1(void *argument)
 	{
 		chDanychDoWysłania = 0;
 		//w pierwszej kolejności obsłuż protokół komunikacyjny
-		if (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY)
+		if (st_ZajetośćLPUART.cZajętyPrzez == (int8_t)LPUART_WOLNY)
 		{
 			cBłąd = ObslugaWatkuOdbiorczegoLPUART1();
 			if (cBłąd != BLAD_NIC_DO_ROBOTY)
@@ -205,7 +200,7 @@ void WatekOdbiorczyLPUART1(void *argument)
 		//w drugiej kolejności obsłuż telemetrię
 		//pełna ramka na 115,2kbps wysyła się 21,7ms (46Hz), na 57,6kbps wysyła się  43,4ms (23Hz)
 		nCzasTele = MinalCzas(nCzasPoprzedniTele);	//czas w mikrosekundach
-		if ((nCzasTele >= KWANT_CZASU_TELEMETRII * 1000) && (st_ZajetośćLPUART.chZajętyPrzez == (int8_t)LPUART_WOLNY))
+		if ((nCzasTele >= KWANT_CZASU_TELEMETRII * 1000) && (st_ZajetośćLPUART.cZajętyPrzez == (int8_t)LPUART_WOLNY))
 		{
 			chDanychDoWysłania = ObslugaTelemetrii(INTERF_UART);
 			nCzasPoprzedniTele += KWANT_CZASU_TELEMETRII * 1000;
@@ -246,7 +241,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		{
 			for (uint16_t n=0; n<Size; n++)
 			{
-				chBuforKomOdb[sWskNap] = chBuforOdbDMA[n];
+				cBuforKomOdb[sWskNap] = cBuforOdbDMA[n];
 				sWskNap++;
 				//zapętlenie wskaźnika bufora kołowego
 				if (sWskNap >= ROZMIAR_BUF_ANALIZY_ODB)
@@ -258,7 +253,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 				Error_Handler();
 	#endif
 			//ponownie włącz odbiór
-			HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
+			HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, cBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);	//ponieważ przerwanie przychodzi od UART_DMARxHalfCplt więc ustaw dwukrotnie większy rozmiar aby całą ramkę odebrać na przerwanu od połowy danych
 		}
 	}
 }
@@ -270,7 +265,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	if (huart->Instance == LPUART1)
 	{
 		__disable_irq();	//sekcja krytyczna wykonywana przy wyłączonych przerwaniach
-		st_ZajetośćLPUART.chZajętyPrzez = (int8_t)LPUART_WOLNY;		//skończyło się wysyłanie, wyczyść flagę zajetości
+		st_ZajetośćLPUART.cZajętyPrzez = (int8_t)LPUART_WOLNY;		//skończyło się wysyłanie, wyczyść flagę zajetości
 		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);	//serwo kanał 1 - LPUART_WOLNY
 
 		//port jest wolny, można wysłać rzeczy zaległe
@@ -281,14 +276,14 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 				//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1 - LPUART_ZAJETY
 				switch (n)
 				{
-				case RAMKA_POLECEN:	HAL_UART_Transmit_DMA(&hlpuart1, &chBuforNadDMA[0], st_ZajetośćLPUART.sDoWysłania[n]);		 break;
-				case RAMKA_TELE1:	HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[0 + st_ZajetośćLPUART.chIndeksNapełnianejRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
-				case RAMKA_TELE2:	HAL_UART_Transmit_DMA(&hlpuart1, &chRamkaTelemetrii[2 + st_ZajetośćLPUART.chIndeksNapełnianejRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
+				case RAMKA_POLECEN:	HAL_UART_Transmit_DMA(&hlpuart1, &cBuforNadDMA[0], st_ZajetośćLPUART.sDoWysłania[n]);		 break;
+				case RAMKA_TELE1:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[0 + st_ZajetośćLPUART.cIndeksNapełnianejRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
+				case RAMKA_TELE2:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[2 + st_ZajetośćLPUART.cIndeksNapełnianejRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
 				}
-				st_ZajetośćLPUART.chZajętyPrzez = n;
+				st_ZajetośćLPUART.cZajętyPrzez = n;
 				st_ZajetośćLPUART.sDoWysłania[n] = 0;	//wysłano więc zdejmij z kolejki i zezwól na ponowne napełnienie bufora
-				st_ZajetośćLPUART.chIndeksNapełnianejRamki[n]++;	//przełacz indeks podwójnego buforowania aby można było napełniać drugi bufor
-				st_ZajetośćLPUART.chIndeksNapełnianejRamki[n] &= 0x01;
+				st_ZajetośćLPUART.cIndeksNapełnianejRamki[n]++;	//przełacz indeks podwójnego buforowania aby można było napełniać drugi bufor
+				st_ZajetośćLPUART.cIndeksNapełnianejRamki[n] &= 0x01;
 				break;	//zakończ wykonanie petli for po wysłaniu pierwszej transmisji
 			}
 		}
@@ -302,8 +297,8 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
 	if (huart->Instance == LPUART1)
 	{
-		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, chBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
-		//HAL_UART_Receive_DMA(&hlpuart1, chBuforOdbDMA, ILOSC_ODBIORU_DMA);
+		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, cBuforOdbDMA, ROZMIAR_BUF_ODB_DMA);
+		//HAL_UART_Receive_DMA(&hlpuart1, cBuforOdbDMA, ILOSC_ODBIORU_DMA);
 	}
 	cCzasSwieceniaLED[LED_CZER] = 5;
 }
@@ -316,13 +311,13 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 // chInterfejs - identyfikator interfejsu odbierająceg znak
 //Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
+uint8_t AnalizujDaneKom(uint8_t cWe, uint8_t cInterfejs)
 {
     uint8_t cBłąd;
 
-    cBłąd = DekodujRamke(chWe, &chAdresZdalny[chInterfejs], &chZnakCzasu[chInterfejs], &chPolecenie, &chRozmDanych, chDaneRamkiKom, chInterfejs);
+    cBłąd = DekodujRamke(cWe, &cAdresZdalny[cInterfejs], &cZnakCzasu[cInterfejs], &cPolecenie, &cRozmDanych, cDaneRamkiKom, cInterfejs);
     if (cBłąd == BLAD_GOTOWE)
-    	cBłąd = UruchomPolecenie(chPolecenie, chDaneRamkiKom, chRozmDanych, chInterfejs, chAdresZdalny[chInterfejs]);
+    	cBłąd = UruchomPolecenie(cPolecenie, cDaneRamkiKom, cRozmDanych, cInterfejs, cAdresZdalny[cInterfejs]);
 
     return cBłąd;
 }
@@ -334,23 +329,23 @@ uint8_t AnalizujDaneKom(uint8_t chWe, uint8_t chInterfejs)
 // Parametry:
 // chWe - odbierany bajt
 // *chAdresNad - adres urządzenia nadajacego ramkę
-// *chPolecenie - numer polecenia
-// *chZnakCzasu - znacznik czasu ramki
+// *cPolecenie - numer polecenia
+// *cZnakCzasu - znacznik czasu ramki
 // *chNrRamki - numer kolejny ramki
 // *chData - wskaźnik na dane do polecenia
 // *chDataSize - ilość danych do polecenia
 //Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, uint8_t *chPolecenie, uint8_t *chRozmDanych, uint8_t *chDane, uint8_t chInterfejs)
+uint8_t DekodujRamke(uint8_t cWe, uint8_t *chAdrZdalny, uint8_t *cZnakCzasu, uint8_t *cPolecenie, uint8_t *cRozmDanych, uint8_t *cDane, uint8_t cInterfejs)
 {
 	uint8_t n, cBłąd = BLAD_OK;
 	uint16_t sCrc16Obl;
 
-    switch (chStanProtokolu[chInterfejs])
+    switch (cStanProtokolu[cInterfejs])
     {
     case PR_ODBIOR_NAGL:	//testuj czy odebrano nagłówek
-		if (chWe == NAGLOWEK)
-			chStanProtokolu[chInterfejs] = PR_ADRES_ODB;
+		if (cWe == NAGLOWEK)
+			cStanProtokolu[cInterfejs] = PR_ADRES_ODB;
 		else
 		{
 			cBłąd = BLAD_ZLY_NAGL;
@@ -359,66 +354,66 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
 		break;
 
     case PR_ADRES_ODB:
-    	if ((chWe == stBSP_ID.chAdres) || (chWe == ADRES_BROADCAST))				//czy odebraliśmy własny adres sieciowy lub adres rozgłoszeniowy
+    	if ((cWe == stBSP_ID.cAdres) || (cWe == ADRES_BROADCAST))				//czy odebraliśmy własny adres sieciowy lub adres rozgłoszeniowy
     	{
-    		chAdresPrzychodzacy = chWe;	//zachowaj do liczenia CRC
-    		chStanProtokolu[chInterfejs] = PR_ADRES_NAD;
+    		cAdresPrzychodzacy = cWe;	//zachowaj do liczenia CRC
+    		cStanProtokolu[cInterfejs] = PR_ADRES_NAD;
     	}
     	else
-    		chStanProtokolu[chInterfejs] = PR_ODBIOR_NAGL;
+    		cStanProtokolu[cInterfejs] = PR_ODBIOR_NAGL;
     	break;
 
     case PR_ADRES_NAD:			//adres sieciowy strony zdalnej
-    	*chAdrZdalny = chWe;
-    	chStanProtokolu[chInterfejs] = PR_ZNAK_CZASU;
+    	*chAdrZdalny = cWe;
+    	cStanProtokolu[cInterfejs] = PR_ZNAK_CZASU;
     	break;
 
     case PR_ZNAK_CZASU:   //odbierz znacznik czasu
-        *chZnakCzasu = chWe;
-        chStanProtokolu[chInterfejs] = PR_POLECENIE;
+        *cZnakCzasu = cWe;
+        cStanProtokolu[cInterfejs] = PR_POLECENIE;
         break;
 
     case PR_POLECENIE:
-    	*chPolecenie = chWe;
-    	chStanProtokolu[chInterfejs] = PR_ROZM_DANYCH;
-    	printf("P:%d,", chWe);
+    	*cPolecenie = cWe;
+    	cStanProtokolu[cInterfejs] = PR_ROZM_DANYCH;
+    	printf("P:%d,", cWe);
     	break;
 
     case PR_ROZM_DANYCH:	//odebrano rozmiar danych
-    	*chRozmDanych = chWe;
-    	chLicznikDanych[chInterfejs] = 0;
-    	if (*chRozmDanych > 0)
-    		chStanProtokolu[chInterfejs] = PR_DANE;
+    	*cRozmDanych = cWe;
+    	cLicznikDanych[cInterfejs] = 0;
+    	if (*cRozmDanych > 0)
+    		cStanProtokolu[cInterfejs] = PR_DANE;
     	else
-    		chStanProtokolu[chInterfejs] = PR_CRC16_1;
+    		cStanProtokolu[cInterfejs] = PR_CRC16_1;
     	break;
 
     case PR_DANE:
-    	*(chDane + chLicznikDanych[chInterfejs]) = chWe;
-    	chLicznikDanych[chInterfejs]++;
-    	if (chLicznikDanych[chInterfejs] == *chRozmDanych)
+    	*(cDane + cLicznikDanych[cInterfejs]) = cWe;
+    	cLicznikDanych[cInterfejs]++;
+    	if (cLicznikDanych[cInterfejs] == *cRozmDanych)
     	{
-    		chStanProtokolu[chInterfejs] = PR_CRC16_1;
+    		cStanProtokolu[cInterfejs] = PR_CRC16_1;
     	}
     	break;
 
     case PR_CRC16_1:
-    	sCrc16We = chWe;	//młodszy przodem
-    	chStanProtokolu[chInterfejs] = PR_CRC16_2;
+    	sCrc16We = cWe;	//młodszy przodem
+    	cStanProtokolu[cInterfejs] = PR_CRC16_2;
     	break;
 
     case PR_CRC16_2:
-    	sCrc16We += chWe * 0x100;
-		chStanProtokolu[chInterfejs] = PR_ODBIOR_NAGL;
+    	sCrc16We += cWe * 0x100;
+		cStanProtokolu[cInterfejs] = PR_ODBIOR_NAGL;
 		//dodać blokadę zasobu CRC
 		InicjujCRC16(0, WIELOMIAN_CRC);
-		*((volatile uint8_t *)&CRC->DR) = chAdresPrzychodzacy;
+		*((volatile uint8_t *)&CRC->DR) = cAdresPrzychodzacy;
 		*((volatile uint8_t *)&CRC->DR) = *chAdrZdalny;
-		*((volatile uint8_t *)&CRC->DR) = *chZnakCzasu;
-		*((volatile uint8_t *)&CRC->DR) = *chPolecenie;
-		*((volatile uint8_t *)&CRC->DR) = *chRozmDanych;
-		for (n=0; n<*chRozmDanych; n++)
-			*((volatile uint8_t *)&CRC->DR) = *(chDane + n);
+		*((volatile uint8_t *)&CRC->DR) = *cZnakCzasu;
+		*((volatile uint8_t *)&CRC->DR) = *cPolecenie;
+		*((volatile uint8_t *)&CRC->DR) = *cRozmDanych;
+		for (n=0; n<*cRozmDanych; n++)
+			*((volatile uint8_t *)&CRC->DR) = *(cDane + n);
 		sCrc16Obl = (uint16_t)CRC->DR;
 		//zdjąć blokadę zasobu CRC
 
@@ -432,7 +427,7 @@ uint8_t DekodujRamke(uint8_t chWe, uint8_t *chAdrZdalny, uint8_t *chZnakCzasu, u
 		break;
 
     default:
-    	chStanProtokolu[chInterfejs] = PR_ODBIOR_NAGL;
+    	cStanProtokolu[cInterfejs] = PR_ODBIOR_NAGL;
     	cBłąd = BLAD_ZLY_STAN_PROT;
     	break;
     }
@@ -464,9 +459,9 @@ void InicjujCRC16(uint16_t sInit, uint16_t sWielomian)
 // dane - dane wchodzące do odczytu
 //Zwraca: obliczone CRC
 ////////////////////////////////////////////////////////////////////////////////
-uint16_t LiczCRC16(uint8_t chDane)
+uint16_t LiczCRC16(uint8_t cDane)
 {
-	CRC->DR = chDane;
+	CRC->DR = cDane;
 	return (uint16_t)CRC->DR;
 }
 
@@ -474,44 +469,44 @@ uint16_t LiczCRC16(uint8_t chDane)
 ////////////////////////////////////////////////////////////////////////////////
 // Formatuje ramkę, ustawia nagłówek, liczy sumę kontrolną
 // Parametry:
-// chPolecenie - numer polecenia
-// chZnakCzasu - znacznik czasu
+// cPolecenie - numer polecenia
+// cZnakCzasu - znacznik czasu
 // *chDane - wskaźnik na dane do polecenia
 // chDlugosc - ilość danych do polecenia
 // *chRamka - wskaźnik na ramkę do wysłania
 //Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t PrzygotujRamke(uint8_t chAdrZdalny, uint8_t chAdrLokalny,  uint8_t chZnakCzasu, uint8_t chPolecenie, uint8_t chRozmDanych, uint8_t *chDane, uint8_t *chRamka)
+uint8_t PrzygotujRamke(uint8_t cAdrZdalny, uint8_t cAdrLokalny,  uint8_t cZnakCzasu, uint8_t cPolecenie, uint8_t cRozmDanych, uint8_t *cDane, uint8_t *cRamka)
 {
-    if (chRozmDanych > ROZMIAR_DANYCH_KOMUNIKACJI)
+    if (cRozmDanych > ROZMIAR_DANYCH_KOMUNIKACJI)
     	return(BLAD_ZLA_ILOSC_DANYCH);
 
-    if ((chPolecenie & ~0x80) > PK_ILOSC_POLECEN)
+    if ((cPolecenie & ~0x80) > PK_ILOSC_POLECEN)
     	return(BLAD_ZLE_POLECENIE);
 
-    *(chRamka + 0) = NAGLOWEK;
-    *(chRamka + 1) = chAdrZdalny;		//ADRES ODBIORCY
-    *(chRamka + 2) = chAdrLokalny;	//ADERS NADAWCY
-    *(chRamka + 3) = chZnakCzasu;
-    *(chRamka + 4) = chPolecenie;
-    *(chRamka + 5) = chRozmDanych;
+    *(cRamka + 0) = NAGLOWEK;
+    *(cRamka + 1) = cAdrZdalny;		//ADRES ODBIORCY
+    *(cRamka + 2) = cAdrLokalny;	//ADERS NADAWCY
+    *(cRamka + 3) = cZnakCzasu;
+    *(cRamka + 4) = cPolecenie;
+    *(cRamka + 5) = cRozmDanych;
 
     //dodać blokadę zasobu CRC
     InicjujCRC16(0, WIELOMIAN_CRC);
-    CRC->DR = chAdrZdalny;
-	CRC->DR = chAdrLokalny;
-	CRC->DR = chZnakCzasu;
-	CRC->DR = chPolecenie;
-	CRC->DR = chRozmDanych;
+    CRC->DR = cAdrZdalny;
+	CRC->DR = cAdrLokalny;
+	CRC->DR = cZnakCzasu;
+	CRC->DR = cPolecenie;
+	CRC->DR = cRozmDanych;
 
-    for (uint8_t n=0; n<chRozmDanych; n++)
-    	*(chRamka + 6 + n) = CRC->DR =  *(chDane + n);
+    for (uint8_t n=0; n<cRozmDanych; n++)
+    	*(cRamka + 6 + n) = CRC->DR =  *(cDane + n);
 
     un8_32.dane16[0] = (uint16_t)CRC->DR;
     //zdjąć blokadę zasobu CRC
 
-    *(chRamka + chRozmDanych + 6) = un8_32.dane8[0];	//młodszy
-    *(chRamka + chRozmDanych + 7) = un8_32.dane8[1];	//starszy
+    *(cRamka + cRozmDanych + 6) = un8_32.dane8[0];	//młodszy
+    *(cRamka + cRozmDanych + 7) = un8_32.dane8[1];	//starszy
     return BLAD_OK;
 }
 
@@ -527,31 +522,31 @@ uint8_t PrzygotujRamke(uint8_t chAdrZdalny, uint8_t chAdrLokalny,  uint8_t chZna
 // chLen - ilość danych do polecenia
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDanych, uint8_t *chDane, uint8_t chInterfejs)
+uint8_t WyslijRamke(uint8_t cAdrZdalny, uint8_t cPolecenie, uint8_t cRozmDanych, uint8_t *cDane, uint8_t cInterfejs)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	switch (chInterfejs)
+	switch (cInterfejs)
 	{
 	case INTERF_UART:
-		cBłąd = PrzygotujRamke(chAdrZdalny, stBSP_ID.chAdres, chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chBuforNadDMA);
+		cBłąd = PrzygotujRamke(cAdrZdalny, stBSP_ID.cAdres, cZnakCzasu[cInterfejs], cPolecenie, cRozmDanych, cDane, cBuforNadDMA);
 		if (cBłąd == BLAD_OK)
 		{
-			if (chBuforNadDMA[5] == 0xFF)	//rozmiar ???
+			if (cBuforNadDMA[5] == 0xFF)	//rozmiar ???
 				break;
-			st_ZajetośćLPUART.chZajętyPrzez = RAMKA_POLECEN;
-			st_ZajetośćLPUART.sDoWysłania[RAMKA_POLECEN] = (uint16_t)chRozmDanych + ROZM_CIALA_RAMKI;
-    		HAL_UART_Transmit_DMA(&hlpuart1, chBuforNadDMA, st_ZajetośćLPUART.sDoWysłania[RAMKA_POLECEN]);
+			st_ZajetośćLPUART.cZajętyPrzez = RAMKA_POLECEN;
+			st_ZajetośćLPUART.sDoWysłania[RAMKA_POLECEN] = (uint16_t)cRozmDanych + ROZM_CIALA_RAMKI;
+    		HAL_UART_Transmit_DMA(&hlpuart1, cBuforNadDMA, st_ZajetośćLPUART.sDoWysłania[RAMKA_POLECEN]);
     		st_ZajetośćLPUART.sDoWysłania[RAMKA_POLECEN]  = 0;
     		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1 - LPUART_ZAJETY
 		}
 		break;
 
 	case INTERF_ETH:
-		cBłąd = PrzygotujRamke(chAdrZdalny, stBSP_ID.chAdres, chZnakCzasu[chInterfejs], chPolecenie, chRozmDanych, chDane, chBuforNadRamkiKomTCP);
+		cBłąd = PrzygotujRamke(cAdrZdalny, stBSP_ID.cAdres, cZnakCzasu[cInterfejs], cPolecenie, cRozmDanych, cDane, cBuforNadRamkiKomTCP);
 		if (cBłąd == BLAD_OK)
 		{
-			chRozmiarRamkiNadTCP = chRozmDanych + ROZM_CIALA_RAMKI;		//ustaw rozmiar ramki nadawczej TCP gotowej do wysyłki
+			cRozmiarRamkiNadTCP = cRozmDanych + ROZM_CIALA_RAMKI;		//ustaw rozmiar ramki nadawczej TCP gotowej do wysyłki
 		}
     	break;
 
@@ -568,16 +563,16 @@ uint8_t WyslijRamke(uint8_t chAdrZdalny, uint8_t chPolecenie, uint8_t chRozmDany
 // Parametry:
 // [i] chKodBledu - kod błędu
 // [i] chParametr  - parametr dodatkowy
-// [i] chInterfejs - interfejs komunikacyjny przez który ma być przesłana ramka
+// [i] cInterfejs - interfejs komunikacyjny przez który ma być przesłana ramka
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t Wyslij_KodBledu(uint8_t chKodBledu, uint8_t chParametr, uint8_t chInterfejs)
+uint8_t Wyslij_KodBledu(uint8_t cKodBledu, uint8_t cParametr, uint8_t cInterfejs)
 {
-	uint8_t chDane[2];
-    chDane[0] = chKodBledu;
-    chDane[1] = chParametr;
+	uint8_t cDane[2];
+    cDane[0] = cKodBledu;
+    cDane[1] = cParametr;
 
-    return WyslijRamke(chAdresZdalny[chInterfejs], PK_KOD_BLEDU, 2, chDane, chInterfejs);
+    return WyslijRamke(cAdresZdalny[cInterfejs], PK_KOD_BLEDU, 2, cDane, cInterfejs);
 }
 
 
@@ -586,10 +581,10 @@ uint8_t TestKomunikacjiSTD(void)
 	uint8_t cBłąd = 0;
 	uint16_t sRozmDanych;
 
-	sRozmDanych = sprintf((char*)chBuforNadDMA, "Test komunikacji UART: blokująca\n\r");
+	sRozmDanych = sprintf((char*)cBuforNadDMA, "Test komunikacji UART: blokująca\n\r");
 	if (sRozmDanych)
 	{
-		cBłąd = HAL_UART_Transmit(&hlpuart1,  chBuforNadDMA, sRozmDanych, 100);
+		cBłąd = HAL_UART_Transmit(&hlpuart1,  cBuforNadDMA, sRozmDanych, 100);
 		//chUartKomunikacjiZajety = 1;
 	}
 	return cBłąd;
@@ -602,10 +597,10 @@ uint8_t TestKomunikacjiDMA(void)
 	uint8_t cBłąd = 0;
 	uint16_t sRozmDanych;
 
-	sRozmDanych = sprintf((char*)chBuforNadDMA, "Test komunikacji UART: DMA\n\r");
+	sRozmDanych = sprintf((char*)cBuforNadDMA, "Test komunikacji UART: DMA\n\r");
 	if (sRozmDanych)
 	{
-		cBłąd = HAL_UART_Transmit_DMA(&hlpuart1, (uint8_t*)chBuforNadDMA, sRozmDanych);
+		cBłąd = HAL_UART_Transmit_DMA(&hlpuart1, (uint8_t*)cBuforNadDMA, sRozmDanych);
 		//chUartKomunikacjiZajety = 1;
 	}
 	return cBłąd;
