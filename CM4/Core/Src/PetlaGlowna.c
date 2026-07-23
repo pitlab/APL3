@@ -182,7 +182,8 @@ void PetlaGlowna(void)
 		cBłądPG |= WyslijDaneExpandera(cStanIOwy); 	break;
 
 	case 12:	//wymień dane między rdzeniami
-		uDaneCM4.dane.cBladPetliGlownej = cBłądPG;
+		if (cBłądPG)
+			uDaneCM4.dane.cBłąd = cBłądPG;
 		cBłądPG  = UstawDaneWymiany_CM4();
 		cBłądPG |= PobierzDaneWymiany_CM7();
 		break;
@@ -194,11 +195,11 @@ void PetlaGlowna(void)
 	case 15:	//pozwól na testowe uruchomienie inicjalizacji
 		if (cBuforAnalizyGNSS[0] == 0xFF)
 		{
-			InicjujMikser();
+			//InicjujMikser();
 			//InicjujWyjsciaRC();
 			//InicjujModulI2P();
 			//chBuforAnalizyGNSS[0] = 0;
-			//InicjujPID();
+			InicjujPID();
 		}
 		break;
 

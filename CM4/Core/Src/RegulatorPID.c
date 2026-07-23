@@ -170,27 +170,23 @@ float RegulatorPID(uint32_t ndT, uint8_t cKanal, stWymianyCM4_t *dane, stKonfPID
 		dane->stPID[cKanal].fFiltrRóżn = ((konfig[cKanal].cPodstFiltraD - 1) * dane->stPID[cKanal].fFiltrRóżn + dane->stPID[cKanal].fFiltrWWej) / konfig[cKanal].cPodstFiltraD;
 	else
 		dane->stPID[cKanal].fFiltrRóżn = fOdchyłka;
-  
-    //sprawdź czy kanał dotyczy regulatora wartości podstawowej (kąta, wysokości, pozycji) czyli wartosci parzystej czy też jego pochodnej będąca liczbą nieparzystą
-    if (cKanal & 0x01)
-    {
-    	//liczba nieparzysta, czyli regulator pochodnej. Oblicz pochodną wartości zadanej
-        float fPochodnaWartZadanej = (dane->stPID[cKanal].fZadana - dane->stPID[cKanal].fFiltrWZad)  / fdT;
-        if (konfig[cKanal].cPodstFiltraWZad)
-        	dane->stPID[cKanal].fFiltrWZad = ((konfig[cKanal].cPodstFiltraWZad - 1) * dane->stPID[cKanal].fFiltrWZad + dane->stPID[cKanal].fZadana) / konfig[cKanal].cPodstFiltraWZad;
-        else
-        	dane->stPID[cKanal].fFiltrWZad = dane->stPID[cKanal].fZadana;	//filtr wyłączony
 
-        //dodanie pierwszej pochodnej wartości zadanej do wejścia wyprzedzającego
-    	fTemp = fPochodnaWartZadanej * konfig[cKanal].fWzmWyprz;
-        if (fTemp > MAX_PID)
-        	fTemp = MAX_PID;
-	   else
-	   if (fTemp < -MAX_PID)
-		   fTemp = -MAX_PID;
-    	dane->stPID[cKanal].fWyjscieWyprz = (3 * dane->stPID[cKanal].fWyjscieWyprz + fTemp) / 4;	//lekko odfiltrowane wyjście wyprzedzające
-        fWyjscieReg += fTemp;
-    }
+	//Oblicz pochodną wartości zadanej
+	float fPochodnaWartZadanej = (dane->stPID[cKanal].fZadana - dane->stPID[cKanal].fFiltrWZad)  / fdT;
+	if (konfig[cKanal].cPodstFiltraWZad)
+		dane->stPID[cKanal].fFiltrWZad = ((konfig[cKanal].cPodstFiltraWZad - 1) * dane->stPID[cKanal].fFiltrWZad + dane->stPID[cKanal].fZadana) / konfig[cKanal].cPodstFiltraWZad;
+	else
+		dane->stPID[cKanal].fFiltrWZad = dane->stPID[cKanal].fZadana;	//filtr wyłączony
+
+	//dodanie pierwszej pochodnej wartości zadanej do wejścia wyprzedzającego
+	fTemp = fPochodnaWartZadanej * konfig[cKanal].fWzmWyprz;
+	if (fTemp > MAX_PID)
+		fTemp = MAX_PID;
+   else
+   if (fTemp < -MAX_PID)
+	   fTemp = -MAX_PID;
+	dane->stPID[cKanal].fWyjscieWyprz = (3 * dane->stPID[cKanal].fWyjscieWyprz + fTemp) / 4;	//lekko odfiltrowane wyjście wyprzedzające
+	fWyjscieReg += fTemp;
 
     //ograniczenie wartości wyjściowej
     if (fWyjscieReg > konfig[cKanal].fMaxWyj)

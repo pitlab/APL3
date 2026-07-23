@@ -219,7 +219,7 @@ typedef struct
 	uint8_t cJakoscDnLinkuRC;	//procentowo przedstawiona jakość łącza z aktywnego odbiornika (telemetrii)
 	uint8_t cTrybLotu;		//tryb lotu jako zestaw bitów określających funkcjonalności realizowane w danym czasie
 	uint8_t cNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
-	uint8_t cBladPetliGlownej;
+	uint8_t cBłąd;
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
 	uint32_t nBrakCzujnika;		//zestaw flag obecnosci czujników   ZROBIC: przenieść do Różne
 	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji   ZROBIC: przenieść do Różne

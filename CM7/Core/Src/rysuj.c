@@ -42,8 +42,8 @@ static uint8_t cPoprzedniStatusPolaczenia = 0xFF;	//sluży do wykrycia zmiany st
 uint8_t cOrientacja;
 uint8_t cTransparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
 extern uint8_t cKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
-
-
+uint8_t cPoprzedniBłądCM4;
+extern volatile unia_wymianyCM4_t uDaneCM4;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje ekran parametryzowalnego menu
@@ -248,6 +248,44 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 	{
 		setColor(POMARANCZ);
 		cBłąd |= RysujNapis("Brak SD! ", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+	}
+
+	//błędy przekazywane z CM4
+	if (uDaneCM4.dane.cBłąd != cPoprzedniBłądCM4)
+	{
+		cPoprzedniBłądCM4 = uDaneCM4.dane.cBłąd;
+		switch (cPoprzedniBłądCM4)
+		{
+		case BLAD_OK: 				sprintf(cNapis, "B:OK");		break;
+		case BLAD_HAL: 				sprintf(cNapis, "B:HAL");		break;
+		case BLAD_HAL_BUSY:			sprintf(cNapis, "B:Busy");		break;
+		case BLAD_TIMEOUT:			sprintf(cNapis, "B:Timout");	break;
+		case BLAD_ZLA_ILOSC_DANYCH:	sprintf(cNapis, "B:Ilosc");		break;
+		case BLAD_CRC:				sprintf(cNapis, "B:CRC");		break;
+		case BLAD_ODMOWA_WYKONANIA:	sprintf(cNapis, "B:Odmowa");	break;
+		case BLAD_BUF_OVERRUN:		sprintf(cNapis, "B:Nadpis");	break;
+		case BLAD_BRAK_KONFIG:		sprintf(cNapis, "B:Konfig");	break;
+		case BLAD_BRAK_DANYCH:		sprintf(cNapis, "B:BrakD");		break;
+		case BLAD_ZLY_STAN_PROT:	sprintf(cNapis, "B:Prot");		break;
+		case BLAD_ZLE_POLECENIE:	sprintf(cNapis, "B:Pol");		break;
+		case BLAD_ZLY_INTERFEJS:	sprintf(cNapis, "B:Interf");	break;
+		case BLAD_ZLE_DANE:			sprintf(cNapis, "B:Dane");		break;
+		case BLAD_ZLY_ADRES:		sprintf(cNapis, "B:Adres");		break;
+		case BLAD_ZA_KROTKI_CZAS:	sprintf(cNapis, "B:Czas");		break;
+		case BLAD_BRAK_CZUJNIKA:	sprintf(cNapis, "B:Czujn");		break;
+		case BLAD_SEMAFOR_ZAJETY:	sprintf(cNapis, "B:Semaf");		break;
+		case BLAD_DLUGOSC_LONLAT:	sprintf(cNapis, "B:LonLat");	break;
+		case BLAD_ZLY_STAN_NMEA:	sprintf(cNapis, "B:NMEA");		break;
+		case BLAD_ZA_ZIMNO:			sprintf(cNapis, "B:Zimno");		break;
+		case BLAD_ZA_CIEPLO:		sprintf(cNapis, "B:Goraco");	break;
+		case BLAD_ZLA_KONFIG:		sprintf(cNapis, "B:zlKonf");	break;
+		case BLAD_ZLE_OBLICZENIA:	sprintf(cNapis, "B:Oblicz");	break;
+		case BLAD_OTWARCIA_GNIAZDA:	sprintf(cNapis, "B:Gniazd");	break;
+		case BLAD_ZAJETY_JPEG:		sprintf(cNapis, "B:zajJpg");	break;
+		default:					sprintf(cNapis, "B:Inny");		break;
+		}
+		setColor(BLAD);
+		cBłąd |= RysujNapis(cNapis, DISP_X_SIZE - 48*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 	}
 
 	//wypisz rozmiar sterty

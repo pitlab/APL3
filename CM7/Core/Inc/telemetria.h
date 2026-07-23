@@ -163,7 +163,7 @@
 //--- zmienne telemetryczne w ramce 2 -----------------------------------------------
 #define TID_PID_PRZE_WZAD		128	//wartość zadana regulatora sterowania przechyleniem
 #define TID_PID_PRZE_FZAD		129	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
-#define TID_PID_PRZE_FWEJ		130	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define TID_PID_PRZE_FWEJ		130	//przefiltrowana (0..31) wartość wejściowa dla wszystkich członów
 #define TID_PID_PRZE_FROZ		131	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 #define TID_PID_PRZE_WY_P		132	//wyjście członu P
 #define TID_PID_PRZE_WY_I		133	//wyjście członu I
@@ -172,7 +172,7 @@
 #define TID_PID_PRZE_WYJ		136	//wyjście regulatora sterowania przechyleniem
 #define TID_PID_PK_PRZE_WZAD	137	//wartość zadana regulatora sterowania prędkością kątową przechylenia
 #define TID_PID_PK_PRZE_FZAD	138	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
-#define TID_PID_PK_PRZE_FWEJ	139	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define TID_PID_PK_PRZE_FWEJ	139	//przefiltrowana (0..31) wartość wejściowa dla wszystkich członów
 #define TID_PID_PK_PRZE_FROZ	140	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 #define TID_PID_PK_PRZE_WY_P	141	//wyjście członu P
 #define TID_PID_PK_PRZE_WY_D	142	//wyjście członu D
@@ -181,7 +181,7 @@
 
 #define TID_PID_POCH_WZAD		145	//wartość zadana regulatora sterowania pochyleniem
 #define TID_PID_POCH_FZAD		146	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
-#define TID_PID_POCH_FWEJ		147	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define TID_PID_POCH_FWEJ		147	//przefiltrowana (0..31) wartość wejściowa dla wszystkich członów
 #define TID_PID_POCH_FROZ		148	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 #define TID_PID_POCH_WY_P		149	//wyjście członu P
 #define TID_PID_POCH_WY_I		150	//wyjście członu I
@@ -190,7 +190,7 @@
 #define TID_PID_POCH_WYJ		153	//wyjście regulatora sterowania pochyleniem
 #define TID_PID_PK_POCH_WZAD	154	//wartość zadana regulatora sterowania prędkością kątową pochylenia
 #define TID_PID_PK_POCH_FZAD	155	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
-#define TID_PID_PK_POCH_FWEJ	156	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define TID_PID_PK_POCH_FWEJ	156	//przefiltrowana (0..31) wartość wejściowa dla wszystkich członów
 #define TID_PID_PK_POCH_FROZ	157	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 #define TID_PID_PK_POCH_WY_P	158	//wyjście członu P
 #define TID_PID_PK_POCH_WY_D	159	//wyjście członu D
@@ -199,7 +199,7 @@
 
 #define TID_PID_ODCH_WZAD		162	//wartość zadana regulatora sterowania odchyleniem
 #define TID_PID_ODCH_FZAD		163	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
-#define TID_PID_ODCH_FWEJ		164	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define TID_PID_ODCH_FWEJ		164	//przefiltrowana (0..31) wartość wejściowa dla wszystkich członów
 #define TID_PID_ODCH_FROZ		165	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 #define TID_PID_ODCH_WY_P		166	//wyjście członu P
 #define TID_PID_ODCH_WY_I		167	//wyjście członu I
@@ -208,7 +208,7 @@
 #define TID_PID_ODCH_WYJ		170	//wyjście regulatora sterowania odchyleniem
 #define TID_PID_PK_ODCH_WZAD	171	//wartość zadana regulatora sterowania prędkością kątową odchylenia
 #define TID_PID_PK_ODCH_FZAD	172	//przefiltrowana wartość zadana do liczenia wartosci wyprzedzającej
-#define TID_PID_PK_ODCH_FWEJ	173	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define TID_PID_PK_ODCH_FWEJ	173	//przefiltrowana (0..31) wartość wejściowa dla wszystkich członów
 #define TID_PID_PK_ODCH_FROZ	174	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 #define TID_PID_PK_ODCH_WY_P	175	//wyjście członu P
 #define TID_PID_PK_ODCH_WY_D	176	//wyjście członu D
@@ -217,7 +217,7 @@
 
 #define TID_PID_WYSO_WZAD		179	//wartość zadana regulatora sterowania wysokością
 #define TID_PID_WYSO_FZAD		180	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
-#define TID_PID_WYSO_FWEJ		181	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define TID_PID_WYSO_FWEJ		181	//przefiltrowana (0..31) wartość wejściowa dla wszystkich członów
 #define TID_PID_WYSO_FROZ		182	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 #define TID_PID_WYSO_WY_P		183	//wyjście członu P
 #define TID_PID_WYSO_WY_I		184	//wyjście członu I
@@ -234,7 +234,7 @@
 #define TID_PID_PR_WYSO_WYJ		195	//wyjście regulatora sterowania prędkością zmiany wysokości
 
 #define TID_PID_NAWN_WZAD		196	//wartość zadana regulatora sterowania nawigacją w kierunku północnym
-#define TID_PID_NAWN_FWEJ		197	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define TID_PID_NAWN_FWEJ		197	//przefiltrowana (0..31) wartość wejściowa dla wszystkich członów
 #define TID_PID_NAWN_FROZ		198	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 #define TID_PID_NAWN_WY_P		199	//wyjście członu P
 #define TID_PID_NAWN_WY_I		200	//wyjście członu I
@@ -242,7 +242,7 @@
 #define TID_PID_NAWN_WYJ		202	//wyjście regulatora sterowania nawigacją w kierunku północnym
 
 #define TID_PID_PR_NAWN_WZAD	203	//wartość zadana
-#define TID_PID_PR_NAWN_FWEJ	204	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define TID_PID_PR_NAWN_FWEJ	204	//przefiltrowana (0..31) wartość wejściowa dla wszystkich członów
 #define TID_PID_PR_NAWN_FROZ	205	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 #define TID_PID_PR_NAWN_WY_P	206	//wyjście członu P
 #define TID_PID_PR_NAWN_WY_I	207	//wyjście członu I
@@ -250,7 +250,7 @@
 #define TID_PID_PR_NAWN_WYJ		209	//wyjście regulatora sterowania prędkością w kierunku północnym
 
 #define TID_PID_NAWE_WZAD		210	//wartość zadana regulatora sterowania nawigacją w kierunku wschodnim
-#define TID_PID_NAWE_FWEJ		211	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define TID_PID_NAWE_FWEJ		211	//przefiltrowana (0..31) wartość wejściowa dla wszystkich członów
 #define TID_PID_NAWE_FROZ		212	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 #define TID_PID_NAWE_WY_P		213	//wyjście członu P
 #define TID_PID_NAWE_WY_I		214	//wyjście członu I
@@ -258,7 +258,7 @@
 #define TID_PID_NAWE_WYJ		216	//wyjście regulatora sterowania nawigacją w kierunku północnym
 
 #define TID_PID_PR_NAWE_WZAD	217	//wartość zadana
-#define TID_PID_PR_NAWE_FWEJ	218	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define TID_PID_PR_NAWE_FWEJ	218	//przefiltrowana (0..31) wartość wejściowa dla wszystkich członów
 #define TID_PID_PR_NAWE_FROZ	219	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 #define TID_PID_PR_NAWE_WY_P	220	//wyjście członu P
 #define TID_PID_PR_NAWE_WY_I	221	//wyjście członu I
@@ -269,14 +269,14 @@
 #define TID_PID_STROJENIE2		225	//wartość parametru strojącego 2
 //max do 255
 
-#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	218
+#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	226
 
 #define MAX_ZMIENNYCH_TELEMETR_W_RAMCE	115		//tyle zmiennych może być przesłanych w jednej ramce telemetrycznej (ramek może być kilka)
 #define MAX_INDEKSOW_TELEMETR_W_RAMCE	128		//zmienne w ramce można wybrać z takiej puli indeksów
 #define LICZBA_BAJTOW_ID_TELEMETRII		16		//liczba bajtów w ramce telemetrii identyfikujaca przesyłane zmienne
 #define LICZBA_RAMEK_TELEMETR			2		//obecnie są 2 ramki dla zmiennych 0..127 i 128..256
 #define MASKA_LICZBY_RAMEK_TELE			0x01
-#define TELEMETRIA_WYLACZONA		0xFFFF
+#define TELEMETRIA_WYLACZONA			0xFFFF
 #define OKRESOW_TELEMETRII_W_RAMCE		120		//w ramce przesyłane jest na raz się tyle 16-bitowych okresów telemetrii (liczba podzialna przez 15, bo tyle danych mieści się na stronie flash)
 
 void InicjalizacjaTelemetrii(void);

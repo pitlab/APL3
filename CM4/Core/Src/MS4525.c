@@ -65,7 +65,7 @@ uint8_t ObslugaMS4525(void)
 
 	//po MAX_PROB_INICJALIZACJI ustawiany jest bit braku czujnika. Taki czujnik nie jest dłużej obsługiwany
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_MS4525)
-		return BLAD_BRAK_CZUJNIKA;
+		return BLAD_OK;		//czujnik jest opcjonalny, więc nie raportuj jego braku jako bład
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_MS4525) != INIT_MS4525)	//jeżeli czujnik nie jest zainicjowany
 	{

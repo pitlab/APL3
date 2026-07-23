@@ -327,7 +327,7 @@
 #define VDOM_MIX_ODCH    	0.0f
 
 #define VMIN_STRPID_MIN 	(float)0.0001    //minimalna wartość parametru do strojenia PID
-#define VMAX_STRPID_MIN 	(float)100.0
+#define VMAX_STRPID_MIN 	(float)1000.0
 #define VDOM_STRPID_MIN 	(float)0.01
 
 #define VMIN_STRPID_MAX 	(float)0.001    //maksymalna wartość parametru do strojenia PID

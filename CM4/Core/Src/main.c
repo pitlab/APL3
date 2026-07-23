@@ -92,6 +92,7 @@ extern uint32_t nCzasOstatniegoOdcinka;	//przechowuje czas uruchomienia ostatnie
 //tern volatile uint32_t nFlagiMiedzyrdzeniowe __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 extern volatile uint16_t sFlagiCM4 __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
 extern volatile uint16_t sFlagiCM7 __attribute__((section(".BuforyWymianyCM7CM4_SRAM4")));
+uint8_t cBłąd;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -208,17 +209,19 @@ int main(void)
   /* USER CODE BEGIN 2 */
   uDaneCM4.dane.nZainicjowano = 0;	//za każdym uruchomieniem detekcja i inicjalizacja sprzętu zaczyna się od początku
   sFlagiCM4 = sFlagiCM7 = 0;
-  InicjujADC();
-  InicjujModulyWew();
-  InicjujModulI2P();
-  InicjujJednostkeInercyjna();
-  InicjujWejsciaRC();	//odbiorniki RC
-  InicjujWyjsciaRC();	//serwa, ESC
-  InicjujPID();
-  InicjujMikser();
-  InicjujKontrolerLotu();
-  InicjujCrossfire();
+  cBłąd |= InicjujADC();
+  cBłąd |= InicjujModulyWew();
+  cBłąd |= InicjujModulI2P();
+  cBłąd |= InicjujJednostkeInercyjna();
+  cBłąd |= InicjujWejsciaRC();	//odbiorniki RC
+  cBłąd |= InicjujWyjsciaRC();	//serwa, ESC
+  cBłąd |= InicjujPID();
+  cBłąd |= InicjujMikser();
+  cBłąd |= InicjujKontrolerLotu();
+  cBłąd |= InicjujCrossfire();
   InicjujWymiane();
+  uDaneCM4.dane.cBłąd = cBłąd;
+  UstawDaneWymiany_CM4();
 
 #ifdef TESTY		//testy algorytmów
   TestyFram();

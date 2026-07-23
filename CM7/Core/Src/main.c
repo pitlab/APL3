@@ -1637,7 +1637,7 @@ void StartDefaultTask(void *argument)
 			cCzasSwieceniaLED[LED_ZIEL] = 1;	//x0,1s
 			cBłąd = BLAD_OK;
 		}
-		if (uDaneCM4.dane.cBladPetliGlownej)
+		if (uDaneCM4.dane.cBłąd)
 			cCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
 
 		PobierzDaneDoFFT();

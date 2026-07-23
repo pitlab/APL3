@@ -113,7 +113,7 @@ uint8_t ObslugaHMC5883(void)
 	uint8_t cBłąd = BLAD_OK;
 
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_HMC5883)
-		return BLAD_BRAK_CZUJNIKA;
+		return BLAD_OK;		//czujnik jest opcjonalny, więc nie sygnalizuj błędu
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_HMC5883) != INIT_HMC5883)
 	{
