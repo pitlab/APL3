@@ -156,9 +156,13 @@ uint8_t KontrolerLotu(uint8_t *cTryb, uint32_t ndT, stWymianyCM4_t *dane, stKonf
 uint8_t UzbrojSilniki(stWymianyCM4_t *daneCM4, stWymianyCM7_t *daneCM7)
 {
 	uint8_t cBłąd = BLAD_OK;
-	daneCM4->cTrybLotu |= BTR_UZBROJONY;
-	if (daneCM7->cPotwierdzenieWykonania != POL4_MOW_UZBROJONE)
-		daneCM4->cWykonajPolecenie = POL4_MOW_UZBROJONE;
+
+	if ((daneCM4->cTrybLotu & BTR_UZBROJONY) != BTR_UZBROJONY)
+	{
+		daneCM4->cTrybLotu |= BTR_UZBROJONY;
+		if (daneCM7->cPotwierdzenieWykonania != POL4_MOW_UZBROJONE)
+			daneCM4->cWykonajPolecenie = POL4_MOW_UZBROJONE;
+	}
 	return cBłąd;
 }
 
@@ -173,13 +177,17 @@ uint8_t RozbrojSilniki(stWymianyCM4_t *daneCM4, stWymianyCM7_t *daneCM7)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	daneCM4->cTrybLotu &= ~BTR_UZBROJONY;
-	if (daneCM7->cPotwierdzenieWykonania != POL4_MOW_ROZBROJONE)
-		daneCM4->cWykonajPolecenie = POL4_MOW_ROZBROJONE;
+	if (daneCM4->cTrybLotu & BTR_UZBROJONY)
+	{
+		daneCM4->cTrybLotu &= ~BTR_UZBROJONY;
 
-	//Zapisz wartość strojenia kanałem RC jeżeli ta funkcja jest włączona
-	cBłąd |= ZapiszWartośćStrojeniaPID_KanałemRC(&stStrojPID[0], stKonfigPID, daneCM4);
-	cBłąd |= ZapiszWartośćStrojeniaPID_KanałemRC(&stStrojPID[1], stKonfigPID, daneCM4);
+		if (daneCM7->cPotwierdzenieWykonania != POL4_MOW_ROZBROJONE)
+			daneCM4->cWykonajPolecenie = POL4_MOW_ROZBROJONE;
+
+		//Zapisz wartość strojenia kanałem RC jeżeli ta funkcja jest włączona
+		cBłąd |= ZapiszWartośćStrojeniaPID_KanałemRC(&stStrojPID[0], stKonfigPID, daneCM4);
+		cBłąd |= ZapiszWartośćStrojeniaPID_KanałemRC(&stStrojPID[1], stKonfigPID, daneCM4);
+	}
 	return cBłąd;
 }
 

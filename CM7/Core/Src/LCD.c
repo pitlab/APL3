@@ -1760,7 +1760,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_NAST_PID_NAWIG_PÓŁN:		//regulator sterowania nawigacją w kierunku północnym
-		NastawyPID(PID_NAWIG_PÓŁN);
+		NastawyPID(PID_NAWI_PÓŁN);
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
@@ -1770,7 +1770,7 @@ uint8_t RysujEkran(void)
 
 
 	case TP_NAST_PID_NAWIG_WSCH:		//regulator sterowania nawigacją w kierunku wschodnim
-		NastawyPID(PID_NAWIG_WSCH);
+		NastawyPID(PID_NAWI_WSCH);
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;

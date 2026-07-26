@@ -21,9 +21,9 @@
 #define PID_PRED_ODCH	5   //regulator sterowania prędkością kątową odchylenia (żyroskop R)
 #define PID_WYSOKOSCI 	6   //regulator sterowania wysokością
 #define PID_PRED_ZWYS	7   //regulator sterowani prędkością zmiany wysokości (wario)
-#define PID_NAWIG_PÓŁN 	8   //regulator sterowania nawigacją w kierunku północnym
+#define PID_NAWI_PÓŁN 	8   //regulator sterowania nawigacją w kierunku północnym
 #define PID_PRED_PÓŁN	9  	//regulator sterowania prędkością w kierunku północnym
-#define PID_NAWIG_WSCH 	10  //regulator sterowania nawigacją w kierunku wschodnim
+#define PID_NAWI_WSCH 	10  //regulator sterowania nawigacją w kierunku wschodnim
 #define PID_PRED_WSCH	11 	//regulator sterowania prędkością w kierunku wschodnim
 
 #define LICZBA_PID  12 //liczba regulatorów
