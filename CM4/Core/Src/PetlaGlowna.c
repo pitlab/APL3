@@ -44,6 +44,8 @@ uint8_t cNrOdcinkaCzasu;
 uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU + 1];		//zmierzony czas obsługi odcinka. Na ostatniej pozycji jest czas jałowy
 uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
 uint8_t cBłądPG = BLAD_OK;		//błąd petli głównej
+uint8_t cIndeksBuforaBłędów, cIndeksKasowaniaBłędów;
+uint16_t sLicznikKasowaniaBłędów;
 uint8_t cStanIOwy, cStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t cBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 extern volatile uint8_t cWskNapBufAnaGNSS, cWskOprBufAnaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
@@ -99,7 +101,8 @@ void PetlaGlowna(void)
 	if (cNrOdcinkaCzasu < LICZBA_POMIAROW_ADC3)
 	{
 		nCzasStartuADC = PobierzCzasT7();
-		cBłądPG |= ObsługaDekoderaiADC(cNrOdcinkaCzasu, cBityPozwoleniaNaPomiarADC);	//zarządza rozpoczęciem pomiaru ADC i pobraniem wyników, przełacza dekoder modułów
+		cBłądPG = ObsługaDekoderaiADC(cNrOdcinkaCzasu, cBityPozwoleniaNaPomiarADC);	//zarządza rozpoczęciem pomiaru ADC i pobraniem wyników, przełacza dekoder modułów
+		PrzechwyćBłąd(cBłądPG);
 		nCzasOdcinka[20] = MinalCzasT7(nCzasStartuADC);		//czas konwersji ADC
 	}
 
@@ -114,10 +117,7 @@ void PetlaGlowna(void)
 
 	case ADR_MOD2:		//obsługa modułu w gnieździe 2
 		cBłądPG = ObslugaModuluI2P(ADR_MOD2, &cStanIOwy);
-		if (cBłądPG)
-			cStanIOwy &= ~MIO40;	//zaświeć czerwoną LED
-		else
-			cStanIOwy |= MIO40;	//zgaś czerwoną LED
+		PrzechwyćBłąd(cBłądPG);
 		break;
 
 	case ADR_MOD3:		//obsługa modułu w gnieździe 3
@@ -131,7 +131,8 @@ void PetlaGlowna(void)
 	case 4:		//obsługa GNSS na UART8
 		while (cWskNapBufAnaGNSS != cWskOprBufAnaGNSS)
 		{
-			cBłądPG |= DekodujNMEA(cBuforAnalizyGNSS[cWskOprBufAnaGNSS]);	//analizuj dane z GNSS
+			cBłądPG = DekodujNMEA(cBuforAnalizyGNSS[cWskOprBufAnaGNSS]);	//analizuj dane z GNSS
+			PrzechwyćBłąd(cBłądPG);
 			cWskOprBufAnaGNSS++;
 			cWskOprBufAnaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
 			sTimeoutGNSS = TIMEOUT_GNSS;
@@ -154,7 +155,8 @@ void PetlaGlowna(void)
 		uDaneCM4.dane.cNowyPomiar = 0;	//unieważnij wszystkie poprzednie pomiary. Flagi nowych pomiarów zostaną ustawnine w funkcji ObslugaCzujnikowI2C()
 		if (cNoweDaneI2C)
 			ObslugaCzujnikowI2C(&cNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C to je obrób
-		cBłądPG |= RozdzielniaOperacjiI2C();
+		cBłądPG = RozdzielniaOperacjiI2C();
+		PrzechwyćBłąd(cBłądPG);
 		break;
 
 	case 6:	//przepisz czujniki do struktury BSP - finalnie ma to zrobić filtr Kalmana
@@ -171,54 +173,64 @@ void PetlaGlowna(void)
 	case 8:	JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
 
 	case 9:	//obsługa odbiorników RC
-		cBłądPG |= ObsługaRamkiSBus();
-		cBłądPG |= ObsługaRamkiCrossfire();
-		cBłądPG |= DywersyfikacjaOdbiornikowRC(&stRC1, &stRC2, uDaneCM7.dane.cWyborOdbiornikaRC, &uDaneCM4.dane);	//scalenie obu kanałów w jedne dane dane odbiornika RC
-		cBłądPG |= AnalizujSygnalRC(&uDaneCM4.dane, &uDaneCM7.dane);
+		cBłądPG = ObsługaRamkiSBus();
+		PrzechwyćBłąd(cBłądPG);
+		cBłądPG = ObsługaRamkiCrossfire();
+		PrzechwyćBłąd(cBłądPG);
+		cBłądPG = DywersyfikacjaOdbiornikowRC(&stRC1, &stRC2, uDaneCM7.dane.cWyborOdbiornikaRC, &uDaneCM4.dane);	//scalenie obu kanałów w jedne dane dane odbiornika RC
+		PrzechwyćBłąd(cBłądPG);
+		cBłądPG = AnalizujSygnalRC(&uDaneCM4.dane, &uDaneCM7.dane);
+		PrzechwyćBłąd(cBłądPG);
 		break;
 
 	case 10:
 		//cBłądPG |= PobierzDaneExpandera(&chStanIOwe);		//wszystkie porty ustawione na wyjściowe, nie ma co pobierać
-		cBłądPG |= WyslijDaneExpandera(cStanIOwy); 	break;
+		cBłądPG = WyslijDaneExpandera(cStanIOwy);
+		PrzechwyćBłąd(cBłądPG);
+		break;
 
 	case 12:	//wymień dane między rdzeniami
-		if (cBłądPG)
-			uDaneCM4.dane.cBłąd = cBłądPG;
-		cBłądPG  = UstawDaneWymiany_CM4();
-		cBłądPG |= PobierzDaneWymiany_CM7();
+		cBłądPG = UstawDaneWymiany_CM4();
+		PrzechwyćBłąd(cBłądPG);
+		cBłądPG = PobierzDaneWymiany_CM7();
+		PrzechwyćBłąd(cBłądPG);
 		break;
 
 	case 13:
-		WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
+		cBłądPG = WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
+		PrzechwyćBłąd(cBłądPG);
 		break;
 
 	case 15:	//pozwól na testowe uruchomienie inicjalizacji
 		if (cBuforAnalizyGNSS[0] == 0xFF)
 		{
-			//InicjujMikser();
-			//InicjujWyjsciaRC();
-			//InicjujModulI2P();
-			//chBuforAnalizyGNSS[0] = 0;
-			InicjujPID();
+			//cBłądPG = InicjujMikser();
+			//cBłądPG = InicjujWyjsciaRC();
+			//cBłądPG = InicjujModulI2P();
+			cBłądPG = InicjujPID();
+			PrzechwyćBłąd(cBłądPG);
+			cBuforAnalizyGNSS[0] = 0;
 		}
 		break;
 
 	case 16:
-		/*if (cDzielnikAktualizacjiLED)
-		{
-			cDzielnikAktualizacjiLED--;
-
-		}
-		else
-		{
-			cDzielnikAktualizacjiLED = DZIELNIK_AKTUALIZACJI_LED;
-			AktualizujKolorLedWs821x();
-		}*/
 		break;
 
-	case 17:	cBłądPG |= KontrolerLotu(cTrybRegulacji, ndT, &uDaneCM4.dane, stKonfigPID);	break;
-	case 18:	LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID);	break;
-	case 19:	AktualizujWyjsciaRC(&uDaneCM4.dane);	break;
+	case 17:
+		cBłądPG = KontrolerLotu(cTrybRegulacji, ndT, &uDaneCM4.dane, stKonfigPID);
+		PrzechwyćBłąd(cBłądPG);
+		break;
+
+	case 18:
+		cBłądPG = LiczMikser(stMikser, &uDaneCM4.dane, stKonfigPID);
+		PrzechwyćBłąd(cBłądPG);
+		break;
+
+	case 19:
+		cBłądPG = AktualizujWyjsciaRC(&uDaneCM4.dane);
+		PrzechwyćBłąd(cBłądPG);
+		break;
+
 	default:	break;
 	}
 
@@ -248,8 +260,10 @@ void PetlaGlowna(void)
 // Zwraca: nic
 // Czas wykonania: 680ns (dla POL_NIC)
 ////////////////////////////////////////////////////////////////////////////////
-void WykonajPolecenieCM7(void)
+uint8_t WykonajPolecenieCM7(void)
 {
+	uint8_t cBłąd = BLAD_OK;
+
 	if ((uDaneCM7.dane.cWykonajPolecenie != uDaneCM4.dane.cPotwierdzenieWykonania) | (uDaneCM7.dane.sAdres != uDaneCM4.dane.sAdres))
 	{
 		uDaneCM4.dane.cPotwierdzenieWykonania = uDaneCM7.dane.cWykonajPolecenie;	//domyślnie odeślij to co przyszło aby potwierdzić wykonanie
@@ -257,14 +271,14 @@ void WykonajPolecenieCM7(void)
 		switch(uDaneCM7.dane.cWykonajPolecenie)
 		{
 		case POL7_NIC:	break;		//polecenie neutralne
-		case POL7_KALIBRUJ_ZYRO_ZIM:	RozpocznijKalibracjeZeraZyroskopu(POL7_KALIBRUJ_ZYRO_ZIM);	break;		//uruchom kalibrację żyroskopów na zimno 10°C
-		case POL7_KALIBRUJ_ZYRO_POK:	RozpocznijKalibracjeZeraZyroskopu(POL7_KALIBRUJ_ZYRO_POK);	break;		//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
-		case POL7_KALIBRUJ_ZYRO_GOR:	RozpocznijKalibracjeZeraZyroskopu(POL7_KALIBRUJ_ZYRO_GOR);	break;		//uruchom kalibrację żyroskopów na gorąco 40°C
+		case POL7_KALIBRUJ_ZYRO_ZIM:	cBłąd = RozpocznijKalibracjeZeraZyroskopu(POL7_KALIBRUJ_ZYRO_ZIM);	break;		//uruchom kalibrację żyroskopów na zimno 10°C
+		case POL7_KALIBRUJ_ZYRO_POK:	cBłąd = RozpocznijKalibracjeZeraZyroskopu(POL7_KALIBRUJ_ZYRO_POK);	break;		//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
+		case POL7_KALIBRUJ_ZYRO_GOR:	cBłąd = RozpocznijKalibracjeZeraZyroskopu(POL7_KALIBRUJ_ZYRO_GOR);	break;		//uruchom kalibrację żyroskopów na gorąco 40°C
 
 		case POL7_KALIBRUJ_ZYRO_WZMP:		//uruchom kalibrację wzmocnienia żyroskopów P
 		case POL7_KALIBRUJ_ZYRO_WZMQ:		//uruchom kalibrację wzmocnienia żyroskopów Q
 		case POL7_KALIBRUJ_ZYRO_WZMR:		//uruchom kalibrację wzmocnienia żyroskopów R
-		case POL7_ZERUJ_CALKE_ZYRO:	KalibracjaWzmocnieniaZyro(uDaneCM7.dane.cWykonajPolecenie);	break;	//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
+		case POL7_ZERUJ_CALKE_ZYRO:		cBłąd = KalibracjaWzmocnieniaZyro(uDaneCM7.dane.cWykonajPolecenie);	break;	//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
 
 		case POL7_CZYTAJ_WZM_ZYROP:	//odczytaj wzmocnienia żyroskopów P
 			uDaneCM4.dane.uRozne.f32[2] = CzytajFramFloat(FAH_ZYRO1P_WZMOC);
@@ -285,16 +299,17 @@ void WykonajPolecenieCM7(void)
 		case POL7_KAL_ZERO_MAGN2:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne2);	break;	//uruchom kalibrację zera magnetometru 2
 		case POL7_KAL_ZERO_MAGN3:	ZnajdzEkstremaMagnetometru((float*)uDaneCM4.dane.fMagne3);	break;	//uruchom kalibrację zera magnetometru 3
 
-		case POL7_ZAPISZ_KONF_MAGN1:	ZapiszKalibracjeMagnetometru(MAG1);	break;
-		case POL7_ZAPISZ_KONF_MAGN2:	ZapiszKalibracjeMagnetometru(MAG2);	break;
-		case POL7_ZAPISZ_KONF_MAGN3:	ZapiszKalibracjeMagnetometru(MAG3);	break;
+		case POL7_ZAPISZ_KONF_MAGN1:	cBłąd = ZapiszKalibracjeMagnetometru(MAG1);	break;
+		case POL7_ZAPISZ_KONF_MAGN2:	cBłąd = ZapiszKalibracjeMagnetometru(MAG2);	break;
+		case POL7_ZAPISZ_KONF_MAGN3:	cBłąd = ZapiszKalibracjeMagnetometru(MAG3);	break;
 
 		case POL7_POBIERZ_KONF_MAGN1: PobierzKalibracjeMagnetometru(MAG1);	break;
 		case POL7_POBIERZ_KONF_MAGN2: PobierzKalibracjeMagnetometru(MAG2);	break;
 		case POL7_POBIERZ_KONF_MAGN3: PobierzKalibracjeMagnetometru(MAG3);	break;
 
 		case POL7_ZERUJ_EKSTREMA:
-			if (ZerujEkstremaMagnetometru())
+			cBłąd = ZerujEkstremaMagnetometru();
+			if (cBłąd)
 			{
 				//uDaneCM4.dane.chOdpowiedzNaPolecenie = POL7_NIC;	//jeżeli dane nie są jeszcze wyzerowane to zwróć inną odpowiedź niż numer polecenia
 				uDaneCM4.dane.cPotwierdzenieWykonania = POL7_NIC;	//jeżeli dane nie są jeszcze wyzerowane to zwróć inną odpowiedź niż numer polecenia
@@ -308,21 +323,21 @@ void WykonajPolecenieCM7(void)
 			}
 			break;
 
-		case POL7_INICJUJ_USREDN:	KalibrujCisnienie(0, 0, 0, CZAS_KALIBRACJI, 0xFF);	break;	//inicjalizacja
+		case POL7_INICJUJ_USREDN:	cBłąd = KalibrujCisnienie(0, 0, 0, CZAS_KALIBRACJI, 0xFF);	break;	//inicjalizacja
 		case POL7_ZERUJ_LICZNIK:
 			sLicznikCzasuKalibracji = 0;
 			break;
 
 		case POL7_USREDNIJ_CISN1:
-			//uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
-			uDaneCM4.dane.uRozne.U8[0] = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
+			cBłąd = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
+			uDaneCM4.dane.uRozne.U8[0] = cBłąd;
 			if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
 				uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
 			break;
 
 		case POL7_USREDNIJ_CISN2:
-			//uDaneCM4.dane.chOdpowiedzNaPolecenie = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
-			uDaneCM4.dane.uRozne.U8[0] = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
+			cBłąd = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
+			uDaneCM4.dane.uRozne.U8[0] = cBłąd;
 			if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
 				uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
 			break;
@@ -446,7 +461,7 @@ void WykonajPolecenieCM7(void)
 			((void (*)(void))reset_pc)();*/
 			break;
 
-		case POL7_PRZELADUJ_WSKAZN_LED: 		InicjujKoloryWS281x();	break;
+		case POL7_PRZELADUJ_WSKAZN_LED: 	cBłąd = InicjujKoloryWS281x();	break;
 
 		case POL7_WYSTERUJ_SILNIKI_AD:
 			for (uint16_t n=0; n<KANALY_MIKSERA; n++)
@@ -463,7 +478,7 @@ void WykonajPolecenieCM7(void)
 				cFunkcjaSilnika[n] = FSIL_NAPED;
 			break;
 
-		case POL7_PRZELADUJ_PID:	InicjujPID();	break;	//ponownie załaduj konfigurację PID aby odświeżyć ustawienia po zmianie konfiguracji
+		case POL7_PRZELADUJ_PID:	cBłąd = InicjujPID();	break;	//ponownie załaduj konfigurację PID aby odświeżyć ustawienia po zmianie konfiguracji
 		case POL7_CZYTAJ_KALIBR_TEMP:
 			sTS_CAL1 = uDaneCM7.dane.uRozne.U16[0];
 			sTS_CAL2 = uDaneCM7.dane.uRozne.U16[1];	//współczynniki kalibracji czujnika temperatury odczytywane w CM7 i przekazywane poleceniem
@@ -476,8 +491,8 @@ void WykonajPolecenieCM7(void)
 				uDaneCM4.dane.uRozne.U16[n] = (nCzasOdcinka[n] + uDaneCM4.dane.uRozne.U16[n] * 3) / 4;	//przepisz czasy z filtrowaniem
 			break;
 
-		case POL7_REKONFIG_WEJSCIA_RC:	InicjujWejsciaRC();	break;	//wykonuje ponowną konfigurację wejść RC po zmianie konfiguracji we FRAM
-		case POL7_REKONFIG_WYJSCIA_RC:	InicjujWyjsciaRC();	break;	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
+		case POL7_REKONFIG_WEJSCIA_RC:	cBłąd = InicjujWejsciaRC();	break;	//wykonuje ponowną konfigurację wejść RC po zmianie konfiguracji we FRAM
+		case POL7_REKONFIG_WYJSCIA_RC:	cBłąd = InicjujWyjsciaRC();	break;	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
 
 		case POL7_URUCHOM_INDENT_SILN:
 			sWysterowanieIdentSiln = uDaneCM4.dane.uRozne.U16[0];	//wysterowanie silników podczas procesu identyfikacji
@@ -492,6 +507,7 @@ void WykonajPolecenieCM7(void)
 
 		}	//switch
 	}
+	return cBłąd;
 }
 
 
@@ -720,3 +736,30 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja przechwytuje błędy mające być przekazane do CM7. Po upływie zdefinowanego czasu błędy są kasowane
+// Parametry: cBłąd - kod błędu do zarejestrowania
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void PrzechwyćBłąd(uint8_t cBłąd)
+{
+	if ((cBłąd != BLAD_OK) && (cBłąd != BLAD_GOTOWE) && (cBłąd != BLAD_NIC_DO_ROBOTY))	//pomiń kody nie będące błędami
+	{
+		uDaneCM4.dane.cBuforBłędów[cIndeksBuforaBłędów] = cBłąd;	//bufor do przechowywania ostatnich błędów przekazywanych z CM4 do CM7
+		cIndeksBuforaBłędów++;
+		cIndeksBuforaBłędów &= MASKA_LICZNIKA_BLEDOW;
+		sLicznikKasowaniaBłędów = TIMEOUT_KASOWANIA_BLEDOW;
+	}
+	else
+	{
+		sLicznikKasowaniaBłędów--;
+		if (!sLicznikKasowaniaBłędów)
+		{
+			uDaneCM4.dane.cBuforBłędów[cIndeksKasowaniaBłędów] = BLAD_OK;
+			cIndeksKasowaniaBłędów++;
+			cIndeksKasowaniaBłędów &= MASKA_LICZNIKA_BLEDOW;
+			sLicznikKasowaniaBłędów = TIMEOUT_KASOWANIA_BLEDOW;
+		}
+	}
+}

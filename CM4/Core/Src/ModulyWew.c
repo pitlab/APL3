@@ -188,6 +188,11 @@ uint8_t UstawDekoderModulow(uint8_t modul)
 		HAL_GPIO_WritePin(MODW_ADR2_GPIO_Port, MODW_ADR2_Pin, GPIO_PIN_SET);	//ADR2
 		break;
 
+	case 7:	//dotyczy wyłącznie dekoderów sygnałów analogowych
+		HAL_GPIO_WritePin(MODW_ADR0_GPIO_Port, MODW_ADR0_Pin, GPIO_PIN_SET);	//ADR0
+		HAL_GPIO_WritePin(MODW_ADR1_GPIO_Port, MODW_ADR1_Pin, GPIO_PIN_SET);	//ADR1
+		HAL_GPIO_WritePin(MODW_ADR2_GPIO_Port, MODW_ADR2_Pin, GPIO_PIN_SET);	//ADR2
+
 	default:	cBłąd = BLAD_ZLY_ADRES;	break;
 	}
 

@@ -133,7 +133,7 @@ uint8_t ObsługaDekoderaiADC(uint8_t cOdcinekCzasu, uint8_t cBityPozwoleniaNaPom
 	uint8_t cBłąd = BLAD_OK;
 
 	//ustaw dekoder adresów i jednocześnie multiplekser analogowy na zadany kanał w zakresie 0..7
-	if (cOdcinekCzasu < LICZBA_POMIAROW_ADC2)
+	if (cOdcinekCzasu < LICZBA_POMIAROW_ADC2 - 1)
 		cBłąd |= UstawDekoderModulow(cOdcinekCzasu);
 
 	chWykonanoPomiarADC = 0;

@@ -1625,6 +1625,7 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN 5 */
   uint8_t cStanDekodera;
   uint8_t cDzielnikCzasu = 0;
+  extern uint8_t cIndeksBuforaBłędów;
 
   uDaneCM7.dane.cWyborOdbiornikaRC = ODB_OBA;	//przesyłaj stan obu odbiorników po dywersyfikacji
   for(;;)
@@ -1637,8 +1638,8 @@ void StartDefaultTask(void *argument)
 			cCzasSwieceniaLED[LED_ZIEL] = 1;	//x0,1s
 			cBłąd = BLAD_OK;
 		}
-		if (uDaneCM4.dane.cBłąd)
-			cCzasSwieceniaLED[LED_CZER] = 5;	//x0,1s
+		if (uDaneCM4.dane.cBuforBłędów[cIndeksBuforaBłędów])
+			cCzasSwieceniaLED[LED_CZER] = 10;	//x0,1s
 
 		PobierzDaneDoFFT();
 		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//kanał serw 1 skonfigurowany jako IO

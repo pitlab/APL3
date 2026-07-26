@@ -20,7 +20,7 @@ volatile uint32_t nBuforWymianyCM7[ROZMIAR_BUF32_WYMIANY_CM7] __attribute__((sec
 volatile unia_wymianyCM4_t uDaneCM4;
 volatile unia_wymianyCM7_t uDaneCM7;
 uint8_t cLicznikOdswiezaniaCM4;
-
+uint8_t cLicznikBrakuDostępuDoCM4, cLicznikBrakuDostępuDoCM7;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjalizacja miedzyrdzeniowej wymiany danych
@@ -46,7 +46,7 @@ void InicjujWymiane(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t PobierzDaneWymiany_CM7(void)
 {
-	HAL_StatusTypeDef cBłąd = BLAD_SEMAFOR_ZAJETY;
+	HAL_StatusTypeDef cBłąd = BLAD_OK;
 
 	if (sFlagiCM7 & FMR_SPRAWDZ_CM7)	//jeżeli przyszedł callback z informacją o zwolnieniu semafora CM7
 	{
@@ -57,6 +57,16 @@ uint8_t PobierzDaneWymiany_CM7(void)
 				uDaneCM7.nSlowa[n] = nBuforWymianyCM7[n];
 			HAL_HSEM_Release(HSEM_CM7_TO_CM4, HSEM_CM4);
 			sFlagiCM7 &= ~(FMR_SA_DANE_CM7 | FMR_SPRAWDZ_CM7);		//flagi zdejmij po udanym odczycie
+			cLicznikBrakuDostępuDoCM7 = 0;
+		}
+		else
+		{
+			cLicznikBrakuDostępuDoCM7++;
+			if (cLicznikBrakuDostępuDoCM7 >= LICZBA_BRAKOW_DOSTEPU_DO_SEMAFORA_JAKO_BLAD)
+			{
+				cBłąd = BLAD_SEMAFOR_ZAJETY;
+				cLicznikBrakuDostępuDoCM7 = 0;
+			}
 		}
 	}
 	return cBłąd;
@@ -75,23 +85,33 @@ uint8_t PobierzDaneWymiany_CM7(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t UstawDaneWymiany_CM4(void)
 {
-	HAL_StatusTypeDef cBłąd = BLAD_SEMAFOR_ZAJETY;
+	HAL_StatusTypeDef cBłąd = BLAD_OK;
 
-	cBłąd = HAL_HSEM_Take(HSEM_CM4_TO_CM7, HSEM_CM4);
-	if (cBłąd == BLAD_OK)
+	if (((sFlagiCM4 & FMR_SA_DANE_CM4) != FMR_SA_DANE_CM4) || (cLicznikOdswiezaniaCM4 == 0))	//ustaw tylko gdy poprzednie zostały odczytane
 	{
-		if (((sFlagiCM4 & FMR_SA_DANE_CM4) != FMR_SA_DANE_CM4) || (cLicznikOdswiezaniaCM4 == 0))	//ustaw tylko gdy poprzednie zostały odczytane
+		cBłąd = HAL_HSEM_Take(HSEM_CM4_TO_CM7, HSEM_CM4);
+		if (cBłąd == BLAD_OK)
 		{
 			for (uint16_t n=0; n<ROZMIAR_BUF32_WYMIANY_CM4; n++)
 				nBuforWymianyCM4[n] = uDaneCM4.nSlowa[n];
 			sFlagiCM4 |= FMR_SA_DANE_CM4;	//ustaw flagę obecności nowych danych
-		}
-		HAL_HSEM_Release(HSEM_CM4_TO_CM7, HSEM_CM4);
+			HAL_HSEM_Release(HSEM_CM4_TO_CM7, HSEM_CM4);
 
-		//Rdzeń CM7 pobiera dane z częstotliwością 100Hz (10ms).
-		//Rdzeń CM4 produkuje dane co ok. 0,5ms, więc jeżeli nie będzie flagi od CM7, to co 32 okresy wstaw nowe dane
-		cLicznikOdswiezaniaCM4++;
-		cLicznikOdswiezaniaCM4 &= 0x1F;
+			//Rdzeń CM7 pobiera dane z częstotliwością 100Hz (10ms).
+			//Rdzeń CM4 produkuje dane co ok. 0,5ms, więc jeżeli nie będzie flagi od CM7, to co 32 okresy wstaw nowe dane
+			cLicznikOdswiezaniaCM4++;
+			cLicznikOdswiezaniaCM4 &= 0x1F;
+			cLicznikBrakuDostępuDoCM4 = 0;
+		}
+		else
+		{
+			cLicznikBrakuDostępuDoCM4++;
+			if (cLicznikBrakuDostępuDoCM4 >= LICZBA_BRAKOW_DOSTEPU_DO_SEMAFORA_JAKO_BLAD)
+			{
+				cBłąd = BLAD_SEMAFOR_ZAJETY;
+				cLicznikBrakuDostępuDoCM4 = 0;
+			}
+		}
 	}
 	return cBłąd;
 }

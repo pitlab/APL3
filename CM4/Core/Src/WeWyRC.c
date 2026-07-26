@@ -944,7 +944,7 @@ uint8_t AktualizujWyjsciaRC(stWymianyCM4_t *daneCM4)
 			if (cDzielnikAktualizacjiLED == 0)
 			{
 				cDzielnikAktualizacjiLED = DZIELNIK_AKTUALIZACJI_LED;
-				AktualizujKolorLedWs821x();
+				cBłąd = AktualizujKolorLedWs821x();
 			}
 			break;
 

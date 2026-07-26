@@ -209,19 +209,37 @@ int main(void)
   /* USER CODE BEGIN 2 */
   uDaneCM4.dane.nZainicjowano = 0;	//za każdym uruchomieniem detekcja i inicjalizacja sprzętu zaczyna się od początku
   sFlagiCM4 = sFlagiCM7 = 0;
-  cBłąd |= InicjujADC();
-  cBłąd |= InicjujModulyWew();
-  cBłąd |= InicjujModulI2P();
-  cBłąd |= InicjujJednostkeInercyjna();
-  cBłąd |= InicjujWejsciaRC();	//odbiorniki RC
-  cBłąd |= InicjujWyjsciaRC();	//serwa, ESC
-  cBłąd |= InicjujPID();
-  cBłąd |= InicjujMikser();
-  cBłąd |= InicjujKontrolerLotu();
-  cBłąd |= InicjujCrossfire();
+  cBłąd = InicjujADC();
+  PrzechwyćBłąd(cBłąd);
+
+  cBłąd = InicjujModulyWew();
+  PrzechwyćBłąd(cBłąd);
+
+  cBłąd = InicjujModulI2P();
+  PrzechwyćBłąd(cBłąd);
+
+  cBłąd = InicjujJednostkeInercyjna();
+  PrzechwyćBłąd(cBłąd);
+
+  cBłąd = InicjujWejsciaRC();	//odbiorniki RC
+  PrzechwyćBłąd(cBłąd);
+
+  cBłąd = InicjujWyjsciaRC();	//serwa, ESC
+  PrzechwyćBłąd(cBłąd);
+
+  cBłąd = InicjujPID();
+  PrzechwyćBłąd(cBłąd);
+
+  cBłąd = InicjujMikser();
+  PrzechwyćBłąd(cBłąd);
+
+  cBłąd = InicjujKontrolerLotu();
+  PrzechwyćBłąd(cBłąd);
+
+  cBłąd = InicjujCrossfire();
+  PrzechwyćBłąd(cBłąd);
+
   InicjujWymiane();
-  uDaneCM4.dane.cBłąd = cBłąd;
-  UstawDaneWymiany_CM4();
 
 #ifdef TESTY		//testy algorytmów
   TestyFram();

@@ -414,3 +414,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define MAX_FILTR_WART_ZAD		255		//maksymalna wartość podstawy filtra wartości zadanej
 #define MAX_FILTR_WART_WEJ		31		//maksymalna wartość podstawy filtra wartości wejsciowej
 //#define MAX_PROC_WYPRZEDZENIA	100		//maksymalna wartość procentowej wartosci wyprzedzenia regulatora PID
+
+#define ROZMIAR_BUFORA_BLEDOW	8		//bufor do przechowywania ostatnich błędów przekazywanych z CM4 do CM7
+#define MASKA_LICZNIKA_BLEDOW	0x07
+#define LICZBA_BRAKOW_DOSTEPU_DO_SEMAFORA_JAKO_BLAD	3	//tyle razy z rzędu nie udało się dostać semafora mechanizmu wymiany danych między rdzeniami
