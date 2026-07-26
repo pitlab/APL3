@@ -98,7 +98,7 @@ uint8_t KontrolerLotu(uint8_t *cTryb, uint32_t ndT, stWymianyCM4_t *dane, stKonf
 				//ustaw wartości zadane dla regualtorów parametru głównego
 				if (cTryb[n] == REG_STAB)
 					//dane->stPID[cIndeksPID_Kata].fZadana = dane->fFiltrowaneKanalyRC[n] * konfig[cIndeksPID_Kata].fSkalaWartZadanej / NORMA_SYGNALU;	//wartością zadaną jest drążek aparatury
-					dane->stPID[cIndeksPID_Kata].fZadana = (dane->fFiltrowaneKanalyRC[n] * konfig[cIndeksPID_Kata].fSkalaWartZadanej / NORMA_SYGNALU) + konfig[cIndeksPID_Kata].fPrzesunWartZadanej;	//wartością zadaną jest drążek aparatury
+					dane->stPID[cIndeksPID_Kata].fZadana = (dane->fFiltrowaneKanalyRC[n] * konfig[cIndeksPID_Kata].fSkalaWartZadanej / NORMA_SYGNALU) + konfig[cIndeksPID_Kata].fPrzesWartZadanej;	//wartością zadaną jest drążek aparatury
 				else
 				{
 					if (n < POZN)	//tylko na przechylenia, pochylenia, odchylenia i wysokości

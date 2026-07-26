@@ -1,5 +1,5 @@
 # APL3
-### Projekt eksperymentalnego autopilota dla samolotów RC z obsługą kamery cyfrowej.
+### Projekt eksperymentalnego autopilota dla wielowirnikowców RC z obsługą kamery cyfrowej.
 ![APL3](obrazki/ekran_startowy.jpg)
 
 To są początki projektu. Obecnie jest zaimplementowana następująca funkcjonalność:
@@ -46,10 +46,10 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Podstawowa wersja OSD działająca na żywo na obrazie kamery lub jako sama nakładka na szarym tle 
 ![OSD](obrazki/zdj_20251109_081718.bmp) 
 - Zapisuje pliki jpeg w monochromatycznym formacie Y8, oraz kolorowych YUV444, YUV420 i YUV420. 
-- W pliku jpeg zapisuje strukturę Exif zawierajacą między innymi współrzędne GNSS 
-- Steruje programowalnumi LED, w szczególności wyswietla wskaźnik liniowy wybranej zmiennej.
+- W pliku jpeg zapisuje strukturę Exif zawierajacą między innymi współrzędne geograficzne 
+- Steruje programowalnymi LED, w szczególności wyświetla wskaźnik liniowy wybranej zmiennej.
 - Liczy FFT z danych akcelerometru i żyroskopu, rysuje wodoshad historii pomiarów, przechowuje pomiary w pamieci.
-- Specjalnym rodzajem telemetrii przesyła historię pomiarów FFT do NSK
+- Specjalnym rodzajem szybkiej telemetrii przesyła wyniki pomiarów FFT do NSK
 
 
 ### Rdzeń CM4:
@@ -79,7 +79,7 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Obsługa wyjść serw PWM: 50, 100 i 200Hz oprócz standardowego 400Hz.
 - Normalizacja sygnałów wejsciowych RC do zakresu 0..2000 odpowiadającemu dynamice współczesnych protokołów komunikacyjnych
 - Obsługa protokołu Crossfire odbiornika RC
-- Rozbudowa PID o funkcję wyprzedzenia i stałe przesunięcie wartosci wyjścia
+- Rozbudowa PID o człon wyprzedzający i stałe przesunięcie wartosci wyjścia
 - Strojenie regulatorów PID dwoma kanałami RC
 
 

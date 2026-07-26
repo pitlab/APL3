@@ -58,7 +58,7 @@
 #define FAU_PID_FLAGI		FA_USER_PID+36	//1U regulator wyłączony (bit 6), Regulator kątowy (bit 7)
 #define FAU_PID_FD 			FA_USER_PID+37  //1U Podstawa filtra IIR błędu do liczenia członu różniczkującego
 #define FAU_PID_FWZ			FA_USER_PID+38  //1U Podstawa filtra IIR wartości zadanej do liczenia członu wyprzedzajacego
-#define FAU_PID_FWE  		FA_USER_PID+39  //1U  Podstawa filtra IIR wartości wejściowej
+#define FAU_PID_FWE  		FA_USER_PID+39  //1U Podstawa filtra IIR wartości wejściowej
 #define FAU_PID2			FA_USER_PID+40	//1U wolne
 #define FAU_PID3			FA_USER_PID+41	//1U wolne
 #define ROZMIAR_REG_PID		42
@@ -270,7 +270,7 @@
 #define VMAX_MNOZNIK_ZYRO  	1.3f    //limity wartości odchyłki dodatniej
 #define VDOM_MNOZNIK_ZYRO  	1.0f    //wartość domyślna
 
-#define VMIN_MNOZNIK_PABS   0.75f    //dolny limit wartosci MNOZNIKwania czujnika ciśnienia bezwzględnego
+#define VMIN_MNOZNIK_PABS   0.75f    //dolny limit wartosci mnożnika czujnika ciśnienia bezwzględnego
 #define VMAX_MNOZNIK_PABS   1.25f    //
 #define VDOM_MNOZNIK_PAB    1.00f
 
@@ -278,7 +278,7 @@
 #define VMAX_SKLADNIK_PDIF	500.0f    //
 #define VDOM_SKLADNIK_PDIF	0.0f
 
-#define VMIN_MNOZNIK_MAGN	0.010f		//limity wartości MNOZNIKwania pomiaru magnetometru
+#define VMIN_MNOZNIK_MAGN	0.010f		//limity wartości mnożnika pomiaru magnetometru
 #define VMAX_MNOZNIK_MAGN	100.0f
 #define VDOM_MNOZNIK_MAGN	1.0f
 
@@ -286,37 +286,37 @@
 #define VMAX_SKLADNIK_MAGN	0.01f
 #define VDOM_SKLADNIK_MAGN	0.0f
 
-#define VMIN_PID_WZMP    	(float)0.0     //limity wartości wzmocnienienia członu P regulatora
-#define VMAX_PID_WZMP    	(float)1000
-#define VDOM_PID_WZMP    	(float)1.0
+#define VMIN_PID_WZMP    	0.0f     //limity wartości wzmocnienia członu P regulatora
+#define VMAX_PID_WZMP    	1000.0f
+#define VDOM_PID_WZMP    	1.0f
 
-#define VMIN_PID_WZMI    	(float)0.0     //limity wartości wzmocnienienia członu I regulatora
-#define VMAX_PID_WZMI    	(float)1000
-#define VDOM_PID_WZMI    	(float)0.0
+#define VMIN_PID_WZMI    	0.0f     //limity wartości wzmocnienia członu I regulatora
+#define VMAX_PID_WZMI    	1000.0f
+#define VDOM_PID_WZMI    	0.0f
 
-#define VMIN_PID_WZMD    	(float)0.0    //limity wartości wzmocnienienia członu D regulatora
-#define VMAX_PID_WZMD    	(float)1000
-#define VDOM_PID_WZMD    	(float)0.0
+#define VMIN_PID_WZMD    	0.0f    //limity wartości wzmocnienia członu D regulatora
+#define VMAX_PID_WZMD    	1000.0f
+#define VDOM_PID_WZMD    	0.0f
 
-#define VMIN_PID_SLEWR   	(float)1.0     //limity prędkości narastania sygnału regulatora 0 [%/s]
-#define VMAX_PID_SLEWR   	(float)10000    //max 100% / 0,01s
-#define VDOM_PID_SLEWR   	(float)10000
+#define VMIN_PID_WZMW    	0.0f     //limity wartości wzmocnienia członu Wyprzedzenia regulatora
+#define VMAX_PID_WZMW    	1000.0f
+#define VDOM_PID_WZMW    	1.0f
 
-#define VMIN_PID_ILIM    	(float)0.0     //limit wartości całki członu całkującego regulatora PID
-#define VMAX_PID_ILIM    	(float)100     //max 100%
-#define VDOM_PID_ILIM    	(float)23
+#define VMIN_PID_ILIM    	0.0f     //limit wartości całki członu całkującego regulatora PID
+#define VMAX_PID_ILIM    	100.0f     //max 100%
+#define VDOM_PID_ILIM    	20.0f
 
-#define VMIN_PID_MINWY   	(float)-100.0    //minimalna wartość wyjścia
-#define VMAX_PID_MINWY   	(float)100.0
-#define VDOM_PID_MINWY   	(float)-100.0
+#define VMIN_PID_MINWY   	-100.0f    //minimalna wartość wyjścia
+#define VMAX_PID_MINWY   	100.0f
+#define VDOM_PID_MINWY   	-100.0f
 
-#define VMIN_PID_MAXWY   	(float)-100.0    //maksymalna wartość wyjścia
-#define VMAX_PID_MAXWY   	(float)100.0
-#define VDOM_PID_MAXWY   	(float)100.0
+#define VMIN_PID_MAXWY   	-100.0f    //maksymalna wartość wyjścia
+#define VMAX_PID_MAXWY   	100.0f
+#define VDOM_PID_MAXWY   	100.0f
 
-#define VMIN_PID_MNOZWZ 	(float)0.0001    //MNOZNIKwanie wartości zadanej
-#define VMAX_PID_MNOZWZ 	(float)1000.0
-#define VDOM_PID_MNOZWZ 	(float)0.2
+#define VMIN_PID_MNOZWZ 	0.0001f    //mnożnik wartości zadanej
+#define VMAX_PID_MNOZWZ 	1000.0f
+#define VDOM_PID_MNOZWZ 	0.2f
 
 #define VMIN_MIX_PRZEPOCH	-1000.0f    //składowe pochylenia i przechylenia długości ramienia koptera w mikserze [mm], max 1m
 #define VMAX_MIX_PRZEPOCH   1000.0f
@@ -326,13 +326,13 @@
 #define VMAX_MIX_ODCH    	1.0f
 #define VDOM_MIX_ODCH    	0.0f
 
-#define VMIN_STRPID_MIN 	(float)0.0001    //minimalna wartość parametru do strojenia PID
-#define VMAX_STRPID_MIN 	(float)1000.0
-#define VDOM_STRPID_MIN 	(float)0.01
+#define VMIN_STRPID_MIN 	0.0001    //minimalna wartość parametru do strojenia PID
+#define VMAX_STRPID_MIN 	1000.0
+#define VDOM_STRPID_MIN 	0.01
 
-#define VMIN_STRPID_MAX 	(float)0.001    //maksymalna wartość parametru do strojenia PID
-#define VMAX_STRPID_MAX 	(float)1000.0
-#define VDOM_STRPID_MAX 	(float)100.0
+#define VMIN_STRPID_MAX 	0.001    //maksymalna wartość parametru do strojenia PID
+#define VMAX_STRPID_MAX 	1000.0
+#define VDOM_STRPID_MAX 	100.0
 
 #define VMIN_STRPID_KRC		4    //numer kanału RC do strojenia PID
 #define VMAX_STRPID_KRC 	KANALY_ODB_RC
@@ -357,6 +357,10 @@
 #define VDOM_SKLADNIK_WE_ADC	0.0f
 
 
-#define VMIN_PID_STWYPRZ		-100.0f 		//stała wartość podawana na wejscie wyprzedzające. Domyślnie jest to kąt w radianach stałego pochylenia lub wysokość
-#define VMAX_PID_STWYPRZ 		100.0f
-#define VDOM_PID_STWYPRZ		0.0f
+#define VMIN_PID_STWZAD_KAT		-3.14f 		//stała wartość podawana na wartość zadaną w przypadku regulatorów kąta. Domyślnie jest to kąt w radianach stałego pochylenia
+#define VMAX_PID_STWZAD_KAT		3.14f
+#define VDOM_PID_STWZAD_KAT		0.0f
+
+#define VMIN_PID_STWZAD_WYS		-100.0f 		//stała wartość podawana na wartość zadaną w przypadku regulatora wysokości. Domyślnie jest to wysokość w matrach
+#define VMAX_PID_STWZAD_WYS		10000.0f
+#define VDOM_PID_STWZAD_WYS		0.0f

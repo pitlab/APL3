@@ -18,6 +18,8 @@
 
 //definicje zmiennych
 stKonfPID_t stKonfigPID[LICZBA_PID];
+//stKonfPID_t stMinKonfPID[LICZBA_PID];	//minimalne dopuszczalne wartości nastaw regulatorów
+//stKonfPID_t stMaxKonfPID[LICZBA_PID];	//maksymalne dopuszczalne wartości nastaw regulatorów
 stStrojPID_t stStrojPID[LICZBA_KAN_RC_DO_STROJENIA_PID];
 //float fFiltrWePD[LICZBA_PID];	//stały filtr wartości wejściowej członu proporcjonalnego i różniczkującego mający zmniejszyć szum procesu
 //deklaracje zmiennych zewnętrznych
@@ -49,8 +51,8 @@ uint8_t InicjujPID(void)
         //odczytaj wartość wzmocnienienia członu D regulatora
         cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_KD + sAdrOffset, &stKonfigPID[n].fWzmD, VMIN_PID_WZMD, VMAX_PID_WZMD, VDOM_PID_WZMD);
 
-		//odczytaj wartość wzmocnienienia członu D regulatora
-		cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_KW + sAdrOffset, &stKonfigPID[n].fWzmWyprz, VMIN_PID_WZMP, VMAX_PID_WZMP, VDOM_PID_WZMP);
+		//odczytaj wartość wzmocnienienia członu Wyprzedzenia
+		cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_KW + sAdrOffset, &stKonfigPID[n].fWzmWyprz, VMIN_PID_WZMW, VMAX_PID_WZMW, VDOM_PID_WZMW);
 
         //odczytaj granicę nasycenia członu całkującego
         cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_OGR_CALK + sAdrOffset, &stKonfigPID[n].fOgrCalki, VMIN_PID_ILIM, VMAX_PID_ILIM, VDOM_PID_ILIM);
@@ -65,7 +67,20 @@ uint8_t InicjujPID(void)
         cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_MNOZN_WZAD + sAdrOffset, &stKonfigPID[n].fSkalaWartZadanej, VMIN_PID_MNOZWZ, VMAX_PID_MNOZWZ, VDOM_PID_MNOZWZ);
 
         //odczytaj stałą wartość dodawaną do wartości zadanej regulatora
-        cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_PRZES + sAdrOffset, &stKonfigPID[n].fPrzesunWartZadanej, VMIN_PID_STWYPRZ, VMAX_PID_STWYPRZ, VDOM_PID_STWYPRZ);
+        switch (n)
+        {
+        case PID_KĄTA_PRZE:	//regulator sterowania przechyleniem (lotkami w samolocie)
+        case PID_KĄTA_POCH:	//regulator sterowania pochyleniem (sterem wysokości)
+        case PID_KĄTA_ODCH:	//regulator sterowania odchyleniem (sterem kierunku)
+			cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_PRZES + sAdrOffset, &stKonfigPID[n].fPrzesWartZadanej, VMIN_PID_STWZAD_KAT, VMAX_PID_STWZAD_KAT, VDOM_PID_STWZAD_KAT);
+			break;
+
+        case PID_WYSOKOSCI:	//regulator sterowania wysokością
+			cBłąd |= CzytajFramFloatZWalidacja(FAU_PID_PRZES + sAdrOffset, &stKonfigPID[n].fPrzesWartZadanej, VMIN_PID_STWZAD_WYS, VMAX_PID_STWZAD_WYS, VDOM_PID_STWZAD_WYS);
+			break;
+
+        default:	stKonfigPID[n].fPrzesWartZadanej = 0.0f;	break;	//dla regulatorów pochodnej i regulatorów nawigacyjnych nie ma przesunięcia wartości zadanej
+        }
 
         //odczytaj flagi regulatora: regulator wyłączony (bit 6), Regulator kątowy (bit 7)
         stKonfigPID[n].cFlagi = CzytajFRAM(FAU_PID_FLAGI + sAdrOffset);
@@ -77,12 +92,13 @@ uint8_t InicjujPID(void)
         stKonfigPID[n].cPodstFiltraWZad = CzytajFRAM(FAU_PID_FWZ + sAdrOffset);
 
         //Podstawa filtra IIR wartości wejściowej
-        stKonfigPID[n].cPodstFiltraWej = CzytajFRAM(FAU_PID_FWE + sAdrOffset);
+        stKonfigPID[n].cPodstFiltraWWej = CzytajFRAM(FAU_PID_FWE + sAdrOffset);
 
         //zeruj zmienne robocze
         uDaneCM4.dane.stPID[n].fCalka = 0.0f;   	//zmienna przechowująca całkę z błędu
         uDaneCM4.dane.stPID[n].fFiltrRóżn = 0.0f;	//poprzednia wartość błędu
         uDaneCM4.dane.stPID[n].fFiltrWZad = 0.0f;
+        uDaneCM4.dane.stPID[n].fFiltrWWej = 0.0f;
     }
 
     for (uint16_t n=0; n<LICZBA_KAN_RC_DO_STROJENIA_PID; n++)
@@ -110,8 +126,8 @@ float RegulatorPID(uint32_t ndT, uint8_t cKanal, stWymianyCM4_t *dane, stKonfPID
     float fTemp, fdT;
 
     fdT = (float)ndT/1000000;    //czas obiegu petli w sekundach (optymalizacja kilkukrotnie wykorzystywanej zmiennej)
-    if (konfig[cKanal].cPodstFiltraWej)
-    	dane->stPID[cKanal].fFiltrWWej = ((konfig[cKanal].cPodstFiltraWej - 1) * dane->stPID[cKanal].fFiltrWWej + dane->stPID[cKanal].fWejscie) / konfig[cKanal].cPodstFiltraWej;	//filtr wartosci wejściowej
+    if (konfig[cKanal].cPodstFiltraWWej)
+    	dane->stPID[cKanal].fFiltrWWej = ((konfig[cKanal].cPodstFiltraWWej - 1) * dane->stPID[cKanal].fFiltrWWej + dane->stPID[cKanal].fWejscie) / konfig[cKanal].cPodstFiltraWWej;	//filtr wartosci wejściowej
     else
     	dane->stPID[cKanal].fFiltrWWej = dane->stPID[cKanal].fWejscie;	//podstawa filtra ma wartość 0, więc filtr jest wyłączony
 
@@ -231,127 +247,186 @@ float StrojeniePID_KanałemRC(stStrojPID_t *stStrój, uint8_t chNrKan, stKonfPID
 	uint16_t sParam;
 
 	fParametr = ObliczWartośćParametruStrojenia(WymianaCM4->sKanalRC[chNrKan], stStrój);		//oblicz wartość parametru
+	sParam = (uint16_t)fParametr;
 
 	switch(stStrój->cNrParametru)
 	{
 	case STRP_NIC:			break;		//strojenie wyłączone
 	case STRP_KATA_PRZE_KP:		Konf[PID_KĄTA_PRZE].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze przechylenia
-	case STRP_KATA_PRZE_TI:		Konf[PID_KĄTA_PRZE].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze przechylenia
-	case STRP_KATA_PRZE_TD:		Konf[PID_KĄTA_PRZE].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze przechylenia
-	case STRP_KATA_PRZE_FD:		Konf[PID_KĄTA_PRZE].cPodstFiltraD = (uint8_t)fParametr;	break;//Strojenie filtra sygnału różniczkowanego
-	case STRP_KATA_PRZE_FWZ:	Konf[PID_KĄTA_PRZE].cPodstFiltraWZad = (uint8_t)fParametr;	break;	//Strojenie filtra wartości zadanej
-	case STRP_KATA_PRZE_WYPRZ:	Konf[PID_KĄTA_PRZE].fWzmWyprz = fParametr;	break;	//strojenie wielkości akcji wyprzedzającej
+	case STRP_KATA_PRZE_KI:		Konf[PID_KĄTA_PRZE].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze przechylenia
+	case STRP_KATA_PRZE_KD:		Konf[PID_KĄTA_PRZE].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze przechylenia
+	case STRP_KATA_PRZE_KW:		Konf[PID_KĄTA_PRZE].fWzmWyprz = fParametr;	break;	//strojenie wzmocnienia akcji wyprzedzającej
+	case STRP_KATA_PRZE_FD:		//Strojenie filtra sygnału różniczkowanego
+		if (sParam > MAX_FILTR_CZLONU_D)
+			sParam = MAX_FILTR_CZLONU_D;
+		Konf[PID_KĄTA_PRZE].cPodstFiltraD = (uint8_t)fParametr;
+		break;
+	case STRP_KATA_PRZE_FWZ:	//Strojenie filtra wartości zadanej
+		if (sParam > MAX_FILTR_WART_ZAD)
+			sParam = MAX_FILTR_WART_ZAD;
+		Konf[PID_KĄTA_PRZE].cPodstFiltraWZad = (uint8_t)fParametr;
+		break;
+	case STRP_KATA_PRZE_FWE:	//Strojenie filtra wartości wejściowej
+		if (sParam > MAX_FILTR_WART_WEJ)
+			sParam = MAX_FILTR_WART_WEJ;
+		Konf[PID_KĄTA_PRZE].cPodstFiltraWWej = (uint8_t)fParametr;
+		break;
+
 	case STRP_PRED_PRZE_KP:		Konf[PID_PRED_PRZE].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości kątowej przechylenia
-	case STRP_PRED_PRZE_TI:		Konf[PID_PRED_PRZE].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej przechylenia
-	case STRP_PRED_PRZE_TD:		Konf[PID_PRED_PRZE].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej przechylenia
-	case STRP_PRED_PRZE_FD:		sParam = (uint16_t)fParametr;
+	case STRP_PRED_PRZE_KI:		Konf[PID_PRED_PRZE].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej przechylenia
+	case STRP_PRED_PRZE_KD:		Konf[PID_PRED_PRZE].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej przechylenia
+	case STRP_PRED_PRZE_KW:		Konf[PID_PRED_PRZE].fWzmWyprz = fParametr;	break;//strojenie wzmocnienia akcji wyprzedzającej
+	case STRP_PRED_PRZE_FD:		//Strojenie filtra sygnału różniczkowanego
 		if (sParam > MAX_FILTR_CZLONU_D)
 			sParam = MAX_FILTR_CZLONU_D;
-		Konf[PID_PRED_PRZE].cPodstFiltraD = (uint8_t)sParam;		break;//Strojenie filtra sygnału różniczkowanego
-
-	case STRP_PRED_PRZE_FWZ:	sParam = (uint16_t)fParametr;
+		Konf[PID_PRED_PRZE].cPodstFiltraD = (uint8_t)sParam;
+		break;
+	case STRP_PRED_PRZE_FWZ:	//Strojenie filtra wartości zadanej
 		if (sParam > MAX_FILTR_WART_ZAD)
 			sParam = MAX_FILTR_WART_ZAD;
-		Konf[PID_PRED_PRZE].cPodstFiltraWZad = sParam;		break;	//Strojenie filtra wartości zadanej
+		Konf[PID_PRED_PRZE].cPodstFiltraWZad = sParam;
+		break;
+	case STRP_PRED_PRZE_FWE:	//Strojenie filtra wartości wejściowej
+		if (sParam > MAX_FILTR_WART_WEJ)
+			sParam = MAX_FILTR_WART_WEJ;
+		Konf[PID_PRED_PRZE].cPodstFiltraWWej = sParam;
+		break;
 
-	case STRP_PRED_PRZE_WYPRZ:	Konf[PID_PRED_PRZE].fWzmWyprz = fParametr;	break;//strojenie wielkości akcji wyprzedzającej
 	case STRP_KATA_POCH_KP:		Konf[PID_KĄTA_POCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze pochylenia
-	case STRP_KATA_POCH_TI:		Konf[PID_KĄTA_POCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze pochylenia
-	case STRP_KATA_POCH_TD:		Konf[PID_KĄTA_POCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze pochylenia
-	case STRP_KATA_POCH_FD:		sParam = (uint16_t)fParametr;
+	case STRP_KATA_POCH_KI:		Konf[PID_KĄTA_POCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze pochylenia
+	case STRP_KATA_POCH_KD:		Konf[PID_KĄTA_POCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze pochylenia
+	case STRP_KATA_POCH_KW:		Konf[PID_KĄTA_POCH].fWzmWyprz = fParametr;	break;		//strojenie wzmocnienia akcji wyprzedzającej
+	case STRP_KATA_POCH_FD:		//Strojenie filtra sygnału różniczkowanego
 		if (sParam > MAX_FILTR_CZLONU_D)
 			sParam = MAX_FILTR_CZLONU_D;
-		Konf[PID_KĄTA_POCH].cPodstFiltraD =(uint8_t) sParam;	break;	//Strojenie filtra sygnału różniczkowanego
-
-	case STRP_KATA_POCH_FWZ:	sParam = (uint16_t)fParametr;
+		Konf[PID_KĄTA_POCH].cPodstFiltraD =(uint8_t) sParam;
+		break;
+	case STRP_KATA_POCH_FWZ:	//Strojenie filtra wartości zadanej
 		if (sParam > MAX_FILTR_WART_ZAD)
 			sParam = MAX_FILTR_WART_ZAD;
-		Konf[PID_KĄTA_POCH].cPodstFiltraWZad = (uint8_t)sParam;	break;	//Strojenie filtra wartości zadanej
+		Konf[PID_KĄTA_POCH].cPodstFiltraWZad = (uint8_t)sParam;
+		break;
+	case STRP_KATA_POCH_FWE:	//Strojenie filtra wartości wejściowej
+		if (sParam > MAX_FILTR_WART_WEJ)
+			sParam = MAX_FILTR_WART_WEJ;
+		Konf[PID_KĄTA_POCH].cPodstFiltraWWej = (uint8_t)sParam;
+		break;
 
-	case STRP_KATA_POCH_WYPRZ:	Konf[PID_KĄTA_POCH].fWzmWyprz = fParametr;	break;		//strojenie wielkości akcji wyprzedzającej
 	case STRP_PRED_POCH_KP:		Konf[PID_PRED_POCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości kątowej pochylenia
-	case STRP_PRED_POCH_TI:		Konf[PID_PRED_POCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej pochylenia
-	case STRP_PRED_POCH_TD:		Konf[PID_PRED_POCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej pochylenia
-	case STRP_PRED_POCH_FD:		sParam = (uint16_t)fParametr;
+	case STRP_PRED_POCH_KI:		Konf[PID_PRED_POCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej pochylenia
+	case STRP_PRED_POCH_KD:		Konf[PID_PRED_POCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej pochylenia
+	case STRP_PRED_POCH_KW:		Konf[PID_PRED_POCH].fWzmWyprz = fParametr;	break;	//strojenie wzmocnienia akcji wyprzedzającej
+	case STRP_PRED_POCH_FD:		//Strojenie filtra sygnału różniczkowanego
 		if (sParam > MAX_FILTR_CZLONU_D)
 			sParam = MAX_FILTR_CZLONU_D;
-		Konf[PID_PRED_POCH].cPodstFiltraD = (uint8_t)sParam;	break;	//Strojenie filtra sygnału różniczkowanego
-
-	case STRP_PRED_POCH_FWZ:	sParam = (uint16_t)fParametr;
+		Konf[PID_PRED_POCH].cPodstFiltraD = (uint8_t)sParam;
+		break;
+	case STRP_PRED_POCH_FWZ:	//Strojenie filtra wartości zadanej
 		if (sParam > MAX_FILTR_WART_ZAD)
 			sParam = MAX_FILTR_WART_ZAD;
-		Konf[PID_PRED_POCH].cPodstFiltraWZad = (uint8_t)sParam;	break;		//Strojenie filtra wartości zadanej
+		Konf[PID_PRED_POCH].cPodstFiltraWZad = (uint8_t)sParam;
+		break;
+	case STRP_PRED_POCH_FWE:	//Strojenie filtra wartości wejściowej
+		if (sParam > MAX_FILTR_WART_WEJ)
+			sParam = MAX_FILTR_WART_WEJ;
+		Konf[PID_PRED_POCH].cPodstFiltraWWej = (uint8_t)sParam;
+		break;
 
-	case STRP_PRED_POCH_WYPRZ:	Konf[PID_PRED_POCH].fWzmWyprz = fParametr;	break;	//strojenie wielkości akcji wyprzedzającej
 	case STRP_KATA_ODCH_KP:		Konf[PID_KĄTA_ODCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze odchylenia
-	case STRP_KATA_ODCH_TI:		Konf[PID_KĄTA_ODCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze odchylenia
-	case STRP_KATA_ODCH_TD:		Konf[PID_KĄTA_ODCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze odchylenia
-	case STRP_KATA_ODCH_FD:		sParam = (uint16_t)fParametr;
+	case STRP_KATA_ODCH_KI:		Konf[PID_KĄTA_ODCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze odchylenia
+	case STRP_KATA_ODCH_KD:		Konf[PID_KĄTA_ODCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze odchylenia
+	case STRP_KATA_ODCH_KW:		Konf[PID_KĄTA_ODCH].fWzmWyprz = fParametr;	break;		//strojenie wielkości akcji wyprzedzającej
+	case STRP_KATA_ODCH_FD:		//Strojenie filtra sygnału różniczkowanego
 		if (sParam > MAX_FILTR_CZLONU_D)
 			sParam = MAX_FILTR_CZLONU_D;
-		Konf[PID_KĄTA_ODCH].cPodstFiltraD = (uint8_t)sParam;	break;	//Strojenie filtra sygnału różniczkowanego
-
-	case STRP_KATA_ODCH_FWZ:	sParam = (uint16_t)fParametr;
+		Konf[PID_KĄTA_ODCH].cPodstFiltraD = (uint8_t)sParam;
+		break;
+	case STRP_KATA_ODCH_FWZ:	//Strojenie filtra wartości zadanej
 		if (sParam > MAX_FILTR_WART_ZAD)
 			sParam = MAX_FILTR_WART_ZAD;
-		Konf[PID_KĄTA_ODCH].cPodstFiltraWZad = (uint8_t)sParam;	break;		//Strojenie filtra wartości zadanej
+		Konf[PID_KĄTA_ODCH].cPodstFiltraWZad = (uint8_t)sParam;
+		break;
+	case STRP_KATA_ODCH_FWE:	//Strojenie filtra wartości wejściowej
+		if (sParam > MAX_FILTR_WART_WEJ)
+			sParam = MAX_FILTR_WART_WEJ;
+		Konf[PID_KĄTA_ODCH].cPodstFiltraWWej = (uint8_t)sParam;
+		break;
 
-	case STRP_KATA_ODCH_WYPRZ:	Konf[PID_KĄTA_ODCH].fWzmWyprz = fParametr;	break;		//strojenie wielkości akcji wyprzedzającej
 	case STRP_PRED_ODCH_KP:		Konf[PID_PRED_ODCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości kątowej odchylenia
-	case STRP_PRED_ODCH_TI:		Konf[PID_PRED_ODCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej odchylenia
-	case STRP_PRED_ODCH_TD:		Konf[PID_PRED_ODCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej odchylenia
-	case STRP_PRED_ODCH_FD:		sParam = (uint16_t)fParametr;
+	case STRP_PRED_ODCH_KI:		Konf[PID_PRED_ODCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości kątowej odchylenia
+	case STRP_PRED_ODCH_KD:		Konf[PID_PRED_ODCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej odchylenia
+	case STRP_PRED_ODCH_KW:		Konf[PID_PRED_ODCH].fWzmWyprz = fParametr;	break;	//strojenie wielkości akcji wyprzedzającej
+	case STRP_PRED_ODCH_FD:		//Strojenie filtra sygnału różniczkowanego
 		if (sParam > MAX_FILTR_CZLONU_D)
 			sParam = MAX_FILTR_CZLONU_D;
-		Konf[PID_PRED_ODCH].cPodstFiltraD = (uint8_t)sParam;	break;	//Strojenie filtra sygnału różniczkowanego
-
-	case STRP_PRED_ODCH_FWZ:	sParam = (uint16_t)fParametr;
+		Konf[PID_PRED_ODCH].cPodstFiltraD = (uint8_t)sParam;
+		break;
+	case STRP_PRED_ODCH_FWZ:	//Strojenie filtra wartości zadanej
 		if (sParam > MAX_FILTR_WART_ZAD)
 			sParam = MAX_FILTR_WART_ZAD;
-		Konf[PID_PRED_ODCH].cPodstFiltraWZad = (uint8_t)sParam;	break;		//Strojenie filtra wartości zadanej
+		Konf[PID_PRED_ODCH].cPodstFiltraWZad = (uint8_t)sParam;
+		break;
+	case STRP_PRED_ODCH_FWE:	//Strojenie filtra wartości wejściowej
+		if (sParam > MAX_FILTR_WART_WEJ)
+			sParam = MAX_FILTR_WART_WEJ;
+		Konf[PID_PRED_ODCH].cPodstFiltraWWej = (uint8_t)sParam;
+		break;
 
-	case STRP_PRED_ODCH_WYPRZ:	Konf[PID_PRED_ODCH].fWzmWyprz = fParametr;	break;	//strojenie wielkości akcji wyprzedzającej
 	case STRP_WYSOKOSCI_KP:		Konf[PID_WYSOKOSCI].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze wysokości
-	case STRP_WYSOKOSCI_TI:		Konf[PID_WYSOKOSCI].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze wysokości
-	case STRP_WYSOKOSCI_TD:		Konf[PID_WYSOKOSCI].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze wysokości
-	case STRP_WYSOKOSCI_FD:		sParam = (uint16_t)fParametr;
+	case STRP_WYSOKOSCI_KI:		Konf[PID_WYSOKOSCI].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze wysokości
+	case STRP_WYSOKOSCI_KD:		Konf[PID_WYSOKOSCI].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze wysokości
+	case STRP_WYSOKOSCI_KW:		Konf[PID_WYSOKOSCI].fWzmWyprz = fParametr;	break;	//strojenie wielkości akcji wyprzedzającej
+	case STRP_WYSOKOSCI_FD:		//Strojenie filtra sygnału różniczkowanego
 		if (sParam > MAX_FILTR_CZLONU_D)
 			sParam = MAX_FILTR_CZLONU_D;
-		Konf[PID_WYSOKOSCI].cPodstFiltraD = (uint8_t)sParam;	break;		//Strojenie filtra sygnału różniczkowanego
-
-	case STRP_WYSOKOSCI_FWZ:	sParam = (uint16_t)fParametr;
+		Konf[PID_WYSOKOSCI].cPodstFiltraD = (uint8_t)sParam;
+		break;
+	case STRP_WYSOKOSCI_FWZ:	//Strojenie filtra wartości zadanej
 		if (sParam > MAX_FILTR_WART_ZAD)
 			sParam = MAX_FILTR_WART_ZAD;
-		Konf[PID_WYSOKOSCI].cPodstFiltraWZad = (uint8_t)sParam;	break;		//Strojenie filtra wartości zadanej
+		Konf[PID_WYSOKOSCI].cPodstFiltraWZad = (uint8_t)sParam;
+		break;
+	case STRP_WYSOKOSCI_FWE:	//Strojenie filtra wartości wejściowej
+		if (sParam > MAX_FILTR_WART_WEJ)
+			sParam = MAX_FILTR_WART_WEJ;
+		Konf[PID_WYSOKOSCI].cPodstFiltraWWej = (uint8_t)sParam;
+		break;
 
-	case STRP_WYSOKOSCI_WYPRZ:	Konf[PID_WYSOKOSCI].fWzmWyprz = fParametr;	break;	//strojenie wielkości akcji wyprzedzającej
 	case STRP_PRED_ZWYS_KP:		Konf[PID_PRED_ZWYS].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości zmiany wysokości
-	case STRP_PRED_ZWYS_TI:		Konf[PID_PRED_ZWYS].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości zmiany wysokości
-	case STRP_PRED_ZWYS_TD:		Konf[PID_PRED_ZWYS].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości zmiany wysokości
-	case STRP_PRED_ZWYS_FD:		sParam = (uint16_t)fParametr;
+	case STRP_PRED_ZWYS_KI:		Konf[PID_PRED_ZWYS].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości zmiany wysokości
+	case STRP_PRED_ZWYS_KD:		Konf[PID_PRED_ZWYS].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości zmiany wysokości
+	case STRP_PRED_ZWYS_KW:		Konf[PID_PRED_ZWYS].fWzmWyprz = fParametr;	break;	//strojenie wielkości akcji wyprzedzającej
+	case STRP_PRED_ZWYS_FD:		//Strojenie filtra sygnału różniczkowanego
 		if (sParam)
 			sParam = MAX_FILTR_CZLONU_D;
-		Konf[PID_PRED_ZWYS].cPodstFiltraD = (uint8_t)sParam;	break;	//Strojenie filtra sygnału różniczkowanego
-
-	case STRP_PRED_ZWYS_FWZ:	sParam = (uint16_t)fParametr;
+		Konf[PID_PRED_ZWYS].cPodstFiltraD = (uint8_t)sParam;
+		break;
+	case STRP_PRED_ZWYS_FWZ:	//Strojenie filtra wartości zadanej
 		if (sParam > MAX_FILTR_WART_ZAD)
 			sParam = MAX_FILTR_WART_ZAD;
-		Konf[PID_PRED_ZWYS].cPodstFiltraWZad = (uint8_t)sParam;	break;	//Strojenie filtra wartości zadanej
+		Konf[PID_PRED_ZWYS].cPodstFiltraWZad = (uint8_t)sParam;
+		break;
+	case STRP_PRED_ZWYS_FWE:	//Strojenie filtra wartości wejściowej
+		if (sParam > MAX_FILTR_WART_WEJ)
+			sParam = MAX_FILTR_WART_WEJ;
+		Konf[PID_PRED_ZWYS].cPodstFiltraWWej = (uint8_t)sParam;
+		break;
 
-	case STRP_PRED_ZWYS_WYPRZ:	Konf[PID_PRED_ZWYS].fWzmWyprz = fParametr;	break;	//strojenie wielkości akcji wyprzedzającej
-	case STRP_NAWI_PÓŁN_KP:	Konf[PID_NAWI_PÓŁN].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze nawigacji w kierunku północnym
-	case STRP_NAWI_PÓŁN_TI:	Konf[PID_NAWI_PÓŁN].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze nawigacji w kierunku północnym
-	case STRP_NAWI_PÓŁN_TD:	Konf[PID_NAWI_PÓŁN].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku północnym
-	case STRP_PRED_PÓŁN_KP:	Konf[PID_PRED_PÓŁN].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości w kierunku północnym
-	case STRP_PRED_PÓŁN_TI:	Konf[PID_PRED_PÓŁN].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości w kierunku północnym
-	case STRP_PRED_PÓŁN_TD:	Konf[PID_PRED_PÓŁN].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości w kierunku północnym
+	case STRP_NAWI_POLN_KP:	Konf[PID_NAWI_POLN].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze nawigacji w kierunku północnym
+	case STRP_NAWI_POLN_KI:	Konf[PID_NAWI_POLN].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze nawigacji w kierunku północnym
+	case STRP_NAWI_POLN_KD:	Konf[PID_NAWI_POLN].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku północnym
+
+	case STRP_PRED_POLN_KP:	Konf[PID_PRED_POLN].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości w kierunku północnym
+	case STRP_PRED_POLN_KI:	Konf[PID_PRED_POLN].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości w kierunku północnym
+	case STRP_PRED_POLN_KD:	Konf[PID_PRED_POLN].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości w kierunku północnym
 
 	case STRP_NAWI_WSCH_KP:	Konf[PID_NAWI_WSCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze nawigacji w kierunku wschodnim
-	case STRP_NAWI_WSCH_TI:	Konf[PID_NAWI_WSCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze nawigacji w kierunku wschodnim
-	case STRP_NAWI_WSCH_TD:	Konf[PID_NAWI_WSCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku wschodnim
+	case STRP_NAWI_WSCH_KI:	Konf[PID_NAWI_WSCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze nawigacji w kierunku wschodnim
+	case STRP_NAWI_WSCH_KD:	Konf[PID_NAWI_WSCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku wschodnim
+
 	case STRP_PRED_WSCH_KP:	Konf[PID_PRED_WSCH].fWzmP = fParametr;	break;	//strojenie wzmocnienia w regulatorze prędkości w kierunku wschodnim
-	case STRP_PRED_WSCH_TI:	Konf[PID_PRED_WSCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości w kierunku wschodnim
-	case STRP_PRED_WSCH_TD:	Konf[PID_PRED_WSCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości w kierunku wschodnim
+	case STRP_PRED_WSCH_KI:	Konf[PID_PRED_WSCH].fWzmI = fParametr;	break;	//strojenie członu całkujacego w regulatorze prędkości w kierunku wschodnim
+	case STRP_PRED_WSCH_KD:	Konf[PID_PRED_WSCH].fWzmD = fParametr;	break;	//strojenie członu różniczkującego w regulatorze prędkości w kierunku wschodnim
 	}
 	return fParametr;
 }
@@ -376,6 +451,7 @@ float ObliczWartośćParametruStrojenia(uint16_t sWartośćKanałuRC, stStrojPID
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja uruchamiana po zakończeniu strojenia zapisuje nastawy do FRAM konfiguracji
+// ponieważ użytkownik wpisuje zakres regulacji z palca, więc wykonaj walidację granic zmienności sygnału aby nie wyjść poza dopuszczalny zakres
 // Parametry:
 //   *Strój - wskaźnik na strukture strojenia PID kanałem RC
 //   *Konf - wskaźnik na strukturę konfiguracji PID
@@ -385,85 +461,554 @@ float ObliczWartośćParametruStrojenia(uint16_t sWartośćKanałuRC, stStrojPID
 uint8_t ZapiszWartośćStrojeniaPID_KanałemRC(stStrojPID_t *stStrój, stKonfPID_t *Konf, stWymianyCM4_t *WymianaCM4)
 {
 	uint8_t cBłąd = BLAD_OK;
-	uint8_t cZapiszBajt = 0;	//rozróznia między zapisanem liczby float a bajtu
-	float fParametr;
+	uint8_t cZapiszBajt = 0;	//rozróżnia między zapisaniem liczby float a uint8_t
+	float fParametr;		//wartość strojonego parametru typu float
+	uint16_t sParametr;		//wartość strojonego parametru typu uint16_t
 	uint16_t sAdres;
 
 	fParametr = ObliczWartośćParametruStrojenia(WymianaCM4->sKanalRC[stStrój->cNrKanałuRC], stStrój);		//oblicz wartość parametru
+	sParametr = (uint16_t)roundf(fParametr);	//rzutuj na uint16_t aby móc sprawdzić wartosci do 255
 
-	//oblicz adres parametru
+	//oblicz adres parametru i wykonaj walidację jego wartości
 	switch (stStrój->cNrParametru)
 	{
-	case STRP_NIC:				cBłąd = BLAD_NIC_DO_ROBOTY;	break;	//strojenie wyłączone
-	case STRP_KATA_PRZE_KP:		sAdres = FAU_PID_KP  + PID_KĄTA_PRZE * ROZMIAR_REG_PID;		break;	//strojenie wzmocnienia w regulatorze przechylenia
-	case STRP_KATA_PRZE_TI:		sAdres = FAU_PID_KI  + PID_KĄTA_PRZE * ROZMIAR_REG_PID;		break;	//strojenie członu całkujacego w regulatorze przechylenia
-	case STRP_KATA_PRZE_TD:		sAdres = FAU_PID_KD  + PID_KĄTA_PRZE * ROZMIAR_REG_PID;		break;	//strojenie członu różniczkującego w regulatorze przechylenia
-	case STRP_KATA_PRZE_FD:		sAdres = FAU_PID_FD  + PID_KĄTA_PRZE * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra sygnału różniczkowanego
-	case STRP_KATA_PRZE_FWZ:	sAdres = FAU_PID_FWZ + PID_KĄTA_PRZE * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra wartości zadanej
-	case STRP_KATA_PRZE_WYPRZ:	sAdres = FAU_PID_KW  + PID_KĄTA_PRZE * ROZMIAR_REG_PID;		break;	//strojenie wielkości akcji wyprzedzającej
-	case STRP_PRED_PRZE_KP:		sAdres = FAU_PID_KP  + PID_PRED_PRZE * ROZMIAR_REG_PID;		break;	//strojenie wzmocnienia w regulatorze prędkości kątowej przechylenia
-	case STRP_PRED_PRZE_TI:		sAdres = FAU_PID_KI  + PID_PRED_PRZE * ROZMIAR_REG_PID;		break;	//strojenie członu całkujacego w regulatorze prędkości kątowej przechylenia
-	case STRP_PRED_PRZE_TD:		sAdres = FAU_PID_KD  + PID_PRED_PRZE * ROZMIAR_REG_PID;		break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej przechylenia
-	case STRP_PRED_PRZE_FD:		sAdres = FAU_PID_FD  + PID_PRED_PRZE * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra sygnału różniczkowanego
-	case STRP_PRED_PRZE_FWZ:	sAdres = FAU_PID_FWZ + PID_PRED_PRZE * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra wartości zadanej
-	case STRP_PRED_PRZE_WYPRZ:	sAdres = FAU_PID_KW  + PID_PRED_PRZE * ROZMIAR_REG_PID;		break;	//strojenie wielkości akcji wyprzedzającej
+	case STRP_NIC:	cBłąd = BLAD_NIC_DO_ROBOTY;	break;	//strojenie wyłączone
+	case STRP_KATA_PRZE_KP:		//strojenie wzmocnienia w regulatorze przechylenia
+		sAdres = FAU_PID_KP  + PID_KĄTA_PRZE * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMP)
+			fParametr = VMIN_PID_WZMP;
+		if (fParametr > VMAX_PID_WZMP)
+			fParametr = VMAX_PID_WZMP;
+		break;
 
-	case STRP_KATA_POCH_KP:		sAdres = FAU_PID_KP  + PID_KĄTA_POCH * ROZMIAR_REG_PID;		break;	//strojenie wzmocnienia w regulatorze pochylenia
-	case STRP_KATA_POCH_TI:		sAdres = FAU_PID_KI  + PID_KĄTA_POCH * ROZMIAR_REG_PID;		break;	//strojenie członu całkujacego w regulatorze pochylenia
-	case STRP_KATA_POCH_TD:		sAdres = FAU_PID_KD  + PID_KĄTA_POCH * ROZMIAR_REG_PID;		break;	//strojenie członu różniczkującego w regulatorze pochylenia
-	case STRP_KATA_POCH_FD:		sAdres = FAU_PID_FD  + PID_KĄTA_POCH * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra sygnału różniczkowanego
-	case STRP_KATA_POCH_FWZ:	sAdres = FAU_PID_FWZ + PID_KĄTA_POCH * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra wartości zadanej
-	case STRP_KATA_POCH_WYPRZ:	sAdres = FAU_PID_KW  + PID_KĄTA_POCH * ROZMIAR_REG_PID;		break;	//strojenie wielkości akcji wyprzedzającej
-	case STRP_PRED_POCH_KP:		sAdres = FAU_PID_KP  + PID_PRED_POCH * ROZMIAR_REG_PID;		break;	//strojenie wzmocnienia w regulatorze prędkości kątowej pochylenia
-	case STRP_PRED_POCH_TI:		sAdres = FAU_PID_KI  + PID_PRED_POCH * ROZMIAR_REG_PID;		break;	//strojenie członu całkujacego w regulatorze prędkości kątowej pochylenia
-	case STRP_PRED_POCH_TD:		sAdres = FAU_PID_KD  + PID_PRED_POCH * ROZMIAR_REG_PID;		break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej pochylenia
-	case STRP_PRED_POCH_FD:		sAdres = FAU_PID_FD  + PID_PRED_POCH * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra sygnału różniczkowanego
-	case STRP_PRED_POCH_FWZ:	sAdres = FAU_PID_FWZ + PID_PRED_POCH * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra wartości zadanej
-	case STRP_PRED_POCH_WYPRZ:	sAdres = FAU_PID_KW  + PID_PRED_POCH * ROZMIAR_REG_PID;		break;	//strojenie wielkości akcji wyprzedzającej
+	case STRP_KATA_PRZE_KI:		//strojenie członu całkujacego w regulatorze przechylenia
+		sAdres = FAU_PID_KI  + PID_KĄTA_PRZE * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMI)
+			fParametr = VMIN_PID_WZMI;
+		if (fParametr > VMAX_PID_WZMI)
+			fParametr = VMAX_PID_WZMI;
+		break;
 
-	case STRP_KATA_ODCH_KP:		sAdres = FAU_PID_KP  + PID_KĄTA_ODCH * ROZMIAR_REG_PID;		break;	//strojenie wzmocnienia w regulatorze odchylenia
-	case STRP_KATA_ODCH_TI:		sAdres = FAU_PID_KI  + PID_KĄTA_ODCH * ROZMIAR_REG_PID;		break;	//strojenie członu całkujacego w regulatorze odchylenia
-	case STRP_KATA_ODCH_TD:		sAdres = FAU_PID_KD  + PID_KĄTA_ODCH * ROZMIAR_REG_PID;		break;	//strojenie członu różniczkującego w regulatorze odchylenia
-	case STRP_KATA_ODCH_FD:		sAdres = FAU_PID_FD  + PID_KĄTA_ODCH * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra sygnału różniczkowanego
-	case STRP_KATA_ODCH_FWZ:	sAdres = FAU_PID_FWZ + PID_KĄTA_ODCH * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra wartości zadanej
-	case STRP_KATA_ODCH_WYPRZ:	sAdres = FAU_PID_KW  + PID_KĄTA_ODCH * ROZMIAR_REG_PID;		break;	//strojenie wielkości akcji wyprzedzającej
-	case STRP_PRED_ODCH_KP:		sAdres = FAU_PID_KP  + PID_PRED_ODCH * ROZMIAR_REG_PID;		break;	//strojenie wzmocnienia w regulatorze prędkości kątowej odchylenia
-	case STRP_PRED_ODCH_TI:		sAdres = FAU_PID_KI  + PID_PRED_ODCH * ROZMIAR_REG_PID;		break;	//strojenie członu całkujacego w regulatorze prędkości kątowej odchylenia
-	case STRP_PRED_ODCH_TD:		sAdres = FAU_PID_KD  + PID_PRED_ODCH * ROZMIAR_REG_PID;		break;	//strojenie członu różniczkującego w regulatorze prędkości kątowej odchylenia
-	case STRP_PRED_ODCH_FD:		sAdres = FAU_PID_FD  + PID_PRED_ODCH * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra sygnału różniczkowanego
-	case STRP_PRED_ODCH_FWZ:	sAdres = FAU_PID_FWZ + PID_PRED_ODCH * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra wartości zadanej
-	case STRP_PRED_ODCH_WYPRZ:	sAdres = FAU_PID_KW  + PID_PRED_ODCH * ROZMIAR_REG_PID;		break;	//strojenie wielkości akcji wyprzedzającej
+	case STRP_KATA_PRZE_KD:		//strojenie członu różniczkującego w regulatorze przechylenia
+		sAdres = FAU_PID_KD  + PID_KĄTA_PRZE * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMD)
+			fParametr = VMIN_PID_WZMD;
+		if (fParametr > VMAX_PID_WZMD)
+			fParametr = VMAX_PID_WZMD;
+		break;
 
-	case STRP_WYSOKOSCI_KP:		sAdres = FAU_PID_KP  + PID_WYSOKOSCI * ROZMIAR_REG_PID;		break;	//strojenie wzmocnienia w regulatorze wysokości
-	case STRP_WYSOKOSCI_TI:		sAdres = FAU_PID_KI  + PID_WYSOKOSCI * ROZMIAR_REG_PID;		break;	//strojenie członu całkujacego w regulatorze wysokości
-	case STRP_WYSOKOSCI_TD:		sAdres = FAU_PID_KD  + PID_WYSOKOSCI * ROZMIAR_REG_PID;		break;	//strojenie członu różniczkującego w regulatorze wysokości
-	case STRP_WYSOKOSCI_FD:		sAdres = FAU_PID_FD  + PID_WYSOKOSCI * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra sygnału różniczkowanego
-	case STRP_WYSOKOSCI_FWZ:	sAdres = FAU_PID_FWZ + PID_WYSOKOSCI * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra wartości zadanej
-	case STRP_WYSOKOSCI_WYPRZ:	sAdres = FAU_PID_KW  + PID_WYSOKOSCI * ROZMIAR_REG_PID;		break;	//strojenie wielkości akcji wyprzedzającej
-	case STRP_PRED_ZWYS_KP:		sAdres = FAU_PID_KP  + PID_PRED_ZWYS * ROZMIAR_REG_PID;		break;	//strojenie wzmocnienia w regulatorze prędkości zmiany wysokości
-	case STRP_PRED_ZWYS_TI:		sAdres = FAU_PID_KI  + PID_PRED_ZWYS * ROZMIAR_REG_PID;		break;	//strojenie członu całkujacego w regulatorze prędkości zmiany wysokości
-	case STRP_PRED_ZWYS_TD:		sAdres = FAU_PID_KD  + PID_PRED_ZWYS * ROZMIAR_REG_PID;		break;	//strojenie członu różniczkującego w regulatorze prędkości zmiany wysokości
-	case STRP_PRED_ZWYS_FD:		sAdres = FAU_PID_FD  + PID_PRED_ZWYS * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra sygnału różniczkowanego
-	case STRP_PRED_ZWYS_FWZ:	sAdres = FAU_PID_FWZ + PID_PRED_ZWYS * ROZMIAR_REG_PID;		cZapiszBajt = 1;	break;	//Strojenie filtra wartości zadanej
-	case STRP_PRED_ZWYS_WYPRZ:	sAdres = FAU_PID_KW  + PID_PRED_ZWYS * ROZMIAR_REG_PID;		break;	//strojenie wielkości akcji wyprzedzającej
+	case STRP_KATA_PRZE_KW:		//strojenie wzmocnienia akcji wyprzedzającej
+		sAdres = FAU_PID_KW  + PID_KĄTA_PRZE * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMW)
+			fParametr = VMIN_PID_WZMW;
+		if (fParametr > VMAX_PID_WZMW)
+			fParametr = VMAX_PID_WZMW;
+		break;
 
-	case STRP_NAWI_PÓŁN_KP:		sAdres = FAU_PID_KP + PID_NAWI_PÓŁN * ROZMIAR_REG_PID;		break;	//strojenie wzmocnienia w regulatorze nawigacji w kierunku północnym
-	case STRP_NAWI_PÓŁN_TI:		sAdres = FAU_PID_KI + PID_NAWI_PÓŁN * ROZMIAR_REG_PID;		break;	//strojenie członu całkujacego w regulatorze nawigacji w kierunku północnym
-	case STRP_NAWI_PÓŁN_TD:		sAdres = FAU_PID_KD + PID_NAWI_PÓŁN * ROZMIAR_REG_PID;		break;	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku północnym
-	case STRP_PRED_PÓŁN_KP:		sAdres = FAU_PID_KP + PID_PRED_PÓŁN * ROZMIAR_REG_PID;		break;	//strojenie wzmocnienia w regulatorze prędkości w kierunku północnym
-	case STRP_PRED_PÓŁN_TI:		sAdres = FAU_PID_KI + PID_PRED_PÓŁN * ROZMIAR_REG_PID;		break;	//strojenie członu całkujacego w regulatorze prędkości w kierunku północnym
-	case STRP_PRED_PÓŁN_TD:		sAdres = FAU_PID_KD + PID_PRED_PÓŁN * ROZMIAR_REG_PID;		break;	//strojenie członu różniczkującego w regulatorze prędkości w kierunku północnym
-	case STRP_NAWI_WSCH_KP:		sAdres = FAU_PID_KP + PID_NAWI_WSCH * ROZMIAR_REG_PID;		break;	//strojenie wzmocnienia w regulatorze nawigacji w kierunku wschodnim
-	case STRP_NAWI_WSCH_TI:		sAdres = FAU_PID_KI + PID_NAWI_WSCH * ROZMIAR_REG_PID;		break;	//strojenie członu całkujacego w regulatorze nawigacji w kierunku wschodnim
-	case STRP_NAWI_WSCH_TD:		sAdres = FAU_PID_KD + PID_NAWI_WSCH * ROZMIAR_REG_PID;		break;	//strojenie członu różniczkującego w regulatorze nawigacji w kierunku wschodnim
-	case STRP_PRED_WSCH_KP:		sAdres = FAU_PID_KP + PID_PRED_WSCH * ROZMIAR_REG_PID;		break;	//strojenie wzmocnienia w regulatorze prędkości w kierunku wschodnim
-	case STRP_PRED_WSCH_TI:		sAdres = FAU_PID_KI + PID_PRED_WSCH * ROZMIAR_REG_PID;		break;	//strojenie członu całkujacego w regulatorze prędkości w kierunku wschodnim
-	case STRP_PRED_WSCH_TD:		sAdres = FAU_PID_KD + PID_PRED_WSCH * ROZMIAR_REG_PID;		break;	//strojenie członu różniczkującego w regulatorze prędkości w kierunku wschodnim
-	default:					cBłąd = BLAD_ZLE_DANE;	break;
+	case STRP_KATA_PRZE_FD:		//Strojenie filtra sygnału różniczkowanego
+		sAdres = FAU_PID_FD  + PID_KĄTA_PRZE * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_CZLONU_D)	//maksymalna wartość podstawy filtra czonu różniczkującego PID
+			sParametr = MAX_FILTR_CZLONU_D;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_KATA_PRZE_FWZ:	//Strojenie filtra wartości zadanej
+		sAdres = FAU_PID_FWZ + PID_KĄTA_PRZE * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_ZAD)	//maksymalna wartość podstawy filtra wartości zadanej
+			sParametr = MAX_FILTR_WART_ZAD;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_KATA_PRZE_FWE:	//Strojenie filtra wartości wejściowej
+		sAdres = FAU_PID_FWE + PID_KĄTA_PRZE * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_WEJ)		//maksymalna wartość podstawy filtra wartości wejsciowej
+			sParametr = MAX_FILTR_WART_WEJ;
+		cZapiszBajt = 1;
+		break;
+
+	//regulator prędkości kątowej przechylenia
+	case STRP_PRED_PRZE_KP:		//strojenie wzmocnienia w regulatorze prędkości kątowej przechylenia
+		sAdres = FAU_PID_KP  + PID_PRED_PRZE * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMP)
+			fParametr = VMIN_PID_WZMP;
+		if (fParametr > VMAX_PID_WZMP)
+			fParametr = VMAX_PID_WZMP;
+		break;
+
+	case STRP_PRED_PRZE_KI:		//strojenie członu całkujacego w regulatorze prędkości kątowej przechylenia
+		sAdres = FAU_PID_KI  + PID_PRED_PRZE * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMI)
+			fParametr = VMIN_PID_WZMI;
+		if (fParametr > VMAX_PID_WZMI)
+			fParametr = VMAX_PID_WZMI;
+		break;
+
+	case STRP_PRED_PRZE_KD:		//strojenie członu różniczkującego w regulatorze prędkości kątowej przechylenia
+		sAdres = FAU_PID_KD  + PID_PRED_PRZE * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMD)
+			fParametr = VMIN_PID_WZMD;
+		if (fParametr > VMAX_PID_WZMD)
+			fParametr = VMAX_PID_WZMD;
+		break;
+
+	case STRP_PRED_PRZE_KW:		//strojenie wzmocnienia akcji wyprzedzającej
+		sAdres = FAU_PID_KW  + PID_PRED_PRZE * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMW)
+			fParametr = VMIN_PID_WZMW;
+		if (fParametr > VMAX_PID_WZMW)
+			fParametr = VMAX_PID_WZMW;
+		break;
+
+	case STRP_PRED_PRZE_FD:		//Strojenie filtra sygnału różniczkowanego
+		sAdres = FAU_PID_FD  + PID_PRED_PRZE * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_CZLONU_D)	//maksymalna wartość podstawy filtra czonu różniczkującego PID
+			sParametr = MAX_FILTR_CZLONU_D;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_PRED_PRZE_FWZ:	//Strojenie filtra wartości zadanej
+		sAdres = FAU_PID_FWZ + PID_PRED_PRZE * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_ZAD)	//maksymalna wartość podstawy filtra wartości zadanej
+			sParametr = MAX_FILTR_WART_ZAD;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_PRED_PRZE_FWE:	//Strojenie filtra wartości wejściowej
+		sAdres = FAU_PID_FWE + PID_PRED_PRZE * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_WEJ)		//maksymalna wartość podstawy filtra wartości wejsciowej
+			sParametr = MAX_FILTR_WART_WEJ;
+		cZapiszBajt = 1;
+		break;
+
+	//regulator kąta pochylenia
+	case STRP_KATA_POCH_KP:		//strojenie wzmocnienia w regulatorze pochylenia
+		sAdres = FAU_PID_KP  + PID_KĄTA_POCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMP)
+			fParametr = VMIN_PID_WZMP;
+		if (fParametr > VMAX_PID_WZMP)
+			fParametr = VMAX_PID_WZMP;
+		break;
+
+	case STRP_KATA_POCH_KI:		//strojenie członu całkujacego w regulatorze pochylenia
+		sAdres = FAU_PID_KI  + PID_KĄTA_POCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMI)
+			fParametr = VMIN_PID_WZMI;
+		if (fParametr > VMAX_PID_WZMI)
+			fParametr = VMAX_PID_WZMI;
+		break;
+
+	case STRP_KATA_POCH_KD:		//strojenie członu różniczkującego w regulatorze pochylenia
+		sAdres = FAU_PID_KD  + PID_KĄTA_POCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMD)
+			fParametr = VMIN_PID_WZMD;
+		if (fParametr > VMAX_PID_WZMD)
+			fParametr = VMAX_PID_WZMD;
+		break;
+
+	case STRP_KATA_POCH_KW:		//strojenie wzmocnienia akcji wyprzedzającej
+		sAdres = FAU_PID_KW  + PID_KĄTA_POCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMW)
+			fParametr = VMIN_PID_WZMW;
+		if (fParametr > VMAX_PID_WZMW)
+			fParametr = VMAX_PID_WZMW;
+		break;
+
+	case STRP_KATA_POCH_FD:		//Strojenie filtra sygnału różniczkowanego
+		sAdres = FAU_PID_FD  + PID_KĄTA_POCH * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_CZLONU_D)	//maksymalna wartość podstawy filtra czonu różniczkującego PID
+			sParametr = MAX_FILTR_CZLONU_D;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_KATA_POCH_FWZ:	//Strojenie filtra wartości zadanej
+		sAdres = FAU_PID_FWZ + PID_KĄTA_POCH * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_ZAD)	//maksymalna wartość podstawy filtra wartości zadanej
+			sParametr = MAX_FILTR_WART_ZAD;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_KATA_POCH_FWE:	//Strojenie filtra wartości wejściowej
+		sAdres = FAU_PID_FWE + PID_KĄTA_POCH * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_WEJ)		//maksymalna wartość podstawy filtra wartości wejsciowej
+			sParametr = MAX_FILTR_WART_WEJ;
+		cZapiszBajt = 1;
+		break;
+
+		//regulator prędkości kątowej przechylenia
+	case STRP_PRED_POCH_KP:		//strojenie wzmocnienia w regulatorze prędkości kątowej pochylenia
+		sAdres = FAU_PID_KP  + PID_PRED_POCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMP)
+			fParametr = VMIN_PID_WZMP;
+		if (fParametr > VMAX_PID_WZMP)
+			fParametr = VMAX_PID_WZMP;
+		break;
+
+	case STRP_PRED_POCH_KI:		//strojenie członu całkujacego w regulatorze prędkości kątowej pochylenia
+		sAdres = FAU_PID_KI  + PID_PRED_POCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMI)
+			fParametr = VMIN_PID_WZMI;
+		if (fParametr > VMAX_PID_WZMI)
+			fParametr = VMAX_PID_WZMI;
+		break;
+
+	case STRP_PRED_POCH_KD:		//strojenie członu różniczkującego w regulatorze prędkości kątowej pochylenia
+		sAdres = FAU_PID_KD  + PID_PRED_POCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMD)
+			fParametr = VMIN_PID_WZMD;
+		if (fParametr > VMAX_PID_WZMD)
+			fParametr = VMAX_PID_WZMD;
+		break;
+
+	case STRP_PRED_POCH_KW:		//strojenie wielkości akcji wyprzedzającej
+		sAdres = FAU_PID_KW  + PID_PRED_POCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMW)
+			fParametr = VMIN_PID_WZMW;
+		if (fParametr > VMAX_PID_WZMW)
+			fParametr = VMAX_PID_WZMW;
+		break;
+
+	case STRP_PRED_POCH_FD:		//Strojenie filtra sygnału różniczkowanego
+		sAdres = FAU_PID_FD  + PID_PRED_POCH * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_CZLONU_D)	//maksymalna wartość podstawy filtra czonu różniczkującego PID
+			sParametr = MAX_FILTR_CZLONU_D;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_PRED_POCH_FWZ:	//Strojenie filtra wartości zadanej
+		sAdres = FAU_PID_FWZ + PID_PRED_POCH * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_ZAD)	//maksymalna wartość podstawy filtra wartości zadanej
+			sParametr = MAX_FILTR_WART_ZAD;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_PRED_POCH_FWE:
+		sAdres = FAU_PID_FWE + PID_PRED_POCH * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_WEJ)		//maksymalna wartość podstawy filtra wartości wejsciowej
+			sParametr = MAX_FILTR_WART_WEJ;
+		cZapiszBajt = 1;
+		break;	//Strojenie filtra wartości wejściowej
+
+	//regulator kąta pochylenia
+	case STRP_KATA_ODCH_KP:		//strojenie wzmocnienia w regulatorze odchylenia
+		sAdres = FAU_PID_KP  + PID_KĄTA_ODCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMP)
+			fParametr = VMIN_PID_WZMP;
+		if (fParametr > VMAX_PID_WZMP)
+			fParametr = VMAX_PID_WZMP;
+		break;
+
+	case STRP_KATA_ODCH_KI:		//strojenie członu całkujacego w regulatorze odchylenia
+		sAdres = FAU_PID_KI  + PID_KĄTA_ODCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMI)
+			fParametr = VMIN_PID_WZMI;
+		if (fParametr > VMAX_PID_WZMI)
+			fParametr = VMAX_PID_WZMI;
+		break;
+
+	case STRP_KATA_ODCH_KD:		//strojenie członu różniczkującego w regulatorze odchylenia
+		sAdres = FAU_PID_KD  + PID_KĄTA_ODCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMD)
+			fParametr = VMIN_PID_WZMD;
+		if (fParametr > VMAX_PID_WZMD)
+			fParametr = VMAX_PID_WZMD;
+		break;
+
+	case STRP_KATA_ODCH_KW:		//strojenie wzmocnienia akcji wyprzedzającej
+		sAdres = FAU_PID_KW  + PID_KĄTA_ODCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMW)
+			fParametr = VMIN_PID_WZMW;
+		if (fParametr > VMAX_PID_WZMW)
+			fParametr = VMAX_PID_WZMW;
+		break;
+
+	case STRP_KATA_ODCH_FD:		//Strojenie filtra sygnału różniczkowanego
+		sAdres = FAU_PID_FD  + PID_KĄTA_ODCH * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_CZLONU_D)	//maksymalna wartość podstawy filtra czonu różniczkującego PID
+			sParametr = MAX_FILTR_CZLONU_D;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_KATA_ODCH_FWZ:	//Strojenie filtra wartości zadanej
+		sAdres = FAU_PID_FWZ + PID_KĄTA_ODCH * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_ZAD)	//maksymalna wartość podstawy filtra wartości zadanej
+			sParametr = MAX_FILTR_WART_ZAD;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_KATA_ODCH_FWE:	//Strojenie filtra wartości wejściowej
+		sAdres = FAU_PID_FWE + PID_KĄTA_ODCH * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_WEJ)		//maksymalna wartość podstawy filtra wartości wejsciowej
+			sParametr = MAX_FILTR_WART_WEJ;
+		cZapiszBajt = 1;
+		break;
+
+		//regulator prędkości kątowej //regulator prędkości kątowej przechylenia
+	case STRP_PRED_ODCH_KP:		//strojenie wzmocnienia w regulatorze prędkości kątowej odchylenia
+		sAdres = FAU_PID_KP  + PID_PRED_ODCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMP)
+			fParametr = VMIN_PID_WZMP;
+		if (fParametr > VMAX_PID_WZMP)
+			fParametr = VMAX_PID_WZMP;
+		break;
+
+	case STRP_PRED_ODCH_KI:		//strojenie członu całkujacego w regulatorze prędkości kątowej odchylenia
+		sAdres = FAU_PID_KI  + PID_PRED_ODCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMI)
+			fParametr = VMIN_PID_WZMI;
+		if (fParametr > VMAX_PID_WZMI)
+			fParametr = VMAX_PID_WZMI;
+		break;
+
+	case STRP_PRED_ODCH_KD:		//strojenie członu różniczkującego w regulatorze prędkości kątowej odchylenia
+		sAdres = FAU_PID_KD  + PID_PRED_ODCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMD)
+			fParametr = VMIN_PID_WZMD;
+		if (fParametr > VMAX_PID_WZMD)
+			fParametr = VMAX_PID_WZMD;
+		break;
+
+	case STRP_PRED_ODCH_KW:		//strojenie wzmocnienia akcji wyprzedzającej
+		sAdres = FAU_PID_KW  + PID_PRED_ODCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMW)
+			fParametr = VMIN_PID_WZMW;
+		if (fParametr > VMAX_PID_WZMW)
+			fParametr = VMAX_PID_WZMW;
+		break;
+
+	case STRP_PRED_ODCH_FD:		//Strojenie filtra sygnału różniczkowanego
+		sAdres = FAU_PID_FD  + PID_PRED_ODCH * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_CZLONU_D)	//maksymalna wartość podstawy filtra czonu różniczkującego PID
+			sParametr = MAX_FILTR_CZLONU_D;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_PRED_ODCH_FWZ:	//Strojenie filtra wartości zadanej
+		sAdres = FAU_PID_FWZ + PID_PRED_ODCH * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_ZAD)	//maksymalna wartość podstawy filtra wartości zadanej
+			sParametr = MAX_FILTR_WART_ZAD;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_PRED_ODCH_FWE:	//Strojenie filtra wartości wejściowej
+		sAdres = FAU_PID_FWE + PID_PRED_ODCH * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_WEJ)		//maksymalna wartość podstawy filtra wartości wejsciowej
+			sParametr = MAX_FILTR_WART_WEJ;
+		cZapiszBajt = 1;
+		break;
+
+	//regulator wysokości
+	case STRP_WYSOKOSCI_KP:		//strojenie wzmocnienia w regulatorze wysokości
+		sAdres = FAU_PID_KP  + PID_WYSOKOSCI * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMP)
+			fParametr = VMIN_PID_WZMP;
+		if (fParametr > VMAX_PID_WZMP)
+			fParametr = VMAX_PID_WZMP;
+		break;
+
+	case STRP_WYSOKOSCI_KI:		//strojenie członu całkujacego w regulatorze wysokości
+		sAdres = FAU_PID_KI  + PID_WYSOKOSCI * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMI)
+			fParametr = VMIN_PID_WZMI;
+		if (fParametr > VMAX_PID_WZMI)
+			fParametr = VMAX_PID_WZMI;
+		break;
+
+	case STRP_WYSOKOSCI_KD:		//strojenie członu różniczkującego w regulatorze wysokości
+		sAdres = FAU_PID_KD  + PID_WYSOKOSCI * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMD)
+			fParametr = VMIN_PID_WZMD;
+		if (fParametr > VMAX_PID_WZMD)
+			fParametr = VMAX_PID_WZMD;
+		break;
+
+	case STRP_WYSOKOSCI_KW:		//strojenie wzmocnienia akcji wyprzedzającej
+		sAdres = FAU_PID_KW  + PID_WYSOKOSCI * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMW)
+			fParametr = VMIN_PID_WZMW;
+		if (fParametr > VMAX_PID_WZMW)
+			fParametr = VMAX_PID_WZMW;
+		break;
+
+	case STRP_WYSOKOSCI_FD:		//Strojenie filtra sygnału różniczkowanego
+		sAdres = FAU_PID_FD  + PID_WYSOKOSCI * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_CZLONU_D)	//maksymalna wartość podstawy filtra czonu różniczkującego PID
+			sParametr = MAX_FILTR_CZLONU_D;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_WYSOKOSCI_FWZ:	//Strojenie filtra wartości zadanej
+		sAdres = FAU_PID_FWZ + PID_WYSOKOSCI * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_ZAD)	//maksymalna wartość podstawy filtra wartości zadanej
+			sParametr = MAX_FILTR_WART_ZAD;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_WYSOKOSCI_FWE:	//Strojenie filtra wartości wejściowej
+		sAdres = FAU_PID_FWE + PID_WYSOKOSCI * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_WEJ)		//maksymalna wartość podstawy filtra wartości wejsciowej
+			sParametr = MAX_FILTR_WART_WEJ;
+		cZapiszBajt = 1;
+		break;
+
+	//regulator prędkosci zmiany wysokości
+	case STRP_PRED_ZWYS_KP:		//strojenie wzmocnienia w regulatorze prędkości zmiany wysokości
+		sAdres = FAU_PID_KP  + PID_PRED_ZWYS * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMP)
+			fParametr = VMIN_PID_WZMP;
+		if (fParametr > VMAX_PID_WZMP)
+			fParametr = VMAX_PID_WZMP;
+		break;
+
+	case STRP_PRED_ZWYS_KI:		//strojenie członu całkujacego w regulatorze prędkości zmiany wysokości
+		sAdres = FAU_PID_KI  + PID_PRED_ZWYS * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMI)
+			fParametr = VMIN_PID_WZMI;
+		if (fParametr > VMAX_PID_WZMI)
+			fParametr = VMAX_PID_WZMI;
+		break;
+
+	case STRP_PRED_ZWYS_KD:		//strojenie członu różniczkującego w regulatorze prędkości zmiany wysokości
+		sAdres = FAU_PID_KD  + PID_PRED_ZWYS * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMD)
+			fParametr = VMIN_PID_WZMD;
+		if (fParametr > VMAX_PID_WZMD)
+			fParametr = VMAX_PID_WZMD;
+		break;
+
+	case STRP_PRED_ZWYS_KW:		//strojenie wzmocnienia akcji wyprzedzającej
+		sAdres = FAU_PID_KW  + PID_PRED_ZWYS * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMW)
+			fParametr = VMIN_PID_WZMW;
+		if (fParametr > VMAX_PID_WZMW)
+			fParametr = VMAX_PID_WZMW;
+		break;
+
+	case STRP_PRED_ZWYS_FD:		//Strojenie filtra sygnału różniczkowanego
+		sAdres = FAU_PID_FD  + PID_PRED_ZWYS * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_CZLONU_D)	//maksymalna wartość podstawy filtra czonu różniczkującego PID
+			sParametr = MAX_FILTR_CZLONU_D;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_PRED_ZWYS_FWZ:	//Strojenie filtra wartości zadanej
+		sAdres = FAU_PID_FWZ + PID_PRED_ZWYS * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_ZAD)	//maksymalna wartość podstawy filtra wartości zadanej
+			sParametr = MAX_FILTR_WART_ZAD;
+		cZapiszBajt = 1;
+		break;
+
+	case STRP_PRED_ZWYS_FWE:	//Strojenie filtra wartości wejściowej
+		sAdres = FAU_PID_FWE + PID_PRED_ZWYS * ROZMIAR_REG_PID;
+		if (sParametr > MAX_FILTR_WART_WEJ)		//maksymalna wartość podstawy filtra wartości wejsciowej
+			sParametr = MAX_FILTR_WART_WEJ;
+		cZapiszBajt = 1;
+		break;
+
+	//regulator nawigacji w kierunku północnym
+	case STRP_NAWI_POLN_KP:		//strojenie wzmocnienia w regulatorze nawigacji w kierunku północnym
+		sAdres = FAU_PID_KP + PID_NAWI_POLN * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMP)
+			fParametr = VMIN_PID_WZMP;
+		if (fParametr > VMAX_PID_WZMP)
+			fParametr = VMAX_PID_WZMP;
+		break;
+
+	case STRP_NAWI_POLN_KI:		//strojenie członu całkujacego w regulatorze nawigacji w kierunku północnym
+		sAdres = FAU_PID_KI + PID_NAWI_POLN * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMI)
+			fParametr = VMIN_PID_WZMI;
+		if (fParametr > VMAX_PID_WZMI)
+			fParametr = VMAX_PID_WZMI;
+		break;
+
+	case STRP_NAWI_POLN_KD:		//strojenie członu różniczkującego w regulatorze nawigacji w kierunku północnym
+		sAdres = FAU_PID_KD + PID_NAWI_POLN * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMD)
+			fParametr = VMIN_PID_WZMD;
+		if (fParametr > VMAX_PID_WZMD)
+			fParametr = VMAX_PID_WZMD;
+		break;
+
+	//regulator prędkosci nawigacji w kierunku północnym
+	case STRP_PRED_POLN_KP:		//strojenie wzmocnienia w regulatorze prędkości w kierunku północnym
+		sAdres = FAU_PID_KP + PID_PRED_POLN * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMP)
+			fParametr = VMIN_PID_WZMP;
+		if (fParametr > VMAX_PID_WZMP)
+			fParametr = VMAX_PID_WZMP;
+		break;
+
+	case STRP_PRED_POLN_KI:		//strojenie członu całkujacego w regulatorze prędkości w kierunku północnym
+		sAdres = FAU_PID_KI + PID_PRED_POLN * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMI)
+			fParametr = VMIN_PID_WZMI;
+		if (fParametr > VMAX_PID_WZMI)
+			fParametr = VMAX_PID_WZMI;
+		break;
+
+	case STRP_PRED_POLN_KD:		//strojenie członu różniczkującego w regulatorze prędkości w kierunku północnym
+		sAdres = FAU_PID_KD + PID_PRED_POLN * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMD)
+			fParametr = VMIN_PID_WZMD;
+		if (fParametr > VMAX_PID_WZMD)
+			fParametr = VMAX_PID_WZMD;
+		break;
+
+	//regulator nawigacji w kierunku wschodnim
+	case STRP_NAWI_WSCH_KP:		//strojenie wzmocnienia w regulatorze nawigacji w kierunku wschodnim
+		sAdres = FAU_PID_KP + PID_NAWI_WSCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMP)
+			fParametr = VMIN_PID_WZMP;
+		if (fParametr > VMAX_PID_WZMP)
+			fParametr = VMAX_PID_WZMP;
+		break;
+
+	case STRP_NAWI_WSCH_KI:		//strojenie członu całkujacego w regulatorze nawigacji w kierunku wschodnim
+		sAdres = FAU_PID_KI + PID_NAWI_WSCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMI)
+			fParametr = VMIN_PID_WZMI;
+		if (fParametr > VMAX_PID_WZMI)
+			fParametr = VMAX_PID_WZMI;
+		break;
+
+	case STRP_NAWI_WSCH_KD:		//strojenie członu różniczkującego w regulatorze nawigacji w kierunku wschodnim
+		sAdres = FAU_PID_KD + PID_NAWI_WSCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMD)
+			fParametr = VMIN_PID_WZMD;
+		if (fParametr > VMAX_PID_WZMD)
+			fParametr = VMAX_PID_WZMD;
+		break;
+
+	//regulator prędkości nawigacji w kierunku wschodnim
+	case STRP_PRED_WSCH_KP:		//strojenie wzmocnienia w regulatorze prędkości w kierunku wschodnim
+		sAdres = FAU_PID_KP + PID_PRED_WSCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMP)
+			fParametr = VMIN_PID_WZMP;
+		if (fParametr > VMAX_PID_WZMP)
+			fParametr = VMAX_PID_WZMP;
+		break;
+
+	case STRP_PRED_WSCH_KI:		//strojenie członu całkujacego w regulatorze prędkości w kierunku wschodnim
+		sAdres = FAU_PID_KI + PID_PRED_WSCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMI)
+			fParametr = VMIN_PID_WZMI;
+		if (fParametr > VMAX_PID_WZMI)
+			fParametr = VMAX_PID_WZMI;
+		break;
+
+	case STRP_PRED_WSCH_KD:		//strojenie członu różniczkującego w regulatorze prędkości w kierunku wschodnim
+		sAdres = FAU_PID_KD + PID_PRED_WSCH * ROZMIAR_REG_PID;
+		if (fParametr < VMIN_PID_WZMD)
+			fParametr = VMIN_PID_WZMD;
+		if (fParametr > VMAX_PID_WZMD)
+			fParametr = VMAX_PID_WZMD;
+		break;
+
+	default:	cBłąd = BLAD_ZLE_DANE;	break;
 	}
 
 	if (cZapiszBajt)
-		ZapiszFRAM(sAdres, (uint8_t)roundf(fParametr));
+		ZapiszFRAM(sAdres, (uint8_t)sParametr);
 	else
 		ZapiszFramFloat(sAdres, fParametr);
 	return cBłąd;
@@ -489,7 +1034,7 @@ void UstawWartościDomyślnePID(void)
 			stKonfigPID[n].fWzmI = 0.0f;
 			stKonfigPID[n].fWzmD = 0.01f;
 			stKonfigPID[n].fWzmWyprz = 0.1f;
-			stKonfigPID[n].cPodstFiltraWej = 10;
+			stKonfigPID[n].cPodstFiltraWWej = 10;
 			stKonfigPID[n].cPodstFiltraD = 80;
 			stKonfigPID[n].cPodstFiltraWZad = 120;
 
@@ -499,14 +1044,14 @@ void UstawWartościDomyślnePID(void)
 			stKonfigPID[n].fWzmI = 0.1f;
 			stKonfigPID[n].fWzmD = 0.001f;
 			stKonfigPID[n].fWzmWyprz = 0.0f;
-			stKonfigPID[n].cPodstFiltraWej = 10;
+			stKonfigPID[n].cPodstFiltraWWej = 10;
 			stKonfigPID[n].cPodstFiltraD = 80;
 			stKonfigPID[n].cPodstFiltraWZad = 0;
 		}
 		stKonfigPID[n].fOgrCalki = 20.0f;
 		stKonfigPID[n].fMinWyj = -100.0f;
 		stKonfigPID[n].fMaxWyj = 100.0f;
-		stKonfigPID[n].fPrzesunWartZadanej = 0.0f;
+		stKonfigPID[n].fPrzesWartZadanej = 0.0f;
 	}
 
 	//regulator sterowania przechyleniem (lotkami w samolocie)
@@ -542,12 +1087,12 @@ void UstawWartościDomyślnePID(void)
 	stKonfigPID[PID_PRED_ZWYS].cFlagi = 0;
 
 	//regulator sterowania nawigacją w kierunku północnym
-	stKonfigPID[PID_NAWI_PÓŁN].fSkalaWartZadanej = (float)(0.1f * DEG2RAD);
-	stKonfigPID[PID_NAWI_PÓŁN].cFlagi = PID_KATOWY;
+	stKonfigPID[PID_NAWI_POLN].fSkalaWartZadanej = (float)(0.1f * DEG2RAD);
+	stKonfigPID[PID_NAWI_POLN].cFlagi = PID_KATOWY;
 
 	//regulator sterowania prędkością w kierunku północnym
-	stKonfigPID[PID_PRED_PÓŁN].fSkalaWartZadanej = (float)(0.01f * DEG2RAD);
-	stKonfigPID[PID_PRED_PÓŁN].cFlagi = 0;
+	stKonfigPID[PID_PRED_POLN].fSkalaWartZadanej = (float)(0.01f * DEG2RAD);
+	stKonfigPID[PID_PRED_POLN].cFlagi = 0;
 
 	//regulator sterowania nawigacją w kierunku wschodnim
 	stKonfigPID[PID_NAWI_WSCH].fSkalaWartZadanej = (float)(0.1f * DEG2RAD);

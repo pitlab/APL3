@@ -394,13 +394,13 @@ void WykonajPolecenieCM7(void)
 			stKonfigPID[chIndeksRegulatora].fMinWyj = uDaneCM7.dane.uRozne.f32[4];
 			stKonfigPID[chIndeksRegulatora].fMaxWyj = uDaneCM7.dane.uRozne.f32[5];
 			stKonfigPID[chIndeksRegulatora].fSkalaWartZadanej = uDaneCM7.dane.uRozne.f32[6];
-			stKonfigPID[chIndeksRegulatora].fPrzesunWartZadanej = uDaneCM7.dane.uRozne.f32[7];
+			stKonfigPID[chIndeksRegulatora].fPrzesWartZadanej = uDaneCM7.dane.uRozne.f32[7];
 			stKonfigPID[chIndeksRegulatora].fWzmWyprz = uDaneCM7.dane.uRozne.f32[8];
 			//ostatni float[9] zawiera flagi i nastawy 3 filtrów
 			stKonfigPID[chIndeksRegulatora].cFlagi = uDaneCM7.dane.uRozne.U8[9*4+0];
 			stKonfigPID[chIndeksRegulatora].cPodstFiltraD = uDaneCM7.dane.uRozne.U8[9*4+1];
 			stKonfigPID[chIndeksRegulatora].cPodstFiltraWZad = uDaneCM7.dane.uRozne.U8[9*4+2];
-			stKonfigPID[chIndeksRegulatora].cPodstFiltraWej = uDaneCM7.dane.uRozne.U8[9*4+3];
+			stKonfigPID[chIndeksRegulatora].cPodstFiltraWWej = uDaneCM7.dane.uRozne.U8[9*4+3];
 			break;
 
 		case POL7_ZAPISZ_PWM_NAPEDU:

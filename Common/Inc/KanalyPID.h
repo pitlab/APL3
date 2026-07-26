@@ -21,8 +21,8 @@
 #define PID_PRED_ODCH	5   //regulator sterowania prędkością kątową odchylenia (żyroskop R)
 #define PID_WYSOKOSCI 	6   //regulator sterowania wysokością
 #define PID_PRED_ZWYS	7   //regulator sterowani prędkością zmiany wysokości (wario)
-#define PID_NAWI_PÓŁN 	8   //regulator sterowania nawigacją w kierunku północnym
-#define PID_PRED_PÓŁN	9  	//regulator sterowania prędkością w kierunku północnym
+#define PID_NAWI_POLN 	8   //regulator sterowania nawigacją w kierunku północnym
+#define PID_PRED_POLN	9  	//regulator sterowania prędkością w kierunku północnym
 #define PID_NAWI_WSCH 	10  //regulator sterowania nawigacją w kierunku wschodnim
 #define PID_PRED_WSCH	11 	//regulator sterowania prędkością w kierunku wschodnim
 
@@ -54,12 +54,12 @@ typedef struct	//struktura konfiguracji regulatora PID
 	float fOgrCalki; 			//ogranicznik wartości całki członu I
 	float fMaxWyj;				//maksymalna wartość wyjściowa regulatora
 	float fMinWyj;				//minimalna wartość wyjściowa regulatora
-	float fPrzesunWartZadanej;	//wartość dodawana do wartości zadanej (umożliwia lot pod niezerowym kątem)
-	float fSkalaWartZadanej;	//skalowanie wartości zadanej
-	uint8_t cPodstFiltraWej;	//podstawa filtra IIR wartości wejściowej
-	uint8_t cPodstFiltraD; 		//podstawa filtra IIR błędu
-	uint8_t cPodstFiltraWZad; 	//podstawa filtra IIR wartości zadanej
+	float fPrzesWartZadanej;	//przesunuięsie zakresu (wartość dodawana do) wartości zadanej (umożliwia lot pod niezerowym kątem)
+	float fSkalaWartZadanej;	//skalowanie wartości zadanej (wartość mnożona przez w.zad.)
 	uint8_t cFlagi;				//0x80 - regulator kątowy
+	uint8_t cPodstFiltraD; 		//podstawa filtra IIR członu różniczkującego
+	uint8_t cPodstFiltraWWej;	//podstawa filtra IIR wartości wejściowej
+	uint8_t cPodstFiltraWZad; 	//podstawa filtra IIR wartości zadanej
 } stKonfPID_t;
 
 typedef struct	//struktura danych roboczych regulatora PID
