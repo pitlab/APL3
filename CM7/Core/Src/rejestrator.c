@@ -34,7 +34,7 @@ uint8_t __attribute__ ((aligned (32))) aTxBuffer[_MAX_SS];
 uint8_t __attribute__ ((aligned (32))) aRxBuffer[_MAX_SS];
 __IO uint8_t RxCplt, TxCplt;
 volatile uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-uint32_t nKonfLogera[3] = {0xFFFFFFFF, 0xF8FFFFFF, 0xFFF};	//zestaw flag włączajacych dane do rejestracji
+uint32_t nKonfLogera[6] = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF};	//zestaw flag włączajacych dane do rejestracji
 static char __attribute__ ((aligned (32))) cBufZapisuKarty[ROZMIAR_BUFORA_LOGU];	//bufor na jedną linijkę logu
 char __attribute__ ((aligned (32))) cBufPodreczny[_MAX_LFN];
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;
@@ -70,18 +70,26 @@ void WatekRejestratora(void *argument)
 	extern volatile uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 	extern uint8_t cPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
 	extern uint8_t cKodBleduFAT;
+	uint32_t nCzas, nCzasRejestracji;
+	uint32_t nOkresRejestracji = 20000;	//10ms = 100Hz
 
+	nCzasRejestracji = PobierzCzasT6();
 	for(;;)
 	{
-		if ((cPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty, aktywny niski
+		if ((cPort_exp_odbierany[0] & EXP04_LOG_CARD_DET) == 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty, aktywny niski
 		{
 			if (cStatusRejestratora & STATREJ_FAT_GOTOWY)
 			{
 				if (cStatusRejestratora & STATREJ_WLACZONY)
 				{
-					ObslugaPetliRejestratora();
-					osDelay(50);	//okres logowania 20 Hz
-					//osDelay(20);	//okres logowania 50 Hz
+					nCzas = MinalCzas(nCzasRejestracji);
+					if (nCzas >= nOkresRejestracji)
+					{
+						nCzasRejestracji = PobierzCzasT6() - (nCzas - nOkresRejestracji);	//jeżeli czas nie trafił w swoje miejsce to skompensuj różnicę w następnym obiegu
+						ObslugaPetliRejestratora();
+						osDelay(5);
+					}
+					osDelay(2);
 				}
 				else
 				if (cStatusRejestratora & STATREJ_ZAPISZ_JPG)
@@ -249,7 +257,7 @@ uint8_t ObslugaPetliRejestratora(void)
 			}
 		}
 
-		//wysokość barometryczna z czujnika ciśnienia 1
+		//wysokość barometryczna bezwzględna z czujnika ciśnienia 1
 		if (nKonfLogera[0] & KLOG1_AMSL1)
 		{
 			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
@@ -261,7 +269,7 @@ uint8_t ObslugaPetliRejestratora(void)
 			}
 		}
 
-		//wysokość barometryczna z czujnika ciśnienia 2
+		//wysokość barometryczna bezwzględna z czujnika ciśnienia 2
 		if (nKonfLogera[0] & KLOG1_AMSL2)
 		{
 			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
@@ -273,8 +281,32 @@ uint8_t ObslugaPetliRejestratora(void)
 			}
 		}
 
+		//wysokość barometryczna względna z czujnika ciśnienia 1
+		if (nKonfLogera[0] & KLOG1_AGL1)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Wysokosc AGL1 [m];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.fWysokoAGL[0]);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wysokość barometryczna względna z czujnika ciśnienia 2
+		if (nKonfLogera[0] & KLOG1_AGL2)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Wysokosc AGL2 [m];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.fWysokoAGL[1]);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
 		//wskazania wariometru 1
-		if (nKonfLogera[0] & KLOG1_VARIO1)
+		if (nKonfLogera[0] & KLOG1_WARIO1)
 		{
 			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				strncat(cBufZapisuKarty, "Wariometr 1 [m/s];", MAX_ROZMIAR_WPISU_LOGU);
@@ -286,7 +318,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		}
 
 		//wskazania wariometru 2
-		if (nKonfLogera[0] & KLOG1_VARIO2)
+		if (nKonfLogera[0] & KLOG1_WARIO2)
 		{
 			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				strncat(cBufZapisuKarty, "Wariometr 2 [m/s];", MAX_ROZMIAR_WPISU_LOGU);
@@ -381,8 +413,114 @@ uint8_t ObslugaPetliRejestratora(void)
 			}
 		}
 
+		for (uint8_t n=0; n<2; n++)	//pętla dla dwóch kanałów zasilania
+		{
+			//napięcie baterii
+			if (nKonfLogera[n] & (KLOG1_BAT1_NAP << 4*n))
+			{
+				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				{
+					sprintf(cBufPodreczny, "Bat%d Napiecie [V];", n+1);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+				else
+				{
+					sprintf(cBufPodreczny, "%.1f;", uDaneCM4.dane.fNapiecieAku[n]);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+			}
 
-	//--- drugie słowo konfiguracji logera --------------------------
+			//prąd baterii
+			if (nKonfLogera[0] & (KLOG1_BAT1_PRAD << 4*n))
+			{
+				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				{
+					sprintf(cBufPodreczny, "Bat%d Prad [V];", n+1);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+				else
+				{
+					sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.fPradAku[n]);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+			}
+
+			//energia pobrana z baterii
+			if (nKonfLogera[0] & (KLOG1_BAT1_ENER << 4*n))
+			{
+				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				{
+					sprintf(cBufPodreczny, "Bat%d Ener.Pobr [mAh];", n+1);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+				else
+				{
+					sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.fEnergiaPobr[n]);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+			}
+
+			//napięcie wejściowe zasilania
+			if (nKonfLogera[0] & (KLOG1_ZAS1_NAP << 4*n))
+			{
+				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				{
+					sprintf(cBufPodreczny, "Zasil%d Napiecie [V];", n+1);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+				else
+				{
+					sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.fNapiecieWej[n]);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+			}
+		}
+
+		for (uint8_t n=0; n<2; n++)	//pętla dla 4 czujników zewnętrznych
+		{
+			//wejście analogowe
+			if (nKonfLogera[n] & (KLOG1_ADC1_1 << n))
+			{
+				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				{
+					sprintf(cBufPodreczny, "Czuj.Zewn%d Nap. [V];", n+1);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+				else
+				{
+					sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.fNapCzujZewn[n]);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+			}
+		}
+
+		//temperatura CPU
+		if (nKonfLogera[0] & KLOG1_TEMP_CPU)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "TempCPU [K];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.1f;", uDaneCM4.dane.fTemperCPU);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//napięcie magistrali serw
+		if (nKonfLogera[0] & KLOG1_NAP_SERW)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Napiecie Serw [V];", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.fNapiecieSerw);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+
+
+//--- drugie słowo konfiguracji logera --------------------------
 		//surowa prędkość obrotowa P żyroskopu 1
 		if (nKonfLogera[1] & KLOG2_ZYROSUR1P)
 		{
@@ -459,11 +597,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (nKonfLogera[1] & KLOG2_ZYRO1P)
 		{
 			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-			{
-				//sprintf(cBufPodreczny, "Zyro1 X [%c/s];", '°');
-				//strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 				strncat(cBufZapisuKarty, "ZyroKal1P [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
-			}
 			else
 			{
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroKal1[0]);
@@ -475,11 +609,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (nKonfLogera[1] & KLOG2_ZYRO1Q)
 		{
 			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-			{
-				//sprintf(cBufPodreczny, "Zyro1 Y [%c/s];", '°');
-				//strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 				strncat(cBufZapisuKarty, "ZyroKal1Q [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
-			}
 			else
 			{
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroKal1[1]);
@@ -491,11 +621,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (nKonfLogera[1] & KLOG2_ZYRO1R)
 		{
 			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-			{
-				//sprintf(cBufPodreczny, "Zyro1 Z [%c/s];", '°');
-				//strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 				strncat(cBufZapisuKarty, "ZyroKal1R [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
-			}
 			else
 			{
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroKal1[2]);
@@ -507,11 +633,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (nKonfLogera[1] & KLOG2_ZYRO2P)
 		{
 			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-			{
-				//sprintf(cBufPodreczny, "Zyro2 X [%c/s];", '°');
-				//strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 				strncat(cBufZapisuKarty, "ZyroKal2P [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
-			}
 			else
 			{
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroKal2[0]);
@@ -523,11 +645,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (nKonfLogera[1] & KLOG2_ZYRO2Q)
 		{
 			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-			{
-				//sprintf(cBufPodreczny, "Zyro2 Y [%c/s];", '°');
-				//strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 				strncat(cBufZapisuKarty, "ZyroKal2Q [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
-			}
 			else
 			{
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroKal2[1]);
@@ -539,11 +657,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (nKonfLogera[1] & KLOG2_ZYRO2R)
 		{
 			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-			{
-				//sprintf(cBufPodreczny, "Zyro2 Z [%c/s];", '°');
-				//strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 				strncat(cBufZapisuKarty, "ZyroKal2R [rad/s];", MAX_ROZMIAR_WPISU_LOGU);
-			}
 			else
 			{
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fZyroKal2[2]);
@@ -757,7 +871,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		}
 
 
-	//--- trzecie słowo konfiguracji logera --------------------------
+//--- trzecie słowo konfiguracji logera --------------------------
 
 		//kąt phi wektora inercji
 		if (nKonfLogera[2] & KLOG3_KATPHI)
@@ -766,7 +880,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "Phi [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stBSP.fKatIMU[0]);
+				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.stBSP.fKatIMU[0]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -778,7 +892,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "Theta [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stBSP.fKatIMU[1]);
+				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.stBSP.fKatIMU[1]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -790,7 +904,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "Psi [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stBSP.fKatIMU[2]);
+				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.stBSP.fKatIMU[2]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -802,7 +916,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "PhiAkcel1 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fKatAkcel1[0]);
+				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatAkcel1[0]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -814,7 +928,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "ThetaAkcel1 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fKatAkcel1[1]);
+				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatAkcel1[1]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -826,7 +940,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "PsiAkcel1 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fKatAkcel1[2]);
+				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatAkcel1[2]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -838,7 +952,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "PhiZyro1 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fKatZyro1[0]);
+				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatZyro1[0]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 
@@ -846,7 +960,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "PhiZyro2 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fKatZyro2[0]);
+				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatZyro2[0]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -858,7 +972,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "ThetaZyro1 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fKatZyro1[1]);
+				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatZyro1[1]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 
@@ -866,7 +980,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "ThetaZyro2 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fKatZyro2[1]);
+				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatZyro2[1]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -878,7 +992,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "PsiZyro1 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fKatZyro1[2]);
+				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatZyro1[2]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 
@@ -886,7 +1000,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "PsiZyro2 [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fKatZyro2[2]);
+				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatZyro2[2]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -897,14 +1011,10 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (nKonfLogera[2] & KLOG3_GLONG)
 		{
 			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-			{
-				//sprintf(cBufPodreczny, "SzerokoscGeo [%c];", '°');
-				//strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-				strncat(cBufZapisuKarty, "SzerokoscGeo [°];", MAX_ROZMIAR_WPISU_LOGU);
-			}
+				strncat(cBufZapisuKarty, "SzerokoscGeo [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
+				sprintf(cBufPodreczny, "%.8f;", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -913,14 +1023,10 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (nKonfLogera[2] & KLOG3_GLATI)
 		{
 			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-			{
-				//sprintf(cBufPodreczny, "DlugoscGeo [%c];", '°');
-				//strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-				strncat(cBufZapisuKarty,  "DlugoscGeo [°];", MAX_ROZMIAR_WPISU_LOGU);
-			}
+				strncat(cBufZapisuKarty,  "DlugoscGeo [rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.stGnss1.dDlugoscGeo);
+				sprintf(cBufPodreczny, "%.8f;", uDaneCM4.dane.stGnss1.dDlugoscGeo);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -944,7 +1050,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "PredWzgZiemi [m/s];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -953,14 +1059,10 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (nKonfLogera[2] & KLOG3_GCURS)
 		{
 			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-			{
-				//sprintf(cBufPodreczny, "Kurs [%c];", '°');
-				//strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-				strncat(cBufZapisuKarty, "KursGeo [°];", MAX_ROZMIAR_WPISU_LOGU);
-			}
+				strncat(cBufZapisuKarty, "KursGeo [°rad];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fKurs);
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stGnss1.fKurs);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -1008,7 +1110,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "PredGPS_N [m/s];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi * cosf(uDaneCM4.dane.stGnss1.fKurs * DEG2RAD));		//sprawdzić!
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi * cosf(uDaneCM4.dane.stGnss1.fKurs * DEG2RAD));		//sprawdzić!
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -1020,11 +1122,821 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, "PredGPS_E [m/s];", MAX_ROZMIAR_WPISU_LOGU);
 			else
 			{
-				sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi * sinf(uDaneCM4.dane.stGnss1.fKurs * DEG2RAD));		//sprawdzić!
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi * sinf(uDaneCM4.dane.stGnss1.fKurs * DEG2RAD));		//sprawdzić!
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
 
+//--- czwarte słowo konfiguracji logera --------------------------
+		//kanały 1..KANALY_ODB_RC odbiornika RC zajmują pierwsze 16 bitów słowa konfiguracji
+
+		for (uint8_t n=0; n<KANALY_ODB_RC; n++)
+		{
+			if (nKonfLogera[3] & (KLOG4_ODBRC_K1 << n))
+			{
+				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				{
+					sprintf(cBufPodreczny, "Odb RC kan%d;", n);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+				else
+				{
+					sprintf(cBufPodreczny, "%d;", uDaneCM4.dane.sKanalRC[n]);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+			}
+		}
+
+		//kanały 1..KANALY_WYJSC_RC wyjść RC zajmują ostatnie 16 bitów słowa konfiguracji
+		for (uint8_t n=0; n<KANALY_WYJSC_RC; n++)
+		{
+			if (nKonfLogera[3] & (KLOG4_WYJRC_K1 << n))
+			{
+				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				{
+					sprintf(cBufPodreczny, "Wyj RC kan%d;", n);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+				else
+				{
+					sprintf(cBufPodreczny, "%d;", uDaneCM4.dane.sWyjscieRC[n]);
+					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+				}
+			}
+		}
+
+//--- piąte słowo konfiguracji logera --------------------------
+
+		//wartość zadana regulatora sterowania przechyleniem
+		if (nKonfLogera[4] & KLOG5_PID_PRZE_WZAD)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KataPrze.Wzad;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fZadana);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+		if (nKonfLogera[4] & KLOG5_PID_PRZE_FWEJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KataPrze.FilWWej;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fFiltrWWej);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+		if (nKonfLogera[4] & KLOG5_PID_PRZE_FROZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KataPrze.FilRozn;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fFiltrRóżn);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu P
+		if (nKonfLogera[4] & KLOG5_PID_PRZE_WY_P)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KataPrze.WyjP;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fWyjscieP);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu I
+		if (nKonfLogera[4] & KLOG5_PID_PRZE_WY_I)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KataPrze.WyjI;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fWyjscieI);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu D
+		if (nKonfLogera[4] & KLOG5_PID_PRZE_WY_D)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KataPrze.WyjD;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fWyjscieD);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu wyprzedzającego
+		if (nKonfLogera[4] & KLOG5_PID_PRZE_WYPRZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KataPrze.WyjWypr;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fWyjscieWyprz);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście regulatora sterowania przechyleniem
+		if (nKonfLogera[4] & KLOG5_PID_PRZE_WYJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KataPrze.Wyjscie;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fWyjsciePID);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wartość zadana regulatora sterowania prędkością kątową przechylenia
+		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_WZAD)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPrze.WZad;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fZadana);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_FZAD)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPrze.FilWZad;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fFiltrWZad);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_FWEJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPrze.FilWWej;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fFiltrWWej);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_FROZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPrze.FilRozn;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fFiltrRóżn);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu P
+		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_WY_P)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPrze.WyjP;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fWyjscieP);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu D
+		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_WY_D)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPrze.WyjD;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fWyjscieD);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu wyprzedzającego
+		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_WYPRZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPrze.WyjWypr;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fWyjscieWyprz);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście regulatora sterowania prędkością kątową przechylenia
+		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_WYJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPrze.Wyjscie;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fWyjsciePID);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+
+		//wartość zadana regulatora sterowania pochyleniem
+		if (nKonfLogera[4] & KLOG5_PID_POCH_WZAD)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatPoch.Wzad;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fZadana);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana wartość wejściowa dla wszystkich członów
+		if (nKonfLogera[4] & KLOG5_PID_POCH_FWEJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatPoch.FilWWej;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fFiltrWWej);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+		if (nKonfLogera[4] & KLOG5_PID_POCH_FROZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatPoch.FilRozn;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fFiltrRóżn);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu P
+		if (nKonfLogera[4] & KLOG5_PID_POCH_WY_P)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatPoch.WyjP;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fWyjscieP);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu I
+		if (nKonfLogera[4] & KLOG5_PID_POCH_WY_I)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatPoch.WyjI;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fWyjscieI);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu D
+		if (nKonfLogera[4] & KLOG5_PID_POCH_WY_D)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatPoch.WyjD;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fWyjscieD);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu wyprzedzającego
+		if (nKonfLogera[4] & KLOG5_PID_POCH_WYPRZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatPoch.WyjWyprz;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fWyjscieWyprz);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście regulatora sterowania pochyleniem
+		if (nKonfLogera[4] & KLOG5_PID_POCH_WYJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatPoch.Wyjscie;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fWyjsciePID);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wartość zadana regulatora sterowania prędkością kątową pochylenia
+		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_WZAD)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPoch.WZad;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fZadana);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_FZAD)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPoch.FilWZad;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fFiltrWZad);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana wartość wejściowa dla wszystkich członów
+		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_FWEJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPoch.FilWWej;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fFiltrWWej);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_FROZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPoch.FilRozn;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fFiltrRóżn);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu P
+		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_FROZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPoch.WyjP;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fWyjscieP);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu D
+		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_WY_D)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPoch.WyjD;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fWyjscieD);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu wyprzedzającego
+		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_WYPRZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPoch.WyjWypr;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fWyjscieWyprz);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście regulatora sterowania prędkością kątową pochylenia
+		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_WYJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PredPoch.Wyjscie;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fWyjsciePID);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+//--- szóste słowo konfiguracji logera --------------------------
+
+		//wartość zadana regulatora sterowania odchyleniem
+		if (nKonfLogera[5] & KLOG6_PID_ODCH_WZAD)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.WZad;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fZadana);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana wartość wejściowa dla wszystkich członów
+		if (nKonfLogera[5] & KLOG6_PID_ODCH_FWEJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.FilWWej;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fFiltrWWej);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+		if (nKonfLogera[5] & KLOG6_PID_ODCH_FROZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.FilRozn;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fFiltrRóżn);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu P
+		if (nKonfLogera[5] & KLOG6_PID_ODCH_WY_P)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.WyjP;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fWyjscieP);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu I
+		if (nKonfLogera[5] & KLOG6_PID_ODCH_WY_I)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.WyjI;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fWyjscieI);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu D
+		if (nKonfLogera[5] & KLOG6_PID_ODCH_WY_D)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.WyjD;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fWyjscieD);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu wyprzedzającego
+		if (nKonfLogera[5] & KLOG6_PID_ODCH_WYPRZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.WyjWypr;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fWyjscieWyprz);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście regulatora sterowania odchyleniem
+		if (nKonfLogera[5] & KLOG6_PID_ODCH_WYJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.Wyjscie;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fWyjsciePID);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wartość zadana regulatora sterowania prędkością kątową odchylenia
+		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_WZAD)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.WZad;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fZadana);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana wartość zadana do liczenia wartosci wyprzedzającej
+		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_FZAD)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.FilWZad;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fFiltrWZad);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana wartość wejściowa dla wszystkich członów
+		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_FWEJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.FilWWej;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fFiltrWWej);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_FROZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.FilRozn;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fFiltrRóżn);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu P
+		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_WY_P)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.WyjP;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fWyjscieP);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu D
+		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_WY_D)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.WyjD;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fWyjscieD);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu wyprzedzającego
+		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_WYPRZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.WyjWypr;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fWyjscieWyprz);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście regulatora sterowania prędkością kątową odchylenia
+		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_WYJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.KatOdch.Wyjscie;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fWyjsciePID);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wartość zadana regulatora sterowania wysokością
+		if (nKonfLogera[5] & KLOG6_PID_WYSO_WZAD)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.Wyso.WZad;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fZadana);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana wartość wejściowa dla wszystkich członów
+		if (nKonfLogera[5] & KLOG6_PID_WYSO_FWEJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.Wyso.FilWWej;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fFiltrWWej);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+		if (nKonfLogera[5] & KLOG6_PID_WYSO_FROZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.Wyso.FilRozn;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fFiltrRóżn);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu P
+		if (nKonfLogera[5] & KLOG6_PID_WYSO_WY_P)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.Wyso.WyjP;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fWyjscieP);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu I
+		if (nKonfLogera[5] & KLOG6_PID_WYSO_WY_I)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.Wyso.WyjI;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fWyjscieI);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu D
+		if (nKonfLogera[5] & KLOG6_PID_WYSO_WY_D)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.Wyso.WyjD;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fWyjscieD);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu wyprzedzającego
+		if (nKonfLogera[5] & KLOG6_PID_WYSO_WYPRZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.Wyso.WyjWypr;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fWyjscieWyprz);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście regulatora sterowania odchyleniem
+		if (nKonfLogera[5] & KLOG6_PID_WYSO_WYJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.Wyso.Wyjscie;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fWyjsciePID);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wartość zadana regulatora prędkości zmiany wysokości
+		if (nKonfLogera[5] & KLOG6_PID_PR_WYSO_WZAD)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PrZmWyso.WZad;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fZadana);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+		if (nKonfLogera[5] & KLOG6_PID_PR_WYSO_FZAD)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PrZmWyso.FilWZad;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fFiltrWZad);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana wartość wejściowa dla wszystkich członów
+		if (nKonfLogera[5] & KLOG6_PID_WYSO_FWEJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PrZmWyso.FilWWej;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fFiltrWWej);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+		if (nKonfLogera[5] & KLOG6_PID_PK_WYSO_FROZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PrZmWyso.FilRozn;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fFiltrRóżn);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu P
+		if (nKonfLogera[5] & KLOG6_PID_PR_WYSO_WY_P)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PrZmWyso.WyjP;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fWyjscieP);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu D
+		if (nKonfLogera[5] & KLOG6_PID_PR_WYSO_WY_D)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PrZmWyso.WyjD;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fWyjscieD);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście członu wyprzedzającego
+		if (nKonfLogera[5] & KLOG6_PID_PR_WYSO_WYPRZ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PrZmWyso.WyjWypr;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fWyjscieWyprz);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
+
+		//wyjście regulatora sterowania prędkością zmiany wysokości
+		if (nKonfLogera[5] & KLOG6_PID_PR_WYSO_WYJ)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				strncat(cBufZapisuKarty, "Reg.PrZmWyso.Wyjscie;", MAX_ROZMIAR_WPISU_LOGU);
+			else
+			{
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fWyjsciePID);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
 
 		//jeżeli był zapisywany nagłówek to przejdź do zapisu danych
 		if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)

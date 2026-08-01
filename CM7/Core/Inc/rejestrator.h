@@ -18,8 +18,8 @@
 #define ADDRESS                ((uint32_t)0x00004000U) /* SD Address to write/read data */
 #define DATA_PATTERN           ((uint32_t)0xB5F3A5F3U) /* Data pattern to write */
 
-#define ROZMIAR_BUFORA_LOGU		(3*512)
-#define MAX_ROZMIAR_WPISU_LOGU	20
+#define ROZMIAR_BUFORA_LOGU		(6*512)
+#define MAX_ROZMIAR_WPISU_LOGU	22
 #define WPISOW_NA_SYNC			100		//po tylu zapisach linii robiony jest SYNC na karcie
 
 //nadpisz timeouty gdyż wartosci domyślne wynoszą 0xFFFFFFFF i przy braku karty proces praktycznie się zawiesza
@@ -42,10 +42,12 @@
 #define KLOG1_CZAS      0x00000001	    //czas
 #define KLOG1_PRES1     0x00000002	    //ciśnienie atmosferyczne z czujnika ciśnienia 1
 #define KLOG1_PRES2		0x00000004	    //ciśnienie atmosferyczne z czujnika ciśnienia 2
-#define KLOG1_AMSL1    	0x00000008	    //wysokość barometryczna z czujnika ciśnienia 1
-#define KLOG1_AMSL2    	0x00000010	    //wysokość barometryczna z czujnika ciśnienia 2
-#define KLOG1_VARIO1    0x00000080	    //wskazania wariometru 1
-#define KLOG1_VARIO2    0x00000100	    //wskazania wariometru 2
+#define KLOG1_AMSL1    	0x00000008	    //wysokość barometryczna bezwzględna z czujnika ciśnienia 1
+#define KLOG1_AMSL2    	0x00000010	    //wysokość barometryczna bezwzględna z czujnika ciśnienia 2
+#define KLOG1_AGL1    	0x00000020	    //wysokość barometryczna względna z czujnika ciśnienia 1
+#define KLOG1_AGL2    	0x00000040	    //wysokość barometryczna względna z czujnika ciśnienia 2
+#define KLOG1_WARIO1    0x00000080	    //wskazania wariometru 1
+#define KLOG1_WARIO2    0x00000100	    //wskazania wariometru 2
 
 #define KLOG1_CISROZ1	0x00000200		//ciśnienie czujnika różnicowego 1
 #define KLOG1_CISROZ2	0x00000400		//ciśnienie czujnika różnicowego 2
@@ -55,6 +57,24 @@
 #define KLOG1_TEMPBARO1	0x00002000	    //temperatura czujnika ciśnienia 1
 #define KLOG1_TEMPCISR1	0x00004000	    //temperatura czujnika ciśnienia różnicowego 1
 #define KLOG1_TEMPCISR2	0x00008000	    //temperatura czujnika ciśnienia różnicowego 2
+
+#define KLOG1_BAT1_NAP	0x00010000		//napięcie baterii 1
+#define KLOG1_BAT1_PRAD	0x00020000		//prąd baterii 1
+#define KLOG1_BAT1_ENER	0x00040000		//energia baterii 1
+#define KLOG1_ZAS1_NAP	0x00080000		//napięcie wejściowe zasilania 1
+#define KLOG1_BAT2_NAP	0x00100000		//napięcie baterii 2
+#define KLOG1_BAT2_PRAD	0x00200000		//prąd baterii 2
+#define KLOG1_BAT2_ENER	0x00400000		//energia baterii 2
+#define KLOG1_ZAS2_NAP	0x00800000		//napięcie wejściowe zasilania 12
+
+#define KLOG1_ADC1_1	0x01000000		//wejście analogowe 1, kanał 1
+#define KLOG1_ADC1_2	0x02000000		//wejście analogowe 1, kanał 2
+#define KLOG1_ADC2_1	0x04000000		//wejście analogowe 2, kanał 1
+#define KLOG1_ADC2_2	0x08000000		//wejście analogowe 2, kanał 2
+
+#define KLOG1_TEMP_CPU	0x10000000		//temperatura CPU
+#define KLOG1_NAP_SERW	0x20000000		//napięcie magistrali serw
+
 
 
 //drugie słowo konfiguracji logera
@@ -117,25 +137,111 @@
 #define KLOG3_GSPD_N    0x02000000	    //niefiltrowana prędkość z GPS w kierunku północnym
 
 
+//czwarte słowo konfiguracji logera
+#define KLOG4_ODBRC_K1	0x00000001
+#define KLOG4_ODBRC_K2	0x00000002
+#define KLOG4_ODBRC_K3	0x00000004
+#define KLOG4_ODBRC_K4	0x00000008
+#define KLOG4_ODBRC_K5	0x00000010
+#define KLOG4_ODBRC_K6	0x00000020
+#define KLOG4_ODBRC_K7	0x00000040
+#define KLOG4_ODBRC_K8	0x00000080
+#define KLOG4_ODBRC_K9	0x00000100
+#define KLOG4_ODBRC_K10	0x00000200
+#define KLOG4_ODBRC_K11	0x00000400
+#define KLOG4_ODBRC_K12	0x00000800
+#define KLOG4_ODBRC_K13	0x00001000
+#define KLOG4_ODBRC_K14	0x00002000
+#define KLOG4_ODBRC_K15	0x00004000
+#define KLOG4_ODBRC_K16	0x00008000
+#define KLOG4_WYJRC_K1	0x00010000
+#define KLOG4_WYJRC_K2	0x00020000
+#define KLOG4_WYJRC_K3	0x00040000
+#define KLOG4_WYJRC_K4	0x00080000
+#define KLOG4_WYJRC_K5	0x00100000
+#define KLOG4_WYJRC_K6	0x00200000
+#define KLOG4_WYJRC_K7	0x00400000
+#define KLOG4_WYJRC_K8	0x00800000
+#define KLOG4_WYJRC_K9	0x01000000
+#define KLOG4_WYJRC_K10	0x02000000
+#define KLOG4_WYJRC_K11	0x04000000
+#define KLOG4_WYJRC_K12	0x08000000
+#define KLOG4_WYJRC_K13	0x10000000
+#define KLOG4_WYJRC_K14	0x20000000
+#define KLOG4_WYJRC_K15	0x40000000
+#define KLOG4_WYJRC_K16	0x80000000
 
+//piąte słowo konfiguracji logera
+#define KLOG5_PID_PRZE_WZAD		0x00000001	//wartość zadana regulatora sterowania przechyleniem
+#define KLOG5_PID_PRZE_FWEJ		0x00000002	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define KLOG5_PID_PRZE_FROZ		0x00000004	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+#define KLOG5_PID_PRZE_WY_P		0x00000008	//wyjście członu P
+#define KLOG5_PID_PRZE_WY_I		0x00000010	//wyjście członu I
+#define KLOG5_PID_PRZE_WY_D		0x00000020	//wyjście członu D
+#define KLOG5_PID_PRZE_WYPRZ	0x00000040	//wyjście członu wyprzedzającego
+#define KLOG5_PID_PRZE_WYJ		0x00000080	//wyjście regulatora sterowania przechyleniem
+#define KLOG5_PID_PK_PRZE_WZAD	0x00000100	//wartość zadana regulatora sterowania prędkością kątową przechylenia
+#define KLOG5_PID_PK_PRZE_FZAD	0x00000200	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+#define KLOG5_PID_PK_PRZE_FWEJ	0x00000400	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define KLOG5_PID_PK_PRZE_FROZ	0x00000800	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+#define KLOG5_PID_PK_PRZE_WY_P	0x00001000	//wyjście członu P
+#define KLOG5_PID_PK_PRZE_WY_D	0x00002000	//wyjście członu D
+#define KLOG5_PID_PK_PRZE_WYPRZ	0x00004000	//wyjście członu wyprzedzającego
+#define KLOG5_PID_PK_PRZE_WYJ	0x00008000	//wyjście regulatora sterowania prędkością kątową przechylenia
 
+#define KLOG5_PID_POCH_WZAD		0x00010000	//wartość zadana regulatora sterowania pochyleniem
+#define KLOG5_PID_POCH_FWEJ		0x00020000	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define KLOG5_PID_POCH_FROZ		0x00040000	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+#define KLOG5_PID_POCH_WY_P		0x00080000	//wyjście członu P
+#define KLOG5_PID_POCH_WY_I		0x00100000	//wyjście członu I
+#define KLOG5_PID_POCH_WY_D		0x00200000	//wyjście członu D
+#define KLOG5_PID_POCH_WYPRZ	0x00400000	//wyjście członu wyprzedzającego
+#define KLOG5_PID_POCH_WYJ		0x00800000	//wyjście regulatora sterowania pochyleniem
+#define KLOG5_PID_PK_POCH_WZAD	0x01000000	//wartość zadana regulatora sterowania prędkością kątową pochylenia
+#define KLOG5_PID_PK_POCH_FZAD	0x02000000	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+#define KLOG5_PID_PK_POCH_FWEJ	0x04000000	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define KLOG5_PID_PK_POCH_FROZ	0x08000000	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+#define KLOG5_PID_PK_POCH_WY_P	0x10000000	//wyjście członu P
+#define KLOG5_PID_PK_POCH_WY_D	0x20000000	//wyjście członu D
+#define KLOG5_PID_PK_POCH_WYPRZ	0x40000000	//wyjście członu wyprzedzającego
+#define KLOG5_PID_PK_POCH_WYJ	0x80000000	//wyjście regulatora sterowania prędkością kątową pochylenia
 
+//szóste słowo konfiguracji logera
+#define KLOG6_PID_ODCH_WZAD		0x00000001	//wartość zadana regulatora sterowania odchyleniem
+#define KLOG6_PID_ODCH_FWEJ		0x00000002	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define KLOG6_PID_ODCH_FROZ		0x00000004	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+#define KLOG6_PID_ODCH_WY_P		0x00000008	//wyjście członu P
+#define KLOG6_PID_ODCH_WY_I		0x00000010	//wyjście członu I
+#define KLOG6_PID_ODCH_WY_D		0x00000020	//wyjście członu D
+#define KLOG6_PID_ODCH_WYPRZ	0x00000040	//wyjście członu wyprzedzającego
+#define KLOG6_PID_ODCH_WYJ		0x00000080	//wyjście regulatora sterowania odchyleniem
+#define KLOG6_PID_PK_ODCH_WZAD	0x00000200	//wartość zadana regulatora sterowania prędkością kątową odchylenia
+#define KLOG6_PID_PK_ODCH_FZAD	0x00000200	//przefiltrowana wartość zadana do liczenia wartosci wyprzedzającej
+#define KLOG6_PID_PK_ODCH_FWEJ	0x00000400	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define KLOG6_PID_PK_ODCH_FROZ	0x00000800	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+#define KLOG6_PID_PK_ODCH_WY_P	0x00001000	//wyjście członu P
+#define KLOG6_PID_PK_ODCH_WY_D	0x00002000	//wyjście członu D
+#define KLOG6_PID_PK_ODCH_WYPRZ	0x00004000	//wyjście członu wyprzedzającego
+#define KLOG6_PID_PK_ODCH_WYJ	0x00008000	//wyjście regulatora sterowania prędkością kątową odchylenia
+
+#define KLOG6_PID_WYSO_WZAD		0x00010000	//wartość zadana regulatora sterowania wysokością
+#define KLOG6_PID_WYSO_FWEJ		0x00020000	//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
+#define KLOG6_PID_WYSO_FROZ		0x00040000	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+#define KLOG6_PID_WYSO_WY_P		0x00080000	//wyjście członu P
+#define KLOG6_PID_WYSO_WY_I		0x00100000	//wyjście członu I
+#define KLOG6_PID_WYSO_WY_D		0x00200000	//wyjście członu D
+#define KLOG6_PID_WYSO_WYPRZ	0x00400000	//wyjście członu wyprzedzającego
+#define KLOG6_PID_WYSO_WYJ		0x00800000	//wyjście regulatora sterowania odchyleniem
+#define KLOG6_PID_PR_WYSO_WZAD	0x01000000	//wartość zadana regulatora prędkości zmiany wysokości
+#define KLOG6_PID_PR_WYSO_FWEJ	0x02000000	//przefiltrowana wartość wejściowa do liczenia akcji różniczkującej
+#define KLOG6_PID_PR_WYSO_FZAD	0x04000000	//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
+#define KLOG6_PID_PK_WYSO_FROZ	0x08000000	//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
+#define KLOG6_PID_PR_WYSO_WY_P	0x10000000	//wyjście członu P
+#define KLOG6_PID_PR_WYSO_WY_D	0x20000000	//wyjście członu D
+#define KLOG6_PID_PR_WYSO_WYPRZ	0x40000000	//wyjście członu wyprzedzającego
+#define KLOG6_PID_PR_WYSO_WYJ	0x80000000	//wyjście regulatora sterowania prędkością zmiany wysokości
 
 /*
-#define LOG1CONF_VOLT1      0x00004000	    //napięcie z sondy pomiaru mocy 1
-#define LOG1CONF_CURR1      0x00008000	    //prąd z sondy pomiaru mocy 1
-
-#define LOG1CONF_VOLT2      0x00010000	    //napięcie z sondy pomiaru mocy 2
-#define LOG1CONF_CURR2      0x00020000	    //prąd z sondy pomiaru mocy 2
-#define LOG1CONF_TEMP1      0x00040000	    //temperatura z termopary 1
-#define LOG1CONF_TEMP2      0x00080000	    //temperatura z termopary 2
-#define LOG1CONF_TEMP3      0x00100000	    //temperatura z LM335 1
-#define LOG1CONF_TEMP4      0x00200000	    //temperatura z LM335 2
-#define LOG1CONF_REFT       0x00400000	    //temperatura odniesienia termopary
-#define LOG1CONF_MCURS      0x00800000	    //wyliczony kurs magnetyczny
-
-#define LOG1CONF_CURR       0x01000000	    //prąd pobierany przez serwa
-#define LOG1CONF_VIN        0x02000000	    //napięcie zasilajace za przetwornicą
 #define LOG1CONF_RPM1       0x04000000	    //prędkość obrotowa 1
 #define LOG1CONF_RPM2       0x08000000	    //prędkość obrotowa 2
 #define LOG1CONF_RCHEALTH   0x10000000	    //poziom szumu w sygnale RC
@@ -143,78 +249,18 @@
 #define LOG1CONF_CARD_BUF   0x40000000	    //rozmiar zajetego bufora na karcie SD
 #define LOG1CONF_ERROR      0x80000000	    //logowane błędy
 
-
-#define LOG2CONF_           0x00000800      //
-#define LOG2CONF_SERO09     0x00001000	    //serwo wyjściowe na kanale 9
-#define LOG2CONF_SERO10     0x00002000	    //serwo wyjściowe na kanale 10
-#define LOG2CONF_SERO11     0x00004000	    //serwo wyjściowe na kanale 11
-#define LOG2CONF_SERO12     0x00008000	    //serwo wyjściowe na kanale 12
-
-#define LOG2CONF_SERI1      0x00010000	    //serwo wejściowe na kanale 1
-#define LOG2CONF_SERI2      0x00020000	    //serwo wejściowe na kanale 2
-#define LOG2CONF_SERI3      0x00040000	    //serwo wejściowe na kanale 3
-#define LOG2CONF_SERI4      0x00080000	    //serwo wejściowe na kanale 4
-#define LOG2CONF_SERI5      0x00100000	    //serwo wejściowe na kanale 5
-#define LOG2CONF_SERI6      0x00200000	    //serwo wejściowe na kanale 6
-#define LOG2CONF_SERI7      0x00400000	    //serwo wejściowe na kanale 7
-#define LOG2CONF_SERI8      0x00800000	    //serwo wejściowe na kanale 8
-
-#define LOG2CONF_SERO01     0x01000000     //serwo wyjściowe na kanale 1
-#define LOG2CONF_SERO02     0x02000000     //serwo wyjściowe na kanale 2
-#define LOG2CONF_SERO03     0x04000000     //serwo wyjściowe na kanale 3
-#define LOG2CONF_SERO04     0x08000000     //serwo wyjściowe na kanale 4
-#define LOG2CONF_SERO05     0x10000000     //serwo wyjściowe na kanale 5
-#define LOG2CONF_SERO06     0x20000000     //serwo wyjściowe na kanale 6
-#define LOG2CONF_SERO07     0x40000000     //serwo wyjściowe na kanale 7
-#define LOG2CONF_SERO08     0x80000000     //serwo wyjściowe na kanale 8
-
-
 #define LOG3CONF_FALTI      0x00000200	    //wysokość przefiltrowana filtrem Kalmana
 #define LOG3CONF_FVARIO     0x00000400	    //wario przefiltrowane filtrem Kalmana
 #define LOG3CONF_FACCZ      0x00000800	    //składowa Z przyspieszenia po transformacji napędzajaca filtr Kalmana
-#define LOG3CONF_PDIFV      0x00001000	    //napięcie z różnicowego czujnika ciśnienia
-#define LOG3CONF_PABSV      0x00002000	    //napięcie z bezwzględnego czujnika ciśnienia
-#define LOG3CONF_ENERGY1    0x00004000	    //energia pobrana z pakietu 1
-#define LOG3CONF_ENERGY2    0x00008000	    //energia pobrana z pakietu 2
 
-#define LOG3CONF_QUATW      0x00010000	    //quaternion w
-#define LOG3CONF_QUATX      0x00020000	    //quaternion x
-#define LOG3CONF_QUATY      0x00040000	    //quaternion y
-#define LOG3CONF_QUATZ      0x00080000	    //quaternion z
-
-#define LOG3CONF_GYRO1_TEMP 0x00100000	    //temperatura żyroskopu 1
-#define LOG3CONF_GYRO2_TEMP 0x00200000	    //temperatura żyroskopu 2
 #define LOG3CONF_SONAR_DIST 0x00400000	    //wysokość odczytana z sonaru
 #define LOG3CONF_ALTI_DRIFT 0x00800000	    //dryft wysokości czujnika barometrycznego
-
 #define LOG3CONF_MIX_SUM    0x01000000	    //średnia wszystkich kanałów miksera, odpowiada za ciąg koptera
-#define LOG3CONF_2          0x02000000	    //
-#define LOG3CONF_3          0x04000000	    //
-#define LOG3CONF_4          0x08000000	    //
+
 #define LOG3CONF_AZI2BAS    0x10000000	    //azymut do bazy - zapis w celu weryfikacji obliczeń
 #define LOG3CONF_DIR2BAS    0x20000000	    //kurs strzałki do bazy - zapis w celu weryfikacji obliczeń
 #define LOG3CONF_BASELON    0x40000000	    //współrzędne bazy
 #define LOG3CONF_BASELAT    0x80000000	    //współrzędne bazy
-
-//czwarte słowo konfguracyjne logera - równoległa rejestracja danych z modułu All-In-One
-#define LOG4CONF_AIOACC1_X  0x00000001      //składowa przyspieszenia w osi X akcelerometru
-#define LOG4CONF_AIOACC1_Y  0x00000002      //składowa przyspieszenia w osi Y akcelerometru
-#define LOG4CONF_AIOACC1_Z  0x00000004      //składowa przyspieszenia w osi Z akcelerometru
-
-#define LOG4CONF_AIOGYRO_P  0x00000008      //składowa predkości kątowej wokół osi X
-#define LOG4CONF_AIOGYRO_Q  0x00000010      //składowa predkości kątowej wokół osi Y
-#define LOG4CONF_AIOGYRO_R  0x00000020      //składowa predkości kątowej wokół osi Z
-
-#define LOG4CONF_AIOMAGN_X  0x00000040      //składowa magnetyczna w osi X
-#define LOG4CONF_AIOMAGN_Y  0x00000080      //składowa magnetyczna w osi Y
-#define LOG4CONF_AIOMAGN_Z  0x00000100      //składowa magnetyczna w osi Z
-
-#define LOG4CONF_AIOALTI1   0x00000200      //wysokość barometryczna z czujnika 1
-#define LOG4CONF_AIOVARI1   0x00000400      //prędkość pionowa vario z czujnika 1
-#define LOG4CONF_AIOALTI2   0x00000800      //wysokość barometryczna z czujnika 2
-#define LOG4CONF_AIOVARI2   0x00001000      //prędkość pionowa vario z czujnika 2
-#define LOG4CONF_AIOTEMPPR  0x00002000      //temperatura czujnika ciśnienia
-
 
 #define LOG4CONF_ESTWAYX    0x00100000	    //droga w osi X uzyskana w wyniku podwójnego całkownia akcelerometru [m]
 #define LOG4CONF_ESTWAYY    0x00200000	    //droga w osi Y uzyskana w wyniku podwójnego całkownia akcelerometru [m]

@@ -202,7 +202,7 @@ typedef struct
 	float fNapiecieAku[2];	//napięcie obu pakietów z czujników prądu i napiecia
 	float fPradAku[2];		//prąd pobierany z obu pakietów odczytany z czujników prądu i napiecia
 	float fEnergiaPobr[2];	//energia pobrana z obu baterii
-	float fNapCzujZewn[4];	//napięcie czujników zewnętrznych podłaćzanych do gniazd APL3
+	float fNapCzujZewn[4];	//napięcie czujników zewnętrznych podłączanych do gniazd APL3
 	float fStrojenie[LICZBA_KAN_RC_DO_STROJENIA_PID];	//wartość bieżacych parametrów używanych do strojenia PID
 	uRozne_t uRozne;		//unia różnych typów danych ogólnego zastosowania
 	uint8_t cRozmiar;		//rozmiar danych przekazywanych w polu fRozne
