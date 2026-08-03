@@ -20,6 +20,7 @@
 #include "WymianaCM7.h"
 #include "Ekran.h"
 #include "cmsis_os.h"
+#include <Rejestrator.h>
 
 uint32_t nOffsetDanych;
 int16_t sSzerZdjecia, sWysZdjecia;
@@ -44,7 +45,7 @@ extern uint8_t cStatusTelemetrii;		//określa czy i jaki rodzaj telemetrii ma by
 extern stFFT_t stKonfigFFT;
 extern stIdentyfikacjaSilnikow_t stIdentSiln;
 extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) fWynikFFT[LICZBA_TESTOW_FFT][LICZBA_ZMIENNYCH_FFT][FFT_MAX_ROZMIAR / 2];	//wartość sygnału wyjściowego
-
+extern uint32_t nKonfLogera[LICZBA_SLOW_REJESTRATORA];	//zestaw flag włączajacych dane do rejestracji
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja wykonuje zadania zdefiniowane dla wszystkich poleceń komunikacyjnych
@@ -554,6 +555,19 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t cRozmDanych
 		stIdentSiln.sCzasIdent = uDaneCM7.dane.uRozne.U16[1];
 		cBłąd = RozpocznijIdentyfikacjęSilników(&stIdentSiln, &cTrybPracy);
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
+		break;
+
+	case PK_CZYTAJ_KONF_REJESTR:	//odczytaj konfigurację rejestratora z APL3
+		for (uint8_t n=0; n<LICZBA_SLOW_REJESTRATORA; n++)
+			uDaneCM7.dane.uRozne.U32[n] = nKonfLogera[n];	//wykorzystaj unię uRóżne do konwersji na bajty
+		cBłąd = WyslijRamke(cAdresZdalny, PK_CZYTAJ_KONF_REJESTR, LICZBA_SLOW_REJESTRATORA * 4, uDaneCM7.dane.uRozne.U8, cInterfejs);
+		break;
+
+	case PK_ZAPISZ_KONF_REJESTR:	//zapisz konfigurację rejestratora do APL3
+		for (uint8_t n=0; n<4*LICZBA_SLOW_REJESTRATORA; n++)
+			uDaneCM7.dane.uRozne.U8[n] = cDane[n];
+		for (uint8_t n=0; n<LICZBA_SLOW_REJESTRATORA; n++)
+			nKonfLogera[n] = uDaneCM7.dane.uRozne.U32[n];
 		break;
 
 	}

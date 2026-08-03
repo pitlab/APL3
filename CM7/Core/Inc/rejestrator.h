@@ -18,7 +18,7 @@
 #define ADDRESS                ((uint32_t)0x00004000U) /* SD Address to write/read data */
 #define DATA_PATTERN           ((uint32_t)0xB5F3A5F3U) /* Data pattern to write */
 
-#define ROZMIAR_BUFORA_LOGU		(6*512)
+#define ROZMIAR_BUFORA_LOGU		(7*512)
 #define MAX_ROZMIAR_WPISU_LOGU	22
 #define WPISOW_NA_SYNC			100		//po tylu zapisach linii robiony jest SYNC na karcie
 
@@ -114,15 +114,24 @@
 
 
 //trzecie słowo konfiguracji logera
-#define KLOG3_KATPHI    0x00000001	    //kąt phi wektora inercji
-#define KLOG3_KATTHE    0x00000002	    //kąt theta wektora inercji
-#define KLOG3_KATPSI    0x00000004	    //kąt psi wektora inercji
-#define KLOG3_KATPHIA   0x00000008      //kąt phi obliczony na podstawie danych z akcelerometru
-#define KLOG3_KATTHEA   0x00000010	    //kąt theta obliczony na podstawie danych z akcelerometru
-#define KLOG3_KATPSIM   0x00000020	    //kąt psi obliczony na podstawie danych z magnetometru
-#define KLOG3_KATPHIZ   0x00000040	    //kąt phi obliczony jako całka prędkości P z żyroskopu
-#define KLOG3_KATTHEZ   0x00000080	    //kąt theta obliczony jako całka prędkości Q z żyroskopu
-#define KLOG3_KATPSIZ   0x00000100	    //kąt psi obliczony jako całka prędkości R z żyroskopu
+#define KLOG3_BSP_IMUX  0x00000001	    //kąt phi wektora inercji BSP (po filtrze Kalmana)
+#define KLOG3_BSP_IMUY  0x00000002	    //kąt theta wektora inercji
+#define KLOG3_BSP_IMUZ  0x00000004	    //kąt psi wektora inercji
+
+#define KLOG3_KOMP_IMUX 0x00000008	    //kąt phi wektora inercji uzyskany z filtra komplementarnego
+#define KLOG3_KOMP_IMUY 0x00000010	    //kąt theta wektora inercji
+#define KLOG3_KOMP_IMUZ 0x00000020	    //kąt psi wektora inercji
+
+#define KLOG3_KWAT_IMUX 0x00000040	    //kąt phi wektora inercji obliczone na kwaternionach
+#define KLOG3_KWAT_IMUY 0x00000080	    //kąt theta wektora inercji
+#define KLOG3_KWAT_IMUZ 0x00000100	    //kąt psi wektora inercji
+
+#define KLOG3_AKC_IMUX  0x00000200      //kąt phi obliczony na podstawie danych z akcelerometru
+#define KLOG3_AKC_IMUY  0x00000400	    //kąt theta obliczony na podstawie danych z akcelerometru
+#define KLOG3_AKC_IMUZ  0x00000800	    //kąt psi obliczony na podstawie danych z magnetometru
+#define KLOG3_ZYR_IMUX  0x00001000	    //kąt phi obliczony jako całka prędkości P z żyroskopu
+#define KLOG3_ZYR_IMUY  0x00002000	    //kąt theta obliczony jako całka prędkości Q z żyroskopu
+#define KLOG3_ZYR_IMUZ  0x00004000	    //kąt psi obliczony jako całka prędkości R z żyroskopu
 
 #define KLOG3_GLONG     0x00010000	    //szerokość geograficzna z GPS
 #define KLOG3_GLATI     0x00020000	    //długość geograficzna z GPS
@@ -241,6 +250,7 @@
 #define KLOG6_PID_PR_WYSO_WYPRZ	0x40000000	//wyjście członu wyprzedzającego
 #define KLOG6_PID_PR_WYSO_WYJ	0x80000000	//wyjście regulatora sterowania prędkością zmiany wysokości
 
+#define LICZBA_SLOW_REJESTRATORA	6
 /*
 #define LOG1CONF_RPM1       0x04000000	    //prędkość obrotowa 1
 #define LOG1CONF_RPM2       0x08000000	    //prędkość obrotowa 2

@@ -9,7 +9,6 @@
 
 #include <Napisy.h>
 
-
 #define JEZYK_POLSKI
 #ifdef JEZYK_POLSKI
 
@@ -95,5 +94,70 @@ const char *cOpisBledow[MAX_KOMUNIKATOW] = {
 };
 
 const char *cNazwyMies3Lit[13]  = {"---", "Sty","Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paz", "Lis", "Gru"};
+
+//maksymalna długość nazwy to (MAX_ROZMIAR_WPISU_LOGU - 2), musi zmieścić się jeszcze średnik i terminujace zero
+const char *cNazwyPozycjiRejestratora[LICZBA_NAZW_POZYCJI_REJESTRATORA] = {
+"Czas [g:m:s.ss]",			//NREJ_CZAS_GGMMSSSS
+"CisnienieBzw%d [Pa]",		//NREJ_CISNIENIE_BZWZGL_XD_PA
+"Wysokosc MSL%d [m]",		//NREJ_WYSOKOSC_MSL_XD_M
+"Wysokosc AGL%d [m]",		//NREJ_WYSOKOSC_AGL_XD_M
+"Wariometr%d [m/s]",		//NREJ_WARIOMETR_XD_MS
+"Cisn.Roznic%d [Pa]",		//NREJ_CISN_ROZNICOWE_XD_PA
+"Predk.IAS%d [m/s]",		//NREJ_PREDK_IAS_XD_MS
+"Temp.Baro%d [K]",			//NREJ_TEMP_BARO_XD_K
+"Temp.CisnRozn%d [K]",		//NREJ_TEMP_ROZN_XD_K
+"Bat%d Napiecie [V]",		//NREJ_BAT_XD_NAPIECIE_V
+"Bat%d Prad [V]",			//NREJ_BAT_XD_PRAD_A
+"Bat%d Ene.Pobr [mAh]",		//NREJ_BAT_XD_ENER_POBR_MAH
+"Zasil%d Napiecie [V]",		//NREJ_ZASIL_XD_NAPIECIE_V
+"Czujnik Zewn%d [V]",		//NREJ_CZUJ_ZEWN_XD_V
+"Temp.CPU [K]",				//NREJ_TEMP_CPU_K
+"Serwa.Napiecie [V]",		//NREJ_SERWA_NAPIECIE_V
+"ZyroSurowe%d%c [rad/s]",	//NREJ_ZYRO_SUR_XD_XC_RADS
+"ZyroKalibr%d%c [rad/s]",	//NREJ_ZYRO_KAL_XD_XC_RADS
+"Akcel%d%c [m/s^2]",		//NREJ_AKCEL_XD_XC_MS2
+"Magneto%d%c [Gauss]",		//NREJ_MAGNETO_XD_XC_GAUSS
+"TempIMU%d [K]",			//NREJ_TEMP_IMU_XD_K
+"Kat kalmIMU%c [rad]",		//NREJ_KAT_KALM_IMU_XC_RAD
+"Kat kompIMU%c [rad]",		//NREJ_KAT_KOMP_IMU_XC_RAD
+"Kat kwatIMU%c [rad]",		//NREJ_KAT_KWAT_IMU_XC_RAD
+"Kat akceIMU%c [rad]",		//NREJ_KAT_AKCE_IMU_XC_RAD
+"Kat zyroIMU%c [rad]",		//NREJ_KAT_ZYRO_IMU_XC_RAD
+"SzerokoscGeo [rad]",		//NREJ_SZEROKOSC_GEO_RAD
+"DlugoscGeo [rad]",			//NREJ_DLUGOSC_GEO_RAD
+"WysokoscGNSS [m]",			//NREJ_WYSOKOSC_GNSS_M
+"PredWzgZiemi [m/s]",		//NREJ_PREDKOSC_WZGL_ZIEMI_MS
+"KursGNSS [rad]",			//NREJ_KURS_GNSS_RAD
+"LiczbaSat",				//NREJ_LICZBA_SATELITOW
+"VDOP [m]",					//NREJ_VDOP_M
+"HDOP [m]",					//NREJ_HDOP_M
+"PredGNSS_N [m/s]",			//NREJ_PREDK_GNSS_N_MS
+"PredGNSS_E [m/s]",			//NREJ_PREDK_GNSS_E_MS
+"OdbiornikRC.kan%d",		//NREJ_ODBIORNIKRC_KAN_XD
+"WyjscieRC.kan%d",			//NREJ_WYJSCIERC_KAN_XD
+"Reg.KataPrze",				//NREJ_REG_KATA_PRZE
+"Reg.PredPrze",				//NREJ_REG_PRED_PRZE
+"Reg.KataPoch",				//NREJ_REG_KATA_POCH
+"Reg.PredPoch",				//NREJ_REG_PRED_POCH
+"Reg.KataOdch",				//NREJ_REG_KATA_ODCH
+"Reg.PredOdch",				//NREJ_REG_PRED_ODCH
+"Reg.Wysokosc",				//NREJ_REG_WYSOKOSCI
+"Reg.PrZmiWys",				//NREJ_REG_PR_ZM_WYS
+"Reg.KataGeoN",				//NREJ_REG_KATA_GEON
+"Reg.PredGeoN",				//NREJ_REG_PRED_GEON
+"Reg.KataGeoE",				//NREJ_REG_KATA_GEOE
+"Reg.PredGeoE",				//NREJ_REG_PRED_GEOE
+"WZadana",					//NREJ_WART_ZADANA
+"FilWZad",					//NREJ_FILTR_WZAD
+"WWejsci",					//NREJ_WART_WEJSCIOWA
+"FilWWej",					//NREJ_FILTR_WWEJ
+"FilRozn",					//NREJ_FILTR_ROZN
+"WyjP",						//NREJ_WYJ_P
+"WyjI",						//NREJ_WYJ_I
+"WyjD",						//NREJ_WYJ_D
+"WyWyprz",					//NREJ_WYJ_WYPRZ
+"Wyjscie"					//NREJ_WYJSCIE
+
+};
 
 #endif //JEZYK_POLSKI

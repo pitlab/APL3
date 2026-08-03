@@ -184,8 +184,6 @@ menu_t stMenuGlowne[MENU_WIERSZE * MENU_KOLUMNY] = {
 	{"Kamera",		"Obsluga kamery",							TP_MEDIA_KAMERA,	obr_kamera},
 	{"Audio",  		"Obsluga multimediow: dzwiek i obraz",		TP_MEDIA_AUDIO,		obr_glosnik1}};
 
-
-
 menu_t stMenuKalibracje[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Kal IMU", 	"Kalibracja czujników IMU",					TP_KAL_IMU,			obr_zyroskop},
@@ -1344,18 +1342,7 @@ uint8_t RysujEkran(void)
 
 
 	case TPKS_POMIAR:
-		//TestKartySD();
-		for (uint32_t y=0; y<DISP_Y_SIZE; y++)
-		{
-			for (uint32_t x=0; x<DISP_X_SIZE; x++)
-			{
-				cBuforLCD[y*DISP_X_SIZE*3 + x*3 + 0] = x & 0xFF;
-				cBuforLCD[y*DISP_X_SIZE*3 + x*3 + 1] = y & 0xFF;
-				cBuforLCD[y*DISP_X_SIZE*3 + x*3 + 2] = (y >> 8) & 0xFF;;
-			}
-		}
-		cBłąd = ZapiszPlikBmp(cBuforLCD, BMP_KOLOR_24, DISP_X_SIZE, DISP_Y_SIZE);
-		cBłąd = ZapiszPlikBin(cBuforLCD, DISP_X_SIZE * DISP_Y_SIZE * 3);
+
 		cTrybPracy = cWrocDoTrybu;
 		cNowyTrybPracy = TP_WROC_DO_KARTA;
 		break;
@@ -2856,7 +2843,8 @@ void WyswietlRejestratorKartySD(void)
 {
 	extern uint8_t cKodBleduFAT;
 	extern uint16_t sMaxDlugoscWierszaLogu;
-	uint16_t sPozY;
+	uint8_t cIndeksSłowaKontrolnego = 0;
+	extern const char *cNazwyPozycjiRejestratora[LICZBA_NAZW_POZYCJI_REJESTRATORA];
 
 	if (cRysujRaz)
 	{
@@ -2867,84 +2855,224 @@ void WyswietlRejestratorKartySD(void)
 		sprintf(cNapis, "Karta SD: ");
 		RysujNapis(cNapis, KOL12, 30);
 		sprintf(cNapis, "Stan FATu: ");
-		RysujNapis(cNapis, KOL12, 50);
+		RysujNapis(cNapis, 30*FONT_SL, 30);
+
 		sprintf(cNapis, "Plik logu: ");
-		RysujNapis(cNapis, KOL12, 70);
-		sprintf(cNapis, "Rejestrator: ");
-		RysujNapis(cNapis, KOL12, 90);
+		RysujNapis(cNapis, KOL12, 50);
 		sprintf(cNapis, "Zape%cnienie: ", ł);
-		RysujNapis(cNapis, KOL12, 110);
+		RysujNapis(cNapis, 30*FONT_SL, 50);
 	}
 
-	sPozY = 30;
-	if ((cPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)	== 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty
+	if ((cPort_exp_odbierany[0] & EXP04_LOG_CARD_DET) == 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty
 	{
-		setColor(KOLOR_Y);
+		setColor(ZIELONY);
 		sprintf(cNapis, "Obecna");
 	}
 	else
 	{
-		setColor(KOLOR_X);
+		setColor(BLAD);
 		sprintf(cNapis, "Brak! ");
 	}
-	RysujNapis(cNapis, KOL12 + 11*FONT_SL, sPozY);
-	sPozY += 20;
+	RysujNapis(cNapis, 11*FONT_SL, 30);
 
 	if (cStatusRejestratora & STATREJ_FAT_GOTOWY)
 	{
-		setColor(KOLOR_Y);
+		setColor(ZIELONY);
 		sprintf(cNapis, "Gotowy                ");	//długością ma przykryć nadłuższy komunikat o błędzie
 	}
 	else
 	{
-		setColor(KOLOR_X);
+		setColor(BLAD);
 		PobierzKodBleduFAT(cKodBleduFAT, cNapis);
-
 	}
-	RysujNapis(cNapis, KOL12 + 11*FONT_SL, sPozY);
-	sPozY += 20;
+	RysujNapis(cNapis, 41*FONT_SL, 30);
 
 	if (cStatusRejestratora & STATREJ_OTWARTY_PLIK)
 	{
-		setColor(KOLOR_Y);
+		setColor(ZIELONY);
 		sprintf(cNapis, "Otwarty   ");
 	}
 	else
 	{
-		setColor(ZOLTY);
+		setColor(BLAD);
 		if (cStatusRejestratora & STATREJ_BYL_OTWARTY)
 			sprintf(cNapis, "Zatrzymany");
 		else
 			sprintf(cNapis, "Brak ");
 	}
-	RysujNapis(cNapis, KOL12 + 11*FONT_SL, sPozY);
-	sPozY += 20;
-
-	if (cStatusRejestratora & STATREJ_WLACZONY)
-	{
-		setColor(KOLOR_Y);
-		sprintf(cNapis, "W%c%cczony  ", ł, ą);
-	}
-	else
-	{
-		setColor(ZOLTY);
-		sprintf(cNapis, "Zatrzymany");
-	}
-	RysujNapis(cNapis, KOL12 + 13*FONT_SL, sPozY);
-	sPozY += 20;
-
+	RysujNapis(cNapis, 12*FONT_SL, 50);
 
 	float fZapelnienie = (float)sMaxDlugoscWierszaLogu / ROZMIAR_BUFORA_LOGU;
 	if (fZapelnienie < 0.75)
-		setColor(KOLOR_Y);	//zielony
+		setColor(ZIELONY);	//zielony
 	else
 	if (fZapelnienie < 0.95)
 		setColor(ZOLTY);
 	else
-		setColor(KOLOR_X);	//czerwony
+		setColor(BLAD);	//czerwony
 	sprintf(cNapis, "%d / %d ", sMaxDlugoscWierszaLogu, ROZMIAR_BUFORA_LOGU);
-	RysujNapis(cNapis, KOL12 + 13*FONT_SL, sPozY);
-	sPozY += 20;
+	RysujNapis(cNapis, 43*FONT_SL, 50);
+
+
+	//wyświetl k0lejne słowa rejestratora w układzie 3 kolumny po 11 pozycji
+	setColor(ZOLTY);
+	sprintf(cNapis, "S%cowo kontrolne %d rejestratora:", ł, cIndeksSłowaKontrolnego + 1);
+	RysujNapis(cNapis, CENTER, 70);
+
+	switch (cIndeksSłowaKontrolnego)
+	{
+	case 0:	//pierwsze słowo rejestratora
+		//czas
+		UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_CZAS);
+		RysujNapis((char*)cNazwyPozycjiRejestratora[NREJ_CZAS_GGMMSSSS], 0*FONT_SL, 90);
+
+		//ciśnienie 1 i 2
+		for (uint8_t n=0; n<2; n++)
+		{
+			UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_PRES1 << n);
+			sprintf(cNapis, cNazwyPozycjiRejestratora[NREJ_CISNIENIE_BZWZGL_XD_PA], n+1);
+			RysujNapis(cNapis, (n+1)*20*FONT_SL, 90);
+		}
+
+		//wysokość bezwzględna 1 i 2
+		for (uint8_t n=0; n<2; n++)
+		{
+			UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_AMSL1 << n);
+			sprintf(cNapis, cNazwyPozycjiRejestratora[NREJ_WYSOKOSC_MSL_XD_M], n+1);
+			RysujNapis(cNapis, n*20*FONT_SL, 110);
+		}
+
+		//wysokość barometryczna względna z czujników ciśnienia 1 i 2
+		for (uint8_t n=0; n<2; n++)
+		{
+			UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_AGL1 << n);
+			sprintf(cNapis, cNazwyPozycjiRejestratora[NREJ_WYSOKOSC_AGL_XD_M], n+1);
+			if (n == 0)
+				RysujNapis(cNapis, 40*FONT_SL, 110);
+			else
+				RysujNapis(cNapis, 0*FONT_SL, 130);
+		}
+
+		//wskazania wariometru 1 i 2
+		for (uint8_t n=0; n<2; n++)
+		{
+			UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_WARIO1 << n);
+			sprintf(cNapis, cNazwyPozycjiRejestratora[NREJ_WARIOMETR_XD_MS], n+1);
+			RysujNapis(cNapis, (n+1)*20*FONT_SL, 130);
+		}
+
+		//Ciśnienie czujnika różnicowego 1 i 2
+		for (uint8_t n=0; n<2; n++)
+		{
+			UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_CISROZ1 << n);
+			sprintf(cNapis, cNazwyPozycjiRejestratora[NREJ_CISN_ROZNICOWE_XD_PA], n+1);
+			RysujNapis(cNapis, n*20*FONT_SL, 150);
+		}
+
+		//Prędkość wzgledem powietrza z czujnika różnicowego 1
+		for (uint8_t n=0; n<2; n++)
+		{
+			UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_IAS1 << n);
+			sprintf(cNapis, cNazwyPozycjiRejestratora[NREJ_PREDK_IAS_XD_MS], n+1);
+			if (n == 0)
+				RysujNapis(cNapis, 40*FONT_SL, 150);
+			else
+				RysujNapis(cNapis, 0*FONT_SL, 170);
+		}
+
+		//temperatura czujnika ciśnienia różnicowego 1 i 2
+		for (uint8_t n=0; n<2; n++)
+		{
+			UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_TEMPCISR1 << n);
+			sprintf(cNapis, cNazwyPozycjiRejestratora[NREJ_TEMP_ROZN_XD_K], n+1);
+			RysujNapis(cNapis, (n+1)*20*FONT_SL, 170);
+		}
+
+		//temperatura czujnika ciśnienia 1
+		UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_TEMPBARO1);
+		sprintf(cNapis, cNazwyPozycjiRejestratora[NREJ_TEMP_BARO_XD_K], 1);
+		RysujNapis(cNapis, 0*FONT_SL, 190);
+
+		//napięcie baterii 1 i 2
+		for (uint8_t n=0; n<2; n++)
+		{
+			UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_BAT1_NAP << 4*n);
+			strcpy(cNapis, cNazwyPozycjiRejestratora[NREJ_BAT_XD_NAPIECIE_V]);
+			sprintf(cNapis, cNapis, n+1);
+			RysujNapis(cNapis, (n+1)*20*FONT_SL, 190);
+		}
+
+		//prąd baterii 1 i 2
+		for (uint8_t n=0; n<2; n++)
+		{
+			UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_BAT1_PRAD << 4*n);
+			sprintf(cNapis, cNazwyPozycjiRejestratora[NREJ_BAT_XD_PRAD_A], n+1);
+			RysujNapis(cNapis, n*20*FONT_SL, 210);
+		}
+
+		//energia pobrana z baterii 1 i 2
+		for (uint8_t n=0; n<2; n++)
+		{
+			UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_BAT1_ENER << 4*n);
+			sprintf(cNapis, cNazwyPozycjiRejestratora[NREJ_BAT_XD_ENER_POBR_MAH], n+1);
+			if (n == 0)
+				RysujNapis(cNapis, 40*FONT_SL, 210);
+			else
+				RysujNapis(cNapis, 0*FONT_SL, 230);
+		}
+
+		//napięcie wejściowe zasilania
+		for (uint8_t n=0; n<2; n++)
+		{
+			UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_ZAS1_NAP << 4*n);
+			sprintf(cNapis, cNazwyPozycjiRejestratora[NREJ_ZASIL_XD_NAPIECIE_V], n+1);
+			RysujNapis(cNapis, (n+1)*20*FONT_SL, 230);
+		}
+
+		//wejście analogowe czujników 1, 2 i 3
+		for (uint8_t n=0; n<3; n++)
+		{
+			UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_ADC1_1 << n);
+			strcpy(cNapis, cNazwyPozycjiRejestratora[NREJ_CZUJ_ZEWN_XD_V]);
+			sprintf(cNapis, cNapis, n+1);
+			RysujNapis(cNapis, n*20*FONT_SL, 250);
+		}
+
+		//wejście analogowe czujnika 4
+		UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_ADC2_2);
+		strcpy(cNapis, cNazwyPozycjiRejestratora[NREJ_CZUJ_ZEWN_XD_V]);
+		sprintf(cNapis, cNapis, 4);
+		RysujNapis(cNapis, 0*FONT_SL, 270);
+
+		//temperatura CPU
+		UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_TEMP_CPU);
+		RysujNapis((char*)cNazwyPozycjiRejestratora[NREJ_TEMP_CPU_K], 20*FONT_SL, 270);
+
+		//napięcie magistrali serw
+		UstawKolorStanuWlaczeniaRejestratora(cIndeksSłowaKontrolnego, KLOG1_NAP_SERW);
+		RysujNapis((char*)cNazwyPozycjiRejestratora[NREJ_SERWA_NAPIECIE_V], 40*FONT_SL, 270);
+		break;
+
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja ustawia kolor jakim będzue rysowana zmienna w zależności od tego czy jest właczona czy nie
+// Parametry:
+//  cIndeksSłowa - indeks słowa kontrolnego rejestratora
+//  nBitMaski - bit stanu właczania zmiannej w daym słowie
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void UstawKolorStanuWlaczeniaRejestratora(uint8_t cIndeksSłowa, uint32_t nBitMaski)
+{
+	extern uint32_t nKonfLogera[LICZBA_SLOW_REJESTRATORA];	//zestaw flag włączajacych dane do rejestracji
+
+	if (nKonfLogera[cIndeksSłowa] & nBitMaski)
+		setColor(KOLOR_Y);	//logowanie właczone
+	else
+		setColor(SZARY40);	//logowanie wyłączone
 }
 
 

@@ -101,8 +101,10 @@ typedef struct
 #define PK_REKONFIG_WEJSCIA_RC	41	//wykonuje ponowną konfigurację wejść RC po zmianie konfiguracji we FRAM
 #define PK_REKONFIG_WYJSCIA_RC	42	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
 #define PK_URUCHOM_INDENT_SILN	43	//uruchamia proces identyfikacji silników, kręcąc kolejno każdym z nich
+#define PK_CZYTAJ_KONF_REJESTR	44	//odczytaj konfigurację rejestratora z APL3
+#define PK_ZAPISZ_KONF_REJESTR	45	//zapisz konfigurację rejestratora do APL3
 
-#define PK_ILOSC_POLECEN		44	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
+#define PK_ILOSC_POLECEN		46	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
 
 
 #define PK_TELEM_SZYBKA			95	//szybka ramka telemetryczna do przesyłania wyników FFT
@@ -128,3 +130,4 @@ typedef struct
 #define TDK_PRACA		0		//normalna praca
 #define TDK_KRATA_CB	1		//czarnobiała karata
 #define TDK_PASKI		2		//7 pionowych pasków
+

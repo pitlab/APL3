@@ -61,6 +61,7 @@ void TestTonuAudio(void);
 void WyswietlParametryKartySD(void);
 void TestKartySD(void);
 void WyswietlRejestratorKartySD(void);
+void UstawKolorStanuWlaczeniaRejestratora(uint8_t cIndeksSłowa, uint32_t nBitMaski);
 void PobierzKodBleduFAT(uint8_t chKodBleduFAT, char *chNapis);
 void RysujPasekPostepu(uint16_t sPelenZakres);
 uint32_t RysujKostkeObrotu(float *fKat);
