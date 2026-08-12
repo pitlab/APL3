@@ -21,18 +21,17 @@
 // F - liczba float
 
 #define FA_USER_VAR	    	0x0000	    //zmienne użytkownika
-#define FAU_WE_RC1_MIN		0x0000		//16*2U minimalna wartość każdego kanału z odbiornika RC1
-#define FAU_WE_RC1_MAX		0x0020		//16*2U maksymalna wartość każdego kanału z odbiornika RC1
-#define FAU_WE_RC2_MIN		0x0040		//16*2U minimalna wartość każdego kanału z odbiornika RC2
-#define FAU_WE_RC2_MAX		0x0060		//16*2U maksymalna wartość każdego kanału z odbiornika RC2
+//wolne 16 bajtów, pierwsze 4 są przez coś zamazywane - trzeba to zbadać
+#define FAU_WE_RC1_MIN		0x0010		//16*2U minimalna wartość każdego kanału z odbiornika RC1
+#define FAU_WE_RC1_MAX		0x0030		//16*2U maksymalna wartość każdego kanału z odbiornika RC1
+#define FAU_WE_RC2_MIN		0x0050		//16*2U minimalna wartość każdego kanału z odbiornika RC2
+#define FAU_WE_RC2_MAX		0x0070		//16*2U maksymalna wartość każdego kanału z odbiornika RC2
 
-#define FAU_80        		0x0080
-//wolne 12 bajtów
-
-#define FAU_RC_WY_MIN   	0x0092     	//2U minimalne wysterowanie regulatorów w trakcie lotu w jednostkach standardowych 0-2000
-#define FAU_RC_WY_MAX      	0x0094 		//2U maksymalne wysterowanie silników w trakcie lotu w jednostkach standardowych 0-2000
-#define FAU_RC_WY_ZAWISU   	0x0096   	//2U wysterowanie regulatorów w zawisie w jednostkach standardowych 0-2000
+#define FAU_RC_WY_MIN   	0x0090     	//2U minimalne wysterowanie regulatorów w trakcie lotu w jednostkach standardowych 0-2000
+#define FAU_RC_WY_MAX      	0x0092 		//2U maksymalne wysterowanie silników w trakcie lotu w jednostkach standardowych 0-2000
+#define FAU_RC_WY_ZAWISU   	0x0094   	//2U wysterowanie regulatorów w zawisie w jednostkach standardowych 0-2000
 #define LICZBA_DANYCH_NAPEDU	3
+//wolne 2 bajty
 
 #define FAU_RC_WY_IDENT		0x0098		//2U wysterowanie regulatorów podczas identyfikacji w jednostkach standardowych [0..1999]
 #define FAU_CZAS_IDENT		0x009A		//2U czas identyfikacji każdego silnika w milisekundach

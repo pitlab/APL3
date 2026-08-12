@@ -112,7 +112,7 @@ ETH_DMADescTypeDef  DMATxDscrTab[ETH_TX_DESC_CNT]; /* Ethernet Tx DMA Descriptor
 __attribute__((at(0x30007F00))) ETH_DMADescTypeDef  DMARxDscrTab[ETH_RX_DESC_CNT]; /* Ethernet Rx DMA Descriptors */
 __attribute__((at(0x30040100))) ETH_DMADescTypeDef  DMATxDscrTab[ETH_TX_DESC_CNT]; /* Ethernet Tx DMA Descriptors */
 
-#elif defined ( __GNUC__ ) /* GNU Compiler */
+#elif (defined ( __GNUC__ ) || defined ( __ARMCC_VERSION )) /* GNU Compiler */
 
 ETH_DMADescTypeDef DMARxDscrTab[ETH_RX_DESC_CNT] __attribute__((section(".RxDescripSection"))); /* Ethernet Rx DMA Descriptors */
 ETH_DMADescTypeDef DMATxDscrTab[ETH_TX_DESC_CNT] __attribute__((section(".TxDescripSection")));   /* Ethernet Tx DMA Descriptors */
@@ -123,8 +123,8 @@ ETH_DMADescTypeDef DMATxDscrTab[ETH_TX_DESC_CNT] __attribute__((section(".TxDesc
 #pragma location = 0x30040200
 extern u8_t memp_memory_RX_POOL_base[];
 
-#elif defined ( __CC_ARM ) /* MDK ARM Compiler */
-__attribute__((section(".Rx_PoolSection"))) extern u8_t memp_memory_RX_POOL_base[];
+#elif defined (__ARMCC_VERSION) /* MDK ARM Compiler */
+__attribute__((section(".Rx_PoolSection"))) u8_t memp_memory_RX_POOL_base[];
 
 #elif defined ( __GNUC__ ) /* GNU */
 __attribute__((section(".Rx_PoolSection"))) extern u8_t memp_memory_RX_POOL_base[];

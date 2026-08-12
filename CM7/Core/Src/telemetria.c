@@ -102,7 +102,7 @@ uint8_t ObslugaTelemetrii(uint8_t cInterfejs)
 {
 	uint8_t cIloscDanych[LICZBA_RAMEK_TELEMETR] = {0, 0};
 	uint8_t cIndeksAdresow;	//okresla indeks puli adresowej rakmi. Zmienne 0..127 idą w ramce 0, zmienne 128..255 w ramce 1, itd
-	uint8_t cTypRamki;
+	uint8_t cTypRamki = TELEM_NORMALNA;
 	uint8_t cWysyłamTyleDanych = 0;	//parametr zwrotny funkcji
 	float fZmienna;
 	extern uint8_t cStatusPolaczenia;

@@ -95,7 +95,7 @@ uint8_t CzytajFRAM(uint16_t sAdres)
 // Odczytuje wiele bajtów zawartości pamięci FRAM
 // Parametry: 
 // [i] sAdres - adres pamięci
-// [o] *chDaneWyj - wskaźnik na strukturę na odczytanye dane
+// [o] *chDaneWyj - wskaźnik na tablicę odczytanych danych
 // [i] chIlosc - ilość danych do odczytu
 // Zwraca: nic
 // Czas wykonania
@@ -184,6 +184,9 @@ void ZapiszBuforFRAM(uint16_t sAdres, uint8_t* chDane, uint16_t sIlosc)
 
 	if (chAdresModulu != ADR_FRAM)
 		UstawDekoderModulow(ADR_FRAM);				//Ustaw dekoder adresów /CS.
+
+	if (sAdres < 0x10)
+		chDaneWew[0] = FRAM_WREN;
 
 	chDaneWew[0] = FRAM_WREN;
 	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0

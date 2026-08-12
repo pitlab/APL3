@@ -94,7 +94,7 @@ uint8_t InicjujProtokol(void)
 			stBSP_ID.cNazwa[n] = cNazwaSierotki[n];
 	}
 
-	for (int16_t n=0; n<ROZMIAR_BUF_ODB_DMA+8; n++)
+	for (int16_t n=0; n<ROZMIAR_BUF_ODB_DMA; n++)
 		cBuforOdbDMA[n] = 0x55;	//wypełnij wzorcem do analizy
 	return BLAD_OK;
 }
@@ -174,7 +174,7 @@ void WatekOdbiorczyLPUART1(void *argument)
 	uint8_t chDanychDoWysłania;
 	uint8_t chCzasDrzemki;
 	extern uint8_t cStatusPolaczenia;
-	uint8_t cStatusUART;
+	uint8_t cStatusUART = 0;
 
 	cBłąd = InicjalizacjaWatkuOdbiorczegoLPUART1();
 	InicjalizacjaTelemetrii();

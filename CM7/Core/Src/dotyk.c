@@ -186,16 +186,6 @@ uint8_t KalibrujDotyk(void)
 		sXe[2] = BRZEG;
 		sYe[2] = DISP_Y_SIZE - BRZEG;
 		break;
-
-	case 4:	//wyświetl krzyżyk w prawym dolnym rogu
-		sXe[3] = DISP_X_SIZE - BRZEG;
-		sYe[3] = DISP_Y_SIZE - BRZEG;
-		break;
-
-	case 5:	//wyświetl krzyżyk na środku
-		sXe[4] = DISP_X_SIZE/2;
-		sYe[4] = DISP_Y_SIZE/2;
-		break;
 	}
 
 	//czekaj na naciśnięcie
@@ -308,7 +298,7 @@ void ObliczKalibracjeDotykuWielopunktowa(void)
 	// Y1 = suma od k=1 do n Xd[k] * Ye[k]
 	// Y2 = suma od k=1 do n Yd[k] * Ye[k]
 	// Y3 = suma od k=1 do n Ye[k]
-	nX1 =  nX2 = nX3 = 0;
+	nX1 =  nX2 = nX3 = nY1 = nY2 = nY3 = 0;
 	for (n=0; n<PKT_KAL; n++)
 	{
 		nX1 += sXd[n] * sXe[n];

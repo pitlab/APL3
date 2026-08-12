@@ -1112,7 +1112,7 @@ static void MX_SAI2_Init(void)
   hsai_BlockB2.Init.AudioMode = SAI_MODEMASTER_TX;
   hsai_BlockB2.Init.Synchro = SAI_ASYNCHRONOUS;
   hsai_BlockB2.Init.OutputDrive = SAI_OUTPUTDRIVE_DISABLE;
-  hsai_BlockB2.Init.NoDivider = SAI_MCK_OVERSAMPLING_DISABLE;
+  hsai_BlockB2.Init.NoDivider = SAI_MASTERDIVIDER_ENABLE;
   hsai_BlockB2.Init.MckOverSampling = SAI_MCK_OVERSAMPLING_DISABLE;
   hsai_BlockB2.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_FULL;
   hsai_BlockB2.Init.AudioFrequency = SAI_AUDIO_FREQUENCY_16K;

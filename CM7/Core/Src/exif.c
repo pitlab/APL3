@@ -28,7 +28,7 @@ extern JPEG_ConfTypeDef stKonfigJpeg;	//struktura konfiguracyjna JPEGa
 void PrzygotujTag(uint8_t **chWskTaga, uint16_t sTagID, uint16_t sTyp, uint8_t *chDane, uint32_t nRozmiar, uint8_t **chWskDanych, uint8_t *chPoczatekTIFF)
 {
 	uint32_t nOffset = *chWskDanych - chPoczatekTIFF;
-	uint8_t chRozmiarTagu;
+	uint8_t chRozmiarTagu = 0;
 
 	//oblicz jednostkowy rozmiar tagu dla różnych typów danych
 	switch (sTyp)

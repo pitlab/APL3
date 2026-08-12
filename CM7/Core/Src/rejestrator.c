@@ -107,7 +107,7 @@ void WatekRejestratora(void *argument)
 			else	//jeżeli FAT nie jest gotowy to go zamontuj
 			{
 				DSTATUS status;
-				FRESULT fres;
+				FRESULT fres = FR_OK;
 
 				hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
 				//hsd1.ErrorCode = 0;							//zacznij pracę bez kodu błędu

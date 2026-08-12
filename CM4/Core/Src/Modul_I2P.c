@@ -41,6 +41,9 @@ float fWzmocRegTermostatu = WZMOCNIENIE_REGULATORA_TERMOSTATU;
 static uint8_t cLicznikOkresuPWMTermostatu;
 static uint8_t cWypelnieniePWM;
 float fTemeraturaTermostatu;
+uint8_t cTestFram[16];	//zawartość pierwszych 16 bajtów FRAM
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // wykonuje czynności pomiarowe dla ukłądów znajdujących się na module
@@ -58,6 +61,10 @@ uint8_t InicjujModulI2P(void)
 	float fOffsetZyro1G, fOffsetZyro2G;		//offsety na gorąco
 	float fOffsetCisnRoz1Z, fOffsetCisnRoz1P, fOffsetCisnRoz1G;	//offsety czujnika ciśnienia różnicowego 1
 	float fOffsetCisnRoz2Z, fOffsetCisnRoz2P, fOffsetCisnRoz2G;	//offsety czujnika ciśnienia różnicowego 2
+
+	//weryfikacja stanu pierwszych 16 bajtów FRAM
+	//ZapiszBuforFRAM(FA_USER_VAR, cTestFram, 16);
+	CzytajBuforFRAM(FA_USER_VAR, cTestFram, 16);
 
 	do
 	{
@@ -94,8 +101,6 @@ uint8_t InicjujModulI2P(void)
 			cBłąd |= CzytajFramFloatZWalidacja(FAH_AKCEL1X_PRZES, &fPrzesunięcieAkcel1[n], VMIN_PRZES_ACEL, VMAX_PRZES_ACEL, VDOM_PRZES_ACEL);		//kalibrację przesuniecia zera akcelerometrów
 			cBłąd |= CzytajFramFloatZWalidacja(FAH_AKCEL2X_PRZES, &fPrzesunięcieAkcel2[n], VMIN_PRZES_ACEL, VMAX_PRZES_ACEL, VDOM_PRZES_ACEL);
 		}
-
-
 
 		//odczytaj kalibrację czujników ciśnienia różnicowego i licz charakterystykę. Używana jest temperatura żyroskopu 1
 		cBłąd |= CzytajFramFloatZWalidacja(FAH_CISN_ROZN1_ZIM, &fOffsetCisnRoz1Z, VMIN_SKLADNIK_PDIF, VMAX_SKLADNIK_PDIF, VDOM_SKLADNIK_PDIF);		//offset czujnika różnicowego 1 na zimno

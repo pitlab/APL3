@@ -395,7 +395,7 @@ static void MX_ADC3_Init(void)
   /** Common config
   */
   hadc3.Instance = ADC3;
-  hadc3.Init.Resolution = ADC_RESOLUTION_16B;
+  hadc3.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc3.Init.ScanConvMode = ADC_SCAN_DISABLE;
   hadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc3.Init.LowPowerAutoWait = DISABLE;
@@ -409,6 +409,11 @@ static void MX_ADC3_Init(void)
   hadc3.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
   hadc3.Init.OversamplingMode = DISABLE;
   hadc3.Init.Oversampling.Ratio = 1;
+  if (HAL_ADC_Init(&hadc3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  hadc3.Init.Resolution = ADC_RESOLUTION_16B;
   if (HAL_ADC_Init(&hadc3) != HAL_OK)
   {
     Error_Handler();

@@ -37,7 +37,7 @@
 #include "AnalizaObrazu.h"
 #include "cmsis_os.h"
 #include "OSD.h"
-
+uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamery1[WYS_ZDJECIA] = {0};
 uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamery[SZER_ZDJECIA * WYS_ZDJECIA] = {0};
 //extern uint8_t chBuforJpeg[ROZM_BUF_WY_JPEG];
 extern uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) cBuforLCD[DISP_X_SIZE * DISP_Y_SIZE * 3];	//pamięć obrazu wyświetlacza w formacie RGB888
@@ -208,7 +208,7 @@ uint8_t Wyslij_I2C_Kamera(uint16_t rejestr, uint8_t dane)
 uint8_t Wyslij_Blok_Kamera(const struct sensor_reg reglist[])
 {
 	const struct sensor_reg *next = reglist;
-	uint8_t cBłąd;
+	uint8_t cBłąd = BLAD_OK;
 
 	while ((next->sRejestr != 0xFFFF) && (cBłąd == 0))
 	{

@@ -818,15 +818,16 @@ uint8_t RysujEkran(void)
 
 
 	case TP_KAM_ZDJ_YUV420:	//wykonuje zdjecie YUV420 jpg
-		//cał pamięć SRAM wypełnij wzorcem 0x1111 a następnie bufor wzorcem 0x4444
-		uint16_t* sWskSram = (uint16_t*)0x60000000;
-		for (uint32_t n=0; n<0x400000; n++)
-			*(sWskSram + n) = 0x1111;
-		for (uint32_t m=0; m<SZER_ZDJECIA/4; m++)
+		//bufor wypełnij wzorcem 0x4000
+		/*uint32_t nIndeks;
+		uint16_t sWypelnienie;
+		for (uint32_t m=0; m<WYS_ZDJECIA; m++)
 		{
-			for (uint32_t n=0; n<WYS_ZDJECIA; n++)
-				sBuforKamery[n+m*WYS_ZDJECIA] = (m & 0x0FFF) | 0x4000;
-		}
+			nIndeks = m * SZER_ZDJECIA;
+			sWypelnienie = (m & 0x0FFF) | 0x4000;
+			for (uint32_t n=0; n<SZER_ZDJECIA; n++)
+				sBuforKamery[nIndeks + n] = sWypelnienie;
+		}*/
 		sprintf((char*)cNazwaPlikuObrazu, "ZdjYUV420");	//początek nazwy pliku ze zdjeciem
 		cStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
 		//cBłąd = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV420, KAM_ZDJECIE);
@@ -1862,7 +1863,7 @@ uint8_t RysujEkran(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t Ekran_Powitalny(uint32_t nZainicjowano)
 {
-	uint8_t n, cBłąd;
+	uint8_t n, cBłąd = BLAD_OK;
 	uint16_t x, y;
 
 	extern const unsigned short plogo165x80[];
@@ -3271,7 +3272,7 @@ uint32_t RysujKostkeObrotu(float *fKat)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 {
-	char cNazwaOsi;
+	char cNazwaOsi = '?';
 	float fPochylenie, fPrzechylenie;
 	uint8_t cBłąd = BLAD_OK;
 
@@ -3568,10 +3569,10 @@ void RysujPrzycisk(prostokat_t prost, char *cNapis, uint8_t cCzynnosc)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 {
-	char cNazwaOsi;
+	char cNazwaOsi = '?';
 	uint8_t cBłąd = BLAD_OK;
 	float fWspSkal;		//współczynnik skalowania wykresu
-	float fMag[3];		//dane bieżącego magnetometru
+	float fMag[3] = {0,0,0};		//dane bieżącego magnetometru
 	uint16_t sX, sY;	//bieżace współrzędne na wykresie
 	static uint16_t sPoprzedX, sPoprzedY;	//poprzednie współrzędne na wykresie
 	static float fMin[3], fMax[3];	//minimum i  maksimum wskazań
