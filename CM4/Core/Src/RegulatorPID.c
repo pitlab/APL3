@@ -464,7 +464,7 @@ uint8_t ZapiszWartośćStrojeniaPID_KanałemRC(stStrojPID_t *stStrój, stKonfPID
 	uint8_t cZapiszBajt = 0;	//rozróżnia między zapisaniem liczby float a uint8_t
 	float fParametr;		//wartość strojonego parametru typu float
 	uint16_t sParametr;		//wartość strojonego parametru typu uint16_t
-	uint16_t sAdres;
+	uint16_t sAdres = FA_USER_VAR;	//pusty obszar
 
 	fParametr = ObliczWartośćParametruStrojenia(WymianaCM4->sKanalRC[stStrój->cNrKanałuRC], stStrój);		//oblicz wartość parametru
 	sParametr = (uint16_t)roundf(fParametr);	//rzutuj na uint16_t aby móc sprawdzić wartosci do 255
@@ -1007,10 +1007,13 @@ uint8_t ZapiszWartośćStrojeniaPID_KanałemRC(stStrojPID_t *stStrój, stKonfPID
 	default:	cBłąd = BLAD_ZLE_DANE;	break;
 	}
 
-	if (cZapiszBajt)
-		ZapiszFRAM(sAdres, (uint8_t)sParametr);
-	else
-		ZapiszFramFloat(sAdres, fParametr);
+	if (cBłąd == BLAD_OK)
+	{
+		if (cZapiszBajt)
+			ZapiszFRAM(sAdres, (uint8_t)sParametr);
+		else
+			ZapiszFramFloat(sAdres, fParametr);
+	}
 	return cBłąd;
 }
 

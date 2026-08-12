@@ -270,7 +270,7 @@ uint8_t OdbiórRamkiSBus(uint8_t *cRamkaSBus, uint8_t *cWskNapRamki, uint8_t *cB
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t DekodowanieRamkiBSBus(uint8_t* cRamkaWe, stRC_t *stRC)
 {
-	uint8_t* cNaglowek;
+	uint8_t* cNaglowek = NULL;
 	uint8_t n;
 	uint16_t sWartoscKanalu;
 	uint8_t cBłąd = BLAD_OK;

@@ -672,7 +672,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 
 	if (*chCzujniki & CISN_TEMP_MS2545)
 	{
-		uDaneCM4.dane.fTemper[6] = TemperaturaMS2545(cDaneMS4525);
+		uDaneCM4.dane.fTemper[TEMP_CISR2] = TemperaturaMS2545(cDaneMS4525);	//temperatura zewnetrznego czujnika ciśnienia różnicowego np. MS4525
 		uDaneCM4.dane.fCisnRozn[1] = (15 * uDaneCM4.dane.fCisnRozn[1] + CisnienieMS2545(cDaneMS4525)) / 16;
 		uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 		*chCzujniki &= ~CISN_TEMP_MS2545;	//dane obsłużone

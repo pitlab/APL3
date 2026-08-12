@@ -199,7 +199,7 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 	wskchAdresTAG = wskchAdresExif + ROZMIAR_INTEROPER;	//adres miejsca gdzie zapisać pierwszy TAG w grupie Exif
 	wskchAdresDanych = wskchAdresTAG + (LICZBA_TAGOW_EXIF * ROZMIAR_TAGU);	//adres za grupą tagów gdzie zapisać dane
 
-	fTemp1 = stDane->fTemper[0] - 273.15f;	//Dodać temperaturę otoczenia, na razie jest temperatura IMU [°C]
+	fTemp1 = stDane->fTemper[TEMP_IMU1] - 273.15f;	//Dodać temperaturę otoczenia, na razie jest temperatura IMU [°C]
 	fTemp2 = floorf(fTemp1);	//pełne dziesiate części stopni
 	cBufor[0] = (int8_t)fTemp2;		//liczba ze znakiem
 	cBufor[1] = (int8_t)((int16_t)fTemp2 >> 8);

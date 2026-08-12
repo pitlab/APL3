@@ -578,7 +578,7 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	//napięcie baterii
 	if (stKonfOSD.stNapiBat.chFlagi & FO_WIDOCZNY)
 	{
-		sprintf(chNapisOSD, "Ub %.1fV ", stDane->fTemper[0]);	//Dodać zmienną napiecia
+		sprintf(chNapisOSD, "Ub %.1fV ", stDane->fNapiecieAku[0]);
 		PobierzPozycjeObiektu(&stKonf->stNapiBat, stKonf, &stWspXY);
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, cBuforOSD, (uint8_t*)&stKonf->stNapiBat.sKolorObiektu, (uint8_t*)&stKonf->stNapiBat.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}
@@ -586,7 +586,7 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	//prad pobierany z baterii
 	if (stKonfOSD.stPradBat.chFlagi & FO_WIDOCZNY)
 	{
-		sprintf(chNapisOSD, "Ib %.1fA ", stDane->fTemper[3]);	//Dodać zmienną pradu
+		sprintf(chNapisOSD, "Ib %.1fA ", stDane->fPradAku[0] + stDane->fPradAku[1]);	//suma prądów z obu akumulatorów
 		PobierzPozycjeObiektu(&stKonf->stPradBat, stKonf, &stWspXY);
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, cBuforOSD, (uint8_t*)&stKonf->stPradBat.sKolorObiektu, (uint8_t*)&stKonf->stPradBat.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}
@@ -599,7 +599,7 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 			chSymbol = 'p';	//energia pobrana
 		else
 			chSymbol = 'z';	//energia zostająca w pakiecie
-		sprintf(chNapisOSD, "E%c %ldmAh ", chSymbol, (uint32_t)stDane->fTemper[2]);	//Dodać zmienną energii
+		sprintf(chNapisOSD, "E%c %ldmAh ", chSymbol, (uint32_t)(stDane->fEnergiaPobr[0] + stDane->fEnergiaPobr[1]));	//Energia pobrana z obu akumulatorów
 		PobierzPozycjeObiektu(&stKonf->stEnerBat, stKonf, &stWspXY);
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, cBuforOSD, (uint8_t*)&stKonf->stEnerBat.sKolorObiektu, (uint8_t*)&stKonf->stEnerBat.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}
