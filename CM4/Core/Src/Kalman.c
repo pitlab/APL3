@@ -15,11 +15,9 @@ float fDeklinacjaMagnetyczna = DEKLINACJA_MAG;	//https://www.magnetic-declinatio
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wymawia komunikat słowny dotyczący jednego z predefiniowanych parametrów
-// Parametry: chTypKomunikatu - predefiniowany typ: 1=wysokość, 2=napięcie, 3=temperatura, 4=prędkość
-// fWartosc - liczba do wymówienia
-// chPrezyzja - określa ile miejsc po przecinku należy wymówić. Obecnie 0 lub 1
-// Zwraca: nic
+// Funkcja zaślepka właściwego filtra Kalmana
+// Parametry: *dane - wskaźnik na strukturę danych autopilota
+// Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t FiltrDanychIMUiWysokosci(stWymianyCM4_t *dane)
 {
@@ -49,6 +47,28 @@ uint8_t FiltrDanychIMUiWysokosci(stWymianyCM4_t *dane)
 		dane->stBSP.fKursGeo = (dane->stGnss1.fKurs + ((dane->fKatIMU1[2] + dane->fKatIMU2[2]) / 2) + fDeklinacjaMagnetyczna) / 2;
 	else
 		dane->stBSP.fKursGeo = ((dane->fKatIMU1[2] + dane->fKatIMU2[2]) / 2) + fDeklinacjaMagnetyczna;
+
+	return cBłąd;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja liczy liniowy filtr Kalmana dla wysokości, jej pierwszej pochodnej - prędkości pionowej
+// oraz drugiej pochodnej - przyspieszenia w pionie.
+// Parametry: *dane - wskaźnik na strukturę danych autopilota
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t KalmanWysokośćPrędkośćPrzyspieszenieZ(stWymianyCM4_t *dane)
+{
+	uint8_t cBłąd = BLAD_OK;
+
+	float32_t fx[3];	//wektor stanu: 0=wysokość, 1=prędkość, 2=przyspieszenie
+	float32_t fz[3];	//wektor pomiarów: 0=wysokość, 2=przyspieszenie
+	float32_t fR[3][3];	//macierz kowariancji pomiarów
+
+	fz[0] = dane->fWysokoAGL[0];
+	fz[2] = dane->fAkcel1[2];
+	fR[0][0] = 1;
 
 	return cBłąd;
 }

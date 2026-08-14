@@ -11,7 +11,7 @@ LibFiles=Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_adc.h;Drivers\STM32H7xx_
 
 [CortexM4:PreviousUsedCubeIDEFiles]
 SourceFiles=CM4\Core\Src\main.c;CM4\Core\Src\stm32h7xx_it.c;CM4\Core\Src\stm32h7xx_hal_msp.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_adc.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_adc_ex.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_rcc.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_rcc_ex.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_flash.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_flash_ex.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_gpio.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_hsem.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_dma.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_dma_ex.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_mdma.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_pwr.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_pwr_ex.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_cortex.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_i2c.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_i2c_ex.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_exti.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_spi.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_spi_ex.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_tim.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_tim_ex.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart.c;Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_uart_ex.c;Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\system_stm32h7xx.c;;;
-HeaderPath=Drivers\STM32H7xx_HAL_Driver\Inc;Drivers\STM32H7xx_HAL_Driver\Inc\Legacy;Drivers\CMSIS\Device\ST\STM32H7xx\Include;Drivers\CMSIS\Include;CM4\Core\Inc;Drivers\STM32H7xx_HAL_Driver\Inc;Drivers\STM32H7xx_HAL_Driver\Inc\Legacy;Drivers\CMSIS\Device\ST\STM32H7xx\Include;Drivers\CMSIS\Include;
+HeaderPath=Drivers\STM32H7xx_HAL_Driver\Inc;Drivers\STM32H7xx_HAL_Driver\Inc\Legacy;Drivers\CMSIS\Device\ST\STM32H7xx\Include;Drivers\CMSIS\Include;CM4\Core\Inc;Middlewares\ST\ARM\DSP\Inc;Middlewares\ST\CMSIS\DSP\Include;Drivers\STM32H7xx_HAL_Driver\Inc;Drivers\STM32H7xx_HAL_Driver\Inc\Legacy;Drivers\CMSIS\Device\ST\STM32H7xx\Include;Drivers\CMSIS\Include;
 CDefines=CORE_CM4;USE_HAL_DRIVER;STM32H755xx;USE_HAL_DRIVER;USE_PWR_SMPS_2V5_SUPPLIES_LDO;USE_PWR_SMPS_2V5_SUPPLIES_LDO;USE_PWR_SMPS_2V5_SUPPLIES_LDO;USE_HAL_DRIVER;USE_HAL_DRIVER;
 
 [PreviousLibFiles]
@@ -77,6 +77,9 @@ SourcePath#5=..\CM7\USB_DEVICE\App
 SourcePath#6=..\CM7\USB_DEVICE\Target
 SourceFiles=;
 
+[CortexM7:ThirdPartyIp]
+ThirdPartyIpNumber=0
+
 [CortexM4:PreviousGenFiles]
 AdvancedFolderStructure=true
 HeaderFileListSize=3
@@ -93,6 +96,19 @@ SourceFiles#2=..\CM4\Core\Src\main.c
 SourceFolderListSize=1
 SourcePath#0=..\CM4\Core\Src
 SourceFiles=;
+
+[CortexM4:ThirdPartyIp]
+ThirdPartyIpNumber=2
+ThirdPartyIpName#0=STMicroelectronics.X-CUBE-ALGOBUILD.1.5.0_M4
+ThirdPartyIpName#1=STMicroelectronics.FP-SNS-STAIOTCFT.1.1.0_M4
+
+[CortexM4:ThirdPartyIp#STMicroelectronics.X-CUBE-ALGOBUILD.1.5.0_M4]
+library=Middlewares\ST\ARM\DSP\Lib\libarm_cortexM4lf_math.a;
+header=Middlewares\ST\ARM\DSP\Inc\arm_math.h;
+
+[CortexM4:ThirdPartyIp#STMicroelectronics.FP-SNS-STAIOTCFT.1.1.0_M4]
+library=Drivers\CMSIS\DSP\Lib\GCC\libarm_cortexM4lf_math.a;
+header=Drivers\CMSIS\DSP\Include\arm_common_tables.h;Drivers\CMSIS\DSP\Include\arm_const_structs.h;Drivers\CMSIS\DSP\Include\arm_math.h;
 
 [PreviousGenFiles]
 AdvancedFolderStructure=true
@@ -156,4 +172,17 @@ SourcePath#5=..\CM7\USB_DEVICE\App
 SourcePath#6=..\CM7\USB_DEVICE\Target
 SourcePath#7=..\CM4\Core\Src
 SourceFiles=;
+
+[ThirdPartyIp]
+ThirdPartyIpNumber=2
+ThirdPartyIpName#0=STMicroelectronics.X-CUBE-ALGOBUILD.1.5.0_M4
+ThirdPartyIpName#1=STMicroelectronics.FP-SNS-STAIOTCFT.1.1.0_M4
+
+[ThirdPartyIp#STMicroelectronics.X-CUBE-ALGOBUILD.1.5.0_M4]
+library=Middlewares\ST\ARM\DSP\Lib\libarm_cortexM4lf_math.a;
+header=Middlewares\ST\ARM\DSP\Inc\arm_math.h;
+
+[ThirdPartyIp#STMicroelectronics.FP-SNS-STAIOTCFT.1.1.0_M4]
+library=Drivers\CMSIS\DSP\Lib\GCC\libarm_cortexM4lf_math.a;
+header=Drivers\CMSIS\DSP\Include\arm_common_tables.h;Drivers\CMSIS\DSP\Include\arm_const_structs.h;Drivers\CMSIS\DSP\Include\arm_math.h;
 

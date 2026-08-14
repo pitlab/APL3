@@ -22,6 +22,7 @@
 
 #ifndef FREERTOS_OS2_H_
 #define FREERTOS_OS2_H_
+
 #include <string.h>
 #include <stdint.h>
 

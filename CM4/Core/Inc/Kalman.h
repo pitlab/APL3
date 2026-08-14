@@ -9,8 +9,9 @@
 #define INC_KALMAN_H_
 #include "SysDefCM4.h"
 #include "wymiana.h"
-
+#include "arm_math.h"
 
 uint8_t FiltrDanychIMUiWysokosci(stWymianyCM4_t *dane);
+uint8_t KalmanWysokośćPrędkośćPrzyspieszenieZ(stWymianyCM4_t *dane);
 
 #endif /* INC_KALMAN_H_ */
