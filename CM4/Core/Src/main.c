@@ -31,6 +31,7 @@
 #include "WeWyRC.h"
 #include "JednostkaInercyjna.h"
 #include <Fram.h>
+#include <KalmanWysokosci2D.h>
 #include <Mikser.h>
 #include "Crossfire.h"
 #include "KontrolerLotu.h"
@@ -216,6 +217,9 @@ int main(void)
   PrzechwyćBłąd(cBłąd);
 
   cBłąd = InicjujModulI2P();
+  PrzechwyćBłąd(cBłąd);
+
+  cBłąd = InicjujFiltrKalmanaWysokości2D();
   PrzechwyćBłąd(cBłąd);
 
   cBłąd = InicjujJednostkeInercyjna();

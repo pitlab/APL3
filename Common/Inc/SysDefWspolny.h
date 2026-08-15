@@ -47,6 +47,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define PROMIEN_ZIEMI		6371008.77f			//promień Ziemi w metrach
 #define CISNIENIE_QNE		101325.0f			//ciśnienie standardowe [Pa]
 
+#define OKRES_PETLI_GLOWNEJ	5e-4	//czas obiegu pętli głównej programu autopilota [sekund]
 #define KANALY_WYJSC_RC		16	//liczba sterowanych kanałów wyjściowych RC
 #define KANALY_ODB_RC		16	//liczba odbieranych kanałów na każdym z dwu wejść odbiorników RC
 #define KANALY_MIKSERA		8	//liczba kanałów wyjściowych, które mogą wchodzić do miksera

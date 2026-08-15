@@ -32,6 +32,7 @@
 #include "SampleAudio.h"
 #include "Crossfire.h"
 #include <Kalman.h>
+#include <KalmanWysokosci2D.h>
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -161,6 +162,14 @@ void PetlaGlowna(void)
 
 	case 6:	//przepisz czujniki do struktury BSP - finalnie ma to zrobić filtr Kalmana
 		FiltrDanychIMUiWysokosci(&uDaneCM4.dane);
+
+		cBłądPG = PredykcjaFiltraKalmanaWysokości2D(&uDaneCM4.dane);
+		PrzechwyćBłąd(cBłądPG);
+		if (uDaneCM4.dane.cNowyPomiar & NP_WYS1)
+		{
+			cBłądPG = AktulizacjaFiltraKalmanaWysokości2D(&uDaneCM4.dane);
+			PrzechwyćBłąd(cBłądPG);
+		}
 		break;
 
 	case 7:

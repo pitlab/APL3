@@ -7,7 +7,7 @@
 // (c) PitLab 2026
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <KalmanWysokosc.h>
+#include <KalmanWysokosci2D.h>
 
 static float32_t fx[2];		//wektor stanu: 0=wysokość, 1=prędkość
 static float32_t fz[2];		//wektor pomiaru: 0=wysokość, 1=prędkość
@@ -25,47 +25,48 @@ static float32_t fTempW1[2], fTempW2[2], fTempW3[2];	//wektory na wyniki pośred
 static float32_t fTempM1[2][2], fTempM2[2][2], fTempM3[2][2], fTempM4[2][2];	//macierze na wyniki pośrednie
 
 //zmienne z przedrostkiem m oznaczają macierze (lub wektory) w formacie biblioteki ARM DSP
-arm_matrix_instance_f32 mx = {2, 1, fx};			//wektor stanu
-arm_matrix_instance_f32 mz = {2, 1, fz};			//wektor pomiaru
-arm_matrix_instance_f32 mex = {2, 1, fEstymataX};	//estymata wektora stanu n+1
-arm_matrix_instance_f32 mw = {2, 1, &fw[0]};		//wektor szumu procesu
-arm_matrix_instance_f32 mP = {2, 2, &fP[0][0]};		//macierz wariancji i kowariancji predykcji
-arm_matrix_instance_f32 mR = {2, 2, &fR[0][0]};		//macierz wariancji i kowariancji pomiaru
-arm_matrix_instance_f32 mF = {2, 2, &fF[0][0]};		//macierz przejścia wektora stanu
-arm_matrix_instance_f32 mG = {2, 1, fG};			//macierz przejścia sygnałów wejściowych
-arm_matrix_instance_f32 mQ = {2, 2, &fQ[0][0]};		//macierz szumu procesu
-arm_matrix_instance_f32 mI = {2, 2, &fI[0][0]};		//macierz jednostkowa
-arm_matrix_instance_f32 mH = {2, 2, &fH[0][0]};		//macierz obserwacji
-arm_matrix_instance_f32 mK = {2, 2, &fK[0][0]};		//macierz wzmocnień kalmana
-arm_matrix_instance_f32 mTempW1 = {2, 1, fTempW1};	//wektor1 na wyniki pośrednie
-arm_matrix_instance_f32 mTempW2 = {2, 1, fTempW2};	//wektor2 na wyniki pośrednie
-arm_matrix_instance_f32 mTempW3 = {2, 1, fTempW3};	//wektor3 na wyniki pośrednie
-arm_matrix_instance_f32 mTempM1 = {2, 2, &fTempM1[0][0]};	//macierz1 na wyniki pośrednie
-arm_matrix_instance_f32 mTempM2 = {2, 2, &fTempM2[0][0]};	//macierz2 na wyniki pośrednie
-arm_matrix_instance_f32 mTempM3 = {2, 2, &fTempM3[0][0]};	//macierz3 na wyniki pośrednie
-arm_matrix_instance_f32 mTempM4 = {2, 2, &fTempM4[0][0]};	//macierz4 na wyniki pośrednie
+static arm_matrix_instance_f32 mx = {2, 1, fx};			//wektor stanu
+static arm_matrix_instance_f32 mz = {2, 1, fz};			//wektor pomiaru
+static arm_matrix_instance_f32 mex = {2, 1, fEstymataX};	//estymata wektora stanu n+1
+static arm_matrix_instance_f32 mw = {2, 1, &fw[0]};		//wektor szumu procesu
+static arm_matrix_instance_f32 mP = {2, 2, &fP[0][0]};		//macierz wariancji i kowariancji predykcji
+static arm_matrix_instance_f32 mR = {2, 2, &fR[0][0]};		//macierz wariancji i kowariancji pomiaru
+static arm_matrix_instance_f32 mF = {2, 2, &fF[0][0]};		//macierz przejścia wektora stanu
+static arm_matrix_instance_f32 mG = {2, 1, fG};			//macierz przejścia sygnałów wejściowych
+static arm_matrix_instance_f32 mQ = {2, 2, &fQ[0][0]};		//macierz szumu procesu
+static arm_matrix_instance_f32 mI = {2, 2, &fI[0][0]};		//macierz jednostkowa
+static arm_matrix_instance_f32 mH = {2, 2, &fH[0][0]};		//macierz obserwacji
+static arm_matrix_instance_f32 mK = {2, 2, &fK[0][0]};		//macierz wzmocnień kalmana
+static arm_matrix_instance_f32 mTempW1 = {2, 1, fTempW1};	//wektor1 na wyniki pośrednie
+static arm_matrix_instance_f32 mTempW2 = {2, 1, fTempW2};	//wektor2 na wyniki pośrednie
+static arm_matrix_instance_f32 mTempW3 = {2, 1, fTempW3};	//wektor3 na wyniki pośrednie
+static arm_matrix_instance_f32 mTempM1 = {2, 2, &fTempM1[0][0]};	//macierz1 na wyniki pośrednie
+static arm_matrix_instance_f32 mTempM2 = {2, 2, &fTempM2[0][0]};	//macierz2 na wyniki pośrednie
+static arm_matrix_instance_f32 mTempM3 = {2, 2, &fTempM3[0][0]};	//macierz3 na wyniki pośrednie
+static arm_matrix_instance_f32 mTempM4 = {2, 2, &fTempM4[0][0]};	//macierz4 na wyniki pośrednie
 
-
+extern float fPoczątkoweBarometryczneMSL;	//wysokość MSL wyznaczona podczas uruchomienia
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja inicjuje liniowy filtr Kalmana dla wysokości, jej pierwszej pochodnej - prędkości pionowej
-// oraz drugiej pochodnej - przyspieszenia w pionie.
+// Funkcja inicjuje liniowy filtr Kalmana dla wysokości i jej pierwszej pochodnej - prędkości pionowej
+// Filtr sterowany jest drugą pochodną wysokości - przyspieszeniem w pionie.
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjujKalmanWysokości(stWymianyCM4_t *dane)
+uint8_t InicjujFiltrKalmanaWysokości2D(void)
 {
 	uint8_t cBłąd = BLAD_OK;
 
 	arm_mat_init_f32(&mx, 2, 1, fx);
 
-	fz[0] = dane->fWysokoAGL[0];
-	fz[1] = dane->fWariometr[0];
+	fz[0] = 0.0f;
+	fz[1] = 0.0f;
 	arm_mat_init_f32(&mz, 2, 1, fz);
 	
 	//wariancja jest kwadratem standardowego odchylenia pomiaru i jest rozmieszczona w głównej przekątnej macierzy
-	//pozostałe pola sa kowariancją, czyli zależnością między błędami jednago pomiary a drugiego. Należy założyć że 
-	//błędu pomiarów są niezależne, więc kowariancja jest ustawiona na 0
+	//pozostałe pola sa kowariancją, czyli zależnością między błędami jednago pomiaru a drugiego. Zakładam że
+	//błędy pomiarów są niezależne, więc kowariancja jest ustawiona na 0. W rzeczywistosci pomiar prędkości jest liczony
+	//z danych czujnika wysokości więc korelacja istnieje ale na razie nie potrafię jej obliczyć
 	fR[0][0] = 0.0055;	//wariancja statycznej próbki wysokości czujnika 1 [m^2]
 	fR[0][1] = 0.0f;
 	fR[1][0] = 6.9e-5;	//wariancja wariometru z czujnika 1 [m^2/s^2]
@@ -80,12 +81,11 @@ uint8_t InicjujKalmanWysokości(stWymianyCM4_t *dane)
 	arm_mat_init_f32(&mP, 2, 2, &fP[0][0]);
 
 	//macierz przejścia oblicza wartość predykcji następnego pomiaru
-	fF[0][0] = 1.0f;					//wysokość = poprzednia wysokość
-	fF[0][1] = (float)dane->ndT / 1e6;	//wysokość = prędkość * dT
-	fF[1][0] = 0.0f;					//prędkość nie bierze się z wysokości
-	fF[1][1] = 1.0f;					//prędkość = poprzednia prędkość
+	fF[0][0] = 1.0f;				//wysokość = poprzednia wysokość
+	fF[0][1] = OKRES_PETLI_GLOWNEJ;	//wysokość = prędkość * dT
+	fF[1][0] = 0.0f;				//prędkość nie bierze się z wysokości
+	fF[1][1] = 1.0f;				//prędkość = poprzednia prędkość
 	arm_mat_init_f32(&mF, 2, 2, &fF[0][0]);
-
 
 	//pierwsza estymata ma wartość pomiaru
 	fEstymataX[0] = fz[0];
@@ -93,8 +93,8 @@ uint8_t InicjujKalmanWysokości(stWymianyCM4_t *dane)
 	arm_mat_init_f32(&mex, 2, 1, fEstymataX);
 
 	//inicjalizacja macierzy przejscia sygnałów wejściowych - czyli zależność od przyspieszenia
-	fG[0] = powf((float)dane->ndT / 1e6, 2) / 2;	//wysokość = przyspieszenie * (dT^2) / 2
-	fG[1] = (float)dane->ndT / 1e6;				//prędkość = przyspieszenie * dT
+	fG[0] = powf(OKRES_PETLI_GLOWNEJ, 2) / 2;	//wysokość = przyspieszenie * (dT^2) / 2
+	fG[1] = OKRES_PETLI_GLOWNEJ;				//prędkość = przyspieszenie * dT
 	arm_mat_init_f32(&mG, 2, 1, &fG[0]);
 
 	//inicjalizacja szumu procesu. Na podstawie przykładów zakładam że szum procesu wygląda następująco
@@ -113,7 +113,7 @@ uint8_t InicjujKalmanWysokości(stWymianyCM4_t *dane)
 	fI[1][1] = 1.0f;
 	arm_mat_init_f32(&mI, 2, 2, &fI[0][0]);
 
-	//inicjalizacja macierzy obserwacji - pomiar jest w tych damych jednostkach co wektor stanum więc H jest macierzą jednostkową
+	//inicjalizacja macierzy obserwacji - pomiar jest w tych samych jednostkach co wektor stanu, więc H jest macierzą jednostkową
 	fH[0][0] = 1.0f;
 	fH[0][1] = 0.0f;
 	fH[1][0] = 0.0f;
@@ -128,12 +128,12 @@ uint8_t InicjujKalmanWysokości(stWymianyCM4_t *dane)
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja estymuje nowe wartości wektora stanu ze etapu (n) na (n+1)
 // x(n+1) = F * x(n) + G * u(n) + w
-// oraz predykcję niepewnosci nowej wartości:
+// oraz wwykonuje predykcję kowariancji (niepewności) nowej wartości:
 // P(n+1) = F * P(n) * F^T + Q
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t PredykcjaKalmanaWysokości(stWymianyCM4_t *dane)
+uint8_t PredykcjaFiltraKalmanaWysokości2D(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
@@ -147,6 +147,9 @@ uint8_t PredykcjaKalmanaWysokości(stWymianyCM4_t *dane)
 	//dodawanie składników
 	cBłąd |= arm_mat_add_f32(&mTempW1, &mTempW2, &mTempW3);
 	cBłąd |= arm_mat_add_f32(&mTempW3, &mw, &mex);
+	dane->stBSP.fWysokoscMSL = fEstymataX[0];
+	dane->stBSP.fPredkoscD 	 = fEstymataX[1];
+	dane->stBSP.fWysokoscAGL = dane->stBSP.fWysokoscMSL - fPoczątkoweBarometryczneMSL;
 
 	//2) Obliczenie niepewności nowej estymaty wektora stanu
 	//Temp1 = F * P(n)
@@ -165,12 +168,10 @@ uint8_t PredykcjaKalmanaWysokości(stWymianyCM4_t *dane)
 	fTempM1[0][1] = powf((float32_t)dane->ndT / 1e6, 3) / 2;
 	fTempM1[1][0] = fTempM1[0][1];
 	fTempM1[1][1] = powf((float32_t)dane->ndT / 1e6, 2);
-
 	cBłąd |= arm_mat_scale_f32(&mTempM1, 6e-6, &mQ);
 
 	//dodaj macierz szumu Q procesu do iloczynu (F * P(n)) * (F^T)
-	cBłąd |= arm_mat_add_f32(&mTempM3, &mTempM1, &mP);
-
+	cBłąd |= arm_mat_add_f32(&mQ, &mTempM3, &mP);
 	return cBłąd;
 }
 
@@ -184,7 +185,7 @@ uint8_t PredykcjaKalmanaWysokości(stWymianyCM4_t *dane)
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktulizacjaKalmanaWysokości(stWymianyCM4_t *dane)
+uint8_t AktulizacjaFiltraKalmanaWysokości2D(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
@@ -212,7 +213,9 @@ uint8_t AktulizacjaKalmanaWysokości(stWymianyCM4_t *dane)
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * Estymata_x(n-1)
 	cBłąd |= arm_mat_mult_f32(&mH, &mex, &mTempW1);
 
-	//(z(n) - H * Estymata_x(n-1))
+	//Uwzględnienie pomiaru: (z(n) - H * Estymata_x(n-1))
+	fz[0] = dane->fWysokoMSL[0];
+	fz[1] = dane->fWariometr[0];
 	cBłąd |= arm_mat_sub_f32(&mz, &mTempW1, &mTempW2);
 
 	//mnożenie przez K: K(n) * (z(n) - H * Estymata_x(n-1))
@@ -222,8 +225,8 @@ uint8_t AktulizacjaKalmanaWysokości(stWymianyCM4_t *dane)
 	cBłąd |= arm_mat_add_f32(&mex, &mTempW1, &mTempW2);
 
 	//przepisanie wyniku do wektora estymaty
-	fEstymataX[0] = fTempW2[0];
-	fEstymataX[1] = fTempW2[1];
+	dane->stBSP.fWysokoscMSL = fEstymataX[0] = fTempW2[0];
+	dane->stBSP.fPredkoscD 	 = fEstymataX[1] = fTempW2[1];
 
 	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> TempM1
 	cBłąd |= arm_mat_mult_f32(&mK, &mH, &mTempM1);

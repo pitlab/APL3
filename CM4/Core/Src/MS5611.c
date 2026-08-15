@@ -22,11 +22,14 @@ static uint16_t sKonfig[6];  //współczynniki kalibracyjne
 static uint8_t chBuf5611[4];
 static uint8_t chProporcjaPomiarow;
 float fP0_MS5611 = 0.0f;	//ciśnienie zerowe do obliczeń wysokości [Pa]
-static uint16_t sLicznikUsrednianiaP0 = 0;			//licznik uśredniania ciśnienia zerowego do obliczeń wysokości
-static float fWysokoscUsredniona;		//średnia z ostatnich pomiarów wysokości potrzebna do liczenia wariometru
+static uint16_t sLicznikUśrednianiaP0 = 0;			//licznik uśredniania ciśnienia zerowego do obliczeń wysokości
+static float fWysokośćUśredniona;		//średnia z ostatnich pomiarów wysokości potrzebna do liczenia wariometru
 static int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia.
 static uint32_t nCzasOstatniejKonwersjiSM5611;
-float fPoprzednieCisnienie;
+//float fPoprzednieCisnienie;
+float fPoczątkoweBarometryczneMSL;	//wysokość MSL wyznaczona podczas inicjalizacji
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z PROMu
@@ -69,7 +72,7 @@ uint8_t InicjujMS5611(void)
     if (cBłąd == BLAD_OK)
     {
     	uDaneCM4.dane.nZainicjowano |= INIT_MS5611;
-    	sLicznikUsrednianiaP0 = LICZBA_PROBEK_USREDNIANIA;	//rozpocznij przygotowanie P0
+    	sLicznikUśrednianiaP0 = LICZBA_PROBEK_USREDNIANIA;	//rozpocznij przygotowanie P0
     }
     return cBłąd;
 }
@@ -162,8 +165,8 @@ float MS5611_LiczCisnienie(uint32_t nKonwersja, int32_t ndTemp)
     lSens -= lSens2;
     fCisnienie = (float)(((int64_t)nKonwersja * lSens / 2097152) - lOffset) / 32768.0f;
 
-    if ((fCisnienie > (fPoprzednieCisnienie + 150)) || (fCisnienie < (fPoprzednieCisnienie - 150)))
-    	fPoprzednieCisnienie = fCisnienie;
+    //if ((fCisnienie > (fPoprzednieCisnienie + 150)) || (fCisnienie < (fPoprzednieCisnienie - 150)))
+    	//fPoprzednieCisnienie = fCisnienie;
     return fCisnienie; //wynik w Pa
 }
 
@@ -180,18 +183,18 @@ uint8_t ObslugaMS5611(void)
 {
 	uint32_t nKonwersja;
 	uint8_t cBłąd = BLAD_OK;
-	float fCisnienie = 0;
+	//float fCisnienie = 0;
 
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_MS5611)
 		return BLAD_BRAK_CZUJNIKA;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_MS5611) != INIT_MS5611)	//jeżeli czujnik nie jest zainicjowany
 	{
-		sLicznikUsrednianiaP0++;	//na tym etapie zmienna zlicza próby inicjalizacji
-		if (sLicznikUsrednianiaP0 > MAX_PROB_INICJALIZACJI)
+		sLicznikUśrednianiaP0++;	//na tym etapie zmienna zlicza próby inicjalizacji
+		if (sLicznikUśrednianiaP0 > MAX_PROB_INICJALIZACJI)
 			uDaneCM4.dane.nBrakCzujnika |= INIT_MS5611;
 		else
-			sLicznikUsrednianiaP0 = 0;	//od tej pory zmienna pracuje jako licznik uśredniania
+			sLicznikUśrednianiaP0 = 0;	//od tej pory zmienna pracuje jako licznik uśredniania
 
 		cBłąd = InicjujMS5611();
 		if (cBłąd)
@@ -225,8 +228,10 @@ uint8_t ObslugaMS5611(void)
 		case 7:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
 			if (nKonwersja)
-				fCisnienie = MS5611_LiczCisnienie(nKonwersja, ndT);
-			uDaneCM4.dane.fCisnieBzw[0] = (7 * uDaneCM4.dane.fCisnieBzw[0] + fCisnienie) / 8;
+			{
+				uDaneCM4.dane.fCisnieBzw[0] = MS5611_LiczCisnienie(nKonwersja, ndT);
+				uDaneCM4.dane.cNowyPomiar |= NP_WYS1;
+			}
 			chBuf5611[0] = PMS_CONV_D2_OSR1024;		//uruchom konwersję temperatury
 			ZapiszSPIu8(chBuf5611, 1);
 			break;
@@ -234,8 +239,7 @@ uint8_t ObslugaMS5611(void)
 		default:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
 			if (nKonwersja)
-				fCisnienie = MS5611_LiczCisnienie(nKonwersja, ndT);
-			uDaneCM4.dane.fCisnieBzw[0] = (7 * uDaneCM4.dane.fCisnieBzw[0] + fCisnienie) / 8;
+				uDaneCM4.dane.fCisnieBzw[0] = MS5611_LiczCisnienie(nKonwersja, ndT);
 			chBuf5611[0] = PMS_CONV_D1_OSR1024;		//uruchom konwersję ciśnienia
 			ZapiszSPIu8(chBuf5611, 1);
 			break;
@@ -243,26 +247,25 @@ uint8_t ObslugaMS5611(void)
 		chProporcjaPomiarow++;
 		chProporcjaPomiarow &= 0x07;
 
-		//przygotuj P0
-		fWysokoscUsredniona = ((PODSTAWA_FILTRA_IIR_P0 - 1) * fWysokoscUsredniona + uDaneCM4.dane.fWysokoMSL[0]) / PODSTAWA_FILTRA_IIR_P0;
-		if (fCisnienie > 0)		//wykonaj tylko dla cykli pomiaru ciśnienia, pomiń cykle pomiary temperatury
+		if (uDaneCM4.dane.cNowyPomiar & NP_WYS1)	//są nowe dane ciśnienia
 		{
-			if (sLicznikUsrednianiaP0)	//czy przygotowanie ciśnienia P0 jeszcze trwa
+			if (sLicznikUśrednianiaP0)	//czy przygotowanie ciśnienia P0 jeszcze trwa
 			{
 				uDaneCM4.dane.fWysokoMSL[1] = 0.0f;
-				fP0_MS5611 = ((PODSTAWA_FILTRA_IIR_P0 - 1) * fP0_MS5611 + fCisnienie) / PODSTAWA_FILTRA_IIR_P0;
-				sLicznikUsrednianiaP0--;
-				if (sLicznikUsrednianiaP0 == 0)
+				fP0_MS5611 = ((PODSTAWA_FILTRA_IIR_P0 - 1) * fP0_MS5611 + uDaneCM4.dane.fCisnieBzw[0]) / PODSTAWA_FILTRA_IIR_P0;
+				sLicznikUśrednianiaP0--;
+				if (sLicznikUśrednianiaP0 == 0)
+				{
 					uDaneCM4.dane.nZainicjowano |= INIT_P0_MS5611;
+				}	fPoczątkoweBarometryczneMSL = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[0], CISNIENIE_QNE, uDaneCM4.dane.fTemper[TEMP_BARO1]);
 			}
 			else
-			{
-				uDaneCM4.dane.fWysokoAGL[0] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[0], fP0_MS5611, uDaneCM4.dane.fTemper[TEMP_BARO1]);	//P0 gotowe więc oblicz wysokość
+				uDaneCM4.dane.fWysokoAGL[0] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[0], fP0_MS5611, uDaneCM4.dane.fTemper[TEMP_BARO1]);
 
-				float fWariometr = (fWysokoscUsredniona - uDaneCM4.dane.fWysokoMSL[0]) * 1000 / uDaneCM4.dane.ndT;	//dH [m] * 1e6 / t [1e-6 s]
-				uDaneCM4.dane.fWariometr[0] = ((PODSTAWA_FILTRA_IIR_WARIOMETRU - 1) * uDaneCM4.dane.fWariometr[0] + fWariometr) / PODSTAWA_FILTRA_IIR_WARIOMETRU;
-			}
 			uDaneCM4.dane.fWysokoMSL[0] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[0], CISNIENIE_QNE, uDaneCM4.dane.fTemper[TEMP_BARO1]);	//wartość bezwzgledna, nie wymaga uśredniania P0
+			fWysokośćUśredniona = ((PODSTAWA_FILTRA_IIR_P0 - 1) * fWysokośćUśredniona + uDaneCM4.dane.fWysokoMSL[0]) / PODSTAWA_FILTRA_IIR_P0;
+			float fNowyWariometr = (fWysokośćUśredniona - uDaneCM4.dane.fWysokoMSL[0]) * 1000 / uDaneCM4.dane.ndT;	//dH [m] * 1e6 / t [1e-6 s]
+			uDaneCM4.dane.fWariometr[0] = ((PODSTAWA_FILTRA_IIR_WARIOMETRU - 1) * uDaneCM4.dane.fWariometr[0] + fNowyWariometr) / PODSTAWA_FILTRA_IIR_WARIOMETRU;
 		}
 	}
 	return cBłąd;
