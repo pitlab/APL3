@@ -1302,7 +1302,6 @@ uint8_t RysujEkran(void)
 
 	//*** Karta SD ************************************************
 	case TP_KARTA_SD:			///menu Karta SD
-		//Menu((char*)cNapisLcd[STR_MENU_KARTA_SD], stMenuKartaSD, &cNowyTrybPracy);
 		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_KARTA_SD]);
 		cBłąd = Menu(cNapisPodreczny, stMenuKartaSD, &cNowyTrybPracy);
 		cWrocDoTrybu = TP_MENU_GLOWNE;
@@ -1310,8 +1309,9 @@ uint8_t RysujEkran(void)
 
 
 	case TPKS_WLACZ_REJ:
-		cStatusRejestratora|= STATREJ_WLACZONY;
-		WyswietlRejestratorKartySD();
+		cBłąd = WyswietlRejestratorKartySD();
+		if (cBłąd == BLAD_OK)
+			cStatusRejestratora |= STATREJ_WLACZONY;	//włącz rejestrację tylko gdy nie znaleziono żadnych problemów
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
@@ -1321,7 +1321,7 @@ uint8_t RysujEkran(void)
 
 
 	case TPKS_WYLACZ_REJ:	//najpierw zakmnij plik a potem wyłacz rejestrator
-		cStatusRejestratora|= STATREJ_ZAMKNIJ_PLIK | STATREJ_BYL_OTWARTY;
+		cStatusRejestratora |= STATREJ_ZAMKNIJ_PLIK | STATREJ_BYL_OTWARTY;
 		WyswietlRejestratorKartySD();
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
@@ -2837,14 +2837,15 @@ void WyswietlParametryKartySD(void)
 ////////////////////////////////////////////////////////////////////////////////
 // Rysuje okno z parametrami rejestratora na karcie SD
 // Parametry: brak
-// Zwraca: nic
+// Zwraca: kod błędu oznaczający gotowość karty
 ////////////////////////////////////////////////////////////////////////////////
-void WyswietlRejestratorKartySD(void)
+uint8_t WyswietlRejestratorKartySD(void)
 {
 	extern uint8_t cKodBleduFAT;
 	extern uint16_t sMaxDlugoscWierszaLogu;
 	uint8_t cIndeksSłowaKontrolnego = 0;
 	extern const char *cNazwyPozycjiRejestratora[LICZBA_NAZW_POZYCJI_REJESTRATORA];
+	uint8_t cBłąd = BLAD_OK;
 
 	if (cRysujRaz)
 	{
@@ -2872,6 +2873,7 @@ void WyswietlRejestratorKartySD(void)
 	{
 		setColor(BLAD);
 		sprintf(cNapis, "Brak! ");
+		cBłąd = BLAD_KARTA_SD_NIEGOTOWA;
 	}
 	RysujNapis(cNapis, 11*FONT_SL, 30);
 
@@ -2884,6 +2886,7 @@ void WyswietlRejestratorKartySD(void)
 	{
 		setColor(BLAD);
 		PobierzKodBleduFAT(cKodBleduFAT, cNapis);
+		cBłąd = BLAD_KARTA_SD_NIEGOTOWA;
 	}
 	RysujNapis(cNapis, 41*FONT_SL, 30);
 
@@ -2899,6 +2902,7 @@ void WyswietlRejestratorKartySD(void)
 			sprintf(cNapis, "Zatrzymany");
 		else
 			sprintf(cNapis, "Brak ");
+		cBłąd = BLAD_KARTA_SD_NIEGOTOWA;
 	}
 	RysujNapis(cNapis, 12*FONT_SL, 50);
 
@@ -2909,7 +2913,10 @@ void WyswietlRejestratorKartySD(void)
 	if (fZapelnienie < 0.95)
 		setColor(ZOLTY);
 	else
+	{
 		setColor(BLAD);	//czerwony
+		cBłąd = BLAD_KARTA_SD_NIEGOTOWA;
+	}
 	sprintf(cNapis, "%d / %d ", sMaxDlugoscWierszaLogu, ROZMIAR_BUFORA_LOGU);
 	RysujNapis(cNapis, 43*FONT_SL, 50);
 
@@ -3054,6 +3061,7 @@ void WyswietlRejestratorKartySD(void)
 		break;
 
 	}
+	return cBłąd;
 }
 
 

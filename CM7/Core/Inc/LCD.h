@@ -60,7 +60,7 @@ void RysujPaskiKanalowRC(uint8_t chIndeksOpisu, uint16_t *sDane);
 void TestTonuAudio(void);
 void WyswietlParametryKartySD(void);
 void TestKartySD(void);
-void WyswietlRejestratorKartySD(void);
+uint8_t WyswietlRejestratorKartySD(void);
 void UstawKolorStanuWlaczeniaRejestratora(uint8_t cIndeksSłowa, uint32_t nBitMaski);
 void PobierzKodBleduFAT(uint8_t chKodBleduFAT, char *chNapis);
 void RysujPasekPostepu(uint16_t sPelenZakres);

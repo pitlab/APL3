@@ -35,6 +35,7 @@
 #define BLAD_BRAK_KAMERY			31	//nie wykryto obecności kamery
 #define BLAD_BRAK_CZUJNIKA		32	//ogólny błąd dotyczący czujników które normalnie zawsze powinny być sprawne
 #define BLAD_BRAK_FLASH_NOR		33
+#define BLAD_KARTA_SD_NIEGOTOWA	34	//karta SD nie jest gotowa do pracy
 #define BLAD_BRAK_WYSWIETLACZA	41
 
 //#define BLAD_BRAK_POZW_ZAPISU	50	//brak pozwolenia zapisu dla obszaru pamieci Flash
