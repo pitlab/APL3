@@ -1,6 +1,6 @@
 ################################################################################
 # Automatically-generated file. Do not edit!
-# Toolchain: GNU Tools for STM32 (12.3.rel1)
+# Toolchain: GNU Tools for STM32 (14.3.rel1)
 ################################################################################
 
 -include ../makefile.init
@@ -62,7 +62,7 @@ main-build: APL3_CM4.elf secondary-outputs
 
 # Tool invocations
 APL3_CM4.elf APL3_CM4.map: $(OBJS) $(USER_OBJS) C:\projekty\APL3\firmware\CM4\STM32H755BITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "APL3_CM4.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\projekty\APL3\firmware\CM4\STM32H755BITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="APL3_CM4.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "APL3_CM4.elf" @"objects.list" $(USER_OBJS) -Wl,--start-group $(LIBS) -Wl,--end-group -mcpu=cortex-m4 -T"C:\projekty\APL3\firmware\CM4\STM32H755BITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="APL3_CM4.map" -Wl,--gc-sections -static -L../../Middlewares/ST/ARM/DSP/Lib -L../../Middlewares/ST/CMSIS/DSP/Lib/GCC --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

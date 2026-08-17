@@ -71,7 +71,6 @@ Adres		Rozm	CPU		Instr	Share	Cache	Buffer	User	Priv	Nazwa			Zastosowanie
 #include "cmsis_os2.h"
 #include "fatfs.h"
 #include "lwip.h"
-#include "usb_device.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -157,6 +156,8 @@ SPI_HandleTypeDef hspi5;
 
 TIM_HandleTypeDef htim6;
 TIM_HandleTypeDef htim12;
+
+PCD_HandleTypeDef hpcd_USB_OTG_HS;
 
 MDMA_HandleTypeDef hmdma_mdma_channel5_sdmmc1_end_data_0;
 NOR_HandleTypeDef hnor3;
@@ -248,6 +249,7 @@ static void MX_I2C2_Init(void);
 static void MX_TIM12_Init(void);
 static void MX_JPEG_Init(void);
 static void MX_DMA2D_Init(void);
+static void MX_USB_OTG_HS_PCD_Init(void);
 void StartDefaultTask(void *argument);
 extern void WatekOdbiorczyLPUART1(void *argument);
 extern void WatekRejestratora(void *argument);
@@ -393,6 +395,7 @@ Error_Handler();
   MX_JPEG_Init();
   MX_DMA2D_Init();
   MX_FATFS_Init();
+  MX_USB_OTG_HS_PCD_Init();
   /* USER CODE BEGIN 2 */
 
 #ifdef TESTY		//testy algorytmów
@@ -1112,7 +1115,7 @@ static void MX_SAI2_Init(void)
   hsai_BlockB2.Init.AudioMode = SAI_MODEMASTER_TX;
   hsai_BlockB2.Init.Synchro = SAI_ASYNCHRONOUS;
   hsai_BlockB2.Init.OutputDrive = SAI_OUTPUTDRIVE_DISABLE;
-  hsai_BlockB2.Init.NoDivider = SAI_MCK_OVERSAMPLING_DISABLE;
+  hsai_BlockB2.Init.NoDivider = SAI_MASTERDIVIDER_ENABLE;
   hsai_BlockB2.Init.MckOverSampling = SAI_MCK_OVERSAMPLING_DISABLE;
   hsai_BlockB2.Init.FIFOThreshold = SAI_FIFOTHRESHOLD_FULL;
   hsai_BlockB2.Init.AudioFrequency = SAI_AUDIO_FREQUENCY_16K;
@@ -1308,6 +1311,42 @@ static void MX_TIM12_Init(void)
 
   /* USER CODE END TIM12_Init 2 */
   HAL_TIM_MspPostInit(&htim12);
+
+}
+
+/**
+  * @brief USB_OTG_HS Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USB_OTG_HS_PCD_Init(void)
+{
+
+  /* USER CODE BEGIN USB_OTG_HS_PCD_Init 0 */
+
+  /* USER CODE END USB_OTG_HS_PCD_Init 0 */
+
+  /* USER CODE BEGIN USB_OTG_HS_PCD_Init 1 */
+
+  /* USER CODE END USB_OTG_HS_PCD_Init 1 */
+  hpcd_USB_OTG_HS.Instance = USB_OTG_HS;
+  hpcd_USB_OTG_HS.Init.dev_endpoints = 9;
+  hpcd_USB_OTG_HS.Init.speed = PCD_SPEED_FULL;
+  hpcd_USB_OTG_HS.Init.dma_enable = DISABLE;
+  hpcd_USB_OTG_HS.Init.phy_itface = USB_OTG_EMBEDDED_PHY;
+  hpcd_USB_OTG_HS.Init.Sof_enable = DISABLE;
+  hpcd_USB_OTG_HS.Init.low_power_enable = DISABLE;
+  hpcd_USB_OTG_HS.Init.lpm_enable = DISABLE;
+  hpcd_USB_OTG_HS.Init.vbus_sensing_enable = ENABLE;
+  hpcd_USB_OTG_HS.Init.use_dedicated_ep1 = DISABLE;
+  hpcd_USB_OTG_HS.Init.use_external_vbus = DISABLE;
+  if (HAL_PCD_Init(&hpcd_USB_OTG_HS) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USB_OTG_HS_PCD_Init 2 */
+
+  /* USER CODE END USB_OTG_HS_PCD_Init 2 */
 
 }
 
@@ -1619,9 +1658,6 @@ void StartDefaultTask(void *argument)
 {
   /* init code for LWIP */
   //MX_LWIP_Init();
-
-  /* init code for USB_DEVICE */
-  MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 5 */
   uint8_t cStanDekodera;
   uint8_t cDzielnikCzasu = 0;

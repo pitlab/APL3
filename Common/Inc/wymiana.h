@@ -104,7 +104,8 @@
 #define NP_MAG2		0x02
 #define NP_MAG3		0x04
 #define NP_EXT_IAS	0x08
-
+#define NP_WYS1		0x10
+#define NP_WYS2		0x20
 
 //definicje kątow
 #define PRZE	0
@@ -138,8 +139,8 @@ typedef struct _BSP
 	float fIAS;
 	double dDlugoscGeo;
 	double dSzerokoscGeo;
-	float fWysokoscMSL;
-	float fWysokoscAGL;
+	float fWysokoscMSL;		//[m.n.p.m]
+	float fWysokoscAGL;		//[m]
 	float fPredkoscN;
 	float fPredkoscE;
 	float fPredkoscD;

@@ -75,6 +75,8 @@ uint8_t InicjujIIS2MDC(void)
 			else
 				cBłąd = BLAD_BRAK_CZUJNIKA;
 		}
+		else
+			cBłąd = BLAD_BRAK_CZUJNIKA;
 	}
 	return cBłąd;
 }

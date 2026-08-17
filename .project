@@ -3,6 +3,8 @@
 	<name>APL3</name>
 	<comment></comment>
 	<projects>
+		<project>APL3_CM4</project>
+		<project>APL3_CM7</project>
 	</projects>
 	<buildSpec>
 	</buildSpec>

@@ -35,6 +35,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Common</locationURI>
 		</link>
 		<link>
+			<name>FATFS/src</name>
+			<type>2</type>
+			<location>C:/projekty/APL3/firmware/Middlewares/Third_Party/FatFs/src</location>
+		</link>
+		<link>
 			<name>Utilities/jpeg_utils.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Utilities/JPEG/jpeg_utils.c</locationURI>
@@ -295,26 +300,6 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/BSP/Components/lan8742/lan8742.c</locationURI>
 		</link>
 		<link>
-			<name>Middlewares/ST/STM32_USB_Device_Library/usbd_cdc.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c</locationURI>
-		</link>
-		<link>
-			<name>Middlewares/ST/STM32_USB_Device_Library/usbd_core.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c</locationURI>
-		</link>
-		<link>
-			<name>Middlewares/ST/STM32_USB_Device_Library/usbd_ctlreq.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c</locationURI>
-		</link>
-		<link>
-			<name>Middlewares/ST/STM32_USB_Device_Library/usbd_ioreq.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c</locationURI>
-		</link>
-		<link>
 			<name>Middlewares/Third_Party/FatFs/ccsbcs.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FatFs/src/option/ccsbcs.c</locationURI>
@@ -363,6 +348,11 @@
 			<name>Middlewares/Third_Party/FreeRTOS/list.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/list.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/Third_Party/FreeRTOS/mpu_wrappers_v2.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/portable/Common/mpu_wrappers_v2.c</locationURI>
 		</link>
 		<link>
 			<name>Middlewares/Third_Party/FreeRTOS/port.c</name>

@@ -322,7 +322,6 @@ void LiczHistogramRGB565(uint16_t *obrazRGB565, uint32_t rozmiar, uint8_t *histR
 	{
 		nSumaR[n] = 0;
 		nSumaG[n] = 0;
-		nSumaG[n+ROZMIAR_HIST_KOLOR] = 0;
 		nSumaB[n] = 0;
 	}
 

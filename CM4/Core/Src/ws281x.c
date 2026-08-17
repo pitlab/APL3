@@ -427,7 +427,7 @@ uint8_t ObliczKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed)
 		case WLZ_WYSOKOSC_GPS:	fPomiar = uDaneCM4.dane.stGnss1.fWysokoscMSL;	break;
 		case WLZ_PREDKOSC_IAS:	fPomiar = uDaneCM4.dane.stBSP.fIAS;			break;
 		case WLZ_PREDKOSC_GPS:	fPomiar = uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi;	break;
-		case WLZ_NAPIECIE_BAT:	fPomiar = uDaneCM4.dane.fTemper[0];	break;			//Zrobić: zmienić zmienna gdy już będzie dostępna
+		case WLZ_NAPIECIE_BAT:	fPomiar = uDaneCM4.dane.fNapiecieAku[0];	break;
 		default:	return BLAD_ZLE_DANE;	//wyjdź jeżeli dane są niespójne, np. brak konfiguracji
 		}
 

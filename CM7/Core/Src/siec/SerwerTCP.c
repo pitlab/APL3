@@ -65,7 +65,7 @@ uint8_t OtworzPortSertweraTCP(void)
 uint8_t ObslugaSerweraTCP(void)
 {
 	err_t nErr;
-	uint8_t cErr;
+	uint8_t cBłąd = BLAD_OK;
 	nErr = netconn_accept(DeskryptorPolaczeniaPasywnego, &DeskryptorPolaczeniaAktywnego);
 	if (nErr == ERR_OK)
 	{
@@ -80,8 +80,8 @@ uint8_t ObslugaSerweraTCP(void)
 			{
 				for (uint16_t n=0; n<sDlugosc; n++)
 				{
-					cErr = AnalizujDaneKom(*((uint8_t*)chDane + n), INTERF_ETH);
-					if (cErr)
+					cBłąd = AnalizujDaneKom(*((uint8_t*)chDane + n), INTERF_ETH);
+					if (cBłąd)
 						cCzasSwieceniaLED[LED_CZER] = 5;	//ewentualne problemy komunikacyjne sygnalizuj czerwonym LED-em przez wielokrotność 100ms
 
 					if (cRozmiarRamkiNadTCP > 0)	//czy jest odpowiedź do odesłania
@@ -101,9 +101,9 @@ uint8_t ObslugaSerweraTCP(void)
 		cStatusPolaczenia |= STAT_POL_GOTOWY << STAT_POL_TCP;
 	}
 	else
-		cErr = (uint8_t)(nErr & 0xFF);
+		cBłąd = (uint8_t)(nErr & 0xFF);
 
-	return cErr;
+	return cBłąd;
 }
 
 

@@ -345,7 +345,6 @@ uint8_t RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sS
 		LCD_write_command8(ILI9488_RAMWR);	//Memory Write
 		for(n=0; n<4; n++)
 		{
-			LCD_WrData(cKolor666, 3);
 			dane[3*n + 0] = cKolor666[0];
 			dane[3*n + 1] = cKolor666[1];
 			dane[3*n + 2] = cKolor666[2];

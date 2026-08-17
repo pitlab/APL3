@@ -39,8 +39,8 @@
 
 
 //timeouty w milisekundach dla magistrali I2C zależące od ilości przesyłanych danych. Dla 100kHz czas przesłania 1 bajtu to 0,1ms, dla 25kHz to 0,4ms
-#define TOUT_I2C4_2B		1
-#define TOUT_I2C4_7B		2
+#define TOUT_I2C4_2B		2	//testowo
+#define TOUT_I2C4_7B		3
 #define TOUT_SPI			3		//czas oczekiwania na operację na szynie w ms
 
 //definicje kanałów IO
@@ -59,5 +59,7 @@
 #define DANE_I2C_HMC	0x01	//Dane z czujnika HMC
 
 #define MAX_PROB_INICJALIZACJI		5	//po tylu błędnych próbach inicjalizacji uznajemy czujnik za nieobecny i nie próbujemy więcej.
+
+#define KALMAN_WYSOKOSCI_4D
 
 #endif /* INC_SYS_DEF_CM4_H_ */

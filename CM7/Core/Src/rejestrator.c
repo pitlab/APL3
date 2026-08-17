@@ -22,6 +22,7 @@
 #include "Ekran.h"
 #include "LCD.h"
 #include <Napisy.h>
+#include "ProtokolKomunikacyjny.h"
 
 extern SD_HandleTypeDef hsd1;
 extern uint8_t retSD;    /* Return value for SD */
@@ -41,6 +42,7 @@ UINT nDoZapisuNaKarte, nZapisanoNaKarte;
 uint8_t cKodBleduFAT;
 uint8_t cTimerSync;	//odlicza czas w jednostce zapisu na dysk do wykonania sync
 uint16_t sDlugoscWierszaLogu, sMaxDlugoscWierszaLogu;
+uint16_t sZapisanoLogu;
 extern RTC_TimeTypeDef stTime;
 extern RTC_DateTypeDef stDate;
 extern double dSumaZyro1[3], dSumaZyro2[3];
@@ -58,6 +60,7 @@ extern stKonfKam_t stKonfKam;
 extern JPEG_ConfTypeDef stKonfJpeg;	//struktura konfiguracyjna JPEGa
 extern volatile uint8_t cCzasSwieceniaLED[LICZBA_LED];	//czas świecenia liczony w kwantach 0,1s jest zmniejszany w przerwaniu TIM17_IRQHandler
 extern const char *cNazwyPozycjiRejestratora[LICZBA_NAZW_POZYCJI_REJESTRATORA];
+extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adres i nazwę BSP
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -107,7 +110,7 @@ void WatekRejestratora(void *argument)
 			else	//jeżeli FAT nie jest gotowy to go zamontuj
 			{
 				DSTATUS status;
-				FRESULT fres;
+				FRESULT fres = FR_OK;
 
 				hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
 				//hsd1.ErrorCode = 0;							//zacznij pracę bez kodu błędu
@@ -213,6 +216,7 @@ void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObslugaPetliRejestratora(void)
 {
+	uint8_t cBłąd = BLAD_OK;
 	cBufZapisuKarty[0] = 0;	//ustaw pusty bufor
 	char *cZnak;
 
@@ -728,7 +732,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_KAT_KOMP_IMU_XC_RAD]);
-					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%d zakodowane w nazwie
+					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
 					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 				}
 			}
@@ -747,7 +751,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_KAT_KWAT_IMU_XC_RAD]);
-					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%d zakodowane w nazwie
+					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
 					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 				}
 			}
@@ -766,7 +770,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_KAT_AKCE_IMU_XC_RAD]);
-					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%d zakodowane w nazwie
+					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
 					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 				}
 			}
@@ -785,7 +789,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_KAT_ZYRO_IMU_XC_RAD]);
-					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%d zakodowane w nazwie
+					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
 					strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 				}
 			}
@@ -1976,10 +1980,13 @@ uint8_t ObslugaPetliRejestratora(void)
 		if (sDlugoscWierszaLogu > sMaxDlugoscWierszaLogu)
 			sMaxDlugoscWierszaLogu = sDlugoscWierszaLogu;
 		if (sDlugoscWierszaLogu > ROZMIAR_BUFORA_LOGU)
-			Error_Handler();
+		{
+			cBufZapisuKarty[ROZMIAR_BUFORA_LOGU - 3] = 0;
+			cBłąd = BLAD_BUF_OVERRUN;
+		}
 		strncat(cBufZapisuKarty, "\n", 2);	//znak końca wiersza
 
-		f_puts(cBufZapisuKarty, &SDFile);	//zapis do pliku
+		sZapisanoLogu = f_puts(cBufZapisuKarty, &SDFile);	//zapis do pliku
 
 		//co określoną liczbę zapisów zrób sync aby nie utracić danych w przypadku braku formalnego zakończenia logowania
 		if (cTimerSync)
@@ -1994,7 +2001,7 @@ uint8_t ObslugaPetliRejestratora(void)
 	{
 		FRESULT fres;
 		PobierzDateCzas(&stDate, &stTime);
-		sprintf(cBufPodreczny, "%04d%02d%02d_%02d%02d%02d_APL3.csv",stDate.Year+2000, stDate.Month, stDate.Date, stTime.Hours, stTime.Minutes, stTime.Seconds);
+		sprintf(cBufPodreczny, "%04d%02d%02d_%02d%02d%02d_%s.csv",stDate.Year+2000, stDate.Month, stDate.Date, stTime.Hours, stTime.Minutes, stTime.Seconds, stBSP_ID.cNazwa);
 		fres = f_open(&SDFile, cBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
 			cStatusRejestratora |= STATREJ_OTWARTY_PLIK | STATREJ_ZAPISZ_NAGLOWEK;
@@ -2020,7 +2027,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		cStatusRejestratora &= ~(STATREJ_ZAMKNIJ_PLIK | STATREJ_OTWARTY_PLIK | STATREJ_WLACZONY);
 	}
 
-	return BLAD_OK;
+	return cBłąd;
 }
 
 

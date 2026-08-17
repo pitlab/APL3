@@ -43,7 +43,7 @@ uint8_t ObslugaPolecenCM4(void)
 		case POL4_MOW_ROZBROJONE:	cBłąd = PrzygotujKomunikat(KOMG_ROZBROJONE, 0.0f);	break;	//rozpocznij wymowę komunikatu silniki rozbrojone
 		case POL4_MOW_WYSOKOSC:		cBłąd = PrzygotujKomunikat(KOMG_WYSOKOSC, uDaneCM4.dane.stBSP.fWysokoscAGL);	break;
 		case POL4_MOW_NAPIECIE:		cBłąd = PrzygotujKomunikat(KOMG_NAPIECIE, uDaneCM4.dane.fNapiecieAku[0]);	break;
-		case POL4_MOW_TEMPERAT:		cBłąd = PrzygotujKomunikat(KOMG_TEMPERATURA, uDaneCM4.dane.fTemper[0] - KELVIN);	break;	//wymowa jest w stopniach Celsjusza a zmienna w Kelvinach
+		case POL4_MOW_TEMPERAT:		cBłąd = PrzygotujKomunikat(KOMG_TEMPERATURA, uDaneCM4.dane.fTemper[TEMP_IMU1] - KELVIN);	break;	//wymowa jest w stopniach Celsjusza a zmienna w Kelvinach
 		case POL4_MOW_PREDKOSC:		cBłąd = PrzygotujKomunikat(KOMG_PREDKOSC, uDaneCM4.dane.stBSP.fIAS);		break;
 		case POL4_MOW_KIERUNEK:		cBłąd = PrzygotujKomunikat(KOMG_KIERUNEK, uDaneCM4.dane.stBSP.fKursGeo);	break;
 		case POL4_CZYTAJ_KALIBR_TEMP:

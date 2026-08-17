@@ -61,7 +61,6 @@ void DMA2_Stream1_IRQHandler(void);
 void ETH_IRQHandler(void);
 void OTG_HS_EP1_OUT_IRQHandler(void);
 void OTG_HS_EP1_IN_IRQHandler(void);
-void OTG_HS_IRQHandler(void);
 void DCMI_IRQHandler(void);
 void UART7_IRQHandler(void);
 void DMA2D_IRQHandler(void);

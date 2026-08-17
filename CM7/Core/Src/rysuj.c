@@ -608,7 +608,7 @@ uint8_t RysujNapis(char *str, uint16_t x, uint16_t y)
 ////////////////////////////////////////////////////////////////////////////////
 void RysujNapiswRamce(char *str, uint16_t x, uint16_t y, uint16_t sx, uint16_t sy)
 {
-	int nDlugoscNapisu, nDlugoscWiersza;
+	int nDlugoscNapisu, nDlugoscWiersza = 0;
 
 	nDlugoscNapisu = strlen((char*)str);
 

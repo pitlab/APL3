@@ -32,7 +32,7 @@ uint8_t InicjujMikser(void)
 	uint8_t cBłąd = BLAD_OK;
 	float fNormPrze, fNormPoch;
 
-	for (uint8_t n=0; n<KANALY_WYJSC_RC; n++)
+	for (uint8_t n=0; n<KANALY_MIKSERA; n++)
 		uDaneCM4.dane.sSilnik[n] = 10 * n;	//sterowane kanałów serw
 	cNumerKanSerw = 8;		//wskaźnik kanału obsługuje dekoder serw, wiec inicjuj go wartoscią pierwszego kanału
 	stMikser.chLiczbaSilnikow = 0;

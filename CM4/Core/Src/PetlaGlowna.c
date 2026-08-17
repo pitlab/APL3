@@ -32,7 +32,8 @@
 #include "SampleAudio.h"
 #include "Crossfire.h"
 #include <Kalman.h>
-
+#include <KalmanWysokosci2D.h>
+#include <KalmanWysokosci4D.h>
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 uint16_t sGenerator;
@@ -152,15 +153,32 @@ void PetlaGlowna(void)
 		break;
 
 	case 5:
-		uDaneCM4.dane.cNowyPomiar = 0;	//unieważnij wszystkie poprzednie pomiary. Flagi nowych pomiarów zostaną ustawnine w funkcji ObslugaCzujnikowI2C()
+		uDaneCM4.dane.cNowyPomiar &= ~(NP_MAG1 | NP_MAG2 | NP_MAG3 | NP_EXT_IAS);	//unieważnij poprzednie pomiary czujników I2C. Flagi nowych pomiarów zostaną ustawnine w funkcji ObslugaCzujnikowI2C()
 		if (cNoweDaneI2C)
-			ObslugaCzujnikowI2C(&cNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C to je obrób
+			ObslugaCzujnikowI2C(&cNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C: wewnętrznej I2C4 i zewnętrznej I2C3, to je obrób
 		cBłądPG = RozdzielniaOperacjiI2C();
 		PrzechwyćBłąd(cBłądPG);
 		break;
 
 	case 6:	//przepisz czujniki do struktury BSP - finalnie ma to zrobić filtr Kalmana
 		FiltrDanychIMUiWysokosci(&uDaneCM4.dane);
+#ifdef KALMAN_WYSOKOSCI_4D
+		cBłądPG = PredykcjaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
+		cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
+#else
+		cBłądPG = PredykcjaFiltraKalmanaWysokości2D(&uDaneCM4.dane);
+#endif
+		PrzechwyćBłąd(cBłądPG);
+		if (uDaneCM4.dane.cNowyPomiar & NP_WYS1)
+		{
+#ifdef KALMAN_WYSOKOSCI_4D
+			cBłądPG = AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
+#else
+			cBłądPG = AktulizacjaFiltraKalmanaWysokości2D(&uDaneCM4.dane);
+#endif
+			PrzechwyćBłąd(cBłądPG);
+			uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2);
+		}
 		break;
 
 	case 7:
@@ -672,7 +690,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 
 	if (*chCzujniki & CISN_TEMP_MS2545)
 	{
-		uDaneCM4.dane.fTemper[6] = TemperaturaMS2545(cDaneMS4525);
+		uDaneCM4.dane.fTemper[TEMP_CISR2] = TemperaturaMS2545(cDaneMS4525);	//temperatura zewnetrznego czujnika ciśnienia różnicowego np. MS4525
 		uDaneCM4.dane.fCisnRozn[1] = (15 * uDaneCM4.dane.fCisnRozn[1] + CisnienieMS2545(cDaneMS4525)) / 16;
 		uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 		*chCzujniki &= ~CISN_TEMP_MS2545;	//dane obsłużone
