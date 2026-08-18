@@ -153,7 +153,7 @@ typedef struct
 	float fAkcel[ROZMIAR_BUFORA_IMU][3];		//[m/s^2]
 	float fZyro[ROZMIAR_BUFORA_IMU][3];			//[rad/s]
 	uint8_t cIndeksProbki;						//bieżący wskaźnik pozycji w buforze pomiarów żyro i akcel w zakresie 0..ROZMIAR_BUFORA_IMU
-} stSzybkieIMU;
+} stSzybkieIMU_t;
 
 typedef union
 {
@@ -163,6 +163,12 @@ typedef union
 	uint8_t U8[ROZMIAR_ROZNE_CHAR];
 }  uRozne_t;
 
+typedef struct
+{
+	float fX[4];
+	float fP[4];	//główna przekatna macierzy kowariancji predykcji
+	float fK[4];	//główna przekatna macierzy wzmocnienia Kalmana
+} stKalmanDebug_t;
 
 #define ODPOWIEDZ_U8	31	//komórka tablicy U8 odpowiedzialna za przekazywanie odpowiedzi na polecenia kalibracyjne
 //definicja struktury wymiany danych wychodzących z rdzenia CM4
@@ -227,7 +233,8 @@ typedef struct
 	uint8_t cPotwierdzenieWykonania;	//potwierdza wykonanie polecenia przysłanego przez CM7
 	uint32_t ndT;
 	stBSP_t stBSP;				//struktura zawierajaca syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
-	stSzybkieIMU stSzybkieIMU;	//struktura zawierajaca bufor kołowy i indeks szybkich danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
+	stSzybkieIMU_t stSzybkieIMU;	//struktura zawierajaca bufor kołowy i indeks szybkich danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
+	stKalmanDebug_t stKalmanDebug;	//struktura z danymi do debugowania filtra Klamana
 } stWymianyCM4_t;
 
 

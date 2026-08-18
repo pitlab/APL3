@@ -528,6 +528,18 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_PID_STROJENIE1:	fZmiennaTele = stDane->fStrojenie[0];						break;	//wartość parametru strojącego 1
 	case TID_PID_STROJENIE2:	fZmiennaTele = stDane->fStrojenie[1];						break;	//wartość parametru strojącego 2
 
+	case TID_KALMAN_X0:			fZmiennaTele = stDane->stKalmanDebug.fX[0];					break;
+	case TID_KALMAN_X1:			fZmiennaTele = stDane->stKalmanDebug.fX[1];					break;
+	case TID_KALMAN_X2:			fZmiennaTele = stDane->stKalmanDebug.fX[2];					break;
+	case TID_KALMAN_X3:			fZmiennaTele = stDane->stKalmanDebug.fX[3];					break;
+	case TID_KALMAN_P00:		fZmiennaTele = stDane->stKalmanDebug.fP[0];					break;
+	case TID_KALMAN_P11:		fZmiennaTele = stDane->stKalmanDebug.fP[1];					break;
+	case TID_KALMAN_P22:		fZmiennaTele = stDane->stKalmanDebug.fP[2];					break;
+	case TID_KALMAN_P33:		fZmiennaTele = stDane->stKalmanDebug.fP[3];					break;
+	case TID_KALMAN_K00:		fZmiennaTele = stDane->stKalmanDebug.fK[0];					break;
+	case TID_KALMAN_K11:		fZmiennaTele = stDane->stKalmanDebug.fK[1];					break;
+	case TID_KALMAN_K22:		fZmiennaTele = stDane->stKalmanDebug.fK[2];					break;
+	case TID_KALMAN_K33:		fZmiennaTele = stDane->stKalmanDebug.fK[3];					break;
 	default:	fZmiennaTele = -1.0f;
 	}
 	return fZmiennaTele;

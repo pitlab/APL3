@@ -164,7 +164,7 @@ void PetlaGlowna(void)
 		FiltrDanychIMUiWysokosci(&uDaneCM4.dane);
 #ifdef KALMAN_WYSOKOSCI_4D
 		cBłądPG = PredykcjaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
-		cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
+		//cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
 #else
 		cBłądPG = PredykcjaFiltraKalmanaWysokości2D(&uDaneCM4.dane);
 #endif

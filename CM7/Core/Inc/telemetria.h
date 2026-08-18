@@ -267,9 +267,22 @@
 
 #define TID_PID_STROJENIE1		224	//wartość parametru strojącego 1
 #define TID_PID_STROJENIE2		225	//wartość parametru strojącego 2
+
+#define TID_KALMAN_X0			226
+#define TID_KALMAN_X1			227
+#define TID_KALMAN_X2			228
+#define TID_KALMAN_X3			229
+#define TID_KALMAN_P00			230
+#define TID_KALMAN_P11			231
+#define TID_KALMAN_P22			232
+#define TID_KALMAN_P33			233
+#define TID_KALMAN_K00			234
+#define TID_KALMAN_K11			235
+#define TID_KALMAN_K22			236
+#define TID_KALMAN_K33			237
 //max do 255
 
-#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	226
+#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	238
 
 #define MAX_ZMIENNYCH_TELEMETR_W_RAMCE	115		//tyle zmiennych może być przesłanych w jednej ramce telemetrycznej (ramek może być kilka)
 #define MAX_INDEKSOW_TELEMETR_W_RAMCE	128		//zmienne w ramce można wybrać z takiej puli indeksów
