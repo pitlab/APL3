@@ -265,7 +265,8 @@ uint8_t ObslugaMS5611(void)
 			else
 			{
 				uDaneCM4.dane.fWysokoAGL[0] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[0], fP0_MS5611, uDaneCM4.dane.fTemper[TEMP_BARO1]);
-				float fNowyWariometr = (fWysokośćUśredniona - uDaneCM4.dane.fWysokoMSL[0]) * 1000 / uDaneCM4.dane.ndT;	//dH [m] * 1e6 / t [1e-6 s]
+				//float fNowyWariometr = (fWysokośćUśredniona - uDaneCM4.dane.fWysokoMSL[0]) * 1000 / uDaneCM4.dane.ndT;	//dH [m] * 1e6 / t [1e-6 s]
+				float fNowyWariometr = (uDaneCM4.dane.fWysokoMSL[0] - fWysokośćUśredniona) * 1000 / uDaneCM4.dane.ndT;	//dH [m] * 1e6 / t [1e-6 s]
 				uDaneCM4.dane.fWariometr[0] = ((PODSTAWA_FILTRA_IIR_WARIOMETRU - 1) * uDaneCM4.dane.fWariometr[0] + fNowyWariometr) / PODSTAWA_FILTRA_IIR_WARIOMETRU;
 			}
 		}

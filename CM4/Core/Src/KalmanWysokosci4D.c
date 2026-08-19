@@ -291,25 +291,36 @@ uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyC
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1)
 	cBłąd |= arm_mat_mult_f32(&mHh, &mX, &mTempM21A);
 
-	//Uwzględnienie pomiaru: (z(n) - H * Estymata_x(n-1))
+	//pomiar
 	fZ[0] = dane->fWysokoMSL[0];
-	fZ[1] = dane->fAkcel1[2] - fX[3];	//Przyspieszenie osi Z - (przyspieszenie ziemskie + dryft akcelerometru)
-	cBłąd |= arm_mat_sub_f32(&mZ, &mTempM21A, &mTempM21B);
+	fZ[1] = dane->fAkcel1[2];	//Przyspieszenie bezwzględne osi Z
 
-	//mnożenie przez K: K(n) * (z(n) - H * Estymata_x(n-1))
-	cBłąd |= arm_mat_mult_f32(&mK, &mTempM21B, &mTempM41A);		//4x2 * 2x1 = 4x1
+	float32_t fInnowacjaWysokości = fZ[0] - fX[0];
+	float32_t fOdchylenieStdPomiaru = sqrtf(fP[0][0] + fR[0][0]);	//pierwiastek z sumy wariancji to odchylenie standardowe
 
-	//dodanie poprzedniej estymaty: Estymata_x(n-1) + K(n) * (z(n) - H * Estymata_x(n-1))
-	cBłąd |= arm_mat_add_f32(&mX, &mTempM41A, &mTempM41B);
+	//sprawdzam czy wartość bezwzględna innowacji mieści sie w zakresie 3 sigma estymacji, jeżeli nie, to odrzucam taki pomiar jako niewiarygodny
+	if (fabs(fInnowacjaWysokości) < (3.0f * fOdchylenieStdPomiaru))
+	{
+		//Uwzględnienie pomiaru: (z(n) - H * Estymata_x(n-1))
+		cBłąd |= arm_mat_sub_f32(&mZ, &mTempM21A, &mTempM21B);
 
-	//przepisanie wyniku do wektora estymaty i finalnych zmiennych
-	dane->stBSP.fWysokoscMSL = fX[0] = fTempM41B[0];
-	dane->stBSP.fPredkoscD 	 = fX[1] = fTempM41B[1];
-	fX[2] = fTempM41B[2];
-	fX[3] = fTempM41B[3];
+		//mnożenie przez K: K(n) * (z(n) - H * Estymata_x(n-1))
+		cBłąd |= arm_mat_mult_f32(&mK, &mTempM21B, &mTempM41A);		//4x2 * 2x1 = 4x1
+
+		//dodanie poprzedniej estymaty: Estymata_x(n-1) + K(n) * (z(n) - H * Estymata_x(n-1))
+		cBłąd |= arm_mat_add_f32(&mX, &mTempM41A, &mTempM41B);
+
+		//przepisanie wyniku do wektora estymaty i finalnych zmiennych
+		fX[0] = fTempM41B[0];
+		fX[1] = fTempM41B[1];
+		fX[2] = fTempM41B[2];
+		fX[3] = fTempM41B[3];
+	}
+
+	//aktualizuj zmienne wyjsciowe
+	dane->stBSP.fWysokoscMSL = fX[0];
+	dane->stBSP.fPredkoscD 	 = fX[1];
 	dane->stBSP.fWysokoscAGL = dane->stBSP.fWysokoscMSL - fPoczątkoweBarometryczneMSL;
-
-
 
 	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempM1 (4x2 * 2x4 = 4x4)
 	cBłąd |= arm_mat_mult_f32(&mK, &mHh, &mTempM1);
@@ -340,6 +351,7 @@ uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyC
 
 	for (uint8_t n=0; n<4; n++)
 		dane->stKalmanDebug.fP[n] = fP[n][n];
+
 	return cBłąd;
 }
 

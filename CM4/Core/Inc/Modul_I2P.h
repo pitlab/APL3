@@ -36,7 +36,7 @@
 #define WZMOCNIENIE_REGULATORA_TERMOSTATU	80	//wzmocnienie regualtora P regulacji temperatury - maksymalny uchyb 1°C
 #define OKRES_PWM_TERMOSTATU				100
 
-#define PODSTAWA_FILTRA_IIR_WARIOMETRU		1000
+#define PODSTAWA_FILTRA_IIR_WARIOMETRU		48
 
 //#define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących
 #define PODSTAWA_FILTRA_IIR_P0			512
