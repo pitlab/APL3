@@ -220,13 +220,6 @@ int main(void)
   cBłąd = InicjujModulI2P();
   PrzechwyćBłąd(cBłąd);
 
-#ifdef KALMAN_WYSOKOSCI_4D
-  cBłąd = InicjujFiltrKalmanaWysokości4D();
-#else
-  cBłąd = InicjujFiltrKalmanaWysokości2D();
-#endif
-  PrzechwyćBłąd(cBłąd);
-
   cBłąd = InicjujJednostkeInercyjna();
   PrzechwyćBłąd(cBłąd);
 
@@ -235,6 +228,9 @@ int main(void)
 
   cBłąd = InicjujWyjsciaRC();	//serwa, ESC
   PrzechwyćBłąd(cBłąd);
+
+  //cBłąd = InicjujFiltrKalmanaWysokości4D(&uDaneCM4.dane);
+  //PrzechwyćBłąd(cBłąd);
 
   cBłąd = InicjujPID();
   PrzechwyćBłąd(cBłąd);

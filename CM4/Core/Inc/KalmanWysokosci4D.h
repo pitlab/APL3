@@ -13,9 +13,9 @@
 #include "arm_math.h"
 
 #define WARIANCJA_ZRYWU_ACEL	6.0e-6f
-#define WARIANCJA_DRYFTU_ACEL 	1.0e-6f;
+#define WARIANCJA_DRYFTU_ACEL 	1.0e-8f;
 
-uint8_t InicjujFiltrKalmanaWysokości4D(void);
+uint8_t InicjujFiltrKalmanaWysokości4D(stWymianyCM4_t *dane);
 uint8_t PredykcjaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane);
 uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane);
 uint8_t AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane);

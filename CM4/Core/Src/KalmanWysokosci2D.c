@@ -53,7 +53,7 @@ extern float fPoczątkoweBarometryczneMSL;	//wysokość MSL wyznaczona podczas u
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjujFiltrKalmanaWysokości2D(void)
+uint8_t InicjujFiltrKalmanaWysokości2D(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 

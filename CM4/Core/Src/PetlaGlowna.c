@@ -162,23 +162,37 @@ void PetlaGlowna(void)
 
 	case 6:	//przepisz czujniki do struktury BSP - finalnie ma to zrobić filtr Kalmana
 		FiltrDanychIMUiWysokosci(&uDaneCM4.dane);
-#ifdef KALMAN_WYSOKOSCI_4D
-		cBłądPG = PredykcjaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
-		//cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
-#else
-		cBłądPG = PredykcjaFiltraKalmanaWysokości2D(&uDaneCM4.dane);
-#endif
-		PrzechwyćBłąd(cBłądPG);
-		if (uDaneCM4.dane.cNowyPomiar & NP_WYS1)
+
+		if ((uDaneCM4.dane.nZainicjowano & INIT_KALMAN_WYSOKOSCI) == INIT_KALMAN_WYSOKOSCI)
 		{
 #ifdef KALMAN_WYSOKOSCI_4D
-			cBłądPG = AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
+			cBłądPG = PredykcjaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
 #else
-			cBłądPG = AktulizacjaFiltraKalmanaWysokości2D(&uDaneCM4.dane);
+			cBłądPG = PredykcjaFiltraKalmanaWysokości2D(&uDaneCM4.dane);
 #endif
 			PrzechwyćBłąd(cBłądPG);
-			uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2);
+			if (uDaneCM4.dane.cNowyPomiar & NP_WYS1)
+			{
+
+#ifdef KALMAN_WYSOKOSCI_4D
+				cBłądPG = AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
+#else
+				cBłądPG = AktulizacjaFiltraKalmanaWysokości2D(&uDaneCM4.dane);
+#endif
+				PrzechwyćBłąd(cBłądPG);
+			}
+			else
+				cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
 		}
+		else
+		{
+#ifdef KALMAN_WYSOKOSCI_4D
+			cBłądPG = InicjujFiltrKalmanaWysokości4D(&uDaneCM4.dane);
+#else
+			cBłądPG = InicjujFiltrKalmanaWysokości2D(&uDaneCM4.dane);
+#endif
+		}
+		uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2);
 		break;
 
 	case 7:

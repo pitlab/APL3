@@ -183,8 +183,8 @@ uint8_t ObslugaMS5611(void)
 {
 	uint32_t nKonwersja;
 	uint8_t cBłąd = BLAD_OK;
-	//float fCisnienie = 0;
 
+	uDaneCM4.dane.cNowyPomiar &= ~NP_WYS1;		//usuń flagę nowego pomiaru
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_MS5611)
 		return BLAD_BRAK_CZUJNIKA;
 
@@ -239,7 +239,10 @@ uint8_t ObslugaMS5611(void)
 		default:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
 			if (nKonwersja)
+			{
 				uDaneCM4.dane.fCisnieBzw[0] = MS5611_LiczCisnienie(nKonwersja, ndT);
+				uDaneCM4.dane.cNowyPomiar |= NP_WYS1;
+			}
 			chBuf5611[0] = PMS_CONV_D1_OSR1024;		//uruchom konwersję ciśnienia
 			ZapiszSPIu8(chBuf5611, 1);
 			break;

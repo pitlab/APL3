@@ -32,7 +32,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define INIT_TRWA_KAL_ZYRO_POK	0x00020000	//trwa kalibracja zera żyroskopu w temp. pokojowej
 #define INIT_TRWA_KAL_ZYRO_GOR	0x00040000	//trwa kalibracja zera żyroskopu na gorąco
 #define INIT_WYK_KAL_WZM_ZYRO	0x00080000	//wykonano kalibrację wzmocnienia żyroskopu w danej osi
-
+#define INIT_KALMAN_WYSOKOSCI	0x00100000	//zainicjowana filtr Kalmana wysokości  danymi z czujników
 //#define INIT_BLAD_KONFIG		0x80000000	//wystąpił bład konfiguracji przynajmniej jednej zmiennej - jej wartość została zastąpiona domyślną
 
 
