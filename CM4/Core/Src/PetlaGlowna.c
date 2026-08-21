@@ -165,34 +165,20 @@ void PetlaGlowna(void)
 
 		if ((uDaneCM4.dane.nZainicjowano & INIT_KALMAN_WYSOKOSCI) == INIT_KALMAN_WYSOKOSCI)
 		{
-#ifdef KALMAN_WYSOKOSCI_4D
 			cBłądPG = PredykcjaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
-#else
-			cBłądPG = PredykcjaFiltraKalmanaWysokości2D(&uDaneCM4.dane);
-#endif
 			PrzechwyćBłąd(cBłądPG);
 			if (uDaneCM4.dane.cNowyPomiar & NP_WYS1)
-			{
-
-#ifdef KALMAN_WYSOKOSCI_4D
 				cBłądPG = AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
-#else
-				cBłądPG = AktulizacjaFiltraKalmanaWysokości2D(&uDaneCM4.dane);
-#endif
-				PrzechwyćBłąd(cBłądPG);
-			}
 			else
 				cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
+			PrzechwyćBłąd(cBłądPG);
 		}
 		else
 		{
-#ifdef KALMAN_WYSOKOSCI_4D
 			cBłądPG = InicjujFiltrKalmanaWysokości4D(&uDaneCM4.dane);
-#else
-			cBłądPG = InicjujFiltrKalmanaWysokości2D(&uDaneCM4.dane);
-#endif
+			PrzechwyćBłąd(cBłądPG);
 		}
-		uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2);
+		uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2);	//usuń flagę nowych pomiarów wysokości
 		break;
 
 	case 7:

@@ -19,8 +19,8 @@ static float32_t fI[4][4];	//macierz jednostkowa
 static float32_t fHh[2][4];	//macierz obserwacji przyspieszenia i wysokości, przekształca jednostkę pomiaru w jednostkę wektora stanu
 static float32_t fHa[2][4];	//macierz obserwacji przyspieszenia, przekształca jednostkę pomiaru w jednostkę wektora stanu
 static float32_t fK[4][2];	//macierz wzmocnień kalnama
-static float32_t fTempM42A[4][2];	//macierz 4x2 na wyniki pośrednie
-static float32_t fTempM42B[4][2];	//macierz 4x2 na wyniki pośrednie
+static float32_t fPHt[4][2];	//macierz 4x2 na wyniki pośrednie
+static float32_t fTempM42[4][2];	//macierz 4x2 na wyniki pośrednie
 static float32_t fTempM24[2][4];	//macierz 2x4 na wyniki pośrednie
 static float32_t fTempM44A[4][4];
 static float32_t fTempM44B[4][4];
@@ -43,8 +43,8 @@ static arm_matrix_instance_f32 mI  = {4, 4, &fI[0][0]};		//macierz jednostkowa
 static arm_matrix_instance_f32 mHh = {2, 4, &fHh[0][0]};	//macierz obserwacji wysokości
 static arm_matrix_instance_f32 mHa = {2, 4, &fHa[0][0]};	//macierz obserwacji przyspieszenia
 static arm_matrix_instance_f32 mK  = {4, 2, &fK[0][0]};		//macierz wzmocnień kalmana
-static arm_matrix_instance_f32 mTempM42A = {4, 2, &fTempM42A[0][0]};	//macierz 4x2 na wyniki pośrednie
-static arm_matrix_instance_f32 mTempM42B = {4, 2, &fTempM42B[0][0]};	//macierz 4x2 na wyniki pośrednie
+static arm_matrix_instance_f32 mPHt = {4, 2, &fPHt[0][0]};	//macierz 4x2 na wyniki pośrednie
+static arm_matrix_instance_f32 mTempM42 = {4, 2, &fTempM42[0][0]};	//macierz 4x2 na wyniki pośrednie
 static arm_matrix_instance_f32 mTempM24  = {2, 4, &fTempM24[0][0]};	//macierz 2x4 na wyniki pośrednie
 static arm_matrix_instance_f32 mTempM44A = {4, 4, &fTempM44A[0][0]};	//macierz1 na wyniki pośrednie
 static arm_matrix_instance_f32 mTempM44B = {4, 4, &fTempM44B[0][0]};	//macierz2 na wyniki pośrednie
@@ -227,28 +227,27 @@ uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyC
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	//liczę współczynnik wzmocnienia Kalmana, najpierw transponowane H[2][4] -> mTmpM42A[4][2]
-	cBłąd |= arm_mat_trans_f32(&mHh, &mTempM42A);
+	//liczę współczynnik wzmocnienia Kalmana: mK,
+	//najpierw transponowane H -> mTmpM42A	 (2x4 -> 4x2)
+	cBłąd |= arm_mat_trans_f32(&mHh, &mTempM42);
 
-	// P(n-1) * H^T -> mTmpM42B[4][2]
-	cBłąd |= arm_mat_mult_f32(&mP, &mTempM42A, &mTempM42B);
+	// P(n-1) * (H^T) -> mTmpM42B			(4x4 * 4x2 = 4x2)
+	cBłąd |= arm_mat_mult_f32(&mP, &mTempM42, &mPHt);
 
-	//H[2][4] * P(n-1)[4][4] -> mTempM24[2][4]
-	cBłąd |= arm_mat_mult_f32(&mHh, &mP, &mTempM24);
+	//H * (P(n-1)*H^T) -> mTempM22A			(2x4 * 4x2 = 2x2)
+	cBłąd |= arm_mat_mult_f32(&mHh, &mPHt, &mTempM22A);
 
-	//(H * P(n-1))[2][4] * (H^T)[4][2] -> mTempM22A[2][2]
-	cBłąd |= arm_mat_mult_f32(&mTempM24, &mTempM42B, &mTempM22A);
-
-	//(H * P(n-1) * H^T) + R(n) -> mTempM22B[2][2]
+	//(H*P(n-1)*H^T) + R(n) -> mTempM22B	(2x2 + 2x2 = 2x2)
 	cBłąd |= arm_mat_add_f32(&mTempM22A, &mR, &mTempM22B);
 
-	//licze inwersję powyższego: (H * P(n-1) * H^T + R(n))^-1 -> mTempM22A
+	//inwersja powyższego: (H*P(n-1)*H^T+R(n))^-1 -> mTempM22A	(2x2 -> 2x2)
 	cBłąd |= arm_mat_inverse_f32(&mTempM22B, &mTempM22A);
 
-	//finalne mnożenie pierwszej części: P(n-1) * H^T oraz (H * P(n-1) * H^T + R(n))^-1 -> K
-	cBłąd |= arm_mat_mult_f32(&mTempM42B, &mTempM22A, &mK);
+	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mK	(4x2 * 2x2 = 4x2)
+	cBłąd |= arm_mat_mult_f32(&mPHt, &mTempM22A, &mK);
 	for (uint8_t n=0; n<4; n++)
 		dane->stKalmanDebug.fK[n] = fK[n][0];
+
 
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1)
 	cBłąd |= arm_mat_mult_f32(&mHh, &mX, &mTempM21A);
@@ -263,23 +262,21 @@ uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyC
 	//sprawdzam czy wartość bezwzględna innowacji mieści sie w zakresie 3 sigma estymacji, jeżeli nie, to odrzucam taki pomiar jako niewiarygodny
 	//if (fabs(fInnowacjaWysokości) < (3.0f * fOdchylenieStdEstymaty))
 	{
-		//Uwzględnienie pomiaru: (z(n) - H * Estymata_x(n-1)) ->mTempM21A
+		//innowacja: z(n) - (H*X(n-1)) ->mTempM21A		(2x1 - 2x1 = 2x1)
 		cBłąd |= arm_mat_sub_f32(&mZ, &mTempM21A, &mTempM21B);
 
-		//mnożenie przez K: K(n) * (z(n) - H * Estymata_x(n-1))
-		cBłąd |= arm_mat_mult_f32(&mK, &mTempM21B, &mTempM41A);		//4x2 * 2x1 = 4x1
+		//mnożenie przez K: K(n) * (z(n)-H*X(n-1))		(4x2 * 2x1 = 4x1)
+		cBłąd |= arm_mat_mult_f32(&mK, &mTempM21B, &mTempM41A);
 
-		//dodanie poprzedniej estymaty: Estymata_x(n-1) + K(n) * (z(n) - H * Estymata_x(n-1))
+		//dodanie poprzedniej estymaty: Estymata_x(n-1) + K(n) * (z(n) - H * Estymata_x(n-1))	(4x1 + 4x1 = 4x1)
 		cBłąd |= arm_mat_add_f32(&mX, &mTempM41A, &mTempM41B);
 
 		//przepisanie wyniku do wektora estymaty i finalnych zmiennych
-		fX[0] = fTempM41B[0];
-		fX[1] = fTempM41B[1];
-		fX[2] = fTempM41B[2];
-		fX[3] = fTempM41B[3];
+		for (uint8_t n=0; n<4; n++)
+			fX[n] = fTempM41B[n];
 	}
 
-	//aktualizuj zmienne wyjsciowe
+	//aktualizuj zmienne wyjściowe
 	dane->stBSP.fWysokoscMSL = fX[0];
 	dane->stBSP.fPredkoscD 	 = fX[1];
 	dane->stBSP.fWysokoscAGL = dane->stBSP.fWysokoscMSL - fPoczątkoweBarometryczneMSL;
@@ -299,17 +296,16 @@ uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyC
 	//mnożenie: (I-K(n)*H)*P(n-1) * (I-K(n)*H)^T
 	cBłąd |= arm_mat_mult_f32(&mTempM44A, &mTempM44C, &mTempM44B);
 
-
-	//mnożenie 	K(n) * R(n)  -> mTempM42A  (4x2 * 2x2 = 4x2)
-	cBłąd |= arm_mat_mult_f32(&mK, &mR, &mTempM42A);
+	//mnożenie 	K(n) * R(n)  -> mTempM42  (4x2 * 2x2 = 4x2)
+	cBłąd |= arm_mat_mult_f32(&mK, &mR, &mTempM42);
 
 	//transpozycja K(n)^T -> mTempM24  (4x2 -> 2x4)
 	cBłąd |= arm_mat_trans_f32(&mK, &mTempM24);
 
-	//mnożenie 	K(n) * R(n) * K(n)^T  (4x2 * 2x4 = 4x4)
-	cBłąd |= arm_mat_mult_f32(&mTempM42A, &mTempM24, &mTempM44A);
+	//mnożenie 	(K(n)*R(n)) * (K(n)^T)  (4x2 * 2x4 = 4x4)
+	cBłąd |= arm_mat_mult_f32(&mTempM42, &mTempM24, &mTempM44A);
 
-	//finalne sumowanie (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T + K(n) * R(n) * K(n)^T -> P(n)
+	//finalne sumowanie ((I-K(n)*H)*P(n-1)*(I*K(n)*H)^T) + (K(n)*R(n)*K(n)^T) -> P(n)
 	cBłąd |= arm_mat_add_f32(&mTempM44B, &mTempM44A, &mP);
 
 	for (uint8_t n=0; n<4; n++)
@@ -332,26 +328,24 @@ uint8_t AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	//liczę współczynnik wzmocnienia Kalmana, najpierw transponowane H[2][4] -> mTmpM42A[4][2]
-	cBłąd |= arm_mat_trans_f32(&mHa, &mTempM42A);
+	//liczę współczynnik wzmocnienia Kalmana: mK,
+	//najpierw transponowane H -> mTmpM42A	 (2x4 -> 4x2)
+	cBłąd |= arm_mat_trans_f32(&mHa, &mTempM42);
 
-	// P(n-1) * H^T -> mTmpM42B[4][2]
-	cBłąd |= arm_mat_mult_f32(&mP, &mTempM42A, &mTempM42B);
+	// P(n-1) * (H^T) -> mTmpM42B			(4x4 * 4x2 = 4x2)
+	cBłąd |= arm_mat_mult_f32(&mP, &mTempM42, &mPHt);
 
-	//H[2][4] * P(n-1)[4][4] -> mTempM24[2][4]
-	cBłąd |= arm_mat_mult_f32(&mHa, &mP, &mTempM24);
+	//H * (P(n-1)*H^T) -> mTempM22A			(2x4 * 4x2 = 2x2)
+	cBłąd |= arm_mat_mult_f32(&mHh, &mPHt, &mTempM22A);
 
-	//(H * P(n-1))[2][4] * (H^T)[4][2] -> mTempM22A[2][2]
-	cBłąd |= arm_mat_mult_f32(&mTempM24, &mTempM42B, &mTempM22A);
-
-	//(H * P(n-1) * H^T) + R(n) -> mTempM22B
+	//(H*P(n-1)*H^T) + R(n) -> mTempM22B	(2x2 + 2x2 = 2x2)
 	cBłąd |= arm_mat_add_f32(&mTempM22A, &mR, &mTempM22B);
 
-	//licze inwersję powyższego: (H * P(n-1) * H^T + R(n))^-1 -> mTempM22A
+	//inwersja powyższego: (H*P(n-1)*H^T+R(n))^-1 -> mTempM22A	(2x2 -> 2x2)
 	cBłąd |= arm_mat_inverse_f32(&mTempM22B, &mTempM22A);
 
-	//finalne mnożenie pierwszej części: P(n-1) * H^T oraz (H * P(n-1) * H^T + R(n))^-1 -> K
-	cBłąd |= arm_mat_mult_f32(&mTempM42B, &mTempM22A, &mK);
+	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mK	(4x2 * 2x2 = 4x2)
+	cBłąd |= arm_mat_mult_f32(&mPHt, &mTempM22A, &mK);
 	for (uint8_t n=0; n<4; n++)
 		dane->stKalmanDebug.fK[n] = fK[n][0];
 
@@ -404,14 +398,14 @@ uint8_t AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane)
 	cBłąd |= arm_mat_mult_f32(&mTempM44A, &mTempM44C, &mTempM44B);
 
 
-	//mnożenie 	K(n) * R(n)  -> mTempM42A  (4x2 * 2x2 = 4x2)
-	cBłąd |= arm_mat_mult_f32(&mK, &mR, &mTempM42A);
+	//mnożenie 	K(n) * R(n)  -> mTempM42  (4x2 * 2x2 = 4x2)
+	cBłąd |= arm_mat_mult_f32(&mK, &mR, &mTempM42);
 
 	//transpozycja K(n)^T -> mTempM24  (4x2 -> 2x4)
 	cBłąd |= arm_mat_trans_f32(&mK, &mTempM24);
 
 	//mnożenie 	K(n) * R(n) * K(n)^T  (4x2 * 2x4 = 4x4)
-	cBłąd |= arm_mat_mult_f32(&mTempM42A, &mTempM24, &mTempM44A);
+	cBłąd |= arm_mat_mult_f32(&mTempM42, &mTempM24, &mTempM44A);
 
 	//finalne sumowanie (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T + K(n) * R(n) * K(n)^T -> P(n)
 	cBłąd |= arm_mat_add_f32(&mTempM44B, &mTempM44A, &mP);
