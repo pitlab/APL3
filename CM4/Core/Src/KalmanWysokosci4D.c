@@ -9,10 +9,8 @@
 //////////////////////////////////////////////////////////////////////////////
 #include <KalmanWysokosci4D.h>
 
-static float32_t fX[4];		//wektor stanu: 0=wysokość, 1=prędkość
-static float32_t fZ[2];		//wektor pomiaru: 0=wysokość, 1=prędkość
-//static float32_t fY[2];		//wektor innowacji
-static float32_t fW[4];		//wektor niemierzalnego szumu procesu
+static float32_t fX[4];		//wektor stanu: 0=wysokość, 1=prędkość, 2=przypsiszenie, 3=grawitacja + bias + dryft
+static float32_t fZ[2];		//wektor pomiaru: 0=wysokość, 1=przyspieszenie
 static float32_t fF[4][4];	//macierz przejścia wektora stanu
 static float32_t fP[4][4];	//macierz kowariancji predykcji
 static float32_t fR[2][2];	//macierz kowariancji pomiaru
@@ -27,7 +25,6 @@ static float32_t fTempM24[2][4];	//macierz 2x4 na wyniki pośrednie
 static float32_t fTempM44A[4][4];
 static float32_t fTempM44B[4][4];
 static float32_t fTempM44C[4][4];
-static float32_t fTempM44D[4][4];	//macierze na wyniki pośrednie
 static float32_t fTempM22A[2][2];
 static float32_t fTempM22B[2][2];
 static float32_t fTempM21A[2];
@@ -38,8 +35,6 @@ static float32_t fTempM41B[4];
 //zmienne z przedrostkiem m oznaczają macierze (lub wektory) w formacie biblioteki ARM DSP
 static arm_matrix_instance_f32 mX  = {4, 1, fX};			//wektor stanu
 static arm_matrix_instance_f32 mZ  = {2, 1, fZ};			//wektor pomiaru
-//static arm_matrix_instance_f32 mY  = {2, 1, fY};			//wektor innowacji
-static arm_matrix_instance_f32 mW  = {4, 1, &fW[0]};		//wektor szumu procesu
 static arm_matrix_instance_f32 mF  = {4, 4, &fF[0][0]};		//macierz przejścia wektora stanu
 static arm_matrix_instance_f32 mP  = {4, 4, &fP[0][0]};		//macierz kowariancji predykcji
 static arm_matrix_instance_f32 mR  = {2, 2, &fR[0][0]};		//macierz kowariancji pomiaru
@@ -54,7 +49,6 @@ static arm_matrix_instance_f32 mTempM24  = {2, 4, &fTempM24[0][0]};	//macierz 2x
 static arm_matrix_instance_f32 mTempM44A = {4, 4, &fTempM44A[0][0]};	//macierz1 na wyniki pośrednie
 static arm_matrix_instance_f32 mTempM44B = {4, 4, &fTempM44B[0][0]};	//macierz2 na wyniki pośrednie
 static arm_matrix_instance_f32 mTempM44C = {4, 4, &fTempM44C[0][0]};	//macierz3 na wyniki pośrednie
-static arm_matrix_instance_f32 mTempM44D = {4, 4, &fTempM44D[0][0]};	//macierz4 na wyniki pośrednie
 static arm_matrix_instance_f32 mTempM22A = {2, 2, &fTempM22A[0][0]};	//macierz 2x2 na wyniki pośrednie
 static arm_matrix_instance_f32 mTempM22B = {2, 2, &fTempM22B[0][0]};	//macierz 2x2 na wyniki pośrednie
 static arm_matrix_instance_f32 mTempM21A = {2, 1, fTempM21A};	//macierz 2x1 na wyniki pośrednie
@@ -90,7 +84,6 @@ uint8_t InicjujFiltrKalmanaWysokości4D(stWymianyCM4_t *dane)
 			fF[m][n] = 0.0f;
 			fP[m][n] = 0.0f;
 		}
-		fZ[m] = 0.0f;
 		fHh[0][m] = fHa[0][m] = 0.0f;
 		fHh[1][m] = fHa[1][m] = 0.0f;
 	}
@@ -101,6 +94,7 @@ uint8_t InicjujFiltrKalmanaWysokości4D(stWymianyCM4_t *dane)
 		{
 			fR[m][n] = 0.0f;
 		}
+		fZ[m] = 0.0f;
 	}
 
 	//inicjuj pierwszy pomiar i wektor stanu
@@ -112,14 +106,8 @@ uint8_t InicjujFiltrKalmanaWysokości4D(stWymianyCM4_t *dane)
 	arm_mat_init_f32(&mX, 4, 1, fX);
 	
 	fZ[0] = dane->fWysokoMSL[0];	//wysokość
-	fZ[1] = dane->fAkcel1[2];	//przyspieszenie bezwzględne w osi Z
+	fZ[1] = dane->fAkcel1[2];		//przyspieszenie bezwzględne w osi Z
 	arm_mat_init_f32(&mZ, 2, 1, fZ);
-
-	//wektor szumu procesu
-	fW[0] = 5e-6;		//odchylenie standardowe błędu pomiaru wysokości
-	fW[1] = 1e-5;		//odchylenie standardowe błędu pomiaru prędkości pionowej
-	fW[2] = 1e-8;		//odchylenie standardowe błędu pomiaru przyspieszenie bzwzględnego w osi Z
-	fW[3] = 1e-10;		//odchylenie standardowe błędu dryftu przyspieszenia
 
 	//wariancja jest kwadratem standardowego odchylenia pomiaru i jest rozmieszczona w głównej przekątnej macierzy
 	//pozostałe pola sa kowariancją, czyli zależnością między błędami jednego pomiaru a drugiego. Zakładam że
@@ -130,9 +118,9 @@ uint8_t InicjujFiltrKalmanaWysokości4D(stWymianyCM4_t *dane)
 	arm_mat_init_f32(&mR, 2, 2, &fR[0][0]);
 
 	//początkowa wariancja predykcji
-	fP[0][0] = 1.0e-2;
+	fP[0][0] = 0.055;
 	fP[1][1] = 1.0e-2;
-	fP[2][2] = 1.0e-2;
+	fP[2][2] = 6.0e-2;
 	fP[3][3] = 1.0e-2;
 	arm_mat_init_f32(&mP, 4, 4, &fP[0][0]);
 
@@ -155,8 +143,8 @@ uint8_t InicjujFiltrKalmanaWysokości4D(stWymianyCM4_t *dane)
 		fI[n][n] = 1.0f;
 	arm_mat_init_f32(&mI, 4, 4, &fI[0][0]);
 
-	//inicjalizacja obu macierzy obserwacji: Hah - przyspieszenia i wysokości oraz Ha - samego przyspieszenia.
-	//Oba pomiary są w tych samych jednostkach co wektor stanu, więc obie macierze Hah i Ha są macierzami jednostkowymi
+	//inicjalizacja obu macierzy obserwacji: Hh - przyspieszenia i wysokości oraz Ha - samego przyspieszenia.
+	//Oba pomiary są w tych samych jednostkach co wektor stanu
 	fHh[0][0] = 1.0f;
 	fHh[1][2] = 1.0f;
 	fHh[1][3] = 1.0f;
@@ -187,9 +175,8 @@ uint8_t PredykcjaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane)
 	fF[0][1] = fF[1][2] = fDeltaCzasu;	//wysokość = prędkość * dT oraz prędkość = przyspieszenie * dT
 	fF[0][2] = powf(fDeltaCzasu, 2) / 2;	//wysokość = przyspieszenie * dT^2/2
 
-	//1) Predykcja nowej estymaty wektora stanu: x(n+1) = F * x(n) + w
-	cBłąd |= arm_mat_mult_f32(&mF, &mX, &mTempM41A);
-	cBłąd |= arm_mat_add_f32(&mTempM41A, &mW, &mX);
+	//1) Predykcja nowej estymaty wektora stanu: x(n+1) = F * x(n)
+	cBłąd |= arm_mat_mult_f32(&mF, &mX, &mX);
 	dane->stBSP.fWysokoscMSL = fX[0];
 	dane->stBSP.fPredkoscD 	 = fX[1];
 	dane->stBSP.fWysokoscAGL = dane->stBSP.fWysokoscMSL - fPoczątkoweBarometryczneMSL;
@@ -206,7 +193,7 @@ uint8_t PredykcjaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane)
 	//mnożenie Temp3 = (F * P(n)) * (F^T)
 	cBłąd |= arm_mat_mult_f32(&mTempM44A, &mTempM44B, &mTempM44C);
 
-	//obliczenie szumu procesu Q. Na podstawie przykładów zakładam że szum procesu zależy od zrywu akcelerometru
+	//obliczenie szumu procesu Q. Zakładam że szum procesu zależy od wariancji zrywu akcelerometru  [m/s^3]^2 = [m^2/s^6]
 	float32_t fOkresPetli = (float32_t)dane->ndT / 1e6;	//czas od ostatniego wykonania w [sekundach]
 	fQ[0][0] = powf(fOkresPetli, 6) / 36 * WARIANCJA_ZRYWU_ACEL;
 	fQ[0][1] = powf(fOkresPetli, 5) / 12 * WARIANCJA_ZRYWU_ACEL;
@@ -219,7 +206,7 @@ uint8_t PredykcjaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane)
 	fQ[2][2] = powf(fOkresPetli, 2) 	 * WARIANCJA_ZRYWU_ACEL;
 	fQ[0][3] = fQ[1][3] = fQ[2][3] = 0.0f;
 	fQ[3][0] = fQ[3][1] = fQ[3][2] = 0.0f;
-	fQ[3][3] = WARIANCJA_DRYFTU_ACEL;
+	fQ[3][3] = fOkresPetli * WARIANCJA_DRYFTU_ACEL;
 
 	//dodaj macierz szumu Q procesu do iloczynu (F * P(n)) * (F^T) -> P
 	cBłąd |= arm_mat_add_f32(&mQ, &mTempM44C, &mP);
@@ -300,29 +287,30 @@ uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyC
 	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempM44A (4x2 * 2x4 = 4x4)
 	cBłąd |= arm_mat_mult_f32(&mK, &mHh, &mTempM44A);
 
-	//odejmowanie (I - K(n) * H) -> TempM2
+	//odejmowanie (I - K(n) * H) -> mTempM44B
 	cBłąd |= arm_mat_sub_f32(&mI, &mTempM44A, &mTempM44B);
 
-	//mnożenie (I - K(n) * H) * P(n-1) -> TempM1
-	cBłąd |= arm_mat_mult_f32(&mI, &mTempM44B, &mTempM44A);
+	//mnożenie (I-K(n)*H) * P(n-1) -> mTempM44A (4x4 * 4x4 = 4x4)
+	cBłąd |= arm_mat_mult_f32(&mTempM44B, &mP, &mTempM44A);
 
-	//transpozycja (I * K(n) * H)^T
+	//transpozycja: (I-K(n)*H)^T-> mTempM44C
 	cBłąd |= arm_mat_trans_f32(&mTempM44B, &mTempM44C);
 
-	//mnożenie  (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T
+	//mnożenie: (I-K(n)*H)*P(n-1) * (I-K(n)*H)^T
 	cBłąd |= arm_mat_mult_f32(&mTempM44A, &mTempM44C, &mTempM44B);
 
-	//mnożenie 	K(n) * R(n)    (4x2 * 2x2 = 4x2)
+
+	//mnożenie 	K(n) * R(n)  -> mTempM42A  (4x2 * 2x2 = 4x2)
 	cBłąd |= arm_mat_mult_f32(&mK, &mR, &mTempM42A);
 
-	//transpozycja K(n)^T   (4x2 -> 2x4)
+	//transpozycja K(n)^T -> mTempM24  (4x2 -> 2x4)
 	cBłąd |= arm_mat_trans_f32(&mK, &mTempM24);
 
-	//mnożenie 	K(n) * R(n) * K(n)^T
-	cBłąd |= arm_mat_mult_f32(&mTempM42A, &mTempM24, &mTempM44D);
+	//mnożenie 	K(n) * R(n) * K(n)^T  (4x2 * 2x4 = 4x4)
+	cBłąd |= arm_mat_mult_f32(&mTempM42A, &mTempM24, &mTempM44A);
 
 	//finalne sumowanie (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T + K(n) * R(n) * K(n)^T -> P(n)
-	cBłąd |= arm_mat_add_f32(&mTempM44B, &mTempM44D, &mP);
+	cBłąd |= arm_mat_add_f32(&mTempM44B, &mTempM44A, &mP);
 
 	for (uint8_t n=0; n<4; n++)
 		dane->stKalmanDebug.fP[n] = fP[n][n];
@@ -403,29 +391,30 @@ uint8_t AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane)
 	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempM44A (4x2 * 2x4 = 4x4)
 	cBłąd |= arm_mat_mult_f32(&mK, &mHa, &mTempM44A);
 
-	//odejmowanie (I - K(n) * H) -> TempM2
+	//odejmowanie (I - K(n) * H) -> mTempM44B
 	cBłąd |= arm_mat_sub_f32(&mI, &mTempM44A, &mTempM44B);
 
-	//mnożenie (I - K(n) * H) * P(n-1) -> TempM1
-	cBłąd |= arm_mat_mult_f32(&mI, &mTempM44B, &mTempM44A);
+	//mnożenie (I-K(n)*H) * P(n-1) -> mTempM44A (4x4 * 4x4 = 4x4)
+	cBłąd |= arm_mat_mult_f32(&mTempM44B, &mP, &mTempM44A);
 
-	//transpozycja (I * K(n) * H)^T
+	//transpozycja: (I-K(n)*H)^T-> mTempM44C
 	cBłąd |= arm_mat_trans_f32(&mTempM44B, &mTempM44C);
 
-	//mnożenie  (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T
+	//mnożenie: (I-K(n)*H)*P(n-1) * (I-K(n)*H)^T
 	cBłąd |= arm_mat_mult_f32(&mTempM44A, &mTempM44C, &mTempM44B);
 
-	//mnożenie 	K(n) * R(n)    (4x2 * 2x2 = 4x2)
+
+	//mnożenie 	K(n) * R(n)  -> mTempM42A  (4x2 * 2x2 = 4x2)
 	cBłąd |= arm_mat_mult_f32(&mK, &mR, &mTempM42A);
 
-	//transpozycja K(n)^T   (4x2 -> 2x4)
+	//transpozycja K(n)^T -> mTempM24  (4x2 -> 2x4)
 	cBłąd |= arm_mat_trans_f32(&mK, &mTempM24);
 
-	//mnożenie 	K(n) * R(n) * K(n)^T
-	cBłąd |= arm_mat_mult_f32(&mTempM42A, &mTempM24, &mTempM44D);
+	//mnożenie 	K(n) * R(n) * K(n)^T  (4x2 * 2x4 = 4x4)
+	cBłąd |= arm_mat_mult_f32(&mTempM42A, &mTempM24, &mTempM44A);
 
 	//finalne sumowanie (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T + K(n) * R(n) * K(n)^T -> P(n)
-	cBłąd |= arm_mat_add_f32(&mTempM44B, &mTempM44D, &mP);
+	cBłąd |= arm_mat_add_f32(&mTempM44B, &mTempM44A, &mP);
 
 	for (uint8_t n=0; n<4; n++)
 		dane->stKalmanDebug.fP[n] = fP[n][n];
