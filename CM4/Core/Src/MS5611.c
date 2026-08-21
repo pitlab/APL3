@@ -267,7 +267,7 @@ uint8_t ObslugaMS5611(void)
 			else
 			{
 				uDaneCM4.dane.fWysokoAGL[0] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[0], fP0_MS5611, uDaneCM4.dane.fTemper[TEMP_BARO1]);
-				if (uDaneCM4.dane.ndT < 10000)	//nie licz dla długich przestoi, bo to generuje dużą szpilkę danych
+				if ((uDaneCM4.dane.ndT > 0) && (uDaneCM4.dane.ndT < 10000))	//nie licz dla zera i długich przestoi, bo to generuje dużą szpilkę danych
 				{
 					//float fNowyWariometr = (fWysokośćUśredniona - uDaneCM4.dane.fWysokoMSL[0]) * 1000 / uDaneCM4.dane.ndT;	//dH [m] * 1e6 / t [1e-6 s]
 					float fNowyWariometr = (uDaneCM4.dane.fWysokoMSL[0] - fWysokośćUśredniona) * 1000 / uDaneCM4.dane.ndT;	//dH [m] * 1e6 / t [1e-6 s]

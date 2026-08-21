@@ -9,17 +9,17 @@
 //////////////////////////////////////////////////////////////////////////////
 #include <KalmanWysokosci4D.h>
 
-static float32_t fX[4];		//wektor stanu: 0=wysokość, 1=prędkość, 2=przypsiszenie, 3=grawitacja + bias + dryft
-static float32_t fZ[2];		//wektor pomiaru: 0=wysokość, 1=przyspieszenie
-static float32_t fF[4][4];	//macierz przejścia wektora stanu
-static float32_t fP[4][4];	//macierz kowariancji predykcji
-static float32_t fR[2][2];	//macierz kowariancji pomiaru
-static float32_t fQ[4][4];	//macierz szumu procesu
-static float32_t fI[4][4];	//macierz jednostkowa
-static float32_t fHh[2][4];	//macierz obserwacji przyspieszenia i wysokości, przekształca jednostkę pomiaru w jednostkę wektora stanu
-static float32_t fHa[2][4];	//macierz obserwacji przyspieszenia, przekształca jednostkę pomiaru w jednostkę wektora stanu
-static float32_t fK[4][2];	//macierz wzmocnień kalnama
-static float32_t fPHt[4][2];	//macierz 4x2 na wyniki pośrednie
+static float32_t fX[4] = {0};		//wektor stanu: 0=wysokość, 1=prędkość, 2=kinematyczne przyspieszenie Z, 3=grawitacja + bias + dryft
+static float32_t fZ[2] = {0};		//wektor pomiaru: 0=wysokość, 1=przyspieszenie
+static float32_t fF[4][4];			//macierz przejścia wektora stanu
+static float32_t fP[4][4];			//macierz kowariancji predykcji
+static float32_t fR[2][2];			//macierz kowariancji pomiaru
+static float32_t fQ[4][4];			//macierz szumu procesu
+static float32_t fI[4][4];			//macierz jednostkowa
+static float32_t fHh[2][4];			//macierz obserwacji przyspieszenia i wysokości, przekształca jednostkę pomiaru w jednostkę wektora stanu
+static float32_t fHa[2][4];			//macierz obserwacji przyspieszenia, przekształca jednostkę pomiaru w jednostkę wektora stanu
+static float32_t fK[4][2];			//macierz wzmocnień kalnama
+static float32_t fPHt[4][2];		//macierz 4x2 na wyniki pośrednie
 static float32_t fTempM42[4][2];	//macierz 4x2 na wyniki pośrednie
 static float32_t fTempM24[2][4];	//macierz 2x4 na wyniki pośrednie
 static float32_t fTempM44A[4][4];
@@ -57,7 +57,7 @@ static arm_matrix_instance_f32 mTempM41A = {4, 1, fTempM41A};	//macierz 4x1 na w
 static arm_matrix_instance_f32 mTempM41B = {4, 1, fTempM41B};	//macierz 4x1 na wyniki pośrednie
 
 extern float fPoczątkoweBarometryczneMSL;	//wysokość MSL wyznaczona podczas inicjalizacji
-
+uint8_t cLicznikUśredniania = LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -70,11 +70,24 @@ uint8_t InicjujFiltrKalmanaWysokości4D(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	//filtr jrst zainicjowany dopiero wtedy gdy trafia do niego rzeczywiste dane z czujnika o niezerowej wysokosci MSL
+	//filtr jest zainicjowany dopiero wtedy gdy trafia do niego rzeczywiste dane z czujnika o niezerowej wysokosci MSL
 	if (dane->cNowyPomiar & NP_WYS1)
-		dane->nZainicjowano |= INIT_KALMAN_WYSOKOSCI;
+	{
+		dane->cNowyPomiar &= ~NP_WYS1;
+		fZ[0] += dane->fWysokoMSL[0];	//wysokość
+		fZ[1] += dane->fAkcel1[2];		//przyspieszenie bezwzględne w osi Z
+		cLicznikUśredniania--;
+		if (cLicznikUśredniania == 0)
+		{
+			fZ[0] /= LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI;
+			fZ[1] /= LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI;
+			dane->nZainicjowano |= INIT_KALMAN_WYSOKOSCI;
+		}
+		else
+			return cBłąd;
+	}
 
-	//zeruj wszystkie macierze i wektory
+	//zeruj macierze i wektory
 	for (uint8_t m=0; m<4; m++)
 	{
 		for (uint8_t n=0; n<4; n++)
@@ -98,15 +111,11 @@ uint8_t InicjujFiltrKalmanaWysokości4D(stWymianyCM4_t *dane)
 	}
 
 	//inicjuj pierwszy pomiar i wektor stanu
-	fX[0] = dane->fWysokoMSL[0];	//wysokość
-	fX[1] = 0.01;	//prędkość pionowa
-	//fX[2] = dane->fAkcel1[2];	//przyspieszenie bezwzględne w osi Z
-	fX[2] = 0.0f;
-	fX[3] = AKCEL1G;			//bias osi Z akcelerometru zawierajacy dryft i grawitację
+	fX[0] = fZ[0];	//wysokość
+	fX[1] = 0.001;	//prędkość pionowa
+	fX[2] = 0.001;	//przyspieszenie
+	fX[3] = fZ[1];	//łączne przyspieszenie w osi Z: grawitacja, kinematyka, bias
 	arm_mat_init_f32(&mX, 4, 1, fX);
-	
-	fZ[0] = dane->fWysokoMSL[0];	//wysokość
-	fZ[1] = dane->fAkcel1[2];		//przyspieszenie bezwzględne w osi Z
 	arm_mat_init_f32(&mZ, 2, 1, fZ);
 
 	//wariancja jest kwadratem standardowego odchylenia pomiaru i jest rozmieszczona w głównej przekątnej macierzy

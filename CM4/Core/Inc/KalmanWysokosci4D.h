@@ -14,6 +14,7 @@
 
 #define WARIANCJA_ZRYWU_ACEL	6.0e-6f
 #define WARIANCJA_DRYFTU_ACEL 	1.0e-8f;
+#define LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI		128
 
 uint8_t InicjujFiltrKalmanaWysokości4D(stWymianyCM4_t *dane);
 uint8_t PredykcjaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane);
