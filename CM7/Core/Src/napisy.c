@@ -133,8 +133,8 @@ const char *cNazwyPozycjiRejestratora[LICZBA_NAZW_POZYCJI_REJESTRATORA] = {
 "HDOP [m]",					//NREJ_HDOP_M
 "PredGNSS_N [m/s]",			//NREJ_PREDK_GNSS_N_MS
 "PredGNSS_E [m/s]",			//NREJ_PREDK_GNSS_E_MS
-"OdbiornikRC.kan%d",		//NREJ_ODBIORNIKRC_KAN_XD
-"WyjscieRC.kan%d",			//NREJ_WYJSCIERC_KAN_XD
+"OdbiornikRC.kan",			//NREJ_ODBIORNIKRC_KAN
+"WyjscieRC.kan",			//NREJ_WYJSCIERC_KAN
 "Reg.KataPrze",				//NREJ_REG_KATA_PRZE
 "Reg.PredPrze",				//NREJ_REG_PRED_PRZE
 "Reg.KataPoch",				//NREJ_REG_KATA_POCH
@@ -156,7 +156,8 @@ const char *cNazwyPozycjiRejestratora[LICZBA_NAZW_POZYCJI_REJESTRATORA] = {
 "WyjI",						//NREJ_WYJ_I
 "WyjD",						//NREJ_WYJ_D
 "WyWyprz",					//NREJ_WYJ_WYPRZ
-"Wyjscie"					//NREJ_WYJSCIE
+"Wyjscie",					//NREJ_WYJSCIE
+"KalmanWys_",				//NREJ_KALMAN_WYS (X/K/P[n])
 
 };
 

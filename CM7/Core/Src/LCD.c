@@ -2903,7 +2903,7 @@ uint8_t WyswietlRejestratorKartySD(void)
 			sprintf(cNapis, "Zatrzymany");
 		else
 			sprintf(cNapis, "Brak ");
-		cBłąd = BLAD_KARTA_SD_NIEGOTOWA;
+		//cBłąd = BLAD_KARTA_SD_NIEGOTOWA;
 	}
 	RysujNapis(cNapis, 12*FONT_SL, 50);
 
