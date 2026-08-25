@@ -39,7 +39,8 @@
 #define PODSTAWA_FILTRA_IIR_WARIOMETRU		48
 
 //#define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących
-#define PODSTAWA_FILTRA_IIR_P0			512
+//#define PODSTAWA_FILTRA_IIR_P0			512	//wariometr zbudowany na tym filtrze wskazuje dwukrotnie większą prędkość
+#define PODSTAWA_FILTRA_IIR_P0			256
 #define LICZBA_PROBEK_USREDNIANIA		10000	//tyle trzeba aby filtr (511+1)/512 uzyskał dokładność 6 cyfr znaczących
 
 

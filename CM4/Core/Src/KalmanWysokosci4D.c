@@ -122,8 +122,10 @@ uint8_t InicjujFiltrKalmanaWysokości4D(stWymianyCM4_t *dane)
 	//pozostałe pola sa kowariancją, czyli zależnością między błędami jednego pomiaru a drugiego. Zakładam że
 	//błędy pomiarów są niezależne, więc kowariancja jest ustawiona na 0. W rzeczywistosci pomiar prędkości jest liczony
 	//z danych czujnika wysokości więc korelacja istnieje ale na razie nie potrafię jej obliczyć
-	fR[0][0] = 0.055;	//wariancja statycznej próbki wysokości czujnika 1 [m^2]
-	fR[1][1] = 6.0e-2;	//wariancja akcelerometru 1 [m^2/s^4]
+	//fR[0][0] = 0.055;	//wariancja statycznej próbki wysokości czujnika 1 [m^2]
+	fR[0][0] = 0.1;
+	//fR[1][1] = 6.0e-2;	//wariancja akcelerometru 1 [m^2/s^4]
+	fR[1][1] = 0.04;
 	arm_mat_init_f32(&mR, 2, 2, &fR[0][0]);
 
 	//początkowa wariancja predykcji

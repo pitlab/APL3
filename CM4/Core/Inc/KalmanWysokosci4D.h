@@ -12,8 +12,14 @@
 #include "wymiana.h"
 #include "arm_math.h"
 
-#define WARIANCJA_ZRYWU_ACEL	6.0e-6f
-#define WARIANCJA_DRYFTU_ACEL 	1.0e-8f;
+//#define WARIANCJA_ZRYWU_ACEL	6.0e-5f
+//#define WARIANCJA_ZRYWU_ACEL	3.0e-4f		//wyraźnie lepiej
+#define WARIANCJA_ZRYWU_ACEL	3.0e-3f		//
+//#define WARIANCJA_DRYFTU_ACEL 	1.0e-8f;
+//#define WARIANCJA_DRYFTU_ACEL 	1.0e-6f;	//widoczne w X[3] skoki przyspieszenia na poczatku i końcu ruchu
+//#define WARIANCJA_DRYFTU_ACEL 	1.0e-2f;	//widoczny w X[3] szum pomiaru
+#define WARIANCJA_DRYFTU_ACEL 	1.0e-7f;
+
 #define LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI		128
 
 uint8_t InicjujFiltrKalmanaWysokości4D(stWymianyCM4_t *dane);
