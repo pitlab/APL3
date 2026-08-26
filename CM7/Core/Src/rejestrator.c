@@ -35,7 +35,7 @@ uint8_t __attribute__ ((aligned (32))) aTxBuffer[_MAX_SS];
 uint8_t __attribute__ ((aligned (32))) aRxBuffer[_MAX_SS];
 __IO uint8_t RxCplt, TxCplt;
 volatile uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-uint32_t nKonfLogera[LICZBA_SLOW_REJESTRATORA] = {0x3F073BFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000, 0x00000FFF};	//zestaw flag włączajacych dane do rejestracji
+uint32_t nKonfLogera[LICZBA_SLOW_REJESTRATORA] = {0x3F0710FF, 0x0003FFFF, 0x0000FFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000FFF};	//zestaw flag włączajacych dane do rejestracji
 static char __attribute__ ((aligned (32))) cBufZapisuKarty[ROZMIAR_BUFORA_LOGU];	//bufor na jedną linijkę logu
 char __attribute__ ((aligned (32))) cBufPodreczny[_MAX_LFN];
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;
@@ -1506,7 +1506,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 					sprintf(cBufPodreczny, "%sK[%d];", cNazwyPozycjiRejestratora[NREJ_KALMAN_WYS], n);
 				else
-					sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.stKalmanDebug.fK[n]);	//główne elementy wzmocnienia
+					sprintf(cBufPodreczny, "%E;", uDaneCM4.dane.stKalmanDebug.fK[n]);	//główne elementy wzmocnienia
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -1518,7 +1518,7 @@ uint8_t ObslugaPetliRejestratora(void)
 				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 					sprintf(cBufPodreczny, "%sP[%d];", cNazwyPozycjiRejestratora[NREJ_KALMAN_WYS], n);
 				else
-					sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.stKalmanDebug.fP[n]);	//główna przekątna wariancji procesu
+					sprintf(cBufPodreczny, "%E;", uDaneCM4.dane.stKalmanDebug.fP[n]);	//główna przekątna wariancji procesu
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}

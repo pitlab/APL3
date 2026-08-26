@@ -7,7 +7,7 @@
 // (c) PitLab 2026
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <KalmanWysokosci4D.h>
+#include <KalmanWysokosci4X2Z.h>
 
 static float32_t fX[4] = {0};		//wektor stanu: 0=wysokość, 1=prędkość, 2=kinematyczne przyspieszenie Z, 3=grawitacja + bias + dryft
 static float32_t fZ[2] = {0};		//wektor pomiaru: 0=wysokość, 1=przyspieszenie
@@ -57,7 +57,7 @@ static arm_matrix_instance_f32 mTempM41A = {4, 1, fTempM41A};	//macierz 4x1 na w
 static arm_matrix_instance_f32 mTempM41B = {4, 1, fTempM41B};	//macierz 4x1 na wyniki pośrednie
 
 extern float fPoczątkoweBarometryczneMSL;	//wysokość MSL wyznaczona podczas inicjalizacji
-uint8_t cLicznikUśredniania = LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI;
+static uint8_t cLicznikUśredniania = LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ uint8_t cLicznikUśredniania = LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI;
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjujFiltrKalmanaWysokości4D(stWymianyCM4_t *dane)
+uint8_t InicjujFiltrKalmanaWysokości4X2Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
@@ -177,7 +177,7 @@ uint8_t InicjujFiltrKalmanaWysokości4D(stWymianyCM4_t *dane)
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t PredykcjaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane)
+uint8_t PredykcjaFiltraKalmanaWysokości4X2Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 	float32_t fDeltaCzasu = (float32_t)dane->ndT / 1e6;
@@ -234,7 +234,7 @@ uint8_t PredykcjaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane)
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane)
+uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X2Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
@@ -335,7 +335,7 @@ uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyC
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane)
+uint8_t AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4Z2Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
@@ -366,11 +366,11 @@ uint8_t AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4D(stWymianyCM4_t *dane)
 	//pomiar
 	fZ[1] = dane->fAkcel1[2];	//Przyspieszenie bezwzględne osi Z
 
-	float32_t fInnowacjaWysokości = fZ[0] - fX[0];
-	float32_t fOdchylenieStdPomiaru = sqrtf(fP[0][0] + fR[0][0]);	//pierwiastek z sumy wariancji to odchylenie standardowe
+	float32_t fInnowacjaPrzyspieszenia = fZ[2] - fX[2];
+	float32_t fOdchylenieStdPomiaru = sqrtf(fP[2][2] + fR[2][2]);	//pierwiastek z sumy wariancji to odchylenie standardowe
 
 	//sprawdzam czy wartość bezwzględna innowacji mieści sie w zakresie 3 sigma estymacji, jeżeli nie, to odrzucam taki pomiar jako niewiarygodny
-	if (fabs(fInnowacjaWysokości) < (3.0f * fOdchylenieStdPomiaru))
+	if (fabs(fInnowacjaPrzyspieszenia) < (3.0f * fOdchylenieStdPomiaru))
 	{
 		//Uwzględnienie pomiaru: (z(n) - H * Estymata_x(n-1))
 		cBłąd |= arm_mat_sub_f32(&mZ, &mTempM21A, &mTempM21B);

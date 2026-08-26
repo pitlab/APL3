@@ -36,12 +36,17 @@
 #define WZMOCNIENIE_REGULATORA_TERMOSTATU	80	//wzmocnienie regualtora P regulacji temperatury - maksymalny uchyb 1°C
 #define OKRES_PWM_TERMOSTATU				100
 
-#define PODSTAWA_FILTRA_IIR_WARIOMETRU		48
+//#define PODSTAWA_FILTRA_IIR_WARIOMETRU		48
 
 //#define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących
-//#define PODSTAWA_FILTRA_IIR_P0			512	//wariometr zbudowany na tym filtrze wskazuje dwukrotnie większą prędkość
-#define PODSTAWA_FILTRA_IIR_P0			256
+#define PODSTAWA_FILTRA_IIR_P0			512	//wariometr zbudowany na tym filtrze wskazuje dwukrotnie większą prędkość
 #define LICZBA_PROBEK_USREDNIANIA		10000	//tyle trzeba aby filtr (511+1)/512 uzyskał dokładność 6 cyfr znaczących
+//#define PODSTAWA_FILTRA_IIR_P0			256	//dobra skala ale prawdopodobnie zbyt duże opóźnienie pomiaru
+//#define KOREKTA_SKALI_FILTRA_P0			1	//wspólczynnik korygujący skalę filtra
+#define PODSTAWA_FILTRA_IIR_WARIOMETRU	64	//skala za mała. Jest ok 0,3 a powinno być 1.1
+#define KOREKTA_SKALI_FILTRA_WARIOMETRU	4	//współczynnik korygujący skalę filtra
+#define MIN_WYSOKOSC		-500	//minimalna dozwolona wysokość
+#define MAX_WYSOKOSC		10000	//maksymalna dozwolona wysokość
 
 
 #define LICZBA_CZUJ_CISN	2

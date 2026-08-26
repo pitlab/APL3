@@ -31,8 +31,8 @@
 #include "WeWyRC.h"
 #include "JednostkaInercyjna.h"
 #include <Fram.h>
-#include <KalmanWysokosci2D.h>
-#include <KalmanWysokosci4D.h>
+#include <KalmanWysokosci4X2Z.h>
+#include <KalmanWysokosci4X3Z.h>
 #include <Mikser.h>
 #include "Crossfire.h"
 #include "KontrolerLotu.h"

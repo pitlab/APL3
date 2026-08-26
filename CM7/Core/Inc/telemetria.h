@@ -272,14 +272,14 @@
 #define TID_KALMAN_X1			227
 #define TID_KALMAN_X2			228
 #define TID_KALMAN_X3			229
-#define TID_KALMAN_P00			230
-#define TID_KALMAN_P11			231
-#define TID_KALMAN_P22			232
-#define TID_KALMAN_P33			233
-#define TID_KALMAN_K00			234
-#define TID_KALMAN_K11			235
-#define TID_KALMAN_K22			236
-#define TID_KALMAN_K33			237
+#define TID_KALMAN_K0			230
+#define TID_KALMAN_K1			231
+#define TID_KALMAN_K2			232
+#define TID_KALMAN_K3			233
+#define TID_KALMAN_P0			234
+#define TID_KALMAN_P1			235
+#define TID_KALMAN_P2			236
+#define TID_KALMAN_P3			237
 //max do 255
 
 #define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	238

@@ -32,8 +32,8 @@
 #include "SampleAudio.h"
 #include "Crossfire.h"
 #include <Kalman.h>
-#include <KalmanWysokosci2D.h>
-#include <KalmanWysokosci4D.h>
+#include <KalmanWysokosci4X2Z.h>
+#include <KalmanWysokosci4X3Z.h>
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 uint16_t sGenerator;
@@ -165,17 +165,17 @@ void PetlaGlowna(void)
 
 		if ((uDaneCM4.dane.nZainicjowano & INIT_KALMAN_WYSOKOSCI) == INIT_KALMAN_WYSOKOSCI)
 		{
-			cBłądPG = PredykcjaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
+			cBłądPG = PredykcjaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 			if (uDaneCM4.dane.cNowyPomiar & NP_WYS1)
-				cBłądPG = AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
+				cBłądPG = AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
 			else
-				cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4D(&uDaneCM4.dane);
+				cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 		}
 		else
 		{
-			cBłądPG = InicjujFiltrKalmanaWysokości4D(&uDaneCM4.dane);
+			cBłądPG = InicjujFiltrKalmanaWysokości4X3Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 		}
 		uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2);	//usuń flagę nowych pomiarów wysokości

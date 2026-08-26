@@ -532,14 +532,15 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_KALMAN_X1:			fZmiennaTele = stDane->stKalmanDebug.fX[1];					break;
 	case TID_KALMAN_X2:			fZmiennaTele = stDane->stKalmanDebug.fX[2];					break;
 	case TID_KALMAN_X3:			fZmiennaTele = stDane->stKalmanDebug.fX[3];					break;
-	case TID_KALMAN_P00:		fZmiennaTele = stDane->stKalmanDebug.fP[0];					break;
-	case TID_KALMAN_P11:		fZmiennaTele = stDane->stKalmanDebug.fP[1];					break;
-	case TID_KALMAN_P22:		fZmiennaTele = stDane->stKalmanDebug.fP[2];					break;
-	case TID_KALMAN_P33:		fZmiennaTele = stDane->stKalmanDebug.fP[3];					break;
-	case TID_KALMAN_K00:		fZmiennaTele = stDane->stKalmanDebug.fK[0];					break;
-	case TID_KALMAN_K11:		fZmiennaTele = stDane->stKalmanDebug.fK[1];					break;
-	case TID_KALMAN_K22:		fZmiennaTele = stDane->stKalmanDebug.fK[2];					break;
-	case TID_KALMAN_K33:		fZmiennaTele = stDane->stKalmanDebug.fK[3];					break;
+	case TID_KALMAN_K0:			fZmiennaTele = stDane->stKalmanDebug.fK[0];					break;
+	case TID_KALMAN_K1:			fZmiennaTele = stDane->stKalmanDebug.fK[1];					break;
+	case TID_KALMAN_K2:			fZmiennaTele = stDane->stKalmanDebug.fK[2];					break;
+	case TID_KALMAN_K3:			fZmiennaTele = stDane->stKalmanDebug.fK[3];					break;
+	case TID_KALMAN_P0:			fZmiennaTele = stDane->stKalmanDebug.fP[0];					break;
+	case TID_KALMAN_P1:			fZmiennaTele = stDane->stKalmanDebug.fP[1];					break;
+	case TID_KALMAN_P2:			fZmiennaTele = stDane->stKalmanDebug.fP[2];					break;
+	case TID_KALMAN_P3:			fZmiennaTele = stDane->stKalmanDebug.fP[3];					break;
+
 	default:	fZmiennaTele = -1.0f;
 	}
 	return fZmiennaTele;
