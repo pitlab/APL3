@@ -183,6 +183,7 @@ uint8_t ObslugaMS5611(void)
 {
 	uint32_t nKonwersja;
 	uint8_t cBłąd = BLAD_OK;
+	uint8_t cNowyPomiarCiśnenia = 0;
 
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_MS5611)
 		return BLAD_BRAK_CZUJNIKA;
@@ -229,7 +230,7 @@ uint8_t ObslugaMS5611(void)
 			if (nKonwersja)
 			{
 				uDaneCM4.dane.fCisnieBzw[0] = MS5611_LiczCisnienie(nKonwersja, ndT);
-				uDaneCM4.dane.cNowyPomiar |= NP_WYS1;
+				cNowyPomiarCiśnenia = 1;
 			}
 			chBuf5611[0] = PMS_CONV_D2_OSR1024;		//uruchom konwersję temperatury
 			ZapiszSPIu8(chBuf5611, 1);
@@ -240,7 +241,7 @@ uint8_t ObslugaMS5611(void)
 			if (nKonwersja)
 			{
 				uDaneCM4.dane.fCisnieBzw[0] = MS5611_LiczCisnienie(nKonwersja, ndT);
-				uDaneCM4.dane.cNowyPomiar |= NP_WYS1;
+				cNowyPomiarCiśnenia = 1;
 			}
 			chBuf5611[0] = PMS_CONV_D1_OSR1024;		//uruchom konwersję ciśnienia
 			ZapiszSPIu8(chBuf5611, 1);
@@ -249,12 +250,13 @@ uint8_t ObslugaMS5611(void)
 		chProporcjaPomiarow++;
 		chProporcjaPomiarow &= 0x07;
 
-		if (uDaneCM4.dane.cNowyPomiar & NP_WYS1)	//są nowe dane ciśnienia
+		if (cNowyPomiarCiśnenia)	//są nowe dane ciśnienia
 		{
 			float fWysokość = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[0], CISNIENIE_QNE, uDaneCM4.dane.fTemper[TEMP_BARO1]);	//wartość bezwzględna, nie wymaga uśredniania P0
-			if ((fWysokość > MIN_WYSOKOSC) && (fWysokość < MAX_WYSOKOSC))	//wytnij błędne wysokości
+			if ((fWysokość > MIN_WYSOKOSC) && (fWysokość < MAX_WYSOKOSC))	//wytnij błędne pomiary nie mieszczące się w zakresie dopuszczalnych wskazań
 			{
 				uDaneCM4.dane.fWysokoMSL[0] = fWysokość;
+				uDaneCM4.dane.cNowyPomiar |= NP_WYS1;
 				fWysokośćUśredniona = ((PODSTAWA_FILTRA_IIR_WARIOMETRU - 1) * fWysokośćUśredniona + uDaneCM4.dane.fWysokoMSL[0]) / PODSTAWA_FILTRA_IIR_WARIOMETRU;
 
 				if (sLicznikUśrednianiaP0)	//czy przygotowanie ciśnienia P0 jeszcze trwa
@@ -265,7 +267,8 @@ uint8_t ObslugaMS5611(void)
 					if (sLicznikUśrednianiaP0 == 0)
 					{
 						uDaneCM4.dane.nZainicjowano |= INIT_P0_MS5611;
-					}	fPoczątkoweBarometryczneMSL = fWysokośćUśredniona;
+						fPoczątkoweBarometryczneMSL = WysokoscBarometryczna(fP0_MS5611, CISNIENIE_QNE, uDaneCM4.dane.fTemper[TEMP_BARO1]);
+					}
 				}
 				else
 				{
@@ -274,7 +277,7 @@ uint8_t ObslugaMS5611(void)
 						uDaneCM4.dane.fWariometr[0] = (uDaneCM4.dane.fWysokoMSL[0] - fWysokośćUśredniona) * 1000 * KOREKTA_SKALI_FILTRA_WARIOMETRU / uDaneCM4.dane.ndT;	//dH [m] * 1e6 / t [1e-6 s]
 				}
 			}
-			else
+			else	//if wysokość (min, max)
 				cBłąd = BLAD_ZLE_DANE;
 		}
 	}

@@ -123,8 +123,9 @@ uint8_t ObslugaBMP581(void)
 
 		//sprawdź ile czasu upłyneło od ostatniego pomiaru. Jeżeli było to mniej niż czas potrzebny na konwersję to pomiń to uruchomienie
 		uint32_t nCzas = MinalCzasT7(nCzasOstatniejKonwersjiBMP581);
-		if (nCzas < 3045)	//OSRx4 = 2,9ms + 5%
+		//if (nCzas < 3045)	//OSRx4 = 2,9ms + 5%
 		//if (nCzas < 1050)	//OSRx1 = 1,0ms + 5%
+		if (nCzas < 4375)	//ODR = 240Hz -> 4,16ms +5%  = 4,375
 			return BLAD_ZA_KROTKI_CZAS;
 
 		/*chDane = CzytajSPIu8(BMP5_REG_INT_STATUS);
@@ -148,16 +149,21 @@ uint8_t ObslugaBMP581(void)
 		CzytajBuforSPIsmp(BMP5_REG_TEMP_DATA_XLSB, nWartosc, 2);	//odczyt z rejestrów
 		//CzytajBuforSPIsmp(BMP5_REG_FIFO_DATA, nWartosc, 2);			//odczyt z FIFO
 		uDaneCM4.dane.fTemper[TEMP_BARO2] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO2] + ((float)nWartosc[0] / 65536.0f) + KELVIN) / 8;
-		uDaneCM4.dane.fCisnieBzw[1] = (3 * uDaneCM4.dane.fCisnieBzw[1] + (float)nWartosc[1] / 64.0f) / 4;
+		uDaneCM4.dane.fCisnieBzw[1] = (float)nWartosc[1] / 64.0f;
+
+		uDaneCM4.dane.fWysokoMSL[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[1], CISNIENIE_QNE, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//wartość bwzezględna, nie wymaga uśredniania P0
+		uDaneCM4.dane.cNowyPomiar |= NP_WYS2;
+		fWysokośćUśredniona = ((PODSTAWA_FILTRA_IIR_WARIOMETRU - 1) * fWysokośćUśredniona + uDaneCM4.dane.fWysokoMSL[1]) / PODSTAWA_FILTRA_IIR_WARIOMETRU;
 
 		//przygotuj P0
-		fWysokośćUśredniona = ((PODSTAWA_FILTRA_IIR_WARIOMETRU - 1) * fWysokośćUśredniona + uDaneCM4.dane.fWysokoMSL[1]) / PODSTAWA_FILTRA_IIR_WARIOMETRU;
 		if (sLicznikUsrednianiaP0)	//czy przygotowanie ciśnienia P0 jeszcze trwa
 		{
 			fP0_BMP581 = ((PODSTAWA_FILTRA_IIR_P0 - 1) * fP0_BMP581 + uDaneCM4.dane.fCisnieBzw[1]) / PODSTAWA_FILTRA_IIR_P0;
 			sLicznikUsrednianiaP0--;
 			if (sLicznikUsrednianiaP0 == 0)
+			{
 				uDaneCM4.dane.nZainicjowano |= INIT_P0_BMP851;
+			}
 		}
 		else
 		{
@@ -165,7 +171,6 @@ uint8_t ObslugaBMP581(void)
 			if ((uDaneCM4.dane.ndT > 0) && (uDaneCM4.dane.ndT < 10000))	//nie licz dla zera i długich przestoi, bo to generuje dużą szpilkę danych
 				uDaneCM4.dane.fWariometr[1] = (fWysokośćUśredniona - uDaneCM4.dane.fWysokoMSL[1]) * 1000 * KOREKTA_SKALI_FILTRA_WARIOMETRU / uDaneCM4.dane.ndT;	//dH [m] * 1e3 / t [1e-6 s]
 		}
-		uDaneCM4.dane.fWysokoMSL[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[1], CISNIENIE_QNE, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//wartość bwzezględna, nie wymaga uśredniania P0
 
 	}
 	return cBłąd;
