@@ -1,8 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // AutoPitLot v3.0
-// Filtr Kalmana o 4-elementowym wektorze stanu obrabiajacy dane:
-// wysokości, prędkości pionowej, przyspieszenia i biasu przyspieszenia
+// Filtr Kalmana o 4-elementowym wektorze stanu zawierajacym: wysokość MSL, prędkość pionową, przyspieszenie kinematyczne w osi Z i bias przyspieszenia.
+// Filtr zasilany jest wysokością, prędkością i przyspieszeniem całkowitym w osi Z
+// Dane pomiarowe aktualizowane są w 2 niezależnych funkcjach:
+// - AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X3Z - kompletem danych wysokością, prędkością pionową i przyspieszeniem
+// - AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4X3Z - tylko przyspieszeniem
 //
 // (c) PitLab 2026
 // https://www.pitlab.pl
@@ -73,10 +76,16 @@ uint8_t InicjujFiltrKalmanaWysokości4X3Z(stWymianyCM4_t *dane)
 	//filtr jest zainicjowany dopiero wtedy gdy trafia do niego rzeczywiste dane z czujnika o niezerowej wysokosci MSL
 	if (dane->cNowyPomiar & NP_WYS1)
 	{
+		if (cLicznikUśredniania == LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI)
+		{
+			for (uint8_t p=0; p<3; p++)
+				fZ[p] = 0.0f;
+		}
 		dane->cNowyPomiar &= ~NP_WYS1;
 		fZ[0] += dane->fWysokoMSL[0];	//wysokość
 		fZ[1] += dane->fWariometr[0];	//prędkość pionowa
 		fZ[2] += dane->fAkcel1[2];		//przyspieszenie bezwzględne w osi Z
+
 		cLicznikUśredniania--;
 		if (cLicznikUśredniania == 0)
 		{
@@ -84,6 +93,7 @@ uint8_t InicjujFiltrKalmanaWysokości4X3Z(stWymianyCM4_t *dane)
 			fZ[1] /= LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI;
 			fZ[2] /= LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI;
 			dane->nZainicjowano |= INIT_KALMAN_WYSOKOSCI;
+			cLicznikUśredniania = LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI;
 		}
 		else
 			return cBłąd;
@@ -109,7 +119,6 @@ uint8_t InicjujFiltrKalmanaWysokości4X3Z(stWymianyCM4_t *dane)
 		{
 			fR[m][n] = 0.0f;
 		}
-		fZ[m] = 0.0f;
 	}
 
 	//inicjuj pierwszy pomiar i wektor stanu
@@ -137,7 +146,7 @@ uint8_t InicjujFiltrKalmanaWysokości4X3Z(stWymianyCM4_t *dane)
 	fP[3][3] = 1.0e-2;
 	arm_mat_init_f32(&mP, 4, 4, &fP[0][0]);
 
-	//macierz przejścia oblicza wartość predykcji następnego pomiaru
+	//macierz przejścia oblicza wartość predykcji następnego stanu
 	fF[0][0] = 1.0f;				//wysokość = poprzednia wysokość
 	fF[0][1] = OKRES_PETLI_GLOWNEJ;	//wysokość = prędkość * dT
 	fF[0][2] = powf(OKRES_PETLI_GLOWNEJ, 2) / 2;	//wysokość = przyspieszenie * dT^2/2

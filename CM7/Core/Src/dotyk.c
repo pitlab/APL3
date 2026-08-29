@@ -83,7 +83,7 @@ uint8_t CzytajDotyk(void)
 
 	//sprawdź czy upłyneło wystarczająco czasu od ostatniego odczytu
 	nCzasDotyku = MinalCzas(stStatusDotyku.nOstCzasPomiaru);
-	if (nCzasDotyku < 50000)	//50ms -> 20Hz
+	if (nCzasDotyku < 25000)	//25ms -> 40Hz
 		return BLAD_OK;
 
 	//sprawdź czy upłyneło wystarczająco dużo czasu po ostatnim dotyku
@@ -462,6 +462,8 @@ uint8_t TestDotyku(void)
 {
 	extern uint8_t cRysujRaz;
 	uint16_t sKolor = getColor();	//zapamiętaj kolor
+	static uint32_t nDetektorOdczytu;
+	static uint8_t cLicznikPalety;
 
 	if (cRysujRaz)
 	{
@@ -496,10 +498,19 @@ uint8_t TestDotyku(void)
 		}
 	}
 
-	setColor(ZOLTY);
-	sprintf(cNapis, "Pomiar: %d, %d, %d   ", stStatusDotyku.sAdc[0], stStatusDotyku.sAdc[1], stStatusDotyku.sAdc[2]);
-	RysujNapis(cNapis, 80, 160);
-
+	 if (stStatusDotyku.nOstCzasPomiaru != nDetektorOdczytu)
+	 {
+		 nDetektorOdczytu = stStatusDotyku.nOstCzasPomiaru;
+		 cLicznikPalety++;
+		 cLicznikPalety &= 1;
+		 switch (cLicznikPalety)
+		 {
+		 case 0: 	setColor(ZOLTY);	break;
+		 case 1:	setColor(ZIELONY);	break;
+		 }
+		 sprintf(cNapis, "Pomiar: %d, %d, %d   ", stStatusDotyku.sAdc[0], stStatusDotyku.sAdc[1], stStatusDotyku.sAdc[2]);
+		 RysujNapis(cNapis, 80, 160);
+	 }
 	return BLAD_OK;
 }
 

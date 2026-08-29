@@ -1,8 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // AutoPitLot v3.0
-// Filtr Kalmana o 4-elementowym wektorze stanu obrabiajacy dane:
-// wysokości, prędkości pionowej, przyspieszenia i biasu przyspieszenia
+// Filtr Kalmana o 4-elementowym wektorze stanu zawierajacym: wysokość MSL, prędkość pionową, przyspieszenie kinematyczne w osi Z i bias przyspieszenia
+// Filtr zasilany jest wysokością i przyspieszeniem całkowitym w osi Z
+// Dane pomiarowe aktualizowane są w 2 niezależnych funkcjach:
+// - AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X2Z - kompletem danych wysokością i przyspieszeniem
+// - AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4Z2Z - tylko przyspieszeniem
 //
 // (c) PitLab 2026
 // https://www.pitlab.pl
@@ -73,6 +76,12 @@ uint8_t InicjujFiltrKalmanaWysokości4X2Z(stWymianyCM4_t *dane)
 	//filtr jest zainicjowany dopiero wtedy gdy trafia do niego rzeczywiste dane z czujnika o niezerowej wysokosci MSL
 	if (dane->cNowyPomiar & NP_WYS1)
 	{
+		if (cLicznikUśredniania == LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI)
+		{
+			fZ[0] = 0.0f;
+			fZ[1] = 0.0f;
+		}
+
 		dane->cNowyPomiar &= ~NP_WYS1;
 		fZ[0] += dane->fWysokoMSL[0];	//wysokość
 		fZ[1] += dane->fAkcel1[2];		//przyspieszenie bezwzględne w osi Z
@@ -82,6 +91,7 @@ uint8_t InicjujFiltrKalmanaWysokości4X2Z(stWymianyCM4_t *dane)
 			fZ[0] /= LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI;
 			fZ[1] /= LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI;
 			dane->nZainicjowano |= INIT_KALMAN_WYSOKOSCI;
+			cLicznikUśredniania = LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI;
 		}
 		else
 			return cBłąd;

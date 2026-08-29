@@ -35,7 +35,7 @@ uint8_t __attribute__ ((aligned (32))) aTxBuffer[_MAX_SS];
 uint8_t __attribute__ ((aligned (32))) aRxBuffer[_MAX_SS];
 __IO uint8_t RxCplt, TxCplt;
 volatile uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-uint32_t nKonfLogera[LICZBA_SLOW_REJESTRATORA] = {0x3F0710FF, 0x0003FFFF, 0x0000FFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000FFF};	//zestaw flag włączajacych dane do rejestracji
+uint32_t nKonfLogera[LICZBA_SLOW_REJESTRATORA] = {0x3F0711FF, 0x0003FFFF, 0x0000FFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000FFF};	//zestaw flag włączajacych dane do rejestracji
 static char __attribute__ ((aligned (32))) cBufZapisuKarty[ROZMIAR_BUFORA_LOGU];	//bufor na jedną linijkę logu
 char __attribute__ ((aligned (32))) cBufPodreczny[_MAX_LFN];
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;
@@ -1487,7 +1487,7 @@ uint8_t ObslugaPetliRejestratora(void)
 
 
 		//ósme słowo konfiguracji logera - filtry Kalmana
-		for (uint8_t n=0; n<4; n++)
+		for (uint8_t n=0; n<5; n++)
 		{
 			if (nKonfLogera[7] & KLOG8_KALWYS_X0 << n)
 			{
@@ -1499,7 +1499,7 @@ uint8_t ObslugaPetliRejestratora(void)
 			}
 		}
 
-		for (uint8_t n=0; n<4; n++)
+		for (uint8_t n=0; n<5; n++)
 		{
 			if (nKonfLogera[7] & KLOG8_KALWYS_K0 << n)
 			{
@@ -1511,7 +1511,7 @@ uint8_t ObslugaPetliRejestratora(void)
 			}
 		}
 
-		for (uint8_t n=0; n<4; n++)
+		for (uint8_t n=0; n<5; n++)
 		{
 			if (nKonfLogera[7] & KLOG8_KALWYS_P0 << n)
 			{

@@ -38,7 +38,9 @@ static uint8_t cOstatniCzas;
 extern volatile uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 extern uint8_t cPort_exp_odbierany[];
 uint8_t cStatusPolaczenia;		//każde 2 kolejne bity oznaczają status połaczenia: LPUART, USB, TCP, RTSP
-static uint8_t cPoprzedniStatusPolaczenia = 0xFF;	//sluży do wykrycia zmiany statusu
+static uint8_t cPoprzedniStatusPolaczenia = 0xFF;	//sluży do wykrycia zmiany statusu aby rysować go tylko przy zmianie
+static uint8_t cPoprzedniStatusRejestratora;	//służy do wykrywania zmiany statusu rejestratora aby rysować go tylko przy zmianie
+static size_t nPoprzedniMaxPoziomStosu;
 uint8_t cOrientacja;
 uint8_t cTransparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
 extern uint8_t cKolor666[3];		//tablica kolorów RGB pierwszego planu w formacie RGB 6-6-6
@@ -266,8 +268,9 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 	cPoprzedniStatusPolaczenia = cStatusPolaczenia;
 
 	//status karty
-	if ((cPort_exp_odbierany[0] & EXP04_LOG_CARD_DET) == 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty, aktywny niski
+	if (cStatusRejestratora != cPoprzedniStatusRejestratora)
 	{
+		cPoprzedniStatusRejestratora = cStatusRejestratora;
 		if (cStatusRejestratora & STATREJ_WLACZONY)
 		{
 			setColor(ZIELONY);
@@ -292,11 +295,15 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 	}
 
 	//wypisz rozmiar sterty i High Water Mark stosu wątku wyświetlania
-	size_t stosWHM = uxTaskGetStackHighWaterMark(NULL);
-	size_t freeHeap = xPortGetFreeHeapSize();
-	setColor(CYJAN);
-	sprintf(cNapis, " %d/%d ", freeHeap, stosWHM);
-	cBłąd |= RysujNapis(cNapis, DISP_X_SIZE - 39*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+	size_t nMaxPoziomStosu = uxTaskGetStackHighWaterMark(NULL);
+	if (nMaxPoziomStosu != nPoprzedniMaxPoziomStosu)
+	{
+		nPoprzedniMaxPoziomStosu = nMaxPoziomStosu;
+		size_t nWolnyStos = xPortGetFreeHeapSize();
+		setColor(CYJAN);
+		sprintf(cNapis, " %d/%d ", nWolnyStos, nMaxPoziomStosu);
+		cBłąd |= RysujNapis(cNapis, DISP_X_SIZE - 39*FONT_SL, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+	}
 	setBackColor(CZARNY);
 	return cBłąd;
 }

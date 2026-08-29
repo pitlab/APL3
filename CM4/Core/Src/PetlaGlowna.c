@@ -32,7 +32,7 @@
 #include "SampleAudio.h"
 #include "Crossfire.h"
 #include <Kalman.h>
-#include <KalmanWysokosci4X2Z.h>
+#include <KalmanWysokosci4X3Z.h>
 #include <KalmanWysokosci4X3Z.h>
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -165,17 +165,26 @@ void PetlaGlowna(void)
 
 		if ((uDaneCM4.dane.nZainicjowano & INIT_KALMAN_WYSOKOSCI) == INIT_KALMAN_WYSOKOSCI)
 		{
-			cBłądPG = PredykcjaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
+			//cBłądPG = PredykcjaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
+			cBłądPG = PredykcjaFiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 			if (uDaneCM4.dane.cNowyPomiar & NP_WYS1)
-				cBłądPG = AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
-			else
-				cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
+				//cBłądPG = AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
+				cBłądPG = AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
+
+//			if (uDaneCM4.dane.cNowyPomiar & NP_WYS2)
+//				cBłądPG = AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
+
+			//przyspieszenia są aktualizowane w każdym obiegu pętli
+			//cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
+			cBłądPG = AktulizacjaAkcelerometrem1FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
+			cBłądPG = AktulizacjaAkcelerometrem2FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 		}
 		else
 		{
-			cBłądPG = InicjujFiltrKalmanaWysokości4X3Z(&uDaneCM4.dane);
+			//cBłądPG = InicjujFiltrKalmanaWysokości4X3Z(&uDaneCM4.dane);
+			cBłądPG = InicjujFiltrKalmanaWysokości5X6Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 		}
 		uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2);	//usuń flagę nowych pomiarów wysokości

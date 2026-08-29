@@ -165,9 +165,9 @@ typedef union
 
 typedef struct
 {
-	float fX[4];
-	float fP[4];	//główna przekatna macierzy kowariancji predykcji
-	float fK[4];	//główna przekatna macierzy wzmocnienia Kalmana
+	float fX[5];	//wektor stanu filtra
+	float fP[5];	//główna przekatna macierzy kowariancji predykcji
+	float fK[5];	//główna przekatna macierzy wzmocnienia Kalmana
 } stKalmanDebug_t;
 
 #define ODPOWIEDZ_U8	31	//komórka tablicy U8 odpowiedzialna za przekazywanie odpowiedzi na polecenia kalibracyjne
@@ -224,7 +224,7 @@ typedef struct
 	uint8_t cJakoscUpLinkuRC2;	//procentowo przedstawiona jakość łącza do aktywnego odbiornika
 	uint8_t cJakoscDnLinkuRC;	//procentowo przedstawiona jakość łącza z aktywnego odbiornika (telemetrii)
 	uint8_t cTrybLotu;		//tryb lotu jako zestaw bitów określających funkcjonalności realizowane w danym czasie
-	uint8_t cNowyPomiar;	//zestaw flag informujacychpo pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
+	uint8_t cNowyPomiar;	//zestaw flag informujacych o pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
 	uint8_t cBuforBłędów[ROZMIAR_BUFORA_BLEDOW];	//bufor do przechowywania ostatnich błędów przekazywanych z CM4 do CM7
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
 	uint32_t nBrakCzujnika;		//zestaw flag obecnosci czujników   ZROBIC: przenieść do Różne
