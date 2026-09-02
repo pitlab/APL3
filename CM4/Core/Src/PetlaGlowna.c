@@ -32,8 +32,9 @@
 #include "SampleAudio.h"
 #include "Crossfire.h"
 #include <Kalman.h>
-#include <KalmanWysokosci4X3Z.h>
-#include <KalmanWysokosci4X3Z.h>
+#include <KalmanWysokosci5X6Z.h>
+#include "BMP585.h"
+
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 uint16_t sGenerator;
@@ -122,7 +123,7 @@ void PetlaGlowna(void)
 		break;
 
 	case ADR_MOD3:		//obsługa modułu w gnieździe 3
-		//do; while (( chWykonanoPomiarADC != WYKONANO_POMIAR_ADC2) || (chWykonanoPomiarADC != WYKONANO_POMIAR_ADC3));	//czekaj na wykonanie pomiarów ADC
+		ObslugaBMP585();
 		break;
 
 	case ADR_MOD4:		//obsługa modułu w gnieździe 4
@@ -172,8 +173,8 @@ void PetlaGlowna(void)
 				//cBłądPG = AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
 				cBłądPG = AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 
-//			if (uDaneCM4.dane.cNowyPomiar & NP_WYS2)
-//				cBłądPG = AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
+			if (uDaneCM4.dane.cNowyPomiar & NP_WYS2)
+				cBłądPG = AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 
 			//przyspieszenia są aktualizowane w każdym obiegu pętli
 			//cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);

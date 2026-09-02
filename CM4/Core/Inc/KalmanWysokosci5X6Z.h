@@ -1,5 +1,5 @@
 /*
- * KalmanWysokosci4X3Z.h
+ * KalmanWysokosci5X6Z.h
  *
  *  Created on: 15 sie 2026
  *      Author: PitLab
@@ -15,7 +15,8 @@
 #define KSTAN		5	//rozmiar wektora stanu
 #define KPOMIAR		6	//rozmiar wektora pomiaru
 #define WARIANCJA_ZRYWU_ACEL	5.0e-1f		//
-#define WARIANCJA_DRYFTU_ACEL 	5.0e-9f;	//
+//#define WARIANCJA_DRYFTU_ACEL 	5.0e-9f;	//wykres dryftu jest prawie gładki. Lekkie zafalowania przy przeciążeniach od ruchu windy
+#define WARIANCJA_DRYFTU_ACEL 	7.0e-9f;
 
 #define LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI		128
 

@@ -158,7 +158,7 @@ const char *cNazwyPozycjiRejestratora[LICZBA_NAZW_POZYCJI_REJESTRATORA] = {
 "WyWyprz",					//NREJ_WYJ_WYPRZ
 "Wyjscie",					//NREJ_WYJSCIE
 "KalmanWys_",				//NREJ_KALMAN_WYS (X/K/P[n])
-
+"deltaCzasu [s]",			//NREJ_DELTA_CZASU
 };
 
 #endif //JEZYK_POLSKI

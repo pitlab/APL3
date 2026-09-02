@@ -40,40 +40,40 @@
 
 //definicje bitów konfiguracji logera
 #define KLOG1_CZAS      	0x00000001	    //czas
-#define KLOG1_PRES1    		0x00000002	    //ciśnienie atmosferyczne z czujnika ciśnienia 1
-#define KLOG1_PRES2			0x00000004	    //ciśnienie atmosferyczne z czujnika ciśnienia 2
-#define KLOG1_AMSL1    		0x00000008	    //wysokość barometryczna bezwzględna z czujnika ciśnienia 1
-#define KLOG1_AMSL2    		0x00000010	    //wysokość barometryczna bezwzględna z czujnika ciśnienia 2
-#define KLOG1_AGL1    		0x00000020	    //wysokość barometryczna względna z czujnika ciśnienia 1
-#define KLOG1_AGL2    		0x00000040	    //wysokość barometryczna względna z czujnika ciśnienia 2
-#define KLOG1_WARIO1    	0x00000080	    //wskazania wariometru 1
-#define KLOG1_WARIO2    	0x00000100	    //wskazania wariometru 2
+#define KLOG1_DELTA_CZASU	0x00000002
+#define KLOG1_PRES1    		0x00000004	    //ciśnienie atmosferyczne z czujnika ciśnienia 1
+#define KLOG1_PRES2			0x00000008	    //ciśnienie atmosferyczne z czujnika ciśnienia 2
+#define KLOG1_AMSL1    		0x00000010	    //wysokość barometryczna bezwzględna z czujnika ciśnienia 1
+#define KLOG1_AMSL2    		0x00000020	    //wysokość barometryczna bezwzględna z czujnika ciśnienia 2
+#define KLOG1_AGL1    		0x00000040	    //wysokość barometryczna względna z czujnika ciśnienia 1
+#define KLOG1_AGL2    		0x00000080	    //wysokość barometryczna względna z czujnika ciśnienia 2
 
-#define KLOG1_CISROZ1		0x00000200		//ciśnienie czujnika różnicowego 1
-#define KLOG1_CISROZ2		0x00000400		//ciśnienie czujnika różnicowego 2
-#define KLOG1_IAS1     		0x00000800	    //prędkość wzgledem powietrza z czujnika różnicowego 1
-#define KLOG1_IAS2     	 	0x00001000	    //prędkość wzgledem powietrza z czujnika różnicowego 2
+#define KLOG1_WARIO1    	0x00000100	    //wskazania wariometru 1
+#define KLOG1_WARIO2    	0x00000200	    //wskazania wariometru 2
+#define KLOG1_CISROZ1		0x00000400		//ciśnienie czujnika różnicowego 1
+#define KLOG1_CISROZ2		0x00000800		//ciśnienie czujnika różnicowego 2
+#define KLOG1_IAS1     		0x00001000	    //prędkość wzgledem powietrza z czujnika różnicowego 1
+#define KLOG1_IAS2     	 	0x00002000	    //prędkość wzgledem powietrza z czujnika różnicowego 2
+#define KLOG1_TEMPBARO1		0x00004000	    //temperatura czujnika ciśnienia 1
+#define KLOG1_TEMPBARO2		0x00008000	    //temperatura czujnika ciśnienia 2
+#define KLOG1_TEMPCISR1		0x00010000	    //temperatura czujnika ciśnienia różnicowego 1
+#define KLOG1_TEMPCISR2		0x00020000	    //temperatura czujnika ciśnienia różnicowego 2
 
-#define KLOG1_TEMPBARO1		0x00002000	    //temperatura czujnika ciśnienia 1
-#define KLOG1_TEMPCISR1		0x00004000	    //temperatura czujnika ciśnienia różnicowego 1
-#define KLOG1_TEMPCISR2		0x00008000	    //temperatura czujnika ciśnienia różnicowego 2
+#define KLOG1_BAT1_NAP		0x00040000		//napięcie baterii 1
+#define KLOG1_BAT1_PRAD		0x00080000		//prąd baterii 1
+#define KLOG1_BAT1_ENER		0x00100000		//energia baterii 1
+#define KLOG1_ZAS1_NAP		0x00200000		//napięcie wejściowe zasilania 1
+#define KLOG1_BAT2_NAP		0x00400000		//napięcie baterii 2
+#define KLOG1_BAT2_PRAD		0x00800000		//prąd baterii 2
+#define KLOG1_BAT2_ENER		0x01000000		//energia baterii 2
+#define KLOG1_ZAS2_NAP		0x02000000		//napięcie wejściowe zasilania 12
 
-#define KLOG1_BAT1_NAP		0x00010000		//napięcie baterii 1
-#define KLOG1_BAT1_PRAD		0x00020000		//prąd baterii 1
-#define KLOG1_BAT1_ENER		0x00040000		//energia baterii 1
-#define KLOG1_ZAS1_NAP		0x00080000		//napięcie wejściowe zasilania 1
-#define KLOG1_BAT2_NAP		0x00100000		//napięcie baterii 2
-#define KLOG1_BAT2_PRAD		0x00200000		//prąd baterii 2
-#define KLOG1_BAT2_ENER		0x00400000		//energia baterii 2
-#define KLOG1_ZAS2_NAP		0x00800000		//napięcie wejściowe zasilania 12
-
-#define KLOG1_ADC1_1		0x01000000		//wejście analogowe 1, kanał 1
-#define KLOG1_ADC1_2		0x02000000		//wejście analogowe 1, kanał 2
-#define KLOG1_ADC2_1		0x04000000		//wejście analogowe 2, kanał 1
-#define KLOG1_ADC2_2		0x08000000		//wejście analogowe 2, kanał 2
-
-#define KLOG1_TEMP_CPU		0x10000000		//temperatura CPU
-#define KLOG1_NAP_SERW		0x20000000		//napięcie magistrali serw
+#define KLOG1_ADC1_1		0x04000000		//wejście analogowe 1, kanał 1
+#define KLOG1_ADC1_2		0x08000000		//wejście analogowe 1, kanał 2
+#define KLOG1_ADC2_1		0x10000000		//wejście analogowe 2, kanał 1
+#define KLOG1_ADC2_2		0x20000000		//wejście analogowe 2, kanał 2
+#define KLOG1_TEMP_CPU		0x40000000		//temperatura CPU
+#define KLOG1_NAP_SERW		0x80000000		//napięcie magistrali serw
 
 
 

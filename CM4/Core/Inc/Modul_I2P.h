@@ -1,5 +1,5 @@
 /*
- * modul_IiP.h
+ * Modul_I2P.h
  *
  *  Created on: Jan 31, 2025
  *      Author: PitLab
@@ -45,8 +45,12 @@
 //#define KOREKTA_SKALI_FILTRA_P0			1	//wspólczynnik korygujący skalę filtra
 #define PODSTAWA_FILTRA_IIR_WARIOMETRU	64	//skala za mała. Jest ok 0,3 a powinno być 1.1
 #define KOREKTA_SKALI_FILTRA_WARIOMETRU	4	//współczynnik korygujący skalę filtra
-#define MIN_WYSOKOSC		-500	//minimalna dozwolona wysokość
-#define MAX_WYSOKOSC		10000	//maksymalna dozwolona wysokość
+#define MIN_WYSOKOSC		-500	//minimalna dozwolona wysokość [m]
+#define MAX_WYSOKOSC		10000	//maksymalna dozwolona wysokość [m]
+#define MIN_WARIO			-20		//minimalna dozwolona prędkość pionowa [m/s]
+#define MAX_WARIO			20		//maksymalna dozwolona prędkość pionowa [m/s]
+#define MIN_ACC				-196	//minimalne przyspieszenie (-20g) [m/s^2]
+#define MAX_ACC				196		//maksymalne przyspieszenie (20g) [m/s^2]
 
 
 #define LICZBA_CZUJ_CISN	2

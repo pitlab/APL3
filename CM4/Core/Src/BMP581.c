@@ -169,7 +169,7 @@ uint8_t ObslugaBMP581(void)
 		{
 			uDaneCM4.dane.fWysokoAGL[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[1], fP0_BMP581, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//P0 gotowe więc oblicz wysokość
 			if ((uDaneCM4.dane.ndT > 0) && (uDaneCM4.dane.ndT < 10000))	//nie licz dla zera i długich przestoi, bo to generuje dużą szpilkę danych
-				uDaneCM4.dane.fWariometr[1] = (fWysokośćUśredniona - uDaneCM4.dane.fWysokoMSL[1]) * 1000 * KOREKTA_SKALI_FILTRA_WARIOMETRU / uDaneCM4.dane.ndT;	//dH [m] * 1e3 / t [1e-6 s]
+				uDaneCM4.dane.fWariometr[1] = (uDaneCM4.dane.fWysokoMSL[1] - fWysokośćUśredniona) * 1000 * KOREKTA_SKALI_FILTRA_WARIOMETRU / uDaneCM4.dane.ndT;	//dH [m] * 1e3 / t [1e-6 s]
 		}
 
 	}

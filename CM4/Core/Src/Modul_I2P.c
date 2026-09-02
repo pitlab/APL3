@@ -165,7 +165,7 @@ uint8_t ObslugaModuluI2P(uint8_t cGniazdo, uint8_t* cStanIOwy)
 	else
 		cBłąd |= cBłądRoboczy;
 
-	cBłądRoboczy = UstawAdresNaModule(ADR_MIIP_BMP581);		//ustaw adres na module A0..1
+	/*cBłądRoboczy = UstawAdresNaModule(ADR_MIIP_BMP581);		//ustaw adres na module A0..1
 	if (cBłądRoboczy == BLAD_OK)
 	{
 		cBłądRoboczy = ObslugaBMP581();
@@ -173,7 +173,7 @@ uint8_t ObslugaModuluI2P(uint8_t cGniazdo, uint8_t* cStanIOwy)
 			cBłąd |= cBłądRoboczy;
 	}
 	else
-		cBłąd |= cBłądRoboczy;
+		cBłąd |= cBłądRoboczy;*/
 
 	cBłądRoboczy = UstawAdresNaModule(ADR_MIIP_ICM42688);	//ustaw adres na module A0..1
 	if (cBłądRoboczy == BLAD_OK)

@@ -12,10 +12,10 @@
 // (c) PitLab 2026
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <KalmanWysokosci4X3Z.h>
+#include <KalmanWysokosci5X6Z.h>
+#include <Modul_I2P.h>
 
 #define KSTAN		5	//rozmiar wektora stanu
-//#define KPOMIAR		6	//rozmiar wektora pomiaru
 #define KPCIS		2	//rozmiar wektora pomiaru ciśnienia
 #define KPACC		1	//rozmiar wektora pomiaru przyspieszenia
 
@@ -30,8 +30,7 @@ static float32_t fRa1[KPACC][KPACC];		//macierz kowariancji pomiaru przyspieszen
 static float32_t fRa2[KPACC][KPACC];		//macierz kowariancji pomiaru przyspieszenia 2
 static float32_t fQ[KSTAN][KSTAN];			//macierz szumu procesu
 static float32_t fI[KSTAN][KSTAN];			//macierz jednostkowa
-static float32_t fHc1[KPCIS][KSTAN];		//macierz obserwacji prędkości i wysokości z czujnika ciśnienia 1
-static float32_t fHc2[KPCIS][KSTAN];		//macierz obserwacji prędkości i wysokości z czujnika ciśnienia 2
+static float32_t fHcx[KPCIS][KSTAN];		//macierz obserwacji prędkości i wysokości z obu czujników ciśnienia
 static float32_t fHa1[KPACC][KSTAN];		//macierz obserwacji przyspieszenia z akcelerometru 1
 static float32_t fHa2[KPACC][KSTAN];		//macierz obserwacji przyspieszenia z akcelerometru 2
 static float32_t fKc1[KSTAN][KPCIS];		//macierz wzmocnień Kalmana czujnika ciśnienia 1
@@ -70,8 +69,7 @@ static arm_matrix_instance_f32 mRa1 = {KPACC, KPACC, &fRa1[0][0]};		//macierz ko
 static arm_matrix_instance_f32 mRa2 = {KPACC, KPACC, &fRa2[0][0]};		//macierz kowariancji pomiaru akceleromerem 2
 static arm_matrix_instance_f32 mQ   = {KSTAN, KSTAN, &fQ[0][0]};		//macierz szumu procesu
 static arm_matrix_instance_f32 mI   = {KSTAN, KSTAN, &fI[0][0]};		//macierz jednostkowa
-static arm_matrix_instance_f32 mHc1 = {KPCIS, KSTAN, &fHc1[0][0]};		//macierz obserwacji wysokości i prędkości czujnika ciśnienia 1
-static arm_matrix_instance_f32 mHc2 = {KPCIS, KSTAN, &fHc2[0][0]};		//macierz obserwacji wysokości i prędkości czujnika ciśnienia 2
+static arm_matrix_instance_f32 mHcx = {KPCIS, KSTAN, &fHcx[0][0]};		//macierz obserwacji wysokości i prędkości z obu czujników ciśnienia
 static arm_matrix_instance_f32 mHa1 = {KPACC, KSTAN, &fHa1[0][0]};		//macierz obserwacji przyspieszenia akcelerometru  1
 static arm_matrix_instance_f32 mHa2 = {KPACC, KSTAN, &fHa2[0][0]};		//macierz obserwacji przyspieszenia akcelerometru 2
 static arm_matrix_instance_f32 mKc1 = {KSTAN, KPCIS, &fKc1[0][0]};		//macierz wzmocnień Kalmana czujnika ciśnienia 1
@@ -164,10 +162,7 @@ uint8_t InicjujFiltrKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
 			fRc2[p][n] = 0.0f;
 		}
 		for (uint8_t n=0; n<KSTAN; n++)
-		{
-			fHc1[p][n] = 0.0f;
-			fHc2[p][n] = 0.0f;
-		}
+			fHcx[p][n] = 0.0f;
 	}
 	fRa1[0][0] = 0.0f;
 	fRa2[0][0] = 0.0f;
@@ -232,14 +227,10 @@ uint8_t InicjujFiltrKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
 		fI[n][n] = 1.0f;
 	arm_mat_init_f32(&mI, KSTAN, KSTAN, &fI[0][0]);
 
-	//inicjalizacja obu macierzy obserwacji: Hc - dane o wysokości i prędkości z czujnika ciśnienia  oraz Ha - przyspieszenie
-	fHc1[0][0] = 1.0f;		//wysokość obserwuje czujnik wysokości 1
-	fHc1[1][1] = 1.0f;		//prędkość obserwuje wariometr 1
-	arm_mat_init_f32(&mHc1, KPCIS, KSTAN, &fHc1[0][0]);
-
-	fHc2[0][0] = 1.0f;		//wysokość obserwuje czujnik wysokości 2
-	fHc2[1][1] = 1.0f;		//prędkość obserwuje wariometr  2
-	arm_mat_init_f32(&mHc2, KPCIS, KSTAN, &fHc2[0][0]);
+	//inicjalizacja obu macierzy obserwacji, takiej samej dla obu czujników ciśnienia: Hc - dane o wysokości i prędkości z czujnika ciśnienia  oraz Ha - przyspieszenie
+	fHcx[0][0] = 1.0f;		//wysokość obserwuje czujnik wysokości
+	fHcx[1][1] = 1.0f;		//prędkość obserwuje wariometr
+	arm_mat_init_f32(&mHcx, KPCIS, KSTAN, &fHcx[0][0]);
 
 	fHa1[0][2] = 1.0f;		//przyspieszenie obserwuje oś Z akceletrometru 1
 	fHa1[0][3] = 1.0f;		//bias 1 obserwuje oś Z akceletrometru 1
@@ -322,15 +313,22 @@ uint8_t AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(stWymianyCM4
 {
 	uint8_t cBłąd = BLAD_OK;
 
+	fZc[0] = dane->fWysokoMSL[0];	//wysokość
+	fZc[1] = dane->fWariometr[0];	//prędkość pionowa
+
+	//sprawdź czy pomiary mieszczą się w akceptowalnym zakresie
+	if ((fZc[0] < MIN_WYSOKOSC) || (fZc[0] > MAX_WYSOKOSC) || (fZc[1] < MIN_WARIO) || (fZc[1] > MAX_WARIO))
+		return BLAD_ZLE_DANE;
+
 	//liczę współczynnik wzmocnienia Kalmana: mK,
 	//najpierw transponowane H -> mTempSPc	 [Pomiar x Stan] -> [Stan x Pomiar]
-	cBłąd |= arm_mat_trans_f32(&mHc1, &mTempSPc);
+	cBłąd |= arm_mat_trans_f32(&mHcx, &mTempSPc);
 
 	// P(n-1) * (H^T) -> mPHc				[Stan x Stan] * [Stan x Pomiar] = [Stan x Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mP, &mTempSPc, &mPHc);
 
 	//H * (P(n-1)*H^T) -> fTempPPcA			[Pomiar x Stan] * [Stan x Pomiar] = [Pomiar x Pomiar]
-	cBłąd |= arm_mat_mult_f32(&mHc1, &mPHc, &mTempPPcA);
+	cBłąd |= arm_mat_mult_f32(&mHcx, &mPHc, &mTempPPcA);
 
 	//(H*P(n-1)*H^T) + R(n) -> fTempPPcB	[Pomiar x Pomiar] + [Pomiar x Pomiar] = [Pomiar x Pomiar]
 	cBłąd |= arm_mat_add_f32(&mTempPPcA, &mRc1, &mTempPPcB);
@@ -343,11 +341,7 @@ uint8_t AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(stWymianyCM4
 	dane->stKalmanDebug.fK[0] = fKc1[0][0];	//wpływuwysokości czujnka 1 na estymowaną wysokość
 
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1) [Pomiar x Stan] * [Stan] = [Pomiar]
-	cBłąd |= arm_mat_mult_f32(&mHc1, &mX, &mTempPc1A);
-
-	//Uwzględnienie pomiaru: (z(n) - H * X(n-1))
-	fZc[0] = dane->fWysokoMSL[0];	//wysokość
-	fZc[1] = dane->fWariometr[0];	//prędkość pionowa
+	cBłąd |= arm_mat_mult_f32(&mHcx, &mX, &mTempPc1A);
 
 	//innowacja: z(n) - (H*X(n-1)) ->mTempPc1B		[Pomiar] - [Pomiar] = [Pomiar]
 	cBłąd |= arm_mat_sub_f32(&mZc, &mTempPc1A, &mTempPc1B);
@@ -364,7 +358,7 @@ uint8_t AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(stWymianyCM4
 		fX[n] = fTempS1B[n];
 
 	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempSSA	 [Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
-	cBłąd |= arm_mat_mult_f32(&mKc1, &mHc1, &mTempSSA);
+	cBłąd |= arm_mat_mult_f32(&mKc1, &mHcx, &mTempSSA);
 
 	//odejmowanie (I - K(n) * H) -> mTempSSB
 	cBłąd |= arm_mat_sub_f32(&mI, &mTempSSA, &mTempSSB);
@@ -406,15 +400,22 @@ uint8_t AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(stWymianyCM4
 {
 	uint8_t cBłąd = BLAD_OK;
 
+	fZc[0] = dane->fWysokoMSL[1];	//wysokość
+	fZc[1] = dane->fWariometr[1];	//prędkość pionowa
+
+	//sprawdź czy pomiary mieszczą się w akceptowalnym zakresie
+	if ((fZc[0] < MIN_WYSOKOSC) || (fZc[0] > MAX_WYSOKOSC) || (fZc[1] < MIN_WARIO) || (fZc[1] > MAX_WARIO))
+		return BLAD_ZLE_DANE;
+
 	//liczę współczynnik wzmocnienia Kalmana: mKc2
 	//najpierw transponowane H -> mTempSPc	 [Pomiar x Stan] -> [Stan x Pomiar]
-	cBłąd |= arm_mat_trans_f32(&mHc2, &mTempSPc);
+	cBłąd |= arm_mat_trans_f32(&mHcx, &mTempSPc);
 
 	// P(n-1) * (H^T) -> mPHc				[Stan x Stan] * [Stan x Pomiar] = [Stan x Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mP, &mTempSPc, &mPHc);
 
 	//H * (P(n-1)*H^T) -> fTempPPcA			[Pomiar x Stan] * [Stan x Pomiar] = [Pomiar x Pomiar]
-	cBłąd |= arm_mat_mult_f32(&mHc2, &mPHc, &mTempPPcA);
+	cBłąd |= arm_mat_mult_f32(&mHcx, &mPHc, &mTempPPcA);
 
 	//(H*P(n-1)*H^T) + R(n) -> fTempPPcB	[Pomiar x Pomiar] + [Pomiar x Pomiar] = [Pomiar x Pomiar]
 	cBłąd |= arm_mat_add_f32(&mTempPPcA, &mRc2, &mTempPPcB);
@@ -427,11 +428,7 @@ uint8_t AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(stWymianyCM4
 	dane->stKalmanDebug.fK[1] = fKc2[0][1];	//wpływ wysokości czujnka 2 na estymowaną wysokość
 
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1) [Pomiar x Stan] * [Stan] = [Pomiar]
-	cBłąd |= arm_mat_mult_f32(&mHc2, &mX, &mTempPc1A);
-
-	//Uwzględnienie pomiaru: (z(n) - H * X(n-1))
-	fZc[0] = dane->fWysokoMSL[1];	//wysokość
-	fZc[1] = dane->fWariometr[1];	//prędkość pionowa
+	cBłąd |= arm_mat_mult_f32(&mHcx, &mX, &mTempPc1A);
 
 	//innowacja: z(n) - (H*X(n-1)) ->mTempPc1B		[Pomiar] - [Pomiar] = [Pomiar]
 	cBłąd |= arm_mat_sub_f32(&mZc, &mTempPc1A, &mTempPc1B);
@@ -448,7 +445,7 @@ uint8_t AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(stWymianyCM4
 		fX[n] = fTempS1B[n];
 
 	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempSSA	 [Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
-	cBłąd |= arm_mat_mult_f32(&mKc2, &mHc2, &mTempSSA);
+	cBłąd |= arm_mat_mult_f32(&mKc2, &mHcx, &mTempSSA);
 
 	//odejmowanie (I - K(n) * H) -> mTempSSB
 	cBłąd |= arm_mat_sub_f32(&mI, &mTempSSA, &mTempSSB);
@@ -490,6 +487,11 @@ uint8_t AktulizacjaAkcelerometrem1FiltraKalmanaWysokości5X6Z(stWymianyCM4_t *da
 {
 	uint8_t cBłąd = BLAD_OK;
 
+	//sprawdź czy pomiar mieści się w akceptowalnym zakresie
+	fZa[0] = dane->fAkcel1[2];		//pomiar: Przyspieszenie bezwzględne osi Z
+	if ((fZa[0] < MIN_ACC) || (fZa[0] > MAX_ACC))
+		return BLAD_ZLE_DANE;
+
 	//liczę współczynnik wzmocnienia Kalmana: mKa1,
 	//najpierw transponowane H -> mTempSPa	 [Pomiar x Stan] -> [Stan x Pomiar]
 	cBłąd |= arm_mat_trans_f32(&mHa1, &mTempSPa);
@@ -514,7 +516,6 @@ uint8_t AktulizacjaAkcelerometrem1FiltraKalmanaWysokości5X6Z(stWymianyCM4_t *da
 	cBłąd |= arm_mat_mult_f32(&mHa1, &mX, &mTempPa1A);
 
 	//Innowacja: z(n) - (H*X(n-1)) ->mTempPa1B		[Pomiar] - [Pomiar] = [Pomiar]
-	fZa[0] = dane->fAkcel1[2];		//pomiar: Przyspieszenie bezwzględne osi Z
 	cBłąd |= arm_mat_sub_f32(&mZa, &mTempPa1A, &mTempPa1B);
 	dane->stKalmanDebug.fP[2] = fTempPa1B[0];	//w zmiennej fP zachowaj innowację przyspieszenia 1
 
@@ -571,6 +572,11 @@ uint8_t AktulizacjaAkcelerometrem2FiltraKalmanaWysokości5X6Z(stWymianyCM4_t *da
 {
 	uint8_t cBłąd = BLAD_OK;
 
+	//sprawdź czy pomiar mieści się w akceptowalnym zakresie
+	fZa[0] = dane->fAkcel2[2];		//pomiar: Przyspieszenie bezwzględne osi Z
+	if ((fZa[0] < MIN_ACC) || (fZa[0] > MAX_ACC))
+		return BLAD_ZLE_DANE;
+
 	//liczę współczynnik wzmocnienia Kalmana: mKa2,
 	//najpierw transponowane H -> mTempSPa	 [Pomiar x Stan] -> [Stan x Pomiar]
 	cBłąd |= arm_mat_trans_f32(&mHa2, &mTempSPa);
@@ -595,7 +601,6 @@ uint8_t AktulizacjaAkcelerometrem2FiltraKalmanaWysokości5X6Z(stWymianyCM4_t *da
 	cBłąd |= arm_mat_mult_f32(&mHa2, &mX, &mTempPa1A);
 
 	//Innowacja: z(n) - (H*X(n-1)) ->mTempPa1B		[Pomiar] - [Pomiar] = [Pomiar]
-	fZa[0] = dane->fAkcel2[2];		//pomiar: Przyspieszenie bezwzględne osi Z
 	cBłąd |= arm_mat_sub_f32(&mZa, &mTempPa1A, &mTempPa1B);
 	dane->stKalmanDebug.fP[3] = fTempPa1B[0];	//w zmiennej fP zachowaj innowację przyspieszenia 2
 

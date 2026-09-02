@@ -283,15 +283,17 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 			cBłąd |= RysujNapis("SD Gotowe", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		}
 		else
+		if (cStatusRejestratora == 0)
+		{
+			setColor(POMARANCZ);
+			cBłąd |= RysujNapis("Brak SD! ", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+		}
+		else
 		{
 			setColor(BLAD);
-			cBłąd |= RysujNapis("Blad SD! ", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
+			sprintf(cNapis, "B%c%cd SD! ", ł, ą);
+			cBłąd |= RysujNapis(cNapis, 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		}
-	}
-	else
-	{
-		setColor(POMARANCZ);
-		cBłąd |= RysujNapis("Brak SD! ", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 	}
 
 	//wypisz rozmiar sterty i High Water Mark stosu wątku wyświetlania

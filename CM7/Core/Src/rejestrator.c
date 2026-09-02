@@ -35,7 +35,7 @@ uint8_t __attribute__ ((aligned (32))) aTxBuffer[_MAX_SS];
 uint8_t __attribute__ ((aligned (32))) aRxBuffer[_MAX_SS];
 __IO uint8_t RxCplt, TxCplt;
 volatile uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-uint32_t nKonfLogera[LICZBA_SLOW_REJESTRATORA] = {0x3F0711FF, 0x0003FFFF, 0x0000FFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000FFF};	//zestaw flag włączajacych dane do rejestracji
+uint32_t nKonfLogera[LICZBA_SLOW_REJESTRATORA] = {0x7F0E23FF, 0x0003FFFF, 0x0000FFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000FFF};	//zestaw flag włączajacych dane do rejestracji
 static char __attribute__ ((aligned (32))) cBufZapisuKarty[ROZMIAR_BUFORA_LOGU];	//bufor na jedną linijkę logu
 char __attribute__ ((aligned (32))) cBufPodreczny[_MAX_LFN];
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;
@@ -239,6 +239,17 @@ uint8_t ObslugaPetliRejestratora(void)
 			strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 		}
 
+		//dT czyli czas obiegu pętli głównej w sekundach
+		if (nKonfLogera[0] & KLOG1_DELTA_CZASU)
+		{
+			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_DELTA_CZASU]);
+			else
+				sprintf(cBufPodreczny, "%.4f;", (float)uDaneCM4.dane.ndT / 1e6);
+
+			strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+		}
+
 		//ciśnienie atmosferyczne z czujnika ciśnienia 1 i 2
 		for (uint8_t n=0; n<2; n++)	//pętla dla czujników
 		{
@@ -337,18 +348,20 @@ uint8_t ObslugaPetliRejestratora(void)
 			}
 		}
 
-
-		//temperatura czujnika ciśnienia 1
-		if (nKonfLogera[0] & KLOG1_TEMPBARO1)
+		//temperatura czujnika ciśnienia 1 i 2
+		for (uint8_t n=0; n<2; n++)	//pętla dla czujników
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (nKonfLogera[0] & KLOG1_TEMPBARO1 << n)
 			{
-				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_TEMP_BARO_XD_K]);
-				sprintf(cBufPodreczny, cBufPodreczny, 1);	//wypełnij parametr XD=%d zakodowany w nazwie
+				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				{
+					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_TEMP_BARO_XD_K]);
+					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
+				}
+				else
+					sprintf(cBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_BARO1 + n]);
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
-			else
-				sprintf(cBufPodreczny, "%.1f;", uDaneCM4.dane.fTemper[TEMP_BARO1]);
-			strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 		}
 
 		//temperatura czujnika ciśnienia różnicowego 1 i 2
@@ -366,7 +379,6 @@ uint8_t ObslugaPetliRejestratora(void)
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
-
 
 		for (uint8_t n=0; n<2; n++)	//pętla dla dwóch kanałów zasilania
 		{

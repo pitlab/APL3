@@ -33,8 +33,8 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define INIT_TRWA_KAL_ZYRO_GOR	0x00040000	//trwa kalibracja zera żyroskopu na gorąco
 #define INIT_WYK_KAL_WZM_ZYRO	0x00080000	//wykonano kalibrację wzmocnienia żyroskopu w danej osi
 #define INIT_KALMAN_WYSOKOSCI	0x00100000	//zainicjowana filtr Kalmana wysokości  danymi z czujników
-//#define INIT_BLAD_KONFIG		0x80000000	//wystąpił bład konfiguracji przynajmniej jednej zmiennej - jej wartość została zastąpiona domyślną
-
+#define INIT_BMP585				0x00200000
+#define INIT_P0_BMP855			0x00400000	//ustawiono ciśnienie P0 dla czujnika 2
 
 #define TESTY		//włacz testowanie algorytmów, można wyłaczyć dla _nieświadowego_ końcowego użytkownika
 #define RAD2DEG				(180/M_PI)
