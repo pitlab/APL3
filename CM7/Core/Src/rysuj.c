@@ -35,11 +35,11 @@ extern char cNapis[];
 extern stStatusDotyku_t stStatusDotyku;
 uint8_t cMenuSelPos, cStarySelPos;	//wybrana pozycja menu i poprzednia pozycja
 static uint8_t cOstatniCzas;
-extern volatile uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+extern volatile uint16_t sStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 extern uint8_t cPort_exp_odbierany[];
 uint8_t cStatusPolaczenia;		//każde 2 kolejne bity oznaczają status połaczenia: LPUART, USB, TCP, RTSP
 static uint8_t cPoprzedniStatusPolaczenia = 0xFF;	//sluży do wykrycia zmiany statusu aby rysować go tylko przy zmianie
-static uint8_t cPoprzedniStatusRejestratora;	//służy do wykrywania zmiany statusu rejestratora aby rysować go tylko przy zmianie
+static uint8_t cPoprzedniStatusRejestratora = 0xFF;	//służy do wykrywania zmiany statusu rejestratora aby rysować go tylko przy zmianie
 static size_t nPoprzedniMaxPoziomStosu;
 uint8_t cOrientacja;
 uint8_t cTransparent;	//flaga określająca czy mamy rysować tło czy rysujemy na istniejącym
@@ -268,22 +268,22 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 	cPoprzedniStatusPolaczenia = cStatusPolaczenia;
 
 	//status karty
-	if (cStatusRejestratora != cPoprzedniStatusRejestratora)
+	if (sStatusRejestratora != cPoprzedniStatusRejestratora)
 	{
-		cPoprzedniStatusRejestratora = cStatusRejestratora;
-		if (cStatusRejestratora & STATREJ_WLACZONY)
+		cPoprzedniStatusRejestratora = sStatusRejestratora;
+		if (sStatusRejestratora & STATREJ_WLACZONY)
 		{
 			setColor(ZIELONY);
 			cBłąd |= RysujNapis("SD Loguje", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		}
 		else
-		if (cStatusRejestratora & STATREJ_FAT_GOTOWY)
+		if (sStatusRejestratora & STATREJ_FAT_GOTOWY)
 		{
 			setColor(ZOLTY);
 			cBłąd |= RysujNapis("SD Gotowe", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);
 		}
 		else
-		if (cStatusRejestratora == 0)
+		if (sStatusRejestratora == 0)
 		{
 			setColor(POMARANCZ);
 			cBłąd |= RysujNapis("Brak SD! ", 0, DISP_Y_SIZE - DW_SPACE - FONT_SH);

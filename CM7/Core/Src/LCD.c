@@ -118,7 +118,7 @@ extern uint8_t cPort_exp_wysylany[];
 extern uint8_t cPort_exp_odbierany[];
 //extern uint8_t cGlosnosc;		//regulacja głośności odtwarzania komunikatów w zakresie 0..SKALA_GLOSNOSCI
 extern SD_HandleTypeDef hsd1;
-extern uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+extern uint8_t sStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 extern unia_wymianyCM7_t uDaneCM7;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 float fKostka[8][3] = {		//załóżmy wstępnie że kostka będzie miała rozmiar połowy wyświetlacza i umieszczona centralnie na wyswietlaczu. Dla kątów zerowych będzie widzana z góry
@@ -751,7 +751,7 @@ uint8_t RysujEkran(void)
 		stKonfOSD.sSzerokosc = 480;
 		stKonfOSD.sWysokosc = 320;
 		stKonfOSD.chOSDWlaczone = 1;
-		cStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;	//wyłącz rejestrację na karcie
+		sStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;	//wyłącz rejestrację na karcie
 		hjpeg.Instance->CONFR1 &= ~JPEG_CONFR1_HDR;		//wyłącz generowanie nagłówka JPEG
 		WypelnijEkranwBuforze(stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, cBuforOSD, PRZEZR_100);
 
@@ -776,7 +776,7 @@ uint8_t RysujEkran(void)
 	case TP_KAM_ZDJ_Y8:	//wykonuje zdjecie Y8 jpg
 		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
 		sprintf((char*)cNazwaPlikuObrazu, "ZdjY8");	//początek nazwy pliku ze zdjeciem
-		cStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
+		sStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
 
 		cBłąd = UstawObrazKamery(SZER_ZDJECIA, WYS_ZDJECIA, OBR_Y8, KAM_ZDJECIE);
 		nCzas = PobierzCzasT6();
@@ -808,7 +808,7 @@ uint8_t RysujEkran(void)
 
 		sprintf(cNapis, "Czas kompr: %ld us, rozm_obr: %ld, kompr: %.2f ", nCzas, nRozmiarObrazuJPEG, (float)(SZER_ZDJECIA*WYS_ZDJECIA) / nRozmiarObrazuJPEG);
 		RysujNapis(cNapis, 0, 30);
-		cStatusRejestratora |= STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
+		sStatusRejestratora |= STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
 		//jest ustawiony większy rozmiar, więc nie wyswietlaj obrazu
 		//KonwersjaCB8doRGB666((uint8_t*)sBuforKamery, chBufLCD, SZER_ZDJECIA * WYS_ZDJECIA);
 		//WyswietlZdjecieRGB666(DISP_X_SIZE, DISP_Y_SIZE, cBuforLCD);
@@ -829,7 +829,7 @@ uint8_t RysujEkran(void)
 				sBuforKamery[nIndeks + n] = sWypelnienie;
 		}*/
 		sprintf((char*)cNazwaPlikuObrazu, "ZdjYUV420");	//początek nazwy pliku ze zdjeciem
-		cStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
+		sStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//zapisuj do pliku jpeg
 		//cBłąd = UstawObrazKamery(DISP_X_SIZE, DISP_Y_SIZE, OBR_YUV420, KAM_ZDJECIE);
 		//cBłąd = ZrobZdjecie(sBuforKamery, DISP_X_SIZE * DISP_Y_SIZE / 2);	//wynik w sBuforKamery
 		cBłąd = UstawObrazKamery(60, 40, OBR_YUV420, KAM_ZDJECIE);
@@ -928,7 +928,7 @@ uint8_t RysujEkran(void)
 		stKonfOSD.chOSDWlaczone = 0;	//nie właczaj OSD
 		TestKonwersjiRGB888doYCbCr(cBuforLCD, (uint8_t*)sBuforKamery, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc);
 		sprintf((char*)cNazwaPlikuObrazu, "Luma");	//początek nazwy pliku ze zdjeciem
-		cStatusRejestratora = STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
+		sStatusRejestratora = STATREJ_ZAPISZ_BMP;	//ustaw flagę zapisu obrazu do pliku bmp
 		stKonfKam.chFormatObrazu = OBR_Y8;			//obraz ma sie zapisać jako monochromatyczny
 		cNowyTrybPracy = TP_WROC_DO_OSD;
 		break;
@@ -1008,10 +1008,10 @@ uint8_t RysujEkran(void)
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			printf("Obraz %d%%: ", n*10);
-			cStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+			sStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)cNazwaPlikuObrazu, "YUV420_%d", n*10);	//początek nazwy pliku ze zdjeciem
 			cBłąd = KompresujRGB888doYUV420(cBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			while (cStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
+			while (sStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
 			{
 				printf("Sync, ");
 				osDelay(5);
@@ -1026,10 +1026,10 @@ uint8_t RysujEkran(void)
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			printf("Obraz %d%%: ", n*10);
-			cStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+			sStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)cNazwaPlikuObrazu, "YUV422_%d", n*10);	//początek nazwy pliku ze zdjeciem
 			cBłąd = KompresujRGB888doYUV422(cBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			while (cStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
+			while (sStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
 			{
 				printf("Sync, ");
 				osDelay(5);
@@ -1044,10 +1044,10 @@ uint8_t RysujEkran(void)
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			printf("Obraz %d%%: ", n*10);
-			cStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+			sStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)cNazwaPlikuObrazu, "YUV444_%d", n*10);	//początek nazwy pliku ze zdjeciem
 			cBłąd = KompresujRGB888doYUV444(cBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			while (cStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
+			while (sStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
 			{
 				printf("Sync, ");
 				osDelay(5);
@@ -1062,10 +1062,10 @@ uint8_t RysujEkran(void)
 		for (uint8_t n=1; n<=10; n++)	//wykonaj serię obrazów o różnym stopniu kompresji
 		{
 			printf("Obraz %d%%: ", n*10);
-			cStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
+			sStatusRejestratora |= STATREJ_ZAPISZ_JPG;		//zapisuj do pliku jpeg
 			sprintf((char*)cNazwaPlikuObrazu, "Y8_%d", n*10);	//początek nazwy pliku ze zdjeciem
 			cBłąd = KompresujRGB888doY8(cBuforLCD, stKonfOSD.sSzerokosc, stKonfOSD.sWysokosc, n*10);
-			while (cStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
+			while (sStatusRejestratora & STATREJ_ZAPISZ_JPG)	//czekaj aż się zapisze
 			{
 				printf("Sync, ");
 				osDelay(5);
@@ -1312,7 +1312,7 @@ uint8_t RysujEkran(void)
 	case TPKS_WLACZ_REJ:
 		cBłąd = WyswietlRejestratorKartySD();
 		if (cBłąd == BLAD_OK)
-			cStatusRejestratora |= STATREJ_WLACZONY;	//włącz rejestrację tylko gdy nie znaleziono żadnych problemów
+			sStatusRejestratora |= STATREJ_WLACZONY;	//włącz rejestrację tylko gdy nie znaleziono żadnych problemów
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
@@ -1322,7 +1322,7 @@ uint8_t RysujEkran(void)
 
 
 	case TPKS_WYLACZ_REJ:	//najpierw zakmnij plik a potem wyłacz rejestrator
-		cStatusRejestratora |= STATREJ_ZAMKNIJ_PLIK | STATREJ_BYL_OTWARTY;
+		sStatusRejestratora |= STATREJ_ZAMKNIJ_PLIK | STATREJ_BYL_OTWARTY;
 		WyswietlRejestratorKartySD();
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
@@ -2878,7 +2878,7 @@ uint8_t WyswietlRejestratorKartySD(void)
 	}
 	RysujNapis(cNapis, 11*FONT_SL, 30);
 
-	if (cStatusRejestratora & STATREJ_FAT_GOTOWY)
+	if (sStatusRejestratora & STATREJ_FAT_GOTOWY)
 	{
 		setColor(ZIELONY);
 		sprintf(cNapis, "Gotowy                ");	//długością ma przykryć nadłuższy komunikat o błędzie
@@ -2891,7 +2891,7 @@ uint8_t WyswietlRejestratorKartySD(void)
 	}
 	RysujNapis(cNapis, 41*FONT_SL, 30);
 
-	if (cStatusRejestratora & STATREJ_OTWARTY_PLIK)
+	if (sStatusRejestratora & STATREJ_OTWARTY_PLIK)
 	{
 		setColor(ZIELONY);
 		sprintf(cNapis, "Otwarty   ");
@@ -2899,7 +2899,7 @@ uint8_t WyswietlRejestratorKartySD(void)
 	else
 	{
 		setColor(BLAD);
-		if (cStatusRejestratora & STATREJ_BYL_OTWARTY)
+		if (sStatusRejestratora & STATREJ_BYL_OTWARTY)
 			sprintf(cNapis, "Zatrzymany");
 		else
 			sprintf(cNapis, "Brak ");

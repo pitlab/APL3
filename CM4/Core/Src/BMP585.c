@@ -43,10 +43,21 @@ uint8_t InicjujBMP585(void)
 	if (chDane != 0x51)
 		return BLAD_BRAK_CZUJNIKA;
 
+	chDane = CzytajSPIu8(BMP5_REG_CHIP_STATUS);	//sprawdź status konfiguracji magistrali. Musi być ustawiona na SPI
+	if (chDane != 0x03)							//SPI MODE0 lub MODE3
+		return BLAD_BRAK_CZUJNIKA;
+
+	//ustaw standby bo w takim trybie powinna być robiona konfiguracja
 	chBufBMP585[0] = BMP5_REG_ODR_CONFIG;
-	chBufBMP585[1] = (3 << 0)|	//pwr_mode: 0=standby, 1=normal mode in configured ODR grid, 2=forced one time mode measurement, 3=non stop mode, measurement without further duty cycling
+	chBufBMP585[1] = (0 << 0)|	//pwr_mode: 0=standby, 1=normal mode in configured ODR grid, 2=forced one time mode measurement, 3=non stop mode, measurement without further duty cycling
 					 (0 << 2)|	//ODR: 0=240Hz, 1=218,5Hz, 2=199,11Hz, 3=179,2Hz, 4=160Hz,, A=100,3Hz
 					 (1 << 7);	//deep_dis - disable deep standby
+	ZapiszSPIu8(chBufBMP585, 2);
+
+	chBufBMP585[0] = BMP5_REG_OSR_CONFIG;
+	chBufBMP585[1] = (4 << 0)|	//osr_t oversampling rate: 0=1x, 1=2x, 2=4x, 3=8x, 4=16x, 5=32x, 6=64x, 7=128x
+					 (4 << 3)|	//osr_p overdampling dla ciśnienia - tak samo jak dla temperatury
+					 (1 << 6);	//press_en
 	ZapiszSPIu8(chBufBMP585, 2);
 
 	chBufBMP585[0] = BMP5_REG_DSP_CONFIG;
@@ -59,6 +70,20 @@ uint8_t InicjujBMP585(void)
 					 (0 << 7);	//Out Of Range IIR selection: 0=before IIR filter; 1=after IIR filter
 	ZapiszSPIu8(chBufBMP585, 2);
 
+	//ustaw finalny tryb pracy
+	chBufBMP585[0] = BMP5_REG_ODR_CONFIG;
+	chBufBMP585[1] = (1 << 0)|	//pwr_mode: 0=standby, 1=normal mode in configured ODR grid, 2=forced one time mode measurement, 3=non stop mode, measurement without further duty cycling
+					 (0 << 2)|	//ODR: 0=240Hz, 1=218,5Hz, 2=199,11Hz, 3=179,2Hz, 4=160Hz,, A=100,3Hz
+					 (1 << 7);	//deep_dis - disable deep standby
+	ZapiszSPIu8(chBufBMP585, 2);
+
+	//ustaw źródło przerwania
+	chBufBMP585[0] = BMP5_REG_INT_SOURCE;
+	chBufBMP585[1] = (1 << 0)|	//data ready
+					 (0 << 1)|	//fifo full
+					 (0 << 2)|	//fifo threshold
+					 (0 << 3);	//pressure data out of range
+	ZapiszSPIu8(chBufBMP585, 2);
 
 	HAL_Delay(4);		//Re-configuration time 4ms
 
@@ -91,9 +116,14 @@ uint8_t ObslugaBMP585(void)
 	else
 	{
 		//sprawdź ile czasu upłyneło od ostatniego pomiaru. Jeżeli było to mniej niż czas potrzebny na konwersję to pomiń to uruchomienie
-		uint32_t nCzas = MinalCzasT7(nCzasOstatniejKonwersjiBMP585);
-		if (nCzas < 4375)	//ODR = 240Hz -> 4,16ms +5%  = 4,375
+		//uint32_t nCzas = MinalCzasT7(nCzasOstatniejKonwersjiBMP585);
+		//if (nCzas < 4375)	//ODR = 240Hz -> 4,16ms +5%  = 4,375
+			//return BLAD_ZA_KROTKI_CZAS;
+
+		uint8_t cDane = CzytajSPIu8(BMP5_REG_INT_STATUS);	//sprawdź status pomiaru
+		if ((cDane & 0x01) == 0x00)		//drdy_data_reg = Data Ready
 			return BLAD_ZA_KROTKI_CZAS;
+
 
 		//konwersja miała szansę się zakonczyć, więc oczytaj pomiar i uruchom następny
 		nCzasOstatniejKonwersjiBMP585 = PobierzCzasT7();

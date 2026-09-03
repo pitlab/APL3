@@ -27,7 +27,7 @@ volatile uint8_t cWskNapBufJpeg, cWskOprBufJpeg;	// wskazuje do którego bufora 
 uint32_t nRozmiarObrazuJPEG;	//w bajtach
 uint8_t cWskNapBufMcu;			//wskaźnik napełniania buforów MCU
 volatile uint16_t sZajetoscBuforaWeJpeg, sZajetoscBuforaWyJpeg;		//liczba bajtów w buforach wejściowym i wyjściowym kompresora
-extern uint8_t chStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+extern uint16_t sStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 JPEG_ConfTypeDef stKonfJpeg;	//struktura konfiguracyjna JPEGa
 const uint8_t cNaglJpegEOI[ROZMIAR_ZNACZ_xOI] = {0xFF, 0xD9};	//EOI (End Of Image) - zapisywany na końcu pliku jpeg
 

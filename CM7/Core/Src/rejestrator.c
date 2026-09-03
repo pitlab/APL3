@@ -34,7 +34,7 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t __attribute__ ((aligned (32))) aTxBuffer[_MAX_SS];
 uint8_t __attribute__ ((aligned (32))) aRxBuffer[_MAX_SS];
 __IO uint8_t RxCplt, TxCplt;
-volatile uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+volatile uint16_t sStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 uint32_t nKonfLogera[LICZBA_SLOW_REJESTRATORA] = {0x7F0E23FF, 0x0003FFFF, 0x0000FFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000FFF};	//zestaw flag włączajacych dane do rejestracji
 static char __attribute__ ((aligned (32))) cBufZapisuKarty[ROZMIAR_BUFORA_LOGU];	//bufor na jedną linijkę logu
 char __attribute__ ((aligned (32))) cBufPodreczny[_MAX_LFN];
@@ -70,7 +70,7 @@ extern stBSP_ID_t stBSP_ID;	//struktura zawierajaca adres i nazwę BSP
 ////////////////////////////////////////////////////////////////////////////////
 void WatekRejestratora(void *argument)
 {
-	extern volatile uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+	extern volatile uint16_t sStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 	extern uint8_t cPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
 	extern uint8_t cKodBleduFAT;
 	uint32_t nCzas, nCzasRejestracji;
@@ -82,9 +82,10 @@ void WatekRejestratora(void *argument)
 	{
 		if ((cPort_exp_odbierany[0] & EXP04_LOG_CARD_DET) == 0)	//LOG_SD1_CDETECT - wejście detekcji obecności karty, aktywny niski
 		{
-			if (cStatusRejestratora & STATREJ_FAT_GOTOWY)
+			sStatusRejestratora |= STATREJ_KARTA_OBECNA;
+			if (sStatusRejestratora & STATREJ_FAT_GOTOWY)
 			{
-				if (cStatusRejestratora & STATREJ_WLACZONY)
+				if (sStatusRejestratora & STATREJ_WLACZONY)
 				{
 					nCzas = MinalCzas(nCzasRejestracji);
 					if (nCzas >= nOkresRejestracji)
@@ -96,12 +97,12 @@ void WatekRejestratora(void *argument)
 					osDelay(2);
 				}
 				else
-				if (cStatusRejestratora & STATREJ_ZAPISZ_JPG)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_JPG)
 				{
 					ObslugaZapisuJpeg();
 				}
 				else
-				if (cStatusRejestratora & STATREJ_ZAPISZ_BMP)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_BMP)
 				{
 					ObslugaZapisuBmp();
 				}
@@ -124,7 +125,7 @@ void WatekRejestratora(void *argument)
 						fres = f_mount(&SDFatFS, SDPath, 1);		//1=montuj teraz, 0=przy próbie zapisu
 						if (fres == FR_OK)
 						{
-							cStatusRejestratora |= STATREJ_FAT_GOTOWY;
+							sStatusRejestratora |= STATREJ_FAT_GOTOWY;
 						}
 						else
 						{
@@ -143,12 +144,12 @@ void WatekRejestratora(void *argument)
 		}
 		else	//jeżeli nie ma karty
 		{
-			if (cStatusRejestratora & STATREJ_FAT_GOTOWY)
+			if (sStatusRejestratora & STATREJ_FAT_GOTOWY)
 			{
-				if (cStatusRejestratora & STATREJ_OTWARTY_PLIK)
+				if (sStatusRejestratora & STATREJ_OTWARTY_PLIK)
 					f_close(&SDFile);
 				f_mount(NULL, "", 1);		//zdemontuj system plików
-				cStatusRejestratora = 0;
+				sStatusRejestratora = 0;
 			}
 			else
 				cCzasSwieceniaLED[LED_CZER] = 1;	//x0,1s - sygnalizacja braku karty
@@ -221,13 +222,13 @@ uint8_t ObslugaPetliRejestratora(void)
 	cBufZapisuKarty[0] = 0;	//ustaw pusty bufor
 	char *cZnak;
 
-	if (cStatusRejestratora & STATREJ_OTWARTY_PLIK)
+	if (sStatusRejestratora & STATREJ_OTWARTY_PLIK)
 	{
 	//--- pierwsze słowo konfiguracji logera --------------------------
 		//czas
 		if (nKonfLogera[0] & KLOG1_CZAS)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_CZAS_GGMMSSSS]);
 			else
 			{
@@ -242,7 +243,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//dT czyli czas obiegu pętli głównej w sekundach
 		if (nKonfLogera[0] & KLOG1_DELTA_CZASU)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_DELTA_CZASU]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", (float)uDaneCM4.dane.ndT / 1e6);
@@ -255,7 +256,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[0] & KLOG1_PRES1 << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_CISNIENIE_BZWZGL_XD_PA]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
@@ -273,7 +274,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[0] & KLOG1_AMSL1 << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_WYSOKOSC_MSL_XD_M]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
@@ -289,7 +290,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[0] & KLOG1_AGL1 << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_WYSOKOSC_AGL_XD_M]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
@@ -305,7 +306,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[0] & KLOG1_WARIO1 << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_WARIOMETR_XD_MS]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
@@ -321,7 +322,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[0] & KLOG1_CISROZ1 << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_CISN_ROZNICOWE_XD_PA]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
@@ -337,7 +338,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[0] & KLOG1_IAS1 << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_PREDK_IAS_XD_MS]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
@@ -353,7 +354,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[0] & KLOG1_TEMPBARO1 << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_TEMP_BARO_XD_K]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
@@ -369,7 +370,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[0] & KLOG1_TEMPCISR1 << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_TEMP_ROZN_XD_K]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
@@ -385,7 +386,7 @@ uint8_t ObslugaPetliRejestratora(void)
 			//napięcie baterii
 			if (nKonfLogera[n] & (KLOG1_BAT1_NAP << 4*n))
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_BAT_XD_NAPIECIE_V]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
@@ -398,7 +399,7 @@ uint8_t ObslugaPetliRejestratora(void)
 			//prąd baterii
 			if (nKonfLogera[0] & (KLOG1_BAT1_PRAD << 4*n))
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_BAT_XD_PRAD_A]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
@@ -411,7 +412,7 @@ uint8_t ObslugaPetliRejestratora(void)
 			//energia pobrana z baterii
 			if (nKonfLogera[0] & (KLOG1_BAT1_ENER << 4*n))
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_BAT_XD_ENER_POBR_MAH]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
@@ -424,7 +425,7 @@ uint8_t ObslugaPetliRejestratora(void)
 			//napięcie wejściowe zasilania
 			if (nKonfLogera[0] & (KLOG1_ZAS1_NAP << 4*n))
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_ZASIL_XD_NAPIECIE_V]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
@@ -440,7 +441,7 @@ uint8_t ObslugaPetliRejestratora(void)
 			//wejście analogowe
 			if (nKonfLogera[n] & (KLOG1_ADC1_1 << n))
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_CZUJ_ZEWN_XD_V]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowany w nazwie
@@ -454,7 +455,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//temperatura CPU
 		if (nKonfLogera[0] & KLOG1_TEMP_CPU)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_TEMP_CPU_K]);
 			else
 				sprintf(cBufPodreczny, "%.1f;", uDaneCM4.dane.fTemperCPU);
@@ -464,7 +465,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//napięcie magistrali serw
 		if (nKonfLogera[0] & KLOG1_NAP_SERW)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_SERWA_NAPIECIE_V]);
 			else
 				sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.fNapiecieSerw);
@@ -478,7 +479,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[1] & KLOG2_ZYROSUR1P << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_ZYRO_SUR_XD_XC_RADS]);
 					sprintf(cBufPodreczny, cBufPodreczny, 1, 'P' + n);	//wypełnij parametry XD=%d i XC=%c zakodowane w nazwie
@@ -494,7 +495,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[1] & KLOG2_ZYROSUR2P << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_ZYRO_SUR_XD_XC_RADS]);
 					sprintf(cBufPodreczny, cBufPodreczny, 2, 'P' + n);	//wypełnij parametry XD=%d i XC=%c zakodowane w nazwie
@@ -510,7 +511,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[1] & KLOG2_ZYRO1P << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_ZYRO_KAL_XD_XC_RADS]);
 					sprintf(cBufPodreczny, cBufPodreczny, 1, 'P' + n);	//wypełnij parametry XD=%d i XC=%c zakodowane w nazwie
@@ -526,7 +527,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[1] & KLOG2_ZYRO2P << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_ZYRO_KAL_XD_XC_RADS]);
 					sprintf(cBufPodreczny, cBufPodreczny, 2, 'P' + n);	//wypełnij parametry XD=%d i XC=%c zakodowane w nazwie
@@ -543,7 +544,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[1] & KLOG2_AKCEL1X << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_AKCEL_XD_XC_MS2]);
 					sprintf(cBufPodreczny, cBufPodreczny, 1, 'X' + n);	//wypełnij parametry XD=%d i XC=%c zakodowane w nazwie
@@ -559,7 +560,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[1] & KLOG2_AKCEL2X << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_AKCEL_XD_XC_MS2]);
 					sprintf(cBufPodreczny, cBufPodreczny, 2, 'X' + n);	//wypełnij parametry XD=%d i XC=%c zakodowane w nazwie
@@ -575,7 +576,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[1] & KLOG2_MAG1X << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_MAGNETO_XD_XC_GAUSS]);
 					sprintf(cBufPodreczny, cBufPodreczny, 1, 'X' + n);	//wypełnij parametry XD=%d i XC=%c zakodowane w nazwie
@@ -592,7 +593,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[1] & KLOG2_MAG2X << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_MAGNETO_XD_XC_GAUSS]);
 					sprintf(cBufPodreczny, cBufPodreczny, 2, 'X' + n);	//wypełnij parametry XD=%d i XC=%c zakodowane w nazwie
@@ -608,7 +609,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[1] & KLOG2_MAG3X << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_MAGNETO_XD_XC_GAUSS]);
 					sprintf(cBufPodreczny, cBufPodreczny, 3, 'X' + n);	//wypełnij parametry XD=%d i XC=%c zakodowane w nazwie
@@ -624,7 +625,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[1] & KLOG2_TEMPIMU1 << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_TEMP_IMU_XD_K]);
 					sprintf(cBufPodreczny, cBufPodreczny, n+1);	//wypełnij parametr XD=%d zakodowane w nazwie
@@ -643,7 +644,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[2] & KLOG3_BSP_IMUX << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_KAT_KALM_IMU_XC_RAD]);
 					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
@@ -659,7 +660,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[2] & KLOG3_KOMP_IMUX << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_KAT_KOMP_IMU_XC_RAD]);
 					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
@@ -675,7 +676,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[2] & KLOG3_KWAT_IMUX << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_KAT_KWAT_IMU_XC_RAD]);
 					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
@@ -691,7 +692,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[2] & KLOG3_KWAT_IMUX << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_KAT_AKCE_IMU_XC_RAD]);
 					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
@@ -707,7 +708,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[2] & KLOG3_KWAT_IMUX << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				{
 					sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_KAT_ZYRO_IMU_XC_RAD]);
 					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
@@ -724,7 +725,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//Szerokość geograficzna z GPS
 		if (nKonfLogera[2] & KLOG3_GLONG)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_SZEROKOSC_GEO_RAD]);
 			else
 				sprintf(cBufPodreczny, "%.8f;", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
@@ -734,7 +735,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//Długość geograficzna z GPS
 		if (nKonfLogera[2] & KLOG3_GLATI)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_DLUGOSC_GEO_RAD]);
 			else
 				sprintf(cBufPodreczny, "%.8f;", uDaneCM4.dane.stGnss1.dDlugoscGeo);
@@ -744,7 +745,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wysokość n.p.m. z GPS
 		if (nKonfLogera[2] & KLOG3_GALTI)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_WYSOKOSC_GNSS_M]);
 			else
 				sprintf(cBufPodreczny, "%.1f;", uDaneCM4.dane.stGnss1.fWysokoscMSL);
@@ -754,7 +755,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//prędkość wzgledem ziemi z GPS
 		if (nKonfLogera[2] & KLOG3_GSPED)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_PREDKOSC_WZGL_ZIEMI_MS]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
@@ -764,7 +765,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//kurs względem ziemi z GPS
 		if (nKonfLogera[2] & KLOG3_GCURS)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_KURS_GNSS_RAD]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stGnss1.fKurs);
@@ -774,7 +775,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//liczba widocznych satelitów
 		if (nKonfLogera[2] & KLOG3_GSATS)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_LICZBA_SATELITOW]);
 			else
 				sprintf(cBufPodreczny, "%d;", uDaneCM4.dane.stGnss1.cLiczbaSatelit);
@@ -784,7 +785,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//Vertical Dilution of Precision
 		if (nKonfLogera[2] & KLOG3_GVDOP)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_VDOP_M]);
 			else
 				sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fVdop);
@@ -794,7 +795,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//Horizontal Dilution of Precision
 		if (nKonfLogera[2] & KLOG3_GHDOP)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_HDOP_M]);
 			else
 				sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.stGnss1.fHdop);
@@ -804,7 +805,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//niefiltrowana prędkość z GPS w kierunku północnym
 		if (nKonfLogera[2] & KLOG3_GSPD_N)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_PREDK_GNSS_N_MS]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi * cosf(uDaneCM4.dane.stGnss1.fKurs * DEG2RAD));		//sprawdzić!
@@ -814,7 +815,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//niefiltrowana prędkość z GPS w kierunku wschodnim
 		if (nKonfLogera[2] & KLOG3_GSPD_E)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_PREDK_GNSS_E_MS]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi * sinf(uDaneCM4.dane.stGnss1.fKurs * DEG2RAD));		//sprawdzić!
@@ -828,7 +829,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[3] & (KLOG4_ODBRC_K1 << n))
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 					sprintf(cBufPodreczny, "%s%d;", cNazwyPozycjiRejestratora[NREJ_ODBIORNIKRC_KAN], n+1);
 				else
 					sprintf(cBufPodreczny, "%d;", uDaneCM4.dane.sKanalRC[n]);
@@ -841,7 +842,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[3] & (KLOG4_WYJRC_K1 << n))
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 					sprintf(cBufPodreczny, "%s%d;", cNazwyPozycjiRejestratora[NREJ_WYJSCIERC_KAN], n+1);
 				else
 					sprintf(cBufPodreczny, "%d;", uDaneCM4.dane.sWyjscieRC[n]);
@@ -855,7 +856,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wartość zadana regulatora sterowania przechyleniem
 		if (nKonfLogera[4] & KLOG5_PID_PRZE_WZAD)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_PRZE], cNazwyPozycjiRejestratora[NREJ_WART_ZADANA]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fZadana);
@@ -865,7 +866,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana wartość wejściowa dla wszystkich członów
 		if (nKonfLogera[4] & KLOG5_PID_PRZE_FWEJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_PRZE], cNazwyPozycjiRejestratora[NREJ_FILTR_WWEJ]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fFiltrWWej);
@@ -875,7 +876,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 		if (nKonfLogera[4] & KLOG5_PID_PRZE_FROZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_PRZE], cNazwyPozycjiRejestratora[NREJ_FILTR_ROZN]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fFiltrRóżn);
@@ -885,7 +886,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu P
 		if (nKonfLogera[4] & KLOG5_PID_PRZE_WY_P)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_PRZE], cNazwyPozycjiRejestratora[NREJ_WYJ_P]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fWyjscieP);
@@ -895,7 +896,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu I
 		if (nKonfLogera[4] & KLOG5_PID_PRZE_WY_I)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_PRZE], cNazwyPozycjiRejestratora[NREJ_WYJ_I]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fWyjscieI);
@@ -905,7 +906,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu D
 		if (nKonfLogera[4] & KLOG5_PID_PRZE_WY_D)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_PRZE], cNazwyPozycjiRejestratora[NREJ_WYJ_D]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fWyjscieD);
@@ -915,7 +916,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu wyprzedzającego
 		if (nKonfLogera[4] & KLOG5_PID_PRZE_WYPRZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_PRZE], cNazwyPozycjiRejestratora[NREJ_WYJ_WYPRZ]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fWyjscieWyprz);
@@ -925,7 +926,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście regulatora sterowania przechyleniem
 		if (nKonfLogera[4] & KLOG5_PID_PRZE_WYJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_PRZE], cNazwyPozycjiRejestratora[NREJ_WYJSCIE]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_PRZE].fWyjsciePID);
@@ -935,7 +936,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wartość zadana regulatora sterowania prędkością kątową przechylenia
 		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_WZAD)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_PRZE], cNazwyPozycjiRejestratora[NREJ_WART_ZADANA]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fZadana);
@@ -945,7 +946,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
 		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_FZAD)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_PRZE], cNazwyPozycjiRejestratora[NREJ_FILTR_WZAD]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fFiltrWZad);
@@ -955,7 +956,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana (0..15) wartość wejściowa dla wszystkich członów
 		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_FWEJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_PRZE], cNazwyPozycjiRejestratora[NREJ_FILTR_WWEJ]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fFiltrWWej);
@@ -965,7 +966,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_FROZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_PRZE], cNazwyPozycjiRejestratora[NREJ_FILTR_ROZN]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fFiltrRóżn);
@@ -975,7 +976,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu P
 		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_WY_P)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_PRZE], cNazwyPozycjiRejestratora[NREJ_WYJ_P]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fWyjscieP);
@@ -985,7 +986,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu D
 		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_WY_D)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_PRZE], cNazwyPozycjiRejestratora[NREJ_WYJ_D]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fWyjscieD);
@@ -995,7 +996,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu wyprzedzającego
 		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_WYPRZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_PRZE], cNazwyPozycjiRejestratora[NREJ_WYJ_WYPRZ]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fWyjscieWyprz);
@@ -1005,7 +1006,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście regulatora sterowania prędkością kątową przechylenia
 		if (nKonfLogera[4] & KLOG5_PID_PK_PRZE_WYJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_PRZE], cNazwyPozycjiRejestratora[NREJ_WYJSCIE]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_PRZE].fWyjsciePID);
@@ -1015,7 +1016,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wartość zadana regulatora sterowania pochyleniem
 		if (nKonfLogera[4] & KLOG5_PID_POCH_WZAD)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_POCH], cNazwyPozycjiRejestratora[NREJ_WART_ZADANA]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fZadana);
@@ -1025,7 +1026,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana wartość wejściowa dla wszystkich członów
 		if (nKonfLogera[4] & KLOG5_PID_POCH_FWEJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_POCH], cNazwyPozycjiRejestratora[NREJ_FILTR_WWEJ]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fFiltrWWej);
@@ -1035,7 +1036,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 		if (nKonfLogera[4] & KLOG5_PID_POCH_FROZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_POCH], cNazwyPozycjiRejestratora[NREJ_FILTR_ROZN]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fFiltrRóżn);
@@ -1045,7 +1046,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu P
 		if (nKonfLogera[4] & KLOG5_PID_POCH_WY_P)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_POCH], cNazwyPozycjiRejestratora[NREJ_WYJ_P]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fWyjscieP);
@@ -1055,7 +1056,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu I
 		if (nKonfLogera[4] & KLOG5_PID_POCH_WY_I)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_POCH], cNazwyPozycjiRejestratora[NREJ_WYJ_I]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fWyjscieI);
@@ -1065,7 +1066,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu D
 		if (nKonfLogera[4] & KLOG5_PID_POCH_WY_D)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_POCH], cNazwyPozycjiRejestratora[NREJ_WYJ_D]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fWyjscieD);
@@ -1075,7 +1076,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu wyprzedzającego
 		if (nKonfLogera[4] & KLOG5_PID_POCH_WYPRZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_POCH], cNazwyPozycjiRejestratora[NREJ_WYJ_WYPRZ]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fWyjscieWyprz);
@@ -1085,7 +1086,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście regulatora sterowania pochyleniem
 		if (nKonfLogera[4] & KLOG5_PID_POCH_WYJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_POCH], cNazwyPozycjiRejestratora[NREJ_WYJSCIE]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_POCH].fWyjsciePID);
@@ -1095,7 +1096,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wartość zadana regulatora sterowania prędkością kątową pochylenia
 		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_WZAD)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_POCH], cNazwyPozycjiRejestratora[NREJ_WART_ZADANA]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fZadana);
@@ -1105,7 +1106,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
 		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_FZAD)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_POCH], cNazwyPozycjiRejestratora[NREJ_FILTR_WZAD]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fFiltrWZad);
@@ -1115,7 +1116,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana wartość wejściowa dla wszystkich członów
 		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_FWEJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_POCH], cNazwyPozycjiRejestratora[NREJ_FILTR_WWEJ]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fFiltrWWej);
@@ -1125,7 +1126,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_FROZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_POCH], cNazwyPozycjiRejestratora[NREJ_FILTR_ROZN]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fFiltrRóżn);
@@ -1135,7 +1136,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu P
 		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_FROZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_POCH], cNazwyPozycjiRejestratora[NREJ_WYJ_P]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fWyjscieP);
@@ -1145,7 +1146,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu D
 		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_WY_D)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_POCH], cNazwyPozycjiRejestratora[NREJ_WYJ_D]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fWyjscieD);
@@ -1155,7 +1156,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu wyprzedzającego
 		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_WYPRZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_POCH], cNazwyPozycjiRejestratora[NREJ_WYJ_WYPRZ]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fWyjscieWyprz);
@@ -1165,7 +1166,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście regulatora sterowania prędkością kątową pochylenia
 		if (nKonfLogera[4] & KLOG5_PID_PK_POCH_WYJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_POCH], cNazwyPozycjiRejestratora[NREJ_WYJSCIE]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_POCH].fWyjsciePID);
@@ -1178,7 +1179,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wartość zadana regulatora sterowania odchyleniem
 		if (nKonfLogera[5] & KLOG6_PID_ODCH_WZAD)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_ODCH], cNazwyPozycjiRejestratora[NREJ_WART_ZADANA]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fZadana);
@@ -1188,7 +1189,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana wartość wejściowa dla wszystkich członów
 		if (nKonfLogera[5] & KLOG6_PID_ODCH_FWEJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_ODCH], cNazwyPozycjiRejestratora[NREJ_FILTR_WWEJ]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fFiltrWWej);
@@ -1198,7 +1199,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 		if (nKonfLogera[5] & KLOG6_PID_ODCH_FROZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_ODCH], cNazwyPozycjiRejestratora[NREJ_FILTR_ROZN]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fFiltrRóżn);
@@ -1208,7 +1209,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu P
 		if (nKonfLogera[5] & KLOG6_PID_ODCH_WY_P)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_ODCH], cNazwyPozycjiRejestratora[NREJ_WYJ_P]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fWyjscieP);
@@ -1218,7 +1219,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu I
 		if (nKonfLogera[5] & KLOG6_PID_ODCH_WY_I)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_ODCH], cNazwyPozycjiRejestratora[NREJ_WYJ_I]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fWyjscieI);
@@ -1228,7 +1229,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu D
 		if (nKonfLogera[5] & KLOG6_PID_ODCH_WY_D)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_ODCH], cNazwyPozycjiRejestratora[NREJ_WYJ_D]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fWyjscieD);
@@ -1238,7 +1239,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu wyprzedzającego
 		if (nKonfLogera[5] & KLOG6_PID_ODCH_WYPRZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_ODCH], cNazwyPozycjiRejestratora[NREJ_WYJ_WYPRZ]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fWyjscieWyprz);
@@ -1248,7 +1249,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście regulatora sterowania odchyleniem
 		if (nKonfLogera[5] & KLOG6_PID_ODCH_WYJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_KATA_ODCH], cNazwyPozycjiRejestratora[NREJ_WYJSCIE]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_KĄTA_ODCH].fWyjsciePID);
@@ -1258,7 +1259,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wartość zadana regulatora sterowania prędkością kątową odchylenia
 		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_WZAD)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_ODCH], cNazwyPozycjiRejestratora[NREJ_WART_ZADANA]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fZadana);
@@ -1268,7 +1269,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana wartość zadana do liczenia wartosci wyprzedzającej
 		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_FZAD)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_ODCH], cNazwyPozycjiRejestratora[NREJ_FILTR_WZAD]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fFiltrWZad);
@@ -1278,7 +1279,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana wartość wejściowa dla wszystkich członów
 		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_FWEJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_ODCH], cNazwyPozycjiRejestratora[NREJ_FILTR_WWEJ]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fFiltrWWej);
@@ -1288,7 +1289,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_FROZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_ODCH], cNazwyPozycjiRejestratora[NREJ_FILTR_ROZN]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fFiltrRóżn);
@@ -1298,7 +1299,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu P
 		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_WY_P)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_ODCH], cNazwyPozycjiRejestratora[NREJ_WYJ_P]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fWyjscieP);
@@ -1308,7 +1309,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu D
 		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_WY_D)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_ODCH], cNazwyPozycjiRejestratora[NREJ_WYJ_D]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fWyjscieD);
@@ -1318,7 +1319,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu wyprzedzającego
 		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_WYPRZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_ODCH], cNazwyPozycjiRejestratora[NREJ_WYJ_WYPRZ]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fWyjscieWyprz);
@@ -1328,7 +1329,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście regulatora sterowania prędkością kątową odchylenia
 		if (nKonfLogera[5] & KLOG6_PID_PK_ODCH_WYJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PRED_ODCH], cNazwyPozycjiRejestratora[NREJ_WYJSCIE]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ODCH].fWyjsciePID);
@@ -1338,7 +1339,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wartość zadana regulatora sterowania wysokością
 		if (nKonfLogera[5] & KLOG6_PID_WYSO_WZAD)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_WYSOKOSCI], cNazwyPozycjiRejestratora[NREJ_WART_ZADANA]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fZadana);
@@ -1348,7 +1349,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana wartość wejściowa dla wszystkich członów
 		if (nKonfLogera[5] & KLOG6_PID_WYSO_FWEJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_WYSOKOSCI], cNazwyPozycjiRejestratora[NREJ_FILTR_WWEJ]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fFiltrWWej);
@@ -1358,7 +1359,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 		if (nKonfLogera[5] & KLOG6_PID_WYSO_FROZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_WYSOKOSCI], cNazwyPozycjiRejestratora[NREJ_FILTR_ROZN]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fFiltrRóżn);
@@ -1368,7 +1369,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu P
 		if (nKonfLogera[5] & KLOG6_PID_WYSO_WY_P)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_WYSOKOSCI], cNazwyPozycjiRejestratora[NREJ_WYJ_P]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fWyjscieP);
@@ -1378,7 +1379,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu I
 		if (nKonfLogera[5] & KLOG6_PID_WYSO_WY_I)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_WYSOKOSCI], cNazwyPozycjiRejestratora[NREJ_WYJ_I]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fWyjscieI);
@@ -1388,7 +1389,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu D
 		if (nKonfLogera[5] & KLOG6_PID_WYSO_WY_D)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_WYSOKOSCI], cNazwyPozycjiRejestratora[NREJ_WYJ_D]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fWyjscieD);
@@ -1398,7 +1399,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu wyprzedzającego
 		if (nKonfLogera[5] & KLOG6_PID_WYSO_WYPRZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_WYSOKOSCI], cNazwyPozycjiRejestratora[NREJ_WYJ_WYPRZ]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fWyjscieWyprz);
@@ -1408,7 +1409,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście regulatora sterowania odchyleniem
 		if (nKonfLogera[5] & KLOG6_PID_WYSO_WYJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_WYSOKOSCI], cNazwyPozycjiRejestratora[NREJ_WYJSCIE]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_WYSOKOSCI].fWyjsciePID);
@@ -1418,7 +1419,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wartość zadana regulatora prędkości zmiany wysokości
 		if (nKonfLogera[5] & KLOG6_PID_PR_WYSO_WZAD)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PR_ZM_WYS], cNazwyPozycjiRejestratora[NREJ_WART_ZADANA]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fZadana);
@@ -1428,7 +1429,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana (0..255) wartość zadana dla członu wyprzedzenia
 		if (nKonfLogera[5] & KLOG6_PID_PR_WYSO_FZAD)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PR_ZM_WYS], cNazwyPozycjiRejestratora[NREJ_FILTR_WZAD]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fFiltrWZad);
@@ -1438,7 +1439,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana wartość wejściowa dla wszystkich członów
 		if (nKonfLogera[5] & KLOG6_PID_WYSO_FWEJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PR_ZM_WYS], cNazwyPozycjiRejestratora[NREJ_FILTR_WWEJ]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fFiltrWWej);
@@ -1448,7 +1449,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//przefiltrowana (0..255) wartość wejściowa dla członu różniczkującego
 		if (nKonfLogera[5] & KLOG6_PID_PK_WYSO_FROZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PR_ZM_WYS], cNazwyPozycjiRejestratora[NREJ_FILTR_ROZN]);
 			else
 				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fFiltrRóżn);
@@ -1458,7 +1459,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu P
 		if (nKonfLogera[5] & KLOG6_PID_PR_WYSO_WY_P)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PR_ZM_WYS], cNazwyPozycjiRejestratora[NREJ_WYJ_P]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fWyjscieP);
@@ -1468,7 +1469,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu D
 		if (nKonfLogera[5] & KLOG6_PID_PR_WYSO_WY_D)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PR_ZM_WYS], cNazwyPozycjiRejestratora[NREJ_WYJ_D]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fWyjscieD);
@@ -1478,7 +1479,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście członu wyprzedzającego
 		if (nKonfLogera[5] & KLOG6_PID_PR_WYSO_WYPRZ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PR_ZM_WYS], cNazwyPozycjiRejestratora[NREJ_WYJ_WYPRZ]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fWyjscieWyprz);
@@ -1488,7 +1489,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		//wyjście regulatora sterowania prędkością zmiany wysokości
 		if (nKonfLogera[5] & KLOG6_PID_PR_WYSO_WYJ)
 		{
-			if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 				sprintf(cBufPodreczny, "%s.%s;", cNazwyPozycjiRejestratora[NREJ_REG_PR_ZM_WYS], cNazwyPozycjiRejestratora[NREJ_WYJSCIE]);
 			else
 				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.stPID[PID_PRED_ZWYS].fWyjsciePID);
@@ -1503,7 +1504,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[7] & KLOG8_KALWYS_X0 << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 					sprintf(cBufPodreczny, "%sX[%d];", cNazwyPozycjiRejestratora[NREJ_KALMAN_WYS], n);
 				else
 					sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.stKalmanDebug.fX[n]);	//wektor stanu
@@ -1515,7 +1516,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[7] & KLOG8_KALWYS_K0 << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 					sprintf(cBufPodreczny, "%sK[%d];", cNazwyPozycjiRejestratora[NREJ_KALMAN_WYS], n);
 				else
 					sprintf(cBufPodreczny, "%E;", uDaneCM4.dane.stKalmanDebug.fK[n]);	//główne elementy wzmocnienia
@@ -1527,7 +1528,7 @@ uint8_t ObslugaPetliRejestratora(void)
 		{
 			if (nKonfLogera[7] & KLOG8_KALWYS_P0 << n)
 			{
-				if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
 					sprintf(cBufPodreczny, "%sP[%d];", cNazwyPozycjiRejestratora[NREJ_KALMAN_WYS], n);
 				else
 					sprintf(cBufPodreczny, "%E;", uDaneCM4.dane.stKalmanDebug.fP[n]);	//główna przekątna wariancji procesu
@@ -1537,8 +1538,8 @@ uint8_t ObslugaPetliRejestratora(void)
 
 
 		//jeżeli był zapisywany nagłówek to przejdź do zapisu danych
-		if (cStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-			cStatusRejestratora &= ~ STATREJ_ZAPISZ_NAGLOWEK;
+		if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			sStatusRejestratora &= ~ STATREJ_ZAPISZ_NAGLOWEK;
 		else
 		{
 			//znajdź kropki i zamień na przecinki
@@ -1580,27 +1581,27 @@ uint8_t ObslugaPetliRejestratora(void)
 		sprintf(cBufPodreczny, "%04d%02d%02d_%02d%02d%02d_%s.csv",stDate.Year+2000, stDate.Month, stDate.Date, stTime.Hours, stTime.Minutes, stTime.Seconds, stBSP_ID.cNazwa);
 		fres = f_open(&SDFile, cBufPodreczny, FA_CREATE_ALWAYS | FA_WRITE);
 		if (fres == FR_OK)
-			cStatusRejestratora |= STATREJ_OTWARTY_PLIK | STATREJ_ZAPISZ_NAGLOWEK;
+			sStatusRejestratora |= STATREJ_OTWARTY_PLIK | STATREJ_ZAPISZ_NAGLOWEK;
 		sMaxDlugoscWierszaLogu = 0;
 		cTimerSync = WPISOW_NA_SYNC;
 	}
 
 	//sprawdź czy nie wyłączono rejestratoraw czasie pracy
-	if ((cStatusRejestratora & STATREJ_WLACZONY) == 0)
+	if ((sStatusRejestratora & STATREJ_WLACZONY) == 0)
 	{
-		if (cStatusRejestratora & STATREJ_OTWARTY_PLIK)
+		if (sStatusRejestratora & STATREJ_OTWARTY_PLIK)
 		{
 			f_close(&SDFile);
 			f_mount(NULL, "", 1);		//zdemontuj system plików
-			cStatusRejestratora = 0;
+			sStatusRejestratora = 0;
 		}
 	}
 
 	//wydano polecenie zamknięcia pliku
-	if (cStatusRejestratora & STATREJ_ZAMKNIJ_PLIK)
+	if (sStatusRejestratora & STATREJ_ZAMKNIJ_PLIK)
 	{
 		f_close(&SDFile);
-		cStatusRejestratora &= ~(STATREJ_ZAMKNIJ_PLIK | STATREJ_OTWARTY_PLIK | STATREJ_WLACZONY);
+		sStatusRejestratora &= ~(STATREJ_ZAMKNIJ_PLIK | STATREJ_OTWARTY_PLIK | STATREJ_WLACZONY);
 	}
 
 	return cBłąd;
@@ -1848,7 +1849,7 @@ void ObslugaZapisuJpeg(void)
 		{
 			printf("Zapisane\r\n");
 			cStatusBufJpeg &= ~(STAT_JPG_ZAMKNIJ + STAT_JPG_OTWARTY);	//skasuj flagi
-			cStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;	//wyłącz flagę obsługi pliku JPEG
+			sStatusRejestratora &= ~STATREJ_ZAPISZ_JPG;	//wyłącz flagę obsługi pliku JPEG
 		}
 		else
 			printf("Blad nr %d zamkniecia pliku\r\n", fres);
@@ -1859,7 +1860,7 @@ void ObslugaZapisuJpeg(void)
 		if ((cStatusBufJpeg & STAT_JPG_OTWARTY) == 0)	//jeżeli są dane a plik nie jest otwarty to ustaw flagę otwarcia
 		{
 			cStatusBufJpeg |= STAT_JPG_OTWORZ;
-			cStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//wyłącz flagę obsługi pliku JPEG
+			sStatusRejestratora |= STATREJ_ZAPISZ_JPG;	//wyłącz flagę obsługi pliku JPEG
 			printf("Awar.otw.pliku\r\n");
 		}
 	}

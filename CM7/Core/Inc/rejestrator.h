@@ -36,7 +36,7 @@
 #define STATREJ_BYL_OTWARTY		0x20
 #define STATREJ_ZAPISZ_BMP		0x40
 #define STATREJ_ZAPISZ_JPG		0x80
-
+#define STATREJ_KARTA_OBECNA	0x8000
 
 //definicje bitów konfiguracji logera
 #define KLOG1_CZAS      	0x00000001	    //czas

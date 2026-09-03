@@ -21,7 +21,7 @@ extern char __attribute__ ((aligned (32))) cBufPodreczny[40];
 extern uint16_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"))) sBuforKamery[SZER_ZDJECIA * WYS_ZDJECIA];
 extern stKonfKam_t stKonfKam;
 extern uint8_t cNazwaPlikuObrazu[DLG_NAZWY_PLIKU_OBR];	//początek nazwy pliku z obrazem, po tym jest data i czas
-extern volatile uint8_t cStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
+extern volatile uint16_t sStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
 
 
 
@@ -40,7 +40,7 @@ void ObslugaZapisuBmp(void)
 	{
 		ZapiszPlikBmp((uint8_t*)sBuforKamery, BMP_KOLOR_24, (uint16_t)stKonfKam.chSzerWy * KROK_ROZDZ_KAM, (uint16_t)stKonfKam.chWysWy * KROK_ROZDZ_KAM);	//kolorowy
 	}
-	cStatusRejestratora &= ~STATREJ_ZAPISZ_BMP;	//wyłącz zapis
+	sStatusRejestratora &= ~STATREJ_ZAPISZ_BMP;	//wyłącz zapis
 }
 
 
