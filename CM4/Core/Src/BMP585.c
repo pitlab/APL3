@@ -36,28 +36,28 @@ static float fP0_BMP585 = 0.0f;	//ciśnienie P0 do obliczeń wysokości [Pa]
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujBMP585(void)
 {
-	uint8_t chDane;
+	uint8_t cDane;
 
 	HAL_Delay(2);		//Power-up time 2ms - czas jaki musi upłynąć od pojawienia się VCC do pierwszej komunikacji
-	chDane = CzytajSPIu8(BMP5_REG_CHIP_ID);	//sprawdź obecność układu
-	if (chDane != 0x51)
+	cDane = CzytajSPIu8(BMP5_REG_CHIP_ID);	//sprawdź obecność układu
+	if (cDane != 0x51)
 		return BLAD_BRAK_CZUJNIKA;
 
-	chDane = CzytajSPIu8(BMP5_REG_CHIP_STATUS);	//sprawdź status konfiguracji magistrali. Musi być ustawiona na SPI
-	if (chDane != 0x03)							//SPI MODE0 lub MODE3
+	cDane = CzytajSPIu8(BMP5_REG_CHIP_STATUS);	//sprawdź status konfiguracji magistrali. Musi być ustawiona na SPI
+	if (cDane != 0x03)							//SPI MODE0 lub MODE3
 		return BLAD_BRAK_CZUJNIKA;
 
 	//ustaw standby bo w takim trybie powinna być robiona konfiguracja
 	chBufBMP585[0] = BMP5_REG_ODR_CONFIG;
-	chBufBMP585[1] = (0 << 0)|	//pwr_mode: 0=standby, 1=normal mode in configured ODR grid, 2=forced one time mode measurement, 3=non stop mode, measurement without further duty cycling
-					 (0 << 2)|	//ODR: 0=240Hz, 1=218,5Hz, 2=199,11Hz, 3=179,2Hz, 4=160Hz,, A=100,3Hz
+	chBufBMP585[1] = (0 << 0)|	//pwr_mode: 0=standby
 					 (1 << 7);	//deep_dis - disable deep standby
 	ZapiszSPIu8(chBufBMP585, 2);
 
 	chBufBMP585[0] = BMP5_REG_OSR_CONFIG;
-	chBufBMP585[1] = (4 << 0)|	//osr_t oversampling rate: 0=1x, 1=2x, 2=4x, 3=8x, 4=16x, 5=32x, 6=64x, 7=128x
-					 (4 << 3)|	//osr_p overdampling dla ciśnienia - tak samo jak dla temperatury
+	chBufBMP585[1] = (1 << 0)|	//osr_t oversampling rate: 0=1x, 1=2x, 2=4x, 3=8x, 4=16x, 5=32x, 6=64x, 7=128x
+					 (3 << 3)|	//osr_p overdampling dla ciśnienia - tak samo jak dla temperatury
 					 (1 << 6);	//press_en
+	//chBufBMP585[1] = 0x48;	//TEST
 	ZapiszSPIu8(chBufBMP585, 2);
 
 	chBufBMP585[0] = BMP5_REG_DSP_CONFIG;
@@ -73,8 +73,9 @@ uint8_t InicjujBMP585(void)
 	//ustaw finalny tryb pracy
 	chBufBMP585[0] = BMP5_REG_ODR_CONFIG;
 	chBufBMP585[1] = (1 << 0)|	//pwr_mode: 0=standby, 1=normal mode in configured ODR grid, 2=forced one time mode measurement, 3=non stop mode, measurement without further duty cycling
-					 (0 << 2)|	//ODR: 0=240Hz, 1=218,5Hz, 2=199,11Hz, 3=179,2Hz, 4=160Hz,, A=100,3Hz
+					 (10 << 2)|	//ODR: 0=240Hz, 1=218,5Hz, 2=199,11Hz, 3=179,2Hz, 4=160Hz,, A=100,3Hz
 					 (1 << 7);	//deep_dis - disable deep standby
+	//chBufBMP585[1] = 0x9D;		//TEST
 	ZapiszSPIu8(chBufBMP585, 2);
 
 	//ustaw źródło przerwania
@@ -154,6 +155,11 @@ uint8_t ObslugaBMP585(void)
 				uDaneCM4.dane.fWariometr[1] = (uDaneCM4.dane.fWysokoMSL[1] - fWysokośćUśredniona) * 1000 * KOREKTA_SKALI_FILTRA_WARIOMETRU / uDaneCM4.dane.ndT;	//dH [m] * 1e3 / t [1e-6 s]
 		}
 
+		chBufBMP585[0] = CzytajSPIu8(BMP5_REG_OSR_EFF);
+
+		chBufBMP585[1] = CzytajSPIu8(0x20);
+		chBufBMP585[2] = CzytajSPIu8(0x21);
+		chBufBMP585[3] = CzytajSPIu8(0x22);
 	}
 	return cBłąd;
 }
