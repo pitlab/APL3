@@ -134,9 +134,13 @@
 #define TID_BSP_SZER_GEO		102
 #define TID_BSP_DLUG_GEO		103
 
-#define TID_DOTYK_ADC0			104
-#define TID_DOTYK_ADC1			105
-#define TID_DOTYK_ADC2			106
+//#define TID_DOTYK_ADC0			104
+//#define TID_DOTYK_ADC1			105
+//#define TID_DOTYK_ADC2			106
+#define TID_CISBEZW3			104
+#define TID_WYSOKOSC_MSL3		105
+#define TID_WARIO3				106
+
 #define TID_CZAS_PETLI			107	//czas trwania ostatniej petli głównej w us
 #define TID_JAKOSC_UP_RC1		108
 #define TID_JAKOSC_UP_RC2		109

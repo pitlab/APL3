@@ -219,9 +219,9 @@
 
 #define	FAH_MNOZNIK_CISN_BEZWZGL1	FAH_MAGN3+24    //mnożnik ciśnienia bezwzględnego czujnika 1
 #define	FAH_MNOZNIK_CISN_BEZWZGL2	FAH_MAGN3+28    //mnożnik ciśnienia bezwzględnego czujnika 2
+#define	FAH_MNOZNIK_CISN_BEZWZGL3	FAH_MAGN3+32    //mnożnik ciśnienia bezwzględnego czujnika 2
 
-
-#define FAG_CZUJ_ZEWN				FAH_MAGN3+32	//zewnętrzne czujniki analogowe
+#define FAG_CZUJ_ZEWN				FAH_MAGN3+36	//zewnętrzne czujniki analogowe
 #define FAG_MNOZNIK_CZUJ_ZEWN		FAG_CZUJ_ZEWN+0		//4*4F współczynnik mnożenia analogowego napęcia czujnika zewnętrznego
 #define FAG_SKLADNIK_CZUJ_ZEWN		FAG_CZUJ_ZEWN+16	//4*4F współczynnik dodawany do analogowego napęcia czujnika zewnętrznego
 

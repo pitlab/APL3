@@ -22,7 +22,7 @@ extern SPI_HandleTypeDef hspi2;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 //static uint8_t chProporcjaPomiarow;
 static float fP0_BMP581 = 0.0f;	//ciśnienie P0 do obliczeń wysokości [Pa]
-static uint8_t chBufBMP581[4];
+static uint8_t cBufBMP581[4];
 static uint16_t sLicznikUsrednianiaP0 = 0;			//licznik uśredniania ciśnienia zerowego do obliczeń wysokości
 static float fWysokośćUśredniona;		//średnia z ostatnich pomiarów wysokości potrzebna do liczenia wariometru
 static uint32_t nCzasOstatniejKonwersjiBMP581;
@@ -37,55 +37,67 @@ static uint32_t nCzasOstatniejKonwersjiBMP581;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujBMP581(void)
 {
-	uint8_t chDane;
-
-	/*HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_RESET);	//CS = 0
-	chBufBMP581[0] = PBMP5_CHIP_ID | READ_SPI;
-	//chBufBMP581[0] = PBMP5_REV_ID | READ_SPI;
-	chBufBMP581[1] = 0;
-	HAL_SPI_TransmitReceive(&hspi2, chBufBMP581, chBufBMP581, 2, 5);
-	HAL_GPIO_WritePin(MOD_SPI_NCS_GPIO_Port, MOD_SPI_NCS_Pin, GPIO_PIN_SET);	//CS = 1
-	chDane = chBufBMP581[1];*/
-
 	HAL_Delay(2);		//Power-up time 2ms - czas jaki musi upłynąć od pojawienia się VCC do pierwszej komunikacji
-	chDane = CzytajSPIu8(BMP5_REG_CHIP_ID);	//sprawdź obecność układu
-	if (chDane != 0x50)
+	cBufBMP581[0] = CzytajSPIu8(BMP5_REG_CHIP_ID);	//sprawdź obecność układu
+	if (cBufBMP581[0] != 0x50)
 		return BLAD_BRAK_CZUJNIKA;
 
-	chBufBMP581[0] = BMP5_REG_DRIVE_CONFIG;
-	chBufBMP581[1] = 0x00;
-	ZapiszSPIu8(chBufBMP581, 2);
+	cBufBMP581[0] = BMP5_REG_DRIVE_CONFIG;
+	cBufBMP581[1] = 0x00;
+	ZapiszSPIu8(cBufBMP581, 2);
 
-	chDane = CzytajSPIu8(BMP5_REG_CHIP_STATUS);	//sprawdź status konfiguracji magistrali
-	if (chDane != 0x03)							//SPI MODE0 lub MODE3
+	cBufBMP581[0] = CzytajSPIu8(BMP5_REG_CHIP_STATUS);	//sprawdź status konfiguracji magistrali
+	if (cBufBMP581[0] != 0x03)							//SPI MODE0 lub MODE3
 		return BLAD_BRAK_CZUJNIKA;
 
-	chBufBMP581[0] = BMP5_REG_OSR_CONFIG;
-	 chBufBMP581[1] = (2 << 0)|	//oversampling temperatury: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
+	cBufBMP581[0] = BMP5_REG_ODR_CONFIG;
+	cBufBMP581[1] = (0 << 0);	//pwr_mode: 0=standby,
+	ZapiszSPIu8(cBufBMP581, 2);
+
+	cBufBMP581[0] = BMP5_REG_OSR_CONFIG;
+	/*cBufBMP581[1] = (1 << 0)|	//oversampling temperatury: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
 			 	 	 (2 << 3)|	//oversampling ciśnienia: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
+					 (1 << 6);	//enable pressure sensor measurements*/
+	cBufBMP581[1] = (2 << 0)|	//oversampling temperatury: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
+				 	 (3 << 3)|	//oversampling ciśnienia: 0=x1, 1=x2, 2=x4, 3=x8, 4=x16, 5=x32, 6=x64, 7=x128
 					 (1 << 6);	//enable pressure sensor measurements
-	ZapiszSPIu8(chBufBMP581, 2);
+	ZapiszSPIu8(cBufBMP581, 2);
 
-	chBufBMP581[0] = BMP5_REG_ODR_CONFIG;
-	chBufBMP581[1] = (3 << 0)|	//pwr_mode: 0=standby, 1=normal mode in configured ODR grid, 2=forced one time mode measurement, 3=non stop mode, measurement without further duty cycling
-					 (0 << 2)|	//ODR: 0=240Hz, 1=218,5Hz, 2=199,11Hz, 3=179,2Hz, 4=160Hz,, A=100,3Hz
+	cBufBMP581[0] = BMP5_REG_ODR_CONFIG;
+	cBufBMP581[1] = (1 << 0)|	//pwr_mode: 0=standby, 1=normal mode in configured ODR grid, 2=forced one time mode measurement, 3=non stop mode, measurement without further duty cycling
+					 (15 << 2)|	//ODR: 0=240Hz, 1=218,5Hz, 2=199,11Hz, 3=179,2Hz, 4=160Hz,, A=100,3Hz; B=89,6; C=80; D=70; E=60; F=50
 					 (1 << 7);	//deep_dis - disable deep standby
-	ZapiszSPIu8(chBufBMP581, 2);
+	ZapiszSPIu8(cBufBMP581, 2);
 
-	chBufBMP581[0] = BMP5_REG_DSP_CONFIG;
-	chBufBMP581[1] = (2 << 0)|	//kompensacja ciśnienia i temepratury: 0=bez kompensacji cośnienia i temepratury; 1=komp. temepratury; 2=3=kompensacja ciśnienia i temperatury
+	cBufBMP581[0] = BMP5_REG_DSP_CONFIG;
+	cBufBMP581[1] = (3 << 0)|	//kompensacja ciśnienia i temepratury: 0=bez kompensacji ciśnienia i temepratury; 1=komp. temepratury; 2=3=kompensacja ciśnienia i temperatury
 			 	 	 (1 << 2)|	//IIR flush in FORCED mode
-					 (0 << 3)|	//Temperature Data Registers IIR selection temeprature data: 0=before IIR filter; 1=after IIR filter
-					 (0 << 4)|	//FIFO IIR selection temperature data: 0=before IIR filter; 1=after IIR filter
-					 (0 << 5)|	//Shadow Registers IIR selection pressure data: 0=before IIR filter; 1=after IIR filter
-					 (0 << 6)|	//FIFO IIR selection pressure data: 0=before IIR filter; 1=after IIR filter
-					 (0 << 7);	//Out Of Range IIR selection: 0=before IIR filter; 1=after IIR filter
-	ZapiszSPIu8(chBufBMP581, 2);
+					 (1 << 3)|	//Temperature Data Registers IIR selection temeprature data: 0=before IIR filter; 1=after IIR filter
+					 (1 << 4)|	//FIFO IIR selection temperature data: 0=before IIR filter; 1=after IIR filter
+					 (1 << 5)|	//Shadow Registers IIR selection pressure data: 0=before IIR filter; 1=after IIR filter
+					 (1 << 6)|	//FIFO IIR selection pressure data: 0=before IIR filter; 1=after IIR filter
+					 (1 << 7);	//Out Of Range IIR selection: 0=before IIR filter; 1=after IIR filter
+	ZapiszSPIu8(cBufBMP581, 2);
 
-	/*chBufBMP581[0] = BMP5_REG_FIFO_SEL;
-	chBufBMP581[1] = (3 << 0)|	//FIFO frame sel: 0=FIFO not enabled; 1=Temperature data; 2=Pressure data; 3 pressure and temperature data
+
+	cBufBMP581[0] = BMP5_REG_DSP_IIR;
+	cBufBMP581[1] = (3 << 0)|	//Pressure IIR band filter selection: 0=Baypass; 1=1; 2=3; 3=7; 4=15; 5=31; 6=63; 7=127
+			 	 	 (2 << 3)|	//Temperature IIR band filter selection:
+					 (0 << 6);	//reserved
+	ZapiszSPIu8(cBufBMP581, 2);
+
+	//ustaw źródło przerwania
+	cBufBMP581[0] = BMP5_REG_INT_SOURCE;
+	cBufBMP581[1] = (1 << 0)|	//data ready
+					 (0 << 1)|	//fifo full
+					 (0 << 2)|	//fifo threshold
+					 (0 << 3);	//pressure data out of range
+	ZapiszSPIu8(cBufBMP581, 2);
+
+	/*cBufBMP581[0] = BMP5_REG_FIFO_SEL;
+	cBufBMP581[1] = (3 << 0)|	//FIFO frame sel: 0=FIFO not enabled; 1=Temperature data; 2=Pressure data; 3 pressure and temperature data
 					 (0 << 2);	//FIFO decimation level
-	ZapiszSPIu8(chBufBMP581, 2);*/
+	ZapiszSPIu8(cBufBMP581, 2);*/
 
 
 	HAL_Delay(4);		//Re-configuration time 4ms
@@ -99,7 +111,6 @@ uint8_t InicjujBMP581(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Realizuje sekwencję obsługową czujnika do wywołania w wyższej warstwie
-// Wykonuje w pętli 1 pomiar temepratury i 15 pomiarów ciśnienia
 // Parametry: nic
 // Zwraca: kod błędu
 // Czas wykonania:
@@ -107,9 +118,8 @@ uint8_t InicjujBMP581(void)
 uint8_t ObslugaBMP581(void)
 {
 	uint8_t cBłąd = BLAD_OK;
-	//uint8_t chDane;
-	//float fCisnienie = 0;
 	int32_t nWartosc[2];
+	uint32_t nCzas, nDeltaCzasu;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_BMP581) != INIT_BMP581)	//jeżeli czujnik nie jest zainicjowany
 	{
@@ -120,31 +130,14 @@ uint8_t ObslugaBMP581(void)
 	}
 	else	//czujnik jest zainicjowany
 	{
-
-		//sprawdź ile czasu upłyneło od ostatniego pomiaru. Jeżeli było to mniej niż czas potrzebny na konwersję to pomiń to uruchomienie
-		uint32_t nCzas = MinalCzasT7(nCzasOstatniejKonwersjiBMP581);
-		//if (nCzas < 3045)	//OSRx4 = 2,9ms + 5%
-		//if (nCzas < 1050)	//OSRx1 = 1,0ms + 5%
-		if (nCzas < 4375)	//ODR = 240Hz -> 4,16ms +5%  = 4,375
+		uint8_t cDane = CzytajSPIu8(BMP5_REG_INT_STATUS);	//sprawdź status pomiaru
+		if ((cDane & 0x01) != 0x01)		//drdy_data_reg = Data Ready
 			return BLAD_ZA_KROTKI_CZAS;
 
-		/*chDane = CzytajSPIu8(BMP5_REG_INT_STATUS);
-		if ((chDane & 0x01) != 0x01)	//data_ready
-			return BLAD_ZA_KROTKI_CZAS;*/
-
 		//konwersja miała szansę się zakonczyć, więc oczytaj pomiar i uruchom następny
-		nCzasOstatniejKonwersjiBMP581 = PobierzCzasT7();
-/*		switch (chProporcjaPomiarow)
-		{
-		case 0:	uDaneCM4.dane.fTemper[TEMP_BARO2] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO2] + (float)(CzytajSPIs24mp(BMP5_REG_TEMP_DATA_XLSB) / 65536) + KELVIN) / 8;	break;
-		default:
-			fCisnienie = (float)CzytajSPIs24mp(BMP5_REG_PRESS_DATA_XLSB) / 64.0f;
-			uDaneCM4.dane.fCisnieBzw[1] = (7 * uDaneCM4.dane.fCisnieBzw[1] + fCisnienie) / 8;
-			break;
-		}
-		chProporcjaPomiarow++;
-		chProporcjaPomiarow &= 0x0F;*/
-
+		nCzas = PobierzCzasT7();
+		nDeltaCzasu = MinalCzas2T7(nCzasOstatniejKonwersjiBMP581, nCzas);
+		nCzasOstatniejKonwersjiBMP581 = nCzas;
 
 		CzytajBuforSPIsmp(BMP5_REG_TEMP_DATA_XLSB, nWartosc, 2);	//odczyt z rejestrów
 		//CzytajBuforSPIsmp(BMP5_REG_FIFO_DATA, nWartosc, 2);			//odczyt z FIFO
@@ -168,9 +161,15 @@ uint8_t ObslugaBMP581(void)
 		else
 		{
 			uDaneCM4.dane.fWysokoAGL[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[1], fP0_BMP581, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//P0 gotowe więc oblicz wysokość
-			if ((uDaneCM4.dane.ndT > 0) && (uDaneCM4.dane.ndT < 10000))	//nie licz dla zera i długich przestoi, bo to generuje dużą szpilkę danych
-				uDaneCM4.dane.fWariometr[1] = (uDaneCM4.dane.fWysokoMSL[1] - fWysokośćUśredniona) * 1000 * KOREKTA_SKALI_FILTRA_WARIOMETRU / uDaneCM4.dane.ndT;	//dH [m] * 1e3 / t [1e-6 s]
+			if ((nDeltaCzasu > 0) && (nDeltaCzasu < 10000))	//nie licz dla zera i długich przestoi, bo to generuje dużą szpilkę danych
+				uDaneCM4.dane.fWariometr[1] = (uDaneCM4.dane.fWysokoMSL[1] - fWysokośćUśredniona) * 1000 * KOREKTA_SKALI_FILTRA_WARIOMETRU_BMP581 / nDeltaCzasu;	//dH [m] * 1e3 / t [1e-6 s]
 		}
+
+		cBufBMP581[0] = CzytajSPIu8(BMP5_REG_OSR_EFF);
+
+		cBufBMP581[1] = CzytajSPIu8(0x20);
+		cBufBMP581[2] = CzytajSPIu8(0x21);
+		cBufBMP581[3] = CzytajSPIu8(0x22);
 
 	}
 	return cBłąd;

@@ -44,7 +44,7 @@
 #define BMP5_REG_OSR_EFF            0x38
 #define BMP5_REG_CMD                0x7E
 
-
+#define BIAS_CISNIENIA_BMP585		97.0f	//o tyle [Pa] ciśnienie różni się od wzorcowego
 
 //definicje funkcji
 uint8_t InicjujBMP585(void);

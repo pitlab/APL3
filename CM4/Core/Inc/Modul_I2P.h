@@ -38,13 +38,19 @@
 
 //#define PODSTAWA_FILTRA_IIR_WARIOMETRU		48
 
-//#define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących
+#define LICZBA_PROBEK_USREDNIANIA		1500	//tyle trzeba aby filtr (127+1)/128 uzyskał dokładność 6 cyfr znaczących
 #define PODSTAWA_FILTRA_IIR_P0			512	//wariometr zbudowany na tym filtrze wskazuje dwukrotnie większą prędkość
-#define LICZBA_PROBEK_USREDNIANIA		10000	//tyle trzeba aby filtr (511+1)/512 uzyskał dokładność 6 cyfr znaczących
+//#define LICZBA_PROBEK_USREDNIANIA		10000	//tyle trzeba aby filtr (511+1)/512 uzyskał dokładność 6 cyfr znaczących
 //#define PODSTAWA_FILTRA_IIR_P0			256	//dobra skala ale prawdopodobnie zbyt duże opóźnienie pomiaru
 //#define KOREKTA_SKALI_FILTRA_P0			1	//wspólczynnik korygujący skalę filtra
-#define PODSTAWA_FILTRA_IIR_WARIOMETRU	64	//skala za mała. Jest ok 0,3 a powinno być 1.1
-#define KOREKTA_SKALI_FILTRA_WARIOMETRU	4	//współczynnik korygujący skalę filtra
+//#define PODSTAWA_FILTRA_IIR_WARIOMETRU	64	//skala za mała. Jest ok 0,3 a powinno być 1.1
+//#define KOREKTA_SKALI_FILTRA_WARIOMETRU	4	//współczynnik korygujący skalę filtra
+#define PODSTAWA_FILTRA_IIR_WARIOMETRU			200
+#define PODSTAWA_FILTRA_IIR_WARIOMETRU_BMP585	80
+#define KOREKTA_SKALI_FILTRA_WARIOMETRU_MS5611	5.0f	//współczynnik korygujący skalę filtra
+#define KOREKTA_SKALI_FILTRA_WARIOMETRU_BMP585	13.7f	//współczynnik korygujący skalę filtra
+#define KOREKTA_SKALI_FILTRA_WARIOMETRU_BMP581	1.0f
+
 #define MIN_WYSOKOSC		-500	//minimalna dozwolona wysokość [m]
 #define MAX_WYSOKOSC		10000	//maksymalna dozwolona wysokość [m]
 #define MIN_WARIO			-20		//minimalna dozwolona prędkość pionowa [m/s]
@@ -53,7 +59,7 @@
 #define MAX_ACC				196		//maksymalne przyspieszenie (20g) [m/s^2]
 
 
-#define LICZBA_CZUJ_CISN	2
+#define LICZBA_CZUJ_CISN	3
 
 //definicje rodzajów temepratur
 #define ZIM		0
@@ -96,7 +102,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t chRodzajKalib);
 uint8_t ObliczRownanieFunkcjiTemperatury(float fOffset1, float fOffset2, float fTemp1, float fTemp2, float *fA, float *fB);
 void ObliczWspTemperaturowy3(WspRownProstej3_t stWsp, float fTemp, float *fPrzesZera);
 float ObliczWspTemperaturowy1(WspRownProstej1_t stWsp, float fTemp);
-uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uint16_t sLicznik, uint8_t chPrzebieg);
+uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fCisnienie3, float fTemp, uint16_t sLicznik, uint8_t cPrzebieg);
 uint8_t ZapiszKalibracjeMagnetometru(uint8_t chMagn);
 void ZnajdzEkstremaMagnetometru(float *fMag);
 uint8_t ZerujEkstremaMagnetometru(void);

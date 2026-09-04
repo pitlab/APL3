@@ -106,6 +106,7 @@
 #define NP_EXT_IAS	0x08
 #define NP_WYS1		0x10
 #define NP_WYS2		0x20
+#define NP_WYS3		0x40
 
 //definicje kątow
 #define PRZE	0
@@ -166,8 +167,8 @@ typedef union
 typedef struct
 {
 	float fX[5];	//wektor stanu filtra
-	float fP[5];	//główna przekatna macierzy kowariancji predykcji
-	float fK[5];	//główna przekatna macierzy wzmocnienia Kalmana
+	float fP[6];	//główna przekatna macierzy kowariancji predykcji
+	float fK[6];	//główna przekatna macierzy wzmocnienia Kalmana
 } stKalmanDebug_t;
 
 #define ODPOWIEDZ_U8	31	//komórka tablicy U8 odpowiedzialna za przekazywanie odpowiedzi na polecenia kalibracyjne
@@ -191,13 +192,13 @@ typedef struct
 	float fKatAkcel1[3];	//[rad]
 	float fKatAkcel2[3];
 	float fKatKwater[3];
-	float fCisnieBzw[2];	//Ciśnienie bezwzględne [Pa]
-	float fWysokoMSL[2];	//Wysokość nad poziomem morza [m]
-	float fWysokoAGL[2];	//Wysokość nad poziomem startu [m]
-	float fWariometr[2];	//prędkość pionowa [m/s]
+	float fCisnieBzw[3];	//Ciśnienie bezwzględne [Pa]
+	float fWysokoMSL[3];	//Wysokość nad poziomem morza [m]
+	float fWysokoAGL[3];	//Wysokość nad poziomem startu [m]
+	float fWariometr[3];	//prędkość pionowa [m/s]
 	float fCisnRozn[2];		//0=ND130, 1=MS2545
 	float fPredkosc[2];		//[m/s]
-	float fTemper[6];		//0=MS5611, 1=BMP851, 2=ICM42688 [K], 3=LSM6DSV [K], 4=ND130, 5=MS2545
+	float fTemper[7];		//0=MS5611, 1=BMP851, 2=ICM42688 [K], 3=LSM6DSV [K], 4=ND130, 5=MS2545, 6=BMP585
 	float fTemperCPU;		//temperatura rdzeni kontrolera
 	float fKwaAkc[4];		//kwaternion wektora przyspieszenia
 	float fKwaMag[4];		//kwaternion wektora magnetycznego

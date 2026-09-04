@@ -124,9 +124,9 @@ uint8_t InicjujFiltrKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
 				fZa[0] = 0.0f;
 		}
 		dane->cNowyPomiar &= ~(NP_WYS1 + NP_WYS2);
-		fZc[0] += dane->fWysokoMSL[0];	//wysokość
-		fZc[1] += dane->fWariometr[0];	//prędkość pionowa 1
-		fZa[0] += dane->fAkcel1[2];		//przyspieszenie bezwzględne 1 w osi Z
+		fZc[0] += (dane->fWysokoMSL[0] + dane->fWysokoMSL[2]) / 2;	//średnia wysokość
+		fZc[1] += (dane->fWariometr[0] + dane->fWariometr[2]) / 2;	//średnia prędkość pionowa
+		fZa[0] += (dane->fAkcel1[2] + dane->fAkcel2[2]) / 2;		//średnie przyspieszenie bezwzględne w osi Z
 
 		cLicznikUśredniania--;
 		if (cLicznikUśredniania == 0)
@@ -187,12 +187,12 @@ uint8_t InicjujFiltrKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
 	//pozostałe pola sa kowariancją, czyli zależnością między błędami jednego pomiaru a drugiego. Zakładam że
 	//błędy pomiarów są niezależne, więc kowariancja jest ustawiona na 0. W rzeczywistosci pomiar prędkości jest liczony
 	//z danych czujnika wysokości więc korelacja istnieje ale na razie nie potrafię jej obliczyć
-	fRc1[0][0] = 0.068;	//wariancja statycznego pomiaru wysokości czujnika 1 [m^2]
-	fRc1[1][1] = 0.068;	//wariancja statycznego pomiaru wysokości czujnika 2 [m^2]
-	fRc2[0][0] = 2.097;	//wariancja statycznego pomiaru prędkości wariometru 1 [m^2/s^2]
-	fRc2[1][1] = 2.097;	//wariancja statycznego pomiaru prędkości wariometru 2 [m^2/s^2]
-	fRa1[0][0] = 0.399;	//wariancja statycznego pomiaru przyspieszenia akcelerometru 1 [m^2/s^4]
-	fRa2[0][0] = 0.399;	//wariancja statycznego pomiaru przyspieszenia akcelerometru 2 [m^2/s^4]
+	fRc1[0][0] = 0.056;		//wariancja statycznego pomiaru wysokości czujnika 1 [m^2]
+	fRc1[1][1] = 0.407;		//wariancja statycznego pomiaru prędkości wariometru 1 [m^2/s^2]
+	fRc2[0][0] = 0.0093;	//wariancja statycznego pomiaru wysokości czujnika 3 [m^2]
+	fRc2[1][1] = 0.0016;	//wariancja statycznego pomiaru prędkości wariometru 3 [m^2/s^2]
+	fRa1[0][0] = 0.031;		//wariancja statycznego pomiaru przyspieszenia akcelerometru 1 [m^2/s^4]
+	fRa2[0][0] = 0.045;		//wariancja statycznego pomiaru przyspieszenia akcelerometru 2 [m^2/s^4]
 	arm_mat_init_f32(&mRc1, KPCIS, KPCIS, &fRc1[0][0]);
 	arm_mat_init_f32(&mRc2, KPCIS, KPCIS, &fRc2[0][0]);
 	arm_mat_init_f32(&mRa1, KPACC, KPACC, &fRa1[0][0]);
@@ -296,6 +296,11 @@ uint8_t PredykcjaFiltraKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
 
 	//dodaj macierz szumu Q procesu do iloczynu (F * P(n)) * (F^T) -> P
 	cBłąd |= arm_mat_add_f32(&mQ, &mTempSSC, &mP);
+	dane->stKalmanDebug.fP[0] = fP[0][0];
+	dane->stKalmanDebug.fP[1] = fP[1][1];
+	dane->stKalmanDebug.fP[2] = fP[2][2];
+	dane->stKalmanDebug.fP[3] = fP[3][3];
+	dane->stKalmanDebug.fP[4] = fP[4][4];
 	return cBłąd;
 }
 
@@ -338,14 +343,15 @@ uint8_t AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(stWymianyCM4
 
 	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mK	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mPHc, &mTempPPcA, &mKc1);
-	dane->stKalmanDebug.fK[0] = fKc1[0][0];	//wpływuwysokości czujnka 1 na estymowaną wysokość
+	dane->stKalmanDebug.fK[0] = fKc1[0][0];	//wpływu wysokości czujnka 1 na estymowaną wysokość
+	dane->stKalmanDebug.fK[2] = fKc1[1][1];	//wpływu prędkości czujnka 1 na estymowaną prędkość
 
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1) [Pomiar x Stan] * [Stan] = [Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mHcx, &mX, &mTempPc1A);
 
 	//innowacja: z(n) - (H*X(n-1)) ->mTempPc1B		[Pomiar] - [Pomiar] = [Pomiar]
 	cBłąd |= arm_mat_sub_f32(&mZc, &mTempPc1A, &mTempPc1B);
-	dane->stKalmanDebug.fP[0] = fTempPc1B[0];	//w zmiennej fP zachowaj innowację wysokości 1
+	//dane->stKalmanDebug.fP[0] = fTempPc1B[0];	//w zmiennej fP zachowaj innowację wysokości 1
 
 	//mnożenie przez K: K(n) * (z(n)-H*X(n-1))		[Stan x Pomiar] * [Pomiar] = [Stan]
 	cBłąd |= arm_mat_mult_f32(&mKc1, &mTempPc1B, &mTempS1A);
@@ -400,8 +406,8 @@ uint8_t AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(stWymianyCM4
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	fZc[0] = dane->fWysokoMSL[1];	//wysokość
-	fZc[1] = dane->fWariometr[1];	//prędkość pionowa
+	fZc[0] = dane->fWysokoMSL[2];	//wysokość
+	fZc[1] = dane->fWariometr[2];	//prędkość pionowa
 
 	//sprawdź czy pomiary mieszczą się w akceptowalnym zakresie
 	if ((fZc[0] < MIN_WYSOKOSC) || (fZc[0] > MAX_WYSOKOSC) || (fZc[1] < MIN_WARIO) || (fZc[1] > MAX_WARIO))
@@ -425,14 +431,15 @@ uint8_t AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(stWymianyCM4
 
 	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mKc2	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mPHc, &mTempPPcA, &mKc2);
-	dane->stKalmanDebug.fK[1] = fKc2[0][1];	//wpływ wysokości czujnka 2 na estymowaną wysokość
+	dane->stKalmanDebug.fK[1] = fKc2[0][0];	//wpływ wysokości czujnka 2 na estymowaną wysokość
+	dane->stKalmanDebug.fK[3] = fKc1[1][1];	//wpływu prędkości czujnka 2 na estymowaną prędkość
 
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1) [Pomiar x Stan] * [Stan] = [Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mHcx, &mX, &mTempPc1A);
 
 	//innowacja: z(n) - (H*X(n-1)) ->mTempPc1B		[Pomiar] - [Pomiar] = [Pomiar]
 	cBłąd |= arm_mat_sub_f32(&mZc, &mTempPc1A, &mTempPc1B);
-	dane->stKalmanDebug.fP[1] = fTempPc1B[0];	//w zmiennej fP zachowaj innowację wysokości 1
+	//dane->stKalmanDebug.fP[1] = fTempPc1B[0];	//w zmiennej fP zachowaj innowację wysokości 1
 
 	//mnożenie przez K: K(n) * (z(n)-H*X(n-1))		[Stan x Pomiar] * [Pomiar] = [Stan]
 	cBłąd |= arm_mat_mult_f32(&mKc2, &mTempPc1B, &mTempS1A);
@@ -510,14 +517,14 @@ uint8_t AktulizacjaAkcelerometrem1FiltraKalmanaWysokości5X6Z(stWymianyCM4_t *da
 
 	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mK	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mPHa, &mTempPPaA, &mKa1);
-	dane->stKalmanDebug.fK[2] = fKa1[2][4];	//wpływ akcelrometru 1 na estymowane przyspieszenie
+	dane->stKalmanDebug.fK[4] = fKa1[2][0];	//wpływ akcelrometru 1 na estymowane przyspieszenie
 
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1) [Pomiar x Stan] * [Stan] = [Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mHa1, &mX, &mTempPa1A);
 
 	//Innowacja: z(n) - (H*X(n-1)) ->mTempPa1B		[Pomiar] - [Pomiar] = [Pomiar]
 	cBłąd |= arm_mat_sub_f32(&mZa, &mTempPa1A, &mTempPa1B);
-	dane->stKalmanDebug.fP[2] = fTempPa1B[0];	//w zmiennej fP zachowaj innowację przyspieszenia 1
+	//dane->stKalmanDebug.fP[2] = fTempPa1B[0];	//w zmiennej fP zachowaj innowację przyspieszenia 1
 
 	//mnożenie przez K: K(n) * (z(n)-H*X(n-1))		[Stan x Pomiar] * [Pomiar] = [Stan]
 	cBłąd |= arm_mat_mult_f32(&mKa1, &mTempPa1B, &mTempS1A);
@@ -595,14 +602,14 @@ uint8_t AktulizacjaAkcelerometrem2FiltraKalmanaWysokości5X6Z(stWymianyCM4_t *da
 
 	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mKa2	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mPHa, &mTempPPaA, &mKa2);
-	dane->stKalmanDebug.fK[3] = fKa2[2][5];	//wpływ akcelrometru 2 na estymowane przyspieszenie
+	dane->stKalmanDebug.fK[5] = fKa2[2][0];	//wpływ akcelrometru 2 na estymowane przyspieszenie
 
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1) [Pomiar x Stan] * [Stan] = [Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mHa2, &mX, &mTempPa1A);
 
 	//Innowacja: z(n) - (H*X(n-1)) ->mTempPa1B		[Pomiar] - [Pomiar] = [Pomiar]
 	cBłąd |= arm_mat_sub_f32(&mZa, &mTempPa1A, &mTempPa1B);
-	dane->stKalmanDebug.fP[3] = fTempPa1B[0];	//w zmiennej fP zachowaj innowację przyspieszenia 2
+	//dane->stKalmanDebug.fP[3] = fTempPa1B[0];	//w zmiennej fP zachowaj innowację przyspieszenia 2
 
 	//mnożenie przez K: K(n) * (z(n)-H*X(n-1))		[Stan x Pomiar] * [Pomiar] = [Stan]
 	cBłąd |= arm_mat_mult_f32(&mKa2, &mTempPa1B, &mTempS1A);

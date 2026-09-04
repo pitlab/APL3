@@ -4027,6 +4027,8 @@ uint8_t KalibrujBaro(uint8_t *cEtap)
 		RysujNapis(cNapis, KOL12 + 15*FONT_SL, 80);
 		sprintf(cNapis, "Czujnik 2");
 		RysujNapis(cNapis, KOL12 + 30*FONT_SL, 80);
+		sprintf(cNapis, "Czujnik 3");
+		RysujNapis(cNapis, KOL12 + 45*FONT_SL, 80);
 
 		sprintf(cNapis, "Biezace cisn:");
 		RysujNapis(cNapis, KOL12, 100);
@@ -4048,24 +4050,31 @@ uint8_t KalibrujBaro(uint8_t *cEtap)
 		*cEtap = 0;
 	}
 
-	// Zwraca: kod błędu
 	setColor(BIALY);
 	sprintf(cNapis, "%.0f Pa", uDaneCM4.dane.fCisnieBzw[0]);
-	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 100);
+	RysujNapis(cNapis, KOL12 + 15*FONT_SL, 100);
 	sprintf(cNapis, "%.0f Pa", uDaneCM4.dane.fCisnieBzw[1]);
 	RysujNapis(cNapis, KOL12 + 30*FONT_SL, 100);
+	sprintf(cNapis, "%.0f Pa", uDaneCM4.dane.fCisnieBzw[2]);
+	RysujNapis(cNapis, KOL12 + 45*FONT_SL, 100);
 	sprintf(cNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[0]);	//pierwsze uśrednione ciśnienie czujnika 1
-	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 120);
+	RysujNapis(cNapis, KOL12 + 15*FONT_SL, 120);
 	sprintf(cNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[1]);	//pierwsze uśrednione ciśnienie czujnika 2
 	RysujNapis(cNapis, KOL12 + 30*FONT_SL, 120);
-	sprintf(cNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[2]);	//drugie uśrednione ciśnienie czujnika 1
-	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 140);
-	sprintf(cNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[3]);	//drugie uśrednione ciśnienie czujnika 2
+	sprintf(cNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[2]);	//pierwsze uśrednione ciśnienie czujnika 3
+	RysujNapis(cNapis, KOL12 + 45*FONT_SL, 120);
+	sprintf(cNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[3]);	//drugie uśrednione ciśnienie czujnika 1
+	RysujNapis(cNapis, KOL12 + 15*FONT_SL, 140);
+	sprintf(cNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[4]);	//drugie uśrednione ciśnienie czujnika 2
 	RysujNapis(cNapis, KOL12 + 30*FONT_SL, 140);
-	sprintf(cNapis, "%.6f ", uDaneCM4.dane.uRozne.f32[4]);	//współczynnik skalowania czujnika 1
-	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 160);
-	sprintf(cNapis, "%.6f ", uDaneCM4.dane.uRozne.f32[5]);	//współczynnik skalowania czujnika 2
+	sprintf(cNapis, "%.2f Pa", uDaneCM4.dane.uRozne.f32[5]);	//drugie uśrednione ciśnienie czujnika 3
+	RysujNapis(cNapis, KOL12 + 45*FONT_SL, 140);
+	sprintf(cNapis, "%.6f ", uDaneCM4.dane.uRozne.f32[6]);	//współczynnik skalowania czujnika 1
+	RysujNapis(cNapis, KOL12 + 15*FONT_SL, 160);
+	sprintf(cNapis, "%.6f ", uDaneCM4.dane.uRozne.f32[7]);	//współczynnik skalowania czujnika 2
 	RysujNapis(cNapis, KOL12 + 30*FONT_SL, 160);
+	sprintf(cNapis, "%.6f ", uDaneCM4.dane.uRozne.f32[8]);	//współczynnik skalowania czujnika 2
+	RysujNapis(cNapis, KOL12 + 45*FONT_SL, 160);
 
 	switch (*cEtap)
 	{
@@ -4105,10 +4114,12 @@ uint8_t KalibrujBaro(uint8_t *cEtap)
 			RysujPrzycisk(stPrzycisk, "Blad!", ODSWIEZ);
 		else
 			RysujPrzycisk(stPrzycisk, "Gotowe", ODSWIEZ);
-		sprintf(cNapis, "dP1 = %.2f Pa", fabs(uDaneCM4.dane.uRozne.f32[0] - uDaneCM4.dane.uRozne.f32[2]));	//Rożnica ciśnień czujnika 1
+		sprintf(cNapis, "dP1 = %.2f Pa", fabs(uDaneCM4.dane.uRozne.f32[0] - uDaneCM4.dane.uRozne.f32[3]));	//Rożnica ciśnień czujnika 1
 		RysujNapis(cNapis, 10 + stPrzycisk.sX2, 240);
-		sprintf(cNapis, "dP2 = %.2f Pa", fabs(uDaneCM4.dane.uRozne.f32[1] - uDaneCM4.dane.uRozne.f32[3]));	//Rożnica ciśnień czujnika 2
+		sprintf(cNapis, "dP2 = %.2f Pa", fabs(uDaneCM4.dane.uRozne.f32[1] - uDaneCM4.dane.uRozne.f32[4]));	//Rożnica ciśnień czujnika 2
 		RysujNapis(cNapis, 10 + stPrzycisk.sX2, 260);
+		sprintf(cNapis, "dP2 = %.2f Pa", fabs(uDaneCM4.dane.uRozne.f32[2] - uDaneCM4.dane.uRozne.f32[5]));	//Rożnica ciśnień czujnika 3
+		RysujNapis(cNapis, 10 + stPrzycisk.sX2, 280);
 		if (cStanPrzycisku == 1)
 			cBłąd = BLAD_GOTOWE;	//zakończ
 		break;

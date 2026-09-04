@@ -40,7 +40,7 @@
 
 //definicje bitów konfiguracji logera
 #define KLOG1_CZAS      	0x00000001	    //czas
-#define KLOG1_DELTA_CZASU	0x00000002
+#define KLOG1_DELTA_CZASU	0x00000002		//czas obsługi pętli głównej autopilota
 #define KLOG1_PRES1    		0x00000004	    //ciśnienie atmosferyczne z czujnika ciśnienia 1
 #define KLOG1_PRES2			0x00000008	    //ciśnienie atmosferyczne z czujnika ciśnienia 2
 #define KLOG1_AMSL1    		0x00000010	    //wysokość barometryczna bezwzględna z czujnika ciśnienia 1
@@ -144,6 +144,11 @@
 
 #define KLOG3_GSPD_E    	0x01000000	    //niefiltrowana prędkość z GPS w kierunku wschodnim
 #define KLOG3_GSPD_N    	0x02000000	    //niefiltrowana prędkość z GPS w kierunku północnym
+
+#define KLOG3_PRES3			0x04000000	    //ciśnienie atmosferyczne z czujnika ciśnienia 3
+#define KLOG3_AMSL3    		0x08000000	    //wysokość barometryczna bezwzględna z czujnika ciśnienia 3
+#define KLOG3_WARIO3    	0x10000000	    //wskazania wariometru 3
+
 
 
 //czwarte słowo konfiguracji logera
@@ -290,14 +295,21 @@
 #define KLOG8_KALWYS_X1			0x00000002
 #define KLOG8_KALWYS_X2			0x00000004
 #define KLOG8_KALWYS_X3			0x00000008
-#define KLOG8_KALWYS_K0			0x00000010
-#define KLOG8_KALWYS_K1			0x00000020
-#define KLOG8_KALWYS_K2			0x00000040
-#define KLOG8_KALWYS_K3			0x00000080
-#define KLOG8_KALWYS_P0			0x00000100
-#define KLOG8_KALWYS_P1			0x00000200
-#define KLOG8_KALWYS_P2			0x00000400
-#define KLOG8_KALWYS_P3			0x00000800
+#define KLOG8_KALWYS_X4			0x00000010
+
+#define KLOG8_KALWYS_K0			0x00000020
+#define KLOG8_KALWYS_K1			0x00000040
+#define KLOG8_KALWYS_K2			0x00000080
+#define KLOG8_KALWYS_K3			0x00000100
+#define KLOG8_KALWYS_K4			0x00000200
+#define KLOG8_KALWYS_K5			0x00000400
+
+#define KLOG8_KALWYS_P0			0x00000800
+#define KLOG8_KALWYS_P1			0x00001000
+#define KLOG8_KALWYS_P2			0x00002000
+#define KLOG8_KALWYS_P3			0x00004000
+#define KLOG8_KALWYS_P4			0x00008000
+
 
 
 #define LICZBA_SLOW_REJESTRATORA	8

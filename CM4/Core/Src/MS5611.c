@@ -24,7 +24,7 @@ static uint8_t chProporcjaPomiarow;
 float fP0_MS5611 = 0.0f;	//ciśnienie zerowe do obliczeń wysokości [Pa]
 static uint16_t sLicznikUśrednianiaP0 = 0;			//licznik uśredniania ciśnienia zerowego do obliczeń wysokości
 static float fWysokośćUśredniona;		//średnia z ostatnich pomiarów wysokości potrzebna do liczenia wariometru
-static int32_t ndT;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia.
+static int32_t nDeltaTemperatury;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia.
 static uint32_t nCzasOstatniejKonwersjiSM5611;
 //float fPoprzednieCisnienie;
 float fPoczątkoweBarometryczneMSL;	//wysokość MSL wyznaczona podczas inicjalizacji
@@ -184,6 +184,7 @@ uint8_t ObslugaMS5611(void)
 	uint32_t nKonwersja;
 	uint8_t cBłąd = BLAD_OK;
 	uint8_t cNowyPomiarCiśnenia = 0;
+	uint32_t nCzas, nDeltaCzasu;
 
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_MS5611)
 		return BLAD_BRAK_CZUJNIKA;
@@ -209,18 +210,20 @@ uint8_t ObslugaMS5611(void)
 	else
 	{
 		//sprawdź ile czasu upłyneło od ostatniego pomiaru. Jeżeli było to mniej niż czas potrzebny na konwersję to pomiń to uruchomienie
-		uint32_t nCzas = MinalCzasT7(nCzasOstatniejKonwersjiSM5611);
+		nCzas = MinalCzasT7(nCzasOstatniejKonwersjiSM5611);
 		if (nCzas < 2500)	//typowy czas konwersji to 2,28ms
 			return BLAD_ZA_KROTKI_CZAS;
 
 		//konwersja miała szansę się zakonczyć, więc oczytaj pomiar i uruchom następny
-		nCzasOstatniejKonwersjiSM5611 = PobierzCzasT7();
+		nCzas = PobierzCzasT7();
+		nDeltaCzasu = MinalCzas2T7(nCzasOstatniejKonwersjiSM5611, nCzas);
+		nCzasOstatniejKonwersjiSM5611 = nCzas;
 		switch (chProporcjaPomiarow)
 		{
 		case 0:
 			nKonwersja = CzytajWynikKonwersjiMS5611();
 			if (nKonwersja)
-				uDaneCM4.dane.fTemper[TEMP_BARO1] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO1] + MS5611_LiczTemperature(nKonwersja, &ndT)) / 8;	//filtruj temperaturę
+				uDaneCM4.dane.fTemper[TEMP_BARO1] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO1] + MS5611_LiczTemperature(nKonwersja, &nDeltaTemperatury)) / 8;	//filtruj temperaturę
 			chBuf5611[0] = PMS_CONV_D1_OSR1024;		//uruchom konwersję ciśnienia
 			ZapiszSPIu8(chBuf5611, 1);
 			break;
@@ -229,7 +232,7 @@ uint8_t ObslugaMS5611(void)
 			nKonwersja = CzytajWynikKonwersjiMS5611();
 			if (nKonwersja)
 			{
-				uDaneCM4.dane.fCisnieBzw[0] = MS5611_LiczCisnienie(nKonwersja, ndT);
+				uDaneCM4.dane.fCisnieBzw[0] = MS5611_LiczCisnienie(nKonwersja, nDeltaTemperatury);
 				cNowyPomiarCiśnenia = 1;
 			}
 			chBuf5611[0] = PMS_CONV_D2_OSR1024;		//uruchom konwersję temperatury
@@ -240,7 +243,7 @@ uint8_t ObslugaMS5611(void)
 			nKonwersja = CzytajWynikKonwersjiMS5611();
 			if (nKonwersja)
 			{
-				uDaneCM4.dane.fCisnieBzw[0] = MS5611_LiczCisnienie(nKonwersja, ndT);
+				uDaneCM4.dane.fCisnieBzw[0] = MS5611_LiczCisnienie(nKonwersja, nDeltaTemperatury);
 				cNowyPomiarCiśnenia = 1;
 			}
 			chBuf5611[0] = PMS_CONV_D1_OSR1024;		//uruchom konwersję ciśnienia
@@ -273,8 +276,8 @@ uint8_t ObslugaMS5611(void)
 				else
 				{
 					uDaneCM4.dane.fWysokoAGL[0] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[0], fP0_MS5611, uDaneCM4.dane.fTemper[TEMP_BARO1]);
-					if ((uDaneCM4.dane.ndT > 0) && (uDaneCM4.dane.ndT < 10000))	//nie licz dla zera i długich przestoi, bo to generuje dużą szpilkę danych
-						uDaneCM4.dane.fWariometr[0] = (uDaneCM4.dane.fWysokoMSL[0] - fWysokośćUśredniona) * 1000 * KOREKTA_SKALI_FILTRA_WARIOMETRU / uDaneCM4.dane.ndT;	//dH [m] * 1e6 / t [1e-6 s]
+					if ((nDeltaCzasu > 0) && (nDeltaCzasu < 10000))	//nie licz dla zera i długich przestoi, bo to generuje dużą szpilkę danych
+						uDaneCM4.dane.fWariometr[0] = (uDaneCM4.dane.fWysokoMSL[0] - fWysokośćUśredniona) * 1000 * KOREKTA_SKALI_FILTRA_WARIOMETRU_MS5611 / nDeltaCzasu;	//dH [m] * 1e6 / t [1e-6 s]
 				}
 			}
 			else	//if wysokość (min, max)

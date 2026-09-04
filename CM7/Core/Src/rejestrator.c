@@ -35,7 +35,7 @@ uint8_t __attribute__ ((aligned (32))) aTxBuffer[_MAX_SS];
 uint8_t __attribute__ ((aligned (32))) aRxBuffer[_MAX_SS];
 __IO uint8_t RxCplt, TxCplt;
 volatile uint16_t sStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-uint32_t nKonfLogera[LICZBA_SLOW_REJESTRATORA] = {0x7F0E23FF, 0x0003FFFF, 0x0000FFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000FFF};	//zestaw flag włączajacych dane do rejestracji
+uint32_t nKonfLogera[LICZBA_SLOW_REJESTRATORA] = {0x7F0E23FF, 0x0003FFFF, 0x1C00FFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0000FFFF};	//zestaw flag włączajacych dane do rejestracji
 static char __attribute__ ((aligned (32))) cBufZapisuKarty[ROZMIAR_BUFORA_LOGU];	//bufor na jedną linijkę logu
 char __attribute__ ((aligned (32))) cBufPodreczny[_MAX_LFN];
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;
@@ -822,6 +822,46 @@ uint8_t ObslugaPetliRejestratora(void)
 			strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 		}
 
+		//ciśnienie atmosferyczne z czujnika ciśnienia 3
+		if (nKonfLogera[2] & KLOG3_PRES3)
+		{
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			{
+				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_CISNIENIE_BZWZGL_XD_PA]);
+				sprintf(cBufPodreczny, cBufPodreczny, 3);	//wypełnij parametr XD=%d zakodowany w nazwie
+			}
+			else
+				sprintf(cBufPodreczny, "%.4f;", uDaneCM4.dane.fCisnieBzw[2]);
+			strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+		}
+
+	    //wysokość barometryczna bezwzględna z czujnika ciśnienia 3
+		if (nKonfLogera[0] & KLOG3_AMSL3)
+		{
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			{
+				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_WYSOKOSC_MSL_XD_M]);
+				sprintf(cBufPodreczny, cBufPodreczny, 3);	//wypełnij parametr XD=%d zakodowany w nazwie
+			}
+			else
+				sprintf(cBufPodreczny, "%.2f;", uDaneCM4.dane.fWysokoMSL[2]);
+			strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+		}
+
+		//wskazania wariometru 3
+		if (nKonfLogera[0] & KLOG3_WARIO3)
+		{
+			if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+			{
+				sprintf(cBufPodreczny, "%s;", cNazwyPozycjiRejestratora[NREJ_WARIOMETR_XD_MS]);
+				sprintf(cBufPodreczny, cBufPodreczny, 3);	//wypełnij parametr XD=%d zakodowany w nazwie
+			}
+			else
+				sprintf(cBufPodreczny, "%.3f;", uDaneCM4.dane.fWariometr[2]);
+			strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+		}
+
+
 //--- czwarte słowo konfiguracji logera --------------------------
 		//kanały 1..KANALY_ODB_RC odbiornika RC zajmują pierwsze 16 bitów słowa konfiguracji
 
@@ -1514,18 +1554,6 @@ uint8_t ObslugaPetliRejestratora(void)
 
 		for (uint8_t n=0; n<5; n++)
 		{
-			if (nKonfLogera[7] & KLOG8_KALWYS_K0 << n)
-			{
-				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
-					sprintf(cBufPodreczny, "%sK[%d];", cNazwyPozycjiRejestratora[NREJ_KALMAN_WYS], n);
-				else
-					sprintf(cBufPodreczny, "%E;", uDaneCM4.dane.stKalmanDebug.fK[n]);	//główne elementy wzmocnienia
-				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
-			}
-		}
-
-		for (uint8_t n=0; n<5; n++)
-		{
 			if (nKonfLogera[7] & KLOG8_KALWYS_P0 << n)
 			{
 				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
@@ -1536,6 +1564,17 @@ uint8_t ObslugaPetliRejestratora(void)
 			}
 		}
 
+		for (uint8_t n=0; n<6; n++)
+		{
+			if (nKonfLogera[7] & KLOG8_KALWYS_K0 << n)
+			{
+				if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)
+					sprintf(cBufPodreczny, "%sK[%d];", cNazwyPozycjiRejestratora[NREJ_KALMAN_WYS], n);
+				else
+					sprintf(cBufPodreczny, "%E;", uDaneCM4.dane.stKalmanDebug.fK[n]);	//główne elementy wzmocnienia
+				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
+			}
+		}
 
 		//jeżeli był zapisywany nagłówek to przejdź do zapisu danych
 		if (sStatusRejestratora & STATREJ_ZAPISZ_NAGLOWEK)

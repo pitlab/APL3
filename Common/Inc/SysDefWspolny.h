@@ -341,6 +341,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define TEMP_IMU2	3
 #define TEMP_CISR1	4	//temperatura wewnętrznego czujnika ciśnienia różnicowego np. ND130
 #define TEMP_CISR2	5	//temperatura zewnetrznego czujnika ciśnienia różnicowego np. MS4525
+#define TEMP_BARO3	6
 
 #define CZAS_KALIBRACJI		1000	//obiegów pętli głównej po 5ms
 

@@ -26,7 +26,7 @@ float fMnożnikŻyro1[3], fMnożnikŻyro2[3];
 float fMnożnikCiśn[LICZBA_CZUJ_CISN];	//mnożnik odpowiedzi czujników ciśnienia
 float fPrzesunięcieAkcel1[3];		//przesunięcie zera akcelerometru 1
 float fPrzesunięcieAkcel2[3];		//przesunięcie zera akcelerometru 2
-double dSuma1[3], dSuma2[3];		//do uśredniania pomiarów podczas kalibracji czujników
+double dSuma1[LICZBA_CZUJ_CISN + 1], dSuma2[LICZBA_CZUJ_CISN + 1];	//do uśredniania pomiarów podczas kalibracji czujników
 float fSumaCisn[LICZBA_CZUJ_CISN];	//do kalibracji czujników ciśnienia
 WspRownProstej3_t stWspKalTempZyro1;		//współczynniki równania prostych do estymacji przesuniecia zera żyroskopu
 WspRownProstej3_t stWspKalTempZyro2;		//współczynniki równania prostych do estymacji przesuniecia zera żyroskopu
@@ -117,6 +117,7 @@ uint8_t InicjujModulI2P(void)
 
 		cBłąd |= CzytajFramFloatZWalidacja(FAH_MNOZNIK_CISN_BEZWZGL1, &fMnożnikCiśn[0], VMIN_MNOZNIK_PABS, VMAX_MNOZNIK_PABS, VDOM_MNOZNIK_PAB);		//mnożnik wartości czujnika ciśnienia bezwzględnego
 		cBłąd |= CzytajFramFloatZWalidacja(FAH_MNOZNIK_CISN_BEZWZGL2, &fMnożnikCiśn[1], VMIN_MNOZNIK_PABS, VMAX_MNOZNIK_PABS, VDOM_MNOZNIK_PAB);		//mnożnik wartości czujnika ciśnienia bezwzględnego
+		cBłąd |= CzytajFramFloatZWalidacja(FAH_MNOZNIK_CISN_BEZWZGL3, &fMnożnikCiśn[2], VMIN_MNOZNIK_PABS, VMAX_MNOZNIK_PABS, VDOM_MNOZNIK_PAB);		//mnożnik wartości czujnika ciśnienia bezwzględnego
 	}
 	while (cBłąd && --chLiczbaPowtorzen);	//w przypadku jakiegokolwiek błędu powtórz całość
 	return cBłąd;
@@ -165,7 +166,7 @@ uint8_t ObslugaModuluI2P(uint8_t cGniazdo, uint8_t* cStanIOwy)
 	else
 		cBłąd |= cBłądRoboczy;
 
-	/*cBłądRoboczy = UstawAdresNaModule(ADR_MIIP_BMP581);		//ustaw adres na module A0..1
+	cBłądRoboczy = UstawAdresNaModule(ADR_MIIP_BMP581);		//ustaw adres na module A0..1
 	if (cBłądRoboczy == BLAD_OK)
 	{
 		cBłądRoboczy = ObslugaBMP581();
@@ -173,7 +174,7 @@ uint8_t ObslugaModuluI2P(uint8_t cGniazdo, uint8_t* cStanIOwy)
 			cBłąd |= cBłądRoboczy;
 	}
 	else
-		cBłąd |= cBłądRoboczy;*/
+		cBłąd |= cBłądRoboczy;
 
 	cBłądRoboczy = UstawAdresNaModule(ADR_MIIP_ICM42688);	//ustaw adres na module A0..1
 	if (cBłądRoboczy == BLAD_OK)
@@ -667,19 +668,22 @@ uint8_t KalibrujZeroZyroskopu(void)
 // Po zsumowaniu n=CZAS_KALIBRACJI pomiarów w zmiennych dSuma1[3] i dSuma2[3]
 // Kolejność pomiaru ciśnień jest dowolna: jako P0 biorę ciśnienie większe a różnica jest liczbą bezwzgledną
 // Parametry:
-// fCisnienie1, fCisnienie2 - ciśnienia do uśredniania
+// fCisnienie1, fCisnienie23 fCisnienie3 - ciśnienia do uśredniania
 // fTemp - temperatura do uśredniania
 // chPrzebieg - wskazuje czy uśredniamy ciśnienie początku (0) czy końca (1) kalibracji
 // sLicznik - czas liczny w kwantach obiegu pętli głównej
 // uDaneCM4.dane.uRozne.f32[0] - pierwsze uśrednione ciśnienie czujnika 1
 // uDaneCM4.dane.uRozne.f32[1] - pierwsze uśrednione ciśnienie czujnika 2
-// uDaneCM4.dane.uRozne.f32[2] - drugie uśrednione ciśnienie czujnika 1
-// uDaneCM4.dane.uRozne.f32[3] - drugie uśrednione ciśnienie czujnika 2
-// uDaneCM4.dane.uRozne.f32[4] - współczynnik skalowania czujnika 1
-// uDaneCM4.dane.uRozne.f32[5] - współczynnik skalowania czujnika 2
+// uDaneCM4.dane.uRozne.f32[2] - pierwsze uśrednione ciśnienie czujnika 3
+// uDaneCM4.dane.uRozne.f32[3] - drugie uśrednione ciśnienie czujnika 1
+// uDaneCM4.dane.uRozne.f32[4] - drugie uśrednione ciśnienie czujnika 2
+// uDaneCM4.dane.uRozne.f32[5] - drugie uśrednione ciśnienie czujnika 3
+// uDaneCM4.dane.uRozne.f32[6] - współczynnik skalowania czujnika 1
+// uDaneCM4.dane.uRozne.f32[7] - współczynnik skalowania czujnika 2
+// uDaneCM4.dane.uRozne.f32[8] - współczynnik skalowania czujnika 3
 // Zwraca: kod błędu ERR_DONE gdy gotowe, BLAD_OK w trakcie pracy
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uint16_t sLicznik, uint8_t cPrzebieg)
+uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fCisnienie3, float fTemp, uint16_t sLicznik, uint8_t cPrzebieg)
 {
 	uint8_t cBłąd = BLAD_OK;
 	float fSredCisn1[LICZBA_CZUJ_CISN], fSredCisn2[LICZBA_CZUJ_CISN];
@@ -707,7 +711,8 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 		{
 			dSuma2[0] += (double)fCisnienie1;
 			dSuma2[1] += (double)fCisnienie2;
-			dSuma2[2] += (double)fTemp;			//temperatura [K]
+			dSuma2[2] += (double)fCisnienie3;
+			dSuma2[3] += (double)fTemp;			//temperatura [K]
 			for (uint8_t n=0; n<LICZBA_CZUJ_CISN; n++)
 				uDaneCM4.dane.uRozne.f32[n+2] = (float)(dSuma2[n] / (sLicznik + 1));
 		}
@@ -715,7 +720,8 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 		{
 			dSuma1[0] += (double)fCisnienie1;
 			dSuma1[1] += (double)fCisnienie2;
-			dSuma1[2] += (double)fTemp;
+			dSuma1[2] += (double)fCisnienie3;
+			dSuma1[3] += (double)fTemp;
 			for (uint8_t n=0; n<LICZBA_CZUJ_CISN; n++)
 				uDaneCM4.dane.uRozne.f32[n+0] = (float)(dSuma1[n] / (sLicznik + 1));
 		}
@@ -753,7 +759,7 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fTemp, uin
 			fdCisn = fabs(fSredCisn2[n] - fSredCisn1[n]);	//bezwzględna różnica ciśnień rzeczywistych
 			fdWzorc = CisnienieBarometryczne(WYSOKOSC10PIETER, 100000, fTemp) - CisnienieBarometryczne(WYSOKOSC10PIETER, 100000 - fdCisn, fTemp);//Wzorcowa różnica ciśnień dla 27m i P0=1000 hPa
 
-			if ((fdCisn > (0.75f * fdWzorc)) && (fdCisn < (1.25f * fdWzorc)))	//kryteruim poprawnosci to +/- 25%
+			if ((fdCisn > (0.75f * fdWzorc)) && (fdCisn < (1.25f * fdWzorc)))	//kryterium poprawnosci to +/- 25%
 			{
 				fMnożnikCiśn[n] = fRoboczyMnożnikCiśn[n];										//przepisz roboczy współczynnik do globalnego tylko gdy jest poprawny
 				 ZapiszFramFloat(FAH_MNOZNIK_CISN_BEZWZGL1 + n*4, fMnożnikCiśn[n]);			//zapisz do FRAM

@@ -392,9 +392,14 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_BSP_SZER_GEO:	fZmiennaTele = stDane->stBSP.dSzerokoscGeo;	break;
 	case TID_BSP_DLUG_GEO:	fZmiennaTele = stDane->stBSP.dDlugoscGeo;	break;
 
-	case TID_DOTYK_ADC0:		fZmiennaTele = stStatusDotyku.sAdc[0];		break;
-	case TID_DOTYK_ADC1:		fZmiennaTele = stStatusDotyku.sAdc[1];		break;
-	case TID_DOTYK_ADC2:		fZmiennaTele = stStatusDotyku.sAdc[2];		break;
+	//case TID_DOTYK_ADC0:		fZmiennaTele = stStatusDotyku.sAdc[0];		break;
+	//case TID_DOTYK_ADC1:		fZmiennaTele = stStatusDotyku.sAdc[1];		break;
+	//case TID_DOTYK_ADC2:		fZmiennaTele = stStatusDotyku.sAdc[2];		break;
+	case TID_CISBEZW3:		fZmiennaTele = stDane->fCisnieBzw[2];		break;
+	case TID_WYSOKOSC_MSL3:	fZmiennaTele = stDane->fWysokoMSL[2];		break;
+	case TID_WARIO3:		fZmiennaTele = stDane->fWariometr[2];		break;
+
+
 	case TID_CZAS_PETLI: 		fZmiennaTele = stDane->ndT;					break;
 	case TID_JAKOSC_UP_RC1:		fZmiennaTele = stDane->cJakoscUpLinkuRC1;	break;
 	case TID_JAKOSC_UP_RC2:		fZmiennaTele = stDane->cJakoscUpLinkuRC2;	break;

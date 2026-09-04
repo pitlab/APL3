@@ -173,7 +173,7 @@ void PetlaGlowna(void)
 				//cBłądPG = AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
 				cBłądPG = AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 
-			if (uDaneCM4.dane.cNowyPomiar & NP_WYS2)
+			if (uDaneCM4.dane.cNowyPomiar & NP_WYS3)
 				cBłądPG = AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 
 			//przyspieszenia są aktualizowane w każdym obiegu pętli
@@ -188,7 +188,7 @@ void PetlaGlowna(void)
 			cBłądPG = InicjujFiltrKalmanaWysokości5X6Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 		}
-		uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2);	//usuń flagę nowych pomiarów wysokości
+		uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2 | NP_WYS3);	//usuń flagę nowych pomiarów wysokości
 		break;
 
 	case 7:
@@ -351,20 +351,20 @@ uint8_t WykonajPolecenieCM7(void)
 			}
 			break;
 
-		case POL7_INICJUJ_USREDN:	cBłąd = KalibrujCisnienie(0, 0, 0, CZAS_KALIBRACJI, 0xFF);	break;	//inicjalizacja
+		case POL7_INICJUJ_USREDN:	cBłąd = KalibrujCisnienie(0, 0, 0, 0, CZAS_KALIBRACJI, 0xFF);	break;	//inicjalizacja
 		case POL7_ZERUJ_LICZNIK:
 			sLicznikCzasuKalibracji = 0;
 			break;
 
 		case POL7_USREDNIJ_CISN1:
-			cBłąd = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
+			cBłąd = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fCisnieBzw[2], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
 			uDaneCM4.dane.uRozne.U8[0] = cBłąd;
 			if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
 				uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
 			break;
 
 		case POL7_USREDNIJ_CISN2:
-			cBłąd = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
+			cBłąd = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fCisnieBzw[2], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
 			uDaneCM4.dane.uRozne.U8[0] = cBłąd;
 			if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
 				uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
