@@ -171,6 +171,17 @@ typedef struct
 	float fK[6];	//główna przekatna macierzy wzmocnienia Kalmana
 } stKalmanDebug_t;
 
+typedef struct
+{
+	uint16_t sOdległość;	//zmierzona odległość [mm]
+	uint8_t cStatusPomiaru;	//0 = poprawny pomiar; 1=estymator sigma poniżej progu, 2=sygnał poniżej progu , 4=faza poza zakresem, 5=błąd sprzętowy, 7=faza nie pasuje, 8=błąd algorytmu, 14=nieważny zakres
+	uint8_t cNowyPomiar;	//licznik inkrementowany co pomiar
+	float fSigma;			//estymator sigma w [mm]
+	float fReflektancjaCelu;
+	float fNatężenieTła;
+} stTOF_t;
+
+
 #define ODPOWIEDZ_U8	31	//komórka tablicy U8 odpowiedzialna za przekazywanie odpowiedzi na polecenia kalibracyjne
 //definicja struktury wymiany danych wychodzących z rdzenia CM4
 //typedef struct _stWymianyCM4
@@ -236,6 +247,7 @@ typedef struct
 	stBSP_t stBSP;				//struktura zawierajaca syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
 	stSzybkieIMU_t stSzybkieIMU;	//struktura zawierajaca bufor kołowy i indeks szybkich danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
 	stKalmanDebug_t stKalmanDebug;	//struktura z danymi do debugowania filtra Klamana
+	stTOF_t stTOF;					//struktura danych pomiarowych czujnika odległości VL53LC1
 } stWymianyCM4_t;
 
 

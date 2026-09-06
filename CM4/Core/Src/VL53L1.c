@@ -19,17 +19,13 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wykonaj inicjalizację czujnika
+// Wykonaj inicjalizację czujnika VL53L1
 // Parametry: nic
 // Zwraca: kod błędu
-// Czas wykonania:
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujVL53L1(void)
 {
 	uint8_t cBłąd = BLAD_OK;
-	//uint8_t cModelID[3];
-
-	//cBłąd = HAL_I2C_Mem_Read(&hi2c3, 0x52, 0x010F, I2C_MEMADD_SIZE_16BIT, cModelID, 3, 10);
 
 	VL53L1CB_Dev.IO.Address 	= 0x52;
 	VL53L1CB_Dev.IO.Init		= TOF_I2C_Init;
@@ -40,55 +36,12 @@ uint8_t InicjujVL53L1(void)
 
 	uint32_t nStatus = VL53L1CB_Init(&VL53L1CB_Dev);
 	if (nStatus)
-		return BLAD_BRAK_CZUJNIKA;
-
-
-	//nStatus = VL53L1X_SetInterMeasurementPeriod();
-	//nStatus = VL53l1X_SetOffset();
-
+		cBłąd = BLAD_BRAK_CZUJNIKA;
 	return cBłąd;
 }
 
-//definicje funkcji obsługujących czujnik
-int32_t TOF_I2C_Init(void)
-{
-	return VL53L1_ERROR_NONE;
-}
-
-int32_t TOF_I2C_DeInit(void)
-{
-	return VL53L1_ERROR_NONE;
-}
-
-int32_t TOF_GetTick(void)
-{
-	return (int32_t)HAL_GetTick();
-}
 
 
-
-////////////////////////////////////////////////////////////////////////////////
-// Opakowanie na wywołanie funkcji zapisu do czujnika
-// Na pierwszych 2 bajtach pData znajduje się adres rejestru, daje są dane do zapisu
-// Parametry:
-//  Reg - adres czujnika na magistrali (?)
-//  *pData - wskaźnik na dane
-//  Length - rozmiar danych
-// Zwraca: kod błędu
-// Czas wykonania:
-////////////////////////////////////////////////////////////////////////////////
-int32_t TOF_WriteReg(uint16_t Reg, uint8_t *pData, uint16_t Length)
-{
-	uint8_t cBłąd = HAL_I2C_Master_Transmit(&hi2c3, Reg, pData, Length, TIMEOUT_VL53C1);
-    return (cBłąd == HAL_OK) ? 0 : -1;
-}
-
-
-int32_t TOF_ReadReg(uint16_t Reg, uint8_t *pData, uint16_t Length)
-{
-	uint8_t cBłąd = HAL_I2C_Master_Receive(&hi2c3, Reg, pData, Length, TIMEOUT_VL53C1);
-    return (cBłąd == HAL_OK) ? 0 : -1;
-}
 
 
 
@@ -101,10 +54,10 @@ int32_t TOF_ReadReg(uint16_t Reg, uint8_t *pData, uint16_t Length)
 uint8_t ObsługaVL53L1(void)
 {
 	uint8_t cBłąd = BLAD_OK;
-	uint8_t cPomiarGotowy;
+	uint8_t cPomiarGotowy = 0;
 	VL53L1_RangingMeasurementData_t RMData;
 
-	//sprawdź czy czujnik jest zainicjowany a jeżeli nie, to zainicjuj
+	//Sprawdź czy czujnik jest zainicjowany. Jeżeli nie, to zainicjuj
 	if ((uDaneCM4.dane.nZainicjowano & INIT_VL53L1) != INIT_VL53L1)	//jeżeli czujnik nie jest zainicjowany
 	{
 		cBłąd = InicjujVL53L1();
@@ -114,21 +67,99 @@ uint8_t ObsługaVL53L1(void)
 		cBłąd = VL53L1_StartMeasurement(&VL53L1CB_Dev);
 	}
 
-	//sprawdź czy pomiar jest gotowy. Jeżeli tak, to odczytaj go
+	//Sprawdź czy pomiar jest gotowy. Jeżeli tak, to odczytaj go
 	cBłąd = VL53L1_GetMeasurementDataReady(&VL53L1CB_Dev, &cPomiarGotowy);
-	if ((cBłąd == BLAD_OK) && cPomiarGotowy)
+	if (cBłąd == BLAD_OK)
 	{
-		cPomiarGotowy = 0;
+		if (cPomiarGotowy)
+		{
+			cBłąd = VL53L1_GetRangingMeasurementData(&VL53L1CB_Dev, &RMData);
+			if (cBłąd == BLAD_OK)
+			{
+				uDaneCM4.dane.stTOF.cStatusPomiaru = RMData.RangeStatus;
+				uDaneCM4.dane.stTOF.sOdległość = RMData.RangeMilliMeter;
+				uDaneCM4.dane.stTOF.fSigma = (float)RMData.SigmaMilliMeter / 65536;
+				uDaneCM4.dane.stTOF.fNatężenieTła = (float)RMData.AmbientRateRtnMegaCps / 65536;
+				uDaneCM4.dane.stTOF.fReflektancjaCelu = (float)RMData.SignalRateRtnMegaCps / 65536;
+			}
+			cPomiarGotowy = 0;
+			cBłąd = VL53L1_ClearInterruptAndStartMeasurement(&VL53L1CB_Dev);
+		}
+	}
 
-		cBłąd = VL53L1_GetRangingMeasurementData(&VL53L1CB_Dev, &RMData);
-		cBłąd = VL53L1_ClearInterruptAndStartMeasurement(&VL53L1CB_Dev);
-	}
-	else
-	if (cBłąd == VL53L1_ERROR_CONTROL_INTERFACE)
-	{
-		uint8_t cDane[2];
-		cBłąd = HAL_I2C_Master_Receive(&hi2c3, 0x52, cDane, 2, TIMEOUT_VL53C1);
-	}
 
 	return cBłąd;
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Opakowanie na wywołanie funkcji inicjalizacji czujnika - puste
+// Parametry: brak
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+int32_t TOF_I2C_Init(void)
+{
+	return VL53L1_ERROR_NONE;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Opakowanie na wywołanie funkcji deinicjalizacji czujnika - puste
+// Parametry: brak
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+int32_t TOF_I2C_DeInit(void)
+{
+	return VL53L1_ERROR_NONE;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Opakowanie na wywołanie funkcji pomiaru czasu
+// Parametry: brak
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+int32_t TOF_GetTick(void)
+{
+	return (int32_t)HAL_GetTick();
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Opakowanie na wywołanie funkcji zapisu do czujnika
+// Na pierwszych 2 bajtach pData znajduje się adres rejestru, daje są dane do zapisu
+// Parametry:
+//  Reg - adres czujnika na magistrali
+//  *pData - wskaźnik na dane
+//  Length - rozmiar danych
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+int32_t TOF_WriteReg(uint16_t Reg, uint8_t *pData, uint16_t Length)
+{
+	uint8_t cBłąd = HAL_I2C_Master_Transmit(&hi2c3, Reg, pData, Length, TIMEOUT_VL53C1);
+    return (cBłąd == HAL_OK) ? 0 : -1;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Opakowanie na wywołanie funkcji odczytu z czujnika
+// Na pierwszych 2 bajtach pData znajduje się adres rejestru
+// Parametry:
+//  Reg - adres czujnika na magistrali
+//  *pData - wskaźnik na dane
+//  Length - rozmiar danych
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+int32_t TOF_ReadReg(uint16_t Reg, uint8_t *pData, uint16_t Length)
+{
+	uint8_t cBłąd = HAL_I2C_Master_Receive(&hi2c3, Reg, pData, Length, TIMEOUT_VL53C1);
+    return (cBłąd == HAL_OK) ? 0 : -1;
+}
+

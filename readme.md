@@ -81,8 +81,8 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Obsługa protokołu Crossfire odbiornika RC
 - Rozbudowa PID o człon wyprzedzający i stałe przesunięcie wartosci wyjścia
 - Strojenie regulatorów PID dwoma kanałami RC
-
-
+- Filtr Kalmana obejmujący wysokość, prędkość pionową i przyspieszenie w osi Z. Aktualizowany danymi z dwu kompletów czujników.
+- Pomiar odległości czujnikiem TOF VL53L1X
  
  
  

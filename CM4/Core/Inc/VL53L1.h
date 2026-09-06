@@ -9,7 +9,7 @@
 #define INC_VL53L1_H_
 #include "SysDefCM4.h"
 
-#define TIMEOUT_VL53C1		10	//timerout operacji na I2C
+#define TIMEOUT_VL53C1		20	//timerout operacji na I2C
 
 uint8_t InicjujVL53L1(void);
 uint8_t ObsługaVL53L1(void);

@@ -2371,7 +2371,7 @@ void PomiaryCzujnikow(void)
 		RysujNapis(cNapis, KOL12, 230);
 		sprintf(cNapis, "Ucz1.1:            Ucz1.2:            TmpCPU:");
 		RysujNapis(cNapis, KOL12, 260);
-		sprintf(cNapis, "Ucz2.1:            Ucz2.2:");
+		sprintf(cNapis, "Ucz2.1:            Ucz2.2:            Odl/Sig:");
 		RysujNapis(cNapis, KOL12, 280);
 
 
@@ -2496,6 +2496,11 @@ void PomiaryCzujnikow(void)
 	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 280);
 	sprintf(cNapis, "%.3f V ", uDaneCM4.dane.fNapCzujZewn[3]);
 	RysujNapis(cNapis, KOL12 + 27*FONT_SL, 280);
+
+	//odległosć z czujnika TOF
+	if (uDaneCM4.dane.stTOF.cStatusPomiaru)	setColor(SZARY50); 	else	setColor(BIALY);
+	sprintf(cNapis, "%d mm/%.1f ", uDaneCM4.dane.stTOF.sOdległość, uDaneCM4.dane.stTOF.fSigma);
+	RysujNapis(cNapis, KOL12 + 47*FONT_SL, 280);
 
 	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI do zera
 	RysujPasekPostepu(CZAS_KALIBRACJI);

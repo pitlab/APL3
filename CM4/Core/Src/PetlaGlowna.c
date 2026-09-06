@@ -572,6 +572,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 
 	cEtapOperacjiI2C++;
 	//cEtapOperacjiI2C &= 0x03;
+	cEtapOperacjiI2C &= 0x3F;
 	return cBłąd;
 }
 
