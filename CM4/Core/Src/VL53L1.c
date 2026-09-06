@@ -14,7 +14,7 @@
 static VL53L1CB_Object_t VL53L1CB_Dev;
 extern I2C_HandleTypeDef hi2c3;
 extern volatile unia_wymianyCM4_t uDaneCM4;
-
+uint8_t cEtapPomiaruVL53L1;
 
 
 
@@ -37,11 +37,10 @@ uint8_t InicjujVL53L1(void)
 	uint32_t nStatus = VL53L1CB_Init(&VL53L1CB_Dev);
 	if (nStatus)
 		cBłąd = BLAD_BRAK_CZUJNIKA;
+
+	cEtapPomiaruVL53L1 = EPVL53_SPRAWDZ_CZY_ZAINICJOWANY;
 	return cBłąd;
 }
-
-
-
 
 
 
@@ -57,37 +56,54 @@ uint8_t ObsługaVL53L1(void)
 	uint8_t cPomiarGotowy = 0;
 	VL53L1_RangingMeasurementData_t RMData;
 
-	//Sprawdź czy czujnik jest zainicjowany. Jeżeli nie, to zainicjuj
-	if ((uDaneCM4.dane.nZainicjowano & INIT_VL53L1) != INIT_VL53L1)	//jeżeli czujnik nie jest zainicjowany
+	switch (cEtapPomiaruVL53L1)
 	{
-		cBłąd = InicjujVL53L1();
-		if (cBłąd)
-			return cBłąd;
-		uDaneCM4.dane.nZainicjowano |= INIT_VL53L1;
-		cBłąd = VL53L1_StartMeasurement(&VL53L1CB_Dev);
-	}
-
-	//Sprawdź czy pomiar jest gotowy. Jeżeli tak, to odczytaj go
-	cBłąd = VL53L1_GetMeasurementDataReady(&VL53L1CB_Dev, &cPomiarGotowy);
-	if (cBłąd == BLAD_OK)
-	{
-		if (cPomiarGotowy)
+	case EPVL53_SPRAWDZ_CZY_ZAINICJOWANY:
+		if ((uDaneCM4.dane.nZainicjowano & INIT_VL53L1) != INIT_VL53L1)	//jeżeli czujnik nie jest zainicjowany
 		{
-			cBłąd = VL53L1_GetRangingMeasurementData(&VL53L1CB_Dev, &RMData);
-			if (cBłąd == BLAD_OK)
-			{
-				uDaneCM4.dane.stTOF.cStatusPomiaru = RMData.RangeStatus;
-				uDaneCM4.dane.stTOF.sOdległość = RMData.RangeMilliMeter;
-				uDaneCM4.dane.stTOF.fSigma = (float)RMData.SigmaMilliMeter / 65536;
-				uDaneCM4.dane.stTOF.fNatężenieTła = (float)RMData.AmbientRateRtnMegaCps / 65536;
-				uDaneCM4.dane.stTOF.fReflektancjaCelu = (float)RMData.SignalRateRtnMegaCps / 65536;
-			}
-			cPomiarGotowy = 0;
-			cBłąd = VL53L1_ClearInterruptAndStartMeasurement(&VL53L1CB_Dev);
+			cBłąd = InicjujVL53L1();
+			if (cBłąd)
+				return cBłąd;
+			uDaneCM4.dane.nZainicjowano |= INIT_VL53L1;
+			cBłąd = VL53L1_StartMeasurement(&VL53L1CB_Dev);
+			cEtapPomiaruVL53L1 = EPVL53_SPRAWDZ_CZY_POMIAR_GOTOWY;
+			cEtapPomiaruVL53L1++;
 		}
+	break;
+
+	case EPVL53_SPRAWDZ_CZY_POMIAR_GOTOWY:	//Transmisja trwa 400us Pierwszy jest zapis, potem odczyt
+		cBłąd = VL53L1_GetMeasurementDataReady(&VL53L1CB_Dev, &cPomiarGotowy);
+		if (cBłąd == BLAD_OK)
+		{
+			if (cPomiarGotowy)
+				cEtapPomiaruVL53L1++;
+		}
+		break;
+
+	case EPVL53_ROZPOCZNIJ_ODCZYT_POMIARU:	//trwa6,2ms zapis 2 bajtów, potem odczyt kilkudziesieciu
+		cBłąd = VL53L1_GetRangingMeasurementData(&VL53L1CB_Dev, &RMData);
+		if (cBłąd == BLAD_OK)
+		{
+			uDaneCM4.dane.stTOF.cStatusPomiaru = RMData.RangeStatus;
+			uDaneCM4.dane.stTOF.cNowyPomiar = RMData.StreamCount;
+			uDaneCM4.dane.stTOF.sOdległość = RMData.RangeMilliMeter;
+			uDaneCM4.dane.stTOF.fSigma = (float)RMData.SigmaMilliMeter / 65536;
+			uDaneCM4.dane.stTOF.fNatężenieTła = (float)RMData.AmbientRateRtnMegaCps / 65536;
+			uDaneCM4.dane.stTOF.fReflektancjaCelu = (float)RMData.SignalRateRtnMegaCps / 65536;
+			cEtapPomiaruVL53L1++;
+		}
+		cPomiarGotowy = 0;
+		break;
+
+	case EPVL53_SPRAWDZ_CZY_ODCZYT_ZAKONCZONY:
+		cEtapPomiaruVL53L1++;
+		break;
+
+	case EPVL53_CZYSZCZENIE_I_RESTART_POMIARU:	//pojedyńcza transmisja trwa 5,3ms
+		cBłąd = VL53L1_ClearInterruptAndStartMeasurement(&VL53L1CB_Dev);
+		cEtapPomiaruVL53L1 = EPVL53_SPRAWDZ_CZY_POMIAR_GOTOWY;
+		break;
 	}
-
-
 	return cBłąd;
 }
 

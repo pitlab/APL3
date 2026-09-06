@@ -64,6 +64,7 @@ extern uint8_t cKonfigWeRC[LICZBA_WEJSC_RC];	//określa jakiego typu sygnał wch
 extern ADC_HandleTypeDef hadc2;
 extern ADC_HandleTypeDef hadc3;
 extern DMA_HandleTypeDef hdma_i2c3_rx;
+extern DMA_HandleTypeDef hdma_i2c3_tx;
 extern DMA_HandleTypeDef hdma_i2c4_rx;
 extern DMA_HandleTypeDef hdma_i2c4_tx;
 extern I2C_HandleTypeDef hi2c4;
@@ -250,6 +251,34 @@ void DMA1_Stream2_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles DMA1 stream4 global interrupt.
+  */
+void DMA1_Stream4_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Stream4_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream4_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_i2c3_rx);
+  /* USER CODE BEGIN DMA1_Stream4_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream4_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA1 stream5 global interrupt.
+  */
+void DMA1_Stream5_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Stream5_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream5_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_i2c3_tx);
+  /* USER CODE BEGIN DMA1_Stream5_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream5_IRQn 1 */
+}
+
+/**
   * @brief This function handles ADC1 and ADC2 global interrupts.
   */
 void ADC_IRQHandler(void)
@@ -433,20 +462,6 @@ void DMA2_Stream3_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles DMA2 stream4 global interrupt.
-  */
-void DMA2_Stream4_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA2_Stream4_IRQn 0 */
-
-  /* USER CODE END DMA2_Stream4_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_tim3_ch4);
-  /* USER CODE BEGIN DMA2_Stream4_IRQn 1 */
-
-  /* USER CODE END DMA2_Stream4_IRQn 1 */
-}
-
-/**
   * @brief This function handles DMA2 stream5 global interrupt.
   */
 void DMA2_Stream5_IRQHandler(void)
@@ -454,7 +469,7 @@ void DMA2_Stream5_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream5_IRQn 0 */
 
   /* USER CODE END DMA2_Stream5_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_i2c3_rx);
+  HAL_DMA_IRQHandler(&hdma_tim3_ch4);
   /* USER CODE BEGIN DMA2_Stream5_IRQn 1 */
 
   /* USER CODE END DMA2_Stream5_IRQn 1 */

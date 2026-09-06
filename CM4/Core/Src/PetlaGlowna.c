@@ -553,10 +553,9 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	//operacje na zewnętrznej magistrali I2C3
 	switch(cEtapOperacjiI2C)
 	{
-	case 0: cBłąd = ObsługaVL53L1();		break;
-	//case 2: cBłąd = ObslugaMS4525();		break;
-	case 1:
-	//case 3:	cBłąd = ObslugaHMC5883();		break;
+	case 0: cBłąd = ObslugaMS4525();		break;
+	case 3:	cBłąd = ObslugaHMC5883();		break;
+	case 7: cBłąd = ObsługaVL53L1();		break;
 	default: break;
 	}
 
@@ -572,7 +571,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 
 	cEtapOperacjiI2C++;
 	//cEtapOperacjiI2C &= 0x03;
-	cEtapOperacjiI2C &= 0x3F;
+	cEtapOperacjiI2C &= 0x1F;
 	return cBłąd;
 }
 
@@ -599,7 +598,6 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 		if (cCzujnikZapisywanyNaI2CInt == MAG_MMC)	//po zapisie wykonaj operację odczytu
 			MagMMC_CzytajDane();
 
-
 		cCzujnikZapisywanyNaI2CInt = 0;
 	}
 
@@ -617,26 +615,23 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
 	if (hi2c->Instance == I2C3)	//magistrala I2C modułów zewnętrznych
 	{
-		if (cCzujnikOdczytywanyNaI2CExt == MAG_HMC)	//magnetometr HMC5883
-			cNoweDaneI2C |= MAG_HMC;
-		else
-		if (cCzujnikOdczytywanyNaI2CExt == CISN_ROZN_MS2545)	//ciśnienie różnicowe czujnika MS2545DO
-			cNoweDaneI2C |= CISN_ROZN_MS2545;
-		else
-		if (cCzujnikOdczytywanyNaI2CExt == CISN_TEMP_MS2545)	//ciśnienie różnicowe i temperatura czujnika MS2545DO
-			cNoweDaneI2C |= CISN_TEMP_MS2545;
-
+		switch (cCzujnikOdczytywanyNaI2CExt)
+		{
+		case MAG_HMC5883:		cNoweDaneI2C |= MAG_HMC5883;		break;	//magnetometr HMC5883
+		case CISN_ROZN_MS2545:	cNoweDaneI2C |= CISN_ROZN_MS2545;	break;	//ciśnienie różnicowe czujnika MS2545DO
+		case CISN_TEMP_MS2545:	cNoweDaneI2C |= CISN_TEMP_MS2545;	break;	//ciśnienie różnicowe i temperatura czujnika MS2545DO
+		case TOF_VL53L1:		cNoweDaneI2C |= TOF_VL53L1;			break;	//lidar
+		}
 		cCzujnikOdczytywanyNaI2CExt = 0;
 	}
 
 	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych
 	{
-		if (cCzujnikOdczytywanyNaI2CInt == MAG_IIS)
-			cNoweDaneI2C |= MAG_IIS;
-		else
-		if (cCzujnikOdczytywanyNaI2CInt == MAG_MMC)
-			cNoweDaneI2C |= MAG_MMC;
-
+		switch (cCzujnikOdczytywanyNaI2CExt)
+		{
+		case MAG_IIS:	cNoweDaneI2C |= MAG_IIS;	break;
+		case MAG_MMC:	cNoweDaneI2C |= MAG_MMC;	break;
+		}
 		cCzujnikOdczytywanyNaI2CInt = 0;
 	}
 }
@@ -668,7 +663,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 	const int8_t cZnakMMC[3] = {-1, -1, 1};		//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z
 	const int8_t cZnakHMC[3] = {1, -1, 1};	//magnetometr 3: jest OK
 
-	if (*chCzujniki & MAG_HMC)
+	if (*chCzujniki & MAG_HMC5883)
 	{
 		//Uwaga! Czujnik HMS5883L ma osie w nietypowej kolejności XZY, więc konwersję trzeba wykonać ręcznie poza pętlą
 		sZeZnakiem = ((int16_t)cDaneMagHMC[0] * 0x100 + cDaneMagHMC[1]) * cZnakHMC[0];	//oś X
@@ -688,7 +683,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 			uDaneCM4.dane.fMagne3[2] = (float)sZeZnakiem * CZULOSC_HMC5883;			//dane surowe podczas kalibracji magnetometru
 		else
 			uDaneCM4.dane.fMagne3[2] = ((float)sZeZnakiem * CZULOSC_HMC5883 - fPrzesMagn3[2]) * fSkaloMagn3[2];	//dane skalibrowane
-		*chCzujniki &= ~MAG_HMC;	//dane obsłużone
+		*chCzujniki &= ~MAG_HMC5883;	//dane obsłużone
 		uDaneCM4.dane.cNowyPomiar |= NP_MAG3;	//jest nowy pomiar
 	}
 

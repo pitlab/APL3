@@ -24,6 +24,8 @@
 /* USER CODE END Includes */
 extern DMA_HandleTypeDef hdma_i2c3_rx;
 
+extern DMA_HandleTypeDef hdma_i2c3_tx;
+
 extern DMA_HandleTypeDef hdma_i2c4_rx;
 
 extern DMA_HandleTypeDef hdma_i2c4_tx;
@@ -266,7 +268,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 
     /* I2C3 DMA Init */
     /* I2C3_RX Init */
-    hdma_i2c3_rx.Instance = DMA2_Stream5;
+    hdma_i2c3_rx.Instance = DMA1_Stream4;
     hdma_i2c3_rx.Init.Request = DMA_REQUEST_I2C3_RX;
     hdma_i2c3_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_i2c3_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -282,6 +284,24 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
     }
 
     __HAL_LINKDMA(hi2c,hdmarx,hdma_i2c3_rx);
+
+    /* I2C3_TX Init */
+    hdma_i2c3_tx.Instance = DMA1_Stream5;
+    hdma_i2c3_tx.Init.Request = DMA_REQUEST_I2C3_TX;
+    hdma_i2c3_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_i2c3_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_i2c3_tx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_i2c3_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_i2c3_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_i2c3_tx.Init.Mode = DMA_NORMAL;
+    hdma_i2c3_tx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_i2c3_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_i2c3_tx) != HAL_OK)
+    {
+      Error_Handler();
+    }
+
+    __HAL_LINKDMA(hi2c,hdmatx,hdma_i2c3_tx);
 
     /* USER CODE BEGIN I2C3_MspInit 1 */
 
@@ -381,6 +401,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
 
     /* I2C3 DMA DeInit */
     HAL_DMA_DeInit(hi2c->hdmarx);
+    HAL_DMA_DeInit(hi2c->hdmatx);
     /* USER CODE BEGIN I2C3_MspDeInit 1 */
 
     /* USER CODE END I2C3_MspDeInit 1 */
@@ -582,7 +603,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
     __HAL_LINKDMA(htim_base,hdma[TIM_DMA_ID_CC3],hdma_tim3_ch3);
 
     /* TIM3_CH4 Init */
-    hdma_tim3_ch4.Instance = DMA2_Stream4;
+    hdma_tim3_ch4.Instance = DMA2_Stream5;
     hdma_tim3_ch4.Init.Request = DMA_REQUEST_TIM3_CH4;
     hdma_tim3_ch4.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim3_ch4.Init.PeriphInc = DMA_PINC_DISABLE;

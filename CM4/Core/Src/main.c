@@ -64,6 +64,7 @@ ADC_HandleTypeDef hadc3;
 I2C_HandleTypeDef hi2c3;
 I2C_HandleTypeDef hi2c4;
 DMA_HandleTypeDef hdma_i2c3_rx;
+DMA_HandleTypeDef hdma_i2c3_tx;
 DMA_HandleTypeDef hdma_i2c4_rx;
 DMA_HandleTypeDef hdma_i2c4_tx;
 
@@ -457,9 +458,7 @@ static void MX_I2C3_Init(void)
 
   /* USER CODE END I2C3_Init 1 */
   hi2c3.Instance = I2C3;
-  //hi2c3.Init.Timing = 0x00101E23;		//94 kHz
-  //hi2c3.Init.Timing = 0x0010110F;		//164 kHz - działa źle
-  hi2c3.Init.Timing = 0x00101A16;		//122 kHz - działa
+  hi2c3.Init.Timing = 0x0000023F;
   hi2c3.Init.OwnAddress1 = 0;
   hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -1097,6 +1096,12 @@ static void MX_DMA_Init(void)
   /* DMA1_Stream2_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+  /* DMA1_Stream4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
+  /* DMA1_Stream5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
   /* DMA1_Stream7_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);
@@ -1106,9 +1111,6 @@ static void MX_DMA_Init(void)
   /* DMA2_Stream3_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
-  /* DMA2_Stream4_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream4_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
   /* DMA2_Stream5_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);

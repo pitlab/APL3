@@ -154,7 +154,7 @@ uint8_t ObslugaHMC5883(void)
 
 	case 2:
 		cBłąd = HAL_I2C_Master_Seq_Receive_DMA(&hi2c3, HMC_I2C_ADR, cDaneMagHMC, 6, I2C_LAST_FRAME);		//odczytaj status i zakończ STOP
-		cCzujnikOdczytywanyNaI2CExt = MAG_HMC;		//informacja o tym jak mają być interpretowane dane odebrane w HAL_I2C_MasterRxCpltCallback()
+		cCzujnikOdczytywanyNaI2CExt = MAG_HMC5883;		//informacja o tym jak mają być interpretowane dane odebrane w HAL_I2C_MasterRxCpltCallback()
 		break;
 
 	default: break;

@@ -11,6 +11,15 @@
 
 #define TIMEOUT_VL53C1		20	//timerout operacji na I2C
 
+//etapy operacji pomiaru czujnikiem
+#define EPVL53_SPRAWDZ_CZY_ZAINICJOWANY			0
+#define EPVL53_SPRAWDZ_CZY_POMIAR_GOTOWY		1
+#define EPVL53_ROZPOCZNIJ_ODCZYT_POMIARU		2
+#define EPVL53_SPRAWDZ_CZY_ODCZYT_ZAKONCZONY	3
+#define EPVL53_CZYSZCZENIE_I_RESTART_POMIARU	4
+
+#define EPVL53_
+
 uint8_t InicjujVL53L1(void);
 uint8_t ObsługaVL53L1(void);
 
