@@ -35,6 +35,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define INIT_KALMAN_WYSOKOSCI	0x00100000	//zainicjowana filtr Kalmana wysokości  danymi z czujników
 #define INIT_BMP585				0x00200000
 #define INIT_P0_BMP855			0x00400000	//ustawiono ciśnienie P0 dla czujnika 2
+#define INIT_VL53L1				0x00800000	//inicjalizacja lidara
 
 #define TESTY		//włacz testowanie algorytmów, można wyłaczyć dla _nieświadowego_ końcowego użytkownika
 #define RAD2DEG				(180/M_PI)

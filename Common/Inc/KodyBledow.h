@@ -32,7 +32,7 @@
 #define BLAD_ZA_KROTKI_CZAS		27	//upłyneło za mało czasu aby zadaie mogło zostać zrealizowane
 
 //#define BLAD_SRAM_TEST			30 //błąd pamięci SRAM
-#define BLAD_BRAK_KAMERY			31	//nie wykryto obecności kamery
+#define BLAD_BRAK_KAMERY		31	//nie wykryto obecności kamery
 #define BLAD_BRAK_CZUJNIKA		32	//ogólny błąd dotyczący czujników które normalnie zawsze powinny być sprawne
 #define BLAD_BRAK_FLASH_NOR		33
 #define BLAD_KARTA_SD_NIEGOTOWA	34	//karta SD nie jest gotowa do pracy

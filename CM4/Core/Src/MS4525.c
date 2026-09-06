@@ -78,7 +78,7 @@ uint8_t ObslugaMS4525(void)
 		switch (cProporcjaPomiarow)
 		{
 		case 0:
-			cCzujnikOdczytywanyNaI2CExt = CISN_ROZN_MS2545;	//odczytaj ciśnienie różnicowe i temepraturę
+			cCzujnikOdczytywanyNaI2CExt = CISN_ROZN_MS2545;	//odczytaj ciśnienie różnicowe i temperaturę
 			cBłąd = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, cDaneMS4525, 4);
 			break;
 
@@ -129,8 +129,8 @@ float CisnienieMS2545(uint8_t * cDane)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Oblicza temperaturę na podstawie odczytanych danych
-// Wzór: Output = (Temperatura - (-50°C)) * 2047 / (150°C - (-50°C)) = (Temperatura + 50°C)) * 2047 / 200°C
-// Po przekształceniu: Temperatura = Output * 200 / 2047 - 50°C
+// Wzór: Odczyt = (Temperatura - (-50°C)) * 2047 / (150°C - (-50°C)) = (Temperatura + 50°C)) * 2047 / 200°C
+// Po przekształceniu: Temperatura = Odczyt * 200 / 2047 - 50°C
 // Parametry: *dane - wskaźnik na odczytane dane
 // Zwraca: obliczona temepratura
 ////////////////////////////////////////////////////////////////////////////////

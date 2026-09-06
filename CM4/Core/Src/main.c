@@ -64,7 +64,6 @@ ADC_HandleTypeDef hadc3;
 I2C_HandleTypeDef hi2c3;
 I2C_HandleTypeDef hi2c4;
 DMA_HandleTypeDef hdma_i2c3_rx;
-DMA_HandleTypeDef hdma_i2c3_tx;
 DMA_HandleTypeDef hdma_i2c4_rx;
 DMA_HandleTypeDef hdma_i2c4_tx;
 
@@ -110,12 +109,12 @@ static void MX_TIM3_Init(void);
 static void MX_TIM8_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_TIM1_Init(void);
-static void MX_I2C3_Init(void);
 static void MX_UART8_Init(void);
 static void MX_I2C4_Init(void);
 static void MX_UART4_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_ADC3_Init(void);
+static void MX_I2C3_Init(void);
 /* USER CODE BEGIN PFP */
 
 
@@ -202,12 +201,12 @@ int main(void)
   MX_TIM8_Init();
   MX_TIM4_Init();
   MX_TIM1_Init();
-  MX_I2C3_Init();
   MX_UART8_Init();
   MX_I2C4_Init();
   MX_UART4_Init();
   MX_ADC2_Init();
   MX_ADC3_Init();
+  MX_I2C3_Init();
   /* USER CODE BEGIN 2 */
   uDaneCM4.dane.nZainicjowano = 0;	//za każdym uruchomieniem detekcja i inicjalizacja sprzętu zaczyna się od początku
   sFlagiCM4 = sFlagiCM7 = 0;
@@ -458,7 +457,7 @@ static void MX_I2C3_Init(void)
 
   /* USER CODE END I2C3_Init 1 */
   hi2c3.Instance = I2C3;
-  hi2c3.Init.Timing = 0x00101CFB;
+  hi2c3.Init.Timing = 0x00101E23;
   hi2c3.Init.OwnAddress1 = 0;
   hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -1090,15 +1089,12 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
   /* DMA1_Stream2_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
-  /* DMA1_Stream4_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-  /* DMA1_Stream5_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
   /* DMA1_Stream7_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream7_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream7_IRQn);

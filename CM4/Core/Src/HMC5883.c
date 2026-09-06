@@ -141,12 +141,15 @@ uint8_t ObslugaHMC5883(void)
 	case 0:		//startuj pomiar
 		cPoleceniaHMC[0] = MODE;
 		cPoleceniaHMC[1] = (1 << 0);   //Mode Select:0=Continuous-Measurement Mode, 1=Single-Measurement Mode, 2-3=Idle Mode.
-		cBłąd = HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, cPoleceniaHMC, 2);
+		//cBłąd = HAL_I2C_Master_Transmit_DMA(&hi2c3, HMC_I2C_ADR, cPoleceniaHMC, 2);
+		cBłąd = HAL_I2C_Master_Transmit_IT(&hi2c3, HMC_I2C_ADR, cPoleceniaHMC, 2);
 	    break;
 
 	case 1:	//startuj odczyt
 		cPoleceniaHMC[0] = DATA_XH;
-		cBłąd = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c3, HMC_I2C_ADR, cPoleceniaHMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
+		//cBłąd = HAL_I2C_Master_Seq_Transmit_DMA(&hi2c3, HMC_I2C_ADR, cPoleceniaHMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
+		cBłąd = HAL_I2C_Master_Seq_Transmit_IT(&hi2c3, HMC_I2C_ADR, cPoleceniaHMC, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
+
 		break;
 
 	case 2:

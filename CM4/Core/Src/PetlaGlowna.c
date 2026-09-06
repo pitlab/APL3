@@ -34,6 +34,7 @@
 #include <Kalman.h>
 #include <KalmanWysokosci5X6Z.h>
 #include "BMP585.h"
+#include <VL53L1.h>
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -552,10 +553,10 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	//operacje na zewnętrznej magistrali I2C3
 	switch(cEtapOperacjiI2C)
 	{
-	case 0:
-	case 2: cBłąd = ObslugaMS4525();		break;
+	case 0: cBłąd = ObsługaVL53L1();		break;
+	//case 2: cBłąd = ObslugaMS4525();		break;
 	case 1:
-	case 3:	cBłąd = ObslugaHMC5883();		break;
+	//case 3:	cBłąd = ObslugaHMC5883();		break;
 	default: break;
 	}
 
@@ -570,7 +571,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	}
 
 	cEtapOperacjiI2C++;
-	cEtapOperacjiI2C &= 0x03;
+	//cEtapOperacjiI2C &= 0x03;
 	return cBłąd;
 }
 
