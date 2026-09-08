@@ -12,7 +12,7 @@ RM := rm -rf
 -include Drivers/vl53l1cb/porting/subdir.mk
 -include Drivers/vl53l1cb/modules/subdir.mk
 -include Drivers/vl53l1cb/subdir.mk
--include Drivers/Src/subdir.mk
+-include Drivers/STM32H7xx_HAL_Driver/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
 -include Common/Src/subdir.mk

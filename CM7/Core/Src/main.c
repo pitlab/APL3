@@ -1657,7 +1657,7 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void *argument)
 {
   /* init code for LWIP */
-  MX_LWIP_Init();
+  //MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
   uint8_t cStanDekodera;
   uint8_t cDzielnikCzasu = 0;

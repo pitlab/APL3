@@ -40,11 +40,6 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Middlewares</locationURI>
 		</link>
 		<link>
-			<name>Drivers/Src</name>
-			<type>2</type>
-			<location>C:/projekty/APL3/firmware/Drivers/STM32H7xx_HAL_Driver/Src</location>
-		</link>
-		<link>
 			<name>Drivers/vl53l1cb</name>
 			<type>2</type>
 			<location>C:/projekty/APL3/firmware/Drivers/BSP/Components/vl53l1cb</location>

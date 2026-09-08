@@ -57,6 +57,7 @@ static uint8_t cEtapOperacjiI2C;
 uint8_t cGeneratorNapisow, cLicznikKomunikatow;
 extern I2C_HandleTypeDef hi2c3;
 volatile uint8_t cCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika obsługiwanego na zewntrznej magistrali I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
+volatile uint8_t cCzujnikZapisywanyNaI2CExt;	//identyfikator czujnika obsługiwanego na zewntrznej magistrali I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
 volatile uint8_t cCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
 volatile uint8_t cCzujnikZapisywanyNaI2CInt;
 uint8_t cNoweDaneI2C;	//zestaw flag informujący o pojawieniu sie nowych danych odebranych na magistrali I2C
@@ -79,7 +80,7 @@ extern uint16_t sTS_CAL1, sTS_CAL2;	//wspólczynniki kalibracji czujnika tempera
 extern uint8_t cWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC2, bit1 = ADC3
 uint8_t cBityPozwoleniaNaPomiarADC;	//pole bitowe informujące który pomiar można wykonać w danym obiegu pętli
 extern uint16_t sWysterowanieIdentSiln;	//wysterowanie silników podczas procesu identfikacji
-
+uint8_t cZakonczonoTransmisjeI2C;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -555,7 +556,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	{
 	case 0: cBłąd = ObslugaMS4525();		break;
 	case 3:	cBłąd = ObslugaHMC5883();		break;
-	case 7: cBłąd = ObsługaVL53L1();		break;
+	case 0x10: cBłąd = ObsługaVL53L1();		break;
 	default: break;
 	}
 
@@ -571,7 +572,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 
 	cEtapOperacjiI2C++;
 	//cEtapOperacjiI2C &= 0x03;
-	cEtapOperacjiI2C &= 0x1F;
+	cEtapOperacjiI2C &= 0x3F;
 	return cBłąd;
 }
 
@@ -584,24 +585,26 @@ uint8_t RozdzielniaOperacjiI2C(void)
 ////////////////////////////////////////////////////////////////////////////////
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
-	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych
+	if (hi2c->Instance == I2C3)	//magistrala I2C modułów zewnętrznych
 	{
-		if (cCzujnikZapisywanyNaI2CInt == MAG_IIS_STATUS)	//po zapisie wykonaj operację odczytu
-			MagIIS_CzytajStatus();
-
-		if (cCzujnikZapisywanyNaI2CInt == MAG_IIS)	//po zapisie wykonaj operację odczytu
-			MagIIS_CzytajDane();
-
-		if (cCzujnikZapisywanyNaI2CInt == MAG_MMC_STATUS)	//po zapisie wykonaj operację odczytu
-			MagMMC_CzytajStatus();
-
-		if (cCzujnikZapisywanyNaI2CInt == MAG_MMC)	//po zapisie wykonaj operację odczytu
-			MagMMC_CzytajDane();
-
-		cCzujnikZapisywanyNaI2CInt = 0;
+		switch (cCzujnikZapisywanyNaI2CExt)
+		{
+		case TOF_VL53L1:		cZakonczonoTransmisjeI2C = 1;	break;
+		}
+		cCzujnikZapisywanyNaI2CExt = 0;
 	}
 
-
+	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych
+	{
+		switch (cCzujnikZapisywanyNaI2CInt)
+		{
+		case MAG_IIS_STATUS:	MagIIS_CzytajStatus();	break;	//po zapisie wykonaj operację odczytu
+		case MAG_IIS:			MagIIS_CzytajDane();	break;	//po zapisie wykonaj operację odczytu
+		case MAG_MMC_STATUS:	MagMMC_CzytajStatus();	break;	//po zapisie wykonaj operację odczytu
+		case MAG_MMC:			MagMMC_CzytajDane();	break;	//po zapisie wykonaj operację odczytu
+		}
+		cCzujnikZapisywanyNaI2CInt = 0;
+	}
 }
 
 

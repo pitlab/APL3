@@ -345,11 +345,6 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/list.c</locationURI>
 		</link>
 		<link>
-			<name>Middlewares/Third_Party/FreeRTOS/mpu_wrappers_v2.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/portable/Common/mpu_wrappers_v2.c</locationURI>
-		</link>
-		<link>
 			<name>Middlewares/Third_Party/FreeRTOS/port.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c</locationURI>

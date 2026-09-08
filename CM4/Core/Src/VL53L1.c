@@ -15,7 +15,8 @@ static VL53L1CB_Object_t VL53L1CB_Dev;
 extern I2C_HandleTypeDef hi2c3;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t cEtapPomiaruVL53L1;
-
+extern uint8_t cZakonczonoTransmisjeI2C;
+extern uint8_t cCzujnikZapisywanyNaI2CExt, cCzujnikOdczytywanyNaI2CExt;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,6 +57,10 @@ uint8_t ObsługaVL53L1(void)
 	uint8_t cPomiarGotowy = 0;
 	VL53L1_RangingMeasurementData_t RMData;
 
+	//jeżeli nie zaończyła się poprzednia transmisja to nie zaczynaj nastepnej
+	//if (cCzujnikZapisywanyNaI2CExt)
+		//return BLAD_ZA_KROTKI_CZAS;
+
 	switch (cEtapPomiaruVL53L1)
 	{
 	case EPVL53_SPRAWDZ_CZY_ZAINICJOWANY:
@@ -65,11 +70,11 @@ uint8_t ObsługaVL53L1(void)
 			if (cBłąd)
 				return cBłąd;
 			uDaneCM4.dane.nZainicjowano |= INIT_VL53L1;
-			cBłąd = VL53L1_StartMeasurement(&VL53L1CB_Dev);
-			cEtapPomiaruVL53L1 = EPVL53_SPRAWDZ_CZY_POMIAR_GOTOWY;
-			cEtapPomiaruVL53L1++;
 		}
-	break;
+		cBłąd = VL53L1_StartMeasurement(&VL53L1CB_Dev);
+		cEtapPomiaruVL53L1 = EPVL53_SPRAWDZ_CZY_POMIAR_GOTOWY;
+		cEtapPomiaruVL53L1++;
+		break;
 
 	case EPVL53_SPRAWDZ_CZY_POMIAR_GOTOWY:	//Transmisja trwa 400us Pierwszy jest zapis, potem odczyt
 		cBłąd = VL53L1_GetMeasurementDataReady(&VL53L1CB_Dev, &cPomiarGotowy);
@@ -92,6 +97,8 @@ uint8_t ObsługaVL53L1(void)
 			uDaneCM4.dane.stTOF.fReflektancjaCelu = (float)RMData.SignalRateRtnMegaCps / 65536;
 			cEtapPomiaruVL53L1++;
 		}
+		else
+			cEtapPomiaruVL53L1 = EPVL53_SPRAWDZ_CZY_ZAINICJOWANY;
 		cPomiarGotowy = 0;
 		break;
 
@@ -99,9 +106,14 @@ uint8_t ObsługaVL53L1(void)
 		cEtapPomiaruVL53L1++;
 		break;
 
-	case EPVL53_CZYSZCZENIE_I_RESTART_POMIARU:	//pojedyńcza transmisja trwa 5,3ms
+	case EPVL53_CZYSZCZENIE_I_RESTART_POMIARU:	//pojedyńcza transmisja zapisu trwa 5,3ms
 		cBłąd = VL53L1_ClearInterruptAndStartMeasurement(&VL53L1CB_Dev);
-		cEtapPomiaruVL53L1 = EPVL53_SPRAWDZ_CZY_POMIAR_GOTOWY;
+		cEtapPomiaruVL53L1++;
+		break;
+
+	case EPVL53_CZY_KONIEC_TRANSMISJI_I_RESTARTU:
+//		if (cZakonczonoTransmisjeI2C)
+			cEtapPomiaruVL53L1 = EPVL53_SPRAWDZ_CZY_POMIAR_GOTOWY;
 		break;
 	}
 	return cBłąd;
@@ -157,7 +169,15 @@ int32_t TOF_GetTick(void)
 ////////////////////////////////////////////////////////////////////////////////
 int32_t TOF_WriteReg(uint16_t Reg, uint8_t *pData, uint16_t Length)
 {
-	uint8_t cBłąd = HAL_I2C_Master_Transmit(&hi2c3, Reg, pData, Length, TIMEOUT_VL53C1);
+	uint8_t cBłąd;
+
+/*	if (cEtapPomiaruVL53L1 == EPVL53_CZYSZCZENIE_I_RESTART_POMIARU)
+	{
+		cCzujnikZapisywanyNaI2CExt = TOF_VL53L1;
+		cBłąd = HAL_I2C_Master_Transmit_DMA(&hi2c3, Reg, pData, Length);
+	}
+	else*/
+		cBłąd = HAL_I2C_Master_Transmit(&hi2c3, Reg, pData, Length, TIMEOUT_VL53C1);
     return (cBłąd == HAL_OK) ? 0 : -1;
 }
 
