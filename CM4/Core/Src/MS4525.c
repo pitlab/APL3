@@ -35,7 +35,7 @@ uint8_t InicjujMS4525(void)
 	uint8_t cBłąd;
 
 	//wyślij adres i sprawdź czy odpowie ACK-iem
-	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, MS2545_I2C_ADR, cDaneMS4525, 2, I2C_TIMOUT);
+	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, MS2545_I2C_ADR, cDaneMS4525, 1, I2C_TIMOUT);
 	if (cBłąd == BLAD_OK)
 	{
 		uDaneCM4.dane.nZainicjowano |= INIT_MS4525;

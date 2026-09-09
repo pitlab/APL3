@@ -458,7 +458,9 @@ static void MX_I2C3_Init(void)
 
   /* USER CODE END I2C3_Init 1 */
   hi2c3.Instance = I2C3;
-  hi2c3.Init.Timing = 0x0000023F;
+  hi2c3.Init.Timing = 0x0000023F;	//fast I2C
+  //hi2c3.Init.Timing = 0x00101814;	//normal 100k
+  //hi2c3.Init.Timing = 0x00101CFB;	//25k
   hi2c3.Init.OwnAddress1 = 0;
   hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;

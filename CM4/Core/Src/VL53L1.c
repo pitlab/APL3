@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // AutoPitLot v3.0
-// Obsługa dalmierzy światła odbitego rodziny VL53Cx
+// Obsługa dalmierza światła odbitego VL53C1
 //
 // (c) Pit Lab 2026
 // http://www.pitlab.pl
@@ -17,6 +17,8 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t cEtapPomiaruVL53L1;
 extern uint8_t cZakonczonoTransmisjeI2C;
 extern uint8_t cCzujnikZapisywanyNaI2CExt, cCzujnikOdczytywanyNaI2CExt;
+static uint8_t cLicznikPróbInicjalizacji = MAX_PROB_INICJALIZACJI;
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -57,6 +59,9 @@ uint8_t ObsługaVL53L1(void)
 	uint8_t cPomiarGotowy = 0;
 	VL53L1_RangingMeasurementData_t RMData;
 
+	if (uDaneCM4.dane.nBrakCzujnika & INIT_VL53L1)
+		return BLAD_OK;
+
 	//jeżeli nie zaończyła się poprzednia transmisja to nie zaczynaj nastepnej
 	//if (cCzujnikZapisywanyNaI2CExt)
 		//return BLAD_ZA_KROTKI_CZAS;
@@ -68,12 +73,20 @@ uint8_t ObsługaVL53L1(void)
 		{
 			cBłąd = InicjujVL53L1();
 			if (cBłąd)
+			{
+				cLicznikPróbInicjalizacji--;
+				if (!cLicznikPróbInicjalizacji)
+					uDaneCM4.dane.nBrakCzujnika |= INIT_VL53L1;
 				return cBłąd;
+			}
 			uDaneCM4.dane.nZainicjowano |= INIT_VL53L1;
 		}
 		cBłąd = VL53L1_StartMeasurement(&VL53L1CB_Dev);
-		cEtapPomiaruVL53L1 = EPVL53_SPRAWDZ_CZY_POMIAR_GOTOWY;
-		cEtapPomiaruVL53L1++;
+		if (cBłąd == BLAD_OK)
+		{
+			cEtapPomiaruVL53L1 = EPVL53_SPRAWDZ_CZY_POMIAR_GOTOWY;
+			cEtapPomiaruVL53L1++;
+		}
 		break;
 
 	case EPVL53_SPRAWDZ_CZY_POMIAR_GOTOWY:	//Transmisja trwa 400us Pierwszy jest zapis, potem odczyt
