@@ -284,9 +284,16 @@
 #define TID_KALMAN_P1			235
 #define TID_KALMAN_P2			236
 #define TID_KALMAN_P3			237
+
+#define TID_TOF_ODLEGLOSC		238	//odelgłość w metrach
+#define TID_TOF_STATUS			239	//status pomiaru
+#define TID_TOF_NOWY_POMIAR		240	//licnzik inkrementowany przy nowym pomiarze
+#define TID_TOF_SIGMA			241	//odchylenie standardowe pomiaru
+#define TID_TOF_REFLEKT_CELU	242	//reflektancja celu
+#define TID_TOF_NATEZENIE_TLA	243	//poziom natężenia tła
 //max do 255
 
-#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	238
+#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	244
 
 #define MAX_ZMIENNYCH_TELEMETR_W_RAMCE	115		//tyle zmiennych może być przesłanych w jednej ramce telemetrycznej (ramek może być kilka)
 #define MAX_INDEKSOW_TELEMETR_W_RAMCE	128		//zmienne w ramce można wybrać z takiej puli indeksów

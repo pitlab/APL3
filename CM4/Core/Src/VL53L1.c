@@ -29,6 +29,8 @@ static uint8_t cLicznikPróbInicjalizacji = MAX_PROB_INICJALIZACJI;
 uint8_t InicjujVL53L1(void)
 {
 	uint8_t cBłąd = BLAD_OK;
+	uint32_t nStatus;
+	//VL53L1_DetectionConfig_t stConfig;
 
 	VL53L1CB_Dev.IO.Address 	= 0x52;
 	VL53L1CB_Dev.IO.Init		= TOF_I2C_Init;
@@ -37,9 +39,24 @@ uint8_t InicjujVL53L1(void)
 	VL53L1CB_Dev.IO.ReadReg		= TOF_ReadReg;
 	VL53L1CB_Dev.IO.GetTick		= TOF_GetTick;
 
-	uint32_t nStatus = VL53L1CB_Init(&VL53L1CB_Dev);
+	nStatus = VL53L1CB_Init(&VL53L1CB_Dev);
 	if (nStatus)
 		cBłąd = BLAD_BRAK_CZUJNIKA;
+
+	nStatus = VL53L1_SetDistanceMode(&VL53L1CB_Dev, VL53L1_DISTANCEMODE_LONG);
+	if (nStatus)
+		cBłąd = BLAD_BRAK_CZUJNIKA;
+
+	nStatus = VL53L1_SetMeasurementTimingBudgetMicroSeconds(&VL53L1CB_Dev, 33000);
+	if (nStatus)
+		cBłąd = BLAD_BRAK_CZUJNIKA;
+
+	/*stConfig.DetectionMode = 1;
+	stConfig.Distance.CrossMode = 3;
+	stConfig.IntrNoTarget = 0;
+	stConfig.Distance.High = 3000;
+	stConfig.Distance.Low = 50;
+	nStatus = VL53L1_SetThresholdConfig(&VL53L1CB_Dev, &stConfig);*/
 
 	cEtapPomiaruVL53L1 = EPVL53_SPRAWDZ_CZY_ZAINICJOWANY;
 	return cBłąd;

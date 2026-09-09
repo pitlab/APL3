@@ -546,6 +546,14 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_KALMAN_P2:			fZmiennaTele = stDane->stKalmanDebug.fP[2];					break;
 	case TID_KALMAN_P3:			fZmiennaTele = stDane->stKalmanDebug.fP[3];					break;
 
+
+	case TID_TOF_ODLEGLOSC:		fZmiennaTele = (float)stDane->stTOF.sOdległość / 1000.0f;	break;
+	case TID_TOF_STATUS:		fZmiennaTele = (float)stDane->stTOF.cStatusPomiaru;			break;
+	case TID_TOF_NOWY_POMIAR:	fZmiennaTele = (float)stDane->stTOF.cNowyPomiar;			break;
+	case TID_TOF_SIGMA:			fZmiennaTele = stDane->stTOF.fSigma;						break;
+	case TID_TOF_REFLEKT_CELU:	fZmiennaTele = stDane->stTOF.fReflektancjaCelu;				break;
+	case TID_TOF_NATEZENIE_TLA:	fZmiennaTele = stDane->stTOF.fNatężenieTła;					break;
+
 	default:	fZmiennaTele = -1.0f;
 	}
 	return fZmiennaTele;
