@@ -37,14 +37,14 @@ uint8_t FiltrDanychIMUiWysokosci(stWymianyCM4_t *dane)
 		dane->stBSP.fWysokoscMSL = dane->fWysokoMSL[0];
 	dane->stBSP.fWysokoscAGL = dane->fWysokoAGL[0];*/
 
-	dane->stBSP.fPredkoscN = dane->stGnss1.fPredkoscN;
-	dane->stBSP.fPredkoscE = dane->stGnss1.fPredkoscE;
+	dane->stBSP.fPredkoscN = dane->stGnss[0].fPredkoscN;
+	dane->stBSP.fPredkoscE = dane->stGnss[0].fPredkoscE;
 	//dane->stBSP.fPredkoscD = (7 * dane->fWariometr[0] + dane->fWariometr[1]) / 8;
-	dane->stBSP.dDlugoscGeo = dane->stGnss1.dDlugoscGeo;
-	dane->stBSP.dSzerokoscGeo = dane->stGnss1.dSzerokoscGeo;
+	dane->stBSP.dDlugoscGeo = dane->stGnss[0].dDlugoscGeo;
+	dane->stBSP.dSzerokoscGeo = dane->stGnss[0].dSzerokoscGeo;
 
-	if (dane->stGnss1.fKurs != 0.0)
-		dane->stBSP.fKursGeo = (dane->stGnss1.fKurs + ((dane->fKatIMU1[2] + dane->fKatIMU2[2]) / 2) + fDeklinacjaMagnetyczna) / 2;
+	if (dane->stGnss[0].fKurs != 0.0)
+		dane->stBSP.fKursGeo = (dane->stGnss[0].fKurs + ((dane->fKatIMU1[2] + dane->fKatIMU2[2]) / 2) + fDeklinacjaMagnetyczna) / 2;
 	else
 		dane->stBSP.fKursGeo = ((dane->fKatIMU1[2] + dane->fKatIMU2[2]) / 2) + fDeklinacjaMagnetyczna;
 

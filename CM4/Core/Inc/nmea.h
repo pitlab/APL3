@@ -1,9 +1,8 @@
 #ifndef SRC_NMEA_H_
 #define SRC_NMEA_H_
 
-
-
 #include "SysDefCM4.h"
+#include "wymiana.h"
 
 #define ST_ERR				0   //błąd w dekodowaniu, szukaj dalej
 #define ST_NAGLOWEK1		0   //wykryj znak $
@@ -81,23 +80,23 @@
 
 
 //definicje funkcji
-unsigned char DekodujNMEA(unsigned char chDaneIn);
-unsigned char Asci2UChar(unsigned char *chDaneIn, unsigned char chLiczbaZnakow);
-unsigned short Asci2UShort(unsigned char *chDaneIn, unsigned char chLiczbaZnakow);
-unsigned long Asci2ULong(unsigned char *chDaneIn, unsigned char chLiczbaZnakow);
-unsigned char DecodeLonLat(unsigned char *chDaneIn, unsigned char chLiczbaZnakow, double *dStopnie);
-//unsigned char PrepareGPSInitFrame(unsigned char chFrameNr, char* chDane);
-unsigned char DecodeFloat(unsigned char *chDaneIn, unsigned char chLiczbaZnakow, float *fResult);
-unsigned char InitGPS(void);
+uint8_t DekodujNMEA(uint8_t cDaneIn, stGnss_t *stGnss);
+uint8_t Asci2UChar(uint8_t *cDaneIn, uint8_t cLiczbaZnakow);
+uint16_t Asci2UShort(uint8_t *cDaneIn, uint8_t cLiczbaZnakow);
+uint32_t Asci2ULong(uint8_t *cDaneIn, uint8_t cLiczbaZnakow);
+uint8_t DecodeLonLat(uint8_t *cDaneIn, uint8_t cLiczbaZnakow, double *dStopnie);
+//uint8_t PrepareGPSInitFrame(uint8_t chFrameNr, int8_t *chDane);
+uint8_t DecodeFloat(uint8_t *cDaneIn, uint8_t cLiczbaZnakow, float *fResult);
+uint8_t InitGPS(void);
 
 //deklaracje zmienych
-extern unsigned short sInitFlag;   //zawiera flagi inicjalizacji zasobów sprzętowych
+extern uint16_t sInitFlag;   //zawiera flagi inicjalizacji zasobów sprzętowych
 
 
 //deklaracje funkcji
-extern void PutData0 (unsigned char *data, unsigned char data_size);
-extern void SetUartSpeed(unsigned char chPortNum, unsigned int nBaud);
-extern unsigned int CountTime(unsigned int* nLastTim);
+extern void PutData0 (uint8_t *data, uint8_t data_size);
+extern void SetUartSpeed(uint8_t cPortNum, uint32_t nBaud);
+extern uint32_t CountTime(uint32_t *nLastTim);
 extern void InitUBlox(void);
 extern void SpeedUBlox(void);
 

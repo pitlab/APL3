@@ -44,7 +44,7 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 // Parametry: odebrany bajt
 // Zwraca: kod błedu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t DekodujNMEA(uint8_t cDaneIn)
+uint8_t DekodujNMEA(uint8_t cDaneIn, stGnss_t *stGnss)
 {
     uint8_t cBłąd = BLAD_OK;
 
@@ -181,9 +181,9 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
     case ST_GGA_TIME:		//czas
         if (cDaneIn == '.')
 		{
-			uDaneCM4.dane.stGnss1.cGodz = Asci2UChar(cBufStanu+0, 2) - cStrefaCzas;
-			uDaneCM4.dane.stGnss1.cMin  = Asci2UChar(cBufStanu+2, 2);
-			uDaneCM4.dane.stGnss1.cSek  = Asci2UChar(cBufStanu+4, 2);
+			stGnss->cGodz = Asci2UChar(cBufStanu+0, 2) - cStrefaCzas;
+			stGnss->cMin  = Asci2UChar(cBufStanu+2, 2);
+			stGnss->cSek  = Asci2UChar(cBufStanu+4, 2);
 		}
 		else
 		if (cDaneIn == ',')
@@ -238,7 +238,7 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
     case ST_GGA_FIX_IND:
        if (cDaneIn == ',')
        {
-    	   uDaneCM4.dane.stGnss1.cFix = cBufStanu[0] - '0';	//fix przechowuj jako liczbę a nie znak
+    	   stGnss->cFix = cBufStanu[0] - '0';	//fix przechowuj jako liczbę a nie znak
            cStan = ST_GGA_SAT_USE;
            cBajtStanu = 0;
        }
@@ -247,7 +247,7 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
     case ST_GGA_SAT_USE:
        if (cDaneIn == ',')
        {
-    	   uDaneCM4.dane.stGnss1.cLiczbaSatelit = Asci2UChar(cBufStanu, cBajtStanu-1);
+    	   stGnss->cLiczbaSatelit = Asci2UChar(cBufStanu, cBajtStanu-1);
            cStan = ST_GGA_HDOP;
            cBajtStanu = 0;
        }
@@ -257,7 +257,7 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
     	if (cDaneIn == ',')
     	{
     		 if (cBajtStanu > 3)
-    			 cBłąd = DecodeFloat(cBufStanu, cBajtStanu-1, (float*)&uDaneCM4.dane.stGnss1.fHdop);
+    			 cBłąd = DecodeFloat(cBufStanu, cBajtStanu-1, (float*)&stGnss->fHdop);
             cStan = ST_GGA_ALTITUDE;
             cBajtStanu = 0;
     	}
@@ -273,7 +273,7 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
                 sGAltitude = Asci2UShort(cBufStanu+0, cBajtStanu-1);
             else
                 sGAltitude = 0;
-            uDaneCM4.dane.stGnss1.fWysokoscMSL = (float)sGAltitude/10;
+            stGnss->fWysokoscMSL = (float)sGAltitude/10;
             cNewGAlti = 1; //flaga nowych danych o wysokości
             cStan = ST_NAGLOWEK1;
             cBajtStanu = 0;
@@ -329,7 +329,7 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
         if (cDaneIn == ',')
         {
             cBłąd = DecodeFloat(cBufStanu, cBajtStanu-1, &fGHDOP);
-            uDaneCM4.dane.stGnss1.fHdop = fGHDOP;
+            stGnss->fHdop = fGHDOP;
             if ((cBłąd == BLAD_OK) | (cBłąd == BLAD_BRAK_DANYCH))
                 cStan = ST_GSA_VDOP;
             else
@@ -363,15 +363,15 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
     case ST_GSA_MODE2_GS:
         if (cDaneIn == ',')
         {
-        	uDaneCM4.dane.stGnss1.cFix = cBufStanu[0]-'0';
-            if ((uDaneCM4.dane.stGnss1.cFix < 1) || (uDaneCM4.dane.stGnss1.cFix > 3))   //sprawdź czy to liczba
+        	stGnss->cFix = cBufStanu[0]-'0';
+            if ((stGnss->cFix < 1) || (stGnss->cFix > 3))   //sprawdź czy to liczba
             {
-            	 uDaneCM4.dane.stGnss1.cFix = 1; //jeżeli błąd błąd to przyjmij najgorszy możliwy
+            	stGnss->cFix = 1; //jeżeli błąd błąd to przyjmij najgorszy możliwy
             	 cStan = ST_ERR;
             }
             else
                 cStan = ST_GSA_SAT_USED_GS;
-            uDaneCM4.dane.stGnss1.cLiczbaSatelit = 0;
+            stGnss->cLiczbaSatelit = 0;
             cBajtStanu = 0;
         }
         break;
@@ -379,8 +379,8 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
     case ST_GSA_SAT_USED_GS:
         if (cDaneIn == ',')
         {
-        	uDaneCM4.dane.stGnss1.cLiczbaSatelit++;
-            if (uDaneCM4.dane.stGnss1.cLiczbaSatelit >= 12)
+        	stGnss->cLiczbaSatelit++;
+            if (stGnss->cLiczbaSatelit >= 12)
             {
                 cStan = ST_GSA_PDOP_GS;
                 cBajtStanu = 0;
@@ -480,9 +480,9 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
     case ST_RMC_UTC_GS:
     	if (cDaneIn == '.')
     	{
-        	  uDaneCM4.dane.stGnss1.cGodz = Asci2UChar(cBufStanu+0, 2) - cStrefaCzas;
-        	  uDaneCM4.dane.stGnss1.cMin  = Asci2UChar(cBufStanu+2, 2);
-        	  uDaneCM4.dane.stGnss1.cSek  = Asci2UChar(cBufStanu+4, 2);
+    		stGnss->cGodz = Asci2UChar(cBufStanu+0, 2) - cStrefaCzas;
+    		stGnss->cMin  = Asci2UChar(cBufStanu+2, 2);
+    		stGnss->cSek  = Asci2UChar(cBufStanu+4, 2);
     	}
 		else
 		if (cDaneIn == ',')
@@ -537,9 +537,9 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
 			if (cBajtStanu == 2)
 			{
 				if (cBufStanu[0] == 'S')
-					uDaneCM4.dane.stGnss1.dSzerokoscGeo = dLatitudeRAW * -1;
+					stGnss->dSzerokoscGeo = dLatitudeRAW * -1;
 				else
-					uDaneCM4.dane.stGnss1.dSzerokoscGeo = dLatitudeRAW;
+					stGnss->dSzerokoscGeo = dLatitudeRAW;
 			}
 			cStan = ST_RMC_LONGITUD_GS;
             cBajtStanu = 0;
@@ -575,9 +575,9 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
 			if (cBajtStanu == 2)
 			{
 				if (cBufStanu[0] == 'W')
-					uDaneCM4.dane.stGnss1.dDlugoscGeo = dLongitudeRAW * -1;
+					stGnss->dDlugoscGeo = dLongitudeRAW * -1;
 				else
-					uDaneCM4.dane.stGnss1.dDlugoscGeo = dLongitudeRAW;
+					stGnss->dDlugoscGeo = dLongitudeRAW;
 			}
 			cStan = ST_RMC_SPEED_GS;
 			cBajtStanu = 0;
@@ -597,7 +597,7 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
 			else
 				sGSpeed100k = 0;
 			//zamień jednostke z węzłów = [mila/h] na [m/s]
-			uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi = (float)sGSpeed100k *(float)0.00514444;
+			stGnss->fPredkoscWzglZiemi = (float)sGSpeed100k *(float)0.00514444;
 			//cStan = ST_RMC_COURSE_GS;
 			cStan = ST_RMC_COURSE;
 			cBajtStanu = 0;
@@ -628,9 +628,9 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
     case ST_RMC_UTC:
    		if ((cDaneIn == '.') && (cRMC_Status == 'A'))
 		{
-    		uDaneCM4.dane.stGnss1.cGodz = Asci2UChar(cBufStanu+0, 2) - cStrefaCzas;
-    		uDaneCM4.dane.stGnss1.cMin  = Asci2UChar(cBufStanu+2, 2);
-    		uDaneCM4.dane.stGnss1.cSek  = Asci2UChar(cBufStanu+4, 2);
+   			stGnss->cGodz = Asci2UChar(cBufStanu+0, 2) - cStrefaCzas;
+   			stGnss->cMin  = Asci2UChar(cBufStanu+2, 2);
+   			stGnss->cSek  = Asci2UChar(cBufStanu+4, 2);
 		}
 		else
         if (cDaneIn == ',')
@@ -685,9 +685,9 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
         	if (cBajtStanu == 2)
         	{
         		if (cBufStanu[0] == 'S')
-        			uDaneCM4.dane.stGnss1.dSzerokoscGeo = dLatitudeRAW * -1;
+        			stGnss->dSzerokoscGeo = dLatitudeRAW * -1;
         		else
-        			uDaneCM4.dane.stGnss1.dSzerokoscGeo = dLatitudeRAW;
+        			stGnss->dSzerokoscGeo = dLatitudeRAW;
         		cStan = ST_RMC_LONGITUD;
         	}
             else
@@ -725,9 +725,9 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
         	if (cBajtStanu == 2)
         	{
         		if (cBufStanu[0] == 'W')
-        			uDaneCM4.dane.stGnss1.dDlugoscGeo = dLongitudeRAW * -1;
+        			stGnss->dDlugoscGeo = dLongitudeRAW * -1;
         		else
-        			uDaneCM4.dane.stGnss1.dDlugoscGeo = dLongitudeRAW;
+        			stGnss->dDlugoscGeo = dLongitudeRAW;
                 cStan = ST_RMC_SPEED;
         	}
         	else
@@ -753,7 +753,7 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
             //fGSpeed = (float)sGSpeed100k /100;
             //zamień jednostke z węzłów = [mila/h] na [m/s]
             //fGSpeed = (float)sGSpeed100k /(float)194.38445;
-            uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi = (float)sGSpeed100k *(float)0.00514444;
+            stGnss->fPredkoscWzglZiemi = (float)sGSpeed100k *(float)0.00514444;
             cBajtStanu = 0;
        	}
         break;
@@ -774,7 +774,7 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
             	sGCourse100k += Asci2UShort(cBufStanu+cBajtStanu-3, 2);
             else
             	sGCourse100k = 0;
-            uDaneCM4.dane.stGnss1.fKurs = (float)sGCourse100k/100;
+            stGnss->fKurs = (float)sGCourse100k/100;
             cStan = ST_RMC_DATE;
             cBajtStanu = 0;
             //wykonaj pomiar czasu od pojawienia się ostatniego kompletu danych
@@ -788,9 +788,9 @@ uint8_t DekodujNMEA(uint8_t cDaneIn)
 		{
     		if ((cBajtStanu >= 4) && (cRMC_Status == 'A'))
     		{
-				uDaneCM4.dane.stGnss1.cDzien = Asci2UChar(cBufStanu+0, 2);
-				uDaneCM4.dane.stGnss1.cMies  = Asci2UChar(cBufStanu+2, 2);
-				uDaneCM4.dane.stGnss1.cRok   = Asci2UChar(cBufStanu+4, 2);
+    			stGnss->cDzien = Asci2UChar(cBufStanu+0, 2);
+    			stGnss->cMies  = Asci2UChar(cBufStanu+2, 2);
+    			stGnss->cRok   = Asci2UChar(cBufStanu+4, 2);
     		}
             cStan = ST_RMC_MAG_VAR;
             cBajtStanu = 0;

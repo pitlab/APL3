@@ -254,7 +254,7 @@ uint8_t InicjujGNSS(void)
 
 		if (sCzasInicjalizacjiGNSS > 1000)
 		{
-			uDaneCM4.dane.nZainicjowano |= INIT_GNSS_GOTOWY;	//nie ciągnij inicjalizacji w nieskończoność
+			uDaneCM4.dane.nZainicjowano |= INIT_GNSS1_GOTOWY;	//nie ciągnij inicjalizacji w nieskończoność
 			sCzasInicjalizacjiGNSS = 0;		//inicjuj aby można było ponownie wystartować
 		}
     }

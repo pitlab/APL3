@@ -14,8 +14,8 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 //flagi inicjalizacji sprzętu CM4
 #define INIT_WYKR_MTK			0x00000001
 #define INIT_WYKR_UBLOX			0x00000002
-#define INIT_GNSS_GOTOWY		0x00000004
-#define INIT_HMC5883			0x00000008
+#define INIT_GNSS1_GOTOWY		0x00000004
+#define INIT_GNSS2_GOTOWY		0x00000008
 #define INIT_MS5611				0x00000010
 #define INIT_BMP581				0x00000020
 #define INIT_ICM42688			0x00000040
@@ -36,6 +36,9 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define INIT_BMP585				0x00200000
 #define INIT_P0_BMP855			0x00400000	//ustawiono ciśnienie P0 dla czujnika 2
 #define INIT_VL53L1				0x00800000	//inicjalizacja lidara
+#define INIT_HMC5883			0x01000000
+
+
 
 #define TESTY		//włacz testowanie algorytmów, można wyłaczyć dla _nieświadowego_ końcowego użytkownika
 #define RAD2DEG				(180/M_PI)

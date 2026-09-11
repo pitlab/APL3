@@ -225,7 +225,8 @@ typedef struct
 	uRozne_t uRozne;		//unia różnych typów danych ogólnego zastosowania
 	uint8_t cRozmiar;		//rozmiar danych przekazywanych w polu fRozne
 	uint16_t sAdres;		//adres danych przekazywanych w polu fRozne
-	stGnss_t stGnss1;		//struktura danych GNSS1
+	//stGnss_t stGnss1;		//struktura danych GNSS1
+	stGnss_t stGnss[2];		//struktura danych GNSS
 	stPID_t stPID[LICZBA_PID];	//tablica struktur danych regulatorów PID
 	int16_t sSilnik[KANALY_MIKSERA];	//wartości wysterowania silników wychodzące z miksera
 	int16_t sWyjscieRC[KANALY_WYJSC_RC];	//finalne wartość wysterowania serw lub silników po uwzględnieniu konfiguracji wyjść

@@ -135,13 +135,13 @@ void PetlaGlowna(void)
 	case 4:		//obsługa GNSS na UART8
 		while (cWskNapBufAnaGNSS != cWskOprBufAnaGNSS)
 		{
-			cBłądPG = DekodujNMEA(cBuforAnalizyGNSS[cWskOprBufAnaGNSS]);	//analizuj dane z GNSS
+			cBłądPG = DekodujNMEA(cBuforAnalizyGNSS[cWskOprBufAnaGNSS], &uDaneCM4.dane.stGnss[0]);	//analizuj dane z GNSS1
 			PrzechwyćBłąd(cBłądPG);
 			cWskOprBufAnaGNSS++;
 			cWskOprBufAnaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
 			sTimeoutGNSS = TIMEOUT_GNSS;
 		}
-		if ((uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY) == 0)
+		if ((uDaneCM4.dane.nZainicjowano & INIT_GNSS1_GOTOWY) == 0)
 		{
 			InicjujGNSS();		//gdy nie jest zainicjowany to przeprowadź odbiornik przez kolejne etapy inicjalizacji
 		}
@@ -151,7 +151,7 @@ void PetlaGlowna(void)
 		{
 			sTimeoutGNSS = TIMEOUT_GNSS;
 			uDaneCM4.dane.nZainicjowano &= ~MASKA_INIT_GNSS;	//wyczyść wszystkie bity używane przez GNSS
-			uDaneCM4.dane.stGnss1.cFix = 0;
+			uDaneCM4.dane.stGnss[0].cFix = 0;
 		}
 		break;
 

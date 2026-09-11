@@ -1,13 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // AutoPitLot v3.0
-// Filtr Kalmana o 8-elementowym wektorze stanu zawierajacym:
+// Filtr Kalmana o 10-elementowym wektorze stanu zawierajacym:
 //  - wysokość MSL,
 //  - prędkość pionową,
 //  - przyspieszenie kinematyczne w osi Z
 //  = bias przyspieszenia dwóch akcelerometrów
 //  = bias wysokości dwóch wysokościmierzy barometrycznych
-//  - wysokość gruntu n.p.m, czyli różnica między AGL i MSL
+//  = bias wysokosci dwóch odbiorników GNSS
+//  - wysokość gruntu m.n.p.m, czyli różnica między AGL i MSL
 // Filtr zasilany jest dziesiecioma pomiarami:
 //  = dwoma zestawami wysokości i prędkości z dwu różnych czujników ciśnienia,
 //  = dwoma przyspieszeniami całkowitym w osi Z z dwóch akcelerometrów
@@ -23,18 +24,18 @@
 // (c) PitLab 2026
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include <KalmanWysokosci8X10Z.h>
+#include <KalmanWysokosci10X10Z.h>
 #include <Modul_I2P.h>
 
 //zmienne z przedrostkiem f oznaczaja macierze lub wektory na liczbach float
 static float32_t fX[KSTAN];					//wektor stanu: 0=wysokość, 1=prędkość, 2=przyspieszenie kinematyczne Z, 3=grawitacja + bias akcelerometru 1,
 											//4=grawitacja + bias akcelerometru 2, 5=bias wysokościomierza barometrycznego 1, 6=bias wysokościomierza barometrycznego 2,
-											//7=wysokość gruntu
-static float32_t fZc[KPCIS];				//wektor pomiaru: 0=wysokość, 1=prędkość
-static float32_t fZa[KPACC];				//wektor pomiaru: przyspieszenie
-static float32_t fZg[KPGNS];				//wektor pomiaru: wysokość z GNSS
-static float32_t fZl[KPLID];				//wektor pomiaru: wysokość z lidaru
-static float32_t fZm[KPMAP];				//wektor pomiaru: wysokość z mapy
+											//7=bias wysokości GNSS1, 8=bias wysokości GNSS2, 9=wysokość gruntu m.n.p.m.
+static float32_t fZc[KPCIS];				//wektor pomiaru czujników [c]iśnienia: 0=wysokość, 1=prędkość
+static float32_t fZa[KPACC];				//wektor pomiaru [a]kcelerometrów: 0=przyspieszenie
+static float32_t fZg[KPGNS];				//wektor pomiaru wysokości z [G]NSS: 0=wysokość
+static float32_t fZl[KPLID];				//wektor pomiaru wysokości z [l]idaru: 0=wysokość
+static float32_t fZm[KPMAP];				//wektor pomiaru wysokości z [m]apy; 0=wysokość
 static float32_t fF[KSTAN][KSTAN];			//macierz przejścia wektora stanu
 static float32_t fP[KSTAN][KSTAN];			//macierz kowariancji predykcji
 static float32_t fRc1[KPCIS][KPCIS];		//macierz kowariancji pomiaru wysokości i prędkości z czujnika ciśnienia 1
@@ -99,7 +100,7 @@ static arm_matrix_instance_f32 mRc2 = {KPCIS, KPCIS, &fRc2[0][0]};		//macierz ko
 static arm_matrix_instance_f32 mRa1 = {KPACC, KPACC, &fRa1[0][0]};		//macierz kowariancji pomiaru akceleromerem 1
 static arm_matrix_instance_f32 mRa2 = {KPACC, KPACC, &fRa2[0][0]};		//macierz kowariancji pomiaru akceleromerem 2
 static arm_matrix_instance_f32 mRg1 = {KPGNS, KPGNS, &fRg1[0][0]};		//macierz kowariancji pomiaru GNSS 1
-static arm_matrix_instance_f32 mRg2 = {KPGNS, KPGNS, &fRg1[0][0]};		//macierz kowariancji pomiaru GNSS 2
+static arm_matrix_instance_f32 mRg2 = {KPGNS, KPGNS, &fRg2[0][0]};		//macierz kowariancji pomiaru GNSS 2
 static arm_matrix_instance_f32 mRl  = {KPLID, KPLID, &fRl[0][0]};		//macierz kowariancji pomiaru lidarem
 static arm_matrix_instance_f32 mRm  = {KPMAP, KPMAP, &fRm[0][0]};		//macierz kowariancji odczytu z mapy
 static arm_matrix_instance_f32 mQ   = {KSTAN, KSTAN, &fQ[0][0]};		//macierz szumu procesu
@@ -109,7 +110,7 @@ static arm_matrix_instance_f32 mHc2 = {KPCIS, KSTAN, &fHc2[0][0]};		//macierz ob
 static arm_matrix_instance_f32 mHa1 = {KPACC, KSTAN, &fHa1[0][0]};		//macierz obserwacji przyspieszenia akcelerometru  1
 static arm_matrix_instance_f32 mHa2 = {KPACC, KSTAN, &fHa2[0][0]};		//macierz obserwacji przyspieszenia akcelerometru 2
 static arm_matrix_instance_f32 mHg1 = {KPGNS, KSTAN, &fHg1[0][0]};		//macierz obserwacji wysokości z GNSS1
-static arm_matrix_instance_f32 mHg2 = {KPGNS, KSTAN, &fHg1[0][0]};		//macierz obserwacji wysokości z GNSS1
+static arm_matrix_instance_f32 mHg2 = {KPGNS, KSTAN, &fHg2[0][0]};		//macierz obserwacji wysokości z GNSS2
 static arm_matrix_instance_f32 mHl  = {KPLID, KSTAN, &fHl[0][0]};		//macierz obserwacji wysokości z lidaru
 static arm_matrix_instance_f32 mHm  = {KPMAP, KSTAN, &fHm[0][0]};		//macierz obserwacji wysokości z mapy
 static arm_matrix_instance_f32 mKc1 = {KSTAN, KPCIS, &fKc1[0][0]};		//macierz wzmocnień Kalmana czujnika ciśnienia 1
@@ -152,7 +153,7 @@ static uint8_t cLicznikUśredniania = LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSC
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjujFiltrKalmanaWysokości8X10Z(stWymianyCM4_t *dane)
+uint8_t InicjujFiltrKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
@@ -223,8 +224,8 @@ uint8_t InicjujFiltrKalmanaWysokości8X10Z(stWymianyCM4_t *dane)
 		fHa1[0][n] = 0.0f;
 		fHa2[0][n] = 0.0f;
 		fHg1[0][n] = 0.0f;
-		fHg2[0][n] = 0.0f;f
-		Hl[0][n] = 0.0f;
+		fHg2[0][n] = 0.0f;
+		fHl[0][n] = 0.0f;
 		fHm[0][n] = 0.0f;
 	}
 
@@ -236,11 +237,16 @@ uint8_t InicjujFiltrKalmanaWysokości8X10Z(stWymianyCM4_t *dane)
 	fX[4] = dane->fAkcel2[2];		//łączne przyspieszenie w osi Z: grawitacja + bias akcelerometru 2
 	fX[5] = 0.0f;	//bias pomiaru wysokości barometrycznej 1
 	fX[6] = 0.0f;	//bias pomiaru wysokości barometrycznej 2
-	fX[7] = 110.0f;	//wysokość z mapy
+	fX[7] = 0.0f;	//bias pomiaru wysokości GNSS1
+	fX[8] = 0.0f;	//bias pomiaru wysokości GNSS2
+	fX[9] = WYSOKOSC_MAPY;	//wysokość z mapy
 
 	arm_mat_init_f32(&mX, KSTAN, 1, fX);
 	arm_mat_init_f32(&mZc, KPCIS, 1, fZc);
 	arm_mat_init_f32(&mZa, KPACC, 1, fZa);
+	arm_mat_init_f32(&mZg, KPGNS, 1, fZg);
+	arm_mat_init_f32(&mZl, KPLID, 1, fZl);
+	arm_mat_init_f32(&mZm, KPMAP, 1, fZm);
 
 	//wariancja jest kwadratem standardowego odchylenia pomiaru i jest rozmieszczona w głównej przekątnej macierzy
 	//pozostałe pola sa kowariancją, czyli zależnością między błędami jednego pomiaru a drugiego. Zakładam że
@@ -256,6 +262,11 @@ uint8_t InicjujFiltrKalmanaWysokości8X10Z(stWymianyCM4_t *dane)
 	arm_mat_init_f32(&mRc2, KPCIS, KPCIS, &fRc2[0][0]);
 	arm_mat_init_f32(&mRa1, KPACC, KPACC, &fRa1[0][0]);
 	arm_mat_init_f32(&mRa2, KPACC, KPACC, &fRa2[0][0]);
+	arm_mat_init_f32(&mRg1, KPGNS, KPGNS, &fRg1[0][0]);
+	arm_mat_init_f32(&mRg2, KPGNS, KPGNS, &fRg2[0][0]);
+	arm_mat_init_f32(&mRl, KPLID, KPLID, &fRl[0][0]);
+	arm_mat_init_f32(&mRm, KPMAP, KPMAP, &fRm[0][0]);
+
 
 	//początkowa wariancja predykcji
 	fP[0][0] = 0.055;
@@ -263,6 +274,9 @@ uint8_t InicjujFiltrKalmanaWysokości8X10Z(stWymianyCM4_t *dane)
 	fP[2][2] = 6.0e-2;
 	fP[3][3] = 1.0e-2;
 	fP[4][4] = 1.0e-2;
+	fP[5][5] = 1.0e-2;
+	fP[6][6] = 1.0e-2;
+	fP[7][7] = 1.0e-2;
 	arm_mat_init_f32(&mP, KSTAN, KSTAN, &fP[0][0]);
 
 	//macierz przejścia oblicza wartość predykcji następnego stanu
@@ -274,6 +288,11 @@ uint8_t InicjujFiltrKalmanaWysokości8X10Z(stWymianyCM4_t *dane)
 	fF[2][2] = 1.0f;				//przyspieszenie = poprzednie przyspieszenie
 	fF[3][3] = 1.0f;				//bias przyspieszenia 1 = poprzedni bias przyspieszenia 1
 	fF[4][4] = 1.0f;				//bias przyspieszenia 2 = poprzedni bias przyspieszenia 2
+	fF[5][5] = 1.0f;				//bias wysokościomierza barometrycznego 1
+	fF[6][6] = 1.0f;				//bias wysokościomierza barometrycznego 2
+	fF[7][7] = 1.0f;				//bias wysokości GNSS1
+	fF[8][8] = 1.0f;				//bias wysokości GNSS2
+	fF[9][9] = 1.0f;				//wysokość gruntu
 	arm_mat_init_f32(&mF, KSTAN, KSTAN, &fF[0][0]);
 
 	//inicjalizacja szumu procesu. Zakładam że szum procesu zależy od podchodnej przyspieszenia, czyli zrywu
@@ -287,17 +306,38 @@ uint8_t InicjujFiltrKalmanaWysokości8X10Z(stWymianyCM4_t *dane)
 	arm_mat_init_f32(&mI, KSTAN, KSTAN, &fI[0][0]);
 
 	//inicjalizacja obu macierzy obserwacji, takiej samej dla obu czujników ciśnienia: Hc - dane o wysokości i prędkości z czujnika ciśnienia  oraz Ha - przyspieszenie
-	fHcx[0][0] = 1.0f;		//wysokość obserwuje czujnik wysokości
-	fHcx[1][1] = 1.0f;		//prędkość obserwuje wariometr
-	arm_mat_init_f32(&mHcx, KPCIS, KSTAN, &fHcx[0][0]);
+	fHc1[0][0] = 1.0f;		//wysokość obserwuje czujnik wysokości
+	fHc1[0][5] = 1.0f;		//bias wysokości barometrycznej 1 obserwuje wysokość barometryczną 1
+	fHc1[1][1] = 1.0f;		//prędkość obserwuje wariometr 1
+	arm_mat_init_f32(&mHc1, KPCIS, KSTAN, &fHc1[0][0]);
+
+	fHc2[0][0] = 1.0f;		//wysokość obserwuje czujnik wysokości
+	fHc2[0][6] = 1.0f;		//bias wysokości barometrycznej 2 obserwuje wysokość barometryczną 2
+	fHc2[1][1] = 1.0f;		//prędkość obserwuje wariometr 2
+	arm_mat_init_f32(&mHc2, KPCIS, KSTAN, &fHc2[0][0]);
 
 	fHa1[0][2] = 1.0f;		//przyspieszenie obserwuje oś Z akceletrometru 1
-	fHa1[0][3] = 1.0f;		//bias 1 obserwuje oś Z akceletrometru 1
+	fHa1[0][3] = 1.0f;		//bias przyspieszenia 1 obserwuje oś Z akceletrometru 1
 	arm_mat_init_f32(&mHa1, KPACC, KSTAN, &fHa1[0][0]);
 
 	fHa2[0][2] = 1.0f;		//przyspieszenie obserwuje oś Z akceletrometru 2
-	fHa2[0][4] = 1.0f;		//bias 2 obserwuje oś Z akceletrometru 2
+	fHa2[0][4] = 1.0f;		//bias przyspieszenia 2 obserwuje oś Z akceletrometru 2
 	arm_mat_init_f32(&mHa2, KPACC, KSTAN, &fHa2[0][0]);
+
+	fHg1[0][0] = 1.0f;		//wysokość obserwuje wysokość z odbiornika GNSS1
+	fHg1[0][7] = 1.0f;		//bias wysokości GNSS1 obserwuje wysokość z odbiornika GNSS1
+	arm_mat_init_f32(&mHg1, KPGNS, KSTAN, &fHg1[0][0]);
+
+	fHg2[0][0] = 1.0f;		//wysokość obserwuje wysokość z odbiornika GNSS2
+	fHg1[0][8] = 1.0f;		//bias wysokości GNSS2 obserwuje wysokość z odbiornika GNSS2
+	arm_mat_init_f32(&mHg2, KPGNS, KSTAN, &fHg2[0][0]);
+
+	fHl[0][0] = 1.0f;		//wysokość obserwuje wysokość z lidaru
+	fHl[0][9] = 1.0f;		//wysokość gruntu obserwuje wysokość z lidaru
+	arm_mat_init_f32(&mHl, KPLID, KSTAN, &fHl[0][0]);
+
+	fHm[0][0] = 1.0f;		//wysokość gruntu obserwuje wysokość na mapie
+	arm_mat_init_f32(&mHm, KPMAP, KSTAN, &fHm[0][0]);
 	return cBłąd;
 }
 
@@ -311,7 +351,7 @@ uint8_t InicjujFiltrKalmanaWysokości8X10Z(stWymianyCM4_t *dane)
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t PredykcjaFiltraKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
+uint8_t PredykcjaFiltraKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 	float32_t fDeltaCzasu = (float32_t)dane->ndT / 1e6;
@@ -324,7 +364,7 @@ uint8_t PredykcjaFiltraKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
 	cBłąd |= arm_mat_mult_f32(&mF, &mX, &mX);
 	dane->stBSP.fWysokoscMSL = fX[0];
 	dane->stBSP.fPredkoscD 	 = fX[1];
-	dane->stBSP.fWysokoscAGL = dane->stBSP.fWysokoscMSL - fPoczątkoweBarometryczneMSL;
+	dane->stBSP.fWysokoscAGL = dane->stBSP.fWysokoscMSL - fX[7];	//MSL - wysokość gruntu
 
 	for (uint8_t n=0; n<5; n++)
 		dane->stKalmanDebug.fX[n] = fX[n];
@@ -343,15 +383,36 @@ uint8_t PredykcjaFiltraKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
 	fQ[0][0] = powf(fOkresPetli, 6) / 36 * WARIANCJA_ZRYWU_ACEL;
 	fQ[0][1] = powf(fOkresPetli, 5) / 12 * WARIANCJA_ZRYWU_ACEL;
 	fQ[0][2] = powf(fOkresPetli, 4) / 6  * WARIANCJA_ZRYWU_ACEL;
+	fQ[0][3] = fQ[0][4] = fQ[0][5] = fQ[0][6] = fQ[0][7] = 0.0f;
+
 	fQ[1][0] = powf(fOkresPetli, 5) / 12 * WARIANCJA_ZRYWU_ACEL;
 	fQ[1][1] = powf(fOkresPetli, 4) / 4  * WARIANCJA_ZRYWU_ACEL;
 	fQ[1][2] = powf(fOkresPetli, 3) / 2  * WARIANCJA_ZRYWU_ACEL;
+	fQ[1][3] = fQ[1][4] = fQ[1][5] = fQ[1][6] = fQ[1][7] = 0.0f;
+
 	fQ[2][0] = powf(fOkresPetli, 4) / 6  * WARIANCJA_ZRYWU_ACEL;
 	fQ[2][1] = powf(fOkresPetli, 3) / 2  * WARIANCJA_ZRYWU_ACEL;
 	fQ[2][2] = powf(fOkresPetli, 2) 	 * WARIANCJA_ZRYWU_ACEL;
-	fQ[0][3] = fQ[1][3] = fQ[2][3] = 0.0f;
+	fQ[2][3] = fQ[2][4] = fQ[2][5] = fQ[2][6] = fQ[2][7] = 0.0f;
+
 	fQ[3][0] = fQ[3][1] = fQ[3][2] = 0.0f;
 	fQ[3][3] = fOkresPetli * WARIANCJA_DRYFTU_ACEL;
+	fQ[3][4] = fQ[3][5] = fQ[3][6] = fQ[3][7] = 0.0f;
+
+	fQ[4][0] = fQ[4][1] = fQ[4][2] = fQ[4][3] = 0.0f;
+	fQ[4][4] = fOkresPetli * WARIANCJA_DRYFTU_ACEL;
+	fQ[4][5] = fQ[4][6] = fQ[4][7] = 0.0f;
+
+	fQ[5][0] = fQ[5][1] = fQ[5][2] = fQ[5][3] = fQ[5][4] = 0.0f;
+	fQ[5][5] = fOkresPetli * WARIANCJA_DRYFTU_BARO;
+	fQ[5][6] = fQ[5][7] = 0.0f;
+
+	fQ[6][0] = fQ[6][1] = fQ[6][2] = fQ[6][3] = fQ[6][4] = fQ[6][5] = 0.0f;
+	fQ[6][6] = fOkresPetli * WARIANCJA_DRYFTU_BARO;
+	fQ[6][7] = 0.0f;
+
+	fQ[7][0] = fQ[7][1] = fQ[7][2] = fQ[7][3] = fQ[7][4] = fQ[7][5] = fQ[7][6] = 0.0f;
+	fQ[7][7] = fOkresPetli * WARIANCJA_ZMIANY_WYSOKOSCI_MAPY;
 
 	//dodaj macierz szumu Q procesu do iloczynu (F * P(n)) * (F^T) -> P
 	cBłąd |= arm_mat_add_f32(&mQ, &mTempSSC, &mP);
@@ -373,7 +434,7 @@ uint8_t PredykcjaFiltraKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
+uint8_t AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
@@ -386,13 +447,13 @@ uint8_t AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(stWymianyCM4
 
 	//liczę współczynnik wzmocnienia Kalmana: mK,
 	//najpierw transponowane H -> mTempSPc	 [Pomiar x Stan] -> [Stan x Pomiar]
-	cBłąd |= arm_mat_trans_f32(&mHcx, &mTempSPc);
+	cBłąd |= arm_mat_trans_f32(&mHc1, &mTempSPc);
 
 	// P(n-1) * (H^T) -> mPHc				[Stan x Stan] * [Stan x Pomiar] = [Stan x Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mP, &mTempSPc, &mPHc);
 
 	//H * (P(n-1)*H^T) -> fTempPPcA			[Pomiar x Stan] * [Stan x Pomiar] = [Pomiar x Pomiar]
-	cBłąd |= arm_mat_mult_f32(&mHcx, &mPHc, &mTempPPcA);
+	cBłąd |= arm_mat_mult_f32(&mHc1, &mPHc, &mTempPPcA);
 
 	//(H*P(n-1)*H^T) + R(n) -> fTempPPcB	[Pomiar x Pomiar] + [Pomiar x Pomiar] = [Pomiar x Pomiar]
 	cBłąd |= arm_mat_add_f32(&mTempPPcA, &mRc1, &mTempPPcB);
@@ -406,7 +467,7 @@ uint8_t AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(stWymianyCM4
 	dane->stKalmanDebug.fK[2] = fKc1[1][1];	//wpływu prędkości czujnka 1 na estymowaną prędkość
 
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1) [Pomiar x Stan] * [Stan] = [Pomiar]
-	cBłąd |= arm_mat_mult_f32(&mHcx, &mX, &mTempPc1A);
+	cBłąd |= arm_mat_mult_f32(&mHc1, &mX, &mTempPc1A);
 
 	//innowacja: z(n) - (H*X(n-1)) ->mTempPc1B		[Pomiar] - [Pomiar] = [Pomiar]
 	cBłąd |= arm_mat_sub_f32(&mZc, &mTempPc1A, &mTempPc1B);
@@ -423,7 +484,7 @@ uint8_t AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(stWymianyCM4
 		fX[n] = fTempS1B[n];
 
 	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempSSA	 [Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
-	cBłąd |= arm_mat_mult_f32(&mKc1, &mHcx, &mTempSSA);
+	cBłąd |= arm_mat_mult_f32(&mKc1, &mHc1, &mTempSSA);
 
 	//odejmowanie (I - K(n) * H) -> mTempSSB
 	cBłąd |= arm_mat_sub_f32(&mI, &mTempSSA, &mTempSSB);
@@ -461,7 +522,7 @@ uint8_t AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(stWymianyCM4
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
+uint8_t AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
@@ -474,13 +535,13 @@ uint8_t AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(stWymianyCM4
 
 	//liczę współczynnik wzmocnienia Kalmana: mKc2
 	//najpierw transponowane H -> mTempSPc	 [Pomiar x Stan] -> [Stan x Pomiar]
-	cBłąd |= arm_mat_trans_f32(&mHcx, &mTempSPc);
+	cBłąd |= arm_mat_trans_f32(&mHc1, &mTempSPc);
 
 	// P(n-1) * (H^T) -> mPHc				[Stan x Stan] * [Stan x Pomiar] = [Stan x Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mP, &mTempSPc, &mPHc);
 
 	//H * (P(n-1)*H^T) -> fTempPPcA			[Pomiar x Stan] * [Stan x Pomiar] = [Pomiar x Pomiar]
-	cBłąd |= arm_mat_mult_f32(&mHcx, &mPHc, &mTempPPcA);
+	cBłąd |= arm_mat_mult_f32(&mHc1, &mPHc, &mTempPPcA);
 
 	//(H*P(n-1)*H^T) + R(n) -> fTempPPcB	[Pomiar x Pomiar] + [Pomiar x Pomiar] = [Pomiar x Pomiar]
 	cBłąd |= arm_mat_add_f32(&mTempPPcA, &mRc2, &mTempPPcB);
@@ -494,7 +555,7 @@ uint8_t AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(stWymianyCM4
 	dane->stKalmanDebug.fK[3] = fKc1[1][1];	//wpływu prędkości czujnka 2 na estymowaną prędkość
 
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1) [Pomiar x Stan] * [Stan] = [Pomiar]
-	cBłąd |= arm_mat_mult_f32(&mHcx, &mX, &mTempPc1A);
+	cBłąd |= arm_mat_mult_f32(&mHc1, &mX, &mTempPc1A);
 
 	//innowacja: z(n) - (H*X(n-1)) ->mTempPc1B		[Pomiar] - [Pomiar] = [Pomiar]
 	cBłąd |= arm_mat_sub_f32(&mZc, &mTempPc1A, &mTempPc1B);
@@ -511,7 +572,7 @@ uint8_t AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(stWymianyCM4
 		fX[n] = fTempS1B[n];
 
 	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempSSA	 [Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
-	cBłąd |= arm_mat_mult_f32(&mKc2, &mHcx, &mTempSSA);
+	cBłąd |= arm_mat_mult_f32(&mKc2, &mHc1, &mTempSSA);
 
 	//odejmowanie (I - K(n) * H) -> mTempSSB
 	cBłąd |= arm_mat_sub_f32(&mI, &mTempSSA, &mTempSSB);
@@ -549,7 +610,7 @@ uint8_t AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(stWymianyCM4
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktulizacjaAkcelerometrem1FiltraKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
+uint8_t AktulizacjaAkcelerometrem1FiltraKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
@@ -634,7 +695,7 @@ uint8_t AktulizacjaAkcelerometrem1FiltraKalmanaWysokości5X6Z(stWymianyCM4_t *da
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktulizacjaAkcelerometrem2FiltraKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
+uint8_t AktulizacjaAkcelerometrem2FiltraKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
@@ -709,3 +770,342 @@ uint8_t AktulizacjaAkcelerometrem2FiltraKalmanaWysokości5X6Z(stWymianyCM4_t *da
 	return cBłąd;
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja aktualizuje stan filtra na podstawie nowego odczytu wysokości z odbiornika GNSS1
+// Estymata_x(n) = Estymata_x(n-1) + K(n) * (z(n) - H * Estymata_x(n-1))
+// gdzie macierz wzmocnienia Kalmana: K(n) = P(n-1) * H^T * (H * P(n-1) * H^T + R(n))^-1
+// Następnie znajduje nową macierz kowariancji P(n) = (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T + K(n) * R(n) * K(n)^T
+// Parametry: *dane - wskaźnik na strukturę danych autopilota
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t AktulizacjaGNSS1FiltraKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
+{
+	uint8_t cBłąd = BLAD_OK;
+
+	//sprawdź czy pomiar mieści się w akceptowalnym zakresie
+	fZg[0] = dane->stGnss[0].fWysokoscMSL;		//pomiar wysokość elipsoidy. Zrobić: konwersję na wysokość n.p.m
+	if ((fZg[0] < MIN_WYSOKOSC) || (fZg[0] > MAX_WYSOKOSC))
+		return BLAD_ZLE_DANE;
+
+	//liczę współczynnik wzmocnienia Kalmana: mKg1,
+	//najpierw transponowane H -> mTempSPa	 [Pomiar x Stan] -> [Stan x Pomiar]
+	cBłąd |= arm_mat_trans_f32(&mHg1, &mTempSPa);
+
+	// P(n-1) * (H^T) -> mPHa				[Stan x Stan] * [Stan x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mP, &mTempSPa, &mPHa);
+
+	//H * (P(n-1)*H^T) -> fTempPPaA			[Pomiar x Stan] * [Stan x Pomiar] = [Pomiar x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mHg1, &mPHa, &mTempPPaA);
+
+	//(H*P(n-1)*H^T) + R(n) -> fTempPPaB	[Pomiar x Pomiar] + [Pomiar x Pomiar] = [Pomiar x Pomiar]
+	cBłąd |= arm_mat_add_f32(&mTempPPaA, &mRa2, &mTempPPaB);
+
+	//inwersja powyższego: (H*P(n-1)*H^T+R(n))^-1 -> fTempPPaA	[Pomiar x Pomiar] -> [Pomiar x Pomiar]
+	cBłąd |= arm_mat_inverse_f32(&mTempPPaB, &mTempPPaA);
+
+	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mKg1	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mPHa, &mTempPPaA, &mKg1);
+	//dane->stKalmanDebug.fK[5] = fKa2[2][0];	//wpływ akcelrometru 2 na estymowane przyspieszenie
+
+	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1) [Pomiar x Stan] * [Stan] = [Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mHg1, &mX, &mTempPa1A);
+
+	//Innowacja: z(n) - (H*X(n-1)) ->mTempPa1B		[Pomiar] - [Pomiar] = [Pomiar]
+	cBłąd |= arm_mat_sub_f32(&mZg, &mTempPa1A, &mTempPa1B);
+	//dane->stKalmanDebug.fP[3] = fTempPa1B[0];	//w zmiennej fP zachowaj innowację przyspieszenia 2
+
+	//mnożenie przez K: K(n) * (z(n)-H*X(n-1))		[Stan x Pomiar] * [Pomiar] = [Stan]
+	cBłąd |= arm_mat_mult_f32(&mKg1, &mTempPa1B, &mTempS1A);
+
+	//dodanie poprzedniej estymaty: Estymata_x(n-1) + K(n)*(z(n)-H*X(n-1))	[Stan] + [Stan] = [Stan]
+	cBłąd |= arm_mat_add_f32(&mX, &mTempS1A, &mTempS1B);
+
+	//przepisanie estymaty do wektora stanu
+	for (uint8_t n=0; n<KSTAN; n++)
+		fX[n] = fTempS1B[n];
+
+	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempSSA	 [Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mKg1, &mHg1, &mTempSSA);
+
+	//odejmowanie (I - K(n) * H) -> mTempSSB
+	cBłąd |= arm_mat_sub_f32(&mI, &mTempSSA, &mTempSSB);
+
+	//mnożenie (I-K(n)*H) * P(n-1) -> mTempSSA 	[Stan x Stan] * [Stan x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mTempSSB, &mP, &mTempSSA);
+
+	//transpozycja: (I-K(n)*H)^T-> mTempSSC
+	cBłąd |= arm_mat_trans_f32(&mTempSSB, &mTempSSC);
+
+	//mnożenie: (I-K(n)*H)*P(n-1) * (I-K(n)*H)^T
+	cBłąd |= arm_mat_mult_f32(&mTempSSA, &mTempSSC, &mTempSSB);
+
+	//mnożenie 	K(n) * R(n)  -> mTempSPa  	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mKg1, &mRa2, &mTempSPa);
+
+	//transpozycja K(n)^T -> mTempM24  		[Stan x Pomiar] -> [Pomiar x Stan]
+	cBłąd |= arm_mat_trans_f32(&mKg1, &mTempPaS);
+
+	//mnożenie 	(K(n)*R(n)) * (K(n)^T) 	 	[Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mTempSPa, &mTempPaS, &mTempSSA);
+
+	//finalne sumowanie ((I-K(n)*H)*P(n-1)*(I*K(n)*H)^T) + (K(n)*R(n)*K(n)^T) -> P(n)
+	cBłąd |= arm_mat_add_f32(&mTempSSB, &mTempSSA, &mP);
+	return cBłąd;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja aktualizuje stan filtra na podstawie nowego odczytu wysokości z odbiornika GNSS2
+// Estymata_x(n) = Estymata_x(n-1) + K(n) * (z(n) - H * Estymata_x(n-1))
+// gdzie macierz wzmocnienia Kalmana: K(n) = P(n-1) * H^T * (H * P(n-1) * H^T + R(n))^-1
+// Następnie znajduje nową macierz kowariancji P(n) = (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T + K(n) * R(n) * K(n)^T
+// Parametry: *dane - wskaźnik na strukturę danych autopilota
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t AktulizacjaGNSS2FiltraKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
+{
+	uint8_t cBłąd = BLAD_OK;
+
+	//sprawdź czy pomiar mieści się w akceptowalnym zakresie
+	fZg[0] = dane->stGnss[1].fWysokoscMSL;		//pomiar wysokość elipsoidy. Zrobić: konwersję na wysokość n.p.m
+	if ((fZg[0] < MIN_WYSOKOSC) || (fZg[0] > MAX_WYSOKOSC))
+		return BLAD_ZLE_DANE;
+
+	//liczę współczynnik wzmocnienia Kalmana: mKg2,
+	//najpierw transponowane H -> mTempSPa	 [Pomiar x Stan] -> [Stan x Pomiar]
+	cBłąd |= arm_mat_trans_f32(&mHg2, &mTempSPa);
+
+	// P(n-1) * (H^T) -> mPHa				[Stan x Stan] * [Stan x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mP, &mTempSPa, &mPHa);
+
+	//H * (P(n-1)*H^T) -> fTempPPaA			[Pomiar x Stan] * [Stan x Pomiar] = [Pomiar x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mHg2, &mPHa, &mTempPPaA);
+
+	//(H*P(n-1)*H^T) + R(n) -> fTempPPaB	[Pomiar x Pomiar] + [Pomiar x Pomiar] = [Pomiar x Pomiar]
+	cBłąd |= arm_mat_add_f32(&mTempPPaA, &mRa2, &mTempPPaB);
+
+	//inwersja powyższego: (H*P(n-1)*H^T+R(n))^-1 -> fTempPPaA	[Pomiar x Pomiar] -> [Pomiar x Pomiar]
+	cBłąd |= arm_mat_inverse_f32(&mTempPPaB, &mTempPPaA);
+
+	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mKg2	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mPHa, &mTempPPaA, &mKg2);
+	//dane->stKalmanDebug.fK[5] = fKa2[2][0];	//wpływ akcelrometru 2 na estymowane przyspieszenie
+
+	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1) [Pomiar x Stan] * [Stan] = [Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mHg2, &mX, &mTempPa1A);
+
+	//Innowacja: z(n) - (H*X(n-1)) ->mTempPa1B		[Pomiar] - [Pomiar] = [Pomiar]
+	cBłąd |= arm_mat_sub_f32(&mZg, &mTempPa1A, &mTempPa1B);
+	//dane->stKalmanDebug.fP[3] = fTempPa1B[0];	//w zmiennej fP zachowaj innowację przyspieszenia 2
+
+	//mnożenie przez K: K(n) * (z(n)-H*X(n-1))		[Stan x Pomiar] * [Pomiar] = [Stan]
+	cBłąd |= arm_mat_mult_f32(&mKg2, &mTempPa1B, &mTempS1A);
+
+	//dodanie poprzedniej estymaty: Estymata_x(n-1) + K(n)*(z(n)-H*X(n-1))	[Stan] + [Stan] = [Stan]
+	cBłąd |= arm_mat_add_f32(&mX, &mTempS1A, &mTempS1B);
+
+	//przepisanie estymaty do wektora stanu
+	for (uint8_t n=0; n<KSTAN; n++)
+		fX[n] = fTempS1B[n];
+
+	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempSSA	 [Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mKg2, &mHg2, &mTempSSA);
+
+	//odejmowanie (I - K(n) * H) -> mTempSSB
+	cBłąd |= arm_mat_sub_f32(&mI, &mTempSSA, &mTempSSB);
+
+	//mnożenie (I-K(n)*H) * P(n-1) -> mTempSSA 	[Stan x Stan] * [Stan x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mTempSSB, &mP, &mTempSSA);
+
+	//transpozycja: (I-K(n)*H)^T-> mTempSSC
+	cBłąd |= arm_mat_trans_f32(&mTempSSB, &mTempSSC);
+
+	//mnożenie: (I-K(n)*H)*P(n-1) * (I-K(n)*H)^T
+	cBłąd |= arm_mat_mult_f32(&mTempSSA, &mTempSSC, &mTempSSB);
+
+	//mnożenie 	K(n) * R(n)  -> mTempSPa  	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mKg2, &mRa2, &mTempSPa);
+
+	//transpozycja K(n)^T -> mTempM24  		[Stan x Pomiar] -> [Pomiar x Stan]
+	cBłąd |= arm_mat_trans_f32(&mKg2, &mTempPaS);
+
+	//mnożenie 	(K(n)*R(n)) * (K(n)^T) 	 	[Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mTempSPa, &mTempPaS, &mTempSSA);
+
+	//finalne sumowanie ((I-K(n)*H)*P(n-1)*(I*K(n)*H)^T) + (K(n)*R(n)*K(n)^T) -> P(n)
+	cBłąd |= arm_mat_add_f32(&mTempSSB, &mTempSSA, &mP);
+	return cBłąd;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja aktualizuje stan filtra na podstawie nowego pomiaru wysokości z lidaru
+// Estymata_x(n) = Estymata_x(n-1) + K(n) * (z(n) - H * Estymata_x(n-1))
+// gdzie macierz wzmocnienia Kalmana: K(n) = P(n-1) * H^T * (H * P(n-1) * H^T + R(n))^-1
+// Następnie znajduje nową macierz kowariancji P(n) = (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T + K(n) * R(n) * K(n)^T
+// Parametry: *dane - wskaźnik na strukturę danych autopilota
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t AktulizacjaLidaremFiltraKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
+{
+	uint8_t cBłąd = BLAD_OK;
+
+	//sprawdź czy pomiar mieści się w akceptowalnym zakresie
+	fZl[0] = (float)dane->stTOF.sOdległość / 1000.0f;		//pomiar wysokość nad powierzchnią gruntu
+	if ((fZl[0] < MIN_WYSOKOSC) || (fZl[0] > MAX_WYSOKOSC))
+		return BLAD_ZLE_DANE;
+
+	//liczę współczynnik wzmocnienia Kalmana: mKg2,
+	//najpierw transponowane H -> mTempSPa	 [Pomiar x Stan] -> [Stan x Pomiar]
+	cBłąd |= arm_mat_trans_f32(&mHl, &mTempSPa);
+
+	// P(n-1) * (H^T) -> mPHa				[Stan x Stan] * [Stan x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mP, &mTempSPa, &mPHa);
+
+	//H * (P(n-1)*H^T) -> fTempPPaA			[Pomiar x Stan] * [Stan x Pomiar] = [Pomiar x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mHl, &mPHa, &mTempPPaA);
+
+	//(H*P(n-1)*H^T) + R(n) -> fTempPPaB	[Pomiar x Pomiar] + [Pomiar x Pomiar] = [Pomiar x Pomiar]
+	cBłąd |= arm_mat_add_f32(&mTempPPaA, &mRa2, &mTempPPaB);
+
+	//inwersja powyższego: (H*P(n-1)*H^T+R(n))^-1 -> fTempPPaA	[Pomiar x Pomiar] -> [Pomiar x Pomiar]
+	cBłąd |= arm_mat_inverse_f32(&mTempPPaB, &mTempPPaA);
+
+	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mKg2	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mPHa, &mTempPPaA, &mKl);
+	//dane->stKalmanDebug.fK[5] = fKa2[2][0];	//wpływ akcelrometru 2 na estymowane przyspieszenie
+
+	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1) [Pomiar x Stan] * [Stan] = [Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mHl, &mX, &mTempPa1A);
+
+	//Innowacja: z(n) - (H*X(n-1)) ->mTempPa1B		[Pomiar] - [Pomiar] = [Pomiar]
+	cBłąd |= arm_mat_sub_f32(&mZl, &mTempPa1A, &mTempPa1B);
+	//dane->stKalmanDebug.fP[3] = fTempPa1B[0];	//w zmiennej fP zachowaj innowację przyspieszenia 2
+
+	//mnożenie przez K: K(n) * (z(n)-H*X(n-1))		[Stan x Pomiar] * [Pomiar] = [Stan]
+	cBłąd |= arm_mat_mult_f32(&mKl, &mTempPa1B, &mTempS1A);
+
+	//dodanie poprzedniej estymaty: Estymata_x(n-1) + K(n)*(z(n)-H*X(n-1))	[Stan] + [Stan] = [Stan]
+	cBłąd |= arm_mat_add_f32(&mX, &mTempS1A, &mTempS1B);
+
+	//przepisanie estymaty do wektora stanu
+	for (uint8_t n=0; n<KSTAN; n++)
+		fX[n] = fTempS1B[n];
+
+	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempSSA	 [Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mKl, &mHl, &mTempSSA);
+
+	//odejmowanie (I - K(n) * H) -> mTempSSB
+	cBłąd |= arm_mat_sub_f32(&mI, &mTempSSA, &mTempSSB);
+
+	//mnożenie (I-K(n)*H) * P(n-1) -> mTempSSA 	[Stan x Stan] * [Stan x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mTempSSB, &mP, &mTempSSA);
+
+	//transpozycja: (I-K(n)*H)^T-> mTempSSC
+	cBłąd |= arm_mat_trans_f32(&mTempSSB, &mTempSSC);
+
+	//mnożenie: (I-K(n)*H)*P(n-1) * (I-K(n)*H)^T
+	cBłąd |= arm_mat_mult_f32(&mTempSSA, &mTempSSC, &mTempSSB);
+
+	//mnożenie 	K(n) * R(n)  -> mTempSPa  	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mKl, &mRa2, &mTempSPa);
+
+	//transpozycja K(n)^T -> mTempM24  		[Stan x Pomiar] -> [Pomiar x Stan]
+	cBłąd |= arm_mat_trans_f32(&mKl, &mTempPaS);
+
+	//mnożenie 	(K(n)*R(n)) * (K(n)^T) 	 	[Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mTempSPa, &mTempPaS, &mTempSSA);
+
+	//finalne sumowanie ((I-K(n)*H)*P(n-1)*(I*K(n)*H)^T) + (K(n)*R(n)*K(n)^T) -> P(n)
+	cBłąd |= arm_mat_add_f32(&mTempSSB, &mTempSSA, &mP);
+	return cBłąd;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja aktualizuje stan filtra na podstawie nowego odczytu wysokości z mapy NMPT (Numeryczny Model Pokrycia Terenu)
+// Estymata_x(n) = Estymata_x(n-1) + K(n) * (z(n) - H * Estymata_x(n-1))
+// gdzie macierz wzmocnienia Kalmana: K(n) = P(n-1) * H^T * (H * P(n-1) * H^T + R(n))^-1
+// Następnie znajduje nową macierz kowariancji P(n) = (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T + K(n) * R(n) * K(n)^T
+// Parametry: *dane - wskaźnik na strukturę danych autopilota
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t AktulizacjaMapąFiltraKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
+{
+	uint8_t cBłąd = BLAD_OK;
+
+	//sprawdź czy pomiar mieści się w akceptowalnym zakresie
+	fZm[0] = WYSOKOSC_MAPY;		//odczyt wysokości nad poziomem morza
+	if ((fZm[0] < MIN_WYSOKOSC) || (fZm[0] > MAX_WYSOKOSC))
+		return BLAD_ZLE_DANE;
+
+	//liczę współczynnik wzmocnienia Kalmana: mKg2,
+	//najpierw transponowane H -> mTempSPa	 [Pomiar x Stan] -> [Stan x Pomiar]
+	cBłąd |= arm_mat_trans_f32(&mHl, &mTempSPa);
+
+	// P(n-1) * (H^T) -> mPHa				[Stan x Stan] * [Stan x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mP, &mTempSPa, &mPHa);
+
+	//H * (P(n-1)*H^T) -> fTempPPaA			[Pomiar x Stan] * [Stan x Pomiar] = [Pomiar x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mHl, &mPHa, &mTempPPaA);
+
+	//(H*P(n-1)*H^T) + R(n) -> fTempPPaB	[Pomiar x Pomiar] + [Pomiar x Pomiar] = [Pomiar x Pomiar]
+	cBłąd |= arm_mat_add_f32(&mTempPPaA, &mRa2, &mTempPPaB);
+
+	//inwersja powyższego: (H*P(n-1)*H^T+R(n))^-1 -> fTempPPaA	[Pomiar x Pomiar] -> [Pomiar x Pomiar]
+	cBłąd |= arm_mat_inverse_f32(&mTempPPaB, &mTempPPaA);
+
+	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mKg2	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mPHa, &mTempPPaA, &mKm);
+	//dane->stKalmanDebug.fK[5] = fKa2[2][0];	//wpływ akcelrometru 2 na estymowane przyspieszenie
+
+	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1) [Pomiar x Stan] * [Stan] = [Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mHl, &mX, &mTempPa1A);
+
+	//Innowacja: z(n) - (H*X(n-1)) ->mTempPa1B		[Pomiar] - [Pomiar] = [Pomiar]
+	cBłąd |= arm_mat_sub_f32(&mZm, &mTempPa1A, &mTempPa1B);
+	//dane->stKalmanDebug.fP[3] = fTempPa1B[0];	//w zmiennej fP zachowaj innowację przyspieszenia 2
+
+	//mnożenie przez K: K(n) * (z(n)-H*X(n-1))		[Stan x Pomiar] * [Pomiar] = [Stan]
+	cBłąd |= arm_mat_mult_f32(&mKm, &mTempPa1B, &mTempS1A);
+
+	//dodanie poprzedniej estymaty: Estymata_x(n-1) + K(n)*(z(n)-H*X(n-1))	[Stan] + [Stan] = [Stan]
+	cBłąd |= arm_mat_add_f32(&mX, &mTempS1A, &mTempS1B);
+
+	//przepisanie estymaty do wektora stanu
+	for (uint8_t n=0; n<KSTAN; n++)
+		fX[n] = fTempS1B[n];
+
+	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempSSA	 [Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mKm, &mHl, &mTempSSA);
+
+	//odejmowanie (I - K(n) * H) -> mTempSSB
+	cBłąd |= arm_mat_sub_f32(&mI, &mTempSSA, &mTempSSB);
+
+	//mnożenie (I-K(n)*H) * P(n-1) -> mTempSSA 	[Stan x Stan] * [Stan x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mTempSSB, &mP, &mTempSSA);
+
+	//transpozycja: (I-K(n)*H)^T-> mTempSSC
+	cBłąd |= arm_mat_trans_f32(&mTempSSB, &mTempSSC);
+
+	//mnożenie: (I-K(n)*H)*P(n-1) * (I-K(n)*H)^T
+	cBłąd |= arm_mat_mult_f32(&mTempSSA, &mTempSSC, &mTempSSB);
+
+	//mnożenie 	K(n) * R(n)  -> mTempSPa  	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mKm, &mRa2, &mTempSPa);
+
+	//transpozycja K(n)^T -> mTempM24  		[Stan x Pomiar] -> [Pomiar x Stan]
+	cBłąd |= arm_mat_trans_f32(&mKm, &mTempPaS);
+
+	//mnożenie 	(K(n)*R(n)) * (K(n)^T) 	 	[Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mTempSPa, &mTempPaS, &mTempSSA);
+
+	//finalne sumowanie ((I-K(n)*H)*P(n-1)*(I*K(n)*H)^T) + (K(n)*R(n)*K(n)^T) -> P(n)
+	cBłąd |= arm_mat_add_f32(&mTempSSB, &mTempSSA, &mP);
+	return cBłąd;
+}
