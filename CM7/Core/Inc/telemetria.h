@@ -272,28 +272,37 @@
 #define TID_PID_STROJENIE1		224	//wartość parametru strojącego 1
 #define TID_PID_STROJENIE2		225	//wartość parametru strojącego 2
 
-#define TID_KALMAN_X0			226
-#define TID_KALMAN_X1			227
-#define TID_KALMAN_X2			228
-#define TID_KALMAN_X3			229
-#define TID_KALMAN_K0			230
-#define TID_KALMAN_K1			231
-#define TID_KALMAN_K2			232
-#define TID_KALMAN_K3			233
-#define TID_KALMAN_P0			234
-#define TID_KALMAN_P1			235
-#define TID_KALMAN_P2			236
-#define TID_KALMAN_P3			237
+#define TID_TOF_ODLEGLOSC		226	//odelgłość w metrach
+#define TID_TOF_STATUS			227	//status pomiaru
+#define TID_TOF_NOWY_POMIAR		228	//licnzik inkrementowany przy nowym pomiarze
+#define TID_TOF_SIGMA			229	//odchylenie standardowe pomiaru
+#define TID_TOF_REFLEKT_CELU	230	//reflektancja celu
+#define TID_TOF_NATEZENIE_TLA	231	//poziom natężenia tła
 
-#define TID_TOF_ODLEGLOSC		238	//odelgłość w metrach
-#define TID_TOF_STATUS			239	//status pomiaru
-#define TID_TOF_NOWY_POMIAR		240	//licnzik inkrementowany przy nowym pomiarze
-#define TID_TOF_SIGMA			241	//odchylenie standardowe pomiaru
-#define TID_TOF_REFLEKT_CELU	242	//reflektancja celu
-#define TID_TOF_NATEZENIE_TLA	243	//poziom natężenia tła
+#define TID_KALMAN_X0			232
+#define TID_KALMAN_X1			233
+#define TID_KALMAN_X2			234
+#define TID_KALMAN_X3			235
+#define TID_KALMAN_X4			236
+#define TID_KALMAN_X5			237
+#define TID_KALMAN_X6			238
+#define TID_KALMAN_X7			239
+#define TID_KALMAN_X8			240
+#define TID_KALMAN_X9			241
+
+#define TID_KALMAN_K0			242
+#define TID_KALMAN_K1			243
+#define TID_KALMAN_K2			244
+#define TID_KALMAN_K3			245
+#define TID_KALMAN_K4			246
+#define TID_KALMAN_K5			247
+#define TID_KALMAN_K6			248
+#define TID_KALMAN_K7			249
+#define TID_KALMAN_K8			250
+#define TID_KALMAN_K9			251
 //max do 255
 
-#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	244
+#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	252
 
 #define MAX_ZMIENNYCH_TELEMETR_W_RAMCE	115		//tyle zmiennych może być przesłanych w jednej ramce telemetrycznej (ramek może być kilka)
 #define MAX_INDEKSOW_TELEMETR_W_RAMCE	128		//zmienne w ramce można wybrać z takiej puli indeksów

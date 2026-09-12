@@ -130,9 +130,10 @@ uint8_t ObslugaBMP585(void)
 		CzytajBuforSPIsmp(BMP5_REG_TEMP_DATA_XLSB, nWartosc, 2);	//odczyt rejestrów temperatury i ciśnienia
 
 		uDaneCM4.dane.fTemper[TEMP_BARO3] = (7 * uDaneCM4.dane.fTemper[TEMP_BARO3] + ((float)nWartosc[0] / 65536.0f) + KELVIN) / 8;
-		uDaneCM4.dane.fCisnieBzw[2] = ((float)nWartosc[1] / 64.0f) + BIAS_CISNIENIA_BMP585;
+		uDaneCM4.dane.fCisnieBzw[2] = ((float)nWartosc[1] / 64.0f);
 
-		uDaneCM4.dane.fWysokoMSL[2] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[2], CISNIENIE_QNE, uDaneCM4.dane.fTemper[TEMP_BARO3]);	//wartość bwzezględna, nie wymaga uśredniania P0
+		uDaneCM4.dane.fWysokoMSL[2] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[2], CISNIENIE_QNE, uDaneCM4.dane.fTemper[TEMP_BARO3]);	//wartość bwzezględna, nie wymaga uśredniania
+		//uDaneCM4.dane.fWysokoMSL[2] -= uDaneCM4.dane.stKalmanWys.fX[KAL_WYS_BLAD_WYSOKOSCI_BARO2] / 2;	//odejmij błąd obliczony w filtrze Kalmana wysokosci
 		uDaneCM4.dane.cNowyPomiar |= NP_WYS3;
 		fWysokośćUśredniona = ((PODSTAWA_FILTRA_IIR_WARIOMETRU_BMP585 - 1) * fWysokośćUśredniona + uDaneCM4.dane.fWysokoMSL[2]) / PODSTAWA_FILTRA_IIR_WARIOMETRU_BMP585;
 

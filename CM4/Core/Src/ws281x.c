@@ -424,7 +424,7 @@ uint8_t ObliczKolorWS281x(uint32_t *nKolor, stWskaznikLed_t *stWskaznikLed)
 		case WLZ_POCHYLENIE:	fPomiar = uDaneCM4.dane.stBSP.fKatIMU[1];	break;
 		case WLZ_ODCHYLENIE:	fPomiar = uDaneCM4.dane.stBSP.fKatIMU[2];	break;
 		case WLZ_WYSOKOSC_AGL:	fPomiar = uDaneCM4.dane.stBSP.fWysokoscAGL;	break;
-		case WLZ_WYSOKOSC_GPS:	fPomiar = uDaneCM4.dane.stGnss[0].fWysokoscMSL;	break;
+		case WLZ_WYSOKOSC_GPS:	fPomiar = uDaneCM4.dane.stGnss[0].fWysokoscElips;	break;
 		case WLZ_PREDKOSC_IAS:	fPomiar = uDaneCM4.dane.stBSP.fIAS;			break;
 		case WLZ_PREDKOSC_GPS:	fPomiar = uDaneCM4.dane.stGnss[0].fPredkoscWzglZiemi;	break;
 		case WLZ_NAPIECIE_BAT:	fPomiar = uDaneCM4.dane.fNapiecieAku[0];	break;

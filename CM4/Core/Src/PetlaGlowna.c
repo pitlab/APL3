@@ -32,9 +32,11 @@
 #include "SampleAudio.h"
 #include "Crossfire.h"
 #include <Kalman.h>
-#include <KalmanWysokosci5X6Z.h>
+//#include <KalmanWysokosci5X6Z.h>
+#include <KalmanWysokosci10X10Z.h>
 #include "BMP585.h"
 #include <VL53L1.h>
+#include "PL-2000.h"
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -169,25 +171,33 @@ void PetlaGlowna(void)
 		if ((uDaneCM4.dane.nZainicjowano & INIT_KALMAN_WYSOKOSCI) == INIT_KALMAN_WYSOKOSCI)
 		{
 			//cBłądPG = PredykcjaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
-			cBłądPG = PredykcjaFiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
+			//cBłądPG = PredykcjaFiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
+			cBłądPG = PredykcjaFiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 			if (uDaneCM4.dane.cNowyPomiar & NP_WYS1)
 				//cBłądPG = AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
-				cBłądPG = AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
+				//cBłądPG = AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
+				cBłądPG = AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 
 			if (uDaneCM4.dane.cNowyPomiar & NP_WYS3)
-				cBłądPG = AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
+				//cBłądPG = AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
+				cBłądPG = AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
+
+			if (uDaneCM4.dane.cNowyPomiar & NP_WYS3)
 
 			//przyspieszenia są aktualizowane w każdym obiegu pętli
 			//cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
-			cBłądPG = AktulizacjaAkcelerometrem1FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
-			cBłądPG = AktulizacjaAkcelerometrem2FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
+			//cBłądPG = AktulizacjaAkcelerometrem1FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
+			//cBłądPG = AktulizacjaAkcelerometrem2FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
+			cBłądPG = AktulizacjaAkcelerometrem1FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
+			cBłądPG = AktulizacjaAkcelerometrem2FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 		}
 		else
 		{
 			//cBłądPG = InicjujFiltrKalmanaWysokości4X3Z(&uDaneCM4.dane);
-			cBłądPG = InicjujFiltrKalmanaWysokości5X6Z(&uDaneCM4.dane);
+			//cBłądPG = InicjujFiltrKalmanaWysokości5X6Z(&uDaneCM4.dane);
+			cBłądPG = InicjujFiltrKalmanaWysokości10X10Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 		}
 		uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2 | NP_WYS3);	//usuń flagę nowych pomiarów wysokości
@@ -244,6 +254,14 @@ void PetlaGlowna(void)
 		break;
 
 	case 16:
+		/*uDaneCM4.dane.stGnss[1].dDlugoscGeo = 52.229700 * DEG2RAD;
+		uDaneCM4.dane.stGnss[1].dSzerokoscGeo = 21.012200 * DEG2RAD;
+		nCzasBiezacy = PobierzCzasT7();
+		ZamieńGNSSnaPL_2000d(&uDaneCM4.dane.stGnss[1], &uDaneCM4.dane.stBSP);
+		ndT = MinalCzasT7(nCzasBiezacy);
+		nCzasBiezacy = PobierzCzasT7();
+		ZamieńGNSSnaPL_2000f(&uDaneCM4.dane.stGnss[1], &uDaneCM4.dane.stBSP);
+		ndT = MinalCzasT7(nCzasBiezacy);*/
 		break;
 
 	case 17:
@@ -556,7 +574,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	{
 	case 0: cBłąd = ObslugaMS4525();		break;
 	case 3:	cBłąd = ObslugaHMC5883();		break;
-	case 0x10: cBłąd = ObsługaVL53L1();		break;
+	//case 0x10: cBłąd = ObsługaVL53L1();		break;
 	default: break;
 	}
 
@@ -572,7 +590,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 
 	cEtapOperacjiI2C++;
 	//cEtapOperacjiI2C &= 0x03;
-	cEtapOperacjiI2C &= 0x3F;
+	cEtapOperacjiI2C &= 0x1F;
 	return cBłąd;
 }
 

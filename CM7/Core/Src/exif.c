@@ -258,7 +258,7 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 	cBufor[3] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_TAG_VERSION, EXIF_TYPE_BYTE, cBufor, 4, &wskchAdresDanych, wskchPoczatekTIFF);	//BYTE x4, ale nie wstawiaj ich do danych
 
-	fTemp1 = stDane->stGnss1.dSzerokoscGeo;
+	fTemp1 = stDane->stGnss[0].dSzerokoscGeo;
 	if (fTemp1 < 0)
 	{
 		cBufor[0] = 'S';
@@ -302,7 +302,7 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 	cBufor[23] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_LATITUDE, EXIF_TYPE_RATIONAL, cBufor, 24, &wskchAdresDanych, wskchPoczatekTIFF);
 
-	fTemp1 = stDane->stGnss1.dDlugoscGeo;
+	fTemp1 = stDane->stGnss[0].dDlugoscGeo;
 	if (fTemp1 < 0)
 	{
 		cBufor[0] = 'W';
@@ -347,7 +347,7 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 	cBufor[23] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_LONGITUDE, EXIF_TYPE_RATIONAL, cBufor, 24, &wskchAdresDanych, wskchPoczatekTIFF);	//RATIONAL x3
 
-	fTemp1 = stDane->stGnss1.fWysokoscMSL;
+	fTemp1 = stDane->stGnss[0].fWysokoscElips;
 	if (fTemp1 < 0)
 	{
 		cBufor[0] = 1;		//1 = poniżej poziomu morza
@@ -370,7 +370,7 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_ALTITUDE, EXIF_TYPE_RATIONAL, cBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//RATIONAL x1
 
 	//timestamp GPS
-	cBufor[0] = stDane->stGnss1.cGodz;
+	cBufor[0] = stDane->stGnss[0].cGodz;
 	cBufor[1] = 0;
 	cBufor[2] = 0;
 	cBufor[3] = 0;
@@ -378,7 +378,7 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 	cBufor[5] = 0;
 	cBufor[6] = 0;
 	cBufor[7] = 0;
-	cBufor[8] = stDane->stGnss1.cMin;
+	cBufor[8] = stDane->stGnss[0].cMin;
 	cBufor[9] = 0;
 	cBufor[10] = 0;
 	cBufor[11] = 0;
@@ -386,7 +386,7 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 	cBufor[13] = 0;
 	cBufor[14] = 0;
 	cBufor[15] = 0;
-	cBufor[16] = stDane->stGnss1.cSek;
+	cBufor[16] = stDane->stGnss[0].cSek;
 	cBufor[17] = 0;
 	cBufor[18] = 0;
 	cBufor[19] = 0;
@@ -400,7 +400,7 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 	cBufor[1] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_GPS_SPEED_REF, EXIF_TYPE_ASCII, cBufor, 2, &wskchAdresDanych, wskchPoczatekTIFF);		//ASCII,
 
-	fTemp1 = stDane->stGnss1.fPredkoscWzglZiemi;	//prędkość w m/s
+	fTemp1 = stDane->stGnss[0].fPredkoscWzglZiemi;	//prędkość w m/s
 	fTemp2 = fTemp1 * 10.0f / 3.6f;					//prędkość w 10*km/h
 	fTemp2 = floorf(fTemp1);						//pełne dziesiątki
 	cBufor[0] = (uint8_t)fTemp2;

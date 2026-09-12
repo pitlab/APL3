@@ -203,7 +203,7 @@ uint8_t PredykcjaFiltraKalmanaWysokości4X2Z(stWymianyCM4_t *dane)
 	dane->stBSP.fWysokoscAGL = dane->stBSP.fWysokoscMSL - fPoczątkoweBarometryczneMSL;
 
 	for (uint8_t n=0; n<4; n++)
-		dane->stKalmanDebug.fX[n] = fX[n];
+		dane->stKalmanWys.fX[n] = fX[n];
 
 	//2) Obliczenie niepewności nowej estymaty wektora stanu: Temp1 = F * P(n)
 	cBłąd |= arm_mat_mult_f32(&mF, &mP, &mTempM44A);
@@ -267,7 +267,7 @@ uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X2Z(stWymian
 	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mK	(4x2 * 2x2 = 4x2)
 	cBłąd |= arm_mat_mult_f32(&mPHt, &mTempM22A, &mK);
 	for (uint8_t n=0; n<4; n++)
-		dane->stKalmanDebug.fK[n] = fK[n][0];
+		dane->stKalmanWys.fK[n] = fK[n][0];
 
 
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1)
@@ -329,8 +329,8 @@ uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X2Z(stWymian
 	//finalne sumowanie ((I-K(n)*H)*P(n-1)*(I*K(n)*H)^T) + (K(n)*R(n)*K(n)^T) -> P(n)
 	cBłąd |= arm_mat_add_f32(&mTempM44B, &mTempM44A, &mP);
 
-	for (uint8_t n=0; n<4; n++)
-		dane->stKalmanDebug.fP[n] = fP[n][n];
+	/*for (uint8_t n=0; n<4; n++)
+		dane->stKalmanWys.fP[n] = fP[n][n];*/
 
 	return cBłąd;
 }
@@ -368,7 +368,7 @@ uint8_t AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4Z2Z(stWymianyCM4_t *dan
 	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mK	(4x2 * 2x2 = 4x2)
 	cBłąd |= arm_mat_mult_f32(&mPHt, &mTempM22A, &mK);
 	for (uint8_t n=0; n<4; n++)
-		dane->stKalmanDebug.fK[n] = fK[n][0];
+		dane->stKalmanWys.fK[n] = fK[n][0];
 
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1)
 	cBłąd |= arm_mat_mult_f32(&mHa, &mX, &mTempM21A);
@@ -431,7 +431,7 @@ uint8_t AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4Z2Z(stWymianyCM4_t *dan
 	//finalne sumowanie (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T + K(n) * R(n) * K(n)^T -> P(n)
 	cBłąd |= arm_mat_add_f32(&mTempM44B, &mTempM44A, &mP);
 
-	for (uint8_t n=0; n<4; n++)
-		dane->stKalmanDebug.fP[n] = fP[n][n];
+	/*for (uint8_t n=0; n<4; n++)
+		dane->stKalmanWys.fP[n] = fP[n][n];*/
 	return cBłąd;
 }

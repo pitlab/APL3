@@ -258,6 +258,8 @@ uint8_t ObslugaMS5611(void)
 			float fWysokość = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[0], CISNIENIE_QNE, uDaneCM4.dane.fTemper[TEMP_BARO1]);	//wartość bezwzględna, nie wymaga uśredniania P0
 			if ((fWysokość > MIN_WYSOKOSC) && (fWysokość < MAX_WYSOKOSC))	//wytnij błędne pomiary nie mieszczące się w zakresie dopuszczalnych wskazań
 			{
+				//uDaneCM4.dane.fWysokoMSL[0] = fWysokość - uDaneCM4.dane.stKalmanWys.fX[KAL_WYS_BLAD_WYSOKOSCI_BARO1];	//odejmij błąd obliczony w filtrze Kalmana wysokosci
+				//uDaneCM4.dane.fWysokoMSL[0] = fWysokość - uDaneCM4.dane.stKalmanWys.fX[KAL_WYS_BLAD_WYSOKOSCI_BARO1] / 2;	//odejmij połowę błędu obliczonego w filtrze Kalmana wysokosci
 				uDaneCM4.dane.fWysokoMSL[0] = fWysokość;
 				uDaneCM4.dane.cNowyPomiar |= NP_WYS1;
 				fWysokośćUśredniona = ((PODSTAWA_FILTRA_IIR_WARIOMETRU - 1) * fWysokośćUśredniona + uDaneCM4.dane.fWysokoMSL[0]) / PODSTAWA_FILTRA_IIR_WARIOMETRU;

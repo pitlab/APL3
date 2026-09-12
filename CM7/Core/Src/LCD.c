@@ -1925,7 +1925,7 @@ uint8_t Ekran_Powitalny(uint32_t nZainicjowano)
 	if (uDaneCM4.dane.nZainicjowano & INIT_WYKR_MTK)
 		n = sprintf(cNapis, "%s -> %s", (char*)cNapisLcd[STR_SPRAWDZ_GNSS], (char*)cNapisLcd[STR_SPRAWDZ_MTK]);		//GNSS -> MTK
 	RysujNapis(cNapis, x, y);
-	Wykrycie(x, y, n,  (uDaneCM4.dane.nZainicjowano & INIT_GNSS_GOTOWY) == INIT_GNSS_GOTOWY);
+	Wykrycie(x, y, n,  (uDaneCM4.dane.nZainicjowano & INIT_GNSS1_GOTOWY) == INIT_GNSS1_GOTOWY);
 
 	y += WYKRYJ_WIERSZ;
 	n = sprintf(cNapis, "%s -> %s", (char*)cNapisLcd[STR_SPRAWDZ_GNSS], (char*)cNapisLcd[STR_SPRAWDZ_HMC5883]);	//GNSS -> HMC5883
@@ -2428,32 +2428,32 @@ void PomiaryCzujnikow(void)
 	RysujNapis(cNapis, KOL12 + 40*FONT_SL, 90);
 
 	//dane z GNSS
-	if (uDaneCM4.dane.stGnss1.cFix)
+	if (uDaneCM4.dane.stGnss[0].cFix)
 		setColor(BIALY);	//jest fix
 	else
 		setColor(SZARY70);	//nie ma fixa
 
-	sprintf(cNapis, "%.7f ", uDaneCM4.dane.stGnss1.dDlugoscGeo);
+	sprintf(cNapis, "%.7f ", uDaneCM4.dane.stGnss[0].dDlugoscGeo);
 	RysujNapis(cNapis, KOL12 + 11*FONT_SL, 120);
-	sprintf(cNapis, "%.7f ", uDaneCM4.dane.stGnss1.dSzerokoscGeo);
+	sprintf(cNapis, "%.7f ", uDaneCM4.dane.stGnss[0].dSzerokoscGeo);
 	RysujNapis(cNapis, KOL12 + 29*FONT_SL, 120);
-	sprintf(cNapis, "%.2f ", uDaneCM4.dane.stGnss1.fHdop);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.stGnss[0].fHdop);
 	RysujNapis(cNapis, KOL12 + 47*FONT_SL, 120);
 
-	sprintf(cNapis, "%.1f m ", uDaneCM4.dane.stGnss1.fWysokoscMSL);
+	sprintf(cNapis, "%.1f m ", uDaneCM4.dane.stGnss[0].fWysokoscElips);
 	RysujNapis(cNapis, KOL12 + 13*FONT_SL, 140);
-	sprintf(cNapis, "%.3f m/s ", uDaneCM4.dane.stGnss1.fPredkoscWzglZiemi);
+	sprintf(cNapis, "%.3f m/s ", uDaneCM4.dane.stGnss[0].fPredkoscWzglZiemi);
 	RysujNapis(cNapis, KOL12 + 29*FONT_SL, 140);
-	sprintf(cNapis, "%3.2f%c ", uDaneCM4.dane.stGnss1.fKurs, ZNAK_STOPIEN);
+	sprintf(cNapis, "%3.2f%c ", uDaneCM4.dane.stGnss[0].fKurs, ZNAK_STOPIEN);
 	RysujNapis(cNapis, KOL12 + 47*FONT_SL, 140);
 
-	sprintf(cNapis, "%02d:%02d:%02d ", uDaneCM4.dane.stGnss1.cGodz, uDaneCM4.dane.stGnss1.cMin, uDaneCM4.dane.stGnss1.cSek);
+	sprintf(cNapis, "%02d:%02d:%02d ", uDaneCM4.dane.stGnss[0].cGodz, uDaneCM4.dane.stGnss[0].cMin, uDaneCM4.dane.stGnss[0].cSek);
 	RysujNapis(cNapis, KOL12 + 12*FONT_SL, 160);
-	if  (uDaneCM4.dane.stGnss1.cMies > 12)	//ograniczenie aby nie pobierało nazwy miesiaca spoza tablicy cNazwyMies3Lit[]
-		uDaneCM4.dane.stGnss1.cMies = 0;	//zerowy indeks jest pustą nazwą "---"
-	sprintf(cNapis, "%02d %s %04d ", uDaneCM4.dane.stGnss1.cDzien, cNazwyMies3Lit[uDaneCM4.dane.stGnss1.cMies], uDaneCM4.dane.stGnss1.cRok + 2000);
+	if  (uDaneCM4.dane.stGnss[0].cMies > 12)	//ograniczenie aby nie pobierało nazwy miesiaca spoza tablicy cNazwyMies3Lit[]
+		uDaneCM4.dane.stGnss[0].cMies = 0;	//zerowy indeks jest pustą nazwą "---"
+	sprintf(cNapis, "%02d %s %04d ", uDaneCM4.dane.stGnss[0].cDzien, cNazwyMies3Lit[uDaneCM4.dane.stGnss[0].cMies], uDaneCM4.dane.stGnss[0].cRok + 2000);
 	RysujNapis(cNapis, KOL12 + 29*FONT_SL, 160);
-	sprintf(cNapis, "%d ", uDaneCM4.dane.stGnss1.cLiczbaSatelit);
+	sprintf(cNapis, "%d ", uDaneCM4.dane.stGnss[0].cLiczbaSatelit);
 	RysujNapis(cNapis, KOL12 + 47*FONT_SL, 160);
 
 	//napięcie, prąd i energia obu pakietów

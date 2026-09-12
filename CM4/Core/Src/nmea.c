@@ -273,7 +273,7 @@ uint8_t DekodujNMEA(uint8_t cDaneIn, stGnss_t *stGnss)
                 sGAltitude = Asci2UShort(cBufStanu+0, cBajtStanu-1);
             else
                 sGAltitude = 0;
-            stGnss->fWysokoscMSL = (float)sGAltitude/10;
+            stGnss->fWysokoscElips = (float)sGAltitude/10;
             cNewGAlti = 1; //flaga nowych danych o wysokości
             cStan = ST_NAGLOWEK1;
             cBajtStanu = 0;

@@ -1692,7 +1692,7 @@ void StartDefaultTask(void *argument)
 
 			//synchronizacja czasu i daty z GNSS tylko dopóki nie są w pełni zsynchroniozwane, później pracuję na RTC. Docelowo również synchronizacja z NTP
 			if (cStanSynchronizacjiCzasu != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
-				SynchronizujCzasDoGNSS(&uDaneCM4.dane.stGnss1);
+				SynchronizujCzasDoGNSS(&uDaneCM4.dane.stGnss[0]);
 
 
 			cBłąd = ObslugaPolecenCM4();	//obsłuż polecenia rdzenia CM4

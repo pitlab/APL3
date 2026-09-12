@@ -121,7 +121,7 @@ typedef struct _GNSS
 	float fKurs;
 	float fPredkoscN;
 	float fPredkoscE;
-	float fWysokoscMSL;
+	float fWysokoscElips;	//wysokość wzgledem elipsoidy GRS80
 	float fHdop;
 	float fVdop;
 	uint8_t cLiczbaSatelit;
@@ -140,6 +140,10 @@ typedef struct _BSP
 	float fIAS;
 	double dDlugoscGeo;
 	double dSzerokoscGeo;
+	double dXPółn;			//współrzędna X wegług PL-2000 [m]
+	double dYWsch;			//współrzędna Y wegług PL-2000 [m]
+	float fXPółn;			//współrzędna X wegług PL-2000 [m]
+	float fYWsch;			//współrzędna Y wegług PL-2000 [m]
 	float fWysokoscMSL;		//[m.n.p.m]
 	float fWysokoscAGL;		//[m]
 	float fPredkoscN;
@@ -166,10 +170,9 @@ typedef union
 
 typedef struct
 {
-	float fX[5];	//wektor stanu filtra
-	float fP[6];	//główna przekatna macierzy kowariancji predykcji
-	float fK[6];	//główna przekatna macierzy wzmocnienia Kalmana
-} stKalmanDebug_t;
+	float fX[10];	//wektor stanu filtra
+	float fK[10];	//wybrane elementy wzmocnienia Kalmana
+} stKalmanWys_t;
 
 typedef struct
 {
@@ -247,7 +250,7 @@ typedef struct
 	uint32_t ndT;
 	stBSP_t stBSP;				//struktura zawierajaca syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
 	stSzybkieIMU_t stSzybkieIMU;	//struktura zawierajaca bufor kołowy i indeks szybkich danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
-	stKalmanDebug_t stKalmanDebug;	//struktura z danymi do debugowania filtra Klamana
+	stKalmanWys_t stKalmanWys;	//struktura z danymi do debugowania filtra Klamana wysokości
 	stTOF_t stTOF;					//struktura danych pomiarowych czujnika odległości VL53LC1
 } stWymianyCM4_t;
 

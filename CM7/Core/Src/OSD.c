@@ -507,11 +507,11 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	//szerokość geograficzna
 	if (stKonf->stSzerGeo.chFlagi & FO_WIDOCZNY)
 	{
-		if (stDane->stGnss1.dSzerokoscGeo >= 0.0)
+		if (stDane->stGnss[0].dSzerokoscGeo >= 0.0)
 			chZnak = 'N';
 		else
 			chZnak = 'S';
-		sprintf(chNapisOSD, "%.6f%c", stDane->stGnss1.dSzerokoscGeo, chZnak);
+		sprintf(chNapisOSD, "%.6f%c", stDane->stGnss[0].dSzerokoscGeo, chZnak);
 		PobierzPozycjeObiektu(&stKonf->stSzerGeo, stKonf, &stWspXY);
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, cBuforOSD, (uint8_t*)&stKonf->stSzerGeo.sKolorObiektu, (uint8_t*)&stKonf->stSzerGeo.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}
@@ -520,11 +520,11 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 	//długość geograficzna
 	if (stKonf->stDlugGeo.chFlagi & FO_WIDOCZNY)
 	{
-		if (stDane->stGnss1.dDlugoscGeo >= 0.0)
+		if (stDane->stGnss[0].dDlugoscGeo >= 0.0)
 			chZnak = 'E';
 		else
 			chZnak = 'W';
-		sprintf(chNapisOSD, "%.6f%c", stDane->stGnss1.dDlugoscGeo, chZnak);
+		sprintf(chNapisOSD, "%.6f%c", stDane->stGnss[0].dDlugoscGeo, chZnak);
 		PobierzPozycjeObiektu(&stKonf->stDlugGeo, stKonf, &stWspXY);
 		RysujNapiswBuforze(chNapisOSD, stWspXY.sX1, stWspXY.sY1, stKonf->sSzerokosc, cBuforOSD, (uint8_t*)&stKonf->stDlugGeo.sKolorObiektu, (uint8_t*)&stKonf->stDlugGeo.sKolorTla, ROZMIAR_KOLORU_OSD);
 	}

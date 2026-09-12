@@ -145,6 +145,7 @@ uint8_t ObslugaBMP581(void)
 		uDaneCM4.dane.fCisnieBzw[1] = (float)nWartosc[1] / 64.0f;
 
 		uDaneCM4.dane.fWysokoMSL[1] = WysokoscBarometryczna(uDaneCM4.dane.fCisnieBzw[1], CISNIENIE_QNE, uDaneCM4.dane.fTemper[TEMP_BARO2]);	//wartość bwzezględna, nie wymaga uśredniania P0
+		uDaneCM4.dane.fWysokoMSL[1] -= uDaneCM4.dane.stKalmanWys.fX[KAL_WYS_BLAD_WYSOKOSCI_BARO2];	//odejmij błąd obliczony w filtrze Kalmana wysokosci
 		uDaneCM4.dane.cNowyPomiar |= NP_WYS2;
 		fWysokośćUśredniona = ((PODSTAWA_FILTRA_IIR_WARIOMETRU - 1) * fWysokośćUśredniona + uDaneCM4.dane.fWysokoMSL[1]) / PODSTAWA_FILTRA_IIR_WARIOMETRU;
 

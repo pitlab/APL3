@@ -60,6 +60,17 @@
 
 #define MAX_PROB_INICJALIZACJI		5	//po tylu błędnych próbach inicjalizacji uznajemy czujnik za nieobecny i nie próbujemy więcej.
 
-#define KALMAN_WYSOKOSCI_4D
+//#define KALMAN_WYSOKOSCI_4D
+//definicje pól wektora stanu filtra Kalmana wysokości
+#define KAL_WYS_ESTYMATA_WYSOKOSCI		0
+#define KAL_WYS_ESTYMATA_PREDKOSCI		1
+#define KAL_WYS_ESTYMATA_PRZYSPIESZENIA	2
+#define KAL_WYS_BLAD_PRZYSPIESZ_AKCEL1	3
+#define KAL_WYS_BLAD_PRZYSPIESZ_AKCEL2	4
+#define KAL_WYS_BLAD_WYSOKOSCI_BARO1	5
+#define KAL_WYS_BLAD_WYSOKOSCI_BARO2	6
+#define KAL_WYS_BLAD_WYSOKOSCI_GNSS1	7
+#define KAL_WYS_BLAD_WYSOKOSCI_GNSS2	8
+#define KAL_WYS_ESTYMATA_WYS_GRUNTU		9
 
 #endif /* INC_SYS_DEF_CM4_H_ */

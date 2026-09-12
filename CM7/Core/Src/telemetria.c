@@ -533,20 +533,6 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_PID_STROJENIE1:	fZmiennaTele = stDane->fStrojenie[0];						break;	//wartość parametru strojącego 1
 	case TID_PID_STROJENIE2:	fZmiennaTele = stDane->fStrojenie[1];						break;	//wartość parametru strojącego 2
 
-	case TID_KALMAN_X0:			fZmiennaTele = stDane->stKalmanDebug.fX[0];					break;
-	case TID_KALMAN_X1:			fZmiennaTele = stDane->stKalmanDebug.fX[1];					break;
-	case TID_KALMAN_X2:			fZmiennaTele = stDane->stKalmanDebug.fX[2];					break;
-	case TID_KALMAN_X3:			fZmiennaTele = stDane->stKalmanDebug.fX[3];					break;
-	case TID_KALMAN_K0:			fZmiennaTele = stDane->stKalmanDebug.fK[0];					break;
-	case TID_KALMAN_K1:			fZmiennaTele = stDane->stKalmanDebug.fK[1];					break;
-	case TID_KALMAN_K2:			fZmiennaTele = stDane->stKalmanDebug.fK[2];					break;
-	case TID_KALMAN_K3:			fZmiennaTele = stDane->stKalmanDebug.fK[3];					break;
-	case TID_KALMAN_P0:			fZmiennaTele = stDane->stKalmanDebug.fP[0];					break;
-	case TID_KALMAN_P1:			fZmiennaTele = stDane->stKalmanDebug.fP[1];					break;
-	case TID_KALMAN_P2:			fZmiennaTele = stDane->stKalmanDebug.fP[2];					break;
-	case TID_KALMAN_P3:			fZmiennaTele = stDane->stKalmanDebug.fP[3];					break;
-
-
 	case TID_TOF_ODLEGLOSC:		fZmiennaTele = (float)stDane->stTOF.sOdległość / 1000.0f;	break;
 	case TID_TOF_STATUS:		fZmiennaTele = (float)stDane->stTOF.cStatusPomiaru;			break;
 	case TID_TOF_NOWY_POMIAR:	fZmiennaTele = (float)stDane->stTOF.cNowyPomiar;			break;
@@ -554,6 +540,27 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_TOF_REFLEKT_CELU:	fZmiennaTele = stDane->stTOF.fReflektancjaCelu;				break;
 	case TID_TOF_NATEZENIE_TLA:	fZmiennaTele = stDane->stTOF.fNatężenieTła;					break;
 
+	case TID_KALMAN_X0:			fZmiennaTele = stDane->stKalmanWys.fX[0];					break;
+	case TID_KALMAN_X1:			fZmiennaTele = stDane->stKalmanWys.fX[1];					break;
+	case TID_KALMAN_X2:			fZmiennaTele = stDane->stKalmanWys.fX[2];					break;
+	case TID_KALMAN_X3:			fZmiennaTele = stDane->stKalmanWys.fX[3];					break;
+	case TID_KALMAN_X4:			fZmiennaTele = stDane->stKalmanWys.fX[4];					break;
+	case TID_KALMAN_X5:			fZmiennaTele = stDane->stKalmanWys.fX[5];					break;
+	case TID_KALMAN_X6:			fZmiennaTele = stDane->stKalmanWys.fX[6];					break;
+	case TID_KALMAN_X7:			fZmiennaTele = stDane->stKalmanWys.fX[7];					break;
+	case TID_KALMAN_X8:			fZmiennaTele = stDane->stKalmanWys.fX[8];					break;
+	case TID_KALMAN_X9:			fZmiennaTele = stDane->stKalmanWys.fX[9];					break;
+
+	case TID_KALMAN_K0:			fZmiennaTele = stDane->stKalmanWys.fK[0];					break;
+	case TID_KALMAN_K1:			fZmiennaTele = stDane->stKalmanWys.fK[1];					break;
+	case TID_KALMAN_K2:			fZmiennaTele = stDane->stKalmanWys.fK[2];					break;
+	case TID_KALMAN_K3:			fZmiennaTele = stDane->stKalmanWys.fK[3];					break;
+	case TID_KALMAN_K4:			fZmiennaTele = stDane->stKalmanWys.fK[4];					break;
+	case TID_KALMAN_K5:			fZmiennaTele = stDane->stKalmanWys.fK[5];					break;
+	case TID_KALMAN_K6:			fZmiennaTele = stDane->stKalmanWys.fK[6];					break;
+	case TID_KALMAN_K7:			fZmiennaTele = stDane->stKalmanWys.fK[7];					break;
+	case TID_KALMAN_K8:			fZmiennaTele = stDane->stKalmanWys.fK[8];					break;
+	case TID_KALMAN_K9:			fZmiennaTele = stDane->stKalmanWys.fK[9];					break;
 	default:	fZmiennaTele = -1.0f;
 	}
 	return fZmiennaTele;

@@ -205,7 +205,7 @@ uint8_t PredykcjaFiltraKalmanaWysokości4X3Z(stWymianyCM4_t *dane)
 	dane->stBSP.fWysokoscAGL = dane->stBSP.fWysokoscMSL - fPoczątkoweBarometryczneMSL;
 
 	for (uint8_t n=0; n<4; n++)
-		dane->stKalmanDebug.fX[n] = fX[n];
+		dane->stKalmanWys.fX[n] = fX[n];
 
 	//2) Obliczenie niepewności nowej estymaty wektora stanu: Temp1 = F * P(n)
 	cBłąd |= arm_mat_mult_f32(&mF, &mP, &mTempM44A);
@@ -268,10 +268,10 @@ uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X3Z(stWymian
 
 	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mK	(4x3 * 3x3 = 4x3)
 	cBłąd |= arm_mat_mult_f32(&mPHt, &mTempM33A, &mK);
-	dane->stKalmanDebug.fK[0] = fK[0][0];
-	dane->stKalmanDebug.fK[1] = fK[3][0];
-	dane->stKalmanDebug.fK[2] = fK[3][1];
-	dane->stKalmanDebug.fK[3] = fK[3][2];
+	dane->stKalmanWys.fK[0] = fK[0][0];
+	dane->stKalmanWys.fK[1] = fK[3][0];
+	dane->stKalmanWys.fK[2] = fK[3][1];
+	dane->stKalmanWys.fK[3] = fK[3][2];
 
 	//teraz liczę nową estymatę. Najpierw cześć w nawiasie: H * X(n-1)
 	cBłąd |= arm_mat_mult_f32(&mHh, &mX, &mTempM31A);
@@ -283,8 +283,8 @@ uint8_t AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X3Z(stWymian
 
 	//innowacja: z(n) - (H*X(n-1)) ->mTempM31B		(3x1 - 3x1 = 3x1)
 	cBłąd |= arm_mat_sub_f32(&mZ, &mTempM31A, &mTempM31B);
-	for (uint8_t n=0; n<3; n++)
-		dane->stKalmanDebug.fP[n+1] = fTempM31B[n];	//w zmiennej fP zachowaj innowację
+	/*for (uint8_t n=0; n<3; n++)
+		dane->stKalmanDebug.fP[n+1] = fTempM31B[n];	//w zmiennej fP zachowaj innowację*/
 
 	//mnożenie przez K: K(n) * (z(n)-H*X(n-1))		(4x3 * 3x1 = 4x1)
 	cBłąd |= arm_mat_mult_f32(&mK, &mTempM31B, &mTempM41A);

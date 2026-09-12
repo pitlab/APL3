@@ -367,7 +367,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 //#define NORM_AMPL_MAG	1000		//znormalizowana długość wektora magnetometru
 
 
-#define WYSOKOSC10PIETER	27.0f	//wysokość w metrach 10 pięter
+#define WYSOKOSC10PIETER	28.0f	//wysokość w metrach 10 pięter
 
 
 //definicje trybów regulacji

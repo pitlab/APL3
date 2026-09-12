@@ -22,9 +22,10 @@
 #define WYSOKOSC_MAPY	110.0f		//wysokość z mapy - tymczasowa zaślepka dopóki nie ma map wysokościowych
 
 
-#define WARIANCJA_ZRYWU_ACEL	5.0e-1f		//
-#define WARIANCJA_DRYFTU_ACEL 	7.0e-9f;
-#define WARIANCJA_DRYFTU_BARO 	7.0e-9f;	//sprawdzić empirycznie
+#define WARIANCJA_ZRYWU_ACEL	5.0e-1f		//okresla dynamikę procesu
+#define WARIANCJA_DRYFTU_ACEL 	7.0e-9f;	//okresla jak szybko może zmieniać sie błąd akcelerometru
+#define WARIANCJA_DRYFTU_BARO 	1.0e-6f;	//okresla jak szybko może zmieniać sie błąd wysokości z czujnika ciśnienia
+#define WARIANCJA_DRYFTU_GNSS 	1.0e-4f;	//okresla jak szybko może zmieniać sie błąd wysokości z odbiornika GNSS
 #define WARIANCJA_ZMIANY_WYSOKOSCI_MAPY		1e-4;
 
 #define LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI		128
