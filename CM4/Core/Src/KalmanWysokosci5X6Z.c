@@ -228,16 +228,16 @@ uint8_t InicjujFiltrKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
 	arm_mat_init_f32(&mI, KSTAN, KSTAN, &fI[0][0]);
 
 	//inicjalizacja obu macierzy obserwacji, takiej samej dla obu czujników ciśnienia: Hc - dane o wysokości i prędkości z czujnika ciśnienia  oraz Ha - przyspieszenie
-	fHcx[0][0] = 1.0f;		//wysokość obserwuje czujnik wysokości
-	fHcx[1][1] = 1.0f;		//prędkość obserwuje wariometr
+	fHcx[0][0] = 1.0f;		//wysokość z czujnika ciśnienia 1 jest obserwowana przez stan wysokości
+	fHcx[1][1] = 1.0f;		//prędkość z czujnika ciśnienia 1 jest obserwowana przez stan prędkości
 	arm_mat_init_f32(&mHcx, KPCIS, KSTAN, &fHcx[0][0]);
 
-	fHa1[0][2] = 1.0f;		//przyspieszenie obserwuje oś Z akceletrometru 1
-	fHa1[0][3] = 1.0f;		//bias 1 obserwuje oś Z akceletrometru 1
+	fHa1[0][2] = 1.0f;		//przyspieszenie z akceletrometru 1 jest obserwowane przez stan przyspieszenia
+	fHa1[0][3] = 1.0f;		//przyspieszenie z akceletrometru 1 jest obserwowana przez stan błędu przyspieszenia 1
 	arm_mat_init_f32(&mHa1, KPACC, KSTAN, &fHa1[0][0]);
 
-	fHa2[0][2] = 1.0f;		//przyspieszenie obserwuje oś Z akceletrometru 2
-	fHa2[0][4] = 1.0f;		//bias 2 obserwuje oś Z akceletrometru 2
+	fHa2[0][2] = 1.0f;		//przyspieszenie z akceletrometru 2 jest obserwowane przez stan przyspieszenia
+	fHa2[0][4] = 1.0f;		//przyspieszenie z akceletrometru 2 jest obserwowana przez stan błędu przyspieszenia 2
 	arm_mat_init_f32(&mHa2, KPACC, KSTAN, &fHa2[0][0]);
 	return cBłąd;
 }
@@ -296,11 +296,6 @@ uint8_t PredykcjaFiltraKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
 
 	//dodaj macierz szumu Q procesu do iloczynu (F * P(n)) * (F^T) -> P
 	cBłąd |= arm_mat_add_f32(&mQ, &mTempSSC, &mP);
-	/*dane->stKalmanWys.fP[0] = fP[0][0];
-	dane->stKalmanWys.fP[1] = fP[1][1];
-	dane->stKalmanWys.fP[2] = fP[2][2];
-	dane->stKalmanWys.fP[3] = fP[3][3];
-	dane->stKalmanWys.fP[4] = fP[4][4];*/
 	return cBłąd;
 }
 

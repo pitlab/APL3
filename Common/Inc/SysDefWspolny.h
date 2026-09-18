@@ -37,7 +37,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define INIT_P0_BMP855			0x00400000	//ustawiono ciśnienie P0 dla czujnika 2
 #define INIT_VL53L1				0x00800000	//inicjalizacja lidara
 #define INIT_HMC5883			0x01000000
-
+#define INIT_INA219				0x02000000	//czujnik prądu
 
 
 #define TESTY		//włacz testowanie algorytmów, można wyłaczyć dla _nieświadowego_ końcowego użytkownika

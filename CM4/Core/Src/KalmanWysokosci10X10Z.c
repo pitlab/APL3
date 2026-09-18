@@ -8,7 +8,7 @@
 //  = bias przyspieszenia dwóch akcelerometrów
 //  = bias wysokości dwóch wysokościmierzy barometrycznych
 //  = bias wysokosci dwóch odbiorników GNSS
-//  - wysokość gruntu m.n.p.m, czyli różnica między AGL i MSL
+//  - wysokość terenu m.n.p.m, czyli różnica między AGL i MSL
 // Filtr zasilany jest dziesiecioma pomiarami:
 //  = dwoma zestawami wysokości i prędkości z dwu różnych czujników ciśnienia,
 //  = dwoma przyspieszeniami całkowitym w osi Z z dwóch akcelerometrów
@@ -30,7 +30,7 @@
 //zmienne z przedrostkiem f oznaczaja macierze lub wektory na liczbach float
 static float32_t fX[KSTAN];					//wektor stanu: 0=wysokość, 1=prędkość, 2=przyspieszenie kinematyczne Z, 3=grawitacja + bias akcelerometru 1,
 											//4=grawitacja + bias akcelerometru 2, 5=bias wysokościomierza barometrycznego 1, 6=bias wysokościomierza barometrycznego 2,
-											//7=bias wysokości GNSS1, 8=bias wysokości GNSS2, 9=wysokość gruntu m.n.p.m.
+											//7=bias wysokości GNSS1, 8=bias wysokości GNSS2, 9=wysokość terenu m.n.p.m.
 static float32_t fZc[KPCIS];				//wektor pomiaru czujników [c]iśnienia: 0=wysokość, 1=prędkość
 static float32_t fZa[KPACC];				//wektor pomiaru [a]kcelerometrów: 0=przyspieszenie
 static float32_t fZg[KPGNS];				//wektor pomiaru wysokości z [G]NSS: 0=wysokość
@@ -239,7 +239,7 @@ uint8_t InicjujFiltrKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 	fX[6] = 0.0f;	//bias pomiaru wysokości barometrycznej 2
 	fX[7] = 0.0f;	//bias pomiaru wysokości GNSS1
 	fX[8] = 0.0f;	//bias pomiaru wysokości GNSS2
-	fX[9] = WYSOKOSC_MAPY + WYSOKOSC10PIETER;	//wysokość z mapy
+	fX[9] = WYSOKOSC_MAPY;	//wysokość z mapy
 
 	arm_mat_init_f32(&mX, KSTAN, 1, fX);
 	arm_mat_init_f32(&mZc, KPCIS, 1, fZc);
@@ -292,7 +292,7 @@ uint8_t InicjujFiltrKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 	fF[6][6] = 1.0f;				//bias wysokościomierza barometrycznego 2
 	fF[7][7] = 1.0f;				//bias wysokości GNSS1
 	fF[8][8] = 1.0f;				//bias wysokości GNSS2
-	fF[9][9] = 1.0f;				//wysokość gruntu
+	fF[9][9] = 1.0f;				//wysokość terenu
 	arm_mat_init_f32(&mF, KSTAN, KSTAN, &fF[0][0]);
 
 	//inicjalizacja szumu procesu. Zakładam że szum procesu zależy od podchodnej przyspieszenia, czyli zrywu
@@ -305,39 +305,41 @@ uint8_t InicjujFiltrKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 		fI[n][n] = 1.0f;
 	arm_mat_init_f32(&mI, KSTAN, KSTAN, &fI[0][0]);
 
-	//inicjalizacja obu macierzy obserwacji, takiej samej dla obu czujników ciśnienia: Hc - dane o wysokości i prędkości z czujnika ciśnienia  oraz Ha - przyspieszenie
-	fHc1[0][0] = 1.0f;		//wysokość obserwuje czujnik wysokości
-	fHc1[0][5] = 1.0f;		//bias wysokości barometrycznej 1 obserwuje wysokość barometryczną 1
-	fHc1[1][1] = 1.0f;		//prędkość obserwuje wariometr 1
+	//inicjalizacja macierzy obserwacji: Hcx - dane z czujnika ciśnienia x, Hax - przyspieszenie z akcelerometru x, Hgx - wysokość z GNSSx, Hl - wysokość z lidaru, Hm - wysokość z mapy
+	fHc1[0][0] = 1.0f;		//wysokość z czujnika ciśnienia 1 jest obserwowana przez stan wysokości
+	fHc1[0][5] = 1.0f;		//wysokość z czujnika ciśnienia 1 jest obserwowana przez stan błędu wysokości czujnika ciśnienia 1
+	fHc1[1][1] = 1.0f;		//prędkość z czujnika ciśnienia 1 jest obserwowana przez stan prędkości
 	arm_mat_init_f32(&mHc1, KPCIS, KSTAN, &fHc1[0][0]);
 
-	fHc2[0][0] = 1.0f;		//wysokość obserwuje czujnik wysokości
-	fHc2[0][6] = 1.0f;		//bias wysokości barometrycznej 2 obserwuje wysokość barometryczną 2
-	fHc2[1][1] = 1.0f;		//prędkość obserwuje wariometr 2
+	fHc2[0][0] = 1.0f;		//wysokość z czujnika ciśnienia 2 jest obserwowana przez stan wysokości
+	fHc2[0][6] = 1.0f;		//wysokość z czujnika ciśnienia 2 jest obserwowana przez stan błędu wysokości czujnika ciśnienia 2
+	fHc2[1][1] = 1.0f;		//prędkość z czujnika ciśnienia 2 jest obserwowana przez stan prędkości
 	arm_mat_init_f32(&mHc2, KPCIS, KSTAN, &fHc2[0][0]);
 
-	fHa1[0][2] = 1.0f;		//przyspieszenie obserwuje oś Z akceletrometru 1
-	fHa1[0][3] = 1.0f;		//bias przyspieszenia 1 obserwuje oś Z akceletrometru 1
+	fHa1[0][2] = 1.0f;		//przyspieszenie z akceletrometru 1 jest obserwowane przez stan przyspieszenia
+	fHa1[0][3] = 1.0f;		//przyspieszenie z akceletrometru 1 jest obserwowane przez stan błędu przyspieszenia 1
 	arm_mat_init_f32(&mHa1, KPACC, KSTAN, &fHa1[0][0]);
 
-	fHa2[0][2] = 1.0f;		//przyspieszenie obserwuje oś Z akceletrometru 2
-	fHa2[0][4] = 1.0f;		//bias przyspieszenia 2 obserwuje oś Z akceletrometru 2
+	fHa2[0][2] = 1.0f;		//przyspieszenie z akceletrometru 2 jest obserwowane przez stan przyspieszenia
+	fHa2[0][4] = 1.0f;		//przyspieszenie z akceletrometru 2 jest obserwowane przez stan błędu przyspieszenia 2
 	arm_mat_init_f32(&mHa2, KPACC, KSTAN, &fHa2[0][0]);
 
-	fHg1[0][0] = 1.0f;		//wysokość obserwuje wysokość z odbiornika GNSS1
-	fHg1[0][7] = 1.0f;		//bias wysokości GNSS1 obserwuje wysokość z odbiornika GNSS1
+	fHg1[0][0] = 1.0f;		//wysokość z odbiornika GNSS1 jest obserwowana przez stan wysokości
+	fHg1[0][7] = 1.0f;		//wysokość z odbiornika GNSS1 jest obserwowana przez stan błędu wysokości odbiornika GNSS1
 	arm_mat_init_f32(&mHg1, KPGNS, KSTAN, &fHg1[0][0]);
 
-	fHg2[0][0] = 1.0f;		//wysokość obserwuje wysokość z odbiornika GNSS2
-	fHg1[0][8] = 1.0f;		//bias wysokości GNSS2 obserwuje wysokość z odbiornika GNSS2
+	fHg2[0][0] = 1.0f;		//wysokość z odbiornika GNSS2 jest obserwowana przez stan wysokości
+	fHg2[0][8] = 1.0f;		//wysokość z odbiornika GNSS2 jest obserwowana przez stan błędu wysokości odbiornika GNSS2
 	arm_mat_init_f32(&mHg2, KPGNS, KSTAN, &fHg2[0][0]);
 
-	fHl[0][0] = 1.0f;		//wysokość obserwuje wysokość z lidaru
-	fHl[0][9] = 1.0f;		//wysokość gruntu obserwuje wysokość z lidaru
+	fHl[0][0] = 1.0f;		//wysokość z lidaru jest obserwowana przez stan wysokości
+	fHl[0][9] = -1.0f;		//wysokość z lidaru jest obserwowana przez stan wysokości terenu z przeciwnym znkiem, bo hlidaru = hMSL - hmapy
 	arm_mat_init_f32(&mHl, KPLID, KSTAN, &fHl[0][0]);
 
-	fHm[0][0] = 1.0f;		//wysokość gruntu obserwuje wysokość na mapie
+	fHm[0][9] = 1.0f;		//wysokość terenu jest obserwowana przez stan wysokości terenu
 	arm_mat_init_f32(&mHm, KPMAP, KSTAN, &fHm[0][0]);
+
+	AktulizacjaLidaremFiltraKalmanaWysokości10X10Z(dane);	//jednorazowa aktualizacja przy starcie stałą wartoscią - usunąć po dodaniu pomiaru lidarem
 	return cBłąd;
 }
 
@@ -364,7 +366,7 @@ uint8_t PredykcjaFiltraKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 	cBłąd |= arm_mat_mult_f32(&mF, &mX, &mX);
 	dane->stBSP.fWysokoscMSL = fX[0];
 	dane->stBSP.fPredkoscD 	 = fX[1];
-	dane->stBSP.fWysokoscAGL = dane->stBSP.fWysokoscMSL - fX[7];	//MSL - wysokość gruntu
+	dane->stBSP.fWysokoscAGL = dane->stBSP.fWysokoscMSL - fX[7];	//MSL - wysokość terenu
 
 	for (uint8_t n=0; n<10; n++)
 		dane->stKalmanWys.fX[n] = fX[n];
@@ -412,11 +414,11 @@ uint8_t PredykcjaFiltraKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 	//fQ[6][7] = 0.0f;
 
 	//fQ[7][0] = fQ[7][1] = fQ[7][2] = fQ[7][3] = fQ[7][4] = fQ[7][5] = fQ[7][6] = 0.0f;
-	fQ[7][7] = fOkresPetli * WARIANCJA_DRYFTU_GNSS;
+	fQ[7][7] = fOkresPetli * WARIANCJA_ZMIANY_WYSOKOSCI_GNSS;
 	//fQ[7][8] = fQ[7][9] = 0.0f;
 
 	//fQ[8][0] = fQ[8][1] = fQ[8][2] = fQ[8][3] = fQ[8][4] = fQ[8][5] = fQ[8][6] = fQ[8][7] = 0.0f;
-	fQ[8][8] = fOkresPetli * WARIANCJA_DRYFTU_GNSS;
+	fQ[8][8] = fOkresPetli * WARIANCJA_ZMIANY_WYSOKOSCI_GNSS;
 	//fQ[8][9] = 0.0f;
 
 	fQ[9][0] = fQ[9][1] = fQ[9][2] = fQ[9][3] = fQ[9][4] = fQ[9][5] = fQ[9][6] = 0.0f;
@@ -941,6 +943,7 @@ uint8_t AktulizacjaGNSS2FiltraKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja aktualizuje stan filtra na podstawie nowego pomiaru wysokości z lidaru
+// Ponieważ wysokość BSL = wysokość AGL - wysokość mapy
 // Estymata_x(n) = Estymata_x(n-1) + K(n) * (z(n) - H * Estymata_x(n-1))
 // gdzie macierz wzmocnienia Kalmana: K(n) = P(n-1) * H^T * (H * P(n-1) * H^T + R(n))^-1
 // Następnie znajduje nową macierz kowariancji P(n) = (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T + K(n) * R(n) * K(n)^T
@@ -952,7 +955,8 @@ uint8_t AktulizacjaLidaremFiltraKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 	uint8_t cBłąd = BLAD_OK;
 
 	//sprawdź czy pomiar mieści się w akceptowalnym zakresie
-	fZl[0] = (float)dane->stTOF.sOdległość / 1000.0f;		//pomiar wysokość nad powierzchnią gruntu
+	//fZl[0] = (float)dane->stTOF.sOdległość / 1000.0f;		//pomiar wysokość nad powierzchnią terenu
+	fZl[0] = WYSOKOSC10PIETER;	//zaślepka dopóki nie ma lidaru
 	if ((fZl[0] < MIN_WYSOKOSC) || (fZl[0] > MAX_WYSOKOSC))
 		return BLAD_ZLE_DANE;
 

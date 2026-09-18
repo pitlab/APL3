@@ -17,7 +17,7 @@
  0x68000000..0x6803FFFF - Flash 2*128k pamięć konfiguracji
  0x68040000..0x680FFFFF - Flash 30*128k pamięć komunikatów słownych 16-bit, 16kHz
  0x68400000..0x687FFFFF - Flash 32*128 (4MB) próby umieszczenia czcionek i obrazków
- 0x68800000..0x687FFFFF - Flash 24MB reszta
+ 0x68800000..0x687FFFFF - Flash 56MB reszta
  0xC0000000..0xC3FFFFFF - DRAM
 
  * Obszary MPU					Pozwolenia dla MPU			Prawa dostępu

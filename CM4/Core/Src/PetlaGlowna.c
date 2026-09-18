@@ -37,6 +37,7 @@
 #include "BMP585.h"
 #include <VL53L1.h>
 #include "PL-2000.h"
+#include <INA219.h>
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -573,7 +574,8 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	switch(cEtapOperacjiI2C)
 	{
 	case 0: cBłąd = ObslugaMS4525();		break;
-	case 3:	cBłąd = ObslugaHMC5883();		break;
+	case 4:	cBłąd = ObslugaHMC5883();		break;
+	case 8:	cBłąd = ObsługaNA219();			break;
 	//case 0x10: cBłąd = ObsługaVL53L1();		break;
 	default: break;
 	}
