@@ -199,8 +199,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
 		case 1:	uDaneCM4.dane.fNapiecieWej[chIndeksPomiaruADC] = fNapiecie * DZIELNIK_UWE_ZASIL;	break;	//Uwe2
 		case 2:	uDaneCM4.dane.fNapiecieSerw = fNapiecie * DZIELNIK_USERWO;		break;	//Userwo
 		case 3:	uDaneCM4.dane.fNapiecieUSB = fNapiecie * DZIELNIK_UWE_ZASIL;	break;	//UUSB
-		case 4:	uDaneCM4.dane.fNapiecieAku[0] = fNapiecie * DZIELNIK_UCZUJNIK;	break;	//Uczujn1
-		case 5:	uDaneCM4.dane.fPradAku[0] = fNapiecie * DZIELNIK_ICZUJNIK;		break;	//Iczujn1
+		//case 4:	uDaneCM4.dane.fNapiecieAku[0] = fNapiecie * DZIELNIK_UCZUJNIK;	break;	//Uczujn1
+		//case 5:	uDaneCM4.dane.fPradAku[0] = fNapiecie * DZIELNIK_ICZUJNIK;		break;	//Iczujn1
 		case 6:	uDaneCM4.dane.fNapiecieAku[1] = fNapiecie * DZIELNIK_UCZUJNIK;	break;	//Uczujn2
 		case 7:	uDaneCM4.dane.fPradAku[1] = fNapiecie * DZIELNIK_ICZUJNIK;		break;	//Iczujn2
 
