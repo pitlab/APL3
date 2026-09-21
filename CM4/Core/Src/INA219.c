@@ -13,40 +13,11 @@
 
 
 extern I2C_HandleTypeDef hi2c3;
-static uint8_t cBuforINA219[4];
+uint8_t cBuforINA219[3];
 static uint8_t cDzielnikOperacjiINA219;
 extern volatile unia_wymianyCM4_t uDaneCM4;
-
-
-////////////////////////////////////////////////////////////////////////////////
-// Wykonaj inicjalizację czujnika prądu INA219
-// Parametry: nic
-// Zwraca: kod błędu
-// Czas wykonania:
-////////////////////////////////////////////////////////////////////////////////
-uint8_t ObsługaNA219(void)
-{
-	uint8_t cBłąd = BLAD_OK;
-
-	if ((uDaneCM4.dane.nZainicjowano & INIT_INA219) != INIT_INA219)
-	{
-		cBłąd = InicjujINA219();
-		if (cBłąd)
-			return cBłąd;
-		else
-			uDaneCM4.dane.nZainicjowano |= INIT_INA219;
-	}
-
-	cDzielnikOperacjiINA219 &= 0x01;
-	switch (cDzielnikOperacjiINA219)
-	{
-	case 0:		cBłąd = ZmierzNapięcieINA219((float*)&uDaneCM4.dane.fNapiecieAku[0]);	break;
-	case 1: 	cBłąd = ZmierzPrądINA219((float*)&uDaneCM4.dane.fPradAku[0]);	break;
-	default:	cBłąd = BLAD_NIC_DO_ROBOTY;	break;
-	}
-	cDzielnikOperacjiINA219++;
-	return cBłąd;
-}
+extern uint16_t sCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z czujnikiem
+extern uint16_t sCzujnikZapisywanyNaI2CExt;
 
 
 
@@ -76,6 +47,77 @@ uint8_t InicjujINA219(void)
 	cBuforINA219[2] = (uint8_t)(sRejestr & 0xFF);
 	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, ADRES_I2C_INA219, cBuforINA219, 3, TIMEOUT_INA219);
 	return cBłąd;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wykonaj inicjalizację czujnika prądu INA219
+// Parametry: nic
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ObsługaNA219(void)
+{
+	uint8_t cBłąd = BLAD_OK;
+
+	if ((uDaneCM4.dane.nZainicjowano & INIT_INA219) != INIT_INA219)
+	{
+		cBłąd = InicjujINA219();
+		if (cBłąd == BLAD_OK)
+			uDaneCM4.dane.nZainicjowano |= INIT_INA219;
+		return cBłąd;
+	}
+
+	cDzielnikOperacjiINA219 &= 0x01;
+	switch (cDzielnikOperacjiINA219)
+	{
+	case 0:	cBuforINA219[0] = R219_NAP_OBWODU;
+			cBłąd = HAL_I2C_Master_Seq_Transmit_IT(&hi2c3, ADRES_I2C_INA219, cBuforINA219, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
+			sCzujnikZapisywanyNaI2CExt = INA219_NAPIECIE;
+			break;
+
+	case 1:	cBuforINA219[0] = R219_PRAD;
+			cBłąd = HAL_I2C_Master_Seq_Transmit_IT(&hi2c3, ADRES_I2C_INA219, cBuforINA219, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
+			sCzujnikZapisywanyNaI2CExt = INA219_PRAD;
+			break;
+
+	//case 0:		cBłąd = ZmierzNapięcieINA219((float*)&uDaneCM4.dane.fNapiecieAku[0]);	break;
+	//case 1: 	cBłąd = ZmierzPrądINA219((float*)&uDaneCM4.dane.fPradAku[0]);	break;
+	default:	cBłąd = BLAD_NIC_DO_ROBOTY;	break;
+	}
+	cDzielnikOperacjiINA219++;
+	return cBłąd;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Polecenie będące drugą częścią sekwencji podzielonej operacji odczytu danych.
+// Będzie uruchomione w callbacku zakończenia operacji wysłania polecenia odczytu danych
+// Parametry: nic
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t INA219_CzytajNapięcie(void)
+{
+	sCzujnikOdczytywanyNaI2CExt = R219_NAP_OBWODU;		//w callbacku interpretuj odczytane dane jako pomiar napięcia czujnikiem INA219
+	return HAL_I2C_Master_Seq_Receive_DMA(&hi2c3, ADRES_I2C_INA219 + I2C_READ, cBuforINA219, 2, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Polecenie będące drugą częścią sekwencji podzielonej operacji odczytu danych.
+// Będzie uruchomione w callbacku zakończenia operacji wysłania polecenia odczytu danych
+// Parametry: nic
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t INA219_CzytajPrąd(void)
+{
+	sCzujnikOdczytywanyNaI2CExt = R219_PRAD;		//w callbacku interpretuj odczytane dane jako pomiar prądu czujnikiem INA219
+	return HAL_I2C_Master_Seq_Receive_DMA(&hi2c3, ADRES_I2C_INA219 + I2C_READ, cBuforINA219, 2, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
 }
 
 

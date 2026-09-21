@@ -28,21 +28,30 @@
 #define I2C_TIMOUT		2	//czas w ms timoutu operacji I2C
 
 
+//definicje układów na magistrali I2C4 kodowane na osobnych bitach. Oznaczają że dane z tych czujników są dostępne do obróbki
+
+
+
 //definicje układów na magistralach I2C3 i I2C4 kodowane na osobnych bitach. Oznaczają że dane z tych czujników są dostępne do obróbki
-#define MAG_MMC				0x01	//magnetometr na IMU
-#define MAG_IIS				0x02	//magnetometr na IMU - odczyt danych
-#define MAG_HMC5883			0x04	//magnetometr na GNSS
-#define CISN_ROZN_MS2545	0x08	//ciśnienie różnicowe zewnętrzne
-#define CISN_TEMP_MS2545	0x10	//ciśnienie różnicowe i temperatura
-#define MAG_IIS_STATUS		0x20	//magnetometr na IMU - odczyt statusu
-#define MAG_MMC_STATUS		0x40	//magnetometr na IMU - odczyt statusu
-#define TOF_VL53L1			0x80
+#define CISN_ROZN_MS2545	0x0001	//ciśnienie różnicowe zewnętrzne
+#define CISN_TEMP_MS2545	0x0002	//ciśnienie różnicowe i temperatura
+#define MAG_HMC5883			0x0004	//magnetometr na GNSS
+#define INA219_PRAD			0x0008
+#define INA219_NAPIECIE		0x0010
+#define INA226_PRAD			0x0020
+#define INA226_NAPIECIE		0x0040
+#define TOF_VL53L1			0x0080
+
+#define MAG_MMC				0x0100	//magnetometr na IMU - odczyt danych
+#define MAG_IIS				0x0200	//magnetometr na IMU - odczyt danych
+#define MAG_IIS_STATUS		0x0400	//magnetometr na IMU - odczyt statusu
+#define MAG_MMC_STATUS		0x0800	//magnetometr na IMU - odczyt statusu
 
 //timeouty w milisekundach dla magistrali I2C zależące od ilości przesyłanych danych. Dla 100kHz czas przesłania 1 bajtu to 0,1ms, dla 25kHz to 0,4ms
 #define TOUT_I2C4_2B		2	//testowo
 #define TOUT_I2C4_7B		3
 #define TOUT_SPI			3		//czas oczekiwania na operację na szynie w ms
-
+#define I2C_READ			0x01
 //definicje kanałów IO
 #define MIO10	(1 << 0) 	//MOD_IO10
 #define MIO11	(1 << 1) 	//MOD_IO11

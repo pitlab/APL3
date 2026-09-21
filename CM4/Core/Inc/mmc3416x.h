@@ -13,7 +13,7 @@
 #define CZULOSC_MMC34160	4.88e-7	//0,488 mGauss na bit a 1 mGauss to 100nT
 
 #define MMC34160_I2C_ADR	0x60
-#define READ				0x01
+
 
 //definicje rejestrów układu
 #define PMMC3416_XOUT_L 	0x00 //Xout LSB

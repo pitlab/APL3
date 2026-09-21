@@ -36,5 +36,7 @@ uint8_t ObsługaNA226(void);
 uint8_t InicjujINA226(void);
 uint8_t ZmierzNapięcieINA226(float *fNapiecie);
 uint8_t ZmierzPrądINA226(float *fPrad);
+uint8_t INA226_CzytajNapięcie(void);
+uint8_t INA226_CzytajPrąd(void);
 
 #endif /* INC_INA226_H_ */

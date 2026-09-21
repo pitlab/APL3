@@ -13,40 +13,11 @@
 
 
 extern I2C_HandleTypeDef hi2c3;
-static uint8_t cBuforINA226[4];
+uint8_t cBuforINA226[3];
 static uint8_t cDzielnikOperacjiINA226;
 extern volatile unia_wymianyCM4_t uDaneCM4;
-uint8_t cAdresINA226 = ADRES_I2C_INA226;
-
-////////////////////////////////////////////////////////////////////////////////
-// Wykonaj inicjalizację czujnika prądu INA226
-// Parametry: nic
-// Zwraca: kod błędu
-// Czas wykonania:
-////////////////////////////////////////////////////////////////////////////////
-uint8_t ObsługaNA226(void)
-{
-	uint8_t cBłąd = BLAD_OK;
-
-	if ((uDaneCM4.dane.nZainicjowano & INIT_INA226) != INIT_INA226)
-	{
-		cBłąd = InicjujINA226();
-		if (cBłąd)
-			return cBłąd;
-		else
-			uDaneCM4.dane.nZainicjowano |= INIT_INA226;
-	}
-
-	cDzielnikOperacjiINA226 &= 0x01;
-	switch (cDzielnikOperacjiINA226)
-	{
-	case 0:		cBłąd = ZmierzNapięcieINA226((float*)&uDaneCM4.dane.fNapiecieAku[0]);	break;
-	case 1: 	cBłąd = ZmierzPrądINA226((float*)&uDaneCM4.dane.fPradAku[0]);	break;
-	default:	cBłąd = BLAD_NIC_DO_ROBOTY;	break;
-	}
-	cDzielnikOperacjiINA226++;
-	return cBłąd;
-}
+extern uint16_t sCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z czujnikiem
+extern uint16_t sCzujnikZapisywanyNaI2CExt;
 
 
 
@@ -91,7 +62,79 @@ uint8_t InicjujINA226(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wykonaj pomiar napiecia
+// Funkcja obsługująca sekwencję pomiarów czujnikiem INA226, na przemian napięcia i prądu.
+// Pomiary są wykonywane w trybie nieblokującym jako dwuczęściowa sekwencja.
+// Poniżej uruchamiane są polecenia odczytu prądu i napięcia a w callbacku (HAL_I2C_MasterTxCpltCallback)
+// uruchamiane jest polecenie odczytu. DAM wrzuca dane do bufora skąd są parsowane w funkcji ObslugaCzujnikowI2C()
+// Parametry: nic
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ObsługaNA226(void)
+{
+	uint8_t cBłąd = BLAD_OK;
+
+	if ((uDaneCM4.dane.nZainicjowano & INIT_INA226) != INIT_INA226)
+	{
+		cBłąd = InicjujINA226();
+		if (cBłąd == BLAD_OK)
+			uDaneCM4.dane.nZainicjowano |= INIT_INA226;
+		return cBłąd;
+	}
+
+	cDzielnikOperacjiINA226 &= 0x01;
+	switch (cDzielnikOperacjiINA226)
+	{
+	case 0:	cBuforINA226[0] = R226_NAP_OBWODU;
+			cBłąd = HAL_I2C_Master_Seq_Transmit_IT(&hi2c3, ADRES_I2C_INA226, cBuforINA226, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
+			sCzujnikZapisywanyNaI2CExt = INA226_NAPIECIE;
+			break;
+
+	case 1:	cBuforINA226[0] = R226_PRAD;
+			cBłąd = HAL_I2C_Master_Seq_Transmit_IT(&hi2c3, ADRES_I2C_INA226, cBuforINA226, 1, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
+			sCzujnikZapisywanyNaI2CExt = INA226_PRAD;
+			break;
+
+	default:	cBłąd = BLAD_NIC_DO_ROBOTY;	break;
+	}
+	cDzielnikOperacjiINA226++;
+	return cBłąd;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Polecenie będące drugą częścią sekwencji podzielonej operacji odczytu danych.
+// Będzie uruchomione w callbacku zakończenia operacji wysłania polecenia odczytu danych
+// Parametry: nic
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t INA226_CzytajNapięcie(void)
+{
+	sCzujnikOdczytywanyNaI2CExt = INA226_NAPIECIE;		//w callbacku interpretuj odczytane dane jako pomiar napięcia czujnikiem INA226
+	return HAL_I2C_Master_Seq_Receive_DMA(&hi2c3, ADRES_I2C_INA226 + I2C_READ, cBuforINA226, 2, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Polecenie będące drugą częścią sekwencji podzielonej operacji odczytu danych.
+// Będzie uruchomione w callbacku zakończenia operacji wysłania polecenia odczytu danych
+// Parametry: nic
+// Zwraca: kod błędu
+// Czas wykonania:
+////////////////////////////////////////////////////////////////////////////////
+uint8_t INA226_CzytajPrąd(void)
+{
+	sCzujnikOdczytywanyNaI2CExt = INA226_PRAD;		//w callbacku interpretuj odczytane dane jako pomiar prądu czujnikiem INA226
+	return HAL_I2C_Master_Seq_Receive_DMA(&hi2c3, ADRES_I2C_INA226 + I2C_READ, cBuforINA226, 2, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wykonaj pomiar napiecia metodą blokującą
 // Parametry: *fNapiecie - wskaźnik na zwracaną wartość pomiaru
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
@@ -111,7 +154,7 @@ uint8_t ZmierzNapięcieINA226(float *fNapiecie)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wykonaj pomiar prądu
+// Wykonaj pomiar prądu metodą blokującą
 // Parametry: *fPrad - wskaźnik na zwracaną wartość pomiaru
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
@@ -127,4 +170,6 @@ uint8_t ZmierzPrądINA226(float *fPrad)
 	*fPrad = (float)sPrad * INA226_LSB_PRADU;
 	return cBłąd;
 }
+
+
 

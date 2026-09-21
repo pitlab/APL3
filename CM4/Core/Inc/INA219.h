@@ -30,6 +30,8 @@
 
 uint8_t ObsługaNA219(void);
 uint8_t InicjujINA219(void);
+uint8_t INA219_CzytajNapięcie(void);
+uint8_t INA219_CzytajPrąd(void);
 uint8_t ZmierzNapięcieINA219(float *fNapiecie);
 uint8_t ZmierzPrądINA219(float *fPrad);
 

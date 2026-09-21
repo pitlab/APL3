@@ -10,7 +10,6 @@
 #include "SysDefCM4.h"
 
 #define IIS2MDC_I2C_ADR		0x3C
-#define READ				0x01
 
 
 #define CZULOSC_IIS2MDC	1.5e-7	//1 bit odpowiada 1,5 mGauss a 1 mGauss to 100nT

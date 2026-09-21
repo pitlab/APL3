@@ -4735,6 +4735,7 @@ void PokazCzasOdcinkowPGAP(uint16_t *sCzasy)
 {
 	uint32_t nSuma = 0;
 	float fCzestotliwosc;
+	static float fSredniaCzestotliwość;
 
 	if (cRysujRaz)
 	{
@@ -4778,7 +4779,7 @@ void PokazCzasOdcinkowPGAP(uint16_t *sCzasy)
 		RysujNapis(cNapis, KOL22, 90);
 		sprintf(cNapis, "Mikser:");
 		RysujNapis(cNapis, KOL22, 110);
-		sprintf(cNapis, "Wyjscia RC:");
+		sprintf(cNapis, "Wyjs%ccia RC:", ś);
 		RysujNapis(cNapis, KOL22, 130);
 		sprintf(cNapis, "ADC:");
 		RysujNapis(cNapis, KOL22, 150);
@@ -4786,6 +4787,8 @@ void PokazCzasOdcinkowPGAP(uint16_t *sCzasy)
 		RysujNapis(cNapis, KOL22, 170);
 		sprintf(cNapis, "f Petli Gl:");
 		RysujNapis(cNapis, KOL22, 190);
+		sprintf(cNapis, "%cred. f PG:", ś);
+		RysujNapis(cNapis, KOL22, 210);
 	}
 
 	setColor(ZOLTY);
@@ -4809,12 +4812,16 @@ void PokazCzasOdcinkowPGAP(uint16_t *sCzasy)
 	RysujNapis(cNapis, KOL22 + 12*FONT_SL, 170);
 
 	if (nSuma)
+	{
 		fCzestotliwosc = 1000000.0f / nSuma;
+		fSredniaCzestotliwość = (31 * fSredniaCzestotliwość + fCzestotliwosc) / 32;
+	}
 	else
 		fCzestotliwosc = 0;
-	sprintf(cNapis, "%.1f Hz ", fCzestotliwosc);
+	sprintf(cNapis, "%.0f Hz ", fCzestotliwosc);
 	RysujNapis(cNapis, KOL22 + 12*FONT_SL, 190);
-
+	sprintf(cNapis, "%.1f Hz ", fSredniaCzestotliwość);
+	RysujNapis(cNapis, KOL22 + 12*FONT_SL, 210);
 
 }
 

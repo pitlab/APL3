@@ -18,7 +18,7 @@ extern I2C_HandleTypeDef hi2c3;
 uint8_t cDaneMagHMC[6];
 uint8_t cPoleceniaHMC[2];
 uint8_t cSekwencjaPomiaruHMC;		//w trakcie pracy wyznacza kolejność sekwencji pomiarowych, w trakcie inicjalizacj pełni rolę licznika prób inicjalizacji
-extern uint8_t cCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
+extern uint16_t sCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
 float fPrzesMagn3[3], fSkaloMagn3[3];
 
 // Obsługa magnetometru wymaga wykonania kilku czynności rozłożonych w czasie
@@ -154,7 +154,7 @@ uint8_t ObslugaHMC5883(void)
 
 	case 2:
 		cBłąd = HAL_I2C_Master_Seq_Receive_DMA(&hi2c3, HMC_I2C_ADR, cDaneMagHMC, 6, I2C_LAST_FRAME);		//odczytaj status i zakończ STOP
-		cCzujnikOdczytywanyNaI2CExt = MAG_HMC5883;		//informacja o tym jak mają być interpretowane dane odebrane w HAL_I2C_MasterRxCpltCallback()
+		sCzujnikOdczytywanyNaI2CExt = MAG_HMC5883;		//informacja o tym jak mają być interpretowane dane odebrane w HAL_I2C_MasterRxCpltCallback()
 		break;
 
 	default: break;

@@ -99,7 +99,7 @@
 #define FMR_SPRAWDZ_CM4		0x0100
 #define FMR_SPRAWDZ_CM7		0x0200
 
-//definicje pól zmiennej chNowyPomiar
+//definicje pól zmiennej nNowyPomiar
 #define NP_MAG1		0x01
 #define NP_MAG2		0x02
 #define NP_MAG3		0x04

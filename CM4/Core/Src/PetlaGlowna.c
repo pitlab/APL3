@@ -60,11 +60,11 @@ uint16_t sTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po 
 static uint8_t cEtapOperacjiI2C;
 uint8_t cGeneratorNapisow, cLicznikKomunikatow;
 extern I2C_HandleTypeDef hi2c3;
-volatile uint8_t cCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika obsługiwanego na zewntrznej magistrali I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
-volatile uint8_t cCzujnikZapisywanyNaI2CExt;	//identyfikator czujnika obsługiwanego na zewntrznej magistrali I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
-volatile uint8_t cCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
-volatile uint8_t cCzujnikZapisywanyNaI2CInt;
-uint8_t cNoweDaneI2C;	//zestaw flag informujący o pojawieniu sie nowych danych odebranych na magistrali I2C
+volatile uint16_t sCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika obsługiwanego na zewntrznej magistrali I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
+volatile uint16_t sCzujnikZapisywanyNaI2CExt;	//identyfikator czujnika obsługiwanego na zewntrznej magistrali I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
+volatile uint16_t sCzujnikOdczytywanyNaI2CInt;	//identyfikator czujnika obsługiwanego na wewnętrznej magistrali I2C: MAG_MMC lub MAG_IIS
+volatile uint16_t sCzujnikZapisywanyNaI2CInt;
+uint16_t sNoweDaneI2C;	//zestaw flag informujący o pojawieniu sie nowych danych odebranych na magistrali I2C
 extern uint16_t sLicznikCzasuKalibracji;
 uint8_t cPoprzedniRodzajPomiaru;	//okresla czy poprzedni pomiar magnetometrem MMC był ze zmianą przemagnesowania czy bez
 float fPoleCzujnkaMMC[3];
@@ -161,8 +161,8 @@ void PetlaGlowna(void)
 
 	case 5:
 		uDaneCM4.dane.cNowyPomiar &= ~(NP_MAG1 | NP_MAG2 | NP_MAG3 | NP_EXT_IAS);	//unieważnij poprzednie pomiary czujników I2C. Flagi nowych pomiarów zostaną ustawnine w funkcji ObslugaCzujnikowI2C()
-		if (cNoweDaneI2C)
-			ObslugaCzujnikowI2C(&cNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C: wewnętrznej I2C4 i zewnętrznej I2C3, to je obrób
+		if (sNoweDaneI2C)
+			ObslugaCzujnikowI2C(&sNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C: wewnętrznej I2C4 i zewnętrznej I2C3, to je obrób
 		cBłądPG = RozdzielniaOperacjiI2C();
 		PrzechwyćBłąd(cBłądPG);
 		break;
@@ -612,23 +612,27 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
 	if (hi2c->Instance == I2C3)	//magistrala I2C modułów zewnętrznych
 	{
-		switch (cCzujnikZapisywanyNaI2CExt)
+		switch (sCzujnikZapisywanyNaI2CExt)
 		{
 		case TOF_VL53L1:		cZakonczonoTransmisjeI2C = 1;	break;
+		case INA219_NAPIECIE:	INA219_CzytajNapięcie();	break;
+		case INA219_PRAD:		INA219_CzytajPrąd();	break;
+		case INA226_NAPIECIE:	INA226_CzytajNapięcie();	break;
+		case INA226_PRAD:		INA226_CzytajPrąd();	break;
 		}
-		cCzujnikZapisywanyNaI2CExt = 0;
+		sCzujnikZapisywanyNaI2CExt = 0;
 	}
 
 	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych
 	{
-		switch (cCzujnikZapisywanyNaI2CInt)
+		switch (sCzujnikZapisywanyNaI2CInt)
 		{
 		case MAG_IIS_STATUS:	MagIIS_CzytajStatus();	break;	//po zapisie wykonaj operację odczytu
 		case MAG_IIS:			MagIIS_CzytajDane();	break;	//po zapisie wykonaj operację odczytu
 		case MAG_MMC_STATUS:	MagMMC_CzytajStatus();	break;	//po zapisie wykonaj operację odczytu
 		case MAG_MMC:			MagMMC_CzytajDane();	break;	//po zapisie wykonaj operację odczytu
 		}
-		cCzujnikZapisywanyNaI2CInt = 0;
+		sCzujnikZapisywanyNaI2CInt = 0;
 	}
 }
 
@@ -643,24 +647,28 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
 	if (hi2c->Instance == I2C3)	//magistrala I2C modułów zewnętrznych
 	{
-		switch (cCzujnikOdczytywanyNaI2CExt)
+		switch (sCzujnikOdczytywanyNaI2CExt)
 		{
-		case MAG_HMC5883:		cNoweDaneI2C |= MAG_HMC5883;		break;	//magnetometr HMC5883
-		case CISN_ROZN_MS2545:	cNoweDaneI2C |= CISN_ROZN_MS2545;	break;	//ciśnienie różnicowe czujnika MS2545DO
-		case CISN_TEMP_MS2545:	cNoweDaneI2C |= CISN_TEMP_MS2545;	break;	//ciśnienie różnicowe i temperatura czujnika MS2545DO
-		case TOF_VL53L1:		cNoweDaneI2C |= TOF_VL53L1;			break;	//lidar
+		case MAG_HMC5883:		sNoweDaneI2C |= MAG_HMC5883;		break;	//magnetometr HMC5883
+		case CISN_ROZN_MS2545:	sNoweDaneI2C |= CISN_ROZN_MS2545;	break;	//ciśnienie różnicowe czujnika MS2545DO
+		case CISN_TEMP_MS2545:	sNoweDaneI2C |= CISN_TEMP_MS2545;	break;	//ciśnienie różnicowe i temperatura czujnika MS2545DO
+		case TOF_VL53L1:		sNoweDaneI2C |= TOF_VL53L1;			break;	//lidar
+		case INA219_NAPIECIE:	sNoweDaneI2C |= INA219_NAPIECIE;	break;	//pomiar napięcia
+		case INA219_PRAD:		sNoweDaneI2C |= INA219_PRAD;		break;	//pomiar prądu
+		case INA226_NAPIECIE:	sNoweDaneI2C |= INA226_NAPIECIE;	break;	//pomiar napięcia
+		case INA226_PRAD:		sNoweDaneI2C |= INA226_PRAD;		break;	//pomiar prądu
 		}
-		cCzujnikOdczytywanyNaI2CExt = 0;
+		sCzujnikOdczytywanyNaI2CExt = 0;
 	}
 
 	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych
 	{
-		switch (cCzujnikOdczytywanyNaI2CExt)
+		switch (sCzujnikOdczytywanyNaI2CInt)
 		{
-		case MAG_IIS:	cNoweDaneI2C |= MAG_IIS;	break;
-		case MAG_MMC:	cNoweDaneI2C |= MAG_MMC;	break;
+		case MAG_IIS:	sNoweDaneI2C |= MAG_IIS;	break;
+		case MAG_MMC:	sNoweDaneI2C |= MAG_MMC;	break;
 		}
-		cCzujnikOdczytywanyNaI2CInt = 0;
+		sCzujnikOdczytywanyNaI2CInt = 0;
 	}
 }
 
@@ -668,11 +676,11 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Obsługuje obróbkę danych odczytanych z czujników na I2C
-// Parametry: chCzujniki - wskaźnik na zmienną z polami bitowymi inforującymi o danych z czujników
+// Parametry: sCzujniki - wskaźnik na zmienną z polami bitowymi inforującymi o danych z czujników
 // Zwraca: kod błędu
 // Czas wykonania: 8/16us
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
+uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 {
 	extern uint8_t cDaneMagHMC[6];
 	extern uint8_t cDaneMagMMC[6];
@@ -683,6 +691,8 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 	extern float fPrzesMagn1[3], fSkaloMagn1[3];
 	extern float fPrzesMagn2[3], fSkaloMagn2[3];
 	extern float fPrzesMagn3[3], fSkaloMagn3[3];
+	extern uint8_t cBuforINA226[3];
+	extern uint8_t cBuforINA219[3];
 	uint8_t cBłąd = BLAD_OK;
 	int16_t sZeZnakiem;	//zmiena robocza do konwersji dnych 8-bitowych bez znaku na liczbę 16-bitową ze znakiem
 	float fZeZnakiem;
@@ -691,7 +701,7 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 	const int8_t cZnakMMC[3] = {-1, -1, 1};		//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z
 	const int8_t cZnakHMC[3] = {1, -1, 1};	//magnetometr 3: jest OK
 
-	if (*chCzujniki & MAG_HMC5883)
+	if (*sCzujniki & MAG_HMC5883)
 	{
 		//Uwaga! Czujnik HMS5883L ma osie w nietypowej kolejności XZY, więc konwersję trzeba wykonać ręcznie poza pętlą
 		sZeZnakiem = ((int16_t)cDaneMagHMC[0] * 0x100 + cDaneMagHMC[1]) * cZnakHMC[0];	//oś X
@@ -711,28 +721,28 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 			uDaneCM4.dane.fMagne3[2] = (float)sZeZnakiem * CZULOSC_HMC5883;			//dane surowe podczas kalibracji magnetometru
 		else
 			uDaneCM4.dane.fMagne3[2] = ((float)sZeZnakiem * CZULOSC_HMC5883 - fPrzesMagn3[2]) * fSkaloMagn3[2];	//dane skalibrowane
-		*chCzujniki &= ~MAG_HMC5883;	//dane obsłużone
+		*sCzujniki &= ~MAG_HMC5883;	//dane obsłużone
 		uDaneCM4.dane.cNowyPomiar |= NP_MAG3;	//jest nowy pomiar
 	}
 
-	if (*chCzujniki & CISN_ROZN_MS2545)
+	if (*sCzujniki & CISN_ROZN_MS2545)
 	{
 		uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(cDaneMS4525);
 		uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
-		*chCzujniki &= ~CISN_ROZN_MS2545;	//dane obsłużone
+		*sCzujniki &= ~CISN_ROZN_MS2545;	//dane obsłużone
 		uDaneCM4.dane.cNowyPomiar |= NP_EXT_IAS;	//jest nowy pomiar
 	}
 
-	if (*chCzujniki & CISN_TEMP_MS2545)
+	if (*sCzujniki & CISN_TEMP_MS2545)
 	{
 		uDaneCM4.dane.fTemper[TEMP_CISR2] = TemperaturaMS2545(cDaneMS4525);	//temperatura zewnetrznego czujnika ciśnienia różnicowego np. MS4525
 		uDaneCM4.dane.fCisnRozn[1] = (15 * uDaneCM4.dane.fCisnRozn[1] + CisnienieMS2545(cDaneMS4525)) / 16;
 		uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
-		*chCzujniki &= ~CISN_TEMP_MS2545;	//dane obsłużone
+		*sCzujniki &= ~CISN_TEMP_MS2545;	//dane obsłużone
 		uDaneCM4.dane.cNowyPomiar |= NP_EXT_IAS;	//jest nowy pomiar
 	}
 
-	if (*chCzujniki & MAG_IIS)
+	if (*sCzujniki & MAG_IIS)
 	{
 		for (uint8_t n=0; n<3; n++)
 		{
@@ -743,11 +753,11 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
 				//uDaneCM4.dane.fMagne1[n] = (uDaneCM4.dane.fMagne1[n] + ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n]) / 2;	//filtruj pomiar bo jest mocno zaszumiony a jest wystarczajaco szybki żeby filtracja nie przesuwała istotnie fazy
 		}
-		*chCzujniki &= ~MAG_IIS;	//dane obsłużone
+		*sCzujniki &= ~MAG_IIS;	//dane obsłużone
 		uDaneCM4.dane.cNowyPomiar |= NP_MAG1;	//jest nowy pomiar
 	}
 
-	if (*chCzujniki & MAG_MMC)
+	if (*sCzujniki & MAG_MMC)
 	{
 		for (uint8_t n=0; n<3; n++)
 		{
@@ -782,9 +792,34 @@ uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki)
 				uDaneCM4.dane.fMagne2[n] = (fZeZnakiem * CZULOSC_MMC34160 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
 		}
 		cPoprzedniRodzajPomiaru = cRodzajPomiaruMMC;
-		*chCzujniki &= ~MAG_MMC;	//dane obsłużone
+		*sCzujniki &= ~MAG_MMC;	//dane obsłużone
 		uDaneCM4.dane.cNowyPomiar |= NP_MAG2;	//jest nowy pomiar
 	}
+
+	if (*sCzujniki & INA226_NAPIECIE)
+	{
+		uDaneCM4.dane.fNapiecieAku[0] = (float)(((uint16_t)cBuforINA226[0] * 0x100 + cBuforINA226[1]) * INA226_LSB_NAPIECIA);
+		*sCzujniki &= ~INA226_NAPIECIE;	//dane obsłużone
+	}
+
+	if (*sCzujniki & INA226_PRAD)
+	{
+		uDaneCM4.dane.fPradAku[0] = (float)(((int16_t)cBuforINA226[0] * 0x100 + cBuforINA226[1]) * INA226_LSB_PRADU);
+		*sCzujniki &= ~INA226_PRAD;	//dane obsłużone
+	}
+
+	if (*sCzujniki & INA219_NAPIECIE)
+	{
+		uDaneCM4.dane.fNapiecieAku[1] = (float)(((uint16_t)cBuforINA219[0] * 0x100 + cBuforINA219[1]) * INA219_LSB_NAPIECIA);
+		*sCzujniki &= ~INA219_NAPIECIE;	//dane obsłużone
+	}
+
+	if (*sCzujniki & INA219_PRAD)
+	{
+		uDaneCM4.dane.fPradAku[1] = (float)(((int16_t)cBuforINA219[0] * 0x100 + cBuforINA219[1]) * INA219_LSB_PRADU);
+		*sCzujniki &= ~INA219_PRAD;	//dane obsłużone
+	}
+
 	return cBłąd;
 }
 

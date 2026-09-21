@@ -17,6 +17,6 @@
 void PetlaGlowna(void);
 uint8_t WykonajPolecenieCM7(void);
 uint8_t RozdzielniaOperacjiI2C(void);
-uint8_t ObslugaCzujnikowI2C(uint8_t *chCzujniki);
+uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki);
 void PrzechwyćBłąd(uint8_t cBłąd);
 #endif /* SRC_PETLA_GLOWNA_H_ */

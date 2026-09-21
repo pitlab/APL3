@@ -19,7 +19,7 @@
 extern I2C_HandleTypeDef hi2c3;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 static uint8_t cProporcjaPomiarow;
-extern uint8_t cCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
+extern uint16_t sCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika odczytywanego na zewntrznym I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
 uint8_t cDaneMS4525[5];
 float fCiśnienieZerowaniaMS4525;	//ciśnienie zmierzone podczas kalibracji czujnika. Należy odjać je od bieżących wskazań
 uint16_t sLicznikZerowaniaMS4525 = MAX_PROB_INICJALIZACJI;	//odlicza czas uśredniania danych z czujnika. Podczas inicjalizacji zlicza próby nieudanej inicjalizacji
@@ -78,12 +78,12 @@ uint8_t ObslugaMS4525(void)
 		switch (cProporcjaPomiarow)
 		{
 		case 0:
-			cCzujnikOdczytywanyNaI2CExt = CISN_ROZN_MS2545;	//odczytaj ciśnienie różnicowe i temperaturę
+			sCzujnikOdczytywanyNaI2CExt = CISN_ROZN_MS2545;	//odczytaj ciśnienie różnicowe i temperaturę
 			cBłąd = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, cDaneMS4525, 4);
 			break;
 
 		default:
-			cCzujnikOdczytywanyNaI2CExt = CISN_TEMP_MS2545;	//odczytaj ciśnienie różnicowe
+			sCzujnikOdczytywanyNaI2CExt = CISN_TEMP_MS2545;	//odczytaj ciśnienie różnicowe
 			cBłąd = HAL_I2C_Master_Receive_DMA(&hi2c3, MS2545_I2C_ADR, cDaneMS4525, 2);
 			break;
 		}
