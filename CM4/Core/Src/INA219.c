@@ -13,8 +13,8 @@
 
 
 extern I2C_HandleTypeDef hi2c3;
-uint8_t cBuforINA219[4];
-uint8_t cDzielnikOperacji;
+static uint8_t cBuforINA219[4];
+static uint8_t cDzielnikOperacjiINA219;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 
 
@@ -37,14 +37,14 @@ uint8_t ObsługaNA219(void)
 			uDaneCM4.dane.nZainicjowano |= INIT_INA219;
 	}
 
-	cDzielnikOperacji &= 0x01;
-	switch (cDzielnikOperacji)
+	cDzielnikOperacjiINA219 &= 0x01;
+	switch (cDzielnikOperacjiINA219)
 	{
 	case 0:		cBłąd = ZmierzNapięcieINA219((float*)&uDaneCM4.dane.fNapiecieAku[0]);	break;
 	case 1: 	cBłąd = ZmierzPrądINA219((float*)&uDaneCM4.dane.fPradAku[0]);	break;
 	default:	cBłąd = BLAD_NIC_DO_ROBOTY;	break;
 	}
-	cDzielnikOperacji++;
+	cDzielnikOperacjiINA219++;
 	return cBłąd;
 }
 
@@ -70,7 +70,7 @@ uint8_t InicjujINA219(void)
 						(7 << 0);	//MODE 2..0: 0=Power down, 1=shunt voltage triggered, 2=bus voltage triggered, 3=shunt and bus triggered, 4=ADC off, 5=shunt voltage continous, 6=bus viltage continous, 7 shunt and bus continous
 	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, ADRES_I2C_INA219, cBuforINA219, 3, TIMEOUT_INA219);
 
-	sRejestr = (uint16_t)WARTOSC_KALIBRACJI;
+	sRejestr = (uint16_t)WARTOSC_KALIB_INA219;
 	cBuforINA219[0] = R219_KALIBRACJA;
 	cBuforINA219[1] = (uint8_t)(sRejestr >> 8);
 	cBuforINA219[2] = (uint8_t)(sRejestr & 0xFF);

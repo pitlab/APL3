@@ -38,6 +38,7 @@
 #include <VL53L1.h>
 #include "PL-2000.h"
 #include <INA219.h>
+#include <INA226.h>
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -575,7 +576,9 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	{
 	case 0: cBłąd = ObslugaMS4525();		break;
 	case 4:	cBłąd = ObslugaHMC5883();		break;
-	case 8:	cBłąd = ObsługaNA219();			break;
+	//case 8:	cBłąd = ObsługaNA219();			break;
+	case 8:	cBłąd = ObsługaNA226();			break;
+
 	//case 0x10: cBłąd = ObsługaVL53L1();		break;
 	default: break;
 	}
@@ -592,7 +595,8 @@ uint8_t RozdzielniaOperacjiI2C(void)
 
 	cEtapOperacjiI2C++;
 	//cEtapOperacjiI2C &= 0x03;
-	cEtapOperacjiI2C &= 0x1F;
+	cEtapOperacjiI2C &= 0x0F;
+	//cEtapOperacjiI2C &= 0x1F;
 	//cEtapOperacjiI2C &= 0x3F;
 	return cBłąd;
 }

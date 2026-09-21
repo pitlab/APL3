@@ -82,7 +82,9 @@ To są początki projektu. Obecnie jest zaimplementowana następująca funkcjona
 - Rozbudowa PID o człon wyprzedzający i stałe przesunięcie wartosci wyjścia
 - Strojenie regulatorów PID dwoma kanałami RC
 - Filtr Kalmana obejmujący wysokość, prędkość pionową i przyspieszenie w osi Z. Aktualizowany danymi z dwu kompletów czujników.
-- Pomiar odległości czujnikiem TOF VL53L1X
+- Pomiar odległości czujnikiem TOF VL53L1X.
+- Pomiar ciśnienia, wysokości i prędkości pionowej czujnikiem MBP585.
+- Pomiar prądu i napiecia czujnikami INA219 i INA226 pracującymi na magistrali I2C.
  
  
  

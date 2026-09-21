@@ -25,8 +25,8 @@
 
 #define ZAKRES_POMIARU_PRADU	10.0f	//amperów
 #define INA219_LSB_PRADU		(ZAKRES_POMIARU_PRADU / 32768)
-#define REZYSTOR_POMIAROWY		0.005f		//rezystancja opornika pomiarowego w omach
-#define WARTOSC_KALIBRACJI		(0.04096f / (INA219_LSB_PRADU * REZYSTOR_POMIAROWY))
+#define REZ_POMIAROWY_INA219		0.005f		//rezystancja opornika pomiarowego w omach
+#define WARTOSC_KALIB_INA219		(0.04096f / (INA219_LSB_PRADU * REZ_POMIAROWY_INA219))
 
 uint8_t ObsługaNA219(void);
 uint8_t InicjujINA219(void);
