@@ -12,7 +12,7 @@
 #define IIS2MDC_I2C_ADR		0x3C
 
 
-#define CZULOSC_IIS2MDC	1.5e-7	//1 bit odpowiada 1,5 mGauss a 1 mGauss to 100nT
+#define CZULOSC_IIS2MDC	1.5e-1	//1 bit odpowiada 1,5 mGauss a 1 mGauss to 100nT. Finalna jednostka: uT
 
 //Hard-iron registers
 #define PIIS2MDS_OFFSET_X_REG_L 0x45

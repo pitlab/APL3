@@ -585,10 +585,8 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	//operacje na wewnętrznej magistrali I2C4
 	switch(cEtapOperacjiI2C)
 	{
-	//case 0:
-	//case 4:	cBłąd = ObslugaIIS2MDC();		break;
-	//case 2:
-	case 6:	cBłąd = ObslugaMMC3416x();		break;	//na egzemplarzu 2 jest problem blokowania się przerwania obsługi tego magnetometru
+	case 0:	cBłąd = ObslugaIIS2MDC();		break;
+	case 8:	cBłąd = ObslugaMMC3416x();		break;	//na egzemplarzu 2 jest problem blokowania się przerwania obsługi tego magnetometru
 	default: break;
 	}
 
@@ -626,8 +624,8 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 	{
 		switch (sCzujnikZapisywanyNaI2CInt)
 		{
-		//case MAG_IIS_STATUS:	MagIIS_CzytajStatus();	break;	//po zapisie wykonaj operację odczytu
-		// case MAG_IIS:			MagIIS_CzytajDane();	break;	//po zapisie wykonaj operację odczytu
+		case MAG_IIS_STATUS:	MagIIS_CzytajStatus();	break;	//po zapisie wykonaj operację odczytu
+		 case MAG_IIS:			MagIIS_CzytajDane();	break;	//po zapisie wykonaj operację odczytu
 		case MAG_MMC_STATUS:	MagMMC_CzytajStatus();	break;	//po zapisie wykonaj operację odczytu
 		case MAG_MMC:			MagMMC_CzytajDane();	break;	//po zapisie wykonaj operację odczytu
 		}
@@ -746,11 +744,10 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 		for (uint8_t n=0; n<3; n++)
 		{
 			sZeZnakiem = ((int16_t)cDaneMagIIS[2*n+1] * 0x100 + cDaneMagIIS[2*n]) * cZnakIIS[n];
-			if ((uDaneCM7.dane.cWykonajPolecenie == POL7_KAL_ZERO_MAGN1) || (uDaneCM7.dane.cWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
+			//if ((uDaneCM7.dane.cWykonajPolecenie == POL7_KAL_ZERO_MAGN1) || (uDaneCM7.dane.cWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
 				uDaneCM4.dane.fMagne1[n] = (float)sZeZnakiem * CZULOSC_IIS2MDC;			//dane surowe podczas kalibracji magnetometru
-			else
-				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
-				//uDaneCM4.dane.fMagne1[n] = (uDaneCM4.dane.fMagne1[n] + ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n]) / 2;	//filtruj pomiar bo jest mocno zaszumiony a jest wystarczajaco szybki żeby filtracja nie przesuwała istotnie fazy
+			//else
+				//uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
 		}
 		*sCzujniki &= ~MAG_IIS;	//dane obsłużone
 		uDaneCM4.dane.cNowyPomiar |= NP_MAG1;	//jest nowy pomiar
@@ -785,11 +782,10 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 					fZeZnakiem = (sPomiarMMCL[n] + fPoleCzujnkaMMC[n]) * -1;
 			}
 
-			if ((uDaneCM7.dane.cWykonajPolecenie == POL7_KAL_ZERO_MAGN2) || (uDaneCM7.dane.cWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
+			//if ((uDaneCM7.dane.cWykonajPolecenie == POL7_KAL_ZERO_MAGN2) || (uDaneCM7.dane.cWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
 				uDaneCM4.dane.fMagne2[n] = fZeZnakiem * CZULOSC_MMC34160;	//dane surowe podczas kalibracji magnetometru
-			else
+			//else
 				//uDaneCM4.dane.fMagne2[n] = (fZeZnakiem * CZULOSC_MMC34160 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
-				uDaneCM4.dane.fMagne2[n] = (fZeZnakiem * CZULOSC_MMC34160 ) * fSkaloMagn2[n];	//dane skalibrowane;
 			//uDaneCM4.dane.fMagne2[n] = fZeZnakiem;
 		}
 		cPoprzedniRodzajPomiaru = cRodzajPomiaruMMC;
