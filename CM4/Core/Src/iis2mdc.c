@@ -70,6 +70,9 @@ uint8_t InicjujIIS2MDC(void)
 				{
 					cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN1_SKLADNIK_X + 4*n, &fPrzesMagn1[n], VMIN_SKLADNIK_MAGN, VMAX_SKLADNIK_MAGN, VDOM_SKLADNIK_MAGN);
 					cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN1_MNOZNIK_X + 4*n, &fSkaloMagn1[n], VMIN_MNOZNIK_MAGN, VMAX_MNOZNIK_MAGN, VDOM_MNOZNIK_MAGN);
+					//jeżeli skalowanie magnetometru nie jest zdefiniowane to przyjmij wspólczynnik skalowania = 1
+					if ((fSkaloMagn1[n] == 0) | (fSkaloMagn1[n] == 0xFF))
+						fSkaloMagn1[n] = 1;
 				}
 			}
 			else

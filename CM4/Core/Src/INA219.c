@@ -61,11 +61,23 @@ uint8_t ObsługaNA219(void)
 {
 	uint8_t cBłąd = BLAD_OK;
 
+	if (uDaneCM4.dane.nBrakCzujnika & INIT_INA219)
+		return BLAD_BRAK_CZUJNIKA;
+
 	if ((uDaneCM4.dane.nZainicjowano & INIT_INA219) != INIT_INA219)
 	{
-		cBłąd = InicjujINA219();
-		if (cBłąd == BLAD_OK)
-			uDaneCM4.dane.nZainicjowano |= INIT_INA219;
+		if (cDzielnikOperacjiINA219 < MAX_PROB_INICJALIZACJI)
+		{
+			cDzielnikOperacjiINA219++;
+			cBłąd = InicjujINA219();
+			if (cBłąd == BLAD_OK)
+				uDaneCM4.dane.nZainicjowano |= INIT_INA219;
+		}
+		else
+		{
+			uDaneCM4.dane.nBrakCzujnika |= INIT_INA219;
+			cBłąd = BLAD_BRAK_CZUJNIKA;
+		}
 		return cBłąd;
 	}
 
@@ -82,8 +94,6 @@ uint8_t ObsługaNA219(void)
 			sCzujnikZapisywanyNaI2CExt = INA219_PRAD;
 			break;
 
-	//case 0:		cBłąd = ZmierzNapięcieINA219((float*)&uDaneCM4.dane.fNapiecieAku[0]);	break;
-	//case 1: 	cBłąd = ZmierzPrądINA219((float*)&uDaneCM4.dane.fPradAku[0]);	break;
 	default:	cBłąd = BLAD_NIC_DO_ROBOTY;	break;
 	}
 	cDzielnikOperacjiINA219++;

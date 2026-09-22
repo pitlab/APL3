@@ -72,13 +72,16 @@ uint8_t InicjujMMC3416x(void)
 								  (0 << 6) |	//Temp_tst - Factory-use Register
 								  (0 << 7);		//SW_RST Writing “1”will cause the part to reset, similar to power-up. It will clear all registers and also re-read OTP as part of its startup routine.
 				cBłąd = HAL_I2C_Master_Transmit(&hi2c4, MMC34160_I2C_ADR, cPolWychMagMMC, 2, TOUT_I2C4_2B);	//wyślij polecenie wykonania pomiaru
-				if (!cBłąd)
+				if (cBłąd)
 					return cBłąd;
 
 				for (uint16_t n=0; n<3; n++)
 				{
 					cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN2_SKLADNIK_X + 4*n, &fPrzesMagn2[n], VMIN_SKLADNIK_MAGN, VMAX_SKLADNIK_MAGN, VDOM_SKLADNIK_MAGN);
 					cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN2_MNOZNIK_X + 4*n, &fSkaloMagn2[n], VMIN_MNOZNIK_MAGN, VMAX_MNOZNIK_MAGN, VDOM_MNOZNIK_MAGN);
+					//jeżeli skalowanie magnetometru nie jest zdefiniowane to przyjmij wspólczynnik skalowania = 1
+					if ((fSkaloMagn2[n] == 0) | (fSkaloMagn2[n] == 0xFF))
+						fSkaloMagn2[n] = 1;
 				}
 			}
 			else
@@ -103,12 +106,12 @@ uint8_t ObslugaMMC3416x(void)
 	uint8_t cBłąd = BLAD_OK;
 
 	//po MAX_PROB_INICJALIZACJI ustawiany jest bit braku czujnika. Taki czujnik nie jest dłużej obsługiwany
-	if (uDaneCM4.dane.nBrakCzujnika & INIT_MMC34160)
-		return BLAD_BRAK_CZUJNIKA;
+//	if (uDaneCM4.dane.nBrakCzujnika & INIT_MMC34160)
+//		return BLAD_BRAK_CZUJNIKA;
 
 	if ((uDaneCM4.dane.nZainicjowano & INIT_MMC34160) != INIT_MMC34160)
 	{
-		if (cSekwencjaPomiaruMMC < MAX_PROB_INICJALIZACJI)		//W trakcie inicjalizacji chSekwencjaPomiaruMMC pełni rolę licznika prób inicjalizacji
+		//if (cSekwencjaPomiaruMMC < MAX_PROB_INICJALIZACJI)		//W trakcie inicjalizacji chSekwencjaPomiaruMMC pełni rolę licznika prób inicjalizacji
 		{
 			cSekwencjaPomiaruMMC++;
 			cBłąd = InicjujMMC3416x();
@@ -118,11 +121,11 @@ uint8_t ObslugaMMC3416x(void)
 				cSekwencjaPomiaruMMC = 0;
 			}
 		}
-		else
+		/*else
 		{
 			uDaneCM4.dane.nBrakCzujnika |= INIT_MMC34160;
 			cBłąd = BLAD_BRAK_CZUJNIKA;
-		}
+		}*/
 		return cBłąd;
 	}
 
@@ -191,8 +194,8 @@ uint8_t ObslugaMMC3416x(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wysyła polecenie REFIL napełnienia kondensatora dla wykonania polecen SET i RESET
-// Parametry: brak
+// Wysyła polecenie
+// Parametry: cPolecenie - bity polecenia
 // Zwraca: kod błędu HAL
 // Czas zajęcia magistrali I2C: 420us przy zegarze 100kHz
 ////////////////////////////////////////////////////////////////////////////////

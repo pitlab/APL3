@@ -74,11 +74,23 @@ uint8_t ObsługaNA226(void)
 {
 	uint8_t cBłąd = BLAD_OK;
 
+	if (uDaneCM4.dane.nBrakCzujnika & INIT_INA226)
+			return BLAD_BRAK_CZUJNIKA;
+
 	if ((uDaneCM4.dane.nZainicjowano & INIT_INA226) != INIT_INA226)
 	{
-		cBłąd = InicjujINA226();
-		if (cBłąd == BLAD_OK)
-			uDaneCM4.dane.nZainicjowano |= INIT_INA226;
+		if (cDzielnikOperacjiINA226 < MAX_PROB_INICJALIZACJI)
+		{
+			cDzielnikOperacjiINA226++;
+			cBłąd = InicjujINA226();
+			if (cBłąd == BLAD_OK)
+				uDaneCM4.dane.nZainicjowano |= INIT_INA226;
+		}
+		else
+		{
+			uDaneCM4.dane.nBrakCzujnika |= INIT_INA226;
+			cBłąd = BLAD_BRAK_CZUJNIKA;
+		}
 		return cBłąd;
 	}
 
