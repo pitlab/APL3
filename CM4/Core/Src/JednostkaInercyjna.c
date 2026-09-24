@@ -193,8 +193,8 @@ uint8_t JednostkaInercyjnaKwaterniony(uint32_t ndT, float *fZyro, float *fAkcel,
 	MnozenieKwaternionow(fQ, fQs, fQMag);
 
 	//normalizuj wektor przyspieszenia, bo wymaga tego asinf() w funkcji liczenia kątów. Magnetometr też musi być znormalizowany bo używa atan2f(..., 1-...)
-	Normalizuj(fAkcel, fAccNorm, 3);
-	Normalizuj(fMagn, fMagNorm, 3);
+	NormalizujWektor(fAkcel, fAccNorm, 3);
+	NormalizujWektor(fMagn, fMagNorm, 3);
 
 	//synchronizuj modelowy wektor przyspieszenia  ze zmierzonym przyspieszeniem za pomocą filtra komplementarnego o wspólczynniku określonym przez filtr adaptacyjny
 	fWspFiltraAkc = FiltrAdaptacyjnyAkc(fAkcel);

@@ -22,11 +22,11 @@
 #define WYSOKOSC_MAPY	113.6f	//wysokość z mapy dla biura PitLab - tymczasowa zaślepka dopóki nie ma map wysokościowych
 
 
-#define WARIANCJA_ZRYWU_ACEL	5.0e-1f		//okresla dynamikę procesu
-#define WARIANCJA_DRYFTU_ACEL 	7.0e-9f;	//okresla jak szybko może zmieniać sie błąd akcelerometru
-#define WARIANCJA_DRYFTU_BARO 	1.0e-6f;	//okresla jak szybko może zmieniać sie błąd wysokości z czujnika ciśnienia
-#define WARIANCJA_ZMIANY_WYSOKOSCI_GNSS 	1.0e-4f;	//okresla jak szybko może zmieniać sie błąd wysokości z odbiornika GNSS
-#define WARIANCJA_ZMIANY_WYSOKOSCI_MAPY		1e-4;		//okresla jak szybko może zmieniać się wskazanie wysokości mapy
+#define WARIANCJA_ZRYWU_ACEL	5.0e-1f		//określa dynamikę procesu
+#define WARIANCJA_DRYFTU_ACEL 	7.0e-9f;	//określa jak szybko może zmieniać sie błąd akcelerometru
+#define WARIANCJA_DRYFTU_BARO 	1.0e-6f;	//określa jak szybko może zmieniać sie błąd wysokości z czujnika ciśnienia
+#define WARIANCJA_ZMIANY_WYSOKOSCI_GNSS 	1.0e-4f;	//określa jak szybko może zmieniać sie błąd wysokości z odbiornika GNSS
+#define WARIANCJA_ZMIANY_WYSOKOSCI_MAPY		1e-4;		//określa jak szybko może zmieniać się wskazanie wysokości mapy
 
 #define LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI		128
 

@@ -21,12 +21,12 @@ const uint8_t cAdres_expandera[LICZBA_EXP_SPI_ZEWN] = {SPI_EXTIO_0, SPI_EXTIO_1,
 extern uint32_t nZainicjowanoCM7;		//flagi inicjalizacji sprzętu
 
 ////////////////////////////////////////////////////////////////////////////////
-// Inicjuje układy na magistrali zewnętrznej SPI5. Funkcja najwyższego poziomu, bez parametrów
+// Inicjuje układy na magistrali wewnętrznej SPI5. Funkcja najwyższego poziomu, bez parametrów
 // Inicjalizacja wykonuje się przed startem RTOS, więc zasobu SPI5 nie trzeba chronić semaforem
 // Parametry: nic
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjujSPIModZewn(void)
+uint8_t InicjujModułySPI(void)
 {
 	uint8_t dane_wysylane[3];
 	uint8_t dane_odbierane[3];
@@ -45,99 +45,107 @@ uint8_t InicjujSPIModZewn(void)
 			hspi5.Instance->CFG1 &= ~SPI_BAUDRATEPRESCALER_256;	//maska preskalera
 			hspi5.Instance->CFG1 |= SPI_BAUDRATEPRESCALER_4;	//Bits 30:28 MBR[2:0]: master baud rate
 
-			dane_wysylane[0] = SPI_EXTIO_0;	//teraz komunikacja z U41
+			//w petli wyslij polecenie konfiguracyjne do rejestrów
+			for (uint8_t n=0; n<10; n++)
+			{
+				switch (n)
+				{
+				case 0:		//ustaw rejestry konfiguracji układu exandera U41
+					dane_wysylane[0] = SPI_EXTIO_0;	//teraz komunikacja z U41
+					dane_wysylane[1] = MCP23S08_IOCON;
+					dane_wysylane[2] = (1 << 5) |	//bit 5 SEQOP: Sequential Operation mode bit: 1 = Sequential operation disabled, address pointer does not increment, 0 = Sequential operation enabled, address pointer increments.
+									   (0 << 4)	|	//bit 4 DISSLW: Slew Rate control bit for SDA output:  1 = Slew rate disabled,  0 = Slew rate enabled.
+									   (1 << 3)	|	//bit 3 HAEN: Hardware Address Enable bit (MCP23S08 only): 1 = Enables the MCP23S08 address pins, 0 = Disables the MCP23S08 address pins.
+									   (1 << 2)	|	//bit 2 ODR: This bit configures the INT pin as an open-drain output:  1 = Open-drain output (ovcBłądides the INTPOL bit), 0 = Active driver output (INTPOL bit sets the polarity).
+									   (0 << 1);	//bit 1 INTPOL: This bit sets the polarity of the INT output pin: 1 = Active-high, 0 = Active-low.
+					break;
 
-			//ustaw rejestr konfiguracji układu exandera U41
-			dane_wysylane[1] = MCP23S08_IOCON;
-			dane_wysylane[2] = (1 << 5) |	//bit 5 SEQOP: Sequential Operation mode bit: 1 = Sequential operation disabled, address pointer does not increment, 0 = Sequential operation enabled, address pointer increments.
-							   (0 << 4)	|	//bit 4 DISSLW: Slew Rate control bit for SDA output:  1 = Slew rate disabled,  0 = Slew rate enabled.
-							   (1 << 3)	|	//bit 3 HAEN: Hardware Address Enable bit (MCP23S08 only): 1 = Enables the MCP23S08 address pins, 0 = Disables the MCP23S08 address pins.
-							   (1 << 2)	|	//bit 2 ODR: This bit configures the INT pin as an open-drain output:  1 = Open-drain output (ovcBłądides the INTPOL bit), 0 = Active driver output (INTPOL bit sets the polarity).
-							   (0 << 1);	//bit 1 INTPOL: This bit sets the polarity of the INT output pin: 1 = Active-high, 0 = Active-low.
-			UstawDekoderZewn(CS_IO);
-			cBłąd = HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_DELAY_SPI);
-			cBłąd |= UstawDekoderZewn(CS_NIC);
+				case 1:		//ustaw rejestr kierunku portów układu exandera U41
+					dane_wysylane[1] = MCP23S08_IODIR;	//I/O DIRECTION (IODIR) REGISTER: 1=input, 0=output
+					dane_wysylane[2] = (0 << 7) |	//MOD_OSW_IO2
+									   (0 << 6) |	//MOD_OSW_IO1
+									   (0 << 5) |	//USB_HOST_DEVICE
+									   (1 << 4) |	//LOG_SD1_CDETECT - wejscie detekcji obecności karty
+									   (0 << 3) |	//CAM_RES
+									   (0 << 2) |	//LOG_SD1_VSEL
+									   (0 << 1) |	//LCD_RES
+									   (1 << 0);	//TP_INT - wejście przerwań panelu dotykowego LCD
+					break;
 
-			//ustaw rejestr kierunku portów układu exandera U41
-			dane_wysylane[1] = MCP23S08_IODIR;	//I/O DIRECTION (IODIR) REGISTER: 1=input, 0=output
-			dane_wysylane[2] = (0 << 7) |	//MOD_OSW_IO2
-							   (0 << 6) |	//MOD_OSW_IO1
-							   (0 << 5) |	//USB_HOST_DEVICE
-							   (1 << 4) |	//LOG_SD1_CDETECT - wejscie detekcji obecności karty
-							   (0 << 3) |	//CAM_RES
-							   (0 << 2) |	//LOG_SD1_VSEL
-							   (0 << 1) |	//LCD_RES
-							   (1 << 0);	//TP_INT - wejście przerwań panelu dotykowego LCD
-			UstawDekoderZewn(CS_IO);
-			cBłąd |= HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_DELAY_SPI);
-			cBłąd |= UstawDekoderZewn(CS_NIC);
+				case 2:
+					dane_wysylane[1] = MCP23S08_GPINTEN;	//INTERRUPT-ON-CHANGE CONTROL (GPINTEN) REGISTER: 1 = Enable GPIO input pin for interrupt-on-change event, 0=disable
+					dane_wysylane[2] = 0x01;	//TP_INT
+					break;
 
+				case 3:
+					dane_wysylane[1] = MCP23S08_DEFVAL;	//DEFAULT COMPARE (DEFVAL) REGISTER FOR INTERRUPT-ONCHANGE: DEF7:DEF0: These bits set the compare value for pins configured for interrupt-on-change from defaults <7:0>. Refer to INTCON. If the associated pin level is the opposite from the register bit, an interrupt occurs
+					dane_wysylane[2] = 0x01;	//TP_INT
+					break;
 
-			dane_wysylane[0] = SPI_EXTIO_1;	//teraz komunikacja z U42
+				case 4:
+					dane_wysylane[1] = MCP23S08_INTCON;		//INTERRUPT CONTROL (INTCON) REGISTER: = Controls how the associated pin value is compared for interrupt-on-change, 0 = Pin value is compared against the previous pin value.
+					dane_wysylane[2] = 0x01;	//1=porównuj z DEFVAL; 0=porównuj z poprzednim stanem
+					break;
 
-			//ustaw rejestr konfiguracji układu exandera U42
-			dane_wysylane[1] = MCP23S08_IOCON;
-			dane_wysylane[2] = (1 << 5) |	//bit 5 SEQOP: Sequential Operation mode bit: 1 = Sequential operation disabled, address pointer does not increment, 0 = Sequential operation enabled, address pointer increments.
-							   (0 << 4)	|	//bit 4 DISSLW: Slew Rate control bit for SDA output:  1 = Slew rate disabled,  0 = Slew rate enabled.
-							   (1 << 3)	|	//bit 3 HAEN: Hardware Address Enable bit (MCP23S08 only): 1 = Enables the MCP23S08 address pins, 0 = Disables the MCP23S08 address pins.
-							   (1 << 2)	|	//bit 2 ODR: This bit configures the INT pin as an open-drain output:  1 = Open-drain output (ovcBłądides the INTPOL bit), 0 = Active driver output (INTPOL bit sets the polarity).
-							   (1 << 1);	//bit 1 INTPOL: This bit sets the polarity of the INT output pin: 1 = Active-high, 0 = Active-low.
-			UstawDekoderZewn(CS_IO);
-			cBłąd |= HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_DELAY_SPI);
-			cBłąd |= UstawDekoderZewn(CS_NIC);
+				case 5:	//ustaw rejestr konfiguracji układu exandera U42
+					dane_wysylane[0] = SPI_EXTIO_1;	//teraz komunikacja z U42
+					dane_wysylane[1] = MCP23S08_IOCON;
+					dane_wysylane[2] = (1 << 5) |	//bit 5 SEQOP: Sequential Operation mode bit: 1 = Sequential operation disabled, address pointer does not increment, 0 = Sequential operation enabled, address pointer increments.
+									   (0 << 4)	|	//bit 4 DISSLW: Slew Rate control bit for SDA output:  1 = Slew rate disabled,  0 = Slew rate enabled.
+									   (1 << 3)	|	//bit 3 HAEN: Hardware Address Enable bit (MCP23S08 only): 1 = Enables the MCP23S08 address pins, 0 = Disables the MCP23S08 address pins.
+									   (1 << 2)	|	//bit 2 ODR: This bit configures the INT pin as an open-drain output:  1 = Open-drain output (ovcBłądides the INTPOL bit), 0 = Active driver output (INTPOL bit sets the polarity).
+									   (1 << 1);	//bit 1 INTPOL: This bit sets the polarity of the INT output pin: 1 = Active-high, 0 = Active-low.
+					break;
 
-			//ustaw rejestr kierunku portów układu exandera U42
-			dane_wysylane[1] = MCP23S08_IODIR;	//I/O DIRECTION (IODIR) REGISTER: 1=input, 0=output
-			dane_wysylane[2] = (0 << 7) |	//USB_EN - włącznik transmisji USB
-							   (0 << 6) |	//BMS_I2C_SW - przełacznik zegara I2C miedzy pakietami
-							   (1 << 5) |	//ETH_RMII_EXER - wejście sygnału błędu transmisji ETH
-							   (0 << 4) |	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
-							   (0 << 3) |	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
-							   (0 << 2) |	//MODZ_CAN_STBY - włącznie Standby sterownika CAN
-							   (0 << 1) |	//USB_POWER - wlącznik zasilania dla Device
-							   (1 << 0);	//USB_OVERCURRENT - wejście wygnalizujące przekroczenie poboru prądu przez USB device
-			UstawDekoderZewn(CS_IO);
-			cBłąd |= HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_DELAY_SPI);
-			cBłąd |= UstawDekoderZewn(CS_NIC);
+				case 6:	//ustaw rejestr kierunku portów układu exandera U42
+					dane_wysylane[1] = MCP23S08_IODIR;	//I/O DIRECTION (IODIR) REGISTER: 1=input, 0=output
+					dane_wysylane[2] = (0 << 7) |	//USB_EN - włącznik transmisji USB
+									   (0 << 6) |	//BMS_I2C_SW - przełacznik zegara I2C miedzy pakietami
+									   (1 << 5) |	//ETH_RMII_EXER - wejście sygnału błędu transmisji ETH
+									   (0 << 4) |	//AUDIO_OUT_SD - włączniek ShutDown wzmacniacza audio
+									   (0 << 3) |	//AUDIO_IN_SD - włącznika ShutDown mikrofonu
+									   (0 << 2) |	//MODZ_CAN_STBY - włącznie Standby sterownika CAN
+									   (0 << 1) |	//USB_POWER - wlącznik zasilania dla Device
+									   (1 << 0);	//USB_OVERCURRENT - wejście wygnalizujące przekroczenie poboru prądu przez USB device
+					break;
 
-			dane_wysylane[0] = SPI_EXTIO_2;	//teraz komunikacja z U43
+				case 7: //ustaw rejestr konfiguracji układu exandera U43
+					dane_wysylane[0] = SPI_EXTIO_2;	//teraz komunikacja z U43
+					dane_wysylane[1] = MCP23S08_IOCON;
+					dane_wysylane[2] = (1 << 5) |	//bit 5 SEQOP: Sequential Operation mode bit: 1 = Sequential operation disabled, address pointer does not increment, 0 = Sequential operation enabled, address pointer increments.
+									   (0 << 4)	|	//bit 4 DISSLW: Slew Rate control bit for SDA output:  1 = Slew rate disabled,  0 = Slew rate enabled.
+									   (1 << 3)	|	//bit 3 HAEN: Hardware Address Enable bit (MCP23S08 only): 1 = Enables the MCP23S08 address pins, 0 = Disables the MCP23S08 address pins.
+									   (1 << 2)	|	//bit 2 ODR: This bit configures the INT pin as an open-drain output:  1 = Open-drain output (ovcBłądides the INTPOL bit), 0 = Active driver output (INTPOL bit sets the polarity).
+									   (1 << 1);	//bit 1 INTPOL: This bit sets the polarity of the INT output pin: 1 = Active-high, 0 = Active-low.
+					break;
 
-			//ustaw rejestr konfiguracji układu exandera U43
-			dane_wysylane[1] = MCP23S08_IOCON;
-			dane_wysylane[2] = (1 << 5) |	//bit 5 SEQOP: Sequential Operation mode bit: 1 = Sequential operation disabled, address pointer does not increment, 0 = Sequential operation enabled, address pointer increments.
-							   (0 << 4)	|	//bit 4 DISSLW: Slew Rate control bit for SDA output:  1 = Slew rate disabled,  0 = Slew rate enabled.
-							   (1 << 3)	|	//bit 3 HAEN: Hardware Address Enable bit (MCP23S08 only): 1 = Enables the MCP23S08 address pins, 0 = Disables the MCP23S08 address pins.
-							   (1 << 2)	|	//bit 2 ODR: This bit configures the INT pin as an open-drain output:  1 = Open-drain output (ovcBłądides the INTPOL bit), 0 = Active driver output (INTPOL bit sets the polarity).
-							   (1 << 1);	//bit 1 INTPOL: This bit sets the polarity of the INT output pin: 1 = Active-high, 0 = Active-low.
-			UstawDekoderZewn(CS_IO);
-			cBłąd |= HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_DELAY_SPI);
-			cBłąd |= UstawDekoderZewn(CS_NIC);
+				case 8:	//ustaw rejestr kierunku portów układu exandera U43
+					dane_wysylane[1] = MCP23S08_IODIR;	//I/O DIRECTION (IODIR) REGISTER: 1=input, 0=output
+					dane_wysylane[2] = (0 << 7) |	//LED_R
+									   (0 << 6) |	//LED_G
+									   (0 << 5) |	//LED_B
+									   (1 << 4) |	//WL/WYL - wejście
+									   (0 << 3) |	//ZASIL_LED - wyjście
+									   (0 << 2) |	//ZASIL_WL_USB - wyjście
+									   (0 << 1) |	//ZASIL_WL_WE2 - wyjście
+									   (0 << 0);	//ZASIL_WL_WE1 - wyjście
+					break;
 
-			//ustaw rejestr kierunku portów układu exandera U43
-			dane_wysylane[1] = MCP23S08_IODIR;	//I/O DIRECTION (IODIR) REGISTER: 1=input, 0=output
-			dane_wysylane[2] = (0 << 7) |	//LED_R
-							   (0 << 6) |	//LED_G
-							   (0 << 5) |	//LED_B
-							   (1 << 4) |	//WL/WYL - wejście
-							   (0 << 3) |	//ZASIL_LED - wyjście
-							   (0 << 2) |	//ZASIL_WL_USB - wyjście
-							   (0 << 1) |	//ZASIL_WL_WE2 - wyjście
-							   (0 << 0);	//ZASIL_WL_WE1 - wyjście
-			UstawDekoderZewn(CS_IO);
-			cBłąd |= HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_DELAY_SPI);
-			cBłąd |= UstawDekoderZewn(CS_NIC);
+				case 9://włącz niebieskiego LEDa sygnalizujacego konfigurację lub kalibracje
+					cPort_exp_wysylany[2] |= EXP27_LED_CZER | EXP26_LED_ZIEL;		//wyłącz LED_CZER, wyłącz LED_ZIEL
+					cPort_exp_wysylany[2] &= ~EXP25_LED_NIEB;		//włącz LED_NIEB
 
-			//włącz niebieskiego LEDa sygnalizujacego konfigurację lub kalibracje
-			cPort_exp_wysylany[2] |= EXP27_LED_CZER | EXP26_LED_ZIEL;		//wyłącz LED_CZER, wyłącz LED_ZIEL
-			cPort_exp_wysylany[2] &= ~EXP25_LED_NIEB;		//włącz LED_NIEB
+					dane_wysylane[0] = SPI_EXTIO_2;
+					dane_wysylane[1] = MCP23S08_GPIO;
+					dane_wysylane[2] = cPort_exp_wysylany[2];
+					break;
+					}
 
-			dane_wysylane[0] = SPI_EXTIO_2;
-			dane_wysylane[1] = MCP23S08_GPIO;
-			dane_wysylane[2] = cPort_exp_wysylany[2];
-			UstawDekoderZewn(CS_IO);
-			cBłąd |= HAL_SPI_Transmit(&hspi5, dane_wysylane, 3, HAL_DELAY_SPI);
-			cBłąd |= UstawDekoderZewn(CS_NIC);
-
+				//wyślij do układu polecenie wybrane w funkcji switch()
+				cBłąd |= UstawDekoderZewn(CS_IO);
+				cBłąd |= HAL_SPI_TransmitReceive(&hspi5, dane_wysylane, dane_odbierane, 3, HAL_DELAY_SPI);
+				cBłąd |= UstawDekoderZewn(CS_NIC);
+			}
 
 			nZainicjowanoCM7 |= INIT_EXPANDER_IO;
 			hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróć wcześniejszą konfigurację
@@ -155,16 +163,16 @@ uint8_t InicjujSPIModZewn(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Ustawia sygnały Chip Select dla wybranego układu na magistrali SPI modułów zewnetrznych:
+// Ustawia sygnały Chip Select dla wybranego układu na magistrali SPI modułów wewnetrznych:
 // TP_CS - Panel dotykowy, LCD_CS - wyświetlacz, IO_CS - extendery IO
-// Parametry: uklad - identyfikator układu na magistrali
+// Parametry: cUkład - identyfikator układu na magistrali
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t UstawDekoderZewn(uint8_t uklad)
+uint8_t UstawDekoderZewn(uint8_t cUkład)
 {
 	uint8_t cBłąd = BLAD_OK;
-	cStanDekoderaSPI = uklad;
-	switch (uklad)
+	cStanDekoderaSPI = cUkład;
+	switch (cUkład)
 	{
 		case CS_TP: 	//Panel dotykowy,
 			HAL_GPIO_WritePin(MODZ_ADR0_GPIO_Port, MODZ_ADR0_Pin, GPIO_PIN_RESET);
@@ -206,7 +214,7 @@ uint8_t PobierzStanDekoderaZewn(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Ustawia i pobiera zawartość portu na układzie rozszerzeń podłaczonym do magistrali SPI5 modułów wyjsciowych rdzenia CM7
+// Ustawia zawartość portu w układzie rozszerzeń I/O podłaczonym do magistrali SPI5
 // Parametry: adres - adres układu rozszerzeń
 // 	daneWy - dane wyjściowe
 // 	daneWe* - wskaźnika na dane wejściowe
@@ -243,7 +251,7 @@ uint8_t WyslijDaneExpandera(uint8_t adres, uint8_t daneWy)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Ustawia i pobiera zawartość portu na układzie rozszerzeń podłaczonym do magistrali SPI5 modułów wyjsciowych rdzenia CM7
+// Pobiera zawartość portu w układzie rozszerzeń I/O podłaczonym do magistrali SPI5
 // Parametry: adres - adres układu rozszerzeń
 // 	daneWy - dane wyjściowe
 // 	daneWe* - wskaźnika na dane wejściowe

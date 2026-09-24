@@ -69,6 +69,7 @@ void Error_Handler(void);
 #define KARTA_SD_OBECNA_GPIO_Port GPIOD
 #define TP_INT_Pin GPIO_PIN_12
 #define TP_INT_GPIO_Port GPIOG
+#define TP_INT_EXTI_IRQn EXTI15_10_IRQn
 
 /* USER CODE BEGIN Private defines */
 

@@ -403,7 +403,7 @@ Error_Handler();
 #endif
 
 
-  cBłąd |= InicjujSPIModZewn();
+  cBłąd |= InicjujModułySPI();
   cBłąd |= InicjujFlashNOR();
   //cBłąd |= SprawdzMagistrale(0x60000000);	//sprawdź pamięć SRAM - wyłączony od wersji 475
   //cBłąd |= SprawdzMagistrale(0xC0000000);	//sprawdź pamięć DRAM
@@ -1635,9 +1635,13 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : TP_INT_Pin */
   GPIO_InitStruct.Pin = TP_INT_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(TP_INT_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(TP_INT_EXTI_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(TP_INT_EXTI_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
   /* USER CODE END MX_GPIO_Init_2 */
@@ -1662,6 +1666,7 @@ void StartDefaultTask(void *argument)
   uint8_t cStanDekodera;
   uint8_t cDzielnikCzasu = 0;
   extern uint8_t cIndeksBuforaBłędów;
+  extern uint8_t cPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
 
   uDaneCM7.dane.cWyborOdbiornikaRC = ODB_OBA;	//przesyłaj stan obu odbiorników po dywersyfikacji
   for(;;)
@@ -1678,7 +1683,36 @@ void StartDefaultTask(void *argument)
 			cCzasSwieceniaLED[LED_CZER] = 10;	//x0,1s
 
 		PobierzDaneDoFFT();
-		//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//kanał serw 1 skonfigurowany jako IO
+
+		//obsługa przerwania EXTI: TP_INT od panelu dotykowego
+		if (stStatusDotyku.cFlagi & DOTYK_PRZERWANIE)
+		{
+			if (stStatusDotyku.cFlagi & DOTYK_OBSLUZONO_IRQ)
+			{
+				//czekaj aż linia przerwania  podniesię sie do stanu H, wtedy ponownie włącz przerwanie
+				if (HAL_GPIO_ReadPin(TP_INT_GPIO_Port, TP_INT_Pin) == GPIO_PIN_SET)
+				{
+					stStatusDotyku.cFlagi &= ~(DOTYK_PRZERWANIE | DOTYK_OBSLUZONO_IRQ);
+					__HAL_GPIO_EXTI_CLEAR_IT(TP_INT_Pin);
+					HAL_NVIC_ClearPendingIRQ(EXTI15_10_IRQn);
+					HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+				}
+			}
+			else
+			{
+				HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);	//wyłącz reakcję na przerwanie
+				cStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
+				cBłąd = CzytajDotyk();
+				if (cBłąd == BLAD_OK)
+				{
+					cBłąd = PobierzDaneExpandera(SPI_EXTIO_0, &cPort_exp_odbierany[0]);	//odczytaj  stan GPIO expandera aby skasować przerwanie
+					if (cBłąd == BLAD_OK)
+						stStatusDotyku.cFlagi |= DOTYK_OBSLUZONO_IRQ;
+					__HAL_GPIO_EXTI_CLEAR_IT(TP_INT_Pin);	//kasuj EXTI pending register
+				}
+				UstawDekoderZewn(cStanDekodera);		//odtwórz stan dekodera
+			}
+		}
 
 		//pozostałe czynności mogą być uruchamiane z mniejszą częstotliwością 50 Hz
 		cDzielnikCzasu++;
@@ -1686,14 +1720,12 @@ void StartDefaultTask(void *argument)
 		{
 			cDzielnikCzasu = 0;
 			cStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
-			CzytajDotyk();
 			WymienDaneExpanderow();
 			UstawDekoderZewn(cStanDekodera);		//odtwórz stan dekodera
 
-			//synchronizacja czasu i daty z GNSS tylko dopóki nie są w pełni zsynchroniozwane, później pracuję na RTC. Docelowo również synchronizacja z NTP
+			//synchronizacja czasu i daty z GNSS tylko dopóki nie są w pełni zsynchronizowane, później pracuję na RTC. Docelowo również synchronizacja z NTP
 			if (cStanSynchronizacjiCzasu != (SSC_GODZ_SYNCHR + SSC_MIN_SYNCHR + SSC_SEK_SYNCHR + SSC_ROK_SYNCHR + SSC_MIES_SYNCHR + SSC_DZIEN_SYNCHR))
 				SynchronizujCzasDoGNSS(&uDaneCM4.dane.stGnss[0]);
-
 
 			cBłąd = ObslugaPolecenCM4();	//obsłuż polecenia rdzenia CM4
 			if (cBłąd)		//sygnalizacja błędów
@@ -1854,7 +1886,7 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
 	//włącz czerwoną LED sygnalizując bład
 	if ((nZainicjowanoCM7 & INIT_EXPANDER_IO) == 0)
-		InicjujSPIModZewn();
+		InicjujModułySPI();
 	cPort_exp_wysylany[2] &= ~EXP27_LED_CZER;		//włącz LED_CZER
 	cPort_exp_wysylany[2] |= EXP26_LED_ZIEL;		//wyłącz LED_ZIEL
 	cPort_exp_wysylany[2] |= EXP25_LED_NIEB;		//wyłącz LED_NIEB

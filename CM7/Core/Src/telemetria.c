@@ -45,6 +45,9 @@ extern float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaDRAM"
 extern uint16_t sIndeksWysyłkiFFT;		//wskazuje na na numer próbki FFT przesyłany telemetrią
 extern uint8_t cIndeksWysyłkiTestuFFT;	//wskazuje na nume testu FFT obecnie wysyłanego telemetrią
 extern stFFT_t stKonfigFFT;
+//uint8_t cDzielnikStatusu;	//redukuje prędkość sygnalizacji zmian statusu
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,8 +58,8 @@ extern stFFT_t stKonfigFFT;
 void InicjalizacjaTelemetrii(void)
 {
 	uint8_t cPaczka[ROZMIAR_PACZKI_KONFIGU];
-	uint8_t chOdczytano;
-	uint8_t cDoOdczytu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
+	uint8_t cOdczytano;
+	uint16_t sDoOdczytu = LICZBA_ZMIENNYCH_TELEMETRYCZNYCH;
 	uint8_t cIndeksPaczki = 0;
 	uint8_t cProbOdczytu = PROB_ODCZYTU_TELEMETRII;
 	uint16_t sOkres;
@@ -66,18 +69,18 @@ void InicjalizacjaTelemetrii(void)
 	for (uint16_t n=0; n<LICZBA_ZMIENNYCH_TELEMETRYCZNYCH; n++)
 		sOkresTelemetrii[n] = TELEMETRIA_WYLACZONA;
 
-	while (cDoOdczytu && cProbOdczytu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
+	while (sDoOdczytu && cProbOdczytu)		//czytaj kolejne paczki aż skompletuje tyle danych ile potrzeba
 	{
-		chOdczytano = CzytajPaczkeKonfigu(cPaczka, FKON_OKRES_TELEMETRI1 + cIndeksPaczki);		//odczytaj 30 bajtów danych + identyfikator i CRC
-		if (chOdczytano == ROZMIAR_PACZKI_KONFIGU)
+		cOdczytano = CzytajPaczkeKonfigu(cPaczka, FKON_OKRES_TELEMETRI1 + cIndeksPaczki);		//odczytaj 30 bajtów danych + identyfikator i CRC
+		if (cOdczytano == ROZMIAR_PACZKI_KONFIGU)
 		{
 			for (uint16_t n=0; n<((ROZMIAR_PACZKI_KONFIGU - 2) / 2); n++)
 			{
-				if (cDoOdczytu)	//nie czytaj wiecej niż trzeba aby nie przepełnić zmiennej
+				if (sDoOdczytu)	//nie czytaj wiecej niż trzeba aby nie przepełnić zmiennej
 				{
 					sOkres = cPaczka[2*n+2] + cPaczka[2*n+3] * 0x100;
 					sOkresTelemetrii[n + cIndeksPaczki * ROZMIAR_DANYCH_WPACZCE /2] = sOkres;
-					cDoOdczytu--;
+					sDoOdczytu--;
 				}
 			}
 			cIndeksPaczki++;
@@ -181,9 +184,14 @@ uint8_t ObslugaTelemetrii(uint8_t cInterfejs)
 		{
 			if (st_ZajetośćLPUART.sDoWysłania[r+1])
 			{
-				cStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
+				//if (cDzielnikStatusu)
+					//cDzielnikStatusu--;
+				//else
+				//{
+					//cDzielnikStatusu = DZIELNIK_STATUSU_TELEMETRI;
+					cStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
+				//}
 				st_ZajetośćLPUART.cZajętyPrzez = RAMKA_TELE1 + r;
-				//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//serwo kanał 1 - LPUART_ZAJETY
 				HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[st_ZajetośćLPUART.cIndeksNapełnianejRamki[r+1] + r * LICZBA_RAMEK_TELEMETR][0], st_ZajetośćLPUART.sDoWysłania[r+1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
 				cWysyłamTyleDanych = st_ZajetośćLPUART.sDoWysłania[r+1];
 				st_ZajetośćLPUART.sDoWysłania[r+1] = 0;	//wysłano więc zdejmij z kolejki i zezwól na ponowne napełnienie bufora
@@ -540,27 +548,33 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_TOF_REFLEKT_CELU:	fZmiennaTele = stDane->stTOF.fReflektancjaCelu;				break;
 	case TID_TOF_NATEZENIE_TLA:	fZmiennaTele = stDane->stTOF.fNatężenieTła;					break;
 
-	case TID_KALMAN_X0:			fZmiennaTele = stDane->stKalmanWys.fX[0];					break;
-	case TID_KALMAN_X1:			fZmiennaTele = stDane->stKalmanWys.fX[1];					break;
-	case TID_KALMAN_X2:			fZmiennaTele = stDane->stKalmanWys.fX[2];					break;
-	case TID_KALMAN_X3:			fZmiennaTele = stDane->stKalmanWys.fX[3];					break;
-	case TID_KALMAN_X4:			fZmiennaTele = stDane->stKalmanWys.fX[4];					break;
-	case TID_KALMAN_X5:			fZmiennaTele = stDane->stKalmanWys.fX[5];					break;
-	case TID_KALMAN_X6:			fZmiennaTele = stDane->stKalmanWys.fX[6];					break;
-	case TID_KALMAN_X7:			fZmiennaTele = stDane->stKalmanWys.fX[7];					break;
-	case TID_KALMAN_X8:			fZmiennaTele = stDane->stKalmanWys.fX[8];					break;
-	case TID_KALMAN_X9:			fZmiennaTele = stDane->stKalmanWys.fX[9];					break;
+	case TID_KALMAN_WYS_X0:		fZmiennaTele = stDane->stKalmanWys.fX[0];					break;
+	case TID_KALMAN_WYS_X1:		fZmiennaTele = stDane->stKalmanWys.fX[1];					break;
+	case TID_KALMAN_WYS_X2:		fZmiennaTele = stDane->stKalmanWys.fX[2];					break;
+	case TID_KALMAN_WYS_X3:		fZmiennaTele = stDane->stKalmanWys.fX[3];					break;
+	case TID_KALMAN_WYS_X4:		fZmiennaTele = stDane->stKalmanWys.fX[4];					break;
+	case TID_KALMAN_WYS_X5:		fZmiennaTele = stDane->stKalmanWys.fX[5];					break;
+	case TID_KALMAN_WYS_X6:		fZmiennaTele = stDane->stKalmanWys.fX[6];					break;
+	case TID_KALMAN_WYS_X7:		fZmiennaTele = stDane->stKalmanWys.fX[7];					break;
+	case TID_KALMAN_WYS_X8:		fZmiennaTele = stDane->stKalmanWys.fX[8];					break;
+	case TID_KALMAN_WYS_X9:		fZmiennaTele = stDane->stKalmanWys.fX[9];					break;
 
-	case TID_KALMAN_K0:			fZmiennaTele = stDane->stKalmanWys.fK[0];					break;
-	case TID_KALMAN_K1:			fZmiennaTele = stDane->stKalmanWys.fK[1];					break;
-	case TID_KALMAN_K2:			fZmiennaTele = stDane->stKalmanWys.fK[2];					break;
-	case TID_KALMAN_K3:			fZmiennaTele = stDane->stKalmanWys.fK[3];					break;
-	case TID_KALMAN_K4:			fZmiennaTele = stDane->stKalmanWys.fK[4];					break;
-	case TID_KALMAN_K5:			fZmiennaTele = stDane->stKalmanWys.fK[5];					break;
-	case TID_KALMAN_K6:			fZmiennaTele = stDane->stKalmanWys.fK[6];					break;
-	case TID_KALMAN_K7:			fZmiennaTele = stDane->stKalmanWys.fK[7];					break;
-	case TID_KALMAN_K8:			fZmiennaTele = stDane->stKalmanWys.fK[8];					break;
-	case TID_KALMAN_K9:			fZmiennaTele = stDane->stKalmanWys.fK[9];					break;
+	case TID_KALMAN_WYS_K0:		fZmiennaTele = stDane->stKalmanWys.fK[0];					break;
+	case TID_KALMAN_WYS_K1:		fZmiennaTele = stDane->stKalmanWys.fK[1];					break;
+	case TID_KALMAN_WYS_K2:		fZmiennaTele = stDane->stKalmanWys.fK[2];					break;
+	case TID_KALMAN_WYS_K3:		fZmiennaTele = stDane->stKalmanWys.fK[3];					break;
+	case TID_KALMAN_WYS_K4:		fZmiennaTele = stDane->stKalmanWys.fK[4];					break;
+	case TID_KALMAN_WYS_K5:		fZmiennaTele = stDane->stKalmanWys.fK[5];					break;
+	case TID_KALMAN_WYS_K6:		fZmiennaTele = stDane->stKalmanWys.fK[6];					break;
+	case TID_KALMAN_WYS_K7:		fZmiennaTele = stDane->stKalmanWys.fK[7];					break;
+	case TID_KALMAN_WYS_K8:		fZmiennaTele = stDane->stKalmanWys.fK[8];					break;
+	case TID_KALMAN_WYS_K9:		fZmiennaTele = stDane->stKalmanWys.fK[9];					break;
+
+	case TID_KALMAN_KATOW_X0:	fZmiennaTele = stDane->fKalmanKataX[0];						break;
+	case TID_KALMAN_KATOW_X1:	fZmiennaTele = stDane->fKalmanKataX[1];						break;
+	case TID_KALMAN_KATOW_X2:	fZmiennaTele = stDane->fKalmanKataX[2];						break;
+	case TID_KALMAN_KATOW_X3:	fZmiennaTele = stDane->fKalmanKataX[3];						break;
+
 	default:	fZmiennaTele = -1.0f;
 	}
 	return fZmiennaTele;

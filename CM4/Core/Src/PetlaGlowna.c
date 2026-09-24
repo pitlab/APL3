@@ -39,6 +39,7 @@
 #include "PL-2000.h"
 #include <INA219.h>
 #include <INA226.h>
+#include <KalmanKatow7X9Z.h>
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -170,7 +171,7 @@ void PetlaGlowna(void)
 	case 6:	//przepisz czujniki do struktury BSP - finalnie ma to zrobić filtr Kalmana
 		FiltrDanychIMUiWysokosci(&uDaneCM4.dane);
 
-		if ((uDaneCM4.dane.nZainicjowano & INIT_KALMAN_WYSOKOSCI) == INIT_KALMAN_WYSOKOSCI)
+		if (uDaneCM4.dane.nZainicjowano & INIT_KALMAN_WYSOKOSCI)
 		{
 			//cBłądPG = PredykcjaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
 			//cBłądPG = PredykcjaFiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
@@ -185,8 +186,6 @@ void PetlaGlowna(void)
 				//cBłądPG = AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 				cBłądPG = AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 
-			if (uDaneCM4.dane.cNowyPomiar & NP_WYS3)
-
 			//przyspieszenia są aktualizowane w każdym obiegu pętli
 			//cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
 			//cBłądPG = AktulizacjaAkcelerometrem1FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
@@ -200,6 +199,20 @@ void PetlaGlowna(void)
 			//cBłądPG = InicjujFiltrKalmanaWysokości4X3Z(&uDaneCM4.dane);
 			//cBłądPG = InicjujFiltrKalmanaWysokości5X6Z(&uDaneCM4.dane);
 			cBłądPG = InicjujFiltrKalmanaWysokości10X10Z(&uDaneCM4.dane);
+			PrzechwyćBłąd(cBłądPG);
+		}
+
+		//teraz filtr kalmana kątów orientacji
+		if (uDaneCM4.dane.nZainicjowano & INIT_KALMAN_KATOW)
+		{
+			cBłądPG = PredykcjaFiltraKalmanaKątów7X9Z(&uDaneCM4.dane);
+			PrzechwyćBłąd(cBłądPG);
+			cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(&uDaneCM4.dane);
+			PrzechwyćBłąd(cBłądPG);
+		}
+		else
+		{
+			cBłądPG = InicjujFiltrKalmanaKątów7X9Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 		}
 		uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2 | NP_WYS3);	//usuń flagę nowych pomiarów wysokości

@@ -249,9 +249,10 @@ typedef struct
 	uint8_t cPotwierdzenieWykonania;	//potwierdza wykonanie polecenia przysłanego przez CM7
 	uint32_t ndT;
 	stBSP_t stBSP;				//struktura zawierajaca syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
-	stSzybkieIMU_t stSzybkieIMU;	//struktura zawierajaca bufor kołowy i indeks szybkich danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
-	stKalmanWys_t stKalmanWys;	//struktura z danymi do debugowania filtra Klamana wysokości
-	stTOF_t stTOF;					//struktura danych pomiarowych czujnika odległości VL53LC1
+	stSzybkieIMU_t stSzybkieIMU;//struktura zawierajaca bufor kołowy i indeks szybkich danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
+	stKalmanWys_t stKalmanWys;	//struktura z danymi do debugowania filtra Kalmana wysokości
+	float fKalmanKataX[7];		//wektor stanu filtra Kalmana kątów orientacji
+	stTOF_t stTOF;				//struktura danych pomiarowych czujnika odległości VL53LC1
 } stWymianyCM4_t;
 
 

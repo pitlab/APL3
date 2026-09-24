@@ -2183,13 +2183,13 @@ void PomiaryAHRS(void)
 
 	//IIS2MDC
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne1[0]*1e6);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne1[0]);
 	RysujNapis(cNapis, KOL12+8*FONT_SL, 110);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
-	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne1[1]*1e6);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne1[1]);
 	RysujNapis(cNapis, KOL12+20*FONT_SL, 110);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
-	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne1[2]*1e6);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne1[2]);
 	RysujNapis(cNapis, KOL12+32*FONT_SL, 110);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(SZARY50);
 	fDlugosc = sqrtf(uDaneCM4.dane.fMagne1[0] * uDaneCM4.dane.fMagne1[0] + uDaneCM4.dane.fMagne1[1] * uDaneCM4.dane.fMagne1[1] + uDaneCM4.dane.fMagne1[2] * uDaneCM4.dane.fMagne1[2]);
@@ -2198,13 +2198,13 @@ void PomiaryAHRS(void)
 
 	//MMC34160
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne2[0]*1e6);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne2[0]);
 	RysujNapis(cNapis, KOL12+8*FONT_SL, 130);
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
-	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne2[1]*1e6);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne2[1]);
 	RysujNapis(cNapis, KOL12+20*FONT_SL, 130);
 	if (uDaneCM4.dane.nZainicjowano & INIT_MMC34160)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
-	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne2[2]*1e6);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne2[2]);
 	RysujNapis(cNapis, KOL12+32*FONT_SL, 130);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(SZARY50);
 	fDlugosc = sqrtf(uDaneCM4.dane.fMagne2[0] * uDaneCM4.dane.fMagne2[0] + uDaneCM4.dane.fMagne2[1] * uDaneCM4.dane.fMagne2[1] + uDaneCM4.dane.fMagne2[2] * uDaneCM4.dane.fMagne2[2]);
@@ -2213,13 +2213,13 @@ void PomiaryAHRS(void)
 
 	//HMC5883
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_X); 	else	setColor(SZARY50);	//stan wyzerowania sygnalizuj kolorem
-	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne3[0]*1e6);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne3[0]);
 	RysujNapis(cNapis, KOL12+8*FONT_SL, 150);
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Y); 	else	setColor(SZARY50);
-	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne3[1]*1e6);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne3[1]);
 	RysujNapis(cNapis, KOL12+20*FONT_SL, 150);
 	if (uDaneCM4.dane.nZainicjowano & INIT_HMC5883)	setColor(KOLOR_Z); 	else	setColor(SZARY50);
-	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne3[2]*1e6);
+	sprintf(cNapis, "%.2f ", uDaneCM4.dane.fMagne3[2]);
 	RysujNapis(cNapis, KOL12+32*FONT_SL, 150);
 	if (uDaneCM4.dane.nZainicjowano & INIT_IIS2MDC)	setColor(POMARANCZ); 	else	setColor(SZARY50);
 	fDlugosc = sqrtf(uDaneCM4.dane.fMagne3[0] * uDaneCM4.dane.fMagne3[0] + uDaneCM4.dane.fMagne3[1] * uDaneCM4.dane.fMagne3[1] + uDaneCM4.dane.fMagne3[2] * uDaneCM4.dane.fMagne3[2]);

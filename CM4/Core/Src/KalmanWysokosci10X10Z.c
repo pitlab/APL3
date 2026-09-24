@@ -160,7 +160,7 @@ uint8_t InicjujFiltrKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 	//filtr jest zainicjowany dopiero wtedy gdy trafia do niego rzeczywiste dane z czujnika o niezerowej wysokosci MSL
 	if (dane->cNowyPomiar & NP_WYS1)
 	{
-		//zeru wektory pomiaru w pierwszym cyklu uśredniania
+		//zeruj wektory pomiaru w pierwszym cyklu uśredniania
 		if (cLicznikUśredniania == LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI)
 		{
 				fZc[0] = 0.0f;
@@ -348,7 +348,7 @@ uint8_t InicjujFiltrKalmanaWysokości10X10Z(stWymianyCM4_t *dane)
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja estymuje nowe wartości wektora stanu ze etapu (n) na (n+1)
 // x(n+1) = F * x(n) + w. Nie ma G * u(n) bo w tym modelu nie ma sterowania
-// oraz wwykonuje predykcję kowariancji (niepewności) nowej wartości:
+// oraz wykonuje predykcję kowariancji (niepewności) nowej wartości:
 // P(n+1) = F * P(n) * F^T + Q
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu

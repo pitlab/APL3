@@ -42,7 +42,7 @@
 #define MCP23S08_GPIO		0x09	//PORT (GPIO) REGISTER: GP7:GP0: These bits reflect the logic level on the pins <7:0>: 1 = Logic-high, 0 = Logic-low.
 #define MCP23S08_OLAT		0x0A	//OUTPUT LATCH REGISTER (OLAT): OL7:OL0: These bits reflect the logic level on the output latch <7:0>: 1 = Logic-high, 0 = Logic-low.
 
-uint8_t InicjujSPIModZewn(void);
+uint8_t InicjujModułySPI(void);
 uint8_t UstawDekoderZewn(uint8_t uklad);
 uint8_t PobierzStanDekoderaZewn(void);
 uint8_t WyslijDaneExpandera(uint8_t adres, uint8_t daneWy);

@@ -39,14 +39,14 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define INIT_HMC5883			0x01000000
 #define INIT_INA219				0x02000000	//czujnik prądu INA219
 #define INIT_INA226				0x04000000	//czujnik prądu INA226
-
+#define INIT_KALMAN_KATOW		0x08000000
 
 #define TESTY		//włacz testowanie algorytmów, można wyłaczyć dla _nieświadowego_ końcowego użytkownika
 #define RAD2DEG				(180/M_PI)
 #define DEG2RAD				(M_PI/180)
 #define KELVIN				273.15f
 #define AKCEL1G				9.80665f			//przelicznik z [g] na [m/s^2]
-#define NOMINALNE_MAGN		50.0e-6f			//nominalna wartość natężenia pola magnetycznego w Teslach dla Polski centralnej. Źródło: https://www.magnetic-declination.com/ oraz https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/F.jpg
+#define NOMINALNE_MAGN		50.0f			//nominalna wartość natężenia pola magnetycznego w u0Teslach dla Polski centralnej. Źródło: https://www.magnetic-declination.com/ oraz https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/F.jpg
 #define INKLINACJA_MAG		(68.f * DEG2RAD)	//inklinacja magnetyczna w radianach. Źródło: https://www.magnetic-declination.com/ lub https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/I.jpg
 #define DEKLINACJA_MAG		(6.59f * DEG2RAD)	//deklinacja magnetyczna w radianach. Źródło: https://www.magnetic-declination.com/ lub https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/D.jpg
 #define PROMIEN_ZIEMI		6371008.77f			//promień Ziemi w metrach

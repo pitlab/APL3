@@ -71,27 +71,36 @@ uint16_t CzytajKanalDotyku(uint8_t  cKanal)
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// Wyłacza ADC: DP0 = 0, powodując że aktywowane zostaje wyjście przerwaniowe TP_INT
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void WylaczADCDotyku(void)
+{
+	uint8_t cKonfig;
+
+	cKonfig = (0<<0)|	//PD1-PD0 Power-Down Mode Select Bits: 0=Power-Down Between Conversions, 1=Reference is off and ADC is on, 2=Reference is on and ADC is off, 3=Device is always powered.
+			   (0<<2)|	//SER/DFR 1=Single-Ended 0=Differential Reference Select Bit
+			   (0<<3)|	//MODE 12-Bit/8-Bit Conversion Select Bit. This bit controls the number of bits for the next conversion: 0=12-bits, 1=8-bits
+			   (1<<4)|	//A2-A0 Channel Select Bits
+			   (1<<7);	//S Start Bit.
+
+	UstawDekoderZewn(CS_TP);							//TP_CS=0
+	HAL_SPI_Transmit(&hspi5, &cKonfig, 1, HAL_DELAY_SPI);
+	UstawDekoderZewn(CS_NIC);							//TP_CS=1
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Czytaj komplet danych ze sterownika ekranu dotykowego
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t CzytajDotyk(void)
 {
-	uint32_t nCzasDotyku;
 	uint32_t nStanSemaforaSPI;
 	uint32_t nZastanaKonfiguracja_SPI_CFG1;
-
-	//sprawdź czy upłyneło wystarczająco czasu od ostatniego odczytu
-	nCzasDotyku = MinalCzas(stStatusDotyku.nOstCzasPomiaru);
-	if (nCzasDotyku < 25000)	//25ms -> 40Hz
-		return BLAD_OK;
-
-	//sprawdź czy upłyneło wystarczająco dużo czasu po ostatnim dotyku
-	if (cLicznikPrzerwyPoDotyku)
-	{
-		cLicznikPrzerwyPoDotyku--;
-		return BLAD_OK;
-	}
 
 	//użyj sprzętowego semafora HSEM_SPI5 do określenia dostępu do SPI5
 	nStanSemaforaSPI = HAL_HSEM_IsSemTaken(HSEM_SPI5);
@@ -116,7 +125,7 @@ uint8_t CzytajDotyk(void)
 #endif
 			stStatusDotyku.sAdc[2] = CzytajKanalDotyku(TPCHZ1);
 			stStatusDotyku.sAdc[3] = CzytajKanalDotyku(TPCHZ2);
-			stStatusDotyku.nOstCzasPomiaru = PobierzCzasT6();
+			WylaczADCDotyku();										//włącz reakcję na przerwanie TP_IRQ
 			hspi5.Instance->CFG1 = nZastanaKonfiguracja_SPI_CFG1;	//przywróc poprzednie nastawy
 			HAL_HSEM_Release(HSEM_SPI5, HSEM_DOTYK);
 		}
@@ -140,8 +149,6 @@ uint8_t CzytajDotyk(void)
 			//po nadpisaniu danych zdarzało się że wyliczane współrzędne wynosiły (0,0). W takiej sytuacji wymuś ponowną kalibrację
 			if ((stStatusDotyku.sX == 0) && (stStatusDotyku.sY == 0))
 				stStatusDotyku.cFlagi &= ~DOTYK_SKALIBROWANY;
-
-			cLicznikPrzerwyPoDotyku = DLUGOSC_PRZERWY_DETEKCJI_DOTYKU;	//po detekcji dotyku zrób przerwę w odczycie aby zapobiegać wielokrotnemu uruchomieniu poleceń
 		}
 	}
 	else
@@ -454,7 +461,7 @@ void TestObliczenKalibracji(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Rysuje linie na ekranie
+// Wykonuje test panelu dotykowego wymagajac naciśniecia ekranu 6 razy
 // Parametry: nic
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
@@ -462,7 +469,7 @@ uint8_t TestDotyku(void)
 {
 	extern uint8_t cRysujRaz;
 	uint16_t sKolor = getColor();	//zapamiętaj kolor
-	static uint32_t nDetektorOdczytu;
+	//static uint32_t nDetektorOdczytu;
 	static uint8_t cLicznikPalety;
 
 	if (cRysujRaz)
@@ -498,9 +505,9 @@ uint8_t TestDotyku(void)
 		}
 	}
 
-	 if (stStatusDotyku.nOstCzasPomiaru != nDetektorOdczytu)
+	 //if (stStatusDotyku.nOstCzasPomiaru != nDetektorOdczytu)
 	 {
-		 nDetektorOdczytu = stStatusDotyku.nOstCzasPomiaru;
+		 //nDetektorOdczytu = stStatusDotyku.nOstCzasPomiaru;
 		 cLicznikPalety++;
 		 cLicznikPalety &= 1;
 		 switch (cLicznikPalety)
@@ -532,7 +539,7 @@ uint8_t InicjujDotyk(void)
 	stStatusDotyku.cFlagi = 0;
 	stStatusDotyku.sX = 0;
 	stStatusDotyku.sY = 0;
-	stStatusDotyku.nOstCzasPomiaru = 0;
+	//stStatusDotyku.nOstCzasPomiaru = 0;
 
 	n = CzytajPaczkeKonfigu(cPaczka, FKON_KALIBRACJA_DOTYKU);
 	if (n == ROZMIAR_PACZKI_KONFIGU)

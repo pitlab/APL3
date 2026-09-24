@@ -17,6 +17,7 @@
 //#define TELEM_WZNOW		0	//wznów wysyłanie telemetrii
 #define TELEM_NORMALNA	0	//ma być transmitowana ramka normalna (to samo co wznowienie)
 
+#define DZIELNIK_STATUSU_TELEMETRI	5	//zmniejsza szybkość sygnalizacji zmian statusu telemetrii
 #define PROB_ODCZYTU_TELEMETRII		3
 //definicje zmiennych telemetrycznych
 //zmienne IMU
@@ -279,30 +280,35 @@
 #define TID_TOF_REFLEKT_CELU	230	//reflektancja celu
 #define TID_TOF_NATEZENIE_TLA	231	//poziom natężenia tła
 
-#define TID_KALMAN_X0			232
-#define TID_KALMAN_X1			233
-#define TID_KALMAN_X2			234
-#define TID_KALMAN_X3			235
-#define TID_KALMAN_X4			236
-#define TID_KALMAN_X5			237
-#define TID_KALMAN_X6			238
-#define TID_KALMAN_X7			239
-#define TID_KALMAN_X8			240
-#define TID_KALMAN_X9			241
+#define TID_KALMAN_WYS_X0		232
+#define TID_KALMAN_WYS_X1		233
+#define TID_KALMAN_WYS_X2		234
+#define TID_KALMAN_WYS_X3		235
+#define TID_KALMAN_WYS_X4		236
+#define TID_KALMAN_WYS_X5		237
+#define TID_KALMAN_WYS_X6		238
+#define TID_KALMAN_WYS_X7		239
+#define TID_KALMAN_WYS_X8		240
+#define TID_KALMAN_WYS_X9		241
 
-#define TID_KALMAN_K0			242
-#define TID_KALMAN_K1			243
-#define TID_KALMAN_K2			244
-#define TID_KALMAN_K3			245
-#define TID_KALMAN_K4			246
-#define TID_KALMAN_K5			247
-#define TID_KALMAN_K6			248
-#define TID_KALMAN_K7			249
-#define TID_KALMAN_K8			250
-#define TID_KALMAN_K9			251
+#define TID_KALMAN_WYS_K0		242
+#define TID_KALMAN_WYS_K1		243
+#define TID_KALMAN_WYS_K2		244
+#define TID_KALMAN_WYS_K3		245
+#define TID_KALMAN_WYS_K4		246
+#define TID_KALMAN_WYS_K5		247
+#define TID_KALMAN_WYS_K6		248
+#define TID_KALMAN_WYS_K7		249
+#define TID_KALMAN_WYS_K8		250
+#define TID_KALMAN_WYS_K9		251
+
+#define TID_KALMAN_KATOW_X0		252
+#define TID_KALMAN_KATOW_X1		253
+#define TID_KALMAN_KATOW_X2		254
+#define TID_KALMAN_KATOW_X3		255
 //max do 255
 
-#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	252
+#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	256
 
 #define MAX_ZMIENNYCH_TELEMETR_W_RAMCE	115		//tyle zmiennych może być przesłanych w jednej ramce telemetrycznej (ramek może być kilka)
 #define MAX_INDEKSOW_TELEMETR_W_RAMCE	128		//zmienne w ramce można wybrać z takiej puli indeksów

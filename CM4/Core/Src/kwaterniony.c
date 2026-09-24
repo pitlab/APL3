@@ -365,7 +365,7 @@ void KatyKwaterniona3(float *qA, float *qM, float *fKaty)
 // Zwraca: nic
 // Czas trwania: 2,06us @200MHz dla 3 elementów
 ////////////////////////////////////////////////////////////////////////////////
-void Normalizuj(float * fWe, float *fWy, uint8_t chRozmiar)
+void NormalizujWektor(float * fWe, float *fWy, uint8_t chRozmiar)
 {
 	float fNorm = 0.0f;
 
@@ -375,7 +375,7 @@ void Normalizuj(float * fWe, float *fWy, uint8_t chRozmiar)
 
 	for (uint8_t n=0; n<chRozmiar; n++)
 	{
-		if (fNorm > 0.0f)
+		if (fNorm > 1e-12f)
 			*(fWy + n) = *(fWe + n) / fNorm;
 		else
 			*(fWy + n) = 0.0f;

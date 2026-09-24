@@ -180,6 +180,8 @@ uint8_t WypelnijEkran(uint16_t sKolor565)
 		else
 			return BLAD_SEMAFOR_ZAJETY;
 	}
+
+	vTaskSuspendAll();	//blokowanie przełączania wątków w czasie gdy semafor jest zajęty
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		LCD_write_command8(ILI9488_CASET);	//Column Address Set
@@ -212,6 +214,7 @@ uint8_t WypelnijEkran(uint16_t sKolor565)
 		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	xTaskResumeAll();	//można już przełączać wątki
 	return cBłąd;
 }
 
@@ -325,6 +328,8 @@ uint8_t RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sS
 		else
 			return BLAD_SEMAFOR_ZAJETY;
 	}
+
+	vTaskSuspendAll();	//blokowanie przełączania wątków w czasie gdy semafor jest zajęty
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		LCD_write_command8(ILI9488_CASET);	//Column Address Set
@@ -365,6 +370,7 @@ uint8_t RysujProstokatWypelniony(uint16_t sStartX, uint16_t sStartY, uint16_t sS
 		}
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	xTaskResumeAll();	//można już przełączać wątki
 	return cBłąd;
 }
 
@@ -389,6 +395,8 @@ uint8_t RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor)
 		else
 			return BLAD_SEMAFOR_ZAJETY;
 	}
+
+	vTaskSuspendAll();	//blokowanie przełączania wątków w czasie gdy semafor jest zajęty
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		setXY(x, y, x, y);
@@ -401,6 +409,7 @@ uint8_t RysujPunkt(int16_t x, int16_t y, uint8_t *chKolor)
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	xTaskResumeAll();	//można już przełączać wątki
 	return cBłąd;
 }
 
@@ -425,6 +434,8 @@ uint8_t RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 		else
 			return BLAD_SEMAFOR_ZAJETY;
 	}
+
+	vTaskSuspendAll();	//blokowanie przełączania wątków w czasie gdy semafor jest zajęty
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		if (len < 0)
@@ -442,6 +453,7 @@ uint8_t RysujLiniePozioma(int16_t x, int16_t y, int16_t len)
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	xTaskResumeAll();	//można już przełączać wątki
 	return cBłąd;
 }
 
@@ -466,6 +478,8 @@ uint8_t RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 		else
 			return BLAD_SEMAFOR_ZAJETY;
 	}
+
+	vTaskSuspendAll();	//blokowanie przełączania wątków w czasie gdy semafor jest zajęty
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		if (len < 0)
@@ -482,6 +496,7 @@ uint8_t RysujLiniePionowa(int16_t x, int16_t y, int16_t len)
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	xTaskResumeAll();	//można już przełączać wątki
 	return cBłąd;
 }
 
@@ -517,6 +532,8 @@ uint8_t RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 			else
 				return BLAD_SEMAFOR_ZAJETY;
 		}
+
+		vTaskSuspendAll();	//blokowanie przełączania wątków w czasie gdy semafor jest zajęty
 		if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 		{
 			if (dx < dy)
@@ -566,6 +583,7 @@ uint8_t RysujLinie(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	xTaskResumeAll();	//można już przełączać wątki
 	return cBłąd;
 }
 
@@ -656,6 +674,8 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 		else
 			return BLAD_SEMAFOR_ZAJETY;
 	}
+
+	vTaskSuspendAll();	//blokowanie przełączania wątków w czasie gdy semafor jest zajęty
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		if (!cTransparent)
@@ -727,6 +747,7 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	xTaskResumeAll();	//można już przełączać wątki
 	return cBłąd;
 }
 
@@ -753,6 +774,7 @@ uint8_t RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uin
 		else
 			return BLAD_SEMAFOR_ZAJETY;
 	}
+	vTaskSuspendAll();	//blokowanie przełączania wątków w czasie gdy semafor jest zajęty
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		if (cOrientacja == POZIOMO)
@@ -785,6 +807,7 @@ uint8_t RysujBitmape(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, const uin
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	xTaskResumeAll();	//można już przełączać wątki
 	return cBłąd;
 }
 
@@ -813,6 +836,7 @@ uint8_t RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_
 		else
 			return BLAD_SEMAFOR_ZAJETY;
 	}
+	vTaskSuspendAll();	//blokowanie przełączania wątków w czasie gdy semafor jest zajęty
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		if (cOrientacja == POZIOMO)
@@ -844,6 +868,7 @@ uint8_t RysujBitmape888(uint16_t x, uint16_t y, uint16_t sx, uint16_t sy, uint8_
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	xTaskResumeAll();	//można już przełączać wątki
 	return cBłąd;
 }
 
@@ -874,6 +899,8 @@ uint8_t RysujOkrag(uint16_t x, uint16_t y, uint16_t promien)
 		else
 			return BLAD_SEMAFOR_ZAJETY;
 	}
+
+	vTaskSuspendAll();	//blokowanie przełączania wątków w czasie gdy semafor jest zajęty
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
 		setXY(x, y + promien, x, y + promien);
@@ -926,6 +953,7 @@ uint8_t RysujOkrag(uint16_t x, uint16_t y, uint16_t promien)
 		clrXY();
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);
 	}
+	xTaskResumeAll();	//można już przełączać wątki
 	return cBłąd;
 }
 

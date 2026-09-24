@@ -171,7 +171,7 @@ uint8_t BSP_SD_IsDetected(void)
 	uint8_t cStatus = SD_PRESENT;
 	extern uint8_t cPort_exp_odbierany[3];
 
-	if (cPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)		//styk detekcji karty zwiera do masy gdy karta jest obecna a pulllup wystawia 1 gdy jest nieobecna w gnieździe
+	if (cPort_exp_odbierany[0] & EXP04_LOG_CARD_DET)		//styk detekcji karty zwiera do masy gdy karta jest obecna a pullup wystawia 1 gdy jest nieobecna w gnieździe
 		cStatus = SD_NOT_PRESENT;
 	return cStatus;
 }
@@ -191,7 +191,7 @@ void HAL_SD_DriveTransceiver_1_8V_Callback(FlagStatus status)
 
 	//Może być wywoływany przez inicjalizacją Expanderów, więc sprawdź czy expandery są zainicjowane a jeżeli nie to najpierw je inicjalizuj
 	if ((nZainicjowanoCM7 & INIT_EXPANDER_IO) == 0)
-		InicjujSPIModZewn();
+		InicjujModułySPI();
 
 	if (status == SET)
 		cPort_exp_wysylany[0] &= ~EXP02_LOG_VSELECT;	//LOG_SD1_VSEL: L=1,8V

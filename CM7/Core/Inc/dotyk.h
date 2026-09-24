@@ -32,8 +32,10 @@
 #define DOTYK_ZWOLNONO		0x02	//puszczono przycisk ekranowy
 #define DOTYK_ZAPISANO		0x04	//zapisano dane konfiguracyjne
 #define DOTYK_SKALIBROWANY	0x08	//została wykonana kalibracja
+#define DOTYK_PRZERWANIE	0x10	//pojawiło się przerwanie od panelu dotykowego
+#define DOTYK_OBSLUZONO_IRQ	0x20	//obsłużono przerwanie
 
-#define DLUGOSC_PRZERWY_DETEKCJI_DOTYKU		6	//liczba iteracji odczytu dotyku pomijanych po pierwszej detekcji
+//#define DLUGOSC_PRZERWY_DETEKCJI_DOTYKU		6	//liczba iteracji odczytu dotyku pomijanych po pierwszej detekcji
 
 typedef struct
 {
@@ -41,7 +43,7 @@ typedef struct
 	uint16_t sX;
 	uint16_t sY;
 	uint8_t cFlagi;			//flagi określające naciśnięcie i zwolnienie przycisku ekranowego
-	uint32_t nOstCzasPomiaru;	//ostatni pomiar czasu między kolejnymi dotknięciami ekranu
+	//uint32_t nOstCzasPomiaru;	//ostatni pomiar czasu między kolejnymi dotknięciami ekranu
 } stStatusDotyku_t;
 
 typedef struct
@@ -63,5 +65,6 @@ void ObliczKalibracjeDotyku3Punktowa(void);
 uint8_t TestDotyku(void);
 void TestObliczenKalibracji(void);
 uint8_t InicjujDotyk(void);
+void WylaczADCDotyku(void);
 
 #endif /* INC_DOTYK_H_ */

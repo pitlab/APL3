@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "SysDefCM7.h"
 #include "ModulySPI.h"
+#include <Dotyk.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -82,6 +83,7 @@ extern TIM_HandleTypeDef htim17;
 
 /* USER CODE BEGIN EV */
 extern uint8_t chPort_exp_wysylany[LICZBA_EXP_SPI_ZEWN];
+extern stStatusDotyku_t stStatusDotyku;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -218,6 +220,20 @@ void FDCAN2_IT0_IRQHandler(void)
   /* USER CODE BEGIN FDCAN2_IT0_IRQn 1 */
 
   /* USER CODE END FDCAN2_IT0_IRQn 1 */
+}
+
+/**
+  * @brief This function handles EXTI line[15:10] interrupts.
+  */
+void EXTI15_10_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+
+  /* USER CODE END EXTI15_10_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(TP_INT_Pin);
+  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+  stStatusDotyku.cFlagi |= DOTYK_PRZERWANIE;
+  /* USER CODE END EXTI15_10_IRQn 1 */
 }
 
 /**
