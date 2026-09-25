@@ -212,10 +212,30 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	float32_t fDeltaCzasu = (float32_t)dane->ndT / 1e6;
 	float fOmega[3];	//rzeczywista prędkość kątowa
 
+	//odrzuć predykcje gdy czas obiegu pętli znacznie odbiega od normy
+	if ((fDeltaCzasu < 5e-6) || (fDeltaCzasu > 0.1f))
+		return BLAD_ZLE_DANE;
+
 	//1. Predykcja kwaternionu zawierajacego estymatę nowej wartości kątów orientacji
 	//1.1 Obliczenie prędkości kątowej omega = omega_pomiaru - bład_dryftu_żyro
 	for (uint8_t n=0; n<3; n++)
-		fOmega[n] = dane->fZyroSur1[n] - fX[4+n];
+	{
+		if ((isnan(fX[4+n])) || (fX[4+n] > 2*M_PI))		//błąd dryftu żyroskopu musi być poprawną liczbą mniejszą od 2 Pi
+			fOmega[n] = dane->fZyroSur1[n];		//jeżeli błąd jest niewłaściwą liczbą  to go nie używaj aby nie eskalować błędów numerycznych
+		else
+			fOmega[n] = dane->fZyroSur1[n] - fX[4+n];
+	}
+
+	//sprawdź czy kwaternion jest zerem
+	if (fX[0] == 0)
+	{
+		if ((fX[1] == 0) && (fX[2] == 0) && (fX[3] == 0))
+			fX[0] = 1.0f; //napraw kwaternion
+	}
+
+	//jeżeli macierz P jest NaN to ją inicjuj
+	if (isnan(fP[0][0]))
+		memset(fP, 0, sizeof(float) * KSTAN * KSTAN);
 
 	//Macierz F przejścia wektora stanu: F = I + 0.5 * Omega * dt - wymaga zasilenie starym kwaternionem, więc wypełniam ją jeszcze przed predykcją
 	fF[0][0] =  1.0f;
@@ -338,6 +358,13 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
+
+	//sprawdź czy kwaternion jest zerem
+	if (fX[0] == 0)
+	{
+		if ((fX[1] == 0) && (fX[2] == 0) && (fX[3] == 0))
+			fX[0] = 1.0f; //napraw kwaternion
+	}
 
 	for (uint8_t n=0; n<3; n++)
 		fZa[n] = dane->fAkcel1[n];
