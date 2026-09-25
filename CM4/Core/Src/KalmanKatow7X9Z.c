@@ -10,43 +10,32 @@
 #include <KalmanKatow7X9Z.h>
 #include "kwaterniony.h"
 
-#define KSTAN		7	//rozmiar wektora stanu
-#define KKWAT		4	//rozmiar kwaternionu
-#define KPOMR		3	//rozmiar wektora pomiaru
-
 
 //Wynik mnożenia macierzy ma rozmiar wierszy drugiej x kolumn pierwszej
 
 //zmienne z przedrostkiem f oznaczaja macierze lub wektory na liczbach float
 static float32_t fX[KSTAN];					//wektor stanu: 0..3=kwaternion orientacji, 4..6= błędy prędkości kątowych
-static float32_t fZa[KPOMR];				//wektor pomiaru przyspieszenia
 static float32_t fYa[KPOMR];				//wektor innowacji akcelerometru
-//static float32_t fZm[KPMAG];				//wektor pomiaru magnetometrów: 0..3=składowe natężenia pola magnetycznego
+static float32_t fYm[KPOMR];				//wektor innowacji magnetometru
 static float32_t fF[KSTAN][KSTAN];			//macierz przejścia wektora stanu
 static float32_t fP[KSTAN][KSTAN];			//macierz kowariancji predykcji
 static float32_t fRa[KPOMR][KPOMR];			//macierz kowariancji pomiaru wektora przyspieszenia
 static float32_t fRm[KPOMR][KPOMR];			//macierz kowariancji pomiaru wektora magnetycznego
-
 static float32_t fG[KSTAN][KPOMR];			//macierz sterująca
 static float32_t fQ[KSTAN][KSTAN];			//macierz szumu procesu
 static float32_t fI[KSTAN][KSTAN];			//macierz jednostkowa
 static float32_t fHa[KPOMR][KSTAN];			//macierz obserwacji przyspieszenia
-//static float32_t fHm[KPMAG][KSTAN];		//macierz obserwacji wektora magnetycznego
-
+static float32_t fHm[KPOMR][KSTAN];			//macierz obserwacji wektora magnetycznego
 static float32_t fKa[KSTAN][KPOMR];			//macierz wzmocnień Kalmana dla IMU
-//static float32_t fKm[KSTAN][KPMAG];		//macierz wzmocnień Kalmana dla magnetometru
+static float32_t fKm[KSTAN][KPOMR];			//macierz wzmocnień Kalmana dla magnetometru
 
 //macierze robocze do przechowywania wyników pośrednich
 static float32_t fPHa[KSTAN][KPOMR];		//macierz [Stan x Pomiar] na wyniki pośrednie
-//static float32_t fPHm[KSTAN][KPMAG];		//macierz [Stan x Pomiar] na wyniki pośrednie
-
+static float32_t fPHm[KSTAN][KPOMR];		//macierz [Stan x Pomiar] na wyniki pośrednie
 static float32_t fTempSPA[KSTAN][KPOMR];	//macierz [Stan x Pomiar] na wyniki pośrednie A
-//static float32_t fTempSPB[KSTAN][KPOMR];	//macierz [Stan x Pomiar] na wyniki pośrednie B
 static float32_t fTempPSA[KPOMR][KSTAN];	//macierz [Pomiar x Stan] na wyniki pośrednie A
-
 static float32_t fTempPPA[KPOMR][KPOMR];	//macierz [Pomiar x Pomiar] na wyniki pośrednie A
 static float32_t fTempPPB[KPOMR][KPOMR];	//macierz [Pomiar x Pomiar] na wyniki pośrednie B
-
 static float32_t fTempSSA[KSTAN][KSTAN];	//macierz [Stan x Stan] na wyniki pośrednie A
 static float32_t fTempSSB[KSTAN][KSTAN];	//macierz [Stan x Stan] na wyniki pośrednie B
 static float32_t fTempSSC[KSTAN][KSTAN];	//macierz [Stan x Stan] na wyniki pośrednie C
@@ -56,42 +45,34 @@ static float32_t fTempS1B[KSTAN];			//wektor [Stan] na wyniki pośrednie B
 //zmienne z przedrostkiem m oznaczają macierze (lub wektory) w formacie biblioteki ARM DSP
 static arm_matrix_instance_f32 mX   = {KSTAN, 1, fX};					//wektor stanu
 static arm_matrix_instance_f32 mYa  = {KPOMR, 1, fYa};					//wektor innowacji akcelerometru
-//static arm_matrix_instance_f32 mZa  = {KPOMR, 1, fZa};					//wektor pomiaru przyspieszenia
-//static arm_matrix_instance_f32 mZm  = {KPMAG, 1, fZm};					//wektor pomiaru:  3 skłądowe wektora magnetycznego
-
+static arm_matrix_instance_f32 mYm  = {KPOMR, 1, fYm};					//wektor innowacji magnetometru
 static arm_matrix_instance_f32 mF   = {KSTAN, KSTAN, &fF[0][0]};		//macierz przejścia wektora stanu
 static arm_matrix_instance_f32 mP   = {KSTAN, KSTAN, &fP[0][0]};		//macierz kowariancji predykcji
-
 static arm_matrix_instance_f32 mRa  = {KPOMR, KPOMR, &fRa[0][0]};		//macierz kowariancji pomiaru przyspieszenia
-static arm_matrix_instance_f32 mRm  = {KPMAG, KPMAG, &fRm[0][0]};		//macierz kowariancji pomiaru magnetometru
-
+static arm_matrix_instance_f32 mRm  = {KPOMR, KPOMR, &fRm[0][0]};		//macierz kowariancji pomiaru magnetometru
 static arm_matrix_instance_f32 mG   = {KSTAN, KPOMR, &fG[0][0]};		//macierz sterująca
 static arm_matrix_instance_f32 mQ   = {KSTAN, KSTAN, &fQ[0][0]};		//macierz szumu procesu
 static arm_matrix_instance_f32 mI   = {KSTAN, KSTAN, &fI[0][0]};		//macierz jednostkowa
-
 static arm_matrix_instance_f32 mHa  = {KPOMR, KSTAN, &fHa[0][0]};		//macierz obserwacji wektora przyspieszenia
-//static arm_matrix_instance_f32 mHm  = {KPMAG, KSTAN, &fHm[0][0]};		//macierz obserwacji wektora magnetycznego
-
+static arm_matrix_instance_f32 mHm  = {KPOMR, KSTAN, &fHm[0][0]};		//macierz obserwacji wektora magnetycznego
 static arm_matrix_instance_f32 mKa  = {KSTAN, KPOMR, &fKa[0][0]};		//macierz wzmocnień Kalmana czujnika IMU
-//static arm_matrix_instance_f32 mKm  = {KSTAN, KPMAG, &fKm[0][0]};		//macierz wzmocnień Kalmana czujnika magnetometru
+static arm_matrix_instance_f32 mKm  = {KSTAN, KPOMR, &fKm[0][0]};		//macierz wzmocnień Kalmana czujnika magnetometru
 
-static arm_matrix_instance_f32 mPHa = {KSTAN, KPOMR, &fPHa[0][0]};		//macierz SxPc na iloczyn P*Hc
-//static arm_matrix_instance_f32 mPHm = {KSTAN, KPMAG, &fPHm[0][0]};		//macierz SxPa na iloczyn P*Ha
-
+static arm_matrix_instance_f32 mPHa = {KSTAN, KPOMR, &fPHa[0][0]};		//macierz SxPc na iloczyn P*Ha
+static arm_matrix_instance_f32 mPHm = {KSTAN, KPOMR, &fPHm[0][0]};		//macierz SxPa na iloczyn P*Hm
 static arm_matrix_instance_f32 mTempSPA  = {KSTAN, KPOMR, &fTempSPA[0][0]};
-//static arm_matrix_instance_f32 mTempSPB  = {KSTAN, KPOMR, &fTempSPB[0][0]};
-
 static arm_matrix_instance_f32 mTempPSA  = {KPOMR, KSTAN, &fTempPSA[0][0]};
-//static arm_matrix_instance_f32 mTempPSB  = {KPOMR, KSTAN, &fTempPSB[0][0]};
-
-static arm_matrix_instance_f32 mTempPPA = {KPOMR, KPOMR, &fTempPPA[0][0]};	//macierz Pc x Pc na wyniki pośrednie A
-static arm_matrix_instance_f32 mTempPPB = {KPOMR, KPOMR, &fTempPPB[0][0]};	//macierz Pc x Pc na wyniki pośrednie B
+static arm_matrix_instance_f32 mTempPPA = {KPOMR, KPOMR, &fTempPPA[0][0]};		//macierz Pc x Pc na wyniki pośrednie A
+static arm_matrix_instance_f32 mTempPPB = {KPOMR, KPOMR, &fTempPPB[0][0]};		//macierz Pc x Pc na wyniki pośrednie B
 static arm_matrix_instance_f32 mTempSSA  = {KSTAN, KSTAN, &fTempSSA[0][0]};		//macierz S x S na wyniki pośrednie A
 static arm_matrix_instance_f32 mTempSSB  = {KSTAN, KSTAN, &fTempSSB[0][0]};		//macierz S x S na wyniki pośrednie B
 static arm_matrix_instance_f32 mTempSSC  = {KSTAN, KSTAN, &fTempSSC[0][0]};		//macierz S x S na wyniki pośrednie C
 static arm_matrix_instance_f32 mTempS1A  = {KSTAN, 1, fTempS1A};				//macierz Sx1 na wyniki pośrednie A
 static arm_matrix_instance_f32 mTempS1B  = {KSTAN, 1, fTempS1B};				//macierz Sx1 na wyniki pośrednie B
 
+float fRefMagX;	//układ odniesienia pola magnetycznego
+float fRefMagY;
+float fRefMagZ;
 
 
 
@@ -192,6 +173,10 @@ uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	memset(fTempS1B, 0, sizeof(float) * KSTAN * 1);
 	arm_mat_init_f32(&mTempS1B, KSTAN, 1, &fTempS1B[0]);
 
+	//układ odniesienia pola magnetycznego
+	fRefMagX = cosf(INKLINACJA_MAG);
+	fRefMagY = 0.0f;
+	fRefMagZ = sinf(INKLINACJA_MAG);
 
 	return cBłąd;
 }
@@ -220,7 +205,7 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	//1.1 Obliczenie prędkości kątowej omega = omega_pomiaru - bład_dryftu_żyro
 	for (uint8_t n=0; n<3; n++)
 	{
-		if ((isnan(fX[4+n])) || (fX[4+n] > 2*M_PI))		//błąd dryftu żyroskopu musi być poprawną liczbą mniejszą od 2 Pi
+		if ((isnan(fX[4+n])) || (fabs(fX[4+n]) > 2*M_PI))		//błąd dryftu żyroskopu musi być poprawną liczbą mniejszą od 2 Pi
 			fOmega[n] = dane->fZyroSur1[n];		//jeżeli błąd jest niewłaściwą liczbą  to go nie używaj aby nie eskalować błędów numerycznych
 		else
 			fOmega[n] = dane->fZyroSur1[n] - fX[4+n];
@@ -291,6 +276,11 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	for (uint8_t n=0; n<KSTAN; n++)
 		dane->fKalmanKataX[n] = fX[n] = fTempS1B[n];
 
+	//oblicz kąty orientacji z kwaternionu
+	dane->stBSP.fKatIMU[0] = -atan2f(2.0f * (fX[0] * fX[1] + fX[2] * fX[3]), 1 - (2.0f * (fX[1] * fX[1] + fX[2] * fX[2])));
+	dane->stBSP.fKatIMU[1] = -asinf (2.0f * (fX[0] * fX[2] - fX[1] * fX[3]));
+	dane->stBSP.fKatIMU[2] = -atan2f(2.0f * (fX[0] * fX[3] + fX[1] * fX[2]), 1 - (2.0f * (fX[2] * fX[2] + fX[3] * fX[3])));
+
 	//2 Oblicz predykcję kowariancji (niepewności) nowej wartości:  P(n+1) = F * P(n) * F^T + Q
 	//Obliczenie szumu procesu Q składajacego się z szumu kwaterniony na który wpływa żyroskop i szumu błędu żyroskopów
 	//Najpierw szum procesu dla żyroskopu wpływającego na kwaternion: Qzyro = Gg * Qg * Gg^T
@@ -348,7 +338,7 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja aktualizuje stan filtra na podstawie nowego pomiaru przyspieszenia
+// Funkcja aktualizuje stan filtra na podstawie nowego pomiaru magnetometrem
 // Estymata_x(n) = Estymata_x(n-1) + K(n) * (z(n) - H * Estymata_x(n-1))
 // gdzie macierz wzmocnienia Kalmana: K(n) = P(n-1) * H^T * (H * P(n-1) * H^T + R(n))^-1
 // Następnie znajduje nową macierz kowariancji P(n) = (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T + K(n) * R(n) * K(n)^T
@@ -358,6 +348,7 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
+	float fhAcc[KPOMR];
 
 	//sprawdź czy kwaternion jest zerem
 	if (fX[0] == 0)
@@ -366,13 +357,15 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 			fX[0] = 1.0f; //napraw kwaternion
 	}
 
-	for (uint8_t n=0; n<3; n++)
-		fZa[n] = dane->fAkcel1[n];
+	//model pomiaru akcelerometru: Ya(n) = Za - Ha(x) = Za - R(q)^T * [0 0 g]
+	fhAcc[0] = AKCEL1G * 2.0f * (fX[0] * fX[3] - fX[0] * fX[2]);
+	fhAcc[1] = AKCEL1G * 2.0f * (fX[0] * fX[1] + fX[2] * fX[3]);
+	fhAcc[2] = AKCEL1G * (fX[0] * fX[0] - fX[1] * fX[1] - fX[2] * fX[2] + fX[3] * fX[3]);
 
-	//Innowacja = pomiar - modelowany pomiar akcelerometru: Ya(n) = Za - Ha(x) = Za - R(q)^T * [0 0 g]
-	fYa[0] = fZa[0] - AKCEL1G * 2.0f * (fX[0] * fX[3] - fX[0] * fX[2]);
-	fYa[1] = fZa[1] - AKCEL1G * 2.0f * (fX[0] * fX[1] + fX[2] * fX[3]);
-	fYa[2] = fZa[2] - AKCEL1G * (fX[0] * fX[0] - fX[1] * fX[1] - fX[2] * fX[2] + fX[3] * fX[3]);
+	//Innowacja = pomiar -
+	fYa[0] = dane->fAkcel1[0] - fhAcc[0];
+	fYa[1] = dane->fAkcel1[1] - fhAcc[1];
+	fYa[2] = dane->fAkcel1[2] - fhAcc[2];
 
 	//Macierz obserwacji Ha  [STAN x Pomiar]
 	fHa[0][0] = -2.0f * AKCEL1G * fX[2];		// ax
@@ -387,7 +380,6 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	fHa[2][1] = -2.0f * AKCEL1G * fX[1];
 	fHa[2][2] = -2.0f * AKCEL1G * fX[2];
 	fHa[2][3] =  2.0f * AKCEL1G * fX[3];
-
 
 	//liczę współczynnik wzmocnienia Kalmana: mK,
 	//najpierw transponowane H -> mTempSPc	 [Pomiar x Stan] -> [Stan x Pomiar]
@@ -409,7 +401,6 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	cBłąd |= arm_mat_mult_f32(&mPHa, &mTempPPA, &mKa);
 
 
-
 	//Estymata_x(n) = Estymata_x(n-1) + K(n) * y(n)
 	//mnożenie przez K: K(n) *  y(n)		[Stan x Pomiar] * [Pomiar] = [Stan]
 	cBłąd |= arm_mat_mult_f32(&mKa, &mYa, &mTempS1A);
@@ -420,10 +411,13 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	//normalizacja kwaternionu
 	NormalizujWektor(fTempS1B, fTempS1A, KKWAT);
 
-	//przepisanie estymaty do wektora stanu
+	//przepisanie estymaty kwaternionu do wektora stanu
 	for (uint8_t n=0; n<KKWAT; n++)
 		fX[n] = fTempS1A[n];
 
+	//przepisanie estymaty błędu do wektora stanu
+	for (uint8_t n=KKWAT; n<(KKWAT + KPOMR); n++)
+		fX[n] = fTempS1B[n];
 
 	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempSSA	 [Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
 	cBłąd |= arm_mat_mult_f32(&mKa, &mHa, &mTempSSA);
@@ -451,7 +445,6 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 
 	//finalne sumowanie ((I-K(n)*H)*P(n-1)*(I*K(n)*H)^T) + (K(n)*R(n)*K(n)^T) -> P(n)
 	cBłąd |= arm_mat_add_f32(&mTempSSB, &mTempSSA, &mP);
-
 	return cBłąd;
 }
 
@@ -468,5 +461,118 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
+	float fhMag[KPOMR];
+
+	//Normalizacja wektora magnetycznego
+	float fNorma = sqrtf(dane->fMagne1[0] * dane->fMagne1[0] + dane->fMagne1[1] * dane->fMagne1[1] + dane->fMagne1[2] * dane->fMagne1[2]);
+	float fMx = dane->fMagne1[0] / fNorma;
+	float fMy = dane->fMagne1[1] / fNorma;
+	float fMz = dane->fMagne1[2] / fNorma;
+
+	//model magnetyczny
+	//hx = mx(1 − 2qy^2​ − 2qz^2​) + my ​2(qx​qy ​+ qw​qz​) + mz​ 2(qx​qz ​− qw​qy​)
+	fhMag[0] = fRefMagX * (1.0f - (2 * fX[2] * fX[2]) - (2 * fX[3] * fX[3])) + fRefMagY * 2 * (fX[1] * fX[2] + fX[0] * fX[3]) + fRefMagZ * 2 * (fX[1] * fX[3] - fX[0] * fX[2]);
+
+	//hy ​ =mx ​2(qx​qy ​− qw​qz​) + my​(1 − 2qx^2 ​− 2qz^2​) + mz​2(qy​qz ​+ qw​qx​)
+	fhMag[1] = fRefMagX * 2 * (fX[1] * fX[2] - fX[0] * fX[3]) + fRefMagY * (1.0f - (2 * fX[1] * fX[1]) - (2 * fX[3] * fX[3])) + fRefMagZ * 2 * (fX[2] * fX[3] + fX[0] * fX[1]);
+
+	//hz = mx​ 2(qx​qz ​+ qw​qy​) + my ​2(qy​qz ​− qw​qx​) + mz​(1 − 2qx^2​ − 2qy^2​)
+	fhMag[2] = fRefMagX * 2 * (fX[1] * fX[3] + fX[0] * fX[2]) + fRefMagY * 2 * (fX[2] * fX[3] - fX[0] * fX[3]) + fRefMagZ * (1.0f - (2 * fX[1] * fX[1]) - (2 * fX[2] * fX[2]));
+
+	//Innowacja: y = z - h
+	fYm[0] = dane->fMagne1[0] - fhMag[0];
+	fYm[1] = dane->fMagne1[1] - fhMag[1];
+	fYm[2] = dane->fMagne1[2] - fhMag[2];
+
+	//Macierz obserwacji Ha  [Pomiar x Stan]
+	fHm[0][0] = 2.0f * ( fMx * fX[0] + fMy * fX[3] - fMz * fX[2]);	// Hm = dhMag/dx
+	fHm[0][1] = 2.0f * ( fMx * fX[1] + fMy * fX[2] + fMz * fX[3]);
+	fHm[0][2] = 2.0f * (-fMx * fX[2] - fMy * fX[1] + fMz * fX[0]);
+	fHm[0][3] = 2.0f * (-fMx * fX[3] + fMy * fX[0] + fMz * fX[1]);
+	fHm[0][4] = 0.0f;
+	fHm[0][5] = 0.0f;
+	fHm[0][6] = 0.0f;
+
+	fHm[1][0] = 2.0f * (-fMx * fX[3] + fMy * fX[0] + fMz * fX[1]);	// my axis
+	fHm[1][1] = 2.0f * ( fMx * fX[1] + fMy * fX[2] - fMz * fX[3]);
+	fHm[1][2] = 2.0f * (-fMx * fX[0] + fMy * fX[3] - fMz * fX[2]);
+	fHm[1][3] = 2.0f * (-fMx * fX[2] - fMy * fX[1] + fMz * fX[0]);
+	fHm[1][4] = 0.0f;
+	fHm[1][5] = 0.0f;
+	fHm[1][6] = 0.0f;
+
+	fHm[2][0] = 2.0f * ( fMx * fX[2] - fMy * fX[1] + fMz * fX[0]);	// mz axis
+	fHm[2][1] = 2.0f * ( fMx * fX[3] + fMy * fX[0] + fMz * fX[1]);
+	fHm[2][2] = 2.0f * ( fMx * fX[0] + fMy * fX[3] - fMz * fX[2]);
+	fHm[2][3] = 2.0f * ( fMx * fX[1] + fMy * fX[2] + fMz * fX[3]);
+	fHm[2][4] = 0.0f;
+	fHm[2][5] = 0.0f;
+	fHm[2][6] = 0.0f;
+
+	//liczę współczynnik wzmocnienia Kalmana: mK,
+	//najpierw transponowane H -> mTempSPc	 [Pomiar x Stan] -> [Stan x Pomiar]
+	cBłąd |= arm_mat_trans_f32(&mHm, &mTempSPA);
+
+	// P(n-1) * (H^T) -> mPHa				[Stan x Stan] * [Stan x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mP, &mTempSPA, &mPHm);
+
+	//H * (P(n-1)*H^T) -> fTempPPcA			[Pomiar x Stan] * [Stan x Pomiar] = [Pomiar x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mHm, &mPHm, &mTempPPA);
+
+	//(H*P(n-1)*H^T) + R(n) -> fTempPPcB	[Pomiar x Pomiar] + [Pomiar x Pomiar] = [Pomiar x Pomiar]
+	cBłąd |= arm_mat_add_f32(&mTempPPA, &mRm, &mTempPPB);
+
+	//inwersja powyższego: (H*P(n-1)*H^T+R(n))^-1 -> fTempPPcA	[Pomiar x Pomiar] -> [Pomiar x Pomiar]
+	cBłąd |= arm_mat_inverse_f32(&mTempPPB, &mTempPPA);
+
+	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mK	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mPHm, &mTempPPA, &mKm);
+
+
+	//Estymata_x(n) = Estymata_x(n-1) + K(n) * y(n)
+	//mnożenie przez K: K(n) *  y(n)		[Stan x Pomiar] * [Pomiar] = [Stan]
+	cBłąd |= arm_mat_mult_f32(&mKm, &mYm, &mTempS1A);
+
+	//dodanie poprzedniej estymaty: Estymata_x(n-1) + K(n)*(z(n)-H*X(n-1))	[Stan] + [Stan] = [Stan]
+	cBłąd |= arm_mat_add_f32(&mX, &mTempS1A, &mTempS1B);
+
+	//normalizacja kwaternionu
+	NormalizujWektor(fTempS1B, fTempS1A, KKWAT);
+
+	//przepisanie estymaty kwaternionu do wektora stanu
+	for (uint8_t n=0; n<KKWAT; n++)
+		fX[n] = fTempS1A[n];
+
+	//przepisanie estymaty błędu do wektora stanu
+	for (uint8_t n=KKWAT; n<(KKWAT + KPOMR); n++)
+		fX[n] = fTempS1B[n];
+
+	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempSSA	 [Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mKm, &mHm, &mTempSSA);
+
+	//odejmowanie (I - K(n) * H) -> mTempSSB
+	cBłąd |= arm_mat_sub_f32(&mI, &mTempSSA, &mTempSSB);
+
+	//mnożenie (I-K(n)*H) * P(n-1) -> mTempSSA 	[Stan x Stan] * [Stan x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mTempSSB, &mP, &mTempSSA);
+
+	//transpozycja: (I-K(n)*H)^T-> mTempSSC
+	cBłąd |= arm_mat_trans_f32(&mTempSSB, &mTempSSC);
+
+	//mnożenie: (I-K(n)*H)*P(n-1) * (I-K(n)*H)^T
+	cBłąd |= arm_mat_mult_f32(&mTempSSA, &mTempSSC, &mTempSSB);
+
+	//mnożenie 	K(n) * R(n)  -> mTempSPc  	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
+	cBłąd |= arm_mat_mult_f32(&mKm, &mRm, &mTempSPA);
+
+	//transpozycja K(n)^T -> mTempM24  		[Stan x Pomiar] -> [Pomiar x Stan]
+	cBłąd |= arm_mat_trans_f32(&mKm, &mTempPSA);
+
+	//mnożenie 	(K(n)*R(n)) * (K(n)^T) 	 	[Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
+	cBłąd |= arm_mat_mult_f32(&mTempSPA, &mTempPSA, &mTempSSA);
+
+	//finalne sumowanie ((I-K(n)*H)*P(n-1)*(I*K(n)*H)^T) + (K(n)*R(n)*K(n)^T) -> P(n)
+	cBłąd |= arm_mat_add_f32(&mTempSSB, &mTempSSA, &mP);
 	return cBłąd;
 }
+

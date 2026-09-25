@@ -194,7 +194,7 @@ void PetlaGlowna(void)
 			cBłądPG = AktulizacjaAkcelerometrem2FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 		}
-		else
+		else	//jeżeli filtr nie jest zainicjowany to inicjuj go
 		{
 			//cBłądPG = InicjujFiltrKalmanaWysokości4X3Z(&uDaneCM4.dane);
 			//cBłądPG = InicjujFiltrKalmanaWysokości5X6Z(&uDaneCM4.dane);
@@ -202,15 +202,21 @@ void PetlaGlowna(void)
 			PrzechwyćBłąd(cBłądPG);
 		}
 
-		//teraz filtr kalmana kątów orientacji
+		//teraz filtr Kalmana kątów orientacji
 		if (uDaneCM4.dane.nZainicjowano & INIT_KALMAN_KATOW)
 		{
 			cBłądPG = PredykcjaFiltraKalmanaKątów7X9Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 			cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
+
+			if (uDaneCM4.dane.cNowyPomiar & NP_MAG1)
+			{
+				cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(&uDaneCM4.dane);
+				PrzechwyćBłąd(cBłądPG);
+			}
 		}
-		else
+		else	//jeżeli filtr nie jest zainicjowany to inicjuj go
 		{
 			cBłądPG = InicjujFiltrKalmanaKątów7X9Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);

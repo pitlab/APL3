@@ -13,13 +13,13 @@
 #include "arm_math.h"
 
 #define KSTAN		7	//rozmiar wektora stanu
-#define KPIMU		6	//rozmiar wektora pomiaru IMU: 3 przyspieszenia i 3 prędkosci katowe
-#define KPMAG		3	//rozmiar wektora pomiaru magnetometru
+#define KKWAT		4	//rozmiar kwaternionu
+#define KPOMR		3	//rozmiar wektora pomiaru
 
 #define WARIANCJA_BLEDU_ZYRO	5.0e-8f		//określa jak szybko może zmieniać sie błąd żyroskopu
 #define WARIANCJA_SZUMU_ZYRO	5.0e-3f		//określa jak szybko może zmieniać sie pomiar żyroskopu
 #define WARIANCJA_SZUMU_ACEL 	6.0e-2;		//określa jak szybko może zmieniać sie pomiar akcelerometru
-#define WARIANCJA_SZUMU_MAGN 	7.0e-1f;	//określa jak szybko może zmieniać sie pomiar magnetometru
+#define WARIANCJA_SZUMU_MAGN 	7.0e-1f;	//określa jak szybko może zmieniać sie pomiar magnetometru - uwaga: do obliczenia wariancji wektor musi być znormalizowany, bo w takiej formie występuje w filtrze
 
 typedef struct
 {
@@ -35,5 +35,6 @@ typedef struct
 uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane);
 uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane);
 uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane);
+uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane);
 
 #endif /* INC_KALMANKATOW7X9Z_H_ */
