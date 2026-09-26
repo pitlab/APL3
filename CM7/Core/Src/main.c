@@ -223,6 +223,8 @@ extern unia_wymianyCM7_t uDaneCM7;
 
 //uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM2"))) chBuforSD[512];
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaAxiSRAM"))) chBuforSD[512];
+//SemaphoreHandle_t osMutexSPI;	//mutex (Mutual Exclusion) do współdzielenia SPI5 pomiędzy LCD i  panel dotykowy
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -1666,7 +1668,7 @@ void StartDefaultTask(void *argument)
   uint8_t cStanDekodera;
   uint8_t cDzielnikCzasu = 0;
   extern uint8_t cIndeksBuforaBłędów;
-  extern uint8_t cPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
+  //extern uint8_t cPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
 
   uDaneCM7.dane.cWyborOdbiornikaRC = ODB_OBA;	//przesyłaj stan obu odbiorników po dywersyfikacji
   for(;;)
@@ -1684,35 +1686,7 @@ void StartDefaultTask(void *argument)
 
 		PobierzDaneDoFFT();
 
-		//obsługa przerwania EXTI: TP_INT od panelu dotykowego
-		if (stStatusDotyku.cFlagi & DOTYK_PRZERWANIE)
-		{
-			if (stStatusDotyku.cFlagi & DOTYK_OBSLUZONO_IRQ)
-			{
-				//czekaj aż linia przerwania  podniesię sie do stanu H, wtedy ponownie włącz przerwanie
-				if (HAL_GPIO_ReadPin(TP_INT_GPIO_Port, TP_INT_Pin) == GPIO_PIN_SET)
-				{
-					stStatusDotyku.cFlagi &= ~(DOTYK_PRZERWANIE | DOTYK_OBSLUZONO_IRQ);
-					__HAL_GPIO_EXTI_CLEAR_IT(TP_INT_Pin);
-					HAL_NVIC_ClearPendingIRQ(EXTI15_10_IRQn);
-					HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-				}
-			}
-			else
-			{
-				HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);	//wyłącz reakcję na przerwanie
-				cStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
-				cBłąd = CzytajDotyk();
-				if (cBłąd == BLAD_OK)
-				{
-					cBłąd = PobierzDaneExpandera(SPI_EXTIO_0, &cPort_exp_odbierany[0]);	//odczytaj  stan GPIO expandera aby skasować przerwanie
-					if (cBłąd == BLAD_OK)
-						stStatusDotyku.cFlagi |= DOTYK_OBSLUZONO_IRQ;
-					__HAL_GPIO_EXTI_CLEAR_IT(TP_INT_Pin);	//kasuj EXTI pending register
-				}
-				UstawDekoderZewn(cStanDekodera);		//odtwórz stan dekodera
-			}
-		}
+
 
 		//pozostałe czynności mogą być uruchamiane z mniejszą częstotliwością 50 Hz
 		cDzielnikCzasu++;

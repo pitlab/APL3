@@ -193,6 +193,7 @@ void PetlaGlowna(void)
 			cBłądPG = AktulizacjaAkcelerometrem1FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 			cBłądPG = AktulizacjaAkcelerometrem2FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
+			uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2 | NP_WYS3);	//usuń flagę nowych pomiarów wysokości
 		}
 		else	//jeżeli filtr nie jest zainicjowany to inicjuj go
 		{
@@ -214,6 +215,7 @@ void PetlaGlowna(void)
 			{
 				cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(&uDaneCM4.dane);
 				PrzechwyćBłąd(cBłądPG);
+				uDaneCM4.dane.cNowyPomiar &= ~(NP_MAG1);	//usuń flagę nowych pomiarów
 			}
 		}
 		else	//jeżeli filtr nie jest zainicjowany to inicjuj go
@@ -221,7 +223,6 @@ void PetlaGlowna(void)
 			cBłądPG = InicjujFiltrKalmanaKątów7X9Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 		}
-		uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2 | NP_WYS3);	//usuń flagę nowych pomiarów wysokości
 		break;
 
 	case 7:
@@ -713,7 +714,6 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 	int16_t sZeZnakiem;	//zmiena robocza do konwersji dnych 8-bitowych bez znaku na liczbę 16-bitową ze znakiem
 	float fZeZnakiem;
 	const int8_t cZnakIIS[3] = {1, -1, -1};	//magnetometr 1: odwrotnie jest oś Z, ale żeby ją odwrócić, trzeba zmienić też znak w osi X lub Y. Zmieniam w Y: OK
-	//const int8_t cZnakMMC[3] = {-1, 1, -1};	//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z - zle
 	const int8_t cZnakMMC[3] = {-1, -1, 1};		//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z
 	const int8_t cZnakHMC[3] = {1, -1, 1};	//magnetometr 3: jest OK
 
@@ -763,10 +763,10 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 		for (uint8_t n=0; n<3; n++)
 		{
 			sZeZnakiem = ((int16_t)cDaneMagIIS[2*n+1] * 0x100 + cDaneMagIIS[2*n]) * cZnakIIS[n];
-			//if ((uDaneCM7.dane.cWykonajPolecenie == POL7_KAL_ZERO_MAGN1) || (uDaneCM7.dane.cWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
+			if ((uDaneCM7.dane.cWykonajPolecenie == POL7_KAL_ZERO_MAGN1) || (uDaneCM7.dane.cWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
 				uDaneCM4.dane.fMagne1[n] = (float)sZeZnakiem * CZULOSC_IIS2MDC;			//dane surowe podczas kalibracji magnetometru
-			//else
-				//uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
+			else
+				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
 		}
 		*sCzujniki &= ~MAG_IIS;	//dane obsłużone
 		uDaneCM4.dane.cNowyPomiar |= NP_MAG1;	//jest nowy pomiar
@@ -801,11 +801,11 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 					fZeZnakiem = (sPomiarMMCL[n] + fPoleCzujnkaMMC[n]) * -1;
 			}
 
-			//if ((uDaneCM7.dane.cWykonajPolecenie == POL7_KAL_ZERO_MAGN2) || (uDaneCM7.dane.cWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
+			if ((uDaneCM7.dane.cWykonajPolecenie == POL7_KAL_ZERO_MAGN2) || (uDaneCM7.dane.cWykonajPolecenie == POL7_ZERUJ_EKSTREMA))
 				uDaneCM4.dane.fMagne2[n] = fZeZnakiem * CZULOSC_MMC34160;	//dane surowe podczas kalibracji magnetometru
-			//else
-				//uDaneCM4.dane.fMagne2[n] = (fZeZnakiem * CZULOSC_MMC34160 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
-			//uDaneCM4.dane.fMagne2[n] = fZeZnakiem;
+			else
+				uDaneCM4.dane.fMagne2[n] = (fZeZnakiem * CZULOSC_MMC34160 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
+			uDaneCM4.dane.fMagne2[n] = fZeZnakiem;
 		}
 		cPoprzedniRodzajPomiaru = cRodzajPomiaruMMC;
 		*sCzujniki &= ~MAG_MMC;	//dane obsłużone

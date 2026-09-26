@@ -41,6 +41,7 @@
 #include "lwip/stats.h"
 #include "LCD/LCD_mem.h"
 #include "OSD.h"
+#include "ModulySPI.h"
 
 //deklaracje zmiennych
 extern uint8_t cMidFont[];
@@ -351,6 +352,8 @@ menu_t stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY] = {
 void WatekWyswietlacza(void *argument)
 {
 	uint8_t cBłąd;
+	uint8_t cStanDekodera;
+	extern uint8_t cPort_exp_odbierany[LICZBA_EXP_SPI_ZEWN];
 	for(;;)
 	{
 		if (nZainicjowanoCM7 & INIT_LCD480x320)		//obsłuż wyświetlacz tylko wtedy jest zainicjowany
@@ -361,6 +364,36 @@ void WatekWyswietlacza(void *argument)
 		}
 		else
 			osDelay(1000);
+
+		//obsługa przerwania EXTI: TP_INT od panelu dotykowego
+		if (stStatusDotyku.cFlagi & DOTYK_PRZERWANIE)
+		{
+			if (stStatusDotyku.cFlagi & DOTYK_OBSLUZONO_IRQ)
+			{
+				//czekaj aż linia przerwania  podniesię sie do stanu H, wtedy ponownie włącz przerwanie
+				if (HAL_GPIO_ReadPin(TP_INT_GPIO_Port, TP_INT_Pin) == GPIO_PIN_SET)
+				{
+					stStatusDotyku.cFlagi &= ~(DOTYK_PRZERWANIE | DOTYK_OBSLUZONO_IRQ);
+					__HAL_GPIO_EXTI_CLEAR_IT(TP_INT_Pin);
+					HAL_NVIC_ClearPendingIRQ(EXTI15_10_IRQn);
+					HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+				}
+			}
+			else
+			{
+				HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);	//wyłącz reakcję na przerwanie
+				cStanDekodera = PobierzStanDekoderaZewn();	//zapamietaj stan dekodera
+				cBłąd = CzytajDotyk();
+				if (cBłąd == BLAD_OK)
+				{
+					cBłąd = PobierzDaneExpandera(SPI_EXTIO_0, &cPort_exp_odbierany[0]);	//odczytaj  stan GPIO expandera aby skasować przerwanie
+					if (cBłąd == BLAD_OK)
+						stStatusDotyku.cFlagi |= DOTYK_OBSLUZONO_IRQ;
+					__HAL_GPIO_EXTI_CLEAR_IT(TP_INT_Pin);	//kasuj EXTI pending register
+				}
+				UstawDekoderZewn(cStanDekodera);		//odtwórz stan dekodera
+			}
+		}
 	}
 }
 
@@ -1522,7 +1555,7 @@ uint8_t RysujEkran(void)
 
 
 //*** Magnetometr ************************************************
-	case TP_MAGNETOMETR:	//menu obsługi magnetometru
+	case TP_KAL_MAG:	//menu obsługi magnetometru
 		//Menu((char*)cNapisLcd[STR_MENU_MAGNETOMETR], stMenuMagnetometr, &cNowyTrybPracy);
 		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_MAGNETOMETR]);
 		cBłąd = Menu(cNapisPodreczny, stMenuMagnetometr, &cNowyTrybPracy);
@@ -1837,7 +1870,7 @@ uint8_t RysujEkran(void)
 		case TP_WROC_DO_WYDAJN:		cTrybPracy = TP_WYDAJNOSC;		break;	//powrót do menu Wydajność
 		case TP_WROC_DO_KARTA:		cTrybPracy = TP_KARTA_SD;		break;	//powrót do menu Karta SD
 		case TP_WROC_KAL_IMU:		cTrybPracy = TP_KAL_IMU;		break;	//powrót do menu IMU
-		case TP_WROC_DO_MAG:		cTrybPracy = TP_MAGNETOMETR;	break;	//powrót do menu Magnetometr
+		case TP_WROC_DO_MAG:		cTrybPracy = TP_KAL_MAG;		break;	//powrót do menu Magnetometr
 		case TP_WROC_DO_POMIARY:	cTrybPracy = TP_POMIARY;		break;	//powrót do menu Pomiary
 		case TP_WROC_DO_NASTAWY:	cTrybPracy = TP_NASTAWY;		break;	//powrót do menu Nastawy
 		case TP_FRAKTALE:			InitFraktal(START_FRAKTAL);		cTrybPracy = TP_FRAKTALE;	break;
@@ -4266,15 +4299,15 @@ void PlaskiObrotMagnetometrow(void)
 
 
 	setColor(CYJAN);
-	sprintf(cNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne1[0]*1000, uDaneCM4.dane.fMagne1[1]*1e6f);
+	sprintf(cNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne1[0], uDaneCM4.dane.fMagne1[1]);
 	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 120);
 
 	setColor(MAGENTA);
-	sprintf(cNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne2[0]*1000, uDaneCM4.dane.fMagne2[1]*1e6f);
+	sprintf(cNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne2[0], uDaneCM4.dane.fMagne2[1]);
 	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 140);
 
 	setColor(ZOLTY);
-	sprintf(cNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne3[0]*1000, uDaneCM4.dane.fMagne3[1]*1e6f);
+	sprintf(cNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne3[0], uDaneCM4.dane.fMagne3[1]);
 	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 160);
 }
 

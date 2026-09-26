@@ -14,61 +14,61 @@
 //Wynik mnożenia macierzy ma rozmiar wierszy drugiej x kolumn pierwszej
 
 //zmienne z przedrostkiem f oznaczaja macierze lub wektory na liczbach float
-static float32_t fX[KSTAN];					//wektor stanu: 0..3=kwaternion orientacji, 4..6= błędy prędkości kątowych
-static float32_t fYa[KPOMR];				//wektor innowacji akcelerometru
-static float32_t fYm[KPOMR];				//wektor innowacji magnetometru
-static float32_t fF[KSTAN][KSTAN];			//macierz przejścia wektora stanu
-static float32_t fP[KSTAN][KSTAN];			//macierz kowariancji predykcji
-static float32_t fRa[KPOMR][KPOMR];			//macierz kowariancji pomiaru wektora przyspieszenia
-static float32_t fRm[KPOMR][KPOMR];			//macierz kowariancji pomiaru wektora magnetycznego
-static float32_t fG[KSTAN][KPOMR];			//macierz sterująca
-static float32_t fQ[KSTAN][KSTAN];			//macierz szumu procesu
-static float32_t fI[KSTAN][KSTAN];			//macierz jednostkowa
-static float32_t fHa[KPOMR][KSTAN];			//macierz obserwacji przyspieszenia
-static float32_t fHm[KPOMR][KSTAN];			//macierz obserwacji wektora magnetycznego
-static float32_t fKa[KSTAN][KPOMR];			//macierz wzmocnień Kalmana dla IMU
-static float32_t fKm[KSTAN][KPOMR];			//macierz wzmocnień Kalmana dla magnetometru
+static float32_t fX[KKSTAN];					//wektor stanu: 0..3=kwaternion orientacji, 4..6= błędy prędkości kątowych
+static float32_t fYa[KKPOMR];				//wektor innowacji akcelerometru
+static float32_t fYm[KKPOMR];				//wektor innowacji magnetometru
+static float32_t fF[KKSTAN][KKSTAN];			//macierz przejścia wektora stanu
+static float32_t fP[KKSTAN][KKSTAN];			//macierz kowariancji predykcji
+static float32_t fRa[KKPOMR][KKPOMR];			//macierz kowariancji pomiaru wektora przyspieszenia
+static float32_t fRm[KKPOMR][KKPOMR];			//macierz kowariancji pomiaru wektora magnetycznego
+static float32_t fG[KKSTAN][KKPOMR];			//macierz sterująca
+static float32_t fQ[KKSTAN][KKSTAN];			//macierz szumu procesu
+static float32_t fI[KKSTAN][KKSTAN];			//macierz jednostkowa
+static float32_t fHa[KKPOMR][KKSTAN];			//macierz obserwacji przyspieszenia
+static float32_t fHm[KKPOMR][KKSTAN];			//macierz obserwacji wektora magnetycznego
+static float32_t fKa[KKSTAN][KKPOMR];			//macierz wzmocnień Kalmana dla IMU
+static float32_t fKm[KKSTAN][KKPOMR];			//macierz wzmocnień Kalmana dla magnetometru
 
 //macierze robocze do przechowywania wyników pośrednich
-static float32_t fPHa[KSTAN][KPOMR];		//macierz [Stan x Pomiar] na wyniki pośrednie
-static float32_t fPHm[KSTAN][KPOMR];		//macierz [Stan x Pomiar] na wyniki pośrednie
-static float32_t fTempSPA[KSTAN][KPOMR];	//macierz [Stan x Pomiar] na wyniki pośrednie A
-static float32_t fTempPSA[KPOMR][KSTAN];	//macierz [Pomiar x Stan] na wyniki pośrednie A
-static float32_t fTempPPA[KPOMR][KPOMR];	//macierz [Pomiar x Pomiar] na wyniki pośrednie A
-static float32_t fTempPPB[KPOMR][KPOMR];	//macierz [Pomiar x Pomiar] na wyniki pośrednie B
-static float32_t fTempSSA[KSTAN][KSTAN];	//macierz [Stan x Stan] na wyniki pośrednie A
-static float32_t fTempSSB[KSTAN][KSTAN];	//macierz [Stan x Stan] na wyniki pośrednie B
-static float32_t fTempSSC[KSTAN][KSTAN];	//macierz [Stan x Stan] na wyniki pośrednie C
-static float32_t fTempS1A[KSTAN];			//wektor [Stan] na wyniki pośrednie A
-static float32_t fTempS1B[KSTAN];			//wektor [Stan] na wyniki pośrednie B
+static float32_t fPHa[KKSTAN][KKPOMR];		//macierz [Stan x Pomiar] na wyniki pośrednie
+static float32_t fPHm[KKSTAN][KKPOMR];		//macierz [Stan x Pomiar] na wyniki pośrednie
+static float32_t fTempSPA[KKSTAN][KKPOMR];	//macierz [Stan x Pomiar] na wyniki pośrednie A
+static float32_t fTempPSA[KKPOMR][KKSTAN];	//macierz [Pomiar x Stan] na wyniki pośrednie A
+static float32_t fTempPPA[KKPOMR][KKPOMR];	//macierz [Pomiar x Pomiar] na wyniki pośrednie A
+static float32_t fTempPPB[KKPOMR][KKPOMR];	//macierz [Pomiar x Pomiar] na wyniki pośrednie B
+static float32_t fTempSSA[KKSTAN][KKSTAN];	//macierz [Stan x Stan] na wyniki pośrednie A
+static float32_t fTempSSB[KKSTAN][KKSTAN];	//macierz [Stan x Stan] na wyniki pośrednie B
+static float32_t fTempSSC[KKSTAN][KKSTAN];	//macierz [Stan x Stan] na wyniki pośrednie C
+static float32_t fTempS1A[KKSTAN];			//wektor [Stan] na wyniki pośrednie A
+static float32_t fTempS1B[KKSTAN];			//wektor [Stan] na wyniki pośrednie B
 
 //zmienne z przedrostkiem m oznaczają macierze (lub wektory) w formacie biblioteki ARM DSP
-static arm_matrix_instance_f32 mX   = {KSTAN, 1, fX};					//wektor stanu
-static arm_matrix_instance_f32 mYa  = {KPOMR, 1, fYa};					//wektor innowacji akcelerometru
-static arm_matrix_instance_f32 mYm  = {KPOMR, 1, fYm};					//wektor innowacji magnetometru
-static arm_matrix_instance_f32 mF   = {KSTAN, KSTAN, &fF[0][0]};		//macierz przejścia wektora stanu
-static arm_matrix_instance_f32 mP   = {KSTAN, KSTAN, &fP[0][0]};		//macierz kowariancji predykcji
-static arm_matrix_instance_f32 mRa  = {KPOMR, KPOMR, &fRa[0][0]};		//macierz kowariancji pomiaru przyspieszenia
-static arm_matrix_instance_f32 mRm  = {KPOMR, KPOMR, &fRm[0][0]};		//macierz kowariancji pomiaru magnetometru
-static arm_matrix_instance_f32 mG   = {KSTAN, KPOMR, &fG[0][0]};		//macierz sterująca
-static arm_matrix_instance_f32 mQ   = {KSTAN, KSTAN, &fQ[0][0]};		//macierz szumu procesu
-static arm_matrix_instance_f32 mI   = {KSTAN, KSTAN, &fI[0][0]};		//macierz jednostkowa
-static arm_matrix_instance_f32 mHa  = {KPOMR, KSTAN, &fHa[0][0]};		//macierz obserwacji wektora przyspieszenia
-static arm_matrix_instance_f32 mHm  = {KPOMR, KSTAN, &fHm[0][0]};		//macierz obserwacji wektora magnetycznego
-static arm_matrix_instance_f32 mKa  = {KSTAN, KPOMR, &fKa[0][0]};		//macierz wzmocnień Kalmana czujnika IMU
-static arm_matrix_instance_f32 mKm  = {KSTAN, KPOMR, &fKm[0][0]};		//macierz wzmocnień Kalmana czujnika magnetometru
+static arm_matrix_instance_f32 mX   = {KKSTAN, 1, fX};					//wektor stanu
+static arm_matrix_instance_f32 mYa  = {KKPOMR, 1, fYa};					//wektor innowacji akcelerometru
+static arm_matrix_instance_f32 mYm  = {KKPOMR, 1, fYm};					//wektor innowacji magnetometru
+static arm_matrix_instance_f32 mF   = {KKSTAN, KKSTAN, &fF[0][0]};		//macierz przejścia wektora stanu
+static arm_matrix_instance_f32 mP   = {KKSTAN, KKSTAN, &fP[0][0]};		//macierz kowariancji predykcji
+static arm_matrix_instance_f32 mRa  = {KKPOMR, KKPOMR, &fRa[0][0]};		//macierz kowariancji pomiaru przyspieszenia
+static arm_matrix_instance_f32 mRm  = {KKPOMR, KKPOMR, &fRm[0][0]};		//macierz kowariancji pomiaru magnetometru
+static arm_matrix_instance_f32 mG   = {KKSTAN, KKPOMR, &fG[0][0]};		//macierz sterująca
+static arm_matrix_instance_f32 mQ   = {KKSTAN, KKSTAN, &fQ[0][0]};		//macierz szumu procesu
+static arm_matrix_instance_f32 mI   = {KKSTAN, KKSTAN, &fI[0][0]};		//macierz jednostkowa
+static arm_matrix_instance_f32 mHa  = {KKPOMR, KKSTAN, &fHa[0][0]};		//macierz obserwacji wektora przyspieszenia
+static arm_matrix_instance_f32 mHm  = {KKPOMR, KKSTAN, &fHm[0][0]};		//macierz obserwacji wektora magnetycznego
+static arm_matrix_instance_f32 mKa  = {KKSTAN, KKPOMR, &fKa[0][0]};		//macierz wzmocnień Kalmana czujnika IMU
+static arm_matrix_instance_f32 mKm  = {KKSTAN, KKPOMR, &fKm[0][0]};		//macierz wzmocnień Kalmana czujnika magnetometru
 
-static arm_matrix_instance_f32 mPHa = {KSTAN, KPOMR, &fPHa[0][0]};		//macierz SxPc na iloczyn P*Ha
-static arm_matrix_instance_f32 mPHm = {KSTAN, KPOMR, &fPHm[0][0]};		//macierz SxPa na iloczyn P*Hm
-static arm_matrix_instance_f32 mTempSPA  = {KSTAN, KPOMR, &fTempSPA[0][0]};
-static arm_matrix_instance_f32 mTempPSA  = {KPOMR, KSTAN, &fTempPSA[0][0]};
-static arm_matrix_instance_f32 mTempPPA = {KPOMR, KPOMR, &fTempPPA[0][0]};		//macierz Pc x Pc na wyniki pośrednie A
-static arm_matrix_instance_f32 mTempPPB = {KPOMR, KPOMR, &fTempPPB[0][0]};		//macierz Pc x Pc na wyniki pośrednie B
-static arm_matrix_instance_f32 mTempSSA  = {KSTAN, KSTAN, &fTempSSA[0][0]};		//macierz S x S na wyniki pośrednie A
-static arm_matrix_instance_f32 mTempSSB  = {KSTAN, KSTAN, &fTempSSB[0][0]};		//macierz S x S na wyniki pośrednie B
-static arm_matrix_instance_f32 mTempSSC  = {KSTAN, KSTAN, &fTempSSC[0][0]};		//macierz S x S na wyniki pośrednie C
-static arm_matrix_instance_f32 mTempS1A  = {KSTAN, 1, fTempS1A};				//macierz Sx1 na wyniki pośrednie A
-static arm_matrix_instance_f32 mTempS1B  = {KSTAN, 1, fTempS1B};				//macierz Sx1 na wyniki pośrednie B
+static arm_matrix_instance_f32 mPHa = {KKSTAN, KKPOMR, &fPHa[0][0]};		//macierz SxPc na iloczyn P*Ha
+static arm_matrix_instance_f32 mPHm = {KKSTAN, KKPOMR, &fPHm[0][0]};		//macierz SxPa na iloczyn P*Hm
+static arm_matrix_instance_f32 mTempSPA  = {KKSTAN, KKPOMR, &fTempSPA[0][0]};
+static arm_matrix_instance_f32 mTempPSA  = {KKPOMR, KKSTAN, &fTempPSA[0][0]};
+static arm_matrix_instance_f32 mTempPPA = {KKPOMR, KKPOMR, &fTempPPA[0][0]};		//macierz Pc x Pc na wyniki pośrednie A
+static arm_matrix_instance_f32 mTempPPB = {KKPOMR, KKPOMR, &fTempPPB[0][0]};		//macierz Pc x Pc na wyniki pośrednie B
+static arm_matrix_instance_f32 mTempSSA  = {KKSTAN, KKSTAN, &fTempSSA[0][0]};		//macierz S x S na wyniki pośrednie A
+static arm_matrix_instance_f32 mTempSSB  = {KKSTAN, KKSTAN, &fTempSSB[0][0]};		//macierz S x S na wyniki pośrednie B
+static arm_matrix_instance_f32 mTempSSC  = {KKSTAN, KKSTAN, &fTempSSC[0][0]};		//macierz S x S na wyniki pośrednie C
+static arm_matrix_instance_f32 mTempS1A  = {KKSTAN, 1, fTempS1A};				//macierz Sx1 na wyniki pośrednie A
+static arm_matrix_instance_f32 mTempS1B  = {KKSTAN, 1, fTempS1B};				//macierz Sx1 na wyniki pośrednie B
 
 float fRefMagX;	//układ odniesienia pola magnetycznego
 float fRefMagY;
@@ -95,14 +95,14 @@ uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	fX[4] = 0.0f;	//błąd pomiaru prędkosci kątowej P
 	fX[5] = 0.0f;	//błąd pomiaru prędkosci kątowej Q
 	fX[6] = 0.0f;	//błąd pomiaru prędkosci kątowej R
-	arm_mat_init_f32(&mX, KSTAN, 1, fX);
-	arm_mat_init_f32(&mYa, KPOMR, 1, fYa);
+	arm_mat_init_f32(&mX, KKSTAN, 1, fX);
+	arm_mat_init_f32(&mYa, KKPOMR, 1, fYa);
 
-	memset(fF, 0, sizeof(float) * KSTAN * KSTAN);	//wypełnij zerami macierz przejścia
-	arm_mat_init_f32(&mF, KSTAN, KSTAN, &fF[0][0]);
+	memset(fF, 0, sizeof(float) * KKSTAN * KKSTAN);	//wypełnij zerami macierz przejścia
+	arm_mat_init_f32(&mF, KKSTAN, KKSTAN, &fF[0][0]);
 
 	//początkowa wariancja predykcji
-	memset(fP, 0, sizeof(float) * KSTAN * KSTAN);
+	memset(fP, 0, sizeof(float) * KKSTAN * KKSTAN);
 	fP[0][0] = 0.055;
 	fP[1][1] = 1.0e-2;
 	fP[2][2] = 6.0e-2;
@@ -110,68 +110,68 @@ uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	fP[4][4] = 1.0e-2;
 	fP[5][5] = 1.0e-2;
 	fP[6][6] = 1.0e-2;
-	arm_mat_init_f32(&mP, KSTAN, KSTAN, &fP[0][0]);
+	arm_mat_init_f32(&mP, KKSTAN, KKSTAN, &fP[0][0]);
 
 	//inicjalizacja macierzy wariancji procesu
-	memset(fQ, 0, sizeof(float) * KSTAN * KSTAN);	//wypełnij zerami
-	arm_mat_init_f32(&mQ, KSTAN, KSTAN, &fQ[0][0]);
+	memset(fQ, 0, sizeof(float) * KKSTAN * KKSTAN);	//wypełnij zerami
+	arm_mat_init_f32(&mQ, KKSTAN, KKSTAN, &fQ[0][0]);
 
 	//inicjalizacja macierzy wariancji pomiaru akcelerometrem
-	memset(fRa, 0, sizeof(float) * KPOMR * KPOMR);
+	memset(fRa, 0, sizeof(float) * KKPOMR * KKPOMR);
 	fRa[0][0] = WARIANCJA_SZUMU_ACEL;
 	fRa[1][1] = WARIANCJA_SZUMU_ACEL;
 	fRa[2][2] = WARIANCJA_SZUMU_ACEL;
-	arm_mat_init_f32(&mRa, KPOMR, KPOMR, &fRa[0][0]);
+	arm_mat_init_f32(&mRa, KKPOMR, KKPOMR, &fRa[0][0]);
 
-	memset(fRm, 0, sizeof(float) * KPOMR * KPOMR);
+	memset(fRm, 0, sizeof(float) * KKPOMR * KKPOMR);
 	fRm[0][0] = WARIANCJA_SZUMU_MAGN;
 	fRm[1][1] = WARIANCJA_SZUMU_MAGN;
 	fRm[2][2] = WARIANCJA_SZUMU_MAGN;
-	arm_mat_init_f32(&mRm, KPOMR, KPOMR, &fRm[0][0]);
+	arm_mat_init_f32(&mRm, KKPOMR, KKPOMR, &fRm[0][0]);
 
 	//inicjalizacja macierzy sterowania
-	memset(fG, 0, sizeof(float) * KSTAN * KPOMR);	//wypełnij zerami
-	arm_mat_init_f32(&mG, KSTAN, KPOMR, &fG[0][0]);
+	memset(fG, 0, sizeof(float) * KKSTAN * KKPOMR);	//wypełnij zerami
+	arm_mat_init_f32(&mG, KKSTAN, KKPOMR, &fG[0][0]);
 
 	//inicjalziacja macierzy jednostkowej
-	memset(fI, 0, sizeof(float) * KSTAN * KSTAN);	//wypełnij zerami
-	for (uint8_t n=0; n<KSTAN; n++)
+	memset(fI, 0, sizeof(float) * KKSTAN * KKSTAN);	//wypełnij zerami
+	for (uint8_t n=0; n<KKSTAN; n++)
 		fI[n][n] = 1.0f;
-	arm_mat_init_f32(&mI, KSTAN, KSTAN, &fG[0][0]);
+	arm_mat_init_f32(&mI, KKSTAN, KKSTAN, &fG[0][0]);
 
-	memset(fHa, 0, sizeof(float) * KPOMR * KSTAN);
-	arm_mat_init_f32(&mHa, KPOMR, KSTAN, &fHa[0][0]);	//macierz obserwacji wektora przyspieszenia
+	memset(fHa, 0, sizeof(float) * KKPOMR * KKSTAN);
+	arm_mat_init_f32(&mHa, KKPOMR, KKSTAN, &fHa[0][0]);	//macierz obserwacji wektora przyspieszenia
 
-	arm_mat_init_f32(&mKa, KSTAN, KPOMR, &fKa[0][0]);	//macierz wzmocnień Kalmana
+	arm_mat_init_f32(&mKa, KKSTAN, KKPOMR, &fKa[0][0]);	//macierz wzmocnień Kalmana
 
-	memset(fPHa, 0, sizeof(float) * KSTAN * KPOMR);
-	arm_mat_init_f32(&mPHa, KSTAN, KPOMR, &fPHa[0][0]);
+	memset(fPHa, 0, sizeof(float) * KKSTAN * KKPOMR);
+	arm_mat_init_f32(&mPHa, KKSTAN, KKPOMR, &fPHa[0][0]);
 
-	memset(fTempPPA, 0, sizeof(float) * KPOMR * KPOMR);
-	arm_mat_init_f32(&mTempPPA, KPOMR, KPOMR, &fTempPPA[0][0]);
+	memset(fTempPPA, 0, sizeof(float) * KKPOMR * KKPOMR);
+	arm_mat_init_f32(&mTempPPA, KKPOMR, KKPOMR, &fTempPPA[0][0]);
 
-	memset(fTempPPB, 0, sizeof(float) * KPOMR * KPOMR);
-	arm_mat_init_f32(&mTempPPB, KPOMR, KPOMR, &fTempPPB[0][0]);
+	memset(fTempPPB, 0, sizeof(float) * KKPOMR * KKPOMR);
+	arm_mat_init_f32(&mTempPPB, KKPOMR, KKPOMR, &fTempPPB[0][0]);
 
-	memset(fTempSPA, 0, sizeof(float) * KSTAN * KPOMR);
-	arm_mat_init_f32(&mTempSPA, KSTAN, KPOMR, &fTempSPA[0][0]);
+	memset(fTempSPA, 0, sizeof(float) * KKSTAN * KKPOMR);
+	arm_mat_init_f32(&mTempSPA, KKSTAN, KKPOMR, &fTempSPA[0][0]);
 
-	memset(fTempPSA, 0, sizeof(float) * KPOMR * KSTAN);
-	arm_mat_init_f32(&mTempPSA, KPOMR, KSTAN, &fTempPSA[0][0]);
+	memset(fTempPSA, 0, sizeof(float) * KKPOMR * KKSTAN);
+	arm_mat_init_f32(&mTempPSA, KKPOMR, KKSTAN, &fTempPSA[0][0]);
 
-	memset(fTempSSA, 0, sizeof(float) * KSTAN * KSTAN);
-	arm_mat_init_f32(&mTempSSA, KSTAN, KSTAN, &fTempSSA[0][0]);
+	memset(fTempSSA, 0, sizeof(float) * KKSTAN * KKSTAN);
+	arm_mat_init_f32(&mTempSSA, KKSTAN, KKSTAN, &fTempSSA[0][0]);
 
-	memset(fTempSSB, 0, sizeof(float) * KSTAN * KSTAN);
-	arm_mat_init_f32(&mTempSSB, KSTAN, KSTAN, &fTempSSB[0][0]);
+	memset(fTempSSB, 0, sizeof(float) * KKSTAN * KKSTAN);
+	arm_mat_init_f32(&mTempSSB, KKSTAN, KKSTAN, &fTempSSB[0][0]);
 
-	memset(fTempSSC, 0, sizeof(float) * KSTAN * KSTAN);
-	arm_mat_init_f32(&mTempSSC, KSTAN, KSTAN, &fTempSSC[0][0]);
+	memset(fTempSSC, 0, sizeof(float) * KKSTAN * KKSTAN);
+	arm_mat_init_f32(&mTempSSC, KKSTAN, KKSTAN, &fTempSSC[0][0]);
 
-	memset(fTempS1A, 0, sizeof(float) * KSTAN * 1);
-	arm_mat_init_f32(&mTempS1A, KSTAN, 1, &fTempS1A[0]);
-	memset(fTempS1B, 0, sizeof(float) * KSTAN * 1);
-	arm_mat_init_f32(&mTempS1B, KSTAN, 1, &fTempS1B[0]);
+	memset(fTempS1A, 0, sizeof(float) * KKSTAN * 1);
+	arm_mat_init_f32(&mTempS1A, KKSTAN, 1, &fTempS1A[0]);
+	memset(fTempS1B, 0, sizeof(float) * KKSTAN * 1);
+	arm_mat_init_f32(&mTempS1B, KKSTAN, 1, &fTempS1B[0]);
 
 	//układ odniesienia pola magnetycznego
 	fRefMagX = cosf(INKLINACJA_MAG);
@@ -220,7 +220,7 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 
 	//jeżeli macierz P jest NaN to ją inicjuj
 	if (isnan(fP[0][0]))
-		memset(fP, 0, sizeof(float) * KSTAN * KSTAN);
+		memset(fP, 0, sizeof(float) * KKSTAN * KKSTAN);
 
 	//Macierz F przejścia wektora stanu: F = I + 0.5 * Omega * dt - wymaga zasilenie starym kwaternionem, więc wypełniam ją jeszcze przed predykcją
 	fF[0][0] =  1.0f;
@@ -270,10 +270,10 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	fTempS1A[1] = fX[1] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[0] + fX[2] * fOmega[2] - fX[3] * fOmega[1]);	//kwaternion x
 	fTempS1A[2] = fX[2] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[1] - fX[1] * fOmega[2] + fX[3] * fOmega[0]);	//kwaternion y
 	fTempS1A[3] = fX[3] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[2] + fX[1] * fOmega[1] - fX[2] * fOmega[0]);	//kwaternion z
-	NormalizujWektor(fTempS1A, fTempS1B, KKWAT);
+	NormalizujWektor(fTempS1A, fTempS1B, KWATER);
 
 	//Przepisz wynik predykcji do zmiennych wynikowych
-	for (uint8_t n=0; n<KSTAN; n++)
+	for (uint8_t n=0; n<KKSTAN; n++)
 		dane->fKalmanKataX[n] = fX[n] = fTempS1B[n];
 
 	//oblicz kąty orientacji z kwaternionu
@@ -284,7 +284,7 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	//2 Oblicz predykcję kowariancji (niepewności) nowej wartości:  P(n+1) = F * P(n) * F^T + Q
 	//Obliczenie szumu procesu Q składajacego się z szumu kwaterniony na który wpływa żyroskop i szumu błędu żyroskopów
 	//Najpierw szum procesu dla żyroskopu wpływającego na kwaternion: Qzyro = Gg * Qg * Gg^T
-	memset(fTempPPA, 0, sizeof(float) * KPOMR * KPOMR);	//wypełnij zerami macierz roboczą Qg
+	memset(fTempPPA, 0, sizeof(float) * KKPOMR * KKPOMR);	//wypełnij zerami macierz roboczą Qg
 	fTempPPA[0][0] = fDeltaCzasu * WARIANCJA_SZUMU_ZYRO;
 	fTempPPA[1][1] = fDeltaCzasu * WARIANCJA_SZUMU_ZYRO;
 	fTempPPA[2][2] = fDeltaCzasu * WARIANCJA_SZUMU_ZYRO;
@@ -348,7 +348,7 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
-	float fhAcc[KPOMR];
+	float fhAcc[KKPOMR];
 
 	//sprawdź czy kwaternion jest zerem
 	if (fX[0] == 0)
@@ -409,14 +409,14 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	cBłąd |= arm_mat_add_f32(&mX, &mTempS1A, &mTempS1B);
 
 	//normalizacja kwaternionu
-	NormalizujWektor(fTempS1B, fTempS1A, KKWAT);
+	NormalizujWektor(fTempS1B, fTempS1A, KWATER);
 
 	//przepisanie estymaty kwaternionu do wektora stanu
-	for (uint8_t n=0; n<KKWAT; n++)
+	for (uint8_t n=0; n<KWATER; n++)
 		fX[n] = fTempS1A[n];
 
 	//przepisanie estymaty błędu do wektora stanu
-	for (uint8_t n=KKWAT; n<(KKWAT + KPOMR); n++)
+	for (uint8_t n=KWATER; n<(KWATER + KKPOMR); n++)
 		fX[n] = fTempS1B[n];
 
 	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempSSA	 [Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
@@ -461,7 +461,7 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
-	float fhMag[KPOMR];
+	float fhMag[KKPOMR];
 
 	//Normalizacja wektora magnetycznego
 	float fNorma = sqrtf(dane->fMagne1[0] * dane->fMagne1[0] + dane->fMagne1[1] * dane->fMagne1[1] + dane->fMagne1[2] * dane->fMagne1[2]);
@@ -537,14 +537,14 @@ uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	cBłąd |= arm_mat_add_f32(&mX, &mTempS1A, &mTempS1B);
 
 	//normalizacja kwaternionu
-	NormalizujWektor(fTempS1B, fTempS1A, KKWAT);
+	NormalizujWektor(fTempS1B, fTempS1A, KWATER);
 
 	//przepisanie estymaty kwaternionu do wektora stanu
-	for (uint8_t n=0; n<KKWAT; n++)
+	for (uint8_t n=0; n<KWATER; n++)
 		fX[n] = fTempS1A[n];
 
 	//przepisanie estymaty błędu do wektora stanu
-	for (uint8_t n=KKWAT; n<(KKWAT + KPOMR); n++)
+	for (uint8_t n=KWATER; n<(KWATER + KKPOMR); n++)
 		fX[n] = fTempS1B[n];
 
 	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempSSA	 [Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]

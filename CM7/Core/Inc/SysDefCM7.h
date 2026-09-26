@@ -80,7 +80,7 @@
 #define TP_MENU_OSD			17
 #define TP_PODGLAD_IMU		18	//podgląd parametrów IMU podczas kalibracji
 #define TP_WYSWIETL_BLAD	19	//wyświetl kod błędu
-#define TP_MAGNETOMETR		20	//menu obsługi magnetometru
+//#define TP_MAGNETOMETR		20	//menu obsługi magnetometru
 #define TP_TEST_OSD			21
 #define TP_TESTY			22	//menu testy
 

@@ -12,9 +12,9 @@
 #include "wymiana.h"
 #include "arm_math.h"
 
-#define KSTAN		7	//rozmiar wektora stanu
-#define KKWAT		4	//rozmiar kwaternionu
-#define KPOMR		3	//rozmiar wektora pomiaru
+#define KKSTAN		7	//rozmiar wektora stanu filtra katów
+#define KWATER		4	//rozmiar kwaternionu
+#define KKPOMR		3	//rozmiar wektora pomiaru filtra katów
 
 #define WARIANCJA_BLEDU_ZYRO	5.0e-8f		//określa jak szybko może zmieniać sie błąd żyroskopu
 #define WARIANCJA_SZUMU_ZYRO	5.0e-3f		//określa jak szybko może zmieniać sie pomiar żyroskopu

@@ -21,7 +21,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "SampleAudio.h"
-
+#include "ModulySPI.h"
 
 //deklaracje zmiennych
 extern RTC_HandleTypeDef hrtc;
