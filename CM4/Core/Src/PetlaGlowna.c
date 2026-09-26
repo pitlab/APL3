@@ -805,7 +805,6 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 				uDaneCM4.dane.fMagne2[n] = fZeZnakiem * CZULOSC_MMC34160;	//dane surowe podczas kalibracji magnetometru
 			else
 				uDaneCM4.dane.fMagne2[n] = (fZeZnakiem * CZULOSC_MMC34160 - fPrzesMagn2[n]) * fSkaloMagn2[n];	//dane skalibrowane;
-			uDaneCM4.dane.fMagne2[n] = fZeZnakiem;
 		}
 		cPoprzedniRodzajPomiaru = cRodzajPomiaruMMC;
 		*sCzujniki &= ~MAG_MMC;	//dane obsłużone

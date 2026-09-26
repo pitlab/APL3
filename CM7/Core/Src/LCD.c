@@ -3641,9 +3641,9 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 		RysujNapis(cNapis, KOL12, 100);
 		sprintf(cNapis, "%s Z:", cNapisLcd[STR_MAGN]);
 		RysujNapis(cNapis, KOL12, 120);
-		sprintf(cNapis, "Pochylenie:");
-		RysujNapis(cNapis, KOL12, 140);
 		sprintf(cNapis, "Przechylenie:");
+		RysujNapis(cNapis, KOL12, 140);
+		sprintf(cNapis, "Pochylenie:");
 		RysujNapis(cNapis, KOL12, 160);
 		if (*cEtap & KALIBRUJ)
 		{
@@ -3723,7 +3723,10 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 		{
 		case MAG1:
 			if (*cEtap & KALIBRUJ)
+			{
 				uDaneCM7.dane.cWykonajPolecenie = POL7_KAL_ZERO_MAGN1;
+				uDaneCM7.dane.sAdres++;	//zmiana adresu pozwala na wielokrotne wykonanie  polecenia
+			}
 			else
 				uDaneCM7.dane.cWykonajPolecenie = POL7_POBIERZ_KONF_MAGN1;
 
@@ -3733,7 +3736,10 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 
 		case MAG2:
 			if (*cEtap & KALIBRUJ)
+			{
 				uDaneCM7.dane.cWykonajPolecenie = POL7_KAL_ZERO_MAGN2;
+				uDaneCM7.dane.sAdres++;	//zmiana adresu pozwala na wielokrotne wykonanie  polecenia
+			}
 			else
 				uDaneCM7.dane.cWykonajPolecenie = POL7_POBIERZ_KONF_MAGN2;
 			for (uint16_t n=0; n<3; n++)
@@ -3742,7 +3748,10 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 
 		case MAG3:
 			if (*cEtap & KALIBRUJ)
+			{
 				uDaneCM7.dane.cWykonajPolecenie = POL7_KAL_ZERO_MAGN3;
+				uDaneCM7.dane.sAdres++;	//zmiana adresu pozwala na wielokrotne wykonanie  polecenia
+			}
 			else
 				uDaneCM7.dane.cWykonajPolecenie = POL7_POBIERZ_KONF_MAGN3;
 			for (uint16_t n=0; n<3; n++)
@@ -3916,13 +3925,13 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 	}
 
 	setColor(KOLOR_X);
-	sprintf(cNapis, "%.2f [uT] ", fMag[0]*1e6);
+	sprintf(cNapis, "%.2f [uT] ", fMag[0]);
 	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 80);
 	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0], ZNAK_STOPIEN);
 	RysujNapis(cNapis, KOL12 + 12*FONT_SL, 140);
 	if (*cEtap & KALIBRUJ)
 	{
-		sprintf(cNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.f32[0]*1e6, uDaneCM4.dane.uRozne.f32[1]*1e6);	//ekstrema X
+		sprintf(cNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.f32[0], uDaneCM4.dane.uRozne.f32[1]);	//ekstrema X
 		RysujNapis(cNapis, KOL12 + 12*FONT_SL, 180);
 	}
 	else
@@ -3932,13 +3941,13 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 	}
 
 	setColor(KOLOR_Y);
-	sprintf(cNapis, "%.2f [uT] ", fMag[1]*1e6);
+	sprintf(cNapis, "%.2f [uT] ", fMag[1]);
 	RysujNapis(cNapis, 10 + 8*FONT_SL, 100);
 	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
 	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 160);
 	if (*cEtap & KALIBRUJ)
 	{
-		sprintf(cNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.f32[2]*1e6, uDaneCM4.dane.uRozne.f32[3]*1e6);	//ekstrema Y
+		sprintf(cNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.f32[2], uDaneCM4.dane.uRozne.f32[3]);	//ekstrema Y
 		RysujNapis(cNapis, KOL12 + 12*FONT_SL, 200);
 	}
 	else
@@ -3948,11 +3957,11 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 	}
 
 	setColor(KOLOR_Z);
-	sprintf(cNapis, "%.2f [uT] ", fMag[2]*1e6);
+	sprintf(cNapis, "%.2f [uT] ", fMag[2]);
 	RysujNapis(cNapis, 10 + 8*FONT_SL, 120);
 	if (*cEtap & KALIBRUJ)
 	{
-		sprintf(cNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.f32[4]*1e6, uDaneCM4.dane.uRozne.f32[5]*1e6);	//ekstrema Z
+		sprintf(cNapis, "%.2f, %.2f ", uDaneCM4.dane.uRozne.f32[4], uDaneCM4.dane.uRozne.f32[5]);	//ekstrema Z
 		RysujNapis(cNapis, KOL12 + 12*FONT_SL, 220);
 	}
 	else
