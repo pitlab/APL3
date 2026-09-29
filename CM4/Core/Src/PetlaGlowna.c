@@ -40,6 +40,7 @@
 #include <INA219.h>
 #include <INA226.h>
 #include <KalmanKatow7X9Z.h>
+#include <KalmanKalibracjiMagnetometrow12X9Z.h>
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -200,6 +201,28 @@ void PetlaGlowna(void)
 			//cBłądPG = InicjujFiltrKalmanaWysokości4X3Z(&uDaneCM4.dane);
 			//cBłądPG = InicjujFiltrKalmanaWysokości5X6Z(&uDaneCM4.dane);
 			cBłądPG = InicjujFiltrKalmanaWysokości10X10Z(&uDaneCM4.dane);
+			PrzechwyćBłąd(cBłądPG);
+		}
+
+		//testowo filtr kalmana kalibracji magnetometrów
+		if (uDaneCM4.dane.nZainicjowano & INIT_KALMAN_KAL_MAGN)
+		{
+			cBłądPG = PredykcjaFiltraKalmanaKalibracjiMagnetometrów12X9Z(&uDaneCM4.dane);
+			PrzechwyćBłąd(cBłądPG);
+			if (uDaneCM4.dane.cNowyPomiar & NP_MAG1)
+			{
+				cBłądPG = AktulizacjaMag1FiltraKalmanaKalibracjiMagnetometrów12X9Z(&uDaneCM4.dane);
+				PrzechwyćBłąd(cBłądPG);
+			}
+			if (uDaneCM4.dane.cNowyPomiar & NP_MAG2)
+			{
+				cBłądPG = AktulizacjaMag2FiltraKalmanaKalibracjiMagnetometrów12X9Z(&uDaneCM4.dane);
+				PrzechwyćBłąd(cBłądPG);
+			}
+		}
+		else
+		{
+			cBłądPG = InicjujFiltrKalmanaKalibracjiMagnetometrów12X9Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 		}
 

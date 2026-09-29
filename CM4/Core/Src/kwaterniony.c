@@ -96,7 +96,7 @@ void KwaternionNaMacierz(float *q, float *m)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Przepisanie kwaternionu z postaci macierzowej do algebraicznaj na podstawie: https://www.youtube.com/watch?v=ZgOmCYfw6os&t=1621s&ab_channel=MateuszKowalski
+// Przepisanie kwaternionu z postaci macierzowej do algebraicznej na podstawie: https://www.youtube.com/watch?v=ZgOmCYfw6os&t=1621s&ab_channel=MateuszKowalski
 // Parametry:
 // [we] *m - wskaźnik na macierz m[4 wiersze]x[4 kolumny]
 // [wy] *q - wskaźnik na kwaternion q = (q0 + iq1 + jq2 + kq3)
@@ -137,9 +137,9 @@ void MnozenieMacierzy4x4(float *a, float *b, float *m)
 	*(m+2*4+2) = *(a+2*4+0) * *(b+0*4+2) + *(a+2*4+1) * *(b+1*4+2) + *(a+2*4+2) * *(b+2*4+2) + *(a+2*4+3) * *(b+3*4+2);	//wiersz 3, kol 3
 	*(m+2*4+3) = *(a+2*4+0) * *(b+0*4+3) + *(a+2*4+1) * *(b+1*4+3) + *(a+2*4+2) * *(b+2*4+3) + *(a+2*4+3) * *(b+3*4+3);	//wiersz 3, kol 4
 	*(m+3*4+0) = *(a+3*4+0) * *(b+0*4+0) + *(a+3*4+1) * *(b+1*4+0) + *(a+3*4+2) * *(b+2*4+0) + *(a+3*4+3) * *(b+3*4+0);	//wiersz 4, kol 1
-	*(m+3*4+1) = *(a+3*4+0) * *(b+0*4+0) + *(a+3*4+1) * *(b+1*4+0) + *(a+3*4+2) * *(b+2*4+0) + *(a+3*4+3) * *(b+3*4+0);	//wiersz 3, kol 2
-	*(m+3*4+2) = *(a+3*4+0) * *(b+0*4+0) + *(a+3*4+1) * *(b+1*4+0) + *(a+3*4+2) * *(b+2*4+0) + *(a+3*4+3) * *(b+3*4+0);	//wiersz 1, kol 3
-	*(m+3*4+3) = *(a+3*4+0) * *(b+0*4+0) + *(a+3*4+1) * *(b+1*4+0) + *(a+3*4+2) * *(b+2*4+0) + *(a+3*4+3) * *(b+3*4+0);	//wiersz 3, kol 4
+	*(m+3*4+1) = *(a+3*4+0) * *(b+0*4+0) + *(a+3*4+1) * *(b+1*4+0) + *(a+3*4+2) * *(b+2*4+0) + *(a+3*4+3) * *(b+3*4+0);	//wiersz 4, kol 2
+	*(m+3*4+2) = *(a+3*4+0) * *(b+0*4+0) + *(a+3*4+1) * *(b+1*4+0) + *(a+3*4+2) * *(b+2*4+0) + *(a+3*4+3) * *(b+3*4+0);	//wiersz 4, kol 3
+	*(m+3*4+3) = *(a+3*4+0) * *(b+0*4+0) + *(a+3*4+1) * *(b+1*4+0) + *(a+3*4+2) * *(b+2*4+0) + *(a+3*4+3) * *(b+3*4+0);	//wiersz 4, kol 4
 }
 
 

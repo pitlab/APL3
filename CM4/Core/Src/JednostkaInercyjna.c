@@ -118,6 +118,13 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 		uDaneCM4.dane.fKatIMU1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT / 1000000;							//przyrost kąta z całki żyroskopu
 	}
 
+	//obliczenia trygonometryczne kątów uzyskanych z filtra komplementarnego dostępne globalnie do dalszych obliczeń
+	uDaneCM4.dane.stMat.fSinPhi = sinf(uDaneCM4.dane.fKatIMU1[0]);
+	uDaneCM4.dane.stMat.fCosPhi = cosf(uDaneCM4.dane.fKatIMU1[0]);
+	uDaneCM4.dane.stMat.fSinThe = sinf(uDaneCM4.dane.fKatIMU1[1]);
+	uDaneCM4.dane.stMat.fCosThe = cosf(uDaneCM4.dane.fKatIMU1[1]);
+	uDaneCM4.dane.stMat.fSinPsi = sinf(uDaneCM4.dane.fKatIMU1[2]);
+	uDaneCM4.dane.stMat.fCosPsi = cosf(uDaneCM4.dane.fKatIMU1[2]);
 	/*/w celu porównania metody policz kąty z tych samych danych metodą kwaternionową
 	float fQA[4];	//kwaternion wektora przyspieszenia
 	float fQM[4];
@@ -207,10 +214,9 @@ uint8_t JednostkaInercyjnaKwaterniony(uint32_t ndT, float *fZyro, float *fAkcel,
 		fQMag[n+1] = (1.0f - fWspFiltraMag) * fQMag[n+1] + fWspFiltraMag * fMagNorm[n];
 	}
 
-	//oblicz katy tradycyjnie trygonometrią
+	//oblicz kąty tradycyjnie trygonometrią
 	uDaneCM4.dane.fKatIMU2[0] = atan2f(-fQAcc[2], fQAcc[3]);	//kąt przechylenia z akcelerometru: tan(-Y/Z) = atan2(Z, Y)
 	uDaneCM4.dane.fKatIMU2[1] = atan2f(fQAcc[1], fQAcc[3]);	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(X, Z)
-
 
 	//Żeby policzyć kat odchylenia z wektora magnetometru najpierw skompensuj pochylenie i przechylenie obracając kopię wektora mag. o ujemne pochylenie i dodatnie przechylenie
 	// zmiana znaku korekcji osi wynika prawdopodobnie ze składania obrotów

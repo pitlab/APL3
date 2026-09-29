@@ -184,6 +184,15 @@ typedef struct
 	float fNatężenieTła;
 } stTOF_t;
 
+typedef struct
+{
+	float fSinPhi;	//sinus kąta Phi policzony raz aby nie powtarzać obliczeń w kolejnych funkcjach w obu rdzeniach
+	float fCosPhi;
+	float fSinThe;
+	float fCosThe;
+	float fSinPsi;
+	float fCosPsi;
+} stMat_t;
 
 #define ODPOWIEDZ_U8	31	//komórka tablicy U8 odpowiedzialna za przekazywanie odpowiedzi na polecenia kalibracyjne
 //definicja struktury wymiany danych wychodzących z rdzenia CM4
@@ -253,6 +262,7 @@ typedef struct
 	stKalmanWys_t stKalmanWys;	//struktura z danymi do debugowania filtra Kalmana wysokości
 	float fKalmanKataX[7];		//wektor stanu filtra Kalmana kątów orientacji
 	stTOF_t stTOF;				//struktura danych pomiarowych czujnika odległości VL53LC1
+	stMat_t stMat;				//zestaw obliczeń funkcji trygonometrycznych kątów Eulera policzony raz aby nie powtarzać obliczeń w kolejnych funkcjach w obu rdzeniach
 } stWymianyCM4_t;
 
 
