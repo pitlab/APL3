@@ -415,8 +415,9 @@ uint8_t RysujEkran(void)
 	switch (cTrybPracy)
 	{
 	case TP_MENU_GLOWNE:	// wyświetla menu główne
-		sprintf(cNapisPodreczny, "%s %s", cNapisLcd[STR_MENU], cNapisLcd[STR_MENU_MAIN]);
-		cBłąd |= Menu(cNapisPodreczny, stMenuGlowne, &cNowyTrybPracy);
+		sprintf(cNapisPodreczny, (char*)cNapisLcd[STR_MENU_MAIN], ł, ó);
+		sprintf(cNapis, "%s %s", cNapisLcd[STR_MENU], cNapisPodreczny);
+		cBłąd |= Menu(cNapis, stMenuGlowne, &cNowyTrybPracy);
 		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
@@ -2154,11 +2155,12 @@ void PomiaryAHRS(void)
 		RysujNapis(cNapis, KOL12+46*FONT_SL, 230);
 
 		//sprintf(cNapis, "K%cty %cyro 1:", ą, ż);
-		sprintf(cNapis, "Kwaternion Akc:");
+		//sprintf(cNapis, "Kwaternion Akc:");
+		sprintf(cNapis, "K%cty Kalm:", ą);
 		RysujNapis(cNapis, KOL12, 250);
 		//sprintf(cNapis, "K%cty %cyro 2:", ą, ż);
-		sprintf(cNapis, "Kwaternion Mag:");
-		RysujNapis(cNapis, KOL12, 270);
+		//sprintf(cNapis, "Kwaternion Mag:");
+		//RysujNapis(cNapis, KOL12, 270);
 
 		setColor(SZARY50);
 		RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
@@ -2331,7 +2333,7 @@ void PomiaryAHRS(void)
 	sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[2], ZNAK_STOPIEN);
 	RysujNapis(cNapis, KOL12+37*FONT_SL, 270); */
 
-	//kwaternion wektora przyspieszenia
+	/*/kwaternion wektora przyspieszenia
 	setColor(POMARANCZ);
 	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fKwaAkc[0]);
 	RysujNapis(cNapis, KOL12+16*FONT_SL, 250);
@@ -2357,7 +2359,17 @@ void PomiaryAHRS(void)
 	RysujNapis(cNapis, KOL12+36*FONT_SL, 270);
 	setColor(KOLOR_Z);
 	sprintf(cNapis, "%.4f ", uDaneCM4.dane.fKwaMag[3]);
-	RysujNapis(cNapis, KOL12+46*FONT_SL, 270);
+	RysujNapis(cNapis, KOL12+46*FONT_SL, 270);*/
+
+	setColor(KOLOR_X);
+	sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.stBSP.fKatIMU[0], ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12+11*FONT_SL, 250);
+	setColor(KOLOR_Y);
+	sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.stBSP.fKatIMU[1], ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12+24*FONT_SL, 250);
+	setColor(KOLOR_Z);
+	sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.stBSP.fKatIMU[2], ZNAK_STOPIEN);
+	RysujNapis(cNapis, KOL12+36*FONT_SL, 250);
 
 	//Rysuj pasek postepu jeżeli trwa jakiś proces. Zakładam że czas procesu jest zmniejszany od wartości CZAS_KALIBRACJI do zera
 	RysujPasekPostepu(CZAS_KALIBRACJI);
@@ -4318,6 +4330,7 @@ void PlaskiObrotMagnetometrow(void)
 	setColor(ZOLTY);
 	sprintf(cNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne3[0], uDaneCM4.dane.fMagne3[1]);
 	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 160);
+	vTaskDelay(20);		//opóźnienie spowalniajace częstotliwość odświeżania ekranu do max 1000/t [Hz]
 }
 
 

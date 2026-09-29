@@ -39,7 +39,9 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define INIT_HMC5883			0x01000000
 #define INIT_INA219				0x02000000	//czujnik prądu INA219
 #define INIT_INA226				0x04000000	//czujnik prądu INA226
-#define INIT_KALMAN_KATOW		0x08000000
+#define INIT_KALMAN_KATOW		0x08000000	//EKF estymacji kątów
+#define INIT_KALMAN_KAL_MAGN	0x10000000	//filtr Kalmana kalibracji magnetometrów
+
 
 #define TESTY		//włacz testowanie algorytmów, można wyłaczyć dla _nieświadowego_ końcowego użytkownika
 #define RAD2DEG				(180/M_PI)

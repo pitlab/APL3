@@ -40,7 +40,7 @@ const char *cNapisLcd[MAX_NAPISOW]  = {
 "Ublox",							//STR_SPRAWDZ_UBLOX
 "nic",								//STR_SPRAWDZ_
 "Dotyk:",							//STR_TEST_TOUCH
-"Glowne",							//STR_MENU_MAIN			max 17 znaków
+"G%c%cwne",							//STR_MENU_MAIN			max 17 znaków
 "nic",								//STR_MENU_PROTOCOLS	max 17 znaków
 "nic",								//STR_MENU_MULMETR		max 17 znaków
 "nic",								//STR_MENU_TEST			max 17 znaków

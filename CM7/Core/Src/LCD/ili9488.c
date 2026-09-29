@@ -646,21 +646,9 @@ void clrXY(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 {
-	uint8_t i, ch;
-	uint16_t j;
+	uint8_t ch;
 	uint16_t temp;
-	uint16_t zz;
-	uint8_t cLicznikProbOdblokowania = 10;
 	uint8_t cBłąd = BLAD_OK;
-
-	while (HAL_HSEM_IsSemTaken(HSEM_SPI5) != BLAD_OK)
-	{
-		osDelay(1);
-		if (cLicznikProbOdblokowania)
-			cLicznikProbOdblokowania--;
-		else
-			return BLAD_SEMAFOR_ZAJETY;
-	}
 
 	if (HAL_HSEM_Take(HSEM_SPI5, HSEM_LCD) == BLAD_OK)
 	{
@@ -672,10 +660,10 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 				UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 				HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 				temp=((c - stCzcionka.offset) * ((stCzcionka.x_size / 8) * stCzcionka.y_size)) + 4;
-				for(j=0; j<((stCzcionka.x_size / 8) * stCzcionka.y_size); j++)
+				for(uint16_t j=0; j<((stCzcionka.x_size / 8) * stCzcionka.y_size); j++)
 				{
 					ch = stCzcionka.font[temp];
-					for(i=0; i<8; i++)
+					for(uint16_t i=0; i<8; i++)
 					{
 						if ((ch&(1<<(7-i))) != 0)
 							cBłąd |= HAL_SPI_Transmit(&hspi5, cKolor666, 3, HAL_DELAY_SPI);
@@ -689,15 +677,15 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 			else
 			{
 				temp=((c-stCzcionka.offset)*((stCzcionka.x_size/8)*stCzcionka.y_size))+4;
-				for(j=0;j<((stCzcionka.x_size/8)*stCzcionka.y_size);j+=(stCzcionka.x_size/8))
+				for(uint16_t j=0; j<((stCzcionka.x_size/8)*stCzcionka.y_size); j+=(stCzcionka.x_size/8))
 				{
 					setXY(x,y+(j/(stCzcionka.x_size/8)),x+stCzcionka.x_size-1,y+(j/(stCzcionka.x_size/8)));
 					UstawDekoderZewn(CS_LCD);										//LCD_CS=0
 					HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
-					for (zz=(stCzcionka.x_size/8)-1; zz>=0; zz--)
+					for (uint16_t zz=(stCzcionka.x_size/8)-1; zz>=0; zz--)
 					{
 						ch=stCzcionka.font[temp+zz];
-						for(i=0;i<8;i++)
+						for(uint16_t i=0; i<8; i++)
 						{
 							if((ch&(1<<i))!=0)
 								cBłąd |= HAL_SPI_Transmit(&hspi5, cKolor666, 3, HAL_DELAY_SPI);
@@ -713,12 +701,12 @@ uint8_t RysujZnak(uint8_t c, uint16_t x, uint16_t y)
 		else
 		{
 			temp=((c-stCzcionka.offset)*((stCzcionka.x_size/8)*stCzcionka.y_size))+4;
-			for(j=0; j<stCzcionka.y_size; j++)
+			for(uint16_t j=0; j<stCzcionka.y_size; j++)
 			{
-				for (zz=0; zz<(stCzcionka.x_size/8); zz++)
+				for (uint16_t zz=0; zz<(stCzcionka.x_size/8); zz++)
 				{
 					ch = stCzcionka.font[temp+zz];
-					for (i=0; i<8; i++)
+					for (uint16_t i=0; i<8; i++)
 					{
 						if((ch&(1<<(7-i)))!=0)
 						{

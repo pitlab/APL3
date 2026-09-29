@@ -179,6 +179,10 @@ uint8_t Menu(char *tytul, menu_t *menu, uint8_t *cPozycjaMenu)
 	}
 	*cPozycjaMenu = 0;
 
+	//ta część menu wywoływana jest często, więc aby nie przerywać jej przełaczeniem wątków, które skutkuje śmieceniem na ekranie przełaczenie
+	//wymuszam ręcznie, jednocześnie spowalniajac odświeżanie zawartosci
+	vTaskDelay(25);	//wstrzymaj wątek na podany czas [ms]
+
 	//rysuj czas
 	PobierzDateCzas(&stDate, &stTime);
 	if (stTime.Seconds != cOstatniCzas)
@@ -584,6 +588,7 @@ uint8_t RysujNapis(char *str, uint16_t x, uint16_t y)
 	int stl;
 	uint8_t cBłąd = BLAD_OK;;
 
+	vTaskSuspendAll();	//nie pozwól innym wątkom na przerwanie operacji
 	stl = strlen((char*)str);
 
 	if (cOrientacja == POZIOMO)
@@ -603,6 +608,7 @@ uint8_t RysujNapis(char *str, uint16_t x, uint16_t y)
 
 	for (uint16_t i=0; i<stl; i++)
 		cBłąd |= RysujZnak(*str++, x + (i * (stCzcionka.x_size)), y);
+	xTaskResumeAll();	//wznów możliwość przełączania wątków
 	return cBłąd;
 }
 
