@@ -570,10 +570,26 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_KALMAN_WYS_K8:		fZmiennaTele = stDane->stKalmanWys.fK[8];					break;
 	case TID_KALMAN_WYS_K9:		fZmiennaTele = stDane->stKalmanWys.fK[9];					break;
 
-	case TID_KALMAN_KATOW_X0:	fZmiennaTele = stDane->fKalmanKataX[0];						break;
-	case TID_KALMAN_KATOW_X1:	fZmiennaTele = stDane->fKalmanKataX[1];						break;
-	case TID_KALMAN_KATOW_X2:	fZmiennaTele = stDane->fKalmanKataX[2];						break;
-	case TID_KALMAN_KATOW_X3:	fZmiennaTele = stDane->fKalmanKataX[3];						break;
+	case TID_KALMAN_KATOW_X0:	fZmiennaTele = stDane->stKalmanKąta.fX[0];					break;	//kwaternion w
+	case TID_KALMAN_KATOW_X1:	fZmiennaTele = stDane->stKalmanKąta.fX[1];					break;	//kwaternion x
+	case TID_KALMAN_KATOW_X2:	fZmiennaTele = stDane->stKalmanKąta.fX[2];					break;	//kwaternion y
+	case TID_KALMAN_KATOW_X3:	fZmiennaTele = stDane->stKalmanKąta.fX[3];					break;	//kwaternion z
+	case TID_KALMAN_KATOW_X4:	fZmiennaTele = stDane->stKalmanKąta.fX[4];					break;	//bias żyro P
+	case TID_KALMAN_KATOW_X5:	fZmiennaTele = stDane->stKalmanKąta.fX[5];					break;	//bias żyro Q
+	case TID_KALMAN_KATOW_X6:	fZmiennaTele = stDane->stKalmanKąta.fX[6];					break;	//bias żyro R
+
+	case TID_KALMAN_KAL_MAG_X0:		fZmiennaTele = stDane->stKalmanKalibrMag.fX[0];			break;	//kąt obrotu Phi wektora mag
+	case TID_KALMAN_KAL_MAG_X1:		fZmiennaTele = stDane->stKalmanKalibrMag.fX[1];			break;	//kąt obrotu Theta wektora mag
+	case TID_KALMAN_KAL_MAG_X2:		fZmiennaTele = stDane->stKalmanKalibrMag.fX[2];			break;	//kąt obrotu Psi wektora mag
+	case TID_KALMAN_KAL_MAG_X3:		fZmiennaTele = stDane->stKalmanKalibrMag.fX[3];			break;	//bias X magnetometru 1
+	case TID_KALMAN_KAL_MAG_X4:		fZmiennaTele = stDane->stKalmanKalibrMag.fX[4];			break;	//bias Y magnetometru 1
+	case TID_KALMAN_KAL_MAG_X5:		fZmiennaTele = stDane->stKalmanKalibrMag.fX[5];			break;	//bias Z magnetometru 1
+	case TID_KALMAN_KAL_MAG_X6:		fZmiennaTele = stDane->stKalmanKalibrMag.fX[6];			break;	//bias X magnetometru 2
+	case TID_KALMAN_KAL_MAG_X7:		fZmiennaTele = stDane->stKalmanKalibrMag.fX[7];			break;	//bias Y magnetometru 2
+	case TID_KALMAN_KAL_MAG_X8:		fZmiennaTele = stDane->stKalmanKalibrMag.fX[8];			break;	//bias Z magnetometru 2
+	case TID_KALMAN_KAL_MAG_X9:		fZmiennaTele = stDane->stKalmanKalibrMag.fX[9];			break;	//bias X magnetometru 3
+	case TID_KALMAN_KAL_MAG_X10:	fZmiennaTele = stDane->stKalmanKalibrMag.fX[10];		break;	//bias Y magnetometru 3
+	case TID_KALMAN_KAL_MAG_X11: 	fZmiennaTele = stDane->stKalmanKalibrMag.fX[11];		break;	//bias Z magnetometru 3
 
 	default:	fZmiennaTele = -1.0f;
 	}

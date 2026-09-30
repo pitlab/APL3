@@ -176,6 +176,16 @@ typedef struct
 
 typedef struct
 {
+	float fX[12];	//wektor stanu filtra
+} stKalmanKalibrMag_t;
+
+typedef struct
+{
+	float fX[7];	//wektor stanu filtra
+} stKalmanKąta_t;
+
+typedef struct
+{
 	uint16_t sOdległość;	//zmierzona odległość [mm]
 	uint8_t cStatusPomiaru;	//0 = poprawny pomiar; 1=estymator sigma poniżej progu, 2=sygnał poniżej progu , 4=faza poza zakresem, 5=błąd sprzętowy, 7=faza nie pasuje, 8=błąd algorytmu, 14=nieważny zakres
 	uint8_t cNowyPomiar;	//licznik inkrementowany co pomiar
@@ -260,9 +270,11 @@ typedef struct
 	stBSP_t stBSP;				//struktura zawierajaca syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
 	stSzybkieIMU_t stSzybkieIMU;//struktura zawierajaca bufor kołowy i indeks szybkich danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
 	stKalmanWys_t stKalmanWys;	//struktura z danymi do debugowania filtra Kalmana wysokości
-	float fKalmanKataX[7];		//wektor stanu filtra Kalmana kątów orientacji
+	stKalmanKąta_t stKalmanKąta;//struktura z danymi do debugowania rozszeroznego filtra Kalmana estymacji katów orientacji
+	//float fKalmanKataX[7];		//wektor stanu filtra Kalmana kątów orientacji
 	stTOF_t stTOF;				//struktura danych pomiarowych czujnika odległości VL53LC1
 	stMat_t stMat;				//zestaw obliczeń funkcji trygonometrycznych kątów Eulera policzony raz aby nie powtarzać obliczeń w kolejnych funkcjach w obu rdzeniach
+	stKalmanKalibrMag_t stKalmanKalibrMag;	//struktura z danymi do debugowania filtra Kalmana kalibracji magnetometrów
 } stWymianyCM4_t;
 
 

@@ -177,8 +177,8 @@ uint8_t PredykcjaFiltraKalmanaKalibracjiMagnetometrów12X9Z(stWymianyCM4_t *dane
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	for (uint8_t n=0; n<10; n++)
-		dane->stKalmanWys.fX[n] = fX[n];
+	for (uint8_t n=0; n<KMSTAN; n++)
+		dane->stKalmanKalibrMag.fX[n] = fX[n];
 
 	//2) Obliczenie niepewności nowej estymaty wektora stanu
 

@@ -274,7 +274,7 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 
 	//Przepisz wynik predykcji do zmiennych wynikowych
 	for (uint8_t n=0; n<KKSTAN; n++)
-		dane->fKalmanKataX[n] = fX[n] = fTempS1B[n];
+		dane->stKalmanKąta.fX[n] = fX[n] = fTempS1B[n];
 
 	//oblicz kąty orientacji z kwaternionu
 	dane->stBSP.fKatIMU[0] = -atan2f(2.0f * (fX[0] * fX[1] + fX[2] * fX[3]), 1 - (2.0f * (fX[1] * fX[1] + fX[2] * fX[2])));

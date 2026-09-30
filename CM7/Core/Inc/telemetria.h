@@ -275,45 +275,62 @@
 
 #define TID_TOF_ODLEGLOSC		226	//odelgłość w metrach
 #define TID_TOF_STATUS			227	//status pomiaru
-#define TID_TOF_NOWY_POMIAR		228	//licnzik inkrementowany przy nowym pomiarze
+#define TID_TOF_NOWY_POMIAR		228	//licznik inkrementowany przy nowym pomiarze
 #define TID_TOF_SIGMA			229	//odchylenie standardowe pomiaru
 #define TID_TOF_REFLEKT_CELU	230	//reflektancja celu
 #define TID_TOF_NATEZENIE_TLA	231	//poziom natężenia tła
 
-#define TID_KALMAN_WYS_X0		232
-#define TID_KALMAN_WYS_X1		233
-#define TID_KALMAN_WYS_X2		234
-#define TID_KALMAN_WYS_X3		235
-#define TID_KALMAN_WYS_X4		236
-#define TID_KALMAN_WYS_X5		237
-#define TID_KALMAN_WYS_X6		238
-#define TID_KALMAN_WYS_X7		239
-#define TID_KALMAN_WYS_X8		240
-#define TID_KALMAN_WYS_X9		241
+//--- zmienne telemetryczne w ramce 3 -----------------------------------------------
+#define TID_KALMAN_WYS_X0		256
+#define TID_KALMAN_WYS_X1		257
+#define TID_KALMAN_WYS_X2		258
+#define TID_KALMAN_WYS_X3		259
+#define TID_KALMAN_WYS_X4		260
+#define TID_KALMAN_WYS_X5		261
+#define TID_KALMAN_WYS_X6		262
+#define TID_KALMAN_WYS_X7		263
+#define TID_KALMAN_WYS_X8		264
+#define TID_KALMAN_WYS_X9		265
 
-#define TID_KALMAN_WYS_K0		242
-#define TID_KALMAN_WYS_K1		243
-#define TID_KALMAN_WYS_K2		244
-#define TID_KALMAN_WYS_K3		245
-#define TID_KALMAN_WYS_K4		246
-#define TID_KALMAN_WYS_K5		247
-#define TID_KALMAN_WYS_K6		248
-#define TID_KALMAN_WYS_K7		249
-#define TID_KALMAN_WYS_K8		250
-#define TID_KALMAN_WYS_K9		251
+#define TID_KALMAN_WYS_K0		266
+#define TID_KALMAN_WYS_K1		267
+#define TID_KALMAN_WYS_K2		268
+#define TID_KALMAN_WYS_K3		269
+#define TID_KALMAN_WYS_K4		270
+#define TID_KALMAN_WYS_K5		271
+#define TID_KALMAN_WYS_K6		272
+#define TID_KALMAN_WYS_K7		273
+#define TID_KALMAN_WYS_K8		274
+#define TID_KALMAN_WYS_K9		275
 
-#define TID_KALMAN_KATOW_X0		252
-#define TID_KALMAN_KATOW_X1		253
-#define TID_KALMAN_KATOW_X2		254
-#define TID_KALMAN_KATOW_X3		255
-//max do 255
+#define TID_KALMAN_KATOW_X0		276		//kwaternion w
+#define TID_KALMAN_KATOW_X1		277		//kwaternion x
+#define TID_KALMAN_KATOW_X2		278		//kwaternion y
+#define TID_KALMAN_KATOW_X3		279		//kwaternion z
+#define TID_KALMAN_KATOW_X4		280		//bias żyro P
+#define TID_KALMAN_KATOW_X5		281		//bias żyro Q
+#define TID_KALMAN_KATOW_X6		282		//bias żyro R
 
-#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	256
+#define TID_KALMAN_KAL_MAG_X0	283		//kąt obrotu Phi wektora mag
+#define TID_KALMAN_KAL_MAG_X1	284		//kąt obrotu Theta wektora mag
+#define TID_KALMAN_KAL_MAG_X2	285		//kąt obrotu Psi wektora mag
+#define TID_KALMAN_KAL_MAG_X3	286		//bias X magnetometru 1
+#define TID_KALMAN_KAL_MAG_X4	287		//bias Y magnetometru 1
+#define TID_KALMAN_KAL_MAG_X5	288		//bias Z magnetometru 1
+#define TID_KALMAN_KAL_MAG_X6	289		//bias X magnetometru 2
+#define TID_KALMAN_KAL_MAG_X7	290		//bias Y magnetometru 2
+#define TID_KALMAN_KAL_MAG_X8	291		//bias Z magnetometru 2
+#define TID_KALMAN_KAL_MAG_X9	292		//bias X magnetometru 3
+#define TID_KALMAN_KAL_MAG_X10	293		//bias Y magnetometru 3
+#define TID_KALMAN_KAL_MAG_X11	294		//bias Z magnetometru 3
+//max do 384
+
+#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	295
 
 #define MAX_ZMIENNYCH_TELEMETR_W_RAMCE	115		//tyle zmiennych może być przesłanych w jednej ramce telemetrycznej (ramek może być kilka)
 #define MAX_INDEKSOW_TELEMETR_W_RAMCE	128		//zmienne w ramce można wybrać z takiej puli indeksów
 #define LICZBA_BAJTOW_ID_TELEMETRII		16		//liczba bajtów w ramce telemetrii identyfikujaca przesyłane zmienne
-#define LICZBA_RAMEK_TELEMETR			2		//obecnie są 2 ramki dla zmiennych 0..127 i 128..256
+#define LICZBA_RAMEK_TELEMETR			3		//ramka przesyła max 128 zmiennych.
 #define MASKA_LICZBY_RAMEK_TELE			0x01
 #define TELEMETRIA_WYLACZONA			0xFFFF
 #define OKRESOW_TELEMETRII_W_RAMCE		120		//w ramce przesyłane jest na raz się tyle 16-bitowych okresów telemetrii (liczba podzialna przez 15, bo tyle danych mieści się na stronie flash)
