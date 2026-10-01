@@ -6,25 +6,21 @@
 #define ETHK	3	//ethernet jako klient
 #define USB		4
 
-//#define ROZM_DANYCH_WE_UART	128
-//#define ROZM_DANYCH_WY_UART	128
-//#define ROZM_DANYCH_WE_ETH	1024
-//#define ROZM_DANYCH_WY_ETH	1024
-
 
 //definicje znaczenia zmiennej chZajetyPrzez. Po zakonczeniu transmisji trzeba wysłać:
-#define RAMKA_POLECEN	0	//ramkę poleceń
-#define RAMKA_TELE1		1	//ramkę telemetryczną 1 lub ramkę szybką z danymi FFT
-#define RAMKA_TELE2		2	//ramkę telemetryczną 2
-#define ROZMIAR_KOLEJKI_LPUART	3
+#define RAMKA_POLECEN	0	//ramkę poleceń służąca do podstawowej komunikacji AP-NSK
+#define RAMKA_TELE1		1	//indeks (0..1) bufora pierwszej ramki telemetrycznej
+#define RAMKA_TELE2		2	//drugiej ramki
+#define RAMKA_TELE3		3	//trzeciej ramki
+#define RAMKA_TELE4		4	//czwartej ramki
+#define ROZMIAR_KOLEJKI_LPUART	5
 
 #define LPUART_WOLNY	0xFF
 typedef struct
 {
 	int8_t cZajętyPrzez;	//flaga zajętości
-	uint8_t cIndeksNapełnianejRamki[ROZMIAR_KOLEJKI_LPUART];	//indeks podwójnego buforowania: jeden bufor jest opróżniany przez UART, drugi w tym czasie może być napełniany
+	uint8_t cIndeksNapełnianejRamki[ROZMIAR_KOLEJKI_LPUART];	//indeks podwójnego buforowania: jeden bufor jest opróżniany przez UART+DMA, drugi w tym czasie może być napełniany
 	uint16_t sDoWysłania[ROZMIAR_KOLEJKI_LPUART];	//tablica rozmiarów danych do wysłania po zakończeniu bieżącej transmisji: ramka poleceń i ramki telemetryczne
-
 } st_ZajetośćLPUART_t;
 
 
@@ -104,20 +100,20 @@ typedef struct
 #define PK_CZYTAJ_KONF_REJESTR	44	//odczytaj konfigurację rejestratora z APL3
 #define PK_ZAPISZ_KONF_REJESTR	45	//zapisz konfigurację rejestratora do APL3
 
-#define PK_ILOSC_POLECEN		46	//liczba poleceń do sprawdzania czy polecenie mieści się w obsługiwanych granicach
+#define PK_ILOSC_POLECEN		46	//liczba poleceń do sprawdzania czy indeks polecenia mieści się w obsługiwanych granicach
 
 
 #define PK_TELEM_SZYBKA			95	//szybka ramka telemetryczna do przesyłania wyników FFT
-#define PK_TELEMETRIA1			96	//ramka telemetryczna 1
-#define PK_TELEMETRIA2			97	//ramka telemetryczna 2
-#define PK_TELEMETRIA3			98	//ramka telemetryczna 3 - na razie nie używane
+#define PK_TELEMETRIA1			96	//ramka telemetryczna 1 - podstawowe czujniki
+#define PK_TELEMETRIA2			97	//ramka telemetryczna 2 - PIDy
+#define PK_TELEMETRIA3			98	//ramka telemetryczna 3 - Kalman
 #define PK_TELEMETRIA4			99	//ramka telemetryczna 4 - na razie nie używane
 
 
-//Status gotowośco wykonania zdjęcia
+//Status gotowości wykonania zdjęcia
 #define SGZ_CZEKA		0		//oczekiwania na wykonanie zdjęcia
-#define SGZ_GOTOWE		1		//Zdjecie gotowe, można je pobrać
-#define SGZ_BLAD		2		//wystapił błąd wykonania zdjecia
+#define SGZ_GOTOWE		1		//Zdjęcie gotowe, można je pobrać
+#define SGZ_BLAD		2		//wystąpił błąd wykonania zdjecia
 
 
 //Flagi Ustawien Kamery - numery bitów określających funkcjonalność w UstawieniaKamery.cpp

@@ -10,6 +10,7 @@
 
 #include "SysDefCM7.h"
 #include "PoleceniaKomunikacyjne.h"
+#include "WymianaCM7.h"
 
 //polecenia ramki PK_WSTRZYMAJ_TELEMETRIE służące do zarządzania strumieniem telemetrii
 #define TELEM_SZYBKA	2	//ma być transmitowana szybka ramka telemetryczna z wynikami FFT
@@ -330,8 +331,8 @@
 #define MAX_ZMIENNYCH_TELEMETR_W_RAMCE	115		//tyle zmiennych może być przesłanych w jednej ramce telemetrycznej (ramek może być kilka)
 #define MAX_INDEKSOW_TELEMETR_W_RAMCE	128		//zmienne w ramce można wybrać z takiej puli indeksów
 #define LICZBA_BAJTOW_ID_TELEMETRII		16		//liczba bajtów w ramce telemetrii identyfikujaca przesyłane zmienne
-#define LICZBA_RAMEK_TELEMETR			3		//ramka przesyła max 128 zmiennych.
-#define MASKA_LICZBY_RAMEK_TELE			0x01
+#define LICZBA_RAMEK_TELEMETR			4		//ramka przesyła max 128 zmiennych.
+#define LICZBA_BUFOROW_TELEMETRII		2		//podwójne buforowanie
 #define TELEMETRIA_WYLACZONA			0xFFFF
 #define OKRESOW_TELEMETRII_W_RAMCE		120		//w ramce przesyłane jest na raz się tyle 16-bitowych okresów telemetrii (liczba podzialna przez 15, bo tyle danych mieści się na stronie flash)
 

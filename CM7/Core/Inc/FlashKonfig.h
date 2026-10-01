@@ -38,9 +38,27 @@
 #define FKON_OKRES_TELEMETRI15		0x10	//okresy wysyłania zmiennych telemetrycznych 210
 #define FKON_OKRES_TELEMETRI16		0x11	//okresy wysyłania zmiennych telemetrycznych 225
 #define FKON_OKRES_TELEMETRI17		0x12	//okresy wysyłania zmiennych telemetrycznych 240
-#define FKON_KONFIGURACJA_FFT		0x13	//konfiguracja FFT
+#define FKON_OKRES_TELEMETRI18		0x13	//okresy wysyłania zmiennych telemetrycznych 255 - koniec ramki 3
+#define FKON_OKRES_TELEMETRI19		0x14	//okresy wysyłania zmiennych telemetrycznych 270
+#define FKON_OKRES_TELEMETRI20		0x15	//okresy wysyłania zmiennych telemetrycznych 285
+#define FKON_OKRES_TELEMETRI21		0x16	//okresy wysyłania zmiennych telemetrycznych 300
+#define FKON_OKRES_TELEMETRI22		0x17	//okresy wysyłania zmiennych telemetrycznych 315
+#define FKON_OKRES_TELEMETRI23		0x18	//okresy wysyłania zmiennych telemetrycznych 330
+#define FKON_OKRES_TELEMETRI24		0x19	//okresy wysyłania zmiennych telemetrycznych 345
+#define FKON_OKRES_TELEMETRI25		0x1A	//okresy wysyłania zmiennych telemetrycznych 360
+#define FKON_OKRES_TELEMETRI26		0x1B	//okresy wysyłania zmiennych telemetrycznych 375
+#define FKON_OKRES_TELEMETRI27		0x1C	//okresy wysyłania zmiennych telemetrycznych 390
+#define FKON_OKRES_TELEMETRI28		0x1D	//okresy wysyłania zmiennych telemetrycznych 405
+#define FKON_OKRES_TELEMETRI29		0x1E	//okresy wysyłania zmiennych telemetrycznych 420
+#define FKON_OKRES_TELEMETRI30		0x1F	//okresy wysyłania zmiennych telemetrycznych 435
+#define FKON_OKRES_TELEMETRI31		0x20	//okresy wysyłania zmiennych telemetrycznych 450
+#define FKON_OKRES_TELEMETRI32		0x21	//okresy wysyłania zmiennych telemetrycznych 460
+#define FKON_OKRES_TELEMETRI33		0x22	//okresy wysyłania zmiennych telemetrycznych 480
+#define FKON_OKRES_TELEMETRI34		0x23	//okresy wysyłania zmiennych telemetrycznych 495
+#define FKON_OKRES_TELEMETRI35		0x24	//okresy wysyłania zmiennych telemetrycznych 510 - koniec ramki 4
+#define FKON_KONFIGURACJA_FFT		0x25	//konfiguracja FFT
 
-#define LICZBA_TYPOW_PACZEK			0x14
+#define LICZBA_TYPOW_PACZEK			0x26
 
 
 uint8_t InicjujKonfigFlash(void);

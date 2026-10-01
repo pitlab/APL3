@@ -39,7 +39,7 @@ static uint8_t cRozmDanych;
 static uint8_t cDaneRamkiKom[ROZMIAR_DANYCH_KOMUNIKACJI];
 static unia8_32_t un8_32;
 stBSP_ID_t stBSP_ID;	//struktura zawierajaca adresy i nazwę BSP
-const char* cNazwaSierotki = {"Sierotka Wronia"};	//domyślna nazwa nienazwanego BSP
+const char* cNazwaSierotki = {"Sierotka Dronia"};	//domyślna nazwa nienazwanego BSP
 
 //ponieważ BDMA nie potrafi komunikować się z pamiecią AXI, więc jego bufory musza być w SRAM4
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	cBuforNadDMA[ROZMIAR_RAMKI_KOMUNIKACYJNEJ];
@@ -279,6 +279,8 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 				case RAMKA_POLECEN:	HAL_UART_Transmit_DMA(&hlpuart1, &cBuforNadDMA[0], st_ZajetośćLPUART.sDoWysłania[n]);		 break;
 				case RAMKA_TELE1:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[0 + st_ZajetośćLPUART.cIndeksNapełnianejRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
 				case RAMKA_TELE2:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[2 + st_ZajetośćLPUART.cIndeksNapełnianejRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
+				case RAMKA_TELE3:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[4 + st_ZajetośćLPUART.cIndeksNapełnianejRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
+				case RAMKA_TELE4:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[6 + st_ZajetośćLPUART.cIndeksNapełnianejRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
 				}
 				st_ZajetośćLPUART.cZajętyPrzez = n;
 				st_ZajetośćLPUART.sDoWysłania[n] = 0;	//wysłano więc zdejmij z kolejki i zezwól na ponowne napełnienie bufora
