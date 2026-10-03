@@ -15,12 +15,12 @@
 #define KMSTAN	12	//rozmiar wektora stanu filtra kalibracji magnetometrów
 #define KMPMAG	3	//rozmiar wektora aktualizacji jednym czujnikiem
 
-#define LICZBA_USREDNIANIA_ZYROSKOPOW	2048
+//#define LICZBA_USREDNIANIA_ZYROSKOPOW	2048
 #define WARIANCJA_SZUMU_PROCESU_OBROTU	5e-3
-#define WARIANCJA_SZUMU_PROCESU_BIASU	5e-2
-#define WARIANCJA_SZUMU_MAGNETOMETRU1	5e-3
-#define WARIANCJA_SZUMU_MAGNETOMETRU2	5e-3
-#define WARIANCJA_SZUMU_MAGNETOMETRU3	5e-3
+#define WARIANCJA_SZUMU_PROCESU_BIASU	1e-3
+#define WARIANCJA_SZUMU_MAGNETOMETRU1	5e-1
+#define WARIANCJA_SZUMU_MAGNETOMETRU2	5e-1
+#define WARIANCJA_SZUMU_MAGNETOMETRU3	5e-1
 
 uint8_t InicjujFiltrKalmanaKalibracjiMagnetometrów12X9Z(stWymianyCM4_t *dane);
 uint8_t PredykcjaFiltraKalmanaKalibracjiMagnetometrów12X9Z(stWymianyCM4_t *dane);

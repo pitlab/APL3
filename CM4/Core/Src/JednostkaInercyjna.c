@@ -114,7 +114,7 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 	//filtr komplementarny IMU
 	for (uint16_t n=0; n<3; n++)
 	{
-		uDaneCM4.dane.fKatIMU1[n] = 0.02 * uDaneCM4.dane.fKatAkcel1[n] + 0.98 * uDaneCM4.dane.fKatIMU1[n];	//kasowanie dryftu dodatkiem kąta z akceletromtru
+		uDaneCM4.dane.fKatIMU1[n] = 0.02 * uDaneCM4.dane.fKatAkcel1[n] + 0.98 * uDaneCM4.dane.fKatIMU1[n];	//kasowanie dryftu dodatkiem kątów z akceletromtru i magnetometru
 		uDaneCM4.dane.fKatIMU1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT / 1000000;							//przyrost kąta z całki żyroskopu
 	}
 
@@ -242,6 +242,14 @@ uint8_t JednostkaInercyjnaKwaterniony(uint32_t ndT, float *fZyro, float *fAkcel,
 
 	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(Y/X) dla X=N, Y=E => atan2(X, Y)
 	uDaneCM4.dane.fKatIMU2[2] = atan2f(fQMagKompens[2], fQMagKompens[1]);
+
+	//obliczenia trygonometryczne kątów uzyskanych z filtra komplementarnego dostępne globalnie do dalszych obliczeń - kąt psi płynie
+	/*uDaneCM4.dane.stMat.fSinPhi = sinf(uDaneCM4.dane.fKatIMU2[0]);
+	uDaneCM4.dane.stMat.fCosPhi = cosf(uDaneCM4.dane.fKatIMU2[0]);
+	uDaneCM4.dane.stMat.fSinThe = sinf(uDaneCM4.dane.fKatIMU2[1]);
+	uDaneCM4.dane.stMat.fCosThe = cosf(uDaneCM4.dane.fKatIMU2[1]);
+	uDaneCM4.dane.stMat.fSinPsi = sinf(uDaneCM4.dane.fKatIMU2[2]);
+	uDaneCM4.dane.stMat.fCosPsi = cosf(uDaneCM4.dane.fKatIMU2[2]);*/
 	return BLAD_OK;
 }
 
