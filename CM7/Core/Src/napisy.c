@@ -116,7 +116,7 @@ const char *cNazwyPozycjiRejestratora[LICZBA_NAZW_POZYCJI_REJESTRATORA] = {
 "ZyroSurowe%d%c [rad/s]",	//NREJ_ZYRO_SUR_XD_XC_RADS
 "ZyroKalibr%d%c [rad/s]",	//NREJ_ZYRO_KAL_XD_XC_RADS
 "Akcel%d%c [m/s^2]",		//NREJ_AKCEL_XD_XC_MS2
-"Magneto%d%c [Gauss]",		//NREJ_MAGNETO_XD_XC_GAUSS
+"Magneto%d%c [uGauss]",		//NREJ_MAGNETO_XD_XC_GAUSS
 "TempIMU%d [K]",			//NREJ_TEMP_IMU_XD_K
 "Kat kalmIMU%c [rad]",		//NREJ_KAT_KALM_IMU_XC_RAD
 "Kat kompIMU%c [rad]",		//NREJ_KAT_KOMP_IMU_XC_RAD

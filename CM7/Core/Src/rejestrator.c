@@ -35,7 +35,7 @@ uint8_t __attribute__ ((aligned (32))) aTxBuffer[_MAX_SS];
 uint8_t __attribute__ ((aligned (32))) aRxBuffer[_MAX_SS];
 __IO uint8_t RxCplt, TxCplt;
 volatile uint16_t sStatusRejestratora;	//zestaw flag informujących o stanie rejestratora
-uint32_t nKonfLogera[LICZBA_SLOW_REJESTRATORA] = {0x7F0E23FF, 0x0003FFFF, 0x1C00FFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000FFFFF};	//zestaw flag włączajacych dane do rejestracji
+uint32_t nKonfLogera[LICZBA_SLOW_REJESTRATORA] = {0x7F0E23FF, 0x00FFFFFF, 0x1C00FFFF, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x000FFFFF};	//zestaw flag włączajacych dane do rejestracji
 static char __attribute__ ((aligned (32))) cBufZapisuKarty[ROZMIAR_BUFORA_LOGU];	//bufor na jedną linijkę logu
 char __attribute__ ((aligned (32))) cBufPodreczny[_MAX_LFN];
 UINT nDoZapisuNaKarte, nZapisanoNaKarte;

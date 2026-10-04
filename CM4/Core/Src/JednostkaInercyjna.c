@@ -119,12 +119,12 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 	}
 
 	//obliczenia trygonometryczne kątów uzyskanych z filtra komplementarnego dostępne globalnie do dalszych obliczeń
-	uDaneCM4.dane.stMat.fSinPhi = sinf(uDaneCM4.dane.fKatIMU1[0]);
+	/*uDaneCM4.dane.stMat.fSinPhi = sinf(uDaneCM4.dane.fKatIMU1[0]);
 	uDaneCM4.dane.stMat.fCosPhi = cosf(uDaneCM4.dane.fKatIMU1[0]);
 	uDaneCM4.dane.stMat.fSinThe = sinf(uDaneCM4.dane.fKatIMU1[1]);
 	uDaneCM4.dane.stMat.fCosThe = cosf(uDaneCM4.dane.fKatIMU1[1]);
 	uDaneCM4.dane.stMat.fSinPsi = sinf(uDaneCM4.dane.fKatIMU1[2]);
-	uDaneCM4.dane.stMat.fCosPsi = cosf(uDaneCM4.dane.fKatIMU1[2]);
+	uDaneCM4.dane.stMat.fCosPsi = cosf(uDaneCM4.dane.fKatIMU1[2]);*/
 	/*/w celu porównania metody policz kąty z tych samych danych metodą kwaternionową
 	float fQA[4];	//kwaternion wektora przyspieszenia
 	float fQM[4];
