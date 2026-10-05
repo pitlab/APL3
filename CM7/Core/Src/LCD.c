@@ -42,6 +42,7 @@
 #include "LCD/LCD_mem.h"
 #include "OSD.h"
 #include "ModulySPI.h"
+#include "SysDefWspolny.h"
 
 //deklaracje zmiennych
 extern uint8_t cMidFont[];
@@ -334,8 +335,8 @@ menu_t stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY] = {
 	{"Kal Magn1", 	"Kalibracja magnetometru 1",				TP_MAG_KAL1,		obr_kal_mag_n1},
 	{"Kal Magn2", 	"Kalibracja magnetometru 2",				TP_MAG_KAL2,		obr_kal_mag_n1},
 	{"Kal Magn3", 	"Kalibracja magnetometru 3",				TP_MAG_KAL3,		obr_kal_mag_n1},
-	{"MAG1",		"nic  ",									TP_MAG1,			obr_dotyk_zolty},
-	{"MAG2",		"nic  ",									TP_MAG2,			obr_dotyk_zolty},
+	{"Kal.m MNK",	"Kalibr. magn. Metoda Najmn. Kwadratow",	TP_MAG_MNK,			obr_okregi},
+	{"Kal MNK m2",	"Kalibr. mag2 Metoda Najmn. Kwadratow",		TP_MAG_MNK2,		obr_dotyk_zolty},
 	{"Spr Magn1",	"Sprawdz kalibracje magnetometru 1",		TP_SPR_MAG1,		obr_kal_mag_n1},
 	{"Spr Magn2",	"Sprawdz kalibracje magnetometru 2",		TP_SPR_MAG2,		obr_kal_mag_n1},
 	{"Spr Magn3",	"Sprawdz kalibracje magnetometru 3",		TP_SPR_MAG3,		obr_kal_mag_n1},
@@ -1425,7 +1426,7 @@ uint8_t RysujEkran(void)
 	case TP_KAL_ZYRO_ZIM:
 		uDaneCM7.dane.cWykonajPolecenie = POL7_KALIBRUJ_ZYRO_ZIM;	//uruchom kalibrację żyroskopów na zimno 10°C
 		fTemperaturaKalibracji = TEMP_KAL_ZIMNO;
-		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
+		if ((uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] > 0) && (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] < CZAS_KALIBRACJI))
 			cTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
 		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO))
@@ -1439,7 +1440,7 @@ uint8_t RysujEkran(void)
 	case TP_KAL_ZYRO_POK:
 		uDaneCM7.dane.cWykonajPolecenie = POL7_KALIBRUJ_ZYRO_POK;	//uruchom kalibrację żyroskopów w temperaturze pokojowej 25°C
 		fTemperaturaKalibracji = TEMP_KAL_POKOJ;
-		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
+		if ((uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] > 0) && (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] < CZAS_KALIBRACJI))
 			cTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
 		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO))
@@ -1453,7 +1454,7 @@ uint8_t RysujEkran(void)
 	case TP_KAL_ZYRO_GOR:
 		uDaneCM7.dane.cWykonajPolecenie = POL7_KALIBRUJ_ZYRO_GOR;	//uruchom kalibrację żyroskopów na gorąco 40°C
 		fTemperaturaKalibracji = TEMP_KAL_GORAC;
-		if ((uDaneCM4.dane.sPostepProcesu > 0) && (uDaneCM4.dane.sPostepProcesu < CZAS_KALIBRACJI))
+		if ((uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] > 0) && (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] < CZAS_KALIBRACJI))
 			cTrybPracy = TP_PODGLAD_IMU;	//jeżeli proces kalibracji się zaczął to przejdź do trybu podgladu aby nie zaczynać nowego cyklu po zakończniu obecnego
 
 		if ((uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_ZIMNO) || (uDaneCM4.dane.uRozne.U8[ODPOWIEDZ_U8] == BLAD_ZA_CIEPLO))
@@ -1474,7 +1475,8 @@ uint8_t RysujEkran(void)
 		else
 		{
 			PomiaryAHRS();		//wyświetlaj wyniki pomiarów AHRS pobrane z CM4
-			if (uDaneCM4.dane.sPostepProcesu)
+			if (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16])
+
 				cCzasSwieceniaLED[LED_NIEB] = 5;	//świeć niebieskim LED w trakcie kalibracji
 		}
 
@@ -1594,9 +1596,66 @@ uint8_t RysujEkran(void)
 		}
 		break;
 
+	case TP_MAG_MNK:
+		if (cRysujRaz)
+		{
+			BelkaTytulu("Kal.mag.MNK dopasow.sfery");
+			setColor(SZARY80);
+			for (uint8_t n=0; n<2; n++)
+			{
+				sprintf(cNapis, "Postep kalibracji mag %d:", n);
+				RysujNapis(cNapis, 0, 30 + n * 20);
+			}
 
-	case TP_MAG1:	break;
-	case TP_MAG2:	break;
+			//nie pozwól przejsć dalej, dopóki nie dostanie potwierdzenia wykonania inicjalizacji
+			uDaneCM7.dane.cWykonajPolecenie = POL7_INICJUJ_KAL_MNK;
+			if (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_INICJUJ_KAL_MNK)
+				cRysujRaz = 0;
+			else
+				break;
+		}
+
+		uDaneCM7.dane.cWykonajPolecenie = POL7_KAL_MAGN_MNK;
+
+		setColor(ZOLTY);
+		uDaneCM7.dane.sAdres++;	//zmiana adresu powoduje ponowne uruchomienie polecenie po stronie CM4
+		sprintf(cNapis, "%d/%d ", uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16], LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY);
+		RysujNapis(cNapis, 26*FONT_SL, 30);
+		sprintf(cNapis, "%d/%d ", uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU2_U16], LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY);
+		RysujNapis(cNapis, 26*FONT_SL, 50);
+		if (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
+		{
+			setColor(ZIELONY);
+			for (uint8_t n=0; n<3; n++)
+			{
+				sprintf(cNapis, "Bias mag1.%c: %.1f ", 'X'+n, uDaneCM4.dane.uRozne.f32[n]);
+				RysujNapis(cNapis, 1, 90 + n * 20);
+			}
+		}
+		if (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU2_U16] == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
+		{
+			setColor(ZIELONY);
+			for (uint8_t n=0; n<3; n++)
+			{
+				sprintf(cNapis, "Bias mag2.%c: %.1f ", 'X'+n, uDaneCM4.dane.uRozne.f32[n+3]);
+				RysujNapis(cNapis, 1, 150 + n * 20);
+			}
+		}
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
+		{
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_MAG;
+		}
+		break;
+
+	case TP_MAG_MNK2:
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
+		{
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_MAG;
+		}
+		break;
+
 	case TP_SPR_PLASKI:	PlaskiObrotMagnetometrow();
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
@@ -2615,7 +2674,7 @@ void RysujPaskiKanalowRC(uint8_t chIndeksOpisu, uint16_t *sDane)
 ////////////////////////////////////////////////////////////////////////////////
 void RysujPasekPostepu(uint16_t sPelenZakres)
 {
-	uint16_t sDlugoscPaska = (uDaneCM4.dane.sPostepProcesu * DISP_X_SIZE) / sPelenZakres;
+	uint16_t sDlugoscPaska = (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] * DISP_X_SIZE) / sPelenZakres;	//sPostepProcesu przeniesiony do uRozne.U16[POSTEP_PROCESU_U16]
 	if (sDlugoscPaska)	//nie rysuj paska jeżeli ma zerową długość
 		RysujProstokatWypelniony(0, DISP_Y_SIZE - WYS_PASKA_POSTEPU, sDlugoscPaska, WYS_PASKA_POSTEPU, NIEBIESKI);		//Aktywna cześć paska
 	RysujProstokatWypelniony(sDlugoscPaska, DISP_Y_SIZE - WYS_PASKA_POSTEPU, DISP_X_SIZE - sDlugoscPaska, WYS_PASKA_POSTEPU, CZARNY);	//tło za paskiem

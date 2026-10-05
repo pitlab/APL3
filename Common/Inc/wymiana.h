@@ -88,6 +88,8 @@
 #define POL7_REKONFIG_WEJSCIA_RC	45	//wykonuje ponowną konfigurację wejść RC po zmianie konfiguracji we FRAM
 #define POL7_REKONFIG_WYJSCIA_RC	46	//wykonuje ponowną konfigurację wyjść RC po zmianie konfiguracji we FRAM
 #define POL7_URUCHOM_INDENT_SILN	47	//uruchamia identyfikację silników
+#define POL7_INICJUJ_KAL_MNK		48	//unicjuje zmienne do kalibracji metodą MNK
+#define POL7_KAL_MAGN_MNK			49	//uruchom kalibrację magnetometrów metodą najmniejszych kwadratów
 #define POL7_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony przez poprzednie polecenie
 
 #define ROZMIAR_BUFORA_IMU	8		//rozmiar bufora kołowego przechowującego ostarnie dane z szybkiego IMU
@@ -99,14 +101,17 @@
 #define FMR_SPRAWDZ_CM4		0x0100
 #define FMR_SPRAWDZ_CM7		0x0200
 
-//definicje pól zmiennej nNowyPomiar
-#define NP_MAG1		0x01
-#define NP_MAG2		0x02
-#define NP_MAG3		0x04
-#define NP_EXT_IAS	0x08
-#define NP_WYS1		0x10
-#define NP_WYS2		0x20
-#define NP_WYS3		0x40
+//definicje pól zmiennej sNowyPomiar
+#define NP_MAG1			0x0001
+#define NP_MAG2			0x0002
+#define NP_MAG3			0x0004
+#define NP_EXT_IAS		0x0008
+#define NP_WYS1			0x0010
+#define NP_WYS2			0x0020
+#define NP_WYS3			0x0040
+#define NP_KAL_MAG1		0x0100	//pomiar magnetometru do celów kalibracji - flaga zdejmowana jest w funkcji kalibracji
+#define NP_KAL_MAG2		0x0200
+#define NP_KAL_MAG3		0x0400
 
 //definicje kątow
 #define PRZE	0
@@ -205,6 +210,8 @@ typedef struct
 } stMat_t;
 
 #define ODPOWIEDZ_U8	31	//komórka tablicy U8 odpowiedzialna za przekazywanie odpowiedzi na polecenia kalibracyjne
+#define POSTEP_PROCESU_U16	12	//komórka tablicy U16 odpowiedzialna za przekazywanie postępu procesu
+#define POSTEP_PROCESU2_U16	11	//wskaźnik postępu drugiego procesu
 //definicja struktury wymiany danych wychodzących z rdzenia CM4
 //typedef struct _stWymianyCM4
 typedef struct
@@ -247,8 +254,7 @@ typedef struct
 	uRozne_t uRozne;		//unia różnych typów danych ogólnego zastosowania
 	uint8_t cRozmiar;		//rozmiar danych przekazywanych w polu fRozne
 	uint16_t sAdres;		//adres danych przekazywanych w polu fRozne
-	//stGnss_t stGnss1;		//struktura danych GNSS1
-	stGnss_t stGnss[2];		//struktura danych GNSS
+	stGnss_t stGnss[2];		//struktura danych z odbiorników GNSS
 	stPID_t stPID[LICZBA_PID];	//tablica struktur danych regulatorów PID
 	int16_t sSilnik[KANALY_MIKSERA];	//wartości wysterowania silników wychodzące z miksera
 	int16_t sWyjscieRC[KANALY_WYJSC_RC];	//finalne wartość wysterowania serw lub silników po uwzględnieniu konfiguracji wyjść
@@ -259,11 +265,10 @@ typedef struct
 	uint8_t cJakoscUpLinkuRC2;	//procentowo przedstawiona jakość łącza do aktywnego odbiornika
 	uint8_t cJakoscDnLinkuRC;	//procentowo przedstawiona jakość łącza z aktywnego odbiornika (telemetrii)
 	uint8_t cTrybLotu;		//tryb lotu jako zestaw bitów określających funkcjonalności realizowane w danym czasie
-	uint8_t cNowyPomiar;	//zestaw flag informujacych o pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
+	uint16_t sNowyPomiar;	//zestaw flag informujacych o pojawieniu się nowego pomiaru z wolno aktualizowanych czujników po I2C
 	uint8_t cBuforBłędów[ROZMIAR_BUFORA_BLEDOW];	//bufor do przechowywania ostatnich błędów przekazywanych z CM4 do CM7
 	uint32_t nZainicjowano;		//zestaw flag inicjalizacji sprzętu
 	uint32_t nBrakCzujnika;		//zestaw flag obecnosci czujników   ZROBIC: przenieść do Różne
-	uint16_t sPostepProcesu;	//do wizualizacji trwania postępu procesów np. kalibracji   ZROBIC: przenieść do Różne
 	uint8_t cWykonajPolecenie;	//numer polecenia do wykonania przez CM7
 	uint8_t cPotwierdzenieWykonania;	//potwierdza wykonanie polecenia przysłanego przez CM7
 	uint32_t ndT;
@@ -271,9 +276,8 @@ typedef struct
 	stSzybkieIMU_t stSzybkieIMU;//struktura zawierajaca bufor kołowy i indeks szybkich danych z IMU aby na styku procesorów nie dochodziło do gubienia i powtarzania danych
 	stKalmanWys_t stKalmanWys;	//struktura z danymi do debugowania filtra Kalmana wysokości
 	stKalmanKąta_t stKalmanKąta;//struktura z danymi do debugowania rozszeroznego filtra Kalmana estymacji katów orientacji
-	//float fKalmanKataX[7];		//wektor stanu filtra Kalmana kątów orientacji
 	stTOF_t stTOF;				//struktura danych pomiarowych czujnika odległości VL53LC1
-	stMat_t stMat;				//zestaw obliczeń funkcji trygonometrycznych kątów Eulera policzony raz aby nie powtarzać obliczeń w kolejnych funkcjach w obu rdzeniach
+//	stMat_t stMat;				//zestaw obliczeń funkcji trygonometrycznych kątów Eulera policzony raz aby nie powtarzać obliczeń w kolejnych funkcjach w obu rdzeniach
 	stKalmanKalibrMag_t stKalmanKalibrMag;	//struktura z danymi do debugowania filtra Kalmana kalibracji magnetometrów
 } stWymianyCM4_t;
 

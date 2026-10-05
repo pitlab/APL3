@@ -259,7 +259,7 @@ uint8_t ObslugaMS5611(void)
 			if ((fWysokość > MIN_WYSOKOSC) && (fWysokość < MAX_WYSOKOSC))	//wytnij błędne pomiary nie mieszczące się w zakresie dopuszczalnych wskazań
 			{
 				uDaneCM4.dane.fWysokoMSL[0] = fWysokość;
-				uDaneCM4.dane.cNowyPomiar |= NP_WYS1;
+				uDaneCM4.dane.sNowyPomiar |= NP_WYS1;
 				fWysokośćUśredniona = ((PODSTAWA_FILTRA_IIR_WARIOMETRU - 1) * fWysokośćUśredniona + uDaneCM4.dane.fWysokoMSL[0]) / PODSTAWA_FILTRA_IIR_WARIOMETRU;
 
 				if (sLicznikUśrednianiaP0)	//czy przygotowanie ciśnienia P0 jeszcze trwa

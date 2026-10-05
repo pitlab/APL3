@@ -114,7 +114,7 @@ uint8_t InicjujFiltrKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
 	uint8_t cBłąd = BLAD_OK;
 
 	//filtr jest zainicjowany dopiero wtedy gdy trafia do niego rzeczywiste dane z czujnika o niezerowej wysokosci MSL
-	if (dane->cNowyPomiar & NP_WYS1)
+	if (dane->sNowyPomiar & NP_WYS1)
 	{
 		//zeru wektory pomiaru w pierwszym cyklu uśredniania
 		if (cLicznikUśredniania == LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI)
@@ -123,7 +123,7 @@ uint8_t InicjujFiltrKalmanaWysokości5X6Z(stWymianyCM4_t *dane)
 				fZc[1] = 0.0f;
 				fZa[0] = 0.0f;
 		}
-		dane->cNowyPomiar &= ~(NP_WYS1 + NP_WYS2);
+		dane->sNowyPomiar &= ~(NP_WYS1 + NP_WYS2);
 		fZc[0] += (dane->fWysokoMSL[0] + dane->fWysokoMSL[2]) / 2;	//średnia wysokość
 		fZc[1] += (dane->fWariometr[0] + dane->fWariometr[2]) / 2;	//średnia prędkość pionowa
 		fZa[0] += (dane->fAkcel1[2] + dane->fAkcel2[2]) / 2;		//średnie przyspieszenie bezwzględne w osi Z

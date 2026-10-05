@@ -1,9 +1,10 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // AutoPitLot v3.0
-// Liniowy Filtr Kalmana służący do kalibracji magnetometrów.
+// Liniowy Filtr Kalmana służący do kalibracji dwóch a docelowo trzech magnetometrów.
 // Posiada 12-elementowy wektor stanu zawierajacy: 3 składowe wektora pola magnetycznego oraz biasy każdej z 3 osi dla 3 magnetometrów
-// Filtr aktualizowany jest wektoramim magnetycznym z magnetometrów obracanymi przez
+// Filtr aktualizowany jest wektorami magnetycznymi osobno dla każdego magnetometru
+// Wygląda na to że przyjęto błędne założenia bo filtr ma zbyt dużo stopni swobody i nie wyznacza biasów
 //
 // (c) PitLab 2026
 // https://www.pitlab.pl
@@ -175,9 +176,9 @@ uint8_t InicjujFiltrKalmanaKalibracjiMagnetometrów12X9Z(stWymianyCM4_t *dane)
 ////////////////////////////////////////////////////////////////////////////////
 // Predykcja obraca wektor magnetyczny w układzie odniesienia BSP o różnicę kąta między iteracjami
 // Funkcja estymuje nowe wartości wektora stanu ze etapu (n) na (n+1)
-// x(n+1) = F * x(n) + w. Ponieważ F = I więc: x(n+1) = x(n)
+// x(n+1) = F * x(n) + w.
 // oraz wykonuje predykcję kowariancji (niepewności) nowej wartości:
-// P(n+1) = F * P(n) * F^T + Q Ponieważ F = I więc: P(n+1) = P(n) + Q
+// P(n+1) = F * P(n) * F^T + Q
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////

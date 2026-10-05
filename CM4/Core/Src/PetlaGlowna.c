@@ -41,6 +41,7 @@
 #include <INA226.h>
 #include <KalmanKatow7X9Z.h>
 #include <KalmanKalibracjiMagnetometrow12X9Z.h>
+#include <KalibracjaMagMetodaDopasowaniaDoSfery.h>
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -162,7 +163,7 @@ void PetlaGlowna(void)
 		break;
 
 	case 5:
-		uDaneCM4.dane.cNowyPomiar &= ~(NP_MAG1 | NP_MAG2 | NP_MAG3 | NP_EXT_IAS);	//unieważnij poprzednie pomiary czujników I2C. Flagi nowych pomiarów zostaną ustawnine w funkcji ObslugaCzujnikowI2C()
+		uDaneCM4.dane.sNowyPomiar &= ~(NP_MAG1 | NP_MAG2 | NP_MAG3 | NP_EXT_IAS);	//unieważnij poprzednie pomiary czujników I2C. Flagi nowych pomiarów zostaną ustawnine w funkcji ObslugaCzujnikowI2C()
 		if (sNoweDaneI2C)
 			ObslugaCzujnikowI2C(&sNoweDaneI2C);	//jeżeli odebrano nowe dane z czujników na obu magistralach I2C: wewnętrznej I2C4 i zewnętrznej I2C3, to je obrób
 		cBłądPG = RozdzielniaOperacjiI2C();
@@ -178,12 +179,12 @@ void PetlaGlowna(void)
 			//cBłądPG = PredykcjaFiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 			cBłądPG = PredykcjaFiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
-			if (uDaneCM4.dane.cNowyPomiar & NP_WYS1)
+			if (uDaneCM4.dane.sNowyPomiar & NP_WYS1)
 				//cBłądPG = AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
 				//cBłądPG = AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 				cBłądPG = AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 
-			if (uDaneCM4.dane.cNowyPomiar & NP_WYS3)
+			if (uDaneCM4.dane.sNowyPomiar & NP_WYS3)
 				//cBłądPG = AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 				cBłądPG = AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 
@@ -194,7 +195,7 @@ void PetlaGlowna(void)
 			cBłądPG = AktulizacjaAkcelerometrem1FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 			cBłądPG = AktulizacjaAkcelerometrem2FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
-			uDaneCM4.dane.cNowyPomiar &= ~(NP_WYS1 | NP_WYS2 | NP_WYS3);	//usuń flagę nowych pomiarów wysokości
+			uDaneCM4.dane.sNowyPomiar &= ~(NP_WYS1 | NP_WYS2 | NP_WYS3);	//usuń flagę nowych pomiarów wysokości
 		}
 		else	//jeżeli filtr nie jest zainicjowany to inicjuj go
 		{
@@ -209,12 +210,12 @@ void PetlaGlowna(void)
 		{
 			cBłądPG = PredykcjaFiltraKalmanaKalibracjiMagnetometrów12X9Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
-			if (uDaneCM4.dane.cNowyPomiar & NP_MAG1)
+			if (uDaneCM4.dane.sNowyPomiar & NP_MAG1)
 			{
 				cBłądPG = AktulizacjaMag1FiltraKalmanaKalibracjiMagnetometrów12X9Z(&uDaneCM4.dane);
 				PrzechwyćBłąd(cBłądPG);
 			}
-			if (uDaneCM4.dane.cNowyPomiar & NP_MAG2)
+			if (uDaneCM4.dane.sNowyPomiar & NP_MAG2)
 			{
 				cBłądPG = AktulizacjaMag2FiltraKalmanaKalibracjiMagnetometrów12X9Z(&uDaneCM4.dane);
 				PrzechwyćBłąd(cBłądPG);
@@ -234,11 +235,11 @@ void PetlaGlowna(void)
 			cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 
-			if (uDaneCM4.dane.cNowyPomiar & NP_MAG1)
+			if (uDaneCM4.dane.sNowyPomiar & NP_MAG1)
 			{
 				cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(&uDaneCM4.dane);
 				PrzechwyćBłąd(cBłądPG);
-				uDaneCM4.dane.cNowyPomiar &= ~(NP_MAG1);	//usuń flagę nowych pomiarów
+				uDaneCM4.dane.sNowyPomiar &= ~(NP_MAG1);	//usuń flagę nowych pomiarów
 			}
 		}
 		else	//jeżeli filtr nie jest zainicjowany to inicjuj go
@@ -348,7 +349,8 @@ void PetlaGlowna(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Wykonuje polecenie przekazane z rdzenia CM7
+// Wykonuje polecenie przekazane z rdzenia CM7. Dane polecenie wykonuje się tylko jeden raz.
+// Chcąc wykonać je wielokrotnie, należy zmieniać wartość uDaneCM4.dane.sAdres
 // Parametry: brak
 // Zwraca: nic
 // Czas wykonania: 680ns (dla POL_NIC)
@@ -371,7 +373,7 @@ uint8_t WykonajPolecenieCM7(void)
 		case POL7_KALIBRUJ_ZYRO_WZMP:		//uruchom kalibrację wzmocnienia żyroskopów P
 		case POL7_KALIBRUJ_ZYRO_WZMQ:		//uruchom kalibrację wzmocnienia żyroskopów Q
 		case POL7_KALIBRUJ_ZYRO_WZMR:		//uruchom kalibrację wzmocnienia żyroskopów R
-		case POL7_ZERUJ_CALKE_ZYRO:		cBłąd = KalibracjaWzmocnieniaZyro(uDaneCM7.dane.cWykonajPolecenie);	break;	//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
+		case POL7_ZERUJ_CALKE_ZYRO:		cBłąd = KalibracjaWzmocnieniaZyro(uDaneCM7.dane.cWykonajPolecenie);	break;	//zeruje całkę prędkosci kątowej żyroskopów przed kalibracją wzmocnienia
 
 		case POL7_CZYTAJ_WZM_ZYROP:	//odczytaj wzmocnienia żyroskopów P
 			uDaneCM4.dane.uRozne.f32[2] = CzytajFramFloat(FAH_ZYRO1P_WZMOC);
@@ -425,14 +427,14 @@ uint8_t WykonajPolecenieCM7(void)
 			cBłąd = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fCisnieBzw[2], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 0);
 			uDaneCM4.dane.uRozne.U8[0] = cBłąd;
 			if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
-				uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
+				uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] = sLicznikCzasuKalibracji++;
 			break;
 
 		case POL7_USREDNIJ_CISN2:
 			cBłąd = KalibrujCisnienie(uDaneCM4.dane.fCisnieBzw[0], uDaneCM4.dane.fCisnieBzw[1], uDaneCM4.dane.fCisnieBzw[2], uDaneCM4.dane.fTemper[TEMP_BARO1], sLicznikCzasuKalibracji, 1);
 			uDaneCM4.dane.uRozne.U8[0] = cBłąd;
 			if (sLicznikCzasuKalibracji <= CZAS_KALIBRACJI)
-				uDaneCM4.dane.sPostepProcesu = sLicznikCzasuKalibracji++;
+				uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] = sLicznikCzasuKalibracji++;
 			break;
 
 		case POL7_CZYTAJ_FRAM_U8:
@@ -598,6 +600,11 @@ uint8_t WykonajPolecenieCM7(void)
 			}
 			break;
 
+		case POL7_INICJUJ_KAL_MNK:	InicjujKalibracje();	break;
+		case POL7_KAL_MAGN_MNK:	//uruchom kalibrację magnetometrów metodą najmniejszych kwadratów
+			cBłąd = ZbierajDaneMagDoKalibracji(&uDaneCM4.dane);
+			break;
+
 		}	//switch
 	}
 	return cBłąd;
@@ -668,7 +675,7 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 		switch (sCzujnikZapisywanyNaI2CInt)
 		{
 		case MAG_IIS_STATUS:	MagIIS_CzytajStatus();	break;	//po zapisie wykonaj operację odczytu
-		 case MAG_IIS:			MagIIS_CzytajDane();	break;	//po zapisie wykonaj operację odczytu
+		case MAG_IIS:			MagIIS_CzytajDane();	break;	//po zapisie wykonaj operację odczytu
 		case MAG_MMC_STATUS:	MagMMC_CzytajStatus();	break;	//po zapisie wykonaj operację odczytu
 		case MAG_MMC:			MagMMC_CzytajDane();	break;	//po zapisie wykonaj operację odczytu
 		}
@@ -761,7 +768,7 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 		else
 			uDaneCM4.dane.fMagne3[2] = ((float)sZeZnakiem * CZULOSC_HMC5883 - fPrzesMagn3[2]) * fSkaloMagn3[2];	//dane skalibrowane
 		*sCzujniki &= ~MAG_HMC5883;	//dane obsłużone
-		uDaneCM4.dane.cNowyPomiar |= NP_MAG3;	//jest nowy pomiar
+		uDaneCM4.dane.sNowyPomiar |= NP_MAG3 | NP_KAL_MAG3;	//jest nowy pomiar
 	}
 
 	if (*sCzujniki & CISN_ROZN_MS2545)
@@ -769,7 +776,7 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 		uDaneCM4.dane.fCisnRozn[1] = CisnienieMS2545(cDaneMS4525);
 		uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 		*sCzujniki &= ~CISN_ROZN_MS2545;	//dane obsłużone
-		uDaneCM4.dane.cNowyPomiar |= NP_EXT_IAS;	//jest nowy pomiar
+		uDaneCM4.dane.sNowyPomiar |= NP_EXT_IAS;	//jest nowy pomiar
 	}
 
 	if (*sCzujniki & CISN_TEMP_MS2545)
@@ -778,7 +785,7 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 		uDaneCM4.dane.fCisnRozn[1] = (15 * uDaneCM4.dane.fCisnRozn[1] + CisnienieMS2545(cDaneMS4525)) / 16;
 		uDaneCM4.dane.fPredkosc[1] = PredkoscRurkiPrantla(uDaneCM4.dane.fCisnRozn[1], 101315.f);	//dla ciśnienia standardowego. Docelowo zamienić na cisnienie zmierzone
 		*sCzujniki &= ~CISN_TEMP_MS2545;	//dane obsłużone
-		uDaneCM4.dane.cNowyPomiar |= NP_EXT_IAS;	//jest nowy pomiar
+		uDaneCM4.dane.sNowyPomiar |= NP_EXT_IAS;	//jest nowy pomiar
 	}
 
 	if (*sCzujniki & MAG_IIS)
@@ -792,7 +799,7 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
 		}
 		*sCzujniki &= ~MAG_IIS;	//dane obsłużone
-		uDaneCM4.dane.cNowyPomiar |= NP_MAG1;	//jest nowy pomiar
+		uDaneCM4.dane.sNowyPomiar |= NP_MAG1 | NP_KAL_MAG1;	//jest nowy pomiar
 	}
 
 	if (*sCzujniki & MAG_MMC)
@@ -831,7 +838,7 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 		}
 		cPoprzedniRodzajPomiaru = cRodzajPomiaruMMC;
 		*sCzujniki &= ~MAG_MMC;	//dane obsłużone
-		uDaneCM4.dane.cNowyPomiar |= NP_MAG2;	//jest nowy pomiar
+		uDaneCM4.dane.sNowyPomiar |= NP_MAG2 | NP_KAL_MAG2;	//jest nowy pomiar
 	}
 
 	if (*sCzujniki & INA226_NAPIECIE)

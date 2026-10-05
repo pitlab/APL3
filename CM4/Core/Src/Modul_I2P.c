@@ -454,7 +454,7 @@ uint8_t RozpocznijKalibracjeZeraZyroskopu(uint8_t chRodzajKalib)
 		dSuma2[n] = 0.0;
 	}
 	fSumaCisn[0] = 0.0;
-	uDaneCM4.dane.sPostepProcesu = CZAS_KALIBRACJI;
+	uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] = CZAS_KALIBRACJI;
 	return BLAD_OK;
 }
 
@@ -597,8 +597,8 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t cRodzajKalib)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t KalibrujZeroZyroskopu(void)
 {
-	if (uDaneCM4.dane.sPostepProcesu)
-		uDaneCM4.dane.sPostepProcesu--;
+	if (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16])
+		uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16]--;
 
 	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))	//jeżeli trwa którakolwiek z kalibracji
 	{
@@ -609,7 +609,7 @@ uint8_t KalibrujZeroZyroskopu(void)
 		}
 		fSumaCisn[0] += uDaneCM4.dane.fCisnRozn[0];
 
-		if (uDaneCM4.dane.sPostepProcesu == 0)
+		if (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] == 0)
 		{
 			for (uint8_t n=0; n<3; n++)
 			{

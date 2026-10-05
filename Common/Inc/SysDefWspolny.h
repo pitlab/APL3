@@ -369,7 +369,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define MASKA_CZUJNIKA	0xF0
 //#define NORM_AMPL_MAG	1000		//znormalizowana długość wektora magnetometru
 
-
+#define LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY	1000		//trzeba zebrać tyle pomiarów aby dopasować obracany magnetometr do sfery
 #define WYSOKOSC10PIETER	28.0f	//wysokość w metrach 10 pięter
 
 

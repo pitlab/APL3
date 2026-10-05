@@ -135,12 +135,12 @@
 #define TP_MAG_KAL1			70
 #define TP_MAG_KAL2			71
 #define TP_MAG_KAL3			72
-#define TP_MAG1				73
+#define TP_MAG_MNK			73
 #define TP_SPR_PLASKI		74
 #define TP_SPR_MAG1			75
 #define TP_SPR_MAG2			76
 #define TP_SPR_MAG3			77
-#define TP_MAG2				78
+#define TP_MAG_MNK2			78
 #define TP_WROC_DO_MAG		79
 
 //Podmenu TP_KALIBRACJE

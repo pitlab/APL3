@@ -74,7 +74,7 @@ uint8_t InicjujFiltrKalmanaWysokości4X2Z(stWymianyCM4_t *dane)
 	uint8_t cBłąd = BLAD_OK;
 
 	//filtr jest zainicjowany dopiero wtedy gdy trafia do niego rzeczywiste dane z czujnika o niezerowej wysokosci MSL
-	if (dane->cNowyPomiar & NP_WYS1)
+	if (dane->sNowyPomiar & NP_WYS1)
 	{
 		if (cLicznikUśredniania == LICZBA_PROBEK_USREDNIANIA_KALMANA_WYSOKOSCI)
 		{
@@ -82,7 +82,7 @@ uint8_t InicjujFiltrKalmanaWysokości4X2Z(stWymianyCM4_t *dane)
 			fZ[1] = 0.0f;
 		}
 
-		dane->cNowyPomiar &= ~NP_WYS1;
+		dane->sNowyPomiar &= ~NP_WYS1;
 		fZ[0] += dane->fWysokoMSL[0];	//wysokość
 		fZ[1] += dane->fAkcel1[2];		//przyspieszenie bezwzględne w osi Z
 		cLicznikUśredniania--;
