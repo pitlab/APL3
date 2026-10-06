@@ -1631,15 +1631,19 @@ uint8_t RysujEkran(void)
 				sprintf(cNapis, "Bias mag1.%c: %.1f ", 'X'+n, uDaneCM4.dane.uRozne.f32[n]);
 				RysujNapis(cNapis, 1, 90 + n * 20);
 			}
+			sprintf(cNapis, "Nat%c%c pola mag1: %.1f ", ę, ż, uDaneCM4.dane.uRozne.f32[3]);
+			RysujNapis(cNapis, 1, 150);
 		}
 		if (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU2_U16] == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
 		{
 			setColor(ZIELONY);
 			for (uint8_t n=0; n<3; n++)
 			{
-				sprintf(cNapis, "Bias mag2.%c: %.1f ", 'X'+n, uDaneCM4.dane.uRozne.f32[n+3]);
-				RysujNapis(cNapis, 1, 150 + n * 20);
+				sprintf(cNapis, "Bias mag2.%c: %.1f ", 'X'+n, uDaneCM4.dane.uRozne.f32[n+4]);
+				RysujNapis(cNapis, 1, 170 + n * 20);
 			}
+			sprintf(cNapis, "Nat%c%c pola mag2: %.1f ", ę, ż, uDaneCM4.dane.uRozne.f32[7]);
+			RysujNapis(cNapis, 1, 230);
 		}
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{

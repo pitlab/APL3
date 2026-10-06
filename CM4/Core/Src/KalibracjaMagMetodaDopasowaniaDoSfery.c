@@ -57,6 +57,8 @@ uint8_t InicjujKalibracje(void)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja zbiera dane magnetometru 1 w celu jego kalibracji metodą najmniejszyh kwadratów
+// wyniki przekazuje w strukturze uRozne.f32[0..2] biasy mag1, uRozne.f32[3] natęzenie pola mag1,
+// uRozne.f32[4..6] biasy mag2, uRozne.f32[7] natęzenie pola mag2
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
@@ -80,6 +82,7 @@ uint8_t ZbierajDaneMagDoKalibracji(stWymianyCM4_t *dane)
 			cBłąd = MetodaNajmniejszychKwadratow(&stDopasowanieDoSferyMag1, &stWynikiDopasowaniaMag1);
 			for (uint8_t n=0; n<3; n++)
 				dane->uRozne.f32[n] = stWynikiDopasowaniaMag1.fBias[n];
+			dane->uRozne.f32[3] = stWynikiDopasowaniaMag1.fNatężeniePolaMag;
 		}
 		dane->sNowyPomiar &= ~NP_KAL_MAG1;
 	}
@@ -88,11 +91,12 @@ uint8_t ZbierajDaneMagDoKalibracji(stWymianyCM4_t *dane)
 	{
 		cBłąd = ZbierajProbki(&dane->fMagne2[0], &stDopasowanieDoSferyMag2);
 		dane->uRozne.U16[POSTEP_PROCESU2_U16] = stDopasowanieDoSferyMag2.sLiczbaPróbek;
-		if (stDopasowanieDoSferyMag1.sLiczbaPróbek == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
+		if (stDopasowanieDoSferyMag2.sLiczbaPróbek == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
 		{
 			cBłąd = MetodaNajmniejszychKwadratow(&stDopasowanieDoSferyMag2, &stWynikiDopasowaniaMag2);
 			for (uint8_t n=0; n<3; n++)
-				dane->uRozne.f32[3+n] = stWynikiDopasowaniaMag2.fBias[n];
+				dane->uRozne.f32[4+n] = stWynikiDopasowaniaMag2.fBias[n];
+			dane->uRozne.f32[7] = stWynikiDopasowaniaMag2.fNatężeniePolaMag;
 		}
 		dane->sNowyPomiar &= ~NP_KAL_MAG2;
 	}
@@ -195,12 +199,14 @@ uint8_t MetodaNajmniejszychKwadratow(stDopasowanieDoSfery_t *stDopasowanieDoSfer
 	if (cBłąd)
 		return cBłąd;
 
-	cBłąd = arm_mat_mult_f32(&mATA, &mATy, &mTheta);
+	cBłąd = arm_mat_mult_f32(&mInvATA, &mATy, &mTheta);
 
 	for (uint8_t n=0; n<3; n++)
 		stWynikiDopasowania->fBias[n] = fTheta[n] / 2;
 
-	stWynikiDopasowania->fNatężeniePolaMag = sqrtf(fTheta[3] + fTheta[0] * fTheta[0] + fTheta[1] * fTheta[1] + fTheta[2] * fTheta[2]);
+	//ponieważ: C = B^2 - bx^2 - by^2 - bz^2, więc: B^2 = C + bx^2 + by^2 + bz^2
+	//poniewa Theta = b/2, więc: B = pierwiastek( C + theta[x]/4 + theta[y]/4 + theta[z]/4)
+	stWynikiDopasowania->fNatężeniePolaMag = sqrtf(fTheta[3] + (fTheta[0] * fTheta[0] + fTheta[1] * fTheta[1] + fTheta[2] * fTheta[2]) / 4);
 	return cBłąd;
 }
 

@@ -24,7 +24,6 @@ typedef struct
 {
 	float fBias[3];	//obliczone biasy magnetometru
 	float fNatężeniePolaMag;
-	float fC;	//część równania zawierajaca sumę natężenie pola i biasów
 } stWynikiDopasowania_t;
 
 uint8_t InicjujKalibracje(void);
