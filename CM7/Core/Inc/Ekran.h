@@ -11,7 +11,7 @@
 #define	CZARNY   	0x0000
 #define	NIEBIESKI  	0x001F
 #define	CZERWONY   	0xF800
-
+#define	ZIELONY   	0x07E0
 #define	BLAD	   	0xF988
 #define	FIOLETOWY  	0xFA10
 #define	ZIELONY   	0x07E0

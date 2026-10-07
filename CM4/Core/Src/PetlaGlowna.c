@@ -605,6 +605,25 @@ uint8_t WykonajPolecenieCM7(void)
 			cBłąd = ZbierajDaneMagDoKalibracji(&uDaneCM4.dane);
 			break;
 
+		case POL7_POBIERZ_KAL_MAGN12:
+#ifdef DEBUG
+			assert(ROZMIAR_ROZNE_FLOAT >= 12);	//sprawdź czy damy radę zmieścić dane obu magnetometrów w strukturze uRozne.f32
+#endif
+			extern float fPrzesMagn1[3], fSkaloMagn1[3];
+			extern float fPrzesMagn2[3], fSkaloMagn2[3];
+			for (uint8_t n=0; n<3; n++)
+			{
+				cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN1_SKLADNIK_X + 4*n, &fPrzesMagn1[n], VMIN_SKLADNIK_MAGN, VMAX_SKLADNIK_MAGN, VDOM_SKLADNIK_MAGN);
+				uDaneCM4.dane.uRozne.f32[n + 0] = fPrzesMagn1[n];
+				cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN1_MNOZNIK_X + 4*n, &fSkaloMagn1[n], VMIN_MNOZNIK_MAGN, VMAX_MNOZNIK_MAGN, VDOM_MNOZNIK_MAGN);
+				uDaneCM4.dane.uRozne.f32[n + 3] = fSkaloMagn1[n];
+				cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN2_SKLADNIK_X + 4*n, &fPrzesMagn2[n], VMIN_SKLADNIK_MAGN, VMAX_SKLADNIK_MAGN, VDOM_SKLADNIK_MAGN);
+				uDaneCM4.dane.uRozne.f32[n + 6] = fPrzesMagn2[n];
+				cBłąd |= CzytajFramFloatZWalidacja(FAH_MAGN2_MNOZNIK_X + 4*n, &fSkaloMagn2[n], VMIN_MNOZNIK_MAGN, VMAX_MNOZNIK_MAGN, VDOM_MNOZNIK_MAGN);
+				uDaneCM4.dane.uRozne.f32[n + 9] = fSkaloMagn2[n];
+			}
+			break;
+
 		}	//switch
 	}
 	return cBłąd;

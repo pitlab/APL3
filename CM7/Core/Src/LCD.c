@@ -83,6 +83,7 @@ extern const unsigned short obr_aparaturaRC[0xFFC];
 extern const unsigned short obr_bmp24[0xFFC];
 extern const unsigned short obr_bmp8[0xFFC];
 extern const unsigned short spectrum[0xFFC];
+extern const unsigned short obr_recycling[0xFFC];
 
 //wygenerowane przez chata GPT
 extern const unsigned short obr_Polaczenie[0xFFC];
@@ -336,7 +337,7 @@ menu_t stMenuMagnetometr[MENU_WIERSZE * MENU_KOLUMNY] = {
 	{"Kal Magn2", 	"Kalibracja magnetometru 2",				TP_MAG_KAL2,		obr_kal_mag_n1},
 	{"Kal Magn3", 	"Kalibracja magnetometru 3",				TP_MAG_KAL3,		obr_kal_mag_n1},
 	{"Kal.m MNK",	"Kalibr. magn. Metoda Najmn. Kwadratow",	TP_MAG_MNK,			obr_okregi},
-	{"Kal MNK m2",	"Kalibr. mag2 Metoda Najmn. Kwadratow",		TP_MAG_MNK2,		obr_dotyk_zolty},
+	{"Stan kalib",	"Podglad i kasowanie kalibracji mag.",		TP_MAG_KASUJ,		obr_recycling},
 	{"Spr Magn1",	"Sprawdz kalibracje magnetometru 1",		TP_SPR_MAG1,		obr_kal_mag_n1},
 	{"Spr Magn2",	"Sprawdz kalibracje magnetometru 2",		TP_SPR_MAG2,		obr_kal_mag_n1},
 	{"Spr Magn3",	"Sprawdz kalibracje magnetometru 3",		TP_SPR_MAG3,		obr_kal_mag_n1},
@@ -1596,55 +1597,7 @@ uint8_t RysujEkran(void)
 		}
 		break;
 
-	case TP_MAG_MNK:
-		if (cRysujRaz)
-		{
-			BelkaTytulu("Kal.mag.MNK dopasow.sfery");
-			setColor(SZARY80);
-			for (uint8_t n=0; n<2; n++)
-			{
-				sprintf(cNapis, "Postep kalibracji mag %d:", n);
-				RysujNapis(cNapis, 0, 30 + n * 20);
-			}
-
-			//nie pozwól przejsć dalej, dopóki nie dostanie potwierdzenia wykonania inicjalizacji
-			uDaneCM7.dane.cWykonajPolecenie = POL7_INICJUJ_KAL_MNK;
-			if (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_INICJUJ_KAL_MNK)
-				cRysujRaz = 0;
-			else
-				break;
-		}
-
-		uDaneCM7.dane.cWykonajPolecenie = POL7_KAL_MAGN_MNK;
-
-		setColor(ZOLTY);
-		uDaneCM7.dane.sAdres++;	//zmiana adresu powoduje ponowne uruchomienie polecenie po stronie CM4
-		sprintf(cNapis, "%d/%d ", uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16], LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY);
-		RysujNapis(cNapis, 26*FONT_SL, 30);
-		sprintf(cNapis, "%d/%d ", uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU2_U16], LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY);
-		RysujNapis(cNapis, 26*FONT_SL, 50);
-		if (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
-		{
-			setColor(ZIELONY);
-			for (uint8_t n=0; n<3; n++)
-			{
-				sprintf(cNapis, "Bias mag1.%c: %.1f ", 'X'+n, uDaneCM4.dane.uRozne.f32[n]);
-				RysujNapis(cNapis, 1, 90 + n * 20);
-			}
-			sprintf(cNapis, "Nat%c%c pola mag1: %.1f ", ę, ż, uDaneCM4.dane.uRozne.f32[3]);
-			RysujNapis(cNapis, 1, 150);
-		}
-		if (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU2_U16] == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
-		{
-			setColor(ZIELONY);
-			for (uint8_t n=0; n<3; n++)
-			{
-				sprintf(cNapis, "Bias mag2.%c: %.1f ", 'X'+n, uDaneCM4.dane.uRozne.f32[n+4]);
-				RysujNapis(cNapis, 1, 170 + n * 20);
-			}
-			sprintf(cNapis, "Nat%c%c pola mag2: %.1f ", ę, ż, uDaneCM4.dane.uRozne.f32[7]);
-			RysujNapis(cNapis, 1, 230);
-		}
+	case TP_MAG_MNK:	PokazKalibracjęMagMNKDopasowaniaDoSfery();
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
@@ -1652,8 +1605,8 @@ uint8_t RysujEkran(void)
 		}
 		break;
 
-	case TP_MAG_MNK2:
-		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
+	case TP_MAG_KASUJ:	cBłąd = PodgladKalibracjiMagnetometrów();	//podgląd wartosci kalibracji magnetometrów z możliwością skasowania
+		if(cBłąd == BLAD_GOTOWE)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_MAG;
@@ -4943,3 +4896,121 @@ void PokazCzasOdcinkowPGAP(uint16_t *sCzasy)
 
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wyświetla stan procesu kalibracji magnetometrów 1 i 2 metodą najmniejszych kwadratów dopasowania do sfery
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void PokazKalibracjęMagMNKDopasowaniaDoSfery(void)
+{
+	if (cRysujRaz)
+	{
+		BelkaTytulu("Kal.mag.MNK dopasow.sfery");
+		setColor(SZARY80);
+		for (uint8_t n=0; n<2; n++)
+		{
+			sprintf(cNapis, "Postep kalibracji mag %d:", n);
+			RysujNapis(cNapis, 0, 30 + n * 20);
+		}
+
+		//nie pozwól przejsć dalej, dopóki nie dostanie potwierdzenia wykonania inicjalizacji
+		uDaneCM7.dane.cWykonajPolecenie = POL7_INICJUJ_KAL_MNK;
+		if (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_INICJUJ_KAL_MNK)
+			cRysujRaz = 0;
+		else
+			return;
+	}
+
+	uDaneCM7.dane.cWykonajPolecenie = POL7_KAL_MAGN_MNK;
+	setColor(ZOLTY);
+	uDaneCM7.dane.sAdres++;	//zmiana adresu powoduje ponowne uruchomienie polecenie po stronie CM4
+	sprintf(cNapis, "%d/%d ", uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16], LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY);
+	RysujNapis(cNapis, 26*FONT_SL, 30);
+	sprintf(cNapis, "%d/%d ", uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU2_U16], LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY);
+	RysujNapis(cNapis, 26*FONT_SL, 50);
+	if (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
+	{
+		setColor(ZIELONY);
+		for (uint8_t n=0; n<3; n++)
+		{
+			sprintf(cNapis, "Bias mag1.%c: %.1f ", 'X'+n, uDaneCM4.dane.uRozne.f32[n]);
+			RysujNapis(cNapis, 1, 90 + n * 20);
+		}
+		sprintf(cNapis, "Nat%c%c pola mag1: %.1f ", ę, ż, uDaneCM4.dane.uRozne.f32[3]);
+		RysujNapis(cNapis, 1, 150);
+	}
+	if (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU2_U16] == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
+	{
+		setColor(ZIELONY);
+		for (uint8_t n=0; n<3; n++)
+		{
+			sprintf(cNapis, "Bias mag2.%c: %.1f ", 'X'+n, uDaneCM4.dane.uRozne.f32[n+4]);
+			RysujNapis(cNapis, 1, 170 + n * 20);
+		}
+		sprintf(cNapis, "Nat%c%c pola mag2: %.1f ", ę, ż, uDaneCM4.dane.uRozne.f32[7]);
+		RysujNapis(cNapis, 1, 230);
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Wyświetla wartości kalibracji magnetometrów i umożliwia ich skasowanie
+// Dane przychodzą z dwu magnetometrów w strukturze uRozne. Jeżeli potrzeba wyświetlić więcej magnetometrów, trzeba zdefiniować wiecej poleceń.
+// Parametry: brak
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t PodgladKalibracjiMagnetometrów(void)
+{
+	uint8_t cBłąd = BLAD_OK;
+
+	if (cRysujRaz)
+	{
+		cRysujRaz = 0;
+		sprintf(cNapis, "Warto%cci kalibracji magn.", ś);
+		BelkaTytulu(cNapis);
+
+		UstawCzcionke(cBigFont);
+		setColor(SZARY80);
+		for (uint8_t n=0; n<2; n++)
+		{
+			sprintf(cNapis, "Mag %d", n);
+			RysujNapis(cNapis, 22*FONT_SL + 150*n, 30);
+		}
+		UstawCzcionke(cMidFont);
+		for (uint8_t n=0; n<3; n++)
+		{
+			sprintf(cNapis, "Przesuni%ccie zera %c: ", ę, 'X' + n);
+			RysujNapis(cNapis, 0, 50 + n * 20);
+			sprintf(cNapis, "Korekta wzmocn. %c: ", 'X' + n);
+			RysujNapis(cNapis, 0, 110 + n * 20);
+		}
+
+		//rysuj przyciski
+		RysujProstokatWypelniony(24*FONT_SL,  220,  15*FONT_SL,  100,  CZERWONY);
+		RysujProstokatWypelniony(40*FONT_SL,  220,  15*FONT_SL,  100,  FIOLETOWY);
+
+		uDaneCM7.dane.cWykonajPolecenie = POL7_POBIERZ_KAL_MAGN12;
+	}
+
+	setColor(BIALY);
+	for (uint8_t n=0; n<3; n++)
+	{
+		//kolumna 1
+		sprintf(cNapis, "%.1f", uDaneCM4.dane.uRozne.f32[n + 0]);		//fPrzesMagn1[n]
+		RysujNapis(cNapis, 22*FONT_SL, 30 + n * 20);
+		sprintf(cNapis, "%.1f", uDaneCM4.dane.uRozne.f32[n + 3]);		//fSkaloMagn1[n]
+		RysujNapis(cNapis, 22*FONT_SL, 90 + n * 20);
+
+		//kolumna2
+		sprintf(cNapis, "%.1f", uDaneCM4.dane.uRozne.f32[n + 6]);		//fPrzesMagn2[n]
+		RysujNapis(cNapis, 40*FONT_SL, 30 + n * 20);
+		sprintf(cNapis, "%.1f", uDaneCM4.dane.uRozne.f32[n + 9]);		//fSkaloMagn2[n]
+		RysujNapis(cNapis, 40*FONT_SL, 90 + n * 20);
+	}
+
+
+	return cBłąd;
+}

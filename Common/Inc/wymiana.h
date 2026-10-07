@@ -90,7 +90,9 @@
 #define POL7_URUCHOM_INDENT_SILN	47	//uruchamia identyfikację silników
 #define POL7_INICJUJ_KAL_MNK		48	//unicjuje zmienne do kalibracji metodą MNK
 #define POL7_KAL_MAGN_MNK			49	//uruchom kalibrację magnetometrów metodą najmniejszych kwadratów
+#define POL7_POBIERZ_KAL_MAGN12		50	//pobiera wartości kalibracji magnetometrów 1 i 2 i wysyła do CM7
 #define POL7_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony przez poprzednie polecenie
+
 
 #define ROZMIAR_BUFORA_IMU	8		//rozmiar bufora kołowego przechowującego ostarnie dane z szybkiego IMU
 #define MASKA_BUFORA_IMU	0x07	//maska do zawijania bufora kołowego
