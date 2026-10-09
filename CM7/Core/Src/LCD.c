@@ -43,6 +43,7 @@
 #include "OSD.h"
 #include "ModulySPI.h"
 #include "SysDefWspolny.h"
+#include "Wyrzutnia.h"
 
 //deklaracje zmiennych
 extern uint8_t cMidFont[];
@@ -307,7 +308,7 @@ menu_t stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY] = {
 
 menu_t stMenuTestowe[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"nic",			"nic",										TP_TEST1,			obr_narzedzia},
+	{"Sym Wyrzut",	"Symulacja wyrzutni BSP",					TP_TEST1,			obr_narzedzia},
 	{"nic",			"nic",										TP_TEST2,			obr_narzedzia},
 	{"nic",			"nic",										TP_TEST3,			obr_narzedzia},
 	{"nic",			"nic",										TP_TEST4,			obr_narzedzia},
@@ -445,7 +446,9 @@ uint8_t RysujEkran(void)
 		cWrocDoTrybu = TP_MENU_GLOWNE;
 		break;
 
-	case TP_TEST1:
+	case TP_TEST1:	//symulacja wyrzutni BSP. Generuje dane pomiarowe obu rolek
+		//założenia
+		TestFiltraPrędkościRolek();
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
