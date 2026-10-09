@@ -4976,22 +4976,32 @@ uint8_t PodgladKalibracjiMagnetometrów(void)
 		setColor(SZARY80);
 		for (uint8_t n=0; n<2; n++)
 		{
-			sprintf(cNapis, "Mag %d", n);
-			RysujNapis(cNapis, 22*FONT_SL + 150*n, 30);
+			sprintf(cNapis, "Mag %d", n + 1);
+			RysujNapis(cNapis, (20 + 20 * n) * FONT_SL, 30);
 		}
 		UstawCzcionke(cMidFont);
 		for (uint8_t n=0; n<3; n++)
 		{
-			sprintf(cNapis, "Przesuni%ccie zera %c: ", ę, 'X' + n);
+			sprintf(cNapis, "Przesuni%ccie %c: ", ę, 'X' + n);
 			RysujNapis(cNapis, 0, 50 + n * 20);
-			sprintf(cNapis, "Korekta wzmocn. %c: ", 'X' + n);
+			sprintf(cNapis, "Korekta wzm. %c: ", 'X' + n);	//koniec napisu 15 znaków * 8 = 120 pix
 			RysujNapis(cNapis, 0, 110 + n * 20);
 		}
 
 		//rysuj przyciski
-		RysujProstokatWypelniony(24*FONT_SL,  220,  15*FONT_SL,  100,  CZERWONY);
-		RysujProstokatWypelniony(40*FONT_SL,  220,  15*FONT_SL,  100,  FIOLETOWY);
+		RysujProstokatWypelniony( 0*FONT_SL,  170,  16*FONT_SL,  80,  SZARY60);
+		RysujProstokatWypelniony(19*FONT_SL,  170,  17*FONT_SL,  80,  CZERWONY);
+		RysujProstokatWypelniony(39*FONT_SL,  170,  17*FONT_SL,  80,  CZERWONY);
 
+		setBackColor(SZARY60);
+		setColor(CZARNY);
+		sprintf(cNapis, "Wyjd%c bez kas", ź);
+		RysujNapis(cNapis, 1*FONT_SL, 204);
+		setBackColor(CZERWONY);
+		setColor(BIALY);
+		RysujNapis("Kasuj kalibr 1", 20*FONT_SL, 204);
+		RysujNapis("Kasuj kalibr 2", 40*FONT_SL, 204);
+		setBackColor(CZARNY);
 		uDaneCM7.dane.cWykonajPolecenie = POL7_POBIERZ_KAL_MAGN12;
 	}
 
@@ -5000,15 +5010,40 @@ uint8_t PodgladKalibracjiMagnetometrów(void)
 	{
 		//kolumna 1
 		sprintf(cNapis, "%.1f", uDaneCM4.dane.uRozne.f32[n + 0]);		//fPrzesMagn1[n]
-		RysujNapis(cNapis, 22*FONT_SL, 30 + n * 20);
+		RysujNapis(cNapis, 21*FONT_SL, 50 + n * 20);
 		sprintf(cNapis, "%.1f", uDaneCM4.dane.uRozne.f32[n + 3]);		//fSkaloMagn1[n]
-		RysujNapis(cNapis, 22*FONT_SL, 90 + n * 20);
+		RysujNapis(cNapis, 21*FONT_SL, 110 + n * 20);
 
 		//kolumna2
 		sprintf(cNapis, "%.1f", uDaneCM4.dane.uRozne.f32[n + 6]);		//fPrzesMagn2[n]
-		RysujNapis(cNapis, 40*FONT_SL, 30 + n * 20);
+		RysujNapis(cNapis, 41*FONT_SL, 50 + n * 20);
 		sprintf(cNapis, "%.1f", uDaneCM4.dane.uRozne.f32[n + 9]);		//fSkaloMagn2[n]
-		RysujNapis(cNapis, 40*FONT_SL, 90 + n * 20);
+		RysujNapis(cNapis, 41*FONT_SL, 110 + n * 20);
+	}
+
+	if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
+	{
+		//sprawdź współrzędne dotyku Y z lekkim zapasem
+		if ((stStatusDotyku.sY > 160) && (stStatusDotyku.sY < 260))
+		{
+			if (stStatusDotyku.sX < 21*FONT_SL)			//czy naciśnięto przycisk Wyjdź
+			{
+				cBłąd = BLAD_GOTOWE;
+			}
+			else
+			if (stStatusDotyku.sX < 39*FONT_SL)		//czy naciśnięto przycisk kasuj kal1
+			{
+				uDaneCM7.dane.cWykonajPolecenie = POL7_KASUJ_KAL_MAGN1;
+				if (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_KASUJ_KAL_MAGN1)
+					cBłąd = BLAD_GOTOWE;
+			}
+			else	//naciśnięto przycisk kasuj kal2
+			{
+				uDaneCM7.dane.cWykonajPolecenie = POL7_KASUJ_KAL_MAGN2;
+				if (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_KASUJ_KAL_MAGN2)
+					cBłąd = BLAD_GOTOWE;
+			}
+		}
 	}
 
 

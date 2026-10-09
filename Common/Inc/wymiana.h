@@ -91,6 +91,8 @@
 #define POL7_INICJUJ_KAL_MNK		48	//unicjuje zmienne do kalibracji metodą MNK
 #define POL7_KAL_MAGN_MNK			49	//uruchom kalibrację magnetometrów metodą najmniejszych kwadratów
 #define POL7_POBIERZ_KAL_MAGN12		50	//pobiera wartości kalibracji magnetometrów 1 i 2 i wysyła do CM7
+#define POL7_KASUJ_KAL_MAGN1		51	//kasuj kalibrację magnetometru 1
+#define POL7_KASUJ_KAL_MAGN2		52	//kasuj kalibrację magnetometru 2
 #define POL7_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony przez poprzednie polecenie
 
 

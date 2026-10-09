@@ -624,6 +624,12 @@ uint8_t WykonajPolecenieCM7(void)
 			}
 			break;
 
+		case POL7_KASUJ_KAL_MAGN1:	//kasuj kalibrację magnetometru 1
+			break;
+
+		case POL7_KASUJ_KAL_MAGN2:	//kasuj kalibrację magnetometru 2
+			break;
+
 		}	//switch
 	}
 	return cBłąd;
