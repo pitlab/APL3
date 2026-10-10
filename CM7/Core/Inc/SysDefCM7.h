@@ -150,6 +150,9 @@
 #define TP_KAL_DOTYK		83	//kalibracja panelu dotykowego
 #define TP_KAL_HARD_FAULT	84
 #define TP_KAL1				85
+#define TP_KAL2				86
+#define TP_KAL3				87
+#define TP_KAL4				88
 #define TP_WROC_DO_KALIBR	89
 
 //podmenu TP_POMIARY

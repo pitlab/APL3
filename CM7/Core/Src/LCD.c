@@ -194,10 +194,10 @@ menu_t stMenuKalibracje[MENU_WIERSZE * MENU_KOLUMNY] = {
 	{"Kal Magn", 	"Kalibracja magnetometrow",					TP_KAL_MAG,			obr_kal_mag_n1},
 	{"Kal Baro", 	"Kalibracja cisnienia wg wzorca 10 pieter",	TP_KAL_BARO,		obr_cisnienie},
 	{"Kal Dotyk", 	"Kalibracja panelu dotykowego na LCD",		TP_KAL_DOTYK,		obr_KonfigDotyk},
-	{"nic",			"nic",										TP_KAL1,			obr_narzedzia},
-	{"nic",			"nic",										TP_KAL1,			obr_narzedzia},
-	{"nic",			"nic",										TP_KAL1,			obr_narzedzia},
-	{"nic",			"nic",										TP_KAL1,			obr_narzedzia},
+	{"nic1",		"nic",										TP_KAL1,			obr_narzedzia},
+	{"nic2",		"nic",										TP_KAL2,			obr_narzedzia},
+	{"nic3",		"nic",										TP_KAL3,			obr_narzedzia},
+	{"nic4",		"nic",										TP_KAL4,			obr_narzedzia},
 	{"HardFault",	"Genruje wystapiene HardFault",				TP_KAL_HARD_FAULT,	obr_narzedzia},
 	{"Powrot",		"Wraca do menu glownego",					TP_WROC_DO_MENU,	obr_powrot1}};
 
@@ -437,6 +437,15 @@ uint8_t RysujEkran(void)
 		if (TestDotyku() == BLAD_GOTOWE)
 			cNowyTrybPracy = TP_WROC_DO_MENU;
 		break;
+
+	case TP_KAL1:
+	case TP_KAL2:
+	case TP_KAL3:
+	case TP_KAL4:		//jeszcze nie wykorzystane
+		cTrybPracy = cWrocDoTrybu;
+		cNowyTrybPracy = TP_WROC_DO_MENU;
+		break;
+
 
 	//*** Menu Testy ************************************************
 	case TP_TESTY:
@@ -4975,14 +4984,13 @@ uint8_t PodgladKalibracjiMagnetometrów(void)
 		sprintf(cNapis, "Warto%cci kalibracji magn.", ś);
 		BelkaTytulu(cNapis);
 
-		UstawCzcionke(cBigFont);
-		setColor(SZARY80);
+		setColor(ZIELONY);
 		for (uint8_t n=0; n<2; n++)
 		{
-			sprintf(cNapis, "Mag %d", n + 1);
-			RysujNapis(cNapis, (20 + 20 * n) * FONT_SL, 30);
+			sprintf(cNapis, "Magnetometr %d", n + 1);
+			RysujNapis(cNapis, (19 + 20 * n) * FONT_SL, 30);
 		}
-		UstawCzcionke(cMidFont);
+		setColor(SZARY80);
 		for (uint8_t n=0; n<3; n++)
 		{
 			sprintf(cNapis, "Przesuni%ccie %c: ", ę, 'X' + n);
@@ -4992,18 +5000,23 @@ uint8_t PodgladKalibracjiMagnetometrów(void)
 		}
 
 		//rysuj przyciski
-		RysujProstokatWypelniony( 0*FONT_SL,  170,  16*FONT_SL,  80,  SZARY60);
-		RysujProstokatWypelniony(19*FONT_SL,  170,  17*FONT_SL,  80,  CZERWONY);
-		RysujProstokatWypelniony(39*FONT_SL,  170,  17*FONT_SL,  80,  CZERWONY);
+		RysujProstokatWypelniony( 0*FONT_SL,  180,  16*FONT_SL,  100,  SZARY60);
+		RysujProstokatWypelniony(19*FONT_SL,  180,  17*FONT_SL,  100,  CZERWONY);
+		RysujProstokatWypelniony(39*FONT_SL,  180,  17*FONT_SL,  100,  CZERWONY);
 
 		setBackColor(SZARY60);
 		setColor(CZARNY);
-		sprintf(cNapis, "Wyjd%c bez kas", ź);
-		RysujNapis(cNapis, 1*FONT_SL, 204);
+		UstawCzcionke(cBigFont);
+		sprintf(cNapis, "Wyjd%c", ź);
+		RysujNapis(cNapis, 3*FONT_SL, 210);
+		RysujNapis("bez kas", 1*FONT_SL, 230);
 		setBackColor(CZERWONY);
 		setColor(BIALY);
-		RysujNapis("Kasuj kalibr 1", 20*FONT_SL, 204);
-		RysujNapis("Kasuj kalibr 2", 40*FONT_SL, 204);
+		RysujNapis("Kasuj", 22*FONT_SL, 210);
+		RysujNapis("kalib 1", 21*FONT_SL, 230);
+		RysujNapis("Kasuj", 42*FONT_SL, 210);
+		RysujNapis("kalibr2", 41*FONT_SL, 230);
+		UstawCzcionke(cMidFont);
 		setBackColor(CZARNY);
 		uDaneCM7.dane.cWykonajPolecenie = POL7_POBIERZ_KAL_MAGN12;
 	}
@@ -5012,41 +5025,49 @@ uint8_t PodgladKalibracjiMagnetometrów(void)
 	for (uint8_t n=0; n<3; n++)
 	{
 		//kolumna 1
-		sprintf(cNapis, "%.1f", uDaneCM4.dane.uRozne.f32[n + 0]);		//fPrzesMagn1[n]
+		sprintf(cNapis, "%.4f", uDaneCM4.dane.uRozne.f32[n + 0]);		//fPrzesMagn1[n]
 		RysujNapis(cNapis, 21*FONT_SL, 50 + n * 20);
-		sprintf(cNapis, "%.1f", uDaneCM4.dane.uRozne.f32[n + 3]);		//fSkaloMagn1[n]
+		sprintf(cNapis, "%.4f", uDaneCM4.dane.uRozne.f32[n + 3]);		//fSkaloMagn1[n]
 		RysujNapis(cNapis, 21*FONT_SL, 110 + n * 20);
 
 		//kolumna2
-		sprintf(cNapis, "%.1f", uDaneCM4.dane.uRozne.f32[n + 6]);		//fPrzesMagn2[n]
+		sprintf(cNapis, "%.4f", uDaneCM4.dane.uRozne.f32[n + 6]);		//fPrzesMagn2[n]
 		RysujNapis(cNapis, 41*FONT_SL, 50 + n * 20);
-		sprintf(cNapis, "%.1f", uDaneCM4.dane.uRozne.f32[n + 9]);		//fSkaloMagn2[n]
+		sprintf(cNapis, "%.4f", uDaneCM4.dane.uRozne.f32[n + 9]);		//fSkaloMagn2[n]
 		RysujNapis(cNapis, 41*FONT_SL, 110 + n * 20);
 	}
 
 	if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 	{
 		//sprawdź współrzędne dotyku Y z lekkim zapasem
-		if ((stStatusDotyku.sY > 160) && (stStatusDotyku.sY < 260))
+		if ((stStatusDotyku.sY > 170) && (stStatusDotyku.sY < 270))		//wspólrzędne przycisku +10 z obu stron
 		{
 			if (stStatusDotyku.sX < 21*FONT_SL)			//czy naciśnięto przycisk Wyjdź
 			{
+				DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//odtwórz komunikat audio przycisku
 				cBłąd = BLAD_GOTOWE;
 			}
 			else
-			if (stStatusDotyku.sX < 39*FONT_SL)		//czy naciśnięto przycisk kasuj kal1
+			if (stStatusDotyku.sX < 39*FONT_SL)		//czy naciśnięto przycisk kasuj kalibrację 1
 			{
 				uDaneCM7.dane.cWykonajPolecenie = POL7_KASUJ_KAL_MAGN1;
 				if (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_KASUJ_KAL_MAGN1)
-					cBłąd = BLAD_GOTOWE;
+				{
+					DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//odtwórz komunikat audio przycisku
+					uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;
+				}
 			}
-			else	//naciśnięto przycisk kasuj kal2
+			else	//naciśnięto przycisk kasuj kalibrację 2
 			{
 				uDaneCM7.dane.cWykonajPolecenie = POL7_KASUJ_KAL_MAGN2;
 				if (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_KASUJ_KAL_MAGN2)
-					cBłąd = BLAD_GOTOWE;
+				{
+					DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//odtwórz komunikat audio przycisku
+					uDaneCM7.dane.cWykonajPolecenie = POL7_NIC;
+				}
 			}
 		}
+		stStatusDotyku.cFlagi &= ~DOTYK_DOTKNIETO;	//wyczyść flagę dotknięcia
 	}
 
 

@@ -51,7 +51,7 @@ uint32_t nCzasPoprzedniegoObiegu;	//czas [us] poprzedniego obiegu pętli główn
 uint32_t ndT;						//czas [us] jaki upłynął od poprzeniego obiegu pętli
 uint32_t nCzasBiezacy;
 uint8_t cNrOdcinkaCzasu;
-uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU + 1];		//zmierzony czas obsługi odcinka. Na ostatniej pozycji jest czas jałowy
+uint32_t nCzasOdcinka[LICZBA_ODCINKOW_CZASU];		//zmierzony czas obsługi odcinka.
 uint32_t nMaxCzasOdcinka[LICZBA_ODCINKOW_CZASU];	//maksymalna wartość czasu odcinka
 uint8_t cBłądPG = BLAD_OK;		//błąd petli głównej
 uint8_t cIndeksBuforaBłędów, cIndeksKasowaniaBłędów;
@@ -96,8 +96,6 @@ uint8_t cZakonczonoTransmisjeI2C;
 ////////////////////////////////////////////////////////////////////////////////
 void PetlaGlowna(void)
 {
-	uint32_t nCzasStartuADC;
-
 	//przykłady machania pinami IO
 	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);	//kanał serw 1 skonfigurowany jako IO
 	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);	//kanał serw 2 skonfigurowany jako IO
@@ -106,26 +104,20 @@ void PetlaGlowna(void)
 	//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);	//kanał serw 7 skonfigurowany jako IO
 
 
-
 	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetwornika A/C
 	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
 	if (cNrOdcinkaCzasu < LICZBA_POMIAROW_ADC3)
 	{
-		nCzasStartuADC = PobierzCzasT7();
 		cBłądPG = ObsługaDekoderaiADC(cNrOdcinkaCzasu, cBityPozwoleniaNaPomiarADC);	//zarządza rozpoczęciem pomiaru ADC i pobraniem wyników, przełacza dekoder modułów
 		PrzechwyćBłąd(cBłądPG);
-		nCzasOdcinka[20] = MinalCzasT7(nCzasStartuADC);		//czas konwersji ADC
 	}
 
 	switch (cNrOdcinkaCzasu)
 	{
 	case ADR_MOD1:		//obsługa modułu w gnieździe 1
-		uDaneCM4.dane.uRozne.f32[11] += 0.5f;
-		//do; while (( chWykonanoPomiarADC != WYKONANO_POMIAR_ADC2) || (chWykonanoPomiarADC != WYKONANO_POMIAR_ADC3));	//czekaj na wykonanie pomiarów ADC
 		break;
 
-	case 11:	//moduł jest obsługiwany na 2 slotach aby szybciej dostarczać dane dla filtrów  i FFT
-
+	case 11:			//moduł jest obsługiwany na 2 slotach aby szybciej dostarczać dane dla filtrów  i FFT
 	case ADR_MOD2:		//obsługa modułu w gnieździe 2
 		cBłądPG = ObslugaModuluI2P(ADR_MOD2, &cStanIOwy);
 		PrzechwyćBłąd(cBłądPG);
@@ -625,9 +617,23 @@ uint8_t WykonajPolecenieCM7(void)
 			break;
 
 		case POL7_KASUJ_KAL_MAGN1:	//kasuj kalibrację magnetometru 1
+			for (uint8_t n=0; n<3; n++)
+			{
+				fPrzesMagn1[n] = 0.0f;
+				fSkaloMagn1[n] = 1.0f;
+				ZapiszFramFloat(FAH_MAGN1_SKLADNIK_X + 4*n, fPrzesMagn1[n]);
+				ZapiszFramFloat(FAH_MAGN1_MNOZNIK_X + 4*n, fSkaloMagn1[n]);
+			}
 			break;
 
 		case POL7_KASUJ_KAL_MAGN2:	//kasuj kalibrację magnetometru 2
+			for (uint8_t n=0; n<3; n++)
+			{
+				fPrzesMagn2[n] = 0.0f;
+				fSkaloMagn2[n] = 1.0f;
+				ZapiszFramFloat(FAH_MAGN2_SKLADNIK_X + 4*n, fPrzesMagn2[n]);
+				ZapiszFramFloat(FAH_MAGN2_MNOZNIK_X + 4*n, fSkaloMagn2[n]);
+			}
 			break;
 
 		}	//switch
