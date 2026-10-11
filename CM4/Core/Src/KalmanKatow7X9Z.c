@@ -74,6 +74,7 @@ float fRefMagX;	//układ odniesienia pola magnetycznego
 float fRefMagY;
 float fRefMagZ;
 
+float fBiasPrzed[3], fBiasPo[3], fDeltaBiasu[3], fSumaDeltyBiasu[3];
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -137,7 +138,7 @@ uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	memset(fI, 0, sizeof(float) * KKSTAN * KKSTAN);	//wypełnij zerami
 	for (uint8_t n=0; n<KKSTAN; n++)
 		fI[n][n] = 1.0f;
-	arm_mat_init_f32(&mI, KKSTAN, KKSTAN, &fG[0][0]);
+	arm_mat_init_f32(&mI, KKSTAN, KKSTAN, &fI[0][0]);
 
 	memset(fHa, 0, sizeof(float) * KKPOMR * KKSTAN);
 	arm_mat_init_f32(&mHa, KKPOMR, KKSTAN, &fHa[0][0]);	//macierz obserwacji wektora przyspieszenia
@@ -272,9 +273,13 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	fTempS1A[3] = fX[3] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[2] + fX[1] * fOmega[1] - fX[2] * fOmega[0]);	//kwaternion z
 	NormalizujWektor(fTempS1A, fTempS1B, KWATER);
 
+	//przepisz znormalizowany kwaternion ponownie do wektora stanu X
+	for (uint8_t n=0; n<KWATER; n++)
+		fX[n] = fTempS1B[n];
+
 	//Przepisz wynik predykcji do zmiennych wynikowych
 	for (uint8_t n=0; n<KKSTAN; n++)
-		dane->stKalmanKąta.fX[n] = fX[n] = fTempS1B[n];
+		dane->stKalmanKąta.fX[n] = fX[n];
 
 	//oblicz kąty orientacji z kwaternionu
 	dane->stBSP.fKatIMU[0] = -atan2f(2.0f * (fX[0] * fX[1] + fX[2] * fX[3]), 1 - (2.0f * (fX[1] * fX[1] + fX[2] * fX[2])));
@@ -316,9 +321,9 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	cBłąd |= arm_mat_mult_f32(&mTempSPA, &mTempPSA, &mQ);
 
 	//teraz szum procesu dla błędu żyro: wariancja dryftu błędu żyro * dt
-	fQ[4][4] = fDeltaCzasu * WARIANCJA_BLEDU_ZYRO;
-	fQ[5][5] = fDeltaCzasu * WARIANCJA_BLEDU_ZYRO;
-	fQ[6][6] = fDeltaCzasu * WARIANCJA_BLEDU_ZYRO;
+	fQ[4][4] = fDeltaCzasu * WARIANCJA_PROCESU_ZYRO;
+	fQ[5][5] = fDeltaCzasu * WARIANCJA_PROCESU_ZYRO;
+	fQ[6][6] = fDeltaCzasu * WARIANCJA_PROCESU_ZYRO;
 
 
 	//2.1 Mnożenie   F * P(n) 		[Stan x Stan] * [Stan x Stan] = [Stan x Stan]
@@ -348,7 +353,11 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
-	float fhAcc[KKPOMR];
+	float fModelAcc[KKPOMR];
+	float fAccNormalizowany[KKPOMR];
+
+	for (uint8_t n=0; n<3; n++)
+		fBiasPrzed[n] = fX[4+n];
 
 	//sprawdź czy kwaternion jest zerem
 	if (fX[0] == 0)
@@ -358,14 +367,17 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	}
 
 	//model pomiaru akcelerometru: Ya(n) = Za - Ha(x) = Za - R(q)^T * [0 0 g]
-	fhAcc[0] = AKCEL1G * 2.0f * (fX[0] * fX[3] - fX[0] * fX[2]);
-	fhAcc[1] = AKCEL1G * 2.0f * (fX[0] * fX[1] + fX[2] * fX[3]);
-	fhAcc[2] = AKCEL1G * (fX[0] * fX[0] - fX[1] * fX[1] - fX[2] * fX[2] + fX[3] * fX[3]);
+	fModelAcc[0] = 2.0f * (fX[1] * fX[3] - fX[0] * fX[2]);
+	fModelAcc[1] = 2.0f * (fX[0] * fX[1] + fX[2] * fX[3]);
+	fModelAcc[2] = (fX[0] * fX[0] - fX[1] * fX[1] - fX[2] * fX[2] + fX[3] * fX[3]);
 
-	//Innowacja = pomiar -
-	fYa[0] = dane->fAkcel1[0] - fhAcc[0];
-	fYa[1] = dane->fAkcel1[1] - fhAcc[1];
-	fYa[2] = dane->fAkcel1[2] - fhAcc[2];
+	//Normalizuj akcelerometr i od razu licz innowację
+	float fNormaAcc = sqrtf((dane->fAkcel1[0] * dane->fAkcel1[0]) + (dane->fAkcel1[1] * dane->fAkcel1[1]) + (dane->fAkcel1[2] * dane->fAkcel1[2]));
+	for (uint8_t n=0; n<KKPOMR; n++)
+	{
+		fAccNormalizowany[n] = dane->fAkcel1[n] / fNormaAcc;
+		fYa[n] = fAccNormalizowany[n] - fModelAcc[n];		//Innowacja = znormalizowany pomiar - model
+	}
 
 	//Macierz obserwacji Ha  [STAN x Pomiar]
 	fHa[0][0] = -2.0f * AKCEL1G * fX[2];		// ax
@@ -445,6 +457,13 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 
 	//finalne sumowanie ((I-K(n)*H)*P(n-1)*(I*K(n)*H)^T) + (K(n)*R(n)*K(n)^T) -> P(n)
 	cBłąd |= arm_mat_add_f32(&mTempSSB, &mTempSSA, &mP);
+
+	for (uint8_t n=0; n<3; n++)
+	{
+		fBiasPo[n] = fX[4+n];
+		fDeltaBiasu[n] = fBiasPo[n] - fBiasPrzed[n];
+		fSumaDeltyBiasu[n] += fDeltaBiasu[n];
+	}
 	return cBłąd;
 }
 
@@ -461,53 +480,46 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
-	float fhMag[KKPOMR];
-
-	//Normalizacja wektora magnetycznego
-	float fNorma = sqrtf(dane->fMagne1[0] * dane->fMagne1[0] + dane->fMagne1[1] * dane->fMagne1[1] + dane->fMagne1[2] * dane->fMagne1[2]);
-	float fMx = dane->fMagne1[0] / fNorma;
-	float fMy = dane->fMagne1[1] / fNorma;
-	float fMz = dane->fMagne1[2] / fNorma;
+	float fModelMag[KKPOMR];
+	float fMagNormalizowany[KKPOMR];
 
 	//model magnetyczny
 	//hx = mx(1 − 2qy^2​ − 2qz^2​) + my ​2(qx​qy ​+ qw​qz​) + mz​ 2(qx​qz ​− qw​qy​)
-	fhMag[0] = fRefMagX * (1.0f - (2 * fX[2] * fX[2]) - (2 * fX[3] * fX[3])) + fRefMagY * 2 * (fX[1] * fX[2] + fX[0] * fX[3]) + fRefMagZ * 2 * (fX[1] * fX[3] - fX[0] * fX[2]);
+	fModelMag[0] = fRefMagX * (1.0f - (2 * fX[2] * fX[2]) - (2 * fX[3] * fX[3])) + fRefMagY * 2 * (fX[1] * fX[2] + fX[0] * fX[3]) + fRefMagZ * 2 * (fX[1] * fX[3] - fX[0] * fX[2]);
 
 	//hy ​ =mx ​2(qx​qy ​− qw​qz​) + my​(1 − 2qx^2 ​− 2qz^2​) + mz​2(qy​qz ​+ qw​qx​)
-	fhMag[1] = fRefMagX * 2 * (fX[1] * fX[2] - fX[0] * fX[3]) + fRefMagY * (1.0f - (2 * fX[1] * fX[1]) - (2 * fX[3] * fX[3])) + fRefMagZ * 2 * (fX[2] * fX[3] + fX[0] * fX[1]);
+	fModelMag[1] = fRefMagX * 2 * (fX[1] * fX[2] - fX[0] * fX[3]) + fRefMagY * (1.0f - (2 * fX[1] * fX[1]) - (2 * fX[3] * fX[3])) + fRefMagZ * 2 * (fX[2] * fX[3] + fX[0] * fX[1]);
 
 	//hz = mx​ 2(qx​qz ​+ qw​qy​) + my ​2(qy​qz ​− qw​qx​) + mz​(1 − 2qx^2​ − 2qy^2​)
-	fhMag[2] = fRefMagX * 2 * (fX[1] * fX[3] + fX[0] * fX[2]) + fRefMagY * 2 * (fX[2] * fX[3] - fX[0] * fX[3]) + fRefMagZ * (1.0f - (2 * fX[1] * fX[1]) - (2 * fX[2] * fX[2]));
+	fModelMag[2] = fRefMagX * 2 * (fX[1] * fX[3] + fX[0] * fX[2]) + fRefMagY * 2 * (fX[2] * fX[3] - fX[0] * fX[1]) + fRefMagZ * (1.0f - (2 * fX[1] * fX[1]) - (2 * fX[2] * fX[2]));
 
-	//Innowacja: y = z - h
-	fYm[0] = dane->fMagne1[0] - fhMag[0];
-	fYm[1] = dane->fMagne1[1] - fhMag[1];
-	fYm[2] = dane->fMagne1[2] - fhMag[2];
+	//Normalizacja wektora magnetycznego i innowacja
+	float fNorma = sqrtf((dane->fMagne1[0] * dane->fMagne1[0]) + (dane->fMagne1[1] * dane->fMagne1[1]) + (dane->fMagne1[2] * dane->fMagne1[2]));
+	for (uint8_t n=0; n<KKPOMR; n++)
+	{
+		fMagNormalizowany[n] = dane->fMagne1[n] / fNorma;
+		fYm[n] = fMagNormalizowany[n] - fModelMag[n];	//Innowacja: y = z - h
+	}
 
 	//Macierz obserwacji Ha  [Pomiar x Stan]
-	fHm[0][0] = 2.0f * ( fMx * fX[0] + fMy * fX[3] - fMz * fX[2]);	// Hm = dhMag/dx
-	fHm[0][1] = 2.0f * ( fMx * fX[1] + fMy * fX[2] + fMz * fX[3]);
-	fHm[0][2] = 2.0f * (-fMx * fX[2] - fMy * fX[1] + fMz * fX[0]);
-	fHm[0][3] = 2.0f * (-fMx * fX[3] + fMy * fX[0] + fMz * fX[1]);
-	fHm[0][4] = 0.0f;
-	fHm[0][5] = 0.0f;
-	fHm[0][6] = 0.0f;
+	// Wiersz 0: pochodne hx
+	fHm[0][0] =  2.0f * (fRefMagY * fX[3] - fRefMagZ * fX[2]);
+	fHm[0][1] =  2.0f * (fRefMagY * fX[2] + fRefMagZ * fX[3]);
+	fHm[0][2] = -4.0f *  fRefMagX * fX[2] + 2.0f * fRefMagY * fX[1] - 2.0f * fRefMagZ * fX[0];
+	fHm[0][3] = -4.0f *  fRefMagX * fX[3] + 2.0f * fRefMagY * fX[0] + 2.0f * fRefMagZ * fX[1];
 
-	fHm[1][0] = 2.0f * (-fMx * fX[3] + fMy * fX[0] + fMz * fX[1]);	// my axis
-	fHm[1][1] = 2.0f * ( fMx * fX[1] + fMy * fX[2] - fMz * fX[3]);
-	fHm[1][2] = 2.0f * (-fMx * fX[0] + fMy * fX[3] - fMz * fX[2]);
-	fHm[1][3] = 2.0f * (-fMx * fX[2] - fMy * fX[1] + fMz * fX[0]);
-	fHm[1][4] = 0.0f;
-	fHm[1][5] = 0.0f;
-	fHm[1][6] = 0.0f;
+	// Wiersz 1: pochodne hy
+	fHm[1][0] = -2.0f *  fRefMagX * fX[3] + 2.0f * fRefMagZ * fX[1];
+	fHm[1][1] =  2.0f *  fRefMagX * fX[2] - 4.0f * fRefMagY * fX[1] + 2.0f * fRefMagZ * fX[0];
+	fHm[1][2] =  2.0f *  fRefMagX * fX[1] + 2.0f * fRefMagZ * fX[3];
+	fHm[1][3] = -2.0f *  fRefMagX * fX[0] - 4.0f * fRefMagY * fX[3] + 2.0f * fRefMagZ * fX[2];
 
-	fHm[2][0] = 2.0f * ( fMx * fX[2] - fMy * fX[1] + fMz * fX[0]);	// mz axis
-	fHm[2][1] = 2.0f * ( fMx * fX[3] + fMy * fX[0] + fMz * fX[1]);
-	fHm[2][2] = 2.0f * ( fMx * fX[0] + fMy * fX[3] - fMz * fX[2]);
-	fHm[2][3] = 2.0f * ( fMx * fX[1] + fMy * fX[2] + fMz * fX[3]);
-	fHm[2][4] = 0.0f;
-	fHm[2][5] = 0.0f;
-	fHm[2][6] = 0.0f;
+	// Wiersz 2: pochodne hz
+	fHm[2][0] =  2.0f *  fRefMagX * fX[2] - 2.0f * fRefMagY * fX[1];
+	fHm[2][1] =  2.0f *  fRefMagX * fX[3] - 2.0f * fRefMagY * fX[0] - 4.0f * fRefMagZ * fX[1];
+	fHm[2][2] =  2.0f *  fRefMagX * fX[0] + 2.0f * fRefMagY * fX[3] - 4.0f * fRefMagZ * fX[2]);
+	fHm[2][3] =  2.0f *  fRefMagX * fX[1] + 2.0f * fRefMagY * fX[2]);
+
 
 	//liczę współczynnik wzmocnienia Kalmana: mK,
 	//najpierw transponowane H -> mTempSPc	 [Pomiar x Stan] -> [Stan x Pomiar]

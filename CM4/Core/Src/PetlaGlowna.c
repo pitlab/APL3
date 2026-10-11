@@ -593,9 +593,7 @@ uint8_t WykonajPolecenieCM7(void)
 			break;
 
 		case POL7_INICJUJ_KAL_MNK:	InicjujKalibracje();	break;
-		case POL7_KAL_MAGN_MNK:	//uruchom kalibrację magnetometrów metodą najmniejszych kwadratów
-			cBłąd = ZbierajDaneMagDoKalibracji(&uDaneCM4.dane);
-			break;
+		case POL7_KAL_MAGN_MNK:		cBłąd = ZbierajDaneMagDoKalibracji(&uDaneCM4.dane); break; //uruchom kalibrację magnetometrów metodą najmniejszych kwadratów
 
 		case POL7_POBIERZ_KAL_MAGN12:
 #ifdef DEBUG

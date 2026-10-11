@@ -4923,46 +4923,60 @@ void PokazKalibracjęMagMNKDopasowaniaDoSfery(void)
 		setColor(SZARY80);
 		for (uint8_t n=0; n<2; n++)
 		{
-			sprintf(cNapis, "Postep kalibracji mag %d:", n);
+			sprintf(cNapis, "Post%cp kalibracji mag %d:", ę, n + 1);
 			RysujNapis(cNapis, 0, 30 + n * 20);
 		}
 
 		//nie pozwól przejsć dalej, dopóki nie dostanie potwierdzenia wykonania inicjalizacji
 		uDaneCM7.dane.cWykonajPolecenie = POL7_INICJUJ_KAL_MNK;
+		uDaneCM7.dane.sAdres++;	//zmiana adresu powoduje ponowne uruchomienie polecenie po stronie CM4
 		if (uDaneCM4.dane.cPotwierdzenieWykonania == POL7_INICJUJ_KAL_MNK)
 			cRysujRaz = 0;
 		else
 			return;
 	}
 
-	uDaneCM7.dane.cWykonajPolecenie = POL7_KAL_MAGN_MNK;
-	setColor(ZOLTY);
-	uDaneCM7.dane.sAdres++;	//zmiana adresu powoduje ponowne uruchomienie polecenie po stronie CM4
-	sprintf(cNapis, "%d/%d ", uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16], LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY);
-	RysujNapis(cNapis, 26*FONT_SL, 30);
-	sprintf(cNapis, "%d/%d ", uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU2_U16], LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY);
-	RysujNapis(cNapis, 26*FONT_SL, 50);
-	if (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU_U16] == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
+	//wysyłaj odnawiane polecenie kalibracji tylko do czasu zebrania zdefiniowanej liczby danych
+	if ((uDaneCM4.dane.uRozne.U16[POSTEP_U16_KALIBRACJI1] < LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY) || (uDaneCM4.dane.uRozne.U16[POSTEP_U16_KALIBRACJI2] < LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY))
 	{
-		setColor(ZIELONY);
-		for (uint8_t n=0; n<3; n++)
-		{
-			sprintf(cNapis, "Bias mag1.%c: %.1f ", 'X'+n, uDaneCM4.dane.uRozne.f32[n]);
-			RysujNapis(cNapis, 1, 90 + n * 20);
-		}
-		sprintf(cNapis, "Nat%c%c pola mag1: %.1f ", ę, ż, uDaneCM4.dane.uRozne.f32[3]);
-		RysujNapis(cNapis, 1, 150);
+		uDaneCM7.dane.cWykonajPolecenie = POL7_KAL_MAGN_MNK;
+		uDaneCM7.dane.sAdres++;	//zmiana adresu powoduje ponowne uruchomienie polecenie po stronie CM4
 	}
-	if (uDaneCM4.dane.uRozne.U16[POSTEP_PROCESU2_U16] == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
+
+	if (uDaneCM4.dane.uRozne.U16[POSTEP_U16_KALIBRACJI1] <= LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
 	{
-		setColor(ZIELONY);
-		for (uint8_t n=0; n<3; n++)
+		setColor(ZOLTY);
+		sprintf(cNapis, "%d/%d ", uDaneCM4.dane.uRozne.U16[POSTEP_U16_KALIBRACJI1], LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY);
+		RysujNapis(cNapis, 26*FONT_SL, 30);
+		if (uDaneCM4.dane.uRozne.U16[POSTEP_U16_KALIBRACJI1] == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
 		{
-			sprintf(cNapis, "Bias mag2.%c: %.1f ", 'X'+n, uDaneCM4.dane.uRozne.f32[n+4]);
-			RysujNapis(cNapis, 1, 170 + n * 20);
+			setColor(ZIELONY);
+			for (uint8_t n=0; n<3; n++)
+			{
+				sprintf(cNapis, "Przesuni%ccie mag1.%c: %.4f ", ę, 'X'+n, uDaneCM4.dane.uRozne.f32[n]);
+				RysujNapis(cNapis, 1, 90 + n * 20);
+			}
+			sprintf(cNapis, "Nat%c%c pola mag1: %.3f ", ę, ż, uDaneCM4.dane.uRozne.f32[3]);
+			RysujNapis(cNapis, 1, 150);
 		}
-		sprintf(cNapis, "Nat%c%c pola mag2: %.1f ", ę, ż, uDaneCM4.dane.uRozne.f32[7]);
-		RysujNapis(cNapis, 1, 230);
+	}
+
+	if  (uDaneCM4.dane.uRozne.U16[POSTEP_U16_KALIBRACJI2] <= LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
+	{
+		setColor(ZOLTY);
+		sprintf(cNapis, "%d/%d ", uDaneCM4.dane.uRozne.U16[POSTEP_U16_KALIBRACJI2], LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY);
+		RysujNapis(cNapis, 26*FONT_SL, 50);
+		if (uDaneCM4.dane.uRozne.U16[POSTEP_U16_KALIBRACJI2] == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
+		{
+			setColor(ZIELONY);
+			for (uint8_t n=0; n<3; n++)
+			{
+				sprintf(cNapis, "Przesuni%ccie mag2.%c: %.4f ", ę, 'X'+n, uDaneCM4.dane.uRozne.f32[n+4]);
+				RysujNapis(cNapis, 1, 170 + n * 20);
+			}
+			sprintf(cNapis, "Nat%c%c pola mag2: %.3f ", ę, ż, uDaneCM4.dane.uRozne.f32[7]);
+			RysujNapis(cNapis, 1, 230);
+		}
 	}
 }
 
@@ -5015,10 +5029,11 @@ uint8_t PodgladKalibracjiMagnetometrów(void)
 		RysujNapis("Kasuj", 22*FONT_SL, 210);
 		RysujNapis("kalib 1", 21*FONT_SL, 230);
 		RysujNapis("Kasuj", 42*FONT_SL, 210);
-		RysujNapis("kalibr2", 41*FONT_SL, 230);
+		RysujNapis("kalib 2", 41*FONT_SL, 230);
 		UstawCzcionke(cMidFont);
 		setBackColor(CZARNY);
 		uDaneCM7.dane.cWykonajPolecenie = POL7_POBIERZ_KAL_MAGN12;
+		uDaneCM7.dane.sAdres++;
 	}
 
 	setColor(BIALY);

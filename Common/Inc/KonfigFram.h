@@ -281,8 +281,8 @@
 #define VMAX_MNOZNIK_MAGN	100.0f
 #define VDOM_MNOZNIK_MAGN	1.0f
 
-#define VMIN_SKLADNIK_MAGN	-0.01f		//limity wartości przesunięcia pomiaru magnetometru +/- 10 mT
-#define VMAX_SKLADNIK_MAGN	0.01f
+#define VMIN_SKLADNIK_MAGN	-1000.0f		//limity wartości przesunięcia pomiaru magnetometru +/- 1 mT wyrażone w jednostce uT
+#define VMAX_SKLADNIK_MAGN	1000.0f
 #define VDOM_SKLADNIK_MAGN	0.0f
 
 #define VMIN_PID_WZMP    	0.0f     //limity wartości wzmocnienia członu P regulatora

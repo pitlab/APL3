@@ -215,7 +215,8 @@ typedef struct
 
 #define ODPOWIEDZ_U8	31	//komórka tablicy U8 odpowiedzialna za przekazywanie odpowiedzi na polecenia kalibracyjne
 #define POSTEP_PROCESU_U16	12	//komórka tablicy U16 odpowiedzialna za przekazywanie postępu procesu
-#define POSTEP_PROCESU2_U16	11	//wskaźnik postępu drugiego procesu
+#define POSTEP_U16_KALIBRACJI1	20	//komórka tablicy U16 odpowiedzialna za przekazywanie postępu kalibracji magnetometru 1
+#define POSTEP_U16_KALIBRACJI2	21	//komórka tablicy U16 odpowiedzialna za przekazywanie postępu kalibracji magnetometru 2
 //definicja struktury wymiany danych wychodzących z rdzenia CM4
 //typedef struct _stWymianyCM4
 typedef struct

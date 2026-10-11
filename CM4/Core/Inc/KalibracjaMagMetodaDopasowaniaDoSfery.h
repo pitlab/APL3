@@ -22,7 +22,7 @@ typedef struct
 
 typedef struct
 {
-	float fBias[3];	//obliczone biasy magnetometru
+	float fPrzesunięcie[3];	//obliczone biasy magnetometru
 	float fNatężeniePolaMag;
 } stWynikiDopasowania_t;
 

@@ -14,9 +14,9 @@
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include <KalibracjaMagMetodaDopasowaniaDoSfery.h>
+#include <Fram.h>
 
-
-uint16_t sLicznikPomiarow;
+//uint16_t sLicznikPomiarow;
 //float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	fDanePomiaroweMag[LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY][4];
 //float __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	fSumaKwadratówMag[LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY];
 //static arm_matrix_instance_f32 mA  = {LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY, 4, fDanePomiaroweMag};
@@ -24,7 +24,8 @@ uint16_t sLicznikPomiarow;
 
 stDopasowanieDoSfery_t stDopasowanieDoSferyMag1, stDopasowanieDoSferyMag2;
 stWynikiDopasowania_t stWynikiDopasowaniaMag1, stWynikiDopasowaniaMag2;
-
+extern float fPrzesMagn1[3], fSkaloMagn1[3];
+extern float fPrzesMagn2[3], fSkaloMagn2[3];
 
 
 
@@ -56,9 +57,9 @@ uint8_t InicjujKalibracje(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja zbiera dane magnetometru 1 w celu jego kalibracji metodą najmniejszyh kwadratów
-// wyniki przekazuje w strukturze uRozne.f32[0..2] biasy mag1, uRozne.f32[3] natęzenie pola mag1,
-// uRozne.f32[4..6] biasy mag2, uRozne.f32[7] natęzenie pola mag2
+// Funkcja zbiera dane magnetometrów 1 i 2 w celu ich kalibracji metodą najmniejszyh kwadratów
+// wyniki przekazuje w strukturze uRozne.f32[0..2] = biasy mag1, uRozne.f32[3] = natężenie pola mag1,
+// uRozne.f32[4..6] = biasy mag2, uRozne.f32[7] = natężenie pola mag2
 // Parametry: *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,36 +67,40 @@ uint8_t ZbierajDaneMagDoKalibracji(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	//zabezpieczenie przed przepełnieniem bufora
-	if (sLicznikPomiarow >= LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
-	{
-		sLicznikPomiarow = 0;
-		return BLAD_BUF_OVERRUN;
-	}
-
-	if (dane->sNowyPomiar & NP_KAL_MAG1)	//jest nowy pomiar
+	if ((stDopasowanieDoSferyMag1.sLiczbaPróbek < LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY) && (dane->sNowyPomiar & NP_KAL_MAG1))		//jest nowy pomiar
 	{
 		cBłąd = ZbierajProbki(&dane->fMagne1[0], &stDopasowanieDoSferyMag1);
-		dane->uRozne.U16[POSTEP_PROCESU_U16] = stDopasowanieDoSferyMag1.sLiczbaPróbek;
+		dane->uRozne.U16[POSTEP_U16_KALIBRACJI1] = stDopasowanieDoSferyMag1.sLiczbaPróbek;
 		if (stDopasowanieDoSferyMag1.sLiczbaPróbek == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
 		{
 			cBłąd = MetodaNajmniejszychKwadratow(&stDopasowanieDoSferyMag1, &stWynikiDopasowaniaMag1);
 			for (uint8_t n=0; n<3; n++)
-				dane->uRozne.f32[n] = stWynikiDopasowaniaMag1.fBias[n];
+			{
+				dane->uRozne.f32[n] = stWynikiDopasowaniaMag1.fPrzesunięcie[n];
+				fPrzesMagn1[n] =  stWynikiDopasowaniaMag1.fPrzesunięcie[n];
+				ZapiszFramFloat(FAH_MAGN1_SKLADNIK_X + 4*n, fPrzesMagn1[n]);
+				//ZapiszFramFloat(FAH_MAGN1_MNOZNIK_X + 4*n, fSkaloMagn1[n]);
+			}
+
 			dane->uRozne.f32[3] = stWynikiDopasowaniaMag1.fNatężeniePolaMag;
 		}
 		dane->sNowyPomiar &= ~NP_KAL_MAG1;
 	}
 
-	if (dane->sNowyPomiar & NP_KAL_MAG2)	//jest nowy pomiar
+	if ((stDopasowanieDoSferyMag2.sLiczbaPróbek < LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY) && (dane->sNowyPomiar & NP_KAL_MAG2))	//jest nowy pomiar
 	{
 		cBłąd = ZbierajProbki(&dane->fMagne2[0], &stDopasowanieDoSferyMag2);
-		dane->uRozne.U16[POSTEP_PROCESU2_U16] = stDopasowanieDoSferyMag2.sLiczbaPróbek;
+		dane->uRozne.U16[POSTEP_U16_KALIBRACJI2] = stDopasowanieDoSferyMag2.sLiczbaPróbek;
 		if (stDopasowanieDoSferyMag2.sLiczbaPróbek == LICZBA_POMIAROW_MAG_DOPASOWANIA_DO_SFERY)
 		{
 			cBłąd = MetodaNajmniejszychKwadratow(&stDopasowanieDoSferyMag2, &stWynikiDopasowaniaMag2);
 			for (uint8_t n=0; n<3; n++)
-				dane->uRozne.f32[4+n] = stWynikiDopasowaniaMag2.fBias[n];
+			{
+				dane->uRozne.f32[4+n] = stWynikiDopasowaniaMag2.fPrzesunięcie[n];
+				fPrzesMagn2[n] =  stWynikiDopasowaniaMag2.fPrzesunięcie[n];
+				ZapiszFramFloat(FAH_MAGN2_SKLADNIK_X + 4*n, fPrzesMagn2[n]);
+				//ZapiszFramFloat(FAH_MAGN2_MNOZNIK_X + 4*n, fSkaloMagn2[n]);
+			}
 			dane->uRozne.f32[7] = stWynikiDopasowaniaMag2.fNatężeniePolaMag;
 		}
 		dane->sNowyPomiar &= ~NP_KAL_MAG2;
@@ -202,7 +207,7 @@ uint8_t MetodaNajmniejszychKwadratow(stDopasowanieDoSfery_t *stDopasowanieDoSfer
 	cBłąd = arm_mat_mult_f32(&mInvATA, &mATy, &mTheta);
 
 	for (uint8_t n=0; n<3; n++)
-		stWynikiDopasowania->fBias[n] = fTheta[n] / 2;
+		stWynikiDopasowania->fPrzesunięcie[n] = fTheta[n] / 2;
 
 	//ponieważ: C = B^2 - bx^2 - by^2 - bz^2, więc: B^2 = C + bx^2 + by^2 + bz^2
 	//poniewa Theta = b/2, więc: B = pierwiastek( C + theta[x]/4 + theta[y]/4 + theta[z]/4)
