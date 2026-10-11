@@ -73,8 +73,8 @@ static arm_matrix_instance_f32 mTempS1B  = {KKSTAN, 1, fTempS1B};				//macierz S
 float fRefMagX;	//układ odniesienia pola magnetycznego
 float fRefMagY;
 float fRefMagZ;
-
-float fBiasPrzed[3], fBiasPo[3], fDeltaBiasu[3], fSumaDeltyBiasu[3];
+float fWariancjaSzumuŻyro, fWariancjaProcesuŻyro;
+float fNormaOmega;	//długość wektora prędkości kątowej
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -89,10 +89,9 @@ uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	dane->nZainicjowano |= INIT_KALMAN_KATOW;
 
 	//inicjuj pierwszy pomiar i wektor stanu
-	fX[0] = 1.0f;	//kwaternion w
-	fX[1] = 0.0f;	//kwaternion x
-	fX[2] = 0.0f;	//kwaternion y
-	fX[3] = 0.0f;	//kwaternion z
+	KatyNaKwaternion(dane->fKatAkcel1, fX);		//przelicz kąty obliczone trygonometrią na kwaternion początkowy
+	//KwaternionNaKąty(fX, fYa);		//test konwersji kąt - kwaternion - kąt
+
 	fX[4] = 0.0f;	//błąd pomiaru prędkosci kątowej P
 	fX[5] = 0.0f;	//błąd pomiaru prędkosci kątowej Q
 	fX[6] = 0.0f;	//błąd pomiaru prędkosci kątowej R
@@ -104,10 +103,10 @@ uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 
 	//początkowa wariancja predykcji
 	memset(fP, 0, sizeof(float) * KKSTAN * KKSTAN);
-	fP[0][0] = 0.055;
-	fP[1][1] = 1.0e-2;
-	fP[2][2] = 6.0e-2;
-	fP[3][3] = 1.0e-2;
+	fP[0][0] = WARIANCJA_PROCESU_ZYRO;
+	fP[1][1] = WARIANCJA_PROCESU_ZYRO;
+	fP[2][2] = WARIANCJA_PROCESU_ZYRO;
+	fP[3][3] = WARIANCJA_PROCESU_ZYRO;
 	fP[4][4] = 1.0e-2;
 	fP[5][5] = 1.0e-2;
 	fP[6][6] = 1.0e-2;
@@ -179,6 +178,9 @@ uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	fRefMagY = 0.0f;
 	fRefMagZ = sinf(INKLINACJA_MAG);
 
+	//Udostępnij stałe jako zmienne by móc dostrajać filtr bez rekompilacji
+	fWariancjaProcesuŻyro = WARIANCJA_PROCESU_ZYRO;
+	fWariancjaSzumuŻyro = WARIANCJA_SZUMU_ZYRO;
 	return cBłąd;
 }
 
@@ -207,10 +209,14 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	for (uint8_t n=0; n<3; n++)
 	{
 		if ((isnan(fX[4+n])) || (fabs(fX[4+n]) > 2*M_PI))		//błąd dryftu żyroskopu musi być poprawną liczbą mniejszą od 2 Pi
-			fOmega[n] = dane->fZyroSur1[n];		//jeżeli błąd jest niewłaściwą liczbą  to go nie używaj aby nie eskalować błędów numerycznych
+			fOmega[n] = dane->fZyroKal1[n];		//jeżeli błąd jest niewłaściwą liczbą  to go nie używaj aby nie eskalować błędów numerycznych
 		else
-			fOmega[n] = dane->fZyroSur1[n] - fX[4+n];
+			//fOmega[n] = dane->fZyroSur1[n] - fX[4+n];
+			fOmega[n] = dane->fZyroKal1[n] - fX[4+n];
 	}
+
+	//długość wektora prędkosci kątowej
+	fNormaOmega = sqrtf(fOmega[0] * fOmega[0] + fOmega[1] * fOmega[1] + fOmega[2] * fOmega[2]);
 
 	//sprawdź czy kwaternion jest zerem
 	if (fX[0] == 0)
@@ -267,10 +273,15 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	fF[6][6] = 1.0f;
 
 	//Predykcja kwaternionu
-	fTempS1A[0] = fX[0] + fDeltaCzasu * 0.5f * (-fX[1] * fOmega[0] - fX[2] * fOmega[1] - fX[3] * fOmega[2]);	//kwaternion w
-	fTempS1A[1] = fX[1] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[0] + fX[2] * fOmega[2] - fX[3] * fOmega[1]);	//kwaternion x
-	fTempS1A[2] = fX[2] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[1] - fX[1] * fOmega[2] + fX[3] * fOmega[0]);	//kwaternion y
-	fTempS1A[3] = fX[3] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[2] + fX[1] * fOmega[1] - fX[2] * fOmega[0]);	//kwaternion z
+	/*fTempS1A[0] = fX[0] + fDeltaCzasu * 0.5f * (-fX[1] * fOmega[0] - fX[2] * fOmega[1] - fX[3] * fOmega[2]);	//kwaternion w:
+	fTempS1A[1] = fX[1] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[0] + fX[2] * fOmega[2] - fX[3] * fOmega[1]);	//kwaternion x: qx = q0 * omega_x + qy * omega_z - qz * omega_y
+	fTempS1A[2] = fX[2] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[1] - fX[1] * fOmega[2] + fX[3] * fOmega[0]);	//kwaternion y: qy = q0 * omega_y + qz * omega_x + qx * omega_z
+	fTempS1A[3] = fX[3] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[2] + fX[1] * fOmega[1] - fX[2] * fOmega[0]);	//kwaternion z: qz = q0 * omega_z + qx * omega_y + qy * omega_x */
+
+	fTempS1A[0] = fX[0] + fDeltaCzasu * 0.5f * (-fX[1] * fOmega[0] - fX[2] * fOmega[1] - fX[3] * fOmega[2]);	//kwaternion w:
+	fTempS1A[1] = fX[1] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[0] + fX[2] * fOmega[2] - fX[3] * fOmega[1]);	//kwaternion x: qx = q0 * omega_x + qy * omega_z - qz * omega_y
+	fTempS1A[2] = fX[2] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[1] + fX[3] * fOmega[0] - fX[1] * fOmega[2]);	//kwaternion y: qy = q0 * omega_y + qz * omega_x + qx * omega_z
+	fTempS1A[3] = fX[3] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[2] + fX[1] * fOmega[1] - fX[2] * fOmega[0]);	//kwaternion z: qz = q0 * omega_z + qx * omega_y + qy * omega_x
 	NormalizujWektor(fTempS1A, fTempS1B, KWATER);
 
 	//przepisz znormalizowany kwaternion ponownie do wektora stanu X
@@ -284,15 +295,19 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	//oblicz kąty orientacji z kwaternionu
 	dane->stBSP.fKatIMU[0] = -atan2f(2.0f * (fX[0] * fX[1] + fX[2] * fX[3]), 1 - (2.0f * (fX[1] * fX[1] + fX[2] * fX[2])));
 	dane->stBSP.fKatIMU[1] = -asinf (2.0f * (fX[0] * fX[2] - fX[1] * fX[3]));
-	dane->stBSP.fKatIMU[2] = -atan2f(2.0f * (fX[0] * fX[3] + fX[1] * fX[2]), 1 - (2.0f * (fX[2] * fX[2] + fX[3] * fX[3])));
+	dane->stBSP.fKatIMU[2] =  atan2f(2.0f * (fX[0] * fX[3] + fX[1] * fX[2]), 1 - (2.0f * (fX[2] * fX[2] + fX[3] * fX[3])));
 
 	//2 Oblicz predykcję kowariancji (niepewności) nowej wartości:  P(n+1) = F * P(n) * F^T + Q
 	//Obliczenie szumu procesu Q składajacego się z szumu kwaterniony na który wpływa żyroskop i szumu błędu żyroskopów
 	//Najpierw szum procesu dla żyroskopu wpływającego na kwaternion: Qzyro = Gg * Qg * Gg^T
 	memset(fTempPPA, 0, sizeof(float) * KKPOMR * KKPOMR);	//wypełnij zerami macierz roboczą Qg
-	fTempPPA[0][0] = fDeltaCzasu * WARIANCJA_SZUMU_ZYRO;
+
+	/*fTempPPA[0][0] = fDeltaCzasu * WARIANCJA_SZUMU_ZYRO;
 	fTempPPA[1][1] = fDeltaCzasu * WARIANCJA_SZUMU_ZYRO;
-	fTempPPA[2][2] = fDeltaCzasu * WARIANCJA_SZUMU_ZYRO;
+	fTempPPA[2][2] = fDeltaCzasu * WARIANCJA_SZUMU_ZYRO;*/
+	fTempPPA[0][0] = fDeltaCzasu * fWariancjaSzumuŻyro;
+	fTempPPA[1][1] = fDeltaCzasu * fWariancjaSzumuŻyro;
+	fTempPPA[2][2] = fDeltaCzasu * fWariancjaSzumuŻyro;
 
 	//wpływ szumu żyroskopu na kwaternion
 	fG[0][0] = -0.5f * fX[1];
@@ -321,10 +336,12 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	cBłąd |= arm_mat_mult_f32(&mTempSPA, &mTempPSA, &mQ);
 
 	//teraz szum procesu dla błędu żyro: wariancja dryftu błędu żyro * dt
-	fQ[4][4] = fDeltaCzasu * WARIANCJA_PROCESU_ZYRO;
+	/*fQ[4][4] = fDeltaCzasu * WARIANCJA_PROCESU_ZYRO;
 	fQ[5][5] = fDeltaCzasu * WARIANCJA_PROCESU_ZYRO;
-	fQ[6][6] = fDeltaCzasu * WARIANCJA_PROCESU_ZYRO;
-
+	fQ[6][6] = fDeltaCzasu * WARIANCJA_PROCESU_ZYRO;*/
+	fQ[4][4] = fDeltaCzasu * fWariancjaProcesuŻyro;
+	fQ[5][5] = fDeltaCzasu * fWariancjaProcesuŻyro;
+	fQ[6][6] = fDeltaCzasu * fWariancjaProcesuŻyro;
 
 	//2.1 Mnożenie   F * P(n) 		[Stan x Stan] * [Stan x Stan] = [Stan x Stan]
 	cBłąd |= arm_mat_mult_f32(&mF, &mP, &mTempSSA);
@@ -356,9 +373,6 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	float fModelAcc[KKPOMR];
 	float fAccNormalizowany[KKPOMR];
 
-	for (uint8_t n=0; n<3; n++)
-		fBiasPrzed[n] = fX[4+n];
-
 	//sprawdź czy kwaternion jest zerem
 	if (fX[0] == 0)
 	{
@@ -380,20 +394,21 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	}
 
 	//Macierz obserwacji Ha  [STAN x Pomiar]
-	fHa[0][0] = -2.0f * AKCEL1G * fX[2];		// ax
-	fHa[0][1] =  2.0f * AKCEL1G * fX[3];
-	fHa[0][2] = -2.0f * AKCEL1G * fX[0];
-	fHa[0][3] =  2.0f * AKCEL1G * fX[1];
-	fHa[1][0] =  2.0f * AKCEL1G * fX[1];		// ay
-	fHa[1][1] =  2.0f * AKCEL1G * fX[0];
-	fHa[1][2] =  2.0f * AKCEL1G * fX[3];
-	fHa[1][3] =  2.0f * AKCEL1G * fX[2];
-	fHa[2][0] =  2.0f * AKCEL1G * fX[0];		// az
-	fHa[2][1] = -2.0f * AKCEL1G * fX[1];
-	fHa[2][2] = -2.0f * AKCEL1G * fX[2];
-	fHa[2][3] =  2.0f * AKCEL1G * fX[3];
+	fHa[0][0] = -2.0f * fX[2];		// ax
+	fHa[0][1] =  2.0f * fX[3];
+	fHa[0][2] = -2.0f * fX[0];
+	fHa[0][3] =  2.0f * fX[1];
+	fHa[1][0] =  2.0f * fX[1];		// ay
+	fHa[1][1] =  2.0f * fX[0];
+	fHa[1][2] =  2.0f * fX[3];
+	fHa[1][3] =  2.0f * fX[2];
+	fHa[2][0] =  2.0f * fX[0];		// az
+	fHa[2][1] = -2.0f * fX[1];
+	fHa[2][2] = -2.0f * fX[2];
+	fHa[2][3] =  2.0f * fX[3];
 
 	//liczę współczynnik wzmocnienia Kalmana: mK,
+
 	//najpierw transponowane H -> mTempSPc	 [Pomiar x Stan] -> [Stan x Pomiar]
 	cBłąd |= arm_mat_trans_f32(&mHa, &mTempSPA);
 
@@ -412,6 +427,15 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mK	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mPHa, &mTempPPA, &mKa);
 
+	//dla odpowiednio dużych prędkosci kątowych nie licz biasu aby błędy nie przesiąkały do niego
+	if (fNormaOmega > 0.1f)
+	{
+		for (uint8_t i = 4; i < KKSTAN; i++)
+		{
+			for (uint8_t j = 0; j < KKPOMR; j++)
+				fKa[i][j] = 0.0f;
+		}
+	}
 
 	//Estymata_x(n) = Estymata_x(n-1) + K(n) * y(n)
 	//mnożenie przez K: K(n) *  y(n)		[Stan x Pomiar] * [Pomiar] = [Stan]
@@ -457,13 +481,6 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 
 	//finalne sumowanie ((I-K(n)*H)*P(n-1)*(I*K(n)*H)^T) + (K(n)*R(n)*K(n)^T) -> P(n)
 	cBłąd |= arm_mat_add_f32(&mTempSSB, &mTempSSA, &mP);
-
-	for (uint8_t n=0; n<3; n++)
-	{
-		fBiasPo[n] = fX[4+n];
-		fDeltaBiasu[n] = fBiasPo[n] - fBiasPrzed[n];
-		fSumaDeltyBiasu[n] += fDeltaBiasu[n];
-	}
 	return cBłąd;
 }
 
@@ -517,9 +534,8 @@ uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	// Wiersz 2: pochodne hz
 	fHm[2][0] =  2.0f *  fRefMagX * fX[2] - 2.0f * fRefMagY * fX[1];
 	fHm[2][1] =  2.0f *  fRefMagX * fX[3] - 2.0f * fRefMagY * fX[0] - 4.0f * fRefMagZ * fX[1];
-	fHm[2][2] =  2.0f *  fRefMagX * fX[0] + 2.0f * fRefMagY * fX[3] - 4.0f * fRefMagZ * fX[2]);
-	fHm[2][3] =  2.0f *  fRefMagX * fX[1] + 2.0f * fRefMagY * fX[2]);
-
+	fHm[2][2] =  2.0f *  fRefMagX * fX[0] + 2.0f * fRefMagY * fX[3] - 4.0f * fRefMagZ * fX[2];
+	fHm[2][3] =  2.0f *  fRefMagX * fX[1] + 2.0f * fRefMagY * fX[2];
 
 	//liczę współczynnik wzmocnienia Kalmana: mK,
 	//najpierw transponowane H -> mTempSPc	 [Pomiar x Stan] -> [Stan x Pomiar]
@@ -540,6 +556,15 @@ uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	//finalne mnożenie: (P(n-1)*H^T) * ((H*P(n-1)*H^T+R(n))^-1) -> mK	[Stan x Pomiar] * [Pomiar x Pomiar] = [Stan x Pomiar]
 	cBłąd |= arm_mat_mult_f32(&mPHm, &mTempPPA, &mKm);
 
+	//dla odpowiednio dużych prędkosci kątowych nie licz biasu aby błędy nie przesiąkały do niego
+	if (fNormaOmega > 0.1f)
+	{
+		for (uint8_t i = 4; i < KKSTAN; i++)
+		{
+			for (uint8_t j = 0; j < KKPOMR; j++)
+				fKm[i][j] = 0.0f;
+		}
+	}
 
 	//Estymata_x(n) = Estymata_x(n-1) + K(n) * y(n)
 	//mnożenie przez K: K(n) *  y(n)		[Stan x Pomiar] * [Pomiar] = [Stan]

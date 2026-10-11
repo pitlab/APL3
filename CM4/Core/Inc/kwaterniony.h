@@ -22,6 +22,8 @@ void KwaternionSprzezony(float *q, float *sprzezony);
 void KatyKwaterniona2(float *qA, float *qM, float *fKaty);
 void KatyKwaterniona3(float *qA, float *qM, float *fKaty);
 void KatyKwaterniona(float *qA, float *qM, float *fKaty);
+void KwaternionNaKąty(float *fQ, float *fKaty);
+void KatyNaKwaternion(float *fKaty, float *q);
 void NormalizujWektor(float * fWe, float *fWy, uint8_t chRozmiar);
 
 #endif /* INC_KWATERNIONY_H_ */

@@ -106,10 +106,23 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 	uDaneCM4.dane.fKatAkcel1[0] = atan2f(-uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);	//OK, dobry znak
 
 	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(X, Z)
-	uDaneCM4.dane.fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[2]);	//OK
+	//uDaneCM4.dane.fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[2]);	//OK
+
+	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(-X, sqrtf(y^2+Z^2))
+	uDaneCM4.dane.fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[0], sqrtf(uDaneCM4.dane.fAkcel1[1] * uDaneCM4.dane.fAkcel1[1] + uDaneCM4.dane.fAkcel1[2] * uDaneCM4.dane.fAkcel1[2]));
 
 	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(Y/X) dla X=N, Y=E => atan2(X, Y)
-	uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fMagne1[1], uDaneCM4.dane.fMagne1[0]);
+	//uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fMagne1[1], uDaneCM4.dane.fMagne1[0]);
+	//Rzutujemy pomiar megnetometru na płaszczyzne poziomą przy użyciu kątów phi i theta
+	float fSinPhi = sinf(uDaneCM4.dane.fKatAkcel1[0]);
+	float fCosPhi = cosf(uDaneCM4.dane.fKatAkcel1[0]);
+	float fSinThe = sinf(uDaneCM4.dane.fKatAkcel1[1]);
+	float fCosThe = cosf(uDaneCM4.dane.fKatAkcel1[1]);
+
+	float fXm = uDaneCM4.dane.fMagne1[0] * fCosThe + uDaneCM4.dane.fMagne1[1] * fSinPhi * fSinThe + uDaneCM4.dane.fMagne1[2] * fCosPhi * fSinThe;
+	float fYm = uDaneCM4.dane.fMagne1[1] * fCosPhi - uDaneCM4.dane.fMagne1[2] * fSinPhi;
+	//uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fMagne1[1], uDaneCM4.dane.fMagne1[0]);
+	uDaneCM4.dane.fKatAkcel1[2] = atan2f(-fYm, fXm);
 
 	//filtr komplementarny IMU
 	for (uint16_t n=0; n<3; n++)
@@ -117,24 +130,6 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 		uDaneCM4.dane.fKatIMU1[n] = 0.02 * uDaneCM4.dane.fKatAkcel1[n] + 0.98 * uDaneCM4.dane.fKatIMU1[n];	//kasowanie dryftu dodatkiem kątów z akceletromtru i magnetometru
 		uDaneCM4.dane.fKatIMU1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT / 1000000;							//przyrost kąta z całki żyroskopu
 	}
-
-	//obliczenia trygonometryczne kątów uzyskanych z filtra komplementarnego dostępne globalnie do dalszych obliczeń
-	/*uDaneCM4.dane.stMat.fSinPhi = sinf(uDaneCM4.dane.fKatIMU1[0]);
-	uDaneCM4.dane.stMat.fCosPhi = cosf(uDaneCM4.dane.fKatIMU1[0]);
-	uDaneCM4.dane.stMat.fSinThe = sinf(uDaneCM4.dane.fKatIMU1[1]);
-	uDaneCM4.dane.stMat.fCosThe = cosf(uDaneCM4.dane.fKatIMU1[1]);
-	uDaneCM4.dane.stMat.fSinPsi = sinf(uDaneCM4.dane.fKatIMU1[2]);
-	uDaneCM4.dane.stMat.fCosPsi = cosf(uDaneCM4.dane.fKatIMU1[2]);*/
-	/*/w celu porównania metody policz kąty z tych samych danych metodą kwaternionową
-	float fQA[4];	//kwaternion wektora przyspieszenia
-	float fQM[4];
-	//float fAccNorm[3];
-
-	WektorNaKwaternion((float*)uDaneCM4.dane.fAkcel1, fQA);
-	WektorNaKwaternion((float*)uDaneCM4.dane.fMagne1, fQM);
-	Normalizuj(fQA, fQA, 4);
-	Normalizuj(fQM, fQM, 4);
-	KatyKwaterniona(fQA, fQM, (float*)uDaneCM4.dane.fKatAkcel2); */
 	return cBłąd;
 }
 

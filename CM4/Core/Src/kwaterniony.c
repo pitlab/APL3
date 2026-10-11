@@ -347,11 +347,64 @@ void KatyKwaterniona2(float *qA, float *qM, float *fKaty)
 // [wy] *katy - wskaźnik na zmienną z 3 kątami [Phi, Theta, Psi]
 // Zwraca: nic
 // Czas trwania: ? us na 200MHz
+////////////////////////////////////////////////////////////////////////////////
 void KatyKwaterniona3(float *qA, float *qM, float *fKaty)
 {
 	*(fKaty+0) = atan2f(2 * (*(qA+0) * *(qA+1) + *(qA+2) * *(qA+3)), 1 - 2 * (*(qA+1) * *(qA+1) + *(qA+2) * *(qA+2))) / -2;
 	*(fKaty+1) = asinf (2 * (*(qA+0) * *(qA+2) - *(qA+3) * *(qA+1))) / -2;
 	*(fKaty+2) = atan2f(2 * (*(qM+0) * *(qM+3) + *(qM+1) * *(qM+2)), 1 - 2 * (*(qM+2) * *(qM+2) + *(qM+3) * *(qM+3))) / -2;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Konwertuje kwaternion na kąty Eulera
+// Parametry:
+//  *fQ - wskaźnik na kwaternion wejsciowy
+//  *fKaty - wskaźnik na tablicę 3 kątów Eulera
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void KwaternionNaKąty(float *fQ, float *fKaty)
+{
+	*(fKaty + 0) = atan2f(2.0f * (*(fQ+0) * *(fQ+1) + *(fQ+2) * *(fQ+3)), 1.0f - 2.0f * (*(fQ+1) * *(fQ+1) + *(fQ+2) * *(fQ+2)));
+    float sinp = 2.0f * (*(fQ+0) * *(fQ+2) - *(fQ+1) * *(fQ+3));
+    if (fabsf(sinp) >= 1.0f)
+    	*(fKaty + 1) = -copysignf(M_PI / 2.0f, sinp); // Zabezpieczenie przed Gimbal Lock / NaN
+    else
+    	*(fKaty + 1) = asinf(sinp);
+    *(fKaty + 2) = atan2f(2.0f * (*(fQ+0) * *(fQ+3) + *(fQ+1) * *(fQ+2)), 1.0f - 2.0f * (*(fQ+2) * *(fQ+2) + *(fQ+3) * *(fQ+3)));
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Oblicza wartość znormalizowanego kwaternionu na podstawie katów Eulera na podstawie wzoru:
+//q0 = CosPhi2 * CosThe2 * CosPsi2 + SinPhi2 * SinThe2 * SinPsi2
+//q1 = SinPhi2 * CosThe2 * CosPsi2 - CosPhi2 * SinThe2 * SinPsi2
+//q2 = CosPhi2 * SinThe2 * CosPsi2 + SinPhi2 * CosThe2 * SinPsi2
+//q3 = CosPhi2 * CosThe2 * SinPsi2 - SinPhi2 * SinThe2 * CosPsi2
+// Parametry:
+//  *fKaty - wskaźnik na tablicę 3 kątów eulera
+//  *fQ - wskaźnik na kwaternion
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void KatyNaKwaternion(float *fKaty, float *fQ)
+{
+	float q[4];
+
+	float fSinPhi2 = sinf(*(fKaty + 0) / 2);
+	float fCosPhi2 = cosf(*(fKaty + 0) / 2);
+	float fSinThe2 = sinf(*(fKaty + 1) / 2);
+	float fCosThe2 = cosf(*(fKaty + 1) / 2);
+	float fSinPsi2 = sinf(*(fKaty + 2) / 2);
+	float fCosPsi2 = cosf(*(fKaty + 2) / 2);
+
+	q[0] = fCosPhi2 * fCosThe2 * fCosPsi2 + fSinPhi2 * fSinThe2 * fSinPsi2;
+	q[1] = fSinPhi2 * fCosThe2 * fCosPsi2 - fCosPhi2 * fSinThe2 * fSinPsi2;
+	q[2] = fCosPhi2 * fSinThe2 * fCosPsi2 + fSinPhi2 * fCosThe2 * fSinPsi2;
+	q[3] = fCosPhi2 * fCosThe2 * fSinPsi2 - fSinPhi2 * fSinThe2 * fCosPsi2;
+
+	NormalizujWektor(q, fQ, 4);
 }
 
 
@@ -381,3 +434,5 @@ void NormalizujWektor(float * fWe, float *fWy, uint8_t chRozmiar)
 			*(fWy + n) = 0.0f;
 	}
 }
+
+
