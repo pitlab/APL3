@@ -142,9 +142,9 @@ typedef struct _GNSS
 //definicje struktury zawierajacej syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
 typedef struct _BSP
 {
-	float fAkcel[3];		//[m/s^2]
-	float fZyro[3];			//[rad/s]
-	float fMagne[3];		//[uT]
+	//float fAkcel[3];		//[m/s^2]
+	float fZyro[3];			//prędkość kątowa po FK z usuniętym biasem [rad/s]
+	//float fMagne[3];		//[uT]
 	float fKatIMU[3];
 	float fIAS;
 	double dDlugoscGeo;

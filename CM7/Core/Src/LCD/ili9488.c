@@ -18,7 +18,6 @@
 #include "Ekran.h"
 #include "Semafory.h"
 #include "cmsis_os.h"
-// Wyświetlacz pracował na 25MHz ale później zaczął śmiecić na ekranie. Próbuję na 22,2MHz - jest OK
 
 
 //deklaracje zmiennych
@@ -206,8 +205,8 @@ uint8_t WypelnijEkran(uint16_t sKolor565)
 		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 		for(uint16_t y=0; y<320; y++)
 		{
-			for(uint16_t x=0; x<480/4; x++)
-				HAL_SPI_Transmit(&hspi5, chDane, 12, HAL_DELAY_SPI);
+			for(uint16_t x=0; x<480/4; x++)								//by zoptymalizować czasochłonne wypełnianie, wykonaj 4 razy mniej iteracji
+				HAL_SPI_Transmit(&hspi5, chDane, 12, HAL_DELAY_SPI);	//ale w każdym wierszu przeslij 4 razy więcej danych
 		}
 		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);

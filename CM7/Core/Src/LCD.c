@@ -4272,10 +4272,18 @@ void PlaskiObrotMagnetometrow(void)
 		sprintf(cNapis, "%s 3:", cNapisLcd[STR_MAGN]);
 		RysujNapis(cNapis, KOL12, 160);
 
-		sprintf(cNapis, "Inklinacja: %.2f %c", INKLINACJA_MAG * RAD2DEG, ZNAK_STOPIEN);
+		sprintf(cNapis, "%s 1:", cNapisLcd[STR_DLUGOSC_WEKTORA_MAGN]);
 		RysujNapis(cNapis, KOL12, 180);
-		sprintf(cNapis, "Deklinacja: %.2f %c", DEKLINACJA_MAG * RAD2DEG, ZNAK_STOPIEN);
+		sprintf(cNapis, "%s 2:", cNapisLcd[STR_DLUGOSC_WEKTORA_MAGN]);
 		RysujNapis(cNapis, KOL12, 200);
+		sprintf(cNapis, "%s 3:", cNapisLcd[STR_DLUGOSC_WEKTORA_MAGN]);
+		RysujNapis(cNapis, KOL12, 220);
+
+
+		sprintf(cNapis, "Inklinacja: %.2f %c", INKLINACJA_MAG * RAD2DEG, ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12, 240);
+		sprintf(cNapis, "Deklinacja: %.2f %c", DEKLINACJA_MAG * RAD2DEG, ZNAK_STOPIEN);
+		RysujNapis(cNapis, KOL12, 260);
 
 		setColor(SZARY60);
 		sprintf(cNapis, "Wci%cnij ekran poza przyciskiem by wyj%c%c", ś, ś, ć);
@@ -4346,7 +4354,7 @@ void PlaskiObrotMagnetometrow(void)
 	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
 	RysujNapis(cNapis, KOL12 + 12*FONT_SL, 100);
 
-
+	//wartosci składowych magnetycznych
 	setColor(CYJAN);
 	sprintf(cNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne1[0], uDaneCM4.dane.fMagne1[1]);
 	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 120);
@@ -4358,6 +4366,20 @@ void PlaskiObrotMagnetometrow(void)
 	setColor(ZOLTY);
 	sprintf(cNapis, "%.2f, %.2f [uT] ", uDaneCM4.dane.fMagne3[0], uDaneCM4.dane.fMagne3[1]);
 	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 160);
+
+	//długości wektora magnetycznego
+	setColor(CYJAN);
+	sprintf(cNapis, "%.2f [uT] ", sqrtf((uDaneCM4.dane.fMagne1[0] * uDaneCM4.dane.fMagne1[0]) + (uDaneCM4.dane.fMagne1[1] + uDaneCM4.dane.fMagne1[1]) + (uDaneCM4.dane.fMagne1[2]) * uDaneCM4.dane.fMagne1[2]));
+	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 180);
+
+	setColor(MAGENTA);
+	sprintf(cNapis, "%.2f [uT] ", sqrtf((uDaneCM4.dane.fMagne2[0] * uDaneCM4.dane.fMagne2[0]) + (uDaneCM4.dane.fMagne2[1] + uDaneCM4.dane.fMagne2[1]) + (uDaneCM4.dane.fMagne2[2]) * uDaneCM4.dane.fMagne2[2]));
+	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 200);
+
+	setColor(ZOLTY);
+	sprintf(cNapis, "%.2f [uT] ", sqrtf((uDaneCM4.dane.fMagne3[0] * uDaneCM4.dane.fMagne3[0]) + (uDaneCM4.dane.fMagne3[1] + uDaneCM4.dane.fMagne3[1]) + (uDaneCM4.dane.fMagne3[2]) * uDaneCM4.dane.fMagne3[2]));
+	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 220);
+
 	vTaskDelay(20);		//opóźnienie spowalniajace częstotliwość odświeżania ekranu do max 1000/t [Hz]
 }
 
@@ -4830,48 +4852,46 @@ void PokazCzasOdcinkowPGAP(uint16_t *sCzasy)
 			sprintf(cNapis, "Modul %d:", n+1);
 			RysujNapis(cNapis, 0, 30 + n*20);
 		}
-		sprintf(cNapis, "Odb. GNSS:");
+		sprintf(cNapis, "Odb. GNSS:");			//4
 		RysujNapis(cNapis, 0, 110);
-		sprintf(cNapis, "Oper. I2C:");
+		sprintf(cNapis, "Oper. I2C:");			//5
 		RysujNapis(cNapis, 0, 130);
-		sprintf(cNapis, "f Kalmana:");
+		sprintf(cNapis, "FK wysoko:");			//6
 		RysujNapis(cNapis, 0, 150);
-		sprintf(cNapis, "IMU trygon:");
+		sprintf(cNapis, "IMU trygon:");			//7
 		RysujNapis(cNapis, 0, 170);
-		sprintf(cNapis, "IMU kwater:");
+		sprintf(cNapis, "IMU kwater:");			//8
 		RysujNapis(cNapis, 0, 190);
-		sprintf(cNapis, "Odbiorn RC:");
+		sprintf(cNapis, "Odbiorn RC:");			//9
 		RysujNapis(cNapis, 0, 210);
-		sprintf(cNapis, "Rozsz. I/O:");
+		sprintf(cNapis, "FK k%ct%cw:", ą, ó);	//10
 		RysujNapis(cNapis, 0, 230);
-		sprintf(cNapis, "Modul IMU:");
+		sprintf(cNapis, "--11--:");
 		RysujNapis(cNapis, 0, 250);
-		sprintf(cNapis, "Wymiana:");
+		sprintf(cNapis, "Wymiana:");			//12
 		RysujNapis(cNapis, 0, 270);
-		sprintf(cNapis, "PolCM7:");
+		sprintf(cNapis, "PolCM7:");				//13
 		RysujNapis(cNapis, 0, 290);
 
 		//druga kolumna danych
-		sprintf(cNapis, "LED WS2813:");
+		sprintf(cNapis, "--14--");
 		RysujNapis(cNapis, KOL22, 30);
 		sprintf(cNapis, "--15--");
 		RysujNapis(cNapis, KOL22, 50);
-		sprintf(cNapis, "--16--");
+		sprintf(cNapis, "Mapa");				//16
 		RysujNapis(cNapis, KOL22, 70);
-		sprintf(cNapis, "Kontr.Lotu:");
+		sprintf(cNapis, "Kontr.Lotu:");			//17
 		RysujNapis(cNapis, KOL22, 90);
-		sprintf(cNapis, "Mikser:");
+		sprintf(cNapis, "Mikser:");				//18
 		RysujNapis(cNapis, KOL22, 110);
-		sprintf(cNapis, "Wyjs%ccia RC:", ś);
+		sprintf(cNapis, "Wyj%ccia RC:", ś);	//19
 		RysujNapis(cNapis, KOL22, 130);
-		sprintf(cNapis, "ADC:");
-		RysujNapis(cNapis, KOL22, 150);
 		sprintf(cNapis, "Suma Czasu:");
-		RysujNapis(cNapis, KOL22, 170);
+		RysujNapis(cNapis, KOL22, 150);
 		sprintf(cNapis, "f Petli Gl:");
-		RysujNapis(cNapis, KOL22, 190);
+		RysujNapis(cNapis, KOL22, 170);
 		sprintf(cNapis, "%cred. f PG:", ś);
-		RysujNapis(cNapis, KOL22, 210);
+		RysujNapis(cNapis, KOL22, 190);
 	}
 
 	setColor(ZOLTY);
@@ -4881,7 +4901,7 @@ void PokazCzasOdcinkowPGAP(uint16_t *sCzasy)
 		RysujNapis(cNapis, 12*FONT_SL, 30 + n*20);
 	}
 
-	for (uint8_t n=0; n<7; n++)
+	for (uint8_t n=0; n<6; n++)
 	{
 		sprintf(cNapis, "%d ", sCzasy[n+14]);
 		RysujNapis(cNapis, KOL22 + 12*FONT_SL, 30 + n*20);
@@ -4892,7 +4912,7 @@ void PokazCzasOdcinkowPGAP(uint16_t *sCzasy)
 	for (uint8_t n=0; n<LICZBA_ODCINKOW_CZASU; n++)
 		nSuma += sCzasy[n];
 	sprintf(cNapis, "%ld us ", nSuma);
-	RysujNapis(cNapis, KOL22 + 12*FONT_SL, 170);
+	RysujNapis(cNapis, KOL22 + 12*FONT_SL, 150);
 
 	if (nSuma)
 	{
@@ -4902,9 +4922,9 @@ void PokazCzasOdcinkowPGAP(uint16_t *sCzasy)
 	else
 		fCzestotliwosc = 0;
 	sprintf(cNapis, "%.0f Hz ", fCzestotliwosc);
-	RysujNapis(cNapis, KOL22 + 12*FONT_SL, 190);
+	RysujNapis(cNapis, KOL22 + 12*FONT_SL, 170);
 	sprintf(cNapis, "%.1f Hz ", fSredniaCzestotliwość);
-	RysujNapis(cNapis, KOL22 + 12*FONT_SL, 210);
+	RysujNapis(cNapis, KOL22 + 12*FONT_SL, 190);
 
 }
 

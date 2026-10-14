@@ -25,7 +25,7 @@
 
 uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane);
 uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane);
-uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane);
-uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane);
+uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(float *fAkcel);
+uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(float *fMagne);
 
 #endif /* INC_KALMANKATOW7X9Z_H_ */

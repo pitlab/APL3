@@ -127,8 +127,8 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 	//filtr komplementarny IMU
 	for (uint16_t n=0; n<3; n++)
 	{
-		uDaneCM4.dane.fKatIMU1[n] = 0.02 * uDaneCM4.dane.fKatAkcel1[n] + 0.98 * uDaneCM4.dane.fKatIMU1[n];	//kasowanie dryftu dodatkiem kątów z akceletromtru i magnetometru
 		uDaneCM4.dane.fKatIMU1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT / 1000000;							//przyrost kąta z całki żyroskopu
+		uDaneCM4.dane.fKatIMU1[n] = 0.02 * uDaneCM4.dane.fKatAkcel1[n] + 0.98 * uDaneCM4.dane.fKatIMU1[n];	//kasowanie dryftu dodatkiem kątów z akceletrometru i magnetometru
 	}
 	return cBłąd;
 }

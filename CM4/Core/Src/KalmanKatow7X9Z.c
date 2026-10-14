@@ -297,6 +297,10 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	dane->stBSP.fKatIMU[1] = -asinf (2.0f * (fX[0] * fX[2] - fX[1] * fX[3]));
 	dane->stBSP.fKatIMU[2] =  atan2f(2.0f * (fX[0] * fX[3] + fX[1] * fX[2]), 1 - (2.0f * (fX[2] * fX[2] + fX[3] * fX[3])));
 
+	//przygotuj prędkość kątową z usunietym biasem
+	for (uint8_t n=0; n<3; n++)
+		dane->stBSP.fZyro[n] = dane->fZyroKal1[n] - fX[n+4];
+
 	//2 Oblicz predykcję kowariancji (niepewności) nowej wartości:  P(n+1) = F * P(n) * F^T + Q
 	//Obliczenie szumu procesu Q składajacego się z szumu kwaterniony na który wpływa żyroskop i szumu błędu żyroskopów
 	//Najpierw szum procesu dla żyroskopu wpływającego na kwaternion: Qzyro = Gg * Qg * Gg^T
@@ -364,10 +368,10 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 // Estymata_x(n) = Estymata_x(n-1) + K(n) * (z(n) - H * Estymata_x(n-1))
 // gdzie macierz wzmocnienia Kalmana: K(n) = P(n-1) * H^T * (H * P(n-1) * H^T + R(n))^-1
 // Następnie znajduje nową macierz kowariancji P(n) = (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T + K(n) * R(n) * K(n)^T
-// Parametry: *dane - wskaźnik na strukturę danych autopilota
+// Parametry: *fAkcel - wskaźnik na dane akcelerometru
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
+uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(float *fAkcel)
 {
 	uint8_t cBłąd = BLAD_OK;
 	float fModelAcc[KKPOMR];
@@ -386,10 +390,10 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	fModelAcc[2] = (fX[0] * fX[0] - fX[1] * fX[1] - fX[2] * fX[2] + fX[3] * fX[3]);
 
 	//Normalizuj akcelerometr i od razu licz innowację
-	float fNormaAcc = sqrtf((dane->fAkcel1[0] * dane->fAkcel1[0]) + (dane->fAkcel1[1] * dane->fAkcel1[1]) + (dane->fAkcel1[2] * dane->fAkcel1[2]));
+	float fNormaAcc = sqrtf(*(fAkcel+0) * *(fAkcel+0) + *(fAkcel+1) * *(fAkcel+1) + *(fAkcel+2) * *(fAkcel+2));
 	for (uint8_t n=0; n<KKPOMR; n++)
 	{
-		fAccNormalizowany[n] = dane->fAkcel1[n] / fNormaAcc;
+		fAccNormalizowany[n] = *(fAkcel+n) / fNormaAcc;
 		fYa[n] = fAccNormalizowany[n] - fModelAcc[n];		//Innowacja = znormalizowany pomiar - model
 	}
 
@@ -491,10 +495,10 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 // Estymata_x(n) = Estymata_x(n-1) + K(n) * (z(n) - H * Estymata_x(n-1))
 // gdzie macierz wzmocnienia Kalmana: K(n) = P(n-1) * H^T * (H * P(n-1) * H^T + R(n))^-1
 // Następnie znajduje nową macierz kowariancji P(n) = (I - K(n) * H) * P(n-1) * (I * K(n) * H)^T + K(n) * R(n) * K(n)^T
-// Parametry: *dane - wskaźnik na strukturę danych autopilota
+// Parametry: *fMagne - wskaźnik składowe magnetometru
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
+uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(float *fMagne)
 {
 	uint8_t cBłąd = BLAD_OK;
 	float fModelMag[KKPOMR];
@@ -511,10 +515,10 @@ uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	fModelMag[2] = fRefMagX * 2 * (fX[1] * fX[3] + fX[0] * fX[2]) + fRefMagY * 2 * (fX[2] * fX[3] - fX[0] * fX[1]) + fRefMagZ * (1.0f - (2 * fX[1] * fX[1]) - (2 * fX[2] * fX[2]));
 
 	//Normalizacja wektora magnetycznego i innowacja
-	float fNorma = sqrtf((dane->fMagne1[0] * dane->fMagne1[0]) + (dane->fMagne1[1] * dane->fMagne1[1]) + (dane->fMagne1[2] * dane->fMagne1[2]));
+	float fNorma = sqrtf(*(fMagne+0) * *(fMagne+0) + *(fMagne+1) * *(fMagne+1) + *(fMagne+2) * *(fMagne+2));
 	for (uint8_t n=0; n<KKPOMR; n++)
 	{
-		fMagNormalizowany[n] = dane->fMagne1[n] / fNorma;
+		fMagNormalizowany[n] = *(fMagne+n) / fNorma;
 		fYm[n] = fMagNormalizowany[n] - fModelMag[n];	//Innowacja: y = z - h
 	}
 

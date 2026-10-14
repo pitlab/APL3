@@ -368,15 +368,15 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_SERWO15:		//aby nie generować zbyt dużo kodu stosuję wzór do obliczenia indeksu zmiennej dla wszystkich kanałów
 	case TID_SERWO16:		fZmiennaTele = stDane->sWyjscieRC[sZmienna - TID_SERWO1];	break;
 
-	case TID_BSP_AKCELX:	fZmiennaTele = stDane->stBSP.fAkcel[0];		break;
-	case TID_BSP_AKCELY:	fZmiennaTele = stDane->stBSP.fAkcel[1];		break;
-	case TID_BSP_AKCELZ:	fZmiennaTele = stDane->stBSP.fAkcel[2];		break;
+	//case TID_BSP_AKCELX:	fZmiennaTele = stDane->stBSP.fAkcel[0];		break;
+	//case TID_BSP_AKCELY:	fZmiennaTele = stDane->stBSP.fAkcel[1];		break;
+	//case TID_BSP_AKCELZ:	fZmiennaTele = stDane->stBSP.fAkcel[2];		break;
 	case TID_BSP_ZYROP:		fZmiennaTele = stDane->stBSP.fZyro[0];		break;
 	case TID_BSP_ZYROQ:		fZmiennaTele = stDane->stBSP.fZyro[1];		break;
 	case TID_BSP_ZYROR:		fZmiennaTele = stDane->stBSP.fZyro[2];		break;
-	case TID_BSP_MAGNEX:	fZmiennaTele = stDane->stBSP.fMagne[0];		break;
-	case TID_BSP_MAGNEY:	fZmiennaTele = stDane->stBSP.fMagne[1];		break;
-	case TID_BSP_MAGNEZ:	fZmiennaTele = stDane->stBSP.fMagne[2];		break;
+	//case TID_BSP_MAGNEX:	fZmiennaTele = stDane->stBSP.fMagne[0];		break;
+	//case TID_BSP_MAGNEY:	fZmiennaTele = stDane->stBSP.fMagne[1];		break;
+	//case TID_BSP_MAGNEZ:	fZmiennaTele = stDane->stBSP.fMagne[2];		break;
 
 	case TID_BSP_IMUX:		fZmiennaTele = stDane->stBSP.fKatIMU[0];	break;
 	case TID_BSP_IMUY:		fZmiennaTele = stDane->stBSP.fKatIMU[1];	break;

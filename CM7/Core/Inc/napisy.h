@@ -81,9 +81,10 @@
 #define STR_ZYROSKOP				63
 #define STR_TAK						64
 #define STR_NIE						65
+#define STR_DLUGOSC_WEKTORA_MAGN	66
 
 //#define STR_
-#define MAX_NAPISOW					66	//liczba napisów
+#define MAX_NAPISOW					67	//liczba napisów
 
 
 

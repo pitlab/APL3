@@ -83,6 +83,7 @@ const char *cNapisLcd[MAX_NAPISOW]  = {
 "Zyroskop",							//STR_ZYROSKOP
 "Tak",								//STR_TAK
 "Nie", 								//STR_NIE
+"Dlug. vMag"						//STR_DLUGOSC_WEKTORA_MAGN
 };
 
 

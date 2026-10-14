@@ -197,7 +197,7 @@ void PetlaGlowna(void)
 			PrzechwyćBłąd(cBłądPG);
 		}
 
-		//testowo filtr kalmana kalibracji magnetometrów
+		/*/testowo filtr kalmana kalibracji magnetometrów
 		if (uDaneCM4.dane.nZainicjowano & INIT_KALMAN_KAL_MAGN)
 		{
 			cBłądPG = PredykcjaFiltraKalmanaKalibracjiMagnetometrów12X9Z(&uDaneCM4.dane);
@@ -217,28 +217,9 @@ void PetlaGlowna(void)
 		{
 			cBłądPG = InicjujFiltrKalmanaKalibracjiMagnetometrów12X9Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
-		}
+		}*/
 
-		//teraz filtr Kalmana kątów orientacji
-		if (uDaneCM4.dane.nZainicjowano & INIT_KALMAN_KATOW)
-		{
-			cBłądPG = PredykcjaFiltraKalmanaKątów7X9Z(&uDaneCM4.dane);
-			PrzechwyćBłąd(cBłądPG);
-			cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(&uDaneCM4.dane);
-			PrzechwyćBłąd(cBłądPG);
 
-			if (uDaneCM4.dane.sNowyPomiar & NP_MAG1)
-			{
-				cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(&uDaneCM4.dane);
-				PrzechwyćBłąd(cBłądPG);
-				uDaneCM4.dane.sNowyPomiar &= ~(NP_MAG1);	//usuń flagę nowych pomiarów
-			}
-		}
-		else	//jeżeli filtr nie jest zainicjowany to inicjuj go
-		{
-			cBłądPG = InicjujFiltrKalmanaKątów7X9Z(&uDaneCM4.dane);
-			PrzechwyćBłąd(cBłądPG);
-		}
 		break;
 
 	case 7:
@@ -248,7 +229,8 @@ void PetlaGlowna(void)
 		nCzasPoprzedniegoObiegu = nCzasBiezacy;
 		JednostkaInercyjnaTrygonometria(ndT);	break;	//dane do IMU1
 
-	case 8:	JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
+	case 8:	//JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
+		JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal1, (float*)uDaneCM4.dane.fAkcel1, (float*)uDaneCM4.dane.fMagne1);	break;	//aby lepiej porównać wszystko licz z pierwszego kompeltu czujników
 
 	case 9:	//obsługa odbiorników RC
 		cBłądPG = ObsługaRamkiSBus();
@@ -261,10 +243,26 @@ void PetlaGlowna(void)
 		PrzechwyćBłąd(cBłądPG);
 		break;
 
-	case 10:
-		//cBłądPG |= PobierzDaneExpandera(&chStanIOwe);		//wszystkie porty ustawione na wyjściowe, nie ma co pobierać
-		cBłądPG = WyslijDaneExpandera(cStanIOwy);
-		PrzechwyćBłąd(cBłądPG);
+	case 10:	//filtr Kalmana kątów orientacji
+		if (uDaneCM4.dane.nZainicjowano & INIT_KALMAN_KATOW)
+		{
+			cBłądPG = PredykcjaFiltraKalmanaKątów7X9Z(&uDaneCM4.dane);
+			PrzechwyćBłąd(cBłądPG);
+			cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fAkcel1);
+			PrzechwyćBłąd(cBłądPG);
+
+			if (uDaneCM4.dane.sNowyPomiar & NP_MAG1)
+			{
+				cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fMagne1);
+				PrzechwyćBłąd(cBłądPG);
+				uDaneCM4.dane.sNowyPomiar &= ~(NP_MAG1);	//usuń flagę nowych pomiarów
+			}
+		}
+		else	//jeżeli filtr nie jest zainicjowany to inicjuj go
+		{
+			cBłądPG = InicjujFiltrKalmanaKątów7X9Z(&uDaneCM4.dane);
+			PrzechwyćBłąd(cBłądPG);
+		}
 		break;
 
 	case 12:	//wymień dane między rdzeniami
@@ -275,6 +273,10 @@ void PetlaGlowna(void)
 		break;
 
 	case 13:
+		//cBłądPG |= PobierzDaneExpandera(&chStanIOwe);		//wszystkie porty ustawione na wyjściowe, nie ma co pobierać
+		cBłądPG = WyslijDaneExpandera(cStanIOwy);
+		PrzechwyćBłąd(cBłądPG);
+
 		cBłądPG = WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
 		PrzechwyćBłąd(cBłądPG);
 		break;

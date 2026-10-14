@@ -23,13 +23,13 @@ uint8_t FiltrDanychIMUiWysokosci(stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 
-	for (uint8_t n=0; n<3; n++)
+	/*for (uint8_t n=0; n<3; n++)
 	{
-		dane->stBSP.fKatIMU[n] = (dane->fKatIMU1[n] + dane->fKatIMU2[n]) / 2;
+		//dane->stBSP.fKatIMU[n] = (dane->fKatIMU1[n] + dane->fKatIMU2[n]) / 2;	//to robi filtr Kalmana kątów
 		dane->stBSP.fAkcel[n] = (dane->fAkcel1[n] + dane->fAkcel2[n]) / 2;
 		dane->stBSP.fZyro[n] = (dane->fZyroKal1[n] + dane->fZyroKal2[n]) / 2;
 		dane->stBSP.fMagne[n] = dane->fMagne1[n];
-	}
+	}*/
 
 	/*if (dane->stGnss1.fWysokoscMSL)
 		dane->stBSP.fWysokoscMSL = (4 * dane->stGnss1.fWysokoscMSL + 12 * dane->fWysokoMSL[0]) / 16;

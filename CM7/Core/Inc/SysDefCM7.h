@@ -17,7 +17,7 @@
 
 #define WER_GLOWNA	3		//generacja autopilota
 #define WER_PODRZ	0		//wersja rozwojowa w ramach danej generacji
-#define WER_REPO	614		//numer commitu w repozytorium
+#define WER_REPO	615		//numer commitu w repozytorium
 
 //wybór typu wyświetlacza
 #define LCD_ILI9488		//https://sklep.msalamon.pl/produkt/wyswietlacz-tft-lcd-35%E2%80%B3-ili9488-320x480/?srsltid=AfmBOopUr_Ot4ZQNoDns7QPYb-sgwqNSRUYaUR1s1TTm1hDWmuxMRWXO lub https://pl.aliexpress.com/item/1005008606165384.html?spm=a2g0o.productlist.main.1.236d39e0dslaJU&algo_pvid=7c8e747e-899a-49cd-bec1-53d6e396e7f9&algo_exp_id=7c8e747e-899a-49cd-bec1-53d6e396e7f9-0&pdp_ext_f=%7B%22order%22%3A%222%22%2C%22eval%22%3A%221%22%2C%22fromPage%22%3A%22search%22%7D&pdp_npi=6%40dis%21PLN%2183.38%2139.19%21%21%2122.47%2110.56%21%402103917f17584357494216126eaa8c%2112000045923645614%21sea%21PL%210%21ABX%211%210%21n_tag%3A-29910%3Bd%3Af9771149%3Bm03_new_user%3A-29895&curPageLogUid=dILRVszJHv9D&utparam-url=scene%3Asearch%7Cquery_from%3A%7Cx_object_id%3A1005008606165384%7C_p_origin_prod%3A
@@ -31,7 +31,7 @@
 #define EXP01_LCD_RESET		0x02	//LCD_RES - reset LCD
 #define EXP02_LOG_VSELECT	0x04	//LOG_SD1_VSEL - wybór napięcia IO karty SD: H=3,3V L=1,8V
 #define EXP03_CAM_RESET		0x08	//CAM_RES - reset kamery
-#define EXP04_LOG_CARD_DET	0x10	//LOG_SD1_CDETECT - wejsście detekcji obecności karty
+#define EXP04_LOG_CARD_DET	0x10	//LOG_SD1_CDETECT - wejście detekcji obecności karty
 #define EXP05_USB_HOST_DEV	0x20	//USB_HOST_DEVICE - sposób przedstawiania sie urządzenia po USB jako: 0=Host, 1=Device
 #define EXP06_MOD_OD1		0x40	//MOD_OSW_IO1 - wyjście Otwarty Dren 1
 #define EXP07_MOD_OD2		0x80	//MOD_OSW_IO2 - wyjście Otwarty Dren 2
