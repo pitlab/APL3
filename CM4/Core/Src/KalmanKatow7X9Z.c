@@ -391,6 +391,9 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(float *fAkcel)
 
 	//Normalizuj akcelerometr i od razu licz innowację
 	float fNormaAcc = sqrtf(*(fAkcel+0) * *(fAkcel+0) + *(fAkcel+1) * *(fAkcel+1) + *(fAkcel+2) * *(fAkcel+2));
+	if (fNormaAcc < 1e-6f)
+	    return BLAD_ZLE_DANE;
+
 	for (uint8_t n=0; n<KKPOMR; n++)
 	{
 		fAccNormalizowany[n] = *(fAkcel+n) / fNormaAcc;

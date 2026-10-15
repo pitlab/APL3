@@ -46,13 +46,16 @@
 #define TID_TEMPIMU1			21
 #define TID_TEMPIMU2			22
 
-//zmienne AHRS
+//zmienne IMU
 #define TID_KAT_IMU1X			23
 #define TID_KAT_IMU1Y			24
 #define TID_KAT_IMU1Z			25
-#define TID_KAT_IMU2X			26
-#define TID_KAT_IMU2Y			27
-#define TID_KAT_IMU2Z			28
+//#define TID_KAT_IMU2X			26
+//#define TID_KAT_IMU2Y			27
+//#define TID_KAT_IMU2Z			28
+#define TID_DLUG_VMAG1			26		//długość wektora magetycznego 1
+#define TID_DLUG_VMAG2			27		//długość wektora magetycznego 2
+#define TID_DLUG_VMAG3			28		//długość wektora magetycznego 3
 #define TID_KAT_ZYRO1X			29
 #define TID_KAT_ZYRO1Y			30
 #define TID_KAT_ZYRO1Z			31

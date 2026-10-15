@@ -230,6 +230,7 @@ typedef struct
 	float fMagne1[3];
 	float fMagne2[3];
 	float fMagne3[3];
+	float fDługośćWektoraMagn[LICZBA_MAGNETOMETROW];	//długość wektora magnetycznego wszystkich 3 magnetometrów
 	float fKatIMU1[3];		//[rad]
 	float fKatIMU2[3];
 	float fKatZyro1[3];		//[rad]

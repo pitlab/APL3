@@ -297,6 +297,9 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_MAGNE3X:		fZmiennaTele = stDane->fMagne3[0];			break;
 	case TID_MAGNE3Y:		fZmiennaTele = stDane->fMagne3[1];			break;
 	case TID_MAGNE3Z:		fZmiennaTele = stDane->fMagne3[2];			break;
+	case TID_DLUG_VMAG1:	fZmiennaTele = stDane->fDługośćWektoraMagn[0];	break;
+	case TID_DLUG_VMAG2:	fZmiennaTele = stDane->fDługośćWektoraMagn[1];	break;
+	case TID_DLUG_VMAG3:	fZmiennaTele = stDane->fDługośćWektoraMagn[2];	break;
 	case TID_TEMPIMU1:		fZmiennaTele = stDane->fTemper[TEMP_IMU1];	break;
 	case TID_TEMPIMU2:		fZmiennaTele = stDane->fTemper[TEMP_IMU1];	break;
 
@@ -304,9 +307,9 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_KAT_IMU1X:		fZmiennaTele = stDane->fKatIMU1[0];			break;
 	case TID_KAT_IMU1Y:		fZmiennaTele = stDane->fKatIMU1[1];			break;
 	case TID_KAT_IMU1Z:		fZmiennaTele = stDane->fKatIMU1[2];			break;
-	case TID_KAT_IMU2X:		fZmiennaTele = stDane->fKatIMU2[0];			break;
-	case TID_KAT_IMU2Y:		fZmiennaTele = stDane->fKatIMU2[1];			break;
-	case TID_KAT_IMU2Z:		fZmiennaTele = stDane->fKatIMU2[2];			break;
+	//case TID_KAT_IMU2X:		fZmiennaTele = stDane->fKatIMU2[0];			break;	//zastąpione przez TID_DLUG_VMAG1
+	//case TID_KAT_IMU2Y:		fZmiennaTele = stDane->fKatIMU2[1];			break;
+	//case TID_KAT_IMU2Z:		fZmiennaTele = stDane->fKatIMU2[2];			break;
 	case TID_KAT_ZYRO1X:	fZmiennaTele = stDane->fKatZyro1[0];		break;
 	case TID_KAT_ZYRO1Y:	fZmiennaTele = stDane->fKatZyro1[1];		break;
 	case TID_KAT_ZYRO1Z:	fZmiennaTele = stDane->fKatZyro1[2];		break;

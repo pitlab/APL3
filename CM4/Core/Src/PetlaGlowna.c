@@ -799,6 +799,7 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 		else
 			uDaneCM4.dane.fMagne3[2] = ((float)sZeZnakiem * CZULOSC_HMC5883 - fPrzesMagn3[2]) * fSkaloMagn3[2];	//dane skalibrowane
 		*sCzujniki &= ~MAG_HMC5883;	//dane obsłużone
+		uDaneCM4.dane.fDługośćWektoraMagn[2] = sqrtf(uDaneCM4.dane.fMagne3[0] * uDaneCM4.dane.fMagne3[0] + uDaneCM4.dane.fMagne3[1] * uDaneCM4.dane.fMagne3[1] + uDaneCM4.dane.fMagne3[2] * uDaneCM4.dane.fMagne3[2]);
 		uDaneCM4.dane.sNowyPomiar |= NP_MAG3 | NP_KAL_MAG3;	//jest nowy pomiar
 	}
 
@@ -830,6 +831,7 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
 		}
 		*sCzujniki &= ~MAG_IIS;	//dane obsłużone
+		uDaneCM4.dane.fDługośćWektoraMagn[0] = sqrtf(uDaneCM4.dane.fMagne1[0] * uDaneCM4.dane.fMagne1[0] + uDaneCM4.dane.fMagne1[1] * uDaneCM4.dane.fMagne1[1] + uDaneCM4.dane.fMagne1[2] * uDaneCM4.dane.fMagne1[2]);
 		uDaneCM4.dane.sNowyPomiar |= NP_MAG1 | NP_KAL_MAG1;	//jest nowy pomiar
 	}
 
@@ -869,6 +871,7 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 		}
 		cPoprzedniRodzajPomiaru = cRodzajPomiaruMMC;
 		*sCzujniki &= ~MAG_MMC;	//dane obsłużone
+		uDaneCM4.dane.fDługośćWektoraMagn[1] = sqrtf(uDaneCM4.dane.fMagne2[0] * uDaneCM4.dane.fMagne2[0] + uDaneCM4.dane.fMagne2[1] * uDaneCM4.dane.fMagne2[1] + uDaneCM4.dane.fMagne2[2] * uDaneCM4.dane.fMagne2[2]);
 		uDaneCM4.dane.sNowyPomiar |= NP_MAG2 | NP_KAL_MAG2;	//jest nowy pomiar
 	}
 
