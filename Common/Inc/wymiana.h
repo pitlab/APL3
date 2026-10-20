@@ -11,6 +11,7 @@
 #include "semafory.h"
 #include "KanalyPID.h"
 #include "SysDefWspolny.h"
+#include "SymulatorKatow.h"
 
 #define ROWNAJ_DO32B(adres)				((adres + 3) & 0xFFFFFFFC)
 
@@ -297,6 +298,7 @@ typedef struct
 	uRozne_t uRozne;				//unia różnych typów danych ogólnego zastosowania
 	uint8_t cRozmiar;				//rozmiar danych przekazywanych w polu fRozne
 	uint16_t sAdres;				//adres danych przekazywanych w polu fRozne
+	stSym_t stSym;					//struktura danych symulatora kątów orientacji
 } stWymianyCM7_t;
 
 //unie do konwersji struktur na słowa 32-bitowe

@@ -10,6 +10,24 @@
 // mamy układ równań, który można rozwiazać: Axmx + Aymy + Azmz + C = mx^2 + my^2 + mz^2
 // rozwiązaniem jest operacja macierzowa: Theta = (A^T * A)^-1 * A^T * Y;  gdzie Theta = [2bx, 2by, 2bz, C]; A = [N pomiarow]x[xm, my, mx, 1]; Y = [N pomiarow]x[mx^2 + my^2 + mz^2]
 // Aby nie trzeba było zużywać dużej ilości pamięci na macierze A oraz y definiuję dwie zmienne akumulujące wyniki pośrednie: ATA = A * A^T, oraz ATy = A^T * Y
+// Inny przykład:
+// Ogólne równanie: ax^2 + by^2 + cz^2 + 2dxy + 2exz + 2fyz + 2gx + 2hy + 2iz + j = 0
+// Można to zapisać macierzowo: h^T * A * h + b^T * h + j = 0	gdzie A to macierz 3x3, b to wektor 3x1, j=-1
+// Budujemy macierz n pomiarów o wierszu zawierajacym: D = [x^2, y^2, z^2, xy, xz, yz, x, y, z]
+// Rozwiązanie metodą najmnieszych kwadratów daje wektor: p = (D^T * D)^-1 * D^T * 1
+// daje to D * p = 1 gdzie p to wektor parametrów: p = [a, b, c, 2d, 2e, 2f, 2g, 2h, 2i]^T
+// z wektora p budujemy macierz kwadryki (kwadratowa powierzchnia w 3D) Ae oraz wektor be
+//  	|a  d  e|		|2g|
+// Ae = |d  b  f|  be = |2h|
+//		|e  f  c|		|2i|
+// Przesunięcie środka (bias) dla Hard Iron: V = -1/2 * Ae^-1 * be
+// Skalowanie i Soft Iron W^-1
+// Obliczamy wartość skalującą: k = 1 + 1/4 * Ae^-1 * be
+// Macierz zmienionej geometrii A = Ae/k
+// Ponieważ A = (W^-1)^T * W^-1,  macierz korekcji W-^-1 wyznacza się przez deompozycję Choleskiego lub jej pierwiastek macierzowy
+// Wynik jest znormalizowany
+// Patrz też: https://github.com/nliaudat/magnetometer_calibration
+// https://teslabs.com/articles/magnetometer-calibration/
 // (c) PitLab 2026
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
@@ -215,3 +233,31 @@ uint8_t MetodaNajmniejszychKwadratow(stDopasowanieDoSfery_t *stDopasowanieDoSfer
 	return cBłąd;
 }
 
+
+//Metoda druga
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja zmiera dane do macierzy D = [x^2, y^2, z^2, xy, xz, yz, x, y, z]
+// Parametry: *stDopasowanieDoSfery - wskaźnik na strukturę akumulowanych danych pomiarowych
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ZbierajProbki2(float *fMag, stDopasowanieDoSfery_t *stDopasowanieDoSfery)
+{
+
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Parametry:
+//	*stDopasowanieDoSfery - wskaźnik na strukturę akumulowanych danych pomiarowych
+//	*stWynikiDopasowania - wskaźnik na strukturę zawierjącą wyniki dopasowania do sfery
+// Parametry: *dane - wskaźnik na strukturę danych autopilota
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t Metoda2NajmniejszychKwadratow(stDopasowanieDoSfery_t *stDopasowanieDoSfery, stWynikiDopasowania_t *stWynikiDopasowania)
+{
+}
+}
