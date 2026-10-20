@@ -227,10 +227,18 @@ void PetlaGlowna(void)
 		ndT = MinalCzas2T7(nCzasPoprzedniegoObiegu, nCzasBiezacy);	//licz czas od ostatniego obiegu pętli
 		uDaneCM4.dane.ndT = ndT;
 		nCzasPoprzedniegoObiegu = nCzasBiezacy;
-		JednostkaInercyjnaTrygonometria(ndT);	break;	//dane do IMU1
+		if (uDaneCM7.dane.stSym.cFlagi & SYM_WLACZONA)
+			JednostkaInercyjnaTrygonometria(uDaneCM7.dane.stSym.fPrędkośćKątowa, uDaneCM7.dane.stSym.fAkcelerometr, uDaneCM7.dane.stSym.fMagnetometr, &uDaneCM4.dane, ndT);
+		else
+			JednostkaInercyjnaTrygonometria(uDaneCM4.dane.fZyroKal1, uDaneCM4.dane.fAkcel1, uDaneCM4.dane.fMagne1, &uDaneCM4.dane, ndT);
+		break;
 
 	case 8:	//JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal2, (float*)uDaneCM4.dane.fAkcel2, (float*)uDaneCM4.dane.fMagne2);	break;	//dane do IMU2
-		JednostkaInercyjnaKwaterniony(ndT, (float*)uDaneCM4.dane.fZyroKal1, (float*)uDaneCM4.dane.fAkcel1, (float*)uDaneCM4.dane.fMagne1);	break;	//aby lepiej porównać wszystko licz z pierwszego kompeltu czujników
+		if (uDaneCM7.dane.stSym.cFlagi & SYM_WLACZONA)
+			JednostkaInercyjnaKwaterniony(uDaneCM7.dane.stSym.fPrędkośćKątowa, uDaneCM7.dane.stSym.fAkcelerometr, uDaneCM7.dane.stSym.fMagnetometr, ndT);		//symulacja
+		else
+			JednostkaInercyjnaKwaterniony(uDaneCM4.dane.fZyroKal1, uDaneCM4.dane.fAkcel1, uDaneCM4.dane.fMagne1, ndT);		//aby lepiej porównać wszystko licz z pierwszego kompeltu czujników
+		break;
 
 	case 9:	//obsługa odbiorników RC
 		cBłądPG = ObsługaRamkiSBus();
@@ -244,18 +252,29 @@ void PetlaGlowna(void)
 		break;
 
 	case 10:	//filtr Kalmana kątów orientacji
-		if (uDaneCM4.dane.nZainicjowano & INIT_KALMAN_KATOW)
+		if (uDaneCM4.dane.nZainicjowano & INIT_KALMAN_KATOW)	//symulacja
 		{
-			cBłądPG = PredykcjaFiltraKalmanaKątów7X9Z(&uDaneCM4.dane);
-			PrzechwyćBłąd(cBłądPG);
-			cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fAkcel1);
-			PrzechwyćBłąd(cBłądPG);
-
-			if (uDaneCM4.dane.sNowyPomiar & NP_MAG1)
+			if (uDaneCM7.dane.stSym.cFlagi & SYM_WLACZONA)
 			{
-				cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fMagne1);
+				cBłądPG = PredykcjaFiltraKalmanaKątów7X9Z(uDaneCM7.dane.stSym.fPrędkośćKątowa, &uDaneCM4.dane);
 				PrzechwyćBłąd(cBłądPG);
-				uDaneCM4.dane.sNowyPomiar &= ~(NP_MAG1);	//usuń flagę nowych pomiarów
+				cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(uDaneCM7.dane.stSym.fAkcelerometr);
+				PrzechwyćBłąd(cBłądPG);
+				cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(uDaneCM7.dane.stSym.fMagnetometr);
+				PrzechwyćBłąd(cBłądPG);
+			}
+			else	//normalna praca
+			{
+				cBłądPG = PredykcjaFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fZyroKal1, &uDaneCM4.dane);
+				PrzechwyćBłąd(cBłądPG);
+				cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fAkcel1);
+				PrzechwyćBłąd(cBłądPG);
+				if (uDaneCM4.dane.sNowyPomiar & NP_MAG1)
+				{
+					cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fMagne1);
+					PrzechwyćBłąd(cBłądPG);
+					uDaneCM4.dane.sNowyPomiar &= ~(NP_MAG1);	//usuń flagę nowych pomiarów
+				}
 			}
 		}
 		else	//jeżeli filtr nie jest zainicjowany to inicjuj go
@@ -463,10 +482,7 @@ uint8_t WykonajPolecenieCM7(void)
 
 		case POL7_KASUJ_DRYFT_ZYRO:
 			for (uint16_t n=0; n<3; n++)
-			{
-				uDaneCM4.dane.fKatZyro1[n] = uDaneCM4.dane.fKatAkcel1[n];
-				uDaneCM4.dane.fKatZyro2[n] = uDaneCM4.dane.fKatAkcel2[n];
-			}
+				uDaneCM4.dane.fKatZyro1[n] = uDaneCM4.dane.fKatZyro2[n] = uDaneCM4.dane.fKatAkcel[n];
 			break;
 
 		/*case POL7_REKONFIG_SERWA_RC:

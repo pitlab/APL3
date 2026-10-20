@@ -244,7 +244,9 @@ uint8_t MetodaNajmniejszychKwadratow(stDopasowanieDoSfery_t *stDopasowanieDoSfer
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ZbierajProbki2(float *fMag, stDopasowanieDoSfery_t *stDopasowanieDoSfery)
 {
+	uint8_t cBłąd = BLAD_OK;
 
+	return cBłąd;
 }
 
 
@@ -259,5 +261,7 @@ uint8_t ZbierajProbki2(float *fMag, stDopasowanieDoSfery_t *stDopasowanieDoSfery
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t Metoda2NajmniejszychKwadratow(stDopasowanieDoSfery_t *stDopasowanieDoSfery, stWynikiDopasowania_t *stWynikiDopasowania)
 {
-}
+	uint8_t cBłąd = BLAD_OK;
+
+	return cBłąd;
 }

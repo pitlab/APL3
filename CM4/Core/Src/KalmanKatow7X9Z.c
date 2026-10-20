@@ -89,7 +89,7 @@ uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	dane->nZainicjowano |= INIT_KALMAN_KATOW;
 
 	//inicjuj pierwszy pomiar i wektor stanu
-	KatyNaKwaternion(dane->fKatAkcel1, fX);		//przelicz kąty obliczone trygonometrią na kwaternion początkowy
+	KatyNaKwaternion(dane->fKatAkcel, fX);		//przelicz kąty obliczone trygonometrią na kwaternion początkowy
 	//KwaternionNaKąty(fX, fYa);		//test konwersji kąt - kwaternion - kąt
 
 	fX[4] = 0.0f;	//błąd pomiaru prędkosci kątowej P
@@ -191,10 +191,12 @@ uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 // x(n+1) = f(x, u) = w. Funkcja f buduje i normalizuje kwaternion na podstawie prędkosci kątowych żyroskopu
 // oraz wykonuje predykcję kowariancji (niepewności) nowej wartości:
 // P(n+1) = F * P(n) * F^T + Q
-// Parametry: *dane - wskaźnik na strukturę danych autopilota
+// Parametry:
+// *fPredkościKątowe - wskaźnik na prędkości kątowe z żyroskopów lub symulacji
+// *dane - wskaźnik na strukturę danych autopilota
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
+uint8_t PredykcjaFiltraKalmanaKątów7X9Z(float *fPredkościKątowe, stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 	float32_t fDeltaCzasu = (float32_t)dane->ndT / 1e6;
@@ -209,10 +211,9 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	for (uint8_t n=0; n<3; n++)
 	{
 		if ((isnan(fX[4+n])) || (fabs(fX[4+n]) > 2*M_PI))		//błąd dryftu żyroskopu musi być poprawną liczbą mniejszą od 2 Pi
-			fOmega[n] = dane->fZyroKal1[n];		//jeżeli błąd jest niewłaściwą liczbą  to go nie używaj aby nie eskalować błędów numerycznych
+			fOmega[n] = *(fPredkościKątowe + n);				//jeżeli błąd jest niewłaściwą liczbą  to go nie używaj aby nie eskalować błędów numerycznych
 		else
-			//fOmega[n] = dane->fZyroSur1[n] - fX[4+n];
-			fOmega[n] = dane->fZyroKal1[n] - fX[4+n];
+			fOmega[n] = *(fPredkościKątowe + n) - fX[4+n];
 	}
 
 	//długość wektora prędkosci kątowej

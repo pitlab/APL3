@@ -698,7 +698,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
 				}
 				else
-					sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatAkcel1[n]);
+					sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatAkcel[n]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}

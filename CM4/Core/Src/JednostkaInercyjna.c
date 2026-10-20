@@ -7,7 +7,6 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include "JednostkaInercyjna.h"
-#include "wymiana.h"
 #include "KonfigFram.h"
 #include "fram.h"
 #include "kwaterniony.h"
@@ -75,7 +74,7 @@ uint8_t InicjujJednostkeInercyjna(void)
 //  - uDaneCM4.dane.fKatIMU1 - kąty uzyskane z filtracji komplementarnej obu powyższych
 // Czas trwania: 24us @200Hz
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
+uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMagn, stWymianyCM4_t *wyniki, uint32_t ndT)
 {
 	uint8_t cBłąd = BLAD_OK;
 	if (ndT > MAX_DT)
@@ -84,51 +83,48 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 	//licz całkę z prędkości kątowych żyroskopów
 	for (uint16_t n=0; n<3; n++)
 	{
-		uDaneCM4.dane.fKatZyro1[n] +=  uDaneCM4.dane.fZyroKal1[n] * ndT / 1000000;		//[rad/s] * [us / 1000000] => [rad]
-		uDaneCM4.dane.fKatZyro2[n] +=  uDaneCM4.dane.fZyroKal2[n] * ndT / 1000000;
+		wyniki->fKatZyro1[n] += *(fŻyro + n) * ndT / 1000000;		//[rad/s] * [us / 1000000] => [rad]
 
 		//w czasie kalibracji wzmocnienia nie ograniczaj przyrostu kąta
 		if ((uDaneCM7.dane.cWykonajPolecenie < POL7_CALKUJ_PRED_KAT)  && (uDaneCM7.dane.cWykonajPolecenie > POL7_KALIBRUJ_ZYRO_WZMP))
 		{
 			//ogranicz przyrost kąta do +-Pi
-			if (uDaneCM4.dane.fKatZyro1[n] > M_PI)
-				uDaneCM4.dane.fKatZyro1[n] = -M_PI;
-			if (uDaneCM4.dane.fKatZyro1[n] < -M_PI)
-				uDaneCM4.dane.fKatZyro1[n] = M_PI;
-			if (uDaneCM4.dane.fKatZyro2[n] > M_PI)
-				uDaneCM4.dane.fKatZyro2[n] = -M_PI;
-			if (uDaneCM4.dane.fKatZyro2[n] < -M_PI)
-				uDaneCM4.dane.fKatZyro2[n] = M_PI;
+			if (wyniki->fKatZyro1[n] > M_PI)
+				wyniki->fKatZyro1[n] = -M_PI;
+			if (wyniki->fKatZyro1[n] < -M_PI)
+				wyniki->fKatZyro1[n] = M_PI;
 		}
 	}
 
 	//kąt przechylenia z akcelerometru: tan(Z/-Y) = atan2(Y, Z)
-	uDaneCM4.dane.fKatAkcel1[0] = atan2f(-uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);	//OK, dobry znak
+	//uDaneCM4.dane.fKatAkcel1[0] = atan2f(-uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]);	//OK, dobry znak
+	wyniki->fKatAkcel[0] = atan2f((-1 * *(fAkcel + 1)), *(fAkcel + 2));	//OK, dobry znak
 
 	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(X, Z)
 	//uDaneCM4.dane.fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[2]);	//OK
 
 	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(-X, sqrtf(y^2+Z^2))
-	uDaneCM4.dane.fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[0], sqrtf(uDaneCM4.dane.fAkcel1[1] * uDaneCM4.dane.fAkcel1[1] + uDaneCM4.dane.fAkcel1[2] * uDaneCM4.dane.fAkcel1[2]));
+	//uDaneCM4.dane.fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[0], sqrtf(uDaneCM4.dane.fAkcel1[1] * uDaneCM4.dane.fAkcel1[1] + uDaneCM4.dane.fAkcel1[2] * uDaneCM4.dane.fAkcel1[2]));
+	wyniki->fKatAkcel[1] = atan2f(*(fAkcel + 0), sqrtf(*(fAkcel + 1) * *(fAkcel + 1) + *(fAkcel + 2) * *(fAkcel + 2)));
 
 	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(Y/X) dla X=N, Y=E => atan2(X, Y)
 	//uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fMagne1[1], uDaneCM4.dane.fMagne1[0]);
 	//Rzutujemy pomiar megnetometru na płaszczyzne poziomą przy użyciu kątów phi i theta
-	float fSinPhi = sinf(uDaneCM4.dane.fKatAkcel1[0]);
-	float fCosPhi = cosf(uDaneCM4.dane.fKatAkcel1[0]);
-	float fSinThe = sinf(uDaneCM4.dane.fKatAkcel1[1]);
-	float fCosThe = cosf(uDaneCM4.dane.fKatAkcel1[1]);
+	float fSinPhi = sinf(*(fAkcel + 0));
+	float fCosPhi = cosf(*(fAkcel + 0));
+	float fSinThe = sinf(*(fAkcel + 1));
+	float fCosThe = cosf(*(fAkcel + 1));
 
-	float fXm = uDaneCM4.dane.fMagne1[0] * fCosThe + uDaneCM4.dane.fMagne1[1] * fSinPhi * fSinThe + uDaneCM4.dane.fMagne1[2] * fCosPhi * fSinThe;
-	float fYm = uDaneCM4.dane.fMagne1[1] * fCosPhi - uDaneCM4.dane.fMagne1[2] * fSinPhi;
+	float fXm = *(fMagn + 0) * fCosThe + *(fMagn + 1) * fSinPhi * fSinThe + *(fMagn + 2) * fCosPhi * fSinThe;
+	float fYm = *(fMagn + 1) * fCosPhi - *(fMagn + 2) * fSinPhi;
 	//uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fMagne1[1], uDaneCM4.dane.fMagne1[0]);
-	uDaneCM4.dane.fKatAkcel1[2] = atan2f(-fYm, fXm);
+	wyniki->fKatAkcel[2] = atan2f(-fYm, fXm);
 
 	//filtr komplementarny IMU
 	for (uint16_t n=0; n<3; n++)
 	{
-		uDaneCM4.dane.fKatIMU1[n] += uDaneCM4.dane.fZyroKal1[n] * ndT / 1000000;							//przyrost kąta z całki żyroskopu
-		uDaneCM4.dane.fKatIMU1[n] = 0.02 * uDaneCM4.dane.fKatAkcel1[n] + 0.98 * uDaneCM4.dane.fKatIMU1[n];	//kasowanie dryftu dodatkiem kątów z akceletrometru i magnetometru
+		wyniki->fKatIMU1[n] += *(fŻyro + n) * ndT / 1000000;					//przyrost kąta z całki żyroskopu
+		wyniki->fKatIMU1[n] = 0.02 * wyniki->fKatAkcel[n] + 0.98 * wyniki->fKatIMU1[n];	//kasowanie dryftu dodatkiem kątów z akceletrometru i magnetometru
 	}
 	return cBłąd;
 }
@@ -142,7 +138,7 @@ uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT)
 // Zwraca: kod błędu
 // Czas trwania: 39us @200Hz
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t JednostkaInercyjnaKwaterniony(uint32_t ndT, float *fZyro, float *fAkcel, float *fMagn)
+uint8_t JednostkaInercyjnaKwaterniony(float *fŻyro, float *fAkcel, float *fMagn, uint32_t ndT)
 {
 	float fdPhi2, fdTheta2, fdPsi2;	//połowy przyrostu kąta obrotu
 	float fQx[4], fQy[4], fQz[4];	//kwaterniony obortów wokół osi XYZ
@@ -156,7 +152,7 @@ uint8_t JednostkaInercyjnaKwaterniony(uint32_t ndT, float *fZyro, float *fAkcel,
 	//Wyznaczam kwaterniony obrotów w formie algebraicznej korzystając z danych wejściowych sprowadzonych do formy trygonometrycznej
 	//fQz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
 	//fdPsi2 = uDaneCM4.dane.fZyroKal1[2] * ndT[chGniazdo] / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
-	fdPsi2 = *(fZyro+2) * ndT / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fdPsi2 = *(fŻyro+2) * ndT / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
 	//fdPsi2 = 0.0f * DEG2RAD / 2;
 	fQz[0] = cosf(fdPsi2);		//część rzeczywista kwaternionu: s0 = cos(theta) gdzie kąt oborotu to 2*theta, więc s0 = cos(kąt_obrotu/2)
 	fQz[1] = 0;
@@ -164,7 +160,7 @@ uint8_t JednostkaInercyjnaKwaterniony(uint32_t ndT, float *fZyro, float *fAkcel,
 	fQz[3] = sin(fdPsi2);	//z0 = vz / |v0| * sin(theta)  Oś obrotu to 1, więc moduł też będzie 1 więc można to pominąć
 
 	//fQy = cos (theta/2) + (1 / sqrt(x^2 + y^2 + z^2)*j) * sin (theta/2)
-	fdTheta2 = *(fZyro+1) * ndT / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fdTheta2 = *(fŻyro+1) * ndT / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
 	//fdTheta2 = 0.2f * DEG2RAD / 2;
 	fQy[0] = cosf(fdTheta2);
 	fQy[1] = 0;
@@ -175,7 +171,7 @@ uint8_t JednostkaInercyjnaKwaterniony(uint32_t ndT, float *fZyro, float *fAkcel,
 	//fdPhi = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 1000000;
 	//Ponieważ we wzorze występuje połowa kąta, więc aby nie wykonywać dzielenia wielokrotnie, od razu liczę wartość połowy kata
 	//fQx = cos (phi/2) + (1 / sqrt(x^2 + y^2 + z^2)*i) * sin (phi/2)
-	fdPhi2 = *(fZyro+0) * ndT / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
+	fdPhi2 = *(fŻyro+0) * ndT / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
 	//fdPhi2 = 0.0f * DEG2RAD / 2;
 	fQx[0] = cosf(fdPhi2);
 	fQx[1] = sinf(fdPhi2);

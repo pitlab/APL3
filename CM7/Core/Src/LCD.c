@@ -44,6 +44,7 @@
 #include "ModulySPI.h"
 #include "SysDefWspolny.h"
 #include "Wyrzutnia.h"
+#include <SymulatorKatow.h>
 
 //deklaracje zmiennych
 extern uint8_t cMidFont[];
@@ -309,7 +310,7 @@ menu_t stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY] = {
 menu_t stMenuTestowe[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
 	{"Sym Wyrzut",	"Symulacja wyrzutni BSP",					TP_TEST1,			obr_narzedzia},
-	{"nic",			"nic",										TP_TEST2,			obr_narzedzia},
+	{"Sym Katow",	"Symulacja Kątów orientacji",				TP_TEST2,			obr_narzedzia},
 	{"nic",			"nic",										TP_TEST3,			obr_narzedzia},
 	{"nic",			"nic",										TP_TEST4,			obr_narzedzia},
 	{"Zap. DRAM",	"nic",										TP_TEST5,			obr_narzedzia},
@@ -465,7 +466,8 @@ uint8_t RysujEkran(void)
 		}
 		break;
 
-	case TP_TEST2:
+	case TP_TEST2:	//symulacja kątów orientacji
+		SymulacjaKątówOrientacji(&uDaneCM7.dane.stSym);
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;
@@ -2319,16 +2321,16 @@ void PomiaryAHRS(void)
 
 	//kąty z akcelrometru 1
 	setColor(KOLOR_X);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[0]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel[0]);
 	RysujNapis(cNapis, KOL12+11*FONT_SL, 210);
 	setColor(KOLOR_Y);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[1]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel[1]);
 	RysujNapis(cNapis, KOL12+24*FONT_SL, 210);
 	setColor(KOLOR_Z);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel1[2]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel[2]);
 	RysujNapis(cNapis, KOL12+36*FONT_SL, 210);
 
-	//kąty z akcelrometru 2
+	/*/kąty z akcelrometru 2
 	setColor(KOLOR_X);
 	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[0]);
 	RysujNapis(cNapis, KOL12+11*FONT_SL, 230);
@@ -2337,7 +2339,7 @@ void PomiaryAHRS(void)
 	RysujNapis(cNapis, KOL12+24*FONT_SL, 230);
 	setColor(KOLOR_Z);
 	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[2]);
-	RysujNapis(cNapis, KOL12+36*FONT_SL, 230);
+	RysujNapis(cNapis, KOL12+36*FONT_SL, 230);*/
 
 	/*/kąty z żyroskopu 1
 	setColor(KOLOR_X);
@@ -3406,8 +3408,8 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	{
 	case SEKW_KAL_WZM_ZYRO_R:
 		cNazwaOsi = 'Z';
-		fPochylenie = uDaneCM4.dane.fKatAkcel1[1];
-		fPrzechylenie = uDaneCM4.dane.fKatAkcel1[0];
+		fPochylenie = uDaneCM4.dane.fKatAkcel[1];
+		fPrzechylenie = uDaneCM4.dane.fKatAkcel[0];
 		Poziomica(-fPrzechylenie, fPochylenie);	//przechylenie, pochylenie
 		setColor(KOLOR_Z);
 		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[2], ZNAK_STOPIEN);

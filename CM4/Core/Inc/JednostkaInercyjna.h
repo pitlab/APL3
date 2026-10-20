@@ -9,6 +9,7 @@
 #define INC_JEDN_INERCYJNA_H_
 
 #include "SysDefCM4.h"
+#include "wymiana.h"
 
 //Progi zaburzeń przyspieszenia wynikającego ze zmiany predkości
 #define PROG_ACC_DOBRY	0.05f * AKCEL1G
@@ -21,8 +22,8 @@
 
 
 uint8_t InicjujJednostkeInercyjna(void);
-uint8_t JednostkaInercyjnaTrygonometria(uint32_t ndT);
-uint8_t JednostkaInercyjnaKwaterniony(uint32_t ndT, float *fZyro, float *fAkcel, float *fMagn);
+uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMagn, stWymianyCM4_t *wyniki, uint32_t ndT);
+uint8_t JednostkaInercyjnaKwaterniony(float *fŻyro, float *fAkcel, float *fMagn, uint32_t ndT);
 float FiltrAdaptacyjnyAkc(float *fAkcel);
 float FiltrAdaptacyjnyMag(float *fMag);
 #endif /* INC_JEDN_INERCYJNA_H_ */

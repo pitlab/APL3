@@ -327,9 +327,20 @@
 #define TID_KALMAN_KAL_MAG_X9	292		//bias X magnetometru 3
 #define TID_KALMAN_KAL_MAG_X10	293		//bias Y magnetometru 3
 #define TID_KALMAN_KAL_MAG_X11	294		//bias Z magnetometru 3
+
+#define TID_SYMUL_PREDK_P		295		//prędkość kątowa P symulacji
+#define TID_SYMUL_PREDK_Q		296		//prędkość kątowa Q symulacji
+#define TID_SYMUL_PREDK_R		297		//prędkość kątowa R symulacji
+#define TID_SYMUL_AKCEL_X 		298		//składowa przyspieszenia X
+#define TID_SYMUL_AKCEL_Y		299		//składowa przyspieszenia Y
+#define TID_SYMUL_AKCEL_Z		300		//składowa przyspieszenia Z
+#define TID_SYMUL_MAGN_X		301		//składowa magnetyczna X
+#define TID_SYMUL_MAGN_Y		302		//składowa magnetyczna Y
+#define TID_SYMUL_MAGN_Z		303		//składowa magnetyczna Z
+
 //max do 384
 
-#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	295
+#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	304
 
 #define MAX_ZMIENNYCH_TELEMETR_W_RAMCE	115		//tyle zmiennych może być przesłanych w jednej ramce telemetrycznej (ramek może być kilka)
 #define MAX_INDEKSOW_TELEMETR_W_RAMCE	128		//zmienne w ramce można wybrać z takiej puli indeksów
@@ -341,7 +352,7 @@
 
 void InicjalizacjaTelemetrii(void);
 uint8_t ObslugaTelemetrii(uint8_t chInterfejs);
-float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane);
+float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane, stWymianyCM7_t *stDane7);
 uint8_t WstawDaneDoRamkiTele(uint8_t chIndNapRam, uint8_t chIndAdresow, uint8_t chPozycja, uint16_t sIdZmiennej, float fDane);
 uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t chIndNapRam, uint8_t chIndeksTestu, uint16_t *sIndeksFFT);
 void PrzygotujRamkeTele(uint8_t chIndeksRamki, uint8_t chTypRamki, uint8_t chAdrZdalny, uint8_t chAdrLokalny, uint8_t chRozmDanych);

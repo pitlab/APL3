@@ -11,7 +11,6 @@
 #include "semafory.h"
 #include "KanalyPID.h"
 #include "SysDefWspolny.h"
-#include "SymulatorKatow.h"
 
 #define ROWNAJ_DO32B(adres)				((adres + 3) & 0xFFFFFFFC)
 
@@ -236,8 +235,7 @@ typedef struct
 	float fKatIMU2[3];
 	float fKatZyro1[3];		//[rad]
 	float fKatZyro2[3];
-	float fKatAkcel1[3];	//[rad]
-	float fKatAkcel2[3];
+	float fKatAkcel[3];		//[rad]
 	float fKatKwater[3];
 	float fCisnieBzw[3];	//Ciśnienie bezwzględne [Pa]
 	float fWysokoMSL[3];	//Wysokość nad poziomem morza [m]
@@ -287,6 +285,22 @@ typedef struct
 //	stMat_t stMat;				//zestaw obliczeń funkcji trygonometrycznych kątów Eulera policzony raz aby nie powtarzać obliczeń w kolejnych funkcjach w obu rdzeniach
 	stKalmanKalibrMag_t stKalmanKalibrMag;	//struktura z danymi do debugowania filtra Kalmana kalibracji magnetometrów
 } stWymianyCM4_t;
+
+
+#define SYM_WLACZONA	0x01	//flaga włączenia symulacji
+#define SYM_OBRACAJ_X	0x02
+#define SYM_OBRACAJ_Y	0x04
+#define SYM_OBRACAJ_Z	0x08
+
+//definicja struktury symulatora kątów
+typedef struct
+{
+	uint8_t cFlagi;				//flagi bitowe informujące o włączeniu symulacji
+	float fAkcelerometr[3];		//składowe symulowanego wektora przyspieszenia
+	float fMagnetometr[3];		//składowe symulowanego wektora magnetycznego
+	float fPrędkośćKątowa[3];	//składowe prędkości kątowej obracajacej wektory
+	float fCałkaKataObrotu[3];	//całka prędkości kątowej dająca bieżącą wartość kątów
+} stSym_t;
 
 
 //definicja struktury wymiany danych wychodzących z rdzenia CM7

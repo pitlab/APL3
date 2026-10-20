@@ -31,6 +31,7 @@ uint16_t sOkresTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiuja
 uint16_t sLicznikTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];
 uint8_t cStatusTelemetrii;		//określa czy i jaki rodzaj telemetrii ma być wysyłany
 extern unia_wymianyCM4_t uDaneCM4;
+extern unia_wymianyCM7_t uDaneCM7;
 extern uint8_t cAdresZdalny[ILOSC_INTERF_KOM];	//adres sieciowy strony zdalnej
 extern UART_HandleTypeDef hlpuart1;
 static unia8_32_t un8_32;		//unia do konwersji między danymi 16 i 8 bit
@@ -151,7 +152,7 @@ uint8_t ObslugaTelemetrii(uint8_t cInterfejs)
 				if (sLicznikTelemetrii[n] == 0)		//licznik zmiennej doszedł do 0 więc trzeba ją wysłać
 				{
 					sLicznikTelemetrii[n] = sOkresTelemetrii[n];		//przeładuj licznik nowym okresem
-					fZmienna = PobierzZmiennaTele(n, &uDaneCM4.dane);
+					fZmienna = PobierzZmiennaTele(n, &uDaneCM4.dane, &uDaneCM7.dane);
 					cIndeksRamki = n >> 7;	//z indeksu zmiennej oblicz indeks ramki, zakładając, że w ramce jest adresowanych (2^7) zmiennych
 					if (cIloscDanych[cIndeksRamki] < (ROZMIAR_RAMKI_KOMUNIKACYJNEJ - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
 					{
@@ -270,7 +271,7 @@ uint8_t WstawDaneDoSzybkiejRamkiTele(uint8_t cIndNapRam, uint8_t cIndeksTestu, u
 // Parametry: fDane - liczba do wysłania
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
+float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane, stWymianyCM7_t *stDane7)
 {
 	float fZmiennaTele;
 
@@ -313,9 +314,9 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_KAT_ZYRO1X:	fZmiennaTele = stDane->fKatZyro1[0];		break;
 	case TID_KAT_ZYRO1Y:	fZmiennaTele = stDane->fKatZyro1[1];		break;
 	case TID_KAT_ZYRO1Z:	fZmiennaTele = stDane->fKatZyro1[2];		break;
-	case TID_KAT_AKCELX:	fZmiennaTele = stDane->fKatAkcel1[0];		break;
-	case TID_KAT_AKCELY:	fZmiennaTele = stDane->fKatAkcel1[1];		break;
-	case TID_KAT_AKCELZ:	fZmiennaTele = stDane->fKatAkcel1[2];		break;
+	case TID_KAT_AKCELX:	fZmiennaTele = stDane->fKatAkcel[0];		break;
+	case TID_KAT_AKCELY:	fZmiennaTele = stDane->fKatAkcel[1];		break;
+	case TID_KAT_AKCELZ:	fZmiennaTele = stDane->fKatAkcel[2];		break;
 
 	//zmienne barametryczne
 	case TID_CISBEZW1:		fZmiennaTele = stDane->fCisnieBzw[0];		break;
@@ -585,6 +586,17 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane)
 	case TID_KALMAN_KAL_MAG_X9:		fZmiennaTele = stDane->stKalmanKalibrMag.fX[9];			break;	//bias X magnetometru 3
 	case TID_KALMAN_KAL_MAG_X10:	fZmiennaTele = stDane->stKalmanKalibrMag.fX[10];		break;	//bias Y magnetometru 3
 	case TID_KALMAN_KAL_MAG_X11: 	fZmiennaTele = stDane->stKalmanKalibrMag.fX[11];		break;	//bias Z magnetometru 3
+
+	case TID_SYMUL_PREDK_P:	fZmiennaTele = 	stDane7->stSym.fPrędkośćKątowa[0];	break;	//prędkość kątowa P symulacji
+	case TID_SYMUL_PREDK_Q:	fZmiennaTele = 	stDane7->stSym.fPrędkośćKątowa[1];	break;	//prędkość kątowa Q symulacji
+	case TID_SYMUL_PREDK_R:	fZmiennaTele = 	stDane7->stSym.fPrędkośćKątowa[2];	break;	//prędkość kątowa R symulacji
+	case TID_SYMUL_AKCEL_X:	fZmiennaTele = 	stDane7->stSym.fAkcelerometr[0];	break;	//składowa przyspieszenia X
+	case TID_SYMUL_AKCEL_Y:	fZmiennaTele = 	stDane7->stSym.fAkcelerometr[1];	break;	//składowa przyspieszenia Y
+	case TID_SYMUL_AKCEL_Z:	fZmiennaTele = 	stDane7->stSym.fAkcelerometr[2];	break;	//składowa przyspieszenia Z
+	case TID_SYMUL_MAGN_X:	fZmiennaTele = 	stDane7->stSym.fMagnetometr[0];		break;	//składowa magnetyczna X
+	case TID_SYMUL_MAGN_Y:	fZmiennaTele = 	stDane7->stSym.fMagnetometr[1];		break;	//składowa magnetyczna Y
+	case TID_SYMUL_MAGN_Z:	fZmiennaTele = 	stDane7->stSym.fMagnetometr[2];		break;	//składowa magnetyczna Z
+
 
 	default:	fZmiennaTele = -1.0f;
 	}
