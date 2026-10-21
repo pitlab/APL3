@@ -1,5 +1,5 @@
 /*
- * dotyk.h
+ * Dotyk.h
  *
  *  Created on: Nov 17, 2024
  *      Author: PitLab

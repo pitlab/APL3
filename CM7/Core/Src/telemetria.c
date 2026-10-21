@@ -308,15 +308,15 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane, stWymianyCM7
 	case TID_KAT_IMU1X:		fZmiennaTele = stDane->fKatIMU1[0];			break;
 	case TID_KAT_IMU1Y:		fZmiennaTele = stDane->fKatIMU1[1];			break;
 	case TID_KAT_IMU1Z:		fZmiennaTele = stDane->fKatIMU1[2];			break;
-	//case TID_KAT_IMU2X:		fZmiennaTele = stDane->fKatIMU2[0];			break;	//zastąpione przez TID_DLUG_VMAG1
-	//case TID_KAT_IMU2Y:		fZmiennaTele = stDane->fKatIMU2[1];			break;
-	//case TID_KAT_IMU2Z:		fZmiennaTele = stDane->fKatIMU2[2];			break;
+	case TID_KAT_IMU2X:		fZmiennaTele = stDane->fKatIMU2[0];			break;	//zastąpione przez TID_DLUG_VMAG1
+	case TID_KAT_IMU2Y:		fZmiennaTele = stDane->fKatIMU2[1];			break;
+	case TID_KAT_IMU2Z:		fZmiennaTele = stDane->fKatIMU2[2];			break;
 	case TID_KAT_ZYRO1X:	fZmiennaTele = stDane->fKatZyro1[0];		break;
 	case TID_KAT_ZYRO1Y:	fZmiennaTele = stDane->fKatZyro1[1];		break;
 	case TID_KAT_ZYRO1Z:	fZmiennaTele = stDane->fKatZyro1[2];		break;
-	case TID_KAT_AKCELX:	fZmiennaTele = stDane->fKatAkcel[0];		break;
-	case TID_KAT_AKCELY:	fZmiennaTele = stDane->fKatAkcel[1];		break;
-	case TID_KAT_AKCELZ:	fZmiennaTele = stDane->fKatAkcel[2];		break;
+	//case TID_KAT_AKCELX:	fZmiennaTele = stDane->fKatAkcel[0];		break;
+	//case TID_KAT_AKCELY:	fZmiennaTele = stDane->fKatAkcel[1];		break;
+	//case TID_KAT_AKCELZ:	fZmiennaTele = stDane->fKatAkcel[2];		break;
 
 	//zmienne barametryczne
 	case TID_CISBEZW1:		fZmiennaTele = stDane->fCisnieBzw[0];		break;
@@ -596,7 +596,9 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane, stWymianyCM7
 	case TID_SYMUL_MAGN_X:	fZmiennaTele = 	stDane7->stSym.fMagnetometr[0];		break;	//składowa magnetyczna X
 	case TID_SYMUL_MAGN_Y:	fZmiennaTele = 	stDane7->stSym.fMagnetometr[1];		break;	//składowa magnetyczna Y
 	case TID_SYMUL_MAGN_Z:	fZmiennaTele = 	stDane7->stSym.fMagnetometr[2];		break;	//składowa magnetyczna Z
-
+	case TID_SYMUL_KAT_PHI:	fZmiennaTele = 	stDane7->stSym.fCałkaKataObrotu[0];	break;	//kąt przechylenia uzyskany przez całkowanie prędkosci kątowej P
+	case TID_SYMUL_KAT_THE:	fZmiennaTele = 	stDane7->stSym.fCałkaKataObrotu[1];	break;	//kąt pochylenia uzyskany przez całkowanie prędkosci kątowej Q
+	case TID_SYMUL_KAT_PSI:	fZmiennaTele = 	stDane7->stSym.fCałkaKataObrotu[2];	break;	//kąt odchylenia uzyskany przez całkowanie prędkosci kątowej R
 
 	default:	fZmiennaTele = -1.0f;
 	}

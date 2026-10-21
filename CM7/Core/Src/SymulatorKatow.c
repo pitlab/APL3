@@ -15,13 +15,16 @@
 #include "Ekran.h"
 #include <Rysuj.h>
 #include <Czas.h>
+#include "Dotyk.h"
+#include <Audio.h>
+#include "SampleAudio.h"
 
 //stSym_t stSym;	//zmienna struktury symulatora
 extern uint8_t cRysujRaz;
 extern char cNapis[100];
 extern unia_wymianyCM7_t uDaneCM7;
 uint32_t nPoprzedniCzas;
-
+extern stStatusDotyku_t stStatusDotyku;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjuje wektory początkowe ustawiając symulowany BSP poziomo skierowany na północ geograficzną
@@ -30,6 +33,30 @@ uint32_t nPoprzedniCzas;
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujSymulatorKątów(stSym_t *stSym)
 {
+	uint8_t cBłąd = BLAD_OK;
+
+	InicjujKąty(stSym);
+	for (uint8_t n=0; n<3; n++)
+		stSym->fPrędkośćKątowa[n] = 0.0f;
+
+	//włącz symulację
+	stSym->cFlagi = SYM_WLACZONA | SYM_OBRACAJ_X;
+	stSym->fPrędkośćKątowa[0] = 0.1f;
+
+	//wyślij polecenie zerowania kątów całkowanych z żyroskopu
+	uDaneCM7.dane.cWykonajPolecenie = POL7_ZERUJ_KATY_ZYRO;		//zeruje kąty całkowane z prędkosci katowych żyroskopów
+	return cBłąd;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Inicjuje wektory początkowe ustawiając symulowany BSP poziomo skierowany na północ geograficzną
+// Parametry: *stSym - wskaźnik na strukturę danych symulacji
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t InicjujKąty(stSym_t *stSym)
+{
 	float fKatObrotuMagn[3];
 	uint8_t cBłąd = BLAD_OK;
 
@@ -37,9 +64,8 @@ uint8_t InicjujSymulatorKątów(stSym_t *stSym)
 	{
 		stSym->fAkcelerometr[n] = 0.0f;
 		stSym->fMagnetometr[n] = 0.0f;
-		stSym->fPrędkośćKątowa[n] = 0.1f;
+		stSym->fCałkaKataObrotu[n] = 0.0f;
 	}
-
 	stSym->fAkcelerometr[2] = AKCEL1G;			//oś Z akcelerometru wszkazuje przyspieszenie ziemskie
 	stSym->fMagnetometr[0] = NOMINALNE_MAGN;	//oś X magnetometru wskazuje północ magnetyczną jak na równiku
 
@@ -47,9 +73,6 @@ uint8_t InicjujSymulatorKątów(stSym_t *stSym)
 	fKatObrotuMagn[1] = -INKLINACJA_MAG;		//inklinacja magnetyczna w radianach
 	fKatObrotuMagn[2] = DEKLINACJA_MAG;			//deklinacja magnetyczna w radianach
 	ObrocWektor(stSym->fMagnetometr, stSym->fMagnetometr, fKatObrotuMagn);
-
-	//włącz symulację
-	stSym->cFlagi = SYM_WLACZONA | SYM_OBRACAJ_X;
 	return cBłąd;
 }
 
@@ -74,9 +97,9 @@ uint8_t SymulujKątyOrientacji(stSym_t *stSym)
 	{
 		fPrzyrostKąta[n] = (nCzas * stSym->fPrędkośćKątowa[n]) / 1000000;
 		stSym->fCałkaKataObrotu[n] += fPrzyrostKąta[n];
-		if (stSym->fCałkaKataObrotu[n] > 2*M_PI)
+		if (stSym->fCałkaKataObrotu[n] > M_PI)
 			stSym->fCałkaKataObrotu[n] -= 2*M_PI;
-		if (stSym->fCałkaKataObrotu[n] < -2*M_PI)
+		if (stSym->fCałkaKataObrotu[n] < -M_PI)
 			stSym->fCałkaKataObrotu[n] += 2*M_PI;
 	}
 
@@ -105,7 +128,24 @@ uint8_t SymulacjaKątówOrientacji(stSym_t *stSym)
 		setColor(SZARY60);
 		sprintf(cNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
 		RysujNapis(cNapis, CENTER, 300);
+
 		InicjujSymulatorKątów(stSym);
+
+		//Narysuj przyciski
+		RysujLiniePozioma(0, 200, DISP_X_SIZE);
+		RysujLiniePozioma(0, 300, DISP_X_SIZE);
+		RysujLiniePionowa(160, 200, 100);
+		RysujLiniePionowa(320, 200, 100);
+		for (uint8_t n=0; n<3; n++)
+		{
+			if (stSym->fPrędkośćKątowa[n] > MIN_PREDKOSC_KATOWA)
+				setColor(ZOLTY);
+			else
+				setColor(SZARY60);
+
+			sprintf(cNapis, "Obr%ct wok%c%c %c", ó, ó, ł, 'X'+n);
+			RysujNapis(cNapis, 30 + n*160, 250);
+		}
 	}
 	cBłąd = SymulujKątyOrientacji(stSym);
 
@@ -116,6 +156,37 @@ uint8_t SymulacjaKątówOrientacji(stSym_t *stSym)
 		RysujNapis(cNapis, 0, 30 + n * 20);
 		sprintf(cNapis, "Magn %c = %.4f ", 'X'+n, stSym->fMagnetometr[n]);
 		RysujNapis(cNapis, 200, 30 + n * 20);
+	}
+
+	if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
+	{
+		//sprawdź współrzędne dotyku Y z lekkim zapasem +10
+		if (stStatusDotyku.sY > 190)		//naciśnieto na przyciski w dole ekranu
+		{
+			InicjujKąty(stSym);		//nową symulację zaczynaj od ustalonego stanu
+			for (uint8_t n=0; n<3; n++)
+			{
+				if ((stStatusDotyku.sX > 160 * (n+0)) && (stStatusDotyku.sX < 160 * (n+1)))	//naciśnięto przycisk obrotu wokół osi[n]
+				{
+					if (stSym->fPrędkośćKątowa[n] > MIN_PREDKOSC_KATOWA)
+					{
+						stSym->fPrędkośćKątowa[n] = 0.0f;
+						setColor(SZARY60);
+					}
+					else
+					{
+						stSym->fPrędkośćKątowa[n] = 0.1f;
+						setColor(ZOLTY);
+					}
+					sprintf(cNapis, "Obr%ct wok%c%c %c", ó, ó, ł, 'X'+n);
+					RysujNapis(cNapis, 30 + n*160, 250);
+				}
+			}
+		}
+		else
+			cBłąd = BLAD_GOTOWE;	//naciśnieto poza przyciskami, więc wyjdź
+		DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//odtwórz komunikat audio przycisku
+		stStatusDotyku.cFlagi &= ~DOTYK_DOTKNIETO;	//wyczyść flagę dotknięcia
 	}
 	return cBłąd;
 }

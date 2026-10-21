@@ -93,6 +93,7 @@
 #define POL7_POBIERZ_KAL_MAGN12		50	//pobiera wartości kalibracji magnetometrów 1 i 2 i wysyła do CM7
 #define POL7_KASUJ_KAL_MAGN1		51	//kasuj kalibrację magnetometru 1
 #define POL7_KASUJ_KAL_MAGN2		52	//kasuj kalibrację magnetometru 2
+#define POL7_ZERUJ_KATY_ZYRO		53	//zeruje kąty całkowane z prędkosci katowych żyroskopów
 #define POL7_CZYSC_BLEDY			99	//polecenie kasuje błąd zwrócony przez poprzednie polecenie
 
 

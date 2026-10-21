@@ -47,21 +47,22 @@
 #define TID_TEMPIMU2			22
 
 //zmienne IMU
-#define TID_KAT_IMU1X			23
+#define TID_KAT_IMU1X			23		//kąty liczone metodą trygonometrii
 #define TID_KAT_IMU1Y			24
 #define TID_KAT_IMU1Z			25
-//#define TID_KAT_IMU2X			26
-//#define TID_KAT_IMU2Y			27
-//#define TID_KAT_IMU2Z			28
-#define TID_DLUG_VMAG1			26		//długość wektora magetycznego 1
-#define TID_DLUG_VMAG2			27		//długość wektora magetycznego 2
-#define TID_DLUG_VMAG3			28		//długość wektora magetycznego 3
+#define TID_KAT_IMU2X			26		//katy liczone kwaternionami
+#define TID_KAT_IMU2Y			27
+#define TID_KAT_IMU2Z			28
+
 #define TID_KAT_ZYRO1X			29
 #define TID_KAT_ZYRO1Y			30
 #define TID_KAT_ZYRO1Z			31
-#define TID_KAT_AKCELX			32
-#define TID_KAT_AKCELY			33
-#define TID_KAT_AKCELZ			34
+//#define TID_KAT_AKCELX			32
+//#define TID_KAT_AKCELY			33
+//#define TID_KAT_AKCELZ			34
+#define TID_DLUG_VMAG1			32		//długość wektora magetycznego 1
+#define TID_DLUG_VMAG2			33		//długość wektora magetycznego 2
+#define TID_DLUG_VMAG3			34		//długość wektora magetycznego 3
 
 //zmienne barometryczne
 #define TID_CISBEZW1			35
@@ -337,10 +338,13 @@
 #define TID_SYMUL_MAGN_X		301		//składowa magnetyczna X
 #define TID_SYMUL_MAGN_Y		302		//składowa magnetyczna Y
 #define TID_SYMUL_MAGN_Z		303		//składowa magnetyczna Z
+#define TID_SYMUL_KAT_PHI		304		//kąt przechylenia uzyskany przez całkowanie prędkosci kątowej P
+#define TID_SYMUL_KAT_THE		305		//kąt pochylenia uzyskany przez całkowanie prędkosci kątowej Q
+#define TID_SYMUL_KAT_PSI		306		//kąt odchylenia uzyskany przez całkowanie prędkosci kątowej R
 
 //max do 384
 
-#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	304
+#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	307
 
 #define MAX_ZMIENNYCH_TELEMETR_W_RAMCE	115		//tyle zmiennych może być przesłanych w jednej ramce telemetrycznej (ramek może być kilka)
 #define MAX_INDEKSOW_TELEMETR_W_RAMCE	128		//zmienne w ramce można wybrać z takiej puli indeksów

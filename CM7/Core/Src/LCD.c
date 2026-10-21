@@ -467,8 +467,8 @@ uint8_t RysujEkran(void)
 		break;
 
 	case TP_TEST2:	//symulacja kątów orientacji
-		SymulacjaKątówOrientacji(&uDaneCM7.dane.stSym);
-		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
+		cBłąd = SymulacjaKątówOrientacji(&uDaneCM7.dane.stSym);
+		if(cBłąd == BLAD_GOTOWE)
 		{
 			cTrybPracy = cWrocDoTrybu;
 			cNowyTrybPracy = TP_WROC_DO_TESTY;

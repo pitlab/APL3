@@ -652,6 +652,14 @@ uint8_t WykonajPolecenieCM7(void)
 			}
 			break;
 
+		case POL7_ZERUJ_KATY_ZYRO:		//zeruje kąty całkowane z prędkosci katowych żyroskopów
+			for (uint8_t n=0; n<3; n++)
+			{
+				uDaneCM4.dane.fKatZyro1[n] = 0.0f;
+				uDaneCM4.dane.fKatZyro2[n] = 0.0f;
+			}
+			break;
+
 		}	//switch
 	}
 	return cBłąd;
