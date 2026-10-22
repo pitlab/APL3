@@ -102,11 +102,11 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 
 	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(X, Z)
 	//uDaneCM4.dane.fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[2]);	//OK
-	wyniki->fKatAkcel[1] = atan2f(*(fAkcel + 0), *(fAkcel + 2));	//OK
+	//wyniki->fKatAkcel[1] = atan2f(*(fAkcel + 0), *(fAkcel + 2));	//OK
 
 	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(-X, sqrtf(y^2+Z^2))
 	//uDaneCM4.dane.fKatAkcel1[1] = atan2f(uDaneCM4.dane.fAkcel1[0], sqrtf(uDaneCM4.dane.fAkcel1[1] * uDaneCM4.dane.fAkcel1[1] + uDaneCM4.dane.fAkcel1[2] * uDaneCM4.dane.fAkcel1[2]));
-	//wyniki->fKatAkcel[1] = atan2f(*(fAkcel + 0), sqrtf(*(fAkcel + 1) * *(fAkcel + 1) + *(fAkcel + 2) * *(fAkcel + 2)));
+	wyniki->fKatAkcel[1] = atan2f(*(fAkcel + 0), sqrtf(*(fAkcel + 1) * *(fAkcel + 1) + *(fAkcel + 2) * *(fAkcel + 2)));
 
 	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(Y/X) dla X=N, Y=E => atan2(X, Y)
 	//uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fMagne1[1], uDaneCM4.dane.fMagne1[0]);

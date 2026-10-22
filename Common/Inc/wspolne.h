@@ -1,5 +1,5 @@
 /*
- * wspolne.h
+ * Wspolne.h
  *
  *  Created on: Mar 11, 2025
  *      Author: PitLab
@@ -33,6 +33,7 @@ int32_t nDlug;	//pierwiastek z sumy kwadratów ABC
 } stPlas_t;	//Współczynniki równania płaszczyzny
 
 
-void ObrocWektor(float *fWektorWe, float *fWektorWy, float *fKat);
+void ObrocWektorLokalny(float *fWektorWe, float *fWektorWy, float *fKat);
+void ObrocWektorGlobalny(float *fWektorWe, float *fWektorWy, float *fKat);
 
 #endif /* INC_WSPOLNE_H_ */

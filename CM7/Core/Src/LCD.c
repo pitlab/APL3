@@ -30,7 +30,6 @@
 #include "Wymiana.h"
 #include "SampleAudio.h"
 #include "ProtokolKomunikacyjny.h"
-#include "Wspolne.h"
 #include <stdlib.h>
 #include <Telemetria.h>
 #include "CAN.h"
@@ -45,6 +44,7 @@
 #include "SysDefWspolny.h"
 #include "Wyrzutnia.h"
 #include <SymulatorKatow.h>
+#include <Wspolne.h>
 
 //deklaracje zmiennych
 extern uint8_t cMidFont[];
@@ -3240,7 +3240,7 @@ uint32_t RysujKostkeObrotu(float *fKat)
 
 	for (uint16_t n=0; n<8; n++)
 	{
-		ObrocWektor(&fKostka[n][0], &fKostkaRob[n][0], fKat);
+		ObrocWektorLokalny(&fKostka[n][0], &fKostkaRob[n][0], fKat);
 		for (uint16_t m=0; m<3; m++)
 			sKostka[n][m] = (int16_t)fKostkaRob[n][m];	//konwersja z float na int16_t
 	}

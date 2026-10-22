@@ -72,7 +72,7 @@ uint8_t InicjujKąty(stSym_t *stSym)
 	fKatObrotuMagn[0] = 0.0f;
 	fKatObrotuMagn[1] = -INKLINACJA_MAG;		//inklinacja magnetyczna w radianach
 	fKatObrotuMagn[2] = DEKLINACJA_MAG;			//deklinacja magnetyczna w radianach
-	ObrocWektor(stSym->fMagnetometr, stSym->fMagnetometr, fKatObrotuMagn);
+	ObrocWektorLokalny(stSym->fMagnetometr, stSym->fMagnetometr, fKatObrotuMagn);
 	return cBłąd;
 }
 
@@ -104,8 +104,8 @@ uint8_t SymulujKątyOrientacji(stSym_t *stSym)
 	}
 
 	//obróć oba wektory o bieżący przyrost kąta
-	ObrocWektor(stSym->fAkcelerometr, stSym->fAkcelerometr, fPrzyrostKąta);
-	ObrocWektor(stSym->fMagnetometr, stSym->fMagnetometr, fPrzyrostKąta);
+	ObrocWektorGlobalny(stSym->fAkcelerometr, stSym->fAkcelerometr, fPrzyrostKąta);
+	ObrocWektorGlobalny(stSym->fMagnetometr, stSym->fMagnetometr, fPrzyrostKąta);
 	return cBłąd;
 }
 
