@@ -42,8 +42,8 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 extern volatile unia_wymianyCM7_t uDaneCM7;
 extern float fOffsetZyro1[3], fOffsetZyro2[3];
 
-static float fQAcc[4] = {0.0f, 0.0f, 0.0f, 1.0f};	//kwaternion znormalizowanego wektora przyspieszenia
-static float fQMag[4] = {0.0f, 0.0f, 1.0f, 0.0f};	//kwaternion wektora magnetycznego
+static float fQAcc[4] = {0.0f, 0.0f, 0.0f, 1.0f};	//kwaternion znormalizowanego wektora przyspieszenia w osi Z
+static float fQMag[4] = {0.0f, 1.0f, 0.0f, 0.0f};	//kwaternion wektora magnetycznego w osi X
 static float fQMagKompens[4];		//kwaternion magnetometru skompensowanego o pochylenie i przechylenie
 
 
@@ -111,15 +111,16 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(Y/X) dla X=N, Y=E => atan2(X, Y)
 	//uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fMagne1[1], uDaneCM4.dane.fMagne1[0]);
 	//Rzutujemy pomiar megnetometru na płaszczyzne poziomą przy użyciu kątów phi i theta
-	float fSinPhi = sinf(*(fAkcel + 0));
-	float fCosPhi = cosf(*(fAkcel + 0));
-	float fSinThe = sinf(*(fAkcel + 1));
-	float fCosThe = cosf(*(fAkcel + 1));
+	float fSinPhi = sinf(wyniki->fKatAkcel[0]);
+	float fCosPhi = cosf(wyniki->fKatAkcel[0]);
+	float fSinThe = sinf(wyniki->fKatAkcel[1]);
+	float fCosThe = cosf(wyniki->fKatAkcel[1]);
 
 	float fXm = *(fMagn + 0) * fCosThe + *(fMagn + 1) * fSinPhi * fSinThe + *(fMagn + 2) * fCosPhi * fSinThe;
 	float fYm = *(fMagn + 1) * fCosPhi - *(fMagn + 2) * fSinPhi;
 	//uDaneCM4.dane.fKatAkcel1[2] = atan2f(uDaneCM4.dane.fMagne1[1], uDaneCM4.dane.fMagne1[0]);
-	wyniki->fKatAkcel[2] = atan2f(-fYm, fXm);
+	//wyniki->fKatAkcel[2] = atan2f(-fYm, fXm);
+	wyniki->fKatAkcel[2] = atan2f(fYm, fXm);
 
 	//filtr komplementarny IMU
 	for (uint16_t n=0; n<3; n++)
@@ -134,8 +135,9 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja przechowuje wektory przyspieszenia i magnetyczny w kwaternionach qAcc i qMag, obraca je o kąty uzyskane z całkowania prędkosci katowej
-// Parametry: chGniazdo - numer gniazda w którym jest moduł IMU
-// *fZyro,  *fAkcel, *fMagn - wskaźniki na tablice 3 osi żyroskopu, akcelerometru i magnetometru użyanych do obliczeń
+// Parametry:
+//  *fZyro,  *fAkcel, *fMagn - wskaźniki na tablice 3 osi żyroskopu, akcelerometru i magnetometru użyanych do obliczeń
+//  ndT - czas w mikrosekundach jaki upłynął od poprzedniej iteracji
 // Zwraca: kod błędu
 // Czas trwania: 39us @200Hz
 ////////////////////////////////////////////////////////////////////////////////
@@ -151,10 +153,9 @@ uint8_t JednostkaInercyjnaKwaterniony(float *fŻyro, float *fAkcel, float *fMagn
 
 
 	//Wyznaczam kwaterniony obrotów w formie algebraicznej korzystając z danych wejściowych sprowadzonych do formy trygonometrycznej
+	//Ponieważ we wzorach występuje połowa kąta, więc aby nie wykonywać dzielenia wielokrotnie, od razu liczę wartość połowy kata
 	//fQz = cos (psi/2) + (1 / sqrt(x^2 + y^2 + z^2)*k) * sin (psi/2)
-	//fdPsi2 = uDaneCM4.dane.fZyroKal1[2] * ndT[chGniazdo] / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
 	fdPsi2 = *(fŻyro+2) * ndT / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
-	//fdPsi2 = 0.0f * DEG2RAD / 2;
 	fQz[0] = cosf(fdPsi2);		//część rzeczywista kwaternionu: s0 = cos(theta) gdzie kąt oborotu to 2*theta, więc s0 = cos(kąt_obrotu/2)
 	fQz[1] = 0;
 	fQz[2] = 0;
@@ -162,18 +163,14 @@ uint8_t JednostkaInercyjnaKwaterniony(float *fŻyro, float *fAkcel, float *fMagn
 
 	//fQy = cos (theta/2) + (1 / sqrt(x^2 + y^2 + z^2)*j) * sin (theta/2)
 	fdTheta2 = *(fŻyro+1) * ndT / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
-	//fdTheta2 = 0.2f * DEG2RAD / 2;
 	fQy[0] = cosf(fdTheta2);
 	fQy[1] = 0;
 	fQy[2] = sinf(fdTheta2);
 	fQy[3] = 0;
 
 	//całka z predkosci kątowej P to kąt Phi a przyrost kąta w czasie ndT to dPhi
-	//fdPhi = uDaneCM4.dane.fZyroKal1[0] * ndT[chGniazdo] / 1000000;
-	//Ponieważ we wzorze występuje połowa kąta, więc aby nie wykonywać dzielenia wielokrotnie, od razu liczę wartość połowy kata
 	//fQx = cos (phi/2) + (1 / sqrt(x^2 + y^2 + z^2)*i) * sin (phi/2)
 	fdPhi2 = *(fŻyro+0) * ndT / 2000000.f;		//[rad/s] * ndT [us] / 1000000 = [rad]
-	//fdPhi2 = 0.0f * DEG2RAD / 2;
 	fQx[0] = cosf(fdPhi2);
 	fQx[1] = sinf(fdPhi2);
 	fQx[2] = 0;
@@ -234,14 +231,6 @@ uint8_t JednostkaInercyjnaKwaterniony(float *fŻyro, float *fAkcel, float *fMagn
 
 	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(Y/X) dla X=N, Y=E => atan2(X, Y)
 	uDaneCM4.dane.fKatIMU2[2] = atan2f(fQMagKompens[2], fQMagKompens[1]);
-
-	//obliczenia trygonometryczne kątów uzyskanych z filtra komplementarnego dostępne globalnie do dalszych obliczeń - kąt psi płynie
-	/*uDaneCM4.dane.stMat.fSinPhi = sinf(uDaneCM4.dane.fKatIMU2[0]);
-	uDaneCM4.dane.stMat.fCosPhi = cosf(uDaneCM4.dane.fKatIMU2[0]);
-	uDaneCM4.dane.stMat.fSinThe = sinf(uDaneCM4.dane.fKatIMU2[1]);
-	uDaneCM4.dane.stMat.fCosThe = cosf(uDaneCM4.dane.fKatIMU2[1]);
-	uDaneCM4.dane.stMat.fSinPsi = sinf(uDaneCM4.dane.fKatIMU2[2]);
-	uDaneCM4.dane.stMat.fCosPsi = cosf(uDaneCM4.dane.fKatIMU2[2]);*/
 	return BLAD_OK;
 }
 
