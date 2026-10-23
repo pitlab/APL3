@@ -96,7 +96,7 @@ uint8_t SymulujKątyOrientacji(stSym_t *stSym)
 	for (uint8_t n=0; n<3; n++)
 	{
 		fPrzyrostKąta[n] = (nCzas * stSym->fPrędkośćKątowa[n]) / 1000000;
-		stSym->fCałkaKataObrotu[n] += fPrzyrostKąta[n];
+		stSym->fCałkaKataObrotu[n] -= fPrzyrostKąta[n];
 		if (stSym->fCałkaKataObrotu[n] > M_PI)
 			stSym->fCałkaKataObrotu[n] -= 2*M_PI;
 		if (stSym->fCałkaKataObrotu[n] < -M_PI)

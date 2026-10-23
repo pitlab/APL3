@@ -47,6 +47,8 @@ static float fQMag[4] = {0.0f, 1.0f, 0.0f, 0.0f};	//kwaternion wektora magnetycz
 static float fQMagKompens[4];		//kwaternion magnetometru skompensowanego o pochylenie i przechylenie
 
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // inicjalizacja zmiennych potrzebanych do obliczeń kątów
 // Parametry: brak
@@ -54,12 +56,20 @@ static float fQMagKompens[4];		//kwaternion magnetometru skompensowanego o pochy
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t InicjujJednostkeInercyjna(void)
 {
+	float fKatObrotuMagn[3];
 
 	for (uint16_t n=0; n<3; n++)
 	{
 		uDaneCM4.dane.fKatZyro1[n] = 0;
 		uDaneCM4.dane.fKatZyro2[n] = 0;
 	}
+
+	//wykonaj wstępny obrót kwaterniona magnetycznego o kąty inklinacji i deklinacji
+	fKatObrotuMagn[0] = 0.0f;
+	fKatObrotuMagn[1] = -INKLINACJA_MAG;		//inklinacja magnetyczna w radianach
+	fKatObrotuMagn[2] = DEKLINACJA_MAG;			//deklinacja magnetyczna w radianach
+
+	KatyNaKwaternion(fKatObrotuMagn, fQMag);	//zwraca znormalizowany kwaternion magnetyczny
 	return BLAD_OK;
 }
 
