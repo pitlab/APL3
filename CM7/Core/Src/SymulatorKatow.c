@@ -79,7 +79,7 @@ uint8_t InicjujKąty(stSym_t *stSym)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Właściwa symulacja obracajaca obona wektorami
+// Właściwa symulacja obracająca oboma wektorami
 // Parametry: *stSym - wskaźnik na strukturę danych symulacji
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
@@ -95,8 +95,8 @@ uint8_t SymulujKątyOrientacji(stSym_t *stSym)
 	//całkuj prędkość kątową
 	for (uint8_t n=0; n<3; n++)
 	{
-		fPrzyrostKąta[n] = (nCzas * stSym->fPrędkośćKątowa[n]) / 1000000;
-		stSym->fCałkaKataObrotu[n] -= fPrzyrostKąta[n];
+		fPrzyrostKąta[n] = (nCzas * stSym->fPrędkośćKątowa[n]) / -1000000;	//obrót wymaga ujemnej prędkości kątowej
+		stSym->fCałkaKataObrotu[n] += fPrzyrostKąta[n];
 		if (stSym->fCałkaKataObrotu[n] > M_PI)
 			stSym->fCałkaKataObrotu[n] -= 2*M_PI;
 		if (stSym->fCałkaKataObrotu[n] < -M_PI)
@@ -183,8 +183,11 @@ uint8_t SymulacjaKątówOrientacji(stSym_t *stSym)
 				}
 			}
 		}
-		else
-			cBłąd = BLAD_GOTOWE;	//naciśnieto poza przyciskami, więc wyjdź
+		else	//naciśnieto poza przyciskami, więc wyjdź
+		{
+			cBłąd = BLAD_GOTOWE;
+			stSym->cFlagi = 0;	//wyłącz symulację
+		}
 		DodajProbkeDoMalejKolejki(PGA_PRZYCISK, ROZM_MALEJ_KOLEJKI_KOMUNIK);		//odtwórz komunikat audio przycisku
 		stStatusDotyku.cFlagi &= ~DOTYK_DOTKNIETO;	//wyczyść flagę dotknięcia
 	}

@@ -305,16 +305,16 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane, stWymianyCM7
 	case TID_TEMPIMU2:		fZmiennaTele = stDane->fTemper[TEMP_IMU1];	break;
 
 	//zmienne AHRS
-	case TID_KAT_IMU1X:		fZmiennaTele = stDane->fKatIMU1[0];			break;
-	case TID_KAT_IMU1Y:		fZmiennaTele = stDane->fKatIMU1[1];			break;
-	case TID_KAT_IMU1Z:		fZmiennaTele = stDane->fKatIMU1[2];			break;
-	case TID_KAT_IMU2X:		fZmiennaTele = stDane->fKatIMU2[0];			break;	//zastąpione przez TID_DLUG_VMAG1
-	case TID_KAT_IMU2Y:		fZmiennaTele = stDane->fKatIMU2[1];			break;
-	case TID_KAT_IMU2Z:		fZmiennaTele = stDane->fKatIMU2[2];			break;
-	case TID_KAT_ZYRO1X:	fZmiennaTele = stDane->fKatZyro1[0];		break;
-	case TID_KAT_ZYRO1Y:	fZmiennaTele = stDane->fKatZyro1[1];		break;
-	case TID_KAT_ZYRO1Z:	fZmiennaTele = stDane->fKatZyro1[2];		break;
-	//case TID_KAT_AKCELX:	fZmiennaTele = stDane->fKatAkcel[0];		break;
+	case TID_KAT_IMU1X:		fZmiennaTele = stDane->fKątIMU1[0];			break;	//kąty z filtra komplementarnego (trygonomtria)
+	case TID_KAT_IMU1Y:		fZmiennaTele = stDane->fKątIMU1[1];			break;
+	case TID_KAT_IMU1Z:		fZmiennaTele = stDane->fKątIMU1[2];			break;
+	case TID_KAT_IMU2X:		fZmiennaTele = stDane->fKątIMU2[0];			break;	//kąty liczone kwaternionami
+	case TID_KAT_IMU2Y:		fZmiennaTele = stDane->fKątIMU2[1];			break;
+	case TID_KAT_IMU2Z:		fZmiennaTele = stDane->fKątIMU2[2];			break;
+	case TID_KAT_ZYRO1X:	fZmiennaTele = stDane->fKątZyro1[0];		break;	//całka z żyroskopu
+	case TID_KAT_ZYRO1Y:	fZmiennaTele = stDane->fKątZyro1[1];		break;
+	case TID_KAT_ZYRO1Z:	fZmiennaTele = stDane->fKątZyro1[2];		break;
+	//case TID_KAT_AKCELX:	fZmiennaTele = stDane->fKatAkcel[0];		break;	//zastąpione przez TID_DLUG_VMAG1
 	//case TID_KAT_AKCELY:	fZmiennaTele = stDane->fKatAkcel[1];		break;
 	//case TID_KAT_AKCELZ:	fZmiennaTele = stDane->fKatAkcel[2];		break;
 
@@ -372,9 +372,9 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane, stWymianyCM7
 	case TID_SERWO15:		//aby nie generować zbyt dużo kodu stosuję wzór do obliczenia indeksu zmiennej dla wszystkich kanałów
 	case TID_SERWO16:		fZmiennaTele = stDane->sWyjscieRC[sZmienna - TID_SERWO1];	break;
 
-	//case TID_BSP_AKCELX:	fZmiennaTele = stDane->stBSP.fAkcel[0];		break;
-	//case TID_BSP_AKCELY:	fZmiennaTele = stDane->stBSP.fAkcel[1];		break;
-	//case TID_BSP_AKCELZ:	fZmiennaTele = stDane->stBSP.fAkcel[2];		break;
+	case TID_BSP_AKCELX:	fZmiennaTele = stDane->stBSP.fPrzyspieszenie[0];		break;	//przyspieszenie ruchu z odjętą grawitacją
+	case TID_BSP_AKCELY:	fZmiennaTele = stDane->stBSP.fPrzyspieszenie[1];		break;
+	case TID_BSP_AKCELZ:	fZmiennaTele = stDane->stBSP.fPrzyspieszenie[2];		break;
 	case TID_BSP_ZYROP:		fZmiennaTele = stDane->stBSP.fZyro[0];		break;
 	case TID_BSP_ZYROQ:		fZmiennaTele = stDane->stBSP.fZyro[1];		break;
 	case TID_BSP_ZYROR:		fZmiennaTele = stDane->stBSP.fZyro[2];		break;
@@ -427,7 +427,7 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane, stWymianyCM7
 	case TID_NAPIECIE_SERW:		fZmiennaTele = stDane->fNapiecieSerw;	break;
 	case TID_NAPIECIE_USB:		fZmiennaTele = stDane->fNapiecieUSB;	break;
 
-	case TID_FFT_ZYRO_AKCEL:	break;	//wyniki transformaty fouriera przesyłane w specyficznej szybkiej ramce
+	//case TID_FFT_ZYRO_AKCEL:	break;	//wyniki transformaty fouriera przesyłane w specyficznej szybkiej ramce
 
 	//--- zmienne telemetryczne w ramce 2 -----------------------------------------------
 	case TID_PID_PRZE_WZAD:		fZmiennaTele = stDane->stPID[PID_KĄTA_PRZE].fZadana;		break;	//wartość zadana regulatora sterowania przechyleniem

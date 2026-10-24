@@ -1256,7 +1256,7 @@ uint8_t RysujEkran(void)
 	case TP_IMU_KOSTKA:	//rysuj kostkę 3D
 		float fKat[3];
 		for (uint8_t n=0; n<3; n++)
-			fKat[n] = -1 *uDaneCM4.dane.fKatZyro2[n];	//do rysowania przyjmij kąty z przeciwnym znakiem - jest OK
+			fKat[n] = -1 *uDaneCM4.dane.fKątZyro2[n];	//do rysowania przyjmij kąty z przeciwnym znakiem - jest OK
 		RysujKostkeObrotu(fKat);
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
@@ -2300,45 +2300,45 @@ void PomiaryAHRS(void)
 	//UstawTon(chTon, 80);
 
 	setColor(KOLOR_X);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU1[0]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKątIMU1[0]);
 	RysujNapis(cNapis, KOL12+8*FONT_SL, 170);
 	setColor(KOLOR_Y);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU1[1]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKątIMU1[1]);
 	RysujNapis(cNapis, KOL12+20*FONT_SL, 170);
 	setColor(KOLOR_Z);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU1[2]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKątIMU1[2]);
 	RysujNapis(cNapis, KOL12+32*FONT_SL, 170);
 
 	setColor(KOLOR_X);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKątIMU2[0]);
 	RysujNapis(cNapis, KOL12+8*FONT_SL, 190);
 	setColor(KOLOR_Y);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKątIMU2[1]);
 	RysujNapis(cNapis, KOL12+20*FONT_SL, 190);
 	setColor(KOLOR_Z);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatIMU2[2]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKątIMU2[2]);
 	RysujNapis(cNapis, KOL12+32*FONT_SL, 190);
 
 	//kąty z akcelrometru 1
 	setColor(KOLOR_X);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel[0]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKątAkcel[0]);
 	RysujNapis(cNapis, KOL12+11*FONT_SL, 210);
 	setColor(KOLOR_Y);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel[1]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKątAkcel[1]);
 	RysujNapis(cNapis, KOL12+24*FONT_SL, 210);
 	setColor(KOLOR_Z);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel[2]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKątAkcel[2]);
 	RysujNapis(cNapis, KOL12+36*FONT_SL, 210);
 
 	/*/kąty z akcelrometru 2
 	setColor(KOLOR_X);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[0]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKątAkcel[0]);
 	RysujNapis(cNapis, KOL12+11*FONT_SL, 230);
 	setColor(KOLOR_Y);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[1]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKątAkcel[1]);
 	RysujNapis(cNapis, KOL12+24*FONT_SL, 230);
 	setColor(KOLOR_Z);
-	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKatAkcel2[2]);
+	sprintf(cNapis, "%.2f ", RAD2DEG * uDaneCM4.dane.fKątAkcel[2]);
 	RysujNapis(cNapis, KOL12+36*FONT_SL, 230);*/
 
 	/*/kąty z żyroskopu 1
@@ -3408,13 +3408,13 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 	{
 	case SEKW_KAL_WZM_ZYRO_R:
 		cNazwaOsi = 'Z';
-		fPochylenie = uDaneCM4.dane.fKatAkcel[1];
-		fPrzechylenie = uDaneCM4.dane.fKatAkcel[0];
+		fPochylenie = uDaneCM4.dane.fKątAkcel[1];
+		fPrzechylenie = uDaneCM4.dane.fKątAkcel[0];
 		Poziomica(-fPrzechylenie, fPochylenie);	//przechylenie, pochylenie
 		setColor(KOLOR_Z);
-		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[2], ZNAK_STOPIEN);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKątZyro1[2], ZNAK_STOPIEN);
 		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 100);
-		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[2], ZNAK_STOPIEN);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKątZyro2[2], ZNAK_STOPIEN);
 		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 120);
 		sprintf(cNapis, "%.2f %c ", RAD2DEG * fPochylenie, ZNAK_STOPIEN);	//pochylenie
 		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 160);
@@ -3428,9 +3428,9 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		fPrzechylenie = atan2f(uDaneCM4.dane.fAkcel1[1], uDaneCM4.dane.fAkcel1[2]) + 90 * DEG2RAD;	//atan(y/z)
 		Poziomica(fPrzechylenie, -fPochylenie);	//przechylenie, pochylenie
 		setColor(KOLOR_Y);
-		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[1], ZNAK_STOPIEN);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKątZyro1[1], ZNAK_STOPIEN);
 		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 100);
-		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[1], ZNAK_STOPIEN);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKątZyro2[1], ZNAK_STOPIEN);
 		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 120);
 		sprintf(cNapis, "%.2f %c ", RAD2DEG * fPochylenie, ZNAK_STOPIEN);	//pochylenie
 		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 160);
@@ -3444,9 +3444,9 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 		fPrzechylenie = atan2f(uDaneCM4.dane.fAkcel1[0], uDaneCM4.dane.fAkcel1[1]) - 90 * DEG2RAD;	//atan(x/y)
 		Poziomica(-fPrzechylenie, fPochylenie);	//przechylenie, pochylenie
 		setColor(KOLOR_X);
-		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro1[0], ZNAK_STOPIEN);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKątZyro1[0], ZNAK_STOPIEN);
 		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 100);
-		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKatZyro2[0], ZNAK_STOPIEN);
+		sprintf(cNapis, "%.2f %c ", RAD2DEG * uDaneCM4.dane.fKątZyro2[0], ZNAK_STOPIEN);
 		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 120);
 		sprintf(cNapis, "%.2f %c ", RAD2DEG * fPochylenie, ZNAK_STOPIEN);	//pochylenie
 		RysujNapis(cNapis, KOL12 + LIBELLA_BOK + 14*FONT_SL, 160);
@@ -3557,7 +3557,7 @@ uint8_t KalibracjaWzmocnieniaZyroskopow(uint8_t *chSekwencer)
 // Parametry: nic
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////
-void Poziomica(float fKatAkcelX, float fKatAkcelY)
+void Poziomica(float fKątAkcelX, float fKątAkcelY)
 {
 	static uint16_t x2, y2;
 	uint16_t x, y;
@@ -3571,8 +3571,8 @@ void Poziomica(float fKatAkcelX, float fKatAkcelY)
 	}
 
 	//oblicz współrzędne bąbelka
-	x = LIBELLA_BOK / 2 - 5 * RAD2DEG * fKatAkcelY;
-	y = (DISP_Y_SIZE - LIBELLA_BOK) + LIBELLA_BOK / 2 - 5 * RAD2DEG * fKatAkcelX;
+	x = LIBELLA_BOK / 2 - 5 * RAD2DEG * fKątAkcelY;
+	y = (DISP_Y_SIZE - LIBELLA_BOK) + LIBELLA_BOK / 2 - 5 * RAD2DEG * fKątAkcelX;
 
 	//ogranicz ruch poza skalę
 	if (x > LIBELLA_BOK - BABEL)
@@ -3969,7 +3969,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 	setColor(KOLOR_X);
 	sprintf(cNapis, "%.2f [uT] ", fMag[0]);
 	RysujNapis(cNapis, KOL12 + 8*FONT_SL, 80);
-	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0], ZNAK_STOPIEN);
+	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKątIMU2[0], ZNAK_STOPIEN);
 	RysujNapis(cNapis, KOL12 + 12*FONT_SL, 140);
 	if (*cEtap & KALIBRUJ)
 	{
@@ -3985,7 +3985,7 @@ uint8_t KalibracjaZeraMagnetometru(uint8_t *cEtap)
 	setColor(KOLOR_Y);
 	sprintf(cNapis, "%.2f [uT] ", fMag[1]);
 	RysujNapis(cNapis, 10 + 8*FONT_SL, 100);
-	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
+	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKątIMU2[1], ZNAK_STOPIEN);
 	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 160);
 	if (*cEtap & KALIBRUJ)
 	{
@@ -4349,11 +4349,11 @@ void PlaskiObrotMagnetometrow(void)
 	}
 
 	setColor(KOLOR_X);
-	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[0], ZNAK_STOPIEN);
+	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKątIMU2[0], ZNAK_STOPIEN);
 	RysujNapis(cNapis, KOL12 + 14*FONT_SL, 80);
 
 	setColor(KOLOR_Y);
-	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKatIMU2[1], ZNAK_STOPIEN);
+	sprintf(cNapis, "%.2f%c ", RAD2DEG * uDaneCM4.dane.fKątIMU2[1], ZNAK_STOPIEN);
 	RysujNapis(cNapis, KOL12 + 12*FONT_SL, 100);
 
 	//wartosci składowych magnetycznych

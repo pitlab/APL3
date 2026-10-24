@@ -222,7 +222,7 @@ uint32_t PrzygotujExif(JPEG_ConfTypeDef *stKonfJpeg, stKonfKam_t *stKonfKam, vol
 	cBufor[7] = 0;
 	PrzygotujTag(&wskchAdresTAG, EXTAG_PRESSURE, EXIF_TYPE_RATIONAL, cBufor, 8, &wskchAdresDanych, wskchPoczatekTIFF);	//RATIONAL x1
 
-	fTemp1 = stDane->fKatIMU1[1] * 180.0f / M_PI;	//kąt pochylenie IMU w dziesiatych częściach stopnia docelowo dodać IMU kamery
+	fTemp1 = stDane->fKątIMU1[1] * 180.0f / M_PI;	//kąt pochylenie IMU w dziesiatych częściach stopnia docelowo dodać IMU kamery
 	fTemp2 = floorf(fTemp1);	//pełne dziesiate części stopni
 	cBufor[0] = (int8_t)fTemp2;		//liczba ze znakiem
 	cBufor[1] = (int8_t)((int16_t)fTemp2 >> 8);

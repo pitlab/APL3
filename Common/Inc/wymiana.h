@@ -143,7 +143,7 @@ typedef struct _GNSS
 //definicje struktury zawierajacej syntetyczne dane bezzałogowca (niezależne od konkretnych czujników)
 typedef struct _BSP
 {
-	//float fAkcel[3];		//[m/s^2]
+	float fPrzyspieszenie[3];		//przyspieszenie ruchu z usunietą grawitacją [m/s^2]
 	float fZyro[3];			//prędkość kątowa po FK z usuniętym biasem [rad/s]
 	//float fMagne[3];		//[uT]
 	float fKatIMU[3];
@@ -232,12 +232,12 @@ typedef struct
 	float fMagne2[3];
 	float fMagne3[3];
 	float fDługośćWektoraMagn[LICZBA_MAGNETOMETROW];	//długość wektora magnetycznego wszystkich 3 magnetometrów
-	float fKatIMU1[3];		//[rad]
-	float fKatIMU2[3];
-	float fKatZyro1[3];		//[rad]
-	float fKatZyro2[3];
-	float fKatAkcel[3];		//[rad]
-	float fKatKwater[3];
+	float fKątIMU1[3];		//[rad]
+	float fKątIMU2[3];
+	float fKątZyro1[3];		//[rad]
+	float fKątZyro2[3];
+	float fKątAkcel[3];		//[rad]
+	float fKątKwater[3];
 	float fCisnieBzw[3];	//Ciśnienie bezwzględne [Pa]
 	float fWysokoMSL[3];	//Wysokość nad poziomem morza [m]
 	float fWysokoAGL[3];	//Wysokość nad poziomem startu [m]

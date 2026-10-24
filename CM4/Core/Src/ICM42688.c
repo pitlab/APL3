@@ -17,7 +17,8 @@ extern volatile unia_wymianyCM4_t uDaneCM4;
 extern volatile unia_wymianyCM7_t uDaneCM7;
 extern SPI_HandleTypeDef hspi2;
 const int8_t cZnakZyro[3] = {-1, 1, -1};	//korekcja znaku prędkości żyroskopów
-const int8_t cZnakAkcel[3] = {-1, 1, 1};	//korekcja znaku akcelerometrów
+//const int8_t cZnakAkcel[3] = {-1, 1, 1};	//korekcja znaku akcelerometrów
+const int8_t cZnakAkcel[3] = {1, -1, 1};	//korekcja znaku akcelerometrów
 extern WspRownProstej3_t stWspKalTempZyro1;		//współczynniki równania prostych do estymacji przesunęcia zera w funkcji temperatury
 extern float fMnożnikŻyro1[3];
 

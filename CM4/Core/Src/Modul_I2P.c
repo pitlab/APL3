@@ -203,7 +203,7 @@ uint8_t ObslugaModuluI2P(uint8_t cGniazdo, uint8_t* cStanIOwy)
 	if (uDaneCM4.dane.nZainicjowano & (INIT_TRWA_KAL_ZYRO_ZIM | INIT_TRWA_KAL_ZYRO_POK | INIT_TRWA_KAL_ZYRO_GOR))
 		KalibrujZeroZyroskopu();
 
-	//termostatuj moduł uśrednioną temperaturą obu czujników IMU a jezeli nie ma obu to chociaż jednego
+	//termostatuj moduł uśrednioną temperaturą obu czujników IMU a jeżeli nie ma obu to chociaż jednego
 	uint8_t cLiczbaTermometrow = 0;
 	float fTemeratura = 0.0f;
 
@@ -473,7 +473,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t cRodzajKalib)
 	case POL7_KALIBRUJ_ZYRO_WZMP:	//kalibruj wzmocnienia żyroskopów P
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
-			fMnożnikŻyro1[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro1[0]);
+			fMnożnikŻyro1[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKątZyro1[0]);
 			if ((fMnożnikŻyro1[0] > VMIN_MNOZNIK_ZYRO) && (fMnożnikŻyro1[0] < VMAX_MNOZNIK_ZYRO))
 			{
 				ZapiszFramFloat(FAH_ZYRO1P_WZMOC, fMnożnikŻyro1[0]);
@@ -486,7 +486,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t cRodzajKalib)
 				return BLAD_OK;
 			}
 
-			fMnożnikŻyro2[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro2[0]);
+			fMnożnikŻyro2[0] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKątZyro2[0]);
 			if ((fMnożnikŻyro2[0] > VMIN_MNOZNIK_ZYRO) && (fMnożnikŻyro2[0] < VMAX_MNOZNIK_ZYRO))
 			{
 				ZapiszFramFloat(FAH_ZYRO2P_WZMOC, fMnożnikŻyro2[0]);
@@ -507,7 +507,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t cRodzajKalib)
 	case POL7_KALIBRUJ_ZYRO_WZMQ:	//kalibruj wzmocnienia żyroskopów Q
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
-			fMnożnikŻyro1[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro1[1]);
+			fMnożnikŻyro1[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKątZyro1[1]);
 			if ((fMnożnikŻyro1[1] > VMIN_MNOZNIK_ZYRO) && (fMnożnikŻyro1[1] < VMAX_MNOZNIK_ZYRO))
 			{
 				ZapiszFramFloat(FAH_ZYRO1Q_WZMOC, fMnożnikŻyro1[1]);
@@ -520,7 +520,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t cRodzajKalib)
 				return BLAD_OK;
 			}
 
-			fMnożnikŻyro1[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro2[1]);
+			fMnożnikŻyro1[1] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKątZyro2[1]);
 			if ((fMnożnikŻyro1[1] > VMIN_MNOZNIK_ZYRO) && (fMnożnikŻyro1[1] < VMAX_MNOZNIK_ZYRO))
 			{
 				ZapiszFramFloat(FAH_ZYRO2Q_WZMOC, fMnożnikŻyro1[1]);
@@ -540,7 +540,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t cRodzajKalib)
 	case POL7_KALIBRUJ_ZYRO_WZMR:	//kalibruj wzmocnienia żyroskopów R
 		if ((uDaneCM4.dane.nZainicjowano & INIT_WYK_KAL_WZM_ZYRO) != INIT_WYK_KAL_WZM_ZYRO)
 		{
-			fMnożnikŻyro1[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro1[2]);
+			fMnożnikŻyro1[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKątZyro1[2]);
 			if ((fMnożnikŻyro1[2] > VMIN_MNOZNIK_ZYRO) && (fMnożnikŻyro1[2] < VMAX_MNOZNIK_ZYRO))
 			{
 				ZapiszFramFloat(FAH_ZYRO1R_WZMOC, fMnożnikŻyro1[2]);
@@ -553,7 +553,7 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t cRodzajKalib)
 				return BLAD_OK;
 			}
 
-			fMnożnikŻyro2[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKatZyro2[2]);
+			fMnożnikŻyro2[2] = OBR_KAL_WZM * 2 * M_PI  / fabsf(uDaneCM4.dane.fKątZyro2[2]);
 			if ((fMnożnikŻyro2[2] > VMIN_MNOZNIK_ZYRO) && (fMnożnikŻyro2[2] < VMAX_MNOZNIK_ZYRO))
 			{
 				ZapiszFramFloat(FAH_ZYRO2R_WZMOC, fMnożnikŻyro2[2]);
@@ -573,8 +573,8 @@ uint8_t KalibracjaWzmocnieniaZyro(uint8_t cRodzajKalib)
 	case POL7_ZERUJ_CALKE_ZYRO:		//zeruje całkę prędkosci katowej żyroskopów przed kalibracją wzmocnienia
 		for (uint16_t n=0; n<3; n++)
 		{
-			uDaneCM4.dane.fKatZyro1[n] = 0.0f;
-			uDaneCM4.dane.fKatZyro2[n] = 0.0f;
+			uDaneCM4.dane.fKątZyro1[n] = 0.0f;
+			uDaneCM4.dane.fKątZyro2[n] = 0.0f;
 		}
 		uDaneCM4.dane.uRozne.f32[0] = 0.0f;
 		uDaneCM4.dane.uRozne.f32[1] = 0.0f;

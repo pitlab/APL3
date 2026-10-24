@@ -666,7 +666,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
 				}
 				else
-					sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatIMU1[n]);
+					sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKątIMU1[n]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -682,7 +682,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
 				}
 				else
-					sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatIMU2[n]);
+					sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKątIMU2[n]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -698,7 +698,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
 				}
 				else
-					sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatAkcel[n]);
+					sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKątAkcel[n]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}
@@ -714,7 +714,7 @@ uint8_t ObslugaPetliRejestratora(void)
 					sprintf(cBufPodreczny, cBufPodreczny,  'X' + n);	//wypełnij parametr XC=%c zakodowane w nazwie
 				}
 				else
-					sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKatZyro1[n]);
+					sprintf(cBufPodreczny, "%.6f;", uDaneCM4.dane.fKątZyro1[n]);
 				strncat(cBufZapisuKarty, cBufPodreczny, MAX_ROZMIAR_WPISU_LOGU);
 			}
 		}

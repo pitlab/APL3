@@ -381,7 +381,7 @@ void RysujOSD(stKonfOsd_t *stKonf, volatile stWymianyCM4_t *stDane)
 		RysujHoryzont(stKonf, stKonf->stHoryzont.fPoprzWartosc1, stKonf->stHoryzont.fPoprzWartosc2, PRZEZR_100, PRZEZR_100, PRZEZR_100);
 
 		//rysuj bieżący horyzont właściwym kolorem
-		RysujHoryzont(stKonf, stDane->fKatIMU1[POCH], stDane->fKatIMU1[PRZE], stKonf->stHoryzont.sKolorObiektu, stKonf->stHoryzont.sKolorJasny, stKonf->stHoryzont.sKolorCiemny);
+		RysujHoryzont(stKonf, stDane->fKątIMU1[POCH], stDane->fKątIMU1[PRZE], stKonf->stHoryzont.sKolorObiektu, stKonf->stHoryzont.sKolorJasny, stKonf->stHoryzont.sKolorCiemny);
 	}
 
 	//czas rysowania horyzontu

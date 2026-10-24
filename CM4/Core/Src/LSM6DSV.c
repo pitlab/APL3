@@ -21,6 +21,8 @@ extern int8_t cZnakAkcel[3];	//korekcja znaku akcelerometrów
 extern WspRownProstej3_t stWspKalTempZyro2;		//współczynniki równania prostych do estymacji przesunęcia zera w funkcji temperatury
 extern float fMnożnikŻyro2[3];
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Wykonaj inicjalizację czujnika. Odczytaj wszystkie parametry konfiguracyjne z EEPROMu
 // Parametry: nic
@@ -34,7 +36,6 @@ uint8_t InicjujLSM6DSV(void)
 	chDane[0] = CzytajSPIu8(PLSC6DSV_WHO_AM_I);		//sprawdź obecność układu
 	if (chDane[0] != 0x70)
 		return BLAD_BRAK_CZUJNIKA;
-
 
 	chDane[0] = PLSC6DSV_CTRL1;
 	chDane[1] = (1 << 4) |	//OP_MODE_XL_[2:0]: Accelerometer operating mode selection: (000: high-performance mode (default); 001: high-accuracy ODR mode; 010: reserved; 	011: ODR-triggered mode; 100: low-power mode 1 (2 mean); 101: low-power mode 2 (4 mean); 110: low-power mode 3 (8 mean); 111: normal mode)

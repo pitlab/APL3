@@ -89,7 +89,7 @@ uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	dane->nZainicjowano |= INIT_KALMAN_KATOW;
 
 	//inicjuj pierwszy pomiar i wektor stanu
-	KatyNaKwaternion(dane->fKatAkcel, fX);		//przelicz kąty obliczone trygonometrią na kwaternion początkowy
+	KatyNaKwaternion(dane->fKątAkcel, fX);		//przelicz kąty obliczone trygonometrią na kwaternion początkowy
 	//KwaternionNaKąty(fX, fYa);		//test konwersji kąt - kwaternion - kąt
 
 	fX[4] = 0.0f;	//błąd pomiaru prędkosci kątowej P

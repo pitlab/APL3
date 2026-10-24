@@ -168,7 +168,7 @@
 #define TID_NAPIECIE_WE2		124
 #define TID_NAPIECIE_SERW		125
 #define TID_NAPIECIE_USB		126
-#define TID_FFT_ZYRO_AKCEL		127	//wyniki transformaty Fouriera przesyłane w specyficznej szybkiej ramce
+//#define TID_FFT_ZYRO_AKCEL		127	//wyniki transformaty Fouriera przesyłane w specyficznej szybkiej ramce
 
 //--- zmienne telemetryczne w ramce 2 -----------------------------------------------
 #define TID_PID_PRZE_WZAD		128	//wartość zadana regulatora sterowania przechyleniem

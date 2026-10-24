@@ -165,7 +165,7 @@ uint8_t InicjujFiltrKalmanaKalibracjiMagnetometrów12X9Z(stWymianyCM4_t *dane)
 
 	//wypełnij pierwszą wartość poprzedniego kąta
 	for (uint8_t n=0; n<3; n++)
-		fPoprzedniKat[n] = dane->fKatIMU1[n];
+		fPoprzedniKat[n] = dane->fKątIMU1[n];
 
 	dane->nZainicjowano |= INIT_KALMAN_KAL_MAGN;
 	return cBłąd;
@@ -192,8 +192,8 @@ uint8_t PredykcjaFiltraKalmanaKalibracjiMagnetometrów12X9Z(stWymianyCM4_t *dane
 
 	for (uint8_t n=0; n<3; n++)
 	{
-		fDeltaKąta[n] = dane->fKatIMU1[n] - fPoprzedniKat[n];
-		fPoprzedniKat[n] = dane->fKatIMU1[n];
+		fDeltaKąta[n] = dane->fKątIMU1[n] - fPoprzedniKat[n];
+		fPoprzedniKat[n] = dane->fKątIMU1[n];
 	}
 
 	//obliczenia trygonometryczne różnicy kątów uzyskanych z filtra komplementarnego
