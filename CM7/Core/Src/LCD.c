@@ -86,6 +86,8 @@ extern const unsigned short obr_bmp24[0xFFC];
 extern const unsigned short obr_bmp8[0xFFC];
 extern const unsigned short spectrum[0xFFC];
 extern const unsigned short obr_recycling[0xFFC];
+extern const unsigned short obr_krzywy_domek[0xFFC];
+extern const unsigned short obr_katapulta[0xFFC];
 
 //wygenerowane przez chata GPT
 extern const unsigned short obr_Polaczenie[0xFFC];
@@ -309,8 +311,8 @@ menu_t stMenuEthernet[MENU_WIERSZE * MENU_KOLUMNY] = {
 
 menu_t stMenuTestowe[MENU_WIERSZE * MENU_KOLUMNY] = {
 	//1234567890     1234567890123456789012345678901234567890   TrybPracy			Obrazek
-	{"Sym Wyrzut",	"Symulacja wyrzutni BSP",					TP_TEST1,			obr_narzedzia},
-	{"Sym Katow",	"Symulacja Kątów orientacji",				TP_TEST2,			obr_narzedzia},
+	{"Sym Wyrzut",	"Symulacja wyrzutni BSP",					TP_TEST1,			obr_katapulta},
+	{"Sym Katow",	"Symulacja Kątów orientacji",				TP_TEST2,			obr_krzywy_domek},
 	{"nic",			"nic",										TP_TEST3,			obr_narzedzia},
 	{"nic",			"nic",										TP_TEST4,			obr_narzedzia},
 	{"Zap. DRAM",	"nic",										TP_TEST5,			obr_narzedzia},

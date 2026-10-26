@@ -9,7 +9,8 @@
 //////////////////////////////////////////////////////////////////////////////
 #include <KalmanKatow7X9Z.h>
 #include "kwaterniony.h"
-
+#include "Wspolne.h"
+#include <math.h>
 
 //Wynik mnożenia macierzy ma rozmiar wierszy drugiej x kolumn pierwszej
 
@@ -75,7 +76,8 @@ float fRefMagY;
 float fRefMagZ;
 float fWariancjaSzumuŻyro, fWariancjaProcesuŻyro;
 float fNormaOmega;	//długość wektora prędkości kątowej
-
+//float fPoprzedniKąt[3] = {0, 0, 0};
+stKatyRozszerz_t stKatyRozszerz = {0};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja inicjuje rozszerzony filtr Kalmana dla kwaternionu kątów orientacji i błędów żyroskopów
@@ -268,17 +270,12 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(float *fPredkościKątowe, stWymianyCM
 	fF[3][5] = -0.5f * fX[1] * fDeltaCzasu;
 	fF[3][6] = -0.5f * fX[0] * fDeltaCzasu;
 
-	//Błąd jest random walk:
+	//Błąd płynięcia zera żyroskopu jest losowy
 	fF[4][4] = 1.0f;
 	fF[5][5] = 1.0f;
 	fF[6][6] = 1.0f;
 
 	//Predykcja kwaternionu
-	/*fTempS1A[0] = fX[0] + fDeltaCzasu * 0.5f * (-fX[1] * fOmega[0] - fX[2] * fOmega[1] - fX[3] * fOmega[2]);	//kwaternion w:
-	fTempS1A[1] = fX[1] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[0] + fX[2] * fOmega[2] - fX[3] * fOmega[1]);	//kwaternion x: qx = q0 * omega_x + qy * omega_z - qz * omega_y
-	fTempS1A[2] = fX[2] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[1] - fX[1] * fOmega[2] + fX[3] * fOmega[0]);	//kwaternion y: qy = q0 * omega_y + qz * omega_x + qx * omega_z
-	fTempS1A[3] = fX[3] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[2] + fX[1] * fOmega[1] - fX[2] * fOmega[0]);	//kwaternion z: qz = q0 * omega_z + qx * omega_y + qy * omega_x */
-
 	fTempS1A[0] = fX[0] + fDeltaCzasu * 0.5f * (-fX[1] * fOmega[0] - fX[2] * fOmega[1] - fX[3] * fOmega[2]);	//kwaternion w:
 	fTempS1A[1] = fX[1] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[0] + fX[2] * fOmega[2] - fX[3] * fOmega[1]);	//kwaternion x: qx = q0 * omega_x + qy * omega_z - qz * omega_y
 	fTempS1A[2] = fX[2] + fDeltaCzasu * 0.5f * ( fX[0] * fOmega[1] + fX[3] * fOmega[0] - fX[1] * fOmega[2]);	//kwaternion y: qy = q0 * omega_y + qz * omega_x + qx * omega_z
@@ -294,9 +291,38 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(float *fPredkościKątowe, stWymianyCM
 		dane->stKalmanKąta.fX[n] = fX[n];
 
 	//oblicz kąty orientacji z kwaternionu
-	dane->stBSP.fKatIMU[0] = -atan2f(2.0f * (fX[0] * fX[1] + fX[2] * fX[3]), 1 - (2.0f * (fX[1] * fX[1] + fX[2] * fX[2])));
-	dane->stBSP.fKatIMU[1] = -asinf (2.0f * (fX[0] * fX[2] - fX[1] * fX[3]));
-	dane->stBSP.fKatIMU[2] =  atan2f(2.0f * (fX[0] * fX[3] + fX[1] * fX[2]), 1 - (2.0f * (fX[2] * fX[2] + fX[3] * fX[3])));
+	//KwaternionNaKąty(fX, dane->stBSP.fKatIMU);	//są przeskoki wartosci dwóch kątów
+	KwaternionNaKąty3(fX, dane->stBSP.fKatIMU, &stKatyRozszerz);
+
+	//dane->stBSP.fKatIMU[1] = asinf (2.0f * (fX[0] * fX[2] - fX[1] * fX[3]));	//kąt ograniczony do +- Pi/2
+	/*/ponieważ kat pochylenia jest ograniczony liczę dwie możliwe reprezentację kąta i wybiera tą która jest bliższa bieżącej
+	float sinPochylenia = 2.0f * (fX[0] * fX[2] - fX[1] * fX[3]);	// (qw*qy - qx*qz)
+	sinPochylenia = fmaxf(-1.0f, fminf(1.0f, sinPochylenia));
+	dane->stBSP.fKatIMU[1] = asinf(sinPochylenia);
+	float fKątAlternatywny[3];
+	fKątAlternatywny[0] = ZawińPi(M_PI + dane->stBSP.fKatIMU[0]);	//wartość alternatywnego kąta przechylenia
+	fKątAlternatywny[1] = ZawińPi(M_PI - dane->stBSP.fKatIMU[0]);	//wartość alternatywnego kąta pochylenia
+	fKątAlternatywny[2] = ZawińPi(M_PI + dane->stBSP.fKatIMU[2]);	//wartość alternatywnego kąta odchylenia
+
+	//policz odległości do poprzedniej wartości kąta
+	float fOdległość1 = 0.0f;
+	float fOdległość2 = 0.0f;
+
+	for (uint8_t n=0; n<3; n++)
+	{
+		fOdległość1 += powf(ZawińPi(dane->stBSP.fKatIMU[n] - fPoprzedniKąt[n]), 2.0f);
+		fOdległość2 += powf(ZawińPi(fKątAlternatywny[n] - fPoprzedniKąt[n]), 2.0f);
+	}
+	if (fOdległość2 < fOdległość1)	//jeżeli kąt alternatywny jest bliżej, to użyj jego
+			dane->stBSP.fKatIMU[1] = fKątAlternatywny[1];
+
+	//dane->stBSP.fKatIMU[1] = 2.0f * atan2f(fX[2], fX[0]);	//pomiar testowy, poprawny tylko dla czystego kąta. Finalny kąt jest z zakreu +-2Pi
+	//dane->stBSP.fKatIMU[1] = atan2f(fX[2], fX[0]);	//Źle - bez mnożenie przez 2 liczy połowę kata
+
+	//kąty gotowe, zapamietaj poprzednia wartość dla nowego cyklu
+	for (uint8_t n=0; n<3; n++)
+		fPoprzedniKąt[n] = dane->stBSP.fKatIMU[n];*/
+
 
 	//przygotuj prędkość kątową z usunietym biasem
 	for (uint8_t n=0; n<3; n++)
@@ -401,19 +427,21 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(float *fAkcel)
 		fYa[n] = fAccNormalizowany[n] - fModelAcc[n];		//Innowacja = znormalizowany pomiar - model
 	}
 
-	//Macierz obserwacji Ha  [STAN x Pomiar]
-	fHa[0][0] = -2.0f * fX[2];		// ax
-	fHa[0][1] =  2.0f * fX[3];
-	fHa[0][2] = -2.0f * fX[0];
-	fHa[0][3] =  2.0f * fX[1];
-	fHa[1][0] =  2.0f * fX[1];		// ay
-	fHa[1][1] =  2.0f * fX[0];
-	fHa[1][2] =  2.0f * fX[3];
-	fHa[1][3] =  2.0f * fX[2];
-	fHa[2][0] =  2.0f * fX[0];		// az
-	fHa[2][1] = -2.0f * fX[1];
-	fHa[2][2] = -2.0f * fX[2];
-	fHa[2][3] =  2.0f * fX[3];
+	//Macierz obserwacji Ha  [Pomiar x STAN]
+	fHa[0][0] = -2.0f * fX[2];		//-2qy
+	fHa[0][1] =  2.0f * fX[3];		// 2qz
+	fHa[0][2] = -2.0f * fX[0];		//-2qw
+	fHa[0][3] =  2.0f * fX[1];		// 2qx
+
+	fHa[1][0] =  2.0f * fX[1];		// 2qx
+	fHa[1][1] =  2.0f * fX[0];		// 2qw
+	fHa[1][2] =  2.0f * fX[3];		// 2qz
+	fHa[1][3] =  2.0f * fX[2];		// 2qy
+
+	fHa[2][0] =  2.0f * fX[0];		// 2qw
+	fHa[2][1] = -2.0f * fX[1];		//-2wx
+	fHa[2][2] = -2.0f * fX[2];		//-2qy
+	fHa[2][3] =  2.0f * fX[3];		// 2qz
 
 	//liczę współczynnik wzmocnienia Kalmana: mK,
 

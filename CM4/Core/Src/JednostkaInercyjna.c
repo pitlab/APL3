@@ -11,6 +11,7 @@
 #include "fram.h"
 #include "kwaterniony.h"
 #include "PetlaGlowna.h"
+#include "Wspolne.h"
 
 // Definicje użytej konwencji
 // prawoskrętny układ współrzędnych lokalnych samolotu
@@ -90,22 +91,13 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 	float fPrzyrostKąta;
 
 	//kąt przechylenia z akcelerometru: 90° + atan(-Z/Y) = Pi/2 + atan2(-Z, Y)
-	if ((wyniki->fKątAkcel[1] > -M_PI/2) && (wyniki->fKątAkcel[1] < M_PI/2))
+	//if ((wyniki->fKątAkcel[1] > -M_PI/2) && (wyniki->fKątAkcel[1] < M_PI/2))	//dwie kompensacje nie działają jednocześnie, więc wybieram lpmpensację pochylenia aby działało odchylenie jako ważniejsze
 		wyniki->fKątAkcel[0] = atan2f(-1 * *(fAkcel + 2), *(fAkcel + 1)) + M_PI/2;	//OK
-	else
-		wyniki->fKątAkcel[0] = atan2f(-1 * *(fAkcel + 2), *(fAkcel + 1)) - M_PI/2;	//OK
+	//else
+		//wyniki->fKątAkcel[0] = atan2f(-1 * *(fAkcel + 2), *(fAkcel + 1)) - M_PI/2;	//OK
 
-	//kąt pochylenia z akcelerometru: atan(Z/X) = atan2(-sqrtf(y^2+Z^2), X)
-	//ponieważ pierwiastek zwraca zawsze dodatnią wartość, więc kat byłby ograniczony do +- Pi/2. Aby mieć pełen kat rozbijam to na 2 warunki i w jednym
-	// dodaję znak minus przed pierwiastkiem. To może nie działać dla dowolnej wartości kąta, więc jest jedynie punktem odniesienia dla prostych ruchów
-	/*if (*(fAkcel + 2) > 0)
-		//wyniki->fKątAkcel[1] = atan2f(*(fAkcel + 0), sqrtf(*(fAkcel + 1) * *(fAkcel + 1) + *(fAkcel + 2) * *(fAkcel + 2)));
-		wyniki->fKątAkcel[1] = M_PI/2 + atan2f(-1 * sqrtf(*(fAkcel + 1) * *(fAkcel + 1) + *(fAkcel + 2) * *(fAkcel + 2)), *(fAkcel + 0));
-	else
-		//wyniki->fKątAkcel[1] = atan2f(*(fAkcel + 0), -1 * sqrtf(*(fAkcel + 1) * *(fAkcel + 1) + *(fAkcel + 2) * *(fAkcel + 2)));	//OK dla symulacji pochylenia, źle dla przechylenia
-		wyniki->fKątAkcel[1] = M_PI/2 + atan2f(sqrtf(*(fAkcel + 1) * *(fAkcel + 1) + *(fAkcel + 2) * *(fAkcel + 2)), *(fAkcel + 0));*/
-
-	if ((wyniki->fKątAkcel[0] > -M_PI/2) && (wyniki->fKątAkcel[0] < M_PI/2))
+	//kąt pochylenia z akcelerometru: atan(Z/X) = atan2(Z, X)
+	 if ((wyniki->fKątAkcel[0] > -M_PI/2) && (wyniki->fKątAkcel[0] < M_PI/2))
 		wyniki->fKątAkcel[1] = atan2f(*(fAkcel + 2), *(fAkcel + 0)) - M_PI/2;	//OK
 	else
 		wyniki->fKątAkcel[1] = atan2f(*(fAkcel + 2), *(fAkcel + 0)) + M_PI/2;	//OK
@@ -120,10 +112,10 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 	float fXm = *(fMagn + 0) * fCosThe + *(fMagn + 1) * fSinPhi * fSinThe + *(fMagn + 2) * fCosPhi * fSinThe;
 	float fYm = *(fMagn + 1) * fCosPhi - *(fMagn + 2) * fSinPhi;
 	//wyniki->fKątAkcel[2] = atan2f(-fYm, fXm);
-	//wyniki->fKątAkcel[2] = atan2f(*(fMagn + 1), *(fMagn + 0));	//bez kompensacji przechylenia i pochylenia
+	wyniki->fKątAkcel[2] = atan2f(-1 * *(fMagn + 1), *(fMagn + 0));	//bez kompensacji przechylenia i pochylenia
 	//wyniki->fKątAkcel[2] = atan2f(*(fMagn + 1), fXm);		//kompensacja X
 	//wyniki->fKątAkcel[2] = atan2f(fYm, *(fMagn + 0));	//kompensacja Y
-	wyniki->fKątAkcel[2] = atan2f(fYm, fXm);
+	//wyniki->fKątAkcel[2] = atan2f(fYm, fXm);			//pełna kompensacja X i Y
 
 	//filtr komplementarny IMU i całka z żyroskopów
 	if (ndT > MAX_DT)	//nie licz całki prędkosci kątowej z przestojów
@@ -136,7 +128,10 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 		wyniki->fKątIMU1[n] += fPrzyrostKąta;
 
 		//ogranicz przyrost kąta IMU1 do +-Pi
-		if (wyniki->fKątIMU1[n] > M_PI)
+		wyniki->fKątIMU1[n] = ZawińPi(wyniki->fKątIMU1[n]);
+		wyniki->fKątAkcel[n] = ZawińPi(wyniki->fKątAkcel[n]);
+
+		/*if (wyniki->fKątIMU1[n] > M_PI)
 			wyniki->fKątIMU1[n] -= 2 * M_PI;
 		if (wyniki->fKątIMU1[n] < -M_PI)
 			wyniki->fKątIMU1[n] += 2 * M_PI;
@@ -144,7 +139,7 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 		if (wyniki->fKątAkcel[n] > M_PI)
 			wyniki->fKątAkcel[n] -= 2 * M_PI;
 		if (wyniki->fKątAkcel[n] < -M_PI)
-			wyniki->fKątAkcel[n] += 2 * M_PI;
+			wyniki->fKątAkcel[n] += 2 * M_PI;*/
 
 		wyniki->fKątIMU1[n] = 0.02 * wyniki->fKątAkcel[n] + 0.98 * wyniki->fKątIMU1[n];	//kasowanie dryftu dodatkiem kątów z akcelerometru i magnetometru
 
@@ -152,10 +147,11 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 		if ((uDaneCM7.dane.cWykonajPolecenie < POL7_CALKUJ_PRED_KAT) || (uDaneCM7.dane.cWykonajPolecenie > POL7_KALIBRUJ_ZYRO_WZMP))
 		{
 			//ogranicz przyrost kąta do +-Pi
-			if (wyniki->fKątZyro1[n] > M_PI)
+			wyniki->fKątZyro1[n] = ZawińPi(wyniki->fKątZyro1[n]);
+			/*if (wyniki->fKątZyro1[n] > M_PI)
 				wyniki->fKątZyro1[n] -= 2 * M_PI;
 			if (wyniki->fKątZyro1[n] < -M_PI)
-				wyniki->fKątZyro1[n] += 2 * M_PI;
+				wyniki->fKątZyro1[n] += 2 * M_PI;*/
 		}
 	}
 	return cBłąd;

@@ -71,3 +71,20 @@ void ObrocWektorGlobalny(float *fWektorWe, float *fWektorWy, float *fKat)
 	*(fWektorWy + 1)= fWektB[0] * sinf(-*(fKat+2)) + fWektB[1] * cosf(-*(fKat+2));
 	*(fWektorWy + 2)= fWektB[2];
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja zawija kąt nie pozwalając mu wyjść poza zakres +-Pi
+// Parametry:
+// [we] fKat - zawijany kąt obrotu [rad]
+// Zwraca: kąt po zawinięciu
+////////////////////////////////////////////////////////////////////////////////
+float ZawińPi(float fKąt)
+{
+	if (fKąt > M_PI)
+		fKąt -= 2 * M_PI;
+	if (fKąt < -M_PI)
+		fKąt += 2 * M_PI;
+	return fKąt;
+}

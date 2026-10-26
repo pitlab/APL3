@@ -7,11 +7,14 @@
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
 #include <Kwaterniony.h>
+#include <Wspolne.h>
 //Lektura obowiązkowa:
 //https://youtu.be/HMDb9zJ2BdA?si=NFm44BkfRmKqpYiF - dr. Tomasz Miller - Historia i wyjaśnienie właściwości kwaternionów
 //https://youtu.be/ZgOmCYfw6os?si=fDKRwn95x-n1le50 - Mateusz Kowalski - Algortym obrotu w przestrzeni 3D przy użyciu kwaternionów
 //https://youtu.be/j5m71_TaQwE?si=XlQSB3M4NHd1mqvY - Mateusz Kowalski - Macierz obrotu wokół dowolnej osi o dowolny kąt
 
+
+//stKatyRozszerz stKatyRozszerz = {0};
 
 
 // Obliczenia obrotu wektora grawitacji o kąt z żyroskopów na podstawie instrukcji Mateusza Kowalskiego: https://youtu.be/XjFq3Slo2wo?si=5JBCD7lqXvaLayjN
@@ -357,8 +360,8 @@ void KatyKwaterniona3(float *qA, float *qM, float *fKaty)
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-// Konwertuje kwaternion na kąty Eulera
+///////////////////////////////////////////////////////////////////////////////
+// Konwertuje kwaternion na kąty Eulera. Ma ten feler że pochylenie zwraca tylko w zakresie +-Pi/2
 // Parametry:
 //  *fQ - wskaźnik na kwaternion wejsciowy
 //  *fKaty - wskaźnik na tablicę 3 kątów Eulera
@@ -367,12 +370,154 @@ void KatyKwaterniona3(float *qA, float *qM, float *fKaty)
 void KwaternionNaKąty(float *fQ, float *fKaty)
 {
 	*(fKaty + 0) = atan2f(2.0f * (*(fQ+0) * *(fQ+1) + *(fQ+2) * *(fQ+3)), 1.0f - 2.0f * (*(fQ+1) * *(fQ+1) + *(fQ+2) * *(fQ+2)));
-    float sinp = 2.0f * (*(fQ+0) * *(fQ+2) - *(fQ+1) * *(fQ+3));
-    if (fabsf(sinp) >= 1.0f)
-    	*(fKaty + 1) = -copysignf(M_PI / 2.0f, sinp); // Zabezpieczenie przed Gimbal Lock / NaN
+	*(fKaty + 2) = atan2f(2.0f * (*(fQ+0) * *(fQ+3) + *(fQ+1) * *(fQ+2)), 1.0f - 2.0f * (*(fQ+2) * *(fQ+2) + *(fQ+3) * *(fQ+3)));
+
+	//pochylenie normalnie zwracane jest w zakresie +-Pi/2, więc aby rozszerzć kąt do +-Pi, trzeba zbadać, w którym z dwu alternatywnych położeniach znajduje się BSP
+    float fSinPochylenia = 2.0f * (*(fQ+0) * *(fQ+2) - *(fQ+1) * *(fQ+3));
+    if (fabsf(fSinPochylenia) >= 1.0f)
+    	*(fKaty + 1) = -copysignf(M_PI / 2.0f, fSinPochylenia); // Zabezpieczenie przed Gimbal Lock / NaN
     else
-    	*(fKaty + 1) = asinf(sinp);
-    *(fKaty + 2) = atan2f(2.0f * (*(fQ+0) * *(fQ+3) + *(fQ+1) * *(fQ+2)), 1.0f - 2.0f * (*(fQ+2) * *(fQ+2) + *(fQ+3) * *(fQ+3)));
+    	*(fKaty + 1) = asinf(fSinPochylenia);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Konwertuje kwaternion na kąty Eulera. Porównuje alternatywne reprezentację katów i sprawdza ich odległość od poprzedniej pozycji.
+// Ponieważ zmieniają się jednocześnie dwa kąty, więc to nie działa, chociaz pomysł jest fajny
+// Parametry:
+//  *fQ - wskaźnik na kwaternion wejsciowy
+//  *fKaty - wskaźnik na tablicę 3 kątów Eulera
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void KwaternionNaKąty2(float *fQ, float *fKaty)
+{
+	float fKątPoprzedni[3];
+	float fKątAlternatywny[3];
+
+	//zapamiętaj poprzednią wartość kata
+	for (uint8_t n=0; n<3; n++)
+		fKątPoprzedni[n] = *(fKaty + n);
+
+	*(fKaty + 0) = atan2f(2.0f * (*(fQ+0) * *(fQ+1) + *(fQ+2) * *(fQ+3)), 1.0f - 2.0f * (*(fQ+1) * *(fQ+1) + *(fQ+2) * *(fQ+2)));
+	*(fKaty + 2) = atan2f(2.0f * (*(fQ+0) * *(fQ+3) + *(fQ+1) * *(fQ+2)), 1.0f - 2.0f * (*(fQ+2) * *(fQ+2) + *(fQ+3) * *(fQ+3)));
+
+	//pochylenie normalnie zwracane jest w zakresie +-Pi/2, więc aby rozszerzć kąt do +-Pi, trzeba zbadać, w którym z dwu alternatywnych położeniach znajduje się BSP
+    float fSinPochylenia = 2.0f * (*(fQ+0) * *(fQ+2) - *(fQ+1) * *(fQ+3));
+    //if (fabsf(fSinPochylenia) >= 1.0f)
+    	//*(fKaty + 1) = -copysignf(M_PI / 2.0f, fSinPochylenia); // Zabezpieczenie przed Gimbal Lock / NaN
+    //else
+    	//*(fKaty + 1) = asinf(fSinPochylenia);
+
+    if (fSinPochylenia > 1.0f)
+    	fSinPochylenia = 1.0f;
+    else if (fSinPochylenia < -1.0f)
+      	fSinPochylenia = -1.0f;
+    //sinPochylenia = fmaxf(-1.0f, fminf(1.0f, fSinPochylenia));
+    *(fKaty + 1) = asinf(fSinPochylenia);		//pierwsza alternatywna kąta pochylenia
+
+	fKątAlternatywny[0] = ZawińPi(M_PI + *(fKaty + 0));	//wartość alternatywnego kąta przechylenia
+	fKątAlternatywny[1] = ZawińPi(M_PI - *(fKaty + 1));	//wartość alternatywnego kąta pochylenia
+	fKątAlternatywny[2] = ZawińPi(M_PI + *(fKaty + 2));	//wartość alternatywnego kąta odchylenia
+
+	//policz kwadrat odległości do poprzedniej wartości kąta aby pozbyć się ewentualnych znaków
+	float fOdległość1 = 0.0f;
+	float fOdległość2 = 0.0f;
+
+	for (uint8_t n=0; n<3; n++)
+	{
+		fOdległość1 += powf(ZawińPi(*(fKaty + n) - fKątPoprzedni[n]), 2.0f);
+		fOdległość2 += powf(ZawińPi(fKątAlternatywny[n] - fKątPoprzedni[n]), 2.0f);
+	}
+	if (fOdległość2 < fOdległość1)	//jeżeli kąt alternatywny jest bliżej, to użyj jego
+	{
+		for (uint8_t n=0; n<3; n++)
+			*(fKaty + n) = fKątAlternatywny[n];
+	}
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Konwertuje kwaternion na kąty Eulera
+// Phi = atan2(2.0f * (qw*qx + qy*qz), 1.0f - 2.0f * (qx*qx + qy*qy))
+// Parametry:
+//  *fQ - wskaźnik na kwaternion wejsciowy
+//  *fKaty - wskaźnik na tablicę 3 kątów Eulera
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+void KwaternionNaKąty3(float *fQ, float *fKaty, stKatyRozszerz_t *stKatyRozszerz)
+{
+	float fKątAlternatywny[3];
+
+	*(fKaty + 0) = atan2f(2.0f * (*(fQ+0) * *(fQ+1) + *(fQ+2) * *(fQ+3)), 1.0f - 2.0f * (*(fQ+1) * *(fQ+1) + *(fQ+2) * *(fQ+2)));
+	*(fKaty + 2) = atan2f(2.0f * (*(fQ+0) * *(fQ+3) + *(fQ+1) * *(fQ+2)), 1.0f - 2.0f * (*(fQ+2) * *(fQ+2) + *(fQ+3) * *(fQ+3)));
+
+	//pochylenie normalnie zwracane jest w zakresie +-Pi/2, więc aby rozszerzć kąt do +-Pi, trzeba zbadać, w którym z dwu alternatywnych położeniach znajduje się BSP
+    float fSinPochylenia = 2.0f * (*(fQ+0) * *(fQ+2) - *(fQ+1) * *(fQ+3));
+    fSinPochylenia = fmaxf(-1.0f, fminf(1.0f, fSinPochylenia));
+    *(fKaty + 1) = asinf(fSinPochylenia);		//pierwsza alternatywna kąta pochylenia
+
+	fKątAlternatywny[0] = ZawińPi(M_PI + *(fKaty + 0));	//wartość alternatywnego kąta przechylenia
+	fKątAlternatywny[1] = ZawińPi(M_PI - *(fKaty + 1));	//wartość alternatywnego kąta pochylenia
+	fKątAlternatywny[2] = ZawińPi(M_PI + *(fKaty + 2));	//wartość alternatywnego kąta odchylenia
+
+	if (!stKatyRozszerz->cZainicjowany)
+	{
+		for (uint8_t n=0; n<3; n++)
+			stKatyRozszerz->fKaty[n] = *(fKaty + n);
+
+		for (uint8_t n=0; n<4; n++)
+			stKatyRozszerz->fQwat[n] = *(fQ + n);
+		stKatyRozszerz->cZainicjowany = 1;
+		return;
+	}
+
+	//Względny obrót:	fdQ = KwaternionSprzezony(Qpoprzedni) * Qbieżący
+	float fQSprzężony[4];
+	float fdQ[4];
+	KwaternionSprzezony(fQ, fQSprzężony);
+	MnozenieKwaternionow(fQSprzężony, fQ, fdQ);
+
+	if (fdQ[0] < 0.0f)
+	{
+		for (uint8_t n=0; n<4; n++)
+			fdQ[n] = -fdQ[n];
+	}
+
+	//liczę przybliżone przyrosty katów obrotu. Poprawne dla małych przyrostów
+	float fRóżnicaKąta[3];
+	for (uint8_t n=0; n<3; n++)
+		fRóżnicaKąta[n] = 2.0f * fdQ[n+1];
+
+	//oblicz wartość przewidywanego kąta
+	float fPrzewidywanyKąt[3];
+
+	for (uint8_t n=0; n<3; n++)
+		fPrzewidywanyKąt[n] = ZawińPi(stKatyRozszerz->fKaty[n] + fRóżnicaKąta[n]);
+
+
+	//policz kwadrat odległości do poprzedniej wartości kąta aby pozbyć się ewentualnych znaków
+	float fOdległość1 = 0.0f;
+	float fOdległość2 = 0.0f;
+
+	for (uint8_t n=0; n<3; n++)
+	{
+		fOdległość1 += powf(ZawińPi(*(fKaty + n) - fPrzewidywanyKąt[n]), 2.0f);
+		fOdległość2 += powf(ZawińPi(fKątAlternatywny[n] - fPrzewidywanyKąt[n]), 2.0f);
+	}
+	if (fOdległość2 < fOdległość1)	//jeżeli kąt alternatywny jest bliżej, to użyj jego
+	{
+		for (uint8_t n=0; n<3; n++)
+			*(fKaty + n) = fKątAlternatywny[n];
+	}
+
+	//zapamiętanie wartości biezących jako poprzednich
+	for (uint8_t n=0; n<3; n++)
+		stKatyRozszerz->fKaty[n] = *(fKaty + n);
+
+	for (uint8_t n=0; n<4; n++)
+		stKatyRozszerz->fQwat[n] = fQ[n];
 }
 
 

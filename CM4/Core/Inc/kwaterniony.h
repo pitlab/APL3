@@ -10,6 +10,15 @@
 
 #include "SysDefCM4.h"
 
+
+typedef struct
+{
+    float fKaty[3];
+    float fQwat[4];
+    uint8_t cZainicjowany;
+} stKatyRozszerz_t;
+
+
 void MnozenieKwaternionow(float *q, float *p, float *wynik);
 void KwaternionNaMacierz(float *q, float *m);
 void MacierzNaKwaternion(float  *m, float *q);
@@ -23,6 +32,8 @@ void KatyKwaterniona2(float *qA, float *qM, float *fKaty);
 void KatyKwaterniona3(float *qA, float *qM, float *fKaty);
 void KatyKwaterniona(float *qA, float *qM, float *fKaty);
 void KwaternionNaKąty(float *fQ, float *fKaty);
+void KwaternionNaKąty2(float *fQ, float *fKaty);
+void KwaternionNaKąty3(float *fQ, float *fKaty, stKatyRozszerz_t *stKatyRozszerz);
 void KatyNaKwaternion(float *fKaty, float *q);
 void NormalizujWektor(float * fWe, float *fWy, uint8_t chRozmiar);
 

@@ -35,5 +35,6 @@ int32_t nDlug;	//pierwiastek z sumy kwadratów ABC
 
 void ObrocWektorLokalny(float *fWektorWe, float *fWektorWy, float *fKat);
 void ObrocWektorGlobalny(float *fWektorWe, float *fWektorWy, float *fKat);
+float ZawińPi(float fKąt);
 
 #endif /* INC_WSPOLNE_H_ */

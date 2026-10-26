@@ -252,9 +252,9 @@ void PetlaGlowna(void)
 		break;
 
 	case 10:	//filtr Kalmana kątów orientacji
-		if (uDaneCM4.dane.nZainicjowano & INIT_KALMAN_KATOW)	//symulacja
+		if (uDaneCM4.dane.nZainicjowano & INIT_KALMAN_KATOW)
 		{
-			if (uDaneCM7.dane.stSym.cFlagi & SYM_WLACZONA)
+			if (uDaneCM7.dane.stSym.cFlagi & SYM_WLACZONA)		//czy trwa symulacja
 			{
 				cBłądPG = PredykcjaFiltraKalmanaKątów7X9Z(uDaneCM7.dane.stSym.fPrędkośćKątowa, &uDaneCM4.dane);
 				PrzechwyćBłąd(cBłądPG);
