@@ -277,15 +277,16 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 				switch (n)
 				{
 				case RAMKA_POLECEN:	HAL_UART_Transmit_DMA(&hlpuart1, &cBuforNadDMA[0], st_ZajetośćLPUART.sDoWysłania[n]);		 break;
-				case RAMKA_TELE1:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[0 + st_ZajetośćLPUART.cIndeksNapełnianejRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
-				case RAMKA_TELE2:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[2 + st_ZajetośćLPUART.cIndeksNapełnianejRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
-				case RAMKA_TELE3:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[4 + st_ZajetośćLPUART.cIndeksNapełnianejRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
-				case RAMKA_TELE4:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[6 + st_ZajetośćLPUART.cIndeksNapełnianejRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
+				case RAMKA_TELE1:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[0 + st_ZajetośćLPUART.cIndeksBuforaRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
+				case RAMKA_TELE2:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[2 + st_ZajetośćLPUART.cIndeksBuforaRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
+				case RAMKA_TELE3:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[4 + st_ZajetośćLPUART.cIndeksBuforaRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
+				case RAMKA_TELE4:	HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[6 + st_ZajetośćLPUART.cIndeksBuforaRamki[n]][0], st_ZajetośćLPUART.sDoWysłania[n]);		break;
 				}
 				st_ZajetośćLPUART.cZajętyPrzez = n;
 				st_ZajetośćLPUART.sDoWysłania[n] = 0;	//wysłano więc zdejmij z kolejki i zezwól na ponowne napełnienie bufora
-				st_ZajetośćLPUART.cIndeksNapełnianejRamki[n]++;	//przełacz indeks podwójnego buforowania aby można było napełniać drugi bufor
-				st_ZajetośćLPUART.cIndeksNapełnianejRamki[n] &= 0x01;
+				st_ZajetośćLPUART.cIndeksBuforaRamki[n]++;	//przełacz indeks podwójnego buforowania aby można było napełniać drugi bufor
+				if (st_ZajetośćLPUART.cIndeksBuforaRamki[n] >= LICZBA_BUFOROW_TELEMETRII)
+					st_ZajetośćLPUART.cIndeksBuforaRamki[n] = 0;
 				break;	//zakończ wykonanie petli for po wysłaniu pierwszej transmisji
 			}
 		}

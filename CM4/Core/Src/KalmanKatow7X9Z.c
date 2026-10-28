@@ -291,8 +291,8 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(float *fPredkościKątowe, stWymianyCM
 		dane->stKalmanKąta.fX[n] = fX[n];
 
 	//oblicz kąty orientacji z kwaternionu
-	//KwaternionNaKąty(fX, dane->stBSP.fKatIMU);	//są przeskoki wartosci dwóch kątów
-	KwaternionNaKąty3(fX, dane->stBSP.fKatIMU, &stKatyRozszerz);
+	KwaternionNaKąty(fX, dane->stBSP.fKatIMU);	//są przeskoki wartosci dwóch kątów
+	//KwaternionNaKąty3(fX, dane->stBSP.fKatIMU, &stKatyRozszerz);
 
 	//dane->stBSP.fKatIMU[1] = asinf (2.0f * (fX[0] * fX[2] - fX[1] * fX[3]));	//kąt ograniczony do +- Pi/2
 	/*/ponieważ kat pochylenia jest ograniczony liczę dwie możliwe reprezentację kąta i wybiera tą która jest bliższa bieżącej

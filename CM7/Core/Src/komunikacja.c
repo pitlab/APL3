@@ -271,7 +271,7 @@ uint8_t UruchomPolecenie(uint8_t cPolecenie, uint8_t *cDane, uint8_t cRozmDanych
 		Wyslij_KodBledu(cBłąd, cPolecenie, cInterfejs);
 		break;
 
-	case PK_CZYTAJ_OKRES_TELE:	//odczytaj a APL3 okresy telemetrii: cDane[0] == liczba pozycji okresu telemetrii  do odczytania, cDane[1] == numer zmiennej względen początku
+	case PK_CZYTAJ_OKRES_TELE:	//odczytaj z APL3 okresy telemetrii: cDane[0] == liczba pozycji okresu telemetrii do odczytania, cDane[1..2] == indeks zmiennej względem początku
 		cRozmiar = cDane[0];
 		sPrzesuniecie = cDane[1] + cDane[2] * 0x100;	//indeks pierwszej zmiennej, młodszy przodem
 		for (uint8_t n=0; n<cRozmiar; n++)

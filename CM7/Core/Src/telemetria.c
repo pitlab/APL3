@@ -26,7 +26,7 @@
 // Zamiast wielobajtowego słowa określającego bity zmiennych są zawarte 16-bitwy indeks numeru próby FFT oraz indeks numeru wyniku w ramach FFT
 
 // LPUART korzysta z BDMA a ono ma dostęp tylko do SRAM4, więc ramka telemetrii musi być zdefiniowana w SRAM4
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	cRamkaTelemetrii[2 * LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla 16-bitowych zmiennych 0..127 oraz 128..255
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM7")))	cRamkaTelemetrii[LICZBA_BUFOROW_TELEMETRII * LICZBA_RAMEK_TELEMETR][ROZMIAR_RAMKI_KOMUNIKACYJNEJ];	//ramki telemetryczne: przygotowywana i wysyłana dla 16-bitowych zmiennych
 uint16_t sOkresTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];	//zmienna definiujaca okres wysyłania telemetrii dla wszystkich zmiennych
 uint16_t sLicznikTelemetrii[LICZBA_ZMIENNYCH_TELEMETRYCZNYCH];
 uint8_t cStatusTelemetrii;		//określa czy i jaki rodzaj telemetrii ma być wysyłany
@@ -119,8 +119,8 @@ uint8_t ObslugaTelemetrii(uint8_t cInterfejs)
 		{
 			if ((st_ZajetośćLPUART.sDoWysłania[RAMKA_TELE1] == 0) && (st_ZajetośćLPUART.cZajętyPrzez == (int8_t)LPUART_WOLNY))	//dodaj nowe dane tylko do pustej kolejki
 			{
-				//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał 7
-				cIloscDanych[0] = WstawDaneDoSzybkiejRamkiTele(st_ZajetośćLPUART.cIndeksNapełnianejRamki[RAMKA_TELE1], cIndeksWysyłkiTestuFFT, &sIndeksWysyłkiFFT);
+				//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);		//serwo kanał cIndeksBuforaRamki
+				cIloscDanych[0] = WstawDaneDoSzybkiejRamkiTele(st_ZajetośćLPUART.cIndeksBuforaRamki[RAMKA_TELE1], cIndeksWysyłkiTestuFFT, &sIndeksWysyłkiFFT);
 
 				//testuj warunek zakończenia procesu wysyłki FFT
 				if (sIndeksWysyłkiFFT >= stKonfigFFT.sLiczbaProbek / 2)
@@ -140,7 +140,7 @@ uint8_t ObslugaTelemetrii(uint8_t cInterfejs)
 		for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
 		{
 			for(uint8_t n=0; n<LICZBA_BAJTOW_ID_TELEMETRII; n++)
-				cRamkaTelemetrii[st_ZajetośćLPUART.cIndeksNapełnianejRamki[r + RAMKA_TELE1] + 2 * r][ROZMIAR_NAGLOWKA + n] = 0;
+				cRamkaTelemetrii[st_ZajetośćLPUART.cIndeksBuforaRamki[r + RAMKA_TELE1] + 2 * r][ROZMIAR_NAGLOWKA + n] = 0;
 			cIloscDanych[r] = LICZBA_BAJTOW_ID_TELEMETRII;
 		}
 
@@ -156,7 +156,7 @@ uint8_t ObslugaTelemetrii(uint8_t cInterfejs)
 					cIndeksRamki = n >> 7;	//z indeksu zmiennej oblicz indeks ramki, zakładając, że w ramce jest adresowanych (2^7) zmiennych
 					if (cIloscDanych[cIndeksRamki] < (ROZMIAR_RAMKI_KOMUNIKACYJNEJ - ROZMIAR_CRC - 2))	//sprawdź czy dane mieszczą się w ramce
 					{
-						WstawDaneDoRamkiTele(st_ZajetośćLPUART.cIndeksNapełnianejRamki[cIndeksRamki + RAMKA_TELE1], cIndeksRamki, cIloscDanych[cIndeksRamki], n, fZmienna);
+						WstawDaneDoRamkiTele(st_ZajetośćLPUART.cIndeksBuforaRamki[cIndeksRamki + RAMKA_TELE1], cIndeksRamki, cIloscDanych[cIndeksRamki], n, fZmienna);
 						cIloscDanych[cIndeksRamki] += 2;
 					}
 				}
@@ -170,7 +170,7 @@ uint8_t ObslugaTelemetrii(uint8_t cInterfejs)
 	{
 		if (cIloscDanych[r] > LICZBA_BAJTOW_ID_TELEMETRII)	//jeżeli jest coś do wysłania ponad 16 bajtów ID telemetrii
 		{
-			PrzygotujRamkeTele(st_ZajetośćLPUART.cIndeksNapełnianejRamki[r + RAMKA_TELE1] + r * LICZBA_BUFOROW_TELEMETRII, cTypRamki, cAdresZdalny[cInterfejs], stBSP_ID.cAdres, cIloscDanych[r]);	//utwórz ramkę gotową do wysyłki
+			PrzygotujRamkeTele(st_ZajetośćLPUART.cIndeksBuforaRamki[r + RAMKA_TELE1] + r * LICZBA_BUFOROW_TELEMETRII, cTypRamki, cAdresZdalny[cInterfejs], stBSP_ID.cAdres, cIloscDanych[r]);	//utwórz ramkę gotową do wysyłki
 			st_ZajetośćLPUART.sDoWysłania[r + RAMKA_TELE1] = cIloscDanych[r] + ROZM_CIALA_RAMKI;
 		}
 	}
@@ -179,17 +179,22 @@ uint8_t ObslugaTelemetrii(uint8_t cInterfejs)
 	__disable_irq();	//sekcja krytyczna wykonywana przy wyłączonych przerwaniach
 	if (st_ZajetośćLPUART.cZajętyPrzez == (int8_t)LPUART_WOLNY)	//jeżeli LPUART nie jest zajęty to wyślij telemetrię począwszy od RAMKA_TELE1
 	{
+		uint8_t cIndeksBufora;
+		uint8_t cIndeksRamki;
 		for (uint8_t r=0; r<LICZBA_RAMEK_TELEMETR; r++)
 		{
-			if (st_ZajetośćLPUART.sDoWysłania[r + RAMKA_TELE1])
+			cIndeksRamki = r + RAMKA_TELE1;
+			cIndeksBufora = st_ZajetośćLPUART.cIndeksBuforaRamki[cIndeksRamki] + r * LICZBA_BUFOROW_TELEMETRII;
+			if (st_ZajetośćLPUART.sDoWysłania[cIndeksRamki])
 			{
 				cStatusPolaczenia |= (STAT_POL_PRZESYLA << STAT_POL_UART);		//sygnalizuj transfer danych
-				st_ZajetośćLPUART.cZajętyPrzez = RAMKA_TELE1 + r;
-				HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[st_ZajetośćLPUART.cIndeksNapełnianejRamki[r + RAMKA_TELE1] + r * LICZBA_RAMEK_TELEMETR][0], st_ZajetośćLPUART.sDoWysłania[r + RAMKA_TELE1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
-				cWysyłamTyleDanych = st_ZajetośćLPUART.sDoWysłania[r + RAMKA_TELE1];
-				st_ZajetośćLPUART.sDoWysłania[r + RAMKA_TELE1] = 0;	//rozpoczęto wysyłanie, więc zdejmij z kolejki i zezwól na napełnienie drugiego bufora
-				st_ZajetośćLPUART.cIndeksNapełnianejRamki[r + RAMKA_TELE1]++;	//przełacz indeks podwójnego buforowania aby można było napełniać drugi bufor
-				st_ZajetośćLPUART.cIndeksNapełnianejRamki[r + RAMKA_TELE1] &= 0x01;
+				st_ZajetośćLPUART.cZajętyPrzez = cIndeksRamki;
+				HAL_UART_Transmit_DMA(&hlpuart1, &cRamkaTelemetrii[cIndeksBufora][0], st_ZajetośćLPUART.sDoWysłania[r + RAMKA_TELE1]);	//wyślij ramkę - Uwaga, nie wyśle 2 ramek na raz, zrobić kolejkę wysyłania
+				cWysyłamTyleDanych = st_ZajetośćLPUART.sDoWysłania[cIndeksRamki];
+				st_ZajetośćLPUART.sDoWysłania[cIndeksRamki] = 0;	//rozpoczęto wysyłanie, więc zdejmij z kolejki i zezwól na napełnienie kolejnego bufora
+				st_ZajetośćLPUART.cIndeksBuforaRamki[cIndeksRamki]++;	//przełacz indeks podwójnego buforowania aby można było napełniać kolejny bufor
+				if (st_ZajetośćLPUART.cIndeksBuforaRamki[cIndeksRamki] >= LICZBA_BUFOROW_TELEMETRII)
+					st_ZajetośćLPUART.cIndeksBuforaRamki[cIndeksRamki] = 0;
 				//zdjęcie flagi zajetości LPUART następuje w HAL_UART_TxCpltCallback() po fizycznym zakończeniu wysyłki
 				break;	//wyjdź z pętli po rozpoczęciu wysłania pierwszej ramki
 			}
