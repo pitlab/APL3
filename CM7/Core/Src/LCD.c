@@ -838,7 +838,7 @@ uint8_t RysujEkran(void)
 			cNowyTrybPracy = TP_WROC_DO_KAMERA;
 			break;
 		}
-		RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
+		RysujNapis((char*)cOpisBledow[KOMUNIKAT_WDUS_EKRAN], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 		CzekajNaKoniecPracyDCMI(WYS_ZDJECIA);
 		nCzas = MinalCzas(nCzas);
 		printf("Tdcmi=%ldus\r\n", nCzas);
@@ -1326,7 +1326,7 @@ uint8_t RysujEkran(void)
 			BelkaTytulu("Emulacja magnetometru CAN");
 			cRysujRaz = 0;
 			setColor(SZARY50);
-			RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
+			RysujNapis((char*)cOpisBledow[KOMUNIKAT_WDUS_EKRAN], CENTER, 300);	//"Wdus ekran aby zakonczyc"
 		}
 
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
@@ -2100,7 +2100,7 @@ void WyswietlKomunikatBledu(uint8_t chKomunikatBledu, float fParametr1, float fP
 	//stopka komunikatu
 	UstawCzcionke(cMidFont);
 	setColor(SZARY50);
-	RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 250);	//"Wdus ekran i trzymaj aby zakonczyc"
+	RysujNapis((char*)cOpisBledow[KOMUNIKAT_WDUS_EKRAN], CENTER, 250);	//"Wdus ekran i trzymaj aby zakonczyc"
 
 	//treść komunikatu
 	setColor(ZOLTY);
@@ -2195,7 +2195,7 @@ void PomiaryAHRS(void)
 		//RysujNapis(cNapis, KOL12, 270);
 
 		setColor(SZARY50);
-		RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
+		RysujNapis((char*)cOpisBledow[KOMUNIKAT_WDUS_EKRAN], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 	}
 
 	//ICM42688
@@ -2453,7 +2453,7 @@ void PomiaryCzujnikow(void)
 
 
 		setColor(SZARY50);
-		RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
+		RysujNapis((char*)cOpisBledow[KOMUNIKAT_WDUS_EKRAN], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 	}
 
 	//MS5611
@@ -2610,7 +2610,7 @@ void RysujPaskiKanalowRC(uint8_t chIndeksOpisu, uint16_t *sDane)
 			RysujProstokat(77, y+29, (79 + WE_RC_MAX / ROZDZIECZOSC_PASKA_RC), y+29+8);
 		}
 		setColor(SZARY50);
-		RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
+		RysujNapis((char*)cOpisBledow[KOMUNIKAT_WDUS_EKRAN], CENTER, 300);	//"Wdus ekran i trzymaj aby zakonczyc"
 	}
 
 	for (n=0; n<KANALY_ODB_RC; n++)
@@ -4462,7 +4462,7 @@ void NastawyPID(uint8_t chKanal)
 		sprintf(cNapis, "Reg k%ctowy:", ą);
 		RysujNapis(cNapis, KOL22, 270);
 		setColor(SZARY60);
-		RysujNapis((char*)cOpisBledow[KOMUNIKAT_DUS_I_TRZYMAJ], CENTER, 300);
+		RysujNapis((char*)cOpisBledow[KOMUNIKAT_WDUS_EKRAN], CENTER, 300);
 
 		//odczytaj tryb pracy regulatorów
 		cBłąd = CzytajFramChar(FAU_TRYB_REG, LICZBA_REG_PARAM, chTrybRegulatora);

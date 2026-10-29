@@ -16,10 +16,10 @@
 #define KWATER		4	//rozmiar kwaternionu
 #define KKPOMR		3	//rozmiar wektora pomiaru filtra katów
 
-#define WARIANCJA_PROCESU_ZYRO	1.0e-11f	//określa jak szybko może przesuwać sie poziom zera żyroskopu
-#define WARIANCJA_SZUMU_ZYRO	5.0e-3f		//określa jak szybko może zmieniać sie pomiar żyroskopu
-#define WARIANCJA_SZUMU_ACEL 	5.0e-3f		//określa jak szybko może zmieniać sie pomiar akcelerometru
-#define WARIANCJA_SZUMU_MAGN 	5.0e-1f		//określa jak szybko może zmieniać sie pomiar magnetometru - uwaga: do obliczenia wariancji wektor musi być znormalizowany, bo w takiej formie występuje w filtrze
+#define WARIANCJA_SZUMU_PROCESU_ZYRO	1.0e-11f	//określa jak szybko może przesuwać sie poziom zera żyroskopu
+#define WARIANCJA_SZUMU_POMIARU_ZYRO	5.0e-3f		//określa jak szybko może zmieniać sie pomiar żyroskopu
+#define WARIANCJA_SZUMU_POMIARU_ACEL 	5.0e-3f		//określa jak szybko może zmieniać sie pomiar akcelerometru
+#define WARIANCJA_SZUMU_POMIARU_MAGN 	5.0e-1f		//określa jak szybko może zmieniać sie pomiar magnetometru - uwaga: do obliczenia wariancji wektor musi być znormalizowany, bo w takiej formie występuje w filtrze
 
 
 

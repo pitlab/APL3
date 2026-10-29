@@ -301,6 +301,7 @@ typedef struct
 	float fMagnetometr[3];		//składowe symulowanego wektora magnetycznego
 	float fPrędkośćKątowa[3];	//składowe prędkości kątowej obracajacej wektory
 	float fCałkaKataObrotu[3];	//całka prędkości kątowej dająca bieżącą wartość kątów
+	float fOffsetKąta[3];		//stała wartość dodawana do kąta
 } stSym_t;
 
 

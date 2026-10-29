@@ -91,7 +91,7 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 	float fPrzyrostKąta;
 
 	//kąt przechylenia z akcelerometru: 90° + atan(-Z/Y) = Pi/2 + atan2(-Z, Y)
-	//if ((wyniki->fKątAkcel[1] > -M_PI/2) && (wyniki->fKątAkcel[1] < M_PI/2))	//dwie kompensacje nie działają jednocześnie, więc wybieram lpmpensację pochylenia aby działało odchylenie jako ważniejsze
+	//if ((wyniki->fKątAkcel[1] > -M_PI/2) && (wyniki->fKątAkcel[1] < M_PI/2))	//dwie kompensacje nie działają jednocześnie, więc wybieram kompensację pochylenia aby działało przechylenie jako ważniejsze
 		wyniki->fKątAkcel[0] = atan2f(-1 * *(fAkcel + 2), *(fAkcel + 1)) + M_PI/2;	//OK
 	//else
 		//wyniki->fKątAkcel[0] = atan2f(-1 * *(fAkcel + 2), *(fAkcel + 1)) - M_PI/2;	//OK
@@ -111,11 +111,7 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 	//Rzutujemy pomiar magnetometru na płaszczyzne poziomą przy użyciu kątów phi i theta
 	float fXm = *(fMagn + 0) * fCosThe + *(fMagn + 1) * fSinPhi * fSinThe + *(fMagn + 2) * fCosPhi * fSinThe;
 	float fYm = *(fMagn + 1) * fCosPhi - *(fMagn + 2) * fSinPhi;
-	//wyniki->fKątAkcel[2] = atan2f(-fYm, fXm);
-	wyniki->fKątAkcel[2] = atan2f(-1 * *(fMagn + 1), *(fMagn + 0));	//bez kompensacji przechylenia i pochylenia
-	//wyniki->fKątAkcel[2] = atan2f(*(fMagn + 1), fXm);		//kompensacja X
-	//wyniki->fKątAkcel[2] = atan2f(fYm, *(fMagn + 0));	//kompensacja Y
-	//wyniki->fKątAkcel[2] = atan2f(fYm, fXm);			//pełna kompensacja X i Y
+	wyniki->fKątAkcel[2] = atan2f(-fYm, fXm);			//kompensacja pochylenia i przechylenia
 
 	//filtr komplementarny IMU i całka z żyroskopów
 	if (ndT > MAX_DT)	//nie licz całki prędkosci kątowej z przestojów
@@ -131,28 +127,12 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 		wyniki->fKątIMU1[n] = ZawińPi(wyniki->fKątIMU1[n]);
 		wyniki->fKątAkcel[n] = ZawińPi(wyniki->fKątAkcel[n]);
 
-		/*if (wyniki->fKątIMU1[n] > M_PI)
-			wyniki->fKątIMU1[n] -= 2 * M_PI;
-		if (wyniki->fKątIMU1[n] < -M_PI)
-			wyniki->fKątIMU1[n] += 2 * M_PI;
-
-		if (wyniki->fKątAkcel[n] > M_PI)
-			wyniki->fKątAkcel[n] -= 2 * M_PI;
-		if (wyniki->fKątAkcel[n] < -M_PI)
-			wyniki->fKątAkcel[n] += 2 * M_PI;*/
-
-		wyniki->fKątIMU1[n] = 0.02 * wyniki->fKątAkcel[n] + 0.98 * wyniki->fKątIMU1[n];	//kasowanie dryftu dodatkiem kątów z akcelerometru i magnetometru
+		//kasowanie dryftu żyro dodatkiem kątów z akcelerometru i magnetometru
+		wyniki->fKątIMU1[n] = 0.02 * wyniki->fKątAkcel[n] + 0.98 * wyniki->fKątIMU1[n];
 
 		//w czasie kalibracji wzmocnienia nie ograniczaj przyrostu kąta
 		if ((uDaneCM7.dane.cWykonajPolecenie < POL7_CALKUJ_PRED_KAT) || (uDaneCM7.dane.cWykonajPolecenie > POL7_KALIBRUJ_ZYRO_WZMP))
-		{
-			//ogranicz przyrost kąta do +-Pi
-			wyniki->fKątZyro1[n] = ZawińPi(wyniki->fKątZyro1[n]);
-			/*if (wyniki->fKątZyro1[n] > M_PI)
-				wyniki->fKątZyro1[n] -= 2 * M_PI;
-			if (wyniki->fKątZyro1[n] < -M_PI)
-				wyniki->fKątZyro1[n] += 2 * M_PI;*/
-		}
+			wyniki->fKątZyro1[n] = ZawińPi(wyniki->fKątZyro1[n]);	//ogranicz przyrost kąta do +-Pi
 	}
 	return cBłąd;
 }
@@ -176,7 +156,6 @@ uint8_t JednostkaInercyjnaKwaterniony(float *fŻyro, float *fAkcel, float *fMagn
 	float fWspFiltraAkc, fWspFiltraMag;
 	float fAccNorm[3], fMagNorm[3];
 	float fQPoch[4], fQprze[4], fQkompens[4];	//kwaterniony obrotu o pochylenie i przechylenie oraz łączny obrót kompensacji magnetometru
-
 
 	//Wyznaczam kwaterniony obrotów w formie algebraicznej korzystając z danych wejściowych sprowadzonych do formy trygonometrycznej
 	//Ponieważ we wzorach występuje połowa kąta, więc aby nie wykonywać dzielenia wielokrotnie, od razu liczę wartość połowy kata
@@ -230,10 +209,11 @@ uint8_t JednostkaInercyjnaKwaterniony(float *fŻyro, float *fAkcel, float *fMagn
 	}
 
 	//oblicz kąty tradycyjnie trygonometrią
-	//uDaneCM4.dane.fKątIMU2[0] = atan2f(-fQAcc[2], fQAcc[3]);	//kąt przechylenia z akcelerometru: tan(-Y/Z) = atan2(Z, -Y)
-	uDaneCM4.dane.fKątIMU2[0] = atan2f(-fQAcc[3], fQAcc[2]) +  M_PI/2;	//OK
-	//uDaneCM4.dane.fKątIMU2[1] = atan2f(fQAcc[1], fQAcc[3]);	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(X, Z)
-	uDaneCM4.dane.fKątIMU2[1] = atan2f(fQAcc[3], fQAcc[1]) - M_PI/2;	//OK
+	uDaneCM4.dane.fKątIMU2[0] = atan2f(-fQAcc[3], fQAcc[2]) +  M_PI/2;	//kąt przechylenia z akcelerometru: tan(-Z/Y) = atan2(-Z, Y) + Pi/2
+	if ((uDaneCM4.dane.fKątIMU2[0] > -M_PI/2) && (uDaneCM4.dane.fKątIMU2[0] < M_PI/2))
+		uDaneCM4.dane.fKątIMU2[1] = atan2f(fQAcc[3], fQAcc[1]) - M_PI/2;	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(Z, X) - Pi/2
+	else
+		uDaneCM4.dane.fKątIMU2[1] = atan2f(fQAcc[3], fQAcc[1]) + M_PI/2;	//kąt pochylenia z akcelerometru: tan(Z/X) = atan2(Z, X) + Pi/2
 
 	//Żeby policzyć kat odchylenia z wektora magnetometru najpierw skompensuj pochylenie i przechylenie obracając kopię wektora mag. o ujemne pochylenie i dodatnie przechylenie
 	// zmiana znaku korekcji osi wynika prawdopodobnie ze składania obrotów
@@ -257,17 +237,12 @@ uint8_t JednostkaInercyjnaKwaterniony(float *fŻyro, float *fAkcel, float *fMagn
 	KatyKwaterniona(fQAcc, fQMagKompens, (float*)uDaneCM4.dane.fKątKwater);	//wersja z asinf szybsza
 	//KatyKwaterniona3(fQAcc, fQMagKompens, (float*)uDaneCM4.dane.fKątAkcel);	//wersja oryginalna dzielona przez -2
 
-	//oblicz kąt odchylenia w radianach z danych magnetometru: tan(Y/X) dla X=N, Y=E => atan2(X, Y)
-	uDaneCM4.dane.fKątIMU2[2] = atan2f(fQMagKompens[2], fQMagKompens[1]);
+	//oblicz kąt odchylenia w radianach z danych magnetometru: atan(-Y/X) dla X=N, Y=E => atan2(-Y, X)
+	uDaneCM4.dane.fKątIMU2[2] = atan2f(-fQMagKompens[2], fQMagKompens[1]);
 
 	//zawiń kąty, ponieważ dodawanie i odejmowanie Pi/2 przesuwa skalę poza zakres +-Pi
 	for (uint8_t n=0; n<3; n++)
-	{
-		if (uDaneCM4.dane.fKątIMU2[n] > M_PI)
-			uDaneCM4.dane.fKątIMU2[n] -= 2 * M_PI;
-		if (uDaneCM4.dane.fKątIMU2[n] < -M_PI)
-			uDaneCM4.dane.fKątIMU2[n] += 2 * M_PI;
-	}
+		uDaneCM4.dane.fKątIMU2[n] = ZawińPi(uDaneCM4.dane.fKątIMU2[n]);
 	return BLAD_OK;
 }
 

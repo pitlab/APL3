@@ -6,7 +6,6 @@
 // (c) PitLab 2025
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-
 #include <Napisy.h>
 
 #define JEZYK_POLSKI
@@ -88,10 +87,10 @@ const char *cNapisLcd[MAX_NAPISOW]  = {
 
 
 const char *cOpisBledow[MAX_KOMUNIKATOW] = {
-"Blad wykonania polecenia!",
-"Wdus ekran i trzymaj aby zakonczyc",
-"Zbyt niska temeratura zyroskopow wynoszaca %.0f%cC. Musi miescic sie w granicach od %.0f%cC do %.0f%cC",
-"Zbyt wysoka temeratura zyroskopow wynoszaca %.0f%cC. Musi miescic sie w granicach od %.0f%cC do %.0f%cC",
+"Blad wykonania polecenia!",		//KOMUNIKAT_NAGLOWEK
+"Wdus ekran aby zakonczyc",			//KOMUNIKAT_WDUS_EKRAN
+"Zbyt niska temeratura zyroskopow wynoszaca %.0f%cC. Musi miescic sie w granicach od %.0f%cC do %.0f%cC",	//KOMUNIKAT_ZA_ZIMNO
+"Zbyt wysoka temeratura zyroskopow wynoszaca %.0f%cC. Musi miescic sie w granicach od %.0f%cC do %.0f%cC",	//KOMUNIKAT_ZA_CIEPLO
 };
 
 const char *cNazwyMies3Lit[13]  = {"---", "Sty","Lut", "Mar", "Kwi", "Maj", "Cze", "Lip", "Sie", "Wrz", "Paz", "Lis", "Gru"};

@@ -14,6 +14,7 @@
 #include <LCD/ILI9488.h>
 #include "Ekran.h"
 #include <Rysuj.h>
+#include <Napisy.h>
 #include <Czas.h>
 #include "Dotyk.h"
 #include <Audio.h>
@@ -25,6 +26,7 @@ extern char cNapis[100];
 extern unia_wymianyCM7_t uDaneCM7;
 uint32_t nPoprzedniCzas;
 extern stStatusDotyku_t stStatusDotyku;
+extern const char *cOpisBledow[MAX_KOMUNIKATOW];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inicjuje wektory początkowe ustawiając symulowany BSP poziomo skierowany na północ geograficzną
@@ -70,7 +72,8 @@ uint8_t InicjujKąty(stSym_t *stSym)
 	stSym->fMagnetometr[0] = NOMINALNE_MAGN;	//oś X magnetometru wskazuje północ magnetyczną jak na równiku
 
 	fKatObrotuMagn[0] = 0.0f;
-	fKatObrotuMagn[1] = -INKLINACJA_MAG;		//inklinacja magnetyczna w radianach
+	fKatObrotuMagn[1] = -INKLINACJA_MAG;		//inklinacja magnetyczna w radianach ujemna dla pólkuli północnej
+	//fKatObrotuMagn[1] = INKLINACJA_MAG;		//inklinacja magnetyczna w radianach dodatnia dla pólkuli południowej - większe oscylacje kątów przechylenia i pochylenia ale bez artefaktów w zerze dla pochylenia
 	fKatObrotuMagn[2] = DEKLINACJA_MAG;			//deklinacja magnetyczna w radianach
 	ObrocWektorLokalny(stSym->fMagnetometr, stSym->fMagnetometr, fKatObrotuMagn);
 	return cBłąd;
@@ -126,25 +129,31 @@ uint8_t SymulacjaKątówOrientacji(stSym_t *stSym)
 		sprintf(cNapis, "Symulacja k%ct%cw orientacji", ą, ó);
 		BelkaTytulu(cNapis);
 		setColor(SZARY60);
-		sprintf(cNapis, "Wdu%c ekran i trzymaj aby zako%cczy%c", ś, ń, ć);
-		RysujNapis(cNapis, CENTER, 300);
+		RysujNapis((char*)cOpisBledow[KOMUNIKAT_WDUS_EKRAN], CENTER, 300);	//Wdus ekran aby zakonczyc
 
 		InicjujSymulatorKątów(stSym);
 
 		//Narysuj przyciski
-		RysujLiniePozioma(0, 200, DISP_X_SIZE);
-		RysujLiniePozioma(0, 300, DISP_X_SIZE);
-		RysujLiniePionowa(160, 200, 100);
-		RysujLiniePionowa(320, 200, 100);
+		RysujLiniePozioma(0, PRZYCISKI_GORNE_Y, DISP_X_SIZE);
+		RysujLiniePozioma(0, PRZYCISKI_DOLNE_Y, DISP_X_SIZE);
+		RysujLiniePozioma(0, PRZYCISKI_DOLNE_Y + PRZYCISKI_WYSOKOSC, DISP_X_SIZE);
+		RysujLiniePionowa(PRZYCISKI_RZAD1X, PRZYCISKI_GORNE_Y, 2*PRZYCISKI_WYSOKOSC);
+		RysujLiniePionowa(PRZYCISKI_RZAD2X, PRZYCISKI_GORNE_Y, 2*PRZYCISKI_WYSOKOSC);
 		for (uint8_t n=0; n<3; n++)
 		{
-			if (stSym->fPrędkośćKątowa[n] > MIN_PREDKOSC_KATOWA)
+			if (fabsf(stSym->fOffsetKąta[n]) > MIN_WARTOSC)
 				setColor(ZOLTY);
 			else
 				setColor(SZARY60);
+			sprintf(cNapis, "Offset %c %.2f rad", 'X'+n, stSym->fOffsetKąta[n]);
+			RysujNapis(cNapis, 10 + n*PRZYCISKI_SZEROKOSC, PRZYCISKI_GORNE_Y + PRZYCISKI_WYSOKOSC/2);
 
+			if (stSym->fPrędkośćKątowa[n] > MIN_WARTOSC)
+				setColor(ZOLTY);
+			else
+				setColor(SZARY60);
 			sprintf(cNapis, "Obr%ct wok%c%c %c", ó, ó, ł, 'X'+n);
-			RysujNapis(cNapis, 30 + n*160, 250);
+			RysujNapis(cNapis, 30 + n*160,  PRZYCISKI_DOLNE_Y + PRZYCISKI_WYSOKOSC/2);
 		}
 	}
 	cBłąd = SymulujKątyOrientacji(stSym);
@@ -160,15 +169,37 @@ uint8_t SymulacjaKątówOrientacji(stSym_t *stSym)
 
 	if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 	{
-		//sprawdź współrzędne dotyku Y z lekkim zapasem +10
-		if (stStatusDotyku.sY > 190)		//naciśnieto na przyciski w dole ekranu
+		if (stStatusDotyku.sY > PRZYCISKI_GORNE_Y)		//naciśnieto na górny rząd przycisków
 		{
 			InicjujKąty(stSym);		//nową symulację zaczynaj od ustalonego stanu
 			for (uint8_t n=0; n<3; n++)
 			{
-				if ((stStatusDotyku.sX > 160 * (n+0)) && (stStatusDotyku.sX < 160 * (n+1)))	//naciśnięto przycisk obrotu wokół osi[n]
+				if ((stStatusDotyku.sX > PRZYCISKI_SZEROKOSC * (n+0)) && (stStatusDotyku.sX < PRZYCISKI_SZEROKOSC * (n+1)))	//naciśnięto przycisk zmiany offsetu
 				{
-					if (stSym->fPrędkośćKątowa[n] > MIN_PREDKOSC_KATOWA)
+					if (stSym->fOffsetKąta[n] < MAX_WARTOSC_KATA)
+						stSym->fOffsetKąta[n] += KROK_KATA;
+					else
+						stSym->fOffsetKąta[n] = -MAX_WARTOSC_KATA;
+
+					if (fabsf(stSym->fOffsetKąta[n]) > MIN_WARTOSC)
+						setColor(ZOLTY);
+					else
+						setColor(SZARY60);
+					sprintf(cNapis, "Offset %c %.2f rad", 'X'+n, stSym->fOffsetKąta[n]);
+					RysujNapis(cNapis, 10 + n*PRZYCISKI_SZEROKOSC, PRZYCISKI_GORNE_Y + PRZYCISKI_WYSOKOSC/2);
+				}
+			}
+		}
+
+		//sprawdź współrzędne dotyku Y z lekkim zapasem +10
+		if (stStatusDotyku.sY > PRZYCISKI_DOLNE_Y)		//naciśnieto na przyciski w dole ekranu
+		{
+			InicjujKąty(stSym);		//nową symulację zaczynaj od ustalonego stanu
+			for (uint8_t n=0; n<3; n++)
+			{
+				if ((stStatusDotyku.sX > PRZYCISKI_SZEROKOSC * (n+0)) && (stStatusDotyku.sX < PRZYCISKI_SZEROKOSC * (n+1)))	//naciśnięto przycisk obrotu wokół osi[n]
+				{
+					if (stSym->fPrędkośćKątowa[n] > MIN_WARTOSC)
 					{
 						stSym->fPrędkośćKątowa[n] = 0.0f;
 						setColor(SZARY60);
@@ -179,11 +210,13 @@ uint8_t SymulacjaKątówOrientacji(stSym_t *stSym)
 						setColor(ZOLTY);
 					}
 					sprintf(cNapis, "Obr%ct wok%c%c %c", ó, ó, ł, 'X'+n);
-					RysujNapis(cNapis, 30 + n*160, 250);
+					RysujNapis(cNapis, 30 + n*PRZYCISKI_SZEROKOSC, PRZYCISKI_DOLNE_Y + PRZYCISKI_WYSOKOSC/2);
 				}
 			}
 		}
-		else	//naciśnieto poza przyciskami, więc wyjdź
+
+
+		if (stStatusDotyku.sY < PRZYCISKI_GORNE_Y)	//naciśnieto ponad przyciskami górnymi więc wyjdź
 		{
 			cBłąd = BLAD_GOTOWE;
 			stSym->cFlagi = 0;	//wyłącz symulację

@@ -48,7 +48,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define DEG2RAD				(M_PI/180)
 #define KELVIN				273.15f
 #define AKCEL1G				9.80665f			//przelicznik z [g] na [m/s^2]
-#define NOMINALNE_MAGN		50.5796f			//nominalna wartość natężenia pola magnetycznego w mikroTeslach dla Polski centralnej. Źródło: https://www.magnetic-declination.com/ oraz https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/F.jpg
+#define NOMINALNE_MAGN		50.582f			//nominalna wartość natężenia pola magnetycznego w mikroTeslach dla Polski centralnej. Źródło: https://www.magnetic-declination.com/ oraz https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/F.jpg
 #define INKLINACJA_MAG		(68.35f * DEG2RAD)	//inklinacja magnetyczna w radianach. Źródło: https://www.magnetic-declination.com/ lub https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/I.jpg
 #define DEKLINACJA_MAG		(7.017f * DEG2RAD)	//deklinacja magnetyczna w radianach. Źródło: https://www.magnetic-declination.com/ lub https://www.ncei.noaa.gov/sites/g/files/anmtlf171/files/inline-images/D.jpg
 #define PROMIEN_ZIEMI		6371008.77f			//promień Ziemi w metrach

@@ -74,10 +74,9 @@ static arm_matrix_instance_f32 mTempS1B  = {KKSTAN, 1, fTempS1B};				//macierz S
 float fRefMagX;	//układ odniesienia pola magnetycznego
 float fRefMagY;
 float fRefMagZ;
-float fWariancjaSzumuŻyro, fWariancjaProcesuŻyro;
+float fWariancjaSzumuPomiaruŻyro, fWariancjaSzumuProcesuŻyro;
 float fNormaOmega;	//długość wektora prędkości kątowej
-//float fPoprzedniKąt[3] = {0, 0, 0};
-stKatyRozszerz_t stKatyRozszerz = {0};
+stKatyRozszerz_t stKatyRozszerzone = {0};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja inicjuje rozszerzony filtr Kalmana dla kwaternionu kątów orientacji i błędów żyroskopów
@@ -105,10 +104,10 @@ uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 
 	//początkowa wariancja predykcji
 	memset(fP, 0, sizeof(float) * KKSTAN * KKSTAN);
-	fP[0][0] = WARIANCJA_PROCESU_ZYRO;
-	fP[1][1] = WARIANCJA_PROCESU_ZYRO;
-	fP[2][2] = WARIANCJA_PROCESU_ZYRO;
-	fP[3][3] = WARIANCJA_PROCESU_ZYRO;
+	fP[0][0] = WARIANCJA_SZUMU_PROCESU_ZYRO;
+	fP[1][1] = WARIANCJA_SZUMU_PROCESU_ZYRO;
+	fP[2][2] = WARIANCJA_SZUMU_PROCESU_ZYRO;
+	fP[3][3] = WARIANCJA_SZUMU_PROCESU_ZYRO;
 	fP[4][4] = 1.0e-2;
 	fP[5][5] = 1.0e-2;
 	fP[6][6] = 1.0e-2;
@@ -120,15 +119,15 @@ uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 
 	//inicjalizacja macierzy wariancji pomiaru akcelerometrem
 	memset(fRa, 0, sizeof(float) * KKPOMR * KKPOMR);
-	fRa[0][0] = WARIANCJA_SZUMU_ACEL;
-	fRa[1][1] = WARIANCJA_SZUMU_ACEL;
-	fRa[2][2] = WARIANCJA_SZUMU_ACEL;
+	fRa[0][0] = WARIANCJA_SZUMU_POMIARU_ACEL;
+	fRa[1][1] = WARIANCJA_SZUMU_POMIARU_ACEL;
+	fRa[2][2] = WARIANCJA_SZUMU_POMIARU_ACEL;
 	arm_mat_init_f32(&mRa, KKPOMR, KKPOMR, &fRa[0][0]);
 
 	memset(fRm, 0, sizeof(float) * KKPOMR * KKPOMR);
-	fRm[0][0] = WARIANCJA_SZUMU_MAGN;
-	fRm[1][1] = WARIANCJA_SZUMU_MAGN;
-	fRm[2][2] = WARIANCJA_SZUMU_MAGN;
+	fRm[0][0] = WARIANCJA_SZUMU_POMIARU_MAGN;
+	fRm[1][1] = WARIANCJA_SZUMU_POMIARU_MAGN;
+	fRm[2][2] = WARIANCJA_SZUMU_POMIARU_MAGN;
 	arm_mat_init_f32(&mRm, KKPOMR, KKPOMR, &fRm[0][0]);
 
 	//inicjalizacja macierzy sterowania
@@ -176,13 +175,13 @@ uint8_t InicjujFiltrKalmanaKątów7X9Z(stWymianyCM4_t *dane)
 	arm_mat_init_f32(&mTempS1B, KKSTAN, 1, &fTempS1B[0]);
 
 	//układ odniesienia pola magnetycznego
-	fRefMagX = cosf(INKLINACJA_MAG);
-	fRefMagY = 0.0f;
+	fRefMagX = cosf(INKLINACJA_MAG) * cosf(DEKLINACJA_MAG);
+	fRefMagY = cosf(INKLINACJA_MAG) * sinf(DEKLINACJA_MAG);
 	fRefMagZ = sinf(INKLINACJA_MAG);
 
 	//Udostępnij stałe jako zmienne by móc dostrajać filtr bez rekompilacji
-	fWariancjaProcesuŻyro = WARIANCJA_PROCESU_ZYRO;
-	fWariancjaSzumuŻyro = WARIANCJA_SZUMU_ZYRO;
+	fWariancjaSzumuProcesuŻyro = WARIANCJA_SZUMU_PROCESU_ZYRO;	//określa jak szybko może przesuwać sie poziom zera żyroskopu
+	fWariancjaSzumuPomiaruŻyro = WARIANCJA_SZUMU_POMIARU_ZYRO;	//określa jak szybko może zmieniać sie pomiar żyroskopu
 	return cBłąd;
 }
 
@@ -292,37 +291,7 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(float *fPredkościKątowe, stWymianyCM
 
 	//oblicz kąty orientacji z kwaternionu
 	KwaternionNaKąty(fX, dane->stBSP.fKatIMU);	//są przeskoki wartosci dwóch kątów
-	//KwaternionNaKąty3(fX, dane->stBSP.fKatIMU, &stKatyRozszerz);
-
-	//dane->stBSP.fKatIMU[1] = asinf (2.0f * (fX[0] * fX[2] - fX[1] * fX[3]));	//kąt ograniczony do +- Pi/2
-	/*/ponieważ kat pochylenia jest ograniczony liczę dwie możliwe reprezentację kąta i wybiera tą która jest bliższa bieżącej
-	float sinPochylenia = 2.0f * (fX[0] * fX[2] - fX[1] * fX[3]);	// (qw*qy - qx*qz)
-	sinPochylenia = fmaxf(-1.0f, fminf(1.0f, sinPochylenia));
-	dane->stBSP.fKatIMU[1] = asinf(sinPochylenia);
-	float fKątAlternatywny[3];
-	fKątAlternatywny[0] = ZawińPi(M_PI + dane->stBSP.fKatIMU[0]);	//wartość alternatywnego kąta przechylenia
-	fKątAlternatywny[1] = ZawińPi(M_PI - dane->stBSP.fKatIMU[0]);	//wartość alternatywnego kąta pochylenia
-	fKątAlternatywny[2] = ZawińPi(M_PI + dane->stBSP.fKatIMU[2]);	//wartość alternatywnego kąta odchylenia
-
-	//policz odległości do poprzedniej wartości kąta
-	float fOdległość1 = 0.0f;
-	float fOdległość2 = 0.0f;
-
-	for (uint8_t n=0; n<3; n++)
-	{
-		fOdległość1 += powf(ZawińPi(dane->stBSP.fKatIMU[n] - fPoprzedniKąt[n]), 2.0f);
-		fOdległość2 += powf(ZawińPi(fKątAlternatywny[n] - fPoprzedniKąt[n]), 2.0f);
-	}
-	if (fOdległość2 < fOdległość1)	//jeżeli kąt alternatywny jest bliżej, to użyj jego
-			dane->stBSP.fKatIMU[1] = fKątAlternatywny[1];
-
-	//dane->stBSP.fKatIMU[1] = 2.0f * atan2f(fX[2], fX[0]);	//pomiar testowy, poprawny tylko dla czystego kąta. Finalny kąt jest z zakreu +-2Pi
-	//dane->stBSP.fKatIMU[1] = atan2f(fX[2], fX[0]);	//Źle - bez mnożenie przez 2 liczy połowę kata
-
-	//kąty gotowe, zapamietaj poprzednia wartość dla nowego cyklu
-	for (uint8_t n=0; n<3; n++)
-		fPoprzedniKąt[n] = dane->stBSP.fKatIMU[n];*/
-
+	//KwaternionNaKąty3(fX, dane->stBSP.fKatIMU, &stKatyRozszerzone);
 
 	//przygotuj prędkość kątową z usunietym biasem
 	for (uint8_t n=0; n<3; n++)
@@ -336,9 +305,9 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(float *fPredkościKątowe, stWymianyCM
 	/*fTempPPA[0][0] = fDeltaCzasu * WARIANCJA_SZUMU_ZYRO;
 	fTempPPA[1][1] = fDeltaCzasu * WARIANCJA_SZUMU_ZYRO;
 	fTempPPA[2][2] = fDeltaCzasu * WARIANCJA_SZUMU_ZYRO;*/
-	fTempPPA[0][0] = fDeltaCzasu * fWariancjaSzumuŻyro;
-	fTempPPA[1][1] = fDeltaCzasu * fWariancjaSzumuŻyro;
-	fTempPPA[2][2] = fDeltaCzasu * fWariancjaSzumuŻyro;
+	fTempPPA[0][0] = fDeltaCzasu * fWariancjaSzumuPomiaruŻyro;	//stała wariancji szumu pomiaru jak zmienna aby można ją było zmieniać w trakcie pracy
+	fTempPPA[1][1] = fDeltaCzasu * fWariancjaSzumuPomiaruŻyro;
+	fTempPPA[2][2] = fDeltaCzasu * fWariancjaSzumuPomiaruŻyro;
 
 	//wpływ szumu żyroskopu na kwaternion
 	fG[0][0] = -0.5f * fX[1];
@@ -370,9 +339,9 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(float *fPredkościKątowe, stWymianyCM
 	/*fQ[4][4] = fDeltaCzasu * WARIANCJA_PROCESU_ZYRO;
 	fQ[5][5] = fDeltaCzasu * WARIANCJA_PROCESU_ZYRO;
 	fQ[6][6] = fDeltaCzasu * WARIANCJA_PROCESU_ZYRO;*/
-	fQ[4][4] = fDeltaCzasu * fWariancjaProcesuŻyro;
-	fQ[5][5] = fDeltaCzasu * fWariancjaProcesuŻyro;
-	fQ[6][6] = fDeltaCzasu * fWariancjaProcesuŻyro;
+	fQ[4][4] = fDeltaCzasu * fWariancjaSzumuProcesuŻyro;		//stała wariancji szumu procesu jak zmienna aby można ją było zmieniać w trakcie pracy
+	fQ[5][5] = fDeltaCzasu * fWariancjaSzumuProcesuŻyro;
+	fQ[6][6] = fDeltaCzasu * fWariancjaSzumuProcesuŻyro;
 
 	//2.1 Mnożenie   F * P(n) 		[Stan x Stan] * [Stan x Stan] = [Stan x Stan]
 	cBłąd |= arm_mat_mult_f32(&mF, &mP, &mTempSSA);
