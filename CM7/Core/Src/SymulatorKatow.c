@@ -76,6 +76,10 @@ uint8_t InicjujKąty(stSym_t *stSym)
 	//fKatObrotuMagn[1] = INKLINACJA_MAG;		//inklinacja magnetyczna w radianach dodatnia dla pólkuli południowej - większe oscylacje kątów przechylenia i pochylenia ale bez artefaktów w zerze dla pochylenia
 	fKatObrotuMagn[2] = DEKLINACJA_MAG;			//deklinacja magnetyczna w radianach
 	ObrocWektorLokalny(stSym->fMagnetometr, stSym->fMagnetometr, fKatObrotuMagn);
+
+	//obróć oba wektory o offset kąta
+	ObrocWektorGlobalny(stSym->fAkcelerometr, stSym->fAkcelerometr, stSym->fOffsetKąta);
+	ObrocWektorGlobalny(stSym->fMagnetometr, stSym->fMagnetometr, stSym->fOffsetKąta);
 	return cBłąd;
 }
 
@@ -98,7 +102,7 @@ uint8_t SymulujKątyOrientacji(stSym_t *stSym)
 	//całkuj prędkość kątową
 	for (uint8_t n=0; n<3; n++)
 	{
-		fPrzyrostKąta[n] = (nCzas * stSym->fPrędkośćKątowa[n]) / -1000000;	//obrót wymaga ujemnej prędkości kątowej
+		fPrzyrostKąta[n] = (nCzas * stSym->fPrędkośćKątowa[n]) / -1000000;	//obrót globalny wymaga ujemnej prędkości kątowej
 		stSym->fCałkaKataObrotu[n] += fPrzyrostKąta[n];
 		if (stSym->fCałkaKataObrotu[n] > M_PI)
 			stSym->fCałkaKataObrotu[n] -= 2*M_PI;
