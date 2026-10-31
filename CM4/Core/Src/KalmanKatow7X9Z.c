@@ -77,6 +77,7 @@ float fRefMagZ;
 float fWariancjaSzumuPomiaruŻyro, fWariancjaSzumuProcesuŻyro;
 float fNormaOmega;	//długość wektora prędkości kątowej
 stKatyRozszerz_t stKatyRozszerzone = {0};
+float fOmega[3];	//rzeczywista prędkość kątowa
 
 ////////////////////////////////////////////////////////////////////////////////
 // Funkcja inicjuje rozszerzony filtr Kalmana dla kwaternionu kątów orientacji i błędów żyroskopów
@@ -201,7 +202,7 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(float *fPredkościKątowe, stWymianyCM
 {
 	uint8_t cBłąd = BLAD_OK;
 	float32_t fDeltaCzasu = (float32_t)dane->ndT / 1e6;
-	float fOmega[3];	//rzeczywista prędkość kątowa
+	//float fOmega[3];	//rzeczywista prędkość kątowa
 
 	//odrzuć predykcje gdy czas obiegu pętli znacznie odbiega od normy
 	if ((fDeltaCzasu < 5e-6) || (fDeltaCzasu > 0.1f))

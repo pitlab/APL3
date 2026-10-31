@@ -159,7 +159,7 @@ void OrientacjaEkranu(uint8_t orientacja)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t WypelnijEkran(uint16_t sKolor565)
 {
-	uint8_t chDane[12];
+	uint8_t chDane[BAJTOW_KOLORU * PIX_JEDNOCZESNIE];
 	uint8_t cBłąd = BLAD_OK;
 	uint8_t cLicznikProbOdblokowania = 10;
 
@@ -193,11 +193,11 @@ uint8_t WypelnijEkran(uint16_t sKolor565)
 		chDane[3] = 0x3F;		//319 = 0x13F
 		LCD_WrData(chDane, 4);
 
-		for (uint8_t x=0; x<4; x++)
+		for (uint8_t x=0; x<PIX_JEDNOCZESNIE; x++)
 		{
-			chDane[3*x + 0] = cKolor666[0];
-			chDane[3*x + 1] = cKolor666[1];
-			chDane[3*x + 2] = cKolor666[2];
+			chDane[BAJTOW_KOLORU * x + 0] = cKolor666[0];
+			chDane[BAJTOW_KOLORU * x + 1] = cKolor666[1];
+			chDane[BAJTOW_KOLORU * x + 2] = cKolor666[2];
 		}
 		LCD_write_command8(ILI9488_RAMWR);	//Memory Write
 
@@ -205,8 +205,8 @@ uint8_t WypelnijEkran(uint16_t sKolor565)
 		HAL_GPIO_WritePin(LCD_RS_GPIO_Port, LCD_RS_Pin, GPIO_PIN_SET);	//LCD_RS=1
 		for(uint16_t y=0; y<320; y++)
 		{
-			for(uint16_t x=0; x<480/4; x++)								//by zoptymalizować czasochłonne wypełnianie, wykonaj 4 razy mniej iteracji
-				HAL_SPI_Transmit(&hspi5, chDane, 12, HAL_DELAY_SPI);	//ale w każdym wierszu przeslij 4 razy więcej danych
+			for(uint16_t x=0; x<480/PIX_JEDNOCZESNIE; x++)								//by zoptymalizować czasochłonne wypełnianie, wykonaj 4 razy mniej iteracji
+				HAL_SPI_Transmit(&hspi5, chDane, BAJTOW_KOLORU * PIX_JEDNOCZESNIE, HAL_DELAY_SPI);	//ale w każdym wierszu przeslij 4 razy więcej danych
 		}
 		UstawDekoderZewn(CS_NIC);										//LCD_CS=1
 		HAL_HSEM_Release(HSEM_SPI5, HSEM_LCD);

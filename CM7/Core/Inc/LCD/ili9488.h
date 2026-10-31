@@ -67,6 +67,9 @@
 #define ILI9488_GMCTRP1 0xE0
 #define ILI9488_GMCTRN1 0xE1
 
+#define BAJTOW_KOLORU		3	//liczba bajtów definiujacych kolor przesyłanych do wyświetlacza: RGB666
+#define PIX_JEDNOCZESNIE	4	//liczba pikseli z kolorem przesyłanych w jednej transmisji w celu optymalizacji liczby transferów
+
 
 uint8_t InicjujLCD_ILI9488(void);
 void OrientacjaEkranu(uint8_t orientacja);

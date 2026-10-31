@@ -173,7 +173,7 @@ uint8_t SymulacjaKątówOrientacji(stSym_t *stSym)
 
 	if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 	{
-		if (stStatusDotyku.sY > PRZYCISKI_GORNE_Y)		//naciśnieto na górny rząd przycisków
+		if ((stStatusDotyku.sY > PRZYCISKI_GORNE_Y)	&& (stStatusDotyku.sY < PRZYCISKI_DOLNE_Y))	//naciśnieto na górny rząd przycisków
 		{
 			InicjujKąty(stSym);		//nową symulację zaczynaj od ustalonego stanu
 			for (uint8_t n=0; n<3; n++)

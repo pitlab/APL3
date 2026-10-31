@@ -42,6 +42,21 @@
 #define MCP23S08_GPIO		0x09	//PORT (GPIO) REGISTER: GP7:GP0: These bits reflect the logic level on the pins <7:0>: 1 = Logic-high, 0 = Logic-low.
 #define MCP23S08_OLAT		0x0A	//OUTPUT LATCH REGISTER (OLAT): OL7:OL0: These bits reflect the logic level on the output latch <7:0>: 1 = Logic-high, 0 = Logic-low.
 
+//definicje etapów konfiguracji układu
+#define U41_IOCON		0	//konfiguracja rejestru IOCON układu U41
+#define U41_IODIR		1	//konfiguracja rejestru IODIR układu U41
+#define U41_GPINTEN		2	//konfiguracja rejestru GPINTEN
+#define U41_DEFVAL		3	//konfiguracja rejestru DEFVAL
+#define U41_INTCON		4	//konfiguracja rejestru INTCON
+#define U41_GPPU		5	//konfiguracja rejestru GPPU
+#define U42_IOCON		6	//konfiguracja rejestru IOCON układu U42
+#define U42_IODIR		7	//konfiguracja rejestru IODIR układu U42
+#define U43_IOCON		8	//konfiguracja rejestru IOCON układu U43
+#define U43_IODIR		9	//konfiguracja rejestru IODIR układu U43
+#define U43_LED			10	//ustaw początkowy stan LED-ów
+#define LICZBA_POLECEN_KONF_IO	11
+
+
 uint8_t InicjujModułySPI(void);
 uint8_t UstawDekoderZewn(uint8_t uklad);
 uint8_t PobierzStanDekoderaZewn(void);

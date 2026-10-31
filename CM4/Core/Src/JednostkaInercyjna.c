@@ -111,7 +111,7 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 	//Rzutujemy pomiar magnetometru na płaszczyzne poziomą przy użyciu kątów phi i theta
 	float fXm = *(fMagn + 0) * fCosThe + *(fMagn + 1) * fSinPhi * fSinThe + *(fMagn + 2) * fCosPhi * fSinThe;
 	float fYm = *(fMagn + 1) * fCosPhi - *(fMagn + 2) * fSinPhi;
-	wyniki->fKątAkcel[2] = atan2f(-fYm, fXm);			//kompensacja pochylenia i przechylenia
+	wyniki->fKątAkcel[2] = atan2f(fYm, fXm);			//kompensacja pochylenia i przechylenia
 
 	//filtr komplementarny IMU i całka z żyroskopów
 	if (ndT > MAX_DT)	//nie licz całki prędkosci kątowej z przestojów
@@ -128,7 +128,8 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 		wyniki->fKątAkcel[n] = ZawińPi(wyniki->fKątAkcel[n]);
 
 		//kasowanie dryftu żyro dodatkiem kątów z akcelerometru i magnetometru
-		wyniki->fKątIMU1[n] = 0.02 * wyniki->fKątAkcel[n] + 0.98 * wyniki->fKątIMU1[n];
+		//wyniki->fKątIMU1[n] = 0.02 * wyniki->fKątAkcel[n] + 0.98 * wyniki->fKątIMU1[n];
+		wyniki->fKątIMU1[n] = 0.005 * wyniki->fKątAkcel[n] + 0.995 * wyniki->fKątIMU1[n];
 
 		//w czasie kalibracji wzmocnienia nie ograniczaj przyrostu kąta
 		if ((uDaneCM7.dane.cWykonajPolecenie < POL7_CALKUJ_PRED_KAT) || (uDaneCM7.dane.cWykonajPolecenie > POL7_KALIBRUJ_ZYRO_WZMP))

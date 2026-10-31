@@ -31,7 +31,7 @@ uint16_t sYd[PKT_KAL];	//surowy pomiar panelu rezystancyjnego dla danego punktu 
 uint16_t sXe[PKT_KAL];	//współrzędne ekranowe dla danego punktu kalibracyjnego X
 uint16_t sYe[PKT_KAL];	//współrzędne ekranowe dla danego punktu kalibracyjnego Z
 uint8_t cLicznikDotkniec;
-uint8_t cLicznikPrzerwyPoDotyku;	//po naciśnięciu ekranu nastepuje przerwa w odczycie, po to aby w wielopoziomowym menu nie było fałszywych uruchomień
+uint8_t cLicznikPrzerwyPoDotyku;	//po naciśnięciu ekranu następuje przerwa w odczycie, po to aby w wielopoziomowym menu nie było fałszywych uruchomień
 //deklaracje zmiennych
 extern uint8_t cMidFont[];
 extern char cNapis[50];
