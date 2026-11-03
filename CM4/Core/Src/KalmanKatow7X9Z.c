@@ -253,7 +253,7 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(float *fPredkościKątowe, stWymianyCM
 	fF[3][2] = -0.5f * fOmega[0] * fDeltaCzasu;
 	fF[3][3] =  1.0f;
 
-	 //Pochodne q względem biasu gyro
+	 //Pochodne kwaternionu względem biasu gyro
 	fF[0][4] =  0.5f * fX[1] * fDeltaCzasu;
 	fF[0][5] =  0.5f * fX[2] * fDeltaCzasu;
 	fF[0][6] =  0.5f * fX[3] * fDeltaCzasu;
@@ -368,7 +368,7 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(float *fPredkościKątowe, stWymianyCM
 // Parametry: *fAkcel - wskaźnik na dane akcelerometru
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(float *fAkcel)
+uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(float *fAkcel, stWymianyCM4_t *dane)
 {
 	uint8_t cBłąd = BLAD_OK;
 	float fModelAcc[KKPOMR];
@@ -395,6 +395,7 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(float *fAkcel)
 	{
 		fAccNormalizowany[n] = *(fAkcel+n) / fNormaAcc;
 		fYa[n] = fAccNormalizowany[n] - fModelAcc[n];		//Innowacja = znormalizowany pomiar - model
+		dane->stKalmanKąta.fY[n] = fYa[n];
 	}
 
 	//Macierz obserwacji Ha  [Pomiar x STAN]
@@ -441,6 +442,13 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(float *fAkcel)
 			for (uint8_t j = 0; j < KKPOMR; j++)
 				fKa[i][j] = 0.0f;
 		}
+	}
+
+	//test
+	for (uint8_t n=0; n<KKPOMR; n++)
+	{
+		dane->stKalmanKąta.fK6[n] = fKa[6][n];
+		dane->stKalmanKąta.fdb[n] = fKa[6][n] * fYa[n];
 	}
 
 	//Estymata_x(n) = Estymata_x(n-1) + K(n) * y(n)

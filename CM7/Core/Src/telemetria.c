@@ -605,6 +605,19 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane, stWymianyCM7
 	case TID_SYMUL_KAT_THE:	fZmiennaTele = 	stDane7->stSym.fCałkaKataObrotu[1];	break;	//kąt pochylenia uzyskany przez całkowanie prędkosci kątowej Q
 	case TID_SYMUL_KAT_PSI:	fZmiennaTele = 	stDane7->stSym.fCałkaKataObrotu[2];	break;	//kąt odchylenia uzyskany przez całkowanie prędkosci kątowej R
 
+
+	case TID_KALMAN_KATOW_Y0:	fZmiennaTele = stDane->stKalmanKąta.fY[0];	break;		//innowacja kąta
+	case TID_KALMAN_KATOW_Y1:	fZmiennaTele = stDane->stKalmanKąta.fY[1];	break;		//innowacja kąta
+	case TID_KALMAN_KATOW_Y2:	fZmiennaTele = stDane->stKalmanKąta.fY[2];	break;		//innowacja kąta
+
+	case TID_KALMAN_KATOW_K60:	fZmiennaTele = stDane->stKalmanKąta.fK6[0];	break;		//wzmocnienie biasu Z
+	case TID_KALMAN_KATOW_K61:	fZmiennaTele = stDane->stKalmanKąta.fK6[1];	break;		//wzmocnienie biasu Z
+	case TID_KALMAN_KATOW_K62:	fZmiennaTele = stDane->stKalmanKąta.fK6[2];	break;		//wzmocnienie biasu Z
+
+	case TID_KALMAN_KATOW_DBZ0:	fZmiennaTele = stDane->stKalmanKąta.fdb[0];	break;		//zmiana biasu od akcelerometru
+	case TID_KALMAN_KATOW_DBZ1:	fZmiennaTele = stDane->stKalmanKąta.fdb[1];	break;		//zmiana biasu od akcelerometru
+	case TID_KALMAN_KATOW_DBZ2:	fZmiennaTele = stDane->stKalmanKąta.fdb[2];	break;		//zmiana biasu od akcelerometru
+
 	default:	fZmiennaTele = -1.0f;
 	}
 	return fZmiennaTele;

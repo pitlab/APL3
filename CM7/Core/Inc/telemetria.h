@@ -342,9 +342,20 @@
 #define TID_SYMUL_KAT_THE		305		//kąt pochylenia uzyskany przez całkowanie prędkosci kątowej Q
 #define TID_SYMUL_KAT_PSI		306		//kąt odchylenia uzyskany przez całkowanie prędkosci kątowej R
 
+#define TID_KALMAN_KATOW_Y0		307		//innowacja kąta
+#define TID_KALMAN_KATOW_Y1		308
+#define TID_KALMAN_KATOW_Y2		309
+
+#define TID_KALMAN_KATOW_K60	310		//wzmocnienie biasu Z
+#define TID_KALMAN_KATOW_K61	311
+#define TID_KALMAN_KATOW_K62	312
+
+#define TID_KALMAN_KATOW_DBZ0	313		//zmiana biasu od akcelerometru
+#define TID_KALMAN_KATOW_DBZ1	314
+#define TID_KALMAN_KATOW_DBZ2	315
 //max do 384
 
-#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	307
+#define LICZBA_ZMIENNYCH_TELEMETRYCZNYCH	316
 
 #define MAX_ZMIENNYCH_TELEMETR_W_RAMCE	115		//tyle zmiennych może być przesłanych w jednej ramce telemetrycznej (ramek może być kilka)
 #define MAX_INDEKSOW_TELEMETR_W_RAMCE	128		//zmienne w ramce można wybrać z takiej puli indeksów

@@ -258,7 +258,8 @@ void PetlaGlowna(void)
 			{
 				cBłądPG = PredykcjaFiltraKalmanaKątów7X9Z(uDaneCM7.dane.stSym.fPrędkośćKątowa, &uDaneCM4.dane);
 				PrzechwyćBłąd(cBłądPG);
-				cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(uDaneCM7.dane.stSym.fAkcelerometr);
+				//cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(uDaneCM7.dane.stSym.fAkcelerometr);
+				cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(uDaneCM7.dane.stSym.fAkcelerometr, &uDaneCM4.dane);
 				PrzechwyćBłąd(cBłądPG);
 				cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(uDaneCM7.dane.stSym.fMagnetometr);
 				PrzechwyćBłąd(cBłądPG);
@@ -267,11 +268,11 @@ void PetlaGlowna(void)
 			{
 				cBłądPG = PredykcjaFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fZyroKal1, &uDaneCM4.dane);
 				PrzechwyćBłąd(cBłądPG);
-				cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fAkcel1);
+				cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fAkcel1, &uDaneCM4.dane);
 				PrzechwyćBłąd(cBłądPG);
 				if (uDaneCM4.dane.sNowyPomiar & NP_MAG1)
 				{
-					cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fMagne1);
+				//	cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fMagne1);
 					PrzechwyćBłąd(cBłądPG);
 					uDaneCM4.dane.sNowyPomiar &= ~(NP_MAG1);	//usuń flagę nowych pomiarów
 				}
@@ -798,8 +799,10 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 	uint8_t cBłąd = BLAD_OK;
 	int16_t sZeZnakiem;	//zmiena robocza do konwersji dnych 8-bitowych bez znaku na liczbę 16-bitową ze znakiem
 	float fZeZnakiem;
-	const int8_t cZnakIIS[3] = {1, -1, -1};	//magnetometr 1: odwrotnie jest oś Z, ale żeby ją odwrócić, trzeba zmienić też znak w osi X lub Y. Zmieniam w Y: OK
-	const int8_t cZnakMMC[3] = {-1, -1, 1};		//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z
+	//const int8_t cZnakIIS[3] = {1, -1, -1};	//magnetometr 1: odwrotnie jest oś Z, ale żeby ją odwrócić, trzeba zmienić też znak w osi X lub Y. Zmieniam w Y: OK
+	const int8_t cZnakIIS[3] = {1, 1, -1};	//magnetometr 1: odwrotnie jest oś Z
+	//const int8_t cZnakMMC[3] = {-1, -1, 1};		//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z
+	const int8_t cZnakMMC[3] = {-1, 1, 1};		//magnetometr 2: odwrotnie jest oś X
 	const int8_t cZnakHMC[3] = {1, -1, 1};	//magnetometr 3: jest OK
 
 	if (*sCzujniki & MAG_HMC5883)

@@ -192,6 +192,9 @@ typedef struct
 typedef struct
 {
 	float fX[7];	//wektor stanu filtra
+	float fY[3];	//innowacja
+	float fK6[3];	//wzmocnienie K dla  biasu Z
+	float fdb[3];	//zmiana biasu
 } stKalmanKąta_t;
 
 typedef struct
