@@ -28,5 +28,6 @@ uint8_t PredykcjaFiltraKalmanaKątów7X9Z(float *fPredkościKątowe, stWymianyCM
 //uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(float *fAkcel);
 uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(float *fAkcel, stWymianyCM4_t *dane);
 uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(float *fMagne);
+uint8_t NormalizujKwaternionP(float *q, arm_matrix_instance_f32 *mP);
 
 #endif /* INC_KALMANKATOW7X9Z_H_ */

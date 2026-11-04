@@ -272,7 +272,7 @@ void PetlaGlowna(void)
 				PrzechwyćBłąd(cBłądPG);
 				if (uDaneCM4.dane.sNowyPomiar & NP_MAG1)
 				{
-				//	cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fMagne1);
+					cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(uDaneCM4.dane.fMagne1);
 					PrzechwyćBłąd(cBłądPG);
 					uDaneCM4.dane.sNowyPomiar &= ~(NP_MAG1);	//usuń flagę nowych pomiarów
 				}

@@ -469,6 +469,11 @@ uint8_t AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(float *fAkcel, stWymia
 	for (uint8_t n=KWATER; n<(KWATER + KKPOMR); n++)
 		fX[n] = fTempS1B[n];
 
+
+	//uwzględnij znormalizowany kwaternion w macierzy P: wyznacz jakobian normalizacji i przelicz P = J * P * J^T
+	NormalizujKwaternionP(fX, &mP);
+
+
 	//teraz liczę macierz wariancji i kowariancji, zaczynam od  K(n) * H -> mTempSSA	 [Stan x Pomiar] * [Pomiar x Stan] = [Stan x Stan]
 	cBłąd |= arm_mat_mult_f32(&mKa, &mHa, &mTempSSA);
 
@@ -627,3 +632,49 @@ uint8_t AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(float *fMagne)
 	return cBłąd;
 }
 
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Funkcja normalizuje kwaternion i uwzględnia jego zmianę w macierzy P kowariancji predykcji: P = J * P * J^T
+// Parametry:
+//  *q - wskaźnik na kwaternion
+//  *mP - wskaźnik na macierz P
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+uint8_t NormalizujKwaternionP(float *q, arm_matrix_instance_f32 *mP)
+{
+	uint8_t cBłąd = BLAD_OK;
+
+    float r = sqrtf(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
+    if (r < 1e-12f)
+        return cBłąd;
+
+    for (uint8_t n=0; n<KWATER; n++)
+    	q[n] = q[n] / r;
+
+    float fJ[KKSTAN][KKSTAN] = {0};
+    arm_matrix_instance_f32 mJ   = {KKSTAN, KKSTAN, &fJ[0][0]};		//macierz jakobianu normaliyacji
+
+
+   	// Jacobian normalizacji kwaternionu
+   	for (uint8_t i=0; i<KWATER; i++)
+   	{
+   		for (uint8_t j=0; j<KWATER; j++)
+   		{
+   			fJ[i][j] = ((i == j) ? 1.0f : 0.0f) - q[i] * q[j];
+   			fJ[i][j] /= r;
+   		}
+   	}
+
+    // Biasy pozostają bez zmian
+    fJ[4][4] = 1.0f;
+    fJ[5][5] = 1.0f;
+    fJ[6][6] = 1.0f;
+
+    //Obliczam: P = J * P * J^T
+    cBłąd |= arm_mat_mult_f32(&mJ, mP, &mTempSSA);
+    cBłąd |= arm_mat_trans_f32(&mJ, &mTempSSB);
+    cBłąd |= arm_mat_mult_f32(&mTempSSA, &mTempSSB, mP);
+    return cBłąd;
+}
