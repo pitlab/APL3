@@ -28,6 +28,7 @@
 // Wynik jest znormalizowany
 // Patrz też: https://github.com/nliaudat/magnetometer_calibration
 // https://teslabs.com/articles/magnetometer-calibration/
+//
 // (c) PitLab 2026
 // https://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
@@ -52,7 +53,7 @@ extern float fPrzesMagn2[3], fSkaloMagn2[3];
 // Parametry: *stDopasowanieDoSfery - wskaźnik na strukturę akumulowanych danych pomiarowych
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjujKalibracje(void)
+uint8_t InicjujKalibracjeMagSfera(void)
 {
 	uint8_t cBłąd = BLAD_OK;
 
@@ -96,7 +97,7 @@ uint8_t ZbierajDaneMagDoKalibracji(stWymianyCM4_t *dane)
 			{
 				dane->uRozne.f32[n] = stWynikiDopasowaniaMag1.fPrzesunięcie[n];
 				fPrzesMagn1[n] =  stWynikiDopasowaniaMag1.fPrzesunięcie[n];
-				ZapiszFramFloat(FAH_MAGN1_SKLADNIK_X + 4*n, fPrzesMagn1[n]);
+				ZapiszFramFloat(FAH_MAG1_SFERA_SKLADNIK_X + 4*n, fPrzesMagn1[n]);
 				//ZapiszFramFloat(FAH_MAGN1_MNOZNIK_X + 4*n, fSkaloMagn1[n]);
 			}
 
@@ -116,7 +117,7 @@ uint8_t ZbierajDaneMagDoKalibracji(stWymianyCM4_t *dane)
 			{
 				dane->uRozne.f32[4+n] = stWynikiDopasowaniaMag2.fPrzesunięcie[n];
 				fPrzesMagn2[n] =  stWynikiDopasowaniaMag2.fPrzesunięcie[n];
-				ZapiszFramFloat(FAH_MAGN2_SKLADNIK_X + 4*n, fPrzesMagn2[n]);
+				ZapiszFramFloat(FAH_MAG2_SFERA_SKLADNIK_X + 4*n, fPrzesMagn2[n]);
 				//ZapiszFramFloat(FAH_MAGN2_MNOZNIK_X + 4*n, fSkaloMagn2[n]);
 			}
 			dane->uRozne.f32[7] = stWynikiDopasowaniaMag2.fNatężeniePolaMag;

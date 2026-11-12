@@ -43,6 +43,7 @@
 #include <KalmanKalibracjiMagnetometrow12X9Z.h>
 #include <KalibracjaMagMetodaDopasowaniaDoSfery.h>
 
+
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 uint16_t sGenerator;
@@ -611,7 +612,7 @@ uint8_t WykonajPolecenieCM7(void)
 			}
 			break;
 
-		case POL7_INICJUJ_KAL_MNK:	InicjujKalibracje();	break;
+		case POL7_INICJUJ_KAL_MNK:	InicjujKalibracjeMagSfera();	break;
 		case POL7_KAL_MAGN_MNK:		cBłąd = ZbierajDaneMagDoKalibracji(&uDaneCM4.dane); break; //uruchom kalibrację magnetometrów metodą najmniejszych kwadratów
 
 		case POL7_POBIERZ_KAL_MAGN12:
@@ -799,9 +800,7 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 	uint8_t cBłąd = BLAD_OK;
 	int16_t sZeZnakiem;	//zmiena robocza do konwersji dnych 8-bitowych bez znaku na liczbę 16-bitową ze znakiem
 	float fZeZnakiem;
-	//const int8_t cZnakIIS[3] = {1, -1, -1};	//magnetometr 1: odwrotnie jest oś Z, ale żeby ją odwrócić, trzeba zmienić też znak w osi X lub Y. Zmieniam w Y: OK
 	const int8_t cZnakIIS[3] = {1, 1, -1};	//magnetometr 1: odwrotnie jest oś Z
-	//const int8_t cZnakMMC[3] = {-1, -1, 1};		//magnetometr 2: odwrotnie jest oś X, ale żeby ją odwrócić, trzeba zmienić też znak w osi Y lub Z. Zmieniam w Z
 	const int8_t cZnakMMC[3] = {-1, 1, 1};		//magnetometr 2: odwrotnie jest oś X
 	const int8_t cZnakHMC[3] = {1, -1, 1};	//magnetometr 3: jest OK
 
@@ -857,6 +856,9 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 			else
 				uDaneCM4.dane.fMagne1[n] = ((float)sZeZnakiem * CZULOSC_IIS2MDC - fPrzesMagn1[n]) * fSkaloMagn1[n];	//dane skalibrowane
 		}
+
+		if ((uDaneCM4.dane.fMagne1[0] > 20.0f) || (uDaneCM4.dane.fMagne1[0] < -20.0f))
+			sZeZnakiem = 0;
 		*sCzujniki &= ~MAG_IIS;	//dane obsłużone
 		uDaneCM4.dane.fDługośćWektoraMagn[0] = sqrtf(uDaneCM4.dane.fMagne1[0] * uDaneCM4.dane.fMagne1[0] + uDaneCM4.dane.fMagne1[1] * uDaneCM4.dane.fMagne1[1] + uDaneCM4.dane.fMagne1[2] * uDaneCM4.dane.fMagne1[2]);
 		uDaneCM4.dane.sNowyPomiar |= NP_MAG1 | NP_KAL_MAG1;	//jest nowy pomiar

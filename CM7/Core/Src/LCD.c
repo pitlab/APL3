@@ -1832,8 +1832,15 @@ uint8_t RysujEkran(void)
 		}
 		break;
 
+	case TP_NAST_MIKSERA:
+		BelkaTytulu("Mikser silnikow");
+		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
+		{
+			cTrybPracy = cWrocDoTrybu;
+			cNowyTrybPracy = TP_WROC_DO_NASTAWY;
+		}
+		break;
 
-	case TP_NAST_MIKSERA:		break;
 	case TP_NAST_IDENT_SILN:	RozpocznijIdentyfikacjęSilników(&stIdentSiln, &cTrybPracy); break;
 
 	case TP_PROCES_IDENT_SILN:

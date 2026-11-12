@@ -13,8 +13,9 @@
 #include "PetlaGlowna.h"
 
 //Zmienne przesyłane przez I2C4 we współpracy z BDMA a on ma dostęp tylko SRAM4
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	cTestMazania[2] = {0x55, 0x55};	//sprawdzam czy coś nie maże po początku pamięci
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	cDaneMagIIS[6];		//dane pomiarowe magnetometru IIS
-uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	cStatusIIS;			//ststus magnetometru IIS
+uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	cStatusIIS;			//status magnetometru IIS
 uint8_t __attribute__ ((aligned (32))) __attribute__((section(".SekcjaSRAM4_CM4")))	cPolWychMagIIS[2];	//dane wychodzące aby nie kolidowały z przychodzącymi
 
 extern I2C_HandleTypeDef hi2c4;

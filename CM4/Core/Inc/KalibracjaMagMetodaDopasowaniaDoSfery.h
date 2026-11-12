@@ -26,7 +26,7 @@ typedef struct
 	float fNatężeniePolaMag;
 } stWynikiDopasowania_t;
 
-uint8_t InicjujKalibracje(void);
+uint8_t InicjujKalibracjeMagSfera(void);
 uint8_t ZbierajDaneMagDoKalibracji(stWymianyCM4_t *dane);
 uint8_t ZbierajProbki(float *fMag, stDopasowanieDoSfery_t *stDopasowanieDoSfery);
 uint8_t MetodaNajmniejszychKwadratow(stDopasowanieDoSfery_t *stDopasowanieDoSfery, stWynikiDopasowania_t *stWynikiDopasowania);

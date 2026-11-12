@@ -73,7 +73,7 @@ uint8_t InicjujLCD_ILI9488(void)
 	OrientacjaEkranu(POZIOMO);
 
 	cBłąd |= LCD_write_command8(ILI9488_PIXFMT);	// Interface Pixel Format
-	cBłąd |= 	LCD_write_dat_jed8(0x66);	//18 bit/*
+	cBłąd |= LCD_write_dat_jed8(0x66);	//18 bit/*
 
 	cBłąd |= LCD_write_command8(0xB0);      // Interface Mode Control
 	cBłąd |= LCD_write_dat_jed8(

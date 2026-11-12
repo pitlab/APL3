@@ -775,7 +775,7 @@ uint8_t KalibrujCisnienie(float fCisnienie1, float fCisnienie2, float fCisnienie
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Znajduje o odsyła do CM7  ekstrema wskazań magnetometru na potrzeby kalibracji przesunięcia
+// Znajduje i odsyła do CM7  ekstrema wskazań magnetometru na potrzeby kalibracji przesunięcia
 // Parametry: *sMag - wskaźnik na dane z 3 osi magnetometru
 // Zwraca: nic
 ////////////////////////////////////////////////////////////////////////////////

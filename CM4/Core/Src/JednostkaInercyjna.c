@@ -102,7 +102,7 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 	else
 		wyniki->fKątAkcel[1] = atan2f(*(fAkcel + 2), *(fAkcel + 0)) + M_PI/2;	//OK
 
-	//oblicz kąt odchylenia z danych magnetometru: tan(Y/X) dla X=N, Y=E => atan2(X, Y)
+	//oblicz kąt odchylenia z danych magnetometru: tan(-Y/X) dla N=X, E=-Y => atan2(-Y, X)
 	float fSinPhi = sinf(wyniki->fKątAkcel[0]);
 	float fCosPhi = cosf(wyniki->fKątAkcel[0]);
 	float fSinThe = sinf(wyniki->fKątAkcel[1]);
@@ -111,7 +111,7 @@ uint8_t JednostkaInercyjnaTrygonometria(float *fŻyro, float *fAkcel, float *fMa
 	//Rzutujemy pomiar magnetometru na płaszczyzne poziomą przy użyciu kątów phi i theta
 	float fXm = *(fMagn + 0) * fCosThe + *(fMagn + 1) * fSinPhi * fSinThe + *(fMagn + 2) * fCosPhi * fSinThe;
 	float fYm = *(fMagn + 1) * fCosPhi - *(fMagn + 2) * fSinPhi;
-	wyniki->fKątAkcel[2] = atan2f(fYm, fXm);			//kompensacja pochylenia i przechylenia
+	wyniki->fKątAkcel[2] = atan2f(-fYm, fXm);			//kompensacja pochylenia i przechylenia
 
 	//filtr komplementarny IMU i całka z żyroskopów
 	if (ndT > MAX_DT)	//nie licz całki prędkosci kątowej z przestojów

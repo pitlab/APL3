@@ -243,10 +243,40 @@
 #define	FAS_CISN_02	    			FA_SYS_VAR+19   //4D ciśnienie zerowe czujnika bezwzględnego 2
 
 
+//alternatywna kalibracja magnetometrów
+//współczynniki kalibracji magnetometru 1 na module inercyjnym metodą dopasowania do sfery
+#define	FAH_MAG1_SFERA        		0x1000
+#define	FAH_MAG1_SFERA_SKLADNIK_X  	FAH_MAG1_SFERA+0 	//4F przesunięcie magnetometru w osi X
+#define	FAH_MAG1_SFERA_SKLADNIK_Y  	FAH_MAG1_SFERA+4 	//4F przesunięcie magnetometru w osi Y
+#define	FAH_MAG1_SFERA_SKLADNIK_Z  	FAH_MAG1_SFERA+8 	//4F przesunięcie magnetometru w osi Z
+#define	FAH_MAG1_SFERA_MNOZNIK_X  	FAH_MAG1_SFERA+12 	//4F mnożnik w osi X
+#define	FAH_MAG1_SFERA_MNOZNIK_Y  	FAH_MAG1_SFERA+16 	//4F mnożnik w osi Y
+#define	FAH_MAG1_SFERA_MNOZNIK_Z  	FAH_MAG1_SFERA+20 	//4F mnożnik w osi Z
+
+//współczynniki kalibracji magnetometru 2 na module inercyjnym metodą dopasowania do sfery
+#define	FAH_MAG2_SFERA     			0x1018
+#define	FAH_MAG2_SFERA_SKLADNIK_X  	FAH_MAG2_SFERA+0 	//4F przesunięcie magnetometru w osi X
+#define	FAH_MAG2_SFERA_SKLADNIK_Y  	FAH_MAG2_SFERA+4 	//4F przesunięcie magnetometru w osi Y
+#define	FAH_MAG2_SFERA_SKLADNIK_Z  	FAH_MAG2_SFERA+8 	//4F przesunięcie magnetometru w osi Z
+#define	FAH_MAG2_SFERA_MNOZNIK_X  	FAH_MAG2_SFERA+12 	//4F mnożnik w osi X
+#define	FAH_MAG2_SFERA_MNOZNIK_Y  	FAH_MAG2_SFERA+16 	//4F mnożnik w osi Y
+#define	FAH_MAG2_SFERA_MNOZNIK_Z  	FAH_MAG2_SFERA+20 	//4F mnożnik w osi Z
+
+//współczynniki kalibracji magnetometru 3 na module GNSS metodą dopasowania do sfery
+#define	FAH_MAG3_SFERA        		0x1030
+#define	FAH_MAG3_SFERA_SKLADNIK_X  	FAH_MAG3_SFERA+0 	//4F przesunięcie magnetometru w osi X
+#define	FAH_MAG3_SFERA_SKLADNIK_Y  	FAH_MAG3_SFERA+4 	//4F przesunięcie magnetometru w osi Y
+#define	FAH_MAG3_SFERA_SKLADNIK_Z  	FAH_MAG3_SFERA+8 	//4F przesunięcie magnetometru w osi Z
+#define	FAH_MAG3_SFERA_MNOZNIK_X  	FAH_MAG3_SFERA+12 	//4F mnożnik w osi X
+#define	FAH_MAG3_SFERA_MNOZNIK_Y  	FAH_MAG3_SFERA+16 	//4F mnożnik w osi Y
+#define	FAH_MAG3_SFERA_MNOZNIK_Z  	FAH_MAG3_SFERA+20 	//4F mnożnik w osi Z
 
 
-//Waypointy. Każdy zajmuje 12 bajtów. Do końca pamięci jest miejsca na 2389 waypointów
-#define FA_USER_WAYPOINTS    0x1000
+#define	FAH_        		0x1048
+
+
+//Waypointy. Każdy zajmuje 12 bajtów. Do końca pamięci jest miejsca na 2048 waypointów
+#define FA_USER_WAYPOINTS    0x2000
 #define FAU_WP00_
 
 
