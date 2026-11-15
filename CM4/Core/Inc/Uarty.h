@@ -21,6 +21,7 @@
 #define U_CRSF2		4
 #define U_SBUS1		5
 #define U_SBUS2		6
+#define U_BENEWAKE	7	//obsługa lidaru Benewake
 
 
 void WłączOdbiórUART2(void);

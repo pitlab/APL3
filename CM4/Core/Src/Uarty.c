@@ -3,7 +3,7 @@
 // Moduł wspólnej obsługi przerwań UART-ów
 //
 // Wszystkie UART-y obsługiwane przez rdzeń CM4 w trybie nadawczum pracują z buforem liniowym na przerwaniach.
-// W trybie odbiorczym pracują w trybie circular DMA i są obsługiwane w zbiorczych callbackach od napełnienia polowy i całego bufora
+// W trybie odbiorczym pracują w trybie circular DMA i są obsługiwane w zbiorczych callbackach od napełnienia połowy i całego bufora
 // Dzięki trybowi circular bufor nie musi być duży i nie trzeba długo czekać na napelnienie bufora.
 // W callbackach dane są kopiowane do większych buforów analizy, które opróżniane są okresowo w pętli głównej.
 // Rozmiar bufora analizy powinien być na tyle duży, aby pomieścił dane mogące się zebrać w trakcie obiegu pętli głównej.
@@ -20,12 +20,14 @@
 #include "WeWyRC.h"
 #include "Czas.h"
 #include "Crossfire.h"
+#include "Benewake.h"
 
 
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart8;
 uint8_t cKonfiguracjaUart8 = U_CRSF1;		//Tymczasowo zamiast GNSS jest Crossfire
+uint8_t cKonfiguracjaUart4 = U_BENEWAKE;
 //uint8_t cBuforNadawczyUART8[ROZMIAR_BUF_NAD_UART8];
 uint8_t cBuforOdbioruUart8[ROZMIAR_BUF_ODB_UART8];
 uint8_t cBuforOdbioruUart2[ROZMIAR_BUF_ODB_UART2];
@@ -40,7 +42,8 @@ extern uint8_t cBuforAnalizyCrossfire[ROZMIAR_BUF_ANA_CRSF];
 extern volatile uint8_t cWskNapBufAnaCRSF;
 extern uint8_t cBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 extern volatile uint8_t cWskNapBufAnaGNSS;		//wskaźnik napełniania kołowego bufora odbiorczego analizy danych GNSS
-
+extern uint8_t cBuforAnalizyLidaru[ROZMIAR_BUF_ANA_LIDARU];
+extern volatile uint8_t cWskNapBufAnaLidaru;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -147,12 +150,27 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 
 	if (huart->Instance == UART4)	//dane z SBUS1
 	{
-		for (uint8_t n = 0;  n<ROZMIAR_BUF_ODB_UART4 / 2; n++)
+		switch(cKonfiguracjaUart4)
 		{
-			cBuforAnalizySBus1[cWskNapBufAnaSBus1] = cBuforOdbioruUart4[n + ROZMIAR_BUF_ODB_UART4 / 2];
-			cWskNapBufAnaSBus1++;
-			if (cWskNapBufAnaSBus1 >= ROZMIAR_BUF_ANA_SBUS)
-				cWskNapBufAnaSBus1 = 0;		//zapętlenie wskaźnika bufora kołowego
+		case U_SBUS1:
+			for (uint8_t n = 0;  n<ROZMIAR_BUF_ODB_UART4 / 2; n++)
+			{
+				cBuforAnalizySBus1[cWskNapBufAnaSBus1] = cBuforOdbioruUart4[n + ROZMIAR_BUF_ODB_UART4 / 2];
+				cWskNapBufAnaSBus1++;
+				if (cWskNapBufAnaSBus1 >= ROZMIAR_BUF_ANA_SBUS)
+					cWskNapBufAnaSBus1 = 0;		//zapętlenie wskaźnika bufora kołowego
+			}
+			break;
+
+		case U_BENEWAKE:
+			for (uint8_t n = 0;  n<ROZMIAR_BUF_ODB_UART4 / 2; n++)
+			{
+				cBuforAnalizyLidaru[cWskNapBufAnaLidaru] = cBuforOdbioruUart4[n + ROZMIAR_BUF_ODB_UART4 / 2];
+				cWskNapBufAnaLidaru++;
+				if (cWskNapBufAnaLidaru >= ROZMIAR_BUF_ANA_LIDARU)
+					cWskNapBufAnaLidaru = 0;		//zapętlenie wskaźnika bufora kołowego
+			}
+			break;
 		}
 	}
 

@@ -56,6 +56,7 @@ extern uint16_t sWysterowanieMin;		//wartość wysterowania regulatorów dla uzy
 extern uint16_t sWysterowanieMax;		//wartość wysterowania regulatorów dla uzyskania obrotów maksymalnych. Dalsze zwiększanie wysterowania nic nie daje, więc w ten sposób wykluczamy go z zakresu regulacji
 extern stKonfPID_t stKonfigPID[LICZBA_PID];
 extern stStrojPID_t stStrojPID[LICZBA_KAN_RC_DO_STROJENIA_PID];
+extern uint8_t cKonfiguracjaUart4;
 
 uint8_t cKonfigWeRC[LICZBA_WEJSC_RC];	//określa jakiego typu sygnał wchodzi z odbiornika
 uint8_t cKonfigWyRC[LICZBA_WYJSC_RC];
@@ -1144,46 +1145,49 @@ uint8_t DywersyfikacjaOdbiornikowRC(stRC_t *stRC1, stRC_t *stRC2, uint8_t cUzywa
 	nCzasRC1 = MinalCzas2T7(stRC1->nCzasOdOstatniejRamki, nCzasBiezacy);
 	nCzasRC2 = MinalCzas2T7(stRC2->nCzasOdOstatniejRamki, nCzasBiezacy);
 
-	if (nCzasRC1 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 1
+	if (cKonfiguracjaUart4 == U_SBUS1)	//jeżeli UART4 jest przypisany do SBus
 	{
-		for (uint16_t n=0; n<KANALY_ODB_RC; n++)
+		if (nCzasRC1 < 2*OKRES_RAMKI_PPM_RC)	//działa odbiornik 1
 		{
-			if (stRC1->sZdekodowaneKanaly & (1<<n))
+			for (uint16_t n=0; n<KANALY_ODB_RC; n++)
 			{
-				//zbieranie ekstremów do obliczenia nowej normalizacji
-				if (stRC1->cFlagi & FRC_ZBIERAJ_EKSTR)
+				if (stRC1->sZdekodowaneKanaly & (1<<n))
 				{
-					if (stRC1->sKanaly[n] < stRC1->sKanMin[n])
-						stRC1->sKanMin[n] = stRC1->sKanaly[n];
-					if (stRC1->sKanaly[n] > stRC1->sKanMax[n])
-						stRC1->sKanMax[n] = stRC1->sKanaly[n];
-					if ((stRC1->sKanMin[n] < WE_RC_M90) && (stRC1->sKanMax[n] > WE_RC_P90))
-						stRC1->cFlagi |= FRC_ZEBRANO_EKSTR;
+					//zbieranie ekstremów do obliczenia nowej normalizacji
+					if (stRC1->cFlagi & FRC_ZBIERAJ_EKSTR)
+					{
+						if (stRC1->sKanaly[n] < stRC1->sKanMin[n])
+							stRC1->sKanMin[n] = stRC1->sKanaly[n];
+						if (stRC1->sKanaly[n] > stRC1->sKanMax[n])
+							stRC1->sKanMax[n] = stRC1->sKanaly[n];
+						if ((stRC1->sKanMin[n] < WE_RC_M90) && (stRC1->sKanMax[n] > WE_RC_P90))
+							stRC1->cFlagi |= FRC_ZEBRANO_EKSTR;
 
-					psDaneCM4->sKanalRC[n] = stRC1->sKanaly[n];	//podawaj surowe dane bez normalizacji
-				}
-				else
-				//normalizacja danych
-				if (cUzywajRC & ODB_RC1)
-				{
-					sRóżnicaMaxMin = stRC1->sKanMax[n] - stRC1->sKanMin[n];
-					if (sRóżnicaMaxMin)
-						psDaneCM4->sKanalRC[n] = (stRC1->sKanaly[n] - stRC1->sKanMin[n]) * (WE_RC_P100 - WE_RC_M100) / sRóżnicaMaxMin + WE_RC_M100; 	//przepisz znornalizowane kanały
+						psDaneCM4->sKanalRC[n] = stRC1->sKanaly[n];	//podawaj surowe dane bez normalizacji
+					}
 					else
-						psDaneCM4->sKanalRC[n] = stRC1->sKanaly[n];	//surowe dane bez normalizacji
+					//normalizacja danych
+					if (cUzywajRC & ODB_RC1)
+					{
+						sRóżnicaMaxMin = stRC1->sKanMax[n] - stRC1->sKanMin[n];
+						if (sRóżnicaMaxMin)
+							psDaneCM4->sKanalRC[n] = (stRC1->sKanaly[n] - stRC1->sKanMin[n]) * (WE_RC_P100 - WE_RC_M100) / sRóżnicaMaxMin + WE_RC_M100; 	//przepisz znornalizowane kanały
+						else
+							psDaneCM4->sKanalRC[n] = stRC1->sKanaly[n];	//surowe dane bez normalizacji
+					}
+					stRC1->sZdekodowaneKanaly &= ~(1<<n);		//kasuj bit obrobionego kanału
 				}
-				stRC1->sZdekodowaneKanaly &= ~(1<<n);		//kasuj bit obrobionego kanału
 			}
+			psDaneCM4->cJakoscDnLinkuRC = stRC2->cJakoscDnLinku;
+			psDaneCM4->cJakoscUpLinkuRC1 = stRC2->cJakoscUpLinku;
 		}
-		psDaneCM4->cJakoscDnLinkuRC = stRC2->cJakoscDnLinku;
-		psDaneCM4->cJakoscUpLinkuRC1 = stRC2->cJakoscUpLinku;
-	}
-	else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
-	if (nCzasRC1 > 2*OKRES_RAMKI_PPM_RC)
-	{
-		WłączOdbiórUART4();	//ustawia odbiornik gotowy na przyjęcie danych
-		psDaneCM4->cJakoscDnLinkuRC = 0;
-		psDaneCM4->cJakoscUpLinkuRC1 = 0;
+		else	//Odzyskiwanie synchronizacji: Jeżeli nie było nowych danych przez czas 2x trwania ramki to wymuś odbiór
+		if (nCzasRC1 > 2*OKRES_RAMKI_PPM_RC)
+		{
+			WłączOdbiórUART4();	//ustawia odbiornik gotowy na przyjęcie danych
+			psDaneCM4->cJakoscDnLinkuRC = 0;
+			psDaneCM4->cJakoscUpLinkuRC1 = 0;
+		}
 	}
 
 

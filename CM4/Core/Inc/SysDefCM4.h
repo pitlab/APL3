@@ -46,6 +46,7 @@
 #define MAG_IIS				0x0200	//magnetometr na IMU - odczyt danych
 #define MAG_IIS_STATUS		0x0400	//magnetometr na IMU - odczyt statusu
 #define MAG_MMC_STATUS		0x0800	//magnetometr na IMU - odczyt statusu
+#define LIDAR_BENEWAKE		0x1000	//lidar Benewake
 
 //timeouty w milisekundach dla magistrali I2C zależące od ilości przesyłanych danych. Dla 100kHz czas przesłania 1 bajtu to 0,1ms, dla 25kHz to 0,4ms
 #define TOUT_I2C4_2B		2	//testowo

@@ -42,7 +42,6 @@
 #include "OSD.h"
 #include "ModulySPI.h"
 #include "SysDefWspolny.h"
-#include "Wyrzutnia.h"
 #include <SymulatorKatow.h>
 #include <Wspolne.h>
 
@@ -460,7 +459,7 @@ uint8_t RysujEkran(void)
 
 	case TP_TEST1:	//symulacja wyrzutni BSP. Generuje dane pomiarowe obu rolek
 		//założenia
-		TestFiltraPrędkościRolek();
+
 		if(stStatusDotyku.cFlagi & DOTYK_DOTKNIETO)
 		{
 			cTrybPracy = cWrocDoTrybu;

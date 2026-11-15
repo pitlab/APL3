@@ -26,7 +26,6 @@ static uint16_t sLicznikUśrednianiaP0 = 0;			//licznik uśredniania ciśnienia 
 static float fWysokośćUśredniona;		//średnia z ostatnich pomiarów wysokości potrzebna do liczenia wariometru
 static int32_t nDeltaTemperatury;	//różnica między temepraturą bieżącą a referencyjną. Potrzebna do obliczeń ciśnienia.
 static uint32_t nCzasOstatniejKonwersjiSM5611;
-//float fPoprzednieCisnienie;
 float fPoczątkoweBarometryczneMSL;	//wysokość MSL wyznaczona podczas inicjalizacji
 
 

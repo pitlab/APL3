@@ -42,6 +42,7 @@
 #include <KalmanKatow7X9Z.h>
 #include <KalmanKalibracjiMagnetometrow12X9Z.h>
 #include <KalibracjaMagMetodaDopasowaniaDoSfery.h>
+#include "Benewake.h"
 
 
 extern unia_wymianyCM4_t uDaneCM4;
@@ -300,6 +301,9 @@ void PetlaGlowna(void)
 
 		cBłądPG = WykonajPolecenieCM7();		//wykonaj polecenie przekazane z CM7
 		PrzechwyćBłąd(cBłądPG);
+		break;
+
+	case 14: //cBłądPG = ObslugaLidaruBenewake();
 		break;
 
 	case 15:	//pozwól na testowe uruchomienie inicjalizacji
@@ -681,11 +685,12 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	//operacje na zewnętrznej magistrali I2C3
 	switch(cEtapOperacjiI2C)
 	{
-	case 0: 	cBłąd = ObslugaMS4525();		break;
-	case 4:		cBłąd = ObslugaHMC5883();		break;
-	case 8:		cBłąd = ObsługaNA219();			break;
-	case 12:	cBłąd = ObsługaNA226();			break;
-	//case 0x10: cBłąd = ObsługaVL53L1();		break;
+	//case 0x00: 	cBłąd = ObslugaMS4525();		break;
+	//case 0x04:	cBłąd = ObslugaHMC5883();		break;
+	//case 0x08:	cBłąd = ObsługaNA219();			break;
+	//case 0x0C:	cBłąd = ObsługaNA226();			break;
+	//case 0x0C: 	cBłąd = ObsługaVL53L1();		break;
+	case 0x14:	cBłąd = ObsługaLidaruBenewake();break;
 	default: break;
 	}
 
@@ -699,8 +704,8 @@ uint8_t RozdzielniaOperacjiI2C(void)
 
 	cEtapOperacjiI2C++;
 	//cEtapOperacjiI2C &= 0x03;
-	cEtapOperacjiI2C &= 0x0F;
-	//cEtapOperacjiI2C &= 0x1F;
+	//cEtapOperacjiI2C &= 0x0F;
+	cEtapOperacjiI2C &= 0x1F;
 	//cEtapOperacjiI2C &= 0x3F;
 	return cBłąd;
 }
@@ -723,6 +728,8 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 		case INA219_PRAD:		INA219_CzytajPrąd();	break;
 		case INA226_NAPIECIE:	INA226_CzytajNapięcie();	break;
 		case INA226_PRAD:		INA226_CzytajPrąd();	break;
+
+		case LIDAR_BENEWAKE:
 		}
 		sCzujnikZapisywanyNaI2CExt = 0;
 	}
@@ -761,6 +768,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 		case INA219_PRAD:		sNoweDaneI2C |= INA219_PRAD;		break;	//pomiar prądu
 		case INA226_NAPIECIE:	sNoweDaneI2C |= INA226_NAPIECIE;	break;	//pomiar napięcia
 		case INA226_PRAD:		sNoweDaneI2C |= INA226_PRAD;		break;	//pomiar prądu
+		case LIDAR_BENEWAKE:	sNoweDaneI2C |= LIDAR_BENEWAKE;		break;	//pomiar wysokości lidarem
 		}
 		sCzujnikOdczytywanyNaI2CExt = 0;
 	}
@@ -769,8 +777,8 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 	{
 		switch (sCzujnikOdczytywanyNaI2CInt)
 		{
-		case MAG_IIS:	sNoweDaneI2C |= MAG_IIS;	break;
-		case MAG_MMC:	sNoweDaneI2C |= MAG_MMC;	break;
+		case MAG_IIS:			sNoweDaneI2C |= MAG_IIS;			break;
+		case MAG_MMC:			sNoweDaneI2C |= MAG_MMC;			break;
 		}
 		sCzujnikOdczytywanyNaI2CInt = 0;
 	}
@@ -797,6 +805,7 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 	extern float fPrzesMagn3[3], fSkaloMagn3[3];
 	extern uint8_t cBuforINA226[3];
 	extern uint8_t cBuforINA219[3];
+	extern uint8_t cBuforLidaru[ROZMIAR_BUF_LIDARU];
 	uint8_t cBłąd = BLAD_OK;
 	int16_t sZeZnakiem;	//zmiena robocza do konwersji dnych 8-bitowych bez znaku na liczbę 16-bitową ze znakiem
 	float fZeZnakiem;
@@ -926,6 +935,14 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 	{
 		uDaneCM4.dane.fPradAku[1] = (float)(((int16_t)cBuforINA219[0] * 0x100 + cBuforINA219[1]) * INA219_LSB_PRADU);
 		*sCzujniki &= ~INA219_PRAD;	//dane obsłużone
+	}
+
+	if (*sCzujniki & LIDAR_BENEWAKE)
+	{
+		uDaneCM4.dane.stTOF.sOdległość = (uint16_t)cBuforLidaru[3] * 0x100 + cBuforLidaru[2];				//odległość w [cm]
+		uDaneCM4.dane.stTOF.fReflektancjaCelu = (float)((int16_t)cBuforLidaru[5] * 0x100 + cBuforLidaru[5]);	//siła sugnału
+		uDaneCM4.dane.stTOF.fNatężenieTła = (float)((int16_t)cBuforLidaru[7] * 0x100 + cBuforLidaru[6]);	//temperatura czujnika
+		*sCzujniki &= ~LIDAR_BENEWAKE;	//dane obsłużone
 	}
 
 	return cBłąd;
