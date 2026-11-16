@@ -690,7 +690,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	//case 0x08:	cBłąd = ObsługaNA219();			break;
 	//case 0x0C:	cBłąd = ObsługaNA226();			break;
 	//case 0x0C: 	cBłąd = ObsługaVL53L1();		break;
-	case 0x14:	cBłąd = ObsługaLidaruBenewake();break;
+	case 0x0C:	cBłąd = ObsługaLidaruBenewake();break;
 	default: break;
 	}
 
@@ -704,8 +704,8 @@ uint8_t RozdzielniaOperacjiI2C(void)
 
 	cEtapOperacjiI2C++;
 	//cEtapOperacjiI2C &= 0x03;
-	//cEtapOperacjiI2C &= 0x0F;
-	cEtapOperacjiI2C &= 0x1F;
+	cEtapOperacjiI2C &= 0x0F;
+	//cEtapOperacjiI2C &= 0x1F;
 	//cEtapOperacjiI2C &= 0x3F;
 	return cBłąd;
 }
@@ -938,9 +938,9 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 
 	if (*sCzujniki & LIDAR_BENEWAKE)
 	{
-		uDaneCM4.dane.stTOF.sOdległość = (uint16_t)cBuforLidaru[3] * 0x100 + cBuforLidaru[2];				//odległość w [cm]
-		uDaneCM4.dane.stTOF.fReflektancjaCelu = (float)((int16_t)cBuforLidaru[5] * 0x100 + cBuforLidaru[5]);	//siła sugnału
-		uDaneCM4.dane.stTOF.fNatężenieTła = (float)((int16_t)cBuforLidaru[7] * 0x100 + cBuforLidaru[6]);	//temperatura czujnika
+		uDaneCM4.dane.st_Lidar.fOdległość = (float)((uint16_t)cBuforLidaru[3] * 0x100 + cBuforLidaru[2]) / 100.0f;	//odległość w [m]
+		uDaneCM4.dane.st_Lidar.sSiłaSygnału = ((uint16_t)cBuforLidaru[5] * 0x100 + cBuforLidaru[5]);	//siła sugnału
+		uDaneCM4.dane.st_Lidar.fTempCzujn = (float)((int16_t)cBuforLidaru[7] * 0x100 + cBuforLidaru[6]) + KELVIN;	//temperatura czujnika [K]
 		*sCzujniki &= ~LIDAR_BENEWAKE;	//dane obsłużone
 	}
 

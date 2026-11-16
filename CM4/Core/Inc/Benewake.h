@@ -39,7 +39,11 @@
 #define PB_DANE			3
 #define PB_SUMA			4
 #define NAGLOWEK_BENEWAKE	0x5A
-#define ADRES_I2C_BENEWAKE	0x10
+#define ADRES_I2C_BENEWAKE	0x20
+
+//sekwencja odczytu I2C
+#define SB_WYSLIJ_POLECENIE	0
+#define SB_CZYTAJ_DANE		3
 
 uint8_t ObsługaLidaruBenewake(void);
 uint8_t InicjujLidar(void);

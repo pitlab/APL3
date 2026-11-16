@@ -209,6 +209,13 @@ typedef struct
 
 typedef struct
 {
+	float fOdległość;	//[m]
+	float fTempCzujn;	//temperature czujnika w K
+	uint16_t sSiłaSygnału;
+} st_Lidar_t;
+
+typedef struct
+{
 	float fSinPhi;	//sinus kąta Phi policzony raz aby nie powtarzać obliczeń w kolejnych funkcjach w obu rdzeniach
 	float fCosPhi;
 	float fSinThe;
@@ -286,6 +293,7 @@ typedef struct
 	stKalmanWys_t stKalmanWys;	//struktura z danymi do debugowania filtra Kalmana wysokości
 	stKalmanKąta_t stKalmanKąta;//struktura z danymi do debugowania rozszeroznego filtra Kalmana estymacji katów orientacji
 	stTOF_t stTOF;				//struktura danych pomiarowych czujnika odległości VL53LC1
+	st_Lidar_t st_Lidar;		//struktura danych pomiarowych lidaru Benewake
 //	stMat_t stMat;				//zestaw obliczeń funkcji trygonometrycznych kątów Eulera policzony raz aby nie powtarzać obliczeń w kolejnych funkcjach w obu rdzeniach
 	stKalmanKalibrMag_t stKalmanKalibrMag;	//struktura z danymi do debugowania filtra Kalmana kalibracji magnetometrów
 } stWymianyCM4_t;

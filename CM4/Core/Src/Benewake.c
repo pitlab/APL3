@@ -21,6 +21,7 @@ uint8_t cStanProtokoluBenwake;
 static uint8_t cLicznikPróbInicjalizacji = 0;
 extern I2C_HandleTypeDef hi2c3;
 extern volatile uint16_t sCzujnikZapisywanyNaI2CExt, sCzujnikOdczytywanyNaI2CExt;
+uint8_t cSekwencjaPomiaruBenewake;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -109,16 +110,26 @@ uint8_t ObsługaLidaruBenewake(void)
 	}
 	else	//czujnik jest zainicjowany
 	{
-		//Pierwsza część odczytu danych: wysłanie polecenia odczytu. Finalny odczyt jest uruchamiany w callbacku HAL_I2C_MasterRxCpltCallback w PetlaGlowna.c
-		cBuforLidaru[0] = NAGLOWEK_BENEWAKE;
-		cBuforLidaru[1] = 0x05;	//rozamiar ramki wychodzącej
-		cBuforLidaru[2] = 0x00;
-		cBuforLidaru[3] = 0x01;
-		cBuforLidaru[4] = 0x60;	//suma kontrolna
-		cBłąd = HAL_I2C_Master_Seq_Transmit_IT(&hi2c3, ADRES_I2C_BENEWAKE, cBuforLidaru, 5, I2C_FIRST_FRAME);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
-		sCzujnikZapisywanyNaI2CExt = LIDAR_BENEWAKE;
+		//dokumentacja sugeruje przerwę 100 ms między wysłaniem polecenia pomiaru a jego odczytem
+		switch(cSekwencjaPomiaruBenewake)
+		{
+		case SB_WYSLIJ_POLECENIE:	//Pierwsza część: wysłanie polecenia odczytu.
+			cBuforLidaru[0] = NAGLOWEK_BENEWAKE;
+			cBuforLidaru[1] = 0x05;	//rozamiar ramki wychodzącej
+			cBuforLidaru[2] = 0x00;
+			cBuforLidaru[3] = 0x01;
+			cBuforLidaru[4] = 0x60;	//suma kontrolna
+			cBłąd = HAL_I2C_Master_Transmit_IT(&hi2c3, ADRES_I2C_BENEWAKE, cBuforLidaru, 5);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
+			//sCzujnikZapisywanyNaI2CExt = LIDAR_BENEWAKE;
+			break;
 
-
+		case SB_CZYTAJ_DANE:
+			sCzujnikOdczytywanyNaI2CExt = LIDAR_BENEWAKE;
+			cBłąd = HAL_I2C_Master_Receive_IT(&hi2c3, ADRES_I2C_BENEWAKE, cBuforLidaru, 9);
+			break;
+		}
+		cSekwencjaPomiaruBenewake++;
+		cSekwencjaPomiaruBenewake &= 0x03;
 
 		/*if (cWskNapBufAnaLidaru != cWskOprBufAnaLidaru)
 		{
