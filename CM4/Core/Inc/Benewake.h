@@ -43,10 +43,11 @@
 
 uint8_t ObsługaLidaruBenewake(void);
 uint8_t InicjujLidar(void);
-uint8_t WyślijPolecenieLidarowi(uint8_t *cBufor, uint16_t sRozmiar);
-uint8_t OdbierzPolecenieLidara(uint8_t *cBufor, uint16_t sRozmiar);
+uint8_t WyślijPolecenieLidarowiUART(uint8_t *cBufor, uint16_t sRozmiar);
+uint8_t OdbierzPolecenieLidaraUART(uint8_t *cBufor, uint16_t sRozmiar);
 uint8_t InicjujUart4RxJakoLidar(void);
 uint8_t AnalizujProtokolBenewake(uint8_t cZnak);
 uint8_t InicjujOdczytLidaruBenwakeI2C();
+uint8_t CzytajDaneLidaru();
 
 #endif /* INC_BENEWAKE_H_ */

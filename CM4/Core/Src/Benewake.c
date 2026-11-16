@@ -31,23 +31,28 @@ extern volatile uint16_t sCzujnikZapisywanyNaI2CExt, sCzujnikOdczytywanyNaI2CExt
 uint8_t InicjujLidar(void)
 {
 	uint8_t cBłąd = BLAD_OK;
-	/*uint8_t cBuforPolecenia[ROZMIAR_BUF_POLECEN];
+	uint8_t cBuforPolecenia[ROZMIAR_BUF_POLECEN];
+
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-	GPIO_InitStruct.Alternate = GPIO_AF6_UART4;	//UART4 na porcie A zamiast RTS/CTS
+	GPIO_InitStruct.Alternate = GPIO_AF6_UART4;	//UART4 na porcie A zamiast RTS/CTS LPUART
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 	cBłąd = InicjujUart4RxJakoLidar();
 
-	//sprawdź wersję firmware lidaru
-	cBuforPolecenia[0] = LB_WERSJA;
-	cBłąd = WyślijPolecenieLidarowi(cBuforPolecenia, 1);
-	cBłąd = OdbierzPolecenieLidara(cBuforAnalizyLidaru, 6);
-	if (cBłąd)
-		return BLAD_BRAK_CZUJNIKA;I*/
+	//przełacz z UART na I2C, polecenie wysłane przez UART
+	cBuforPolecenia[0] = LB_INTERFEJS; //przełacz na I2C
+	cBuforPolecenia[1] = 0x01;			//0x01 = I2C
+	cBłąd = WyślijPolecenieLidarowiUART(cBuforPolecenia, 2);
 
-	//obsługa po I2C - przełacz z UART na I2C
+	cBuforPolecenia[0] = LB_ZAPISZ_UST;
+	cBłąd = WyślijPolecenieLidarowiUART(cBuforPolecenia, 1);
+	cBłąd = OdbierzPolecenieLidaraUART(cBuforAnalizyLidaru, 5);
+	if (cBłąd)
+		return BLAD_BRAK_CZUJNIKA;
+
+	/*/obsługa po I2C - przełacz z UART na I2C
 	cBuforLidaru[0] = NAGLOWEK_BENEWAKE;
 	cBuforLidaru[1] = 0x05;			//rozmiar ramki wychodzącej
 	cBuforLidaru[2] = LB_INTERFEJS;	//przełacz na I2C
@@ -63,7 +68,7 @@ uint8_t InicjujLidar(void)
 	cBuforLidaru[2] = LB_ZAPISZ_UST;
 	cBuforLidaru[3] = 0x6F;			//suma kontrolna
 	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, ADRES_I2C_BENEWAKE, cBuforLidaru, 4, TIMEOUT_POLECENIA);
-	cBłąd = HAL_I2C_Master_Receive(&hi2c3, ADRES_I2C_BENEWAKE, cBuforLidaru, 5, TIMEOUT_POLECENIA);
+	cBłąd = HAL_I2C_Master_Receive(&hi2c3, ADRES_I2C_BENEWAKE, cBuforLidaru, 5, TIMEOUT_POLECENIA); */
 
 	cBuforLidaru[0] = NAGLOWEK_BENEWAKE;
 	cBuforLidaru[1] = 0x04;			//rozmiar ramki wychodzącej
@@ -99,7 +104,7 @@ uint8_t ObsługaLidaruBenewake(void)
 				uDaneCM4.dane.nBrakCzujnika |= INIT_LIDAR_BENEWAKE;
 			return cBłąd;*/
 		}
-		//uDaneCM4.dane.nZainicjowano |= INIT_LIDAR_BENEWAKE;
+		uDaneCM4.dane.nZainicjowano |= INIT_LIDAR_BENEWAKE;
 //		WłączOdbiórUART4();	//ustawia DMA odbiornika gotowe na przyjęcie pierwszej ramki
 	}
 	else	//czujnik jest zainicjowany
@@ -173,7 +178,7 @@ uint8_t InicjujUart4RxJakoLidar(void)
 //  cRozmiar - rozmiar danych w buforze
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t WyślijPolecenieLidarowi(uint8_t *cBufor, uint16_t sRozmiar)
+uint8_t WyślijPolecenieLidarowiUART(uint8_t *cBufor, uint16_t sRozmiar)
 {
 	uint8_t cBłąd = BLAD_OK;
 	uint8_t cSuma = 0;
@@ -187,7 +192,7 @@ uint8_t WyślijPolecenieLidarowi(uint8_t *cBufor, uint16_t sRozmiar)
 	for (uint16_t n=0; n<sRozmiar+2; n++)
 		cSuma += cBuforLidaru[n];
 	cBuforLidaru[sRozmiar + 2] = cSuma;
-	cBłąd = HAL_UART_Transmit_IT(&huart4, cBuforLidaru, sRozmiar + 3);
+	cBłąd = HAL_UART_Transmit(&huart4, cBuforLidaru, sRozmiar + 3, TIMEOUT_POLECENIA);
 	return cBłąd;
 }
 
@@ -200,7 +205,7 @@ uint8_t WyślijPolecenieLidarowi(uint8_t *cBufor, uint16_t sRozmiar)
 //  cRozmiar - rozmiar danych w buforze
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t OdbierzPolecenieLidara(uint8_t *cBufor, uint16_t sRozmiar)
+uint8_t OdbierzPolecenieLidaraUART(uint8_t *cBufor, uint16_t sRozmiar)
 {
 	uint8_t cBłąd;
 	//uint8_t cSuma = 0;
@@ -245,7 +250,7 @@ uint8_t AnalizujProtokolBenewake(uint8_t cZnak)
 // Parametry: nic
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t CzytajDabeLidaru()
+uint8_t CzytajDaneLidaru()
 {
 	sCzujnikOdczytywanyNaI2CExt = LIDAR_BENEWAKE;		//w callbacku interpretuj odczytane dane jako pomiar lidaru
 	return HAL_I2C_Master_Seq_Receive_DMA(&hi2c3, ADRES_I2C_BENEWAKE + I2C_READ, cBuforLidaru, 6, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP

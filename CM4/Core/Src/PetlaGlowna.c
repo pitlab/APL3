@@ -725,11 +725,10 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 		{
 		case TOF_VL53L1:		cZakonczonoTransmisjeI2C = 1;	break;
 		case INA219_NAPIECIE:	INA219_CzytajNapięcie();	break;
-		case INA219_PRAD:		INA219_CzytajPrąd();	break;
+		case INA219_PRAD:		INA219_CzytajPrąd();		break;
 		case INA226_NAPIECIE:	INA226_CzytajNapięcie();	break;
-		case INA226_PRAD:		INA226_CzytajPrąd();	break;
-
-		case LIDAR_BENEWAKE:
+		case INA226_PRAD:		INA226_CzytajPrąd();		break;
+		case LIDAR_BENEWAKE:	CzytajDaneLidaru();			break;
 		}
 		sCzujnikZapisywanyNaI2CExt = 0;
 	}
