@@ -939,8 +939,8 @@ uint8_t ObslugaCzujnikowI2C(uint16_t *sCzujniki)
 	if (*sCzujniki & LIDAR_BENEWAKE)
 	{
 		uDaneCM4.dane.st_Lidar.fOdległość = (float)((uint16_t)cBuforLidaru[3] * 0x100 + cBuforLidaru[2]) / 100.0f;	//odległość w [m]
-		uDaneCM4.dane.st_Lidar.sSiłaSygnału = ((uint16_t)cBuforLidaru[5] * 0x100 + cBuforLidaru[5]);	//siła sugnału
-		uDaneCM4.dane.st_Lidar.fTempCzujn = (float)((int16_t)cBuforLidaru[7] * 0x100 + cBuforLidaru[6]) + KELVIN;	//temperatura czujnika [K]
+		uDaneCM4.dane.st_Lidar.sNatężenieSygnału = ((uint16_t)cBuforLidaru[5] * 0x100 + cBuforLidaru[4]);	//natężenie sygnału odbitej plamki 0..65535
+		uDaneCM4.dane.st_Lidar.fTempCzujnika = (float)((int16_t)cBuforLidaru[7] * 0x100 + cBuforLidaru[6]) / 8.0 - 256 + KELVIN;	//temperatura czujnika [K]
 		*sCzujniki &= ~LIDAR_BENEWAKE;	//dane obsłużone
 	}
 

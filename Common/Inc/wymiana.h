@@ -210,8 +210,8 @@ typedef struct
 typedef struct
 {
 	float fOdległość;	//[m]
-	float fTempCzujn;	//temperature czujnika w K
-	uint16_t sSiłaSygnału;
+	float fTempCzujnika;	//temperature czujnika w K
+	uint16_t sNatężenieSygnału;	//w zakresie 0..65535
 } st_Lidar_t;
 
 typedef struct

@@ -549,6 +549,10 @@ float PobierzZmiennaTele(uint16_t sZmienna, stWymianyCM4_t *stDane, stWymianyCM7
 	case TID_TOF_REFLEKT_CELU:	fZmiennaTele = stDane->stTOF.fReflektancjaCelu;				break;
 	case TID_TOF_NATEZENIE_TLA:	fZmiennaTele = stDane->stTOF.fNatężenieTła;					break;
 
+	case TID_LIDAR_ODLEGLOSC:	fZmiennaTele = stDane->st_Lidar.fOdległość;					break;	//odległość mierzona lidarem Banewake [m]
+	case TID_LIDAR_NATEZ_SYGN:	fZmiennaTele = (float)stDane->st_Lidar.sNatężenieSygnału;	break;	//natężenie sygnału odbitej plamki w zakresie 0..65535
+	case TID_LIDAR_TEMP_CZUJN:	fZmiennaTele = stDane->st_Lidar.fTempCzujnika;				break;	//temperatura czujnika
+
 	case TID_KALMAN_WYS_X0:		fZmiennaTele = stDane->stKalmanWys.fX[0];					break;
 	case TID_KALMAN_WYS_X1:		fZmiennaTele = stDane->stKalmanWys.fX[1];					break;
 	case TID_KALMAN_WYS_X2:		fZmiennaTele = stDane->stKalmanWys.fX[2];					break;

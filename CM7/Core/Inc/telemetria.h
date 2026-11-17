@@ -285,6 +285,10 @@
 #define TID_TOF_REFLEKT_CELU	230	//reflektancja celu
 #define TID_TOF_NATEZENIE_TLA	231	//poziom natężenia tła
 
+#define TID_LIDAR_ODLEGLOSC		232	//odległość mierzona lidarem Banewake [m]
+#define TID_LIDAR_NATEZ_SYGN	233	//natężenie sygnału odbitej plamki w zakresie 0..65535
+#define TID_LIDAR_TEMP_CZUJN	234	//temperatura czujnika [K]
+
 //--- zmienne telemetryczne w ramce 3 -----------------------------------------------
 #define TID_KALMAN_WYS_X0		256
 #define TID_KALMAN_WYS_X1		257
