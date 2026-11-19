@@ -89,7 +89,7 @@ uint8_t InicjujLidar(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t ObsługaLidaruBenewake(void)
 {
-	uint8_t cBłąd;
+	uint8_t cBłąd = BLAD_OK;
 
 	//po MAX_PROB_INICJALIZACJI ustawiany jest bit braku czujnika. Taki czujnik nie jest dłużej obsługiwany
 	if (uDaneCM4.dane.nBrakCzujnika & INIT_LIDAR_BENEWAKE)

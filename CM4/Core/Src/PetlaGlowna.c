@@ -289,7 +289,8 @@ void PetlaGlowna(void)
 
 	case 12:	//wymień dane między rdzeniami
 		cBłądPG = UstawDaneWymiany_CM4();
-		PrzechwyćBłąd(cBłądPG);
+		if (cBłądPG != BLAD_HAL)	//timeout HAL jest czymś normalnym przy dostępie do semafora rozdzielajacego dwa asynchroniczne procesy, wiec nie raportuj tego jako bład
+			PrzechwyćBłąd(cBłądPG);
 		cBłądPG = PobierzDaneWymiany_CM7();
 		PrzechwyćBłąd(cBłądPG);
 		break;

@@ -594,7 +594,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
 
     /* TIM3 DMA Init */
     /* TIM3_CH3 Init */
-    hdma_tim3_ch3.Instance = DMA1_Stream0;
+    hdma_tim3_ch3.Instance = DMA2_Stream4;
     hdma_tim3_ch3.Init.Request = DMA_REQUEST_TIM3_CH3;
     hdma_tim3_ch3.Init.Direction = DMA_MEMORY_TO_PERIPH;
     hdma_tim3_ch3.Init.PeriphInc = DMA_PINC_DISABLE;
