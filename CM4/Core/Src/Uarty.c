@@ -13,6 +13,7 @@
 // (c) PitLab 2026
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
+#include <BenewakeUART.h>
 #include "Uarty.h"
 #include <GNSS.h>
 #include <stdio.h>
@@ -20,7 +21,6 @@
 #include "WeWyRC.h"
 #include "Czas.h"
 #include "Crossfire.h"
-#include "Benewake.h"
 
 
 extern UART_HandleTypeDef huart2;

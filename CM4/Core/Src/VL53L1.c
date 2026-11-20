@@ -15,7 +15,7 @@ static VL53L1CB_Object_t VL53L1CB_Dev;
 extern I2C_HandleTypeDef hi2c3;
 extern volatile unia_wymianyCM4_t uDaneCM4;
 uint8_t cEtapPomiaruVL53L1;
-extern uint8_t cZakonczonoTransmisjeI2C;
+//extern uint8_t cZakonczonoTransmisjeI2C;
 extern uint8_t cCzujnikZapisywanyNaI2CExt, cCzujnikOdczytywanyNaI2CExt;
 static uint8_t cLicznikPróbInicjalizacji = MAX_PROB_INICJALIZACJI;
 

@@ -5,8 +5,8 @@
  *      Author: PitLab
  */
 
-#ifndef INC_BENEWAKE_H_
-#define INC_BENEWAKE_H_
+#ifndef INC_BENEWAKEUART_H_
+#define INC_BENEWAKEUART_H_
 #include "SysDefCM4.h"
 
 
@@ -46,7 +46,7 @@
 #define SB_CZYTAJ_DANE		3
 
 uint8_t ObsługaLidaruBenewake(void);
-uint8_t InicjujLidar(void);
+uint8_t InicjujLidarUart(void);
 uint8_t WyślijPolecenieLidarowiUART(uint8_t *cBufor, uint16_t sRozmiar);
 uint8_t OdbierzPolecenieLidaraUART(uint8_t *cBufor, uint16_t sRozmiar);
 uint8_t InicjujUart4RxJakoLidar(void);
@@ -54,4 +54,4 @@ uint8_t AnalizujProtokolBenewake(uint8_t cZnak);
 uint8_t InicjujOdczytLidaruBenwakeI2C();
 uint8_t CzytajDaneLidaru();
 
-#endif /* INC_BENEWAKE_H_ */
+#endif /* INC_BENEWAKEUART_H_ */

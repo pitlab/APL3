@@ -2,16 +2,15 @@
 //
 // Moduł obsługi protokołu lidarów Benewake na przykładzie TF02-PRO
 // Komunikacja po UART z prędkosścią 115200 bps - problemy z portem, na razie nie działa odbiór
-// Komunikacja po I2C
 //
 // (c) PitLab 2026
 // http://www.pitlab.pl
 //////////////////////////////////////////////////////////////////////////////
-#include "Benewake.h"
+#include <BenewakeUART.h>
 #include "Uarty.h"
 #include "WymianaCM4.h"
 
-uint8_t cBuforLidaru[ROZMIAR_BUF_LIDARU];
+static uint8_t cBuforLidaru[ROZMIAR_BUF_LIDARU];
 uint8_t cBuforAnalizyLidaru[ROZMIAR_BUF_ANA_LIDARU];
 volatile uint8_t cWskNapBufAnaLidaru;
 uint8_t cWskOprBufAnaLidaru;
@@ -21,7 +20,7 @@ uint8_t cStanProtokoluBenwake;
 static uint8_t cLicznikPróbInicjalizacji = 0;
 extern I2C_HandleTypeDef hi2c3;
 extern volatile uint16_t sCzujnikZapisywanyNaI2CExt, sCzujnikOdczytywanyNaI2CExt;
-uint8_t cSekwencjaPomiaruBenewake;
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -29,7 +28,7 @@ uint8_t cSekwencjaPomiaruBenewake;
 // Parametry: brak
 // Zwraca: kod błędu
 ////////////////////////////////////////////////////////////////////////////////
-uint8_t InicjujLidar(void)
+uint8_t InicjujLidarUart(void)
 {
 	uint8_t cBłąd = BLAD_OK;
 	uint8_t cBuforPolecenia[ROZMIAR_BUF_POLECEN];
@@ -53,33 +52,9 @@ uint8_t InicjujLidar(void)
 	if (cBłąd)
 		return BLAD_BRAK_CZUJNIKA;
 
-	/*/obsługa po I2C - przełacz z UART na I2C
-	cBuforLidaru[0] = NAGLOWEK_BENEWAKE;
-	cBuforLidaru[1] = 0x05;			//rozmiar ramki wychodzącej
-	cBuforLidaru[2] = LB_INTERFEJS;	//przełacz na I2C
-	cBuforLidaru[3] = 0x01;			//0x01 = I2C
-	cBuforLidaru[4] = 0x00;
-	for (uint8_t n=0; n<4; n++)
-		cBuforLidaru[4] += cBuforLidaru[n];			//suma kontrolna
-	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, ADRES_I2C_BENEWAKE, cBuforLidaru, 5, TIMEOUT_POLECENIA);
-
-	//zapisz polecenie
-	cBuforLidaru[0] = NAGLOWEK_BENEWAKE;
-	cBuforLidaru[1] = 0x04;			//rozmiar ramki wychodzącej
-	cBuforLidaru[2] = LB_ZAPISZ_UST;
-	cBuforLidaru[3] = 0x6F;			//suma kontrolna
-	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, ADRES_I2C_BENEWAKE, cBuforLidaru, 4, TIMEOUT_POLECENIA);
-	cBłąd = HAL_I2C_Master_Receive(&hi2c3, ADRES_I2C_BENEWAKE, cBuforLidaru, 5, TIMEOUT_POLECENIA); */
-
-	cBuforLidaru[0] = NAGLOWEK_BENEWAKE;
-	cBuforLidaru[1] = 0x04;			//rozmiar ramki wychodzącej
-	cBuforLidaru[2] = LB_WERSJA;
-	cBuforLidaru[3] = 0x5F;			//suma kontrolna
-	cBłąd = HAL_I2C_Master_Transmit(&hi2c3, ADRES_I2C_BENEWAKE, cBuforLidaru, 4, TIMEOUT_POLECENIA);
-	cBłąd = HAL_I2C_Master_Receive(&hi2c3, ADRES_I2C_BENEWAKE, cBuforLidaru, 7, TIMEOUT_POLECENIA);
-
 	return cBłąd;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -98,46 +73,19 @@ uint8_t ObsługaLidaruBenewake(void)
 	if ((uDaneCM4.dane.nZainicjowano & INIT_LIDAR_BENEWAKE) != INIT_LIDAR_BENEWAKE)	//jeżeli czujnik nie jest zainicjowany
 	{
 		cLicznikPróbInicjalizacji++;
-		cBłąd = InicjujLidar();
+		cBłąd = InicjujLidarUart();
 		if (cBłąd)
 		{
-			/*if (cLicznikPróbInicjalizacji > MAX_PROB_INICJALIZACJI)
+			if (cLicznikPróbInicjalizacji > MAX_PROB_INICJALIZACJI)
 				uDaneCM4.dane.nBrakCzujnika |= INIT_LIDAR_BENEWAKE;
-			return cBłąd;*/
+			return cBłąd;
 		}
 		uDaneCM4.dane.nZainicjowano |= INIT_LIDAR_BENEWAKE;
-//		WłączOdbiórUART4();	//ustawia DMA odbiornika gotowe na przyjęcie pierwszej ramki
+		WłączOdbiórUART4();	//ustawia DMA odbiornika gotowe na przyjęcie pierwszej ramki
 	}
 	else	//czujnik jest zainicjowany
 	{
-		//dokumentacja sugeruje przerwę 100 ms między wysłaniem polecenia pomiaru a jego odczytem
-		switch(cSekwencjaPomiaruBenewake)
-		{
-		case SB_WYSLIJ_POLECENIE:	//Pierwsza część: wysłanie polecenia odczytu.
-			cBuforLidaru[0] = NAGLOWEK_BENEWAKE;
-			cBuforLidaru[1] = 0x05;	//rozamiar ramki wychodzącej
-			cBuforLidaru[2] = 0x00;
-			cBuforLidaru[3] = 0x01;
-			cBuforLidaru[4] = 0x60;	//suma kontrolna
-			cBłąd = HAL_I2C_Master_Transmit_IT(&hi2c3, ADRES_I2C_BENEWAKE, cBuforLidaru, 5);	//wyślij polecenie odczytu pomiarów nie kończąc transferu STOP-em
-			//sCzujnikZapisywanyNaI2CExt = LIDAR_BENEWAKE;
-			break;
 
-		case SB_CZYTAJ_DANE:
-			sCzujnikOdczytywanyNaI2CExt = LIDAR_BENEWAKE;
-			cBłąd = HAL_I2C_Master_Receive_IT(&hi2c3, ADRES_I2C_BENEWAKE, cBuforLidaru, 9);
-			break;
-		}
-		cSekwencjaPomiaruBenewake++;
-		cSekwencjaPomiaruBenewake &= 0x03;
-
-		/*if (cWskNapBufAnaLidaru != cWskOprBufAnaLidaru)
-		{
-			cBłąd = AnalizujProtokolBenewake(cBuforAnalizyLidaru[cWskOprBufAnaLidaru]);
-			cWskOprBufAnaLidaru++;
-			if (cWskOprBufAnaLidaru == ROZMIAR_BUF_ANA_LIDARU)
-				cWskOprBufAnaLidaru = 0;
-		}*/
 	}
 	return cBłąd;
 }
@@ -254,15 +202,3 @@ uint8_t AnalizujProtokolBenewake(uint8_t cZnak)
 	return cBłąd;
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-// Polecenie będące drugą częścią sekwencji podzielonej operacji odczytu danych.
-// Będzie uruchomione w callbacku zakończenia operacji wysłania polecenia odczytu danych
-// Parametry: nic
-// Zwraca: kod błędu
-////////////////////////////////////////////////////////////////////////////////
-uint8_t CzytajDaneLidaru()
-{
-	sCzujnikOdczytywanyNaI2CExt = LIDAR_BENEWAKE;		//w callbacku interpretuj odczytane dane jako pomiar lidaru
-	return HAL_I2C_Master_Seq_Receive_DMA(&hi2c3, ADRES_I2C_BENEWAKE + I2C_READ, cBuforLidaru, 6, I2C_LAST_FRAME);		//odczytaj dane i zakończ STOP
-}

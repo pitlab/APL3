@@ -32,7 +32,6 @@
 #include "SampleAudio.h"
 #include "Crossfire.h"
 #include <Kalman.h>
-//#include <KalmanWysokosci5X6Z.h>
 #include <KalmanWysokosci10X10Z.h>
 #include "BMP585.h"
 #include <VL53L1.h>
@@ -42,7 +41,7 @@
 #include <KalmanKatow7X9Z.h>
 #include <KalmanKalibracjiMagnetometrow12X9Z.h>
 #include <KalibracjaMagMetodaDopasowaniaDoSfery.h>
-#include "Benewake.h"
+#include "BenewakeI2C.h"
 
 
 extern unia_wymianyCM4_t uDaneCM4;
@@ -89,7 +88,7 @@ extern uint16_t sTS_CAL1, sTS_CAL2;	//wspólczynniki kalibracji czujnika tempera
 extern uint8_t cWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC2, bit1 = ADC3
 uint8_t cBityPozwoleniaNaPomiarADC;	//pole bitowe informujące który pomiar można wykonać w danym obiegu pętli
 extern uint16_t sWysterowanieIdentSiln;	//wysterowanie silników podczas procesu identfikacji
-uint8_t cZakonczonoTransmisjeI2C;
+uint8_t cTrwaTransmisjaI2C;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -675,7 +674,7 @@ uint8_t WykonajPolecenieCM7(void)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-// Funkcja dzieli złożone operacje I2C na sekwencje dające sie realizować w tle, dzięki czemu nie blokuje czasu procesora oczekując na zakończenie
+// Funkcja dzieli czas magistrali na poszczególne czujniki definiujac kolejność i częstotliwość ich obsługi
 // Parametry: brak
 // Zwraca: kod błędu operacji I2C
 ////////////////////////////////////////////////////////////////////////////////
@@ -684,23 +683,29 @@ uint8_t RozdzielniaOperacjiI2C(void)
 	uint8_t cBłąd = BLAD_OK;
 
 	//operacje na zewnętrznej magistrali I2C3
-	switch(cEtapOperacjiI2C)
+	if ((cTrwaTransmisjaI2C & I2C_ZEW) == 0)
 	{
-	//case 0x00: 	cBłąd = ObslugaMS4525();		break;
-	//case 0x04:	cBłąd = ObslugaHMC5883();		break;
-	//case 0x08:	cBłąd = ObsługaNA219();			break;
-	//case 0x0C:	cBłąd = ObsługaNA226();			break;
-	//case 0x0C: 	cBłąd = ObsługaVL53L1();		break;
-	case 0x0C:	cBłąd = ObsługaLidaruBenewake();break;
-	default: break;
+		switch(cEtapOperacjiI2C)
+		{
+		case 0x00: 	cBłąd = ObslugaMS4525();		break;
+		case 0x01:	cBłąd = ObslugaHMC5883();		break;
+		case 0x02:	cBłąd = ObsługaNA219();			break;
+		case 0x03:	cBłąd = ObsługaNA226();			break;
+		case 0x04: 	cBłąd = ObsługaVL53L1();		break;
+		case 0x05:	cBłąd = ObsługaI2C_LidaruBenewake();break;
+		default: break;
+		}
 	}
 
 	//operacje na wewnętrznej magistrali I2C4
-	switch(cEtapOperacjiI2C)
+	if ((cTrwaTransmisjaI2C & I2C_WEW) == 0)
 	{
-	case 0:	cBłąd = ObslugaIIS2MDC();		break;
-	case 8:	cBłąd = ObslugaMMC3416x();		break;	//na egzemplarzu 2 jest problem blokowania się przerwania obsługi tego magnetometru
-	default: break;
+		switch(cEtapOperacjiI2C)
+		{
+		case 0:	cBłąd = ObslugaIIS2MDC();		break;
+		case 8:	cBłąd = ObslugaMMC3416x();		break;	//na egzemplarzu 2 jest problem blokowania się przerwania obsługi tego magnetometru
+		default: break;
+		}
 	}
 
 	cEtapOperacjiI2C++;
@@ -722,20 +727,22 @@ void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c)
 {
 	if (hi2c->Instance == I2C3)	//magistrala I2C modułów zewnętrznych
 	{
+		cTrwaTransmisjaI2C |= I2C_ZEW;	//poza wyjatkami rozpoczyna się kolejna transmisja dzielona
 		switch (sCzujnikZapisywanyNaI2CExt)
 		{
-		case TOF_VL53L1:		cZakonczonoTransmisjeI2C = 1;	break;
+		case TOF_VL53L1:		cTrwaTransmisjaI2C &= ~I2C_ZEW;	break;
 		case INA219_NAPIECIE:	INA219_CzytajNapięcie();	break;
 		case INA219_PRAD:		INA219_CzytajPrąd();		break;
 		case INA226_NAPIECIE:	INA226_CzytajNapięcie();	break;
 		case INA226_PRAD:		INA226_CzytajPrąd();		break;
-		case LIDAR_BENEWAKE:	CzytajDaneLidaru();			break;
+		case LIDAR_BENEWAKE:	cTrwaTransmisjaI2C &= ~I2C_ZEW;	break;	//zakończono operację na magistrali czujników zewnetrznych
 		}
 		sCzujnikZapisywanyNaI2CExt = 0;
 	}
 
 	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych
 	{
+		cTrwaTransmisjaI2C |= I2C_WEW;	//rozpoczyna się kolejna transmisja dzielona
 		switch (sCzujnikZapisywanyNaI2CInt)
 		{
 		case MAG_IIS_STATUS:	MagIIS_CzytajStatus();	break;	//po zapisie wykonaj operację odczytu
@@ -771,6 +778,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 		case LIDAR_BENEWAKE:	sNoweDaneI2C |= LIDAR_BENEWAKE;		break;	//pomiar wysokości lidarem
 		}
 		sCzujnikOdczytywanyNaI2CExt = 0;
+		cTrwaTransmisjaI2C &= ~I2C_ZEW;	//zakończono operację na magistrali czujników zewnetrznych
 	}
 
 	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych
@@ -781,6 +789,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 		case MAG_MMC:			sNoweDaneI2C |= MAG_MMC;			break;
 		}
 		sCzujnikOdczytywanyNaI2CInt = 0;
+		cTrwaTransmisjaI2C &= ~I2C_WEW;	//zakończono operację na magistrali czujników wewnetrznych
 	}
 }
 

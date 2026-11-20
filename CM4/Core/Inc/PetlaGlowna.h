@@ -14,6 +14,11 @@
 #define MAX_DT	10000	//2 obiegi pętli głównej jest akceptowalną granicą czasu trwania pętli
 #define TIMEOUT_KASOWANIA_BLEDOW	60000;		//liczba obiegów pętli po której kasowany jest najstarszy błąd
 
+//definicje flag magistral I2C używane w zmiennej cZakonczonoTransmisjeI2C
+#define I2C_WEW		0x01	//magistrala czujników wewnętrznych na modułach
+#define I2C_ZEW		0x02	//magistrala czujników podłaczanych z zewnątrz
+
+
 void PetlaGlowna(void);
 uint8_t WykonajPolecenieCM7(void);
 uint8_t RozdzielniaOperacjiI2C(void);
