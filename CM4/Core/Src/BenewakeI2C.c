@@ -88,7 +88,7 @@ uint8_t ObsługaI2C_LidaruBenewake(void)
 			break;
 		}
 		cSekwencjaPomiaruBenewake++;
-		cSekwencjaPomiaruBenewake &= 0x03;
+		cSekwencjaPomiaruBenewake &= 0x01;
 	}
 	return cBłąd;
 }

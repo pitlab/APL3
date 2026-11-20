@@ -17,7 +17,7 @@
 //definicje flag magistral I2C używane w zmiennej cZakonczonoTransmisjeI2C
 #define I2C_WEW		0x01	//magistrala czujników wewnętrznych na modułach
 #define I2C_ZEW		0x02	//magistrala czujników podłaczanych z zewnątrz
-
+#define TIMEOUT_SEKWENCJI_I2C	10
 
 void PetlaGlowna(void);
 uint8_t WykonajPolecenieCM7(void);

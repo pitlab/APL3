@@ -34,7 +34,7 @@
 
 //sekwencja odczytu I2C
 #define SB_WYSLIJ_POLECENIE	0
-#define SB_CZYTAJ_DANE		3
+#define SB_CZYTAJ_DANE		1
 
 uint8_t ObsługaI2C_LidaruBenewake(void);
 uint8_t InicjujLidarI2C(void);

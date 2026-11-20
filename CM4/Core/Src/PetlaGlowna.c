@@ -61,7 +61,7 @@ uint8_t cStanIOwy, cStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t cBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 extern volatile uint8_t cWskNapBufAnaGNSS, cWskOprBufAnaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
 uint16_t sTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po timeoucie inicjalizuje moduł.
-static uint8_t cEtapOperacjiI2C;
+static uint8_t cEtapOperacjiZewnI2C, cEtapOperacjiWewnI2C;
 uint8_t cGeneratorNapisow, cLicznikKomunikatow;
 extern I2C_HandleTypeDef hi2c3;
 volatile uint16_t sCzujnikOdczytywanyNaI2CExt;	//identyfikator czujnika obsługiwanego na zewntrznej magistrali I2C. Potrzebny do tego aby powiązać odczytane dane z rodzajem obróbki
@@ -89,6 +89,7 @@ extern uint8_t cWykonanoPomiarADC;	//pole bitowe wykonania pomiarów bit0 = ADC2
 uint8_t cBityPozwoleniaNaPomiarADC;	//pole bitowe informujące który pomiar można wykonać w danym obiegu pętli
 extern uint16_t sWysterowanieIdentSiln;	//wysterowanie silników podczas procesu identfikacji
 uint8_t cTrwaTransmisjaI2C;
+uint8_t cTimeoutObsługiZewI2C, cTimeoutObsługiWewI2C;	//liczniki timeoutu trwania obsługi I2C
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pętla główna programu autopilota
@@ -680,39 +681,65 @@ uint8_t WykonajPolecenieCM7(void)
 ////////////////////////////////////////////////////////////////////////////////
 uint8_t RozdzielniaOperacjiI2C(void)
 {
-	uint8_t cBłąd = BLAD_OK;
+	uint8_t cBłąd = BLAD_NIC_DO_ROBOTY;
 
 	//operacje na zewnętrznej magistrali I2C3
 	if ((cTrwaTransmisjaI2C & I2C_ZEW) == 0)
 	{
-		switch(cEtapOperacjiI2C)
+		switch(cEtapOperacjiZewnI2C)
 		{
 		case 0x00: 	cBłąd = ObslugaMS4525();		break;
 		case 0x01:	cBłąd = ObslugaHMC5883();		break;
 		case 0x02:	cBłąd = ObsługaNA219();			break;
 		case 0x03:	cBłąd = ObsługaNA226();			break;
 		case 0x04: 	cBłąd = ObsługaVL53L1();		break;
-		case 0x05:	cBłąd = ObsługaI2C_LidaruBenewake();break;
+		case 0x05:	cBłąd = ObsługaI2C_LidaruBenewake();	break;
 		default: break;
+		}
+		if (cBłąd == BLAD_OK)				//kod błędu BLAD_OK oznacza że transmisja I2C została rozpoczęta
+		{
+			cTrwaTransmisjaI2C |= I2C_ZEW;
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);	//Serwo 1 PB9
+		}
+		cEtapOperacjiZewnI2C++;
+		cEtapOperacjiZewnI2C &= 0x07;
+	}
+	else
+	{
+		cTimeoutObsługiZewI2C++;
+		if (cTimeoutObsługiZewI2C > TIMEOUT_SEKWENCJI_I2C)
+		{
+			cTimeoutObsługiZewI2C = 0;
+			cTrwaTransmisjaI2C &= ~I2C_ZEW;	//po timeoucie zezwól na kolejną transmisję
 		}
 	}
 
 	//operacje na wewnętrznej magistrali I2C4
+	cBłąd = BLAD_NIC_DO_ROBOTY;
 	if ((cTrwaTransmisjaI2C & I2C_WEW) == 0)
 	{
-		switch(cEtapOperacjiI2C)
+		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);	//Serwo 1 PB9
+		switch(cEtapOperacjiWewnI2C)
 		{
 		case 0:	cBłąd = ObslugaIIS2MDC();		break;
-		case 8:	cBłąd = ObslugaMMC3416x();		break;	//na egzemplarzu 2 jest problem blokowania się przerwania obsługi tego magnetometru
+		case 1:	cBłąd = ObslugaMMC3416x();		break;
 		default: break;
 		}
-	}
+		if (cBłąd == BLAD_OK)				//kod błędu BLAD_OK oznacza że transmisja I2C została rozpoczęta
+			cEtapOperacjiWewnI2C |= I2C_WEW;
 
-	cEtapOperacjiI2C++;
-	//cEtapOperacjiI2C &= 0x03;
-	cEtapOperacjiI2C &= 0x0F;
-	//cEtapOperacjiI2C &= 0x1F;
-	//cEtapOperacjiI2C &= 0x3F;
+		cEtapOperacjiWewnI2C++;
+		cEtapOperacjiWewnI2C &= 0x01;
+	}
+	else
+	{
+		cTimeoutObsługiWewI2C++;
+		if (cTimeoutObsługiWewI2C > TIMEOUT_SEKWENCJI_I2C)
+		{
+			cTimeoutObsługiWewI2C = 0;
+			cTrwaTransmisjaI2C &= ~I2C_WEW;
+		}
+	}
 	return cBłąd;
 }
 
@@ -779,6 +806,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 		}
 		sCzujnikOdczytywanyNaI2CExt = 0;
 		cTrwaTransmisjaI2C &= ~I2C_ZEW;	//zakończono operację na magistrali czujników zewnetrznych
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//Serwo 1 PB9
 	}
 
 	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych
@@ -790,6 +818,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 		}
 		sCzujnikOdczytywanyNaI2CInt = 0;
 		cTrwaTransmisjaI2C &= ~I2C_WEW;	//zakończono operację na magistrali czujników wewnetrznych
+		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//Serwo 1 PB9
 	}
 }
 
