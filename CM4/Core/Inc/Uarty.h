@@ -9,6 +9,7 @@
 #define INC_UARTY_H_
 
 #include "SysDefCM4.h"
+#include "wymiana.h"
 
 #define ROZMIAR_BUF_ODB_UART2	16	//RC1
 #define ROZMIAR_BUF_ODB_UART4	16	//RC2
@@ -27,5 +28,6 @@
 void WłączOdbiórUART2(void);
 void WłączOdbiórUART4(void);
 void WłączOdbiórUART8(void);
+uint8_t ObsługaUART8(stWymianyCM4_t *dane);
 
 #endif /* INC_UARTY_H_ */

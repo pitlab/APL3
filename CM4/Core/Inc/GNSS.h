@@ -9,6 +9,7 @@
 #define INC_GNSS_H_
 
 #include "SysDefCM4.h"
+#include "wymiana.h"
 
 #define ROZMIAR_BUF_NAD_GNSS	55	//najdłuższy komunikat ma 55 bajtów
 //#define ROZMIAR_BUF_ODB_GNSS	15	//ma być nieparzysty aby mozna było migać LEDem
@@ -24,5 +25,6 @@
 uint8_t InicjujGNSS(void);
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size);
 void SumaKontrolnaUBX(uint8_t *chRamka);
+uint8_t ObsługaGNSS1(stWymianyCM4_t *dane);
 
 #endif /* INC_GNSS_H_ */

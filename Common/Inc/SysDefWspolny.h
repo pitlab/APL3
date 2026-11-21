@@ -32,7 +32,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define INIT_TRWA_KAL_ZYRO_POK	0x00020000	//trwa kalibracja zera żyroskopu w temp. pokojowej
 #define INIT_TRWA_KAL_ZYRO_GOR	0x00040000	//trwa kalibracja zera żyroskopu na gorąco
 #define INIT_WYK_KAL_WZM_ZYRO	0x00080000	//wykonano kalibrację wzmocnienia żyroskopu w danej osi
-#define INIT_KALMAN_WYSOKOSCI	0x00100000	//zainicjowana filtr Kalmana wysokości  danymi z czujników
+#define INIT_KALMAN_WYSOKOSCI	0x00100000	//zainicjowano filtr Kalmana wysokości  danymi z czujników
 #define INIT_BMP585				0x00200000
 #define INIT_P0_BMP855			0x00400000	//ustawiono ciśnienie P0 dla czujnika 2
 #define INIT_VL53L1				0x00800000	//inicjalizacja lidara
@@ -42,6 +42,7 @@ typedef union 		//unia do konwersji między danymi 32, 16 i 8 bit
 #define INIT_KALMAN_KATOW		0x08000000	//EKF estymacji kątów
 #define INIT_KALMAN_KAL_MAGN	0x10000000	//filtr Kalmana kalibracji magnetometrów
 #define INIT_LIDAR_BENEWAKE		0x20000000	//lidar BenewakeTF02-PRO
+#define INIT_CROSSFIRE1			0x40000000
 
 #define TESTY		//włacz testowanie algorytmów, można wyłaczyć dla _nieświadowego_ końcowego użytkownika
 #define RAD2DEG				(180/M_PI)

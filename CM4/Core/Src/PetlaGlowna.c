@@ -42,7 +42,7 @@
 #include <KalmanKalibracjiMagnetometrow12X9Z.h>
 #include <KalibracjaMagMetodaDopasowaniaDoSfery.h>
 #include "BenewakeI2C.h"
-
+#include "Uarty.h"
 
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
@@ -59,8 +59,6 @@ uint8_t cIndeksBuforaBłędów, cIndeksKasowaniaBłędów;
 uint16_t sLicznikKasowaniaBłędów;
 uint8_t cStanIOwy, cStanIOwe;	//stan wejść IO modułów wewnetrznych
 extern uint8_t cBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
-extern volatile uint8_t cWskNapBufAnaGNSS, cWskOprBufAnaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
-uint16_t sTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po timeoucie inicjalizuje moduł.
 static uint8_t cEtapOperacjiZewnI2C, cEtapOperacjiWewnI2C;
 uint8_t cGeneratorNapisow, cLicznikKomunikatow;
 extern I2C_HandleTypeDef hi2c3;
@@ -105,7 +103,6 @@ void PetlaGlowna(void)
 	//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_1);	//kanał serw 5 skonfigurowany jako IO
 	//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);	//kanał serw 7 skonfigurowany jako IO
 
-
 	//Ponieważ dekoder modułów  steruje zarówno linią CS modułu oraz przełącza multipleksery kanałów przetwornika A/C
 	// więc równolegle z pierwszymi 8 odcinkami pętli głównej wykonaj pomiary analogowe
 	if (cNrOdcinkaCzasu < LICZBA_POMIAROW_ADC3)
@@ -133,27 +130,8 @@ void PetlaGlowna(void)
 		//do; while (( chWykonanoPomiarADC != WYKONANO_POMIAR_ADC2) || (chWykonanoPomiarADC != WYKONANO_POMIAR_ADC3));	//czekaj na wykonanie pomiarów ADC
 		break;
 
-	case 4:		//obsługa GNSS na UART8
-		while (cWskNapBufAnaGNSS != cWskOprBufAnaGNSS)
-		{
-			cBłądPG = DekodujNMEA(cBuforAnalizyGNSS[cWskOprBufAnaGNSS], &uDaneCM4.dane.stGnss[0]);	//analizuj dane z GNSS1
-			PrzechwyćBłąd(cBłądPG);
-			cWskOprBufAnaGNSS++;
-			cWskOprBufAnaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
-			sTimeoutGNSS = TIMEOUT_GNSS;
-		}
-		if ((uDaneCM4.dane.nZainicjowano & INIT_GNSS1_GOTOWY) == 0)
-		{
-			InicjujGNSS();		//gdy nie jest zainicjowany to przeprowadź odbiornik przez kolejne etapy inicjalizacji
-		}
-		if (sTimeoutGNSS)
-			sTimeoutGNSS--;
-		else
-		{
-			sTimeoutGNSS = TIMEOUT_GNSS;
-			uDaneCM4.dane.nZainicjowano &= ~MASKA_INIT_GNSS;	//wyczyść wszystkie bity używane przez GNSS
-			uDaneCM4.dane.stGnss[0].cFix = 0;
-		}
+	case 4:		cBłądPG = ObsługaUART8(&uDaneCM4.dane);	//obsługa GNSS lub Crossfire na UART8
+		PrzechwyćBłąd(cBłądPG);
 		break;
 
 	case 5:
@@ -169,23 +147,15 @@ void PetlaGlowna(void)
 
 		if (uDaneCM4.dane.nZainicjowano & INIT_KALMAN_WYSOKOSCI)
 		{
-			//cBłądPG = PredykcjaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
-			//cBłądPG = PredykcjaFiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 			cBłądPG = PredykcjaFiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 			if (uDaneCM4.dane.sNowyPomiar & NP_WYS1)
-				//cBłądPG = AktulizacjaWysokościiPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
-				//cBłądPG = AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 				cBłądPG = AktulizacjaCzujnikiemCiśnienia1FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 
 			if (uDaneCM4.dane.sNowyPomiar & NP_WYS3)
-				//cBłądPG = AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 				cBłądPG = AktulizacjaCzujnikiemCiśnienia2FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 
 			//przyspieszenia są aktualizowane w każdym obiegu pętli
-			//cBłądPG = AktulizacjaPrzyspieszeniaFiltraKalmanaWysokości4X3Z(&uDaneCM4.dane);
-			//cBłądPG = AktulizacjaAkcelerometrem1FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
-			//cBłądPG = AktulizacjaAkcelerometrem2FiltraKalmanaWysokości5X6Z(&uDaneCM4.dane);
 			cBłądPG = AktulizacjaAkcelerometrem1FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 			cBłądPG = AktulizacjaAkcelerometrem2FiltraKalmanaWysokości10X10Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
@@ -193,8 +163,6 @@ void PetlaGlowna(void)
 		}
 		else	//jeżeli filtr nie jest zainicjowany to inicjuj go
 		{
-			//cBłądPG = InicjujFiltrKalmanaWysokości4X3Z(&uDaneCM4.dane);
-			//cBłądPG = InicjujFiltrKalmanaWysokości5X6Z(&uDaneCM4.dane);
 			cBłądPG = InicjujFiltrKalmanaWysokości10X10Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 		}
@@ -220,8 +188,6 @@ void PetlaGlowna(void)
 			cBłądPG = InicjujFiltrKalmanaKalibracjiMagnetometrów12X9Z(&uDaneCM4.dane);
 			PrzechwyćBłąd(cBłądPG);
 		}*/
-
-
 		break;
 
 	case 7:
@@ -245,8 +211,8 @@ void PetlaGlowna(void)
 	case 9:	//obsługa odbiorników RC
 		cBłądPG = ObsługaRamkiSBus();
 		PrzechwyćBłąd(cBłądPG);
-		cBłądPG = ObsługaRamkiCrossfire();
-		PrzechwyćBłąd(cBłądPG);
+		//cBłądPG = ObsługaRamkiCrossfire();
+		//PrzechwyćBłąd(cBłądPG);
 		cBłądPG = DywersyfikacjaOdbiornikowRC(&stRC1, &stRC2, uDaneCM7.dane.cWyborOdbiornikaRC, &uDaneCM4.dane);	//scalenie obu kanałów w jedne dane dane odbiornika RC
 		PrzechwyćBłąd(cBłądPG);
 		cBłądPG = AnalizujSygnalRC(&uDaneCM4.dane, &uDaneCM7.dane);
@@ -260,7 +226,6 @@ void PetlaGlowna(void)
 			{
 				cBłądPG = PredykcjaFiltraKalmanaKątów7X9Z(uDaneCM7.dane.stSym.fPrędkośćKątowa, &uDaneCM4.dane);
 				PrzechwyćBłąd(cBłądPG);
-				//cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(uDaneCM7.dane.stSym.fAkcelerometr);
 				cBłądPG = AktulizacjaAkcelerometremFiltraKalmanaKątów7X9Z(uDaneCM7.dane.stSym.fAkcelerometr, &uDaneCM4.dane);
 				PrzechwyćBłąd(cBłądPG);
 				cBłądPG = AktulizacjaMagnetometremFiltraKalmanaKątów7X9Z(uDaneCM7.dane.stSym.fMagnetometr);
@@ -699,7 +664,7 @@ uint8_t RozdzielniaOperacjiI2C(void)
 		if (cBłąd == BLAD_OK)				//kod błędu BLAD_OK oznacza że transmisja I2C została rozpoczęta
 		{
 			cTrwaTransmisjaI2C |= I2C_ZEW;
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);	//Serwo 1 PB9
+			//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);	//Serwo 1 PB9
 		}
 		cEtapOperacjiZewnI2C++;
 		cEtapOperacjiZewnI2C &= 0x07;
@@ -806,7 +771,7 @@ void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c)
 		}
 		sCzujnikOdczytywanyNaI2CExt = 0;
 		cTrwaTransmisjaI2C &= ~I2C_ZEW;	//zakończono operację na magistrali czujników zewnetrznych
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//Serwo 1 PB9
+		//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);	//Serwo 1 PB9
 	}
 
 	if (hi2c->Instance == I2C4)		//magistrala I2C modułów wewnętrznych

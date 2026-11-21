@@ -12,6 +12,7 @@
 #include "wymiana.h"
 #include "PetlaGlowna.h"
 #include "Uarty.h"
+#include <Nmea.h>
 
 // Potrzebne informacje znajdują się w następujaących ramkach. Na początek wysarczymi GGA i RMC
 //Ramka	[GGA]	GLL	GSA	GSV	[RMC]	VTG	GRS	GST	ZDA	GBS	PUBX00	PUBX03 PuBX04
@@ -35,7 +36,7 @@ uint8_t cBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 volatile uint8_t cWskNapBufAnaGNSS, cWskOprBufAnaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
 uint16_t sCzasInicjalizacjiGNSS = 0;	//licznik czasu	inicjalizacji wyrażony w obiegach pętli 1/200Hz = 5ms
 extern volatile unia_wymianyCM4_t uDaneCM4;
-
+uint16_t sTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po timeoucie inicjalizuje moduł.
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -304,4 +305,34 @@ void SumaKontrolnaUBX(uint8_t *cRamka)
 	}
 	*(cRamka + rozmiar + 6) = cCK_A;
 	*(cRamka + rozmiar + 7) = cCK_B;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Obsługa odbioru danych i konfiguracji UART dla GNSS1
+// Parametry: brak
+// Zwraca: kod błędu
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ObsługaGNSS1(stWymianyCM4_t *dane)
+{
+	uint8_t cBłąd = BLAD_OK;
+
+	while (cWskNapBufAnaGNSS != cWskOprBufAnaGNSS)
+	{
+		cBłąd = DekodujNMEA(cBuforAnalizyGNSS[cWskOprBufAnaGNSS], &dane->stGnss[0]);	//analizuj dane z GNSS1
+		cWskOprBufAnaGNSS++;
+		cWskOprBufAnaGNSS &= MASKA_ROZM_BUF_ANA_GNSS;
+		sTimeoutGNSS = TIMEOUT_GNSS;
+	}
+
+	if (sTimeoutGNSS)
+		sTimeoutGNSS--;
+	else
+	{
+		sTimeoutGNSS = TIMEOUT_GNSS;
+		dane->nZainicjowano &= ~MASKA_INIT_GNSS;	//wyczyść wszystkie bity używane przez GNSS
+		dane->stGnss[0].cFix = 0;
+	}
+	return cBłąd;
 }

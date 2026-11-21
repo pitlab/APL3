@@ -241,9 +241,6 @@ int main(void)
   cBłąd = InicjujKontrolerLotu();
   PrzechwyćBłąd(cBłąd);
 
-  cBłąd = InicjujCrossfire();
-  PrzechwyćBłąd(cBłąd);
-
   InicjujWymiane();
 
 #ifdef TESTY		//testy algorytmów

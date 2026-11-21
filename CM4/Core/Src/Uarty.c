@@ -44,6 +44,10 @@ extern uint8_t cBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 extern volatile uint8_t cWskNapBufAnaGNSS;		//wskaźnik napełniania kołowego bufora odbiorczego analizy danych GNSS
 extern uint8_t cBuforAnalizyLidaru[ROZMIAR_BUF_ANA_LIDARU];
 extern volatile uint8_t cWskNapBufAnaLidaru;
+extern uint8_t cBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
+//extern volatile uint8_t cWskNapBufAnaGNSS, cWskOprBufAnaGNSS;		//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych GNSS
+//uint16_t sTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po timeoucie inicjalizuje moduł.
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -222,6 +226,49 @@ void WłączOdbiórUART4(void)
 void WłączOdbiórUART8(void)
 {
 	HAL_UART_Receive_DMA(&huart8, cBuforOdbioruUart8, ROZMIAR_BUF_ODB_UART8);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Obsługa UART8 w petli głównej
+// Parametry: brak
+// Zwraca: nic
+////////////////////////////////////////////////////////////////////////////////
+uint8_t ObsługaUART8(stWymianyCM4_t *dane)
+{
+	uint8_t cBłąd = BLAD_OK;
+
+	switch (cKonfiguracjaUart8)
+	{
+	case U_GNSS1:
+	case U_GNSS2:
+		if (dane->nZainicjowano & INIT_GNSS1_GOTOWY)
+			cBłąd = ObsługaGNSS1(dane);
+		else
+		{
+			cBłąd = InicjujGNSS();		//gdy nie jest zainicjowany to przeprowadź odbiornik przez kolejne etapy inicjalizacji
+			if (cBłąd == BLAD_OK)
+				dane->nZainicjowano |= INIT_GNSS1_GOTOWY;
+		}
+		break;
+
+	case U_CRSF1:
+	case U_CRSF2:
+		if (dane->nZainicjowano & INIT_CROSSFIRE1)
+			cBłąd = ObsługaRamkiCrossfire();
+		else
+		{
+			cBłąd = InicjujCrossfire();
+			if (cBłąd == BLAD_OK)
+				dane->nZainicjowano |= INIT_CROSSFIRE1;
+		}
+		break;
+
+	case U_BENEWAKE:	break;
+
+	}
+	return cBłąd;
 }
 
 

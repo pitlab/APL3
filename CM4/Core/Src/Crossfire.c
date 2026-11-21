@@ -220,7 +220,8 @@ uint8_t AnalizujCrossfire(uint8_t *cRamka, stRC_t *stRC)
 
 		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 2] >> 6) | (((uint16_t)cRamka[EORC_DANE + 3] << 2) & 0x3FC) | (((uint16_t)cRamka[EORC_DANE + 4] << 10) & 0x400));
 		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 2] >> 6) | ((uint16_t)cRamka[EORC_DANE + 3] << 2) | ((uint16_t)cRamka[EORC_DANE + 4] << 10)) & 0x7FF;
-		if (sWartoscKanalu < WE_RC_MAX)
+		//if (sWartoscKanalu < WE_RC_MAX)
+		if (sWartoscKanalu < 300)
 		{
 			stRC->sKanaly[2] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
 			stRC->sZdekodowaneKanaly |= 0x0004;
