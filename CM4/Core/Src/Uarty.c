@@ -49,7 +49,6 @@ extern uint8_t cBuforAnalizyGNSS[ROZMIAR_BUF_ANA_GNSS];
 //uint16_t sTimeoutGNSS;		//licznik timeoutu odbierania danych z modułu GNSS. Po timeoucie inicjalizuje moduł.
 
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // Callback zapełnienia połowy bufora UARTA.
 // Parametry:
@@ -83,7 +82,7 @@ void HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
 					//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
 				}
 			}
-			//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);		//kanał serw 1 skonfigurowany jako IO
+			//HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_9);		//kanał serw 1 skonfigurowany jako IO
 			break;
 		}
 	}

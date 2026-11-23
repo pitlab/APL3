@@ -68,7 +68,6 @@ uint8_t cFunkcjaWyjscRC[KANALY_WYJSC_RC];		//funkcje przypisane do kanałów wyj
 uint8_t cFunkcjaSilnika[KANALY_MIKSERA];		//funkcje przypisane do silników: normalna praca lub analiza FFT rezonansu drgań ramy
 uint8_t cRozmiarSekwencjiDMA[KANALY_MIKSERA+1];	//rozmiar paczki danych przesyłanych do DMA w zależności od częstotliwości odświezania. Dla 400Hz paczka ma 1 ważną daną, dla 200Hz jedną ważną i jedną nieważną, dla 50Hz jest 1 ważna i 7 pustych
 uint8_t cBityKonfiguracji = 0;
-//volatile uint16_t sFlagiNapelnieniaBuforow;		//flagi inforujące pętlę główną o potrzebie napełnienia podwójnego bufora DMA: DShot lub programowalnych LEDów
 uint16_t sPoprzedniStanKanaluRozszerzonego[KANALY_FUNKCYJNE];	//poprzedni stan do detekcji uruchomiania funkcji wywoływanych kanałami wejsciowymi RC
 uint8_t cDzielnikAktualizacjiLED;
 uint16_t sWysterowanieIdentSiln;	//wysterowanie silników podczas procesu identfikacji
@@ -115,9 +114,7 @@ uint8_t InicjujWejsciaRC(void)
 	}
 	else
 	if (cKonfigWeRC[KANAL_RC1] == ODB_RC_SBUS)
-	{
 		cBłąd |= InicjujUart4RxJakoSbus(&GPIO_InitStruct);
-	}
 
 	//ustaw Port PA3 jako UART2_RX lub TIM2_CH4
 	__HAL_RCC_GPIOA_CLK_ENABLE();
@@ -139,9 +136,7 @@ uint8_t InicjujWejsciaRC(void)
 	}
 	else
 	if (cKonfigWeRC[KANAL_RC2] == ODB_RC_SBUS)
-	{
 		cBłąd |= InicjujUart2RxJakoSbus(&GPIO_InitStruct);
-	}
 
 	//odczytaj z FRAM minima i maksima kanałów RC aby móc je normalizować
     for (uint16_t n=0; n<KANALY_ODB_RC; n++)
@@ -154,17 +149,11 @@ uint8_t InicjujWejsciaRC(void)
 
     //odczytaj z FRAM numery kanałów dla 4 drążków RC
     for (uint16_t n=0; n<LICZBA_DRAZKOW; n++)
-    {
     	cBłąd |= CzytajFramU8zWalidacja(FAU_KAN_DRAZKA_RC + n, &cKanalDrazkaRC[n],  0,  LICZBA_DRAZKOW,  0);	//4*1U Numer kanału przypisany do funkcji drążka aparatury: przechylenia, pochylenia, odchylenia i wysokości
-    }
 
     //odczytaj z FRAM numery funkcji dla wyższych niż 4 kanałów RC
     for (uint16_t n=0; n<KANALY_FUNKCYJNE; n++)
-    {
-    	//cBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MIN_KAN_RC + n, &hFunkcjaMinKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na minimum
-    	//cBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_MAX_KAN_RC + n, &cFunkcjaMaxKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16) przełączonego na maksimum
     	cBłąd |= CzytajFramU8zWalidacja(FAU_FUNKCJA_KAN_RC + n, &cFunkcjaKanaluRC[n],  0,  LICZBA_FUNKCJI_RC,  0);	//12*1U Numer funkcji przypisanej do kanału RC (5..16)
-    }
 
     //domyślnie silniki pełnią funkcję napedu
     for (uint16_t n=0; n<KANALY_MIKSERA; n++)

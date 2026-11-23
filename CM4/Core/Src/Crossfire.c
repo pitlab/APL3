@@ -17,18 +17,13 @@ extern stRC_t stRC1, stRC2;	//struktura danych odbiorników RC1 i RC2
 extern unia_wymianyCM4_t uDaneCM4;
 extern unia_wymianyCM7_t uDaneCM7;
 extern uint8_t cBuforOdbioruUart8[ROZMIAR_BUF_ODB_UART8];
-uint16_t sPoprzedniKanal;
-uint8_t cBladNaKanale;
 
 uint8_t cBuforAnalizyCrossfire[ROZMIAR_BUF_ANA_CRSF];
 volatile uint8_t cWskNapBufAnaCRSF, cWskOprBufAnaCRSF; 	//wskaźniki napełniania i opróżniania kołowego bufora odbiorczego analizy danych Crossfire
 uint8_t cRamkaCRSF[ROZMIAR_RAMKI_CRSF];
 uint8_t cEtapOdbioruRamki;	//wskazuje która część ramki jest odbierana
 uint8_t cLicznikDanych;	//zlicza dane w polu payload
-//union {
-//	stSpakowaneKanalyCRSF_t stSpakowaneKanalyCRSF;
-//	uint8_t cRamkaCRSF[22];
-//} uSpakowaneKanalyCRSF;
+uint8_t cBuforLicznikaDanych[256], cLicznikLicnikaDanych;
 
 uint8_t crc8tab[256] = {
     0x00, 0xD5, 0x7F, 0xAA, 0xFE, 0x2B, 0x81, 0x54, 0x29, 0xFC, 0x56, 0x83, 0xD7, 0x02, 0xA8, 0x7D,
@@ -98,7 +93,7 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *cRamka, uint8_t *cEtapOdbioru, uint8_t *c
 			//if ((cDane == CRSF_ADR_FLIGHT_CTRL) || (cDane == CRSF_ADR_BROADCAST))
 			if (cDane == CRSF_ADR_FLIGHT_CTRL)
 			{
-				cRamka[0] = cDane;
+				cRamka[EORC_ADRES] = cDane;
 				(*cEtapOdbioru)++;
 			}
 			break;
@@ -122,6 +117,10 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *cRamka, uint8_t *cEtapOdbioru, uint8_t *c
 		case EORC_DANE:
 			cRamka[EORC_DANE + *cLicznikDanych] = cDane;
 			(*cLicznikDanych)++;
+			cBuforLicznikaDanych[cLicznikLicnikaDanych] = *cLicznikDanych; 	//test
+			cLicznikLicnikaDanych++;	//test
+			if (cRamka[EORC_DLUGOSC] < 22)	//test
+				*cEtapOdbioru = EORC_CRC;	//test
 			if (*cLicznikDanych == cRamka[EORC_DLUGOSC] - 2)	// pole długość zawiera liczbę danych + Typ + CRC
 				*cEtapOdbioru = EORC_CRC;
 			break;
@@ -131,18 +130,11 @@ uint8_t OdbiórRamkiCrossfire(uint8_t *cRamka, uint8_t *cEtapOdbioru, uint8_t *c
 			cRamka[EORC_DANE + *cLicznikDanych] = cDane;
 			uint8_t cCrc = crc8(&cRamka[EORC_TYP], cRamka[EORC_DLUGOSC] - 1);	//CRC nie jest liczone z 2 pierwszych bajtów nagłówka i długości oraz z CRC
 			if (cDane == cCrc)
-			{
 				cBłąd = BLAD_GOTOWE;
-
-			}
 			else
-			{
 				cBłąd = BLAD_CRC;
-				//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
-			}
 			break;
 
-			//for (uint8_t n=EORC_TYP; n<; n++)
 		default:	cBłąd = BLAD_ZLE_DANE;
 			*cEtapOdbioru = EORC_ADRES;	//napraw automat stanu jeżeli wypadł z synchronizmu
 			break;
@@ -198,8 +190,8 @@ uint8_t AnalizujCrossfire(uint8_t *cRamka, stRC_t *stRC)
 		break;
 
 	case TYPCRSF_CHAN_PACKED:	 	//0x16 RC Channels Packed Payload
-		//sWartoscKanalu = ((uint16_t)cRamka[EORC_DANE + 0] | (((uint16_t)cRamka[EORC_DANE + 1]  << 8) & 0x7E0));
-		sWartoscKanalu = ((uint16_t)cRamka[EORC_DANE + 0] | ((uint16_t)cRamka[EORC_DANE + 1]  << 8)) & 0x7FF;
+		sWartoscKanalu = (cRamka[EORC_DANE + 0] | ((uint16_t)cRamka[EORC_DANE + 1]  << 8)) & 0x7FF;
+		//sWartoscKanalu = cRamka[EORC_DANE + 0] | ((uint16_t)(cRamka[EORC_DANE + 1]  & 0x07) << 8);
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[0] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
@@ -208,8 +200,8 @@ uint8_t AnalizujCrossfire(uint8_t *cRamka, stRC_t *stRC)
 		else
 			cBłąd = BLAD_ZLE_DANE;
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 1] >> 3) | (((uint16_t)cRamka[EORC_DANE + 2] << 5) & 0x7E0));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 1] >> 3) | ((uint16_t)cRamka[EORC_DANE + 2] << 5)) & 0x7FF;
+		sWartoscKanalu = ((cRamka[EORC_DANE + 1] >> 3) | ((uint16_t)cRamka[EORC_DANE + 2] << 5)) & 0x7FF;
+		//sWartoscKanalu = (cRamka[EORC_DANE + 1] >> 3) | ((uint16_t)(cRamka[EORC_DANE + 2] & 0x3F) << 5);
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[1] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
@@ -218,21 +210,17 @@ uint8_t AnalizujCrossfire(uint8_t *cRamka, stRC_t *stRC)
 		else
 			cBłąd = BLAD_ZLE_DANE;
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 2] >> 6) | (((uint16_t)cRamka[EORC_DANE + 3] << 2) & 0x3FC) | (((uint16_t)cRamka[EORC_DANE + 4] << 10) & 0x400));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 2] >> 6) | ((uint16_t)cRamka[EORC_DANE + 3] << 2) | ((uint16_t)cRamka[EORC_DANE + 4] << 10)) & 0x7FF;
-		//if (sWartoscKanalu < WE_RC_MAX)
-		if (sWartoscKanalu < 300)
+		sWartoscKanalu = ((cRamka[EORC_DANE + 2] >> 6) | ((uint16_t)cRamka[EORC_DANE + 3] << 2) | ((uint16_t)cRamka[EORC_DANE + 4] << 10)) & 0x7FF;
+		//sWartoscKanalu = (cRamka[EORC_DANE + 2] >> 6) | ((uint16_t)cRamka[EORC_DANE + 3] << 2) | ((uint16_t)(cRamka[EORC_DANE + 4] & 0x01) << 10);
+		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[2] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
 			stRC->sZdekodowaneKanaly |= 0x0004;
-			if (sWartoscKanalu != sPoprzedniKanal)
-				sPoprzedniKanal = sWartoscKanalu;
 		}
 		else
 			cBłąd = BLAD_ZLE_DANE;
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 4] >> 1) | (((uint16_t)cRamka[EORC_DANE + 5] << 7) & 0x780));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 4] >> 1) | ((uint16_t)cRamka[EORC_DANE + 5] << 7)) & 0x7FF;
+		sWartoscKanalu = ((cRamka[EORC_DANE + 4] >> 1) | ((uint16_t)cRamka[EORC_DANE + 5] << 7)) & 0x7FF;
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[3] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
@@ -241,8 +229,7 @@ uint8_t AnalizujCrossfire(uint8_t *cRamka, stRC_t *stRC)
 		else
 			cBłąd = BLAD_ZLE_DANE;
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 5] >> 4) | (((uint16_t)cRamka[EORC_DANE + 6] << 4) & 0x7F0));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 5] >> 4) | ((uint16_t)cRamka[EORC_DANE + 6] << 4)) & 0x7FF;
+		sWartoscKanalu = ((cRamka[EORC_DANE + 5] >> 4) | ((uint16_t)cRamka[EORC_DANE + 6] << 4)) & 0x7FF;
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[4] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
@@ -251,8 +238,7 @@ uint8_t AnalizujCrossfire(uint8_t *cRamka, stRC_t *stRC)
 		else
 			cBłąd = BLAD_ZLE_DANE;
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 6] >> 7) | (((uint16_t)cRamka[EORC_DANE + 7] << 1) & 0x1FE) | (((uint16_t)cRamka[EORC_DANE + 8] << 9) & 0x600));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 6] >> 7) | ((uint16_t)cRamka[EORC_DANE + 7] << 1) | ((uint16_t)cRamka[EORC_DANE + 8] << 9)) & 0x7FF;
+		sWartoscKanalu = ((cRamka[EORC_DANE + 6] >> 7) | ((uint16_t)cRamka[EORC_DANE + 7] << 1) | ((uint16_t)cRamka[EORC_DANE + 8] << 9)) & 0x7FF;
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[5] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
@@ -261,138 +247,98 @@ uint8_t AnalizujCrossfire(uint8_t *cRamka, stRC_t *stRC)
 		else
 			cBłąd = BLAD_ZLE_DANE;
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 8] >> 2) | (((uint16_t)cRamka[EORC_DANE + 9] << 6) & 0x7C0));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 8] >> 2) | ((uint16_t)cRamka[EORC_DANE + 9] << 6)) & 0x7FF;
+		sWartoscKanalu = ((cRamka[EORC_DANE + 8] >> 2) | ((uint16_t)cRamka[EORC_DANE + 9] << 6)) & 0x7FF;
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[6] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
 			stRC->sZdekodowaneKanaly |= 0x0040;
 		}
 		else
-		{
 			cBłąd = BLAD_ZLE_DANE;
-			//cBladNaKanale = 6;
-		}
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 9] >> 5) | (((uint16_t)cRamka[EORC_DANE + 10] << 3) & 0x7F8));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 9] >> 5) | ((uint16_t)cRamka[EORC_DANE + 10] << 3)) & 0x7FF;
+		sWartoscKanalu = ((cRamka[EORC_DANE + 9] >> 5) | ((uint16_t)cRamka[EORC_DANE + 10] << 3)) & 0x7FF;
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[7] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
 			stRC->sZdekodowaneKanaly |= 0x0080;
 		}
 		else
-		{
 			cBłąd = BLAD_ZLE_DANE;
-			//cBladNaKanale = 7;
-		}
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 11] >> 0) | (((uint16_t)cRamka[EORC_DANE + 12] << 8) & 0x700));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 11] >> 0) | ((uint16_t)cRamka[EORC_DANE + 12] << 8)) & 0x7FF;
+		sWartoscKanalu = (cRamka[EORC_DANE + 11] | ((uint16_t)cRamka[EORC_DANE + 12] << 8)) & 0x7FF;
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[8] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
 			stRC->sZdekodowaneKanaly |= 0x0100;
 		}
 		else
-		{
 			cBłąd = BLAD_ZLE_DANE;
-			//cBladNaKanale = 8;
-		}
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 12] >> 3) | (((uint16_t)cRamka[EORC_DANE + 13] << 5) & 0x7E0));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 12] >> 3) | ((uint16_t)cRamka[EORC_DANE + 13] << 5)) & 0x7FF;
+		sWartoscKanalu = ((cRamka[EORC_DANE + 12] >> 3) | ((uint16_t)cRamka[EORC_DANE + 13] << 5)) & 0x7FF;
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[9] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
 			stRC->sZdekodowaneKanaly |= 0x0200;
 		}
 		else
-		{
 			cBłąd = BLAD_ZLE_DANE;
-			//cBladNaKanale = 9;
-		}
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 13] >> 6) | (((uint16_t)cRamka[EORC_DANE + 14] << 2) & 0x3FC) | (((uint16_t)cRamka[EORC_DANE + 15] << 10) & 0x400));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 13] >> 6) | ((uint16_t)cRamka[EORC_DANE + 14] << 2) | ((uint16_t)cRamka[EORC_DANE + 15] << 10)) & 0x7FF;
+		sWartoscKanalu = ((cRamka[EORC_DANE + 13] >> 6) | ((uint16_t)cRamka[EORC_DANE + 14] << 2) | ((uint16_t)cRamka[EORC_DANE + 15] << 10)) & 0x7FF;
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[10] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
 			stRC->sZdekodowaneKanaly |= 0x0400;
 		}
 		else
-		{
 			cBłąd = BLAD_ZLE_DANE;
-			//cBladNaKanale = 10;
-		}
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 15] >> 1) | (((uint16_t)cRamka[EORC_DANE + 16] << 7) & 0x780));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 15] >> 1) | ((uint16_t)cRamka[EORC_DANE + 16] << 7)) & 0x7FF;
+		sWartoscKanalu = ((cRamka[EORC_DANE + 15] >> 1) | ((uint16_t)cRamka[EORC_DANE + 16] << 7)) & 0x7FF;
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[11] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
 			stRC->sZdekodowaneKanaly |= 0x0800;
 		}
 		else
-		{
 			cBłąd = BLAD_ZLE_DANE;
-			//cBladNaKanale = 11;
-		}
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 16] >> 4) | (((uint16_t)cRamka[EORC_DANE + 17] << 4) & 0x7F0));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 16] >> 4) | ((uint16_t)cRamka[EORC_DANE + 17] << 4)) & 0x7F0;
+		sWartoscKanalu = ((cRamka[EORC_DANE + 16] >> 4) | ((uint16_t)cRamka[EORC_DANE + 17] << 4)) & 0x7FF;
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[12] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
 			stRC->sZdekodowaneKanaly |= 0x1000;
 		}
 		else
-		{
 			cBłąd = BLAD_ZLE_DANE;
-			//cBladNaKanale = 12;
-		}
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 17] >> 7) | (((uint16_t)cRamka[EORC_DANE + 18] << 1) & 0x1FE) | (((uint16_t)cRamka[EORC_DANE + 19] << 9) & 0x600));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 17] >> 7) | ((uint16_t)cRamka[EORC_DANE + 18] << 1) | ((uint16_t)cRamka[EORC_DANE + 19] << 9)) & 0x7FF;
+		sWartoscKanalu = ((cRamka[EORC_DANE + 17] >> 7) | ((uint16_t)cRamka[EORC_DANE + 18] << 1) | ((uint16_t)cRamka[EORC_DANE + 19] << 9)) & 0x7FF;
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[13] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
 			stRC->sZdekodowaneKanaly |= 0x2000;
 		}
 		else
-		{
 			cBłąd = BLAD_ZLE_DANE;
-			//cBladNaKanale = 13;
-		}
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 19] >> 2) | (((uint16_t)cRamka[EORC_DANE + 20] << 6) & 0x7C0));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 19] >> 2) | ((uint16_t)cRamka[EORC_DANE + 20] << 6)) & 0x7FF;
+		sWartoscKanalu = ((cRamka[EORC_DANE + 19] >> 2) | ((uint16_t)cRamka[EORC_DANE + 20] << 6)) & 0x7FF;
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[14] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
 			stRC->sZdekodowaneKanaly |= 0x4000;
 		}
 		else
-		{
 			cBłąd = BLAD_ZLE_DANE;
-			//cBladNaKanale = 14;
-		}
 
-		//sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 20] >> 5) | (((uint16_t)cRamka[EORC_DANE + 21] << 3) & 0x7F8));
-		sWartoscKanalu = (((uint16_t)cRamka[EORC_DANE + 20] >> 5) | ((uint16_t)cRamka[EORC_DANE + 21] << 3)) & 0x7F8;
+		sWartoscKanalu = ((cRamka[EORC_DANE + 20] >> 5) | ((uint16_t)cRamka[EORC_DANE + 21] << 3)) & 0x7FF;
 		if (sWartoscKanalu < WE_RC_MAX)
 		{
 			stRC->sKanaly[15] = sWartoscKanalu + OFFSET_ZERA_CROSSFIRE;
 			stRC->sZdekodowaneKanaly |= 0x8000;
 		}
 		else
-		{
 			cBłąd = BLAD_ZLE_DANE;
-			//cBladNaKanale = 15;
-		}
 		break;
 
-	default:	cBłąd = BLAD_ZLE_DANE;	break;
+	default:	cBłąd = BLAD_ZLE_POLECENIE;	break;
 	}
 
 	if (cBłąd == BLAD_OK)
@@ -414,6 +360,9 @@ uint8_t ObsługaRamkiCrossfire(void)
 
 	cBłąd = OdbiórRamkiCrossfire(cRamkaCRSF, &cEtapOdbioruRamki, &cLicznikDanych, cBuforAnalizyCrossfire, cWskNapBufAnaCRSF, (uint8_t*)&cWskOprBufAnaCRSF);
 	if (cBłąd == BLAD_GOTOWE)
+	{
 		cBłąd = AnalizujCrossfire(cRamkaCRSF, &stRC2);
+		//HAL_GPIO_TogglePin(GPIOI, GPIO_PIN_10);			//kanał serw 7 skonfigurowany jako IO
+	}
 	return cBłąd;
 }
